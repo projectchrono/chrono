@@ -112,7 +112,7 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicleM113* vehicle,
   ground->SetPos(pos);
 	// ground->SetIdentifier(-1);
   ground->SetName("ground");
-  ground->SetFriction(friction_mu);
+  ground->GetMaterialSurface()->SetFriction(friction_mu);
 
   // Don't forget to set this collision family!
   ground->GetCollisionModel()->SetFamily((int)CollisionFam::Ground);
