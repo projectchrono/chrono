@@ -78,8 +78,8 @@ void AddContainer(ChSystemParallelDEM* sys) {
   mat->SetRestitution(cr);
 
   // Create the containing bin (4 x 4 x 1)
-  ChSharedPtr<ChBodyDEM> bin(new ChBodyDEM(new ChCollisionModelParallel));
-  bin->SetMaterialSurfaceDEM(mat);
+  ChSharedPtr<ChBody> bin(new ChBody(new ChCollisionModelParallel, ChBody::DEM));
+  bin->SetMaterialSurface(mat);
   bin->SetIdentifier(binId);
   bin->SetMass(1);
   bin->SetPos(ChVector<>(0, 0, 0));
@@ -121,8 +121,8 @@ void AddFallingBalls(ChSystemParallel* sys) {
     for (int iy = -count_Y; iy <= count_Y; iy++) {
       ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-      ChSharedPtr<ChBodyDEM> ball(new ChBodyDEM(new ChCollisionModelParallel));
-      ball->SetMaterialSurfaceDEM(ballMat);
+      ChSharedPtr<ChBody> ball(new ChBody(new ChCollisionModelParallel, ChBody::DEM));
+      ball->SetMaterialSurface(ballMat);
 
       ball->SetIdentifier(ballId++);
       ball->SetMass(mass);

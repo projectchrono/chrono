@@ -294,10 +294,10 @@ bool TestLinActuator(utils::SystemType sys_type,  // type of system (PARALLEL_DE
   ChBody* ground_ptr;
   switch (sys_type) {
     case utils::PARALLEL_DEM:
-      ground_ptr = new ChBodyDEM(new ChCollisionModelParallel);
+      ground_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DEM);
       break;
     case utils::PARALLEL_DVI:
-      ground_ptr = new ChBody(new ChCollisionModelParallel);
+      ground_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DVI);
       break;
   }
   ChSharedPtr<ChBody> ground(ground_ptr);
@@ -317,10 +317,10 @@ bool TestLinActuator(utils::SystemType sys_type,  // type of system (PARALLEL_DE
   ChBody* plate_ptr;
   switch (sys_type) {
     case utils::PARALLEL_DEM:
-      plate_ptr = new ChBodyDEM(new ChCollisionModelParallel);
+      plate_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DEM);
       break;
     case utils::PARALLEL_DVI:
-      plate_ptr = new ChBody(new ChCollisionModelParallel);
+      plate_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DVI);
       break;
   }
   ChSharedPtr<ChBody> plate(plate_ptr);

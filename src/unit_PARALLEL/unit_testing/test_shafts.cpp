@@ -236,10 +236,10 @@ bool TestShaftBody(const char* test_name, utils::SystemType sys_type) {
   ChBody* bodyB_ptr;
   switch (sys_type) {
     case utils::PARALLEL_DEM:
-      bodyB_ptr = new ChBodyDEM(new ChCollisionModelParallel);
+      bodyB_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DEM);
       break;
     case utils::PARALLEL_DVI:
-      bodyB_ptr = new ChBody(new ChCollisionModelParallel);
+      bodyB_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DVI);
       break;
   }
   ChSharedPtr<ChBody> bodyB(bodyB_ptr);

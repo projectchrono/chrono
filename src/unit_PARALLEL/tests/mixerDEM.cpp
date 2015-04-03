@@ -69,8 +69,8 @@ void AddContainer(ChSystemParallelDEM* sys) {
   mat->SetRestitution(0.1f);
 
   // Create the containing bin (2 x 2 x 1)
-  ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
-  bin->SetMaterialSurfaceDEM(mat);
+  ChSharedPtr<ChBody> bin(new ChBody(new ChCollisionModelParallel, ChBody::DEM));
+  bin->SetMaterialSurface(mat);
   bin->SetIdentifier(binId);
   bin->SetMass(1);
   bin->SetPos(ChVector<>(0, 0, 0));
@@ -94,8 +94,8 @@ void AddContainer(ChSystemParallelDEM* sys) {
   sys->AddBody(bin);
 
   // The rotating mixer body (1.6 x 0.2 x 0.4)
-  ChSharedBodyDEMPtr mixer(new ChBodyDEM(new ChCollisionModelParallel));
-  mixer->SetMaterialSurfaceDEM(mat);
+  ChSharedPtr<ChBody> mixer(new ChBody(new ChCollisionModelParallel, ChBody::DEM));
+  mixer->SetMaterialSurface(mat);
   mixer->SetIdentifier(mixerId);
   mixer->SetMass(10.0);
   mixer->SetInertiaXX(ChVector<>(50, 50, 50));
@@ -146,8 +146,8 @@ void AddFallingBalls(ChSystemParallelDEM* sys) {
     for (int iy = -2; iy < 3; iy++) {
       ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-      ChSharedBodyDEMPtr ball(new ChBodyDEM(new ChCollisionModelParallel));
-      ball->SetMaterialSurfaceDEM(ballMat);
+      ChSharedPtr<ChBody> ball(new ChBody(new ChCollisionModelParallel, ChBody::DEM));
+      ball->SetMaterialSurface(ballMat);
 
       ball->SetIdentifier(ballId++);
       ball->SetMass(mass);
