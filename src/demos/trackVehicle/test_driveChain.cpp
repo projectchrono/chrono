@@ -56,7 +56,7 @@ using namespace core;
 #include "subsys/trackVehicle/DriveChain.h"
 #include "subsys/driver/Track_FuncDriver.h"
 #include "ModelDefs.h"
-// Use the main namespace of Chronossssssssssssssssssssssssssssssssssssssssssss
+// Use the main namespace of Chronos
 using namespace chrono;
 
 // =============================================================================
@@ -90,7 +90,7 @@ double tStart = 0.1;
 // ***** write to console or a file
 // #define WRITE_OUTPUT         // write output data to file
 // #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
-// #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
+// #define CONSOLE_DEBUG_INFO   // log constraint violations to console,
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
 int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_COLLISIONCALLBACK | DBG_PTRAIN; // | DBG_IDLER  | DBG_CONSTRAINTS;
@@ -98,8 +98,8 @@ int what_to_console = DBG_PTRAIN | DBG_GEAR;  // DBG_COLLISIONCALLBACK | DBG_CON
 // int what_to_console = DBG_ALL_CONTACTS;
 double save_step_size = 1e-3;  // Time interval for writing data to file, don't exceed 1 kHz.
 double console_step_size = 1.0;       // time interval for writing data to console
-std::string save_filename = "driveChain_CC";
-std::string save_outDir = "../outdata_driveChain";
+const std::string save_filename = "driveChain_CC";
+const std::string save_outDir = "../outdata_driveChain";
 
 // *****  Visualization and camera settings
 // control how often to render a frame, write to file, write to console.
@@ -125,7 +125,8 @@ bool do_shadows = false; // shadow map is experimental
 #else
   double tend = 20.0;
 
-  const std::string out_dir = "../test_driveChain";
+  const std::string save_filename = "driveChain_CC";
+  const std::string save_outDir = "../outdata_driveChain";
   const std::string pov_dir = out_dir + "/POVRAY";
 #endif
   */
@@ -227,7 +228,6 @@ int main(int argc, char* argv[])
 */
   Track_FuncDriver function_driver(1, sineFreq, sineAmp, tStart);
 
-
   // ---------------------
   // GUI and render settings
 
@@ -298,9 +298,7 @@ int main(int argc, char* argv[])
 
       // driver.SetBrakingFunc(braking_input);
     }
-
-    else
-    {
+    else {
       // Collect output data from modules (for inter-module communication)
       throttle_input = driver.GetThrottle();
       braking_input = driver.GetBraking();
@@ -327,15 +325,6 @@ int main(int argc, char* argv[])
       step_number++;
     }
 
-
-
-    // DEBUGGING
-    if( chainSystem.GetCollisionCallback()->GetNcontacts() > 0 && 0)
-    {
-      // write contact info to console when narrow phase passes
-      chainSystem.Log_to_console(DBG_ALL_CONTACTS);
-      int arg = 2;
-    }
 
     // stop and increment the step timer
     step_timer.stop();
@@ -372,7 +361,7 @@ int main(int argc, char* argv[])
     if(time > end_time)
       is_end_time_reached = true;
 
-  }
+  } // end simulation loop
 
   // application.GetDevice()->drop();
 

@@ -115,6 +115,15 @@ void DriveGearMotion::Update(double time, double omega_throttle)
     func->Set_yconst( getMaxOmega() * throttle);
 }
 
+double DriveGearMotion::GetGearMotion() const
+{
+  if( ChSharedPtr<ChFunction_Const> func = m_revolute->Get_spe_funct().DynamicCastTo<ChFunction_Const>() )
+    return func->Get_yconst();
+  else
+    return 0;
+
+}
+
 void DriveGearMotion::AddVisualization()
 {
    // Attach visualization asset

@@ -75,13 +75,27 @@ public:
   /// set the pin friction as a damping value
   virtual void SetShoePinDamping(double damping);
 
-  // Accessors
-  /// current value of the integration step size for the vehicle system.
-  double GetStepsize() const { return m_stepsize; }
+  /// log the constraint violations of the vehicle to either the console or a file
+  virtual void LogConstraintViolations();
 
-  /// number of track chain systems attached to the vehicle
-  int GetNum_TrackSystems() const { return m_num_tracks; }
-  
+  /// save the constraint violations of the vehicle to file
+  virtual void SaveConstraintViolations();
+
+  /// log the desired debug info to the console
+  virtual void Log_to_console(int console_what);
+
+  /// Log data to file.
+  /// Data types AND filename to be saved should already set in Setup_log_to_file() 
+  virtual void Log_to_file();
+
+  /// setup class to save the log to a file for python postprocessing.
+  /// Usage: call after construction & Initialize(), else no data is saved.
+  virtual void Setup_log_to_file(int what,
+                     const std::string& out_filename,
+                     const std::string& data_dirname);
+
+
+  // ---------------------------------------------------------------------------
   // Accessors
   // not really relevant, but required
   virtual double GetDriveshaftSpeed(size_t idx) const;
@@ -92,7 +106,17 @@ public:
   /// return the contant part of the damping (if any)
   virtual double GetShoePinDamping() const {return m_damping;}
 
+  /// current value of the integration step size for the vehicle system.
+  double GetStepsize() const { return m_stepsize; }
+
+  /// number of track chain systems attached to the vehicle
+  int GetNum_TrackSystems() const { return m_num_tracks; }
+
 private:
+
+  /// create files with headers for all specified output data types.
+  /// File format is .csv, for easy reading into python pandas scripts for data analysis
+  void create_fileHeaders(int what);
 
   // private variables
   std::vector<ChVector<> > m_TrackSystem_locs;   ///< location of each tracksystem, relative to chassis REF c-sys
@@ -103,6 +127,21 @@ private:
   double m_damping;         ///< damping coef. applied between shoe bodies, to the rev. constraint
   double m_tensioner_preload;
 
+  // filename for each subsystem when writing time domain data
+  std::string m_filename_DBG_CHASSIS; // vehicle data (chassis motion, driver inputs)
+  std::vector<std::string> m_filename_DBG_GEAR;// gear body filenames
+  std::vector<std::string> m_filename_DBG_IDLER; // idler body filenames
+  std::vector<std::string> m_filename_GCV;  // write to this file, gear constraint violation
+  std::vector<std::string> m_filename_ICV;  // write to this file, idler constraint violation
+  std::vector<std::vector<std::string> > m_filename_WCV;  // write to this file, bogie wheel constraint violation
+  size_t m_cnt_Log_to_file; // how many times was Log_to_file called?
+
+  // std::string m_filename_DBG_ALL_CONTACTS;  // write to a new file each time step, with this base name.
+  // std::string m_filename_DBG_FIRSTSHOE;  // write to this file, first shoe/pin info
+  // std::string m_filename_DBG_shoeGear;   // info about gear/shoe contact
+  // std::string m_filename_DBG_GEAR_CONTACT;  // specific info about collisions with gear
+  // std::string m_filename_DBG_COLLISIONCALLBACK; // write collision callback info to file
+
   // static variables
   static const double     mass_override;     // override chassis mass input
   static const ChVector<> COM_override;      // location of the chassis COM in the local ref frame
@@ -112,6 +151,10 @@ private:
 
   // placeholder
   ChSharedPtr<ChShaft> m_axle;  // dummy shaft
+
+  friend std::ostream & operator<< (std::ostream &out, const ChVector<double>& vect);
+  friend std::ostream & operator << (std::ostream &out, const ChQuaternion<double>& q);
+
 };
 
 

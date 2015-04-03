@@ -38,56 +38,83 @@
 */
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "subsys/driver/ChIrrGuiTrack.h"
+// Use the main namespaces of Irrlicht
+using namespace irr;    
+using namespace core;
  /*
  # define USE_IRRLICHT
 #endif
  */
 #include "subsys/trackVehicle/TrackVehicleM113.h"
+#include "subsys/driver/Track_FuncDriver.h"
 #include "ModelDefs.h"
 // Use the main namespace of Chrono
 using namespace chrono;
 
-// Use the main namespaces of Irrlicht
-using namespace irr;    
-using namespace core;
-
 // =============================================================================
 // User Settings
 // =============================================================================
-// display the 1) system heirarchy, 2) a set of subsystem hardpoints, 3) constraint violations
-// #define DEBUG_LOG 
 
+// *****  User set model parameters, initial conditions
 double tensioner_preload = 5e4; // idler subsystem tensioner preload [N]
 double pin_damping_coef = 0.3;  // apply pin damping between connected shoes
+
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 0.7, 0);
 //ChQuaternion<> initRot = Q_from_AngAxis(CH_C_PI_4, VECT_Y);
 ChQuaternion<> initRot(QUNIT);
 
-// flat ground size and COG location
+// *****  Simulation step size, end time
+double step_size = 1e-3;
+// stop at a certain time
+double end_time = 10;  // 99999
+
+// *****  Driver settings
+// Automated simulation controls, applies positive half a sine wave.
+// Otherwise, control throttle with W/S
+bool autopilot = true;
+double sineAmp = 0.4;
+double sineFreq = 0.3;
+double tStart = 0.1;
+
+// ***** write to console or a file
+#define WRITE_OUTPUT         // write output data to file
+#define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
+#define CONSOLE_DEBUG_INFO   // log constraint violations to console,
+#define CONSOLE_TIMING       // time each render and simulation step, log to console
+
+// AVAILABLE:
+// DBG_GEAR | DBG_IDLER | DBG_CONSTRAINTS | DBG_CHASSIS
+int what_to_save = DBG_GEAR | DBG_IDLER  | DBG_CONSTRAINTS | DBG_CHASSIS;
+int what_to_console = DBG_GEAR | DBG_IDLER | DBG_CONSTRAINTS | DBG_CHASSIS;
+// int what_to_console = DBG_ALL_CONTACTS;
+double save_step_size = 1e-3;  // Time interval for writing data to file, don't exceed 1 kHz.
+double console_step_size = 1.0;       // time interval for writing data to console
+const std::string save_filename = "M113";
+const std::string save_outDir = "../outdata_M113";
+
+
+// ***** flat ground size and COG location
 ChVector<> groundSize(60.0, 1.0, 80.0);
 ChVector<> groundPos(0, -1.0, 0);
 double mu = 0.67;  // dry friction coef.
 
-// Simulation step size
-double step_size = 1e-3;
-
-// Time interval between two render frames
+// *****  Visualization and camera settings
 int FPS = 280;
 double render_step_size = 1.0 / FPS;   // FPS = 50
-// Time interval between two output frames
-double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
 // camera controls, either static or  GUI controlled chase camera:
 bool use_fixed_camera = false;
 // static camera position, global c-sys. (Longitude, Vertical, Lateral)
-ChVector<> fixed_cameraPos(2, 1.15, 3); // (0.15, 1.15, 1.5);    // 
+ChVector<> fixed_cameraPos(2, 1.15, 3); // (0.15, 1.15, 1.5);  
+// relative to center of chassis
+ChVector<> trackPoint(0.5, -0.5, 0);
+
   // Point on chassis tracked by the camera
 double chaseDist = 3.5; // 4.0;
 double chaseHeight = 1.0; // 1.0;
-// relative to center of chassis
-ChVector<> trackPoint(0.5, -0.5, 0);
+
 
 bool do_shadows = false; // shadow map is experimental
   /*
@@ -156,14 +183,20 @@ int main(int argc, char* argv[])
   // TODO: superimposed obstacles using ChParticleEmitter class.
   ChSharedPtr<ChBody> ground = Add_FlatGround(&vehicle, groundSize, groundPos, mu);  
 
+// if writing an output file, setup what debugInformation we want added each step data is saved.
+#ifdef WRITE_OUTPUT
+  vehicle.Setup_log_to_file(what_to_save,
+   save_filename,
+    save_outDir);
+#endif
+
 /*
 #ifdef USE_IRRLICHT
 */
   // Setup the Irrlicht GUI
-
   size_t window_x_len = 1200;
   size_t window_y_len = 800;
-
+  // Create the Irrlicht visualization applicaiton
   ChIrrApp application(vehicle.GetSystem(),
                       L"M113 tracked vehicle demo",
                       dimension2d<u32>(window_x_len, window_y_len),
@@ -213,9 +246,12 @@ int main(int argc, char* argv[])
   }
 /*
 #else
-  Track_FuncDriver driver;
+  
 #endif
 */
+
+  // when autopilot is enabled, input throttle specified as follows:
+  Track_FuncDriver function_driver(1, sineFreq, sineAmp, tStart);
 
   // ---------------------
   // GUI and render settings
@@ -229,11 +265,14 @@ int main(int argc, char* argv[])
   int render_steps = (int)std::ceil(render_step_size / step_size);
 
   // Number of simulation steps between two output frames
-  int output_steps = (int)std::ceil(output_step_size / step_size);
+  int save_steps = (int)std::ceil(save_step_size / step_size);
+
+  // Number of steps between two log to consoles
+  int console_steps = (int)std::ceil(console_step_size / step_size);
 
   // ---------------------
   // Simulation loop
-#ifdef DEBUG_LOG
+#ifdef CONSOLE_SYSTEM_INFO
   GetLog() << "\n\n============ System Configuration ============\n";
   vehicle.GetSystem()->ShowHierarchy(GetLog() );
 #endif
@@ -241,46 +280,115 @@ int main(int argc, char* argv[])
   // Initialize simulation frame counter and simulation time
   int step_number = 0;
   double time = 0;
-/*
-#ifdef USE_IRRLICHT
-*/
+ // create some timers, for the render and total time
+  ChTimer<double> step_timer;
+  double total_step_time = 0;
+  double time_since_last_output = 0;
 
+//  #ifdef USE_IRRLICHT
+  // using Irrlicht? time that too.
+  ChTimer<double> render_timer;
+  double total_render_time = 0;
+
+//  #endif
+  /*
+#ifdef USE_IRRLICHT
+  */
+
+  // write data to file?
+#ifdef WRITE_OUTPUT
+      vehicle.Log_to_file();  // needs to already be setup before sim loop calls it
+#endif
   ChRealtimeStepTimer realtime_timer;
-  while (application.GetDevice()->run())
+  bool is_end_time_reached = false;
+  while ( application.GetDevice()->run() && (!is_end_time_reached) )
 	{ 
 		// keep track of the time spent calculating each sim step
-    ChTimer<double> step_time;
-    step_time.start();
+    step_timer.start();
 		
     // Render scene
     if (step_number % render_steps == 0) {
+      render_timer.start(); // start the time it takes to render the scene
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
       driver.DrawAll();
       application.GetVideoDriver()->endScene();
+
+      render_timer.stop();  // stop the scene timer
+      total_render_time += render_timer();  // increment the time it took to render this step
     }
 
-    // Collect output data from modules (for inter-module communication)
-    throttle_input = driver.GetThrottle();
-    steering_input = driver.GetSteering();
-    braking_input = driver.GetBraking();
+     //  input is specified by the user, or by a function (autopilot)
+    if(autopilot)
+    {
+      throttle_input = function_driver.GetThrottle();
+      braking_input = function_driver.GetBraking();
+      // set the GUI info
+      driver.SetThrottleFunc(throttle_input[0]);
+
+      // driver.SetBrakingFunc(braking_input);
+    }
+    else {
+      // Collect output data from modules (for inter-module communication)
+      throttle_input = driver.GetThrottle();
+      braking_input = driver.GetBraking();
+    }
 
     // Update
     time = vehicle.GetSystem()->GetChTime();
 
     driver.Update(time);
 
+    if(autopilot)
+      function_driver.Update(time);
+
     vehicle.Update(time, throttle_input, braking_input);
 
     // Advance simulation for one timestep for all modules
     // double step = realtime_timer.SuggestSimulationStep(step_size);
-
     use_fixed_camera ? driver.Advance(step_size, fixed_cameraPos): driver.Advance(step_size);
 
-    // SETTLING FOLLOWED BY NORMAL OPERATION STEP SIZES HARDCODED
-    // 1e-5 and 1e-4, respectively
-    vehicle.Advance(step_size);
-    step_number++;
-	}
+    if( !application.GetPaused() )
+    {
+      vehicle.Advance(step_size);
+      step_number++;
+    }
+	
+    // stop and increment the step timer
+    step_timer.stop();
+    total_step_time += step_timer();
+    time_since_last_output += step_timer();
+
+#ifdef WRITE_OUTPUT
+    if (step_number % save_steps == 0) 
+    {
+      // write data to file
+      vehicle.Log_to_file();  // needs to already be setup before sim loop calls it
+    }
+#endif
+
+    if(step_number % console_steps == 0)
+    {
+      // log desired output to console
+#ifdef CONSOLE_DEBUG_INFO
+      vehicle.Log_to_console(what_to_console);
+#endif
+
+#ifdef CONSOLE_TIMING
+      GetLog() << "\n --------- TIMING -------- : time: " << vehicle.GetSystem()->GetChTime()
+       << "\n total render time: " << total_render_time << ",  % of total: " << 100.*total_render_time / total_step_time
+       << "\n total compute time: " << total_step_time 
+       << "\n Avg. time per step " << time_since_last_output * vehicle.GetSystem()->GetStep() / save_steps
+       << "\n overall avg. time/step: " << total_step_time/step_number << "    for a stepsize: " << vehicle.GetSystem()->GetStep()
+       << "\n RTR : " << total_step_time / vehicle.GetSystem()->GetChTime();
+      time_since_last_output = 0;
+#endif
+    }
+   
+    // see if the end time is reached
+    if(time > end_time)
+      is_end_time_reached = true;
+
+  } // end simulation loop
 
   application.GetDevice()->drop();
 
