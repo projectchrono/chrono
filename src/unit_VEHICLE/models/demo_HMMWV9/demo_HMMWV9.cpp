@@ -73,7 +73,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 PowertrainModelType powertrain_model = SIMPLE;
 
 // Type of tire model (RIGID, PACEJKA, or LUGRE)
-TireModelType tire_model = PACEJKA;
+TireModelType tire_model = RIGID;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
   HMMWV_VehicleReduced vehicle(false,
                                RWD,
                                PRIMITIVES,
-                               MESH);
+                               PRIMITIVES);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
