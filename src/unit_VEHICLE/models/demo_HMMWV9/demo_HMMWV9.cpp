@@ -409,7 +409,7 @@ int main(int argc, char* argv[])
 
     // check the average simulation times here, after a certain amount of time
     // (vehicle in free-fall, not in contact with the ground, so no tire calculations in first few moments)
-    if( step_number % timer_info_steps == 0 && step_number > timer_info_steps)
+    if (tire_model == PACEJKA &&  step_number % timer_info_steps == 0 && step_number > timer_info_steps)
     {
       double avg_chrono_step_time = sum_sim_time / (double)step_number;
       double avg_ODE_time = tire_front_left.DynamicCastTo<ChPacejkaTire>()->get_average_ODE_time();
