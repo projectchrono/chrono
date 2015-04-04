@@ -390,7 +390,6 @@ IF (BUILD_CH_SDK)
 		physics/ChFx.cpp 
 		physics/ChAssembly.cpp
 		physics/ChSystemDEM.cpp
-		physics/ChBodyDEM.cpp
 		physics/ChContactContainerDEM.cpp
 		physics/ChContactDEM.cpp
 		physics/ChMaterialSurfaceDEM.cpp
@@ -454,6 +453,7 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkUniversal.h
 		physics/ChMarker.h
 		physics/ChMaterialCouple.h
+		physics/ChMaterialSurfaceBase.h
 		physics/ChMaterialSurface.h
 		physics/ChMaterialSurfaceDEM.h
 		physics/ChMatterSPH.h
@@ -489,7 +489,6 @@ IF (BUILD_CH_SDK)
 		physics/ChSystem.h
 		physics/ChAssembly.h
 		physics/ChSystemDEM.h
-		physics/ChBodyDEM.h
 		physics/ChContactContainerDEM.h
 		physics/ChContactDEM.h
 		physics/ChTensors.h

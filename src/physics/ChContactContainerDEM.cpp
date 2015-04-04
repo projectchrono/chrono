@@ -23,7 +23,7 @@
 #include "physics/ChContactContainerDEM.h"
 #include "physics/ChSystem.h"
 #include "physics/ChIndexedNodes.h"
-#include "physics/ChBodyDEM.h"
+#include "physics/ChBody.h"
 
 #include "collision/ChCModelBulletBody.h"
 

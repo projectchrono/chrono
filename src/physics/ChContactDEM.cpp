@@ -16,7 +16,7 @@
 
 #include "physics/ChContactDEM.h"
 #include "physics/ChSystemDEM.h"
-#include "physics/ChBodyDEM.h"
+#include "physics/ChBody.h"
 
 // Memory leak debugger (must be included last).
 #include "core/ChMemory.h"
@@ -51,8 +51,8 @@ void ChContactDEM::Reset(collision::ChModelBulletBody*     mod1,
   m_mod1 = mod1;
   m_mod2 = mod2;
 
-  ChBodyDEM* body1 = (ChBodyDEM*)m_mod1->GetBody();
-  ChBodyDEM* body2 = (ChBodyDEM*)m_mod2->GetBody();
+  ChBody* body1 = m_mod1->GetBody();
+  ChBody* body2 = m_mod2->GetBody();
 
   // Contact points, penetration, normal
   m_p1 = cinfo.vpA;
@@ -78,8 +78,8 @@ void ChContactDEM::Reset(collision::ChModelBulletBody*     mod1,
 // globally specified contact force model.
 void ChContactDEM::CalculateForce()
 {
-  ChBodyDEM* body1 = (ChBodyDEM*)m_mod1->GetBody();
-  ChBodyDEM* body2 = (ChBodyDEM*)m_mod2->GetBody();
+  ChBody* body1 = m_mod1->GetBody();
+  ChBody* body2 = m_mod2->GetBody();
 
   ChSystemDEM* sys = static_cast<ChSystemDEM*>(body1->GetSystem());
 
@@ -191,8 +191,8 @@ void ChContactDEM::CalculateForce()
 // NOTE: SEE NEW VERSION BELOW...
 void ChContactDEM::ConstraintsFbLoadForces(double factor)
 {
-  ChBodyDEM* body1 = (ChBodyDEM*)m_mod1->GetBody();
-  ChBodyDEM* body2 = (ChBodyDEM*)m_mod2->GetBody();
+  ChBody* body1 = m_mod1->GetBody();
+  ChBody* body2 = m_mod2->GetBody();
 
   ChVector<> force1_loc = body1->Dir_World2Body(m_force);
   ChVector<> force2_loc = body2->Dir_World2Body(m_force);
@@ -214,8 +214,8 @@ void ChContactDEM::ConstraintsFbLoadForces(double factor)
 // body1.
 void  ChContactDEM::DemIntLoadResidual_F(ChVectorDynamic<>& R, const double c )
 {
-  ChBodyDEM* body1 = (ChBodyDEM*)m_mod1->GetBody();
-  ChBodyDEM* body2 = (ChBodyDEM*)m_mod2->GetBody();
+  ChBody* body1 = m_mod1->GetBody();
+  ChBody* body2 = m_mod2->GetBody();
 
   ChVector<> force1_loc = body1->Dir_World2Body(m_force);
   ChVector<> force2_loc = body2->Dir_World2Body(m_force);

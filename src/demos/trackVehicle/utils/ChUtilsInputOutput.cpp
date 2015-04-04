@@ -68,7 +68,7 @@ bool WriteCheckpoint(ChSystem*          system,
     ChBody* body = *ibody;
 
     // Infer body type (0: DVI, 1:DEM)
-    int btype = (dynamic_cast<ChBodyDEM*>(body)) ? 1 : 0;
+    int btype = (body->GetContactMethod() == ChBody::DVI) ? 0 : 1;
 
     // Write body type, body identifier, the body fixed flag, and the collide flag
     csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();
@@ -85,17 +85,16 @@ bool WriteCheckpoint(ChSystem*          system,
     // Write material information
     if (btype == 0) {
       // Write DVI material surface information
-      ChSharedPtr<ChMaterialSurface>& mat = body->GetMaterialSurface();
+      ChSharedPtr<ChMaterialSurface> mat = body->GetMaterialSurface();
       csv << mat->static_friction << mat->sliding_friction << mat->rolling_friction << mat->spinning_friction;
       csv << mat->restitution << mat->cohesion << mat->dampingf;
       csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
     } else {
       // Write DEM material surface information
-      ChSharedPtr<ChMaterialSurfaceDEM>& mat = static_cast<ChBodyDEM*>(body)->GetMaterialSurfaceDEM();
+      ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
       csv << mat->young_modulus << mat->poisson_ratio;
       csv << mat->static_friction << mat->sliding_friction;
-      // csv << mat->restitution << mat->dissipation_factor;
-      csv << mat->cohesion;
+      csv << mat->restitution << mat->cohesion;
     }
 
     csv << std::endl;
@@ -213,18 +212,17 @@ void ReadCheckpoint(ChSystem*          system,
     // Create a body of the appropriate type, read and apply material properties
     ChBody* body;
     if (btype == 0) {
-      body = new ChBody();
-      ChSharedPtr<ChMaterialSurface>& mat = body->GetMaterialSurface();
+      body = new ChBody(ChBody::DVI);
+      ChSharedPtr<ChMaterialSurface> mat = body->GetMaterialSurface();
       iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
       iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
       iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
     } else {
-      body = new ChBodyDEM();
-      ChSharedPtr<ChMaterialSurfaceDEM>& mat = static_cast<ChBodyDEM*>(body)->GetMaterialSurfaceDEM();
+      body = new ChBody(ChBody::DEM);
+      ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
       iss2 >> mat->young_modulus >> mat->poisson_ratio;
       iss2 >> mat->static_friction >> mat->sliding_friction;
-      // iss2 >> mat->restitution >> mat->dissipation_factor;
-      iss2 >> mat->cohesion;
+      iss2 >> mat->restitution >> mat->cohesion;
     }
 
     // Set body properties and state
@@ -488,6 +486,14 @@ void WriteShapesPovray(ChSystem*          system,
       csv << type << frA_abs.GetPos() << std::endl;
       l_count++;
     }
+    if (ChLinkLockPrismatic* link = dynamic_cast<ChLinkLockPrismatic*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
+      csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
+      l_count++;
+    }
     else if (ChLinkUniversal* link = dynamic_cast<ChLinkUniversal*>(*ilink))
     {
       chrono::ChFrame<> frA_abs = link->GetFrame1Abs();
@@ -525,7 +531,6 @@ void WriteShapesPovray(ChSystem*          system,
       csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
       l_count++;
     }
-
   }
 
   // Write the output file, including a first line with number of bodies, visual

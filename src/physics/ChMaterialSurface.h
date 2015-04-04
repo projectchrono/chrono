@@ -24,7 +24,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChShared.h"
+#include "physics/ChMaterialSurfaceBase.h"
 
 
 namespace chrono
@@ -35,7 +35,7 @@ namespace chrono
 /// ChBody rigid bodies and similar things; it carries information
 /// that is used to make contacts.
 
-class ChApi ChMaterialSurface : public ChShared
+class ChApi ChMaterialSurface : public ChMaterialSurfaceBase
 {
 public:
 

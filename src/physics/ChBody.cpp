@@ -58,7 +58,7 @@ ChClassRegister<ChBody> a_registration_ChBody;
 /// CLASS FOR SOLID BODIES
 
 
-ChBody::ChBody ()
+ChBody::ChBody(ContactMethod contact_method)
 {
     marklist.clear();
     forcelist.clear();
@@ -75,7 +75,14 @@ ChBody::ChBody ()
 
     collision_model=InstanceCollisionModel();
 
-    matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+    switch (contact_method) {
+    case DVI:
+      matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+      break;
+    case DEM:
+      matsurface = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
+      break;
+    }
 
     density = 1000.0f;
 
@@ -97,7 +104,8 @@ ChBody::ChBody ()
     body_id = 0;
 }
 
-ChBody::ChBody (ChCollisionModel* new_collision_model)
+ChBody::ChBody (ChCollisionModel* new_collision_model,
+                ContactMethod contact_method)
 {
     marklist.clear();
     forcelist.clear();
@@ -115,7 +123,14 @@ ChBody::ChBody (ChCollisionModel* new_collision_model)
     collision_model=new_collision_model;
     collision_model->SetBody(this);
 
-    matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+    switch (contact_method) {
+    case DVI:
+      matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+      break;
+    case DEM:
+      matsurface = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
+      break;
+    }
 
     density = 1000.0f;
 
@@ -979,7 +994,7 @@ void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax)
 void ChBody::StreamOUT(ChStreamOutBinary& mstream)
 {
             // class version number
-    mstream.VersionWrite(7);
+    mstream.VersionWrite(8);
 
         // serialize parent class too
     ChPhysicsItem::StreamOUT(mstream);
@@ -1012,19 +1027,18 @@ void ChBody::StreamOUT(ChStreamOutBinary& mstream)
 
 void ChBody::StreamIN(ChStreamInBinary& mstream)
 {
-        // class version number
+    // Class version number
     int version = mstream.VersionRead();
 
-        // deserialize parent class too
-    if (version <4)
+    // Deserialize parent class too
+    if (version < 4)
         ChObj::StreamIN(mstream);
-    if (version >= 4)
+    else
         ChPhysicsItem::StreamIN(mstream);
 
     collision_model->ClearModel();
 
-
-    if (version==1)
+    if (version == 1)
     {
             // stream in all member data
         int mlock; double dfoo;
@@ -1037,18 +1051,15 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
         mstream >> vfoo;        SetInertiaXX(vfoo);
         mstream >> vfoo;        SetInertiaXY(vfoo);
         mstream >> dfoo; //bdamper;
-        if (version <7)
-        {
-            mstream >> dfoo;        matsurface->SetRestitution((float)dfoo);
-            mstream >> dfoo;        //matsurface->SetRestitutionT((float)dfoo);
-            mstream >> dfoo;        matsurface->SetKfriction((float)dfoo);
-            mstream >> dfoo;        matsurface->SetSfriction((float)dfoo);
-        }
+        mstream >> dfoo;        GetMaterialSurface()->SetRestitution((float)dfoo);
+        mstream >> dfoo;        //GetMaterialSurface()->SetRestitutionT((float)dfoo);
+        mstream >> dfoo;        GetMaterialSurface()->SetKfriction((float)dfoo);
+        mstream >> dfoo;        GetMaterialSurface()->SetSfriction((float)dfoo);
         mstream >> bflag;
         mstream >> dfoo;        density = (float)dfoo;
         SetBodyFixed(mlock != 0);
     }
-    if (version >=2)
+    if (version >= 2)
     {
             // deserialize parent class too
         ChFrameMoving<double>::StreamIN(mstream);
@@ -1062,10 +1073,10 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
         mstream >> dfoo; //bdamper;
         if (version <7)
         {
-            mstream >> dfoo;        matsurface->SetRestitution((float)dfoo);
-            mstream >> dfoo;        //matsurface->SetRestitutionT((float)dfoo);
-            mstream >> dfoo;        matsurface->SetKfriction((float)dfoo);
-            mstream >> dfoo;        matsurface->SetSfriction((float)dfoo);
+          mstream >> dfoo;        GetMaterialSurface()->SetRestitution((float)dfoo);
+          mstream >> dfoo;        //GetMaterialSurface()->SetRestitutionT((float)dfoo);
+          mstream >> dfoo;        GetMaterialSurface()->SetKfriction((float)dfoo);
+          mstream >> dfoo;        GetMaterialSurface()->SetSfriction((float)dfoo);
         }
         mstream >> bflag;
         mstream >> dfoo;        density = (float)dfoo;
@@ -1073,8 +1084,8 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
             SetBodyFixed(true);
         else SetBodyFixed(false);
     }
-    if (version <3) SetUseSleeping(true);
-    if (version >=3)
+    if (version < 3) SetUseSleeping(true);
+    if (version >= 3)
     {
         double dfoo;
         mstream >> max_speed;
@@ -1084,18 +1095,18 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
         mstream >> sleep_minspeed;
         mstream >> sleep_minwvel;
     }
-    if ((version >=5) && (version < 7))
+    if ((version >= 5) && (version < 7))
     {
         double dfoo;
-        mstream >> dfoo;        matsurface->SetRollingFriction((float)dfoo);
-        mstream >> dfoo;        matsurface->SetSpinningFriction((float)dfoo);
+        mstream >> dfoo;        GetMaterialSurface()->SetRollingFriction((float)dfoo);
+        mstream >> dfoo;        GetMaterialSurface()->SetSpinningFriction((float)dfoo);
     }
-    if (version >=6)
+    if (version >= 6)
     {
         this->collision_model->StreamIN(mstream); // also   mstream >> (*collision_model);
         this->collision_model->BuildModel(); // because previously removed from ChSystem, if any.
     }
-    if (version >=7)
+    if (version >= 7)
     {
         this->matsurface->StreamIN(mstream);
     }

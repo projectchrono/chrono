@@ -165,8 +165,8 @@ void create_debris(ChIrrApp& application, double dt, double particles_second)
 											true,		// collide enable?
 											true));		// visualization?
 			mrigidBody->SetPos( ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize) );
-			mrigidBody->SetFriction(0.2f);
-			mrigidBody->SetImpactC(0.8f); 
+			mrigidBody->GetMaterialSurface()->SetFriction(0.2f);
+      mrigidBody->GetMaterialSurface()->SetRestitution(0.8f);
       mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("bluwhite.png"))));
 
 			application.GetSystem()->Add(mrigidBody);
@@ -193,7 +193,7 @@ void create_debris(ChIrrApp& application, double dt, double particles_second)
 											true,		// collide enable?
 											true));		// visualization?
 			mrigidBody->SetPos( ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize) );
-			mrigidBody->SetFriction(0.4f);
+      mrigidBody->GetMaterialSurface()->SetFriction(0.4f);
       mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
 
 			application.GetSystem()->Add(mrigidBody);
@@ -213,7 +213,7 @@ void create_debris(ChIrrApp& application, double dt, double particles_second)
 											true,		// collide enable?
 											true));		// visualization?
 			mrigidBody->SetPos( ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize) );
-			mrigidBody->SetFriction(0.2f);
+      mrigidBody->GetMaterialSurface()->SetFriction(0.2f);
       mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("pinkwhite.png"))));
 
 			application.GetSystem()->Add(mrigidBody);
@@ -281,7 +281,7 @@ int main(int argc, char* argv[])
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(2,0.11,0.04) );
 	mfence1->GetBody()->SetBodyFixed(true);
-	mfence1->GetBody()->SetFriction(0.1f);
+  mfence1->GetBody()->GetMaterialSurface()->SetFriction(0.1f);
 
 	ChBodySceneNode* mfence2 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											&mphysicalSystem, application.GetSceneManager(),
@@ -290,7 +290,7 @@ int main(int argc, char* argv[])
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(2,0.11,0.04) );
 	mfence2->GetBody()->SetBodyFixed(true);
-	mfence2->GetBody()->SetFriction(0.1f);
+  mfence2->GetBody()->GetMaterialSurface()->SetFriction(0.1f);
 
 
 
@@ -299,7 +299,7 @@ int main(int argc, char* argv[])
 
 	ChSharedPtr<ChConveyor> mconveyor (new ChConveyor(2, 0.05, 0.6));
 	mconveyor->SetBodyFixed(true);
-	mconveyor->SetFriction(0.35f);
+  mconveyor->GetMaterialSurface()->SetFriction(0.35f);
 	mconveyor->SetConveyorSpeed(STATIC_speed);
 	mconveyor->SetPos( ChVector<>(0, 0, 0) );
 

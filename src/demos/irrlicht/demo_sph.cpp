@@ -105,7 +105,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
 											1.1);
    
-		mrigidBody->GetBody()->SetFriction(0.0f); 
+    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
 		mrigidBody->addShadowVolumeSceneNode();
 
 
@@ -123,7 +123,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(xsize+2*thick,thick,zsize+2*thick) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(0.0f); 
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
 
   video::ITexture* cubeMap = driver->getTexture(GetChronoDataFile("blu.png").c_str());
 	mrigidBody->setMaterialTexture(0,	cubeMap);
@@ -135,7 +135,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(thick,height,zsize+2*thick) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(0.0f);
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 	
 
@@ -147,7 +147,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(thick,height,zsize+2*thick) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(0.0f);
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
@@ -157,7 +157,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(xsize+2*thick,height,thick) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(0.0f);
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
 	double opening = 0.2;//=0.2
@@ -168,7 +168,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(xsize+2*thick,height,thick) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(0.0f);
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
  
 	// another floor
@@ -180,7 +180,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(2,0.1,2) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(0.2f);
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.2f);
 
 
 		// Create floating balls 

@@ -21,6 +21,7 @@
 #include "physics/ChForce.h"
 #include "physics/ChMarker.h"
 #include "physics/ChMaterialSurface.h"
+#include "physics/ChMaterialSurfaceDEM.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 #include "lcp/ChLcpConstraint.h"
 
@@ -107,7 +108,7 @@ protected:
     ChVector<> Scr_torque;  // script torque accumulator;(in abs space)
 
                         // data for surface contact and impact (can be shared):
-    ChSharedPtr<ChMaterialSurface> matsurface;
+    ChSharedPtr<ChMaterialSurfaceBase> matsurface;
 
                         // Auxiliary, stores position/rotation once a while
                         // when collision detection routines require to know
@@ -130,16 +131,23 @@ protected:
     float  sleep_starttime;
 
 public:
+    enum ContactMethod {
+        DVI,   ///< constraint-based (a.k.a. rigid-body) contact
+        DEM    ///< penalty-based (a.k.a. soft-body) contact
+    };
 
-            //
-            // CONSTRUCTORS
-            //
+    //
+    // CONSTRUCTORS
+    //
 
-                /// Build a rigid body.
-    ChBody();
-                /// Build a rigid body with a different collision model.
-    ChBody(collision::ChCollisionModel* new_collision_model);
-                /// Destructor
+    /// Build a rigid body.
+    ChBody(ContactMethod contact_method = DVI);
+
+    /// Build a rigid body with a different collision model.
+    ChBody(collision::ChCollisionModel* new_collision_model,
+           ContactMethod contact_method = DVI);
+
+    /// Destructor
     ~ChBody();
 
                 /// Copy from another ChBody. 
@@ -362,40 +370,29 @@ public:
                 /// Method to serialize only the state (position, speed)
     virtual void StreamOUTstate(ChStreamOutBinary& mstream);    
 
-                /// Access the material surface properties, referenced by this 
-                /// rigid body. The material surface contains properties such as friction, etc. 
-                /// The ChMaterialSurface can be a shared object! (by default, each body creates its
-                /// own as soon as instanced, but later the material object can be replaced).
-    ChSharedPtr<ChMaterialSurface>& GetMaterialSurface() {return this->matsurface;}
-                /// Set the material surface properties by passing a ChMaterialSurface object.
-                /// Thank to smart pointers, the one that was previously used is replaced and,
-                /// if needed, it is automatically dereferenced and deleted.
-                /// The ChMaterialSurface can be a shared object! (by default, each body creates its
-                /// own as soon as instanced, but later the material object can be replaced).
-    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurface>& mnewsurf) {this->matsurface = mnewsurf;}
+    /// Infer the contact method from the underlying material properties object.
+    ContactMethod GetContactMethod() { return matsurface.IsType<ChMaterialSurface>() ? DVI : DEM; }
 
+    /// Access the (generic) material surface properties associated with this
+    /// body.  This function returns a reference to the shared pointer member
+    /// variable and is therefore THREAD SAFE.
+    ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
 
-                /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float  GetImpactC() {return this->matsurface->GetRestitution();}
-    void   SetImpactC(float mval) {this->matsurface->SetRestitution(mval);}
-                /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float  GetImpactCt() {return 0;}
-    void   SetImpactCt(float mval) {}
-                /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float  GetKfriction() {return this->matsurface->GetKfriction();}
-    void   SetKfriction(float mval) {this->matsurface->SetKfriction(mval);}
-                /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float  GetSfriction() {return this->matsurface->GetSfriction();}
-    void   SetSfriction(float mval) {this->matsurface->SetSfriction(mval);}
-                /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    void   SetFriction(float mval) {this->matsurface->SetFriction(mval);}
-                /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float  GetRollingFriction() {return this->matsurface->GetRollingFriction();}
-    void   SetRollingFriction(float mval) {this->matsurface->SetRollingFriction(mval);}
-                /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float  GetSpinningFriction() {return this->matsurface->GetSpinningFriction();}
-    void   SetSpinningFriction(float mval) {this->matsurface->SetSpinningFriction(mval);}
+    /// Access the DVI material surface properties associated with this body.
+    /// This function performs a dynamic cast (and returns an empty pointer
+    /// if matsurface is in fact of DEM type).  As such, it must return a copy
+    /// of the shared pointer and is therefore NOT thread safe.
+    ChSharedPtr<ChMaterialSurface> GetMaterialSurface() { return matsurface.DynamicCastTo<ChMaterialSurface>(); }
 
+    /// Access the DEM material surface properties associated with this body.
+    /// This function performs a dynamic cast (and returns an empty pointer
+    /// if matsurface is in fact of DVI type).  As such, it must return a copy
+    /// of the shared pointer and is therefore NOT thread safe.
+    ChSharedPtr<ChMaterialSurfaceDEM> GetMaterialSurfaceDEM() { return matsurface.DynamicCastTo<ChMaterialSurfaceDEM>(); }
+
+    /// Set the material surface properties by passing a ChMaterialSurface or
+    /// ChMaterialSurfaceDEM object.
+    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
 
                 /// The density of the rigid body, as [mass]/[unit volume]. Used just if
                 /// the inertia tensor and mass are automatically recomputed from the

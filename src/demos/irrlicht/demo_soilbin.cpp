@@ -165,7 +165,7 @@ public:
 													sphrad,
 													15, 8, this->particleParent);
 				currRigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia,sphinertia,sphinertia));
-				currRigidBody->GetBody()->SetFriction(this->mu);
+        currRigidBody->GetBody()->GetMaterialSurface()->SetFriction(this->mu);
 				currRigidBody->GetBody()->SetRot(randrot);
 				//mrigidBody->addShadowVolumeSceneNode();
 				currRigidBody->setMaterialTexture(0,	rockMap);
@@ -205,7 +205,7 @@ public:
 				currRigidBody->GetBody()->SetInertiaXX(ChVector<>(boxmass*(boxSize.y*boxSize.y + boxSize.z*boxSize.z)/12.0,
 					boxmass*(boxSize.x*boxSize.x + boxSize.z*boxSize.z)/12.0,
 					boxmass*(boxSize.x*boxSize.x + boxSize.y*boxSize.y)/12.0 ));
-				currRigidBody->GetBody()->SetFriction(0.5);
+        currRigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.5);
 				currRigidBody->setMaterialTexture(0, cubeMap);
 				this->totalParticles++;
 				this->totalParticleMass += boxmass;
@@ -296,7 +296,7 @@ public:
 										mposition  );
 
 		wheel->GetBody()->SetInertiaXX(inertia);
-		wheel->GetBody()->SetFriction(0.4f);
+    wheel->GetBody()->GetMaterialSurface()->SetFriction(0.4f);
 
 		// turn collision off to start, toggle with checkbox
 		wheel->GetBody()->SetCollide(true);	 
@@ -345,7 +345,7 @@ public:
 			ChVector<>(d2, h, d2) );
 		// set inertia, friction coef, collide
 		// wheel->GetBody()->SetInertiaXX(inertia);
-		wheel->GetBody()->SetFriction(0.4f);
+    wheel->GetBody()->GetMaterialSurface()->SetFriction(0.4f);
 		wheel->GetBody()->SetCollide(true);
     video::ITexture* cylinderMap = mapp.GetVideoDriver()->getTexture(GetChronoDataFile("rubber.jpg").c_str());
 		wheel->setMaterialTexture(0, cylinderMap);
@@ -417,7 +417,7 @@ public:
 			10.0,	ChVector<>(0, -0.5 - wallWidth / 2.0, 0), ChQuaternion<>(1,0,0,0), 
 			ChVector<>( binWidth+wallWidth/2.0, wallWidth, binLength+wallWidth/2.0) );
 		floor->GetBody()->SetBodyFixed(true);
-		floor->GetBody()->SetFriction(0.5);	// NOTE: May need to change this if the walls have effects on the soil response
+    floor->GetBody()->GetMaterialSurface()->SetFriction(0.5);	// NOTE: May need to change this if the walls have effects on the soil response
 		floor->setMaterialTexture(0,	cubeMap);
 		// add some transparent walls to the soilBin, w.r.t. width, length of bin
 		// wall 1

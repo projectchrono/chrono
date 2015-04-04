@@ -149,7 +149,7 @@ public:
 				wheelRF->GetBody()->GetCollisionModel()->BuildModel();			// Creates the collision model
 				wheelRF->GetBody()->SetCollide(true);
 				wheelRF->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-				wheelRF->GetBody()->SetFriction(1.0);
+        wheelRF->GetBody()->GetMaterialSurface()->SetFriction(1.0);
         video::ITexture* cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 				wheelRF->setMaterialTexture(0,	cylinderMap);
 				wheelRF->addShadowVolumeSceneNode();
@@ -177,7 +177,7 @@ public:
 				wheelLF->GetBody()->GetCollisionModel()->BuildModel();			// Creates the collision model
 				wheelLF->GetBody()->SetCollide(true);
 				wheelLF->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-				wheelLF->GetBody()->SetFriction(1.0);
+        wheelLF->GetBody()->GetMaterialSurface()->SetFriction(1.0);
 				wheelLF->setMaterialTexture(0,	cylinderMap);
 				wheelLF->addShadowVolumeSceneNode();
 
@@ -204,7 +204,7 @@ public:
 				wheelRB->GetBody()->GetCollisionModel()->BuildModel();			// Creates the collision model
 				wheelRB->GetBody()->SetCollide(true);
 				wheelRB->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-				wheelRB->GetBody()->SetFriction(1.0);
+        wheelRB->GetBody()->GetMaterialSurface()->SetFriction(1.0);
         cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 				wheelRB->setMaterialTexture(0,	cylinderMap);
 				wheelRB->addShadowVolumeSceneNode();
@@ -233,7 +233,7 @@ public:
 				wheelLB->GetBody()->GetCollisionModel()->BuildModel();			// Creates the collision model
 				wheelLB->GetBody()->SetCollide(true);
 				wheelLB->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-				wheelLB->GetBody()->SetFriction(1.0);
+        wheelLB->GetBody()->GetMaterialSurface()->SetFriction(1.0);
 				wheelLB->setMaterialTexture(0,	cylinderMap);
 				wheelLB->addShadowVolumeSceneNode();
 
@@ -586,7 +586,7 @@ int main(int argc, char* argv[])
 											ChVector<>(60,2,60) );
 	my_ground->GetBody()->SetBodyFixed(true);
 	my_ground->GetBody()->SetCollide(true);
-	my_ground->GetBody()->SetFriction(1.0);
+  my_ground->GetBody()->GetMaterialSurface()->SetFriction(1.0);
   video::ITexture* groundMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
 	my_ground->setMaterialTexture(0,groundMap);
 
