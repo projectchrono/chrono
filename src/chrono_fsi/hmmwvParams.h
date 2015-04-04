@@ -8,9 +8,11 @@
 
 #ifndef HMMWVPARAMS_H_
 #define HMMWVPARAMS_H_
+
+#include "SPHCudaUtils.h"
 #include "MyStructs.cuh" //just for SimParams
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "core/ChVector.h"
 
 
 // -----------------------------------------------------------------------------
@@ -22,6 +24,8 @@
 double time_hold = 2; 
 float contact_recovery_speed = 0.1;
 double time_step = 1e-3;
+// Total simulation duration.
+double time_end = 7;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
@@ -44,7 +48,7 @@ void SetupParamsH(SimParams & paramsH) {
 	paramsH.v_Max = contact_recovery_speed;//Arman, I changed it to 0.1 for vehicle. Check this later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
 	paramsH.dT = time_step;//0.0005;//0.1;//.001; //sph alone: .01 for Re 10;
-		paramsH.tFinal = 7;//20 * paramsH.dT; //400
+		paramsH.tFinal = time_end;//20 * paramsH.dT; //400
 		paramsH.timePause = time_hold;//.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any bodyforce. Particles move only due to initialization. keep it as small as possible. the time step will be 1/10 * dT.
 		paramsH.kdT = 5; // I don't know what is kdT
 		paramsH.gammaBB = 0.5;

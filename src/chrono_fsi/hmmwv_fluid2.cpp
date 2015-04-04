@@ -41,8 +41,8 @@
 #include "chrono_utils/ChUtilsInputOutput.h"
 
 // FSI Interface Includes
-//#include "hmmwvParams.h"
-#include "BallDropParams.h"
+#include "hmmwvParams.h"
+//#include "BallDropParams.h"
 #include "SphInterface.h"
 #include "InitializeSphMarkers.h"
 
@@ -66,12 +66,12 @@ using namespace gui;
 
 //*************************************************************
 // Define Graphics
-#define irrlichtVisualization true
+#define irrlichtVisualization false
 #if irrlichtVisualization
 std::shared_ptr<ChIrrApp> application;
 #endif
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
 #endif
@@ -93,7 +93,7 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int & threads, uint & m
 
 void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc, char* argv[]) {
 	// Desired number of OpenMP threads (will be clamped to maximum available)
-	int threads = 100;
+	int threads = 1;
 	// Perform dynamic tuning of number of threads?
 	bool thread_tuning = true;
 
@@ -140,33 +140,33 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc
 	mphysicalSystem.GetSettings()->collision.bins_per_axis = mI3(10, 10, 10); //Arman check
 }
 
-//double CreateGranularBed(ChSystem* mphysicalSystem) {
-//  // Create a material
-//  ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
-//  mat_g->SetFriction(mu_g);
-//
-//  // Create a particle generator and a mixture entirely made out of spheres
-//  utils::Generator gen(mphysicalSystem);
-//  utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
-//  m1->setDefaultMaterialDVI(mat_g);
-//  m1->setDefaultDensity(rho_g);
-//  m1->setDefaultSize(r_g);
-//
-//  // Set starting value for body identifiers
-//  gen.setBodyIdentifier(Id_g);
-//
-//  // Create particles in layers until reaching the desired number of particles
-//  double r = 1.01 * r_g;
-//  ChVector<> hdims(hdimX - r, hdimY - r, 0);
-//  ChVector<> center(0, 0, 2 * r);
-//
-//  while (gen.getTotalNumBodies() < num_particles) {
-//    gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
-//    center.z += 2 * r;
-//  }
-//
-//  return center.z;
-//}
+double CreateGranularBed(ChSystem* mphysicalSystem) {
+  // Create a material
+  ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
+  mat_g->SetFriction(mu_g);
+
+  // Create a particle generator and a mixture entirely made out of spheres
+  utils::Generator gen(mphysicalSystem);
+  utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
+  m1->setDefaultMaterialDVI(mat_g);
+  m1->setDefaultDensity(rho_g);
+  m1->setDefaultSize(r_g);
+
+  // Set starting value for body identifiers
+  gen.setBodyIdentifier(Id_g);
+
+  // Create particles in layers until reaching the desired number of particles
+  double r = 1.01 * r_g;
+  ChVector<> hdims(hdimX - r, hdimY - r, 0);
+  ChVector<> center(0, 0, 2 * r);
+
+  while (gen.getTotalNumBodies() < num_particles) {
+    gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
+    center.z += 2 * r;
+  }
+
+  return center.z;
+}
 
 void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 
@@ -238,163 +238,181 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 
 
 
-	// ball drop
-	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-	Real3 ellipsoidSize = .3 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
-	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
-
-	double density = .5*paramsH.rho0;  // TODO : Arman : Density for now is set to water density
-	double muFriction = .1;
-
-	// NOTE: mass properties and shapes are all for sphere
-	double volume = utils::CalcSphereVolume(size.x);
-	ChVector<> gyration = utils::CalcSphereGyration(size.x).Get_Diag();
-	double mass = density * volume;
-
-
-	//**************** bin and ship
-	// Create a common material
-	ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
-	mat_g->SetFriction(muFriction);
-	mat_g->SetCohesion(0);
-	mat_g->SetCompliance(0.0);
-	mat_g->SetComplianceT(0.0);
-	mat_g->SetDampingF(0.2);
-
-	const ChVector<> pos = ChVector<>(domainCenter.x, domainCenter.y + paramsH.cMax.y, domainCenter.z);
-	const ChQuaternion<> rot = ChQuaternion<>(1, 0, 0, 0);
-
-	ChSharedBodyPtr body;
-	body = ChSharedBodyPtr(new  ChBody(new ChCollisionModelParallel));
-	body->SetMaterialSurface(mat_g);
-	body->SetPos(pos);
-	body->SetRot(rot);
-	body->SetCollide(true);
-	body->SetBodyFixed(false);
-    body->SetMass(mass);
-    body->SetInertiaXX(mass * gyration);
-
-	body->GetCollisionModel()->ClearModel();
-	utils::AddSphereGeometry(body.get_ptr(), size.x);				// O
-	body->GetCollisionModel()->BuildModel();
-	mphysicalSystem.AddBody(body);
-	// ****************** create boxes around the fluid domain
-	ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
-	mat->SetFriction(.5);
-	mat->SetDampingF(0.2f);
-	int binId = 2;
-
-	ChSharedBodyPtr bin;
-	Real3 hdim = paramsH.boxDims;
-	double hthick = 1 * paramsH.HSML;
-
-	bin = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
-	bin->SetMaterialSurface(mat);
-	bin->SetMass(1);
-	bin->SetPos(ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z));
-	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-	bin->SetCollide(true);
-	bin->SetBodyFixed(true);
-
-	bin->GetCollisionModel()->ClearModel();
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x + 2 * hthick, hthick, hdim.z + 2 * hthick), ChVector<>(0, -0.5 * hdim.y - 0.5 * hthick, 0));	//bottom wall
-	bin->GetCollisionModel()->BuildModel();
-
-	mphysicalSystem.AddBody(bin);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//	// original hmmwv
-//  // -------------------
-//  // Create the terrain.
-//  // -------------------
+//	// ball drop
+//	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+//	Real3 ellipsoidSize = .3 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
+//	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
 //
-//  // Ground body
-//  ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
-//  ground->SetIdentifier(-1);
-//  ground->SetBodyFixed(true);
-//  ground->SetCollide(true);
+//	double density = .5*paramsH.rho0;  // TODO : Arman : Density for now is set to water density
+//	double muFriction = .1;
 //
-//  ground->GetMaterialSurface()->SetFriction(mu_g);
+//	// NOTE: mass properties and shapes are all for sphere
+//	double volume = utils::CalcSphereVolume(size.x);
+//	ChVector<> gyration = utils::CalcSphereGyration(size.x).Get_Diag();
+//	double mass = density * volume;
 //
-//  ground->GetCollisionModel()->ClearModel();
 //
-//  // Bottom box
-//  utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick),
-//                        ChQuaternion<>(1, 0, 0, 0), true);
-//  if (terrain_type == GRANULAR) {
-//    // Front box
-//    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hthick, hdimY, hdimZ + hthick),
-//                          ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
-//    // Rear box
-//    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hthick, hdimY, hdimZ + hthick),
-//                          ChVector<>(-hdimX - hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
-//    // Left box
-//    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hthick, hdimZ + hthick),
-//                          ChVector<>(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
-//    // Right box
-//    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hthick, hdimZ + hthick),
-//                          ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
-//  }
+//	//**************** bin and ship
+//	// Create a common material
+//	ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
+//	mat_g->SetFriction(muFriction);
+//	mat_g->SetCohesion(0);
+//	mat_g->SetCompliance(0.0);
+//	mat_g->SetComplianceT(0.0);
+//	mat_g->SetDampingF(0.2);
 //
-//  ground->GetCollisionModel()->BuildModel();
+//	const ChVector<> pos = ChVector<>(domainCenter.x, domainCenter.y + paramsH.cMax.y, domainCenter.z);
+//	const ChQuaternion<> rot = ChQuaternion<>(1, 0, 0, 0);
 //
-//  mphysicalSystem.AddBody(ground);
+//	ChSharedBodyPtr body;
+//	body = ChSharedBodyPtr(new  ChBody(new ChCollisionModelParallel));
+//	body->SetMaterialSurface(mat_g);
+//	body->SetPos(pos);
+//	body->SetRot(rot);
+//	body->SetCollide(true);
+//	body->SetBodyFixed(false);
+//    body->SetMass(mass);
+//    body->SetInertiaXX(mass * gyration);
 //
-//  // Create the granular material.
-//  double vertical_offset = 0;
+//	body->GetCollisionModel()->ClearModel();
+//	utils::AddSphereGeometry(body.get_ptr(), size.x);				// O
+//	body->GetCollisionModel()->BuildModel();
+//	mphysicalSystem.AddBody(body);
+//	// ****************** create boxes around the fluid domain
+//	ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
+//	mat->SetFriction(.5);
+//	mat->SetDampingF(0.2f);
+//	int binId = 2;
 //
-//  if (terrain_type == GRANULAR) {
-//    vertical_offset = CreateGranularBed(&mphysicalSystem);
-//  }
+//	ChSharedBodyPtr bin;
+//	Real3 hdim = paramsH.boxDims;
+//	double hthick = 1 * paramsH.HSML;
 //
-//  // -----------------------------------------
-//  // Create and initialize the vehicle system.
-//  // -----------------------------------------
+//	bin = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
+//	bin->SetMaterialSurface(mat);
+//	bin->SetMass(1);
+//	bin->SetPos(ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z));
+//	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
+//	bin->SetCollide(true);
+//	bin->SetBodyFixed(true);
 //
-//  utils::VehicleSystem* vehicle;
-//  utils::TireContactCallback* tire_cb;
+//	bin->GetCollisionModel()->ClearModel();
+//	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x + 2 * hthick, hthick, hdim.z + 2 * hthick), ChVector<>(0, -0.5 * hdim.y - 0.5 * hthick, 0));	//bottom wall
+//	bin->GetCollisionModel()->BuildModel();
 //
-//  // Create the vehicle assembly and the callback object for tire contact
-//  // according to the specified type of tire/wheel.
-//  switch (wheel_type) {
-//    case CYLINDRICAL: {
-//      vehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
-//      tire_cb = new MyCylindricalTire();
-//    } break;
-//    case LUGGED: {
-//      vehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
-//      tire_cb = new MyLuggedTire();
-//    } break;
-//  }
-//
-//  vehicle->SetTireContactCallback(tire_cb);
-//
-//  // Set the callback object for driver inputs. Pass the hold time as a delay in
-//  // generating driver inputs.
-//  MyDriverInputs driver_cb(time_hold);
-//  vehicle->SetDriverInputsCallback(&driver_cb);
-//
-//  // Initially, fix the chassis (will be released after time_hold).
-//  vehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
-//
-//  // Initialize the vehicle at a height above the terrain.
-//  vehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+//	mphysicalSystem.AddBody(bin);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// original hmmwv
+  // -------------------
+  // Create the terrain.
+  // -------------------
+
+  // Ground body
+  ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
+  ground->SetIdentifier(-1);
+  ground->SetBodyFixed(true);
+  ground->SetCollide(true);
+
+  ground->GetMaterialSurface()->SetFriction(mu_g);
+
+  ground->GetCollisionModel()->ClearModel();
+
+  printf("b1\n");
+
+  // Bottom box
+  utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick),
+                        ChQuaternion<>(1, 0, 0, 0), true);
+  if (terrain_type == GRANULAR) {
+    // Front box
+    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hthick, hdimY, hdimZ + hthick),
+                          ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+    // Rear box
+    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hthick, hdimY, hdimZ + hthick),
+                          ChVector<>(-hdimX - hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+    // Left box
+    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hthick, hdimZ + hthick),
+                          ChVector<>(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+    // Right box
+    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hthick, hdimZ + hthick),
+                          ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+  }
+
+  printf("b2\n");
+  ground->GetCollisionModel()->BuildModel();
+
+  mphysicalSystem.AddBody(ground);
+
+  // Create the granular material.
+  double vertical_offset = 0;
+
+  if (terrain_type == GRANULAR) {
+    vertical_offset = CreateGranularBed(&mphysicalSystem);
+  }
+
+  printf("b3\n");
+
+  // -----------------------------------------
+  // Create and initialize the vehicle system.
+  // -----------------------------------------
+
+  utils::VehicleSystem* vehicle;
+  utils::TireContactCallback* tire_cb;
+  printf("b4\n");
+
+
+  // Create the vehicle assembly and the callback object for tire contact
+  // according to the specified type of tire/wheel.
+  switch (wheel_type) {
+    case CYLINDRICAL: {
+
+    	  printf("b5\n");
+
+
+
+      vehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
+      printf("b6\n");
+      tire_cb = new MyCylindricalTire();
+      printf("b6\n");
+    } break;
+    case LUGGED: {
+      vehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
+      tire_cb = new MyLuggedTire();
+    } break;
+  }
+
+  printf("b6\n");
+  vehicle->SetTireContactCallback(tire_cb);
+
+  // Set the callback object for driver inputs. Pass the hold time as a delay in
+  // generating driver inputs.
+  MyDriverInputs driver_cb(time_hold);
+  vehicle->SetDriverInputsCallback(&driver_cb);
+  printf("b5\n");
+
+  // Initially, fix the chassis (will be released after time_hold).
+  vehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+
+  // Initialize the vehicle at a height above the terrain.
+  vehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+
+  printf("b6\n");
 
 }
 
@@ -408,8 +426,8 @@ void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem) {
 	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
 	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL2
-	gl_window.Initialize(1280, 720, "HMMWV", system);
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
+	gl_window.Initialize(1280, 720, "HMMWV", &mphysicalSystem);
 	gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
 	gl_window.SetRenderMode(opengl::WIREFRAME);
 
@@ -457,7 +475,7 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT) {
 		application->DoStep();
 		application->GetVideoDriver()->endScene();
 #else
-#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
 		if (gl_window.Active()) {
 		 gl_window.DoStepDynamics(dT);
 		 gl_window.Render();
@@ -539,8 +557,11 @@ int main(int argc, char* argv[]) {
 
 	// Create a ChronoENGINE physical system
 	ChSystemParallelDVI mphysicalSystem;
+	printf("a1\n");
 	InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
+	printf("a2\n");
 	CreateMbdPhysicalSystemObjects(mphysicalSystem);
+	printf("a3\n");
 
 	// Add sph data to the physics system
 	int startIndexSph = 0;
