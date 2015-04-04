@@ -65,7 +65,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     ChBody* body = *ibody;
 
     // Infer body type (0: DVI, 1:DEM)
-    int btype = (dynamic_cast<ChBodyDEM*>(body)) ? 1 : 0;
+    int btype = (body->GetContactMethod() == ChBody::DVI) ? 0 : 1;
 
     // Write body type, body identifier, the body fixed flag, and the collide flag
     csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();
@@ -97,13 +97,13 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     // Write material information
     if (btype == 0) {
       // Write DVI material surface information
-      ChSharedPtr<ChMaterialSurface>& mat = body->GetMaterialSurface();
+      ChSharedPtr<ChMaterialSurface> mat = body->GetMaterialSurface();
       csv << mat->static_friction << mat->sliding_friction << mat->rolling_friction << mat->spinning_friction;
       csv << mat->restitution << mat->cohesion << mat->dampingf;
       csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
     } else {
       // Write DEM material surface information
-      ChSharedPtr<ChMaterialSurfaceDEM>& mat = static_cast<ChBodyDEM*>(body)->GetMaterialSurfaceDEM();
+      ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
       csv << mat->young_modulus << mat->poisson_ratio;
       csv << mat->static_friction << mat->sliding_friction;
       csv << mat->restitution << mat->cohesion;
@@ -209,14 +209,16 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
     // Create a body of the appropriate type, read and apply material properties
     ChBody* body;
     if (btype == 0) {
-      body = (sys_par && cd_par) ? new ChBody(new collision::ChCollisionModelParallel) : new ChBody();
-      ChSharedPtr<ChMaterialSurface>& mat = body->GetMaterialSurface();
+      body = (sys_par && cd_par) ? new ChBody(new collision::ChCollisionModelParallel, ChBody::DVI)
+                                 : new ChBody(ChBody::DVI);
+      ChSharedPtr<ChMaterialSurface> mat = body->GetMaterialSurface();
       iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
       iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
       iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
     } else {
-      body = (sys_par && cd_par) ? new ChBodyDEM(new collision::ChCollisionModelParallel) : new ChBodyDEM();
-      ChSharedPtr<ChMaterialSurfaceDEM>& mat = static_cast<ChBodyDEM*>(body)->GetMaterialSurfaceDEM();
+      body = (sys_par && cd_par) ? new ChBody(new collision::ChCollisionModelParallel, ChBody::DEM)
+                                 : new ChBody(ChBody::DEM);
+      ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
       iss2 >> mat->young_modulus >> mat->poisson_ratio;
       iss2 >> mat->static_friction >> mat->sliding_friction;
       iss2 >> mat->restitution >> mat->cohesion;

@@ -34,7 +34,6 @@
 #include "physics/ChSystem.h"
 #include "physics/ChSystemDEM.h"
 #include "physics/ChBody.h"
-#include "physics/ChBodyDEM.h"
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 
@@ -117,8 +116,8 @@ class CH_UTILS_API MixtureIngredient {
   void calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration);
   double calcMinSeparation();
 
-  void setMaterialProperties(ChSharedPtr<ChMaterialSurface>& mat);
-  void setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat);
+  void setMaterialProperties(ChSharedPtr<ChMaterialSurface> mat);
+  void setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM> mat);
 
   Generator* m_generator;
 

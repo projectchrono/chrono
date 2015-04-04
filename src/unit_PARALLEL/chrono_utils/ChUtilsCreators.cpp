@@ -160,6 +160,7 @@ void AddTriangleMeshGeometry(ChBody* body,
     body->GetAssets().push_back(trimesh_shape);
   }
 }
+
 // -----------------------------------------------------------------------------
 
 void AddTriangleMeshConvexDecomposition(ChBody* body,
@@ -226,6 +227,7 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
     body->GetAssets().push_back(trimesh_shape);
   }
 }
+
 // -----------------------------------------------------------------------------
 
 void AddTriangleMeshConvexDecompositionV2(ChBody* body,
@@ -287,7 +289,10 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
     body->GetAssets().push_back(trimesh_shape);
   }
 }
+
 // -----------------------------------------------------------------------------
+
+//// TODO: extend this to also work for DEM systems.
 
 void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
                                              const std::string& obj_filename,
@@ -340,7 +345,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
     used_decomposition->GetConvexHullResult(c, trimesh_convex);
     trimesh_convex.ComputeMassProperties(true, mass, center, inertia);
 
-    body = ChSharedBodyPtr(new ChBody(new collision::ChCollisionModelParallel));
+    body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
 
     InitializeObject(body, scale * mass * total_mass, material, center, Quaternion(1, 0, 0, 0), true, false, 0, 2);
 
@@ -373,6 +378,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
                                   inertia.GetElement(2, 2) * scale * total_mass));
   }
 }
+
 // -----------------------------------------------------------------------------
 
 void AddRoundedBoxGeometry(ChBody* body,
@@ -437,109 +443,40 @@ void AddTorusGeometry(ChBody* body,
 }
 
 // -----------------------------------------------------------------------------
-// CreateBoxContainerDEM
-// CreateBoxContainerDVI
+// CreateBoxContainer
 //
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
 // -----------------------------------------------------------------------------
-ChSharedPtr<ChBodyDEM> CreateBoxContainerDEM(ChSystem* system,
-                                             int id,
-                                             ChSharedPtr<ChMaterialSurfaceDEM>& mat,
-                                             const ChVector<>& hdim,
-                                             double hthick,
-                                             const ChVector<>& pos,
-                                             const ChQuaternion<>& rot,
-                                             bool collide,
-                                             bool y_up,
-                                             bool overlap,
-                                             bool closed) {
-  // Infer system type and collision type.
-  SystemType sysType = GetSystemType(system);
-  CollisionType collType = GetCollisionType(system);
-  assert(sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM);
-
-  // Create the body and set material
-  ChSharedPtr<ChBodyDEM> body;
-
-  if (sysType == SEQUENTIAL_DEM || collType == BULLET_CD)
-    body = ChSharedPtr<ChBodyDEM>(new ChBodyDEM());
-  else
-    body = ChSharedPtr<ChBodyDEM>(new ChBodyDEM(new collision::ChCollisionModelParallel));
-
-  body->SetMaterialSurfaceDEM(mat);
-
-  // Set body properties and geometry.
-  body->SetIdentifier(id);
-  body->SetMass(1);
-  body->SetPos(pos);
-  body->SetRot(rot);
-  body->SetCollide(collide);
-  body->SetBodyFixed(true);
-  double o_lap = 0;
-  if (overlap) {
-    o_lap = hthick * 2;
-  }
-  body->GetCollisionModel()->ClearModel();
-  if (y_up) {
-    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, -hthick, 0));
-    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap),
-                   ChVector<>(-hdim.x - hthick, hdim.z, 0));
-    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap),
-                   ChVector<>(hdim.x + hthick, hdim.z, 0));
-    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick),
-                   ChVector<>(0, hdim.z, -hdim.y - hthick));
-    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick),
-                   ChVector<>(0, hdim.z, hdim.y + hthick));
-    if (closed) {
-      AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap),
-                     ChVector<>(0, hdim.z * 2 + hthick, 0));
-    }
-  } else {
-    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, -hthick));
-    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap),
-                   ChVector<>(-hdim.x - hthick, 0, hdim.z));
-    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap),
-                   ChVector<>(hdim.x + hthick, 0, hdim.z));
-    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap),
-                   ChVector<>(0, -hdim.y - hthick, hdim.z));
-    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap),
-                   ChVector<>(0, hdim.y + hthick, hdim.z));
-    if (closed) {
-      AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick),
-                     ChVector<>(0, 0, hdim.z * 2 + hthick));
-    }
-  }
-  body->GetCollisionModel()->BuildModel();
-
-  // Attach the body to the system.
-  system->AddBody(body);
-  return body;
-}
-
-ChSharedPtr<ChBody> CreateBoxContainerDVI(ChSystem* system,
-                                          int id,
-                                          ChSharedPtr<ChMaterialSurface>& mat,
-                                          const ChVector<>& hdim,
-                                          double hthick,
-                                          const ChVector<>& pos,
-                                          const ChQuaternion<>& rot,
-                                          bool collide,
-                                          bool y_up,
-                                          bool overlap,
-                                          bool closed) {
+ChSharedPtr<ChBody> CreateBoxContainer(ChSystem* system,
+                                       int id,
+                                       ChSharedPtr<ChMaterialSurfaceBase> mat,
+                                       const ChVector<>& hdim,
+                                       double hthick,
+                                       const ChVector<>& pos,
+                                       const ChQuaternion<>& rot,
+                                       bool collide,
+                                       bool y_up,
+                                       bool overlap,
+                                       bool closed) {
   // Infer system type and collision type.
   SystemType sysType = GetSystemType(system);
   CollisionType cdType = GetCollisionType(system);
-  assert(sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI);
+
+  // Infer contact method from the specified material properties object.
+  ChBody::ContactMethod contact_method = GetContactMethod(mat);
+
+  // Verify consistency of input arguments.
+  assert(((sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI) && contact_method == ChBody::DVI) ||
+         ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
 
   // Create the body and set material
   ChSharedPtr<ChBody> body;
 
-  if (sysType == SEQUENTIAL_DVI || cdType == BULLET_CD)
-    body = ChSharedPtr<ChBody>(new ChBody());
+  if (sysType == SEQUENTIAL_DVI || SEQUENTIAL_DEM || cdType == BULLET_CD)
+    body = ChSharedPtr<ChBody>(new ChBody(contact_method));
   else
-    body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
+    body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel, contact_method));
 
   body->SetMaterialSurface(mat);
 
@@ -592,9 +529,9 @@ ChSharedPtr<ChBody> CreateBoxContainerDVI(ChSystem* system,
 }
 
 // -----------------------------------------------------------------------------
-void InitializeObject(ChSharedBodyPtr body,
+void InitializeObject(ChSharedPtr<ChBody> body,
                       double mass,
-                      ChSharedPtr<ChMaterialSurface>& mat,
+                      ChSharedPtr<ChMaterialSurfaceBase> mat,
                       const ChVector<>& pos,
                       const ChQuaternion<>& rot,
                       bool collide,
@@ -614,7 +551,15 @@ void InitializeObject(ChSharedBodyPtr body,
 
 // -----------------------------------------------------------------------------
 
-void FinalizeObject(ChSharedBodyPtr body, ChSystem* system) {
+void FinalizeObject(ChSharedPtr<ChBody> body, ChSystem* system) {
+  // Infer system type and contact method.
+  SystemType sysType = GetSystemType(system);
+  ChBody::ContactMethod contact_method = body->GetContactMethod();
+
+  // Verify consistency of input arguments.
+  assert(((sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI) && contact_method == ChBody::DVI) ||
+    ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
+
   body->GetCollisionModel()->BuildModel();
   system->AddBody(body);
 }
