@@ -11,8 +11,9 @@
 
 #include "SPHCudaUtils.h"
 #include "MyStructs.cuh" //just for SimParams
+#include "VehicleProperties.h"
 
-#include "core/ChVector.h"
+
 
 
 // -----------------------------------------------------------------------------
@@ -41,7 +42,7 @@ void SetupParamsH(SimParams & paramsH) {
 		paramsH.LARGE_PRES = 10000;//paramsH.BASEPRES;//10000;
 		paramsH.deltaPress; //** modified below
 		paramsH.multViscosity_FSI = 5.0;
-	paramsH.gravity = mR3(0, -9.81, 0);//mR3(0);//mR3(0, -9.81, 0);
+	paramsH.gravity = mR3(0, 0, -9.81);//mR3(0);//mR3(0, -9.81, 0);
 	paramsH.bodyForce3 = mR3(0,0,0);//mR4(3.2e-3,0,0,0);// mR4(0);;// /*Re = 100 */ //mR4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
 		paramsH.mu0 = .001;
@@ -121,10 +122,9 @@ double hdimZ = 0.5;
 double hthick = 0.25;
 
 // -----------------------------------------------------------------------------
-// Simulation parameters Granular
+// Parameters for granular material
 // -----------------------------------------------------------------------------
 
-// Parameters for granular material
 int Id_g = 100;
 double r_g = 0.02;
 double rho_g = 2500;
@@ -135,5 +135,23 @@ chrono::ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * chrono::ChVector<>(1, 
 float mu_g = 0.8;
 
 int num_particles = 1000;
+
+// -----------------------------------------------------------------------------
+// Output parameters
+// -----------------------------------------------------------------------------
+
+bool povray_output = false;
+
+const std::string out_dir = "../HMMWV";
+const std::string pov_dir = out_dir + "/POVRAY";
+
+int out_fps = 60;
+
+double vertical_offset = 0; //vehicle vertical offset
+
+
+utils::VehicleSystem* mVehicle;
+utils::TireContactCallback* tire_cb;
+MyDriverInputs* driver_cb;
 
 #endif
