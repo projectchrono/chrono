@@ -99,6 +99,8 @@ ENDFOREACH(PROGRAM)
 IF(ENABLE_DEMOS_VEHICLE)
 	SET(DEMOS
 	    hmmwv2
+		hmmwv
+	hmmwv_fluid2
 	  #  hmmwv_fluid
 	# hmmwv_fluid2
 	)
