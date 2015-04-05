@@ -1507,59 +1507,57 @@ void ChSystem::Setup()
 		// - UPDATES ALL FORCES  (AUTOMATIC, AS CHILDREN OF BODIES)
 		// - UPDATES ALL MARKERS (AUTOMATIC, AS CHILDREN OF BODIES).
 
-void ChSystem::Update() 
+void ChSystem::Update(bool update_assets)
 {
+  ChTimer<double>mtimer; mtimer.start(); // Timer for profiling
 
-	ChTimer<double>mtimer; mtimer.start(); // Timer for profiling
+  events->Record(CHEVENT_UPDATE); // Record an update event
 
+  // Executes the "forUpdate" script, if any
+  ExecuteScriptForUpdate();
+  // Executes the "forUpdate" script
+  // in all controls of controlslist
+  ExecuteControlsForUpdate();
 
-	events->Record(CHEVENT_UPDATE); // Record an update event
+  // --------------------------------------
+  // Spread state vector Y to bodies
+  //    Y --> Bodies
+  //    Y_accel --> Bodies
+  // Updates recursively all other aux.vars
+  // --------------------------------------
+#pragma omp parallel for 
+  for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies			
+  {
+    ChBody* Bpointer = bodylist[ip];
 
-									// Executes the "forUpdate" script, if any
-	ExecuteScriptForUpdate();
-									// Executes the "forUpdate" script
-									// in all controls of controlslist
-	ExecuteControlsForUpdate();
+    Bpointer->Update(ChTime, update_assets);
 
-									// --------------------------------------
-									// Spread state vector Y to bodies
-									//    Y --> Bodies
-									//    Y_accel --> Bodies
-									// Updates recursively all other aux.vars
-									// --------------------------------------
-	#pragma omp parallel for 
-	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies			
-	{								
-		ChBody* Bpointer = bodylist[ip];
+    if (this->GetUseSleeping())
+      Bpointer->TrySleeping();
+  }
+  // -----------------------------
+  // Updates other physical items
+  // -----------------------------
+  for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
+  {
+    ChPhysicsItem* PHpointer = otherphysicslist[ip];
 
-		Bpointer->Update(ChTime);  
+    PHpointer->Update(ChTime, update_assets);
+  }
+  // -----------------------------
+  // Updates all links
+  // -----------------------------
+  for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+  {
+    ChLink* Lpointer = linklist[ip];
 
-		if (this->GetUseSleeping())
-			Bpointer->TrySleeping();
-	}
-									// -----------------------------
-									// Updates other physical items
-									// -----------------------------
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+    Lpointer->Update(ChTime, update_assets);
+  }
 
-		PHpointer->Update(ChTime);
-	}
-									// -----------------------------
-									// Updates all links
-									// -----------------------------
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
+  this->contact_container->Update(ChTime, update_assets); // Update all contacts, if any
 
-		Lpointer->Update(ChTime);
-	}
-
-	this->contact_container->Update(); // Update all contacts, if any
-
-	mtimer.stop();
-	timer_update += mtimer();
+  mtimer.stop();
+  timer_update += mtimer();
 }
 
 
