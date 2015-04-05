@@ -202,8 +202,8 @@ public:
 			//
 
 				/// Update all auxiliary data of the gear transmission at given time
-	virtual void Update (double mytime);
-	
+  virtual void Update(double mytime, bool update_assets = true);
+
 
 
 			//

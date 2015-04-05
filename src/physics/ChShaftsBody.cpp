@@ -94,13 +94,13 @@ bool ChShaftsBody::Initialize(ChSharedPtr<ChShaft> mshaft, ChSharedPtr<ChBodyFra
 }
 
 
-void ChShaftsBody::Update (double mytime)
+void ChShaftsBody::Update(double mytime, bool update_assets)
 {
-		// Inherit time changes of parent class
-	ChPhysicsItem::Update(mytime);
-	
-		// update class data
-	// ...
+  // Inherit time changes of parent class
+  ChPhysicsItem::Update(mytime, update_assets);
+
+  // update class data
+  // ...
 }
 
 

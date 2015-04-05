@@ -122,13 +122,13 @@ void ChBodyAuxRef::SetFrame_REF_to_abs(const ChFrame<>& mfra)
 
 
 
-void ChBodyAuxRef::Update()
+void ChBodyAuxRef::Update(bool update_assets)
 {
-		// update parent class
-	ChBody::Update();
+  // update parent class
+  ChBody::Update(update_assets);
 
-		// update own data
-	this->TransformLocalToParent(this->auxref_to_cog, this->auxref_to_abs);
+  // update own data
+  this->TransformLocalToParent(this->auxref_to_cog, this->auxref_to_abs);
 }
 
 

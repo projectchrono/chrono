@@ -465,7 +465,7 @@ void ChLinkMarkers::UpdateForces(double mytime)
 /////////
 /////////
 
-void ChLinkMarkers::Update (double time)
+void ChLinkMarkers::Update(double time, bool update_assets)
 {
     // 1 -
     UpdateTime(time);

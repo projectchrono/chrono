@@ -226,7 +226,7 @@ public:
 					/// This following "complete" update functions actually fill all the
 					/// matrices of the link, and does all calculus, by
 					/// calling all the previous Update functions in sequence.
-	virtual void Update (double mytime);
+  virtual void Update(double mytime, bool update_assets = true);
 
 
 

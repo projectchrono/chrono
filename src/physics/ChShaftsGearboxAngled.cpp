@@ -104,13 +104,13 @@ int ChShaftsGearboxAngled::Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first (
 }
 
 
-void ChShaftsGearboxAngled::Update (double mytime)
+void ChShaftsGearboxAngled::Update(double mytime, bool update_assets)
 {
-		// Inherit time changes of parent class
-	ChPhysicsItem::Update(mytime);
-	
-		// update class data
-	// ...
+  // Inherit time changes of parent class
+  ChPhysicsItem::Update(mytime, update_assets);
+
+  // update class data
+  // ...
 }
 
 

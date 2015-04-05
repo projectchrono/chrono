@@ -214,10 +214,10 @@ int ChLinkMateGeneric::RestoreRedundant()
 }
 
 
-void ChLinkMateGeneric::Update (double mytime)
+void ChLinkMateGeneric::Update(double mytime, bool update_assets)
 {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
-    ChLink::Update(mytime);
+    ChLink::Update(mytime, update_assets);
 
 	if(this->Body1 && this->Body2)
 	{
@@ -884,14 +884,13 @@ void ChLinkMatePlane::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first bod
 
 
 /// Override _all_ time, jacobian etc. updating.
-void ChLinkMatePlane::Update (double mtime)
+void ChLinkMatePlane::Update(double mtime, bool update_assets)
 {
-	// Parent class inherit
-	ChLinkMateGeneric::Update(mtime);
+  // Parent class inherit
+  ChLinkMateGeneric::Update(mtime, update_assets);
 
-	// .. then add the effect of imposed distance on C residual vector
-	this->C->Element(0,0) -= this->separation; // for this mate, C = {Cx, Cry, Crz}
-
+  // .. then add the effect of imposed distance on C residual vector
+  this->C->Element(0, 0) -= this->separation; // for this mate, C = {Cx, Cry, Crz}
 }
 
 
@@ -1051,14 +1050,13 @@ void ChLinkMateXdistance::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first
 }
 
 
-void ChLinkMateXdistance::Update (double mtime)
+void ChLinkMateXdistance::Update(double mtime, bool update_assets)
 {
-	// Parent class inherit
-	ChLinkMateGeneric::Update(mtime);
+  // Parent class inherit
+  ChLinkMateGeneric::Update(mtime, update_assets);
 
-	// .. then add the effect of imposed distance on C residual vector
-	this->C->Element(0,0) -= this->distance; // for this mate, C = {Cx}
-
+  // .. then add the effect of imposed distance on C residual vector
+  this->C->Element(0, 0) -= this->distance; // for this mate, C = {Cx}
 }
 
 
@@ -1193,7 +1191,7 @@ void ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< firs
 
 
 /// Override _all_ time, jacobian etc. updating.
-void ChLinkMateOrthogonal::Update (double mtime)
+void ChLinkMateOrthogonal::Update(double mtime, bool update_assets)
 {
 	// Prepare the alignment of the two frames so that the X axis is orthogonal 
 	// to the two directions
@@ -1246,7 +1244,7 @@ void ChLinkMateOrthogonal::Update (double mtime)
 	}
 
 	// Parent class inherit
-	ChLinkMateGeneric::Update(mtime);
+	ChLinkMateGeneric::Update(mtime, update_assets);
 }
 
 

@@ -153,7 +153,7 @@ void ChLinkUniversal::Initialize(ChSharedPtr<ChBodyFrame> body1,    // first bod
 // -----------------------------------------------------------------------------
 // Link update function
 // -----------------------------------------------------------------------------
-void ChLinkUniversal::Update(double time)
+void ChLinkUniversal::Update(double time, bool update_assets)
 {
   // Inherit time changes of parent class
   ChLink::UpdateTime(time);

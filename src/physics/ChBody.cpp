@@ -767,18 +767,18 @@ ChSharedPtr<ChForce> ChBody::SearchForce (const char* m_name)
                     //Also the coordinates of forces and markers
                     //linked to the body will be updated.
 
-void ChBody::UpdateMarkers (double mytime)
+void ChBody::UpdateMarkers(double mytime)
 {
     HIER_MARKER_INIT
     while (HIER_MARKER_NOSTOP)
     {
-        MARKpointer->Update (mytime);
+        MARKpointer->Update(mytime);
 
         HIER_MARKER_NEXT
     }
 }
 
-void ChBody::UpdateForces (double mytime)
+void ChBody::UpdateForces(double mytime)
 {
     // COMPUTE LAGRANGIAN FORCES APPLIED TO BODY
 
@@ -800,7 +800,7 @@ void ChBody::UpdateForces (double mytime)
     while (HIER_FORCE_NOSTOP)
     {   
 		// update positions, f=f(t,q)
-        FORCEpointer->Update (mytime);
+        FORCEpointer->Update(mytime);
 
         FORCEpointer->GetBodyForceTorque(&mforce,&mtorque);
         Xforce  += mforce;
@@ -855,11 +855,11 @@ void ChBody::Update(const ChCoordsys<>& mypos,
                     const ChCoordsys<>& mypos_dt,
                     double              mytime)
 {
-    UpdateTime (mytime);
+    UpdateTime(mytime);
 
     ChCoordsys<> pos = mypos;
     pos.rot.Normalize();
-    UpdateState (pos, mypos_dt);
+    UpdateState(pos, mypos_dt);
 
     Update();
 }
@@ -870,32 +870,32 @@ void ChBody::Update(const ChCoordsys<>& mypos,
                             // of the object AND the dependant (linked)
                             // markers and forces.
 
-void ChBody::Update()
+void ChBody::Update(bool update_assets)
 {
-    //TrySleeping();         // See if the body can fall asleep; if so, put it to sleeping 
-    ClampSpeed();          // Apply limits (if in speed clamping mode) to speeds.
-    ComputeGyro();         // Set the gyroscopic momentum.
+  //TrySleeping();         // See if the body can fall asleep; if so, put it to sleeping 
+  ClampSpeed();          // Apply limits (if in speed clamping mode) to speeds.
+  ComputeGyro();         // Set the gyroscopic momentum.
 
-        // Also update the children "markers" and
-        // "forces" depending on the body current state.
-    UpdateMarkers(ChTime);
+  // Also update the children "markers" and
+  // "forces" depending on the body current state.
+  UpdateMarkers(ChTime);
 
-    UpdateForces(ChTime);
+  UpdateForces(ChTime);
 
-		// This will update assets
-	ChPhysicsItem::Update(ChTime);
+  // This will update assets
+  ChPhysicsItem::Update(ChTime, update_assets);
 }
 
 
 
                             // As before, but keeps the current state.
                             // Mostly used for world reference body.
-void ChBody::Update (double mytime)
+void ChBody::Update(double mytime, bool update_assets)
 {
-                // For the body:
-    UpdateTime(mytime);
+  // For the body:
+  UpdateTime(mytime);
 
-    Update();
+  Update(update_assets);
 }
 
 

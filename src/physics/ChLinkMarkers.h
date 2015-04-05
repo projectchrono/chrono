@@ -182,7 +182,7 @@ public:
 					//          UpdateRelMarkerCoords;
 					//			UpdateForces;
 
-	virtual void Update (double mytime);
+  virtual void Update(double mytime, bool update_assets = true);
 
 			//
 			// STATE FUNCTIONS

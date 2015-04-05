@@ -126,13 +126,13 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to 
 
 
 
-void ChLinkPointFrame::Update (double mytime)
+void ChLinkPointFrame::Update(double mytime, bool update_assets)
 {
-		// Inherit time changes of parent class
-	ChPhysicsItem::Update(mytime);
-	
-		// update class data
-	// ...
+  // Inherit time changes of parent class
+  ChPhysicsItem::Update(mytime, update_assets);
+
+  // update class data
+  // ...
 }
 
 

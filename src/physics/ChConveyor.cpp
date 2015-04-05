@@ -341,11 +341,10 @@ void  ChConveyor::ConstraintsLiFetchSuggestedPositionSolution()
 
 
 
-					
-void ChConveyor::Update (double mytime)
+void ChConveyor::Update(double mytime, bool update_assets)
 {
 				// inherit parent class function
-	ChBody::Update(mytime);
+	ChBody::Update(mytime, update_assets);
 	
 	if (this->GetBodyFixed())
 	{
@@ -371,14 +370,14 @@ void ChConveyor::Update (double mytime)
 				// keep the plate always at the same speed of the main reference, plus the conveyor speed on X local axis
 	this->conveyor_plate->SetPos_dt(this->GetPos_dt() + (ChVector<>(conveyor_speed,0,0) >> (*this) ) );
 
-	conveyor_plate->Update(mytime);
+	conveyor_plate->Update(mytime, update_assets);
 
 	this->internal_link->SetSystem(this->GetSystem());
 
 	((ChFunction_Ramp*)internal_link->GetMotion_X())->Set_ang(-conveyor_speed); 
 	((ChFunction_Ramp*)internal_link->GetMotion_X())->Set_y0(+conveyor_speed*this->GetChTime()); // always zero pos. offset (trick)
 
-	this->internal_link->Update(mytime);
+	this->internal_link->Update(mytime, update_assets);
 }
 
 

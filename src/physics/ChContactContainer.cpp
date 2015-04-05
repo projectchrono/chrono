@@ -88,11 +88,10 @@ ChContactContainer::~ChContactContainer ()
 
 
 
-void ChContactContainer::Update (double mytime)
+void ChContactContainer::Update(double mytime, bool update_assets)
 {
-    // Inherit time changes of parent class, basically doing nothing :)
-    ChContactContainerBase::Update(mytime);
-
+  // Inherit time changes of parent class, basically doing nothing :)
+  ChContactContainerBase::Update(mytime, update_assets);
 }
 
 

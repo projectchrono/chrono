@@ -194,17 +194,20 @@ public:
 				/// because they might need to update inner states, forces, springs, etc.
 				/// This base version, by default, simply updates the item's time,
 				/// and update the asset tree, if any.
-	virtual void Update (double mytime) 
-		{ 
-			this->ChTime = mytime; 
+  virtual void Update(double mytime, bool update_assets = true) {
+    this->ChTime = mytime;
 
-			for (unsigned int ia= 0; ia < this->assets.size(); ++ia)
-				assets[ia]->Update();
-		};
+    if (update_assets) {
+      for (unsigned int ia = 0; ia < this->assets.size(); ++ia)
+        assets[ia]->Update();
+    }
+  }
 
 				/// As above, but does not require updating of time-dependent 
 				/// data. By default, calls Update(mytime) using item's current time. 
-	virtual void Update() {Update(this->ChTime);}
+  virtual void Update(bool update_assets = true) {
+    Update(this->ChTime, update_assets);
+  }
 
 
 				/// Set zero speed (and zero accelerations) in state, without changing the position.
