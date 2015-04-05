@@ -2438,21 +2438,21 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	ExecuteControlsForStep();
 
 
-	this->stepcount++;
+  this->stepcount++;
 
-	// Compute contacts and create contact constraints
+  // Compute contacts and create contact constraints
+  ComputeCollisions();
 
-	ComputeCollisions();
+  // Counts dofs, statistics, etc.
+  Setup();
 
+  // Update everything - and put to sleep bodies that need it.
+  // Note that we do not update visualization assets at this point.
+  Update(false);
 
-	Setup();	// Counts dofs, statistics, etc.
-
-
-	Update();	// Update everything - and put to sleep bodies that need it
-
-				// Re-wake the bodies that cannot sleep because they are in contact with
-				// some body that is not in sleep state.
-	WakeUpSleepingBodies();
+  // Re-wake the bodies that cannot sleep because they are in contact with
+  // some body that is not in sleep state.
+  WakeUpSleepingBodies();
 
 
 	ChTimer<double> mtimer_lcp;
@@ -2578,21 +2578,21 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	ExecuteControlsForStep();
 
 
-	this->stepcount++;
+  this->stepcount++;
 
+  // Compute contacts and create contact constraints
+  ComputeCollisions();
 
-	// Compute contacts and create contact constraints
+  // Counts dofs, statistics, etc.
+  Setup();
 
-	ComputeCollisions();
+  // Update everything - and put to sleep bodies that need it.
+  // Note that we do not update visualization assets at this point.
+  Update(false);
 
-
-	Setup();	// Counts dofs, statistics, etc.
-
-	Update();	// Update everything - and put to sleep bodies that need it
-
-				// Re-wake the bodies that cannot sleep because they are in contact with
-				// some body that is not in sleep state.
-	WakeUpSleepingBodies();
+  // Re-wake the bodies that cannot sleep because they are in contact with
+  // some body that is not in sleep state.
+  WakeUpSleepingBodies();
 
 
 	ChTimer<double> mtimer_lcp;
@@ -2779,21 +2779,21 @@ int ChSystem::Integrate_Y_timestepper()
 	ExecuteControlsForStep();
 
 
-	this->stepcount++;
+  this->stepcount++;
 
-	// Compute contacts and create contact constraints
+  // Compute contacts and create contact constraints
+  ComputeCollisions();
 
-	ComputeCollisions();
+  // Counts dofs, statistics, etc. (not needed because already in Advance()...? )
+  Setup();
 
+  // Update everything - and put to sleep bodies that need it (not needed because already in Advance()...? )
+  // No need to update visualization assets here.
+  Update(false);
 
-	Setup();	// Counts dofs, statistics, etc. (not needed because already in Advance()...? )
-
-
-	Update();	// Update everything - and put to sleep bodies that need it (not needed because already in Advance()...? )
-
-				// Re-wake the bodies that cannot sleep because they are in contact with
-				// some body that is not in sleep state.
-	WakeUpSleepingBodies();
+  // Re-wake the bodies that cannot sleep because they are in contact with
+  // some body that is not in sleep state.
+  WakeUpSleepingBodies();
 
 
 	ChTimer<double> mtimer_lcp;
@@ -2835,8 +2835,12 @@ int ChSystem::Integrate_Y_timestepper()
 
 int ChSystem::DoAssembly(int action, int mflags)
 {
+  // Counts dofs, statistics, etc.
   Setup();
-  Update();
+
+  // Update the system and all its components.
+  // No need to update visualization assets here.
+  Update(false);
 
   //
   // (1)--------  POSITION
@@ -2852,8 +2856,8 @@ int ChSystem::DoAssembly(int action, int mflags)
         // Compute new contacts and create contact constraints
         ComputeCollisions();
 
-        Setup();    // Counts dofs, statistics, etc.
-        Update();   // Update everything
+        Setup();         // Counts dofs, statistics, etc.
+        Update(false);   // Update everything (do not update visualization assets)
       }
 
       // Reset known-term vectors
