@@ -88,7 +88,7 @@ int ChSystemParallel::Integrate_Y() {
     mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
   }
 
-  // updates the reactions of the constraint
+  // Update the constraint reactions.
   LCPresult_Li_into_reactions(1.0 / this->GetStep());  // R = l/dt  , approximately
 
   // Scatter the states to the Chrono objects (bodies and shafts) and update
@@ -294,7 +294,7 @@ void ChSystemParallel::Update() {
 
 //
 // Update all bodies in the system and populate system-wide state and force
-// vectors.
+// vectors. Note that visualization assets are not updated.
 //
 void ChSystemParallel::UpdateBodies() {
   LOG(INFO) << "ChSystemParallel::UpdateBodies()";
@@ -305,7 +305,7 @@ void ChSystemParallel::UpdateBodies() {
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
-    bodylist[i]->Update(ChTime);
+    bodylist[i]->Update(ChTime, false);
     bodylist[i]->VariablesFbLoadForces(GetStep());
     bodylist[i]->VariablesQbLoadSpeed();
 
@@ -343,7 +343,7 @@ void ChSystemParallel::UpdateBodies() {
 
 //
 // Update all shaft elements in the system and populate system-wide state and
-// force vectors.
+// force vectors. Note that visualization assets are not updated.
 //
 void ChSystemParallel::UpdateShafts() {
   real* shaft_rot = data_manager->host_data.shaft_rot.data();
@@ -352,7 +352,7 @@ void ChSystemParallel::UpdateShafts() {
 
   ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
-    shaftlist[i]->Update(ChTime);
+    shaftlist[i]->Update(ChTime, false);
     shaftlist[i]->VariablesFbLoadForces(GetStep());
     shaftlist[i]->VariablesQbLoadSpeed();
 
@@ -367,7 +367,7 @@ void ChSystemParallel::UpdateShafts() {
 
 //
 // Update all links in the system and set the type of the associated constraints
-// to BODY_BODY.
+// to BODY_BODY. Note that visualization assets are not updated.
 //
 void ChSystemParallel::UpdateLinks() {
   double oostep = 1 / GetStep();
@@ -375,7 +375,7 @@ void ChSystemParallel::UpdateLinks() {
   bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
   for (int i = 0; i < linklist.size(); i++) {
-    linklist[i]->Update(ChTime);
+    linklist[i]->Update(ChTime, false);
     linklist[i]->ConstraintsBiReset();
     linklist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
     linklist[i]->ConstraintsBiLoad_Ct(1);
@@ -424,6 +424,7 @@ BILATERALTYPE GetBilateralType(ChPhysicsItem* item) {
 // - allow all items to include body forces (required e.g. ChShaftsTorqueBase)
 // - no support for any items that introduce additional state variables
 // - only include constraints from items of supported type (see GetBilateralType above)
+// - visualization assets are not updated
 //
 void ChSystemParallel::UpdateOtherPhysics() {
   double oostep = 1 / GetStep();
@@ -431,7 +432,7 @@ void ChSystemParallel::UpdateOtherPhysics() {
   bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
   for (int i = 0; i < otherphysicslist.size(); i++) {
-    otherphysicslist[i]->Update(ChTime);
+    otherphysicslist[i]->Update(ChTime, false);
     otherphysicslist[i]->ConstraintsBiReset();
     otherphysicslist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
     otherphysicslist[i]->ConstraintsBiLoad_Ct(1);
