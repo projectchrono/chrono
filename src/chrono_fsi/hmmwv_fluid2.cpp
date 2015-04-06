@@ -122,7 +122,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc
 	mphysicalSystem.Set_G_acc(ChVector<>(paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z));
 
   // ---------------------
-  // Edit system settings.
+  // Edit mphysicalSystem settings.
   // ---------------------
 
   	mphysicalSystem.GetSettings()->solver.solver_mode = SLIDING; //NORMAL, SPINNING
@@ -173,7 +173,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 // 	// -----------------------------------------
 // 	// Create and initialize the vehicle systems
 // 	// -----------------------------------------
-// 	MyVehicle vehicle(&mphysicalSystem);
+// 	MyVehicle mVehicle(&mphysicalSystem);
 
 // 	// --------------------------------------------------------
 // 	// Create the ground body and set contact geometry
@@ -334,8 +334,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 
   ground->GetCollisionModel()->ClearModel();
 
-  printf("b1\n");
-
   // Bottom box
   utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick),
                         ChQuaternion<>(1, 0, 0, 0), true);
@@ -354,66 +352,43 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
                           ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
   }
 
-  printf("b2\n");
   ground->GetCollisionModel()->BuildModel();
 
   mphysicalSystem.AddBody(ground);
 
   // Create the granular material.
-  double vertical_offset = 0;
 
   if (terrain_type == GRANULAR) {
     vertical_offset = CreateGranularBed(&mphysicalSystem);
   }
 
-  printf("b3\n");
-
   // -----------------------------------------
   // Create and initialize the vehicle system.
   // -----------------------------------------
-
-  utils::VehicleSystem* vehicle;
-  utils::TireContactCallback* tire_cb;
-  printf("b4\n");
-
-
   // Create the vehicle assembly and the callback object for tire contact
   // according to the specified type of tire/wheel.
   switch (wheel_type) {
     case CYLINDRICAL: {
-
-    	  printf("b5\n");
-
-
-
-      vehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
-      printf("b6\n");
+      mVehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
       tire_cb = new MyCylindricalTire();
-      printf("b6\n");
     } break;
     case LUGGED: {
-      vehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
+      mVehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
       tire_cb = new MyLuggedTire();
     } break;
   }
-
-  printf("b6\n");
-  vehicle->SetTireContactCallback(tire_cb);
+  mVehicle->SetTireContactCallback(tire_cb);
 
   // Set the callback object for driver inputs. Pass the hold time as a delay in
   // generating driver inputs.
-  MyDriverInputs driver_cb(time_hold);
-  vehicle->SetDriverInputsCallback(&driver_cb);
-  printf("b5\n");
+  driver_cb = new MyDriverInputs(time_hold);
+  mVehicle->SetDriverInputsCallback(driver_cb);
 
   // Initially, fix the chassis (will be released after time_hold).
-  vehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
 
   // Initialize the vehicle at a height above the terrain.
-  vehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
-
-  printf("b6\n");
-
+  mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
 }
 
 
@@ -557,17 +532,69 @@ int main(int argc, char* argv[]) {
 
 	// Create a ChronoENGINE physical system
 	ChSystemParallelDVI mphysicalSystem;
-	printf("a1\n");
 	InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
-	printf("a2\n");
 	CreateMbdPhysicalSystemObjects(mphysicalSystem);
-	printf("a3\n");
+
+
+
+
+
+
+
+
+
+	  // -----------------------------------------
+	  // Create and initialize the vehicle mphysicalSystem.
+	  // -----------------------------------------
+
+	  utils::VehicleSystem* vehicle;
+	  utils::TireContactCallback* tire_cb;
+
+	  // Create the vehicle assembly and the callback object for tire contact
+	  // according to the specified type of tire/wheel.
+	  switch (wheel_type) {
+	    case CYLINDRICAL: {
+	      vehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
+	      tire_cb = new MyCylindricalTire();
+	    } break;
+	    case LUGGED: {
+	      vehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
+	      tire_cb = new MyLuggedTire();
+	    } break;
+	  }
+
+	  vehicle->SetTireContactCallback(tire_cb);
+
+	  // Set the callback object for driver inputs. Pass the hold time as a delay in
+	  // generating driver inputs.
+	  MyDriverInputs driver_cb(time_hold);
+	  vehicle->SetDriverInputsCallback(&driver_cb);
+
+	  // Initially, fix the chassis (will be released after time_hold).
+	  vehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+
+	  // Initialize the vehicle at a height above the terrain.
+	    double vertical_offset = 0;
+
+	  vehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// Add sph data to the physics system
 	int startIndexSph = 0;
-	printf("(1) num bodies %d \n", mphysicalSystem.Get_bodylist()->size());
 	AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects);
-	printf("(2) num bodies %d \n", mphysicalSystem.Get_bodylist()->size());
 	// Set gravitational acceleration
 
 	//******************* Irrlicht and driver types **************************
@@ -686,5 +713,14 @@ int main(int argc, char* argv[]) {
 	ClearMyThrustR4(velMasD);
 	ClearMyThrustR4(rhoPresMuD);
 	ClearMyThrustU1(bodyIndexD);
-	return 0;
+	ClearMyThrustR4(derivVelRhoD);
+
+
+
+
+
+	  delete vehicle;
+	  delete tire_cb;
+
+	  return 0;
 }
