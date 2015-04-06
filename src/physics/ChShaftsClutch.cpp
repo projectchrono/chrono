@@ -93,13 +93,13 @@ bool ChShaftsClutch::Initialize(ChSharedPtr<ChShaft> mshaft1, ChSharedPtr<ChShaf
 }
 
 
-void ChShaftsClutch::Update (double mytime)
+void ChShaftsClutch::Update(double mytime, bool update_assets)
 {
-		// Inherit time changes of parent class
-	ChShaftsCouple::Update(mytime);
-	
-		// update class data
-	// ...
+  // Inherit time changes of parent class
+  ChShaftsCouple::Update(mytime, update_assets);
+
+  // update class data
+  // ...
 }
 
 

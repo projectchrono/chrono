@@ -116,7 +116,7 @@ public:
 
   /// Perform the update of this joint at the specified time: compute jacobians,
   /// constraint violations, etc. and cache in internal structures
-  virtual void Update(double time);
+  virtual void Update(double time, bool update_assets = true);
 
     //
 	// STATE FUNCTIONS

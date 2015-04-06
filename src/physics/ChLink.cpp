@@ -99,7 +99,7 @@ void ChLink::UpdateTime (double time)
 /////////
 /////////
 
-void ChLink::Update (double time)
+void ChLink::Update(double time, bool update_assets)
 {
     // 1 -
     UpdateTime(time);
@@ -107,9 +107,9 @@ void ChLink::Update (double time)
 }
 
 
-void ChLink::Update ()
+void ChLink::Update(bool update_assets)
 {
-    Update(ChTime); // use the same time
+    Update(ChTime, update_assets); // use the same time
 }
 
 

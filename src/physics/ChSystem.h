@@ -628,7 +628,7 @@ public:
 
 				/// Updates all the auxiliary data and children of
 				/// bodies, forces, links, given their current state.
-	void Update();
+	void Update(bool update_assets = true);
 
 
 

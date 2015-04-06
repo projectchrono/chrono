@@ -609,10 +609,10 @@ public:
 
                 /// Update all auxiliary data of the rigid body and of
                 /// its children (markers, forces..), at given time
-    virtual void Update(double mytime);
+    virtual void Update(double mytime, bool update_assets = true);
                 /// Update all auxiliary data of the rigid body and of
                 /// its children (markers, forces..)
-    virtual void Update();
+    virtual void Update(bool update_assets = true);
 
 
 

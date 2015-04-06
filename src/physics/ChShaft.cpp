@@ -306,15 +306,15 @@ bool ChShaft::TrySleeping()
 
 
 
-void ChShaft::Update (double mytime)
+void ChShaft::Update(double mytime, bool update_assets)
 {
-		// Update parent class too
-	ChPhysicsItem::Update(mytime);
+  // Update parent class too
+  ChPhysicsItem::Update(mytime, update_assets);
 
-		// Class update
+  // Class update
 
-	//TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping 
-	ClampSpeed();			// Apply limits (if in speed clamping mode) to speeds.
+  //TrySleeping();    // See if the body can fall asleep; if so, put it to sleeping 
+  ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
 }
 
 

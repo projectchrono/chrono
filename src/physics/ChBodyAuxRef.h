@@ -86,7 +86,7 @@ public:
 
         /// Update all auxiliary data of the rigid body and of
         /// its children (markers, forces..)
-  virtual void Update();
+  virtual void Update(bool update_assets = true);
 
       //
       // STREAMING

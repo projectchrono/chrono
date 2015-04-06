@@ -572,19 +572,18 @@ ChVector<> ChParticlesClones::GetInertiaXY()
 
 
 
-void ChParticlesClones::Update()
+void ChParticlesClones::Update(bool update_assets)
 {
-	ChParticlesClones::Update(this->GetChTime());
+  ChParticlesClones::Update(this->GetChTime(), update_assets);
 }
 
-						
-void ChParticlesClones::Update (double mytime)
-{	
-	ChTime = mytime;
 
-	//TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping 
-	ClampSpeed();			// Apply limits (if in speed clamping mode) to speeds.
-	
+void ChParticlesClones::Update(double mytime, bool update_assets)
+{
+  ChTime = mytime;
+
+  //TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping 
+  ClampSpeed();			// Apply limits (if in speed clamping mode) to speeds.
 }
 
 

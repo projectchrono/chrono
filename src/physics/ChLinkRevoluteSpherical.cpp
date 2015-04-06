@@ -177,7 +177,7 @@ ChCoordsys<> ChLinkRevoluteSpherical::GetLinkRelativeCoords()
 // -----------------------------------------------------------------------------
 // Link update function
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::Update(double time)
+void ChLinkRevoluteSpherical::Update(double time, bool update_assets)
 {
   // Inherit time changes of parent class (ChLink)
   ChLink::UpdateTime(time);

@@ -128,7 +128,7 @@ public:
 					/// time-dependant stuff in link state, for example
 					/// motion laws, moving markers, etc.
 					/// (Default: do nothing but setting new time.)
-	virtual void UpdateTime (double mytime);
+	virtual void UpdateTime(double mytime);
 
 
 					// -----------COMPLETE UPDATE.
@@ -143,10 +143,10 @@ public:
 					/// implement specialized versions of this Update(time) function,
 					/// because they might need to update inner states, forces, springs, etc.
 					/// This base version, by default, simply updates the time.
-	virtual void Update (double mytime);
+  virtual void Update(double mytime, bool update_assets = true);
 
 					/// As above, but with current time
-	virtual void Update();
+  virtual void Update(bool update_assets = true);
 
 
 

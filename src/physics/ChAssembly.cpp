@@ -832,30 +832,30 @@ void ChAssembly::Setup()
 							// of the object AND the dependant (linked)
 							// markers and forces.
 
-void ChAssembly::Update()
+void ChAssembly::Update(bool update_assets)
 {
-	ChAssembly::Update(this->GetChTime());
+  ChAssembly::Update(this->GetChTime(), update_assets);
 }
 
 
 
 							// As before, but keeps the current state.
 							// Mostly used for world reference body.
-void ChAssembly::Update (double mytime)
+void ChAssembly::Update(double mytime, bool update_assets)
 {
-	ChTime = mytime;
-	ClampSpeed();			// Apply limits (if in speed clamping mode) to speeds.
+  ChTime = mytime;
+  ClampSpeed();   // Apply limits (if in speed clamping mode) to speeds.
 
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		Bpointer->Update(mytime);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		Lpointer->Update(mytime);
-	}
+  for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+  {
+    ChBody* Bpointer = bodylist[ip];
+    Bpointer->Update(mytime, update_assets);
+  }
+  for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+  {
+    ChLink* Lpointer = linklist[ip];
+    Lpointer->Update(mytime, update_assets);
+  }
 }
 
 void ChAssembly::AddBody (ChSharedPtr<ChBody> newbody)

@@ -694,7 +694,7 @@ void ChLinkMasked::UpdateForces(double mytime)
 /////////
 /////////
 
-void ChLinkMasked::Update (double time)
+void ChLinkMasked::Update(double time, bool update_assets)
 {
     // 1 -
     UpdateTime(time);
@@ -710,7 +710,6 @@ void ChLinkMasked::Update (double time)
 
     // 4 -
     UpdateForces(time);
-
 }
 
 

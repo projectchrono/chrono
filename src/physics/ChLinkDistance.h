@@ -130,7 +130,7 @@ public:
 					/// Get the distance currently existing between the two endpoints
 	double GetCurrentDistance() const {return (((ChFrame<double>*)Body1)->TransformLocalToParent(pos1)-((ChFrame<double>*)Body2)->TransformLocalToParent(pos2)).Length(); };
                     /// Get the constraint violation
-    double GetC() const { return GetCurrentDistance() - distance; }
+  double GetC() const { return GetCurrentDistance() - distance; }
 
 				//
 				// UPDATING FUNCTIONS
@@ -139,7 +139,7 @@ public:
 					/// Override _all_ time, jacobian etc. updating.
 					/// In detail, it computes jacobians, violations, etc. and stores 
 					/// results in inner structures.
-	virtual void Update (double mtime);
+  virtual void Update(double mtime, bool update_assets = true);
 
   			//
 			// STATE FUNCTIONS

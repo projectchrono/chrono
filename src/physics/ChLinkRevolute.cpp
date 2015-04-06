@@ -147,7 +147,7 @@ void ChLinkRevolute::Initialize(ChSharedPtr<ChBodyFrame> body1,    // first body
 // -----------------------------------------------------------------------------
 // Link update function
 // -----------------------------------------------------------------------------
-void ChLinkRevolute::Update(double time)
+void ChLinkRevolute::Update(double time, bool update_assets)
 {
   // Inherit time changes of parent class
   ChLink::UpdateTime(time);
