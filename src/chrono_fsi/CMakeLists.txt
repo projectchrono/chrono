@@ -99,7 +99,7 @@ ENDFOREACH(PROGRAM)
 IF(ENABLE_DEMOS_VEHICLE)
 	SET(DEMOS
 	    hmmwv
-	    hmmwv2
+	    fsi_hmmwv
 	)
 
 	MESSAGE(STATUS "FSI demo programs...")

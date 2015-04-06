@@ -5,13 +5,12 @@
  *  Created on: Mar 2, 2015
  *      Author: Arman Pazouki
  */
-
-#ifndef HMMWVPARAMS_H_
-#define HMMWVPARAMS_H_
+#ifndef FSI_HMMWV_PARAMS_H_
+#define FSI_HMMWV_PARAMS_H_
 
 #include "SPHCudaUtils.h"
 #include "MyStructs.cuh"  //just for SimParams
-#include "VehicleProperties.h"
+#include "VehicleExtraProperties.h"
 
 // -----------------------------------------------------------------------------
 // Simulation parameters FSI
@@ -224,4 +223,4 @@ utils::VehicleSystem* mVehicle;
 utils::TireContactCallback* tire_cb;
 MyDriverInputs* driver_cb;
 
-#endif
+#endif  // end of FSI_HMMWV_PARAMS_H_
