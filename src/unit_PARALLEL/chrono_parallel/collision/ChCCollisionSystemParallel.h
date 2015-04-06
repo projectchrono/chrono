@@ -72,9 +72,6 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
   /// Perform a raycast (ray-hit test with the collision models).
   virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) { return false; }
 
-  void SetCollisionEnvelope(const real& envelope) { data_container->settings.collision.collision_envelope = envelope; }
-  real GetCollisionEnvelope() { return data_container->settings.collision.collision_envelope; }
-
   std::vector<int2> GetOverlappingPairs();
   void GetOverlappingAABB(custom_vector<bool>& active_id, real3 Amin, real3 Amax);
 
