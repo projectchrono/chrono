@@ -21,13 +21,14 @@
 // This can be used to allow the granular material to settle.
 double time_hold = 2;
 float contact_recovery_speed = 0.1;
-double time_step = 1e-3;
+double time_step = 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
 double time_end = 7;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
 // -----------------------------------------------------------------------------
+
 void SetupParamsH(SimParams& paramsH) {
   //**********************************************
   paramsH.sizeScale = 1;  // don't change it.
@@ -35,9 +36,9 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.MULT_INITSPACE = 1.0;
   paramsH.NUM_BOUNDARY_LAYERS = 3;
   paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
-  paramsH.BASEPRES = 0;  // 10;
+  paramsH.BASEPRES = 0;        // 10;
   paramsH.LARGE_PRES = 10000;  // paramsH.BASEPRES;//10000;
-  paramsH.deltaPress;  //** modified below
+  paramsH.deltaPress;          //** modified below
   paramsH.multViscosity_FSI = 5.0;
   paramsH.gravity = mR3(0, 0, -9.81);  // mR3(0);//mR3(0, -9.81, 0);
   paramsH.bodyForce3 =
@@ -47,16 +48,16 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.v_Max = contact_recovery_speed;  // Arman, I changed it to 0.1 for vehicle. Check this
                                            // later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
   paramsH.EPS_XSPH = .5f;
-  paramsH.dT = time_step;  // 0.0005;//0.1;//.001; //sph alone: .01 for Re 10;
-  paramsH.tFinal = time_end;  // 20 * paramsH.dT; //400
+  paramsH.dT = time_step;         // 0.0005;//0.1;//.001; //sph alone: .01 for Re 10;
+  paramsH.tFinal = time_end;      // 20 * paramsH.dT; //400
   paramsH.timePause = time_hold;  //.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any
-                                  //bodyforce. Particles move only due to initialization. keep it as small as possible.
-                                  //the time step will be 1/10 * dT.
-  paramsH.kdT = 5;                // I don't know what is kdT
+  // bodyforce. Particles move only due to initialization. keep it as small as possible.
+  // the time step will be 1/10 * dT.
+  paramsH.kdT = 5;  // I don't know what is kdT
   paramsH.gammaBB = 0.5;
   // ************
-  paramsH.binSize0;  // will be changed
-  paramsH.rigidRadius;  // will be changed
+  paramsH.binSize0;           // will be changed
+  paramsH.rigidRadius;        // will be changed
   paramsH.densityReinit = 0;  // 0: no re-initialization, 1: with initialization
   //****************************************************************************************
   //*** initialize straight channel
@@ -154,6 +155,26 @@ void SetupParamsH(SimParams& paramsH) {
 }
 
 // -----------------------------------------------------------------------------
+// Specification of the vehicle model
+// -----------------------------------------------------------------------------
+
+enum WheelType { CYLINDRICAL, LUGGED };
+
+// Type of wheel/tire (controls both contact and visualization)
+WheelType wheel_type = CYLINDRICAL;
+
+// JSON files for vehicle model (using different wheel visualization meshes)
+std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
+std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
+
+// JSON files for powertrain (simple)
+std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
+
+// Initial vehicle position and orientation
+ChVector<> initLoc(-3.0, 0, 0.75);
+ChQuaternion<> initRot(1, 0, 0, 0);
+
+// -----------------------------------------------------------------------------
 // Simulation parameters MBD ground
 // -----------------------------------------------------------------------------
 
@@ -164,8 +185,16 @@ double hdimZ = 0.5;
 double hthick = 0.25;
 
 // -----------------------------------------------------------------------------
-// Parameters for granular material
+// Specification of the terrain
 // -----------------------------------------------------------------------------
+
+enum TerrainType { RIGID, GRANULAR };
+
+// Type of terrain
+TerrainType terrain_type = RIGID;
+
+// Control visibility of containing bin walls
+bool visible_walls = false;
 
 int Id_g = 100;
 double r_g = 0.02;

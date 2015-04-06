@@ -24,46 +24,14 @@
 #include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsGenerators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
-//
 
+//#include "hmmwvParams.h"
 
 using namespace chrono;
 using namespace chrono::collision;
-// -----------------------------------------------------------------------------
-// Specification of the vehicle model
-// -----------------------------------------------------------------------------
 
-enum WheelType { CYLINDRICAL, LUGGED };
-
-// Type of wheel/tire (controls both contact and visualization)
-WheelType wheel_type = CYLINDRICAL;
-
-// JSON files for vehicle model (using different wheel visualization meshes)
-std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
-std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
-
-// JSON files for powertrain (simple)
-std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
-
-// Initial vehicle position and orientation
-ChVector<> initLoc(-3.0, 0, 0.75);
-ChQuaternion<> initRot(1, 0, 0, 0);
-
-// Coefficient of friction
+// Tire Coefficient of friction
 float mu_t = 0.8;
-
-// -----------------------------------------------------------------------------
-// Specification of the terrain
-// -----------------------------------------------------------------------------
-
-enum TerrainType { RIGID, GRANULAR };
-
-// Type of terrain
-TerrainType terrain_type = RIGID;
-
-// Control visibility of containing bin walls
-bool visible_walls = false;
-
 
 // Callback class for providing driver inputs.
 class MyDriverInputs : public utils::DriverInputsCallback {
