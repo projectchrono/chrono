@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
       throttle_input = function_driver.GetThrottle();
       braking_input = function_driver.GetBraking();
       // set the GUI info
-      driver.SetThrottleFunc(throttle_input[0]);
+      driver.SetThrottleFunc(0, throttle_input[0]);
 
       // driver.SetBrakingFunc(braking_input);
     }

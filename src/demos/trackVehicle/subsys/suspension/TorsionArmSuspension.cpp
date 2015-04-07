@@ -256,7 +256,9 @@ void TorsionArmSuspension::AddVisualization()
     trimesh_shape->SetName(getMeshName());
     m_wheel->AddAsset(trimesh_shape);
 
-    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.5f, 0.1f, 0.4f));
+    // ChSharedPtr<ChTexture> mcolor(new ChTexture);
+    // mcolor->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.2f, 0.2f, 0.2f));
     m_wheel->AddAsset(mcolor);
 
     break;

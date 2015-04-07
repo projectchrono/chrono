@@ -100,7 +100,7 @@ ChVector<> groundPos(0, -1.0, 0);
 double mu = 0.67;  // dry friction coef.
 
 // *****  Visualization and camera settings
-int FPS = 280;
+int FPS = 80;
 double render_step_size = 1.0 / FPS;   // FPS = 50
 
 // #ifdef USE_IRRLICHT
@@ -152,7 +152,28 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicleM113* vehicle,
   tex->SetTextureFilename(GetChronoDataFile("track_data/terrain/glenway.jpg"));
   ground->AddAsset(tex);
 
-  vehicle->GetSystem()->Add(ground);  // add this body to the system, which is the vehicle
+  vehicle->GetSystem()->AddBody(ground);  // add this body to the system, which is the vehicle
+
+
+  // add some static obstacles
+  if(1)
+  {
+    ChVector<> rampSize = size / 10.0;
+    ChSharedPtr<ChBody> ramp(new ChBodyEasyBox(rampSize.x, rampSize.y, rampSize.z, 1000.0, true, true) );
+    ramp->SetPos( ground->GetPos() );
+    ramp->SetBodyFixed(true);
+    ramp->SetName("ramp");
+    ramp->GetMaterialSurface()->SetFriction(friction_mu);
+
+    ramp->GetCollisionModel()->SetFamily((int)CollisionFam::Ground);
+
+    // set color for the ramp
+    ChSharedPtr<ChColorAsset> rampCol(new ChColorAsset);
+    rampCol->SetColor(ChColor(0.2f, 0.4f, 0.6f));
+    ramp->AddAsset(rampCol);
+
+    vehicle->GetSystem()->AddBody(ramp);
+  }
 
   return ground;
 }
@@ -249,7 +270,7 @@ int main(int argc, char* argv[])
 */
 
   // when autopilot is enabled, input throttle specified as follows:
-  Track_FuncDriver function_driver(1, sineFreq, sineAmp, tStart);
+  Track_FuncDriver function_driver(2, sineFreq, sineAmp, tStart);
 
   // ---------------------
   // GUI and render settings
@@ -321,8 +342,8 @@ int main(int argc, char* argv[])
       throttle_input = function_driver.GetThrottle();
       braking_input = function_driver.GetBraking();
       // set the GUI info
-      driver.SetThrottleFunc(throttle_input[0]);
-
+      driver.SetThrottleFunc(0, throttle_input[0]);
+      driver.SetThrottleFunc(1, throttle_input[1]);
       // driver.SetBrakingFunc(braking_input);
     }
     else {

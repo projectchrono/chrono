@@ -117,11 +117,11 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
       return true;
     case KEY_KEY_W:
       // both throttles increase
-      SetThrottle(m_throttleDelta);
+      SetAllThrottle(m_throttleDelta);
       return true;
     case KEY_KEY_S:
       // both throttles decrease
-      SetThrottle(-m_throttleDelta);
+      SetAllThrottle(-m_throttleDelta);
       return true;
 
     case KEY_KEY_E:
@@ -137,19 +137,19 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
     // T/G = Left, Y/H = right
     case KEY_KEY_T:
       // throttle left up
-      SetThrottle(m_throttle[0] + m_throttleDelta, 0);
+      SetThrottle(0, m_throttle[0] + m_throttleDelta);
       return true;
     case KEY_KEY_G:
       // throttle left down
-      SetThrottle(m_throttle[0] - m_throttleDelta, 0);
+      SetThrottle(0, m_throttle[0] - m_throttleDelta);
       return true;
     case KEY_KEY_Y:
       // throttle right up
-      SetThrottle(m_throttle[1] + m_throttleDelta, 1);
+      SetThrottle(1, m_throttle[1] + m_throttleDelta);
       return true;
     case KEY_KEY_H:
       // throttle right down
-      SetThrottle(m_throttle[1] - m_throttleDelta, 1);
+      SetThrottle(1, m_throttle[1] - m_throttleDelta);
 
     case KEY_DOWN:
       m_camera.Zoom(1);
