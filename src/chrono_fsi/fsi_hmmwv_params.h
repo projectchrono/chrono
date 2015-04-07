@@ -24,6 +24,18 @@ double time_step = 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
 double time_end = 10;
 
+// Dimensions
+double hdimX = 14;//5.5;
+double hdimY = 1.75;
+double hdimZ = 0.5;
+double hthick = 0.25;
+double basinDepth = 2;
+
+double fluidInitDimX = 2;
+double fluidInitDimY = hdimY;
+double fluidHeight = 2;
+
+
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
 // -----------------------------------------------------------------------------
@@ -58,17 +70,21 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.binSize0;           // will be changed
   paramsH.rigidRadius;        // will be changed
   paramsH.densityReinit = 0;  // 0: no re-initialization, 1: with initialization
-  //****************************************************************************************
-  //*** initialize straight channel
-  paramsH.straightChannelBoundaryMin = mR3(0, 0, 0);  // 3D channel
-  paramsH.straightChannelBoundaryMax = mR3(3, 2, 3) * paramsH.sizeScale;
   //********************************************************************************************************
   //**  reminiscent of the past******************************************************************************
   //	paramsH.cMin = mR3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);
   //// 3D channel
   //	paramsH.cMax = mR3( 3  + paramsH.toleranceZone, 2 + paramsH.toleranceZone,  3 + paramsH.toleranceZone);
-  paramsH.cMin = mR3(0, 0, 0);  // 3D channel
-  paramsH.cMax = mR3(3, 2, 3);
+//  paramsH.cMin = mR3(0, 0, 0);  // 3D channel
+//  paramsH.cMax = mR3(3, 2, 3);
+  paramsH.cMin = mR3(-hdimX, -hdimY, -basinDepth - hthick);  // 3D channel
+  paramsH.cMax = mR3(hdimX, hdimY, basinDepth);
+  paramsH.cMinInit = mR3(-fluidInitDimX, -fluidInitDimY, -basinDepth + paramsH.HSML);  // 3D channel
+  paramsH.cMaxInit = mR3(fluidInitDimX, fluidInitDimY, paramsH.cMinInit.z + fluidHeight);
+  //****************************************************************************************
+  //*** initialize straight channel
+  paramsH.straightChannelBoundaryMin = paramsH.cMinInit; //mR3(0, 0, 0);  // 3D channel
+  paramsH.straightChannelBoundaryMax = paramsH.cMaxInit; //SmR3(3, 2, 3) * paramsH.sizeScale;
   //****************************************************************************************
   // printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 *
   // paramsH.HSML);
@@ -177,12 +193,6 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // -----------------------------------------------------------------------------
 // Simulation parameters MBD ground
 // -----------------------------------------------------------------------------
-
-// Dimensions
-double hdimX = 14;//5.5;
-double hdimY = 1.75;
-double hdimZ = 0.5;
-double hthick = 0.25;
 
 // -----------------------------------------------------------------------------
 // Specification of the terrain

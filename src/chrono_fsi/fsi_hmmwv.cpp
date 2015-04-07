@@ -138,7 +138,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   mphysicalSystem.GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;      // max_iteration / 3
   mphysicalSystem.GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;    // 0
   mphysicalSystem.GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;  // max_iteration / 3
-  mphysicalSystem.GetSettings()->solver.tolerance = tolerance;  // Arman : define it in the params.h file
+  mphysicalSystem.GetSettings()->solver.tolerance = tolerance;
   mphysicalSystem.GetSettings()->solver.alpha = 0;              // Arman, find out what is this
   mphysicalSystem.GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
   mphysicalSystem.ChangeSolverType(APGD);  // Arman check this APGD APGDBLAZE
@@ -183,7 +183,6 @@ double CreateGranularBed(ChSystem* mphysicalSystem) {
 // =============================================================================
 
 void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
-
   // Ground body
   ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
   ground->SetIdentifier(-1);
@@ -194,17 +193,16 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 
   ground->GetCollisionModel()->ClearModel();
 
-
   // Bottom box
   double hdimSide = hdimX / 4.0;
   double midSecDim = hdimX - 2 * hdimSide;
+
   // basin info
-  double depth = 2;
   double phi = CH_C_PI / 9;
-  double bottomWidth = midSecDim - depth / tan(phi);  // for a 45 degree slope
+  double bottomWidth = midSecDim - basinDepth / tan(phi);  // for a 45 degree slope
   double bottomBuffer = .4 * bottomWidth;
 
-  double inclinedWidth = 0.5 * depth / sin(phi);            // for a 45 degree slope
+  double inclinedWidth = 0.5 * basinDepth / sin(phi);  // for a 45 degree slope
 
   double smallBuffer = .7 * hthick;
   double x1I = -midSecDim + inclinedWidth * cos(phi) - hthick * sin(phi) - smallBuffer;
@@ -226,7 +224,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
   // basin
   utils::AddBoxGeometry(ground.get_ptr(),
                         ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
-                        ChVector<>(0, 0, -depth - hthick),
+                        ChVector<>(0, 0, -basinDepth - hthick),
                         ChQuaternion<>(1, 0, 0, 0),
                         true);
   // slope 1
@@ -456,45 +454,44 @@ int main(int argc, char* argv[]) {
 
   // ***************************** Create Fluid ********************************************
 
-  //  //*** Arrays definition
-  //
-  //  thrust::host_vector<int3> referenceArray;
-  //  thrust::host_vector<Real3> posRadH;  // do not set the size here since you are using push back later
-  //  thrust::host_vector<Real4> velMasH;
-  //  thrust::host_vector<Real4> rhoPresMuH;
-  //  thrust::host_vector<uint> bodyIndex;
+  //*** Arrays definition
+
+  thrust::host_vector<int3> referenceArray;
+  thrust::host_vector<Real3> posRadH;  // do not set the size here since you are using push back later
+  thrust::host_vector<Real4> velMasH;
+  thrust::host_vector<Real4> rhoPresMuH;
+  thrust::host_vector<uint> bodyIndex;
   SetupParamsH(paramsH);
-  //
-  //  NumberOfObjects numObjects;
-  //
-  //  //*** default num markers
-  //
-  //  int numAllMarkers = 0;
-  //
-  //  //*** initialize fluid particles
-  //  Real sphMarkerMass;  // To be initialized in CreateFluidMarkers, and used in other places
-  //  int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH,
-  //  sphMarkerMass);
-  //  referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1));  // map fluid -1
-  //  numAllMarkers += num_fluidOrBoundaryMarkers.x;
-  //  referenceArray.push_back(mI3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0));
-  //  numAllMarkers += num_fluidOrBoundaryMarkers.y;
-  //
-  //  //*** set num objects
-  //
-  //  SetNumObjects(numObjects, referenceArray, numAllMarkers);
-  //  assert(posRadH.size() == numObjects.numAllMarkers && "numObjects is not set correctly");
-  //  if (numObjects.numAllMarkers == 0) {
-  //    ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
-  //    return 0;
-  //  }
-  //
-  //  thrust::device_vector<Real3> posRadD = posRadH;
-  //  thrust::device_vector<Real4> velMasD = velMasH;
-  //  thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
-  //  thrust::device_vector<uint> bodyIndexD = bodyIndex;
-  //  thrust::device_vector<Real4> derivVelRhoD;
-  //  ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
+
+  NumberOfObjects numObjects;
+
+  //*** default num markers
+
+  int numAllMarkers = 0;
+
+  //*** initialize fluid particles
+  Real sphMarkerMass;  // To be initialized in CreateFluidMarkers, and used in other places
+  int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
+  referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1));  // map fluid -1
+  numAllMarkers += num_fluidOrBoundaryMarkers.x;
+  referenceArray.push_back(mI3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0));
+  numAllMarkers += num_fluidOrBoundaryMarkers.y;
+
+  //*** set num objects
+
+  SetNumObjects(numObjects, referenceArray, numAllMarkers);
+  assert(posRadH.size() == numObjects.numAllMarkers && "numObjects is not set correctly");
+  if (numObjects.numAllMarkers == 0) {
+    ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
+    return 0;
+  }
+
+  thrust::device_vector<Real3> posRadD = posRadH;
+  thrust::device_vector<Real4> velMasD = velMasH;
+  thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
+  thrust::device_vector<uint> bodyIndexD = bodyIndex;
+  thrust::device_vector<Real4> derivVelRhoD;
+  ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
 
   // ***************************** Create Rigid ********************************************
 
@@ -518,7 +515,8 @@ int main(int argc, char* argv[]) {
   //*** Add sph data to the physics system
 
   int startIndexSph = 0;
-  //  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects);
+  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects);
+  cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
 
   // ***************************** System Initialize ********************************************
 
@@ -557,41 +555,41 @@ int main(int argc, char* argv[]) {
     // SPH Block
     // -------------------
 
-    //    CpuTimer mCpuTimer;
-    //    mCpuTimer.Start();
-    //    GpuTimer myGpuTimer;
-    //    myGpuTimer.Start();
-    //
-    //    //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
-    //    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
-    //    if (realTime <= paramsH.timePause) {
-    //      currentParamsH = paramsH_B;
-    //    } else {
-    //      currentParamsH = paramsH;
-    //    }
-    //    InitSystem(currentParamsH, numObjects);
-    //
-    //    // ** initialize host mid step data
-    //    thrust::host_vector<Real3> posRadH2(numObjects.numAllMarkers);  // Arman: no need for copy
-    //    thrust::host_vector<Real4> velMasH2 = velMasH;
-    //    thrust::host_vector<Real4> rhoPresMuH2(numObjects.numAllMarkers);
-    //    // ** initialize device mid step data
-    //    thrust::device_vector<Real3> posRadD2 = posRadD;
-    //    thrust::device_vector<Real4> velMasD2 = velMasD;
-    //    thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
-    //    // **
-    //    thrust::device_vector<Real3> vel_XSPH_D;
-    //    ResizeMyThrust3(vel_XSPH_D, numObjects.numAllMarkers);
-    //
-    //    FillMyThrust4(derivVelRhoD, mR4(0));
-    //    thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
+    CpuTimer mCpuTimer;
+    mCpuTimer.Start();
+    GpuTimer myGpuTimer;
+    myGpuTimer.Start();
+
+    //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
+    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
+    if (realTime <= paramsH.timePause) {
+      currentParamsH = paramsH_B;
+    } else {
+      currentParamsH = paramsH;
+    }
+    InitSystem(currentParamsH, numObjects);
+
+    // ** initialize host mid step data
+    thrust::host_vector<Real3> posRadH2(numObjects.numAllMarkers);
+    thrust::host_vector<Real4> velMasH2 = velMasH;
+    thrust::host_vector<Real4> rhoPresMuH2(numObjects.numAllMarkers);
+    // ** initialize device mid step data
+    thrust::device_vector<Real3> posRadD2 = posRadD;
+    thrust::device_vector<Real4> velMasD2 = velMasD;
+    thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
+    // **
+    thrust::device_vector<Real3> vel_XSPH_D;
+    ResizeMyThrust3(vel_XSPH_D, numObjects.numAllMarkers);
+
+    FillMyThrust4(derivVelRhoD, mR4(0));
+    thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
 
     // -------------------
     // End SPH Block
     // -------------------
 
     // If enabled, output data for PovRay postprocessing.
-    //    SavePovFilesMBD(mphysicalSystem, tStep, mTime, num_contacts, exec_time);
+    SavePovFilesMBD(mphysicalSystem, tStep, mTime, num_contacts, exec_time);
 
     // ****************** RK2: 1/2
     // ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects,
@@ -604,7 +602,7 @@ int main(int argc, char* argv[]) {
     // CopyH2D(derivVelRhoD, derivVelRhoChronoH);
     // UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
     // // assumes ...D2 is a copy of ...D
-    // ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
+     ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 
     // CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
     // UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
@@ -635,21 +633,21 @@ int main(int argc, char* argv[]) {
     // SPH Block
     // -------------------
 
-    //    ClearArraysH(posRadH2, velMasH2, rhoPresMuH2);
-    //    ClearMyThrustR3(posRadD2);
-    //    ClearMyThrustR4(velMasD2);
-    //    ClearMyThrustR4(rhoPresMuD2);
-    //    ClearMyThrustR3(vel_XSPH_D);
-    //
-    //    mCpuTimer.Stop();
-    //    myGpuTimer.Stop();
-    //    if (tStep % 2 == 0) {
-    //      printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ",
-    //             tStep,
-    //             realTime,
-    //             (Real)myGpuTimer.Elapsed(),
-    //             1000 * mCpuTimer.Elapsed());
-    //    }
+    ClearArraysH(posRadH2, velMasH2, rhoPresMuH2);
+    ClearMyThrustR3(posRadD2);
+    ClearMyThrustR4(velMasD2);
+    ClearMyThrustR4(rhoPresMuD2);
+    ClearMyThrustR3(vel_XSPH_D);
+
+    mCpuTimer.Stop();
+    myGpuTimer.Stop();
+    if (tStep % 2 == 0) {
+      printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ",
+             tStep,
+             realTime,
+             (Real)myGpuTimer.Elapsed(),
+             1000 * mCpuTimer.Elapsed());
+    }
 
     // -------------------
     // End SPH Block
@@ -659,12 +657,12 @@ int main(int argc, char* argv[]) {
     realTime += currentParamsH.dT;
   }
 
-  //  ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
-  //  ClearMyThrustR3(posRadD);
-  //  ClearMyThrustR4(velMasD);
-  //  ClearMyThrustR4(rhoPresMuD);
-  //  ClearMyThrustU1(bodyIndexD);
-  //  ClearMyThrustR4(derivVelRhoD);
+  ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
+  ClearMyThrustR3(posRadD);
+  ClearMyThrustR4(velMasD);
+  ClearMyThrustR4(rhoPresMuD);
+  ClearMyThrustU1(bodyIndexD);
+  ClearMyThrustR4(derivVelRhoD);
 
   delete mVehicle;
   delete tire_cb;

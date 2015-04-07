@@ -24,12 +24,12 @@ int2 CreateFluidMarkers(
 	int num_BoundaryMarkers = 0;
 	srand(964);
 	Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
-	int nFX = ceil((paramsH.cMax.x - paramsH.cMin.x) / (initSpace0));
-	Real initSpaceX = (paramsH.cMax.x - paramsH.cMin.x) / nFX;
-	int nFY = ceil((paramsH.cMax.y - paramsH.cMin.y) / (initSpace0));
-	Real initSpaceY = (paramsH.cMax.y - paramsH.cMin.y) / nFY;
-	int nFZ = ceil((paramsH.cMax.z - paramsH.cMin.z) / (initSpace0));
-	Real initSpaceZ = (paramsH.cMax.z - paramsH.cMin.z) / nFZ;
+	int nFX = ceil((paramsH.cMaxInit.x - paramsH.cMinInit.x) / (initSpace0));
+	Real initSpaceX = (paramsH.cMaxInit.x - paramsH.cMinInit.x) / nFX;
+	int nFY = ceil((paramsH.cMaxInit.y - paramsH.cMinInit.y) / (initSpace0));
+	Real initSpaceY = (paramsH.cMaxInit.y - paramsH.cMinInit.y) / nFY;
+	int nFZ = ceil((paramsH.cMaxInit.z - paramsH.cMinInit.z) / (initSpace0));
+	Real initSpaceZ = (paramsH.cMaxInit.z - paramsH.cMinInit.z) / nFZ;
 	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ,
 			(nFY - 1) * initSpaceY, initSpaceY);
 	sphMarkerMass = (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0;
@@ -40,7 +40,7 @@ int2 CreateFluidMarkers(
 				Real3 posRad;
 //					printf("initSpace X, Y, Z %f %f %f \n", initSpaceX, initSpaceY, initSpaceZ);
 				posRad =
-						paramsH.cMin
+						paramsH.cMinInit
 								+ mR3(i * initSpaceX, j * initSpaceY, k * initSpaceZ)
 								+ mR3(.5 * initSpace0)/* + mR3(sphR) + initSpace * .05 * (Real(rand()) / RAND_MAX)*/;
 				if ( 	(posRad.x >  paramsH.straightChannelBoundaryMin.x && posRad.x <  paramsH.straightChannelBoundaryMax.x ) &&
