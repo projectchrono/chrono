@@ -104,10 +104,10 @@ double ChShaftsTorqueConverter::GetSpeedRatio() const
 }
 
 
-void ChShaftsTorqueConverter::Update (double mytime)
+void ChShaftsTorqueConverter::Update(double mytime, bool update_assets)
 {
 		// Inherit time changes of parent class
-	ChPhysicsItem::Update(mytime);
+	ChPhysicsItem::Update(mytime, update_assets);
 	
 		// update class data
 	

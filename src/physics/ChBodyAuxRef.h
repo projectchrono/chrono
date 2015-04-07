@@ -45,8 +45,10 @@ public:
       //
 
         /// Nothing to be done, going with default values for the two frames
-    ChBodyAuxRef(){}
-    ChBodyAuxRef(collision::ChCollisionModel* new_coll_model) : ChBody(new_coll_model) {}
+    ChBodyAuxRef(ContactMethod contact_method = DVI) : ChBody(contact_method) {}
+    ChBodyAuxRef(collision::ChCollisionModel* new_coll_model,
+                 ContactMethod contact_method = DVI) : ChBody(new_coll_model, contact_method) {}
+
         /// Destructor
     ~ChBodyAuxRef(){}
 
@@ -84,7 +86,7 @@ public:
 
         /// Update all auxiliary data of the rigid body and of
         /// its children (markers, forces..)
-  virtual void Update();
+  virtual void Update(bool update_assets = true);
 
       //
       // STREAMING

@@ -108,13 +108,13 @@ int ChShaftsPlanetary::Initialize(ChSharedPtr<ChShaft> mshaft1, ChSharedPtr<ChSh
 }
 
 
-void ChShaftsPlanetary::Update (double mytime)
+void ChShaftsPlanetary::Update(double mytime, bool update_assets)
 {
-		// Inherit time changes of parent class
-	ChPhysicsItem::Update(mytime);
-	
-		// update class data
-	// ...
+  // Inherit time changes of parent class
+  ChPhysicsItem::Update(mytime, update_assets);
+
+  // update class data
+  // ...
 }
 
 

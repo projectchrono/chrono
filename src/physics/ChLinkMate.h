@@ -201,7 +201,7 @@ public:
 				//
 
 					/// Override _all_ time, jacobian etc. updating.
-	virtual void Update (double mtime);
+  virtual void Update(double mtime, bool update_assets = true);
 
 						/// If some constraint is redundant, return to normal state
 	virtual int  RestoreRedundant();		   ///< \return number of changed states
@@ -317,7 +317,7 @@ public:
 						   );
 
 					/// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
-	virtual void Update (double mtime);
+  virtual void Update(double mtime, bool update_assets = true);
 
 };
 
@@ -473,7 +473,7 @@ public:
 						   );
 
 						/// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
-	virtual void Update (double mtime);
+  virtual void Update(double mtime, bool update_assets = true);
 };
 
 
@@ -579,7 +579,7 @@ public:
 						   );
 
 					/// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
-	virtual void Update (double mtime);
+  virtual void Update(double mtime, bool update_assets = true);
 
 };
 

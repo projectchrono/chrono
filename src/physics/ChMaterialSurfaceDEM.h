@@ -13,17 +13,12 @@
 #define CHMATERIALSURFACEDEM_H
 
 
-#include "core/ChShared.h"
-#include "core/ChVector.h"
+#include "physics/ChMaterialSurfaceBase.h"
 #include "physics/ChContactDEM.h"
 
 
 /// Class for material surface data for DEM contact
 namespace chrono {
-
-// Forward references
-class ChBodyDEM;
-
 
 struct ChCompositeMaterialDEM
 {
@@ -40,7 +35,7 @@ struct ChCompositeMaterialDEM
 };
 
 
-class ChApi ChMaterialSurfaceDEM : public ChShared
+class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase
 {
 public:
 

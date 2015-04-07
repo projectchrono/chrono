@@ -654,20 +654,19 @@ void ChMatterSPH::SetNoSpeedNoAcceleration()
 
 
 
-void ChMatterSPH::Update()
+void ChMatterSPH::Update(bool update_assets)
 {
-	ChMatterSPH::Update(this->GetChTime());
+  ChMatterSPH::Update(this->GetChTime(), update_assets);
 }
 
-						
-void ChMatterSPH::Update (double mytime)
-{	
-		// Inherit time changes of parent class
-	ChPhysicsItem::Update(mytime);
 
-	//TrySleeping();		// See if the body can fall asleep; if so, put it to sleeping 
-	//ClampSpeed();			// Apply limits (if in speed clamping mode) to speeds.
-	
+void ChMatterSPH::Update(double mytime, bool update_assets)
+{
+  // Inherit time changes of parent class
+  ChPhysicsItem::Update(mytime, update_assets);
+
+  //TrySleeping();    // See if the body can fall asleep; if so, put it to sleeping 
+  //ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
 }
 
 

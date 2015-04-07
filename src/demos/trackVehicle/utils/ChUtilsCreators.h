@@ -32,7 +32,6 @@
 #include "physics/ChSystem.h"
 #include "physics/ChSystemDEM.h"
 #include "physics/ChBody.h"
-#include "physics/ChBodyDEM.h"
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 
@@ -233,31 +232,19 @@ void AddRoundedCylinderGeometry(ChBody*               body,
 
 // -----------------------------------------------------------------------------
 // CreateBoxContainer
-// CreateBoxContainerDEM
 //
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
 // -----------------------------------------------------------------------------
 CH_UTILS_API
-void CreateBoxContainerDVI(ChSystem*                           system,
-                           int                                 id,
-                           ChSharedPtr<ChMaterialSurface>&     mat,
-                           const ChVector<>&                   hdim,
-                           double                              hthick,
-                           const ChVector<>&                   pos = ChVector<>(0,0,0),
-                           const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
-                           bool                                collide = true);
-
-CH_UTILS_API
-void CreateBoxContainerDEM(ChSystem*                           system,
-                           int                                 id,
-                           ChSharedPtr<ChMaterialSurfaceDEM>&  mat,
-                           const ChVector<>&                   hdim,
-                           double                              hthick,
-                           const ChVector<>&                   pos = ChVector<>(0,0,0),
-                           const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
-                           bool                                collide = true);
-
+void CreateBoxContainer(ChSystem*                           system,
+                        int                                 id,
+                        ChSharedPtr<ChMaterialSurfaceBase>  mat,
+                        const ChVector<>&                   hdim,
+                        double                              hthick,
+                        const ChVector<>&                   pos = ChVector<>(0,0,0),
+                        const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
+                        bool                                collide = true);
 
 
 } // end namespace utils

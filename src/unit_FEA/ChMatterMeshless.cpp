@@ -769,20 +769,20 @@ void ChMatterMeshless::SetNoSpeedNoAcceleration()
 
 
 
-void ChMatterMeshless::Update()
+void ChMatterMeshless::Update(bool update_assets)
 {
-	ChMatterMeshless::Update(this->GetChTime());
+  ChMatterMeshless::Update(this->GetChTime(), update_assets);
 }
 
-						
-void ChMatterMeshless::Update (double mytime)
-{	
-		// Inherit time changes of parent class
-	ChPhysicsItem::Update(mytime);
 
-	//TrySleeping();		// See if the body can fall asleep; if so, put it to sleeping 
-	//ClampSpeed();			// Apply limits (if in speed clamping mode) to speeds.
-	
+void ChMatterMeshless::Update(double mytime, bool update_assets)
+{
+  // Inherit time changes of parent class
+  ChPhysicsItem::Update(mytime, update_assets);
+
+  //TrySleeping();    // See if the body can fall asleep; if so, put it to sleeping 
+  //ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
+
 }
 
 

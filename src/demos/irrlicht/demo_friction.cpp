@@ -70,7 +70,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 											true));		// visualization?
 		// Set some properties
 		msphereBody->SetPos( ChVector<>(-7, mradius-0.5, -5+bi*mradius*2.5) );
-		msphereBody->SetFriction(0.4f);
+    msphereBody->GetMaterialSurface()->SetFriction(0.4f);
 		msphereBody->AddAsset(textureasset); // assets can be shared
 
 		// Set initial speed: rolling in horizontal direction, 
@@ -78,7 +78,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 		msphereBody->SetPos_dt(ChVector<>(initial_linspeed,0,0));
 
 		// Set a non zero value of rolling friction to have a rolling resisting torque:
-		msphereBody->SetRollingFriction( ((float)bi/10)*0.05f );
+    msphereBody->GetMaterialSurface()->SetRollingFriction(((float)bi / 10)*0.05f);
 
 		// Add to the system
 		mphysicalSystem->Add(msphereBody);
@@ -96,7 +96,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 											true));		// visualization?
 		// Set some properties
 		msphereBody->SetPos( ChVector<>(-8, 1+mradius-0.5, -5+bi*mradius*2.5) );
-		msphereBody->SetFriction(0.4f);
+    msphereBody->GetMaterialSurface()->SetFriction(0.4f);
 		msphereBody->AddAsset(textureasset); // assets can be shared
 
 		// Set initial speed: spinning in vertical direction
@@ -104,7 +104,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 
 		// Set a non zero value of spinning friction that brakes the spinning on vertical axis
 		// of the contact: 
-		msphereBody->SetSpinningFriction( ((float)bi/10)*0.02f );
+    msphereBody->GetMaterialSurface()->SetSpinningFriction(((float)bi / 10)*0.02f);
 
 		// Add to the system
 		mphysicalSystem->Add(msphereBody);
@@ -131,8 +131,8 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 											true));		// visualization?
 	mfloorBody->SetPos(ChVector<>(0,-1,0));
 	mfloorBody->SetBodyFixed(true);
-	mfloorBody->SetRollingFriction(1);	 // the min. of the two coeff. of the two contact surfaces will be used
-	mfloorBody->SetSpinningFriction(1);  // the min. of the two coeff. of the two contact surfaces will be used
+	mfloorBody->GetMaterialSurface()->SetRollingFriction(1);	 // the min. of the two coeff. of the two contact surfaces will be used
+	mfloorBody->GetMaterialSurface()->SetSpinningFriction(1);  // the min. of the two coeff. of the two contact surfaces will be used
 
   mfloorBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("blu.png"))));
 

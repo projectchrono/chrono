@@ -23,7 +23,6 @@
 
 
 #include "physics/ChSystemDEM.h"
-#include "physics/ChBodyDEM.h"
 #include "physics/ChContactContainerDEM.h"
 
 #include "collision/ChCModelBulletBody.h"
@@ -47,7 +46,7 @@ using namespace io;
 using namespace gui;
 
 
-void AddWall(ChSharedBodyDEMPtr&  body,
+void AddWall(ChSharedPtr<ChBody>  body,
              const ChVector<>&    dim,
              const ChVector<>&    loc)
 {
@@ -105,7 +104,7 @@ int main(int argc, char* argv[])
 	material->SetFriction(0.4f);
 
 	// Create the falling ball
-	ChSharedPtr<ChBodyDEM> ball(new ChBodyDEM);
+	ChSharedPtr<ChBody> ball(new ChBody(ChBody::DEM));
 
 	ball->SetIdentifier(ballId);
 	ball->SetMass(mass);
@@ -113,7 +112,7 @@ int main(int argc, char* argv[])
 	ball->SetRot(rot);
 	ball->SetPos_dt(init_vel);
 	ball->SetBodyFixed(false);
-	ball->SetMaterialSurfaceDEM(material);
+	ball->SetMaterialSurface(material);
 
 	ball->SetCollide(true);
 
@@ -134,7 +133,7 @@ int main(int argc, char* argv[])
 	msystem.AddBody(ball);
 
 	// Create container
-	ChSharedPtr<ChBodyDEM> bin(new ChBodyDEM);
+	ChSharedPtr<ChBody> bin(new ChBody(ChBody::DEM));
 
 	bin->SetIdentifier(binId);
 	bin->SetMass(1);
@@ -142,7 +141,7 @@ int main(int argc, char* argv[])
 	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
 	bin->SetCollide(true);
 	bin->SetBodyFixed(true);
-	bin->SetMaterialSurfaceDEM(material);
+	bin->SetMaterialSurface(material);
 
 	bin->GetCollisionModel()->ClearModel();
 	AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0));

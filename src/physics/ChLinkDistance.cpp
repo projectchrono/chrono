@@ -132,7 +132,7 @@ ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords()
 }
 
   
-void ChLinkDistance::Update (double mytime)
+void ChLinkDistance::Update(double mytime, bool update_assets)
 {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
     ChLink::UpdateTime(mytime);

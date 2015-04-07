@@ -111,7 +111,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
 */
 
 				// set additional ChronoENGINE specific properties for the body...
-		mrigidBody->GetBody()->SetFriction(mfriction);
+    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(mfriction);
 		double inertia = (2./5.)*sphereradius*sphereradius * spheremass;
 		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(inertia,inertia,inertia));
 		 
@@ -130,7 +130,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
 											ChVector<>(60,4,60) , 
 											mparent);
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(mfriction);
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(mfriction);
 	mrigidBody->GetBody()->SetInertiaXX(ChVector<>(200,200,200));
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
@@ -141,7 +141,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
 											ChVector<>(2,80,mwidth) ,
 											mparent );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(mfriction);
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(mfriction);
 	mrigidBody->GetBody()->SetInertiaXX(ChVector<>(200,200,200));
 	
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
@@ -152,7 +152,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
 											ChVector<>(2,80,mwidth) ,
 											mparent);
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(mfriction);
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(mfriction);
 	mrigidBody->GetBody()->SetInertiaXX(ChVector<>(200,200,200));
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
@@ -163,8 +163,8 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
 											ChVector<>(mwidth,80,2) ,
 											mparent); 
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetSfriction(mfriction);
-	mrigidBody->GetBody()->SetKfriction(mfriction);
+	mrigidBody->GetBody()->GetMaterialSurface()->SetSfriction(mfriction);
+	mrigidBody->GetBody()->GetMaterialSurface()->SetKfriction(mfriction);
 	mrigidBody->GetBody()->SetInertiaXX(ChVector<>(200,200,200));
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode(
@@ -174,7 +174,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
 											ChQuaternion<>(1,0,0,0), 
 											mparent);
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(mfriction);
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(mfriction);
 	mrigidBody->GetBody()->SetInertiaXX(ChVector<>(200,200,200));
 
 	mrigidBody->GetBody()->SetCollide(true);

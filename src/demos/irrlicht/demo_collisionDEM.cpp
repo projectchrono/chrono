@@ -23,7 +23,6 @@
 
 
 #include "physics/ChSystemDEM.h"
-#include "physics/ChBodyDEM.h"
 #include "physics/ChContactContainerDEM.h"
 
 #include "collision/ChCModelBulletBody.h"
@@ -55,7 +54,7 @@ void AddFallingItems(ChIrrApp& application)
 			{
 				double mass = 1;
 				double radius = 1.1;
-				ChSharedPtr<ChBodyDEM> body(new ChBodyDEM);
+				ChSharedPtr<ChBody> body(new ChBody(ChBody::DEM));
 				body->SetInertiaXX((2.0/5.0)*mass*pow(radius,2)*ChVector<>(1,1,1));
 				body->SetMass(mass);
 				body->SetPos(ChVector<>(4.0 * ix, 4.0, 4.0 * iz));
@@ -77,7 +76,7 @@ void AddFallingItems(ChIrrApp& application)
 			{
 				double mass = 1;
 				ChVector<> hsize(0.75, 0.75, 0.75);
-				ChSharedPtr<ChBodyDEM> body(new ChBodyDEM);
+				ChSharedPtr<ChBody> body(new ChBody(ChBody::DEM));
 
 				body->SetMass(mass);
 				body->SetPos(ChVector<>(4.0 * ix, 6.0, 4.0 * iz));
@@ -98,7 +97,7 @@ void AddFallingItems(ChIrrApp& application)
 	}
 }
 
-void AddContainerWall(ChSharedPtr<ChBodyDEM>& body,
+void AddContainerWall(ChSharedPtr<ChBody>     body,
                       const ChVector<>&       pos,
                       const ChVector<>&       size,
                       bool                    visible = true)
@@ -120,7 +119,7 @@ void AddContainerWall(ChSharedPtr<ChBodyDEM>& body,
 void AddContainer(ChIrrApp& application)
 {
 	// The fixed body (5 walls)
-	ChSharedPtr<ChBodyDEM> fixedBody(new ChBodyDEM);
+	ChSharedPtr<ChBody> fixedBody(new ChBody(ChBody::DEM));
 
 	fixedBody->SetMass(1.0);
 	fixedBody->SetBodyFixed(true);
@@ -138,7 +137,7 @@ void AddContainer(ChIrrApp& application)
 	application.GetSystem()->AddBody(fixedBody);
 
 	// The rotating mixer body
-	ChSharedPtr<ChBodyDEM> rotatingBody(new ChBodyDEM);
+	ChSharedPtr<ChBody> rotatingBody(new ChBody(ChBody::DEM));
 
 	rotatingBody->SetMass(10.0);
 	rotatingBody->SetInertiaXX(ChVector<>(50,50,50));

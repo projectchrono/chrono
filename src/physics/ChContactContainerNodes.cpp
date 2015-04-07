@@ -71,11 +71,10 @@ ChContactContainerNodes::~ChContactContainerNodes ()
 
 
 
-void ChContactContainerNodes::Update (double mytime)
+void ChContactContainerNodes::Update(double mytime, bool update_assets)
 {
-    // Inherit time changes of parent class, basically doing nothing :)
-    ChContactContainerBase::Update(mytime);
-
+  // Inherit time changes of parent class, basically doing nothing :)
+  ChContactContainerBase::Update(mytime, update_assets);
 }
 
 
@@ -156,7 +155,7 @@ void ChContactContainerNodes::AddContact(const collision::ChCollisionInfo& mcont
 	frameA    = mmboA->GetBody();
 	varA      =&mmboA->GetBody()->VariablesBody();
 	//fixedA    = mmboA->GetBody()->GetBodyFixed();
-	frictionA = mmboA->GetBody()->GetSfriction();
+	frictionA = mmboA->GetBody()->GetMaterialSurface()->GetSfriction();
 	
 	// downcast
 	ChSharedPtr<ChNodeXYZ> mnode ( mmnoB->GetNodes()->GetNode(mmnoB->GetNodeId()).DynamicCastTo<ChNodeXYZ>() );

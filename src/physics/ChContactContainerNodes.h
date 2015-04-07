@@ -109,8 +109,8 @@ public:
 
 					/// In detail, it computes jacobians, violations, etc. and stores 
 					/// results in inner structures of contacts.
-	virtual void Update (double mtime);			
-	
+  virtual void Update(double mtime, bool update_assets = true);
+
 
 			//
 			// STATE FUNCTIONS

@@ -55,13 +55,13 @@ void ChShaftsTorqueBase::Copy(ChShaftsTorqueBase* source)
 
 
 
-void ChShaftsTorqueBase::Update (double mytime)
+void ChShaftsTorqueBase::Update(double mytime, bool update_assets)
 {
-		// Inherit time changes of parent class
-	ChShaftsCouple::Update(mytime);
-	
-		// update class data
-	this->torque = ComputeTorque();
+  // Inherit time changes of parent class
+  ChShaftsCouple::Update(mytime, update_assets);
+
+  // update class data
+  this->torque = ComputeTorque();
 }
 
 

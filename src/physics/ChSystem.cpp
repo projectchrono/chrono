@@ -1507,59 +1507,57 @@ void ChSystem::Setup()
 		// - UPDATES ALL FORCES  (AUTOMATIC, AS CHILDREN OF BODIES)
 		// - UPDATES ALL MARKERS (AUTOMATIC, AS CHILDREN OF BODIES).
 
-void ChSystem::Update() 
+void ChSystem::Update(bool update_assets)
 {
+  ChTimer<double>mtimer; mtimer.start(); // Timer for profiling
 
-	ChTimer<double>mtimer; mtimer.start(); // Timer for profiling
+  events->Record(CHEVENT_UPDATE); // Record an update event
 
+  // Executes the "forUpdate" script, if any
+  ExecuteScriptForUpdate();
+  // Executes the "forUpdate" script
+  // in all controls of controlslist
+  ExecuteControlsForUpdate();
 
-	events->Record(CHEVENT_UPDATE); // Record an update event
+  // --------------------------------------
+  // Spread state vector Y to bodies
+  //    Y --> Bodies
+  //    Y_accel --> Bodies
+  // Updates recursively all other aux.vars
+  // --------------------------------------
+#pragma omp parallel for 
+  for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies			
+  {
+    ChBody* Bpointer = bodylist[ip];
 
-									// Executes the "forUpdate" script, if any
-	ExecuteScriptForUpdate();
-									// Executes the "forUpdate" script
-									// in all controls of controlslist
-	ExecuteControlsForUpdate();
+    Bpointer->Update(ChTime, update_assets);
 
-									// --------------------------------------
-									// Spread state vector Y to bodies
-									//    Y --> Bodies
-									//    Y_accel --> Bodies
-									// Updates recursively all other aux.vars
-									// --------------------------------------
-	#pragma omp parallel for 
-	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies			
-	{								
-		ChBody* Bpointer = bodylist[ip];
+    if (this->GetUseSleeping())
+      Bpointer->TrySleeping();
+  }
+  // -----------------------------
+  // Updates other physical items
+  // -----------------------------
+  for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
+  {
+    ChPhysicsItem* PHpointer = otherphysicslist[ip];
 
-		Bpointer->Update(ChTime);  
+    PHpointer->Update(ChTime, update_assets);
+  }
+  // -----------------------------
+  // Updates all links
+  // -----------------------------
+  for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+  {
+    ChLink* Lpointer = linklist[ip];
 
-		if (this->GetUseSleeping())
-			Bpointer->TrySleeping();
-	}
-									// -----------------------------
-									// Updates other physical items
-									// -----------------------------
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+    Lpointer->Update(ChTime, update_assets);
+  }
 
-		PHpointer->Update(ChTime);
-	}
-									// -----------------------------
-									// Updates all links
-									// -----------------------------
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
+  this->contact_container->Update(ChTime, update_assets); // Update all contacts, if any
 
-		Lpointer->Update(ChTime);
-	}
-
-	this->contact_container->Update(); // Update all contacts, if any
-
-	mtimer.stop();
-	timer_update += mtimer();
+  mtimer.stop();
+  timer_update += mtimer();
 }
 
 
@@ -2440,21 +2438,21 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	ExecuteControlsForStep();
 
 
-	this->stepcount++;
+  this->stepcount++;
 
-	// Compute contacts and create contact constraints
+  // Compute contacts and create contact constraints
+  ComputeCollisions();
 
-	ComputeCollisions();
+  // Counts dofs, statistics, etc.
+  Setup();
 
+  // Update everything - and put to sleep bodies that need it.
+  // Note that we do not update visualization assets at this point.
+  Update(false);
 
-	Setup();	// Counts dofs, statistics, etc.
-
-
-	Update();	// Update everything - and put to sleep bodies that need it
-
-				// Re-wake the bodies that cannot sleep because they are in contact with
-				// some body that is not in sleep state.
-	WakeUpSleepingBodies();
+  // Re-wake the bodies that cannot sleep because they are in contact with
+  // some body that is not in sleep state.
+  WakeUpSleepingBodies();
 
 
 	ChTimer<double> mtimer_lcp;
@@ -2580,21 +2578,21 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	ExecuteControlsForStep();
 
 
-	this->stepcount++;
+  this->stepcount++;
 
+  // Compute contacts and create contact constraints
+  ComputeCollisions();
 
-	// Compute contacts and create contact constraints
+  // Counts dofs, statistics, etc.
+  Setup();
 
-	ComputeCollisions();
+  // Update everything - and put to sleep bodies that need it.
+  // Note that we do not update visualization assets at this point.
+  Update(false);
 
-
-	Setup();	// Counts dofs, statistics, etc.
-
-	Update();	// Update everything - and put to sleep bodies that need it
-
-				// Re-wake the bodies that cannot sleep because they are in contact with
-				// some body that is not in sleep state.
-	WakeUpSleepingBodies();
+  // Re-wake the bodies that cannot sleep because they are in contact with
+  // some body that is not in sleep state.
+  WakeUpSleepingBodies();
 
 
 	ChTimer<double> mtimer_lcp;
@@ -2781,21 +2779,21 @@ int ChSystem::Integrate_Y_timestepper()
 	ExecuteControlsForStep();
 
 
-	this->stepcount++;
+  this->stepcount++;
 
-	// Compute contacts and create contact constraints
+  // Compute contacts and create contact constraints
+  ComputeCollisions();
 
-	ComputeCollisions();
+  // Counts dofs, statistics, etc. (not needed because already in Advance()...? )
+  Setup();
 
+  // Update everything - and put to sleep bodies that need it (not needed because already in Advance()...? )
+  // No need to update visualization assets here.
+  Update(false);
 
-	Setup();	// Counts dofs, statistics, etc. (not needed because already in Advance()...? )
-
-
-	Update();	// Update everything - and put to sleep bodies that need it (not needed because already in Advance()...? )
-
-				// Re-wake the bodies that cannot sleep because they are in contact with
-				// some body that is not in sleep state.
-	WakeUpSleepingBodies();
+  // Re-wake the bodies that cannot sleep because they are in contact with
+  // some body that is not in sleep state.
+  WakeUpSleepingBodies();
 
 
 	ChTimer<double> mtimer_lcp;
@@ -2837,8 +2835,12 @@ int ChSystem::Integrate_Y_timestepper()
 
 int ChSystem::DoAssembly(int action, int mflags)
 {
+  // Counts dofs, statistics, etc.
   Setup();
-  Update();
+
+  // Update the system and all its components.
+  // No need to update visualization assets here.
+  Update(false);
 
   //
   // (1)--------  POSITION
@@ -2854,8 +2856,8 @@ int ChSystem::DoAssembly(int action, int mflags)
         // Compute new contacts and create contact constraints
         ComputeCollisions();
 
-        Setup();    // Counts dofs, statistics, etc.
-        Update();   // Update everything
+        Setup();         // Counts dofs, statistics, etc.
+        Update(false);   // Update everything (do not update visualization assets)
       }
 
       // Reset known-term vectors

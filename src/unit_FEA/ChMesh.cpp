@@ -128,17 +128,16 @@ void ChMesh::Setup()
 // Updates all time-dependant variables, if any...
 // Ex: maybe the elasticity can increase in time, etc.
 
-void ChMesh::Update (double m_time)
+void ChMesh::Update(double m_time, bool update_assets)
 {
-	// Parent class update
-	ChIndexedNodes::Update(m_time);
-	
-	for (unsigned int i=0; i< velements.size(); i++)
-	{
-			//    - update auxiliary stuff, ex. update element's rotation matrices if corotational..
-		velements[i]->Update();
-	}
+  // Parent class update
+  ChIndexedNodes::Update(m_time, update_assets);
 
+  for (unsigned int i = 0; i < velements.size(); i++)
+  {
+    //    - update auxiliary stuff, ex. update element's rotation matrices if corotational..
+    velements[i]->Update();
+  }
 }
 
 
