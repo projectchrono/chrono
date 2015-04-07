@@ -473,7 +473,7 @@ ChSharedPtr<ChBody> CreateBoxContainer(ChSystem* system,
   // Create the body and set material
   ChSharedPtr<ChBody> body;
 
-  if (sysType == SEQUENTIAL_DVI || SEQUENTIAL_DEM || cdType == BULLET_CD)
+  if (sysType == SEQUENTIAL_DVI || sysType == SEQUENTIAL_DEM || cdType == BULLET_CD)
     body = ChSharedPtr<ChBody>(new ChBody(contact_method));
   else
     body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel, contact_method));
