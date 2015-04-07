@@ -601,35 +601,63 @@ int main(int argc, char* argv[]) {
     SavePovFilesMBD(mphysicalSystem, tStep, mTime, num_contacts, exec_time);
 
     // ****************** RK2: 1/2
-    // ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects,
-    // currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on
-    // rigid bodies. they should be applied at rigid body solver
-    DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT, mTime);
-    // CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-    // AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 *
-    // currentParamsH.dT);// assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
-    // CopyH2D(derivVelRhoD, derivVelRhoChronoH);
-    // UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
-    // // assumes ...D2 is a copy of ...D
+    ForceSPH(posRadD,
+             velMasD,
+             vel_XSPH_D,
+             rhoPresMuD,
+             bodyIndexD,
+             derivVelRhoD,
+             referenceArray,
+             numObjects,
+             currentParamsH,
+             0.5 * currentParamsH.dT);
+    DoStepChronoSystem(
+        mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+    CopyD2H(derivVelRhoChronoH, derivVelRhoD);
+    AddChSystemForcesToSphForces(
+        derivVelRhoChronoH,
+        velMasH2,
+        mphysicalSystem,
+        numObjects,
+        startIndexSph,
+        0.5 *
+            currentParamsH.dT);  // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
+    CopyH2D(derivVelRhoD, derivVelRhoChronoH);
+    UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
+    // assumes ...D2 is a copy of ...D
     ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 
-    // CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
-    // UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
+    CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
+    UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
 
     // ****************** RK2: 2/2
-    // ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects,
-    // currentParamsH, currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid
-    // bodies. they should be applied at rigid body solver
-    DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT, mTime);
-    // CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-    // AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 *
-    // currentParamsH.dT); // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
-    // CopyH2D(derivVelRhoD, derivVelRhoChronoH);
-    // UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
-    // ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
+    ForceSPH(posRadD2,
+             velMasD2,
+             vel_XSPH_D,
+             rhoPresMuD2,
+             bodyIndexD,
+             derivVelRhoD,
+             referenceArray,
+             numObjects,
+             currentParamsH,
+             currentParamsH.dT);
+    DoStepChronoSystem(
+        mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+    CopyD2H(derivVelRhoChronoH, derivVelRhoD);
+    AddChSystemForcesToSphForces(
+        derivVelRhoChronoH,
+        velMasH2,
+        mphysicalSystem,
+        numObjects,
+        startIndexSph,
+        0.5 *
+            currentParamsH.dT);  // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
+    CopyH2D(derivVelRhoD, derivVelRhoChronoH);
+    UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
+    ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
 
-    // CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
-    // UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
+    CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
+    UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
 
     // ****************** End RK2
 
