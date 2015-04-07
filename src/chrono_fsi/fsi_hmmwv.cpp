@@ -183,131 +183,6 @@ double CreateGranularBed(ChSystem* mphysicalSystem) {
 // =============================================================================
 
 void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
-  // 	// -----------------------------------------
-  // 	// Create and initialize the vehicle systems
-  // 	// -----------------------------------------
-  // 	MyVehicle mVehicle(&mphysicalSystem);
-
-  // 	// --------------------------------------------------------
-  // 	// Create the ground body and set contact geometry
-  // 	// --------------------------------------------------------
-  // 	double hdimX = 100;
-  // 	double hdimY = 100;
-  // 	double hdimZ = 5;
-
-  // 	double hdimX3 = hdimX/3;
-  // //	double hdimY3 = hdimY/3;
-  // 	hdimX = 3 * hdimX3;
-  // //	hdimY = 3 * hdimY3;
-
-  // 	// basin info
-  // 	double depth = 10;
-  // 	double slope = CH_C_PI / 6;
-  // 	double bottomWidth = hdimX3 - depth / tan(slope); 	// for a 45 degree slope
-  // 	double inclinedWidth = depth / sin(slope); // for a 45 degree slope
-
-  // 	ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
-  // 	ground->SetIdentifier(-1);
-  // 	ground->SetBodyFixed(true);
-  // 	ground->SetCollide(true);
-  // 	ground->SetPos(ChVector<>(0, 0, -hdimZ));
-
-  // 	ground->GetMaterialSurface()->SetFriction(0.8f);
-
-  // 	ground->GetCollisionModel()->ClearModel();
-  // //	ground->GetCollisionModel()->AddBox(hdimX, hdimY, hdimZ);
-  // 	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX3, hdimY, hdimZ), ChVector<>(-hdimX3, 0, 0));	//
-  // beginning third
-  // 	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX3, hdimY, hdimZ), ChVector<>(hdimX3, 0, 0));	// end
-  // third
-  // 	// basin
-  // 	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(bottomWidth, hdimY, hdimZ), ChVector<>(0, 0, -depth));
-  // //
-  // middle third
-  // 	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(inclinedWidth , hdimY, hdimZ),
-  // 			ChVector<>(-hdimX3 - inclinedWidth * cos(slope), 0, -inclinedWidth*sin(slope)),
-  // 			Q_from_AngAxis(slope, ChVector(0, 1, 0)));	// middle third
-  // 	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(inclinedWidth , hdimY, hdimZ),
-  // 			ChVector<>(hdimX3 + inclinedWidth * cos(slope), 0, -inclinedWidth*sin(slope)),
-  // 			Q_from_AngAxis(-slope, ChVector(0, 1, 0)));	// middle third
-
-  // 	ground->GetCollisionModel()->BuildModel();
-
-  // 	ChSharedPtr<ChBoxShape> box_ground(new ChBoxShape);
-  // 	box_ground->GetBoxGeometry().Size = ChVector<>(hdimX, hdimY, hdimZ);
-  // 	ground->AddAsset(box_ground);
-
-  // 	mphysicalSystem->AddBody(ground);
-
-  //	// ball drop
-  //	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-  //	Real3 ellipsoidSize = .3 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
-  //	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
-  //
-  //	double density = .5*paramsH.rho0;  // TODO : Arman : Density for now is set to water density
-  //	double muFriction = .1;
-  //
-  //	// NOTE: mass properties and shapes are all for sphere
-  //	double volume = utils::CalcSphereVolume(size.x);
-  //	ChVector<> gyration = utils::CalcSphereGyration(size.x).Get_Diag();
-  //	double mass = density * volume;
-  //
-  //
-  //	//**************** bin and ship
-  //	// Create a common material
-  //	ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
-  //	mat_g->SetFriction(muFriction);
-  //	mat_g->SetCohesion(0);
-  //	mat_g->SetCompliance(0.0);
-  //	mat_g->SetComplianceT(0.0);
-  //	mat_g->SetDampingF(0.2);
-  //
-  //	const ChVector<> pos = ChVector<>(domainCenter.x, domainCenter.y + paramsH.cMax.y, domainCenter.z);
-  //	const ChQuaternion<> rot = ChQuaternion<>(1, 0, 0, 0);
-  //
-  //	ChSharedBodyPtr body;
-  //	body = ChSharedBodyPtr(new  ChBody(new ChCollisionModelParallel));
-  //	body->SetMaterialSurface(mat_g);
-  //	body->SetPos(pos);
-  //	body->SetRot(rot);
-  //	body->SetCollide(true);
-  //	body->SetBodyFixed(false);
-  //    body->SetMass(mass);
-  //    body->SetInertiaXX(mass * gyration);
-  //
-  //	body->GetCollisionModel()->ClearModel();
-  //	utils::AddSphereGeometry(body.get_ptr(), size.x);				// O
-  //	body->GetCollisionModel()->BuildModel();
-  //	mphysicalSystem.AddBody(body);
-  //	// ****************** create boxes around the fluid domain
-  //	ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
-  //	mat->SetFriction(.5);
-  //	mat->SetDampingF(0.2f);
-  //	int binId = 2;
-  //
-  //	ChSharedBodyPtr bin;
-  //	Real3 hdim = paramsH.boxDims;
-  //	double hthick = 1 * paramsH.HSML;
-  //
-  //	bin = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
-  //	bin->SetMaterialSurface(mat);
-  //	bin->SetMass(1);
-  //	bin->SetPos(ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z));
-  //	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-  //	bin->SetCollide(true);
-  //	bin->SetBodyFixed(true);
-  //
-  //	bin->GetCollisionModel()->ClearModel();
-  //	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x + 2 * hthick, hthick, hdim.z + 2 * hthick),
-  // ChVector<>(0, -0.5 * hdim.y - 0.5 * hthick, 0));	//bottom wall
-  //	bin->GetCollisionModel()->BuildModel();
-  //
-  //	mphysicalSystem.AddBody(bin);
-
-  // original hmmwv
-  // -------------------
-  // Create the terrain.
-  // -------------------
 
   // Ground body
   ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
@@ -338,76 +213,33 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 
   // beginning third
   utils::AddBoxGeometry(ground.get_ptr(),
-                        ChVector<>(hdimSide, hdimY, hdimZ),
+                        ChVector<>(hdimSide, hdimY, hthick),
                         ChVector<>(-midSecDim - hdimSide, 0, -hthick),
                         ChQuaternion<>(1, 0, 0, 0),
                         true);
   // end third
   utils::AddBoxGeometry(ground.get_ptr(),
-                        ChVector<>(hdimSide, hdimY, hdimZ),
+                        ChVector<>(hdimSide, hdimY, hthick),
                         ChVector<>(midSecDim + hdimSide, 0, -hthick),
                         ChQuaternion<>(1, 0, 0, 0),
                         true);
   // basin
   utils::AddBoxGeometry(ground.get_ptr(),
-                        ChVector<>(bottomWidth + bottomBuffer, hdimY, hdimZ),
+                        ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
                         ChVector<>(0, 0, -depth - hthick),
                         ChQuaternion<>(1, 0, 0, 0),
                         true);
   // slope 1
   utils::AddBoxGeometry(ground.get_ptr(),
-                        ChVector<>(inclinedWidth, hdimY, hdimZ),
+                        ChVector<>(inclinedWidth, hdimY, hthick),
                         ChVector<>(x1I, 0, zI),
                         Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
 
   // slope 2
   utils::AddBoxGeometry(ground.get_ptr(),
-                        ChVector<>(inclinedWidth, hdimY, hdimZ),
+                        ChVector<>(inclinedWidth, hdimY, hthick),
                         ChVector<>(x2I, 0, zI),
                         Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
-
-//  // Bottom box
-//  double hdimSide = hdimX / 4.0;
-//  double midSecDim = hdimX - 2 * hdimSide;
-//  // basin info
-//  double depth = 2;
-//  double phi = CH_C_PI / 6;
-//  double bottomWidth = midSecDim - depth / tan(phi);  // for a 45 degree slope
-//
-//  double inclinedWidth = depth / sin(phi);  // for a 45 degree slope
-//  double x1I = -midSecDim + inclinedWidth * cos(phi) - hthick * sin(phi);
-//  double zI = -inclinedWidth * sin(phi) - hthick * cos(phi);
-//  double x2I = midSecDim - inclinedWidth * cos(phi) + hthick * sin(phi);
-//
-//  // beginning third
-//  utils::AddBoxGeometry(ground.get_ptr(),
-//                        ChVector<>(hdimSide, hdimY, hdimZ),
-//                        ChVector<>(-midSecDim - hdimSide, 0, -hthick),
-//                        ChQuaternion<>(1, 0, 0, 0),
-//                        true);
-//  // end third
-//  utils::AddBoxGeometry(ground.get_ptr(),
-//                        ChVector<>(hdimSide, hdimY, hdimZ),
-//                        ChVector<>(midSecDim + hdimSide, 0, -hthick),
-//                        ChQuaternion<>(1, 0, 0, 0),
-//                        true);
-//  // basin
-//  utils::AddBoxGeometry(ground.get_ptr(),
-//                        ChVector<>(bottomWidth, hdimY, hdimZ),
-//                        ChVector<>(0, 0, -depth - hthick),
-//                        ChQuaternion<>(1, 0, 0, 0),
-//                        true);
-//  // slope 1
-//  utils::AddBoxGeometry(ground.get_ptr(),
-//                        ChVector<>(inclinedWidth, hdimY, hdimZ),
-//                        ChVector<>(x1I, 0, zI),
-//                        Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
-//
-//  // slope 2
-//  utils::AddBoxGeometry(ground.get_ptr(),
-//                        ChVector<>(inclinedWidth, hdimY, hdimZ),
-//                        ChVector<>(x2I, 0, zI),
-//                        Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
 
   //  utils::AddBoxGeometry(
   //      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),
