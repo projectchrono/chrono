@@ -78,10 +78,10 @@ double sineFreq = 0.3;
 double tStart = 0.1;
 
 // ***** write to console or a file
-#define WRITE_OUTPUT         // write output data to file
-#define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
-#define CONSOLE_DEBUG_INFO   // log constraint violations to console,
-#define CONSOLE_TIMING       // time each render and simulation step, log to console
+// #define WRITE_OUTPUT         // write output data to file
+// #define CONSOLE_DEBUG_INFO   // log output data to console
+// #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in console
+#define CONSOLE_TIMING          // timers for each render and simulation step, log to console
 
 // AVAILABLE:
 // DBG_GEAR | DBG_IDLER | DBG_CONSTRAINTS | DBG_CHASSIS
@@ -111,10 +111,9 @@ ChVector<> fixed_cameraPos(2, 1.15, 3); // (0.15, 1.15, 1.5);
 // relative to center of chassis
 ChVector<> trackPoint(0.5, -0.5, 0);
 
-  // Point on chassis tracked by the camera
+ // Point on chassis tracked by the camera
 double chaseDist = 3.5; // 4.0;
 double chaseHeight = 1.0; // 1.0;
-
 
 bool do_shadows = false; // shadow map is experimental
   /*
@@ -125,7 +124,6 @@ bool do_shadows = false; // shadow map is experimental
   const std::string pov_dir = out_dir + "/POVRAY";
 #endif
   */
-
 
 /// the ground body, visual assets and collision shape. 
 ChSharedPtr<ChBody> Add_FlatGround(TrackVehicleM113* vehicle,
