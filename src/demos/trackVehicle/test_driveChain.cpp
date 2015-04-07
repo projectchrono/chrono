@@ -89,9 +89,9 @@ double tStart = 0.1;
 
 // ***** write to console or a file
 // #define WRITE_OUTPUT         // write output data to file
-// #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
-// #define CONSOLE_DEBUG_INFO   // log constraint violations to console,
-#define CONSOLE_TIMING       // time each render and simulation step, log to console
+// #define CONSOLE_DEBUG_INFO   // log output data to console
+// #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in console
+#define CONSOLE_TIMING          // timers for each render and simulation step, log to console
 
 int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_COLLISIONCALLBACK | DBG_PTRAIN; // | DBG_IDLER  | DBG_CONSTRAINTS;
 int what_to_console = DBG_PTRAIN | DBG_GEAR;  // DBG_COLLISIONCALLBACK | DBG_CONSTRAINTS | DBG_IDLER | DBG_FIRSTSHOE;
