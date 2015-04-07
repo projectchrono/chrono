@@ -56,9 +56,12 @@ public:
 			m_manifoldPtr(mf),
 			m_isSwapped(isSwapped)
 			{
+				btCollisionObject* sphereObj = m_isSwapped? col1 : col0;
+				btCollisionObject* cylObj = m_isSwapped? col0 : col1;
+
 				if (!m_manifoldPtr)
 				{
-					m_manifoldPtr = m_dispatcher->getNewManifold(col0,col1);
+					m_manifoldPtr = m_dispatcher->getNewManifold(sphereObj,cylObj);
 					m_ownManifold = true;
 				}
 			}
@@ -221,8 +224,11 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
 	//bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE,SPHERE_SHAPE_PROXYTYPE,new btSphereSphereCollisionAlgorithm::CreateFunc); 
 	
 	// custom collision for cylinder-sphere case, for improved precision
-	bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE, CYLINDER_SHAPE_PROXYTYPE,new btSphereCylinderCollisionAlgorithm::CreateFunc);
-	bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE, SPHERE_SHAPE_PROXYTYPE,new btSphereCylinderCollisionAlgorithm::CreateFunc);
+	btCollisionAlgorithmCreateFunc* m_collision_sph_cyl = new btSphereCylinderCollisionAlgorithm::CreateFunc;
+	btCollisionAlgorithmCreateFunc* m_collision_cyl_sph = new btSphereCylinderCollisionAlgorithm::CreateFunc;
+	m_collision_cyl_sph->m_swapped = true;
+	bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE, CYLINDER_SHAPE_PROXYTYPE,m_collision_sph_cyl);
+	bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE, SPHERE_SHAPE_PROXYTYPE,m_collision_cyl_sph);
 
 	// custom collision for GIMPACT mesh case too
 	btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
