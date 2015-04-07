@@ -825,7 +825,8 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpConstraintThreeGeneric.cpp 
 		lcp/ChLcpConstraintThreeBBShaft.cpp 
 		lcp/ChLcpVariables.cpp 
-		lcp/ChLcpVariablesGeneric.cpp 
+		lcp/ChLcpVariablesGeneric.cpp
+		lcp/ChLcpVariablesGenericDiagonalMass.cpp 
 		lcp/ChLcpVariablesBody.cpp 
 		lcp/ChLcpVariablesBodySharedMass.cpp 
 		lcp/ChLcpVariablesBodyOwnMass.cpp 
@@ -872,6 +873,7 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpVariablesBodySharedMass.h
 		lcp/ChLcpVariablesShaft.h
 		lcp/ChLcpVariablesGeneric.h
+		lcp/ChLcpVariablesGenericDiagonalMass.h
 		lcp/ChLcpVariablesNode.h
 		lcp/ChLcpKblock.h
 		lcp/ChLcpKblockGeneric.h

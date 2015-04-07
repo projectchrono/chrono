@@ -15,7 +15,7 @@
 
 
 #include "ChNodeFEAbase.h"
-#include "lcp/ChLcpVariablesBodyOwnMass.h"
+#include "lcp/ChLcpVariablesGenericDiagonalMass.h"
 
 
 namespace chrono
@@ -41,8 +41,8 @@ public:
 						D = initial_dir;
 						D_dt = VNULL;
 						D_dtdt = VNULL;
-						variables.SetBodyMass(0.0);
-						variables.SetBodyInertia(ChMatrix33<>(0)); //***TODO*** tensor of inertia not needed, ChLcpVariablesBodyOwnMass is a temporary hack that should be promoted to some other ChLcpVariablesXXX stuff
+						variables  = new ChLcpVariablesGenericDiagonalMass(6);
+						variables->GetMassDiagonal().FillElem(0.0); // default: no atomic mass associated to fea node, the fea element will add mass matrix
 					}
 
 	~ChNodeFEAxyzD() {};
@@ -55,7 +55,7 @@ public:
 		this->pos_dt = other.pos_dt;
 		this->pos_dtdt = other.pos_dtdt;
 		this->Force = other.Force;
-		this->variables = other.variables;
+		(*this->variables) = (*other.variables);
 		this->D = other.D;
 		this->D_dt = other.D_dt;
 		this->D_dtdt = other.D_dtdt;
@@ -76,13 +76,13 @@ public:
 		this->D_dt = other.D_dt;
 		this->D_dtdt = other.D_dtdt;
 		this->Force = other.Force;
-		this->variables = other.variables;
+		(*this->variables) = (*other.variables);
 		return *this;
 	}
 
 	virtual ChLcpVariables& Variables()
 					{
-						return this->variables; 
+						return *this->variables; 
 					} 
 
 				/// Set the rest position as the actual position.
@@ -102,14 +102,8 @@ public:
 					}
 
 				/// Get mass of the node.
-	virtual double GetMass() {return this->variables.GetBodyMass();}
-				/// Set mass of the node.
-	virtual void SetMass(double mm) {this->variables.SetBodyMass(mm);}
+	virtual ChVectorDynamic<>& GetMassDiagonal() {return this->variables->GetMassDiagonal();}
 
-				/// Get inertia (for D vector coord!) of the node.
-	//virtual  ChMatrix33<>& GetInertia() const {return this->variables.GetBodyInertia();}
-				/// Get inertia (for D vector coord!) of the node
-	//virtual void SetInertia(ChMatrix33<>& mm) {this->variables.SetBodyInertia(mm);}
 
 
 				/// Set the initial (reference) position
@@ -155,9 +149,9 @@ public:
 
 				/// Sets the 'fixed' state of the node. If true, it does not move
                 /// respect to the absolute world, despite constraints, forces, etc.
-	void SetFixed  (bool mev) { variables.SetDisabled(mev); }
+	void SetFixed  (bool mev) { variables->SetDisabled(mev); }
 				/// Gets the 'fixed' state of the node.
-    bool GetFixed()  {return variables.IsDisabled(); }
+    bool GetFixed()  {return variables->IsDisabled(); }
 
 
 				/// Get the number of degrees of freedom
@@ -218,23 +212,23 @@ public:
 
 	virtual void NodeIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c)
 	{
-		R(off+0) += c* GetMass() * w(off+0);
-		R(off+1) += c* GetMass() * w(off+1);
-		R(off+2) += c* GetMass() * w(off+2);
-		//R(off+3) += c* GetInertia() * w(off+3); // no rotational inertia effect
-		//R(off+4) += c* GetInertia() * w(off+4);
-		//R(off+5) += c* GetInertia() * w(off+5);
+		R(off+0) += c* GetMassDiagonal()(0) * w(off+0);
+		R(off+1) += c* GetMassDiagonal()(1) * w(off+1);
+		R(off+2) += c* GetMassDiagonal()(2) * w(off+2);
+		R(off+3) += c* GetMassDiagonal()(3) * w(off+3);
+		R(off+4) += c* GetMassDiagonal()(4) * w(off+4);
+		R(off+5) += c* GetMassDiagonal()(5) * w(off+5);
 	}
 
 	virtual void NodeIntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R)
 	{
-		this->variables.Get_qb().PasteClippedMatrix(&v, off_v,0, 6,1, 0,0);
-		this->variables.Get_fb().PasteClippedMatrix(&R, off_v,0, 6,1, 0,0);
+		this->variables->Get_qb().PasteClippedMatrix(&v, off_v,0, 6,1, 0,0);
+		this->variables->Get_fb().PasteClippedMatrix(&R, off_v,0, 6,1, 0,0);
 	}
 
 	virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v)
 	{
-		v.PasteMatrix(&this->variables.Get_qb(), off_v, 0);
+		v.PasteMatrix(&this->variables->Get_qb(), off_v, 0);
 	}
 
 
@@ -245,22 +239,22 @@ public:
 
 	virtual void VariablesFbLoadForces(double factor=1.) 
 					{ 
-						this->variables.Get_fb().PasteSumVector( this->Force * factor ,0,0);
-						//this->variables.Get_fb().PasteSumVector( VNULL ,3,0); // TODO something related to inertia?
+						this->variables->Get_fb().PasteSumVector( this->Force * factor ,0,0);
+						//this->variables->Get_fb().PasteSumVector( VNULL ,3,0); // TODO something related to inertia?
 					};
 
 	virtual void VariablesQbLoadSpeed() 
 					{ 
-						this->variables.Get_qb().PasteVector(this->pos_dt,0,0);
-						this->variables.Get_qb().PasteVector(this->D_dt,3,0);
+						this->variables->Get_qb().PasteVector(this->pos_dt,0,0);
+						this->variables->Get_qb().PasteVector(this->D_dt,3,0);
 					};
 
 	virtual void VariablesQbSetSpeed(double step=0.) 
 					{
 						ChVector<> old_dt  = this->pos_dt;
 						ChVector<> oldD_dt = this->D_dt;
-						this->SetPos_dt( this->variables.Get_qb().ClipVector(0,0) );
-						this->SetD_dt  ( this->variables.Get_qb().ClipVector(3,0) );
+						this->SetPos_dt( this->variables->Get_qb().ClipVector(0,0) );
+						this->SetD_dt  ( this->variables->Get_qb().ClipVector(3,0) );
 						if (step)
 						{
 							this->SetPos_dtdt( (this->pos_dt - old_dt )  / step);
@@ -270,13 +264,13 @@ public:
 
 	virtual void VariablesFbIncrementMq() 
 					{
-						this->variables.Compute_inc_Mb_v(this->variables.Get_fb(), this->variables.Get_qb());
+						this->variables->Compute_inc_Mb_v(this->variables->Get_fb(), this->variables->Get_qb());
 					};
 
 	virtual void VariablesQbIncrementPosition(double step) 
 					{
-						ChVector<> newspeed   = variables.Get_qb().ClipVector(0,0);
-						ChVector<> newspeed_D = variables.Get_qb().ClipVector(3,0);
+						ChVector<> newspeed   = variables->Get_qb().ClipVector(0,0);
+						ChVector<> newspeed_D = variables->Get_qb().ClipVector(3,0);
 
 						// ADVANCE POSITION: pos' = pos + dt * vel
 						this->SetPos( this->GetPos() + newspeed   * step);
@@ -285,7 +279,7 @@ public:
 
 private:
 	/// 3D node variables, with x,y,z and Rx,Ry,Rz (Hack! the Rx Ry Rz used here for the D gradient vector stuff)
-	ChLcpVariablesBodyOwnMass  variables; 
+	ChLcpVariablesGenericDiagonalMass*  variables; 
 
 	ChVector<> X0;		///< reference position
 	ChVector<> Force;	///< applied force
