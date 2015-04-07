@@ -43,6 +43,8 @@ struct SimParams {
 		Real gammaBB;
 		Real3 cMin;
 		Real3 cMax;
+		Real3 cMinInit; // Arman : note, this need to be added to check point
+		Real3 cMaxInit; // Arman : note, this need to be added to check point
 		Real3 straightChannelBoundaryMin;
 		Real3 straightChannelBoundaryMax;
 		Real binSize0;
