@@ -9,14 +9,11 @@
 #include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
 
+#include "chrono_utils/ChUtilsVehicle.h"
 #include "chrono_utils/ChUtilsGeometry.h"
 #include "chrono_utils/ChUtilsCreators.h"
+#include "chrono_utils/ChUtilsGenerators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
-
-#include "config.h"
-#include "subsys/ChVehicleModelData.h"
-#include "subsys/vehicle/Vehicle.h"
-#include "subsys/powertrain/SimplePowertrain.h"
 
 //#undef CHRONO_PARALLEL_HAS_OPENGL
 
@@ -32,15 +29,58 @@ using std::endl;
 
 // =============================================================================
 
-// JSON file for vehicle model
-std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
+// -----------------------------------------------------------------------------
+// Specification of the vehicle model
+// -----------------------------------------------------------------------------
+
+enum WheelType { CYLINDRICAL, LUGGED };
+
+// Type of wheel/tire (controls both contact and visualization)
+WheelType wheel_type = CYLINDRICAL;
+
+// JSON files for vehicle model (using different wheel visualization meshes)
+std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
+std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 
 // JSON files for powertrain (simple)
 std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector<> initLoc(-3.0, 0, 0.75);
 ChQuaternion<> initRot(1, 0, 0, 0);
+
+// Coefficient of friction
+float mu_t = 0.8;
+
+// -----------------------------------------------------------------------------
+// Specification of the terrain
+// -----------------------------------------------------------------------------
+
+enum TerrainType { RIGID, GRANULAR };
+
+// Type of terrain
+TerrainType terrain_type = RIGID;
+
+// Control visibility of containing bin walls
+bool visible_walls = false;
+
+// Dimensions
+double hdimX = 5.5;
+double hdimY = 1.75;
+double hdimZ = 0.5;
+double hthick = 0.25;
+
+// Parameters for granular material
+int Id_g = 100;
+double r_g = 0.02;
+double rho_g = 2500;
+double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
+double mass_g = rho_g * vol_g;
+ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1, 1, 1);
+
+float mu_g = 0.8;
+
+int num_particles = 1000;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -52,14 +92,19 @@ int threads = 100;
 // Perform dynamic tuning of number of threads?
 bool thread_tuning = true;
 
-// Simulation duration.
-double time_end = 5;
+// Total simulation duration.
+double time_end = 7;
+
+// Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
+// This can be used to allow the granular material to settle.
+double time_hold = 2;
 
 // Solver parameters
 double time_step = 1e-3;
 
-double tolerance = 1e-3;
+double tolerance = 0.1;
 
+int max_iteration_bilateral = 100;
 int max_iteration_normal = 0;
 int max_iteration_sliding = 200;
 int max_iteration_spinning = 0;
@@ -67,99 +112,175 @@ int max_iteration_spinning = 0;
 float contact_recovery_speed = 0.1;
 
 // Output
+bool povray_output = false;
+
 const std::string out_dir = "../HMMWV";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 int out_fps = 60;
 
-// Continuous loop (only if OpenGL available)
-bool loop = false;
-
 // =============================================================================
 
-class MyVehicle {
+// Callback class for providing driver inputs.
+class MyDriverInputs : public utils::DriverInputsCallback {
  public:
-  MyVehicle(ChSystem* system);
+  MyDriverInputs(double delay) : m_delay(delay) {}
 
-  void Update(double time);
+  virtual void onCallback(double time, double& throttle, double& steering, double& braking) {
+    throttle = 0;
+    steering = 0;
+    braking = 0;
 
-  ChSharedPtr<Vehicle> m_vehicle;
-  ChSharedPtr<SimplePowertrain> m_powertrain;
-  ChTireForces m_tire_forces;
-};
+    double eff_time = time - m_delay;
 
-MyVehicle::MyVehicle(ChSystem* system) {
-  // Create and initialize the vehicle system
+    // Do not generate any driver inputs for a duration equal to m_delay.
+    if (eff_time < 0)
+      return;
 
-  m_vehicle = ChSharedPtr<Vehicle>(new Vehicle(system, vehicle::GetDataFile(vehicle_file)));
-  m_vehicle->Initialize(ChCoordsys<>(initLoc, initRot));
-
-  // Create and initialize the powertrain system
-  m_powertrain = ChSharedPtr<SimplePowertrain>(new SimplePowertrain(vehicle::GetDataFile(simplepowertrain_file)));
-  m_powertrain->Initialize();
-
-  // Add contact geometry to the vehicle wheel bodies
-  double radius = 0.47;
-  double width = 0.254;
-
-  int numAxles = m_vehicle->GetNumberAxles();
-  int numWheels = 2 * numAxles;
-
-  for (int i = 0; i < numWheels; i++) {
-    double radius = m_vehicle->GetWheel(i)->GetRadius();
-    double width = m_vehicle->GetWheel(i)->GetWidth();
-
-    ChSharedPtr<ChBody> wheelBody = m_vehicle->GetWheelBody(i);
-
-    wheelBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
-
-    wheelBody->GetCollisionModel()->ClearModel();
-    wheelBody->GetCollisionModel()->AddCylinder(radius, radius, width / 2);
-    wheelBody->GetCollisionModel()->BuildModel();
-
-    wheelBody->SetCollide(true);
-    wheelBody->GetMaterialSurface()->SetFriction(0.8f);
+    if (eff_time > 0.5)
+      throttle = 1.0;
+    else if (eff_time > 0.25)
+      throttle = 4 * (eff_time - 0.25);
   }
 
-  // The vector of tire forces is required by the ChronoVehicle API. Since we
-  // use rigid contact for tire-terrain interaction, these are always zero.
-  m_tire_forces.resize(numWheels);
-}
+ private:
+  double m_delay;
+};
 
-void MyVehicle::Update(double time) {
-  // Calculate driver inputs at current time
-  double throttle = 0;
-  double steering = 0;
-  double braking = 0;
+// Callback class for specifying rigid tire contact model.
+// This version uses cylindrical contact shapes.
+class MyCylindricalTire : public utils::TireContactCallback {
+ public:
+  virtual void onCallback(ChSharedPtr<ChBody> wheelBody, double radius, double width) {
+    wheelBody->GetCollisionModel()->ClearModel();
+    wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, width / 2);
+    wheelBody->GetCollisionModel()->BuildModel();
 
-  if (time > 0.5)
-    throttle = 1.0;
-  else if (time > 0.25)
-    throttle = 4 * (time - 0.25);
+    wheelBody->GetMaterialSurface()->SetFriction(mu_t);
+  }
+};
 
-  // Update the powertrain system
-  m_powertrain->Update(time, throttle, m_vehicle->GetDriveshaftSpeed());
+// Callback class for specifying rigid tire contact model.
+// This version uses a collection of convex contact shapes (meshes).
+class MyLuggedTire : public utils::TireContactCallback {
+ public:
+  MyLuggedTire() {
+    std::string lugged_file("hmmwv/lugged_wheel_section.obj");
+    geometry::ChTriangleMeshConnected lugged_mesh;
+    utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
+    num_hulls = lugged_convex.GetHullCount();
+  }
 
-  // Update the vehicle system.
-  m_vehicle->Update(time, steering, braking, m_powertrain->GetOutputTorque(), m_tire_forces);
+  virtual void onCallback(ChSharedPtr<ChBody> wheelBody, double radius, double width) {
+    ChCollisionModelParallel* coll_model = (ChCollisionModelParallel*) wheelBody->GetCollisionModel();
+    coll_model->ClearModel();
+
+    // Assemble the tire contact from 15 segments, properly offset.
+    // Each segment is further decomposed in convex hulls.
+    for (int iseg = 0; iseg < 15; iseg++) {
+      ChQuaternion<> rot = Q_from_AngAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
+      for (int ihull = 0; ihull < num_hulls; ihull++) {
+        std::vector<ChVector<> > convexhull;
+        lugged_convex.GetConvexHullResult(ihull, convexhull);
+        coll_model->AddConvexHull(convexhull, VNULL, rot);
+      }
+    }
+
+    // Add a cylinder to represent the wheel hub.
+    coll_model->AddCylinder(0.223, 0.223, 0.126);
+
+    coll_model->BuildModel();
+
+    wheelBody->GetMaterialSurface()->SetFriction(mu_t);
+  }
+
+ private:
+  ChConvexDecompositionHACDv2 lugged_convex;
+  int num_hulls;
+};
+
+// Callback class for specifying rigid tire contact model.
+// This version uses a collection of convex contact shapes (meshes).
+// In addition, this version overrides the visualization assets of the provided
+// wheel body with the collision meshes.
+class MyLuggedTire_vis : public utils::TireContactCallback {
+public:
+  MyLuggedTire_vis() {
+    std::string lugged_file("hmmwv/lugged_wheel_section.obj");
+    utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
+  }
+
+  virtual void onCallback(ChSharedPtr<ChBody> wheelBody, double radius, double width) {
+    // Clear any existing assets (will be overriden)
+    wheelBody->GetAssets().clear();
+
+    wheelBody->GetCollisionModel()->ClearModel();
+    for (int j = 0; j < 15; j++) {
+      utils::AddConvexCollisionModel(wheelBody, lugged_mesh, lugged_convex, VNULL,
+        Q_from_AngAxis(j * 24 * CH_C_DEG_TO_RAD, VECT_Y), false);
+    }
+    // This cylinder acts like the rims
+    utils::AddCylinderGeometry(wheelBody.get_ptr(), 0.223, 0.126);
+    wheelBody->GetCollisionModel()->BuildModel();
+
+    wheelBody->GetMaterialSurface()->SetFriction(mu_t);
+  }
+
+private:
+  ChConvexDecompositionHACDv2 lugged_convex;
+  geometry::ChTriangleMeshConnected lugged_mesh;
+};
+
+
+// =============================================================================
+
+double CreateParticles(ChSystem* system) {
+  // Create a material
+  ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
+  mat_g->SetFriction(mu_g);
+
+  // Create a particle generator and a mixture entirely made out of spheres
+  utils::Generator gen(system);
+  utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
+  m1->setDefaultMaterialDVI(mat_g);
+  m1->setDefaultDensity(rho_g);
+  m1->setDefaultSize(r_g);
+
+  // Set starting value for body identifiers
+  gen.setBodyIdentifier(Id_g);
+
+  // Create particles in layers until reaching the desired number of particles
+  double r = 1.01 * r_g;
+  ChVector<> hdims(hdimX - r, hdimY - r, 0);
+  ChVector<> center(0, 0, 2 * r);
+
+  while (gen.getTotalNumBodies() < num_particles) {
+    gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
+    center.z += 2 * r;
+  }
+
+  return center.z;
 }
 
 // =============================================================================
+
 int main(int argc, char* argv[]) {
   // Set path to ChronoVehicle data files
-  vehicle::SetDataPath(CHRONOVEHICLE_DATA_DIR);
+  vehicle::SetDataPath(CHRONO_VEHICLE_DATA_DIR);
 
   // --------------------------
   // Create output directories.
   // --------------------------
 
-  if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-    cout << "Error creating directory " << out_dir << endl;
-    return 1;
-  }
-  if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-    cout << "Error creating directory " << pov_dir << endl;
-    return 1;
+  if (povray_output) {
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+      cout << "Error creating directory " << out_dir << endl;
+      return 1;
+    }
+    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+      cout << "Error creating directory " << pov_dir << endl;
+      return 1;
+    }
   }
 
   // --------------
@@ -188,44 +309,91 @@ int main(int argc, char* argv[]) {
   system->GetSettings()->solver.tolerance = tolerance;
 
   system->GetSettings()->solver.solver_mode = SLIDING;
+  system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
   system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
   system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
   system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
   system->GetSettings()->solver.alpha = 0;
   system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-  system->ChangeSolverType(APGDREF);
+  system->ChangeSolverType(APGD);
 
   system->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
 
-  // -----------------------------------------
-  // Create and initialize the vehicle systems
-  // -----------------------------------------
-  MyVehicle vehicle(system);
+  // -------------------
+  // Create the terrain.
+  // -------------------
 
-  // --------------------------------------------------------
-  // Create the ground body and set contact geometry
-  // --------------------------------------------------------
-  double hdimX = 100;
-  double hdimY = 100;
-  double hdimZ = 5;
-
+  // Ground body
   ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
   ground->SetIdentifier(-1);
   ground->SetBodyFixed(true);
   ground->SetCollide(true);
-  ground->SetPos(ChVector<>(0, 0, -hdimZ));
 
-  ground->GetMaterialSurface()->SetFriction(0.8f);
+  ground->GetMaterialSurface()->SetFriction(mu_g);
 
   ground->GetCollisionModel()->ClearModel();
-  ground->GetCollisionModel()->AddBox(hdimX, hdimY, hdimZ);
+
+  // Bottom box
+  utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick),
+                        ChQuaternion<>(1, 0, 0, 0), true);
+  if (terrain_type == GRANULAR) {
+    // Front box
+    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hthick, hdimY, hdimZ + hthick),
+                          ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+    // Rear box
+    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hthick, hdimY, hdimZ + hthick),
+                          ChVector<>(-hdimX - hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+    // Left box
+    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hthick, hdimZ + hthick),
+                          ChVector<>(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+    // Right box
+    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hthick, hdimZ + hthick),
+                          ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+  }
+
   ground->GetCollisionModel()->BuildModel();
 
-  ChSharedPtr<ChBoxShape> box_ground(new ChBoxShape);
-  box_ground->GetBoxGeometry().Size = ChVector<>(hdimX, hdimY, hdimZ);
-  ground->AddAsset(box_ground);
-
   system->AddBody(ground);
+
+  // Create the granular material.
+  double vertical_offset = 0;
+
+  if (terrain_type == GRANULAR) {
+    vertical_offset = CreateParticles(system);
+  }
+
+  // -----------------------------------------
+  // Create and initialize the vehicle system.
+  // -----------------------------------------
+
+  utils::VehicleSystem* vehicle;
+  utils::TireContactCallback* tire_cb;
+
+  // Create the vehicle assembly and the callback object for tire contact
+  // according to the specified type of tire/wheel.
+  switch (wheel_type) {
+    case CYLINDRICAL: {
+      vehicle = new utils::VehicleSystem(system, vehicle_file_cyl, simplepowertrain_file);
+      tire_cb = new MyCylindricalTire();
+    } break;
+    case LUGGED: {
+      vehicle = new utils::VehicleSystem(system, vehicle_file_lug, simplepowertrain_file);
+      tire_cb = new MyLuggedTire();
+    } break;
+  }
+
+  vehicle->SetTireContactCallback(tire_cb);
+
+  // Set the callback object for driver inputs. Pass the hold time as a delay in
+  // generating driver inputs.
+  MyDriverInputs driver_cb(time_hold);
+  vehicle->SetDriverInputsCallback(&driver_cb);
+
+  // Initially, fix the chassis (will be released after time_hold).
+  vehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+
+  // Initialize the vehicle at a height above the terrain.
+  vehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
 
 // -----------------------
 // Perform the simulation.
@@ -234,17 +402,9 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
   // Initialize OpenGL
   opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-  gl_window.Initialize(1280, 720, "mixerDEM", system);
+  gl_window.Initialize(1280, 720, "HMMWV", system);
   gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-
-  // Let the OpenGL manager run the simulation until interrupted.
-  // NOTE: we need to add a user callback to the OpenGL library to give back
-  // control to the user before advancing the simulation by one step (in this
-  // case to call the vehicle update function).
-  if (loop) {
-    gl_window.StartDrawLoop(time_step);
-    return 0;
-  }
+  gl_window.SetRenderMode(opengl::WIREFRAME);
 #endif
 
   // Run simulation for specified time.
@@ -258,7 +418,8 @@ int main(int argc, char* argv[]) {
   int num_contacts = 0;
 
   while (time < time_end) {
-    if (sim_frame == next_out_frame) {
+    // If enabled, output data for PovRay postprocessing.
+    if (povray_output && sim_frame == next_out_frame) {
       char filename[100];
       sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
       utils::WriteShapesPovray(system, filename);
@@ -274,8 +435,12 @@ int main(int argc, char* argv[]) {
       num_contacts = 0;
     }
 
+    // Release the vehicle chassis at the end of the hold time.
+    if (vehicle->GetVehicle()->GetChassis()->GetBodyFixed() && time > time_hold)
+      vehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
+
     // Update vehicle
-    vehicle.Update(time);
+    vehicle->Update(time);
 
 // Advance dynamics.
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
@@ -299,6 +464,9 @@ int main(int argc, char* argv[]) {
   cout << "==================================" << endl;
   cout << "Simulation time:   " << exec_time << endl;
   cout << "Number of threads: " << threads << endl;
+
+  delete vehicle;
+  delete tire_cb;
 
   return 0;
 }

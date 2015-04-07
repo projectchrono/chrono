@@ -344,6 +344,11 @@ IF( ChronoEngine_FIND_COMPONENTS )
     ##### ADDITIONAL DEPENDENCIES FOR CHRONOENGINE COMPONENTS
     
     if (${CH_USE_UNIT_IRRLICHT})
+	IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		SET(CH_IRRLICHTDIR "/usr/include/irrlicht"  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
+	ELSE()
+		SET(CH_IRRLICHTDIR ""  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
+	ENDIF()
         SET(CH_IRRLICHTDIR ""  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
         IF(EXISTS "${CH_IRRLICHTDIR}/include")
             SET(CH_IRRLICHTINC "${CH_IRRLICHTDIR}/include")

@@ -77,6 +77,7 @@ SET(LIBRARIES "${LIBRARIES}" FSI)
 # non-vehicle builds
 SET(DEMOS
     ballDrop
+    #hmmwv_fluid2
 )
 
 MESSAGE(STATUS "FSI demo programs...")
@@ -98,7 +99,7 @@ ENDFOREACH(PROGRAM)
 IF(ENABLE_DEMOS_VEHICLE)
 	SET(DEMOS
 	    hmmwv
-	    hmmwv_fluid
+	    fsi_hmmwv
 	)
 
 	MESSAGE(STATUS "FSI demo programs...")
