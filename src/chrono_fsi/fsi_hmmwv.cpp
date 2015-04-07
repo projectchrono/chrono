@@ -319,9 +319,100 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 
   ground->GetCollisionModel()->ClearModel();
 
+
   // Bottom box
-  utils::AddBoxGeometry(
-      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0), true);
+  double hdimSide = hdimX / 4.0;
+  double midSecDim = hdimX - 2 * hdimSide;
+  // basin info
+  double depth = 2;
+  double phi = CH_C_PI / 9;
+  double bottomWidth = midSecDim - depth / tan(phi);  // for a 45 degree slope
+  double bottomBuffer = .4 * bottomWidth;
+
+  double inclinedWidth = 0.5 * depth / sin(phi);            // for a 45 degree slope
+
+  double smallBuffer = .7 * hthick;
+  double x1I = -midSecDim + inclinedWidth * cos(phi) - hthick * sin(phi) - smallBuffer;
+  double zI = -inclinedWidth * sin(phi) - hthick * cos(phi);
+  double x2I = midSecDim - inclinedWidth * cos(phi) + hthick * sin(phi) + smallBuffer;
+
+  // beginning third
+  utils::AddBoxGeometry(ground.get_ptr(),
+                        ChVector<>(hdimSide, hdimY, hdimZ),
+                        ChVector<>(-midSecDim - hdimSide, 0, -hthick),
+                        ChQuaternion<>(1, 0, 0, 0),
+                        true);
+  // end third
+  utils::AddBoxGeometry(ground.get_ptr(),
+                        ChVector<>(hdimSide, hdimY, hdimZ),
+                        ChVector<>(midSecDim + hdimSide, 0, -hthick),
+                        ChQuaternion<>(1, 0, 0, 0),
+                        true);
+  // basin
+  utils::AddBoxGeometry(ground.get_ptr(),
+                        ChVector<>(bottomWidth + bottomBuffer, hdimY, hdimZ),
+                        ChVector<>(0, 0, -depth - hthick),
+                        ChQuaternion<>(1, 0, 0, 0),
+                        true);
+  // slope 1
+  utils::AddBoxGeometry(ground.get_ptr(),
+                        ChVector<>(inclinedWidth, hdimY, hdimZ),
+                        ChVector<>(x1I, 0, zI),
+                        Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
+
+  // slope 2
+  utils::AddBoxGeometry(ground.get_ptr(),
+                        ChVector<>(inclinedWidth, hdimY, hdimZ),
+                        ChVector<>(x2I, 0, zI),
+                        Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
+
+//  // Bottom box
+//  double hdimSide = hdimX / 4.0;
+//  double midSecDim = hdimX - 2 * hdimSide;
+//  // basin info
+//  double depth = 2;
+//  double phi = CH_C_PI / 6;
+//  double bottomWidth = midSecDim - depth / tan(phi);  // for a 45 degree slope
+//
+//  double inclinedWidth = depth / sin(phi);  // for a 45 degree slope
+//  double x1I = -midSecDim + inclinedWidth * cos(phi) - hthick * sin(phi);
+//  double zI = -inclinedWidth * sin(phi) - hthick * cos(phi);
+//  double x2I = midSecDim - inclinedWidth * cos(phi) + hthick * sin(phi);
+//
+//  // beginning third
+//  utils::AddBoxGeometry(ground.get_ptr(),
+//                        ChVector<>(hdimSide, hdimY, hdimZ),
+//                        ChVector<>(-midSecDim - hdimSide, 0, -hthick),
+//                        ChQuaternion<>(1, 0, 0, 0),
+//                        true);
+//  // end third
+//  utils::AddBoxGeometry(ground.get_ptr(),
+//                        ChVector<>(hdimSide, hdimY, hdimZ),
+//                        ChVector<>(midSecDim + hdimSide, 0, -hthick),
+//                        ChQuaternion<>(1, 0, 0, 0),
+//                        true);
+//  // basin
+//  utils::AddBoxGeometry(ground.get_ptr(),
+//                        ChVector<>(bottomWidth, hdimY, hdimZ),
+//                        ChVector<>(0, 0, -depth - hthick),
+//                        ChQuaternion<>(1, 0, 0, 0),
+//                        true);
+//  // slope 1
+//  utils::AddBoxGeometry(ground.get_ptr(),
+//                        ChVector<>(inclinedWidth, hdimY, hdimZ),
+//                        ChVector<>(x1I, 0, zI),
+//                        Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
+//
+//  // slope 2
+//  utils::AddBoxGeometry(ground.get_ptr(),
+//                        ChVector<>(inclinedWidth, hdimY, hdimZ),
+//                        ChVector<>(x2I, 0, zI),
+//                        Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
+
+  //  utils::AddBoxGeometry(
+  //      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),
+  //      true);
+
   if (terrain_type == GRANULAR) {
     // Front box
     utils::AddBoxGeometry(ground.get_ptr(),

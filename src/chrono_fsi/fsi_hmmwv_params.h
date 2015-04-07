@@ -22,7 +22,7 @@ double time_hold = 2;
 float contact_recovery_speed = 0.1;
 double time_step = 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
-double time_end = 7;
+double time_end = 10;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
@@ -170,7 +170,8 @@ std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(-3.0, 0, 0.75);
+//ChVector<> initLoc(-3.0, 0, 0.75);
+ChVector<> initLoc(-9.5, 0, 0.75);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // -----------------------------------------------------------------------------
@@ -178,7 +179,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // -----------------------------------------------------------------------------
 
 // Dimensions
-double hdimX = 5.5;
+double hdimX = 14;//5.5;
 double hdimY = 1.75;
 double hdimZ = 0.5;
 double hthick = 0.25;
