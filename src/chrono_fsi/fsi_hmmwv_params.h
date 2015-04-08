@@ -177,6 +177,11 @@ enum WheelType { CYLINDRICAL, LUGGED };
 // Type of wheel/tire (controls both contact and visualization)
 WheelType wheel_type = CYLINDRICAL;
 
+enum ChassisType {CBOX};
+
+// Type of chassis (controls both contact and visualization)
+ChassisType chassis_type = CBOX;
+
 // JSON files for vehicle model (using different wheel visualization meshes)
 std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
 std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
@@ -231,6 +236,7 @@ double vertical_offset = 0;  // vehicle vertical offset
 
 utils::VehicleSystem* mVehicle;
 utils::TireContactCallback* tire_cb;
+utils::ChassisContactCallback* chassis_cb;
 MyDriverInputs* driver_cb;
 
 #endif  // end of FSI_HMMWV_PARAMS_H_
