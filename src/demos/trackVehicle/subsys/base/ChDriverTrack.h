@@ -67,7 +67,7 @@ public:
   bool Log(double time);
 
   /// when you set the throttle from a function, update the GUI
-  void SetThrottleFunc(size_t id, double val) { assert(id < m_throttle.size()); SetThrottle(val, id); }
+  void SetThrottleFunc(size_t id, double val) { assert(id < m_throttle.size()); SetThrottle(id, val); }
 
 
 protected:
