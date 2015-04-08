@@ -284,6 +284,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
   // -----------------------------------------
   // Create and initialize the vehicle system.
   // -----------------------------------------
+
   // Create the vehicle assembly and the callback object for tire contact
   // according to the specified type of tire/wheel.
   switch (wheel_type) {
@@ -301,10 +302,10 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
   // Set the callback object for chassis.
   switch (chassis_type) {
     case CBOX: {
-      chassis_cb = new MyChassisBoxModel_vis(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .2));
+      chassis_cb = new MyChassisBoxModel_vis();//(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+      mVehicle->SetChassisContactCallback(chassis_cb);
     } break;
   }
-  mVehicle->SetChassisContactCallback(chassis_cb);
 
   // Set the callback object for driver inputs. Pass the hold time as a delay in
   // generating driver inputs.
@@ -479,8 +480,9 @@ int main(int argc, char* argv[]) {
   thrust::host_vector<Real4> velMasH;
   thrust::host_vector<Real4> rhoPresMuH;
   thrust::host_vector<uint> bodyIndex;
+#endif
   SetupParamsH(paramsH);
-
+#if haveFluid
   NumberOfObjects numObjects;
 
   //*** default num markers
