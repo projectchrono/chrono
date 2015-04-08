@@ -153,34 +153,29 @@ class MyChassisBoxModel_vis : public utils::ChassisContactCallback {
   //    utils::LoadConvexMesh(vehicle::GetDataFile(chassis_file), chassis_mesh, chassis_convex);
   //  }
 
-  MyChassisBoxModel_vis(ChSharedPtr<ChBodyAuxRef> chassisBody, ChVector<> hdim) {
+  //  MyChassisBoxModel_vis(ChSharedPtr<ChBodyAuxRef> chassisBody, ChVector<> hdim) {
+  //    // Clear any existing assets (will be overriden)
+  //    chassisBody->GetAssets().clear();
+  //
+  //    chassisBody->GetCollisionModel()->ClearModel();
+  //    utils::AddBoxGeometry(
+  //        chassisBody.get_ptr(), hdim, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
+  //    chassisBody->GetCollisionModel()->BuildModel();
+  //
+  //    chassisBody->GetMaterialSurface()->SetFriction(mu_t);
+  //  }
+
+  virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
     // Clear any existing assets (will be overriden)
     chassisBody->GetAssets().clear();
 
     chassisBody->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(
-        chassisBody.get_ptr(), hdim, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
+        chassisBody.get_ptr(), ChVector<>(1, .5, .4), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
     chassisBody->GetCollisionModel()->BuildModel();
 
     chassisBody->GetMaterialSurface()->SetFriction(mu_t);
   }
-
-  virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {}
-
-  //  virtual void onCallback(ChSharedPtr<ChBody> chassisBody, ChVector<> hdim) {
-  //    // Clear any existing assets (will be overriden)
-  //    chassisBody->GetAssets().clear();
-  //
-  //    chassisBody->GetCollisionModel()->ClearModel();
-  //    utils::AddBoxGeometry(chassisBody.get_ptr(),
-  //                          ChVector<>(1, .5, .2),
-  //                          ChVector<>(0, 0, 0),
-  //                          ChQuaternion<>(1, 0, 0, 0),
-  //                          true);
-  //    chassisBody->GetCollisionModel()->BuildModel();
-  //
-  //    chassisBody->GetMaterialSurface()->SetFriction(mu_t);
-  //  }
 
  private:
   ChConvexDecompositionHACDv2 chassis_convex;
