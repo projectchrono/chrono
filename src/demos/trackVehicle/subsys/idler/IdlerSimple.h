@@ -68,7 +68,7 @@ public:
   void SaveConstraintViolations(std::stringstream& ss);
 
   /// write headers for the output data file to the input ostream
-  const std::string getFileHeader_ConstraintViolations(size_t idx) const;
+  const std::string getFileHeader_ConstraintViolations() const;
 
 
   // Accessors

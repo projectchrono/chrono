@@ -61,10 +61,16 @@ public:
   // Accessors
 
   /// handle to the drive gear subsystem, to initialize the driveline
-  const ChSharedPtr<DriveGearMotion> GetDriveGear() const { return m_driveGear; }
+  ChSharedPtr<DriveGearMotion> GetDriveGear() const { return m_driveGear; }
+
+  /// handle to the idler body
+  ChSharedPtr<IdlerSimple> GetIdler() const { return m_idler; }
   
   /// handle to track chain
   ChSharedPtr<TrackChain> GetTrackChain() const { return m_chain; }
+
+  /// handle to suspension unit
+  ChSharedPtr<TorsionArmSuspension> GetSuspension(size_t idx = 0) { assert(idx < m_numSuspensions); return m_suspensions[idx]; }
 
   // subsystem relative to TrackSystemM113 coords
   const ChVector<>& Get_gearPosRel() const { return m_gearPosRel; }
@@ -74,6 +80,9 @@ public:
 
   /// get the reaction force vector from the spring in the idler subsystem
   const ChVector<> Get_idler_spring_react();
+
+  /// get the number of bogie wheels
+  size_t Get_NumWheels() const { return m_numSuspensions; }
 
 private:
 

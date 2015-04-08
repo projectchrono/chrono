@@ -40,8 +40,8 @@ public:
   {
     if(time > m_t_begin)
     {
-      SetThrottle(abs(m_throttle_func->Get_y(time - m_t_begin)), 0);
-
+      SetThrottle(0, abs(m_throttle_func->Get_y(time - m_t_begin)) );
+      SetThrottle(1, abs(m_throttle_func->Get_y(time - m_t_begin)) );
     }
 
   }
