@@ -160,7 +160,7 @@ void TrackSystemM113::BuildSubsystems()
     std::stringstream susp_name;
     susp_name << "suspension " << i << ", chain " << m_track_idx;
     m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension(susp_name.str(),
-      VisualizationType::Primitives,
+      VisualizationType::Mesh,
       CollisionType::Primitives,
       m_track_idx,
       561.1/5.0,

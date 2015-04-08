@@ -838,7 +838,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
 
 // Log constraint violations
 // -----------------------------------------------------------------------------
-void DriveChain::LogConstraintViolations(bool include_chain)
+void DriveChain::LogConstraintViolations()
 {
   GetLog().SetNumFormat("%16.4e");
 
@@ -865,7 +865,7 @@ void DriveChain::LogConstraintViolations(bool include_chain)
 
 // Write constraint violations of subsystems, in order, to the ostraem
 // -----------------------------------------------------------------------------
-void DriveChain::SaveConstraintViolations(bool include_chain)
+void DriveChain::SaveConstraintViolations()
 {
   if( !m_log_file_exists ) 
   {
@@ -899,6 +899,7 @@ void DriveChain::SaveConstraintViolations(bool include_chain)
     ofileRCV << ss_r.str().c_str();
   }
 
+  // TODO: include the violations in the inter-shoe revolute constraints
 }
 
 // write output
@@ -1036,7 +1037,7 @@ void DriveChain::Log_to_console(int console_what)
   if (console_what & DBG_CONSTRAINTS)
   {
     // Report constraint violations for all joints
-    LogConstraintViolations(false);
+    LogConstraintViolations();
   }
 
   if (console_what & DBG_PTRAIN)
@@ -1316,7 +1317,7 @@ void DriveChain::create_fileHeaders(int what)
       m_filename_ICV.push_back(ss_iCV.str().c_str());
       ChStreamOutAsciiFile ofileICV(m_filename_ICV.back().c_str());
       std::stringstream ss_header;
-      ss_header << m_idlers[id]->getFileHeader_ConstraintViolations(id);
+      ss_header << m_idlers[id]->getFileHeader_ConstraintViolations();
       ofileICV << ss_header.str().c_str();
       GetLog() << " writing to file: " << m_filename_ICV[id] << "\n          data: " << ss_header.str().c_str() <<"\n";
     }

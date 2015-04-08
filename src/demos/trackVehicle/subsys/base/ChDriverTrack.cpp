@@ -81,15 +81,15 @@ double ChDriverTrack::clamp(double val, double min_val, double max_val)
 }
 
 // set a single throttle value
-void ChDriverTrack::SetThrottle(double val, int track_idx, double min_val, double max_val)
+void ChDriverTrack::SetThrottle(size_t track_idx, double val, double min_val, double max_val)
 {
   m_throttle[track_idx] = clamp(val, min_val, max_val);
 }
 
 /// increment and set all the throttles at once
-void ChDriverTrack::SetThrottle(double delta_throttle, double min_val, double max_val)
+void ChDriverTrack::SetAllThrottle(double delta_throttle, double min_val, double max_val)
 {
-  for(int i = 0; i < m_throttle.size(); i++)
+  for(size_t i = 0; i < m_throttle.size(); i++)
   {
     SetThrottle(m_throttle[i] + delta_throttle, i);
     // if throttle if ever positive, be sure brakes are turned off

@@ -62,6 +62,10 @@ public:
   // accessors
   ChSharedPtr<ChBody> GetBody() const { return m_gear; }
 
+  /// applied speed motion applied to gear
+  double GetGearMotion() const;
+
+  /// when represented as a cylinder shape
   double GetRadius() const { return m_radius; }
 
   // log constraint violations to console

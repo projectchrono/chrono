@@ -67,17 +67,18 @@ public:
   bool Log(double time);
 
   /// when you set the throttle from a function, update the GUI
-  void SetThrottleFunc(double val) { SetThrottle(val, 0); }
+  void SetThrottleFunc(size_t id, double val) { assert(id < m_throttle.size()); SetThrottle(id, val); }
+
 
 protected:
   /// clamp to interval
   double clamp(double val, double min_val, double max_val);
 
   /// Set the value for the driver throttle input.
-  void SetThrottle(double val, int track_idx, double min_val = -1, double max_val = 1);
+  void SetThrottle(size_t track_idx, double val, double min_val = -1, double max_val = 1);
 
-  /// Set all the throttles at once
-  void SetThrottle(double delta_throttle, double min_val = -1, double max_val = 1);
+  /// Set all the throttles values at once
+  void SetAllThrottle(double delta_throttle, double min_val = -1, double max_val = 1);
 
   /// Set the value for the driver braking input.
   void SetBraking(double val, int track_idx, double min_val = 0, double max_val = 1);
