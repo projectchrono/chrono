@@ -139,7 +139,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   mphysicalSystem.GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;    // 0
   mphysicalSystem.GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;  // max_iteration / 3
   mphysicalSystem.GetSettings()->solver.tolerance = tolerance;
-  mphysicalSystem.GetSettings()->solver.alpha = 0;              // Arman, find out what is this
+  mphysicalSystem.GetSettings()->solver.alpha = 0;  // Arman, find out what is this
   mphysicalSystem.GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
   mphysicalSystem.ChangeSolverType(APGD);  // Arman check this APGD APGDBLAZE
   //  mphysicalSystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
@@ -307,6 +307,11 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 
   // Initialize the vehicle at a height above the terrain.
   mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+
+  // Initially, fix the wheels (will be released after time_hold).
+  for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+    mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+  }
 }
 // =============================================================================
 
@@ -384,8 +389,12 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
 
 int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTime) {
   // Release the vehicle chassis at the end of the hold time.
-  if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold)
+  if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold) {
     mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
+    for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+      mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
+    }
+  }
 
   // Update vehicle
   mVehicle->Update(mTime);
@@ -602,7 +611,7 @@ int main(int argc, char* argv[]) {
     // CopyH2D(derivVelRhoD, derivVelRhoChronoH);
     // UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
     // // assumes ...D2 is a copy of ...D
-     ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
+    ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 
     // CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
     // UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
