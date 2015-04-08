@@ -70,6 +70,7 @@ using namespace gui;
 // Define General variables
 SimParams paramsH;
 
+#define haveFluid false
 // =============================================================================
 // Define Graphics
 #define irrlichtVisualization false
@@ -469,8 +470,8 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // ***************************** Create Fluid ********************************************
-
+// ***************************** Create Fluid ********************************************
+#if haveFluid
   //*** Arrays definition
 
   thrust::host_vector<int3> referenceArray;
@@ -509,7 +510,7 @@ int main(int argc, char* argv[]) {
   thrust::device_vector<uint> bodyIndexD = bodyIndex;
   thrust::device_vector<Real4> derivVelRhoD;
   ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
-
+#endif
   // ***************************** Create Rigid ********************************************
 
   ChTimer<double> myTimerTotal;
@@ -532,7 +533,9 @@ int main(int argc, char* argv[]) {
   //*** Add sph data to the physics system
 
   int startIndexSph = 0;
+#if haveFluid
   AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects);
+#endif
   cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
 
   // ***************************** System Initialize ********************************************
@@ -568,10 +571,10 @@ int main(int argc, char* argv[]) {
   // ***************************** Simulation loop ********************************************
 
   for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-    // -------------------
-    // SPH Block
-    // -------------------
-
+// -------------------
+// SPH Block
+// -------------------
+#if haveFluid
     CpuTimer mCpuTimer;
     mCpuTimer.Start();
     GpuTimer myGpuTimer;
@@ -600,7 +603,7 @@ int main(int argc, char* argv[]) {
 
     FillMyThrust4(derivVelRhoD, mR4(0));
     thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
-
+#endif
     // -------------------
     // End SPH Block
     // -------------------
@@ -608,7 +611,8 @@ int main(int argc, char* argv[]) {
     // If enabled, output data for PovRay postprocessing.
     SavePovFilesMBD(mphysicalSystem, tStep, mTime, num_contacts, exec_time);
 
-    // ****************** RK2: 1/2
+// ****************** RK2: 1/2
+#if haveFluid
     ForceSPH(posRadD,
              velMasD,
              vel_XSPH_D,
@@ -619,8 +623,10 @@ int main(int argc, char* argv[]) {
              numObjects,
              currentParamsH,
              0.5 * currentParamsH.dT);
+#endif
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+#if haveFluid
     CopyD2H(derivVelRhoChronoH, derivVelRhoD);
     AddChSystemForcesToSphForces(
         derivVelRhoChronoH,
@@ -649,8 +655,10 @@ int main(int argc, char* argv[]) {
              numObjects,
              currentParamsH,
              currentParamsH.dT);
+#endif
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+#if haveFluid
     CopyD2H(derivVelRhoChronoH, derivVelRhoD);
     AddChSystemForcesToSphForces(
         derivVelRhoChronoH,
@@ -666,7 +674,7 @@ int main(int argc, char* argv[]) {
 
     CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
-
+#endif
     // ****************** End RK2
 
     // Update counters.
@@ -674,10 +682,11 @@ int main(int argc, char* argv[]) {
     exec_time += mphysicalSystem.GetTimerStep();
     num_contacts += mphysicalSystem.GetNcontacts();
 
-    // -------------------
-    // SPH Block
-    // -------------------
+// -------------------
+// SPH Block
+// -------------------
 
+#if haveFluid
     ClearArraysH(posRadH2, velMasH2, rhoPresMuH2);
     ClearMyThrustR3(posRadD2);
     ClearMyThrustR4(velMasD2);
@@ -693,7 +702,7 @@ int main(int argc, char* argv[]) {
              (Real)myGpuTimer.Elapsed(),
              1000 * mCpuTimer.Elapsed());
     }
-
+#endif
     // -------------------
     // End SPH Block
     // -------------------
@@ -701,14 +710,14 @@ int main(int argc, char* argv[]) {
     fflush(stdout);
     realTime += currentParamsH.dT;
   }
-
+#if haveFluid
   ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
   ClearMyThrustR3(posRadD);
   ClearMyThrustR4(velMasD);
   ClearMyThrustR4(rhoPresMuD);
   ClearMyThrustU1(bodyIndexD);
   ClearMyThrustR4(derivVelRhoD);
-
+#endif
   delete mVehicle;
   delete tire_cb;
   delete driver_cb;
