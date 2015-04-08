@@ -297,6 +297,14 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
   }
   mVehicle->SetTireContactCallback(tire_cb);
 
+  // Set the callback object for chassis.
+  switch (chassis_type) {
+    case CBOX: {
+      chassis_cb = new MyChassisBoxModel_vis(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .2));
+    } break;
+  }
+  mVehicle->SetChassisContactCallback(chassis_cb);
+
   // Set the callback object for driver inputs. Pass the hold time as a delay in
   // generating driver inputs.
   driver_cb = new MyDriverInputs(time_hold);
