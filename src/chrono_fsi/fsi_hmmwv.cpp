@@ -722,6 +722,7 @@ int main(int argc, char* argv[]) {
 #endif
   delete mVehicle;
   delete tire_cb;
+  delete chassis_cb;
   delete driver_cb;
 
   return 0;

@@ -171,7 +171,7 @@ class MyChassisBoxModel_vis : public utils::ChassisContactCallback {
 
     chassisBody->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(
-        chassisBody.get_ptr(), ChVector<>(1, .5, .4), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
+        chassisBody.get_ptr(), ChVector<>(1, .5, .05), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
     chassisBody->GetCollisionModel()->BuildModel();
 
     chassisBody->GetMaterialSurface()->SetFriction(mu_t);
