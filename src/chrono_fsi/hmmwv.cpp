@@ -444,7 +444,7 @@ int main(int argc, char* argv[]) {
   // Set the callback object for chassis.
   switch (chassis_type) {
     case CBOX: {
-      chassis_cb = new MyChassisBoxModel_vis();//(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+      chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
       vehicle->SetChassisContactCallback(chassis_cb);
     } break;
   }

@@ -177,7 +177,7 @@ enum WheelType { CYLINDRICAL, LUGGED };
 // Type of wheel/tire (controls both contact and visualization)
 WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
 
-enum ChassisType { CBOX, CORIGINAL };
+enum ChassisType { CBOX, CSIMPLEMESH, CORIGINAL };
 
 // Type of chassis (controls both contact and visualization)
 ChassisType chassis_type = CBOX;  // CORIGINAL; //CBOX;
