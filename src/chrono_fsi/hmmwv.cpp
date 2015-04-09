@@ -38,6 +38,11 @@ enum WheelType { CYLINDRICAL, LUGGED };
 // Type of wheel/tire (controls both contact and visualization)
 WheelType wheel_type = CYLINDRICAL;
 
+enum ChassisType { CBOX, CORIGINAL };
+
+// Type of chassis (controls both contact and visualization)
+ChassisType chassis_type = CBOX;  // CORIGINAL; //CBOX;
+
 // JSON files for vehicle model (using different wheel visualization meshes)
 std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
 std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
@@ -97,7 +102,7 @@ double time_end = 7;
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-double time_hold = 2;
+double time_hold = 0.2;
 
 // Solver parameters
 double time_step = 1e-3;
@@ -172,7 +177,7 @@ class MyLuggedTire : public utils::TireContactCallback {
   }
 
   virtual void onCallback(ChSharedPtr<ChBody> wheelBody, double radius, double width) {
-    ChCollisionModelParallel* coll_model = (ChCollisionModelParallel*) wheelBody->GetCollisionModel();
+    ChCollisionModelParallel* coll_model = (ChCollisionModelParallel*)wheelBody->GetCollisionModel();
     coll_model->ClearModel();
 
     // Assemble the tire contact from 15 segments, properly offset.
@@ -204,7 +209,7 @@ class MyLuggedTire : public utils::TireContactCallback {
 // In addition, this version overrides the visualization assets of the provided
 // wheel body with the collision meshes.
 class MyLuggedTire_vis : public utils::TireContactCallback {
-public:
+ public:
   MyLuggedTire_vis() {
     std::string lugged_file("hmmwv/lugged_wheel_section.obj");
     utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
@@ -216,8 +221,8 @@ public:
 
     wheelBody->GetCollisionModel()->ClearModel();
     for (int j = 0; j < 15; j++) {
-      utils::AddConvexCollisionModel(wheelBody, lugged_mesh, lugged_convex, VNULL,
-        Q_from_AngAxis(j * 24 * CH_C_DEG_TO_RAD, VECT_Y), false);
+      utils::AddConvexCollisionModel(
+          wheelBody, lugged_mesh, lugged_convex, VNULL, Q_from_AngAxis(j * 24 * CH_C_DEG_TO_RAD, VECT_Y), false);
     }
     // This cylinder acts like the rims
     utils::AddCylinderGeometry(wheelBody.get_ptr(), 0.223, 0.126);
@@ -226,11 +231,50 @@ public:
     wheelBody->GetMaterialSurface()->SetFriction(mu_t);
   }
 
-private:
+ private:
   ChConvexDecompositionHACDv2 lugged_convex;
   geometry::ChTriangleMeshConnected lugged_mesh;
 };
 
+// Callback class for specifying chassis contact model.
+// This version uses a box representing the chassis.
+// In addition, this version overrides the visualization assets of the provided
+// chassis body with the collision meshes.
+class MyChassisBoxModel_vis : public utils::ChassisContactCallback {
+ public:
+  //	MyChassisBoxModel_vis() {
+  //    std::string chassis_file("hmmwv/myVehicle.obj");
+  //    utils::LoadConvexMesh(vehicle::GetDataFile(chassis_file), chassis_mesh, chassis_convex);
+  //  }
+
+  //  MyChassisBoxModel_vis(ChSharedPtr<ChBodyAuxRef> chassisBody, ChVector<> hdim) {
+  //    // Clear any existing assets (will be overriden)
+  //    chassisBody->GetAssets().clear();
+  //
+  //    chassisBody->GetCollisionModel()->ClearModel();
+  //    utils::AddBoxGeometry(
+  //        chassisBody.get_ptr(), hdim, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
+  //    chassisBody->GetCollisionModel()->BuildModel();
+  //
+  //    chassisBody->GetMaterialSurface()->SetFriction(mu_t);
+  //  }
+
+  virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
+    // Clear any existing assets (will be overriden)
+    chassisBody->GetAssets().clear();
+
+    chassisBody->GetCollisionModel()->ClearModel();
+    utils::AddBoxGeometry(
+        chassisBody.get_ptr(), ChVector<>(1, .5, .05), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
+    chassisBody->GetCollisionModel()->BuildModel();
+
+    chassisBody->GetMaterialSurface()->SetFriction(mu_t);
+  }
+
+ private:
+  ChConvexDecompositionHACDv2 chassis_convex;
+  geometry::ChTriangleMeshConnected chassis_mesh;
+};
 
 // =============================================================================
 
@@ -334,21 +378,33 @@ int main(int argc, char* argv[]) {
   ground->GetCollisionModel()->ClearModel();
 
   // Bottom box
-  utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick),
-                        ChQuaternion<>(1, 0, 0, 0), true);
+  utils::AddBoxGeometry(
+      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0), true);
   if (terrain_type == GRANULAR) {
     // Front box
-    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hthick, hdimY, hdimZ + hthick),
-                          ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+    utils::AddBoxGeometry(ground.get_ptr(),
+                          ChVector<>(hthick, hdimY, hdimZ + hthick),
+                          ChVector<>(hdimX + hthick, 0, hdimZ - hthick),
+                          ChQuaternion<>(1, 0, 0, 0),
+                          visible_walls);
     // Rear box
-    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hthick, hdimY, hdimZ + hthick),
-                          ChVector<>(-hdimX - hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+    utils::AddBoxGeometry(ground.get_ptr(),
+                          ChVector<>(hthick, hdimY, hdimZ + hthick),
+                          ChVector<>(-hdimX - hthick, 0, hdimZ - hthick),
+                          ChQuaternion<>(1, 0, 0, 0),
+                          visible_walls);
     // Left box
-    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hthick, hdimZ + hthick),
-                          ChVector<>(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+    utils::AddBoxGeometry(ground.get_ptr(),
+                          ChVector<>(hdimX, hthick, hdimZ + hthick),
+                          ChVector<>(0, hdimY + hthick, hdimZ - hthick),
+                          ChQuaternion<>(1, 0, 0, 0),
+                          visible_walls);
     // Right box
-    utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hthick, hdimZ + hthick),
-                          ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), visible_walls);
+    utils::AddBoxGeometry(ground.get_ptr(),
+                          ChVector<>(hdimX, hthick, hdimZ + hthick),
+                          ChVector<>(0, -hdimY - hthick, hdimZ - hthick),
+                          ChQuaternion<>(1, 0, 0, 0),
+                          visible_walls);
   }
 
   ground->GetCollisionModel()->BuildModel();
@@ -368,6 +424,7 @@ int main(int argc, char* argv[]) {
 
   utils::VehicleSystem* vehicle;
   utils::TireContactCallback* tire_cb;
+  utils::ChassisContactCallback* chassis_cb;
 
   // Create the vehicle assembly and the callback object for tire contact
   // according to the specified type of tire/wheel.
@@ -384,6 +441,14 @@ int main(int argc, char* argv[]) {
 
   vehicle->SetTireContactCallback(tire_cb);
 
+  // Set the callback object for chassis.
+  switch (chassis_type) {
+    case CBOX: {
+      chassis_cb = new MyChassisBoxModel_vis();//(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+      vehicle->SetChassisContactCallback(chassis_cb);
+    } break;
+  }
+
   // Set the callback object for driver inputs. Pass the hold time as a delay in
   // generating driver inputs.
   MyDriverInputs driver_cb(time_hold);
@@ -394,6 +459,11 @@ int main(int argc, char* argv[]) {
 
   // Initialize the vehicle at a height above the terrain.
   vehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+
+  // Initially, fix the wheels (will be released after time_hold).
+  for (int i = 0; i < 2 * vehicle->GetVehicle()->GetNumberAxles(); i++) {
+    vehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+  }
 
 // -----------------------
 // Perform the simulation.
@@ -436,8 +506,12 @@ int main(int argc, char* argv[]) {
     }
 
     // Release the vehicle chassis at the end of the hold time.
-    if (vehicle->GetVehicle()->GetChassis()->GetBodyFixed() && time > time_hold)
+    if (vehicle->GetVehicle()->GetChassis()->GetBodyFixed() && time > time_hold) {
       vehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
+      for (int i = 0; i < 2 * vehicle->GetVehicle()->GetNumberAxles(); i++) {
+        vehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
+      }
+    }
 
     // Update vehicle
     vehicle->Update(time);
@@ -467,6 +541,7 @@ int main(int argc, char* argv[]) {
 
   delete vehicle;
   delete tire_cb;
+  delete chassis_cb;
 
   return 0;
 }
