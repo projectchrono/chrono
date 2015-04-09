@@ -53,6 +53,7 @@ using namespace core;
 #endif
  */
  
+#include "motion_functions/ChFunction_Sine.h"
 #include "subsys/trackVehicle/DriveChain.h"
 #include "subsys/driver/Track_FuncDriver.h"
 #include "ModelDefs.h"
@@ -83,9 +84,15 @@ double end_time = 10;  // 99999
 // Automated simulation controls, applies positive half a sine wave.
 // Otherwise, control throttle with W/S
 bool autopilot = true;
+double tStart = 0.1;
+
+// when using a sine function for throttle control
 double sineAmp = 0.4;
 double sineFreq = 0.3;
-double tStart = 0.1;
+
+// when using a ramp
+double rampMax = 0.5;
+double rampSlope = rampMax / 3.0; // ramp up over 3 seconds
 
 // ***** write to console or a file
 // #define WRITE_OUTPUT         // write output data to file
@@ -226,7 +233,16 @@ int main(int argc, char* argv[])
   
 #endif
 */
-  Track_FuncDriver function_driver(1, sineFreq, sineAmp, tStart);
+  // Track driver is templated based on function
+  // TEST 1: using a sine function
+  /*
+  ChSharedPtr<ChFunction_Sine> sine_func(new ChFunction_Sine(0, sineFreq, sineAmp));
+  Track_FuncDriver<ChFunction_Sine> function_driver(1, sine_func, tStart);
+  */
+
+  // TEST 2: useing a ramp function
+  ChSharedPtr<ChFunction_Ramp> ramp_func(new ChFunction_Ramp(0, rampSlope));
+  Track_FuncDriver<ChFunction_Ramp> function_driver(1, ramp_func, tStart, -1, rampMax);
 
   // ---------------------
   // GUI and render settings
