@@ -45,7 +45,7 @@ public:
 		//
 		// DATA
 		//
-	std::vector< ChSmartPtr<ChLine> > lines;
+	std::vector< ChSharedPtr<ChLine> > lines;
 	std::vector< double > end_times;
 	std::vector< double > durations;
 
@@ -149,7 +149,7 @@ public:
 	size_t GetSubLinesCount() { return lines.size();}
 
 		/// Access the nth line
-	ChSmartPtr<ChLine> GetSubLineN (int n) { return lines[n];}
+	ChSharedPtr<ChLine> GetSubLineN (int n) { return lines[n];}
 
 		/// Get the nth line duration
 	double GetSubLineDurationN (int n) { return durations[n];}
@@ -170,7 +170,7 @@ public:
 	}
 
 		/// Queue a line (push it back to the array of lines)
-	void AddSubLine(   ChSmartPtr<ChLine> mline, //<<< line to add
+	void AddSubLine(   ChSharedPtr<ChLine> mline, //<<< line to add
 					double duration = 1)	  //<<< duration of the abscyssa when calling the Evaluate() function
 	{ 
 		lines.push_back(mline);
@@ -182,14 +182,14 @@ public:
 	void AddSubLine( ChLine& mline,			//<<< line to add
 					double duration = 1)	//<<< duration of the abscyssa when calling the Evaluate() function
 	{ 
-		ChSmartPtr<ChLine> pline((ChLine*)mline.Duplicate()); 
+		ChSharedPtr<ChLine> pline((ChLine*)mline.Duplicate()); 
 		AddSubLine(pline, duration);
 	}
 	
 		/// Insert a line at a specified index  n  in line array.
 		/// Note that  n  cannot be higher than GetLineCount(). 
 	void InsertSubLine(int n,				  //<<< index of line, 0 is first, etc.
-					ChSmartPtr<ChLine> mline, //<<< line to add
+					ChSharedPtr<ChLine> mline, //<<< line to add
 					double duration = 1)	  //<<< duration of the abscyssa when calling the Evaluate() function
 	{ 
 		lines.insert(lines.begin()+n, mline);
@@ -205,7 +205,7 @@ public:
 					ChLine& mline,			  //<<< line to add
 					double duration = 1)	  //<<< duration of the abscyssa when calling the Evaluate() function
 	{ 
-		ChSmartPtr<ChLine> pline((ChLine*)mline.Duplicate()); 
+		ChSharedPtr<ChLine> pline((ChLine*)mline.Duplicate()); 
 		InsertSubLine(n, pline, duration);
 	}
 
@@ -254,8 +254,8 @@ public:
 		double maxerr= 0;
 		for (int i= 1; i< lines.size(); ++i)
 		{
-			ChSmartPtr< ChLine > prec_line = lines[i-1];
-			ChSmartPtr< ChLine > next_line = lines[i];
+			ChSharedPtr< ChLine > prec_line = lines[i-1];
+			ChSharedPtr< ChLine > next_line = lines[i];
 			double gap = ( prec_line->GetEndB() -  next_line->GetEndA() ).Length();
 			if (gap > maxerr)
 				maxerr = gap;
