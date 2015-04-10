@@ -566,6 +566,7 @@ IF (BUILD_CH_SDK)
 		assets/ChRoundedBoxShape.cpp
 		assets/ChRoundedConeShape.cpp
 		assets/ChPathShape.cpp
+		assets/ChLineShape.cpp
 	)
 	SET(ChronoEngine_assets_HEADERS
 		assets/ChAsset.h
@@ -590,6 +591,7 @@ IF (BUILD_CH_SDK)
 		assets/ChRoundedBoxShape.h
 		assets/ChRoundedConeShape.h
 		assets/ChPathShape.h
+		assets/ChLineShape.h
 	)
 	SOURCE_GROUP(assets FILES  
 			${ChronoEngine_assets_SOURCES}
