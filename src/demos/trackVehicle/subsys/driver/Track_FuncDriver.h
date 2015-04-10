@@ -45,19 +45,13 @@ public:
     double throttle_min = -1.0,
     double throttle_max = 1.0
 ): ChDriverTrack(num_tracks),
-   m_t_begin(time_start),
-   m_throttle_func( throttle_func.StaticCastTo<ChFunction>() )
+   m_t_begin(time_start)
   {
     // make sure the func and the templated type are the same
-    // assert( (ChSharedPtr<Function_T> fun = throttle_func.DynamicCastTo<Function_T>() ) );
-    // if( ChSharedPtr<Function_T> fun = throttle_func.DynamicCastTo<Function_T>() )
-    // {
-    //   m_throttle_func = fun;
-    // }
-    /*
-    else
-      GetLog() << " input function type and class templated type are not the same !! \n";
-    */
+    ChSharedPtr<ChFunction> fun =  throttle_func.DynamicCastTo<ChFunction>();
+    assert(fun);
+    m_throttle_func = fun;
+
     // set min/max throttle values
     assert(throttle_min < throttle_max);
     m_throttle_max = throttle_max;
@@ -79,7 +73,7 @@ public:
   }
 
   /// get a handle to the throttle function
-  ChSharedPtr<Function_T> GetThrottleFunc() { return m_throttle_func.StaticCastTo<Function_T>(); }
+  ChSharedPtr<Function_T> GetThrottleFunc() { return m_throttle_func.DynamicCastTo<Function_T>(); }
 
 };
 
