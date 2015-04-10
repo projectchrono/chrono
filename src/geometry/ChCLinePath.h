@@ -114,6 +114,12 @@ public:
 		if (lines.size() == 0)
 			return;
 
+		double u = parU;
+		
+		// wrap u if it is a closed loop.
+		if (this->closed)
+			u = fmod(parU, this->GetPathDuration());
+
 		double uA = 0;
 		double uB = 0;
 		// Search sub line covering the parU 
