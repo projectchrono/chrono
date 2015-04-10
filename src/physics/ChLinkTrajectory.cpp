@@ -150,6 +150,16 @@ void ChLinkTrajectory::UpdateTime (double time)
 }
 
 
+void ChLinkTrajectory::Initialize(ChSharedPtr<ChBody> mbody1, ///< first  body to join (the one that follows the trajectory)
+	                       ChSharedPtr<ChBody> mbody2, ///< second body to join (the one that contains the trajectory)  
+	                       const ChVector<>& mpos1,  ///< position of the 'following point' on body1, relative to coordinate of body1.
+	                       ChSharedPtr<geometry::ChLine> mline///< the line on mbody2 to be followed by point mpos1 of mbody1 
+	                       )
+{
+	ChLinkMarkers::Initialize(mbody1, mbody2, true, ChCoordsys<>(mpos1), ChCoordsys<>());
+	this->Set_trajectory_line(mline);
+}
+
 
 void ChLinkTrajectory::StreamOUT(ChStreamOutBinary& mstream)
 {
