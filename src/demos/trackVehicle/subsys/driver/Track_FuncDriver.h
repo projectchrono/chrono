@@ -40,19 +40,20 @@ public:
   /// constructor generates a function to apply to the throttle (0 to 1)
   /// after some time to allow for settling.
   Track_FuncDriver(int num_tracks,
-    ChSharedPtr<Function_T> throttle_func,
+    ChSharedPtr<ChFunction> throttle_func,
     double time_start,
     double throttle_min = -1.0,
     double throttle_max = 1.0
 ): ChDriverTrack(num_tracks),
-   m_t_begin(time_start)
+   m_t_begin(time_start),
+   m_throttle_func( throttle_func.StaticCastTo<Function_T>() )
   {
     // make sure the func and the templated type are the same
     // assert( (ChSharedPtr<Function_T> fun = throttle_func.DynamicCastTo<Function_T>() ) );
-    if( ChSharedPtr<Function_T> fun = throttle_func.DynamicCastTo<Function_T>() )
-    {
-      m_throttle_func = throttle_func;
-    }
+    // if( ChSharedPtr<Function_T> fun = throttle_func.DynamicCastTo<Function_T>() )
+    // {
+    //   m_throttle_func = fun;
+    // }
     /*
     else
       GetLog() << " input function type and class templated type are not the same !! \n";
