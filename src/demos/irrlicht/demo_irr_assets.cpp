@@ -113,11 +113,11 @@ int main(int argc, char* argv[])
 			// ==Asset== attach a 'path' shape populated with segments and arc fillets:
 	ChSharedPtr<ChPathShape> mpathfloor(new ChPathShape);
 	ChLineSegment mseg1 (ChVector<>(1,2,0), ChVector<>(1,3,0));
-	mpathfloor->GetPathGeometry().AddSubLine(mseg1);
+	mpathfloor->GetPathGeometry()->AddSubLine(mseg1);
 	ChLineSegment mseg2 (ChVector<>(1,3,0), ChVector<>(2,3,0));
-	mpathfloor->GetPathGeometry().AddSubLine(mseg2);
+	mpathfloor->GetPathGeometry()->AddSubLine(mseg2);
 	ChLineArc     marc1 (ChCoordsys<>(ChVector<>(2,3.5,0)), 0.5, -CH_C_PI_2, CH_C_PI_2);
-	mpathfloor->GetPathGeometry().AddSubLine(marc1);
+	mpathfloor->GetPathGeometry()->AddSubLine(marc1);
 	mfloor->AddAsset(mpathfloor);
 
 	/*
