@@ -297,16 +297,17 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(
       //mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() ); 
       //mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
     }
-	if ( k_asset.IsType<chrono::ChPathShape>() )
+	if ( k_asset.IsType<chrono::ChPathShape>() || 
+		 k_asset.IsType<chrono::ChLineShape>() )
     {
-      chrono::ChSharedPtr<chrono::ChPathShape> mypath(k_asset.DynamicCastTo<chrono::ChPathShape>());
+      //chrono::ChSharedPtr<chrono::ChA> mypath(k_asset.DynamicCastTo<chrono::ChPathShape>());
 
       CDynamicMeshBuffer * buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
       SMesh* newmesh = new SMesh;
       newmesh->addMeshBuffer(buffer);
       buffer->drop();
 
-      ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(mypath, mnode);
+      ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(k_asset, mnode);
       ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh,mproxynode);
       newmesh->drop();
       mproxynode->Update(); // force syncing of triangle positions & face indexes

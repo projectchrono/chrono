@@ -15,6 +15,7 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChGlyphs.h"
 #include "assets/ChPathShape.h"
+#include "assets/ChLineShape.h"
 
 #include "unit_IRRLICHT/ChIrrNodeProxyToAsset.h"
 
@@ -414,9 +415,17 @@ void ChIrrNodeProxyToAsset::Update()
   }
 
 
-  if (visualization_asset.IsType<chrono::ChPathShape>())
+  if (visualization_asset.IsType<chrono::ChPathShape>() || 
+	  visualization_asset.IsType<chrono::ChLineShape>())
   {
-    chrono::ChSharedPtr<chrono::ChPathShape> mpath = visualization_asset.DynamicCastTo<chrono::ChPathShape>();
+	chrono::ChSharedPtr<chrono::geometry::ChLine> mline;
+
+	if (visualization_asset.IsType<chrono::ChPathShape>())
+		mline = visualization_asset.DynamicCastTo<chrono::ChPathShape>()->GetPathGeometry();
+
+	if (visualization_asset.IsType<chrono::ChLineShape>())
+		mline = visualization_asset.DynamicCastTo<chrono::ChLineShape>()->GetLineGeometry();
+
 
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* mchildnode = *(getChildren().begin()); 
@@ -448,7 +457,7 @@ void ChIrrNodeProxyToAsset::Update()
     int itri = 0;
 
 	chrono::ChVector<> t1;
-	mpath->GetPathGeometry().Evaluate(t1, 0,0,0);
+	mline->Evaluate(t1, 0,0,0);
 
 	irrmesh->getVertexBuffer()[0] = 
 						   video::S3DVertex((f32)t1.x, (f32)t1.y, (f32)t1.z,
@@ -456,14 +465,17 @@ void ChIrrNodeProxyToAsset::Update()
                            clr,
                            0, 0);
 	
-	double maxU = mpath->GetPathGeometry().GetPathDuration();
+	double maxU=1;
+
+	if (mline.IsType<chrono::geometry::ChLinePath>())
+		maxU = mline.DynamicCastTo<chrono::geometry::ChLinePath>()->GetPathDuration();
 
     for (unsigned int ig= 0; ig< ntriangles; ++ig)
     {
 		double mU = maxU*((double)ig/(double)(ntriangles-1)); // abscyssa
 
         chrono::ChVector<> t2;
-		mpath->GetPathGeometry().Evaluate(t2, mU,0,0);
+		mline->Evaluate(t2, mU,0,0);
 
         // create a  small line (a degenerate triangle) per each vector
 
