@@ -84,6 +84,18 @@ public:
 	void Set_trajectory_line (ChSharedPtr<geometry::ChLine> mline);
 
 
+					/// Use this function after link creation, to initialize the link from 
+					/// two joined rigid bodies. 
+					/// Both rigid bodies must belong to the same ChSystem. 
+					/// Two markers will be created and added to the rigid bodies (later,
+					/// you can use GetMarker1() and GetMarker2() to access them.
+					/// Marker2 will stay in origin of body2. Trajectory is considered relative to body2.
+	void Initialize(ChSharedPtr<ChBody> mbody1, ///< first  body to join (the one that follows the trajectory)
+	                       ChSharedPtr<ChBody> mbody2, ///< second body to join (the one that contains the trajectory)  
+	                       const ChVector<>& mpos1,  ///< position of the 'following point' on body1, relative to coordinate of body1.
+	                       ChSharedPtr<geometry::ChLine> mline///< the line on mbody2 to be followed by point mpos1 of mbody1 
+	                       );
+
 
 							// UPDATING FUNCTIONS - "lock formulation" custom implementations
 
