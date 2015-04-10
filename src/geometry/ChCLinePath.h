@@ -128,14 +128,16 @@ public:
 		int i;
 		for (i= 0; i< lines.size(); ++i)
 		{ 
-			if (parU <= end_times[i])
+			if (u <= end_times[i])
 				break;
 		}
+		if (i == lines.size()) // beyond end
+			i -=1; 
 		uB = end_times[i];
 		if (i>0)
 			uA = end_times[i-1];
 
-		double local_U = (parU - uA) / durations[i];
+		double local_U = (u - uA) / durations[i];
 		lines[i]->Evaluate(pos, local_U, 0,0);
 	}
 
