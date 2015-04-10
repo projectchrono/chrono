@@ -73,9 +73,12 @@ double end_time = 10;  // 99999
 // Automated simulation controls, applies positive half a sine wave.
 // Otherwise, control throttle with W/S
 bool autopilot = true;
+double omega_max = 25.0;  // sprocket max rot. vel [rad/s]
+double tStart = 1.0;    // time to start applied rot. vel
+
 double sineAmp = 0.4;
 double sineFreq = 0.3;
-double tStart = 0.1;
+
 
 // ***** write to console or a file
 // #define WRITE_OUTPUT         // write output data to file
@@ -269,8 +272,12 @@ int main(int argc, char* argv[])
 #endif
 */
 
+  // test: using a sine function
+  ChSharedPtr<ChFunction_Sine> sine_func(new ChFunction_Sine(0, sineFreq, sineAmp));
+
   // when autopilot is enabled, input throttle specified as follows:
-  Track_FuncDriver function_driver(2, sineFreq, sineAmp, tStart);
+  Track_FuncDriver<ChFunction_Sine> function_driver(2, sine_func, tStart);
+
 
   // ---------------------
   // GUI and render settings
