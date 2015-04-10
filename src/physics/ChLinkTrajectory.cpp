@@ -22,7 +22,7 @@
 
 #include "physics/ChLinkTrajectory.h"
 #include "core/ChMemory.h" // must be last include (memory leak debugger). 
- 
+#include "geometry/ChCLineSegment.h"
 
 namespace chrono
 {
@@ -43,9 +43,12 @@ ChLinkTrajectory::ChLinkTrajectory ()
 {
     type = LNK_TRAJECTORY;       // initializes type
 
-	space_fx = new ChFunction_Ramp(0, 1.);
+	// default s(t) function. User will provide better fx.
+	space_fx = ChSharedPtr<ChFunction> (new ChFunction_Ramp(0, 1.));
 
-	trajectory_line = 0;
+	// default trajectory is a segment
+	trajectory_line = ChSharedPtr<ChLine> (new ChLineSegment());
+
 
             // Mask: initialize our LinkMaskLF (lock formulation mask)
             // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
@@ -59,13 +62,6 @@ ChLinkTrajectory::ChLinkTrajectory ()
             // DESTROYER
 ChLinkTrajectory::~ChLinkTrajectory ()
 {
-	if (space_fx) 
-		delete space_fx;
-	space_fx=0;
-
-	if (trajectory_line) 
-		delete trajectory_line;
-	trajectory_line=0;
 
     // nothing..
 }
@@ -78,13 +74,9 @@ void ChLinkTrajectory::Copy(ChLinkTrajectory* source)
 
 	// copy own data
 
-	if (space_fx) 
-		delete space_fx;
-    space_fx =   source->space_fx->new_Duplicate();
+	space_fx = ChSharedPtr<ChFunction>(source->space_fx->new_Duplicate()); // deep copy
 
-	if (trajectory_line) 
-		delete trajectory_line;
-    trajectory_line = static_cast<ChLine*> (source->trajectory_line->Duplicate());
+	trajectory_line = ChSharedPtr<ChLine>((ChLine*)source->trajectory_line->Duplicate()); // deep copy
 }
 
 
@@ -98,17 +90,13 @@ ChLink* ChLinkTrajectory::new_Duplicate ()
 
 
 
-void ChLinkTrajectory::Set_space_fx (ChFunction* m_funct)
+void ChLinkTrajectory::Set_space_fx (ChSharedPtr<ChFunction> m_funct)
 {
-    if (space_fx) 
-		delete space_fx;
     space_fx = m_funct;
 }
 
-void ChLinkTrajectory::Set_trajectory_line (ChLine* mline)
+void ChLinkTrajectory::Set_trajectory_line (ChSharedPtr<geometry::ChLine> mline)
 {
-	if (trajectory_line) 
-		delete trajectory_line;
     trajectory_line = mline;
 }
 
@@ -166,13 +154,14 @@ void ChLinkTrajectory::UpdateTime (double time)
 void ChLinkTrajectory::StreamOUT(ChStreamOutBinary& mstream)
 {
 			// class version number
-	mstream.VersionWrite(1);
+	mstream.VersionWrite(2);
 		// serialize parent class too
 	ChLinkLock::StreamOUT(mstream);
 
 		// stream out all member data
-	mstream.AbstractWrite(space_fx);
-	mstream.AbstractWrite(trajectory_line);
+	mstream.AbstractWrite(this->space_fx.get_ptr()); //***TODO*** proper serialize for ChSharedPtr
+	mstream.AbstractWrite(this->trajectory_line.get_ptr()); //***TODO*** proper serialize for ChSharedPtr
+	mstream << modulo_s;
 }
 
 
@@ -185,10 +174,15 @@ void ChLinkTrajectory::StreamIN(ChStreamInBinary& mstream)
 	ChLinkLock::StreamIN(mstream);
 
 		// stream in all member data
-	ChFunction* ffoo=0;
-	mstream.AbstractReadCreate(&ffoo);		Set_space_fx(ffoo);
+	ChFunction* newfun;
+	mstream.AbstractReadCreate(&newfun); //***TODO*** proper deserialize for ChSharedPtr
+	this->space_fx = ChSharedPtr<ChFunction>(newfun);
+
 	ChLine* mline=0;
-	mstream.AbstractReadCreate(&mline);		Set_trajectory_line(mline);
+	mstream.AbstractReadCreate(&mline); //***TODO*** proper deserialize for ChSharedPtr
+	this->trajectory_line = ChSharedPtr<ChLine>(mline);
+
+	mstream >> modulo_s;
 }
 
 

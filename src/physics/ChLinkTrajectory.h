@@ -51,10 +51,11 @@ protected:
 
 						/// Function s=s(t) telling how the curvilinear
 						/// parameter of the trajectory is visited in time.
-	ChFunction* space_fx;
+	ChSharedPtr<ChFunction> space_fx;
 			
 						/// The line for the trajectory.
-	geometry::ChLine*		trajectory_line;
+	ChSharedPtr<geometry::ChLine>	trajectory_line;
+
 
 public:
 						// builders and destroyers
@@ -66,18 +67,22 @@ public:
 
 						/// Gets the address of the function s=s(t) telling 
 						/// how the curvilinear parameter of the trajectory changes in time.
-	ChFunction* Get_space_fx() {return space_fx;};
+	ChSharedPtr<ChFunction> Get_space_fx() {return space_fx;};
 						
 						/// Sets the function s=s(t) telling how the curvilinear parameter 
 						/// of the trajectory changes in time. 
-	void Set_space_fx	(ChFunction* m_funct);
+	void Set_space_fx	(ChSharedPtr<ChFunction> m_funct);
+
+						/// Tells that the s in  s=s(t)  function will be wrapped in 0..1 if it is outside 0..1 
+	void Set_modulo_one_fx(bool mmod) {modulo_s = mmod;}
 
 
 						/// Get the address of the trajectory line
-	geometry::ChLine* Get_trajectory_line() {return trajectory_line;}
+	ChSharedPtr<geometry::ChLine> Get_trajectory_line() {return trajectory_line;}
 						
 						/// Sets the trajectory line (take ownership - does not copy line)
-	void Set_trajectory_line (geometry::ChLine* mline);
+	void Set_trajectory_line (ChSharedPtr<geometry::ChLine> mline);
+
 
 
 							// UPDATING FUNCTIONS - "lock formulation" custom implementations
