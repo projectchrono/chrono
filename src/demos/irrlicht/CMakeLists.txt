@@ -32,6 +32,7 @@ SET(DEMOS
   demo_spring
   demo_ujoint
   demo_earthquake
+  demo_paths
 )
 
 #--------------------------------------------------------------
