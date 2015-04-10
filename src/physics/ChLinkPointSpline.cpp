@@ -106,43 +106,50 @@ void ChLinkPointSpline::UpdateTime (double time)
 	if (GetSystem())
 		tol = ((ChSystem*)GetSystem())->GetTol();
 
-	//R3OBJ* markerobj = ((ChExternalObjectR3D*)marker2->GetExternalObject())->Get_r3d_object();
-    //R3OBJ* lineobj = Ch_GetLinkedParamObject(markerobj, 0);
     if (trajectory_line)
     {
         Vector param, ptang, ptang2, vdir, vdir2, vnorm, vrad, vpoint;
         double mu, ds, dh, mrad;
 
-        // constant update line geometry after each step... it may be rotated by chrono simulation
-        //Ch_ForceUpdateOfR3Dcoords(lineobj); ***TO DO*** move to R3D code!
 
         // find nearest point
         vpoint = marker1->GetAbsCoord().pos;
+		vpoint = Body2->TransformPointParentToLocal(vpoint);
 		trajectory_line->FindNearestLinePoint(vpoint, mu, 0,  ((ChSystem*)GetSystem())->GetTol() );
-		//FindNearestLinePoint (lineobj, (void*)(&vpoint), mu, 0, ((ChSystem*)GetSystem())->GetTol() );
 
         param.y= 0; param.z= 0;
         param.x= mu;
 		trajectory_line->Evaluate(ptang, param.x);
-        //R3SendMsgA3(lineobj, R3PRIMM_EVALUATE, (void *)R3SPACE_ABSOLUTE, &param, &ptang);
+
         if (param.x < 0) param.x=0;
 		trajectory_line->Derive(vdir, param.x);
-        //R3SendMsgA3(lineobj, R3PRIMM_DERIVE, (void *)R3SPACE_ABSOLUTE, &param, &vdir);
 
         param.x= mu+ BDF_STEP_HIGH;
         if (param.x > 1) param.x=1;
 		trajectory_line->Evaluate(ptang2, param.x);
-        //R3SendMsgA3(lineobj, R3PRIMM_EVALUATE, (void *)R3SPACE_ABSOLUTE, &param, &ptang2);
+
 		trajectory_line->Derive(vdir2, param.x);
-        //R3SendMsgA3(lineobj, R3PRIMM_DERIVE, (void *)R3SPACE_ABSOLUTE, &param, &vdir2);
+
+		ChMatrix33<> ma;
 
         vdir = Vnorm(vdir);
         vdir2 = Vnorm (vdir2);
-        vnorm = Vnorm(Vcross(vdir2, vdir));
-        vrad = Vnorm(Vcross(vdir, vnorm));
-        ChMatrix33<> ma;
-        ma.Set_A_axis(vdir, vnorm, vrad);
+        vnorm = Vcross(vdir2, vdir);
+		if (vnorm.Length() < 1e-7)
+		{
+			// on a straight segment, no curvature, so define normal and radial by these:
+			ma.Set_A_Xdir(vdir, -VECT_Z);
+		}
+		else
+		{
+			vnorm.Normalize();
+			vrad = Vnorm(Vcross(vdir, vnorm));
+			ma.Set_A_axis(vdir, vnorm, vrad);
+		}
         Quaternion qabsdir = ma.Get_A_quaternion();
+
+		ptang = Body2->TransformPointLocalToParent(ptang);
+		qabsdir = Body2->GetRot() * qabsdir;
 
         Coordsys newmarkpos;
         newmarkpos.pos = ptang;
