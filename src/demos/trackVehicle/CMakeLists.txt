@@ -59,7 +59,6 @@ SET(CT_DRIVER_FILES
 	subsys/driver/ChIrrGuiTrack.h
 	subsys/driver/ChIrrGuiTrack.cpp
 	subsys/driver/Track_FuncDriver.h
-	subsys/driver/Track_FuncDriver.cpp
 )
 
 SET(CT_DRIVEGEAR_FILES
