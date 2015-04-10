@@ -49,6 +49,7 @@ ChLinkTrajectory::ChLinkTrajectory ()
 	// default trajectory is a segment
 	trajectory_line = ChSharedPtr<ChLine> (new ChLineSegment());
 
+	modulo_s = false;
 
             // Mask: initialize our LinkMaskLF (lock formulation mask)
             // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
@@ -109,34 +110,43 @@ void ChLinkTrajectory::UpdateTime (double time)
 {
     ChTime = time;
 
-	double tr_time = space_fx->Get_y(time);
+	double tstep = BDF_STEP_HIGH;
+	double tr_time  = space_fx->Get_y(time);
+	double tr_timeB = space_fx->Get_y(time+ tstep);
+	double tr_timeA = space_fx->Get_y(time- tstep);
 
-	//R3OBJ* markerobj = ((ChExternalObjectR3D*)marker2->GetExternalObject())->Get_r3d_object();
-    //R3OBJ* lineobj = R3SendMsgA(markerobj, R3LEVM_GETSUBBYORDNUM, (void *)0);
     if (trajectory_line)
     {
-        Vector param, result, resultB, resultA;
-        double tstep = BDF_STEP_HIGH;
-        double timeB = tr_time + tstep;
-        double timeA = tr_time - tstep;
-        param.y= 0; param.z= 0;
-        param.x= fmod(tr_time, 1);
-		trajectory_line->Evaluate(result, param.x);
-        param.x= fmod(timeB, 1);
-		trajectory_line->Evaluate(resultB, param.x);
-        param.x= fmod(timeA, 1);
-		trajectory_line->Evaluate(resultA, param.x);
+        Vector result, resultB, resultA;
+		if (modulo_s)
+		{
+			tr_time  = fmod(tr_time,1);
+			tr_timeA = fmod(tr_timeA,1);
+			tr_timeB = fmod(tr_timeB,1);
+		}
+		trajectory_line->Evaluate(result,  tr_time);
+		trajectory_line->Evaluate(resultA, tr_timeA);
+		trajectory_line->Evaluate(resultB, tr_timeB);
+		
 
         ChMatrix33<> mw;
         mw.Set_A_quaternion(marker2->GetAbsCoord().rot);
 
+		// if line coordinate is relative to body2:
+		marker2->Impose_Rel_Coord(CSYSNORM);
+		deltaC.pos = result;
+		deltaC_dt.pos = (resultB - resultA) * 1/(2*tstep);
+		deltaC_dtdt.pos = (resultA + resultB - result * 2) * 4/pow(2*tstep, 2);
+		/*
+		// if line coordinate is relative to absolute space:
         deltaC.pos = mw.MatrT_x_Vect(
                             Vsub (result, marker2->GetAbsCoord().pos));  // ***  CORRECT?
         deltaC_dt.pos =  mw.MatrT_x_Vect(
-                            Vmul( Vsub(resultB, resultA), 1/(timeB-timeA)) );
+                            Vmul( Vsub(resultB, resultA), 1/(2*tstep)) );
         deltaC_dtdt.pos =  mw.MatrT_x_Vect (
                             Vmul   ( Vadd (Vadd (resultA, resultB),
-                                   Vmul (result,-2)), 4/pow(timeB-timeA, 2) ) );
+                                   Vmul (result,-2)), 4/pow(2*tstep, 2) ) );
+		*/
         deltaC.rot = QUNIT;
         deltaC_dt.rot = QNULL;
         deltaC_dtdt.rot = QNULL;

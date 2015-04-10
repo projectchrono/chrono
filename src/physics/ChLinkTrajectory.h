@@ -56,6 +56,7 @@ protected:
 						/// The line for the trajectory.
 	ChSharedPtr<geometry::ChLine>	trajectory_line;
 
+	bool modulo_s;
 
 public:
 						// builders and destroyers
