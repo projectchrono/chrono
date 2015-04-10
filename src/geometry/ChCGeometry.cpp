@@ -52,17 +52,16 @@ void ChGeometry::Derive(Vector& dir,
 
 	if (parU > 0.5)
 	{
-		double uB = parU;
-		double uA = parU-bdf;
+		uB = parU;
+		uA = parU-bdf;
 	}else
 	{
-		double uB = parU+bdf;
-		double uA = parU;
+		uB = parU+bdf;
+		uA = parU;
 	}
 	Vector vA, vB;
 	Evaluate(vA,uA);
 	Evaluate(vB,uB);
-	
 	dir = (vB-vA)*(1/bdf);
 }
 
