@@ -28,6 +28,7 @@
 
 
 #include "core/ChMath.h"
+#include "core/ChShared.h"
 #include "core/ChApiCE.h"
 
 
@@ -48,10 +49,10 @@ namespace geometry
 /// Geometric object are used for collisions and such.
 ///
 
-class ChApi ChGeometry  {
+class ChApi ChGeometry : public ChShared {
 
 								// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI_ROOT(ChGeometry);
+	CH_RTTI(ChGeometry, ChShared);
 
 public:
 		//
