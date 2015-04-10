@@ -70,7 +70,7 @@ using namespace gui;
 // Define General variables
 SimParams paramsH;
 
-#define haveFluid false
+#define haveFluid true
 // =============================================================================
 // Define Graphics
 #define irrlichtVisualization false
@@ -303,7 +303,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
   switch (chassis_type) {
     case CBOX: {
       chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      ChVector<> boxSize(1, .5, .05);
+      ChVector<> boxSize(1, .5, .2);
       ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
       mVehicle->SetChassisContactCallback(chassis_cb);
     } break;
@@ -450,6 +450,7 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTi
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+
   //****************************************************************************************
   time_t rawtime;
   struct tm* timeinfo;
@@ -500,6 +501,7 @@ int main(int argc, char* argv[]) {
   //*** initialize fluid particles
   Real sphMarkerMass;  // To be initialized in CreateFluidMarkers, and used in other places
   int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
+  printf("num_fluidOrBoundaryMarkers %d %d \n", num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
   referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1));  // map fluid -1
   numAllMarkers += num_fluidOrBoundaryMarkers.x;
   referenceArray.push_back(mI3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0));
