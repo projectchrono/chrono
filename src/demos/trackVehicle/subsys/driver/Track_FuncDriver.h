@@ -30,7 +30,7 @@ class Track_FuncDriver : public ChDriverTrack
 private:
 
   // data members
-  ChSharedPtr<ChFunction> m_throttle_func;
+  ChSharedPtr<Function_T> m_throttle_func;
   double m_t_begin;
   double m_throttle_min;  // minimum throttle value
   double m_throttle_max;  // max throttle value
@@ -40,7 +40,7 @@ public:
   /// constructor generates a function to apply to the throttle (0 to 1)
   /// after some time to allow for settling.
   explicit Track_FuncDriver(int num_tracks,
-    ChSharedPtr<Function_T> throttle_func,
+    ChSharedPtr<ChFunction> throttle_func,
     double time_start,
     double throttle_min = -1.0,
     double throttle_max = 1.0
@@ -48,7 +48,7 @@ public:
    m_t_begin(time_start)
   {
     // make sure the func and the templated type are the same
-    ChSharedPtr<ChFunction> fun =  throttle_func.DynamicCastTo<ChFunction>();
+    ChSharedPtr<Function_T> fun =  throttle_func.DynamicCastTo<Function_T>();
     assert(fun);
     m_throttle_func = fun;
 
@@ -73,7 +73,7 @@ public:
   }
 
   /// get a handle to the throttle function
-  ChSharedPtr<Function_T> GetThrottleFunc() { return m_throttle_func.DynamicCastTo<Function_T>(); }
+  ChSharedPtr<Function_T> GetThrottleFunc() { return m_throttle_func; }
 
 };
 
