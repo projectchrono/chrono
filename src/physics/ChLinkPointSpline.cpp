@@ -23,6 +23,7 @@
 
 #include "physics/ChLinkPointSpline.h"
 #include "physics/ChSystem.h"
+#include "geometry/ChCLineSegment.h"
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
 
@@ -44,7 +45,8 @@ ChLinkPointSpline::ChLinkPointSpline ()
 {
     type = LNK_POINTSPLINE;       // initializes type
 
-	trajectory_line = 0;
+	// default trajectory is a segment
+	trajectory_line = ChSharedPtr<ChLine> (new ChLineSegment());
 
             // Mask: initialize our LinkMaskLF (lock formulation mask)
             // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
@@ -58,9 +60,7 @@ ChLinkPointSpline::ChLinkPointSpline ()
             // DESTROYER
 ChLinkPointSpline::~ChLinkPointSpline ()
 {
-	if (trajectory_line) 
-		delete trajectory_line;
-	trajectory_line=0;
+
 }
 
 void ChLinkPointSpline::Copy(ChLinkPointSpline* source)
@@ -71,9 +71,7 @@ void ChLinkPointSpline::Copy(ChLinkPointSpline* source)
 
 	// copy own data
 
-	if (trajectory_line) 
-		delete trajectory_line;
-    trajectory_line = (ChLine*) (source->trajectory_line->Duplicate());
+	trajectory_line = ChSharedPtr<ChLine>((ChLine*)source->trajectory_line->Duplicate()); // deep copy
 }
 
 
@@ -90,10 +88,8 @@ ChLink* ChLinkPointSpline::new_Duplicate ()
 //////////
 
 
-void ChLinkPointSpline::Set_trajectory_line (ChLine* mline)
+void ChLinkPointSpline::Set_trajectory_line (ChSharedPtr<geometry::ChLine> mline)
 {
-	if (trajectory_line) 
-		delete trajectory_line;
     trajectory_line = mline;
 }
 
@@ -186,7 +182,7 @@ void ChLinkPointSpline::StreamOUT(ChStreamOutBinary& mstream)
 	ChLinkLock::StreamOUT(mstream);
 
 		// stream out all member data
-	mstream.AbstractWrite(trajectory_line);
+	mstream.AbstractWrite(this->trajectory_line.get_ptr()); //***TODO*** proper serialize for ChSharedPtr
 }
 
 
@@ -200,7 +196,8 @@ void ChLinkPointSpline::StreamIN(ChStreamInBinary& mstream)
 
 		// stream in all member data
 	ChLine* mline=0;
-	mstream.AbstractReadCreate(&mline);		Set_trajectory_line(mline);
+	mstream.AbstractReadCreate(&mline); //***TODO*** proper deserialize for ChSharedPtr
+	this->trajectory_line = ChSharedPtr<ChLine>(mline);
 }
 
 

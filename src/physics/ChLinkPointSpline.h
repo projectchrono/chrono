@@ -50,7 +50,7 @@ class ChApi ChLinkPointSpline : public ChLinkLock {
 protected:
 
 						/// The line for the trajectory.
-	geometry::ChLine*		trajectory_line;
+	ChSharedPtr<geometry::ChLine>	trajectory_line;
 
 public:
 						// builders and destroyers
@@ -61,10 +61,10 @@ public:
 
 
 						/// Get the address of the trajectory line
-	geometry::ChLine* Get_trajectory_line() {return trajectory_line;}
+	ChSharedPtr<geometry::ChLine> Get_trajectory_line() {return trajectory_line;}
 						
 						/// Sets the trajectory line (take ownership - does not copy line)
-	void Set_trajectory_line (geometry::ChLine* mline);
+	void Set_trajectory_line (ChSharedPtr<geometry::ChLine> mline);
 
 
 
