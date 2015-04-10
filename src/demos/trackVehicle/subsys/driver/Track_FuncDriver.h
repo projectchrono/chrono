@@ -20,6 +20,7 @@
 
 #include "motion_functions/ChFunction_Base.h"
 #include "subsys/base/ChDriverTrack.h"
+// #include "core/ChLog.h"
 
 namespace chrono {
 
@@ -49,10 +50,13 @@ public:
     // make sure the func and the templated type are the same
     // assert( (ChSharedPtr<Function_T> fun = throttle_func.DynamicCastTo<Function_T>() ) );
     if( ChSharedPtr<Function_T> fun = throttle_func.DynamicCastTo<Function_T>() )
+    {
       m_throttle_func = throttle_func;
+    }
+    /*
     else
       GetLog() << " input function type and class templated type are not the same !! \n";
-
+    */
     // set min/max throttle values
     assert(throttle_min < throttle_max);
     m_throttle_max = throttle_max;
