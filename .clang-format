@@ -1,4 +1,12 @@
 BasedOnStyle: Chromium
 
-# Longer lines requested by @hmazhar
+# Longer lines
 ColumnLimit: 120
+
+# Increase indentation
+IndentWidth: 4
+TabWidth: 4
+AccessModifierOffset: -2
+
+# Do not compact short functions into a single line
+AllowShortFunctionsOnASingleLine: false
