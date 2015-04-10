@@ -1095,6 +1095,58 @@ void ChLinkLock::UpdateForces(double mytime)
 // add constraints
 //
 
+int ChLinkLock::GetDOC_d  ()
+{
+	int mdocd = ChLinkMasked::GetDOC_d();
+	
+	if (limit_X && limit_X->Get_active())
+	{
+		if (limit_X->constr_lower.IsActive())
+			++mdocd;
+		if (limit_X->constr_upper.IsActive())
+			++mdocd;
+	}
+	if (limit_Y && limit_Y->Get_active())
+	{
+		if (limit_Y->constr_lower.IsActive())
+			++mdocd;
+		if (limit_Y->constr_upper.IsActive())
+			++mdocd;
+	}
+	if (limit_Z && limit_Z->Get_active())
+	{
+		if (limit_Z->constr_lower.IsActive())
+			++mdocd;
+		if (limit_Z->constr_upper.IsActive())
+			++mdocd;
+	}
+	if (limit_Rx && limit_Rx->Get_active())
+	{
+		if (limit_Rx->constr_lower.IsActive())
+			++mdocd;
+		if (limit_Rx->constr_upper.IsActive())
+			++mdocd;
+	}	
+	if (limit_Ry && limit_Ry->Get_active())
+	{
+		if (limit_Ry->constr_lower.IsActive())
+			++mdocd;
+		if (limit_Ry->constr_upper.IsActive())
+			++mdocd;
+	}
+	if (limit_Rz && limit_Rz->Get_active())
+	{
+		if (limit_Rz->constr_lower.IsActive())
+			++mdocd;
+		if (limit_Rz->constr_upper.IsActive())
+			++mdocd;
+	}
+
+	return mdocd;
+}
+
+
+
 
 void ChLinkLock::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
 {
@@ -1208,6 +1260,333 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L,	const ChVect
   // NOT NEEDED?, since C_force and react_force must stay separated???
   // react_force  = Vadd(react_force, C_force);
   // react_torque = Vadd(react_torque, C_torque);
+}
+
+
+void ChLinkLock::IntLoadResidual_CqL(
+					const unsigned int off_L,	 ///< offset in L multipliers
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+					const ChVectorDynamic<>& L,  ///< the L vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	// parent class:
+	ChLinkMasked::IntLoadResidual_CqL(off_L, R, L, c);
+
+	int local_offset= this->GetDOC_c();
+
+	if (limit_X && limit_X->Get_active()) {
+		if (limit_X->constr_lower.IsActive()) {
+			limit_X->constr_lower.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+		if (limit_X->constr_upper.IsActive()) {
+			limit_X->constr_upper.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+	}
+	if (limit_Y && limit_Y->Get_active()) {
+		if (limit_Y->constr_lower.IsActive()) {
+			limit_Y->constr_lower.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+		if (limit_Y->constr_upper.IsActive()) {
+			limit_Y->constr_upper.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+	}
+	if (limit_Z && limit_Z->Get_active()) {
+		if (limit_Z->constr_lower.IsActive()) {
+			limit_Z->constr_lower.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+		if (limit_Z->constr_upper.IsActive()) {
+			limit_Z->constr_upper.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+	}
+	if (limit_Rx && limit_Rx->Get_active()) {
+		if (limit_Rx->constr_lower.IsActive()) {
+			limit_Rx->constr_lower.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+		if (limit_Rx->constr_upper.IsActive()) {
+			limit_Rx->constr_upper.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+	}
+	if (limit_Ry && limit_Ry->Get_active()) {
+		if (limit_Ry->constr_lower.IsActive()) {
+			limit_Ry->constr_lower.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+		if (limit_Ry->constr_upper.IsActive()) {
+			limit_Ry->constr_upper.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+	}
+	if (limit_Rz && limit_Rz->Get_active()) {
+		if (limit_Rz->constr_lower.IsActive()) {
+			limit_Rz->constr_lower.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+		if (limit_Rz->constr_upper.IsActive()) {
+			limit_Rz->constr_upper.MultiplyTandAdd(R, L( off_L+local_offset  ) *c);
+			++local_offset;
+		}
+	}
+	
+}
+
+void ChLinkLock::IntLoadConstraint_C(
+					const unsigned int off_L,	 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+					const double c,				 ///< a scaling factor
+					bool do_clamp,				 ///< apply clamping to c*C?
+					double recovery_clamp		 ///< value for min/max clamping of c*C
+					)
+{
+	// parent class:
+	ChLinkMasked::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
+
+	int local_offset= this->GetDOC_c();
+
+	if (limit_X && limit_X->Get_active()) {
+		if (limit_X->constr_lower.IsActive()) {
+			Qc(off_L+local_offset) += limit_X->constr_lower.Get_b_i()+ChMax (c*(-limit_X->Get_min()+relM.pos.x), -recovery_clamp);
+			++local_offset;
+		}
+		if (limit_X->constr_upper.IsActive()) {
+			Qc(off_L+local_offset) += limit_X->constr_upper.Get_b_i()+ChMax (c*( limit_X->Get_max()-relM.pos.x), -recovery_clamp);
+			++local_offset;
+		}
+	}
+	if (limit_Y && limit_Y->Get_active()) {
+		if (limit_Y->constr_lower.IsActive()) {
+			Qc(off_L+local_offset) += limit_Y->constr_lower.Get_b_i()+ChMax (c*(-limit_Y->Get_min()+relM.pos.x), -recovery_clamp);
+			++local_offset;
+		}
+		if (limit_Y->constr_upper.IsActive()) {
+			Qc(off_L+local_offset) += limit_Y->constr_upper.Get_b_i()+ChMax (c*( limit_Y->Get_max()-relM.pos.x), -recovery_clamp);
+			++local_offset;
+		}
+	}
+	if (limit_Z && limit_Z->Get_active()) {
+		if (limit_Z->constr_lower.IsActive()) {
+			Qc(off_L+local_offset) += limit_Z->constr_lower.Get_b_i()+ChMax (c*(-limit_Z->Get_min()+relM.pos.x), -recovery_clamp);
+			++local_offset;
+		}
+		if (limit_Z->constr_upper.IsActive()) {
+			Qc(off_L+local_offset) += limit_Z->constr_upper.Get_b_i()+ChMax (c*( limit_Z->Get_max()-relM.pos.x), -recovery_clamp);
+			++local_offset;
+		}
+	}
+	if (limit_Rx && limit_Rx->Get_active()) {
+		if (limit_Rx->constr_lower.IsActive()) {
+			Qc(off_L+local_offset) += limit_Rx->constr_lower.Get_b_i()+ChMax (c*(- sin(0.5*limit_Rx->Get_min()) +relM.rot.e1), -recovery_clamp);
+			++local_offset;
+		}
+		if (limit_Rx->constr_upper.IsActive()) {
+			Qc(off_L+local_offset) += limit_Rx->constr_lower.Get_b_i()+ChMax (c*(  sin(0.5*limit_Rx->Get_max()) -relM.rot.e1), -recovery_clamp);
+			++local_offset;
+		}
+	}
+	if (limit_Ry && limit_Ry->Get_active()) {
+		if (limit_Ry->constr_lower.IsActive()) {
+			Qc(off_L+local_offset) += limit_Ry->constr_lower.Get_b_i()+ChMax (c*(- sin(0.5*limit_Ry->Get_min()) +relM.rot.e1), -recovery_clamp);
+			++local_offset;
+		}
+		if (limit_Ry->constr_upper.IsActive()) {
+			Qc(off_L+local_offset) += limit_Ry->constr_lower.Get_b_i()+ChMax (c*(  sin(0.5*limit_Ry->Get_max()) -relM.rot.e1), -recovery_clamp);
+			++local_offset;
+		}
+	}
+	if (limit_Rz && limit_Rz->Get_active()) {
+		if (limit_Rz->constr_lower.IsActive()) {
+			Qc(off_L+local_offset) += limit_Rz->constr_lower.Get_b_i()+ChMax (c*(- sin(0.5*limit_Rz->Get_min()) +relM.rot.e1), -recovery_clamp);
+			++local_offset;
+		}
+		if (limit_Rz->constr_upper.IsActive()) {
+			Qc(off_L+local_offset) += limit_Rz->constr_lower.Get_b_i()+ChMax (c*(  sin(0.5*limit_Rz->Get_max()) -relM.rot.e1), -recovery_clamp);
+			++local_offset;
+		}
+	}
+
+}
+
+void ChLinkLock::IntLoadConstraint_Ct(
+					const unsigned int off_L,	 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
+					const double c				 ///< a scaling factor
+					)
+{
+	// parent class:
+	ChLinkMasked::IntLoadConstraint_Ct(off_L, Qc, c);
+
+	// nothing to do for ChLinkLimit
+}
+
+
+void ChLinkLock::IntToLCP(
+					const unsigned int off_v,			///< offset in v, R
+					const ChStateDelta& v,
+					const ChVectorDynamic<>& R,
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	// parent class:
+	ChLinkMasked::IntToLCP(off_v, v, R, off_L, L, Qc);
+
+	int local_offset= this->GetDOC_c();
+
+	if (limit_X && limit_X->Get_active()) {
+		if (limit_X->constr_lower.IsActive()) {
+			limit_X->constr_lower.Set_l_i( L(off_L+local_offset) );
+			limit_X->constr_lower.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+		if (limit_X->constr_upper.IsActive()) {
+			limit_X->constr_upper.Set_l_i( L(off_L+local_offset) );
+			limit_X->constr_upper.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+	}
+	if (limit_Y && limit_Y->Get_active()) {
+		if (limit_Y->constr_lower.IsActive()) {
+			limit_Y->constr_lower.Set_l_i( L(off_L+local_offset) );
+			limit_Y->constr_lower.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+		if (limit_Y->constr_upper.IsActive()) {
+			limit_Y->constr_upper.Set_l_i( L(off_L+local_offset) );
+			limit_Y->constr_upper.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+	}
+	if (limit_Z && limit_Z->Get_active()) {
+		if (limit_Z->constr_lower.IsActive()) {
+			limit_Z->constr_lower.Set_l_i( L(off_L+local_offset) );
+			limit_Z->constr_lower.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+		if (limit_Z->constr_upper.IsActive()) {
+			limit_Z->constr_upper.Set_l_i( L(off_L+local_offset) );
+			limit_Z->constr_upper.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+	}
+	if (limit_Rx && limit_Rx->Get_active()) {
+		if (limit_Rx->constr_lower.IsActive()) {
+			limit_Rx->constr_lower.Set_l_i( L(off_L+local_offset) );
+			limit_Rx->constr_lower.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+		if (limit_Rx->constr_upper.IsActive()) {
+			limit_Rx->constr_upper.Set_l_i( L(off_L+local_offset) );
+			limit_Rx->constr_upper.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+	}
+	if (limit_Ry && limit_Ry->Get_active()) {
+		if (limit_Ry->constr_lower.IsActive()) {
+			limit_Ry->constr_lower.Set_l_i( L(off_L+local_offset) );
+			limit_Ry->constr_lower.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+		if (limit_Ry->constr_upper.IsActive()) {
+			limit_Ry->constr_upper.Set_l_i( L(off_L+local_offset) );
+			limit_Ry->constr_upper.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+	}
+	if (limit_Rz && limit_Rz->Get_active()) {
+		if (limit_Rz->constr_lower.IsActive()) {
+			limit_Rz->constr_lower.Set_l_i( L(off_L+local_offset) );
+			limit_Rz->constr_lower.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+		if (limit_Rz->constr_upper.IsActive()) {
+			limit_Rz->constr_upper.Set_l_i( L(off_L+local_offset) );
+			limit_Rz->constr_upper.Set_b_i( Qc(off_L+local_offset) );
+			++local_offset;
+		}
+	}
+}
+
+void ChLinkLock::IntFromLCP(
+					const unsigned int off_v,			///< offset in v
+					ChStateDelta& v,
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+		// parent class:
+	ChLinkMasked::IntFromLCP(off_L, v, off_L, L);
+
+	int local_offset= this->GetDOC_c();
+
+	if (limit_X && limit_X->Get_active()) {
+		if (limit_X->constr_lower.IsActive()) {
+			L(off_L+local_offset) = limit_X->constr_lower.Get_l_i();
+			++local_offset;
+		}
+		if (limit_X->constr_upper.IsActive()) {
+			L(off_L+local_offset) = limit_X->constr_upper.Get_l_i();
+			++local_offset;
+		}
+	}
+	if (limit_Y && limit_Y->Get_active()) {
+		if (limit_Y->constr_lower.IsActive()) {
+			L(off_L+local_offset) = limit_Y->constr_lower.Get_l_i();
+			++local_offset;
+		}
+		if (limit_Y->constr_upper.IsActive()) {
+			L(off_L+local_offset) = limit_Y->constr_upper.Get_l_i();
+			++local_offset;
+		}
+	}
+	if (limit_Z && limit_Z->Get_active()) {
+		if (limit_Z->constr_lower.IsActive()) {
+			L(off_L+local_offset) = limit_Z->constr_lower.Get_l_i();
+			++local_offset;
+		}
+		if (limit_Z->constr_upper.IsActive()) {
+			L(off_L+local_offset) = limit_Z->constr_upper.Get_l_i();
+			++local_offset;
+		}
+	}
+	if (limit_Rx && limit_Rx->Get_active()) {
+		if (limit_Rx->constr_lower.IsActive()) {
+			L(off_L+local_offset) = limit_Rx->constr_lower.Get_l_i();
+			++local_offset;
+		}
+		if (limit_Rx->constr_upper.IsActive()) {
+			L(off_L+local_offset) = limit_Rx->constr_upper.Get_l_i();
+			++local_offset;
+		}
+	}
+	if (limit_Ry && limit_Ry->Get_active()) {
+		if (limit_Ry->constr_lower.IsActive()) {
+			L(off_L+local_offset) = limit_Ry->constr_lower.Get_l_i();
+			++local_offset;
+		}
+		if (limit_Ry->constr_upper.IsActive()) {
+			L(off_L+local_offset) = limit_Ry->constr_upper.Get_l_i();
+			++local_offset;
+		}
+	}
+	if (limit_Rz && limit_Rz->Get_active()) {
+		if (limit_Rz->constr_lower.IsActive()) {
+			L(off_L+local_offset) = limit_Rz->constr_lower.Get_l_i();
+			++local_offset;
+		}
+		if (limit_Rz->constr_upper.IsActive()) {
+			L(off_L+local_offset) = limit_Rz->constr_upper.Get_l_i();
+			++local_offset;
+		}
+	}
 }
 
 

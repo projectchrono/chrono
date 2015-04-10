@@ -201,9 +201,23 @@ public:
 			//
 			// STATE FUNCTIONS
 			//
+				/// Get the number of scalar constraints, if any, in this item 
+	virtual int GetDOC  ()   {return GetDOC_c()+GetDOC_d();}
+				/// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
+	//virtual int GetDOC_c  () {return 0;} // use parent ChLinkMasked ndof
+				/// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
+	virtual int GetDOC_d  (); // customized because there might be some active ChLinkLimit 
 
-		/// Specialize the following respect to ChLinkMasked base ,in order to update intuitive react_torque and react_force
+				/// Specialize the following respect to ChLinkMasked base ,in order to update intuitive react_torque and react_force
 	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
+
+				/// Specialize the following respect to ChLinkMasked base because there might be some active ChLinkLimit
+	//virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c ); //**TODO
+	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
+	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
+	virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
+	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
+	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
 
 			//
 			// LCP SYSTEM FUNCTIONS   ( functions to assembly/manage data for system solver)
