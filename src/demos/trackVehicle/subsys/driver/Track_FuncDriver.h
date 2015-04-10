@@ -39,7 +39,7 @@ public:
 
   /// constructor generates a function to apply to the throttle (0 to 1)
   /// after some time to allow for settling.
-  Track_FuncDriver(int num_tracks,
+  explicit Track_FuncDriver(int num_tracks,
     ChSharedPtr<Function_T> throttle_func,
     double time_start,
     double throttle_min = -1.0,
