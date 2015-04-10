@@ -832,6 +832,8 @@ public:
 				/// Note, eta=-1 at node1, eta=+1 at node2.
 				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField().
 				/// Results are not corotated, and are expressed in the reference system of beam.
+				/// This is not mandatory for the element to work, but it can be useful for plotting,
+				/// showing results, etc.
 	virtual void EvaluateSectionForceTorque(const double eta, const ChMatrix<>& displ, ChVector<>& Fforce, ChVector<>& Mtorque)
 				{
 					assert (!section.IsNull());
