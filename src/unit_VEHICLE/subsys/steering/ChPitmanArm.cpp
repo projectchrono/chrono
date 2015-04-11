@@ -33,28 +33,6 @@ namespace chrono {
 ChPitmanArm::ChPitmanArm(const std::string& name)
 : ChSteering(name)
 {
-  // Create the steering link body
-  m_link = ChSharedBodyPtr(new ChBody);
-  m_link->SetNameString(name + "_link");
-
-  // Create the Pitman arm body
-  m_arm = ChSharedBodyPtr(new ChBody);
-  m_arm->SetNameString(name + "_arm");
-
-  // Revolute joint between Pitman arm and chassis. Note that this is modeled as
-  // a ChLinkEngine to allow driving it with imposed rotation (steering input)
-  m_revolute = ChSharedPtr<ChLinkEngine>(new ChLinkEngine);
-  m_revolute->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
-  m_revolute->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-  m_revolute->SetNameString(name + "_revolute");
-
-  // Universal joint between Pitman arm and steering link
-  m_universal = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
-  m_universal->SetNameString(name + "_universal");
-
-  // Revolute-spherical joint to model the idler arm
-  m_revsph = ChSharedPtr<ChLinkRevoluteSpherical>(new ChLinkRevoluteSpherical);
-  m_revsph->SetNameString(name + "_revsph");
 }
 
 
@@ -88,7 +66,9 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   ChVector<> w;
   ChMatrix33<> rot;
 
-  // Initialize the steering link body
+  // Create and initialize the steering link body
+  m_link = ChSharedBodyPtr(new ChBody);
+  m_link->SetNameString(m_name + "_link");
   m_link->SetPos(points[STEERINGLINK]);
   m_link->SetRot(steering_to_abs.GetRot());
   m_link->SetMass(getSteeringLinkMass());
@@ -96,7 +76,9 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   AddVisualizationSteeringLink(m_link, points[UNIV], points[REVSPH_S], points[TIEROD_PA], points[TIEROD_IA], getSteeringLinkRadius());
   chassis->GetSystem()->AddBody(m_link);
 
-  // Initialize the Pitman arm body
+  // Create and initialize the Pitman arm body
+  m_arm = ChSharedBodyPtr(new ChBody);
+  m_arm->SetNameString(m_name + "_arm");
   m_arm->SetPos(points[PITMANARM]);
   m_arm->SetRot(steering_to_abs.GetRot());
   m_arm->SetMass(getPitmanArmMass());
@@ -104,7 +86,9 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   AddVisualizationPitmanArm(m_arm, points[REV], points[UNIV], getPitmanArmRadius());
   chassis->GetSystem()->AddBody(m_arm);
 
-  // Initialize the revolute joint between chassis and Pitman arm.
+  // Create and initialize the revolute joint between chassis and Pitman arm.
+  // Note that this is modeled as a ChLinkEngine to allow driving it with
+  // imposed rotation (steering input).
   // The z direction of the joint orientation matrix is dirs[REV_AXIS], assumed
   // to be a unit vector.
   u = points[PITMANARM] - points[REV];
@@ -113,20 +97,26 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   u = Vcross(v, dirs[REV_AXIS]);
   rot.Set_A_axis(u, v, dirs[REV_AXIS]);
 
+  m_revolute = ChSharedPtr<ChLinkEngine>(new ChLinkEngine);
+  m_revolute->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
+  m_revolute->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+  m_revolute->SetNameString(m_name + "_revolute");
   m_revolute->Initialize(chassis, m_arm, ChCoordsys<>(points[REV], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_revolute);
 
-  // Initialize the universal joint between the Pitman arm and steering link.
+  // Create and initialize the universal joint between the Pitman arm and steering link.
   // The x and y directions of the joint orientation matrix are given by
   // dirs[UNIV_AXIS_ARM] and dirs[UNIV_AXIS_LINK], assumed to be unit vectors
   // and orthogonal.
   w = Vcross(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK]);
   rot.Set_A_axis(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
 
+  m_universal = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
+  m_universal->SetNameString(m_name + "_universal");
   m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universal);
 
-  // Initialize the revolute-spherical joint (massless idler arm).
+  // Create and initialize the revolute-spherical joint (massless idler arm).
   // The length of the idler arm is the distance between the two hardpoints.
   // The z direction of the revolute joint orientation matrix is
   // dirs[REVSPH_AXIS], assumed to be a unit vector.
@@ -138,6 +128,8 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   u = Vcross(v, dirs[REVSPH_AXIS]);
   rot.Set_A_axis(u, v, dirs[REVSPH_AXIS]);
 
+  m_revsph = ChSharedPtr<ChLinkRevoluteSpherical>(new ChLinkRevoluteSpherical);
+  m_revsph->SetNameString(m_name + "_revsph");
   m_revsph->Initialize(chassis, m_link, ChCoordsys<>(points[REVSPH_R], rot.Get_A_quaternion()), distance);
   chassis->GetSystem()->AddLink(m_revsph);
 }

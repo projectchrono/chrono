@@ -94,14 +94,12 @@ public:
   /// Get the current deformation velocity of the shock (damper) element.
   double GetShockVelocity(ChVehicleSide side) const { return m_shock[side]->Get_SpringVelocity(); }
 
-  /// global coordinates, LCA ball joint position
+  /// Global coordinates, LCA ball joint position
   ChVector<> Get_LCA_sph_pos(ChVehicleSide side) {return m_sphericalLCA[side]->GetMarker2()->GetAbsCoord().pos;}
 
-  /// global coordinates, UCA ball joint position
+  /// Global coordinates, UCA ball joint position
   ChVector<> Get_UCA_sph_pos(ChVehicleSide side) {return m_sphericalUCA[side]->GetMarker2()->GetAbsCoord().pos;}
 
-
-  
   /// Log current constraint violations.
   virtual void LogConstraintViolations(ChVehicleSide side);
 
@@ -214,8 +212,6 @@ protected:
 
 private:
 
-  void CreateSide(ChVehicleSide      side,
-                  const std::string& suffix);
   void InitializeSide(ChVehicleSide                   side,
                       ChSharedPtr<ChBodyAuxRef>       chassis,
                       ChSharedPtr<ChBody>             tierod_body,

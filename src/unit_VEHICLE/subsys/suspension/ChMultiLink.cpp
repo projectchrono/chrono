@@ -106,8 +106,6 @@ ChMultiLink::ChMultiLink(const std::string& name)
   m_shockCB(NULL),
   m_springCB(NULL)
 {
-  CreateSide(LEFT, "_L");
-  CreateSide(RIGHT, "_R");
 }
 
 ChMultiLink::~ChMultiLink()
@@ -124,61 +122,6 @@ ChMultiLink::~ChMultiLink()
     delete m_springCB;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChMultiLink::CreateSide(ChVehicleSide      side,
-                             const std::string& suffix)
-{
-  // Create the spindle and upright bodies
-  m_spindle[side] = ChSharedBodyPtr(new ChBody);
-  m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
-  m_upright[side] = ChSharedBodyPtr(new ChBody);
-  m_upright[side]->SetNameString(m_name + "_upright" + suffix);
-
-  // Revolute joint between spindle and upright
-  m_revolute[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-  m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-
-  // Bodies and constraints to model upper arm
-  m_upperArm[side] = ChSharedBodyPtr(new ChBody);
-  m_upperArm[side]->SetNameString(m_name + "_upperArm" + suffix);
-  m_revoluteUA[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-  m_revoluteUA[side]->SetNameString(m_name + "_revoluteUA" + suffix);
-  m_sphericalUA[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalUA[side]->SetNameString(m_name + "_sphericalUA" + suffix);
-
-  // Bodies and constraints to model lateral
-  m_lateral[side] = ChSharedBodyPtr(new ChBody);
-  m_lateral[side]->SetNameString(m_name + "_lateral" + suffix);
-  m_universalLateralChassis[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
-  m_universalLateralChassis[side]->SetNameString(m_name + "_universalLateralChassis" + suffix);
-  m_sphericalLateralUpright[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalLateralUpright[side]->SetNameString(m_name + "_sphericalLateralUpright" + suffix);
-
-  // Bodies and constraints to model trailing link
-  m_trailingLink[side] = ChSharedBodyPtr(new ChBody);
-  m_trailingLink[side]->SetNameString(m_name + "_trailingLink" + suffix);
-  m_universalTLChassis[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
-  m_universalTLChassis[side]->SetNameString(m_name + "_universalTLChassis" + suffix);
-  m_sphericalTLUpright[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalTLUpright[side]->SetNameString(m_name + "_sphericalTLUpright" + suffix);
-
-  // Distance constraint to model the tierod
-  m_distTierod[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-  m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
-
-  // Spring-damper
-  m_shock[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
-  m_shock[side]->SetNameString(m_name + "_shock" + suffix);
-  m_spring[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
-  m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-
-  // Create the axle shaft and its connection to the spindle.
-  m_axle[side] = ChSharedPtr<ChShaft>(new ChShaft);
-  m_axle[side]->SetNameString(m_name + "_axle" + suffix);
-  m_axle_to_spindle[side] = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-  m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -228,11 +171,15 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
                                  const std::vector<ChVector<> >& points,
                                  const std::vector<ChVector<> >& dirs)
 {
+  std::string suffix = (side == LEFT) ? "_L" : "_R";
+
   // Chassis orientation (expressed in absolute frame)
   // Recall that the suspension reference frame is aligned with the chassis.
   ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
-  // Initialize spindle body (same orientation as the chassis)
+  // Create and initialize spindle body (same orientation as the chassis)
+  m_spindle[side] = ChSharedBodyPtr(new ChBody);
+  m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
   m_spindle[side]->SetPos(points[SPINDLE]);
   m_spindle[side]->SetRot(chassisRot);
   m_spindle[side]->SetMass(getSpindleMass());
@@ -240,7 +187,9 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
   chassis->GetSystem()->AddBody(m_spindle[side]);
 
-  // Initialize upright body (same orientation as the chassis)
+  // Create and initialize upright body (same orientation as the chassis)
+  m_upright[side] = ChSharedBodyPtr(new ChBody);
+  m_upright[side]->SetNameString(m_name + "_upright" + suffix);
   m_upright[side]->SetPos(points[UPRIGHT]);
   m_upright[side]->SetRot(chassisRot);
   m_upright[side]->SetMass(getUprightMass());
@@ -254,7 +203,7 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   ChVector<> w;
   ChMatrix33<> rot;
 
-  // Initialize Upper Arm body.
+  // Create and initialize Upper Arm body.
   // Determine the rotation matrix of the upper arm based on the plane of the hard points
   // (z axis normal to the plane of the upper arm)
   w = Vcross(points[UA_B] - points[UA_U], points[UA_F] - points[UA_U]);
@@ -264,6 +213,8 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   v = Vcross(w, u);
   rot.Set_A_axis(u, v, w);
 
+  m_upperArm[side] = ChSharedBodyPtr(new ChBody);
+  m_upperArm[side]->SetNameString(m_name + "_upperArm" + suffix);
   m_upperArm[side]->SetPos(points[UA_CM]);
   m_upperArm[side]->SetRot(rot);
   m_upperArm[side]->SetMass(getUpperArmMass());
@@ -271,7 +222,7 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   AddVisualizationUpperArm(m_upperArm[side], points[UA_F], points[UA_B], points[UA_U], getUpperArmRadius());
   chassis->GetSystem()->AddBody(m_upperArm[side]);
 
-  // Initialize lateral body.
+  // Create and initialize lateral body.
   // Determine the rotation matrix of the lateral based on the plane of the hard points
   // (z-axis along the length of the track rod)
   v = Vcross(points[LAT_U] - points[TL_U], points[LAT_C] - points[TL_U]);
@@ -281,6 +232,8 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
 
+  m_lateral[side] = ChSharedBodyPtr(new ChBody);
+  m_lateral[side]->SetNameString(m_name + "_lateral" + suffix);
   m_lateral[side]->SetPos(points[LAT_CM]);
   m_lateral[side]->SetRot(rot);
   m_lateral[side]->SetMass(getLateralMass());
@@ -288,7 +241,7 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   AddVisualizationLateral(m_lateral[side], points[LAT_U], points[LAT_C], getLateralRadius());
   chassis->GetSystem()->AddBody(m_lateral[side]);
 
-  // Initialize trailing link body.
+  // Create and initialize trailing link body.
   // Determine the rotation matrix of the trailing link based on the plane of the hard points
   // (z-axis along the length of the trailing link)
   v = Vcross(points[TL_U] - points[SPRING_L], points[TL_C] - points[SPRING_L]);
@@ -298,6 +251,8 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
 
+  m_trailingLink[side] = ChSharedBodyPtr(new ChBody);
+  m_trailingLink[side]->SetNameString(m_name + "_trailingLink" + suffix);
   m_trailingLink[side]->SetPos(points[TL_CM]);
   m_trailingLink[side]->SetRot(rot);
   m_trailingLink[side]->SetMass(getTrailingLinkMass());
@@ -305,12 +260,15 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   AddVisualizationTrailingLink(m_trailingLink[side], points[TL_C], points[SPRING_L], points[TL_U], getTrailingLinkRadius());
   chassis->GetSystem()->AddBody(m_trailingLink[side]);
 
-  // Initialize the revolute joint between upright and spindle.
+  // Create and initialize the revolute joint between upright and spindle.
   ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+
+  m_revolute[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
   m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
-  // Initialize the revolute joint between chassis and upper arm.
+  // Create and initialize the revolute joint between chassis and upper arm.
   // Determine the joint orientation matrix from the hardpoint locations by
   // constructing a rotation matrix with the z axis along the joint direction
   // and the y axis normal to the plane of the upper arm.
@@ -321,55 +279,79 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
 
-  m_revoluteUA[side]->Initialize(chassis, m_upperArm[side], ChCoordsys<>((points[UA_F]+points[UA_B])/2, rot.Get_A_quaternion()));
+  m_revoluteUA[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_revoluteUA[side]->SetNameString(m_name + "_revoluteUA" + suffix);
+  m_revoluteUA[side]->Initialize(chassis, m_upperArm[side], ChCoordsys<>((points[UA_F] + points[UA_B]) / 2, rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_revoluteUA[side]);
 
-  // Initialize the spherical joint between upright and upper arm.
+  // Create and initialize the spherical joint between upright and upper arm.
+  m_sphericalUA[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalUA[side]->SetNameString(m_name + "_sphericalUA" + suffix);
   m_sphericalUA[side]->Initialize(m_upperArm[side], m_upright[side], ChCoordsys<>(points[UA_U], QUNIT));
   chassis->GetSystem()->AddLink(m_sphericalUA[side]);
 
-  // Initialize the spherical joint between upright and track rod.
+  // Create and initialize the spherical joint between upright and track rod.
+  m_sphericalLateralUpright[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalLateralUpright[side]->SetNameString(m_name + "_sphericalLateralUpright" + suffix);
   m_sphericalLateralUpright[side]->Initialize(m_lateral[side], m_upright[side], ChCoordsys<>(points[LAT_U], QUNIT));
   chassis->GetSystem()->AddLink(m_sphericalLateralUpright[side]);
 
-  // Initialize the universal joint between chassis and track rod.
+  // Create and initialize the universal joint between chassis and track rod.
   u = dirs[UNIV_AXIS_CHASSIS_LAT];
   v = dirs[UNIV_AXIS_LINK_LAT];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
+
+  m_universalLateralChassis[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
+  m_universalLateralChassis[side]->SetNameString(m_name + "_universalLateralChassis" + suffix);
   m_universalLateralChassis[side]->Initialize(m_lateral[side], chassis, ChFrame<>(points[LAT_C], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universalLateralChassis[side]);
 
-  // Initialize the spherical joint between upright and trailing link.
+  // Create and initialize the spherical joint between upright and trailing link.
+  m_sphericalTLUpright[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalTLUpright[side]->SetNameString(m_name + "_sphericalTLUpright" + suffix);
   m_sphericalTLUpright[side]->Initialize(m_trailingLink[side], m_upright[side], ChCoordsys<>(points[TL_U], QUNIT));
   chassis->GetSystem()->AddLink(m_sphericalTLUpright[side]);
 
-  // Initialize the universal joint between chassis and trailing link.
+  // Create and initialize the universal joint between chassis and trailing link.
   u = dirs[UNIV_AXIS_CHASSIS_TL];
   v = dirs[UNIV_AXIS_LINK_TL];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
+
+  m_universalTLChassis[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
+  m_universalTLChassis[side]->SetNameString(m_name + "_universalTLChassis" + suffix);
   m_universalTLChassis[side]->Initialize(m_trailingLink[side], chassis, ChFrame<>(points[TL_C], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universalTLChassis[side]);
 
-  // Initialize the tierod distance constraint between chassis and upright.
+  // Create and initialize the tierod distance constraint between chassis and upright.
+  m_distTierod[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+  m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
   m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
   chassis->GetSystem()->AddLink(m_distTierod[side]);
 
-  // Initialize the spring/damper
+  // Create and initialize the spring/damper
+  m_shock[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
+  m_shock[side]->SetNameString(m_name + "_shock" + suffix);
   m_shock[side]->Initialize(chassis, m_trailingLink[side], false, points[SHOCK_C], points[SHOCK_L]);
   m_shock[side]->Set_SpringCallback(m_shockCB);
   chassis->GetSystem()->AddLink(m_shock[side]);
 
+  m_spring[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
+  m_spring[side]->SetNameString(m_name + "_spring" + suffix);
   m_spring[side]->Initialize(chassis, m_trailingLink[side], false, points[SPRING_C], points[SPRING_L], false, getSpringRestLength());
   m_spring[side]->Set_SpringCallback(m_springCB);
   chassis->GetSystem()->AddLink(m_spring[side]);
 
-  // Initialize the axle shaft and its connection to the spindle. Note that the
+  // Create and initialize the axle shaft and its connection to the spindle. Note that the
   // spindle rotates about the Y axis.
+  m_axle[side] = ChSharedPtr<ChShaft>(new ChShaft);
+  m_axle[side]->SetNameString(m_name + "_axle" + suffix);
   m_axle[side]->SetInertia(getAxleInertia());
   chassis->GetSystem()->Add(m_axle[side]);
 
+  m_axle_to_spindle[side] = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+  m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
   m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
   chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }

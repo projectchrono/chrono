@@ -40,17 +40,6 @@ namespace chrono {
 ChRackPinion::ChRackPinion(const std::string& name)
 : ChSteering(name)
 {
-  // Create the steering link body
-  m_link = ChSharedPtr<ChBody>(new ChBody);
-  m_link->SetNameString(name + "_link");
-
-  // Prismatic joint between link and chassis.
-  m_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
-  m_prismatic->SetNameString(name + "_prismatic");
-
-  // Linear actuator on link.
-  m_actuator = ChSharedPtr<ChLinkLinActuator>(new ChLinkLinActuator);
-  m_actuator->SetNameString(name + "_actuator");
 }
 
 
@@ -64,9 +53,12 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   ChFrame<> steering_to_abs(location, rotation);
   steering_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-  // Initialize the steering link body
+  // Create and initialize the steering link body
   ChVector<> link_local(0, GetSteeringLinkCOM(), 0);
   ChVector<> link_abs = steering_to_abs.TransformPointLocalToParent(link_local);
+
+  m_link = ChSharedPtr<ChBody>(new ChBody);
+  m_link->SetNameString(m_name + "_link");
   m_link->SetPos(link_abs);
   m_link->SetRot(steering_to_abs.GetRot());
   m_link->SetMass(GetSteeringLinkMass());
@@ -74,11 +66,13 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   AddVisualizationSteeringLink();
   chassis->GetSystem()->AddBody(m_link);
 
-  // Initialize the prismatic joint between chassis and link.
+  // Create and initialize the prismatic joint between chassis and link.
+  m_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
+  m_prismatic->SetNameString(m_name + "_prismatic");
   m_prismatic->Initialize(chassis, m_link, ChCoordsys<>(link_abs, steering_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
   chassis->GetSystem()->AddLink(m_prismatic);
 
-  // Initialize the linear actuator.
+  // Create and initialize the linear actuator.
   // The offset value here must be larger than any possible displacement of the
   // steering link body (the rack) so that we do not reach the singular
   // configuration of the ChLinkLinActuator (when the distance between the two
@@ -86,6 +80,9 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   double offset = 10;
   ChVector<> pt1 = link_abs;
   ChVector<> pt2 = link_abs - offset * steering_to_abs.GetRot().GetYaxis();
+
+  m_actuator = ChSharedPtr<ChLinkLinActuator>(new ChLinkLinActuator);
+  m_actuator->SetNameString(m_name + "_actuator");
   m_actuator->Initialize(chassis, m_link, false, ChCoordsys<>(pt1, QUNIT), ChCoordsys<>(pt2, QUNIT));
   m_actuator->Set_lin_offset(offset);
   chassis->GetSystem()->AddLink(m_actuator);

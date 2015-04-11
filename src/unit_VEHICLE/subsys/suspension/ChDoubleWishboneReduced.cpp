@@ -39,48 +39,6 @@ namespace chrono {
 ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name)
 : ChSuspension(name)
 {
-  CreateSide(LEFT, "_L");
-  CreateSide(RIGHT, "_R");
-}
-
-void ChDoubleWishboneReduced::CreateSide(ChVehicleSide      side,
-                                         const std::string& suffix)
-{
-  // Create the spindle and upright bodies
-  m_spindle[side] = ChSharedBodyPtr(new ChBody);
-  m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
-  m_upright[side] = ChSharedBodyPtr(new ChBody);
-  m_upright[side]->SetNameString(m_name + "_upright" + suffix);
-
-  // Revolute joint between spindle and upright
-  m_revolute[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-  m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-
-  // Distance constraints to model upper control arm
-  m_distUCA_F[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-  m_distUCA_F[side]->SetNameString(m_name + "_distUCA_F" + suffix);
-  m_distUCA_B[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-  m_distUCA_B[side]->SetNameString(m_name + "_distUCA_B" + suffix);
-
-  // Distance constraints to model lower control arm
-  m_distLCA_F[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-  m_distLCA_F[side]->SetNameString(m_name + "_distLCA_F" + suffix);
-  m_distLCA_B[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-  m_distLCA_B[side]->SetNameString(m_name + "_distLCA_B" + suffix);
-
-  // Distance constraint to model the tierod
-  m_distTierod[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-  m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
-
-  // Spring-damper
-  m_shock[side] = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
-  m_shock[side]->SetNameString(m_name + "_shock" + suffix);
-
-  // Create the axle shaft and its connection to the spindle.
-  m_axle[side] = ChSharedPtr<ChShaft>(new ChShaft);
-  m_axle[side]->SetNameString(m_name + "_axle" + suffix);
-  m_axle_to_spindle[side] = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-  m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
 }
 
 
@@ -120,11 +78,15 @@ void ChDoubleWishboneReduced::InitializeSide(ChVehicleSide                   sid
                                              ChSharedPtr<ChBody>             tierod_body,
                                              const std::vector<ChVector<> >& points)
 {
+  std::string suffix = (side == LEFT) ? "_L" : "_R";
+
   // Chassis orientation (expressed in absolute frame)
   // Recall that the suspension reference frame is aligned with the chassis.
   ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
-  // Initialize spindle body (same orientation as the chassis)
+  // Create and initialize spindle body (same orientation as the chassis)
+  m_spindle[side] = ChSharedBodyPtr(new ChBody);
+  m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
   m_spindle[side]->SetPos(points[SPINDLE]);
   m_spindle[side]->SetRot(chassisRot);
   m_spindle[side]->SetMass(getSpindleMass());
@@ -132,7 +94,9 @@ void ChDoubleWishboneReduced::InitializeSide(ChVehicleSide                   sid
   AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
   chassis->GetSystem()->AddBody(m_spindle[side]);
 
-  // Initialize upright body (same orientation as the chassis)
+  // Create and initialize upright body (same orientation as the chassis)
+  m_upright[side] = ChSharedBodyPtr(new ChBody);
+  m_upright[side]->SetNameString(m_name + "_upright" + suffix);
   m_upright[side]->SetPos(points[UPRIGHT]);
   m_upright[side]->SetRot(chassisRot);
   m_upright[side]->SetMass(getUprightMass());
@@ -140,36 +104,56 @@ void ChDoubleWishboneReduced::InitializeSide(ChVehicleSide                   sid
   AddVisualizationUpright(m_upright[side], 0.5 * (points[SPINDLE] + points[UPRIGHT]), points[UCA_U], points[LCA_U], points[TIEROD_U], getUprightRadius());
   chassis->GetSystem()->AddBody(m_upright[side]);
 
-  // Initialize joints
+  // Create and initialize joints
   ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  m_revolute[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
   m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
+  m_distUCA_F[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+  m_distUCA_F[side]->SetNameString(m_name + "_distUCA_F" + suffix);
   m_distUCA_F[side]->Initialize(chassis, m_upright[side], false, points[UCA_F], points[UCA_U]);
   chassis->GetSystem()->AddLink(m_distUCA_F[side]);
+
+  m_distUCA_B[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+  m_distUCA_B[side]->SetNameString(m_name + "_distUCA_B" + suffix);
   m_distUCA_B[side]->Initialize(chassis, m_upright[side], false, points[UCA_B], points[UCA_U]);
   chassis->GetSystem()->AddLink(m_distUCA_B[side]);
 
+  m_distLCA_F[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+  m_distLCA_F[side]->SetNameString(m_name + "_distLCA_F" + suffix);
   m_distLCA_F[side]->Initialize(chassis, m_upright[side], false, points[LCA_F], points[LCA_U]);
   chassis->GetSystem()->AddLink(m_distLCA_F[side]);
+
+  m_distLCA_B[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+  m_distLCA_B[side]->SetNameString(m_name + "_distLCA_B" + suffix);
   m_distLCA_B[side]->Initialize(chassis, m_upright[side], false, points[LCA_B], points[LCA_U]);
   chassis->GetSystem()->AddLink(m_distLCA_B[side]);
 
+  m_distTierod[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+  m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
   m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
   chassis->GetSystem()->AddLink(m_distTierod[side]);
 
-  // Initialize the spring/damper
+  // Create and initialize the spring/damper
+  m_shock[side] = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+  m_shock[side]->SetNameString(m_name + "_shock" + suffix);
   m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
   m_shock[side]->Set_SpringK(getSpringCoefficient());
   m_shock[side]->Set_SpringR(getDampingCoefficient());
   m_shock[side]->Set_SpringRestLength(getSpringRestLength());
   chassis->GetSystem()->AddLink(m_shock[side]);
 
-  // Initialize the axle shaft and its connection to the spindle. Note that the
-  // spindle rotates about the Y axis.
+  // Create and initialize the axle shaft and its connection to the spindle.
+  // Note that the spindle rotates about the Y axis.
+  m_axle[side] = ChSharedPtr<ChShaft>(new ChShaft);
+  m_axle[side]->SetNameString(m_name + "_axle" + suffix);
   m_axle[side]->SetInertia(getAxleInertia());
   chassis->GetSystem()->Add(m_axle[side]);
 
+  m_axle_to_spindle[side] = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+  m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
   m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
   chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }

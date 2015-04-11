@@ -229,8 +229,6 @@ protected:
 
 private:
 
-  void CreateSide(ChVehicleSide      side,
-                  const std::string& suffix);
   void InitializeSide(ChVehicleSide                   side,
                       ChSharedPtr<ChBodyAuxRef>       chassis,
                       ChSharedPtr<ChBody>             tierod_body,
