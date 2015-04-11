@@ -170,7 +170,7 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
   ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
   // Create and initialize spindle body (same orientation as the chassis)
-  m_spindle[side] = ChSharedBodyPtr(new ChBody);
+  m_spindle[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
   m_spindle[side]->SetPos(points[SPINDLE]);
   m_spindle[side]->SetRot(chassisRot);
@@ -180,7 +180,7 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
   chassis->GetSystem()->AddBody(m_spindle[side]);
 
   // Create and initialize upright body (same orientation as the chassis)
-  m_upright[side] = ChSharedBodyPtr(new ChBody);
+  m_upright[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_upright[side]->SetNameString(m_name + "_upright" + suffix);
   m_upright[side]->SetPos(points[UPRIGHT]);
   m_upright[side]->SetRot(chassisRot);
@@ -205,7 +205,7 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
   v = Vcross(w, u);
   rot.Set_A_axis(u, v, w);
 
-  m_UCA[side] = ChSharedBodyPtr(new ChBody);
+  m_UCA[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_UCA[side]->SetNameString(m_name + "_UCA" + suffix);
   m_UCA[side]->SetPos(points[UCA_CM]);
   m_UCA[side]->SetRot(rot);
@@ -224,7 +224,7 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
   v = Vcross(w, u);
   rot.Set_A_axis(u, v, w);
 
-  m_LCA[side] = ChSharedBodyPtr(new ChBody);
+  m_LCA[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_LCA[side]->SetNameString(m_name + "_LCA" + suffix);
   m_LCA[side]->SetPos(points[LCA_CM]);
   m_LCA[side]->SetRot(rot);

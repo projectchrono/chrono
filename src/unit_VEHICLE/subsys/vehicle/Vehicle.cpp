@@ -293,7 +293,7 @@ void Vehicle::Create(const std::string& filename)
   // Create the chassis body
   // -------------------------------------------
 
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
 
   m_chassisMass = d["Chassis"]["Mass"].GetDouble();
   m_chassisCOM = loadVector(d["Chassis"]["COM"]);

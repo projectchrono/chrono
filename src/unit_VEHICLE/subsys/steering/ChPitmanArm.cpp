@@ -67,7 +67,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   ChMatrix33<> rot;
 
   // Create and initialize the steering link body
-  m_link = ChSharedBodyPtr(new ChBody);
+  m_link = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_link->SetNameString(m_name + "_link");
   m_link->SetPos(points[STEERINGLINK]);
   m_link->SetRot(steering_to_abs.GetRot());
@@ -77,7 +77,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   chassis->GetSystem()->AddBody(m_link);
 
   // Create and initialize the Pitman arm body
-  m_arm = ChSharedBodyPtr(new ChBody);
+  m_arm = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_arm->SetNameString(m_name + "_arm");
   m_arm->SetPos(points[PITMANARM]);
   m_arm->SetRot(steering_to_abs.GetRot());
