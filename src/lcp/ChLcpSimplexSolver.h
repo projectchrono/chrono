@@ -4,7 +4,7 @@
 // Copyright (c) 2010-2011 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -30,14 +30,9 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-
 #include "ChLcpDirectSolver.h"
 
-
-
-namespace chrono
-{
+namespace chrono {
 
 // forward reference
 class ChSparseMatrix;
@@ -49,7 +44,7 @@ class ChUnilateralData;
 ///   and solving a linear problem each time (using a
 ///   custom sparse solver)
 ///    It is by far slower than iterative methods, but
-///   it gives an almost exact solution (within numerical 
+///   it gives an almost exact solution (within numerical
 ///   roundoff and accumulation errors, of course).
 ///    It can handle redundant constraints.
 ///    This solver must be used for mixed-linear
@@ -62,63 +57,53 @@ class ChUnilateralData;
 ///   as arising in the solution of QP with
 ///   inequalities or in multibody problems.
 
+class ChApi ChLcpSimplexSolver : public ChLcpDirectSolver {
+  protected:
+    //
+    // DATA
+    //
 
-class ChApi ChLcpSimplexSolver : public ChLcpDirectSolver
-{
-protected:
-			//
-			// DATA
-			//
+    int truncation_step;            // if 0 no effect, if >0 steps are truncated
+    ChSparseMatrix* MC;             // the sparse matrix for direct solution [MC]X=B (auto fill)
+    ChMatrix<>* X;                  // the unknown vector (automatically filled)
+    ChMatrix<>* B;                  // the known vector (automatically filled)
+    ChUnilateralData* unilaterals;  // array with temporary info for pivoting
 
-	int truncation_step; // if 0 no effect, if >0 steps are truncated 
-	ChSparseMatrix* MC;  // the sparse matrix for direct solution [MC]X=B (auto fill)
-	ChMatrix<>* X;		 // the unknown vector (automatically filled) 
-	ChMatrix<>* B;		 // the known vector (automatically filled)
-	ChUnilateralData* unilaterals; // array with temporary info for pivoting
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-			//
-			// CONSTRUCTORS
-			//
+    ChLcpSimplexSolver();
 
-	ChLcpSimplexSolver();
-				
-	virtual ~ChLcpSimplexSolver();
+    virtual ~ChLcpSimplexSolver();
 
+    //
+    // FUNCTIONS
+    //
 
-			//
-			// FUNCTIONS
-			//
+    /// Performs the solution of the LCP, using the simplex method.
+    ///  If you must solve many LCP problems with the same amount of
+    /// variables and constraints, we suggest you to use the same
+    /// ChLcpSimplexSolver object, because it exploits coherency: avoids
+    /// reallocating the sparse matrix each time.
+    /// \return  the maximum constraint violation after termination.
 
-				/// Performs the solution of the LCP, using the simplex method.
-				///  If you must solve many LCP problems with the same amount of
-				/// variables and constraints, we suggest you to use the same 
-				/// ChLcpSimplexSolver object, because it exploits coherency: avoids
-				/// reallocating the sparse matrix each time.
-				/// \return  the maximum constraint violation after termination.
+    virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+                         );
 
-	virtual double Solve(
-				ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	
-				);
-
-				/// Set truncation step (that is, the method stops anyway after
-				/// this amount of pivots in simplex explorations, even if the 
-				/// solution isn't reached). NOTE!! This limits cases with exponential 
-				/// complexity explosion, but premature termination can give _meaningless_
-				/// results (differently from premature termination of iterative methods).
-				/// For truncation step = 0 continue endlessly up to exact solution 
-				/// (default) 
-	void   SetTruncationStep(int mstep) {truncation_step= mstep;}
-	void   SetNoTruncation() {truncation_step=0;}
-	double GetTruncationStep() {return truncation_step;}
-
+    /// Set truncation step (that is, the method stops anyway after
+    /// this amount of pivots in simplex explorations, even if the
+    /// solution isn't reached). NOTE!! This limits cases with exponential
+    /// complexity explosion, but premature termination can give _meaningless_
+    /// results (differently from premature termination of iterative methods).
+    /// For truncation step = 0 continue endlessly up to exact solution
+    /// (default)
+    void SetTruncationStep(int mstep) { truncation_step = mstep; }
+    void SetNoTruncation() { truncation_step = 0; }
+    double GetTruncationStep() { return truncation_step; }
 };
 
-
-
-} // END_OF_NAMESPACE____
-
-
-
+}  // END_OF_NAMESPACE____
 
 #endif  // END of ChLcpSimplexSolver.h

@@ -4,7 +4,7 @@
 // Copyright (c) 2010 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -18,17 +18,11 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-
 #include <math.h>
 
 #include "physics/ChConstraint.h"
 
-
-namespace chrono 
-{
-
-
+namespace chrono {
 
 ////////////////////////////////////
 //
@@ -36,43 +30,40 @@ namespace chrono
 //
 ////////////////////////////////////
 
+ChConstraint::ChConstraint() {
+    valid = false;
+    disabled = false;
+    C = NULL;
 
-ChConstraint::ChConstraint() 
-{
-	valid = false; 
-	disabled = false;
-	C=NULL;
-
-	Reset_Cn(Get_Cn()); 
+    Reset_Cn(Get_Cn());
 };
 
-
-ChConstraint::~ChConstraint()
-{
-	if (C) delete C; C=NULL;
+ChConstraint::~ChConstraint() {
+    if (C)
+        delete C;
+    C = NULL;
 }
 
-		// Sets the number of equations in this constraints (reset the 
-		// size of the C residual vector).
-int ChConstraint::Reset_Cn(int mCn)
-{
-	if (mCn >0)
-	{
-		Cn = mCn;
-		if (C) {delete C; C=NULL;}
-		C= new ChMatrixDynamic<>(Cn,1);
-	}
-	else 
-	{
-		Cn = 0;
-		if (C) {delete C; C=NULL;} 
-		C= NULL;
-	}
-	return Cn;
+// Sets the number of equations in this constraints (reset the
+// size of the C residual vector).
+int ChConstraint::Reset_Cn(int mCn) {
+    if (mCn > 0) {
+        Cn = mCn;
+        if (C) {
+            delete C;
+            C = NULL;
+        }
+        C = new ChMatrixDynamic<>(Cn, 1);
+    } else {
+        Cn = 0;
+        if (C) {
+            delete C;
+            C = NULL;
+        }
+        C = NULL;
+    }
+    return Cn;
 }
-
-
-
 
 ////////////////////////////////////
 //
@@ -80,33 +71,25 @@ int ChConstraint::Reset_Cn(int mCn)
 //
 ////////////////////////////////////
 
-ChConstraint_Chf::ChConstraint_Chf()
-{
-	root_function = NULL;
+ChConstraint_Chf::ChConstraint_Chf() {
+    root_function = NULL;
 }
 
-ChConstraint_Chf::ChConstraint_Chf(ChFunction* mRootFunct, char* mTreeIDs)
-{
-	this->root_function = mRootFunct;
-	this->target_function.SetTreeIDs(mTreeIDs);
-	this->target_function.RestoreReference(this->root_function);
+ChConstraint_Chf::ChConstraint_Chf(ChFunction* mRootFunct, char* mTreeIDs) {
+    this->root_function = mRootFunct;
+    this->target_function.SetTreeIDs(mTreeIDs);
+    this->target_function.RestoreReference(this->root_function);
 }
 
-bool ChConstraint_Chf::RestoreReferences(ChFunction* mroot) 
-{
-	root_function = mroot; 
-	if (mroot)
-	{
-		valid = this->target_function.RestoreReference(mroot);
-		return (valid);
-	}
-	else
-	{
-		return (valid=false);
-	}
+bool ChConstraint_Chf::RestoreReferences(ChFunction* mroot) {
+    root_function = mroot;
+    if (mroot) {
+        valid = this->target_function.RestoreReference(mroot);
+        return (valid);
+    } else {
+        return (valid = false);
+    }
 };
-
-
 
 ////////////////////////////////////
 //
@@ -114,38 +97,34 @@ bool ChConstraint_Chf::RestoreReferences(ChFunction* mroot)
 //
 ////////////////////////////////////
 
-ChConstraint_Chf_ImposeVal::ChConstraint_Chf_ImposeVal(ChFunction* mRootFunct, char* mTreeIDs, double mval, double mtime)
-{
-	this->target_function.SetTreeIDs(mTreeIDs);
-	this->RestoreReferences(mRootFunct);
+ChConstraint_Chf_ImposeVal::ChConstraint_Chf_ImposeVal(ChFunction* mRootFunct,
+                                                       char* mTreeIDs,
+                                                       double mval,
+                                                       double mtime) {
+    this->target_function.SetTreeIDs(mTreeIDs);
+    this->RestoreReferences(mRootFunct);
 
-	this->SetT(mtime);
-	this->SetValue(mval);
-	this->Reset_Cn(Get_Cn());
-	this->Update();
+    this->SetT(mtime);
+    this->SetValue(mval);
+    this->Reset_Cn(Get_Cn());
+    this->Update();
 }
 
-bool ChConstraint_Chf_ImposeVal::Update()
-{
-	// INHERIT parent behaviour:
-	if (!ChConstraint_Chf::Update()) return false;
+bool ChConstraint_Chf_ImposeVal::Update() {
+    // INHERIT parent behaviour:
+    if (!ChConstraint_Chf::Update())
+        return false;
 
-	// Implement method:
+    // Implement method:
 
-			// CONSTRAINT EQUATION (residual of mc=0);
-	double mc= this->Get_target_function()->Get_y(this->T) - this->value;
+    // CONSTRAINT EQUATION (residual of mc=0);
+    double mc = this->Get_target_function()->Get_y(this->T) - this->value;
 
-	if (C)
-		C->SetElement(0,0, mc);
+    if (C)
+        C->SetElement(0, 0, mc);
 
-	return true;
+    return true;
 }
-
-
- 
-
-
-
 
 ////////////////////////////////////
 //
@@ -153,80 +132,75 @@ bool ChConstraint_Chf_ImposeVal::Update()
 //
 ////////////////////////////////////
 
-ChConstraint_Chf_Continuity::ChConstraint_Chf_Continuity(ChFunction* mRootFunct, char* mTreeIDs, int cont_ord, int interf_num)
-{
-	this->target_function.SetTreeIDs(mTreeIDs);
-	this->RestoreReferences(mRootFunct);
+ChConstraint_Chf_Continuity::ChConstraint_Chf_Continuity(ChFunction* mRootFunct,
+                                                         char* mTreeIDs,
+                                                         int cont_ord,
+                                                         int interf_num) {
+    this->target_function.SetTreeIDs(mTreeIDs);
+    this->RestoreReferences(mRootFunct);
 
-	this->SetContinuityOrder(cont_ord);
-	this->SetInterfaceNum(interf_num);
+    this->SetContinuityOrder(cont_ord);
+    this->SetInterfaceNum(interf_num);
 
-	this->Reset_Cn(Get_Cn());
-	this->Update();
-}
-	
-
-bool ChConstraint_Chf_Continuity::Update()
-{
-	// INHERIT parent behaviour:
-	if (!ChConstraint_Chf::Update()) return false;
-
-	// Implement method:
- 
-		// a- cast target function to sequence, if correct
-	if (this->Get_target_function()->Get_Type()!=FUNCT_SEQUENCE)
-		return false;
-
-	ChFunction_Sequence* mfun = (ChFunction_Sequence*) this->Get_target_function();
-
-		// b- computes the time instant of discontinuity
-	double mt;
-	double mc=0;
-	if ((this->interface_num > mfun->Get_list()->Count() ) || 
-		(this->interface_num < 0) )								// NO!out of range... 
-	{
-		if (C) C->SetElement(0,0, 0.0);
-		return false;
-	}
-	if (this->interface_num == mfun->Get_list()->Count())		// ok, last discontinuity
-	{
-		mt=mfun->GetNthNode(this->interface_num)->t_end;
-	}
-
-	mt= mfun->GetNthNode(this->interface_num)->t_start;	// ok, inner interface
-		
-			// CONSTRAINT EQUATION (residual of mc=0);
-	double mstep = 1e-9;
-	double v_a, v_b;
-	switch (this->continuity_order)
-	{
-	case 0:	// C0
-		v_a = mfun->Get_y(mt-mstep);
-		v_b = mfun->Get_y(mt+mstep);
-		break;
-	case 1:	// C1
-		v_a = mfun->Get_y_dx(mt-mstep);
-		v_b = mfun->Get_y_dx(mt+mstep);
-		break;
-	case 2:	// C2
-		v_a = mfun->Get_y_dxdx(mt-mstep);
-		v_b = mfun->Get_y_dxdx(mt+mstep);
-		break;
-	default: 
-		v_a=v_b=0;
-	}
-	mc = v_b - v_a;  
-
-	if (C)
-		C->SetElement(0,0, mc);
-
-	return true;
+    this->Reset_Cn(Get_Cn());
+    this->Update();
 }
 
+bool ChConstraint_Chf_Continuity::Update() {
+    // INHERIT parent behaviour:
+    if (!ChConstraint_Chf::Update())
+        return false;
 
+    // Implement method:
 
+    // a- cast target function to sequence, if correct
+    if (this->Get_target_function()->Get_Type() != FUNCT_SEQUENCE)
+        return false;
 
+    ChFunction_Sequence* mfun = (ChFunction_Sequence*)this->Get_target_function();
 
+    // b- computes the time instant of discontinuity
+    double mt;
+    double mc = 0;
+    if ((this->interface_num > mfun->Get_list()->Count()) || (this->interface_num < 0))  // NO!out of range...
+    {
+        if (C)
+            C->SetElement(0, 0, 0.0);
+        return false;
+    }
+    if (this->interface_num == mfun->Get_list()->Count())  // ok, last discontinuity
+    {
+        mt = mfun->GetNthNode(this->interface_num)->t_end;
+    }
+
+    mt = mfun->GetNthNode(this->interface_num)->t_start;  // ok, inner interface
+
+    // CONSTRAINT EQUATION (residual of mc=0);
+    double mstep = 1e-9;
+    double v_a, v_b;
+    switch (this->continuity_order) {
+        case 0:  // C0
+            v_a = mfun->Get_y(mt - mstep);
+            v_b = mfun->Get_y(mt + mstep);
+            break;
+        case 1:  // C1
+            v_a = mfun->Get_y_dx(mt - mstep);
+            v_b = mfun->Get_y_dx(mt + mstep);
+            break;
+        case 2:  // C2
+            v_a = mfun->Get_y_dxdx(mt - mstep);
+            v_b = mfun->Get_y_dxdx(mt + mstep);
+            break;
+        default:
+            v_a = v_b = 0;
+    }
+    mc = v_b - v_a;
+
+    if (C)
+        C->SetElement(0, 0, mc);
+
+    return true;
+}
 
 ////////////////////////////////////
 //
@@ -234,47 +208,44 @@ bool ChConstraint_Chf_Continuity::Update()
 //
 ////////////////////////////////////
 
-ChConstraint_Chf_HorDistance::ChConstraint_Chf_HorDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB)
-{
-	this->target_function.SetTreeIDs(mTreeIDs);
-	this->RestoreReferences(mRootFunct);
+ChConstraint_Chf_HorDistance::ChConstraint_Chf_HorDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB) {
+    this->target_function.SetTreeIDs(mTreeIDs);
+    this->RestoreReferences(mRootFunct);
 
-	this->SetHandleA(mhA);
-	this->SetHandleB(mhB);
+    this->SetHandleA(mhA);
+    this->SetHandleB(mhB);
 
-	this->Reset_Cn(Get_Cn());
-	this->Update();
-}
-	
-
-bool ChConstraint_Chf_HorDistance::Update()
-{
-	// INHERIT parent behaviour:
-	if (!ChConstraint_Chf::Update()) return false;
-
-	// Implement method:
- 
-		// a- cast target function to sequence, if correct
-	if (this->Get_target_function()->Get_Type()!=FUNCT_SEQUENCE)
-		return false;
-
-	ChFunction_Sequence* mfun = (ChFunction_Sequence*) this->Get_target_function();
-
-		// b- computes the time instants of the two handles
-
-	double x_a= mfun->GetNthNode(this->handleA)->t_start;	// ok, first  handle X value
-	double x_b= mfun->GetNthNode(this->handleB)->t_start;	// ok, second handle X value
-
-			// CONSTRAINT EQUATION (residual of mc=0);
-
-	double mc = x_b - x_a;  
-
-	if (C)
-		C->SetElement(0,0, mc);
-
-	return true;
+    this->Reset_Cn(Get_Cn());
+    this->Update();
 }
 
+bool ChConstraint_Chf_HorDistance::Update() {
+    // INHERIT parent behaviour:
+    if (!ChConstraint_Chf::Update())
+        return false;
+
+    // Implement method:
+
+    // a- cast target function to sequence, if correct
+    if (this->Get_target_function()->Get_Type() != FUNCT_SEQUENCE)
+        return false;
+
+    ChFunction_Sequence* mfun = (ChFunction_Sequence*)this->Get_target_function();
+
+    // b- computes the time instants of the two handles
+
+    double x_a = mfun->GetNthNode(this->handleA)->t_start;  // ok, first  handle X value
+    double x_b = mfun->GetNthNode(this->handleB)->t_start;  // ok, second handle X value
+
+    // CONSTRAINT EQUATION (residual of mc=0);
+
+    double mc = x_b - x_a;
+
+    if (C)
+        C->SetElement(0, 0, mc);
+
+    return true;
+}
 
 ////////////////////////////////////
 //
@@ -282,52 +253,46 @@ bool ChConstraint_Chf_HorDistance::Update()
 //
 ////////////////////////////////////
 
-ChConstraint_Chf_VertDistance::ChConstraint_Chf_VertDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB)
-{
-	this->target_function.SetTreeIDs(mTreeIDs);
-	this->RestoreReferences(mRootFunct);
+ChConstraint_Chf_VertDistance::ChConstraint_Chf_VertDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB) {
+    this->target_function.SetTreeIDs(mTreeIDs);
+    this->RestoreReferences(mRootFunct);
 
-	this->SetHandleA(mhA);
-	this->SetHandleB(mhB);
+    this->SetHandleA(mhA);
+    this->SetHandleB(mhB);
 
-	this->Reset_Cn(Get_Cn());
-	this->Update();
-}
-	
-
-bool ChConstraint_Chf_VertDistance::Update()
-{
-	// INHERIT parent behaviour:
-	if (!ChConstraint_Chf::Update()) return false;
-
-	// Implement method:
-    
-			// a- cast target function to sequence, if correct
-	if (this->Get_target_function()->Get_Type()!=FUNCT_SEQUENCE)
-		return false;
-
-	ChFunction_Sequence* mfun = (ChFunction_Sequence*) this->Get_target_function();
-
-		// b- computes the time instants of the two handles
-
-	double x_a= mfun->GetNthNode(this->handleA)->t_start;	// ok, first  handle X value
-	double x_b= mfun->GetNthNode(this->handleB)->t_start;	// ok, second handle X value
-	
-	double y_a= mfun->Get_y(x_a);
-	double y_b= mfun->Get_y(x_b);
-
-			// CONSTRAINT EQUATION (residual of mc=0);
-
-	double mc = y_b - y_a;  
-
-	if (C)
-		C->SetElement(0,0, mc);
-
-	return true;
+    this->Reset_Cn(Get_Cn());
+    this->Update();
 }
 
+bool ChConstraint_Chf_VertDistance::Update() {
+    // INHERIT parent behaviour:
+    if (!ChConstraint_Chf::Update())
+        return false;
 
-} // END_OF_NAMESPACE____
+    // Implement method:
 
-	
+    // a- cast target function to sequence, if correct
+    if (this->Get_target_function()->Get_Type() != FUNCT_SEQUENCE)
+        return false;
 
+    ChFunction_Sequence* mfun = (ChFunction_Sequence*)this->Get_target_function();
+
+    // b- computes the time instants of the two handles
+
+    double x_a = mfun->GetNthNode(this->handleA)->t_start;  // ok, first  handle X value
+    double x_b = mfun->GetNthNode(this->handleB)->t_start;  // ok, second handle X value
+
+    double y_a = mfun->Get_y(x_a);
+    double y_b = mfun->Get_y(x_b);
+
+    // CONSTRAINT EQUATION (residual of mc=0);
+
+    double mc = y_b - y_a;
+
+    if (C)
+        C->SetElement(0, 0, mc);
+
+    return true;
+}
+
+}  // END_OF_NAMESPACE____

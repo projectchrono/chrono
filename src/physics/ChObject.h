@@ -5,7 +5,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -14,19 +14,18 @@
 #define CHOBJECT_H
 
 //////////////////////////////////////////////////
-//  
+//
 //   ChObject.h
 //
-// Base class for objects which can be renamed, 
+// Base class for objects which can be renamed,
 // copied, etc. Provides interface to link objects to
-// item in hosting applications, like geometric objects 
+// item in hosting applications, like geometric objects
 // in the editor of a 3d modeler.
 //
 // ------------------------------------------------
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-
 
 #include <stdlib.h>
 #include <iostream>
@@ -42,20 +41,12 @@
 
 #include <vector>
 
-
-
-namespace chrono 
-{
-
+namespace chrono {
 
 // Forward references
 
 class ChVar;
 class ChTag;
-
-
-
-
 
 ///
 /// Base class for items which can be named, deleted,
@@ -81,131 +72,113 @@ class ChTag;
 ///
 
 class ChApi ChObj : public virtual ChShared {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChObj, ChShared);
 
-						// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChObj, ChShared);
+  private:
+    //
+    // DATA
+    //
 
-private:
-			//
-			// DATA
-			//
+    // name of object
+    std::string name;
 
-				// name of object
-	std::string name;
+    // ID for referencing
+    int identifier;
 
-				// ID for referencing
-	int identifier;
+  protected:
+    // the time of simulation for the object
+    double ChTime;
 
+  public:
+    //
+    //	CONSTRUCTORS/DELETION
+    //
 
+    ChObj();
+    virtual ~ChObj();
 
+    void Copy(ChObj* source);
 
-protected: 
-				// the time of simulation for the object
-	double ChTime;		
+    //
+    // FUNCTIONS
+    //
 
+    /// Gets the numerical identifier of the object.
+    int GetIdentifier() const { return identifier; }
+    /// Sets the numerical identifier of the object.
+    void SetIdentifier(int id) { identifier = id; }
 
-public:
-			//
-			//	CONSTRUCTORS/DELETION
-			// 
+    /// Given a fast list of ChObj, returns the address of the first matching the ID.
+    ChObj* GetAddrFromID(ChObj** ChList, int myID);
 
-	ChObj();
-	virtual ~ChObj();
+    /// Gets the simulation time of this object
+    double GetChTime() const { return ChTime; }
+    /// Sets the simulation time of this object.
+    void SetChTime(double m_time) { ChTime = m_time; }
 
-	void Copy(ChObj* source);
+    /// Gets the name of the object as C Ascii null-terminated string -for reading only!
+    const char* GetName() const;
+    /// Sets the name of this object, as ascii string
+    void SetName(const char myname[]);
 
-			//
-			// FUNCTIONS
-			//
+    /// Gets the name of the object as C Ascii null-terminated string.
+    std::string GetNameString() const;
+    /// Sets the name of this object, as std::string
+    void SetNameString(const std::string& myname);
 
-				/// Gets the numerical identifier of the object.
-	int  GetIdentifier () const { return identifier; }
-				/// Sets the numerical identifier of the object.
-	void SetIdentifier (int id) { identifier = id; }
+    // Set-get generic LONG flags, passed as reference
 
-				/// Given a fast list of ChObj, returns the address of the first matching the ID.
-	ChObj* GetAddrFromID (ChObj** ChList, int myID);
+    void MFlagsSetAllOFF(int& mflag) { mflag = 0; }
+    void MFlagsSetAllON(int& mflag) {
+        mflag = 0;
+        mflag = ~mflag;
+    }
+    void MFlagSetON(int& mflag, int mask) { mflag |= mask; }
+    void MFlagSetOFF(int& mflag, int mask) { mflag &= ~mask; }
+    int MFlagGet(int& mflag, int mask) { return (mflag & mask); };
 
-				/// Gets the simulation time of this object
-	double GetChTime () const { return ChTime; }
-				/// Sets the simulation time of this object.
-	void   SetChTime (double m_time) { ChTime = m_time; }
+    //
+    // STREAMING
+    //
 
+    /// Method to allow serializing transient data into a persistent
+    /// binary archive (ex: a file).
+    virtual void StreamOUT(ChStreamOutBinary& mstream);
 
-				/// Gets the name of the object as C Ascii null-terminated string -for reading only!
-	const char* GetName () const;
-				/// Sets the name of this object, as ascii string
-	void SetName (const char myname[]);
+    /// Method to allow deserializing a persistent binary archive (ex: a file)
+    /// into transient data.
+    virtual void StreamIN(ChStreamInBinary& mstream);
 
-				/// Gets the name of the object as C Ascii null-terminated string.
-	std::string GetNameString () const;
-				/// Sets the name of this object, as std::string 
-	void SetNameString (const std::string& myname);
-
-
-
-		// Set-get generic LONG flags, passed as reference
-
-	void MFlagsSetAllOFF (int& mflag) {mflag = 0;}
-	void MFlagsSetAllON (int& mflag) {mflag = 0; mflag = ~ mflag;}
-	void MFlagSetON  (int& mflag, int mask) {mflag |= mask ;}
-	void MFlagSetOFF (int& mflag, int mask) {mflag &= ~ mask;}
-	int  MFlagGet    (int& mflag, int mask) {	return (mflag & mask);};
-
-
-			//
-			// STREAMING
-			//
-
-					/// Method to allow serializing transient data into a persistent
-					/// binary archive (ex: a file).
-	virtual void StreamOUT(ChStreamOutBinary& mstream);
-
-					/// Method to allow deserializing a persistent binary archive (ex: a file)
-					/// into transient data.
-	virtual void StreamIN(ChStreamInBinary& mstream);
-
-
-					/// Method to allow serialization of transient data in ascii,
-					/// as a readable item, for example   "chrono::GetLog() << myobject;"
-	virtual void StreamOUT(ChStreamOutAscii& mstream);
-
-
+    /// Method to allow serialization of transient data in ascii,
+    /// as a readable item, for example   "chrono::GetLog() << myobject;"
+    virtual void StreamOUT(ChStreamOutAscii& mstream);
 };
-
-
 
 // Functions to manipulate STL containers of ChObj objects
 
 template <class T, class Iterator>
-T* ChContainerSearchFromName(const char* m_name, Iterator from, Iterator to)
-{
-	Iterator iter = from;
-	while (iter != to)
-	{
-		if (!strcmp(m_name, (*iter)->GetName())) 
-			return (*iter);
-		iter++;
-	}
-	return 0; 
+T* ChContainerSearchFromName(const char* m_name, Iterator from, Iterator to) {
+    Iterator iter = from;
+    while (iter != to) {
+        if (!strcmp(m_name, (*iter)->GetName()))
+            return (*iter);
+        iter++;
+    }
+    return 0;
 }
 
 template <class T, class Iterator>
-T* ChContainerSearchFromID(int myID, Iterator from, Iterator to)
-{
-	Iterator iter = from;
-	while (iter != to)
-	{
-		if (myID == (*iter)->GetIdentifier()) 
-			return (*iter);
-		iter++;
-	}
-	return 0;
+T* ChContainerSearchFromID(int myID, Iterator from, Iterator to) {
+    Iterator iter = from;
+    while (iter != to) {
+        if (myID == (*iter)->GetIdentifier())
+            return (*iter);
+        iter++;
+    }
+    return 0;
 }
 
-
-
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

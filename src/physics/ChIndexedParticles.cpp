@@ -4,7 +4,7 @@
 // Copyright (c) 2010 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -18,7 +18,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-    
 #include <stdlib.h>
 #include <algorithm>
 
@@ -31,104 +30,74 @@
 #include "collision/ChCModelBulletParticle.h"
 #include "core/ChLinearAlgebra.h"
 
-#include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
+#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
 
-namespace chrono
-{
+namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
-
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 ChClassRegisterABSTRACT<ChIndexedParticles> a_registration_ChIndexedParticles;
-
-	
 
 //////////////////////////////////////
 //////////////////////////////////////
 
 /// CLASS FOR A PARTICLE
 
-
-ChParticleBase::ChParticleBase()
-{
+ChParticleBase::ChParticleBase() {
 }
 
-ChParticleBase::~ChParticleBase()
-{
+ChParticleBase::~ChParticleBase() {
 }
 
-ChParticleBase::ChParticleBase (const ChParticleBase& other) :
-					ChFrameMoving<double>(other)
-{
+ChParticleBase::ChParticleBase(const ChParticleBase& other) : ChFrameMoving<double>(other) {
 }
 
-ChParticleBase& ChParticleBase::operator= (const ChParticleBase& other)
-{
-	if (&other == this) 
-		return *this;
+ChParticleBase& ChParticleBase::operator=(const ChParticleBase& other) {
+    if (&other == this)
+        return *this;
 
-	// parent class copy
-	ChFrameMoving<double>::operator=(other);
-	
-	return *this;
+    // parent class copy
+    ChFrameMoving<double>::operator=(other);
+
+    return *this;
 }
-
-
 
 //////////////////////////////////////
 //////////////////////////////////////
 
 /// CLASS FOR PARTICLE CLUSTER
 
-
-ChIndexedParticles::ChIndexedParticles ()
-{
-	
+ChIndexedParticles::ChIndexedParticles() {
 }
 
-
-ChIndexedParticles::~ChIndexedParticles ()
-{
-	
+ChIndexedParticles::~ChIndexedParticles() {
 }
-
-
 
 //////// FILE I/O
 
-void ChIndexedParticles::StreamOUT(ChStreamOutBinary& mstream)
-{
-			// class version number
-	mstream.VersionWrite(1);
+void ChIndexedParticles::StreamOUT(ChStreamOutBinary& mstream) {
+    // class version number
+    mstream.VersionWrite(1);
 
-		// serialize parent class too
-	ChPhysicsItem::StreamOUT(mstream);
+    // serialize parent class too
+    ChPhysicsItem::StreamOUT(mstream);
 
-		// stream out all member data
-
+    // stream out all member data
 }
 
-void ChIndexedParticles::StreamIN(ChStreamInBinary& mstream)
-{
-		// class version number
-	int version = mstream.VersionRead();
+void ChIndexedParticles::StreamIN(ChStreamInBinary& mstream) {
+    // class version number
+    int version = mstream.VersionRead();
 
-		// deserialize parent class too
-	ChPhysicsItem::StreamIN(mstream);
+    // deserialize parent class too
+    ChPhysicsItem::StreamIN(mstream);
 
-		// stream in all member data
-
+    // stream in all member data
 }
 
-
-
-
-
-
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____
 
 /////////////////////

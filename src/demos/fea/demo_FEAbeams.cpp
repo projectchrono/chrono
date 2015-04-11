@@ -4,18 +4,16 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
 //
-//   Demo code about 
+//   Demo code about
 //
 //     - FEA for 3D beams
 
-  
-     
 // Include some headers used by this tutorial...
 
 #include "physics/ChSystem.h"
@@ -32,364 +30,311 @@
 #include "unit_MATLAB/ChMatlabEngine.h"
 #include "unit_MATLAB/ChLcpMatlabSolver.h"
 
-// Remember to use the namespace 'chrono' because all classes 
+// Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
 
 using namespace chrono;
 using namespace fea;
 using namespace irr;
 
+int main(int argc, char* argv[]) {
+    // Create a Chrono::Engine physical system
+    ChSystem my_system;
+
+    // Create the Irrlicht visualization (open the Irrlicht device,
+    // bind a simple user interface, etc. etc.)
+    ChIrrApp application(&my_system, L"Beams FEM", core::dimension2d<u32>(800, 600), false, true);
+
+    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0.f, 0.6f, -1.f));
+
+    // Create a mesh, that is a container for groups
+    // of elements and their referenced nodes.
+    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+
+    // Create a section, i.e. thickness and material properties
+    // for beams. This will be shared among some beams.
+
+    ChSharedPtr<ChBeamSectionAdvanced> msection(new ChBeamSectionAdvanced);
+
+    double beam_wy = 0.012;
+    double beam_wz = 0.025;
+    msection->SetAsRectangularSection(beam_wy, beam_wz);
+    msection->SetYoungModulus(0.01e9);
+    msection->SetGshearModulus(0.01e9 * 0.3);
+    msection->SetBeamRaleyghDamping(0.000);
+    // msection->SetCentroid(0,0.02);
+    // msection->SetShearCenter(0,0.1);
+    // msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
+
+    //
+    // Add some EULER-BERNOULLI BEAMS:
+    //
+
+    double beam_L = 0.1;
+
+    ChSharedPtr<ChNodeFEAxyzrot> hnode1(
+        new ChNodeFEAxyzrot(ChFrame<>(ChVector<>(0, 0, 0))));  //, Q_from_AngAxis( -0.5, VECT_Y )) ));
+    ChSharedPtr<ChNodeFEAxyzrot> hnode2(new ChNodeFEAxyzrot(ChFrame<>(ChVector<>(beam_L, 0, 0))));
+    ChSharedPtr<ChNodeFEAxyzrot> hnode3(new ChNodeFEAxyzrot(ChFrame<>(ChVector<>(beam_L * 2, 0, 0))));
 
+    my_mesh->AddNode(hnode1);
+    my_mesh->AddNode(hnode2);
+    my_mesh->AddNode(hnode3);
 
-int main(int argc, char* argv[])
-{
-	// Create a Chrono::Engine physical system
-	ChSystem my_system;
+    ChSharedPtr<ChElementBeamEuler> belement1(new ChElementBeamEuler);
 
+    belement1->SetNodes(hnode1, hnode2);
+    belement1->SetSection(msection);
 
-	// Create the Irrlicht visualization (open the Irrlicht device, 
-	// bind a simple user interface, etc. etc.)
-	ChIrrApp application(&my_system, L"Beams FEM",core::dimension2d<u32>(800,600),false, true);
+    my_mesh->AddElement(belement1);
 
-	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-	application.AddTypicalLogo();
-	application.AddTypicalSky();
-	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(0.f, 0.6f, -1.f));
+    ChSharedPtr<ChElementBeamEuler> belement2(new ChElementBeamEuler);
 
+    belement2->SetNodes(hnode2, hnode3);
+    belement2->SetSection(msection);
 
+    my_mesh->AddElement(belement2);
 
-				// Create a mesh, that is a container for groups
-				// of elements and their referenced nodes.
-	ChSharedPtr<ChMesh> my_mesh(new ChMesh);
-	
+    // Apply a force or a torque to a node:
+    hnode2->SetForce(ChVector<>(4, 2, 0));
+    // hnode3->SetTorque( ChVector<>(0, -0.04, 0));
 
-				// Create a section, i.e. thickness and material properties
-				// for beams. This will be shared among some beams.
-	
-	ChSharedPtr<ChBeamSectionAdvanced> msection(new ChBeamSectionAdvanced);
-
-	double beam_wy = 0.012;
-	double beam_wz = 0.025;
-	msection->SetAsRectangularSection(beam_wy, beam_wz);
-	msection->SetYoungModulus (0.01e9);
-	msection->SetGshearModulus(0.01e9 * 0.3);
-	msection->SetBeamRaleyghDamping(0.000);
-	//msection->SetCentroid(0,0.02); 
-	//msection->SetShearCenter(0,0.1); 
-	//msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
-
-
-	//
-	// Add some EULER-BERNOULLI BEAMS:
-	//
-
-	double beam_L  = 0.1;
-	
-
-	ChSharedPtr<ChNodeFEAxyzrot> hnode1(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(0,0,0)) )); //, Q_from_AngAxis( -0.5, VECT_Y )) ));
-	ChSharedPtr<ChNodeFEAxyzrot> hnode2(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(beam_L,0,0)) ));
-	ChSharedPtr<ChNodeFEAxyzrot> hnode3(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(beam_L*2,0,0)) ));
-
-	my_mesh->AddNode(hnode1);
-	my_mesh->AddNode(hnode2);
-	my_mesh->AddNode(hnode3);
-
-	ChSharedPtr<ChElementBeamEuler> belement1 (new ChElementBeamEuler);
-
-	belement1->SetNodes(hnode1, hnode2);
-	belement1->SetSection(msection);
+    // Fix a node to ground:
+    // hnode1->SetFixed(true);
+    ChSharedPtr<ChBody> mtruss(new ChBody);
+    mtruss->SetBodyFixed(true);
+    my_system.Add(mtruss);
 
-	my_mesh->AddElement(belement1);
+    ChSharedPtr<ChLinkMateGeneric> constr_bc(new ChLinkMateGeneric);
+    constr_bc->Initialize(hnode3, mtruss, false, hnode3->Frame(), hnode3->Frame());
+    my_system.Add(constr_bc);
+    constr_bc->SetConstrainedCoords(true, true, true,   // x, y, z
+                                    true, true, true);  // Rx, Ry, Rz
 
+    ChSharedPtr<ChLinkMateGeneric> constr_d(new ChLinkMateGeneric);
+    constr_d->Initialize(hnode1, mtruss, false, hnode1->Frame(), hnode1->Frame());
+    my_system.Add(constr_d);
+    constr_d->SetConstrainedCoords(false, true, true,     // x, y, z
+                                   false, false, false);  // Rx, Ry, Rz
 
-	ChSharedPtr<ChElementBeamEuler> belement2 (new ChElementBeamEuler);
+    //
+    // Add some EULER-BERNOULLI BEAMS (the fast way!)
+    //
 
-	belement2->SetNodes(hnode2, hnode3);
-	belement2->SetSection(msection);
+    // Shortcut!
+    // This ChBuilderBeam helper object is very useful because it will
+    // subdivide 'beams' into sequences of finite elements of beam type, ex.
+    // one 'beam' could be made of 5 FEM elements of ChElementBeamEuler class.
+    // If new nodes are needed, it will create them for you.
+    ChBuilderBeam builder;
 
-	my_mesh->AddElement(belement2);
+    // Now, simply use BuildBeam to create a beam from a point to another:
+    builder.BuildBeam(my_mesh,                   // the mesh where to put the created nodes and elements
+                      msection,                  // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+                      5,                         // the number of ChElementBeamEuler to create
+                      ChVector<>(0, 0, -0.1),    // the 'A' point in space (beginning of beam)
+                      ChVector<>(0.2, 0, -0.1),  // the 'B' point in space (end of beam)
+                      ChVector<>(0, 1, 0));      // the 'Y' up direction of the section for the beam
 
+    // After having used BuildBeam(), you can retrieve the nodes used for the beam,
+    // For example say you want to fix the A end and apply a force to the B end:
+    builder.GetLastBeamNodes().back()->SetFixed(true);
+    builder.GetLastBeamNodes().front()->SetForce(ChVector<>(0, -1, 0));
 
-				// Apply a force or a torque to a node:
-	hnode2->SetForce( ChVector<>(4,2,0));
-	//hnode3->SetTorque( ChVector<>(0, -0.04, 0));
+    // Again, use BuildBeam for creating another beam, this time
+    // it uses one node (the last node created by the last beam) and one point:
+    builder.BuildBeam(my_mesh, msection, 5,
+                      builder.GetLastBeamNodes().front(),  // the 'A' node in space (beginning of beam)
+                      ChVector<>(0.2, 0.1, -0.1),          // the 'B' point in space (end of beam)
+                      ChVector<>(0, 1, 0));                // the 'Y' up direction of the section for the beam
 
+    //
+    // Add some ANCF CABLE BEAMS:
+    //
 
-				// Fix a node to ground:
-	//hnode1->SetFixed(true);
-	ChSharedPtr<ChBody> mtruss(new ChBody);
-	mtruss->SetBodyFixed(true);
-	my_system.Add(mtruss);
+    beam_L = 0.1;
 
-	ChSharedPtr<ChLinkMateGeneric> constr_bc(new ChLinkMateGeneric);
-	constr_bc->Initialize(  hnode3,
-							mtruss,
-							false, 
-							hnode3->Frame(),
-							hnode3->Frame() 
-							 );
-	my_system.Add(constr_bc);
-	constr_bc->SetConstrainedCoords( true, true, true,	  // x, y, z
-									 true, true, true);   // Rx, Ry, Rz
+    msection->SetIzz(3.6e-9);
+    ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD(ChVector<>(0, 0, -0.2), ChVector<>(1, 0, 0)));
+    ChSharedPtr<ChNodeFEAxyzD> hnodeancf2(new ChNodeFEAxyzD(ChVector<>(beam_L, 0, -0.2), ChVector<>(1, 0, 0)));
 
-	ChSharedPtr<ChLinkMateGeneric> constr_d(new ChLinkMateGeneric);
-	constr_d->Initialize(  hnode1,
-							mtruss,
-							false, 
-							hnode1->Frame(),
-							hnode1->Frame() 
-							 );
-	my_system.Add(constr_d);
-	constr_d->SetConstrainedCoords( false, true, true,	  // x, y, z
-									 false, false, false);   // Rx, Ry, Rz
+    my_mesh->AddNode(hnodeancf1);
+    my_mesh->AddNode(hnodeancf2);
 
-	
-	//
-	// Add some EULER-BERNOULLI BEAMS (the fast way!)
-	//
-
-				// Shortcut!
-				// This ChBuilderBeam helper object is very useful because it will 
-				// subdivide 'beams' into sequences of finite elements of beam type, ex.
-				// one 'beam' could be made of 5 FEM elements of ChElementBeamEuler class.
-				// If new nodes are needed, it will create them for you.
-	ChBuilderBeam builder;
-
-				// Now, simply use BuildBeam to create a beam from a point to another: 
-	builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
-						msection,		// the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
-						5,				// the number of ChElementBeamEuler to create
-						ChVector<>(0, 0, -0.1),		// the 'A' point in space (beginning of beam)
-						ChVector<>(0.2, 0, -0.1),	// the 'B' point in space (end of beam)
-						ChVector<>(0,1,0));			// the 'Y' up direction of the section for the beam
-	
-				// After having used BuildBeam(), you can retrieve the nodes used for the beam,
-				// For example say you want to fix the A end and apply a force to the B end:
-	builder.GetLastBeamNodes().back()->SetFixed(true);
-	builder.GetLastBeamNodes().front()->SetForce( ChVector<>(0,-1,0));
-
-				// Again, use BuildBeam for creating another beam, this time
-				// it uses one node (the last node created by the last beam) and one point:
- 	builder.BuildBeam(  my_mesh, 
-						msection, 
-						5, 
-						builder.GetLastBeamNodes().front(), // the 'A' node in space (beginning of beam)
-						ChVector<>(0.2, 0.1, -0.1),	// the 'B' point in space (end of beam)
-						ChVector<>(0,1,0));			// the 'Y' up direction of the section for the beam
-
-
-
-	//
-	// Add some ANCF CABLE BEAMS:
-	//
-
-	beam_L  = 0.1;
-	
-	msection->SetIzz(3.6e-9);
-	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,0,-0.2), ChVector<>(1,0,0) ) ); 
-	ChSharedPtr<ChNodeFEAxyzD> hnodeancf2(new ChNodeFEAxyzD( ChVector<>(beam_L,0,-0.2), ChVector<>(1,0,0) ) );
-
-	my_mesh->AddNode(hnodeancf1);
-	my_mesh->AddNode(hnodeancf2);
-
-	ChSharedPtr<ChElementBeamANCF> belementancf1 (new ChElementBeamANCF);
-
-	belementancf1->SetNodes(hnodeancf1, hnodeancf2);
-	belementancf1->SetSection(msection);
-
-	my_mesh->AddElement(belementancf1);
-
-				// Apply a force or a torque to a node:
-	hnodeancf2->SetForce( ChVector<>(0,3,0));
-
-	hnodeancf1->SetFixed(true);
-	
-
-	// FOR COMPARISON: AN EULER BEAM:
-
-	ChSharedPtr<ChNodeFEAxyzrot> hnodeeul1(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(0,0,-0.3) ) )); 
-	ChSharedPtr<ChNodeFEAxyzrot> hnodeeul2(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(beam_L,0,-0.3) ) ));
-
-	my_mesh->AddNode(hnodeeul1);
-	my_mesh->AddNode(hnodeeul2);
-
-	ChSharedPtr<ChElementBeamEuler> belementeul (new ChElementBeamEuler);
-
-	belementeul->SetNodes(hnodeeul1, hnodeeul2);
-	belementeul->SetSection(msection);
-
-	my_mesh->AddElement(belementeul);
-
-				// Apply a force or a torque to a node:
-	hnodeeul2->SetForce( ChVector<>(0,3,0));
-
-	hnodeeul1->SetFixed(true);
-
-
-	//
-	// Final touches..
-	// 
-				// This is necessary in order to precompute the 
-				// stiffness matrices for all inserted elements in mesh
-	my_mesh->SetupInitial();
-
-	
-	belementancf1->SetRestLength(beam_L);
-
-
-				// Remember to add the mesh to the system!
-	my_system.Add(my_mesh);
-
-
-	
-
-			// ==Asset== attach a visualization of the FEM mesh.
-			// This will automatically update a triangle mesh (a ChTriangleMeshShape
-			// asset that is internally managed) by setting  proper
-			// coordinates and vertex colours as in the FEM elements.
-			// Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-			// postprocessor that can handle a coloured ChTriangleMeshShape).
-			// Do not forget AddAsset() at the end!
-
-
-	/*
-	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-	mvisualizebeamA->SetSmoothFaces(true);
-	my_mesh->AddAsset(mvisualizebeamA);
-	*/
-
-	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
-	mvisualizebeamA->SetColorscaleMinMax(-0.4,0.4);
-	mvisualizebeamA->SetSmoothFaces(true);
-	mvisualizebeamA->SetWireframe(false);
-	my_mesh->AddAsset(mvisualizebeamA);
-
-	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-	mvisualizebeamC->SetSymbolsThickness(0.006);
-	mvisualizebeamC->SetSymbolsScale(0.01);
-	mvisualizebeamC->SetZbufferHide(false);
-	my_mesh->AddAsset(mvisualizebeamC);
-
-
-			// ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-			// in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-			// If you need a finer control on which item really needs a visualization proxy in 
-			// Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-	application.AssetBindAll();
-
-			// ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-			// that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-	application.AssetUpdateAll();
-
-
-	// 
-	// THE SOFT-REAL-TIME CYCLE
-	//
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED THIS OR ::LCP_SIMPLEX because other solvers can't handle stiffness matrices
-	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(460);
-	my_system.SetIterLCPmaxItersStab(460);
-	my_system.SetTolForce(1e-13);
-	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-	msolver->SetVerbose(false);
-	msolver->SetDiagonalPreconditioning(true);
-	
-
-	// TEST: The Matlab external linear solver, for max precision in benchmarks
-ChMatlabEngine matlab_engine;
-ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
-ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
-my_system.ChangeLcpSolverStab (matlab_solver_stab);
-my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
-application.GetSystem()->Update();
-application.SetPaused(true);
-
-
-	/*
-	// Change type of integrator: 
-	my_system.SetIntegrationType(chrono::ChSystem::INT_HHT); 
-	
-	// if later you want to change integrator settings:
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(6);
-		mystepper->SetTolerance(1e-12);
-	}
-	*/
-
-	application.SetTimestep(0.001);
-
-
-
-
-
-
-
-
-	GetLog()<< "\n\n\n===========STATICS======== \n\n\n";
-
-
-
-	application.GetSystem()->DoStaticLinear();
-
-
-	GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
-
-	
-	ChVector<> F, M;
-	ChMatrixDynamic<> displ;
-
-	belement1->GetField(displ);
-	GetLog()<< displ;
-	for (double eta = -1; eta <= 1; eta += 0.4)
-	{	
-		belement1->EvaluateSectionForceTorque(eta, displ, F, M);
-		GetLog() << "  b1_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
-	}
-	GetLog()<< "\n";
-	belement2->GetField(displ);
-	for (double eta = -1; eta <= 1; eta += 0.4)
-	{	
-		belement2->EvaluateSectionForceTorque(eta, displ, F, M);
-		GetLog() << "  b2_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
-	}
-
-	GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x << "    y=" << hnode3->Frame().GetPos().y << "    z=" << hnode3->Frame().GetPos().z << "\n\n";
-	
-
-	GetLog() << "Node 2 ANCF coordinate x= " << hnodeancf2->GetPos().x << "    y=" << hnodeancf2->GetPos().y << "    z=" << hnodeancf2->GetPos().z << "\n\n";
-	GetLog() << "             direction x= " << hnodeancf2->GetD().x << "    y=" << hnodeancf2->GetD().y << "    z=" << hnodeancf2->GetD().z << "\n\n";
-
-
-
-
-	GetLog() << "Press SPACE bar to start/stop dynamic simulation \n\n";
-	GetLog() << "Press F10 for nonlinear static solution \n\n";
-	GetLog() << "Press F11 for linear static solution \n\n";
-
-	while(application.GetDevice()->run()) 
-	{
-		application.BeginScene();
-
-		application.DrawAll();
-		
-		application.DoStep();
-
-		application.EndScene();
-
-		//GetLog() << " node pos =" << hnode3->Frame().GetPos() << "\n";
-	}
-
-
-	return 0;
+    ChSharedPtr<ChElementBeamANCF> belementancf1(new ChElementBeamANCF);
+
+    belementancf1->SetNodes(hnodeancf1, hnodeancf2);
+    belementancf1->SetSection(msection);
+
+    my_mesh->AddElement(belementancf1);
+
+    // Apply a force or a torque to a node:
+    hnodeancf2->SetForce(ChVector<>(0, 3, 0));
+
+    hnodeancf1->SetFixed(true);
+
+    // FOR COMPARISON: AN EULER BEAM:
+
+    ChSharedPtr<ChNodeFEAxyzrot> hnodeeul1(new ChNodeFEAxyzrot(ChFrame<>(ChVector<>(0, 0, -0.3))));
+    ChSharedPtr<ChNodeFEAxyzrot> hnodeeul2(new ChNodeFEAxyzrot(ChFrame<>(ChVector<>(beam_L, 0, -0.3))));
+
+    my_mesh->AddNode(hnodeeul1);
+    my_mesh->AddNode(hnodeeul2);
+
+    ChSharedPtr<ChElementBeamEuler> belementeul(new ChElementBeamEuler);
+
+    belementeul->SetNodes(hnodeeul1, hnodeeul2);
+    belementeul->SetSection(msection);
+
+    my_mesh->AddElement(belementeul);
+
+    // Apply a force or a torque to a node:
+    hnodeeul2->SetForce(ChVector<>(0, 3, 0));
+
+    hnodeeul1->SetFixed(true);
+
+    //
+    // Final touches..
+    //
+    // This is necessary in order to precompute the
+    // stiffness matrices for all inserted elements in mesh
+    my_mesh->SetupInitial();
+
+    belementancf1->SetRestLength(beam_L);
+
+    // Remember to add the mesh to the system!
+    my_system.Add(my_mesh);
+
+    // ==Asset== attach a visualization of the FEM mesh.
+    // This will automatically update a triangle mesh (a ChTriangleMeshShape
+    // asset that is internally managed) by setting  proper
+    // coordinates and vertex colours as in the FEM elements.
+    // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
+    // postprocessor that can handle a coloured ChTriangleMeshShape).
+    // Do not forget AddAsset() at the end!
+
+    /*
+    ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    mvisualizebeamA->SetSmoothFaces(true);
+    my_mesh->AddAsset(mvisualizebeamA);
+    */
+
+    ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
+    mvisualizebeamA->SetColorscaleMinMax(-0.4, 0.4);
+    mvisualizebeamA->SetSmoothFaces(true);
+    mvisualizebeamA->SetWireframe(false);
+    my_mesh->AddAsset(mvisualizebeamA);
+
+    ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizebeamC->SetSymbolsThickness(0.006);
+    mvisualizebeamC->SetSymbolsScale(0.01);
+    mvisualizebeamC->SetZbufferHide(false);
+    my_mesh->AddAsset(mvisualizebeamC);
+
+    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
+    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
+    // If you need a finer control on which item really needs a visualization proxy in
+    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
+
+    application.AssetBindAll();
+
+    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
+    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
+
+    application.AssetUpdateAll();
+
+    //
+    // THE SOFT-REAL-TIME CYCLE
+    //
+    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED THIS OR ::LCP_SIMPLEX because other
+                                                                 // solvers can't handle stiffness matrices
+    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetIterLCPmaxItersSpeed(460);
+    my_system.SetIterLCPmaxItersStab(460);
+    my_system.SetTolForce(1e-13);
+    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    msolver->SetVerbose(false);
+    msolver->SetDiagonalPreconditioning(true);
+
+    // TEST: The Matlab external linear solver, for max precision in benchmarks
+    ChMatlabEngine matlab_engine;
+    ChLcpMatlabSolver* matlab_solver_stab = new ChLcpMatlabSolver(matlab_engine);
+    ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+    my_system.ChangeLcpSolverStab(matlab_solver_stab);
+    my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+    application.GetSystem()->Update();
+    application.SetPaused(true);
+
+    /*
+    // Change type of integrator:
+    my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);
+
+    // if later you want to change integrator settings:
+    if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
+    {
+        mystepper->SetAlpha(-0.2);
+        mystepper->SetMaxiters(6);
+        mystepper->SetTolerance(1e-12);
+    }
+    */
+
+    application.SetTimestep(0.001);
+
+    GetLog() << "\n\n\n===========STATICS======== \n\n\n";
+
+    application.GetSystem()->DoStaticLinear();
+
+    GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
+
+    ChVector<> F, M;
+    ChMatrixDynamic<> displ;
+
+    belement1->GetField(displ);
+    GetLog() << displ;
+    for (double eta = -1; eta <= 1; eta += 0.4) {
+        belement1->EvaluateSectionForceTorque(eta, displ, F, M);
+        GetLog() << "  b1_at " << eta << " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x
+                 << " Ty=" << F.y << " Tz=" << F.z << "\n";
+    }
+    GetLog() << "\n";
+    belement2->GetField(displ);
+    for (double eta = -1; eta <= 1; eta += 0.4) {
+        belement2->EvaluateSectionForceTorque(eta, displ, F, M);
+        GetLog() << "  b2_at " << eta << " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x
+                 << " Ty=" << F.y << " Tz=" << F.z << "\n";
+    }
+
+    GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x << "    y=" << hnode3->Frame().GetPos().y
+             << "    z=" << hnode3->Frame().GetPos().z << "\n\n";
+
+    GetLog() << "Node 2 ANCF coordinate x= " << hnodeancf2->GetPos().x << "    y=" << hnodeancf2->GetPos().y
+             << "    z=" << hnodeancf2->GetPos().z << "\n\n";
+    GetLog() << "             direction x= " << hnodeancf2->GetD().x << "    y=" << hnodeancf2->GetD().y
+             << "    z=" << hnodeancf2->GetD().z << "\n\n";
+
+    GetLog() << "Press SPACE bar to start/stop dynamic simulation \n\n";
+    GetLog() << "Press F10 for nonlinear static solution \n\n";
+    GetLog() << "Press F11 for linear static solution \n\n";
+
+    while (application.GetDevice()->run()) {
+        application.BeginScene();
+
+        application.DrawAll();
+
+        application.DoStep();
+
+        application.EndScene();
+
+        // GetLog() << " node pos =" << hnode3->Frame().GetPos() << "\n";
+    }
+
+    return 0;
 }
-
-

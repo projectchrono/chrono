@@ -12,25 +12,17 @@
 //
 ///////////////////////////////////////////////////
 
-
-
-
 #include "ChSocket.h"
 
-
-/// A single object of this class must be instantiated before using 
+/// A single object of this class must be instantiated before using
 /// all classes related to sockets, because it initializes some platform-specific
-/// settings. 
+/// settings.
 /// Delete it after you do not need sockets anymore.
 
-class ChApiCosimulation ChSocketFramework
-{
-public:
-	ChSocketFramework();
-	~ChSocketFramework();
+class ChApiCosimulation ChSocketFramework {
+  public:
+    ChSocketFramework();
+    ~ChSocketFramework();
 };
 
-
-
 #endif
-        

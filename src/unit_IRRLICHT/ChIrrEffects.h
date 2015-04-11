@@ -9,7 +9,7 @@
 //
 //   Some functions to allow shadow maps in Irrlicht.
 //
-//   Based on Xeffects for Irrlicht, 
+//   Based on Xeffects for Irrlicht,
 //   Copyright (C) 2007-2009 Ahmed Hilali
 //
 //   HEADER file for CHRONO,
@@ -23,1219 +23,1086 @@ namespace irr {
 
 //////////////////////////// CShaderPre.h
 
-class CShaderPreprocessor
-{
-public:
-	CShaderPreprocessor(video::IVideoDriver* driverIn);
-	core::stringc ppShader(core::stringc shaderProgram);
-	core::stringc ppShaderFF(core::stringc shaderProgram);
-	void addShaderDefine(const core::stringc name, const core::stringc value = "");
-	void removeShaderDefine(const core::stringc name);
+class CShaderPreprocessor {
+  public:
+    CShaderPreprocessor(video::IVideoDriver* driverIn);
+    core::stringc ppShader(core::stringc shaderProgram);
+    core::stringc ppShaderFF(core::stringc shaderProgram);
+    void addShaderDefine(const core::stringc name, const core::stringc value = "");
+    void removeShaderDefine(const core::stringc name);
 
-private:
-	void initDefineMap();
+  private:
+    void initDefineMap();
 
-	video::IVideoDriver* driver;
-	core::map<core::stringc , core::stringc> DefineMap;
+    video::IVideoDriver* driver;
+    core::map<core::stringc, core::stringc> DefineMap;
 };
-
 
 //////////////////////////////// EffectCB.h
 
 class EffectHandler;
 
-class DepthShaderCB : public video::IShaderConstantSetCallBack
-{
-public:
-	DepthShaderCB(EffectHandler* effectIn) : effect(effectIn) {};
+class DepthShaderCB : public video::IShaderConstantSetCallBack {
+  public:
+    DepthShaderCB(EffectHandler* effectIn) : effect(effectIn){};
 
-	virtual void OnSetConstants(video::IMaterialRendererServices* services, s32 userData)
-	{
-		video::IVideoDriver* driver = services->getVideoDriver();
+    virtual void OnSetConstants(video::IMaterialRendererServices* services, s32 userData) {
+        video::IVideoDriver* driver = services->getVideoDriver();
 
-		worldViewProj = driver->getTransform(video::ETS_PROJECTION);			
-		worldViewProj *= driver->getTransform(video::ETS_VIEW);
-		worldViewProj *= driver->getTransform(video::ETS_WORLD);
+        worldViewProj = driver->getTransform(video::ETS_PROJECTION);
+        worldViewProj *= driver->getTransform(video::ETS_VIEW);
+        worldViewProj *= driver->getTransform(video::ETS_WORLD);
 
-		services->setVertexShaderConstant("mWorldViewProj", worldViewProj.pointer(), 16);
-		
-		services->setVertexShaderConstant("MaxD", &FarLink, 1);
-	}
+        services->setVertexShaderConstant("mWorldViewProj", worldViewProj.pointer(), 16);
 
-	EffectHandler* effect;
-	f32 FarLink;
-	core::matrix4 worldViewProj;
+        services->setVertexShaderConstant("MaxD", &FarLink, 1);
+    }
+
+    EffectHandler* effect;
+    f32 FarLink;
+    core::matrix4 worldViewProj;
 };
 
-class ShadowShaderCB : public video::IShaderConstantSetCallBack
-{
-public:
-	ShadowShaderCB(EffectHandler* effectIn) : effect(effectIn) {};
+class ShadowShaderCB : public video::IShaderConstantSetCallBack {
+  public:
+    ShadowShaderCB(EffectHandler* effectIn) : effect(effectIn){};
 
-	virtual void OnSetMaterial(const video::SMaterial& material) {}
+    virtual void OnSetMaterial(const video::SMaterial& material) {}
 
-	virtual void OnSetConstants(video::IMaterialRendererServices* services, s32 userData)
-	{
-		video::IVideoDriver* driver = services->getVideoDriver();
+    virtual void OnSetConstants(video::IMaterialRendererServices* services, s32 userData) {
+        video::IVideoDriver* driver = services->getVideoDriver();
 
-		core::matrix4 worldViewProj = driver->getTransform(video::ETS_PROJECTION);			
-		worldViewProj *= driver->getTransform(video::ETS_VIEW);
-		worldViewProj *= driver->getTransform(video::ETS_WORLD);
-		services->setVertexShaderConstant("mWorldViewProj", worldViewProj.pointer(), 16);
+        core::matrix4 worldViewProj = driver->getTransform(video::ETS_PROJECTION);
+        worldViewProj *= driver->getTransform(video::ETS_VIEW);
+        worldViewProj *= driver->getTransform(video::ETS_WORLD);
+        services->setVertexShaderConstant("mWorldViewProj", worldViewProj.pointer(), 16);
 
-		worldViewProj = ProjLink;
-		worldViewProj *= ViewLink;
-		worldViewProj *= driver->getTransform(video::ETS_WORLD);
-		services->setVertexShaderConstant("mWorldViewProj2", worldViewProj.pointer(), 16);
+        worldViewProj = ProjLink;
+        worldViewProj *= ViewLink;
+        worldViewProj *= driver->getTransform(video::ETS_WORLD);
+        services->setVertexShaderConstant("mWorldViewProj2", worldViewProj.pointer(), 16);
 
-		driver->getTransform(video::ETS_WORLD).getInverse(invWorld);
-		core::vector3df lightPosOS = LightLink;
-		invWorld.transformVect(lightPosOS); 
-		services->setVertexShaderConstant("LightPos", reinterpret_cast<f32*>(&lightPosOS.X), 4);
-		
-		services->setVertexShaderConstant("MaxD", reinterpret_cast<f32*>(&FarLink), 1);
-		services->setVertexShaderConstant("MAPRES", &MapRes, 1);
+        driver->getTransform(video::ETS_WORLD).getInverse(invWorld);
+        core::vector3df lightPosOS = LightLink;
+        invWorld.transformVect(lightPosOS);
+        services->setVertexShaderConstant("LightPos", reinterpret_cast<f32*>(&lightPosOS.X), 4);
 
-		services->setPixelShaderConstant("LightColour", reinterpret_cast<f32*>(&LightColour.r), 4);
-		float fclipborder = clipborder;
-		services->setPixelShaderConstant("ClipBorder", reinterpret_cast<f32*>(&fclipborder), 1);
-	}
+        services->setVertexShaderConstant("MaxD", reinterpret_cast<f32*>(&FarLink), 1);
+        services->setVertexShaderConstant("MAPRES", &MapRes, 1);
 
-	EffectHandler* effect;
-	core::matrix4 invWorld;
+        services->setPixelShaderConstant("LightColour", reinterpret_cast<f32*>(&LightColour.r), 4);
+        float fclipborder = clipborder;
+        services->setPixelShaderConstant("ClipBorder", reinterpret_cast<f32*>(&fclipborder), 1);
+    }
 
-	video::SColorf LightColour;
-	core::matrix4 ProjLink;
-	core::matrix4 ViewLink;
-	core::vector3df LightLink;
-	f32 FarLink, MapRes;
-	bool clipborder; //***ALEX***
+    EffectHandler* effect;
+    core::matrix4 invWorld;
+
+    video::SColorf LightColour;
+    core::matrix4 ProjLink;
+    core::matrix4 ViewLink;
+    core::vector3df LightLink;
+    f32 FarLink, MapRes;
+    bool clipborder;  //***ALEX***
 };
 
+class ScreenQuadCB : public video::IShaderConstantSetCallBack {
+  public:
+    ScreenQuadCB(EffectHandler* effectIn, bool defaultV = true) : effect(effectIn), defaultVertexShader(defaultV){};
 
-class ScreenQuadCB : public video::IShaderConstantSetCallBack
-{
-public:
-	ScreenQuadCB(EffectHandler* effectIn, bool defaultV = true) 
-		: effect(effectIn), defaultVertexShader(defaultV) {};
+    EffectHandler* effect;
+    bool defaultVertexShader;
 
-	EffectHandler* effect;
-	bool defaultVertexShader;
+    virtual void OnSetConstants(video::IMaterialRendererServices* services, s32 userData);
 
-	virtual void OnSetConstants(video::IMaterialRendererServices* services, s32 userData);
+    struct SUniformDescriptor {
+        SUniformDescriptor() : fPointer(0), paramCount(0) {}
 
-	struct SUniformDescriptor
-	{
-		SUniformDescriptor() : fPointer(0), paramCount(0) {}
+        SUniformDescriptor(const f32* fPointerIn, u32 paramCountIn) : fPointer(fPointerIn), paramCount(paramCountIn) {}
 
-		SUniformDescriptor(const f32* fPointerIn, u32 paramCountIn)
-			: fPointer(fPointerIn), paramCount(paramCountIn) {}
+        const f32* fPointer;
+        u32 paramCount;
+    };
 
-		const f32* fPointer;
-		u32 paramCount;
-	};
-
-	core::map<core::stringc, SUniformDescriptor> uniformDescriptors;
+    core::map<core::stringc, SUniformDescriptor> uniformDescriptors;
 };
-
 
 //////////////////////////// CShaderPre.cpp
 
-
-
-struct SDefineExp
-{
-	SDefineExp() : IfPos(-1), ElsePos(-1), EndPos(-1), IfExp(""), Inverse(false) {};
-	s32 IfPos;
-	s32 ElsePos;
-	s32 EndPos;
-	core::stringc IfExp;
-	bool Inverse;
+struct SDefineExp {
+    SDefineExp() : IfPos(-1), ElsePos(-1), EndPos(-1), IfExp(""), Inverse(false){};
+    s32 IfPos;
+    s32 ElsePos;
+    s32 EndPos;
+    core::stringc IfExp;
+    bool Inverse;
 };
 
-inline
-core::array<SDefineExp> grabDefineExpressions(core::stringc &shaderProgram)
-{
-	s32 CurrentSearchPos = 1;
-	s32 FindHelper = 1;
-	s32 FindHelper2 = 1;
-	
-	core::array<SDefineExp> DefineArray;
+inline core::array<SDefineExp> grabDefineExpressions(core::stringc& shaderProgram) {
+    s32 CurrentSearchPos = 1;
+    s32 FindHelper = 1;
+    s32 FindHelper2 = 1;
 
-	// Dont bother stripping comments if theres no defines.
-	if((CurrentSearchPos = shaderProgram.find("##ifdef") == -1))
-		return DefineArray;
+    core::array<SDefineExp> DefineArray;
 
-	// Strip all comments, they get in the way.
-	while((CurrentSearchPos = shaderProgram.find("//")) > -1)
-	{
-		FindHelper = shaderProgram.findNext('\n',CurrentSearchPos);
-		if(FindHelper != -1)
-			for(u32 i = CurrentSearchPos;i < (u32)FindHelper;++i)
-				shaderProgram[i] = ' ';
-		else
-			for(u32 i = CurrentSearchPos;i < shaderProgram.size();++i)
-				shaderProgram[i] = ' ';
-	}
+    // Dont bother stripping comments if theres no defines.
+    if ((CurrentSearchPos = shaderProgram.find("##ifdef") == -1))
+        return DefineArray;
 
-	while((CurrentSearchPos = shaderProgram.find("/*")) > -1)
-	{
-		FindHelper = shaderProgram.find("*/");
-		if(FindHelper > CurrentSearchPos)
-			for(u32 i = CurrentSearchPos;i <= (u32)(FindHelper + 1);++i)
-				shaderProgram[i] = ' ';
-		else
-			for(u32 i = CurrentSearchPos;i < shaderProgram.size();++i)
-				shaderProgram[i] = ' ';
-	}
+    // Strip all comments, they get in the way.
+    while ((CurrentSearchPos = shaderProgram.find("//")) > -1) {
+        FindHelper = shaderProgram.findNext('\n', CurrentSearchPos);
+        if (FindHelper != -1)
+            for (u32 i = CurrentSearchPos; i < (u32)FindHelper; ++i)
+                shaderProgram[i] = ' ';
+        else
+            for (u32 i = CurrentSearchPos; i < shaderProgram.size(); ++i)
+                shaderProgram[i] = ' ';
+    }
 
-	while((CurrentSearchPos = shaderProgram.find("##ifdef")) > -1)
-	{
-		SDefineExp DExp;
-		
-		DExp.IfPos = CurrentSearchPos;
-		
-		// Comment out the ##ifdef so that we do not find it again, and so that the compiler ignores it.
-		shaderProgram[CurrentSearchPos] = '/';
-		shaderProgram[CurrentSearchPos + 1] = '/';
+    while ((CurrentSearchPos = shaderProgram.find("/*")) > -1) {
+        FindHelper = shaderProgram.find("*/");
+        if (FindHelper > CurrentSearchPos)
+            for (u32 i = CurrentSearchPos; i <= (u32)(FindHelper + 1); ++i)
+                shaderProgram[i] = ' ';
+        else
+            for (u32 i = CurrentSearchPos; i < shaderProgram.size(); ++i)
+                shaderProgram[i] = ' ';
+    }
 
-		FindHelper = shaderProgram.findNext(' ',CurrentSearchPos);
-		FindHelper2 = shaderProgram.findNext('\n',FindHelper);
+    while ((CurrentSearchPos = shaderProgram.find("##ifdef")) > -1) {
+        SDefineExp DExp;
 
-		if(FindHelper == -1 || FindHelper2 == -1)
-		{
-			std::cerr << "Shader preprocessor encountered invalid if statement." << std::endl;
-			return DefineArray;
-		}
+        DExp.IfPos = CurrentSearchPos;
 
-		// Find the appropriate expression and trim all white space.
-		DExp.IfExp = shaderProgram.subString(FindHelper,FindHelper2 - FindHelper);
-		DExp.IfExp.trim();
-		
-		// Record if its inverse and remove ! sign from expression.
-		if(DExp.IfExp[0] == '!')
-		{
-			DExp.IfExp[0] = ' ';
-			DExp.IfExp.trim();
-			DExp.Inverse = true;
-		}
+        // Comment out the ##ifdef so that we do not find it again, and so that the compiler ignores it.
+        shaderProgram[CurrentSearchPos] = '/';
+        shaderProgram[CurrentSearchPos + 1] = '/';
 
-		bool EndIfFound = false;
+        FindHelper = shaderProgram.findNext(' ', CurrentSearchPos);
+        FindHelper2 = shaderProgram.findNext('\n', FindHelper);
 
-		FindHelper2 = CurrentSearchPos;
-		s32 IfEndScope = 0;
+        if (FindHelper == -1 || FindHelper2 == -1) {
+            std::cerr << "Shader preprocessor encountered invalid if statement." << std::endl;
+            return DefineArray;
+        }
 
-		while(!EndIfFound)
-		{
-			FindHelper = shaderProgram.findNext('#',FindHelper2);
+        // Find the appropriate expression and trim all white space.
+        DExp.IfExp = shaderProgram.subString(FindHelper, FindHelper2 - FindHelper);
+        DExp.IfExp.trim();
 
-			if(FindHelper == -1 || FindHelper >= (s32)(shaderProgram.size() - 3))
-			{
-				std::cerr << "Shader preprocessor encountered unmatched if statement." << std::endl;
-				return DefineArray;
-			}
+        // Record if its inverse and remove ! sign from expression.
+        if (DExp.IfExp[0] == '!') {
+            DExp.IfExp[0] = ' ';
+            DExp.IfExp.trim();
+            DExp.Inverse = true;
+        }
 
-			if(IfEndScope < 0)
-			{
-				std::cerr << "Shader preprocessor encountered unmatched endif statement." << std::endl;
-				return DefineArray;
-			}
-			
-			if(shaderProgram[FindHelper + 1] != '#')
-			{
-				FindHelper2 = FindHelper + 1;
-				continue;
-			}
-			else if(shaderProgram[FindHelper + 2] == 'i')
-			{
-				IfEndScope++;
-			}
-			else if(shaderProgram[FindHelper + 2] == 'e' && shaderProgram[FindHelper + 3] == 'n')
-			{
-				if(IfEndScope == 0)
-					break;
+        bool EndIfFound = false;
 
-				IfEndScope--;
-			}
-			else if(shaderProgram[FindHelper + 2] == 'e' && shaderProgram[FindHelper + 3] == 'l')
-			{
-				if(IfEndScope == 0)
-				{
-					if(DExp.ElsePos != -1)
-					{
-						std::cerr << "Shader preprocessor encountered duplicate else statements per if statement." << std::endl;
-						return DefineArray;
-					}
+        FindHelper2 = CurrentSearchPos;
+        s32 IfEndScope = 0;
 
-					// Comment out the ##else so that we do not find it again, and so that the compiler ignores it.
-					shaderProgram[FindHelper] = '/';
-					shaderProgram[FindHelper + 1] = '/';
+        while (!EndIfFound) {
+            FindHelper = shaderProgram.findNext('#', FindHelper2);
 
-					DExp.ElsePos = FindHelper;
-				}
-			}
-			
-			FindHelper2 = FindHelper + 2;
-		}
+            if (FindHelper == -1 || FindHelper >= (s32)(shaderProgram.size() - 3)) {
+                std::cerr << "Shader preprocessor encountered unmatched if statement." << std::endl;
+                return DefineArray;
+            }
 
-		// Comment out the ##endif so that we do not find it again, and so that the compiler ignores it.
-		shaderProgram[FindHelper] = '/';
-		shaderProgram[FindHelper + 1] = '/';
+            if (IfEndScope < 0) {
+                std::cerr << "Shader preprocessor encountered unmatched endif statement." << std::endl;
+                return DefineArray;
+            }
 
-		DExp.EndPos = FindHelper;
-		
-		// Add the define expression to the array.
-		DefineArray.push_back(DExp);
-	}
+            if (shaderProgram[FindHelper + 1] != '#') {
+                FindHelper2 = FindHelper + 1;
+                continue;
+            } else if (shaderProgram[FindHelper + 2] == 'i') {
+                IfEndScope++;
+            } else if (shaderProgram[FindHelper + 2] == 'e' && shaderProgram[FindHelper + 3] == 'n') {
+                if (IfEndScope == 0)
+                    break;
 
-	return DefineArray;
+                IfEndScope--;
+            } else if (shaderProgram[FindHelper + 2] == 'e' && shaderProgram[FindHelper + 3] == 'l') {
+                if (IfEndScope == 0) {
+                    if (DExp.ElsePos != -1) {
+                        std::cerr << "Shader preprocessor encountered duplicate else statements per if statement."
+                                  << std::endl;
+                        return DefineArray;
+                    }
+
+                    // Comment out the ##else so that we do not find it again, and so that the compiler ignores it.
+                    shaderProgram[FindHelper] = '/';
+                    shaderProgram[FindHelper + 1] = '/';
+
+                    DExp.ElsePos = FindHelper;
+                }
+            }
+
+            FindHelper2 = FindHelper + 2;
+        }
+
+        // Comment out the ##endif so that we do not find it again, and so that the compiler ignores it.
+        shaderProgram[FindHelper] = '/';
+        shaderProgram[FindHelper + 1] = '/';
+
+        DExp.EndPos = FindHelper;
+
+        // Add the define expression to the array.
+        DefineArray.push_back(DExp);
+    }
+
+    return DefineArray;
 }
 
-inline
-CShaderPreprocessor::CShaderPreprocessor(video::IVideoDriver* driverIn) : driver(driverIn) 
-{initDefineMap();};
+inline CShaderPreprocessor::CShaderPreprocessor(video::IVideoDriver* driverIn) : driver(driverIn) {
+    initDefineMap();
+};
 
-inline
-void CShaderPreprocessor::initDefineMap()
-{
-	if(driver->queryFeature(video::EVDF_TEXTURE_NPOT))
-		DefineMap["EVDF_TEXTURE_NPOT"] = "";
-	if(driver->queryFeature(video::EVDF_FRAMEBUFFER_OBJECT))
-		DefineMap["EVDF_FRAMEBUFFER_OBJECT"] = "";
-	if(driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
-		DefineMap["EVDF_VERTEX_SHADER_1_1"] = "";
-	if(driver->queryFeature(video::EVDF_VERTEX_SHADER_2_0))
-		DefineMap["EVDF_VERTEX_SHADER_2_0"] = "";
-	if(driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0))
-		DefineMap["EVDF_VERTEX_SHADER_3_0"] = "";
-	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_1_1))
-		DefineMap["EVDF_PIXEL_SHADER_1_1"] = "";
-	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_1_2))
-		DefineMap["EVDF_PIXEL_SHADER_1_2"] = "";
-	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_1_3))
-		DefineMap["EVDF_PIXEL_SHADER_1_3"] = "";
-	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_1_4))
-		DefineMap["EVDF_PIXEL_SHADER_1_4"] = "";
-	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_2_0))
-		DefineMap["EVDF_PIXEL_SHADER_2_0"] = "";
-	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0))
-		DefineMap["EVDF_PIXEL_SHADER_3_0"] = "";
+inline void CShaderPreprocessor::initDefineMap() {
+    if (driver->queryFeature(video::EVDF_TEXTURE_NPOT))
+        DefineMap["EVDF_TEXTURE_NPOT"] = "";
+    if (driver->queryFeature(video::EVDF_FRAMEBUFFER_OBJECT))
+        DefineMap["EVDF_FRAMEBUFFER_OBJECT"] = "";
+    if (driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
+        DefineMap["EVDF_VERTEX_SHADER_1_1"] = "";
+    if (driver->queryFeature(video::EVDF_VERTEX_SHADER_2_0))
+        DefineMap["EVDF_VERTEX_SHADER_2_0"] = "";
+    if (driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0))
+        DefineMap["EVDF_VERTEX_SHADER_3_0"] = "";
+    if (driver->queryFeature(video::EVDF_PIXEL_SHADER_1_1))
+        DefineMap["EVDF_PIXEL_SHADER_1_1"] = "";
+    if (driver->queryFeature(video::EVDF_PIXEL_SHADER_1_2))
+        DefineMap["EVDF_PIXEL_SHADER_1_2"] = "";
+    if (driver->queryFeature(video::EVDF_PIXEL_SHADER_1_3))
+        DefineMap["EVDF_PIXEL_SHADER_1_3"] = "";
+    if (driver->queryFeature(video::EVDF_PIXEL_SHADER_1_4))
+        DefineMap["EVDF_PIXEL_SHADER_1_4"] = "";
+    if (driver->queryFeature(video::EVDF_PIXEL_SHADER_2_0))
+        DefineMap["EVDF_PIXEL_SHADER_2_0"] = "";
+    if (driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0))
+        DefineMap["EVDF_PIXEL_SHADER_3_0"] = "";
 
-	// Commented for backwards compatibility.
-	//DefineMap[driver->getVendorInfo()] = "";
+    // Commented for backwards compatibility.
+    // DefineMap[driver->getVendorInfo()] = "";
 }
 
-inline
-void CShaderPreprocessor::addShaderDefine(const core::stringc name, const core::stringc value)
-{
-	// No need for this as its already inited at startup.
-	//// If DefineMap is empty then initialize it.
-	//if(DefineMap.isEmpty())
-	//	initDefineMap();
+inline void CShaderPreprocessor::addShaderDefine(const core::stringc name, const core::stringc value) {
+    // No need for this as its already inited at startup.
+    //// If DefineMap is empty then initialize it.
+    // if(DefineMap.isEmpty())
+    //	initDefineMap();
 
-	DefineMap[name] = value;
+    DefineMap[name] = value;
 }
 
-inline
-void CShaderPreprocessor::removeShaderDefine(const core::stringc name)
-{
-	DefineMap.remove(name);
+inline void CShaderPreprocessor::removeShaderDefine(const core::stringc name) {
+    DefineMap.remove(name);
 }
 
 //! PreProcesses a shader using Irrlicht's built-in shader preprocessor.
-inline
-core::stringc CShaderPreprocessor::ppShader(core::stringc shaderProgram)
-{
-	core::array<SDefineExp> DefineArray = grabDefineExpressions(shaderProgram);
+inline core::stringc CShaderPreprocessor::ppShader(core::stringc shaderProgram) {
+    core::array<SDefineExp> DefineArray = grabDefineExpressions(shaderProgram);
 
-	// No need for this as its already inited at startup.
-	//// If DefineMap is empty then initialize it.
-	//if(DefineMap.isEmpty())
-	//	initDefineMap();
+    // No need for this as its already inited at startup.
+    //// If DefineMap is empty then initialize it.
+    // if(DefineMap.isEmpty())
+    //	initDefineMap();
 
-	for(u32 i = 0; i < DefineArray.size();++i)
-	{
-		if(DefineArray[i].IfPos == -1)
-			break;
-	
-		// Either it is true and not inversed, or it is false, but inversed. 
-		// (Wish C++ had a built-in (logical) XOR operator sometimes. :P) 
-		if((DefineMap.find(DefineArray[i].IfExp) && !DefineArray[i].Inverse) 
-		|| (!DefineMap.find(DefineArray[i].IfExp) && DefineArray[i].Inverse))
-		{
-			if(DefineArray[i].ElsePos > -1)
-			{
-				// If there is an else statement then clear the else section.
-				if(DefineArray[i].EndPos != -1)
-				{
-					for(int z = DefineArray[i].ElsePos;z <= DefineArray[i].EndPos + 6;++z)
-						shaderProgram[z] = ' ';
-				}
-			}
-		}
-		else if(DefineArray[i].ElsePos != -1)
-		{
-			// If there is an else statement then clear the if section.
-			for(int z = DefineArray[i].IfPos;z <= DefineArray[i].ElsePos + 5;++z)
-				shaderProgram[z] = ' ';
-		}
-		else
-		{
-			// Else just clear the whole block.
-			if(DefineArray[i].EndPos != -1)
-			{
-				for(int z = DefineArray[i].IfPos;z <= DefineArray[i].EndPos + 6;++z)
-					shaderProgram[z] = ' ';
-			}
-		}
-	}
+    for (u32 i = 0; i < DefineArray.size(); ++i) {
+        if (DefineArray[i].IfPos == -1)
+            break;
 
-	core::map<core::stringc,core::stringc>::ParentFirstIterator DefIter;
-	s32 DefFinder = 1;
+        // Either it is true and not inversed, or it is false, but inversed.
+        // (Wish C++ had a built-in (logical) XOR operator sometimes. :P)
+        if ((DefineMap.find(DefineArray[i].IfExp) && !DefineArray[i].Inverse) ||
+            (!DefineMap.find(DefineArray[i].IfExp) && DefineArray[i].Inverse)) {
+            if (DefineArray[i].ElsePos > -1) {
+                // If there is an else statement then clear the else section.
+                if (DefineArray[i].EndPos != -1) {
+                    for (int z = DefineArray[i].ElsePos; z <= DefineArray[i].EndPos + 6; ++z)
+                        shaderProgram[z] = ' ';
+                }
+            }
+        } else if (DefineArray[i].ElsePos != -1) {
+            // If there is an else statement then clear the if section.
+            for (int z = DefineArray[i].IfPos; z <= DefineArray[i].ElsePos + 5; ++z)
+                shaderProgram[z] = ' ';
+        } else {
+            // Else just clear the whole block.
+            if (DefineArray[i].EndPos != -1) {
+                for (int z = DefineArray[i].IfPos; z <= DefineArray[i].EndPos + 6; ++z)
+                    shaderProgram[z] = ' ';
+            }
+        }
+    }
 
-	// Replace all shader defines.
-	for(DefIter = DefineMap.getParentFirstIterator();!DefIter.atEnd();DefIter++)
-	{
-		if(DefIter->getValue().size() == 0)
-			continue;
+    core::map<core::stringc, core::stringc>::ParentFirstIterator DefIter;
+    s32 DefFinder = 1;
 
-		// Replace all occurances.
-		while((DefFinder = shaderProgram.find(DefIter->getKey().c_str())) > -1)
-		{
-			// Clear the define from the code.
-			for(u32 z = DefFinder;z < DefFinder + DefIter->getKey().size();++z)
-				shaderProgram[z] = ' ';
+    // Replace all shader defines.
+    for (DefIter = DefineMap.getParentFirstIterator(); !DefIter.atEnd(); DefIter++) {
+        if (DefIter->getValue().size() == 0)
+            continue;
 
-			// Stitch value and shader program together. (Is there a faster way?)
-			shaderProgram = shaderProgram.subString(0,DefFinder) + DefIter->getValue() 
-					+ shaderProgram.subString(DefFinder,shaderProgram.size() - 1);
-		}
-	}
+        // Replace all occurances.
+        while ((DefFinder = shaderProgram.find(DefIter->getKey().c_str())) > -1) {
+            // Clear the define from the code.
+            for (u32 z = DefFinder; z < DefFinder + DefIter->getKey().size(); ++z)
+                shaderProgram[z] = ' ';
 
-	return shaderProgram;
+            // Stitch value and shader program together. (Is there a faster way?)
+            shaderProgram = shaderProgram.subString(0, DefFinder) + DefIter->getValue() +
+                            shaderProgram.subString(DefFinder, shaderProgram.size() - 1);
+        }
+    }
+
+    return shaderProgram;
 }
 
-inline
-std::string getFileContent(const std::string pFile)
-{
-	std::ifstream File(pFile.c_str(), std::ios::in);
-	std::string Content;
+inline std::string getFileContent(const std::string pFile) {
+    std::ifstream File(pFile.c_str(), std::ios::in);
+    std::string Content;
 
-	if(File.is_open())
-	{
-		for(std::string Line; std::getline(File, Line);)
-			Content += Line + "\n"; 
+    if (File.is_open()) {
+        for (std::string Line; std::getline(File, Line);)
+            Content += Line + "\n";
 
-		File.close();
-	}
-	
-	return Content;
+        File.close();
+    }
+
+    return Content;
 }
 
 //! PreProcesses a shader using Irrlicht's built-in shader preprocessor.
-inline
-core::stringc CShaderPreprocessor::ppShaderFF(core::stringc shaderProgram)
-{
-	return ppShader(getFileContent(shaderProgram.c_str()).c_str());
+inline core::stringc CShaderPreprocessor::ppShaderFF(core::stringc shaderProgram) {
+    return ppShader(getFileContent(shaderProgram.c_str()).c_str());
 }
-
-
-
 
 /////////////////////////////CScreenQuad.h
 
 //***ALEX*** fixes for Irrlicht 1.8
-class CScreenQuad
-{
-public:
-        CScreenQuad()
-        {
-                Material.Wireframe = false;
-                Material.Lighting = false;
-                Material.ZWriteEnable = false;
- 
-                Vertices[0] = video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,1.0f);
-                Vertices[1] = video::S3DVertex(-1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,0.0f);
-                Vertices[2] = video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,0.0f);
-                Vertices[3] = video::S3DVertex( 1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,1.0f);
-        }
- 
-        virtual void render(video::IVideoDriver* driver)
-        {
-                const u16 indices[6] = {0, 1, 2, 0, 2, 3};
- 
-                driver->setMaterial(Material);
-                driver->setTransform(video::ETS_WORLD, core::matrix4());
-                driver->drawIndexedTriangleList(&Vertices[0], 4, &indices[0], 2);
-        }
- 
-        virtual video::SMaterial& getMaterial()
-        {
-                return Material;
-        }  
- 
-        video::ITexture* rt[2];
- 
-private:
-        video::S3DVertex Vertices[4];
-        video::SMaterial Material;
+class CScreenQuad {
+  public:
+    CScreenQuad() {
+        Material.Wireframe = false;
+        Material.Lighting = false;
+        Material.ZWriteEnable = false;
+
+        Vertices[0] = video::S3DVertex(-1.0f, -1.0f, 0.0f, 0, 0, 1, video::SColor(0x0), 0.0f, 1.0f);
+        Vertices[1] = video::S3DVertex(-1.0f, 1.0f, 0.0f, 0, 0, 1, video::SColor(0x0), 0.0f, 0.0f);
+        Vertices[2] = video::S3DVertex(1.0f, 1.0f, 0.0f, 0, 0, 1, video::SColor(0x0), 1.0f, 0.0f);
+        Vertices[3] = video::S3DVertex(1.0f, -1.0f, 0.0f, 0, 0, 1, video::SColor(0x0), 1.0f, 1.0f);
+    }
+
+    virtual void render(video::IVideoDriver* driver) {
+        const u16 indices[6] = {0, 1, 2, 0, 2, 3};
+
+        driver->setMaterial(Material);
+        driver->setTransform(video::ETS_WORLD, core::matrix4());
+        driver->drawIndexedTriangleList(&Vertices[0], 4, &indices[0], 2);
+    }
+
+    virtual video::SMaterial& getMaterial() { return Material; }
+
+    video::ITexture* rt[2];
+
+  private:
+    video::S3DVertex Vertices[4];
+    video::SMaterial Material;
 };
 
 /*
 class CScreenQuad
 {
 public:
-	CScreenQuad()
-	{
-		Material.Wireframe = false;
-		Material.Lighting = false;
-		Material.ZWriteEnable = false;
+    CScreenQuad()
+    {
+        Material.Wireframe = false;
+        Material.Lighting = false;
+        Material.ZWriteEnable = false;
 
-		Vertices[0] = video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,1.0f);
-		Vertices[1] = video::S3DVertex(-1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,0.0f);
-		Vertices[2] = video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,0.0f);
-		Vertices[3] = video::S3DVertex( 1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,1.0f);
-		Vertices[4] = video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,1.0f);
-		Vertices[5] = video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,0.0f);
-	}
+        Vertices[0] = video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,1.0f);
+        Vertices[1] = video::S3DVertex(-1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,0.0f);
+        Vertices[2] = video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,0.0f);
+        Vertices[3] = video::S3DVertex( 1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,1.0f);
+        Vertices[4] = video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,1.0f);
+        Vertices[5] = video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,0.0f);
+    }
 
-	virtual void render(video::IVideoDriver* driver)
-	{
-		u16 indices[6] = {0, 1, 2, 3, 4, 5};
+    virtual void render(video::IVideoDriver* driver)
+    {
+        u16 indices[6] = {0, 1, 2, 3, 4, 5};
 
-		driver->setMaterial(Material);
-		driver->setTransform(video::ETS_WORLD, core::matrix4());
-		driver->drawIndexedTriangleList(&Vertices[0], 6, &indices[0], 2);
-	}
+        driver->setMaterial(Material);
+        driver->setTransform(video::ETS_WORLD, core::matrix4());
+        driver->drawIndexedTriangleList(&Vertices[0], 6, &indices[0], 2);
+    }
 
-	virtual video::SMaterial& getMaterial()
-	{
-		return Material;
-	}
+    virtual video::SMaterial& getMaterial()
+    {
+        return Material;
+    }
 
-	video::ITexture* rt[2];
+    video::ITexture* rt[2];
 
 private:
-	video::S3DVertex Vertices[6];
-	video::SMaterial Material;
+    video::S3DVertex Vertices[6];
+    video::SMaterial Material;
 };
 */
 
 //////////////////////////////////////EffectShaders.h
 
+enum E_SHADER_EXTENSION {
+    ESE_GLSL,
+    ESE_HLSL,
 
-
-enum E_SHADER_EXTENSION
-{
-	ESE_GLSL,
-	ESE_HLSL,
-
-	ESE_COUNT
+    ESE_COUNT
 };
 
 //***ALEX***
-// from ... const char* LIGHT_MODULATE_P ... to ... const char* const LIGHT_MODULATE_P .. to avoid multiple defined symbols
-const char* const LIGHT_MODULATE_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
-"uniform sampler2D ScreenMapSampler;\n"
-""
-"void main() "
-"{		"
-"	vec4 finalCol = texture2D(ColorMapSampler, gl_TexCoord[0].xy);\n"
-"	vec4 lightCol = texture2D(ScreenMapSampler, gl_TexCoord[0].xy);\n"
-""
-"	gl_FragColor = finalCol * lightCol;\n"
-"}"
-,
-"sampler2D ColorMapSampler : register(s0);\n"
-"sampler2D ScreenMapSampler : register(s1);\n"
-""
-"float4 pixelMain(float2 TexCoords : TEXCOORD0) : COLOR0"
-"{		"
-"	float4 finalCol = tex2D(ColorMapSampler, TexCoords);\n"
-"	float4 lightCol = tex2D(ScreenMapSampler, TexCoords);\n"
-""
-"	return finalCol * lightCol;\n"
-"}"};
+// from ... const char* LIGHT_MODULATE_P ... to ... const char* const LIGHT_MODULATE_P .. to avoid multiple defined
+// symbols
+const char* const LIGHT_MODULATE_P[ESE_COUNT] = {
+    "uniform sampler2D ColorMapSampler;\n"
+    "uniform sampler2D ScreenMapSampler;\n"
+    ""
+    "void main() "
+    "{		"
+    "	vec4 finalCol = texture2D(ColorMapSampler, gl_TexCoord[0].xy);\n"
+    "	vec4 lightCol = texture2D(ScreenMapSampler, gl_TexCoord[0].xy);\n"
+    ""
+    "	gl_FragColor = finalCol * lightCol;\n"
+    "}",
+    "sampler2D ColorMapSampler : register(s0);\n"
+    "sampler2D ScreenMapSampler : register(s1);\n"
+    ""
+    "float4 pixelMain(float2 TexCoords : TEXCOORD0) : COLOR0"
+    "{		"
+    "	float4 finalCol = tex2D(ColorMapSampler, TexCoords);\n"
+    "	float4 lightCol = tex2D(ScreenMapSampler, TexCoords);\n"
+    ""
+    "	return finalCol * lightCol;\n"
+    "}"};
 
+const char* const SHADOW_PASS_1P[ESE_COUNT] = {
+    "void main() "
+    "{"
+    "	vec4 vInfo = gl_TexCoord[0];\n"
+    "	float depth = vInfo.z / vInfo.x;\n"
+    "   gl_FragColor = vec4(depth, depth * depth, 0.0, 0.0);\n"
+    "}",
+    "float4 pixelMain(float4 ClipPos: TEXCOORD0) : COLOR0"
+    "{"
+    "	float depth = ClipPos.z / ClipPos.x;\n"
+    "	return float4(depth, depth * depth, 0.0, 0.0);\n"
+    "}"};
 
-const char* const SHADOW_PASS_1P[ESE_COUNT] = {"void main() "
-"{"
-"	vec4 vInfo = gl_TexCoord[0];\n"
-"	float depth = vInfo.z / vInfo.x;\n"
-"   gl_FragColor = vec4(depth, depth * depth, 0.0, 0.0);\n"
-"}"
-,
-"float4 pixelMain(float4 ClipPos: TEXCOORD0) : COLOR0"
-"{"
-"	float depth = ClipPos.z / ClipPos.x;\n"
-"	return float4(depth, depth * depth, 0.0, 0.0);\n"
-"}"};
+const char* const SHADOW_PASS_1PT[ESE_COUNT] = {
+    "uniform sampler2D ColorMapSampler;\n"
+    ""
+    "void main() "
+    "{"
+    "	vec4 vInfo = gl_TexCoord[0];\n"
+    ""
+    "	float depth = vInfo.z / vInfo.x;\n"
+    ""
+    "	float alpha = texture2D(ColorMapSampler, gl_TexCoord[1].xy).a;\n"
+    ""
+    "    gl_FragColor = vec4(depth, depth * depth, 0.0, alpha);\n"
+    "}",
+    "sampler2D ColorMapSampler : register(s0);\n"
+    ""
+    "float4 pixelMain(float4 Color: TEXCOORD0, float2 Texcoords: TEXCOORD1) : COLOR0"
+    "{"
+    "	float depth = Color.z / Color.w;\n"
+    "	"
+    "	float alpha = tex2D(ColorMapSampler, Texcoords).a;\n"
+    "	"
+    "	return float4(depth, depth * depth, 0.0, alpha);\n"
+    "}"};
 
-const char* const SHADOW_PASS_1PT[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
-""
-"void main() "
-"{"
-"	vec4 vInfo = gl_TexCoord[0];\n"
-""
-"	float depth = vInfo.z / vInfo.x;\n"
-""
-"	float alpha = texture2D(ColorMapSampler, gl_TexCoord[1].xy).a;\n"
-""
-"    gl_FragColor = vec4(depth, depth * depth, 0.0, alpha);\n"
-"}"
-,
-"sampler2D ColorMapSampler : register(s0);\n"
-""
-"float4 pixelMain(float4 Color: TEXCOORD0, float2 Texcoords: TEXCOORD1) : COLOR0"
-"{"
-"	float depth = Color.z / Color.w;\n"
-"	"
-"	float alpha = tex2D(ColorMapSampler, Texcoords).a;\n"
-"	"
-"	return float4(depth, depth * depth, 0.0, alpha);\n"
-"}"};
+const char* const SHADOW_PASS_1V[ESE_COUNT] = {
+    "uniform mat4 mWorldViewProj;\n"
+    "uniform float MaxD;\n"
+    ""
+    "void main()"
+    "{"
+    "	vec4 tPos = mWorldViewProj * gl_Vertex;\n"
+    "	gl_Position = tPos;\n"
+    "	gl_TexCoord[0] = vec4(MaxD, tPos.y, tPos.z, tPos.w);\n"
+    ""
+    "	gl_TexCoord[1].xy = gl_MultiTexCoord0.xy;\n"
+    "}",
+    "float4x4 mWorldViewProj;\n"
+    "float MaxD;\n"
+    ""
+    "struct VS_OUTPUT "
+    "{"
+    "	float4 Position: POSITION0;\n"
+    "	float4 ClipPos: TEXCOORD0;\n"
+    "	float2 Texcoords: TEXCOORD1;\n"
+    "	float4 VColor: TEXCOORD2;\n"
+    "};\n"
+    ""
+    "VS_OUTPUT vertexMain(float3 Position : POSITION0, float2 Texcoords : TEXCOORD0, float4 vColor : COLOR0)"
+    "{"
+    "	VS_OUTPUT  OUT;\n"
+    "	float4 hpos = mul(float4(Position.x, Position.y, Position.z, 1.0), mWorldViewProj);\n"
+    "   OUT.ClipPos = hpos;\n"
+    "	OUT.ClipPos.x = MaxD;\n"
+    "   OUT.Position = hpos;\n"
+    "	OUT.Texcoords = Texcoords;\n"
+    "	OUT.VColor = vColor;\n"
+    "	return(OUT);\n"
+    "}"};
 
-const char* const SHADOW_PASS_1V[ESE_COUNT] = {"uniform mat4 mWorldViewProj;\n"
-"uniform float MaxD;\n"
-""
-"void main()"
-"{"
-"	vec4 tPos = mWorldViewProj * gl_Vertex;\n"
-"	gl_Position = tPos;\n"
-"	gl_TexCoord[0] = vec4(MaxD, tPos.y, tPos.z, tPos.w);\n"
-""
-"	gl_TexCoord[1].xy = gl_MultiTexCoord0.xy;\n"
-"}"
-,
-"float4x4 mWorldViewProj;\n"
-"float MaxD;\n"
-""
-"struct VS_OUTPUT "
-"{"
-"	float4 Position: POSITION0;\n"
-"	float4 ClipPos: TEXCOORD0;\n"
-"	float2 Texcoords: TEXCOORD1;\n"
-"	float4 VColor: TEXCOORD2;\n"
-"};\n"
-""
-"VS_OUTPUT vertexMain(float3 Position : POSITION0, float2 Texcoords : TEXCOORD0, float4 vColor : COLOR0)"
-"{"
-"	VS_OUTPUT  OUT;\n"
-"	float4 hpos = mul(float4(Position.x, Position.y, Position.z, 1.0), mWorldViewProj);\n"
-"   OUT.ClipPos = hpos;\n"
-"	OUT.ClipPos.x = MaxD;\n"
-"   OUT.Position = hpos;\n"
-"	OUT.Texcoords = Texcoords;\n"
-"	OUT.VColor = vColor;\n"
-"	return(OUT);\n"
-"}"};
+const char* const SHADOW_PASS_2P[ESE_COUNT] = {
+    "uniform sampler2D ShadowMapSampler;\n"
+    "uniform vec4 LightColour;\n"
+    "varying float lightVal;\n"
+    ""
+    "\n##ifdef VSM\n"
+    "float testShadow(vec2 texCoords, vec2 offset, float RealDist)\n"
+    "{\n"
+    "	vec4 shadTexCol = texture2D(ShadowMapSampler, texCoords + offset);\n"
+    ""
+    "	float lit_factor = (RealDist <= shadTexCol.x) ? 1.0 : 0.0;\n"
+    ""
+    "	float E_x2 = shadTexCol.y;\n"
+    "	float Ex_2 = shadTexCol.x * shadTexCol.x;\n"
+    "	float variance = min(max(E_x2 - Ex_2, 0.00001) + 0.000001, 1.0);\n"
+    "	float m_d = (shadTexCol.x - RealDist);\n"
+    "	float p = variance / (variance + m_d * m_d);\n"
+    ""
+    "	return (1.0 - max(lit_factor, p)) / float(SAMPLE_AMOUNT);\n"
+    "}\n"
+    "##else\n"
+    "float testShadow(vec2 smTexCoord, vec2 offset, float realDistance)"
+    "{"
+    "	vec4 texDepth = texture2D(ShadowMapSampler, vec2( smTexCoord + offset));\n"
+    "	float extractedDistance = texDepth.r;\n"
+    "	"
+    "	return (extractedDistance <= realDistance) ? (1.0  / float(SAMPLE_AMOUNT)) : 0.0;\n"
+    "}\n"
+    "##endif\n"
+    "\n"
+    "vec2 offsetArray[16];\n"
+    "\n"
+    "void main() \n"
+    "{"
+    "	vec4 SMPos = gl_TexCoord[0];\n"
+    "	vec4 MVar = gl_TexCoord[1];\n"
+    ""
+    "	offsetArray[0] = vec2(0.0, 0.0);\n"
+    "	offsetArray[1] = vec2(0.0, 1.0);\n"
+    "	offsetArray[2] = vec2(1.0, 1.0);\n"
+    "	offsetArray[3] = vec2(-1.0, -1.0);\n"
+    "	offsetArray[4] = vec2(-2.0, 0.0);\n"
+    "	offsetArray[5] = vec2(0.0, -2.0);\n"
+    "	offsetArray[6] = vec2(2.0, -2.0);\n"
+    "	offsetArray[7] = vec2(-2.0, 2.0);\n"
+    "	offsetArray[8] = vec2(3.0, 0.0);\n"
+    "	offsetArray[9] = vec2(0.0, 3.0);\n"
+    "	offsetArray[10] = vec2(3.0, 3.0);\n"
+    "	offsetArray[11] = vec2(-3.0, -3.0);\n"
+    "	offsetArray[12] = vec2(-4.0, 0.0);\n"
+    "	offsetArray[13] = vec2(0.0, -4.0);\n"
+    "	offsetArray[14] = vec2(4.0, -4.0);\n"
+    "	offsetArray[15] = vec2(-4.0, 4.0);\n"
+    ""
+    "    SMPos.xy  = SMPos.xy / SMPos.w / 2.0 + vec2(0.5, 0.5);\n"
+    ""
+    "	vec4 finalCol = vec4(0.0, 0.0, 0.0, 0.0);\n"
+    ""
+    "	// If this point is within the light's frustum.\n"
+    "##ifdef ROUND_SPOTLIGHTS\n"
+    "	float lengthToCenter = length(SMPos.xy - vec2(0.5, 0.5));\n"
+    "	if(SMPos.z - 0.01 > 0.0 && SMPos.z + 0.01 < MVar.z)\n"
+    "##else\n"
+    "	vec2 clampedSMPos = clamp(SMPos.xy, vec2(0.0, 0.0), vec2(1.0, 1.0));\n"
+    "	if(clampedSMPos.x == SMPos.x && clampedSMPos.y == SMPos.y && SMPos.z > 0.0 && SMPos.z < MVar.z)\n"
+    "##endif\n"
+    "	{"
+    "		float lightFactor = 1.0;\n"
+    "		float realDist = MVar.x / MVar.z - 0.002;\n"
+    "	"
+    "		for(int i = 0;i < SAMPLE_AMOUNT; i++)"
+    "			lightFactor -= testShadow(SMPos.xy, offsetArray[i] * MVar.w, realDist);\n"
+    ""
+    "		// Multiply with diffuse.\n"
+    "##ifdef ROUND_SPOTLIGHTS\n"
+    "		finalCol = LightColour * lightFactor * MVar.y * clamp(5.0 - 10.0 * lengthToCenter, 0.0, 1.0);\n"
+    "##else\n"
+    "		finalCol = LightColour * lightFactor * MVar.y;\n"
+    "##endif\n"
+    "	}"
+    ""
+    "	gl_FragColor = finalCol;\n"
+    "}",
+    "sampler2D ShadowMapSampler : register(s0);\n"
+    "float4 LightColour;\n"
+    "float ClipBorder;\n"
+    "\n"
+    "##ifdef VSM\n"
+    "float calcShadow(float2 texCoords, float2 offset, float RealDist)"
+    "{"
+    "	float4 shadTexCol = tex2D(ShadowMapSampler, texCoords + offset);\n"
+    ""
+    "	float lit_factor = (RealDist <= shadTexCol.x);\n"
+    ""
+    "	float E_x2 = shadTexCol.y;\n"
+    "	float Ex_2 = shadTexCol.x * shadTexCol.x;\n"
+    "	float variance = min(max(E_x2 - Ex_2, 0.00001) + 0.000001, 1.0);\n"
+    "	float m_d = (shadTexCol.x - RealDist);\n"
+    "	float p = variance / (variance + m_d * m_d);\n"
+    "	  "
+    "	return (1.0 - max(lit_factor, p)) / SAMPLE_AMOUNT;\n"
+    "}\n"
+    "##else\n"
+    "float calcShadow(float2 texCoords, float2 offset, float RealDist)"
+    "{"
+    "   float4 shadTexCol = tex2D(ShadowMapSampler,texCoords + offset);\n"
+    "   float extractedDistance = shadTexCol.r;\n"
+    "      "
+    "   return (extractedDistance <= RealDist ? (1.0  / SAMPLE_AMOUNT) : 0.0);\n"
+    "}\n"
+    "##endif\n"
+    ""
+    "float4 pixelMain"
+    "("
+    "   float4 SMPos       : TEXCOORD0,"
+    "   float4 MVar        : TEXCOORD1,"
+    "   float2 TexCoords    : TEXCOORD2"
+    ") : COLOR0"
+    "{"
+    "	const float2 offsetArray[16] = "
+    "	{"
+    "		float2(0.0, 0.0),"
+    "		float2(0.0, 1.0),"
+    "		float2(1.0, -1.0),"
+    "		float2(-1.0, 1.0),"
+    "		float2(-2.0, 0.0),"
+    "		float2(0.0, -2.0),"
+    "		float2(-2.0, -2.0),"
+    "		float2(2.0, 2.0),"
+    "		float2(3.0, 0.0),"
+    "		float2(0.0, 3.0),"
+    "		float2(3.0, -3.0),"
+    "		float2(-3.0, 3.0),"
+    "		float2(-4.0, 0.0),"
+    "		float2(0.0, -4.0),"
+    "		float2(-4.0, -4.0),"
+    "		float2(4.0, 4.0)"
+    "	};\n"
+    ""
+    "	SMPos.xy = SMPos.xy / SMPos.w + float2(0.5, 0.5);\n"
+    ""
+    "	float4 finalCol = float4(0.0, 0.0, 0.0, 0.0);\n"
+    ""
+    "	// If this point is within the light's frustum.\n"
+    "##ifdef ROUND_SPOTLIGHTS\n"
+    "	float lengthToCenter = length(SMPos.xy - float2(0.5, 0.5));\n"
+    "	if(lengthToCenter < 0.5 && SMPos.z > 0.0 && SMPos.z < MVar[3])\n"
+    "##else\n"
+    "	float2 clampedSMPos = saturate(SMPos.xy);\n"
+    "	if(clampedSMPos.x == SMPos.x && clampedSMPos.y == SMPos.y && SMPos.z > 0.0 && SMPos.z < MVar[3])\n"
+    "##endif\n"
+    "	{"
+    "		float lightFactor = 1.0;\n"
+    "		float realDistance = MVar[0] / MVar[3] - 0.005;\n"
+    "	"
+    "		for(int i = 0;i < SAMPLE_AMOUNT; ++i)"
+    "			lightFactor -= calcShadow(SMPos.xy, offsetArray[i] * MVar[2], realDistance);\n"
+    ""
+    "		// Multiply with diffuse.\n"
+    "##ifdef ROUND_SPOTLIGHTS\n"
+    "		finalCol = LightColour * lightFactor * MVar[1] * clamp(5.0 - 10.0 * lengthToCenter, 0.0, 1.0);\n"
+    "##else\n"
+    "		finalCol = LightColour * lightFactor * MVar[1];\n"
+    "##endif\n"
+    "	}"
+    "   else \n"
+    "   { \n"
+    "     if (!ClipBorder) finalCol = LightColour; \n"
+    "   } \n"
+    "	"
+    "	return finalCol;\n"
+    "}"};
 
-const char* const SHADOW_PASS_2P[ESE_COUNT] = {"uniform sampler2D ShadowMapSampler;\n"
-"uniform vec4 LightColour;\n"
-"varying float lightVal;\n"
-""
-"\n##ifdef VSM\n"
-"float testShadow(vec2 texCoords, vec2 offset, float RealDist)\n"
-"{\n"
-"	vec4 shadTexCol = texture2D(ShadowMapSampler, texCoords + offset);\n"
-""
-"	float lit_factor = (RealDist <= shadTexCol.x) ? 1.0 : 0.0;\n"
-""
-"	float E_x2 = shadTexCol.y;\n"
-"	float Ex_2 = shadTexCol.x * shadTexCol.x;\n"
-"	float variance = min(max(E_x2 - Ex_2, 0.00001) + 0.000001, 1.0);\n"
-"	float m_d = (shadTexCol.x - RealDist);\n"
-"	float p = variance / (variance + m_d * m_d);\n"
-""
-"	return (1.0 - max(lit_factor, p)) / float(SAMPLE_AMOUNT);\n"
-"}\n"
-"##else\n"
-"float testShadow(vec2 smTexCoord, vec2 offset, float realDistance)"
-"{"
-"	vec4 texDepth = texture2D(ShadowMapSampler, vec2( smTexCoord + offset));\n"
-"	float extractedDistance = texDepth.r;\n"
-"	"
-"	return (extractedDistance <= realDistance) ? (1.0  / float(SAMPLE_AMOUNT)) : 0.0;\n"
-"}\n"
-"##endif\n"
-"\n"
-"vec2 offsetArray[16];\n"
-"\n"
-"void main() \n"
-"{"
-"	vec4 SMPos = gl_TexCoord[0];\n"
-"	vec4 MVar = gl_TexCoord[1];\n"
-""
-"	offsetArray[0] = vec2(0.0, 0.0);\n"
-"	offsetArray[1] = vec2(0.0, 1.0);\n"
-"	offsetArray[2] = vec2(1.0, 1.0);\n"
-"	offsetArray[3] = vec2(-1.0, -1.0);\n"
-"	offsetArray[4] = vec2(-2.0, 0.0);\n"
-"	offsetArray[5] = vec2(0.0, -2.0);\n"
-"	offsetArray[6] = vec2(2.0, -2.0);\n"
-"	offsetArray[7] = vec2(-2.0, 2.0);\n"
-"	offsetArray[8] = vec2(3.0, 0.0);\n"
-"	offsetArray[9] = vec2(0.0, 3.0);\n"
-"	offsetArray[10] = vec2(3.0, 3.0);\n"
-"	offsetArray[11] = vec2(-3.0, -3.0);\n"
-"	offsetArray[12] = vec2(-4.0, 0.0);\n"
-"	offsetArray[13] = vec2(0.0, -4.0);\n"
-"	offsetArray[14] = vec2(4.0, -4.0);\n"
-"	offsetArray[15] = vec2(-4.0, 4.0);\n"
-""
-"    SMPos.xy  = SMPos.xy / SMPos.w / 2.0 + vec2(0.5, 0.5);\n"
-""
-"	vec4 finalCol = vec4(0.0, 0.0, 0.0, 0.0);\n"
-""
-"	// If this point is within the light's frustum.\n"
-"##ifdef ROUND_SPOTLIGHTS\n"
-"	float lengthToCenter = length(SMPos.xy - vec2(0.5, 0.5));\n"
-"	if(SMPos.z - 0.01 > 0.0 && SMPos.z + 0.01 < MVar.z)\n"
-"##else\n"
-"	vec2 clampedSMPos = clamp(SMPos.xy, vec2(0.0, 0.0), vec2(1.0, 1.0));\n"
-"	if(clampedSMPos.x == SMPos.x && clampedSMPos.y == SMPos.y && SMPos.z > 0.0 && SMPos.z < MVar.z)\n"
-"##endif\n"
-"	{"
-"		float lightFactor = 1.0;\n"
-"		float realDist = MVar.x / MVar.z - 0.002;\n"
-"	"
-"		for(int i = 0;i < SAMPLE_AMOUNT; i++)"
-"			lightFactor -= testShadow(SMPos.xy, offsetArray[i] * MVar.w, realDist);\n"
-""
-"		// Multiply with diffuse.\n"
-"##ifdef ROUND_SPOTLIGHTS\n"
-"		finalCol = LightColour * lightFactor * MVar.y * clamp(5.0 - 10.0 * lengthToCenter, 0.0, 1.0);\n"
-"##else\n"
-"		finalCol = LightColour * lightFactor * MVar.y;\n"
-"##endif\n"
-"	}"
-""
-"	gl_FragColor = finalCol;\n"
-"}"
-,
-"sampler2D ShadowMapSampler : register(s0);\n"
-"float4 LightColour;\n"
-"float ClipBorder;\n"
-"\n"
-"##ifdef VSM\n"
-"float calcShadow(float2 texCoords, float2 offset, float RealDist)"
-"{"
-"	float4 shadTexCol = tex2D(ShadowMapSampler, texCoords + offset);\n"
-""
-"	float lit_factor = (RealDist <= shadTexCol.x);\n"
-""
-"	float E_x2 = shadTexCol.y;\n"
-"	float Ex_2 = shadTexCol.x * shadTexCol.x;\n"
-"	float variance = min(max(E_x2 - Ex_2, 0.00001) + 0.000001, 1.0);\n"
-"	float m_d = (shadTexCol.x - RealDist);\n"
-"	float p = variance / (variance + m_d * m_d);\n"
-"	  "
-"	return (1.0 - max(lit_factor, p)) / SAMPLE_AMOUNT;\n"
-"}\n"
-"##else\n"
-"float calcShadow(float2 texCoords, float2 offset, float RealDist)"
-"{"
-"   float4 shadTexCol = tex2D(ShadowMapSampler,texCoords + offset);\n"
-"   float extractedDistance = shadTexCol.r;\n"
-"      "
-"   return (extractedDistance <= RealDist ? (1.0  / SAMPLE_AMOUNT) : 0.0);\n"
-"}\n"
-"##endif\n"
-""
-"float4 pixelMain"
-"("
-"   float4 SMPos       : TEXCOORD0,"
-"   float4 MVar        : TEXCOORD1,"
-"   float2 TexCoords    : TEXCOORD2"
-") : COLOR0"
-"{"
-"	const float2 offsetArray[16] = "
-"	{"
-"		float2(0.0, 0.0),"
-"		float2(0.0, 1.0),"
-"		float2(1.0, -1.0),"
-"		float2(-1.0, 1.0),"
-"		float2(-2.0, 0.0),"
-"		float2(0.0, -2.0),"
-"		float2(-2.0, -2.0),"
-"		float2(2.0, 2.0),"
-"		float2(3.0, 0.0),"
-"		float2(0.0, 3.0),"
-"		float2(3.0, -3.0),"
-"		float2(-3.0, 3.0),"
-"		float2(-4.0, 0.0),"
-"		float2(0.0, -4.0),"
-"		float2(-4.0, -4.0),"
-"		float2(4.0, 4.0)"
-"	};\n"
-""
-"	SMPos.xy = SMPos.xy / SMPos.w + float2(0.5, 0.5);\n"
-""
-"	float4 finalCol = float4(0.0, 0.0, 0.0, 0.0);\n"
-""
-"	// If this point is within the light's frustum.\n"
-"##ifdef ROUND_SPOTLIGHTS\n"
-"	float lengthToCenter = length(SMPos.xy - float2(0.5, 0.5));\n"
-"	if(lengthToCenter < 0.5 && SMPos.z > 0.0 && SMPos.z < MVar[3])\n"
-"##else\n"
-"	float2 clampedSMPos = saturate(SMPos.xy);\n"
-"	if(clampedSMPos.x == SMPos.x && clampedSMPos.y == SMPos.y && SMPos.z > 0.0 && SMPos.z < MVar[3])\n"
-"##endif\n"
-"	{"
-"		float lightFactor = 1.0;\n"
-"		float realDistance = MVar[0] / MVar[3] - 0.005;\n"
-"	"
-"		for(int i = 0;i < SAMPLE_AMOUNT; ++i)"
-"			lightFactor -= calcShadow(SMPos.xy, offsetArray[i] * MVar[2], realDistance);\n"
-""
-"		// Multiply with diffuse.\n"
-"##ifdef ROUND_SPOTLIGHTS\n"
-"		finalCol = LightColour * lightFactor * MVar[1] * clamp(5.0 - 10.0 * lengthToCenter, 0.0, 1.0);\n"
-"##else\n"
-"		finalCol = LightColour * lightFactor * MVar[1];\n"
-"##endif\n"
-"	}"
-"   else \n"
-"   { \n"
-"     if (!ClipBorder) finalCol = LightColour; \n"
-"   } \n"
-"	"
-"	return finalCol;\n"
-"}"};
+const char* const SHADOW_PASS_2V[ESE_COUNT] = {
+    "struct VS_OUTPUT "
+    "{"
+    "	vec4 Position;\n"
+    "	vec4 ShadowMapSamplingPos;\n"
+    "	vec4 MVar;\n"
+    "};\n"
+    ""
+    "uniform float MaxD, MAPRES;\n"
+    "uniform vec3 LightPos;\n"
+    "uniform mat4 mWorldViewProj;\n"
+    "uniform mat4 mWorldViewProj2;\n"
+    ""
+    "VS_OUTPUT vertexMain( in vec3 Position) "
+    "{"
+    "	VS_OUTPUT OUT;\n"
+    ""
+    "	OUT.Position = (mWorldViewProj * vec4(Position.x, Position.y, Position.z, 1.0));\n"
+    "	OUT.ShadowMapSamplingPos = (mWorldViewProj2 * vec4(Position.x, Position.y, Position.z, 1.0));\n"
+    ""
+    "	vec3 lightDir = normalize(LightPos - Position);\n"
+    "	"
+    "	OUT.MVar.x = OUT.ShadowMapSamplingPos.z;\n"
+    "	OUT.MVar.y = dot(normalize(gl_Normal.xyz), lightDir);\n"
+    "	OUT.MVar.z = MaxD;\n"
+    "	OUT.MVar.w = 1.0 / MAPRES;\n"
+    ""
+    "	return OUT;\n"
+    "}"
+    ""
+    "void main() "
+    "{"
+    "	VS_OUTPUT vOut = vertexMain(gl_Vertex.xyz);\n"
+    ""
+    "	gl_Position = vOut.Position;\n"
+    "	gl_TexCoord[0] = vOut.ShadowMapSamplingPos;\n"
+    "	gl_TexCoord[1] = vOut.MVar;\n"
+    "}",
+    "float4x4 mWorldViewProj;\n"
+    "float4x4 mWorldViewProj2;\n"
+    "float3 LightPos;\n"
+    "float ShadDark;\n"
+    "float MaxD;\n"
+    "float EnableLighting;\n"
+    "float MAPRES;\n"
+    ""
+    "struct VS_OUTPUT "
+    "{"
+    "	float4 Position				: POSITION0;\n"
+    "	float4 ShadowMapSamplingPos : TEXCOORD0; "
+    "	float4 MVar        			: TEXCOORD1;\n"
+    "	float2 TexCoords            : TEXCOORD2;\n"
+    "};\n"
+    ""
+    "VS_OUTPUT vertexMain( "
+    "   	float3 Position	: POSITION0,"
+    "	float2 TexCoords : TEXCOORD0,"
+    "	float2 TexCoords2 : TEXCOORD1,"
+    "	float3 Normal : NORMAL"
+    "  )"
+    "{"
+    "	VS_OUTPUT  OUT;\n"
+    "    OUT.Position = mul(float4(Position.x,Position.y,Position.z,1.0), mWorldViewProj);\n"
+    "	float4 SMPos = mul(float4(Position.x,Position.y,Position.z,1.0), mWorldViewProj2);\n"
+    "	SMPos.xy = float2(SMPos.x, -SMPos.y) / 2.0;\n"
+    "	"
+    "	OUT.ShadowMapSamplingPos = SMPos;\n"
+    "		"
+    "	float3 LightDir = normalize(LightPos - Position.xyz);\n"
+    "	"
+    "	OUT.MVar = float4(SMPos.z, dot(Normal, LightDir), 1.0 / MAPRES, MaxD);\n"
+    "	OUT.TexCoords = TexCoords;\n"
+    "	"
+    "	return(OUT);\n"
+    "}"};
 
-const char* const SHADOW_PASS_2V[ESE_COUNT] = {"struct VS_OUTPUT "
-"{"
-"	vec4 Position;\n"
-"	vec4 ShadowMapSamplingPos;\n"
-"	vec4 MVar;\n"
-"};\n"
-""
-"uniform float MaxD, MAPRES;\n"
-"uniform vec3 LightPos;\n"
-"uniform mat4 mWorldViewProj;\n"
-"uniform mat4 mWorldViewProj2;\n"
-""
-"VS_OUTPUT vertexMain( in vec3 Position) "
-"{"
-"	VS_OUTPUT OUT;\n"
-""
-"	OUT.Position = (mWorldViewProj * vec4(Position.x, Position.y, Position.z, 1.0));\n"
-"	OUT.ShadowMapSamplingPos = (mWorldViewProj2 * vec4(Position.x, Position.y, Position.z, 1.0));\n"
-""
-"	vec3 lightDir = normalize(LightPos - Position);\n"
-"	"
-"	OUT.MVar.x = OUT.ShadowMapSamplingPos.z;\n"
-"	OUT.MVar.y = dot(normalize(gl_Normal.xyz), lightDir);\n"
-"	OUT.MVar.z = MaxD;\n"
-"	OUT.MVar.w = 1.0 / MAPRES;\n"
-""
-"	return OUT;\n"
-"}"
-""
-"void main() "
-"{"
-"	VS_OUTPUT vOut = vertexMain(gl_Vertex.xyz);\n"
-""
-"	gl_Position = vOut.Position;\n"
-"	gl_TexCoord[0] = vOut.ShadowMapSamplingPos;\n"
-"	gl_TexCoord[1] = vOut.MVar;\n"
-"}"
-,
-"float4x4 mWorldViewProj;\n"
-"float4x4 mWorldViewProj2;\n"
-"float3 LightPos;\n"
-"float ShadDark;\n"
-"float MaxD;\n"
-"float EnableLighting;\n"
-"float MAPRES;\n"
-""
-"struct VS_OUTPUT "
-"{"
-"	float4 Position				: POSITION0;\n"
-"	float4 ShadowMapSamplingPos : TEXCOORD0; "
-"	float4 MVar        			: TEXCOORD1;\n"
-"	float2 TexCoords            : TEXCOORD2;\n"
-"};\n"
-""
-"VS_OUTPUT vertexMain( "
-"   	float3 Position	: POSITION0,"
-"	float2 TexCoords : TEXCOORD0,"
-"	float2 TexCoords2 : TEXCOORD1,"
-"	float3 Normal : NORMAL"
-"  )"
-"{"
-"	VS_OUTPUT  OUT;\n"
-"    OUT.Position = mul(float4(Position.x,Position.y,Position.z,1.0), mWorldViewProj);\n"
-"	float4 SMPos = mul(float4(Position.x,Position.y,Position.z,1.0), mWorldViewProj2);\n"
-"	SMPos.xy = float2(SMPos.x, -SMPos.y) / 2.0;\n"
-"	"
-"	OUT.ShadowMapSamplingPos = SMPos;\n"
-"		"
-"	float3 LightDir = normalize(LightPos - Position.xyz);\n"
-"	"
-"	OUT.MVar = float4(SMPos.z, dot(Normal, LightDir), 1.0 / MAPRES, MaxD);\n"
-"	OUT.TexCoords = TexCoords;\n"
-"	"
-"	return(OUT);\n"
-"}"};
+const char* const SIMPLE_P[ESE_COUNT] = {
+    "uniform sampler2D ColorMapSampler;\n"
+    ""
+    "void main() "
+    "{		"
+    "	vec4 finalCol = texture2D(ColorMapSampler, gl_TexCoord[0].xy);\n"
+    "	gl_FragColor = finalCol;\n"
+    "}",
+    "sampler2D ColorMapSampler : register(s0);\n"
+    ""
+    "float4 pixelMain(float2 TexCoords : TEXCOORD0) : COLOR0"
+    "{		"
+    "	float4 finalCol = tex2D(ColorMapSampler, TexCoords);\n"
+    "	return finalCol;\n"
+    "}"};
 
+const char* const WHITE_WASH_P[ESE_COUNT] = {
+    "uniform sampler2D ColorMapSampler;\n"
+    ""
+    "void main() "
+    "{"
+    "	float alpha = texture2D(ColorMapSampler, gl_TexCoord[1].xy).a;\n"
+    ""
+    "    gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);\n"
+    "}",
+    "sampler2D ColorMapSampler : register(s0);\n"
+    ""
+    "float4 pixelMain(float4 Color: TEXCOORD0, float2 Texcoords: TEXCOORD1) : COLOR0"
+    "{"
+    "	float alpha = tex2D(ColorMapSampler, Texcoords).a;\n"
+    ""
+    "	return float4(1.0, 1.0, 1.0, alpha);\n"
+    "}"};
 
-const char* const SIMPLE_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
-""
-"void main() "
-"{		"
-"	vec4 finalCol = texture2D(ColorMapSampler, gl_TexCoord[0].xy);\n"
-"	gl_FragColor = finalCol;\n"
-"}"
-,
-"sampler2D ColorMapSampler : register(s0);\n"
-""
-"float4 pixelMain(float2 TexCoords : TEXCOORD0) : COLOR0"
-"{		"
-"	float4 finalCol = tex2D(ColorMapSampler, TexCoords);\n"
-"	return finalCol;\n"
-"}"};
+const char* const WHITE_WASH_P_ADD[ESE_COUNT] = {
+    "uniform sampler2D ColorMapSampler;\n"
+    "float luminance(vec3 color)"
+    "{"
+    "	return clamp(color.r * 0.3 + color.g * 0.59 + color.b * 0.11, 0.0, 1.0);\n"
+    "}"
+    "void main() "
+    "{"
+    "	vec4 diffuseTex = texture2D(ColorMapSampler, gl_TexCoord[1].xy);\n"
+    "	//diffuseTex *= gl_TexCoord[2];\n"
+    ""
+    "    gl_FragColor = vec4(1.0, 1.0, 1.0, luminance(diffuseTex.rgb));\n"
+    "}",
+    "sampler2D ColorMapSampler : register(s0);\n"
+    ""
+    "float luminance(float3 color)"
+    "{"
+    "	return clamp(color.r * 0.3 + color.g * 0.59 + color.b * 0.11, 0.0, 1.0);\n"
+    "}"
+    ""
+    "float4 pixelMain(float4 Color : TEXCOORD0, float2 Texcoords : TEXCOORD1, float4 VColor : TEXCOORD2) : COLOR0"
+    "{"
+    "	float4 diffuseTex = tex2D(ColorMapSampler, Texcoords);\n"
+    "	diffuseTex *= VColor;\n"
+    ""
+    "	return float4(1.0, 1.0, 1.0, luminance(diffuseTex.rgb));\n"
+    "}"};
 
+const char* const SCREEN_QUAD_V[ESE_COUNT] = {
+    "uniform float screenX, screenY; \n"
+    "uniform vec3 LineStarts0, LineStarts1, LineStarts2, LineStarts3; \n"
+    "uniform vec3 LineEnds0, LineEnds1, LineEnds2, LineEnds3; \n"
+    "void main() \n"
+    "{\n"
+    "	gl_Position = vec4(gl_Vertex.x, gl_Vertex.y, 0.0, 1.0); \n"
+    "	vec2 tCoords; \n"
+    "	tCoords.x = 0.5 * (1.0 + gl_Vertex.x); \n"
+    "	tCoords.y = 0.5 * (1.0 + gl_Vertex.y); \n"
+    "	gl_TexCoord[0].xy = tCoords.xy; \n"
+    "	tCoords.y = 1.0 - tCoords.y; \n"
+    "	vec3 tLStart = mix(LineStarts0, LineStarts1, tCoords.x); \n"
+    "	vec3 bLStart = mix(LineStarts2, LineStarts3, tCoords.x); \n"
+    "	gl_TexCoord[1].xyz = mix(tLStart, bLStart, tCoords.y); \n"
+    "	vec3 tLEnd = mix(LineEnds0, LineEnds1, tCoords.x); \n"
+    "	vec3 bLEnd = mix(LineEnds2, LineEnds3, tCoords.x); \n"
+    "	gl_TexCoord[2].xyz = mix(tLEnd, bLEnd, tCoords.y); \n"
+    "	gl_TexCoord[3].xy = vec2(screenX, screenY); \n"
+    "}",
+    "float screenX, screenY; \n"
+    "float3 LineStarts0, LineStarts1, LineStarts2, LineStarts3; \n"
+    "float3 LineEnds0, LineEnds1, LineEnds2, LineEnds3; \n"
+    "struct VS_OUTPUT \n"
+    "{"
+    "	float4 Position		: POSITION0;"
+    "	float2 TexCoords	: TEXCOORD0;"
+    "	float3 LStart		: TEXCOORD1;"
+    "	float3 LEnd			: TEXCOORD2;"
+    "	float2 ScreenSize	: TEXCOORD3;"
+    "}; \n"
+    "VS_OUTPUT vertexMain(float3 Position : POSITION0) \n"
+    "{ \n"
+    "	VS_OUTPUT OUT; \n"
+    "   OUT.Position = float4(Position.x,Position.y, 0.0, 1.0); \n"
+    "	OUT.TexCoords.x = 0.5 * (1.0 + Position.x + (1.0 / screenX)); \n"
+    "	OUT.TexCoords.y = 1.0 - 0.5 * (1.0 + Position.y - (1.0 / screenY)); \n"
+    "	float3 tLStart = lerp(LineStarts0, LineStarts1, OUT.TexCoords.x); \n"
+    "	float3 bLStart = lerp(LineStarts2, LineStarts3, OUT.TexCoords.x); \n"
+    "	OUT.LStart = lerp(tLStart, bLStart, OUT.TexCoords.y); \n"
+    "	float3 tLEnd = lerp(LineEnds0, LineEnds1, OUT.TexCoords.x); \n"
+    "	float3 bLEnd = lerp(LineEnds2, LineEnds3, OUT.TexCoords.x); \n"
+    "	OUT.LEnd = lerp(tLEnd, bLEnd, OUT.TexCoords.y); \n"
+    "	OUT.ScreenSize = float2(screenX, screenY); \n"
+    "	return(OUT); \n"
+    "} \n"};
 
-const char* const WHITE_WASH_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
-""
-"void main() "
-"{"
-"	float alpha = texture2D(ColorMapSampler, gl_TexCoord[1].xy).a;\n"
-""
-"    gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);\n"
-"}"
-,
-"sampler2D ColorMapSampler : register(s0);\n"
-""
-"float4 pixelMain(float4 Color: TEXCOORD0, float2 Texcoords: TEXCOORD1) : COLOR0"
-"{"
-"	float alpha = tex2D(ColorMapSampler, Texcoords).a;\n"
-""
-"	return float4(1.0, 1.0, 1.0, alpha);\n"
-"}"};
-
-
-const char* const WHITE_WASH_P_ADD[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
-"float luminance(vec3 color)"
-"{"
-"	return clamp(color.r * 0.3 + color.g * 0.59 + color.b * 0.11, 0.0, 1.0);\n"
-"}"
-"void main() "
-"{"
-"	vec4 diffuseTex = texture2D(ColorMapSampler, gl_TexCoord[1].xy);\n"
-"	//diffuseTex *= gl_TexCoord[2];\n"
-""
-"    gl_FragColor = vec4(1.0, 1.0, 1.0, luminance(diffuseTex.rgb));\n"
-"}"
-,
-"sampler2D ColorMapSampler : register(s0);\n"
-""
-"float luminance(float3 color)"
-"{"
-"	return clamp(color.r * 0.3 + color.g * 0.59 + color.b * 0.11, 0.0, 1.0);\n"
-"}"
-""
-"float4 pixelMain(float4 Color : TEXCOORD0, float2 Texcoords : TEXCOORD1, float4 VColor : TEXCOORD2) : COLOR0"
-"{"
-"	float4 diffuseTex = tex2D(ColorMapSampler, Texcoords);\n"
-"	diffuseTex *= VColor;\n"
-""
-"	return float4(1.0, 1.0, 1.0, luminance(diffuseTex.rgb));\n"
-"}"};
-
-const char* const SCREEN_QUAD_V[ESE_COUNT] = {"uniform float screenX, screenY; \n"
-"uniform vec3 LineStarts0, LineStarts1, LineStarts2, LineStarts3; \n"
-"uniform vec3 LineEnds0, LineEnds1, LineEnds2, LineEnds3; \n"
-"void main() \n" 
-"{\n" 
-"	gl_Position = vec4(gl_Vertex.x, gl_Vertex.y, 0.0, 1.0); \n"
-"	vec2 tCoords; \n" 
-"	tCoords.x = 0.5 * (1.0 + gl_Vertex.x); \n" 
-"	tCoords.y = 0.5 * (1.0 + gl_Vertex.y); \n" 
-"	gl_TexCoord[0].xy = tCoords.xy; \n" 
-"	tCoords.y = 1.0 - tCoords.y; \n" 
-"	vec3 tLStart = mix(LineStarts0, LineStarts1, tCoords.x); \n" 
-"	vec3 bLStart = mix(LineStarts2, LineStarts3, tCoords.x); \n" 
-"	gl_TexCoord[1].xyz = mix(tLStart, bLStart, tCoords.y); \n" 
-"	vec3 tLEnd = mix(LineEnds0, LineEnds1, tCoords.x); \n" 
-"	vec3 bLEnd = mix(LineEnds2, LineEnds3, tCoords.x); \n" 
-"	gl_TexCoord[2].xyz = mix(tLEnd, bLEnd, tCoords.y); \n" 
-"	gl_TexCoord[3].xy = vec2(screenX, screenY); \n"
-"}"
-, 
-"float screenX, screenY; \n"
-"float3 LineStarts0, LineStarts1, LineStarts2, LineStarts3; \n"
-"float3 LineEnds0, LineEnds1, LineEnds2, LineEnds3; \n"
-"struct VS_OUTPUT \n"
-"{"
-"	float4 Position		: POSITION0;"
-"	float2 TexCoords	: TEXCOORD0;"
-"	float3 LStart		: TEXCOORD1;"
-"	float3 LEnd			: TEXCOORD2;"
-"	float2 ScreenSize	: TEXCOORD3;"
-"}; \n"
-"VS_OUTPUT vertexMain(float3 Position : POSITION0) \n"
-"{ \n"
-"	VS_OUTPUT OUT; \n"
-"   OUT.Position = float4(Position.x,Position.y, 0.0, 1.0); \n"
-"	OUT.TexCoords.x = 0.5 * (1.0 + Position.x + (1.0 / screenX)); \n" 
-"	OUT.TexCoords.y = 1.0 - 0.5 * (1.0 + Position.y - (1.0 / screenY)); \n" 
-"	float3 tLStart = lerp(LineStarts0, LineStarts1, OUT.TexCoords.x); \n" 
-"	float3 bLStart = lerp(LineStarts2, LineStarts3, OUT.TexCoords.x); \n" 
-"	OUT.LStart = lerp(tLStart, bLStart, OUT.TexCoords.y); \n" 
-"	float3 tLEnd = lerp(LineEnds0, LineEnds1, OUT.TexCoords.x); \n" 
-"	float3 bLEnd = lerp(LineEnds2, LineEnds3, OUT.TexCoords.x); \n" 
-"	OUT.LEnd = lerp(tLEnd, bLEnd, OUT.TexCoords.y); \n" 
-"	OUT.ScreenSize = float2(screenX, screenY); \n"
-"	return(OUT); \n"
-"} \n"};
-
-
-const char* const VSM_BLUR_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
-"\n"
-"vec2 offsetArray[5];\n"
-"\n"
-"void main() \n"
-"{\n"
-"\n"
-"##ifdef VERTICAL_VSM_BLUR\n"
-"	offsetArray[0] = vec2(0.0, 0.0);\n"
-"	offsetArray[1] = vec2(0.0, -1.5 / gl_TexCoord[3].y);\n"
-"	offsetArray[2] = vec2(0.0, 1.5 / gl_TexCoord[3].y);\n"
-"	offsetArray[3] = vec2(0.0, -2.5 / gl_TexCoord[3].y);\n"
-"	offsetArray[4] = vec2(0.0, 2.5 / gl_TexCoord[3].y);\n"
-"##else\n"
-"	offsetArray[0] = vec2(0.0, 0.0);\n"
-"	offsetArray[1] = vec2(-1.5 / gl_TexCoord[3].x, 0.0);\n"
-"	offsetArray[2] = vec2(1.5 / gl_TexCoord[3].x, 0.0);\n"
-"	offsetArray[3] = vec2(-2.5 / gl_TexCoord[3].x, 0.0);\n"
-"	offsetArray[4] = vec2(2.5 / gl_TexCoord[3].x, 0.0);\n"
-"##endif\n"
-"\n"
-"	vec4 BlurCol = vec4(0.0, 0.0, 0.0, 0.0);\n"
-"\n"
-"	for(int i = 0;i < 5;++i)\n"
-"		BlurCol += texture2D(ColorMapSampler, clamp(gl_TexCoord[0].xy + offsetArray[i], vec2(0.001, 0.001), vec2(0.999, 0.999)));\n"
-"\n"
-"	gl_FragColor = BlurCol / 5.0;\n"
-"}\n"
-,
-"sampler2D ColorMapSampler : register(s0);\n"
-"\n"
-"float4 pixelMain ( float4 Texcoords : TEXCOORD0, float2 ScreenSize : TEXCOORD3 ) : COLOR0\n"
-"{\n"
-"	float2 offsetArray[5];\n"
-"##ifdef VERTICAL_VSM_BLUR\n"
-"	offsetArray[0] = float2(0, 0);\n"
-"	offsetArray[1] = float2(0, 1.5 / ScreenSize.y);\n"
-"	offsetArray[2] = float2(0, -1.5 / ScreenSize.y);\n"
-"	offsetArray[3] = float2(0, 2.5 / ScreenSize.y);\n"
-"	offsetArray[4] = float2(0, -2.5 / ScreenSize.y);\n"
-"##else\n"
-"	offsetArray[0] = float2(0, 0);\n"
-"	offsetArray[1] = float2(1.5 / ScreenSize.x, 0);\n"
-"	offsetArray[2] = float2(-1.5 / ScreenSize.x, 0);\n"
-"	offsetArray[3] = float2(2.5 / ScreenSize.x, 0);\n"
-"	offsetArray[4] = float2(-2.5 / ScreenSize.x, 0);\n"
-"##endif\n"
-"\n"
-"	float4 finalVal = float4(0.0, 0.0, 0.0, 0.0);\n"
-"\n"
-"	for(int i = 0;i < 5;++i)\n"
-"		finalVal += tex2D(ColorMapSampler, clamp(Texcoords.xy + offsetArray[i], float2(0.001, 0.001), float2(0.999, 0.999)));\n"
-"\n"
-"	return finalVal / 5.0;\n"
-"}\n"};
-
-
+const char* const VSM_BLUR_P[ESE_COUNT] = {
+    "uniform sampler2D ColorMapSampler;\n"
+    "\n"
+    "vec2 offsetArray[5];\n"
+    "\n"
+    "void main() \n"
+    "{\n"
+    "\n"
+    "##ifdef VERTICAL_VSM_BLUR\n"
+    "	offsetArray[0] = vec2(0.0, 0.0);\n"
+    "	offsetArray[1] = vec2(0.0, -1.5 / gl_TexCoord[3].y);\n"
+    "	offsetArray[2] = vec2(0.0, 1.5 / gl_TexCoord[3].y);\n"
+    "	offsetArray[3] = vec2(0.0, -2.5 / gl_TexCoord[3].y);\n"
+    "	offsetArray[4] = vec2(0.0, 2.5 / gl_TexCoord[3].y);\n"
+    "##else\n"
+    "	offsetArray[0] = vec2(0.0, 0.0);\n"
+    "	offsetArray[1] = vec2(-1.5 / gl_TexCoord[3].x, 0.0);\n"
+    "	offsetArray[2] = vec2(1.5 / gl_TexCoord[3].x, 0.0);\n"
+    "	offsetArray[3] = vec2(-2.5 / gl_TexCoord[3].x, 0.0);\n"
+    "	offsetArray[4] = vec2(2.5 / gl_TexCoord[3].x, 0.0);\n"
+    "##endif\n"
+    "\n"
+    "	vec4 BlurCol = vec4(0.0, 0.0, 0.0, 0.0);\n"
+    "\n"
+    "	for(int i = 0;i < 5;++i)\n"
+    "		BlurCol += texture2D(ColorMapSampler, clamp(gl_TexCoord[0].xy + offsetArray[i], vec2(0.001, 0.001), "
+    "vec2(0.999, 0.999)));\n"
+    "\n"
+    "	gl_FragColor = BlurCol / 5.0;\n"
+    "}\n",
+    "sampler2D ColorMapSampler : register(s0);\n"
+    "\n"
+    "float4 pixelMain ( float4 Texcoords : TEXCOORD0, float2 ScreenSize : TEXCOORD3 ) : COLOR0\n"
+    "{\n"
+    "	float2 offsetArray[5];\n"
+    "##ifdef VERTICAL_VSM_BLUR\n"
+    "	offsetArray[0] = float2(0, 0);\n"
+    "	offsetArray[1] = float2(0, 1.5 / ScreenSize.y);\n"
+    "	offsetArray[2] = float2(0, -1.5 / ScreenSize.y);\n"
+    "	offsetArray[3] = float2(0, 2.5 / ScreenSize.y);\n"
+    "	offsetArray[4] = float2(0, -2.5 / ScreenSize.y);\n"
+    "##else\n"
+    "	offsetArray[0] = float2(0, 0);\n"
+    "	offsetArray[1] = float2(1.5 / ScreenSize.x, 0);\n"
+    "	offsetArray[2] = float2(-1.5 / ScreenSize.x, 0);\n"
+    "	offsetArray[3] = float2(2.5 / ScreenSize.x, 0);\n"
+    "	offsetArray[4] = float2(-2.5 / ScreenSize.x, 0);\n"
+    "##endif\n"
+    "\n"
+    "	float4 finalVal = float4(0.0, 0.0, 0.0, 0.0);\n"
+    "\n"
+    "	for(int i = 0;i < 5;++i)\n"
+    "		finalVal += tex2D(ColorMapSampler, clamp(Texcoords.xy + offsetArray[i], float2(0.001, 0.001), "
+    "float2(0.999, 0.999)));\n"
+    "\n"
+    "	return finalVal / 5.0;\n"
+    "}\n"};
 
 ///////////////////////////// EffectHandler.h
 
 /// Shadow mode enums, sets whether a node recieves shadows, casts shadows, or both.
 /// If the mode is ESM_CAST, it will not be affected by shadows or lighting.
-enum E_SHADOW_MODE
-{
-	ESM_RECEIVE,
-	ESM_CAST,
-	ESM_BOTH,
-	ESM_EXCLUDE,
-	ESM_COUNT
-};
+enum E_SHADOW_MODE { ESM_RECEIVE, ESM_CAST, ESM_BOTH, ESM_EXCLUDE, ESM_COUNT };
 
 /// Various filter types, up to 16 samples PCF.
-enum E_FILTER_TYPE
-{
-	EFT_NONE,
-	EFT_4PCF,
-	EFT_8PCF,
-	EFT_12PCF,
-	EFT_16PCF,
-	EFT_COUNT
-};
+enum E_FILTER_TYPE { EFT_NONE, EFT_4PCF, EFT_8PCF, EFT_12PCF, EFT_16PCF, EFT_COUNT };
 
-struct SShadowLight
-{
-	/// Shadow light constructor. The first parameter is the square shadow map resolution.
-	/// This should be a power of 2 number, and within reasonable size to achieve optimal
-	/// performance and quality. Recommended sizes are 512 to 4096 subject to your target
-	/// hardware and quality requirements. The next two parameters are position and target,
-	/// the next one is the light color. The next two are very important parameters,
-	/// the far value and the near value. The higher the near value, and the lower the
-	/// far value, the better the depth precision of the shadows will be, however it will
-	/// cover a smaller volume. The next is the FOV, if the light was to be considered
-	/// a camera, this would be similar to setting the camera's field of view. The last
-	/// parameter is whether the light is directional or not, if it is, an orthogonal
-	/// projection matrix will be created instead of a perspective one.
-	SShadowLight(
-      const u32 shadowMapResolution,
-      const core::vector3df& position, 
-      const core::vector3df& target,
-      video::SColorf lightColour = video::SColor(0xffffffff), 
-      f32 nearValue = 10.0,
-      f32 farValue = 100.0,
-      f32 fov = 90.0 * core::DEGTORAD64,
-      bool directional = false)
-  : pos(position),
-    tar(target),
-    farPlane(directional ? 1.0f : farValue),
-    diffuseColour(lightColour),
-    mapRes(shadowMapResolution)
-	{
-		nearValue = nearValue <= 0.0f ? 0.1f : nearValue;
+struct SShadowLight {
+    /// Shadow light constructor. The first parameter is the square shadow map resolution.
+    /// This should be a power of 2 number, and within reasonable size to achieve optimal
+    /// performance and quality. Recommended sizes are 512 to 4096 subject to your target
+    /// hardware and quality requirements. The next two parameters are position and target,
+    /// the next one is the light color. The next two are very important parameters,
+    /// the far value and the near value. The higher the near value, and the lower the
+    /// far value, the better the depth precision of the shadows will be, however it will
+    /// cover a smaller volume. The next is the FOV, if the light was to be considered
+    /// a camera, this would be similar to setting the camera's field of view. The last
+    /// parameter is whether the light is directional or not, if it is, an orthogonal
+    /// projection matrix will be created instead of a perspective one.
+    SShadowLight(const u32 shadowMapResolution,
+                 const core::vector3df& position,
+                 const core::vector3df& target,
+                 video::SColorf lightColour = video::SColor(0xffffffff),
+                 f32 nearValue = 10.0,
+                 f32 farValue = 100.0,
+                 f32 fov = 90.0 * core::DEGTORAD64,
+                 bool directional = false)
+        : pos(position),
+          tar(target),
+          farPlane(directional ? 1.0f : farValue),
+          diffuseColour(lightColour),
+          mapRes(shadowMapResolution) {
+        nearValue = nearValue <= 0.0f ? 0.1f : nearValue;
 
-		updateViewMatrix();
-		
-		if(directional)
-			projMat.buildProjectionMatrixOrthoLH(fov, fov, nearValue, farValue);
-		else
-			projMat.buildProjectionMatrixPerspectiveFovLH(fov, 1.0f, nearValue, farValue);
+        updateViewMatrix();
 
-		clipborder = true; //***ALEX***
-	}
+        if (directional)
+            projMat.buildProjectionMatrixOrthoLH(fov, fov, nearValue, farValue);
+        else
+            projMat.buildProjectionMatrixPerspectiveFovLH(fov, 1.0f, nearValue, farValue);
 
-	/// Sets the light's position.
-	void setPosition(const core::vector3df& position)
-	{
-		pos = position;
-		updateViewMatrix();
-	}
+        clipborder = true;  //***ALEX***
+    }
 
-	/// Sets the light's target.
-	void setTarget(const core::vector3df& target)
-	{
-		tar = target;
-		updateViewMatrix();
-	}
+    /// Sets the light's position.
+    void setPosition(const core::vector3df& position) {
+        pos = position;
+        updateViewMatrix();
+    }
 
-	/// Gets the light's position.
-	const core::vector3df& getPosition() const
-	{
-		return pos;
-	}
+    /// Sets the light's target.
+    void setTarget(const core::vector3df& target) {
+        tar = target;
+        updateViewMatrix();
+    }
 
-	/// Gets the light's target.
-	const core::vector3df& getTarget()  const
-	{
-		return tar;
-	}
+    /// Gets the light's position.
+    const core::vector3df& getPosition() const { return pos; }
 
-	/// Sets the light's view matrix.
-	void setViewMatrix(const core::matrix4& matrix)
-	{
-		viewMat = matrix;
-		core::matrix4 vInverse;
-		viewMat.getInverse(vInverse);
-		pos = vInverse.getTranslation();
-	}
+    /// Gets the light's target.
+    const core::vector3df& getTarget() const { return tar; }
 
-	/// Sets the light's projection matrix.
-	void setProjectionMatrix(const core::matrix4& matrix)
-	{
-		projMat = matrix;
-	}
+    /// Sets the light's view matrix.
+    void setViewMatrix(const core::matrix4& matrix) {
+        viewMat = matrix;
+        core::matrix4 vInverse;
+        viewMat.getInverse(vInverse);
+        pos = vInverse.getTranslation();
+    }
 
-	/// Gets the light's view matrix.
-	core::matrix4& getViewMatrix()
-	{
-		return viewMat;
-	}
+    /// Sets the light's projection matrix.
+    void setProjectionMatrix(const core::matrix4& matrix) { projMat = matrix; }
 
-	/// Gets the light's projection matrix.
-	core::matrix4& getProjectionMatrix()
-	{
-		return projMat;
-	}
+    /// Gets the light's view matrix.
+    core::matrix4& getViewMatrix() { return viewMat; }
 
-	/// Gets the light's far value.
-	f32 getFarValue() const
-	{
-		return farPlane;
-	}
+    /// Gets the light's projection matrix.
+    core::matrix4& getProjectionMatrix() { return projMat; }
 
-	/// Gets the light's color.
-	const video::SColorf& getLightColor() const
-	{
-		return diffuseColour;
-	}
+    /// Gets the light's far value.
+    f32 getFarValue() const { return farPlane; }
 
-	/// Sets the light's color.
-	void setLightColor(const video::SColorf& lightColour) 
-	{
-		diffuseColour = lightColour;
-	}
+    /// Gets the light's color.
+    const video::SColorf& getLightColor() const { return diffuseColour; }
 
-	/// Sets the shadow map resolution for this light.
-	void setShadowMapResolution(const u32 shadowMapResolution)
-	{
-		mapRes = shadowMapResolution;
-	}
+    /// Sets the light's color.
+    void setLightColor(const video::SColorf& lightColour) { diffuseColour = lightColour; }
 
-	/// Gets the shadow map resolution for this light.
-	const u32 getShadowMapResolution() const
-	{
-		return mapRes;
-	}
+    /// Sets the shadow map resolution for this light.
+    void setShadowMapResolution(const u32 shadowMapResolution) { mapRes = shadowMapResolution; }
 
-		///***ALEX***
-	void setClipBorder(bool mb) 
-	{
-		clipborder = mb;
-	}
-		///***ALEX***
-	bool getClipBorder() const 
-	{
-		return clipborder;
-	}
+    /// Gets the shadow map resolution for this light.
+    const u32 getShadowMapResolution() const { return mapRes; }
 
-private:
+    ///***ALEX***
+    void setClipBorder(bool mb) { clipborder = mb; }
+    ///***ALEX***
+    bool getClipBorder() const { return clipborder; }
 
-	void updateViewMatrix()
-	{
-		viewMat.buildCameraLookAtMatrixLH(pos, tar,
-			(pos - tar).dotProduct(core::vector3df(1.0f, 0.0f, 1.0f)) == 0.0f ?
-			core::vector3df(0.0f, 0.0f, 1.0f) : core::vector3df(0.0f, 1.0f, 0.0f)); 
-	}
+  private:
+    void updateViewMatrix() {
+        viewMat.buildCameraLookAtMatrixLH(pos, tar, (pos - tar).dotProduct(core::vector3df(1.0f, 0.0f, 1.0f)) == 0.0f
+                                                        ? core::vector3df(0.0f, 0.0f, 1.0f)
+                                                        : core::vector3df(0.0f, 1.0f, 0.0f));
+    }
 
-	video::SColorf diffuseColour;
-	core::vector3df pos, tar;
-	f32 farPlane;
-	core::matrix4 viewMat, projMat;
-	u32 mapRes;
-	bool clipborder; //***ALEX***
+    video::SColorf diffuseColour;
+    core::vector3df pos, tar;
+    f32 farPlane;
+    core::matrix4 viewMat, projMat;
+    u32 mapRes;
+    bool clipborder;  //***ALEX***
 };
 
 // This is a general interface that can be overidden if you want to perform operations before or after
 // a specific post-processing effect. You will be passed an instance of the EffectHandler.
 // The function names themselves should be self-explanatory ;)
 class EffectHandler;
-class IPostProcessingRenderCallback
-{
-public:
-	virtual void OnPreRender(EffectHandler* effect) = 0;
-	virtual void OnPostRender(EffectHandler* effect) = 0;
+class IPostProcessingRenderCallback {
+  public:
+    virtual void OnPreRender(EffectHandler* effect) = 0;
+    virtual void OnPostRender(EffectHandler* effect) = 0;
 
-	virtual ~IPostProcessingRenderCallback();
+    virtual ~IPostProcessingRenderCallback();
 };
 
 // Shader callback prototypes.
@@ -1244,971 +1111,896 @@ class ShadowShaderCB;
 class ScreenQuadCB;
 
 /// Main effect handling class, use this to apply shadows and effects.
-class EffectHandler
-{
-public:
+class EffectHandler {
+  public:
+    /*	EffectHandler constructor. Initializes the EffectHandler.
 
-	/*	EffectHandler constructor. Initializes the EffectHandler.
+        Parameters:
+        irrlichtDevice: Current Irrlicht device.
+        screenRTTSize: Size of screen render target for post processing. Default is screen size.
+        useVSMShadows: Shadows will use VSM filtering. It is recommended to only use EFT_NONE when this is enabled.
+        useRoundSpotlights: Shadow lights will have a soft round spot light mask. Default is false.
+        use32BitDepthBuffers: XEffects will use 32-bit depth buffers if this is true, otherwise 16-bit. Default is
+       false.
+    */
+    EffectHandler(IrrlichtDevice* irrlichtDevice,
+                  const core::dimension2du& screenRTTSize = core::dimension2du(0, 0),
+                  const bool useVSMShadows = false,
+                  const bool useRoundSpotLights = false,
+                  const bool use32BitDepthBuffers = false);
 
-		Parameters:
-		irrlichtDevice: Current Irrlicht device.
-		screenRTTSize: Size of screen render target for post processing. Default is screen size.
-		useVSMShadows: Shadows will use VSM filtering. It is recommended to only use EFT_NONE when this is enabled.
-		useRoundSpotlights: Shadow lights will have a soft round spot light mask. Default is false.
-		use32BitDepthBuffers: XEffects will use 32-bit depth buffers if this is true, otherwise 16-bit. Default is false.
-	*/
-	EffectHandler(IrrlichtDevice* irrlichtDevice, 
-		const core::dimension2du& screenRTTSize = core::dimension2du(0, 0),
-		const bool useVSMShadows = false, const bool useRoundSpotLights = false,
-		const bool use32BitDepthBuffers = false);
-	
-	/// Destructor.
-	~EffectHandler();
+    /// Destructor.
+    ~EffectHandler();
 
-	/// Adds a shadow light. Check out the shadow light constructor for more information.
-	void addShadowLight(const SShadowLight& shadowLight)
-	{
-		LightList.push_back(shadowLight);
-	}
+    /// Adds a shadow light. Check out the shadow light constructor for more information.
+    void addShadowLight(const SShadowLight& shadowLight) { LightList.push_back(shadowLight); }
 
-	/// Retrieves a reference to a shadow light. You may get the max amount from getShadowLightCount.
-	SShadowLight& getShadowLight(u32 index)
-	{
-		return LightList[index];
-	}
+    /// Retrieves a reference to a shadow light. You may get the max amount from getShadowLightCount.
+    SShadowLight& getShadowLight(u32 index) { return LightList[index]; }
 
-	/// Retrieves the current number of shadow lights.
-	const u32 getShadowLightCount() const
-	{
-		return LightList.size();
-	}
+    /// Retrieves the current number of shadow lights.
+    const u32 getShadowLightCount() const { return LightList.size(); }
 
-	/// Retrieves the shadow map texture for the specified square shadow map resolution.
-	/// Only one shadow map is kept for each resolution, so if multiple lights are using
-	/// the same resolution, you will only see the last light drawn's output.
-	/// The secondary param specifies whether to retrieve the secondary shadow map used in blurring.
-	video::ITexture* getShadowMapTexture(const u32 resolution, const bool secondary = false);
+    /// Retrieves the shadow map texture for the specified square shadow map resolution.
+    /// Only one shadow map is kept for each resolution, so if multiple lights are using
+    /// the same resolution, you will only see the last light drawn's output.
+    /// The secondary param specifies whether to retrieve the secondary shadow map used in blurring.
+    video::ITexture* getShadowMapTexture(const u32 resolution, const bool secondary = false);
 
-	/// Retrieves the screen depth map texture if the depth pass is enabled. This is unrelated to the shadow map, and is
-	/// meant to be used for post processing effects that require screen depth info, eg. DOF or SSAO.
-	video::ITexture* getDepthMapTexture()
-	{
-		return DepthRTT;
-	}
+    /// Retrieves the screen depth map texture if the depth pass is enabled. This is unrelated to the shadow map, and is
+    /// meant to be used for post processing effects that require screen depth info, eg. DOF or SSAO.
+    video::ITexture* getDepthMapTexture() { return DepthRTT; }
 
-	/// This function is now unrelated to shadow mapping. It simply adds a node to the screen space depth map render, for use
-	/// with post processing effects that require screen depth info. If you want the functionality of the old method (A node that
-	/// only casts but does not recieve shadows, use addShadowToNode with the ESM_CAST shadow mode.
-	void addNodeToDepthPass(scene::ISceneNode *node);
+    /// This function is now unrelated to shadow mapping. It simply adds a node to the screen space depth map render,
+    /// for use
+    /// with post processing effects that require screen depth info. If you want the functionality of the old method (A
+    /// node that
+    /// only casts but does not recieve shadows, use addShadowToNode with the ESM_CAST shadow mode.
+    void addNodeToDepthPass(scene::ISceneNode* node);
 
-	/// This function is now unrelated to shadow mapping. It simply removes a node to the screen space depth map render, for use
-	/// with post processing effects that require screen depth info.
-	void removeNodeFromDepthPass(scene::ISceneNode *node);
+    /// This function is now unrelated to shadow mapping. It simply removes a node to the screen space depth map render,
+    /// for use
+    /// with post processing effects that require screen depth info.
+    void removeNodeFromDepthPass(scene::ISceneNode* node);
 
-	/// Enables/disables an additional pass before applying post processing effects (If there are any) which records screen depth info
-	/// to the depth buffer for use with post processing effects that require screen depth info, such as SSAO or DOF. For nodes to be
-	/// rendered in this pass, they must first be added using addNodeToDepthPass(SceneNode).
-	void enableDepthPass(bool enableDepthPass);
+    /// Enables/disables an additional pass before applying post processing effects (If there are any) which records
+    /// screen depth info
+    /// to the depth buffer for use with post processing effects that require screen depth info, such as SSAO or DOF.
+    /// For nodes to be
+    /// rendered in this pass, they must first be added using addNodeToDepthPass(SceneNode).
+    void enableDepthPass(bool enableDepthPass);
 
-	/// Removes shadows from a scene node.
-	void removeShadowFromNode(scene::ISceneNode* node)
-	{
-		SShadowNode tmpShadowNode = {node, ESM_RECEIVE, EFT_NONE};
-		s32 i = ShadowNodeArray.binary_search(tmpShadowNode);
+    /// Removes shadows from a scene node.
+    void removeShadowFromNode(scene::ISceneNode* node) {
+        SShadowNode tmpShadowNode = {node, ESM_RECEIVE, EFT_NONE};
+        s32 i = ShadowNodeArray.binary_search(tmpShadowNode);
 
-		if(i != -1)
-			ShadowNodeArray.erase(i);
-	}
+        if (i != -1)
+            ShadowNodeArray.erase(i);
+    }
 
-	// Excludes a scene node from lighting calculations, avoiding any side effects that may
-	// occur from XEffect's light modulation on this particular scene node.
-	void excludeNodeFromLightingCalculations(scene::ISceneNode* node)
-	{
-		SShadowNode tmpShadowNode = {node, ESM_EXCLUDE, EFT_NONE};
-		ShadowNodeArray.push_back(tmpShadowNode);
-	}
+    // Excludes a scene node from lighting calculations, avoiding any side effects that may
+    // occur from XEffect's light modulation on this particular scene node.
+    void excludeNodeFromLightingCalculations(scene::ISceneNode* node) {
+        SShadowNode tmpShadowNode = {node, ESM_EXCLUDE, EFT_NONE};
+        ShadowNodeArray.push_back(tmpShadowNode);
+    }
 
-	/// Updates the effects handler. This must be done between IVideoDriver::beginScene and IVideoDriver::endScene.
-	/// This function now replaces smgr->drawAll(). So place it where smgr->drawAll() would normally go. Please note
-	/// that the clear colour from IVideoDriver::beginScene is not preserved, so you must instead specify the clear
-	/// colour using EffectHandler::setClearColour(Colour).
-	/// A render target may be passed as the output target, else rendering will commence on the backbuffer.
-	void update(video::ITexture* outputTarget = 0);
+    /// Updates the effects handler. This must be done between IVideoDriver::beginScene and IVideoDriver::endScene.
+    /// This function now replaces smgr->drawAll(). So place it where smgr->drawAll() would normally go. Please note
+    /// that the clear colour from IVideoDriver::beginScene is not preserved, so you must instead specify the clear
+    /// colour using EffectHandler::setClearColour(Colour).
+    /// A render target may be passed as the output target, else rendering will commence on the backbuffer.
+    void update(video::ITexture* outputTarget = 0);
 
-	/// Adds a shadow to the scene node. The filter type specifies how many shadow map samples
-	/// to take, a higher value can produce a smoother or softer result. The shadow mode can
-	/// be either ESM_BOTH, ESM_CAST, or ESM_RECEIVE. ESM_BOTH casts and receives shadows,
-	/// ESM_CAST only casts shadows, and is unaffected by shadows or lighting, and ESM_RECEIVE
-	/// only receives but does not cast shadows.
-	void addShadowToNode(scene::ISceneNode* node, E_FILTER_TYPE filterType = EFT_NONE, E_SHADOW_MODE shadowMode = ESM_BOTH);
-	
-	/// Returns the device time divided by 100, for use with the shader callbacks.
-	f32 getTime() 
-	{ 
-		return device->getTimer()->getTime() / 100.0f;
-	}
-	
-	/// Sets the scene clear colour, for when the scene is cleared before smgr->drawAll().
-	void setClearColour(video::SColor ClearCol)
-	{
-		ClearColour = ClearCol;
-	}
-	
-	/**
-	A very easy to use post processing function. Simply add a material type to apply to the screen as a post processing
-	effect and it will be applied. You can add as many material types as you desire, and they will be double buffered and
-	executed in sequance.
+    /// Adds a shadow to the scene node. The filter type specifies how many shadow map samples
+    /// to take, a higher value can produce a smoother or softer result. The shadow mode can
+    /// be either ESM_BOTH, ESM_CAST, or ESM_RECEIVE. ESM_BOTH casts and receives shadows,
+    /// ESM_CAST only casts shadows, and is unaffected by shadows or lighting, and ESM_RECEIVE
+    /// only receives but does not cast shadows.
+    void addShadowToNode(scene::ISceneNode* node,
+                         E_FILTER_TYPE filterType = EFT_NONE,
+                         E_SHADOW_MODE shadowMode = ESM_BOTH);
 
-	For the material types, I recommend using "ScreenQuadCB" as the callback and refering to the texture names that are passed
-	(When using OpenGL, in DirectX uniforms are not required to bind textures).
-	Please note that this will only work in OpenGL on vanilla Irrlicht, DX requires the large RTT patch to be able to create
-	sufficiently sized rendertargets for post processing. (Or you can just remove the engine check for Pow2).
-	
-	The structure of the textures is as follows:
+    /// Returns the device time divided by 100, for use with the shader callbacks.
+    f32 getTime() { return device->getTimer()->getTime() / 100.0f; }
 
-	Texture1 - "ColorMapSampler"
-	This is passed on from the previous post processing effect as they are executed in sequance. For example, if you do a
-	horizontal blur on the first post processing material, then a vertical blur in the second material, you will use this
-	sampler to access the post processed data of the horizontal blur when it is time to do the vertical blur. If accessed
-	from the first post processing material, it will just contain the untainted screen map data.
+    /// Sets the scene clear colour, for when the scene is cleared before smgr->drawAll().
+    void setClearColour(video::SColor ClearCol) { ClearColour = ClearCol; }
 
-	Texture2 - "ScreenMapSampler"
-	The second texture will always contain the untainted screen map data, from when the scene is first rendered. It will
-	remain unchanged no matter how many post processing materials are applied. This kind of data is necessary, for example
-	in bloom or DOF, you would require a copy of the blurred scene data and a copy of the normal untainted, unblurred screen
-	data, and mix between them based on certain factors such as depth or luminance.
+    /**
+    A very easy to use post processing function. Simply add a material type to apply to the screen as a post processing
+    effect and it will be applied. You can add as many material types as you desire, and they will be double buffered
+    and
+    executed in sequance.
 
-	Texture3 - "DepthMapSampler"
-	If a depth pass has been enabled using enableDepthPass, then this sampler will contain the screen space depth information.
-	For better quality this is encoded to 16bits, and can be decoded like so:
-		Texture.red + (Texture.green / 256.0f);
-	That is by adding the red channel to the green channel which is first divided by 256. 
-	The data can still be used without decoding, in 8 bit precision, by just accessing the red component of the texture. Though
-	this is not recommended as 8 bit precision is usually not sufficient for modern post processing effects.
-	
-	Texture4 - "UserMapSampler"
-	A custom texture that can be set by the user using setPostProcessingUserTexture(irr::video::ITexture* userTexture).
+    For the material types, I recommend using "ScreenQuadCB" as the callback and refering to the texture names that are
+    passed
+    (When using OpenGL, in DirectX uniforms are not required to bind textures).
+    Please note that this will only work in OpenGL on vanilla Irrlicht, DX requires the large RTT patch to be able to
+    create
+    sufficiently sized rendertargets for post processing. (Or you can just remove the engine check for Pow2).
 
-	The last parameter is the render callback, you may pass 0 if you do not need one.
-	Please see IPostProcessingRenderCallback for more info about this callback.
-	*/
-	void addPostProcessingEffect(s32 MaterialType, IPostProcessingRenderCallback* callback = 0);
+    The structure of the textures is as follows:
 
-	/// Sets the IPostProcessingRenderCallback for the specified post processing effect.
-	/// The old callback if previously set will be automatically deleted.
-	void setPostProcessingRenderCallback(s32 MaterialType, IPostProcessingRenderCallback* callback = 0)
-	{
-		SPostProcessingPair tempPair(MaterialType, 0);
-		s32 i = PostProcessingRoutines.binary_search(tempPair);
+    Texture1 - "ColorMapSampler"
+    This is passed on from the previous post processing effect as they are executed in sequance. For example, if you do
+    a
+    horizontal blur on the first post processing material, then a vertical blur in the second material, you will use
+    this
+    sampler to access the post processed data of the horizontal blur when it is time to do the vertical blur. If
+    accessed
+    from the first post processing material, it will just contain the untainted screen map data.
 
-		if(i != -1)
-		{
-			if(PostProcessingRoutines[i].renderCallback)
-				delete PostProcessingRoutines[i].renderCallback;
+    Texture2 - "ScreenMapSampler"
+    The second texture will always contain the untainted screen map data, from when the scene is first rendered. It will
+    remain unchanged no matter how many post processing materials are applied. This kind of data is necessary, for
+    example
+    in bloom or DOF, you would require a copy of the blurred scene data and a copy of the normal untainted, unblurred
+    screen
+    data, and mix between them based on certain factors such as depth or luminance.
 
-			PostProcessingRoutines[i].renderCallback = callback;
-		}
-	}
+    Texture3 - "DepthMapSampler"
+    If a depth pass has been enabled using enableDepthPass, then this sampler will contain the screen space depth
+    information.
+    For better quality this is encoded to 16bits, and can be decoded like so:
+        Texture.red + (Texture.green / 256.0f);
+    That is by adding the red channel to the green channel which is first divided by 256.
+    The data can still be used without decoding, in 8 bit precision, by just accessing the red component of the texture.
+    Though
+    this is not recommended as 8 bit precision is usually not sufficient for modern post processing effects.
 
-	/// Removes the first encountered post processing effect with the specified material type.
-	void removePostProcessingEffect(s32 MaterialType)
-	{
-		SPostProcessingPair tempPair(MaterialType, 0);
-		s32 i = PostProcessingRoutines.binary_search(tempPair);
+    Texture4 - "UserMapSampler"
+    A custom texture that can be set by the user using setPostProcessingUserTexture(irr::video::ITexture* userTexture).
 
-		if(i != -1)
-		{
-			if(PostProcessingRoutines[i].renderCallback)
-				delete PostProcessingRoutines[i].renderCallback;
+    The last parameter is the render callback, you may pass 0 if you do not need one.
+    Please see IPostProcessingRenderCallback for more info about this callback.
+    */
+    void addPostProcessingEffect(s32 MaterialType, IPostProcessingRenderCallback* callback = 0);
 
-			PostProcessingRoutines.erase(i);
-		}
-	}
+    /// Sets the IPostProcessingRenderCallback for the specified post processing effect.
+    /// The old callback if previously set will be automatically deleted.
+    void setPostProcessingRenderCallback(s32 MaterialType, IPostProcessingRenderCallback* callback = 0) {
+        SPostProcessingPair tempPair(MaterialType, 0);
+        s32 i = PostProcessingRoutines.binary_search(tempPair);
 
-	/// Adds a post processing effect by reading a pixel shader from a file. The vertex shader is taken care of.
-	/// The vertex shader will pass the correct screen quad texture coordinates via the TEXCOORD0 semantic in
-	/// Direct3D or the gl_TexCoord[0] varying in OpenGL.
-	/// See addPostProcessingEffect for more info.
-	/// Returns the Irrlicht material type of the post processing effect.
-	s32 addPostProcessingEffectFromFile(const core::stringc& filename,
-		IPostProcessingRenderCallback* callback = 0);
+        if (i != -1) {
+            if (PostProcessingRoutines[i].renderCallback)
+                delete PostProcessingRoutines[i].renderCallback;
 
-	/// Sets a shader parameter for a post-processing effect. The first parameter is the material type, the second
-	/// is the uniform paratmeter name, the third is a float pointer that points to the data and the last is the
-	/// component count of the data. Please note that the float pointer must remain valid during render time.
-	/// To disable the setting of a parameter you may simply pass a null float pointer.
-	void setPostProcessingEffectConstant(const s32 materialType, const core::stringc& name, const f32* data, const u32 count);
+            PostProcessingRoutines[i].renderCallback = callback;
+        }
+    }
 
-	/// Returns the screen quad scene node. This is not required in any way, but some advanced users may want to adjust
-	/// its material settings accordingly.
-	const CScreenQuad& getScreenQuad() 
-	{
-		return ScreenQuad;
-	}
+    /// Removes the first encountered post processing effect with the specified material type.
+    void removePostProcessingEffect(s32 MaterialType) {
+        SPostProcessingPair tempPair(MaterialType, 0);
+        s32 i = PostProcessingRoutines.binary_search(tempPair);
 
-	/// Sets the active scene manager.
-	void setActiveSceneManager(scene::ISceneManager* smgrIn)
-	{
-		smgr = smgrIn;
-	}
+        if (i != -1) {
+            if (PostProcessingRoutines[i].renderCallback)
+                delete PostProcessingRoutines[i].renderCallback;
 
-	/// Gets the active scene manager.
-	scene::ISceneManager* getActiveSceneManager()
-	{
-		return smgr;
-	}
-	
-	/// This allows the user to specify a custom, fourth texture to be used in the post-processing effects.
-	/// See addPostProcessingEffect for more info.
-	void setPostProcessingUserTexture(video::ITexture* userTexture)
-	{
-		ScreenQuad.getMaterial().setTexture(3, userTexture);
-	}
+            PostProcessingRoutines.erase(i);
+        }
+    }
 
-	/// Sets the global ambient color for shadowed scene nodes.
-	void setAmbientColor(video::SColor ambientColour)
-	{
-		AmbientColour = ambientColour;
-	}
+    /// Adds a post processing effect by reading a pixel shader from a file. The vertex shader is taken care of.
+    /// The vertex shader will pass the correct screen quad texture coordinates via the TEXCOORD0 semantic in
+    /// Direct3D or the gl_TexCoord[0] varying in OpenGL.
+    /// See addPostProcessingEffect for more info.
+    /// Returns the Irrlicht material type of the post processing effect.
+    s32 addPostProcessingEffectFromFile(const core::stringc& filename, IPostProcessingRenderCallback* callback = 0);
 
-	/// Gets the global ambient color.
-	video::SColor getAmbientColor() const
-	{
-		return AmbientColour;
-	}
+    /// Sets a shader parameter for a post-processing effect. The first parameter is the material type, the second
+    /// is the uniform paratmeter name, the third is a float pointer that points to the data and the last is the
+    /// component count of the data. Please note that the float pointer must remain valid during render time.
+    /// To disable the setting of a parameter you may simply pass a null float pointer.
+    void setPostProcessingEffectConstant(const s32 materialType,
+                                         const core::stringc& name,
+                                         const f32* data,
+                                         const u32 count);
 
-	/// Generates a randomized texture composed of uniformly distributed 3 dimensional vectors.
-	video::ITexture* generateRandomVectorTexture(const core::dimension2du& dimensions,
-		const core::stringc& name = "randVec");
+    /// Returns the screen quad scene node. This is not required in any way, but some advanced users may want to adjust
+    /// its material settings accordingly.
+    const CScreenQuad& getScreenQuad() { return ScreenQuad; }
 
-	/// Sets a new screen render target resolution.
-	void setScreenRenderTargetResolution(const core::dimension2du& resolution);
+    /// Sets the active scene manager.
+    void setActiveSceneManager(scene::ISceneManager* smgrIn) { smgr = smgrIn; }
 
-	/// Returns the device that this EffectHandler was initialized with.
-	IrrlichtDevice* getIrrlichtDevice() {return device;}
+    /// Gets the active scene manager.
+    scene::ISceneManager* getActiveSceneManager() { return smgr; }
 
-private:
+    /// This allows the user to specify a custom, fourth texture to be used in the post-processing effects.
+    /// See addPostProcessingEffect for more info.
+    void setPostProcessingUserTexture(video::ITexture* userTexture) {
+        ScreenQuad.getMaterial().setTexture(3, userTexture);
+    }
 
-	struct SShadowNode
-	{
-		bool operator < (const SShadowNode& other) const
-		{
-			return node < other.node;
-		}
+    /// Sets the global ambient color for shadowed scene nodes.
+    void setAmbientColor(video::SColor ambientColour) { AmbientColour = ambientColour; }
 
-		scene::ISceneNode* node;
+    /// Gets the global ambient color.
+    video::SColor getAmbientColor() const { return AmbientColour; }
 
-		E_SHADOW_MODE shadowMode;
-		E_FILTER_TYPE filterType;
-	};
+    /// Generates a randomized texture composed of uniformly distributed 3 dimensional vectors.
+    video::ITexture* generateRandomVectorTexture(const core::dimension2du& dimensions,
+                                                 const core::stringc& name = "randVec");
 
-	struct SPostProcessingPair
-	{
-		SPostProcessingPair(const s32 materialTypeIn, ScreenQuadCB* callbackIn,
-			IPostProcessingRenderCallback* renderCallbackIn = 0)
-			: materialType(materialTypeIn), callback(callbackIn), renderCallback(renderCallbackIn) {}
+    /// Sets a new screen render target resolution.
+    void setScreenRenderTargetResolution(const core::dimension2du& resolution);
 
-		bool operator < (const SPostProcessingPair& other) const
-		{
-			return materialType < other.materialType;
-		}
+    /// Returns the device that this EffectHandler was initialized with.
+    IrrlichtDevice* getIrrlichtDevice() { return device; }
 
-		ScreenQuadCB* callback;
-		IPostProcessingRenderCallback* renderCallback;
-		s32 materialType;
-	};
+  private:
+    struct SShadowNode {
+        bool operator<(const SShadowNode& other) const { return node < other.node; }
 
-	SPostProcessingPair obtainScreenQuadMaterialFromFile(const core::stringc& filename, 
-		video::E_MATERIAL_TYPE baseMaterial = video::EMT_SOLID);
+        scene::ISceneNode* node;
 
-	IrrlichtDevice* device;
-	video::IVideoDriver* driver;
-	scene::ISceneManager* smgr;
-	core::dimension2du mapRes;
-	
-	s32 Depth;
-	s32 DepthT;
-	s32 DepthWiggle;
-	s32 Shadow[EFT_COUNT];
-	s32 LightModulate;
-	s32 Simple;
-	s32 WhiteWash;
-	s32 WhiteWashTRef;
-	s32 WhiteWashTAdd;
-	s32 WhiteWashTAlpha;
-	s32 VSMBlurH;
-	s32 VSMBlurV;
-	
-	DepthShaderCB* depthMC;
-	ShadowShaderCB* shadowMC;
+        E_SHADOW_MODE shadowMode;
+        E_FILTER_TYPE filterType;
+    };
 
-	video::ITexture* ScreenRTT;
-	video::ITexture* DepthRTT;
+    struct SPostProcessingPair {
+        SPostProcessingPair(const s32 materialTypeIn,
+                            ScreenQuadCB* callbackIn,
+                            IPostProcessingRenderCallback* renderCallbackIn = 0)
+            : materialType(materialTypeIn), callback(callbackIn), renderCallback(renderCallbackIn) {}
 
-	core::array<SPostProcessingPair> PostProcessingRoutines;
-	core::array<SShadowLight> LightList;
-	core::array<SShadowNode> ShadowNodeArray;
-	core::array<scene::ISceneNode*> DepthPassArray;
+        bool operator<(const SPostProcessingPair& other) const { return materialType < other.materialType; }
 
-	core::dimension2du ScreenRTTSize;
-	video::SColor ClearColour;
-	video::SColor AmbientColour;
-	CScreenQuad ScreenQuad;
+        ScreenQuadCB* callback;
+        IPostProcessingRenderCallback* renderCallback;
+        s32 materialType;
+    };
 
-	bool shadowsUnsupported;
-	bool use32BitDepth;
-	bool useVSM;
-	bool DepthPass;
+    SPostProcessingPair obtainScreenQuadMaterialFromFile(const core::stringc& filename,
+                                                         video::E_MATERIAL_TYPE baseMaterial = video::EMT_SOLID);
+
+    IrrlichtDevice* device;
+    video::IVideoDriver* driver;
+    scene::ISceneManager* smgr;
+    core::dimension2du mapRes;
+
+    s32 Depth;
+    s32 DepthT;
+    s32 DepthWiggle;
+    s32 Shadow[EFT_COUNT];
+    s32 LightModulate;
+    s32 Simple;
+    s32 WhiteWash;
+    s32 WhiteWashTRef;
+    s32 WhiteWashTAdd;
+    s32 WhiteWashTAlpha;
+    s32 VSMBlurH;
+    s32 VSMBlurV;
+
+    DepthShaderCB* depthMC;
+    ShadowShaderCB* shadowMC;
+
+    video::ITexture* ScreenRTT;
+    video::ITexture* DepthRTT;
+
+    core::array<SPostProcessingPair> PostProcessingRoutines;
+    core::array<SShadowLight> LightList;
+    core::array<SShadowNode> ShadowNodeArray;
+    core::array<scene::ISceneNode*> DepthPassArray;
+
+    core::dimension2du ScreenRTTSize;
+    video::SColor ClearColour;
+    video::SColor AmbientColour;
+    CScreenQuad ScreenQuad;
+
+    bool shadowsUnsupported;
+    bool use32BitDepth;
+    bool useVSM;
+    bool DepthPass;
 };
-
-
 
 ////////////////////////////////// EffectHandler.cpp
 
-inline
-EffectHandler::EffectHandler(IrrlichtDevice* dev, const core::dimension2du& screenRTTSize,
-	const bool useVSMShadows, const bool useRoundSpotLights, const bool use32BitDepthBuffers)
-: device(dev), smgr(dev->getSceneManager()), driver(dev->getVideoDriver()),
-ScreenRTTSize(screenRTTSize.getArea() == 0 ? dev->getVideoDriver()->getScreenSize() : screenRTTSize),
-ClearColour(0x0), shadowsUnsupported(false), DepthRTT(0), DepthPass(false), depthMC(0), shadowMC(0),
-AmbientColour(0x0), use32BitDepth(use32BitDepthBuffers), useVSM(useVSMShadows)
-{
-	bool tempTexFlagMipMaps = driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
-	bool tempTexFlag32 = driver->getTextureCreationFlag(video::ETCF_ALWAYS_32_BIT);
+inline EffectHandler::EffectHandler(IrrlichtDevice* dev,
+                                    const core::dimension2du& screenRTTSize,
+                                    const bool useVSMShadows,
+                                    const bool useRoundSpotLights,
+                                    const bool use32BitDepthBuffers)
+    : device(dev),
+      smgr(dev->getSceneManager()),
+      driver(dev->getVideoDriver()),
+      ScreenRTTSize(screenRTTSize.getArea() == 0 ? dev->getVideoDriver()->getScreenSize() : screenRTTSize),
+      ClearColour(0x0),
+      shadowsUnsupported(false),
+      DepthRTT(0),
+      DepthPass(false),
+      depthMC(0),
+      shadowMC(0),
+      AmbientColour(0x0),
+      use32BitDepth(use32BitDepthBuffers),
+      useVSM(useVSMShadows) {
+    bool tempTexFlagMipMaps = driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
+    bool tempTexFlag32 = driver->getTextureCreationFlag(video::ETCF_ALWAYS_32_BIT);
 
-	ScreenRTT = driver->addRenderTargetTexture(ScreenRTTSize);
-	ScreenQuad.rt[0] = driver->addRenderTargetTexture(ScreenRTTSize);
-	ScreenQuad.rt[1] = driver->addRenderTargetTexture(ScreenRTTSize);
+    ScreenRTT = driver->addRenderTargetTexture(ScreenRTTSize);
+    ScreenQuad.rt[0] = driver->addRenderTargetTexture(ScreenRTTSize);
+    ScreenQuad.rt[1] = driver->addRenderTargetTexture(ScreenRTTSize);
 
-	driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, tempTexFlagMipMaps);
-	driver->setTextureCreationFlag(video::ETCF_ALWAYS_32_BIT, tempTexFlag32);
+    driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, tempTexFlagMipMaps);
+    driver->setTextureCreationFlag(video::ETCF_ALWAYS_32_BIT, tempTexFlag32);
 
-	CShaderPreprocessor sPP(driver);
+    CShaderPreprocessor sPP(driver);
 
-	E_SHADER_EXTENSION shaderExt = (driver->getDriverType() == video::EDT_DIRECT3D9) ? ESE_HLSL : ESE_GLSL;
+    E_SHADER_EXTENSION shaderExt = (driver->getDriverType() == video::EDT_DIRECT3D9) ? ESE_HLSL : ESE_GLSL;
 
-	video::IGPUProgrammingServices* gpu = driver->getGPUProgrammingServices();
-	
-	if(gpu && ((driver->getDriverType() == video::EDT_OPENGL && driver->queryFeature(video::EVDF_ARB_GLSL)) ||
-			   (driver->getDriverType() == video::EDT_DIRECT3D9 && driver->queryFeature(video::EVDF_PIXEL_SHADER_2_0))))
-	{
-		depthMC = new DepthShaderCB(this);
-		shadowMC = new ShadowShaderCB(this);
+    video::IGPUProgrammingServices* gpu = driver->getGPUProgrammingServices();
 
-		Depth = gpu->addHighLevelShaderMaterial(
-			sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain", video::EVST_VS_2_0,
-			sPP.ppShader(SHADOW_PASS_1P[shaderExt]).c_str(), "pixelMain", video::EPST_PS_2_0,
-			depthMC, video::EMT_SOLID);
+    if (gpu &&
+        ((driver->getDriverType() == video::EDT_OPENGL && driver->queryFeature(video::EVDF_ARB_GLSL)) ||
+         (driver->getDriverType() == video::EDT_DIRECT3D9 && driver->queryFeature(video::EVDF_PIXEL_SHADER_2_0)))) {
+        depthMC = new DepthShaderCB(this);
+        shadowMC = new ShadowShaderCB(this);
 
-		DepthT = gpu->addHighLevelShaderMaterial(
-			sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain", video::EVST_VS_2_0,
-			sPP.ppShader(SHADOW_PASS_1PT[shaderExt]).c_str(), "pixelMain", video::EPST_PS_2_0,
-			depthMC, video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF);
+        Depth = gpu->addHighLevelShaderMaterial(sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain",
+                                                video::EVST_VS_2_0, sPP.ppShader(SHADOW_PASS_1P[shaderExt]).c_str(),
+                                                "pixelMain", video::EPST_PS_2_0, depthMC, video::EMT_SOLID);
 
-		WhiteWash = gpu->addHighLevelShaderMaterial(
-			sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain", video::EVST_VS_2_0,
-			sPP.ppShader(WHITE_WASH_P[shaderExt]).c_str(), "pixelMain", video::EPST_PS_2_0,
-			depthMC, video::EMT_SOLID);
+        DepthT = gpu->addHighLevelShaderMaterial(sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain",
+                                                 video::EVST_VS_2_0, sPP.ppShader(SHADOW_PASS_1PT[shaderExt]).c_str(),
+                                                 "pixelMain", video::EPST_PS_2_0, depthMC,
+                                                 video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF);
 
-		WhiteWashTRef = gpu->addHighLevelShaderMaterial(
-			sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain", video::EVST_VS_2_0,
-			sPP.ppShader(WHITE_WASH_P[shaderExt]).c_str(), "pixelMain", video::EPST_PS_2_0,
-			depthMC, video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF);
+        WhiteWash = gpu->addHighLevelShaderMaterial(sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain",
+                                                    video::EVST_VS_2_0, sPP.ppShader(WHITE_WASH_P[shaderExt]).c_str(),
+                                                    "pixelMain", video::EPST_PS_2_0, depthMC, video::EMT_SOLID);
 
-		WhiteWashTAdd = gpu->addHighLevelShaderMaterial(
-			sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain", video::EVST_VS_2_0,
-			sPP.ppShader(WHITE_WASH_P_ADD[shaderExt]).c_str(), "pixelMain", video::EPST_PS_2_0,
-			depthMC, video::EMT_TRANSPARENT_ALPHA_CHANNEL);
+        WhiteWashTRef = gpu->addHighLevelShaderMaterial(
+            sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain", video::EVST_VS_2_0,
+            sPP.ppShader(WHITE_WASH_P[shaderExt]).c_str(), "pixelMain", video::EPST_PS_2_0, depthMC,
+            video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF);
 
-		WhiteWashTAlpha = gpu->addHighLevelShaderMaterial(
-			sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain", video::EVST_VS_2_0,
-			sPP.ppShader(WHITE_WASH_P[shaderExt]).c_str(), "pixelMain", video::EPST_PS_2_0,
-			depthMC, video::EMT_TRANSPARENT_ALPHA_CHANNEL);
+        WhiteWashTAdd = gpu->addHighLevelShaderMaterial(
+            sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain", video::EVST_VS_2_0,
+            sPP.ppShader(WHITE_WASH_P_ADD[shaderExt]).c_str(), "pixelMain", video::EPST_PS_2_0, depthMC,
+            video::EMT_TRANSPARENT_ALPHA_CHANNEL);
 
-		if(useRoundSpotLights)
-			sPP.addShaderDefine("ROUND_SPOTLIGHTS");
+        WhiteWashTAlpha = gpu->addHighLevelShaderMaterial(
+            sPP.ppShader(SHADOW_PASS_1V[shaderExt]).c_str(), "vertexMain", video::EVST_VS_2_0,
+            sPP.ppShader(WHITE_WASH_P[shaderExt]).c_str(), "pixelMain", video::EPST_PS_2_0, depthMC,
+            video::EMT_TRANSPARENT_ALPHA_CHANNEL);
 
-		if(useVSMShadows)
-			sPP.addShaderDefine("VSM");
+        if (useRoundSpotLights)
+            sPP.addShaderDefine("ROUND_SPOTLIGHTS");
 
-		const u32 sampleCounts[EFT_COUNT] = {1, 4, 8, 12, 16};
+        if (useVSMShadows)
+            sPP.addShaderDefine("VSM");
 
-		const video::E_VERTEX_SHADER_TYPE vertexProfile = 
-			driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? video::EVST_VS_3_0 : video::EVST_VS_2_0; 
+        const u32 sampleCounts[EFT_COUNT] = {1, 4, 8, 12, 16};
 
-		const video::E_PIXEL_SHADER_TYPE pixelProfile = 
-			driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? video::EPST_PS_3_0 : video::EPST_PS_2_0;  
+        const video::E_VERTEX_SHADER_TYPE vertexProfile =
+            driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? video::EVST_VS_3_0 : video::EVST_VS_2_0;
 
-		for(u32 i = 0;i < EFT_COUNT;i++)
-		{
-			sPP.addShaderDefine("SAMPLE_AMOUNT", core::stringc(sampleCounts[i]));
-			Shadow[i] = gpu->addHighLevelShaderMaterial(
-				sPP.ppShader(SHADOW_PASS_2V[shaderExt]).c_str(), "vertexMain", vertexProfile,
-				sPP.ppShader(SHADOW_PASS_2P[shaderExt]).c_str(), "pixelMain", pixelProfile,
-				shadowMC, video::EMT_SOLID);
-		}
+        const video::E_PIXEL_SHADER_TYPE pixelProfile =
+            driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? video::EPST_PS_3_0 : video::EPST_PS_2_0;
 
-		// Set resolution preprocessor defines.
-		sPP.addShaderDefine("SCREENX", core::stringc(ScreenRTTSize.Width));
-		sPP.addShaderDefine("SCREENY", core::stringc(ScreenRTTSize.Height));	
+        for (u32 i = 0; i < EFT_COUNT; i++) {
+            sPP.addShaderDefine("SAMPLE_AMOUNT", core::stringc(sampleCounts[i]));
+            Shadow[i] = gpu->addHighLevelShaderMaterial(sPP.ppShader(SHADOW_PASS_2V[shaderExt]).c_str(), "vertexMain",
+                                                        vertexProfile, sPP.ppShader(SHADOW_PASS_2P[shaderExt]).c_str(),
+                                                        "pixelMain", pixelProfile, shadowMC, video::EMT_SOLID);
+        }
 
-		// Create screen quad shader callback.
-		ScreenQuadCB* SQCB = new ScreenQuadCB(this, true);
+        // Set resolution preprocessor defines.
+        sPP.addShaderDefine("SCREENX", core::stringc(ScreenRTTSize.Width));
+        sPP.addShaderDefine("SCREENY", core::stringc(ScreenRTTSize.Height));
 
-		// Light modulate.
-		LightModulate = gpu->addHighLevelShaderMaterial(
-			sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain", vertexProfile,
-			sPP.ppShader(LIGHT_MODULATE_P[shaderExt]).c_str(), "pixelMain", pixelProfile, SQCB);
+        // Create screen quad shader callback.
+        ScreenQuadCB* SQCB = new ScreenQuadCB(this, true);
 
-		// Simple present.
-		Simple = gpu->addHighLevelShaderMaterial(
-			sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain", vertexProfile,
-			sPP.ppShader(SIMPLE_P[shaderExt]).c_str(), "pixelMain", pixelProfile, SQCB,
-			video::EMT_TRANSPARENT_ADD_COLOR);
+        // Light modulate.
+        LightModulate = gpu->addHighLevelShaderMaterial(
+            sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain", vertexProfile,
+            sPP.ppShader(LIGHT_MODULATE_P[shaderExt]).c_str(), "pixelMain", pixelProfile, SQCB);
 
-		// VSM blur.
-		VSMBlurH = gpu->addHighLevelShaderMaterial(
-			sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain", vertexProfile,
-			sPP.ppShader(VSM_BLUR_P[shaderExt]).c_str(), "pixelMain", pixelProfile, SQCB);
+        // Simple present.
+        Simple = gpu->addHighLevelShaderMaterial(sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain",
+                                                 vertexProfile, sPP.ppShader(SIMPLE_P[shaderExt]).c_str(), "pixelMain",
+                                                 pixelProfile, SQCB, video::EMT_TRANSPARENT_ADD_COLOR);
 
-		sPP.addShaderDefine("VERTICAL_VSM_BLUR");
+        // VSM blur.
+        VSMBlurH = gpu->addHighLevelShaderMaterial(sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain",
+                                                   vertexProfile, sPP.ppShader(VSM_BLUR_P[shaderExt]).c_str(),
+                                                   "pixelMain", pixelProfile, SQCB);
 
-		VSMBlurV = gpu->addHighLevelShaderMaterial(
-			sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain", vertexProfile,
-			sPP.ppShader(VSM_BLUR_P[shaderExt]).c_str(), "pixelMain", pixelProfile, SQCB);
-		
-		// Drop the screen quad callback.
-		SQCB->drop();
-	}
-	else
-	{
-		Depth = video::EMT_SOLID;
-		DepthT = video::EMT_SOLID;
-		WhiteWash = video::EMT_SOLID;
-		WhiteWashTRef = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
-		WhiteWashTAdd = video::EMT_TRANSPARENT_ADD_COLOR;
-		WhiteWashTAlpha = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
-		Simple = video::EMT_SOLID;
+        sPP.addShaderDefine("VERTICAL_VSM_BLUR");
 
-		for(u32 i = 0;i < EFT_COUNT;++i)
-			Shadow[i] = video::EMT_SOLID;
+        VSMBlurV = gpu->addHighLevelShaderMaterial(sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain",
+                                                   vertexProfile, sPP.ppShader(VSM_BLUR_P[shaderExt]).c_str(),
+                                                   "pixelMain", pixelProfile, SQCB);
 
-		device->getLogger()->log("XEffects: Shader effects not supported on this system.");
-		shadowsUnsupported = true;
-	}
+        // Drop the screen quad callback.
+        SQCB->drop();
+    } else {
+        Depth = video::EMT_SOLID;
+        DepthT = video::EMT_SOLID;
+        WhiteWash = video::EMT_SOLID;
+        WhiteWashTRef = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+        WhiteWashTAdd = video::EMT_TRANSPARENT_ADD_COLOR;
+        WhiteWashTAlpha = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
+        Simple = video::EMT_SOLID;
+
+        for (u32 i = 0; i < EFT_COUNT; ++i)
+            Shadow[i] = video::EMT_SOLID;
+
+        device->getLogger()->log("XEffects: Shader effects not supported on this system.");
+        shadowsUnsupported = true;
+    }
 }
 
-inline
-EffectHandler::~EffectHandler()
-{
-	if(ScreenRTT)
-		driver->removeTexture(ScreenRTT);
+inline EffectHandler::~EffectHandler() {
+    if (ScreenRTT)
+        driver->removeTexture(ScreenRTT);
 
-	if(ScreenQuad.rt[0])
-		driver->removeTexture(ScreenQuad.rt[0]);
+    if (ScreenQuad.rt[0])
+        driver->removeTexture(ScreenQuad.rt[0]);
 
-	if(ScreenQuad.rt[1])
-		driver->removeTexture(ScreenQuad.rt[1]);
+    if (ScreenQuad.rt[1])
+        driver->removeTexture(ScreenQuad.rt[1]);
 
-	if(DepthRTT)
-		driver->removeTexture(DepthRTT);
+    if (DepthRTT)
+        driver->removeTexture(DepthRTT);
 }
 
-inline
-void EffectHandler::setScreenRenderTargetResolution(const core::dimension2du& resolution)
-{
-	bool tempTexFlagMipMaps = driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
-	bool tempTexFlag32 = driver->getTextureCreationFlag(video::ETCF_ALWAYS_32_BIT);
+inline void EffectHandler::setScreenRenderTargetResolution(const core::dimension2du& resolution) {
+    bool tempTexFlagMipMaps = driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
+    bool tempTexFlag32 = driver->getTextureCreationFlag(video::ETCF_ALWAYS_32_BIT);
 
-	if(ScreenRTT)
-		driver->removeTexture(ScreenRTT);
+    if (ScreenRTT)
+        driver->removeTexture(ScreenRTT);
 
-	ScreenRTT = driver->addRenderTargetTexture(resolution);
+    ScreenRTT = driver->addRenderTargetTexture(resolution);
 
-	if(ScreenQuad.rt[0])
-		driver->removeTexture(ScreenQuad.rt[0]);
+    if (ScreenQuad.rt[0])
+        driver->removeTexture(ScreenQuad.rt[0]);
 
-	ScreenQuad.rt[0] = driver->addRenderTargetTexture(resolution);
+    ScreenQuad.rt[0] = driver->addRenderTargetTexture(resolution);
 
-	if(ScreenQuad.rt[1])
-		driver->removeTexture(ScreenQuad.rt[1]);
+    if (ScreenQuad.rt[1])
+        driver->removeTexture(ScreenQuad.rt[1]);
 
-	ScreenQuad.rt[1] = driver->addRenderTargetTexture(resolution);
+    ScreenQuad.rt[1] = driver->addRenderTargetTexture(resolution);
 
-	if(DepthRTT != 0)
-	{
-		driver->removeTexture(DepthRTT);
-		DepthRTT = driver->addRenderTargetTexture(resolution);
-	}
+    if (DepthRTT != 0) {
+        driver->removeTexture(DepthRTT);
+        DepthRTT = driver->addRenderTargetTexture(resolution);
+    }
 
-	driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, tempTexFlagMipMaps);
-	driver->setTextureCreationFlag(video::ETCF_ALWAYS_32_BIT, tempTexFlag32);
+    driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, tempTexFlagMipMaps);
+    driver->setTextureCreationFlag(video::ETCF_ALWAYS_32_BIT, tempTexFlag32);
 
-	ScreenRTTSize = resolution;
+    ScreenRTTSize = resolution;
 }
 
-inline
-void EffectHandler::enableDepthPass(bool enableDepthPass)
-{
-	DepthPass = enableDepthPass;
+inline void EffectHandler::enableDepthPass(bool enableDepthPass) {
+    DepthPass = enableDepthPass;
 
-	if(DepthPass && DepthRTT == 0)
-		DepthRTT = driver->addRenderTargetTexture(ScreenRTTSize, "depthRTT", use32BitDepth ? video::ECF_G32R32F : video::ECF_G16R16F);
+    if (DepthPass && DepthRTT == 0)
+        DepthRTT = driver->addRenderTargetTexture(ScreenRTTSize, "depthRTT",
+                                                  use32BitDepth ? video::ECF_G32R32F : video::ECF_G16R16F);
 }
 
-inline
-void EffectHandler::addPostProcessingEffect(s32 MaterialType, IPostProcessingRenderCallback* callback)
-{
-	SPostProcessingPair pPair(MaterialType, 0);
-	pPair.renderCallback = callback;
-	PostProcessingRoutines.push_back(pPair);
+inline void EffectHandler::addPostProcessingEffect(s32 MaterialType, IPostProcessingRenderCallback* callback) {
+    SPostProcessingPair pPair(MaterialType, 0);
+    pPair.renderCallback = callback;
+    PostProcessingRoutines.push_back(pPair);
 }
 
-inline
-void EffectHandler::addShadowToNode(scene::ISceneNode *node, E_FILTER_TYPE filterType, E_SHADOW_MODE shadowMode)
-{
-	SShadowNode snode = {node, shadowMode, filterType};
-	ShadowNodeArray.push_back(snode);
+inline void EffectHandler::addShadowToNode(scene::ISceneNode* node,
+                                           E_FILTER_TYPE filterType,
+                                           E_SHADOW_MODE shadowMode) {
+    SShadowNode snode = {node, shadowMode, filterType};
+    ShadowNodeArray.push_back(snode);
 }
 
-inline
-void EffectHandler::addNodeToDepthPass(scene::ISceneNode *node)
-{
-	if(DepthPassArray.binary_search(node) == -1)
-		DepthPassArray.push_back(node);
+inline void EffectHandler::addNodeToDepthPass(scene::ISceneNode* node) {
+    if (DepthPassArray.binary_search(node) == -1)
+        DepthPassArray.push_back(node);
 }
 
-inline
-void EffectHandler::removeNodeFromDepthPass(scene::ISceneNode *node)
-{
-	s32 i = DepthPassArray.binary_search(node);
-	
-	if(i != -1) 
-		DepthPassArray.erase(i);
+inline void EffectHandler::removeNodeFromDepthPass(scene::ISceneNode* node) {
+    s32 i = DepthPassArray.binary_search(node);
+
+    if (i != -1)
+        DepthPassArray.erase(i);
 }
 
-inline
-void EffectHandler::update(video::ITexture* outputTarget)
-{
-	if(shadowsUnsupported || smgr->getActiveCamera() == 0)
-		return;
+inline void EffectHandler::update(video::ITexture* outputTarget) {
+    if (shadowsUnsupported || smgr->getActiveCamera() == 0)
+        return;
 
-	this->smgr->getRootSceneNode()->OnAnimate(device->getTimer()->getTime());
+    this->smgr->getRootSceneNode()->OnAnimate(device->getTimer()->getTime());
 
-	if(!ShadowNodeArray.empty() && !LightList.empty())
-	{
-		driver->setRenderTarget(ScreenQuad.rt[0], true, true, AmbientColour);
+    if (!ShadowNodeArray.empty() && !LightList.empty()) {
+        driver->setRenderTarget(ScreenQuad.rt[0], true, true, AmbientColour);
 
-		scene::ICameraSceneNode* activeCam = smgr->getActiveCamera();
-		activeCam->OnAnimate(device->getTimer()->getTime());
-		activeCam->OnRegisterSceneNode();
-		activeCam->render();
+        scene::ICameraSceneNode* activeCam = smgr->getActiveCamera();
+        activeCam->OnAnimate(device->getTimer()->getTime());
+        activeCam->OnRegisterSceneNode();
+        activeCam->render();
 
-		const u32 ShadowNodeArraySize = ShadowNodeArray.size();
-		const u32 LightListSize = LightList.size();
-		for(u32 l = 0;l < LightListSize;++l)
-		{
-			// Set max distance constant for depth shader.
-			depthMC->FarLink = LightList[l].getFarValue();
+        const u32 ShadowNodeArraySize = ShadowNodeArray.size();
+        const u32 LightListSize = LightList.size();
+        for (u32 l = 0; l < LightListSize; ++l) {
+            // Set max distance constant for depth shader.
+            depthMC->FarLink = LightList[l].getFarValue();
 
-			driver->setTransform(video::ETS_VIEW, LightList[l].getViewMatrix());
-			driver->setTransform(video::ETS_PROJECTION, LightList[l].getProjectionMatrix());
-			
-			video::ITexture* currentShadowMapTexture = getShadowMapTexture(LightList[l].getShadowMapResolution());
-			driver->setRenderTarget(currentShadowMapTexture, true, true, video::SColor(0xffffffff));
-			
-			for(u32 i = 0;i < ShadowNodeArraySize;++i)
-			{
-				if(ShadowNodeArray[i].shadowMode == ESM_RECEIVE || ShadowNodeArray[i].shadowMode == ESM_EXCLUDE)
-					continue;
+            driver->setTransform(video::ETS_VIEW, LightList[l].getViewMatrix());
+            driver->setTransform(video::ETS_PROJECTION, LightList[l].getProjectionMatrix());
 
-				const u32 CurrentMaterialCount = ShadowNodeArray[i].node->getMaterialCount();
-				core::array<s32> BufferMaterialList(CurrentMaterialCount);
-				BufferMaterialList.set_used(0);
+            video::ITexture* currentShadowMapTexture = getShadowMapTexture(LightList[l].getShadowMapResolution());
+            driver->setRenderTarget(currentShadowMapTexture, true, true, video::SColor(0xffffffff));
 
-				for(u32 m = 0;m < CurrentMaterialCount;++m)
-				{
-					BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
-					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)
-						(BufferMaterialList[m] == video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF ? DepthT : Depth);
-				}
+            for (u32 i = 0; i < ShadowNodeArraySize; ++i) {
+                if (ShadowNodeArray[i].shadowMode == ESM_RECEIVE || ShadowNodeArray[i].shadowMode == ESM_EXCLUDE)
+                    continue;
 
-				ShadowNodeArray[i].node->OnAnimate(device->getTimer()->getTime());
-				ShadowNodeArray[i].node->render();
+                const u32 CurrentMaterialCount = ShadowNodeArray[i].node->getMaterialCount();
+                core::array<s32> BufferMaterialList(CurrentMaterialCount);
+                BufferMaterialList.set_used(0);
 
-				const u32 BufferMaterialListSize = BufferMaterialList.size();
-				for(u32 m = 0;m < BufferMaterialListSize;++m)
-					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)BufferMaterialList[m];
-			}
+                for (u32 m = 0; m < CurrentMaterialCount; ++m) {
+                    BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
+                    ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)(
+                        BufferMaterialList[m] == video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF ? DepthT : Depth);
+                }
 
-			// Blur the shadow map texture if we're using VSM filtering.
-			if(useVSM)
-			{
-				video::ITexture* currentSecondaryShadowMap = getShadowMapTexture(LightList[l].getShadowMapResolution(), true);
+                ShadowNodeArray[i].node->OnAnimate(device->getTimer()->getTime());
+                ShadowNodeArray[i].node->render();
 
-				driver->setRenderTarget(currentSecondaryShadowMap, true, true, video::SColor(0xffffffff));
-				ScreenQuad.getMaterial().setTexture(0, currentShadowMapTexture);
-				ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)VSMBlurH;
-				
-				ScreenQuad.render(driver);
+                const u32 BufferMaterialListSize = BufferMaterialList.size();
+                for (u32 m = 0; m < BufferMaterialListSize; ++m)
+                    ShadowNodeArray[i].node->getMaterial(m).MaterialType =
+                        (video::E_MATERIAL_TYPE)BufferMaterialList[m];
+            }
 
-				driver->setRenderTarget(currentShadowMapTexture, true, true, video::SColor(0xffffffff));
-				ScreenQuad.getMaterial().setTexture(0, currentSecondaryShadowMap);
-				ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)VSMBlurV;
-				
-				ScreenQuad.render(driver);
-			}
+            // Blur the shadow map texture if we're using VSM filtering.
+            if (useVSM) {
+                video::ITexture* currentSecondaryShadowMap =
+                    getShadowMapTexture(LightList[l].getShadowMapResolution(), true);
 
-			driver->setRenderTarget(ScreenQuad.rt[1], true, true, video::SColor(0xffffffff));
-		
-			driver->setTransform(video::ETS_VIEW, activeCam->getViewMatrix());
-			driver->setTransform(video::ETS_PROJECTION, activeCam->getProjectionMatrix());
+                driver->setRenderTarget(currentSecondaryShadowMap, true, true, video::SColor(0xffffffff));
+                ScreenQuad.getMaterial().setTexture(0, currentShadowMapTexture);
+                ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)VSMBlurH;
 
-			shadowMC->LightColour = LightList[l].getLightColor();
-			shadowMC->LightLink = LightList[l].getPosition();
-			shadowMC->FarLink = LightList[l].getFarValue();
-			shadowMC->ViewLink = LightList[l].getViewMatrix();
-			shadowMC->ProjLink = LightList[l].getProjectionMatrix();
-			shadowMC->MapRes = (f32)LightList[l].getShadowMapResolution();
-			shadowMC->clipborder = LightList[l].getClipBorder(); //***ALEX***
+                ScreenQuad.render(driver);
 
-			for(u32 i = 0;i < ShadowNodeArraySize;++i)
-			{
-				if(ShadowNodeArray[i].shadowMode == ESM_CAST || ShadowNodeArray[i].shadowMode == ESM_EXCLUDE)
-						continue;
+                driver->setRenderTarget(currentShadowMapTexture, true, true, video::SColor(0xffffffff));
+                ScreenQuad.getMaterial().setTexture(0, currentSecondaryShadowMap);
+                ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)VSMBlurV;
 
-				const u32 CurrentMaterialCount = ShadowNodeArray[i].node->getMaterialCount();
-				core::array<s32> BufferMaterialList(CurrentMaterialCount);
-				core::array<video::ITexture*> BufferTextureList(CurrentMaterialCount);
-				
-				for(u32 m = 0;m < CurrentMaterialCount;++m)
-				{
-					BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
-					BufferTextureList.push_back(ShadowNodeArray[i].node->getMaterial(m).getTexture(0));
-				
-					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)Shadow[ShadowNodeArray[i].filterType];
-					ShadowNodeArray[i].node->getMaterial(m).setTexture(0, currentShadowMapTexture);
-				}
+                ScreenQuad.render(driver);
+            }
 
-				ShadowNodeArray[i].node->OnAnimate(device->getTimer()->getTime());
-				ShadowNodeArray[i].node->render();
+            driver->setRenderTarget(ScreenQuad.rt[1], true, true, video::SColor(0xffffffff));
 
-				for(u32 m = 0;m < CurrentMaterialCount;++m)
-				{
-					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)BufferMaterialList[m];
-					ShadowNodeArray[i].node->getMaterial(m).setTexture(0, BufferTextureList[m]);
-				}
-			}
+            driver->setTransform(video::ETS_VIEW, activeCam->getViewMatrix());
+            driver->setTransform(video::ETS_PROJECTION, activeCam->getProjectionMatrix());
 
-			driver->setRenderTarget(ScreenQuad.rt[0], false, false, video::SColor(0x0));
-			ScreenQuad.getMaterial().setTexture(0, ScreenQuad.rt[1]);
-			ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)Simple;
-			
-			ScreenQuad.render(driver);
-		}
+            shadowMC->LightColour = LightList[l].getLightColor();
+            shadowMC->LightLink = LightList[l].getPosition();
+            shadowMC->FarLink = LightList[l].getFarValue();
+            shadowMC->ViewLink = LightList[l].getViewMatrix();
+            shadowMC->ProjLink = LightList[l].getProjectionMatrix();
+            shadowMC->MapRes = (f32)LightList[l].getShadowMapResolution();
+            shadowMC->clipborder = LightList[l].getClipBorder();  //***ALEX***
 
-		// Render all the excluded and casting-only nodes.
-		for(u32 i = 0;i < ShadowNodeArraySize;++i)
-		{
-			if(ShadowNodeArray[i].shadowMode != ESM_CAST && ShadowNodeArray[i].shadowMode != ESM_EXCLUDE)
-					continue;
+            for (u32 i = 0; i < ShadowNodeArraySize; ++i) {
+                if (ShadowNodeArray[i].shadowMode == ESM_CAST || ShadowNodeArray[i].shadowMode == ESM_EXCLUDE)
+                    continue;
 
-			const u32 CurrentMaterialCount = ShadowNodeArray[i].node->getMaterialCount();
-			core::array<s32> BufferMaterialList(CurrentMaterialCount);
-			BufferMaterialList.set_used(0);
-			
-			for(u32 m = 0;m < CurrentMaterialCount;++m)
-			{
-				BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
-			
-				switch(BufferMaterialList[m])
-				{
-					case video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF:
-						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWashTRef;
-						break;
-					case video::EMT_TRANSPARENT_ADD_COLOR:
-						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWashTAdd;
-						break;
-					case video::EMT_TRANSPARENT_ALPHA_CHANNEL:
-						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWashTAlpha;
-						break;
-					default:
-						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWash;
-						break;
-				}
-			}
+                const u32 CurrentMaterialCount = ShadowNodeArray[i].node->getMaterialCount();
+                core::array<s32> BufferMaterialList(CurrentMaterialCount);
+                core::array<video::ITexture*> BufferTextureList(CurrentMaterialCount);
 
-			ShadowNodeArray[i].node->OnAnimate(device->getTimer()->getTime());
-			ShadowNodeArray[i].node->render();
+                for (u32 m = 0; m < CurrentMaterialCount; ++m) {
+                    BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
+                    BufferTextureList.push_back(ShadowNodeArray[i].node->getMaterial(m).getTexture(0));
 
-			for(u32 m = 0;m < CurrentMaterialCount;++m)
-				ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)BufferMaterialList[m];
-		}
-	}
-	else
-	{
-		driver->setRenderTarget(ScreenQuad.rt[0], true, true, video::SColor(0xffffffff));
-	}
-	
-	driver->setRenderTarget(ScreenQuad.rt[1], true, true, ClearColour);
-	smgr->drawAll();
+                    ShadowNodeArray[i].node->getMaterial(m).MaterialType =
+                        (video::E_MATERIAL_TYPE)Shadow[ShadowNodeArray[i].filterType];
+                    ShadowNodeArray[i].node->getMaterial(m).setTexture(0, currentShadowMapTexture);
+                }
 
-	const u32 PostProcessingRoutinesSize = PostProcessingRoutines.size();
+                ShadowNodeArray[i].node->OnAnimate(device->getTimer()->getTime());
+                ShadowNodeArray[i].node->render();
 
-	driver->setRenderTarget(PostProcessingRoutinesSize 
-		? ScreenRTT : outputTarget, true, true, video::SColor(0x0));
+                for (u32 m = 0; m < CurrentMaterialCount; ++m) {
+                    ShadowNodeArray[i].node->getMaterial(m).MaterialType =
+                        (video::E_MATERIAL_TYPE)BufferMaterialList[m];
+                    ShadowNodeArray[i].node->getMaterial(m).setTexture(0, BufferTextureList[m]);
+                }
+            }
 
-	ScreenQuad.getMaterial().setTexture(0, ScreenQuad.rt[1]);
-	ScreenQuad.getMaterial().setTexture(1, ScreenQuad.rt[0]);
+            driver->setRenderTarget(ScreenQuad.rt[0], false, false, video::SColor(0x0));
+            ScreenQuad.getMaterial().setTexture(0, ScreenQuad.rt[1]);
+            ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)Simple;
 
-	ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)LightModulate;
-	ScreenQuad.render(driver);
+            ScreenQuad.render(driver);
+        }
 
-	// Perform depth pass after rendering, to ensure animations stay up to date.
-	if(DepthPass)
-	{
-		driver->setRenderTarget(DepthRTT, true, true, video::SColor(0xffffffff));
+        // Render all the excluded and casting-only nodes.
+        for (u32 i = 0; i < ShadowNodeArraySize; ++i) {
+            if (ShadowNodeArray[i].shadowMode != ESM_CAST && ShadowNodeArray[i].shadowMode != ESM_EXCLUDE)
+                continue;
 
-		// Set max distance constant for depth shader.
-		depthMC->FarLink = smgr->getActiveCamera()->getFarValue();
+            const u32 CurrentMaterialCount = ShadowNodeArray[i].node->getMaterialCount();
+            core::array<s32> BufferMaterialList(CurrentMaterialCount);
+            BufferMaterialList.set_used(0);
 
-		for(u32 i = 0;i < DepthPassArray.size();++i)
-		{
-			core::array<s32> BufferMaterialList(DepthPassArray[i]->getMaterialCount());
-			BufferMaterialList.set_used(0);
+            for (u32 m = 0; m < CurrentMaterialCount; ++m) {
+                BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
 
-			for(u32 g = 0;g < DepthPassArray[i]->getMaterialCount();++g)
-				BufferMaterialList.push_back(DepthPassArray[i]->getMaterial(g).MaterialType);
+                switch (BufferMaterialList[m]) {
+                    case video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF:
+                        ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWashTRef;
+                        break;
+                    case video::EMT_TRANSPARENT_ADD_COLOR:
+                        ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWashTAdd;
+                        break;
+                    case video::EMT_TRANSPARENT_ALPHA_CHANNEL:
+                        ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWashTAlpha;
+                        break;
+                    default:
+                        ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWash;
+                        break;
+                }
+            }
 
-			DepthPassArray[i]->setMaterialType((video::E_MATERIAL_TYPE)Depth);
-			DepthPassArray[i]->OnAnimate(device->getTimer()->getTime());
-			DepthPassArray[i]->render();
+            ShadowNodeArray[i].node->OnAnimate(device->getTimer()->getTime());
+            ShadowNodeArray[i].node->render();
 
-			for(u32 g = 0;g < DepthPassArray[i]->getMaterialCount();++g)
-				DepthPassArray[i]->getMaterial(g).MaterialType = (video::E_MATERIAL_TYPE)BufferMaterialList[g];
-		}
+            for (u32 m = 0; m < CurrentMaterialCount; ++m)
+                ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)BufferMaterialList[m];
+        }
+    } else {
+        driver->setRenderTarget(ScreenQuad.rt[0], true, true, video::SColor(0xffffffff));
+    }
 
-		driver->setRenderTarget(0, false, false);
-	}
-	
-	if(PostProcessingRoutinesSize)
-	{
-		bool Alter = false;
-		ScreenQuad.getMaterial().setTexture(1, ScreenRTT);
-		ScreenQuad.getMaterial().setTexture(2, DepthRTT);
-		for(u32 i = 0;i < PostProcessingRoutinesSize;++i)
-		{
-			ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)PostProcessingRoutines[i].materialType;
+    driver->setRenderTarget(ScreenQuad.rt[1], true, true, ClearColour);
+    smgr->drawAll();
 
-			Alter = !Alter;
-			ScreenQuad.getMaterial().setTexture(0, i == 0 ? ScreenRTT : ScreenQuad.rt[int(!Alter)]);
-			driver->setRenderTarget(i >= PostProcessingRoutinesSize - 1 ?
-				outputTarget : ScreenQuad.rt[int(Alter)], true, true, ClearColour);
+    const u32 PostProcessingRoutinesSize = PostProcessingRoutines.size();
 
-			if(PostProcessingRoutines[i].renderCallback) PostProcessingRoutines[i].renderCallback->OnPreRender(this);
-			ScreenQuad.render(driver);
-			if(PostProcessingRoutines[i].renderCallback) PostProcessingRoutines[i].renderCallback->OnPostRender(this);
-		}
-	}
+    driver->setRenderTarget(PostProcessingRoutinesSize ? ScreenRTT : outputTarget, true, true, video::SColor(0x0));
+
+    ScreenQuad.getMaterial().setTexture(0, ScreenQuad.rt[1]);
+    ScreenQuad.getMaterial().setTexture(1, ScreenQuad.rt[0]);
+
+    ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)LightModulate;
+    ScreenQuad.render(driver);
+
+    // Perform depth pass after rendering, to ensure animations stay up to date.
+    if (DepthPass) {
+        driver->setRenderTarget(DepthRTT, true, true, video::SColor(0xffffffff));
+
+        // Set max distance constant for depth shader.
+        depthMC->FarLink = smgr->getActiveCamera()->getFarValue();
+
+        for (u32 i = 0; i < DepthPassArray.size(); ++i) {
+            core::array<s32> BufferMaterialList(DepthPassArray[i]->getMaterialCount());
+            BufferMaterialList.set_used(0);
+
+            for (u32 g = 0; g < DepthPassArray[i]->getMaterialCount(); ++g)
+                BufferMaterialList.push_back(DepthPassArray[i]->getMaterial(g).MaterialType);
+
+            DepthPassArray[i]->setMaterialType((video::E_MATERIAL_TYPE)Depth);
+            DepthPassArray[i]->OnAnimate(device->getTimer()->getTime());
+            DepthPassArray[i]->render();
+
+            for (u32 g = 0; g < DepthPassArray[i]->getMaterialCount(); ++g)
+                DepthPassArray[i]->getMaterial(g).MaterialType = (video::E_MATERIAL_TYPE)BufferMaterialList[g];
+        }
+
+        driver->setRenderTarget(0, false, false);
+    }
+
+    if (PostProcessingRoutinesSize) {
+        bool Alter = false;
+        ScreenQuad.getMaterial().setTexture(1, ScreenRTT);
+        ScreenQuad.getMaterial().setTexture(2, DepthRTT);
+        for (u32 i = 0; i < PostProcessingRoutinesSize; ++i) {
+            ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)PostProcessingRoutines[i].materialType;
+
+            Alter = !Alter;
+            ScreenQuad.getMaterial().setTexture(0, i == 0 ? ScreenRTT : ScreenQuad.rt[int(!Alter)]);
+            driver->setRenderTarget(i >= PostProcessingRoutinesSize - 1 ? outputTarget : ScreenQuad.rt[int(Alter)],
+                                    true, true, ClearColour);
+
+            if (PostProcessingRoutines[i].renderCallback)
+                PostProcessingRoutines[i].renderCallback->OnPreRender(this);
+            ScreenQuad.render(driver);
+            if (PostProcessingRoutines[i].renderCallback)
+                PostProcessingRoutines[i].renderCallback->OnPostRender(this);
+        }
+    }
 }
 
-inline
-video::ITexture* EffectHandler::getShadowMapTexture(const u32 resolution, const bool secondary)
-{
-	// Using Irrlicht cache now.
-	core::stringc shadowMapName = core::stringc("XEFFECTS_SM_") + core::stringc(resolution);
+inline video::ITexture* EffectHandler::getShadowMapTexture(const u32 resolution, const bool secondary) {
+    // Using Irrlicht cache now.
+    core::stringc shadowMapName = core::stringc("XEFFECTS_SM_") + core::stringc(resolution);
 
-	if(secondary)
-		shadowMapName += "_2";
+    if (secondary)
+        shadowMapName += "_2";
 
-	video::ITexture* shadowMapTexture = driver->getTexture(shadowMapName);
+    video::ITexture* shadowMapTexture = driver->getTexture(shadowMapName);
 
-	if(shadowMapTexture == 0)
-	{
-		device->getLogger()->log("XEffects: Please ignore previous warning, it is harmless.");
+    if (shadowMapTexture == 0) {
+        device->getLogger()->log("XEffects: Please ignore previous warning, it is harmless.");
 
-		shadowMapTexture = driver->addRenderTargetTexture(core::dimension2du(resolution, resolution),
-			shadowMapName, use32BitDepth ? video::ECF_G32R32F : video::ECF_G16R16F);
-	}
+        shadowMapTexture = driver->addRenderTargetTexture(core::dimension2du(resolution, resolution), shadowMapName,
+                                                          use32BitDepth ? video::ECF_G32R32F : video::ECF_G16R16F);
+    }
 
-	return shadowMapTexture;
+    return shadowMapTexture;
 }
 
-inline
-video::ITexture* EffectHandler::generateRandomVectorTexture(const core::dimension2du& dimensions,
-	const core::stringc& name)
-{
-	video::IImage* tmpImage = driver->createImage(video::ECF_A8R8G8B8, dimensions);
+inline video::ITexture* EffectHandler::generateRandomVectorTexture(const core::dimension2du& dimensions,
+                                                                   const core::stringc& name) {
+    video::IImage* tmpImage = driver->createImage(video::ECF_A8R8G8B8, dimensions);
 
-	srand(device->getTimer()->getRealTime());
-	
-	for(u32 x = 0;x < dimensions.Width;++x)
-	{
-		for(u32 y = 0;y < dimensions.Height;++y)
-		{
-			core::vector3df randVec; 
-			
-			// Reject vectors outside the unit sphere to get a uniform distribution.
-			do {randVec = core::vector3df((f32)rand() / (f32)RAND_MAX, (f32)rand() / (f32)RAND_MAX, (f32)rand() / (f32)RAND_MAX);}
-			while(randVec.getLengthSQ() > 1.0f);
+    srand(device->getTimer()->getRealTime());
 
-			const video::SColorf randCol(randVec.X, randVec.Y, randVec.Z);
-			tmpImage->setPixel(x, y, randCol.toSColor());
-		}
-	}
+    for (u32 x = 0; x < dimensions.Width; ++x) {
+        for (u32 y = 0; y < dimensions.Height; ++y) {
+            core::vector3df randVec;
 
-	video::ITexture* randTexture = driver->addTexture(name, tmpImage);
-	
-	tmpImage->drop();
+            // Reject vectors outside the unit sphere to get a uniform distribution.
+            do {
+                randVec = core::vector3df((f32)rand() / (f32)RAND_MAX, (f32)rand() / (f32)RAND_MAX,
+                                          (f32)rand() / (f32)RAND_MAX);
+            } while (randVec.getLengthSQ() > 1.0f);
 
-	return randTexture;
+            const video::SColorf randCol(randVec.X, randVec.Y, randVec.Z);
+            tmpImage->setPixel(x, y, randCol.toSColor());
+        }
+    }
+
+    video::ITexture* randTexture = driver->addTexture(name, tmpImage);
+
+    tmpImage->drop();
+
+    return randTexture;
 }
 
-inline
-EffectHandler::SPostProcessingPair EffectHandler::obtainScreenQuadMaterialFromFile(const core::stringc& filename, 
-	video::E_MATERIAL_TYPE baseMaterial)
-{
-	CShaderPreprocessor sPP(driver);
+inline EffectHandler::SPostProcessingPair EffectHandler::obtainScreenQuadMaterialFromFile(
+    const core::stringc& filename,
+    video::E_MATERIAL_TYPE baseMaterial) {
+    CShaderPreprocessor sPP(driver);
 
-	sPP.addShaderDefine("SCREENX", core::stringc(ScreenRTTSize.Width));
-	sPP.addShaderDefine("SCREENY", core::stringc(ScreenRTTSize.Height));	
-	
-	video::E_VERTEX_SHADER_TYPE VertexLevel = driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? video::EVST_VS_3_0 : video::EVST_VS_2_0; 
-	video::E_PIXEL_SHADER_TYPE PixelLevel = driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? video::EPST_PS_2_0 : video::EPST_PS_2_0; 
+    sPP.addShaderDefine("SCREENX", core::stringc(ScreenRTTSize.Width));
+    sPP.addShaderDefine("SCREENY", core::stringc(ScreenRTTSize.Height));
 
-	E_SHADER_EXTENSION shaderExt = (driver->getDriverType() == video::EDT_DIRECT3D9) ? ESE_HLSL : ESE_GLSL;
+    video::E_VERTEX_SHADER_TYPE VertexLevel =
+        driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? video::EVST_VS_3_0 : video::EVST_VS_2_0;
+    video::E_PIXEL_SHADER_TYPE PixelLevel =
+        driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? video::EPST_PS_2_0 : video::EPST_PS_2_0;
 
-	video::IGPUProgrammingServices* gpu = driver->getGPUProgrammingServices();
+    E_SHADER_EXTENSION shaderExt = (driver->getDriverType() == video::EDT_DIRECT3D9) ? ESE_HLSL : ESE_GLSL;
 
-	const core::stringc shaderString = sPP.ppShaderFF(filename.c_str());
+    video::IGPUProgrammingServices* gpu = driver->getGPUProgrammingServices();
 
-	ScreenQuadCB* SQCB = new ScreenQuadCB(this, true);
+    const core::stringc shaderString = sPP.ppShaderFF(filename.c_str());
 
-	s32 PostMat = gpu->addHighLevelShaderMaterial(
-		sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain", VertexLevel,
-		shaderString.c_str(), "pixelMain", PixelLevel,
-		SQCB, baseMaterial);
-	
-	SPostProcessingPair pPair(PostMat, SQCB);
+    ScreenQuadCB* SQCB = new ScreenQuadCB(this, true);
 
-	SQCB->drop();
+    s32 PostMat =
+        gpu->addHighLevelShaderMaterial(sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain", VertexLevel,
+                                        shaderString.c_str(), "pixelMain", PixelLevel, SQCB, baseMaterial);
 
-	return pPair;
+    SPostProcessingPair pPair(PostMat, SQCB);
+
+    SQCB->drop();
+
+    return pPair;
 }
 
-inline
-void EffectHandler::setPostProcessingEffectConstant(const s32 materialType, const core::stringc& name,
-	const f32* data, const u32 count)
-{
-	SPostProcessingPair tempPair(materialType, 0);
-	s32 matIndex = PostProcessingRoutines.binary_search(tempPair);
-	
-	if(matIndex != -1)
-		PostProcessingRoutines[matIndex].callback->uniformDescriptors[name] = ScreenQuadCB::SUniformDescriptor(data, count);
+inline void EffectHandler::setPostProcessingEffectConstant(const s32 materialType,
+                                                           const core::stringc& name,
+                                                           const f32* data,
+                                                           const u32 count) {
+    SPostProcessingPair tempPair(materialType, 0);
+    s32 matIndex = PostProcessingRoutines.binary_search(tempPair);
+
+    if (matIndex != -1)
+        PostProcessingRoutines[matIndex].callback->uniformDescriptors[name] =
+            ScreenQuadCB::SUniformDescriptor(data, count);
 }
 
-inline
-s32 EffectHandler::addPostProcessingEffectFromFile(const core::stringc& filename,
-	IPostProcessingRenderCallback* callback)
-{
-	SPostProcessingPair pPair = obtainScreenQuadMaterialFromFile(filename);
-	pPair.renderCallback = callback;
-	PostProcessingRoutines.push_back(pPair);
+inline s32 EffectHandler::addPostProcessingEffectFromFile(const core::stringc& filename,
+                                                          IPostProcessingRenderCallback* callback) {
+    SPostProcessingPair pPair = obtainScreenQuadMaterialFromFile(filename);
+    pPair.renderCallback = callback;
+    PostProcessingRoutines.push_back(pPair);
 
-	return pPair.materialType;
+    return pPair.materialType;
 }
-
-
-
 
 ///////////////ScreenQuadCB impl.
 
-inline
-void ScreenQuadCB::OnSetConstants(video::IMaterialRendererServices* services, s32 userData)
-	{
-		if(services->getVideoDriver()->getDriverType() == video::EDT_OPENGL)
-		{
-			//***ALEX*** modified for Irrlicht 1.8
-			/*
-			s32 TexVar = 0;
-			services->setPixelShaderConstant("ColorMapSampler", &TexVar, 1);
-	 
-			TexVar = 1;
-			services->setPixelShaderConstant("ScreenMapSampler", &TexVar, 1);
-	 
-			TexVar = 2;
-			services->setPixelShaderConstant("DepthMapSampler", &TexVar, 1);
-	 
-			TexVar = 3;
-			services->setPixelShaderConstant("UserMapSampler", &TexVar, 1);
-			*/
-			/// Version for Irrlicht 1.7.3
-			u32 TexVar = 0;
-			services->setPixelShaderConstant("ColorMapSampler", (f32*)(&TexVar), 1); 
+inline void ScreenQuadCB::OnSetConstants(video::IMaterialRendererServices* services, s32 userData) {
+    if (services->getVideoDriver()->getDriverType() == video::EDT_OPENGL) {
+        //***ALEX*** modified for Irrlicht 1.8
+        /*
+        s32 TexVar = 0;
+        services->setPixelShaderConstant("ColorMapSampler", &TexVar, 1);
 
-			TexVar = 1;
-			services->setPixelShaderConstant("ScreenMapSampler", (f32*)(&TexVar), 1); 
+        TexVar = 1;
+        services->setPixelShaderConstant("ScreenMapSampler", &TexVar, 1);
 
-			TexVar = 2;
-			services->setPixelShaderConstant("DepthMapSampler", (f32*)(&TexVar), 1); 
+        TexVar = 2;
+        services->setPixelShaderConstant("DepthMapSampler", &TexVar, 1);
 
-			TexVar = 3;
-			services->setPixelShaderConstant("UserMapSampler", (f32*)(&TexVar), 1);
-		}
+        TexVar = 3;
+        services->setPixelShaderConstant("UserMapSampler", &TexVar, 1);
+        */
+        /// Version for Irrlicht 1.7.3
+        u32 TexVar = 0;
+        services->setPixelShaderConstant("ColorMapSampler", (f32*)(&TexVar), 1);
 
-		if(defaultVertexShader)
-		{
-			const core::dimension2du currentRTTSize = services->getVideoDriver()->getCurrentRenderTargetSize();
-			const f32 screenX = (f32)currentRTTSize.Width, screenY = (f32)currentRTTSize.Height;
+        TexVar = 1;
+        services->setPixelShaderConstant("ScreenMapSampler", (f32*)(&TexVar), 1);
 
-			services->setVertexShaderConstant("screenX", &screenX, 1);
-			services->setVertexShaderConstant("screenY", &screenY, 1);
+        TexVar = 2;
+        services->setPixelShaderConstant("DepthMapSampler", (f32*)(&TexVar), 1);
 
-			scene::ISceneManager* smgr = effect->getActiveSceneManager();
-			scene::ICameraSceneNode* cam = smgr->getActiveCamera();
+        TexVar = 3;
+        services->setPixelShaderConstant("UserMapSampler", (f32*)(&TexVar), 1);
+    }
 
-			const core::position2di tLeft = services->getVideoDriver()->getViewPort().UpperLeftCorner;
-			const core::position2di bRight = services->getVideoDriver()->getViewPort().LowerRightCorner;
+    if (defaultVertexShader) {
+        const core::dimension2du currentRTTSize = services->getVideoDriver()->getCurrentRenderTargetSize();
+        const f32 screenX = (f32)currentRTTSize.Width, screenY = (f32)currentRTTSize.Height;
 
-			const core::line3df sLines[4] =
-			{
-				smgr->getSceneCollisionManager()->getRayFromScreenCoordinates
-				(core::position2di(tLeft.X, tLeft.Y), cam),
-				smgr->getSceneCollisionManager()->getRayFromScreenCoordinates
-				(core::position2di(bRight.X, tLeft.Y), cam),
-				smgr->getSceneCollisionManager()->getRayFromScreenCoordinates
-				(core::position2di(tLeft.X, bRight.Y), cam),
-				smgr->getSceneCollisionManager()->getRayFromScreenCoordinates
-				(core::position2di(bRight.X, bRight.Y), cam)
-			};
+        services->setVertexShaderConstant("screenX", &screenX, 1);
+        services->setVertexShaderConstant("screenY", &screenY, 1);
 
-			services->setVertexShaderConstant("LineStarts0", &sLines[0].start.X, 3);
-			services->setVertexShaderConstant("LineStarts1", &sLines[1].start.X, 3);
-			services->setVertexShaderConstant("LineStarts2", &sLines[2].start.X, 3);
-			services->setVertexShaderConstant("LineStarts3", &sLines[3].start.X, 3);
+        scene::ISceneManager* smgr = effect->getActiveSceneManager();
+        scene::ICameraSceneNode* cam = smgr->getActiveCamera();
 
-			services->setVertexShaderConstant("LineEnds0", &sLines[0].end.X, 3);
-			services->setVertexShaderConstant("LineEnds1", &sLines[1].end.X, 3);
-			services->setVertexShaderConstant("LineEnds2", &sLines[2].end.X, 3);
-			services->setVertexShaderConstant("LineEnds3", &sLines[3].end.X, 3);
-		}
+        const core::position2di tLeft = services->getVideoDriver()->getViewPort().UpperLeftCorner;
+        const core::position2di bRight = services->getVideoDriver()->getViewPort().LowerRightCorner;
 
-		if(uniformDescriptors.size())
-		{
-			core::map<core::stringc, SUniformDescriptor>::Iterator mapIter = uniformDescriptors.getIterator();
+        const core::line3df sLines[4] = {
+            smgr->getSceneCollisionManager()->getRayFromScreenCoordinates(core::position2di(tLeft.X, tLeft.Y), cam),
+            smgr->getSceneCollisionManager()->getRayFromScreenCoordinates(core::position2di(bRight.X, tLeft.Y), cam),
+            smgr->getSceneCollisionManager()->getRayFromScreenCoordinates(core::position2di(tLeft.X, bRight.Y), cam),
+            smgr->getSceneCollisionManager()->getRayFromScreenCoordinates(core::position2di(bRight.X, bRight.Y), cam)};
 
-			for(;!mapIter.atEnd();mapIter++)
-			{
-				if(mapIter.getNode()->getValue().fPointer == 0)
-					continue;
+        services->setVertexShaderConstant("LineStarts0", &sLines[0].start.X, 3);
+        services->setVertexShaderConstant("LineStarts1", &sLines[1].start.X, 3);
+        services->setVertexShaderConstant("LineStarts2", &sLines[2].start.X, 3);
+        services->setVertexShaderConstant("LineStarts3", &sLines[3].start.X, 3);
 
-				services->setPixelShaderConstant(mapIter.getNode()->getKey().c_str(), mapIter.getNode()->getValue().fPointer,
-					mapIter.getNode()->getValue().paramCount);
-			}
-		}
-	}
+        services->setVertexShaderConstant("LineEnds0", &sLines[0].end.X, 3);
+        services->setVertexShaderConstant("LineEnds1", &sLines[1].end.X, 3);
+        services->setVertexShaderConstant("LineEnds2", &sLines[2].end.X, 3);
+        services->setVertexShaderConstant("LineEnds3", &sLines[3].end.X, 3);
+    }
 
+    if (uniformDescriptors.size()) {
+        core::map<core::stringc, SUniformDescriptor>::Iterator mapIter = uniformDescriptors.getIterator();
 
-} // end namespace irr
+        for (; !mapIter.atEnd(); mapIter++) {
+            if (mapIter.getNode()->getValue().fPointer == 0)
+                continue;
+
+            services->setPixelShaderConstant(mapIter.getNode()->getKey().c_str(),
+                                             mapIter.getNode()->getValue().fPointer,
+                                             mapIter.getNode()->getValue().paramCount);
+        }
+    }
+}
+
+}  // end namespace irr
 
 #endif

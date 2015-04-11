@@ -4,7 +4,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -20,273 +20,222 @@
 #include "timestepper/ChState.h"
 #include "timestepper/ChIntegrable.h"
 
-
-namespace chrono 
-{
-
-
+namespace chrono {
 
 /// Base class for static analysis
 
-class ChStaticAnalysis : public ChShared
-{
-protected:
-	ChIntegrableIIorder* integrable;
+class ChStaticAnalysis : public ChShared {
+  protected:
+    ChIntegrableIIorder* integrable;
 
-	ChState X;
-	ChStateDelta V;
-	ChStateDelta A;
-	ChVectorDynamic<> L;
+    ChState X;
+    ChStateDelta V;
+    ChStateDelta A;
+    ChVectorDynamic<> L;
 
-public:
-					/// Constructor
-	ChStaticAnalysis(ChIntegrableIIorder& mintegrable) 
-				{
-					integrable = &mintegrable;
-					L.Reset(0);
-					X.Reset(1, &mintegrable);
-					V.Reset(1, &mintegrable);
-					A.Reset(1, &mintegrable);
-				};
-	
-					/// Destructor
-	virtual ~ChStaticAnalysis()
-				{
-				};
+  public:
+    /// Constructor
+    ChStaticAnalysis(ChIntegrableIIorder& mintegrable) {
+        integrable = &mintegrable;
+        L.Reset(0);
+        X.Reset(1, &mintegrable);
+        V.Reset(1, &mintegrable);
+        A.Reset(1, &mintegrable);
+    };
 
-					/// Performs the static analysis
-	virtual void StaticAnalysis() =0;
+    /// Destructor
+    virtual ~ChStaticAnalysis(){};
 
+    /// Performs the static analysis
+    virtual void StaticAnalysis() = 0;
 
-					/// Access the lagrangian multipliers, if any
-	virtual ChVectorDynamic<>& get_L() { return L; }
+    /// Access the lagrangian multipliers, if any
+    virtual ChVectorDynamic<>& get_L() { return L; }
 
-					/// Get the integrable object 
-	ChIntegrable* GetIntegrable() { return integrable;}
+    /// Get the integrable object
+    ChIntegrable* GetIntegrable() { return integrable; }
 
-	
-	/// Access the state, position part, at current analysis
-	virtual ChState& get_X() { return X; }
+    /// Access the state, position part, at current analysis
+    virtual ChState& get_X() { return X; }
 
-	/// Access the state, speed part, at current analysis
-	virtual ChStateDelta& get_V() { return V; }
+    /// Access the state, speed part, at current analysis
+    virtual ChStateDelta& get_V() { return V; }
 
-	/// Access the acceleration, at current analysis
-	virtual ChStateDelta& get_A() { return A; }
-				
+    /// Access the acceleration, at current analysis
+    virtual ChStateDelta& get_A() { return A; }
 };
-
-
 
 /// Linear static analysis
 
-class ChStaticLinearAnalysis : public ChStaticAnalysis
-{
-protected:
-	
+class ChStaticLinearAnalysis : public ChStaticAnalysis {
+  protected:
+  public:
+    /// Constructor
+    ChStaticLinearAnalysis(ChIntegrableIIorder& mintegrable) : ChStaticAnalysis(mintegrable){};
 
-public:
+    /// Destructor
+    virtual ~ChStaticLinearAnalysis(){};
 
-	/// Constructor
-	ChStaticLinearAnalysis(ChIntegrableIIorder& mintegrable)
-		: ChStaticAnalysis(mintegrable)
-	{
-	};
+    /// Performs the static analysis,
+    /// doing a linear solve.
 
-	/// Destructor
-	virtual ~ChStaticLinearAnalysis()
-	{
-	};
+    virtual void StaticAnalysis() {
+        ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
-	/// Performs the static analysis, 
-	/// doing a linear solve. 
+        // setup main vectors
+        mintegrable->StateSetup(X, V, A);
 
-	virtual void StaticAnalysis() 
-	{
-		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+        ChStateDelta Dx;
+        ChVectorDynamic<> R;
+        ChVectorDynamic<> Qc;
+        double T;
 
-		// setup main vectors
-		mintegrable->StateSetup(X, V, A);
+        // setup auxiliary vectors
+        Dx.Reset(mintegrable->GetNcoords_v(), GetIntegrable());
+        R.Reset(mintegrable->GetNcoords_v());
+        Qc.Reset(mintegrable->GetNconstr());
+        L.Reset(mintegrable->GetNconstr());
 
-		ChStateDelta		Dx;
-		ChVectorDynamic<>   R;
-		ChVectorDynamic<>   Qc;
-		double T;
+        mintegrable->StateGather(X, V, T);  // state <- system
 
-		// setup auxiliary vectors
-		Dx.Reset(mintegrable->GetNcoords_v(), GetIntegrable());
-		R.Reset(mintegrable->GetNcoords_v());
-		Qc.Reset(mintegrable->GetNconstr());
-		L.Reset(mintegrable->GetNconstr());
+        // Set V speed to zero
+        V.FillElem(0);
+        mintegrable->StateScatter(X, V, T);  // state -> system
 
+        // Solve:
+        //
+        // [-dF/dx     Cq' ] [ dx  ] = [ f]
+        // [ Cq        0   ] [  l  ] = [ C]
 
-		mintegrable->StateGather(X, V, T);	// state <- system
+        mintegrable->LoadResidual_F(R, 1.0);
+        mintegrable->LoadConstraint_C(Qc, 1.0);
 
-		// Set V speed to zero
-		V.FillElem(0);
-		mintegrable->StateScatter(X, V, T);	// state -> system
+        mintegrable->StateSolveCorrection(
+            Dx, L, R, Qc,
+            0,        // factor for  M
+            0,        // factor for  dF/dv
+            -1.0,     // factor for  dF/dx (the stiffness matrix)
+            X, V, T,  // not needed
+            false     // do not StateScatter update to Xnew Vnew T+dt before computing correction
+            );
 
-		// Solve:
-		// 
-		// [-dF/dx     Cq' ] [ dx  ] = [ f]
-		// [ Cq        0   ] [  l  ] = [ C]
+        X += Dx;
 
-		mintegrable->LoadResidual_F(R, 1.0);
-		mintegrable->LoadConstraint_C(Qc, 1.0);
-
-		mintegrable->StateSolveCorrection(
-				Dx,
-				L,
-				R,
-				Qc,
-				0,  // factor for  M
-				0,  // factor for  dF/dv
-				-1.0, // factor for  dF/dx (the stiffness matrix)
-				X, V, T, // not needed 
-				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-				);
-
-		X += Dx;
-
-		mintegrable->StateScatter(X, V, T);	// state -> system
-	}
-
-
+        mintegrable->StateScatter(X, V, T);  // state -> system
+    }
 };
-
-
 
 /// Non-Linear static analysis
 
-class ChStaticNonLinearAnalysis : public ChStaticAnalysis
-{
-protected:
-	int maxiters;
-	double tolerance;
-	int incremental_steps;
+class ChStaticNonLinearAnalysis : public ChStaticAnalysis {
+  protected:
+    int maxiters;
+    double tolerance;
+    int incremental_steps;
 
-public:
+  public:
+    /// Constructor
+    ChStaticNonLinearAnalysis(ChIntegrableIIorder& mintegrable)
+        : ChStaticAnalysis(mintegrable), maxiters(20), incremental_steps(6), tolerance(1e-10){};
 
-	/// Constructor
-	ChStaticNonLinearAnalysis(ChIntegrableIIorder& mintegrable)
-		: ChStaticAnalysis(mintegrable),
-		maxiters(20),
-		incremental_steps(6),
-		tolerance(1e-10)
-	{
-	};
+    /// Destructor
+    virtual ~ChStaticNonLinearAnalysis(){};
 
-	/// Destructor
-	virtual ~ChStaticNonLinearAnalysis()
-	{
-	};
+    /// Performs the static analysis,
+    /// doing a linear solve.
 
-	/// Performs the static analysis, 
-	/// doing a linear solve. 
+    virtual void StaticAnalysis() {
+        ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
-	virtual void StaticAnalysis() 
-	{
-		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+        // setup main vectors
+        mintegrable->StateSetup(X, V, A);
 
-		// setup main vectors
-		mintegrable->StateSetup(X, V, A);
+        ChState Xnew;
+        ChStateDelta Dx;
+        ChVectorDynamic<> R;
+        ChVectorDynamic<> Qc;
+        double T;
 
-		ChState				Xnew;
-		ChStateDelta		Dx;
-		ChVectorDynamic<>   R;
-		ChVectorDynamic<>   Qc;
-		double T;
+        // setup auxiliary vectors
+        Dx.Reset(mintegrable->GetNcoords_v(), GetIntegrable());
+        Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
+        R.Reset(mintegrable->GetNcoords_v());
+        Qc.Reset(mintegrable->GetNconstr());
+        L.Reset(mintegrable->GetNconstr());
 
-		// setup auxiliary vectors
-		Dx.Reset  (mintegrable->GetNcoords_v(), GetIntegrable());
-		Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
-		R.Reset   (mintegrable->GetNcoords_v());
-		Qc.Reset  (mintegrable->GetNconstr());
-		L.Reset   (mintegrable->GetNconstr());
+        mintegrable->StateGather(X, V, T);  // state <- system
 
+        // Set speed to zero
+        V.FillElem(0);
 
-		mintegrable->StateGather(X, V, T);	// state <- system	
+        // Extrapolate a prediction as warm start
+        Xnew = X;
 
-		// Set speed to zero
-		V.FillElem(0);
+        // use Newton Raphson iteration to solve implicit Euler for v_new
+        //
+        // [ - dF/dx    Cq' ] [ Dx  ] = [ f ]
+        // [ Cq         0   ] [ L   ] = [ C ]
 
-		// Extrapolate a prediction as warm start
-		Xnew = X;		 
-		
-		// use Newton Raphson iteration to solve implicit Euler for v_new
-		//
-		// [ - dF/dx    Cq' ] [ Dx  ] = [ f ]
-		// [ Cq         0   ] [ L   ] = [ C ]
+        for (int i = 0; i < this->GetMaxiters(); ++i) {
+            mintegrable->StateScatter(Xnew, V, T);  // state -> system
+            R.Reset();
+            Qc.Reset();
+            mintegrable->LoadResidual_F(R, 1.0);
+            mintegrable->LoadConstraint_C(Qc, 1.0);
 
-		for (int i = 0; i < this->GetMaxiters(); ++i)
-		{
-			mintegrable->StateScatter(Xnew, V, T);	// state -> system
-			R.Reset();
-			Qc.Reset();
-			mintegrable->LoadResidual_F  (R, 1.0);
-			mintegrable->LoadConstraint_C(Qc, 1.0);
-			
-			double cfactor = ChMin( 1.0, ((double)(i+1)/(double)(incremental_steps+1)) );
-			R  *= cfactor;
-			Qc *= cfactor;
-			
-			//	GetLog()<< "Non-linear statics iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";						
-			if ((R.NormInf()  < this->GetTolerance()) &&
-				(Qc.NormInf() < this->GetTolerance()))
-				break;
+            double cfactor = ChMin(1.0, ((double)(i + 1) / (double)(incremental_steps + 1)));
+            R *= cfactor;
+            Qc *= cfactor;
 
-			mintegrable->StateSolveCorrection(
-				Dx, 
-				L,
-				R,
-				Qc,
-				0,  // factor for  M
-				0,   // factor for  dF/dv
-				-1.0,// factor for  dF/dx (the stiffness matrix)
-				Xnew, V, T,
-				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-				);
+            //	GetLog()<< "Non-linear statics iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf()
+            //<< "\n";
+            if ((R.NormInf() < this->GetTolerance()) && (Qc.NormInf() < this->GetTolerance()))
+                break;
 
-			Xnew += Dx;
-		}
+            mintegrable->StateSolveCorrection(
+                Dx, L, R, Qc,
+                0,     // factor for  M
+                0,     // factor for  dF/dv
+                -1.0,  // factor for  dF/dx (the stiffness matrix)
+                Xnew, V, T,
+                false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                );
 
-		X = Xnew;
+            Xnew += Dx;
+        }
 
-		mintegrable->StateScatter(X, V, T);	// state -> system
-	}
+        X = Xnew;
 
-		/// Set the max number of iterations using the Newton Raphson procedure
-	void   SetMaxiters(int miters) 
-	{ 
-		maxiters = miters;
-		if (incremental_steps > miters)
-			incremental_steps = miters;
-	}
-		/// Get the max number of iterations using the Newton Raphson procedure
-	double GetMaxiters() { return maxiters;}
+        mintegrable->StateScatter(X, V, T);  // state -> system
+    }
 
-		/// Set the number of steps that, for the first iterations, make the residual 
-		/// growing linearly. If =0, no incremental application of residual, so it is
-		/// a classic Newton Raphson iteration, otherwise acts as  continuation strategy.
-		/// For values > 0 , it might help convergence. Must be less than maxiters.
-	void   SetIncrementalSteps(int mist) 
-	{ 
-		incremental_steps = mist; 
-		if (maxiters < incremental_steps)
-			maxiters = incremental_steps;
-	}
-		/// Set the number of steps that, for the first iterations, make the residual 
-		/// growing linearly.
-	double GetIncrementalSteps() { return incremental_steps;}
+    /// Set the max number of iterations using the Newton Raphson procedure
+    void SetMaxiters(int miters) {
+        maxiters = miters;
+        if (incremental_steps > miters)
+            incremental_steps = miters;
+    }
+    /// Get the max number of iterations using the Newton Raphson procedure
+    double GetMaxiters() { return maxiters; }
 
-		/// Set the tolerance for terminating the Newton Raphson procedure
-	void   SetTolerance(double mtol) { tolerance = mtol; }
-		/// Get the tolerance for terminating the Newton Raphson procedure
-	double GetTolerance() { return tolerance; }
+    /// Set the number of steps that, for the first iterations, make the residual
+    /// growing linearly. If =0, no incremental application of residual, so it is
+    /// a classic Newton Raphson iteration, otherwise acts as  continuation strategy.
+    /// For values > 0 , it might help convergence. Must be less than maxiters.
+    void SetIncrementalSteps(int mist) {
+        incremental_steps = mist;
+        if (maxiters < incremental_steps)
+            maxiters = incremental_steps;
+    }
+    /// Set the number of steps that, for the first iterations, make the residual
+    /// growing linearly.
+    double GetIncrementalSteps() { return incremental_steps; }
+
+    /// Set the tolerance for terminating the Newton Raphson procedure
+    void SetTolerance(double mtol) { tolerance = mtol; }
+    /// Get the tolerance for terminating the Newton Raphson procedure
+    double GetTolerance() { return tolerance; }
 };
 
-
-
-
-} // END_OF_NAMESPACE____
-#endif 
+}  // END_OF_NAMESPACE____
+#endif

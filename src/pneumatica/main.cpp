@@ -7,24 +7,21 @@
 #include <fstream>
 #include <stdlib.h>
 
-
 //******************************************************************************
 
-void main(void)
-{
-	double forza;
-	AssePneumatico *pneum;
-	pneum = new AssePneumatico();
+void main(void) {
+    double forza;
+    AssePneumatico* pneum;
+    pneum = new AssePneumatico();
 
-	for(int i=0;i<100;i++)
-	{
-		pneum->Update();
-		forza=pneum->Get_F();
+    for (int i = 0; i < 100; i++) {
+        pneum->Update();
+        forza = pneum->Get_F();
 
-		pneum->Set_P(601325,601325);
-	}
-	
-	return;
+        pneum->Set_P(601325, 601325);
+    }
+
+    return;
 }
 
 //******************************************************************************

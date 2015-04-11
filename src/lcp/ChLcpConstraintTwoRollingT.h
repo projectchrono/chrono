@@ -4,7 +4,7 @@
 // Copyright (c) 2010 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -27,104 +27,80 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-
 #include "ChLcpConstraintTwoBodies.h"
 #include "ChLcpVariables.h"
 
-namespace chrono
-{
+namespace chrono {
 
-
-/// This is used to make the rolling friction constraint. This 
+/// This is used to make the rolling friction constraint. This
 /// must be used in twice copy each ChLcpConstraintTwoRollingN
 
-class ChApi ChLcpConstraintTwoRollingT: public ChLcpConstraintTwoBodies
-{
-	CH_RTTI(ChLcpConstraintTwoRollingT, ChLcpConstraintTwoBodies)
+class ChApi ChLcpConstraintTwoRollingT : public ChLcpConstraintTwoBodies {
+    CH_RTTI(ChLcpConstraintTwoRollingT, ChLcpConstraintTwoBodies)
 
-			//
-			// DATA
-			//
+    //
+    // DATA
+    //
 
-protected:
+  protected:
+  public:
+    //
+    // CONSTRUCTORS
+    //
+    /// Default constructor
+    ChLcpConstraintTwoRollingT() { mode = CONSTRAINT_FRIC; };
 
+    /// Construct and immediately set references to variables,
+    /// also setting the  and the normal constraint
+    /// other tangential constraint (the latter is mandatory only
+    /// for the second of the two tangential constraints)
+    ChLcpConstraintTwoRollingT(ChLcpVariablesBody* mvariables_a, ChLcpVariablesBody* mvariables_b)
+        : ChLcpConstraintTwoBodies(mvariables_a, mvariables_b) {
+        mode = CONSTRAINT_FRIC;
+    };
 
-public:
+    /// Copy constructor
+    ChLcpConstraintTwoRollingT(const ChLcpConstraintTwoRollingT& other) : ChLcpConstraintTwoBodies(other) {}
 
-			//
-			// CONSTRUCTORS
-			//
-						/// Default constructor
-	ChLcpConstraintTwoRollingT()
-					{
-						mode = CONSTRAINT_FRIC; 
-					};
+    virtual ~ChLcpConstraintTwoRollingT(){};
 
-						/// Construct and immediately set references to variables,
-						/// also setting the  and the normal constraint
-						/// other tangential constraint (the latter is mandatory only
-						/// for the second of the two tangential constraints)
-	ChLcpConstraintTwoRollingT( ChLcpVariablesBody* mvariables_a,
-								ChLcpVariablesBody* mvariables_b)
-				: ChLcpConstraintTwoBodies(mvariables_a, mvariables_b)
-					{
-						mode = CONSTRAINT_FRIC; 
-					};
+    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintTwoRollingT(*this); };
 
-						/// Copy constructor
-	ChLcpConstraintTwoRollingT(const ChLcpConstraintTwoRollingT& other) 
-				: ChLcpConstraintTwoBodies(other)
-					{
-					}
+    /// Assignment operator: copy from other object
+    ChLcpConstraintTwoRollingT& operator=(const ChLcpConstraintTwoRollingT& other) {
+        if (&other == this)
+            return *this;
 
-	virtual ~ChLcpConstraintTwoRollingT() {};
+        // copy parent class data
+        ChLcpConstraintTwoBodies::operator=(other);
 
-	virtual ChLcpConstraint* new_Duplicate () {return new ChLcpConstraintTwoRollingT(*this);};
+        return *this;
+    }
 
-					/// Assignment operator: copy from other object
-	ChLcpConstraintTwoRollingT& operator=(const ChLcpConstraintTwoRollingT& other)
-					{
-						if (&other == this)
-							return *this;
+    //
+    // FUNCTIONS
+    //
 
-						// copy parent class data
-						ChLcpConstraintTwoBodies::operator=(other);
+    /// Tells that this constraint is not linear, that is: it cannot
+    /// be solved with a plain simplex solver.
+    virtual bool IsLinear() const { return false; }
 
-						return *this;
-					}
+    /// The constraint is satisfied?
+    virtual double Violation(double mc_i);
 
+    //
+    // STREAMING
+    //
 
-			//
-			// FUNCTIONS
-			//
+    /// Method to allow deserializing a persistent binary archive (ex: a file)
+    /// into transient data.
+    virtual void StreamIN(ChStreamInBinary& mstream);
 
-					/// Tells that this constraint is not linear, that is: it cannot
-					/// be solved with a plain simplex solver.
-	virtual bool IsLinear() const { return false; }
-
-					/// The constraint is satisfied?
-	virtual double Violation(double mc_i);
-
-			//
-			// STREAMING
-			//
-
-					/// Method to allow deserializing a persistent binary archive (ex: a file)
-					/// into transient data.
-	virtual void StreamIN(ChStreamInBinary& mstream);
-
-					/// Method to allow serializing transient data into a persistent
-					/// binary archive (ex: a file).
-	virtual void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow serializing transient data into a persistent
+    /// binary archive (ex: a file).
+    virtual void StreamOUT(ChStreamOutBinary& mstream);
 };
 
-
-
-
-} // END_OF_NAMESPACE____
-
-
-
+}  // END_OF_NAMESPACE____
 
 #endif  // END of ChLcpConstraintTwoRollingT.h

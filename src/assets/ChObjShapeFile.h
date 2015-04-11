@@ -4,7 +4,7 @@
 // Copyright (c) 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -28,12 +28,9 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "assets/ChVisualization.h"
 
-
-namespace chrono
-{
+namespace chrono {
 
 /// Class for referencing a Wavefront/Alias .obj
 /// file containing a shape that can be visualized
@@ -42,39 +39,32 @@ namespace chrono
 /// is simply a reference to the resource on the disk.
 
 class ChApi ChObjShapeFile : public ChVisualization {
+  protected:
+    //
+    // DATA
+    //
+    std::string filename;
 
-protected:
-				//
-	  			// DATA
-				//
-	std::string filename;	
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-	  			// CONSTRUCTORS
-				//
+    ChObjShapeFile() : filename(""){};
 
-	ChObjShapeFile () : filename("") {};
+    virtual ~ChObjShapeFile(){};
 
-	virtual ~ChObjShapeFile () {};
+    //
+    // FUNCTIONS
+    //
 
-				//
-	  			// FUNCTIONS
-				//
-
-
-	std::string GetFilename() const {return filename;}
-	void SetFilename(const std::string ms) {filename = ms;}
-
+    std::string GetFilename() const { return filename; }
+    void SetFilename(const std::string ms) { filename = ms; }
 };
 
-
-
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

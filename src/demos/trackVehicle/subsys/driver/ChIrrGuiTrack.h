@@ -29,7 +29,6 @@
 #ifndef CH_IRRGUITRACK_H
 #define CH_IRRGUITRACK_H
 
-
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 
@@ -43,88 +42,80 @@
 #include "subsys/trackVehicle/DriveChain.h"
 
 namespace chrono {
-class CH_SUBSYS_API ChIrrGuiTrack : public ChDriverTrack, public irr::IEventReceiver
-{
-public:
+class CH_SUBSYS_API ChIrrGuiTrack : public ChDriverTrack, public irr::IEventReceiver {
+  public:
+    ChIrrGuiTrack(irr::ChIrrApp& app,
+                  ChTrackVehicle& vehicle,
+                  const ChVector<>& ptOnChassis,
+                  double chaseDist,
+                  double chaseHeight,
+                  int HUD_x = 740,
+                  int HUD_y = 20);
 
-  ChIrrGuiTrack(
-    irr::ChIrrApp&      app,
-    ChTrackVehicle&     vehicle,
-    const ChVector<>&   ptOnChassis,
-    double              chaseDist,
-    double              chaseHeight,
-    int                 HUD_x = 740,
-    int                 HUD_y = 20
-    );
+    ~ChIrrGuiTrack() {}
 
-  ~ChIrrGuiTrack() {}
+    bool OnEvent(const irr::SEvent& event);
 
-  bool OnEvent(const irr::SEvent& event);
+    void Advance(double step);
 
-  void Advance(double step);
+    /// manually set the camera position
+    void Advance(double step, const ChVector<>& cam_pos);
 
-  /// manually set the camera position
-  void Advance(double step,
-    const ChVector<>& cam_pos);
+    void DrawAll(bool draw_normal = false);
 
-  void DrawAll(bool draw_normal = false);
+    void SetTerrainHeight(double height) { m_terrainHeight = height; }
 
-  void SetTerrainHeight(double height) { m_terrainHeight = height; }
+    void SetThrottleDelta(double delta) { m_throttleDelta = delta; }
+    void SetSteeringDelta(double delta) { m_steeringDelta = delta; }
+    void SetBrakingDelta(double delta) { m_brakingDelta = delta; }
+    void SetDampingDelta(double delta) { m_dampingDelta = delta; }
 
-  void SetThrottleDelta(double delta)  { m_throttleDelta = delta; }
-  void SetSteeringDelta(double delta)  { m_steeringDelta = delta; }
-  void SetBrakingDelta (double delta)  { m_brakingDelta = delta; }
-  void SetDampingDelta (double delta)  { m_dampingDelta = delta; }
+    void SetStepsize(double val) { m_stepsize = val; }
 
-  void SetStepsize(double val) { m_stepsize = val; }
+    // absolute c-sys
+    void SetCameraPos(const ChVector<>& pos);
 
-  // absolute c-sys
-  void SetCameraPos(const ChVector<>& pos) ;
+    // Accessors
+    double GetStepsize() const { return m_stepsize; }
 
-  // Accessors
-  double GetStepsize() const { return m_stepsize; }
+  private:
+    void SetDamping(double delta_val, double min_val = 0, double max_val = 2);
 
-private:
-  void SetDamping(double delta_val, double min_val = 0, double max_val = 2);
+    void renderSprings();
+    void renderLinks();
+    void renderGrid();
+    void renderContactShoeGear(double lenScale = 1.0);
+    void renderStats();
+    void renderLinGauge(const std::string& msg,
+                        double factor,
+                        bool sym,
+                        int xpos,
+                        int ypos,
+                        int length = 120,
+                        int height = 15);
+    void renderTextBox(const std::string& msg, int xpos, int ypos, int length = 120, int height = 15);
 
-  void renderSprings();
-  void renderLinks();
-  void renderGrid();
-  void renderContactShoeGear(double lenScale = 1.0);
-  void renderStats();
-  void renderLinGauge(const std::string& msg,
-                      double factor, bool sym,
-                      int xpos, int ypos,
-                      int length = 120, int height = 15);
-  void renderTextBox(const std::string& msg,
-                     int xpos, int ypos,
-                     int length = 120, int height = 15);
+    irr::ChIrrAppInterface& m_app;
+    ChTrackVehicle& m_vehicle;
+    ChSharedPtr<TrackPowertrain> m_powertrain;
 
-  irr::ChIrrAppInterface&   m_app;
-  ChTrackVehicle&  m_vehicle;
-  ChSharedPtr<TrackPowertrain> m_powertrain;
+    utils::ChChaseCamera m_camera;
 
-  utils::ChChaseCamera      m_camera;
+    double m_stepsize;
 
-  double m_stepsize;
+    double m_terrainHeight;
+    double m_throttleDelta;
+    double m_steeringDelta;
+    double m_brakingDelta;
 
-  double m_terrainHeight;
-  double m_throttleDelta;
-  double m_steeringDelta;
-  double m_brakingDelta;
-  
-  // testing
-  double m_dampingDelta;
-  double m_dampingVal;  ///< current value of pin friction damping coef
+    // testing
+    double m_dampingDelta;
+    double m_dampingVal;  ///< current value of pin friction damping coef
 
-  int  m_HUD_x;
-  int  m_HUD_y;
-
-
+    int m_HUD_x;
+    int m_HUD_y;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif

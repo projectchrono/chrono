@@ -4,7 +4,7 @@
 // Copyright (c) 2011 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -18,94 +18,78 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "ChFunction_Matlab.h"
 
-
-namespace chrono
-{
-
+namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 ChClassRegister<ChFunction_Matlab> a_registration_matlab;
 
-ChFunction_Matlab::ChFunction_Matlab ()
-{
-	strcpy(this->mat_command,"x*2+x^2");
+ChFunction_Matlab::ChFunction_Matlab() {
+    strcpy(this->mat_command, "x*2+x^2");
 }
 
-void ChFunction_Matlab::Copy (ChFunction_Matlab* source)
-{
-	strcpy(this->mat_command, source->mat_command);
+void ChFunction_Matlab::Copy(ChFunction_Matlab* source) {
+    strcpy(this->mat_command, source->mat_command);
 }
 
-ChFunction* ChFunction_Matlab::new_Duplicate ()
-{
-	ChFunction_Matlab* m_func;
-	m_func = new ChFunction_Matlab;
-	m_func->Copy(this);
-	return (m_func);
+ChFunction* ChFunction_Matlab::new_Duplicate() {
+    ChFunction_Matlab* m_func;
+    m_func = new ChFunction_Matlab;
+    m_func->Copy(this);
+    return (m_func);
 }
 
-double ChFunction_Matlab::Get_y      (double x)
-{
-	double ret = 0;
+double ChFunction_Matlab::Get_y(double x) {
+    double ret = 0;
 
 #ifdef CH_MATLAB
-  char m_eval_command[CHF_MATLAB_STRING_LEN+20];
-  
-  // no function: shortcut!
-	if (*this->mat_command == NULL) return 0.0;
+    char m_eval_command[CHF_MATLAB_STRING_LEN + 20];
 
-	 // set string as "x=[x];ans=[mat_command]"
-	 sprintf (m_eval_command, "x=%g;ans=%s;", x,this->mat_command);
+    // no function: shortcut!
+    if (*this->mat_command == NULL)
+        return 0.0;
 
-	 // EVAL string, retrieving y = "ans"
-	 ret = CHGLOBALS().Mat_Eng_Eval(m_eval_command);
+    // set string as "x=[x];ans=[mat_command]"
+    sprintf(m_eval_command, "x=%g;ans=%s;", x, this->mat_command);
+
+    // EVAL string, retrieving y = "ans"
+    ret = CHGLOBALS().Mat_Eng_Eval(m_eval_command);
 
 #else
-	 ret = 0.0;
+    ret = 0.0;
 #endif
 
-	return ret;
+    return ret;
 }
 
-void ChFunction_Matlab::StreamOUT(ChStreamOutBinary& mstream)
-{
-		// class version number
-	mstream.VersionWrite(1);
-		// serialize parent class too
-	ChFunction::StreamOUT(mstream);
+void ChFunction_Matlab::StreamOUT(ChStreamOutBinary& mstream) {
+    // class version number
+    mstream.VersionWrite(1);
+    // serialize parent class too
+    ChFunction::StreamOUT(mstream);
 
-		// stream out all member data
-	mstream << mat_command;
+    // stream out all member data
+    mstream << mat_command;
 }
 
-void ChFunction_Matlab::StreamIN(ChStreamInBinary& mstream)
-{
-		// class version number
-	int version = mstream.VersionRead();
-		// deserialize parent class too
-	ChFunction::StreamIN(mstream);
+void ChFunction_Matlab::StreamIN(ChStreamInBinary& mstream) {
+    // class version number
+    int version = mstream.VersionRead();
+    // deserialize parent class too
+    ChFunction::StreamIN(mstream);
 
-		// stream in all member data
-	mstream >> mat_command;
+    // stream in all member data
+    mstream >> mat_command;
 }
 
-void ChFunction_Matlab::StreamOUT(ChStreamOutAscii& mstream)
-{
-	mstream << "FUNCT_MATLAB  \n";
+void ChFunction_Matlab::StreamOUT(ChStreamOutAscii& mstream) {
+    mstream << "FUNCT_MATLAB  \n";
 
-	//***TO DO***
+    //***TO DO***
 }
 
-
-
-
-
-
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____
 
 // eof

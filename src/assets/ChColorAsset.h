@@ -4,7 +4,7 @@
 // Copyright (c) 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -12,10 +12,8 @@
 #ifndef CHCOLORASSET_H
 #define CHCOLORASSET_H
 
-
 #include "assets/ChAsset.h"
 #include "assets/ChColor.h"
-
 
 namespace chrono {
 
@@ -26,29 +24,26 @@ namespace chrono {
 /// able to recognize it and implement the proper translation.
 
 class ChApi ChColorAsset : public ChAsset {
-
-public:
-  ChColorAsset() : fading(0) {}
-  ChColorAsset(float mR, float mG, float mB, float mA = 0) : color(mR, mG, mB, mA), fading(0) {}
+  public:
+    ChColorAsset() : fading(0) {}
+    ChColorAsset(float mR, float mG, float mB, float mA = 0) : color(mR, mG, mB, mA), fading(0) {}
 
     /// Get/Set the color of the surface. This information could be used by
     /// visualization postprocessing.
-  const ChColor& GetColor() const {return color;}
-  void SetColor(const ChColor& mc) {color = mc;}
+    const ChColor& GetColor() const { return color; }
+    void SetColor(const ChColor& mc) { color = mc; }
 
     /// Get/Set the fading amount, 0 <= fading <= 1.
     /// If fading = 0, no transparency of surface,
     /// If fading = 1, surface is completely transparent.
-  float GetFading() const {return fading;}
-  void SetFading(const float mc) {fading = mc;}
+    float GetFading() const { return fading; }
+    void SetFading(const float mc) { fading = mc; }
 
-private:
-  ChColor color;  //color of material
-  float fading;   //transparency of material
+  private:
+    ChColor color;  // color of material
+    float fading;   // transparency of material
 };
 
-
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____
 
 #endif

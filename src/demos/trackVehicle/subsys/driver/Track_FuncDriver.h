@@ -20,41 +20,30 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API Track_FuncDriver : public ChDriverTrack
-{
-public:
-
-  /// constructor generates a sine wave for the throttle (0 to 1) and applies it after a settling time.
-  Track_FuncDriver(int num_tracks,
-    double func_freq = 0.2,
-    double func_amp = 1.0,
-    double time_start = 1.0
-  ): ChDriverTrack(num_tracks),
-  m_throttle_func( ChSharedPtr<ChFunction_Sine>(new ChFunction_Sine(0, func_freq,func_amp)) ),
-  m_t_begin(time_start)
-  { assert(func_amp <= 1.0); }
-  
-  ~Track_FuncDriver() {}
-
-  virtual void Update(double time)
-  {
-    if(time > m_t_begin)
-    {
-      SetThrottle(0, abs(m_throttle_func->Get_y(time - m_t_begin)) );
-      SetThrottle(1, abs(m_throttle_func->Get_y(time - m_t_begin)) );
+class CH_SUBSYS_API Track_FuncDriver : public ChDriverTrack {
+  public:
+    /// constructor generates a sine wave for the throttle (0 to 1) and applies it after a settling time.
+    Track_FuncDriver(int num_tracks, double func_freq = 0.2, double func_amp = 1.0, double time_start = 1.0)
+        : ChDriverTrack(num_tracks),
+          m_throttle_func(ChSharedPtr<ChFunction_Sine>(new ChFunction_Sine(0, func_freq, func_amp))),
+          m_t_begin(time_start) {
+        assert(func_amp <= 1.0);
     }
 
-  }
+    ~Track_FuncDriver() {}
 
-private:
+    virtual void Update(double time) {
+        if (time > m_t_begin) {
+            SetThrottle(0, abs(m_throttle_func->Get_y(time - m_t_begin)));
+            SetThrottle(1, abs(m_throttle_func->Get_y(time - m_t_begin)));
+        }
+    }
 
-  ChSharedPtr<ChFunction_Sine> m_throttle_func;
-  double m_t_begin;
-
+  private:
+    ChSharedPtr<ChFunction_Sine> m_throttle_func;
+    double m_t_begin;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif

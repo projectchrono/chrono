@@ -4,32 +4,30 @@
 // Copyright (c) 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
 ///////////////////////////////////////////////////
 //
-//   Demo code about  
-// 
-//     - using the unit_PYPARSER for executing 
+//   Demo code about
+//
+//     - using the unit_PYPARSER for executing
 //       some Python program or formula
 //     - using the unit_PYPARSER for loading a
-//       .py scene description saved from the 
+//       .py scene description saved from the
 //       SolidWorks add-in
 //
-//   
-//	 CHRONO 
+//
+//	 CHRONO
 //   ------
 //   Multibody dinamics engine
-//  
-// ------------------------------------------------ 
+//
+// ------------------------------------------------
 //             www.deltaknowledge.com
-// ------------------------------------------------ 
+// ------------------------------------------------
 ///////////////////////////////////////////////////
-
-
 
 #include "unit_PYTHON/ChPython.h"
 #include "physics/ChSystem.h"
@@ -37,124 +35,103 @@
 #include <iostream>
 #include <sstream>
 
-
-
 using namespace chrono;
 
- 
- 
+int main(int argc, char* argv[]) {
+    GetLog() << " Test the execution of Python statements, formulas, programs.\n No graphical user interface.\n\n";
 
-int main(int argc, char* argv[])
-{
-	GetLog() << " Test the execution of Python statements, formulas, programs.\n No graphical user interface.\n\n";
+    // Use a ChPythonEngine object.
+    // Note: currently no multiple ChPythonEngine at a single time can be used.
+    // Note: if you want to reset the Python environment and restart from scratch,
+    //  simply use new .. delete... etc. to allocate ChPythonEngine objs on heap
 
+    ChPythonEngine my_python;
 
-	// Use a ChPythonEngine object.
-	// Note: currently no multiple ChPythonEngine at a single time can be used.
-	// Note: if you want to reset the Python environment and restart from scratch,
-	//  simply use new .. delete... etc. to allocate ChPythonEngine objs on heap
+    //
+    // TEST 1   -   execute simple instructions
+    //
 
-	ChPythonEngine my_python;
+    my_python.Run("a =8.6");
+    my_python.Run("b =4");
+    my_python.Run("c ='blabla' ");
+    my_python.Run("print('In:Python - A computation:', a/2)");
 
-	//
-	// TEST 1   -   execute simple instructions
-	//
+    //
+    // TEST 2   -   fetch a value from a python variable (in __main__ namespace)
+    //
 
-	my_python.Run("a =8.6");
-	my_python.Run("b =4");
-	my_python.Run("c ='blabla' ");
-	my_python.Run("print('In:Python - A computation:', a/2)");
+    double mfval;
+    my_python.GetFloat("a", mfval);
+    GetLog() << "In:C++    - Passed float variable 'a' from Python, a=" << mfval << "\n";
+    int mival;
+    my_python.GetInteger("b", mival);
+    GetLog() << "In:C++    - Passed integer variable 'b' from Python, b=" << mival << "\n";
+    std::string msval;
+    if (!my_python.GetString("c", msval))
+        GetLog() << "Can't fetch string \n";
+    GetLog() << "In:C++    - Passed string variable 'c' from Python, c=" << msval << "\n";
 
-	
-	//
-	// TEST 2   -   fetch a value from a python variable (in __main__ namespace)
-	//
+    //
+    // TEST 3   -   set a value into a python variable (in __main__ namespace)
+    //
 
-	double mfval;
-	my_python.GetFloat("a", mfval);
-	GetLog() << "In:C++    - Passed float variable 'a' from Python, a=" << mfval << "\n";
-	int mival;
-	my_python.GetInteger("b", mival);
-	GetLog() << "In:C++    - Passed integer variable 'b' from Python, b=" << mival << "\n";
-	std::string msval;
-	if (!my_python.GetString("c", msval)) GetLog() << "Can't fetch string \n";
-	GetLog() << "In:C++    - Passed string variable 'c' from Python, c=" << msval << "\n";
+    my_python.SetFloat("d", 123.5);
+    my_python.Run("print('In:Python - Passed variable d from c++, d=', d)");
 
+    //
+    // TEST 4   -   errors and exceptions
+    //
 
-	//
-	// TEST 3   -   set a value into a python variable (in __main__ namespace)
-	//
+    // In previous examples we were sure that no syntax errors could happen,
+    // but in general errors could happen in Python parsing and execution, so
+    // it is wise to enclose Python stuff in a try-catch block because errors
+    // are handled with exceptions:
 
-	my_python.SetFloat("d", 123.5);
-	my_python.Run("print('In:Python - Passed variable d from c++, d=', d)");
+    try {
+        my_python.Run("a= this_itGoInG_TO_giVe_ErroRs!()");
+    } catch (ChException myerror) {
+        GetLog() << "Ok, Python parsing error catched as expected!\n";
+    }
 
+    //
+    // TEST 5   -   load mechanical system, previously saved to disk from SolidWorks add-in
+    //
 
-	//
-	// TEST 4   -   errors and exceptions
-	//
+    ChSystem my_system;
 
-	// In previous examples we were sure that no syntax errors could happen,
-	// but in general errors could happen in Python parsing and execution, so
-	// it is wise to enclose Python stuff in a try-catch block because errors
-	// are handled with exceptions:
+    try {
+        // This is the instruction that loads the .py (as saved from SolidWorks) and
+        // fills the system:
 
-	try
-	{
-		my_python.Run("a= this_itGoInG_TO_giVe_ErroRs!()");
-	}
-	catch(ChException myerror)
-	{
-		GetLog() << "Ok, Python parsing error catched as expected!\n";
-	}
+        my_python.ImportSolidWorksSystem("test_brick1", my_system);  // note, don't type the .py suffic in filename..
 
+        my_system.ShowHierarchy(GetLog());
 
-	//
-	// TEST 5   -   load mechanical system, previously saved to disk from SolidWorks add-in
-	// 
-	
-	ChSystem my_system;
+        // In case you want to fetch an item, remember that they got the
+        // names that you see in the CAD interface, for example suppose you know that
+        // a ChBodyAuxRef has the name "brick_1-8":
+        ChSharedPtr<ChBodyAuxRef> mbody;
+        ChSystem::IteratorOtherPhysicsItems myiterp = my_system.IterBeginOtherPhysicsItems();
+        while (myiterp != my_system.IterEndOtherPhysicsItems()) {
+            if ((*myiterp)->GetNameString() == "brick_1-8")
+                mbody = (*myiterp).DynamicCastTo<ChBodyAuxRef>();
 
-	try
-	{
-		// This is the instruction that loads the .py (as saved from SolidWorks) and 
-		// fills the system:
+            ++myiterp;
+        }
 
-		my_python.ImportSolidWorksSystem("test_brick1", my_system);  // note, don't type the .py suffic in filename..
+        // perform a small simulation and outputs the coords of brick:
+        while (my_system.GetChTime() < 0.8) {
+            my_system.DoStepDynamics(0.01);
 
-		my_system.ShowHierarchy( GetLog()); 
+            GetLog() << " t=" << my_system.GetChTime();
 
-		// In case you want to fetch an item, remember that they got the
-		// names that you see in the CAD interface, for example suppose you know that	
-		// a ChBodyAuxRef has the name "brick_1-8":
-		ChSharedPtr<ChBodyAuxRef> mbody;
-		ChSystem::IteratorOtherPhysicsItems myiterp = my_system.IterBeginOtherPhysicsItems();
-		while (myiterp != my_system.IterEndOtherPhysicsItems())
-		{	
-			if ((*myiterp)->GetNameString() == "brick_1-8")
-				mbody = (*myiterp).DynamicCastTo<ChBodyAuxRef>();
+            if (!mbody.IsNull())
+                GetLog() << "  body x=" << mbody->GetPos().x << "\n";
+        }
 
-			++myiterp;
-		}
+    } catch (ChException myerror) {
+        GetLog() << myerror.what();
+    }
 
-		// perform a small simulation and outputs the coords of brick:
-		while (my_system.GetChTime() < 0.8)
-		{
-			my_system.DoStepDynamics(0.01);
-
-			GetLog() << " t=" << my_system.GetChTime();
-
-			if (!mbody.IsNull())
-				GetLog() << "  body x=" << mbody->GetPos().x << "\n";
-		}
-
-	}
-	catch (ChException myerror)
-	{
-		GetLog() << myerror.what();
-	}
-
-
-	return 0;
+    return 0;
 }
-
-

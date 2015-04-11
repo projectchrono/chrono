@@ -10,15 +10,15 @@
 #=============================================================================
 
 
-# Check backward compatibility 
+# Check backward compatibility
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 #-----------------------------------------------------------------------------
-# This to avoid in-source builds. 
+# This to avoid in-source builds.
 
 IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    MESSAGE( FATAL_ERROR  "In-source build is not possible and not reccomended. Choose an empty directory for build output.")
+	MESSAGE( FATAL_ERROR  "In-source build is not possible and not reccomended. Choose an empty directory for build output.")
 ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 ENABLE_TESTING()
@@ -30,7 +30,7 @@ SET (CTEST_MEMORYCHECK_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --t
 
 
 #-----------------------------------------------------------------------------
-# Hide uneeded default stuff from GUI. 
+# Hide uneeded default stuff from GUI.
 
 MARK_AS_ADVANCED(CMAKE_INSTALL_PREFIX)
 
@@ -38,18 +38,18 @@ MARK_AS_ADVANCED(CMAKE_INSTALL_PREFIX)
 # Disable the warning when adding a subdir that has not CMakeLists.txt
 
 if(COMMAND cmake_policy)
-    cmake_policy(SET CMP0014 OLD)
+	cmake_policy(SET CMP0014 OLD)
 endif(COMMAND cmake_policy)
 
 # Be sure to avoid troubles with library paths when using old policy
 
 if(COMMAND cmake_policy)
-  cmake_policy(SET CMP0003 NEW)
+	cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
 # Get rid of cmake RPATH warning on OSX
 IF(APPLE)
-  set(CMAKE_MACOSX_RPATH OFF)
+	set(CMAKE_MACOSX_RPATH OFF)
 ENDIF()
 
 #-----------------------------------------------------------------------------
@@ -67,7 +67,7 @@ set (CHRONOENGINE_VERSION_MINOR 0)
 set (CHRONOENGINE_VERSION_PATCH 0)
 
 set (CHRONOENGINE_VERSION
-  "${CHRONOENGINE_VERSION_MAJOR}.${CHRONOENGINE_VERSION_MINOR}.${CHRONOENGINE_VERSION_PATCH}")
+	"${CHRONOENGINE_VERSION_MAJOR}.${CHRONOENGINE_VERSION_MINOR}.${CHRONOENGINE_VERSION_PATCH}")
 
 SET(CPACK_PACKAGE_VERSION "${CHRONO_VERSION}")
 SET(CPACK_PACKAGE_VERSION_MAJOR "${CHRONOENGINE_VERSION_MAJOR}")
@@ -79,19 +79,19 @@ include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC VCS_REVISION)
 
 if("${VCS_REVISION}" MATCHES ".*-NOTFOUND$")
-  set(VCS_REVISION "")
+	set(VCS_REVISION "")
 endif()
 
 SET (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #-----------------------------------------------------------------------------
 # OPTIONS AND USER SETTINGS
-# These cached variables will be shown in the GUI of CMake as 
+# These cached variables will be shown in the GUI of CMake as
 # flags that you can turn ON/OFF to enable/disable the compilation
-# of some part of the entire project. 
-# Switching off some unit might be useful in case you do not want to 
+# of some part of the entire project.
+# Switching off some unit might be useful in case you do not want to
 # install extra libraries/software that could be needed (for instance
-# to compile the MPI unit you must have the MPICH libraries and headers 
+# to compile the MPI unit you must have the MPICH libraries and headers
 # installed on your system).
 
 SET(BUILD_CH_SDK         TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine main library.")
@@ -100,48 +100,48 @@ SET(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::
 
 
 # Also, some variables that were used in previous makefile system (some
-# of them could be set automatically because CMake should recognize automatically 
+# of them could be set automatically because CMake should recognize automatically
 # the compiler, generator, platform, etc....
 # Set a default build type if none was specified
 
-if(MSVC) 
-    SET(CMAKE_CONFIGURATION_TYPES Release CACHE STRING "Choose the type of build.")
-    SET_PROPERTY(CACHE CMAKE_CONFIGURATION_TYPES PROPERTY STRINGS Debug Release)
-    file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/ PATTERN .svn EXCLUDE)
-    SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-    mark_as_advanced(FORCE CMAKE_BUILD_TYPE)
-    mark_as_advanced(CLEAR CMAKE_CONFIGURATION_TYPES)
-    SET(CPACK_BUILD_TYPE ${CMAKE_CONFIGURATION_TYPES})
+if(MSVC)
+	SET(CMAKE_CONFIGURATION_TYPES Release CACHE STRING "Choose the type of build.")
+	SET_PROPERTY(CACHE CMAKE_CONFIGURATION_TYPES PROPERTY STRINGS Debug Release)
+	file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/ PATTERN .svn EXCLUDE)
+	SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+	mark_as_advanced(FORCE CMAKE_BUILD_TYPE)
+	mark_as_advanced(CLEAR CMAKE_CONFIGURATION_TYPES)
+	SET(CPACK_BUILD_TYPE ${CMAKE_CONFIGURATION_TYPES})
 ELSEIF(XCODE_VERSION)
-    SET(CMAKE_CONFIGURATION_TYPES Release CACHE STRING "Choose the type of build.")
-    SET_PROPERTY(CACHE CMAKE_CONFIGURATION_TYPES PROPERTY STRINGS Debug Release RelWithDebInfo)
-    file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/ PATTERN .svn EXCLUDE)
-    SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-    mark_as_advanced(FORCE CMAKE_BUILD_TYPE)
-    mark_as_advanced(CLEAR CMAKE_CONFIGURATION_TYPES)
-    SET(CPACK_BUILD_TYPE ${CMAKE_CONFIGURATION_TYPES})
-    set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
+	SET(CMAKE_CONFIGURATION_TYPES Release CACHE STRING "Choose the type of build.")
+	SET_PROPERTY(CACHE CMAKE_CONFIGURATION_TYPES PROPERTY STRINGS Debug Release RelWithDebInfo)
+	file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/ PATTERN .svn EXCLUDE)
+	SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+	mark_as_advanced(FORCE CMAKE_BUILD_TYPE)
+	mark_as_advanced(CLEAR CMAKE_CONFIGURATION_TYPES)
+	SET(CPACK_BUILD_TYPE ${CMAKE_CONFIGURATION_TYPES})
+	set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
 ELSE()
-    SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
-    SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
-    file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/ PATTERN .svn EXCLUDE)
-    SET(CPACK_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+	SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
+	SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
+	file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/ PATTERN .svn EXCLUDE)
+	SET(CPACK_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 ENDIF()
 #-----------------------------------------------------------------------------
 SET(CH_COMPILER " " CACHE STRING "Compiler Type" FORCE)
 
 IF (MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_CLANGXX)
-    IF (CMAKE_SIZEOF_VOID_P MATCHES 4)
-        SET (CH_COMPILER "COMPILER_GCC" CACHE STRING "Compiler Type" FORCE)
-    ELSE()
-        SET (CH_COMPILER "COMPILER_GCC_X64" CACHE STRING "Compiler Type" FORCE)
-    ENDIF()
+	IF (CMAKE_SIZEOF_VOID_P MATCHES 4)
+		SET (CH_COMPILER "COMPILER_GCC" CACHE STRING "Compiler Type" FORCE)
+	ELSE()
+		SET (CH_COMPILER "COMPILER_GCC_X64" CACHE STRING "Compiler Type" FORCE)
+	ENDIF()
 ENDIF()
 
 IF (MSVC AND CMAKE_CL_64)
-    SET (CH_COMPILER "COMPILER_MSVC_X64" CACHE STRING "Compiler Type" FORCE)
+	SET (CH_COMPILER "COMPILER_MSVC_X64" CACHE STRING "Compiler Type" FORCE)
 ELSEIF(MSVC)
-    SET (CH_COMPILER "COMPILER_MSVC" CACHE STRING "Compiler Type" FORCE)
+	SET (CH_COMPILER "COMPILER_MSVC" CACHE STRING "Compiler Type" FORCE)
 ENDIF()
 
 #message(${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -173,48 +173,48 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package("OpenMP")
 if(OPENMP_FOUND)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 ENDIF(OPENMP_FOUND)
 
 SET(CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    IF(CMAKE_SIZEOF_VOID_P MATCHES 4)
-        SET(CPACK_SYSTEM_NAME "win32-${CMAKE_SYSTEM_PROCESSOR}")
-    ELSE()
-        SET(CPACK_SYSTEM_NAME "win64-${CMAKE_SYSTEM_PROCESSOR}")
-    ENDIF()
+	IF(CMAKE_SIZEOF_VOID_P MATCHES 4)
+		SET(CPACK_SYSTEM_NAME "win32-${CMAKE_SYSTEM_PROCESSOR}")
+	ELSE()
+		SET(CPACK_SYSTEM_NAME "win64-${CMAKE_SYSTEM_PROCESSOR}")
+	ENDIF()
 ENDIF()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    IF (MSVC)
-        ADD_DEFINITIONS( "-D_CRT_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
-        ADD_DEFINITIONS( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
-    ENDIF(MSVC)
-    IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        SET (CH_BUILDFLAGS "-DWIN32; -DNOMINMAX; -MP")
-        SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
-    ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        SET (CH_BUILDFLAGS "-DWIN64; -D_WIN64; -DNOMINMAX; -MP")
-        SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
-    ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-        SET (CH_BUILDFLAGS "-DWIN32 -D_MINGW -D_WINDOWS")
-        SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
-        SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
-    ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-        SET (CH_BUILDFLAGS "-DWIN64 -D_MINGW -D_WINDOWS -m64")
-        SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
-        SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
-    ENDIF()
+	IF (MSVC)
+		ADD_DEFINITIONS( "-D_CRT_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
+		ADD_DEFINITIONS( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
+	ENDIF(MSVC)
+	IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+		SET (CH_BUILDFLAGS "-DWIN32; -DNOMINMAX; -MP")
+		SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
+	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+		SET (CH_BUILDFLAGS "-DWIN64; -D_WIN64; -DNOMINMAX; -MP")
+		SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
+	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
+		SET (CH_BUILDFLAGS "-DWIN32 -D_MINGW -D_WINDOWS")
+		SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
+		SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
+	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
+		SET (CH_BUILDFLAGS "-DWIN64 -D_MINGW -D_WINDOWS -m64")
+		SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
+		SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
+	ENDIF()
 ENDIF()
 
 find_package(Threads)
 set(CH_LINKERFLAG_SHARED "${CMAKE_THREAD_LIBS_INIT} ${CH_LINKERFLAG_SHARED}")
 
 #-----------------------------------------------------------------------------
-# Some global  C++ definitions and includes that are used 
+# Some global  C++ definitions and includes that are used
 # everywhere for all targets and all configurations.
-# 
+#
 # Definitions that are used by ALL targets:
 
 SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   ${CH_BUILDFLAGS} -D_DEBUG -DDEBUG")
@@ -239,27 +239,27 @@ IF (BUILD_CH_SDK)
 	#
 	# BUILD THE CHRONO::ENGINE LIBRARY
 	#
-	
+
 	# NOTE: to add a new source to the Chrono::Engine library, just add its name
-	# here (in one of the following group lists) and re-run the CMake. 
-	# You can add both .cpp and .h, only the .cpp will be compiled. 
+	# here (in one of the following group lists) and re-run the CMake.
+	# You can add both .cpp and .h, only the .cpp will be compiled.
 	#
-	
+
 	# Set version string and Git commit hash.
 	configure_file("${CMAKE_CURRENT_SOURCE_DIR}/core/ChVersion.h.in" "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" @ONLY)
 
-	
+
 	SET(ChronoEngine_core_SOURCES
-		core/ChLog.cpp 
-		core/ChClassRegister.cpp 
-		core/ChFileutils.cpp 
-		core/ChStream.cpp 
-		core/ChMathematics.cpp 
-		core/ChVector.cpp 
-		core/ChQuaternion.cpp 
-		core/ChCoordsys.cpp 
-		core/ChMemory.cpp 
-		core/ChSpmatrix.cpp 
+		core/ChLog.cpp
+		core/ChClassRegister.cpp
+		core/ChFileutils.cpp
+		core/ChStream.cpp
+		core/ChMathematics.cpp
+		core/ChVector.cpp
+		core/ChQuaternion.cpp
+		core/ChCoordsys.cpp
+		core/ChMemory.cpp
+		core/ChSpmatrix.cpp
 		core/ChQuadrature.cpp
 		)
 	SET(ChronoEngine_core_HEADERS
@@ -274,127 +274,127 @@ IF (BUILD_CH_SDK)
 		core/ChHashTable.h
 		core/ChLinearAlgebra.h
 		core/ChLists.h
-		core/ChLog.h 
+		core/ChLog.h
 		core/ChMath.h
 		core/ChMathematics.h
-		core/ChMatrix.h 
-		core/ChMatrixDynamic.h 
-		core/ChMatrixNM.h 
-		core/ChMatrix33.h 
-		core/ChVectorDynamic.h 
-		core/ChMemory.h 
+		core/ChMatrix.h
+		core/ChMatrixDynamic.h
+		core/ChMatrixNM.h
+		core/ChMatrix33.h
+		core/ChVectorDynamic.h
+		core/ChMemory.h
 		core/ChMemorynomgr.h
 		core/ChPlatform.h
 		core/ChQuaternion.h
 		core/ChRunTimeType.h
 		core/ChShared.h
-		core/ChSmartpointers.h 
-		core/ChFileutils.h  
-		core/ChRealtimeStep.h 
-		core/ChStream.h 
+		core/ChSmartpointers.h
+		core/ChFileutils.h
+		core/ChRealtimeStep.h
+		core/ChStream.h
 		core/ChTimer.h
-		core/ChTransform.h  
-		core/ChVector.h   
-		core/ChSpmatrix.h 
-		core/ChWrapHashmap.h 
+		core/ChTransform.h
+		core/ChVector.h
+		core/ChSpmatrix.h
+		core/ChWrapHashmap.h
 		core/ChDistribution.h
 		core/ChQuadrature.h
 		)
 
 	list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")
 
-	SOURCE_GROUP(core FILES 
-			${ChronoEngine_core_SOURCES}
-			${ChronoEngine_core_HEADERS}
-			)
+	SOURCE_GROUP(core FILES
+		${ChronoEngine_core_SOURCES}
+		${ChronoEngine_core_HEADERS}
+		)
 
 	SET(ChronoEngine_physics_SOURCES
-		physics/ChFilePS.cpp 
-		physics/ChNlsolver.cpp  
-		physics/ChFunction.cpp 
-		physics/ChLimit.cpp 
-		physics/ChObject.cpp 
-		physics/ChMarker.cpp 
-		physics/ChForce.cpp 
+		physics/ChFilePS.cpp
+		physics/ChNlsolver.cpp
+		physics/ChFunction.cpp
+		physics/ChLimit.cpp
+		physics/ChObject.cpp
+		physics/ChMarker.cpp
+		physics/ChForce.cpp
 		physics/ChBodyFrame.cpp
 		physics/ChBody.cpp
 		physics/ChBodyAuxRef.cpp
 		physics/ChLinkForce.cpp
 		physics/ChLinkMask.cpp
-		physics/ChLinkBase.cpp  
-		physics/ChLink.cpp 
-		physics/ChLinkDistance.cpp 
-		physics/ChLinkMasked.cpp 
-		physics/ChLinkMarkers.cpp 
-		physics/ChLinkNumdiff.cpp 
-		physics/ChLinkLock.cpp 
-		physics/ChLinkBrake.cpp 
-		physics/ChLinkEngine.cpp 
-		physics/ChLinkGear.cpp 
-		physics/ChLinkPulley.cpp 
-		physics/ChLinkLinActuator.cpp 
-		physics/ChLinkPneumaticActuator.cpp 
-		physics/ChLinkScrew.cpp 
-		physics/ChLinkSpring.cpp 
+		physics/ChLinkBase.cpp
+		physics/ChLink.cpp
+		physics/ChLinkDistance.cpp
+		physics/ChLinkMasked.cpp
+		physics/ChLinkMarkers.cpp
+		physics/ChLinkNumdiff.cpp
+		physics/ChLinkLock.cpp
+		physics/ChLinkBrake.cpp
+		physics/ChLinkEngine.cpp
+		physics/ChLinkGear.cpp
+		physics/ChLinkPulley.cpp
+		physics/ChLinkLinActuator.cpp
+		physics/ChLinkPneumaticActuator.cpp
+		physics/ChLinkScrew.cpp
+		physics/ChLinkSpring.cpp
 		physics/ChLinkSpringCB.cpp
-		physics/ChLinkWheel.cpp 
+		physics/ChLinkWheel.cpp
 		physics/ChLinkClearance.cpp
-		physics/ChLinkPointSpline.cpp 
-		physics/ChLinkTrajectory.cpp 
-		physics/ChLinkMate.cpp 
-		physics/ChLinkRackpinion.cpp 
-		physics/ChLinkRevolute.cpp 
-		physics/ChLinkRevoluteSpherical.cpp 
-		physics/ChLinkUniversal.cpp 
-		physics/ChHistory.cpp 
-		physics/ChSystem.cpp 
-		physics/ChGlobal.cpp 
-		physics/ChEvents.cpp  
-		physics/ChSolvmin.cpp  
-		physics/ChProbe.cpp 
-		physics/ChControls.cpp 
-		physics/ChIntegrator.cpp 
-		physics/ChController.cpp 
-		physics/ChIterative.cpp 
-		physics/ChRef.cpp 
-		physics/ChConstraint.cpp 
-		physics/ChPhysicsItem.cpp 
-		physics/ChParticlesClones.cpp 
-		physics/ChIndexedParticles.cpp 
-		physics/ChIndexedNodes.cpp  
+		physics/ChLinkPointSpline.cpp
+		physics/ChLinkTrajectory.cpp
+		physics/ChLinkMate.cpp
+		physics/ChLinkRackpinion.cpp
+		physics/ChLinkRevolute.cpp
+		physics/ChLinkRevoluteSpherical.cpp
+		physics/ChLinkUniversal.cpp
+		physics/ChHistory.cpp
+		physics/ChSystem.cpp
+		physics/ChGlobal.cpp
+		physics/ChEvents.cpp
+		physics/ChSolvmin.cpp
+		physics/ChProbe.cpp
+		physics/ChControls.cpp
+		physics/ChIntegrator.cpp
+		physics/ChController.cpp
+		physics/ChIterative.cpp
+		physics/ChRef.cpp
+		physics/ChConstraint.cpp
+		physics/ChPhysicsItem.cpp
+		physics/ChParticlesClones.cpp
+		physics/ChIndexedParticles.cpp
+		physics/ChIndexedNodes.cpp
 		physics/ChNodeBase.cpp
 		physics/ChNodeXYZ.cpp
-		physics/ChMatterSPH.cpp 
-		physics/ChContact.cpp 
-		physics/ChContactRolling.cpp 
-		physics/ChContactNode.cpp 
-		physics/ChContactContainerBase.cpp 
-		physics/ChContactContainer.cpp 
-		physics/ChContactContainerNodes.cpp 
-		physics/ChProximityContainerBase.cpp 
-		physics/ChProximityContainerSPH.cpp  
-		physics/ChShaft.cpp 
-		physics/ChShaftsGear.cpp 
-		physics/ChShaftsGearbox.cpp 
-		physics/ChShaftsGearboxAngled.cpp 
-		physics/ChShaftsClutch.cpp 
-		physics/ChShaftsPlanetary.cpp 
-		physics/ChShaftsMotor.cpp 
-		physics/ChShaftsBody.cpp 
-		physics/ChShaftsTorqueBase.cpp 
-		physics/ChShaftsTorque.cpp 
-		physics/ChShaftsTorsionSpring.cpp 
+		physics/ChMatterSPH.cpp
+		physics/ChContact.cpp
+		physics/ChContactRolling.cpp
+		physics/ChContactNode.cpp
+		physics/ChContactContainerBase.cpp
+		physics/ChContactContainer.cpp
+		physics/ChContactContainerNodes.cpp
+		physics/ChProximityContainerBase.cpp
+		physics/ChProximityContainerSPH.cpp
+		physics/ChShaft.cpp
+		physics/ChShaftsGear.cpp
+		physics/ChShaftsGearbox.cpp
+		physics/ChShaftsGearboxAngled.cpp
+		physics/ChShaftsClutch.cpp
+		physics/ChShaftsPlanetary.cpp
+		physics/ChShaftsMotor.cpp
+		physics/ChShaftsBody.cpp
+		physics/ChShaftsTorqueBase.cpp
+		physics/ChShaftsTorque.cpp
+		physics/ChShaftsTorsionSpring.cpp
 		physics/ChShaftsTorqueConverter.cpp
 		physics/ChShaftsThermalEngine.cpp
-		physics/ChConveyor.cpp 
-		physics/ChFx.cpp 
+		physics/ChConveyor.cpp
+		physics/ChFx.cpp
 		physics/ChAssembly.cpp
 		physics/ChSystemDEM.cpp
 		physics/ChContactContainerDEM.cpp
 		physics/ChContactDEM.cpp
 		physics/ChMaterialSurfaceDEM.cpp
 		physics/ChContinuumMaterial.cpp
-	)
+		)
 	SET(ChronoEngine_physics_HEADERS
 		physics/ChBodyFrame.h
 		physics/ChBody.h
@@ -479,8 +479,8 @@ IF (BUILD_CH_SDK)
 		physics/ChShaftsGearboxAngled.h
 		physics/ChShaftsMotor.h
 		physics/ChShaftsPlanetary.h
-		physics/ChShaftsTorqueBase.h 
-		physics/ChShaftsTorque.h 
+		physics/ChShaftsTorqueBase.h
+		physics/ChShaftsTorque.h
 		physics/ChShaftsTorsionSpring.h
 		physics/ChShaftsTorqueConverter.h
 		physics/ChShaftsThermalEngine.h
@@ -494,31 +494,31 @@ IF (BUILD_CH_SDK)
 		physics/ChTensors.h
 		physics/ChContinuumMaterial.h
 		physics/ChInertiaUtils.h
-	)
-	SOURCE_GROUP(physics FILES  
-			${ChronoEngine_physics_SOURCES}
-			${ChronoEngine_physics_HEADERS}
-			)
-	
-			
+		)
+	SOURCE_GROUP(physics FILES
+		${ChronoEngine_physics_SOURCES}
+		${ChronoEngine_physics_HEADERS}
+		)
+
+
 	SET(ChronoEngine_geometry_SOURCES
-		geometry/ChCGeometry.cpp 
-		geometry/ChCSphere.cpp 
-		geometry/ChCEllipsoid.cpp 
+		geometry/ChCGeometry.cpp
+		geometry/ChCSphere.cpp
+		geometry/ChCEllipsoid.cpp
 		geometry/ChCBox.cpp
-		geometry/ChCCone.cpp 
-		geometry/ChCCylinder.cpp 
-		geometry/ChCCapsule.cpp 
-		geometry/ChCLine.cpp 
-		geometry/ChCLineCam.cpp 
-		geometry/ChCLinePoly.cpp 
-		geometry/ChCTriangle.cpp 
-		geometry/ChCTriangleMeshConnected.cpp 
+		geometry/ChCCone.cpp
+		geometry/ChCCylinder.cpp
+		geometry/ChCCapsule.cpp
+		geometry/ChCLine.cpp
+		geometry/ChCLineCam.cpp
+		geometry/ChCLinePoly.cpp
+		geometry/ChCTriangle.cpp
+		geometry/ChCTriangleMeshConnected.cpp
 		geometry/ChCRoundedBox.cpp
 		geometry/ChCRoundedCylinder.cpp
 		geometry/ChCRoundedCone.cpp
 
-	)
+		)
 	SET(ChronoEngine_geometry_HEADERS
 		geometry/ChCGeometry.h
 		geometry/ChCSphere.h
@@ -540,17 +540,17 @@ IF (BUILD_CH_SDK)
 		geometry/ChCRoundedBox.h
 		geometry/ChCRoundedCylinder.h
 		geometry/ChCRoundedCone.h
-	)
-	SOURCE_GROUP(geometry FILES  
-			${ChronoEngine_geometry_SOURCES}
-			${ChronoEngine_geometry_HEADERS}
-			)
+		)
+	SOURCE_GROUP(geometry FILES
+		${ChronoEngine_geometry_SOURCES}
+		${ChronoEngine_geometry_HEADERS}
+		)
 
 	SET(ChronoEngine_assets_SOURCES
-		assets/ChAsset.cpp 
+		assets/ChAsset.cpp
 		assets/ChVisualization.cpp
 		assets/ChObjShapeFile.cpp
-		assets/ChTriangleMeshShape.cpp 
+		assets/ChTriangleMeshShape.cpp
 		assets/ChSphereShape.cpp
 		assets/ChEllipsoidShape.cpp
 		assets/ChBoxShape.cpp
@@ -567,7 +567,7 @@ IF (BUILD_CH_SDK)
 		assets/ChRoundedConeShape.cpp
 		assets/ChPathShape.cpp
 		assets/ChLineShape.cpp
-	)
+		)
 	SET(ChronoEngine_assets_HEADERS
 		assets/ChAsset.h
 		assets/ChVisualization.h
@@ -592,23 +592,23 @@ IF (BUILD_CH_SDK)
 		assets/ChRoundedConeShape.h
 		assets/ChPathShape.h
 		assets/ChLineShape.h
-	)
-	SOURCE_GROUP(assets FILES  
-			${ChronoEngine_assets_SOURCES}
-			${ChronoEngine_assets_HEADERS}
-			)
-				
-	
+		)
+	SOURCE_GROUP(assets FILES
+		${ChronoEngine_assets_SOURCES}
+		${ChronoEngine_assets_HEADERS}
+		)
+
+
 	SET(ChronoEngine_collision_SOURCES
-		collision/ChCCollisionModel.cpp 
-		collision/ChCModelBullet.cpp 
-		collision/ChCModelBulletBody.cpp 
-		collision/ChCModelBulletParticle.cpp 
-		collision/ChCModelBulletNode.cpp 
-		collision/ChCCollisionSystemBullet.cpp 
-		collision/ChCConvexDecomposition.cpp 
+		collision/ChCCollisionModel.cpp
+		collision/ChCModelBullet.cpp
+		collision/ChCModelBulletBody.cpp
+		collision/ChCModelBulletParticle.cpp
+		collision/ChCModelBulletNode.cpp
+		collision/ChCCollisionSystemBullet.cpp
+		collision/ChCConvexDecomposition.cpp
 		collision/ChCCollisionUtils.cpp
-	)
+		)
 	SET(ChronoEngine_collision_HEADERS
 		collision/ChCCollisionInfo.h
 		collision/ChCCollisionModel.h
@@ -619,25 +619,25 @@ IF (BUILD_CH_SDK)
 		collision/ChCModelBullet.h
 		collision/ChCModelBulletBody.h
 		collision/ChCModelBulletNode.h
-		collision/ChCModelBulletParticle.h 
+		collision/ChCModelBulletParticle.h
 		collision/ChCCollisionUtils.h
-	)
-	SOURCE_GROUP(collision FILES  
-			${ChronoEngine_collision_SOURCES}
-			${ChronoEngine_collision_HEADERS}
-			)
-	
+		)
+	SOURCE_GROUP(collision FILES
+		${ChronoEngine_collision_SOURCES}
+		${ChronoEngine_collision_HEADERS}
+		)
+
 	SET(ChronoEngine_collision_edgetempest_SOURCES
-		collision/edgetempest/ChCCollisionTree.cpp 
-		collision/edgetempest/ChCOBBTree.cpp 
-		collision/edgetempest/ChCAABBTree.cpp 
-		collision/edgetempest/ChCOBB.cpp 
-		collision/edgetempest/ChCAABB.cpp 
-		collision/edgetempest/ChCOBBcollider.cpp 
-		collision/edgetempest/ChCAABBcollider.cpp 
-		collision/edgetempest/ChCNarrowPhaseCollider.cpp 
-		collision/edgetempest/ChCGeometryCollider.cpp 
-	)
+		collision/edgetempest/ChCCollisionTree.cpp
+		collision/edgetempest/ChCOBBTree.cpp
+		collision/edgetempest/ChCAABBTree.cpp
+		collision/edgetempest/ChCOBB.cpp
+		collision/edgetempest/ChCAABB.cpp
+		collision/edgetempest/ChCOBBcollider.cpp
+		collision/edgetempest/ChCAABBcollider.cpp
+		collision/edgetempest/ChCNarrowPhaseCollider.cpp
+		collision/edgetempest/ChCGeometryCollider.cpp
+		)
 	SET(ChronoEngine_collision_edgetempest_HEADERS
 		collision/edgetempest/ChCAABB.h
 		collision/edgetempest/ChCAABBcollider.h
@@ -656,14 +656,14 @@ IF (BUILD_CH_SDK)
 		collision/edgetempest/ChCOBBcollider.h
 		collision/edgetempest/ChCOBBTree.h
 		collision/edgetempest/ChCSweepAndPrune.h
-	)
-	SOURCE_GROUP(collision\\edgetempest FILES  
-			${ChronoEngine_collision_edgetempest_SOURCES}
-			${ChronoEngine_collision_edgetempest_HEADERS}
-			)
+		)
+	SOURCE_GROUP(collision\\edgetempest FILES
+		${ChronoEngine_collision_edgetempest_SOURCES}
+		${ChronoEngine_collision_edgetempest_HEADERS}
+		)
 
 	SET(ChronoEngine_particlefactory_SOURCES
-	)
+		)
 	SET(ChronoEngine_particlefactory_HEADERS
 		particlefactory/ChParticleEmitter.h
 		particlefactory/ChRandomShapeCreator.h
@@ -674,42 +674,42 @@ IF (BUILD_CH_SDK)
 		particlefactory/ChParticleEventTrigger.h
 		particlefactory/ChParticleProcessEvent.h
 		particlefactory/ChParticleProcessor.h
-	)
-	SOURCE_GROUP(particlefactory FILES  
-			${ChronoEngine_particlefactory_SOURCES}
-			${ChronoEngine_particlefactory_HEADERS}
-			)
-			
+		)
+	SOURCE_GROUP(particlefactory FILES
+		${ChronoEngine_particlefactory_SOURCES}
+		${ChronoEngine_particlefactory_HEADERS}
+		)
+
 
 	SET(ChronoEngine_timestepper_SOURCES
 		timestepper/ChTimestepper.cpp
-	)
+		)
 	SET(ChronoEngine_timestepper_HEADERS
 		timestepper/ChState.h
 		timestepper/ChIntegrable.h
 		timestepper/ChTimestepper.h
 		timestepper/ChStaticAnalysis.h
-	)
-	SOURCE_GROUP(timestepper FILES  
-			${ChronoEngine_timestepper_SOURCES}
-			${ChronoEngine_timestepper_HEADERS}
-			)
+		)
+	SOURCE_GROUP(timestepper FILES
+		${ChronoEngine_timestepper_SOURCES}
+		${ChronoEngine_timestepper_HEADERS}
+		)
 
 	SET(ChronoEngine_pneumatica_SOURCES
-		pneumatica/assepneumatico.cpp 
-		pneumatica/pistone.cpp 
-		pneumatica/pistone_3_2.cpp 
-		pneumatica/pistone_3_2_prop.cpp 
-		pneumatica/sis_attuatore_3_2.cpp 
-		pneumatica/sis_attuatore_3_2_prop.cpp 
-		pneumatica/sistema.cpp 
-		pneumatica/ugello.cpp 
-		pneumatica/ugello_controllato.cpp 
-		pneumatica/ugello_controllato_PA.cpp 
-		pneumatica/ugello_controllato_RA.cpp 
-		pneumatica/valvola_3_2.cpp 
-		pneumatica/valvola_3_2_prop.cpp 
-	)
+		pneumatica/assepneumatico.cpp
+		pneumatica/pistone.cpp
+		pneumatica/pistone_3_2.cpp
+		pneumatica/pistone_3_2_prop.cpp
+		pneumatica/sis_attuatore_3_2.cpp
+		pneumatica/sis_attuatore_3_2_prop.cpp
+		pneumatica/sistema.cpp
+		pneumatica/ugello.cpp
+		pneumatica/ugello_controllato.cpp
+		pneumatica/ugello_controllato_PA.cpp
+		pneumatica/ugello_controllato_RA.cpp
+		pneumatica/valvola_3_2.cpp
+		pneumatica/valvola_3_2_prop.cpp
+		)
 	SET(ChronoEngine_pneumatica_HEADERS
 		pneumatica/assepneumatico.h
 		pneumatica/pistone.h
@@ -725,12 +725,12 @@ IF (BUILD_CH_SDK)
 		pneumatica/valvola_3_2.h
 		pneumatica/valvola_3_2_prop.h
 		pneumatica/volume.h
-	)
-	SOURCE_GROUP(pneumatica FILES  
-			${ChronoEngine_pneumatica_SOURCES}
-			${ChronoEngine_pneumatica_HEADERS}
-			)
-	
+		)
+	SOURCE_GROUP(pneumatica FILES
+		${ChronoEngine_pneumatica_SOURCES}
+		${ChronoEngine_pneumatica_HEADERS}
+		)
+
 	SET(ChronoEngine_motion_functions_SOURCES
 		motion_functions/ChFunction_Base.cpp
 		motion_functions/ChFunction_Const.cpp
@@ -752,7 +752,7 @@ IF (BUILD_CH_SDK)
 		motion_functions/ChFunction_Sequence.cpp
 		motion_functions/ChFunction_Sigma.cpp
 		motion_functions/ChFunction_Sine.cpp
-	)
+		)
 	SET(ChronoEngine_motion_functions_HEADERS
 		motion_functions/ChFunction_Base.h
 		motion_functions/ChFunction_Const.h
@@ -774,17 +774,17 @@ IF (BUILD_CH_SDK)
 		motion_functions/ChFunction_Sequence.h
 		motion_functions/ChFunction_Sigma.h
 		motion_functions/ChFunction_Sine.h
-	)
-	SOURCE_GROUP(motion_functions FILES  
-			${ChronoEngine_motion_functions_SOURCES}
-			${ChronoEngine_motion_functions_HEADERS}
-			)
-	
+		)
+	SOURCE_GROUP(motion_functions FILES
+		${ChronoEngine_motion_functions_SOURCES}
+		${ChronoEngine_motion_functions_HEADERS}
+		)
+
 	SET(ChronoEngine_parallel_SOURCES
-		parallel/ChThreads.cpp 
-		parallel/ChThreadsPOSIX.cpp 
+		parallel/ChThreads.cpp
+		parallel/ChThreadsPOSIX.cpp
 		parallel/ChThreadsWIN32.cpp
-	)
+		)
 	SET(ChronoEngine_parallel_HEADERS
 		parallel/ChOpenMP.h
 		parallel/ChThreads.h
@@ -792,50 +792,50 @@ IF (BUILD_CH_SDK)
 		parallel/ChThreadsPOSIX.h
 		parallel/ChThreadsSync.h
 		parallel/ChThreadsWIN32.h
-	)
-	SOURCE_GROUP(parallel FILES 
-			${ChronoEngine_parallel_SOURCES} 
-			${ChronoEngine_parallel_HEADERS}
-			)
-	
+		)
+	SOURCE_GROUP(parallel FILES
+		${ChronoEngine_parallel_SOURCES}
+		${ChronoEngine_parallel_HEADERS}
+		)
+
 	SET(ChronoEngine_lcp_SOURCES
-		lcp/ChLcpSystemDescriptor.cpp 
-		lcp/ChLcpSolver.cpp 
-		lcp/ChLcpIterativeSOR.cpp 
-		lcp/ChLcpIterativeSORmultithread.cpp 
-		lcp/ChLcpIterativeJacobi.cpp 
-		lcp/ChLcpIterativeSymmSOR.cpp 
+		lcp/ChLcpSystemDescriptor.cpp
+		lcp/ChLcpSolver.cpp
+		lcp/ChLcpIterativeSOR.cpp
+		lcp/ChLcpIterativeSORmultithread.cpp
+		lcp/ChLcpIterativeJacobi.cpp
+		lcp/ChLcpIterativeSymmSOR.cpp
 		lcp/ChLcpIterativeMINRES.cpp
-		lcp/ChLcpIterativePMINRES.cpp 
-		lcp/ChLcpIterativeBB.cpp 
-		lcp/ChLcpIterativePCG.cpp 
-		lcp/ChLcpIterativeAPGD.cpp 
-		lcp/ChLcpSimplexSolver.cpp 
-		lcp/ChLcpConstraint.cpp 
-		lcp/ChLcpConstraintTwo.cpp 
-		lcp/ChLcpConstraintTwoGeneric.cpp 
-		lcp/ChLcpConstraintTwoGenericBoxed.cpp 
-		lcp/ChLcpConstraintTwoBodies.cpp 
-		lcp/ChLcpConstraintTwoFrictionT.cpp 
-		lcp/ChLcpConstraintTwoContactN.cpp 
-		lcp/ChLcpConstraintTwoRollingT.cpp 
-		lcp/ChLcpConstraintTwoRollingN.cpp 
-		lcp/ChLcpConstraintNodeFrictionT.cpp 
-		lcp/ChLcpConstraintNodeContactN.cpp 
-		lcp/ChLcpConstraintThree.cpp 
-		lcp/ChLcpConstraintThreeGeneric.cpp 
-		lcp/ChLcpConstraintThreeBBShaft.cpp 
-		lcp/ChLcpVariables.cpp 
+		lcp/ChLcpIterativePMINRES.cpp
+		lcp/ChLcpIterativeBB.cpp
+		lcp/ChLcpIterativePCG.cpp
+		lcp/ChLcpIterativeAPGD.cpp
+		lcp/ChLcpSimplexSolver.cpp
+		lcp/ChLcpConstraint.cpp
+		lcp/ChLcpConstraintTwo.cpp
+		lcp/ChLcpConstraintTwoGeneric.cpp
+		lcp/ChLcpConstraintTwoGenericBoxed.cpp
+		lcp/ChLcpConstraintTwoBodies.cpp
+		lcp/ChLcpConstraintTwoFrictionT.cpp
+		lcp/ChLcpConstraintTwoContactN.cpp
+		lcp/ChLcpConstraintTwoRollingT.cpp
+		lcp/ChLcpConstraintTwoRollingN.cpp
+		lcp/ChLcpConstraintNodeFrictionT.cpp
+		lcp/ChLcpConstraintNodeContactN.cpp
+		lcp/ChLcpConstraintThree.cpp
+		lcp/ChLcpConstraintThreeGeneric.cpp
+		lcp/ChLcpConstraintThreeBBShaft.cpp
+		lcp/ChLcpVariables.cpp
 		lcp/ChLcpVariablesGeneric.cpp
-		lcp/ChLcpVariablesGenericDiagonalMass.cpp 
-		lcp/ChLcpVariablesBody.cpp 
-		lcp/ChLcpVariablesBodySharedMass.cpp 
-		lcp/ChLcpVariablesBodyOwnMass.cpp 
+		lcp/ChLcpVariablesGenericDiagonalMass.cpp
+		lcp/ChLcpVariablesBody.cpp
+		lcp/ChLcpVariablesBodySharedMass.cpp
+		lcp/ChLcpVariablesBodyOwnMass.cpp
 		lcp/ChLcpVariablesShaft.cpp
-		lcp/ChLcpVariablesNode.cpp 
+		lcp/ChLcpVariablesNode.cpp
 		lcp/ChLcpKblockGeneric.cpp
 		lcp/ChLcpSolverDEM.cpp
-	)
+		)
 	SET(ChronoEngine_lcp_HEADERS
 		lcp/ChLcpConstraint.h
 		lcp/ChLcpConstraintNodeContactN.h
@@ -879,150 +879,150 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpKblock.h
 		lcp/ChLcpKblockGeneric.h
 		lcp/ChLcpSolverDEM.h
-	)
-	SOURCE_GROUP(lcp FILES  
-			${ChronoEngine_lcp_SOURCES}
-			${ChronoEngine_lcp_HEADERS}
-			)
-		
-		
+		)
+	SOURCE_GROUP(lcp FILES
+		${ChronoEngine_lcp_SOURCES}
+		${ChronoEngine_lcp_HEADERS}
+		)
+
+
 	SET(ChronoEngine_collision_bullet_SOURCES
-		collision/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp 
-		collision/bullet/BulletCollision/BroadphaseCollision/btSimpleBroadphase.cpp 
-		collision/bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp 
-		collision/bullet/BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp 
-		collision/bullet/BulletCollision/BroadphaseCollision/btDispatcher.cpp 
-		collision/bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.cpp 
-		collision/bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp 
+		collision/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp
+		collision/bullet/BulletCollision/BroadphaseCollision/btSimpleBroadphase.cpp
+		collision/bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp
+		collision/bullet/BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp
+		collision/bullet/BulletCollision/BroadphaseCollision/btDispatcher.cpp
+		collision/bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.cpp
+		collision/bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp
 		collision/bullet/BulletCollision/BroadphaseCollision/btDbvt.cpp
-		collision/bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.cpp 
+		collision/bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.cpp
 		collision/bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.cpp
-		collision/bullet/BulletCollision/CollisionDispatch/btUnionFind.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btCollisionObject.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorld.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btSimulationIslandManager.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btManifoldResult.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btGhostObject.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp 
-		collision/bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btTriangleMesh.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btTriangleCallback.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btCompoundShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btTetrahedronShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btConcaveShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btStridingMeshInterface.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btConeShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btStaticPlaneShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btConvexHullShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btSphereShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btConvexShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btOptimizedBvh.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btMultiSphereShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btEmptyShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btTriangleBuffer.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btCapsuleShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btUniformScalingShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btBox2dShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btConvex2dShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btConvexPointCloudShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btMultimaterialTriangleMeshShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btShapeHull.cpp 
-		collision/bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexMaterialArray.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp 
-		collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp 
+		collision/bullet/BulletCollision/CollisionDispatch/btUnionFind.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btCollisionObject.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorld.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btSimulationIslandManager.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btManifoldResult.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btGhostObject.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp
+		collision/bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btTriangleMesh.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btTriangleCallback.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btCompoundShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btTetrahedronShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btConcaveShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btStridingMeshInterface.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btConeShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btStaticPlaneShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btConvexHullShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btSphereShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btConvexShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btOptimizedBvh.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btEmptyShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btTriangleBuffer.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btCapsuleShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btUniformScalingShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btBox2dShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btConvex2dShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btConvexPointCloudShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btMultimaterialTriangleMeshShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btShapeHull.cpp
+		collision/bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexMaterialArray.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp
+		collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp
 		collision/bullet/BulletFileLoader/bChunk.cpp
-		collision/bullet/BulletFileLoader/bDNA.cpp 
-		collision/bullet/BulletFileLoader/bFile.cpp 
-		collision/bullet/BulletFileLoader/btBulletFile.cpp 
-		collision/bullet/BulletWorldImporter/btBulletWorldImporter.cpp 
-		collision/bullet/LinearMath/btQuickprof.cpp 
-		collision/bullet/LinearMath/btAlignedAllocator.cpp 
-		collision/bullet/LinearMath/btGeometryUtil.cpp 
-		collision/bullet/LinearMath/btConvexHull.cpp 
-		collision/bullet/LinearMath/btSerializer.cpp 
-		
-	)
-	
-	
+		collision/bullet/BulletFileLoader/bDNA.cpp
+		collision/bullet/BulletFileLoader/bFile.cpp
+		collision/bullet/BulletFileLoader/btBulletFile.cpp
+		collision/bullet/BulletWorldImporter/btBulletWorldImporter.cpp
+		collision/bullet/LinearMath/btQuickprof.cpp
+		collision/bullet/LinearMath/btAlignedAllocator.cpp
+		collision/bullet/LinearMath/btGeometryUtil.cpp
+		collision/bullet/LinearMath/btConvexHull.cpp
+		collision/bullet/LinearMath/btSerializer.cpp
+
+		)
+
+
 	SOURCE_GROUP("collision\\bullet" FILES  ${ChronoEngine_collision_bullet_SOURCES})
-	
-	
+
+
 	SET(ChronoEngine_collision_gimpact_SOURCES
-		collision/gimpact/GIMPACT/core/gim_box_set.cpp 
-		collision/gimpact/GIMPACT/core/gim_contact.cpp 
-		collision/gimpact/GIMPACT/core/gim_memory.cpp 
-		collision/gimpact/GIMPACT/core/gim_tri_collision.cpp 
-		collision/gimpact/GIMPACT/Bullet/btContactProcessing.cpp 
-		collision/gimpact/GIMPACT/Bullet/btGenericPoolAllocator.cpp 
-		collision/gimpact/GIMPACT/Bullet/btGImpactBvh.cpp 
-		collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.cpp 
-		collision/gimpact/GIMPACT/Bullet/btGImpactQuantizedBvh.cpp 
-		collision/gimpact/GIMPACT/Bullet/btGImpactShape.cpp 
-		collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.cpp 
-		collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.cpp 
-		collision/gimpact/ConvexDecomposition/bestfit.cpp 
-		collision/gimpact/ConvexDecomposition/bestfitobb.cpp 
-		collision/gimpact/ConvexDecomposition/cd_hull.cpp 
-		collision/gimpact/ConvexDecomposition/concavity.cpp 
-		collision/gimpact/ConvexDecomposition/ConvexBuilder.cpp 
-		collision/gimpact/ConvexDecomposition/ConvexDecomposition.cpp 
-		collision/gimpact/ConvexDecomposition/fitsphere.cpp 
-		collision/gimpact/ConvexDecomposition/float_math.cpp 
-		collision/gimpact/ConvexDecomposition/meshvolume.cpp 
-		collision/gimpact/ConvexDecomposition/planetri.cpp 
-		collision/gimpact/ConvexDecomposition/raytri.cpp 
-		collision/gimpact/ConvexDecomposition/splitplane.cpp 
-		collision/gimpact/ConvexDecomposition/vlookup.cpp 
-	)
-	SOURCE_GROUP(collision\\gimpact FILES  ${ChronoEngine_collision_gimpact_SOURCES})	
-	
+		collision/gimpact/GIMPACT/core/gim_box_set.cpp
+		collision/gimpact/GIMPACT/core/gim_contact.cpp
+		collision/gimpact/GIMPACT/core/gim_memory.cpp
+		collision/gimpact/GIMPACT/core/gim_tri_collision.cpp
+		collision/gimpact/GIMPACT/Bullet/btContactProcessing.cpp
+		collision/gimpact/GIMPACT/Bullet/btGenericPoolAllocator.cpp
+		collision/gimpact/GIMPACT/Bullet/btGImpactBvh.cpp
+		collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.cpp
+		collision/gimpact/GIMPACT/Bullet/btGImpactQuantizedBvh.cpp
+		collision/gimpact/GIMPACT/Bullet/btGImpactShape.cpp
+		collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.cpp
+		collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.cpp
+		collision/gimpact/ConvexDecomposition/bestfit.cpp
+		collision/gimpact/ConvexDecomposition/bestfitobb.cpp
+		collision/gimpact/ConvexDecomposition/cd_hull.cpp
+		collision/gimpact/ConvexDecomposition/concavity.cpp
+		collision/gimpact/ConvexDecomposition/ConvexBuilder.cpp
+		collision/gimpact/ConvexDecomposition/ConvexDecomposition.cpp
+		collision/gimpact/ConvexDecomposition/fitsphere.cpp
+		collision/gimpact/ConvexDecomposition/float_math.cpp
+		collision/gimpact/ConvexDecomposition/meshvolume.cpp
+		collision/gimpact/ConvexDecomposition/planetri.cpp
+		collision/gimpact/ConvexDecomposition/raytri.cpp
+		collision/gimpact/ConvexDecomposition/splitplane.cpp
+		collision/gimpact/ConvexDecomposition/vlookup.cpp
+		)
+	SOURCE_GROUP(collision\\gimpact FILES  ${ChronoEngine_collision_gimpact_SOURCES})
+
 	SET(ChronoEngine_collision_convexdecompJR_SOURCES
-		collision/convexdecomposition/JR/NvConcavityVolume.cpp 
-		collision/convexdecomposition/JR/NvConvexDecomposition.cpp 
-		collision/convexdecomposition/JR/NvFloatMath.cpp 
-		collision/convexdecomposition/JR/NvMeshIslandGeneration.cpp 
-		collision/convexdecomposition/JR/NvRayCast.cpp 
-		collision/convexdecomposition/JR/NvRemoveTjunctions.cpp 
-		collision/convexdecomposition/JR/NvSplitMesh.cpp 
+		collision/convexdecomposition/JR/NvConcavityVolume.cpp
+		collision/convexdecomposition/JR/NvConvexDecomposition.cpp
+		collision/convexdecomposition/JR/NvFloatMath.cpp
+		collision/convexdecomposition/JR/NvMeshIslandGeneration.cpp
+		collision/convexdecomposition/JR/NvRayCast.cpp
+		collision/convexdecomposition/JR/NvRemoveTjunctions.cpp
+		collision/convexdecomposition/JR/NvSplitMesh.cpp
 		collision/convexdecomposition/JR/NvStanHull.cpp
-	)
+		)
 	SET(ChronoEngine_collision_convexdecompJR_HEADERS
 		collision/convexdecomposition/JR/NvConcavityVolume.h
 		collision/convexdecomposition/JR/NvConvexDecomposition.h
@@ -1035,13 +1035,13 @@ IF (BUILD_CH_SDK)
 		collision/convexdecomposition/JR/NvSplitMesh.h
 		collision/convexdecomposition/JR/NvStanHull.h
 		collision/convexdecomposition/JR/NvUserMemAlloc.h
-	)
-	SOURCE_GROUP(collision\\convexdecomp\\JR FILES  
-			${ChronoEngine_collision_convexdecompJR_SOURCES}
-			${ChronoEngine_collision_convexdecompJR_HEADERS}
-			)
-			
-			
+		)
+	SOURCE_GROUP(collision\\convexdecomp\\JR FILES
+		${ChronoEngine_collision_convexdecompJR_SOURCES}
+		${ChronoEngine_collision_convexdecompJR_HEADERS}
+		)
+
+
 	SET(ChronoEngine_collision_convexdecompHACD_SOURCES
 		collision/convexdecomposition/HACD/hacdRaycastMesh.cpp
 		collision/convexdecomposition/HACD/hacdMicroAllocator.cpp
@@ -1050,10 +1050,10 @@ IF (BUILD_CH_SDK)
 		collision/convexdecomposition/HACD/hacdHACD.cpp
 		collision/convexdecomposition/HACD/hacdManifoldMesh.cpp
 		collision/convexdecomposition/HACD/hacdICHull.cpp
-	)
+		)
 	SOURCE_GROUP(collision\\convexdecomp\\HACD FILES  ${ChronoEngine_collision_convexdecompHACD_SOURCES})
-			
-			
+
+
 	SET(ChronoEngine_collision_convexdecompHACDv2_SOURCES
 		collision/convexdecomposition/HACDv2/AutoGeometry.cpp
 		collision/convexdecomposition/HACDv2/HACD.cpp
@@ -1071,13 +1071,13 @@ IF (BUILD_CH_SDK)
 		collision/convexdecomposition/HACDv2/dgMeshEffect.cpp
 		collision/convexdecomposition/HACDv2/MergeHulls.cpp
 		collision/convexdecomposition/HACDv2/wavefront.cpp
-	)
+		)
 	SOURCE_GROUP(collision\\convexdecomp\\HACDv2 FILES  ${ChronoEngine_collision_convexdecompHACDv2_SOURCES})
-			
-			
+
+
 	# OK, now chain all the source groups for building the library,
 	# creating a very long list of source files:
-	
+
 	SET(ChronoEngine_FILES
 		${ChronoEngine_core_SOURCES}
 		${ChronoEngine_core_HEADERS}
@@ -1111,40 +1111,40 @@ IF (BUILD_CH_SDK)
 		${ChronoEngine_collision_bullet_HEADERS}
 		${ChronoEngine_collision_gimpact_SOURCES}
 		${ChronoEngine_collision_gimpact_HEADERS}
-	)
-	
-	
+		)
+
+
 	# The ChronoEngine library is added to the project,
 	# and some custom properties of this target are set.
-	 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
-	
-
-ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
-
-if(XCODE_VERSION)
-SET_TARGET_PROPERTIES( ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES )
-endif()
-
-SET_TARGET_PROPERTIES(ChronoEngine PROPERTIES 
-                        COMPILE_FLAGS "${CH_BUILDFLAGS}"
-						LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-						COMPILE_DEFINITIONS "CH_API_COMPILE")
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
 
 
-#ADD_CUSTOM_COMMAND(
-#    TARGET ChronoEngine
-#    POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CH_CHRONODIR}/bin/data/ ${PROJECT_BINARY_DIR}/data
-#    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BINARY_DIR}/data/.svn
-#)
+	ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
+
+	if(XCODE_VERSION)
+		SET_TARGET_PROPERTIES( ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES )
+	endif()
+
+	SET_TARGET_PROPERTIES(ChronoEngine PROPERTIES
+		COMPILE_FLAGS "${CH_BUILDFLAGS}"
+		LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
+		COMPILE_DEFINITIONS "CH_API_COMPILE")
+
+
+	#ADD_CUSTOM_COMMAND(
+	#    TARGET ChronoEngine
+	#    POST_BUILD
+	#    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CH_CHRONODIR}/bin/data/ ${PROJECT_BINARY_DIR}/data
+	#    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BINARY_DIR}/data/.svn
+	#)
 
 ENDIF (BUILD_CH_SDK)
 
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    EXECUTE_PROCESS(COMMAND "date" "+%Y_%m_%d" OUTPUT_VARIABLE DATE)
+	EXECUTE_PROCESS(COMMAND "date" "+%Y_%m_%d" OUTPUT_VARIABLE DATE)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    EXECUTE_PROCESS(COMMAND "date" "+%Y_%m_%d" OUTPUT_VARIABLE DATE)
+	EXECUTE_PROCESS(COMMAND "date" "+%Y_%m_%d" OUTPUT_VARIABLE DATE)
 ENDIF()
 
 STRING(REGEX REPLACE "(\r?\n)+$" "" DATE "${DATE}")
@@ -1171,10 +1171,10 @@ SET(CPACK_SOURCE_STRIP_FILES "")
 #SET(CPACK_TOPLEVEL_TAG "Linux-x64")
 
 INSTALL(TARGETS ChronoEngine
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	)
 
 
 INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION data PATTERN .svn EXCLUDE)

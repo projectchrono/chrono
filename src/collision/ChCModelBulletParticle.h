@@ -4,16 +4,16 @@
 // Copyright (c) 2010 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
 #ifndef CHC_MODELBULLETPARTICLE_H
 #define CHC_MODELBULLETPARTICLE_H
- 
+
 //////////////////////////////////////////////////
-//  
+//
 //   ChCModelBulletParticle.h
 //
 //   A wrapper to use the Bullet collision detection
@@ -27,62 +27,47 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "collision/ChCModelBullet.h"
 
-
-namespace chrono 
-{
+namespace chrono {
 
 // forward references
 class ChIndexedParticles;
 
-namespace collision 
-{
-
+namespace collision {
 
 /// Class for the collision model to be used in ChIndexedParticles shapes,
-/// that are collections of frame-like items (each with 6 DOFs). 
+/// that are collections of frame-like items (each with 6 DOFs).
 /// Uses features of the Bullet library.
 
-class ChApi ChModelBulletParticle : public ChModelBullet
-{
+class ChApi ChModelBulletParticle : public ChModelBullet {
+  public:
+    ChModelBulletParticle();
+    virtual ~ChModelBulletParticle();
 
-public:
+    /// Sets the pointer to the client owner (the ChIndexedParticles cluster) and the particle number.
+    void SetParticle(ChIndexedParticles* mpa, unsigned int id);
 
-  ChModelBulletParticle();
-  virtual ~ChModelBulletParticle();
+    /// Gets the pointer to the client owner, ChIndexedParticles cluster.
+    ChIndexedParticles* GetParticles() { return particles; };
+    /// Gets the number of the particle in the particle cluster.
+    unsigned int GetParticleId() { return particle_id; };
 
-		/// Sets the pointer to the client owner (the ChIndexedParticles cluster) and the particle number.
-  void SetParticle(ChIndexedParticles* mpa, unsigned int id);
+    // Overrides and implementations of base members:
 
-    	/// Gets the pointer to the client owner, ChIndexedParticles cluster. 
-  ChIndexedParticles* GetParticles() {return particles;};
-    	/// Gets the number of the particle in the particle cluster. 
-  unsigned int GetParticleId() {return particle_id;};
+    /// Sets the position and orientation of the collision
+    /// model as the current position of the corresponding item in ChParticles
+    virtual void SyncPosition();
 
+    /// Gets the pointer to the client owner ChPhysicsItem.
+    virtual ChPhysicsItem* GetPhysicsItem() { return (ChPhysicsItem*)GetParticles(); };
 
-	// Overrides and implementations of base members:
-
-		/// Sets the position and orientation of the collision
-		/// model as the current position of the corresponding item in ChParticles
-  virtual void SyncPosition();
-
-  		/// Gets the pointer to the client owner ChPhysicsItem. 
-  virtual ChPhysicsItem* GetPhysicsItem() {return (ChPhysicsItem*)GetParticles();};
-
-private:
-	unsigned int particle_id;
-	ChIndexedParticles* particles;
+  private:
+    unsigned int particle_id;
+    ChIndexedParticles* particles;
 };
 
-
-
-
-
-
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

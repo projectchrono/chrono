@@ -5,7 +5,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -19,8 +19,8 @@
 //
 //    An 'easy' derived class for representing a
 //   constraint between three ChLcpVariable items.
-//   Used with for building sparse variational problems 
-//   (VI/CCP/LCP/linear problems) described by 
+//   Used with for building sparse variational problems
+//   (VI/CCP/LCP/linear problems) described by
 //   a ChLcpSystemDescriptor
 //
 //
@@ -31,17 +31,12 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-
 #include "ChLcpConstraint.h"
 #include "ChLcpVariables.h"
 
-#include "core/ChMemory.h" // must be after system's include (memory leak debugger).
+#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
 
-
-namespace chrono
-{
-
+namespace chrono {
 
 ///  This class is inherited by the base ChLcpConstraint(),
 /// which does almost nothing. So here this class implements
@@ -53,105 +48,86 @@ namespace chrono
 /// values in constraints (and update them if necessary), i.e.
 /// must set at least the c_i and b_i values, and jacobians.
 
-class ChApi ChLcpConstraintThree : public ChLcpConstraint
-{
-	CH_RTTI(ChLcpConstraintThree, ChLcpConstraint)
+class ChApi ChLcpConstraintThree : public ChLcpConstraint {
+    CH_RTTI(ChLcpConstraintThree, ChLcpConstraint)
 
-			//
-			// DATA
-			//
+    //
+    // DATA
+    //
 
-protected:
+  protected:
+    /// The first  constrained object
+    ChLcpVariables* variables_a;
+    /// The second constrained object
+    ChLcpVariables* variables_b;
+    /// The third constrained object
+    ChLcpVariables* variables_c;
 
-				/// The first  constrained object
-	ChLcpVariables* variables_a;
-				/// The second constrained object
-	ChLcpVariables* variables_b;
-				/// The third constrained object
-	ChLcpVariables* variables_c;
+  public:
+    //
+    // CONSTRUCTORS
+    //
+    /// Default constructor
+    ChLcpConstraintThree() { variables_a = variables_b = variables_c = NULL; };
 
+    /// Copy constructor
+    ChLcpConstraintThree(const ChLcpConstraintThree& other) : ChLcpConstraint(other) {
+        variables_a = other.variables_a;
+        variables_b = other.variables_b;
+        variables_c = other.variables_c;
+    }
 
-public:
+    virtual ~ChLcpConstraintThree(){};
 
-			//
-			// CONSTRUCTORS
-			//
-						/// Default constructor
-	ChLcpConstraintThree()
-					{
-						variables_a = variables_b = variables_c = NULL;
-					};
+    /// Assignment operator: copy from other object
+    ChLcpConstraintThree& operator=(const ChLcpConstraintThree& other);
 
-						/// Copy constructor
-	ChLcpConstraintThree(const ChLcpConstraintThree& other) : ChLcpConstraint(other)
-					{
-						variables_a = other.variables_a;
-						variables_b = other.variables_b;
-						variables_c = other.variables_c;
-					}
+    //
+    // FUNCTIONS
+    //
 
-	virtual ~ChLcpConstraintThree()
-					{
-					};
+    /// Access jacobian matrix
+    virtual ChMatrix<float>* Get_Cq_a() = 0;
+    /// Access jacobian matrix
+    virtual ChMatrix<float>* Get_Cq_b() = 0;
+    /// Access jacobian matrix
+    virtual ChMatrix<float>* Get_Cq_c() = 0;
 
+    /// Access auxiliary matrix (ex: used by iterative solvers)
+    virtual ChMatrix<float>* Get_Eq_a() = 0;
+    /// Access auxiliary matrix (ex: used by iterative solvers)
+    virtual ChMatrix<float>* Get_Eq_b() = 0;
+    /// Access auxiliary matrix (ex: used by iterative solvers)
+    virtual ChMatrix<float>* Get_Eq_c() = 0;
 
-					/// Assignment operator: copy from other object
-	ChLcpConstraintThree& operator=(const ChLcpConstraintThree& other);
+    /// Access the first variable object
+    ChLcpVariables* GetVariables_a() { return variables_a; }
+    /// Access the second variable object
+    ChLcpVariables* GetVariables_b() { return variables_b; }
+    /// Access the second variable object
+    ChLcpVariables* GetVariables_c() { return variables_c; }
 
+    /// Set references to the constrained objects, each of ChLcpVariables type,
+    /// automatically creating/resizing jacobians if needed.
+    virtual void SetVariables(ChLcpVariables* mvariables_a,
+                              ChLcpVariables* mvariables_b,
+                              ChLcpVariables* mvariables_c) = 0;
 
+    //
+    // STREAMING
+    //
 
-			//
-			// FUNCTIONS
-			//
+    /// Method to allow deserializing a persistent binary archive (ex: a file)
+    /// into transient data.
+    virtual void StreamIN(ChStreamInBinary& mstream);
 
-				/// Access jacobian matrix
-	virtual ChMatrix<float>* Get_Cq_a() =0;
-				/// Access jacobian matrix
-	virtual ChMatrix<float>* Get_Cq_b() =0;
-				/// Access jacobian matrix
-	virtual ChMatrix<float>* Get_Cq_c() =0;
-
-				/// Access auxiliary matrix (ex: used by iterative solvers)
-	virtual ChMatrix<float>* Get_Eq_a() =0;
-				/// Access auxiliary matrix (ex: used by iterative solvers)
-	virtual ChMatrix<float>* Get_Eq_b() =0;
-				/// Access auxiliary matrix (ex: used by iterative solvers)
-	virtual ChMatrix<float>* Get_Eq_c() =0;
-
-				/// Access the first variable object
-	ChLcpVariables* GetVariables_a() {return variables_a;}
-				/// Access the second variable object
-	ChLcpVariables* GetVariables_b() {return variables_b;}
-				/// Access the second variable object
-	ChLcpVariables* GetVariables_c() {return variables_c;}
-
-				/// Set references to the constrained objects, each of ChLcpVariables type,
-				/// automatically creating/resizing jacobians if needed.
-	virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b, ChLcpVariables* mvariables_c) =0;
-
-
-
-			//
-			// STREAMING
-			//
-
-					/// Method to allow deserializing a persistent binary archive (ex: a file)
-					/// into transient data.
-	virtual void StreamIN(ChStreamInBinary& mstream);
-
-					/// Method to allow serializing transient data into a persistent
-					/// binary archive (ex: a file).
-	virtual void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow serializing transient data into a persistent
+    /// binary archive (ex: a file).
+    virtual void StreamOUT(ChStreamOutBinary& mstream);
 };
 
+}  // END_OF_NAMESPACE____
 
-
-
-} // END_OF_NAMESPACE____
-
-
-
-#include "core/ChMemorynomgr.h" // back to default new/delete/malloc/calloc etc. Avoid conflicts with system libs.
-
+#include "core/ChMemorynomgr.h"  // back to default new/delete/malloc/calloc etc. Avoid conflicts with system libs.
 
 #endif  // END of ChLcpConstraintTwo.h

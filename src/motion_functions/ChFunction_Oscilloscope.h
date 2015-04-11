@@ -4,7 +4,7 @@
 // Copyright (c) 2011 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -13,10 +13,10 @@
 #define CHFUNCT_OSCILLOSCOPE_H
 
 //////////////////////////////////////////////////
-//  
+//
 //   ChFunction_Oscilloscope.h
 //
-//   Function objects, 
+//   Function objects,
 //   as scalar functions of scalar variable y=f(t)
 //
 //   HEADER file for CHRONO,
@@ -27,91 +27,93 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "ChFunction_Base.h"
 
+namespace chrono {
 
-namespace chrono 
-{
-
-#define FUNCT_OSCILLOSCOPE	20
-
+#define FUNCT_OSCILLOSCOPE 20
 
 /// OSCILLOSCOPE FUNCTION
-/// y = interpolation of array of (x,y) data, 
+/// y = interpolation of array of (x,y) data,
 ///     where (x,y) points must be inserted one
 ///     after the other, strictly with a fixed dx
 ///     interval. After a maximum amount of recordable
-///     points is reached, the firsts are deleted. 
+///     points is reached, the firsts are deleted.
 /// Note: differently from ChFunction_Recorder, this
 /// 'basic' function does not allow not-uniform dx spacing
 /// between points, but may be faster and simplier to
 /// use in many cases.
 
-class ChApi ChFunction_Oscilloscope : public ChFunction
-{
-	CH_RTTI(ChFunction_Oscilloscope, ChFunction);
-private:
-	std::list<double> values;
-	double end_x;
-	double dx;
-	int max_amount;
-	int amount;
+class ChApi ChFunction_Oscilloscope : public ChFunction {
+    CH_RTTI(ChFunction_Oscilloscope, ChFunction);
 
-public:
-	ChFunction_Oscilloscope () {dx = 0.01; amount = 0; max_amount = 100; end_x=0;};
-	~ChFunction_Oscilloscope () {};
-	void Copy (ChFunction_Oscilloscope* source);
-	ChFunction* new_Duplicate ();
-		
-		/// Add a point at the head (right side of point array).
-		/// Note that it is user's responsability to add points
-		/// which are spaced uniformily (by dx) on the X axis!
-		/// No checks are done on the correctness of the dx spacing,
-		/// except that if you enter a point whose mx is less than the
-		/// mx of the one you previously entered, the array is cleared.
-	int AddLastPoint (double mx, double my);
+  private:
+    std::list<double> values;
+    double end_x;
+    double dx;
+    int max_amount;
+    int amount;
 
-		/// Reset the array or recorded points.
-	void Reset() {values.clear(); amount =0; end_x= 0;};
+  public:
+    ChFunction_Oscilloscope() {
+        dx = 0.01;
+        amount = 0;
+        max_amount = 100;
+        end_x = 0;
+    };
+    ~ChFunction_Oscilloscope(){};
+    void Copy(ChFunction_Oscilloscope* source);
+    ChFunction* new_Duplicate();
 
-		/// Access directly the list of points.
-	std::list<double>&  GetPointList() {return values;};
+    /// Add a point at the head (right side of point array).
+    /// Note that it is user's responsability to add points
+    /// which are spaced uniformily (by dx) on the X axis!
+    /// No checks are done on the correctness of the dx spacing,
+    /// except that if you enter a point whose mx is less than the
+    /// mx of the one you previously entered, the array is cleared.
+    int AddLastPoint(double mx, double my);
 
-		/// Get the dx spacing between recorded points. It is assumed uniform!
-	double Get_dx() {return dx;}
-		/// Set the dx spacing between recorded points. It is assumed uniform!
-	void Set_dx(double mdx) {dx = fabs(mdx);}
+    /// Reset the array or recorded points.
+    void Reset() {
+        values.clear();
+        amount = 0;
+        end_x = 0;
+    };
 
-		/// Get the maximum amount of points which can be entered (after this,
-		/// the first one will be deleted, as in a FIFO)
-	int Get_max_amount() {return max_amount;}
-		/// Set the maximum amount of points which can be entered (after this,
-		/// the first one will be deleted, as in a FIFO)
-	void Set_max_amount(int mnum) {if (mnum > 0) max_amount = mnum;}
+    /// Access directly the list of points.
+    std::list<double>& GetPointList() { return values; };
 
-		/// Get the amount of recorded points
-	double Get_amount() {return amount;}
+    /// Get the dx spacing between recorded points. It is assumed uniform!
+    double Get_dx() { return dx; }
+    /// Set the dx spacing between recorded points. It is assumed uniform!
+    void Set_dx(double mdx) { dx = fabs(mdx); }
 
-	double Get_y      (double x) ;
-	//double Get_y_dx   (double x) ;
-	//double Get_y_dxdx (double x) ;
+    /// Get the maximum amount of points which can be entered (after this,
+    /// the first one will be deleted, as in a FIFO)
+    int Get_max_amount() { return max_amount; }
+    /// Set the maximum amount of points which can be entered (after this,
+    /// the first one will be deleted, as in a FIFO)
+    void Set_max_amount(int mnum) {
+        if (mnum > 0)
+            max_amount = mnum;
+    }
 
-	void Estimate_x_range (double& xmin, double& xmax);
+    /// Get the amount of recorded points
+    double Get_amount() { return amount; }
 
-	int Get_Type () {return (FUNCT_OSCILLOSCOPE);}
+    double Get_y(double x);
+    // double Get_y_dx   (double x) ;
+    // double Get_y_dxdx (double x) ;
 
-	void StreamOUT(ChStreamOutAscii& mstream);
-	void StreamIN(ChStreamInBinary& mstream);
-	void StreamOUT(ChStreamOutBinary& mstream);
+    void Estimate_x_range(double& xmin, double& xmax);
 
+    int Get_Type() { return (FUNCT_OSCILLOSCOPE); }
+
+    void StreamOUT(ChStreamOutAscii& mstream);
+    void StreamIN(ChStreamInBinary& mstream);
+    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
-
-
-
-
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____
 
 #endif

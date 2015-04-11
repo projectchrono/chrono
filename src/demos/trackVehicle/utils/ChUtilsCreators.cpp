@@ -17,7 +17,6 @@
 //
 // =============================================================================
 
-
 #include "ChUtilsCreators.h"
 
 namespace chrono {
@@ -30,43 +29,41 @@ namespace utils {
 // walls (no top).
 // These functions assume a coordinate frame with Z up.
 // -----------------------------------------------------------------------------
-void CreateBoxContainer(ChSystem*                           system,
-                        int                                 id,
-                        ChSharedPtr<ChMaterialSurfaceBase>  mat,
-                        const ChVector<>&                   hdim,
-                        double                              hthick,
-                        const ChVector<>&                   pos,
-                        const ChQuaternion<>&               rot,
-                        bool                                collide)
-{
-  // Infer the type of contact method from the specified material properties.
-  ChBody::ContactMethod contact_method = mat.IsType<ChMaterialSurface>() ? ChBody::DVI : ChBody::DEM;
+void CreateBoxContainer(ChSystem* system,
+                        int id,
+                        ChSharedPtr<ChMaterialSurfaceBase> mat,
+                        const ChVector<>& hdim,
+                        double hthick,
+                        const ChVector<>& pos,
+                        const ChQuaternion<>& rot,
+                        bool collide) {
+    // Infer the type of contact method from the specified material properties.
+    ChBody::ContactMethod contact_method = mat.IsType<ChMaterialSurface>() ? ChBody::DVI : ChBody::DEM;
 
-  // Create the body and set material
-  ChSharedPtr<ChBody> body(new ChBody(contact_method));
+    // Create the body and set material
+    ChSharedPtr<ChBody> body(new ChBody(contact_method));
 
-  body->SetMaterialSurface(mat);
+    body->SetMaterialSurface(mat);
 
-  // Set body properties and geometry.
-  body->SetIdentifier(id);
-  body->SetMass(1);
-  body->SetPos(pos);
-  body->SetRot(rot);
-  body->SetCollide(collide);
-  body->SetBodyFixed(true);
+    // Set body properties and geometry.
+    body->SetIdentifier(id);
+    body->SetMass(1);
+    body->SetPos(pos);
+    body->SetRot(rot);
+    body->SetCollide(collide);
+    body->SetBodyFixed(true);
 
-  body->GetCollisionModel()->ClearModel();
-  AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
-  AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x-hthick, 0, hdim.z));
-  AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>( hdim.x+hthick, 0, hdim.z));
-  AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y-hthick, hdim.z));
-  AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0,  hdim.y+hthick, hdim.z));
-  body->GetCollisionModel()->BuildModel();
+    body->GetCollisionModel()->ClearModel();
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
+    body->GetCollisionModel()->BuildModel();
 
-  // Attach the body to the system.
-  system->AddBody(body);
+    // Attach the body to the system.
+    system->AddBody(body);
 }
-
 
 }  // namespace utils
 }  // namespace chrono

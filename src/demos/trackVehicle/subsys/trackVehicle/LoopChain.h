@@ -34,105 +34,95 @@ namespace chrono {
 
 /// Model a static LoopChain, with a powered Gear and
 /// an idler attached to some large inertial load
-class CH_SUBSYS_API LoopChain : public ChTrackVehicle
-{
-public:
+class CH_SUBSYS_API LoopChain : public ChTrackVehicle {
+  public:
+    LoopChain(const std::string& name,
+              VisualizationType::Enum chassisVis = VisualizationType::Primitives,
+              CollisionType::Enum chassisCollide = CollisionType::Primitives,
+              double gearMass = 100.0,
+              const ChVector<>& gearIxx = ChVector<>(10, 10, 10),
+              size_t num_idlers = 2,
+              size_t num_rollers = 3);
 
-  LoopChain(const std::string& name,
-    VisualizationType::Enum chassisVis = VisualizationType::Primitives,
-    CollisionType::Enum chassisCollide = CollisionType::Primitives,
-    double gearMass = 100.0,
-    const ChVector<>& gearIxx = ChVector<>(10,10,10) ,
-    size_t num_idlers = 2,
-    size_t num_rollers = 3);
+    ~LoopChain();
 
-  ~LoopChain();
-  
-  /// Initialize the drive chain system
-  virtual void Initialize(const ChCoordsys<>& gear_Csys);  ///< [in] initial config of gear
-  
-  /// Update the vehicle with the new settings for throttle and brake
-  virtual void Update(double time,
-              double throttle,
-              double braking);
+    /// Initialize the drive chain system
+    virtual void Initialize(const ChCoordsys<>& gear_Csys);  ///< [in] initial config of gear
 
-  /// Advance the vehicle (and the ChSystem)
-  virtual void Advance(double step);
+    /// Update the vehicle with the new settings for throttle and brake
+    virtual void Update(double time, double throttle, double braking);
 
-  /// set the pin friction as a damping value
-  virtual void SetShoePinDamping(double damping);
+    /// Advance the vehicle (and the ChSystem)
+    virtual void Advance(double step);
 
-  /// log the constraint violations, w/ and w/o chain body, to either the console or a file
-  virtual void LogConstraintViolations(bool include_chain = false);
+    /// set the pin friction as a damping value
+    virtual void SetShoePinDamping(double damping);
 
-  /// save the constraint violations, w/ and w/o chain body, to the 
-  virtual void SaveConstraintViolations(std::stringstream& ss, bool include_chain = false);
+    /// log the constraint violations, w/ and w/o chain body, to either the console or a file
+    virtual void LogConstraintViolations(bool include_chain = false);
 
-  virtual void Log_to_console(int console_what);
+    /// save the constraint violations, w/ and w/o chain body, to the
+    virtual void SaveConstraintViolations(std::stringstream& ss, bool include_chain = false);
 
-  /// Log data to file.
-  /// Data types AND filename to be saved should already set in Setup_log_to_file() 
-  virtual void Log_to_file();
+    virtual void Log_to_console(int console_what);
 
-  /// setup class to save the log to a file for python postprocessing.
-  /// Usage: call after construction & Initialize(), else no data is saved.
-  virtual void Setup_log_to_file(int what,
-                     const std::string& out_filename);
+    /// Log data to file.
+    /// Data types AND filename to be saved should already set in Setup_log_to_file()
+    virtual void Log_to_file();
 
-  // ---------------------------------------------------------------------------
-  // Accessors
-  virtual double GetShoePinDamping() const {return m_chain->Get_pin_damping(); }
+    /// setup class to save the log to a file for python postprocessing.
+    /// Usage: call after construction & Initialize(), else no data is saved.
+    virtual void Setup_log_to_file(int what, const std::string& out_filename);
 
-  /// Get the angular speed of the driveshaft.
-  virtual double GetDriveshaftSpeed(size_t idx) const { return m_gear->GetAxle()->GetPos_dt(); }
+    // ---------------------------------------------------------------------------
+    // Accessors
+    virtual double GetShoePinDamping() const { return m_chain->Get_pin_damping(); }
 
-  /// pointer to the powertrain
-  virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const { return m_ptrain; }
+    /// Get the angular speed of the driveshaft.
+    virtual double GetDriveshaftSpeed(size_t idx) const { return m_gear->GetAxle()->GetPos_dt(); }
 
-  /// vehicle's driveshaft body.
-  const ChSharedPtr<ChShaft> GetDriveshaft(size_t idx) const {return m_gear->GetAxle(); }
+    /// pointer to the powertrain
+    virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const { return m_ptrain; }
 
-  /// current value of the integration step size for the vehicle system.
-  double GetStepsize() const { return m_stepsize; }
+    /// vehicle's driveshaft body.
+    const ChSharedPtr<ChShaft> GetDriveshaft(size_t idx) const { return m_gear->GetAxle(); }
 
-  /// just return the COG of the gear
-  const ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(m_chassis->GetPos(), m_chassis->GetRot()); }
+    /// current value of the integration step size for the vehicle system.
+    double GetStepsize() const { return m_stepsize; }
 
-  /// vehicle speed, doesn't matter
-  double GetVehicleSpeed() const { return 0; }
-  int GetNum_Engines() const { return 1;}
+    /// just return the COG of the gear
+    const ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(m_chassis->GetPos(), m_chassis->GetRot()); }
 
-protected:
+    /// vehicle speed, doesn't matter
+    double GetVehicleSpeed() const { return 0; }
+    int GetNum_Engines() const { return 1; }
 
-  // helper functions for output/Log
-  virtual void create_fileHeader(int what);
+  protected:
+    // helper functions for output/Log
+    virtual void create_fileHeader(int what);
 
-  // private variables
-  // <ChBodyAuxRef> m_chassis   in base class
-  ChSharedPtr<DriveGear> m_gear;  		///< drive gear
-  std::vector<ChSharedPtr<IdlerSimple> >	m_idlers;	///< idler wheel
-  size_t m_num_idlers;  ///< number of idlers to create
-  ChSharedPtr<TrackChain> m_chain;    ///< chain
+    // private variables
+    // <ChBodyAuxRef> m_chassis   in base class
+    ChSharedPtr<DriveGear> m_gear;                    ///< drive gear
+    std::vector<ChSharedPtr<IdlerSimple> > m_idlers;  ///< idler wheel
+    size_t m_num_idlers;                              ///< number of idlers to create
+    ChSharedPtr<TrackChain> m_chain;                  ///< chain
 
-  ChVector<> m_idlerPosRel;	///< position of idler COG relative to local c-sys
-  
-  ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system
+    ChVector<> m_idlerPosRel;  ///< position of idler COG relative to local c-sys
 
-  std::vector<ChSharedPtr<SupportRoller> > m_rollers;  ///< passive support rollers
-  size_t m_num_rollers;
-	
+    ChSharedPtr<TrackPowertrain> m_ptrain;  ///< powertrain system
 
+    std::vector<ChSharedPtr<SupportRoller> > m_rollers;  ///< passive support rollers
+    size_t m_num_rollers;
 
-  // static variables. hard-coded for now
-  static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)
-  static const ChQuaternion<> m_idlerRot; 
+    // static variables. hard-coded for now
+    static const ChVector<> m_idlerPos;  // relative to chassis frame, which is the same as the gear's (initially)
+    static const ChQuaternion<> m_idlerRot;
 
-  friend std::ostream & operator<< (std::ostream &out, const ChVector<double>& vect);
-  friend std::ostream & operator << (std::ostream &out, const ChQuaternion<double>& q);
+    friend std::ostream& operator<<(std::ostream& out, const ChVector<double>& vect);
+    friend std::ostream& operator<<(std::ostream& out, const ChQuaternion<double>& q);
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif

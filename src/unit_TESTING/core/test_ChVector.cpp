@@ -4,9 +4,8 @@
 
 using namespace chrono;
 
+int main() {
+    /// TODO ADD TEST
 
-int main(){
-///TODO ADD TEST
-
-	return 0;
+    return 0;
 }

@@ -14,7 +14,4 @@
 
 #include "Track_FuncDriver.h"
 
-namespace chrono {
-
-
-} // end namespace chrono
+namespace chrono {}  // end namespace chrono

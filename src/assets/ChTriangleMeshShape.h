@@ -4,7 +4,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -26,75 +26,66 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "assets/ChVisualization.h"
 #include "geometry/ChCTriangleMeshConnected.h"
 
-namespace chrono
-{
+namespace chrono {
 
-/// Class for referencing a triangle mesh shape that can be 
+/// Class for referencing a triangle mesh shape that can be
 /// visualized in some way. Being a child class of ChAsset, it can
 /// be 'attached' to physics items.
 /// It also defines flags such as 'draw as wireframe', 'do backface culling' etc.
-/// but remember that depending on the type of visualization system 
+/// but remember that depending on the type of visualization system
 /// (POVray, Irrlich,etc.) these flags might not be supported.
 
 class ChApi ChTriangleMeshShape : public ChVisualization {
+  protected:
+    //
+    // DATA
+    //
+    geometry::ChTriangleMeshConnected trimesh;
 
-protected:
-				//
-	  			// DATA
-				//
-	geometry::ChTriangleMeshConnected trimesh;
+    bool wireframe;
+    bool backface_cull;
 
-	bool wireframe;
-	bool backface_cull;
+    std::string name;
+    ChVector<> scale;
 
-	std::string name;
-	ChVector<> scale;
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-	  			// CONSTRUCTORS
-				//
+    ChTriangleMeshShape() {
+        wireframe = false;
+        backface_cull = false;
+    };
 
-	ChTriangleMeshShape ()  
-			{ 
-				wireframe = false; 
-				backface_cull = false;
-			};
+    virtual ~ChTriangleMeshShape(){};
 
-	virtual ~ChTriangleMeshShape () {};
+    //
+    // FUNCTIONS
+    //
 
-				//
-	  			// FUNCTIONS
-				//
+    geometry::ChTriangleMeshConnected& GetMesh() { return trimesh; }
+    void SetMesh(const geometry::ChTriangleMeshConnected& mesh) { trimesh = mesh; }
 
+    bool IsWireframe() { return wireframe; }
+    void SetWireframe(bool mw) { wireframe = mw; }
 
-	geometry::ChTriangleMeshConnected& GetMesh()  {return trimesh;}
-	void SetMesh(const geometry::ChTriangleMeshConnected & mesh) {trimesh = mesh;}
+    bool IsBackfaceCull() { return backface_cull; }
+    void SetBackfaceCull(bool mbc) { backface_cull = mbc; }
 
-	bool IsWireframe() {return wireframe;}
-	void SetWireframe(bool mw) {wireframe = mw;}
+    const std::string& GetName() const { return name; }
+    void SetName(const std::string& mname) { name = mname; }
 
-	bool IsBackfaceCull() {return backface_cull;}
-	void SetBackfaceCull(bool mbc) {backface_cull = mbc;}
-
-	const std::string& GetName() const     {return name;}
-	void SetName(const std::string& mname) {name = mname;}
-
-	const ChVector<>& GetScale() const     {return scale;}
-	void SetScale(const ChVector<>& mscale) {scale = mscale;}
+    const ChVector<>& GetScale() const { return scale; }
+    void SetScale(const ChVector<>& mscale) { scale = mscale; }
 };
 
-
-
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

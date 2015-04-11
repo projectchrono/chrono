@@ -4,7 +4,7 @@
 // Copyright (c) 2010-2011 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -12,13 +12,10 @@
 #ifndef CHGLOBAL_H
 #define CHGLOBAL_H
 
-
 #include <string>
 #include "core/ChApiCE.h"
 
-
-namespace chrono 
-{
+namespace chrono {
 
 /// Set the start value for the sequence of IDs (ATTENTION: not thread safe)
 /// Subsequent calls to GetUniqueIntID() will return val+1, val+2, etc.
@@ -38,7 +35,6 @@ ChApi const std::string& GetChronoDataPath();
 /// Chrono data directory (thread safe)
 ChApi std::string GetChronoDataFile(const std::string& filename);
 
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____
 
 #endif

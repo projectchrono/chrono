@@ -4,14 +4,14 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
 ///////////////////////////////////////////////////
 //
-//   Demo code about 
+//   Demo code about
 //
 //     - using the assets system to create shapes
 //       that can be shown in the Irrlicht 3D view.
@@ -20,21 +20,18 @@
 //       same assets that you use for Irrlicht display
 //       can be used for postprocessing such as POVray etc.
 //
-//	 CHRONO    
+//	 CHRONO
 //   ------
 //   Multibody dinamics engine
-//  
-// ------------------------------------------------ 
+//
+// ------------------------------------------------
 //             www.deltaknowledge.com
-// ------------------------------------------------ 
+// ------------------------------------------------
 ///////////////////////////////////////////////////
- 
-  
- 
-#include "physics/ChParticlesClones.h" 
+
+#include "physics/ChParticlesClones.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include <irrlicht.h>
-
 
 // Use the namespace of Chrono
 
@@ -50,277 +47,257 @@ using namespace video;
 using namespace io;
 using namespace gui;
 
+int main(int argc, char* argv[]) {
+    // Create a Chrono::Engine physical system
+    ChSystem mphysicalSystem;
 
+    // Create the Irrlicht visualization (open the Irrlicht device,
+    // bind a simple user interface, etc. etc.)
+    ChIrrApp application(&mphysicalSystem, L"Assets for Irrlicht visualization", core::dimension2d<u32>(800, 600),
+                         false, true);
 
+    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 4, -6));
 
-   
- 
-int main(int argc, char* argv[])
-{
-	// Create a Chrono::Engine physical system
-	ChSystem mphysicalSystem;
+    //
+    // EXAMPLE 1:
+    //
 
-	// Create the Irrlicht visualization (open the Irrlicht device, 
-	// bind a simple user interface, etc. etc.)
-	ChIrrApp application(&mphysicalSystem, L"Assets for Irrlicht visualization",core::dimension2d<u32>(800,600),false, true);
+    // Create a ChBody, and attach some 'assets'
+    // that define 3D shapes. These shapes can be shown
+    // by Irrlicht or POV postprocessing, etc...
+    // Note: these assets are independent from collision shapes!
 
+    // Create a rigid body as usual, and add it
+    // to the physical system:
+    ChSharedPtr<ChBody> mfloor(new ChBody);
+    mfloor->SetBodyFixed(true);
 
-	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-	application.AddTypicalLogo();
-	application.AddTypicalSky();
-	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(0,4,-6));
+    // Define a collision shape
+    mfloor->GetCollisionModel()->ClearModel();
+    mfloor->GetCollisionModel()->AddBox(10, 0.5, 10, ChVector<>(0, -1, 0));
+    mfloor->GetCollisionModel()->BuildModel();
+    mfloor->SetCollide(true);
 
- 
-  
+    // Add body to system
+    application.GetSystem()->Add(mfloor);
 
-	//
-	// EXAMPLE 1: 
-	//
+    // ==Asset== attach a 'box' shape.
+    // Note that assets are managed via shared pointer, so they
+    // can also be shared). Do not forget AddAsset() at the end!
+    ChSharedPtr<ChBoxShape> mboxfloor(new ChBoxShape);
+    mboxfloor->GetBoxGeometry().Pos = ChVector<>(0, -1, 0);
+    mboxfloor->GetBoxGeometry().Size = ChVector<>(10, 0.5, 10);
+    mfloor->AddAsset(mboxfloor);
 
-	// Create a ChBody, and attach some 'assets' 
-	// that define 3D shapes. These shapes can be shown
-	// by Irrlicht or POV postprocessing, etc...
-	// Note: these assets are independent from collision shapes!
+    // ==Asset== attach color asset.
+    ChSharedPtr<ChColorAsset> mfloorcolor(new ChColorAsset);
+    mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
+    mfloor->AddAsset(mfloorcolor);
 
-			// Create a rigid body as usual, and add it 
-			// to the physical system:
-	ChSharedPtr<ChBody> mfloor(new ChBody);
-	mfloor->SetBodyFixed(true);
+    // ==Asset== attach a 'path' shape populated with segments and arc fillets:
+    ChSharedPtr<ChPathShape> mpathfloor(new ChPathShape);
+    ChLineSegment mseg1(ChVector<>(1, 2, 0), ChVector<>(1, 3, 0));
+    mpathfloor->GetPathGeometry()->AddSubLine(mseg1);
+    ChLineSegment mseg2(ChVector<>(1, 3, 0), ChVector<>(2, 3, 0));
+    mpathfloor->GetPathGeometry()->AddSubLine(mseg2);
+    ChLineArc marc1(ChCoordsys<>(ChVector<>(2, 3.5, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2);
+    mpathfloor->GetPathGeometry()->AddSubLine(marc1);
+    mfloor->AddAsset(mpathfloor);
 
-			// Define a collision shape 
-	mfloor->GetCollisionModel()->ClearModel();
-	mfloor->GetCollisionModel()->AddBox(10, 0.5, 10, ChVector<>(0,-1,0));
-	mfloor->GetCollisionModel()->BuildModel();
-	mfloor->SetCollide(true);
+    /*
+            //  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
+            // to 'show' all the assets that we added to the body!
+            // OTHERWISE: use the application.AssetBind() function as at the end..
+    ChSharedPtr<ChIrrNodeAsset> mirr_asset_floor(new ChIrrNodeAsset);
+    mirr_asset_floor->Bind(mfloor, application);
+    mfloor->AddAsset(mirr_asset_floor);
+    */
 
-			// Add body to system
-	application.GetSystem()->Add(mfloor);
+    //
+    // EXAMPLE 2:
+    //
 
-			// ==Asset== attach a 'box' shape.
-			// Note that assets are managed via shared pointer, so they 
-			// can also be shared). Do not forget AddAsset() at the end!
-	ChSharedPtr<ChBoxShape> mboxfloor(new ChBoxShape);
-	mboxfloor->GetBoxGeometry().Pos = ChVector<>(0,-1,0);
-	mboxfloor->GetBoxGeometry().Size = ChVector<>(10,0.5,10);
-	mfloor->AddAsset(mboxfloor);
+    // Textures, colors, asset levels with transformations.
+    // This section shows how to add more advanced types of assets
+    // and how to group assets in ChAssetLevel containers.
 
-			// ==Asset== attach color asset. 
-	ChSharedPtr<ChColorAsset> mfloorcolor(new ChColorAsset);
-	mfloorcolor->SetColor(ChColor(0.3f,0.3f,0.6f));
-	mfloor->AddAsset(mfloorcolor);
+    // Create the rigid body as usual (this won't move,
+    // it is only for visualization tests)
+    ChSharedPtr<ChBody> mbody(new ChBody);
+    mbody->SetBodyFixed(true);
+    application.GetSystem()->Add(mbody);
 
-			// ==Asset== attach a 'path' shape populated with segments and arc fillets:
-	ChSharedPtr<ChPathShape> mpathfloor(new ChPathShape);
-	ChLineSegment mseg1 (ChVector<>(1,2,0), ChVector<>(1,3,0));
-	mpathfloor->GetPathGeometry()->AddSubLine(mseg1);
-	ChLineSegment mseg2 (ChVector<>(1,3,0), ChVector<>(2,3,0));
-	mpathfloor->GetPathGeometry()->AddSubLine(mseg2);
-	ChLineArc     marc1 (ChCoordsys<>(ChVector<>(2,3.5,0)), 0.5, -CH_C_PI_2, CH_C_PI_2);
-	mpathfloor->GetPathGeometry()->AddSubLine(marc1);
-	mfloor->AddAsset(mpathfloor);
+    // ==Asset== Attach a 'sphere' shape
+    ChSharedPtr<ChSphereShape> msphere(new ChSphereShape);
+    msphere->GetSphereGeometry().rad = 0.5;
+    msphere->GetSphereGeometry().center = ChVector<>(-1, 0, 0);
+    mbody->AddAsset(msphere);
 
-	/*
-			//  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
-			// to 'show' all the assets that we added to the body! 
-			// OTHERWISE: use the application.AssetBind() function as at the end..
-	ChSharedPtr<ChIrrNodeAsset> mirr_asset_floor(new ChIrrNodeAsset);
-	mirr_asset_floor->Bind(mfloor, application);
-	mfloor->AddAsset(mirr_asset_floor);
-	*/
+    // ==Asset== Attach also a 'box' shape
+    ChSharedPtr<ChBoxShape> mbox(new ChBoxShape);
+    mbox->GetBoxGeometry().Pos = ChVector<>(1, 1, 0);
+    mbox->GetBoxGeometry().Size = ChVector<>(0.3, 0.5, 0.1);
+    mbody->AddAsset(mbox);
 
+    // ==Asset== Attach also a 'cylinder' shape
+    ChSharedPtr<ChCylinderShape> mcyl(new ChCylinderShape);
+    mcyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
+    mcyl->GetCylinderGeometry().p2 = ChVector<>(2.2, 0.5, 0);
+    mcyl->GetCylinderGeometry().rad = 0.3;
+    mbody->AddAsset(mcyl);
 
-	//
-	// EXAMPLE 2: 
-	//
+    // ==Asset== Attach also a 'triangle mesh' shape
+    ChSharedPtr<ChTriangleMeshShape> mmesh(new ChTriangleMeshShape);
+    mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(0, 1, 0));
+    mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(0, 1, 0.5));
+    mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(1, 1, 0));
+    mmesh->GetMesh().getIndicesVertexes().push_back(ChVector<int>(0, 1, 2));
+    mbody->AddAsset(mmesh);
 
-	// Textures, colors, asset levels with transformations.
-	// This section shows how to add more advanced types of assets
-	// and how to group assets in ChAssetLevel containers.
+    // ==Asset== Attach color. To set colors for all assets
+    // in the same level, just add this:
+    ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
+    mvisual->SetColor(ChColor(0.9f, 0.4f, 0.2f));
+    mbody->AddAsset(mvisual);
 
-			// Create the rigid body as usual (this won't move,
-			// it is only for visualization tests)
-	ChSharedPtr<ChBody> mbody(new ChBody);
-	mbody->SetBodyFixed(true);
-	application.GetSystem()->Add(mbody);
+    // ==Asset== Attach a level that contains other assets.
+    // Note: a ChAssetLevel can define a rotation/translation respect to paren level,
+    // Note: a ChAssetLevel can contain colors or textures: if any, they affect only objects in the level.
+    ChSharedPtr<ChAssetLevel> mlevelA(new ChAssetLevel);
 
-			// ==Asset== Attach a 'sphere' shape  
-	ChSharedPtr<ChSphereShape> msphere(new ChSphereShape);
-	msphere->GetSphereGeometry().rad = 0.5;
-	msphere->GetSphereGeometry().center = ChVector<>(-1,0,0);
-	mbody->AddAsset(msphere);
+    // ==Asset== Attach, in this level, a 'Wavefront mesh' asset,
+    // referencing a .obj file:
+    ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
+    mobjmesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
+    mlevelA->AddAsset(mobjmesh);
 
-			// ==Asset== Attach also a 'box' shape 
-	ChSharedPtr<ChBoxShape> mbox(new ChBoxShape);
-	mbox->GetBoxGeometry().Pos = ChVector<>(1,1,0);
-	mbox->GetBoxGeometry().Size = ChVector<>(0.3,0.5,0.1);
-	mbody->AddAsset(mbox);
+    // ==Asset== Attach also a texture, that will affect only the
+    // assets in mlevelA:
+    ChSharedPtr<ChTexture> mtexture(new ChTexture);
+    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mlevelA->AddAsset(mtexture);
 
-			// ==Asset== Attach also a 'cylinder' shape 
-	ChSharedPtr<ChCylinderShape> mcyl(new ChCylinderShape);
-	mcyl->GetCylinderGeometry().p1  = ChVector<>(2,-0.2,0);
-	mcyl->GetCylinderGeometry().p2  = ChVector<>(2.2,0.5,0);
-	mcyl->GetCylinderGeometry().rad = 0.3;
-	mbody->AddAsset(mcyl);
+    // Change the position of mlevelA, thus moving also its sub-assets:
+    mlevelA->GetFrame().SetPos(ChVector<>(0, 0, 2));
+    mbody->AddAsset(mlevelA);
 
-			// ==Asset== Attach also a 'triangle mesh' shape
-	ChSharedPtr<ChTriangleMeshShape> mmesh(new ChTriangleMeshShape);
-	mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(0,1,0));
-	mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(0,1,0.5));
-	mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(1,1,0));
-	mmesh->GetMesh().getIndicesVertexes().push_back(ChVector<int>(0,1,2));
-	mbody->AddAsset(mmesh);
+    // ==Asset== Attach sub level, then add to it an array of sub-levels,
+    // each rotated, and each containing a displaced box, thus making a
+    // spiral of cubes
+    ChSharedPtr<ChAssetLevel> mlevelB(new ChAssetLevel);
+    for (int j = 0; j < 20; j++) {
+        // ==Asset== the sub sub level..
+        ChSharedPtr<ChAssetLevel> mlevelC(new ChAssetLevel);
 
-			// ==Asset== Attach color. To set colors for all assets  
-			// in the same level, just add this:
-	ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
-	mvisual->SetColor(ChColor(0.9f,0.4f,0.2f));
-	mbody->AddAsset(mvisual);
-	
-			// ==Asset== Attach a level that contains other assets.
-			// Note: a ChAssetLevel can define a rotation/translation respect to paren level,
-			// Note: a ChAssetLevel can contain colors or textures: if any, they affect only objects in the level.
-	ChSharedPtr<ChAssetLevel> mlevelA(new ChAssetLevel);
+        // ==Asset== the contained box..
+        ChSharedPtr<ChBoxShape> msmallbox(new ChBoxShape);
+        msmallbox->GetBoxGeometry().Pos = ChVector<>(0.4, 0, 0);
+        msmallbox->GetBoxGeometry().Size = ChVector<>(0.1, 0.1, 0.01);
+        mlevelC->AddAsset(msmallbox);
 
-				// ==Asset== Attach, in this level, a 'Wavefront mesh' asset, 
-				// referencing a .obj file:
-	ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
-  mobjmesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
-	mlevelA->AddAsset(mobjmesh);
+        ChQuaternion<> mrot;
+        mrot.Q_from_AngAxis(j * 21 * CH_C_DEG_TO_RAD, ChVector<>(0, 1, 0));
+        mlevelC->GetFrame().SetRot(mrot);
+        mlevelC->GetFrame().SetPos(ChVector<>(0, j * 0.02, 0));
 
-				// ==Asset== Attach also a texture, that will affect only the 
-				// assets in mlevelA:
-	ChSharedPtr<ChTexture> mtexture(new ChTexture);
-  mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-	mlevelA->AddAsset(mtexture);
-	
-			// Change the position of mlevelA, thus moving also its sub-assets:
-	mlevelA->GetFrame().SetPos(ChVector<>(0,0,2));
-	mbody->AddAsset(mlevelA);
+        mlevelB->AddAsset(mlevelC);
+    }
 
-			// ==Asset== Attach sub level, then add to it an array of sub-levels, 
-			// each rotated, and each containing a displaced box, thus making a 
-			// spiral of cubes
-	ChSharedPtr<ChAssetLevel> mlevelB(new ChAssetLevel);
-	for (int j = 0; j<20; j++)
-	{
-				// ==Asset== the sub sub level..
-		ChSharedPtr<ChAssetLevel> mlevelC(new ChAssetLevel);
+    mbody->AddAsset(mlevelB);
 
-					// ==Asset== the contained box..
-		ChSharedPtr<ChBoxShape> msmallbox(new ChBoxShape);
-		msmallbox->GetBoxGeometry().Pos = ChVector<>(0.4,0,0);
-		msmallbox->GetBoxGeometry().Size = ChVector<>(0.1,0.1,0.01);
-		mlevelC->AddAsset(msmallbox);
+    // ==Asset== Attach a video camera. This will be used by Irrlicht,
+    // or POVray postprocessing, etc. Note that a camera can also be
+    // put in a moving object.
+    ChSharedPtr<ChCamera> mcamera(new ChCamera);
+    mcamera->SetAngle(50);
+    mcamera->SetPosition(ChVector<>(-3, 4, -5));
+    mcamera->SetAimPoint(ChVector<>(0, 1, 0));
+    mbody->AddAsset(mcamera);
 
-		ChQuaternion<> mrot;
-		mrot.Q_from_AngAxis(j*21*CH_C_DEG_TO_RAD, ChVector<>(0,1,0));
-		mlevelC->GetFrame().SetRot(mrot);
-		mlevelC->GetFrame().SetPos(ChVector<>(0,j*0.02,0));
+    /*
+            //  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
+            // to 'show' all the assets that we added to the body!
+            // OTHERWISE: use the application.AssetBind() function as at the end..
+    ChSharedPtr<ChIrrNodeAsset> mirr_asset(new ChIrrNodeAsset);
+    mirr_asset->Bind(mbody, application);
+    mbody->AddAsset(mirr_asset);
+    */
 
-		mlevelB->AddAsset(mlevelC);
-	}
+    //
+    // EXAMPLE 3:
+    //
 
-	mbody->AddAsset(mlevelB);
+    // Create a ChParticleClones cluster, and attach 'assets'
+    // that define a single "sample" 3D shape. This will be shown
+    // N times in Irrlicht.
 
-			// ==Asset== Attach a video camera. This will be used by Irrlicht, 
-			// or POVray postprocessing, etc. Note that a camera can also be 
-			// put in a moving object.
-	ChSharedPtr<ChCamera> mcamera(new ChCamera);
-	mcamera->SetAngle(50);
-	mcamera->SetPosition(ChVector<>(-3,4,-5));
-	mcamera->SetAimPoint(ChVector<>(0,1,0));
-	mbody->AddAsset(mcamera);
+    // Create the ChParticleClones, populate it with some random particles,
+    // and add it to physical system:
+    ChSharedPtr<ChParticlesClones> mparticles(new ChParticlesClones);
 
-	/*
-			//  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
-			// to 'show' all the assets that we added to the body! 
-			// OTHERWISE: use the application.AssetBind() function as at the end..
-	ChSharedPtr<ChIrrNodeAsset> mirr_asset(new ChIrrNodeAsset);
-	mirr_asset->Bind(mbody, application);
-	mbody->AddAsset(mirr_asset);
-	*/
+    // Note: coll. shape, if needed, must be specified before creating particles
+    mparticles->GetCollisionModel()->ClearModel();
+    mparticles->GetCollisionModel()->AddSphere(0.05);
+    mparticles->GetCollisionModel()->BuildModel();
+    mparticles->SetCollide(true);
 
+    // Create the random particles
+    for (int np = 0; np < 100; ++np)
+        mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1.5, ChRandom() + 2)));
 
+    // Do not forget to add the particle cluster to the system:
+    application.GetSystem()->Add(mparticles);
+    /*
+                //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
+                // shape to display all particles when rendering in 3D!
+        ChSharedPtr<ChSphereShape> mspherepart(new ChSphereShape);
+        mspherepart->GetSphereGeometry().rad = 0.05;
+        mparticles->AddAsset(mspherepart);
+    */
+    /*
+            //  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
+            // to 'show' all the assets that we added to the body!
+            // OTHERWISE: use the application.AssetBind() function as at the end!
+    ChSharedPtr<ChIrrNodeAsset> mirr_assetpart(new ChIrrNodeAsset);
+    mirr_assetpart->Bind(mparticles, application);
+    mparticles->AddAsset(mirr_assetpart);
+    */
 
-	//
-	// EXAMPLE 3: 
-	//
+    ////////////////////////
 
-	// Create a ChParticleClones cluster, and attach 'assets' 
-	// that define a single "sample" 3D shape. This will be shown 
-	// N times in Irrlicht.
-	
-			// Create the ChParticleClones, populate it with some random particles,
-			// and add it to physical system:
-	ChSharedPtr<ChParticlesClones> mparticles(new ChParticlesClones);
+    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
+    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
+    // If you need a finer control on which item really needs a visualization proxy in
+    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
 
-			// Note: coll. shape, if needed, must be specified before creating particles
-	mparticles->GetCollisionModel()->ClearModel();
-	mparticles->GetCollisionModel()->AddSphere(0.05);
-	mparticles->GetCollisionModel()->BuildModel();
-	mparticles->SetCollide(true);
-		
-			// Create the random particles 
-	for (int np=0; np<100; ++np)
-		mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom()-2,1.5,ChRandom()+2)));
+    application.AssetBindAll();
 
-			// Do not forget to add the particle cluster to the system:
-	application.GetSystem()->Add(mparticles);
-/*
-			//  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample 
-			// shape to display all particles when rendering in 3D! 
-	ChSharedPtr<ChSphereShape> mspherepart(new ChSphereShape);
-	mspherepart->GetSphereGeometry().rad = 0.05;
-	mparticles->AddAsset(mspherepart);
-*/
-	/*
-			//  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
-			// to 'show' all the assets that we added to the body! 
-			// OTHERWISE: use the application.AssetBind() function as at the end!
-	ChSharedPtr<ChIrrNodeAsset> mirr_assetpart(new ChIrrNodeAsset);
-	mirr_assetpart->Bind(mparticles, application);
-	mparticles->AddAsset(mirr_assetpart);
-	*/
+    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
+    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
 
+    application.AssetUpdateAll();
 
+    //
+    // THE SOFT-REAL-TIME CYCLE
+    //
 
-	////////////////////////
+    application.SetStepManage(true);
+    application.SetTimestep(0.01);
+    application.SetTryRealtime(true);
 
+    while (application.GetDevice()->run()) {
+        application.BeginScene();
 
-			// ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-			// in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-			// If you need a finer control on which item really needs a visualization proxy in 
-			// Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
+        application.DrawAll();
 
-	application.AssetBindAll();
+        application.DoStep();
 
-			// ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-			// that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
+        application.EndScene();
+    }
 
-	application.AssetUpdateAll();
-
-
-	// 
-	// THE SOFT-REAL-TIME CYCLE
-	//
-
-	application.SetStepManage(true);
-	application.SetTimestep(0.01);
-	application.SetTryRealtime(true);
-
-	while(application.GetDevice()->run()) 
-	{
-		application.BeginScene();
-
-		application.DrawAll();
-		
-		application.DoStep();
-			
-		application.EndScene();  
-	}
-	
-
-	return 0;
+    return 0;
 }
-  

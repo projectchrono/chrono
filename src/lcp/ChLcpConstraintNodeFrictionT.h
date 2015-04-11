@@ -5,7 +5,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -28,105 +28,81 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-
 #include "ChLcpConstraintTwoGeneric.h"
 #include "ChLcpVariablesBody.h"
 #include "ChLcpVariablesNode.h"
 
-namespace chrono
-{
-
+namespace chrono {
 
 /// Class used to represent friction constraint
 /// between a 3DOF node and a 6DOF body.
 
-class ChApi ChLcpConstraintNodeFrictionT : public ChLcpConstraintTwoGeneric
-{
-	CH_RTTI(ChLcpConstraintNodeFrictionT, ChLcpConstraintTwoGeneric)
+class ChApi ChLcpConstraintNodeFrictionT : public ChLcpConstraintTwoGeneric {
+    CH_RTTI(ChLcpConstraintNodeFrictionT, ChLcpConstraintTwoGeneric)
 
-			//
-			// DATA
-			//
+    //
+    // DATA
+    //
 
-protected:
+  protected:
+  public:
+    //
+    // CONSTRUCTORS
+    //
+    /// Default constructor
+    ChLcpConstraintNodeFrictionT() { mode = CONSTRAINT_FRIC; };
 
+    /// Construct and immediately set references to variables,
+    /// also setting the  and the normal constraint
+    /// other tangential constraint (the latter is mandatory only
+    /// for the second of the two tangential constraints)
+    ChLcpConstraintNodeFrictionT(ChLcpVariablesBody* mvariables_a, ChLcpVariablesNode* mvariables_b)
+        : ChLcpConstraintTwoGeneric(mvariables_a, mvariables_b) {
+        mode = CONSTRAINT_FRIC;
+    };
 
-public:
+    /// Copy constructor
+    ChLcpConstraintNodeFrictionT(const ChLcpConstraintNodeFrictionT& other) : ChLcpConstraintTwoGeneric(other) {}
 
-			//
-			// CONSTRUCTORS
-			//
-						/// Default constructor
-	ChLcpConstraintNodeFrictionT()
-					{
-						mode = CONSTRAINT_FRIC; 
-					};
+    virtual ~ChLcpConstraintNodeFrictionT(){};
 
-						/// Construct and immediately set references to variables,
-						/// also setting the  and the normal constraint
-						/// other tangential constraint (the latter is mandatory only
-						/// for the second of the two tangential constraints)
-	ChLcpConstraintNodeFrictionT( ChLcpVariablesBody* mvariables_a,
-								ChLcpVariablesNode* mvariables_b)
-				: ChLcpConstraintTwoGeneric(mvariables_a, mvariables_b)
-					{
-						mode = CONSTRAINT_FRIC; 
-					};
+    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintNodeFrictionT(*this); };
 
-						/// Copy constructor
-	ChLcpConstraintNodeFrictionT(const ChLcpConstraintNodeFrictionT& other) 
-				: ChLcpConstraintTwoGeneric(other)
-					{
-					}
+    /// Assignment operator: copy from other object
+    ChLcpConstraintNodeFrictionT& operator=(const ChLcpConstraintNodeFrictionT& other) {
+        if (&other == this)
+            return *this;
 
-	virtual ~ChLcpConstraintNodeFrictionT() {};
+        // copy parent class data
+        ChLcpConstraintTwoGeneric::operator=(other);
 
-	virtual ChLcpConstraint* new_Duplicate () {return new ChLcpConstraintNodeFrictionT(*this);};
+        return *this;
+    }
 
-					/// Assignment operator: copy from other object
-	ChLcpConstraintNodeFrictionT& operator=(const ChLcpConstraintNodeFrictionT& other)
-					{
-						if (&other == this)
-							return *this;
+    //
+    // FUNCTIONS
+    //
 
-						// copy parent class data
-						ChLcpConstraintTwoGeneric::operator=(other);
+    /// Tells that this constraint is not linear, that is: it cannot
+    /// be solved with a plain simplex solver.
+    virtual bool IsLinear() const { return false; }
 
-						return *this;
-					}
+    /// The constraint is satisfied?
+    virtual double Violation(double mc_i);
 
+    //
+    // STREAMING
+    //
 
-			//
-			// FUNCTIONS
-			//
+    /// Method to allow deserializing a persistent binary archive (ex: a file)
+    /// into transient data.
+    virtual void StreamIN(ChStreamInBinary& mstream);
 
-					/// Tells that this constraint is not linear, that is: it cannot
-					/// be solved with a plain simplex solver.
-	virtual bool IsLinear() const { return false; }
-
-					/// The constraint is satisfied?
-	virtual double Violation(double mc_i);
-
-			//
-			// STREAMING
-			//
-
-					/// Method to allow deserializing a persistent binary archive (ex: a file)
-					/// into transient data.
-	virtual void StreamIN(ChStreamInBinary& mstream);
-
-					/// Method to allow serializing transient data into a persistent
-					/// binary archive (ex: a file).
-	virtual void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow serializing transient data into a persistent
+    /// binary archive (ex: a file).
+    virtual void StreamOUT(ChStreamOutBinary& mstream);
 };
 
+}  // END_OF_NAMESPACE____
 
-
-
-} // END_OF_NAMESPACE____
-
-
-
-
-#endif  
+#endif

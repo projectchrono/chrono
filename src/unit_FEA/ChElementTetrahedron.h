@@ -4,7 +4,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -16,40 +16,32 @@
 #include "ChElement3D.h"
 #include "ChElementCorotational.h"
 
+namespace chrono {
+namespace fea {
 
-namespace chrono{
-	namespace fea{
+///
+/// Class for tetrahedral elements.
+///
+class ChApiFea ChElementTetrahedron : public ChElement3D,
+                                      public ChElementCorotational
+                                      //		  /|\						//
+                                      {  //		 / |  \						//
+  protected:                             //		/  |	\					//
+                                         //	   /.  |	  \					//
+  public:                                //	   \   |.		\				//
+    int ID;                              //		\  |	.	  \				//
+                                         //		 \ |		.	\			//
+                                         //		  \|__ __ __ __'__\			//
 
+    virtual void Update() {
+        // parent class update:
+        ChElement3D::Update();
+        // always keep updated the rotation matrix A:
+        this->UpdateRotation();
+    };
+};
 
-
-		///
-		/// Class for tetrahedral elements.
-		///
-class ChApiFea ChElementTetrahedron : 
-								public ChElement3D,
-								public ChElementCorotational																
-																//		  /|\						//
-{																//		 / |  \						//
-protected:														//		/  |	\					//
-																//	   /.  |	  \					//
-public:															//	   \   |.		\				//
-	int ID;														//		\  |	.	  \				//
-																//		 \ |		.	\			//
-																//		  \|__ __ __ __'__\			//
-	  
-	virtual void Update() 
-				{
-					// parent class update:
-					ChElement3D::Update();
-					// always keep updated the rotation matrix A:
-					this->UpdateRotation();
-				};
-															
-};																
-
-
-
-	}//___end of namespace fea___
-}//___end of namespace chrono___
+}  //___end of namespace fea___
+}  //___end of namespace chrono___
 
 #endif

@@ -4,7 +4,7 @@
 // Copyright (c) 2010-2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -27,150 +27,135 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "ChContact.h"
 #include "lcp/ChLcpConstraintTwoRollingN.h"
 
-namespace chrono
-{
-
+namespace chrono {
 
 ///
 /// Class representing an unilateral contact constraint, used by
-/// ChContactContainer, that has also rolling friction. 
+/// ChContactContainer, that has also rolling friction.
 ///
 
 class ChApi ChContactRolling : public ChContact {
+  protected:
+    //
+    // DATA
+    //
+    ChLcpConstraintTwoRollingN Rx;
+    ChLcpConstraintTwoRollingT Ru;
+    ChLcpConstraintTwoRollingT Rv;
 
-protected:
-				//
-	  			// DATA
-				//
-	ChLcpConstraintTwoRollingN   Rx;
-	ChLcpConstraintTwoRollingT   Ru;
-	ChLcpConstraintTwoRollingT   Rv; 
+    ChVector<> react_torque;
 
-	ChVector<> react_torque;
+    float complianceRoll;
+    float complianceSpin;
 
-	float complianceRoll;
-	float complianceSpin;
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-	  			// CONSTRUCTORS
-				//
+    ChContactRolling();
 
-	ChContactRolling ();
+    ChContactRolling(collision::ChCollisionModel* mmodA,  ///< model A
+                     collision::ChCollisionModel* mmodB,  ///< model B
+                     const ChLcpVariablesBody* varA,      ///< pass A vars
+                     const ChLcpVariablesBody* varB,      ///< pass B vars
+                     const ChFrame<>* frameA,             ///< pass A frame
+                     const ChFrame<>* frameB,             ///< pass B frame
+                     const ChVector<>& vpA,               ///< pass coll.point on A
+                     const ChVector<>& vpB,               ///< pass coll.point on B
+                     const ChVector<>& vN,                ///< pass coll.normal, respect to A
+                     double mdistance,                    ///< pass the distance (negative for penetration)
+                     float* mreaction_cache,  ///< pass the pointer to array of N,U,V reactions: a cache in contact
+                     /// manifold. If not available=0.
+                     ChMaterialCouple& mmaterial  ///< pass the reference to the material with friction, stiffness, etc.
+                     );
 
-	ChContactRolling (	collision::ChCollisionModel* mmodA,	///< model A
-						collision::ChCollisionModel* mmodB,	///< model B
-						const ChLcpVariablesBody* varA, ///< pass A vars
-						const ChLcpVariablesBody* varB, ///< pass B vars
-						const ChFrame<>* frameA,		///< pass A frame
-						const ChFrame<>* frameB,		///< pass B frame
-						const ChVector<>& vpA,			///< pass coll.point on A
-						const ChVector<>& vpB,			///< pass coll.point on B
-						const ChVector<>& vN, 			///< pass coll.normal, respect to A
-						double mdistance,				///< pass the distance (negative for penetration)
-						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						ChMaterialCouple& mmaterial		///< pass the reference to the material with friction, stiffness, etc.
-				);
+    virtual ~ChContactRolling();
 
-	virtual ~ChContactRolling ();
+    //
+    // FUNCTIONS
+    //
 
+    /// Initialize again this constraint.
+    virtual void Reset(
+        collision::ChCollisionModel* mmodA,  ///< model A
+        collision::ChCollisionModel* mmodB,  ///< model B
+        const ChLcpVariablesBody* varA,      ///< pass A vars
+        const ChLcpVariablesBody* varB,      ///< pass B vars
+        const ChFrame<>* frameA,             ///< pass A frame
+        const ChFrame<>* frameB,             ///< pass B frame
+        const ChVector<>& vpA,               ///< pass coll.point on A
+        const ChVector<>& vpB,               ///< pass coll.point on B
+        const ChVector<>& vN,                ///< pass coll.normal, respect to A
+        double mdistance,                    ///< pass the distance (negative for penetration)
+        float* mreaction_cache,  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not
+        /// available=0.
+        ChMaterialCouple& mmaterial  ///< pass the reference to the material with friction, stiffness, etc.
+        );
 
-				//
-	  			// FUNCTIONS
-				//
+    /// Get the contact force, if computed, in contact coordinate system
+    virtual ChVector<> GetContactTorque() { return react_torque; };
 
-					/// Initialize again this constraint.
-	virtual void Reset(	collision::ChCollisionModel* mmodA,	///< model A
-						collision::ChCollisionModel* mmodB,	///< model B
-						const ChLcpVariablesBody* varA, ///< pass A vars
-						const ChLcpVariablesBody* varB, ///< pass B vars
-						const ChFrame<>* frameA,		///< pass A frame
-						const ChFrame<>* frameB,		///< pass B frame
-						const ChVector<>& vpA,			///< pass coll.point on A
-						const ChVector<>& vpB,			///< pass coll.point on B
-						const ChVector<>& vN, 			///< pass coll.normal, respect to A
-						double mdistance,				///< pass the distance (negative for penetration)
-						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						ChMaterialCouple& mmaterial		///< pass the reference to the material with friction, stiffness, etc.
-				);
+    /// Get the contact rolling friction coefficient
+    virtual float GetRollingFriction() { return Rx.GetRollingFrictionCoefficient(); };
+    /// Set the contact rolling friction coefficient
+    virtual void SetRollingFriction(float mf) { Rx.SetRollingFrictionCoefficient(mf); };
 
-	
-					/// Get the contact force, if computed, in contact coordinate system
-	virtual ChVector<> GetContactTorque() {return react_torque; };
+    /// Get the contact spinning friction coefficient
+    virtual float GetSpinningFriction() { return Rx.GetSpinningFrictionCoefficient(); };
+    /// Set the contact spinning friction coefficient
+    virtual void SetSpinningFriction(float mf) { Rx.SetSpinningFrictionCoefficient(mf); };
 
-					/// Get the contact rolling friction coefficient
-	virtual float GetRollingFriction() {return Rx.GetRollingFrictionCoefficient(); };
-					/// Set the contact rolling friction coefficient
-	virtual void SetRollingFriction(float mf) { Rx.SetRollingFrictionCoefficient(mf); };
+    //
+    // UPDATING FUNCTIONS
+    //
 
-					/// Get the contact spinning friction coefficient
-	virtual float GetSpinningFriction() {return Rx.GetSpinningFrictionCoefficient(); };
-					/// Set the contact spinning friction coefficient
-	virtual void SetSpinningFriction(float mf) { Rx.SetSpinningFrictionCoefficient(mf); };
+    // warning, following are not virtual, for optimization
 
+    void ContIntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
 
-				//
-				// UPDATING FUNCTIONS
-				//
+    void ContIntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
 
-	// warning, following are not virtual, for optimization
+    void ContIntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
+                                 ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
+                                 const ChVectorDynamic<>& L,  ///< the L vector
+                                 const double c               ///< a scaling factor
+                                 );
+    void ContIntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
+                                 ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
+                                 const double c,            ///< a scaling factor
+                                 bool do_clamp,             ///< apply clamping to c*C?
+                                 double recovery_clamp      ///< value for min/max clamping of c*C
+                                 );
+    void ContIntToLCP(const unsigned int off_L,  ///< offset in L, Qc
+                      const ChVectorDynamic<>& L,
+                      const ChVectorDynamic<>& Qc);
+    void ContIntFromLCP(const unsigned int off_L,  ///< offset in L
+                        ChVectorDynamic<>& L);
 
-	void ContIntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L);	
+    void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
 
-	void ContIntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
+    void ConstraintsBiReset();
 
-	void ContIntLoadResidual_CqL(
-					const unsigned int off_L,	 ///< offset in L multipliers
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
-					const ChVectorDynamic<>& L,  ///< the L vector 
-					const double c				 ///< a scaling factor
-					);
-	void ContIntLoadConstraint_C(
-					const unsigned int off_L,	 ///< offset in Qc residual
-					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-					const double c,				 ///< a scaling factor
-					bool do_clamp,				 ///< apply clamping to c*C?
-					double recovery_clamp		 ///< value for min/max clamping of c*C
-					);
-	void ContIntToLCP(
-					const unsigned int off_L,			///< offset in L, Qc
-					const ChVectorDynamic<>& L,
-					const ChVectorDynamic<>& Qc
-					) ;
-	void ContIntFromLCP(
-					const unsigned int off_L,			///< offset in L
-					ChVectorDynamic<>& L
-					);
+    void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
 
-	void  InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    void ConstraintsFetch_react(double factor);
 
-	void  ConstraintsBiReset();
+    void ConstraintsLiLoadSuggestedSpeedSolution();
 
-	void  ConstraintsBiLoad_C(double factor=1., double recovery_clamp=0.1, bool do_clamp=false);
+    void ConstraintsLiLoadSuggestedPositionSolution();
 
-	void  ConstraintsFetch_react(double factor);
+    void ConstraintsLiFetchSuggestedSpeedSolution();
 
-	void  ConstraintsLiLoadSuggestedSpeedSolution();
-
-	void  ConstraintsLiLoadSuggestedPositionSolution();
-
-	void  ConstraintsLiFetchSuggestedSpeedSolution();
-
-	void  ConstraintsLiFetchSuggestedPositionSolution();
-
+    void ConstraintsLiFetchSuggestedPositionSolution();
 };
 
-
-
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

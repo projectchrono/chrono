@@ -5,7 +5,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -18,7 +18,6 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
- 
 
 #include <math.h>
 #include <stdarg.h>
@@ -29,100 +28,88 @@
 #include "core/ChException.h"
 #include "core/ChLog.h"
 
-
-namespace chrono
-{
-
-
+namespace chrono {
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 //
 // ChStreamOutAscii
 
-
-ChStreamOutAscii& ChStreamOutAscii::operator <<(bool bVal)
-{
-    if (bVal) Output("1", 1);
-	else      Output("0", 1);
-	return *this;
+ChStreamOutAscii& ChStreamOutAscii::operator<<(bool bVal) {
+    if (bVal)
+        Output("1", 1);
+    else
+        Output("0", 1);
+    return *this;
 }
 
-ChStreamOutAscii& ChStreamOutAscii::operator <<(char* str)
-{
-    Output(str,  strlen(str));
-	return *this;
+ChStreamOutAscii& ChStreamOutAscii::operator<<(char* str) {
+    Output(str, strlen(str));
+    return *this;
 }
-ChStreamOutAscii& ChStreamOutAscii::operator <<(std::string &str)
-{
-    Output(str.c_str(),  strlen(str.c_str()));
-	return *this;
+ChStreamOutAscii& ChStreamOutAscii::operator<<(std::string& str) {
+    Output(str.c_str(), strlen(str.c_str()));
+    return *this;
 }
-ChStreamOutAscii& ChStreamOutAscii::operator <<(const char* str)
-{
-    Output(str,  strlen(str));
-	return *this;
+ChStreamOutAscii& ChStreamOutAscii::operator<<(const char* str) {
+    Output(str, strlen(str));
+    return *this;
 }
 
-ChStreamOutAscii& ChStreamOutAscii::operator <<(int unVal)
-{
-	char buffer[100];
-
-	sprintf(buffer, "%d", unVal);
-
-    Output(buffer, strlen(buffer));
-
-	return *this;
-}
-
-ChStreamOutAscii& ChStreamOutAscii::operator <<(unsigned int unVal)
-{
-	char buffer[100];
-
-	sprintf(buffer, "%u", unVal);
-
-    Output(buffer, strlen(buffer));
-
-	return *this;
-}
-ChStreamOutAscii& ChStreamOutAscii::operator <<(unsigned long unVal)
-{
-	char buffer[100];
-
-	sprintf(buffer, "%lu", unVal);
-
-    Output(buffer, strlen(buffer));
-
-	return *this;
-}
-ChStreamOutAscii& ChStreamOutAscii::operator <<(unsigned long long unVal)
-{
+ChStreamOutAscii& ChStreamOutAscii::operator<<(int unVal) {
     char buffer[100];
-        
-    sprintf(buffer, "%llu", unVal);
-        
+
+    sprintf(buffer, "%d", unVal);
+
     Output(buffer, strlen(buffer));
-        
+
+    return *this;
+}
+
+ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned int unVal) {
+    char buffer[100];
+
+    sprintf(buffer, "%u", unVal);
+
+    Output(buffer, strlen(buffer));
+
+    return *this;
+}
+ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned long unVal) {
+    char buffer[100];
+
+    sprintf(buffer, "%lu", unVal);
+
+    Output(buffer, strlen(buffer));
+
+    return *this;
+}
+ChStreamOutAscii& ChStreamOutAscii::operator<<(unsigned long long unVal) {
+    char buffer[100];
+
+    sprintf(buffer, "%llu", unVal);
+
+    Output(buffer, strlen(buffer));
+
     return *this;
 }
 /*
 ChStreamOutAscii& ChStreamOutAscii::operator <<(long lVal)
 {
-	char buffer[100];
+    char buffer[100];
 
-	sprintf(buffer, "%ld", lVal);
+    sprintf(buffer, "%ld", lVal);
 
     Output(buffer, strlen(buffer));
 
-	return *this;
+    return *this;
 }
 */
-ChStreamOutAscii& ChStreamOutAscii::operator <<(char	tch)
-{
+ChStreamOutAscii& ChStreamOutAscii::operator<<(char tch) {
     char szCh[2];
     szCh[0] = tch;
     szCh[1] = '\0';
-    Output(szCh,  1);
+    Output(szCh, 1);
     return *this;
 }
 /*
@@ -130,454 +117,397 @@ ChStreamOutAscii& ChStreamOutAscii::operator <<(unsigned long ulVal)
 {
     char buffer[100];
 
-	sprintf(buffer, "%lu", ulVal);
+    sprintf(buffer, "%lu", ulVal);
 
     Output(buffer, strlen(buffer));
 
-	return *this;
+    return *this;
 }
 */
-ChStreamOutAscii& ChStreamOutAscii::operator <<(double dVal)
-{
+ChStreamOutAscii& ChStreamOutAscii::operator<<(double dVal) {
     char buffer[100];
 
-	sprintf(buffer, number_format, dVal);
+    sprintf(buffer, number_format, dVal);
 
-    Output(buffer,  strlen(buffer));
+    Output(buffer, strlen(buffer));
 
-	return *this;
+    return *this;
 }
 
-ChStreamOutAscii& ChStreamOutAscii::operator <<(float dVal)
-{
+ChStreamOutAscii& ChStreamOutAscii::operator<<(float dVal) {
     char buffer[100];
 
-	sprintf(buffer, number_format, ((double)dVal));
+    sprintf(buffer, number_format, ((double)dVal));
 
-    Output(buffer,  strlen(buffer));
+    Output(buffer, strlen(buffer));
 
-	return *this;
+    return *this;
 }
 
+void ChStreamOutAscii::Format(char* formatString, ...) {
+    if (formatString == NULL) {
+        throw(ChException("Bad format string"));
+    }
 
-void ChStreamOutAscii::Format(char* formatString, ...)
-{
-	if ( formatString == NULL)
-	{
-		throw (ChException("Bad format string"));
-	}
+    va_list argList;
 
-	va_list argList;
+    // Set va_list to the beginning of optional arguments
 
-	// Set va_list to the beginning of optional arguments
+    va_start(argList, formatString);
+    char* ptr = formatString;
 
-	va_start(argList, formatString);
-	char* ptr = formatString;
+    while (*ptr != '\0') {
+        char* str = NULL;
+        int nInteger = 0;
+        unsigned int unInt = 0;
+        double dDoub = 0;
 
-	while(*ptr != '\0')
-	{
-		char* str			= NULL;
-		int nInteger		= 0;
-		unsigned int unInt	= 0;
-		double	dDoub		= 0;
+        if (*ptr == '%') {
+            switch (*(ptr + 1)) {
+                case 's':
+                    str = va_arg(argList, char*);
 
-		if(*ptr == '%')
-		{
-			switch(*(ptr+1))
-			{
-			case 's':
-				str = va_arg(argList, char*);
+                    if (NULL == str)
+                        break;
+                    *this << str;
+                    ptr++;
+                    break;
 
-				if( NULL == str)
-					break;
-				*this << str;
-				ptr++;
-				break;
+                case 'd':
+                    nInteger = va_arg(argList, int);
+                    *this << nInteger;
+                    ptr++;
+                    break;
 
-			case 'd':
-				nInteger = va_arg(argList, int);
-				*this << nInteger;
-				ptr++;
-				break;
+                case 'u':
+                    unInt = va_arg(argList, unsigned int);
+                    *this << unInt;
+                    ptr++;
+                    break;
 
-			case 'u':
-				unInt = va_arg(argList, unsigned int);
-				*this << unInt;
-				ptr++;
-				break;
+                case 'f':
+                    dDoub = va_arg(argList, double);
+                    *this << dDoub;
+                    ptr++;
+                    break;
+                default:
+                    *this << *ptr;
+            }
+        } else {
+            *this << *ptr;
+        }
 
-			case 'f':
-				dDoub = va_arg(argList, double);
-				*this << dDoub;
-				ptr++;
-				break;
-			default:
-				*this << *ptr;
-			}
-		}
-		else
-		{
-			*this << *ptr;
-		}
-
-
-		ptr++;
-	}
-
+        ptr++;
+    }
 }
-
-
-
-
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 //
 // ChStreamInAscii
 
-static void RemoveTrailingCommas(std::string mstring)
-{
-	/*
-	while(mstring.length() > 0)
-	{
-		if ((mstring.substr(mstring.length()-1,1) == ",") || 
-			(mstring.substr(mstring.length()-1,1) == ";") ) 
-				mstring.resize(mstring.length()-1);
-	}
-	*/
+static void RemoveTrailingCommas(std::string mstring) {
+    /*
+    while(mstring.length() > 0)
+    {
+        if ((mstring.substr(mstring.length()-1,1) == ",") ||
+            (mstring.substr(mstring.length()-1,1) == ";") )
+                mstring.resize(mstring.length()-1);
+    }
+    */
 }
 
-ChStreamInAscii& ChStreamInAscii::operator >> (bool	&bVal)
-{
-	std::string textboolean;
-	bool parsed = false;
-	*this >> textboolean;
-	RemoveTrailingCommas(textboolean);
-	if (textboolean=="true") {
-		bVal = true;
-		parsed = true;
-	}
-	if (textboolean=="false") {
-		bVal = false;
-		parsed = true;
-	}
-	if (textboolean=="1") {
-		bVal = true;
-		parsed = true;
-	}
-	if (textboolean=="0") {
-		bVal = false;
-		parsed = true;
-	}
-	if (!parsed)
-		throw (ChException( "String " +textboolean+ " is not a valid 'true'/'false' value"));
-	return *this;
+ChStreamInAscii& ChStreamInAscii::operator>>(bool& bVal) {
+    std::string textboolean;
+    bool parsed = false;
+    *this >> textboolean;
+    RemoveTrailingCommas(textboolean);
+    if (textboolean == "true") {
+        bVal = true;
+        parsed = true;
+    }
+    if (textboolean == "false") {
+        bVal = false;
+        parsed = true;
+    }
+    if (textboolean == "1") {
+        bVal = true;
+        parsed = true;
+    }
+    if (textboolean == "0") {
+        bVal = false;
+        parsed = true;
+    }
+    if (!parsed)
+        throw(ChException("String " + textboolean + " is not a valid 'true'/'false' value"));
+    return *this;
 }
 /*
 ChStreamInAscii& ChStreamInAscii::operator >> (long	&lVal)
 {
-	std::string buffer;
-	*this >> buffer;
-	RemoveTrailingCommas(buffer);
-	lVal = atoi(buffer.c_str());
-	return *this;
+    std::string buffer;
+    *this >> buffer;
+    RemoveTrailingCommas(buffer);
+    lVal = atoi(buffer.c_str());
+    return *this;
 }
 */
-ChStreamInAscii& ChStreamInAscii::operator >>(char	&tch)
-{
-	char loa[1];
-	Input(loa, 1);
-	tch=loa[0];
-	return *this;
+ChStreamInAscii& ChStreamInAscii::operator>>(char& tch) {
+    char loa[1];
+    Input(loa, 1);
+    tch = loa[0];
+    return *this;
 }
 
-ChStreamInAscii& ChStreamInAscii::operator >>(int	&nVal)
-{
-	std::string buffer;
-	*this >> buffer;
-	RemoveTrailingCommas(buffer);
-	nVal = atoi(buffer.c_str());
-	return *this;
+ChStreamInAscii& ChStreamInAscii::operator>>(int& nVal) {
+    std::string buffer;
+    *this >> buffer;
+    RemoveTrailingCommas(buffer);
+    nVal = atoi(buffer.c_str());
+    return *this;
 }
 /*
 ChStreamInAscii& ChStreamInAscii::operator >>(unsigned	long	&ulVal)
 {
-	std::string buffer;
-	*this >> buffer;
-	RemoveTrailingCommas(buffer);
-	ulVal = atoi(buffer.c_str());
-	return *this;
+    std::string buffer;
+    *this >> buffer;
+    RemoveTrailingCommas(buffer);
+    ulVal = atoi(buffer.c_str());
+    return *this;
 }
 */
 
-
-ChStreamInAscii& ChStreamInAscii::operator >>(double	&dVal)
-{
-	std::string buffer;
-	*this >> buffer;
-	RemoveTrailingCommas(buffer);
-	dVal = atof(buffer.c_str());
-	//if (errno)
-		//throw (ChException( "String " +buffer+ " is not a valid number format"));
-	return *this;
+ChStreamInAscii& ChStreamInAscii::operator>>(double& dVal) {
+    std::string buffer;
+    *this >> buffer;
+    RemoveTrailingCommas(buffer);
+    dVal = atof(buffer.c_str());
+    // if (errno)
+    // throw (ChException( "String " +buffer+ " is not a valid number format"));
+    return *this;
 }
 
-ChStreamInAscii& ChStreamInAscii::operator >>(float	&dVal)
-{
-	std::string buffer;
-	*this >> buffer;
-	RemoveTrailingCommas(buffer);
-	dVal = (float)(atof(buffer.c_str()));
-	//if (errno)
-		//throw (ChException( "String " +buffer+ " is not a valid number format"));
-	return *this;
+ChStreamInAscii& ChStreamInAscii::operator>>(float& dVal) {
+    std::string buffer;
+    *this >> buffer;
+    RemoveTrailingCommas(buffer);
+    dVal = (float)(atof(buffer.c_str()));
+    // if (errno)
+    // throw (ChException( "String " +buffer+ " is not a valid number format"));
+    return *this;
 }
 
-ChStreamInAscii& ChStreamInAscii::operator >>(unsigned	int	&unVal)
-{
-	std::string buffer;
-	*this >> buffer;
-	RemoveTrailingCommas(buffer);
-	unVal = atoi(buffer.c_str());
-	return *this;
+ChStreamInAscii& ChStreamInAscii::operator>>(unsigned int& unVal) {
+    std::string buffer;
+    *this >> buffer;
+    RemoveTrailingCommas(buffer);
+    unVal = atoi(buffer.c_str());
+    return *this;
 }
 
+ChStreamInAscii& ChStreamInAscii::operator>>(char* str) {
+    /*
+    bool stop = 0;
+    int cnt = 0;
+    char loa[2];
+    loa[1]=0;
 
-ChStreamInAscii& ChStreamInAscii::operator >>( char* str)
-{
-	/*
-	bool stop = 0;
-	int cnt = 0;
-	char loa[2];
-	loa[1]=0;
+    while(true)
+    {
 
-	while(true)
-	{
+        try {Input(loa, 1);}
+        catch (std::exception mfoo)
+        {
+            if (!(this->End_of_stream() && cnt>0))
+                throw (ChException("Cannot read from stream"));
+        }
 
-		try {Input(loa, 1);}
-		catch (std::exception mfoo)
-		{
-			if (!(this->End_of_stream() && cnt>0))
-				throw (ChException("Cannot read from stream"));
-		}
+        if (this->End_of_stream() || loa[0]==*"\n" || loa[0]==*" " || loa[0]==*"\t" || loa[0]==0)
+            break;
 
-		if (this->End_of_stream() || loa[0]==*"\n" || loa[0]==*" " || loa[0]==*"\t" || loa[0]==0)
-			break;
+        str[cnt]=loa[0];
+        cnt++;
+    }
+    str[cnt]=NULL;
+    */
 
-		str[cnt]=loa[0];
-		cnt++;
-	}
-	str[cnt]=NULL;
-	*/
+    std::string buffer;
+    *this >> buffer;
+    strcpy(str, buffer.c_str());
 
-	std::string buffer;
-	*this >> buffer;
-	strcpy(str, buffer.c_str());
-
-	return *this;
+    return *this;
 }
 
+ChStreamInAscii& ChStreamInAscii::operator>>(std::string& str) {
+    // bool stop = 0; //unused
+    int cnt = 0;
+    char loa[2];
+    loa[1] = 0;
+    str = "";
+    bool started = false;
 
+    while (true) {
+        try {
+            Input(loa, 1);
+        } catch (std::exception mfoo) {
+            if (!(this->End_of_stream() && cnt > 0))
+                throw(ChException("Cannot read from stream"));
+        }
 
-ChStreamInAscii& ChStreamInAscii::operator >>(std::string &str)
-{
-	//bool stop = 0; //unused
-	int cnt = 0;
-	char loa[2];
-	loa[1]=0;
-	str="";
-	bool started = false;
+        if (this->End_of_stream())
+            break;
 
-	while(true)
-	{
+        if (loa[0] != *"\n" && loa[0] != *" " && loa[0] != *"\t")
+            started = true;
 
-		try {Input(loa, 1);}
-		catch (std::exception mfoo)
-		{
-			if (!(this->End_of_stream() && cnt>0))
-				throw (ChException("Cannot read from stream"));
-		}
+        if (started) {
+            if (loa[0] == *"\n" || loa[0] == *" " || loa[0] == *"\t" || loa[0] == 0)
+                break;
+            str.append(loa);
+        }
 
-		if (this->End_of_stream())
-			break;
-		
-		if (loa[0]!=*"\n" && loa[0]!=*" " && loa[0]!=*"\t")
-			started = true;
+        cnt++;
+    }
 
-		if (started)
-		{
-			if (loa[0]==*"\n" || loa[0]==*" " || loa[0]==*"\t" || loa[0]==0)
-				break;
-			str.append(loa);
-		}
-
-		cnt++;
-	}
-
-	return *this;
+    return *this;
 }
-
-
-
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 //
 // ChBinaryArchive
 
-
 // Endian test
-bool ChBinaryArchive::IsBigEndianMachine()
-{
-  union {
-    int word;
-    unsigned char byte;
-  } endian_test;
+bool ChBinaryArchive::IsBigEndianMachine() {
+    union {
+        int word;
+        unsigned char byte;
+    } endian_test;
 
-  endian_test.word = 1;
-  if(endian_test.byte != 1)
-	  return true;
-  else
-	  return false;
+    endian_test.word = 1;
+    if (endian_test.byte != 1)
+        return true;
+    else
+        return false;
 
-  return false;
+    return false;
 }
-
-
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 //
 // ChStreamOutBinary
 
-
-
-
-
-ChStreamOutBinary& ChStreamOutBinary::operator <<(char	Val)
-{
-	this->Output((char*)&Val, sizeof(char));
-	return (*this);
+ChStreamOutBinary& ChStreamOutBinary::operator<<(char Val) {
+    this->Output((char*)&Val, sizeof(char));
+    return (*this);
 }
-ChStreamOutBinary& ChStreamOutBinary::operator <<(bool	Val)
-{
-	// convert booleans to char, for cross-platform compatibility.
-	char tmp;
-	tmp = (char)Val;
-	this->Output((char*)&tmp, sizeof(char));
-	return (*this);
+ChStreamOutBinary& ChStreamOutBinary::operator<<(bool Val) {
+    // convert booleans to char, for cross-platform compatibility.
+    char tmp;
+    tmp = (char)Val;
+    this->Output((char*)&tmp, sizeof(char));
+    return (*this);
 }
 /*
 ChStreamOutBinary& ChStreamOutBinary::operator <<(long	Val)
 {
-	if (big_endian_machine)
-	{
-		long tmp = Val;
-		StreamSwapBytes<long>(&tmp);
-		this->Output((char*)&tmp, sizeof(long));
-	}
-	this->Output((char*)&Val, sizeof(long));
-	return (*this);
+    if (big_endian_machine)
+    {
+        long tmp = Val;
+        StreamSwapBytes<long>(&tmp);
+        this->Output((char*)&tmp, sizeof(long));
+    }
+    this->Output((char*)&Val, sizeof(long));
+    return (*this);
 }
 
 ChStreamOutBinary& ChStreamOutBinary::operator <<(unsigned long Val)
 {
-	if (big_endian_machine)
-	{
-		unsigned long tmp = Val;
-		StreamSwapBytes<unsigned long>(&tmp);
-		this->Output((char*)&tmp, sizeof(unsigned long));
-	}
-	this->Output((char*)&Val, sizeof(unsigned long));
-	return (*this);
+    if (big_endian_machine)
+    {
+        unsigned long tmp = Val;
+        StreamSwapBytes<unsigned long>(&tmp);
+        this->Output((char*)&tmp, sizeof(unsigned long));
+    }
+    this->Output((char*)&Val, sizeof(unsigned long));
+    return (*this);
 }
 */
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(const int		Val)
-{
-	if (big_endian_machine)
-	{
-		int tmp = Val;
-		StreamSwapBytes<int>(&tmp);
-		this->Output((char*)&tmp, sizeof(int));
-	} else  {
-	  this->Output((char*)&Val, sizeof(int));
-	}
-	return (*this);
+ChStreamOutBinary& ChStreamOutBinary::operator<<(const int Val) {
+    if (big_endian_machine) {
+        int tmp = Val;
+        StreamSwapBytes<int>(&tmp);
+        this->Output((char*)&tmp, sizeof(int));
+    } else {
+        this->Output((char*)&Val, sizeof(int));
+    }
+    return (*this);
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(unsigned int Val)
-{
-	if (big_endian_machine)
-	{
-		unsigned int tmp = Val;
-		StreamSwapBytes<unsigned int>(&tmp);
-		this->Output((char*)&tmp, sizeof(unsigned int));
-	} else {
-	  this->Output((char*)&Val, sizeof(unsigned int));
-	}
-	return (*this);
+ChStreamOutBinary& ChStreamOutBinary::operator<<(unsigned int Val) {
+    if (big_endian_machine) {
+        unsigned int tmp = Val;
+        StreamSwapBytes<unsigned int>(&tmp);
+        this->Output((char*)&tmp, sizeof(unsigned int));
+    } else {
+        this->Output((char*)&Val, sizeof(unsigned int));
+    }
+    return (*this);
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(const double	Val)
-{
-	if (big_endian_machine)
-	{
-		double tmp = Val;
-		StreamSwapBytes<double>(&tmp);
-		this->Output((char*)&tmp, sizeof(double));
-	} else {
-	  this->Output((char*)&Val, sizeof(double));
-	}
-	return (*this);
+ChStreamOutBinary& ChStreamOutBinary::operator<<(const double Val) {
+    if (big_endian_machine) {
+        double tmp = Val;
+        StreamSwapBytes<double>(&tmp);
+        this->Output((char*)&tmp, sizeof(double));
+    } else {
+        this->Output((char*)&Val, sizeof(double));
+    }
+    return (*this);
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(const float	Val)
-{
-	if (big_endian_machine)
-	{
-		float tmp = Val;
-		StreamSwapBytes<float>(&tmp);
-		this->Output((char*)&tmp, sizeof(float));
-	} else {
-	  this->Output((char*)&Val, sizeof(float));
-	}
-	return (*this);
+ChStreamOutBinary& ChStreamOutBinary::operator<<(const float Val) {
+    if (big_endian_machine) {
+        float tmp = Val;
+        StreamSwapBytes<float>(&tmp);
+        this->Output((char*)&tmp, sizeof(float));
+    } else {
+        this->Output((char*)&Val, sizeof(float));
+    }
+    return (*this);
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(const char* str)
-{
-	// save string length, including null termination
-	int mlength = (int)strlen(str)+1;
-	*this << mlength;
-	// save all bytes including null termination
-	this->Output(str, mlength);
-	return *this;
+ChStreamOutBinary& ChStreamOutBinary::operator<<(const char* str) {
+    // save string length, including null termination
+    int mlength = (int)strlen(str) + 1;
+    *this << mlength;
+    // save all bytes including null termination
+    this->Output(str, mlength);
+    return *this;
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(char* str)
-{
-  // save string length, including null termination
-  int mlength = (int)strlen(str) + 1;
-  *this << mlength;
-  // save all bytes including null termination
-  this->Output(str, mlength);
-  return *this;
+ChStreamOutBinary& ChStreamOutBinary::operator<<(char* str) {
+    // save string length, including null termination
+    int mlength = (int)strlen(str) + 1;
+    *this << mlength;
+    // save all bytes including null termination
+    this->Output(str, mlength);
+    return *this;
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(std::string	&str)
-{
-	// save string length, including null termination
-	int mlength = (int)strlen(str.c_str());
-	*this << mlength;
-	// save all bytes including null termination
-	this->Output(str.c_str(), strlen(str.c_str()));
-	return *this;
+ChStreamOutBinary& ChStreamOutBinary::operator<<(std::string& str) {
+    // save string length, including null termination
+    int mlength = (int)strlen(str.c_str());
+    *this << mlength;
+    // save all bytes including null termination
+    this->Output(str.c_str(), strlen(str.c_str()));
+    return *this;
 }
 
-void ChStreamOutBinary::VersionWrite(int mver)
-{
-	*this << mver;
+void ChStreamOutBinary::VersionWrite(int mver) {
+    *this << mver;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -585,138 +515,127 @@ void ChStreamOutBinary::VersionWrite(int mver)
 //
 // ChStreamInBinary
 
-
-
-
-ChStreamInBinary& ChStreamInBinary::operator >>(char		&Val)
-{
-	this->Input((char*)&Val, sizeof(char));
-	return (*this);
+ChStreamInBinary& ChStreamInBinary::operator>>(char& Val) {
+    this->Input((char*)&Val, sizeof(char));
+    return (*this);
 }
 
-ChStreamInBinary& ChStreamInBinary::operator >>(bool		&Val)
-{
-	// booleans as chars, for cross platform portability
-	char tmp;
-	this->Input((char*)&tmp, sizeof(char));
-	if (tmp) Val= true; else Val = false;
-	//Val = (bool)tmp;
-	return (*this);
+ChStreamInBinary& ChStreamInBinary::operator>>(bool& Val) {
+    // booleans as chars, for cross platform portability
+    char tmp;
+    this->Input((char*)&tmp, sizeof(char));
+    if (tmp)
+        Val = true;
+    else
+        Val = false;
+    // Val = (bool)tmp;
+    return (*this);
 }
 /*
 ChStreamInBinary& ChStreamInBinary::operator >>(long		&Val)
 {
-	if (big_endian_machine) {
-		long tmp;
-		this->Input((char*)&tmp, sizeof(long));
-		StreamSwapBytes<long>(&tmp);
-		Val = tmp;
-	} else {
-		this->Input((char*)&Val, sizeof(long));
-	}
-	return (*this);
+    if (big_endian_machine) {
+        long tmp;
+        this->Input((char*)&tmp, sizeof(long));
+        StreamSwapBytes<long>(&tmp);
+        Val = tmp;
+    } else {
+        this->Input((char*)&Val, sizeof(long));
+    }
+    return (*this);
 }
 
 ChStreamInBinary& ChStreamInBinary::operator >>(unsigned long &Val)
 {
-	if (big_endian_machine) {
-		unsigned long tmp;
-		this->Input((char*)&tmp, sizeof(unsigned long));
-		StreamSwapBytes<unsigned long>(&tmp);
-		Val = tmp;
-	} else {
-		this->Input((char*)&Val, sizeof(unsigned long));
-	}
-	return (*this);
+    if (big_endian_machine) {
+        unsigned long tmp;
+        this->Input((char*)&tmp, sizeof(unsigned long));
+        StreamSwapBytes<unsigned long>(&tmp);
+        Val = tmp;
+    } else {
+        this->Input((char*)&Val, sizeof(unsigned long));
+    }
+    return (*this);
 }
 */
-ChStreamInBinary& ChStreamInBinary::operator >>(int		&Val)
-{
-	if (big_endian_machine) {
-		int  tmp;
-		this->Input((char*)&tmp, sizeof(int));
-		StreamSwapBytes<int>(&tmp);
-		Val = tmp;
-	} else {
-		this->Input((char*)&Val, sizeof(int));
-	}
-	return (*this);
+ChStreamInBinary& ChStreamInBinary::operator>>(int& Val) {
+    if (big_endian_machine) {
+        int tmp;
+        this->Input((char*)&tmp, sizeof(int));
+        StreamSwapBytes<int>(&tmp);
+        Val = tmp;
+    } else {
+        this->Input((char*)&Val, sizeof(int));
+    }
+    return (*this);
 }
 
-ChStreamInBinary& ChStreamInBinary::operator >>(unsigned int &Val)
-{
-	if (big_endian_machine) {
-		unsigned int  tmp;
-		this->Input((char*)&tmp, sizeof(unsigned int));
-		StreamSwapBytes<unsigned int>(&tmp);
-		Val = tmp;
-	} else {
-		this->Input((char*)&Val, sizeof(unsigned int));
-	}
-	return (*this);
+ChStreamInBinary& ChStreamInBinary::operator>>(unsigned int& Val) {
+    if (big_endian_machine) {
+        unsigned int tmp;
+        this->Input((char*)&tmp, sizeof(unsigned int));
+        StreamSwapBytes<unsigned int>(&tmp);
+        Val = tmp;
+    } else {
+        this->Input((char*)&Val, sizeof(unsigned int));
+    }
+    return (*this);
 }
 
-ChStreamInBinary& ChStreamInBinary::operator >>(double		&Val)
-{
-	if (big_endian_machine) {
-		double tmp;
-		this->Input((char*)&tmp, sizeof(double));
-		StreamSwapBytes<double>(&tmp);
-		Val = tmp;
-	} else {
-		this->Input((char*)&Val, sizeof(double));
-	}
-	return (*this);
+ChStreamInBinary& ChStreamInBinary::operator>>(double& Val) {
+    if (big_endian_machine) {
+        double tmp;
+        this->Input((char*)&tmp, sizeof(double));
+        StreamSwapBytes<double>(&tmp);
+        Val = tmp;
+    } else {
+        this->Input((char*)&Val, sizeof(double));
+    }
+    return (*this);
 }
 
-
-ChStreamInBinary& ChStreamInBinary::operator >>(float		&Val)
-{
-	if (big_endian_machine) {
-		float  tmp;
-		this->Input((char*)&tmp, sizeof(float));
-		StreamSwapBytes<float>(&tmp);
-		Val = tmp;
-	} else {
-		this->Input((char*)&Val, sizeof(float));
-	}
-	return (*this);
+ChStreamInBinary& ChStreamInBinary::operator>>(float& Val) {
+    if (big_endian_machine) {
+        float tmp;
+        this->Input((char*)&tmp, sizeof(float));
+        StreamSwapBytes<float>(&tmp);
+        Val = tmp;
+    } else {
+        this->Input((char*)&Val, sizeof(float));
+    }
+    return (*this);
 }
 
-ChStreamInBinary& ChStreamInBinary::operator >>(char*		str)
-{
-	// Read string length , plus null-termination char
-	int mlength;
-	*this >> mlength;
-	// Read all bytes of string.
-	this->Input(str, mlength);
-	return *this;
+ChStreamInBinary& ChStreamInBinary::operator>>(char* str) {
+    // Read string length , plus null-termination char
+    int mlength;
+    *this >> mlength;
+    // Read all bytes of string.
+    this->Input(str, mlength);
+    return *this;
 }
 
-ChStreamInBinary& ChStreamInBinary::operator >>(std::string		&str)
-{
-	// Read string length , plus null-termination char
-	str = "";
-	char buf[2];
-	buf[1]='\0';
-	int mlength;
-	*this >> mlength ;
-	str.reserve(mlength);
-	for (int i = 0; i<mlength; i++)
-	{
-		this->Input(buf, 1);
-		str.append(buf);
-	}
-	// Read all bytes of string.
+ChStreamInBinary& ChStreamInBinary::operator>>(std::string& str) {
+    // Read string length , plus null-termination char
+    str = "";
+    char buf[2];
+    buf[1] = '\0';
+    int mlength;
+    *this >> mlength;
+    str.reserve(mlength);
+    for (int i = 0; i < mlength; i++) {
+        this->Input(buf, 1);
+        str.append(buf);
+    }
+    // Read all bytes of string.
 
-	return *this;
+    return *this;
 }
 
-int ChStreamInBinary::VersionRead()
-{
-	int mres;
-	*this >> mres;
-	return mres;
+int ChStreamInBinary::VersionRead() {
+    int mres;
+    *this >> mres;
+    return mres;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -724,106 +643,97 @@ int ChStreamInBinary::VersionRead()
 //
 // ChStreamFile
 
-
-ChStreamFile::ChStreamFile(const char* filename, std::ios::openmode mmode)
-{
-	try
-	{
-		//file.exceptions(std::ios::failbit | std::ios::badbit);
-		file.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
-		file.open(filename, mmode);
-	}
-	catch (std::exception)
-	{
-		std::cout << "CANNOT OPEN";
-		throw ChException("Cannot open stream");
-	};
-	strcpy (name, filename);
+ChStreamFile::ChStreamFile(const char* filename, std::ios::openmode mmode) {
+    try {
+        // file.exceptions(std::ios::failbit | std::ios::badbit);
+        file.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
+        file.open(filename, mmode);
+    } catch (std::exception) {
+        std::cout << "CANNOT OPEN";
+        throw ChException("Cannot open stream");
+    };
+    strcpy(name, filename);
 };
 
-			/// Destruction means that the file stream is also closed.
-ChStreamFile::~ChStreamFile()
-{
-	file.flush();
-	file.close();
+/// Destruction means that the file stream is also closed.
+ChStreamFile::~ChStreamFile() {
+    file.flush();
+    file.close();
 };
 
-void ChStreamFile::Write(const char* data, size_t n)
-{
-	try{ file.write(data, n); }
-	catch (std::exception){throw ChException("Cannot write to stream");};
+void ChStreamFile::Write(const char* data, size_t n) {
+    try {
+        file.write(data, n);
+    } catch (std::exception) {
+        throw ChException("Cannot write to stream");
+    };
 }
 
-void ChStreamFile::Read(char* data, size_t n)
-{
-	try{ file.read(data, n); }
-	catch (std::exception){throw ChException("Cannot read from stream");};
+void ChStreamFile::Read(char* data, size_t n) {
+    try {
+        file.read(data, n);
+    } catch (std::exception) {
+        throw ChException("Cannot read from stream");
+    };
 }
 
 //////////////////////////////////
 
-ChStreamOstreamWrapper::ChStreamOstreamWrapper(std::ostream* mfile)
-{
-	assert(mfile);
-	afile = mfile;
+ChStreamOstreamWrapper::ChStreamOstreamWrapper(std::ostream* mfile) {
+    assert(mfile);
+    afile = mfile;
 };
-ChStreamOstreamWrapper::~ChStreamOstreamWrapper() {};
+ChStreamOstreamWrapper::~ChStreamOstreamWrapper(){};
 
-
-void ChStreamOstreamWrapper::Write(const char* data, size_t n)
-{
-	try{ afile->write(data, n); }
-	catch (std::exception){throw ChException("Cannot write to wrapped stream");};
+void ChStreamOstreamWrapper::Write(const char* data, size_t n) {
+    try {
+        afile->write(data, n);
+    } catch (std::exception) {
+        throw ChException("Cannot write to wrapped stream");
+    };
 }
 
 //////////////////////////////////
 
-ChStreamIstreamWrapper::ChStreamIstreamWrapper(std::istream* mfile)
-{
-	assert(mfile);
-	afile = mfile;
+ChStreamIstreamWrapper::ChStreamIstreamWrapper(std::istream* mfile) {
+    assert(mfile);
+    afile = mfile;
 };
-ChStreamIstreamWrapper::~ChStreamIstreamWrapper() {};
+ChStreamIstreamWrapper::~ChStreamIstreamWrapper(){};
 
-
-void ChStreamIstreamWrapper::Read(char* data, size_t n)
-{
-	try{ afile->read(data, n); }
-	catch (std::exception){throw ChException("Cannot read from wrapped stream");};
+void ChStreamIstreamWrapper::Read(char* data, size_t n) {
+    try {
+        afile->read(data, n);
+    } catch (std::exception) {
+        throw ChException("Cannot read from wrapped stream");
+    };
 }
-
 
 //////////////////////////////////
 
-ChStreamVectorWrapper::ChStreamVectorWrapper(std::vector<char>* mchars)
-{
-	assert(mchars);
-	vbuffer = mchars;
-	pos = 0;
+ChStreamVectorWrapper::ChStreamVectorWrapper(std::vector<char>* mchars) {
+    assert(mchars);
+    vbuffer = mchars;
+    pos = 0;
 };
-ChStreamVectorWrapper::~ChStreamVectorWrapper() {};
+ChStreamVectorWrapper::~ChStreamVectorWrapper(){};
 
-
-void ChStreamVectorWrapper::Write(const char* data, size_t n)
-{
-	std::copy(data, data+n, std::back_inserter(*vbuffer));
+void ChStreamVectorWrapper::Write(const char* data, size_t n) {
+    std::copy(data, data + n, std::back_inserter(*vbuffer));
 }
-void ChStreamVectorWrapper::Read(char* data, size_t n)
-{
-	if (pos+n > vbuffer->size())
-		n = vbuffer->size()-pos;
+void ChStreamVectorWrapper::Read(char* data, size_t n) {
+    if (pos + n > vbuffer->size())
+        n = vbuffer->size() - pos;
 
-	for (int i=0; i<n; i++)
-	{
-		data[i] = (*vbuffer)[pos];
-		pos++;
-	}
+    for (int i = 0; i < n; i++) {
+        data[i] = (*vbuffer)[pos];
+        pos++;
+    }
 }
-bool ChStreamVectorWrapper::End_of_stream()
-{
-	if (pos >= vbuffer->size()) 
-		return true;
-	return false;
+bool ChStreamVectorWrapper::End_of_stream() {
+    if (pos >= vbuffer->size())
+        return true;
+    return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -831,49 +741,49 @@ bool ChStreamVectorWrapper::End_of_stream()
 // These constructors / destructors, though concise, cannost stay in .h because
 // the GNU GCC linker gives strange problems...
 
-ChStreamOut::ChStreamOut() {};
-ChStreamOut::~ChStreamOut() {};
+ChStreamOut::ChStreamOut(){};
+ChStreamOut::~ChStreamOut(){};
 
-ChStreamIn::ChStreamIn() {};
-ChStreamIn::~ChStreamIn() {};
+ChStreamIn::ChStreamIn(){};
+ChStreamIn::~ChStreamIn(){};
 
-ChStreamOutAscii::ChStreamOutAscii()
-{
-	strcpy(number_format, "%g");
-	strcpy(comment_trailer, "#");
+ChStreamOutAscii::ChStreamOutAscii() {
+    strcpy(number_format, "%g");
+    strcpy(comment_trailer, "#");
 };
-ChStreamOutAscii::~ChStreamOutAscii() {};
+ChStreamOutAscii::~ChStreamOutAscii(){};
 
-ChStreamInAscii::ChStreamInAscii()
-{
-	strcpy(number_format, "%g");
+ChStreamInAscii::ChStreamInAscii() {
+    strcpy(number_format, "%g");
 };
-ChStreamInAscii::~ChStreamInAscii() {};
+ChStreamInAscii::~ChStreamInAscii(){};
 
-ChStreamOutBinary::ChStreamOutBinary() {};
-ChStreamOutBinary::~ChStreamOutBinary() {};
+ChStreamOutBinary::ChStreamOutBinary(){};
+ChStreamOutBinary::~ChStreamOutBinary(){};
 
-ChBinaryArchive::ChBinaryArchive() {Init();};
-ChBinaryArchive::~ChBinaryArchive() {};
+ChBinaryArchive::ChBinaryArchive() {
+    Init();
+};
+ChBinaryArchive::~ChBinaryArchive(){};
 
-ChStreamInBinary::ChStreamInBinary() {};
-ChStreamInBinary::~ChStreamInBinary() {};
+ChStreamInBinary::ChStreamInBinary(){};
+ChStreamInBinary::~ChStreamInBinary(){};
 
+ChStreamOutBinaryFile::ChStreamOutBinaryFile(const char* filename, std::ios::openmode mmode)
+    : ChStreamFile(filename, mmode | std::ios::out | std::ios::binary){};
+ChStreamOutBinaryFile::~ChStreamOutBinaryFile(){};
 
-ChStreamOutBinaryFile::ChStreamOutBinaryFile(const char* filename, std::ios::openmode mmode) : ChStreamFile(filename,  mmode | std::ios::out| std::ios::binary) {};
-ChStreamOutBinaryFile::~ChStreamOutBinaryFile() {};
+ChStreamOutAsciiFile::ChStreamOutAsciiFile(const char* filename, std::ios::openmode mmode)
+    : ChStreamFile(filename, mmode | std::ios::out){};
+ChStreamOutAsciiFile::~ChStreamOutAsciiFile(){};
 
-ChStreamOutAsciiFile::ChStreamOutAsciiFile(const char* filename, std::ios::openmode mmode) : ChStreamFile(filename,  mmode | std::ios::out ) {};
-ChStreamOutAsciiFile::~ChStreamOutAsciiFile() {};
+ChStreamInBinaryFile::ChStreamInBinaryFile(const char* filename)
+    : ChStreamFile(filename, std::ios::in | std::ios::binary){};
+ChStreamInBinaryFile::~ChStreamInBinaryFile(){};
 
-ChStreamInBinaryFile::ChStreamInBinaryFile(const char* filename) : ChStreamFile(filename, std::ios::in | std::ios::binary) {};
-ChStreamInBinaryFile::~ChStreamInBinaryFile() {};
-
-ChStreamInAsciiFile::ChStreamInAsciiFile(const char* filename) : ChStreamFile(filename,  std::ios::in) {};
-ChStreamInAsciiFile::~ChStreamInAsciiFile() {};
-
+ChStreamInAsciiFile::ChStreamInAsciiFile(const char* filename) : ChStreamFile(filename, std::ios::in){};
+ChStreamInAsciiFile::~ChStreamInAsciiFile(){};
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____

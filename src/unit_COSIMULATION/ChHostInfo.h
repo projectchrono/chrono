@@ -12,11 +12,11 @@
 //
 ///////////////////////////////////////////////////
 
-/* 
+/*
 
   Liyang Yu, Jan 9th, 2004, version 0.0
 
-  this is to implement the domain and IP address resolution. 
+  this is to implement the domain and IP address resolution.
 
   3 cases are considered:
 
@@ -26,125 +26,99 @@
   2. an IP address is given (an IP address looks like 10.6.17.184), query
      the host name
 
-  in the above two cases, the IP address and the host name are the same thing: 
-  since IP address is hard to remember, they are usually aliased by a name, and this 
+  in the above two cases, the IP address and the host name are the same thing:
+  since IP address is hard to remember, they are usually aliased by a name, and this
   name is known as the host name.
 
   3. nothing is given. in other words, we don't know the host name or the IP address.
      in this case, the standard host name for the current processor is used
-     
+
 */
 
 #include <string>
 #include "ChApiCosimulation.h"
 
-
 // This version is for both Windows and UNIX, the following statements
 // are used to set the flags WINDOWS_XP or UNIX that in these few files of 'socket'
 // code are used for conditional compilation
-#if ((defined WIN32)|| (defined WIN64))
-	#define WINDOWS_XP
+#if ((defined WIN32) || (defined WIN64))
+#define WINDOWS_XP
 #endif
 #if (defined(__linux__) || defined(__APPLE__))
-    #define UNIX
+#define UNIX
 #endif
-
 
 #ifdef UNIX
-    #include <arpa/inet.h>
-    #include <netdb.h>
-    #include <netinet/in.h>
-    #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 #else
-    #include <winsock2.h>
+#include <winsock2.h>
 #endif
 #include <stdio.h>
-    
 
+namespace chrono {
+namespace cosimul {
 
-namespace chrono 
-{
-namespace cosimul 
-{
+// using namespace std;
 
-
-//using namespace std;
-
-
-enum hostType {NAME, ADDRESS};
+enum hostType { NAME, ADDRESS };
 const int HOST_NAME_LENGTH = 64;
-
 
 /// Class for storing information about a TCP host
 /// in socket communication, ex with an IP address
 
-class ChApiCosimulation ChHostInfo
-{
+class ChApiCosimulation ChHostInfo {
+  private:
+#ifdef UNIX
+    char searchHostDB;  // search the host database flag
+#endif
 
-private:
+    struct hostent* hostPtr;  // Entry within the host address database
 
-	#ifdef UNIX
-		char searchHostDB;     // search the host database flag
-	#endif
-
-	struct hostent *hostPtr;    // Entry within the host address database
-
-public:
-
+  public:
     // Default constructor
     ChHostInfo();
 
     // Retrieves the host entry based on the host name or address
-	ChHostInfo(const std::string& hostName, hostType type);
- 
+    ChHostInfo(const std::string& hostName, hostType type);
+
     // Destructor.  Closes the host entry database.
-    ~ChHostInfo()
-    {
-		#ifdef UNIX
-			endhostent();
-		#endif
+    ~ChHostInfo() {
+#ifdef UNIX
+        endhostent();
+#endif
     }
 
-	#ifdef UNIX
+#ifdef UNIX
 
-		// Retrieves the next host entry in the database
-		char getNextHost();
+    // Retrieves the next host entry in the database
+    char getNextHost();
 
-		// Opens the host entry database
-		void openHostDb()
-		{
-			endhostent();
-			searchHostDB = 1;
-			sethostent(1);
-		}
+    // Opens the host entry database
+    void openHostDb() {
+        endhostent();
+        searchHostDB = 1;
+        sethostent(1);
+    }
 
-	#endif
+#endif
 
     // Retrieves the hosts IP address in dot x.y.z.w notation
     char* getHostIPAddress();
-    
+
     // Retrieves the hosts name
-    char* getHostName()
-    {
-        return hostPtr->h_name;
-    }
+    char* getHostName() { return hostPtr->h_name; }
 
-private:
-
-	#ifdef WINDOWS_XP
-	void detectErrorGethostbyname(int*,std::string&);
-	void detectErrorGethostbyaddr(int*,std::string&);
-	#endif
+  private:
+#ifdef WINDOWS_XP
+    void detectErrorGethostbyname(int*, std::string&);
+    void detectErrorGethostbyaddr(int*, std::string&);
+#endif
 };
 
-
-
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif  // END of header
-
-
-
-
-
