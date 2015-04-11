@@ -355,6 +355,10 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     // in debug mode.
     // NOTE! adding/removing items to the system doesn't call Update() automatically.
 
+    /// Return the contact method supported by this system.
+    /// Bodies added to this system must be compatible.
+    virtual ChBody::ContactMethod GetContactMethod() const { return ChBody::DVI; }
+
     /// Attach a body to this system. Must be an object of exactly ChBody class.
     virtual void AddBody(ChSharedPtr<ChBody> newbody);
     /// Attach a link to this system. Must be an object of ChLink or derived classes.
