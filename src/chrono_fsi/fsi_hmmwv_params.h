@@ -179,7 +179,7 @@ void SetupParamsH(SimParams& paramsH) {
 enum WheelType { CYLINDRICAL, LUGGED };
 
 // Type of wheel/tire (controls both contact and visualization)
-WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
+WheelType wheel_type = CYLINDRICAL;// CYLINDRICAL;
 
 enum ChassisType { CBOX, CSIMPLEMESH, CORIGINAL };
 

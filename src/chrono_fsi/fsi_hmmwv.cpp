@@ -70,7 +70,7 @@ using namespace gui;
 // Define General variables
 SimParams paramsH;
 
-#define haveFluid true
+#define haveFluid false
 // =============================================================================
 // Define Graphics
 #define irrlichtVisualization false
