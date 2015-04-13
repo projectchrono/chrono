@@ -10,15 +10,15 @@ ChSolverParallel::ChSolverParallel() {
 }
 
 void ChSolverParallel::Project(real* gamma) {
-  data_container->system_timer.start("ChSolverParallel_Project");
+  data_manager->system_timer.start("ChSolverParallel_Project");
   rigid_rigid->Project(gamma);
-  data_container->system_timer.stop("ChSolverParallel_Project");
+  data_manager->system_timer.stop("ChSolverParallel_Project");
 }
 
 void ChSolverParallel::Project_Single(int index, real* gamma) {
-  data_container->system_timer.start("ChSolverParallel_Project");
+  data_manager->system_timer.start("ChSolverParallel_Project");
   rigid_rigid->Project_Single(index, gamma);
-  data_container->system_timer.stop("ChSolverParallel_Project");
+  data_manager->system_timer.stop("ChSolverParallel_Project");
 }
 //=================================================================================================================================
 
@@ -33,23 +33,23 @@ void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma,
 }
 
 void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& output) {
-  data_container->system_timer.start("ShurProduct");
+  data_manager->system_timer.start("ShurProduct");
 
-  const CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
-  const CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
-  const CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
-  const CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
+  const CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
+  const CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
+  const CompressedMatrix<real>& D_s_T = data_manager->host_data.D_s_T;
+  const CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
 
-  const CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
-  const CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
-  const CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
-  const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+  const CompressedMatrix<real>& M_invD_n = data_manager->host_data.M_invD_n;
+  const CompressedMatrix<real>& M_invD_t = data_manager->host_data.M_invD_t;
+  const CompressedMatrix<real>& M_invD_s = data_manager->host_data.M_invD_s;
+  const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
 
-  const DynamicVector<real>& E = data_container->host_data.E;
+  const DynamicVector<real>& E = data_manager->host_data.E;
 
-  uint num_contacts = data_container->num_rigid_contacts;
-  uint num_unilaterals = data_container->num_unilaterals;
-  uint num_bilaterals = data_container->num_bilaterals;
+  uint num_contacts = data_manager->num_rigid_contacts;
+  uint num_unilaterals = data_manager->num_unilaterals;
+  uint num_bilaterals = data_manager->num_bilaterals;
   output.reset();
   blaze::DenseSubvector<DynamicVector<real> > o_b = blaze::subvector(output, num_unilaterals, num_bilaterals);
   blaze::DenseSubvector<const DynamicVector<real> > x_b = blaze::subvector(x, num_unilaterals, num_bilaterals);
@@ -59,7 +59,7 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
   blaze::DenseSubvector<const DynamicVector<real> > x_n = blaze::subvector(x, 0, num_contacts);
   blaze::DenseSubvector<const DynamicVector<real> > E_n = blaze::subvector(E, 0, num_contacts);
 
-  switch (data_container->settings.solver.local_solver_mode) {
+  switch (data_manager->settings.solver.local_solver_mode) {
     case BILATERAL: {
       o_b = D_b_T * (M_invD_b * x_b) + E_b * x_b;
 
@@ -102,12 +102,12 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
     } break;
   }
 
-  data_container->system_timer.stop("ShurProduct");
+  data_manager->system_timer.stop("ShurProduct");
 }
 
 void ChSolverParallel::ShurBilaterals(const blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& output) {
-  const CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
-  const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+  const CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
+  const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
 
   output = D_b_T * (M_invD_b * x);
 }
@@ -122,22 +122,22 @@ void ChSolverParallel::UpdatePosition(custom_vector<real>& x) {
   //   }
   //   shurA(x.data());
   //
-  //   data_container->host_data.vel_new_data =
-  //   data_container->host_data.vel_data + data_container->host_data.QXYZ_data;
-  //   data_container->host_data.omg_new_data +
-  //   data_container->host_data.omg_data + data_container->host_data.QUVW_data;
+  //   data_manager->host_data.vel_new_data =
+  //   data_manager->host_data.vel_data + data_manager->host_data.QXYZ_data;
+  //   data_manager->host_data.omg_new_data +
+  //   data_manager->host_data.omg_data + data_manager->host_data.QUVW_data;
   //
   //#pragma omp parallel for
-  //   for (int i = 0; i < data_container->num_bodies; i++) {
+  //   for (int i = 0; i < data_manager->num_bodies; i++) {
   //
-  //      data_container->host_data.pos_new_data[i] =
-  //      data_container->host_data.pos_data[i] +
-  //      data_container->host_data.vel_new_data[i] * step_size;
+  //      data_manager->host_data.pos_new_data[i] =
+  //      data_manager->host_data.pos_data[i] +
+  //      data_manager->host_data.vel_new_data[i] * step_size;
   //      //real3 dp =
-  //      data_container->host_data.pos_new_data[i]-data_container->host_data.pos_data[i];
+  //      data_manager->host_data.pos_new_data[i]-data_manager->host_data.pos_data[i];
   //      //cout<<dp<<endl;
-  //      real4 moldrot = data_container->host_data.rot_data[i];
-  //      real3 newwel = data_container->host_data.omg_new_data[i];
+  //      real4 moldrot = data_manager->host_data.rot_data[i];
+  //      real3 newwel = data_manager->host_data.omg_new_data[i];
   //
   //      M33 A = AMat(moldrot);
   //      real3 newwel_abs = MatMult(A, newwel);
@@ -145,7 +145,7 @@ void ChSolverParallel::UpdatePosition(custom_vector<real>& x) {
   //      newwel_abs = normalize(newwel_abs);
   //      real4 mdeltarot = Q_from_AngAxis(mangle, newwel_abs);
   //      real4 mnewrot = mdeltarot % moldrot;
-  //      data_container->host_data.rot_new_data[i] = mnewrot;
+  //      data_manager->host_data.rot_new_data[i] = mnewrot;
   //   }
 }
 
@@ -161,8 +161,8 @@ void ChSolverParallel::UpdateContacts() {
   //   ////        modify so that we can use the CHCNarrowphase object
   //   ////        from the CollisionSystemParallel.
   //   collision::ChCNarrowphaseMPR narrowphase;
-  //   narrowphase.SetCollisionEnvelope(data_container->settings.collision.collision_envelope);
-  //   narrowphase.Update(data_container);
+  //   narrowphase.SetCollisionEnvelope(data_manager->settings.collision.collision_envelope);
+  //   narrowphase.Update(data_manager);
   //
   //   rigid_rigid->UpdateJacobians();
   //   rigid_rigid->UpdateRHS();
@@ -173,7 +173,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
                                  const blaze::DenseSubvector<const DynamicVector<real> >& mb,
                                  blaze::DenseSubvector<DynamicVector<real> >& x) {
   LOG(INFO) << "ChSolverParallel::SolveStab";
-  real& residual = data_container->measures.solver.residual;
+  real& residual = data_manager->measures.solver.residual;
 
   uint N = mb.size();
 
@@ -189,7 +189,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
   norm_rMR = beta;
   norm_r0 = beta;
 
-  if (beta == 0 || norm_rMR / norm_r0 < data_container->settings.solver.tol_speed) {
+  if (beta == 0 || norm_rMR / norm_r0 < data_manager->settings.solver.tol_speed) {
     return 0;
   }
 
@@ -226,7 +226,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
     real maxdeltalambda = 0;  // CompRes(mb, num_contacts);      //NormInf(ms);
     AtIterationEnd(residual, maxdeltalambda);
 
-    if (residual < data_container->settings.solver.tol_speed) {
+    if (residual < data_manager->settings.solver.tol_speed) {
       break;
     }
   }

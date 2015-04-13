@@ -6,8 +6,8 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
                                      const uint size,
                                      blaze::DynamicVector<real>& mb,
                                      blaze::DynamicVector<real>& ml) {
-  real& residual = data_container->measures.solver.residual;
-  real& objective_value = data_container->measures.solver.objective_value;
+  real& residual = data_manager->measures.solver.residual;
+  real& objective_value = data_manager->measures.solver.objective_value;
 
   real rho_1, rho_2, alpha = 1, beta, omega = 1;
 
@@ -16,8 +16,8 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
   v.resize(size);
   real normb = sqrt((mb, mb));
 
-  ShurProduct(ml, r);  // r = data_container->host_data.D_T *
-                       // (data_container->host_data.M_invD * ml);
+  ShurProduct(ml, r);  // r = data_manager->host_data.D_T *
+                       // (data_manager->host_data.M_invD * ml);
   p = r = mb - r;
   rtilde = r;
 
@@ -25,7 +25,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
     normb = 1;
   }
 
-  if ((residual = sqrt((r, r)) / normb) <= data_container->settings.solver.tolerance) {
+  if ((residual = sqrt((r, r)) / normb) <= data_manager->settings.solver.tolerance) {
     return 0;
   }
 
@@ -42,20 +42,20 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
     }
 
     phat = p;
-    ShurProduct(phat, v);  // v = data_container->host_data.D_T *
-                           // (data_container->host_data.M_invD * phat);
+    ShurProduct(phat, v);  // v = data_manager->host_data.D_T *
+                           // (data_manager->host_data.M_invD * phat);
     alpha = rho_1 / (rtilde, v);
     s = r - alpha * v;  // SEAXPY(-alpha,v,r,s);//
     residual = sqrt((s, s)) / normb;
 
-    if (residual < data_container->settings.solver.tolerance) {
+    if (residual < data_manager->settings.solver.tolerance) {
       ml = ml + alpha * phat;
       break;
     }
 
     shat = s;
-    ShurProduct(shat, t);  // t = data_container->host_data.D_T *
-                           // (data_container->host_data.M_invD * shat);
+    ShurProduct(shat, t);  // t = data_manager->host_data.D_T *
+                           // (data_manager->host_data.M_invD * shat);
     omega = (t, s) / (t, t);
     ml = ml + alpha * phat + omega * shat;
     r = s - omega * t;
@@ -65,7 +65,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
     objective_value = GetObjective(ml, mb);
     AtIterationEnd(residual, objective_value);
 
-    if (residual < data_container->settings.solver.tolerance || omega == 0) {
+    if (residual < data_manager->settings.solver.tolerance || omega == 0) {
       break;
     }
   }

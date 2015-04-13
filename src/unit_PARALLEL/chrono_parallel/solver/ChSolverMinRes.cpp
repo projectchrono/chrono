@@ -6,8 +6,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
                                  const uint size,
                                  blaze::DynamicVector<real>& mb,
                                  blaze::DynamicVector<real>& ml) {
-  real& residual = data_container->measures.solver.residual;
-  real& objective_value = data_container->measures.solver.objective_value;
+  real& residual = data_manager->measures.solver.residual;
+  real& objective_value = data_manager->measures.solver.objective_value;
 
 
   mr.resize(size, 0);
@@ -19,8 +19,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
   mtmp.resize(size, 0);
 
   real grad_diffstep = 0.01;
-  double rel_tol = data_container->settings.solver.tolerance;
-  double abs_tol = data_container->settings.solver.tolerance;
+  double rel_tol = data_manager->settings.solver.tolerance;
+  double abs_tol = data_manager->settings.solver.tolerance;
 
   real max_element = -1e8;
   for (int i = 0; i < size; i++) {
@@ -29,8 +29,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
   double rel_tol_b = max_element * rel_tol;
   // ml = x;
 
-  ShurProduct(ml, mr);  // mr = data_container->host_data.D_T *
-                        // (data_container->host_data.M_invD * ml);
+  ShurProduct(ml, mr);  // mr = data_manager->host_data.D_T *
+                        // (data_manager->host_data.M_invD * ml);
 
   mr = mb - mr;
 
@@ -43,10 +43,10 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
   mp = mr;
   mz = mp;
 
-  ShurProduct(mz, mNMr);  // mNMr = data_container->host_data.D_T *
-                          // (data_container->host_data.M_invD * mz);
-  ShurProduct(mp, mNp);   // mNp = data_container->host_data.D_T *
-                          // (data_container->host_data.M_invD * mp);
+  ShurProduct(mz, mNMr);  // mNMr = data_manager->host_data.D_T *
+                          // (data_manager->host_data.M_invD * mz);
+  ShurProduct(mp, mNp);   // mNp = data_manager->host_data.D_T *
+                          // (data_manager->host_data.M_invD * mp);
 
   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
     mMNp = mNp;
@@ -54,7 +54,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
     double zNMr = (mz, mNMr);
     double MNpNp = (mMNp, mNp);
     if (std::abs(MNpNp) < 10e-30) {
-      if (data_container->settings.solver.verbose) {
+      if (data_manager->settings.solver.verbose) {
         std::cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp
                   << "\n";
       }
@@ -65,8 +65,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
     ml = ml + mtmp;
 
     Project(ml.data());
-    ShurProduct(ml, mr);  // mr = data_container->host_data.D_T *
-                          // (data_container->host_data.M_invD * ml);
+    ShurProduct(ml, mr);  // mr = data_manager->host_data.D_T *
+                          // (data_manager->host_data.M_invD * ml);
     mr = mb - mr;
     mr = mr * grad_diffstep + ml;
     Project(mr.data());
@@ -74,7 +74,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
     residual = sqrt((mr, mr));
 
     if (residual < std::max(rel_tol_b, abs_tol)) {
-      if (data_container->settings.solver.verbose) {
+      if (data_manager->settings.solver.verbose) {
         std::cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << residual << "\n";
       }
       break;
@@ -84,15 +84,15 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
     mz = mr;
     mNMr_old = mNMr;
 
-    ShurProduct(mz, mNMr);  // mNMr = data_container->host_data.D_T *
-                            // (data_container->host_data.M_invD * mz);
+    ShurProduct(mz, mNMr);  // mNMr = data_manager->host_data.D_T *
+                            // (data_manager->host_data.M_invD * mz);
 
     double numerator = (mz, mNMr - mNMr_old);
     double denominator = (mz_old, mNMr_old);
     double beta = numerator / numerator;
 
     if (std::abs(denominator) < 10e-30 || std::abs(numerator) < 10e-30) {
-      if (data_container->settings.solver.verbose) {
+      if (data_manager->settings.solver.verbose) {
         std::cout << "Iter=" << current_iteration << " Ribiere quotient beta restart: " << numerator << " / "
                   << denominator << "\n";
       }

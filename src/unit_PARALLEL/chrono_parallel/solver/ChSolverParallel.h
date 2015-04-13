@@ -33,7 +33,7 @@ class CH_PARALLEL_API ChSolverParallel {
   ChSolverParallel();
   virtual ~ChSolverParallel() {}
 
-  void Setup(ChParallelDataManager* data_container_) { data_container = data_container_; }
+  void Setup(ChParallelDataManager* data_container_) { data_manager = data_container_; }
 
   // Project the Lagrange multipliers
   void Project(real* gamma);  // Lagrange Multipliers
@@ -99,8 +99,8 @@ class CH_PARALLEL_API ChSolverParallel {
   }
 
   void AtIterationEnd(real maxd, real maxdeltalambda) {
-    data_container->measures.solver.maxd_hist.push_back(maxd);
-    data_container->measures.solver.maxdeltalambda_hist.push_back(maxdeltalambda);
+    data_manager->measures.solver.maxd_hist.push_back(maxd);
+    data_manager->measures.solver.maxdeltalambda_hist.push_back(maxdeltalambda);
   }
 
   // Set the maximum number of iterations for all solvers
@@ -116,7 +116,7 @@ class CH_PARALLEL_API ChSolverParallel {
   ChConstraintBilateral* bilateral;
 
   // Pointer to the system's data manager
-  ChParallelDataManager* data_container;
+  ChParallelDataManager* data_manager;
 };
 }
 

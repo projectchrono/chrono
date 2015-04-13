@@ -48,7 +48,7 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
   void PerformStabilization();
 
   real GetResidual() { return residual; }
-  ChParallelDataManager* data_container;
+  ChParallelDataManager* data_manager;
   ChSolverParallel* solver;
 
  protected:

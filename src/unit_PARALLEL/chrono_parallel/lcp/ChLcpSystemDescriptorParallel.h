@@ -11,7 +11,7 @@ namespace chrono {
 
 class CH_PARALLEL_API ChLcpSystemDescriptorParallel : public ChLcpSystemDescriptor {
  public:
-  ChLcpSystemDescriptorParallel(ChParallelDataManager* dc) : data_container(dc) {}
+  ChLcpSystemDescriptorParallel(ChParallelDataManager* dc) : data_manager(dc) {}
   ~ChLcpSystemDescriptorParallel() {}
 
   void ConvertToMatrixForm(ChSparseMatrix* Cq,
@@ -23,10 +23,10 @@ class CH_PARALLEL_API ChLcpSystemDescriptorParallel : public ChLcpSystemDescript
     std::vector<ChLcpConstraint*>& mconstraints = this->GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = this->GetVariablesList();
 
-    int n_c = data_container->num_rigid_contacts * 3 + data_container->num_bilaterals;
-    int n_q = Thrust_Count(data_container->host_data.active_rigid, 1) * 6;
+    int n_c = data_manager->num_rigid_contacts * 3 + data_manager->num_bilaterals;
+    int n_q = Thrust_Count(data_manager->host_data.active_rigid, 1) * 6;
 
-    // cout << " " << n_q << " " << data_container->num_bodies << " " << endl;
+    // cout << " " << n_q << " " << data_manager->num_bodies << " " << endl;
 
     if (Cq)
       Cq->Reset(n_c, n_q);
@@ -55,7 +55,7 @@ class CH_PARALLEL_API ChLcpSystemDescriptorParallel : public ChLcpSystemDescript
   }
 
  private:
-  ChParallelDataManager* data_container;
+  ChParallelDataManager* data_manager;
 };
 
 }  // END_OF_NAMESPACE____

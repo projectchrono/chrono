@@ -77,14 +77,14 @@ void ChConstraintRigidRigid::func_Project_normal(int index, const int2* ids, con
   gamma_x += coh;
   gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
   gamma[index * 1 + 0] = gamma_x;
-  if (data_container->settings.solver.solver_mode == SLIDING) {
-    gamma[data_container->num_rigid_contacts + index * 2 + 0] = 0;
-    gamma[data_container->num_rigid_contacts + index * 2 + 1] = 0;
+  if (data_manager->settings.solver.solver_mode == SLIDING) {
+    gamma[data_manager->num_rigid_contacts + index * 2 + 0] = 0;
+    gamma[data_manager->num_rigid_contacts + index * 2 + 1] = 0;
   }
-  if (data_container->settings.solver.solver_mode == SPINNING) {
-    gamma[3 * data_container->num_rigid_contacts + index * 3 + 0] = 0;
-    gamma[3 * data_container->num_rigid_contacts + index * 3 + 1] = 0;
-    gamma[3 * data_container->num_rigid_contacts + index * 3 + 2] = 0;
+  if (data_manager->settings.solver.solver_mode == SPINNING) {
+    gamma[3 * data_manager->num_rigid_contacts + index * 3 + 0] = 0;
+    gamma[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
+    gamma[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
   }
 }
 
@@ -95,13 +95,13 @@ void ChConstraintRigidRigid::func_Project_sliding(int index,
                                                   real* gam) {
   real3 gamma;
   gamma.x = gam[index * 1 + 0];
-  gamma.y = gam[data_container->num_rigid_contacts + index * 2 + 0];
-  gamma.z = gam[data_container->num_rigid_contacts + index * 2 + 1];
+  gamma.y = gam[data_manager->num_rigid_contacts + index * 2 + 0];
+  gamma.z = gam[data_manager->num_rigid_contacts + index * 2 + 1];
 
-  //  if (data_container->settings.solver.solver_mode == SPINNING) {
-  //    gam[3 * data_container->num_contacts + index * 3 + 0] = 0;
-  //    gam[3 * data_container->num_contacts + index * 3 + 1] = 0;
-  //    gam[3 * data_container->num_contacts + index * 3 + 2] = 0;
+  //  if (data_manager->settings.solver.solver_mode == SPINNING) {
+  //    gam[3 * data_manager->num_contacts + index * 3 + 0] = 0;
+  //    gam[3 * data_manager->num_contacts + index * 3 + 1] = 0;
+  //    gam[3 * data_manager->num_contacts + index * 3 + 2] = 0;
   //  }
 
   real coh = cohesion[index];
@@ -113,8 +113,8 @@ void ChConstraintRigidRigid::func_Project_sliding(int index,
     gamma.y = gamma.z = 0;
 
     gam[index * 1 + 0] = gamma.x;
-    gam[data_container->num_rigid_contacts + index * 2 + 0] = gamma.y;
-    gam[data_container->num_rigid_contacts + index * 2 + 1] = gamma.z;
+    gam[data_manager->num_rigid_contacts + index * 2 + 0] = gamma.y;
+    gam[data_manager->num_rigid_contacts + index * 2 + 1] = gamma.z;
 
     return;
   }
@@ -123,8 +123,8 @@ void ChConstraintRigidRigid::func_Project_sliding(int index,
   }
 
   gam[index * 1 + 0] = gamma.x - coh;
-  gam[data_container->num_rigid_contacts + index * 2 + 0] = gamma.y;
-  gam[data_container->num_rigid_contacts + index * 2 + 1] = gamma.z;
+  gam[data_manager->num_rigid_contacts + index * 2 + 0] = gamma.y;
+  gam[data_manager->num_rigid_contacts + index * 2 + 1] = gamma.z;
 }
 void ChConstraintRigidRigid::func_Project_spinning(int index, const int2* ids, const real3* fric, real* gam) {
   // real3 gamma_roll = R3(0);
@@ -137,9 +137,9 @@ void ChConstraintRigidRigid::func_Project_spinning(int index, const int2* ids, c
   //	}
 
   real gamma_n = fabs(gam[index * 1 + 0]);
-  real gamma_s = gam[3 * data_container->num_rigid_contacts + index * 3 + 0];
-  real gamma_tu = gam[3 * data_container->num_rigid_contacts + index * 3 + 1];
-  real gamma_tv = gam[3 * data_container->num_rigid_contacts + index * 3 + 2];
+  real gamma_s = gam[3 * data_manager->num_rigid_contacts + index * 3 + 0];
+  real gamma_tu = gam[3 * data_manager->num_rigid_contacts + index * 3 + 1];
+  real gamma_tv = gam[3 * data_manager->num_rigid_contacts + index * 3 + 2];
 
   if (spinningfriction == 0) {
     gamma_s = 0;
@@ -158,15 +158,15 @@ void ChConstraintRigidRigid::func_Project_spinning(int index, const int2* ids, c
     Cone_generalized(gamma_n, gamma_tu, gamma_tv, rollingfriction);
   }
   // gam[index + number_of_contacts * 0] = gamma_n;
-  gam[3 * data_container->num_rigid_contacts + index * 3 + 0] = gamma_s;
-  gam[3 * data_container->num_rigid_contacts + index * 3 + 1] = gamma_tu;
-  gam[3 * data_container->num_rigid_contacts + index * 3 + 2] = gamma_tv;
+  gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = gamma_s;
+  gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = gamma_tu;
+  gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = gamma_tv;
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::host_Project_single(int index, int2* ids, real3* friction, real* cohesion, real* gamma) {
   // always project normal
-  switch (data_container->settings.solver.local_solver_mode) {
+  switch (data_manager->settings.solver.local_solver_mode) {
     case NORMAL: {
       func_Project_normal(index, ids, cohesion, gamma);
     } break;
@@ -183,28 +183,28 @@ void ChConstraintRigidRigid::host_Project_single(int index, int2* ids, real3* fr
 }
 
 void ChConstraintRigidRigid::Project(real* gamma) {
-  const thrust::host_vector<int2>& bids = data_container->host_data.bids_rigid_rigid;
-  const thrust::host_vector<real3>& friction = data_container->host_data.fric_rigid_rigid;
-  const thrust::host_vector<real>& cohesion = data_container->host_data.coh_rigid_rigid;
+  const thrust::host_vector<int2>& bids = data_manager->host_data.bids_rigid_rigid;
+  const thrust::host_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
+  const thrust::host_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
-  switch (data_container->settings.solver.local_solver_mode) {
+  switch (data_manager->settings.solver.local_solver_mode) {
     case NORMAL: {
 #pragma omp parallel for
-      for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+      for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
         func_Project_normal(index, bids.data(), cohesion.data(), gamma);
       }
     } break;
 
     case SLIDING: {
 #pragma omp parallel for
-      for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+      for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
         func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
       }
     } break;
 
     case SPINNING: {
 #pragma omp parallel for
-      for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+      for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
         func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
         func_Project_spinning(index, bids.data(), friction.data(), gamma);
       }
@@ -212,9 +212,9 @@ void ChConstraintRigidRigid::Project(real* gamma) {
   }
 }
 void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
-  thrust::host_vector<int2>& bids = data_container->host_data.bids_rigid_rigid;
-  thrust::host_vector<real3>& friction = data_container->host_data.fric_rigid_rigid;
-  thrust::host_vector<real>& cohesion = data_container->host_data.coh_rigid_rigid;
+  thrust::host_vector<int2>& bids = data_manager->host_data.bids_rigid_rigid;
+  thrust::host_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
+  thrust::host_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
   host_Project_single(index, bids.data(), friction.data(), cohesion.data(), gamma);
 }
@@ -249,58 +249,58 @@ void chrono::Compute_Jacobian_Rolling(const real4& quat,
 }
 
 void ChConstraintRigidRigid::Build_b() {
-  if (data_container->num_rigid_contacts <= 0) {
+  if (data_manager->num_rigid_contacts <= 0) {
     return;
   }
 
 #pragma omp parallel for
-  for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+  for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
     real bi = 0;
-    real depth = data_container->host_data.dpth_rigid_rigid[index];
+    real depth = data_manager->host_data.dpth_rigid_rigid[index];
 
-    if (data_container->settings.solver.alpha > 0) {
+    if (data_manager->settings.solver.alpha > 0) {
       bi = inv_hpa * depth;
-    } else if (data_container->settings.solver.contact_recovery_speed < 0) {
+    } else if (data_manager->settings.solver.contact_recovery_speed < 0) {
       bi = inv_h * depth;
     } else {
-      bi = std::max(inv_h * depth, -data_container->settings.solver.contact_recovery_speed);
-      //bi = std::min(bi, inv_h * data_container->settings.solver.cohesion_epsilon);
+      bi = std::max(inv_h * depth, -data_manager->settings.solver.contact_recovery_speed);
+      //bi = std::min(bi, inv_h * data_manager->settings.solver.cohesion_epsilon);
     }
 
-    data_container->host_data.b[index * 1 + 0] = bi;
+    data_manager->host_data.b[index * 1 + 0] = bi;
   }
 }
 
 void ChConstraintRigidRigid::Build_s() {
-  if (data_container->num_rigid_contacts <= 0) {
+  if (data_manager->num_rigid_contacts <= 0) {
     return;
   }
 
-  if (data_container->settings.solver.solver_mode == NORMAL) {
+  if (data_manager->settings.solver.solver_mode == NORMAL) {
     return;
   }
 
-  int2* ids = data_container->host_data.bids_rigid_rigid.data();
-  const CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
+  int2* ids = data_manager->host_data.bids_rigid_rigid.data();
+  const CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
   DynamicVector<real> v_new;
 
-  const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
-  const DynamicVector<real>& gamma = data_container->host_data.gamma;
+  const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
+  const DynamicVector<real>& gamma = data_manager->host_data.gamma;
 
-  const CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
-  const CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
-  const CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
-  const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+  const CompressedMatrix<real>& M_invD_n = data_manager->host_data.M_invD_n;
+  const CompressedMatrix<real>& M_invD_t = data_manager->host_data.M_invD_t;
+  const CompressedMatrix<real>& M_invD_s = data_manager->host_data.M_invD_s;
+  const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
 
-  uint num_contacts = data_container->num_rigid_contacts;
-  uint num_unilaterals = data_container->num_unilaterals;
-  uint num_bilaterals = data_container->num_bilaterals;
+  uint num_contacts = data_manager->num_rigid_contacts;
+  uint num_unilaterals = data_manager->num_unilaterals;
+  uint num_bilaterals = data_manager->num_bilaterals;
 
   blaze::DenseSubvector<const DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
   blaze::DenseSubvector<const DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
 
   // Compute new velocity based on the lagrange multipliers
-  switch (data_container->settings.solver.solver_mode) {
+  switch (data_manager->settings.solver.solver_mode) {
     case NORMAL: {
       v_new = M_invk + M_invD_n * gamma_n + M_invD_b * gamma_b;
     } break;
@@ -325,8 +325,8 @@ void ChConstraintRigidRigid::Build_s() {
   }
 
 #pragma omp parallel for
-  for (int index = 0; index < data_container->num_rigid_contacts; index++) {
-    real fric = data_container->host_data.fric_rigid_rigid[index].x;
+  for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
+    real fric = data_manager->host_data.fric_rigid_rigid[index].x;
     int2 body_id = ids[index];
 
     real s_v = D_t_T(index * 2 + 0, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] +
@@ -357,24 +357,24 @@ void ChConstraintRigidRigid::Build_s() {
                D_t_T(index * 2 + 1, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] +
                D_t_T(index * 2 + 1, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
 
-    data_container->host_data.s[index * 1 + 0] = sqrt(s_v * s_v + s_w * s_w) * fric;
+    data_manager->host_data.s[index * 1 + 0] = sqrt(s_v * s_v + s_w * s_w) * fric;
   }
 }
 
 void ChConstraintRigidRigid::Build_E() {
-  if (data_container->num_rigid_contacts <= 0) {
+  if (data_manager->num_rigid_contacts <= 0) {
     return;
   }
-  SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
-  DynamicVector<real>& E = data_container->host_data.E;
-  uint num_contacts = data_container->num_rigid_contacts;
+  SOLVERMODE solver_mode = data_manager->settings.solver.solver_mode;
+  DynamicVector<real>& E = data_manager->host_data.E;
+  uint num_contacts = data_manager->num_rigid_contacts;
 
 #pragma omp parallel for
-  for (int index = 0; index < data_container->num_rigid_contacts; index++) {
-    int2 body = data_container->host_data.bids_rigid_rigid[index];
+  for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
+    int2 body = data_manager->host_data.bids_rigid_rigid[index];
 
-    real4 cA = data_container->host_data.compliance_data[body.x];
-    real4 cB = data_container->host_data.compliance_data[body.y];
+    real4 cA = data_manager->host_data.compliance_data[body.x];
+    real4 cB = data_manager->host_data.compliance_data[body.y];
 
     real compliance_normal = (cA.x == 0 || cB.x == 0) ? 0 : (cA.x + cB.x) * .5;
     real compliance_sliding = (cA.y == 0 || cB.y == 0) ? 0 : (cA.y + cB.y) * .5;
@@ -427,33 +427,33 @@ void inline SetCol6(CompressedMatrix<real>& D, const int row, const int col, con
 
 void ChConstraintRigidRigid::Build_D() {
   LOG(INFO) << "ChConstraintRigidRigid::Build_D";
-  real3* norm = data_container->host_data.norm_rigid_rigid.data();
-  real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
-  real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
-  real3* pos_data = data_container->host_data.pos_rigid.data();
-  int2* ids = data_container->host_data.bids_rigid_rigid.data();
-  real4* rot = data_container->host_data.rot_rigid.data();
+  real3* norm = data_manager->host_data.norm_rigid_rigid.data();
+  real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
+  real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
+  real3* pos_data = data_manager->host_data.pos_rigid.data();
+  int2* ids = data_manager->host_data.bids_rigid_rigid.data();
+  real4* rot = data_manager->host_data.rot_rigid.data();
 
-  CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
-  CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
-  CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
+  CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
+  CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
+  CompressedMatrix<real>& D_s_T = data_manager->host_data.D_s_T;
 
-  CompressedMatrix<real>& D_n = data_container->host_data.D_n;
-  CompressedMatrix<real>& D_t = data_container->host_data.D_t;
-  CompressedMatrix<real>& D_s = data_container->host_data.D_s;
+  CompressedMatrix<real>& D_n = data_manager->host_data.D_n;
+  CompressedMatrix<real>& D_t = data_manager->host_data.D_t;
+  CompressedMatrix<real>& D_s = data_manager->host_data.D_s;
 
-  CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
-  CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
-  CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
+  CompressedMatrix<real>& M_invD_n = data_manager->host_data.M_invD_n;
+  CompressedMatrix<real>& M_invD_t = data_manager->host_data.M_invD_t;
+  CompressedMatrix<real>& M_invD_s = data_manager->host_data.M_invD_s;
 
-  const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+  const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-  SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
+  SOLVERMODE solver_mode = data_manager->settings.solver.solver_mode;
 
-  const std::vector<ChBody*>* body_list = data_container->body_list;
+  const std::vector<ChBody*>* body_list = data_manager->body_list;
 
 #pragma omp parallel for
-  for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+  for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
     real3 U = norm[index], V, W;
     real3 T3, T4, T5, T6, T7, T8;
     real3 TA, TB, TC;
@@ -493,7 +493,7 @@ void ChConstraintRigidRigid::Build_D() {
   }
 
   LOG(INFO) << "ChConstraintRigidRigid::Build_D - Compute Transpose";
-  switch (data_container->settings.solver.solver_mode) {
+  switch (data_manager->settings.solver.solver_mode) {
     case NORMAL:
       LOG(INFO) << "ChConstraintRigidRigid::Build_D - D_n";
       D_n = trans(D_n_T);
@@ -530,19 +530,19 @@ void ChConstraintRigidRigid::Build_D() {
 
 void ChConstraintRigidRigid::GenerateSparsity() {
   LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsity";
-  SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
+  SOLVERMODE solver_mode = data_manager->settings.solver.solver_mode;
 
-  CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
-  CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
-  CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
+  CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
+  CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
+  CompressedMatrix<real>& D_s_T = data_manager->host_data.D_s_T;
 
-  const int2* ids = data_container->host_data.bids_rigid_rigid.data();
+  const int2* ids = data_manager->host_data.bids_rigid_rigid.data();
 
 #pragma omp parallel sections
   {
 #pragma omp section
     {
-      for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+      for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
         int2 body_id = ids[index];
         int row = index;
 
@@ -568,7 +568,7 @@ void ChConstraintRigidRigid::GenerateSparsity() {
 #pragma omp section
     {
       if (solver_mode == SLIDING || solver_mode == SPINNING) {
-        for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+        for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
           int2 body_id = ids[index];
           int row = index;
           D_t_T.append(row * 2 + 0, body_id.x * 6 + 0, 1);
@@ -612,7 +612,7 @@ void ChConstraintRigidRigid::GenerateSparsity() {
 #pragma omp section
     {
       if (solver_mode == SPINNING) {
-        for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+        for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
           int2 body_id = ids[index];
           int row = index;
           D_s_T.append(row * 3 + 0, body_id.x * 6 + 3, 0);
@@ -678,25 +678,25 @@ void inline ColIndex6(host_vector<int>& Rows, host_vector<int>& Cols, const int 
 
 void ChConstraintRigidRigid::GenerateSparsityTranspose() {
   LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose";
-  SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
+  SOLVERMODE solver_mode = data_manager->settings.solver.solver_mode;
 
-  CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
-  CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
-  CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
+  CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
+  CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
+  CompressedMatrix<real>& D_s_T = data_manager->host_data.D_s_T;
 
-  CompressedMatrix<real>& D_n = data_container->host_data.D_n;
-  CompressedMatrix<real>& D_t = data_container->host_data.D_t;
-  CompressedMatrix<real>& D_s = data_container->host_data.D_s;
+  CompressedMatrix<real>& D_n = data_manager->host_data.D_n;
+  CompressedMatrix<real>& D_t = data_manager->host_data.D_t;
+  CompressedMatrix<real>& D_s = data_manager->host_data.D_s;
 
-  CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
-  CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
-  CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
+  CompressedMatrix<real>& M_invD_n = data_manager->host_data.M_invD_n;
+  CompressedMatrix<real>& M_invD_t = data_manager->host_data.M_invD_t;
+  CompressedMatrix<real>& M_invD_s = data_manager->host_data.M_invD_s;
 
-  const int2* ids = data_container->host_data.bids_rigid_rigid.data();
+  const int2* ids = data_manager->host_data.bids_rigid_rigid.data();
 
-  host_vector<int> D_n_T_r(data_container->num_rigid_contacts * 12);
-  host_vector<int> D_n_T_c(data_container->num_rigid_contacts * 12);
-  host_vector<int> start_n(data_container->num_rigid_contacts * 12);
+  host_vector<int> D_n_T_r(data_manager->num_rigid_contacts * 12);
+  host_vector<int> D_n_T_c(data_manager->num_rigid_contacts * 12);
+  host_vector<int> start_n(data_manager->num_rigid_contacts * 12);
 
   host_vector<int> D_t_T_r, D_s_T_r;
   host_vector<int> D_t_T_c, D_s_T_c;
@@ -705,7 +705,7 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
   int last_n, last_t, last_s;
 
 #pragma omp parallel for
-  for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+  for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
     int2 body_id = ids[index];
     int row = index;
 
@@ -719,11 +719,11 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
   thrust::inclusive_scan(start_n.begin(), start_n.end(), start_n.begin());
 
   if (solver_mode == SLIDING || solver_mode == SPINNING) {
-    D_t_T_r.resize(data_container->num_rigid_contacts * 12 * 2);
-    D_t_T_c.resize(data_container->num_rigid_contacts * 12 * 2);
-    start_t.resize(data_container->num_rigid_contacts * 12 * 2);
+    D_t_T_r.resize(data_manager->num_rigid_contacts * 12 * 2);
+    D_t_T_c.resize(data_manager->num_rigid_contacts * 12 * 2);
+    start_t.resize(data_manager->num_rigid_contacts * 12 * 2);
 #pragma omp parallel for
-    for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+    for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
       int2 body_id = ids[index];
       int row = index;
 
@@ -741,12 +741,12 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
   }
 
   if (solver_mode == SPINNING) {
-    D_s_T_r.resize(data_container->num_rigid_contacts * 18);
-    D_s_T_c.resize(data_container->num_rigid_contacts * 18);
-    start_s.resize(data_container->num_rigid_contacts * 18);
+    D_s_T_r.resize(data_manager->num_rigid_contacts * 18);
+    D_s_T_c.resize(data_manager->num_rigid_contacts * 18);
+    start_s.resize(data_manager->num_rigid_contacts * 18);
 
 #pragma omp parallel for
-    for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+    for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
       int2 body_id = ids[index];
       int row = index;
 
@@ -878,16 +878,16 @@ void solve2x2(real& a, real& b, real& c, real& a1, real& b1, real& c1, real& x, 
 }
 
 void ChConstraintRigidRigid::SolveQuartic() {
-  const int2* ids = data_container->host_data.bids_rigid_rigid.data();
-  const CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
-  const CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
-  const CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
-  const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+  const int2* ids = data_manager->host_data.bids_rigid_rigid.data();
+  const CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
+  const CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
+  const CompressedMatrix<real>& D_s_T = data_manager->host_data.D_s_T;
+  const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-  const DynamicVector<real>& R_full = data_container->host_data.R_full;
-  const thrust::host_vector<real3>& friction = data_container->host_data.fric_rigid_rigid;
+  const DynamicVector<real>& R_full = data_manager->host_data.R_full;
+  const thrust::host_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
 
-  for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+  for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
     CompressedMatrix<real> D_T(3, 12), Minv(12, 12), D;
     DynamicVector<real> R(3);  // rhs
     DynamicVector<real> g(3);  // lagrange multipliers
@@ -908,8 +908,8 @@ void ChConstraintRigidRigid::SolveQuartic() {
     CompressedMatrix<real> N = D_T * Minv * D;
 
     R[0] = R_full[index * 1 + 0];
-    R[1] = R_full[data_container->num_rigid_contacts + index * 2 + 0];
-    R[2] = R_full[data_container->num_rigid_contacts + index * 2 + 1];
+    R[1] = R_full[data_manager->num_rigid_contacts + index * 2 + 0];
+    R[2] = R_full[data_manager->num_rigid_contacts + index * 2 + 1];
 
     real cg[5];
     int nbRealRacines;
@@ -1020,18 +1020,18 @@ void local_project(DynamicVector<real>& gamma, real coh, real mu) {
 #include <blaze/math/SparseRow.h>
 
 void ChConstraintRigidRigid::SolveLocal() {
-  const int2* ids = data_container->host_data.bids_rigid_rigid.data();
-  const CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
-  const CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
-  const CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
-  const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+  const int2* ids = data_manager->host_data.bids_rigid_rigid.data();
+  const CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
+  const CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
+  const CompressedMatrix<real>& D_s_T = data_manager->host_data.D_s_T;
+  const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-  const DynamicVector<real>& R_full = data_container->host_data.R_full;
-  DynamicVector<real>& gamma = data_container->host_data.gamma;
-  const thrust::host_vector<real3>& friction = data_container->host_data.fric_rigid_rigid;
-  const thrust::host_vector<real>& cohesion = data_container->host_data.coh_rigid_rigid;
+  const DynamicVector<real>& R_full = data_manager->host_data.R_full;
+  DynamicVector<real>& gamma = data_manager->host_data.gamma;
+  const thrust::host_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
+  const thrust::host_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
   //#pragma omp parallel for
-  for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+  for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
     // BLAZE_SERIAL_SECTION
     {
       CompressedMatrix<real> D_T(3, 12), Minv(12, 12), D;
@@ -1058,8 +1058,8 @@ void ChConstraintRigidRigid::SolveLocal() {
       CompressedMatrix<real> N = D_T * Minv * D;
 
       mb[0] = R_full[index * 1 + 0];
-      mb[1] = R_full[data_container->num_rigid_contacts + index * 2 + 0];
-      mb[2] = R_full[data_container->num_rigid_contacts + index * 2 + 1];
+      mb[1] = R_full[data_manager->num_rigid_contacts + index * 2 + 0];
+      mb[2] = R_full[data_manager->num_rigid_contacts + index * 2 + 1];
 
       real Dinv = 3.0 / (N(0, 0) + N(1, 1) + N(2, 2));
       real omega = 1.0;
@@ -1090,24 +1090,24 @@ void ChConstraintRigidRigid::SolveLocal() {
       }
 
       gamma[index * 1 + 0] = ml[0];
-      gamma[data_container->num_rigid_contacts + index * 2 + 0] = ml[1];
-      gamma[data_container->num_rigid_contacts + index * 2 + 1] = ml[2];
+      gamma[data_manager->num_rigid_contacts + index * 2 + 0] = ml[1];
+      gamma[data_manager->num_rigid_contacts + index * 2 + 1] = ml[2];
     }
   }
 }
 
 void ChConstraintRigidRigid::SolveInverse() {
-  const int2* ids = data_container->host_data.bids_rigid_rigid.data();
-  const CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
-  const CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
-  const CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
-  const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+  const int2* ids = data_manager->host_data.bids_rigid_rigid.data();
+  const CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
+  const CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
+  const CompressedMatrix<real>& D_s_T = data_manager->host_data.D_s_T;
+  const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-  const DynamicVector<real>& R_full = data_container->host_data.R_full;
-  const thrust::host_vector<real3>& friction = data_container->host_data.fric_rigid_rigid;
-  const thrust::host_vector<real>& cohesion = data_container->host_data.coh_rigid_rigid;
+  const DynamicVector<real>& R_full = data_manager->host_data.R_full;
+  const thrust::host_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
+  const thrust::host_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
-  for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+  for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
     CompressedMatrix<real> D_T(3, 12), Minv(12, 12), D;
     DynamicVector<real> mb(3);  // rhs
     DynamicVector<real> ml(3);  // lagrange multipliers
@@ -1129,8 +1129,8 @@ void ChConstraintRigidRigid::SolveInverse() {
     CompressedMatrix<real> N = D_T * Minv * D;
 
     mb[0] = R_full[index * 1 + 0];
-    mb[1] = R_full[data_container->num_rigid_contacts + index * 2 + 0];
-    mb[2] = R_full[data_container->num_rigid_contacts + index * 2 + 1];
+    mb[1] = R_full[data_manager->num_rigid_contacts + index * 2 + 0];
+    mb[2] = R_full[data_manager->num_rigid_contacts + index * 2 + 1];
 
     real det = N(0, 0) * (N(1, 1) * N(2, 2) - N(2, 1) * N(1, 2)) - N(0, 1) * (N(1, 0) * N(2, 2) - N(1, 2) * N(2, 0)) +
                N(0, 2) * (N(1, 0) * N(2, 1) - N(1, 1) * N(2, 0));

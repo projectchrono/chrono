@@ -28,12 +28,12 @@ class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
   ~ChSolverAPGD() {}
 
   void Solve() {
-    if (data_container->num_constraints == 0) {
+    if (data_manager->num_constraints == 0) {
       return;
     }
 
-    data_container->measures.solver.total_iteration += SolveAPGD(
-        max_iteration, data_container->num_constraints, data_container->host_data.R, data_container->host_data.gamma);
+    data_manager->measures.solver.total_iteration += SolveAPGD(
+        max_iteration, data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
   }
 
   // Solve using a more streamlined but harder to read version of the APGD method

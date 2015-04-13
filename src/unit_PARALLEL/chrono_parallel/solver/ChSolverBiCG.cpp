@@ -6,14 +6,14 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
                              const uint size,
                              blaze::DynamicVector<real>& mb,
                              blaze::DynamicVector<real>& ml) {
-  real& residual = data_container->measures.solver.residual;
-  real& objective_value = data_container->measures.solver.objective_value;
+  real& residual = data_manager->measures.solver.residual;
+  real& objective_value = data_manager->measures.solver.objective_value;
 
 
   q.resize(size), qtilde.resize(size), r.resize(size);
   real normb = std::sqrt((mb, mb));
-  ShurProduct(ml, r);  // r = data_container->host_data.D_T *
-                       // (data_container->host_data.M_invD * ml);
+  ShurProduct(ml, r);  // r = data_manager->host_data.D_T *
+                       // (data_manager->host_data.M_invD * ml);
   r = mb - r;
 
   rtilde = r;
@@ -22,7 +22,7 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
     normb = 1;
   }
 
-  if ((residual = std::sqrt((r, r)) / normb) <= data_container->settings.solver.tolerance) {
+  if ((residual = std::sqrt((r, r)) / normb) <= data_manager->settings.solver.tolerance) {
     return 0;
   }
 
@@ -44,10 +44,10 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
       ptilde = ztilde + beta * ptilde;
     }
 
-    ShurProduct(p, q);            // q = data_container->host_data.D_T *
-                                  // (data_container->host_data.M_invD * p);
-    ShurProduct(ptilde, qtilde);  // qtilde = data_container->host_data.D_T *
-                                  // (data_container->host_data.M_invD *
+    ShurProduct(p, q);            // q = data_manager->host_data.D_T *
+                                  // (data_manager->host_data.M_invD * p);
+    ShurProduct(ptilde, qtilde);  // qtilde = data_manager->host_data.D_T *
+                                  // (data_manager->host_data.M_invD *
                                   // ptilde);
 
     alpha = rho_1 / (ptilde, q);
@@ -60,7 +60,7 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
     objective_value = GetObjective(ml, mb);
     AtIterationEnd(residual, objective_value);
 
-    if (residual < data_container->settings.solver.tolerance) {
+    if (residual < data_manager->settings.solver.tolerance) {
       break;
     }
   }

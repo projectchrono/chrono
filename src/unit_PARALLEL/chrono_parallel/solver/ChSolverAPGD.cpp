@@ -19,15 +19,15 @@ ChSolverAPGD::ChSolverAPGD()
 }
 
 void ChSolverAPGD::UpdateR() {
-  const CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
-  const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
-  const DynamicVector<real>& b = data_container->host_data.b;
-  DynamicVector<real>& R = data_container->host_data.R;
-  DynamicVector<real>& s = data_container->host_data.s;
+  const CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
+  const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
+  const DynamicVector<real>& b = data_manager->host_data.b;
+  DynamicVector<real>& R = data_manager->host_data.R;
+  DynamicVector<real>& s = data_manager->host_data.s;
 
-  uint num_contacts = data_container->num_rigid_contacts;
+  uint num_contacts = data_manager->num_rigid_contacts;
 
-  s.resize(data_container->num_rigid_contacts);
+  s.resize(data_manager->num_rigid_contacts);
   reset(s);
 
   rigid_rigid->Build_s();
@@ -43,11 +43,11 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
                              const uint size,
                              const blaze::DynamicVector<real>& r,
                              blaze::DynamicVector<real>& gamma) {
-  real& residual = data_container->measures.solver.residual;
-  real& objective_value = data_container->measures.solver.objective_value;
+  real& residual = data_manager->measures.solver.residual;
+  real& objective_value = data_manager->measures.solver.objective_value;
 
   blaze::DynamicVector<real> one(size, 1.0);
-  data_container->system_timer.start("ChSolverParallel_Solve");
+  data_manager->system_timer.start("ChSolverParallel_Solve");
   gamma_hat.resize(size);
   N_gamma_new.resize(size);
   temp.resize(size);
@@ -155,12 +155,12 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
 
     AtIterationEnd(residual, objective_value);
 
-    if (data_container->settings.solver.test_objective) {
-      if (objective_value <= data_container->settings.solver.tolerance_objective) {
+    if (data_manager->settings.solver.test_objective) {
+      if (objective_value <= data_manager->settings.solver.tolerance_objective) {
         break;
       }
     } else {
-      if (residual < data_container->settings.solver.tol_speed) {
+      if (residual < data_manager->settings.solver.tol_speed) {
         break;
       }
     }
@@ -174,7 +174,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
     t = 1.0 / L;
     theta = theta_new;
 
-    if (data_container->settings.solver.update_rhs) {
+    if (data_manager->settings.solver.update_rhs) {
       gamma = gamma_new;
       UpdateR();
     }
@@ -182,6 +182,6 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
 
   gamma = gamma_hat;
 
-  data_container->system_timer.stop("ChSolverParallel_Solve");
+  data_manager->system_timer.stop("ChSolverParallel_Solve");
   return current_iteration;
 }

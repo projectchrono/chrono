@@ -32,7 +32,7 @@ class CH_PARALLEL_API ChCBroadphase {
 
   // functions
   ChCBroadphase();
-  int detectPossibleCollisions(ChParallelDataManager* data_container);
+  int detectPossibleCollisions(ChParallelDataManager* data_manager);
   void setBinsPerAxis(int3 binsPerAxis);
   int3 getBinsPerAxis();
   void setBodyPerBin(int max, int min) {

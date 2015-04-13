@@ -32,10 +32,10 @@ class CH_PARALLEL_API ChSolverMatlab : public ChSolverParallel {
     if (num_constraints == 0) {
       return;
     }
-    data_container->system_timer.start("ChSolverParallel_Solve");
+    data_manager->system_timer.start("ChSolverParallel_Solve");
     total_iteration +=
-        SolveMatlab(max_iteration, num_constraints, data_container->host_data.R, data_container->host_data.gamma);
-    data_container->system_timer.stop("ChSolverParallel_Solve");
+        SolveMatlab(max_iteration, num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
+    data_manager->system_timer.stop("ChSolverParallel_Solve");
     current_iteration = total_iteration;
   }
   // Solve using the Accelerated Projected Gradient Descent Method

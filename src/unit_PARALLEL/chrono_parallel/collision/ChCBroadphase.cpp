@@ -311,13 +311,13 @@ void ChCBroadphase::host_Store_AABB_AABB_Intersection(const real3* aabb_data,
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // use spatial subdivision to detect the list of POSSIBLE collisions (let user define their own narrow-phase collision
 // detection)
-int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_container) {
-  custom_vector<real3>& aabb_data = data_container->host_data.aabb_rigid;
-  custom_vector<long long>& potentialCollisions = data_container->host_data.pair_rigid_rigid;
+int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_manager) {
+  custom_vector<real3>& aabb_data = data_manager->host_data.aabb_rigid;
+  custom_vector<long long>& potentialCollisions = data_manager->host_data.pair_rigid_rigid;
 
-  const custom_vector<short2>& fam_data = data_container->host_data.fam_rigid;
-  const custom_vector<bool>& obj_active = data_container->host_data.active_rigid;
-  const custom_vector<uint>& obj_data_ID = data_container->host_data.id_rigid;
+  const custom_vector<short2>& fam_data = data_manager->host_data.fam_rigid;
+  const custom_vector<bool>& obj_active = data_manager->host_data.active_rigid;
+  const custom_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
 
   double startTime = omp_get_wtime();
   numAABB = aabb_data.size() / 2;

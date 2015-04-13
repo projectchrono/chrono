@@ -78,16 +78,16 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
   void setBinsPerAxis(int3 binsPerAxis) { broadphase->setBinsPerAxis(binsPerAxis); }
 
   void SetAABB(real3 aabbmin, real3 aabbmax) {
-    data_container->settings.collision.aabb_min = aabbmin;
-    data_container->settings.collision.aabb_max = aabbmax;
-    data_container->settings.collision.use_aabb_active = true;
+    data_manager->settings.collision.aabb_min = aabbmin;
+    data_manager->settings.collision.aabb_max = aabbmax;
+    data_manager->settings.collision.use_aabb_active = true;
   }
 
   bool GetAABB(real3& aabbmin, real3& aabbmax) {
-    aabbmin = data_container->settings.collision.aabb_min;
-    aabbmax = data_container->settings.collision.aabb_max;
+    aabbmin = data_manager->settings.collision.aabb_min;
+    aabbmax = data_manager->settings.collision.aabb_max;
 
-    return data_container->settings.collision.use_aabb_active;
+    return data_manager->settings.collision.use_aabb_active;
   }
 
  private:
@@ -96,7 +96,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
 
   ChCAABBGenerator aabb_generator;
 
-  ChParallelDataManager* data_container;
+  ChParallelDataManager* data_manager;
 
   friend class chrono::ChSystemParallel;
 };

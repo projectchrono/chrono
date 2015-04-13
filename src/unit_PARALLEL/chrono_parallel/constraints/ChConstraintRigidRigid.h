@@ -31,7 +31,7 @@ void Compute_Jacobian_Rolling(const real4& quat,
 class CH_PARALLEL_API ChConstraintRigidRigid {
  public:
   ChConstraintRigidRigid() {
-    data_container = 0;
+    data_manager = 0;
     offset = 3;
     inv_h = inv_hpa = inv_hhpa = 0;
   }
@@ -39,39 +39,39 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
   ~ChConstraintRigidRigid() {}
 
   void Setup(ChParallelDataManager* data_container_) {
-    data_container = data_container_;
-    uint num_contacts = data_container->num_rigid_contacts;
-    inv_h = 1 / data_container->settings.step_size;
-    inv_hpa = 1 / (data_container->settings.step_size + data_container->settings.solver.alpha);
+    data_manager = data_container_;
+    uint num_contacts = data_manager->num_rigid_contacts;
+    inv_h = 1 / data_manager->settings.step_size;
+    inv_hpa = 1 / (data_manager->settings.step_size + data_manager->settings.solver.alpha);
     inv_hhpa = inv_h * inv_hpa;
 
     if (num_contacts > 0) {
       contact_active_pairs.resize(int(num_contacts));
-      data_container->host_data.coh_rigid_rigid.resize(num_contacts);
-      data_container->host_data.fric_rigid_rigid.resize(num_contacts);
+      data_manager->host_data.coh_rigid_rigid.resize(num_contacts);
+      data_manager->host_data.fric_rigid_rigid.resize(num_contacts);
 
 #pragma omp parallel for
       for (int i = 0; i < num_contacts; i++) {
-        int2 body = data_container->host_data.bids_rigid_rigid[i];
+        int2 body = data_manager->host_data.bids_rigid_rigid[i];
         uint b1 = body.x;
         uint b2 = body.y;
 
         contact_active_pairs[i] =
-            bool2(data_container->host_data.active_rigid[b1], data_container->host_data.active_rigid[b2]);
+            bool2(data_manager->host_data.active_rigid[b1], data_manager->host_data.active_rigid[b2]);
 
         real coh = std::max(
-            (data_container->host_data.cohesion_data[b1] + data_container->host_data.cohesion_data[b2]) * .5, 0.0);
-        data_container->host_data.coh_rigid_rigid[i] = coh;
+            (data_manager->host_data.cohesion_data[b1] + data_manager->host_data.cohesion_data[b2]) * .5, 0.0);
+        data_manager->host_data.coh_rigid_rigid[i] = coh;
 
-        real3 f_a = data_container->host_data.fric_data[b1];
-        real3 f_b = data_container->host_data.fric_data[b2];
+        real3 f_a = data_manager->host_data.fric_data[b1];
+        real3 f_b = data_manager->host_data.fric_data[b2];
         real3 mu;
 
         mu.x = (f_a.x == 0 || f_b.x == 0) ? 0 : (f_a.x + f_b.x) * .5;
         mu.y = (f_a.y == 0 || f_b.y == 0) ? 0 : (f_a.y + f_b.y) * .5;
         mu.z = (f_a.z == 0 || f_b.z == 0) ? 0 : (f_a.z + f_b.z) * .5;
 
-        data_container->host_data.fric_rigid_rigid[i] = mu;
+        data_manager->host_data.fric_rigid_rigid[i] = mu;
       }
     }
   }
@@ -113,7 +113,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
   real inv_hhpa;
 
   // Pointer to the system's data manager
-  ChParallelDataManager* data_container;
+  ChParallelDataManager* data_manager;
 };
 }
 

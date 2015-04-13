@@ -16,7 +16,7 @@ namespace collision {
 ChCollisionSystemBulletParallel::ChCollisionSystemBulletParallel(ChParallelDataManager* dc,
                                                                  unsigned int max_objects,
                                                                  double scene_size)
-    : data_container(dc) {
+    : data_manager(dc) {
   // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
   bt_collision_configuration = new btDefaultCollisionConfiguration();
   bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);
@@ -70,7 +70,7 @@ void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
     bmodel->GetBulletModel()->setCompanionId(counter);
     bt_collision_world->addCollisionObject(bmodel->GetBulletModel(), bmodel->GetFamilyGroup(), bmodel->GetFamilyMask());
     counter++;
-    data_container->num_rigid_shapes++;
+    data_manager->num_rigid_shapes++;
   }
 }
 
@@ -82,20 +82,20 @@ void ChCollisionSystemBulletParallel::Remove(ChCollisionModel* model) {
 }
 
 void ChCollisionSystemBulletParallel::Run() {
-  data_container->system_timer.start("collision_broad");
+  data_manager->system_timer.start("collision_broad");
   if (bt_collision_world) {
     bt_collision_world->performDiscreteCollisionDetection();
   }
-  data_container->system_timer.stop("collision_broad");
+  data_manager->system_timer.stop("collision_broad");
 }
 void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mcontactcontainer) {
-  data_container->system_timer.start("collision_narrow");
-  data_container->host_data.norm_rigid_rigid.clear();
-  data_container->host_data.cpta_rigid_rigid.clear();
-  data_container->host_data.cptb_rigid_rigid.clear();
-  data_container->host_data.dpth_rigid_rigid.clear();
-  data_container->host_data.bids_rigid_rigid.clear();
-  data_container->num_rigid_contacts = 0;
+  data_manager->system_timer.start("collision_narrow");
+  data_manager->host_data.norm_rigid_rigid.clear();
+  data_manager->host_data.cpta_rigid_rigid.clear();
+  data_manager->host_data.cptb_rigid_rigid.clear();
+  data_manager->host_data.dpth_rigid_rigid.clear();
+  data_manager->host_data.bids_rigid_rigid.clear();
+  data_manager->num_rigid_contacts = 0;
   // mcontactcontainer->BeginAddContact();
   ChCollisionInfo icontact;
 
@@ -161,12 +161,12 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
           // Add to contact container
           // mcontactcontainer->AddContact(icontact);
 
-          data_container->host_data.norm_rigid_rigid.push_back(R3(icontact.vN.x, icontact.vN.y, icontact.vN.z));
-          data_container->host_data.cpta_rigid_rigid.push_back(R3(icontact.vpA.x, icontact.vpA.y, icontact.vpA.z));
-          data_container->host_data.cptb_rigid_rigid.push_back(R3(icontact.vpB.x, icontact.vpB.y, icontact.vpB.z));
-          data_container->host_data.dpth_rigid_rigid.push_back(icontact.distance);
-          data_container->host_data.bids_rigid_rigid.push_back(I2(obA->getCompanionId(), obB->getCompanionId()));
-          data_container->num_rigid_contacts++;
+          data_manager->host_data.norm_rigid_rigid.push_back(R3(icontact.vN.x, icontact.vN.y, icontact.vN.z));
+          data_manager->host_data.cpta_rigid_rigid.push_back(R3(icontact.vpA.x, icontact.vpA.y, icontact.vpA.z));
+          data_manager->host_data.cptb_rigid_rigid.push_back(R3(icontact.vpB.x, icontact.vpB.y, icontact.vpB.z));
+          data_manager->host_data.dpth_rigid_rigid.push_back(icontact.distance);
+          data_manager->host_data.bids_rigid_rigid.push_back(I2(obA->getCompanionId(), obB->getCompanionId()));
+          data_manager->num_rigid_contacts++;
         }
       }
     }
@@ -175,7 +175,7 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
   }
 
   // mcontactcontainer->EndAddContact();
-  data_container->system_timer.stop("collision_narrow");
+  data_manager->system_timer.stop("collision_narrow");
 }
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

@@ -4,7 +4,7 @@
 #include "physics/ChBody.h"
 using namespace chrono;
 
-ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_container(dc) {
+ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_manager(dc) {
   tolerance = 1e-7;
   record_violation_history = true;
   warm_start = false;
@@ -18,21 +18,21 @@ ChLcpSolverParallel::~ChLcpSolverParallel() {
 
 void ChLcpSolverParallel::ComputeMassMatrix() {
   LOG(INFO) << "ChLcpSolverParallel::ComputeMassMatrix()";
-  uint num_bodies = data_container->num_rigid_bodies;
-  uint num_shafts = data_container->num_shafts;
-  uint num_dof = data_container->num_dof;
-  bool use_full_inertia_tensor = data_container->settings.solver.use_full_inertia_tensor;
-  const custom_vector<real>& shaft_inr = data_container->host_data.shaft_inr;
+  uint num_bodies = data_manager->num_rigid_bodies;
+  uint num_shafts = data_manager->num_shafts;
+  uint num_dof = data_manager->num_dof;
+  bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
+  const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
 
-  const std::vector<ChBody*>* body_list = data_container->body_list;
-  const std::vector<ChLink*>* link_list = data_container->link_list;
-  const std::vector<ChPhysicsItem*>* other_physics_list = data_container->other_physics_list;
+  const std::vector<ChBody*>* body_list = data_manager->body_list;
+  const std::vector<ChLink*>* link_list = data_manager->link_list;
+  const std::vector<ChPhysicsItem*>* other_physics_list = data_manager->other_physics_list;
 
-  const DynamicVector<real>& hf = data_container->host_data.hf;
-  const DynamicVector<real>& v = data_container->host_data.v;
+  const DynamicVector<real>& hf = data_manager->host_data.hf;
+  const DynamicVector<real>& v = data_manager->host_data.v;
 
-  DynamicVector<real>& M_invk = data_container->host_data.M_invk;
-  CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+  DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
+  CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
   clear(M_inv);
 
@@ -44,7 +44,7 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
   M_inv.resize(num_dof, num_dof);
 
   for (int i = 0; i < num_bodies; i++) {
-    if (data_container->host_data.active_rigid[i]) {
+    if (data_manager->host_data.active_rigid[i]) {
       real inv_mass = 1.0 / body_list->at(i)->GetMass();
       ChMatrix33<>& body_inv_inr = body_list->at(i)->VariablesBody().GetBodyInvInertia();
 
@@ -95,19 +95,19 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
 
 void ChLcpSolverParallel::PerformStabilization() {
   LOG(INFO) << "ChLcpSolverParallel::PerformStabilization";
-  const DynamicVector<real>& R_full = data_container->host_data.R_full;
-  DynamicVector<real>& gamma = data_container->host_data.gamma;
-  uint num_unilaterals = data_container->num_unilaterals;
-  uint num_bilaterals = data_container->num_bilaterals;
+  const DynamicVector<real>& R_full = data_manager->host_data.R_full;
+  DynamicVector<real>& gamma = data_manager->host_data.gamma;
+  uint num_unilaterals = data_manager->num_unilaterals;
+  uint num_bilaterals = data_manager->num_bilaterals;
 
-  if (data_container->settings.solver.max_iteration_bilateral <= 0 || num_bilaterals <= 0) {
+  if (data_manager->settings.solver.max_iteration_bilateral <= 0 || num_bilaterals <= 0) {
     return;
   }
 
   blaze::DenseSubvector<const DynamicVector<real> > R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
   blaze::DenseSubvector<DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
-  data_container->system_timer.start("ChLcpSolverParallel_Stab");
-  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral, num_bilaterals, R_b, gamma_b);
-  data_container->system_timer.stop("ChLcpSolverParallel_Stab");
+  data_manager->system_timer.start("ChLcpSolverParallel_Stab");
+  solver->SolveStab(data_manager->settings.solver.max_iteration_bilateral, num_bilaterals, R_b, gamma_b);
+  data_manager->system_timer.stop("ChLcpSolverParallel_Stab");
 }

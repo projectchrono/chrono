@@ -15,24 +15,24 @@ namespace collision {
 
 void ChCNarrowphaseDispatch::Process() {
   //======== Collision output data for rigid contacts
-  custom_vector<real3>& norm_data = data_container->host_data.norm_rigid_rigid;
-  custom_vector<real3>& cpta_data = data_container->host_data.cpta_rigid_rigid;
-  custom_vector<real3>& cptb_data = data_container->host_data.cptb_rigid_rigid;
-  custom_vector<real>& dpth_data = data_container->host_data.dpth_rigid_rigid;
-  custom_vector<real>& erad_data = data_container->host_data.erad_rigid_rigid;
-  custom_vector<int2>& bids_data = data_container->host_data.bids_rigid_rigid;
+  custom_vector<real3>& norm_data = data_manager->host_data.norm_rigid_rigid;
+  custom_vector<real3>& cpta_data = data_manager->host_data.cpta_rigid_rigid;
+  custom_vector<real3>& cptb_data = data_manager->host_data.cptb_rigid_rigid;
+  custom_vector<real>& dpth_data = data_manager->host_data.dpth_rigid_rigid;
+  custom_vector<real>& erad_data = data_manager->host_data.erad_rigid_rigid;
+  custom_vector<int2>& bids_data = data_manager->host_data.bids_rigid_rigid;
 
   //======== Body state information
-  custom_vector<bool>& obj_active = data_container->host_data.active_rigid;
-  custom_vector<real3>& body_pos = data_container->host_data.pos_rigid;
-  custom_vector<real4>& body_rot = data_container->host_data.rot_rigid;
+  custom_vector<bool>& obj_active = data_manager->host_data.active_rigid;
+  custom_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
+  custom_vector<real4>& body_rot = data_manager->host_data.rot_rigid;
   //======== Broadphase information
-  custom_vector<long long>& potentialCollisions = data_container->host_data.pair_rigid_rigid;
+  custom_vector<long long>& potentialCollisions = data_manager->host_data.pair_rigid_rigid;
   //======== Indexing variables and other information
-  collision_envelope = data_container->settings.collision.collision_envelope;
-  uint& number_of_contacts = data_container->num_rigid_contacts;
-  narrowphase_algorithm = data_container->settings.collision.narrowphase_algorithm;
-  system_type = data_container->settings.system_type;
+  collision_envelope = data_manager->settings.collision.collision_envelope;
+  uint& number_of_contacts = data_manager->num_rigid_contacts;
+  narrowphase_algorithm = data_manager->settings.collision.narrowphase_algorithm;
+  system_type = data_manager->settings.system_type;
   // The number of possible contacts based on the broadphase pair list
   num_potentialCollisions = potentialCollisions.size();
 
@@ -116,9 +116,9 @@ void ChCNarrowphaseDispatch::PreprocessCount() {
   //   - a box-box interaction can produce up to 8 contacts
 
   // shape type (per shape)
-  const shape_type* obj_data_T = data_container->host_data.typ_rigid.data();
+  const shape_type* obj_data_T = data_manager->host_data.typ_rigid.data();
   // encoded shape IDs (per collision pair)
-  const long long* collision_pair = data_container->host_data.pair_rigid_rigid.data();
+  const long long* collision_pair = data_manager->host_data.pair_rigid_rigid.data();
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {
@@ -141,17 +141,17 @@ void ChCNarrowphaseDispatch::PreprocessCount() {
 }
 
 void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
-  uint num_shapes = data_container->num_rigid_shapes;
+  uint num_shapes = data_manager->num_rigid_shapes;
 
-  const custom_vector<int>& obj_data_T = data_container->host_data.typ_rigid;
-  const custom_vector<real3>& obj_data_A = data_container->host_data.ObA_rigid;
-  const custom_vector<real3>& obj_data_B = data_container->host_data.ObB_rigid;
-  const custom_vector<real3>& obj_data_C = data_container->host_data.ObC_rigid;
-  const custom_vector<real4>& obj_data_R = data_container->host_data.ObR_rigid;
-  const custom_vector<uint>& obj_data_ID = data_container->host_data.id_rigid;
+  const custom_vector<int>& obj_data_T = data_manager->host_data.typ_rigid;
+  const custom_vector<real3>& obj_data_A = data_manager->host_data.ObA_rigid;
+  const custom_vector<real3>& obj_data_B = data_manager->host_data.ObB_rigid;
+  const custom_vector<real3>& obj_data_C = data_manager->host_data.ObC_rigid;
+  const custom_vector<real4>& obj_data_R = data_manager->host_data.ObR_rigid;
+  const custom_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
 
-  const custom_vector<real3>& body_pos = data_container->host_data.pos_rigid;
-  const custom_vector<real4>& body_rot = data_container->host_data.rot_rigid;
+  const custom_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
+  const custom_vector<real4>& body_rot = data_manager->host_data.rot_rigid;
 
   obj_data_A_global.resize(num_shapes);
   obj_data_B_global.resize(num_shapes);
@@ -186,11 +186,11 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
                                            uint& ID_B,
                                            ConvexShape& shapeA,
                                            ConvexShape& shapeB) {
-  const shape_type* obj_data_T = data_container->host_data.typ_rigid.data();
-  const custom_vector<uint>& obj_data_ID = data_container->host_data.id_rigid;
-  const custom_vector<long long>& contact_pair = data_container->host_data.pair_rigid_rigid;
-  const custom_vector<real>& collision_margins = data_container->host_data.margin_rigid;
-  real3* convex_data = data_container->host_data.convex_data.data();
+  const shape_type* obj_data_T = data_manager->host_data.typ_rigid.data();
+  const custom_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
+  const custom_vector<long long>& contact_pair = data_manager->host_data.pair_rigid_rigid;
+  const custom_vector<real>& collision_margins = data_manager->host_data.margin_rigid;
+  real3* convex_data = data_manager->host_data.convex_data.data();
 
   long long p = contact_pair[index];
   int2 pair =
@@ -220,7 +220,7 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
 }
 
 void ChCNarrowphaseDispatch::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC) {
-  custom_vector<int2>& body_ids = data_container->host_data.bids_rigid_rigid;
+  custom_vector<int2>& body_ids = data_manager->host_data.bids_rigid_rigid;
 
   // Mark the active contacts and set their body IDs
   for (int i = 0; i < nC; i++) {
@@ -230,11 +230,11 @@ void ChCNarrowphaseDispatch::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B,
 }
 
 void ChCNarrowphaseDispatch::DispatchMPR() {
-  custom_vector<real3>& norm = data_container->host_data.norm_rigid_rigid;
-  custom_vector<real3>& ptA = data_container->host_data.cpta_rigid_rigid;
-  custom_vector<real3>& ptB = data_container->host_data.cptb_rigid_rigid;
-  custom_vector<real>& contactDepth = data_container->host_data.dpth_rigid_rigid;
-  custom_vector<real>& effective_radius = data_container->host_data.erad_rigid_rigid;
+  custom_vector<real3>& norm = data_manager->host_data.norm_rigid_rigid;
+  custom_vector<real3>& ptA = data_manager->host_data.cpta_rigid_rigid;
+  custom_vector<real3>& ptB = data_manager->host_data.cptb_rigid_rigid;
+  custom_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
+  custom_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {
@@ -252,11 +252,11 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
 }
 
 void ChCNarrowphaseDispatch::DispatchGJK() {
-  custom_vector<real3>& norm = data_container->host_data.norm_rigid_rigid;
-  custom_vector<real3>& ptA = data_container->host_data.cpta_rigid_rigid;
-  custom_vector<real3>& ptB = data_container->host_data.cptb_rigid_rigid;
-  custom_vector<real>& contactDepth = data_container->host_data.dpth_rigid_rigid;
-  custom_vector<real>& effective_radius = data_container->host_data.erad_rigid_rigid;
+  custom_vector<real3>& norm = data_manager->host_data.norm_rigid_rigid;
+  custom_vector<real3>& ptA = data_manager->host_data.cpta_rigid_rigid;
+  custom_vector<real3>& ptB = data_manager->host_data.cptb_rigid_rigid;
+  custom_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
+  custom_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {
@@ -281,11 +281,11 @@ void ChCNarrowphaseDispatch::DispatchGJK() {
 }
 
 void ChCNarrowphaseDispatch::DispatchR() {
-  real3* norm = data_container->host_data.norm_rigid_rigid.data();
-  real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
-  real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
-  real* contactDepth = data_container->host_data.dpth_rigid_rigid.data();
-  real* effective_radius = data_container->host_data.erad_rigid_rigid.data();
+  real3* norm = data_manager->host_data.norm_rigid_rigid.data();
+  real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
+  real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
+  real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
+  real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {
@@ -303,11 +303,11 @@ void ChCNarrowphaseDispatch::DispatchR() {
 }
 
 void ChCNarrowphaseDispatch::DispatchHybridMPR() {
-  real3* norm = data_container->host_data.norm_rigid_rigid.data();
-  real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
-  real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
-  real* contactDepth = data_container->host_data.dpth_rigid_rigid.data();
-  real* effective_radius = data_container->host_data.erad_rigid_rigid.data();
+  real3* norm = data_manager->host_data.norm_rigid_rigid.data();
+  real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
+  real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
+  real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
+  real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {
@@ -329,11 +329,11 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
 }
 
 void ChCNarrowphaseDispatch::DispatchHybridGJK() {
-  real3* norm = data_container->host_data.norm_rigid_rigid.data();
-  real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
-  real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
-  real* contactDepth = data_container->host_data.dpth_rigid_rigid.data();
-  real* effective_radius = data_container->host_data.erad_rigid_rigid.data();
+  real3* norm = data_manager->host_data.norm_rigid_rigid.data();
+  real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
+  real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
+  real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
+  real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {

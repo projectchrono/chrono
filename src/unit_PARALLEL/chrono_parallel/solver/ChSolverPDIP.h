@@ -31,18 +31,18 @@ class CH_PARALLEL_API ChSolverPDIP : public ChSolverParallel {
   ~ChSolverPDIP() {}
 
   void Solve() {
-    if (data_container->num_constraints == 0) {
+    if (data_manager->num_constraints == 0) {
       return;
     }
-    data_container->system_timer.start("ChSolverParallel_Solve");
-    const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
-    uint num_dof = data_container->num_dof;
-    uint num_contacts = data_container->num_rigid_contacts;
-    uint num_bilaterals = data_container->num_bilaterals;
-    uint num_constraints = data_container->num_constraints;
-    uint num_unilaterals = data_container->num_unilaterals;
-    uint nnz_bilaterals = data_container->nnz_bilaterals;
-    uint nnz_unilaterals = 6 * 6 * data_container->num_rigid_contacts;
+    data_manager->system_timer.start("ChSolverParallel_Solve");
+    const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
+    uint num_dof = data_manager->num_dof;
+    uint num_contacts = data_manager->num_rigid_contacts;
+    uint num_bilaterals = data_manager->num_bilaterals;
+    uint num_constraints = data_manager->num_constraints;
+    uint num_unilaterals = data_manager->num_unilaterals;
+    uint nnz_bilaterals = data_manager->nnz_bilaterals;
+    uint nnz_unilaterals = 6 * 6 * data_manager->num_rigid_contacts;
 
     int nnz_total = nnz_unilaterals + nnz_bilaterals;
 
@@ -61,9 +61,9 @@ class CH_PARALLEL_API ChSolverPDIP : public ChSolverParallel {
     blaze::SparseSubmatrix<CompressedMatrix<real> > D_b_T =
         blaze::submatrix(D_T, num_unilaterals, 0, num_bilaterals, num_dof);
 
-    D_n_T = data_container->host_data.D_n_T;
-    D_t_T = data_container->host_data.D_t_T;
-    D_b_T = data_container->host_data.D_b_T;
+    D_n_T = data_manager->host_data.D_n_T;
+    D_t_T = data_manager->host_data.D_t_T;
+    D_b_T = data_manager->host_data.D_b_T;
 
     blaze::SparseSubmatrix<CompressedMatrix<real> > D_n = blaze::submatrix(D, 0, 0, num_dof, num_contacts);
     blaze::SparseSubmatrix<CompressedMatrix<real> > D_t =
@@ -71,9 +71,9 @@ class CH_PARALLEL_API ChSolverPDIP : public ChSolverParallel {
     blaze::SparseSubmatrix<CompressedMatrix<real> > D_b =
         blaze::submatrix(D, 0, num_unilaterals, num_dof, num_bilaterals);
 
-    D_n = data_container->host_data.D_n;
-    D_t = data_container->host_data.D_t;
-    D_b = data_container->host_data.D_b;
+    D_n = data_manager->host_data.D_n;
+    D_t = data_manager->host_data.D_t;
+    D_b = data_manager->host_data.D_b;
 
     blaze::SparseSubmatrix<CompressedMatrix<real> > M_invD_n = blaze::submatrix(M_invD, 0, 0, num_dof, num_contacts);
     blaze::SparseSubmatrix<CompressedMatrix<real> > M_invD_t =
@@ -81,13 +81,13 @@ class CH_PARALLEL_API ChSolverPDIP : public ChSolverParallel {
     blaze::SparseSubmatrix<CompressedMatrix<real> > M_invD_b =
         blaze::submatrix(M_invD, 0, num_unilaterals, num_dof, num_bilaterals);
 
-    M_invD_n = data_container->host_data.M_invD_n;
-    M_invD_t = data_container->host_data.M_invD_t;
-    M_invD_b = data_container->host_data.M_invD_b;
+    M_invD_n = data_manager->host_data.M_invD_n;
+    M_invD_t = data_manager->host_data.M_invD_t;
+    M_invD_b = data_manager->host_data.M_invD_b;
 
-    data_container->measures.solver.total_iteration += SolvePDIP(
-        max_iteration, data_container->num_constraints, data_container->host_data.R, data_container->host_data.gamma);
-    data_container->system_timer.stop("ChSolverParallel_Solve");
+    data_manager->measures.solver.total_iteration += SolvePDIP(
+        max_iteration, data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
+    data_manager->system_timer.stop("ChSolverParallel_Solve");
   }
 
   // Solve using the primal-dual interior point method

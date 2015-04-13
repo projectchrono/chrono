@@ -195,7 +195,7 @@ class CH_PARALLEL_API ChParallelDataManager {
   uint num_rigid_bodies;    // The number of rigid bodies in a system
   uint num_shafts;          // the number of shafts in a system
   uint num_dof;             // The number of degrees of freedom in the system
-  uint num_rigid_shapes;      // The number of collision models in a system
+  uint num_rigid_shapes;    // The number of collision models in a system
   uint num_rigid_contacts;  // The number of contacts in a system
   uint num_unilaterals;     // The number of contact constraints
   uint num_bilaterals;      // The number of bilateral constraints

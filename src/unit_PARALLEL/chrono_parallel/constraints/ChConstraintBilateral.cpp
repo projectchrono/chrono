@@ -17,20 +17,20 @@ using blaze::DenseSubvector;
 using blaze::subvector;
 
 void ChConstraintBilateral::Build_b() {
-  std::vector<ChLcpConstraint*>& mconstraints = data_container->lcp_system_descriptor->GetConstraintsList();
+  std::vector<ChLcpConstraint*>& mconstraints = data_manager->lcp_system_descriptor->GetConstraintsList();
 
 #pragma omp parallel for
-  for (int index = 0; index < data_container->num_bilaterals; index++) {
-    int cntr = data_container->host_data.bilateral_mapping[index];
+  for (int index = 0; index < data_manager->num_bilaterals; index++) {
+    int cntr = data_manager->host_data.bilateral_mapping[index];
     ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
-    data_container->host_data.b[index + data_container->num_unilaterals] = mbilateral->Get_b_i();
+    data_manager->host_data.b[index + data_manager->num_unilaterals] = mbilateral->Get_b_i();
   }
 }
 
 void ChConstraintBilateral::Build_E() {
 #pragma omp parallel for
-  for (int index = 0; index < data_container->num_bilaterals; index++) {
-    data_container->host_data.E[index + data_container->num_unilaterals] = 0;
+  for (int index = 0; index < data_manager->num_bilaterals; index++) {
+    data_manager->host_data.E[index + data_manager->num_unilaterals] = 0;
   }
 }
 
@@ -38,20 +38,20 @@ void ChConstraintBilateral::Build_D() {
   LOG(INFO) << "ChConstraintBilateral::Build_D";
   // Grab the list of all bilateral constraints present in the system
   // (note that this includes possibly inactive constraints)
-  std::vector<ChLcpConstraint*>& mconstraints = data_container->lcp_system_descriptor->GetConstraintsList();
+  std::vector<ChLcpConstraint*>& mconstraints = data_manager->lcp_system_descriptor->GetConstraintsList();
 
   // Loop over the active constraints and fill in the rows of the Jacobian,
   // taking into account the type of each constraint.
-  CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
-  CompressedMatrix<real>& D_b = data_container->host_data.D_b;
-  CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+  CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
+  CompressedMatrix<real>& D_b = data_manager->host_data.D_b;
+  CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
 
-  const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+  const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
   //#pragma omp parallel for
-  for (int index = 0; index < data_container->num_bilaterals; index++) {
-    int cntr = data_container->host_data.bilateral_mapping[index];
-    int type = data_container->host_data.bilateral_type[cntr];
+  for (int index = 0; index < data_manager->num_bilaterals; index++) {
+    int cntr = data_manager->host_data.bilateral_mapping[index];
+    int type = data_manager->host_data.bilateral_type[cntr];
     int row = index;
 
     switch (type) {
@@ -85,8 +85,8 @@ void ChConstraintBilateral::Build_D() {
 
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
-        int colA = data_container->num_rigid_bodies * 6 + idA;
-        int colB = data_container->num_rigid_bodies * 6 + idB;
+        int colA = data_manager->num_rigid_bodies * 6 + idA;
+        int colB = data_manager->num_rigid_bodies * 6 + idB;
 
         D_b_T(row, colA) = mbilateral->Get_Cq_a()->GetElementN(0);
         D_b_T(row, colB) = mbilateral->Get_Cq_b()->GetElementN(0);
@@ -97,7 +97,7 @@ void ChConstraintBilateral::Build_D() {
 
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
-        int colA = data_container->num_rigid_bodies * 6 + idA;
+        int colA = data_manager->num_rigid_bodies * 6 + idA;
         int colB = idB * 6;
 
         D_b_T(row, colA) = mbilateral->Get_Cq_a()->GetElementN(0);
@@ -116,9 +116,9 @@ void ChConstraintBilateral::Build_D() {
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
         int idC = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetId();
-        int colA = data_container->num_rigid_bodies * 6 + idA;
-        int colB = data_container->num_rigid_bodies * 6 + idB;
-        int colC = data_container->num_rigid_bodies * 6 + idC;
+        int colA = data_manager->num_rigid_bodies * 6 + idA;
+        int colB = data_manager->num_rigid_bodies * 6 + idB;
+        int colC = data_manager->num_rigid_bodies * 6 + idC;
 
         D_b_T(row, colA) = mbilateral->Get_Cq_a()->GetElementN(0);
         D_b_T(row, colB) = mbilateral->Get_Cq_b()->GetElementN(0);
@@ -130,8 +130,8 @@ void ChConstraintBilateral::Build_D() {
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
         int idC = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetId();
-        int colA = data_container->num_rigid_bodies * 6 + idA;
-        int colB = data_container->num_rigid_bodies * 6 + idB;
+        int colA = data_manager->num_rigid_bodies * 6 + idA;
+        int colB = data_manager->num_rigid_bodies * 6 + idB;
         int colC = idC * 6;
 
         D_b_T(row, colA) = mbilateral->Get_Cq_a()->GetElementN(0);
@@ -158,18 +158,18 @@ void ChConstraintBilateral::GenerateSparsity() {
   LOG(INFO) << "ChConstraintBilateral::GenerateSparsity";
   // Grab the list of all bilateral constraints present in the system
   // (note that this includes possibly inactive constraints)
-  std::vector<ChLcpConstraint*>& mconstraints = data_container->lcp_system_descriptor->GetConstraintsList();
+  std::vector<ChLcpConstraint*>& mconstraints = data_manager->lcp_system_descriptor->GetConstraintsList();
 
   // Loop over the active constraints and fill in the sparsity pattern of the
   // Jacobian, taking into account the type of each constraint.
   // Note that the data for a Blaze compressed matrix must be filled in increasing
   // order of the column index for each row. Recall that body states are always
   // before shaft states.
-  CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
+  CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
 
-  for (int index = 0; index < data_container->num_bilaterals; index++) {
-    int cntr = data_container->host_data.bilateral_mapping[index];
-    int type = data_container->host_data.bilateral_type[cntr];
+  for (int index = 0; index < data_manager->num_bilaterals; index++) {
+    int cntr = data_manager->host_data.bilateral_mapping[index];
+    int type = data_manager->host_data.bilateral_type[cntr];
     int row = index;
     int col1;
     int col2;
@@ -210,11 +210,11 @@ void ChConstraintBilateral::GenerateSparsity() {
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
         if (idA < idB) {
-          col1 = data_container->num_rigid_bodies * 6 + idA;
-          col2 = data_container->num_rigid_bodies * 6 + idB;
+          col1 = data_manager->num_rigid_bodies * 6 + idA;
+          col2 = data_manager->num_rigid_bodies * 6 + idB;
         } else {
-          col1 = data_container->num_rigid_bodies * 6 + idB;
-          col2 = data_container->num_rigid_bodies * 6 + idA;
+          col1 = data_manager->num_rigid_bodies * 6 + idB;
+          col2 = data_manager->num_rigid_bodies * 6 + idA;
         }
 
         D_b_T.append(row, col1, 1);
@@ -227,7 +227,7 @@ void ChConstraintBilateral::GenerateSparsity() {
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
         col1 = idB * 6;
-        col2 = data_container->num_rigid_bodies * 6 + idA;
+        col2 = data_manager->num_rigid_bodies * 6 + idA;
 
         D_b_T.append(row, col1 + 0, 1);
         D_b_T.append(row, col1 + 1, 1);
@@ -246,9 +246,9 @@ void ChConstraintBilateral::GenerateSparsity() {
         ids[1] = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
         ids[2] = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetId();
         std::sort(ids.begin(), ids.end());
-        col1 = data_container->num_rigid_bodies * 6 + ids[0];
-        col2 = data_container->num_rigid_bodies * 6 + ids[1];
-        col3 = data_container->num_rigid_bodies * 6 + ids[2];
+        col1 = data_manager->num_rigid_bodies * 6 + ids[0];
+        col2 = data_manager->num_rigid_bodies * 6 + ids[1];
+        col3 = data_manager->num_rigid_bodies * 6 + ids[2];
 
         D_b_T.append(row, col1, 1);
         D_b_T.append(row, col2, 1);
@@ -262,11 +262,11 @@ void ChConstraintBilateral::GenerateSparsity() {
         int idC = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetId();
         col1 = idC * 6;
         if (idA < idB) {
-          col2 = data_container->num_rigid_bodies * 6 + idA;
-          col3 = data_container->num_rigid_bodies * 6 + idB;
+          col2 = data_manager->num_rigid_bodies * 6 + idA;
+          col3 = data_manager->num_rigid_bodies * 6 + idB;
         } else {
-          col2 = data_container->num_rigid_bodies * 6 + idB;
-          col3 = data_container->num_rigid_bodies * 6 + idA;
+          col2 = data_manager->num_rigid_bodies * 6 + idB;
+          col3 = data_manager->num_rigid_bodies * 6 + idA;
         }
 
         D_b_T.append(row, col1 + 0, 1);

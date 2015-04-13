@@ -106,7 +106,7 @@ class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem
   btBroadphaseInterface* bt_broadphase;
   btCollisionWorld* bt_collision_world;
 
-  ChParallelDataManager* data_container;
+  ChParallelDataManager* data_manager;
 
   uint counter;
 };

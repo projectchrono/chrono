@@ -14,7 +14,7 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-ChContactContainerParallel::ChContactContainerParallel(ChParallelDataManager* dc) : data_container(dc) {
+ChContactContainerParallel::ChContactContainerParallel(ChParallelDataManager* dc) : data_manager(dc) {
   n_added = 0;
 }
 

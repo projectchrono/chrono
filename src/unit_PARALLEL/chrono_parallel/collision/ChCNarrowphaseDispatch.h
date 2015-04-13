@@ -41,7 +41,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
   void DispatchHybridGJK();
   void Dispatch_Init(uint index, uint& icoll, uint& ID_A, uint& ID_B, ConvexShape& shapeA, ConvexShape& shapeB);
   void Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC);
-  ChParallelDataManager* data_container;
+  ChParallelDataManager* data_manager;
 
  private:
   custom_vector<real3> obj_data_A_global, obj_data_B_global, obj_data_C_global;  //

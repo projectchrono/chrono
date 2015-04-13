@@ -7,14 +7,14 @@ uint ChSolverJacobi::SolveJacobi(const uint max_iter,
                                  const uint size,
                                  blaze::DynamicVector<real>& mb,
                                  blaze::DynamicVector<real>& ml) {
-  real& residual = data_container->measures.solver.residual;
-  real& objective_value = data_container->measures.solver.objective_value;
+  real& residual = data_manager->measures.solver.residual;
+  real& objective_value = data_manager->measures.solver.objective_value;
 
-  uint num_contacts = data_container->num_rigid_contacts;
+  uint num_contacts = data_manager->num_rigid_contacts;
   diagonal.resize(size, false);
   ml_old = ml;
-  CompressedMatrix<real> Nshur_n = data_container->host_data.D_n_T * data_container->host_data.M_invD_n;
-  CompressedMatrix<real> Nshur_t = data_container->host_data.D_t_T * data_container->host_data.M_invD_t;
+  CompressedMatrix<real> Nshur_n = data_manager->host_data.D_n_T * data_manager->host_data.M_invD_n;
+  CompressedMatrix<real> Nshur_t = data_manager->host_data.D_t_T * data_manager->host_data.M_invD_t;
 
   for (size_t i = 0; i < num_contacts; ++i) {
     diagonal[i * 1 + 0] = Nshur_n(i, i);
@@ -33,9 +33,9 @@ uint ChSolverJacobi::SolveJacobi(const uint max_iter,
       int c = num_contacts + i * 2 + 1;
 
       real Dinv = 3.0 / (diagonal[a] + diagonal[b] + diagonal[c]);
-      real E1 = data_container->host_data.E[a];
-      real E2 = data_container->host_data.E[b];
-      real E3 = data_container->host_data.E[c];
+      real E1 = data_manager->host_data.E[a];
+      real E2 = data_manager->host_data.E[b];
+      real E3 = data_manager->host_data.E[c];
       ml[a] = ml[a] -
               omega * Dinv *
                   ((row(Nshur_n, i * 1 + 0), blaze::subvector(ml_old, 0, 1 * num_contacts)) + E1 * ml_old[a] - mb[a]);

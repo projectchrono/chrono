@@ -10,7 +10,7 @@ class CH_PARALLEL_API ChConstraintBilateral {
   ChConstraintBilateral() {}
   ~ChConstraintBilateral() {}
 
-  void Setup(ChParallelDataManager* data_container_) { data_container = data_container_; }
+  void Setup(ChParallelDataManager* data_container_) { data_manager = data_container_; }
 
   // Compute the vector of corrections
   void Build_b();
@@ -25,7 +25,7 @@ class CH_PARALLEL_API ChConstraintBilateral {
   void GenerateSparsity();
 
   // Pointer to the system's data manager
-  ChParallelDataManager* data_container;
+  ChParallelDataManager* data_manager;
 };
 }
 

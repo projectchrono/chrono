@@ -6,14 +6,14 @@ uint ChSolverGD::SolveGD(const uint max_iter,
                          const uint size,
                          blaze::DynamicVector<real>& mb,
                          blaze::DynamicVector<real>& ml) {
-  real& residual = data_container->measures.solver.residual;
-  real& objective_value = data_container->measures.solver.objective_value;
+  real& residual = data_manager->measures.solver.residual;
+  real& objective_value = data_manager->measures.solver.objective_value;
 
-  real eps = data_container->settings.step_size;
+  real eps = data_manager->settings.step_size;
   r.resize(size);
 
-  ShurProduct(ml, r);  // r = data_container->host_data.D_T *
-                       // (data_container->host_data.M_invD * ml);
+  ShurProduct(ml, r);  // r = data_manager->host_data.D_T *
+                       // (data_manager->host_data.M_invD * ml);
   r = mb - r;
   real resold = 1, resnew, normb = sqrt((mb, mb));
   if (normb == 0.0) {
@@ -27,7 +27,7 @@ uint ChSolverGD::SolveGD(const uint max_iter,
     residual = std::abs(resnew - resold);
     objective_value = GetObjective(ml, mb);
     AtIterationEnd(residual, objective_value);
-    if (residual < data_container->settings.solver.tolerance) {
+    if (residual < data_manager->settings.solver.tolerance) {
       break;
     }
     resold = resnew;

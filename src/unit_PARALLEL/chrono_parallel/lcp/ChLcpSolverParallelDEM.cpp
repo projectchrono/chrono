@@ -362,33 +362,33 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body
                                                     custom_vector<int2>& shape_pairs,
                                                     custom_vector<bool>& shear_touch) {
 #pragma omp parallel for
-  for (int index = 0; index < data_container->num_rigid_contacts; index++) {
+  for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
     function_CalcContactForces(index,
-                               data_container->settings.solver.contact_force_model,
-                               data_container->settings.solver.tangential_displ_mode,
-                               data_container->settings.solver.use_material_properties,
-                               data_container->settings.solver.characteristic_vel,
-                               data_container->settings.solver.min_slip_vel,
-                               data_container->settings.step_size,
-                               data_container->host_data.mass_rigid.data(),
-                               data_container->host_data.pos_rigid.data(),
-                               data_container->host_data.rot_rigid.data(),
-                               data_container->host_data.v.data(),
-                               data_container->host_data.elastic_moduli.data(),
-                               data_container->host_data.cr.data(),
-                               data_container->host_data.dem_coeffs.data(),
-                               data_container->host_data.mu.data(),
-                               data_container->host_data.cohesion_data.data(),
-                               data_container->host_data.bids_rigid_rigid.data(),
+                               data_manager->settings.solver.contact_force_model,
+                               data_manager->settings.solver.tangential_displ_mode,
+                               data_manager->settings.solver.use_material_properties,
+                               data_manager->settings.solver.characteristic_vel,
+                               data_manager->settings.solver.min_slip_vel,
+                               data_manager->settings.step_size,
+                               data_manager->host_data.mass_rigid.data(),
+                               data_manager->host_data.pos_rigid.data(),
+                               data_manager->host_data.rot_rigid.data(),
+                               data_manager->host_data.v.data(),
+                               data_manager->host_data.elastic_moduli.data(),
+                               data_manager->host_data.cr.data(),
+                               data_manager->host_data.dem_coeffs.data(),
+                               data_manager->host_data.mu.data(),
+                               data_manager->host_data.cohesion_data.data(),
+                               data_manager->host_data.bids_rigid_rigid.data(),
                                shape_pairs.data(),
-                               data_container->host_data.cpta_rigid_rigid.data(),
-                               data_container->host_data.cptb_rigid_rigid.data(),
-                               data_container->host_data.norm_rigid_rigid.data(),
-                               data_container->host_data.dpth_rigid_rigid.data(),
-                               data_container->host_data.erad_rigid_rigid.data(),
-                               data_container->host_data.shear_neigh.data(),
+                               data_manager->host_data.cpta_rigid_rigid.data(),
+                               data_manager->host_data.cptb_rigid_rigid.data(),
+                               data_manager->host_data.norm_rigid_rigid.data(),
+                               data_manager->host_data.dpth_rigid_rigid.data(),
+                               data_manager->host_data.erad_rigid_rigid.data(),
+                               data_manager->host_data.shear_neigh.data(),
                                shear_touch.data(),
-                               data_container->host_data.shear_disp.data(),
+                               data_manager->host_data.shear_disp.data(),
                                ext_body_id.data(),
                                ext_body_force.data(),
                                ext_body_torque.data());
@@ -403,26 +403,26 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body
 // body.
 // -----------------------------------------------------------------------------
 void ChLcpSolverParallelDEM::host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id) {
-  const custom_vector<real3>& ct_body_force = data_container->host_data.ct_body_force;
-  const custom_vector<real3>& ct_body_torque = data_container->host_data.ct_body_torque;
+  const custom_vector<real3>& ct_body_force = data_manager->host_data.ct_body_force;
+  const custom_vector<real3>& ct_body_torque = data_manager->host_data.ct_body_torque;
 
 #pragma omp parallel for
   for (int index = 0; index < ct_body_count; index++) {
-    real3 contact_force = data_container->settings.step_size * ct_body_force[index];
-    real3 contact_torque = data_container->settings.step_size * ct_body_torque[index];
-    data_container->host_data.hf[ct_body_id[index] * 6 + 0] += contact_force.x;
-    data_container->host_data.hf[ct_body_id[index] * 6 + 1] += contact_force.y;
-    data_container->host_data.hf[ct_body_id[index] * 6 + 2] += contact_force.z;
-    data_container->host_data.hf[ct_body_id[index] * 6 + 3] += contact_torque.x;
-    data_container->host_data.hf[ct_body_id[index] * 6 + 4] += contact_torque.y;
-    data_container->host_data.hf[ct_body_id[index] * 6 + 5] += contact_torque.z;
+    real3 contact_force = data_manager->settings.step_size * ct_body_force[index];
+    real3 contact_torque = data_manager->settings.step_size * ct_body_torque[index];
+    data_manager->host_data.hf[ct_body_id[index] * 6 + 0] += contact_force.x;
+    data_manager->host_data.hf[ct_body_id[index] * 6 + 1] += contact_force.y;
+    data_manager->host_data.hf[ct_body_id[index] * 6 + 2] += contact_force.z;
+    data_manager->host_data.hf[ct_body_id[index] * 6 + 3] += contact_torque.x;
+    data_manager->host_data.hf[ct_body_id[index] * 6 + 4] += contact_torque.y;
+    data_manager->host_data.hf[ct_body_id[index] * 6 + 5] += contact_torque.z;
   }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLcpSolverParallelDEM::host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id) {
-  custom_vector<int>& ct_body_map = data_container->host_data.ct_body_map;
+  custom_vector<int>& ct_body_map = data_manager->host_data.ct_body_map;
 
 #pragma omp parallel for
   for (int index = 0; index < ct_body_count; index++) {
@@ -440,32 +440,32 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
   //    For each pair of contact shapes that overlap, we calculate and store the
   //    IDs of the two corresponding bodies and the resulting contact forces and
   //    torques on the two bodies.
-  custom_vector<int> ext_body_id(2 * data_container->num_rigid_contacts);
-  custom_vector<real3> ext_body_force(2 * data_container->num_rigid_contacts);
-  custom_vector<real3> ext_body_torque(2 * data_container->num_rigid_contacts);
+  custom_vector<int> ext_body_id(2 * data_manager->num_rigid_contacts);
+  custom_vector<real3> ext_body_force(2 * data_manager->num_rigid_contacts);
+  custom_vector<real3> ext_body_torque(2 * data_manager->num_rigid_contacts);
   custom_vector<int2> shape_pairs;
   custom_vector<bool> shear_touch;
 
-  if (data_container->settings.solver.tangential_displ_mode == MULTI_STEP) {
-    shape_pairs.resize(data_container->num_rigid_contacts);
-    shear_touch.resize(max_shear * data_container->num_rigid_bodies);
+  if (data_manager->settings.solver.tangential_displ_mode == MULTI_STEP) {
+    shape_pairs.resize(data_manager->num_rigid_contacts);
+    shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
     thrust::fill(thrust_parallel, shear_touch.begin(), shear_touch.end(), false);
 #pragma omp parallel for
-    for (int i = 0; i < data_container->num_rigid_contacts; i++) {
-      int2 pair = I2(int(data_container->host_data.pair_rigid_rigid[i] >> 32),
-                     int(data_container->host_data.pair_rigid_rigid[i] & 0xffffffff));
+    for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
+      int2 pair = I2(int(data_manager->host_data.pair_rigid_rigid[i] >> 32),
+                     int(data_manager->host_data.pair_rigid_rigid[i] & 0xffffffff));
       shape_pairs[i] = pair;
     }
   }
 
   host_CalcContactForces(ext_body_id, ext_body_force, ext_body_torque, shape_pairs, shear_touch);
 
-  if (data_container->settings.solver.tangential_displ_mode == MULTI_STEP) {
+  if (data_manager->settings.solver.tangential_displ_mode == MULTI_STEP) {
 #pragma omp parallel for
-    for (int index = 0; index < data_container->num_rigid_bodies; index++) {
+    for (int index = 0; index < data_manager->num_rigid_bodies; index++) {
       for (int i = 0; i < max_shear; i++) {
         if (shear_touch[max_shear * index + i] == false)
-          data_container->host_data.shear_neigh[max_shear * index + i].x = -1;
+          data_manager->host_data.shear_neigh[max_shear * index + i].x = -1;
       }
     }
   }
@@ -480,12 +480,12 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
                       ext_body_id.end(),
                       thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
 
-  custom_vector<int> ct_body_id(data_container->num_rigid_bodies);
-  custom_vector<real3>& ct_body_force = data_container->host_data.ct_body_force;
-  custom_vector<real3>& ct_body_torque = data_container->host_data.ct_body_torque;
+  custom_vector<int> ct_body_id(data_manager->num_rigid_bodies);
+  custom_vector<real3>& ct_body_force = data_manager->host_data.ct_body_force;
+  custom_vector<real3>& ct_body_torque = data_manager->host_data.ct_body_torque;
 
-  ct_body_force.resize(data_container->num_rigid_bodies);
-  ct_body_torque.resize(data_container->num_rigid_bodies);
+  ct_body_force.resize(data_manager->num_rigid_bodies);
+  ct_body_torque.resize(data_manager->num_rigid_bodies);
 
   // Reduce contact forces from all contacts and count bodies currently involved
   // in contact. We do this simultaneously for contact forces and torques, using
@@ -514,19 +514,19 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
 }
 
 void ChLcpSolverParallelDEM::ComputeD() {
-  uint num_constraints = data_container->num_constraints;
+  uint num_constraints = data_manager->num_constraints;
   if (num_constraints <= 0) {
     return;
   }
 
-  uint num_bodies = data_container->num_rigid_bodies;
-  uint num_shafts = data_container->num_shafts;
-  uint num_dof = data_container->num_dof;
-  uint num_contacts = data_container->num_rigid_contacts;
-  uint num_bilaterals = data_container->num_bilaterals;
-  uint nnz_bilaterals = data_container->nnz_bilaterals;
+  uint num_bodies = data_manager->num_rigid_bodies;
+  uint num_shafts = data_manager->num_shafts;
+  uint num_dof = data_manager->num_dof;
+  uint num_contacts = data_manager->num_rigid_contacts;
+  uint num_bilaterals = data_manager->num_bilaterals;
+  uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
-  CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
+  CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
   clear(D_b_T);
 
   D_b_T.reserve(nnz_bilaterals);
@@ -538,27 +538,27 @@ void ChLcpSolverParallelDEM::ComputeD() {
 }
 
 void ChLcpSolverParallelDEM::ComputeE() {
-  if (data_container->num_constraints <= 0) {
+  if (data_manager->num_constraints <= 0) {
     return;
   }
 
-  data_container->host_data.E.resize(data_container->num_constraints);
-  reset(data_container->host_data.E);
+  data_manager->host_data.E.resize(data_manager->num_constraints);
+  reset(data_manager->host_data.E);
 
   bilateral.Build_E();
 }
 
 void ChLcpSolverParallelDEM::ComputeR() {
-  if (data_container->num_constraints <= 0) {
+  if (data_manager->num_constraints <= 0) {
     return;
   }
 
-  data_container->host_data.b.resize(data_container->num_constraints);
-  reset(data_container->host_data.b);
+  data_manager->host_data.b.resize(data_manager->num_constraints);
+  reset(data_manager->host_data.b);
   bilateral.Build_b();
 
-  data_container->host_data.R_full =
-      -data_container->host_data.b - data_container->host_data.D_b_T * data_container->host_data.M_invk;
+  data_manager->host_data.R_full =
+      -data_manager->host_data.b - data_manager->host_data.D_b_T * data_manager->host_data.M_invk;
 }
 
 // -----------------------------------------------------------------------------
@@ -570,46 +570,46 @@ void ChLcpSolverParallelDEM::ComputeR() {
 // -----------------------------------------------------------------------------
 void ChLcpSolverParallelDEM::RunTimeStep() {
   // This is the total number of constraints, note that there are no contacts
-  data_container->num_constraints = data_container->num_bilaterals;
-  data_container->num_unilaterals = 0;
+  data_manager->num_constraints = data_manager->num_bilaterals;
+  data_manager->num_unilaterals = 0;
 
   // Calculate contact forces (impulses) and append them to the body forces
-  data_container->host_data.ct_body_map.resize(data_container->num_rigid_bodies);
-  thrust::fill(data_container->host_data.ct_body_map.begin(), data_container->host_data.ct_body_map.end(), -1);
+  data_manager->host_data.ct_body_map.resize(data_manager->num_rigid_bodies);
+  thrust::fill(data_manager->host_data.ct_body_map.begin(), data_manager->host_data.ct_body_map.end(), -1);
 
-  if (data_container->num_rigid_contacts > 0) {
-    data_container->system_timer.start("ChLcpSolverParallelDEM_ProcessContact");
+  if (data_manager->num_rigid_contacts > 0) {
+    data_manager->system_timer.start("ChLcpSolverParallelDEM_ProcessContact");
     ProcessContacts();
-    data_container->system_timer.stop("ChLcpSolverParallelDEM_ProcessContact");
+    data_manager->system_timer.stop("ChLcpSolverParallelDEM_ProcessContact");
   }
 
   // Generate the mass matrix and compute M_inv_k
   ComputeMassMatrix();
 
   // If there are (bilateral) constraints, calculate Lagrange multipliers.
-  if (data_container->num_constraints != 0) {
-    data_container->system_timer.start("ChLcpSolverParallel_Setup");
+  if (data_manager->num_constraints != 0) {
+    data_manager->system_timer.start("ChLcpSolverParallel_Setup");
 
-    bilateral.Setup(data_container);
+    bilateral.Setup(data_manager);
 
     solver->current_iteration = 0;
-    data_container->measures.solver.total_iteration = 0;
-    data_container->measures.solver.maxd_hist.clear();            ////
-    data_container->measures.solver.maxdeltalambda_hist.clear();  ////  currently not used
+    data_manager->measures.solver.total_iteration = 0;
+    data_manager->measures.solver.maxd_hist.clear();            ////
+    data_manager->measures.solver.maxdeltalambda_hist.clear();  ////  currently not used
 
     solver->bilateral = &bilateral;
-    solver->Setup(data_container);
+    solver->Setup(data_manager);
 
     // Set the initial guess for the iterative solver to zero.
-    data_container->host_data.gamma.resize(data_container->num_constraints);
-    data_container->host_data.gamma.reset();
+    data_manager->host_data.gamma.resize(data_manager->num_constraints);
+    data_manager->host_data.gamma.reset();
 
     // Compute the jacobian matrix, the compliance matrix and the right hand side
     ComputeD();
     ComputeE();
     ComputeR();
 
-    data_container->system_timer.stop("ChLcpSolverParallel_Setup");
+    data_manager->system_timer.stop("ChLcpSolverParallel_Setup");
 
     // Solve for the Lagrange multipliers associated with bilateral constraints.
     PerformStabilization();
@@ -618,24 +618,24 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
   // Update velocity (linear and angular)
   ComputeImpulses();
 
-  for (int i = 0; i < data_container->measures.solver.maxd_hist.size(); i++) {
-    AtIterationEnd(data_container->measures.solver.maxd_hist[i],
-                   data_container->measures.solver.maxdeltalambda_hist[i],
+  for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
+    AtIterationEnd(data_manager->measures.solver.maxd_hist[i],
+                   data_manager->measures.solver.maxdeltalambda_hist[i],
                    i);
   }
-  tot_iterations = data_container->measures.solver.maxd_hist.size();
+  tot_iterations = data_manager->measures.solver.maxd_hist.size();
 }
 
 void ChLcpSolverParallelDEM::ComputeImpulses() {
-  DynamicVector<real>& v = data_container->host_data.v;
-  const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
-  const DynamicVector<real>& gamma = data_container->host_data.gamma;
-  const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+  DynamicVector<real>& v = data_manager->host_data.v;
+  const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
+  const DynamicVector<real>& gamma = data_manager->host_data.gamma;
+  const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
 
-  uint num_unilaterals = data_container->num_unilaterals;
-  uint num_bilaterals = data_container->num_bilaterals;
+  uint num_unilaterals = data_manager->num_unilaterals;
+  uint num_bilaterals = data_manager->num_bilaterals;
 
-  if (data_container->num_constraints > 0) {
+  if (data_manager->num_constraints > 0) {
     blaze::DenseSubvector<const DynamicVector<real> > gamma_b =
         blaze::subvector(gamma, num_unilaterals, num_bilaterals);
     v = M_invk + M_invD_b * gamma_b;
