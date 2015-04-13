@@ -149,9 +149,6 @@ struct host_container {
   // M_inv is the inverse mass matrix, This matrix, if holding the full inertia
   // tensor is block diagonal
   CompressedMatrix<real> M_inv;
-  // M is the mass matrix, this is only computed in certain situations for some
-  // experimental features in the solver
-  CompressedMatrix<real> M;
   // Minv_D holds M_inv multiplied by D, this is done as a preprocessing step
   // so that later, when the full matrix vector product is needed it can be
   // performed in two steps, first R = Minv_D*x, and then D_T*R where R is just

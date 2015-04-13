@@ -82,7 +82,6 @@ struct solver_settings {
     tolerance_objective = 1e-6;
     collision_in_solver = false;
     update_rhs = false;
-    scale_mass_matrix = false;
     verbose = false;
     test_objective = false;
 
@@ -152,7 +151,6 @@ struct solver_settings {
   bool update_rhs;
   bool presolve;
   bool compute_N;
-  bool scale_mass_matrix;
   bool verbose;
   bool test_objective;
   real cohesion_epsilon;
