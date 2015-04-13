@@ -47,26 +47,6 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
 
   const DynamicVector<real>& E = data_container->host_data.E;
 
-  CompressedMatrix<real>& N_nn = data_container->host_data.N_nn;
-  CompressedMatrix<real>& N_nt = data_container->host_data.N_nt;
-  CompressedMatrix<real>& N_ns = data_container->host_data.N_ns;
-  CompressedMatrix<real>& N_nb = data_container->host_data.N_nb;
-
-  CompressedMatrix<real>& N_tn = data_container->host_data.N_tn;
-  CompressedMatrix<real>& N_tt = data_container->host_data.N_tt;
-  CompressedMatrix<real>& N_ts = data_container->host_data.N_ts;
-  CompressedMatrix<real>& N_tb = data_container->host_data.N_tb;
-
-  CompressedMatrix<real>& N_sn = data_container->host_data.N_sn;
-  CompressedMatrix<real>& N_st = data_container->host_data.N_st;
-  CompressedMatrix<real>& N_ss = data_container->host_data.N_ss;
-  CompressedMatrix<real>& N_sb = data_container->host_data.N_sb;
-
-  CompressedMatrix<real>& N_bn = data_container->host_data.N_bn;
-  CompressedMatrix<real>& N_bt = data_container->host_data.N_bt;
-  CompressedMatrix<real>& N_bs = data_container->host_data.N_bs;
-  CompressedMatrix<real>& N_bb = data_container->host_data.N_bb;
-
   uint num_contacts = data_container->num_rigid_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
@@ -81,38 +61,26 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
 
   switch (data_container->settings.solver.local_solver_mode) {
     case BILATERAL: {
-      if (data_container->settings.solver.compute_N) {
-        o_b = N_bb * x_b + E_b * x_b;
-      } else {
-        o_b = D_b_T * (M_invD_b * x_b) + E_b * x_b;
-      }
+      o_b = D_b_T * (M_invD_b * x_b) + E_b * x_b;
+
     } break;
 
     case NORMAL: {
-      if (data_container->settings.solver.compute_N) {
-        o_b = N_bb * x_b + N_bn * x_n + E_b * x_b;
-        o_n = N_nb * x_b + N_nn * x_n + E_n * x_n;
-      } else {
-        blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n;
-        o_b = D_b_T * tmp + E_b * x_b;
-        o_n = D_n_T * tmp + E_n * x_n;
-      }
+      blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n;
+      o_b = D_b_T * tmp + E_b * x_b;
+      o_n = D_n_T * tmp + E_n * x_n;
+
     } break;
 
     case SLIDING: {
       blaze::DenseSubvector<DynamicVector<real> > o_t = blaze::subvector(output, num_contacts, num_contacts * 2);
       blaze::DenseSubvector<const DynamicVector<real> > x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
       blaze::DenseSubvector<const DynamicVector<real> > E_t = blaze::subvector(E, num_contacts, num_contacts * 2);
-      if (data_container->settings.solver.compute_N) {
-        o_b = N_bb * x_b + N_bn * x_n + N_bt * x_t + E_b * x_b;
-        o_n = N_nb * x_b + N_nn * x_n + N_nt * x_t + E_n * x_n;
-        o_t = N_tb * x_b + N_tn * x_n + N_tt * x_t + E_t * x_t;
-      } else {
-        blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t;
-        o_b = D_b_T * tmp + E_b * x_b;
-        o_n = D_n_T * tmp + E_n * x_n;
-        o_t = D_t_T * tmp + E_t * x_t;
-      }
+
+      blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t;
+      o_b = D_b_T * tmp + E_b * x_b;
+      o_n = D_n_T * tmp + E_n * x_n;
+      o_t = D_t_T * tmp + E_t * x_t;
 
     } break;
 
@@ -124,18 +92,12 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
       blaze::DenseSubvector<DynamicVector<real> > o_s = blaze::subvector(output, num_contacts * 3, num_contacts * 3);
       blaze::DenseSubvector<const DynamicVector<real> > x_s = blaze::subvector(x, num_contacts * 3, num_contacts * 3);
       blaze::DenseSubvector<const DynamicVector<real> > E_s = blaze::subvector(E, num_contacts * 3, num_contacts * 3);
-      if (data_container->settings.solver.compute_N) {
-        o_b = N_bb * x_b + N_bn * x_n + N_bt * x_t + N_bs * x_s + E_b * x_b;
-        o_n = N_nb * x_b + N_nn * x_n + N_nt * x_t + N_ns * x_s + E_n * x_n;
-        o_t = N_tb * x_b + N_tn * x_n + N_tt * x_t + N_ts * x_s + E_t * x_t;
-        o_s = N_sb * x_b + N_sn * x_n + N_st * x_t + N_ss * x_s + E_s * x_s;
-      } else {
-        blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t + M_invD_s * x_s;
-        o_b = D_b_T * tmp + E_b * x_b;
-        o_n = D_n_T * tmp + E_n * x_n;
-        o_t = D_t_T * tmp + E_t * x_t;
-        o_s = D_s_T * tmp + E_s * x_s;
-      }
+
+      blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t + M_invD_s * x_s;
+      o_b = D_b_T * tmp + E_b * x_b;
+      o_n = D_n_T * tmp + E_n * x_n;
+      o_t = D_t_T * tmp + E_t * x_t;
+      o_s = D_s_T * tmp + E_s * x_s;
 
     } break;
   }
