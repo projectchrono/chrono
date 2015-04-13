@@ -66,8 +66,6 @@ void function_CalcContactForces(
   // Identify the two bodies in contact.
   int body1 = body_id[index].x;
   int body2 = body_id[index].y;
-  int shape1 = shape_id[index].x;
-  int shape2 = shape_id[index].y;
 
   // If the two contact shapes are actually separated, set zero forces and torques.
   if (depth[index] >= 0) {
@@ -174,6 +172,8 @@ void function_CalcContactForces(
     // Currently, it is assumed that the smaller shape is on the body
     // with larger ID.
     // We call this body shear_body1.
+    int shape1 = shape_id[index].x;
+    int shape2 = shape_id[index].y;
 
     shear_body1 = std::max(body1, body2);
     shear_body2 = std::min(body1, body2);
@@ -182,7 +182,6 @@ void function_CalcContactForces(
 
     // Check if contact history already exists.
     // If not, initialize new contact history.
-
     for (i = 0; i < max_shear; i++) {
       if (shear_neigh[max_shear * shear_body1 + i].x == shear_body2
         && shear_neigh[max_shear * shear_body1 + i].y == shear_shape1
