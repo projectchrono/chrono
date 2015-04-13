@@ -32,31 +32,31 @@ using namespace chrono;
 // therefore duplicated in the output arrays, once for each body involved in the
 // contact (with opposite signs for the two bodies).
 // -----------------------------------------------------------------------------
-void function_CalcContactForces(int index,                      // index of this contact pair
-                                CONTACTFORCEMODEL force_model,  // contact force model
-                                bool use_contact_history,       // flag indicating whether or not to use history
-                                bool use_mat_props,             // flag specifying how coefficients are obtained
-                                real char_vel,                  // characteristic velocity (Hooke)
-                                real min_slip_vel,              // threshold tangential velocity
-                                real dT,                        // integration time step
-                                real* mass,                     // body masses
-                                real3* pos,                     // body positions
-                                real4* rot,                     // body orientations
-                                real* vel,  // body linear velocity (global frame), angular velocity (local frame)
-                                real2* elastic_moduli,   // Young's modulus (per body)
-                                real* cr,                // coefficient of restitution (per body)
-                                real4* dem_coeffs,       // stiffness and damping coefficients (per body)
-                                real* mu,                // coefficient of friction (per body)
-                                real* cohesion,          // cohesion force (per body)
-                                int2* body_id,           // body IDs (per contact)
-                                real3* pt1,              // point on shape 1 (per contact)
-                                real3* pt2,              // point on shape 2 (per contact)
-                                real3* normal,           // contact normal (per contact)
-                                real* depth,             // penetration depth (per contact)
-                                real* eff_radius,        // effective contact radius (per contact)
-                                int* ext_body_id,        // [output] body IDs (two per contact)
-                                real3* ext_body_force,   // [output] body force (two per contact)
-                                real3* ext_body_torque)  // [output] body torque (two per contact)
+void function_CalcContactForces(int index,                         // index of this contact pair
+                                CONTACTFORCEMODEL force_model,     // contact force model
+                                TANGENTIALDISPLACEMENTMODE displ,  // type of tangential displacement history
+                                bool use_mat_props,                // flag specifying how coefficients are obtained
+                                real char_vel,                     // characteristic velocity (Hooke)
+                                real min_slip_vel,                 // threshold tangential velocity
+                                real dT,                           // integration time step
+                                real* mass,                        // body masses
+                                real3* pos,                        // body positions
+                                real4* rot,                        // body orientations
+                                real* vel,                         // body linear and angular velocities
+                                real2* elastic_moduli,             // Young's modulus (per body)
+                                real* cr,                          // coefficient of restitution (per body)
+                                real4* dem_coeffs,                 // stiffness and damping coefficients (per body)
+                                real* mu,                          // coefficient of friction (per body)
+                                real* cohesion,                    // cohesion force (per body)
+                                int2* body_id,                     // body IDs (per contact)
+                                real3* pt1,                        // point on shape 1 (per contact)
+                                real3* pt2,                        // point on shape 2 (per contact)
+                                real3* normal,                     // contact normal (per contact)
+                                real* depth,                       // penetration depth (per contact)
+                                real* eff_radius,                  // effective contact radius (per contact)
+                                int* ext_body_id,                  // [output] body IDs (two per contact)
+                                real3* ext_body_force,             // [output] body force (two per contact)
+                                real3* ext_body_torque)            // [output] body torque (two per contact)
 {
   // Identify the two bodies in contact.
   int body1 = body_id[index].x;
@@ -146,7 +146,7 @@ void function_CalcContactForces(int index,                      // index of this
   real gt;
 
   real delta = -depth[index];
-  real delta_t = use_contact_history ? relvel_t_mag * dT : 0;
+  real delta_t = (displ == NONE) ? 0 : relvel_t_mag * dT;
 
   switch (force_model) {
     case HOOKE:
@@ -239,7 +239,7 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body
   for (int index = 0; index < data_container->num_contacts; index++) {
     function_CalcContactForces(index,
                                data_container->settings.solver.contact_force_model,
-                               data_container->settings.solver.use_contact_history,
+                               data_container->settings.solver.contact_history,
                                data_container->settings.solver.use_material_properties,
                                data_container->settings.solver.characteristic_vel,
                                data_container->settings.solver.min_slip_vel,
