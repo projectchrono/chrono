@@ -149,7 +149,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   int num_contacts = 0;
   int num_bilaterals = 0;
   if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-    num_shapes = parallel_system->data_manager->num_shapes;
+    num_shapes = parallel_system->data_manager->num_rigid_aabb;
     num_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
     num_contacts = parallel_system->GetNcontacts();
     num_bilaterals = parallel_system->data_manager->num_bilaterals;
