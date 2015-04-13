@@ -102,8 +102,8 @@ struct host_container {
   host_vector<real> coh_rigid_rigid;
 
   // Object data
-  host_vector<real3> pos_data, pos_new_data;
-  host_vector<real4> rot_data, rot_new_data;
+  host_vector<real3> pos_data;
+  host_vector<real4> rot_data;
   // thrust::host_vector<M33> inr_data;
   host_vector<bool> active_data;
   host_vector<bool> collide_data;
