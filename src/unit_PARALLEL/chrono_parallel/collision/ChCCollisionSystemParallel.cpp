@@ -97,7 +97,6 @@ void ChCollisionSystemParallel::Run() {
     return;
   }
 
-  data_container->old_num_contacts = data_container->num_contacts;
   data_container->system_timer.start("collision_broad");
 
   aabb_generator.GenerateAABB(data_container->host_data.typ_rigid,

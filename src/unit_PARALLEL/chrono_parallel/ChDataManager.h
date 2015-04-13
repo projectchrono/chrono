@@ -207,7 +207,6 @@ class CH_PARALLEL_API ChParallelDataManager {
   uint num_dof;           // The number of degrees of freedom in the system
   uint num_rigid_aabb;        // The number of collision models in a system
   uint num_contacts;      // The number of contacts in a system
-  uint old_num_contacts;  // The number of contacts during the previous step
   uint num_unilaterals;   // The number of contact constraints
   uint num_bilaterals;    // The number of bilateral constraints
   uint num_constraints;   // Total number of constraints
