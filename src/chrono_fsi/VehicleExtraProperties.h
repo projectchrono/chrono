@@ -189,7 +189,7 @@ class MyChassisBoxModel_vis : public utils::ChassisContactCallback {
 class MyChassisSimpleMesh_vis : public utils::ChassisContactCallback {
  public:
   MyChassisSimpleMesh_vis() {
-    std::string chassis_file("hmmwv/myHumvee.obj");
+    std::string chassis_file("hmmwv/lugged_wheel_section.obj");
     utils::LoadConvexMesh(vehicle::GetDataFile(chassis_file), chassis_mesh, chassis_convex);
   }
 
@@ -198,9 +198,12 @@ class MyChassisSimpleMesh_vis : public utils::ChassisContactCallback {
     chassisBody->GetAssets().clear();
 
     chassisBody->GetCollisionModel()->ClearModel();
-    utils::AddConvexCollisionModel(chassisBody, chassis_mesh, chassis_convex, VNULL, false);
+    utils::AddConvexCollisionModel(chassisBody, chassis_mesh, chassis_convex, false);
 
     chassisBody->GetCollisionModel()->BuildModel();
+//    chassisBody->SetCollide(false);
+//    chassisBody->RecomputeCollisionModel();
+
 
     chassisBody->GetMaterialSurface()->SetFriction(mu_t);
   }

@@ -59,7 +59,7 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.rho0 = 1000;
   paramsH.mu0 = .001;
   paramsH.v_Max = maxFlowVelocity;  // Arman, I changed it to 0.1 for vehicle. Check this
-                                           // later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
+                                    // later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
   paramsH.EPS_XSPH = .5f;
   paramsH.dT = time_step;         // 0.0005;//0.1;//.001; //sph alone: .01 for Re 10;
   paramsH.tFinal = time_end;      // 20 * paramsH.dT; //400
@@ -179,12 +179,12 @@ void SetupParamsH(SimParams& paramsH) {
 enum WheelType { CYLINDRICAL, LUGGED };
 
 // Type of wheel/tire (controls both contact and visualization)
-WheelType wheel_type = CYLINDRICAL;// CYLINDRICAL;
+WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
 
 enum ChassisType { CBOX, CSIMPLEMESH, CORIGINAL };
 
 // Type of chassis (controls both contact and visualization)
-ChassisType chassis_type = CBOX;  // CORIGINAL; //CBOX;
+ChassisType chassis_type = CSIMPLEMESH;//CBOX;  // CORIGINAL; //CBOX;
 
 // JSON files for vehicle model (using different wheel visualization meshes)
 std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");

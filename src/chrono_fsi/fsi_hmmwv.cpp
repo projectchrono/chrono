@@ -308,11 +308,10 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
       mVehicle->SetChassisContactCallback(chassis_cb);
     } break;
 
-      //    case CSIMPLEMESH: {
-      //          chassis_cb = new MyChassisBoxModel_vis();//(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5,
-      //          .4));
-      //          mVehicle->SetChassisContactCallback(chassis_cb);
-      //        } break;
+    case CSIMPLEMESH: {
+      chassis_cb = new MyChassisSimpleMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+      mVehicle->SetChassisContactCallback(chassis_cb);
+    } break;
   }
 
   // Set the callback object for driver inputs. Pass the hold time as a delay in
@@ -450,7 +449,6 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTi
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-
   //****************************************************************************************
   time_t rawtime;
   struct tm* timeinfo;
