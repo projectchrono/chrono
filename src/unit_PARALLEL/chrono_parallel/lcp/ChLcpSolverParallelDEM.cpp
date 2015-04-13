@@ -596,7 +596,6 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
     data_container->measures.solver.total_iteration = 0;
     data_container->measures.solver.maxd_hist.clear();            ////
     data_container->measures.solver.maxdeltalambda_hist.clear();  ////  currently not used
-    data_container->measures.solver.iter_hist.clear();            ////
 
     solver->bilateral = &bilateral;
     solver->Setup(data_container);
@@ -619,12 +618,12 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
   // Update velocity (linear and angular)
   ComputeImpulses();
 
-  for (int i = 0; i < data_container->measures.solver.iter_hist.size(); i++) {
+  for (int i = 0; i < data_container->measures.solver.maxd_hist.size(); i++) {
     AtIterationEnd(data_container->measures.solver.maxd_hist[i],
                    data_container->measures.solver.maxdeltalambda_hist[i],
-                   data_container->measures.solver.iter_hist[i]);
+                   i);
   }
-  tot_iterations = data_container->measures.solver.iter_hist.size();
+  tot_iterations = data_container->measures.solver.maxd_hist.size();
 }
 
 void ChLcpSolverParallelDEM::ComputeImpulses() {

@@ -208,7 +208,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
 
   real& residual = data_container->measures.solver.residual;
   real& objective_value = data_container->measures.solver.objective_value;
-  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
+
 
   data_container->system_timer.start("ChSolverParallel_solverA");
   int totalKrylovIterations = 0;

@@ -212,7 +212,6 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
                                  blaze::DenseSubvector<DynamicVector<real> >& x) {
   LOG(INFO) << "ChSolverParallel::SolveStab";
   real& residual = data_container->measures.solver.residual;
-  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
 
   uint N = mb.size();
 

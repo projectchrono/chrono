@@ -101,7 +101,6 @@ class CH_PARALLEL_API ChSolverParallel {
   void AtIterationEnd(real maxd, real maxdeltalambda) {
     data_container->measures.solver.maxd_hist.push_back(maxd);
     data_container->measures.solver.maxdeltalambda_hist.push_back(maxdeltalambda);
-    data_container->measures.solver.iter_hist.push_back(data_container->measures.solver.iter_hist.size());
   }
 
   // Set the maximum number of iterations for all solvers

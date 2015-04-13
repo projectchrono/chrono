@@ -9,7 +9,7 @@ uint ChSolverJacobi::SolveJacobi(const uint max_iter,
                                  blaze::DynamicVector<real>& ml) {
   real& residual = data_container->measures.solver.residual;
   real& objective_value = data_container->measures.solver.objective_value;
-  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
+
   uint num_contacts = data_container->num_contacts;
   diagonal.resize(size, false);
   ml_old = ml;

@@ -50,7 +50,6 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   data_container->measures.solver.total_iteration = 0;
   data_container->measures.solver.maxd_hist.clear();
   data_container->measures.solver.maxdeltalambda_hist.clear();
-  data_container->measures.solver.iter_hist.clear();
   // Set pointers to constraint objects and perform setup actions for solver
   solver->rigid_rigid = &rigid_rigid;
   solver->bilateral = &bilateral;
@@ -109,11 +108,11 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
   ComputeImpulses();
 
-  for (int i = 0; i < data_container->measures.solver.iter_hist.size(); i++) {
+  for (int i = 0; i < data_container->measures.solver.maxd_hist.size(); i++) {
     AtIterationEnd(data_container->measures.solver.maxd_hist[i], data_container->measures.solver.maxdeltalambda_hist[i],
-                   data_container->measures.solver.iter_hist[i]);
+                   i);
   }
-  tot_iterations = data_container->measures.solver.iter_hist.size();
+  tot_iterations = data_container->measures.solver.maxd_hist.size();
 
   LOG(TRACE) << "Solve Done: " << residual;
 }

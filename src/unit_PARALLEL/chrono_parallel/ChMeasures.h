@@ -57,7 +57,7 @@ struct solver_measures {
   real objective_value;  // Current objective value for the solver
 
   // These three variables are used to store the convergence history of the solver
-  custom_vector<real> maxd_hist, maxdeltalambda_hist, iter_hist;
+  custom_vector<real> maxd_hist, maxdeltalambda_hist;
 };
 
 struct measures_container {
