@@ -448,7 +448,7 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
 
   if (data_container->settings.solver.tangential_displ_mode == MULTI_STEP) {
     shape_pairs.resize(data_container->num_contacts);
-    shear_touch.resize(max_shear * data_container->num_bodies);
+    shear_touch.resize(max_shear * data_container->num_rigid_bodies);
     thrust::fill(thrust_parallel, shear_touch.begin(), shear_touch.end(), false);
 #pragma omp parallel for
     for (int i = 0; i < data_container->num_contacts; i++) {
@@ -462,7 +462,7 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
 
   if (data_container->settings.solver.tangential_displ_mode == MULTI_STEP) {
 #pragma omp parallel for
-    for (int index = 0; index < data_container->num_bodies; index++) {
+    for (int index = 0; index < data_container->num_rigid_bodies; index++) {
       for (int i = 0; i < max_shear; i++) {
         if (shear_touch[max_shear * index + i] == false)
           data_container->host_data.shear_neigh[max_shear * index + i].x = -1;
@@ -480,12 +480,12 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
                       ext_body_id.end(),
                       thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
 
-  custom_vector<int> ct_body_id(data_container->num_bodies);
+  custom_vector<int> ct_body_id(data_container->num_rigid_bodies);
   custom_vector<real3>& ct_body_force = data_container->host_data.ct_body_force;
   custom_vector<real3>& ct_body_torque = data_container->host_data.ct_body_torque;
 
-  ct_body_force.resize(data_container->num_bodies);
-  ct_body_torque.resize(data_container->num_bodies);
+  ct_body_force.resize(data_container->num_rigid_bodies);
+  ct_body_torque.resize(data_container->num_rigid_bodies);
 
   // Reduce contact forces from all contacts and count bodies currently involved
   // in contact. We do this simultaneously for contact forces and torques, using
@@ -519,7 +519,7 @@ void ChLcpSolverParallelDEM::ComputeD() {
     return;
   }
 
-  uint num_bodies = data_container->num_bodies;
+  uint num_bodies = data_container->num_rigid_bodies;
   uint num_shafts = data_container->num_shafts;
   uint num_dof = data_container->num_dof;
   uint num_contacts = data_container->num_contacts;
@@ -574,7 +574,7 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
   data_container->num_unilaterals = 0;
 
   // Calculate contact forces (impulses) and append them to the body forces
-  data_container->host_data.ct_body_map.resize(data_container->num_bodies);
+  data_container->host_data.ct_body_map.resize(data_container->num_rigid_bodies);
   thrust::fill(data_container->host_data.ct_body_map.begin(), data_container->host_data.ct_body_map.end(), -1);
 
   if (data_container->num_contacts > 0) {

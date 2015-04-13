@@ -202,7 +202,7 @@ class CH_PARALLEL_API ChParallelDataManager {
   std::vector<ChPhysicsItem*>* other_physics_list;  // List to other items
 
   // Indexing variables
-  uint num_bodies;        // The number of rigid bodies in a system
+  uint num_rigid_bodies;  // The number of rigid bodies in a system
   uint num_shafts;        // the number of shafts in a system
   uint num_dof;           // The number of degrees of freedom in the system
   uint num_shapes;        // The number of collision models in a system

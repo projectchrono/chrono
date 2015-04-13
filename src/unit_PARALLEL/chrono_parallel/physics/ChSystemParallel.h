@@ -73,7 +73,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
   virtual void PrintStepStats() { data_manager->system_timer.PrintReport(); }
 
-  int GetNumBodies() { return data_manager->num_bodies; }
+  int GetNumBodies() { return data_manager->num_rigid_bodies; }
 
   int GetNumShafts() { return data_manager->num_shafts; }
 

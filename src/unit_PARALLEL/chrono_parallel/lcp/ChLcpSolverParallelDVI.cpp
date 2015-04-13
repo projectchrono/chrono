@@ -126,7 +126,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
     return;
   }
 
-  uint num_bodies = data_container->num_bodies;
+  uint num_bodies = data_container->num_rigid_bodies;
   uint num_shafts = data_container->num_shafts;
   uint num_dof = data_container->num_dof;
   uint num_contacts = data_container->num_contacts;

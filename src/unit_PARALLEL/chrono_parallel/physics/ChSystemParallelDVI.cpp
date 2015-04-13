@@ -60,7 +60,7 @@ void ChSystemParallelDVI::CalculateContactForces() {
   data_manager->Fc_current = true;
 
   if (num_contacts == 0) {
-    Fc.resize(6 * data_manager->num_bodies);
+    Fc.resize(6 * data_manager->num_rigid_bodies);
     Fc = 0;
     return;
   }

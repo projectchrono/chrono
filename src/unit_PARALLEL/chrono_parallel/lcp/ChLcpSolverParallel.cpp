@@ -18,7 +18,7 @@ ChLcpSolverParallel::~ChLcpSolverParallel() {
 
 void ChLcpSolverParallel::ComputeMassMatrix() {
   LOG(INFO) << "ChLcpSolverParallel::ComputeMassMatrix()";
-  uint num_bodies = data_container->num_bodies;
+  uint num_bodies = data_container->num_rigid_bodies;
   uint num_shafts = data_container->num_shafts;
   uint num_dof = data_container->num_dof;
   bool use_full_inertia_tensor = data_container->settings.solver.use_full_inertia_tensor;

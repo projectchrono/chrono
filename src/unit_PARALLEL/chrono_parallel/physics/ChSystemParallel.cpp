@@ -124,7 +124,7 @@ int ChSystemParallel::Integrate_Y() {
     if (!data_manager->host_data.shaft_active[i])
       continue;
 
-    shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[data_manager->num_bodies * 6 + i]);
+    shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[data_manager->num_rigid_bodies * 6 + i]);
     shaftlist[i]->VariablesQbIncrementPosition(GetStep());
     shaftlist[i]->VariablesQbSetSpeed(GetStep());
     shaftlist[i]->Update(ChTime);
@@ -174,10 +174,10 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
   newbody->SetSystem(this);
   // This is only need because bilaterals need to know what bodies to
   // refer to. Not used by contacts
-  newbody->SetId(data_manager->num_bodies);
+  newbody->SetId(data_manager->num_rigid_bodies);
 
   bodylist.push_back(newbody.get_ptr());
-  data_manager->num_bodies++;
+  data_manager->num_rigid_bodies++;
 
   if (newbody->GetCollide()) {
     newbody->AddCollisionModelsToSystem();
@@ -250,7 +250,7 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft) {
 //
 void ChSystemParallel::ClearForceVariables() {
 #pragma omp parallel for
-  for (int i = 0; i < data_manager->num_bodies; i++) {
+  for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
     bodylist[i]->VariablesFbReset();
   }
 
@@ -275,8 +275,8 @@ void ChSystemParallel::Update() {
   ClearForceVariables();
 
   // Allocate space for the velocities and forces for all objects
-  data_manager->host_data.v.resize(data_manager->num_bodies * 6 + data_manager->num_shafts * 1);
-  data_manager->host_data.hf.resize(data_manager->num_bodies * 6 + data_manager->num_shafts * 1);
+  data_manager->host_data.v.resize(data_manager->num_rigid_bodies * 6 + data_manager->num_shafts * 1);
+  data_manager->host_data.hf.resize(data_manager->num_rigid_bodies * 6 + data_manager->num_shafts * 1);
 
   // Clear system-wide vectors for bilateral constraints
   data_manager->host_data.bilateral_mapping.clear();
@@ -360,8 +360,8 @@ void ChSystemParallel::UpdateShafts() {
     shaft_inr[i] = shaftlist[i]->Variables().GetInvInertia();
     shaft_active[i] = shaftlist[i]->IsActive();
 
-    data_manager->host_data.v[data_manager->num_bodies * 6 + i] = shaftlist[i]->Variables().Get_qb().GetElementN(0);
-    data_manager->host_data.hf[data_manager->num_bodies * 6 + i] = shaftlist[i]->Variables().Get_fb().GetElementN(0);
+    data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->Variables().Get_qb().GetElementN(0);
+    data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->Variables().Get_fb().GetElementN(0);
   }
 }
 
@@ -501,10 +501,10 @@ void ChSystemParallel::Setup() {
 
   // Calculate the total number of degrees of freedom (6 per rigid body and 1
   // for each shaft element).
-  data_manager->num_dof = data_manager->num_bodies * 6 + data_manager->num_shafts;
+  data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts;
 
   // Set variables that are stored in the ChSystem class
-  nbodies = data_manager->num_bodies;
+  nbodies = data_manager->num_rigid_bodies;
   nlinks = -1;
   nphysicsitems = -1;
   ncoords = -1;

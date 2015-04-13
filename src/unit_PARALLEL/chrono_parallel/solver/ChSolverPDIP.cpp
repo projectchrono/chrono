@@ -203,7 +203,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
                              blaze::DynamicVector<real>& x) {
   bool verbose = false;
   if (verbose)
-    std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies
+    std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_rigid_bodies
               << std::endl;
 
   real& residual = data_container->measures.solver.residual;

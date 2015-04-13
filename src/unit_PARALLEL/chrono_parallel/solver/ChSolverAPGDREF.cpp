@@ -27,7 +27,7 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter,
   bool verbose = false;
   bool useWarmStarting = true;
   if (verbose)
-    std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies
+    std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_rigid_bodies
               << std::endl;
 
   real L, t;
