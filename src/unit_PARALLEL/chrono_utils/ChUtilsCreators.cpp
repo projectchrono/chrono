@@ -592,7 +592,7 @@ void LoadConvexMesh(const std::string& file_name,
 
 // -----------------------------------------------------------------------------
 
-void AddConvexCollisionModel(ChSharedPtr<ChBody>& body,
+void AddConvexCollisionModel(ChSharedPtr<ChBody> body,
                              ChTriangleMeshConnected& convex_mesh,
                              ChConvexDecompositionHACDv2& convex_shape,
                              const ChVector<>& pos,
