@@ -234,7 +234,7 @@ void LoadConvexMesh(const std::string& file_name,
 // use_original_asset can be used to specify if the mesh or the convex decomp
 // should be used for visualization
 CH_UTILS_API
-void AddConvexCollisionModel(ChSharedPtr<ChBody>& body,
+void AddConvexCollisionModel(ChSharedPtr<ChBody> body,
                              geometry::ChTriangleMeshConnected& convex_mesh,
                              collision::ChConvexDecompositionHACDv2& convex_shape,
                              const ChVector<>& pos = ChVector<>(0, 0, 0),
