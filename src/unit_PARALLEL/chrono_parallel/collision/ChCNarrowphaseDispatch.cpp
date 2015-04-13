@@ -141,7 +141,7 @@ void ChCNarrowphaseDispatch::PreprocessCount() {
 }
 
 void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
-  uint num_shapes = data_container->num_rigid_aabb;
+  uint num_shapes = data_container->num_rigid_shapes;
 
   const custom_vector<int>& obj_data_T = data_container->host_data.typ_rigid;
   const custom_vector<real3>& obj_data_A = data_container->host_data.ObA_rigid;

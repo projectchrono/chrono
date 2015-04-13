@@ -70,7 +70,7 @@ void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
     bmodel->GetBulletModel()->setCompanionId(counter);
     bt_collision_world->addCollisionObject(bmodel->GetBulletModel(), bmodel->GetFamilyGroup(), bmodel->GetFamilyMask());
     counter++;
-    data_container->num_rigid_aabb++;
+    data_container->num_rigid_shapes++;
   }
 }
 

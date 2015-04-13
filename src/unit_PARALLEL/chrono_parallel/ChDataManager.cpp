@@ -5,7 +5,7 @@ using namespace chrono;
 
 ChParallelDataManager::ChParallelDataManager()
     : num_rigid_contacts(0),
-      num_rigid_aabb(0),
+      num_rigid_shapes(0),
       num_rigid_bodies(0),
       num_unilaterals(0),
       num_bilaterals(0),
