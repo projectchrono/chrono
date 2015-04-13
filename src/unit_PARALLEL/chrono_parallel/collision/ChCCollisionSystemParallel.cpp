@@ -16,6 +16,7 @@ namespace collision {
 ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dc) : data_manager(dc) {
   broadphase = new ChCBroadphase;
   narrowphase = new ChCNarrowphaseDispatch;
+  aabb_generator = new ChCAABBGenerator;
   narrowphase->data_manager = dc;
 }
 
@@ -32,10 +33,9 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
     // The offset for this shape will the current total number of points in
     // the convex data list
     int convex_data_offset = data_manager->host_data.convex_data.size();
-    //Insert the points into the global convex list
+    // Insert the points into the global convex list
     data_manager->host_data.convex_data.insert(data_manager->host_data.convex_data.end(),
-                                                 pmodel->local_convex_data.begin(),
-                                                 pmodel->local_convex_data.end());
+                                               pmodel->local_convex_data.begin(), pmodel->local_convex_data.end());
 
     for (int j = 0; j < pmodel->GetNObjects(); j++) {
       real3 obB = pmodel->mData[j].B;
@@ -84,8 +84,8 @@ void ChCollisionSystemParallel::Run() {
   LOG(INFO) << "ChCollisionSystemParallel::Run()";
   if (data_manager->settings.collision.use_aabb_active) {
     custom_vector<bool> body_active(data_manager->num_rigid_bodies, false);
-    GetOverlappingAABB(
-        body_active, data_manager->settings.collision.aabb_min, data_manager->settings.collision.aabb_max);
+    GetOverlappingAABB(body_active, data_manager->settings.collision.aabb_min,
+                       data_manager->settings.collision.aabb_max);
     for (int i = 0; i < data_manager->host_data.active_rigid.size(); i++) {
       if (data_manager->host_data.active_rigid[i] == true && data_manager->host_data.collide_rigid[i] == true) {
         data_manager->host_data.active_rigid[i] = body_active[i];
@@ -99,17 +99,11 @@ void ChCollisionSystemParallel::Run() {
 
   data_manager->system_timer.start("collision_broad");
 
-  aabb_generator.GenerateAABB(data_manager->host_data.typ_rigid,
-                              data_manager->host_data.ObA_rigid,
-                              data_manager->host_data.ObB_rigid,
-                              data_manager->host_data.ObC_rigid,
-                              data_manager->host_data.ObR_rigid,
-                              data_manager->host_data.id_rigid,
-                              data_manager->host_data.convex_data,
-                              data_manager->host_data.pos_rigid,
-                              data_manager->host_data.rot_rigid,
-                              data_manager->settings.collision.collision_envelope,
-                              data_manager->host_data.aabb_rigid);
+  aabb_generator->GenerateAABB(
+      data_manager->host_data.typ_rigid, data_manager->host_data.ObA_rigid, data_manager->host_data.ObB_rigid,
+      data_manager->host_data.ObC_rigid, data_manager->host_data.ObR_rigid, data_manager->host_data.id_rigid,
+      data_manager->host_data.convex_data, data_manager->host_data.pos_rigid, data_manager->host_data.rot_rigid,
+      data_manager->settings.collision.collision_envelope, data_manager->host_data.aabb_rigid);
 
   // aabb_generator.GenerateAABBFluid(data_manager->host_data.fluid_pos, data_manager->fluid_rad,
   // data_manager->host_data.aabb_fluid);
@@ -131,19 +125,11 @@ void ChCollisionSystemParallel::Run() {
 }
 
 void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<bool>& active_id, real3 Amin, real3 Amax) {
-  ChCAABBGenerator aabb_generator;
-
-  aabb_generator.GenerateAABB(data_manager->host_data.typ_rigid,
-                              data_manager->host_data.ObA_rigid,
-                              data_manager->host_data.ObB_rigid,
-                              data_manager->host_data.ObC_rigid,
-                              data_manager->host_data.ObR_rigid,
-                              data_manager->host_data.id_rigid,
-                              data_manager->host_data.convex_data,
-                              data_manager->host_data.pos_rigid,
-                              data_manager->host_data.rot_rigid,
-                              data_manager->settings.collision.collision_envelope,
-                              data_manager->host_data.aabb_rigid);
+  aabb_generator->GenerateAABB(
+      data_manager->host_data.typ_rigid, data_manager->host_data.ObA_rigid, data_manager->host_data.ObB_rigid,
+      data_manager->host_data.ObC_rigid, data_manager->host_data.ObR_rigid, data_manager->host_data.id_rigid,
+      data_manager->host_data.convex_data, data_manager->host_data.pos_rigid, data_manager->host_data.rot_rigid,
+      data_manager->settings.collision.collision_envelope, data_manager->host_data.aabb_rigid);
 #pragma omp parallel for
   for (int i = 0; i < data_manager->host_data.typ_rigid.size(); i++) {
     real3 Bmin = data_manager->host_data.aabb_rigid[i];

@@ -94,7 +94,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
   ChCBroadphase* broadphase;
   ChCNarrowphaseDispatch* narrowphase;
 
-  ChCAABBGenerator aabb_generator;
+  ChCAABBGenerator* aabb_generator;
 
   ChParallelDataManager* data_manager;
 
