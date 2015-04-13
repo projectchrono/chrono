@@ -44,7 +44,7 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
   M_inv.resize(num_dof, num_dof);
 
   for (int i = 0; i < num_bodies; i++) {
-    if (data_container->host_data.active_data[i]) {
+    if (data_container->host_data.active_rigid[i]) {
       real inv_mass = 1.0 / body_list->at(i)->GetMass();
       ChMatrix33<>& body_inv_inr = body_list->at(i)->VariablesBody().GetBodyInvInertia();
 

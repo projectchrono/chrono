@@ -102,12 +102,11 @@ struct host_container {
   host_vector<real> coh_rigid_rigid;
 
   // Object data
-  host_vector<real3> pos_data;
-  host_vector<real4> rot_data;
-  // thrust::host_vector<M33> inr_data;
-  host_vector<bool> active_data;
-  host_vector<bool> collide_data;
-  host_vector<real> mass_data;
+  host_vector<real3> pos_rigid;
+  host_vector<real4> rot_rigid;
+  host_vector<bool> active_rigid;
+  host_vector<bool> collide_rigid;
+  host_vector<real> mass_rigid;
 
   // Bilateral constraint type (all supported constraints)
   host_vector<int> bilateral_type;

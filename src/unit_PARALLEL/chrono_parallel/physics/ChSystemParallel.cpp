@@ -94,12 +94,12 @@ int ChSystemParallel::Integrate_Y() {
   // Scatter the states to the Chrono objects (bodies and shafts) and update
   // all physics items at the end of the step.
   DynamicVector<real>& velocities = data_manager->host_data.v;
-  custom_vector<real3>& pos_pointer = data_manager->host_data.pos_data;
-  custom_vector<real4>& rot_pointer = data_manager->host_data.rot_data;
+  custom_vector<real3>& pos_pointer = data_manager->host_data.pos_rigid;
+  custom_vector<real4>& rot_pointer = data_manager->host_data.rot_rigid;
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
-    if (data_manager->host_data.active_data[i] == true) {
+    if (data_manager->host_data.active_rigid[i] == true) {
       bodylist[i]->Variables().Get_qb().SetElement(0, 0, velocities[i * 6 + 0]);
       bodylist[i]->Variables().Get_qb().SetElement(1, 0, velocities[i * 6 + 1]);
       bodylist[i]->Variables().Get_qb().SetElement(2, 0, velocities[i * 6 + 2]);
@@ -185,10 +185,10 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 
   // Reserve space for this body in the system-wide vectors. Note that the
   // actual data is set in UpdateBodies().
-  data_manager->host_data.pos_data.push_back(R3());
-  data_manager->host_data.rot_data.push_back(R4());
-  data_manager->host_data.active_data.push_back(true);
-  data_manager->host_data.collide_data.push_back(true);
+  data_manager->host_data.pos_rigid.push_back(R3());
+  data_manager->host_data.rot_rigid.push_back(R4());
+  data_manager->host_data.active_rigid.push_back(true);
+  data_manager->host_data.collide_rigid.push_back(true);
 
   // Let derived classes reserve space for specific material surface data
   AddMaterialSurfaceData(newbody);
@@ -298,10 +298,10 @@ void ChSystemParallel::Update() {
 //
 void ChSystemParallel::UpdateBodies() {
   LOG(INFO) << "ChSystemParallel::UpdateBodies()";
-  custom_vector<real3>& position = data_manager->host_data.pos_data;
-  custom_vector<real4>& rotation = data_manager->host_data.rot_data;
-  custom_vector<bool>& active = data_manager->host_data.active_data;
-  custom_vector<bool>& collide = data_manager->host_data.collide_data;
+  custom_vector<real3>& position = data_manager->host_data.pos_rigid;
+  custom_vector<real4>& rotation = data_manager->host_data.rot_rigid;
+  custom_vector<bool>& active = data_manager->host_data.active_rigid;
+  custom_vector<bool>& collide = data_manager->host_data.collide_rigid;
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {

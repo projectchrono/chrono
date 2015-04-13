@@ -430,9 +430,9 @@ void ChConstraintRigidRigid::Build_D() {
   real3* norm = data_container->host_data.norm_rigid_rigid.data();
   real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
   real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
-  real3* pos_data = data_container->host_data.pos_data.data();
+  real3* pos_data = data_container->host_data.pos_rigid.data();
   int2* ids = data_container->host_data.bids_rigid_rigid.data();
-  real4* rot = data_container->host_data.rot_data.data();
+  real4* rot = data_container->host_data.rot_rigid.data();
 
   CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
   CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;

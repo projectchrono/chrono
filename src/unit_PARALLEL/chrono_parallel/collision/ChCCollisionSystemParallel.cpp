@@ -86,9 +86,9 @@ void ChCollisionSystemParallel::Run() {
     custom_vector<bool> body_active(data_container->num_rigid_bodies, false);
     GetOverlappingAABB(
         body_active, data_container->settings.collision.aabb_min, data_container->settings.collision.aabb_max);
-    for (int i = 0; i < data_container->host_data.active_data.size(); i++) {
-      if (data_container->host_data.active_data[i] == true && data_container->host_data.collide_data[i] == true) {
-        data_container->host_data.active_data[i] = body_active[i];
+    for (int i = 0; i < data_container->host_data.active_rigid.size(); i++) {
+      if (data_container->host_data.active_rigid[i] == true && data_container->host_data.collide_rigid[i] == true) {
+        data_container->host_data.active_rigid[i] = body_active[i];
       }
     }
   }
@@ -106,8 +106,8 @@ void ChCollisionSystemParallel::Run() {
                               data_container->host_data.ObR_rigid,
                               data_container->host_data.id_rigid,
                               data_container->host_data.convex_data,
-                              data_container->host_data.pos_data,
-                              data_container->host_data.rot_data,
+                              data_container->host_data.pos_rigid,
+                              data_container->host_data.rot_rigid,
                               data_container->settings.collision.collision_envelope,
                               data_container->host_data.aabb_rigid);
 
@@ -140,8 +140,8 @@ void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<bool>& active_i
                               data_container->host_data.ObR_rigid,
                               data_container->host_data.id_rigid,
                               data_container->host_data.convex_data,
-                              data_container->host_data.pos_data,
-                              data_container->host_data.rot_data,
+                              data_container->host_data.pos_rigid,
+                              data_container->host_data.rot_rigid,
                               data_container->settings.collision.collision_envelope,
                               data_container->host_data.aabb_rigid);
 #pragma omp parallel for

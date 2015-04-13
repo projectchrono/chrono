@@ -57,7 +57,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
         uint b2 = body.y;
 
         contact_active_pairs[i] =
-            bool2(data_container->host_data.active_data[b1], data_container->host_data.active_data[b2]);
+            bool2(data_container->host_data.active_rigid[b1], data_container->host_data.active_rigid[b2]);
 
         real coh = std::max(
             (data_container->host_data.cohesion_data[b1] + data_container->host_data.cohesion_data[b2]) * .5, 0.0);

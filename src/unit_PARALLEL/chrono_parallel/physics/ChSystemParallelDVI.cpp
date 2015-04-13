@@ -149,9 +149,9 @@ void ChSystemParallelDVI::AssembleSystem() {
     icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel();
     icontact.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
     icontact.vpA =
-        ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_data[cd_pair.x]);
+        ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
     icontact.vpB =
-        ToChVector(data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_data[cd_pair.y]);
+        ToChVector(data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.y]);
     icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
     this->contact_container->AddContact(icontact);
   }

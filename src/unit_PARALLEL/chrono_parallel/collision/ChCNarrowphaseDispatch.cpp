@@ -23,9 +23,9 @@ void ChCNarrowphaseDispatch::Process() {
   custom_vector<int2>& bids_data = data_container->host_data.bids_rigid_rigid;
 
   //======== Body state information
-  custom_vector<bool>& obj_active = data_container->host_data.active_data;
-  custom_vector<real3>& body_pos = data_container->host_data.pos_data;
-  custom_vector<real4>& body_rot = data_container->host_data.rot_data;
+  custom_vector<bool>& obj_active = data_container->host_data.active_rigid;
+  custom_vector<real3>& body_pos = data_container->host_data.pos_rigid;
+  custom_vector<real4>& body_rot = data_container->host_data.rot_rigid;
   //======== Broadphase information
   custom_vector<long long>& potentialCollisions = data_container->host_data.pair_rigid_rigid;
   //======== Indexing variables and other information
@@ -150,8 +150,8 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
   const custom_vector<real4>& obj_data_R = data_container->host_data.ObR_rigid;
   const custom_vector<uint>& obj_data_ID = data_container->host_data.id_rigid;
 
-  const custom_vector<real3>& body_pos = data_container->host_data.pos_data;
-  const custom_vector<real4>& body_rot = data_container->host_data.rot_data;
+  const custom_vector<real3>& body_pos = data_container->host_data.pos_rigid;
+  const custom_vector<real4>& body_rot = data_container->host_data.rot_rigid;
 
   obj_data_A_global.resize(num_shapes);
   obj_data_B_global.resize(num_shapes);

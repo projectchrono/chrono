@@ -316,7 +316,7 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
   custom_vector<long long>& potentialCollisions = data_container->host_data.pair_rigid_rigid;
 
   const custom_vector<short2>& fam_data = data_container->host_data.fam_rigid;
-  const custom_vector<bool>& obj_active = data_container->host_data.active_data;
+  const custom_vector<bool>& obj_active = data_container->host_data.active_rigid;
   const custom_vector<uint>& obj_data_ID = data_container->host_data.id_rigid;
 
   double startTime = omp_get_wtime();
