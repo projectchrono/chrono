@@ -23,7 +23,7 @@ class CH_PARALLEL_API ChLcpSystemDescriptorParallel : public ChLcpSystemDescript
     std::vector<ChLcpConstraint*>& mconstraints = this->GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = this->GetVariablesList();
 
-    int n_c = data_container->num_contacts * 3 + data_container->num_bilaterals;
+    int n_c = data_container->num_rigid_contacts * 3 + data_container->num_bilaterals;
     int n_q = Thrust_Count(data_container->host_data.active_data, 1) * 6;
 
     // cout << " " << n_q << " " << data_container->num_bodies << " " << endl;

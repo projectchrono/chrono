@@ -220,9 +220,9 @@ bool CompareContacts(ChSystemParallel* msystem) {
   CompressedMatrix<real>& D_t_T = msystem->data_manager->host_data.D_t_T;
   CompressedMatrix<real>& D_s_T = msystem->data_manager->host_data.D_s_T;
 
-  int nnz_normal = 6 * 2 * msystem->data_manager->num_contacts;
-  int nnz_tangential = 6 * 4 * msystem->data_manager->num_contacts;
-  int nnz_spinning = 6 * 3 * msystem->data_manager->num_contacts;
+  int nnz_normal = 6 * 2 * msystem->data_manager->num_rigid_contacts;
+  int nnz_tangential = 6 * 4 * msystem->data_manager->num_rigid_contacts;
+  int nnz_spinning = 6 * 3 * msystem->data_manager->num_rigid_contacts;
 
   //  StrictEqual(D_n_T.nonZeros(), nnz_normal);
   //  StrictEqual(D_t_T.nonZeros(), nnz_tangential);
@@ -233,7 +233,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
   cout << D_s_T.nonZeros() << " " << nnz_spinning << endl;
 
   //#pragma omp parallel for
-  for (int index = 0; index < msystem->data_manager->num_contacts; index++) {
+  for (int index = 0; index < msystem->data_manager->num_rigid_contacts; index++) {
     real3 U = norm[index], V, W;
     real3 T3, T4, T5, T6, T7, T8;
     real3 TA, TB, TC;

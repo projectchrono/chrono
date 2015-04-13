@@ -67,7 +67,7 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
   CompressedMatrix<real>& N_bs = data_container->host_data.N_bs;
   CompressedMatrix<real>& N_bb = data_container->host_data.N_bb;
 
-  uint num_contacts = data_container->num_contacts;
+  uint num_contacts = data_container->num_rigid_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
   output.reset();

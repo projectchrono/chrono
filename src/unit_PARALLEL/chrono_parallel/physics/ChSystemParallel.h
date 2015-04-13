@@ -77,7 +77,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
   int GetNumShafts() { return data_manager->num_shafts; }
 
-  int GetNcontacts() { return data_manager->num_contacts; }
+  int GetNcontacts() { return data_manager->num_rigid_contacts; }
 
   int GetNumBilaterals() { return data_manager->num_bilaterals; }
 

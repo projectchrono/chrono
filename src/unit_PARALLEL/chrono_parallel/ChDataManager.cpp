@@ -4,7 +4,7 @@
 using namespace chrono;
 
 ChParallelDataManager::ChParallelDataManager()
-    : num_contacts(0),
+    : num_rigid_contacts(0),
       num_rigid_aabb(0),
       num_rigid_bodies(0),
       num_unilaterals(0),
@@ -45,16 +45,16 @@ int ChParallelDataManager::OutputBlazeMatrix(blaze::CompressedMatrix<real> src, 
 int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
   int offset = 0;
   if (settings.solver.solver_mode == NORMAL) {
-    offset = num_contacts;
+    offset = num_rigid_contacts;
   } else if (settings.solver.solver_mode == SLIDING) {
-    offset = 3 * num_contacts;
+    offset = 3 * num_rigid_contacts;
   } else if (settings.solver.solver_mode == SPINNING) {
-    offset = 6 * num_contacts;
+    offset = 6 * num_rigid_contacts;
   }
 
   // fill in the information for constraints and friction
   blaze::DynamicVector<real> fric(num_constraints, -2.0);
-  for (int i = 0; i < num_contacts; i++) {
+  for (int i = 0; i < num_rigid_contacts; i++) {
     if (settings.solver.solver_mode == NORMAL) {
       fric[i] = host_data.fric_rigid_rigid[i].x;
     } else if (settings.solver.solver_mode == SLIDING) {
@@ -85,13 +85,13 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
 
   // output D_T
 
-  int nnz_normal = 6 * 2 * num_contacts;
-  int nnz_tangential = 6 * 4 * num_contacts;
-  int nnz_spinning = 6 * 3 * num_contacts;
+  int nnz_normal = 6 * 2 * num_rigid_contacts;
+  int nnz_tangential = 6 * 4 * num_rigid_contacts;
+  int nnz_spinning = 6 * 3 * num_rigid_contacts;
 
-  int num_normal = 1 * num_contacts;
-  int num_tangential = 2 * num_contacts;
-  int num_spinning = 3 * num_contacts;
+  int num_normal = 1 * num_rigid_contacts;
+  int num_tangential = 2 * num_rigid_contacts;
+  int num_spinning = 3 * num_rigid_contacts;
 
   blaze::CompressedMatrix<real> D_T;
   uint nnz_total = nnz_bilaterals;
@@ -101,7 +101,7 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
       nnz_total += nnz_normal;
       D_T.reserve(nnz_total);
       D_T.resize(num_constraints, num_dof, false);
-      blaze::SparseSubmatrix<CompressedMatrix<real> > D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_contacts, num_dof);
+      blaze::SparseSubmatrix<CompressedMatrix<real> > D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_rigid_contacts, num_dof);
       D_n_T_sub = host_data.D_n_T;
     } break;
     case SLIDING: {
@@ -109,11 +109,11 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
       D_T.reserve(nnz_total);
       D_T.resize(num_constraints, num_dof, false);
 
-      blaze::SparseSubmatrix<CompressedMatrix<real> > D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_contacts, num_dof);
+      blaze::SparseSubmatrix<CompressedMatrix<real> > D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_rigid_contacts, num_dof);
       D_n_T_sub = host_data.D_n_T;
 
       blaze::SparseSubmatrix<CompressedMatrix<real> > D_t_T_sub =
-          blaze::submatrix(D_T, num_contacts, 0, 2 * num_contacts, num_dof);
+          blaze::submatrix(D_T, num_rigid_contacts, 0, 2 * num_rigid_contacts, num_dof);
       D_t_T_sub = host_data.D_t_T;
     } break;
     case SPINNING: {
@@ -121,15 +121,15 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
       D_T.reserve(nnz_total);
       D_T.resize(num_constraints, num_dof, false);
 
-      blaze::SparseSubmatrix<CompressedMatrix<real> > D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_contacts, num_dof);
+      blaze::SparseSubmatrix<CompressedMatrix<real> > D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_rigid_contacts, num_dof);
       D_n_T_sub = host_data.D_n_T;
 
       blaze::SparseSubmatrix<CompressedMatrix<real> > D_t_T_sub =
-          blaze::submatrix(D_T, num_contacts, 0, 2 * num_contacts, num_dof);
+          blaze::submatrix(D_T, num_rigid_contacts, 0, 2 * num_rigid_contacts, num_dof);
       D_t_T_sub = host_data.D_t_T;
 
       blaze::SparseSubmatrix<CompressedMatrix<real> > D_s_T_sub =
-          blaze::submatrix(D_T, 3 * num_contacts, 0, 3 * num_contacts, num_dof);
+          blaze::submatrix(D_T, 3 * num_rigid_contacts, 0, 3 * num_rigid_contacts, num_dof);
       D_s_T_sub = host_data.D_t_T;
     } break;
   }

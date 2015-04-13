@@ -25,9 +25,9 @@ void ChSolverAPGD::UpdateR() {
   DynamicVector<real>& R = data_container->host_data.R;
   DynamicVector<real>& s = data_container->host_data.s;
 
-  uint num_contacts = data_container->num_contacts;
+  uint num_contacts = data_container->num_rigid_contacts;
 
-  s.resize(data_container->num_contacts);
+  s.resize(data_container->num_rigid_contacts);
   reset(s);
 
   rigid_rigid->Build_s();

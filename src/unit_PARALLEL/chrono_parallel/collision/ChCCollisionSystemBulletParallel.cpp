@@ -95,7 +95,7 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
   data_container->host_data.cptb_rigid_rigid.clear();
   data_container->host_data.dpth_rigid_rigid.clear();
   data_container->host_data.bids_rigid_rigid.clear();
-  data_container->num_contacts = 0;
+  data_container->num_rigid_contacts = 0;
   // mcontactcontainer->BeginAddContact();
   ChCollisionInfo icontact;
 
@@ -166,7 +166,7 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
           data_container->host_data.cptb_rigid_rigid.push_back(R3(icontact.vpB.x, icontact.vpB.y, icontact.vpB.z));
           data_container->host_data.dpth_rigid_rigid.push_back(icontact.distance);
           data_container->host_data.bids_rigid_rigid.push_back(I2(obA->getCompanionId(), obB->getCompanionId()));
-          data_container->num_contacts++;
+          data_container->num_rigid_contacts++;
         }
       }
     }

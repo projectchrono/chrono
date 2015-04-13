@@ -37,7 +37,7 @@ void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
 }
 void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
   ChParallelDataManager* data_manager = system->data_manager;
-  int num_contacts = data_manager->num_contacts;
+  int num_contacts = data_manager->num_rigid_contacts;
   if (num_contacts == 0) {
     return;
   }
@@ -45,12 +45,12 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
   contact_data.resize(num_contacts * 2);
 
 #pragma omp parallel for
-  for (int i = 0; i < data_manager->num_contacts; i++) {
+  for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
     real3 cpta = data_manager->host_data.cpta_rigid_rigid[i];
     real3 cptb = data_manager->host_data.cptb_rigid_rigid[i];
 
     contact_data[i] = glm::vec3(cpta.x, cpta.y, cpta.z);
-    contact_data[i + data_manager->num_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
+    contact_data[i + data_manager->num_rigid_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
   }
 }
 

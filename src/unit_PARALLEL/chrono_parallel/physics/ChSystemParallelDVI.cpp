@@ -54,7 +54,7 @@ void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body) {
 }
 
 void ChSystemParallelDVI::CalculateContactForces() {
-  uint num_contacts = data_manager->num_contacts;
+  uint num_contacts = data_manager->num_rigid_contacts;
   DynamicVector<real>& Fc = data_manager->host_data.Fc;
 
   data_manager->Fc_current = true;
@@ -143,7 +143,7 @@ void ChSystemParallelDVI::AssembleSystem() {
   ChSystem::Update();
   this->contact_container->BeginAddContact();
   chrono::collision::ChCollisionInfo icontact;
-  for (int i = 0; i < data_manager->num_contacts; i++) {
+  for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
     int2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
     icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel();
     icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel();

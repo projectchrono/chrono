@@ -37,12 +37,12 @@ class CH_PARALLEL_API ChSolverPDIP : public ChSolverParallel {
     data_container->system_timer.start("ChSolverParallel_Solve");
     const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
     uint num_dof = data_container->num_dof;
-    uint num_contacts = data_container->num_contacts;
+    uint num_contacts = data_container->num_rigid_contacts;
     uint num_bilaterals = data_container->num_bilaterals;
     uint num_constraints = data_container->num_constraints;
     uint num_unilaterals = data_container->num_unilaterals;
     uint nnz_bilaterals = data_container->nnz_bilaterals;
-    uint nnz_unilaterals = 6 * 6 * data_container->num_contacts;
+    uint nnz_unilaterals = 6 * 6 * data_container->num_rigid_contacts;
 
     int nnz_total = nnz_unilaterals + nnz_bilaterals;
 

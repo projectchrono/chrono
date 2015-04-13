@@ -229,7 +229,7 @@ void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
     text.Render(buffer, RIGHT, TOP - SPACING * 15, sx, sy);
     sprintf(buffer, "SZ    %f", bin_size_vec.z);
     text.Render(buffer, RIGHT, TOP - SPACING * 16, sx, sy);
-    sprintf(buffer, "RIGID %d", parallel_sys->data_manager->num_contacts);
+    sprintf(buffer, "RIGID %d", parallel_sys->data_manager->num_rigid_contacts);
     text.Render(buffer, RIGHT, TOP - SPACING * 17, sx, sy);
   } else {
     // ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();

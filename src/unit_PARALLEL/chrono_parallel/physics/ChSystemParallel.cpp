@@ -516,7 +516,7 @@ void ChSystemParallel::Setup() {
   ndof = data_manager->num_dof;
   ndoc_w_C = -1;
   ndoc_w_D = -1;
-  ncontacts = data_manager->num_contacts;
+  ncontacts = data_manager->num_rigid_contacts;
   nbodies_sleep = -1;
   nbodies_fixed = -1;
 }

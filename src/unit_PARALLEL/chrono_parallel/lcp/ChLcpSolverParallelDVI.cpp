@@ -25,13 +25,13 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   // Compute the offsets and number of constrains depending on the solver mode
   if (data_container->settings.solver.solver_mode == NORMAL) {
     rigid_rigid.offset = 1;
-    data_container->num_unilaterals = 1 * data_container->num_contacts;
+    data_container->num_unilaterals = 1 * data_container->num_rigid_contacts;
   } else if (data_container->settings.solver.solver_mode == SLIDING) {
     rigid_rigid.offset = 3;
-    data_container->num_unilaterals = 3 * data_container->num_contacts;
+    data_container->num_unilaterals = 3 * data_container->num_rigid_contacts;
   } else if (data_container->settings.solver.solver_mode == SPINNING) {
     rigid_rigid.offset = 6;
-    data_container->num_unilaterals = 6 * data_container->num_contacts;
+    data_container->num_unilaterals = 6 * data_container->num_rigid_contacts;
   }
   // This is the total number of constraints
   data_container->num_constraints = data_container->num_unilaterals + data_container->num_bilaterals;
@@ -128,17 +128,17 @@ void ChLcpSolverParallelDVI::ComputeD() {
   uint num_bodies = data_container->num_rigid_bodies;
   uint num_shafts = data_container->num_shafts;
   uint num_dof = data_container->num_dof;
-  uint num_contacts = data_container->num_contacts;
+  uint num_contacts = data_container->num_rigid_contacts;
   uint num_bilaterals = data_container->num_bilaterals;
   uint nnz_bilaterals = data_container->nnz_bilaterals;
 
-  int nnz_normal = 6 * 2 * data_container->num_contacts;
-  int nnz_tangential = 6 * 4 * data_container->num_contacts;
-  int nnz_spinning = 6 * 3 * data_container->num_contacts;
+  int nnz_normal = 6 * 2 * data_container->num_rigid_contacts;
+  int nnz_tangential = 6 * 4 * data_container->num_rigid_contacts;
+  int nnz_spinning = 6 * 3 * data_container->num_rigid_contacts;
 
-  int num_normal = 1 * data_container->num_contacts;
-  int num_tangential = 2 * data_container->num_contacts;
-  int num_spinning = 3 * data_container->num_contacts;
+  int num_normal = 1 * data_container->num_rigid_contacts;
+  int num_tangential = 2 * data_container->num_rigid_contacts;
+  int num_spinning = 3 * data_container->num_rigid_contacts;
 
   CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
   CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
@@ -232,7 +232,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
   DynamicVector<real>& R = data_container->host_data.R_full;
   DynamicVector<real>& b = data_container->host_data.b;
 
-  uint num_contacts = data_container->num_contacts;
+  uint num_contacts = data_container->num_rigid_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
 
@@ -324,7 +324,7 @@ void ChLcpSolverParallelDVI::ComputeN() {
 
   const DynamicVector<real>& E = data_container->host_data.E;
 
-  uint num_contacts = data_container->num_contacts;
+  uint num_contacts = data_container->num_rigid_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
 
@@ -385,7 +385,7 @@ void ChLcpSolverParallelDVI::SetR() {
   DynamicVector<real>& R = data_container->host_data.R;
   const DynamicVector<real>& R_full = data_container->host_data.R_full;
 
-  uint num_contacts = data_container->num_contacts;
+  uint num_contacts = data_container->num_rigid_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
   R.resize(data_container->num_constraints);
@@ -428,7 +428,7 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
   const CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
   const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
 
-  uint num_contacts = data_container->num_contacts;
+  uint num_contacts = data_container->num_rigid_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
 
@@ -469,7 +469,7 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
 }
 
 void ChLcpSolverParallelDVI::PreSolve() {
-  if (data_container->num_contacts <= 0) {
+  if (data_container->num_rigid_contacts <= 0) {
     return;
   }
 

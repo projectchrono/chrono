@@ -209,8 +209,8 @@ void Sync(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
 }
 bool CompareContacts(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
   bool passing = true;
-  int num_contacts_A = msystem_A->data_manager->num_contacts;
-  int num_contacts_B = msystem_B->data_manager->num_contacts;
+  int num_contacts_A = msystem_A->data_manager->num_rigid_contacts;
+  int num_contacts_B = msystem_B->data_manager->num_rigid_contacts;
   cout << "Number of contacts mpr: " << num_contacts_A << " r: " << num_contacts_B << endl;
 
   if (num_contacts_A != num_contacts_B) {
