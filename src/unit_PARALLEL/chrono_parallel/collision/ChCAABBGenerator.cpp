@@ -6,19 +6,13 @@
 #include "chrono_parallel/collision/ChCAABBGenerator.h"
 using namespace chrono::collision;
 
-__constant__ uint numAABB_const;
-
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-static __device__ __host__ void ComputeAABBSphere(const real& radius, const real3& position, real3& minp, real3& maxp) {
+static void ComputeAABBSphere(const real& radius, const real3& position, real3& minp, real3& maxp) {
   minp = position - R3(radius);
   maxp = position + R3(radius);
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-static __device__ __host__ void ComputeAABBTriangle(const real3& A,
-                                                    const real3& B,
-                                                    const real3& C,
-                                                    real3& minp,
-                                                    real3& maxp) {
+static void ComputeAABBTriangle(const real3& A, const real3& B, const real3& C, real3& minp, real3& maxp) {
   minp.x = std::min(A.x, std::min(B.x, C.x));
   minp.y = std::min(A.y, std::min(B.y, C.y));
   minp.z = std::min(A.z, std::min(B.z, C.z));
@@ -223,20 +217,18 @@ void ChCAABBGenerator::host_ComputeAABB(const shape_type* obj_data_T,
 ChCAABBGenerator::ChCAABBGenerator() {
 }
 
-void ChCAABBGenerator::GenerateAABB(const custom_vector<shape_type>& obj_data_T,
-                                    const custom_vector<real3>& obj_data_A,
-                                    const custom_vector<real3>& obj_data_B,
-                                    const custom_vector<real3>& obj_data_C,
-                                    const custom_vector<real4>& obj_data_R,
-                                    const custom_vector<uint>& obj_data_ID,
-                                    const custom_vector<real3>& convex_data,
-                                    const custom_vector<real3>& body_pos,
-                                    const custom_vector<real4>& body_rot,
+void ChCAABBGenerator::GenerateAABB(const host_vector<shape_type>& obj_data_T,
+                                    const host_vector<real3>& obj_data_A,
+                                    const host_vector<real3>& obj_data_B,
+                                    const host_vector<real3>& obj_data_C,
+                                    const host_vector<real4>& obj_data_R,
+                                    const host_vector<uint>& obj_data_ID,
+                                    const host_vector<real3>& convex_data,
+                                    const host_vector<real3>& body_pos,
+                                    const host_vector<real4>& body_rot,
                                     const real collision_envelope,
-                                    custom_vector<real3>& aabb_data) {
-
+                                    host_vector<real3>& aabb_data) {
   LOG(TRACE) << "AABB START";
-
 
   numAABB = obj_data_T.size();
   aabb_data.resize(numAABB * 2);
