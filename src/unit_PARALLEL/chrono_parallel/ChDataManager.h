@@ -50,6 +50,9 @@ using blaze::DynamicVector;
 using thrust::host_vector;
 namespace chrono {
 
+// The maximum number of shear history contacts per smaller body (DEM)
+#define max_shear 20
+
 struct host_container {
   // Collision data
   host_vector<real3> ObA_rigid;    // Position of shape
@@ -77,6 +80,10 @@ struct host_container {
   // for bodies that are involved in at least one contact.
   host_vector<real3> ct_body_force;   // Total contact force on bodies
   host_vector<real3> ct_body_torque;  // Total contact torque on these bodies
+
+  // Contact shear history (DEM)
+  host_vector<int3> shear_neigh; // Neighbor list of contacting bodies and shapes
+  host_vector<real3> shear_disp; // Accumulated shear displacement for each neighbor
 
   // Mapping from all bodies in the system to bodies involved in a contact.
   // For bodies that are currently not in contact, the mapping entry is -1.

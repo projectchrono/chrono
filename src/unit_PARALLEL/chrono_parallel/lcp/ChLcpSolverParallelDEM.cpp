@@ -32,38 +32,44 @@ using namespace chrono;
 // therefore duplicated in the output arrays, once for each body involved in the
 // contact (with opposite signs for the two bodies).
 // -----------------------------------------------------------------------------
-void function_CalcContactForces(int index,                         // index of this contact pair
-                                CONTACTFORCEMODEL force_model,     // contact force model
-                                TANGENTIALDISPLACEMENTMODE displ,  // type of tangential displacement history
-                                bool use_mat_props,                // flag specifying how coefficients are obtained
-                                real char_vel,                     // characteristic velocity (Hooke)
-                                real min_slip_vel,                 // threshold tangential velocity
-                                real dT,                           // integration time step
-                                real* mass,                        // body masses
-                                real3* pos,                        // body positions
-                                real4* rot,                        // body orientations
-                                real* vel,                         // body linear and angular velocities
-                                real2* elastic_moduli,             // Young's modulus (per body)
-                                real* cr,                          // coefficient of restitution (per body)
-                                real4* dem_coeffs,                 // stiffness and damping coefficients (per body)
-                                real* mu,                          // coefficient of friction (per body)
-                                real* cohesion,                    // cohesion force (per body)
-                                int2* body_id,                     // body IDs (per contact)
-                                real3* pt1,                        // point on shape 1 (per contact)
-                                real3* pt2,                        // point on shape 2 (per contact)
-                                real3* normal,                     // contact normal (per contact)
-                                real* depth,                       // penetration depth (per contact)
-                                real* eff_radius,                  // effective contact radius (per contact)
-                                int* ext_body_id,                  // [output] body IDs (two per contact)
-                                real3* ext_body_force,             // [output] body force (two per contact)
-                                real3* ext_body_torque)            // [output] body torque (two per contact)
+void function_CalcContactForces(
+    int index,                              // index of this contact pair
+    CONTACTFORCEMODEL force_model,          // contact force model
+    TANGENTIALDISPLACEMENTMODE displ_mode,  // type of tangential displacement history
+    bool use_mat_props,                     // flag specifying how coefficients are obtained
+    real char_vel,                          // characteristic velocity (Hooke)
+    real min_slip_vel,                      // threshold tangential velocity
+    real dT,                                // integration time step
+    real* mass,                             // body masses
+    real3* pos,                             // body positions
+    real4* rot,                             // body orientations
+    real* vel,                              // body linear and angular velocities
+    real2* elastic_moduli,                  // Young's modulus (per body)
+    real* cr,                               // coefficient of restitution (per body)
+    real4* dem_coeffs,                      // stiffness and damping coefficients (per body)
+    real* mu,                               // coefficient of friction (per body)
+    real* cohesion,                         // cohesion force (per body)
+    int2* body_id,                          // body IDs (per contact)
+    int2* shape_id,                         // shape IDs (per contact)
+    real3* pt1,                             // point on shape 1 (per contact)
+    real3* pt2,                             // point on shape 2 (per contact)
+    real3* normal,                          // contact normal (per contact)
+    real* depth,                            // penetration depth (per contact)
+    real* eff_radius,                       // effective contact radius (per contact)
+    int3* shear_neigh,                      // neighbor list of contacting bodies and shapes (max_shear per body)
+    bool* shear_touch,                      // flag if contact in neighbor list is persistent (max_shear per body)
+    real3* shear_disp,                      // accumulated shear displacement for each neighbor (max_shear per body)
+    int* ext_body_id,                       // [output] body IDs (two per contact)
+    real3* ext_body_force,                  // [output] body force (two per contact)
+    real3* ext_body_torque)                 // [output] body torque (two per contact)
 {
   // Identify the two bodies in contact.
   int body1 = body_id[index].x;
   int body2 = body_id[index].y;
+  int shape1 = shape_id[index].x;
+  int shape2 = shape_id[index].y;
 
-  // If the two contact shapes are actually separated, set zero forces and
-  // torques.
+  // If the two contact shapes are actually separated, set zero forces and torques.
   if (depth[index] >= 0) {
     ext_body_id[2 * index] = body1;
     ext_body_id[2 * index + 1] = body2;
@@ -125,7 +131,8 @@ void function_CalcContactForces(int index,                         // index of t
     E_eff = 1 / inv_E;
     G_eff = 1 / inv_G;
     cr_eff = (cr[body1] + cr[body2]) / 2;
-  } else {
+  }
+  else {
     user_kn = (dem_coeffs[body1].w + dem_coeffs[body2].w) / 2;
     user_kt = (dem_coeffs[body1].x + dem_coeffs[body2].x) / 2;
     user_gn = (dem_coeffs[body1].y + dem_coeffs[body2].y) / 2;
@@ -145,72 +152,190 @@ void function_CalcContactForces(int index,                         // index of t
   real gn;
   real gt;
 
-  real delta = -depth[index];
-  real delta_t = (displ == NONE) ? 0 : relvel_t_mag * dT;
+  real delta_n = -depth[index];
+  real3 delta_t = R3(0, 0, 0);
 
-  switch (force_model) {
-    case HOOKE:
-      if (use_mat_props) {
-        double tmp_k = (16.0 / 15) * sqrt(eff_radius[index]) * E_eff;
-        double v2 = char_vel * char_vel;
-        double tmp_g = 1 + pow(CH_C_PI / log(cr_eff), 2);
-        kn = tmp_k * pow(m_eff * v2 / tmp_k, 1.0 / 5);
-        kt = kn;
-        gn = std::sqrt(4 * m_eff * kn / tmp_g);
-        gt = gn;
-      } else {
-        kn = user_kn;
-        kt = user_kt;
-        gn = m_eff * user_gn;
-        gt = m_eff * user_gt;
+  int i;
+  int contact_id;
+  int shear_body1;
+  int shear_body2;
+  int shear_shape1;
+  int shear_shape2;
+  bool newcontact = true;
+
+  if (displ_mode == ONE_STEP) {
+    delta_t = relvel_t * dT;
+
+  } else if (displ_mode == MULTI_STEP) {
+    delta_t = relvel_t * dT;
+
+    // Contact history information should be stored on the body with
+    // the smaller shape in contact or the body with larger index.
+    // Currently, it is assumed that the smaller shape is on the body
+    // with larger ID.
+    // We call this body shear_body1.
+
+    shear_body1 = std::max(body1, body2);
+    shear_body2 = std::min(body1, body2);
+    shear_shape1 = std::max(shape1, shape2);
+    shear_shape2 = std::min(shape1, shape2);
+
+    // Check if contact history already exists.
+    // If not, initialize new contact history.
+
+    for (i = 0; i < max_shear; i++) {
+      if (shear_neigh[max_shear * shear_body1 + i].x == shear_body2
+        && shear_neigh[max_shear * shear_body1 + i].y == shear_shape1
+        && shear_neigh[max_shear * shear_body1 + i].z == shear_shape2) {
+        contact_id = i;
+        newcontact = false;
+        break;
       }
-
-      break;
-
-    case HERTZ:
-      if (use_mat_props) {
-        double sqrt_Rd = sqrt(eff_radius[index] * delta);
-        double Sn = 2 * E_eff * sqrt_Rd;
-        double St = 8 * G_eff * sqrt_Rd;
-        double loge = log(cr_eff);
-        double beta = loge / sqrt(loge * loge + CH_C_PI * CH_C_PI);
-        kn = (2.0 / 3) * Sn;
-        kt = St;
-        gn = -2 * sqrt(5.0 / 6) * beta * sqrt(Sn * m_eff);
-        gt = -2 * sqrt(5.0 / 6) * beta * sqrt(St * m_eff);
-      } else {
-        double tmp = eff_radius[index] * std::sqrt(delta);
-        kn = tmp * user_kn;
-        kt = tmp * user_kt;
-        gn = tmp * m_eff * user_gn;
-        gt = tmp * m_eff * user_gt;
+    }
+    if (newcontact == true) {
+      for (i = 0; i < max_shear; i++) {
+        if (shear_neigh[max_shear * shear_body1 + i].x == -1) {
+          contact_id = i;
+          shear_neigh[max_shear * shear_body1 + i].x = shear_body2;
+          shear_neigh[max_shear * shear_body1 + i].y = shear_shape1;
+          shear_neigh[max_shear * shear_body1 + i].z = shear_shape2;
+          shear_disp[max_shear * shear_body1 + i].x = 0;
+          shear_disp[max_shear * shear_body1 + i].y = 0;
+          shear_disp[max_shear * shear_body1 + i].z = 0;
+          break;
+        }
       }
+    }
 
-      break;
+    // Record that these two bodies are really in contact at this time.
+    shear_touch[max_shear * shear_body1 + contact_id] = true;
+
+    // Increment stored contact history tangential (shear) displacement vector
+    // and project it onto the <current> contact plane.
+
+    if (shear_body1 == body1) {
+      shear_disp[max_shear * shear_body1 + contact_id] += delta_t;
+      shear_disp[max_shear * shear_body1 + contact_id] -=
+        dot(shear_disp[max_shear * shear_body1 + contact_id], normal[index])
+        * normal[index];
+      delta_t = shear_disp[max_shear * shear_body1 + contact_id];
+    }
+    else {
+      shear_disp[max_shear * shear_body1 + contact_id] -= delta_t;
+      shear_disp[max_shear * shear_body1 + contact_id] -=
+        dot(shear_disp[max_shear * shear_body1 + contact_id], normal[index])
+        * normal[index];
+      delta_t = -shear_disp[max_shear * shear_body1 + contact_id];
+    }
   }
 
-  // Calculate the magnitudes of the normal and tangential contact forces.
-  // Recall that relvel_n_mag is signed, while relvel_t_mag is always positive.
-  real forceN = kn * delta - gn * relvel_n_mag;
-  real forceT = kt * delta_t + gt * relvel_t_mag;
+  switch (force_model) {
+  case HOOKE:
+    if (use_mat_props) {
+      double tmp_k = (16.0 / 15) * sqrt(eff_radius[index]) * E_eff;
+      double v2 = char_vel * char_vel;
+      double tmp_g = 1 + pow(CH_C_PI / log(cr_eff), 2);
+      kn = tmp_k * pow(m_eff * v2 / tmp_k, 1.0 / 5);
+      kt = kn;
+      gn = std::sqrt(4 * m_eff * kn / tmp_g);
+      gt = gn;
+    }
+    else {
+      kn = user_kn;
+      kt = user_kt;
+      gn = m_eff * user_gn;
+      gt = m_eff * user_gt;
+    }
 
-  // If the resulting force is negative, the two shapes are moving away from
-  // each other so fast that no contact force is generated.
-  if (forceN < 0) {
-    forceN = 0;
-    forceT = 0;
+    break;
+
+  case HERTZ:
+    if (use_mat_props) {
+      double sqrt_Rd = sqrt(eff_radius[index] * delta_n);
+      double Sn = 2 * E_eff * sqrt_Rd;
+      double St = 8 * G_eff * sqrt_Rd;
+      double loge = log(cr_eff);
+      double beta = loge / sqrt(loge * loge + CH_C_PI * CH_C_PI);
+      kn = (2.0 / 3) * Sn;
+      kt = St;
+      gn = -2 * sqrt(5.0 / 6) * beta * sqrt(Sn * m_eff);
+      gt = -2 * sqrt(5.0 / 6) * beta * sqrt(St * m_eff);
+    }
+    else {
+      double tmp = eff_radius[index] * std::sqrt(delta_n);
+      kn = tmp * user_kn;
+      kt = tmp * user_kt;
+      gn = tmp * m_eff * user_gn;
+      gt = tmp * m_eff * user_gt;
+    }
+
+    break;
+  }
+
+  // Calculate the the normal and tangential contact forces.
+  // The normal force is a magnitude, and it will be applied along the contact
+  // normal direction (negative relative to body1 & positive relative to body2).
+  // The tangential force is a vector with two parts: one depends on the stored
+  // contact history tangential (or shear) displacement vector delta_t, and the
+  // other depends on the current relative velocity vector (for viscous damping).
+  real forceN_mag = kn * delta_n - gn * relvel_n_mag;
+  real3 forceT_stiff = kt * delta_t;
+  real3 forceT_damp = gt * relvel_t;
+
+  // If the resulting normal force is negative, then the two shapes are
+  // moving away from each other so fast that no contact force is generated.
+  if (forceN_mag < 0) {
+    forceN_mag = 0;
+    forceT_stiff.x = 0;
+    forceT_stiff.y = 0;
+    forceT_stiff.z = 0;
+    forceT_damp.x = 0;
+    forceT_damp.y = 0;
+    forceT_damp.z = 0;
   }
 
   // Include cohesion force.
-  forceN -= cohesion_eff;
+  // (This is a very simple model, which can perhaps be improved later.)
+  forceN_mag -= cohesion_eff;
 
-  // Coulomb law
-  forceT = std::min(forceT, mu_eff * fabsf(forceN));
+  // Apply Coulomb friction law.
+  // We must enforce force_T_mag <= mu_eff * |forceN_mag|.
+  // If force_T_mag > mu_eff * |forceN_mag| and there is shear displacement
+  // due to contact history, then the shear displacement is scaled so that
+  // the tangential force will be correct if force_T_mag subsequently drops
+  // below the Coulomb limit.  Also, if there is sliding, then there is no
+  // viscous damping in the tangential direction (to keep the Coulomb limit
+  // strict, and independent of velocity).
+  //  real forceT_mag = length(forceT_stiff + forceT_damp);  // This seems correct
+  real forceT_mag = length(forceT_stiff);  // This is what LAMMPS/LIGGGHTS does
+  real delta_t_mag = length(delta_t);
+  real forceT_slide = mu_eff * fabsf(forceN_mag);
+  if (forceT_mag > forceT_slide) {
+    if (delta_t_mag != 0.0) {
+      real forceT_stiff_mag = length(forceT_stiff);
+      double ratio = forceT_slide / forceT_stiff_mag;
+      forceT_stiff *= ratio;
+      if (displ_mode == MULTI_STEP) {
+        if (shear_body1 == body1) {
+          shear_disp[max_shear * shear_body1 + contact_id] = forceT_stiff / kt;
+        } else {
+          shear_disp[max_shear * shear_body1 + contact_id] = -forceT_stiff / kt;
+        }
+      }
+    } else {
+      forceT_stiff.x = 0.0;
+      forceT_stiff.y = 0.0;
+      forceT_stiff.z = 0.0;
+    }
+    forceT_damp.x = 0.0;
+    forceT_damp.y = 0.0;
+    forceT_damp.z = 0.0;
+  }
 
   // Accumulate normal and tangential forces
-  real3 force = forceN * normal[index];
-  if (relvel_t_mag >= min_slip_vel)
-    force -= (forceT / relvel_t_mag) * relvel_t;
+  real3 force = forceN_mag * normal[index];
+  force -= forceT_stiff;
+  force -= forceT_damp;
 
   // Body forces (in global frame) & torques (in local frame)
   // --------------------------------------------------------
@@ -234,12 +359,14 @@ void function_CalcContactForces(int index,                         // index of t
 // -----------------------------------------------------------------------------
 void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body_id,
                                                     custom_vector<real3>& ext_body_force,
-                                                    custom_vector<real3>& ext_body_torque) {
+                                                    custom_vector<real3>& ext_body_torque,
+                                                    custom_vector<int2>& shape_pairs,
+                                                    custom_vector<bool>& shear_touch) {
 #pragma omp parallel for
   for (int index = 0; index < data_container->num_contacts; index++) {
     function_CalcContactForces(index,
                                data_container->settings.solver.contact_force_model,
-                               data_container->settings.solver.contact_history,
+                               data_container->settings.solver.tangential_displ_mode,
                                data_container->settings.solver.use_material_properties,
                                data_container->settings.solver.characteristic_vel,
                                data_container->settings.solver.min_slip_vel,
@@ -254,11 +381,15 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body
                                data_container->host_data.mu.data(),
                                data_container->host_data.cohesion_data.data(),
                                data_container->host_data.bids_rigid_rigid.data(),
+                               shape_pairs.data(),
                                data_container->host_data.cpta_rigid_rigid.data(),
                                data_container->host_data.cptb_rigid_rigid.data(),
                                data_container->host_data.norm_rigid_rigid.data(),
                                data_container->host_data.dpth_rigid_rigid.data(),
                                data_container->host_data.erad_rigid_rigid.data(),
+                               data_container->host_data.shear_neigh.data(),
+                               shear_touch.data(),
+                               data_container->host_data.shear_disp.data(),
                                ext_body_id.data(),
                                ext_body_force.data(),
                                ext_body_torque.data());
@@ -313,8 +444,32 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
   custom_vector<int> ext_body_id(2 * data_container->num_contacts);
   custom_vector<real3> ext_body_force(2 * data_container->num_contacts);
   custom_vector<real3> ext_body_torque(2 * data_container->num_contacts);
+  custom_vector<int2> shape_pairs;
+  custom_vector<bool> shear_touch;
 
-  host_CalcContactForces(ext_body_id, ext_body_force, ext_body_torque);
+  if (data_container->settings.solver.tangential_displ_mode == MULTI_STEP) {
+    shape_pairs.resize(data_container->num_contacts);
+    shear_touch.resize(max_shear * data_container->num_bodies);
+    thrust::fill(thrust_parallel, shear_touch.begin(), shear_touch.end(), false);
+#pragma omp parallel for
+    for (int i = 0; i < data_container->num_contacts; i++) {
+      int2 pair = I2(int(data_container->host_data.pair_rigid_rigid[i] >> 32),
+                     int(data_container->host_data.pair_rigid_rigid[i] & 0xffffffff));
+      shape_pairs[i] = pair;
+    }
+  }
+
+  host_CalcContactForces(ext_body_id, ext_body_force, ext_body_torque, shape_pairs, shear_touch);
+
+  if (data_container->settings.solver.tangential_displ_mode == MULTI_STEP) {
+#pragma omp parallel for
+    for (int index = 0; index < data_container->num_bodies; index++) {
+      for (int i = 0; i < max_shear; i++) {
+        if (shear_touch[max_shear * index + i] == false)
+          data_container->host_data.shear_neigh[max_shear * index + i].x = -1;
+      }
+    }
+  }
 
   // 2. Calculate contact forces and torques - per body basis
   //    Accumulate the contact forces and torques for all bodies that are

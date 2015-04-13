@@ -107,7 +107,7 @@ struct solver_settings {
     local_solver_mode = NORMAL;
 
     contact_force_model = HERTZ;
-    contact_history = ONE_STEP;
+    tangential_displ_mode = ONE_STEP;
     use_material_properties = true;
     characteristic_vel = 1;
     min_slip_vel = 1e-4;
@@ -163,7 +163,7 @@ struct solver_settings {
   // Tangential contact displacement history. NONE indicates no tangential stiffness,
   // ONE_STEP indicates estimating tangential displacement using only current velocity,
   // MULTI_STEP uses full contact history over multiple steps.
-  TANGENTIALDISPLACEMENTMODE contact_history;
+  TANGENTIALDISPLACEMENTMODE tangential_displ_mode;
   // Flag specifying how the stiffness and damping coefficients in the DEM contact
   // force models are calculated. If true, these coefficients are derived from
   // physical material properties. Otherwise, the user specifies the coefficients

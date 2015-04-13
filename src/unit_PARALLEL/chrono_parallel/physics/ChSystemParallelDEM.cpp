@@ -30,6 +30,13 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
   } else {
     data_manager->host_data.dem_coeffs.push_back(R4(0, 0, 0, 0));
   }
+
+  if (data_manager->settings.solver.tangential_displ_mode == MULTI_STEP) {
+    for (int i = 0; i < max_shear; i++) {
+      data_manager->host_data.shear_neigh.push_back(I3(-1, -1, -1));
+      data_manager->host_data.shear_disp.push_back(R3(0, 0, 0));
+    }
+  }
 }
 
 void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
