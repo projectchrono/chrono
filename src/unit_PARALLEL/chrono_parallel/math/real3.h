@@ -205,4 +205,12 @@ static real min3(const real3& a) {
   return std::min(a.x, std::min(a.y, a.z));
 }
 
+static inline real3 clamp(const real3& a, const real3& clamp_min, const real3& clamp_max) {
+  real3 clampv;
+  clampv.x = clamp(a.x, clamp_min.x, clamp_max.x);
+  clampv.y = clamp(a.y, clamp_min.y, clamp_max.y);
+  clampv.z = clamp(a.z, clamp_min.z, clamp_max.z);
+  return clampv;
+}
+
 #endif
