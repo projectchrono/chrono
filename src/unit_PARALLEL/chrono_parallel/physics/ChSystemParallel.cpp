@@ -206,8 +206,7 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
   if (ChSharedPtr<ChShaft> shaft = newitem.DynamicCastTo<ChShaft>()) {
     AddShaft(shaft);
-  }
-  if (ChSharedPtr<ChNodeFluid> fluid_body = newitem.DynamicCastTo<ChNodeFluid>()) {
+  } else if (ChSharedPtr<ChNodeFluid> fluid_body = newitem.DynamicCastTo<ChNodeFluid>()) {
     AddFluidBody(fluid_body);
   } else {
     newitem->AddRef();
