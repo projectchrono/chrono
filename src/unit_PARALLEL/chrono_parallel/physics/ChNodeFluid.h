@@ -23,7 +23,6 @@
 #include <math.h>
 
 #include "physics/ChNodeXYZ.h"
-#include "chrono_parallel/collision/ChCCollisionModelSphere.h"
 #include "lcp/ChLcpVariablesNode.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
