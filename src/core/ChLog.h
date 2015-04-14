@@ -30,6 +30,33 @@
 #include "ChStream.h"
 #include "ChApiCE.h"
 
+// Shim providing interface similar to google-glog
+//
+// Usage:
+//
+//   LOG(level) << "log message";
+//   LOG_IF(level, condition) << "log message";
+//
+//   where `level` is one of:
+//     INFO, WARNING, ERROR, FATAL,
+//     CHERROR, CHWARNING, CHMESSAGE, CHSTATUS, CHQUIET
+//   and `condition` is a conditional that is passed to an if statement
+#define LOG(level) chrono::GetLog() - chrono::ChLog::level
+#define LOG_IF(level, condition) !(condition) ? LOG(CHQUIET) : LOG(level)
+
+// Same as above, but only logs if in debug mode
+#ifndef NDEBUG
+
+#define DLOG(level) LOG(level)
+#define DLOG_IF(level, condition) LOG_IF(level, condition)
+
+#else  // NDEBUG
+
+#define DLOG(level) LOG(CHQUIET)
+#define DLOG_IF(level, condition) LOG_IF(CHQUIET, condition)
+
+#endif  // NDEBUG
+
 namespace chrono {
 
 //////////////////////////////////////////////////////////////////
@@ -47,7 +74,7 @@ class ChApi ChLog : public ChStreamOutAscii {
     /// specializations of the ChLog class may handle message output
     /// in different ways (for example a ChLogForGUIapplication may
     /// print logs in STATUS level only to the bottom of the window, etc.)
-    enum eChLogLevel { CHERROR = 0, CHWARNING, CHMESSAGE, CHSTATUS, CHQUIET };
+    enum eChLogLevel { INFO, WARNING, ERROR, FATAL, CHERROR = 0, CHWARNING, CHMESSAGE, CHSTATUS, CHQUIET };
 
   protected:
     eChLogLevel current_level;
