@@ -111,9 +111,9 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
  private:
   void AddShaft(ChSharedPtr<ChShaft> shaft);
-  void AddFluidBody(ChSharedPtr<ChNodeFluid> node);
 
   std::vector<ChShaft*> shaftlist;
+  ChSharedPtr<ChNodeFluid> fluid_container;
 };
 
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {

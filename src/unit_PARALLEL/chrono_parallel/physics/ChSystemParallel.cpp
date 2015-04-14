@@ -19,6 +19,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   contact_container = new ChContactContainerParallel(data_manager);
   collision_system = new ChCollisionSystemParallel(data_manager);
 
+  fluid_container.SetNull();
   counter = 0;
   timer_accumulator.resize(10, 0);
   cd_accumulator.resize(10, 0);
@@ -206,8 +207,6 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
   if (ChSharedPtr<ChShaft> shaft = newitem.DynamicCastTo<ChShaft>()) {
     AddShaft(shaft);
-  } else if (ChSharedPtr<ChNodeFluid> fluid_body = newitem.DynamicCastTo<ChNodeFluid>()) {
-    AddFluidBody(fluid_body);
   } else {
     newitem->AddRef();
     newitem->SetSystem(this);
@@ -243,11 +242,6 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft) {
   data_manager->host_data.shaft_inr.push_back(0);
   data_manager->host_data.shaft_active.push_back(true);
 }
-// Add the specified fluid node to the system
-// Currently a stub
-void ChSystemParallel::AddFluidBody(ChSharedPtr<ChNodeFluid> node) {
-}
-
 //
 // Reset forces for all lcp variables
 //
