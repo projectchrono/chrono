@@ -95,8 +95,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
   // Fill-in the non zero entries in the bilateral jacobian with ones.
   // This operation is sequential.
   void GenerateSparsity();
-  //Fill in the sparsity in the transpose of the jacobian
-  void GenerateSparsityTranspose();
   int offset;
 
  protected:
