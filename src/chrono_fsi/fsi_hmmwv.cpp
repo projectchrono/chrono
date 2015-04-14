@@ -216,29 +216,29 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
                         ChVector<>(-midSecDim - hdimSide, 0, -hthick),
                         ChQuaternion<>(1, 0, 0, 0),
                         true);
-  // end third
-  utils::AddBoxGeometry(ground.get_ptr(),
-                        ChVector<>(hdimSide, hdimY, hthick),
-                        ChVector<>(midSecDim + hdimSide, 0, -hthick),
-                        ChQuaternion<>(1, 0, 0, 0),
-                        true);
-  // basin
-  utils::AddBoxGeometry(ground.get_ptr(),
-                        ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
-                        ChVector<>(0, 0, -basinDepth - hthick),
-                        ChQuaternion<>(1, 0, 0, 0),
-                        true);
-  // slope 1
-  utils::AddBoxGeometry(ground.get_ptr(),
-                        ChVector<>(inclinedWidth, hdimY, hthick),
-                        ChVector<>(x1I, 0, zI),
-                        Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
-
-  // slope 2
-  utils::AddBoxGeometry(ground.get_ptr(),
-                        ChVector<>(inclinedWidth, hdimY, hthick),
-                        ChVector<>(x2I, 0, zI),
-                        Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
+//  // end third
+//  utils::AddBoxGeometry(ground.get_ptr(),
+//                        ChVector<>(hdimSide, hdimY, hthick),
+//                        ChVector<>(midSecDim + hdimSide, 0, -hthick),
+//                        ChQuaternion<>(1, 0, 0, 0),
+//                        true);
+//  // basin
+//  utils::AddBoxGeometry(ground.get_ptr(),
+//                        ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
+//                        ChVector<>(0, 0, -basinDepth - hthick),
+//                        ChQuaternion<>(1, 0, 0, 0),
+//                        true);
+//  // slope 1
+//  utils::AddBoxGeometry(ground.get_ptr(),
+//                        ChVector<>(inclinedWidth, hdimY, hthick),
+//                        ChVector<>(x1I, 0, zI),
+//                        Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
+//
+//  // slope 2
+//  utils::AddBoxGeometry(ground.get_ptr(),
+//                        ChVector<>(inclinedWidth, hdimY, hthick),
+//                        ChVector<>(x2I, 0, zI),
+//                        Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
 
   //  utils::AddBoxGeometry(
   //      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),
@@ -308,6 +308,13 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
       mVehicle->SetChassisContactCallback(chassis_cb);
     } break;
 
+    case CSPHERE: {
+      chassis_cb = new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+      Real radius = 1;
+      ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
+      mVehicle->SetChassisContactCallback(chassis_cb);
+    } break;
+
     case CSIMPLEMESH: {
       chassis_cb = new MyChassisSimpleMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
       ChVector<> mPos = ChVector<>(0, 0, 0.5);
@@ -355,7 +362,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 
   ChSharedPtr<ChBody> mball = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
 
-  ChVector<> pos = ChVector<>(-8.8, .20, 3);
+  ChVector<> pos = ChVector<>(-8.5, .20, 3);
   mball->SetMaterialSurface(mat_g);
   // body->SetIdentifier(fId);
   mball->SetPos(pos);

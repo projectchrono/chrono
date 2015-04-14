@@ -152,6 +152,7 @@ class MyChassisBoxModel_vis : public utils::ChassisContactCallback {
     // Clear any existing assets (will be overriden)
 
     chassisBody->GetCollisionModel()->ClearModel();
+//    ChVector<> chLoc = ChVector<>(0,0,0);
     ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
     chassisBody->GetCollisionModel()->AddBox(size.x, size.y, size.z, chLoc);
     //    utils::AddBoxGeometry(
@@ -183,6 +184,47 @@ class MyChassisBoxModel_vis : public utils::ChassisContactCallback {
 };
 
 // Callback class for specifying chassis contact model.
+// This version uses a sphere representing the chassis.
+// In addition, this version overrides the visualization assets of the provided
+// chassis body with the collision meshes.
+class MyChassisSphereModel_vis : public utils::ChassisContactCallback {
+ public:
+  virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
+    // Clear any existing assets (will be overriden)
+
+    chassisBody->GetCollisionModel()->ClearModel();
+//    ChVector<> chLoc = ChVector<>(0,0,0);
+    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
+    chassisBody->GetCollisionModel()->AddSphere(rad, chLoc);
+    //    utils::AddBoxGeometry(
+    //        chassisBody.get_ptr(), ChVector<>(1, .5, .05), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
+    chassisBody->GetCollisionModel()->BuildModel();
+    chassisBody->GetMaterialSurface()->SetFriction(mu_t);
+
+    chassisBody->GetAssets().clear();
+    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+    sphere->GetSphereGeometry().rad = rad;
+    chassisBody->GetAssets().push_back(sphere);
+  }
+
+  virtual void SetAttributes(double otherRad,
+                             const ChQuaternion<>& otherRot = ChQuaternion<>(1, 0, 0, 0),
+                             const ChVector<>& otherLoc = ChVector<>(0, 0, 0)) {
+    rad = otherRad;
+    rot = otherRot;
+    loc = otherLoc;
+  }
+
+ private:
+  ChConvexDecompositionHACDv2 chassis_convex;
+  geometry::ChTriangleMeshConnected chassis_mesh;
+
+  double rad;
+  ChQuaternion<> rot;
+  ChVector<> loc;
+};
+
+// Callback class for specifying chassis contact model.
 // This version uses a box representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
 // chassis body with the collision meshes.
@@ -199,7 +241,7 @@ class MyChassisSimpleMesh_vis : public utils::ChassisContactCallback {
   virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
     // Clear any existing assets (will be overriden)
     chassisBody->GetAssets().clear();
-    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
+    ChVector<> chLoc = ChVector<>(0,0,0);//chassisBody->GetFrame_REF_to_COG().GetPos();
     chassisBody->GetCollisionModel()->ClearModel();
     //    utils::AddConvexCollisionModel(chassisBody, chassis_mesh, chassis_convex, chLoc, ChQuaternion<>(1, 0, 0, 0),
     //    false);
