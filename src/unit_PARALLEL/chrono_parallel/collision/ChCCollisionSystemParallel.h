@@ -75,8 +75,6 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
   std::vector<int2> GetOverlappingPairs();
   void GetOverlappingAABB(custom_vector<bool>& active_id, real3 Amin, real3 Amax);
 
-  void setBinsPerAxis(int3 binsPerAxis) { broadphase->setBinsPerAxis(binsPerAxis); }
-
   void SetAABB(real3 aabbmin, real3 aabbmax) {
     data_manager->settings.collision.aabb_min = aabbmin;
     data_manager->settings.collision.aabb_max = aabbmax;

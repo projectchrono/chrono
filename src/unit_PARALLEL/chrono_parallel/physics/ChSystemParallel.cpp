@@ -360,8 +360,10 @@ void ChSystemParallel::UpdateShafts() {
     shaft_inr[i] = shaftlist[i]->Variables().GetInvInertia();
     shaft_active[i] = shaftlist[i]->IsActive();
 
-    data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->Variables().Get_qb().GetElementN(0);
-    data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->Variables().Get_fb().GetElementN(0);
+    data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] =
+        shaftlist[i]->Variables().Get_qb().GetElementN(0);
+    data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] =
+        shaftlist[i]->Variables().Get_fb().GetElementN(0);
   }
 }
 
@@ -567,7 +569,7 @@ void ChSystemParallel::RecomputeThreads() {
 void ChSystemParallel::PerturbBins(bool increase, int number) {
   ChCollisionSystemParallel* coll_sys = (ChCollisionSystemParallel*)collision_system;
 
-  int3 grid_size = coll_sys->broadphase->getBinsPerAxis();
+  int3 grid_size = data_manager->settings.collision.bins_per_axis;
 #if PRINT_LEVEL == 1
   cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 #endif
@@ -592,7 +594,7 @@ void ChSystemParallel::PerturbBins(bool increase, int number) {
 #if PRINT_LEVEL == 1
   cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 #endif
-  coll_sys->broadphase->setBinsPerAxis(grid_size);
+  data_manager->settings.collision.bins_per_axis = grid_size;
 
   frame_bins++;
 }

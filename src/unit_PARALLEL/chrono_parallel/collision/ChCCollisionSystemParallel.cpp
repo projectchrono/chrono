@@ -17,6 +17,7 @@ ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dm) 
   broadphase = new ChCBroadphase;
   narrowphase = new ChCNarrowphaseDispatch;
   aabb_generator = new ChCAABBGenerator;
+  broadphase->data_manager = dm;
   narrowphase->data_manager = dm;
   aabb_generator->data_manager = dm;
 }
@@ -100,22 +101,9 @@ void ChCollisionSystemParallel::Run() {
   }
 
   data_manager->system_timer.start("collision_broad");
-
   aabb_generator->GenerateAABB();
-
-  // aabb_generator.GenerateAABBFluid(data_manager->host_data.fluid_pos, data_manager->fluid_rad,
-  // data_manager->host_data.aabb_fluid);
-  broadphase->setBinsPerAxis(data_manager->settings.collision.bins_per_axis);
-  broadphase->detectPossibleCollisions(data_manager);
+  broadphase->DetectPossibleCollisions();
   data_manager->system_timer.stop("collision_broad");
-
-  data_manager->measures.collision.bin_size_vec = broadphase->bin_size_vec;
-  data_manager->measures.collision.global_origin = broadphase->global_origin;
-  data_manager->measures.collision.grid_size = broadphase->grid_size;
-  data_manager->measures.collision.max_aabb_per_bin = broadphase->max_body_per_bin;
-  data_manager->measures.collision.max_bounding_point = broadphase->max_bounding_point;
-  data_manager->measures.collision.min_bounding_point = broadphase->min_bounding_point;
-  data_manager->measures.collision.numAABB = broadphase->numAABB;
 
   data_manager->system_timer.start("collision_narrow");
   narrowphase->Process();

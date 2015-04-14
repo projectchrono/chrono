@@ -99,6 +99,7 @@ SET(ChronoEngine_Parallel_COLLISION
     collision/ChCAABBGenerator.cpp
     collision/ChCBroadphase.h
     collision/ChCBroadphase.cpp
+    collision/ChCBroadphaseUtils.h
     collision/ChCDataStructures.h
     collision/ChCNarrowphaseUtils.h
     collision/ChCNarrowphaseMPR.h

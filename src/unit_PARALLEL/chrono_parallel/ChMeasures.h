@@ -30,7 +30,6 @@ struct collision_measures {
   collision_measures() {
     min_bounding_point = 0;
     max_bounding_point = 0;
-    numAABB = 0;
     max_aabb_per_bin = 0;
     global_origin = 0;
     bin_size_vec = 0;
@@ -38,7 +37,6 @@ struct collision_measures {
   }
   real3 min_bounding_point;  // The minimal global bounding point
   real3 max_bounding_point;  // The maximum global bounding point
-  uint numAABB;  // The number of AABBs
   uint max_aabb_per_bin;  // The maximum number of AABBs in a bin
   real3 global_origin;  // The global zero point
   real3 bin_size_vec;  // Vector holding bin sizes for each dimension
