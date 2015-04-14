@@ -45,7 +45,8 @@ struct collision_settings {
     // many cores you are using.
     bins_per_axis = I3(20, 20, 20);
     narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
-    // edge_radius = 0.1;
+    grid_density = 5;
+    fixed_bins = true;
   }
 
   real3 min_bounding_point, max_bounding_point;
@@ -71,7 +72,9 @@ struct collision_settings {
   // detection code. The narrowphase_algorithm parameter can be used to change
   // the type of narrowphase used at runtime.
   NARROWPHASETYPE narrowphase_algorithm;
-  // real edge_radius;
+  real grid_density;
+  //use fixed number of bins instead of tuning them
+  bool fixed_bins;
 };
 // solver_settings, like the name implies is the structure that contains all
 // settings associated with the parallel solver.

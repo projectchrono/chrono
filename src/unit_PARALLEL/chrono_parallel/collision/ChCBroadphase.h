@@ -31,17 +31,15 @@ class CH_PARALLEL_API ChCBroadphase {
   // functions
   ChCBroadphase();
   void DetectPossibleCollisions();
-
-  real3 inv_bin_size_vec;
-
-  uint num_shapes;
   ChParallelDataManager* data_manager;
  private:
-  uint last_active_bin, number_of_bin_intersections, number_of_contacts_possible;
+  uint num_bins_active;
+  uint number_of_bin_intersections;
+  uint number_of_contacts_possible;
 
   custom_vector<uint> bins_intersected;
   custom_vector<uint> bin_number;
-  custom_vector<uint> shape_number;
+  custom_vector<uint> aabb_number;
   custom_vector<uint> bin_start_index;
   custom_vector<uint> num_contact;
 
