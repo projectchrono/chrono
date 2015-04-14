@@ -102,6 +102,7 @@ static std::ostream null_stream(&null_buffer);
   (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
       w.begin()
 #define Thrust_Inclusive_Scan(x) thrust::inclusive_scan(x.begin(), x.end(), x.begin())
+#define Thrust_Exclusive_Scan(x) thrust::exclusive_scan(x.begin(), x.end(), x.begin())
 #define Thrust_Fill(x, y) thrust::fill(x.begin(), x.end(), y)
 #define Thrust_Sort(x) thrust::sort(x.begin(), x.end())
 #define Thrust_Count(x, y) thrust::count(x.begin(), x.end(), y)
@@ -110,6 +111,7 @@ static std::ostream null_stream(&null_buffer);
 #define Thrust_Max(x) x[thrust::max_element(x.begin(), x.end()) - x.begin()]
 #define Thrust_Min(x) x[thrust::min_element(x.begin(), x.end()) - x.begin()]
 #define Thrust_Total(x) thrust::reduce(x.begin(), x.end())
+#define Thrust_Unique(x) thrust::unique(x.begin(), x.end()) - x.begin();
 #define DBG(x) printf(x);
 
 enum SOLVERTYPE {
