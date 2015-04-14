@@ -464,35 +464,35 @@ void ChOpenGLViewer::RenderGrid() {
   }
   grid_data.clear();
   if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-    int3 grid_size = parallel_sys->data_manager->measures.collision.grid_size;
-    real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size_vec;
+    int3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
+    real3 bin_size_vec = parallel_sys->data_manager->measures.collision.bin_size_vec;
     real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
     real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
     real3 center = (min_pt + max_pt) * .5;
 
-    for (int i = 0; i <= grid_size.x; i++) {
+    for (int i = 0; i <= bins_per_axis.x; i++) {
       grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z));
       grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z));
     }
-    for (int i = 0; i <= grid_size.z; i++) {
+    for (int i = 0; i <= bins_per_axis.z; i++) {
       grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
       grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
     }
 
-    for (int i = 0; i <= grid_size.y; i++) {
+    for (int i = 0; i <= bins_per_axis.y; i++) {
       grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
       grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
     }
-    for (int i = 0; i <= grid_size.y; i++) {
+    for (int i = 0; i <= bins_per_axis.y; i++) {
       grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z));
       grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z));
     }
 
-    for (int i = 0; i <= grid_size.x; i++) {
+    for (int i = 0; i <= bins_per_axis.x; i++) {
       grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z));
       grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z));
     }
-    for (int i = 0; i <= grid_size.z; i++) {
+    for (int i = 0; i <= bins_per_axis.z; i++) {
       grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z));
       grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z));
     }

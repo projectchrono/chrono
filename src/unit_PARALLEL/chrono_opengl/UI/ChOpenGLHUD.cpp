@@ -211,14 +211,14 @@ void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
 
 void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
   if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-    int3 grid_size = parallel_sys->data_manager->measures.collision.grid_size;
+    int3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
     real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size_vec;
     real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
     real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
     real3 center = (min_pt + max_pt) * .5;
     sprintf(buffer, "COLLISION INFO");
     text.Render(buffer, RIGHT, TOP - SPACING * 11, sx, sy);
-    sprintf(buffer, "DIMS  [%d,%d,%d]", grid_size.x, grid_size.y, grid_size.z);
+    sprintf(buffer, "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
     text.Render(buffer, RIGHT, TOP - SPACING * 12, sx, sy);
     sprintf(buffer, "SX    %f", bin_size_vec.x);
     text.Render(buffer, RIGHT, TOP - SPACING * 13, sx, sy);
