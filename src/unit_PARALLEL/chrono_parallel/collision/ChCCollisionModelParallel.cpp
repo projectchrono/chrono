@@ -63,7 +63,6 @@ bool ChCollisionModelParallel::AddSphere(double radius, const ChVector<>& pos) {
   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
   inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
-  model_type = SPHERE;
   nObjects++;
   ConvexShape tData;
   tData.A = R3(pos.x, pos.y, pos.z);
@@ -91,7 +90,6 @@ bool ChCollisionModelParallel::AddEllipsoid(double rx,
   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
   inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
-  model_type = ELLIPSOID;
   nObjects++;
   ConvexShape tData;
   tData.A = R3(pos.x, pos.y, pos.z);
@@ -119,7 +117,6 @@ bool ChCollisionModelParallel::AddBox(double rx, double ry, double rz, const ChV
   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
   inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
-  model_type = BOX;
   nObjects++;
   ConvexShape tData;
   tData.A = R3(pos.x, pos.y, pos.z);
@@ -154,7 +151,6 @@ bool ChCollisionModelParallel::AddRoundedBox(double rx,
   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
   inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
-  model_type = ROUNDEDBOX;
   nObjects++;
   ConvexShape tData;
   tData.A = R3(pos.x, pos.y, pos.z);
@@ -179,7 +175,6 @@ bool ChCollisionModelParallel::AddTriangle(ChVector<> A,
                                            const ChVector<>& pos,
                                            const ChMatrix33<>& rot) {
   double mass = this->GetBody()->GetMass();
-  model_type = TRIANGLEMESH;
   nObjects++;
   ConvexShape tData;
   tData.A = R3(A.x + pos.x, A.y + pos.y, A.z + pos.z);
@@ -209,7 +204,6 @@ bool ChCollisionModelParallel::AddCylinder(double rx,
   inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
   inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-  model_type = CYLINDER;
   nObjects++;
   ConvexShape tData;
   tData.A = R3(pos.x, pos.y, pos.z);
@@ -242,7 +236,6 @@ bool ChCollisionModelParallel::AddRoundedCylinder(double rx,
   inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
   inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-  model_type = ROUNDEDCYL;
   nObjects++;
   ConvexShape tData;
   tData.A = R3(pos.x, pos.y, pos.z);
@@ -278,7 +271,6 @@ bool ChCollisionModelParallel::AddCone(double rx,
   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
   inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
-  model_type = CONE;
   nObjects++;
   ConvexShape tData;
   tData.A = R3(pos.x, pos.y, pos.z);
@@ -315,7 +307,6 @@ bool ChCollisionModelParallel::AddRoundedCone(double rx,
   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
   inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
-  model_type = ROUNDEDCONE;
   nObjects++;
   ConvexShape tData;
   tData.A = R3(pos.x, pos.y, pos.z);
@@ -347,7 +338,6 @@ bool ChCollisionModelParallel::AddCapsule(double radius, double hlen, const ChVe
   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
   inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
-  model_type = CAPSULE;
   nObjects++;
 
   ConvexShape tData;
@@ -370,7 +360,6 @@ bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> >& poi
                                              const ChVector<>& pos,
                                              const ChMatrix33<>& rot) {
   inertia = R3(1);  // so that it gets initialized to something
-  model_type = CONVEX;
   nObjects++;
   ConvexShape tData;
   tData.A = R3(pos.x, pos.y, pos.z);
@@ -410,7 +399,6 @@ bool ChCollisionModelParallel::AddTriangleMesh(const geometry::ChTriangleMesh& t
                                                bool is_convex,
                                                const ChVector<>& pos,
                                                const ChMatrix33<>& rot) {
-  model_type = TRIANGLEMESH;
   nObjects += trimesh.getNumTriangles();
   ConvexShape tData;
   for (int i = 0; i < trimesh.getNumTriangles(); i++) {

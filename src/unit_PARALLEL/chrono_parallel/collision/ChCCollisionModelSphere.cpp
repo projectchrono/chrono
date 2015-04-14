@@ -18,7 +18,6 @@ namespace collision {
 ChCollisionModelSphere::ChCollisionModelSphere(real rad) {
   mData.resize(1);
 
-  model_type = SPHERE;
   nObjects = 1;
   radius = rad;
   ConvexShape tData;
@@ -36,7 +35,6 @@ ChCollisionModelSphere::~ChCollisionModelSphere() {
 }
 
 bool ChCollisionModelSphere::AddSphere(real radius, const ChVector<>& pos) {
-  model_type = SPHERE;
   nObjects = 1;
   ConvexShape tData;
   tData.A = R3(0);
