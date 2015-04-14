@@ -18,12 +18,12 @@
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold = 5;  // 0.2;
+Real time_hold = 0.2;  // 0.2;
 
 Real contact_recovery_speed = 0.2;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
 
-Real time_step = 2e-3;  // note you are using half of this for MBD system
+Real time_step = 2e-3;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
 Real time_end = 10;
 
@@ -181,10 +181,10 @@ enum WheelType { CYLINDRICAL, LUGGED };
 // Type of wheel/tire (controls both contact and visualization)
 WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
 
-enum ChassisType { CBOX, CSIMPLEMESH, CORIGINAL, CSPHERE };
+enum ChassisType { CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIGINAL, CSPHERE };
 
 // Type of chassis (controls both contact and visualization)
-ChassisType chassis_type = CSIMPLEMESH;
+ChassisType chassis_type = C_SIMPLE_CONVEX_MESH;
 
 // JSON files for vehicle model (using different wheel visualization meshes)
 std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");

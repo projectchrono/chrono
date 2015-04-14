@@ -152,8 +152,8 @@ class MyChassisBoxModel_vis : public utils::ChassisContactCallback {
     // Clear any existing assets (will be overriden)
 
     chassisBody->GetCollisionModel()->ClearModel();
-    ChVector<> chLoc = ChVector<>(0,0,0);
-//    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
+    ChVector<> chLoc = ChVector<>(0, 0, 0);
+    //    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
     chassisBody->GetCollisionModel()->AddBox(size.x, size.y, size.z, chLoc);
     //    utils::AddBoxGeometry(
     //        chassisBody.get_ptr(), ChVector<>(1, .5, .05), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
@@ -193,8 +193,8 @@ class MyChassisSphereModel_vis : public utils::ChassisContactCallback {
     // Clear any existing assets (will be overriden)
 
     chassisBody->GetCollisionModel()->ClearModel();
-    ChVector<> chLoc = ChVector<>(0,0,0);
-//    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
+    ChVector<> chLoc = ChVector<>(0, 0, 0);
+    //    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
     chassisBody->GetCollisionModel()->AddSphere(rad, chLoc);
     //    utils::AddBoxGeometry(
     //        chassisBody.get_ptr(), ChVector<>(1, .5, .05), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
@@ -225,23 +225,24 @@ class MyChassisSphereModel_vis : public utils::ChassisContactCallback {
 };
 
 // Callback class for specifying chassis contact model.
-// This version uses a box representing the chassis.
+// This version uses a convex decomposition of an obj representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
 // chassis body with the collision meshes.
-class MyChassisSimpleMesh_vis : public utils::ChassisContactCallback {
+class MyChassisSimpleConvexMesh_vis : public utils::ChassisContactCallback {
  public:
-  MyChassisSimpleMesh_vis() {
-//    std::string chassis_file("hmmwv/lugged_wheel_section.obj");
-//    std::string chassis_file("hmmwv/lugged_wheel.obj");
-    std::string chassis_file("hmmwv/myHumvee.obj");
+  MyChassisSimpleConvexMesh_vis() {
+    //    std::string chassis_obj_file("hmmwv/lugged_wheel_section.obj");
+    //    std::string chassis_obj_file("hmmwv/lugged_wheel.obj");
+    //    std::string chassis_obj_file("hmmwv/myHumvee.obj");
+    chassis_obj_file = std::string("hmmwv/myHumvee.obj");
 
-    utils::LoadConvexMesh(vehicle::GetDataFile(chassis_file), chassis_mesh, chassis_convex);
+    utils::LoadConvexMesh(vehicle::GetDataFile(chassis_obj_file), chassis_mesh, chassis_convex);
   }
 
   virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
     // Clear any existing assets (will be overriden)
     chassisBody->GetAssets().clear();
-    ChVector<> chLoc = ChVector<>(0,0,0);//chassisBody->GetFrame_REF_to_COG().GetPos();
+    ChVector<> chLoc = ChVector<>(0, 0, 0);  // chassisBody->GetFrame_REF_to_COG().GetPos();
     chassisBody->GetCollisionModel()->ClearModel();
     //    utils::AddConvexCollisionModel(chassisBody, chassis_mesh, chassis_convex, chLoc, ChQuaternion<>(1, 0, 0, 0),
     //    false);
@@ -276,6 +277,8 @@ class MyChassisSimpleMesh_vis : public utils::ChassisContactCallback {
         body->GetAssets().push_back(trimesh_shape);
       }
     }
+    chassisBody->GetCollisionModel()->BuildModel();
+
     // Add the original triangle mesh as asset
     if (use_original_asset) {
       ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
@@ -303,6 +306,69 @@ class MyChassisSimpleMesh_vis : public utils::ChassisContactCallback {
  private:
   ChConvexDecompositionHACDv2 chassis_convex;
   geometry::ChTriangleMeshConnected chassis_mesh;
+  std::string chassis_obj_file;
+
+  ChQuaternion<> rot;
+  ChVector<> pos;
+};
+
+// Callback class for specifying chassis contact model.
+// This version uses a triangular given in an obj representing the chassis.
+// In addition, this version overrides the visualization assets of the provided
+// chassis body with the collision meshes.
+class MyChassisSimpleTriMesh_vis : public utils::ChassisContactCallback {
+ public:
+  MyChassisSimpleTriMesh_vis() { chassis_obj_file = std::string("hmmwv/myHumvee.obj"); }
+
+  virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
+    // Clear any existing assets (will be overriden)
+    const std::string mesh_name("chassis");
+
+    chassisBody->GetAssets().clear();
+    //    ChVector<> chLoc = ChVector<>(0,0,0);//chassisBody->GetFrame_REF_to_COG().GetPos();
+
+    chassisBody->GetCollisionModel()->ClearModel();
+    //    utils::AddTriangleMeshGeometry(chassisBody.get_ptr(), vehicle::GetDataFile(chassis_obj_file), mesh_name, pos,
+    //    rot, true);
+
+    //    ChVector<> chLoc = ChVector<>(0, 0, 0);  // chassisBody->GetFrame_REF_to_COG().GetPos();
+    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
+
+    // *** here
+    std::string obj_filename = vehicle::GetDataFile(chassis_obj_file);
+    const std::string& name = mesh_name;
+    ChBody* body = chassisBody.get_ptr();
+    geometry::ChTriangleMeshConnected trimesh;
+    trimesh.LoadWavefrontMesh(obj_filename, false, false);
+
+    for (int i = 0; i < trimesh.m_vertices.size(); i++)
+      trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+
+    body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, chLoc);
+
+    if (true) {
+      ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+      trimesh_shape->SetMesh(trimesh);
+      trimesh_shape->SetName(name);
+      trimesh_shape->Pos = ChVector<>(0, 0, 0);
+      trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
+      body->GetAssets().push_back(trimesh_shape);
+    }
+    // *** to here
+
+    chassisBody->GetCollisionModel()->BuildModel();
+
+    chassisBody->GetMaterialSurface()->SetFriction(mu_t);
+  }
+
+  virtual void SetAttributes(const ChVector<>& otherPos = ChVector<>(0, 0, 0),
+                             const ChQuaternion<>& otherRot = ChQuaternion<>(1, 0, 0, 0)) {
+    rot = otherRot;
+    pos = otherPos;
+  }
+
+ private:
+  std::string chassis_obj_file;
 
   ChQuaternion<> rot;
   ChVector<> pos;
