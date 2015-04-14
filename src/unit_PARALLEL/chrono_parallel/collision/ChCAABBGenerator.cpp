@@ -157,11 +157,13 @@ void ChCAABBGenerator::GenerateAABB() {
   uint num_rigid_shapes = data_manager->num_rigid_shapes;
 
   real collision_envelope = data_manager->settings.collision.collision_envelope;
-  host_vector<real3>& aabb_data = data_manager->host_data.aabb_rigid;
+  host_vector<real3>& aabb_min_rigid = data_manager->host_data.aabb_min_rigid;
+  host_vector<real3>& aabb_max_rigid = data_manager->host_data.aabb_max_rigid;
 
   LOG(TRACE) << "AABB START";
 
-  aabb_data.resize(num_rigid_shapes * 2);
+  aabb_min_rigid.resize(num_rigid_shapes);
+  aabb_max_rigid.resize(num_rigid_shapes);
 
 #pragma omp parallel for
   for (int index = 0; index < num_rigid_shapes; index++) {
@@ -195,11 +197,11 @@ void ChCAABBGenerator::GenerateAABB() {
       temp_min -= collision_envelope;
       temp_max += collision_envelope;
     } else {
-      return;
+      continue;
     }
 
-    aabb_data[index] = temp_min;
-    aabb_data[index + num_rigid_shapes] = temp_max;
+    aabb_min_rigid[index] = temp_min;
+    aabb_max_rigid[index] = temp_max;
   }
 
   LOG(TRACE) << "AABB END";

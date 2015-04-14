@@ -114,8 +114,8 @@ void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<bool>& active_i
   aabb_generator->GenerateAABB();
 #pragma omp parallel for
   for (int i = 0; i < data_manager->host_data.typ_rigid.size(); i++) {
-    real3 Bmin = data_manager->host_data.aabb_rigid[i];
-    real3 Bmax = data_manager->host_data.aabb_rigid[i + data_manager->host_data.typ_rigid.size()];
+    real3 Bmin = data_manager->host_data.aabb_min_rigid[i];
+    real3 Bmax = data_manager->host_data.aabb_max_rigid[i];
 
     bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) &&
                      (Amin.z <= Bmax.z && Bmin.z <= Amax.z);

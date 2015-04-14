@@ -391,8 +391,7 @@ void ChOpenGLViewer::DrawObject(ChBody* abody) {
 
       if (obj_files.find(trimesh_shape->GetName()) == obj_files.end()) {
         ChOpenGLMaterial pillow(glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f * .5f,
-                                glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f,
-                                glm::vec3(1, 1, 1));
+                                glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f, glm::vec3(1, 1, 1));
         std::cout << trimesh_shape->GetName() << std::endl;
         obj_files[trimesh_shape->GetName()].Initialize(trimesh_shape, pillow);
         obj_files[trimesh_shape->GetName()].AttachShader(&main_shader);
@@ -413,7 +412,7 @@ void ChOpenGLViewer::DisplayHUD() {
     HUD_renderer.GenerateStats(physics_system);
   }
 
-  if(view_info){
+  if (view_info) {
     HUD_renderer.GenerateExtraStats(physics_system);
   }
 
@@ -436,13 +435,15 @@ void ChOpenGLViewer::RenderAABB() {
   if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
     ChParallelDataManager* data_manager = system->data_manager;
     model_box.clear();
-    model_box.resize(data_manager->host_data.aabb_rigid.size() / 2);
+
+    host_vector<real3>& aabb_min_rigid = data_manager->host_data.aabb_min_rigid;
+    host_vector<real3>& aabb_max_rigid = data_manager->host_data.aabb_max_rigid;
+
+    model_box.resize(data_manager->num_rigid_shapes);
 #pragma omp parallel for
-    for (int i = 0; i < data_manager->host_data.aabb_rigid.size() / 2; i++) {
-      real3 min_p, max_p;
-      min_p = data_manager->host_data.aabb_rigid[i] + data_manager->measures.collision.global_origin;
-      max_p = data_manager->host_data.aabb_rigid[i + data_manager->host_data.aabb_rigid.size() / 2] +
-              data_manager->measures.collision.global_origin;
+    for (int i = 0; i < data_manager->num_rigid_shapes; i++) {
+      real3 min_p = aabb_min_rigid[i] + data_manager->measures.collision.global_origin;
+      real3 max_p = aabb_max_rigid[i] + data_manager->measures.collision.global_origin;
 
       real3 radius = (max_p - min_p) * .5;
       real3 center = (min_p + max_p) * .5;
@@ -505,14 +506,14 @@ void ChOpenGLViewer::RenderGrid() {
 }
 
 void ChOpenGLViewer::RenderPlots() {
-//  if (view_info == false || view_help) {
-//    return;
-//  }
-//  graph_renderer.Update(physics_system, window_size);
-//
-//  projection = glm::ortho(0.0f, float(window_size.x), 0.0f, float(window_size.y), -2.0f, 2.0f);
-//  modelview = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1));
-//  graph_renderer.Draw(projection, modelview);
+  //  if (view_info == false || view_help) {
+  //    return;
+  //  }
+  //  graph_renderer.Update(physics_system, window_size);
+  //
+  //  projection = glm::ortho(0.0f, float(window_size.x), 0.0f, float(window_size.y), -2.0f, 2.0f);
+  //  modelview = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1));
+  //  graph_renderer.Draw(projection, modelview);
 }
 
 void ChOpenGLViewer::HandleInput(unsigned char key, int x, int y) {
