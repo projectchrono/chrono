@@ -282,7 +282,7 @@ void ChSystemParallel::Update() {
   this->LCP_descriptor->BeginInsertion();
   UpdateLinks();
   UpdateOtherPhysics();
-  UpdateBodies();
+  UpdateRigidBodies();
   UpdateShafts();
   LCP_descriptor->EndInsertion();
 
@@ -293,7 +293,7 @@ void ChSystemParallel::Update() {
 // Update all bodies in the system and populate system-wide state and force
 // vectors. Note that visualization assets are not updated.
 //
-void ChSystemParallel::UpdateBodies() {
+void ChSystemParallel::UpdateRigidBodies() {
   LOG(INFO) << "ChSystemParallel::UpdateBodies()";
   custom_vector<real3>& position = data_manager->host_data.pos_rigid;
   custom_vector<real4>& rotation = data_manager->host_data.rot_rigid;

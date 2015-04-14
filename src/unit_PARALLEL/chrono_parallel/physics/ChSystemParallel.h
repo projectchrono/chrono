@@ -60,7 +60,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   void UpdateBilaterals();
   void UpdateLinks();
   void UpdateOtherPhysics();
-  void UpdateBodies();
+  void UpdateRigidBodies();
   void UpdateShafts();
   void RecomputeThreads();
 
