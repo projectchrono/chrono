@@ -361,7 +361,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
   mat_g->SetDampingF(0.2);
 
   ChSharedPtr<ChBody> mball = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
-
   ChVector<> pos = ChVector<>(-8.5, .20, 3);
   mball->SetMaterialSurface(mat_g);
   // body->SetIdentifier(fId);
