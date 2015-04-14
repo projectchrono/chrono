@@ -13,16 +13,18 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dc) : data_manager(dc) {
+ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dm) : data_manager(dm) {
   broadphase = new ChCBroadphase;
   narrowphase = new ChCNarrowphaseDispatch;
   aabb_generator = new ChCAABBGenerator;
-  narrowphase->data_manager = dc;
+  narrowphase->data_manager = dm;
+  aabb_generator->data_manager = dm;
 }
 
 ChCollisionSystemParallel::~ChCollisionSystemParallel() {
   delete narrowphase;
   delete broadphase;
+  delete aabb_generator;
 }
 
 void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
@@ -99,11 +101,7 @@ void ChCollisionSystemParallel::Run() {
 
   data_manager->system_timer.start("collision_broad");
 
-  aabb_generator->GenerateAABB(
-      data_manager->host_data.typ_rigid, data_manager->host_data.ObA_rigid, data_manager->host_data.ObB_rigid,
-      data_manager->host_data.ObC_rigid, data_manager->host_data.ObR_rigid, data_manager->host_data.id_rigid,
-      data_manager->host_data.convex_data, data_manager->host_data.pos_rigid, data_manager->host_data.rot_rigid,
-      data_manager->settings.collision.collision_envelope, data_manager->host_data.aabb_rigid);
+  aabb_generator->GenerateAABB();
 
   // aabb_generator.GenerateAABBFluid(data_manager->host_data.fluid_pos, data_manager->fluid_rad,
   // data_manager->host_data.aabb_fluid);
@@ -125,11 +123,7 @@ void ChCollisionSystemParallel::Run() {
 }
 
 void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<bool>& active_id, real3 Amin, real3 Amax) {
-  aabb_generator->GenerateAABB(
-      data_manager->host_data.typ_rigid, data_manager->host_data.ObA_rigid, data_manager->host_data.ObB_rigid,
-      data_manager->host_data.ObC_rigid, data_manager->host_data.ObR_rigid, data_manager->host_data.id_rigid,
-      data_manager->host_data.convex_data, data_manager->host_data.pos_rigid, data_manager->host_data.rot_rigid,
-      data_manager->settings.collision.collision_envelope, data_manager->host_data.aabb_rigid);
+  aabb_generator->GenerateAABB();
 #pragma omp parallel for
   for (int i = 0; i < data_manager->host_data.typ_rigid.size(); i++) {
     real3 Bmin = data_manager->host_data.aabb_rigid[i];

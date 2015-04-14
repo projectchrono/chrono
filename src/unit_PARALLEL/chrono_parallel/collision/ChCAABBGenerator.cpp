@@ -141,19 +141,19 @@ static void ComputeAABBConvex(const real3* convex_points,
   maxp = maxp + R3(B.z);
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-__device__ __host__ void function_ComputeAABB(const uint& index,
-                                              const shape_type* obj_data_T,
-                                              const real3* obj_data_A,
-                                              const real3* obj_data_B,
-                                              const real3* obj_data_C,
-                                              const real4* obj_data_R,
-                                              const uint* obj_data_ID,
-                                              const real3* convex_points,
-                                              const real3* body_pos,
-                                              const real4* body_rot,
-                                              const uint& numAABB,
-                                              const real& collision_envelope,
-                                              real3* aabb_data) {
+void function_ComputeAABB(const uint& index,
+                          const uint& numAABB,
+                          const real& collision_envelope,
+                          const host_vector<shape_type>& obj_data_T,
+                          const host_vector<real3>& obj_data_A,
+                          const host_vector<real3>& obj_data_B,
+                          const host_vector<real3>& obj_data_C,
+                          const host_vector<real4>& obj_data_R,
+                          const host_vector<uint>& obj_data_ID,
+                          const host_vector<real3>& convex_points,
+                          const host_vector<real3>& body_pos,
+                          const host_vector<real4>& body_rot,
+                          host_vector<real3>& aabb_data) {
   shape_type type = obj_data_T[index];
   uint id = obj_data_ID[index];
   real3 A = obj_data_A[index];
@@ -167,10 +167,6 @@ __device__ __host__ void function_ComputeAABB(const uint& index,
   if (type == SPHERE) {
     A = quatRotate(A, body_rot[id]);
     ComputeAABBSphere(B.x + collision_envelope, A + position, temp_min, temp_max);
-    // if(id==6){
-    // cout<<temp_min.x<<" "<<temp_min.y<<" "<<temp_min.z<<"  |  "<<temp_max.x<<" "<<temp_max.y<<" "<<temp_max.z<<endl;
-
-    //}
   } else if (type == TRIANGLEMESH) {
     A = quatRotate(A, body_rot[id]) + position;
     B = quatRotate(B, body_rot[id]) + position;
@@ -184,7 +180,7 @@ __device__ __host__ void function_ComputeAABB(const uint& index,
     real3 B_ = R3(B.x, B.x + B.y, B.z) + collision_envelope;
     ComputeAABBBox(B_, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
   } else if (type == CONVEX) {
-    ComputeAABBConvex(convex_points, B, A, position, rotation, temp_min, temp_max);
+    ComputeAABBConvex(convex_points.data(), B, A, position, rotation, temp_min, temp_max);
     temp_min -= collision_envelope;
     temp_max += collision_envelope;
   } else {
@@ -195,65 +191,34 @@ __device__ __host__ void function_ComputeAABB(const uint& index,
   aabb_data[index + numAABB] = temp_max;
 }
 
-void ChCAABBGenerator::host_ComputeAABB(const shape_type* obj_data_T,
-                                        const real3* obj_data_A,
-                                        const real3* obj_data_B,
-                                        const real3* obj_data_C,
-                                        const real4* obj_data_R,
-                                        const uint* obj_data_ID,
-                                        const real3* convex_data,
-                                        const real3* body_pos,
-                                        const real4* body_rot,
-                                        const real collision_envelope,
-                                        real3* aabb_data) {
-#pragma omp parallel for
-
-  for (int i = 0; i < numAABB; i++) {
-    function_ComputeAABB(i, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data,
-                         body_pos, body_rot, numAABB, collision_envelope, aabb_data);
-  }
-}
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ChCAABBGenerator::ChCAABBGenerator() {
 }
 
-void ChCAABBGenerator::GenerateAABB(const host_vector<shape_type>& obj_data_T,
-                                    const host_vector<real3>& obj_data_A,
-                                    const host_vector<real3>& obj_data_B,
-                                    const host_vector<real3>& obj_data_C,
-                                    const host_vector<real4>& obj_data_R,
-                                    const host_vector<uint>& obj_data_ID,
-                                    const host_vector<real3>& convex_data,
-                                    const host_vector<real3>& body_pos,
-                                    const host_vector<real4>& body_rot,
-                                    const real collision_envelope,
-                                    host_vector<real3>& aabb_data) {
+void ChCAABBGenerator::GenerateAABB() {
+  const host_vector<shape_type>& obj_data_T = data_manager->host_data.typ_rigid;
+  const host_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
+  const host_vector<real3>& obj_data_A = data_manager->host_data.ObA_rigid;
+  const host_vector<real3>& obj_data_B = data_manager->host_data.ObB_rigid;
+  const host_vector<real3>& obj_data_C = data_manager->host_data.ObC_rigid;
+  const host_vector<real4>& obj_data_R = data_manager->host_data.ObR_rigid;
+  const host_vector<real3>& convex_data = data_manager->host_data.convex_data;
+  const host_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
+  const host_vector<real4>& body_rot = data_manager->host_data.rot_rigid;
+  uint num_rigid_shapes = data_manager->num_rigid_shapes;
+
+  real collision_envelope = data_manager->settings.collision.collision_envelope;
+  host_vector<real3>& aabb_data = data_manager->host_data.aabb_rigid;
+
   LOG(TRACE) << "AABB START";
 
-  numAABB = obj_data_T.size();
-  aabb_data.resize(numAABB * 2);
-#ifdef SIM_ENABLE_GPU_MODE
-  COPY_TO_CONST_MEM(numAABB);
-  device_ComputeAABB __KERNEL__(BLOCKS(numAABB), THREADS)(
-      CASTS(obj_data_T.data()), CASTR3(obj_data_A.data()), CASTR3(obj_data_B.data()), CASTR3(obj_data_C.data()),
-      CASTR4(obj_data_R.data()), CASTU1(obj_data_ID.data()), CASTR3(body_pos.data()), CASTR4(body_rot.data()),
-      CASTR3(aabb_data.data()));
-#else
-  host_ComputeAABB(obj_data_T.data(), obj_data_A.data(), obj_data_B.data(), obj_data_C.data(), obj_data_R.data(),
-                   obj_data_ID.data(), convex_data.data(), body_pos.data(), body_rot.data(), collision_envelope,
-                   aabb_data.data());
-#endif
+  aabb_data.resize(num_rigid_shapes * 2);
+
+#pragma omp parallel for
+  for (int i = 0; i < num_rigid_shapes; i++) {
+    function_ComputeAABB(i, num_rigid_shapes, collision_envelope, obj_data_T, obj_data_A, obj_data_B, obj_data_C,
+                         obj_data_R, obj_data_ID, convex_data, body_pos, body_rot, aabb_data);
+  }
 
   LOG(TRACE) << "AABB END";
-
-#if PRINT_LEVEL == 2
-//    for(int i=0; i<numAABB; i++){
-//
-//    	cout<<real3(aabb_data[i]).x<<" "<<real3(aabb_data[i]).y<<" "<<real3(aabb_data[i]).z<<endl;
-//    	cout<<real3(aabb_data[i+numAABB]).x<<" "<<real3(aabb_data[i+numAABB]).y<<"
-//    "<<real3(aabb_data[i+numAABB]).z<<endl;
-//    	cout<<"-------"<<endl;
-//    }
-
-#endif
 }

@@ -21,10 +21,8 @@
 
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/ChParallelDefines.h"
+#include "chrono_parallel/ChDataManager.h"
 
-#include <thrust/host_vector.h>
-
-using thrust::host_vector;
 namespace chrono {
 namespace collision {
 
@@ -33,33 +31,9 @@ class CH_PARALLEL_API ChCAABBGenerator {
   // functions
   ChCAABBGenerator();
 
-  void GenerateAABB(const host_vector<shape_type>& obj_data_T,  // Shape Type
-                    const host_vector<real3>& obj_data_A,       // Data A
-                    const host_vector<real3>& obj_data_B,       // Data B
-                    const host_vector<real3>& obj_data_C,       // Data C
-                    const host_vector<real4>& obj_data_R,       // Data D
-                    const host_vector<uint>& obj_data_ID,       // Body ID
-                    const host_vector<real3>& convex_data,      // Convex object data
-                    const host_vector<real3>& body_pos,         // Position global
-                    const host_vector<real4>& body_rot,         // Rotation global
-                    const real collision_envelope,
-                    host_vector<real3>& aabb_data);
+  void GenerateAABB();
 
- private:
-  void host_ComputeAABB(const shape_type* obj_data_T,
-                        const real3* obj_data_A,
-                        const real3* obj_data_B,
-                        const real3* obj_data_C,
-                        const real4* obj_data_R,
-                        const uint* obj_data_ID,
-                        const real3* convex_data,
-                        const real3* body_pos,
-                        const real4* body_rot,
-                        const real collision_envelope,
-                        real3* aabb_data);
-
-  // variables
-  uint numAABB;
+  ChParallelDataManager* data_manager;
 };
 }
 }
