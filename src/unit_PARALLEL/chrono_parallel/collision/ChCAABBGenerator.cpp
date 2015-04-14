@@ -141,57 +141,6 @@ static void ComputeAABBConvex(const real3* convex_points,
   maxp = maxp + R3(B.z);
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-void function_ComputeAABB(const uint& index,
-                          const uint& numAABB,
-                          const real& collision_envelope,
-                          const host_vector<shape_type>& obj_data_T,
-                          const host_vector<real3>& obj_data_A,
-                          const host_vector<real3>& obj_data_B,
-                          const host_vector<real3>& obj_data_C,
-                          const host_vector<real4>& obj_data_R,
-                          const host_vector<uint>& obj_data_ID,
-                          const host_vector<real3>& convex_points,
-                          const host_vector<real3>& body_pos,
-                          const host_vector<real4>& body_rot,
-                          host_vector<real3>& aabb_data) {
-  shape_type type = obj_data_T[index];
-  uint id = obj_data_ID[index];
-  real3 A = obj_data_A[index];
-  real3 B = obj_data_B[index];
-  real3 C = obj_data_C[index];
-  real3 position = body_pos[id];
-  real4 rotation = (mult(body_rot[id], obj_data_R[index]));
-  real3 temp_min;
-  real3 temp_max;
-
-  if (type == SPHERE) {
-    A = quatRotate(A, body_rot[id]);
-    ComputeAABBSphere(B.x + collision_envelope, A + position, temp_min, temp_max);
-  } else if (type == TRIANGLEMESH) {
-    A = quatRotate(A, body_rot[id]) + position;
-    B = quatRotate(B, body_rot[id]) + position;
-    C = quatRotate(C, body_rot[id]) + position;
-    ComputeAABBTriangle(A, B, C, temp_min, temp_max);
-  } else if (type == ELLIPSOID || type == BOX || type == CYLINDER || type == CONE) {
-    ComputeAABBBox(B + collision_envelope, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
-  } else if (type == ROUNDEDBOX || type == ROUNDEDCYL || type == ROUNDEDCONE) {
-    ComputeAABBBox(B + C.x + collision_envelope, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
-  } else if (type == CAPSULE) {
-    real3 B_ = R3(B.x, B.x + B.y, B.z) + collision_envelope;
-    ComputeAABBBox(B_, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
-  } else if (type == CONVEX) {
-    ComputeAABBConvex(convex_points.data(), B, A, position, rotation, temp_min, temp_max);
-    temp_min -= collision_envelope;
-    temp_max += collision_envelope;
-  } else {
-    return;
-  }
-
-  aabb_data[index] = temp_min;
-  aabb_data[index + numAABB] = temp_max;
-}
-
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ChCAABBGenerator::ChCAABBGenerator() {
 }
 
@@ -215,9 +164,42 @@ void ChCAABBGenerator::GenerateAABB() {
   aabb_data.resize(num_rigid_shapes * 2);
 
 #pragma omp parallel for
-  for (int i = 0; i < num_rigid_shapes; i++) {
-    function_ComputeAABB(i, num_rigid_shapes, collision_envelope, obj_data_T, obj_data_A, obj_data_B, obj_data_C,
-                         obj_data_R, obj_data_ID, convex_data, body_pos, body_rot, aabb_data);
+  for (int index = 0; index < num_rigid_shapes; index++) {
+    shape_type type = obj_data_T[index];
+    uint id = obj_data_ID[index];
+    real3 A = obj_data_A[index];
+    real3 B = obj_data_B[index];
+    real3 C = obj_data_C[index];
+    real3 position = body_pos[id];
+    real4 rotation = (mult(body_rot[id], obj_data_R[index]));
+    real3 temp_min;
+    real3 temp_max;
+
+    if (type == SPHERE) {
+      A = quatRotate(A, body_rot[id]);
+      ComputeAABBSphere(B.x + collision_envelope, A + position, temp_min, temp_max);
+    } else if (type == TRIANGLEMESH) {
+      A = quatRotate(A, body_rot[id]) + position;
+      B = quatRotate(B, body_rot[id]) + position;
+      C = quatRotate(C, body_rot[id]) + position;
+      ComputeAABBTriangle(A, B, C, temp_min, temp_max);
+    } else if (type == ELLIPSOID || type == BOX || type == CYLINDER || type == CONE) {
+      ComputeAABBBox(B + collision_envelope, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
+    } else if (type == ROUNDEDBOX || type == ROUNDEDCYL || type == ROUNDEDCONE) {
+      ComputeAABBBox(B + C.x + collision_envelope, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
+    } else if (type == CAPSULE) {
+      real3 B_ = R3(B.x, B.x + B.y, B.z) + collision_envelope;
+      ComputeAABBBox(B_, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
+    } else if (type == CONVEX) {
+      ComputeAABBConvex(convex_data.data(), B, A, position, rotation, temp_min, temp_max);
+      temp_min -= collision_envelope;
+      temp_max += collision_envelope;
+    } else {
+      return;
+    }
+
+    aabb_data[index] = temp_min;
+    aabb_data[index + num_rigid_shapes] = temp_max;
   }
 
   LOG(TRACE) << "AABB END";
