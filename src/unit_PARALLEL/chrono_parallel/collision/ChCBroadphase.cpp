@@ -36,15 +36,6 @@ ChCBroadphase::ChCBroadphase() {
   grid_size = I3(20, 20, 20);
   min_body_per_bin = 25;
   max_body_per_bin = 50;
-  // TODO: Should make aabb_data organization less confusing, compiler should switch depending on if the user passes a
-  // host/device vector
-  // TODO: Should be able to tune bins_per_axis, it's nice to have as a parameter though!
-  // TODO: As the collision detection is progressing, we should free up vectors that are no longer being used! For
-  // example, Bin_Intersections is only used in steps 4&5
-  // TODO: Make sure that aabb_data isn't being duplicated for this code (should be a reference to user's code to
-  // conserve space)
-  // TODO: Fix debug mode to work with compiler settings, add more debugging features (a drawing function would be
-  // nice!)
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 void ChCBroadphase::setBinsPerAxis(int3 binsPerAxis) {
@@ -82,7 +73,6 @@ inline int3 HashMin(const T& A, const real3& bin_size_vec) {
   temp.x = A.x * bin_size_vec.x;
   temp.y = A.y * bin_size_vec.y;
   temp.z = A.z * bin_size_vec.z;
-  // cout << temp.x << " " << temp.y << " " << temp.z << endl;
   return temp;
 }
 
@@ -105,13 +95,11 @@ inline void function_Count_AABB_BIN_Intersection(uint index,
 
 //--------------------------------------------------------------------------
 void ChCBroadphase::host_Count_AABB_BIN_Intersection(const real3* aabb_data, uint* Bins_Intersected) {
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for
   for (int i = 0; i < numAABB; i++) {
     function_Count_AABB_BIN_Intersection(i, aabb_data, bin_size_vec, numAABB, Bins_Intersected);
   }
 }
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Function to Store AABB Bin Intersections
 
@@ -224,14 +212,12 @@ void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3* aabb_data,
                                                       const bool* body_active,
                                                       const uint* body_id,
                                                       uint* Num_ContactD) {
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for
   for (int i = 0; i < last_active_bin; i++) {
     function_Count_AABB_AABB_Intersection(i, aabb_data, numAABB, bin_number, shape_number, bin_start_index, fam_data,
                                           body_active, body_id, Num_ContactD);
   }
 }
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Function to store AABB-AABB intersections
 inline void function_Store_AABB_AABB_Intersection(uint index,
@@ -289,7 +275,7 @@ inline void function_Store_AABB_AABB_Intersection(uint index,
   }
 }
 
-//--------------------------------------------------------------------------
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChCBroadphase::host_Store_AABB_AABB_Intersection(const real3* aabb_data,
                                                       const uint* bin_number,
@@ -300,13 +286,12 @@ void ChCBroadphase::host_Store_AABB_AABB_Intersection(const real3* aabb_data,
                                                       const bool* body_active,
                                                       const uint* body_id,
                                                       long long* potential_contacts) {
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for
   for (int index = 0; index < last_active_bin; index++) {
     function_Store_AABB_AABB_Intersection(index, aabb_data, numAABB, bin_number, shape_number, bin_start_index,
                                           Num_ContactD, fam_data, body_active, body_id, potential_contacts);
   }
 }
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // use spatial subdivision to detect the list of POSSIBLE collisions (let user define their own narrow-phase collision
@@ -319,15 +304,12 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_manager)
   const custom_vector<bool>& obj_active = data_manager->host_data.active_rigid;
   const custom_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
 
-  double startTime = omp_get_wtime();
   numAABB = aabb_data.size() / 2;
 
   LOG(TRACE) << "Number of AABBs: " << numAABB;
 
   // STEP 1: Initialization TODO: this could be put in the constructor
-
   potentialCollisions.clear();
-  // END STEP 1
   // STEP 2: determine the bounds on the total space and subdivide based on the bins per axis
   bbox init =
       bbox(aabb_data[0], aabb_data[0]);  // create a zero volume bounding box using the first set of aabb_data (??)
@@ -339,10 +321,7 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_manager)
   max_bounding_point = result.second;
   global_origin = (min_bounding_point);  // CHANGED: removed abs
   bin_size_vec = (fabs(max_bounding_point - global_origin));
-  bin_size_vec = R3(grid_size.x, grid_size.y, grid_size.z) / bin_size_vec;  // CHANGED: this was supposed to be
-                                                                            // reversed, CHANGED BACK this is just the
-                                                                            // inverse for convenience (saves us the
-                                                                            // divide later)
+  bin_size_vec = R3(grid_size.x, grid_size.y, grid_size.z) / bin_size_vec;
   thrust::transform(aabb_data.begin(), aabb_data.end(), thrust::constant_iterator<real3>(global_origin),
                     aabb_data.begin(), thrust::minus<real3>());
 
@@ -351,10 +330,8 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_manager)
              << max_bounding_point.z << ")";
   LOG(TRACE) << "Bin size vector: (" << bin_size_vec.x << ", " << bin_size_vec.y << ", " << bin_size_vec.z << ")";
 
-  // END STEP 2
   // STEP 3: Count the number AABB's that lie in each bin, allocate space for each AABB
-  Bins_Intersected.resize(numAABB);  // TODO: how do you know how large to make this vector?
-                                     // TODO: I think there is something wrong with the hash function...
+  Bins_Intersected.resize(numAABB);
 
   host_Count_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data());
 
@@ -366,52 +343,23 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_manager)
   bin_number.resize(number_of_bin_intersections);
   shape_number.resize(number_of_bin_intersections);
   bin_start_index.resize(number_of_bin_intersections);
-  // END STEP 3
   // STEP 4: Indicate what bin each AABB belongs to, then sort based on bin number
 
   host_Store_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data(), bin_number.data(), shape_number.data());
 
   LOG(TRACE) << "Completed (device_Store_AABB_BIN_Intersection)";
 
-  //    for(int i=0; i<bin_number.size(); i++){
-  //    	cout<<bin_number[i]<<" "<<shape_number[i]<<endl;
-  //    }
-
-  // Thrust_Sort_By_Key(bin_number, shape_number);
   thrust::sort_by_key(bin_number.begin(), bin_number.end(), shape_number.begin());
-  //    for(int i=0; i<bin_number.size(); i++){
-  //    	cout<<bin_number[i]<<" "<<shape_number[i]<<endl;
-  //    }
 
   last_active_bin = (thrust::reduce_by_key(bin_number.begin(), bin_number.end(), thrust::constant_iterator<uint>(1),
-                                           bin_number.begin(), bin_start_index.begin()).second) -
+                                           bin_number.begin(), bin_start_index.begin())
+                         .second) -
                     bin_start_index.begin();
 
-  //    host_vector<uint> bin_number_t=bin_number;
-  //    host_vector<uint> bin_start_index_t(number_of_bin_intersections);
-  //    host_vector<uint> Output(number_of_bin_intersections);
-  //    thrust::pair<uint*,uint*> new_end;
-  //    last_active_bin=
-  //    thrust::reduce_by_key(bin_number_t.begin(),bin_number_t.end(),thrust::constant_iterator<uint>(1),Output.begin(),bin_start_index_t.begin()).first-Output.begin();
-  //
-  //
-  //    bin_number=Output;
-  //    bin_start_index=bin_start_index_t;
-
-  ////      //QUESTION: I have no idea what is going on here
   if (last_active_bin <= 0) {
     number_of_contacts_possible = 0;
     return 0;
   }
-  // val = bin_start_index[thrust::max_element(bin_start_index.begin(), bin_start_index.begin() + last_active_bin)-
-  // bin_start_index.begin()];
-  // std::cout<<"max: "<<val<<std::endl;
-  //		if (val > max_body_per_bin) {
-  //			grid_size =  I3(grid_size.x+1,grid_size.y+1,grid_size.z+1);
-  //		} else if (val < min_body_per_bin && val > 10) {
-  //			grid_size =  I3(grid_size.x-1,grid_size.y-1,grid_size.z-1);
-  //		}
-
   bin_start_index.resize(last_active_bin);
 
   LOG(TRACE) << val << " " << grid_size.x << " " << grid_size.y << " " << grid_size.z;
@@ -419,7 +367,6 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_manager)
 
   thrust::inclusive_scan(bin_start_index.begin(), bin_start_index.end(), bin_start_index.begin());
   Num_ContactD.resize(last_active_bin);
-  // END STEP 4
   // STEP 5: Count the number of AABB collisions
 
   host_Count_AABB_AABB_Intersection(aabb_data.data(), bin_number.data(), shape_number.data(), bin_start_index.data(),
@@ -429,7 +376,6 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_manager)
   number_of_contacts_possible = Num_ContactD.back();
   potentialCollisions.resize(number_of_contacts_possible);
   LOG(TRACE) << "Number of possible collisions: " << number_of_contacts_possible;
-  // END STEP 5
   // STEP 6: Store the possible AABB collision pairs
 
   host_Store_AABB_AABB_Intersection(aabb_data.data(), bin_number.data(), shape_number.data(), bin_start_index.data(),
@@ -443,12 +389,6 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_manager)
   potentialCollisions.resize(number_of_contacts_possible);
 
   LOG(TRACE) << "Number of possible collisions: " << number_of_contacts_possible;
-
-  // END STEP 6
-  double endTime = omp_get_wtime();
-
-  LOG(TRACE) << "Time to detect: " << (endTime - startTime) << " seconds";
-
   return 0;
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
