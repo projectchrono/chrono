@@ -166,7 +166,6 @@ bool ChModelBullet::AddSphere(double radius, const ChVector<>& pos) {
 
     _injectShape(pos, ChMatrix33<>(1), mshape);
 
-    model_type = SPHERE;
     return true;
 }
 
@@ -184,7 +183,6 @@ bool ChModelBullet::AddEllipsoid(double rx, double ry, double rz, const ChVector
 
     _injectShape(pos, rot, mshape);
 
-    model_type = ELLIPSOID;
     return true;
 }
 
@@ -201,7 +199,6 @@ bool ChModelBullet::AddBox(double hx, double hy, double hz, const ChVector<>& po
 
     _injectShape(pos, rot, mshape);
 
-    model_type = BOX;
     return true;
 }
 
@@ -219,7 +216,6 @@ bool ChModelBullet::AddCylinder(double rx, double rz, double hy, const ChVector<
 
     _injectShape(pos, rot, mshape);
 
-    model_type = CYLINDER;
     return true;
 }
 
@@ -241,7 +237,6 @@ bool ChModelBullet::AddBarrel(double Y_low,
 
     _injectShape(pos, rot, mshape);
 
-    model_type = BARREL;
     return true;
 }
 
@@ -274,7 +269,6 @@ bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
     */
     _injectShape(pos, rot, mshape);
 
-    model_type = CONVEXHULL;
     return true;
 }
 
@@ -420,7 +414,7 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
             */
         }
     }
-    model_type = TRIANGLEMESH;
+
     return true;
 }
 

@@ -43,8 +43,7 @@ class ChPhysicsItem;
 class ChBody;
 
 namespace collision {
-/// Shape types that can be created. Used so that shape type can be determined without going to bullet
-/// Both Parallel and CPU Collision Models use this enum
+/// Shape types that can be created.
 enum ShapeType {
     SPHERE,
     ELLIPSOID,
@@ -287,9 +286,6 @@ class ChApi ChCollisionModel {
     /// Returns the outward safe margin (see SetEnvelope() )
     virtual float GetEnvelope() { return model_envelope; }
 
-    /// Returns the Type of Shape
-    virtual ShapeType GetShapeType() { return model_type; }
-
     /// Using this function BEFORE you start creating collision shapes,
     /// it will make all following collision shapes to take this collision
     /// envelope (safe outward layer) as default.
@@ -335,9 +331,6 @@ class ChApi ChCollisionModel {
     // This is the max.value to be used for fast penetration
     // contact detection.
     float model_safe_margin;
-
-    // This is the type of shape used for collision model
-    ShapeType model_type;
 
     ChBody* mbody;
 };
