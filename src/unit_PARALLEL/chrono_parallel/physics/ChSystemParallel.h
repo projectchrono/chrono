@@ -63,8 +63,6 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   void UpdateBodies();
   void UpdateShafts();
   void RecomputeThreads();
-  void RecomputeBins();
-  void PerturbBins(bool increase, int number = 2);
 
   virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
   virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;

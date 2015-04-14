@@ -156,9 +156,6 @@ int ChSystemParallel::Integrate_Y() {
   if (data_manager->settings.perform_thread_tuning) {
     RecomputeThreads();
   }
-  if (data_manager->settings.perform_bin_tuning) {
-    RecomputeBins();
-  }
 
   return 1;
 }
@@ -564,95 +561,6 @@ void ChSystemParallel::RecomputeThreads() {
     omp_set_num_threads(data_manager->settings.min_threads);
   }
   frame_threads++;
-}
-
-void ChSystemParallel::PerturbBins(bool increase, int number) {
-  ChCollisionSystemParallel* coll_sys = (ChCollisionSystemParallel*)collision_system;
-
-  int3 grid_size = data_manager->settings.collision.bins_per_axis;
-#if PRINT_LEVEL == 1
-  cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
-#endif
-
-  if (increase) {
-    grid_size.x = grid_size.x + number;
-    grid_size.y = grid_size.y + number;
-    grid_size.z = grid_size.z + number;
-  } else {
-    grid_size.x = grid_size.x - number;
-    grid_size.y = grid_size.y - number;
-    grid_size.z = grid_size.z - number;
-
-    if (grid_size.x < 2)
-      grid_size.x = 2;
-    if (grid_size.y < 2)
-      grid_size.y = 2;
-    if (grid_size.z < 2)
-      grid_size.z = 2;
-  }
-
-#if PRINT_LEVEL == 1
-  cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
-#endif
-  data_manager->settings.collision.bins_per_axis = grid_size;
-
-  frame_bins++;
-}
-
-void ChSystemParallel::RecomputeBins() {
-  // Do nothing if the current collision system does not support this feature
-  if (!dynamic_cast<ChCollisionSystemParallel*>(collision_system))
-    return;
-  // Insert the current collision time into a list
-  cd_accumulator.insert(cd_accumulator.begin(), timer_collision);
-  // remove the last one from the list
-  cd_accumulator.pop_back();
-  // find the sum of all elements
-  double sum_of_elems_cd = std::accumulate(cd_accumulator.begin(), cd_accumulator.end(), 0.0);
-  // and then get the average time taken;
-  double average_time = sum_of_elems_cd / 10.0;
-
-  // if 0 increase and then measure
-  // if 1 decrease and then measure
-  if (frame_bins == data_manager->settings.bin_tuning_frequency && detect_optimal_bins == 0) {
-    frame_bins = 0;
-    detect_optimal_bins = 1;
-    old_timer_cd = average_time;
-
-    PerturbBins(true, data_manager->settings.bin_perturb_size);
-#if PRINT_LEVEL == 1
-    cout << "current bins increased" << endl;
-#endif
-  } else if (frame_bins == 10 && detect_optimal_bins == 1) {
-    double current_timer = average_time;
-    if (old_timer_cd < current_timer) {
-      PerturbBins(false, data_manager->settings.bin_perturb_size);
-#if PRINT_LEVEL == 1
-      cout << "current bins reduced back" << endl;
-#endif
-    }
-    detect_optimal_bins = 2;
-    frame_bins = 0;
-  }
-  if (frame_bins == data_manager->settings.bin_tuning_frequency && detect_optimal_bins == 2) {
-    frame_bins = 0;
-    detect_optimal_bins = 3;
-    old_timer_cd = average_time;
-    PerturbBins(false, data_manager->settings.bin_perturb_size);
-#if PRINT_LEVEL == 1
-    cout << "current bins decreased" << endl;
-#endif
-  } else if (frame_bins == 10 && detect_optimal_bins == 3) {
-    double current_timer = average_time;
-    if (old_timer_cd < current_timer) {
-      PerturbBins(true, data_manager->settings.bin_perturb_size);
-#if PRINT_LEVEL == 1
-      cout << "current bins increased back" << endl;
-#endif
-    }
-    detect_optimal_bins = 0;
-    frame_bins = 0;
-  }
 }
 
 void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {
