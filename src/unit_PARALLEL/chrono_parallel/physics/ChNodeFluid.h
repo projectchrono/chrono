@@ -23,7 +23,7 @@
 #include <math.h>
 
 #include "physics/ChNodeXYZ.h"
-#include "collision/ChCCollisionModel.h"
+#include "chrono_parallel/collision/ChCCollisionModelSphere.h"
 #include "lcp/ChLcpVariablesNode.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
@@ -37,49 +37,59 @@ class ChSystem;
 /// (it does not define mass, inertia and shape becuase those
 /// data are shared between them)
 
-class CH_PARALLEL_API ChNodeFluid : public ChNodeXYZ {
+class CH_PARALLEL_API ChNodeFluid : public ChPhysicsItem {
  public:
-  ChNodeFluid();
+  ChNodeFluid(real r);
   ~ChNodeFluid();
 
-  ChNodeFluid(const ChNodeFluid& other);  // Copy constructor
+  ChNodeFluid(const ChNodeFluid& other);             // Copy constructor
   ChNodeFluid& operator=(const ChNodeFluid& other);  // Assignment operator
 
   //
   // FUNCTIONS
   //
 
-  // Get the kernel radius (max. radius while checking surrounding particles)
-  real GetKernelRadius() { return h_rad; }
-  void SetKernelRadius(real mr);
-
   // Set collision radius (for colliding with bodies, boundaries, etc.)
   real GetCollisionRadius() { return coll_rad; }
   void SetCollisionRadius(real mr);
+  bool GetCollide() { return true; }
+  real GetDensity() { return density; }
 
-  // Set the mass of the node
-  void SetMass(double mmass) { this->variables.SetNodeMass(mmass); }
-  // Get the mass of the node
-  double GetMass() const { return variables.GetNodeMass(); }
+  void SetDensity(real d) { density = d; }
 
-  // Access the 'LCP variables' of the node
-  ChLcpVariables& Variables() { return variables; }
+  // Position of the node - in absolute csys.
+  ChVector<> GetPos() { return pos; }
+  // Position of the node - in absolute csys.
+  void SetPos(const ChVector<>& mpos) { pos = mpos; }
+
+  void AddCollisionModelsToSystem();
+
+  // Velocity of the node - in absolute csys.
+  ChVector<> GetPos_dt() { return pos_dt; }
+  // Velocity of the node - in absolute csys.
+  void SetPos_dt(const ChVector<>& mposdt) { pos_dt = mposdt; }
+
+  // Acceleration of the node - in absolute csys.
+  ChVector<> GetPos_dtdt() { return pos_dtdt; }
+  // Acceleration of the node - in absolute csys.
+  void SetPos_dtdt(const ChVector<>& mposdtdt) { pos_dtdt = mposdtdt; }
+  /// Set the body identifier - HM
+  void SetId(int identifier) { body_id = identifier; }
+  /// Set the body identifier - HM
+  unsigned int GetId() { return body_id; }
 
   //
   // DATA
   //
 
-  ChLcpVariablesNode variables;
-
-  collision::ChCollisionModel* collision_model;
-
-  ChVector<> UserForce;
-
-  real volume;  // volume of the node
-  real density;  // density of the node
-  real h_rad;  // kernel radius of the node
+  // real mass;
+  real density;   // density of the node
   real coll_rad;  // collision radius (for collision model)
   real pressure;  // pressure at node
+  ChVector<> pos;
+  ChVector<> pos_dt;
+  ChVector<> pos_dtdt;
+  unsigned int body_id;
 };
 }
 #endif
