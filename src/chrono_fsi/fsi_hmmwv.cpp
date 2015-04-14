@@ -99,7 +99,7 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads, uint& max
 
 void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc, char* argv[]) {
   // Desired number of OpenMP threads (will be clamped to maximum available)
-  int threads = 1;
+  int threads = 20;
   // Perform dynamic tuning of number of threads?
   bool thread_tuning = true;
 
@@ -310,7 +310,12 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 
     case CSIMPLEMESH: {
       chassis_cb = new MyChassisSimpleMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+      ChVector<> mPos = ChVector<>(0, 0, 0.5);
+      ChQuaternion<> mQuat1 = Q_from_AngAxis(CH_C_PI / 2.0, ChVector<>(0, 1, 0));
+      ChQuaternion<> mQuat2 = Q_from_AngAxis(CH_C_PI / 2.0, ChVector<>(1, 0, 0));
+      ((MyChassisSimpleMesh_vis*)chassis_cb)->SetAttributes(mPos, mQuat2 % mQuat1);
       mVehicle->SetChassisContactCallback(chassis_cb);
+      //      mVehicle->GetVehicle()->GetChassis()->SetCollide(false);
     } break;
   }
 
@@ -329,6 +334,45 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
   for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
     mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
   }
+
+  // extra collision body
+
+  Real rad = 0.25;
+  // NOTE: mass properties and shapes are all for sphere
+  double volume = utils::CalcSphereVolume(rad);
+  ChVector<> gyration = utils::CalcSphereGyration(rad).Get_Diag();
+  double density = paramsH.rho0;
+  double mass = density * volume;
+  double muFriction = 0;
+
+  // Create a common material
+  ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
+  mat_g->SetFriction(muFriction);
+  mat_g->SetCohesion(0);
+  mat_g->SetCompliance(0.0);
+  mat_g->SetComplianceT(0.0);
+  mat_g->SetDampingF(0.2);
+
+  ChSharedPtr<ChBody> mball = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
+
+  ChVector<> pos = ChVector<>(-8.8, .20, 3);
+  mball->SetMaterialSurface(mat_g);
+  // body->SetIdentifier(fId);
+  mball->SetPos(pos);
+  mball->SetCollide(true);
+  mball->SetBodyFixed(false);
+  mball->SetMass(mass);
+  mball->SetInertiaXX(mass * gyration);
+
+  mball->GetCollisionModel()->ClearModel();
+  utils::AddSphereGeometry(mball.get_ptr(), rad);  // O
+                                                   //	utils::AddEllipsoidGeometry(body.get_ptr(), size);					// X
+
+  mball->GetCollisionModel()->SetFamily(100);
+  mball->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(100);
+
+  mball->GetCollisionModel()->BuildModel();
+  mphysicalSystem.AddBody(mball);
 }
 // =============================================================================
 

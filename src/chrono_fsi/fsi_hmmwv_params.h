@@ -18,7 +18,7 @@
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold = 0.2;
+Real time_hold = 5;//0.2;
 
 Real contact_recovery_speed = 0.2;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
@@ -184,7 +184,7 @@ WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
 enum ChassisType { CBOX, CSIMPLEMESH, CORIGINAL };
 
 // Type of chassis (controls both contact and visualization)
-ChassisType chassis_type = CSIMPLEMESH;//CBOX;  // CORIGINAL; //CBOX;
+ChassisType chassis_type = CSIMPLEMESH;  // CBOX;  // CORIGINAL; //CBOX;
 
 // JSON files for vehicle model (using different wheel visualization meshes)
 std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");

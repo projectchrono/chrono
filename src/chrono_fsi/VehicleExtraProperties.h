@@ -189,28 +189,81 @@ class MyChassisBoxModel_vis : public utils::ChassisContactCallback {
 class MyChassisSimpleMesh_vis : public utils::ChassisContactCallback {
  public:
   MyChassisSimpleMesh_vis() {
-    std::string chassis_file("hmmwv/lugged_wheel_section.obj");
+//    std::string chassis_file("hmmwv/lugged_wheel_section.obj");
+//    std::string chassis_file("hmmwv/lugged_wheel.obj");
+    std::string chassis_file("hmmwv/myHumvee.obj");
+
     utils::LoadConvexMesh(vehicle::GetDataFile(chassis_file), chassis_mesh, chassis_convex);
   }
 
   virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
     // Clear any existing assets (will be overriden)
     chassisBody->GetAssets().clear();
-
+    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
     chassisBody->GetCollisionModel()->ClearModel();
-    utils::AddConvexCollisionModel(chassisBody, chassis_mesh, chassis_convex, false);
+    //    utils::AddConvexCollisionModel(chassisBody, chassis_mesh, chassis_convex, chLoc, ChQuaternion<>(1, 0, 0, 0),
+    //    false);
 
-    chassisBody->GetCollisionModel()->BuildModel();
-//    chassisBody->SetCollide(false);
-//    chassisBody->RecomputeCollisionModel();
+    // **************************
+    ChSharedPtr<ChBody> body = chassisBody;
+    geometry::ChTriangleMeshConnected& convex_mesh = chassis_mesh;
+    ChConvexDecompositionHACDv2& convex_shape = chassis_convex;
+    ChConvexDecomposition* used_decomposition = &convex_shape;
+    bool use_original_asset = false;
 
+    //*****
+    int hull_count = used_decomposition->GetHullCount();
+
+    for (int c = 0; c < hull_count; c++) {
+      std::vector<ChVector<double> > convexhull;
+      used_decomposition->GetConvexHullResult(c, convexhull);
+
+      ((collision::ChCollisionModelParallel*)body->GetCollisionModel())->AddConvexHull(convexhull, chLoc, rot);
+      // Add each convex chunk as a new asset
+      if (!use_original_asset) {
+        std::stringstream ss;
+        ss << convex_mesh.GetFileName() << "_" << c;
+        geometry::ChTriangleMeshConnected trimesh_convex;
+        used_decomposition->GetConvexHullResult(c, trimesh_convex);
+
+        ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+        trimesh_shape->SetMesh(trimesh_convex);
+        trimesh_shape->SetName(ss.str());
+        trimesh_shape->Pos = pos;
+        trimesh_shape->Rot = rot;
+        body->GetAssets().push_back(trimesh_shape);
+      }
+    }
+    // Add the original triangle mesh as asset
+    if (use_original_asset) {
+      ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+      trimesh_shape->SetMesh(convex_mesh);
+      trimesh_shape->SetName(convex_mesh.GetFileName());
+      trimesh_shape->Pos = VNULL;
+      trimesh_shape->Rot = QUNIT;
+      body->GetAssets().push_back(trimesh_shape);
+    }
+
+    // **************************
+
+    //        chassisBody->RecomputeCollisionModel();
+    //        chassisBody->SetCollide(false);
 
     chassisBody->GetMaterialSurface()->SetFriction(mu_t);
+  }
+
+  virtual void SetAttributes(const ChVector<>& otherPos = ChVector<>(0, 0, 0),
+                             const ChQuaternion<>& otherRot = ChQuaternion<>(1, 0, 0, 0)) {
+    rot = otherRot;
+    pos = otherPos;
   }
 
  private:
   ChConvexDecompositionHACDv2 chassis_convex;
   geometry::ChTriangleMeshConnected chassis_mesh;
+
+  ChQuaternion<> rot;
+  ChVector<> pos;
 };
 
 #endif /* VEHICLEEXTRAPROPERTIES_H_ */
