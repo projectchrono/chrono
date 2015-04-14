@@ -206,6 +206,9 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
   if (ChSharedPtr<ChShaft> shaft = newitem.DynamicCastTo<ChShaft>()) {
     AddShaft(shaft);
+  }
+  if (ChSharedPtr<ChNodeFluid> fluid_body = newitem.DynamicCastTo<ChNodeFluid>()) {
+    AddFluidBody(fluid_body);
   } else {
     newitem->AddRef();
     newitem->SetSystem(this);
@@ -241,6 +244,10 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft) {
   data_manager->host_data.shaft_inr.push_back(0);
   data_manager->host_data.shaft_active.push_back(true);
 }
+// Add the specified fluid node to the system
+// Currently a stub
+void ChSystemParallel::AddFluidBody(ChSharedPtr<ChNodeFluid> node) {
+}
 
 //
 // Reset forces for all lcp variables
@@ -272,8 +279,8 @@ void ChSystemParallel::Update() {
   ClearForceVariables();
 
   // Allocate space for the velocities and forces for all objects
-  data_manager->host_data.v.resize(data_manager->num_rigid_bodies * 6 + data_manager->num_shafts * 1);
-  data_manager->host_data.hf.resize(data_manager->num_rigid_bodies * 6 + data_manager->num_shafts * 1);
+  data_manager->host_data.v.resize(data_manager->num_dof);
+  data_manager->host_data.hf.resize(data_manager->num_dof);
 
   // Clear system-wide vectors for bilateral constraints
   data_manager->host_data.bilateral_mapping.clear();
@@ -284,6 +291,7 @@ void ChSystemParallel::Update() {
   UpdateOtherPhysics();
   UpdateRigidBodies();
   UpdateShafts();
+  UpdateFluidBodies();
   LCP_descriptor->EndInsertion();
 
   UpdateBilaterals();
@@ -362,6 +370,12 @@ void ChSystemParallel::UpdateShafts() {
     data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] =
         shaftlist[i]->Variables().Get_fb().GetElementN(0);
   }
+}
+
+//
+// Update all fluid nodes
+// currently a stub
+void ChSystemParallel::UpdateFluidBodies() {
 }
 
 //
@@ -500,7 +514,8 @@ void ChSystemParallel::Setup() {
 
   // Calculate the total number of degrees of freedom (6 per rigid body and 1
   // for each shaft element).
-  data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts;
+  data_manager->num_dof =
+      data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_fluid_bodies * 3;
 
   // Set variables that are stored in the ChSystem class
   nbodies = data_manager->num_rigid_bodies;
@@ -515,7 +530,8 @@ void ChSystemParallel::Setup() {
   ndof = data_manager->num_dof;
   ndoc_w_C = -1;
   ndoc_w_D = -1;
-  ncontacts = data_manager->num_rigid_contacts;
+  ncontacts =
+      data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
   nbodies_sleep = -1;
   nbodies_fixed = -1;
 }
