@@ -27,15 +27,11 @@
 #include "lcp/ChLcpVariablesNode.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
+#include "chrono_parallel/ChDataManager.h"
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
-
 class ChSystem;
-
-/// Class for a single node in the SPH cluster
-/// (it does not define mass, inertia and shape becuase those
-/// data are shared between them)
 
 class CH_PARALLEL_API ChNodeFluid : public ChPhysicsItem {
  public:
@@ -49,47 +45,43 @@ class CH_PARALLEL_API ChNodeFluid : public ChPhysicsItem {
   // FUNCTIONS
   //
 
-  // Set collision radius (for colliding with bodies, boundaries, etc.)
-  real GetCollisionRadius() { return coll_rad; }
-  void SetCollisionRadius(real mr);
   bool GetCollide() { return true; }
-  real GetDensity() { return density; }
-
-  void SetDensity(real d) { density = d; }
+  real GetDensity() { return data_manager->host_data.den_fluid[body_id]; }
 
   // Position of the node - in absolute csys.
-  ChVector<> GetPos() { return pos; }
+  ChVector<> GetPos() {
+    real3 pos = data_manager->host_data.pos_fluid[body_id];
+    return ChVector<>(pos.x, pos.y, pos.z);
+  }
   // Position of the node - in absolute csys.
-  void SetPos(const ChVector<>& mpos) { pos = mpos; }
+  void SetPos(const ChVector<>& mpos) { data_manager->host_data.pos_fluid[body_id] = R3(mpos.x, mpos.y, mpos.z); }
 
-  void AddCollisionModelsToSystem();
+  void AddCollisionModelsToSystem() {}
 
   // Velocity of the node - in absolute csys.
-  ChVector<> GetPos_dt() { return pos_dt; }
+  ChVector<> GetPos_dt() {
+    real3 vel = data_manager->host_data.vel_fluid[body_id];
+    return ChVector<>(vel.x, vel.y, vel.z);
+  }
   // Velocity of the node - in absolute csys.
-  void SetPos_dt(const ChVector<>& mposdt) { pos_dt = mposdt; }
+  void SetPos_dt(const ChVector<>& mposdt) {
+    data_manager->host_data.vel_fluid[body_id] = R3(mposdt.x, mposdt.y, mposdt.z);
+  }
 
   // Acceleration of the node - in absolute csys.
-  ChVector<> GetPos_dtdt() { return pos_dtdt; }
+  ChVector<> GetPos_dtdt() { return ChVector<>(0); }
   // Acceleration of the node - in absolute csys.
-  void SetPos_dtdt(const ChVector<>& mposdtdt) { pos_dtdt = mposdtdt; }
-  /// Set the body identifier - HM
+  void SetPos_dtdt(const ChVector<>& mposdtdt) {}
+  /// Set the body identifier
   void SetId(int identifier) { body_id = identifier; }
-  /// Set the body identifier - HM
+  /// Set the body identifier
   unsigned int GetId() { return body_id; }
 
   //
   // DATA
-  //
 
-  // real mass;
-  real density;   // density of the node
-  real coll_rad;  // collision radius (for collision model)
-  real pressure;  // pressure at node
-  ChVector<> pos;
-  ChVector<> pos_dt;
-  ChVector<> pos_dtdt;
   unsigned int body_id;
+  ChParallelDataManager* data_manager;
 };
 }
 #endif

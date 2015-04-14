@@ -17,26 +17,16 @@ using namespace geometry;
 /// CLASS FOR A 3DOF FLUID NODE
 
 ChNodeFluid::ChNodeFluid(real r) {
-  this->coll_rad = r;
-  this->pressure = 0;
-  this->density = 1000;
   body_id = 0;
+  data_manager = 0;
 }
 
 ChNodeFluid::~ChNodeFluid() {
 }
 
 ChNodeFluid::ChNodeFluid(const ChNodeFluid& other) : ChPhysicsItem(other) {
-  this->pos = other.pos;
-  this->pos_dt = other.pos_dt;
-  this->pos_dtdt = other.pos_dtdt;
   this->body_id = other.body_id;
-
-  this->SetCollisionRadius(other.coll_rad);
-  // this->mass = other.mass;
-  this->density = other.density;
-  this->pressure = other.pressure;
-  this->coll_rad = other.coll_rad;
+  this->data_manager = other.data_manager;
 }
 
 ChNodeFluid& ChNodeFluid::operator=(const ChNodeFluid& other) {
@@ -44,23 +34,7 @@ ChNodeFluid& ChNodeFluid::operator=(const ChNodeFluid& other) {
     return *this;
 
   ChPhysicsItem::operator=(other);
-
-  this->pos = other.pos;
-  this->pos_dt = other.pos_dt;
-  this->pos_dtdt = other.pos_dtdt;
-
-  this->SetCollisionRadius(other.coll_rad);
-
-  this->density = other.density;
-  // this->mass = other.mass;
   return *this;
-}
-
-void ChNodeFluid::SetCollisionRadius(real mr) {
-  coll_rad = mr;
-}
-
-void ChNodeFluid::AddCollisionModelsToSystem() {
 }
 
 }  // END_OF_NAMESPACE____
