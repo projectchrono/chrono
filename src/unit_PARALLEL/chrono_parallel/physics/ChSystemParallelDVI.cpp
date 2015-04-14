@@ -70,23 +70,23 @@ void ChSystemParallelDVI::CalculateContactForces() {
   switch (data_manager->settings.solver.solver_mode) {
     case NORMAL: {
       const CompressedMatrix<real>& D_n = data_manager->host_data.D_n;
-      blaze::DenseSubvector<DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
+      SubVectorType gamma_n = blaze::subvector(gamma, 0, num_contacts);
       Fc = D_n * gamma_n;
     } break;
     case SLIDING: {
       const CompressedMatrix<real>& D_n = data_manager->host_data.D_n;
       const CompressedMatrix<real>& D_t = data_manager->host_data.D_t;
-      blaze::DenseSubvector<DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
-      blaze::DenseSubvector<DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, 2 * num_contacts);
+      SubVectorType gamma_n = blaze::subvector(gamma, 0, num_contacts);
+      SubVectorType gamma_t = blaze::subvector(gamma, num_contacts, 2 * num_contacts);
       Fc = D_n * gamma_n + D_t * gamma_t;
     } break;
     case SPINNING: {
       const CompressedMatrix<real>& D_n = data_manager->host_data.D_n;
       const CompressedMatrix<real>& D_t = data_manager->host_data.D_t;
       const CompressedMatrix<real>& D_s = data_manager->host_data.D_s;
-      blaze::DenseSubvector<DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
-      blaze::DenseSubvector<DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, 2 * num_contacts);
-      blaze::DenseSubvector<DynamicVector<real> > gamma_s = blaze::subvector(gamma, 3 * num_contacts, 3 * num_contacts);
+      SubVectorType gamma_n = blaze::subvector(gamma, 0, num_contacts);
+      SubVectorType gamma_t = blaze::subvector(gamma, num_contacts, 2 * num_contacts);
+      SubVectorType gamma_s = blaze::subvector(gamma, 3 * num_contacts, 3 * num_contacts);
       Fc = D_n * gamma_n + D_t * gamma_t + D_s * gamma_s;
     } break;
   }

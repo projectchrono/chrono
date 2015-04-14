@@ -40,16 +40,16 @@ class CH_PARALLEL_API ChSolverAPGDREF : public ChSolverParallel {
   // Solve using the APGD method
   uint SolveAPGDREF(const uint max_iter,                  // Maximum number of iterations
                     const uint size,                      // Number of unknowns
-                    const blaze::DynamicVector<real>& r,  // Rhs vector
-                    blaze::DynamicVector<real>& gamma     // The vector of unknowns
+                    const DynamicVector<real>& r,  // Rhs vector
+                    DynamicVector<real>& gamma     // The vector of unknowns
                     );
 
   // Compute the residual for the solver
-  real Res4(blaze::DynamicVector<real>& gamma, const blaze::DynamicVector<real>& r, blaze::DynamicVector<real>& tmp);
+  real Res4(DynamicVector<real>& gamma, const DynamicVector<real>& r, DynamicVector<real>& tmp);
 
   // APGD specific vectors
-  blaze::DynamicVector<real> gamma_hat;
-  blaze::DynamicVector<real> gammaNew, g, y, yNew, tmp;
+  DynamicVector<real> gamma_hat;
+  DynamicVector<real> gammaNew, g, y, yNew, tmp;
 };
 }
 

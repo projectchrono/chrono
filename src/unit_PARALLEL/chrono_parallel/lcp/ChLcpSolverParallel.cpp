@@ -104,8 +104,8 @@ void ChLcpSolverParallel::PerformStabilization() {
     return;
   }
 
-  blaze::DenseSubvector<const DynamicVector<real> > R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
-  blaze::DenseSubvector<DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+  ConstSubVectorType R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
+  SubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
   data_manager->system_timer.start("ChLcpSolverParallel_Stab");
   solver->SolveStab(data_manager->settings.solver.max_iteration_bilateral, num_bilaterals, R_b, gamma_b);

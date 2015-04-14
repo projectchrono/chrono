@@ -40,11 +40,11 @@ class CH_PARALLEL_API ChSolverBiCGStab : public ChSolverParallel {
   // Solve using the stabilized biconjugate gradient method
   uint SolveBiCGStab(const uint max_iter,            // Maximum number of iterations
                      const uint size,                // Number of unknowns
-                     blaze::DynamicVector<real>& b,  // Rhs vector
-                     blaze::DynamicVector<real>& x   // The vector of unknowns
+                     DynamicVector<real>& b,  // Rhs vector
+                     DynamicVector<real>& x   // The vector of unknowns
                      );
 
-  blaze::DynamicVector<real> p, r, phat, s, shat, t, v, rtilde, ml;
+  DynamicVector<real> p, r, phat, s, shat, t, v, rtilde, ml;
 };
 }
 

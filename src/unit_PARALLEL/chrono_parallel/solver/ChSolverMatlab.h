@@ -41,8 +41,8 @@ class CH_PARALLEL_API ChSolverMatlab : public ChSolverParallel {
   // Solve using the Accelerated Projected Gradient Descent Method
   uint ChSolverMatlab(const uint max_iter,                  // Maximum number of iterations
                       const uint size,                      // Number of unknowns
-                      const blaze::DynamicVector<real>& b,  // Rhs vector
-                      blaze::DynamicVector<real>& x         // The vector of unknowns
+                      const DynamicVector<real>& b,  // Rhs vector
+                      DynamicVector<real>& x         // The vector of unknowns
                       );
 
   custom_vector<real> r, temp;

@@ -40,11 +40,11 @@ class CH_PARALLEL_API ChSolverMinRes : public ChSolverParallel {
   // Solve using the minimal residual method
   uint SolveMinRes(const uint max_iter,            // Maximum number of iterations
                    const uint size,                // Number of unknowns
-                   blaze::DynamicVector<real>& b,  // Rhs vector
-                   blaze::DynamicVector<real>& x   // The vector of unknowns
+                   DynamicVector<real>& b,  // Rhs vector
+                   DynamicVector<real>& x   // The vector of unknowns
                    );
 
-  blaze::DynamicVector<real> mr, mp, mz, mNMr, mNp, mMNp, mtmp, mz_old, mNMr_old;
+  DynamicVector<real> mr, mp, mz, mNMr, mNp, mMNp, mtmp, mz_old, mNMr_old;
 };
 }
 

@@ -636,7 +636,7 @@ void ChLcpSolverParallelDEM::ComputeImpulses() {
   uint num_bilaterals = data_manager->num_bilaterals;
 
   if (data_manager->num_constraints > 0) {
-    blaze::DenseSubvector<const DynamicVector<real> > gamma_b =
+    ConstSubVectorType gamma_b =
         blaze::subvector(gamma, num_unilaterals, num_bilaterals);
     v = M_invk + M_invD_b * gamma_b;
   } else {

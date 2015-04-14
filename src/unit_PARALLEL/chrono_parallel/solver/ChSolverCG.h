@@ -40,11 +40,11 @@ class CH_PARALLEL_API ChSolverCG : public ChSolverParallel {
   // Solve using the conjugate gradient method
   uint SolveCG(const uint max_iter,            // Maximum number of iterations
                const uint size,                // Number of unknowns
-               blaze::DynamicVector<real>& b,  // Rhs vector
-               blaze::DynamicVector<real>& x   // The vector of unknowns
+               DynamicVector<real>& b,  // Rhs vector
+               DynamicVector<real>& x   // The vector of unknowns
                );
 
-  blaze::DynamicVector<real> r, p, Ap;
+  DynamicVector<real> r, p, Ap;
 };
 }
 

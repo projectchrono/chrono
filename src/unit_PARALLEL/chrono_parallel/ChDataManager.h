@@ -47,7 +47,17 @@
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
+using blaze::SparseSubmatrix;
+using blaze::submatrix;
+using blaze::subvector;
 using thrust::host_vector;
+
+typedef blaze::SparseSubmatrix<CompressedMatrix<real> > SubMatrixType;
+typedef blaze::DenseSubvector<DynamicVector<real> > SubVectorType;
+
+typedef blaze::SparseSubmatrix<const CompressedMatrix<real> > ConstSubMatrixType;
+typedef blaze::DenseSubvector<const DynamicVector<real> > ConstSubVectorType;
+
 namespace chrono {
 
 // The maximum number of shear history contacts per smaller body (DEM)
@@ -227,9 +237,9 @@ class CH_PARALLEL_API ChParallelDataManager {
   measures_container measures;
 
   // Output a vector (one dimensional matrix) from blaze to a file
-  int OutputBlazeVector(blaze::DynamicVector<real> src, std::string filename);
+  int OutputBlazeVector(DynamicVector<real> src, std::string filename);
   // Output a sparse blaze matrix to a file
-  int OutputBlazeMatrix(blaze::CompressedMatrix<real> src, std::string filename);
+  int OutputBlazeMatrix(CompressedMatrix<real> src, std::string filename);
   // Convenience function that outputs all of the data associated for a system
   // This is useful when debugging
   int ExportCurrentSystem(std::string output_dir);

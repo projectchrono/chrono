@@ -245,11 +245,11 @@ void ChLcpSolverParallelDVI::ComputeR() {
   rigid_rigid.Build_b();
   bilateral.Build_b();
 
-  blaze::DenseSubvector<DynamicVector<real> > b_n = blaze::subvector(b, 0, num_contacts);
-  blaze::DenseSubvector<DynamicVector<real> > R_n = blaze::subvector(R, 0, num_contacts);
+  SubVectorType b_n = blaze::subvector(b, 0, num_contacts);
+  SubVectorType R_n = blaze::subvector(R, 0, num_contacts);
 
-  blaze::DenseSubvector<DynamicVector<real> > b_b = blaze::subvector(b, num_unilaterals, num_bilaterals);
-  blaze::DenseSubvector<DynamicVector<real> > R_b = blaze::subvector(R, num_unilaterals, num_bilaterals);
+  SubVectorType b_b = blaze::subvector(b, num_unilaterals, num_bilaterals);
+  SubVectorType R_b = blaze::subvector(R, num_unilaterals, num_bilaterals);
 
   R_b = -b_b - D_b_T * M_invk;
   switch (data_manager->settings.solver.solver_mode) {
@@ -258,19 +258,19 @@ void ChLcpSolverParallelDVI::ComputeR() {
     } break;
 
     case SLIDING: {
-      // blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
-      blaze::DenseSubvector<DynamicVector<real> > R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
+      // SubVectorType b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
+      SubVectorType R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
 
       R_n = -b_n - D_n_T * M_invk;
       R_t = -D_t_T * M_invk;
     } break;
 
     case SPINNING: {
-      // blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
-      blaze::DenseSubvector<DynamicVector<real> > R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
+      // SubVectorType b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
+      SubVectorType R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
 
-      // blaze::DenseSubvector<DynamicVector<real> > b_s = blaze::subvector(b, num_contacts * 3, num_contacts * 3);
-      blaze::DenseSubvector<DynamicVector<real> > R_s = blaze::subvector(R, num_contacts * 3, num_contacts * 3);
+      // SubVectorType b_s = blaze::subvector(b, num_contacts * 3, num_contacts * 3);
+      SubVectorType R_s = blaze::subvector(R, num_contacts * 3, num_contacts * 3);
 
       R_n = -b_n - D_n_T * M_invk;
       R_t = -D_t_T * M_invk;
@@ -348,9 +348,9 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
   uint num_bilaterals = data_manager->num_bilaterals;
 
   if (data_manager->num_constraints > 0) {
-    blaze::DenseSubvector<const DynamicVector<real> > gamma_b =
+    ConstSubVectorType gamma_b =
         blaze::subvector(gamma, num_unilaterals, num_bilaterals);
-    blaze::DenseSubvector<const DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
+    ConstSubVectorType gamma_n = blaze::subvector(gamma, 0, num_contacts);
 
     // Compute new velocity based on the lagrange multipliers
     switch (data_manager->settings.solver.solver_mode) {
@@ -359,7 +359,7 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
       } break;
 
       case SLIDING: {
-        blaze::DenseSubvector<const DynamicVector<real> > gamma_t =
+        ConstSubVectorType gamma_t =
             blaze::subvector(gamma, num_contacts, num_contacts * 2);
 
         v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_b * gamma_b;
@@ -367,9 +367,9 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
       } break;
 
       case SPINNING: {
-        blaze::DenseSubvector<const DynamicVector<real> > gamma_t =
+        ConstSubVectorType gamma_t =
             blaze::subvector(gamma, num_contacts, num_contacts * 2);
-        blaze::DenseSubvector<const DynamicVector<real> > gamma_s =
+        ConstSubVectorType gamma_s =
             blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
 
         v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_s * gamma_s + M_invD_b * gamma_b;

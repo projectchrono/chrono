@@ -40,12 +40,12 @@ class CH_PARALLEL_API ChSolverCGS : public ChSolverParallel {
   // Solve using the conjugate gradient squared method
   uint SolveCGS(const uint max_iter,            // Maximum number of iterations
                 const uint size,                // Number of unknowns
-                blaze::DynamicVector<real>& b,  // Rhs vector
-                blaze::DynamicVector<real>& x   // The vector of unknowns
+                DynamicVector<real>& b,  // Rhs vector
+                DynamicVector<real>& x   // The vector of unknowns
                 );
 
   real rho_1, rho_2, alpha, beta;
-  blaze::DynamicVector<real> p, phat, q, qhat, vhat, u, uhat, r, rtilde, mb;
+  DynamicVector<real> p, phat, q, qhat, vhat, u, uhat, r, rtilde, mb;
 };
 }
 

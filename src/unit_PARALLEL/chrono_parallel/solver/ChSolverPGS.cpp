@@ -5,8 +5,8 @@ using namespace chrono;
 
 uint ChSolverPGS::SolvePGS(const uint max_iter,
                            const uint size,
-                           blaze::DynamicVector<real>& mb,
-                           blaze::DynamicVector<real>& ml) {
+                           DynamicVector<real>& mb,
+                           DynamicVector<real>& ml) {
   //  real& residual = data_manager->measures.solver.residual;
   //  real& objective_value = data_manager->measures.solver.objective_value;
   //  custom_vector<real>& iter_hist = data_manager->measures.solver.iter_hist;

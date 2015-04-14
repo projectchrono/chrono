@@ -32,7 +32,7 @@ void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma,
   // rigid_rigid->ComputeS(rhs, vel_data, omg_data, b);
 }
 
-void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& output) {
+void ChSolverParallel::ShurProduct(const DynamicVector<real>& x, DynamicVector<real>& output) {
   data_manager->system_timer.start("ShurProduct");
 
   const CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
@@ -51,13 +51,13 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
   uint num_unilaterals = data_manager->num_unilaterals;
   uint num_bilaterals = data_manager->num_bilaterals;
   output.reset();
-  blaze::DenseSubvector<DynamicVector<real> > o_b = blaze::subvector(output, num_unilaterals, num_bilaterals);
-  blaze::DenseSubvector<const DynamicVector<real> > x_b = blaze::subvector(x, num_unilaterals, num_bilaterals);
-  blaze::DenseSubvector<const DynamicVector<real> > E_b = blaze::subvector(E, num_unilaterals, num_bilaterals);
+  SubVectorType o_b = blaze::subvector(output, num_unilaterals, num_bilaterals);
+  ConstSubVectorType x_b = blaze::subvector(x, num_unilaterals, num_bilaterals);
+  ConstSubVectorType E_b = blaze::subvector(E, num_unilaterals, num_bilaterals);
 
-  blaze::DenseSubvector<DynamicVector<real> > o_n = blaze::subvector(output, 0, num_contacts);
-  blaze::DenseSubvector<const DynamicVector<real> > x_n = blaze::subvector(x, 0, num_contacts);
-  blaze::DenseSubvector<const DynamicVector<real> > E_n = blaze::subvector(E, 0, num_contacts);
+  SubVectorType o_n = blaze::subvector(output, 0, num_contacts);
+  ConstSubVectorType x_n = blaze::subvector(x, 0, num_contacts);
+  ConstSubVectorType E_n = blaze::subvector(E, 0, num_contacts);
 
   switch (data_manager->settings.solver.local_solver_mode) {
     case BILATERAL: {
@@ -66,18 +66,18 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
     } break;
 
     case NORMAL: {
-      blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n;
+      DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n;
       o_b = D_b_T * tmp + E_b * x_b;
       o_n = D_n_T * tmp + E_n * x_n;
 
     } break;
 
     case SLIDING: {
-      blaze::DenseSubvector<DynamicVector<real> > o_t = blaze::subvector(output, num_contacts, num_contacts * 2);
-      blaze::DenseSubvector<const DynamicVector<real> > x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
-      blaze::DenseSubvector<const DynamicVector<real> > E_t = blaze::subvector(E, num_contacts, num_contacts * 2);
+      SubVectorType o_t = blaze::subvector(output, num_contacts, num_contacts * 2);
+      ConstSubVectorType x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
+      ConstSubVectorType E_t = blaze::subvector(E, num_contacts, num_contacts * 2);
 
-      blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t;
+      DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t;
       o_b = D_b_T * tmp + E_b * x_b;
       o_n = D_n_T * tmp + E_n * x_n;
       o_t = D_t_T * tmp + E_t * x_t;
@@ -85,15 +85,15 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
     } break;
 
     case SPINNING: {
-      blaze::DenseSubvector<DynamicVector<real> > o_t = blaze::subvector(output, num_contacts, num_contacts * 2);
-      blaze::DenseSubvector<const DynamicVector<real> > x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
-      blaze::DenseSubvector<const DynamicVector<real> > E_t = blaze::subvector(E, num_contacts, num_contacts * 2);
+      SubVectorType o_t = blaze::subvector(output, num_contacts, num_contacts * 2);
+      ConstSubVectorType x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
+      ConstSubVectorType E_t = blaze::subvector(E, num_contacts, num_contacts * 2);
 
-      blaze::DenseSubvector<DynamicVector<real> > o_s = blaze::subvector(output, num_contacts * 3, num_contacts * 3);
-      blaze::DenseSubvector<const DynamicVector<real> > x_s = blaze::subvector(x, num_contacts * 3, num_contacts * 3);
-      blaze::DenseSubvector<const DynamicVector<real> > E_s = blaze::subvector(E, num_contacts * 3, num_contacts * 3);
+      SubVectorType o_s = blaze::subvector(output, num_contacts * 3, num_contacts * 3);
+      ConstSubVectorType x_s = blaze::subvector(x, num_contacts * 3, num_contacts * 3);
+      ConstSubVectorType E_s = blaze::subvector(E, num_contacts * 3, num_contacts * 3);
 
-      blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t + M_invD_s * x_s;
+      DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t + M_invD_s * x_s;
       o_b = D_b_T * tmp + E_b * x_b;
       o_n = D_n_T * tmp + E_n * x_n;
       o_t = D_t_T * tmp + E_t * x_t;
@@ -105,7 +105,7 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
   data_manager->system_timer.stop("ShurProduct");
 }
 
-void ChSolverParallel::ShurBilaterals(const blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& output) {
+void ChSolverParallel::ShurBilaterals(const DynamicVector<real>& x, DynamicVector<real>& output) {
   const CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
   const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
 
@@ -170,14 +170,14 @@ void ChSolverParallel::UpdateContacts() {
 
 uint ChSolverParallel::SolveStab(const uint max_iter,
                                  const uint size,
-                                 const blaze::DenseSubvector<const DynamicVector<real> >& mb,
-                                 blaze::DenseSubvector<DynamicVector<real> >& x) {
+                                 const ConstSubVectorType& mb,
+                                 SubVectorType& x) {
   LOG(INFO) << "ChSolverParallel::SolveStab";
   real& residual = data_manager->measures.solver.residual;
 
   uint N = mb.size();
 
-  blaze::DynamicVector<real> v(N, 0), v_hat(x.size()), w(N, 0), w_old, xMR, v_old, Av(x.size()), w_oold;
+  DynamicVector<real> v(N, 0), v_hat(x.size()), w(N, 0), w_old, xMR, v_old, Av(x.size()), w_oold;
   real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1,
              r2, r3;
   ShurBilaterals(x, v_hat);

@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
   thrust::host_vector<real> h_x = h_rhs;
   // int counter = 0;
   for (int i = 0; i < N.rows(); i++) {
-    for (blaze::CompressedMatrix<real>::Iterator it = N.begin(i); it != N.end(i); ++it) {
+    for (CompressedMatrix<real>::Iterator it = N.begin(i); it != N.end(i); ++it) {
       h_row.push_back(i);
       h_col.push_back(it->index());
       h_val.push_back(it->value());

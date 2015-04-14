@@ -296,8 +296,8 @@ void ChConstraintRigidRigid::Build_s() {
   uint num_unilaterals = data_manager->num_unilaterals;
   uint num_bilaterals = data_manager->num_bilaterals;
 
-  blaze::DenseSubvector<const DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
-  blaze::DenseSubvector<const DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
+  ConstSubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+  ConstSubVectorType gamma_n = blaze::subvector(gamma, 0, num_contacts);
 
   // Compute new velocity based on the lagrange multipliers
   switch (data_manager->settings.solver.solver_mode) {
@@ -306,7 +306,7 @@ void ChConstraintRigidRigid::Build_s() {
     } break;
 
     case SLIDING: {
-      blaze::DenseSubvector<const DynamicVector<real> > gamma_t =
+      ConstSubVectorType gamma_t =
           blaze::subvector(gamma, num_contacts, num_contacts * 2);
 
       v_new = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_b * gamma_b;
@@ -314,9 +314,9 @@ void ChConstraintRigidRigid::Build_s() {
     } break;
 
     case SPINNING: {
-      blaze::DenseSubvector<const DynamicVector<real> > gamma_t =
+      ConstSubVectorType gamma_t =
           blaze::subvector(gamma, num_contacts, num_contacts * 2);
-      blaze::DenseSubvector<const DynamicVector<real> > gamma_s =
+      ConstSubVectorType gamma_s =
           blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
 
       v_new = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_s * gamma_s + M_invD_b * gamma_b;

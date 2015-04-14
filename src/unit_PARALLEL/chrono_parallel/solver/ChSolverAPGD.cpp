@@ -32,21 +32,21 @@ void ChSolverAPGD::UpdateR() {
 
   rigid_rigid->Build_s();
 
-  blaze::DenseSubvector<const DynamicVector<real> > b_n = blaze::subvector(b, 0, num_contacts);
-  blaze::DenseSubvector<DynamicVector<real> > R_n = blaze::subvector(R, 0, num_contacts);
-  blaze::DenseSubvector<DynamicVector<real> > s_n = blaze::subvector(s, 0, num_contacts);
+  ConstSubVectorType b_n = blaze::subvector(b, 0, num_contacts);
+  SubVectorType R_n = blaze::subvector(R, 0, num_contacts);
+  SubVectorType s_n = blaze::subvector(s, 0, num_contacts);
 
   R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
 uint ChSolverAPGD::SolveAPGD(const uint max_iter,
                              const uint size,
-                             const blaze::DynamicVector<real>& r,
-                             blaze::DynamicVector<real>& gamma) {
+                             const DynamicVector<real>& r,
+                             DynamicVector<real>& gamma) {
   real& residual = data_manager->measures.solver.residual;
   real& objective_value = data_manager->measures.solver.objective_value;
 
-  blaze::DynamicVector<real> one(size, 1.0);
+  DynamicVector<real> one(size, 1.0);
   data_manager->system_timer.start("ChSolverParallel_Solve");
   gamma_hat.resize(size);
   N_gamma_new.resize(size);
