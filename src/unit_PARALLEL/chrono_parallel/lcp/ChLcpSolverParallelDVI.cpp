@@ -60,7 +60,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   ComputeR();
   //ComputeN();
 
-  PreSolve();
+  //PreSolve();
 
   data_manager->system_timer.start("ChLcpSolverParallel_Solve");
 
@@ -384,17 +384,7 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
 }
 
 void ChLcpSolverParallelDVI::PreSolve() {
-  if (data_manager->num_rigid_contacts <= 0) {
-    return;
-  }
-
-  if (data_manager->settings.solver.solver_mode == NORMAL) {
-    return;
-  }
-
-  if (data_manager->settings.solver.presolve) {
-    rigid_rigid.SolveLocal();
-  }
+//Currently not supported, might be added back in the future
 }
 
 void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {

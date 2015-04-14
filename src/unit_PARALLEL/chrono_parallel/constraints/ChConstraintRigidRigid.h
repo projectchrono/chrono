@@ -97,12 +97,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
   void GenerateSparsity();
   //Fill in the sparsity in the transpose of the jacobian
   void GenerateSparsityTranspose();
-  // Solve the fourth order polynomial to get an approximate solution
-  void SolveQuartic();
-  // Solve each contact individually using a jacobi iteration
-  void SolveLocal();
-  // Solve each contact individually using a the inverse
-  void SolveInverse();
   int offset;
 
  protected:
