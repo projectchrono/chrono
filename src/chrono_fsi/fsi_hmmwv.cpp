@@ -344,7 +344,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
 
   // extra collision body
 
-  Real rad = 0.25;
+  Real rad = 0.1;
   // NOTE: mass properties and shapes are all for sphere
   double volume = utils::CalcSphereVolume(rad);
   ChVector<> gyration = utils::CalcSphereGyration(rad).Get_Diag();
@@ -360,25 +360,29 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
   mat_g->SetComplianceT(0.0);
   mat_g->SetDampingF(0.2);
 
-  ChSharedPtr<ChBody> mball = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
-  ChVector<> pos = ChVector<>(-8.5, .20, 3);
-  mball->SetMaterialSurface(mat_g);
-  // body->SetIdentifier(fId);
-  mball->SetPos(pos);
-  mball->SetCollide(true);
-  mball->SetBodyFixed(false);
-  mball->SetMass(mass);
-  mball->SetInertiaXX(mass * gyration);
+  for (Real x = -4; x < 2; x += 0.25 ) {
+	  for (Real y = -1; y < 1; y += 0.25) {
+		  ChSharedPtr<ChBody> mball = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
+		  ChVector<> pos = ChVector<>(-8.5, .20, 3) + ChVector<>(x, y, 0);
+		  mball->SetMaterialSurface(mat_g);
+		  // body->SetIdentifier(fId);
+		  mball->SetPos(pos);
+		  mball->SetCollide(true);
+		  mball->SetBodyFixed(false);
+		  mball->SetMass(mass);
+		  mball->SetInertiaXX(mass * gyration);
 
-  mball->GetCollisionModel()->ClearModel();
-  utils::AddSphereGeometry(mball.get_ptr(), rad);  // O
-                                                   //	utils::AddEllipsoidGeometry(body.get_ptr(), size);					// X
+		  mball->GetCollisionModel()->ClearModel();
+		  utils::AddSphereGeometry(mball.get_ptr(), rad);  // O
+		                                                   //	utils::AddEllipsoidGeometry(body.get_ptr(), size);					// X
 
-  mball->GetCollisionModel()->SetFamily(100);
-  mball->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(100);
+		  mball->GetCollisionModel()->SetFamily(100);
+		  mball->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(100);
 
-  mball->GetCollisionModel()->BuildModel();
-  mphysicalSystem.AddBody(mball);
+		  mball->GetCollisionModel()->BuildModel();
+		  mphysicalSystem.AddBody(mball);
+	  }
+  }
 }
 // =============================================================================
 
