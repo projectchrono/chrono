@@ -22,6 +22,7 @@
 
 #define S2 _make_short2
 #define I3 _make_int3
+#define U3 _make_uint3
 #define I2 _make_int2
 
 typedef unsigned int uint;
@@ -62,6 +63,21 @@ static inline int3 _make_int3(const real3& a) {
   return t;
 }
 
+static inline uint3 _make_uint3(const real3& a) {
+  uint3 t;
+  t.x = a.x;
+  t.y = a.y;
+  t.z = a.z;
+  return t;
+}
+
+static inline uint3 _make_uint3(const uint& a, const uint& b, const uint& c) {
+  uint3 t;
+  t.x = a;
+  t.y = b;
+  t.z = c;
+  return t;
+}
 static inline std::ostream& operator<<(std::ostream& out, const int2& a) {
   out << "[" << a.x << ", " << a.y << "]" << std::endl;
   return out;
