@@ -67,11 +67,14 @@ void TransformToCOG(ChBody* body, const ChVector<>& pos, const ChMatrix33<>& rot
 }
 
 bool ChCollisionModelParallel::AddSphere(double radius, const ChVector<>& pos) {
-  double mass = this->GetBody()->GetMass();
+  ChFrame<> frame;
+  TransformToCOG(GetBody(), pos, ChMatrix33<>(1), frame);
+  const ChVector<>& position = frame.GetPos();
+
+  double mass = GetBody()->GetMass();
 
   real3 local_inertia =
       R3(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
-  ChVector<> position = pos;
 
   inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
