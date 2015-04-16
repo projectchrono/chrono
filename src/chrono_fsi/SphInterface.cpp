@@ -118,7 +118,7 @@ void AddChSystemForcesToSphForces(
 //		std::vector<ChBody*>::iterator bodyIterB = bodyIter + i;
 		ChVector<> v = ((ChBody*)(*(bodyIter + i)))->GetPos_dt();
 		Real3 a3 = (mR3(v.x, v.y, v.z) - mR3(velMasH2[i])) / dT; // f = m * a
-		derivVelRhoChronoH[i] += mR4(a3,0);
+		derivVelRhoChronoH[i] += mR4(a3,0);  // note, gravity force is also coming from rigid system
 	}
 }
 //------------------------------------------------------------------------------------
