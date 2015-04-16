@@ -18,7 +18,7 @@
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold = 0.2;  // 0.2;
+Real time_hold = 0.1;  // 0.2;
 
 Real contact_recovery_speed = 0.2;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
@@ -37,6 +37,8 @@ Real basinDepth = 2;
 Real fluidInitDimX = 2;
 Real fluidInitDimY = hdimY;
 Real fluidHeight = 2;
+
+int fluidCollisionFamily = 1;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid

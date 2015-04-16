@@ -24,8 +24,8 @@
 #include "chrono_utils/ChUtilsGenerators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
 
-int chassisFam = 200;
-int tireFam = 201;
+int chassisFam = 2;
+int tireFam = 3;
 
 //#include "hmmwvParams.h"
 
@@ -292,6 +292,7 @@ class MyChassisSimpleConvexMesh_vis : public utils::ChassisContactCallback {
       }
     }
     chassisBody->GetCollisionModel()->SetFamily(chassisFam);
+//    printf("chassis family %d \n", chassisBody->GetCollisionModel()->GetFamily());
     chassisBody->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(tireFam);
     chassisBody->GetCollisionModel()->BuildModel();
 

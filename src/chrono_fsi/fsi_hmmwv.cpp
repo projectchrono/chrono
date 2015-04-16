@@ -99,7 +99,7 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads, uint& max
 
 void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc, char* argv[]) {
   // Desired number of OpenMP threads (will be clamped to maximum available)
-  int threads = 20;
+  int threads = 1;//20;
   // Perform dynamic tuning of number of threads?
   bool thread_tuning = true;
 
@@ -322,7 +322,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
       ChVector<> mPos = ChVector<>(0, 0, 0.5);
       ((MyChassisSimpleConvexMesh_vis*)chassis_cb)->SetAttributes(mPos);
       mVehicle->SetChassisContactCallback(chassis_cb);
-            mVehicle->GetVehicle()->GetChassis()->SetCollide(false);
     } break;
 
     case C_SIMPLE_TRI_MESH: {
@@ -331,7 +330,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
       ChVector<> mPos = ChVector<>(0, 0, 0.5);
       ((MyChassisSimpleTriMesh_vis*)chassis_cb)->SetAttributes(mPos);
       mVehicle->SetChassisContactCallback(chassis_cb);
-      //      mVehicle->GetVehicle()->GetChassis()->SetCollide(false);
     } break;
   }
 
@@ -609,7 +607,7 @@ int main(int argc, char* argv[]) {
 
   int startIndexSph = 0;
 #if haveFluid
-  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects);
+  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily);
 #endif
   cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
 
