@@ -181,7 +181,7 @@ enum WheelType { CYLINDRICAL, LUGGED };
 // Type of wheel/tire (controls both contact and visualization)
 WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
 
-enum ChassisType { CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIGINAL, CSPHERE };
+enum ChassisType { CSPHERE, CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIGINAL };
 
 // Type of chassis (controls both contact and visualization)
 ChassisType chassis_type = C_SIMPLE_CONVEX_MESH;

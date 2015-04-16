@@ -24,6 +24,9 @@
 #include "chrono_utils/ChUtilsGenerators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
 
+int chassisFam = 200;
+int tireFam = 201;
+
 //#include "hmmwvParams.h"
 
 using namespace chrono;
@@ -65,6 +68,8 @@ class MyCylindricalTire : public utils::TireContactCallback {
   virtual void onCallback(ChSharedPtr<ChBody> wheelBody, double radius, double width) {
     wheelBody->GetCollisionModel()->ClearModel();
     wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, width / 2);
+    wheelBody->GetCollisionModel()->SetFamily(tireFam);
+    wheelBody->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(chassisFam);
     wheelBody->GetCollisionModel()->BuildModel();
 
     wheelBody->GetMaterialSurface()->SetFriction(mu_t);
@@ -100,6 +105,8 @@ class MyLuggedTire : public utils::TireContactCallback {
     // Add a cylinder to represent the wheel hub.
     coll_model->AddCylinder(0.223, 0.223, 0.126);
 
+    coll_model->SetFamily(tireFam);
+    coll_model->SetFamilyMaskNoCollisionWithFamily(chassisFam);
     coll_model->BuildModel();
 
     wheelBody->GetMaterialSurface()->SetFriction(mu_t);
@@ -132,6 +139,8 @@ class MyLuggedTire_vis : public utils::TireContactCallback {
     }
     // This cylinder acts like the rims
     utils::AddCylinderGeometry(wheelBody.get_ptr(), 0.223, 0.126);
+    wheelBody->GetCollisionModel()->SetFamily(tireFam);
+    wheelBody->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(chassisFam);
     wheelBody->GetCollisionModel()->BuildModel();
 
     wheelBody->GetMaterialSurface()->SetFriction(mu_t);
@@ -154,15 +163,18 @@ class MyChassisBoxModel_vis : public utils::ChassisContactCallback {
     chassisBody->GetCollisionModel()->ClearModel();
     ChVector<> chLoc = ChVector<>(0, 0, 0);
     //    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
-    chassisBody->GetCollisionModel()->AddBox(size.x, size.y, size.z, chLoc);
+    chassisBody->GetCollisionModel()->AddBox(size.x, size.y, size.z, chLoc, rot);
     //    utils::AddBoxGeometry(
     //        chassisBody.get_ptr(), ChVector<>(1, .5, .05), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
+    chassisBody->GetCollisionModel()->SetFamily(chassisFam);
+    chassisBody->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(tireFam);
     chassisBody->GetCollisionModel()->BuildModel();
     chassisBody->GetMaterialSurface()->SetFriction(mu_t);
 
     chassisBody->GetAssets().clear();
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
     box->GetBoxGeometry().Size = size;
+    box->Rot = rot;
     chassisBody->GetAssets().push_back(box);
   }
 
@@ -194,10 +206,12 @@ class MyChassisSphereModel_vis : public utils::ChassisContactCallback {
 
     chassisBody->GetCollisionModel()->ClearModel();
     ChVector<> chLoc = ChVector<>(0, 0, 0);
-    //    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
+//        ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
     chassisBody->GetCollisionModel()->AddSphere(rad, chLoc);
     //    utils::AddBoxGeometry(
     //        chassisBody.get_ptr(), ChVector<>(1, .5, .05), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
+    chassisBody->GetCollisionModel()->SetFamily(chassisFam);
+    chassisBody->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(tireFam);
     chassisBody->GetCollisionModel()->BuildModel();
     chassisBody->GetMaterialSurface()->SetFriction(mu_t);
 
@@ -234,7 +248,7 @@ class MyChassisSimpleConvexMesh_vis : public utils::ChassisContactCallback {
     //    std::string chassis_obj_file("hmmwv/lugged_wheel_section.obj");
     //    std::string chassis_obj_file("hmmwv/lugged_wheel.obj");
     //    std::string chassis_obj_file("hmmwv/myHumvee.obj");
-    chassis_obj_file = std::string("hmmwv/myHumvee.obj");
+    chassis_obj_file = std::string("hmmwv/myHumvee1.obj");
 
     utils::LoadConvexMesh(vehicle::GetDataFile(chassis_obj_file), chassis_mesh, chassis_convex);
   }
@@ -277,6 +291,8 @@ class MyChassisSimpleConvexMesh_vis : public utils::ChassisContactCallback {
         body->GetAssets().push_back(trimesh_shape);
       }
     }
+    chassisBody->GetCollisionModel()->SetFamily(chassisFam);
+    chassisBody->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(tireFam);
     chassisBody->GetCollisionModel()->BuildModel();
 
     // Add the original triangle mesh as asset
@@ -318,7 +334,7 @@ class MyChassisSimpleConvexMesh_vis : public utils::ChassisContactCallback {
 // chassis body with the collision meshes.
 class MyChassisSimpleTriMesh_vis : public utils::ChassisContactCallback {
  public:
-  MyChassisSimpleTriMesh_vis() { chassis_obj_file = std::string("hmmwv/myHumvee.obj"); }
+  MyChassisSimpleTriMesh_vis() { chassis_obj_file = std::string("hmmwv/myHumvee1.obj"); }
 
   virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
     // Clear any existing assets (will be overriden)
@@ -331,8 +347,8 @@ class MyChassisSimpleTriMesh_vis : public utils::ChassisContactCallback {
     //    utils::AddTriangleMeshGeometry(chassisBody.get_ptr(), vehicle::GetDataFile(chassis_obj_file), mesh_name, pos,
     //    rot, true);
 
-    //    ChVector<> chLoc = ChVector<>(0, 0, 0);  // chassisBody->GetFrame_REF_to_COG().GetPos();
-    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
+        ChVector<> chLoc = ChVector<>(0, 0, 0);  // chassisBody->GetFrame_REF_to_COG().GetPos();
+//    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
 
     // *** here
     std::string obj_filename = vehicle::GetDataFile(chassis_obj_file);
@@ -355,7 +371,8 @@ class MyChassisSimpleTriMesh_vis : public utils::ChassisContactCallback {
       body->GetAssets().push_back(trimesh_shape);
     }
     // *** to here
-
+    chassisBody->GetCollisionModel()->SetFamily(chassisFam);
+    chassisBody->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(tireFam);
     chassisBody->GetCollisionModel()->BuildModel();
 
     chassisBody->GetMaterialSurface()->SetFriction(mu_t);
