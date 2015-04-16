@@ -70,7 +70,7 @@ using namespace gui;
 // Define General variables
 SimParams paramsH;
 
-#define haveFluid false
+#define haveFluid true
 // =============================================================================
 // Define Graphics
 #define irrlichtVisualization false
@@ -663,6 +663,7 @@ int main(int argc, char* argv[]) {
       currentParamsH = paramsH;
     }
     InitSystem(currentParamsH, numObjects);
+    mphysicalSystem.Set_G_acc(ChVector<>(currentParamsH.gravity.x, currentParamsH.gravity.y, currentParamsH.gravity.z));
 
     // ** initialize host mid step data
     thrust::host_vector<Real3> posRadH2(numObjects.numAllMarkers);
