@@ -454,10 +454,10 @@ int ChCollisionModelParallel::GetFamily() {
   unsigned i = 1;
   int pos = 1;
   while (!(i & family_group)) {
-    i << 1;
+    i = i << 1;
     pos++;
   }
-  return pos;
+  return pos - 1;
 }
 
 void ChCollisionModelParallel::SetFamilyMaskNoCollisionWithFamily(int mfamily) {
