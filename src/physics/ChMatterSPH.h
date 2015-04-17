@@ -73,11 +73,9 @@ class ChApi ChNodeSPH : public ChNodeXYZ {
     // Get the mass of the node
     double GetMass() const { return variables.GetNodeMass(); }
 
-    // Access the 'LCP variables' of the node
-    ChLcpVariables& Variables() { return variables; }
-
-			// Access the 'LCP variables' of the node
+	// Access the 'LCP variables' of the node
 	ChLcpVariablesNode& Variables() {return variables;}
+
     //
     // DATA
     //
