@@ -24,11 +24,46 @@ namespace fea
 {
 
 
-/// Basic geometry for a beam section in 3D, along with basic material 
-/// properties.
+/// Base class for properties of beam sections.
 /// This material can be shared between multiple beams.
 
 class ChApiFea ChBeamSection : public ChShared
+{
+public:
+
+	double y_drawsize;
+	double z_drawsize;
+
+	ChBeamSection()
+				{
+					this->y_drawsize = 0.01;
+					this->z_drawsize = 0.01;
+				}
+
+	virtual ~ChBeamSection() {}
+
+
+				/// Sets the rectangular thickness of the beam on y and z directions,
+				/// only for drawing/rendering purposes (these thickenss values do NOT
+				/// have any meaning at a physical level, use ChBeamSectionBasic::SetAsRectangularSection() 
+				////instead if you want to affect also the inertias of the beam section).
+	void SetDrawThickness(double thickness_y, double thickness_z)
+				{
+					this->y_drawsize = thickness_y;
+					this->z_drawsize = thickness_z;
+				}
+	double GetDrawThicknessY() {return this->y_drawsize;}
+	double GetDrawThicknessZ() {return this->z_drawsize;}
+
+};
+
+
+
+/// Basic geometry for a beam section in 3D, along with basic material 
+/// properties (zz and yy moments of inertia, area, Young modulus, etc.)
+/// This material can be shared between multiple beams.
+
+class ChApiFea ChBeamSectionBasic : public ChBeamSection
 {
 public:
 
@@ -42,11 +77,8 @@ public:
 	double rdamping;
 	double Ks_y;
 	double Ks_z;
-
-	double y_drawsize;
-	double z_drawsize;
-
-	ChBeamSection()
+	
+	ChBeamSectionBasic()
 				{
 					E = 0.01e9;		  // default E stiffness: (almost rubber)
 					SetGwithPoissonRatio(0.3); // default G (low poisson ratio)
@@ -57,7 +89,7 @@ public:
 					rdamping = 0.01;  // default raleygh damping.
 				}
 
-	virtual ~ChBeamSection() {}
+	virtual ~ChBeamSectionBasic() {}
 
 				/// Set the cross sectional area A of the beam (m^2) 
 	void   SetArea(const double ma) { this->Area = ma;  }
@@ -151,19 +183,6 @@ public:
 	void   SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
 	double GetBeamRaleyghDamping() {return this->rdamping;}
 
-
-				/// Sets the rectangular thickness of the beam on y and z directions,
-				/// only for drawing/rendering purposes (these thickenss values do NOT
-				/// have any meaning at a physical level, use SetAsRectangularSection() instead
-				/// if you want to affect also the inertias of the beam section).
-	void SetDrawThickness(double thickness_y, double thickness_z)
-				{
-					this->y_drawsize = thickness_y;
-					this->z_drawsize = thickness_z;
-				}
-	double GetDrawThicknessY() {return this->y_drawsize;}
-	double GetDrawThicknessZ() {return this->z_drawsize;}
-
 };
 
 
@@ -175,7 +194,7 @@ public:
 /// from reference, and shear center with offset from reference.
 /// This material can be shared between multiple beams.
 
-class ChApiFea ChBeamSectionAdvanced : public ChBeamSection
+class ChApiFea ChBeamSectionAdvanced : public ChBeamSectionBasic
 {
 public:
 
@@ -218,6 +237,71 @@ public:
 	double GetShearCenterZ() {return this->Sz;}
 };
 
+
+
+
+/// Simplified geometry for a 'cable' beam section in 3D, that is a beam 
+/// without torsional stiffness and with circular section (i.e.same Ixx and Iyy properties).
+/// This material can be shared between multiple beams.
+
+class ChApiFea ChBeamSectionCable : public ChBeamSection
+{
+public:
+
+	double Area;
+	double I;
+	double E;
+	double density;
+	double rdamping;
+
+	
+	ChBeamSectionCable()
+				{
+					E = 0.01e9;		  // default E stiffness: (almost rubber)
+
+					SetDiameter(0.01); // defaults Area, I
+
+					density = 1000;   // default density: water
+					rdamping = 0.01;  // default raleygh damping.
+				}
+
+	virtual ~ChBeamSectionCable() {}
+
+				/// Set the cross sectional area A of the beam (m^2) 
+	void   SetArea(const double ma) { this->Area = ma;  }
+	double GetArea() const {return this->Area;} 
+
+				/// Set the I moment of inertia of the beam (for flexion about y axis or z axis)
+				/// Note: since this simple section assumes circular section, Iyy=Izz=I
+	void   SetI(double ma) { this->I = ma;  }
+	double GetI() const {return this->I;}
+
+
+				/// Shortcut: set Area and I inertia at once, 
+				/// given the diameter of the beam assumed
+				/// with circular shape.
+	void   SetDiameter(double diameter) 
+				{ 
+					this->Area = CH_C_PI * pow((0.5*diameter),2);
+					this->I = (CH_C_PI/4.0)* pow((0.5*diameter),4);
+
+					this->y_drawsize = diameter;
+					this->z_drawsize = diameter;
+				}
+
+				/// Set the density of the beam (kg/m^3)
+	void   SetDensity(double md) { this->density = md;  }
+	double GetDensity() const {return this->density;}
+
+				/// Set E, the Young elastic modulus (N/m^2) 
+	void   SetYoungModulus(double mE) { this->E = mE; }
+	double GetYoungModulus() const {return this->E;}
+
+				/// Set the Raleygh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
+	void   SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
+	double GetBeamRaleyghDamping() {return this->rdamping;}
+
+};
 
 
 
