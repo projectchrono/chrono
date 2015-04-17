@@ -39,6 +39,7 @@ ChLinkPointFrame::ChLinkPointFrame ()
 	this->react= VNULL;
 	this->cache_li_speed = VNULL;
 	this->cache_li_pos = VNULL;
+	this->attach_reference = CSYSNORM;
 
 	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
@@ -56,7 +57,7 @@ void ChLinkPointFrame::Copy(ChLinkPointFrame* source)
 	ChPhysicsItem::Copy(source);
 
 		// copy class data
-
+	attach_reference = source->attach_reference;
 	react = source->react;
 	cache_li_speed = source->cache_li_speed;
 	cache_li_pos = source->cache_li_pos;
@@ -66,8 +67,7 @@ ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords()
 {
 	if (this->body)
 	{
-		ChCoordsys<> pcsys(this->attach_position);
-		ChCoordsys<> linkcsys = pcsys >> (*this->body);
+		ChCoordsys<> linkcsys = attach_reference >> (*this->body);
 		return linkcsys;
 	}
 	return CSYSNORM;
@@ -110,7 +110,7 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to 
 
 	if (mattach)
 	{
-		this->attach_position = body->TransformPointParentToLocal(*mattach);
+		this->attach_reference.pos = body->TransformPointParentToLocal(*mattach);
 	}
 	else
 	{
@@ -118,7 +118,7 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to 
 		if (mnode.IsNull()) return false;
 
 		ChVector<> temp= mnode->GetPos(); 
-		this->attach_position = body->TransformPointParentToLocal(temp);
+		this->attach_reference.pos = body->TransformPointParentToLocal(temp);
 	}
 
 	return true;
@@ -178,7 +178,9 @@ void ChLinkPointFrame::IntLoadConstraint_C(
 	if (!IsActive())
     return;
 
-	ChVector<> res = mnode->GetPos() - this->body->TransformPointLocalToParent(this->attach_position) ; 
+	ChMatrix33<> Arw (attach_reference.rot >> body->GetRot());
+
+	ChVector<> res = Arw.MatrT_x_Vect(mnode->GetPos() - this->body->TransformPointLocalToParent(this->attach_reference.pos) ); 
 	ChVector<> cres = res * c;
 
 	if (do_clamp) {
@@ -256,7 +258,9 @@ void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp,
 	if (mnode.IsNull()) 
 		return;
 
-	ChVector<> res = mnode->GetPos() - this->body->TransformPointLocalToParent(this->attach_position) ; 
+	ChMatrix33<> Arw (attach_reference.rot >> body->GetRot());
+
+	ChVector<> res = Arw.MatrT_x_Vect(mnode->GetPos() - this->body->TransformPointLocalToParent(this->attach_reference.pos) ); 
 
 	this->constraint1.Set_b_i(constraint1.Get_b_i() +  factor * res.x);
 	this->constraint2.Set_b_i(constraint2.Get_b_i() +  factor * res.y);
@@ -275,17 +279,21 @@ void ChLinkPointFrame::ConstraintsBiLoad_Ct(double factor)
 void ChLinkPointFrame::ConstraintsLoadJacobians()
 {
 		// compute jacobians
+	ChMatrix33<> Aro (attach_reference.rot); 
+	ChMatrix33<> Aow (body->GetRot());
+	ChMatrix33<> Arw = Aow * Aro;
+
 	ChMatrix33<> Jxn;
-	Jxn.Set33Identity();
+	Jxn.CopyFromMatrixT(Arw);
 
 	ChMatrix33<> Jxb;
-	Jxb.Set33Identity();
+	Jxb.CopyFromMatrixT(Arw);
 	Jxb.MatrNeg();
 
 	ChMatrix33<> atilde;
-	atilde.Set_X_matrix(-this->attach_position);
+	atilde.Set_X_matrix(Aow.MatrT_x_Vect(mnode->GetPos()- body->GetPos()));
 	ChMatrix33<> Jrb;
-	Jrb.MatrMultiply(body->GetA(), atilde);
+	Jrb.MatrTMultiply(Aro, atilde);
 
 	this->constraint1.Get_Cq_a()->PasteClippedMatrix(&Jxn, 0,0, 1,3, 0,0);
 	this->constraint2.Get_Cq_a()->PasteClippedMatrix(&Jxn, 1,0, 1,3, 0,0);
@@ -353,7 +361,7 @@ void ChLinkPointFrame::StreamOUT(ChStreamOutBinary& mstream)
 
 		// stream out all member data
 	//mstream << this->node_index;
-	mstream << this->attach_position;
+	mstream << this->attach_reference;
 	mstream << this->react;
 }
 
@@ -367,7 +375,7 @@ void ChLinkPointFrame::StreamIN(ChStreamInBinary& mstream)
 
 		// deserialize class
 	//mstream >> this->node_index;
-	mstream >> this->attach_position;
+	mstream >> this->attach_reference;
 	mstream >> this->react;
 }
 

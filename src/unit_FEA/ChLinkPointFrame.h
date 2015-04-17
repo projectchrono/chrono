@@ -77,7 +77,7 @@ private:
 	ChSharedPtr<fea::ChNodeFEAxyz> mnode;
 	ChSharedPtr<ChBodyFrame>  body;
 
-	ChVector<> attach_position; 
+	ChCoordsys<> attach_reference; 
 
 public:
 
@@ -170,12 +170,19 @@ public:
 				/// Get the connected body (frame)
 	virtual ChSharedPtr<ChBodyFrame> GetConstrainedBodyFrame() { return this->body;}
 
-					/// Get the attachment position, in the reference coordinates of the body.
-	ChVector<> GetAttachPosition() {return attach_position;}
-					/// Set the attachment position, in the reference coordinates of the body
-	void SetAttachPositionInBodyCoords(ChVector<> mattach) {attach_position = mattach;}
+					/// Get the attachment position, in the coordinates of the body.
+	ChVector<> GetAttachPosition() {return attach_reference.pos;}
+					/// Set the attachment position, in the coordinates of the body
+	void SetAttachPositionInBodyCoords(ChVector<> mattach) {attach_reference.pos = mattach;}
 					/// Set the attachment position, in the absolute coordinates
-	void SetAttachPositionInAbsoluteCoords(ChVector<> mattach) {attach_position = body->TransformPointParentToLocal(mattach);}
+	void SetAttachPositionInAbsoluteCoords(ChVector<> mattach) {attach_reference.pos = body->TransformPointParentToLocal(mattach);}
+
+					/// Get the attachment reference, in the coordinates of the body.
+	ChCoordsys<> GetAttachReference() {return attach_reference;}
+					/// Set the attachment reference, in the coordinates of the body
+	void SetAttachReferenceInBodyCoords(ChCoordsys<> mattach) {attach_reference = mattach;}
+					/// Set the attachment position, in the absolute coordinates
+	void SetAttachReferenceInAbsoluteCoords(ChCoordsys<> mattach) {attach_reference = body->coord.TransformParentToLocal(mattach);}
 
 
 				/// Get the reaction torque considered as applied to ChShaft.
