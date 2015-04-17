@@ -94,8 +94,12 @@ public:
 			// Functions for interfacing to the LCP solver
 			//
 
+	            /// Tell to a system descriptor that there are variables of type
+                /// ChLcpVariables in this object (for further passing it to a LCP solver)
+	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) {};
+
 				/// Sets the 'fb' part (the known term) of the encapsulated ChLcpVariables to zero.
-	virtual void VariablesFbReset() { Variables().Get_fb().FillElem(0.0); }
+	virtual void VariablesFbReset() {}
 
 				/// Adds the current forces (applied to node) into the
 				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor

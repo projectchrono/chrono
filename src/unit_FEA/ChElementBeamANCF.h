@@ -82,7 +82,9 @@ public:
 					nodes[1]=nodeB;
 					std::vector<ChLcpVariables*> mvars;
 					mvars.push_back(&nodes[0]->Variables());
+					mvars.push_back(&nodes[0]->Variables_D());
 					mvars.push_back(&nodes[1]->Variables());
+					mvars.push_back(&nodes[1]->Variables_D());
 					Kmatr.SetVariables(mvars);
 				}
 
