@@ -4,7 +4,7 @@
 // Copyright (c) 2010 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -13,7 +13,7 @@
 #define CHLINKSALL_H
 
 //////////////////////////////////////////////////
-//  
+//
 //   ChLinksAll.h
 //
 //   Shortcut to include most headers related to
@@ -27,8 +27,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-// This header is just a trick to include quickly the 
+// This header is just a trick to include quickly the
 // following headers, all at once with a single #include "physics/ChLinksAll.h" statement
 
 #include "physics/ChLink.h"
@@ -51,6 +50,5 @@
 #include "physics/ChLinkRevolute.h"
 #include "physics/ChLinkRevoluteSpherical.h"
 #include "physics/ChLinkUniversal.h"
-
 
 #endif

@@ -4,7 +4,7 @@
 // Copyright (c) 2010 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -13,9 +13,9 @@
 #define CHC_COMPILE_H
 
 //////////////////////////////////////////////////
-//  
+//
 //   ChCCompile.h
-// 
+//
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
 //
@@ -24,16 +24,10 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include <math.h>
 
-
-
-namespace chrono 
-{
-namespace collision 
-{
-
+namespace chrono {
+namespace collision {
 
 // prevents compiler warnings when PQP_REAL is float
 /*
@@ -43,25 +37,20 @@ inline float sin(float x) { return (float)sin((double)x); }
 inline float fabs(float x) { return (float)fabs((double)x); }
 */
 
-	
-	
 //-------------------------------------------------------------------------
 //
 // PQP_REAL
 //
 // This is the floating point type used throughout PQP.  doubles are
 // recommended, both for their precision and because the software has
-// mainly been tested using them.  However, floats appear to be faster 
+// mainly been tested using them.  However, floats appear to be faster
 // (by 60% on some machines).
 //
 //-------------------------------------------------------------------------
 
 typedef double PQP_REAL;
 
-
-
-
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

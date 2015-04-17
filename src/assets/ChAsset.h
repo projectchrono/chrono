@@ -4,7 +4,7 @@
 // Copyright (c) 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -27,52 +27,42 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "core/ChShared.h"
 
-
-namespace chrono
-{
-
+namespace chrono {
 
 /// Classes for adding user data (such as rendering
 /// shapes, reference to files) to ChPhysicsItem objects.
 /// User can inherit his classes for custom assets from
 /// this class. A single asset might be shared.
 
-
 class ChApi ChAsset : public ChShared {
+  protected:
+    //
+    // DATA
+    //
 
-protected:
-				//
-	  			// DATA
-				//
-	
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-	  			// CONSTRUCTORS
-				//
+    ChAsset(){};
 
-	ChAsset () {};
+    virtual ~ChAsset(){};
 
-	virtual ~ChAsset () {};
+    //
+    // FUNCTIONS
+    //
 
-				//
-	  			// FUNCTIONS
-				//
-
-	virtual void Update () {};
-
+    virtual void Update(){};
 };
-
 
 typedef ChSharedPtr<ChAsset> ChSharedAssetPtr;
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

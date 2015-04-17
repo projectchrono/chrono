@@ -4,7 +4,7 @@
 // Copyright (c) 2010, 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -38,10 +38,7 @@
 #include "physics/ChShaft.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 
-
-
-namespace chrono
-{
+namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
 
@@ -59,149 +56,146 @@ class ChBodyFrame;
 /// this constraint.
 
 class ChApi ChShaftsBody : public ChPhysicsItem {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChShaftsBody, ChPhysicsItem);
 
-						// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChShaftsBody,ChPhysicsItem);
-
-private:
-			//
-	  		// DATA
-			//
-
-	double torque_react;					
-	
-						// used as an interface to the LCP solver.
-	ChLcpConstraintTwoGeneric constraint;
-
-	float cache_li_speed;	// used to cache the last computed value of multiplier (solver warm starting)
-	float cache_li_pos;		// used to cache the last computed value of multiplier (solver warm starting)	
-
-	ChShaft* shaft;
-	ChBodyFrame*  body;
-
-	ChVector<> shaft_dir;
-
-public:
-
-			//
-	  		// CONSTRUCTORS
-			//
-
-				/// Build a shaft.
-	ChShaftsBody ();
-				/// Destructor
-	~ChShaftsBody ();
-
-				/// Copy from another ChShaftsPlanetary. 
-	void Copy(ChShaftsBody* source);
-
-
-			//
-	  		// FLAGS
-			//
-
-			//
-	  		// FUNCTIONS
-			//
-				/// Get the number of scalar variables affected by constraints in this link 
-	virtual int GetNumCoords() {return 6+1;}
-
-				/// Number of scalar costraints 
-	virtual int GetDOC_c  () {return 1;}
- 
+  private:
     //
-	// STATE FUNCTIONS
-	//
+    // DATA
+    //
 
-				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-	virtual void IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L);	
-	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
-	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
-	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
-	virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) {};
-	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
-	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    double torque_react;
 
-			// Override/implement LCP system functions of ChPhysicsItem
-			// (to assembly/manage data for LCP system solver
+    // used as an interface to the LCP solver.
+    ChLcpConstraintTwoGeneric constraint;
 
-	virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-	virtual void ConstraintsBiReset();
-	virtual void ConstraintsBiLoad_C(double factor=1., double recovery_clamp=0.1, bool do_clamp=false);
-	virtual void ConstraintsBiLoad_Ct(double factor=1.);
-	virtual void ConstraintsLoadJacobians();
-	virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-	virtual void ConstraintsLiLoadSuggestedPositionSolution();
-	virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-	virtual void ConstraintsLiFetchSuggestedPositionSolution();
-	virtual void ConstraintsFetch_react(double factor=1.);
+    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
+    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
 
+    ChShaft* shaft;
+    ChBodyFrame* body;
 
-			   // Other functions
+    ChVector<> shaft_dir;
 
-				/// Use this function after object creation, to initialize it, given  
-				/// the 1D shaft and 3D body to join. 
-				/// Each item must belong to the same ChSystem. 
-				/// Direction is expressed in the local coordinates of the body.
-	bool Initialize(ChSharedPtr<ChShaft> mshaft,      ///< shaft to join 
-	                ChSharedPtr<ChBodyFrame>  mbody,  ///< body to join 
-	                const ChVector<>& mdir            ///< the direction of the shaft on 3D body (applied on COG: pure torque)
-	               );
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-				/// Get the shaft
-	ChShaft* GetShaft() {return shaft;}
-				/// Get the body
-	ChBodyFrame*  GetBody() {return body;}
+    /// Build a shaft.
+    ChShaftsBody();
+    /// Destructor
+    ~ChShaftsBody();
 
-				/// Set the direction of the shaft respect to 3D body, as a 
-				/// normalized vector expressed in the coordinates of the body.
-				/// The shaft applies only torque, about this axis.
-	void  SetShaftDirection(ChVector<> md) {shaft_dir = Vnorm(md);}
+    /// Copy from another ChShaftsPlanetary.
+    void Copy(ChShaftsBody* source);
 
-				/// Get the direction of the shaft respect to 3D body, as a 
-				/// normalized vector expressed in the coordinates of the body. 
-	const ChVector<>& GetShaftDirection() const {return shaft_dir;}
+    //
+    // FLAGS
+    //
 
+    //
+    // FUNCTIONS
+    //
+    /// Get the number of scalar variables affected by constraints in this link
+    virtual int GetNumCoords() { return 6 + 1; }
 
-				/// Get the reaction torque considered as applied to ChShaft.
-	double GetTorqueReactionOnShaft() const {return -(torque_react);}
+    /// Number of scalar costraints
+    virtual int GetDOC_c() { return 1; }
 
-				/// Get the reaction torque considered as applied to ChBody,
-				/// expressed in the coordinates of the body.
-	ChVector<> GetTorqueReactionOnBody() const {return (shaft_dir*torque_react);}
+    //
+    // STATE FUNCTIONS
+    //
 
-	
-			//
-			// UPDATE FUNCTIONS
-			//
+    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& L,
+                                     const double c);
+    virtual void IntLoadConstraint_C(const unsigned int off,
+                                     ChVectorDynamic<>& Qc,
+                                     const double c,
+                                     bool do_clamp,
+                                     double recovery_clamp);
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c){};
+    virtual void IntToLCP(const unsigned int off_v,
+                          const ChStateDelta& v,
+                          const ChVectorDynamic<>& R,
+                          const unsigned int off_L,
+                          const ChVectorDynamic<>& L,
+                          const ChVectorDynamic<>& Qc);
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
 
-				/// Update all auxiliary data of the gear transmission at given time
-  virtual void Update(double mytime, bool update_assets = true);
+    // Override/implement LCP system functions of ChPhysicsItem
+    // (to assembly/manage data for LCP system solver
 
+    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void ConstraintsBiReset();
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
+    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
+    virtual void ConstraintsLoadJacobians();
+    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
+    virtual void ConstraintsLiLoadSuggestedPositionSolution();
+    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
+    virtual void ConstraintsLiFetchSuggestedPositionSolution();
+    virtual void ConstraintsFetch_react(double factor = 1.);
 
+    // Other functions
 
-			//
-			// STREAMING
-			//
+    /// Use this function after object creation, to initialize it, given
+    /// the 1D shaft and 3D body to join.
+    /// Each item must belong to the same ChSystem.
+    /// Direction is expressed in the local coordinates of the body.
+    bool Initialize(ChSharedPtr<ChShaft> mshaft,     ///< shaft to join
+                    ChSharedPtr<ChBodyFrame> mbody,  ///< body to join
+                    const ChVector<>& mdir  ///< the direction of the shaft on 3D body (applied on COG: pure torque)
+                    );
 
+    /// Get the shaft
+    ChShaft* GetShaft() { return shaft; }
+    /// Get the body
+    ChBodyFrame* GetBody() { return body; }
 
-				/// Method to allow deserializing a persistent binary archive (ex: a file)
-				/// into transient data.
-	void StreamIN(ChStreamInBinary& mstream);
+    /// Set the direction of the shaft respect to 3D body, as a
+    /// normalized vector expressed in the coordinates of the body.
+    /// The shaft applies only torque, about this axis.
+    void SetShaftDirection(ChVector<> md) { shaft_dir = Vnorm(md); }
 
-				/// Method to allow serializing transient data into a persistent
-				/// binary archive (ex: a file).
-	void StreamOUT(ChStreamOutBinary& mstream);
+    /// Get the direction of the shaft respect to 3D body, as a
+    /// normalized vector expressed in the coordinates of the body.
+    const ChVector<>& GetShaftDirection() const { return shaft_dir; }
 
+    /// Get the reaction torque considered as applied to ChShaft.
+    double GetTorqueReactionOnShaft() const { return -(torque_react); }
+
+    /// Get the reaction torque considered as applied to ChBody,
+    /// expressed in the coordinates of the body.
+    ChVector<> GetTorqueReactionOnBody() const { return (shaft_dir * torque_react); }
+
+    //
+    // UPDATE FUNCTIONS
+    //
+
+    /// Update all auxiliary data of the gear transmission at given time
+    virtual void Update(double mytime, bool update_assets = true);
+
+    //
+    // STREAMING
+    //
+
+    /// Method to allow deserializing a persistent binary archive (ex: a file)
+    /// into transient data.
+    void StreamIN(ChStreamInBinary& mstream);
+
+    /// Method to allow serializing transient data into a persistent
+    /// binary archive (ex: a file).
+    void StreamOUT(ChStreamOutBinary& mstream);
 };
-
-
 
 typedef ChSharedPtr<ChShaftsBody> ChSharedShaftsBodyPtr;
 
-
-
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____
 
 #endif

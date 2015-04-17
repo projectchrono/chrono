@@ -5,7 +5,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -19,8 +19,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-
 #include <stdlib.h>
 #include <iostream>
 #include <math.h>
@@ -31,11 +29,7 @@
 #include "physics/ChGlobal.h"
 #include "physics/ChExternalObject.h"
 
-
-namespace chrono
-{
-
-
+namespace chrono {
 
 //////////////////////////////////////
 //////////////////////////////////////
@@ -47,103 +41,73 @@ namespace chrono
 // dynamic creation and persistence
 ChClassRegister<ChObj> a_registration_ChObj;
 
+ChObj::ChObj() {
+    name.clear();
 
-ChObj::ChObj ()
-{
-	name.clear();
-
-	ChTime = 0;
-	identifier = 0;
-
+    ChTime = 0;
+    identifier = 0;
 }
 
-ChObj::~ChObj()
-{
-
+ChObj::~ChObj() {
 }
 
+void ChObj::Copy(ChObj* source) {
+    identifier = source->identifier;
 
-void ChObj::Copy(ChObj* source)
-{
-	identifier = source->identifier;
-
-	name = source->name;
-	ChTime = source->ChTime;
+    name = source->name;
+    ChTime = source->ChTime;
 }
-
-
 
 //
 // OTHER FUNCTIONS
 //
 
-const char* ChObj::GetName () const
-{
-	return (char*)this->name.c_str();
+const char* ChObj::GetName() const {
+    return (char*)this->name.c_str();
 }
 
-void ChObj::SetName (const char myname[])
-{
-	name = myname;
+void ChObj::SetName(const char myname[]) {
+    name = myname;
 }
 
-
-std::string ChObj::GetNameString () const
-{
-	return this->name;
+std::string ChObj::GetNameString() const {
+    return this->name;
 }
 
-void ChObj::SetNameString (const std::string& myname)
-{
-	name = myname;
+void ChObj::SetNameString(const std::string& myname) {
+    name = myname;
 }
-
-
-
 
 //
 // FILE BINARY I/O
 //
 
-
-
-
-void ChObj::StreamOUT(ChStreamOutBinary& mstream)
-{
-		// class version number
-	mstream.VersionWrite(2);
-		// stream out all member data
-	mstream << identifier;
-	mstream << GetName();
+void ChObj::StreamOUT(ChStreamOutBinary& mstream) {
+    // class version number
+    mstream.VersionWrite(2);
+    // stream out all member data
+    mstream << identifier;
+    mstream << GetName();
 }
 
-
-void ChObj::StreamIN(ChStreamInBinary& mstream)
-{
-		// class version number
-	int version = mstream.VersionRead();
-		// stream in all member data
-	if (version <= 1)
-	{
-		int mfoo;
-		mstream >> mfoo;
-	}
-	mstream >> identifier;
-	char mbuffer[250];
-	mstream >> mbuffer;
-	SetName(mbuffer);
+void ChObj::StreamIN(ChStreamInBinary& mstream) {
+    // class version number
+    int version = mstream.VersionRead();
+    // stream in all member data
+    if (version <= 1) {
+        int mfoo;
+        mstream >> mfoo;
+    }
+    mstream >> identifier;
+    char mbuffer[250];
+    mstream >> mbuffer;
+    SetName(mbuffer);
 }
 
-void ChObj::StreamOUT(ChStreamOutAscii& mstream)
-{
-	mstream <<"object type:" << this->GetRTTI()->GetName() << "\n";
-	mstream << GetName() << "\n";
-	mstream << GetIdentifier() << "\n";
+void ChObj::StreamOUT(ChStreamOutAscii& mstream) {
+    mstream << "object type:" << this->GetRTTI()->GetName() << "\n";
+    mstream << GetName() << "\n";
+    mstream << GetIdentifier() << "\n";
 }
 
-
-
-
-} // END_OF_NAMESPACE____
-
-
+}  // END_OF_NAMESPACE____

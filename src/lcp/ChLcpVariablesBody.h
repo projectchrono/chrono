@@ -5,7 +5,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -29,84 +29,61 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "ChLcpVariables.h"
 #include "core/ChMatrix33.h"
 
-namespace chrono
-{
+namespace chrono {
 
 ///    Specialized class for representing a 6-DOF item for a
 ///   LCP system, that is a 3D rigid body, with mass matrix and
 ///   associate variables (a 6 element vector, ex.speed)
-///    This is an abstract class, specialized for example in 
+///    This is an abstract class, specialized for example in
 ///   ChLcpVariablesBodyOwnMass and ChLcpVariablesBodySharedMass.
 
-class ChApi ChLcpVariablesBody :  public ChLcpVariables
-{
-	CH_RTTI(ChLcpVariablesBody, ChLcpVariables)
+class ChApi ChLcpVariablesBody : public ChLcpVariables {
+    CH_RTTI(ChLcpVariablesBody, ChLcpVariables)
 
-private:
-			//
-			// DATA		//
+  private:
+    //
+    // DATA		//
 
+    void* user_data;
 
-			void* user_data;
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
+    ChLcpVariablesBody() : ChLcpVariables(6) { user_data = 0; };
 
-			//
-			// CONSTRUCTORS
-			//
+    virtual ~ChLcpVariablesBody(){};
 
-	ChLcpVariablesBody() : ChLcpVariables(6)
-				{
-					user_data = 0;
-				};
+    /// Assignment operator: copy from other object
+    ChLcpVariablesBody& operator=(const ChLcpVariablesBody& other);
 
-	virtual ~ChLcpVariablesBody()
-				{
-				};
+    //
+    // FUNCTIONS
+    //
 
+    /// Get the mass associated with translation of body
+    virtual double GetBodyMass() = 0;
 
-				/// Assignment operator: copy from other object
-	ChLcpVariablesBody& operator=(const ChLcpVariablesBody& other);
+    /// Access the 3x3 inertia matrix
+    virtual ChMatrix33<>& GetBodyInertia() = 0;
 
+    /// Access the 3x3 inertia matrix inverted
+    virtual ChMatrix33<>& GetBodyInvInertia() = 0;
 
-			//
-			// FUNCTIONS
-			//
+    // IMPLEMENT PARENT CLASS METHODS
 
-				/// Get the mass associated with translation of body
-	virtual double	GetBodyMass() =0;
+    /// The number of scalar variables in the vector qb
+    /// (dof=degrees of freedom)
+    virtual int Get_ndof() const { return 6; }
 
-				/// Access the 3x3 inertia matrix
-	virtual ChMatrix33<>& GetBodyInertia() =0;
-
-				/// Access the 3x3 inertia matrix inverted
-	virtual ChMatrix33<>& GetBodyInvInertia() =0;
-
-
-
-				// IMPLEMENT PARENT CLASS METHODS
-
-
-				/// The number of scalar variables in the vector qb
-				/// (dof=degrees of freedom)
-	virtual int Get_ndof() const {return 6;}
-
-
-	virtual void* GetUserData() {return this->user_data;}
-	virtual void SetUserData(void* mdata) {this->user_data = mdata;}
-
+    virtual void* GetUserData() { return this->user_data; }
+    virtual void SetUserData(void* mdata) { this->user_data = mdata; }
 };
 
-
-
-
-} // END_OF_NAMESPACE____
-
-
-
+}  // END_OF_NAMESPACE____
 
 #endif  // END of ChLcpVariablesBody.h

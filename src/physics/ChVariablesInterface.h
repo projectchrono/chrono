@@ -5,7 +5,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -13,13 +13,13 @@
 #ifndef CHVARIABLESINTERFACE_H
 #define CHVARIABLESINTERFACE_H
 
-
-
 #include "lcp/ChLcpSystemDescriptor.h"
 
+namespace chrono {
 
-namespace chrono
-{
+/// Interface class for objects that  contain a single ChLcpVariables item
+/// that must be exposed.
+/// Often used in multiple-inheritance schemes, see ChBody, ChNodeBase
 
 
 
@@ -34,10 +34,6 @@ public:
 	//virtual ChLcpVariables& Variables() =0; 
 };
 
-
-
-
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

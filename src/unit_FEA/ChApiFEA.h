@@ -4,7 +4,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -12,7 +12,6 @@
 
 #ifndef CHAPIFEA_H
 #define CHAPIFEA_H
-
 
 #include "core/ChPlatform.h"
 
@@ -29,9 +28,9 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_UNIT_FEA)
-	#define ChApiFea ChApiEXPORT
+#define ChApiFea ChApiEXPORT
 #else
-	#define ChApiFea ChApiIMPORT
+#define ChApiFea ChApiIMPORT
 #endif
 
 #endif  // END of header

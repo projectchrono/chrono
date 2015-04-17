@@ -22,28 +22,24 @@
 namespace chrono {
 
 // descriptive namespace for types
-namespace VisualizationType
-{
-  enum Enum
-  {
+namespace VisualizationType {
+enum Enum {
     None,
     Primitives,
     CompoundPrimitives,
     Mesh,
-  };
-
+};
 }
 
-namespace CollisionType
-{
-  enum Enum {
+namespace CollisionType {
+enum Enum {
     None,
     Primitives,
     Mesh,
     ConvexHull,
     CompoundPrimitives,
     CallbackFunction,
-  };
+};
 }
 
 // Collision family definitions
@@ -51,48 +47,42 @@ namespace CollisionType
 // GEAR includes the idler, support roller, and other non-moving rolling elements
 // WHEELS includes the road wheels, which can collide with their neighbors
 // SHOES collide with everything, except for their own family
-namespace CollisionFam
-{
-  enum Enum {
+namespace CollisionFam {
+enum Enum {
     Ground,
     Hull,
     Wheel,
     ShoeRight,
     ShoeLeft,
     Gear,
-  };
+};
 }
 
 // to specify if the part is on the right or left side,
 // relative to the chassis when facing forward.
-enum VehicleSide {
-  RIGHTSIDE,
-  LEFTSIDE
-};
+enum VehicleSide { RIGHTSIDE, LEFTSIDE };
 
 enum DebugInformation {
-  DBG_FIRSTSHOE   = 1 << 0,
-  DBG_GEAR        = 1 << 1,
-  DBG_IDLER       = 1 << 2,
-  DBG_PTRAIN      = 1 << 3,
-  DBG_CONSTRAINTS = 1 << 4,
-  DBG_COLLISIONCALLBACK = 1 << 5,
-  DBG_ALL_CONTACTS = 1 << 6,
-  DBG_CHASSIS = 1 << 7
+    DBG_FIRSTSHOE = 1 << 0,
+    DBG_GEAR = 1 << 1,
+    DBG_IDLER = 1 << 2,
+    DBG_PTRAIN = 1 << 3,
+    DBG_CONSTRAINTS = 1 << 4,
+    DBG_COLLISIONCALLBACK = 1 << 5,
+    DBG_ALL_CONTACTS = 1 << 6,
+    DBG_CHASSIS = 1 << 7
 };
 
-static std::ostream& operator<< (std::ostream &out, const ChVector<double>& vect)
-{
-  out << vect.x <<","<< vect.y <<","<< vect.z;
-  return out;
+static std::ostream& operator<<(std::ostream& out, const ChVector<double>& vect) {
+    out << vect.x << "," << vect.y << "," << vect.z;
+    return out;
 }
 
-static std::ostream& operator<< (std::ostream &out, const ChQuaternion<double>& q)
-{
-  out << q.e0 <<","<< q.e1 <<","<< q.e2 <<","<< q.e3;
-  return out;
+static std::ostream& operator<<(std::ostream& out, const ChQuaternion<double>& q) {
+    out << q.e0 << "," << q.e1 << "," << q.e2 << "," << q.e3;
+    return out;
 }
 
-} // end namespace chrono
+}  // end namespace chrono
 
 #endif

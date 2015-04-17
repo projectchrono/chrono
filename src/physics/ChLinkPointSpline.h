@@ -4,7 +4,7 @@
 // Copyright (c) 2010 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -28,65 +28,49 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "physics/ChLinkLock.h"
 #include "geometry/ChCLine.h"
 
-
-
-namespace chrono
-{
+namespace chrono {
 ///
 /// ChLinkPointSpline class.
-/// This class implements the 'point on a spline curve' 
+/// This class implements the 'point on a spline curve'
 /// constraint. It can be used also to simulate
 /// curvilinear glyphs, etc.
 ///
 
 class ChApi ChLinkPointSpline : public ChLinkLock {
+    CH_RTTI(ChLinkPointSpline, ChLinkLock);
 
-	CH_RTTI(ChLinkPointSpline,ChLinkLock);
+  protected:
+    /// The line for the trajectory.
+    ChSharedPtr<geometry::ChLine> trajectory_line;
 
-protected:
+  public:
+    // builders and destroyers
+    ChLinkPointSpline();
+    virtual ~ChLinkPointSpline();
+    virtual void Copy(ChLinkPointSpline* source);
+    virtual ChLink* new_Duplicate();  // always return base link class pointer
 
-						/// The line for the trajectory.
-	ChSharedPtr<geometry::ChLine>	trajectory_line;
+    /// Get the address of the trajectory line
+    ChSharedPtr<geometry::ChLine> Get_trajectory_line() { return trajectory_line; }
 
-public:
-						// builders and destroyers
-	ChLinkPointSpline ();
-	virtual ~ChLinkPointSpline ();
-	virtual void Copy(ChLinkPointSpline* source);
-	virtual ChLink* new_Duplicate ();	// always return base link class pointer
+    /// Sets the trajectory line (take ownership - does not copy line)
+    void Set_trajectory_line(ChSharedPtr<geometry::ChLine> mline);
 
+    // UPDATING FUNCTIONS - "lock formulation" custom implementations
 
-						/// Get the address of the trajectory line
-	ChSharedPtr<geometry::ChLine> Get_trajectory_line() {return trajectory_line;}
-						
-						/// Sets the trajectory line (take ownership - does not copy line)
-	void Set_trajectory_line (ChSharedPtr<geometry::ChLine> mline);
+    // Overrides the parent class function. Here it moves the
+    // constraint mmain marker tangent to the line.
+    virtual void UpdateTime(double mytime);
 
+    // STREAMING
 
-
-							// UPDATING FUNCTIONS - "lock formulation" custom implementations
-
-							// Overrides the parent class function. Here it moves the 
-							// constraint mmain marker tangent to the line.
-	virtual void UpdateTime (double mytime);
-
-
-							// STREAMING
-
-	virtual void StreamIN(ChStreamInBinary& mstream);
-	virtual void StreamOUT(ChStreamOutBinary& mstream);
-
+    virtual void StreamIN(ChStreamInBinary& mstream);
+    virtual void StreamOUT(ChStreamOutBinary& mstream);
 };
 
-
-
-
-
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

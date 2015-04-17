@@ -4,7 +4,7 @@
 // Copyright (c) 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -27,49 +27,42 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "assets/ChVisualization.h"
 #include "geometry/ChCRoundedBox.h"
 
+namespace chrono {
 
-namespace chrono
-{
-
-/// Class for referencing a rounded box shape that can be 
+/// Class for referencing a rounded box shape that can be
 /// visualized in some way.
 
 class ChApi ChRoundedBoxShape : public ChVisualization {
+  protected:
+    //
+    // DATA
+    //
+    geometry::ChRoundedBox groundedbox;
 
-protected:
-				//
-				// DATA
-				//
-	geometry::ChRoundedBox groundedbox;
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-				// CONSTRUCTORS
-				//
+    ChRoundedBoxShape() {}
+    ChRoundedBoxShape(geometry::ChRoundedBox& mcap) : groundedbox(mcap) {}
 
-	ChRoundedBoxShape() {}
-	ChRoundedBoxShape(geometry::ChRoundedBox& mcap) : groundedbox(mcap) {}
+    virtual ~ChRoundedBoxShape() {}
 
-	virtual ~ChRoundedBoxShape() {}
+    //
+    // FUNCTIONS
+    //
 
-				//
-				// FUNCTIONS
-				//
-
-			// Access the rounded box geometry
-	geometry::ChRoundedBox& GetRoundedBoxGeometry() {return groundedbox;}
-
+    // Access the rounded box geometry
+    geometry::ChRoundedBox& GetRoundedBoxGeometry() { return groundedbox; }
 };
 
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

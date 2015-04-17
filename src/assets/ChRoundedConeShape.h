@@ -4,7 +4,7 @@
 // Copyright (c) 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -27,49 +27,42 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "assets/ChVisualization.h"
 #include "geometry/ChCRoundedCone.h"
 
+namespace chrono {
 
-namespace chrono
-{
-
-/// Class for referencing a rounded cone shape that can be 
+/// Class for referencing a rounded cone shape that can be
 /// visualized in some way.
 
 class ChApi ChRoundedConeShape : public ChVisualization {
+  protected:
+    //
+    // DATA
+    //
+    geometry::ChRoundedCone groundedcone;
 
-protected:
-				//
-				// DATA
-				//
-	geometry::ChRoundedCone groundedcone;
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-				// CONSTRUCTORS
-				//
+    ChRoundedConeShape() {}
+    ChRoundedConeShape(geometry::ChRoundedCone& mcap) : groundedcone(mcap) {}
 
-	ChRoundedConeShape() {}
-	ChRoundedConeShape(geometry::ChRoundedCone& mcap) : groundedcone(mcap) {}
+    virtual ~ChRoundedConeShape() {}
 
-	virtual ~ChRoundedConeShape() {}
+    //
+    // FUNCTIONS
+    //
 
-				//
-				// FUNCTIONS
-				//
-
-			// Access the rounded cone geometry
-	geometry::ChRoundedCone& GetRoundedConeGeometry() {return groundedcone;}
-
+    // Access the rounded cone geometry
+    geometry::ChRoundedCone& GetRoundedConeGeometry() { return groundedcone; }
 };
 
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

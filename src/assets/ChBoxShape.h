@@ -4,7 +4,7 @@
 // Copyright (c) 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -16,7 +16,7 @@
 //
 //   ChBoxShape.h
 //
-//   Class for defining a box as an asset shape 
+//   Class for defining a box as an asset shape
 //   that can be visualized in some way.
 //
 //   HEADER file for CHRONO,
@@ -27,51 +27,42 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "assets/ChVisualization.h"
 #include "geometry/ChCBox.h"
 
-
-namespace chrono
-{
+namespace chrono {
 
 /// Class for a box shape that can be visualized
 /// in some way.
 
 class ChApi ChBoxShape : public ChVisualization {
+  protected:
+    //
+    // DATA
+    //
+    geometry::ChBox gbox;
 
-protected:
-				//
-	  			// DATA
-				//
-	geometry::ChBox gbox;	
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-	  			// CONSTRUCTORS
-				//
+    ChBoxShape(){};
+    ChBoxShape(geometry::ChBox& mbox) : gbox(mbox){};
 
-	ChBoxShape () {};
-	ChBoxShape (geometry::ChBox& mbox) : gbox(mbox) {};
+    virtual ~ChBoxShape(){};
 
-	virtual ~ChBoxShape () {};
+    //
+    // FUNCTIONS
+    //
 
-				//
-	  			// FUNCTIONS
-				//
-
-			// Access the sphere geometry
-	geometry::ChBox& GetBoxGeometry() {return gbox;}
-
+    // Access the sphere geometry
+    geometry::ChBox& GetBoxGeometry() { return gbox; }
 };
 
-
-
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

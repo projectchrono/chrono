@@ -4,7 +4,7 @@
 // Copyright (c) 2010 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -13,7 +13,7 @@
 #define CHCHRONO_H
 
 //////////////////////////////////////////////////
-//  
+//
 //   ChChrono.h
 //
 //   Generic header for Chrono API/SDK,
@@ -26,9 +26,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 //
-// Following is documentation for 1st page of SDK help, aimed at the Doxygen 
+// Following is documentation for 1st page of SDK help, aimed at the Doxygen
 // tool which builds the html/pdf/help by automatically scanning these
 // headers.
 //
@@ -40,11 +39,11 @@
  *
  * Welcome to the Chrono::Engine API/SDK documentation.
  * Here you'll find any information you'll need to develop applications with
- * the Chrono Engine. 
+ * the Chrono Engine.
  *
  * The Chrono::Engine is a C++ library of tools for physics simulation (multibody
- * dynamics, kinematics, etc.). This documentation is an important part of it. 
- * If you have any questions or suggestions, just send a email to the author 
+ * dynamics, kinematics, etc.). This documentation is an important part of it.
+ * If you have any questions or suggestions, just send a email to the author
  * of the engine, Alessandro Tasora (tasora (at) deltaknowledge.com).
  *
  *
@@ -57,7 +56,7 @@
  *
  * Everything in the engine is
  * placed into the namespace 'chrono'. All Chrono classes and functions should be
- * accessed with th e:: syntax, as: chrono::[class or functions here] . Of course, in 
+ * accessed with th e:: syntax, as: chrono::[class or functions here] . Of course, in
  * sake of a more compact syntax, you could avoid all the chrono::... typing by adding at the
  * beginning of your source code the following statement:
  *
@@ -66,9 +65,9 @@
  * \endcode
  *
  * There are also other namespaces.
- * You can find a list of all namespaces with descriptions at the 
- * <A HREF="namespaces.html"> namespaces page</A>. 
- * This is also a good place to start reading the documentation. 
+ * You can find a list of all namespaces with descriptions at the
+ * <A HREF="namespaces.html"> namespaces page</A>.
+ * This is also a good place to start reading the documentation.
  * If you don't want to write the namespace names all the time, just use all namespaces,
  * like in this example:
  * \code
@@ -82,16 +81,6 @@
  * a look into the 'demos' directory of the SDK, and read the tutorials.
  */
 
-
-namespace chrono
-{
-
-
-
-
-
-} // END_OF_NAMESPACE____
-
+namespace chrono {}  // END_OF_NAMESPACE____
 
 #endif  // END of header
-

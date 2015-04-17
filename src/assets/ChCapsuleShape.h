@@ -4,7 +4,7 @@
 // Copyright (c) 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -27,49 +27,42 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "assets/ChVisualization.h"
 #include "geometry/ChCCapsule.h"
 
+namespace chrono {
 
-namespace chrono
-{
-
-/// Class for referencing a capsule shape that can be 
+/// Class for referencing a capsule shape that can be
 /// visualized in some way.
 
 class ChApi ChCapsuleShape : public ChVisualization {
+  protected:
+    //
+    // DATA
+    //
+    geometry::ChCapsule gcapsule;
 
-protected:
-				//
-				// DATA
-				//
-	geometry::ChCapsule gcapsule;
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-				// CONSTRUCTORS
-				//
+    ChCapsuleShape() {}
+    ChCapsuleShape(geometry::ChCapsule& mcap) : gcapsule(mcap) {}
 
-	ChCapsuleShape() {}
-	ChCapsuleShape(geometry::ChCapsule& mcap) : gcapsule(mcap) {}
+    virtual ~ChCapsuleShape() {}
 
-	virtual ~ChCapsuleShape() {}
+    //
+    // FUNCTIONS
+    //
 
-				//
-				// FUNCTIONS
-				//
-
-			// Access the capsule geometry
-	geometry::ChCapsule& GetCapsuleGeometry() {return gcapsule;}
-
+    // Access the capsule geometry
+    geometry::ChCapsule& GetCapsuleGeometry() { return gcapsule; }
 };
 
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

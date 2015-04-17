@@ -4,13 +4,13 @@
 // Copyright (c) 1996, 2005, 2010 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
 //////////////////////////////////////////////////
-//  
+//
 //   ChMemory.h
 //
 //   Math functions for :
@@ -22,7 +22,7 @@
 // ------------------------------------------------
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-// 
+//
 // BASED ON:  mmgr.h  by Paul Nettle
 //
 // ------------------------------------------------
@@ -35,29 +35,28 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-#ifdef	new
-#undef	new
+#ifdef new
+#undef new
 #endif
 
-#ifdef	delete
-#undef	delete
+#ifdef delete
+#undef delete
 #endif
 
-#ifdef	malloc
-#undef	malloc
+#ifdef malloc
+#undef malloc
 #endif
 
-#ifdef	calloc
-#undef	calloc
+#ifdef calloc
+#undef calloc
 #endif
 
-#ifdef	realloc
-#undef	realloc
+#ifdef realloc
+#undef realloc
 #endif
 
-#ifdef	free
-#undef	free
+#ifdef free
+#undef free
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------------------

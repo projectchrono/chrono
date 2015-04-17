@@ -4,7 +4,7 @@
 // Copyright (c) 2011 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -18,108 +18,91 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "ChFunction_Repeat.h"
 
-
-namespace chrono
-{
-
+namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 ChClassRegister<ChFunction_Repeat> a_registration_repeat;
 
-
-void ChFunction_Repeat::Copy (ChFunction_Repeat* source)
-{
-	window_start = source->window_start;
-	window_length = source->window_length;
-	// fa = source->fa;		//***? shallow copy (now sharing same object)...
-	fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());	//***? ..or deep copy? make optional with flag?
+void ChFunction_Repeat::Copy(ChFunction_Repeat* source) {
+    window_start = source->window_start;
+    window_length = source->window_length;
+    // fa = source->fa;		//***? shallow copy (now sharing same object)...
+    fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
 }
 
-ChFunction* ChFunction_Repeat::new_Duplicate ()
-{
-	ChFunction_Repeat* m_func;
-	m_func = new ChFunction_Repeat;
-	m_func->Copy(this);
-	return (m_func);
+ChFunction* ChFunction_Repeat::new_Duplicate() {
+    ChFunction_Repeat* m_func;
+    m_func = new ChFunction_Repeat;
+    m_func->Copy(this);
+    return (m_func);
 }
 
-double ChFunction_Repeat::Get_y      (double x)
-{
-	return fa->Get_y(this->window_start + fmod(x,this->window_length) );
+double ChFunction_Repeat::Get_y(double x) {
+    return fa->Get_y(this->window_start + fmod(x, this->window_length));
 }
 
-void ChFunction_Repeat::Estimate_x_range (double& xmin, double& xmax)
-{
-	fa->Estimate_x_range(xmin,xmax);
+void ChFunction_Repeat::Estimate_x_range(double& xmin, double& xmax) {
+    fa->Estimate_x_range(xmin, xmax);
 }
 
-int ChFunction_Repeat::MakeOptVariableTree(ChList<chjs_propdata>* mtree)
-{
-	int i=0;
+int ChFunction_Repeat::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
+    int i = 0;
 
-	// inherit parent behaviour
-	ChFunction::MakeOptVariableTree(mtree);
+    // inherit parent behaviour
+    ChFunction::MakeOptVariableTree(mtree);
 
-	// expand tree for children..
+    // expand tree for children..
 
-	chjs_propdata* mdataA = new chjs_propdata;
-	strcpy(mdataA->propname, "fa");
-	strcpy(mdataA->label,    mdataA->propname);
-	mdataA->haschildren = TRUE;
-	mtree->AddTail(mdataA);
+    chjs_propdata* mdataA = new chjs_propdata;
+    strcpy(mdataA->propname, "fa");
+    strcpy(mdataA->label, mdataA->propname);
+    mdataA->haschildren = TRUE;
+    mtree->AddTail(mdataA);
 
-	i += this->fa->MakeOptVariableTree(&mdataA->children);
+    i += this->fa->MakeOptVariableTree(&mdataA->children);
 
-	return i;
+    return i;
 }
 
-void ChFunction_Repeat::StreamOUT(ChStreamOutBinary& mstream)
-{
-		// class version number
-	mstream.VersionWrite(1);
-		// serialize parent class too
-	ChFunction::StreamOUT(mstream);
+void ChFunction_Repeat::StreamOUT(ChStreamOutBinary& mstream) {
+    // class version number
+    mstream.VersionWrite(1);
+    // serialize parent class too
+    ChFunction::StreamOUT(mstream);
 
-		// stream out all member data
-	mstream << window_start;
-	mstream << window_length;
+    // stream out all member data
+    mstream << window_start;
+    mstream << window_length;
 
-	mstream.AbstractWrite(this->fa.get_ptr()); 
-	//***TODO*** better direct management of shared pointers serialization
+    mstream.AbstractWrite(this->fa.get_ptr());
+    //***TODO*** better direct management of shared pointers serialization
 }
 
-void ChFunction_Repeat::StreamIN(ChStreamInBinary& mstream)
-{
-		// class version number
-	int version = mstream.VersionRead();
-		// deserialize parent class too
-	ChFunction::StreamIN(mstream);
+void ChFunction_Repeat::StreamIN(ChStreamInBinary& mstream) {
+    // class version number
+    int version = mstream.VersionRead();
+    // deserialize parent class too
+    ChFunction::StreamIN(mstream);
 
-		// stream in all member data
-	mstream >> window_start;
-	mstream >> window_length;
+    // stream in all member data
+    mstream >> window_start;
+    mstream >> window_length;
 
-	ChFunction* fooshared;
-	mstream.AbstractReadCreate(&fooshared);	 // instance new
-	fa = ChSharedPtr<ChFunction>(fooshared); // swap old shared to new shared, may delete old
-	//***TODO*** better direct management of shared pointers serialization
+    ChFunction* fooshared;
+    mstream.AbstractReadCreate(&fooshared);   // instance new
+    fa = ChSharedPtr<ChFunction>(fooshared);  // swap old shared to new shared, may delete old
+                                              //***TODO*** better direct management of shared pointers serialization
 }
 
-void ChFunction_Repeat::StreamOUT(ChStreamOutAscii& mstream)
-{
-	mstream << "FUNCT_REPEAT  \n";
+void ChFunction_Repeat::StreamOUT(ChStreamOutAscii& mstream) {
+    mstream << "FUNCT_REPEAT  \n";
 
-	//***TO DO***
+    //***TO DO***
 }
 
-
-
-
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____
 
 // eof

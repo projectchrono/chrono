@@ -20,12 +20,12 @@ namespace chrono {
 /// generation.
 ///
 class ChApi ChMaterialSurfaceBase : public ChShared {
-public:
-  virtual void StreamOUT(ChStreamOutAscii& mstream) = 0;
-  virtual void StreamOUT(ChStreamOutBinary& mstream) = 0;
-  virtual void StreamIN(ChStreamInBinary& mstream) = 0;
+  public:
+    virtual void StreamOUT(ChStreamOutAscii& mstream) = 0;
+    virtual void StreamOUT(ChStreamOutBinary& mstream) = 0;
+    virtual void StreamIN(ChStreamInBinary& mstream) = 0;
 };
 
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

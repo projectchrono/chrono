@@ -4,7 +4,7 @@
 // Copyright (c) 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -16,7 +16,7 @@
 //
 //   ChRoundedCylinderShape.h
 //
-//   Class for defining a rounded cylinder as an 
+//   Class for defining a rounded cylinder as an
 //   asset shape that can be visualized in some way.
 //
 //   HEADER file for CHRONO,
@@ -27,49 +27,42 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "assets/ChVisualization.h"
 #include "geometry/ChCRoundedCylinder.h"
 
+namespace chrono {
 
-namespace chrono
-{
-
-/// Class for referencing a rounded cylinder shape that can be 
+/// Class for referencing a rounded cylinder shape that can be
 /// visualized in some way.
 
 class ChApi ChRoundedCylinderShape : public ChVisualization {
+  protected:
+    //
+    // DATA
+    //
+    geometry::ChRoundedCylinder groundedcyl;
 
-protected:
-				//
-				// DATA
-				//
-	geometry::ChRoundedCylinder groundedcyl;
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-				// CONSTRUCTORS
-				//
+    ChRoundedCylinderShape() {}
+    ChRoundedCylinderShape(geometry::ChRoundedCylinder& mcap) : groundedcyl(mcap) {}
 
-	ChRoundedCylinderShape() {}
-	ChRoundedCylinderShape(geometry::ChRoundedCylinder& mcap) : groundedcyl(mcap) {}
+    virtual ~ChRoundedCylinderShape() {}
 
-	virtual ~ChRoundedCylinderShape() {}
+    //
+    // FUNCTIONS
+    //
 
-				//
-				// FUNCTIONS
-				//
-
-			// Access the rounded cylinder geometry
-	geometry::ChRoundedCylinder& GetRoundedCylinderGeometry() {return groundedcyl;}
-
+    // Access the rounded cylinder geometry
+    geometry::ChRoundedCylinder& GetRoundedCylinderGeometry() { return groundedcyl; }
 };
 
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

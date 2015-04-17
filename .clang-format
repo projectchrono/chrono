@@ -7,6 +7,3 @@ ColumnLimit: 120
 IndentWidth: 4
 TabWidth: 4
 AccessModifierOffset: -2
-
-# Do not compact short functions into a single line
-AllowShortFunctionsOnASingleLine: false

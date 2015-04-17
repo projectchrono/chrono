@@ -16,12 +16,10 @@
 //
 // =============================================================================
 
-#include "ChUtilsData.h" 
-
+#include "ChUtilsData.h"
 
 namespace chrono {
 namespace utils {
-
 
 // -----------------------------------------------------------------------------
 // Functions for manipulating the track_data data directory
@@ -30,25 +28,20 @@ namespace utils {
 static std::string model_data_path("../data/track_data/");
 
 // Set the path to the ChronoT model data directory (ATTENTION: not thread safe)
-void SetModelDataPath(const std::string& path)
-{
-  model_data_path = path;
+void SetModelDataPath(const std::string& path) {
+    model_data_path = path;
 }
 
 // Obtain the current path to the ChronoT model data directory (thread safe)
-const std::string& GetModelDataPath()
-{
-  return model_data_path;
+const std::string& GetModelDataPath() {
+    return model_data_path;
 }
 
 // Obtain the complete path to the specified filename, given relative to the
 // ChronoT model data directory (thread safe)
-std::string GetModelDataFile(const std::string& filename)
-{
-  return model_data_path + filename;
+std::string GetModelDataFile(const std::string& filename) {
+    return model_data_path + filename;
 }
 
-
-} // end namespace utils
-} // end namespace chrono
-
+}  // end namespace utils
+}  // end namespace chrono

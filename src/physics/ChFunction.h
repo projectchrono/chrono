@@ -1,8 +1,7 @@
 #ifndef CHFUNCT_H
 #define CHFUNCT_H
 
-
-// 
+//
 // FOR BACKWARD COMPABILITY:  INCLUDE HEADERS OF 19 FUNCTIONS THAT ONCE WERE HERE IN SAME FILE
 //
 
@@ -26,6 +25,5 @@
 #include "motion_functions/ChFunction_Sequence.h"
 #include "motion_functions/ChFunction_Sigma.h"
 #include "motion_functions/ChFunction_Sine.h"
-
 
 #endif

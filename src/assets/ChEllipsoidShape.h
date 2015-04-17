@@ -4,7 +4,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -16,7 +16,7 @@
 //
 //   ChEllipsoidShape.h
 //
-//   Class for defining a sphere as an asset shape 
+//   Class for defining a sphere as an asset shape
 //   that can be visualized in some way.
 //
 //   HEADER file for CHRONO,
@@ -27,51 +27,42 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "assets/ChVisualization.h"
 #include "geometry/ChCEllipsoid.h"
 
+namespace chrono {
 
-namespace chrono
-{
-
-/// Class for referencing a sphere shape that can be 
+/// Class for referencing a sphere shape that can be
 /// visualized in some way.
 
 class ChApi ChEllipsoidShape : public ChVisualization {
+  protected:
+    //
+    // DATA
+    //
+    geometry::ChEllipsoid gellipsoid;
 
-protected:
-				//
-	  			// DATA
-				//
-	geometry::ChEllipsoid gellipsoid;
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-	  			// CONSTRUCTORS
-				//
+    ChEllipsoidShape(){};
+    ChEllipsoidShape(geometry::ChEllipsoid& mellipsoid) : gellipsoid(mellipsoid){};
 
-	ChEllipsoidShape () {};
-	ChEllipsoidShape (geometry::ChEllipsoid& mellipsoid) : gellipsoid(mellipsoid) {};
+    virtual ~ChEllipsoidShape(){};
 
-	virtual ~ChEllipsoidShape () {};
+    //
+    // FUNCTIONS
+    //
 
-				//
-	  			// FUNCTIONS
-				//
-
-			// Access the sphere geometry
-	geometry::ChEllipsoid& GetEllipsoidGeometry() {return gellipsoid;}
-
+    // Access the sphere geometry
+    geometry::ChEllipsoid& GetEllipsoidGeometry() { return gellipsoid; }
 };
 
-
-
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

@@ -4,7 +4,7 @@
 // Copyright (c) 2012 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -16,7 +16,7 @@
 //
 //   ChCylinderShape.h
 //
-//   Class for defining a cylinder as an asset shape 
+//   Class for defining a cylinder as an asset shape
 //   that can be visualized in some way.
 //
 //   HEADER file for CHRONO,
@@ -27,51 +27,42 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "assets/ChVisualization.h"
 #include "geometry/ChCCylinder.h"
 
+namespace chrono {
 
-namespace chrono
-{
-
-/// Class for referencing a cylinder shape that can be 
+/// Class for referencing a cylinder shape that can be
 /// visualized in some way.
 
 class ChApi ChCylinderShape : public ChVisualization {
+  protected:
+    //
+    // DATA
+    //
+    geometry::ChCylinder gcylinder;
 
-protected:
-				//
-	  			// DATA
-				//
-	geometry::ChCylinder gcylinder;	
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-public:
-				//
-	  			// CONSTRUCTORS
-				//
+    ChCylinderShape(){};
+    ChCylinderShape(geometry::ChCylinder& mcyl) : gcylinder(mcyl){};
 
-	ChCylinderShape () {};
-	ChCylinderShape (geometry::ChCylinder& mcyl) : gcylinder(mcyl) {};
+    virtual ~ChCylinderShape(){};
 
-	virtual ~ChCylinderShape () {};
+    //
+    // FUNCTIONS
+    //
 
-				//
-	  			// FUNCTIONS
-				//
-
-			// Access the sphere geometry
-	geometry::ChCylinder& GetCylinderGeometry() {return gcylinder;}
-
+    // Access the sphere geometry
+    geometry::ChCylinder& GetCylinderGeometry() { return gcylinder; }
 };
 
-
-
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-} // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
 
 #endif

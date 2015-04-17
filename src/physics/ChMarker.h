@@ -4,7 +4,7 @@
 // Copyright (c) 2010 Alessandro Tasora
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -28,7 +28,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include <stdlib.h>
 #include <iostream>
 
@@ -39,16 +38,10 @@
 #include "physics/ChFunction.h"
 #include "physics/ChObject.h"
 
-
-
-
-namespace chrono
-{
-
+namespace chrono {
 
 // Forward reference
 class ChBody;
-
 
 #define CHCLASS_MARKER 5
 
@@ -63,259 +56,228 @@ class ChBody;
 /// motion law of marker respect to parent ChBody, if
 /// needed to represent imposed trajectories etc.
 
-class ChApi ChMarker : public ChObj, public ChFrameMoving<double>  {
+class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChMarker, ChObj);
 
-							// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChMarker,ChObj);
+    //
+    // DATA
+    //
 
+  public:
+    enum eChMarkerMotion {
+        /// Uses it's own  x,y,z,angle ch functions (default)
+        M_MOTION_FUNCTIONS = 0,
+        /// The marker is moved via external functions, for examples
+        /// Real3d keyframing, so backward dirrerentiation will be used
+        /// to guess derivatives.
+        M_MOTION_KEYFRAMED = 1,
+        /// Someone (i.e. a constraint object) is moving the marker and
+        /// will also provide the correct derivatives.
+        M_MOTION_EXTERNAL = 2,
+    };
 
-				//
-	  			// DATA
-				//
+  private:
+    /// The way the motion of this marker (if any) is handled.
+    eChMarkerMotion motion_type;
 
+    ChFunction* motion_X;    // user imposed motion for X coord, body relative
+    ChFunction* motion_Y;    // user imposed motion for Y coord, body relative
+    ChFunction* motion_Z;    // user imposed motion for Z coord, body relative
+    ChFunction* motion_ang;  // user imposed angle rotation about axis
+    Vector motion_axis;      // this is the axis for the user imposed rotation
 
-public:
-	enum eChMarkerMotion {
-							/// Uses it's own  x,y,z,angle ch functions (default)
-		M_MOTION_FUNCTIONS =0,
-							/// The marker is moved via external functions, for examples
-							/// Real3d keyframing, so backward dirrerentiation will be used
-							/// to guess derivatives.
-		M_MOTION_KEYFRAMED =1,
-							/// Someone (i.e. a constraint object) is moving the marker and
-							/// will also provide the correct derivatives.
-		M_MOTION_EXTERNAL  =2,
-	};
+    ChBody* Body;  // points to parent body
 
-private:
-							/// The way the motion of this marker (if any) is handled.
- 	eChMarkerMotion motion_type;
+    Coordsys rest_coord;  // relative resting position for the
+                          // coordsys, for function=0.
 
-	ChFunction* motion_X;	// user imposed motion for X coord, body relative
-	ChFunction* motion_Y;	// user imposed motion for Y coord, body relative
-	ChFunction* motion_Z;	// user imposed motion for Z coord, body relative
-	ChFunction* motion_ang;	// user imposed angle rotation about axis
-	Vector		motion_axis;// this is the axis for the user imposed rotation
+    Coordsys last_rel_coord;     // These values are set for each marker update, and are
+    Coordsys last_rel_coord_dt;  // used internally to guess if there's some external routine
+    double last_time;            // which moves the marker, so marker motion is guessed by BDF.
 
+    // Auxiliary variables, computed after Updating functions..
 
-	ChBody* Body;			// points to parent body
+    /// Absolute position of frame (frame translation and rotation
+    /// expressed in absolute coordinate system).
+    /// This is computed at each Update() call. Useful for high
+    /// performance reasons.
+    ChFrameMoving<double> abs_frame;
 
-	Coordsys rest_coord;	// relative resting position for the
-							// coordsys, for function=0.
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-	Coordsys last_rel_coord;	// These values are set for each marker update, and are
-	Coordsys last_rel_coord_dt;	// used internally to guess if there's some external routine
-	double last_time;			// which moves the marker, so marker motion is guessed by BDF.
+    ChMarker();
 
+    ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys myrel_pos_dt, Coordsys myrel_pos_dtdt);
 
-						// Auxiliary variables, computed after Updating functions..
+    ~ChMarker();
 
-							/// Absolute position of frame (frame translation and rotation
-							/// expressed in absolute coordinate system).
-							/// This is computed at each Update() call. Useful for high
-							/// performance reasons.
-	ChFrameMoving<double> abs_frame;
+    void Copy(ChMarker* source);
 
+    //
+    // FUNCTIONS
+    //
 
-public:
+    /// Gets the address of the parent rigid body.
+    ChBody* GetBody() const { return Body; }
+    /// Sets the parent rigid body.
+    void SetBody(ChBody* newRB) { Body = newRB; }
 
-			//
-			// CONSTRUCTORS
-			//
+    /// Set body-relative coord. and update auxiliary variables
+    /// Also, current position becomes the 'resting position' coordinates
+    /// for the current time.
+    void Impose_Rel_Coord(const Coordsys& m_coord);
 
-	ChMarker ();
+    /// Set absolute coordinates  and update auxiliary variables
+    /// Also, current position becomes the 'resting position' coordinates
+    /// for the current time.
+    void Impose_Abs_Coord(const Coordsys& m_coord);
 
-	ChMarker (char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys myrel_pos_dt, Coordsys myrel_pos_dtdt);
+    /// Get the 'resting position' (that is, the position which the
+    /// marker should have when the x,y,z motion laws are at time=0).
+    const Coordsys& GetRest_Coord() const { return rest_coord; }
 
-	~ChMarker ();
+    //
+    // Body-relative coordinates
+    //
 
-	void Copy(ChMarker* source);
+    // No functions here...
+    //  In order to get/set  body-relative coordinates,
+    // you can use the methods of the ChFrameMoving parent
+    // class: for example use  my_marker->SetCoord(newpos) to
+    // impose a new position&rotation, etc.
+    //  NOTE!! after each modification of the frame position,
+    // speed, acceleration etc., you should remember to call UpdateState()
+    // if you want to kee updated also the absolute coordinates , ie. the
+    // auxiliary structure to get with GetAbsFrame().
 
+    //
+    // Absolute coordinates (auxiliary data)
+    //
 
-
-			//
-			// FUNCTIONS
-			//
-
-				/// Gets the address of the parent rigid body.
-	ChBody* GetBody () const { return Body;}
-				/// Sets the parent rigid body.
-	void SetBody (ChBody* newRB) {Body= newRB;}
-
-
-
-				/// Set body-relative coord. and update auxiliary variables
-				/// Also, current position becomes the 'resting position' coordinates
-				/// for the current time.
-	void Impose_Rel_Coord (const Coordsys& m_coord);
-
-				/// Set absolute coordinates  and update auxiliary variables
-				/// Also, current position becomes the 'resting position' coordinates
-				/// for the current time.
-	void Impose_Abs_Coord (const Coordsys& m_coord);
-
-
-				/// Get the 'resting position' (that is, the position which the
-				/// marker should have when the x,y,z motion laws are at time=0).
-	const Coordsys& GetRest_Coord() const {return rest_coord;}
-
-
-			//
-			// Body-relative coordinates
-			//
-
-				// No functions here...
-				//  In order to get/set  body-relative coordinates,
-				// you can use the methods of the ChFrameMoving parent
-				// class: for example use  my_marker->SetCoord(newpos) to
-				// impose a new position&rotation, etc.
-				//  NOTE!! after each modification of the frame position,
-				// speed, acceleration etc., you should remember to call UpdateState()
-				// if you want to kee updated also the absolute coordinates , ie. the
-				// auxiliary structure to get with GetAbsFrame().
-
-
-
-			//
-			// Absolute coordinates (auxiliary data)
-			//
-
-				/// Get reference to the inner 'absolute frame' auxiliary
-				/// coordinates. This object (coordinates/speeds/accel. of marker
-				/// expressed in absolute coordinates) is useful for performace
-				/// reasons. Note! it is updated only after each Update() function.
+    /// Get reference to the inner 'absolute frame' auxiliary
+    /// coordinates. This object (coordinates/speeds/accel. of marker
+    /// expressed in absolute coordinates) is useful for performace
+    /// reasons. Note! it is updated only after each Update() function.
     const ChFrameMoving<double>& GetAbsFrame() const { return abs_frame; }
 
-				/// Get the translation and rotation (as a ChCoordsys) of the marker
-				/// respect to the absolute coordinates.
+    /// Get the translation and rotation (as a ChCoordsys) of the marker
+    /// respect to the absolute coordinates.
     const Coordsys& GetAbsCoord() const { return abs_frame.GetCoord(); }
 
-				/// Get the speed of translation and rotation (as a derived ChCoordsys)
-				/// of the marker respect to the absolute coordinates.
+    /// Get the speed of translation and rotation (as a derived ChCoordsys)
+    /// of the marker respect to the absolute coordinates.
     const Coordsys& GetAbsCoord_dt() const { return abs_frame.GetCoord_dt(); }
 
-				/// Get the acceleration of translation and rotation (as a derived ChCoordsys)
-				/// of the marker respect to the absolute coordinates.
+    /// Get the acceleration of translation and rotation (as a derived ChCoordsys)
+    /// of the marker respect to the absolute coordinates.
     const Coordsys& GetAbsCoord_dtdt() const { return abs_frame.GetCoord_dtdt(); }
 
-				/// Set the translation and rotation (as a ChCoordsys) of the marker
-				/// respect to the absolute coordinates.
-				/// NOTE! inner use only, for the moment. Use  Impose_Abs_Coord() if needed.
+    /// Set the translation and rotation (as a ChCoordsys) of the marker
+    /// respect to the absolute coordinates.
+    /// NOTE! inner use only, for the moment. Use  Impose_Abs_Coord() if needed.
     void SetAbsCoord(const Coordsys& newpos) { abs_frame.SetCoord(newpos); }
-				/// Set the speed of translation and rotation (as a ChCoordsys) of the marker
-				/// respect to the absolute coordinates.
-				/// NOTE! inner use only, for the moment.
+    /// Set the speed of translation and rotation (as a ChCoordsys) of the marker
+    /// respect to the absolute coordinates.
+    /// NOTE! inner use only, for the moment.
     void SetAbsCoord_dt(const Coordsys& newpos_dt) { abs_frame.SetCoord(newpos_dt); }
-				/// Set the speed of translation and rotation (as a ChCoordsys) of the marker
-				/// respect to the absolute coordinates.
-				/// NOTE! inner use only, for the moment.
+    /// Set the speed of translation and rotation (as a ChCoordsys) of the marker
+    /// respect to the absolute coordinates.
+    /// NOTE! inner use only, for the moment.
     void SetAbsCoord_dtdt(const Coordsys& newpos_dtdt) { abs_frame.SetCoord(newpos_dtdt); }
 
-				/// Get the angular speed respect to absolute coordinates,
-				/// expressed in  absolute coordinates.
+    /// Get the angular speed respect to absolute coordinates,
+    /// expressed in  absolute coordinates.
     Vector GetAbsWvel() const { return abs_frame.GetWvel_par(); }
 
-				/// Get the angular acceleration respect to absolute coordinates,
-				/// expressed in  absolute coordinates.
+    /// Get the angular acceleration respect to absolute coordinates,
+    /// expressed in  absolute coordinates.
     Vector GetAbsWacc() const { return abs_frame.GetWacc_par(); }
 
+    //
+    // Imposed motion
+    //
 
+    /// Set the imposed motion law, for translation on X body axis
+    void SetMotion_X(ChFunction* m_funct);
+    /// Set the imposed motion law, for translation on Y body axis
+    void SetMotion_Y(ChFunction* m_funct);
+    /// Set the imposed motion law, for translation on Z body axis
+    void SetMotion_Z(ChFunction* m_funct);
+    /// Set the imposed motion law, for rotation about an axis
+    void SetMotion_ang(ChFunction* m_funct);
+    /// Set the axis of rotation, if rotation motion law is used.
+    void SetMotion_axis(Vector m_axis);
 
-			//
-			// Imposed motion
-			//
+    /// The imposed motion law, for translation on X body axis
+    ChFunction* GetMotion_X() { return motion_X; };
+    /// The imposed motion law, for translation on Y body axis
+    ChFunction* GetMotion_Y() { return motion_Y; };
+    /// The imposed motion law, for translation on Z body axis
+    ChFunction* GetMotion_Z() { return motion_Z; };
+    /// The imposed motion law, for rotation about an axis
+    ChFunction* GetMotion_ang() { return motion_ang; };
+    /// Get the axis of rotation, if rotation motion law is used.
+    Vector GetMotion_axis() { return motion_axis; };
 
-				/// Set the imposed motion law, for translation on X body axis
-	void SetMotion_X	(ChFunction* m_funct);
-				/// Set the imposed motion law, for translation on Y body axis
-	void SetMotion_Y	(ChFunction* m_funct);
-				/// Set the imposed motion law, for translation on Z body axis
-	void SetMotion_Z	(ChFunction* m_funct);
-				/// Set the imposed motion law, for rotation about an axis
-	void SetMotion_ang	(ChFunction* m_funct);
-				/// Set the axis of rotation, if rotation motion law is used.
-	void SetMotion_axis (Vector m_axis);
+    /// Sets the way the motion of this marker (if any) is handled (see
+    /// the eChMarkerMotion enum options).
+    void SetMotionType(eChMarkerMotion m_motion) { motion_type = m_motion; };
 
-				/// The imposed motion law, for translation on X body axis
-	ChFunction* GetMotion_X() {return motion_X;};
-				/// The imposed motion law, for translation on Y body axis
-	ChFunction* GetMotion_Y() {return motion_Y;};
-				/// The imposed motion law, for translation on Z body axis
-	ChFunction* GetMotion_Z() {return motion_Z;};
-				/// The imposed motion law, for rotation about an axis
-	ChFunction* GetMotion_ang() {return motion_ang;};
-				/// Get the axis of rotation, if rotation motion law is used.
-	Vector GetMotion_axis() {return motion_axis;};
+    /// Gets the way the motion of this marker (if any) is handled (see
+    /// the eChMarkerMotion enum options).
+    eChMarkerMotion GetMotionType() { return motion_type; }
 
+    //
+    // UPDATING
+    //
 
-				/// Sets the way the motion of this marker (if any) is handled (see
-				/// the eChMarkerMotion enum options).
-	void SetMotionType (eChMarkerMotion m_motion) {motion_type = m_motion;};
+    /// Updates the time.dependant variables (ex: ChFunction objects
+    /// which impose the body-relative motion, etc.)
+    void UpdateTime(double mytime);
 
-				/// Gets the way the motion of this marker (if any) is handled (see
-				/// the eChMarkerMotion enum options).
-	eChMarkerMotion GetMotionType () {return motion_type;}
+    /// Given current state, updates auxiliary variables (for example
+    /// the abs_frame data, containing the absolute pos/speed/acc of
+    /// the marker.
+    void UpdateState();
 
+    /// Both UpdateTime() and UpdateState() at once.
+    void Update(double mytime);
 
+    /// Someone (ex. an ChExternalObject() ) may send this message to
+    /// the marker to tell that time has changed (even if simulation is
+    /// not running! - so it is different from the usual UpdateTime() -)
+    void UpdatedExternalTime(double prevtime, double mtime);
 
+    //
+    // UTILITIES
+    //
 
-			//
-			// UPDATING
-			//
+    Vector Point_World2Ref(Vector* mpoint);
+    Vector Point_Ref2World(Vector* mpoint);
+    Vector Dir_World2Ref(Vector* mpoint);
+    Vector Dir_Ref2World(Vector* mpoint);
 
-				/// Updates the time.dependant variables (ex: ChFunction objects
-				/// which impose the body-relative motion, etc.)
-	void UpdateTime (double mytime);
+    //
+    // STREAMING
+    //
 
-				/// Given current state, updates auxiliary variables (for example
-				/// the abs_frame data, containing the absolute pos/speed/acc of
-				/// the marker.
-	void UpdateState ();
+    /// Method to allow serialization of transient data in ascii,
+    /// as a readable item, for example   "chrono::GetLog() << myobject;"
+    void StreamOUT(ChStreamOutAscii& mstream);
 
-				/// Both UpdateTime() and UpdateState() at once.
-	void Update (double mytime);
+    /// Method to allow deserializing a persistent binary archive (ex: a file)
+    /// into transient data.
+    void StreamIN(ChStreamInBinary& mstream);
 
-
-
-					/// Someone (ex. an ChExternalObject() ) may send this message to
-					/// the marker to tell that time has changed (even if simulation is
-					/// not running! - so it is different from the usual UpdateTime() -)
-	void UpdatedExternalTime (double prevtime, double mtime);
-
-			//
-			// UTILITIES
-			//
-
-	Vector Point_World2Ref (Vector* mpoint);
-	Vector Point_Ref2World (Vector* mpoint);
-	Vector Dir_World2Ref (Vector* mpoint);
-	Vector Dir_Ref2World (Vector* mpoint);
-
-
-			//
-			// STREAMING
-			//
-
-				/// Method to allow serialization of transient data in ascii,
-				/// as a readable item, for example   "chrono::GetLog() << myobject;"
-	void StreamOUT(ChStreamOutAscii& mstream);
-
-				/// Method to allow deserializing a persistent binary archive (ex: a file)
-				/// into transient data.
-	void StreamIN(ChStreamInBinary& mstream);
-
-				/// Method to allow serializing transient data into a persistent
-				/// binary archive (ex: a file).
-	void StreamOUT(ChStreamOutBinary& mstream);
-
-
+    /// Method to allow serializing transient data into a persistent
+    /// binary archive (ex: a file).
+    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
-
-
-
-
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____
 
 #endif

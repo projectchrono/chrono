@@ -10,49 +10,35 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-
-
 #include "unit_FEA/ChLinkPointFrame.h"
 #include "physics/ChSystem.h"
 #include "physics/ChIndexedNodes.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
-
 using namespace chrono;
 using namespace fea;
-
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 ChClassRegister<ChLinkPointFrame> a_registration_ChLinkPointFrame;
 
-
-
 //////////////////////////////////////
 //////////////////////////////////////
 
-
-
-ChLinkPointFrame::ChLinkPointFrame ()
-{
+ChLinkPointFrame::ChLinkPointFrame() {
 	this->react= VNULL;
 	this->cache_li_speed = VNULL;
 	this->cache_li_pos = VNULL;
 	this->attach_reference = CSYSNORM;
 
 	SetIdentifier(GetUniqueIntID()); // mark with unique ID
-
 }
 
-
-ChLinkPointFrame::~ChLinkPointFrame ()
-{
-	
+ChLinkPointFrame::~ChLinkPointFrame() {
 }
 
-void ChLinkPointFrame::Copy(ChLinkPointFrame* source)
-{
+void ChLinkPointFrame::Copy(ChLinkPointFrame* source) {
 		// copy the parent class data...
 	ChPhysicsItem::Copy(source);
 
@@ -63,40 +49,32 @@ void ChLinkPointFrame::Copy(ChLinkPointFrame* source)
 	cache_li_pos = source->cache_li_pos;
 }
 
-ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords()
-{
-	if (this->body)
-	{
+ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
+    if (this->body) {
 		ChCoordsys<> linkcsys = attach_reference >> (*this->body);
 		return linkcsys;
 	}
 	return CSYSNORM;
 }
 
-
-
 int ChLinkPointFrame::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container
 						   unsigned int mnode_index, ///< index of the node to join
 						   ChSharedPtr<ChBodyFrame>  mbody,   ///< body to join 
-						   ChVector<>* mattach 	
-						   )
-{
+                                 ChVector<>* mattach) {
 	assert(!mnodes.IsNull());
 
 	ChSharedPtr<ChNodeFEAxyz> anode(mnodes->GetNode(mnode_index).DynamicCastTo<ChNodeFEAxyz>() ); // downcasting
 	
 	if (anode.IsNull()) 
-		return false; // downcasting wasn't successfull (in a ChIndexedNodes, different types of nodes could be present..)
+        return false;  // downcasting wasn't successfull (in a ChIndexedNodes, different types of nodes could be
+                       // present..)
 
 	return this->Initialize(anode, mbody, mattach);
 }
 
-
 int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to join
 						   ChSharedPtr<ChBodyFrame>  mbody,		///< body to join 
-						   ChVector<>* mattach 	
-						   )
-{
+                                 ChVector<>* mattach) {
 	assert(!anode.IsNull() && !mbody.IsNull());
 
 	this->body = mbody;
@@ -108,14 +86,12 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to 
 
 	//this->SetSystem(this->body->GetSystem());
 
-	if (mattach)
-	{
+    if (mattach) {
 		this->attach_reference.pos = body->TransformPointParentToLocal(*mattach);
-	}
-	else
-	{
+    } else {
 		// downcasting
-		if (mnode.IsNull()) return false;
+        if (mnode.IsNull())
+            return false;
 
 		ChVector<> temp= mnode->GetPos(); 
 		this->attach_reference.pos = body->TransformPointParentToLocal(temp);
@@ -124,10 +100,7 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to 
 	return true;
 }
 
-
-
-void ChLinkPointFrame::Update(double mytime, bool update_assets)
-{
+void ChLinkPointFrame::Update(double mytime, bool update_assets) {
   // Inherit time changes of parent class
   ChPhysicsItem::Update(mytime, update_assets);
 
@@ -135,30 +108,25 @@ void ChLinkPointFrame::Update(double mytime, bool update_assets)
   // ...
 }
 
-
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChLinkPointFrame::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
-{
+void ChLinkPointFrame::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
 	L(off_L+0) = this->react.x;
 	L(off_L+1) = this->react.y;
 	L(off_L+2) = this->react.z;
 }
 
-void ChLinkPointFrame::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
-{
+void ChLinkPointFrame::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
 	this->react.x = L(off_L+0);
 	this->react.y = L(off_L+1);
 	this->react.z = L(off_L+2);
 }
 
-void ChLinkPointFrame::IntLoadResidual_CqL(
-					const unsigned int off_L,	 ///< offset in L multipliers
+void ChLinkPointFrame::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
 					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
 					const ChVectorDynamic<>& L,  ///< the L vector 
 					const double c				 ///< a scaling factor
-					)
-{
+                                           ) {
 	if (!IsActive())
     return;
 
@@ -167,14 +135,12 @@ void ChLinkPointFrame::IntLoadResidual_CqL(
 	constraint3.MultiplyTandAdd(R, L(off_L+2) *c);
 }
 
-void ChLinkPointFrame::IntLoadConstraint_C(
-					const unsigned int off_L,	 ///< offset in Qc residual
+void ChLinkPointFrame::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
 					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
 					const double c,				 ///< a scaling factor
 					bool do_clamp,				 ///< apply clamping to c*C?
 					double recovery_clamp		 ///< value for min/max clamping of c*C
-					)
-{
+                                           ) {
 	if (!IsActive())
     return;
 
@@ -193,15 +159,12 @@ void ChLinkPointFrame::IntLoadConstraint_C(
 	Qc(off_L+2) += cres.z;
 }
 
-void ChLinkPointFrame::IntToLCP(
-					const unsigned int off_v,			///< offset in v, R
+void ChLinkPointFrame::IntToLCP(const unsigned int off_v,  ///< offset in v, R
 					const ChStateDelta& v,
 					const ChVectorDynamic<>& R,
 					const unsigned int off_L,			///< offset in L, Qc
 					const ChVectorDynamic<>& L,
-					const ChVectorDynamic<>& Qc
-					)
-{
+                                const ChVectorDynamic<>& Qc) {
 	if (!IsActive())
     return;
 
@@ -214,13 +177,10 @@ void ChLinkPointFrame::IntToLCP(
 	constraint3.Set_b_i(Qc(off_L+2));
 }
 
-void ChLinkPointFrame::IntFromLCP(
-					const unsigned int off_v,			///< offset in v
+void ChLinkPointFrame::IntFromLCP(const unsigned int off_v,  ///< offset in v
 					ChStateDelta& v,
 					const unsigned int off_L,			///< offset in L
-					ChVectorDynamic<>& L
-					)
-{
+                                  ChVectorDynamic<>& L) {
 	if (!IsActive())
     return;
 
@@ -229,12 +189,9 @@ void ChLinkPointFrame::IntFromLCP(
 	L(off_L+2)=constraint3.Get_l_i();
 }
 
-
 ////////// LCP INTERFACES ////
 
-
-void ChLinkPointFrame::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
-{
+void ChLinkPointFrame::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
 	//if (!this->IsActive())
 	//	return;
 
@@ -243,15 +200,13 @@ void ChLinkPointFrame::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 	mdescriptor.InsertConstraint(&constraint3);
 }
 
-void ChLinkPointFrame::ConstraintsBiReset()
-{
+void ChLinkPointFrame::ConstraintsBiReset() {
 	constraint1.Set_b_i(0.);
 	constraint2.Set_b_i(0.);
 	constraint3.Set_b_i(0.);
 }
  
-void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp)
-{
+void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
 	//if (!this->IsActive())
 	//	return;
 
@@ -267,17 +222,14 @@ void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp,
 	this->constraint3.Set_b_i(constraint3.Get_b_i() +  factor * res.z);
 }
 
-void ChLinkPointFrame::ConstraintsBiLoad_Ct(double factor)
-{
+void ChLinkPointFrame::ConstraintsBiLoad_Ct(double factor) {
 	//if (!this->IsActive())
 	//	return;
 
 	// nothing
 }
 
-
-void ChLinkPointFrame::ConstraintsLoadJacobians()
-{
+void ChLinkPointFrame::ConstraintsLoadJacobians() {
 		// compute jacobians
 	ChMatrix33<> Aro (attach_reference.rot); 
 	ChMatrix33<> Aow (body->GetRot());
@@ -305,12 +257,9 @@ void ChLinkPointFrame::ConstraintsLoadJacobians()
 	this->constraint1.Get_Cq_b()->PasteClippedMatrix(&Jrb, 0,0, 1,3, 0,3);
 	this->constraint2.Get_Cq_b()->PasteClippedMatrix(&Jrb, 1,0, 1,3, 0,3);
 	this->constraint3.Get_Cq_b()->PasteClippedMatrix(&Jrb, 2,0, 1,3, 0,3);
-
 }
  
-
-void ChLinkPointFrame::ConstraintsFetch_react(double factor)
-{
+void ChLinkPointFrame::ConstraintsFetch_react(double factor) {
 	// From constraints to react vector:
 	this->react.x = constraint1.Get_l_i() * factor; 
 	this->react.y = constraint2.Get_l_i() * factor; 
@@ -319,40 +268,33 @@ void ChLinkPointFrame::ConstraintsFetch_react(double factor)
 
 // Following functions are for exploiting the contact persistence
 
-void  ChLinkPointFrame::ConstraintsLiLoadSuggestedSpeedSolution()
-{
+void ChLinkPointFrame::ConstraintsLiLoadSuggestedSpeedSolution() {
 	constraint1.Set_l_i(this->cache_li_speed.x);
 	constraint2.Set_l_i(this->cache_li_speed.y);
 	constraint3.Set_l_i(this->cache_li_speed.z);
 }
 
-void  ChLinkPointFrame::ConstraintsLiLoadSuggestedPositionSolution()
-{
+void ChLinkPointFrame::ConstraintsLiLoadSuggestedPositionSolution() {
 	constraint1.Set_l_i(this->cache_li_pos.x);
 	constraint2.Set_l_i(this->cache_li_pos.y);
 	constraint3.Set_l_i(this->cache_li_pos.z);
 }
 
-void  ChLinkPointFrame::ConstraintsLiFetchSuggestedSpeedSolution()
-{
+void ChLinkPointFrame::ConstraintsLiFetchSuggestedSpeedSolution() {
 	this->cache_li_speed.x = (float)constraint1.Get_l_i();
 	this->cache_li_speed.y = (float)constraint2.Get_l_i();
 	this->cache_li_speed.z = (float)constraint3.Get_l_i();
 }
 
-void  ChLinkPointFrame::ConstraintsLiFetchSuggestedPositionSolution()
-{
+void ChLinkPointFrame::ConstraintsLiFetchSuggestedPositionSolution() {
 	this->cache_li_pos.x =  (float)constraint1.Get_l_i();
 	this->cache_li_pos.y =  (float)constraint2.Get_l_i();
 	this->cache_li_pos.z =  (float)constraint3.Get_l_i();
 }
 
-
-
 //////// FILE I/O
 
-void ChLinkPointFrame::StreamOUT(ChStreamOutBinary& mstream)
-{
+void ChLinkPointFrame::StreamOUT(ChStreamOutBinary& mstream) {
 			// class version number
 	mstream.VersionWrite(1);
 
@@ -365,8 +307,7 @@ void ChLinkPointFrame::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << this->react;
 }
 
-void ChLinkPointFrame::StreamIN(ChStreamInBinary& mstream)
-{
+void ChLinkPointFrame::StreamIN(ChStreamInBinary& mstream) {
 		// class version number
 	int version = mstream.VersionRead();
 
@@ -378,9 +319,5 @@ void ChLinkPointFrame::StreamIN(ChStreamInBinary& mstream)
 	mstream >> this->attach_reference;
 	mstream >> this->react;
 }
-
-
-
-
 
 /////////////////////

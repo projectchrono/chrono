@@ -5,7 +5,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -29,14 +29,12 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include <vector>
 #include "ChLcpConstraint.h"
 #include "ChLcpVariables.h"
 #include "ChLcpSystemDescriptor.h"
 
-namespace chrono
-{
+namespace chrono {
 
 ///  Base class for solvers aimed at solving
 /// LCP linear complementarity problems arising
@@ -46,65 +44,56 @@ namespace chrono
 /// such as simplex, iterative SOR, etc.
 ///  The problem is described by a variational inequality VI(Z*x-d,K):
 ///
-///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y  
-///  | Cq -E | |l|  |-b|  |c|    
+///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
+///  | Cq -E | |l|  |-b|  |c|
 ///
-/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|  
+/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|
 ///                                           |Cq  E | |-l| |-b| |c|
 /// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
 
-class ChApi ChLcpSolver
-{
-public:
-			//
-			// DATA
-			//
+class ChApi ChLcpSolver {
+  public:
+    //
+    // DATA
+    //
 
-	bool verbose;
+    bool verbose;
 
-			//
-			// CONSTRUCTORS
-			//
+    //
+    // CONSTRUCTORS
+    //
 
-	ChLcpSolver() { verbose = false; };
+    ChLcpSolver() { verbose = false; };
 
-	virtual ~ChLcpSolver() {};
+    virtual ~ChLcpSolver(){};
 
-			//
-			// FUNCTIONS
-			//
+    //
+    // FUNCTIONS
+    //
 
-			// --Following functions are generic interfaces to the LCP solver. The
-			//   Solve() function is a pure virtual method, so it MUST be implemented
-			//   by specialized child classes:
+    // --Following functions are generic interfaces to the LCP solver. The
+    //   Solve() function is a pure virtual method, so it MUST be implemented
+    //   by specialized child classes:
 
-				/// Performs the solution of the LCP.
-				/// You must provide a system description using ChLcpSystemDescriptor.
-				/// This function MUST be implemented in children classes, with specialized 
-				/// methods such as iterative schemes, simplex schemes, fixed point algorithms, etc.
-				/// \return  the maximum constraint violation after termination.
+    /// Performs the solution of the LCP.
+    /// You must provide a system description using ChLcpSystemDescriptor.
+    /// This function MUST be implemented in children classes, with specialized
+    /// methods such as iterative schemes, simplex schemes, fixed point algorithms, etc.
+    /// \return  the maximum constraint violation after termination.
 
-	virtual double Solve(
-				ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	 
-				) = 0;
+    virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+                         ) = 0;
 
+    //
+    // Utility functions
+    //
 
-			//
-			// Utility functions
-			//
-
-	void SetVerbose(bool mv) {this->verbose = mv;}
-	bool GetVerbose() {return this->verbose;}
-
+    void SetVerbose(bool mv) { this->verbose = mv; }
+    bool GetVerbose() { return this->verbose; }
 };
 
-
-
-} // END_OF_NAMESPACE____
-
-
-
+}  // END_OF_NAMESPACE____
 
 #endif  // END of ChLcpSolver.h

@@ -4,12 +4,11 @@
 // Copyright (c) 2014 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
 // Author: Justin Madsen
-
 
 #ifndef CH_APISUBSYS_H
 #define CH_APISUBSYS_H
