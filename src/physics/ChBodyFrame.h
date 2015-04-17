@@ -40,6 +40,7 @@ public:
                 /// and forces.
                 /// The ChLcpVariablesBodyOwnMass is the interface to the LCP system solver.
     virtual ChLcpVariablesBodyOwnMass& VariablesBody() = 0;
+	virtual ChLcpVariables& Variables() = 0;
 
 
 	            /// Transform generic cartesian force into absolute force+torque applied to body COG.

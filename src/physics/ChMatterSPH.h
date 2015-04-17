@@ -81,7 +81,7 @@ public:
 	double GetMass() const {return variables.GetNodeMass();}
 
 			// Access the 'LCP variables' of the node
-	ChLcpVariables& Variables() {return variables;}
+	ChLcpVariablesNode& Variables() {return variables;}
 
 					//
 					// DATA
