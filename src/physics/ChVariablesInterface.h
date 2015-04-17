@@ -31,7 +31,7 @@ class ChApi ChVariablesInterface
 {
 public:
 			// Access the 'LCP variables' of the node. To be implemented in children classes
-	virtual ChLcpVariables& Variables() =0; 
+	//virtual ChLcpVariables& Variables() =0; 
 };
 
 

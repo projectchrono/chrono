@@ -778,7 +778,9 @@ void ChMesh::VariablesQbIncrementPosition(double step)
 void ChMesh::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 {
 	for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)
-		mdescriptor.InsertVariables(&this->vnodes[ie]->Variables());
+		this->vnodes[ie]->InjectVariables(mdescriptor);
+
+		//mdescriptor.InsertVariables(&this->vnodes[ie]->Variables());
 }
 
 

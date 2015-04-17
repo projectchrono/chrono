@@ -15,6 +15,7 @@
 
 
 #include "ChNodeFEAbase.h"
+#include "physics/ChNodeXYZ.h"
 #include "lcp/ChLcpVariablesNode.h"
 
 
@@ -28,7 +29,8 @@ namespace fea
 /// in 3D space, with x,y,z displacement. This is the typical
 /// node that can be used for tetahedrons, etc.
 
-class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase
+class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase,
+							  public ChNodeXYZ
 
 {
 public:
@@ -44,12 +46,10 @@ public:
 	~ChNodeFEAxyz() {};
 
 	ChNodeFEAxyz (const ChNodeFEAxyz& other) :
-						ChNodeFEAbase(other) 
+						ChNodeFEAbase(other),
+						ChNodeXYZ(other)
 	{
 		this->X0 = other.X0;
-		this->pos = other.pos;
-		this->pos_dt = other.pos_dt;
-		this->pos_dtdt = other.pos_dtdt;
 		this->Force = other.Force;
 		this->variables = other.variables;
 	}
@@ -60,17 +60,15 @@ public:
 			return *this;
 
 		ChNodeFEAbase::operator=(other);
+		ChNodeFEAxyz::operator=(other);
 
 		this->X0 = other.X0;
-		this->pos = other.pos;
-		this->pos_dt = other.pos_dt;
-		this->pos_dtdt = other.pos_dtdt;
 		this->Force = other.Force;
 		this->variables = other.variables;
 		return *this;
 	}
 
-	virtual ChLcpVariables& Variables()
+	virtual ChLcpVariablesNode& Variables()
 					{
 						return this->variables; 
 					} 
@@ -89,6 +87,13 @@ public:
 						this->pos_dtdt=VNULL; 
 					}
 
+				/// Sets the 'fixed' state of the node. 
+				/// If true, its current field value is not changed by solver.
+	virtual void SetFixed  (bool mev) { variables.SetDisabled(mev); }
+				/// Gets the 'fixed' state of the node. 
+				/// If true, its current field value is not changed by solver.
+    virtual bool GetFixed()  {return variables.IsDisabled(); }
+
 				/// Get mass of the node.
 	virtual double GetMass() const {return this->variables.GetNodeMass();}
 				/// Set mass of the node.
@@ -104,35 +109,9 @@ public:
 				/// Get the 3d applied force, in absolute reference
 	virtual ChVector<> GetForce () {return Force;}
 
-				/// Position of the node - in absolute csys.
-	ChVector<> GetPos() {return pos;}
-				/// Position of the node - in absolute csys.
-	void SetPos(const ChVector<>& mpos) {pos = mpos;}
-
-				/// Velocity of the node - in absolute csys.
-	ChVector<> GetPos_dt() {return pos_dt;}
-				/// Velocity of the node - in absolute csys.
-	void SetPos_dt(const ChVector<>& mposdt) {pos_dt = mposdt;}
-
-				/// Acceleration of the node - in absolute csys.
-	ChVector<> GetPos_dtdt() {return pos_dtdt;}
-				/// Acceleration of the node - in absolute csys.
-	void SetPos_dtdt(const ChVector<>& mposdtdt) {pos_dtdt = mposdtdt;}
-
-				/// Sets the 'fixed' state of the node. If true, it does not move
-                /// respect to the absolute world, despite constraints, forces, etc.
-	void SetFixed  (bool mev) { variables.SetDisabled(mev); }
-				/// Gets the 'fixed' state of the node.
-    bool GetFixed()  {return variables.IsDisabled(); }
-
 
 				/// Get the number of degrees of freedom
 	virtual int Get_ndof_x() { return 3;}
-
-
-			//
-			// Functions for interfacing to the state bookkeeping
-			//
 
 			//
 			// Functions for interfacing to the state bookkeeping
@@ -196,6 +175,16 @@ public:
 			// Functions for interfacing to the LCP solver
 			//
 
+	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor)
+					{   
+						mdescriptor.InsertVariables(&this->variables);
+					};
+
+	virtual void VariablesFbReset() 
+					{ 
+						this->variables.Get_fb().FillElem(0.0); 
+					};
+
 	virtual void VariablesFbLoadForces(double factor=1.) 
 					{ 
 						this->variables.Get_fb().PasteSumVector( this->Force * factor ,0,0);
@@ -229,17 +218,12 @@ public:
 						this->SetPos( this->GetPos() + newspeed * step);
 					};
 
-private:
+protected:
 	ChLcpVariablesNode	variables; /// 3D node variables, with x,y,z
 
 	ChVector<> X0;		///< reference position
 	ChVector<> Force;	///< applied force
 	
-public:
-	ChVector<> pos;		
-	ChVector<> pos_dt;
-	ChVector<> pos_dtdt;
-
 
 };
 

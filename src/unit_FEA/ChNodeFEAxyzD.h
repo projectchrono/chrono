@@ -14,7 +14,7 @@
 #define CHNODEFEAXYZD_H
 
 
-#include "ChNodeFEAbase.h"
+#include "ChNodeFEAxyz.h"
 #include "lcp/ChLcpVariablesGenericDiagonalMass.h"
 
 
@@ -28,34 +28,27 @@ namespace fea
 /// in 3D space, with x,y,z displacement and a D direction,
 /// (a gradient vector to be used in ANCF gradient deficient beams)
 
-class  ChNodeFEAxyzD : public ChNodeFEAbase
+class  ChNodeFEAxyzD : public ChNodeFEAxyz
 
 {
 public:
 
-	ChNodeFEAxyzD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X)
+	ChNodeFEAxyzD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X) :
+					ChNodeFEAxyz(initial_pos)
 					{
-						X0 = initial_pos;
-						pos = initial_pos;
-						Force = VNULL;
 						D = initial_dir;
 						D_dt = VNULL;
 						D_dtdt = VNULL;
-						variables  = new ChLcpVariablesGenericDiagonalMass(6);
-						variables->GetMassDiagonal().FillElem(0.0); // default: no atomic mass associated to fea node, the fea element will add mass matrix
+						variables_D  = new ChLcpVariablesGenericDiagonalMass(3);
+						variables_D->GetMassDiagonal().FillElem(0.0); // default: no atomic mass associated to fea node, the fea element will add mass matrix
 					}
 
 	~ChNodeFEAxyzD() {};
 
 	ChNodeFEAxyzD (const ChNodeFEAxyzD& other) :
-						ChNodeFEAbase(other) 
+						ChNodeFEAxyz(other) 
 	{
-		this->X0 = other.X0;
-		this->pos = other.pos;
-		this->pos_dt = other.pos_dt;
-		this->pos_dtdt = other.pos_dtdt;
-		this->Force = other.Force;
-		(*this->variables) = (*other.variables);
+		(*this->variables_D) = (*other.variables_D);
 		this->D = other.D;
 		this->D_dt = other.D_dt;
 		this->D_dtdt = other.D_dtdt;
@@ -66,101 +59,65 @@ public:
 		if (&other == this) 
 			return *this;
 
-		ChNodeFEAbase::operator=(other);
+		ChNodeFEAxyz::operator=(other);
 
-		this->X0 = other.X0;
-		this->pos = other.pos;
-		this->pos_dt = other.pos_dt;
-		this->pos_dtdt = other.pos_dtdt;
 		this->D = other.D;
 		this->D_dt = other.D_dt;
 		this->D_dtdt = other.D_dtdt;
-		this->Force = other.Force;
-		(*this->variables) = (*other.variables);
+		(*this->variables_D) = (*other.variables_D);
 		return *this;
 	}
+				/// Set the direction
+	virtual void SetD(ChVector<> mD) { D = mD;}
+				/// Get the direction
+	virtual ChVector<> GetD () {return D;}
 
-	virtual ChLcpVariables& Variables()
+				/// Set the direction speed
+	virtual void SetD_dt(ChVector<> mD) { D_dt = mD;}
+				/// Get the direction speed
+	virtual ChVector<> GetD_dt () {return D_dt;}
+
+				/// Set the direction acceleration
+	virtual void SetD_dtdt(ChVector<> mD) { D_dtdt = mD;}
+				/// Get the direction acceleration
+	virtual ChVector<> GetD_dtdt () {return D_dtdt;}
+
+
+
+	virtual ChLcpVariables& Variables_D()
 					{
-						return *this->variables; 
+						return *this->variables_D; 
 					} 
-
-				/// Set the rest position as the actual position.
-	virtual void Relax () 
-					{
-						X0 = this->pos; 
-						this->SetNoSpeedNoAcceleration(); 
-					}
 
 				/// Reset to no speed and acceleration.
 	virtual void SetNoSpeedNoAcceleration () 
 					{
-						this->pos_dt=VNULL; 
-						this->pos_dtdt=VNULL; 
+						ChNodeFEAxyz::SetNoSpeedNoAcceleration();
+
 						this->D_dt=VNULL; 
 						this->D_dtdt=VNULL; 
 					}
 
 				/// Get mass of the node.
-	virtual ChVectorDynamic<>& GetMassDiagonal() {return this->variables->GetMassDiagonal();}
+	virtual ChVectorDynamic<>& GetMassDiagonal() {return this->variables_D->GetMassDiagonal();}
 
-
-
-				/// Set the initial (reference) position
-	virtual void SetX0(ChVector<> mx) { X0 = mx;}
-				/// Get the initial (reference) position
-	virtual ChVector<> GetX0 () {return X0;}
-
-				/// Set the 3d applied force, in absolute reference
-	virtual void SetForce(ChVector<> mf) { Force = mf;}
-				/// Get the 3d applied force, in absolute reference
-	virtual ChVector<> GetForce () {return Force;}
-
-				/// Position of the node - in absolute csys.
-	ChVector<> GetPos() {return pos;}
-				/// Position of the node - in absolute csys.
-	void SetPos(const ChVector<>& mpos) {pos = mpos;}
-
-				/// Velocity of the node - in absolute csys.
-	ChVector<> GetPos_dt() {return pos_dt;}
-				/// Velocity of the node - in absolute csys.
-	void SetPos_dt(const ChVector<>& mposdt) {pos_dt = mposdt;}
-
-				/// Acceleration of the node - in absolute csys.
-	ChVector<> GetPos_dtdt() {return pos_dtdt;}
-				/// Acceleration of the node - in absolute csys.
-	void SetPos_dtdt(const ChVector<>& mposdtdt) {pos_dtdt = mposdtdt;}
-
-				/// Direction of the node - in absolute csys.
-	ChVector<> GetD() {return D;}
-				/// Direction of the node - in absolute csys.
-	void SetD(const ChVector<>& mD) {D = mD;}
-
-				/// Velocity of the node - in absolute csys.
-	ChVector<> GetD_dt() {return D_dt;}
-				/// Velocity of the node - in absolute csys.
-	void SetD_dt(const ChVector<>& mDdt) {D_dt = mDdt;}
-
-				/// Acceleration of the node - in absolute csys.
-	ChVector<> GetD_dtdt() {return D_dtdt;}
-				/// Acceleration of the node - in absolute csys.
-	void SetD_dtdt(const ChVector<>& mDdtdt) {D_dtdt = mDdtdt;}
 
 
 				/// Sets the 'fixed' state of the node. If true, it does not move
                 /// respect to the absolute world, despite constraints, forces, etc.
-	void SetFixed  (bool mev) { variables->SetDisabled(mev); }
+	void SetFixed  (bool mev) 
+					{ 
+						variables.SetDisabled(mev);
+						variables_D->SetDisabled(mev); 
+					}
 				/// Gets the 'fixed' state of the node.
-    bool GetFixed()  {return variables->IsDisabled(); }
+    bool GetFixed()  {return variables_D->IsDisabled(); }
 
 
 				/// Get the number of degrees of freedom
 	virtual int Get_ndof_x() { return 6;}
 
 
-			//
-			// Functions for interfacing to the state bookkeeping
-			//
 
 			//
 			// Functions for interfacing to the state bookkeeping
@@ -212,23 +169,25 @@ public:
 
 	virtual void NodeIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c)
 	{
-		R(off+0) += c* GetMassDiagonal()(0) * w(off+0);
-		R(off+1) += c* GetMassDiagonal()(1) * w(off+1);
-		R(off+2) += c* GetMassDiagonal()(2) * w(off+2);
-		R(off+3) += c* GetMassDiagonal()(3) * w(off+3);
-		R(off+4) += c* GetMassDiagonal()(4) * w(off+4);
-		R(off+5) += c* GetMassDiagonal()(5) * w(off+5);
+		R(off+0) += c* GetMass() * w(off+0);
+		R(off+1) += c* GetMass() * w(off+1);
+		R(off+2) += c* GetMass() * w(off+2);
+		R(off+3) += c* GetMassDiagonal()(0) * w(off+3); // unuseful? mass for D isalways zero..
+		R(off+4) += c* GetMassDiagonal()(1) * w(off+4);
+		R(off+5) += c* GetMassDiagonal()(2) * w(off+5);
 	}
 
 	virtual void NodeIntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R)
 	{
-		this->variables->Get_qb().PasteClippedMatrix(&v, off_v,0, 6,1, 0,0);
-		this->variables->Get_fb().PasteClippedMatrix(&R, off_v,0, 6,1, 0,0);
+		ChNodeFEAxyz::NodeIntToLCP(off_v, v, R);
+		this->variables_D->Get_qb().PasteClippedMatrix(&v, off_v+3,0, 3,1, 0,0);
+		this->variables_D->Get_fb().PasteClippedMatrix(&R, off_v+3,0, 3,1, 0,0);
 	}
 
 	virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v)
 	{
-		v.PasteMatrix(&this->variables->Get_qb(), off_v, 0);
+		ChNodeFEAxyz::NodeIntFromLCP(off_v, v);
+		v.PasteMatrix(&this->variables_D->Get_qb(), off_v+3, 0);
 	}
 
 
@@ -237,57 +196,63 @@ public:
 			// Functions for interfacing to the LCP solver
 			//
 
+	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor)
+					{   
+						ChNodeFEAxyz::InjectVariables(mdescriptor);
+						mdescriptor.InsertVariables(this->variables_D);
+					};
+
+	virtual void VariablesFbReset() 
+					{ 
+						ChNodeFEAxyz::VariablesFbReset();
+						this->variables_D->Get_fb().FillElem(0.0); 
+					};
+
 	virtual void VariablesFbLoadForces(double factor=1.) 
 					{ 
-						this->variables->Get_fb().PasteSumVector( this->Force * factor ,0,0);
-						//this->variables->Get_fb().PasteSumVector( VNULL ,3,0); // TODO something related to inertia?
+						ChNodeFEAxyz::VariablesFbLoadForces(factor);
+						//this->variables_D->Get_fb().PasteSumVector( VNULL ,3,0); // TODO something related to inertia?
 					};
 
 	virtual void VariablesQbLoadSpeed() 
 					{ 
-						this->variables->Get_qb().PasteVector(this->pos_dt,0,0);
-						this->variables->Get_qb().PasteVector(this->D_dt,3,0);
+						ChNodeFEAxyz::VariablesQbLoadSpeed();			
+						this->variables_D->Get_qb().PasteVector(this->D_dt,3,0);
 					};
 
 	virtual void VariablesQbSetSpeed(double step=0.) 
 					{
-						ChVector<> old_dt  = this->pos_dt;
+						ChNodeFEAxyz::VariablesQbSetSpeed(step);
+
 						ChVector<> oldD_dt = this->D_dt;
-						this->SetPos_dt( this->variables->Get_qb().ClipVector(0,0) );
-						this->SetD_dt  ( this->variables->Get_qb().ClipVector(3,0) );
+						this->SetD_dt  ( this->variables_D->Get_qb().ClipVector(3,0) );
 						if (step)
 						{
-							this->SetPos_dtdt( (this->pos_dt - old_dt )  / step);
 							this->SetD_dtdt  ( (this->D_dt   - oldD_dt)  / step);
 						}
 					};
 
 	virtual void VariablesFbIncrementMq() 
 					{
-						this->variables->Compute_inc_Mb_v(this->variables->Get_fb(), this->variables->Get_qb());
+						ChNodeFEAxyz::VariablesFbIncrementMq();
+						this->variables_D->Compute_inc_Mb_v(this->variables_D->Get_fb(), this->variables_D->Get_qb());
 					};
 
 	virtual void VariablesQbIncrementPosition(double step) 
 					{
-						ChVector<> newspeed   = variables->Get_qb().ClipVector(0,0);
-						ChVector<> newspeed_D = variables->Get_qb().ClipVector(3,0);
+						ChNodeFEAxyz::VariablesQbIncrementPosition(step);
+
+						ChVector<> newspeed_D = variables_D->Get_qb().ClipVector(3,0);
 
 						// ADVANCE POSITION: pos' = pos + dt * vel
-						this->SetPos( this->GetPos() + newspeed   * step);
 						this->SetD  ( this->GetD()   + newspeed_D * step);
 					};
 
 private:
-	/// 3D node variables, with x,y,z and Rx,Ry,Rz (Hack! the Rx Ry Rz used here for the D gradient vector stuff)
-	ChLcpVariablesGenericDiagonalMass*  variables; 
+	/// 3D node variable - the direction part: Dx,Dy,Dz (the position part is in parent class)
+ 	ChLcpVariablesGenericDiagonalMass*  variables_D; 
 
-	ChVector<> X0;		///< reference position
-	ChVector<> Force;	///< applied force
-	
 public:
-	ChVector<> pos;		
-	ChVector<> pos_dt;
-	ChVector<> pos_dtdt;
 
 	ChVector<> D;		
 	ChVector<> D_dt;

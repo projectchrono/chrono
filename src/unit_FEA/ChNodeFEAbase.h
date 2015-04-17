@@ -40,10 +40,10 @@ public:
 
 				/// Sets the 'fixed' state of the node. 
 				/// If true, its current field value is not changed by solver.
-	void SetFixed  (bool mev) { Variables().SetDisabled(mev); }
+	virtual void SetFixed  (bool mev) =0; //{ Variables().SetDisabled(mev); }
 				/// Gets the 'fixed' state of the node. 
 				/// If true, its current field value is not changed by solver.
-    bool GetFixed()  {return Variables().IsDisabled(); }
+    virtual bool GetFixed()  =0; // {return Variables().IsDisabled(); }
 
 };
 

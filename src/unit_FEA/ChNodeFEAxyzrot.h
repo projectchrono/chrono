@@ -108,6 +108,13 @@ public:
 						this->GetRot_dtdt() = QNULL;
 					}
 
+				/// Sets the 'fixed' state of the node. 
+				/// If true, its current field value is not changed by solver.
+	virtual void SetFixed  (bool mev) { variables.SetDisabled(mev); }
+				/// Gets the 'fixed' state of the node. 
+				/// If true, its current field value is not changed by solver.
+    virtual bool GetFixed()  {return variables.IsDisabled(); }
+
 				/// Get atomic mass of the node.
 	virtual double GetMass() {return this->variables.GetBodyMass();}
 				/// Set atomic mass of the node.
@@ -135,12 +142,6 @@ public:
 				/// with infos on actual position, speed, acceleration, etc.
 	ChFrameMoving<>& Frame() {return *this;}
 
-
-				/// Sets the 'fixed' state of the node. If true, it does not move
-                /// respect to the absolute world, despite constraints, forces, etc.
-	void SetFixed  (bool mev) { variables.SetDisabled(mev); }
-				/// Gets the 'fixed' state of the node.
-    bool GetFixed()  {return variables.IsDisabled(); }
 
 
 				/// Get the number of degrees of freedom (7 because quaternion for rotation)
@@ -229,6 +230,16 @@ public:
 			//
 			// Functions for interfacing to the LCP solver
 			//
+
+	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor)
+					{   
+						mdescriptor.InsertVariables(&this->variables);
+					};
+
+	virtual void VariablesFbReset() 
+					{ 
+						this->variables.Get_fb().FillElem(0.0); 
+					};
 
 	virtual void VariablesFbLoadForces(double factor=1.) 
 					{ 

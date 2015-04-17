@@ -88,6 +88,13 @@ public:
 						this->P_dt = 0;
 					}
 
+				/// Sets the 'fixed' state of the node. 
+				/// If true, its current field value is not changed by solver.
+	virtual void SetFixed  (bool mev) { variables.SetDisabled(mev); }
+				/// Gets the 'fixed' state of the node. 
+				/// If true, its current field value is not changed by solver.
+    virtual bool GetFixed()  {return variables.IsDisabled(); }
+
 				/// Position of the node - in absolute csys.
 	ChVector<> GetPos() {return pos;}
 				/// Position of the node - in absolute csys.
@@ -172,6 +179,16 @@ public:
 			//
 			// Functions for interfacing to the LCP solver
 			//
+
+	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor)
+					{   
+						mdescriptor.InsertVariables(&this->variables);
+					};
+
+	virtual void VariablesFbReset() 
+					{ 
+						this->variables.Get_fb().FillElem(0.0); 
+					};
 
 	virtual void VariablesFbLoadForces(double factor=1.) 
 					{ 

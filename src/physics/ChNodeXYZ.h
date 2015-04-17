@@ -17,6 +17,7 @@
 
 #include "physics/ChNodeBase.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
+#include "lcp/ChLcpVariablesNode.h"
 
 
 namespace chrono
@@ -38,6 +39,9 @@ public:
 					//
 					// FUNCTIONS
 					//
+
+			// Access the xyz 'LCP variables' of the node
+	virtual ChLcpVariablesNode& Variables() =0;
 
 			// Position of the node - in absolute csys.
 	ChVector<> GetPos() {return pos;}
