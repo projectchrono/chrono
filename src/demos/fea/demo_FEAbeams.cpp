@@ -20,6 +20,7 @@
 
 #include "physics/ChSystem.h"
 #include "physics/ChLinkMate.h"
+#include "physics/ChBodyEasy.h"
 #include "timestepper/ChTimestepper.h"
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "lcp/ChLcpIterativeMINRES.h"
@@ -28,6 +29,8 @@
 #include "unit_FEA/ChBuilderBeam.h"
 #include "unit_FEA/ChMesh.h"
 #include "unit_FEA/ChVisualizationFEAmesh.h"
+#include "unit_FEA/ChLinkPointFrame.h"
+#include "unit_FEA/ChLinkDirFrame.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
 #include "unit_MATLAB/ChLcpMatlabSolver.h"
@@ -185,18 +188,30 @@ int main(int argc, char* argv[])
 	//
 
 	beam_L  = 0.1;
+	double beam_diameter = 0.015;
+
+	// Create a section, i.e. thickness and material properties
+	// for beams. This will be shared among some beams.
 	
-	msection->SetIzz(3.6e-9);
+	ChSharedPtr<ChBeamSectionCable> msection_cable(new ChBeamSectionCable);
+	msection_cable->SetDiameter(beam_diameter);
+	msection_cable->SetYoungModulus (0.01e9);
+	msection_cable->SetBeamRaleyghDamping(0.000);
+
+	// Create the nodes
+
 	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,0,-0.2), ChVector<>(1,0,0) ) ); 
 	ChSharedPtr<ChNodeFEAxyzD> hnodeancf2(new ChNodeFEAxyzD( ChVector<>(beam_L,0,-0.2), ChVector<>(1,0,0) ) );
 
 	my_mesh->AddNode(hnodeancf1);
 	my_mesh->AddNode(hnodeancf2);
 
+	// Create the element 
+
 	ChSharedPtr<ChElementBeamANCF> belementancf1 (new ChElementBeamANCF);
 
 	belementancf1->SetNodes(hnodeancf1, hnodeancf2);
-	belementancf1->SetSection(msection);
+	belementancf1->SetSection(msection_cable);
 
 	my_mesh->AddElement(belementancf1);
 
@@ -206,25 +221,23 @@ int main(int argc, char* argv[])
 	hnodeancf1->SetFixed(true);
 	
 
-	// FOR COMPARISON: AN EULER BEAM:
 
-	ChSharedPtr<ChNodeFEAxyzrot> hnodeeul1(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(0,0,-0.3) ) )); 
-	ChSharedPtr<ChNodeFEAxyzrot> hnodeeul2(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(beam_L,0,-0.3) ) ));
+	// Add a rigid body connected to the end of the beam:
 
-	my_mesh->AddNode(hnodeeul1);
-	my_mesh->AddNode(hnodeeul2);
+	ChSharedPtr<ChBodyEasyBox> mbox (new ChBodyEasyBox(0.1,0.02,0.02,1000) );
+	mbox->SetPos(hnodeancf2->GetPos() + ChVector<>(0.05,0,0));
+	my_system.Add(mbox);
 
-	ChSharedPtr<ChElementBeamEuler> belementeul (new ChElementBeamEuler);
+	ChSharedPtr<ChLinkPointFrame> constraint_pos(new ChLinkPointFrame);
+	constraint_pos->Initialize(hnodeancf2, mbox);
+	my_system.Add(constraint_pos);
 
-	belementeul->SetNodes(hnodeeul1, hnodeeul2);
-	belementeul->SetSection(msection);
+	ChSharedPtr<ChLinkDirFrame> constraint_dir(new ChLinkDirFrame);
+	constraint_dir->Initialize(hnodeancf2, mbox);
+	constraint_dir->SetDirectionInAbsoluteCoords(ChVector<>(1,0,0));
+	my_system.Add(constraint_dir);
 
-	my_mesh->AddElement(belementeul);
 
-				// Apply a force or a torque to a node:
-	hnodeeul2->SetForce( ChVector<>(0,3,0));
-
-	hnodeeul1->SetFixed(true);
 
 
 	//
@@ -312,7 +325,7 @@ application.GetSystem()->Update();
 application.SetPaused(true);
 
 
-	/*
+	
 	// Change type of integrator: 
 	my_system.SetIntegrationType(chrono::ChSystem::INT_HHT); 
 	
@@ -323,7 +336,7 @@ application.SetPaused(true);
 		mystepper->SetMaxiters(6);
 		mystepper->SetTolerance(1e-12);
 	}
-	*/
+	my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED); 
 
 	application.SetTimestep(0.001);
 
@@ -338,7 +351,7 @@ application.SetPaused(true);
 
 
 
-	application.GetSystem()->DoStaticLinear();
+//	application.GetSystem()->DoStaticLinear();
 
 
 	GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
@@ -384,8 +397,6 @@ application.SetPaused(true);
 		application.DoStep();
 
 		application.EndScene();
-
-		//GetLog() << " node pos =" << hnode3->Frame().GetPos() << "\n";
 	}
 
 
