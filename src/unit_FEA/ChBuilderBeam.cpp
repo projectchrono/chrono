@@ -131,5 +131,51 @@ void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mes
     }
 }
 
+
+
+
+
+
+/////////////////////////////////////////////////////////
+//
+// ChBuilderBeamANCF
+
+
+
+void ChBuilderBeamANCF::BuildBeam(ChSharedPtr<ChMesh> mesh,             ///< mesh to store the resulting elements
+                              ChSharedPtr<ChBeamSectionCable> sect,     ///< section material for beam elements
+                              const int N,                              ///< number of elements in the segment
+                              const ChVector<> A,                       ///< starting point
+                              const ChVector<> B                        ///< ending point
+                              ) {
+    beam_elems.clear();
+    beam_nodes.clear();
+
+    ChVector<> bdir = (B-A);
+    bdir.Normalize();
+
+    ChSharedPtr<ChNodeFEAxyzD> nodeA(new ChNodeFEAxyzD(A,bdir));
+    mesh->AddNode(nodeA);
+    beam_nodes.push_back(nodeA);
+
+    for (int i = 1; i <= N; ++i) {
+        double eta = (double)i / (double)N;
+        ChVector<> pos = A + (B - A) * eta;
+
+        ChSharedPtr<ChNodeFEAxyzD> nodeB(new ChNodeFEAxyzD(pos, bdir));
+        mesh->AddNode(nodeB);
+        beam_nodes.push_back(nodeB);
+
+        ChSharedPtr<ChElementBeamANCF> element(new ChElementBeamANCF);
+        mesh->AddElement(element);
+        beam_elems.push_back(element);
+
+        element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
+
+        element->SetSection(sect);
+    }
+}
+
+
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____
