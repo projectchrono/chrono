@@ -38,7 +38,7 @@ Real fluidInitDimX = 2;
 Real fluidInitDimY = hdimY;
 Real fluidHeight = 2;
 
-int fluidCollisionFamily = 1;
+int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
