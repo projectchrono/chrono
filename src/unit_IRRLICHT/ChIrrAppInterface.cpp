@@ -596,6 +596,8 @@ void ChIrrAppInterface::DrawAll() {
     str += (int)(1000 * system->GetTimerCollisionBroad());
     str += " ms \n  CPU LCP time         =";
     str += (int)(1000 * system->GetTimerLcp());
+    str += " ms \n  CPU Update time      =";
+    str += (int)(1000 * system->GetTimerUpdate());
     str += " ms \n\nLCP vel.iters : ";
     str += system->GetIterLCPmaxItersSpeed();
     str += "\nLCP pos.iters : ";
