@@ -39,6 +39,7 @@ SET(ChronoEngine_UNIT_FEA_SOURCES
 	ChMatrixCorotation.cpp
 	ChVisualizationFEAmesh.cpp
 	ChLinkPointFrame.cpp
+	ChLinkDirFrame.cpp
 	)
 SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChApiFEA.h  
@@ -75,7 +76,8 @@ SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChPolarDecomposition.h
 	ChMatrixCorotation.h
 	ChVisualizationFEAmesh.h
-	ChLinkPointFrame.h 
+	ChLinkPointFrame.h
+	ChLinkDirFrame.h
 	)
 #SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_FEA_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 SOURCE_GROUP(unit_FEA FILES 
