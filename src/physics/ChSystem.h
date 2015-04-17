@@ -43,6 +43,7 @@
 #include "core/ChLog.h"
 #include "core/ChMath.h"
 #include "core/ChSpmatrix.h"
+#include "core/ChTimer.h"
 #include "physics/ChBody.h"
 #include "physics/ChMarker.h"
 #include "physics/ChForce.h"
@@ -577,17 +578,17 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     int GetNcontacts();
 
     /// Gets the time (in seconds) spent for computing the time step
-    double GetTimerStep() { return timer_step; }
+    double GetTimerStep() { return timer_step(); }
     /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
-    double GetTimerLcp() { return timer_lcp; }
+    double GetTimerLcp() { return timer_lcp(); }
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-    double GetTimerCollisionBroad() { return timer_collision_broad; }
+    double GetTimerCollisionBroad() { return timer_collision_broad(); }
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-    double GetTimerCollisionNarrow() { return timer_collision_narrow; }
+    double GetTimerCollisionNarrow() { return timer_collision_narrow(); }
     /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-    double GetTimerUpdate() { return timer_update; }
+    double GetTimerUpdate() { return timer_update(); }
     /// Resets the timers.
-    void ResetTimers() { timer_step = timer_lcp = timer_collision_broad = timer_collision_narrow = timer_update = 0.; }
+    void ResetTimers() { timer_step.reset(); timer_lcp.reset(); timer_collision_broad.reset(); timer_collision_narrow.reset(); timer_update.reset();}
 
     /// Current warning/error (soon this function will be deprecated and obsolete)
     char* GetErrMessage() { return err_message; }
@@ -1132,11 +1133,11 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
 
     // timers for profiling execution speed
   protected:
-    double timer_step;
-    double timer_lcp;
-    double timer_collision_broad;
-    double timer_collision_narrow;
-    double timer_update;
+    ChTimer<double> timer_step;
+    ChTimer<double> timer_lcp;
+    ChTimer<double> timer_collision_broad;
+    ChTimer<double> timer_collision_narrow;
+    ChTimer<double> timer_update;
 
     ChSharedPtr<ChTimestepper> timestepper;
 };

@@ -70,9 +70,10 @@ class ChTimer {
     LARGE_INTEGER m_end;
     LARGE_INTEGER m_freq;
     bool m_first;
+    real_type total;
 
   public:
-    ChTimer() : m_first(true) {}
+    ChTimer() : m_first(true), total(0) {}
 
   public:
     /// Start the timer
@@ -85,56 +86,55 @@ class ChTimer {
     }
 
     /// Stops the timer
-    void stop() { QueryPerformanceCounter(&m_end); }
-    /// Get the timer value, with the () operator.
-    real_type operator()() const {
+    void stop() { 
+        QueryPerformanceCounter(&m_end); 
         real_type end = static_cast<real_type>(m_end.QuadPart);
         real_type start = static_cast<real_type>(m_start.QuadPart);
         real_type freq = static_cast<real_type>(m_freq.QuadPart);
-        return (end - start) / freq;
+        total += (end - start) / freq;
     }
-/*
-  // Simple version with 10ms precision max
-  private:
-    clock_t m_start;
-    clock_t m_end;
-  public:
-                /// Start the timer
-    void start() { m_start = clock();}
 
-                /// Stops the timer
-    void stop()  { m_end = clock(); }
+    /// Reset the total accumulated time (when repeating multiple start() stop() start() stop() )
+    void reset() { total = 0; }
 
-                /// Get the timer value, with the () operator. Wind-up after 72 min.
-    real_type operator()()const
-    {
-      real_type t1 =  static_cast<real_type>(m_start)/(static_cast<real_type>(CLOCKS_PER_SEC));
-      real_type t2 =  static_cast<real_type>(m_end)/(static_cast<real_type>(CLOCKS_PER_SEC));
-      return t2-t1;
+    /// Get the timer value, with the () operator.
+    real_type operator()() const {
+        return total;
     }
-*/
+
 #else
 
   private:
     struct timeval m_start;
     struct timeval m_end;
+    real_type total;
+
 #ifdef SGI
     time_t m_tz;
 #else
     struct timezone m_tz;
 #endif
+
   public:
+    ChTimer() : total(0) {}
+
     /// Start the timer
     void start() { gettimeofday(&m_start, &m_tz); }
 
     /// Stops the timer
-    void stop() { gettimeofday(&m_end, &m_tz); }
+    void stop() { 
+        gettimeofday(&m_end, &m_tz); 
+        real_type t1 = static_cast<real_type>(m_start.tv_sec) + static_cast<real_type>(m_start.tv_usec) / (1000 * 1000);
+        real_type t2 = static_cast<real_type>(m_end.tv_sec) + static_cast<real_type>(m_end.tv_usec) / (1000 * 1000);
+        total += t2 - t1;
+    }
+
+    /// Reset the total accumulated time (when repeating multiple start() stop() start() stop() )
+    void reset() { total = 0; }
 
     /// Get the timer value, with the () operator.
     real_type operator()() const {
-        real_type t1 = static_cast<real_type>(m_start.tv_sec) + static_cast<real_type>(m_start.tv_usec) / (1000 * 1000);
-        real_type t2 = static_cast<real_type>(m_end.tv_sec) + static_cast<real_type>(m_end.tv_usec) / (1000 * 1000);
-        return t2 - t1;
+        return total;
     }
 
 #endif

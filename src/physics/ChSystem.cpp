@@ -304,12 +304,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     strcpy(scriptFor3DStepFile, "");
 
     events = new ChEvents(250);
-
-    timer_step = 0;
-    timer_lcp = 0;
-    timer_collision_broad = 0;
-    timer_collision_narrow = 0;
-    timer_update = 0;
 }
 
 ChSystem::~ChSystem() {
@@ -388,11 +382,7 @@ void ChSystem::Copy(ChSystem* source) {
     SetLcpSolverType(GetLcpSolverType());
     parallel_thread_number = source->parallel_thread_number;
     use_sleeping = source->use_sleeping;
-    timer_step = source->timer_step;
-    timer_lcp = source->timer_lcp;
-    timer_collision_broad = source->timer_collision_broad;
-    timer_collision_narrow = source->timer_collision_narrow;
-    timer_update = source->timer_update;
+ 
 
     collision_callback = source->collision_callback;
     collisionpoint_callback = source->collisionpoint_callback;
@@ -1354,8 +1344,8 @@ void ChSystem::Setup() {
 // - UPDATES ALL MARKERS (AUTOMATIC, AS CHILDREN OF BODIES).
 
 void ChSystem::Update(bool update_assets) {
-    ChTimer<double> mtimer;
-    mtimer.start();  // Timer for profiling
+
+    timer_update.start();  // Timer for profiling
 
     events->Record(CHEVENT_UPDATE);  // Record an update event
 
@@ -1402,8 +1392,7 @@ void ChSystem::Update(bool update_assets) {
 
     this->contact_container->Update(ChTime, update_assets);  // Update all contacts, if any
 
-    mtimer.stop();
-    timer_update += mtimer();
+    timer_update.stop();
 }
 
 ///////////////////////////////
@@ -1890,7 +1879,11 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
 
     // Solve the LCP problem!!!
 
+    timer_lcp.start();
+
     GetLcpSolverSpeed()->Solve(*this->LCP_descriptor);
+
+    timer_lcp.stop();
 
     // Dv and L vectors  <-- LCP sparse solver structures
 
@@ -2089,8 +2082,7 @@ class SystemAddCollisionPointCallback : public ChAddContactCallback {
 double ChSystem::ComputeCollisions() {
     double mretC = 0.0;
 
-    ChTimer<double> mtimer;
-    mtimer.start();
+    timer_collision_broad.start();
 
 // Update all positions of collision models
 #pragma omp parallel for
@@ -2144,8 +2136,7 @@ double ChSystem::ComputeCollisions() {
     // Count the contacts of body-body type.
     this->ncontacts = this->contact_container->GetNcontacts();
 
-    mtimer.stop();
-    this->timer_collision_broad = mtimer();
+    timer_collision_broad.stop();
 
     return mretC;
 }
@@ -2164,6 +2155,7 @@ double ChSystem::ComputeCollisions() {
 //
 
 int ChSystem::Integrate_Y() {
+    ResetTimers();
     switch (integration_type) {
         case INT_ANITESCU:
             return Integrate_Y_impulse_Anitescu();
@@ -2186,8 +2178,7 @@ int ChSystem::Integrate_Y() {
 int ChSystem::Integrate_Y_impulse_Anitescu() {
     int ret_code = TRUE;
 
-    ChTimer<double> mtimer_step;
-    mtimer_step.start();
+    timer_step.start();
 
     events->Record(CHEVENT_TIMESTEP);
 
@@ -2213,8 +2204,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
     // some body that is not in sleep state.
     WakeUpSleepingBodies();
 
-    ChTimer<double> mtimer_lcp;
-    mtimer_lcp.start();
+    timer_lcp.start();
 
     //
     // Enforce velocity/impulses constraints ....................
@@ -2249,8 +2239,8 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
     // Solve the LCP problem.
     // Solution variables are new speeds 'v_new'
     GetLcpSolverSpeed()->Solve(*this->LCP_descriptor);
-    mtimer_lcp.stop();
-    timer_lcp = mtimer_lcp();
+
+    timer_lcp.stop();
 
     // stores computed multipliers in constraint caches, maybe useful for warm starting next step
     LCPresult_Li_into_speed_cache();
@@ -2298,8 +2288,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
     RecordAllProbes();
 
     // Time elapsed for step..
-    mtimer_step.stop();
-    timer_step = mtimer_step();
+    timer_step.stop();
 
     return (ret_code);
 }
@@ -2315,8 +2304,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
 int ChSystem::Integrate_Y_impulse_Tasora() {
     int ret_code = TRUE;
 
-    ChTimer<double> mtimer_step;
-    mtimer_step.start();
+    timer_step.start();
 
     events->Record(CHEVENT_TIMESTEP);
 
@@ -2342,8 +2330,8 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
     // some body that is not in sleep state.
     WakeUpSleepingBodies();
 
-    ChTimer<double> mtimer_lcp;
-    mtimer_lcp.start();
+    timer_lcp.reset();
+    timer_lcp.start();
 
     // 1-
     // Enforce velocity/impulses constraints ....................
@@ -2475,8 +2463,7 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
         }
     }
 
-    mtimer_lcp.stop();
-    timer_lcp = mtimer_lcp();
+    timer_lcp.stop();
 
     // Executes custom processing at the end of step
     CustomEndOfStep();
@@ -2486,8 +2473,7 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
     RecordAllProbes();
 
     // Time elapsed for step..
-    mtimer_step.stop();
-    timer_step = mtimer_step();
+    timer_step.stop();
 
     return (ret_code);
 }
@@ -2499,8 +2485,7 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
 int ChSystem::Integrate_Y_timestepper() {
     int ret_code = TRUE;
 
-    ChTimer<double> mtimer_step;
-    mtimer_step.start();
+    timer_step.start();
 
     events->Record(CHEVENT_TIMESTEP);
 
@@ -2526,8 +2511,7 @@ int ChSystem::Integrate_Y_timestepper() {
     // some body that is not in sleep state.
     WakeUpSleepingBodies();
 
-    ChTimer<double> mtimer_lcp;
-    mtimer_lcp.start();
+    timer_lcp.reset();
 
     // Set some settings in timestepper object
     this->timestepper->SetQcDoClamp(true);
@@ -2546,8 +2530,8 @@ int ChSystem::Integrate_Y_timestepper() {
     RecordAllProbes();
 
     // Time elapsed for step..
-    mtimer_step.stop();
-    timer_step = mtimer_step();
+    timer_step.stop();
+
 
     return (ret_code);
 }
