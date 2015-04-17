@@ -612,6 +612,13 @@ void ChVisualizationFEAmesh::Update ()
 				y_thick = 0.5*mybeameuler->GetSection()->GetDrawThicknessY();
 				z_thick = 0.5*mybeameuler->GetSection()->GetDrawThicknessZ();
 			}
+			ChSharedPtr<ChElementBeamANCF> mybeamancf ( mybeam.DynamicCastTo<ChElementBeamANCF>() );
+			if (!mybeamancf.IsNull())
+			{
+				// if the beam has a section info, use section specific thickness for drawing
+				y_thick = 0.5*mybeamancf->GetSection()->GetDrawThicknessY();
+				z_thick = 0.5*mybeamancf->GetSection()->GetDrawThicknessZ();
+			}
 
 			unsigned int ivert_el = i_verts;
 			unsigned int inorm_el = i_vnorms;
