@@ -324,7 +324,7 @@ int main(int argc, char* argv[]) {
 	// Add sph data to the physics system
 	int startIndexSph = 0;
 	printf("(1) num bodies %d \n", mphysicalSystem.Get_bodylist()->size());
-	AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects);
+	AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily);
 	printf("(2) num bodies %d \n", mphysicalSystem.Get_bodylist()->size());
 	// Set gravitational acceleration
 

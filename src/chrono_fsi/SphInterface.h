@@ -29,7 +29,8 @@ void AddSphDataToChSystem(
 		const thrust::host_vector<Real3> & posRadH,
 		const thrust::host_vector<Real4> & velMasH,
 		const SimParams & paramsH,
-		const NumberOfObjects & numObjects);
+		const NumberOfObjects & numObjects,
+		int collisionFamilly);
 
 void UpdateSphDataInChSystem(
 		ChSystemParallelDVI& mphysicalSystem,

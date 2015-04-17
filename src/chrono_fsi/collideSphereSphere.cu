@@ -157,7 +157,8 @@ void ForceSPH(
 			m_dGridMarkerIndex, mapOriginalToSorted, posRadD, velMasD, rhoPresMuD, numAllMarkers, m_numGridCells);
 
 	//process collisions
-	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
+//	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
+	Real3 totalFluidBodyForce3 = paramsH.bodyForce3;  // gravity is added in ChSystem
 	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), mR4(0)); //initialize derivVelRhoD with zero. necessary
 //	GpuTimer myT1;
 //	myT1.Start();

@@ -18,22 +18,27 @@
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-double time_hold = 0.2;
-float contact_recovery_speed = 0.1;
-double time_step = 2e-3;  // note you are using half of this for MBD system
+Real time_hold = 0.1;  // 0.2;
+
+Real contact_recovery_speed = 0.2;
+Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
+
+Real time_step = 2e-3;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
-double time_end = 10;
+Real time_end = 10;
 
 // Dimensions
-double hdimX = 14;  // 5.5;
-double hdimY = 1.75;
-double hdimZ = 0.5;
-double hthick = 0.25;
-double basinDepth = 2;
+Real hdimX = 14;  // 5.5;
+Real hdimY = 1.75;
+Real hdimZ = 0.5;
+Real hthick = 0.25;
+Real basinDepth = 2;
 
-double fluidInitDimX = 2;
-double fluidInitDimY = hdimY;
-double fluidHeight = 2;
+Real fluidInitDimX = 2;
+Real fluidInitDimY = hdimY;
+Real fluidHeight = 2;
+
+int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
@@ -55,8 +60,8 @@ void SetupParamsH(SimParams& paramsH) {
       mR3(0, 0, 0);  // mR4(3.2e-3,0,0,0);// mR4(0);;// /*Re = 100 */ //mR4(3.2e-4, 0, 0, 0);/*Re = 100 */
   paramsH.rho0 = 1000;
   paramsH.mu0 = .001;
-  paramsH.v_Max = contact_recovery_speed;  // Arman, I changed it to 0.1 for vehicle. Check this
-                                           // later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
+  paramsH.v_Max = maxFlowVelocity;  // Arman, I changed it to 0.1 for vehicle. Check this
+                                    // later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
   paramsH.EPS_XSPH = .5f;
   paramsH.dT = time_step;         // 0.0005;//0.1;//.001; //sph alone: .01 for Re 10;
   paramsH.tFinal = time_end;      // 20 * paramsH.dT; //400
@@ -78,12 +83,6 @@ void SetupParamsH(SimParams& paramsH) {
   //  paramsH.cMax = mR3(3, 2, 3);
   paramsH.cMin = mR3(-hdimX, -hdimY, -basinDepth - hthick);  // 3D channel
   paramsH.cMax = mR3(hdimX, hdimY, basinDepth);
-  paramsH.cMinInit = mR3(-fluidInitDimX, -fluidInitDimY, -basinDepth + paramsH.HSML);  // 3D channel
-  paramsH.cMaxInit = mR3(fluidInitDimX, fluidInitDimY, paramsH.cMinInit.z + fluidHeight);
-  //****************************************************************************************
-  //*** initialize straight channel
-  paramsH.straightChannelBoundaryMin = paramsH.cMinInit;  // mR3(0, 0, 0);  // 3D channel
-  paramsH.straightChannelBoundaryMax = paramsH.cMaxInit;  // SmR3(3, 2, 3) * paramsH.sizeScale;
   //****************************************************************************************
   // printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 *
   // paramsH.HSML);
@@ -99,6 +98,13 @@ void SetupParamsH(SimParams& paramsH) {
       binSize3.x;  // for effect of distance. Periodic BC in x direction. we do not care about paramsH.cMax y and z.
   paramsH.cMax = paramsH.cMin + paramsH.binSize0 * mR3(side0);
   paramsH.boxDims = paramsH.cMax - paramsH.cMin;
+  //****************************************************************************************
+  paramsH.cMinInit = mR3(-fluidInitDimX, paramsH.cMin.y, -basinDepth + paramsH.HSML);  // 3D channel
+  paramsH.cMaxInit = mR3(fluidInitDimX, paramsH.cMax.y, paramsH.cMinInit.z + fluidHeight);
+  //****************************************************************************************
+  //*** initialize straight channel
+  paramsH.straightChannelBoundaryMin = paramsH.cMinInit;  // mR3(0, 0, 0);  // 3D channel
+  paramsH.straightChannelBoundaryMax = paramsH.cMaxInit;  // SmR3(3, 2, 3) * paramsH.sizeScale;
   //************************** modify pressure ***************************
   //		paramsH.deltaPress = paramsH.rho0 * paramsH.boxDims * paramsH.bodyForce3;  //did not work as I expected
   paramsH.deltaPress = 0.9 * paramsH.boxDims * paramsH.bodyForce3;
@@ -177,10 +183,10 @@ enum WheelType { CYLINDRICAL, LUGGED };
 // Type of wheel/tire (controls both contact and visualization)
 WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
 
-enum ChassisType { CBOX, CSIMPLEMESH, CORIGINAL };
+enum ChassisType { CSPHERE, CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIGINAL };
 
 // Type of chassis (controls both contact and visualization)
-ChassisType chassis_type = CBOX;  // CORIGINAL; //CBOX;
+ChassisType chassis_type = C_SIMPLE_CONVEX_MESH;
 
 // JSON files for vehicle model (using different wheel visualization meshes)
 std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
@@ -211,13 +217,13 @@ TerrainType terrain_type = RIGID;
 bool visible_walls = false;
 
 int Id_g = 100;
-double r_g = 0.02;
-double rho_g = 2500;
-double vol_g = (4.0 / 3) * chrono::CH_C_PI * r_g * r_g * r_g;  // Arman: PI or CH_C_PI
-double mass_g = rho_g * vol_g;
+Real r_g = 0.02;
+Real rho_g = 2500;
+Real vol_g = (4.0 / 3) * chrono::CH_C_PI * r_g * r_g * r_g;  // Arman: PI or CH_C_PI
+Real mass_g = rho_g * vol_g;
 chrono::ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * chrono::ChVector<>(1, 1, 1);
 
-float mu_g = 0.8;
+Real mu_g = 0.8;
 
 int num_particles = 1000;
 
@@ -232,7 +238,7 @@ const std::string pov_dir = out_dir + "/POVRAY";
 
 int out_fps = 60;
 
-double vertical_offset = 0;  // vehicle vertical offset
+Real vertical_offset = 0;  // vehicle vertical offset
 
 utils::VehicleSystem* mVehicle;
 utils::TireContactCallback* tire_cb;

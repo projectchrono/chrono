@@ -18,6 +18,9 @@
 double time_hold = 0;//2; 
 float contact_recovery_speed = 10;//0.1;
 double time_step = .5e-3;//1e-3;
+
+int fluidCollisionFamily = 1;
+
 void SetupParamsH(SimParams & paramsH) {
 //**********************************************
 	paramsH.sizeScale = 1; //don't change it.
