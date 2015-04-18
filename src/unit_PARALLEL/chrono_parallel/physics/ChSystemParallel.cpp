@@ -27,7 +27,6 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   frame_bins = 0;
   old_timer = 0;
   old_timer_cd = 0;
-  timer_collision = 0;
   detect_optimal_threads = false;
   detect_optimal_bins = false;
   current_threads = 2;
@@ -140,20 +139,6 @@ int ChSystemParallel::Integrate_Y() {
   //=============================================================================================
   ChTime += GetStep();
   data_manager->system_timer.stop("step");
-
-  if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system)) {
-    timer_collision_broad = data_manager->system_timer.GetTime("collision_broad");
-    timer_collision_narrow = data_manager->system_timer.GetTime("collision_narrow");
-  } else {
-    timer_collision_broad = 0;
-    timer_collision_narrow = 0;
-  }
-
-  timer_update = data_manager->system_timer.GetTime("update");
-  timer_collision = data_manager->system_timer.GetTime("collision");
-  timer_lcp = data_manager->system_timer.GetTime("lcp");
-  timer_step = data_manager->system_timer.GetTime("step");
-
   if (data_manager->settings.perform_thread_tuning) {
     RecomputeThreads();
   }
@@ -530,7 +515,7 @@ void ChSystemParallel::Setup() {
 }
 
 void ChSystemParallel::RecomputeThreads() {
-  timer_accumulator.insert(timer_accumulator.begin(), timer_step);
+  timer_accumulator.insert(timer_accumulator.begin(), data_manager->system_timer.GetTime("step"));
   timer_accumulator.pop_back();
 
   double sum_of_elems = std::accumulate(timer_accumulator.begin(), timer_accumulator.end(), 0.0);

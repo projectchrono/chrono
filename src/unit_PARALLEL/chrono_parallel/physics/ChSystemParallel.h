@@ -82,7 +82,18 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
   int GetNumBilaterals() { return data_manager->num_bilaterals; }
 
-  double GetTimerCollision() { return timer_collision; }
+  /// Gets the time (in seconds) spent for computing the time step
+  double GetTimerStep() { return data_manager->system_timer.GetTime("step"); }
+  /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
+  double GetTimerLcp() { return data_manager->system_timer.GetTime("lcp"); }
+  /// Gets the fraction of time (in seconds) for finding collisions, within the time step
+  double GetTimerCollisionBroad() { return data_manager->system_timer.GetTime("collision_broad"); }
+  /// Gets the fraction of time (in seconds) for finding collisions, within the time step
+  double GetTimerCollisionNarrow() { return data_manager->system_timer.GetTime("collision_narrow"); }
+  /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
+  double GetTimerUpdate() { return data_manager->system_timer.GetTime("update"); }
+  /// Gets the total time for the collision detection step
+  double GetTimerCollision() { return data_manager->system_timer.GetTime("collision"); }
 
   virtual real3 GetBodyContactForce(uint body_id) const = 0;
   virtual real3 GetBodyContactTorque(uint body_id) const = 0;
@@ -100,7 +111,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   ChParallelDataManager* data_manager;
 
  protected:
-  double timer_collision, old_timer, old_timer_cd;
+  double old_timer, old_timer_cd;
   bool detect_optimal_threads;
 
   int current_threads;
