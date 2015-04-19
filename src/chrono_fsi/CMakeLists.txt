@@ -6,7 +6,7 @@ project(demo_FSI_Chrono)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(ChronoEngine   COMPONENTS unit_IRRLICHT )
-OPTION(BUILD_OPENGL "Build the ChronoEngine_OpenGL library" on)
+OPTION(BUILD_OPENGL "Build the ChronoEngine_OpenGL library" off)
 if (${BUILD_OPENGL})
 	find_package(ChronoEngine   COMPONENTS unit_OPENGL )
 endif()
@@ -47,12 +47,12 @@ include_directories(
     ${CHRONO_PARALLEL_INC}
     ${CHRONOVEHICLE_INCLUDES}
     "${CMAKE_BINARY_DIR}/demos_vehicle"
-    ${GLFW_INCLUDE_DIR}
     "${CHRONO_PARALLEL_LIB_PATH}/../" 
     "${CUDA_TOOLKIT_ROOT_DIR}/include"
     "${CUDA_SDK_ROOT_DIR}/common/inc"
     )
 
+#    ${GLFW_INCLUDE_DIR}
 # question: enabling the following line causes error. The reason is probably because the options are not good for NVCC.
 # they are good for gcc. Is there anyway to have those options available in cpp file (for instance having openmp in cpp
 # file?

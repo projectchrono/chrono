@@ -21,9 +21,15 @@
 # right before find_package(..)
 
 SET (CH_VEHICLE_SDKDIR         "" CACHE PATH "Where is your ChronoVehicle SDK source installed")
-SET (CH_VEHICLE_LIBDIR_DEBUG   "" CACHE PATH "Where are your ChronoVehicle DEBUG libraries (ChronoVehicle.lib) installed?")
-SET (CH_VEHICLE_LIBDIR_RELEASE "" CACHE PATH "Where are your ChronoVehicle RELEASE libraries (ChronoVehicle.lib) installed?")
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	SET (CH_VEHICLE_LIBDIR_DEBUG   "" CACHE PATH "Where is the ChronoVehicle DEBUG library (ChronoVehicle.lib) installed?")
+	SET (CH_VEHICLE_LIBDIR_RELEASE "" CACHE PATH "Where is the ChronoVehicle RELEASE library (ChronoVehicle.lib) installed?")
+ELSE()
+	SET (CH_VEHICLE_LIBDIR "" CACHE PATH "Where is the ChronoVehicle library (ChronoVehicle.lib) installed?")
+	SET(CH_VEHICLE_LIBDIR_DEBUG ${CH_VEHICLE_LIBDIR})
+	SET(CH_VEHICLE_LIBDIR_RELEASE ${CH_VEHICLE_LIBDIR})
+ENDIF()
 
 # ================================================================================
 # Generic definitions that can be useful later
