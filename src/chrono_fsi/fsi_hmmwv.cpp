@@ -84,22 +84,33 @@ opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 #endif
 
 // =============================================================================
-
-void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads, uint& max_iteration) {
+void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads, int& max_iteration_normal, int& max_iteration_sliding, int& max_iteration_spinning, int& max_iteration_bilateral) {
   if (argc > 1) {
     const char* text = argv[1];
     threads = atoi(text);
   }
+  if (argc > 2) {
+    const char* text = argv[2];
+    max_iteration_normal = atoi(text);
+  }
+  if (argc > 3) {
+    const char* text = argv[3];
+    max_iteration_sliding = atoi(text);
+  }
   if (argc > 4) {
     const char* text = argv[4];
-    max_iteration = atoi(text);
+    max_iteration_spinning = atoi(text);
+  }
+  if (argc > 5) {
+    const char* text = argv[5];
+    max_iteration_bilateral = atoi(text);
   }
 }
 // =============================================================================
 
 void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc, char* argv[]) {
   // Desired number of OpenMP threads (will be clamped to maximum available)
-  int threads = 1;//20;
+  int threads = 32;
   // Perform dynamic tuning of number of threads?
   bool thread_tuning = true;
 
@@ -113,7 +124,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   // Set params from input
   // ----------------------
 
-  //	 SetArgumentsForMbdFromInput(argc, argv, threads, max_iteration);
+  SetArgumentsForMbdFromInput(argc, argv, threads, max_iteration_normal, max_iteration_sliding, max_iteration_spinning, max_iteration_bilateral);
 
   // ----------------------
   // Set number of threads.
