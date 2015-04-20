@@ -671,6 +671,7 @@ int main(int argc, char* argv[]) {
     myGpuTimer.Start();
 
     //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
+    myTimerStep.start();
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
     if (realTime <= paramsH.timePause) {
       currentParamsH = paramsH_B;
@@ -694,6 +695,8 @@ int main(int argc, char* argv[]) {
 
     FillMyThrust4(derivVelRhoD, mR4(0));
     thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
+    myTimerStep.stop();
+    double tFluidInit = myTimerStep();
 #endif
     // -------------------
     // End SPH Block
@@ -707,6 +710,7 @@ int main(int argc, char* argv[]) {
 
 // ****************** RK2: 1/2
 #if haveFluid
+    myTimerStep.start();
     ForceSPH(posRadD,
              velMasD,
              vel_XSPH_D,
@@ -717,6 +721,8 @@ int main(int argc, char* argv[]) {
              numObjects,
              currentParamsH,
              0.5 * currentParamsH.dT);
+    myTimerStep.stop();
+    double tForceSPH = myTimerStep();
 #endif
     myTimerStep.start();
     DoStepChronoSystem(
@@ -740,9 +746,12 @@ int main(int argc, char* argv[]) {
     CopyH2D(derivVelRhoD, derivVelRhoChronoH);
     myTimerStep.stop();
     double tH2DTransfer = myTimerStep();
+    myTimerStep.start();
     UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
     // assumes ...D2 is a copy of ...D
     ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
+    myTimerStep.stop();
+    double tUpdateFluid = myTimerStep();
 
     myTimerStep.start();
     CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
@@ -753,8 +762,9 @@ int main(int argc, char* argv[]) {
     myCpuTimerHalfStep.stop();
     myGpuTimerHalfStep.Stop();
 
-    printf("--- tPovSave %f tChDoStep %f tD2HForce %f tH2DTransfer %f tD2Hmarkers %f halfStep GPU %f halfStep CPU %f\n", tPovSave, tChDoStep, tD2HForce, tH2DTransfer,
-    		tD2Hmarkers,  myGpuTimerHalfStep.Elapsed(), myCpuTimerHalfStep());
+    printf("--- tFluidInit %f tPovSave %f tForceSPH %f tChDoStep %f tD2HForce %f tH2DTransfer %f tUpdateFluid %f tD2Hmarkers %f halfStep GPU %f halfStep CPU %f\n", tFluidInit, tPovSave,
+    		tForceSPH, tChDoStep, tD2HForce, tH2DTransfer,
+    		tUpdateFluid, tD2Hmarkers,  myGpuTimerHalfStep.Elapsed(), myCpuTimerHalfStep());
 
     // ****************** RK2: 2/2
     ForceSPH(posRadD2,
