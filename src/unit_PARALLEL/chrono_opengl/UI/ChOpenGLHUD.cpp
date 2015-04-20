@@ -148,12 +148,30 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   int num_bodies = 0;
   int num_contacts = 0;
   int num_bilaterals = 0;
+  real timer_step = 0;
+  real timer_collision_broad = 0;
+  real timer_collision_narrow = 0;
+  real timer_lcp = 0;
+  real timer_update = 0;
   if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
     num_shapes = parallel_system->data_manager->num_rigid_shapes;
     num_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
     num_contacts = parallel_system->GetNcontacts();
     num_bilaterals = parallel_system->data_manager->num_bilaterals;
+
+    timer_step = parallel_system->GetTimerStep();
+    timer_collision_broad = parallel_system->GetTimerCollisionBroad();
+    timer_collision_narrow = parallel_system->GetTimerCollisionNarrow();
+    timer_lcp = parallel_system->GetTimerLcp();
+    timer_update = parallel_system->GetTimerUpdate();
+
   } else {
+    timer_step = physics_system->GetTimerStep();
+    timer_collision_broad = physics_system->GetTimerCollisionBroad();
+    timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
+    timer_lcp = physics_system->GetTimerLcp();
+    timer_update = physics_system->GetTimerUpdate();
+
     ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
     num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
     num_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
@@ -178,15 +196,15 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 
   sprintf(buffer, "TIMING INFO");
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 11, sx, sy);
-  sprintf(buffer, "STEP     %04f", physics_system->GetTimerStep());
+  sprintf(buffer, "STEP     %04f", timer_step);
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 10, sx, sy);
-  sprintf(buffer, "BROAD    %04f", physics_system->GetTimerCollisionBroad());
+  sprintf(buffer, "BROAD    %04f", timer_collision_broad);
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 9, sx, sy);
-  sprintf(buffer, "NARROW   %04f", physics_system->GetTimerCollisionNarrow());
+  sprintf(buffer, "NARROW   %04f", timer_collision_narrow);
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 8, sx, sy);
-  sprintf(buffer, "SOLVE    %04f", physics_system->GetTimerLcp());
+  sprintf(buffer, "SOLVE    %04f", timer_lcp);
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 7, sx, sy);
-  sprintf(buffer, "UPDATE   %04f", physics_system->GetTimerUpdate());
+  sprintf(buffer, "UPDATE   %04f", timer_update);
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 6, sx, sy);
 }
 
@@ -265,7 +283,6 @@ void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
   if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
     ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
 
-
     sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChLcpSolverParallel_N"));
     text.Render(buffer, LEFT, BOTTOM + SPACING * 6, sx, sy);
 
@@ -281,12 +298,13 @@ void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
     sprintf(buffer, "Solve:  %04f", system_timer.GetTime("ChSolverParallel_Solve"));
     text.Render(buffer, LEFT, BOTTOM + SPACING * 2, sx, sy);
 
-    sprintf(buffer, "ShurProduct:  %04f [%d]", system_timer.GetTime("ShurProduct"), system_timer.GetRuns("ShurProduct"));
+    sprintf(buffer, "ShurProduct:  %04f [%d]", system_timer.GetTime("ShurProduct"),
+            system_timer.GetRuns("ShurProduct"));
     text.Render(buffer, LEFT, BOTTOM + SPACING * 1, sx, sy);
 
-    sprintf(buffer, "Project:  %04f [%d]", system_timer.GetTime("ChSolverParallel_Project"), system_timer.GetRuns("ChSolverParallel_Project"));
+    sprintf(buffer, "Project:  %04f [%d]", system_timer.GetTime("ChSolverParallel_Project"),
+            system_timer.GetRuns("ChSolverParallel_Project"));
     text.Render(buffer, LEFT, BOTTOM + SPACING * 0, sx, sy);
-
 
     //    sprintf(buffer, "TimerA:  %04f",
     //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverA"));
