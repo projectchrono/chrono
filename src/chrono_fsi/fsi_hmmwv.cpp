@@ -535,7 +535,7 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTi
 #endif
   double tStepDynamics = myCpuTimerChDynamics();
 #endif
-  printf(" ---- tInitVehicle %d, tVehicleUpdate %d, tStepDynamics %d\n", tInitVehicle, tVehicleUpdate, tStepDynamics);
+  printf(" ---- tInitVehicle %f, tVehicleUpdate %f, tStepDynamics %f\n", tInitVehicle, tVehicleUpdate, tStepDynamics);
   return 1;
 }
 // =============================================================================
