@@ -483,16 +483,24 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
 // =============================================================================
 
 int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTime) {
+	ChTimer<double> myCpuTimerChDynamics;
   // Release the vehicle chassis at the end of the hold time.
+	myCpuTimerChDynamics.start();
   if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold) {
     mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
     for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
       mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
     }
   }
+  myCpuTimerChDynamics.stop();
+  double tInitVehicle = myCpuTimerChDynamics();
 
   // Update vehicle
+  myCpuTimerChDynamics.start();
   mVehicle->Update(mTime);
+  myCpuTimerChDynamics.stop();
+  double tVehicleUpdate = myCpuTimerChDynamics();
+
 
 #if irrlichtVisualization
   Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
@@ -515,13 +523,19 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTi
 #else
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
   if (gl_window.Active()) {
+	  myCpuTimerChDynamics.start();
     gl_window.DoStepDynamics(dT);
     gl_window.Render();
+    myCpuTimerChDynamics.stop();
   }
 #else
+  myCpuTimerChDynamics.start();
   mphysicalSystem.DoStepDynamics(dT);
+  myCpuTimerChDynamics.stop();
 #endif
+  double tStepDynamics = myCpuTimerChDynamics();
 #endif
+  printf(" ---- tInitVehicle %d, tVehicleUpdate %d, tStepDynamics %d\n", tInitVehicle, tVehicleUpdate, tStepDynamics);
   return 1;
 }
 // =============================================================================
