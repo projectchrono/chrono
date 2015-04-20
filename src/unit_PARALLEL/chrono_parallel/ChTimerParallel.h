@@ -34,22 +34,22 @@ struct TimerData {
   double memory_ops;
 
   ChTimer<double> timer;
-  double time;
   double flop_rate;
   double bandwidth;
   int runs;
   bool compute_stats;
   TimerData() {
     flop = memory_ops = 0;
-    time = flop_rate = bandwidth = 0;
+    flop_rate = bandwidth = 0;
     runs = 0;
     compute_stats = false;
   }
 
   void Reset() {
     flop = memory_ops = 0;
-    time = flop_rate = bandwidth = 0;
+    flop_rate = bandwidth = 0;
     runs = 0;
+    timer.reset();
   }
 
   double GetSec() { return timer(); }
@@ -57,8 +57,8 @@ struct TimerData {
   double GetMsec() { return timer() / 1000.0; }
   void Compute() {
     if (compute_stats) {
-      flop_rate = flop * runs / time / 1.0e9;
-      bandwidth = (memory_ops * runs / time) / 1024.0 / 1024.0 / 1024.0;
+      flop_rate = flop * runs / timer() / 1.0e9;
+      bandwidth = (memory_ops * runs / timer()) / 1024.0 / 1024.0 / 1024.0;
     }
   }
 
@@ -67,10 +67,7 @@ struct TimerData {
     timer.start();
   }
 
-  void stop() {
-    timer.stop();
-    time += GetSec();
-  }
+  void stop() { timer.stop(); }
 };
 
 class CH_PARALLEL_API ChTimerParallel {
@@ -111,7 +108,7 @@ class CH_PARALLEL_API ChTimerParallel {
     if (timer_list.count(name) == 0) {
       return 0;
     }
-    return timer_list[name].time;
+    return timer_list[name].timer();
   }
 
   // Returns the number of times a specific timer was called
@@ -127,14 +124,14 @@ class CH_PARALLEL_API ChTimerParallel {
     std::cout << "------------" << std::endl;
     for (std::map<std::string, TimerData>::iterator it = timer_list.begin(); it != timer_list.end(); it++) {
       it->second.Compute();
-      std::cout << "Name:\t" << it->first << "\t" << it->second.time;
+      std::cout << "Name:\t" << it->first << "\t" << it->second.timer();
       if (it->second.compute_stats) {
         std::cout << "\t" << it->second.flop_rate << "\t" << it->second.bandwidth;
         average_flops += it->second.flop_rate;
         average_bandwidth += it->second.bandwidth;
       }
       std::cout << std::endl;
-      total_time += it->second.time;
+      total_time += it->second.timer();
     }
     std::cout << "------------" << std::endl;
     // cout << total_time << " " << average_flops / total_timers << " " << average_bandwidth / total_timers << endl;
