@@ -50,6 +50,7 @@ include_directories(
     "${CHRONO_PARALLEL_LIB_PATH}/../" 
     "${CUDA_TOOLKIT_ROOT_DIR}/include"
     "${CUDA_SDK_ROOT_DIR}/common/inc"
+    ${GLFW_INCLUDE_DIR}
     )
 
 #    ${GLFW_INCLUDE_DIR}
