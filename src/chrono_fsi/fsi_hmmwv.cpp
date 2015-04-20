@@ -532,6 +532,8 @@ int main(int argc, char* argv[]) {
   struct tm* timeinfo;
 
   ChTimer<double> myTimerStep;
+  GpuTimer myGpuTimerHalfStep;
+  ChTimer<double> myCpuTimerHalfStep;
   //(void) cudaSetDevice(0);
 
   time(&rawtime);
@@ -659,6 +661,8 @@ int main(int argc, char* argv[]) {
 // -------------------
 // SPH Block
 // -------------------
+	  myCpuTimerHalfStep.start();
+	  myGpuTimerHalfStep.Start();
 
 #if haveFluid
     CpuTimer mCpuTimer;
@@ -745,7 +749,12 @@ int main(int argc, char* argv[]) {
     UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
     myTimerStep.stop();
     double tD2Hmarkers = myTimerStep();
-    printf("--- tPovSave %f tChDoStep %f tD2HForce % tH2DTransfer %f tD2Hmarkers %f \n", tPovSave, tChDoStep, tD2HForce, tH2DTransfer, tD2Hmarkers);
+
+    myCpuTimerHalfStep.stop();
+    myGpuTimerHalfStep.Stop();
+
+    printf("--- tPovSave %f tChDoStep %f tD2HForce %f tH2DTransfer %f tD2Hmarkers %f halfStep GPU %f halfStep CPU %f\n", tPovSave, tChDoStep, tD2HForce, tH2DTransfer,
+    		tD2Hmarkers,  myGpuTimerHalfStep.Elapsed(), myCpuTimerHalfStep());
 
     // ****************** RK2: 2/2
     ForceSPH(posRadD2,
