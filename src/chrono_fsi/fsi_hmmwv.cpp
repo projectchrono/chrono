@@ -531,6 +531,7 @@ int main(int argc, char* argv[]) {
   time_t rawtime;
   struct tm* timeinfo;
 
+  ChTimer<double> myTimerStep;
   //(void) cudaSetDevice(0);
 
   time(&rawtime);
@@ -601,14 +602,10 @@ int main(int argc, char* argv[]) {
 #endif
   // ***************************** Create Rigid ********************************************
 
-  ChTimer<double> myTimerTotal;
-  ChTimer<double> myTimerStep;
-
   //*** Save PovRay post-processing data?
 
   bool write_povray_data = true;
 
-  myTimerTotal.start();
   std::ofstream outSimulationInfo;
   outSimulationInfo.open("SimInfo.txt");
 
@@ -662,6 +659,7 @@ int main(int argc, char* argv[]) {
 // -------------------
 // SPH Block
 // -------------------
+
 #if haveFluid
     CpuTimer mCpuTimer;
     mCpuTimer.Start();
@@ -698,7 +696,10 @@ int main(int argc, char* argv[]) {
     // -------------------
 
     // If enabled, output data for PovRay postprocessing.
+    myTimerStep.start();
     SavePovFilesMBD(mphysicalSystem, tStep, mTime, num_contacts, exec_time);
+    myTimerStep.stop();
+    double tPovSave = myTimerStep();
 
 // ****************** RK2: 1/2
 #if haveFluid
@@ -713,9 +714,13 @@ int main(int argc, char* argv[]) {
              currentParamsH,
              0.5 * currentParamsH.dT);
 #endif
+    myTimerStep.start();
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+    myTimerStep.stop();
+    double tChDoStep = myTimerStep();
 #if haveFluid
+    myTimerStep.start();
     CopyD2H(derivVelRhoChronoH, derivVelRhoD);
     AddChSystemForcesToSphForces(
         derivVelRhoChronoH,
@@ -725,13 +730,22 @@ int main(int argc, char* argv[]) {
         startIndexSph,
         0.5 *
             currentParamsH.dT);  // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
+    myTimerStep.stop();
+    double tD2HForce = myTimerStep();
+    myTimerStep.start();
     CopyH2D(derivVelRhoD, derivVelRhoChronoH);
+    myTimerStep.stop();
+    double tH2DTransfer = myTimerStep();
     UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
     // assumes ...D2 is a copy of ...D
     ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 
+    myTimerStep.start();
     CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
+    myTimerStep.stop();
+    double tD2Hmarkers = myTimerStep();
+    printf("--- tPovSave %f tChDoStep %f tD2HForce % tH2DTransfer %f tD2Hmarkers %f \n", tPovSave, tChDoStep, tD2HForce, tH2DTransfer, tD2Hmarkers);
 
     // ****************** RK2: 2/2
     ForceSPH(posRadD2,
