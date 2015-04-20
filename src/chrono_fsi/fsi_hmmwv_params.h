@@ -99,7 +99,7 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.cMax = paramsH.cMin + paramsH.binSize0 * mR3(side0);
   paramsH.boxDims = paramsH.cMax - paramsH.cMin;
   //****************************************************************************************
-  paramsH.cMinInit = mR3(-fluidInitDimX, paramsH.cMin.y, -basinDepth + paramsH.HSML);  // 3D channel
+  paramsH.cMinInit = mR3(-fluidInitDimX, paramsH.cMin.y, -basinDepth + 0.5 * paramsH.HSML);  // 3D channel
   paramsH.cMaxInit = mR3(fluidInitDimX, paramsH.cMax.y, paramsH.cMinInit.z + fluidHeight);
   //****************************************************************************************
   //*** initialize straight channel
