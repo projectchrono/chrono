@@ -20,7 +20,7 @@
 // This can be used to allow the granular material to settle.
 Real time_hold = 0.1;  // 0.2;
 
-Real contact_recovery_speed = 1;
+Real contact_recovery_speed = 5;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
 
 Real time_step = 4e-4;  // 2e-3;  // note you are using half of this for MBD system
