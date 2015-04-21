@@ -105,7 +105,7 @@ void ChSystemParallelDEM::PrintStepStats() {
   std::cout << "System Information" << std::endl;
   std::cout << "------------------" << std::endl;
   std::cout << "  Number of bodies     " << GetNumBodies() << std::endl;
-  std::cout << "  Number of contacts   " << GetNcontacts() << std::endl;
+  std::cout << "  Number of contacts   " << GetNumContacts() << std::endl;
   std::cout << "  Number of bilaterals " << GetNumBilaterals() << std::endl;
   std::cout << std::endl;
   std::cout << "Timing Information" << std::endl;
