@@ -538,14 +538,14 @@ void newVel_XSPH_D(Real3* vel_XSPH_Sorted_D, // output: new velocity
 
 	// read particle data from sorted arrays
 
-	real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+	Real4 velMasA = FETCH(sortedVelMas, index);
 	if (rhoPreMuA.w > -0.1) { // v_XSPH is calculated only for fluid markers. Keep unchanged if not fluid.
-		vel_XSPH_Sorted_D[index] = R3(velMasA);
+		vel_XSPH_Sorted_D[index] = mR3(velMasA);
 		return;
 	}
 
 	Real3 posRadA = FETCH(sortedPosRad, index);
-	Real4 velMasA = FETCH(sortedVelMas, index);
 	Real3 deltaV = mR3(0);
 
 	// get address in grid
