@@ -161,7 +161,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   //  mphysicalSystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
 //    mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;   // global collisionEnvelop does not work. Maybe due to sph-tire size mismatch
-  mphysicalSystem.GetSettings()->collision.bins_per_axis = mI3(10, 10, 10);  // Arman check
+  mphysicalSystem.GetSettings()->collision.bins_per_axis = mI3(40, 40, 40);  // Arman check
 }
 // =============================================================================
 
