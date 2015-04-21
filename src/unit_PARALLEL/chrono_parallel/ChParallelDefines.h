@@ -21,18 +21,14 @@
 #undef _GLIBCXX_ATOMIC_BUILTINS
 #undef _GLIBCXX_USE_INT128
 
-#ifdef SIM_ENABLE_GPU_MODE
-#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
-#else
-//#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
-//#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_OMP
-#endif
-
 #ifndef _MSC_VER
 #include <fenv.h>
 #endif
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChConfigParallel.h"
+
+#include <thrust/execution_policy.h>
+#include <thrust/system/omp/execution_policy.h>
 
 #ifdef _MSC_VER
 #define thrust_parallel thrust::cpp::par
@@ -40,7 +36,6 @@
 #define thrust_parallel thrust::omp::par
 #endif
 
-typedef unsigned int uint;
 typedef int shape_type;
 
 #ifdef __CDT_PARSER__

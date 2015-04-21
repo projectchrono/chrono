@@ -20,8 +20,6 @@
 
 #include <algorithm>
 #include <iostream>
-//#include <thrust/execution_policy.h>
-//#include <thrust/system/omp/execution_policy.h>
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 //
@@ -255,13 +253,6 @@
 //  return std::fmax(real(0.0), -minval);
 //}
 
-template <class T>
-static inline std::ostream& operator<<(std::ostream& out, const thrust::device_vector<T>& x) {
-  for (uint i = 0; i < x.size(); i++) {
-    out << x[i] << std::endl;
-  }
-  return out;
-}
 template <class T>
 static inline std::ostream& operator<<(std::ostream& out, const thrust::host_vector<T>& x) {
   for (uint i = 0; i < x.size(); i++) {

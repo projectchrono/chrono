@@ -23,8 +23,6 @@
 
 // Thrust Includes
 #include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
-#include <thrust/system/omp/vector.h>
 
 // Chrono Includes
 #include "lcp/ChLcpSystemDescriptor.h"
