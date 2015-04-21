@@ -161,7 +161,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   //  mphysicalSystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
 //    mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;   // global collisionEnvelop does not work. Maybe due to sph-tire size mismatch
-  mphysicalSystem.GetSettings()->collision.bins_per_axis = mI3(10, 10, 10);  // Arman check
+  mphysicalSystem.GetSettings()->collision.bins_per_axis = mI3(40, 40, 40);  // Arman check
 }
 // =============================================================================
 
@@ -483,7 +483,8 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
 // =============================================================================
 
 int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTime) {
-  // Release the vehicle chassis at the end of the hold time.
+
+	// Release the vehicle chassis at the end of the hold time.
   if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold) {
     mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
     for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
@@ -493,6 +494,7 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTi
 
   // Update vehicle
   mVehicle->Update(mTime);
+
 
 #if irrlichtVisualization
   Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
@@ -531,6 +533,8 @@ int main(int argc, char* argv[]) {
   time_t rawtime;
   struct tm* timeinfo;
 
+  GpuTimer myGpuTimerHalfStep;
+  ChTimer<double> myCpuTimerHalfStep;
   //(void) cudaSetDevice(0);
 
   time(&rawtime);
@@ -601,14 +605,10 @@ int main(int argc, char* argv[]) {
 #endif
   // ***************************** Create Rigid ********************************************
 
-  ChTimer<double> myTimerTotal;
-  ChTimer<double> myTimerStep;
-
   //*** Save PovRay post-processing data?
 
   bool write_povray_data = true;
 
-  myTimerTotal.start();
   std::ofstream outSimulationInfo;
   outSimulationInfo.open("SimInfo.txt");
 
@@ -662,6 +662,10 @@ int main(int argc, char* argv[]) {
 // -------------------
 // SPH Block
 // -------------------
+	  myCpuTimerHalfStep.start();
+	  myGpuTimerHalfStep.Start();
+	  fsi_timer.Reset();
+
 #if haveFluid
     CpuTimer mCpuTimer;
     mCpuTimer.Start();
@@ -669,6 +673,10 @@ int main(int argc, char* argv[]) {
     myGpuTimer.Start();
 
     //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
+
+    	fsi_timer.start("half_step_dynamic_fsi_12");
+    	fsi_timer.start("fluid_initialization");
+
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
     if (realTime <= paramsH.timePause) {
       currentParamsH = paramsH_B;
@@ -692,7 +700,10 @@ int main(int argc, char* argv[]) {
 
     FillMyThrust4(derivVelRhoD, mR4(0));
     thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
-#endif
+
+    	fsi_timer.stop("fluid_initialization");
+
+    #endif
     // -------------------
     // End SPH Block
     // -------------------
@@ -702,6 +713,9 @@ int main(int argc, char* argv[]) {
 
 // ****************** RK2: 1/2
 #if haveFluid
+
+    	fsi_timer.start("force_sph");
+
     ForceSPH(posRadD,
              velMasD,
              vel_XSPH_D,
@@ -712,9 +726,18 @@ int main(int argc, char* argv[]) {
              numObjects,
              currentParamsH,
              0.5 * currentParamsH.dT);
+
+    	fsi_timer.stop("force_sph");
+
 #endif
+
+    	fsi_timer.start("stepDynamic_mbd");
+
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+
+    	fsi_timer.stop("stepDynamic_mbd");
+
 #if haveFluid
     CopyD2H(derivVelRhoChronoH, derivVelRhoD);
     AddChSystemForcesToSphForces(
@@ -733,7 +756,11 @@ int main(int argc, char* argv[]) {
     CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
 
+    myCpuTimerHalfStep.stop();
+    myGpuTimerHalfStep.Stop();
+    fsi_timer.stop("half_step_dynamic_fsi_12");
     // ****************** RK2: 2/2
+    fsi_timer.start("half_step_dynamic_fsi_22");
     ForceSPH(posRadD2,
              velMasD2,
              vel_XSPH_D,
@@ -799,6 +826,12 @@ int main(int argc, char* argv[]) {
 
     fflush(stdout);
     realTime += currentParamsH.dT;
+
+    fsi_timer.stop("half_step_dynamic_fsi_22");
+    fsi_timer.PrintReport();
+
+    mphysicalSystem.data_manager->system_timer.PrintReport();
+
   }
 #if haveFluid
   ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);

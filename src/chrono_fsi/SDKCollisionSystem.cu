@@ -159,7 +159,7 @@ Real3 deltaVShare(
 				Real d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML) continue;
 				Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
-				if (!( rhoPresMuA.w <0 && rhoPresMuB.w < 0 )) continue;//# A and B must be fluid, accoring to colagrossi (2003), the other phase (i.e. rigid) should not be considered)
+				if (rhoPresMuB.w > -.1 ) continue;//# B must be fluid (A was checked originally and it is fluid at this point), accoring to colagrossi (2003), the other phase (i.e. rigid) should not be considered)
 				Real multRho = 2.0f / (rhoPresMuA.x + rhoPresMuB.x);
 				Real4 velMasB = FETCH(sortedVelMas, j);
 				deltaV += velMasB.w * mR3(velMasB - velMasA) * W3(d) * multRho;
@@ -537,9 +537,15 @@ void newVel_XSPH_D(Real3* vel_XSPH_Sorted_D, // output: new velocity
 	if (index >= numAllMarkers) return;
 
 	// read particle data from sorted arrays
-	Real3 posRadA = FETCH(sortedPosRad, index);
-	Real4 velMasA = FETCH(sortedVelMas, index);
+
 	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+	Real4 velMasA = FETCH(sortedVelMas, index);
+	if (rhoPreMuA.w > -0.1) { // v_XSPH is calculated only for fluid markers. Keep unchanged if not fluid.
+		vel_XSPH_Sorted_D[index] = mR3(velMasA);
+		return;
+	}
+
+	Real3 posRadA = FETCH(sortedPosRad, index);
 	Real3 deltaV = mR3(0);
 
 	// get address in grid
@@ -1104,12 +1110,6 @@ void RecalcVelocity_XSPH(
 		thrust::device_vector<uint>  & cellEnd,
 		uint numAllMarkers,
 		uint numCells) {
-	//#if USE_TEX
-	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numAllMarkers*sizeof(Real4)));
-	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numAllMarkers*sizeof(Real4)));
-	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
-	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
-	//#endif
 
 	// thread per particle
 	uint numThreads, numBlocks;
@@ -1128,13 +1128,6 @@ void RecalcVelocity_XSPH(
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: newVel_XSPH_D");
-
-	//#if USE_TEX
-	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
-	//    cutilSafeCall(cudaUnbindTexture(oldVelTex));
-	//    cutilSafeCall(cudaUnbindTexture(cellStartTex));
-	//    cutilSafeCall(cudaUnbindTexture(cellEndTex));
-	//#endif
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void CalcBCE_Stresses(
