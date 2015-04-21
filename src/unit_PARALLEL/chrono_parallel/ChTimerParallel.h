@@ -38,6 +38,7 @@ struct TimerData {
   double bandwidth;
   int runs;
   bool compute_stats;
+
   TimerData() {
     flop = memory_ops = 0;
     flop_rate = bandwidth = 0;
@@ -53,8 +54,8 @@ struct TimerData {
   }
 
   double GetSec() { return timer(); }
+  double GetMsec() { return timer() * 1000.0; }
 
-  double GetMsec() { return timer() / 1000.0; }
   void Compute() {
     if (compute_stats) {
       flop_rate = flop * runs / timer() / 1.0e9;
