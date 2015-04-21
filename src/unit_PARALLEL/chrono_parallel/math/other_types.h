@@ -71,17 +71,17 @@ static inline int2 _make_int2(const int& a, const int& b) {
 
 static inline int3 _make_int3(const real3& a) {
   int3 t;
-  t.x = a.x;
-  t.y = a.y;
-  t.z = a.z;
+  t.x = int(a.x);
+  t.y = int(a.y);
+  t.z = int(a.z);
   return t;
 }
 
 static inline uint3 _make_uint3(const real3& a) {
   uint3 t;
-  t.x = a.x;
-  t.y = a.y;
-  t.z = a.z;
+  t.x = uint(a.x);
+  t.y = uint(a.y);
+  t.z = uint(a.z);
   return t;
 }
 
