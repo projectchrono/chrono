@@ -578,17 +578,24 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     int GetNcontacts();
 
     /// Gets the time (in seconds) spent for computing the time step
-    double GetTimerStep() { return timer_step(); }
+    virtual double GetTimerStep() { return timer_step(); }
     /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
-    double GetTimerLcp() { return timer_lcp(); }
+    virtual double GetTimerLcp() { return timer_lcp(); }
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-    double GetTimerCollisionBroad() { return timer_collision_broad(); }
+    virtual double GetTimerCollisionBroad() { return timer_collision_broad(); }
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-    double GetTimerCollisionNarrow() { return timer_collision_narrow(); }
+    virtual double GetTimerCollisionNarrow() { return timer_collision_narrow(); }
     /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-    double GetTimerUpdate() { return timer_update(); }
+    virtual double GetTimerUpdate() { return timer_update(); }
+
     /// Resets the timers.
-    void ResetTimers() { timer_step.reset(); timer_lcp.reset(); timer_collision_broad.reset(); timer_collision_narrow.reset(); timer_update.reset();}
+    void ResetTimers() {
+        timer_step.reset();
+        timer_lcp.reset();
+        timer_collision_broad.reset();
+        timer_collision_narrow.reset();
+        timer_update.reset();
+    }
 
     /// Current warning/error (soon this function will be deprecated and obsolete)
     char* GetErrMessage() { return err_message; }
