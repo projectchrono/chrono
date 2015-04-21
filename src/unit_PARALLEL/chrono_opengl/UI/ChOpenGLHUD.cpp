@@ -148,35 +148,21 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   int num_bodies = 0;
   int num_contacts = 0;
   int num_bilaterals = 0;
-  real timer_step = 0;
-  real timer_collision_broad = 0;
-  real timer_collision_narrow = 0;
-  real timer_lcp = 0;
-  real timer_update = 0;
+  real timer_step = physics_system->GetTimerStep();
+  real timer_collision_broad = physics_system->GetTimerCollisionBroad();
+  real timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
+  real timer_lcp = physics_system->GetTimerLcp();
+  real timer_update = physics_system->GetTimerUpdate();
   if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
     num_shapes = parallel_system->data_manager->num_rigid_shapes;
     num_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
     num_contacts = parallel_system->GetNcontacts();
     num_bilaterals = parallel_system->data_manager->num_bilaterals;
-
-    timer_step = parallel_system->GetTimerStep();
-    timer_collision_broad = parallel_system->GetTimerCollisionBroad();
-    timer_collision_narrow = parallel_system->GetTimerCollisionNarrow();
-    timer_lcp = parallel_system->GetTimerLcp();
-    timer_update = parallel_system->GetTimerUpdate();
-
   } else {
-    timer_step = physics_system->GetTimerStep();
-    timer_collision_broad = physics_system->GetTimerCollisionBroad();
-    timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
-    timer_lcp = physics_system->GetTimerLcp();
-    timer_update = physics_system->GetTimerUpdate();
-
     ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
     num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
     num_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
-    num_contacts = physics_system->GetContactContainer()->GetNcontacts();
-    num_bilaterals = parallel_system->data_manager->num_bilaterals;
+    num_contacts = physics_system->GetNcontacts();
   }
 
   int average_contacts_per_body = num_bodies > 0 ? num_contacts / num_bodies : 0;
