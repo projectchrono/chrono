@@ -545,7 +545,6 @@ int main(int argc, char* argv[]) {
   time_t rawtime;
   struct tm* timeinfo;
 
-  ChTimer<double> myTimerStep;
   GpuTimer myGpuTimerHalfStep;
   ChTimer<double> myCpuTimerHalfStep;
   //(void) cudaSetDevice(0);
@@ -677,6 +676,7 @@ int main(int argc, char* argv[]) {
 // -------------------
 	  myCpuTimerHalfStep.start();
 	  myGpuTimerHalfStep.Start();
+	  fsi_timer.Reset();
 
 #if haveFluid
     CpuTimer mCpuTimer;
@@ -685,7 +685,10 @@ int main(int argc, char* argv[]) {
     myGpuTimer.Start();
 
     //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
-    myTimerStep.start();
+
+    	fsi_timer.start("half_step_dynamic_fsi_12");
+    	fsi_timer.start("fluid_initialization");
+
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
     if (realTime <= paramsH.timePause) {
       currentParamsH = paramsH_B;
@@ -709,22 +712,22 @@ int main(int argc, char* argv[]) {
 
     FillMyThrust4(derivVelRhoD, mR4(0));
     thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
-    myTimerStep.stop();
-    double tFluidInit = myTimerStep();
-#endif
+
+    	fsi_timer.stop("fluid_initialization");
+
+    #endif
     // -------------------
     // End SPH Block
     // -------------------
 
     // If enabled, output data for PovRay postprocessing.
-    myTimerStep.start();
     SavePovFilesMBD(mphysicalSystem, tStep, mTime, num_contacts, exec_time);
-    myTimerStep.stop();
-    double tPovSave = myTimerStep();
 
 // ****************** RK2: 1/2
 #if haveFluid
-    myTimerStep.start();
+
+    	fsi_timer.start("force_sph");
+
     ForceSPH(posRadD,
              velMasD,
              vel_XSPH_D,
@@ -735,16 +738,19 @@ int main(int argc, char* argv[]) {
              numObjects,
              currentParamsH,
              0.5 * currentParamsH.dT);
-    myTimerStep.stop();
-    double tForceSPH = myTimerStep();
+
+    	fsi_timer.stop("force_sph");
+
 #endif
-    myTimerStep.start();
+
+    	fsi_timer.start("stepDynamic_mbd");
+
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
-    myTimerStep.stop();
-    double tChDoStep = myTimerStep();
+
+    	fsi_timer.stop("stepDynamic_mbd");
+
 #if haveFluid
-    myTimerStep.start();
     CopyD2H(derivVelRhoChronoH, derivVelRhoD);
     AddChSystemForcesToSphForces(
         derivVelRhoChronoH,
@@ -754,33 +760,19 @@ int main(int argc, char* argv[]) {
         startIndexSph,
         0.5 *
             currentParamsH.dT);  // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
-    myTimerStep.stop();
-    double tD2HForce = myTimerStep();
-    myTimerStep.start();
     CopyH2D(derivVelRhoD, derivVelRhoChronoH);
-    myTimerStep.stop();
-    double tH2DTransfer = myTimerStep();
-    myTimerStep.start();
     UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
     // assumes ...D2 is a copy of ...D
     ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
-    myTimerStep.stop();
-    double tUpdateFluid = myTimerStep();
 
-    myTimerStep.start();
     CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
-    myTimerStep.stop();
-    double tD2Hmarkers = myTimerStep();
 
     myCpuTimerHalfStep.stop();
     myGpuTimerHalfStep.Stop();
-
-    printf("--- tFluidInit %f tPovSave %f tForceSPH %f tChDoStep %f tD2HForce %f tH2DTransfer %f tUpdateFluid %f tD2Hmarkers %f halfStep GPU %f halfStep CPU %f\n", tFluidInit, tPovSave,
-    		tForceSPH, tChDoStep, tD2HForce, tH2DTransfer,
-    		tUpdateFluid, tD2Hmarkers,  myGpuTimerHalfStep.Elapsed(), myCpuTimerHalfStep());
-
+    fsi_timer.stop("half_step_dynamic_fsi_12");
     // ****************** RK2: 2/2
+    fsi_timer.start("half_step_dynamic_fsi_22");
     ForceSPH(posRadD2,
              velMasD2,
              vel_XSPH_D,
@@ -846,6 +838,12 @@ int main(int argc, char* argv[]) {
 
     fflush(stdout);
     realTime += currentParamsH.dT;
+
+    fsi_timer.stop("half_step_dynamic_fsi_22");
+    fsi_timer.PrintReport();
+
+    mphysicalSystem.data_manager->system_timer.PrintReport();
+
   }
 #if haveFluid
   ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
