@@ -1,6 +1,8 @@
 #ifndef CHLCPSYSTEMDESCRIPTORPARALLEL_H
 #define CHLCPSYSTEMDESCRIPTORPARALLEL_H
 
+#include <thrust/count.h>
+
 #include "lcp/ChLcpSystemDescriptor.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
