@@ -18,8 +18,6 @@
 #ifndef OTHER_TYPES_H
 #define OTHER_TYPES_H
 
-#include <vector_types.h>
-
 #define S2 _make_short2
 #define I3 _make_int3
 #define U3 _make_uint3
@@ -31,6 +29,22 @@ struct bool2 {
   bool x, y;
   bool2() : x(0), y(0) {}
   bool2(bool a, bool b) : x(a), y(b) {}
+};
+
+struct short2{
+  short x, y;
+};
+
+struct int2{
+  int x, y;
+};
+
+struct int3{
+  int x, y, z;
+};
+
+struct uint3{
+  unsigned int x, y, z;
 };
 
 static inline short2 _make_short2(const short& a, const short& b) {

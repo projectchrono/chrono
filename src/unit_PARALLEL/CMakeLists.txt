@@ -172,48 +172,12 @@ ENDIF()
 #include_directories(${MPI_CXX_INCLUDE_PATH})
 
 # ------------------------------------------------------------------------------
-# CUDA -- required for the Thrust library
+# Thrust
 # ------------------------------------------------------------------------------
-# Use the FindCUDA.cmake to find the CUDA toolkit and set many interesting 
-# variables and compilation rules. This saves eons of time.
-# Interesting vars that are set: paths CUDA_SDK_ROOT_DIR and CUDA_TOOLKIT_ROOT_DIR
+find_package(Thrust)
 
-find_package(CUDA QUIET)
-IF(CUDA_FOUND)
-    message(STATUS "CUDA found")
-ELSE()
-    message(FATAL_ERROR "CUDA not found!")
-ENDIF()
-
-# Detect what architecture we're on
-# Paths we'll use to find some of the extra libraries
-# Ensure that correct path for architecture is selected
-IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-SET(CUDA_TOOLKIT_LIB_DIR
-    ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
-    ${CUDA_TOOLKIT_ROOT_DIR}/lib
-    ${CUDA_TOOLKIT_ROOT_DIR}/lib64)
-SET(CUDA_SDK_LIB_DIR
-    ${CUDA_SDK_ROOT_DIR}/common/lib/x64
-    ${CUDA_SDK_ROOT_DIR}/common/lib/linux/x86_64
-    ${CUDA_SDK_ROOT_DIR}/common/lib/darwin)
-ELSE()
-    message(FATAL_ERROR "Architecture detected as 32-bit. Only 64-bit Builds Supported!")
-ENDIF()
-
-find_library(CH_CUDART NAMES cudart libcudart PATHS ${CUDA_TOOLKIT_LIB_DIR})
-
-# These need to get straightened out
-# Anything using the SDK should only be used by nvcc,
-# no need to include them for anything being sent to the system compiler
-INCLUDE_DIRECTORIES(
-    ${CUDA_TOOLKIT_ROOT_DIR}/include
-    ${CUDA_SDK_ROOT_DIR}/common/inc
-    ${CUDA_TOOLKIT_INCLUDE}
-    )
-    
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_20,code=sm_20;-std=c++11 )
-SET( CUDA_PROPAGATE_HOST_FLAGS ON ) 
+#Without the following define, thrust needs the cuda sdk to compile
+add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
 
 # ------------------------------------------------------------------------------
 # BLAZE -- required for some parallel solvers
@@ -431,7 +395,7 @@ CONFIGURE_FILE(
   ${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h
   )
 
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${BLAZE_DIR} ${BOOST_DIR})
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${BLAZE_DIR} ${BOOST_DIR} ${THRUST_INCLUDE_DIR})
 
 # ------------------------------------------------------------------------------
 # Add paths to the top of the source directory
