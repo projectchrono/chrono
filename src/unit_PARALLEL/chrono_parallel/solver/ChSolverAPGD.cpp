@@ -139,7 +139,12 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
     // Compute the residual
     temp = gamma_new - g_diff * (N_gamma_new - r);
     real temp_dota = (real)(temp, temp);
-    // Project(temp.data());
+    // ಠ_ಠ THIS PROJECTION IS IMPORTANT! (╯°□°)╯︵ ┻━┻
+    // If turned off the residual will be very incorrect! Turning it off can cause the solver to effectively use the
+    // solution found in the first step because the residual never get's smaller. (You can convince yourself of this by
+    // looking at the objective function value and watch it decrease while the residual and the current solution remain
+    // the same.)
+    Project(temp.data());
     temp = (1.0 / g_diff) * (gamma_new - temp);
     real temp_dotb = (real)(temp, temp);
     real res = sqrt(temp_dotb);
