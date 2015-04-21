@@ -25,7 +25,7 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
   ChContactContainerParallel(ChParallelDataManager* dc);
 
   virtual ~ChContactContainerParallel();
-  int GetNcontacts() { return data_manager->num_rigid_contacts; }
+  virtual int GetNcontacts() { return data_manager->num_rigid_contacts; }
 
   ChParallelDataManager* data_manager;
 };
