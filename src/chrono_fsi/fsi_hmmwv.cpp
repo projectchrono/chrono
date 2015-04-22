@@ -434,16 +434,16 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
   // Set the callback object for driver inputs. Pass the hold time as a delay in
   // generating driver inputs.
-  driver_cb = new MyDriverInputs(time_hold);
+  driver_cb = new MyDriverInputs(time_hold_vehicle);
   mVehicle->SetDriverInputsCallback(driver_cb);
 
-  // Initially, fix the chassis (will be released after time_hold).
+  // Initially, fix the chassis (will be released after time_hold_vehicle).
   mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
 
   // Initialize the vehicle at a height above the terrain.
   mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
 
-  // Initially, fix the wheels (will be released after time_hold).
+  // Initially, fix the wheels (will be released after time_hold_vehicle).
   for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
     mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
   }
@@ -565,10 +565,13 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
   }
 }
 // =============================================================================
-void SetMarkersVelToZero(thrust::host_vector<Real4> velMasH) {
+void SetMarkersVelToZero(
+		thrust::device_vector<Real4> & velMasD,
+		thrust::host_vector<Real4> & velMasH) {
 	for (int i = 0; i < velMasH.size(); i++) {
 		Real4 vM = velMasH[i];
 		velMasH[i] = mR4(0, 0, 0, vM.w);
+		velMasD[i] = mR4(0, 0, 0, vM.w);
 	}
 }
 // =============================================================================
@@ -576,7 +579,7 @@ void SetMarkersVelToZero(thrust::host_vector<Real4> velMasH) {
 int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTime) {
 
 	// Release the vehicle chassis at the end of the hold time.
-  if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold) {
+  if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold_vehicle) {
     mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
     for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
       mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
@@ -773,8 +776,8 @@ int main(int argc, char* argv[]) {
     if (tStep % 200 == 0) {
     	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
     }
-    if (tStep % 200 == 0 && realTime < 1.2) {
-    	SetMarkersVelToZero(velMasH);
+    if (fmod(realTime, 0.4) < time_step && realTime < 1.3) {
+    	SetMarkersVelToZero(velMasD, velMasH);
     }
     // *******
 
@@ -918,6 +921,9 @@ int main(int argc, char* argv[]) {
              realTime,
              (Real)myGpuTimer.Elapsed(),
              1000 * mCpuTimer.Elapsed());
+
+      fsi_timer.stop("half_step_dynamic_fsi_22");
+      fsi_timer.PrintReport();
     }
 #endif
     // -------------------
@@ -926,9 +932,6 @@ int main(int argc, char* argv[]) {
 
     fflush(stdout);
     realTime += currentParamsH.dT;
-
-    fsi_timer.stop("half_step_dynamic_fsi_22");
-    fsi_timer.PrintReport();
 
     mphysicalSystem.data_manager->system_timer.PrintReport();
 

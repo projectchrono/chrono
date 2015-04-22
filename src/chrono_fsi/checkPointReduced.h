@@ -13,9 +13,9 @@
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CheckPointMarkers_Write(
-		thrust::host_vector<Real3> & mPosRad,
-		thrust::host_vector<Real4> & mVelMas,
-		thrust::host_vector<Real4> & mRhoPresMu,
+		const thrust::host_vector<Real3> & mPosRad,
+		const thrust::host_vector<Real4> & mVelMas,
+		const thrust::host_vector<Real4> & mRhoPresMu,
 		const thrust::host_vector<uint> & bodyIndex,
 		const thrust::host_vector<int3> & referenceArray,
 
