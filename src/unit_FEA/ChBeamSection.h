@@ -265,6 +265,14 @@ public:
                     rdamping = 0.01;  // default raleygh damping.
                 }
 
+    ChBeamSectionCable(const double mE, const double mDia, const double rho, const double mI = 0, const double damping = 0) : E(mE), density(rho), rdamping(damping)
+    {
+      SetDiameter(mDia);
+      if (mI > 0)
+        SetI(mI);
+
+    }
+
     virtual ~ChBeamSectionCable() {}
 
                 /// Set the cross sectional area A of the beam (m^2) 
