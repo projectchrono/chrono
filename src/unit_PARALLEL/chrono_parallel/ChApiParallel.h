@@ -51,4 +51,11 @@
 #define fmin min
 #endif
 
+#if defined(WIN32) || defined(WIN64)
+  #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+  #endif
+#define ELPP_WINSOCK2
+#endif
+
 #endif  // END of header
