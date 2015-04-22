@@ -21,9 +21,6 @@
 #ifndef CH_DATAMANAGER_H
 #define CH_DATAMANAGER_H
 
-// Thrust Includes
-#include <thrust/host_vector.h>
-
 // Chrono Includes
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "physics/ChBody.h"
@@ -37,6 +34,9 @@
 #include "chrono_parallel/math/other_types.h"
 #include "chrono_parallel/ChSettings.h"
 #include "chrono_parallel/ChMeasures.h"
+
+// Thrust Includes
+#include <thrust/host_vector.h>
 
 // Blaze Includes
 #include <blaze/math/CompressedMatrix.h>

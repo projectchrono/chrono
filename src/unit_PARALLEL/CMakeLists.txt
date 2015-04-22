@@ -118,12 +118,6 @@ ENDIF()
 
 
 # ------------------------------------------------------------------------------
-# Thrust-related settings
-# ------------------------------------------------------------------------------
-#add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
-#add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
-
-# ------------------------------------------------------------------------------
 # OpenMP
 # ------------------------------------------------------------------------------
 find_package("OpenMP")
@@ -175,9 +169,6 @@ ENDIF()
 # Thrust
 # ------------------------------------------------------------------------------
 find_package(Thrust)
-
-#Without the following define, thrust needs the cuda sdk to compile
-add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
 
 # ------------------------------------------------------------------------------
 # BLAZE -- required for some parallel solvers

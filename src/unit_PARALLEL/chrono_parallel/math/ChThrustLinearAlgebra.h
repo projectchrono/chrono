@@ -22,6 +22,10 @@
 #include <iostream>
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/math/ChParallelMath.h"
+
+// Thrust Includes
+#include <thrust/host_vector.h>
+
 //
 // static void SEAXPY(const real& a,
 //                   const custom_vector<real>& x,

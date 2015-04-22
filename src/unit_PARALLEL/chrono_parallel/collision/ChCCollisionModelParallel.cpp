@@ -14,8 +14,6 @@
 //
 // Description: class for a parallel collision model
 // =============================================================================
-// not used but prevents compilation errors with cuda 7 RC
-#include <thrust/transform.h>
 #include "chrono_parallel/collision/ChCCollisionModelParallel.h"
 #include "physics/ChBody.h"
 #include "physics/ChBodyAuxRef.h"

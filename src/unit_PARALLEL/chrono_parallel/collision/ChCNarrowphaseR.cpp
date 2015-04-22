@@ -18,9 +18,6 @@
 
 #include "collision/ChCCollisionModel.h"
 
-// not used but prevents compilation errors with cuda 7 RC
-#include <thrust/transform.h>
-
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
