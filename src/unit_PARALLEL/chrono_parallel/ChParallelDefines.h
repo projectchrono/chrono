@@ -32,6 +32,7 @@
 #define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_OMP
 
 #include <thrust/execution_policy.h>
+#include <thrust/system/cpp/execution_policy.h>
 #include <thrust/system/omp/execution_policy.h>
 
 #ifdef _MSC_VER
