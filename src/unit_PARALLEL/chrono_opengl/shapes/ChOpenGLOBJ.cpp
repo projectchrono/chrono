@@ -31,7 +31,20 @@ bool ChOpenGLOBJ::Initialize(std::string filename, ChOpenGLMaterial mat, ChOpenG
     return false;
   }
 
-  loader.LoadObject(filename, vertices, normals, texcoords, indices, names);
+  std::ifstream ifs(filename);
+
+  std::ifstream in(filename.c_str(), std::ios::in);
+  if (!in) {
+    std::cout << "Cannot open file [" << filename << "]" << std::endl;
+  }
+  std::string contents;
+  in.seekg(0, std::ios::end);
+  contents.resize(in.tellg());
+  in.seekg(0, std::ios::beg);
+  in.read(&contents[0], contents.size());
+  in.close();
+
+  loader.LoadObject(contents.c_str(), vertices, normals, texcoords, indices, names);
   meshes.resize(vertices.size());
   for (unsigned int i = 0; i < meshes.size(); i++) {
     meshes[i].Initialize(vertices[i], normals[i], texcoords[i], indices[i], mat);
@@ -44,6 +57,26 @@ bool ChOpenGLOBJ::Initialize(std::string filename, ChOpenGLMaterial mat, ChOpenG
 
   return true;
 }
+
+bool ChOpenGLOBJ::InitializeString(const char* mesh_data, ChOpenGLMaterial mat, ChOpenGLShader* shader) {
+  if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on entry")) {
+    return false;
+  }
+
+  loader.LoadObject(mesh_data, vertices, normals, texcoords, indices, names);
+  meshes.resize(vertices.size());
+  for (unsigned int i = 0; i < meshes.size(); i++) {
+    meshes[i].Initialize(vertices[i], normals[i], texcoords[i], indices[i], mat);
+    meshes[i].AttachShader(shader);
+  }
+
+  if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on exit")) {
+    return false;
+  }
+
+  return true;
+}
+
 
 void ChOpenGLOBJ::TakeDown() {
   for (unsigned int i = 0; i < meshes.size(); i++) {

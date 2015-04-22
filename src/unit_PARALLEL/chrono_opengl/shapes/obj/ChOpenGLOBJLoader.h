@@ -24,7 +24,7 @@ namespace opengl {
 class ChOpenGLOBJLoader : public ChOpenGLBase {
  public:
   ChOpenGLOBJLoader();
-  void LoadObject(std::string fname,
+  void LoadObject(const char* mesh_file,
                   std::vector<std::vector<glm::vec3> >& vertices,
                   std::vector<std::vector<glm::vec3> >& normals,
                   std::vector<std::vector<glm::vec2> >& texcoords,

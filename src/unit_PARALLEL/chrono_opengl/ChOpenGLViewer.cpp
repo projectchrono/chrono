@@ -39,6 +39,11 @@
 #include "resources/dot_vert.h"
 #include "resources/sphere_frag.h"
 #include "resources/sphere_vert.h"
+// Standard mesh includes
+#include "resources/box.h"
+#include "resources/sphere.h"
+#include "resources/cylinder.h"
+#include "resources/cone.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -114,10 +119,10 @@ bool ChOpenGLViewer::Initialize() {
   }
 
   // Setup the generic shapes and load them from file
-  sphere.Initialize("../resources/sphere.obj", slate, &main_shader);
-  box.Initialize("../resources/box.obj", t3, &main_shader);
-  cylinder.Initialize("../resources/cylinder.obj", apple, &main_shader);
-  cone.Initialize("../resources/cone.obj", white, &main_shader);
+  sphere.InitializeString(sphere_mesh_data, slate, &main_shader);
+  box.InitializeString(box_mesh_data, t3, &main_shader);
+  cylinder.InitializeString(cylinder_mesh_data, apple, &main_shader);
+  cone.InitializeString(cone_mesh_data, white, &main_shader);
 
   HUD_renderer.Initialize(&render_camera, &timer);
 

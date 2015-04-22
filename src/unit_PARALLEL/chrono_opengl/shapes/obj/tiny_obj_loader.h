@@ -49,7 +49,7 @@ typedef struct {
 /// Returns empty string when loading .obj success.
 /// 'mtl_basepath' is optional, and used for base path for .mtl file.
 std::string LoadObj(std::vector<shape_t>& shapes,  // [output]
-                    const char* filename,
+                    const char* mesh_data,
                     const char* mtl_basepath = NULL);
 
 ///// Loads .obj from a string.

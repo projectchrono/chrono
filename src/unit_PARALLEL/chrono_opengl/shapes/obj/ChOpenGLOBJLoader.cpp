@@ -26,17 +26,16 @@ ChOpenGLOBJLoader::ChOpenGLOBJLoader() {
 }
 
 // load an obj mesh. Each mesh can have multiple sub meshes
-void ChOpenGLOBJLoader::LoadObject(std::string fname,
+void ChOpenGLOBJLoader::LoadObject(const char* mesh_file,
                                    std::vector<std::vector<glm::vec3> >& vertices,
                                    std::vector<std::vector<glm::vec3> >& normals,
                                    std::vector<std::vector<glm::vec2> >& texcoords,
                                    std::vector<std::vector<GLuint> >& indices,
                                    std::vector<std::string>& names) {
   std::vector<tinyobj::shape_t> shapes;
+  std::string err = tinyobj::LoadObj(shapes, mesh_file);
 
-  std::string err = tinyobj::LoadObj(shapes, fname.c_str());
-
-  std::cout << fname << " # of shapes : " << shapes.size() << std::endl;
+  std::cout << " # of shapes : " << shapes.size() << std::endl;
 
   vertices.resize(shapes.size());
   normals.resize(shapes.size());

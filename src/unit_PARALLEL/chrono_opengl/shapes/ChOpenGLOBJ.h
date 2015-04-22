@@ -30,6 +30,7 @@ class CH_OPENGL_API ChOpenGLOBJ : public ChOpenGLBase {
   ChOpenGLOBJ();
   virtual ~ChOpenGLOBJ();
   bool Initialize(std::string filename, ChOpenGLMaterial mat, ChOpenGLShader* shader);
+  bool InitializeString(const char* mesh_data, ChOpenGLMaterial mat, ChOpenGLShader* shader);
   void Update(std::vector<glm::mat4>& model);
   virtual void Draw(const glm::mat4& projection, const glm::mat4& modelview);
   virtual void TakeDown();

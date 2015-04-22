@@ -19,15 +19,34 @@ SET(GLSL_SHADERS
   text_frag
   text_vert
   )
+  
 
 FOREACH(GLSL_SHADER ${GLSL_SHADERS})
   ADD_CUSTOM_COMMAND(
     OUTPUT  ${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
     COMMAND embedfile 
-            ${GLSL_SHADER} 
+            ${GLSL_SHADER}
             ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${GLSL_SHADER}.glsl 
             ${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
     DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${GLSL_SHADER}.glsl
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+ENDFOREACH()
+
+SET(DEFAULT_OBJ_FILES
+  box
+  cone
+  sphere
+  cylinder
+  )
+
+FOREACH(DEFAULT_OBJ_FILE ${DEFAULT_OBJ_FILES})
+  ADD_CUSTOM_COMMAND(
+    OUTPUT  ${CMAKE_BINARY_DIR}/resources/${DEFAULT_OBJ_FILE}.h
+    COMMAND embedfile 
+            ${DEFAULT_OBJ_FILE}_mesh_data
+            ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${DEFAULT_OBJ_FILE}.obj
+            ${CMAKE_BINARY_DIR}/resources/${DEFAULT_OBJ_FILE}.h
+    DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${DEFAULT_OBJ_FILE}.obj
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 ENDFOREACH()
 
@@ -101,9 +120,13 @@ SET(ChronoEngine_OpenGL_HEADERS
 	${CMAKE_BINARY_DIR}/resources/cloud_frag.h
 	${CMAKE_BINARY_DIR}/resources/cloud_vert.h
 	${CMAKE_BINARY_DIR}/resources/dot_frag.h
-    ${CMAKE_BINARY_DIR}/resources/dot_vert.h
-    ${CMAKE_BINARY_DIR}/resources/sphere_frag.h
-    ${CMAKE_BINARY_DIR}/resources/sphere_vert.h
+  ${CMAKE_BINARY_DIR}/resources/dot_vert.h
+  ${CMAKE_BINARY_DIR}/resources/sphere_frag.h
+  ${CMAKE_BINARY_DIR}/resources/sphere_vert.h
+  ${CMAKE_BINARY_DIR}/resources/box.h
+  ${CMAKE_BINARY_DIR}/resources/cone.h
+  ${CMAKE_BINARY_DIR}/resources/sphere.h
+  ${CMAKE_BINARY_DIR}/resources/cylinder.h
 	)
 
 IF (MSVC)
