@@ -27,7 +27,7 @@
 using namespace std;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void WriteMarkersToFile(
+void CheckPointMarkers_Write(
 		thrust::host_vector<Real3> & mPosRad,
 		thrust::host_vector<Real4> & mVelMas,
 		thrust::host_vector<Real4> & mRhoPresMu,
@@ -130,7 +130,7 @@ void WriteMarkersToFile(
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-void ReadMarkersFromFile(
+void CheckPointMarkers_Read(
 		bool shouldIRead,
 		thrust::host_vector<Real3> & mPosRad,
 		thrust::host_vector<Real4> & mVelMas,

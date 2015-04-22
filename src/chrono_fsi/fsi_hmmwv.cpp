@@ -30,6 +30,7 @@
 #include "printToFile.cuh"
 #include "custom_cutil_math.h"
 #include "SPHCudaUtils.h"
+#include "checkPointReduced.h"
 
 // Chrono Parallel Includes
 #include "chrono_parallel/physics/ChSystemParallel.h"
@@ -564,6 +565,13 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
   }
 }
 // =============================================================================
+void SetMarkersVelToZero(thrust::host_vector<Real4> velMasH) {
+	for (int i = 0; i < velMasH.size(); i++) {
+		Real4 vM = velMasH[i];
+		velMasH[i] = mR4(0, 0, 0, vM.w);
+	}
+}
+// =============================================================================
 
 int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTime) {
 
@@ -760,6 +768,16 @@ int main(int argc, char* argv[]) {
     	fsi_timer.start("fluid_initialization");
 
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
+
+    // ******* slow down the sys.Check point the sys.
+    if (tStep % 200 == 0) {
+    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
+    }
+    if (tStep % 200 == 0 && realTime < 1.2) {
+    	SetMarkersVelToZero(velMasH);
+    }
+    // *******
+
     if (realTime <= paramsH.timePause) {
       currentParamsH = paramsH_B;
     } else {
