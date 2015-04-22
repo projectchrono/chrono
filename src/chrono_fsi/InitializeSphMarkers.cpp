@@ -16,10 +16,6 @@ int2 CreateFluidMarkers(
 		const SimParams & paramsH,
 		Real & sphMarkerMass) {
 
-	thrust::host_vector<Real3> mPosRadBoundary; //do not set the size here since you are using push back later
-	thrust::host_vector<Real4> mVelMasBoundary;
-	thrust::host_vector<Real4> mRhoPresMuBoundary;
-
 	int num_FluidMarkers = 0;
 	int num_BoundaryMarkers = 0;
 	srand(964);
@@ -72,17 +68,6 @@ int2 CreateFluidMarkers(
 	rhoPresMuH.resize(
 			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
 
-	thrust::copy(mPosRadBoundary.begin(), mPosRadBoundary.end(),
-			posRadH.begin() + num_fluidOrBoundaryMarkers.x);
-	thrust::copy(mVelMasBoundary.begin(), mVelMasBoundary.end(),
-			velMasH.begin() + num_fluidOrBoundaryMarkers.x);
-	thrust::copy(mRhoPresMuBoundary.begin(), mRhoPresMuBoundary.end(),
-			rhoPresMuH.begin() + num_fluidOrBoundaryMarkers.x);
-	// *** end copy
-	mPosRadBoundary.clear();
-	mVelMasBoundary.clear();
-	mRhoPresMuBoundary.clear();
-
 	int numAllMarkers = num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y;
 	bodyIndex.resize(numAllMarkers);
 	thrust::fill(bodyIndex.begin(), bodyIndex.end(), 1);
@@ -90,6 +75,77 @@ int2 CreateFluidMarkers(
 			bodyIndex.begin());
 
 	return num_fluidOrBoundaryMarkers;
+}
+//**********************************************
+// Function to create BCE markers on the surface of a box and a few layers (paramsH.NUM_BOUNDARY_LAYERS) below that
+// input argument 'face' determines which face: 12: xy positive, -12: xy negative, 13: xz+, -13: xz-, 23: yz +, -23: yz-
+void CreateBCE_On_Box(
+		thrust::host_vector<Real3> & posRadBCE,
+		thrust::host_vector<Real4> & velMasBCE,
+		thrust::host_vector<Real4> & rhoPresMuBCE,
+		const SimParams & paramsH,
+		const Real & sphMarkerMass,
+		const chrono::ChVector<>& size,
+		const chrono::ChVector<>& pos,
+		const chrono::ChQuaternion<>& rot,
+		int face) { // x=1, y=2, z =3; therefore 12 means creating markers on the top surface parallel to xy plane,
+							// similarly -12 means bottom face paralel to xy. similarly 13, -13, 23, -23
+
+	Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
+	int nFX = ceil(size.x / (initSpace0));
+	int nFY = ceil(size.y / (initSpace0));
+	int nFZ = ceil(size.z  / (initSpace0));
+
+	Real initSpaceX = size.x / nFX;
+	Real initSpaceY = size.y / nFY;
+	Real initSpaceZ = size.z / nFZ;
+
+	int2 iBound = mI2(-nFX, nFX);
+	int2 jBound = mI2(-nFY, nFY);
+	int2 kBound = mI2(-nFZ, nFZ);
+
+	switch (face) {
+	case 12:
+		kBound = mI2(nFZ - paramsH.NUM_BOUNDARY_LAYERS + 1, nFZ);
+		break;
+	case -12:
+		kBound = mI2(-nFZ, -nFZ + paramsH.NUM_BOUNDARY_LAYERS - 1);
+		break;
+	case 13:
+		jBound = mI2(nFY - paramsH.NUM_BOUNDARY_LAYERS + 1, nFY);
+		break;
+	case -13:
+		jBound = mI2(-nFY, -nFY + paramsH.NUM_BOUNDARY_LAYERS - 1);
+		break;
+	case 23:
+		iBound = mI2(nFX - paramsH.NUM_BOUNDARY_LAYERS + 1, nFX);
+		break;
+	case -23:
+		iBound = mI2(-nFX, -nFX + paramsH.NUM_BOUNDARY_LAYERS - 1);
+		break;
+	default:
+		printf("wrong argument box bce initialization\n");
+		break;
+	}
+
+	for (int i = iBound.x; i <= iBound.y; i ++ ) {
+		for (int j = jBound.x; j <= jBound.y; j ++ ) {
+			for (int k = kBound.x; k <= kBound.y; k ++ ) {
+				chrono::ChVector<> relMarkerPos = chrono::ChVector<>(i * initSpaceX, j * initSpaceY, k * initSpaceZ);
+				chrono::ChVector<> markerPos = rot.Rotate(relMarkerPos) + pos;
+
+				if ((markerPos.x < paramsH.cMin.x || markerPos.x > paramsH.cMax.x) ||
+						(markerPos.y < paramsH.cMin.y || markerPos.y > paramsH.cMax.y) ||
+						(markerPos.z < paramsH.cMin.z || markerPos.z > paramsH.cMax.z) ) {
+					continue;
+				}
+
+				posRadBCE.push_back(mR3(markerPos.x, markerPos.y, markerPos.z));
+				velMasBCE.push_back(mR4(0, 0, 0, sphMarkerMass));
+				rhoPresMuBCE.push_back(mR4(paramsH.rho0, paramsH.LARGE_PRES, paramsH.mu0, 0));
+			}
+		}
+	}
 }
 
 //**********************************************

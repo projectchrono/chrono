@@ -71,6 +71,13 @@ using namespace gui;
 SimParams paramsH;
 
 #define haveFluid true
+#define useWallBce true
+
+#if haveFluid
+#else
+#undef useWallBce
+#define useWallBce false
+#endif
 // =============================================================================
 // Define Graphics
 #define irrlichtVisualization false
@@ -197,8 +204,69 @@ double CreateGranularBed(ChSystem* mphysicalSystem) {
   return center.z;
 }
 // =============================================================================
+void AddBoxBceToChSystemAndSPH(
+		ChBody* body,
+		const ChVector<>& size,
+		const ChVector<>& pos,
+		const ChQuaternion<>& rot,
+		bool visualization,
 
-void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
+		  thrust::host_vector<Real3> & posRadH,  // do not set the size here since you are using push back later
+		  thrust::host_vector<Real4> & velMasH,
+		  thrust::host_vector<Real4> & rhoPresMuH,
+		  thrust::host_vector<uint> & bodyIndex,
+		  thrust::host_vector<int3> & referenceArray,
+		  NumberOfObjects & numObjects,
+		  const SimParams & paramsH,
+		  Real sphMarkerMass) {
+	utils::AddBoxGeometry(body,	size, pos, rot,	visualization);
+
+#if haveFluid
+#if useWallBce
+	assert(referenceArray.size() > 1 && "error: fluid need to be initialized before boundary. Reference array should have two components");
+
+	thrust::host_vector<Real3> posRadBCE;
+	thrust::host_vector<Real4> velMasBCE;
+	thrust::host_vector<Real4> rhoPresMuBCE;
+
+	CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE,
+			paramsH, sphMarkerMass, size, pos, rot,
+			12);
+	int numBCE = posRadBCE.size();
+	int numSaved = posRadH.size();
+	for (int i = 0; i < numBCE; i ++ ) {
+		posRadH.push_back(posRadBCE[i]);
+		velMasH.push_back(velMasBCE[i]);
+		rhoPresMuH.push_back(rhoPresMuBCE[i]);
+		bodyIndex.push_back(i + numSaved);
+	}
+
+	int3 ref3 = referenceArray[1];
+	ref3.y = ref3.y + numBCE;
+	referenceArray[1] = ref3;
+
+	int numAllMarkers = numBCE + numSaved;
+	SetNumObjects(numObjects, referenceArray, numAllMarkers);
+
+	posRadBCE.clear();
+	velMasBCE.clear();
+	rhoPresMuBCE.clear();
+#endif
+#endif
+
+}
+
+// =============================================================================
+
+void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
+		thrust::host_vector<Real3> & posRadH,  // do not set the size here since you are using push back later
+		thrust::host_vector<Real4> & velMasH,
+		thrust::host_vector<Real4> & rhoPresMuH,
+		thrust::host_vector<uint> & bodyIndex,
+		thrust::host_vector<int3> & referenceArray,
+		NumberOfObjects & numObjects,
+		const SimParams & paramsH,
+		Real sphMarkerMass) {
   // Ground body
   ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
   ground->SetIdentifier(-1);
@@ -226,34 +294,42 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
   double x2I = midSecDim - inclinedWidth * cos(phi) + hthick * sin(phi) + smallBuffer;
 
   // beginning third
-  utils::AddBoxGeometry(ground.get_ptr(),
+  AddBoxBceToChSystemAndSPH(ground.get_ptr(),
                         ChVector<>(hdimSide, hdimY, hthick),
                         ChVector<>(-midSecDim - hdimSide, 0, -hthick),
                         ChQuaternion<>(1, 0, 0, 0),
-                        true);
+                        true,
+                        posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+
     // end third
-    utils::AddBoxGeometry(ground.get_ptr(),
+  AddBoxBceToChSystemAndSPH(ground.get_ptr(),
                           ChVector<>(hdimSide, hdimY, hthick),
                           ChVector<>(midSecDim + hdimSide, 0, -hthick),
                           ChQuaternion<>(1, 0, 0, 0),
-                          true);
+                          true,
+                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
     // basin
-    utils::AddBoxGeometry(ground.get_ptr(),
+  AddBoxBceToChSystemAndSPH(ground.get_ptr(),
                           ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
                           ChVector<>(0, 0, -basinDepth - hthick),
                           ChQuaternion<>(1, 0, 0, 0),
-                          true);
+                          true,
+                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
     // slope 1
-    utils::AddBoxGeometry(ground.get_ptr(),
+  AddBoxBceToChSystemAndSPH(ground.get_ptr(),
                           ChVector<>(inclinedWidth, hdimY, hthick),
                           ChVector<>(x1I, 0, zI),
-                          Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
+                          Q_from_AngAxis(phi, ChVector<>(0, 1, 0)),
+                          true,
+                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
 
     // slope 2
-    utils::AddBoxGeometry(ground.get_ptr(),
+  AddBoxBceToChSystemAndSPH(ground.get_ptr(),
                           ChVector<>(inclinedWidth, hdimY, hthick),
                           ChVector<>(x2I, 0, zI),
-                          Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
+                          Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)),
+                          true,
+                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
 
     // a flat surface altogether
   //  utils::AddBoxGeometry(
@@ -286,6 +362,13 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
                           ChQuaternion<>(1, 0, 0, 0),
                           visible_walls);
   }
+
+#if haveFluid
+#if useWallBce
+  ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
+  ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
+#endif
+#endif
 
   ground->GetCollisionModel()->BuildModel();
 
@@ -561,25 +644,22 @@ int main(int argc, char* argv[]) {
   }
 
 // ***************************** Create Fluid ********************************************
-#if haveFluid
-  //*** Arrays definition
-
   thrust::host_vector<int3> referenceArray;
   thrust::host_vector<Real3> posRadH;  // do not set the size here since you are using push back later
   thrust::host_vector<Real4> velMasH;
   thrust::host_vector<Real4> rhoPresMuH;
   thrust::host_vector<uint> bodyIndex;
-#endif
+  Real sphMarkerMass = 0; // To be initialized in CreateFluidMarkers, and used in other places
+  NumberOfObjects numObjects;
+
   SetupParamsH(paramsH);
 #if haveFluid
-  NumberOfObjects numObjects;
 
   //*** default num markers
 
   int numAllMarkers = 0;
 
   //*** initialize fluid particles
-  Real sphMarkerMass;  // To be initialized in CreateFluidMarkers, and used in other places
   int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
   printf("num_fluidOrBoundaryMarkers %d %d \n", num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
   referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1));  // map fluid -1
@@ -595,13 +675,6 @@ int main(int argc, char* argv[]) {
     ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
     return 0;
   }
-
-  thrust::device_vector<Real3> posRadD = posRadH;
-  thrust::device_vector<Real4> velMasD = velMasH;
-  thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
-  thrust::device_vector<uint> bodyIndexD = bodyIndex;
-  thrust::device_vector<Real4> derivVelRhoD;
-  ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
 #endif
   // ***************************** Create Rigid ********************************************
 
@@ -614,7 +687,8 @@ int main(int argc, char* argv[]) {
 
   ChSystemParallelDVI mphysicalSystem;
   InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
-  CreateMbdPhysicalSystemObjects(mphysicalSystem);
+  CreateMbdPhysicalSystemObjects(mphysicalSystem,
+			posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
 
   // ***************************** Create Interface ********************************************
 
@@ -623,6 +697,13 @@ int main(int argc, char* argv[]) {
   int startIndexSph = 0;
 #if haveFluid
   AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily);
+
+  thrust::device_vector<Real3> posRadD = posRadH;
+  thrust::device_vector<Real4> velMasD = velMasH;
+  thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
+  thrust::device_vector<uint> bodyIndexD = bodyIndex;
+  thrust::device_vector<Real4> derivVelRhoD;
+  ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
 #endif
   cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
 
@@ -659,9 +740,10 @@ int main(int argc, char* argv[]) {
   // ***************************** Simulation loop ********************************************
 
   for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-// -------------------
-// SPH Block
-// -------------------
+
+	// -------------------
+	// SPH Block
+	// -------------------
 	  myCpuTimerHalfStep.start();
 	  myGpuTimerHalfStep.Start();
 	  fsi_timer.Reset();
