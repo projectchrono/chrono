@@ -11,6 +11,8 @@
 #include "SPHCudaUtils.h"
 #include "MyStructs.cuh"  //just for SimParams
 #include "VehicleExtraProperties.h"
+#include <fstream> // for simParams definition
+
 
 // -----------------------------------------------------------------------------
 // Simulation parameters FSI
@@ -18,14 +20,15 @@
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold = 0.1;  // 0.2;
+Real time_hold_vehicle = 1.3;//0.1;  // 0.2;
+Real time_pause_fluid_external_force = .05;//0.1;//0.1;  // 0.2;
 
 Real contact_recovery_speed = 5;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
 
 Real time_step = 4e-4;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
-Real time_end = 10;
+Real time_end = 11;
 
 // Dimensions
 Real hdimX = 14;  // 5.5;
@@ -43,6 +46,10 @@ int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
 // -----------------------------------------------------------------------------
+bool initializeFluidFromFile = false; 	// 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
+										//	when adding functionality using "useWallBce" and "haveFluid" macros, pay attention to  "initializeFluidFromFile" options.
+										//	for a double security, do your best to set "haveFluid" and "useWallBce" based on the data you have from checkpoint files
+NumberOfObjects numObjects;
 
 void SetupParamsH(SimParams& paramsH) {
   //**********************************************
@@ -65,7 +72,7 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.EPS_XSPH = .5f;
   paramsH.dT = time_step;         // 0.0005;//0.1;//.001; //sph alone: .01 for Re 10;
   paramsH.tFinal = time_end;      // 20 * paramsH.dT; //400
-  paramsH.timePause = time_hold;  //.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any
+  paramsH.timePause = time_pause_fluid_external_force;  //.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any
   // bodyforce. Particles move only due to initialization. keep it as small as possible.
   // the time step will be 1/10 * dT.
   paramsH.kdT = 5;  // I don't know what is kdT
@@ -99,7 +106,7 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.cMax = paramsH.cMin + paramsH.binSize0 * mR3(side0);
   paramsH.boxDims = paramsH.cMax - paramsH.cMin;
   //****************************************************************************************
-  paramsH.cMinInit = mR3(-fluidInitDimX, paramsH.cMin.y, -basinDepth + 0.5 * paramsH.HSML);  // 3D channel
+  paramsH.cMinInit = mR3(-fluidInitDimX, paramsH.cMin.y, -basinDepth + 1.0 * paramsH.HSML);  // 3D channel
   paramsH.cMaxInit = mR3(fluidInitDimX, paramsH.cMax.y, paramsH.cMinInit.z + fluidHeight);
   //****************************************************************************************
   //*** initialize straight channel
@@ -230,6 +237,9 @@ int num_particles = 1000;
 // -----------------------------------------------------------------------------
 // Output parameters
 // -----------------------------------------------------------------------------
+
+std::ofstream simParams;
+
 ChTimerParallel fsi_timer;
 
 bool povray_output = false;

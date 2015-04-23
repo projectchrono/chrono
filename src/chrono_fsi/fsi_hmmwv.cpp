@@ -30,6 +30,7 @@
 #include "printToFile.cuh"
 #include "custom_cutil_math.h"
 #include "SPHCudaUtils.h"
+#include "checkPointReduced.h"
 
 // Chrono Parallel Includes
 #include "chrono_parallel/physics/ChSystemParallel.h"
@@ -146,7 +147,21 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
     threads = max_threads;
   mphysicalSystem.SetParallelThreadNumber(threads);
   omp_set_num_threads(threads);
-  cout << "Using " << threads << " threads" << endl;
+
+  mphysicalSystem.GetSettings()->perform_thread_tuning = thread_tuning;
+  mphysicalSystem.GetSettings()->min_threads = max(1, threads/2);
+  mphysicalSystem.GetSettings()->max_threads = 3 * threads / 2;
+
+  // ---------------------
+  // Print the rest of parameters
+  // ---------------------
+
+  simParams << endl <<
+		  " number of threads: " << threads << endl <<
+		  " max_iteration_normal: " << max_iteration_normal << endl <<
+		  " max_iteration_sliding: " << max_iteration_sliding << endl <<
+		  " max_iteration_spinning: " << max_iteration_spinning << endl <<
+		  " max_iteration_bilateral: " << max_iteration_bilateral << endl << endl;
 
   // ---------------------
   // Edit mphysicalSystem settings.
@@ -221,38 +236,41 @@ void AddBoxBceToChSystemAndSPH(
 		  Real sphMarkerMass) {
 	utils::AddBoxGeometry(body,	size, pos, rot,	visualization);
 
+	if (!initializeFluidFromFile) {
+
 #if haveFluid
 #if useWallBce
-	assert(referenceArray.size() > 1 && "error: fluid need to be initialized before boundary. Reference array should have two components");
+		assert(referenceArray.size() > 1 && "error: fluid need to be initialized before boundary. Reference array should have two components");
 
-	thrust::host_vector<Real3> posRadBCE;
-	thrust::host_vector<Real4> velMasBCE;
-	thrust::host_vector<Real4> rhoPresMuBCE;
+		thrust::host_vector<Real3> posRadBCE;
+		thrust::host_vector<Real4> velMasBCE;
+		thrust::host_vector<Real4> rhoPresMuBCE;
 
-	CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE,
-			paramsH, sphMarkerMass, size, pos, rot,
-			12);
-	int numBCE = posRadBCE.size();
-	int numSaved = posRadH.size();
-	for (int i = 0; i < numBCE; i ++ ) {
-		posRadH.push_back(posRadBCE[i]);
-		velMasH.push_back(velMasBCE[i]);
-		rhoPresMuH.push_back(rhoPresMuBCE[i]);
-		bodyIndex.push_back(i + numSaved);
+		CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE,
+				paramsH, sphMarkerMass, size, pos, rot,
+				12);
+		int numBCE = posRadBCE.size();
+		int numSaved = posRadH.size();
+		for (int i = 0; i < numBCE; i ++ ) {
+			posRadH.push_back(posRadBCE[i]);
+			velMasH.push_back(velMasBCE[i]);
+			rhoPresMuH.push_back(rhoPresMuBCE[i]);
+			bodyIndex.push_back(i + numSaved);
+		}
+
+		int3 ref3 = referenceArray[1];
+		ref3.y = ref3.y + numBCE;
+		referenceArray[1] = ref3;
+
+		int numAllMarkers = numBCE + numSaved;
+		SetNumObjects(numObjects, referenceArray, numAllMarkers);
+
+		posRadBCE.clear();
+		velMasBCE.clear();
+		rhoPresMuBCE.clear();
+#endif
+#endif
 	}
-
-	int3 ref3 = referenceArray[1];
-	ref3.y = ref3.y + numBCE;
-	referenceArray[1] = ref3;
-
-	int numAllMarkers = numBCE + numSaved;
-	SetNumObjects(numObjects, referenceArray, numAllMarkers);
-
-	posRadBCE.clear();
-	velMasBCE.clear();
-	rhoPresMuBCE.clear();
-#endif
-#endif
 
 }
 
@@ -363,12 +381,19 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
                           visible_walls);
   }
 
+  if (initializeFluidFromFile) {
+	  if (numObjects.numBoundaryMarkers > 0) {
+		  ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
+		  ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
+	  }
+  } else {
 #if haveFluid
 #if useWallBce
   ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
   ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
 #endif
 #endif
+  }
 
   ground->GetCollisionModel()->BuildModel();
 
@@ -433,16 +458,16 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
   // Set the callback object for driver inputs. Pass the hold time as a delay in
   // generating driver inputs.
-  driver_cb = new MyDriverInputs(time_hold);
+  driver_cb = new MyDriverInputs(time_hold_vehicle);
   mVehicle->SetDriverInputsCallback(driver_cb);
 
-  // Initially, fix the chassis (will be released after time_hold).
+  // Initially, fix the chassis (will be released after time_hold_vehicle).
   mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
 
   // Initialize the vehicle at a height above the terrain.
   mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
 
-  // Initially, fix the wheels (will be released after time_hold).
+  // Initially, fix the wheels (will be released after time_hold_vehicle).
   for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
     mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
   }
@@ -564,11 +589,30 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
   }
 }
 // =============================================================================
+void SetMarkersVelToZero(
+		thrust::device_vector<Real4> & velMasD,
+		thrust::host_vector<Real4> & velMasH) {
+	for (int i = 0; i < velMasH.size(); i++) {
+		Real4 vM = velMasH[i];
+		velMasH[i] = mR4(0, 0, 0, vM.w);
+		velMasD[i] = mR4(0, 0, 0, vM.w);
+	}
+}
+// =============================================================================
+void printSimulationParameters() {
+	simParams << " time_hold_vehicle: " << time_hold_vehicle << endl <<
+			" time_pause_fluid_external_force: " << time_pause_fluid_external_force << endl <<
+			" contact_recovery_speed: " << contact_recovery_speed << endl <<
+			" maxFlowVelocity " << maxFlowVelocity << endl <<
+			" time_step: " << time_step << endl <<
+			" time_end: " << time_end << endl;
+}
+// =============================================================================
 
 int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTime) {
 
 	// Release the vehicle chassis at the end of the hold time.
-  if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold) {
+  if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold_vehicle) {
     mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
     for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
       mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
@@ -622,7 +666,11 @@ int main(int argc, char* argv[]) {
 
   time(&rawtime);
   timeinfo = localtime(&rawtime);
-  printf("Job was submittet at date/time is: %s\n", asctime(timeinfo));
+  printf("Job was submittet at date/time: %s\n", asctime(timeinfo));
+
+  simParams.open("simulation_specific_parameters.txt");
+  simParams << " Job was submittet at date/time: " << asctime(timeinfo) << endl;
+  printSimulationParameters();
   //****************************************************************************************
   // Arman take care of this block.
   // Set path to ChronoVehicle data files
@@ -650,9 +698,23 @@ int main(int argc, char* argv[]) {
   thrust::host_vector<Real4> rhoPresMuH;
   thrust::host_vector<uint> bodyIndex;
   Real sphMarkerMass = 0; // To be initialized in CreateFluidMarkers, and used in other places
-  NumberOfObjects numObjects;
 
   SetupParamsH(paramsH);
+
+  if (initializeFluidFromFile) {
+	  CheckPointMarkers_Read(initializeFluidFromFile,
+			  posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
+	  if (numObjects.numAllMarkers == 0) {
+		ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
+		return 0;
+	  }
+#if haveFluid
+#else
+	  printf("Error! Initialized from file But haveFluid is false! \n");
+	  return;
+#endif
+  } else {
+
 #if haveFluid
 
   //*** default num markers
@@ -676,6 +738,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 #endif
+  }
   // ***************************** Create Rigid ********************************************
 
   //*** Save PovRay post-processing data?
@@ -687,6 +750,8 @@ int main(int argc, char* argv[]) {
 
   ChSystemParallelDVI mphysicalSystem;
   InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
+
+  // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
   CreateMbdPhysicalSystemObjects(mphysicalSystem,
 			posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
 
@@ -737,6 +802,9 @@ int main(int argc, char* argv[]) {
   //  InitSystem(paramsH, numObjects);
   SimParams currentParamsH = paramsH;
 
+
+  simParams.close();
+
   // ***************************** Simulation loop ********************************************
 
   for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
@@ -760,6 +828,16 @@ int main(int argc, char* argv[]) {
     	fsi_timer.start("fluid_initialization");
 
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
+
+    // ******* slow down the sys.Check point the sys.
+    if (tStep % 200 == 0) {
+    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
+    }
+    if (fmod(realTime, 0.4) < time_step && realTime < 1.3) {
+    	SetMarkersVelToZero(velMasD, velMasH);
+    }
+    // *******
+
     if (realTime <= paramsH.timePause) {
       currentParamsH = paramsH_B;
     } else {
@@ -900,6 +978,9 @@ int main(int argc, char* argv[]) {
              realTime,
              (Real)myGpuTimer.Elapsed(),
              1000 * mCpuTimer.Elapsed());
+
+      fsi_timer.stop("half_step_dynamic_fsi_22");
+      fsi_timer.PrintReport();
     }
 #endif
     // -------------------
@@ -908,9 +989,6 @@ int main(int argc, char* argv[]) {
 
     fflush(stdout);
     realTime += currentParamsH.dT;
-
-    fsi_timer.stop("half_step_dynamic_fsi_22");
-    fsi_timer.PrintReport();
 
     mphysicalSystem.data_manager->system_timer.PrintReport();
 
