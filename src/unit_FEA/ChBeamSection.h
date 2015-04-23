@@ -265,12 +265,14 @@ public:
                     rdamping = 0.01;  // default raleygh damping.
                 }
 
-    ChBeamSectionCable(const double mE, const double mDia, const double rho, const double mI = 0, const double damping = 0) : E(mE), density(rho), rdamping(damping)
+    ChBeamSectionCable(const double mE, const double mDia, const double rho, const double damping = 0) 
+    : E(mE), density(rho), rdamping(damping)
     {
+      assert(mDia > 0);
+      assert(mE > 0);
+      assert(rho > 0);
+      assert(damping > 0);
       SetDiameter(mDia);
-      if (mI > 0)
-        SetI(mI);
-
     }
 
     virtual ~ChBeamSectionCable() {}

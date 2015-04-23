@@ -62,11 +62,10 @@ int main(int argc, char* argv[])
 	const double EA = 1.26E4;	// [N]
   const double area = beam_diameter * beam_diameter / 4.0;  // cross section area [m2]
 	const double youngs_mod = EA / area;	// [N/m2]
-  const double area_I = EI / youngs_mod;
   const double rho = 2.7e3;  // material density [kg/m3]
   const double damping = 0.0; // rayleigh damping coef.
 	
-  ChSharedPtr<ChBeamSectionCable> msection_cable(new ChBeamSectionCable(youngs_mod, beam_diameter, rho, area_I, damping) );
+  ChSharedPtr<ChBeamSectionCable> msection_cable(new ChBeamSectionCable(youngs_mod, beam_diameter, rho, damping) );
 	
 	ChBuilderBeamANCF builder;
 	builder.BuildBeam(my_mesh, msection_cable, 10, // the number of ChElementBeamANCF to create
