@@ -9,6 +9,7 @@ SET(FEA_DEMOS_IRR
 	demo_FEAthermal
 	demo_FEAelectrostatics
 	demo_FEAvisualize
+	validate_ANCFcable
 )
 
 #List all FEA demos that use both Irrlicht and Matlab
