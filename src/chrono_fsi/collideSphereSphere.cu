@@ -156,6 +156,11 @@ void ForceSPH(
 	reorderDataAndFindCellStart(m_dCellStart, m_dCellEnd, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, m_dGridMarkerHash,
 			m_dGridMarkerIndex, mapOriginalToSorted, posRadD, velMasD, rhoPresMuD, numAllMarkers, m_numGridCells);
 
+	// modify BCE velocity and pressure
+//	RecalcSortedVelocityPressure_BCE(
+//			m_dSortedVelMas, m_dSortedRhoPreMu, m_dSortedPosRad,
+//			m_dCellStart, m_dCellEnd, numAllMarkers);
+
 	//process collisions
 //	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
 	Real3 totalFluidBodyForce3 = paramsH.bodyForce3;  // gravity is added in ChSystem

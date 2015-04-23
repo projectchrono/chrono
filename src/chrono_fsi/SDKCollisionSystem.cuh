@@ -149,6 +149,12 @@ __device__ inline Real Eos(Real rho, Real type) {
 	} else return paramsD.BASEPRES;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+__device__ inline Real InvEos(Real pw) {
+	int gama = 7;
+	Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama; //200;//314e6; //c^2 * paramsD.rho0 / gama where c = 1484 m/s for water
+	return paramsD.rho0 * pow((pw - paramsD.BASEPRES) / B + 1, 1.0/gama);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 //distance between two particles, considering the periodic boundary condition
 __device__ inline Real3 Distance(Real3 a, Real3 b) {
 	Real3 dist3 = a - b;
@@ -234,6 +240,14 @@ void RecalcVelocity_XSPH(
 		thrust::device_vector<uint>  & cellEnd,
 		uint numAllMarkers,
 		uint numCells);
+
+void RecalcSortedVelocityPressure_BCE(
+		thrust::device_vector<Real4> & sortedVelMas,
+		thrust::device_vector<Real4> & sortedRhoPreMu,
+		thrust::device_vector<Real3> & sortedPosRad,
+		thrust::device_vector<uint> & cellStart,
+		thrust::device_vector<uint> & cellEnd,
+		uint numAllMarkers);
 
 void collide(
 		thrust::device_vector<Real4> & derivVelRhoD,
