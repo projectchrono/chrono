@@ -147,7 +147,16 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
     threads = max_threads;
   mphysicalSystem.SetParallelThreadNumber(threads);
   omp_set_num_threads(threads);
-  cout << "Using " << threads << " threads" << endl;
+  // ---------------------
+  // Print the rest of parameters
+  // ---------------------
+
+  simParams << endl <<
+		  " number of threads: " << threads << endl <<
+		  " max_iteration_normal: " << max_iteration_normal << endl <<
+		  " max_iteration_sliding: " << max_iteration_sliding << endl <<
+		  " max_iteration_spinning: " << max_iteration_spinning << endl <<
+		  " max_iteration_bilateral: " << max_iteration_bilateral << endl << endl;
 
   // ---------------------
   // Edit mphysicalSystem settings.
@@ -575,6 +584,15 @@ void SetMarkersVelToZero(
 	}
 }
 // =============================================================================
+void printSimulationParameters() {
+	simParams << " time_hold_vehicle: " << time_hold_vehicle << endl <<
+			" time_pause_fluid_external_force: " << time_pause_fluid_external_force << endl <<
+			" contact_recovery_speed: " << contact_recovery_speed << endl <<
+			" maxFlowVelocity " << maxFlowVelocity << endl <<
+			" time_step: " << time_step << endl <<
+			" time_end: " << time_end << endl;
+}
+// =============================================================================
 
 int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTime) {
 
@@ -633,7 +651,11 @@ int main(int argc, char* argv[]) {
 
   time(&rawtime);
   timeinfo = localtime(&rawtime);
-  printf("Job was submittet at date/time is: %s\n", asctime(timeinfo));
+  printf("Job was submittet at date/time: %s\n", asctime(timeinfo));
+
+  simParams.open("simulation_specific_parameters.txt");
+  simParams << " Job was submittet at date/time: " << asctime(timeinfo) << endl;
+  printSimulationParameters();
   //****************************************************************************************
   // Arman take care of this block.
   // Set path to ChronoVehicle data files
@@ -747,6 +769,9 @@ int main(int argc, char* argv[]) {
          int((paramsH.timePauseRigidFlex - paramsH.timePause) / paramsH.dT + paramsH.timePause / paramsH_B.dT));
   //  InitSystem(paramsH, numObjects);
   SimParams currentParamsH = paramsH;
+
+
+  simParams.close();
 
   // ***************************** Simulation loop ********************************************
 

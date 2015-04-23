@@ -11,6 +11,8 @@
 #include "SPHCudaUtils.h"
 #include "MyStructs.cuh"  //just for SimParams
 #include "VehicleExtraProperties.h"
+#include <fstream> // for simParams definition
+
 
 // -----------------------------------------------------------------------------
 // Simulation parameters FSI
@@ -231,6 +233,8 @@ int num_particles = 1000;
 // -----------------------------------------------------------------------------
 // Output parameters
 // -----------------------------------------------------------------------------
+std::ofstream simParams;
+
 ChTimerParallel fsi_timer;
 
 bool povray_output = false;
