@@ -46,6 +46,9 @@ int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
 // -----------------------------------------------------------------------------
+bool initializeFluidFromFile = true; 	// 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
+										//	when adding functionality using "useWallBce" and "haveFluid" macros, pay attention to  "initializeFluidFromFile" options.
+NumberOfObjects numObjects;
 
 void SetupParamsH(SimParams& paramsH) {
   //**********************************************

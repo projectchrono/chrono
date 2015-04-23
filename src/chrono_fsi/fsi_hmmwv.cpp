@@ -236,38 +236,41 @@ void AddBoxBceToChSystemAndSPH(
 		  Real sphMarkerMass) {
 	utils::AddBoxGeometry(body,	size, pos, rot,	visualization);
 
+	if (!initializeFluidFromFile) {
+
 #if haveFluid
 #if useWallBce
-	assert(referenceArray.size() > 1 && "error: fluid need to be initialized before boundary. Reference array should have two components");
+		assert(referenceArray.size() > 1 && "error: fluid need to be initialized before boundary. Reference array should have two components");
 
-	thrust::host_vector<Real3> posRadBCE;
-	thrust::host_vector<Real4> velMasBCE;
-	thrust::host_vector<Real4> rhoPresMuBCE;
+		thrust::host_vector<Real3> posRadBCE;
+		thrust::host_vector<Real4> velMasBCE;
+		thrust::host_vector<Real4> rhoPresMuBCE;
 
-	CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE,
-			paramsH, sphMarkerMass, size, pos, rot,
-			12);
-	int numBCE = posRadBCE.size();
-	int numSaved = posRadH.size();
-	for (int i = 0; i < numBCE; i ++ ) {
-		posRadH.push_back(posRadBCE[i]);
-		velMasH.push_back(velMasBCE[i]);
-		rhoPresMuH.push_back(rhoPresMuBCE[i]);
-		bodyIndex.push_back(i + numSaved);
+		CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE,
+				paramsH, sphMarkerMass, size, pos, rot,
+				12);
+		int numBCE = posRadBCE.size();
+		int numSaved = posRadH.size();
+		for (int i = 0; i < numBCE; i ++ ) {
+			posRadH.push_back(posRadBCE[i]);
+			velMasH.push_back(velMasBCE[i]);
+			rhoPresMuH.push_back(rhoPresMuBCE[i]);
+			bodyIndex.push_back(i + numSaved);
+		}
+
+		int3 ref3 = referenceArray[1];
+		ref3.y = ref3.y + numBCE;
+		referenceArray[1] = ref3;
+
+		int numAllMarkers = numBCE + numSaved;
+		SetNumObjects(numObjects, referenceArray, numAllMarkers);
+
+		posRadBCE.clear();
+		velMasBCE.clear();
+		rhoPresMuBCE.clear();
+#endif
+#endif
 	}
-
-	int3 ref3 = referenceArray[1];
-	ref3.y = ref3.y + numBCE;
-	referenceArray[1] = ref3;
-
-	int numAllMarkers = numBCE + numSaved;
-	SetNumObjects(numObjects, referenceArray, numAllMarkers);
-
-	posRadBCE.clear();
-	velMasBCE.clear();
-	rhoPresMuBCE.clear();
-#endif
-#endif
 
 }
 
@@ -378,12 +381,19 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
                           visible_walls);
   }
 
+  if (initializeFluidFromFile) {
+	  if (numObjects.numBoundaryMarkers > 0) {
+		  ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
+		  ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
+	  }
+  } else {
 #if haveFluid
 #if useWallBce
   ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
   ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
 #endif
 #endif
+  }
 
   ground->GetCollisionModel()->BuildModel();
 
@@ -688,9 +698,23 @@ int main(int argc, char* argv[]) {
   thrust::host_vector<Real4> rhoPresMuH;
   thrust::host_vector<uint> bodyIndex;
   Real sphMarkerMass = 0; // To be initialized in CreateFluidMarkers, and used in other places
-  NumberOfObjects numObjects;
 
   SetupParamsH(paramsH);
+
+  if (initializeFluidFromFile) {
+	  CheckPointMarkers_Read(initializeFluidFromFile,
+			  posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
+	  if (numObjects.numAllMarkers == 0) {
+		ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
+		return 0;
+	  }
+#if haveFluid
+#else
+	  printf("Error! Initialized from file But haveFluid is false! \n");
+	  return;
+#endif
+  } else {
+
 #if haveFluid
 
   //*** default num markers
@@ -714,6 +738,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 #endif
+  }
   // ***************************** Create Rigid ********************************************
 
   //*** Save PovRay post-processing data?
@@ -725,6 +750,8 @@ int main(int argc, char* argv[]) {
 
   ChSystemParallelDVI mphysicalSystem;
   InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
+
+  // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
   CreateMbdPhysicalSystemObjects(mphysicalSystem,
 			posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
 
