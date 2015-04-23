@@ -147,6 +147,11 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
     threads = max_threads;
   mphysicalSystem.SetParallelThreadNumber(threads);
   omp_set_num_threads(threads);
+
+  mphysicalSystem.GetSettings()->perform_thread_tuning = thread_tuning;
+  mphysicalSystem.GetSettings()->min_threads = max(1, threads/2);
+  mphysicalSystem.GetSettings()->max_threads = 3 * threads / 2;
+
   // ---------------------
   // Print the rest of parameters
   // ---------------------
