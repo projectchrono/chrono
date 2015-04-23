@@ -169,6 +169,61 @@ Real3 deltaVShare(
 	return deltaV;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+// collide a particle against all other particles in a given cell
+__device__
+void BCE_modification_Share(
+		Real4 & deltaVDenom, //in and out
+		Real4 & deltaRP,
+		int & isAffected,
+		int3 gridPos,
+		uint index,
+		Real3 posRadA,
+		Real3* sortedPosRad,
+		Real4* sortedVelMas,
+		Real4* sortedRhoPreMu,
+		uint* cellStart,
+		uint* cellEnd) {
+
+	uint gridHash = calcGridHash(gridPos);
+	// get start of bucket for this cell
+	uint startIndex = FETCH(cellStart, gridHash);
+	if (startIndex != 0xffffffff) { // cell is not empty
+		// iterate over particles in this cell
+		uint endIndex = FETCH(cellEnd, gridHash);
+
+		for (uint j = startIndex; j < endIndex; j++) {
+			Real3 posRadB = FETCH(sortedPosRad, j);
+			Real3 dist3 = Distance(posRadA, posRadB);
+			Real d = length(dist3);
+			if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML) continue;
+			Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+
+			Real Wd = W3(d);
+			Real4 velMasB = FETCH(sortedVelMas, j);
+//			deltaVDenom += mR4(
+//					velMasB.w / rhoPresMuB.x * mR3(velMasB) * Wd,
+//					velMasB.w / rhoPresMuB.x * Wd);
+//			deltaVDenom += mR4(
+//					mR3(velMasB) * Wd,
+//					Wd);
+
+			if (rhoPresMuB.w < -.1) { // only fluid pressure is used to update BCE pressure see Eq 27 of Adami, 2012 paper
+
+				isAffected = (Wd > W3(1.99 * paramsD.HSML));
+
+				deltaVDenom += mR4(
+						mR3(velMasB) * Wd,
+						Wd);
+
+
+				deltaRP += mR4(
+						rhoPresMuB.x * dist3 * Wd, //Arman: check if dist3 or -dist3
+						rhoPresMuB.y * Wd);
+			}
+		}
+	}
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 // modify pressure for body force
 __device__ __inline__
 void modifyPressure(Real4 & rhoPresMuB, const Real3 & dist3Alpha) {
@@ -569,6 +624,57 @@ void newVel_XSPH_D(Real3* vel_XSPH_Sorted_D, // output: new velocity
 	// write new velocity back to original unsorted location
 	uint originalIndex = gridMarkerIndex[index];
 	vel_XSPH_Sorted_D[index] = mR3(velMasA) + paramsD.EPS_XSPH * deltaV;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__
+void new_BCE_VelocityPressure(
+		Real4* sortedVelMas_ModifiedBCE, // input: sorted velocities
+		Real4* sortedRhoPreMu_ModifiedBCE, // input: sorted velocities
+		Real3* sortedPosRad, // input: sorted positions
+		Real4* sortedVelMas, // input: sorted velocities
+		Real4* sortedRhoPreMu,
+		uint* cellStart,
+		uint* cellEnd,
+		uint numAllMarkers) {
+	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	if (index >= numAllMarkers) return;
+	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+	if (rhoPreMuA.w < -0.1) { // keep unchanged if fluid
+		return;
+	}
+
+	// read particle data from sorted arrays
+	Real3 posRadA = FETCH(sortedPosRad, index);
+	Real4 velMasA = FETCH(sortedVelMas, index);
+	int isAffected = 0;
+
+	Real4 deltaVDenom = mR4(0);
+	Real4 deltaRP = mR4(0);
+
+	// get address in grid
+	int3 gridPos = calcGridPos(posRadA);
+
+	///if (gridPos.x == paramsD.gridSize.x-1) printf("****aha %d %d\n", gridPos.x, paramsD.gridSize.x);
+
+	// examine neighbouring cells
+	for (int z = -1; z <= 1; z++) {
+		for (int y = -1; y <= 1; y++) {
+			for (int x = -1; x <= 1; x++) {
+				int3 neighbourPos = gridPos + mI3(x, y, z);
+				BCE_modification_Share(deltaVDenom, deltaRP, isAffected, neighbourPos, index, posRadA, sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart,
+						cellEnd);
+			}
+		}
+	}
+
+	if (isAffected) {
+		Real3 modifiedBCE_v = 2 * mR3(velMasA) - mR3(deltaVDenom) / deltaVDenom.w;
+		sortedVelMas_ModifiedBCE[index] = mR4(modifiedBCE_v, velMasA.w);
+
+		Real pressure = (deltaRP.w + dot(paramsD.gravity , mR3(deltaRP)) ) / deltaVDenom.w;   //(in fact:  (paramsD.gravity - aW), but aW for moving rigids is hard to calc. Assume aW is zero for now
+		Real density = InvEos(pressure);
+		sortedRhoPreMu_ModifiedBCE[index] = mR4(density, pressure, rhoPreMuA.z, rhoPreMuA.w);
+	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__
@@ -1128,6 +1234,40 @@ void RecalcVelocity_XSPH(
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: newVel_XSPH_D");
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void RecalcSortedVelocityPressure_BCE(
+		thrust::device_vector<Real4> & sortedVelMas,
+		thrust::device_vector<Real4> & sortedRhoPreMu,
+		thrust::device_vector<Real3> & sortedPosRad,
+		thrust::device_vector<uint> & cellStart,
+		thrust::device_vector<uint> & cellEnd,
+		uint numAllMarkers) {
+	// thread per particle
+	uint numThreads, numBlocks;
+	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
+
+	// Arman modified BCE velocity version
+	thrust::device_vector<Real4> sortedVelMas_ModifiedBCE = sortedVelMas;
+	thrust::device_vector<Real4> sortedRhoPreMu_ModifiedBCE = sortedRhoPreMu;
+
+	new_BCE_VelocityPressure<<< numBlocks, numThreads >>>(
+			mR4CAST(sortedVelMas_ModifiedBCE),
+			mR4CAST(sortedRhoPreMu_ModifiedBCE), // input: sorted velocities
+			mR3CAST(sortedPosRad),
+			mR4CAST(sortedVelMas),
+			mR4CAST(sortedRhoPreMu),
+			U1CAST(cellStart),
+			U1CAST(cellEnd),
+			numAllMarkers);
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: new_BCE_VelocityPressure");
+
+	thrust::copy(sortedVelMas_ModifiedBCE.begin(), sortedVelMas_ModifiedBCE.end(), sortedVelMas.begin());
+	thrust::copy(sortedRhoPreMu_ModifiedBCE.begin(), sortedRhoPreMu_ModifiedBCE.end(), sortedRhoPreMu.begin());
+
+	sortedVelMas_ModifiedBCE.clear();
+	sortedRhoPreMu_ModifiedBCE.clear();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void CalcBCE_Stresses(
