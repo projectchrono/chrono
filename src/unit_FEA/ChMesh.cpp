@@ -742,8 +742,12 @@ void ChMesh::VariablesFbLoadForces(double factor)
 		this->vnodes[in]->VariablesFbLoadForces(factor);
 
 	// internal forces
-	for (unsigned int ie = 0; ie < this->velements.size(); ie++)
-		this->velements[ie]->VariablesFbLoadInternalForces(factor);
+  ChVectorDynamic<> R_f(this->GetDOF());
+  this->IntLoadResidual_F(0, R_f, factor);
+  /*
+  for (unsigned int ie = 0; ie < this->velements.size(); ie++)
+    this->velements[ie]->VariablesFbLoadInternalForces(factor);
+  */
 }
 
 void ChMesh::VariablesQbLoadSpeed() 
@@ -759,8 +763,13 @@ void ChMesh::VariablesFbIncrementMq()
 		this->vnodes[ie]->VariablesFbIncrementMq();
 
 	// internal masses
-	for (unsigned int ie = 0; ie < this->velements.size(); ie++)
-		this->velements[ie]->VariablesFbIncrementMq();
+  ChVectorDynamic<> R_Mv(this->GetDOF());
+  ChVectorDynamic<> w(this->GetDOF_w());
+  IntLoadResidual_Mv(0, R_Mv, w, 1);
+  /*
+  for (unsigned int ie = 0; ie < this->velements.size(); ie++)
+    this->velements[ie]->VariablesFbIncrementMq();
+  */
 }
 
 void ChMesh::VariablesQbSetSpeed(double step) 
