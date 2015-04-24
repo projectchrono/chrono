@@ -438,7 +438,7 @@ void AddTorusGeometry(ChBody* body,
     Quaternion q = chrono::Q_from_AngAxis(-angle, VECT_Y) % chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_X);
     double outer_circ = 2 * CH_C_PI * (radius + thickness);
 
-    AddCylinderGeometry(body, thickness, outer_circ / segments * .5, ChVector<>(x, 0, z) + pos, q, visualization);
+    AddCapsuleGeometry(body, thickness, outer_circ / segments * .5, ChVector<>(x, 0, z) + pos, q, visualization);
   }
 }
 
