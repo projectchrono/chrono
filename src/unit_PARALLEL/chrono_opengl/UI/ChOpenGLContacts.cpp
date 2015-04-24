@@ -31,9 +31,24 @@ bool ChOpenGLContacts::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader) 
   contact_data.push_back(vec3(0, 0, 0));
   contacts.Initialize(contact_data, mat, shader);
   contacts.SetPointSize(0.01);
+  return true;
 }
 
 void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
+  ChContactContainer* container = (ChContactContainer*)system->GetContactContainer();
+  std::list<ChContact*> list = container->GetContactList();
+  int num_contacts = container->GetNcontacts();
+  int counter = 0;
+  contact_data.resize(num_contacts * 2);
+
+  for (std::list<ChContact*>::const_iterator iterator = list.begin(), end = list.end(); iterator != end; ++iterator) {
+    ChVector<> p1 = (*iterator)->GetContactP1();
+    ChVector<> p2 = (*iterator)->GetContactP2();
+
+    contact_data[counter] = glm::vec3(p1.x, p1.y, p1.z);
+    contact_data[counter + num_contacts] = glm::vec3(p2.x, p2.y, p2.z);
+    counter++;
+  }
 }
 void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
   ChParallelDataManager* data_manager = system->data_manager;
