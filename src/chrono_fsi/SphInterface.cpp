@@ -7,6 +7,7 @@
 
 #include "SphInterface.h"
 
+using namespace chrono;
 //------------------------------------------------------------------------------------
 void AddSphDataToChSystem(ChSystemParallelDVI& mphysicalSystem,
                           int& startIndexSph,
@@ -43,7 +44,7 @@ void AddSphDataToChSystem(ChSystemParallelDVI& mphysicalSystem,
     ChVector<> pos = ChVector<>(p3.x, p3.y, p3.z);
     ChVector<> vel = ChVector<>(vM4.x, vM4.y, vM4.z);
     ChSharedBodyPtr body;
-    body = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
+    body = ChSharedBodyPtr(new ChBody(new collision::ChCollisionModelParallel));
     body->SetMaterialSurface(mat_g);
     // body->SetIdentifier(fId);
     body->SetPos(pos);
@@ -129,7 +130,7 @@ void ClearArraysH(thrust::host_vector<Real3>& posRadH,  // do not set the size h
                   thrust::host_vector<Real4>& velMasH,
                   thrust::host_vector<Real4>& rhoPresMuH,
                   thrust::host_vector<uint>& bodyIndex,
-                  thrust::host_vector<int3>& referenceArray) {
+                  thrust::host_vector<::int3>& referenceArray) {
   ClearArraysH(posRadH, velMasH, rhoPresMuH);
   bodyIndex.clear();
   referenceArray.clear();

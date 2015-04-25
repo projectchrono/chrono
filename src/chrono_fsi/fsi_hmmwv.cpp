@@ -44,6 +44,9 @@
 #include "chrono_utils/ChUtilsGenerators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
 
+// Chrono general utils
+#include "core/ChFileutils.h"
+
 // FSI Interface Includes
 #include "fsi_hmmwv_params.h"
 //#include "BallDropParams.h"
@@ -183,7 +186,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   //  mphysicalSystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
 //    mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;   // global collisionEnvelop does not work. Maybe due to sph-tire size mismatch
-  mphysicalSystem.GetSettings()->collision.bins_per_axis = mI3(40, 40, 40);  // Arman check
+  mphysicalSystem.GetSettings()->collision.bins_per_axis = _make_int3(40, 40, 40);  // Arman check
 }
 // =============================================================================
 
@@ -230,7 +233,7 @@ void AddBoxBceToChSystemAndSPH(
 		  thrust::host_vector<Real4> & velMasH,
 		  thrust::host_vector<Real4> & rhoPresMuH,
 		  thrust::host_vector<uint> & bodyIndex,
-		  thrust::host_vector<int3> & referenceArray,
+		  thrust::host_vector<::int3> & referenceArray,
 		  NumberOfObjects & numObjects,
 		  const SimParams & paramsH,
 		  Real sphMarkerMass) {
@@ -258,7 +261,7 @@ void AddBoxBceToChSystemAndSPH(
 			bodyIndex.push_back(i + numSaved);
 		}
 
-		int3 ref3 = referenceArray[1];
+		::int3 ref3 = referenceArray[1];
 		ref3.y = ref3.y + numBCE;
 		referenceArray[1] = ref3;
 
@@ -281,7 +284,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 		thrust::host_vector<Real4> & velMasH,
 		thrust::host_vector<Real4> & rhoPresMuH,
 		thrust::host_vector<uint> & bodyIndex,
-		thrust::host_vector<int3> & referenceArray,
+		thrust::host_vector<::int3> & referenceArray,
 		NumberOfObjects & numObjects,
 		const SimParams & paramsH,
 		Real sphMarkerMass) {
@@ -692,7 +695,7 @@ int main(int argc, char* argv[]) {
   }
 
 // ***************************** Create Fluid ********************************************
-  thrust::host_vector<int3> referenceArray;
+  thrust::host_vector<::int3> referenceArray;
   thrust::host_vector<Real3> posRadH;  // do not set the size here since you are using push back later
   thrust::host_vector<Real4> velMasH;
   thrust::host_vector<Real4> rhoPresMuH;
@@ -722,7 +725,7 @@ int main(int argc, char* argv[]) {
   int numAllMarkers = 0;
 
   //*** initialize fluid particles
-  int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
+  ::int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
   printf("num_fluidOrBoundaryMarkers %d %d \n", num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
   referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1));  // map fluid -1
   numAllMarkers += num_fluidOrBoundaryMarkers.x;

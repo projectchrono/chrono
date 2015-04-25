@@ -20,11 +20,11 @@
 //#include "chrono_utils/ChUtilsInputOutput.h" //Arman: Why is this
 #include "chrono_utils/ChUtilsGenerators.h"
 
-using namespace chrono;
-using namespace chrono::collision;
+//using namespace chrono;
+//using namespace chrono::collision;
 
 void AddSphDataToChSystem(
-		ChSystemParallelDVI& mphysicalSystem,
+		chrono::ChSystemParallelDVI& mphysicalSystem,
 		int & startIndexSph,
 		const thrust::host_vector<Real3> & posRadH,
 		const thrust::host_vector<Real4> & velMasH,
@@ -33,7 +33,7 @@ void AddSphDataToChSystem(
 		int collisionFamilly);
 
 void UpdateSphDataInChSystem(
-		ChSystemParallelDVI& mphysicalSystem,
+		chrono::ChSystemParallelDVI& mphysicalSystem,
 		const thrust::host_vector<Real3> & posRadH,
 		const thrust::host_vector<Real4> & velMasH,
 		const NumberOfObjects & numObjects,
@@ -42,7 +42,7 @@ void UpdateSphDataInChSystem(
 void AddChSystemForcesToSphForces(
 		thrust::host_vector<Real4>  & derivVelRhoChronoH,
 		const thrust::host_vector<Real4> & velMasH2,
-		ChSystemParallelDVI& mphysicalSystem,
+		chrono::ChSystemParallelDVI& mphysicalSystem,
 		const NumberOfObjects & numObjects,
 		int startIndexSph,
 		Real dT);
@@ -69,7 +69,7 @@ void CopyH2D(
 
 void CopySys2D(
 	thrust::device_vector<Real3> & posRadD,
-	ChSystemParallelDVI& mphysicalSystem,
+	chrono::ChSystemParallelDVI& mphysicalSystem,
 	const NumberOfObjects & numObjects,
 	int startIndexSph);
 

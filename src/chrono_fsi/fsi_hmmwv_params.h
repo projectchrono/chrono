@@ -26,7 +26,7 @@ Real time_pause_fluid_external_force = .05;//0.1;//0.1;  // 0.2;
 Real contact_recovery_speed = 5;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
 
-Real time_step = 4e-4;  // 2e-3;  // note you are using half of this for MBD system
+Real time_step = 2e-3;//4e-4;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
 Real time_end = 11;
 
@@ -54,7 +54,7 @@ NumberOfObjects numObjects;
 void SetupParamsH(SimParams& paramsH) {
   //**********************************************
   paramsH.sizeScale = 1;  // don't change it.
-  paramsH.HSML = 0.04;
+  paramsH.HSML = .2;//0.04;
   paramsH.MULT_INITSPACE = 1.0;
   paramsH.NUM_BOUNDARY_LAYERS = 3;
   paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
@@ -204,8 +204,8 @@ std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json"
 
 // Initial vehicle position and orientation
 // ChVector<> initLoc(-3.0, 0, 0.75);
-ChVector<> initLoc(-9.5, 0, 0.75);
-ChQuaternion<> initRot(1, 0, 0, 0);
+chrono::ChVector<> initLoc(-9.5, 0, 0.75);
+chrono::ChQuaternion<> initRot(1, 0, 0, 0);
 
 // -----------------------------------------------------------------------------
 // Simulation parameters MBD ground
@@ -240,7 +240,7 @@ int num_particles = 1000;
 
 std::ofstream simParams;
 
-ChTimerParallel fsi_timer;
+chrono::ChTimerParallel fsi_timer;
 
 bool povray_output = false;
 
@@ -251,9 +251,9 @@ int out_fps = 60;
 
 Real vertical_offset = 0;  // vehicle vertical offset
 
-utils::VehicleSystem* mVehicle;
-utils::TireContactCallback* tire_cb;
-utils::ChassisContactCallback* chassis_cb;
+chrono::utils::VehicleSystem* mVehicle;
+chrono::utils::TireContactCallback* tire_cb;
+chrono::utils::ChassisContactCallback* chassis_cb;
 MyDriverInputs* driver_cb;
 
 #endif  // end of FSI_HMMWV_PARAMS_H_

@@ -60,7 +60,7 @@ include_directories(
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
-cuda_add_library(FSI SHARED SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu checkPointReduced.cpp)
+cuda_add_library(FSI SHARED SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu checkPointReduced.cpp VehicleExtraProperties.cpp)
 SET(LIBRARIES "${LIBRARIES}" FSI)
 
 # Add executables

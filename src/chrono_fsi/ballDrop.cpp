@@ -114,7 +114,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc
 	mphysicalSystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
 	mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;
-	mphysicalSystem.GetSettings()->collision.bins_per_axis = mI3(10, 10, 10); //Arman check
+	mphysicalSystem.GetSettings()->collision.bins_per_axis = _make_int3(10, 10, 10); //Arman check
 }
 
 void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
 
 	// ***************************** Create Fluid ********************************************
 	//*** Arrays definition
-	thrust::host_vector<int3> referenceArray;
+	thrust::host_vector<::int3> referenceArray;
 	thrust::host_vector<Real3> posRadH; //do not set the size here since you are using push back later
 	thrust::host_vector<Real4> velMasH;
 	thrust::host_vector<Real4> rhoPresMuH;
@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
 
 	// initialize fluid particles
 	Real sphMarkerMass; // To be initialized in CreateFluidMarkers, and used in other places
-	int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
+	::int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
 	referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
 	numAllMarkers += num_fluidOrBoundaryMarkers.x;
 	referenceArray.push_back(
