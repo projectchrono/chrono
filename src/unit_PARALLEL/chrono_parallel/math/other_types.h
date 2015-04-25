@@ -25,25 +25,27 @@
 
 typedef unsigned int uint;
 
+namespace chrono {
+
 struct bool2 {
   bool x, y;
   bool2() : x(0), y(0) {}
   bool2(bool a, bool b) : x(a), y(b) {}
 };
 
-struct short2{
+struct short2 {
   short x, y;
 };
 
-struct int2{
+struct int2 {
   int x, y;
 };
 
-struct int3{
+struct int3 {
   int x, y, z;
 };
 
-struct uint3{
+struct uint3 {
   unsigned int x, y, z;
 };
 
@@ -127,5 +129,5 @@ static inline std::ostream& operator<<(std::ostream& out, const int3& a) {
   out << "[" << a.x << ", " << a.y << ", " << a.z << "]" << std::endl;
   return out;
 }
-
+}
 #endif

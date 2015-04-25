@@ -26,7 +26,7 @@
 
 #define R3 real3
 #define ZERO_VECTOR R3(0)
-
+namespace chrono {
 #ifdef ENABLE_SSE
 static const __m128 SIGNMASK = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
 #endif
@@ -187,7 +187,7 @@ static inline real3 ceil(const real3& a) {
 static inline real3 lerp(const real3& a, const real3& b, real alpha) {
   return (a + alpha * (b - a));
 }
-static inline real3 fabs(const real3& a) {
+static inline real3 absolute(const real3& a) {
   return R3(std::fabs(a.x), std::fabs(a.y), std::fabs(a.z));
 }
 static inline bool isEqual(const real3& a, const real3& b) {
@@ -212,5 +212,5 @@ static inline real3 clamp(const real3& a, const real3& clamp_min, const real3& c
   clampv.z = clamp(a.z, clamp_min.z, clamp_max.z);
   return clampv;
 }
-
+}
 #endif

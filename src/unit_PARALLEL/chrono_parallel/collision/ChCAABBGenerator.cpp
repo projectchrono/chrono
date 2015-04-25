@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "chrono_parallel/collision/ChCAABBGenerator.h"
-
+using namespace chrono;
 using namespace chrono::collision;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

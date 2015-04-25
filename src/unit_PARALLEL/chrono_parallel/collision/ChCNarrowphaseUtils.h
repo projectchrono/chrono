@@ -3,7 +3,8 @@
 
 #include "chrono_parallel/collision/ChCDataStructures.h"
 #include "collision/ChCCollisionModel.h"
-
+namespace chrono {
+namespace collision {
 inline real3 GetSupportPoint_Sphere(const real3& B, const real3& n) {
   // real3 b = real3(B.x);
   // return b * b * n / length(b * n);
@@ -178,11 +179,11 @@ inline real3 GetCenter_Cone(const real3& B) {
   return ZERO_VECTOR;
 }
 inline real3 GetCenter_Convex(const real3& B, const real3* convex_data) {
-    real3 point(0);
-    for (int i = B.y; i < B.y + B.x; i++) {
-      point += convex_data[i];
-    }
-    return point/B.x ;
+  real3 point(0);
+  for (int i = B.y; i < B.y + B.x; i++) {
+    point += convex_data[i];
+  }
+  return point / B.x;
 }
 inline real3 SupportVertNoMargin(const chrono::collision::ConvexShape& Shape, const real3& nv, const real& envelope) {
   real3 localSupport;
@@ -335,5 +336,6 @@ inline real GetAngularMotionDisc(const chrono::collision::ConvexShape& Shape) {
   disc += (center).length();
   return disc;
 }
-
+}
+}
 #endif

@@ -24,7 +24,7 @@
 #include "real4.h"
 #include "mat33.h"
 #include "other_types.h"
-
+namespace chrono {
 // Computes the nearest power of two to the given value and returns it
 static inline uint nearest_pow(const uint& num) {
   uint n = num > 0 ? num - 1 : 0;
@@ -58,5 +58,5 @@ static inline real3 TransformLocalToParent(const real3& p, const quaternion& q, 
 static inline real3 TransformParentToLocal(const real3& p, const quaternion& q, const real3& rp) {
   return quatRotateT(rp - p, q);
 }
-
+}
 #endif

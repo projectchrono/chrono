@@ -23,6 +23,7 @@
 #include <cmath>
 #include <float.h>
 
+namespace chrono {
 // Check if SSE was found in CMake
 #ifdef CHRONO_PARALLEL_HAS_SSE
 // Depending on the SSE variable in CMake include the proper header file for that
@@ -110,5 +111,5 @@ static inline real sign(const real& x) {
     return 0;
   }
 }
-
+}
 #endif

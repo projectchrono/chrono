@@ -29,7 +29,7 @@
 #define QUARTIC_H
 
 #include "real.h"
-
+namespace chrono {
 int QUADROOTS(real p[5], real r[3][5]) {
   /*
   Array r[3][5]  p[5]
@@ -211,5 +211,6 @@ QUAD:
 END:
   ;
   return (0);
+}
 }
 #endif

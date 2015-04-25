@@ -23,6 +23,8 @@
 #include <iostream>
 #define R2 make_real2
 
+namespace chrono {
+
 struct real2 {
   real x, y;
 };
@@ -64,5 +66,5 @@ static inline real2 operator/(const real2& rhs, const real& lhs) {
 static inline bool operator==(const real2& a, const real2& b) {
   return ((a.x == b.x) && (a.y == b.y));
 }
-
+}
 #endif

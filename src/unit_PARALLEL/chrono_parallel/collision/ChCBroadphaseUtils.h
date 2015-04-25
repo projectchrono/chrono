@@ -57,9 +57,9 @@ inline int3 HashMin(const T& A, const real3& inv_bin_size_vec) {
 template <class T>
 inline int3 HashMax(const T& A, const real3& inv_bin_size_vec) {
   int3 temp;
-  temp.x = ceil(A.x * inv_bin_size_vec.x) - 1;
-  temp.y = ceil(A.y * inv_bin_size_vec.y) - 1;
-  temp.z = ceil(A.z * inv_bin_size_vec.z) - 1;
+  temp.x = std::ceil(A.x * inv_bin_size_vec.x) - 1;
+  temp.y = std::ceil(A.y * inv_bin_size_vec.y) - 1;
+  temp.z = std::ceil(A.z * inv_bin_size_vec.z) - 1;
   return temp;
 }
 

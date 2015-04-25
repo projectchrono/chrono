@@ -23,6 +23,9 @@
 #include "chrono_parallel/math/real3.h"
 
 #define R4 real4
+
+namespace chrono {
+
 #ifdef ENABLE_SSE
 //#define _mm_shufd(xmm, mask) _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(xmm), mask))
 
@@ -363,5 +366,5 @@ static inline real3 AMatV(const real4& q) {
 
   return V;
 }
-
+}
 #endif

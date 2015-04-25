@@ -31,7 +31,7 @@ software.
 
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCNarrowphaseVoronoiSimplex.h"
-
+using namespace chrono;
 using namespace chrono::collision;
 
 #define VERTA 0

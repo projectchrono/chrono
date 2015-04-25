@@ -22,7 +22,7 @@
 #include "chrono_parallel/math/real2.h"
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/real4.h"
-
+namespace chrono {
 struct M33 {
   real3 U, V, W;
   inline M33() : U(0), V(0), W(0) {}
@@ -194,16 +194,9 @@ static inline M33 AMatT(const real4& q) {
 }
 static inline M33 AbsMat(const M33& A) {
   M33 result;
-  result.U.x = fabs(A.U.x);
-  result.U.y = fabs(A.U.y);
-  result.U.z = fabs(A.U.z);
-  result.V.x = fabs(A.V.x);
-  result.V.y = fabs(A.V.y);
-  result.V.z = fabs(A.V.z);
-  result.W.x = fabs(A.W.x);
-  result.W.y = fabs(A.W.y);
-  result.W.z = fabs(A.W.z);
-
+  result.U = absolute(A.U);
+  result.V = absolute(A.V);
+  result.W = absolute(A.W);
   return result;
 }
 
@@ -301,5 +294,5 @@ static inline real4 GetQuat(M33 A) {
 //[U.x,V.x,W.x][x]
 //[U.y,V.y,W.y][y]
 //[U.z,V.z,W.z][z]
-
+}
 #endif
