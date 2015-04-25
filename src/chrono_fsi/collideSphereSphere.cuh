@@ -30,6 +30,7 @@ void ForceSPH(
 		const thrust::host_vector<int3> & referenceArray,
 		const NumberOfObjects & numObjects,
 		SimParams paramsH,
+		BceVersion bceType,
 		Real dT);
 
 void IntegrateSPH(

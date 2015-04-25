@@ -43,6 +43,7 @@ struct fluidData {
 		Real velocityMag;
 		Real3 velocity;
 };
+
 __constant__ SimParams paramsD;
 __constant__ NumberOfObjects numObjectsD;
 __constant__ int3 cartesianGridDimsD;

@@ -9,6 +9,8 @@
 #define MYSTRUCTS_CUH_
 #include "custom_cutil_math.h"
 
+enum BceVersion {ADAMI, mORIGINAL};
+
 struct SimParams {
 		int3 gridSize;
 		Real3 worldOrigin;

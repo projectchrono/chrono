@@ -905,6 +905,7 @@ int main(int argc, char* argv[]) {
              referenceArray,
              numObjects,
              currentParamsH,
+             bceType,
              0.5 * currentParamsH.dT);
 
     	fsi_timer.stop("force_sph");
@@ -950,6 +951,7 @@ int main(int argc, char* argv[]) {
              referenceArray,
              numObjects,
              currentParamsH,
+             bceType,
              currentParamsH.dT);
 #endif
     DoStepChronoSystem(

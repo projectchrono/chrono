@@ -115,6 +115,7 @@ void ForceSPH(
 		const thrust::host_vector<int3> & referenceArray,
 		const NumberOfObjects & numObjects,
 		SimParams paramsH,
+		BceVersion bceType,
 		Real dT) {
 	// Part1: contact detection #########################################################################################################################
 	// grid data for sorting method
@@ -157,9 +158,11 @@ void ForceSPH(
 			m_dGridMarkerIndex, mapOriginalToSorted, posRadD, velMasD, rhoPresMuD, numAllMarkers, m_numGridCells);
 
 	// modify BCE velocity and pressure
-//	RecalcSortedVelocityPressure_BCE(
-//			m_dSortedVelMas, m_dSortedRhoPreMu, m_dSortedPosRad,
-//			m_dCellStart, m_dCellEnd, numAllMarkers);
+	if (bceType == ADAMI) {
+		RecalcSortedVelocityPressure_BCE(
+				m_dSortedVelMas, m_dSortedRhoPreMu, m_dSortedPosRad,
+				m_dCellStart, m_dCellEnd, numAllMarkers);
+	}
 
 	//process collisions
 //	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
@@ -306,7 +309,7 @@ void IntegrateSPH(
 		SimParams currentParamsH,
 		Real dT) {
 
-	ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+	ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, mORIGINAL, dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 	UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, dT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);		//assumes ...D2 is a copy of ...D
 	ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);

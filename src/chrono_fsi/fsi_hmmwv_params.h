@@ -49,6 +49,8 @@ int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 bool initializeFluidFromFile = false; 	// 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
 										//	when adding functionality using "useWallBce" and "haveFluid" macros, pay attention to  "initializeFluidFromFile" options.
 										//	for a double security, do your best to set "haveFluid" and "useWallBce" based on the data you have from checkpoint files
+BceVersion bceType = ADAMI;
+
 NumberOfObjects numObjects;
 
 void SetupParamsH(SimParams& paramsH) {
