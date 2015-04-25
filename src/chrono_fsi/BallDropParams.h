@@ -21,6 +21,8 @@ double time_step = .5e-3;//1e-3;
 
 int fluidCollisionFamily = 1;
 
+BceVersion bceType = mORIGINAL;
+
 void SetupParamsH(SimParams & paramsH) {
 //**********************************************
 	paramsH.sizeScale = 1; //don't change it.
@@ -57,7 +59,11 @@ void SetupParamsH(SimParams & paramsH) {
 //	paramsH.cMax = mR3( 3  + paramsH.toleranceZone, 2 + paramsH.toleranceZone,  3 + paramsH.toleranceZone);
 	paramsH.cMin = mR3(0, 0, 0);						// 3D channel
 	paramsH.cMax = mR3( 3, 2,  3 );
-	//****************************************************************************************
+
+  //****************************************************************************************
+  paramsH.cMinInit = mR3(0, 0, 0);
+  paramsH.cMaxInit = mR3( 3, 2,  3 );
+//****************************************************************************************
 	//printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 * paramsH.HSML);
 	int3 side0 = mI3(
 			floor((paramsH.cMax.x - paramsH.cMin.x) / (2 * paramsH.HSML)),

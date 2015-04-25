@@ -395,7 +395,7 @@ int main(int argc, char* argv[]) {
 		thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
 
 		// ****************** RK2: 1/2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, bceType, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
 		CopyD2H(derivVelRhoChronoH, derivVelRhoD);
 		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT);// assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
@@ -407,7 +407,7 @@ int main(int argc, char* argv[]) {
 		UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
 
 		// ****************** RK2: 2/2
-		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, bceType, currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
 		CopyD2H(derivVelRhoChronoH, derivVelRhoD);
 		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT); // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
