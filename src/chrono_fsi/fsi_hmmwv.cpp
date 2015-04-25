@@ -99,6 +99,21 @@ opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 #endif
 
 // =============================================================================
+void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads, int& max_iteration_sliding, int& max_iteration_bilateral) {
+  if (argc > 1) {
+    const char* text = argv[1];
+    threads = atoi(text);
+  }
+  if (argc > 2) {
+    const char* text = argv[2];
+    max_iteration_sliding = atoi(text);
+  }
+  if (argc > 3) {
+    const char* text = argv[3];
+    max_iteration_bilateral = atoi(text);
+  }
+}
+// =============================================================================
 void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads, int& max_iteration_normal, int& max_iteration_sliding, int& max_iteration_spinning, int& max_iteration_bilateral) {
   if (argc > 1) {
     const char* text = argv[1];
@@ -139,7 +154,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   // Set params from input
   // ----------------------
 
-  SetArgumentsForMbdFromInput(argc, argv, threads, max_iteration_normal, max_iteration_sliding, max_iteration_spinning, max_iteration_bilateral);
+  SetArgumentsForMbdFromInput(argc, argv, threads, max_iteration_sliding, max_iteration_bilateral);
 
   // ----------------------
   // Set number of threads.
@@ -525,10 +540,12 @@ void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem) {
 //	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
 //	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
 //	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
+	ChVector<> CameraLocation = ChVector<>(0, -10, 0);
+	ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
   gl_window.Initialize(1280, 720, "HMMWV", &mphysicalSystem);
-  gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+  gl_window.SetCamera(CameraLocation, CameraLookAt, ChVector<>(0, 0, 1));
   gl_window.SetRenderMode(opengl::WIREFRAME);
 
 // Uncomment the following two lines for the OpenGL manager to automatically un the simulation in an infinite loop.
