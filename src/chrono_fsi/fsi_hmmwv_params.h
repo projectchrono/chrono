@@ -23,7 +23,7 @@
 Real time_hold_vehicle = 1.3;//0.1;  // 0.2;
 Real time_pause_fluid_external_force = .05;//0.1;//0.1;  // 0.2;
 
-Real contact_recovery_speed = 5;
+Real contact_recovery_speed = 1;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
 
 Real time_step = 1e-4;  // 2e-3;  // note you are using half of this for MBD system
@@ -49,7 +49,8 @@ int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 bool initializeFluidFromFile = false; 	// 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
 										//	when adding functionality using "useWallBce" and "haveFluid" macros, pay attention to  "initializeFluidFromFile" options.
 										//	for a double security, do your best to set "haveFluid" and "useWallBce" based on the data you have from checkpoint files
-BceVersion bceType = ADAMI;
+BceVersion bceType = ADAMI; // when set to adami, change the LARGE_PRES to zero. although not very important, since this option will overwrite the BCE pressure and
+							// paramsH.LARGE_PRES is only used for the initialization of the BCE markers
 
 NumberOfObjects numObjects;
 
@@ -61,7 +62,7 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.NUM_BOUNDARY_LAYERS = 3;
   paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
   paramsH.BASEPRES = 0;        // 10;
-  paramsH.LARGE_PRES = 10000;  // paramsH.BASEPRES;//10000;
+  paramsH.LARGE_PRES = 0;  // paramsH.BASEPRES;//10000;
   paramsH.deltaPress;          //** modified below
   paramsH.multViscosity_FSI = 5.0;
   paramsH.gravity = mR3(0, 0, -9.81);  // mR3(0);//mR3(0, -9.81, 0);
