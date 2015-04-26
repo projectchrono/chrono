@@ -60,8 +60,13 @@ include_directories(
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
-cuda_add_library(FSI SHARED SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu checkPointReduced.cpp VehicleExtraProperties.cpp)
-SET(LIBRARIES "${LIBRARIES}" FSI)
+#cuda_add_library(FSI SHARED SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu checkPointReduced.cpp VehicleExtraProperties.cpp)
+#SET(LIBRARIES "${LIBRARIES}" FSI)
+
+cuda_add_executable(fsi_hmmwv fsi_hmmwv.cpp SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu checkPointReduced.cpp VehicleExtraProperties.cpp)
+TARGET_LINK_LIBRARIES(fsi_hmmwv ${LIBRARIES})
+ADD_DEPENDENCIES(fsi_hmmwv ${LIBRARIES})
+INSTALL(TARGETS fsi_hmmwv DESTINATION bin)
 
 # Add executables
 #cuda_add_executable(cudaSPHProjEXE main.cpp SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu)
@@ -71,51 +76,48 @@ SET(LIBRARIES "${LIBRARIES}" FSI)
 #INSTALL(TARGETS cudaSPHProjEXE DESTINATION bin)
 
 
-
-
-
-# ================================================================================
-# non-vehicle builds
-SET(DEMOS
-    ballDrop
-    #hmmwv_fluid2
-)
-
-MESSAGE(STATUS "FSI demo programs...")
-
-FOREACH(PROGRAM ${DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
-
-    cuda_add_executable(${PROGRAM}  "${PROGRAM}.cpp")
-    #SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
-
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
-
-    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
-
-ENDFOREACH(PROGRAM)
-# ================================================================================
+## ================================================================================
+## non-vehicle builds
+#SET(DEMOS
+#    ballDrop
+#    #hmmwv_fluid2
+#)
+#
+#MESSAGE(STATUS "FSI demo programs...")
+#
+#FOREACH(PROGRAM ${DEMOS})
+#    MESSAGE(STATUS "...add ${PROGRAM}")
+#
+#    cuda_add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+#    #SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+#
+#    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+##    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+##
+##    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+#
+#ENDFOREACH(PROGRAM)
+## ================================================================================
 # vehicle builds
-IF(ENABLE_DEMOS_VEHICLE)
-	SET(DEMOS
-	    hmmwv
-	    fsi_hmmwv
-	)
-
-	MESSAGE(STATUS "FSI demo programs...")
-
-	FOREACH(PROGRAM ${DEMOS})
-	    MESSAGE(STATUS "...add ${PROGRAM}")
-
-	    cuda_add_executable(${PROGRAM}  "${PROGRAM}.cpp")
-	    #SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
-
-	    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-	    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
-
-	    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
-
-	ENDFOREACH(PROGRAM)
-ENDIF()
+#IF(ENABLE_DEMOS_VEHICLE)
+#	SET(DEMOS
+#	    hmmwv
+#	    fsi_hmmwv
+#	)
+#
+#	MESSAGE(STATUS "FSI demo programs...")
+#
+#	FOREACH(PROGRAM ${DEMOS})
+#	    MESSAGE(STATUS "...add ${PROGRAM}")
+#
+#	    cuda_add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+#	    #SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+#
+#	    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+#	    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+#
+#	    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+#
+#	ENDFOREACH(PROGRAM)
+#ENDIF()
 
