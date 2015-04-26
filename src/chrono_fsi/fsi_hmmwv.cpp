@@ -53,23 +53,12 @@
 #include "SphInterface.h"
 #include "InitializeSphMarkers.h"
 
-// Irrlicht Include
-#include "unit_IRRLICHT/ChIrrApp.h"
-
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::collision;
 
 using std::cout;
 using std::endl;
-
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
 
 // Define General variables
 SimParams paramsH;
@@ -85,7 +74,20 @@ SimParams paramsH;
 // =============================================================================
 // Define Graphics
 #define irrlichtVisualization false
+
 #if irrlichtVisualization
+
+// Irrlicht Include
+#include "unit_IRRLICHT/ChIrrApp.h"
+
+// Use the main namespaces of Irrlicht
+using namespace irr;
+using namespace core;
+using namespace scene;
+using namespace video;
+using namespace io;
+using namespace gui;
+
 std::shared_ptr<ChIrrApp> application;
 #endif
 
