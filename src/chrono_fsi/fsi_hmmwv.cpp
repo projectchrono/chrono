@@ -855,7 +855,7 @@ int main(int argc, char* argv[]) {
     if (tStep % 200 == 0) {
     	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
     }
-    if (fmod(realTime, 0.4) < time_step && realTime < 1.3) {
+    if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
     	SetMarkersVelToZero(velMasD, velMasH);
     }
     // *******
