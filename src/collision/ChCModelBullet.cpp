@@ -28,6 +28,9 @@
 #include "collision/ChCCollisionSystemBullet.h"
 #include "BulletWorldImporter/btBulletWorldImporter.h"
 #include "collision/ChCConvexDecomposition.h"
+#include "geometry/ChCLineArc.h"
+#include "geometry/ChCLineSegment.h"
+#include "BulletCollision/CollisionShapes/bt2DShape.h"
 
 namespace chrono {
 
@@ -239,6 +242,53 @@ bool ChModelBullet::AddBarrel(double Y_low,
 
     return true;
 }
+
+
+bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
+                           const ChVector<>& pos,
+                           const ChMatrix33<>& rot)
+{
+    if (!mpath.Get_closed()) 
+        throw ChException("Error! Add2Dpath requires a CLOSED ChLinePath!"); 
+    
+    for (size_t i=0; i= mpath.GetSubLinesCount(); ++i)
+    {
+        if (ChSharedPtr< geometry::ChLineSegment > msegment = mpath.GetSubLineN(i).DynamicCastTo<geometry::ChLineSegment>())
+        {
+            if ((msegment->pA.z != 0) || (msegment->pB.z != 0))
+                throw ChException("Error! Add2Dpath: a sub segment of the ChLinePath had non-zero z coordinate! It must be flat on xy."); 
+
+            btVector3 pa((btScalar)msegment->pA.x, (btScalar)msegment->pA.y, (btScalar)0);
+            btVector3 pb((btScalar)msegment->pB.x, (btScalar)msegment->pB.y, (btScalar)0);
+            bt2DsegmentShape* mshape = new bt2DsegmentShape(pa, pb);
+           
+            mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
+            _injectShape(pos, rot, mshape);
+        } 
+        else 
+        if (ChSharedPtr< geometry::ChLineArc > marc = mpath.GetSubLineN(i).DynamicCastTo<geometry::ChLineArc>())
+        {
+            if ((marc->origin.pos.z != 0))
+                throw ChException("Error! Add2Dpath: a sub arc of the ChLinePath had center with non-zero z coordinate! It must be flat on xy.");
+            bt2DarcShape* mshape = new bt2DarcShape(
+                (btScalar)marc->origin.pos.x, 
+                (btScalar)marc->origin.pos.y, 
+                (btScalar)marc->radius, 
+                (btScalar)marc->angle1, 
+                (btScalar)marc->angle2);
+
+            mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
+            _injectShape(pos, rot, mshape);
+        }
+        else
+        {
+            throw ChException("Error! Add2Dpath: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
+        }
+    }
+
+    return true;
+}
+
 
 bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
                                   const ChVector<>& pos,

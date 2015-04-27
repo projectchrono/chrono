@@ -921,6 +921,7 @@ IF (BUILD_CH_SDK)
 		collision/bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp
 		collision/bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp
 		collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.cpp
+		collision/bullet/BulletCollision/CollisionShapes/bt2DShape.cpp
 		collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp
 		collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp
 		collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp

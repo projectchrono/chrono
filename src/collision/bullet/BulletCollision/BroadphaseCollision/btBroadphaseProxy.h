@@ -59,6 +59,9 @@ CONCAVE_SHAPES_START_HERE,
 	FAST_CONCAVE_MESH_PROXYTYPE,
 	//terrain
 	TERRAIN_SHAPE_PROXYTYPE,
+    // for 2d collision between polylines:
+    ARC_SHAPE_PROXYTYPE,   //***ALEX***
+    SEGMENT_SHAPE_PROXYTYPE,   //***ALEX***
 ///Used for GIMPACT Trimesh integration
 	GIMPACT_SHAPE_PROXYTYPE,
 ///Multimaterial mesh
