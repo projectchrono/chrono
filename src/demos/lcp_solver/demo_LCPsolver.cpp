@@ -177,6 +177,8 @@ void test_1() {
         GetLog() << "FILE ERROR: " << myex.what();
     }
 
+    matrM.StreamOUT(GetLog());
+    matrCq.StreamOUT(GetLog());
     // Other checks
 
     GetLog() << "**** Using ChLcpIterativeSOR  ********** \n\n";

@@ -1590,6 +1590,22 @@ void ChSparseMatrix::StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream) {
     }
 }
 
+void ChSparseMatrix::StreamOUT(ChStreamOutAscii& mstream) {
+  mstream << "\n"
+    << "Matrix " << GetRows() << " rows, " << GetColumns() << " columns."
+    << "\n";
+  for (int i = 0; i < ChMin(GetRows(), 8); i++) {
+    for (int j = 0; j < ChMin(GetColumns(), 8); j++)
+      mstream << GetElement(i, j) << "  ";
+    if (GetColumns() > 8)
+      mstream << "...";
+    mstream << "\n";
+  }
+  if (GetRows() > 8)
+    mstream << "... \n\n";
+}
+
+
 }  // END_OF_NAMESPACE____
 
 // END

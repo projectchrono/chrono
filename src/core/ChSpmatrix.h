@@ -273,6 +273,10 @@ class ChApi ChSparseMatrix : public ChMatrix<double> {
     ///     row,    column,    value
     /// Note: the row and column indexes start from 1, not 0 as in C language.
     void StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream);
+
+    /// Write first few rows an columns to the console
+    /// Method to allow serializing transient data into in ascii
+    void StreamOUT(ChStreamOutAscii& mstream);
 };
 
 // used internally:
