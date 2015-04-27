@@ -37,7 +37,7 @@ void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 
   startIndexSph = mphysicalSystem.Get_bodylist()->size();
   // openmp does not work here
-  for (int i = 0; i < numObjects.numAllMarkers; i++) {
+  for (int i = 0; i < numObjects.numFluidMarkers; i++) {
     Real3 p3 = posRadH[i];
     Real4 vM4 = velMasH[i];
     chrono::ChVector<> pos = chrono::ChVector<>(p3.x, p3.y, p3.z);
@@ -87,7 +87,7 @@ void UpdateSphDataInChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                              const NumberOfObjects& numObjects,
                              int startIndexSph) {
 #pragma omp parallel for
-  for (int i = 0; i < numObjects.numAllMarkers; i++) {
+  for (int i = 0; i < numObjects.numFluidMarkers; i++) {
     Real3 p3 = posRadH[i];
     Real4 vM4 = velMasH[i];
     chrono::ChVector<> pos = chrono::ChVector<>(p3.x, p3.y, p3.z);
@@ -108,7 +108,7 @@ void AddChSystemForcesToSphForces(thrust::host_vector<Real4>& derivVelRhoChronoH
                                   Real dT) {
   std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
 #pragma omp parallel for
-  for (int i = 0; i < numObjects.numAllMarkers; i++) {
+  for (int i = 0; i < numObjects.numFluidMarkers; i++) {
     chrono::ChVector<> v = ((chrono::ChBody*)(*(bodyIter + i)))->GetPos_dt();
     Real3 a3 = (mR3(v.x, v.y, v.z) - mR3(velMasH2[i])) / dT;  // f = m * a
     derivVelRhoChronoH[i] += mR4(a3, 0);                      // note, gravity force is also coming from rigid system
@@ -152,10 +152,10 @@ void CopySys2D(thrust::device_vector<Real3>& posRadD,
                chrono::ChSystemParallelDVI& mphysicalSystem,
                const NumberOfObjects& numObjects,
                int startIndexSph) {
-  thrust::host_vector<Real3> posRadH(numObjects.numAllMarkers);
+  thrust::host_vector<Real3> posRadH(numObjects.numFluidMarkers);
   std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
 #pragma omp parallel for
-  for (int i = 0; i < numObjects.numAllMarkers; i++) {
+  for (int i = 0; i < numObjects.numFluidMarkers; i++) {
     chrono::ChVector<> p = ((chrono::ChBody*)(*(bodyIter + i)))->GetPos();
     posRadH[i] += mR3(p.x, p.y, p.z);
   }
