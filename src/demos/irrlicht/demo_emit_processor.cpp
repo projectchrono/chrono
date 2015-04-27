@@ -15,7 +15,6 @@
 //   Demo code about
 //
 //     - using the ChParticleEmitter to create flows
-//       of random shapes
 //     - use a ChParticleRemover to remove particles outside a volume
 //     - use a ChParticleProcessor to compute mass flow etc.
 //     - use Irrlicht to display objects.
@@ -125,25 +124,6 @@ int main(int argc, char* argv[]) {
 
     // ---Initialize the randomizer for creations, with statistical distribution
 
-    // Create a ChRandomShapeCreator object (ex. here for sphere particles)
-    ChSharedPtr<ChRandomShapeCreatorSpheres> mcreator_metal(new ChRandomShapeCreatorSpheres);
-    mcreator_metal->SetDiameterDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.2, 0.6)));
-    mcreator_metal->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
-
-    // Optional: define a callback to be exectuted at each creation of a sphere particle:
-    class MyCreator_metal : public ChCallbackPostCreation {
-        // Here do custom stuff on the just-created particle:
-      public:
-        virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
-            // Ex.: attach some optional assets, ex for visualization
-            ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
-            mvisual->SetColor(ChColor(0.9f, (float)ChRandom(), 0.0f));
-            mbody->AddAsset(mvisual);
-        }
-    };
-    MyCreator_metal* callback_metal = new MyCreator_metal;
-    mcreator_metal->SetCallbackPostCreation(callback_metal);
-
     // Create a ChRandomShapeCreator object (ex. here for box particles)
     ChSharedPtr<ChRandomShapeCreatorBoxes> mcreator_plastic(new ChRandomShapeCreatorBoxes);
     mcreator_plastic->SetXsizeDistribution(
@@ -166,17 +146,9 @@ int main(int argc, char* argv[]) {
     MyCreator_plastic* callback_plastic = new MyCreator_plastic;
     mcreator_plastic->SetCallbackPostCreation(callback_plastic);
 
-    // Create a parent ChRandomShapeCreator that 'mixes' the two generators above,
-    // mixing them with a given percentual:
-    ChSharedPtr<ChRandomShapeCreatorFromFamilies> mcreatorTot(new ChRandomShapeCreatorFromFamilies);
-    mcreatorTot->AddFamily(mcreator_metal, 0.4);    // 1st creator family, with percentual
-    mcreatorTot->AddFamily(mcreator_plastic, 0.6);  // 2nd creator family, with percentual
-    mcreatorTot->Setup();
-    // By default, percentuals are in terms of number of generated particles,
-    // but you can optionally enforce percentuals in terms of masses:
-    mcreatorTot->SetProbabilityMode(ChRandomShapeCreatorFromFamilies::MASS_PROBABILITY);
-    // Finally, tell to the emitter that it must use the 'mixer' above:
-    emitter.SetParticleCreator(mcreatorTot);
+    // Finally, tell to the emitter that it must use the creator above:
+    emitter.SetParticleCreator(mcreator_plastic);
+
 
     // --- Optional: what to do by default on ALL newly created particles?
     //     A callback executed at each particle creation can be attached to the emitter.

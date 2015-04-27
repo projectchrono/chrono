@@ -18,6 +18,24 @@ SET_TARGET_PROPERTIES(demo_postprocess PROPERTIES
 TARGET_LINK_LIBRARIES(demo_postprocess  ChronoEngine  ChronoEngine_POSTPROCESS)
 ADD_DEPENDENCIES (demo_postprocess ChronoEngine ChronoEngine_POSTPROCESS)
 
+IF(ENABLE_UNIT_IRRLICHT)
+	INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
+	ADD_EXECUTABLE(demo_emit_creation   		demo_emit_creation.cpp)
+	SOURCE_GROUP(demos\\postprocess FILES  	    demo_emit_creation.cpp)
+	SET_TARGET_PROPERTIES(demo_emit_creation PROPERTIES 
+		FOLDER demos
+		COMPILE_FLAGS "${CH_BUILDFLAGS}"
+		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		)
+	TARGET_LINK_LIBRARIES(demo_emit_creation  
+	ChronoEngine 
+	ChronoEngine_POSTPROCESS 
+	ChronoEngine_IRRLICHT
+	${CH_IRRLICHTLIB}
+	)
+	ADD_DEPENDENCIES (demo_emit_creation ChronoEngine ChronoEngine_POSTPROCESS ChronoEgine_IRRLICHT)
+ENDIF()
+
 ADD_EXECUTABLE(demo_timestepping	demo_timestepping.cpp)
 SOURCE_GROUP(demos\\postprocess FILES  	demo_timestepping.cpp)
 SET_TARGET_PROPERTIES(demo_timestepping PROPERTIES 
