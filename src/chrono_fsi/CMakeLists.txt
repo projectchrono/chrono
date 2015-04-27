@@ -63,17 +63,31 @@ SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 #cuda_add_library(FSI SHARED SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu checkPointReduced.cpp VehicleExtraProperties.cpp)
 #SET(LIBRARIES "${LIBRARIES}" FSI)
 
-cuda_add_executable(fsi_hmmwv fsi_hmmwv.cpp SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu checkPointReduced.cpp VehicleExtraProperties.cpp)
-TARGET_LINK_LIBRARIES(fsi_hmmwv ${LIBRARIES})
-ADD_DEPENDENCIES(fsi_hmmwv ${LIBRARIES})
-INSTALL(TARGETS fsi_hmmwv DESTINATION bin)
+#cuda_add_executable(fsi_hmmwv fsi_hmmwv.cpp SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu checkPointReduced.cpp VehicleExtraProperties.cpp)
+#TARGET_LINK_LIBRARIES(fsi_hmmwv ${LIBRARIES})
+#ADD_DEPENDENCIES(fsi_hmmwv ${LIBRARIES})
+#INSTALL(TARGETS fsi_hmmwv DESTINATION bin)
 
-# Add executables
-#cuda_add_executable(cudaSPHProjEXE main.cpp SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu)
-#cuda_add_executable(cudaSPHProjEXE hmmwv_fluid.cpp)
-#TARGET_LINK_LIBRARIES(cudaSPHProjEXE ${LIBRARIES})
-#ADD_DEPENDENCIES(cudaSPHProjEXE ${LIBRARIES})
-#INSTALL(TARGETS cudaSPHProjEXE DESTINATION bin)
+# ================================================================================
+# non-vehicle builds
+SET(DEMOS
+    fsi_hmmwv
+    fsi_hmmwv2
+)
+
+MESSAGE(STATUS "FSI demo programs...")
+
+FOREACH(PROGRAM ${DEMOS})
+    MESSAGE(STATUS "...add ${PROGRAM}")
+
+	cuda_add_executable(${PROGRAM} "${PROGRAM}.cpp" SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu checkPointReduced.cpp VehicleExtraProperties.cpp)
+
+    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+
+    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+
+ENDFOREACH(PROGRAM)
 
 
 ## ================================================================================
