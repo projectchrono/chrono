@@ -14,7 +14,6 @@
 #define CHELEMENTBEAM_H
 
 #include "ChElementGeneric.h"
-#include "ChElementCorotational.h"
 
 namespace chrono {
 namespace fea {

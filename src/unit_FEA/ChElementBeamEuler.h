@@ -18,6 +18,7 @@
 #include "ChElementBeam.h"
 #include "ChBeamSection.h"
 #include "ChNodeFEAxyzrot.h"
+#include "ChElementCorotational.h"
 
 namespace chrono {
 namespace fea {
