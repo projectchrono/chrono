@@ -32,7 +32,7 @@
 #include "ChCCollisionModel.h"
 #include "core/ChSmartpointers.h"
 #include "BulletCollision/CollisionShapes/btCollisionShape.h"
-#include "geometry/ChClinePath.h"
+#include "geometry/ChCLinePath.h"
 
 // forward references
 class btCollisionObject;
