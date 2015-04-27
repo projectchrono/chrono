@@ -26,7 +26,7 @@ Real time_pause_fluid_external_force = .05;//0.1;//0.1;  // 0.2;
 Real contact_recovery_speed = 1;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
 
-Real time_step = 1e-4;  // 2e-3;  // note you are using half of this for MBD system
+Real time_step = 0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
 Real time_end = 11;
 
@@ -39,7 +39,7 @@ Real basinDepth = 2;
 
 Real fluidInitDimX = 2;
 Real fluidInitDimY = hdimY;
-Real fluidHeight = 2;
+Real fluidHeight = 1.4;// 2.0;
 
 int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 
