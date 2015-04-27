@@ -33,7 +33,8 @@ IF(ENABLE_UNIT_IRRLICHT)
 	ChronoEngine_IRRLICHT
 	${CH_IRRLICHTLIB}
 	)
-	ADD_DEPENDENCIES (demo_emit_creation ChronoEngine ChronoEngine_POSTPROCESS ChronoEgine_IRRLICHT)
+	ADD_DEPENDENCIES (demo_emit_creation ChronoEngine
+	    ChronoEngine_POSTPROCESS ChronoEngine_IRRLICHT)
 ENDIF()
 
 ADD_EXECUTABLE(demo_timestepping	demo_timestepping.cpp)
