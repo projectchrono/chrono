@@ -129,19 +129,19 @@ class ChApi ChLinePath : public ChLine {
     size_t GetSubLinesCount() { return lines.size(); }
 
     /// Access the nth line
-    ChSharedPtr<ChLine> GetSubLineN(int n) { return lines[n]; }
+    ChSharedPtr<ChLine> GetSubLineN(size_t n) { return lines[n]; }
 
     /// Get the nth line duration
-    double GetSubLineDurationN(int n) { return durations[n]; }
+    double GetSubLineDurationN(size_t n) { return durations[n]; }
 
     /// Set the nth line duration
-    void SetSubLineDurationN(int n, double mduration) {
+    void SetSubLineDurationN(size_t n, double mduration) {
         durations[n] = mduration;
 
         double last_t = 0;
         if (n > 0)
             last_t = end_times[n - 1];
-        for (int i = n; i < end_times.size(); ++i) {
+        for (size_t i = n; i < end_times.size(); ++i) {
             last_t += durations[n];
             end_times[n] = last_t;
         }
@@ -166,7 +166,7 @@ class ChApi ChLinePath : public ChLine {
 
     /// Insert a line at a specified index  n  in line array.
     /// Note that  n  cannot be higher than GetLineCount().
-    void InsertSubLine(int n,                      //<<< index of line, 0 is first, etc.
+    void InsertSubLine(size_t n,                   //<<< index of line, 0 is first, etc.
                        ChSharedPtr<ChLine> mline,  //<<< line to add
                        double duration = 1)        //<<< duration of the abscyssa when calling the Evaluate() function
     {
@@ -179,7 +179,7 @@ class ChApi ChLinePath : public ChLine {
 
     /// Insert a line at a specified index  n  in line array.
     /// Note that  n  cannot be higher than GetLineCount().
-    void InsertSubLine(int n,                //<<< index of line, 0 is first, etc.
+    void InsertSubLine(size_t n,             //<<< index of line, 0 is first, etc.
                        ChLine& mline,        //<<< line to add
                        double duration = 1)  //<<< duration of the abscyssa when calling the Evaluate() function
     {
@@ -189,7 +189,7 @@ class ChApi ChLinePath : public ChLine {
 
     /// Erase a line from a specified index  n  in line array.
     /// Note that  n  cannot be higher than GetLineCount().
-    void EraseSubLine(int n)  //<<< index of line, 0 is first, etc.
+    void EraseSubLine(size_t n)  //<<< index of line, 0 is first, etc.
     {
         lines.erase(lines.begin() + n);
         durations.erase(durations.begin() + n);
@@ -215,7 +215,7 @@ class ChApi ChLinePath : public ChLine {
     void SetPathDuration(double mUduration) {
         double factor = mUduration / GetPathDuration();
         double last_t = 0;
-        for (int i = 0; i < end_times.size(); ++i) {
+        for (size_t i = 0; i < end_times.size(); ++i) {
             durations[i] *= factor;
             last_t += durations[i];
             end_times[i] = last_t;
@@ -226,7 +226,7 @@ class ChApi ChLinePath : public ChLine {
     /// i.e. if all the sub lines are queued to have C0 continuity
     double GetContinuityMaxError() {
         double maxerr = 0;
-        for (int i = 1; i < lines.size(); ++i) {
+        for (size_t i = 1; i < lines.size(); ++i) {
             ChSharedPtr<ChLine> prec_line = lines[i - 1];
             ChSharedPtr<ChLine> next_line = lines[i];
             double gap = (prec_line->GetEndB() - next_line->GetEndA()).Length();
