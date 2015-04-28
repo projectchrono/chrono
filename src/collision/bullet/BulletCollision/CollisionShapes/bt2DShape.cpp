@@ -14,6 +14,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+#define NOMINMAX
+#include <algorithm>
 
 #include "bt2DShape.h"
 
@@ -165,8 +167,8 @@ void	bt2DsegmentShape::calculateLocalInertia(btScalar mass,btVector3& inertia) c
 
 void bt2DsegmentShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
 {
-    btVector3 mvmin (fmin(P1.x(),P2.x()), fmin(P1.y(),P2.y()), fmin(P1.z(),P2.z()));
-    btVector3 mvmax (fmax(P1.x(),P2.x()), fmax(P1.y(),P2.y()), fmax(P1.z(),P2.z()));
+    btVector3 mvmin (std::min(P1.x(),P2.x()), std::min(P1.y(),P2.y()), std::min(P1.z(),P2.z()));
+    btVector3 mvmax (std::max(P1.x(),P2.x()), std::max(P1.y(),P2.y()), std::max(P1.z(),P2.z()));
 
 	btMatrix3x3 abs_b = t.getBasis().absolute();  
 	btVector3 center = t.getOrigin();
