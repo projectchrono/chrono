@@ -81,6 +81,25 @@ void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
   }
 }
 //------------------------------------------------------------------------------------
+void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
+                          int& startIndexSph,
+                          const NumberOfObjects& numObjects) {
+  // openmp does not work here
+	std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
+	for (int i = 0; i < numObjects.numFluidMarkers; i++) {
+		char forceTag[] = "hydrodynamics_force";
+		chrono::ChSharedPtr<chrono::ChForce> hydroForce = (*(bodyIter + i))->SearchForce(forceTag);
+		if (hydroForce.IsNull()) {
+			hydroForce = chrono::ChSharedPtr<chrono::ChForce>(new chrono::ChForce);
+			hydroForce->SetMode(
+			  FTYPE_FORCE);  // no need for this. It is the default option.
+			(*(bodyIter + i))->AddForce(hydroForce);
+			// ** or: hydroForce = ChSharedPtr<ChForce>(new ChForce());
+			hydroForce->SetName(forceTag);
+		}
+	}
+}
+//------------------------------------------------------------------------------------
 void UpdateSphDataInChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                              const thrust::host_vector<Real3>& posRadH,
                              const thrust::host_vector<Real4>& velMasH,
@@ -115,6 +134,21 @@ void AddChSystemForcesToSphForces(thrust::host_vector<Real4>& derivVelRhoChronoH
   }
 }
 //------------------------------------------------------------------------------------
+void CountNumContactsPerSph(thrust::host_vector<short int>& numContactsOnAllSph,
+                                  chrono::ChSystemParallelDVI& mphysicalSystem,
+                                  const NumberOfObjects& numObjects,
+                                  int startIndexSph) {
+	int numContacts = mphysicalSystem.data_manager->host_data.bids_rigid_rigid.size();
+#pragma omp parallel for
+	for (int i = 0; i < numContacts; i ++) {
+		chrono::int2 ids = mphysicalSystem.data_manager->host_data.bids_rigid_rigid[i];
+		if (idx.x > startIndexSph)
+			numContactsOnAllSph[idx.x - startIndexSph] += 1;
+		if (idx.y > startIndexSph)
+			numContactsOnAllSph[idx.y - startIndexSph] += 1;
+	}
+}
+//------------------------------------------------------------------------------------
 
 void ClearArraysH(thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
                   thrust::host_vector<Real4>& velMasH,
@@ -139,6 +173,32 @@ void ClearArraysH(thrust::host_vector<Real3>& posRadH,  // do not set the size h
 void CopyD2H(thrust::host_vector<Real4>& derivVelRhoChronoH, const thrust::device_vector<Real4>& derivVelRhoD) {
   assert(derivVelRhoChronoH.size() == derivVelRhoD.size() && "Error! size mismatch host and device");
   thrust::copy(derivVelRhoD.begin(), derivVelRhoD.end(), derivVelRhoChronoH.begin());
+}
+//------------------------------------------------------------------------------------
+
+void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
+		const NumberOfObjects& numObjects,
+		int startIndexSph,
+		const thrust::device_vector<Real4>& derivVelRhoD,
+		const thrust::host_vector<short int>& numContactsOnAllSph,
+		Real sphMass) {
+
+	std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
+	for (int i = 0; i < numObjects.numFluidMarkers; i++) {
+		char forceTag[] = "hydrodynamics_force";
+		chrono::ChSharedPtr<chrono::ChForce> hydroForce = (*(bodyIter + i))->SearchForce(forceTag);
+		if (!hydroForce.IsNull())
+			hydroForce->SetMforce(0);
+
+		if (numContactsOnAllSph[i] == 0) continue;
+
+		Real4 mDerivVelRho= derivVelRhoD[i];
+		Real3 forceSphMarker = mR3(mDerivVelRho) * sphMass;
+		chrono::ChVector<> f3 = chrono::ChVector<>(forceSphMarker.x, forceSphMarker.y, forceSphMarker.z);
+		hydroForce->SetMforce(f3.Length());
+		f3.Normalize();
+		hydroForce->SetDir(f3);
+	}
 }
 //------------------------------------------------------------------------------------
 

@@ -32,6 +32,10 @@ void AddSphDataToChSystem(
 		const NumberOfObjects & numObjects,
 		int collisionFamilly);
 
+void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
+                          int& startIndexSph,
+                          const NumberOfObjects& numObjects);
+
 void UpdateSphDataInChSystem(
 		chrono::ChSystemParallelDVI& mphysicalSystem,
 		const thrust::host_vector<Real3> & posRadH,
@@ -46,6 +50,11 @@ void AddChSystemForcesToSphForces(
 		const NumberOfObjects & numObjects,
 		int startIndexSph,
 		Real dT);
+
+void CountNumContactsPerSph(thrust::host_vector<short int>& numContactsOnAllSph,
+                                  chrono::ChSystemParallelDVI& mphysicalSystem,
+                                  const NumberOfObjects& numObjects,
+                                  int startIndexSph);
 
 void ClearArraysH(
 	thrust::host_vector<Real3> & posRadH, //do not set the size here since you are using push back later
@@ -62,6 +71,13 @@ void ClearArraysH(
 void CopyD2H(
 	thrust::host_vector<Real4> & derivVelRhoChronoH,
 	const thrust::device_vector<Real4> & derivVelRhoD);
+
+void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
+		const NumberOfObjects& numObjects,
+		int startIndexSph,
+		const thrust::device_vector<Real4>& derivVelRhoD,
+		const thrust::host_vector<short int>& numContactsOnAllSph,
+		Real sphMass);
 
 void CopyH2D(
 	thrust::device_vector<Real4> & derivVelRhoD,
