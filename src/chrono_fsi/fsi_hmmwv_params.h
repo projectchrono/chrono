@@ -84,6 +84,9 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.binSize0;           // will be changed
   paramsH.rigidRadius;        // will be changed
   paramsH.densityReinit = 0;  // 0: no re-initialization, 1: with initialization
+
+  paramsH.enableTweak = 1 ; // 0: no tweak, 1: have tweak
+  paramsH.enableAggressiveTweak = 1 ; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
   //********************************************************************************************************
   //**  reminiscent of the past******************************************************************************
   //	paramsH.cMin = mR3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);

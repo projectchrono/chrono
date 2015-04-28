@@ -55,6 +55,9 @@ struct SimParams {
 		int densityReinit; //0: no; 1: yes
 		int contactBoundary; //0: straight channel, 1: serpentine
 
+		int enableTweak ; // 0: no tweak, 1: have tweak
+		int enableAggressiveTweak ; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
+
 };
 struct NumberOfObjects {
 		int numRigidBodies;

@@ -1,12 +1,10 @@
 #include "SDKCollisionSystem.cuh"
-
 //#include "extraOptionalFunctions.cuh"
 
 //#include "SDKCollisionSystemAdditional.cuh"
 
-__constant__ Real dTD_SDK;
-__constant__ int2 updatePortionD;
 __constant__ Real dTD;
+__constant__ int2 updatePortionD;
 
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -718,19 +716,7 @@ void collideD(Real4* derivVelRhoD, // output: new velocity
 	// *** let's tweak a little bit :)
 	Real3 derivV = mR3(derivVelRho);
 
-	// Arman move this to integrator instead of collide . take care of action reaction on fluid and solid
-	if (length(derivV) > .2 * paramsD.HSML / (dTD_SDK * dTD_SDK)) {
-		derivV *= ( .2 * paramsD.HSML / (dTD_SDK * dTD_SDK) ) / length(derivV);
-		derivVelRho = mR4(derivV, derivVelRho.w);
-	}
-	if (fabs(derivVelRho.w) > .005 * rhoPreMuA.x / dTD_SDK) {
-		derivVelRho.w *= (.005 * rhoPreMuA.x / dTD_SDK) / fabs(derivVelRho.w); //to take care of the sign as well
-	}
-	// *** end tweak
-
 	derivVelRhoD[originalIndex] = derivVelRho;
-
-	//syncthreads();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //calculate particles stresses
@@ -950,11 +936,20 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 		return;
 	}
 	Real3 vel_XSPH = vel_XSPH_D[index];
+	// 0** if you have rigid BCE, make sure to apply same tweaks to them, to satify action/reaction. Or apply tweak to force in advance
 	// 1*** let's tweak a little bit :)
-	if (length(vel_XSPH) > .2 * paramsD.HSML / dTD) {
-		vel_XSPH *= ( .2 * paramsD.HSML / dTD ) / length(vel_XSPH);
+	if (length(vel_XSPH) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
+		vel_XSPH *= ( .1 * paramsD.HSML / dTD ) / length(vel_XSPH);
+		if (length(vel_XSPH) > 1.001) { // infinity
+			if (paramsD.enableAggressiveTweak) {
+				vel_XSPH = mR3(0);
+			} else {
+				printf("Error! Infinite vel_XSPH detected!\n");
+			}
+		}
 	}
 	// 1*** end tweak
+
 	Real3 posRad = posRadD[index];
 	Real3 updatedPositon = posRad + vel_XSPH * dTD;
 	posRadD[index] = updatedPositon; //posRadD updated
@@ -963,13 +958,33 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	Real4 velMas = velMasD[index];
 	Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
 	// 2*** let's tweak a little bit :)
-	if (length(updatedVelocity) > .2 * paramsD.HSML / dTD) {
-		updatedVelocity *= ( .2 * paramsD.HSML / dTD ) / length(updatedVelocity);
+	if (length(updatedVelocity) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
+		updatedVelocity *= ( .1 * paramsD.HSML / dTD ) / length(updatedVelocity);
+		if (length(updatedVelocity) > 1.001) { // infinity
+			if (paramsD.enableAggressiveTweak) {
+				updatedVelocity = mR3(0);
+			} else {
+				printf("Error! Infinite updatedVelocity detected!\n");
+			}
+		}
 	}
 	// 2*** end tweak
 	velMasD[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */velMas.w); //velMasD updated
 
 	Real4 rhoPresMu = rhoPresMuD[index];
+
+	// 3*** let's tweak a little bit :)
+	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / dTD  && paramsD.enableTweak) {
+		derivVelRho.w *= (.002 * paramsD.rho0 / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
+		if (fabs(derivVelRho.w) > 00201 * paramsD.rho0 / dTD) {
+			if (paramsD.enableAggressiveTweak) {
+				derivVelRho.w = 0;
+			} else {
+				printf("Error! Infinite derivRho detected!\n");
+			}
+		}
+	}
+	// 2*** end tweak
 	Real rho2 = rhoPresMu.x + derivVelRho.w * dTD; //rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
@@ -1317,7 +1332,7 @@ void collide(
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
 
-	cudaMemcpyToSymbolAsync(dTD_SDK, &dT, sizeof(dT));
+	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
 
 	// thread per particle
 	uint numThreads, numBlocks;
