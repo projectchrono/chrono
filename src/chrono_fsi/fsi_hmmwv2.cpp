@@ -64,7 +64,7 @@ using std::endl;
 SimParams paramsH;
 
 #define haveFluid true
-#define useWallBce true
+#define useWallBce false
 
 #if haveFluid
 #else
