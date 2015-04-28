@@ -4,9 +4,8 @@
 
 //#include "SDKCollisionSystemAdditional.cuh"
 
-__constant__ Real dTD_SDK;
-__constant__ int2 updatePortionD;
 __constant__ Real dTD;
+__constant__ int2 updatePortionD;
 
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -719,12 +718,12 @@ void collideD(Real4* derivVelRhoD, // output: new velocity
 	Real3 derivV = mR3(derivVelRho);
 
 	// Arman move this to integrator instead of collide . take care of action reaction on fluid and solid
-	if (length(derivV) > .2 * paramsD.HSML / (dTD_SDK * dTD_SDK)) {
-		derivV *= ( .2 * paramsD.HSML / (dTD_SDK * dTD_SDK) ) / length(derivV);
+	if (length(derivV) > .2 * paramsD.HSML / (dTD * dTD)) {
+		derivV *= ( .2 * paramsD.HSML / (dTD * dTD) ) / length(derivV);
 		derivVelRho = mR4(derivV, derivVelRho.w);
 	}
-	if (fabs(derivVelRho.w) > .005 * rhoPreMuA.x / dTD_SDK) {
-		derivVelRho.w *= (.005 * rhoPreMuA.x / dTD_SDK) / fabs(derivVelRho.w); //to take care of the sign as well
+	if (fabs(derivVelRho.w) > .005 * rhoPreMuA.x / dTD) {
+		derivVelRho.w *= (.005 * rhoPreMuA.x / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
 	}
 	// *** end tweak
 
@@ -1317,7 +1316,7 @@ void collide(
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
 
-	cudaMemcpyToSymbolAsync(dTD_SDK, &dT, sizeof(dT));
+	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
 
 	// thread per particle
 	uint numThreads, numBlocks;
