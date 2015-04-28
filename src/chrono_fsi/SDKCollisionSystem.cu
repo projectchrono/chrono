@@ -717,19 +717,7 @@ void collideD(Real4* derivVelRhoD, // output: new velocity
 	// *** let's tweak a little bit :)
 	Real3 derivV = mR3(derivVelRho);
 
-	// Arman move this to integrator instead of collide . take care of action reaction on fluid and solid
-	if (length(derivV) > .2 * paramsD.HSML / (dTD * dTD)) {
-		derivV *= ( .2 * paramsD.HSML / (dTD * dTD) ) / length(derivV);
-		derivVelRho = mR4(derivV, derivVelRho.w);
-	}
-	if (fabs(derivVelRho.w) > .005 * rhoPreMuA.x / dTD) {
-		derivVelRho.w *= (.005 * rhoPreMuA.x / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
-	}
-	// *** end tweak
-
 	derivVelRhoD[originalIndex] = derivVelRho;
-
-	//syncthreads();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //calculate particles stresses
@@ -949,11 +937,13 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 		return;
 	}
 	Real3 vel_XSPH = vel_XSPH_D[index];
+	// 0** if you have rigid BCE, make sure to apply same tweaks to them, to satify action/reaction. Or apply tweak to force in advance
 	// 1*** let's tweak a little bit :)
 	if (length(vel_XSPH) > .2 * paramsD.HSML / dTD) {
 		vel_XSPH *= ( .2 * paramsD.HSML / dTD ) / length(vel_XSPH);
 	}
 	// 1*** end tweak
+
 	Real3 posRad = posRadD[index];
 	Real3 updatedPositon = posRad + vel_XSPH * dTD;
 	posRadD[index] = updatedPositon; //posRadD updated
@@ -969,6 +959,12 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	velMasD[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */velMas.w); //velMasD updated
 
 	Real4 rhoPresMu = rhoPresMuD[index];
+
+	// 3*** let's tweak a little bit :)
+	if (fabs(derivVelRho.w) > .005 * rhoPresMu.x / dTD) {
+		derivVelRho.w *= (.005 * rhoPresMu.x / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
+	}
+	// 2*** end tweak
 	Real rho2 = rhoPresMu.x + derivVelRho.w * dTD; //rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
