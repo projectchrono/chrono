@@ -109,6 +109,8 @@ void CheckPointMarkers_Write(
 	outProbParams << paramsH.rigidRadius.x << ", "  << paramsH.rigidRadius.y << ", " << paramsH.rigidRadius.z << endl;
 	outProbParams << paramsH.densityReinit << endl;
 	outProbParams << paramsH.contactBoundary << endl;
+	outProbParams << paramsH.enableTweak << endl;
+	outProbParams << paramsH.enableAggressiveTweak << endl;
 
 	outProbParams << "#" <<endl;
 
@@ -267,6 +269,8 @@ void CheckPointMarkers_Read(
 	inProbParams >> paramsH.rigidRadius.x >> ddCh  >> paramsH.rigidRadius.y >> ddCh >> paramsH.rigidRadius.z;
 	inProbParams >> paramsH.densityReinit;
 	inProbParams >> paramsH.contactBoundary;
+	inProbParams >> paramsH.enableTweak;
+	inProbParams >> paramsH.enableAggressiveTweak;
 
 	inProbParams >> ddCh;
 

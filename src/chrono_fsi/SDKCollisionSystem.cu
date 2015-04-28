@@ -1,5 +1,4 @@
 #include "SDKCollisionSystem.cuh"
-
 //#include "extraOptionalFunctions.cuh"
 
 //#include "SDKCollisionSystemAdditional.cuh"
@@ -939,8 +938,15 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	Real3 vel_XSPH = vel_XSPH_D[index];
 	// 0** if you have rigid BCE, make sure to apply same tweaks to them, to satify action/reaction. Or apply tweak to force in advance
 	// 1*** let's tweak a little bit :)
-	if (length(vel_XSPH) > .2 * paramsD.HSML / dTD) {
-		vel_XSPH *= ( .2 * paramsD.HSML / dTD ) / length(vel_XSPH);
+	if (length(vel_XSPH) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
+		vel_XSPH *= ( .1 * paramsD.HSML / dTD ) / length(vel_XSPH);
+		if (length(vel_XSPH) > 1.001) { // infinity
+			if (paramsD.enableAggressiveTweak) {
+				vel_XSPH = mR3(0);
+			} else {
+				printf("Error! Infinite vel_XSPH detected!\n");
+			}
+		}
 	}
 	// 1*** end tweak
 
@@ -952,8 +958,15 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	Real4 velMas = velMasD[index];
 	Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
 	// 2*** let's tweak a little bit :)
-	if (length(updatedVelocity) > .2 * paramsD.HSML / dTD) {
-		updatedVelocity *= ( .2 * paramsD.HSML / dTD ) / length(updatedVelocity);
+	if (length(updatedVelocity) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
+		updatedVelocity *= ( .1 * paramsD.HSML / dTD ) / length(updatedVelocity);
+		if (length(updatedVelocity) > 1.001) { // infinity
+			if (paramsD.enableAggressiveTweak) {
+				updatedVelocity = mR3(0);
+			} else {
+				printf("Error! Infinite updatedVelocity detected!\n");
+			}
+		}
 	}
 	// 2*** end tweak
 	velMasD[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */velMas.w); //velMasD updated
@@ -961,8 +974,15 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	Real4 rhoPresMu = rhoPresMuD[index];
 
 	// 3*** let's tweak a little bit :)
-	if (fabs(derivVelRho.w) > .005 * rhoPresMu.x / dTD) {
-		derivVelRho.w *= (.005 * rhoPresMu.x / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
+	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / dTD  && paramsD.enableTweak) {
+		derivVelRho.w *= (.002 * paramsD.rho0 / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
+		if (fabs(derivVelRho.w) > 00201 * paramsD.rho0 / dTD) {
+			if (paramsD.enableAggressiveTweak) {
+				derivVelRho.w = 0;
+			} else {
+				printf("Error! Infinite derivRho detected!\n");
+			}
+		}
 	}
 	// 2*** end tweak
 	Real rho2 = rhoPresMu.x + derivVelRho.w * dTD; //rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
