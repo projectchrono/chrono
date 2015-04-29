@@ -1277,8 +1277,11 @@ void ChSystem::Setup() {
 
             // Bpointer->Setup(); // unneded since in bodies does nothing
 
-            ncoords += Bpointer->GetDOF();
+            ncoords   += Bpointer->GetDOF();
             ncoords_w += Bpointer->GetDOF_w();
+            //ndoc_w    += Bpointer->GetDOC();   // unneeded since ChBody introduces no constraints
+            //ndoc_w_C  += Bpointer->GetDOC_c(); // unneeded since ChBody introduces no constraints
+            //ndoc_w_D  += Bpointer->GetDOC_d(); // unneeded since ChBody introduces no constraints
         }
     }
 
@@ -1297,11 +1300,11 @@ void ChSystem::Setup() {
         PHpointer->Setup();  // compute DOFs etc. and sets the offsets also in child items, if assembly-type or
                              // mesh-type stuff
 
-        ncoords += PHpointer->GetDOF();
+        ncoords   += PHpointer->GetDOF();
         ncoords_w += PHpointer->GetDOF_w();
-        ndoc_w += PHpointer->GetDOC();
-        ndoc_w_C += PHpointer->GetDOC_c();
-        ndoc_w_D += PHpointer->GetDOC_d();
+        ndoc_w    += PHpointer->GetDOC();
+        ndoc_w_C  += PHpointer->GetDOC_c();
+        ndoc_w_D  += PHpointer->GetDOC_d();
     }
 
     for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
@@ -1315,18 +1318,20 @@ void ChSystem::Setup() {
             Lpointer->SetOffset_w(ncoords_w);
             Lpointer->SetOffset_L(ndoc_w);
 
-            Lpointer->Setup();  // compute DOFs etc. and sets the offsets also in child items, if assembly-type or
-                                // mesh-type stuff
+            Lpointer->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
 
-            ndoc_w += Lpointer->GetDOC();
-            ndoc_w_C += Lpointer->GetDOC_c();
-            ndoc_w_D += Lpointer->GetDOC_d();
+            ncoords   += Lpointer->GetDOF();
+            ncoords_w += Lpointer->GetDOF_w();
+            ndoc_w    += Lpointer->GetDOC();
+            ndoc_w_C  += Lpointer->GetDOC_c();
+            ndoc_w_D  += Lpointer->GetDOC_d();
         }
     }
 
     {
         contact_container->SetOffset_L(ndoc_w);
 
+        ndoc_w   += contact_container->GetDOC();
         ndoc_w_C += contact_container->GetDOC_c();
         ndoc_w_D += contact_container->GetDOC_d();
     }
@@ -1641,6 +1646,7 @@ void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
         if (Lpointer->IsActive())
             Lpointer->IntStateGather(Lpointer->GetOffset_x(), x, Lpointer->GetOffset_w(), v, T);
     }
+    this->contact_container->IntStateGather(contact_container->GetOffset_x(), x, contact_container->GetOffset_w(), v, T); //  does nothing, but just in case implemented in future.
     T = this->GetChTime();
 }
 
@@ -1663,6 +1669,8 @@ void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const doubl
         if (Lpointer->IsActive())
             Lpointer->IntStateScatter(Lpointer->GetOffset_x(), x, Lpointer->GetOffset_w(), v, T);
     }
+    this->contact_container->IntStateScatter(contact_container->GetOffset_x(), x, contact_container->GetOffset_w(), v, T); //  does nothing, but just in case implemented in future.
+
     this->SetChTime(T);
     this->Update();  //***TODO*** optimize because maybe IntStateScatter above might have already called Update?
 }
@@ -1686,6 +1694,7 @@ void ChSystem::StateGatherAcceleration(ChStateDelta& a) {
         if (Lpointer->IsActive())
             Lpointer->IntStateGatherAcceleration(Lpointer->GetOffset_w(), a);
     }
+    this->contact_container->IntStateGatherAcceleration(contact_container->GetOffset_w(), a); //  does nothing, but just in case implemented in future.
 }
 
 /// From state derivative (acceleration) to system, sometimes might be needed
@@ -1707,6 +1716,7 @@ void ChSystem::StateScatterAcceleration(const ChStateDelta& a) {
         if (Lpointer->IsActive())
             Lpointer->IntStateScatterAcceleration(Lpointer->GetOffset_w(), a);
     }
+    this->contact_container->IntStateScatterAcceleration(contact_container->GetOffset_w(), a); //  does nothing, but just in case implemented in future.
 }
 
 /// From system to reaction forces (last computed) - some timestepper might need this
@@ -1778,6 +1788,7 @@ void ChSystem::StateIncrementX(ChState& x_new,         ///< resulting x_new = x 
         if (Lpointer->IsActive())
             Lpointer->IntStateIncrement(Lpointer->GetOffset_x(), x_new, x, Lpointer->GetOffset_w(), Dx);
     }
+    this->contact_container->IntStateIncrement(contact_container->GetOffset_x(), x_new, x, contact_container->GetOffset_w(), Dx); //  does nothing, but just in case implemented in future.
 }
 
 /// Assuming an explicit DAE in the form
@@ -1949,6 +1960,7 @@ void ChSystem::LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual
         if (Lpointer->IsActive())
             Lpointer->IntLoadResidual_F(Lpointer->GetOffset_w(), R, c);
     }
+    this->contact_container->IntLoadResidual_F(contact_container->GetOffset_w(), R, c); //  does nothing, but just in case implemented in future.
 }
 
 /// Increment a vector R with a term that has M multiplied a given vector w:
@@ -1974,6 +1986,7 @@ void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R r
         if (Lpointer->IsActive())
             Lpointer->IntLoadResidual_Mv(Lpointer->GetOffset_w(), R, w, c);
     }
+    this->contact_container->IntLoadResidual_Mv(contact_container->GetOffset_w(), R, w, c); //  does nothing, but just in case implemented in future.
 }
 
 /// Increment a vectorR with the term Cq'*L:
@@ -2051,6 +2064,7 @@ void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc res
         if (Lpointer->IsActive())
             Lpointer->IntLoadConstraint_Ct(Lpointer->GetOffset_L(), Qc, c);
     }
+    this->contact_container->IntLoadConstraint_Ct(contact_container->GetOffset_L(), Qc, c); //  does nothing, but just in case implemented in future.
 }
 
 //////////////////////////////////
