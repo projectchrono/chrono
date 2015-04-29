@@ -1728,6 +1728,7 @@ void ChSystem::StateGatherReactions(ChVectorDynamic<>& L) {
         if (Lpointer->IsActive())
             Lpointer->IntStateGatherReactions(Lpointer->GetOffset_L(), L);
     }
+    this->contact_container->IntStateGatherReactions(contact_container->GetOffset_L(), L);
 }
 
 /// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
@@ -1749,6 +1750,7 @@ void ChSystem::StateScatterReactions(const ChVectorDynamic<>& L) {
         if (Lpointer->IsActive())
             Lpointer->IntStateScatterReactions(Lpointer->GetOffset_L(), L);
     }
+    this->contact_container->IntStateScatterReactions(contact_container->GetOffset_L(), L);
 }
 
 /// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
