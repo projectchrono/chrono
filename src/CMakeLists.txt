@@ -150,8 +150,6 @@ ENDIF()
 #set(CH_COMPILER_VALUES "COMPILER_MSVC;COMPILER_GCC;COMPILER_MSVC_X64;COMPILER_GCC_X64")
 #set_property(CACHE CH_COMPILER PROPERTY STRINGS ${CH_COMPILER_VALUES})
 
-set(CH_OS "${CMAKE_SYSTEM_NAME}" CACHE STRING "Set OS, Re-Run configure after changing")
-
 #-----------------------------------------------------------------------------
 # Generate configuration.h file
 # This way platform and system specific settings can be added to the
