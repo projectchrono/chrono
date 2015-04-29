@@ -20,13 +20,13 @@
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold_vehicle = 1.3;//0.1;  // 0.2;
-Real time_pause_fluid_external_force = .05;//0.1;//0.1;  // 0.2;
+Real time_hold_vehicle = 0;//1.3;//0.1;  // 0.2;
+Real time_pause_fluid_external_force = 0;//.05;//0.1;//0.1;  // 0.2;
 
 Real contact_recovery_speed = 1;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
 
-Real time_step = 1e-4;//0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
+Real time_step = 2e-3;//1e-4;//0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
 Real time_end = 11;
 
@@ -57,7 +57,7 @@ NumberOfObjects numObjects;
 void SetupParamsH(SimParams& paramsH) {
   //**********************************************
   paramsH.sizeScale = 1;  // don't change it.
-  paramsH.HSML = 0.06;//0.04;
+  paramsH.HSML = 0.2;//0.06;//0.04;
   paramsH.MULT_INITSPACE = 1.0;
   paramsH.NUM_BOUNDARY_LAYERS = 3;
   paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);

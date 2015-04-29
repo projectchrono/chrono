@@ -30,7 +30,12 @@ void AddSphDataToChSystem(
 		const thrust::host_vector<Real4> & velMasH,
 		const SimParams & paramsH,
 		const NumberOfObjects & numObjects,
-		int collisionFamilly);
+		int collisionFamilly,
+        Real sphMarkerMass);
+
+void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
+                          int& startIndexSph,
+                          const NumberOfObjects& numObjects);
 
 void UpdateSphDataInChSystem(
 		chrono::ChSystemParallelDVI& mphysicalSystem,
@@ -47,6 +52,11 @@ void AddChSystemForcesToSphForces(
 		int startIndexSph,
 		Real dT);
 
+void CountNumContactsPerSph(thrust::host_vector<short int>& numContactsOnAllSph,
+		const chrono::ChSystemParallelDVI& mphysicalSystem,
+		const NumberOfObjects& numObjects,
+		int startIndexSph);
+
 void ClearArraysH(
 	thrust::host_vector<Real3> & posRadH, //do not set the size here since you are using push back later
 	thrust::host_vector<Real4> & velMasH,
@@ -62,6 +72,33 @@ void ClearArraysH(
 void CopyD2H(
 	thrust::host_vector<Real4> & derivVelRhoChronoH,
 	const thrust::device_vector<Real4> & derivVelRhoD);
+
+void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
+		const NumberOfObjects& numObjects,
+		int startIndexSph,
+		const thrust::device_vector<Real4>& derivVelRhoD,
+		const thrust::host_vector<short int>& numContactsOnAllSph,
+		Real sphMass);
+
+void CopyCustomChSystemPosVel2HostThrust(
+        thrust::host_vector<Real3>& posRadH,
+        thrust::host_vector<Real4>& velMasH,
+		chrono::ChSystemParallelDVI& mphysicalSystem,
+		const NumberOfObjects& numObjects,
+		int startIndexSph,
+		const thrust::host_vector<short int>& numContactsOnAllSph);
+
+void CopyH2DPosVel(
+		thrust::device_vector<Real3>& posRadD,
+		thrust::device_vector<Real4>& velMasD,
+		const thrust::host_vector<Real3>& posRadH,
+		const thrust::host_vector<Real4>& velMasH);
+
+void CopyD2HPosVel(
+		thrust::host_vector<Real3>& posRadH,
+		thrust::host_vector<Real4>& velMasH,
+		const thrust::host_vector<Real3>& posRadD,
+		const thrust::host_vector<Real4>& velMasD);
 
 void CopyH2D(
 	thrust::device_vector<Real4> & derivVelRhoD,

@@ -781,9 +781,11 @@ int main(int argc, char* argv[]) {
 
   //*** Add sph data to the physics system
 
-  int startIndexSph = 0;
+  int startIndexSph = mphysicalSystem.Get_bodylist()->size();
+
 #if haveFluid
-  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily);
+  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily, sphMarkerMass);
+  AddHydroForce(mphysicalSystem, startIndexSph, numObjects);
 
   thrust::device_vector<Real3> posRadD = posRadH;
   thrust::device_vector<Real4> velMasD = velMasH;
@@ -870,8 +872,12 @@ int main(int argc, char* argv[]) {
 
     // ** initialize host mid step data
     thrust::host_vector<Real3> posRadH2(numObjects.numAllMarkers);
-    thrust::host_vector<Real4> velMasH2 = velMasH;
+    thrust::host_vector<Real4> velMasH2(numObjects.numAllMarkers);
     thrust::host_vector<Real4> rhoPresMuH2(numObjects.numAllMarkers);
+
+    thrust::host_vector<short int> numContactsOnAllSph(numObjects.numFluidMarkers); // numObjects.numFluidMarkers
+    thrust::fill(numContactsOnAllSph.begin(), numContactsOnAllSph.end(), 0);
+
     // ** initialize device mid step data
     thrust::device_vector<Real3> posRadD2 = posRadD;
     thrust::device_vector<Real4> velMasD2 = velMasD;
@@ -912,6 +918,8 @@ int main(int argc, char* argv[]) {
 
     	fsi_timer.stop("force_sph");
 
+    CopyForceSphToChSystem(mphysicalSystem,
+    		numObjects, startIndexSph, derivVelRhoD, numContactsOnAllSph, sphMarkerMass);
 #endif
 
     	fsi_timer.start("stepDynamic_mbd");
@@ -922,27 +930,22 @@ int main(int argc, char* argv[]) {
     	fsi_timer.stop("stepDynamic_mbd");
 
 #if haveFluid
-    CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-    AddChSystemForcesToSphForces(
-        derivVelRhoChronoH,
-        velMasH2,
-        mphysicalSystem,
-        numObjects,
-        startIndexSph,
-        0.5 *
-            currentParamsH.dT);  // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
-    CopyH2D(derivVelRhoD, derivVelRhoChronoH);
-    UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
-    // assumes ...D2 is a copy of ...D
+    CountNumContactsPerSph(numContactsOnAllSph, mphysicalSystem, numObjects, startIndexSph);
+
+	UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
     ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 
-    CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
-    UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
+	CopyD2HPosVel(posRadH2, velMasH2, posRadD2, velMasD2);
+	CopyCustomChSystemPosVel2HostThrust(posRadH2, velMasH2,
+			mphysicalSystem, numObjects, startIndexSph, numContactsOnAllSph);
+	CopyH2DPosVel(posRadD2, velMasD2, posRadH2, velMasH2);
 
     myCpuTimerHalfStep.stop();
     myGpuTimerHalfStep.Stop();
     fsi_timer.stop("half_step_dynamic_fsi_12");
+
     // ****************** RK2: 2/2
+
     fsi_timer.start("half_step_dynamic_fsi_22");
     ForceSPH(posRadD2,
              velMasD2,
@@ -955,26 +958,23 @@ int main(int argc, char* argv[]) {
              currentParamsH,
              bceType,
              currentParamsH.dT);
+    // reset force hydro to zero
+    CopyForceSphToChSystem(mphysicalSystem,
+        		numObjects, startIndexSph, derivVelRhoD, numContactsOnAllSph, sphMarkerMass);
 #endif
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
 #if haveFluid
-    CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-    AddChSystemForcesToSphForces(
-        derivVelRhoChronoH,
-        velMasH2,
-        mphysicalSystem,
-        numObjects,
-        startIndexSph,
-        0.5 *
-            currentParamsH.dT);  // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
-    CopyH2D(derivVelRhoD, derivVelRhoChronoH);
+    // note: you don't set numContactsOnAllSph to zero. That's the beauty of it. you dont update fluid markers who have had contacts in either of the middle steps
+    CountNumContactsPerSph(numContactsOnAllSph, mphysicalSystem, numObjects, startIndexSph);
+
     UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
     ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
 
-    CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
-    UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
-
+	CopyD2HPosVel(posRadH, velMasH, posRadD, velMasD);
+	CopyCustomChSystemPosVel2HostThrust(posRadH, velMasH,
+			mphysicalSystem, numObjects, startIndexSph, numContactsOnAllSph);
+	CopyH2DPosVel(posRadD, velMasD, posRadH, velMasH);
 #endif
     // ****************** End RK2
 
@@ -988,6 +988,7 @@ int main(int argc, char* argv[]) {
 // -------------------
 
 #if haveFluid
+    numContactsOnAllSph.clear();
     ClearArraysH(posRadH2, velMasH2, rhoPresMuH2);
     ClearMyThrustR3(posRadD2);
     ClearMyThrustR4(velMasD2);
