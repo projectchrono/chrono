@@ -30,11 +30,6 @@ SET (CTEST_MEMORYCHECK_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --t
 
 
 #-----------------------------------------------------------------------------
-# Hide uneeded default stuff from GUI.
-
-MARK_AS_ADVANCED(CMAKE_INSTALL_PREFIX)
-
-#-----------------------------------------------------------------------------
 # Disable the warning when adding a subdir that has not CMakeLists.txt
 
 if(COMMAND cmake_policy)
