@@ -539,7 +539,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) {
-        assert((H.GetRows() == 12) && (H.GetColumns() == 12));
+        assert((H.GetRows() == 4) && (H.GetColumns() == 4));
 
         // For K  matrix (jacobian d/dT of  c dT/dt + div [C] grad T = f )
 
@@ -565,7 +565,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
     /// Computes the internal 'pseudo-forces' and set values
     /// in the Fi vector. The iterative solver uses this to know if the residual went to zero.
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) {
-        assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
+        assert((Fi.GetRows() == 4) && (Fi.GetColumns() == 1));
 
         // set up vector of nodal fields
         ChMatrixDynamic<> displ(4, 1);

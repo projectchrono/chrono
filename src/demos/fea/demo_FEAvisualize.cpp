@@ -245,6 +245,7 @@ int main(int argc, char* argv[]) {
     // chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
     // msolver->SetVerbose(true);
     // msolver->SetDiagonalPreconditioning(true);
+    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     // my_system.SetLcpSolverType(ChSystem::LCP_SIMPLEX);
     //***TEST***
