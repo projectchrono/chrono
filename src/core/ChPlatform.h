@@ -35,13 +35,13 @@
 // will use the 'ChApi' macro in headers (for non-MS compilers,
 // this has no effect because all symbols will be exported).
 
-#if (((defined WIN32) || (defined WIN64)) || (defined(__MINGW32__) || defined(__CYGWIN__))) && defined(_DLL)
+#if ((defined _WIN32) || (defined(__MINGW32__) || defined(__CYGWIN__))) && defined(_DLL)
 #if !defined(CH_DLL) && !defined(CH_STATIC)
 #define CH_DLL
 #endif
 #endif
 
-#if (((defined WIN32) || (defined WIN64)) || (defined(__MINGW32__) || defined(__CYGWIN__))) && defined(CH_DLL)
+#if ((defined _WIN32) || (defined(__MINGW32__) || defined(__CYGWIN__))) && defined(CH_DLL)
 #define ChApiEXPORT __declspec(dllexport)
 #define ChApiIMPORT __declspec(dllimport)
 #else

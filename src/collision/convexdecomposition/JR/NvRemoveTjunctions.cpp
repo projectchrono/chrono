@@ -289,7 +289,7 @@ public:
 
     desc.mIndicesOut = removeTjunctions(desc.mVcount, desc.mVertices, desc.mTcount, desc.mIndices, TcountOut, desc.mIds);
 
-#ifdef WIN32
+#ifdef _WIN32
 #	pragma warning(push)
 #	pragma warning(disable:4267)
 #endif
@@ -297,7 +297,7 @@ public:
 	NX_ASSERT( TcountOut < UINT_MAX );
 	desc.mTcountOut = TcountOut;
 
-#ifdef WIN32
+#ifdef _WIN32
 #	pragma warning(pop)
 #endif
 

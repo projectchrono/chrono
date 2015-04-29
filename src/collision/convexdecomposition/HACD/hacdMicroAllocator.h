@@ -63,7 +63,7 @@
 //
 #include <stdio.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 	typedef __int64				NxI64;
 	typedef signed int			NxI32;
 	typedef signed short		NxI16;

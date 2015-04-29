@@ -28,7 +28,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#if (((defined WIN32) || (defined WIN64)) && !(defined(__MINGW32__) || defined(__CYGWIN__)))
+#if ((defined _WIN32) && !(defined(__MINGW32__) || defined(__CYGWIN__)))
 #include <time.h>
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -63,7 +63,7 @@ namespace chrono {
 
 template <typename real_type>
 class ChTimer {
-#if (((defined WIN32) || (defined WIN64)) && !(defined(__MINGW32__) || defined(__CYGWIN__)))
+#if ((defined _WIN32) && !(defined(__MINGW32__) || defined(__CYGWIN__)))
 
   private:
     LARGE_INTEGER m_start;

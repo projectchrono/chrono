@@ -41,7 +41,7 @@
 // This version is for both Windows and UNIX, the following statements
 // are used to set the flags WINDOWS_XP or UNIX that in these few files of 'socket'
 // code are used for conditional compilation
-#if ((defined WIN32) || (defined WIN64))
+#if (defined _WIN32)
 #define WINDOWS_XP
 #endif
 #if (defined(__linux__) || defined(__APPLE__))

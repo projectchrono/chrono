@@ -24,7 +24,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#if (defined WIN32) || (defined WIN64)
+#if (defined _WIN32)  
 #include <time.h>
 #include <sys/timeb.h>
 inline double GetTime() {

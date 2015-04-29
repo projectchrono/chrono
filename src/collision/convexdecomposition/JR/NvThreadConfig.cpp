@@ -58,7 +58,7 @@ NvThreadConfig.cpp : A simple wrapper class to define threading and mutex locks.
 //#endif
 
 
-#if defined(WIN32)
+#if defined(_WIN32)
 
 #define _WIN32_WINNT 0x400
 #include <windows.h>
@@ -247,7 +247,7 @@ class MyThreadMutex : public ThreadMutex
 public:
   MyThreadMutex(void)
   {
-    #if defined(WIN32) || defined(_XBOX)
+    #if defined(_WIN32) || defined(_XBOX)
   	InitializeCriticalSection(&m_Mutex);
     #elif defined(__APPLE__) || defined(__linux__)
   	pthread_mutexattr_t mutexAttr;  // Mutex Attribute
@@ -260,7 +260,7 @@ public:
 
   ~MyThreadMutex(void)
   {
-    #if defined(WIN32) || defined(_XBOX)
+    #if defined(_WIN32) || defined(_XBOX)
   	DeleteCriticalSection(&m_Mutex);
     #elif defined(__APPLE__) || defined(__linux__)
   	VERIFY( pthread_mutex_destroy(&m_Mutex) == 0 );
@@ -269,7 +269,7 @@ public:
 
   void lock(void)
   {
-    #if defined(WIN32) || defined(_XBOX)
+    #if defined(_WIN32) || defined(_XBOX)
   	EnterCriticalSection(&m_Mutex);
     #elif defined(__APPLE__) || defined(__linux__)
   	VERIFY( pthread_mutex_lock(&m_Mutex) == 0 );
@@ -278,7 +278,7 @@ public:
 
   bool tryLock(void)
   {
-    #if defined(WIN32) || defined(_XBOX)
+    #if defined(_WIN32) || defined(_XBOX)
   	bool bRet = false;
   	//assert(("TryEnterCriticalSection seems to not work on XP???", 0));
   	bRet = TryEnterCriticalSection(&m_Mutex) ? true : false;
@@ -291,7 +291,7 @@ public:
 
   void unlock(void)
   {
-    #if defined(WIN32) || defined(_XBOX)
+    #if defined(_WIN32) || defined(_XBOX)
   	LeaveCriticalSection(&m_Mutex);
     #elif defined(__APPLE__) || defined(__linux__)
   	VERIFY( pthread_mutex_unlock(&m_Mutex) == 0 );
@@ -299,7 +299,7 @@ public:
   }
 
 private:
-  #if defined(WIN32) || defined(_XBOX)
+  #if defined(_WIN32) || defined(_XBOX)
 	CRITICAL_SECTION m_Mutex;
 	#elif defined(__APPLE__) || defined(__linux__)
 	pthread_mutex_t  m_Mutex;
@@ -318,7 +318,7 @@ void          tc_releaseThreadMutex(ThreadMutex *tm)
   delete m;
 }
 
-#if defined(WIN32) || defined(_XBOX)
+#if defined(_WIN32) || defined(_XBOX)
 static unsigned long __stdcall _ThreadWorkerFunc(LPVOID arg);
 #elif defined(__APPLE__) || defined(__linux__)
 static void* _ThreadWorkerFunc(void* arg);
@@ -330,7 +330,7 @@ public:
   MyThread(ThreadInterface *iface)
   {
     mInterface = iface;
-	#if defined(WIN32) || defined(_XBOX)
+	#if defined(_WIN32) || defined(_XBOX)
    	  mThread     = CreateThread(0, 0, _ThreadWorkerFunc, this, 0, 0);
     #elif defined(__APPLE__) || defined(__linux__)
 	  VERIFY( pthread_create(&mThread, NULL, _ThreadWorkerFunc, this) == 0 );
@@ -339,7 +339,7 @@ public:
 
   ~MyThread(void)
   {
-	#if defined(WIN32) || defined(_XBOX)
+	#if defined(_WIN32) || defined(_XBOX)
       if ( mThread )
       {
         CloseHandle(mThread);
@@ -355,7 +355,7 @@ public:
 
 private:
   ThreadInterface *mInterface;
-  #if defined(WIN32) || defined(_XBOX)
+  #if defined(_WIN32) || defined(_XBOX)
     HANDLE           mThread;
   #elif defined(__APPLE__) || defined(__linux__)
     pthread_t mThread;
@@ -375,7 +375,7 @@ void          tc_releaseThread(Thread *t)
   delete m;
 }
 
-#if defined(WIN32) || defined(_XBOX)
+#if defined(_WIN32) || defined(_XBOX)
 static unsigned long __stdcall _ThreadWorkerFunc(LPVOID arg)
 #elif defined(__APPLE__) || defined(__linux__)
 static void* _ThreadWorkerFunc(void* arg)
@@ -392,7 +392,7 @@ class MyThreadEvent : public ThreadEvent
 public:
   MyThreadEvent(void)
   {
-	#if defined(WIN32) || defined(_XBOX)
+	#if defined(_WIN32) || defined(_XBOX)
       mEvent = ::CreateEventA(NULL,TRUE,TRUE,"ThreadEvent");
 	#elif defined(__APPLE__) || defined(__linux__)
 	  pthread_mutexattr_t mutexAttr;  // Mutex Attribute
@@ -406,7 +406,7 @@ public:
 
   ~MyThreadEvent(void)
   {
-	#if defined(WIN32) || defined(_XBOX)
+	#if defined(_WIN32) || defined(_XBOX)
     if ( mEvent )
     {
       ::CloseHandle(mEvent);
@@ -419,7 +419,7 @@ public:
 
   virtual void setEvent(void)  // signal the event
   {
-	#if defined(WIN32) || defined(_XBOX)
+	#if defined(_WIN32) || defined(_XBOX)
     if ( mEvent )
     {
       ::SetEvent(mEvent);
@@ -433,7 +433,7 @@ public:
 
   void resetEvent(void)
   {
-	#if defined(WIN32) || defined(_XBOX)
+	#if defined(_WIN32) || defined(_XBOX)
     if ( mEvent )
     {
       ::ResetEvent(mEvent);
@@ -443,7 +443,7 @@ public:
 
   virtual void waitForSingleObject(NxU32 ms)
   {
-	#if defined(WIN32) || defined(_XBOX)
+	#if defined(_WIN32) || defined(_XBOX)
     if ( mEvent )
     {
       ::WaitForSingleObject(mEvent,ms);
@@ -469,7 +469,7 @@ public:
   }
 
 private:
-  #if defined(WIN32) || defined(_XBOX)
+  #if defined(_WIN32) || defined(_XBOX)
     HANDLE mEvent;
   #elif defined(__APPLE__) || defined(__linux__)
     pthread_mutex_t mEventMutex;

@@ -26,7 +26,7 @@ Modified by: Alessandro Tasora
 
 //#include "PlatformDefinitions.h"
 
-#if defined(WIN32) || defined(WIN64)
+#if defined(_WIN32)
 
 #define WIN32_LEAN_AND_MEAN
 

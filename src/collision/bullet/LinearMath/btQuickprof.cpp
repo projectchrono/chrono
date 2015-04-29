@@ -31,7 +31,7 @@ static btClock gProfileClock;
 #include <stdio.h> 
 #endif
 
-#if defined(WIN32) || defined(_WIN32)
+#if defined(_WIN32)
 
 #define BT_USE_WINDOWS_TIMERS
 #define WIN32_LEAN_AND_MEAN

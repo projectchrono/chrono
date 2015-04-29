@@ -23,7 +23,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#if ((defined WIN32) || (defined WIN64))
+#if defined _WIN32
 
 #include <stdio.h>
 #include "parallel/ChThreadsWIN32.h"

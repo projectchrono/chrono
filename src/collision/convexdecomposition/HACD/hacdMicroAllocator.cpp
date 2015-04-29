@@ -42,7 +42,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
@@ -865,7 +865,7 @@ void          releaseHeapManager(HeapManager *heap)
 #define TEST_RUN 40000000
 #define TEST_INLINE 1
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #pragma comment(lib,"winmm.lib")
 #else

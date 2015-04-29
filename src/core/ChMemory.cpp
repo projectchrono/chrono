@@ -95,7 +95,7 @@
 #include <stdarg.h>
 #include <new>
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <unistd.h>
 #endif
 
@@ -202,7 +202,7 @@ static const unsigned int paddingSize = 4;
 // The BEOS assert added by Arvid Norberg <arvid@iname.com>.
 // ---------------------------------------------------------------------------------------------------------------------------------
 
-#ifdef WIN32
+#ifdef _WIN32
 #ifdef _DEBUG
 #define m_assert(x) \
     if ((x) == false) __asm { int 3 }

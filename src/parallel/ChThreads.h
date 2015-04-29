@@ -29,7 +29,7 @@
 
 #include "core/ChApiCE.h"
 
-#if ((defined WIN32) || (defined WIN64))
+#if defined _WIN32
 #include "ChThreadsWIN32.h"
 #endif
 
