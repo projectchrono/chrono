@@ -1824,6 +1824,7 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         if (Lpointer->IsActive())
             Lpointer->IntToLCP(Lpointer->GetOffset_w(), Dv, R, Lpointer->GetOffset_L(), L, Qc);
     }
+    this->contact_container->IntToLCP(contact_container->GetOffset_w(), Dv, R, contact_container->GetOffset_L(), L, Qc);
 
     // G and Cq  matrices:  fill the LCP sparse solver structures
 
@@ -1906,6 +1907,7 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         if (Lpointer->IsActive())
             Lpointer->IntFromLCP(Lpointer->GetOffset_w(), Dv, Lpointer->GetOffset_L(), L);
     }
+    this->contact_container->IntFromLCP(contact_container->GetOffset_w(), Dv, contact_container->GetOffset_L(), L);
 
     if (dump_data) {
         const char* numformat = "%.12g";
@@ -1997,6 +1999,7 @@ void ChSystem::LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R 
         if (Lpointer->IsActive())
             Lpointer->IntLoadResidual_CqL(Lpointer->GetOffset_L(), R, L, c);
     }
+    this->contact_container->IntLoadResidual_CqL(contact_container->GetOffset_L(), R, L, c); 
 }
 
 /// Increment a vector Qc with the term C:
@@ -2023,6 +2026,7 @@ void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  ///< result: the Qc resi
         if (Lpointer->IsActive())
             Lpointer->IntLoadConstraint_C(Lpointer->GetOffset_L(), Qc, c, mdo_clamp, mclam);
     }
+    this->contact_container->IntLoadConstraint_C(contact_container->GetOffset_L(), Qc, c, mdo_clamp, mclam); 
 }
 
 /// Increment a vector Qc with the term Ct = partial derivative dC/dt:
