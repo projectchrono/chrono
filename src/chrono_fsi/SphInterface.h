@@ -30,7 +30,8 @@ void AddSphDataToChSystem(
 		const thrust::host_vector<Real4> & velMasH,
 		const SimParams & paramsH,
 		const NumberOfObjects & numObjects,
-		int collisionFamilly);
+		int collisionFamilly,
+        Real sphMarkerMass);
 
 void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
                           int& startIndexSph,

@@ -784,7 +784,7 @@ int main(int argc, char* argv[]) {
   int startIndexSph = mphysicalSystem.Get_bodylist()->size();
 
 #if haveFluid
-  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily);
+  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily, sphMarkerMass);
   AddHydroForce(mphysicalSystem, startIndexSph, numObjects);
 
   thrust::device_vector<Real3> posRadD = posRadH;

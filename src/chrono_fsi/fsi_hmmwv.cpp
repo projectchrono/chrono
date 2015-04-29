@@ -783,7 +783,7 @@ int main(int argc, char* argv[]) {
 
   int startIndexSph = 0;
 #if haveFluid
-  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily);
+  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily, sphMarkerMass);
 
   thrust::device_vector<Real3> posRadD = posRadH;
   thrust::device_vector<Real4> velMasD = velMasH;

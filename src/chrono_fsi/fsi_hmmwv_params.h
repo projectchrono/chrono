@@ -20,8 +20,8 @@
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold_vehicle = 1.3;//0.1;  // 0.2;
-Real time_pause_fluid_external_force = .05;//0.1;//0.1;  // 0.2;
+Real time_hold_vehicle = 0;//1.3;//0.1;  // 0.2;
+Real time_pause_fluid_external_force = 0;//.05;//0.1;//0.1;  // 0.2;
 
 Real contact_recovery_speed = 1;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same

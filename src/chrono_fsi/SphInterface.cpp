@@ -14,13 +14,14 @@ void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                           const thrust::host_vector<Real4>& velMasH,
                           const SimParams& paramsH,
                           const NumberOfObjects& numObjects,
-                          int collisionFamilly) {
+                          int collisionFamilly,
+                          Real sphMarkerMass) {
   Real rad = 0.5 * paramsH.MULT_INITSPACE * paramsH.HSML;
   // NOTE: mass properties and shapes are all for sphere
   double volume = chrono::utils::CalcSphereVolume(rad);
   chrono::ChVector<> gyration = chrono::utils::CalcSphereGyration(rad).Get_Diag();
   double density = paramsH.rho0;
-  double mass = density * volume;
+  double mass = sphMarkerMass;//density * volume;
   double muFriction = 0;
 
   // int fId = 0; //fluid id
