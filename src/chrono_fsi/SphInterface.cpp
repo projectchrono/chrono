@@ -134,21 +134,6 @@ void AddChSystemForcesToSphForces(thrust::host_vector<Real4>& derivVelRhoChronoH
   }
 }
 //------------------------------------------------------------------------------------
-void CountNumContactsPerSph(thrust::host_vector<short int>& numContactsOnAllSph,
-                                  chrono::ChSystemParallelDVI& mphysicalSystem,
-                                  const NumberOfObjects& numObjects,
-                                  int startIndexSph) {
-	int numContacts = mphysicalSystem.data_manager->host_data.bids_rigid_rigid.size();
-#pragma omp parallel for
-	for (int i = 0; i < numContacts; i ++) {
-		chrono::int2 ids = mphysicalSystem.data_manager->host_data.bids_rigid_rigid[i];
-		if (idx.x > startIndexSph)
-			numContactsOnAllSph[idx.x - startIndexSph] += 1;
-		if (idx.y > startIndexSph)
-			numContactsOnAllSph[idx.y - startIndexSph] += 1;
-	}
-}
-//------------------------------------------------------------------------------------
 
 void ClearArraysH(thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
                   thrust::host_vector<Real4>& velMasH,
@@ -174,8 +159,24 @@ void CopyD2H(thrust::host_vector<Real4>& derivVelRhoChronoH, const thrust::devic
   assert(derivVelRhoChronoH.size() == derivVelRhoD.size() && "Error! size mismatch host and device");
   thrust::copy(derivVelRhoD.begin(), derivVelRhoD.end(), derivVelRhoChronoH.begin());
 }
-//------------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------------
+void CountNumContactsPerSph(thrust::host_vector<short int>& numContactsOnAllSph,
+                                  const chrono::ChSystemParallelDVI& mphysicalSystem,
+                                  const NumberOfObjects& numObjects,
+                                  int startIndexSph) {
+	int numContacts = mphysicalSystem.data_manager->host_data.bids_rigid_rigid.size();
+#pragma omp parallel for
+	for (int i = 0; i < numContacts; i ++) {
+		chrono::int2 ids = mphysicalSystem.data_manager->host_data.bids_rigid_rigid[i];
+		if (ids.x > startIndexSph)
+			numContactsOnAllSph[ids.x - startIndexSph] += 1;
+		if (ids.y > startIndexSph)
+			numContactsOnAllSph[ids.y - startIndexSph] += 1;
+	}
+}
+
+//------------------------------------------------------------------------------------
 void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		const NumberOfObjects& numObjects,
 		int startIndexSph,
@@ -184,13 +185,15 @@ void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		Real sphMass) {
 
 	std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
+#pragma omp parallel for
 	for (int i = 0; i < numObjects.numFluidMarkers; i++) {
 		char forceTag[] = "hydrodynamics_force";
 		chrono::ChSharedPtr<chrono::ChForce> hydroForce = (*(bodyIter + i))->SearchForce(forceTag);
-		if (!hydroForce.IsNull())
-			hydroForce->SetMforce(0);
-
-		if (numContactsOnAllSph[i] == 0) continue;
+//		if (!hydroForce.IsNull())
+//			hydroForce->SetMforce(0);
+//
+//		if (numContactsOnAllSph[i] == 0) continue;
+		assert(!hydroForce.IsNull() && "Error! sph marker does not have hyroforce tag in ChSystem");
 
 		Real4 mDerivVelRho= derivVelRhoD[i];
 		Real3 forceSphMarker = mR3(mDerivVelRho) * sphMass;
@@ -200,6 +203,50 @@ void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		hydroForce->SetDir(f3);
 	}
 }
+
+//------------------------------------------------------------------------------------
+
+void CopyCustomChSystemPosVel2thrust(
+        thrust::host_vector<Real3>& posRadH,
+        thrust::host_vector<Real4>& velMasH,
+		chrono::ChSystemParallelDVI& mphysicalSystem,
+		const NumberOfObjects& numObjects,
+		int startIndexSph,
+		const thrust::host_vector<short int>& numContactsOnAllSph) {
+	std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
+	for (int i = 0; i < numObjects.numFluidMarkers; i++) {
+		if (numContactsOnAllSph[i] == 0) continue;
+		chrono::ChVector<> pos = (*(bodyIter + i))->GetPos();
+		posRadH[i] = mR3(pos.x, pos.y, pos.z);
+		chrono::ChVector<> vel = (*(bodyIter + i))->GetPos_dt();
+		Real mass = velMasH[i].w;
+		velMasH[i] = mR4(vel.x, vel.y, vel.z, mass);
+	}
+}
+//------------------------------------------------------------------------------------
+
+void CopyH2DPosVel(
+		thrust::device_vector<Real3>& posRadD,
+		thrust::device_vector<Real4>& velMasD,
+		const thrust::host_vector<Real3>& posRadH,
+		const thrust::host_vector<Real4>& velMasH) {
+  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
+  thrust::copy(posRadH.begin(), posRadH.end(), posRadD.begin());
+  thrust::copy(velMasH.begin(), velMasH.end(), velMasD.begin());
+}
+
+//------------------------------------------------------------------------------------
+
+void CopyD2HPosVel(
+		thrust::host_vector<Real3>& posRadH,
+		thrust::host_vector<Real4>& velMasH,
+		const thrust::host_vector<Real3>& posRadD,
+		const thrust::host_vector<Real4>& velMasD) {
+  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
+  thrust::copy(posRadD.begin(), posRadD.end(), posRadH.begin());
+  thrust::copy(velMasD.begin(), velMasD.end(), velMasH.begin());
+}
+
 //------------------------------------------------------------------------------------
 
 void CopyH2D(thrust::device_vector<Real4>& derivVelRhoD, const thrust::host_vector<Real4>& derivVelRhoChronoH) {
