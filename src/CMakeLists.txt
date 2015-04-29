@@ -180,8 +180,6 @@ IF (ENABLE_OPENMP)
   ENDIF(OPENMP_FOUND)
 ELSE()
   UNSET(OPENMP_FOUND)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
 ENDIF()
 
 SET(CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
@@ -218,7 +216,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ENDIF()
 
 find_package(Threads)
-set(CH_LINKERFLAG_SHARED "${CMAKE_THREAD_LIBS_INIT} ${CH_LINKERFLAG_SHARED}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 
 #-----------------------------------------------------------------------------
 # Some global  C++ definitions and includes that are used
