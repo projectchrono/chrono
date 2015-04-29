@@ -190,10 +190,68 @@ void ChContact::ContIntLoadConstraint_C(const unsigned int off_L,  ///< offset i
                                         bool do_clamp,             ///< apply clamping to c*C?
                                         double recovery_clamp      ///< value for min/max clamping of c*C
                                         ) {
-    this->ConstraintsBiLoad_C(1, recovery_clamp, do_clamp);  // TO DO: move the ConstraintsBiLoad_C code here...
-    Qc(off_L) += c * Nx.Get_b_i();
-    // Qc(off_L+1) += c * Tu.Get_b_i();  // not needed: assume always zero residual in tangential dir.
-    // Qc(off_L+2) += c * Tv.Get_b_i();  // Not needed: assume always zero residual in tangential dir.
+    bool bounced = false;
+
+    // Elastic Restitution model (use simple Newton model with coeffcient e=v(+)/v(-))
+    // Note that this works only if the two connected items are two ChBody.
+
+    ChModelBulletBody* bm1 = dynamic_cast<ChModelBulletBody*>(this->modA);
+    ChModelBulletBody* bm2 = dynamic_cast<ChModelBulletBody*>(this->modB);
+    if (bm1 && bm2) {
+        ChBody* bb1 = bm1->GetBody();
+        ChBody* bb2 = bm2->GetBody();
+        if (this->restitution) {
+            // compute normal rebounce speed
+            // GetLog()<< "Restitution " << (int)this << "\n";
+            Vector Pl1 = bb1->Point_World2Body(this->p1);
+            Vector Pl2 = bb2->Point_World2Body(this->p2);
+            Vector V1_w = bb1->PointSpeedLocalToParent(Pl1);
+            Vector V2_w = bb2->PointSpeedLocalToParent(Pl2);
+            Vector Vrel_w = V2_w - V1_w;
+            Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
+
+            double h = bb1->GetSystem()->GetStep();// = 1.0 / c;  // not all steppers have c = 1/h
+
+            double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
+            if (neg_rebounce_speed < -bb1->GetSystem()->GetMinBounceSpeed())
+                if (this->norm_dist + neg_rebounce_speed * h < 0) {
+                    // CASE: BOUNCE
+                    bounced = true;
+                    Qc(off_L) += c * neg_rebounce_speed;
+                }
+        }
+    }
+
+    if (!bounced) {
+        // CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
+
+        if (this->compliance) {
+            ChBody* bb1 = bm1->GetBody();
+            double h = bb1->GetSystem()->GetStep();// = 1.0 / c;  // not all steppers have c = 1/h
+
+            double alpha = this->dampingf;              // [R]=alpha*[K]
+            double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
+            double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
+
+            //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
+            Nx.Set_cfm_i((inv_hhpa) * this->compliance);  
+            Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
+            Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
+
+            Qc(off_L) += c * inv_hpa * this->norm_dist;
+        } else {
+            if (do_clamp)
+                if (this->Nx.GetCohesion())
+                    Qc(off_L) += ChMin(0.0, ChMax(c * this->norm_dist, -recovery_clamp));
+                else
+                    Qc(off_L) += ChMax(c * this->norm_dist, -recovery_clamp);
+            else
+                Qc(off_L) += c * this->norm_dist;
+        }
+    }
+
+    // Qc(off_L+1) += c * ...;  // not needed: assume always zero residual in tangential dir.
+    // Qc(off_L+2) += c * ...;  // Not needed: assume always zero residual in tangential dir.
 }
 void ChContact::ContIntToLCP(const unsigned int off_L,  ///< offset in L, Qc
                              const ChVectorDynamic<>& L,
@@ -240,7 +298,6 @@ void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool d
         ChBody* bb2 = bm2->GetBody();
         if (this->restitution) {
             // compute normal rebounce speed
-            double Ct = 0;
             // GetLog()<< "Restitution " << (int)this << "\n";
             Vector Pl1 = bb1->Point_World2Body(this->p1);
             Vector Pl2 = bb2->Point_World2Body(this->p2);
