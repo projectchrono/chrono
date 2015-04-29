@@ -86,6 +86,7 @@ void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
                           const NumberOfObjects& numObjects) {
   // openmp does not work here
 	std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
+#pragma omp parallel for
 	for (int i = 0; i < numObjects.numFluidMarkers; i++) {
 		char forceTag[] = "hydrodynamics_force";
 		chrono::ChSharedPtr<chrono::ChForce> hydroForce = (*(bodyIter + i))->SearchForce(forceTag);
