@@ -872,7 +872,7 @@ int main(int argc, char* argv[]) {
 
     // ** initialize host mid step data
     thrust::host_vector<Real3> posRadH2(numObjects.numAllMarkers);
-    thrust::host_vector<Real4> velMasH2 = velMasH;
+    thrust::host_vector<Real4> velMasH2(numObjects.numAllMarkers);
     thrust::host_vector<Real4> rhoPresMuH2(numObjects.numAllMarkers);
 
     thrust::host_vector<short int> numContactsOnAllSph(numObjects.numFluidMarkers); // numObjects.numFluidMarkers
@@ -936,7 +936,7 @@ int main(int argc, char* argv[]) {
     ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 
 	CopyD2HPosVel(posRadH2, velMasH2, posRadD2, velMasD2);
-	CopyCustomChSystemPosVel2thrust(posRadH2, velMasH2,
+	CopyCustomChSystemPosVel2HostThrust(posRadH2, velMasH2,
 			mphysicalSystem, numObjects, startIndexSph, numContactsOnAllSph);
 	CopyH2DPosVel(posRadD2, velMasD2, posRadH2, velMasH2);
 
@@ -972,7 +972,7 @@ int main(int argc, char* argv[]) {
     ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
 
 	CopyD2HPosVel(posRadH, velMasH, posRadD, velMasD);
-	CopyCustomChSystemPosVel2thrust(posRadH, velMasH,
+	CopyCustomChSystemPosVel2HostThrust(posRadH, velMasH,
 			mphysicalSystem, numObjects, startIndexSph, numContactsOnAllSph);
 	CopyH2DPosVel(posRadD, velMasD, posRadH, velMasH);
 #endif

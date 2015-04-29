@@ -79,7 +79,7 @@ void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		const thrust::host_vector<short int>& numContactsOnAllSph,
 		Real sphMass);
 
-void CopyCustomChSystemPosVel2thrust(
+void CopyCustomChSystemPosVel2HostThrust(
         thrust::host_vector<Real3>& posRadH,
         thrust::host_vector<Real4>& velMasH,
 		chrono::ChSystemParallelDVI& mphysicalSystem,

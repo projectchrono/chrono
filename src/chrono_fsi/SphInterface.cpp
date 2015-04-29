@@ -206,14 +206,16 @@ void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 
 //------------------------------------------------------------------------------------
 
-void CopyCustomChSystemPosVel2thrust(
+void CopyCustomChSystemPosVel2HostThrust(
         thrust::host_vector<Real3>& posRadH,
         thrust::host_vector<Real4>& velMasH,
 		chrono::ChSystemParallelDVI& mphysicalSystem,
 		const NumberOfObjects& numObjects,
 		int startIndexSph,
 		const thrust::host_vector<short int>& numContactsOnAllSph) {
+
 	std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
+#pragma omp parallel for
 	for (int i = 0; i < numObjects.numFluidMarkers; i++) {
 		if (numContactsOnAllSph[i] == 0) continue;
 		chrono::ChVector<> pos = (*(bodyIter + i))->GetPos();
