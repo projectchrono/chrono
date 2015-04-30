@@ -55,8 +55,8 @@ void test_1() {
     // While creating them, also set X0 undeformed positions.
     ChSharedPtr<ChNodeFEAxyz> mnodeA(new ChNodeFEAxyz(ChVector<>(0, 0, 0)));
     ChSharedPtr<ChNodeFEAxyz> mnodeB(new ChNodeFEAxyz(ChVector<>(0, 1, 0)));
-    mnodeA->SetMass(0.0);
-    mnodeB->SetMass(0.0);
+    mnodeA->SetMass(0.01); // Note, node masses must be zero in static analysis, otherwise added to K stiffness in current release,
+    mnodeB->SetMass(0.01); // however this example requires this trick otherwise a single spring would give rank-deficient K. 
 
     // For example, set an applied force to a node:
     mnodeB->SetForce(ChVector<>(0, 5, 0));
@@ -74,6 +74,10 @@ void test_1() {
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);
 
+    // This is necessary in order to precompute the
+    // stiffness matrices, tot. degrees of freedom etc.
+    my_mesh->SetupInitial();
+
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -85,8 +89,7 @@ void test_1() {
     // Create a constraint between a node and the truss
     ChSharedPtr<ChLinkPointFrame> constraintA(new ChLinkPointFrame);
 
-    constraintA->Initialize(my_mesh,  // node container
-                            0,        // index of node in node container
+    constraintA->Initialize(mnodeA,   // node to connect
                             truss);   // body to be connected to
 
     my_system.Add(constraintA);
