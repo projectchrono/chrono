@@ -1124,6 +1124,10 @@ void ChSystem::SetIntegrationType(eCh_integrationType m_integration) {
             this->timestepper =
                 ChSharedPtr<ChTimestepperEulerImplicitLinearized>(new ChTimestepperEulerImplicitLinearized(*this));
             break;
+        case INT_EULER_IMPLICIT_PROJECTED:
+            this->timestepper =
+                ChSharedPtr<ChTimestepperEulerImplicitProjected>(new ChTimestepperEulerImplicitProjected(*this));
+            break;
         case INT_TRAPEZOIDAL:
             this->timestepper = ChSharedPtr<ChTimestepperTrapezoidal>(new ChTimestepperTrapezoidal(*this));
             (this->timestepper.DynamicCastTo<ChTimestepperTrapezoidal>())->SetMaxiters(4);

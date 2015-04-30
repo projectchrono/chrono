@@ -167,6 +167,7 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
         INT_TASORA = 6,
         INT_EULER_IMPLICIT = 7,
         INT_EULER_IMPLICIT_LINEARIZED = 8,
+        INT_EULER_IMPLICIT_PROJECTED = 17,
         INT_TRAPEZOIDAL = 9,
         INT_TRAPEZOIDAL_LINEARIZED = 10,
         INT_HHT = 11,
