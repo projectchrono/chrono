@@ -122,6 +122,7 @@ class ChStaticLinearAnalysis : public ChStaticAnalysis {
         X += Dx;
 
         mintegrable->StateScatter(X, V, T);  // state -> system
+        mintegrable->StateScatterReactions(L);  // -> system auxiliary data 
     }
 };
 
@@ -207,6 +208,7 @@ class ChStaticNonLinearAnalysis : public ChStaticAnalysis {
         X = Xnew;
 
         mintegrable->StateScatter(X, V, T);  // state -> system
+        mintegrable->StateScatterReactions(L);  // -> system auxiliary data 
     }
 
     /// Set the max number of iterations using the Newton Raphson procedure
