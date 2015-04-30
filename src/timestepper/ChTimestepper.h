@@ -317,6 +317,30 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
                          );
 };
 
+/// Performs a step of Euler implicit for II order systems
+/// using a semi implicit Euler without constr.stabilization, followed by a projection,
+/// that is: a speed problem followed by a position problem that
+/// keeps constraint drifting 'closed' by using a projection.
+/// If the solver in StateSolveCorrection is a CCP complementarity
+/// solver, this is the Tasora stabilized timestepper for DVIs.
+
+class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, public ChImplicitTimestepper {
+  protected:
+    ChStateDelta Vold;
+    ChVectorDynamic<> Dl;
+    ChVectorDynamic<> R;
+    ChVectorDynamic<> Qc;
+
+  public:
+    /// Constructors (default empty)
+    ChTimestepperEulerImplicitProjected(ChIntegrableIIorder& mintegrable)
+        : ChTimestepperIIorder(mintegrable), ChImplicitTimestepper(){};
+
+    /// Performs an integration timestep
+    virtual void Advance(const double dt  ///< timestep to advance
+                         );
+};
+
 /// Performs a step of trapezoidal implicit for II order systems.
 /// NOTE this is a modified version of the trapezoidal for DAE: the
 /// original derivation would lead to a scheme that produces oscillatory

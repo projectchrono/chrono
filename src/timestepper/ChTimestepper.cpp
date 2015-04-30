@@ -364,6 +364,91 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt  ///< timeste
     mintegrable->StateScatterReactions(L);  // -> system auxiliary data
 }
 
+
+/// Performs a step of Euler implicit for II order systems
+/// using a semi implicit Euler without constr.stabilization, followed by a projection,
+/// that is: a speed problem followed by a position problem that
+/// keeps constraint drifting 'closed' by using a projection.
+/// If the solver in StateSolveCorrection is a CCP complementarity
+/// solver, this is the Tasora stabilized timestepper for DVIs.
+
+void ChTimestepperEulerImplicitProjected::Advance(const double dt  ///< timestep to advance
+                                                   ) {
+    // downcast
+    ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+    // setup main vectors
+    mintegrable->StateSetup(X, V, A);
+
+    // setup auxiliary vectors
+    Dl.Reset(mintegrable->GetNconstr());
+    R.Reset(mintegrable->GetNcoords_v());
+    Qc.Reset(mintegrable->GetNconstr());
+    L.Reset(mintegrable->GetNconstr());
+
+    mintegrable->StateGather(X, V, T);  // state <- system
+
+    Vold = V;
+
+    // 1
+    // Do a  Anitescu/Trinkle timestepper but without the C/dt correction:
+    //
+    // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ v_new  ] = [ M*(v_old) + dt*f]
+    // [ Cq                           0   ] [ -dt*l  ] = [ Ct ]
+
+    mintegrable->LoadResidual_F(R, dt);
+    mintegrable->LoadResidual_Mv(R, V, 1.0);
+    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, 0);
+    mintegrable->LoadConstraint_Ct(Qc, 1.0);
+
+    mintegrable->StateSolveCorrection(V, L, R, Qc,
+                                      1.0,           // factor for  M
+                                      -dt,           // factor for  dF/dv
+                                      -dt * dt,      // factor for  dF/dx
+                                      X, V, T + dt,  // not needed
+                                      false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                                      );
+
+    L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
+
+    mintegrable->StateScatterAcceleration(
+        (V - Vold) * (1 / dt));  // -> system auxiliary data (i.e acceleration as measure, fits DVI/MDI)
+
+    X += V * dt;
+
+    T += dt;
+
+    mintegrable->StateScatter(X, V, T);     // state -> system
+    mintegrable->StateScatterReactions(L);  // -> system auxiliary data
+
+    // 2
+    // Do the position stabilization (single NR step on constraints, with mass matrix as metric)
+
+    Dl.Reset(mintegrable->GetNconstr());
+    R.Reset(mintegrable->GetNcoords_v());
+    Qc.Reset(mintegrable->GetNconstr());
+    L.Reset(mintegrable->GetNconstr());
+    Vold.Reset(mintegrable->GetNcoords_v(),V.GetIntegrable());
+
+    //
+    // [ M       Cq' ] [ dpos ] = [ 0 ]
+    // [ Cq       0  ] [ l    ] = [ C ]
+
+    mintegrable->LoadConstraint_C(Qc, 1.0, false, 0);
+
+    mintegrable->StateSolveCorrection(Vold, L, R, Qc,
+                                      1.0,           // factor for  M
+                                      0,             // factor for  dF/dv
+                                      0,             // factor for  dF/dx
+                                      X, V, T,       // not needed
+                                      false          // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                                      );
+
+    X += Vold;  //here we used 'Vold' as 'dpos' to recycle Vold and avoid allocating a new vector dpos
+
+    mintegrable->StateScatter(X, V, T);     // state -> system
+}
+
 /// Performs a step of trapezoidal implicit for II order systems
 /// NOTE this is a modified version of the trapezoidal for DAE: the
 /// original derivation would lead to a scheme that produces oscillatory
