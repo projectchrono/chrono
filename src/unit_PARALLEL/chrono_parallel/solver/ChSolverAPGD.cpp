@@ -178,9 +178,9 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
     L = 0.9 * L;
     t = 1.0 / L;
     theta = theta_new;
+    gamma = gamma_new;
 
     if (data_manager->settings.solver.update_rhs) {
-      gamma = gamma_new;
       UpdateR();
     }
   }
