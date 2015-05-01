@@ -790,6 +790,10 @@ int main(int argc, char* argv[]) {
   thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
   thrust::device_vector<uint> bodyIndexD = bodyIndex;
   thrust::device_vector<Real4> derivVelRhoD;
+
+  thrust::device_vector<Real4> rhoPresMuD_half = rhoPresMuD;
+  thrust::device_vector<Real4> velMasD_half = velMasD;
+
   ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
 #endif
   cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
@@ -805,30 +809,49 @@ int main(int argc, char* argv[]) {
   DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
 
   int stepEnd = int(paramsH.tFinal / paramsH.dT);  // 1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) /
-                                                   // currentParamsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) /
-                                                   // currentParamsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) /
-                                                   // currentParamsH.dT ;//0.7e6;//2.5e6;
+                                                   // paramsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) /
+                                                   // paramsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) /
+                                                   // paramsH.dT ;//0.7e6;//2.5e6;
                                                    // //200000;//10000;//50000;//100000;
   printf("stepEnd %d\n", stepEnd);
   Real realTime = 0;
 
-  SimParams paramsH_B = paramsH;
-  paramsH_B.bodyForce3 = mR3(0);
-  paramsH_B.gravity = mR3(0);
-  paramsH_B.dT = paramsH.dT;
-
-  printf("\ntimePause %f, numPause %d\n", paramsH.timePause, int(paramsH.timePause / paramsH_B.dT));
+  printf("\ntimePause %f, numPause %d\n", paramsH.timePause, int(paramsH.timePause / paramsH.dT));
   printf("paramsH.timePauseRigidFlex %f, numPauseRigidFlex %d\n\n",
          paramsH.timePauseRigidFlex,
-         int((paramsH.timePauseRigidFlex - paramsH.timePause) / paramsH.dT + paramsH.timePause / paramsH_B.dT));
-  //  InitSystem(paramsH, numObjects);
-  SimParams currentParamsH = paramsH;
+         int((paramsH.timePauseRigidFlex - paramsH.timePause) / paramsH.dT + paramsH.timePause / paramsH.dT));
 
+
+  InitSystem(paramsH, numObjects);
+  mphysicalSystem.Set_G_acc(ChVector<>(paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z));
 
   simParams.close();
+  // ***************************** Middle values for leap-frog (LF) ********************************************
+#if haveFluid
+  ForceSPH_LF(posRadD,
+           velMasD,
+           rhoPresMuD,
+           bodyIndexD,
+           derivVelRhoD,
+           referenceArray,
+           numObjects,
+           paramsH,
+           bceType,
+           0.5 * paramsH.dT);
 
+  UpdateFluid_init_LF(posRadD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, paramsH.dT);
+
+#endif
   // ***************************** Simulation loop ********************************************
-
+  // *****************************
+  // *****************************
+  // *****************************
+  // *****************************
+  // *****************************
+  // *****************************
+  // *****************************
+  // *****************************
+  // *****************************
   for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 
 	// -------------------
@@ -849,38 +872,18 @@ int main(int argc, char* argv[]) {
     	fsi_timer.start("half_step_dynamic_fsi_12");
     	fsi_timer.start("fluid_initialization");
 
-    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
+    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep);
 
     // ******* slow down the sys.Check point the sys.
     if (tStep % 200 == 0) {
     	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
     }
-    if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
-    	SetMarkersVelToZero(velMasD, velMasH);
-    }
+//    if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
+//    	SetMarkersVelToZero(velMasD, velMasH);
+//    }
     // *******
 
-    if (realTime <= paramsH.timePause) {
-      currentParamsH = paramsH_B;
-    } else {
-      currentParamsH = paramsH;
-    }
-    InitSystem(currentParamsH, numObjects);
-    mphysicalSystem.Set_G_acc(ChVector<>(currentParamsH.gravity.x, currentParamsH.gravity.y, currentParamsH.gravity.z));
-
-    // ** initialize host mid step data
-    thrust::host_vector<Real3> posRadH2(numObjects.numAllMarkers);
-    thrust::host_vector<Real4> velMasH2 = velMasH;
-    thrust::host_vector<Real4> rhoPresMuH2(numObjects.numAllMarkers);
-    // ** initialize device mid step data
-    thrust::device_vector<Real3> posRadD2 = posRadD;
-    thrust::device_vector<Real4> velMasD2 = velMasD;
-    thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
-    // **
-    thrust::device_vector<Real3> vel_XSPH_D;
-    ResizeMyThrust3(vel_XSPH_D, numObjects.numAllMarkers);
-
-    FillMyThrust4(derivVelRhoD, mR4(0));
+//    FillMyThrust4(derivVelRhoD, mR4(0)); //Arman yo yo
     thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
 
     	fsi_timer.stop("fluid_initialization");
@@ -896,87 +899,43 @@ int main(int argc, char* argv[]) {
 // ****************** RK2: 1/2
 #if haveFluid
 
+    UpdateFluid_rho_vel_LF(velMasD, rhoPresMuD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, 0.5 * paramsH.dT);
+
+
+
     	fsi_timer.start("force_sph");
 
-    ForceSPH(posRadD,
+    ForceSPH_LF(posRadD,
              velMasD,
-             vel_XSPH_D,
              rhoPresMuD,
              bodyIndexD,
              derivVelRhoD,
              referenceArray,
              numObjects,
-             currentParamsH,
+             paramsH,
              bceType,
-             0.5 * currentParamsH.dT);
+             paramsH.dT); // Arman later take care of dT. It is useless and you can remove it.
 
     	fsi_timer.stop("force_sph");
+
+   UpdateFluid_EveryThing_LF(posRadD, velMasD, rhoPresMuD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, paramsH.dT);
+   ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
+
+
 
 #endif
 
     	fsi_timer.start("stepDynamic_mbd");
 
-    DoStepChronoSystem(
-        mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+    DoStepChronoSystem(mphysicalSystem, paramsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
 
     	fsi_timer.stop("stepDynamic_mbd");
 
 #if haveFluid
-    CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-    AddChSystemForcesToSphForces(
-        derivVelRhoChronoH,
-        velMasH2,
-        mphysicalSystem,
-        numObjects,
-        startIndexSph,
-        0.5 *
-            currentParamsH.dT);  // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
-    CopyH2D(derivVelRhoD, derivVelRhoChronoH);
-    UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
-    // assumes ...D2 is a copy of ...D
-    ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
-
-    CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
-    UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
-
-    myCpuTimerHalfStep.stop();
-    myGpuTimerHalfStep.Stop();
-    fsi_timer.stop("half_step_dynamic_fsi_12");
-    // ****************** RK2: 2/2
-    fsi_timer.start("half_step_dynamic_fsi_22");
-    ForceSPH(posRadD2,
-             velMasD2,
-             vel_XSPH_D,
-             rhoPresMuD2,
-             bodyIndexD,
-             derivVelRhoD,
-             referenceArray,
-             numObjects,
-             currentParamsH,
-             bceType,
-             currentParamsH.dT);
-#endif
-    DoStepChronoSystem(
-        mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
-#if haveFluid
-    CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-    AddChSystemForcesToSphForces(
-        derivVelRhoChronoH,
-        velMasH2,
-        mphysicalSystem,
-        numObjects,
-        startIndexSph,
-        0.5 *
-            currentParamsH.dT);  // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
-    CopyH2D(derivVelRhoD, derivVelRhoChronoH);
-    UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
-    ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
-
     CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
 
 #endif
-    // ****************** End RK2
 
     // Update counters.
     mTime += time_step;
@@ -988,11 +947,6 @@ int main(int argc, char* argv[]) {
 // -------------------
 
 #if haveFluid
-    ClearArraysH(posRadH2, velMasH2, rhoPresMuH2);
-    ClearMyThrustR3(posRadD2);
-    ClearMyThrustR4(velMasD2);
-    ClearMyThrustR4(rhoPresMuD2);
-    ClearMyThrustR3(vel_XSPH_D);
 
     mCpuTimer.Stop();
     myGpuTimer.Stop();
@@ -1012,7 +966,7 @@ int main(int argc, char* argv[]) {
     // -------------------
 
     fflush(stdout);
-    realTime += currentParamsH.dT;
+    realTime += paramsH.dT;
 
     mphysicalSystem.data_manager->system_timer.PrintReport();
 
@@ -1024,6 +978,8 @@ int main(int argc, char* argv[]) {
   ClearMyThrustR4(rhoPresMuD);
   ClearMyThrustU1(bodyIndexD);
   ClearMyThrustR4(derivVelRhoD);
+  ClearMyThrustR4(velMasD_half);
+  ClearMyThrustR4(rhoPresMuD_half);
 #endif
   delete mVehicle;
   delete tire_cb;
