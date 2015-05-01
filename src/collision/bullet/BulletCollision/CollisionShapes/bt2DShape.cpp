@@ -106,7 +106,7 @@ void bt2DarcShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aa
 
 ////////////////////////////////////////////////
 
-bt2DsegmentShape::bt2DsegmentShape(btVector3 mP1, btVector3 mP2)
+bt2DsegmentShape::bt2DsegmentShape(const btVector3& mP1, const btVector3& mP2)
 {
 	P1 = mP1;
 	P2 = mP2;

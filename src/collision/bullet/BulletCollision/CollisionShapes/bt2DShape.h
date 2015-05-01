@@ -77,7 +77,7 @@ private:
 	btVector3 P2;
 
 public:
-	bt2DsegmentShape(btVector3 mP1, btVector3 mP2);
+	bt2DsegmentShape(const btVector3& mP1, const btVector3& mP2);
 
 	///CollisionShape Interface
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
