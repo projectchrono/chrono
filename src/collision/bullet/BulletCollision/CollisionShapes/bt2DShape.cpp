@@ -14,7 +14,7 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#define NOMINMAX
+//#define NOMINMAX
 #include <algorithm>
 
 #include "bt2DShape.h"
@@ -145,9 +145,9 @@ void	bt2DsegmentShape::calculateLocalInertia(btScalar mass,btVector3& inertia) c
 
 	btVector3 halfExtents;
 
-	halfExtents.setValue((hlen), 
-						 (hlen),
-						 (hlen));
+	halfExtents.setValue((btScalar)(hlen), 
+						 (btScalar)(hlen),
+						 (btScalar)(hlen));
 
 	btScalar margin = CONVEX_DISTANCE_MARGIN;
 
