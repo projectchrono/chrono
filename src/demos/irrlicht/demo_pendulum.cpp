@@ -166,6 +166,7 @@ int main(int argc, char* argv[]) {
         ChSharedPtr<ChLinkLockSpherical> my_link_23(new ChLinkLockSpherical);
         my_link_23->Initialize(mrigidBody3, mrigidBody2, ChCoordsys<>(ChVector<>(0, -12, z_step)));
         my_system.AddLink(my_link_23);
+        
     }
 
     //
@@ -187,11 +188,11 @@ int main(int argc, char* argv[]) {
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
-    // application.GetSystem()->SetMaxPenetrationRecoverySpeed(10e23);
-    application.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
+
+    //application.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN); // if you need a more precise CCP solver..
+
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw
