@@ -1058,44 +1058,45 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     // Translational constraint reaction torque = -d~''(t)*lambda_translational
     // No reaction force from the rotational constraints
     ChLinkMaskLF* mmask = static_cast<ChLinkMaskLF*>(mask);
-    int n_constraint = 0;
+
+    int local_off = 0;
 
     if (mmask->Constr_X().IsActive()) {
-        react_force.x = -react->GetElement(n_constraint, 0);
-        react_torque.y = -relM.pos.z * react->GetElement(n_constraint, 0);
-        react_torque.z = relM.pos.y * react->GetElement(n_constraint, 0);
-        n_constraint++;
+        react_force.x = -react->GetElement(local_off, 0);
+        react_torque.y = -relM.pos.z * react->GetElement(local_off, 0);
+        react_torque.z = relM.pos.y * react->GetElement(local_off, 0);
+        local_off++;
     }
     if (mmask->Constr_Y().IsActive()) {
-        react_force.y = -react->GetElement(n_constraint, 0);
-        react_torque.x = relM.pos.z * react->GetElement(n_constraint, 0);
-        react_torque.z += -relM.pos.x * react->GetElement(n_constraint, 0);
-        n_constraint++;
+        react_force.y = -react->GetElement(local_off, 0);
+        react_torque.x = relM.pos.z * react->GetElement(local_off, 0);
+        react_torque.z += -relM.pos.x * react->GetElement(local_off, 0);
+        local_off++;
     }
     if (mmask->Constr_Z().IsActive()) {
-        react_force.z = -react->GetElement(n_constraint, 0);
-        react_torque.x += -relM.pos.y * react->GetElement(n_constraint, 0);
-        react_torque.y += relM.pos.x * react->GetElement(n_constraint, 0);
-        n_constraint++;
+        react_force.z = -react->GetElement(local_off, 0);
+        react_torque.x += -relM.pos.y * react->GetElement(local_off, 0);
+        react_torque.y += relM.pos.x * react->GetElement(local_off, 0);
+        local_off++;
     }
 
     if (mmask->Constr_E1().IsActive()) {
-        react_torque.x += Ts(0, 1) * (react->GetElement(n_constraint, 0));
-        react_torque.y += Ts(1, 1) * (react->GetElement(n_constraint, 0));
-        react_torque.z += Ts(2, 1) * (react->GetElement(n_constraint, 0));
-        n_constraint++;
+        react_torque.x += Ts(0, 1) * (react->GetElement(local_off, 0));
+        react_torque.y += Ts(1, 1) * (react->GetElement(local_off, 0));
+        react_torque.z += Ts(2, 1) * (react->GetElement(local_off, 0));
+        local_off++;
     }
     if (mmask->Constr_E2().IsActive()) {
-        react_torque.x += Ts(0, 2) * (react->GetElement(n_constraint, 0));
-        react_torque.y += Ts(1, 2) * (react->GetElement(n_constraint, 0));
-        react_torque.z += Ts(2, 2) * (react->GetElement(n_constraint, 0));
-        n_constraint++;
+        react_torque.x += Ts(0, 2) * (react->GetElement(local_off, 0));
+        react_torque.y += Ts(1, 2) * (react->GetElement(local_off, 0));
+        react_torque.z += Ts(2, 2) * (react->GetElement(local_off, 0));
+        local_off++;
     }
     if (mmask->Constr_E3().IsActive()) {
-        react_torque.x += Ts(0, 3) * (react->GetElement(n_constraint, 0));
-        react_torque.y += Ts(1, 3) * (react->GetElement(n_constraint, 0));
-        react_torque.z += Ts(2, 3) * (react->GetElement(n_constraint, 0));
-        n_constraint++;
+        react_torque.x += Ts(0, 3) * (react->GetElement(local_off, 0));
+        react_torque.y += Ts(1, 3) * (react->GetElement(local_off, 0));
+        react_torque.z += Ts(2, 3) * (react->GetElement(local_off, 0));
+        local_off++;
     }
 
     // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if non-default delta
@@ -1103,28 +1104,64 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 
     // add also the contribution from link limits to the react_force and react_torque.
     if (limit_X && limit_X->Get_active()) {
-        react_force.x -= limit_X->constr_lower.Get_l_i();
-        react_force.x += limit_X->constr_upper.Get_l_i();
+        if (limit_X->constr_lower.IsActive()) {
+            react_force.x -= L(off_L + local_off);
+            local_off++;
+        }
+        if (limit_X->constr_upper.IsActive()) {
+            react_force.x += L(off_L + local_off);
+            local_off++;
+        }
     }
     if (limit_Y && limit_Y->Get_active()) {
-        react_force.y -= limit_Y->constr_lower.Get_l_i();
-        react_force.y += limit_Y->constr_upper.Get_l_i();
+        if (limit_Y->constr_lower.IsActive()) {
+            react_force.y -= L(off_L + local_off);
+            local_off++;
+        }
+        if (limit_Y->constr_upper.IsActive()) {
+            react_force.y += L(off_L + local_off);
+            local_off++;
+        }
     }
     if (limit_Z && limit_Z->Get_active()) {
-        react_force.z -= limit_Z->constr_lower.Get_l_i();
-        react_force.z += limit_Z->constr_upper.Get_l_i();
+        if (limit_Z->constr_lower.IsActive()) {
+            react_force.z -= L(off_L + local_off);
+            local_off++;
+        }
+        if (limit_Z->constr_upper.IsActive()) {
+            react_force.z += L(off_L + local_off);
+            local_off++;
+        }
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        react_torque.x -= 0.5 * limit_Rx->constr_lower.Get_l_i();
-        react_torque.x += 0.5 * limit_Rx->constr_upper.Get_l_i();
+        if (limit_Rx->constr_lower.IsActive()) {
+            react_torque.x -= 0.5 * L(off_L + local_off);
+            local_off++;
+        }
+        if (limit_Rx->constr_upper.IsActive()) {
+            react_torque.x += 0.5 * L(off_L + local_off);
+            local_off++;
+        }
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        react_torque.y -= 0.5 * limit_Ry->constr_lower.Get_l_i();
-        react_torque.y += 0.5 * limit_Ry->constr_upper.Get_l_i();
+        if (limit_Ry->constr_lower.IsActive()) {
+            react_torque.y -= 0.5 * L(off_L + local_off);
+            local_off++;
+        }
+        if (limit_Ry->constr_upper.IsActive()) {
+            react_torque.y += 0.5 * L(off_L + local_off);
+            local_off++;
+        }
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        react_torque.z -= 0.5 * limit_Rz->constr_lower.Get_l_i();
-        react_torque.z += 0.5 * limit_Rz->constr_upper.Get_l_i();
+        if (limit_Rz->constr_lower.IsActive()) {
+            react_torque.z -= 0.5 * L(off_L + local_off);
+            local_off++;
+        }
+        if (limit_Rz->constr_upper.IsActive()) {
+            react_torque.z += 0.5 * L(off_L + local_off);
+            local_off++;
+        }
     }
 
     // the internal forces add their contribute to the reactions
@@ -1132,6 +1169,20 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     // react_force  = Vadd(react_force, C_force);
     // react_torque = Vadd(react_torque, C_torque);
 }
+
+
+void ChLinkLock::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
+    // parent (from ChConstraint objects to react vector)
+    ChLinkMasked::IntStateGatherReactions(off_L, L);
+
+
+    int local_off = this->GetDOC_c();
+
+    // gather also the contribution from link limits 
+    // TODO not yet implemented
+
+}
+
 
 void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
                                      ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
@@ -1218,73 +1269,61 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Q
 
     if (limit_X && limit_X->Get_active()) {
         if (limit_X->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) +=
-                limit_X->constr_lower.Get_b_i() + ChMax(c * (-limit_X->Get_min() + relM.pos.x), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-limit_X->Get_min() + relM.pos.x), -recovery_clamp);
             ++local_offset;
         }
         if (limit_X->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) +=
-                limit_X->constr_upper.Get_b_i() + ChMax(c * (limit_X->Get_max() - relM.pos.x), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (limit_X->Get_max() - relM.pos.x), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Y && limit_Y->Get_active()) {
         if (limit_Y->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) +=
-                limit_Y->constr_lower.Get_b_i() + ChMax(c * (-limit_Y->Get_min() + relM.pos.x), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-limit_Y->Get_min() + relM.pos.x), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Y->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) +=
-                limit_Y->constr_upper.Get_b_i() + ChMax(c * (limit_Y->Get_max() - relM.pos.x), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (limit_Y->Get_max() - relM.pos.x), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Z && limit_Z->Get_active()) {
         if (limit_Z->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) +=
-                limit_Z->constr_lower.Get_b_i() + ChMax(c * (-limit_Z->Get_min() + relM.pos.x), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-limit_Z->Get_min() + relM.pos.x), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Z->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) +=
-                limit_Z->constr_upper.Get_b_i() + ChMax(c * (limit_Z->Get_max() - relM.pos.x), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (limit_Z->Get_max() - relM.pos.x), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Rx && limit_Rx->Get_active()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += limit_Rx->constr_lower.Get_b_i() +
-                                        ChMax(c * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += limit_Rx->constr_lower.Get_b_i() +
-                                        ChMax(c * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Ry && limit_Ry->Get_active()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += limit_Ry->constr_lower.Get_b_i() +
-                                        ChMax(c * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e1), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e1), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += limit_Ry->constr_lower.Get_b_i() +
-                                        ChMax(c * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e1), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e1), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Rz && limit_Rz->Get_active()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += limit_Rz->constr_lower.Get_b_i() +
-                                        ChMax(c * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e1), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e1), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += limit_Rz->constr_lower.Get_b_i() +
-                                        ChMax(c * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e1), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e1), -recovery_clamp);
             ++local_offset;
         }
     }

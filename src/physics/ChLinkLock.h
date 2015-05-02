@@ -233,7 +233,10 @@ class ChApi ChLinkLock : public ChLinkMasked {
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
 
     /// Specialize the following respect to ChLinkMasked base because there might be some active ChLinkLimit
-    // virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c ); //**TODO
+    // virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
+
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
+
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
