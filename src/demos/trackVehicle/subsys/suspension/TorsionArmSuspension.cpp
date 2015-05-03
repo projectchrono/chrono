@@ -247,10 +247,24 @@ void TorsionArmSuspension::AddVisualization() {
             trimesh_shape->SetName(getMeshName());
             m_wheel->AddAsset(trimesh_shape);
 
-            // ChSharedPtr<ChTexture> mcolor(new ChTexture);
-            // mcolor->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-            ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.2f, 0.2f, 0.2f));
+            ChSharedPtr<ChTexture> mcolor(new ChTexture);
+            mcolor->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+            // ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.2f, 0.2f, 0.2f));
             m_wheel->AddAsset(mcolor);
+
+            // add the linkage arm
+            // define the arm cylinder shape, link is along the y-axis
+            ChVector<> wheel_posRel_XY = m_wheel_PosRel;
+            wheel_posRel_XY.z = 0;
+            // arm length will be the x-y dims
+            double armLength = wheel_posRel_XY.Length();
+            ChVector<> p1_arm(0, armLength / 2.0, 0);
+            ChVector<> p2_arm(0, -armLength / 2.0, 0);
+            ChSharedPtr<ChCylinderShape> arm_cyl(new ChCylinderShape);
+            arm_cyl->GetCylinderGeometry().p1 = p1_arm;
+            arm_cyl->GetCylinderGeometry().p2 = p2_arm;
+            arm_cyl->GetCylinderGeometry().rad = m_armRadius;
+            m_arm->AddAsset(arm_cyl);
 
             break;
         }
