@@ -107,6 +107,9 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
     /// number of track chain systems attached to the vehicle
     int GetNum_TrackSystems() const { return m_num_tracks; }
 
+    /// return gear sprocket rot. vel., in RPM
+    double GetGearRPM(const size_t idx = 0) const;
+
   private:
     /// create files with headers for all specified output data types.
     /// File format is .csv, for easy reading into python pandas scripts for data analysis
