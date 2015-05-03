@@ -52,6 +52,7 @@ TrackVehicleM113::TrackVehicleM113(const std::string& name,
                                    const ChVector<>& Ixx,
                                    double pin_damping_coef,
                                    double tensioner_preload,
+                                   double omega_max,
                                    const ChVector<>& left_pos_rel,
                                    const ChVector<>& right_pos_rel)
     : ChTrackVehicle(name, chassisVis, chassisCollide, mass, Ixx, 1),
@@ -94,7 +95,7 @@ TrackVehicleM113::TrackVehicleM113(const std::string& name,
     for (int i = 0; i < m_num_tracks; i++) {
         std::stringstream t_ss;
         t_ss << "track chain " << i;
-        m_TrackSystems[i] = ChSharedPtr<TrackSystemM113>(new TrackSystemM113(t_ss.str(), i, m_tensioner_preload));
+        m_TrackSystems[i] = ChSharedPtr<TrackSystemM113>(new TrackSystemM113(t_ss.str(), i, m_tensioner_preload, omega_max));
     }
 
     // create the powertrain and drivelines
