@@ -841,6 +841,8 @@ int main(int argc, char* argv[]) {
 
   UpdateFluid_init_LF(posRadD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, paramsH.dT);
 
+//  printf("******************* v1 %f %f %f and v2 %f %f %f and dd %f %f %f %f and p1 %f %f %f and p2 %f %f %f\n", v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, dd.x, dd.y, dd.z, dd.w, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+
 #endif
   // ***************************** Simulation loop ********************************************
   // *****************************
@@ -869,25 +871,6 @@ int main(int argc, char* argv[]) {
 
     //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
 
-    	fsi_timer.start("half_step_dynamic_fsi_12");
-    	fsi_timer.start("fluid_initialization");
-
-    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep);
-
-    // ******* slow down the sys.Check point the sys.
-    if (tStep % 200 == 0) {
-    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
-    }
-//    if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
-//    	SetMarkersVelToZero(velMasD, velMasH);
-//    }
-    // *******
-
-//    FillMyThrust4(derivVelRhoD, mR4(0)); //Arman yo yo
-    thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
-
-    	fsi_timer.stop("fluid_initialization");
-
     #endif
     // -------------------
     // End SPH Block
@@ -901,7 +884,23 @@ int main(int argc, char* argv[]) {
 
     UpdateFluid_rho_vel_LF(velMasD, rhoPresMuD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, 0.5 * paramsH.dT);
 
+    // At this point, posRadD, velMasD, and rhoPresMuD are all the same time
+    ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
 
+        FillMyThrust4(derivVelRhoD, mR4(0));
+
+    	fsi_timer.start("fluid_initialization");
+    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep);
+
+    // ******* slow down the sys.Check point the sys.
+    if (tStep % 200 == 0) {
+    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
+    }
+//    if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
+//    	SetMarkersVelToZero(velMasD, velMasH);
+//    }
+    // *******
+    	fsi_timer.stop("fluid_initialization");
 
     	fsi_timer.start("force_sph");
 
@@ -917,24 +916,17 @@ int main(int argc, char* argv[]) {
              paramsH.dT); // Arman later take care of dT. It is useless and you can remove it.
 
     	fsi_timer.stop("force_sph");
-
-   UpdateFluid_EveryThing_LF(posRadD, velMasD, rhoPresMuD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, paramsH.dT);
-   ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
-
-
+   UpdateFluid_EveryThing_LF(posRadD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, paramsH.dT);
 
 #endif
 
-    	fsi_timer.start("stepDynamic_mbd");
-
+    fsi_timer.start("stepDynamic_mbd");
     DoStepChronoSystem(mphysicalSystem, paramsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
-
-    	fsi_timer.stop("stepDynamic_mbd");
+    fsi_timer.stop("stepDynamic_mbd");
 
 #if haveFluid
     CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
-
 #endif
 
     // Update counters.
@@ -967,7 +959,6 @@ int main(int argc, char* argv[]) {
 
     fflush(stdout);
     realTime += paramsH.dT;
-
     mphysicalSystem.data_manager->system_timer.PrintReport();
 
   }
