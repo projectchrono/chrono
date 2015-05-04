@@ -189,14 +189,15 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		ADD_DEFINITIONS( "-DNOMINMAX" ) # do not use MSVC's min/max macros
 		ADD_DEFINITIONS( "-MP" ) # perform parallel builds
 	ENDIF(MSVC)
-	IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
+
+	IF (MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 		SET (CH_BUILDFLAGS "-D_MINGW -D_WINDOWS")
 		SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
 		SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
-	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-		SET (CH_BUILDFLAGS "-D_MINGW -D_WINDOWS -m64")
-		SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
-		SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
+
+		IF (CMAKE_SIZEOF_VOID_P MATCHES 8)
+			SET (CH_BUILDFLAGS "${CH_BUILDFLAGS} -m64")
+		ENDIF()
 	ENDIF()
 ENDIF()
 
