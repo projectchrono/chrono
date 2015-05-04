@@ -71,11 +71,11 @@ const double end_time = 10;  // 99999
 // *****  Driver settings
 // Automated simulation controls, applies positive half a sine wave.
 // Otherwise, control throttle with W/S
-const bool autopilot = true;
+const bool autopilot = false;
 const double omega_max = 25.0;  // sprocket max rot. vel [rad/s]
 const double tStart = 1.0e-2;      // time to start applied rot. vel
 const double tEnd = 8.0;  // time to reach max omega
-const double ramp_slope = omega_max / (tEnd - tStart);
+const double ramp_slope = 1.0 / (tEnd - tStart);
 
 double sineAmp = 0.4;
 double sineFreq = 0.3;
@@ -117,7 +117,7 @@ ChVector<> trackPoint(0.5, -0.5, 0);
 double chaseDist = 3.5;    // 4.0;
 double chaseHeight = 1.0;  // 1.0;
 
-bool do_shadows = false;  // shadow map is experimental
+bool do_shadows = true;  // shadow map is experimental
                           /*
                         #else
                           double tend = 20.0;
