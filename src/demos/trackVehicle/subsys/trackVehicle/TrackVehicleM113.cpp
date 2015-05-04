@@ -52,6 +52,7 @@ TrackVehicleM113::TrackVehicleM113(const std::string& name,
                                    const ChVector<>& Ixx,
                                    double pin_damping_coef,
                                    double tensioner_preload,
+                                   double omega_max,
                                    const ChVector<>& left_pos_rel,
                                    const ChVector<>& right_pos_rel)
     : ChTrackVehicle(name, chassisVis, chassisCollide, mass, Ixx, 1),
@@ -94,7 +95,7 @@ TrackVehicleM113::TrackVehicleM113(const std::string& name,
     for (int i = 0; i < m_num_tracks; i++) {
         std::stringstream t_ss;
         t_ss << "track chain " << i;
-        m_TrackSystems[i] = ChSharedPtr<TrackSystemM113>(new TrackSystemM113(t_ss.str(), i, m_tensioner_preload));
+        m_TrackSystems[i] = ChSharedPtr<TrackSystemM113>(new TrackSystemM113(t_ss.str(), i, m_tensioner_preload, omega_max));
     }
 
     // create the powertrain and drivelines
@@ -181,12 +182,17 @@ void TrackVehicleM113::SetShoePinDamping(double damping) {
 
 double TrackVehicleM113::GetDriveshaftSpeed(size_t idx) const {
     assert(idx < m_num_tracks);
-    return m_axle->GetPos_dt();
+    return GetGearRPM(idx);
 }
 
 const ChSharedPtr<TrackPowertrain> TrackVehicleM113::GetPowertrain(size_t idx) const {
     assert(idx < m_num_engines);
     return m_ptrains[idx];
+}
+
+double TrackVehicleM113::GetGearRPM(const size_t idx) const {
+  assert(idx < m_num_tracks);
+  return (m_TrackSystems[idx]->GetDriveGear()->GetBody()->GetRot_dt().Q_to_NasaAngles().z)*30.0*CH_C_1_PI;
 }
 
 // Log constraint violations

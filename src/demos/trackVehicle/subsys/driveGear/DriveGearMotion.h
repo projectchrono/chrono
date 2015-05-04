@@ -105,8 +105,8 @@ class CH_SUBSYS_API DriveGearMotion : public ChShared {
     // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
 
     ChVector<> m_inertia;
-    double m_mass;
-    double m_maxOmega;
+    const double m_mass;
+    const double m_maxOmega;
 
     const std::string m_meshName;
     const std::string m_meshFile;
