@@ -399,10 +399,8 @@ void UpdateFluid_rho_vel_LF(
 
 void UpdateFluid_EveryThing_LF(
 		thrust::device_vector<Real3> & posRadD,
-		thrust::device_vector<Real4> & velMasD,
-		thrust::device_vector<Real4> & rhoPresMuD,
-		const thrust::device_vector<Real4> & velMasD_old,
-		const thrust::device_vector<Real4> & rhoPresMuD_old,
+		thrust::device_vector<Real4> & velMasD_half,
+		thrust::device_vector<Real4> & rhoPresMuD_half,
 		const thrust::device_vector<Real4> & derivVelRhoD,
 		const thrust::host_vector<int3> & referenceArray,
 		Real dT);
