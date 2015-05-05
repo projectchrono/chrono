@@ -14,7 +14,7 @@
 #define CHELEMENTSHELLANCF_H
 
 
-#include "ChElementBeam.h"
+#include "ChElementShell.h"
 #include "ChShellSection.h"
 #include "ChNodeFEAxyzD.h"
 #include "core/ChQuadrature.h"
@@ -59,6 +59,8 @@ public:
 
 	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 
+                /// Set the nodes. Consider the nodes arranged counterclockwise, 
+                /// looking the element from top (when D vectors are pointing to you)
 	virtual void SetNodes(  ChSharedPtr<ChNodeFEAxyzD> nodeA, 
                             ChSharedPtr<ChNodeFEAxyzD> nodeB,
                             ChSharedPtr<ChNodeFEAxyzD> nodeC,
