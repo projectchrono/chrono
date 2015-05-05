@@ -182,7 +182,7 @@ void TrackVehicleM113::SetShoePinDamping(double damping) {
 
 double TrackVehicleM113::GetDriveshaftSpeed(size_t idx) const {
     assert(idx < m_num_tracks);
-    return GetGearRPM(idx);
+    return GetSprocketSpeed(idx);
 }
 
 const ChSharedPtr<TrackPowertrain> TrackVehicleM113::GetPowertrain(size_t idx) const {
@@ -190,10 +190,6 @@ const ChSharedPtr<TrackPowertrain> TrackVehicleM113::GetPowertrain(size_t idx) c
     return m_ptrains[idx];
 }
 
-double TrackVehicleM113::GetGearRPM(const size_t idx) const {
-  assert(idx < m_num_tracks);
-  return (m_TrackSystems[idx]->GetDriveGear()->GetBody()->GetRot_dt().Q_to_NasaAngles().z)*30.0*CH_C_1_PI;
-}
 
 // Log constraint violations
 // -----------------------------------------------------------------------------

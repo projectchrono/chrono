@@ -107,8 +107,8 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
     /// number of track chain systems attached to the vehicle
     int GetNum_TrackSystems() const { return m_num_tracks; }
 
-    /// return gear sprocket rot. vel., in RPM
-    double GetGearRPM(const size_t idx = 0) const;
+    /// drive gear sprocket speed
+    virtual double GetSprocketSpeed(const size_t idx) const { assert(idx < m_num_tracks); return [&](){return m_TrackSystems[idx]->GetDriveGear()->GetBody()->GetWvel_loc().z; }(); }
 
   private:
     /// create files with headers for all specified output data types.
