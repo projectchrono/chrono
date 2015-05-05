@@ -15,6 +15,8 @@
 //	Created by Arman Pazouki
 ///////////////////////////////////////////////////////////////////////////////
 
+// note: this is the original fsi_hmmwv model. uses RK2, an specific coupling, and density re_initializaiton.
+
 // General Includes
 #include <iostream>
 #include <fstream>
@@ -611,7 +613,7 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
   }
 }
 // =============================================================================
-void SetMarkersVelToZero(
+void FreezeSPH(
 		thrust::device_vector<Real4> & velMasD,
 		thrust::host_vector<Real4> & velMasH) {
 	for (int i = 0; i < velMasH.size(); i++) {
@@ -852,12 +854,11 @@ int main(int argc, char* argv[]) {
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
 
     // ******* slow down the sys.Check point the sys.
-    if (tStep % 200 == 0) {
-    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
-    }
-    if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
-    	SetMarkersVelToZero(velMasD, velMasH);
-    }
+   	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep);
+
+//   	if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
+//    	FreezeSPH(velMasD, velMasH);
+//    }
     // *******
 
     if (realTime <= paramsH.timePause) {
@@ -916,6 +917,7 @@ int main(int argc, char* argv[]) {
 
     	fsi_timer.start("stepDynamic_mbd");
 
+    mTime += 0.5 * currentParamsH.dT;
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
 
@@ -956,6 +958,7 @@ int main(int argc, char* argv[]) {
              bceType,
              currentParamsH.dT);
 #endif
+    mTime += 0.5 * currentParamsH.dT;
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
 #if haveFluid
@@ -975,11 +978,14 @@ int main(int argc, char* argv[]) {
     CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
 
+    if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
+        DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
+    }
+
 #endif
     // ****************** End RK2
 
     // Update counters.
-    mTime += time_step;
     exec_time += mphysicalSystem.GetTimerStep();
     num_contacts += mphysicalSystem.GetNcontacts();
 

@@ -380,6 +380,31 @@ void UpdateFluid(
 		const thrust::host_vector<int3> & referenceArray,
 		Real dT);
 
+void UpdateFluid_init_LF(
+		thrust::device_vector<Real3> & posRadD,
+		thrust::device_vector<Real4> & velMasD_half,
+		thrust::device_vector<Real4> & rhoPresMuD_half,
+		const thrust::device_vector<Real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		Real dT);
+
+void UpdateFluid_rho_vel_LF(
+		thrust::device_vector<Real4> & velMasD,
+		thrust::device_vector<Real4> & rhoPresMuD,
+		const thrust::device_vector<Real4> & velMasD_old,
+		const thrust::device_vector<Real4> & rhoPresMuD_old,
+		const thrust::device_vector<Real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		Real dT);
+
+void UpdateFluid_EveryThing_LF(
+		thrust::device_vector<Real3> & posRadD,
+		thrust::device_vector<Real4> & velMasD_half,
+		thrust::device_vector<Real4> & rhoPresMuD_half,
+		const thrust::device_vector<Real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		Real dT);
+
 void Copy_SortedVelXSPH_To_VelXSPH(
 		thrust::device_vector<Real3> & vel_XSPH_D,
 		thrust::device_vector<Real3> & vel_XSPH_Sorted_D,

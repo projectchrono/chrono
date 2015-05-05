@@ -49,7 +49,7 @@ int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 bool initializeFluidFromFile = false; 	// 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
 										//	when adding functionality using "useWallBce" and "haveFluid" macros, pay attention to  "initializeFluidFromFile" options.
 										//	for a double security, do your best to set "haveFluid" and "useWallBce" based on the data you have from checkpoint files
-BceVersion bceType = ADAMI; // when set to adami, change the LARGE_PRES to zero. although not very important, since this option will overwrite the BCE pressure and
+BceVersion bceType = mORIGINAL; //ADAMI; // when set to adami, change the LARGE_PRES to zero. although not very important, since this option will overwrite the BCE pressure and
 							// paramsH.LARGE_PRES is only used for the initialization of the BCE markers
 
 NumberOfObjects numObjects;
@@ -83,7 +83,7 @@ void SetupParamsH(SimParams& paramsH) {
   // ************
   paramsH.binSize0;           // will be changed
   paramsH.rigidRadius;        // will be changed
-  paramsH.densityReinit = 0;  // 0: no re-initialization, 1: with initialization
+  paramsH.densityReinit = 1;  // 0: no re-initialization, 1: with initialization
 
   paramsH.enableTweak = 1 ; // 0: no tweak, 1: have tweak
   paramsH.enableAggressiveTweak = 1 ; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)

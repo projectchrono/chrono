@@ -216,6 +216,131 @@ void ForceSPH(
 	m_dCellStart.clear();
 	m_dCellEnd.clear();
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+//applies periodic BC along x
+__global__ void CustomCopyR4ToR3(Real3 * velD, Real4 * velMasD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numObjectsD.numAllMarkers) {
+		return;
+	}
+	Real4 velMas = velMasD[index];
+	velD[index] = mR3(velMas);
+}
+
+//*******************************************************************************************************************************
+//builds the neighbors' list of each particle and finds the force on each particle
+//calculates the interaction force between 1- fluid-fluid, 2- fluid-solid, 3- solid-fluid particles
+//calculates forces from other SPH or solid particles, as wall as boundaries
+void ForceSPH_LF(
+		thrust::device_vector<Real3> & posRadD,
+		thrust::device_vector<Real4> & velMasD,
+		thrust::device_vector<Real4> & rhoPresMuD,
+
+		thrust::device_vector<uint> & bodyIndexD,
+		thrust::device_vector<Real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		const NumberOfObjects & numObjects,
+		SimParams paramsH,
+		BceVersion bceType,
+		Real dT) {
+	// Part1: contact detection #########################################################################################################################
+	// grid data for sorting method
+//	Real3* m_dSortedPosRad;
+//	Real4* m_dSortedVelMas;
+//	Real4* m_dSortedRhoPreMu;
+//	uint* m_dCellStart; // index of start of each cell in sorted list
+//	uint* m_dCellEnd; // index of end of cell
+
+	uint m_numGridCells = paramsH.gridSize.x * paramsH.gridSize.y * paramsH.gridSize.z; //m_gridSize = SIDE
+	//TODO here
+
+	int numAllMarkers = numObjects.numAllMarkers;
+	// calculate grid hash
+	thrust::device_vector<Real3> m_dSortedPosRad(numAllMarkers);
+	thrust::device_vector<Real4> m_dSortedVelMas(numAllMarkers);
+	thrust::device_vector<Real4> m_dSortedRhoPreMu(numAllMarkers);
+
+	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers);
+	thrust::device_vector<uint> m_dGridMarkerIndex(numAllMarkers);
+
+	thrust::device_vector<uint> mapOriginalToSorted(numAllMarkers);
+
+	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
+	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
+	// calculate grid hash
+	calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
+
+//	GpuTimer myT0;
+//	myT0.Start();
+	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(), m_dGridMarkerIndex.begin());
+//	myT0.Stop();
+//	Real t0 = (Real)myT0.Elapsed();
+//	printf("(0) ** Sort by key timer %f, array size %d\n", t0, m_dGridMarkerHash.size());
+
+
+	// reorder particle arrays into sorted order and find start and end of each cell
+	reorderDataAndFindCellStart(m_dCellStart, m_dCellEnd, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, m_dGridMarkerHash,
+			m_dGridMarkerIndex, mapOriginalToSorted, posRadD, velMasD, rhoPresMuD, numAllMarkers, m_numGridCells);
+
+	// modify BCE velocity and pressure
+	if (bceType == ADAMI) {
+		RecalcSortedVelocityPressure_BCE(
+				m_dSortedVelMas, m_dSortedRhoPreMu, m_dSortedPosRad,
+				m_dCellStart, m_dCellEnd, numAllMarkers);
+	}
+
+	//process collisions
+//	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
+	Real3 totalFluidBodyForce3 = paramsH.bodyForce3;  // gravity is added in ChSystem
+	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), mR4(0)); //initialize derivVelRhoD with zero. necessary
+//	GpuTimer myT1;
+//	myT1.Start();
+	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, mR4(totalFluidBodyForce3)); //add body force to fluid particles.
+//	myT1.Stop();
+//	Real t1 = (Real)myT1.Elapsed();
+//	printf("(1) *** fill timer %f, array size %d\n", t1, referenceArray[0].y - referenceArray[0].x);
+
+	thrust::device_vector<Real3> dummy_XSPH(numAllMarkers);
+	uint nBlock_NumSpheres, nThreads_SphMarkers;
+	computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
+	CustomCopyR4ToR3<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR3CAST(dummy_XSPH), mR4CAST(m_dSortedVelMas));
+
+	collide(derivVelRhoD, m_dSortedPosRad, m_dSortedVelMas, dummy_XSPH, m_dSortedRhoPreMu, m_dGridMarkerIndex, m_dCellStart,
+			m_dCellEnd, numAllMarkers, m_numGridCells, dT); //vel XSPH is the same as vel
+
+	dummy_XSPH.clear();
+
+	// set the pressure and density of BC and BCE markers to those of the nearest fluid marker.
+	// I put it here to use the already determined proximity computation
+	//********************************************************************************************************************************
+//	ProjectDensityPressureToBCandBCE(rhoPresMuD, m_dSortedPosRad, m_dSortedRhoPreMu,
+//				m_dGridMarkerIndex, m_dCellStart, m_dCellEnd, numAllMarkers);
+	//********************************************************************************************************************************
+	//*********************** Calculate MaxStress on Particles ***********************************************************************
+	thrust::device_vector<Real3> devStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+	thrust::device_vector<Real3> volStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+	thrust::device_vector<Real4> mainStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
+	CalcBCE_Stresses(devStressD, volStressD, mainStressD, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu,
+			mapOriginalToSorted, m_dCellStart, m_dCellEnd,numBCE);
+
+	devStressD.clear();
+	volStressD.clear();
+	mainStressD.clear();
+	//********************************************************************************************************************************
+	m_dSortedPosRad.clear();
+	m_dSortedVelMas.clear();
+	m_dSortedRhoPreMu.clear();
+
+	m_dGridMarkerHash.clear();
+	m_dGridMarkerIndex.clear();
+
+	mapOriginalToSorted.clear();
+
+	m_dCellStart.clear();
+	m_dCellEnd.clear();
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 void DensityReinitialization(
 		thrust::device_vector<Real3> & posRadD,

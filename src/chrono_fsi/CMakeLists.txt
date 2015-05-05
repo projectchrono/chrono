@@ -71,8 +71,10 @@ SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 # ================================================================================
 # non-vehicle builds
 SET(DEMOS
-    fsi_hmmwv
-    fsi_hmmwv2
+    #fsi_hmmwv3
+fsi_hmmwv
+#fsi_hmmwv4
+	#fsi_hmmwv
 )
 
 MESSAGE(STATUS "FSI demo programs...")
