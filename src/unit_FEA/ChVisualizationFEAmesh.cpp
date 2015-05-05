@@ -18,6 +18,7 @@
 #include "unit_FEA/ChElementHexa_20.h"
 #include "unit_FEA/ChElementBeamEuler.h"
 #include "unit_FEA/ChElementBeamANCF.h"
+#include "unit_FEA/ChElementShellANCF.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChGlyphs.h"
 
@@ -49,6 +50,9 @@ ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh)
 	zbuffer_hide = true;
 
 	smooth_faces = false;
+
+    beam_resolution = 8;
+    shell_resolution = 3;
 
 	meshcolor = ChColor(1,1,1,0);
 	symbolscolor = ChColor(0,0.5,0.5,0);
@@ -255,8 +259,6 @@ void ChVisualizationFEAmesh::Update ()
 	geometry::ChTriangleMeshConnected& trianglemesh = mesh_asset->GetMesh();
 
 
-	int beam_resolution = 8;
-
 	unsigned int n_verts = 0;
 	unsigned int n_vcols = 0;
 	unsigned int n_vnorms = 0;
@@ -302,6 +304,15 @@ void ChVisualizationFEAmesh::Update ()
 			n_vcols +=4*beam_resolution;
 			n_vnorms +=8*beam_resolution;
 			n_triangles +=8*(beam_resolution-1); // n. triangle faces
+		}
+
+        // ELEMENT IS A SHELL
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementShell>() )
+		{
+			n_verts += shell_resolution*shell_resolution;
+			n_vcols += shell_resolution*shell_resolution;
+			n_vnorms += shell_resolution*shell_resolution;
+			n_triangles +=2*(shell_resolution-1)*(shell_resolution-1); // n. triangle faces
 		}
 
 		//***TO DO*** other types of elements...
@@ -718,6 +729,72 @@ void ChVisualizationFEAmesh::Update ()
 						trianglemesh.getIndicesNormals()[i_triindex- 2] = ChVector<int> (11+4, 3+4, 0+4) +  islice_normoffset + inorm_offset;
 						trianglemesh.getIndicesNormals()[i_triindex- 1] = ChVector<int> (11+4, 0+4, 8+4) +  islice_normoffset + inorm_offset;
 						i_vnorms +=8;
+					}				
+				}
+			}		
+		}
+
+
+
+        // ------------ELEMENT IS A SHELL?
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementShell>() )
+		{
+			// downcasting 
+			ChSharedPtr<ChElementShell> myshell ( this->FEMmesh->GetElement(iel).DynamicCastTo<ChElementShell>() );
+
+			unsigned int ivert_el = i_verts;
+			unsigned int inorm_el = i_vnorms;
+
+			// displacements & rotations state of the nodes:
+			ChMatrixDynamic<> displ(myshell->GetNdofs(),1);
+			myshell->GetField(displ); 
+
+            for (int iu= 0; iu < shell_resolution; ++iu)
+			 for (int iv= 0; iv < shell_resolution; ++iv)
+			{
+				double u = -1.0+(2.0*iu/(shell_resolution-1));
+                double v = -1.0+(2.0*iv/(shell_resolution-1));
+				
+				ChVector<> P;
+				myshell->EvaluateSectionPoint(u,v, displ, P);  // compute abs. pos and rot of section plane
+
+                ChVector<float> mcol(1,1,1);
+                /*
+				ChVector<> vresult;
+				ChVector<> vresultB;
+				double sresult = 0;
+				switch(this->fem_data_type)
+				{
+					case E_PLOT_ELEM_SHELL_blabla:
+						myshell->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+						sresult = vresultB.x; 
+						break;
+					
+				}
+				ChVector<float> mcol = ComputeFalseColor(sresult);
+                */
+
+				trianglemesh.getCoordsVertices()[i_verts] = P; 
+				++i_verts;
+
+				trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
+				++i_vcols;
+				
+				if (iu>0 && iv>0)
+				{
+					ChVector<int> ivert_offset(ivert_el,ivert_el,ivert_el);
+
+					trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (iu*shell_resolution +iv, (iu-1)*shell_resolution +iv, iu*shell_resolution +iv -1) + ivert_offset;
+					++i_triindex;
+					trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (iu*shell_resolution +iv -1, (iu-1)*shell_resolution +iv, (iu-1)*shell_resolution +iv-1) + ivert_offset;
+					++i_triindex;
+
+					if (this->smooth_faces)
+					{
+						ChVector<int> inorm_offset = ChVector<int> (inorm_el,inorm_el,inorm_el);				
+						trianglemesh.getIndicesNormals()[i_triindex- 2] = ChVector<int> (iu*shell_resolution +iv, (iu-1)*shell_resolution +iv, iu*shell_resolution +iv -1) + inorm_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 1] = ChVector<int> (iu*shell_resolution +iv -1, (iu-1)*shell_resolution +iv, (iu-1)*shell_resolution +iv -1) + inorm_offset;
+						i_vnorms +=2;
 					}				
 				}
 			}		

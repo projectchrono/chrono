@@ -27,7 +27,7 @@ namespace fea
 /// Base class for properties of shell sections.
 /// This material can be shared between multiple beams.
 
-class ChApiFea ChShellSection : public ChShared
+class  ChShellSection : public ChShared
 {
 public:
 
@@ -45,7 +45,7 @@ public:
 /// properties (moments of inertia, area, Young modulus, etc.)
 /// This material can be shared between multiple beams.
 
-class ChApiFea ChShellSectionBasic : public ChShellSection
+class  ChShellSectionBasic : public ChShellSection
 {
 public:
 

@@ -97,6 +97,9 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
 
     bool undeformed_reference;
 
+    int beam_resolution;
+    int shell_resolution;
+
     ChColor meshcolor;
     ChColor symbolscolor;
 
@@ -143,6 +146,14 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
     // Set the thickness of symbols used for drawing the vector/tensors/etc.
     void SetSymbolsThickness(double mthick) { this->symbols_thickness = mthick; }
     double GetSymbolsThickness() { return this->symbols_thickness; }
+
+    /// Set the resolution of beam triangulated drawing
+    void SetBeamResolution(int mres) { this->beam_resolution = mres; }
+    int GetBeamResolution() { return this->beam_resolution; }
+
+    /// Set the resolution of shell triangulated drawing
+    void SetShellResolution(int mres) { this->shell_resolution = mres; }
+    int GetShellResolution() { return this->shell_resolution; }
 
     // Set shrinkage of elements during drawing
     void SetShrinkElements(bool mshrink, double mfact) {
