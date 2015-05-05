@@ -11,10 +11,10 @@ import matplotlib
 import pylab as py
 
 
-class DriveChain_panda:
+class ChronoTrack_pandas:
     '''
     @class: loads, manages and plots output from any number of output files from 
-            Chrono Track Vehicle Toolkit
+            Chrono Track Vehicle Toolkit, using python pandas library
     '''
     def __init__(self,filename_list, handle_list):
         '''
@@ -724,7 +724,7 @@ if __name__ == '__main__':
     handle_list = ['Gear','gearContact','shoe0','shoeGearContact','ptrain']
  
     # construct the panda class for the DriveChain, file list and list of legend
-    Chain = DriveChain_panda(data_files, handle_list)
+    Chain = ChronoTrack_pandas(data_files, handle_list)
     
     # set the time limits. tmin = -1 will plot the entire time range
     tmin = -5.05
