@@ -15,6 +15,8 @@
 //	Created by Arman Pazouki
 ///////////////////////////////////////////////////////////////////////////////
 
+// note: this is the original fsi_hmmwv model. uses RK2, an specific coupling, and density re_initializaiton.
+
 // General Includes
 #include <iostream>
 #include <fstream>
@@ -976,7 +978,7 @@ int main(int argc, char* argv[]) {
     CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
 
-    if (tStep % 10 == 0) {
+    if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
         DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
     }
 

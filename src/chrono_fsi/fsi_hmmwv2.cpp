@@ -15,6 +15,9 @@
 //	Created by Arman Pazouki
 ///////////////////////////////////////////////////////////////////////////////
 
+// another type of fluid_solid coupling where ChSystem adds constraints and solves the fluid given the other forces on the fluid markers (i.e. from the interior of the domain.
+//  it is not working though
+
 // General Includes
 #include <iostream>
 #include <fstream>
@@ -923,6 +926,7 @@ int main(int argc, char* argv[]) {
 
     	fsi_timer.start("stepDynamic_mbd");
 
+    mTime += 0.5 * currentParamsH.dT;
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
 
@@ -961,6 +965,7 @@ int main(int argc, char* argv[]) {
     CopyForceSphToChSystem(mphysicalSystem,
         		numObjects, startIndexSph, derivVelRhoD, numContactsOnAllSph, sphMarkerMass);
 #endif
+    mTime += 0.5 * currentParamsH.dT;
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
 #if haveFluid
@@ -970,6 +975,10 @@ int main(int argc, char* argv[]) {
     UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
     ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
 
+    if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
+        DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
+    }
+
 	CopyD2HPosVel(posRadH, velMasH, posRadD, velMasD);
 	CopyCustomChSystemPosVel2HostThrust(posRadH, velMasH,
 			mphysicalSystem, numObjects, startIndexSph, numContactsOnAllSph);
@@ -978,7 +987,6 @@ int main(int argc, char* argv[]) {
     // ****************** End RK2
 
     // Update counters.
-    mTime += time_step;
     exec_time += mphysicalSystem.GetTimerStep();
     num_contacts += mphysicalSystem.GetNcontacts();
 

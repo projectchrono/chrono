@@ -15,6 +15,8 @@
 //	Created by Arman Pazouki
 ///////////////////////////////////////////////////////////////////////////////
 
+// note: fsi_hmmwv model for leap frog integration. Have not spent much of time on fluid-solid coupling. you need to take care of that later
+
 // General Includes
 #include <iostream>
 #include <fstream>
@@ -917,6 +919,10 @@ int main(int argc, char* argv[]) {
 
     	fsi_timer.stop("force_sph");
    UpdateFluid_EveryThing_LF(posRadD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, paramsH.dT);
+
+   if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
+       DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
+   }
 
 #endif
 

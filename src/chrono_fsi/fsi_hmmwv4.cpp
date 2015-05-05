@@ -15,6 +15,8 @@
 //	Created by Arman Pazouki
 ///////////////////////////////////////////////////////////////////////////////
 
+// note: stripped down version of fsi_hmmwv.cpp where most of the chrono stuff are removed.
+
 // General Includes
 #include <iostream>
 #include <fstream>
@@ -948,6 +950,10 @@ int main(int argc, char* argv[]) {
     DoStepChronoSystem(mphysicalSystem, paramsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
     CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
+
+    if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
+        DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
+    }
 
 // -------------------
 // SPH Block
