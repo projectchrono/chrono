@@ -44,6 +44,7 @@ SET(ChronoEngine_UNIT_FEA_SOURCES
 SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChApiFEA.h  
 	ChBeamSection.h
+	ChShellSection.h
 	ChBuilderBeam.h
 	ChContinuumPoisson3D.h
 	ChContinuumThermal.h
@@ -68,6 +69,7 @@ SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChElementHexahedron.h
 	ChElementHexa_8.h
 	ChElementHexa_20.h
+	ChElementShellANCF.h
 	ChGaussIntegrationRule.h
 	ChGaussPoint.h
 	ChMesh.h 
