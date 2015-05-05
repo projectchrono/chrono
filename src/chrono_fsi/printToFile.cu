@@ -150,7 +150,7 @@ void PrintToFile_SPH(
 	ofstream fileNameBoundaries;
 	ofstream fileNameFluidBoundaries;
 
-	int tStepsPovFiles = 2;//1000;//2000;
+	int tStepsPovFiles = 100;//1000;//2000;
 	if (tStep % tStepsPovFiles == 0) {
 #ifdef _WIN32
 			system("mkdir povFiles");
