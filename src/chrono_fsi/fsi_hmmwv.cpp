@@ -916,6 +916,7 @@ int main(int argc, char* argv[]) {
 
     	fsi_timer.start("stepDynamic_mbd");
 
+    mTime += 0.5 * currentParamsH.dT;
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
 
@@ -956,6 +957,7 @@ int main(int argc, char* argv[]) {
              bceType,
              currentParamsH.dT);
 #endif
+    mTime += 0.5 * currentParamsH.dT;
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
 #if haveFluid
@@ -979,7 +981,6 @@ int main(int argc, char* argv[]) {
     // ****************** End RK2
 
     // Update counters.
-    mTime += time_step;
     exec_time += mphysicalSystem.GetTimerStep();
     num_contacts += mphysicalSystem.GetNcontacts();
 

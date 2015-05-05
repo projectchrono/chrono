@@ -26,7 +26,7 @@ Real time_pause_fluid_external_force = 0;//.05;//0.1;//0.1;  // 0.2;
 Real contact_recovery_speed = 1;
 Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
 
-Real time_step = 0.5e-3;//1e-4;//0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
+Real time_step = 2e-3;//1e-4;//0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
 Real time_end = 11;
 
