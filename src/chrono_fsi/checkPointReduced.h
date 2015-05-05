@@ -20,7 +20,8 @@ void CheckPointMarkers_Write(
 		const thrust::host_vector<int3> & referenceArray,
 
 		SimParams paramsH,
-		NumberOfObjects numObjects);
+		NumberOfObjects numObjects,
+		int tStep);
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CheckPointMarkers_Read(

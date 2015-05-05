@@ -46,6 +46,13 @@ void ForceSPH_LF(
 		BceVersion bceType,
 		Real dT);
 
+void DensityReinitialization(
+		thrust::device_vector<Real3> & posRadD,
+		thrust::device_vector<Real4> & velMasD,
+		thrust::device_vector<Real4> & rhoPresMuD,
+		int numAllMarkers,
+		int3 SIDE);
+
 void IntegrateSPH(
 		thrust::device_vector<Real3> & posRadD2,
 		thrust::device_vector<Real4> & velMasD2,

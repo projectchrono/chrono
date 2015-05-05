@@ -854,9 +854,8 @@ int main(int argc, char* argv[]) {
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
 
     // ******* slow down the sys.Check point the sys.
-    if (tStep % 200 == 0) {
-    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
-    }
+   	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep);
+
     if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
     	SetMarkersVelToZero(velMasD, velMasH);
     }

@@ -611,7 +611,7 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
   }
 }
 // =============================================================================
-void SetMarkersVelToZero(
+void FreezeSPH(
 		thrust::device_vector<Real4> & velMasD,
 		thrust::host_vector<Real4> & velMasH) {
 	for (int i = 0; i < velMasH.size(); i++) {
@@ -852,12 +852,11 @@ int main(int argc, char* argv[]) {
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
 
     // ******* slow down the sys.Check point the sys.
-    if (tStep % 200 == 0) {
-    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
-    }
-    if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
-    	SetMarkersVelToZero(velMasD, velMasH);
-    }
+   	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep);
+
+//   	if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
+//    	FreezeSPH(velMasD, velMasH);
+//    }
     // *******
 
     if (realTime <= paramsH.timePause) {
@@ -976,6 +975,10 @@ int main(int argc, char* argv[]) {
 
     CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
+
+    if (tStep % 10 == 0) {
+        DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
+    }
 
 #endif
     // ****************** End RK2
