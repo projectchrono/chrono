@@ -315,7 +315,34 @@ public:
 					//rot = ...
 				}
 
+                    /// Gets the absolute xyz position of a point on the shell,
+                    /// at parametric coordinates 'u' and 'v'.
+                    /// Note, u=-1..+1 , v= -1..+1.
+                    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetField()
+                    /// Results are corotated.
+    virtual void EvaluateSectionPoint(const double u,
+                                      const double v,
+                                      const ChMatrix<>& displ,
+                                      ChVector<>& point)
+                {
+                    ChVector<> u_displ;
+					
+					ChMatrixNM<double,1,4> N;
 
+					double xi = (u+1.0)*0.5; // because ShapeFunctions() works in 0..1 range
+                    double yi = (v+1.0)*0.5; // because ShapeFunctions() works in 0..1 range
+
+					this->ShapeFunctions(N, xi,yi);
+					
+					ChVector<> pA = this->nodes[0]->GetPos();
+					ChVector<> pB = this->nodes[1]->GetPos();
+					ChVector<> pC = this->nodes[2]->GetPos();
+					ChVector<> pD = this->nodes[3]->GetPos();
+
+					point.x = N(0)*pA.x + N(1)*pB.x + N(2)*pC.x + N(3)*pD.x;
+                    point.y = N(0)*pA.y + N(1)*pB.y + N(2)*pC.y + N(3)*pD.y;
+                    point.z = N(0)*pA.z + N(1)*pB.z + N(2)*pC.z + N(3)*pD.z;
+                }
 
 
 			//

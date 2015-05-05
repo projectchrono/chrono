@@ -22,7 +22,7 @@ namespace fea {
 
 /// Base class for most structral elements of 'shell' type.
 
-class ChApiFea ChElementShell : public ChElementGeneric {
+class  ChElementShell : public ChElementGeneric {
   protected:
     double mass;
 
@@ -56,6 +56,17 @@ class ChApiFea ChElementShell : public ChElementGeneric {
                                       const ChMatrix<>& displ,
                                       ChVector<>& point,
                                       ChQuaternion<>& rot) = 0;
+
+    /// Gets the absolute xyz position of a point on the shell,
+    /// at parametric coordinates 'u' and 'v'.
+    /// Note, u=-1..+1 , v= -1..+1.
+    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetField()
+    /// Results are corotated.
+    virtual void EvaluateSectionPoint(const double u,
+                                      const double v,
+                                      const ChMatrix<>& displ,
+                                      ChVector<>& point) = 0;
+
 /*
     /// TODO?????
     /// Gets the tensional state at a point on the shell
