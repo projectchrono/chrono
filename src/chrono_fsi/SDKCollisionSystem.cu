@@ -991,6 +991,124 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	rhoPresMuD[index] = rhoPresMu; //rhoPresMuD updated
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+//updates the fluid particles' properties, i.e. velocity, density, pressure, position
+__global__ void UpdateFluidD_init_LF(Real3 * posRadD, Real4 * velMasD_half, Real4 * rhoPresMuD_half, Real4 * derivVelRhoD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
+	if (index >= updatePortionD.y) {
+		return;
+	}
+
+	Real4 derivVelRho = derivVelRhoD[index];
+	Real4 velMas = velMasD_half[index];
+	Real3 updatedVelocity = mR3(velMas + derivVelRho * (0.5 * dTD));
+	velMasD_half[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */velMas.w); //velMasD_half updated
+
+	Real3 posRad = posRadD[index];
+	Real3 updatedPositon = posRad + updatedVelocity * dTD;
+	posRadD[index] = updatedPositon; //posRadD updated
+
+	Real4 rhoPresMu = rhoPresMuD_half[index];
+	Real rho2 = rhoPresMu.x + derivVelRho.w * (0.5 * dTD); //rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
+	rhoPresMu.x = rho2;
+	rhoPresMuD_half[index] = rhoPresMu; //rhoPresMuD_half updated
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//updates the fluid particles' properties, i.e. velocity, density, pressure, position
+__global__ void UpdateFluidD_rho_vel_LF(Real4 * velMasD, Real4 * rhoPresMuD, Real4 * velMasD_old, Real4 * rhoPresMuD_old, Real4 * derivVelRhoD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
+	if (index >= updatePortionD.y) {
+		return;
+	}
+
+	Real4 derivVelRho = derivVelRhoD[index];
+	Real4 velMas = velMasD_old[index];
+	Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
+	// 2*** let's tweak a little bit :)
+//	if (length(updatedVelocity) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
+//		updatedVelocity *= ( .1 * paramsD.HSML / dTD ) / length(updatedVelocity);
+//		if (length(updatedVelocity) > 1.001) { // infinity
+//			if (paramsD.enableAggressiveTweak) {
+//				updatedVelocity = mR3(0);
+//			} else {
+//				printf("Error! Infinite updatedVelocity detected!\n");
+//			}
+//		}
+//	}
+	// 2*** end tweak
+	velMasD[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */velMas.w); //velMasD_half updated
+
+
+	Real4 rhoPresMu = rhoPresMuD_old[index];
+
+	// 3*** let's tweak a little bit :)
+//	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / dTD  && paramsD.enableTweak) {
+//		derivVelRho.w *= (.002 * paramsD.rho0 / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
+//		if (fabs(derivVelRho.w) > 00201 * paramsD.rho0 / dTD) {
+//			if (paramsD.enableAggressiveTweak) {
+//				derivVelRho.w = 0;
+//			} else {
+//				printf("Error! Infinite derivRho detected!\n");
+//			}
+//		}
+//	}
+	// 2*** end tweak
+	Real rho2 = rhoPresMu.x + derivVelRho.w * dTD; //rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
+	rhoPresMu.x = rho2;
+	rhoPresMuD[index] = rhoPresMu; //rhoPresMuD_half updated
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//updates the fluid particles' properties, i.e. velocity, density, pressure, position
+__global__ void UpdateFluidD_EveryThing_LF(Real3 * posRadD, Real4 * velMasD_half, Real4 * rhoPresMuD_half, Real4 * derivVelRhoD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
+	if (index >= updatePortionD.y) {
+		return;
+	}
+
+	Real4 derivVelRho = derivVelRhoD[index];
+	Real4 velMas = velMasD_half[index];
+	Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
+	// 2*** let's tweak a little bit :)
+//	if (length(updatedVelocity) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
+//		updatedVelocity *= ( .1 * paramsD.HSML / dTD ) / length(updatedVelocity);
+//		if (length(updatedVelocity) > 1.001) { // infinity
+//			if (paramsD.enableAggressiveTweak) {
+//				updatedVelocity = mR3(0);
+//			} else {
+//				printf("Error! Infinite updatedVelocity detected!\n");
+//			}
+//		}
+//	}
+	// 2*** end tweak
+	velMasD_half[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */velMas.w); //velMasD_half updated
+
+	posRadD[index] += updatedVelocity * dTD; //posRadD updated
+
+
+	Real4 rhoPresMu = rhoPresMuD_half[index];
+
+	// 3*** let's tweak a little bit :)
+//	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / dTD  && paramsD.enableTweak) {
+//		derivVelRho.w *= (.002 * paramsD.rho0 / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
+//		if (fabs(derivVelRho.w) > 00201 * paramsD.rho0 / dTD) {
+//			if (paramsD.enableAggressiveTweak) {
+//				derivVelRho.w = 0;
+//			} else {
+//				printf("Error! Infinite derivRho detected!\n");
+//			}
+//		}
+//	}
+	// 2*** end tweak
+	Real rho2 = rhoPresMu.x + derivVelRho.w * dTD; //rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
+	rhoPresMu.x = rho2;
+	rhoPresMuD_half[index] = rhoPresMu; //rhoPresMuD_half updated
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 //copies the sortedVelXSPH to velXSPH according to indexing
 __global__ void Copy_SortedVelXSPH_To_VelXSPHD(Real3 * vel_XSPH_D, Real3 * vel_XSPH_Sorted_D, uint * m_dGridMarkerIndex) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
@@ -1510,6 +1628,83 @@ void UpdateFluid(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+//updates the fluid particles by calling UpdateFluidD
+void UpdateFluid_init_LF(
+		thrust::device_vector<Real3> & posRadD,
+		thrust::device_vector<Real4> & velMasD_half,
+		thrust::device_vector<Real4> & rhoPresMuD_half,
+		const thrust::device_vector<Real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		Real dT) {
+	int3 referencePortion = referenceArray[0];
+	if (referencePortion.z != -1) {
+		printf("error in UpdateFluid, accessing non fluid\n");
+		return;
+	}
+	int2 updatePortion = mI2(referencePortion);
+	//int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
+	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
+	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion, sizeof(updatePortion));
+
+	uint nBlock_UpdateFluid, nThreads;
+	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
+	UpdateFluidD_init_LF<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(posRadD), mR4CAST(velMasD_half), mR4CAST(rhoPresMuD_half), mR4CAST(derivVelRhoD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//updates the fluid particles by calling UpdateFluidD
+void UpdateFluid_rho_vel_LF(
+		thrust::device_vector<Real4> & velMasD,
+		thrust::device_vector<Real4> & rhoPresMuD,
+		const thrust::device_vector<Real4> & velMasD_old,
+		const thrust::device_vector<Real4> & rhoPresMuD_old,
+		const thrust::device_vector<Real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		Real dT) {
+	int3 referencePortion = referenceArray[0];
+	if (referencePortion.z != -1) {
+		printf("error in UpdateFluid, accessing non fluid\n");
+		return;
+	}
+	int2 updatePortion = mI2(referencePortion);
+	//int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
+	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
+	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion, sizeof(updatePortion));
+
+	uint nBlock_UpdateFluid, nThreads;
+	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
+	UpdateFluidD_rho_vel_LF<<<nBlock_UpdateFluid, nThreads>>>(mR4CAST(velMasD), mR4CAST(rhoPresMuD), mR4CAST(velMasD_old), mR4CAST(rhoPresMuD_old), mR4CAST(derivVelRhoD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//updates the fluid particles by calling UpdateFluidD
+void UpdateFluid_EveryThing_LF(
+		thrust::device_vector<Real3> & posRadD,
+		thrust::device_vector<Real4> & velMasD_half,
+		thrust::device_vector<Real4> & rhoPresMuD_half,
+		const thrust::device_vector<Real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		Real dT) {
+	int3 referencePortion = referenceArray[0];
+	if (referencePortion.z != -1) {
+		printf("error in UpdateFluid, accessing non fluid\n");
+		return;
+	}
+	int2 updatePortion = mI2(referencePortion);
+	//int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
+	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
+	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion, sizeof(updatePortion));
+
+	uint nBlock_UpdateFluid, nThreads;
+	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
+	UpdateFluidD_EveryThing_LF<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(posRadD), mR4CAST(velMasD_half), mR4CAST(rhoPresMuD_half), mR4CAST(derivVelRhoD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void Copy_SortedVelXSPH_To_VelXSPH(
 		thrust::device_vector<Real3> & vel_XSPH_D,
