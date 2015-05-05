@@ -17,6 +17,7 @@ SET(FEA_DEMOS_IRR_MATLAB
 	demo_FEAbeamsconstr
 	demo_FEAminiature
 	demo_FEAcables
+	demo_FEAshells
 )
 
 #--------------------------------------------------------------
