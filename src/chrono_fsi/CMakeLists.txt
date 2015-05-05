@@ -73,7 +73,7 @@ SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 SET(DEMOS
     #fsi_hmmwv3
 fsi_hmmwv
-fsi_hmmwv4
+#fsi_hmmwv4
 	#fsi_hmmwv
 )
 

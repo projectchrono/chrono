@@ -39,7 +39,7 @@ void CheckPointMarkers_Write(
 		int tStep) {
 
 	//*******************************************************************
-	int tStepsCheckPoint = 200;
+	int tStepsCheckPoint = 1000;
 	if (tStep % tStepsCheckPoint != 0) return;
 
 	time_t rawtime;
