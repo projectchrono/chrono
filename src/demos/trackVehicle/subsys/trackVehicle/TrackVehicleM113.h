@@ -50,9 +50,9 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
         CollisionType::Enum collide = CollisionType::None,
         double mass = 5489.2,                                          // default for M113 APC
         const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),  // default for M113 APC
-        double pin_damping_coef =
-            0.5,  // non-zero, since pins between connected shoes always are pin/rubber bushing type elements.
-        double tensioner_preload = 1e4,                                           // idler tensioner preload
+        double pin_damping_coef = 0.1,  // connected shoes always are pin/rubber bushing type elements.
+        double tensioner_preload = 1e4, // idler tensioner preload
+        double omega_max = 25.0,    // max sprocket rotational speed
         const ChVector<>& left_pos_rel = ChVector<>(0.23644, -0.4780, 0.83475),   // relative to chassis REF c-sys
         const ChVector<>& right_pos_rel = ChVector<>(0.23644, -0.4780, -0.83475)  // relative to chassis REF c-sys,
         );
@@ -106,6 +106,9 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
 
     /// number of track chain systems attached to the vehicle
     int GetNum_TrackSystems() const { return m_num_tracks; }
+
+    /// return gear sprocket rot. vel., in RPM
+    double GetGearRPM(const size_t idx = 0) const;
 
   private:
     /// create files with headers for all specified output data types.

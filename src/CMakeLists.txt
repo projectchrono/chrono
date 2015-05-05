@@ -160,6 +160,10 @@ ENDIF()
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
+find_package(Threads)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+
 SET(ENABLE_OPENMP          TRUE    CACHE BOOL   "Turn this ON to enable OpenMP")
 IF (ENABLE_OPENMP)
   find_package("OpenMP")
@@ -189,20 +193,17 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		ADD_DEFINITIONS( "-DNOMINMAX" ) # do not use MSVC's min/max macros
 		ADD_DEFINITIONS( "-MP" ) # perform parallel builds
 	ENDIF(MSVC)
-	IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
+
+	IF (MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 		SET (CH_BUILDFLAGS "-D_MINGW -D_WINDOWS")
 		SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
 		SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
-	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-		SET (CH_BUILDFLAGS "-D_MINGW -D_WINDOWS -m64")
-		SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
-		SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
+
+		IF (CMAKE_SIZEOF_VOID_P MATCHES 8)
+			SET (CH_BUILDFLAGS "${CH_BUILDFLAGS} -m64")
+		ENDIF()
 	ENDIF()
 ENDIF()
-
-find_package(Threads)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 
 #-----------------------------------------------------------------------------
 # Some global  C++ definitions and includes that are used
