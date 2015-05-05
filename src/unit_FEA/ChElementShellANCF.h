@@ -114,13 +114,14 @@ public:
 
 				/// Fills the N shape function matrix with the
 				/// values of shape functions at parametric coordinates 'x,y'.
-				/// Note, xi=0..1, yi=0..1.
+				/// Note, xi=0..1, yi=0..1.  
+                /// Note, xi is in the'length' direction, i.e. from node 1 to 2.
 	virtual void ShapeFunctions(ChMatrix<>& N, double xi,  double yi)
 				{
-                    // ***TODO***
-					// N(0) = // ***TODO***
-					// N(1) = // ***TODO***
-					// ....
+					N(0) = 0.25 * (1-xi) * (1-yi);
+					N(1) = 0.25 * (1+xi) * (1-yi);
+					N(2) = 0.25 * (1+xi) * (1+yi);
+                    N(3) = 0.25 * (1-xi) * (1+yi);
 				};
 
 				/// Fills the N shape function derivatives matrix with the
