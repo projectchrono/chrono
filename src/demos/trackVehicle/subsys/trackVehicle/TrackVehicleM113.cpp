@@ -78,14 +78,13 @@ TrackVehicleM113::TrackVehicleM113(const std::string& name,
     // add visualization assets to the chassis
     AddVisualization();
 
-    // resize all vectors for the number of track systems
-    m_TrackSystems.resize(m_num_tracks);
-    m_TrackSystem_locs.resize(m_num_tracks);
-    m_filename_WCV.resize(m_num_tracks);
+    // resize vectors for the number of track systems
+    // m_TrackSystems.resize(m_num_tracks);
+   // m_TrackSystem_locs.resize(m_num_tracks);
 
     // Right and Left track System relative locations, respectively
-    m_TrackSystem_locs[0] = m_trackSys_L;
-    m_TrackSystem_locs[1] = m_trackSys_R;
+    m_TrackSystem_locs.push_back(m_trackSys_L);
+    m_TrackSystem_locs.push_back(m_trackSys_R);
 
     // two drive Gears, like a 2WD driven vehicle.
     // m_drivelines.resize(m_num_engines);
@@ -95,7 +94,7 @@ TrackVehicleM113::TrackVehicleM113(const std::string& name,
     for (int i = 0; i < m_num_tracks; i++) {
         std::stringstream t_ss;
         t_ss << "track chain " << i;
-        m_TrackSystems[i] = ChSharedPtr<TrackSystemM113>(new TrackSystemM113(t_ss.str(), i, m_tensioner_preload, omega_max));
+        m_TrackSystems.push_back( ChSharedPtr<TrackSystemM113>(new TrackSystemM113(t_ss.str(), i, m_tensioner_preload, omega_max)) );
     }
 
     // create the powertrain and drivelines
@@ -104,8 +103,8 @@ TrackVehicleM113::TrackVehicleM113(const std::string& name,
         dl_ss << "driveline " << j;
         std::stringstream pt_ss;
         pt_ss << "powertrain " << j;
-        // m_drivelines[j] = ChSharedPtr<TrackDriveline>(new TrackDriveline(dl_ss.str() ) );
-        m_ptrains[j] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain(pt_ss.str()));
+        // m_drivelines.push_back(ChSharedPtr<TrackDriveline>(new TrackDriveline(dl_ss.str() ) ) );
+        m_ptrains.push_back(ChSharedPtr<TrackPowertrain>(new TrackPowertrain(pt_ss.str())) );
     }
 
     // add a dummy shaft
@@ -152,10 +151,10 @@ void TrackVehicleM113::Update(double time, const std::vector<double>& throttle, 
 
 void TrackVehicleM113::Advance(double step) {
     double t = 0;
-    double settlePhaseA = 0.25;
-    double settlePhaseB = 0.5;
+    double settlePhaseA = 1.0;
+    double settlePhaseB = 1.0;
     m_system->SetIterLCPmaxItersStab(100);
-    m_system->SetIterLCPmaxItersSpeed(150);
+    m_system->SetIterLCPmaxItersSpeed(100);
     while (t < step) {
         double h = std::min<>(m_stepsize, step - t);
         if (m_system->GetChTime() < settlePhaseA) {
@@ -226,6 +225,7 @@ void TrackVehicleM113::SaveConstraintViolations() {
     }
     double t = m_system->GetChTime();
 
+    /* 
     // save constraint violation on each chain system
     for (size_t chain_id = 0; chain_id < m_num_tracks; chain_id++) {
         // call the subsystems in the same order as the headers are set up
@@ -254,6 +254,8 @@ void TrackVehicleM113::SaveConstraintViolations() {
 
         // TODO: save the violations of the inter-shoe body revolute constraints
     }
+
+    */
 }
 
 // write output, console functions
@@ -359,45 +361,160 @@ void TrackVehicleM113::Log_to_file() {
 
         double t = m_system->GetChTime();
 
+        // python pandas expects csv w/ no whitespace
         if (m_log_what_to_file & DBG_CHASSIS) {
             std::stringstream ss_c;
             // time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,throttleR,throttleL
-            ss_c << t << "," << m_chassis->GetPos() << "," << m_chassis->GetPos_dt() << "," << m_chassis->GetWvel_loc()
-                 << "," << m_TrackSystems[(int)RIGHTSIDE]->GetDriveGear()->GetGearMotion() << ","
-                 << m_TrackSystems[(int)LEFTSIDE]->GetDriveGear()->GetGearMotion() << "\n";
+            ss_c << t << "," << m_chassis->GetPos() << "," << m_chassis->GetPos_dt() << "," 
+              << m_chassis->GetWvel_loc() << "," 
+              << m_TrackSystems[(int)RIGHTSIDE]->GetDriveGear()->GetGearMotion() << ","
+              << m_TrackSystems[(int)LEFTSIDE]->GetDriveGear()->GetGearMotion() << "\n";
             ChStreamOutAsciiFile ofileDBG_CHASSIS(m_filename_DBG_CHASSIS.c_str(), std::ios::app);
             ofileDBG_CHASSIS << ss_c.str().c_str();
         }
 
-        // create headers for all the subsystems in each chain system
+        // output data for each trackChain system
         for (size_t chain_id = 0; chain_id < m_num_tracks; chain_id++) {
-            if (m_log_what_to_file & DBG_GEAR) {
-                std::stringstream ss_g;
-                // time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz
-                ss_g << t << "," << m_TrackSystems[chain_id]->GetDriveGear()->GetBody()->GetPos() << ","
-                     << m_TrackSystems[chain_id]->GetDriveGear()->GetBody()->GetPos_dt() << ","
-                     << m_TrackSystems[chain_id]->GetDriveGear()->GetBody()->GetWvel_loc() << "\n";
-                ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR[chain_id].c_str(), std::ios::app);
-                ofileDBG_GEAR << ss_g.str().c_str();
-            }
+          if (m_log_what_to_file & DBG_FIRSTSHOE) {
+            std::stringstream ss;
+            // time,x,y,z,vx,vy,vz,ax,ay,az,wx,wy,wz,fx,fy,fz
+            ChSharedPtr<ChBody> shoe = m_TrackSystems[chain_id]->GetTrackChain()->GetShoeBody(0);
+            ss << t << "," << shoe->GetPos() << ","
+              << m_chassis->GetFrame_REF_to_abs().TransformPointParentToLocal(shoe->GetPos() - m_chassis->GetPos()) << ","
+              << shoe->GetPos_dt() << ","
+              << shoe->GetPos_dtdt() << "," 
+              << shoe->GetWvel_loc() << ","
+              << m_TrackSystems[chain_id]->GetTrackChain()->GetPinReactForce(0) << "," 
+              << m_TrackSystems[chain_id]->GetTrackChain()->GetPinReactTorque(0) << "\n";
+            // open the file for appending, write the data.
+            ChStreamOutAsciiFile ofile(m_filename_DBG_FIRSTSHOE[chain_id].c_str(), std::ios::app);
+            ofile << ss.str().c_str();
 
-            if (m_log_what_to_file & DBG_IDLER) {
-                std::stringstream ss_id;
-                // time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,F_tensioner,F_k,F_c
-                ss_id << t << "," << m_TrackSystems[chain_id]->GetIdler()->GetBody()->GetPos() << ","
-                      << m_TrackSystems[chain_id]->GetIdler()->GetBody()->GetPos_dt() << ","
-                      << m_TrackSystems[chain_id]->GetIdler()->GetBody()->GetWvel_loc() << ","
-                      << m_TrackSystems[chain_id]->GetIdler()->GetSpringForce() << ","
-                      << m_TrackSystems[chain_id]->GetIdler()->Get_SpringReact_Deform() << ","
-                      << m_TrackSystems[chain_id]->GetIdler()->Get_SpringReact_Deform_dt() << "\n";
-                ChStreamOutAsciiFile ofileDBG_IDLER(m_filename_DBG_IDLER[chain_id].c_str(), std::ios::app);
-                ofileDBG_IDLER << ss_id.str().c_str();
-            }
 
-            if (m_log_what_to_file & DBG_CONSTRAINTS) {
-                // Report constraint violations for all joints
-                SaveConstraintViolations();
-            }
+            /*
+            // second file, to specify some collision info with the gear
+            double num_contacts = 0;
+            std::vector<ChVector<> > sg_info;         // output data set
+            std::vector<ChVector<> > Force_mag_info;  // per step contact force magnitude, (Fn, Ft, 0)
+            std::vector<ChVector<> > PosRel_contact;  // location of a contact point relative to the gear c-sys
+            std::vector<ChVector<> > VRel_contact;    // follow the vel. of a contact point relative to the gear c-sys
+            std::vector<ChVector<> > NormDirRel_contact;  // tracked contact normal dir., w.r.t. gear c-sys
+            // sg_info = (Num_contacts, t_persist, t_persist_max)
+            num_contacts = reportShoeGearContact(m_chain->GetShoeBody(0)->GetNameString(), sg_info, Force_mag_info,
+              PosRel_contact, VRel_contact, NormDirRel_contact);
+
+            // suffix "P" is the z-positive side of the gear, "N" is the z-negative side
+            // "time,Ncontacts,t_persistP,t_persist_maxP,FnMagP,FtMagP,xRelP,yRelP,zRelP,VxRelP,VyRelP,VzRelP,normDirRelxP,normDirRelyP,normDirRelzP
+            //  ,t_persistN,t_persist_maxN,FnMagN,FtMagN,xRelN,yRelN,zRelN,VxRelN,VyRelN,VzRelN,normDirRelxN,normDirRelyN,normDirRelzN
+            //  "
+            std::stringstream ss_sg;
+            ss_sg << t << "," << num_contacts << "," << sg_info[0] << "," << Force_mag_info[0].x << ","
+              << Force_mag_info[0].y << "," << PosRel_contact[0] << "," << VRel_contact[0] << ","
+              << NormDirRel_contact[0] << "," << sg_info[1] << "," << Force_mag_info[1].x << ","
+              << Force_mag_info[1].y << "," << PosRel_contact[1] << "," << VRel_contact[1] << ","
+              << NormDirRel_contact[1] << "\n";
+            ChStreamOutAsciiFile ofile_shoeGear(m_filename_DBG_shoeGear.c_str(), std::ios::app);
+            ofile_shoeGear << ss_sg.str().c_str();
+
+            */
+
+          }
+          if (m_log_what_to_file & DBG_GEAR) {
+            std::stringstream ss_g;
+            ChSharedPtr<ChBody> gb = m_TrackSystems[chain_id]->GetDriveGear()->GetBody();
+            // time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz
+            ss_g << t << "," << gb->GetPos() << "," 
+              << gb->GetPos_dt() << ","
+              << gb->GetWvel_loc() << "\n";
+            ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR[chain_id].c_str(), std::ios::app);
+            ofileDBG_GEAR << ss_g.str().c_str();
+
+            // second file, for the specific contact info
+            std::stringstream ss_gc;
+
+
+            /*
+            // find what's in contact with the gear by processing all collisions with a special callback function
+            ChVector<> Fn_info = ChVector<>();
+            ChVector<> Ft_info = ChVector<>();
+            // info is: (max, avg., variance)
+            int num_gear_contacts = reportGearContact(Fn_info, Ft_info);
+            // time,Ncontacts,FnMax,FnAvg,FnVar,FtMax,FtAvg,FtVar
+            ss_gc << t << "," << num_gear_contacts << "," << Fn_info << "," << std::sqrt(Fn_info.z) << "," << Ft_info
+              << "," << std::sqrt(Ft_info.z) << "\n";
+            ChStreamOutAsciiFile ofileDBG_GEAR_CONTACT(m_filename_DBG_GEAR_CONTACT.c_str(), std::ios::app);
+            ofileDBG_GEAR_CONTACT << ss_gc.str().c_str();
+
+            */
+
+          }
+
+          if (m_log_what_to_file & DBG_IDLER) {
+            std::stringstream ss_id;
+            ChSharedPtr<ChBody> ib = m_TrackSystems[chain_id]->GetIdler()->GetBody();
+            // time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,F_tensioner,F_k,F_c
+            ss_id << t << "," << ib->GetPos() << "," 
+              << ib->GetPos_dt() << ","
+              << ib->GetWvel_loc() << "," 
+              << m_TrackSystems[chain_id]->GetIdler()->GetSpringForce() << ","
+              << m_TrackSystems[chain_id]->GetIdler()->Get_SpringReact_Deform() << "," 
+              << m_TrackSystems[chain_id]->GetIdler()->Get_SpringReact_Deform_dt() << "\n";
+            ChStreamOutAsciiFile ofileDBG_IDLER(m_filename_DBG_IDLER[chain_id].c_str(), std::ios::app);
+            ofileDBG_IDLER << ss_id.str().c_str();
+          }
+
+
+
+          /*
+
+          if (m_log_what_to_file & DBG_CONSTRAINTS) {
+            // Report constraint violations for all joints
+            SaveConstraintViolations();
+          }
+
+          if (m_log_what_to_file & DBG_PTRAIN) {
+            std::stringstream ss_pt;
+            // motor speed, mot torque, out torque
+            ss_pt << t << "," << m_ptrains[0]->GetThrottle() << ","
+              << m_ptrains[0]->GetMotorSpeed() * 60.0 / (CH_C_2PI)  // RPM
+              << "," << m_ptrains[0]->GetMotorTorque() << "," << m_ptrains[0]->GetOutputTorque() << "\n";
+            ChStreamOutAsciiFile ofilePT(m_filename_DBG_PTRAIN.c_str(), std::ios::app);
+            ofilePT << ss_pt.str().c_str();
+          }
+
+          if (m_log_what_to_file & DBG_COLLISIONCALLBACK & (GetCollisionCallback() != NULL)) {
+            std::stringstream ss_cc;
+            // report # of contacts detected this step between shoe pins # gear.
+            // time,Ncontacts,Nbroadphase,NcPz,NcNz
+            ss_cc << t << "," << GetCollisionCallback()->GetNcontacts() << ","
+              << GetCollisionCallback()->GetNbroadPhasePassed() << ","
+              << GetCollisionCallback()->Get_sum_Pz_contacts() << ","
+              << GetCollisionCallback()->Get_sum_Nz_contacts() << "\n";
+            ChStreamOutAsciiFile ofileCCBACK(m_filename_DBG_COLLISIONCALLBACK.c_str(), std::ios::app);
+            ofileCCBACK << ss_cc.str().c_str();
+          }
+
+          if (m_log_what_to_file & DBG_ALL_CONTACTS) {
+            // use the reporter class with the console log
+            std::stringstream ss_fn;  // filename
+            ss_fn << m_filename_DBG_ALL_CONTACTS << m_cnt_Log_to_file << ".csv";
+
+            // new file created for each step
+            ChStreamOutAsciiFile ofileContacts(ss_fn.str().c_str());
+
+            // write headers to the file first
+            std::stringstream ss_header;
+            ss_header << "bodyA,bodyB,pAx,pAy,pAz,pBx,pBy,pBz,Nx,Ny,Nz,dist,Fx,Fy,Fz\n";
+            ofileContacts << ss_header.str().c_str();
+
+            _contact_reporter m_report(ofileContacts);
+            // add it to the system, should be called next timestep
+            m_system->GetContactContainer()->ReportAllContacts(&m_report);
+          }
+
+
+          */
+
         }
 
         // increment step number
@@ -412,92 +529,153 @@ void TrackVehicleM113::create_fileHeaders(int what) {
     GetLog() << " ------ Output Data ------------ \n\n";
 
     if (what & DBG_CHASSIS) {
-        std::stringstream ss_c_fn;
-        ss_c_fn << m_log_file_name << "_chassis.csv";
-        m_filename_DBG_CHASSIS = ss_c_fn.str();
-        ChStreamOutAsciiFile ofileDBG_CHASSIS(m_filename_DBG_CHASSIS.c_str());
-        std::stringstream ss_c;
-        ss_c << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,throttleR,throttleL\n";
-        ofileDBG_CHASSIS << ss_c.str().c_str();
-        GetLog() << " writing to file: " << m_filename_DBG_CHASSIS << "\n        data: " << ss_c.str().c_str() << "\n";
+      std::stringstream ss_c_fn;
+      ss_c_fn << m_log_file_name << "_chassis.csv";
+      m_filename_DBG_CHASSIS = ss_c_fn.str();
+      ChStreamOutAsciiFile ofileDBG_CHASSIS(m_filename_DBG_CHASSIS.c_str());
+      std::stringstream ss_c;
+      ss_c << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,throttleR,throttleL\n";
+      ofileDBG_CHASSIS << ss_c.str().c_str();
+      GetLog() << " writing to file: " << m_filename_DBG_CHASSIS << "\n        headers: " << ss_c.str().c_str() << "\n";
     }
 
     // create headers for all the subsystems in each chain system
     for (size_t chain_id = 0; chain_id < m_num_tracks; chain_id++) {
-        if (what & DBG_GEAR) {
-            std::stringstream ss_gear_fn;
-            ss_gear_fn << m_log_file_name << "_Side" << chain_id << "_gear.csv";
-            m_filename_DBG_GEAR.push_back(ss_gear_fn.str());
-            // open the file and write the header
-            ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.back().c_str());
-            std::stringstream ss_g;
-            ss_g << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz\n";
-            ofileDBG_GEAR << ss_g.str().c_str();
-            GetLog() << " writing to file: " << m_filename_DBG_GEAR.back() << "\n          data: " << ss_g.str().c_str()
-                     << "\n";
-        }
 
-        if (what & DBG_IDLER) {
-            std::stringstream ss_idler_fn;
-            ss_idler_fn << m_log_file_name << "_Side" << chain_id << "_idler.csv";
-            m_filename_DBG_IDLER.push_back(ss_idler_fn.str());
-            // open the file, write header
-            ChStreamOutAsciiFile ofileDBG_IDLER(m_filename_DBG_IDLER.back().c_str());
-            std::stringstream ss_id;
-            ss_id << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,F_tensioner,F_k,F_c\n";
-            ofileDBG_IDLER << ss_id.str().c_str();
-            GetLog() << " writing to file: " << m_filename_DBG_IDLER.back()
-                     << "\n          data:" << ss_id.str().c_str() << "\n";
-        }
+      if (what & DBG_FIRSTSHOE) {
+        // Shoe 0 : S0, Pin0: P0
+        std::stringstream ss_fs;
+        ss_fs << m_log_file_name << "_Side" << chain_id << "_shoe0.csv";
+        m_filename_DBG_FIRSTSHOE.push_back(ss_fs.str() );
+        ChStreamOutAsciiFile ofileDBG_FIRSTSHOE(ss_fs.str().c_str() );
+        std::stringstream ss_fs_head;
+        ss_fs_head << "time,x,y,z,xRel,yRel,zRel,Vx,Vy,Vz,Ax,Ay,Az,Wx,Wy,Wz,Fx,Fy,Fz,Tx,Ty,Tz\n";
+        ofileDBG_FIRSTSHOE << ss_fs_head.str().c_str();
+        GetLog() << " writing to file: " << m_filename_DBG_FIRSTSHOE.back() << "\n         header: " << ss_fs_head.str().c_str() << "\n";
 
-        // write the data for each subsystem's constraint violation
-        if (what & DBG_CONSTRAINTS) {
-            // in the same order as listed in the header
-            // open the file, write header for gear CV
-            std::stringstream ss_gcv_fn;
-            ss_gcv_fn << m_log_file_name << "_Side" << chain_id << "_GearCV.csv";
-            m_filename_GCV.push_back(ss_gcv_fn.str());
-            ChStreamOutAsciiFile ofileGCV(m_filename_GCV.back().c_str());
-            std::stringstream ss_gCV;
-            ss_gCV << m_TrackSystems[chain_id]->GetDriveGear()->getFileHeader_ConstraintViolations(0);
-            ofileGCV << ss_gCV.str().c_str();
-            GetLog() << " writing to file: " << m_filename_GCV.back() << "\n          data: " << ss_gCV.str().c_str()
-                     << "\n";
-
-            // open the file, write header for idler CV
-            std::stringstream ss_icv_fn;
-            ss_icv_fn << m_log_file_name << "_Side" << chain_id << "_idlerCV.csv";
-            m_filename_ICV.push_back(ss_icv_fn.str());
-            ChStreamOutAsciiFile ofileICV(m_filename_ICV.back().c_str());
-            std::stringstream ss_header;
-            ss_header << m_TrackSystems[chain_id]->GetIdler()->getFileHeader_ConstraintViolations();
-            ofileICV << ss_header.str().c_str();
-            GetLog() << " writing to file: " << m_filename_ICV.back() << "\n          data: " << ss_header.str().c_str()
-                     << "\n";
-
-            // open the file, write headers for violations of the bogie wheels revolute joints
-            for (size_t w_id = 0; w_id < m_TrackSystems[chain_id]->Get_NumWheels(); w_id++) {
-                std::stringstream ss_wCV;
-                ss_wCV << m_log_file_name << "_Side" << chain_id << "_roller" << w_id << "CV.csv";
-                m_filename_WCV[chain_id].push_back(ss_wCV.str());
-                ChStreamOutAsciiFile ofileWCV(m_filename_WCV[chain_id].back().c_str());
-                std::stringstream ss_header;
-                ofileWCV << ss_wCV.str().c_str();
-                GetLog() << " writing to file: " << m_filename_WCV[chain_id].back()
-                         << "\n         data: " << ss_header.str().c_str() << "\n";
-            }
-        }
 
         /*
-            // write all contact info to a new file each step
-            if(what & DBG_ALL_CONTACTS)
-            {
-              m_filename_DBG_ALL_CONTACTS = m_log_file_name+"_allContacts";
-              // write a file each step, so we'll write a header then.
-              GetLog() << " writing contact info to file name: " << m_filename_DBG_ALL_CONTACTS << "\n\n";
-            }
+
+        // report the contact with the gear in a second file
+        std::stringstream ss_sg;
+        ss_sg << m_log_file_name << "_Side" << chain_id << "_shoe0GearContact.csv";
+        m_filename_DBG_shoeGear.push_back(ss_sg.str());
+        ChStreamOutAsciiFile ofileDBG_shoeGear(ss_sg.str().c_str());
+        std::stringstream ss_sg_head;
+        // suffix "P" is the z-positive side of the gear, "N" is the z-negative side
+        ss_sg_head << "time,Ncontacts,NcontactsP,t_persistP,t_persist_maxP,FnMagP,FtMagP,xRelP,yRelP,zRelP,VxRelP,VyRelP,"
+          "VzRelP,normDirRelxP,normDirRelyP,normDirRelzP"
+          << ",NcontactsN,t_persistN,t_persist_maxN,FnMagN,FtMagN,xRelN,yRelN,zRelN,VxRelN,VyRelN,VzRelN,"
+          "normDirRelxN,normDirRelyN,normDirRelzN\n";
+        ofileDBG_shoeGear << ss_sg_head.str().c_str();
+
         */
+
+
+      }
+
+      if (what & DBG_GEAR) {
+        std::stringstream ss_gf;
+        ss_gf << m_log_file_name << "_Side" << chain_id <<  "_gear.csv";
+        m_filename_DBG_GEAR.push_back(ss_gf.str());
+        ChStreamOutAsciiFile ofileDBG_GEAR(ss_gf.str().c_str());
+        std::stringstream ss_g_head;
+        ss_g_head << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz\n";
+        ofileDBG_GEAR << ss_g_head.str().c_str();
+        GetLog() << " writing to file: " << m_filename_DBG_GEAR.back() << "\n          header: " << ss_g_head.str().c_str() << "\n";
+
+        // report on some specific collision info in a separate file
+        /*
+        m_filename_DBG_GEAR_CONTACT = m_log_file_name + "_gearContact.csv";
+        ChStreamOutAsciiFile ofileDBG_GEAR_CONTACT(m_filename_DBG_GEAR_CONTACT.c_str());
+        std::stringstream ss_gc;
+        ss_gc << "time,Ncontacts,FnMax,FnAvg,FnVar,FnSig,FtMax,FtAvg,FtVar,FtSig\n";
+        ofileDBG_GEAR_CONTACT << ss_gc.str().c_str();
+        GetLog() << " writing to file : " << m_filename_DBG_GEAR_CONTACT << "\n          data: " << ss_gc.str().c_str()
+          << "\n";
+
+          */
+      }
+
+      if (what & DBG_IDLER) {
+        std::stringstream ss_i;
+        ss_i << m_log_file_name << "_Side" << chain_id << "_idler.csv";
+        m_filename_DBG_IDLER.push_back(ss_i.str().c_str());
+
+        ChStreamOutAsciiFile ofileDBG_IDLER(ss_i.str().c_str());
+        std::stringstream ss_i_head;
+        ss_i_head << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,F_tensioner,F_k,F_c\n";
+        ofileDBG_IDLER << ss_i_head.str().c_str();
+        GetLog() << " writing to file: " << m_filename_DBG_IDLER.back() << "\n          headers: " << ss_i_head.str().c_str() << "\n";
+      }
+
+      /*
+      // write the data for each subsystem's constraint violation
+      if (what & DBG_CONSTRAINTS) {
+        // in the same order as listed in the header
+        m_filename_GCV = m_log_file_name + "_GearCV.csv";
+        ChStreamOutAsciiFile ofileGCV(m_filename_GCV.c_str());
+        std::stringstream ss_gCV;
+        ss_gCV << m_gear->getFileHeader_ConstraintViolations(0);
+        ofileGCV << ss_gCV.str().c_str();
+        GetLog() << " writing to file: " << m_filename_GCV << "\n          data: " << ss_gCV.str().c_str() << "\n";
+
+        std::stringstream ss_iCV;
+        ss_iCV << m_log_file_name << "_idler" << id << "CV.csv";
+        m_filename_ICV.push_back(ss_iCV.str().c_str());
+        ChStreamOutAsciiFile ofileICV(m_filename_ICV.back().c_str());
+        std::stringstream ss_header;
+        ss_header << m_idlers[id]->getFileHeader_ConstraintViolations();
+        ofileICV << ss_header.str().c_str();
+        GetLog() << " writing to file: " << m_filename_ICV[id] << "\n          data: " << ss_header.str().c_str()
+          << "\n";
+
+        // violations of the roller revolute joints
+        for (int roller = 0; roller < m_num_wheels; roller++) {
+          std::stringstream ss_rCV;
+          ss_rCV << m_log_file_name << "_roller" << roller << "CV.csv";
+          m_filename_RCV.push_back(ss_rCV.str());
+          ChStreamOutAsciiFile ofileRCV(m_filename_RCV.back().c_str());
+          std::stringstream ss_header;
+          ofileRCV << ss_rCV.str().c_str();
+          GetLog() << " writing to file: " << m_filename_RCV[roller] << "\n         data: " << ss_header.str().c_str()
+            << "\n";
+        }
+      }
+
+      // write powertrian data
+      if (what & DBG_PTRAIN) {
+        m_filename_DBG_PTRAIN = m_log_file_name + "_ptrain.csv";
+        ChStreamOutAsciiFile ofileDBG_PTRAIN(m_filename_DBG_PTRAIN.c_str());
+        std::stringstream ss_pt;
+        ss_pt << "time,throttle,motSpeed,motT,outT\n";
+        ofileDBG_PTRAIN << ss_pt.str().c_str();
+        GetLog() << " writing to file: " << m_filename_DBG_PTRAIN << "\n          data: " << ss_pt.str().c_str()
+          << "\n";
+      }
+
+      // write broadphase, narrow phase contact info
+      if (what & DBG_COLLISIONCALLBACK & (GetCollisionCallback() != NULL)) {
+        m_filename_DBG_COLLISIONCALLBACK = m_log_file_name + "_Ccallback.csv";
+        ChStreamOutAsciiFile ofileDBG_COLLISIONCALLBACK(m_filename_DBG_COLLISIONCALLBACK.c_str());
+        std::stringstream ss_cc;
+        ss_cc << "time,Ncontacts,Nbroadphase,NcPz,NcNz\n";
+        ofileDBG_COLLISIONCALLBACK << ss_cc.str().c_str();
+        GetLog() << " writing to file: " << m_filename_DBG_COLLISIONCALLBACK << "\n     data: " << ss_cc.str().c_str()
+          << "\n";
+      }
+
+      // write all contact info to a new file each step
+      if (what & DBG_ALL_CONTACTS) {
+        m_filename_DBG_ALL_CONTACTS = m_log_file_name + "_allContacts";
+        // write a file each step, so we'll write a header then.
+        GetLog() << " writing contact info to file name: " << m_filename_DBG_ALL_CONTACTS << "\n\n";
+      }
+
+      */
+
     }
+  
 }
 
 }  // end namespace chrono
