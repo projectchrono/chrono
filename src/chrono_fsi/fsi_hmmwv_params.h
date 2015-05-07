@@ -20,13 +20,13 @@
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold_vehicle = 0;//1.3;//0.1;  // 0.2;
+Real time_hold_vehicle = 2;//0.1;  // 0.2;
 Real time_pause_fluid_external_force = 0;//.05;//0.1;//0.1;  // 0.2;
 
 Real contact_recovery_speed = 1;
-Real maxFlowVelocity = 10;  // in an ideal case, these two need to be the same
+Real maxFlowVelocity = 12;  // in an ideal case, these two need to be the same
 
-Real time_step = 1e-4;//0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
+Real time_step = 2e-4;//0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
 Real time_end = 11;
 
@@ -194,7 +194,7 @@ void SetupParamsH(SimParams& paramsH) {
 enum WheelType { CYLINDRICAL, LUGGED };
 
 // Type of wheel/tire (controls both contact and visualization)
-WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
+WheelType wheel_type = LUGGED;  // CYLINDRICAL;
 
 enum ChassisType { CSPHERE, CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIGINAL };
 
@@ -206,7 +206,7 @@ std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
 std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 
 // JSON files for powertrain (simple)
-std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
+std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain_Arman.json");
 
 // Initial vehicle position and orientation
 // ChVector<> initLoc(-3.0, 0, 0.75);

@@ -856,9 +856,9 @@ int main(int argc, char* argv[]) {
     // ******* slow down the sys.Check point the sys.
    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep);
 
-//   	if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
-//    	FreezeSPH(velMasD, velMasH);
-//    }
+   	if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
+    	FreezeSPH(velMasD, velMasH);
+    }
     // *******
 
     if (realTime <= paramsH.timePause) {
