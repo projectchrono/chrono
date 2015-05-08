@@ -612,6 +612,39 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
     num_contacts = 0;
   }
 }
+
+// =============================================================================
+
+void OutputVehicleData(ChSystemParallelDVI& mphysicalSystem, int tStep) {
+	std::ofstream outVehicleData;
+	if (tStep == 0) {
+		outVehicleData.open("vehicleData.txt");
+	} else {
+		outVehicleData.open("vehicleData.txt", std::ios::app);
+	}
+	outVehicleData << 	mphysicalSystem.GetChTime() << ", " <<
+
+						mVehicle->GetPowertrain()->GetMotorTorque() << ", " <<
+						mVehicle->GetPowertrain()->GetMotorSpeed() << ", " <<
+						mVehicle->GetPowertrain()->GetOutputTorque() << ", " <<
+						mVehicle->GetPowertrain()->GetCurrentTransmissionGear() << ", " <<
+						mVehicle->GetPowertrain()->GetMaxTorque() << ", " <<
+						mVehicle->GetPowertrain()->GetMaxSpeed() << ", " <<
+
+						mVehicle->GetVehicle()->GetChassis()->GetPos().x << ", " <<
+						mVehicle->GetVehicle()->GetChassis()->GetPos().y << ", " <<
+						mVehicle->GetVehicle()->GetChassis()->GetPos().z << ", " <<
+
+						mVehicle->GetVehicle()->GetChassis()->GetPos_dt().x << ", " <<
+						mVehicle->GetVehicle()->GetChassis()->GetPos_dt().y << ", " <<
+						mVehicle->GetVehicle()->GetChassis()->GetPos_dt().z << ", " <<
+
+						mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().x << ", " <<
+						mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().y << ", " <<
+						mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().z << ", " <<
+
+						std::endl;
+}
 // =============================================================================
 void FreezeSPH(
 		thrust::device_vector<Real4> & velMasD,
@@ -773,15 +806,11 @@ int main(int argc, char* argv[]) {
   outSimulationInfo.open("SimInfo.txt");
 
   ChSystemParallelDVI mphysicalSystem;
-  if (initializeMbdFromFile) {
-	  utils::ReadCheckpoint(&mphysicalSystem, checkPointMbdSys);
-  } else {
-	  InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
+  InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
 
-	  // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
-	  CreateMbdPhysicalSystemObjects(mphysicalSystem,
-				posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
-  }
+  // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
+  CreateMbdPhysicalSystemObjects(mphysicalSystem,
+			posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
 
   // ***************************** Create Interface ********************************************
 
@@ -899,10 +928,6 @@ int main(int argc, char* argv[]) {
     // If enabled, output data for PovRay postprocessing.
     SavePovFilesMBD(mphysicalSystem, tStep, mTime, num_contacts, exec_time);
 
-    if (tStep % tStepsCheckPoint == 0) {
-    	utils::WriteCheckpoint(&mphysicalSystem, tStepsCheckPoint);
-    }
-
 // ****************** RK2: 1/2
 #if haveFluid
 
@@ -993,6 +1018,8 @@ int main(int argc, char* argv[]) {
 
 #endif
     // ****************** End RK2
+
+    OutputVehicleData(mphysicalSystem, tStep);
 
     // Update counters.
     exec_time += mphysicalSystem.GetTimerStep();

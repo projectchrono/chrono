@@ -20,7 +20,7 @@
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold_vehicle = 2;//0.1;  // 0.2;
+Real time_hold_vehicle = 1.0;//0.1;  // 0.2;
 Real time_pause_fluid_external_force = 0;//.05;//0.1;//0.1;  // 0.2;
 
 Real contact_recovery_speed = 1;
@@ -28,7 +28,7 @@ Real maxFlowVelocity = 12;  // in an ideal case, these two need to be the same
 
 Real time_step = 2e-4;//0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
-Real time_end = 11;
+Real time_end = 15;
 
 // Dimensions
 Real hdimX = 14;  // 5.5;
@@ -191,10 +191,6 @@ void SetupParamsH(SimParams& paramsH) {
 // -----------------------------------------------------------------------------
 // Specification of the vehicle model
 // -----------------------------------------------------------------------------
-bool initializeMbdFromFile = false; 	// 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
-std::string checkPointMbdSys("checkPoint/ChSystemCheckPoint.json");
-
-
 enum WheelType { CYLINDRICAL, LUGGED };
 
 // Type of wheel/tire (controls both contact and visualization)
