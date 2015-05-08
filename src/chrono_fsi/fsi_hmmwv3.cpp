@@ -892,11 +892,12 @@ int main(int argc, char* argv[]) {
         FillMyThrust4(derivVelRhoD, mR4(0));
 
     	fsi_timer.start("fluid_initialization");
-    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep);
+	int out_steps = std::ceil((1.0 / time_step) / out_fps);
+    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep, out_steps);
 
     // ******* slow down the sys.Check point the sys.
 
-   	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep);
+   	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep, tStepsCheckPoint);
 
 //    if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
 //    	SetMarkersVelToZero(velMasD, velMasH);

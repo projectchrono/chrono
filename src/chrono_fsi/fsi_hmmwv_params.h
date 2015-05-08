@@ -46,6 +46,7 @@ int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
 // -----------------------------------------------------------------------------
+int tStepsCheckPoint = 1000;
 bool initializeFluidFromFile = false; 	// 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
 										//	when adding functionality using "useWallBce" and "haveFluid" macros, pay attention to  "initializeFluidFromFile" options.
 										//	for a double security, do your best to set "haveFluid" and "useWallBce" based on the data you have from checkpoint files
@@ -190,6 +191,9 @@ void SetupParamsH(SimParams& paramsH) {
 // -----------------------------------------------------------------------------
 // Specification of the vehicle model
 // -----------------------------------------------------------------------------
+bool initializeMbdFromFile = false; 	// 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
+std::string checkPointMbdSys("checkPoint/ChSystemCheckPoint.json");
+
 
 enum WheelType { CYLINDRICAL, LUGGED };
 
@@ -248,12 +252,12 @@ std::ofstream simParams;
 
 chrono::ChTimerParallel fsi_timer;
 
-bool povray_output = false;
+bool povray_output = true;
 
 const std::string out_dir = "../HMMWV";
 const std::string pov_dir = out_dir + "/POVRAY";
 
-int out_fps = 60;
+int out_fps = 120;
 
 Real vertical_offset = 0;  // vehicle vertical offset
 

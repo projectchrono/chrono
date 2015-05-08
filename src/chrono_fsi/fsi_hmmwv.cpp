@@ -773,11 +773,15 @@ int main(int argc, char* argv[]) {
   outSimulationInfo.open("SimInfo.txt");
 
   ChSystemParallelDVI mphysicalSystem;
-  InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
+  if (initializeMbdFromFile) {
+	  utils::ReadCheckpoint(&mphysicalSystem, checkPointMbdSys);
+  } else {
+	  InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
 
-  // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
-  CreateMbdPhysicalSystemObjects(mphysicalSystem,
-			posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+	  // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
+	  CreateMbdPhysicalSystemObjects(mphysicalSystem,
+				posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+  }
 
   // ***************************** Create Interface ********************************************
 
@@ -851,10 +855,11 @@ int main(int argc, char* argv[]) {
     	fsi_timer.start("half_step_dynamic_fsi_12");
     	fsi_timer.start("fluid_initialization");
 
-    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
+    int out_steps = std::ceil((1.0 / time_step) / out_fps);
+    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep, out_steps);
 
     // ******* slow down the sys.Check point the sys.
-   	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep);
+   	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep, tStepsCheckPoint);
 
    	if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
     	FreezeSPH(velMasD, velMasH);
@@ -893,6 +898,10 @@ int main(int argc, char* argv[]) {
 
     // If enabled, output data for PovRay postprocessing.
     SavePovFilesMBD(mphysicalSystem, tStep, mTime, num_contacts, exec_time);
+
+    if (tStep % tStepsCheckPoint == 0) {
+    	utils::WriteCheckpoint(&mphysicalSystem, tStepsCheckPoint);
+    }
 
 // ****************** RK2: 1/2
 #if haveFluid
