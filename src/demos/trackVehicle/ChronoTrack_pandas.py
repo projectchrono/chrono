@@ -11,10 +11,10 @@ import matplotlib
 import pylab as py
 
 
-class DriveChain_panda:
+class ChronoTrack_pandas:
     '''
     @class: loads, manages and plots output from any number of output files from 
-            Chrono Track Vehicle Toolkit
+            Chrono Track Vehicle Toolkit, using python pandas library
     '''
     def __init__(self,filename_list, handle_list):
         '''
@@ -69,6 +69,40 @@ class DriveChain_panda:
                     
         return out_minmax
     
+    # plot the chassis info
+    def plot_chassis(self, tmin = -1, tmax = -1):
+        # plot pos, vel, omega
+        # fig, axarr = plt.subplots(3,sharex=True)
+        fig, axarr = plt.subplots(2,sharex=True)
+        
+        # pull in data from files
+        inDat = ['time','x','y','z','Vx','Vy','Vz','Wx','Wy','Wz']
+        DF = pd.DataFrame(self._getDFhandle('chassis'), columns = inDat)
+        
+        # create the 3 subplots
+        DF.plot(ax = axarr[0], linewidth=1.5, x='time', y=['x','y','z'])
+        DF.plot(ax = axarr[1], linewidth=1.5, x='time', y=['Vx','Vy','Vz'])
+        # DF.plot(ax = axarr[2], linewidth=1.5, x='time', y=['Wx','Wy','Wz'])
+        
+        # if specified, set the xlim of the plot
+        if(tmin > 0):
+            xminmax = self._get_timeMinMax(DF['time'].iget(-1), tmin, tmax)
+            axarr[0].set_xlim(xminmax[0],xminmax[1])
+    
+        
+        # label axes
+        axarr[0].set_xlabel('time [s]')
+        axarr[0].set_ylabel('position [m]')
+        axarr[1].set_ylabel('velocity [m/s]')
+        # axarr[2].set_ylabel('rot. vel. [rad/sec]')
+        
+        # set the legend
+        axarr[0].legend(loc='upper left')
+        axarr[1].legend(loc='upper left')
+        # axarr[2].legend(loc='upper left')
+        axarr[0].set_title('chassis body')
+        
+    
     # plot gear body info, with an optional time interval
     def plot_gear(self, tmin = -1 , tmax = -1):
         # plot pos, vel, omega (pitch,yaw,roll)
@@ -77,7 +111,7 @@ class DriveChain_panda:
         # pull the data from the DF for the gear
         inDat = ['time','x','y','z','Vx','Vy','Vz','Wx','Wy','Wz']
         # create a dataframe for the desired data, by getting ahandle to the loaded DF for the gear
-        DF = pd.DataFrame(self._getDFhandle('Gear'), columns = inDat)
+        DF = pd.DataFrame(self._getDFhandle('gear'), columns = inDat)
         
         # create the 3 subplots
         DF.plot(ax = axarr[0], linewidth=1.5, x='time', y=['x','y','z'])
@@ -96,9 +130,9 @@ class DriveChain_panda:
         axarr[2].set_ylabel('rot. vel. [rad/sec]')
         
         # set the legend
-        axarr[0].legend(loc='upper right')
-        axarr[1].legend(loc='upper right')
-        axarr[2].legend(loc='upper right')
+        axarr[0].legend(loc='upper left')
+        axarr[1].legend(loc='upper left')
+        axarr[2].legend(loc='lower left')
         axarr[0].set_title('Gear body')
         
         
@@ -259,10 +293,10 @@ class DriveChain_panda:
         axarrA[2].set_ylabel('rot vel [rad/sec]')
         axarrA[3].set_ylabel('accel [m/s2]')
         # first plot, legend
-        axarrA[0].legend()
-        axarrA[1].legend()
-        axarrA[2].legend()
-        axarrA[3].legend()
+        axarrA[0].legend(loc='upper left')
+        axarrA[1].legend(loc='upper left')
+        axarrA[2].legend(loc='upper left')
+        axarrA[3].legend(loc='upper left')
         axarrA[0].set_title('shoe 0 body')
         
         # create the second plot, pin reaction forces
@@ -698,7 +732,7 @@ if __name__ == '__main__':
     shoeGearContact = 'test_driveChain_shoe0GearContact.csv'
     
     data_files = [data_dir + gearSubsys, data_dir + idlerSubsys, data_dir + ptrainSubsys, data_dir + shoe0, data_dir + gearCV, data_dir + idlerCV, data_dir + rollerCV, data_dir + gearContact, data_dir+shoeGearContact]
-    handle_list = ['Gear','idler','ptrain','shoe0','gearCV','idlerCV','rollerCV','gearContact','shoeGearContact']
+    handle_list = ['gear','idler','ptrain','shoe0','gearCV','idlerCV','rollerCV','gearContact','shoeGearContact']
     '''
     
     # list of data files for gear/pin comparison plots    
@@ -721,10 +755,10 @@ if __name__ == '__main__':
     
     data_files = [data_dir+gear, data_dir+gearContact, data_dir+shoe, data_dir+shoeContact, data_dir+ptrain]
    
-    handle_list = ['Gear','gearContact','shoe0','shoeGearContact','ptrain']
+    handle_list = ['gear','gearContact','shoe0','shoeGearContact','ptrain']
  
     # construct the panda class for the DriveChain, file list and list of legend
-    Chain = DriveChain_panda(data_files, handle_list)
+    Chain = ChronoTrack_pandas(data_files, handle_list)
     
     # set the time limits. tmin = -1 will plot the entire time range
     tmin = -5.05

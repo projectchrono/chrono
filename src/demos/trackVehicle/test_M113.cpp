@@ -56,7 +56,7 @@ using namespace chrono;
 
 // *****  User set model parameters, initial conditions
 const double tensioner_preload = 5e4;  // idler subsystem tensioner preload [N]
-const double pin_damping_coef = 0.3;   // apply pin damping between connected shoes
+const double pin_damping_coef = 0.2;   // apply pin damping between connected shoes
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 const ChVector<> initLoc(0, 0.7, 0);
@@ -71,27 +71,24 @@ const double end_time = 10;  // 99999
 // *****  Driver settings
 // Automated simulation controls, applies positive half a sine wave.
 // Otherwise, control throttle with W/S
-const bool autopilot = false;
+const bool autopilot = true;
 const double omega_max = 25.0;  // sprocket max rot. vel [rad/s]
-const double tStart = 1.0e-2;      // time to start applied rot. vel
-const double tEnd = 8.0;  // time to reach max omega
+const double tStart = 1.5;      // time to start applied rot. vel
+const double tEnd = 7.5;  // time to reach max omega
 const double ramp_slope = 1.0 / (tEnd - tStart);
 
-double sineAmp = 0.4;
-double sineFreq = 0.3;
-
 // ***** write to console or a file
-// #define WRITE_OUTPUT         // write output data to file
+#define WRITE_OUTPUT         // write output data to file
 // #define CONSOLE_DEBUG_INFO   // log output data to console
 // #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in console
 #define CONSOLE_TIMING  // timers for each render and simulation step, log to console
 
-// AVAILABLE:
-// DBG_GEAR | DBG_IDLER | DBG_CONSTRAINTS | DBG_CHASSIS
-int what_to_save = DBG_GEAR | DBG_IDLER | DBG_CONSTRAINTS | DBG_CHASSIS;
-int what_to_console = DBG_GEAR | DBG_IDLER | DBG_CONSTRAINTS | DBG_CHASSIS;
+// Supported:
+// DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_CHASSIS;
+int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_CHASSIS;
+int what_to_console = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_CHASSIS;
 // int what_to_console = DBG_ALL_CONTACTS;
-const double save_step_size = 1e-3;    // Time interval for writing data to file, don't exceed 1 kHz.
+const double save_step_size = 5e-3;    // Time interval for writing data to file, don't exceed 1 kHz.
 const double console_step_size = 1.0;  // time interval for writing data to console
 const std::string save_filename = "M113";
 const std::string save_outDir = "../outdata_M113";
@@ -156,7 +153,7 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicleM113* vehicle,
     vehicle->GetSystem()->AddBody(ground);  // add this body to the system, which is the vehicle
 
     // add some static obstacles
-    if (1) {
+    if (0) {
         ChVector<> rampSize = size / 10.0;
         ChSharedPtr<ChBody> ramp(new ChBodyEasyBox(rampSize.x, rampSize.y, rampSize.z, 1000.0, true, true));
         ramp->SetPos(ground->GetPos());
@@ -251,13 +248,16 @@ int main(int argc, char* argv[]) {
     #endif
     */
 
-    // test: using a sine function
-    // ChSharedPtr<ChFunction_Sine> sine_func(new ChFunction_Sine(0, sineFreq, sineAmp));
-    ChSharedPtr<ChFunction_Ramp> ramp_func(new ChFunction_Ramp(0, ramp_slope));
 
     // when autopilot is enabled, input throttle specified as follows:
-    //Track_FuncDriver<ChFunction_Sine> function_driver(2, sine_func, tStart);
+    ChSharedPtr<ChFunction_Ramp> ramp_func(new ChFunction_Ramp(0, ramp_slope));
     Track_FuncDriver<ChFunction_Ramp> function_driver(2, ramp_func, tStart, -1, omega_max);
+
+    // test: using a sine function
+    // double sineAmp = 0.4;
+    // double sineFreq = 0.3;
+    // ChSharedPtr<ChFunction_Sine> sine_func(new ChFunction_Sine(0, sineFreq, sineAmp));
+    //Track_FuncDriver<ChFunction_Sine> function_driver(2, sine_func, tStart);
 
     // ---------------------
     // GUI and render settings

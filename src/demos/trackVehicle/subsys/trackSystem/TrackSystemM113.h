@@ -37,9 +37,9 @@ class CH_SUBSYS_API TrackSystemM113 : public ChShared {
   public:
     /// specify name and a unique track identifier
     TrackSystemM113(const std::string& filename,
-      const size_t track_idx,
-      const double tensioner_preload = 1e4,
-      const double omega_max = 25.0);
+                    const size_t track_idx,
+                    const double tensioner_preload = 1e4,
+                    const double omega_max = 25.0);
 
     ~TrackSystemM113() {}
 
@@ -53,8 +53,7 @@ class CH_SUBSYS_API TrackSystemM113 : public ChShared {
                     double pin_damping = 0  ///< damping coef. between connected shoe pads
                     );
 
-    void Create(const size_t track_idx,
-      const double omega_max);
+    void Create(const size_t track_idx, const double omega_max);
 
     /// update the track system components
     void Update(double time, double throttle);

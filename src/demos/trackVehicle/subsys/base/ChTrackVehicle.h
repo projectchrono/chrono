@@ -108,6 +108,9 @@ class CH_SUBSYS_API ChTrackVehicle : public ChShared {
     /// number of track chain systems attached to the vehicle
     size_t GetNum_Engines() const { return m_num_engines; }
 
+    /// drive gear sprocket speed
+    virtual double GetSprocketSpeed(const size_t idx) const { return 0; }
+
     /// Initialize at the specified global location and orientation.
     virtual void Initialize(const ChCoordsys<>& chassis_Csys  ///< [in] initial config of vehicle REF frame
                             ) {}
