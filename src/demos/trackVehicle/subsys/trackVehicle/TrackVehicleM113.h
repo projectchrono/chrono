@@ -50,9 +50,9 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
         CollisionType::Enum collide = CollisionType::None,
         double mass = 5489.2,                                          // default for M113 APC
         const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),  // default for M113 APC
-        double pin_damping_coef = 0.1,  // connected shoes always are pin/rubber bushing type elements.
-        double tensioner_preload = 1e4, // idler tensioner preload
-        double omega_max = 25.0,    // max sprocket rotational speed
+        double pin_damping_coef = 0.1,   // connected shoes always are pin/rubber bushing type elements.
+        double tensioner_preload = 1e4,  // idler tensioner preload
+        double omega_max = 25.0,         // max sprocket rotational speed
         const ChVector<>& left_pos_rel = ChVector<>(0.23644, -0.4780, 0.83475),   // relative to chassis REF c-sys
         const ChVector<>& right_pos_rel = ChVector<>(0.23644, -0.4780, -0.83475)  // relative to chassis REF c-sys,
         );
@@ -105,10 +105,13 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
     double GetStepsize() const { return m_stepsize; }
 
     /// number of track chain systems attached to the vehicle
-    int GetNum_TrackSystems() const { return m_num_tracks; }
+    size_t GetNum_TrackSystems() const { return m_num_tracks; }
 
     /// drive gear sprocket speed
-    virtual double GetSprocketSpeed(const size_t idx) const { assert(idx < m_num_tracks); return [&](){return m_TrackSystems[idx]->GetDriveGear()->GetBody()->GetWvel_loc().z; }(); }
+    virtual double GetSprocketSpeed(const size_t idx) const {
+        assert(idx < m_num_tracks);
+        return m_TrackSystems[idx]->GetDriveGear()->GetBody()->GetWvel_loc().z;
+    }
 
   private:
     /// create files with headers for all specified output data types.
@@ -125,7 +128,7 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
     double m_tensioner_preload;
 
     // filename for each subsystem when writing time domain data
-    std::string m_filename_DBG_CHASSIS;                     // vehicle data (chassis motion, driver inputs)
+    std::string m_filename_DBG_CHASSIS;  // vehicle data (chassis motion, driver inputs)
     // filename for each subsystem when writing time domain data
     std::vector<std::string> m_filename_DBG_FIRSTSHOE;          // write to this file, first shoe/pin info
     std::vector<std::string> m_filename_DBG_shoeGear;           // info about gear/shoe contact
@@ -134,11 +137,11 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
     std::vector<std::string> m_filename_DBG_IDLER;              // to to this file, idler body
     std::vector<std::string> m_filename_GCV;                    // write to this file, gear constraint violation
     std::vector<std::string> m_filename_ICV;                    // write to this file, idler constraint violation
-    std::vector<std::string> m_filename_RCV;       // write to this file, roller constraint violation
-    std::vector<std::string>m_filename_DBG_PTRAIN;             // write to this file, ptrain info
+    std::vector<std::string> m_filename_RCV;                    // write to this file, roller constraint violation
+    std::vector<std::string> m_filename_DBG_PTRAIN;             // write to this file, ptrain info
     std::vector<std::string> m_filename_DBG_COLLISIONCALLBACK;  // write collision callback info to file
-    std::vector<std::string> m_filename_DBG_ALL_CONTACTS;       // write to a new file each time step, with this base name.
-    size_t m_cnt_Log_to_file;                      // how many times was Log_to_file called?
+    std::vector<std::string> m_filename_DBG_ALL_CONTACTS;  // write to a new file each time step, with this base name.
+    size_t m_cnt_Log_to_file;                              // how many times was Log_to_file called?
 
     // std::string m_filename_DBG_ALL_CONTACTS;  // write to a new file each time step, with this base name.
     // std::string m_filename_DBG_FIRSTSHOE;  // write to this file, first shoe/pin info
