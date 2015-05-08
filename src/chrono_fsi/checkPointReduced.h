@@ -21,7 +21,8 @@ void CheckPointMarkers_Write(
 
 		SimParams paramsH,
 		NumberOfObjects numObjects,
-		int tStep);
+		int tStep,
+		int tStepsCheckPoint);
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CheckPointMarkers_Read(

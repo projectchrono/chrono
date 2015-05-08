@@ -36,10 +36,10 @@ void CheckPointMarkers_Write(
 
 		SimParams paramsH,
 		NumberOfObjects numObjects,
-		int tStep) {
+		int tStep,
+		int tStepsCheckPoint) {
 
 	//*******************************************************************
-	int tStepsCheckPoint = 1000;
 	if (tStep % tStepsCheckPoint != 0) return;
 
 	time_t rawtime;
