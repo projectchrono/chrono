@@ -45,7 +45,8 @@ void PrintToFile_SPH(
 
 		const SimParams paramsH,
 		const Real realTime,
-		int tStep) {
+		int tStep,
+		int stepSave) {
 
 
 	thrust::host_vector<Real3> posRadH = posRadD;
@@ -150,7 +151,7 @@ void PrintToFile_SPH(
 	ofstream fileNameBoundaries;
 	ofstream fileNameFluidBoundaries;
 
-	int tStepsPovFiles = 25;//1000;//2000;
+	int tStepsPovFiles = stepSave;//25;//1000;//2000;
 	if (tStep % tStepsPovFiles == 0) {
 #ifdef _WIN32
 			system("mkdir povFiles");
@@ -230,8 +231,9 @@ void PrintToFile(
 		const thrust::host_vector<int3> & referenceArray,
 		const SimParams paramsH,
 		Real realTime,
-		int tStep) {
+		int tStep,
+		int stepSave) {
 	// print fluid stuff
-	PrintToFile_SPH(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep);
+	PrintToFile_SPH(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep, stepSave);
 }
 //*******************************************************************************************************************************

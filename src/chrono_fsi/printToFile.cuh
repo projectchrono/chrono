@@ -20,5 +20,6 @@ void PrintToFile(
 		const thrust::host_vector<int3> & referenceArray,
 		const SimParams paramsH,
 		Real realTime,
-		int tStep);
+		int tStep,
+		int stepSave);
 #endif
