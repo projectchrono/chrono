@@ -705,10 +705,6 @@ int main(int argc, char* argv[]) {
   // --------------------------
 
   if (povray_output) {
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-      cout << "Error creating directory " << out_dir << endl;
-      return 1;
-    }
     if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
       cout << "Error creating directory " << pov_dir << endl;
       return 1;
