@@ -624,13 +624,6 @@ void OutputVehicleData(ChSystemParallelDVI& mphysicalSystem, int tStep) {
 	}
 	outVehicleData << 	mphysicalSystem.GetChTime() << ", " <<
 
-						mVehicle->GetPowertrain()->GetMotorTorque() << ", " <<
-						mVehicle->GetPowertrain()->GetMotorSpeed() << ", " <<
-						mVehicle->GetPowertrain()->GetOutputTorque() << ", " <<
-						mVehicle->GetPowertrain()->GetCurrentTransmissionGear() << ", " <<
-						mVehicle->GetPowertrain()->GetMaxTorque() << ", " <<
-						mVehicle->GetPowertrain()->GetMaxSpeed() << ", " <<
-
 						mVehicle->GetVehicle()->GetChassis()->GetPos().x << ", " <<
 						mVehicle->GetVehicle()->GetChassis()->GetPos().y << ", " <<
 						mVehicle->GetVehicle()->GetChassis()->GetPos().z << ", " <<
@@ -642,6 +635,13 @@ void OutputVehicleData(ChSystemParallelDVI& mphysicalSystem, int tStep) {
 						mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().x << ", " <<
 						mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().y << ", " <<
 						mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().z << ", " <<
+
+						mVehicle->GetPowertrain()->GetMotorTorque() << ", " <<
+						mVehicle->GetPowertrain()->GetMotorSpeed() << ", " <<
+						mVehicle->GetPowertrain()->GetOutputTorque() << ", " <<
+						mVehicle->GetPowertrain()->GetCurrentTransmissionGear() << ", " <<
+						mVehicle->GetPowertrain()->GetMaxTorque() << ", " <<
+						mVehicle->GetPowertrain()->GetMaxSpeed() << ", " <<
 
 						std::endl;
 }
