@@ -65,7 +65,7 @@ NumberOfObjects numObjects;
 void SetupParamsH(SimParams& paramsH) {
   //**********************************************
   paramsH.sizeScale = 1;  // don't change it.
-  paramsH.HSML = 0.2;//0.04;
+  paramsH.HSML = 0.06;//0.04;
   paramsH.MULT_INITSPACE = 1.0;
   paramsH.NUM_BOUNDARY_LAYERS = 3;
   paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
