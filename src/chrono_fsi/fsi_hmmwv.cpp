@@ -25,6 +25,7 @@
 #include <vector>
 #include <ctime>
 #include <assert.h>
+#include <stdlib.h>  // system
 
 // SPH includes
 #include "MyStructs.cuh"  //just for SimParams
@@ -598,8 +599,13 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
 
   // If enabled, output data for PovRay postprocessing.
   if (povray_output && tStep % out_steps == 0) {
+		if (tStep / out_steps == 0) {
+			const std::string rmCmd = std::string("rm ") + pov_dir_mbd + std::string("/*.dat");
+			system(rmCmd.c_str());
+		}
+
     char filename[100];
-    sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
+    sprintf(filename, "%s/data_%03d.dat", pov_dir_mbd.c_str(), out_frame + 1);
     utils::WriteShapesPovray(&mphysicalSystem, filename);
 
     cout << "------------ Output frame:   " << out_frame + 1 << endl;
@@ -617,10 +623,12 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
 
 void OutputVehicleData(ChSystemParallelDVI& mphysicalSystem, int tStep) {
 	std::ofstream outVehicleData;
+	const std::string vehicleDataFile = out_dir + "/vehicleData.txt";
+
 	if (tStep == 0) {
-		outVehicleData.open("vehicleData.txt");
+		outVehicleData.open(vehicleDataFile);
 	} else {
-		outVehicleData.open("vehicleData.txt", std::ios::app);
+		outVehicleData.open(vehicleDataFile, std::ios::app);
 	}
 	outVehicleData << 	mphysicalSystem.GetChTime() << ", " <<
 
@@ -723,11 +731,7 @@ int main(int argc, char* argv[]) {
 
   time(&rawtime);
   timeinfo = localtime(&rawtime);
-  printf("Job was submittet at date/time: %s\n", asctime(timeinfo));
 
-  simParams.open("simulation_specific_parameters.txt");
-  simParams << " Job was submittet at date/time: " << asctime(timeinfo) << endl;
-  printSimulationParameters();
   //****************************************************************************************
   // Arman take care of this block.
   // Set path to ChronoVehicle data files
@@ -737,13 +741,29 @@ int main(int argc, char* argv[]) {
   // Create output directories.
   // --------------------------
 
+  if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    cout << "Error creating directory " << out_dir << endl;
+    return 1;
+  }
+
   if (povray_output) {
-    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-      cout << "Error creating directory " << pov_dir << endl;
+    if (ChFileutils::MakeDirectory(pov_dir_mbd.c_str()) < 0) {
+      cout << "Error creating directory " << pov_dir_mbd << endl;
       return 1;
     }
   }
 
+	if (ChFileutils::MakeDirectory(pov_dir_fluid.c_str()) < 0) {
+	  cout << "Error creating directory " << pov_dir_fluid << endl;
+	  return 1;
+	}
+
+
+  //****************************************************************************************
+  const std::string simulationParams = out_dir + "/simulation_specific_parameters.txt";
+  simParams.open(simulationParams);
+  simParams << " Job was submittet at date/time: " << asctime(timeinfo) << endl;
+  printSimulationParameters();
 // ***************************** Create Fluid ********************************************
   thrust::host_vector<::int3> referenceArray;
   thrust::host_vector<Real3> posRadH;  // do not set the size here since you are using push back later
@@ -793,14 +813,6 @@ int main(int argc, char* argv[]) {
 #endif
   }
   // ***************************** Create Rigid ********************************************
-
-  //*** Save PovRay post-processing data?
-
-  bool write_povray_data = true;
-
-  std::ofstream outSimulationInfo;
-  outSimulationInfo.open("SimInfo.txt");
-
   ChSystemParallelDVI mphysicalSystem;
   InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
 
@@ -881,7 +893,7 @@ int main(int argc, char* argv[]) {
     	fsi_timer.start("fluid_initialization");
 
     int out_steps = std::ceil((1.0 / time_step) / out_fps);
-    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep, out_steps);
+    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep, out_steps, pov_dir_fluid);
 
     // ******* slow down the sys.Check point the sys.
    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep, tStepsCheckPoint);

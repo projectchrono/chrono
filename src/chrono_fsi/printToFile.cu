@@ -46,7 +46,8 @@ void PrintToFile_SPH(
 		const SimParams paramsH,
 		const Real realTime,
 		int tStep,
-		int stepSave) {
+		int stepSave,
+		const std::string & out_dir) {
 
 
 	thrust::host_vector<Real3> posRadH = posRadD;
@@ -153,30 +154,22 @@ void PrintToFile_SPH(
 
 	int tStepsPovFiles = stepSave;//25;//1000;//2000;
 	if (tStep % tStepsPovFiles == 0) {
-#ifdef _WIN32
-			system("mkdir povFiles");
-#else
-			system("mkdir -p povFiles");
-#endif
+//#ifdef _WIN32
+//			system("mkdir povFiles");
+//#else
+//			system("mkdir -p povFiles");
+//#endif
 		if (tStep / tStepsPovFiles == 0) {
-					//linux. In windows, it is System instead of system (to invoke a command in the command line)
-			system("rm povFiles/*.csv");
+			const string rmCmd = string("rm ") + out_dir + string("/*.csv");
+			system(rmCmd.c_str());
 		}
 		char fileCounter[5];
 		int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
 
-		char nameFluid[255];
-		sprintf(nameFluid, "povFiles/fluid");
-		strcat(nameFluid, fileCounter);
-		strcat(nameFluid, ".csv");
-		char nameBoundary[255];
-		sprintf(nameBoundary, "povFiles/boundary");
-		strcat(nameBoundary, fileCounter);
-		strcat(nameBoundary, ".csv");
-		char nameFluidBoundaries[255];
-		sprintf(nameFluidBoundaries, "povFiles/fluid_boundary");
-		strcat(nameFluidBoundaries, fileCounter);
-		strcat(nameFluidBoundaries, ".csv");
+		const string nameFluid = out_dir + string("/fluid") + string(fileCounter) + string(".csv");
+		const string nameBoundary = out_dir + string("/boundary") + string(fileCounter) + string(".csv");
+		const string nameFluidBoundaries = out_dir + string("/fluid_boundary") + string(fileCounter) + string(".csv");
+
 	//*****************************************************
 		fileNameFluidParticles.open(nameFluid);
 		stringstream ssFluidParticles;
@@ -232,8 +225,9 @@ void PrintToFile(
 		const SimParams paramsH,
 		Real realTime,
 		int tStep,
-		int stepSave) {
+		int stepSave,
+		const string & out_dir) {
 	// print fluid stuff
-	PrintToFile_SPH(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep, stepSave);
+	PrintToFile_SPH(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep, stepSave, out_dir);
 }
 //*******************************************************************************************************************************

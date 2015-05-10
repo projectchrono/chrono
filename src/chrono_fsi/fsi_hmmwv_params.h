@@ -13,6 +13,11 @@
 #include "VehicleExtraProperties.h"
 #include <fstream> // for simParams definition
 
+// -----------------------------------------------------------------------------
+// Specification post processing directory
+// -----------------------------------------------------------------------------
+
+const std::string out_dir = "PostProcess";
 
 // -----------------------------------------------------------------------------
 // Simulation parameters FSI
@@ -46,6 +51,8 @@ int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
 // -----------------------------------------------------------------------------
+const std::string pov_dir_fluid = out_dir + "/povFilesFluid";
+
 int tStepsCheckPoint = 1000;
 bool initializeFluidFromFile = false; 	// 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
 										//	when adding functionality using "useWallBce" and "haveFluid" macros, pay attention to  "initializeFluidFromFile" options.
@@ -250,7 +257,7 @@ chrono::ChTimerParallel fsi_timer;
 
 bool povray_output = true;
 
-const std::string pov_dir = "povFilesHmmwv";
+const std::string pov_dir_mbd = out_dir + "/povFilesHmmwv";
 
 int out_fps = 120;
 

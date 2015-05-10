@@ -21,5 +21,6 @@ void PrintToFile(
 		const SimParams paramsH,
 		Real realTime,
 		int tStep,
-		int stepSave);
+		int stepSave,
+		const std::string & out_dir);
 #endif

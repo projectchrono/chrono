@@ -25,6 +25,7 @@
 #include <vector>
 #include <ctime>
 #include <assert.h>
+#include <stdlib.h>  // system
 
 // SPH includes
 #include "MyStructs.cuh"  //just for SimParams
@@ -598,8 +599,12 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
 
   // If enabled, output data for PovRay postprocessing.
   if (povray_output && tStep % out_steps == 0) {
+		if (tStep / out_steps == 0) {
+			const std::string rmCmd = std::string("rm ") + pov_dir_mbd + std::string("/*.dat");
+			system(rmCmd.c_str());
+		}
     char filename[100];
-    sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
+    sprintf(filename, "%s/data_%03d.dat", pov_dir_mbd.c_str(), out_frame + 1);
     utils::WriteShapesPovray(&mphysicalSystem, filename);
 
     cout << "------------ Output frame:   " << out_frame + 1 << endl;
@@ -680,36 +685,49 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTi
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-  //****************************************************************************************
-  time_t rawtime;
-  struct tm* timeinfo;
+	  //****************************************************************************************
+	  time_t rawtime;
+	  struct tm* timeinfo;
 
-  GpuTimer myGpuTimerHalfStep;
-  ChTimer<double> myCpuTimerHalfStep;
-  //(void) cudaSetDevice(0);
+	  GpuTimer myGpuTimerHalfStep;
+	  ChTimer<double> myCpuTimerHalfStep;
+	  //(void) cudaSetDevice(0);
 
-  time(&rawtime);
-  timeinfo = localtime(&rawtime);
-  printf("Job was submittet at date/time: %s\n", asctime(timeinfo));
+	  time(&rawtime);
+	  timeinfo = localtime(&rawtime);
 
-  simParams.open("simulation_specific_parameters.txt");
-  simParams << " Job was submittet at date/time: " << asctime(timeinfo) << endl;
-  printSimulationParameters();
-  //****************************************************************************************
-  // Arman take care of this block.
-  // Set path to ChronoVehicle data files
-  vehicle::SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+	  //****************************************************************************************
+	  // Arman take care of this block.
+	  // Set path to ChronoVehicle data files
+	  vehicle::SetDataPath(CHRONO_VEHICLE_DATA_DIR);
 
-  // --------------------------
-  // Create output directories.
-  // --------------------------
+	  // --------------------------
+	  // Create output directories.
+	  // --------------------------
 
-  if (povray_output) {
-    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-      cout << "Error creating directory " << pov_dir << endl;
-      return 1;
-    }
-  }
+	  if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+	    cout << "Error creating directory " << out_dir << endl;
+	    return 1;
+	  }
+
+	  if (povray_output) {
+	    if (ChFileutils::MakeDirectory(pov_dir_mbd.c_str()) < 0) {
+	      cout << "Error creating directory " << pov_dir_mbd << endl;
+	      return 1;
+	    }
+	  }
+
+		if (ChFileutils::MakeDirectory(pov_dir_fluid.c_str()) < 0) {
+		  cout << "Error creating directory " << pov_dir_fluid << endl;
+		  return 1;
+		}
+
+
+	  //****************************************************************************************
+	  const std::string simulationParams = out_dir + "/simulation_specific_parameters.txt";
+	  simParams.open(simulationParams);
+	  simParams << " Job was submittet at date/time: " << asctime(timeinfo) << endl;
+	  printSimulationParameters();
 
 // ***************************** Create Fluid ********************************************
   thrust::host_vector<::int3> referenceArray;
@@ -760,14 +778,6 @@ int main(int argc, char* argv[]) {
 #endif
   }
   // ***************************** Create Rigid ********************************************
-
-  //*** Save PovRay post-processing data?
-
-  bool write_povray_data = true;
-
-  std::ofstream outSimulationInfo;
-  outSimulationInfo.open("SimInfo.txt");
-
   ChSystemParallelDVI mphysicalSystem;
   InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
 
@@ -889,7 +899,7 @@ int main(int argc, char* argv[]) {
 
     	fsi_timer.start("fluid_initialization");
 	int out_steps = std::ceil((1.0 / time_step) / out_fps);
-    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep, out_steps);
+    PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep, out_steps, pov_dir_fluid);
 
     // ******* slow down the sys.Check point the sys.
 
