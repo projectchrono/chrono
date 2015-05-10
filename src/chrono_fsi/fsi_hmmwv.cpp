@@ -49,6 +49,7 @@
 
 // Chrono general utils
 #include "core/ChFileutils.h"
+#include <core/ChTransform.h> //transform acc from GF to LF for post process
 
 // FSI Interface Includes
 #include "fsi_hmmwv_params.h"
@@ -630,6 +631,9 @@ void OutputVehicleData(ChSystemParallelDVI& mphysicalSystem, int tStep) {
 	} else {
 		outVehicleData.open(vehicleDataFile, std::ios::app);
 	}
+	ChVector<> accLF = ChTransform<>::TransformParentToLocal(mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt(), ChVector<>(0),
+			mVehicle->GetVehicle()->GetChassis()->GetRot());
+
 	outVehicleData << 	mphysicalSystem.GetChTime() << ", " <<
 
 						mVehicle->GetVehicle()->GetChassis()->GetPos().x << ", " <<
@@ -640,9 +644,15 @@ void OutputVehicleData(ChSystemParallelDVI& mphysicalSystem, int tStep) {
 						mVehicle->GetVehicle()->GetChassis()->GetPos_dt().y << ", " <<
 						mVehicle->GetVehicle()->GetChassis()->GetPos_dt().z << ", " <<
 
+						mVehicle->GetVehicle()->GetChassis()->GetPos_dt().Length() << ", " <<
+
 						mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().x << ", " <<
 						mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().y << ", " <<
 						mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().z << ", " <<
+
+						accLF.x << ", " <<
+						accLF.y << ", " <<
+						accLF.z << ", " <<
 
 						mVehicle->GetPowertrain()->GetMotorTorque() << ", " <<
 						mVehicle->GetPowertrain()->GetMotorSpeed() << ", " <<
