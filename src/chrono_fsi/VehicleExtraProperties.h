@@ -47,20 +47,6 @@ class MyLuggedTire : public chrono::utils::TireContactCallback {
   int num_hulls;
 };
 
-// Callback class for specifying rigid tire contact model.
-// This version uses a collection of convex contact shapes (meshes).
-// In addition, this version overrides the visualization assets of the provided
-// wheel body with the collision meshes.
-class MyLuggedTire_vis : public chrono::utils::TireContactCallback {
- public:
-  MyLuggedTire_vis();
-  virtual void onCallback(chrono::ChSharedPtr<chrono::ChBody> wheelBody, double radius, double width);
-
- private:
-  chrono::collision::ChConvexDecompositionHACDv2 lugged_convex;
-  chrono::geometry::ChTriangleMeshConnected lugged_mesh;
-};
-
 // Callback class for specifying chassis contact model.
 // This version uses a box representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
@@ -105,9 +91,9 @@ class MyChassisSphereModel_vis : public chrono::utils::ChassisContactCallback {
 // This version uses a convex decomposition of an obj representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
 // chassis body with the collision meshes.
-class MyChassisSimpleConvexMesh_vis : public chrono::utils::ChassisContactCallback {
+class MyChassisSimpleConvexMesh : public chrono::utils::ChassisContactCallback {
  public:
-  MyChassisSimpleConvexMesh_vis();
+  MyChassisSimpleConvexMesh();
   virtual void onCallback(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassisBody);
 
   virtual void SetAttributes(const chrono::ChVector<>& otherPos = chrono::ChVector<>(0, 0, 0),

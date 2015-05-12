@@ -92,34 +92,6 @@ void MyLuggedTire::onCallback(ChSharedPtr<ChBody> wheelBody, double radius, doub
 }
 
 
-// Callback class for specifying rigid tire contact model.
-// This version uses a collection of convex contact shapes (meshes).
-// In addition, this version overrides the visualization assets of the provided
-// wheel body with the collision meshes.
-MyLuggedTire_vis::MyLuggedTire_vis() {
-  std::string lugged_file("hmmwv/lugged_wheel_section.obj");
-  utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
-}
-
-void MyLuggedTire_vis::onCallback(ChSharedPtr<ChBody> wheelBody, double radius, double width) {
-  // Clear any existing assets (will be overriden)
-  wheelBody->GetAssets().clear();
-
-  wheelBody->GetCollisionModel()->ClearModel();
-  for (int j = 0; j < 15; j++) {
-    utils::AddConvexCollisionModel(
-        wheelBody, lugged_mesh, lugged_convex, VNULL, Q_from_AngAxis(j * 24 * CH_C_DEG_TO_RAD, VECT_Y), false);
-  }
-  // This cylinder acts like the rims
-  utils::AddCylinderGeometry(wheelBody.get_ptr(), 0.223, 0.126);
-  wheelBody->GetCollisionModel()->SetFamily(tireFam);
-  wheelBody->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(chassisFam);
-  wheelBody->GetCollisionModel()->BuildModel();
-
-  wheelBody->GetMaterialSurface()->SetFriction(mu_t);
-}
-
-
 // Callback class for specifying chassis contact model.
 // This version uses a box representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
@@ -187,9 +159,7 @@ void MyChassisSphereModel_vis::SetAttributes(double otherRad,
 
 // Callback class for specifying chassis contact model.
 // This version uses a convex decomposition of an obj representing the chassis.
-// In addition, this version overrides the visualization assets of the provided
-// chassis body with the collision meshes.
-MyChassisSimpleConvexMesh_vis::MyChassisSimpleConvexMesh_vis() {
+MyChassisSimpleConvexMesh::MyChassisSimpleConvexMesh() {
   //    std::string chassis_obj_file("hmmwv/lugged_wheel_section.obj");
   //    std::string chassis_obj_file("hmmwv/lugged_wheel.obj");
   //    std::string chassis_obj_file("hmmwv/myHumvee.obj");
@@ -198,9 +168,7 @@ MyChassisSimpleConvexMesh_vis::MyChassisSimpleConvexMesh_vis() {
   utils::LoadConvexMesh(vehicle::GetDataFile(chassis_obj_file), chassis_mesh, chassis_convex);
 }
 
-void MyChassisSimpleConvexMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
-  // Clear any existing assets (will be overriden)
-  chassisBody->GetAssets().clear();
+void MyChassisSimpleConvexMesh::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
   ChVector<> chLoc = ChVector<>(0, 0, 0);  // chassisBody->GetFrame_REF_to_COG().GetPos();
   chassisBody->GetCollisionModel()->ClearModel();
   //    utils::AddConvexCollisionModel(chassisBody, chassis_mesh, chassis_convex, chLoc, ChQuaternion<>(1, 0, 0, 0),
@@ -211,7 +179,6 @@ void MyChassisSimpleConvexMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassis
   geometry::ChTriangleMeshConnected& convex_mesh = chassis_mesh;
   ChConvexDecompositionHACDv2& convex_shape = chassis_convex;
   ChConvexDecomposition* used_decomposition = &convex_shape;
-  bool use_original_asset = false;
 
   //*****
   int hull_count = used_decomposition->GetHullCount();
@@ -221,35 +188,11 @@ void MyChassisSimpleConvexMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassis
     used_decomposition->GetConvexHullResult(c, convexhull);
 
     ((collision::ChCollisionModelParallel*)body->GetCollisionModel())->AddConvexHull(convexhull, chLoc, rot);
-    // Add each convex chunk as a new asset
-    if (!use_original_asset) {
-      std::stringstream ss;
-      ss << convex_mesh.GetFileName() << "_" << c;
-      geometry::ChTriangleMeshConnected trimesh_convex;
-      used_decomposition->GetConvexHullResult(c, trimesh_convex);
-
-      ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-      trimesh_shape->SetMesh(trimesh_convex);
-      trimesh_shape->SetName(ss.str());
-      trimesh_shape->Pos = pos;
-      trimesh_shape->Rot = rot;
-      body->GetAssets().push_back(trimesh_shape);
-    }
   }
   chassisBody->GetCollisionModel()->SetFamily(chassisFam);
 //    printf("chassis family %d \n", chassisBody->GetCollisionModel()->GetFamily());
   chassisBody->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(tireFam);
   chassisBody->GetCollisionModel()->BuildModel();
-
-  // Add the original triangle mesh as asset
-  if (use_original_asset) {
-    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-    trimesh_shape->SetMesh(convex_mesh);
-    trimesh_shape->SetName(convex_mesh.GetFileName());
-    trimesh_shape->Pos = VNULL;
-    trimesh_shape->Rot = QUNIT;
-    body->GetAssets().push_back(trimesh_shape);
-  }
 
   // **************************
 
@@ -259,7 +202,7 @@ void MyChassisSimpleConvexMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassis
   chassisBody->GetMaterialSurface()->SetFriction(mu_t);
 }
 
-void MyChassisSimpleConvexMesh_vis::SetAttributes(const ChVector<>& otherPos,
+void MyChassisSimpleConvexMesh::SetAttributes(const ChVector<>& otherPos,
                            const ChQuaternion<>& otherRot) {
   rot = otherRot;
   pos = otherPos;
