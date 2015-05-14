@@ -22,8 +22,6 @@
 #include "physics/ChSystem.h"
 #include "lcp/ChLcpConstraintNodeContactN.h"
 
-#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
-
 namespace chrono {
 
 using namespace collision;

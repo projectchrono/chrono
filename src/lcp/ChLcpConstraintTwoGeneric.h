@@ -34,8 +34,6 @@
 #include "ChLcpConstraintTwo.h"
 #include "ChLcpVariables.h"
 
-#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
-
 namespace chrono {
 
 ///  This class is inherited by the base ChLcpConstraintTwo(),
@@ -240,7 +238,5 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
 };
 
 }  // END_OF_NAMESPACE____
-
-#include "core/ChMemorynomgr.h"  // back to default new/delete/malloc/calloc etc. Avoid conflicts with system libs.
 
 #endif

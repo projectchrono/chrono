@@ -31,8 +31,6 @@
 #include "ChLcpConstraintThree.h"
 #include "ChLcpVariablesBody.h"
 
-#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
-
 namespace chrono {
 
 /// A class for representing a constraint between
@@ -237,7 +235,5 @@ class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree {
 };
 
 }  // END_OF_NAMESPACE____
-
-#include "core/ChMemorynomgr.h"  // back to default new/delete/malloc/calloc etc. Avoid conflicts with system libs.
 
 #endif

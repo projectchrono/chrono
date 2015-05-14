@@ -12,8 +12,6 @@
 
 #include "physics/ChBodyFrame.h"
 
-#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
-
 namespace chrono {
 
 void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,

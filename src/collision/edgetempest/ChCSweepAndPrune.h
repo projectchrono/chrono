@@ -43,8 +43,6 @@
 #include "ChCBroadPhaseCollider.h"
 #include "core/ChWrapHashmap.h"
 
-#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
-
 namespace chrono {
 namespace collision {
 
@@ -356,7 +354,5 @@ class ChSweepAndPrune : public ChBroadPhaseCollider<model_type> {
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____
-
-#include "core/ChMemorynomgr.h"  // back to default new/delete/malloc/calloc etc. Avoid conflicts with system libs.
 
 #endif

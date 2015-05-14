@@ -22,7 +22,6 @@
 ///////////////////////////////////////////////////
 
 #include "ChLcpVariablesGeneric.h"
-#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
 
 namespace chrono {
 

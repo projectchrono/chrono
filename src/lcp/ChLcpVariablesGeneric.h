@@ -29,7 +29,6 @@
 ///////////////////////////////////////////////////
 
 #include "ChLcpVariables.h"
-#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
 
 namespace chrono {
 
@@ -136,7 +135,5 @@ class ChApi ChLcpVariablesGeneric : public ChLcpVariables {
 };
 
 }  // END_OF_NAMESPACE____
-
-#include "core/ChMemorynomgr.h"  // back to default new/delete/malloc/calloc etc. Avoid conflicts with system libs.
 
 #endif  // END of ChLcpVariablesGeneric.h

@@ -16,8 +16,6 @@
 #include "physics/ChSystem.h"
 #include "physics/ChIndexedNodes.h"
 
-#include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
-
 
 using namespace chrono;
 using namespace fea;

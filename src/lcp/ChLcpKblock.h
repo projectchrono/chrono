@@ -34,8 +34,6 @@
 #include "core/ChSpmatrix.h"
 #include "lcp/ChLcpVariables.h"
 
-#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
-
 namespace chrono {
 
 ///  Base class for representing items which introduce block-sparse
