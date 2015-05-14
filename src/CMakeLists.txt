@@ -1182,21 +1182,14 @@ install(TARGETS ChronoEngine
 
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION data PATTERN .svn EXCLUDE)
-install(FILES ${ChronoEngine_core_HEADERS} DESTINATION include/chrono/core)
-install(FILES ${ChronoEngine_physics_HEADERS} DESTINATION include/chrono/physics)
-install(FILES ${ChronoEngine_lcp_HEADERS} DESTINATION include/chrono/lcp)
-install(FILES ${ChronoEngine_collision_HEADERS} DESTINATION include/chrono/collision)
-install(FILES ${ChronoEngine_geometry_HEADERS} DESTINATION include/chrono/geometry)
-install(FILES ${ChronoEngine_assets_HEADERS} DESTINATION include/chrono/assets)
-install(FILES ${ChronoEngine_collision_edgetempest_HEADERS} DESTINATION include/chrono/collision/edgetempest)
-install(FILES ${ChronoEngine_collision_convexdecompJR_HEADERS} DESTINATION include/chrono/collision/convexdecompJR)
-install(FILES ${ChronoEngine_pneumatica_HEADERS} DESTINATION include/chrono/pneumatica)
-install(FILES ${ChronoEngine_particlefactory_HEADERS} DESTINATION include/chrono/particlefactory)
-install(FILES ${ChronoEngine_timestepper_HEADERS} DESTINATION include/chrono/timestepper)
-install(FILES ${ChronoEngine_motion_functions_HEADERS} DESTINATION include/chrono/motion_functions)
-install(FILES ${ChronoEngine_parallel_HEADERS} DESTINATION include/chrono/parallel)
-install(FILES ${ChronoEngine_collision_bullet_HEADERS} DESTINATION include/chrono/collision/bullet)
-install(FILES ${ChronoEngine_collision_gimpact_HEADERS} DESTINATION include/chrono/collision/gimpact)
+
+# Catchall, installs all header files, excluding optional units
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/
+    DESTINATION include/chrono
+    FILES_MATCHING PATTERN "*.h"
+    PATTERN "unit_*" EXCLUDE
+    )
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" DESTINATION include/chrono/core)
 
 #
 # Propagates the CMake build to other directories
