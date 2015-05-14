@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 
 	// Create the nodes (each with position & normal to shell)
 
-	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,      0,       0), ChVector<>(0,1,0) ) ); 
+	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,      0.2,       0), ChVector<>(0,1,0) ) ); 
 	ChSharedPtr<ChNodeFEAxyzD> hnodeancf2(new ChNodeFEAxyzD( ChVector<>(shell_L,0,       0), ChVector<>(0,1,0) ) );
     ChSharedPtr<ChNodeFEAxyzD> hnodeancf3(new ChNodeFEAxyzD( ChVector<>(shell_L,0, shell_W), ChVector<>(0,1,0) ) );
     ChSharedPtr<ChNodeFEAxyzD> hnodeancf4(new ChNodeFEAxyzD( ChVector<>(0,      0, shell_W), ChVector<>(0,1,0) ) );
@@ -140,7 +140,8 @@ int main(int argc, char* argv[])
 	my_mesh->AddAsset(mvisualizeshellA);
 
 	ChSharedPtr<ChVisualizationFEAmesh> mvisualizeshellB(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-	mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);// not yet working
+	//mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);// not yet working
+    mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
 	mvisualizeshellB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizeshellB->SetSymbolsThickness(0.006);
 	mvisualizeshellB->SetSymbolsScale(0.01);
