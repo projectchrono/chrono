@@ -515,7 +515,7 @@ class ChMatrix {
         assert(matra.GetColumns() == matrb.GetRows());
         assert(this->rows == matra.GetRows());
         assert(this->columns == matrb.GetColumns());
-        register int col, row, colres;
+        int col, row, colres;
         Real sum;
         for (colres = 0; colres < matrb.GetColumns(); ++colres) {
 #pragma omp parallel for private(sum, col) if (matra.GetRows() > CH_OMP_MATR)
@@ -536,7 +536,7 @@ class ChMatrix {
         assert(matra.GetColumns() == matrb.GetColumns());
         assert(this->rows == matra.GetRows());
         assert(this->columns == matrb.GetRows());
-        register int col, row, colres;
+        int col, row, colres;
         Real sum;
         for (colres = 0; colres < matrb.GetRows(); ++colres) {
 #pragma omp parallel for private(sum, col) if (matra.GetRows() > CH_OMP_MATR)
@@ -556,7 +556,7 @@ class ChMatrix {
         assert(matra.GetRows() == matrb.GetRows());
         assert(this->rows == matra.GetColumns());
         assert(this->columns == matrb.GetColumns());
-        register int col, row, colres;
+        int col, row, colres;
         Real sum;
         for (colres = 0; colres < matrb.GetColumns(); ++colres) {
 #pragma omp parallel for private(sum, col) if (matra.GetColumns() > CH_OMP_MATR)

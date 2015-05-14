@@ -780,7 +780,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
     // At this point, wrap the shoes around the curved segment (if there is one).
     //  E.g., roadwheels 1-2, 2-3, 3-4, 4-5 have no curved segment, so skip.
     if ((end_curve_seg - end_seg).LengthInf() < 1e-3) {
-        GetLog() << " no curved line segment, at location: " << end_curve_seg << " ... \n";
+        // GetLog() << " no curved line segment, at location: " << end_curve_seg << " ... \n";
         return;
     }
 

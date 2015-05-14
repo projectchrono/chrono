@@ -236,7 +236,7 @@ void ChSparseMatrix::ResetBlocks(int row, int col) {
 }
 
 // optimized SetElement,  returning the fetched Melement*
-ChMelement* ChSparseMatrix::SetElement(int row, int col, double val, register ChMelement* guess) {
+ChMelement* ChSparseMatrix::SetElement(int row, int col, double val, ChMelement* guess) {
 #ifdef CH_DEBUG
     assert(row >= 0);  // boundary checks
     assert(col >= 0);
@@ -298,7 +298,7 @@ ChMelement* ChSparseMatrix::SetElement(int row, int col, double val, register Ch
 }
 
 // optimized GetElement,  returning the fetched Melement*
-ChMelement* ChSparseMatrix::GetElement(int row, int col, double* val, register ChMelement* guess) {
+ChMelement* ChSparseMatrix::GetElement(int row, int col, double* val, ChMelement* guess) {
 #ifdef CH_DEBUG
     assert(row >= 0);  // boundary checks
     assert(col >= 0);
@@ -307,7 +307,7 @@ ChMelement* ChSparseMatrix::GetElement(int row, int col, double* val, register C
     assert(guess->row == row)
 #endif
 
-            register ChMelement *
+            ChMelement *
         enext;
     ChMelement* eprev;
 
