@@ -91,7 +91,8 @@ Articulated_Vehicle::Articulated_Vehicle(const bool        fixed,
   // -----------------------------
   // Create the steering subsystem
   // -----------------------------
-  m_steering = ChSharedPtr<ChSteering>(new Articulated_RackPinion("Steering"));
+  m_steerings.resize(1);
+  m_steerings[0] = ChSharedPtr<ChSteering>(new Articulated_RackPinion("Steering"));
 
   // -----------------
   // Create the wheels
@@ -131,11 +132,11 @@ void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   case SOLID_AXLE: offset = ChVector<>(1.60, 0, -0.07); break;
   case MULTI_LINK: offset = ChVector<>(1.65, 0, -0.12); break;
   }
-  m_steering->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
+  m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.6914, 0, 0), m_steering->GetSteeringLink());
+  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.6914, 0, 0), m_steerings[0]->GetSteeringLink());
   m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.6865, 0, 0), m_chassis);
 
   // Initialize wheels
@@ -245,7 +246,7 @@ void Articulated_Vehicle::Update(double              time,
   m_driveline->ApplyDriveshaftTorque(powertrain_torque);
 
   // Let the steering subsystem process the steering input.
-  m_steering->Update(time, 0.5 * steering);
+  m_steerings[0]->Update(time, 0.5 * steering);
 
   // Apply tire forces to spindle bodies.
   m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);

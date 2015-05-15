@@ -62,17 +62,14 @@ public:
   /// Get a handle to the vehicle's chassis body.
   ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
-  /// Get a handle to the vehicle's steering subsystem.
-  const ChSharedPtr<ChSteering> GetSteering() const { return m_steering; }
-
   /// Get a handle to the specified vehicle wheel.
-  const ChSharedPtr<ChWheel> GetWheel(const ChWheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
+  ChSharedPtr<ChWheel> GetWheel(const ChWheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
 
   /// Get a handle to the vehicle's driveline subsystem.
-  const ChSharedPtr<ChDriveline> GetDriveline() const { return m_driveline; }
+  ChSharedPtr<ChDriveline> GetDriveline() const { return m_driveline; }
 
   /// Get a handle to the vehicle's driveshaft body.
-  const ChSharedPtr<ChShaft> GetDriveshaft() const { return m_driveline->GetDriveshaft(); }
+  ChSharedPtr<ChShaft> GetDriveshaft() const { return m_driveline->GetDriveshaft(); }
 
   /// Get the global location of the chassis reference frame origin.
   const ChVector<>& GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
@@ -182,7 +179,7 @@ protected:
   ChSharedPtr<ChBodyAuxRef>  m_chassis;      ///< handle to the chassis body
   ChSuspensionList           m_suspensions;  ///< list of handles to suspension subsystems
   ChSharedPtr<ChDriveline>   m_driveline;    ///< handle to the driveline subsystem
-  ChSharedPtr<ChSteering>    m_steering;     ///< handle to the steering subsystem
+  ChSteeringList             m_steerings;    ///< list of handles to steering subsystems
   ChWheelList                m_wheels;       ///< list of handles to wheel subsystems
   ChBrakeList                m_brakes;       ///< list of handles to brake subsystems
 

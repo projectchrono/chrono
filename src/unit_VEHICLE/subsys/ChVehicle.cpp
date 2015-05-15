@@ -165,8 +165,10 @@ void ChVehicle::LogConstraintViolations()
   }
 
   // Report constraint violations for the steering joints
-  GetLog() << "\n---- STEERING constrain violations\n\n";
-  m_steering->LogConstraintViolations();
+  for (size_t i = 0; i < m_steerings.size(); i++) {
+    GetLog() << "\n---- STEERING subsystem " << i << " constraint violations\n\n";
+    m_steerings[i]->LogConstraintViolations();
+  }
 
   GetLog().SetNumFormat("%g");
 
