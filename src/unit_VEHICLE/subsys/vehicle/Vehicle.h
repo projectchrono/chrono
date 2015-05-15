@@ -56,7 +56,7 @@ private:
 
   void Create(const std::string& filename);
 
-  void LoadSteering(const std::string& filename);
+  void LoadSteering(const std::string& filename, int which);
   void LoadDriveline(const std::string& filename);
   void LoadSuspension(const std::string& filename, int axle);
   void LoadWheel(const std::string& filename, int axle, int side);
@@ -64,25 +64,25 @@ private:
 
 private:
 
-  int                      m_num_axles;       // number of axles for this vehicle
+  int                      m_num_axles;         // number of axles for this vehicle
+  std::vector<ChVector<> > m_suspLocations;     // locations of the suspensions relative to chassis
+  std::vector<int>         m_suspSteering;      // indexes of steering subsystems (-1 indicates a non-steered suspension)
 
-  std::vector<ChVector<> > m_suspLocations;   // locations of the suspensions relative to chassis
+  int                          m_num_strs;      // number of steering subsystems
+  std::vector<ChVector<> >     m_strLocations;  // locations of the steering subsystems relative to chassis
+  std::vector<ChQuaternion<> > m_strRotations;  // orientations of the steering subsystems relative to chassis
 
-  ChVector<>               m_steeringLoc;     // location of the steering relative to chassis
-  ChQuaternion<>           m_steeringRot;     // orientation of the steering relative to chassis
-  int                      m_steer_susp;      // index of the steered suspension
+  std::vector<int> m_driven_susp;               // indexes of the driven suspensions
 
-  std::vector<int>         m_driven_susp;     // indexes of the driven suspensions
+  bool        m_chassisUseMesh;                 // true if using a mesh for chassis visualization
+  std::string m_chassisMeshName;                // name of the chassis visualization mesh
+  std::string m_chassisMeshFile;                // name of the Waveform file with the chassis mesh
 
-  bool        m_chassisUseMesh;               // true if using a mesh for chassis visualization
-  std::string m_chassisMeshName;              // name of the chassis visualization mesh
-  std::string m_chassisMeshFile;              // name of the Waveform file with the chassis mesh
+  double     m_chassisMass;                     // chassis mass
+  ChVector<> m_chassisCOM;                      // location of the chassis COM in the chassis reference frame
+  ChVector<> m_chassisInertia;                  // moments of inertia of the chassis
 
-  double     m_chassisMass;                   // chassis mass
-  ChVector<> m_chassisCOM;                    // location of the chassis COM in the chassis reference frame
-  ChVector<> m_chassisInertia;                // moments of inertia of the chassis
-
-  ChCoordsys<> m_driverCsys;                  // driver position and orientation relative to chassis
+  ChCoordsys<> m_driverCsys;                    // driver position and orientation relative to chassis
 };
 
 

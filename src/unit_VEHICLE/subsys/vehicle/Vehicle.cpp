@@ -72,7 +72,8 @@ static ChQuaternion<> loadQuaternion(const Value& a)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Vehicle::LoadSteering(const std::string& filename)
+void Vehicle::LoadSteering(const std::string& filename,
+                           int                which)
 {
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -97,11 +98,11 @@ void Vehicle::LoadSteering(const std::string& filename)
   // Create the driveline using the appropriate template.
   if (subtype.compare("PitmanArm") == 0)
   {
-    m_steering = ChSharedPtr<ChSteering>(new PitmanArm(d));
+    m_steerings[which] = ChSharedPtr<ChSteering>(new PitmanArm(d));
   }
   else if (subtype.compare("RackPinion") == 0)
   {
-    m_steering = ChSharedPtr<ChSteering>(new RackPinion(d));
+    m_steerings[which] = ChSharedPtr<ChSteering>(new RackPinion(d));
   }
 }
 
@@ -337,30 +338,38 @@ void Vehicle::Create(const std::string& filename)
   // More validations of the JSON file
   // ---------------------------------
 
-  assert(d.HasMember("Steering"));
+  assert(d.HasMember("Steering Subsystems"));
   assert(d.HasMember("Driveline"));
   assert(d.HasMember("Axles"));
   assert(d["Axles"].IsArray());
+  assert(d["Steering Subsystems"].IsArray());
 
   // Extract the number of axles.
   m_num_axles = d["Axles"].Size();
 
+  // Extract the number of steering subsystems
+  m_num_strs = d["Steering Subsystems"].Size();
+
   // Resize arrays
   m_suspensions.resize(m_num_axles);
   m_suspLocations.resize(m_num_axles);
+  m_suspSteering.resize(m_num_axles, -1);
   m_wheels.resize(2 * m_num_axles);
   m_brakes.resize(2 * m_num_axles);
 
-  // -----------------------------
-  // Create the steering subsystem
-  // -----------------------------
+  m_steerings.resize(m_num_strs);
+  m_strLocations.resize(m_num_strs);
+  m_strRotations.resize(m_num_strs);
 
-  {
-    std::string file_name = d["Steering"]["Input File"].GetString();
-    LoadSteering(vehicle::GetDataFile(file_name));
-    m_steeringLoc = loadVector(d["Steering"]["Location"]);
-    m_steeringRot = loadQuaternion(d["Steering"]["Orientation"]);
-    m_steer_susp = d["Steering"]["Suspension Index"].GetInt();
+  // ------------------------------
+  // Create the steering subsystems
+  // ------------------------------
+
+  for (int i = 0; i < m_num_strs; i++) {
+    std::string file_name = d["Steering Subsystems"][i]["Input File"].GetString();
+    LoadSteering(vehicle::GetDataFile(file_name), i);
+    m_strLocations[i] = loadVector(d["Steering Subsystems"][i]["Location"]);
+    m_strRotations[i] = loadQuaternion(d["Steering Subsystems"][i]["Orientation"]);
   }
 
   // --------------------
@@ -388,6 +397,11 @@ void Vehicle::Create(const std::string& filename)
     std::string file_name = d["Axles"][i]["Suspension Input File"].GetString();
     LoadSuspension(vehicle::GetDataFile(file_name), i);
     m_suspLocations[i] = loadVector(d["Axles"][i]["Suspension Location"]);
+
+    // Index of steering subsystem (if applicable)
+    if (d["Axles"][i].HasMember("Steering Index")) {
+      m_suspSteering[i] = d["Axles"][i]["Steering Index"].GetInt();
+    }
 
     // Left and right wheels
     file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
@@ -418,14 +432,15 @@ void Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 {
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
 
-  // Initialize the steering subsystem.
-  m_steering->Initialize(m_chassis, m_steeringLoc, m_steeringRot);
+  // Initialize the steering subsystems.
+  for (int i = 0; i < m_num_strs; i++) {
+    m_steerings[i]->Initialize(m_chassis, m_strLocations[i], m_strRotations[i]);
+  }
 
   // Initialize the suspension, wheel, and brake subsystems.
-  for (int i = 0; i < m_num_axles; i++)
-  {
-    if (m_steer_susp == i)
-      m_suspensions[i]->Initialize(m_chassis, m_suspLocations[i], m_steering->GetSteeringLink());
+  for (int i = 0; i < m_num_axles; i++) {
+    if (m_suspSteering[i] >= 0)
+      m_suspensions[i]->Initialize(m_chassis, m_suspLocations[i], m_steerings[m_suspSteering[i]]->GetSteeringLink());
     else
       m_suspensions[i]->Initialize(m_chassis, m_suspLocations[i], m_chassis);
 
@@ -452,8 +467,10 @@ void Vehicle::Update(double              time,
   // Apply powertrain torque to the driveline's input shaft.
   m_driveline->ApplyDriveshaftTorque(powertrain_torque);
 
-  // Let the steering subsystem process the steering input.
-  m_steering->Update(time, steering);
+  // Let the steering subsystems process the steering input.
+  for (int i = 0; i < m_num_strs; i++) {
+    m_steerings[i]->Update(time, steering);
+  }
 
   // Apply tire forces to spindle bodies and apply braking.
   for (int i = 0; i < m_num_axles; i++) {
