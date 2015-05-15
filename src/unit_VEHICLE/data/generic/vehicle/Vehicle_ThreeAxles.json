@@ -15,6 +15,7 @@
     {
       "Suspension Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneFront.json",
       "Suspension Location":     [1.6914, 0, 0.0264],
+      "Steering Index":          0,
       "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_FrontLeft.json",
       "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_FrontRight.json",
       "Left Brake Input File":   "hmmwv/brake/HMMWV_BrakeSimple_Front.json",
@@ -41,13 +42,14 @@
 
   ],
 
-  "Steering":
-  {
-    "Input File":           "hmmwv/steering/HMMWV_PitmanArm.json",
-    "Location":             [1.24498, 0, 0.109322],
-    "Orientation":          [0.98699637, 0, 0.16074256, 0],
-    "Suspension Index":     0
-  },
+  "Steering Subsystems":
+  [
+    {
+      "Input File":           "hmmwv/steering/HMMWV_PitmanArm.json",
+      "Location":             [1.24498, 0, 0.109322],
+      "Orientation":          [0.98699637, 0, 0.16074256, 0]
+    }
+  ],
 
   "Driveline":
   {
