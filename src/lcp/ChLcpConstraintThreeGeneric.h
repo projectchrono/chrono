@@ -244,7 +244,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
             storage.PasteMatrixFloat(Cq_a, insrow, variables_a->GetOffset());
         if (variables_b->IsActive())
             storage.PasteMatrixFloat(Cq_b, insrow, variables_b->GetOffset());
-        if (variables_b->IsActive())
+        if (variables_c->IsActive())
             storage.PasteMatrixFloat(Cq_c, insrow, variables_c->GetOffset());
     }
     virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {

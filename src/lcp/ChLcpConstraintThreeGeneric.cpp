@@ -155,7 +155,7 @@ void ChLcpConstraintThreeGeneric::SetVariables(ChLcpVariables* mvariables_a,
         if (!Cq_c)
             Cq_c = new ChMatrixDynamic<float>(1, variables_c->Get_ndof());
         else
-            Cq_b->Resize(1, variables_c->Get_ndof());
+            Cq_c->Resize(1, variables_c->Get_ndof());
 
         if (!Eq_c)
             Eq_c = new ChMatrixDynamic<float>(variables_c->Get_ndof(), 1);
