@@ -940,7 +940,7 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	// 1*** let's tweak a little bit :)
 	if (length(vel_XSPH) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
 		vel_XSPH *= ( .1 * paramsD.HSML / dTD ) / length(vel_XSPH);
-		if (length(vel_XSPH) > 1.001) { // infinity
+		if (length(vel_XSPH) > .1001 *  * paramsD.HSML / dTD) { // infinity
 			if (paramsD.enableAggressiveTweak) {
 				vel_XSPH = mR3(0);
 			} else {
@@ -960,7 +960,7 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	// 2*** let's tweak a little bit :)
 	if (length(updatedVelocity) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
 		updatedVelocity *= ( .1 * paramsD.HSML / dTD ) / length(updatedVelocity);
-		if (length(updatedVelocity) > 1.001) { // infinity
+		if (length(updatedVelocity) > .1001 * paramsD.HSML / dTD) { // infinity
 			if (paramsD.enableAggressiveTweak) {
 				updatedVelocity = mR3(0);
 			} else {
@@ -976,7 +976,7 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	// 3*** let's tweak a little bit :)
 	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / dTD  && paramsD.enableTweak) {
 		derivVelRho.w *= (.002 * paramsD.rho0 / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
-		if (fabs(derivVelRho.w) > 00201 * paramsD.rho0 / dTD) {
+		if (fabs(derivVelRho.w) > 0.00201 * paramsD.rho0 / dTD) {
 			if (paramsD.enableAggressiveTweak) {
 				derivVelRho.w = 0;
 			} else {
