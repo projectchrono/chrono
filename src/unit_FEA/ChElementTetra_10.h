@@ -13,6 +13,7 @@
 #ifndef CHELEMENTTETRA10_H
 #define CHELEMENTTETRA10_H
 
+#include <cmath>
 #include "ChElementTetrahedron.h"
 #include "ChNodeFEAxyz.h"
 
@@ -105,7 +106,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron {
         M.PasteVector(C1, 0, 1);
         M.PasteVector(D1, 0, 2);
         M.MatrTranspose();
-        Volume = abs(M.Det() / 6);
+        Volume = std::abs(M.Det() / 6);
         return Volume;
     }
 

@@ -13,6 +13,7 @@
 #ifndef CHELEMENTTETRA4_H
 #define CHELEMENTTETRA4_H
 
+#include <cmath>
 #include "ChElementTetrahedron.h"
 #include "ChNodeFEAxyz.h"
 #include "ChNodeFEAxyzP.h"
@@ -88,7 +89,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
         M.PasteVector(C1, 0, 1);
         M.PasteVector(D1, 0, 2);
         M.MatrTranspose();
-        Volume = abs(M.Det() / 6);
+        Volume = std::abs(M.Det() / 6);
         return Volume;
     }
 
@@ -152,7 +153,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
 
         StiffnessMatrix.MatrScale(Volume);
 
-        //***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
+        // ***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
         for (int row = 0; row < StiffnessMatrix.GetRows() - 1; ++row)
             for (int col = row + 1; col < StiffnessMatrix.GetColumns(); ++col)
                 StiffnessMatrix(row, col) = StiffnessMatrix(col, row);
@@ -224,7 +225,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
         ChMatrixCorotation<>::ComputeCK(StiffnessMatrix, this->A, 4, CK);
         ChMatrixCorotation<>::ComputeKCt(CK, this->A, 4, CKCt);
         /*
-        ///***TEST***
+        // ***TEST***
         ChMatrixDynamic<> testCKCt(12,12);
         ChMatrixDynamic<> mC(12,12);
         mC.PasteMatrix(&this->A,0,0);
@@ -242,7 +243,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
             GetLog() << " !!!corotation symmetry error!!!! "  << maxerr << "\n";
         */
 
-        //***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
+        // ***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
         for (int row = 0; row < CKCt.GetRows() - 1; ++row)
             for (int col = row + 1; col < CKCt.GetColumns(); ++col)
                 CKCt(row, col) = CKCt(col, row);
@@ -458,7 +459,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
         M.PasteVector(C1, 0, 1);
         M.PasteVector(D1, 0, 2);
         M.MatrTranspose();
-        Volume = abs(M.Det() / 6);
+        Volume = std::abs(M.Det() / 6);
         return Volume;
     }
 
