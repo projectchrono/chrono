@@ -1605,7 +1605,8 @@ double solvopt(unsigned int n,
     if (B == NULL || g == NULL || g0 == NULL || g1 == NULL || gt == NULL || z == NULL || x1 == NULL) {
         // printf (slv_err2);
         options[8] = -2.e0;
-        return (0.);
+        f = 0.;
+        goto endrun;
     }
 
     /* ANALIZE THE ARGUMENTS PASSED
