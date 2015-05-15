@@ -266,7 +266,7 @@ ChLcpIterativeSORmultithread::ChLcpIterativeSORmultithread(char* uniquename,
     ChThreadConstructionInfo create_args(uniquename, SolverThreadFunc, SolverMemoryFunc, nthreads);
 
     solver_threads = new ChThreads(create_args);
-};
+}
 
 ChLcpIterativeSORmultithread::~ChLcpIterativeSORmultithread() {
     if (solver_threads) {
@@ -274,7 +274,7 @@ ChLcpIterativeSORmultithread::~ChLcpIterativeSORmultithread() {
         delete (solver_threads);
         solver_threads = 0;
     }
-};
+}
 
 // The SOR solver process has been modified so that some
 // parallelizable code has been moved to the SolverThreadFunc().

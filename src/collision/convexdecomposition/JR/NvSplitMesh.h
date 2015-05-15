@@ -83,6 +83,6 @@ iSplitMesh *createSplitMesh(void);
 void        releaseSplitMesh(iSplitMesh *splitMesh);
 
 
-}; // end of namespace
+} // end of namespace
 
 #endif

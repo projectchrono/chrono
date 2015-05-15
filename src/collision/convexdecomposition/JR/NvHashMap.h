@@ -308,7 +308,7 @@ namespace CONVEX_DECOMPOSITION
       MEMALLOC_FREE(ptr);
 		}
 	};
-};
+}
 
 #endif
 

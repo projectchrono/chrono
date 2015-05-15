@@ -36,7 +36,7 @@ ChConstraint::ChConstraint() {
     C = NULL;
 
     Reset_Cn(Get_Cn());
-};
+}
 
 ChConstraint::~ChConstraint() {
     if (C)
@@ -89,7 +89,7 @@ bool ChConstraint_Chf::RestoreReferences(ChFunction* mroot) {
     } else {
         return (valid = false);
     }
-};
+}
 
 ////////////////////////////////////
 //

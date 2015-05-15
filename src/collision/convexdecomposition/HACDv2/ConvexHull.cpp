@@ -382,4 +382,4 @@ hacd::HaF32 HullLibrary::ComputeNormal(hacd::HaF32 *n,const hacd::HaF32 *A,const
 	return mag;
 }
 
-}; // End of namespace HACD
+} // End of namespace HACD

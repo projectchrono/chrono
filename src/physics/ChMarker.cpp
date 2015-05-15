@@ -85,7 +85,7 @@ ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys m
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
 
     UpdateState();
-};
+}
 
 ChMarker::~ChMarker() {
     if (motion_X)
@@ -281,14 +281,14 @@ void ChMarker::UpdateTime(double mytime) {
 
     if (!(csys_dtdt == this->coord_dtdt) || !(csys_dtdt.rot == QNULL))
         SetCoord_dtdt(csys_dtdt);
-};
+}
 
 void ChMarker::UpdateState() {
     if (!GetBody())
         return;
 
     GetBody()->TransformLocalToParent(*this, abs_frame);
-};
+}
 
 void ChMarker::Update(double mytime) {
     UpdateTime(mytime);

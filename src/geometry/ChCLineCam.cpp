@@ -49,7 +49,7 @@ ChLineCam::~ChLineCam() {
         delete law;
         law = 0;
     }
-};
+}
 
 void ChLineCam::Copy(const ChLineCam* source) {
     // copy parent class data
@@ -71,7 +71,7 @@ void ChLineCam::Copy(const ChLineCam* source) {
     law = source->law->new_Duplicate();
     negative = source->negative;
     internal = source->internal;
-};
+}
 
 void ChLineCam::EvaluateCamPoint(double par, Vector& res, double& g, double& q) {
     double a = par * 2 * CH_C_PI;  // range : par 0..1 -> angle 0...2PI

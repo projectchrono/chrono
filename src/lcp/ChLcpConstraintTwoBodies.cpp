@@ -91,7 +91,7 @@ void ChLcpConstraintTwoBodies::Update_auxiliary() {
     // 3- adds the constraint force mixing term (usually zero):
     if (cfm_i)
         g_i += cfm_i;
-};
+}
 
 void ChLcpConstraintTwoBodies::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number

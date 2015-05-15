@@ -73,6 +73,6 @@ NxF32 computeConcavityVolume(NxU32 vcount_hull,
 						     NxU32 tcount_mesh,
 						     const NxU32 *indices_mesh);
 
-}; // end of namespace
+} // end of namespace
 
 #endif

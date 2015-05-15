@@ -49,7 +49,7 @@ void ChLcpVariablesNode::Compute_invMb_v(ChMatrix<float>& result, const ChMatrix
     result(0) = (float)inv_mass * vect(0);
     result(1) = (float)inv_mass * vect(1);
     result(2) = (float)inv_mass * vect(2);
-};
+}
 void ChLcpVariablesNode::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -58,7 +58,7 @@ void ChLcpVariablesNode::Compute_invMb_v(ChMatrix<double>& result, const ChMatri
     result(0) = inv_mass * vect(0);
     result(1) = inv_mass * vect(1);
     result(2) = inv_mass * vect(2);
-};
+}
 
 /// Computes the product of the inverse mass matrix by a
 /// vector, and increment result: result += [invMb]*vect
@@ -70,7 +70,7 @@ void ChLcpVariablesNode::Compute_inc_invMb_v(ChMatrix<float>& result, const ChMa
     result(0) += (float)inv_mass * vect(0);
     result(1) += (float)inv_mass * vect(1);
     result(2) += (float)inv_mass * vect(2);
-};
+}
 void ChLcpVariablesNode::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -79,7 +79,7 @@ void ChLcpVariablesNode::Compute_inc_invMb_v(ChMatrix<double>& result, const ChM
     result(0) += inv_mass * vect(0);
     result(1) += inv_mass * vect(1);
     result(2) += inv_mass * vect(2);
-};
+}
 
 /// Computes the product of the mass matrix by a
 /// vector, and set in result: result = [Mb]*vect
@@ -90,7 +90,7 @@ void ChLcpVariablesNode::Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatri
     result(0) += (float)mass * vect(0);
     result(1) += (float)mass * vect(1);
     result(2) += (float)mass * vect(2);
-};
+}
 void ChLcpVariablesNode::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
@@ -98,7 +98,7 @@ void ChLcpVariablesNode::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatr
     result(0) += mass * vect(0);
     result(1) += mass * vect(1);
     result(2) += mass * vect(2);
-};
+}
 
 /// Computes the product of the corresponding block in the
 /// system matrix (ie. the mass matrix) by 'vect', and add to 'result'.

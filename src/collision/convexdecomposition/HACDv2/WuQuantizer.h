@@ -67,6 +67,6 @@ protected:
 
 WuQuantizer * createWuQuantizer(void);
 
-};
+}
 
 #endif

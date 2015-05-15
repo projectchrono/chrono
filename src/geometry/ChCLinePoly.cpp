@@ -56,7 +56,7 @@ void ChLinePoly::Copy(const ChLinePoly* source) {
         delete[] points;
     points = new Vector[numpoints];
     memcpy(points, source->points, (sizeof(Vector) * numpoints));
-};
+}
 
 int ChLinePoly::Get_closed() {
     return closed;

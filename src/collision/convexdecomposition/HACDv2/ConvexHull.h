@@ -139,6 +139,6 @@ private:
 							bool useWuQuantizer);
 };
 
-}; // end of namespace HACD
+} // end of namespace HACD
 
 #endif

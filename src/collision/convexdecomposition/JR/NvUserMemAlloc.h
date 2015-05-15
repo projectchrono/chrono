@@ -74,7 +74,7 @@ class Memalloc
 public:
 };
 
-}; // end of namespace
+} // end of namespace
 
 
 

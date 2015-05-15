@@ -736,7 +736,7 @@ class BuildMesh : public GeometryInterface {
     FloatVector mTexCoords;
     IntVector mIndices;
 };
-};
+}
 
 // Following function is a modified version of:
 

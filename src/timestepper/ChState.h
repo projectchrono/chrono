@@ -127,7 +127,6 @@ class ChStateDelta : public ChVectorDynamic<double> {
     explicit ChStateDelta(const ChMatrixDynamic<double> matr, ChIntegrable* mint) : ChVectorDynamic<double>(matr) {
         integrable = mint;
     };
-    ;
 
     /// Copy constructor
     ChStateDelta(const ChStateDelta& msource) : ChVectorDynamic<double>(msource) { integrable = msource.integrable; };

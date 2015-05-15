@@ -906,7 +906,7 @@ void ChSystem::RemoveAllBodies() {
         Bpointer->RemoveRef();
     }
     bodylist.clear();
-};
+}
 
 void ChSystem::RemoveAllLinks() {
     for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
@@ -919,7 +919,7 @@ void ChSystem::RemoveAllLinks() {
         Lpointer->RemoveRef();
     }
     linklist.clear();
-};
+}
 
 void ChSystem::RemoveAllOtherPhysicsItems() {
     for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
@@ -935,7 +935,7 @@ void ChSystem::RemoveAllOtherPhysicsItems() {
         PHpointer->RemoveRef();
     }
     otherphysicslist.clear();
-};
+}
 
 void ChSystem::RemoveAllProbes() {
     for (unsigned int ip = 0; ip < probelist.size(); ++ip)  // ITERATE on probes
@@ -945,7 +945,7 @@ void ChSystem::RemoveAllProbes() {
         Ppointer->RemoveRef();
     }
     probelist.clear();
-};
+}
 
 void ChSystem::RemoveAllControls() {
     for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
@@ -956,7 +956,7 @@ void ChSystem::RemoveAllControls() {
         Cpointer->RemoveRef();
     }
     controlslist.clear();
-};
+}
 
 ChSharedPtr<ChBody> ChSystem::SearchBody(const char* m_name) {
     ChBody* mbody =
@@ -3432,10 +3432,10 @@ ChSharedPtr<ChBody> ChSystem::IteratorBodies::operator*() {
 }
 ChSystem::IteratorBodies ChSystem::IterBeginBodies() {
     return (IteratorBodies(this->bodylist.begin()));
-};
+}
 ChSystem::IteratorBodies ChSystem::IterEndBodies() {
     return (IteratorBodies(this->bodylist.end()));
-};
+}
 
 //////////////////////////////////////////////////////////////////
 
@@ -3460,10 +3460,10 @@ ChSharedPtr<ChLink> ChSystem::IteratorLinks::operator*() {
 }
 ChSystem::IteratorLinks ChSystem::IterBeginLinks() {
     return (IteratorLinks(this->linklist.begin()));
-};
+}
 ChSystem::IteratorLinks ChSystem::IterEndLinks() {
     return (IteratorLinks(this->linklist.end()));
-};
+}
 
 //////////////////////////////////////////////////////////////////
 
@@ -3489,10 +3489,10 @@ ChSharedPtr<ChPhysicsItem> ChSystem::IteratorOtherPhysicsItems::operator*() {
 }
 ChSystem::IteratorOtherPhysicsItems ChSystem::IterBeginOtherPhysicsItems() {
     return (IteratorOtherPhysicsItems(this->otherphysicslist.begin()));
-};
+}
 ChSystem::IteratorOtherPhysicsItems ChSystem::IterEndOtherPhysicsItems() {
     return (IteratorOtherPhysicsItems(this->otherphysicslist.end()));
-};
+}
 
 //////////////////////////////////////////////////////////////////
 
@@ -3635,10 +3635,10 @@ ChSharedPtr<ChPhysicsItem> ChSystem::IteratorPhysicsItems::operator*() {
 }
 ChSystem::IteratorPhysicsItems ChSystem::IterBeginPhysicsItems() {
     return (IteratorPhysicsItems(this));
-};
+}
 ChSystem::IteratorPhysicsItems ChSystem::IterEndPhysicsItems() {
     return (IteratorPhysicsItems());
-};
+}
 
 }  // END_OF_NAMESPACE____
 

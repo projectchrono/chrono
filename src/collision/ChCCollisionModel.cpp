@@ -30,7 +30,7 @@ static double default_safe_margin = 0.01;
 ChCollisionModel::ChCollisionModel() {
     model_envelope = (float)default_model_envelope;  //  0.03f;
     model_safe_margin = (float)default_safe_margin;  // 0.01f;
-};
+}
 
 void ChCollisionModel::SetDefaultSuggestedEnvelope(double menv) {
     default_model_envelope = menv;

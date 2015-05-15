@@ -94,7 +94,7 @@ void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& mloc) {
         HIER_FORCE_NEXT
     }
     */
-};
+}
 
 void ChBodyAuxRef::SetFrame_REF_to_abs(const ChFrame<>& mfra) {
     mfra.TransformLocalToParent(this->auxref_to_cog.GetInverse(), *this);

@@ -51,7 +51,7 @@ namespace bParse
 {
 	class btBulletFile;
 	
-};
+}
 
 
 class btBulletWorldImporter

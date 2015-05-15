@@ -192,7 +192,7 @@ int ChFunction::OptVariableCount() {
     MakeOptVariableTree(&mtree);
     VariableTreeToFullNameVar(&mtree, &mlist);
     return mlist.Count();
-};
+}
 
 ////////////
 

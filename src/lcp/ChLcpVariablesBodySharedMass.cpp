@@ -53,7 +53,7 @@ void ChLcpVariablesBodySharedMass::Compute_invMb_v(ChMatrix<float>& result, cons
                         sharedmass->inv_inertia(1, 2) * vect(5));
     result(5) = (float)(sharedmass->inv_inertia(2, 0) * vect(3) + sharedmass->inv_inertia(2, 1) * vect(4) +
                         sharedmass->inv_inertia(2, 2) * vect(5));
-};
+}
 void ChLcpVariablesBodySharedMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -67,7 +67,7 @@ void ChLcpVariablesBodySharedMass::Compute_invMb_v(ChMatrix<double>& result, con
                 sharedmass->inv_inertia(1, 2) * vect(5);
     result(5) = sharedmass->inv_inertia(2, 0) * vect(3) + sharedmass->inv_inertia(2, 1) * vect(4) +
                 sharedmass->inv_inertia(2, 2) * vect(5);
-};
+}
 
 /// Computes the product of the inverse mass matrix by a
 /// vector, and increment result: result += [invMb]*vect
@@ -84,7 +84,7 @@ void ChLcpVariablesBodySharedMass::Compute_inc_invMb_v(ChMatrix<float>& result, 
                          sharedmass->inv_inertia(1, 2) * vect(5));
     result(5) += (float)(sharedmass->inv_inertia(2, 0) * vect(3) + sharedmass->inv_inertia(2, 1) * vect(4) +
                          sharedmass->inv_inertia(2, 2) * vect(5));
-};
+}
 void ChLcpVariablesBodySharedMass::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -98,7 +98,7 @@ void ChLcpVariablesBodySharedMass::Compute_inc_invMb_v(ChMatrix<double>& result,
                  sharedmass->inv_inertia(1, 2) * vect(5);
     result(5) += sharedmass->inv_inertia(2, 0) * vect(3) + sharedmass->inv_inertia(2, 1) * vect(4) +
                  sharedmass->inv_inertia(2, 2) * vect(5);
-};
+}
 
 /// Computes the product of the mass matrix by a
 /// vector, and set in result: result = [Mb]*vect
@@ -115,7 +115,7 @@ void ChLcpVariablesBodySharedMass::Compute_inc_Mb_v(ChMatrix<float>& result, con
                          sharedmass->inertia(1, 2) * vect(5));
     result(5) += (float)(sharedmass->inertia(2, 0) * vect(3) + sharedmass->inertia(2, 1) * vect(4) +
                          sharedmass->inertia(2, 2) * vect(5));
-};
+}
 void ChLcpVariablesBodySharedMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == Get_ndof());
     assert(vect.GetRows() == Get_ndof());
@@ -129,7 +129,7 @@ void ChLcpVariablesBodySharedMass::Compute_inc_Mb_v(ChMatrix<double>& result, co
                   sharedmass->inertia(1, 2) * vect(5));
     result(5) += (sharedmass->inertia(2, 0) * vect(3) + sharedmass->inertia(2, 1) * vect(4) +
                   sharedmass->inertia(2, 2) * vect(5));
-};
+}
 
 /// Computes the product of the corresponding block in the
 /// system matrix (ie. the mass matrix) by 'vect', and add to 'result'.
@@ -180,7 +180,7 @@ void ChLcpVariablesBodySharedMass::Build_M(ChSparseMatrix& storage, int insrow, 
     storage.SetElement(insrow + 1, inscol + 1, sharedmass->mass);
     storage.SetElement(insrow + 2, inscol + 2, sharedmass->mass);
     storage.PasteMatrix(&(sharedmass->inertia), insrow + 3, inscol + 3);
-};
+}
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence

@@ -59,7 +59,7 @@ void ChLcpConstraint::Project() {
         if (l_i < 0.)
             l_i = 0.;
     }
-};
+}
 
 double ChLcpConstraint::Violation(double mc_i) {
     if (mode == CONSTRAINT_UNILATERAL) {

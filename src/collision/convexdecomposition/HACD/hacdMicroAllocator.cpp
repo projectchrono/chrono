@@ -990,4 +990,4 @@ void * heap_realloc(HeapManager *hm,void *oldMem,size_t newSize)
     return hm->heap_realloc(oldMem,newSize);
 }
 
-}; // end of namespace
+} // end of namespace

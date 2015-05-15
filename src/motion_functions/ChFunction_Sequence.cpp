@@ -57,7 +57,7 @@ void ChFseqNode::SetDuration(double mdur) {
     if (duration < 0)
         duration = 0;
     t_end = t_start + duration;
-};
+}
 
 void ChFseqNode::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number

@@ -463,4 +463,4 @@ namespace HACD
 		delete m;
 	}
 
-}; // end of namespace
+} // end of namespace

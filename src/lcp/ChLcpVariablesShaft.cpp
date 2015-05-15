@@ -33,12 +33,12 @@ void ChLcpVariablesShaft::Compute_invMb_v(ChMatrix<float>& result, const ChMatri
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
     result(0) = (float)m_inv_inertia * vect(0);
-};
+}
 void ChLcpVariablesShaft::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
     result(0) = m_inv_inertia * vect(0);
-};
+}
 
 /// Computes the product of the inverse mass matrix by a
 /// vector, and increment result: result += [invMb]*vect
@@ -46,12 +46,12 @@ void ChLcpVariablesShaft::Compute_inc_invMb_v(ChMatrix<float>& result, const ChM
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
     result(0) += (float)m_inv_inertia * vect(0);
-};
+}
 void ChLcpVariablesShaft::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
     result(0) += (float)m_inv_inertia * vect(0);
-};
+}
 
 /// Computes the product of the mass matrix by a
 /// vector, and set in result: result = [Mb]*vect
@@ -59,12 +59,12 @@ void ChLcpVariablesShaft::Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatr
     assert(result.GetRows() == Get_ndof());
     assert(vect.GetRows() == Get_ndof());
     result(0) += (float)m_inertia * vect(0);
-};
+}
 void ChLcpVariablesShaft::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     result(0) += m_inertia * vect(0);
-};
+}
 
 /// Computes the product of the corresponding block in the
 /// system matrix (ie. the mass matrix) by 'vect', and add to 'result'.

@@ -162,7 +162,7 @@ void ChLcpConstraintTwoGeneric::Update_auxiliary() {
     // 3- adds the constraint force mixing term (usually zero):
     if (cfm_i)
         g_i += cfm_i;
-};
+}
 
 void ChLcpConstraintTwoGeneric::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number

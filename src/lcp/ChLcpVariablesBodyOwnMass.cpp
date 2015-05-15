@@ -54,7 +54,7 @@ void ChLcpVariablesBodyOwnMass::Compute_invMb_v(ChMatrix<float>& result, const C
     result(3) = (float)(inv_inertia(0, 0) * vect(3) + inv_inertia(0, 1) * vect(4) + inv_inertia(0, 2) * vect(5));
     result(4) = (float)(inv_inertia(1, 0) * vect(3) + inv_inertia(1, 1) * vect(4) + inv_inertia(1, 2) * vect(5));
     result(5) = (float)(inv_inertia(2, 0) * vect(3) + inv_inertia(2, 1) * vect(4) + inv_inertia(2, 2) * vect(5));
-};
+}
 
 void ChLcpVariablesBodyOwnMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
@@ -66,7 +66,7 @@ void ChLcpVariablesBodyOwnMass::Compute_invMb_v(ChMatrix<double>& result, const 
     result(3) = inv_inertia(0, 0) * vect(3) + inv_inertia(0, 1) * vect(4) + inv_inertia(0, 2) * vect(5);
     result(4) = inv_inertia(1, 0) * vect(3) + inv_inertia(1, 1) * vect(4) + inv_inertia(1, 2) * vect(5);
     result(5) = inv_inertia(2, 0) * vect(3) + inv_inertia(2, 1) * vect(4) + inv_inertia(2, 2) * vect(5);
-};
+}
 
 /// Computes the product of the inverse mass matrix by a
 /// vector, and increment result: result += [invMb]*vect
@@ -80,7 +80,7 @@ void ChLcpVariablesBodyOwnMass::Compute_inc_invMb_v(ChMatrix<float>& result, con
     result(3) += (float)(inv_inertia(0, 0) * vect(3) + inv_inertia(0, 1) * vect(4) + inv_inertia(0, 2) * vect(5));
     result(4) += (float)(inv_inertia(1, 0) * vect(3) + inv_inertia(1, 1) * vect(4) + inv_inertia(1, 2) * vect(5));
     result(5) += (float)(inv_inertia(2, 0) * vect(3) + inv_inertia(2, 1) * vect(4) + inv_inertia(2, 2) * vect(5));
-};
+}
 
 void ChLcpVariablesBodyOwnMass::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
@@ -92,7 +92,7 @@ void ChLcpVariablesBodyOwnMass::Compute_inc_invMb_v(ChMatrix<double>& result, co
     result(3) += inv_inertia(0, 0) * vect(3) + inv_inertia(0, 1) * vect(4) + inv_inertia(0, 2) * vect(5);
     result(4) += inv_inertia(1, 0) * vect(3) + inv_inertia(1, 1) * vect(4) + inv_inertia(1, 2) * vect(5);
     result(5) += inv_inertia(2, 0) * vect(3) + inv_inertia(2, 1) * vect(4) + inv_inertia(2, 2) * vect(5);
-};
+}
 
 /// Computes the product of the mass matrix by a
 /// vector, and set in result: result = [Mb]*vect
@@ -106,7 +106,7 @@ void ChLcpVariablesBodyOwnMass::Compute_inc_Mb_v(ChMatrix<float>& result, const 
     result(3) += (float)(inertia(0, 0) * vect(3) + inertia(0, 1) * vect(4) + inertia(0, 2) * vect(5));
     result(4) += (float)(inertia(1, 0) * vect(3) + inertia(1, 1) * vect(4) + inertia(1, 2) * vect(5));
     result(5) += (float)(inertia(2, 0) * vect(3) + inertia(2, 1) * vect(4) + inertia(2, 2) * vect(5));
-};
+}
 
 void ChLcpVariablesBodyOwnMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
@@ -118,7 +118,7 @@ void ChLcpVariablesBodyOwnMass::Compute_inc_Mb_v(ChMatrix<double>& result, const
     result(3) += (inertia(0, 0) * vect(3) + inertia(0, 1) * vect(4) + inertia(0, 2) * vect(5));
     result(4) += (inertia(1, 0) * vect(3) + inertia(1, 1) * vect(4) + inertia(1, 2) * vect(5));
     result(5) += (inertia(2, 0) * vect(3) + inertia(2, 1) * vect(4) + inertia(2, 2) * vect(5));
-};
+}
 
 /// Computes the product of the corresponding block in the
 /// system matrix (ie. the mass matrix) by 'vect', and add to 'result'.

@@ -153,11 +153,11 @@ class ChList {
 template <class dt>
 ChList<dt>::ChList() {
     head = tail = NULL;
-};
+}
 template <class dt>
 ChList<dt>::~ChList() {
     RemoveAll();
-};
+}
 
 template <class dt>
 int ChList<dt>::AddHead(dt* mdata) {
@@ -174,7 +174,7 @@ int ChList<dt>::AddHead(dt* mdata) {
         head = nnode;
     }
     return TRUE;
-};
+}
 
 template <class dt>
 int ChList<dt>::AddTail(dt* mdata) {
@@ -191,21 +191,21 @@ int ChList<dt>::AddTail(dt* mdata) {
         tail = nnode;
     }
     return TRUE;
-};
+}
 
 template <class dt>
 int ChList<dt>::RemHead() {
     if (head == NULL)
         return FALSE;
     return Remove(head);
-};
+}
 
 template <class dt>
 int ChList<dt>::RemTail() {
     if (tail == NULL)
         return FALSE;
     return Remove(tail);
-};
+}
 
 template <class dt>
 int ChList<dt>::InsertAfter(ChNode<dt>* mnode, ChNode<dt>* newnode) {
@@ -217,7 +217,7 @@ int ChList<dt>::InsertAfter(ChNode<dt>* mnode, ChNode<dt>* newnode) {
         tail = newnode;
     mnode->next = newnode;
     return TRUE;
-};
+}
 
 template <class dt>
 int ChList<dt>::InsertBefore(ChNode<dt>* mnode, ChNode<dt>* newnode) {
@@ -229,18 +229,18 @@ int ChList<dt>::InsertBefore(ChNode<dt>* mnode, ChNode<dt>* newnode) {
         head = newnode;
     mnode->prev = newnode;
     return TRUE;
-};
+}
 
 template <class dt>
 int ChList<dt>::InsertAfter(ChNode<dt>* mnode, dt* mdata) {
     ChNode<dt>* nenode = new ChNode<dt>(mdata);
     return InsertAfter(mnode, nenode);
-};
+}
 template <class dt>
 int ChList<dt>::InsertBefore(ChNode<dt>* mnode, dt* mdata) {
     ChNode<dt>* nenode = new ChNode<dt>(mdata);
     return InsertBefore(mnode, nenode);
-};
+}
 
 template <class dt>
 int ChList<dt>::Remove(ChNode<dt>* mnode) {
@@ -254,14 +254,14 @@ int ChList<dt>::Remove(ChNode<dt>* mnode) {
         mnode->prev->next = mnode->next;
     delete mnode;
     return TRUE;
-};
+}
 
 template <class dt>
 int ChList<dt>::RemoveAll() {
     for (ChNode<dt>* mnode = head; mnode != NULL; mnode = head)
         Remove(mnode);
     return TRUE;
-};
+}
 
 template <class dt>
 int ChList<dt>::Kill(ChNode<dt>* mnode) {
@@ -269,7 +269,7 @@ int ChList<dt>::Kill(ChNode<dt>* mnode) {
         delete (mnode->data);
     Remove(mnode);
     return TRUE;
-};
+}
 
 template <class dt>
 int ChList<dt>::KillAll() {
@@ -279,7 +279,7 @@ int ChList<dt>::KillAll() {
         Remove(mnode);
     }
     return TRUE;
-};
+}
 
 template <class dt>
 int ChList<dt>::Count() {
@@ -288,7 +288,7 @@ int ChList<dt>::Count() {
         sum++;
     }
     return sum;
-};
+}
 
 template <class dt>
 ChNode<dt>* ChList<dt>::GetNum(int num) {
@@ -299,7 +299,7 @@ ChNode<dt>* ChList<dt>::GetNum(int num) {
         sum++;
     }
     return NULL;
-};
+}
 
 }  // END_OF_NAMESPACE____
 

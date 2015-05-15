@@ -213,7 +213,7 @@ void ChForce::SetVpoint(Vector mypoint) {
         restpos = Vsub(vpoint, displace);
     if (frame == FPOS_BODY)
         restpos = Vsub(vrelpoint, displace);
-};
+}
 
 void ChForce::SetVrelpoint(Vector myrelpoint) {
     // rel pos
@@ -232,7 +232,7 @@ void ChForce::SetVrelpoint(Vector myrelpoint) {
         restpos = Vsub(vpoint, displace);
     if (frame == FPOS_BODY)
         restpos = Vsub(vrelpoint, displace);
-};
+}
 
 ////// Impose absolute or relative force directions
 

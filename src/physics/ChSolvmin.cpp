@@ -260,7 +260,7 @@ double CalcFO(double x[], void* idData) {
     return -(moptimizer->Eval_fx(x));
 }
 
-void showVarFun(){};
+void showVarFun(){}
 
 //// $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
@@ -1507,7 +1507,7 @@ void ChOptimizerHybrid::SetNumOfVars(int mv) {
     C_vars = mv;
     genetic_opt->SetNumOfVars(mv);
     local_opt->SetNumOfVars(mv);
-};
+}
 
 //###################################################################
 /////////////////////////////////////////////////////////////////////

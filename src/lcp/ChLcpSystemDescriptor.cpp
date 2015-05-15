@@ -43,7 +43,7 @@ ChLcpSystemDescriptor::ChLcpSystemDescriptor() {
     this->num_threads = CHOMPfunctions::GetNumProcs();
 
     spinlocktable = new ChSpinlock[CH_SPINLOCK_HASHSIZE];
-};
+}
 
 ChLcpSystemDescriptor::~ChLcpSystemDescriptor() {
     vconstraints.clear();
@@ -53,7 +53,7 @@ ChLcpSystemDescriptor::~ChLcpSystemDescriptor() {
     if (spinlocktable)
         delete[] spinlocktable;
     spinlocktable = 0;
-};
+}
 
 void ChLcpSystemDescriptor::ComputeFeasabilityViolation(
     double& resulting_maxviolation,   ///< gets the max constraint violation (either bi- and unilateral.)

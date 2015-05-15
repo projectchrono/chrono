@@ -779,5 +779,5 @@ void                   releaseMeshIslandGeneration(MeshIslandGeneration *cm)
   delete mig;
 }
 
-}; // end of namespace
+} // end of namespace
 
