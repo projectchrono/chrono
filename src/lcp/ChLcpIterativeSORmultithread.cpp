@@ -375,7 +375,7 @@ void ChLcpIterativeSORmultithread::ChangeNumberOfThreads(int mthreads) {
         mthreads = 1;
 
     char mname[100];
-    strcpy(mname, solver_threads->getUniqueName().c_str());
+    strncpy(mname, solver_threads->getUniqueName().c_str(), sizeof(mname)-1);
 
     solver_threads->flush();
     delete (solver_threads);

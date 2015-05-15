@@ -106,7 +106,7 @@ ChFile_ps::ChFile_ps(char m_name[], double x, double y, double w, double h, char
     : ChStreamOutAsciiFile(m_name) {
     this->SetNumFormat("%g");
 
-    strcpy(prolog_file, m_prolog_file);
+    strncpy(prolog_file, m_prolog_file, sizeof(prolog_file)-1);
 
     // init vars..
     unit_scale = PS_SCALE_CENTIMETERS;

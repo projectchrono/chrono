@@ -380,7 +380,7 @@ void ChSystem::Copy(ChSystem* source) {
     SetLcpSolverType(GetLcpSolverType());
     parallel_thread_number = source->parallel_thread_number;
     use_sleeping = source->use_sleeping;
- 
+
 
     collision_callback = source->collision_callback;
     collisionpoint_callback = source->collisionpoint_callback;
@@ -635,28 +635,28 @@ void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
 int ChSystem::SetScriptForStartFile(char* mfile) {
     if (!this->scriptEngine)
         return 0;
-    strcpy(this->scriptForStartFile, mfile);
+    strncpy(this->scriptForStartFile, mfile, sizeof(this->scriptForStartFile)-1);
     this->scriptForStart = this->scriptEngine->CreateScript();
     return this->scriptEngine->FileToScript(*this->scriptForStart, mfile);
 }
 int ChSystem::SetScriptForUpdateFile(char* mfile) {
     if (!this->scriptEngine)
         return 0;
-    strcpy(this->scriptForUpdateFile, mfile);
+    strncpy(this->scriptForUpdateFile, mfile, sizeof(this->scriptForUpdateFile)-1);
     this->scriptForUpdate = this->scriptEngine->CreateScript();
     return this->scriptEngine->FileToScript(*this->scriptForUpdate, mfile);
 }
 int ChSystem::SetScriptForStepFile(char* mfile) {
     if (!this->scriptEngine)
         return 0;
-    strcpy(this->scriptForStepFile, mfile);
+    strncpy(this->scriptForStepFile, mfile, sizeof(this->scriptForStepFile)-1);
     this->scriptForStep = this->scriptEngine->CreateScript();
     return this->scriptEngine->FileToScript(*this->scriptForStep, mfile);
 }
 int ChSystem::SetScriptFor3DStepFile(char* mfile) {
     if (!this->scriptEngine)
         return 0;
-    strcpy(this->scriptFor3DStepFile, mfile);
+    strncpy(this->scriptFor3DStepFile, mfile, sizeof(this->scriptFor3DStepFile)-1);
     this->scriptFor3DStep = this->scriptEngine->CreateScript();
     return this->scriptEngine->FileToScript(*this->scriptFor3DStep, mfile);
 }
@@ -2014,7 +2014,7 @@ void ChSystem::LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R 
         if (Lpointer->IsActive())
             Lpointer->IntLoadResidual_CqL(Lpointer->GetOffset_L(), R, L, c);
     }
-    this->contact_container->IntLoadResidual_CqL(contact_container->GetOffset_L(), R, L, c); 
+    this->contact_container->IntLoadResidual_CqL(contact_container->GetOffset_L(), R, L, c);
 }
 
 /// Increment a vector Qc with the term C:
@@ -2041,7 +2041,7 @@ void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  ///< result: the Qc resi
         if (Lpointer->IsActive())
             Lpointer->IntLoadConstraint_C(Lpointer->GetOffset_L(), Qc, c, mdo_clamp, mclam);
     }
-    this->contact_container->IntLoadConstraint_C(contact_container->GetOffset_L(), Qc, c, mdo_clamp, mclam); 
+    this->contact_container->IntLoadConstraint_C(contact_container->GetOffset_L(), Qc, c, mdo_clamp, mclam);
 }
 
 /// Increment a vector Qc with the term Ct = partial derivative dC/dt:

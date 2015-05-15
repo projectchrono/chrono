@@ -652,7 +652,7 @@ ChStreamFile::ChStreamFile(const char* filename, std::ios::openmode mmode) {
         std::cout << "CANNOT OPEN";
         throw ChException("Cannot open stream");
     };
-    strcpy(name, filename);
+    strncpy(name, filename, sizeof(name)-1);
 }
 
 /// Destruction means that the file stream is also closed.

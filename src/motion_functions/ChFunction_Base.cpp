@@ -122,8 +122,8 @@ int ChFunction::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
     int i = 0;
     while (*(mvars + i) != 0) {
         chjs_propdata* mdata = new chjs_propdata;
-        strcpy(mdata->propname, *(mvars + i));
-        strcpy(mdata->label, *(mvars + i));
+        strncpy(mdata->propname, *(mvars + i), sizeof(mdata->propname)-1);
+        strncpy(mdata->label, *(mvars + i), sizeof(mdata->label)-1);
         mdata->haschildren = FALSE;
         mtree->AddTail(mdata);
         i++;
