@@ -940,7 +940,7 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	// 1*** let's tweak a little bit :)
 	if (length(vel_XSPH) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
 		vel_XSPH *= ( .1 * paramsD.HSML / dTD ) / length(vel_XSPH);
-		if (length(vel_XSPH) > .1001 *  * paramsD.HSML / dTD) { // infinity
+		if (length(vel_XSPH) > .1001 * paramsD.HSML / dTD) { // infinity
 			if (paramsD.enableAggressiveTweak) {
 				vel_XSPH = mR3(0);
 			} else {
