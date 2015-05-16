@@ -13,7 +13,7 @@
   "Axles":
   [
     {
-      "Suspension Input File":   "generic/suspension/SolidAxleFront.json",
+      "Suspension Input File":   "generic/suspension/SolidAxle.json",
       "Suspension Location":     [2.3, 0, 0.0264],
       "Steering Index":          0,
       "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
@@ -23,7 +23,7 @@
     },
 
     {
-      "Suspension Input File":   "generic/suspension/SolidAxleFront.json",
+      "Suspension Input File":   "generic/suspension/SolidAxle.json",
       "Suspension Location":     [1.3, 0, 0.0264],
       "Steering Index":          0,
       "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
@@ -33,7 +33,7 @@
     },
 
     {
-      "Suspension Input File":   "generic/suspension/SolidAxleRear.json",
+      "Suspension Input File":   "generic/suspension/SolidAxle.json",
       "Suspension Location":     [-1.8, 0, 0.0264],
       "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
       "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
