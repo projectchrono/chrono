@@ -152,6 +152,44 @@ private:
   double m_c;
 };
 
+///
+/// Utility class for specifying a map spring force.
+///
+class MapSpringForce : public ChSpringForceCallback {
+public:
+  MapSpringForce() {}
+  MapSpringForce(const std::vector<std::pair<double, double> >& data) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+      m_map.AddPoint(data[i].first, data[i].second);
+    }
+  }
+  void add_point(double x, double y) { m_map.AddPoint(x, y); }
+  virtual double operator()(double time, double rest_length, double length, double vel) {
+    return -m_map.Get_y(length - rest_length);
+  }
+private:
+  ChFunction_Recorder m_map;
+};
+
+///
+/// Utility class for specifying a map damper force.
+///
+class MapDamperForce : public ChSpringForceCallback {
+public:
+  MapDamperForce() {}
+  MapDamperForce(const std::vector<std::pair<double, double> >& data) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+      m_map.AddPoint(data[i].first, data[i].second);
+    }
+  }
+  void add_point(double x, double y) { m_map.AddPoint(x, y); }
+  virtual double operator()(double time, double rest_length, double length, double vel) {
+    return -m_map.Get_y(vel);
+  }
+private:
+  ChFunction_Recorder m_map;
+};
+
 
 } // end namespace chrono
 
