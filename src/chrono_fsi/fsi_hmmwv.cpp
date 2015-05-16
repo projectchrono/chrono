@@ -67,7 +67,7 @@ using std::endl;
 // Define General variables
 SimParams paramsH;
 
-#define haveFluid true
+#define haveFluid false
 #define useWallBce true
 
 #if haveFluid
@@ -166,6 +166,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   // Set number of threads.
   // ----------------------
 
+  //  omp_get_num_procs();
   int max_threads = mphysicalSystem.GetParallelThreadNumber();
   if (threads > max_threads)
     threads = max_threads;
@@ -174,7 +175,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
 
   mphysicalSystem.GetSettings()->perform_thread_tuning = thread_tuning;
   mphysicalSystem.GetSettings()->min_threads = max(1, threads/2);
-  mphysicalSystem.GetSettings()->max_threads = 3 * threads / 2;
+  mphysicalSystem.GetSettings()->max_threads = int(3.0 * threads / 2);
 
   // ---------------------
   // Print the rest of parameters
@@ -465,16 +466,16 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
     case C_SIMPLE_CONVEX_MESH: {
       chassis_cb =
-          new MyChassisSimpleConvexMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      ChVector<> mPos = ChVector<>(0, 0, 0.5);
-      ((MyChassisSimpleConvexMesh_vis*)chassis_cb)->SetAttributes(mPos);
+          new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+      ChVector<> mPos = ChVector<>(0, 0, 0);
+      ((MyChassisSimpleConvexMesh*)chassis_cb)->SetAttributes(mPos);
       mVehicle->SetChassisContactCallback(chassis_cb);
     } break;
 
     case C_SIMPLE_TRI_MESH: {
       chassis_cb =
           new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      ChVector<> mPos = ChVector<>(0, 0, 0.5);
+      ChVector<> mPos = ChVector<>(0, 0, 0);
       ((MyChassisSimpleTriMesh_vis*)chassis_cb)->SetAttributes(mPos);
       mVehicle->SetChassisContactCallback(chassis_cb);
     } break;
