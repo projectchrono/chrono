@@ -159,7 +159,8 @@ void MyChassisSphereModel_vis::SetAttributes(double otherRad,
 
 // Callback class for specifying chassis contact model.
 // This version uses a convex decomposition of an obj representing the chassis.
-MyChassisSimpleConvexMesh::MyChassisSimpleConvexMesh() {
+MyChassisSimpleConvexMesh::MyChassisSimpleConvexMesh() :
+	pos(chrono::ChVector<>(0, 0, 0)) , rot( chrono::ChQuaternion<>(1, 0, 0, 0)) {
   //    std::string chassis_obj_file("hmmwv/lugged_wheel_section.obj");
   //    std::string chassis_obj_file("hmmwv/lugged_wheel.obj");
   //    std::string chassis_obj_file("hmmwv/myHumvee.obj");
@@ -202,17 +203,14 @@ void MyChassisSimpleConvexMesh::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody
   chassisBody->GetMaterialSurface()->SetFriction(mu_t);
 }
 
-void MyChassisSimpleConvexMesh::SetAttributes(const ChVector<>& otherPos,
-                           const ChQuaternion<>& otherRot) {
-  rot = otherRot;
-  pos = otherPos;
-}
-
 // Callback class for specifying chassis contact model.
 // This version uses a triangular given in an obj representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
 // chassis body with the collision meshes.
-MyChassisSimpleTriMesh_vis::MyChassisSimpleTriMesh_vis() { chassis_obj_file = std::string("hmmwv/myHumvee1.obj"); }
+MyChassisSimpleTriMesh_vis::MyChassisSimpleTriMesh_vis() :
+	pos(chrono::ChVector<>(0, 0, 0)) , rot( chrono::ChQuaternion<>(1, 0, 0, 0)) {
+	chassis_obj_file = std::string("hmmwv/myHumvee1.obj");
+}
 
 void MyChassisSimpleTriMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
   // Clear any existing assets (will be overriden)
@@ -254,12 +252,6 @@ void MyChassisSimpleTriMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBod
   chassisBody->GetCollisionModel()->BuildModel();
 
   chassisBody->GetMaterialSurface()->SetFriction(mu_t);
-}
-
-void MyChassisSimpleTriMesh_vis::SetAttributes(const ChVector<>& otherPos,
-                           const ChQuaternion<>& otherRot) {
-  rot = otherRot;
-  pos = otherPos;
 }
 
 

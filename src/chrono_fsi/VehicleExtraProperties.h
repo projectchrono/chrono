@@ -96,9 +96,6 @@ class MyChassisSimpleConvexMesh : public chrono::utils::ChassisContactCallback {
   MyChassisSimpleConvexMesh();
   virtual void onCallback(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassisBody);
 
-  virtual void SetAttributes(const chrono::ChVector<>& otherPos = chrono::ChVector<>(0, 0, 0),
-                             const chrono::ChQuaternion<>& otherRot = chrono::ChQuaternion<>(1, 0, 0, 0));
-
  private:
   chrono::collision::ChConvexDecompositionHACDv2 chassis_convex;
   chrono::geometry::ChTriangleMeshConnected chassis_mesh;
@@ -116,8 +113,6 @@ class MyChassisSimpleTriMesh_vis : public chrono::utils::ChassisContactCallback 
  public:
   MyChassisSimpleTriMesh_vis();
   virtual void onCallback(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassisBody);
-  virtual void SetAttributes(const chrono::ChVector<>& otherPos = chrono::ChVector<>(0, 0, 0),
-                             const chrono::ChQuaternion<>& otherRot = chrono::ChQuaternion<>(1, 0, 0, 0));
 
  private:
   std::string chassis_obj_file;
