@@ -90,11 +90,30 @@ const double      Articulated_MultiLinkRear::m_springRestLength = 0.339;
 Articulated_MultiLinkFront::Articulated_MultiLinkFront(const std::string& name)
 : ChMultiLink(name)
 {
+  m_springForceCB = new LinearSpringForce(m_springCoefficient);
+  m_shockForceCB = new LinearShockForce(m_dampingCoefficient);
 }
 
 Articulated_MultiLinkRear::Articulated_MultiLinkRear(const std::string& name)
 : ChMultiLink(name)
 {
+  m_springForceCB = new LinearSpringForce(m_springCoefficient);
+  m_shockForceCB = new LinearShockForce(m_dampingCoefficient);
+}
+
+// -----------------------------------------------------------------------------
+// Destructors
+// -----------------------------------------------------------------------------
+Articulated_MultiLinkFront::~Articulated_MultiLinkFront()
+{
+  delete m_springForceCB;
+  delete m_shockForceCB;
+}
+
+Articulated_MultiLinkRear::~Articulated_MultiLinkRear()
+{
+  delete m_springForceCB;
+  delete m_shockForceCB;
 }
 
 // -----------------------------------------------------------------------------

@@ -35,7 +35,7 @@ class Generic_MultiLinkFront : public chrono::ChMultiLink
 public:
 
   Generic_MultiLinkFront(const std::string& name);
-  ~Generic_MultiLinkFront() {}
+  ~Generic_MultiLinkFront();
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUpperArmMass() const { return m_upperArmMass; }
@@ -58,14 +58,17 @@ public:
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
-  virtual double getSpringCoefficient() const { return m_springCoefficient; }
-  virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
+  virtual chrono::ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
+  virtual chrono::ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
 
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
   virtual const chrono::ChVector<> getDirection(DirectionId which);
+
+  chrono::ChSpringForceCallback* m_springForceCB;
+  chrono::ChSpringForceCallback* m_shockForceCB;
 
   static const double      m_spindleMass;
   static const double      m_upperArmMass;
@@ -100,7 +103,7 @@ class Generic_MultiLinkRear : public chrono::ChMultiLink
 public:
 
   Generic_MultiLinkRear(const std::string& name);
-  ~Generic_MultiLinkRear() {}
+  ~Generic_MultiLinkRear();
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUpperArmMass() const { return m_upperArmMass; }
@@ -123,14 +126,17 @@ public:
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
-  virtual double getSpringCoefficient() const { return m_springCoefficient; }
-  virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
+  virtual chrono::ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
+  virtual chrono::ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
 
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
   virtual const chrono::ChVector<> getDirection(DirectionId which);
+
+  chrono::ChSpringForceCallback* m_springForceCB;
+  chrono::ChSpringForceCallback* m_shockForceCB;
 
   static const double      m_spindleMass;
   static const double      m_upperArmMass;

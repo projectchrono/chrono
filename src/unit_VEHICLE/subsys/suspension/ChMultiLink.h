@@ -54,10 +54,10 @@ class CH_SUBSYS_API ChMultiLink : public ChSuspension
 public:
 
   ChMultiLink(
-    const std::string& name               ///< [in] name of the subsystem
+    const std::string& name   ///< [in] name of the subsystem
     );
 
-  virtual ~ChMultiLink();
+  virtual ~ChMultiLink() {}
 
   /// Specify whether or not this suspension can be steered.
   virtual bool IsSteerable() const { return true; }
@@ -183,27 +183,12 @@ protected:
   /// Return the radius of the upright body (visualization only).
   virtual double getUprightRadius() const = 0;
 
-  /// Indicate whether the spring is modeled as a nonlinear element.
-  /// If true, the concrete class must provide a callback function to calculate
-  /// the force in the spring element (see getSpringForceCallback).
-  virtual bool useNonlinearSpring() const { return false; }
-  /// Indicate whether the shock is modeled as a nonlinear element.
-  /// If true, the concrete class must provide a callback function to calculate
-  /// the force in the shock element (see getShockForceCallback).
-  virtual bool useNonlinearShock() const  { return false; }
-
-  /// Return the spring coefficient (for linear spring elements).
-  virtual double getSpringCoefficient() const  { return 1.0; }
-  /// Return the damping coefficient (for linear shock elements).
-  virtual double getDampingCoefficient() const { return 1.0; }
-
   /// Return the free (rest) length of the spring element.
   virtual double getSpringRestLength() const = 0;
-
-  /// Return the callback function for spring force (for nonlinear spring).
-  virtual ChSpringForceCallback* getSpringForceCallback() const { return NULL; }
-  /// Return the callback function for shock force (for nonlinear shock).
-  virtual ChSpringForceCallback* getShockForceCallback()  const { return NULL; }
+  /// Return the callback function for spring force.
+  virtual ChSpringForceCallback* getSpringForceCallback() const = 0;
+  /// Return the callback function for shock force.
+  virtual ChSpringForceCallback* getShockForceCallback()  const = 0;
 
   ChSharedBodyPtr                   m_upright[2];      ///< handles to the upright bodies (left/right)
   ChSharedBodyPtr                   m_upperArm[2];     ///< handles to the upper arm bodies (left/right)
@@ -217,12 +202,6 @@ protected:
   ChSharedPtr<ChLinkUniversal>      m_universalTLChassis[2];      ///< handles to the chassis-trailing link universal joints (left/right)
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalTLUpright[2];      ///< handles to the upright-trailing link spherical joints (left/right)
   ChSharedPtr<ChLinkDistance>       m_distTierod[2];              ///< handles to the tierod distance constraints (left/right)
-
-  bool                              m_nonlinearShock;  ///< true if using a callback function to calculate shock forces.
-  bool                              m_nonlinearSpring; ///< true if using a callback function to calculate spring forces.
-
-  ChSpringForceCallback*            m_shockCB;         ///< callback function for calculating shock forces
-  ChSpringForceCallback*            m_springCB;        ///< callback function for calculating spring forces
 
   ChSharedPtr<ChLinkSpringCB>       m_shock[2];        ///< handles to the spring links (left/right)
   ChSharedPtr<ChLinkSpringCB>       m_spring[2];       ///< handles to the shock links (left/right)

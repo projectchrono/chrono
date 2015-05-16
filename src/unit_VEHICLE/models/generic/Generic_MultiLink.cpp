@@ -90,11 +90,30 @@ const double      Generic_MultiLinkRear::m_springRestLength = 0.339;
 Generic_MultiLinkFront::Generic_MultiLinkFront(const std::string& name)
 : ChMultiLink(name)
 {
+  m_springForceCB = new LinearSpringForce(m_springCoefficient);
+  m_shockForceCB = new LinearShockForce(m_dampingCoefficient);
 }
 
 Generic_MultiLinkRear::Generic_MultiLinkRear(const std::string& name)
 : ChMultiLink(name)
 {
+  m_springForceCB = new LinearSpringForce(m_springCoefficient);
+  m_shockForceCB = new LinearShockForce(m_dampingCoefficient);
+}
+
+// -----------------------------------------------------------------------------
+// Destructors
+// -----------------------------------------------------------------------------
+Generic_MultiLinkFront::~Generic_MultiLinkFront()
+{
+  delete m_springForceCB;
+  delete m_shockForceCB;
+}
+
+Generic_MultiLinkRear::~Generic_MultiLinkRear()
+{
+  delete m_springForceCB;
+  delete m_shockForceCB;
 }
 
 // -----------------------------------------------------------------------------
