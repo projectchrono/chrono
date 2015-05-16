@@ -227,7 +227,7 @@ bool ChCollisionModelParallel::AddCylinder(double rx,
 
   nObjects++;
   ConvexShape tData;
-  tData.A = R3(pos.x, pos.y, pos.z);
+  tData.A = R3(position.x, position.y, position.z);
   tData.B = R3(rx, hy, rz);
   tData.C = R3(0, 0, 0);
   tData.R = R4(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
@@ -259,7 +259,7 @@ bool ChCollisionModelParallel::AddRoundedCylinder(double rx,
 
   nObjects++;
   ConvexShape tData;
-  tData.A = R3(pos.x, pos.y, pos.z);
+  tData.A = R3(position.x, position.y, position.z);
   tData.B = R3(rx, hy, rz);
   tData.C = R3(sphere_r, 0, 0);
   tData.R = R4(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
@@ -293,7 +293,7 @@ bool ChCollisionModelParallel::AddCone(double rx,
 
   nObjects++;
   ConvexShape tData;
-  tData.A = R3(pos.x, pos.y, pos.z);
+  tData.A = R3(position.x, position.y, position.z);
   tData.B = R3(rx, height, rz);
   tData.C = R3(0, 0, 0);
   tData.R = R4(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
@@ -328,7 +328,7 @@ bool ChCollisionModelParallel::AddRoundedCone(double rx,
 
   nObjects++;
   ConvexShape tData;
-  tData.A = R3(pos.x, pos.y, pos.z);
+  tData.A = R3(position.x, position.y, position.z);
   tData.B = R3(rx, height, rz);
   tData.C = R3(sphere_r, 0, 0);
   tData.R = R4(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
@@ -358,7 +358,7 @@ bool ChCollisionModelParallel::AddCapsule(double radius, double hlen, const ChVe
 
   nObjects++;
   ConvexShape tData;
-  tData.A = R3(pos.x, pos.y, pos.z);
+  tData.A = R3(position.x, position.y, position.z);
   tData.B = R3(radius, hlen, radius);
   tData.C = R3(0, 0, 0);
   tData.R = R4(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
@@ -374,13 +374,16 @@ bool ChCollisionModelParallel::AddCapsule(double radius, double hlen, const ChVe
 bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> >& pointlist,
                                              const ChVector<>& pos,
                                              const ChMatrix33<>& rot) {
-  inertia = R3(1);  // so that it gets initialized to something
+  ChFrame<> frame;
+  TransformToCOG(GetBody(), pos, rot, frame);
+  const ChVector<>& position = frame.GetPos();
+  const ChQuaternion<>& rotation = frame.GetRot();
 
-  ChQuaternion<> rotation = rot.Get_A_quaternion();
+  inertia = R3(1);  // so that it gets initialized to something
 
   nObjects++;
   ConvexShape tData;
-  tData.A = R3(pos.x, pos.y, pos.z);
+  tData.A = R3(position.x, position.y, position.z);
   tData.B = R3(pointlist.size(), local_convex_data.size(), 0);
   tData.C = R3(0, 0, 0);
   tData.R = R4(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
