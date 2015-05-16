@@ -168,7 +168,7 @@ void MultiLink::Create(const rapidjson::Document& d)
 
   m_points[SHOCK_C] = loadVector(d["Shock"]["Location Chassis"]);
   m_points[SHOCK_L] = loadVector(d["Shock"]["Location Link"]);
-  m_shockForceCB = new LinearShockForce(d["Shock"]["Damping Coefficient"].GetDouble());
+  m_shockForceCB = new LinearDamperForce(d["Shock"]["Damping Coefficient"].GetDouble());
 
   // Read axle inertia
   assert(d.HasMember("Axle"));

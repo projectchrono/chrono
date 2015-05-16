@@ -64,7 +64,7 @@ Generic_MultiLink::Generic_MultiLink(const std::string& name)
 : ChMultiLink(name)
 {
   m_springForceCB = new LinearSpringForce(m_springCoefficient);
-  m_shockForceCB = new LinearShockForce(m_dampingCoefficient);
+  m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------

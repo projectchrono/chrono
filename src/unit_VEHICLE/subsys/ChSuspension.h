@@ -128,41 +128,6 @@ protected:
   ChSharedPtr<ChShaft>             m_axle[2];            ///< handles to axle shafts
   ChSharedPtr<ChShaftsBody>        m_axle_to_spindle[2]; ///< handles to spindle-shaft connectors
   ChSharedPtr<ChLinkLockRevolute>  m_revolute[2];        ///< handles to spindle revolute joints
-
-  /// Utility class for specifying a linear spring force.
-  class LinearSpringForce : public ChSpringForceCallback {
-  public:
-    LinearSpringForce(double k) : m_k(k) {}
-    virtual double operator()(double time, double rest_length, double length, double vel) {
-      return -m_k * (length - rest_length);
-    }
-  private:
-    double m_k;
-  };
-
-  /// Utility class for specifying a linear damper force.
-  class LinearShockForce : public ChSpringForceCallback {
-  public:
-    LinearShockForce(double c) : m_c(c) {}
-    virtual double operator()(double time, double rest_length, double length, double vel) {
-      return -m_c * vel;
-    }
-  private:
-    double m_c;
-  };
-
-  /// Utility class for specifying a linear spring-damper force.
-  class LinearSpringDamperForce : public ChSpringForceCallback {
-  public:
-    LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
-    virtual double operator()(double time, double rest_length, double length, double vel) {
-      return -m_k * (length - rest_length) - m_c * vel;
-    }
-  private:
-    double m_k;
-    double m_c;
-  };
-
 };
 
 /// Vector of handles to suspension subsystems.

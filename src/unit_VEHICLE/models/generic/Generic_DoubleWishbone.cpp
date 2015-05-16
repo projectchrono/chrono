@@ -60,13 +60,8 @@ const double     Generic_DoubleWishbone::m_springRestLength = 0.306;
 Generic_DoubleWishbone::Generic_DoubleWishbone(const std::string& name)
 : ChDoubleWishbone(name)
 {
-  m_springForceCB = new LinearSpringForce(
-    m_springCoefficient     // coefficient for linear spring
-    );
-
-  m_shockForceCB = new LinearShockForce(
-    m_dampingCoefficient     // coefficient for linear damping
-    );
+  m_springForceCB = new LinearSpringForce(m_springCoefficient);
+  m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------

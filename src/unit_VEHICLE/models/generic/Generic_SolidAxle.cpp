@@ -65,7 +65,7 @@ Generic_SolidAxle::Generic_SolidAxle(const std::string& name)
 : ChSolidAxle(name)
 {
   m_springForceCB = new LinearSpringForce(m_springCoefficient);
-  m_shockForceCB = new LinearShockForce(m_dampingCoefficient);
+  m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
