@@ -187,6 +187,10 @@ double HMMWV_ShockForce::operator()(double time,
 HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name)
 : ChDoubleWishbone(name)
 {
+  m_springForceCB = new LinearSpringForce(
+    m_springCoefficient     // coefficient for linear spring
+    );
+
   m_shockForceCB = new HMMWV_ShockForce(
     lbfpin2Npm * 71.50,     // midstroke_compression_slope
     lbfpin2Npm * 128.25,    // midstroke_rebound_slope
@@ -205,6 +209,10 @@ HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name)
 HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name)
 : ChDoubleWishbone(name)
 {
+  m_springForceCB = new LinearSpringForce(
+    m_springCoefficient     // coefficient for linear spring
+    );
+
   m_shockForceCB = new HMMWV_ShockForce(
     lbfpin2Npm * 83.00,     // midstroke_compression_slope
     lbfpin2Npm * 200.00,    // midstroke_rebound_slope
@@ -225,11 +233,13 @@ HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name)
 // -----------------------------------------------------------------------------
 HMMWV_DoubleWishboneFront::~HMMWV_DoubleWishboneFront()
 {
+  delete m_springForceCB;
   delete m_shockForceCB;
 }
 
 HMMWV_DoubleWishboneRear::~HMMWV_DoubleWishboneRear()
 {
+  delete m_springForceCB;
   delete m_shockForceCB;
 }
 

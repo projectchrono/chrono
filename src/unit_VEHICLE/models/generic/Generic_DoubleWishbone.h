@@ -33,10 +33,10 @@ class Generic_DoubleWishbone : public chrono::ChDoubleWishbone
 public:
 
   // Constructor takes as argument the name of the subsystem instance.
-  Generic_DoubleWishbone(const std::string& name) : ChDoubleWishbone(name) {}
+  Generic_DoubleWishbone(const std::string& name);
 
-  // Destructor - nothing to do here.
-  ~Generic_DoubleWishbone() {}
+  // Destructor
+  ~Generic_DoubleWishbone();
 
   // Implementation of virtual methods imposed by the base class ChDoubleWishbone
 
@@ -60,11 +60,14 @@ public:
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
-  virtual double getSpringCoefficient() const  { return m_springCoefficient; }
-  virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const   { return m_springRestLength; }
+  virtual chrono::ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
+  virtual chrono::ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
 
 private:
+
+  chrono::ChSpringForceCallback* m_springForceCB;
+  chrono::ChSpringForceCallback* m_shockForceCB;
 
   static const double      m_spindleMass;
   static const double      m_uprightMass;
