@@ -13,7 +13,7 @@
   "Axles":
   [
     {
-      "Suspension Input File":   "generic/suspension/DoubleWishbone.json",
+      "Suspension Input File":   "generic/suspension/DoubleWishboneCurve.json",
       "Suspension Location":     [1.6914, 0, 0.0264],
       "Steering Index":          0,
       "Left Wheel Input File":   "generic/wheel/WheelSimple.json",

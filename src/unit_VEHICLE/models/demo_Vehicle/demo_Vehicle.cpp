@@ -56,17 +56,19 @@ using namespace chrono;
 // =============================================================================
 
 // JSON file for vehicle model
-std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
+//std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
 //std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 //std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
-//std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
+std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 //std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
 //std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
 //std::string vehicle_file("generic/vehicle/Vehicle_ThreeAxles.json");
+//std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Independent.json");
+//std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
 
 // JSON files for tire models (rigid) and powertrain (simple)
-std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
-std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
+std::string rigidtire_file("generic/tire/RigidTire.json");
+std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
