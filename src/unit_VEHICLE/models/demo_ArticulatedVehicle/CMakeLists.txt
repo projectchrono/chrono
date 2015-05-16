@@ -17,21 +17,21 @@ MESSAGE(STATUS "Adding ARTICULATED_VEHICLE demo...")
 
 SET(MODEL_FILES
 	../ModelDefs.h
-	../articulated/Articulated_Wheel.h
-	../articulated/Articulated_FuncDriver.h
 	../articulated/Articulated_Vehicle.h
 	../articulated/Articulated_Vehicle.cpp
 	../articulated/Articulated_Trailer.h
 	../articulated/Articulated_Trailer.cpp
-	../articulated/Articulated_SolidAxle.h
-	../articulated/Articulated_SolidAxle.cpp
-	../articulated/Articulated_MultiLink.h
-	../articulated/Articulated_MultiLink.cpp
-	../articulated/Articulated_RackPinion.h
-	../articulated/Articulated_Driveline2WD.h
-	../articulated/Articulated_SimplePowertrain.h
-	../articulated/Articulated_BrakeSimple.h
-	../articulated/Articulated_RigidTire.h
+	../generic/Generic_Wheel.h
+	../generic/Generic_FuncDriver.h
+	../generic/Generic_SolidAxle.h
+	../generic/Generic_SolidAxle.cpp
+	../generic/Generic_MultiLink.h
+	../generic/Generic_MultiLink.cpp
+	../generic/Generic_RackPinion.h
+	../generic/Generic_Driveline2WD.h
+	../generic/Generic_SimplePowertrain.h
+	../generic/Generic_BrakeSimple.h
+	../generic/Generic_RigidTire.h
 )
 
 SET(DEMO_FILES

@@ -38,9 +38,9 @@
 #include "models/ModelDefs.h"
 #include "models/articulated/Articulated_Vehicle.h"
 #include "models/articulated/Articulated_Trailer.h"
-#include "models/articulated/Articulated_SimplePowertrain.h"
-#include "models/articulated/Articulated_RigidTire.h"
-#include "models/articulated/Articulated_FuncDriver.h"
+#include "models/generic/Generic_SimplePowertrain.h"
+#include "models/generic/Generic_RigidTire.h"
+#include "models/generic/Generic_FuncDriver.h"
 
 // If Irrlicht support is available...
 #if IRRLICHT_ENABLED
@@ -106,8 +106,8 @@ int main(int argc, char* argv[])
   // Create the vehicle: specify if chassis is fixed, the suspension type
   // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
   Articulated_Vehicle vehicle(false,
-                          MULTI_LINK,
-                          PRIMITIVES);
+                              MULTI_LINK,
+                              PRIMITIVES);
 
   vehicle.Initialize(ChCoordsys<>(initLoc + ChVector<>(0, 0, 0), initRot));
 
@@ -130,15 +130,15 @@ int main(int argc, char* argv[])
   terrain.AddFixedObstacles();
 
   // Create and initialize the powertrain system
-  Articulated_SimplePowertrain powertrain;
+  Generic_SimplePowertrain powertrain;
 
   powertrain.Initialize();
 
   // Create the tires
-  Articulated_RigidTire tire_front_left("FL", terrain);
-  Articulated_RigidTire tire_front_right("FR", terrain);
-  Articulated_RigidTire tire_rear_left("RL", terrain);
-  Articulated_RigidTire tire_rear_right("RR", terrain);
+  Generic_RigidTire tire_front_left("FL", terrain);
+  Generic_RigidTire tire_front_right("FR", terrain);
+  Generic_RigidTire tire_rear_left("RL", terrain);
+  Generic_RigidTire tire_rear_right("RR", terrain);
 
   tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT));
   tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
@@ -147,10 +147,10 @@ int main(int argc, char* argv[])
 
 
   // Create the trailer tires
-  Articulated_RigidTire tr_tire_front_left("FL", terrain);
-  Articulated_RigidTire tr_tire_front_right("FR", terrain);
-  Articulated_RigidTire tr_tire_rear_left("RL", terrain);
-  Articulated_RigidTire tr_tire_rear_right("RR", terrain);
+  Generic_RigidTire tr_tire_front_left("FL", terrain);
+  Generic_RigidTire tr_tire_front_right("FR", terrain);
+  Generic_RigidTire tr_tire_rear_left("RL", terrain);
+  Generic_RigidTire tr_tire_rear_right("RR", terrain);
 
   tr_tire_front_left.Initialize(trailer.GetWheelBody(FRONT_LEFT));
   tr_tire_front_right.Initialize(trailer.GetWheelBody(FRONT_RIGHT));

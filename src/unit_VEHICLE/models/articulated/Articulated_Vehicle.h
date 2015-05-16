@@ -25,21 +25,16 @@
 #include "physics/ChSystem.h"
 
 #include "subsys/ChVehicle.h"
-#include "subsys/suspension/ChSolidAxle.h"
 
 #include "models/ModelDefs.h"
-#include "models/articulated/Articulated_Wheel.h"
-#include "models/articulated/Articulated_RackPinion.h"
-#include "models/articulated/Articulated_Driveline2WD.h"
-#include "models/articulated/Articulated_BrakeSimple.h"
 
 class Articulated_Vehicle : public chrono::ChVehicle
 {
 public:
 
   Articulated_Vehicle(const bool        fixed,
-                  SuspensionType    suspType,
-                  VisualizationType wheelVis);
+                      SuspensionType    suspType,
+                      VisualizationType wheelVis);
 
   ~Articulated_Vehicle() {}
 

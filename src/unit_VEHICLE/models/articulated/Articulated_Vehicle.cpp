@@ -25,10 +25,14 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
-#include "models/articulated/Articulated_SolidAxle.h"
-#include "models/articulated/Articulated_MultiLink.h"
-
 #include "models/articulated/Articulated_Vehicle.h"
+
+#include "models/generic/Generic_SolidAxle.h"
+#include "models/generic/Generic_MultiLink.h"
+#include "models/generic/Generic_Wheel.h"
+#include "models/generic/Generic_RackPinion.h"
+#include "models/generic/Generic_Driveline2WD.h"
+#include "models/generic/Generic_BrakeSimple.h"
 
 using namespace chrono;
 
@@ -79,12 +83,12 @@ Articulated_Vehicle::Articulated_Vehicle(const bool        fixed,
 
   switch (m_suspType) {
   case SOLID_AXLE:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Articulated_SolidAxleFront("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Articulated_SolidAxleRear("RearSusp"));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("RearSusp"));
     break;
   case MULTI_LINK:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Articulated_MultiLinkFront("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Articulated_MultiLinkRear("RearSusp"));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("RearSusp"));
     break;
   }
 
@@ -92,30 +96,30 @@ Articulated_Vehicle::Articulated_Vehicle(const bool        fixed,
   // Create the steering subsystem
   // -----------------------------
   m_steerings.resize(1);
-  m_steerings[0] = ChSharedPtr<ChSteering>(new Articulated_RackPinion("Steering"));
+  m_steerings[0] = ChSharedPtr<ChSteering>(new Generic_RackPinion("Steering"));
 
   // -----------------
   // Create the wheels
   // -----------------
   m_wheels.resize(4);
-  m_wheels[0] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
-  m_wheels[1] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
-  m_wheels[2] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
-  m_wheels[3] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
+  m_wheels[0] = ChSharedPtr<ChWheel>(new Generic_Wheel(wheelVis));
+  m_wheels[1] = ChSharedPtr<ChWheel>(new Generic_Wheel(wheelVis));
+  m_wheels[2] = ChSharedPtr<ChWheel>(new Generic_Wheel(wheelVis));
+  m_wheels[3] = ChSharedPtr<ChWheel>(new Generic_Wheel(wheelVis));
 
   // --------------------
   // Create the driveline
   // --------------------
-  m_driveline = ChSharedPtr<ChDriveline>(new Articulated_Driveline2WD);
+  m_driveline = ChSharedPtr<ChDriveline>(new Generic_Driveline2WD);
 
   // -----------------
   // Create the brakes
   // -----------------
   m_brakes.resize(4);
-  m_brakes[0] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
-  m_brakes[1] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
-  m_brakes[2] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
-  m_brakes[3] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
+  m_brakes[0] = ChSharedPtr<ChBrake>(new Generic_BrakeSimple);
+  m_brakes[1] = ChSharedPtr<ChBrake>(new Generic_BrakeSimple);
+  m_brakes[2] = ChSharedPtr<ChBrake>(new Generic_BrakeSimple);
+  m_brakes[3] = ChSharedPtr<ChBrake>(new Generic_BrakeSimple);
 }
 
 
