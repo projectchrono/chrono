@@ -467,16 +467,12 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
     case C_SIMPLE_CONVEX_MESH: {
       chassis_cb =
           new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      ChVector<> mPos = ChVector<>(0, 0, 0);
-      ((MyChassisSimpleConvexMesh*)chassis_cb)->SetAttributes(mPos);
       mVehicle->SetChassisContactCallback(chassis_cb);
     } break;
 
     case C_SIMPLE_TRI_MESH: {
       chassis_cb =
           new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      ChVector<> mPos = ChVector<>(0, 0, 0);
-      ((MyChassisSimpleTriMesh_vis*)chassis_cb)->SetAttributes(mPos);
       mVehicle->SetChassisContactCallback(chassis_cb);
     } break;
   }
