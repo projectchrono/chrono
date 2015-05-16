@@ -54,8 +54,8 @@ public:
   virtual double getAxleInertia() const { return m_axleInertia; }
 
   virtual double getSpringRestLength() const { return m_springRestLength; }
-  virtual chrono::ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
-  virtual chrono::ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
+  virtual ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
+  virtual ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
 
 private:
 
@@ -63,8 +63,8 @@ private:
 
   void Create(const rapidjson::Document& d);
 
-  chrono::ChSpringForceCallback* m_springForceCB;
-  chrono::ChSpringForceCallback* m_shockForceCB;
+  ChSpringForceCallback* m_springForceCB;
+  ChSpringForceCallback* m_shockForceCB;
 
   ChVector<>  m_points[NUM_POINTS];
 
