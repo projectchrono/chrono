@@ -137,12 +137,11 @@ void ChDoubleWishboneReduced::InitializeSide(ChVehicleSide                   sid
   chassis->GetSystem()->AddLink(m_distTierod[side]);
 
   // Create and initialize the spring/damper
-  m_shock[side] = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+  m_shock[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
   m_shock[side]->SetNameString(m_name + "_shock" + suffix);
   m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
-  m_shock[side]->Set_SpringK(getSpringCoefficient());
-  m_shock[side]->Set_SpringR(getDampingCoefficient());
   m_shock[side]->Set_SpringRestLength(getSpringRestLength());
+  m_shock[side]->Set_SpringCallback(getShockForceCallback());
   chassis->GetSystem()->AddLink(m_shock[side]);
 
   // Create and initialize the axle shaft and its connection to the spindle.

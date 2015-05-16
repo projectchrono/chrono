@@ -35,7 +35,7 @@ class HMMWV_DoubleWishboneReducedFront : public chrono::ChDoubleWishboneReduced
 {
 public:
   HMMWV_DoubleWishboneReducedFront(const std::string& name);
-  ~HMMWV_DoubleWishboneReducedFront() {}
+  ~HMMWV_DoubleWishboneReducedFront();
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
@@ -49,13 +49,14 @@ public:
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
-  virtual double getSpringCoefficient() const { return m_springCoefficient; }
-  virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
+  virtual chrono::ChSpringForceCallback* getShockForceCallback() const { return m_shockForceCB; }
 
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
+
+  chrono::ChSpringForceCallback* m_shockForceCB;
 
   static const double      m_spindleMass;
   static const double      m_uprightMass;
@@ -80,7 +81,7 @@ class HMMWV_DoubleWishboneReducedRear : public chrono::ChDoubleWishboneReduced
 {
 public:
   HMMWV_DoubleWishboneReducedRear(const std::string& name);
-  ~HMMWV_DoubleWishboneReducedRear() {}
+  ~HMMWV_DoubleWishboneReducedRear();
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
@@ -94,13 +95,14 @@ public:
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
-  virtual double getSpringCoefficient() const { return m_springCoefficient; }
-  virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
+  virtual chrono::ChSpringForceCallback* getShockForceCallback() const { return m_shockForceCB; }
 
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
+
+  chrono::ChSpringForceCallback* m_shockForceCB;
 
   static const double      m_spindleMass;
   static const double      m_uprightMass;
