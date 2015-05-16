@@ -85,12 +85,12 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
 
   switch (m_suspType) {
   case SOLID_AXLE:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleFront("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleRear("RearSusp"));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("RearSusp"));
     break;
   case MULTI_LINK:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkFront("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkRear("RearSusp"));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("RearSusp"));
     break;
   case DOUBLE_WISHBONE:
     //// Create the two suspension subsystems, first for the front axle, the second
