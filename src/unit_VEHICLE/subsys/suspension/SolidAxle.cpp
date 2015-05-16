@@ -43,7 +43,9 @@ static ChVector<> loadVector(const Value& a)
 // file.
 // -----------------------------------------------------------------------------
 SolidAxle::SolidAxle(const std::string& filename)
-: ChSolidAxle("")
+: ChSolidAxle(""),
+  m_springForceCB(NULL),
+  m_shockForceCB(NULL)
 {
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -59,11 +61,25 @@ SolidAxle::SolidAxle(const std::string& filename)
 }
 
 SolidAxle::SolidAxle(const rapidjson::Document& d)
-: ChSolidAxle("")
+: ChSolidAxle(""),
+  m_springForceCB(NULL),
+  m_shockForceCB(NULL)
 {
   Create(d);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+SolidAxle::~SolidAxle()
+{
+  delete m_springForceCB;
+  delete m_shockForceCB;
+}
+
+// -----------------------------------------------------------------------------
+// Worker function for creating a SolidAxle suspension using data in the
+// specified RapidJSON document.
+// -----------------------------------------------------------------------------
 void SolidAxle::Create(const rapidjson::Document& d)
 {
   // Read top-level data
@@ -136,22 +152,22 @@ void SolidAxle::Create(const rapidjson::Document& d)
   m_points[TIEROD_C] = loadVector(d["Tierod"]["Location Chassis"]);
   m_points[TIEROD_K] = loadVector(d["Tierod"]["Location Knuckle"]);
 
-  // Read spring data
+  // Read spring data and create force callback
   assert(d.HasMember("Spring"));
   assert(d["Spring"].IsObject());
 
   m_points[SPRING_C] = loadVector(d["Spring"]["Location Chassis"]);
   m_points[SPRING_A] = loadVector(d["Spring"]["Location Axle"]);
-  m_springCoefficient = d["Spring"]["Spring Coefficient"].GetDouble();
   m_springRestLength = d["Spring"]["Free Length"].GetDouble();
+  m_springForceCB = new LinearSpringForce(d["Spring"]["Spring Coefficient"].GetDouble());
 
-  // Read shock data
+  // Read shock data and create force callback
   assert(d.HasMember("Shock"));
   assert(d["Shock"].IsObject());
 
   m_points[SHOCK_C] = loadVector(d["Shock"]["Location Chassis"]);
   m_points[SHOCK_A] = loadVector(d["Shock"]["Location Axle"]);
-  m_dampingCoefficient = d["Shock"]["Damping Coefficient"].GetDouble();
+  m_shockForceCB = new LinearShockForce(d["Shock"]["Damping Coefficient"].GetDouble());
 
   // Read axle inertia
   assert(d.HasMember("Axle"));

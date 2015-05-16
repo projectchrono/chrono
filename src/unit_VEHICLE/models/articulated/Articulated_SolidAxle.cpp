@@ -94,11 +94,30 @@ const double     Articulated_SolidAxleRear::m_springRestLength = 0.3948;
 Articulated_SolidAxleFront::Articulated_SolidAxleFront(const std::string& name)
 : ChSolidAxle(name)
 {
+  m_springForceCB = new LinearSpringForce(m_springCoefficient);
+  m_shockForceCB = new LinearShockForce(m_dampingCoefficient);
 }
 
 Articulated_SolidAxleRear::Articulated_SolidAxleRear(const std::string& name)
 : ChSolidAxle(name)
 {
+  m_springForceCB = new LinearSpringForce(m_springCoefficient);
+  m_shockForceCB = new LinearShockForce(m_dampingCoefficient);
+}
+
+// -----------------------------------------------------------------------------
+// Destructors
+// -----------------------------------------------------------------------------
+Articulated_SolidAxleFront::~Articulated_SolidAxleFront()
+{
+  delete m_springForceCB;
+  delete m_shockForceCB;
+}
+
+Articulated_SolidAxleRear::~Articulated_SolidAxleRear()
+{
+  delete m_springForceCB;
+  delete m_shockForceCB;
 }
 
 // -----------------------------------------------------------------------------

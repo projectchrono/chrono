@@ -94,11 +94,30 @@ const double     Generic_SolidAxleRear::m_springRestLength = 0.3948;
 Generic_SolidAxleFront::Generic_SolidAxleFront(const std::string& name)
 : ChSolidAxle(name)
 {
+  m_springForceCB = new LinearSpringForce(m_springCoefficient);
+  m_shockForceCB = new LinearShockForce(m_dampingCoefficient);
 }
 
 Generic_SolidAxleRear::Generic_SolidAxleRear(const std::string& name)
 : ChSolidAxle(name)
 {
+  m_springForceCB = new LinearSpringForce(m_springCoefficient);
+  m_shockForceCB = new LinearShockForce(m_dampingCoefficient);
+}
+
+// -----------------------------------------------------------------------------
+// Destructors
+// -----------------------------------------------------------------------------
+Generic_SolidAxleFront::~Generic_SolidAxleFront()
+{
+  delete m_springForceCB;
+  delete m_shockForceCB;
+}
+
+Generic_SolidAxleRear::~Generic_SolidAxleRear()
+{
+  delete m_springForceCB;
+  delete m_shockForceCB;
 }
 
 // -----------------------------------------------------------------------------

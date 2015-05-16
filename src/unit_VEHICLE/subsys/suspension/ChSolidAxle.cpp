@@ -259,18 +259,16 @@ void ChSolidAxle::InitializeSide(ChVehicleSide                   side,
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
   // Create and initialize the spring/damper
-  m_shock[side] = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+  m_shock[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
   m_shock[side]->SetNameString(m_name + "_shock" + suffix);
   m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A], false, getSpringRestLength());
-  m_shock[side]->Set_SpringK(0.0);
-  m_shock[side]->Set_SpringR(getDampingCoefficient());
+  m_shock[side]->Set_SpringCallback(getShockForceCallback());
   chassis->GetSystem()->AddLink(m_shock[side]);
 
-  m_spring[side] = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+  m_spring[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
   m_spring[side]->SetNameString(m_name + "_spring" + suffix);
   m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false, getSpringRestLength());
-  m_spring[side]->Set_SpringK(getSpringCoefficient());
-  m_spring[side]->Set_SpringR(0.0);
+  m_spring[side]->Set_SpringCallback(getSpringForceCallback());
   chassis->GetSystem()->AddLink(m_spring[side]);
 
   // Create and initialize the tierod distance constraint between chassis and upright.
