@@ -261,7 +261,7 @@ void ChSolidAxle::InitializeSide(ChVehicleSide                   side,
   // Create and initialize the spring/damper
   m_shock[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
   m_shock[side]->SetNameString(m_name + "_shock" + suffix);
-  m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A], false, getSpringRestLength());
+  m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
   m_shock[side]->Set_SpringCallback(getShockForceCallback());
   chassis->GetSystem()->AddLink(m_shock[side]);
 
