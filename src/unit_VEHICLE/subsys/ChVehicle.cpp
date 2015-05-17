@@ -67,6 +67,39 @@ ChVehicle::~ChVehicle()
 
 
 // -----------------------------------------------------------------------------
+// Update the state of this vehicle at the current time.
+// The vehicle system is provided the current driver inputs (throttle between
+// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
+// from the powertrain, and tire forces (expressed in the global reference
+// frame).
+// The default implementation of this function invokes the update functions for
+// all vehicle subsystems.
+// -----------------------------------------------------------------------------
+void ChVehicle::Update(double              time,
+                       double              steering,
+                       double              braking,
+                       double              powertrain_torque,
+                       const ChTireForces& tire_forces)
+{
+  // Apply powertrain torque to the driveline's input shaft.
+  m_driveline->ApplyDriveshaftTorque(powertrain_torque);
+
+  // Let the steering subsystems process the steering input.
+  for (unsigned int i = 0; i < m_steerings.size(); i++) {
+    m_steerings[i]->Update(time, steering);
+  }
+
+  // Apply tire forces to spindle bodies and apply braking.
+  for (unsigned int i = 0; i < m_suspensions.size(); i++) {
+    m_suspensions[i]->ApplyTireForce(LEFT, tire_forces[2 * i]);
+    m_suspensions[i]->ApplyTireForce(RIGHT, tire_forces[2 * i + 1]);
+
+    m_brakes[2 * i]->ApplyBrakeModulation(braking);
+    m_brakes[2 * i + 1]->ApplyBrakeModulation(braking);
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Advance the state of the system, taking as many steps as needed to exactly
 // reach the specified value 'step'.
 // ---------------------------------------------------------------------------- -

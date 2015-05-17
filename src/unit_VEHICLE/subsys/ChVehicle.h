@@ -157,7 +157,7 @@ public:
     double              braking,            ///< [in] current braking input [0,1]
     double              powertrain_torque,  ///< [in] input torque from powertrain
     const ChTireForces& tire_forces         ///< [in] vector of tire force structures
-    ) {}
+    );
 
   /// Advance the state of this vehicle by the specified time step.
   virtual void Advance(double step);

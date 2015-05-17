@@ -57,11 +57,6 @@ public:
   double GetShockVelocity(const chrono::ChWheelID& wheel_id) const;
 
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
-  virtual void Update(double                      time,
-                      double                      steering,
-                      double                      powertrain_torque,
-                      double                      braking,
-                      const chrono::ChTireForces& tire_forces);
 
   void ExportMeshPovray(const std::string& out_dir);
 

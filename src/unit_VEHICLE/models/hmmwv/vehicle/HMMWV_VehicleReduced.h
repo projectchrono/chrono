@@ -50,11 +50,6 @@ public:
   virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
-  virtual void Update(double                      time,
-                      double                      steering,
-                      double                      braking,
-                      double                      powertrain_torque,
-                      const chrono::ChTireForces& tire_forces);
 
   void ExportMeshPovray(const std::string& out_dir);
 

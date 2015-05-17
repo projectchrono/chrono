@@ -42,11 +42,6 @@ public:
   virtual ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
   virtual void Initialize(const ChCoordsys<>& chassisPos);
-  virtual void Update(double              time,
-                      double              steering,
-                      double              braking,
-                      double              powertrain_torque,
-                      const ChTireForces& tire_forces);
 
   bool UseVisualizationMesh() const          { return m_chassisUseMesh; }
   const std::string& GetMeshFilename() const { return m_chassisMeshFile; }

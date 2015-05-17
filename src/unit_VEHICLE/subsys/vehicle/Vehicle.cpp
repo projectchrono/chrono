@@ -456,31 +456,4 @@ void Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 }
 
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Vehicle::Update(double              time,
-                     double              steering,
-                     double              braking,
-                     double              powertrain_torque,
-                     const ChTireForces& tire_forces)
-{
-  // Apply powertrain torque to the driveline's input shaft.
-  m_driveline->ApplyDriveshaftTorque(powertrain_torque);
-
-  // Let the steering subsystems process the steering input.
-  for (int i = 0; i < m_num_strs; i++) {
-    m_steerings[i]->Update(time, steering);
-  }
-
-  // Apply tire forces to spindle bodies and apply braking.
-  for (int i = 0; i < m_num_axles; i++) {
-    m_suspensions[i]->ApplyTireForce(LEFT, tire_forces[2 * i]);
-    m_suspensions[i]->ApplyTireForce(RIGHT, tire_forces[2 * i + 1]);
-
-    m_brakes[2 * i]->ApplyBrakeModulation(braking);
-    m_brakes[2 * i + 1]->ApplyBrakeModulation(braking);
-  }
-}
-
-
 } // end namespace chrono
