@@ -238,33 +238,6 @@ double Articulated_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const
   }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Articulated_Vehicle::Update(double              time,
-                                 double              steering,
-                                 double              braking,
-                                 double              powertrain_torque,
-                                 const ChTireForces& tire_forces)
-{
-  // Apply powertrain torque to the driveline's input shaft.
-  m_driveline->ApplyDriveshaftTorque(powertrain_torque);
-
-  // Let the steering subsystem process the steering input.
-  m_steerings[0]->Update(time, 0.5 * steering);
-
-  // Apply tire forces to spindle bodies.
-  m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
-  m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
-  m_suspensions[1]->ApplyTireForce(LEFT, tire_forces[REAR_LEFT.id()]);
-  m_suspensions[1]->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
-
-  // Apply braking
-  m_brakes[0]->ApplyBrakeModulation(braking);
-  m_brakes[1]->ApplyBrakeModulation(braking);
-  m_brakes[2]->ApplyBrakeModulation(braking);
-  m_brakes[3]->ApplyBrakeModulation(braking);
-}
-
 
 // -----------------------------------------------------------------------------
 // Log the hardpoint locations for the front-right and rear-right suspension
