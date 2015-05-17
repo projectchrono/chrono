@@ -85,11 +85,11 @@ public:
   /// Get the angular speed of the axle on the specified side.
   double GetAxleSpeed(ChVehicleSide side) const { return m_axle[side]->GetPos_dt(); }
 
-  /// Apply the provided tire forces.
+  /// Update the suspension subsystem: apply the provided tire forces.
   /// The given tire force and moment is applied to the specified (left or
-  /// right) spindle body.  This function provides the interface to the tire
+  /// right) spindle body. This function provides the interface to the tire
   /// system (intermediated by the vehicle system).
-  void ApplyTireForce(
+  void Update(
     ChVehicleSide side,             ///< indicates the spindle body (left or right) where the forces should be applied
     const ChTireForce& tire_force   ///< generalized tire forces
     );

@@ -61,11 +61,11 @@ public:
   /// driveshaft speed.
   virtual double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }
 
-  /// Apply the specified motor torque.
+  /// Update the driveline subsystem: apply the specified motor torque.
   /// This represents the input to the driveline subsystem from the powertrain
   /// system. The default implementation applies this torque to the driveline's
   /// driveshaft.
-  virtual void ApplyDriveshaftTorque(double torque)  { m_driveshaft->SetAppliedTorque(torque); }
+  virtual void Update(double torque)  { m_driveshaft->SetAppliedTorque(torque); }
 
   /// Get the indexes of the vehicle's axles driven by this driveline subsystem.
   const std::vector<int>& GetDrivenAxleIndexes() const { return m_driven_axles; }

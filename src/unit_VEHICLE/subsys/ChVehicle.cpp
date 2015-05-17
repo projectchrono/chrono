@@ -82,7 +82,7 @@ void ChVehicle::Update(double              time,
                        const ChTireForces& tire_forces)
 {
   // Apply powertrain torque to the driveline's input shaft.
-  m_driveline->ApplyDriveshaftTorque(powertrain_torque);
+  m_driveline->Update(powertrain_torque);
 
   // Let the steering subsystems process the steering input.
   for (unsigned int i = 0; i < m_steerings.size(); i++) {
@@ -91,11 +91,11 @@ void ChVehicle::Update(double              time,
 
   // Apply tire forces to spindle bodies and apply braking.
   for (unsigned int i = 0; i < m_suspensions.size(); i++) {
-    m_suspensions[i]->ApplyTireForce(LEFT, tire_forces[2 * i]);
-    m_suspensions[i]->ApplyTireForce(RIGHT, tire_forces[2 * i + 1]);
+    m_suspensions[i]->Update(LEFT, tire_forces[2 * i]);
+    m_suspensions[i]->Update(RIGHT, tire_forces[2 * i + 1]);
 
-    m_brakes[2 * i]->ApplyBrakeModulation(braking);
-    m_brakes[2 * i + 1]->ApplyBrakeModulation(braking);
+    m_brakes[2 * i]->Update(braking);
+    m_brakes[2 * i + 1]->Update(braking);
   }
 }
 

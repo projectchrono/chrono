@@ -272,20 +272,20 @@ double Articulated_Trailer::GetShockVelocity(const ChWheelID& wheel_id) const
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Articulated_Trailer::Update(double              time,
-                             double              braking,
-                             const ChTireForces& tire_forces)
+                                 double              braking,
+                                 const ChTireForces& tire_forces)
 {
   // Apply tire forces to spindle bodies.
-  m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
-  m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
-  m_suspensions[1]->ApplyTireForce(LEFT, tire_forces[REAR_LEFT.id()]);
-  m_suspensions[1]->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
+  m_suspensions[0]->Update(LEFT, tire_forces[FRONT_LEFT.id()]);
+  m_suspensions[0]->Update(RIGHT, tire_forces[FRONT_RIGHT.id()]);
+  m_suspensions[1]->Update(LEFT, tire_forces[REAR_LEFT.id()]);
+  m_suspensions[1]->Update(RIGHT, tire_forces[REAR_RIGHT.id()]);
 
   // Apply braking
-  m_front_left_brake->ApplyBrakeModulation(braking);
-  m_front_right_brake->ApplyBrakeModulation(braking);
-  m_rear_left_brake->ApplyBrakeModulation(braking);
-  m_rear_right_brake->ApplyBrakeModulation(braking);
+  m_front_left_brake->Update(braking);
+  m_front_right_brake->Update(braking);
+  m_rear_left_brake->Update(braking);
+  m_rear_right_brake->Update(braking);
 }
 
 

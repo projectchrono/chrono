@@ -290,11 +290,11 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 
 
 // -----------------------------------------------------------------------------
-void SuspensionTest::Update(double       time,
-                     double              steering,
-                     double              disp_L,
-                     double              disp_R,
-                     const ChTireForces& tire_forces)
+void SuspensionTest::Update(double              time,
+                            double              steering,
+                            double              disp_L,
+                            double              disp_R,
+                            const ChTireForces& tire_forces)
 {
   if( m_has_steering) {
     // Let the steering subsystem process the steering input.
@@ -308,8 +308,8 @@ void SuspensionTest::Update(double       time,
     func_R->Set_yconst(disp_R);
 
   // Apply tire forces to spindle bodies.
-  m_suspension->ApplyTireForce(LEFT, tire_forces[0]);
-  m_suspension->ApplyTireForce(RIGHT, tire_forces[1]);
+  m_suspension->Update(LEFT, tire_forces[0]);
+  m_suspension->Update(RIGHT, tire_forces[1]);
 
   m_steer = steering;
   m_postDisp[LEFT] = disp_L;

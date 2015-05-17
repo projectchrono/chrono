@@ -36,8 +36,8 @@ void ChSuspension::ApplyAxleTorque(ChVehicleSide side,
 }
 
 
-void ChSuspension::ApplyTireForce(ChVehicleSide      side,
-                                  const ChTireForce& tire_force)
+void ChSuspension::Update(ChVehicleSide      side,
+                          const ChTireForce& tire_force)
 {
   m_spindle[side]->Empty_forces_accumulators();
   m_spindle[side]->Accumulate_force(tire_force.force, tire_force.point, false);
