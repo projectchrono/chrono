@@ -60,7 +60,7 @@ protected:
   /// Return the mass of the arm body.
   virtual double getArmMass() const = 0;
   /// Return the moments of inertia of the arm body.
-  virtual const ChVector<>& getArmInertia() = 0;
+  virtual ChVector<> getArmInertia() = 0;
 
   /// Return the arm length (dimension in y direction).
   virtual double getArmLength() const = 0;
@@ -68,6 +68,8 @@ protected:
   virtual double getArmWidth() const = 0;
   /// Return height of droplinks (dimension in Z direction).
   virtual double getDroplinkHeight() const = 0;
+  /// Return radius of arm (visualization only)
+  virtual double getArmRadius() const = 0;
 
   /// Return the rotational spring coefficient.
   virtual double getSpringCoefficient() const = 0;
