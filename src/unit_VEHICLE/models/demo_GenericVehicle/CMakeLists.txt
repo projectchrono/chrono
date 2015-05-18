@@ -32,6 +32,7 @@ SET(MODEL_FILES
 	../generic/Generic_RigidTire.h
 	../generic/Generic_DoubleWishbone.h
 	../generic/Generic_DoubleWishbone.cpp
+	../generic/Generic_AntirollBarRSD.h
 )
 
 SET(DEMO_FILES
