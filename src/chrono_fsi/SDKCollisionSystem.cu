@@ -938,9 +938,9 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	Real3 vel_XSPH = vel_XSPH_D[index];
 	// 0** if you have rigid BCE, make sure to apply same tweaks to them, to satify action/reaction. Or apply tweak to force in advance
 	// 1*** let's tweak a little bit :)
-	if (length(vel_XSPH) > .1 * paramsD.HSML / paramsD.dT  && paramsD.enableTweak) {
-		vel_XSPH *= ( .1 * paramsD.HSML / paramsD.dT ) / length(vel_XSPH);
-		if (length(vel_XSPH) > .1001 * paramsD.HSML / paramsD.dT) { // infinity
+	if (length(vel_XSPH) > paramsD.tweakMultV * paramsD.HSML / paramsD.dT  && paramsD.enableTweak) {
+		vel_XSPH *= ( paramsD.tweakMultV * paramsD.HSML / paramsD.dT ) / length(vel_XSPH);
+		if (length(vel_XSPH) > 1.001 * paramsD.tweakMultV * paramsD.HSML / paramsD.dT) { // infinity
 			if (paramsD.enableAggressiveTweak) {
 				vel_XSPH = mR3(0);
 			} else {
@@ -958,9 +958,9 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	Real4 velMas = velMasD[index];
 	Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
 	// 2*** let's tweak a little bit :)
-	if (length(updatedVelocity) > .1 * paramsD.HSML / paramsD.dT  && paramsD.enableTweak) {
-		updatedVelocity *= ( .1 * paramsD.HSML / paramsD.dT ) / length(updatedVelocity);
-		if (length(updatedVelocity) > .1001 * paramsD.HSML / paramsD.dT) { // infinity
+	if (length(updatedVelocity) > paramsD.tweakMultV * paramsD.HSML / paramsD.dT  && paramsD.enableTweak) {
+		updatedVelocity *= ( paramsD.tweakMultV * paramsD.HSML / paramsD.dT ) / length(updatedVelocity);
+		if (length(updatedVelocity) > 1.001 * paramsD.tweakMultV * paramsD.HSML / paramsD.dT) { // infinity
 			if (paramsD.enableAggressiveTweak) {
 				updatedVelocity = mR3(0);
 			} else {
@@ -974,9 +974,9 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	Real4 rhoPresMu = rhoPresMuD[index];
 
 	// 3*** let's tweak a little bit :)
-	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / paramsD.dT  && paramsD.enableTweak) {
-		derivVelRho.w *= (.002 * paramsD.rho0 / paramsD.dT) / fabs(derivVelRho.w); //to take care of the sign as well
-		if (fabs(derivVelRho.w) > 0.00201 * paramsD.rho0 / paramsD.dT) {
+	if (fabs(derivVelRho.w) > paramsD.tweakMultRho * paramsD.rho0 / paramsD.dT  && paramsD.enableTweak) {
+		derivVelRho.w *= (paramsD.tweakMultRho * paramsD.rho0 / paramsD.dT) / fabs(derivVelRho.w); //to take care of the sign as well
+		if (fabs(derivVelRho.w) > 1.001 * paramsD.tweakMultRho * paramsD.rho0 / paramsD.dT) {
 			if (paramsD.enableAggressiveTweak) {
 				derivVelRho.w = 0;
 			} else {
