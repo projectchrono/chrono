@@ -95,6 +95,8 @@ void SetupParamsH(SimParams& paramsH) {
 
   paramsH.enableTweak = 1 ; // 0: no tweak, 1: have tweak
   paramsH.enableAggressiveTweak = 1 ; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
+  paramsH.tweakMultV = 0.1 ; // 0: no tweak, 1: have tweak
+  paramsH.tweakMultRho = .002 ; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
   //********************************************************************************************************
   //**  reminiscent of the past******************************************************************************
   //	paramsH.cMin = mR3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);

@@ -160,6 +160,8 @@ void CheckPointMarkers_Write(
 	outProbParams << paramsH.contactBoundary << endl;
 	outProbParams << paramsH.enableTweak << endl;
 	outProbParams << paramsH.enableAggressiveTweak << endl;
+	outProbParams << paramsH.tweakMultV << endl;
+	outProbParams << paramsH.tweakMultRho << endl;
 
 	outProbParams << "#" <<endl;
 
@@ -320,6 +322,8 @@ void CheckPointMarkers_Read(
 	inProbParams >> paramsH.contactBoundary;
 	inProbParams >> paramsH.enableTweak;
 	inProbParams >> paramsH.enableAggressiveTweak;
+	inProbParams >> paramsH.tweakMultV;
+	inProbParams >> paramsH.tweakMultRho;
 
 	inProbParams >> ddCh;
 
