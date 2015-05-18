@@ -938,9 +938,9 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	Real3 vel_XSPH = vel_XSPH_D[index];
 	// 0** if you have rigid BCE, make sure to apply same tweaks to them, to satify action/reaction. Or apply tweak to force in advance
 	// 1*** let's tweak a little bit :)
-	if (length(vel_XSPH) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
-		vel_XSPH *= ( .1 * paramsD.HSML / dTD ) / length(vel_XSPH);
-		if (length(vel_XSPH) > .1001 * paramsD.HSML / dTD) { // infinity
+	if (length(vel_XSPH) > .1 * paramsD.HSML / paramsD.dT  && paramsD.enableTweak) {
+		vel_XSPH *= ( .1 * paramsD.HSML / paramsD.dT ) / length(vel_XSPH);
+		if (length(vel_XSPH) > .1001 * paramsD.HSML / paramsD.dT) { // infinity
 			if (paramsD.enableAggressiveTweak) {
 				vel_XSPH = mR3(0);
 			} else {
@@ -958,9 +958,9 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	Real4 velMas = velMasD[index];
 	Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
 	// 2*** let's tweak a little bit :)
-	if (length(updatedVelocity) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
-		updatedVelocity *= ( .1 * paramsD.HSML / dTD ) / length(updatedVelocity);
-		if (length(updatedVelocity) > .1001 * paramsD.HSML / dTD) { // infinity
+	if (length(updatedVelocity) > .1 * paramsD.HSML / paramsD.dT  && paramsD.enableTweak) {
+		updatedVelocity *= ( .1 * paramsD.HSML / paramsD.dT ) / length(updatedVelocity);
+		if (length(updatedVelocity) > .1001 * paramsD.HSML / paramsD.dT) { // infinity
 			if (paramsD.enableAggressiveTweak) {
 				updatedVelocity = mR3(0);
 			} else {
@@ -974,9 +974,9 @@ __global__ void UpdateFluidD(Real3 * posRadD, Real4 * velMasD, Real3 * vel_XSPH_
 	Real4 rhoPresMu = rhoPresMuD[index];
 
 	// 3*** let's tweak a little bit :)
-	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / dTD  && paramsD.enableTweak) {
-		derivVelRho.w *= (.002 * paramsD.rho0 / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
-		if (fabs(derivVelRho.w) > 0.00201 * paramsD.rho0 / dTD) {
+	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / paramsD.dT  && paramsD.enableTweak) {
+		derivVelRho.w *= (.002 * paramsD.rho0 / paramsD.dT) / fabs(derivVelRho.w); //to take care of the sign as well
+		if (fabs(derivVelRho.w) > 0.00201 * paramsD.rho0 / paramsD.dT) {
 			if (paramsD.enableAggressiveTweak) {
 				derivVelRho.w = 0;
 			} else {
@@ -1629,7 +1629,7 @@ void UpdateFluid(
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-//updates the fluid particles by calling UpdateFluidD
+//updates the fluid particles by calling UpdateFluid_init_LF
 void UpdateFluid_init_LF(
 		thrust::device_vector<Real3> & posRadD,
 		thrust::device_vector<Real4> & velMasD_half,
@@ -1651,10 +1651,10 @@ void UpdateFluid_init_LF(
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
 	UpdateFluidD_init_LF<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(posRadD), mR4CAST(velMasD_half), mR4CAST(rhoPresMuD_half), mR4CAST(derivVelRhoD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluid_init_LF");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-//updates the fluid particles by calling UpdateFluidD
+//updates the fluid particles by calling UpdateFluid_rho_vel_LF
 void UpdateFluid_rho_vel_LF(
 		thrust::device_vector<Real4> & velMasD,
 		thrust::device_vector<Real4> & rhoPresMuD,
@@ -1677,10 +1677,10 @@ void UpdateFluid_rho_vel_LF(
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
 	UpdateFluidD_rho_vel_LF<<<nBlock_UpdateFluid, nThreads>>>(mR4CAST(velMasD), mR4CAST(rhoPresMuD), mR4CAST(velMasD_old), mR4CAST(rhoPresMuD_old), mR4CAST(derivVelRhoD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluid_rho_vel_LF");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-//updates the fluid particles by calling UpdateFluidD
+//updates the fluid particles by calling UpdateFluid_EveryThing_LF
 void UpdateFluid_EveryThing_LF(
 		thrust::device_vector<Real3> & posRadD,
 		thrust::device_vector<Real4> & velMasD_half,
@@ -1702,7 +1702,7 @@ void UpdateFluid_EveryThing_LF(
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
 	UpdateFluidD_EveryThing_LF<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(posRadD), mR4CAST(velMasD_half), mR4CAST(rhoPresMuD_half), mR4CAST(derivVelRhoD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluid_EveryThing_LF");
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
