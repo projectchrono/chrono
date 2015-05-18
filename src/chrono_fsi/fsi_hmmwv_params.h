@@ -65,7 +65,7 @@ NumberOfObjects numObjects;
 void SetupParamsH(SimParams& paramsH) {
   //**********************************************
   paramsH.sizeScale = 1;  // don't change it.
-  paramsH.HSML = 0.2;//0.06;//0.04;
+  paramsH.HSML = 0.06;//0.06;//0.04;
   paramsH.MULT_INITSPACE = 1.0;
   paramsH.NUM_BOUNDARY_LAYERS = 3;
   paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
@@ -95,9 +95,10 @@ void SetupParamsH(SimParams& paramsH) {
 
   paramsH.enableTweak = 1 ; // 0: no tweak, 1: have tweak
   paramsH.enableAggressiveTweak = 1 ; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
-  paramsH.tweakMultV = 0.1 ; // 0: no tweak, 1: have tweak
+  paramsH.tweakMultV = paramsH.v_Max / (paramsH.HSML / paramsH.dT);		//0.04;		// NOTE: HSML and dT must be defined. So this line comes after them
+																					// Assume the particles move at most (tweakMultV * HSML / dT)
   paramsH.tweakMultRho = .002 ; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
-  //********************************************************************************************************
+    //********************************************************************************************************
   //**  reminiscent of the past******************************************************************************
   //	paramsH.cMin = mR3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);
   //// 3D channel
