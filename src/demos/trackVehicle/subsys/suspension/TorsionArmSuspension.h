@@ -56,12 +56,13 @@ class CH_SUBSYS_API TorsionArmSuspension : public ChShared {
         const ChVector<>& wheelIxx = ChVector<>(19.82, 19.82, 26.06),  // [kg-m2], z-axis of rotation,
         double arm_mass = 75.26,                                       ///< [kg]
         const ChVector<>& armIxx = ChVector<>(0.77, 0.37, 0.77),       ///< [kg-m2]
-        double springK = 2.5e4,                                        ///< torsional spring constant [N-m/rad]
-        double springC = 5e2,                                          ///< torsional damping constant [N-m-s/rad]
-        double springPreload = 1.5e3,                                  ///< torque preload [N-m]
-        double wheel_width = 0.384,                                    ///< bogie wheel width [m]
-        double wheel_width_gap = .0912,  ///< width beween parallel/concentric bogie wheel [m]
-        double wheel_radius = 0.305,     ///< bogie wheel radius [m]
+        double springK = 2.5e4,         ///< torsional spring constant [N-m/rad]
+        double springC = 5e2,           ///< torsional damping constant [N-m-s/rad]
+        double springPreload = 1.5e3,   ///< torque preload [N-m]
+        double mu = 0.4,                ///< wheel friction coef                                
+        double wheel_width = 0.384,     ///< bogie wheel width [m]
+        double wheel_width_gap = .0912, ///< width beween parallel/concentric bogie wheel [m]
+        double wheel_radius = 0.305,    ///< bogie wheel radius [m]
         ChVector<> wheel_pos_rel = ChVector<>(-0.2034,
                                               -0.2271,
                                               0.24475),  ///< wheel position to the arm/chassis rev joint, local c-sys
@@ -87,14 +88,11 @@ class CH_SUBSYS_API TorsionArmSuspension : public ChShared {
 
     double GetWheelRadius() const { return m_wheelRadius; }
 
-    // log constraint violations of any bilateral constraints
-    void LogConstraintViolations();
-
-    /// write constraint violations to ostream, which will be written to the output file
-    void SaveConstraintViolations(std::stringstream& ss);
-
     /// write headers for the output data file to the input ostream
-    const std::string getFileHeader_ConstraintViolations(size_t idx) const;
+    void Write_header(const std::string& filename, DebugType type);
+
+    /// write constraint violation of wheel rev. constraint
+    void Write_data(double t, DebugType type);
 
   private:
     // private functions
@@ -119,6 +117,7 @@ class CH_SUBSYS_API TorsionArmSuspension : public ChShared {
     double m_springK;           ///< torsional spring constant
     double m_springC;           ///< torsional damping constant
     double m_TorquePreload;     ///< preload torque, on the spring/damper DOF
+    
     // ... OR, use a custom shock absorber
     const bool m_use_custom_spring;                        ///< use a custom spring or a linear spring-damper?
     ChSharedPtr<ChFunction_CustomSpring> m_custom_spring;  ///< custom spring element
@@ -136,7 +135,13 @@ class CH_SUBSYS_API TorsionArmSuspension : public ChShared {
     VisualizationType::Enum m_vis;
     CollisionType::Enum m_collide;
     const size_t m_chainSys_idx;  ///< if there are multiple chain systems
+    double m_mu;    ///< static friction coef
     // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
+
+    // output filenames
+    std::string m_filename_DBG_BODY;      // write idler body info
+    std::string m_filename_DBG_CV;        // write idler constraint violation
+    std::string m_filename_DBG_CONTACTS;  // write idler contact info
 
     const std::string m_meshName;  ///< name of the mesh, if any
     const std::string m_meshFile;  ///< filename of the mesh, if any

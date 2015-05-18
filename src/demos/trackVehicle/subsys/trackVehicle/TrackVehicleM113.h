@@ -51,11 +51,11 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
         double mass = 5489.2,                                          // default for M113 APC
         const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),  // default for M113 APC
         double pin_damping_coef = 0.1,   // connected shoes always are pin/rubber bushing type elements.
-        double tensioner_preload = 1e4,  // idler tensioner preload
+        double tensioner_preload = 1e5,  // idler tensioner preload
         double omega_max = 25.0,         // max sprocket rotational speed
-        const ChVector<>& left_pos_rel = ChVector<>(0.23644, -0.4780, 0.83475),   // relative to chassis REF c-sys
-        const ChVector<>& right_pos_rel = ChVector<>(0.23644, -0.4780, -0.83475)  // relative to chassis REF c-sys,
-        );
+        const ChVector<>& right_pos_rel = ChVector<>(0.23644, -0.4780, 0.83475),   // relative to chassis REF c-sys
+        const ChVector<>& left_pos_rel = ChVector<>(0.23644, -0.4780, -0.83475),  // relative to chassis REF c-sys,
+        const ChVector<>& COG_to_REF = ChVector<>());
 
     ~TrackVehicleM113();
 
@@ -73,30 +73,13 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
     /// set the pin friction as a damping value
     virtual void SetShoePinDamping(double damping);
 
-    /// log the constraint violations of the vehicle to either the console or a file
-    virtual void LogConstraintViolations();
-
-    /// save the constraint violations of the vehicle to file
-    virtual void SaveConstraintViolations();
-
-    /// log the desired debug info to the console
-    virtual void Log_to_console(int console_what);
-
-    /// Log data to file.
-    /// Data types AND filename to be saved should already set in Setup_log_to_file()
-    virtual void Log_to_file();
-
-    /// setup class to save the log to a file for python postprocessing.
-    /// Usage: call after construction & Initialize(), else no data is saved.
-    virtual void Setup_log_to_file(int what, const std::string& out_filename, const std::string& data_dirname);
-
     // ---------------------------------------------------------------------------
     // Accessors
     // not really relevant, but required
     virtual double GetDriveshaftSpeed(size_t idx) const;
 
     /// pointer to the powertrain
-    virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const;
+    virtual ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const;
 
     /// return the contant part of the damping (if any)
     virtual double GetShoePinDamping() const { return m_damping; }
@@ -113,47 +96,60 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
         return m_TrackSystems[idx]->GetDriveGear()->GetBody()->GetWvel_loc().z;
     }
 
+    /// Log data to file.
+    /// Data types AND filename to be saved should already set in Setup_log_to_file()
+    virtual void Log_to_file();
+
+    /// setup class to save the log to a file for python postprocessing.
+    /// Usage: call after construction & Initialize(), else no data is saved.
+    virtual void Setup_logger(int what_subsys,  /// which vehicle objects (e.g. subsystems) to save data for?
+        int debug_type,   /// data types: _BODY, _CONSTRAINTS, _CONTACTS
+        const std::string& out_filename,
+        const std::string& data_dirname);
+
+    // helper functions, for Irrlicht GUI
+    // following variables are populated when DriveChain::reportShoeGearContact() is called
+    // absolute pos of the persistent contact point
+    virtual const ChVector<>& Get_SG_Persistent_PosAbs(int track, int idx) const {
+        return m_TrackSystems[track]->GetTrackChain()->Get_SG_Persistent_PosAbs(idx);
+    }
+
+    // normal force abs. vector of the persistent contact point
+    virtual const ChVector<>& Get_SG_Persistent_Fn(int track, int idx) const {
+        return m_TrackSystems[track]->GetTrackChain()->Get_SG_Persistent_Fn(idx);
+    }
+
+    // abs. pos. of all shoe-gear contacts found
+    virtual const std::vector<ChVector<> >& Get_SG_PosAbs_all(int track) const {
+        return m_TrackSystems[track]->GetTrackChain()->Get_SG_PosAbs_all();
+    }
+
+    // abs. normal force of all sh oe-gear contacts
+    virtual const std::vector<ChVector<> >& Get_SG_Fn_all(int track) const {
+        return m_TrackSystems[track]->GetTrackChain()->Get_SG_Fn_all();
+    }
+
   private:
     /// create files with headers for all specified output data types.
     /// File format is .csv, for easy reading into python pandas scripts for data analysis
-    void create_fileHeaders(int what);
+    void create_fileHeaders();
 
     // private variables
     std::vector<ChVector<> > m_TrackSystem_locs;  ///< location of each tracksystem, relative to chassis REF c-sys
     std::vector<ChSharedPtr<TrackSystemM113> > m_TrackSystems;  ///< handles to track systems
-    const ChVector<> m_trackSys_L;  ///< where to place left track system origin, relative to chassis REF c-sys
-    const ChVector<> m_trackSys_R;  ///< where to place right track system origin, relative to chassis REF c-sys
+
     const size_t m_num_tracks;      ///< how many track systems to build
     double m_damping;               ///< damping coef. applied between shoe bodies, to the rev. constraint
-    double m_tensioner_preload;
+    const double m_tensioner_preload;
 
-    // filename for each subsystem when writing time domain data
+    // filenames for output data
     std::string m_filename_DBG_CHASSIS;  // vehicle data (chassis motion, driver inputs)
-    // filename for each subsystem when writing time domain data
-    std::vector<std::string> m_filename_DBG_FIRSTSHOE;          // write to this file, first shoe/pin info
-    std::vector<std::string> m_filename_DBG_shoeGear;           // info about gear/shoe contact
-    std::vector<std::string> m_filename_DBG_GEAR;               // write to this file, gear body
-    std::vector<std::string> m_filename_DBG_GEAR_CONTACT;       // specific info about collisions with gear
-    std::vector<std::string> m_filename_DBG_IDLER;              // to to this file, idler body
-    std::vector<std::string> m_filename_GCV;                    // write to this file, gear constraint violation
-    std::vector<std::string> m_filename_ICV;                    // write to this file, idler constraint violation
-    std::vector<std::string> m_filename_RCV;                    // write to this file, roller constraint violation
-    std::vector<std::string> m_filename_DBG_PTRAIN;             // write to this file, ptrain info
-    std::vector<std::string> m_filename_DBG_COLLISIONCALLBACK;  // write collision callback info to file
-    std::vector<std::string> m_filename_DBG_ALL_CONTACTS;  // write to a new file each time step, with this base name.
-    size_t m_cnt_Log_to_file;                              // how many times was Log_to_file called?
+    std::string m_filename_DBG_PTRAIN;   // write powertrain data
+    std::string m_filename_DBG_ALL_CONTACTS;
 
-    // std::string m_filename_DBG_ALL_CONTACTS;  // write to a new file each time step, with this base name.
-    // std::string m_filename_DBG_FIRSTSHOE;  // write to this file, first shoe/pin info
-    // std::string m_filename_DBG_shoeGear;   // info about gear/shoe contact
-    // std::string m_filename_DBG_GEAR_CONTACT;  // specific info about collisions with gear
-    // std::string m_filename_DBG_COLLISIONCALLBACK; // write collision callback info to file
+    size_t m_cnt_Log_to_file;  // how many times was Log_to_file called?
 
     // static variables
-    static const double mass_override;         // override chassis mass input
-    static const ChVector<> COM_override;      // location of the chassis COM in the local ref frame
-    static const ChVector<> inertia_override;  // symmetric moments of inertia of the chassis
-
     static const ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
 
     // placeholder
