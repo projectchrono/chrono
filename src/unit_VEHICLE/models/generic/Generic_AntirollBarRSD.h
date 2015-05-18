@@ -31,9 +31,9 @@ public:
   virtual double getArmMass() const { return 1.0; }
   virtual chrono::ChVector<> getArmInertia() { return chrono::ChVector<>(1, 1, 1); }
 
-  virtual double getArmLength() const { return 0.45; }
+  virtual double getArmLength() const { return 0.70; }
   virtual double getArmWidth() const { return 0.25; }
-  virtual double getDroplinkHeight() const { return 0.20; }
+  virtual double getDroplinkHeight() const { return -0.20; }
   virtual double getArmRadius() const { return 0.02; }
 
   virtual double getSpringCoefficient() const { return 100000.0; }

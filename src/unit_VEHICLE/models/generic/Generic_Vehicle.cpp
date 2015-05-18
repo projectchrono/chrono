@@ -163,7 +163,7 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   // Initialize the antiroll bar subsystem.
   if (!m_antirollbar.IsNull()) {
     m_antirollbar->Initialize(m_chassis,
-                              ChVector<>(1.35, 0, -0.5),
+                              ChVector<>(1.3, 0, 0.0),
                               m_suspensions[0]->GetLeftBody(),
                               m_suspensions[0]->GetRightBody());
   }
