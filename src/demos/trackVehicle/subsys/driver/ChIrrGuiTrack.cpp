@@ -29,7 +29,6 @@
 #include <algorithm>
 
 #include "subsys/driver/ChIrrGuiTrack.h"
-#include "subsys/driveline/TrackDriveline.h"
 #include "subsys/powertrain/TrackPowertrain.h"
 
 using namespace irr;
@@ -288,25 +287,23 @@ void ChIrrGuiTrack::renderGrid() {
 
 // data gets appended when the specified shoe pin and gear are in contact,
 //  and reportShoeGearContact() was called
-void ChIrrGuiTrack::renderContactShoeGear(double lenScale) {
-    if (DriveChain* m_chain = dynamic_cast<DriveChain*>(&m_vehicle)) {
+void ChIrrGuiTrack::renderContactShoeGear(double lenScale, int chain_id) {
         // two perisistent contacts for the driveChain system
         for (int pc = 0; pc < 2; pc++) {
             // only plot if the force magitude is non-zero
-            if (m_chain->Get_SG_Persistent_Fn(pc).Length() > 0) {
+            if (m_vehicle.Get_SG_Persistent_Fn(pc, chain_id).Length() > 0) {
                 // draw persistent contact point red
                 ChIrrTools::drawSegment(
-                    m_app.GetVideoDriver(), m_chain->Get_SG_Persistent_PosAbs(pc),
-                    m_chain->Get_SG_Persistent_PosAbs(pc) + m_chain->Get_SG_Persistent_Fn(pc) * lenScale,
+                    m_app.GetVideoDriver(), m_vehicle.Get_SG_Persistent_PosAbs(pc, chain_id),
+                    m_vehicle.Get_SG_Persistent_PosAbs(pc, chain_id) + m_vehicle.Get_SG_Persistent_Fn(pc, chain_id) * lenScale,
                     video::SColor(200, 255, 60, 60), true);  // red
             }
-        }
 
         // all other contact points that aren't the tracked collision are green
         std::vector<ChVector<> >::const_iterator pos_iter;
         std::vector<ChVector<> >::const_iterator Fn_iter;
-        for (pos_iter = m_chain->Get_SG_PosAbs_all().begin(), Fn_iter = m_chain->Get_SG_Fn_all().begin();
-             pos_iter < m_chain->Get_SG_PosAbs_all().end() && Fn_iter < m_chain->Get_SG_Fn_all().end();
+        for (pos_iter = m_vehicle.Get_SG_PosAbs_all(chain_id).begin(), Fn_iter = m_vehicle.Get_SG_Fn_all(chain_id).begin();
+            pos_iter < m_vehicle.Get_SG_PosAbs_all(chain_id).end() && Fn_iter < m_vehicle.Get_SG_Fn_all(chain_id).end();
              pos_iter++, Fn_iter++) {
             ChIrrTools::drawSegment(m_app.GetVideoDriver(), (*pos_iter), (*pos_iter) + (*Fn_iter) * lenScale,
                                     video::SColor(200, 20, 255, 20), true);  // green

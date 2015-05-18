@@ -37,10 +37,6 @@ SET(CT_VEHICLE_FILES
 	subsys/trackVehicle/TrackVehicleM113.cpp
 	subsys/trackVehicle/DriveChain.h
 	subsys/trackVehicle/DriveChain.cpp
-#	subsys/trackVehicle/LoopChain.h
-#	subsys/trackVehicle/LoopChain.cpp
-#	subsys/trackVehicle/TrackSoilBin.h
-#	subsys/trackVehicle/TrackSoilBin.cpp
 )
 
 SET(CT_SUSPENSION_FILES
@@ -90,6 +86,9 @@ SET(CH_DRIVELINE_FILES
 	subsys/driveline/TrackDriveline.cpp
 )
 
+SET(CH_COLLISION_FILES
+	subsys/collision/TrackCollisionCallback.h
+	subsys/collision/CollisionReporters.h)
 
 SOURCE_GROUP("base" FILES ${CT_BASE_FILES})
 SOURCE_GROUP("vehicle" FILES ${CT_VEHICLE_FILES})
@@ -100,7 +99,8 @@ SOURCE_GROUP("driveGear" FILES ${CT_DRIVEGEAR_FILES})
 SOURCE_GROUP("chain" FILES ${CT_CHAIN_FILES})
 SOURCE_GROUP("trackSystem" FILES ${CT_TRACKSYSTEM_FILES})
 SOURCE_GROUP("powertrain" FILES ${CH_POWERTRAIN_FILES})
-SOURCE_GROUP("driveline" FILES ${CH_DRIVELINE_FILES})
+# SOURCE_GROUP("driveline" FILES ${CH_DRIVELINE_FILES})
+SOURCE_GROUP("collision" FILES ${CH_COLLISION_FILES})
 
 # ------------------------------------------------------------------------------
 # Add the ChronoTrackVehicle library
@@ -114,7 +114,8 @@ ADD_LIBRARY(TrackVehicle SHARED
 			${CT_CHAIN_FILES}
 			${CT_TRACKSYSTEM_FILES}
 			${CH_POWERTRAIN_FILES}
-			${CH_DRIVELINE_FILES}
+			# ${CH_DRIVELINE_FILES}
+			${CH_COLLISION_FILES}
 			)
 			
 SET_TARGET_PROPERTIES(TrackVehicle PROPERTIES
@@ -167,67 +168,36 @@ ELSE()
 ENDIF()
 
 # add demo models here
-
 # ---------------------------------------------
 # DEMO 1: track vehicle model created by Justin, M113 vehicle from Wallin, plus a powertrain
-ADD_EXECUTABLE(demo_trackVehicle  demo_trackVehicle.cpp)
-
-SOURCE_GROUP(""  FILES  demo_trackVehicle.cpp)
-
-SET_TARGET_PROPERTIES(demo_trackVehicle  PROPERTIES
-    FOLDER demos
-    COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
-    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-)
-
-TARGET_LINK_LIBRARIES(demo_trackVehicle ${CT_TARGET_LIBS} TrackVehicle)
-
-INSTALL(TARGETS demo_trackVehicle DESTINATION bin)
-
 # ---------------------------------------------
 # DEMO 2: test the kinematics of the new constraint
-ADD_EXECUTABLE(test_idlerJoint  test_idlerJoint.cpp)
-
-SOURCE_GROUP(""  FILES  test_idlerJoint.cpp)
-
-SET_TARGET_PROPERTIES(test_idlerJoint  PROPERTIES
-    FOLDER demos
-    COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
-    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-)
-
-TARGET_LINK_LIBRARIES(test_idlerJoint ${CT_TARGET_LIBS} TrackVehicle)
-
-INSTALL(TARGETS test_idlerJoint DESTINATION bin)
-
 # ---------------------------------------------
 # DEMO 3: DriveChain test
-ADD_EXECUTABLE(test_driveChain  test_driveChain.cpp)
-
-SOURCE_GROUP(""  FILES  test_driveChain.cpp)
-
-SET_TARGET_PROPERTIES(test_driveChain  PROPERTIES
-    FOLDER demos
-    COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
-    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-)
-
-TARGET_LINK_LIBRARIES(test_driveChain ${CT_TARGET_LIBS} TrackVehicle)
-
-INSTALL(TARGETS test_driveChain DESTINATION bin)
-
 # ---------------------------------------------
 # DEMO 4: track vehicle model created by Justin, M113 vehicle from Wallin, driven by a motion on the gear sprockets.
-ADD_EXECUTABLE(test_M113  test_M113.cpp)
+SET(TRACK_DEMOS
+demo_trackVehicle
+test_idlerJoint
+test_driveChain
+test_M113)
 
-SOURCE_GROUP(""  FILES  test_M113.cpp)
 
-SET_TARGET_PROPERTIES(test_M113  PROPERTIES
-    FOLDER demos
-    COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
-    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-)
+FOREACH(PROGRAM ${TRACK_DEMOS})
 
-TARGET_LINK_LIBRARIES(test_M113 ${CT_TARGET_LIBS} TrackVehicle)
+	ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+	SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+	SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+		FOLDER demos
+		COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
+		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		)
+	TARGET_LINK_LIBRARIES(${PROGRAM}
+		${CT_TARGET_LIBS}
+		TrackVehicle
+		)
+	ADD_DEPENDENCIES(${PROGRAM} ${CT_TARGET_LIBS} TrackVehicle)
+	INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
 
-INSTALL(TARGETS test_M113 DESTINATION bin)
+ENDFOREACH()
+

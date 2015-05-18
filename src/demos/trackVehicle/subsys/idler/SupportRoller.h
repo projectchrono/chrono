@@ -43,15 +43,6 @@ class CH_SUBSYS_API SupportRoller : public ChShared {
     /// init the gear with the initial pos. and rot., w.r.t. the chassis c-sys
     void Initialize(ChSharedPtr<ChBody> chassis, const ChFrame<>& chassis_REF, const ChCoordsys<>& local_Csys);
 
-    // log constraint violations of any bilateral constraints
-    void LogConstraintViolations();
-
-    /// write constraint violations to ostream, which will be written to the output file
-    void SaveConstraintViolations(std::stringstream& ss);
-
-    /// write headers for the output data file to the input ostream
-    const std::string getFileHeader_ConstraintViolations(size_t idx);
-
     // accessors
     ChSharedPtr<ChBody> GetBody() const { return m_roller; }
 
@@ -76,6 +67,11 @@ class CH_SUBSYS_API SupportRoller : public ChShared {
     CollisionType::Enum m_collide;  // collision geometry type
     const size_t m_chainSys_idx;    ///< if there are multiple chain systems
     // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
+
+    // output filenames
+    std::string m_filename_DBG_BODY; // write idler body info
+    std::string m_filename_DBG_CV;  // write idler constraint violation
+    std::string m_filename_DBG_CONTACTS;   // write idler contact info
 
     double m_mass;
     ChVector<> m_inertia;

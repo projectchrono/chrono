@@ -241,6 +241,32 @@ class ChronoTrack_pandas:
         axRHS.legend(loc ='lower right')
         axarr[1].legend(loc='upper left')
         axarr[0].set_title('powertrain')
+    
+    # plot shoe body x-y position relative to the TrackChain parent c-sys    
+    def plot_trajectory(self, tmin = -1, tmax = -1):
+         # a plot for the shoe body,
+        fig, axarr = plt.subplots(1)
+        
+        inDat = ['time','xRel','yRel']
+        DF = pd.DataFrame(self._getDFhandle('shoe0'), columns=inDat)
+        
+        # if specified, set the xlim of the two plots. Set any ylim that change a lot when tspan is not the whole sim time.
+        if(tmin > 0):
+            tminmax = self._get_timeMinMax(DF['time'].iget(-1), tmin, tmax)
+            idxA = DF[DF['time'] == tminmax[0]].index[0]
+            idxB = DF[DF['time'] == tminmax[1]].index[0]
+            DF['xRel'] = DF['xRel'][idxA:idxB]
+            DF['yRel'] = DF['yRel'][idxA:idxB]            
+            
+        # create x-y rel pos plot
+        DF.plot(ax = axarr, linewidth = 1.5, x = 'xRel', y='yRel')
+        # equal x-y aspect ratio
+        axarr.set_aspect('equal')
+        
+        # labels
+        axarr.set_xlabel('Shoe Relative x-Pos')
+        axarr.set_ylabel('Shoe Relative y-Pos')
+        axarr.grid(True)
         
     # plot shoe 0 body info, and pin 0 force/torque, with an optional time interval
     def plot_shoe(self, tmin = -1, tmax = -1):

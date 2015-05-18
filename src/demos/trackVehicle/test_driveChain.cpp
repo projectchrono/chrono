@@ -62,17 +62,12 @@ using namespace chrono;
 // =============================================================================
 // User Settings
 // =============================================================================
+double pin_damping_coef = 0.1;  // inter-shoe rev. joint damping coef. [N-s/m]
+double tensioner_preload = 5e3;  // idler subsystem tensioner preload [N]
 
-// *****  General system settings
-size_t num_idlers = 1;
-size_t num_wheels = 2;
-double pin_damping_coef = 0.05;  // inter-shoe rev. joint damping coef. [N-s/m]
-double tensioner_preload = 5e4;  // idler subsystem tensioner preload [N]
-
-// Initial position and heading
 ChVector<> initLoc(0, 1.0, 0);
+ChQuaternion<> initRot(QUNIT);  
 // ChQuaternion<> initRot = Q_from_AngAxis(CH_C_PI_4, VECT_Y);
-ChQuaternion<> initRot(QUNIT);
 
 // *****  Simulation step size, end time
 double step_size = 1e-3;
@@ -82,7 +77,7 @@ double end_time = 10;  // 99999
 // *****  Driver settings
 // Automated simulation controls, applies positive half a sine wave.
 // Otherwise, control throttle with W/S
-bool autopilot = true;
+bool autopilot = false;
 double tStart = 0.1;
 
 // when using a sine function for throttle control
@@ -93,15 +88,6 @@ double sineFreq = 0.3;
 double rampMax = 0.5;
 double rampSlope = rampMax / 3.0;  // ramp up over 3 seconds
 
-// ***** write to console or a file
-// #define WRITE_OUTPUT         // write output data to file
-// #define CONSOLE_DEBUG_INFO   // log output data to console
-// #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in console
-#define CONSOLE_TIMING  // timers for each render and simulation step, log to console
-
-int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_COLLISIONCALLBACK | DBG_PTRAIN;  // | DBG_IDLER  | DBG_CONSTRAINTS;
-int what_to_console = DBG_PTRAIN | DBG_GEAR;  // DBG_COLLISIONCALLBACK | DBG_CONSTRAINTS | DBG_IDLER | DBG_FIRSTSHOE;
-// int what_to_console = DBG_ALL_CONTACTS;
 double save_step_size = 1e-3;    // Time interval for writing data to file, don't exceed 1 kHz.
 double console_step_size = 1.0;  // time interval for writing data to console
 const std::string save_filename = "driveChain_CC";
@@ -113,7 +99,7 @@ int FPS = 80;                         // render Frames Per Second
 double render_step_size = 1.0 / FPS;  // Time increment for rendered frames
 
 // camera controls, either static or  GUI controlled chase camera:
-bool use_fixed_camera = true;
+bool use_fixed_camera = false;
 // static camera position, global c-sys. (Longitude, Vertical, Lateral)
 ChVector<> fixed_cameraPos(0.6, 1.2, 1.8);  // (0.15, 1.15, 1.5);    //
 
@@ -121,12 +107,23 @@ ChVector<> fixed_cameraPos(0.6, 1.2, 1.8);  // (0.15, 1.15, 1.5);    //
 ChVector<> trackPoint(-0.4, -0.2, 0.0);
 
 // if chase cam enabled:
-double chaseDist = 2.5;
+double chaseDist = 3;
 double chaseHeight = 0.5;
 
-bool do_shadows = false;  // shadow map is experimental
+bool do_shadows = true;  // shadow map is experimental
 
 /*
+// ***** write to console or a file
+// #define WRITE_OUTPUT        // write output data to file
+// #define CONSOLE_DEBUG_INFO  // log output data to console
+// #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in console
+#define CONSOLE_TIMING  // timers for each render and simulation step, log to console
+
+// for each subsystem, decide what type of data to save
+// int debug_type = DBG_BODY | DBG_CONTACTS;  // | DEBUG_CONSTRAINTS
+// int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_COLLISIONCALLBACK | DBG_PTRAIN;  // | DBG_IDLER  | DBG_CONSTRAINTS;
+// int what_to_console = DBG_PTRAIN | DBG_GEAR;  // DBG_COLLISIONCALLBACK | DBG_IDLER | DBG_FIRSTSHOE;
+
 #else
 double tend = 20.0;
 
@@ -147,22 +144,24 @@ int main(int argc, char* argv[]) {
 
     // The drive chain inherits ChSystem. Specify the
     // collision type used by the gear here.
-    DriveChain chainSystem("Justins driveChain system", VisualizationType::Mesh,
-                           // VisualizationType::Primitives,
-                           CollisionType::CallbackFunction,
-                           // CollisionType::Primitives,
-                           pin_damping_coef, tensioner_preload, num_idlers, num_wheels);
+    DriveChain chainSystem("Justins driveChain system",
+        VisualizationType::None, CollisionType::None,
+        pin_damping_coef, tensioner_preload,
+        ChVector<>() );
 
     // set the chassis REF at the specified initial config.
     chainSystem.Initialize(ChCoordsys<>(initLoc, initRot));
 
+    // fix the chassis to the ground
+    chainSystem.GetChassis()->SetBodyFixed(true);
+
 // if writing an output file, setup what debugInformation we want added each step data is saved.
 #ifdef WRITE_OUTPUT
-    chainSystem.Setup_log_to_file(what_to_save, save_filename, save_outDir);
+//    chainSystem.Setup_logger(what_to_save, debug_type, save_filename, save_outDir);
 #endif
 
     if (autopilot)
-        chainSystem.SetDriveMode(TrackPowertrain::REVERSE);
+        chainSystem.GetPowertrain(0)->SetDriveMode(TrackPowertrain::REVERSE);
     /*
     #ifdef USE_IRRLICHT
     */
@@ -178,9 +177,13 @@ int main(int argc, char* argv[]) {
     irr::scene::ILightSceneNode* mlight = 0;
 
     if (do_shadows) {
-        mlight = application.AddLightWithShadow(irr::core::vector3df(-50.f, -20.f, 80.f),
-                                                irr::core::vector3df(-30.f, 80.f, -50.f), 150, 60, 80, 15, 512,
+        mlight = application.AddLightWithShadow(irr::core::vector3df(-50.f, 60.f, 80.f),
+                                                irr::core::vector3df(50.f, 0.f, -80.f), 150, 30, 90, 15, 512,
                                                 irr::video::SColorf(1, 1, 1), false, false);
+        // second light, lower luminosity
+        mlight = application.AddLightWithShadow(irr::core::vector3df(50.f, -60.f, -80.f),
+            irr::core::vector3df(-50.f, 0.f, 80.f), 120, 30, 100, 15, 512,
+            irr::video::SColorf(1, 1, 1), false, false);
     } else {
         application.AddTypicalLights(irr::core::vector3df(50.f, -25.f, 30.f), irr::core::vector3df(-30.f, 80.f, -50.f),
                                      150, 125);
@@ -266,7 +269,7 @@ int main(int argc, char* argv[]) {
 */
 // write data to file?
 #ifdef WRITE_OUTPUT
-    chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
+// chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
 #endif
     ChRealtimeStepTimer realtime_timer;
     bool is_end_time_reached = false;
@@ -306,7 +309,7 @@ int main(int argc, char* argv[]) {
         if (autopilot)
             function_driver.Update(time);
 
-        chainSystem.Update(time, throttle_input[0], braking_input[0]);
+        chainSystem.Update(time, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         // step_size = realtime_timer.SuggestSimulationStep(step_size);
@@ -324,10 +327,12 @@ int main(int argc, char* argv[]) {
         time_since_last_output += step_timer();
 
 #ifdef WRITE_OUTPUT
-        if (step_number % save_steps == 0) {
-            // write data to file
-            chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
-        }
+/*
+if (step_number % save_steps == 0) {
+    // write data to file
+    chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
+}
+*/
 #endif
 
         if (step_number % console_steps == 0) {
