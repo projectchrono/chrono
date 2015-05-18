@@ -53,7 +53,7 @@ ChTrackVehicle::ChTrackVehicle(const std::string& name,
       m_stepsize(step_size),
       m_save_log_to_file(false),  // save the DebugLog() info to file? default false
       m_log_what_to_file(0),      // set this in Setup_log_to_file(), if writing to file
-      m_log_debug_type(DebugType::DBG_BODY),    // default
+      m_log_debug_type(DBG_BODY),    // default
       m_log_file_exists(false),   // written the headers for log file yet?
       m_log_what_to_console(0)    // pre-set what to write to console when calling
 {
@@ -102,7 +102,7 @@ ChTrackVehicle::ChTrackVehicle(ChSystem* system,
       m_stepsize(system->GetStep()),
       m_save_log_to_file(false),  // save the DebugLog() info to file? default false
       m_log_what_to_file(0),      // set this in Setup_log_to_file(), if writing to file
-      m_log_debug_type(DebugType::DBG_BODY),
+      m_log_debug_type(DBG_BODY),
       m_log_file_exists(false),   // written the headers for log file yet?
       m_log_what_to_console(0)    // pre-set what to write to console when calling
 {

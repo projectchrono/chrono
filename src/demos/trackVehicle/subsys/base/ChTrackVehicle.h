@@ -175,12 +175,12 @@ class CH_SUBSYS_API ChTrackVehicle : public ChShared {
 
     // abs. pos. of all shoe-gear contacts found
     virtual const std::vector<ChVector<> >& Get_SG_PosAbs_all(int track) const {
-        return std::vector<ChVector<>>();
+        return std::vector<ChVector<> >();
     }
 
     // abs. normal force of all sh oe-gear contacts
     virtual const std::vector<ChVector<> >& Get_SG_Fn_all(int track) const {
-        return std::vector<ChVector<>>();
+        return std::vector<ChVector<> >();
     }
 
   protected:
