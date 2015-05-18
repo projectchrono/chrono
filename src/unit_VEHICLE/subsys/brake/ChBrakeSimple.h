@@ -38,11 +38,11 @@ public:
   /// Initialize the brake by providing the wheel's revolute link.
   virtual void Initialize(ChSharedPtr<ChLinkLockRevolute> hub);
 
-  /// Set the brake modulation, in 0..1 range, 
+  /// Update the brake subsystem: set the brake modulation, in 0..1 range, 
   /// when = 0 it is completely free,
   /// when = 1 it should provide the max braking torque
   /// This function can be called to modulate braking in realtime simulation loops.
-  virtual void ApplyBrakeModulation(double modulation);
+  virtual void Update(double modulation);
 
   /// Get the current brake torque, as a result of simulation,
   /// so it might change from time to time

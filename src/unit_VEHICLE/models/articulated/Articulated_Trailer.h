@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// Trailer for articulated vehicle model. 
+// Trailer for articulated vehicle model.
 //
 // =============================================================================
 
@@ -22,14 +22,11 @@
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
-#include "subsys/ChVehicle.h"
-#include "subsys/suspension/ChSolidAxle.h"
-
 #include "models/ModelDefs.h"
-#include "models/articulated/Articulated_Wheel.h"
-#include "models/articulated/Articulated_BrakeSimple.h"
+#include "models/generic/Generic_Wheel.h"
+#include "models/generic/Generic_BrakeSimple.h"
 
-class Articulated_Trailer 
+class Articulated_Trailer
 {
 public:
 
@@ -69,15 +66,15 @@ private:
 
   SuspensionType m_suspType;
 
-  chrono::ChSharedPtr<Articulated_Wheel> m_front_right_wheel;
-  chrono::ChSharedPtr<Articulated_Wheel> m_front_left_wheel;
-  chrono::ChSharedPtr<Articulated_Wheel> m_rear_right_wheel;
-  chrono::ChSharedPtr<Articulated_Wheel> m_rear_left_wheel;
+  chrono::ChSharedPtr<Generic_Wheel> m_front_right_wheel;
+  chrono::ChSharedPtr<Generic_Wheel> m_front_left_wheel;
+  chrono::ChSharedPtr<Generic_Wheel> m_rear_right_wheel;
+  chrono::ChSharedPtr<Generic_Wheel> m_rear_left_wheel;
 
-  chrono::ChSharedPtr<Articulated_BrakeSimple> m_front_right_brake;
-  chrono::ChSharedPtr<Articulated_BrakeSimple> m_front_left_brake;
-  chrono::ChSharedPtr<Articulated_BrakeSimple> m_rear_right_brake;
-  chrono::ChSharedPtr<Articulated_BrakeSimple> m_rear_left_brake;
+  chrono::ChSharedPtr<Generic_BrakeSimple> m_front_right_brake;
+  chrono::ChSharedPtr<Generic_BrakeSimple> m_front_left_brake;
+  chrono::ChSharedPtr<Generic_BrakeSimple> m_rear_right_brake;
+  chrono::ChSharedPtr<Generic_BrakeSimple> m_rear_left_brake;
 
   chrono::ChSharedPtr<chrono::ChBodyAuxRef>  m_chassis;      ///< handle to the chassis body
   chrono::ChSharedPtr<chrono::ChBodyAuxRef>  m_frontaxle;      ///< handle to the steering axle

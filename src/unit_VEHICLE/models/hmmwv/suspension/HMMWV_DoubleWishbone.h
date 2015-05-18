@@ -56,16 +56,15 @@ public:
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
-  virtual double getSpringCoefficient() const { return m_springCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
-
-  virtual bool useNonlinearShock() const { return true; }
+  virtual chrono::ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
   virtual chrono::ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
 
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
 
+  chrono::ChSpringForceCallback* m_springForceCB;
   chrono::ChSpringForceCallback* m_shockForceCB;
 
   static const double      m_spindleMass;
@@ -117,16 +116,15 @@ public:
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
-  virtual double getSpringCoefficient() const { return m_springCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
-
-  virtual bool useNonlinearShock() const { return true; }
+  virtual chrono::ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
   virtual chrono::ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
 
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
 
+  chrono::ChSpringForceCallback* m_springForceCB;
   chrono::ChSpringForceCallback* m_shockForceCB;
 
   static const double      m_spindleMass;

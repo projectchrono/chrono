@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
 // Various utility classes for vehicle subsystems.
@@ -23,6 +23,7 @@
 
 #include "core/ChVector.h"
 #include "core/ChQuaternion.h"
+#include "physics/ChLinkSpringCB.h"
 
 #include "subsys/ChApiSubsys.h"
 
@@ -110,6 +111,84 @@ struct ChTireForce {
 
 /// Vector of tire force structures.
 typedef std::vector<ChTireForce> ChTireForces;
+
+///
+/// Utility class for specifying a linear spring force.
+///
+class LinearSpringForce : public ChSpringForceCallback {
+public:
+  LinearSpringForce(double k) : m_k(k) {}
+  virtual double operator()(double time, double rest_length, double length, double vel) {
+    return -m_k * (length - rest_length);
+  }
+private:
+  double m_k;
+};
+
+///
+/// Utility class for specifying a linear damper force.
+///
+class LinearDamperForce : public ChSpringForceCallback {
+public:
+  LinearDamperForce(double c) : m_c(c) {}
+  virtual double operator()(double time, double rest_length, double length, double vel) {
+    return -m_c * vel;
+  }
+private:
+  double m_c;
+};
+
+///
+/// Utility class for specifying a linear spring-damper force.
+///
+class LinearSpringDamperForce : public ChSpringForceCallback {
+public:
+  LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
+  virtual double operator()(double time, double rest_length, double length, double vel) {
+    return -m_k * (length - rest_length) - m_c * vel;
+  }
+private:
+  double m_k;
+  double m_c;
+};
+
+///
+/// Utility class for specifying a map spring force.
+///
+class MapSpringForce : public ChSpringForceCallback {
+public:
+  MapSpringForce() {}
+  MapSpringForce(const std::vector<std::pair<double, double> >& data) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+      m_map.AddPoint(data[i].first, data[i].second);
+    }
+  }
+  void add_point(double x, double y) { m_map.AddPoint(x, y); }
+  virtual double operator()(double time, double rest_length, double length, double vel) {
+    return -m_map.Get_y(length - rest_length);
+  }
+private:
+  ChFunction_Recorder m_map;
+};
+
+///
+/// Utility class for specifying a map damper force.
+///
+class MapDamperForce : public ChSpringForceCallback {
+public:
+  MapDamperForce() {}
+  MapDamperForce(const std::vector<std::pair<double, double> >& data) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+      m_map.AddPoint(data[i].first, data[i].second);
+    }
+  }
+  void add_point(double x, double y) { m_map.AddPoint(x, y); }
+  virtual double operator()(double time, double rest_length, double length, double vel) {
+    return -m_map.Get_y(vel);
+  }
+private:
+  ChFunction_Recorder m_map;
+};
 
 
 } // end namespace chrono

@@ -122,12 +122,10 @@ protected:
   /// Return the radius of the upright body (visualization only).
   virtual double getUprightRadius() const = 0;
 
-  /// Return the spring coefficient (for linear spring elements).
-  virtual double getSpringCoefficient() const = 0;
-  /// Return the damping coefficient (for linear shock elements).
-  virtual double getDampingCoefficient() const = 0;
-  /// Return the free (rest) length of the spring element.
+  /// Return the free (rest) length of the spring-damper element.
   virtual double getSpringRestLength() const = 0;
+  /// Return the callback function for shock force (spring-damper).
+  virtual ChSpringForceCallback* getShockForceCallback()  const = 0;
 
   ChSharedBodyPtr                   m_upright[2];      ///< handles to the upright bodies (left/right)
 
@@ -137,7 +135,7 @@ protected:
   ChSharedPtr<ChLinkDistance>       m_distLCA_B[2];    ///< handles to the back LCA distance constraints (left/right)
   ChSharedPtr<ChLinkDistance>       m_distTierod[2];   ///< handles to the tierod distance constraints (left/right)
 
-  ChSharedPtr<ChLinkSpring>         m_shock[2];        ///< handles to the spring-damper force elements (left/right)
+  ChSharedPtr<ChLinkSpringCB>       m_shock[2];        ///< handles to the spring-damper force elements (left/right)
 
 private:
 

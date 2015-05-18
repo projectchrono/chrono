@@ -108,6 +108,8 @@ SET(CV_POVERTRAIN_FILES
 
     powertrain/SimplePowertrain.h
     powertrain/SimplePowertrain.cpp
+    powertrain/ShaftsPowertrain.h
+    powertrain/ShaftsPowertrain.cpp
 )
 
 SET(CV_TIRE_FILES

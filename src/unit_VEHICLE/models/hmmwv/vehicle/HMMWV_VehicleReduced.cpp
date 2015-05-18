@@ -104,7 +104,8 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
   // -----------------------------
   // Create the steering subsystem
   // -----------------------------
-  m_steering = ChSharedPtr<ChSteering>(new HMMWV_RackPinion("Steering"));
+  m_steerings.resize(1);
+  m_steerings[0] = ChSharedPtr<ChSteering>(new HMMWV_RackPinion("Steering"));
 
   // -----------------
   // Create the wheels
@@ -153,11 +154,11 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos)
   // Initialize the steering subsystem (specify the steering subsystem's frame
   // relative to the chassis reference frame).
   ChVector<> offset = in2m * ChVector<>(56.735, 0, 3.174);
-  m_steering->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
+  m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_suspensions[0]->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 1.039), m_steering->GetSteeringLink());
+  m_suspensions[0]->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 1.039), m_steerings[0]->GetSteeringLink());
   m_suspensions[1]->Initialize(m_chassis, in2m * ChVector<>(-66.4, 0, 1.039), m_chassis);
 
   // Initialize wheels
@@ -189,34 +190,6 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos)
   m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
   m_brakes[2]->Initialize(m_suspensions[1]->GetRevolute(LEFT));
   m_brakes[3]->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
-}
-
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void HMMWV_VehicleReduced::Update(double              time,
-                                  double              steering,
-                                  double              braking,
-                                  double              powertrain_torque,
-                                  const ChTireForces& tire_forces)
-{
-  // Apply powertrain torque to the driveline's input shaft.
-  m_driveline->ApplyDriveshaftTorque(powertrain_torque);
-
-  // Let the steering subsystem process the steering input.
-  m_steering->Update(time, steering);
-
-  // Apply tire forces to spindle bodies.
-  m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
-  m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
-  m_suspensions[1]->ApplyTireForce(LEFT, tire_forces[REAR_LEFT.id()]);
-  m_suspensions[1]->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
-
-  // Apply braking
-  m_brakes[0]->ApplyBrakeModulation(braking);
-  m_brakes[1]->ApplyBrakeModulation(braking);
-  m_brakes[2]->ApplyBrakeModulation(braking);
-  m_brakes[3]->ApplyBrakeModulation(braking);
 }
 
 

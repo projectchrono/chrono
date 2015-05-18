@@ -84,6 +84,10 @@ protected:
 };
 
 
+/// Vector of handles to steering subsystems
+typedef std::vector<ChSharedPtr<ChSteering> > ChSteeringList;
+
+
 } // end namespace chrono
 
 

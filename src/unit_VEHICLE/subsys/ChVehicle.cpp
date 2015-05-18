@@ -67,6 +67,39 @@ ChVehicle::~ChVehicle()
 
 
 // -----------------------------------------------------------------------------
+// Update the state of this vehicle at the current time.
+// The vehicle system is provided the current driver inputs (throttle between
+// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
+// from the powertrain, and tire forces (expressed in the global reference
+// frame).
+// The default implementation of this function invokes the update functions for
+// all vehicle subsystems.
+// -----------------------------------------------------------------------------
+void ChVehicle::Update(double              time,
+                       double              steering,
+                       double              braking,
+                       double              powertrain_torque,
+                       const ChTireForces& tire_forces)
+{
+  // Apply powertrain torque to the driveline's input shaft.
+  m_driveline->Update(powertrain_torque);
+
+  // Let the steering subsystems process the steering input.
+  for (unsigned int i = 0; i < m_steerings.size(); i++) {
+    m_steerings[i]->Update(time, steering);
+  }
+
+  // Apply tire forces to spindle bodies and apply braking.
+  for (unsigned int i = 0; i < m_suspensions.size(); i++) {
+    m_suspensions[i]->Update(LEFT, tire_forces[2 * i]);
+    m_suspensions[i]->Update(RIGHT, tire_forces[2 * i + 1]);
+
+    m_brakes[2 * i]->Update(braking);
+    m_brakes[2 * i + 1]->Update(braking);
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Advance the state of the system, taking as many steps as needed to exactly
 // reach the specified value 'step'.
 // ---------------------------------------------------------------------------- -
@@ -165,8 +198,10 @@ void ChVehicle::LogConstraintViolations()
   }
 
   // Report constraint violations for the steering joints
-  GetLog() << "\n---- STEERING constrain violations\n\n";
-  m_steering->LogConstraintViolations();
+  for (size_t i = 0; i < m_steerings.size(); i++) {
+    GetLog() << "\n---- STEERING subsystem " << i << " constraint violations\n\n";
+    m_steerings[i]->LogConstraintViolations();
+  }
 
   GetLog().SetNumFormat("%g");
 

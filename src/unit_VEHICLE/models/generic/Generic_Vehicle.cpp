@@ -85,12 +85,12 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
 
   switch (m_suspType) {
   case SOLID_AXLE:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleFront("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleRear("RearSusp"));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("RearSusp"));
     break;
   case MULTI_LINK:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkFront("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkRear("RearSusp"));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("RearSusp"));
     break;
   case DOUBLE_WISHBONE:
     //// Create the two suspension subsystems, first for the front axle, the second
@@ -102,7 +102,8 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
   // -----------------------------
   // Create the steering subsystem
   // -----------------------------
-  m_steering = ChSharedPtr<ChSteering>(new Generic_RackPinion("Steering"));
+  m_steerings.resize(1);
+  m_steerings[0] = ChSharedPtr<ChSteering>(new Generic_RackPinion("Steering"));
 
   // -----------------
   // Create the wheels
@@ -143,11 +144,11 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   case MULTI_LINK:      offset = ChVector<>(1.65, 0, -0.12); break;
   case DOUBLE_WISHBONE: offset = ChVector<>(1.4, 0, -0.03); break;
   }
-  m_steering->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
+  m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.6914, 0, 0), m_steering->GetSteeringLink());
+  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.6914, 0, 0), m_steerings[0]->GetSteeringLink());
   m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.6865, 0, 0), m_chassis);
 
   // Initialize wheels
@@ -255,33 +256,6 @@ double Generic_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const
   default:
     return -1;
   }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Generic_Vehicle::Update(double              time,
-                             double              steering,
-                             double              braking,
-                             double              powertrain_torque,
-                             const ChTireForces& tire_forces)
-{
-  // Apply powertrain torque to the driveline's input shaft.
-  m_driveline->ApplyDriveshaftTorque(powertrain_torque);
-
-  // Let the steering subsystem process the steering input.
-  m_steering->Update(time, 0.5 * steering);
-
-  // Apply tire forces to spindle bodies.
-  m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
-  m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
-  m_suspensions[1]->ApplyTireForce(LEFT, tire_forces[REAR_LEFT.id()]);
-  m_suspensions[1]->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
-
-  // Apply braking
-  m_brakes[0]->ApplyBrakeModulation(braking);
-  m_brakes[1]->ApplyBrakeModulation(braking);
-  m_brakes[2]->ApplyBrakeModulation(braking);
-  m_brakes[3]->ApplyBrakeModulation(braking);
 }
 
 

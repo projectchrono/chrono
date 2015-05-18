@@ -55,10 +55,10 @@ public:
   /// the powertrain system.
   virtual double GetDriveshaftSpeed() const;
 
-  /// Apply the specified motor torque.
+  /// Update the driveline subsystem: apply the specified motor torque.
   /// This represents the input to the driveline subsystem from the powertrain
   /// system.
-  virtual void ApplyDriveshaftTorque(double torque);
+  virtual void Update(double torque);
 
   /// Get the motor torque to be applied to the specified wheel.
   virtual double GetWheelTorque(const ChWheelID& wheel_id) const;

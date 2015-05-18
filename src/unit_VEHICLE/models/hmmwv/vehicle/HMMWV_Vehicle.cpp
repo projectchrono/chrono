@@ -99,7 +99,8 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
   // -----------------------------
   // Create the steering subsystem
   // -----------------------------
-  m_steering = ChSharedPtr<ChSteering>(new HMMWV_PitmanArm("Steering"));
+  m_steerings.resize(1);
+  m_steerings[0] = ChSharedPtr<ChSteering>(new HMMWV_PitmanArm("Steering"));
 
   // -----------------
   // Create the wheels
@@ -149,11 +150,11 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   // relative to the chassis reference frame).
   ChVector<> offset = ChVector<>(1.24498, 0, 0.101322);
   ChQuaternion<> rotation = Q_from_AngAxis(18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
-  m_steering->Initialize(m_chassis, offset, rotation);
+  m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.688965, 0, 0), m_steering->GetSteeringLink());
+  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.688965, 0, 0), m_steerings[0]->GetSteeringLink());
   m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.688965, 0, 0), m_chassis);
 
   // Initialize wheels
@@ -220,34 +221,6 @@ double HMMWV_Vehicle::GetShockLength(const ChWheelID& wheel_id) const
 double HMMWV_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const
 {
   return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetShockVelocity(wheel_id.side());
-}
-
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void HMMWV_Vehicle::Update(double              time,
-                           double              steering,
-                           double              braking,
-                           double              powertrain_torque,
-                           const ChTireForces& tire_forces)
-{
-  // Apply powertrain torque to the driveline's input shaft.
-  m_driveline->ApplyDriveshaftTorque(powertrain_torque);
-
-  // Let the steering subsystem process the steering input.
-  m_steering->Update(time, steering);
-
-  // Apply tire forces to spindle bodies.
-  m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
-  m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
-  m_suspensions[1]->ApplyTireForce(LEFT, tire_forces[REAR_LEFT.id()]);
-  m_suspensions[1]->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
-
-  // Apply braking
-  m_brakes[0]->ApplyBrakeModulation(braking);
-  m_brakes[1]->ApplyBrakeModulation(braking);
-  m_brakes[2]->ApplyBrakeModulation(braking);
-  m_brakes[3]->ApplyBrakeModulation(braking);
 }
 
 

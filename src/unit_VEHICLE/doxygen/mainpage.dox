@@ -1,7 +1,7 @@
 /**
 \mainpage Description
 
-Chrono-T, an extension of <a href="http://www.chronoengine.info/chronoengine/">Chrono</a>, is a C++ library for creating vehicle subsystems from templates.
+Chrono-Vehicle, an extension of <a href="http://www.projectchrono.org/">Chrono</a>, is a C++ library for creating vehicle subsystems from templates.
 
 Available subsystem templates
 -----------------------------
@@ -10,10 +10,10 @@ Available subsystem templates
 - suspension
   + double wishbone
   + solid axle
-  + multi-link (TODO)
+  + multi-link
 - steering
   + Pitman arm
-  + Rack and pinion (TODO)
+  + Rack and pinion
 - driveline
   + 2WD
   + 4WD

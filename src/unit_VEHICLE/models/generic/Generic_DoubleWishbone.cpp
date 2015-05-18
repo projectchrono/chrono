@@ -55,7 +55,26 @@ const double     Generic_DoubleWishbone::m_springRestLength = 0.306;
 
 
 // -----------------------------------------------------------------------------
-// Implementations of the getLocation() virtual method.
+// Constructor
+// -----------------------------------------------------------------------------
+Generic_DoubleWishbone::Generic_DoubleWishbone(const std::string& name)
+: ChDoubleWishbone(name)
+{
+  m_springForceCB = new LinearSpringForce(m_springCoefficient);
+  m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
+}
+
+// -----------------------------------------------------------------------------
+// Destructor
+// -----------------------------------------------------------------------------
+Generic_DoubleWishbone::~Generic_DoubleWishbone()
+{
+  delete m_springForceCB;
+  delete m_shockForceCB;
+}
+
+// -----------------------------------------------------------------------------
+// Implementation of the getLocation() virtual method.
 // This function returns the position of the specified suspension hardpoint,
 // with respect to the suspension subsystem's reference frame (a right-hand
 // frame with X pointing towards the front, Y to the left, and Z up and with

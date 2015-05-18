@@ -33,7 +33,7 @@ public:
 
   SolidAxle(const std::string& filename);
   SolidAxle(const rapidjson::Document& d);
-  virtual ~SolidAxle() {}
+  ~SolidAxle();
 
   virtual double getAxleTubeMass() const { return m_axleTubeMass; }
   virtual double getSpindleMass() const { return m_spindleMass; }
@@ -56,9 +56,9 @@ public:
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
-  virtual double getSpringCoefficient() const { return m_springCoefficient; }
-  virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
+  virtual ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
+  virtual ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
 
   virtual const ChVector<> getAxleTubeCOM() const { return m_axleTubeCOM; }
 
@@ -68,6 +68,9 @@ private:
   virtual const ChVector<> getDirection(DirectionId which) { return m_directions[which]; }
 
   void Create(const rapidjson::Document& d);
+
+  ChSpringForceCallback* m_springForceCB;
+  ChSpringForceCallback* m_shockForceCB;
 
   ChVector<>  m_points[NUM_POINTS];
   ChVector<>  m_directions[NUM_DIRS];
@@ -95,8 +98,6 @@ private:
 
   double      m_axleInertia;
 
-  double      m_springCoefficient;
-  double      m_dampingCoefficient;
   double      m_springRestLength;
 };
 

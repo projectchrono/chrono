@@ -23,8 +23,8 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
-#include "models/articulated/Articulated_SolidAxle.h"
-#include "models/articulated/Articulated_MultiLink.h"
+#include "models/generic/Generic_SolidAxle.h"
+#include "models/generic/Generic_MultiLink.h"
 
 #include "models/articulated/Articulated_Vehicle.h"
 #include "models/articulated/Articulated_Trailer.h"
@@ -117,31 +117,31 @@ Articulated_Trailer::Articulated_Trailer(ChSystem*         mysystem,
 
   switch (m_suspType) {
   case SOLID_AXLE:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Articulated_SolidAxleRear("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Articulated_SolidAxleRear("RearSusp"));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("RearSusp"));
     break;
   case MULTI_LINK:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Articulated_MultiLinkRear("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Articulated_MultiLinkRear("RearSusp"));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("RearSusp"));
     break;
   }
 
   // -----------------
   // Create the wheels
   // -----------------
-  m_front_right_wheel = ChSharedPtr<Articulated_Wheel>(new Articulated_Wheel(wheelVis));
-  m_front_left_wheel = ChSharedPtr<Articulated_Wheel>(new Articulated_Wheel(wheelVis));
-  m_rear_right_wheel = ChSharedPtr<Articulated_Wheel>(new Articulated_Wheel(wheelVis));
-  m_rear_left_wheel = ChSharedPtr<Articulated_Wheel>(new Articulated_Wheel(wheelVis));
+  m_front_right_wheel = ChSharedPtr<Generic_Wheel>(new Generic_Wheel(wheelVis));
+  m_front_left_wheel = ChSharedPtr<Generic_Wheel>(new Generic_Wheel(wheelVis));
+  m_rear_right_wheel = ChSharedPtr<Generic_Wheel>(new Generic_Wheel(wheelVis));
+  m_rear_left_wheel = ChSharedPtr<Generic_Wheel>(new Generic_Wheel(wheelVis));
 
 
   // -----------------
   // Create the brakes
   // -----------------
-  m_front_right_brake = ChSharedPtr<Articulated_BrakeSimple>(new Articulated_BrakeSimple);
-  m_front_left_brake = ChSharedPtr<Articulated_BrakeSimple>(new Articulated_BrakeSimple);
-  m_rear_right_brake = ChSharedPtr<Articulated_BrakeSimple>(new Articulated_BrakeSimple);
-  m_rear_left_brake = ChSharedPtr<Articulated_BrakeSimple>(new Articulated_BrakeSimple);
+  m_front_right_brake = ChSharedPtr<Generic_BrakeSimple>(new Generic_BrakeSimple);
+  m_front_left_brake = ChSharedPtr<Generic_BrakeSimple>(new Generic_BrakeSimple);
+  m_rear_right_brake = ChSharedPtr<Generic_BrakeSimple>(new Generic_BrakeSimple);
+  m_rear_left_brake = ChSharedPtr<Generic_BrakeSimple>(new Generic_BrakeSimple);
 }
 
 
@@ -272,20 +272,20 @@ double Articulated_Trailer::GetShockVelocity(const ChWheelID& wheel_id) const
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Articulated_Trailer::Update(double              time,
-                             double              braking,
-                             const ChTireForces& tire_forces)
+                                 double              braking,
+                                 const ChTireForces& tire_forces)
 {
   // Apply tire forces to spindle bodies.
-  m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
-  m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
-  m_suspensions[1]->ApplyTireForce(LEFT, tire_forces[REAR_LEFT.id()]);
-  m_suspensions[1]->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
+  m_suspensions[0]->Update(LEFT, tire_forces[FRONT_LEFT.id()]);
+  m_suspensions[0]->Update(RIGHT, tire_forces[FRONT_RIGHT.id()]);
+  m_suspensions[1]->Update(LEFT, tire_forces[REAR_LEFT.id()]);
+  m_suspensions[1]->Update(RIGHT, tire_forces[REAR_RIGHT.id()]);
 
   // Apply braking
-  m_front_left_brake->ApplyBrakeModulation(braking);
-  m_front_right_brake->ApplyBrakeModulation(braking);
-  m_rear_left_brake->ApplyBrakeModulation(braking);
-  m_rear_right_brake->ApplyBrakeModulation(braking);
+  m_front_left_brake->Update(braking);
+  m_front_right_brake->Update(braking);
+  m_rear_left_brake->Update(braking);
+  m_rear_right_brake->Update(braking);
 }
 
 

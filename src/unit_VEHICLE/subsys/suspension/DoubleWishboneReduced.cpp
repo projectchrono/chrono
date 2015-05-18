@@ -43,7 +43,8 @@ static ChVector<> loadVector(const Value& a)
 // JSON file.
 // -----------------------------------------------------------------------------
 DoubleWishboneReduced::DoubleWishboneReduced(const std::string& filename)
-: ChDoubleWishboneReduced("")
+: ChDoubleWishboneReduced(""),
+  m_shockForceCB(NULL)
 {
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -59,11 +60,23 @@ DoubleWishboneReduced::DoubleWishboneReduced(const std::string& filename)
 }
 
 DoubleWishboneReduced::DoubleWishboneReduced(const rapidjson::Document& d)
-: ChDoubleWishboneReduced("")
+: ChDoubleWishboneReduced(""),
+  m_shockForceCB(NULL)
 {
   Create(d);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+DoubleWishboneReduced::~DoubleWishboneReduced()
+{
+  delete m_shockForceCB;
+}
+
+// -----------------------------------------------------------------------------
+// Worker function for creating a DoubleWishboneReduced suspension using data in
+// the specified RapidJSON document.
+// -----------------------------------------------------------------------------
 void DoubleWishboneReduced::Create(const rapidjson::Document& d)
 {
   // Read top-level data
@@ -115,20 +128,15 @@ void DoubleWishboneReduced::Create(const rapidjson::Document& d)
   m_points[TIEROD_C] = loadVector(d["Tierod"]["Location Chassis"]);
   m_points[TIEROD_U] = loadVector(d["Tierod"]["Location Upright"]);
 
-  // Read spring data
-  assert(d.HasMember("Spring"));
-  assert(d["Spring"].IsObject());
-
-  m_springCoefficient = d["Spring"]["Spring Coefficient"].GetDouble();
-  m_springRestLength = d["Spring"]["Free Length"].GetDouble();
-
-  // Read shock data
+  // Read spring-damper data and create force callback
   assert(d.HasMember("Shock"));
   assert(d["Shock"].IsObject());
 
   m_points[SHOCK_C] = loadVector(d["Shock"]["Location Chassis"]);
   m_points[SHOCK_U] = loadVector(d["Shock"]["Location Arm"]);
-  m_dampingCoefficient = d["Shock"]["Damping Coefficient"].GetDouble();
+  m_springRestLength = d["Shock"]["Free Length"].GetDouble();
+  m_shockForceCB = new LinearSpringDamperForce(d["Shock"]["Spring Coefficient"].GetDouble(),
+                                               d["Shock"]["Damping Coefficient"].GetDouble());
 
   // Read axle inertia
   assert(d.HasMember("Axle"));

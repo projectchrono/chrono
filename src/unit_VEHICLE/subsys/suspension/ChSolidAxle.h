@@ -180,14 +180,12 @@ protected:
   /// Return the inertia of the axle shaft.
   virtual double getAxleInertia() const = 0;
 
-  /// Return the spring coefficient (for linear spring elements).
-  virtual double getSpringCoefficient() const = 0;
-  /// Return the damping coefficient (for linear shock elements).
-  virtual double getDampingCoefficient() const = 0;
-
   /// Return the free (rest) length of the spring element.
   virtual double getSpringRestLength() const = 0;
-
+  /// Return the callback function for spring force.
+  virtual ChSpringForceCallback* getSpringForceCallback() const = 0;
+  /// Return the callback function for shock force.
+  virtual ChSpringForceCallback* getShockForceCallback()  const = 0;
 
   ChSharedBodyPtr                   m_axleTube;                 ///< handles to the axle tube body
   ChSharedBodyPtr                   m_knuckle[2];               ///< handles to the knuckle bodies (left/right)
@@ -201,8 +199,8 @@ protected:
   ChSharedPtr<ChLinkUniversal>      m_universalLowerLink[2];    ///< handles to the lower link-chassis universal joints (left/right)
   ChSharedPtr<ChLinkDistance>       m_distTierod[2];            ///< handles to the tierod distance constraints (left/right)
 
-  ChSharedPtr<ChLinkSpring>         m_shock[2];                 ///< handles to the spring links (left/right)
-  ChSharedPtr<ChLinkSpring>         m_spring[2];                ///< handles to the shock links (left/right)
+  ChSharedPtr<ChLinkSpringCB>       m_shock[2];                 ///< handles to the spring links (left/right)
+  ChSharedPtr<ChLinkSpringCB>       m_spring[2];                ///< handles to the shock links (left/right)
 
 private:
 

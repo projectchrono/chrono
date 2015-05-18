@@ -103,7 +103,7 @@ void differentialSplit(double torque,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimpleDriveline::ApplyDriveshaftTorque(double torque)
+void ChSimpleDriveline::Update(double torque)
 {
   // Split the input torque front/back.
   double torque_front = torque * GetFrontTorqueFraction();

@@ -33,7 +33,7 @@ public:
 
   DoubleWishboneReduced(const std::string& filename);
   DoubleWishboneReduced(const rapidjson::Document& d);
-  virtual ~DoubleWishboneReduced() {}
+  ~DoubleWishboneReduced();
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
@@ -47,15 +47,16 @@ public:
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
-  virtual double getSpringCoefficient() const { return m_springCoefficient; }
-  virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
+  virtual ChSpringForceCallback* getShockForceCallback() const { return m_shockForceCB; }
 
 private:
 
   virtual const ChVector<> getLocation(PointId which) { return m_points[which]; }
 
   void Create(const rapidjson::Document& d);
+
+  ChSpringForceCallback* m_shockForceCB;
 
   ChVector<>  m_points[NUM_POINTS];
 
@@ -71,8 +72,6 @@ private:
 
   double      m_axleInertia;
 
-  double      m_springCoefficient;
-  double      m_dampingCoefficient;
   double      m_springRestLength;
 };
 

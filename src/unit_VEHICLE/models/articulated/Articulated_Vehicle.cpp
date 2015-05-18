@@ -25,10 +25,14 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
-#include "models/articulated/Articulated_SolidAxle.h"
-#include "models/articulated/Articulated_MultiLink.h"
-
 #include "models/articulated/Articulated_Vehicle.h"
+
+#include "models/generic/Generic_SolidAxle.h"
+#include "models/generic/Generic_MultiLink.h"
+#include "models/generic/Generic_Wheel.h"
+#include "models/generic/Generic_RackPinion.h"
+#include "models/generic/Generic_Driveline2WD.h"
+#include "models/generic/Generic_BrakeSimple.h"
 
 using namespace chrono;
 
@@ -79,42 +83,43 @@ Articulated_Vehicle::Articulated_Vehicle(const bool        fixed,
 
   switch (m_suspType) {
   case SOLID_AXLE:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Articulated_SolidAxleFront("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Articulated_SolidAxleRear("RearSusp"));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("RearSusp"));
     break;
   case MULTI_LINK:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Articulated_MultiLinkFront("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Articulated_MultiLinkRear("RearSusp"));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("RearSusp"));
     break;
   }
 
   // -----------------------------
   // Create the steering subsystem
   // -----------------------------
-  m_steering = ChSharedPtr<ChSteering>(new Articulated_RackPinion("Steering"));
+  m_steerings.resize(1);
+  m_steerings[0] = ChSharedPtr<ChSteering>(new Generic_RackPinion("Steering"));
 
   // -----------------
   // Create the wheels
   // -----------------
   m_wheels.resize(4);
-  m_wheels[0] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
-  m_wheels[1] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
-  m_wheels[2] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
-  m_wheels[3] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
+  m_wheels[0] = ChSharedPtr<ChWheel>(new Generic_Wheel(wheelVis));
+  m_wheels[1] = ChSharedPtr<ChWheel>(new Generic_Wheel(wheelVis));
+  m_wheels[2] = ChSharedPtr<ChWheel>(new Generic_Wheel(wheelVis));
+  m_wheels[3] = ChSharedPtr<ChWheel>(new Generic_Wheel(wheelVis));
 
   // --------------------
   // Create the driveline
   // --------------------
-  m_driveline = ChSharedPtr<ChDriveline>(new Articulated_Driveline2WD);
+  m_driveline = ChSharedPtr<ChDriveline>(new Generic_Driveline2WD);
 
   // -----------------
   // Create the brakes
   // -----------------
   m_brakes.resize(4);
-  m_brakes[0] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
-  m_brakes[1] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
-  m_brakes[2] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
-  m_brakes[3] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
+  m_brakes[0] = ChSharedPtr<ChBrake>(new Generic_BrakeSimple);
+  m_brakes[1] = ChSharedPtr<ChBrake>(new Generic_BrakeSimple);
+  m_brakes[2] = ChSharedPtr<ChBrake>(new Generic_BrakeSimple);
+  m_brakes[3] = ChSharedPtr<ChBrake>(new Generic_BrakeSimple);
 }
 
 
@@ -131,11 +136,11 @@ void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   case SOLID_AXLE: offset = ChVector<>(1.60, 0, -0.07); break;
   case MULTI_LINK: offset = ChVector<>(1.65, 0, -0.12); break;
   }
-  m_steering->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
+  m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.6914, 0, 0), m_steering->GetSteeringLink());
+  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.6914, 0, 0), m_steerings[0]->GetSteeringLink());
   m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.6865, 0, 0), m_chassis);
 
   // Initialize wheels
@@ -231,33 +236,6 @@ double Articulated_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const
   default:
     return -1;
   }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Articulated_Vehicle::Update(double              time,
-                                 double              steering,
-                                 double              braking,
-                                 double              powertrain_torque,
-                                 const ChTireForces& tire_forces)
-{
-  // Apply powertrain torque to the driveline's input shaft.
-  m_driveline->ApplyDriveshaftTorque(powertrain_torque);
-
-  // Let the steering subsystem process the steering input.
-  m_steering->Update(time, 0.5 * steering);
-
-  // Apply tire forces to spindle bodies.
-  m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
-  m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
-  m_suspensions[1]->ApplyTireForce(LEFT, tire_forces[REAR_LEFT.id()]);
-  m_suspensions[1]->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
-
-  // Apply braking
-  m_brakes[0]->ApplyBrakeModulation(braking);
-  m_brakes[1]->ApplyBrakeModulation(braking);
-  m_brakes[2]->ApplyBrakeModulation(braking);
-  m_brakes[3]->ApplyBrakeModulation(braking);
 }
 
 
