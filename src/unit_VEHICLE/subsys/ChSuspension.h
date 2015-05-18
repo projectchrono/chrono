@@ -49,6 +49,9 @@ public:
   /// Specify whether or not this suspension can be steered.
   virtual bool IsSteerable() const = 0;
 
+  /// Specify whether or not this is an independent suspension.
+  virtual bool IsIndependent() const = 0;
+
   /// Get the name identifier for this suspension subsystem.
   const std::string& GetName() const { return m_name; }
 
@@ -116,6 +119,14 @@ public:
     const ChVector<>&          location,    ///< [in] location relative to the chassis frame
     ChSharedPtr<ChBody>        tierod_body  ///< [in] body to which tireods are connected
     ) = 0;
+
+  /// Specify the left body for a possible antirollbar subsystem.
+  /// The default implementation returns a NULL pointer.
+  virtual ChSharedPtr<ChBody> GetLeftBody() const { return ChSharedPtr<ChBody>(); }
+
+  /// Specify the right body for a possible antirollbar subsystem.
+  /// The default implementation returns a NULL pointer.
+  virtual ChSharedPtr<ChBody> GetRightBody() const { return ChSharedPtr<ChBody>(); }
 
   /// Log current constraint violations.
   virtual void LogConstraintViolations(ChVehicleSide side) {}
