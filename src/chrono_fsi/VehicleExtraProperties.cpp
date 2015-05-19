@@ -164,7 +164,8 @@ MyChassisSimpleConvexMesh::MyChassisSimpleConvexMesh() :
   //    std::string chassis_obj_file("hmmwv/lugged_wheel_section.obj");
   //    std::string chassis_obj_file("hmmwv/lugged_wheel.obj");
   //    std::string chassis_obj_file("hmmwv/myHumvee.obj");
-  chassis_obj_file = std::string("hmmwv/myHumvee1.obj");
+//  chassis_obj_file = std::string("hmmwv/myHumvee1.obj");
+	chassis_obj_file = std::string("hmmwv/hmmwv_chassis_simple.obj");
 
   utils::LoadConvexMesh(vehicle::GetDataFile(chassis_obj_file), chassis_mesh, chassis_convex);
 }
@@ -209,7 +210,8 @@ void MyChassisSimpleConvexMesh::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody
 // chassis body with the collision meshes.
 MyChassisSimpleTriMesh_vis::MyChassisSimpleTriMesh_vis() :
 	pos(chrono::ChVector<>(0, 0, 0)) , rot( chrono::ChQuaternion<>(1, 0, 0, 0)) {
-	chassis_obj_file = std::string("hmmwv/myHumvee1.obj");
+//	chassis_obj_file = std::string("hmmwv/myHumvee1.obj");
+	chassis_obj_file = std::string("hmmwv/hmmwv_chassis_simple.obj");
 }
 
 void MyChassisSimpleTriMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {

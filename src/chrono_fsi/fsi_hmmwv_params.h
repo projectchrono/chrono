@@ -212,8 +212,10 @@ enum ChassisType { CSPHERE, CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIG
 ChassisType chassis_type = C_SIMPLE_CONVEX_MESH;
 
 // JSON files for vehicle model (using different wheel visualization meshes)
-std::string vehicle_file_cyl("hmmwv/vehicle/myHMMWV.json");
-std::string vehicle_file_lug("hmmwv/vehicle/myHMMWV_lugged.json");
+//std::string vehicle_file_cyl("hmmwv/vehicle/myHMMWV.json");
+//std::string vehicle_file_lug("hmmwv/vehicle/myHMMWV_lugged.json");
+std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
+std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 
 // JSON files for powertrain (simple)
 std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain_Arman.json");
