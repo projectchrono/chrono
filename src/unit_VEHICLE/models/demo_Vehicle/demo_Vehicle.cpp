@@ -86,8 +86,8 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
-double terrainLength = 100.0;   // size in X direction
-double terrainWidth  = 100.0;   // size in Y direction
+double terrainLength = 300.0;   // size in X direction
+double terrainWidth  = 200.0;   // size in Y direction
 
 // Simulation step size
 double step_size = 1e-3;
@@ -191,6 +191,9 @@ int main(int argc, char* argv[])
   driver.SetSteeringDelta(render_step_size / steering_time);
   driver.SetThrottleDelta(render_step_size / throttle_time);
   driver.SetBrakingDelta(render_step_size / braking_time);
+
+  // Set file with driver input time series
+  driver.SetInputDataFile(vehicle::GetDataFile(driver_file));
 
   // Set up the assets for rendering
   application.AssetBindAll();
