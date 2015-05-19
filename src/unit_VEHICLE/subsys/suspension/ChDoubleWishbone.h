@@ -62,6 +62,9 @@ public:
   /// Specify whether or not this suspension can be steered.
   virtual bool IsSteerable() const { return true; }
 
+  /// Specify whether or not this is an independent suspension.
+  virtual bool IsIndependent() const { return true; }
+
   /// Initialize this suspension subsystem.
   /// The suspension subsystem is initialized by attaching it to the specified
   /// chassis body at the specified location (with respect to and expressed in
@@ -102,6 +105,14 @@ public:
 
   /// Log current constraint violations.
   virtual void LogConstraintViolations(ChVehicleSide side);
+
+  /// Specify the left body for a possible antirollbar subsystem.
+  /// Return a handle to the left Lower Control Arm.
+  virtual ChSharedPtr<ChBody> GetLeftBody() const { return m_LCA[0]; }
+
+  /// Specify the right body for a possible antirollbar subsystem.
+  /// Return a handle to the right Lower Control Arm.
+  virtual ChSharedPtr<ChBody> GetRightBody() const { return m_LCA[1]; }
 
   /// Log the locations of all hardpoints.
   /// The reported locations are expressed in the suspension reference frame.

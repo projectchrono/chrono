@@ -33,6 +33,8 @@ SET(CV_BASE_FILES
     ChTerrain.cpp
     ChBrake.h
     ChBrake.cpp
+    ChAntirollBar.h
+    ChAntirollBar.cpp
 )
 
 SET(CV_VEHICLE_FILES
@@ -132,6 +134,14 @@ SET(CV_BRAKE_FILES
     brake/BrakeSimple.cpp
 )
 
+SET(CV_ANTIROLL_FILES
+    antirollbar/ChAntirollBarRSD.h
+    antirollbar/ChAntirollBarRSD.cpp
+
+    antirollbar/AntirollBarRSD.h
+    antirollbar/AntirollBarRSD.cpp
+)
+
 SET(CV_TERRAIN_FILES
     terrain/FlatTerrain.h
     terrain/FlatTerrain.cpp
@@ -172,6 +182,7 @@ SOURCE_GROUP("driver" FILES ${CV_DRIVER_FILES} ${CVIRR_DRIVER_FILES})
 SOURCE_GROUP("powertrain" FILES ${CV_POVERTRAIN_FILES})
 SOURCE_GROUP("tire" FILES ${CV_TIRE_FILES})
 SOURCE_GROUP("brake" FILES ${CV_BRAKE_FILES})
+SOURCE_GROUP("antirollbar" FILES ${CV_ANTIROLL_FILES})
 SOURCE_GROUP("terrain" FILES ${CV_TERRAIN_FILES})
 SOURCE_GROUP("suspensionTest" FILES ${CV_SUSPENSIONTEST_FILES})
 
@@ -190,6 +201,7 @@ ADD_LIBRARY(ChronoVehicle SHARED
     ${CV_POVERTRAIN_FILES}
     ${CV_TIRE_FILES}
     ${CV_BRAKE_FILES}
+    ${CV_ANTIROLL_FILES}
     ${CV_TERRAIN_FILES}
     ${CV_SUSPENSIONTEST_FILES}
 )

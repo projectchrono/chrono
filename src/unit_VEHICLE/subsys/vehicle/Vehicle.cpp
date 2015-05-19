@@ -32,6 +32,8 @@
 #include "subsys/suspension/SolidAxle.h"
 #include "subsys/suspension/MultiLink.h"
 
+#include "subsys/antirollbar/AntirollBarRSD.h"
+
 #include "subsys/steering/PitmanArm.h"
 #include "subsys/steering/RackPinion.h"
 
@@ -185,6 +187,35 @@ void Vehicle::LoadSuspension(const std::string& filename,
   else if (subtype.compare("MultiLink") == 0)
   {
     m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d));
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void Vehicle::LoadAntirollbar(const std::string& filename)
+{
+  FILE* fp = fopen(filename.c_str(), "r");
+
+  char readBuffer[65536];
+  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+  fclose(fp);
+
+  Document d;
+  d.ParseStream(is);
+
+  // Check that the given file is an antirollbar specification file.
+  assert(d.HasMember("Type"));
+  std::string type = d["Type"].GetString();
+  assert(type.compare("Antirollbar") == 0);
+
+  // Extract the antirollbar type.
+  assert(d.HasMember("Template"));
+  std::string subtype = d["Template"].GetString();
+
+  if (subtype.compare("AntirollBarRSD") == 0) {
+    m_antirollbars.push_back(ChSharedPtr<ChAntirollBar>(new AntirollBarRSD(d)));
   }
 }
 
@@ -403,6 +434,16 @@ void Vehicle::Create(const std::string& filename)
       m_suspSteering[i] = d["Axles"][i]["Steering Index"].GetInt();
     }
 
+    // Antirollbar (if applicable)
+    if (d["Axles"][i].HasMember("Antirollbar Input File")) {
+      assert(m_suspensions[i]->IsIndependent());
+      assert(d["Axles"][i].HasMember("Antirollbar Location"));
+      file_name = d["Axles"][i]["Antirollbar Input File"].GetString();
+      LoadAntirollbar(vehicle::GetDataFile(file_name));
+      m_arbLocations.push_back(loadVector(d["Axles"][i]["Antirollbar Location"]));
+      m_arbSuspension.push_back(i);
+    }
+
     // Left and right wheels
     file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
     LoadWheel(vehicle::GetDataFile(file_name), i, 0);
@@ -449,6 +490,14 @@ void Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 
     m_brakes[2 * i]->Initialize(m_suspensions[i]->GetRevolute(LEFT));
     m_brakes[2 * i + 1]->Initialize(m_suspensions[i]->GetRevolute(RIGHT));
+  }
+
+  // Initialize the antirollbar subsystems.
+  for (unsigned int i = 0; i < m_antirollbars.size(); i++) {
+    int j = m_arbSuspension[i];
+    m_antirollbars[i]->Initialize(m_chassis, m_arbLocations[i],
+                                  m_suspensions[j]->GetLeftBody(),
+                                  m_suspensions[j]->GetRightBody());
   }
 
   // Initialize the driveline

@@ -62,6 +62,9 @@ public:
   /// Specify whether or not this suspension can be steered.
   virtual bool IsSteerable() const { return true; }
 
+  /// Specify whether or not this is an independent suspension.
+  virtual bool IsIndependent() const { return true; }
+
   /// Initialize this suspension subsystem.
   /// The suspension subsystem is initialized by attaching it to the specified
   /// chassis body at the specified location (with respect to and expressed in
@@ -75,6 +78,14 @@ public:
     const ChVector<>&          location,    ///< [in] location relative to the chassis frame
     ChSharedPtr<ChBody>        tierod_body  ///< [in] body to which tireods are connected
     );
+
+  /// Specify the left body for a possible antirollbar subsystem.
+  /// Return a handle to the left upright.
+  virtual ChSharedPtr<ChBody> GetLeftBody() const { return m_upright[0]; }
+
+  /// Specify the right body for a possible antirollbar subsystem.
+  /// Return a handle to the right upright.
+  virtual ChSharedPtr<ChBody> GetRightBody() const { return m_upright[1]; }
 
   /// Log current constraint violations.
   virtual void LogConstraintViolations(ChVehicleSide side);
