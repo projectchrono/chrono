@@ -60,6 +60,7 @@ using namespace chrono;
 //std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 //std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
 std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
+//std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
 //std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
 //std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
 //std::string vehicle_file("generic/vehicle/Vehicle_ThreeAxles.json");

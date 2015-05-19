@@ -54,6 +54,7 @@ private:
   void LoadSteering(const std::string& filename, int which);
   void LoadDriveline(const std::string& filename);
   void LoadSuspension(const std::string& filename, int axle);
+  void LoadAntirollbar(const std::string& filename);
   void LoadWheel(const std::string& filename, int axle, int side);
   void LoadBrake(const std::string& filename, int axle, int side);
 
@@ -62,6 +63,9 @@ private:
   int                      m_num_axles;         // number of axles for this vehicle
   std::vector<ChVector<> > m_suspLocations;     // locations of the suspensions relative to chassis
   std::vector<int>         m_suspSteering;      // indexes of steering subsystems (-1 indicates a non-steered suspension)
+
+  std::vector<ChVector<> > m_arbLocations;      // locations of the antirollbar subsystems relative to chassis
+  std::vector<int>         m_arbSuspension;     // indexes of steering subsystems
 
   int                          m_num_strs;      // number of steering subsystems
   std::vector<ChVector<> >     m_strLocations;  // locations of the steering subsystems relative to chassis
