@@ -21,7 +21,7 @@
       "Left Brake Input File":   "generic/brake/BrakeSimple.json",
       "Right Brake Input File":  "generic/brake/BrakeSimple.json",
       "Antirollbar Input File":  "generic/antirollbar/AntirollBarRSD.json",
-      "Antirollbar Location":    [1.3, 0, 0]
+      "Antirollbar Location":    [1.1, 0, 0]
     },
 
     {
