@@ -72,6 +72,9 @@ protected:
   std::string  m_name;    ///< name of the subsystem
 };
 
+/// Vector of handles to antirollbar subsystems.
+typedef std::vector<ChSharedPtr<ChAntirollBar> >  ChAntirollbarList;
+
 
 } // end namespace chrono
 
