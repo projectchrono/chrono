@@ -26,6 +26,9 @@
 //
 // =============================================================================
 
+#include <iostream>
+#include <sstream>
+#include <fstream>
 #include <algorithm>
 
 #include "subsys/driver/ChIrrGuiDriver.h"
@@ -59,7 +62,8 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&           app,
   m_brakingDelta(1.0/50),
   m_camera(car.GetChassis()),
   m_stepsize(1e-3),
-  m_sound(enable_sound)
+  m_sound(enable_sound),
+  m_mode(KEYBOARD)
 {
   app.SetUserEventReceiver(this);
 
@@ -96,7 +100,6 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&           app,
 #endif
 }
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 bool ChIrrGuiDriver::OnEvent(const SEvent& event)
@@ -109,20 +112,24 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
 
     switch (event.KeyInput.Key) {
     case KEY_KEY_A:
-      SetSteering(m_steering - m_steeringDelta);
+      if (m_mode == KEYBOARD) SetSteering(m_steering - m_steeringDelta);
       return true;
     case KEY_KEY_D:
-      SetSteering(m_steering + m_steeringDelta);
+      if (m_mode == KEYBOARD) SetSteering(m_steering + m_steeringDelta);
       return true;
     case KEY_KEY_W:
-      SetThrottle(m_throttle + m_throttleDelta);
-      if (m_throttle > 0)
-        SetBraking(m_braking - m_brakingDelta*3.0);
+      if (m_mode == KEYBOARD) {
+        SetThrottle(m_throttle + m_throttleDelta);
+        if (m_throttle > 0)
+          SetBraking(m_braking - m_brakingDelta*3.0);
+      }
       return true;
     case KEY_KEY_S:
-      SetThrottle(m_throttle - m_throttleDelta*3.0);
-      if (m_throttle <= 0)
-        SetBraking(m_braking + m_brakingDelta);
+      if (m_mode == KEYBOARD) {
+        SetThrottle(m_throttle - m_throttleDelta*3.0);
+        if (m_throttle <= 0)
+          SetBraking(m_braking + m_brakingDelta);
+      }
       return true;
 
     case KEY_DOWN:
@@ -155,14 +162,30 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
       m_camera.SetState(ChChaseCamera::Inside);
       return true;
 
+    case KEY_KEY_J:
+      m_mode = LOCK;
+      return true;
+
+    case KEY_KEY_K:
+      m_throttle = 0;
+      m_steering = 0;
+      m_braking = 0;
+      m_mode = KEYBOARD;
+      return true;
+
+    case KEY_KEY_L:
+      m_mode = DATAFILE;
+      m_time_shift = m_car.GetSystem()->GetChTime();
+      return true;
+
     case KEY_KEY_Z:
-      m_powertrain.SetDriveMode(ChPowertrain::FORWARD);
+      if (m_mode == KEYBOARD) m_powertrain.SetDriveMode(ChPowertrain::FORWARD);
       return true;
     case KEY_KEY_X:
-      m_powertrain.SetDriveMode(ChPowertrain::NEUTRAL);
+      if (m_mode == KEYBOARD) m_powertrain.SetDriveMode(ChPowertrain::NEUTRAL);
       return true;
     case KEY_KEY_C:
-      m_powertrain.SetDriveMode(ChPowertrain::REVERSE);
+      if (m_mode == KEYBOARD) m_powertrain.SetDriveMode(ChPowertrain::REVERSE);
       return true;
 
     case KEY_KEY_V:
@@ -175,6 +198,31 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
   return false;
 }
 
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChIrrGuiDriver::SetInputDataFile(const std::string& filename)
+{
+  // Embed a DataDriver.
+  m_data_driver = ChSharedPtr<ChDataDriver>(new ChDataDriver(filename, false));
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChIrrGuiDriver::Update(double time)
+{
+  // Do nothing if no embedded DataDriver.
+  if (m_mode != DATAFILE || m_data_driver.IsNull())
+    return;
+
+  // Call the update function of the embedded DataDriver, with shifted time.
+  m_data_driver->Update(time - m_time_shift);
+
+  // Use inputs from embedded DataDriver
+  m_throttle = m_data_driver->GetThrottle();
+  m_steering = m_data_driver->GetSteering();
+  m_braking = m_data_driver->GetBraking();
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -327,42 +375,49 @@ void ChIrrGuiDriver::renderStats()
 {
   char msg[100];
 
+  switch (m_mode) {
+  case LOCK: sprintf(msg, "Input mode: LOCK"); break;
+  case KEYBOARD: sprintf(msg, "Input mode: KEY"); break;
+  case DATAFILE: sprintf(msg, "Input mode: FILE"); break;
+  }
+  renderTextBox(std::string(msg), m_HUD_x, m_HUD_y, 120, 15);
+
   sprintf(msg, "Camera mode: %s", m_camera.GetStateName().c_str());
-  renderTextBox(std::string(msg), m_HUD_x, m_HUD_y + 10, 120, 15);
+  renderTextBox(std::string(msg), m_HUD_x, m_HUD_y + 20, 120, 15);
 
   sprintf(msg, "Steering: %+.2f", m_steering);
-  renderLinGauge(std::string(msg), m_steering, true, m_HUD_x, m_HUD_y + 40, 120, 15);
+  renderLinGauge(std::string(msg), m_steering, true, m_HUD_x, m_HUD_y + 50, 120, 15);
 
   sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
-  renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x, m_HUD_y + 60, 120, 15);
+  renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x, m_HUD_y + 70, 120, 15);
 
   sprintf(msg, "Braking: %+.2f", m_braking*100.);
-  renderLinGauge(std::string(msg), m_braking, false, m_HUD_x, m_HUD_y + 80, 120, 15);
+  renderLinGauge(std::string(msg), m_braking, false, m_HUD_x, m_HUD_y + 90, 120, 15);
 
   double speed = m_car.GetVehicleSpeed();
   sprintf(msg, "Speed: %+.2f", speed);
-  renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, m_HUD_y + 100, 120, 15);
+  renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, m_HUD_y + 110, 120, 15);
 
 
   double engine_rpm = m_powertrain.GetMotorSpeed() * 60 / chrono::CH_C_2PI;
   sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
-  renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 120, 120, 15);
+  renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 130, 120, 15);
 
   double engine_torque = m_powertrain.GetMotorTorque();
   sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
-  renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 140, 120, 15);
+  renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 150, 120, 15);
 
   double tc_slip = m_powertrain.GetTorqueConverterSlippage();
   sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
-  renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 160, 120, 15);
+  renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 170, 120, 15);
 
   double tc_torquein = m_powertrain.GetTorqueConverterInputTorque();
   sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
-  renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 180, 120, 15);
+  renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 190, 120, 15);
 
   double tc_torqueout = m_powertrain.GetTorqueConverterOutputTorque();
   sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
-  renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 200, 120, 15);
+  renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 210, 120, 15);
 
   int ngear = m_powertrain.GetCurrentTransmissionGear();
   ChPowertrain::DriveMode drivemode = m_powertrain.GetDriveMode();
@@ -381,7 +436,7 @@ void ChIrrGuiDriver::renderStats()
     sprintf(msg, "Gear:");
     break;
   }
-  renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 220, 120, 15);
+  renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 230, 120, 15);
 
 
   if (ChSharedPtr<ChShaftsDriveline2WD> driveline = m_car.GetDriveline().DynamicCastTo<ChShaftsDriveline2WD>())
@@ -391,11 +446,11 @@ void ChIrrGuiDriver::renderStats()
 
     torque = driveline->GetWheelTorque(ChWheelID(axle, LEFT));
     sprintf(msg, "Torque wheel L: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 270, 120, 15);
 
     torque = driveline->GetWheelTorque(ChWheelID(axle, RIGHT));
     sprintf(msg, "Torque wheel R: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 290, 120, 15);
   }
   else if (ChSharedPtr<ChShaftsDriveline4WD> driveline = m_car.GetDriveline().DynamicCastTo<ChShaftsDriveline4WD>())
   {
@@ -404,19 +459,19 @@ void ChIrrGuiDriver::renderStats()
 
     torque = driveline->GetWheelTorque(ChWheelID(axles[0], LEFT));
     sprintf(msg, "Torque wheel FL: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 270, 120, 15);
 
     torque = driveline->GetWheelTorque(ChWheelID(axles[0], RIGHT));
     sprintf(msg, "Torque wheel FR: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 290, 120, 15);
 
     torque = driveline->GetWheelTorque(ChWheelID(axles[1], LEFT));
     sprintf(msg, "Torque wheel RL: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 300, 120, 15);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 310, 120, 15);
 
     torque = driveline->GetWheelTorque(ChWheelID(axles[1], RIGHT));
     sprintf(msg, "Torque wheel FR: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 320, 120, 15);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 330, 120, 15);
   }
 
 }

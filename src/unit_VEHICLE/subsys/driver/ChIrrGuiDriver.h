@@ -29,6 +29,8 @@
 #ifndef CH_IRRGUIDRIVER_H
 #define CH_IRRGUIDRIVER_H
 
+#include <string>
+#include <vector>
 
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
@@ -41,6 +43,8 @@
 #include "subsys/ChDriver.h"
 #include "subsys/ChVehicle.h"
 #include "subsys/ChPowertrain.h"
+
+#include "subsys/driver/ChDataDriver.h"
 
 #if IRRKLANG_ENABLED
 #include <irrKlang.h>
@@ -69,7 +73,7 @@ public:
   ~ChIrrGuiDriver() {}
 
   virtual bool OnEvent(const irr::SEvent& event);
-
+  virtual void Update(double time);
   virtual void Advance(double step);
 
   void DrawAll();
@@ -83,7 +87,15 @@ public:
   void SetStepsize(double val) { m_stepsize = val; }
   double GetStepsize() const { return m_stepsize; }
 
+  void SetInputDataFile(const std::string& filename);
+
 private:
+
+  enum InputMode {
+    LOCK,
+    KEYBOARD,
+    DATAFILE
+  };
 
   void renderSprings();
   void renderLinks();
@@ -114,6 +126,10 @@ private:
   int  m_HUD_y;
 
   bool m_sound;
+
+  InputMode m_mode;
+  double m_time_shift;
+  ChSharedPtr<ChDataDriver> m_data_driver;
 
 #if IRRKLANG_ENABLED
   irrklang::ISoundEngine* m_sound_engine;   // Sound player
