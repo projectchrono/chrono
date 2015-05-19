@@ -31,6 +31,7 @@
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChSubsysDefs.h"
 #include "subsys/ChSuspension.h"
+#include "subsys/ChAntirollBar.h"
 #include "subsys/ChDriveline.h"
 #include "subsys/ChSteering.h"
 #include "subsys/ChWheel.h"
@@ -178,6 +179,7 @@ protected:
 
   ChSharedPtr<ChBodyAuxRef>  m_chassis;      ///< handle to the chassis body
   ChSuspensionList           m_suspensions;  ///< list of handles to suspension subsystems
+  ChAntirollbarList          m_antirollbars; ///< list of handles to antirollbar subsystems (optional)
   ChSharedPtr<ChDriveline>   m_driveline;    ///< handle to the driveline subsystem
   ChSteeringList             m_steerings;    ///< list of handles to steering subsystems
   ChWheelList                m_wheels;       ///< list of handles to wheel subsystems
