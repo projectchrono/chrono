@@ -135,8 +135,11 @@ SET(CV_BRAKE_FILES
 )
 
 SET(CV_ANTIROLL_FILES
-	antirollbar/ChAntirollBarRSD.h
-	antirollbar/ChAntirollBarRSD.cpp
+    antirollbar/ChAntirollBarRSD.h
+    antirollbar/ChAntirollBarRSD.cpp
+
+    antirollbar/AntirollBarRSD.h
+    antirollbar/AntirollBarRSD.cpp
 )
 
 SET(CV_TERRAIN_FILES
