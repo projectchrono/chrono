@@ -95,8 +95,6 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
     m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLink("RearSusp"));
     break;
   case DOUBLE_WISHBONE:
-    //// Create the two suspension subsystems, first for the front axle, the second
-    //// for the rear axle.  Both axles use the same suspension concrete class.
     m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_DoubleWishbone("Front suspension"));
     m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_DoubleWishbone("Rear suspension"));
   }
@@ -104,9 +102,10 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
   // --------------------------------
   // Create the antirollbar subsystem
   // --------------------------------
-  if (m_suspensions[0]->IsIndependent()) {
-    m_antirollbar = ChSharedPtr<Generic_AntirollBarRSD>(new Generic_AntirollBarRSD("Antiroll Bar"));
-  }
+  ////if (m_suspensions[0]->IsIndependent()) {
+  ////  m_antirollbars.resize(1);
+  ////  m_antirollbars[0] = ChSharedPtr<Generic_AntirollBarRSD>(new Generic_AntirollBarRSD("Antiroll Bar"));
+  ////}
 
   // -----------------------------
   // Create the steering subsystem
@@ -161,12 +160,12 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.6865, 0, 0), m_chassis);
 
   // Initialize the antiroll bar subsystem.
-  if (!m_antirollbar.IsNull()) {
-    m_antirollbar->Initialize(m_chassis,
-                              ChVector<>(1.3, 0, 0.0),
-                              m_suspensions[0]->GetLeftBody(),
-                              m_suspensions[0]->GetRightBody());
-  }
+  ////if (m_antirollbars.size() == 1) {
+  ////  m_antirollbars[0]->Initialize(m_chassis,
+  ////                               ChVector<>(1.3, 0, 0.0),
+  ////                               m_suspensions[0]->GetLeftBody(),
+  ////                               m_suspensions[0]->GetRightBody());
+  ////}
 
   // Initialize wheels
   m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));

@@ -27,7 +27,6 @@
 #include "subsys/ChVehicle.h"
 
 #include "models/ModelDefs.h"
-#include "models/generic/Generic_AntirollBarRSD.h"
 
 class Generic_Vehicle : public chrono::ChVehicle
 {
@@ -60,9 +59,6 @@ public:
 private:
 
   SuspensionType m_suspType;
-
-  // Antiroll bar
-  chrono::ChSharedPtr<Generic_AntirollBarRSD> m_antirollbar;
 
   // Chassis mass properties
   static const double             m_chassisMass;
