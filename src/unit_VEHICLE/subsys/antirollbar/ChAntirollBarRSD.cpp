@@ -75,7 +75,7 @@ void ChAntirollBarRSD::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
   m_arm_left->SetRot(subsystem_to_abs.GetRot());
   m_arm_left->SetMass(getArmMass());			
   m_arm_left->SetInertiaXX(getArmInertia());
-  AddVisualizationArm(m_arm_left, ChVector<>(0, -L / 2, 0), ChVector<>(0, L/2, 0), ChVector<>(W, L/2, 0), getArmRadius());
+  AddVisualizationArm(m_arm_left, ChVector<>(0, -L / 2, 0), ChVector<>(0, L / 2, 0), ChVector<>(W, L / 2, 0), getArmRadius(), ChColor(0.7f, 0.2f, 0.2f));
   chassis->GetSystem()->AddBody(m_arm_left);
 
   // Create an initialize the arm_right body
@@ -85,7 +85,7 @@ void ChAntirollBarRSD::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
   m_arm_right->SetRot(subsystem_to_abs.GetRot());
   m_arm_right->SetMass(getArmMass());
   m_arm_right->SetInertiaXX(getArmInertia());
-  AddVisualizationArm(m_arm_right, ChVector<>(0, L / 2, 0), ChVector<>(0, -L/2, 0), ChVector<>(W, -L/2, 0), getArmRadius());
+  AddVisualizationArm(m_arm_right, ChVector<>(0, L / 2, 0), ChVector<>(0, -L / 2, 0), ChVector<>(W, -L / 2, 0), getArmRadius(), ChColor(0.2f, 0.7f, 0.2f));
   chassis->GetSystem()->AddBody(m_arm_right);
 
   // Create and initialize the revolute joint between left arm and chassis.
@@ -159,7 +159,8 @@ void ChAntirollBarRSD::AddVisualizationArm(ChSharedPtr<ChBody>  arm,
                                            const ChVector<>&    pt_1,
                                            const ChVector<>&    pt_2,
                                            const ChVector<>&    pt_3,
-                                           double               radius)
+                                           double               radius,
+                                           const ChColor&       color)
 {
   ChSharedPtr<ChCylinderShape> cyl_1(new ChCylinderShape);
   cyl_1->GetCylinderGeometry().p1 = pt_1;
@@ -173,8 +174,14 @@ void ChAntirollBarRSD::AddVisualizationArm(ChSharedPtr<ChBody>  arm,
   cyl_2->GetCylinderGeometry().rad = radius;
   arm->AddAsset(cyl_2);
 
+  ChSharedPtr<ChCylinderShape> cyl_3(new ChCylinderShape);
+  cyl_3->GetCylinderGeometry().p1 = pt_1 + ChVector<>(0, 0, 3 * radius);
+  cyl_3->GetCylinderGeometry().p2 = pt_1 - ChVector<>(0, 0, 3 * radius);
+  cyl_3->GetCylinderGeometry().rad = radius / 2;
+  arm->AddAsset(cyl_3);
+
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  col->SetColor(ChColor(0.7f, 0.2f, 0.7f));
+  col->SetColor(color);
   arm->AddAsset(col);
 }
 

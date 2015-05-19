@@ -26,6 +26,8 @@
 #ifndef CH_ANTIROLLBAR_RSD_H
 #define CH_ANTIROLLBAR_RSD_H
 
+#include "assets/ChColorAsset.h"
+
 #include "subsys/ChAntirollBar.h"
 
 namespace chrono {
@@ -89,7 +91,8 @@ private:
                            const ChVector<>&    pt_1,
                            const ChVector<>&    pt_2,
                            const ChVector<>&    pt_3,
-                           double               radius);
+                           double               radius,
+                           const ChColor&       color);
 };
 
 
