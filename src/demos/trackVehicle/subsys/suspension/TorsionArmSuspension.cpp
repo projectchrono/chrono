@@ -280,7 +280,7 @@ void TorsionArmSuspension::AddCollisionGeometry(VehicleSide side,
     m_wheel->GetMaterialSurface()->SetKfriction(mu_sliding);
     m_wheel->GetMaterialSurface()->SetRollingFriction(mu_roll);
     m_wheel->GetMaterialSurface()->SetSpinningFriction(mu_spin);
-    m_wheel->GetMaterialSurface()->SetCompliance(0.00002);
+    // m_wheel->GetMaterialSurface()->SetCompliance(0.00002);
 
     switch (m_collide) {
         case CollisionType::Primitives: {
