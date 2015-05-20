@@ -299,6 +299,7 @@ void ChIrrGuiTrack::renderContactShoeGear(double lenScale, int chain_id) {
                     video::SColor(200, 255, 60, 60), true);  // red
             }
 
+        /*
         // all other contact points that aren't the tracked collision are green
         std::vector<ChVector<> >::const_iterator pos_iter;
         std::vector<ChVector<> >::const_iterator Fn_iter;
@@ -308,6 +309,7 @@ void ChIrrGuiTrack::renderContactShoeGear(double lenScale, int chain_id) {
             ChIrrTools::drawSegment(m_app.GetVideoDriver(), (*pos_iter), (*pos_iter) + (*Fn_iter) * lenScale,
                                     video::SColor(200, 20, 255, 20), true);  // green
         }
+        */
     }
 }
 
