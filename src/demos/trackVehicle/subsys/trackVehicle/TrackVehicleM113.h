@@ -110,15 +110,16 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
     // helper functions, for Irrlicht GUI
     // following variables are populated when DriveChain::reportShoeGearContact() is called
     // absolute pos of the persistent contact point
-    virtual const ChVector<>& Get_SG_Persistent_PosAbs(int track, int idx) const {
+    virtual ChVector<> Get_SG_Persistent_PosAbs(int track, int idx) const {
         return m_TrackSystems[track]->GetTrackChain()->Get_SG_Persistent_PosAbs(idx);
     }
 
     // normal force abs. vector of the persistent contact point
-    virtual const ChVector<>& Get_SG_Persistent_Fn(int track, int idx) const {
+    virtual ChVector<> Get_SG_Persistent_Fn(int track, int idx) const {
         return m_TrackSystems[track]->GetTrackChain()->Get_SG_Persistent_Fn(idx);
     }
 
+    /*
     // abs. pos. of all shoe-gear contacts found
     virtual const std::vector<ChVector<> >& Get_SG_PosAbs_all(int track) const {
         return m_TrackSystems[track]->GetTrackChain()->Get_SG_PosAbs_all();
@@ -128,6 +129,7 @@ class CH_SUBSYS_API TrackVehicleM113 : public ChTrackVehicle {
     virtual const std::vector<ChVector<> >& Get_SG_Fn_all(int track) const {
         return m_TrackSystems[track]->GetTrackChain()->Get_SG_Fn_all();
     }
+    */
 
   private:
     /// create files with headers for all specified output data types.

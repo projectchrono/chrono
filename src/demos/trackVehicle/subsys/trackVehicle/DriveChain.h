@@ -101,12 +101,12 @@ class CH_SUBSYS_API DriveChain : public ChTrackVehicle {
     // helper functions, for Irrlicht GUI
     // following variables are populated when DriveChain::reportShoeGearContact() is called
     // absolute pos of the persistent contact point
-    virtual const ChVector<>& Get_SG_Persistent_PosAbs(int track, int idx) const {
+    virtual ChVector<> Get_SG_Persistent_PosAbs(int track, int idx) const {
         return m_TrackSystem->GetTrackChain()->Get_SG_Persistent_PosAbs(idx);
     }
 
     // normal force abs. vector of the persistent contact point
-    virtual const ChVector<>& Get_SG_Persistent_Fn(int track, int idx) const {
+    virtual ChVector<> Get_SG_Persistent_Fn(int track, int idx) const {
         return m_TrackSystem->GetTrackChain()->Get_SG_Persistent_Fn(idx);
     }
 
