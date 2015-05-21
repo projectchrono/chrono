@@ -553,7 +553,7 @@ void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem) {
 
 // Uncomment the following two lines for the OpenGL manager to automatically un the simulation in an infinite loop.
 
-// gl_window.StartDrawLoop(time_step);
+// gl_window.StartDrawLoop(paramsH.dT);
 // return 0;
 #endif
 
@@ -591,7 +591,7 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
                      double mTime,
                      int& num_contacts,
                      double exec_time) {
-  int out_steps = std::ceil((1.0 / time_step) / out_fps);
+  int out_steps = std::ceil((1.0 / paramsH.dT) / out_fps);
 
   static int out_frame = 0;
 
@@ -676,7 +676,7 @@ void printSimulationParameters() {
 			" time_pause_fluid_external_force: " << time_pause_fluid_external_force << endl <<
 			" contact_recovery_speed: " << contact_recovery_speed << endl <<
 			" maxFlowVelocity " << maxFlowVelocity << endl <<
-			" time_step: " << time_step << endl <<
+			" time_step (paramsH.dT): " << paramsH.dT << endl <<
 			" time_end: " << time_end << endl;
 }
 // =============================================================================
@@ -782,6 +782,7 @@ int main(int argc, char* argv[]) {
   SetupParamsH(paramsH);
 
   if (initializeFluidFromFile) {
+	  // call to CheckPointMarkers_Read should be as close to the top as possible
 	  CheckPointMarkers_Read(initializeFluidFromFile,
 			  posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
 	  if (numObjects.numAllMarkers == 0) {
@@ -899,13 +900,13 @@ int main(int argc, char* argv[]) {
     	fsi_timer.start("half_step_dynamic_fsi_12");
     	fsi_timer.start("fluid_initialization");
 
-    int out_steps = std::ceil((1.0 / time_step) / out_fps);
+    int out_steps = std::ceil((1.0 / paramsH.dT) / out_fps);
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep, out_steps, pov_dir_fluid);
 
     // ******* slow down the sys.Check point the sys.
    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep, tStepsCheckPoint);
 
-   	if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
+   	if (fmod(realTime, 0.6) < paramsH.dT && realTime < 1.3) {
     	FreezeSPH(velMasD, velMasH);
     }
     // *******
