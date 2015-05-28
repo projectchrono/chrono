@@ -73,6 +73,7 @@
 #include <TNaming_NamedShape.hxx>
 #include <GProp_GProps.hxx>
 #include <BRepGProp.hxx>
+#include<BRepMesh_IncrementalMesh.hxx>
 
 using namespace chrono;
 using namespace cascade;
@@ -149,7 +150,7 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMesh& chmesh,
                                                      double deflection,
                                                      double angulardeflection) {
     BRepTools::Clean(mshape);
-    BRepMesh::Mesh(mshape, deflection);
+	BRepMesh_IncrementalMesh(mshape, deflection);
     // BRepMesh_IncrementalMesh M(mshape, deflection, Standard_False , angulardeflection);
     // GetLog() << "    ..tesselation done \n";
 
@@ -166,7 +167,7 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
                                                 double deflection,
                                                 double angulardeflection) {
     BRepTools::Clean(mshape);
-    BRepMesh::Mesh(mshape, deflection);
+	BRepMesh_IncrementalMesh(mshape, deflection);
     // BRepMesh_IncrementalMesh M(mshape, deflection, Standard_False , angulardeflection);
     // GetLog() << "    ..tesselation done \n";
 
