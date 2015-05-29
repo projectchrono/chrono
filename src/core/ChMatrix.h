@@ -370,6 +370,36 @@ class ChMatrix {
     //
     // STREAMING
     //
+        /// Method to allow serialization of transient data in archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // suggested: use versioning
+        marchive.VersionWrite(1);
+
+        // stream out all member data
+        marchive << CHNVP(rows);
+        marchive << CHNVP(columns);
+        int tot_elements = GetRows() * GetColumns();
+        for (int i = 0; i < tot_elements; i++) {
+            marchive << CHNVP(ElementN(i));
+        }
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // suggested: use versioning
+        int version = marchive.VersionRead();
+
+        // stream in all member data
+        int m_row, m_col;
+        marchive >> CHNVP(m_row);
+        marchive >> CHNVP(m_col);
+        Reset(m_row, m_col);
+        for (int i = 0; i < (m_row * m_col); i++) {
+            marchive >> CHNVP(ElementN(i));
+        }
+    }
 
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"

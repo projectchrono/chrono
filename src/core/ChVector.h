@@ -35,6 +35,7 @@
 #include "core/ChMathematics.h"
 #include "core/ChClassRegister.h"
 #include "core/ChStream.h"
+#include "core/ChArchive.h"
 
 /// This is the namespace for most functions of the Chrono library
 namespace chrono {
@@ -391,12 +392,36 @@ class ChVector {
     // STREAMING
     //
 
+    /// Method to allow serialization of transient data in archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // suggested: use versioning
+        marchive.VersionWrite(1);
+        // stream out all member data
+        marchive << CHNVP(x);
+        marchive << CHNVP(y);
+        marchive << CHNVP(z);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // suggested: use versioning
+        int version = marchive.VersionRead();
+        // stream in all member data
+        marchive >> CHNVP(x);
+        marchive >> CHNVP(y);
+        marchive >> CHNVP(z);
+    }
+
     /// Method to allow serialization of transient data in ascii,
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
+    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream) { mstream << "\n" << x << "\n" << y << "\n" << z << "\n"; }
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
+    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream) {
         mstream << x;
         mstream << y;
@@ -405,6 +430,7 @@ class ChVector {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
+    /// ***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream) {
         mstream >> x;
         mstream >> y;
