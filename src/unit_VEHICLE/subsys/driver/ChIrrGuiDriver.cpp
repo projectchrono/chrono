@@ -174,8 +174,10 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
       return true;
 
     case KEY_KEY_L:
-      m_mode = DATAFILE;
-      m_time_shift = m_car.GetSystem()->GetChTime();
+      if (!m_data_driver.IsNull()) {
+        m_mode = DATAFILE;
+        m_time_shift = m_car.GetSystem()->GetChTime();
+      }
       return true;
 
     case KEY_KEY_Z:
@@ -206,6 +208,28 @@ void ChIrrGuiDriver::SetInputDataFile(const std::string& filename)
   // Embed a DataDriver.
   m_data_driver = ChSharedPtr<ChDataDriver>(new ChDataDriver(filename, false));
 }
+
+void ChIrrGuiDriver::SetInputMode(InputMode mode)
+{
+  switch (mode) {
+  case LOCK:
+    m_mode = LOCK;
+    break;
+  case KEYBOARD:
+    m_throttle = 0;
+    m_steering = 0;
+    m_braking = 0;
+    m_mode = KEYBOARD;
+    break;
+  case DATAFILE:
+    if (!m_data_driver.IsNull()) {
+      m_mode = DATAFILE;
+      m_time_shift = m_car.GetSystem()->GetChTime();
+    }
+    break;
+  }
+}
+
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

@@ -57,6 +57,11 @@ namespace chrono {
 class CH_SUBSYS_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver
 {
 public:
+  enum InputMode {
+    LOCK,
+    KEYBOARD,
+    DATAFILE
+  };
 
   ChIrrGuiDriver(
     irr::ChIrrApp&      app,
@@ -88,14 +93,9 @@ public:
   double GetStepsize() const { return m_stepsize; }
 
   void SetInputDataFile(const std::string& filename);
+  void SetInputMode(InputMode mode);
 
 private:
-
-  enum InputMode {
-    LOCK,
-    KEYBOARD,
-    DATAFILE
-  };
 
   void renderSprings();
   void renderLinks();
