@@ -409,7 +409,7 @@ ChStreamOutBinary& ChStreamOutBinary::operator<<(bool Val) {
     this->Output((char*)&tmp, sizeof(char));
     return (*this);
 }
-/*
+
 ChStreamOutBinary& ChStreamOutBinary::operator <<(long	Val)
 {
     if (big_endian_machine)
@@ -433,7 +433,19 @@ ChStreamOutBinary& ChStreamOutBinary::operator <<(unsigned long Val)
     this->Output((char*)&Val, sizeof(unsigned long));
     return (*this);
 }
-*/
+
+ChStreamOutBinary& ChStreamOutBinary::operator <<(unsigned long long Val)
+{
+    if (big_endian_machine)
+    {
+        unsigned long long tmp = Val;
+        StreamSwapBytes<unsigned long long>(&tmp);
+        this->Output((char*)&tmp, sizeof(unsigned long long));
+    }
+    this->Output((char*)&Val, sizeof(unsigned long long));
+    return (*this);
+}
+
 
 ChStreamOutBinary& ChStreamOutBinary::operator<<(const int Val) {
     if (big_endian_machine) {
@@ -531,7 +543,7 @@ ChStreamInBinary& ChStreamInBinary::operator>>(bool& Val) {
     // Val = (bool)tmp;
     return (*this);
 }
-/*
+
 ChStreamInBinary& ChStreamInBinary::operator >>(long		&Val)
 {
     if (big_endian_machine) {
@@ -557,7 +569,20 @@ ChStreamInBinary& ChStreamInBinary::operator >>(unsigned long &Val)
     }
     return (*this);
 }
-*/
+
+ChStreamInBinary& ChStreamInBinary::operator >>(unsigned long long &Val)
+{
+    if (big_endian_machine) {
+        unsigned long long tmp;
+        this->Input((char*)&tmp, sizeof(unsigned long long));
+        StreamSwapBytes<unsigned long long>(&tmp);
+        Val = tmp;
+    } else {
+        this->Input((char*)&Val, sizeof(unsigned long long));
+    }
+    return (*this);
+}
+
 ChStreamInBinary& ChStreamInBinary::operator>>(int& Val) {
     if (big_endian_machine) {
         int tmp;
@@ -649,7 +674,6 @@ ChStreamFile::ChStreamFile(const char* filename, std::ios::openmode mmode) {
         file.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
         file.open(filename, mmode);
     } catch (std::exception) {
-        std::cout << "CANNOT OPEN";
         throw ChException("Cannot open stream");
     };
     strncpy(name, filename, sizeof(name)-1);

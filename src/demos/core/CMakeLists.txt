@@ -42,6 +42,16 @@ TARGET_LINK_LIBRARIES(demo_stream ChronoEngine)
 ADD_DEPENDENCIES (demo_stream ChronoEngine)
 
 
+ADD_EXECUTABLE(demo_archive			demo_archive.cpp)
+SOURCE_GROUP(demos\\basics FILES  	demo_archive.cpp)
+SET_TARGET_PROPERTIES(demo_archive PROPERTIES 
+	FOLDER demos
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	)
+TARGET_LINK_LIBRARIES(demo_archive ChronoEngine)
+ADD_DEPENDENCIES (demo_archive ChronoEngine)
+
+
 
 install(TARGETS demo_coords DESTINATION bin)
 install(TARGETS demo_math DESTINATION bin)

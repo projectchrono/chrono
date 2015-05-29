@@ -292,6 +292,7 @@ if(BUILD_CH_SDK)
         core/ChFileutils.h
         core/ChRealtimeStep.h
         core/ChStream.h
+		core/ChArchive.h
         core/ChTimer.h
         core/ChTransform.h
         core/ChVector.h
