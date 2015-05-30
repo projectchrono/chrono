@@ -107,7 +107,7 @@ class ChUnilateralData {
 /// must be overridden and re-implemented, even if you
 /// would stick with the implementation in the base class!
 /// (here, only few of them are reimplemented, more will
-/// come later in futire releases.).
+/// come later in future releases.).
 ///
 
 class ChApi ChSparseMatrix : public ChMatrix<double> {
@@ -182,14 +182,12 @@ class ChApi ChSparseMatrix : public ChMatrix<double> {
 
     void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol);
     void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol);
-    void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol);
+    void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol); // non vedo l'utilità di una specializzazione per il caso float quando poi l'implementazione usa cmq double tra l'altro!
     void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol);
     void PasteMatrix(ChSparseMatrix* matra, int insrow, int inscol);
     void PasteTranspMatrix(ChSparseMatrix* matra, int insrow, int inscol);
-    void
-    PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
-    void
-    PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
+    void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
+    void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
     void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol);
     void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol);
 
@@ -274,7 +272,7 @@ class ChApi ChSparseMatrix : public ChMatrix<double> {
     /// Note: the row and column indexes start from 1, not 0 as in C language.
     void StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream);
 
-    /// Write first few rows an columns to the console
+    /// Write first few rows and columns to the console
     /// Method to allow serializing transient data into in ascii
     void StreamOUT(ChStreamOutAscii& mstream);
 };
