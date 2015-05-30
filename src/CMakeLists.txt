@@ -1210,7 +1210,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" DESTINATION include
 #
 # Propagates the CMake build to other directories
 #
-
+add_subdirectory(unit_MKL)
 add_subdirectory(unit_MATLAB)
 # add_subdirectory(unit_MPI)
 # add_subdirectory(unit_GPU)
