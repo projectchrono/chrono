@@ -78,7 +78,7 @@ class ChApi ChLcpSystemDescriptor {
   private:
     int n_q;            // n.active variables
     int n_c;            // n.active constraints
-    bool freeze_count;  // for optimizartions
+    bool freeze_count;  // for optimizations
 
   public:
     //
