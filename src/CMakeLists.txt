@@ -93,6 +93,9 @@ set(BUILD_CH_SDK         TRUE    CACHE BOOL   "Turn this ON to generate the Chro
 set(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
 set(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
 
+SET(CH_EIGEN_PATH "D:/SourceTreeWS/libraries/eigen"     CACHE PATH   "Where is your Eigen library main folder? (should contain ./Engine)")
+
+
 
 # Also, some variables that were used in previous makefile system (some
 # of them could be set automatically because CMake should recognize automatically
@@ -229,6 +232,7 @@ set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_BINARY_DIR}")
 set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/bullet" )
 set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/gimpact" )
 set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/convexdecomposition/HACD" )
+set(CH_INCLUDES ${CH_INCLUDES} "${CH_EIGEN_PATH}" )
 
 include_directories( ${CH_INCLUDES} )
 
