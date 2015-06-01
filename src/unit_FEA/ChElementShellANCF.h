@@ -332,8 +332,8 @@ public:
 					
 					ChMatrixNM<double,1,4> N;
 
-					double xi = (u+1.0)*0.5; // because ShapeFunctions() works in 0..1 range
-                    double yi = (v+1.0)*0.5; // because ShapeFunctions() works in 0..1 range
+					double xi = u; // because ShapeFunctions() works in -1..1 range
+                    double yi = v; // because ShapeFunctions() works in -1..1 range
 
 					this->ShapeFunctions(N, xi,yi);
 					
