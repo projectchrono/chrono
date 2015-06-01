@@ -40,6 +40,7 @@ SET(ChronoEngine_UNIT_FEA_SOURCES
 	ChVisualizationFEAmesh.cpp
 	ChLinkPointFrame.cpp
 	ChLinkDirFrame.cpp
+	ChLinkPointPoint.cpp
 	)
 SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChApiFEA.h  
@@ -80,6 +81,7 @@ SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChVisualizationFEAmesh.h
 	ChLinkPointFrame.h
 	ChLinkDirFrame.h
+	ChLinkPointPoint.h
 	)
 #SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_FEA_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 SOURCE_GROUP(unit_FEA FILES 

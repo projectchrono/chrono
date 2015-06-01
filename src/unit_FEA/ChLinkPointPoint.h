@@ -10,32 +10,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLINKPOINTFRAME_H
-#define CHLINKPOINTFRAME_H
+#ifndef CHLINKPOINTPOINT_H
+#define CHLINKPOINTPOINT_H
 
-//////////////////////////////////////////////////
-//
-//   ChLinkPointFrame.h
-//
-//   Class for creating a constraint between a node point
-//   and a ChBody object (that is, it fixes a 3-DOF point
-//   to a 6-DOF body). 
-//   Nodes are 3-DOF points that are used in point-based 
-//   primitives, such as ChMatterSPH or finite elements.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
-#include "physics/ChBodyFrame.h"
+
 #include "physics/ChLinkBase.h"
 #include "unit_FEA/ChNodeFEAxyz.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
-
 
 
 namespace chrono
@@ -48,16 +30,15 @@ namespace fea
 
 
 
-/// Class for creating a constraint between a xyz FEA node (point)
-/// and a ChBodyFrame (frame) object (that is, it fixes a 3-DOF point
-/// to a 6-DOF frame). 
+/// Class for creating a constraint between two xyz FEA nodes (points).
+/// That is, the two nodes will be joined, as overlapping.
 /// Nodes are 3-DOF points that are used in point-based 
 /// primitives, such as ChMatterSPH or finite elements.
 
-class ChApiFea ChLinkPointFrame : public ChLinkBase {
+class ChApiFea ChLinkPointPoint : public ChLinkBase {
 
 						// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChLinkPointFrame,ChLinkBase);
+	CH_RTTI(ChLinkPointPoint,ChLinkBase);
 
 private:
 			//
@@ -74,10 +55,8 @@ private:
 	ChVector<> cache_li_speed;	// used to cache the last computed value of multiplier (solver warm starting)
 	ChVector<> cache_li_pos;	// used to cache the last computed value of multiplier (solver warm starting)	
 
-	ChSharedPtr<fea::ChNodeFEAxyz> mnode;
-	ChSharedPtr<ChBodyFrame>  body;
-
-	ChCoordsys<> attach_reference; 
+	ChSharedPtr<fea::ChNodeFEAxyz> mnodeA;
+    ChSharedPtr<fea::ChNodeFEAxyz> mnodeB;
 
 public:
 
@@ -86,12 +65,12 @@ public:
 			//
 
 				/// Build a shaft.
-	ChLinkPointFrame ();
+	ChLinkPointPoint ();
 				/// Destructor
-	~ChLinkPointFrame ();
+	~ChLinkPointPoint ();
 
 				/// Copy from another ChLinkPointFrame. 
-	void Copy(ChLinkPointFrame* source);
+	void Copy(ChLinkPointPoint* source);
 
 
 			//
@@ -103,13 +82,13 @@ public:
 			//
 
 				/// Get the number of scalar variables affected by constraints in this link 
-	virtual int GetNumCoords() {return 3 + 7;}
+	virtual int GetNumCoords() {return 3 + 3;}
 
 				/// Number of scalar costraints 
 	virtual int GetDOC_c  () {return 3;}
 
 				/// To get reaction force, expressed in link coordinate system:
-	virtual ChVector<> Get_react_force() {return GetReactionOnBody();}
+	virtual ChVector<> Get_react_force() {return GetReactionOnNode();}
 
 
 	 		//
@@ -144,52 +123,24 @@ public:
 	
 	virtual ChCoordsys<> GetLinkAbsoluteCoords();
 
+
 				/// Use this function after object creation, to initialize it, given  
-				/// the node and body to join. 
-				/// The attachment position is the actual position of the node (unless
-				/// otherwise defines, using the optional 'mattach' parameter).
-				/// Note, mnodes and mbody must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChIndexedNodes> mnodes,  ///< nodes container
-						   unsigned int mnode_index,			///< index of the xyz node (point) to join
-						   ChSharedPtr<ChBodyFrame>   mbody,    ///< body (frame) to join 
-						   ChVector<>* mattach=0				///< optional: if not null, sets the attachment position in absolute coordinates 
-						   );
-				/// Use this function after object creation, to initialize it, given  
-				/// the node and body frame to join. 
-				/// The attachment position is the actual position of the node (unless
-				/// otherwise defines, using the optional 'mattach' parameter).
-				/// Note, mnodes and mbody must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< xyz node (point) to join
-						   ChSharedPtr<ChBodyFrame>  mbody,  ///< body (frame) to join 
-						   ChVector<>* mattach=0			 ///< optional: if not null, sets the attachment position in absolute coordinates 
+				/// the two nodes join. 
+				/// The attachment position is the actual position of the node.
+				/// Note, mnodes must belong to the same ChSystem. 
+	virtual int Initialize(ChSharedPtr<ChNodeFEAxyz> anodeA,  ///< xyz node (point) to join
+						   ChSharedPtr<ChNodeFEAxyz> anodeB   ///< xyz node (point) to join
 						   );
 
-				/// Get the connected xyz node (point)
-	virtual ChSharedPtr<fea::ChNodeFEAxyz> GetConstrainedNode() { return this->mnode;}
+				/// Get the 1st connected xyz node (point)
+	virtual ChSharedPtr<fea::ChNodeFEAxyz> GetConstrainedNodeA() { return this->mnodeA;}
+
+    			/// Get the 2nd connected xyz node (point)
+	virtual ChSharedPtr<fea::ChNodeFEAxyz> GetConstrainedNodeB() { return this->mnodeB;}
 				
-				/// Get the connected body (frame)
-	virtual ChSharedPtr<ChBodyFrame> GetConstrainedBodyFrame() { return this->body;}
-
-					/// Get the attachment position, in the coordinates of the body.
-	ChVector<> GetAttachPosition() {return attach_reference.pos;}
-					/// Set the attachment position, in the coordinates of the body
-	void SetAttachPositionInBodyCoords(ChVector<> mattach) {attach_reference.pos = mattach;}
-					/// Set the attachment position, in the absolute coordinates
-	void SetAttachPositionInAbsoluteCoords(ChVector<> mattach) {attach_reference.pos = body->TransformPointParentToLocal(mattach);}
-
-					/// Get the attachment reference, in the coordinates of the body.
-	ChCoordsys<> GetAttachReference() {return attach_reference;}
-					/// Set the attachment reference, in the coordinates of the body
-	void SetAttachReferenceInBodyCoords(ChCoordsys<> mattach) {attach_reference = mattach;}
-					/// Set the attachment position, in the absolute coordinates
-	void SetAttachReferenceInAbsoluteCoords(ChCoordsys<> mattach) {attach_reference = body->coord.TransformParentToLocal(mattach);}
-
-
 				/// Get the reaction force considered as applied to ChShaft.
 	ChVector<> GetReactionOnNode() {return -(react);}
 
-				/// Get the reaction force considered as applied to ChBody.
-	ChVector<> GetReactionOnBody() {return react;}
 
 	
 			//
