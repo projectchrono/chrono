@@ -19,6 +19,7 @@
 #include "ChSmartpointers.h"
 #include <string>
 #include <vector>
+#include <typeinfo>
 
 namespace chrono {
 

@@ -193,7 +193,10 @@ int main(int argc, char* argv[]) {
         double m_double = 0.123456;
         int m_int = -123;
         std::string m_string = "hey! stl string";
-        std::vector< double > m_stlvector = {2.3,45.3,66.44};
+        std::vector< double > m_stlvector; 
+        m_stlvector.push_back (2.3); 
+        m_stlvector.push_back (45.3);
+        m_stlvector.push_back (66.44);
         ChMatrixDynamic<double> m_matr(3, 5);
         m_matr.FillRandom(10, 0);
         ChVector<> m_vect(0.5, 0.6, 0.7);
