@@ -244,26 +244,26 @@ class  ChArchiveOut : public ChArchive {
       //
 
         // for integral types:
-      virtual void out     (ChNameValue<bool>& bVal) = 0;
-      virtual void out     (ChNameValue<int>& bVal) = 0;
-      virtual void out     (ChNameValue<double>& bVal) = 0;
-      virtual void out     (ChNameValue<float>& bVal) = 0;
-      virtual void out     (ChNameValue<char>& bVal) = 0;
-      virtual void out     (ChNameValue<unsigned int>& bVal) = 0;
-      virtual void out     (ChNameValue<char*>& bVal) = 0;
-      virtual void out     (ChNameValue<const char*>& bVal) = 0;
-      virtual void out     (ChNameValue<std::string>& bVal) = 0;
-      virtual void out     (ChNameValue<unsigned long>& bVal) = 0;
-      virtual void out     (ChNameValue<unsigned long long>& bVal) = 0;
+      virtual void out     (ChNameValue<bool> bVal) = 0;
+      virtual void out     (ChNameValue<int> bVal) = 0;
+      virtual void out     (ChNameValue<double> bVal) = 0;
+      virtual void out     (ChNameValue<float> bVal) = 0;
+      virtual void out     (ChNameValue<char> bVal) = 0;
+      virtual void out     (ChNameValue<unsigned int> bVal) = 0;
+      virtual void out     (ChNameValue<char*> bVal) = 0;
+      virtual void out     (ChNameValue<const char*> bVal) = 0;
+      virtual void out     (ChNameValue<std::string> bVal) = 0;
+      virtual void out     (ChNameValue<unsigned long> bVal) = 0;
+      virtual void out     (ChNameValue<unsigned long long> bVal) = 0;
 
         // for custom C++ objects - see 'wrapping' trick below
-      virtual void out     (ChNameValue<ChFunctorArchiveOut>& bVal, const char* classname) = 0;
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) = 0;
 
         // for pointed objects with abstract class system (i.e. supporting class factory)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut>& bVal, bool already_inserted, size_t position, const char* classname) = 0;
+      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) = 0;
       
         // for pointed objects without class abtraction
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut>& bVal, bool already_inserted, size_t position, const char* classname) = 0;
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) = 0;
 
         // for wrapping arrays and lists
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) = 0;
@@ -275,7 +275,7 @@ class  ChArchiveOut : public ChArchive {
 
         // trick to wrap stl::vector container
       template<class T>
-      void out     (ChNameValue< std::vector<T> >& bVal) {
+      void out     (ChNameValue< std::vector<T> > bVal) {
           this->out_array_pre(bVal.name(), bVal.value().size(), typeid(T).name());
           for (size_t i = 0; i<bVal.value().size(); ++i)
           {
@@ -290,7 +290,7 @@ class  ChArchiveOut : public ChArchive {
 
         // trick to call out_ref on ChSharedPointer:
       template<class T>
-      void out     (ChNameValue< ChSharedPtr<T> >& bVal) {
+      void out     (ChNameValue< ChSharedPtr<T> > bVal) {
           bool already_stored; size_t pos;
           PutPointer(bVal.value(), already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(bVal.value()->get_ptr(), &T::ArchiveOUT);
@@ -303,7 +303,7 @@ class  ChArchiveOut : public ChArchive {
 
         // trick to call out_ref on plain pointers:
       template<class T>
-      void out     (ChNameValue<T*>& bVal) {
+      void out     (ChNameValue<T*> bVal) {
           bool already_stored; size_t pos;
           PutPointer(bVal.value(), already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(bVal.value(), &T::ArchiveOUT);
@@ -316,7 +316,7 @@ class  ChArchiveOut : public ChArchive {
 
         // trick to apply 'virtual out..' on unrelated C++ objects that has a function "ArchiveOUT":
       template<class T>
-      void out     (ChNameValue<T>& bVal) {
+      void out     (ChNameValue<T> bVal) {
           ChFunctorArchiveOutSpecific<T> specFuncA(&bVal.value(), &T::ArchiveOUT);
           this->out(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA), 
@@ -325,7 +325,7 @@ class  ChArchiveOut : public ChArchive {
 
         /// Operator to allow easy serialization as   myarchive >> mydata;
       template<class T>
-      ChArchiveOut& operator<<(ChNameValue<T>& bVal) {
+      ChArchiveOut& operator<<(ChNameValue<T> bVal) {
           this->out(bVal);
           return (*this);
       }
@@ -353,23 +353,23 @@ class  ChArchiveIn : public ChArchive {
       //
 
         // for integral types:
-      virtual void in     (ChNameValue<bool>& bVal) = 0;
-      virtual void in     (ChNameValue<int>& bVal) = 0;
-      virtual void in     (ChNameValue<double>& bVal) = 0;
-      virtual void in     (ChNameValue<float>& bVal) = 0;
-      virtual void in     (ChNameValue<char>& bVal) = 0;
-      virtual void in     (ChNameValue<unsigned int>& bVal) = 0;
-      virtual void in     (ChNameValue<char*>& bVal) = 0;
-      virtual void in     (ChNameValue<std::string>& bVal) = 0;
-      virtual void in     (ChNameValue<unsigned long>& bVal) = 0;
-      virtual void in     (ChNameValue<unsigned long long>& bVal) = 0;
+      virtual void in     (ChNameValue<bool> bVal) = 0;
+      virtual void in     (ChNameValue<int> bVal) = 0;
+      virtual void in     (ChNameValue<double> bVal) = 0;
+      virtual void in     (ChNameValue<float> bVal) = 0;
+      virtual void in     (ChNameValue<char> bVal) = 0;
+      virtual void in     (ChNameValue<unsigned int> bVal) = 0;
+      virtual void in     (ChNameValue<char*> bVal) = 0;
+      virtual void in     (ChNameValue<std::string> bVal) = 0;
+      virtual void in     (ChNameValue<unsigned long> bVal) = 0;
+      virtual void in     (ChNameValue<unsigned long long> bVal) = 0;
 
         // for custom C++ objects - see 'wrapping' trick below
-      virtual void in     (ChNameValue<ChFunctorArchiveIn>& bVal) = 0;
+      virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
 
         // for pointed objects (if position != -1 , pointer has been already serialized)
-      virtual void in_ref_abstract (ChNameValue<ChFunctorArchiveIn>& bVal) = 0;
-      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn>& bVal) = 0;
+      virtual void in_ref_abstract (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
+      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
 
         // for wrapping arrays and lists
       virtual void in_array_pre (size_t& msize) = 0;
@@ -380,7 +380,7 @@ class  ChArchiveIn : public ChArchive {
 
               // trick to wrap stl::vector container
       template<class T>
-      void in     (ChNameValue< std::vector<T> >& bVal) {
+      void in     (ChNameValue< std::vector<T> > bVal) {
           bVal.value().clear();
           size_t arraysize;
           this->in_array_pre(arraysize);
@@ -398,7 +398,7 @@ class  ChArchiveIn : public ChArchive {
 
         // trick to call in_ref on ChSharedPointer:
       template<class T>
-      void in     (ChNameValue< ChSharedPtr<T> >& bVal) {
+      void in     (ChNameValue< ChSharedPtr<T> > bVal) {
           T* mptr;
           ChNameValue< T* > tempVal(&mptr, bVal.name());
           ChFunctorArchiveInSpecificPtrAbstract<T> specFuncA(&mptr, &T::ArchiveIN);
@@ -408,21 +408,21 @@ class  ChArchiveIn : public ChArchive {
 
         // trick to call in_ref on plain pointers:
       template<class T>
-      void in     (ChNameValue<T*>& bVal) {
+      void in     (ChNameValue<T*> bVal) {
           ChFunctorArchiveInSpecificPtrAbstract<T> specFuncA(&bVal.value(), &T::ArchiveIN);
           this->in_ref_abstract(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA) );
       }
 
         // trick to apply 'virtual in..' on unrelated C++ objects that has a function "ArchiveIN":
       template<class T>
-      void in     (ChNameValue<T>& bVal) {
+      void in     (ChNameValue<T> bVal) {
           ChFunctorArchiveInSpecific<T> specFuncA(&bVal.value(), &T::ArchiveIN);
           this->in(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA));
       }
 
         /// Operator to allow easy serialization as   myarchive << mydata;
       template<class T>
-      ChArchiveIn& operator>>(ChNameValue<T>& bVal) {
+      ChArchiveIn& operator>>(ChNameValue<T> bVal) {
           this->in(bVal);
           return (*this);
       }
@@ -456,37 +456,37 @@ class  ChArchiveOutBinary : public ChArchiveOut {
 
       virtual ~ChArchiveOutBinary() {};
 
-      virtual void out     (ChNameValue<bool>& bVal) {
+      virtual void out     (ChNameValue<bool> bVal) {
             (*ostream) << bVal.value();
       }
-      virtual void out     (ChNameValue<int>& bVal) {
+      virtual void out     (ChNameValue<int> bVal) {
             (*ostream) << bVal.value();
       }
-      virtual void out     (ChNameValue<double>& bVal) {
+      virtual void out     (ChNameValue<double> bVal) {
             (*ostream) << bVal.value();
       }
-      virtual void out     (ChNameValue<float>& bVal){
+      virtual void out     (ChNameValue<float> bVal){
             (*ostream) << bVal.value();
       }
-      virtual void out     (ChNameValue<char>& bVal){
+      virtual void out     (ChNameValue<char> bVal){
             (*ostream) << bVal.value();
       }
-      virtual void out     (ChNameValue<unsigned int>& bVal){
+      virtual void out     (ChNameValue<unsigned int> bVal){
             (*ostream) << bVal.value();
       }
-      virtual void out     (ChNameValue<char*>& bVal){
+      virtual void out     (ChNameValue<char*> bVal){
             (*ostream) << bVal.value();
       }
-      virtual void out     (ChNameValue<const char*>& bVal){
+      virtual void out     (ChNameValue<const char*> bVal){
             (*ostream) << bVal.value();
       }
-      virtual void out     (ChNameValue<std::string>& bVal){
+      virtual void out     (ChNameValue<std::string> bVal){
             (*ostream) << bVal.value();
       }
-      virtual void out     (ChNameValue<unsigned long>& bVal){
+      virtual void out     (ChNameValue<unsigned long> bVal){
             (*ostream) << bVal.value();
       }
-      virtual void out     (ChNameValue<unsigned long long>& bVal){
+      virtual void out     (ChNameValue<unsigned long long> bVal){
             (*ostream) << bVal.value();
       }
 
@@ -498,12 +498,12 @@ class  ChArchiveOutBinary : public ChArchiveOut {
 
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut>& bVal, const char* classname) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) {
             bVal.value().CallArchiveOut(*this);
       }
 
         // for pointed objects (if pointer hasn't been already serialized, otherwise save offset)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut>& bVal, bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
       {
           if (!already_inserted) {
             // New Object, we have to full serialize it
@@ -519,7 +519,7 @@ class  ChArchiveOutBinary : public ChArchiveOut {
           }
       }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut>& bVal, bool already_inserted, size_t position,  const char* classname) 
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position,  const char* classname) 
       {
           if (!already_inserted) {
             // New Object, we have to full serialize it
@@ -555,34 +555,34 @@ class  ChArchiveInBinary : public ChArchiveIn {
 
       virtual ~ChArchiveInBinary() {};
 
-      virtual void in     (ChNameValue<bool>& bVal) {
+      virtual void in     (ChNameValue<bool> bVal) {
             (*istream) >> bVal.value();
       }
-      virtual void in     (ChNameValue<int>& bVal) {
+      virtual void in     (ChNameValue<int> bVal) {
             (*istream) >> bVal.value();
       }
-      virtual void in     (ChNameValue<double>& bVal) {
+      virtual void in     (ChNameValue<double> bVal) {
             (*istream) >> bVal.value();
       }
-      virtual void in     (ChNameValue<float>& bVal){
+      virtual void in     (ChNameValue<float> bVal){
             (*istream) >> bVal.value();
       }
-      virtual void in     (ChNameValue<char>& bVal){
+      virtual void in     (ChNameValue<char> bVal){
             (*istream) >> bVal.value();
       }
-      virtual void in     (ChNameValue<unsigned int>& bVal){
+      virtual void in     (ChNameValue<unsigned int> bVal){
             (*istream) >> bVal.value();
       }
-      virtual void in     (ChNameValue<char*>& bVal){
+      virtual void in     (ChNameValue<char*> bVal){
             (*istream) >> bVal.value();
       }
-      virtual void in     (ChNameValue<std::string>& bVal){
+      virtual void in     (ChNameValue<std::string> bVal){
             (*istream) >> bVal.value();
       }
-      virtual void in     (ChNameValue<unsigned long>& bVal){
+      virtual void in     (ChNameValue<unsigned long> bVal){
             (*istream) >> bVal.value();
       }
-      virtual void in     (ChNameValue<unsigned long long>& bVal){
+      virtual void in     (ChNameValue<unsigned long long> bVal){
             (*istream) >> bVal.value();
       }
 
@@ -594,12 +594,12 @@ class  ChArchiveInBinary : public ChArchiveIn {
       virtual void in_array_end () {}
 
         //  for custom c++ objects:
-      virtual void in     (ChNameValue<ChFunctorArchiveIn>& bVal) {
+      virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) {
             bVal.value().CallArchiveIn(*this);
       }
 
       // for pointed objects (if position != -1 , pointer has been already serialized)
-      virtual void in_ref_abstract (ChNameValue<ChFunctorArchiveIn>& bVal) 
+      virtual void in_ref_abstract (ChNameValue<ChFunctorArchiveIn> bVal) 
       {
           std::string cls_name;
           (*istream) >> cls_name;
@@ -625,7 +625,7 @@ GetLog() << "- in_ref_abstract classname: " << cls_name << "\n";
           }
       }
 
-      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn>& bVal)
+      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
       {
           std::string cls_name;
           (*istream) >> cls_name;
@@ -681,77 +681,77 @@ class  ChArchiveOutAsciiLogging : public ChArchiveOut {
               (*ostream) << "\t";
       }
 
-      virtual void out     (ChNameValue<bool>& bVal) {
+      virtual void out     (ChNameValue<bool> bVal) {
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<int>& bVal) {
+      virtual void out     (ChNameValue<int> bVal) {
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<double>& bVal) {
+      virtual void out     (ChNameValue<double> bVal) {
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<float>& bVal){
+      virtual void out     (ChNameValue<float> bVal){
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<char>& bVal){
+      virtual void out     (ChNameValue<char> bVal){
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<unsigned int>& bVal){
+      virtual void out     (ChNameValue<unsigned int> bVal){
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<char*>& bVal){
+      virtual void out     (ChNameValue<char*> bVal){
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t\"";
             (*ostream) << bVal.value();
             (*ostream) << "\"\n";
       }
-      virtual void out     (ChNameValue<const char*>& bVal){
+      virtual void out     (ChNameValue<const char*> bVal){
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t\"";
             (*ostream) << bVal.value();
             (*ostream) << "\"\n";
       }
-      virtual void out     (ChNameValue<std::string>& bVal){
+      virtual void out     (ChNameValue<std::string> bVal){
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t\"";
             (*ostream) << bVal.value();
             (*ostream) << "\"\n";
       }
-      virtual void out     (ChNameValue<unsigned long>& bVal){
+      virtual void out     (ChNameValue<unsigned long> bVal){
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<unsigned long long>& bVal){
+      virtual void out     (ChNameValue<unsigned long long> bVal){
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t";
@@ -780,7 +780,7 @@ class  ChArchiveOutAsciiLogging : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut>& bVal, const char* classname) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) {
             indent();
             (*ostream) << bVal.name() << "   [" << classname << "]\n";
             ++tablevel;
@@ -789,7 +789,7 @@ class  ChArchiveOutAsciiLogging : public ChArchiveOut {
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut>& bVal, bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
       {
           indent();
           (*ostream) << bVal.name() << "->   [" << classname << "]  (class factory support)   ID=" << position <<"\n";
@@ -801,7 +801,7 @@ class  ChArchiveOutAsciiLogging : public ChArchiveOut {
           --tablevel;
       }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut>& bVal,  bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname) 
       {
           indent();
           (*ostream) << bVal.name() << "->   [" << classname << "]   ID=" << position <<"\n";
