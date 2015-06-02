@@ -99,6 +99,8 @@ set(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::
 # the compiler, generator, platform, etc....
 # Set a default build type if none was specified
 
+SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
+
 if(MSVC OR XCODE_VERSION)
     set(CMAKE_CONFIGURATION_TYPES Release CACHE STRING "Choose the type of build.")
     set_property(CACHE CMAKE_CONFIGURATION_TYPES PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
