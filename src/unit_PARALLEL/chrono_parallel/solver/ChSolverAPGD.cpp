@@ -36,7 +36,7 @@ void ChSolverAPGD::UpdateR() {
   SubVectorType R_n = blaze::subvector(R, 0, num_contacts);
   SubVectorType s_n = blaze::subvector(s, 0, num_contacts);
 
-  R_n = -b_n - D_n_T * M_invk + s_n;
+  R_n = -b_n - D_n_T * M_invk - s_n;
 }
 
 uint ChSolverAPGD::SolveAPGD(const uint max_iter,
