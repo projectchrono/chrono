@@ -377,12 +377,17 @@ class ChMatrix {
         marchive.VersionWrite(1);
 
         // stream out all member data
-        marchive << CHNVP(rows);
-        marchive << CHNVP(columns);
+        marchive << make_ChNameValue("rows",rows);
+        marchive << make_ChNameValue("columns",columns);
+
+        // custom output of matrix data as array
         int tot_elements = GetRows() * GetColumns();
+        marchive.out_array_pre("data", tot_elements, typeid(Real).name());
         for (int i = 0; i < tot_elements; i++) {
             marchive << CHNVP(ElementN(i));
+            marchive.out_array_between(tot_elements, typeid(Real).name());
         }
+        marchive.out_array_end(tot_elements, typeid(Real).name());
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -393,12 +398,20 @@ class ChMatrix {
 
         // stream in all member data
         int m_row, m_col;
-        marchive >> CHNVP(m_row);
-        marchive >> CHNVP(m_col);
+        marchive >> make_ChNameValue("rows",m_row);
+        marchive >> make_ChNameValue("columns",m_col);
+        
         Reset(m_row, m_col);
-        for (int i = 0; i < (m_row * m_col); i++) {
+
+        // custom input of matrix data as array
+        size_t tot_elements = GetRows() * GetColumns();
+        marchive.in_array_pre("data", tot_elements);
+        for (int i = 0; i < tot_elements; i++) {
             marchive >> CHNVP(ElementN(i));
+            marchive.in_array_between("data");
         }
+        marchive.in_array_end("data");
+
     }
 
     /// Method to allow serializing transient data into in ascii

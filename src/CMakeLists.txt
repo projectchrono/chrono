@@ -292,7 +292,6 @@ if(BUILD_CH_SDK)
         core/ChFileutils.h
         core/ChRealtimeStep.h
         core/ChStream.h
-		core/ChArchive.h
         core/ChTimer.h
         core/ChTransform.h
         core/ChVector.h
@@ -300,6 +299,7 @@ if(BUILD_CH_SDK)
         core/ChWrapHashmap.h
         core/ChDistribution.h
         core/ChQuadrature.h
+		core/ChTemplateExpressions.h
         )
 
     list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")
@@ -307,6 +307,22 @@ if(BUILD_CH_SDK)
     source_group(core FILES
         ${ChronoEngine_core_SOURCES}
         ${ChronoEngine_core_HEADERS}
+        )
+
+
+		
+    set(ChronoEngine_serialization_SOURCES
+        )
+    set(ChronoEngine_serialization_HEADERS
+        serialization/ChArchive.h
+		serialization/ChArchiveBinary.h
+		serialization/ChArchiveAsciiDump.h
+		serialization/ChArchiveJSON.h
+        )
+
+    source_group(serialization FILES
+        ${ChronoEngine_serialization_SOURCES}
+        ${ChronoEngine_serialization_HEADERS}
         )
 
     set(ChronoEngine_physics_SOURCES
@@ -1083,6 +1099,8 @@ if(BUILD_CH_SDK)
     set(ChronoEngine_FILES
         ${ChronoEngine_core_SOURCES}
         ${ChronoEngine_core_HEADERS}
+		${ChronoEngine_serialization_SOURCES}
+        ${ChronoEngine_serialization_HEADERS}
         ${ChronoEngine_physics_SOURCES}
         ${ChronoEngine_physics_HEADERS}
         ${ChronoEngine_lcp_SOURCES}

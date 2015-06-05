@@ -34,8 +34,7 @@
 
 #include "core/ChMathematics.h"
 #include "core/ChClassRegister.h"
-#include "core/ChStream.h"
-#include "core/ChArchive.h"
+#include "serialization/ChArchive.h"
 
 /// This is the namespace for most functions of the Chrono library
 namespace chrono {

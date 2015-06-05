@@ -21,14 +21,16 @@
 //
 ///////////////////////////////////////////////////
 
-#include <math.h>
-
+#include "serialization/ChArchive.h"
+#include "serialization/ChArchiveBinary.h"
+#include "serialization/ChArchiveAsciiDump.h"
+#include "serialization/ChArchiveJSON.h"
 #include "core/ChLog.h"
-#include "core/ChArchive.h"
 #include "core/ChVector.h"
 #include "core/ChMatrixDynamic.h"
 #include "core/ChMatrix.h"
 #include "core/ChException.h"
+#include "core/ChShared.h"
 
 using namespace chrono;
 
@@ -42,7 +44,7 @@ using namespace chrono;
 //
 // The statements marked with //***** are needed only if you want to
 // take advantage of Chrono advanced serialization mechanism, that is the
-// AbstractWrite() and AbstractReadCreate() methods which can load an
+// abstract class creation (class factory) which can load an
 // object from stream even if the object class is not known in advance.
 // This more advanced feature requires a 'class factory' registration
 // of your object type by means of the ChClassRegister<> statement (in
@@ -50,7 +52,7 @@ using namespace chrono;
 // of run-time-type information enabled, that is the CH_RTTI_.. macros).
 //
 
-class myEmployee {
+class myEmployee : public ChShared {
     // Remember to enable the Chrono RTTI features with the CH_RTTI_.. macro
     // if you want to use the AbstractReadCreate() feature, to deserialize
     // objects whose exact class is not known in advance!
@@ -100,7 +102,9 @@ class myEmployee {
 
 chrono::ChClassRegister<myEmployee> a_registration1;  //***** for _advanced_ Chrono serialization
 
-// ............ ok, more difficult! an inherited class ............
+
+// Ok, now let's do something even more difficult: an inherited class.
+// Note the CH_RTTI macro. 
 
 class myEmployeeBoss : public myEmployee {
     CH_RTTI(myEmployeeBoss, myEmployee)  //***** for _advanced_ Chrono serialization
@@ -149,49 +153,22 @@ class myEmployeeBoss : public myEmployee {
 
 chrono::ChClassRegister<myEmployeeBoss> a_registration2;  //***** for _advanced_ Chrono serialization
 
-int main(int argc, char* argv[]) {
-    // To write something to the console, use the chrono::GetLog()
-    // statement, which returns a global output stream to the console (just
-    // like the std::out stream).
-    GetLog() << "\n"
-             << "CHRONO foundation classes demo: archives (serialization)\n\n";
 
-    /*
-     *  TEST SOME BASIC FILE I/O , AS ASCII FILE WRITE/SAVE
-     *
-     */
 
-   
-    //  Archives inherited from the base class ChArchiveOut can be
-    // used to serialize objects, and streams inherited from ChArchiveIn
-    // can be used to get them back. For example, file streams like
-    // ChArchiveOutBinary and ChArchiveInBinary can be used for this
-    // purpose.
-    //  All basic primitives (strings, int,etc.) and objects that has
-    // a StreamOUT() function defined can beserialized in archives.
-    //  Viceversa, you should implement also the StreamOUT() method
-    // to allow using the >> operator to get the object back from a
-    // ChStreamInBinary archive.
+//
+// Example on how to serialize OUT some data:
+//
 
-    try {       
-        // Open a file of class "ChStreamOutBinaryFile" as a container
-        ChStreamOutBinaryFile mfileo("foo_archive.dat");
-
-        // Create a binary archive, that uses the binary file as storage.
-        ChArchiveOutBinary marchive(mfileo);
-       
-        /*
-        // Open a file of class "ChStreamOutBinaryFile" as a container
-        ChStreamOutAsciiFile mfileo("foo_archive.txt");
-
-        // Create a binary archive, that uses the binary file as storage.
-        ChArchiveOutAsciiLogging marchive(mfileo);
-        */
+void my_serialization_example(ChArchiveOut& marchive)
+{
+        // All basic primitives (strings, int,etc.), plus and objects that has
+        // an ArchiveOUT() function defined can be serialized in archives.      
 
         // Write from transient data into persistent binary file
-        const char* m_text = "test string";
         double m_double = 0.123456;
         int m_int = -123;
+        double m_array[] = {13.1, 15.3, 16.5};
+        char m_text[] = "test string"; // better use std::string
         std::string m_string = "hey! stl string";
         std::vector< double > m_stlvector; 
         m_stlvector.push_back (2.3); 
@@ -201,78 +178,118 @@ int main(int argc, char* argv[]) {
         m_matr.FillRandom(10, 0);
         ChVector<> m_vect(0.5, 0.6, 0.7);
         ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
-        myEmployeeBoss m_boss(53, 12000.34, true);
-
-        marchive << CHNVP(m_text);    // store data n.1
-        marchive << CHNVP(m_double);  // store data n.2
-        marchive << CHNVP(m_int);     // store data n.3
-        marchive << CHNVP(m_string);  // store data n....
+        
+        marchive << CHNVP(m_double);  // store data n.1      
+        marchive << CHNVP(m_int);     // store data n.2 
+        marchive << CHNVP(m_array);   // store data n.3
+        marchive << CHNVP(m_text);    // store data n....
+        marchive << CHNVP(m_string);  
         marchive << CHNVP(m_stlvector);
         marchive << CHNVP(m_matr);    
         marchive << CHNVP(m_vect);    
-        marchive << CHNVP(m_quat);    
-        marchive << CHNVP(m_boss);    // store our c++ object!
+        marchive << CHNVP(m_quat);  
+
+        // Also store a c++ object 
+        // In order to use this feature, the classes must implement 
+        // ArchiveIN and ArchiveOUT functions.
+        myEmployeeBoss m_boss(53, 12000.34, true);
+        marchive << CHNVP(m_boss);    
+
+        // Also store a c++ objects referenced by pointer(s).
+        // One could have multiple pointers to the same object: 
+        // the serialization of pointers takes care of redundancy.
+        // In order to use this feature, the classes must implement 
+        // ArchiveIN and ArchiveOUT functions.
+        ChVector<>* a_vect = new ChVector<>(1,2,3); 
+        marchive << CHNVP(a_vect);
+        delete a_vect;
 
         // Also store c++ objects referenced by pointer, using the
         // class abstraction (class factory) mechanism, so that it
         // can be loaded later even if we do not know if it was an object of
         // class 'myEmployee' or specialized class 'myEmployeeBoss'...
+        // In order to use this feature, the classes must implement 
+        // CH_RTTI_ROOT or CH_RTTI functions and ArchiveIN and ArchiveOUT
         myEmployeeBoss* a_boss = new myEmployeeBoss(64, 22356, false);
         a_boss->slave.age = 24;
         marchive << CHNVP(a_boss);  //  object was referenced by pointer.
-      //  marchive << CHNVP(a_boss);  //  object was referenced by pointer.
-      //  marchive << CHNVP(a_boss);  //  object was referenced by pointer.
+
+        // If another pointer shares the same object instance, you can serialize
+        // it too without worrying, because the serialization system will save only
+        // the first copy and following copies will just use references.
+
+        myEmployeeBoss* a_boss2 = a_boss;
+        marchive << CHNVP(a_boss2);  //  object was referenced by pointer.
+
+        // Also store c++ objects referenced by shared pointers.
+        // If pointed objects objects have CH_RTTI, the class abstraction
+        // vill be automatically used.
+        ChSharedPtr<myEmployeeBoss> s_boss(new myEmployeeBoss);
+        marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
+
         delete a_boss;
+}
 
 
-    } catch (ChException myex) {
-        GetLog() << "ERROR: " << myex.what();
-    }
+//
+// Example on how to deserialize IN some data:
+//
 
-  
-    // Well, now try to load data back, to see if things worked ok...
-
-    try {
-        // Open a file of class "ChStreamInBinaryFile" as a container
-        ChStreamInBinaryFile mfilei("foo_archive.dat");
-
-        // Create a binary archive, that uses the binary file as storage.
-        ChArchiveInBinary marchive(mfilei);
-        
-
+void my_deserialization_example(ChArchiveIn& marchive)
+{  
         // Read from persistent binary file to transient data
-        char mbuffer[200];
-        char* m_text = mbuffer;
         double m_double;
         int m_int;
+        double m_array[3];
+        char m_text[12]; // better use std::string
         std::string m_string;
         std::vector< double > m_stlvector;
         ChMatrixDynamic<> m_matr;
         ChVector<> m_vect;
         ChQuaternion<> m_quat;
         myEmployeeBoss m_boss;
-        marchive >> CHNVP(m_text);    // retrieve data n.1
-        marchive >> CHNVP(m_double);  // retrieve data n.2
-        marchive >> CHNVP(m_int);     // retrieve data n.3
-        marchive >> CHNVP(m_string);  // retrieve data n....
+        ChVector<>* a_vect;
+
+        
+        marchive >> CHNVP(m_double);  // deserialize data n.1
+        marchive >> CHNVP(m_int);     // deserialize data n.2
+        marchive >> CHNVP(m_array);   // deserialize data n.3
+        marchive >> CHNVP(m_text);    // deserialize data n....
+        marchive >> CHNVP(m_string);  
         marchive >> CHNVP(m_stlvector);
         marchive >> CHNVP(m_matr);
         marchive >> CHNVP(m_vect);  
-        marchive >> CHNVP(m_quat);   
+        marchive >> CHNVP(m_quat);        
+
+        // Also deserialize the C++ object
         marchive >> CHNVP(m_boss); 
+
+        // Also deserialize the C++ pointer: an object will be created!
+        marchive >> CHNVP(a_vect); 
 
         // Also retrieve c++ objects, referenced by a base class pointer, using the
         // class abstraction (class factory) mechanism, so that it
         // can be loaded even if we do not know if it was an object of
         // the base class 'myEmployee' or the specialized 'myEmployeeBoss' class..
         myEmployee* a_boss = 0;
-        myEmployee* a_boss1 = 0;
-        myEmployee* a_boss2 = 0;
-        marchive >> CHNVP(a_boss);
-       // marchive >> CHNVP(a_boss1);
-       // marchive >> CHNVP(a_boss2);
+        marchive >> CHNVP(a_boss);  // object will be created
 
-        GetLog() << "\nResult of binary I/O: \n " << m_text << " \n " << m_int << " \n" << m_double << "\n";
+        // Since the two pointers a_boss and a_boss2 were serialized when pointing to 
+        // the same object instance, now the following will Not create another copy but will
+        // automatically point to the same object of a_boss. 
+        myEmployee* a_boss2 = 0;
+        marchive >> CHNVP(a_boss2); 
+
+
+        // Also store c++ objects referenced by shared pointers.
+        // If pointed objects objects have CH_RTTI, the class abstraction
+        // will be automatically used.
+        ChSharedPtr<myEmployeeBoss> s_boss(0);
+        marchive >> CHNVP(s_boss);
+
+        // Just for safety, log some of the restored data:
+
+        GetLog() << "\n\nResult of binary I/O: \n " << m_text << " \n " << m_int << " \n" << m_double << "\n";
         GetLog() << m_matr;
         GetLog() << m_vect;
         GetLog() << m_quat;
@@ -282,15 +299,20 @@ int main(int argc, char* argv[]) {
             GetLog() << m_stlvector[i] << " ";
         GetLog() << "\n\n We also loaded a myEmployeeBoss object:\n";
         GetLog() << m_boss;
-
-        if (a_boss1) {
-            GetLog() << "\n\n We used AbstractReadCreate() to load an 2nd obj inherited from myEmployee class:\n";
-            GetLog() << *a_boss1;
-        }
+        GetLog() << *a_vect;
 
         if (a_boss) {
-            GetLog() << "\n\n We used AbstractReadCreate() to load an obj inherited from myEmployee class:\n";
+            GetLog() << "\n\n We loaded an obj inherited from myEmployee class:\n";
             GetLog() << *a_boss;
+
+        if (a_boss2) {
+            GetLog() << "\n\n We loaded a 2nd obj inherited from myEmployee class (referencing the 1st):\n";
+            GetLog() << *a_boss2;
+        }
+        if (s_boss) {
+            GetLog() << "\n\n We loaded a 3nd obj inherited from myEmployee class:\n";
+            GetLog() << *(s_boss);
+        }
 
             // By the way, now show some feaures of Chrono run-time-type-identifier
             // methods, since class had CH_RTTI enabled.
@@ -308,14 +330,96 @@ int main(int argc, char* argv[]) {
             GetLog() << "Obvious! we loaded an object of class: " << a_boss->GetRTTI()->GetName() << "\n";
             delete a_boss;
         }
+}
+
+
+
+int main(int argc, char* argv[]) {
+
+    GetLog() << "\n"
+             << "CHRONO foundation classes demo: archives (serialization)\n\n";
+
+    
+    //  Archives inherited from the base class ChArchiveOut can be
+    // used to serialize objects, and streams inherited from ChArchiveIn
+    // can be used to get them back. For example, file streams like
+    // ChArchiveOutBinary and ChArchiveInBinary can be used for this
+    // purpose.
+    
+    try {       
+        
+        {
+            //
+            // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
+            //
+
+        
+            ChStreamOutAsciiFile mfileo("foo_archive.txt");
+
+            // Create a binary archive, that uses the binary file as storage.
+            ChArchiveAsciiDump marchiveout(mfileo);
+        
+            my_serialization_example(marchiveout);
+        }
+
+
+        {
+            //
+            // Example: SERIALIZE TO/FROM BINARY:
+            //
+
+            {
+                ChStreamOutBinaryFile mfileo("foo_archive.dat");
+
+                // Create a binary archive, that uses the binary file as storage.
+                ChArchiveOutBinary marchiveout(mfileo);
+        
+                my_serialization_example(marchiveout);
+            }
+
+            {
+                ChStreamInBinaryFile mfilei("foo_archive.dat");
+
+                // Create a binary archive, that uses the binary file as storage.
+                ChArchiveInBinary marchivein(mfilei);
+
+                 my_deserialization_example(marchivein);
+            }
+        }
+
+
+        {
+            //
+            // Example: SERIALIZE TO/FROM JSON:
+            //
+
+            {
+                ChStreamOutAsciiFile mfileo("foo_archive.json");
+
+                // Create a binary archive, that uses the binary file as storage.
+                ChArchiveOutJSON marchiveout(mfileo);
+        
+                my_serialization_example(marchiveout);
+            }
+
+            
+            {
+                ChStreamInAsciiFile mfilei("foo_archive.json");
+
+                // Create a binary archive, that uses the binary file as storage.
+                ChArchiveInJSON marchivein(mfilei);
+
+                my_deserialization_example(marchivein);
+            }
+            
+        }
+  
+
+        GetLog() << "Serialization test ended with success.\n";
 
     } catch (ChException myex) {
-        // Ops.. file could not be opened or read.. echo what happened!
-        GetLog() << "ERROR: " << myex.what();
+        GetLog() << "ERROR: " << myex.what() << "\n\n";
     }
-
-
-   
 
     return 0;
 }
