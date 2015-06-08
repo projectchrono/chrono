@@ -25,6 +25,19 @@ IF (MSVC OR XCODE_VERSION)
 ENDIF()
 
 # ------------------------------------------------------------------------------
+# Set C++11 flags
+# ------------------------------------------------------------------------------
+IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+# using Clang
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c++11")
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+# using Visual Studio C++
+ENDIF()
+
+# ------------------------------------------------------------------------------
 # Find the Chrono library
 # ------------------------------------------------------------------------------
 
