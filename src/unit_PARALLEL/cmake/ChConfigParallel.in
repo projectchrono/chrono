@@ -1,0 +1,61 @@
+// -----------------------------------------------------------------
+// Chrono-Parallel configuration header file
+// -----------------------------------------------------------------
+
+// If SSE support was found, then
+//   #define CHRONO_PARALLEL_HAS_SSE
+// and set the SSE level support, one of the following
+//   #define CHRONO_PARALLEL_SSE_LEVEL "1.0"
+//   #define CHRONO_PARALLEL_SSE_LEVEL "2.0"
+//   #define CHRONO_PARALLEL_SSE_LEVEL "3.0"
+//   #define CHRONO_PARALLEL_SSE_LEVEL "4.1"
+//   #define CHRONO_PARALLEL_SSE_LEVEL "4.2"
+// and define one or more of the following, as appropriate
+//   #define CHRONO_PARALLEL_SSE_1.0
+//   #define CHRONO_PARALLEL_SSE_2.0
+//   #define CHRONO_PARALLEL_SSE_3.0
+//   #define CHRONO_PARALLEL_SSE_4.1
+//   #define CHRONO_PARALLEL_SSE_4.2
+
+@CHRONO_PARALLEL_HAS_SSE@
+@CHRONO_PARALLEL_SSE_LEVEL@
+@CHRONO_PARALLEL_SSE_1_0@
+@CHRONO_PARALLEL_SSE_2_0@
+@CHRONO_PARALLEL_SSE_3_0@
+@CHRONO_PARALLEL_SSE_4_1@
+@CHRONO_PARALLEL_SSE_4_2@
+
+// If OpenMP is found the following define is set
+//   #define CHRONO_PARALLEL_OMP_FOUND
+// Set the highest OpenMP version supported, one of:
+//   #define CHRONO_PARALLEL_OMP_VERSION "2.0"
+//   #define CHRONO_PARALLEL_OMP_VERSION "3.0"
+//   #define CHRONO_PARALLEL_OMP_VERSION "4.0"
+// and define one or more of the following, as appropriate
+//   #define CHRONO_PARALLEL_OMP_20
+//   #define CHRONO_PARALLEL_OMP_30
+//   #define CHRONO_PARALLEL_OMP_40
+@CHRONO_PARALLEL_OMP_FOUND@
+@CHRONO_PARALLEL_OMP_VERSION@
+@CHRONO_PARALLEL_OMP_20@
+@CHRONO_PARALLEL_OMP_30@
+@CHRONO_PARALLEL_OMP_40@
+
+
+// If OpenGL suppport was found, then
+//   #define CHRONO_PARALLEL_HAS_OPENGL
+@CHRONO_PARALLEL_HAS_OPENGL@
+
+// If using double precision
+//   #define CHRONO_PARALLEL_USE_DOUBLE
+@CHRONO_PARALLEL_USE_DOUBLE@
+
+
+// If Chrono::Vehicle was found, then
+//   #define CHRONO_PARALLEL_HAS_VEHICLE
+@CHRONO_PARALLEL_HAS_VEHICLE@
+
+// If support for linking to Chrono::Vehicle is enabled,
+// then specify the path to the Chrono::Vehicle data
+#define CHRONO_VEHICLE_DATA_DIR "@CHRONO_VEHICLE_DATA_DIR@"
+
