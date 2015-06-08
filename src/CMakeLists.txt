@@ -177,7 +177,7 @@ else()
 endif()
 
 # Enable C++11 support
-option(ENABLE_CXX11 "Enable C++11 support" OFF)
+option(ENABLE_CXX11 "Enable C++11 support" ON)
 if(ENABLE_CXX11)
     find_package(ModernCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
