@@ -305,7 +305,7 @@ class  ChArchiveOut : public ChArchive {
           for (size_t i = 0; i<arraysize; ++i)
           {
               char buffer[20];
-              sprintf(buffer, "el_%d", i);
+              sprintf(buffer, "el_%d", (unsigned int)i);
               ChNameValue< T > array_val(buffer, bVal.value()[i]);
               this->out (array_val);
               this->out_array_between(arraysize, typeid(bVal.value()).name());
@@ -320,7 +320,7 @@ class  ChArchiveOut : public ChArchive {
           for (size_t i = 0; i<bVal.value().size(); ++i)
           {
               char buffer[20];
-              sprintf(buffer, "el_%d", i);
+              sprintf(buffer, "el_%d", (unsigned int)i);
               ChNameValue< T > array_val(buffer, bVal.value()[i]);
               this->out (array_val);
               this->out_array_between(bVal.value().size(), typeid(bVal.value()).name());
