@@ -9,6 +9,12 @@ MKL_INT main(void)
 	double A[3][3] = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
 	double b[3] = { 1, 2, 3 };
 
+	double a_test[] = { 10.0, 1.0, 10.0, 2.0, 1.0, 10.0, -1.0, 20.0, 1.0, 20.0, -2.0, -2.0, 20.0, 1.0, 2.0, -1.0, 1.0, -2.0, -0.0, 1.0, -2.0, -0.0 };
+	int ia_test[] = { 0, 2, 5, 7, 9, 12, 13, 19, 22 };
+	int ja_test[] = { 0, 6, 1, 6, 7, 2, 6, 3, 6, 4, 6, 7, 5, 0, 1, 2, 3, 4, 6, 1, 4, 7 };
+
+	double f_test[] = {1,2,0,0,0,0,-5,1};
+
 	// build the CSR3 format matrix
 	double *a = NULL;  //ptr to the array of CSR3 matrix
 	MKL_INT *ja = NULL; //ptr to column vector of CSR3 matrix
@@ -58,7 +64,7 @@ MKL_INT main(void)
 	MKL_INT error = 0;            /* Initialize error flag */
 	MKL_INT phase = -10;          /* Before PARDISO call flag */
 	MKL_INT mtype = 11;         /* real nonsymmetric matrix */
-	MKL_INT idum;         /* real nonsymmetric matrix */
+	MKL_INT idum;         /* dummy integer*/
 	MKL_INT nrhs = 1;           /* number of right hand sides */
 
 
@@ -74,7 +80,7 @@ MKL_INT main(void)
 	{
 		f[i] = b[i];
 		us[i] = 1.0;
-		u[i] = 1.0;
+		u[i] = 0.0;
 	}
 
 	/* Initialize PARDISO handle */
@@ -88,7 +94,10 @@ MKL_INT main(void)
 	while (res > 1.e-8)
 	{
 		phase = 13;
-		pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, &idum, &nrhs, iparm, &msglvl, f, u, &error);
+		/*pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, &idum, &nrhs, iparm, &msglvl, f, u, &error);*/
+
+		int n_test = 8;
+		pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n_test, a_test, ia_test, ja_test, &idum, &nrhs, iparm, &msglvl, f_test, u, &error);
 
 		for (int i = 0; i < n; i++)
 		{

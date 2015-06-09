@@ -165,6 +165,7 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
     /// Optimised: doesn't fill unneeded elements except mass and 3x3 inertia.
     void Build_M(ChSparseMatrix& storage, int insrow, int inscol);
+	void Build_M(ChEigenMatrix& storage, int insrow, int inscol);
 };
 
 }  // END_OF_NAMESPACE____

@@ -1,5 +1,6 @@
-
-#include "demo_sandbox.h"
+#include <core/ChCSR3matrix.h>
+#include <core/ChSpmatrix.h>
+#include <core/ChMatrixDynamic.h>
 
 using namespace chrono;
 //
@@ -24,10 +25,10 @@ using namespace chrono;
 //	}
 //
 //}
-
-void printMatrix(ChEigenMatrix* matrice){
-	for (int i = 0; i < matrice->rows(); i++){
-		for (int j = 0; j < matrice->cols(); j++){
+template<class ChMatrixIN>
+void printMatrix(ChMatrixIN* matrice){
+	for (int i = 0; i < matrice->GetRows(); i++){
+		for (int j = 0; j < matrice->GetColumns(); j++){
 			printf("%.1f ", matrice->GetElement(i,j));
 		}
 		printf("\n");
@@ -36,21 +37,36 @@ void printMatrix(ChEigenMatrix* matrice){
 
 int main(){
 
-	chrono::ChMatrixDynamic<> matricedensa(5, 5);
-	matricedensa.FillElem(3.7);
+	chrono::ChMatrixDynamic<double> matricedensa(5, 5);
+	matricedensa.FillRandom(13, 4);
+	printMatrix(&matricedensa);
 
 
 	ChEigenMatrix matricesparsa(10, 10);
 
-	matricesparsa.PasteMatrix(&matricedensa, 0, 0);
+	/*matricesparsa.PasteMatrix(&matricedensa, 0, 0);
 	matricesparsa.PasteMatrix(&matricedensa, 5, 5);
 
 	matricesparsa.PasteMatrix(&matricedensa, 0, 0);
 	matricesparsa.PasteSumMatrix(&matricedensa, 5, 5);
 
+	*/
+
+	matricesparsa.PasteSumClippedMatrix(&matricedensa, 2, 2, 2, 2, 3, 3);
+
 	printMatrix(&matricesparsa);
+	double* a =  matricesparsa.valuePtr();
 
+	if (!NULL) 
+		printMatrix(&matricesparsa);
 
+	const int n = 10 ;
+	ChMatrixDynamic<double> vettoredenso(n,1);
+	double* puntatore = vettoredenso.GetAddress();
+
+	for (int i = 0; i < n; i++){
+		printf("\n%.1f", puntatore+i);
+	};
 
 
 	//std::vector<Tripletta> coefficienti(10);
