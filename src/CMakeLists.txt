@@ -264,6 +264,7 @@ if(BUILD_CH_SDK)
         core/ChCoordsys.cpp
         core/ChSpmatrix.cpp
         core/ChQuadrature.cpp
+		core/ChCSR3matrix.cpp
         )
     set(ChronoEngine_core_HEADERS
         core/ChApiCE.h
@@ -300,8 +301,8 @@ if(BUILD_CH_SDK)
         core/ChWrapHashmap.h
         core/ChDistribution.h
         core/ChQuadrature.h
-		core/ChTemplateExpressions.h
-        )
+		core/ChCSR3matrix.h
+		core/ChTemplateExpressions.h        )
 
     list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")
 

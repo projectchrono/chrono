@@ -34,6 +34,7 @@
 #include "core/ChMatrix.h"
 #include "core/ChSpmatrix.h"
 #include "core/ChClassRegister.h"
+#include "core/ChCSR3matrix.h"
 
 namespace chrono {
 
@@ -342,11 +343,13 @@ class ChApi ChLcpConstraint {
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes!
     virtual void Build_Cq(ChSparseMatrix& storage, int insrow) = 0;
+	virtual void Build_Cq(ChEigenMatrix& storage, int insrow) = 0;
 
     /// Same as Build_Cq, but puts the _transposed_ jacobian row as a column.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes!
     virtual void Build_CqT(ChSparseMatrix& storage, int inscol) = 0;
+	virtual void Build_CqT(ChEigenMatrix& storage, int inscol) = 0;
 
     /// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }

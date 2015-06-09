@@ -54,13 +54,13 @@ if (ENABLE_UNIT_MKL)
 			SET (CH_MKLLIB
 					"${CH_MKLROOT}/lib/ia32/mkl_intel_thread_dll.lib" 
 					"${CH_MKLROOT}/lib/ia32/mkl_core_dll.lib" )
-			SET (CH_MKL_LINK_FLAGS "/Qopenmp") # not yet implemented
+			# SET (CH_MKL_LINK_FLAGS "/Qopenmp") # not yet implemented
 		ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
 			SET (CH_MKLLIB 
 					"${CH_MKLROOT}/lib/intel64/mkl_intel_lp64_dll.lib" 
 					"${CH_MKLROOT}/lib/intel64/mkl_intel_thread_dll.lib" 
 					"${CH_MKLROOT}/lib/intel64/mkl_core_dll.lib" )
-			SET (CH_MKL_LINK_FLAGS "/Qopenmp")
+			# SET (CH_MKL_LINK_FLAGS "/Qopenmp")
 		ENDIF()
 	# ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		# SET (CH_MKLLIB 
@@ -82,6 +82,12 @@ if (ENABLE_UNIT_MKL)
 							# ${CH_EIGEN_PATH}
 							)
 
+	# ADD_LIBRARY(ChronoEngine_MKL  
+				# ${ChronoEngine_UNIT_MKL_SPARSEMATRIX}
+				# ${ChronoEngine_UNIT_MKL_SOURCES}
+				# ${ChronoEngine_UNIT_MKL_HEADERS}
+				# )
+				
 	ADD_LIBRARY(ChronoEngine_MKL SHARED 
 				# ${ChronoEngine_UNIT_MKL_SPARSEMATRIX}
 				${ChronoEngine_UNIT_MKL_SOURCES}

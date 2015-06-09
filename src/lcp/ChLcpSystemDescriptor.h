@@ -347,6 +347,19 @@ class ChApi ChLcpSystemDescriptor {
                                      bool only_bilaterals = false,
                                      bool skip_contacts_uv = false);
 
+	virtual void ConvertToMatrixForm(ChEigenMatrix* Z = 0,   ///< fill this global matrix with 'M' and 'K', if not null
+									ChMatrix<>* rhs = 0,  ///< fill this vector as the known term 'f' and 'b', if not null
+									ChEigenMatrix* Cq = 0,   ///< fill this system jacobian matrix, if not null
+									ChEigenMatrix* M = 0,    ///< fill this system mass matrix, if not null
+									ChEigenMatrix* E = 0,    ///< fill this system 'compliance' matrix , if not null
+									ChMatrix<>* Fvector = 0,  ///< fill this vector as the known term 'f', if not null
+									ChMatrix<>* Bvector = 0,  ///< fill this vector as the known term 'b', if not null
+									ChMatrix<>* Frict = 0,    ///< fill as a vector with friction coefficients (=-1 for
+									/// tangent comp.; =-2 for bilaterals), if not null
+									bool only_bilaterals = false,
+									bool skip_contacts_uv = false);
+
+
     /// Saves to disk the LAST used matrices of the problem.
     ///  dump_M.dat  has masses and/or stiffness (Matlab sparse format)
     ///  dump_Cq.dat has the jacobians (Matlab sparse format)
@@ -360,11 +373,19 @@ class ChApi ChLcpSystemDescriptor {
                                ChSparseMatrix* M,
                                bool only_bilaterals = false,
                                bool skip_contacts_uv = false);
+	virtual void BuildMatrices(ChEigenMatrix* Cq,
+							   ChEigenMatrix* M,
+							   bool only_bilaterals = false,
+							   bool skip_contacts_uv = false);
     /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm, or BuildFbVector or BuildBiVector
     virtual void BuildVectors(ChSparseMatrix* f,
                               ChSparseMatrix* b,
                               bool only_bilaterals = false,
                               bool skip_contacts_uv = false);
+	virtual void BuildVectors(ChMatrix<>* f,
+							  ChMatrix<>* b,
+							  bool only_bilaterals = false,
+							  bool skip_contacts_uv = false);
 };
 
 }  // END_OF_NAMESPACE____
