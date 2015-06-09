@@ -157,7 +157,10 @@ public:
 template<class T>
 class  ChNameValue {
   public:
-        ChNameValue(const char* mname, T& mvalue) : _name(mname), _value((T*)(& mvalue)) {}
+        ChNameValue(const char* mname, T& mvalue, unsigned int mflags = 0) : 
+            _name(mname), 
+            _value((T*)(& mvalue)),
+            _flags((unsigned int)mflags) {}
 
         virtual ~ChNameValue() {};
 
@@ -173,9 +176,14 @@ class  ChNameValue {
             return *(this->_value);
         }
 
+        enum ChNameValueFlags {
+            TRACK_OBJECT = (1 << 0),
+            NULLIFY_OBJECT = (1 << 1)
+        };
   protected:
         T* _value;
         const char* _name;
+        unsigned int _flags;
 };
 
 
@@ -321,8 +329,9 @@ class  ChArchiveOut : public ChArchive {
       }
 
         // trick to call out_ref on ChSharedPointer, with class abstraction:
-      template<class T, typename enable_if< ChDetect_GetRTTI<T>::value, T>::type* = nullptr > 
-      void out     (ChNameValue< ChSharedPtr<T> > bVal) {
+      template<class T>
+      typename enable_if< ChDetect_GetRTTI<T>::value >::type
+      out     (ChNameValue< ChSharedPtr<T> > bVal) {
           bool already_stored; size_t pos;
           PutPointer(bVal.value().get_ptr(), already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(bVal.value().get_ptr(), &T::ArchiveOUT);
@@ -334,8 +343,9 @@ class  ChArchiveOut : public ChArchive {
       }
 
         // trick to call out_ref on ChSharedPointer, without class abstraction:
-      template<class T, typename enable_if< !ChDetect_GetRTTI<T>::value, T>::type* = nullptr >
-      void out     (ChNameValue< ChSharedPtr<T> > bVal) {
+      template<class T>
+      typename enable_if< !ChDetect_GetRTTI<T>::value >::type 
+      out     (ChNameValue< ChSharedPtr<T> > bVal) {
           bool already_stored; size_t pos;
           PutPointer(bVal.value().get_ptr(), already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(bVal.value().get_ptr(), &T::ArchiveOUT);
@@ -347,8 +357,9 @@ class  ChArchiveOut : public ChArchive {
       }
 
         // trick to call out_ref on plain pointers, with class abstraction:
-      template<class T,  typename enable_if< ChDetect_GetRTTI<T>::value, T>::type* = nullptr >
-      void out     (ChNameValue<T*> bVal) {
+      template<class T>
+      typename enable_if< ChDetect_GetRTTI<T>::value >::type
+      out     (ChNameValue<T*> bVal) {
           bool already_stored; size_t pos;
           PutPointer(bVal.value(), already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(bVal.value(), &T::ArchiveOUT);
@@ -360,8 +371,9 @@ class  ChArchiveOut : public ChArchive {
       }
 
          // trick to call out_ref on plain pointers (no class abstraction):
-      template<class T, typename enable_if< !ChDetect_GetRTTI<T>::value, T>::type* = nullptr >
-      void out     (ChNameValue<T*> bVal) {
+      template<class T>
+      typename enable_if< !ChDetect_GetRTTI<T>::value >::type 
+      out     (ChNameValue<T*> bVal) {
           bool already_stored; size_t pos;
           PutPointer(bVal.value(), already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(bVal.value(), &T::ArchiveOUT);
@@ -477,8 +489,9 @@ class  ChArchiveIn : public ChArchive {
       }
 
         // trick to call in_ref on ChSharedPointer, with class abstraction:
-      template<class T, typename enable_if< ChDetect_GetRTTI<T>::value, T>::type* = nullptr >
-      void in     (ChNameValue< ChSharedPtr<T> > bVal) {
+      template<class T>
+      typename enable_if< ChDetect_GetRTTI<T>::value >::type 
+      in     (ChNameValue< ChSharedPtr<T> > bVal) {
           T* mptr;
           ChFunctorArchiveInSpecificPtrAbstract<T> specFuncA(&mptr, &T::ArchiveIN);
           ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA);
@@ -487,8 +500,9 @@ class  ChArchiveIn : public ChArchive {
       }
 
          // trick to call in_ref on ChSharedPointer (no class abstraction):
-      template<class T, typename enable_if< !ChDetect_GetRTTI<T>::value, T>::type* = nullptr >
-      void in     (ChNameValue< ChSharedPtr<T> > bVal) {
+      template<class T>
+      typename enable_if< !ChDetect_GetRTTI<T>::value >::type
+      in     (ChNameValue< ChSharedPtr<T> > bVal) {
           T* mptr;
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&mptr, &T::ArchiveIN);
           ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA);
@@ -497,15 +511,17 @@ class  ChArchiveIn : public ChArchive {
       }
 
         // trick to call in_ref on plain pointers, with class abstraction:
-      template<class T, typename enable_if< ChDetect_GetRTTI<T>::value, T>::type* = nullptr >
-      void in     (ChNameValue<T*> bVal) {
+      template<class T>
+      typename enable_if< ChDetect_GetRTTI<T>::value >::type
+      in     (ChNameValue<T*> bVal) {
           ChFunctorArchiveInSpecificPtrAbstract<T> specFuncA(&bVal.value(), &T::ArchiveIN);
           this->in_ref_abstract(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA) );
       }
 
         // trick to call in_ref on plain pointers (no class abstraction):
-      template<class T, typename enable_if< !ChDetect_GetRTTI<T>::value, T>::type* = nullptr >
-      void in     (ChNameValue<T*> bVal) {
+      template<class T>
+      typename enable_if< !ChDetect_GetRTTI<T>::value >::type
+      in     (ChNameValue<T*> bVal) {
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value(), &T::ArchiveIN);
           this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA) );
       }
