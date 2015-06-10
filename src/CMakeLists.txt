@@ -80,20 +80,19 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #-----------------------------------------------------------------------------
-# OPTIONS AND USER SETTINGS
-# These cached variables will be shown in the GUI of CMake as
-# flags that you can turn ON/OFF to enable/disable the compilation
-# of some part of the entire project.
-# Switching off some unit might be useful in case you do not want to
-# install extra libraries/software that could be needed (for instance
-# to compile the MPI unit you must have the MPICH libraries and headers
-# installed on your system).
+# Enable CTest
 
-set(BUILD_CH_SDK         TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine main library.")
-set(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
-set(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
+enable_testing()
+include(CTest)
+
+#-----------------------------------------------------------------------------
+# Optionally enable building the demo programs
+
+include(CMakeDependentOption)
+option(BUILD_DEMOS "Build demo programs" ON)
 
 
+#-----------------------------------------------------------------------------
 # Also, some variables that were used in previous makefile system (some
 # of them could be set automatically because CMake should recognize automatically
 # the compiler, generator, platform, etc....
@@ -233,7 +232,6 @@ set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/convexdecompositio
 include_directories( ${CH_INCLUDES} )
 
 
-if(BUILD_CH_SDK)
 
     #-----------------------------------------------------------------------------
     #
@@ -1155,7 +1153,8 @@ if(BUILD_CH_SDK)
     #    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BINARY_DIR}/data/.svn
     #)
 
-endif(BUILD_CH_SDK)
+
+#------------------------------------------------------------
 
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -1204,26 +1203,27 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/
     )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" DESTINATION include/chrono/core)
 
-#
+#------------------------------------------------------------
 # Propagates the CMake build to other directories
-#
+#------------------------------------------------------------
+
+# Add directories to build various optional modules.  Each module is supposed
+# to provide an option for enabling that particular module.
 
 add_subdirectory(unit_MATLAB)
-# add_subdirectory(unit_MPI)
-# add_subdirectory(unit_GPU)
-#add_subdirectory(unit_JS)
 add_subdirectory(unit_CASCADE)
-# add_subdirectory(unit_OPENGL)
 add_subdirectory(unit_IRRLICHT)
 add_subdirectory(unit_POSTPROCESS)
 add_subdirectory(unit_COSIMULATION)
 add_subdirectory(unit_FEA)
 add_subdirectory(unit_PYTHON)
-#
-# Demo Files
-#
-add_subdirectory(demos)
-add_subdirectory(unit_TESTING)
 
+# Add directories for demo programs and unit test programs.
+
+add_subdirectory(demos)
+
+if (BUILD_TESTING)
+  add_subdirectory(unit_TESTING)
+endif()
 
 include(CPack)
