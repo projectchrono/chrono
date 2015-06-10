@@ -141,43 +141,67 @@ endif()
 #set_property(CACHE CH_COMPILER PROPERTY STRINGS ${CH_COMPILER_VALUES})
 
 #-----------------------------------------------------------------------------
-# Generate configuration.h file
-# This way platform and system specific settings can be added to the
-# configuration.h file
-#
-#CONFIGURE_FILE(
-#  "${CH_CHRONOSRC}/core/configuration.h.in"
-#  "${CH_CHRONOSRC}/core/configuration.h"
-#  @ONLY
-#)
-
-
-#-----------------------------------------------------------------------------
-# Find the Chrono::Engine headers and related stuff contained
-# in its SDK, and setup related variables
+# Specify locations of executables and libraries
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+
+#-----------------------------------------------------------------------------
+# Enable C++11 support
+
+find_package(ModernCXX)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+
+#-----------------------------------------------------------------------------
+# Threads and OpenMP support
 
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 
-set(ENABLE_OPENMP          TRUE    CACHE BOOL   "Turn this ON to enable OpenMP")
-if(ENABLE_OPENMP)
-    find_package("OpenMP")
-    if(OPENMP_FOUND)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    endif(OPENMP_FOUND)
-else()
-    unset(OPENMP_FOUND)
+# We always look for OpenMP (which is required for the PARALLEL unit).
+# However, we allow the user to optionally disable OpenMP support in the
+# main ChronoEngine library, regardless on whether or not OpenMP is found.
+
+find_package("OpenMP")
+
+# Determine OpenMP version. Prepare substitution variables that can be used in
+# generating configuration header files.
+
+if(OPENMP_FOUND)
+  include(CheckOpenMPVersion)
+  message(STATUS "OpenMP version: ${OMP_VERSION}")
+  set(CHRONO_OMP_FOUND "#define CHRONO_OMP_FOUND")
+  set(CHRONO_OMP_VERSION "#define CHRONO_OMP_VERSION \"${OMP_VERSION}\"")
+  if(OMP_20)
+    set(CHRONO_OMP_20 "#define CHRONO_OMP_20")
+  else()
+    set(CHRONO_OMP_20 "")
+  endif()
+  if(OMP_30)
+    set(CHRONO_OMP_30 "#define CHRONO_OMP_30")
+  else()
+    set(CHRONO_OMP_30 "")
+  endif()
+  if(OMP_40)
+    set(CHRONO_OMP_40 "#define CHRONO_OMP_40")
+  else()
+    set(CHRONO_OMP_40 "")
+  endif()
 endif()
 
-# Enable C++11 support
-find_package(ModernCXX)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+# Provide an option (dependent on OPENMP_FOUND) for the user to disable OpenMP
+# support in the main ChronoEngine library.
+cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" ON
+                       "OPENMP_FOUND" OFF)
+
+if(ENABLE_OPENMP)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif()
+
+#-----------------------------------------------------------------------------
 
 set(CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -188,7 +212,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 endif()
 
-
+#-----------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC)
