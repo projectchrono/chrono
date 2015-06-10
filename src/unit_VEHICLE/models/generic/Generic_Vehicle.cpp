@@ -30,6 +30,7 @@
 #include "models/generic/Generic_SolidAxle.h"
 #include "models/generic/Generic_MultiLink.h"
 #include "models/generic/Generic_DoubleWishbone.h"
+#include "models/generic/Generic_HendricksonPRIMAXX.h"
 
 #include "models/generic/Generic_AntirollBarRSD.h"
 
@@ -83,8 +84,6 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
   // -------------------------------------------
   m_suspensions.resize(2);
 
-  assert(m_suspType == SOLID_AXLE || m_suspType == MULTI_LINK);
-
   switch (m_suspType) {
   case SOLID_AXLE:
     m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxle("FrontSusp"));
@@ -97,6 +96,9 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
   case DOUBLE_WISHBONE:
     m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_DoubleWishbone("Front suspension"));
     m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_DoubleWishbone("Rear suspension"));
+  case HENDRICKSON_PRIMAXX:
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_HendricksonPRIMAXX("Front suspension"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_HendricksonPRIMAXX("Rear suspension"));
   }
 
   // --------------------------------

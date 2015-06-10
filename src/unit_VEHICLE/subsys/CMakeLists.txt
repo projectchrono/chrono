@@ -51,6 +51,8 @@ SET(CV_SUSPENSION_FILES
     suspension/ChSolidAxle.cpp
     suspension/ChMultiLink.h
     suspension/ChMultiLink.cpp
+    suspension/ChHendricksonPRIMAXX.h
+    suspension/ChHendricksonPRIMAXX.cpp
 
     suspension/DoubleWishbone.h
     suspension/DoubleWishbone.cpp
@@ -60,6 +62,8 @@ SET(CV_SUSPENSION_FILES
     suspension/SolidAxle.cpp
     suspension/MultiLink.h
     suspension/MultiLink.cpp
+    suspension/HendricksonPRIMAXX.h
+    suspension/HendricksonPRIMAXX.cpp
 )
 
 SET(CV_WHEEL_FILES
