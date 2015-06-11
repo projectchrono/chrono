@@ -248,12 +248,33 @@ CONFIGURE_FILE(
   ${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h
   )
 
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${BLAZE_DIR} ${BOOST_DIR} ${THRUST_INCLUDE_DIR})
+# ------------------------------------------------------------------------------
+# Collect all include directories necessary for the PARALLEL module
+# ------------------------------------------------------------------------------
+
+SET(CH_PARALLEL_INCLUDES
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${PROJECT_BINARY_DIR}
+    ${BLAZE_DIR}
+    ${BOOST_DIR}
+    ${THRUST_INCLUDE_DIR}
+)
+
+SET(CH_OPENGL_INCLUDES
+    ${GLM_INCLUDE_DIRS}
+    ${GLEW_INCLUDE_DIR}
+    ${GLFW_INCLUDE_DIR}
+)
+
+INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 
 # ------------------------------------------------------------------------------
-# Add paths to the top of the source directory for the PARALLEL module
+# Make some variables visible from parent directory
 # ------------------------------------------------------------------------------
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+
+SET(CH_PARALLEL_INCLUDES "${CH_PARALLEL_INCLUDES}" PARENT_SCOPE)
+SET(ENABLE_OPENGL "${ENABLE_OPENGL}" PARENT_SCOPE)
+SET(CH_OPENGL_INCLUDES "${CH_OPENGL_INCLUDES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # Add subdirectories, depending on user-specified options
