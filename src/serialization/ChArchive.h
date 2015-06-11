@@ -20,6 +20,7 @@
 #include "core/ChTemplateExpressions.h"
 #include <string>
 #include <vector>
+#include <list>
 #include <typeinfo>
 
 namespace chrono {
@@ -36,6 +37,13 @@ CH_CREATE_MEMBER_DETECTOR(GetRTTI)
 
 
 
+/// Exceptions for archives should inherit from this
+class ChExceptionArchive : public ChException 
+{
+public:
+    ChExceptionArchive(std::string swhat) : ChException(swhat){};
+};
+
 
 /// Functor to call the ArchiveOUT function for unrelated classes that
 /// implemented them. This helps stripping out the templating, to make ChArchiveOut
@@ -43,7 +51,8 @@ CH_CREATE_MEMBER_DETECTOR(GetRTTI)
 
 class ChFunctorArchiveOut {
 public:
-    virtual void CallArchiveOut(ChArchiveOut& marchive)=0;    
+    virtual void CallArchiveOut(ChArchiveOut& marchive)=0;   
+    virtual bool IsNull()=0;
 };
 
 template <class TClass> 
@@ -61,6 +70,10 @@ public:
 
       virtual void CallArchiveOut(ChArchiveOut& marchive)
         { (*pt2Object.*fpt)(marchive);};             // execute member function
+
+      virtual bool IsNull()
+        { return (pt2Object==0);};            
+
 };
 
 
@@ -176,10 +189,10 @@ class  ChNameValue {
             return *(this->_value);
         }
 
-        enum ChNameValueFlags {
-            TRACK_OBJECT = (1 << 0),
-            NULLIFY_OBJECT = (1 << 1)
-        };
+        // Flags:
+
+        static const char TRACK_OBJECT = (1 << 0);
+ 
   protected:
         T* _value;
         const char* _name;
@@ -188,10 +201,22 @@ class  ChNameValue {
 
 
 
+
 template<class T>
-ChNameValue< T > make_ChNameValue(const char * name, T & t){
-    return ChNameValue< T >(name, t);
+ChNameValue< T > make_ChNameValue(const char * auto_name, T & t, const char * custom_name, char flags = 0){
+    const char* mname = auto_name;
+    if (custom_name)
+        mname = custom_name;
+    return ChNameValue< T >(mname, t, flags);
 }
+template<class T>
+ChNameValue< T > make_ChNameValue(const char * auto_name, T & t, char flags = 0){
+    const char* mname = auto_name;
+    return ChNameValue< T >(mname, t, flags);
+}
+
+
+
 
 /// Macros to create ChNameValue objects easier
 
@@ -233,10 +258,12 @@ class ChArchive {
     std::vector<void*> objects_pointers;
 
     bool use_versions;
+    bool cut_pointers;
 
   public:
     ChArchive() {
         use_versions = true;
+        cut_pointers = false;
         Init();
     }
 
@@ -245,11 +272,12 @@ class ChArchive {
     /// Reinitialize the vector of pointers to loaded/saved objects
     void Init() {
         objects_pointers.clear();
-        objects_pointers.push_back(0);
+        objects_pointers.push_back(0); // objects_pointers[0] for null pointer.
     }
-    /// Put a pointer in pointer vector, but only if it
-    /// was not previously inserted. Returns position of pointer
-    /// if already existing, otherwise -1.
+    /// Find a pointer in pointer vector: eventually add it to vecor if it
+    /// was not previously inserted. Returns already_stored=false if was
+    /// already inserted. Return 'pos' offset in vector in any case.
+    /// For null pointers, always return 'already_stored'=true, and 'pos'=0.
     void PutPointer(void* object, bool& already_stored, size_t& pos) {
         for (size_t i = 0; i < objects_pointers.size(); ++i) {
             if (objects_pointers[i] == object)
@@ -271,6 +299,12 @@ class ChArchive {
     /// Use this to turn off version info in archives (either save/load both
     /// with version info, or not, do not mix because it could give problems in binary archives.).
     void SetUseVersions(bool muse) {this->use_versions = muse;}
+
+    /// If you enable  SetCutPointers(true), no serialization happens for 
+    /// objects referenced via pointers. This can be useful to save a single object, 
+    /// regardless of the fact that it contains pointers to other 'children' objects.
+    /// Cut pointers are turned into null pointers.
+    void SetCutPointers(bool mcut) {this->cut_pointers = mcut;}
 };
 
 
@@ -369,8 +403,11 @@ class  ChArchiveOut : public ChArchive {
       typename enable_if< ChDetect_GetRTTI<T>::value >::type
       out     (ChNameValue< ChSharedPtr<T> > bVal) {
           bool already_stored; size_t pos;
-          PutPointer(bVal.value().get_ptr(), already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(bVal.value().get_ptr(), &T::ArchiveOUT);
+          T* mptr = bVal.value().get_ptr();
+          if (this->cut_pointers)
+              mptr = 0;
+          PutPointer(mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref_abstract(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA), 
               already_stored, 
@@ -383,8 +420,11 @@ class  ChArchiveOut : public ChArchive {
       typename enable_if< !ChDetect_GetRTTI<T>::value >::type 
       out     (ChNameValue< ChSharedPtr<T> > bVal) {
           bool already_stored; size_t pos;
-          PutPointer(bVal.value().get_ptr(), already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(bVal.value().get_ptr(), &T::ArchiveOUT);
+          T* mptr = bVal.value().get_ptr();
+          if (this->cut_pointers)
+              mptr = 0;
+          PutPointer(mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA), 
               already_stored, 
@@ -397,8 +437,11 @@ class  ChArchiveOut : public ChArchive {
       typename enable_if< ChDetect_GetRTTI<T>::value >::type
       out     (ChNameValue<T*> bVal) {
           bool already_stored; size_t pos;
-          PutPointer(bVal.value(), already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(bVal.value(), &T::ArchiveOUT);
+          T* mptr = bVal.value();
+          if (this->cut_pointers)
+              mptr = 0;
+          PutPointer(mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref_abstract(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA), 
               already_stored,
@@ -411,8 +454,11 @@ class  ChArchiveOut : public ChArchive {
       typename enable_if< !ChDetect_GetRTTI<T>::value >::type 
       out     (ChNameValue<T*> bVal) {
           bool already_stored; size_t pos;
-          PutPointer(bVal.value(), already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(bVal.value(), &T::ArchiveOUT);
+          T* mptr = bVal.value();
+          if (this->cut_pointers)
+              mptr = 0;
+          PutPointer(mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA), 
               already_stored,
@@ -420,7 +466,7 @@ class  ChArchiveOut : public ChArchive {
               typeid(T).name() ); // note, this class name is not platform independent
       }
 
-        // trick to apply 'virtual out..' on unrelated C++ objects that has a function "ArchiveOUT":
+        // trick to apply 'virtual out..' on remaining C++ object, that has a function "ArchiveOUT":
       template<class T>
       void out     (ChNameValue<T> bVal) {
           ChFunctorArchiveOutSpecific<T> specFuncA(&bVal.value(), &T::ArchiveOUT);
@@ -443,7 +489,7 @@ class  ChArchiveOut : public ChArchive {
       }
       
   protected:
-
+      
 };
 
 
@@ -490,7 +536,7 @@ class  ChArchiveIn : public ChArchive {
       void in     (ChNameValue<T[N]> bVal) {
           size_t arraysize;
           this->in_array_pre(bVal.name(), arraysize);
-          if (arraysize != sizeof(bVal.value())/sizeof(T) ) {throw (ChException( "Size of [] saved array does not match size of receiver array " + std::string(bVal.name()) + "."));}
+          if (arraysize != sizeof(bVal.value())/sizeof(T) ) {throw (ChExceptionArchive( "Size of [] saved array does not match size of receiver array " + std::string(bVal.name()) + "."));}
           for (size_t i = 0; i<arraysize; ++i)
           {
               char idname[20];
@@ -504,7 +550,7 @@ class  ChArchiveIn : public ChArchive {
           this->in_array_end(bVal.name());
       }
 
-              // trick to wrap stl::vector container
+             // trick to wrap stl::vector container
       template<class T>
       void in     (ChNameValue< std::vector<T> > bVal) {
           bVal.value().clear();
