@@ -1,15 +1,27 @@
 #--------------------------------------------------------------
 # Add executables
 
+SET(DEMOS
+  demo_LCPsolver
+)
 
-ADD_EXECUTABLE(demo_LCPsolver  	demo_LCPsolver.cpp)
-SOURCE_GROUP(demos\\lcp_solver FILES  		demo_LCPsolver.cpp)
-SET_TARGET_PROPERTIES(demo_LCPsolver PROPERTIES 
-	FOLDER demos
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	)
-TARGET_LINK_LIBRARIES(demo_LCPsolver 
- 	ChronoEngine)
-ADD_DEPENDENCIES (demo_LCPsolver ChronoEngine)
+MESSAGE(STATUS "Demo programs for LCP_SOLVER module...")
 
-install(TARGETS demo_LCPsolver DESTINATION bin)
+FOREACH(PROGRAM ${DEMOS})
+    MESSAGE(STATUS "...add ${PROGRAM}")
+
+    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+        FOLDER demos
+        COMPILE_FLAGS "${CH_BUILDFLAGS}"
+        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+    )
+
+    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine)
+    ADD_DEPENDENCIES(${PROGRAM} ChronoEngine)
+
+    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+
+ENDFOREACH(PROGRAM)

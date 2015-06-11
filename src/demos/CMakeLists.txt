@@ -23,8 +23,10 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
 
+message(STATUS "==== Demo programs ====")
+
 ADD_SUBDIRECTORY(basics)
-ADD_SUBDIRECTORY(benchmarks)
+#ADD_SUBDIRECTORY(benchmarks)
 ADD_SUBDIRECTORY(core)
 ADD_SUBDIRECTORY(lcp_solver)
 
@@ -41,7 +43,6 @@ IF (ENABLE_UNIT_IRRLICHT)
 ENDIF()
 
 IF (ENABLE_UNIT_MATLAB)
-	INCLUDE_DIRECTORIES( ${CH_MATLABINC} )
 	ADD_SUBDIRECTORY(matlab)
 ENDIF()
 	

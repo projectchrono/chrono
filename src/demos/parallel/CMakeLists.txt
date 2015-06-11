@@ -60,7 +60,7 @@ IF(ENABLE_OPENGL)
     SET(DEMOS ${DEMOS} benchmarkOpenGL shapesOpenGL)
 ENDIF()
 
-MESSAGE(STATUS "Demo programs...")
+MESSAGE(STATUS "Demo programs for PARALLEL module...")
 
 FOREACH(PROGRAM ${DEMOS})
     MESSAGE(STATUS "...add ${PROGRAM}")
