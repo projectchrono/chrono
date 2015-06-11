@@ -258,7 +258,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
         ChQuaternion<> m_quat;
         myEmployeeBoss m_boss;
         ChVector<>* a_vect;
-        ChVector<>* a_null_ptr = &m_vect;
+        ChVector<>* a_null_ptr;
         
         marchive >> CHNVP(m_double,"custom double");  // deserialize data n.1
         marchive >> CHNVP(m_int);     // deserialize data n.2
@@ -303,29 +303,25 @@ void my_deserialization_example(ChArchiveIn& marchive)
         // Just for safety, log some of the restored data:
 
         GetLog() << "\n\nResult of binary I/O: \n " << m_text << " \n " << m_int << " \n" << m_double << "\n";
-        GetLog() << m_matr;
-        GetLog() << m_vect;
-        GetLog() << m_quat;
+        GetLog() < m_matr;
+        GetLog() < m_vect;
+        GetLog() < m_quat;
         GetLog() << m_string.c_str();
-        GetLog() << "\n stl::vector of size " <<  m_stlvector.size() << ":\n";
-        for(int i=0; i< m_stlvector.size(); ++i)
-            GetLog() << m_stlvector[i] << " ";
-        GetLog() << "\n\n We also loaded a myEmployeeBoss object:\n";
-        GetLog() << m_boss;
-        GetLog() << *a_vect;
-        GetLog() << "\n The null pointer: " << (int)a_null_ptr;
+        GetLog() < m_stlvector;
+        GetLog() < m_boss;
+        GetLog() < a_vect;
 
         if (a_boss) {
             GetLog() << "\n\n We loaded an obj inherited from myEmployee class:\n";
-            GetLog() << *a_boss;
+            GetLog() < *a_boss;
 
         if (a_boss2) {
             GetLog() << "\n\n We loaded a 2nd obj inherited from myEmployee class (referencing the 1st):\n";
-            GetLog() << *a_boss2;
+            GetLog() < *a_boss2;
         }
         if (s_boss) {
             GetLog() << "\n\n We loaded a 3nd obj inherited from myEmployee class:\n";
-            GetLog() << *(s_boss);
+            GetLog() < *(s_boss);
         }
 
             // By the way, now show some feaures of Chrono run-time-type-identifier
