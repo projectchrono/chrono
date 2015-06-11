@@ -174,21 +174,25 @@ void my_serialization_example(ChArchiveOut& marchive)
         m_stlvector.push_back (2.3); 
         m_stlvector.push_back (45.3);
         m_stlvector.push_back (66.44);
+        std::list< std::string > m_stllist; 
+        m_stllist.push_back ("foo"); 
+        m_stllist.push_back ("bar");
         ChMatrixDynamic<double> m_matr(3, 5);
         m_matr.FillRandom(10, 0);
         ChVector<> m_vect(0.5, 0.6, 0.7);
         ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
         
-        marchive << CHNVP(m_double);  // store data n.1      
+        marchive << CHNVP(m_double,"custom double");  // store data n.1      
         marchive << CHNVP(m_int);     // store data n.2 
         marchive << CHNVP(m_array);   // store data n.3
         marchive << CHNVP(m_text);    // store data n....
         marchive << CHNVP(m_string);  
         marchive << CHNVP(m_stlvector);
+        marchive << CHNVP(m_stllist);
         marchive << CHNVP(m_matr);    
         marchive << CHNVP(m_vect);    
         marchive << CHNVP(m_quat);  
-
+        
         // Also store a c++ object 
         // In order to use this feature, the classes must implement 
         // ArchiveIN and ArchiveOUT functions.
@@ -203,6 +207,10 @@ void my_serialization_example(ChArchiveOut& marchive)
         ChVector<>* a_vect = new ChVector<>(1,2,3); 
         marchive << CHNVP(a_vect);
         delete a_vect;
+
+        // Null pointers can be serialized. They will be deserialized as null.
+        ChVector<>* a_null_ptr = 0; 
+        marchive << CHNVP(a_null_ptr);
 
         // Also store c++ objects referenced by pointer, using the
         // class abstraction (class factory) mechanism, so that it
@@ -244,19 +252,21 @@ void my_deserialization_example(ChArchiveIn& marchive)
         char m_text[12]; // better use std::string
         std::string m_string;
         std::vector< double > m_stlvector;
+        std::list< std::string > m_stllist;
         ChMatrixDynamic<> m_matr;
         ChVector<> m_vect;
         ChQuaternion<> m_quat;
         myEmployeeBoss m_boss;
         ChVector<>* a_vect;
-
+        ChVector<>* a_null_ptr = &m_vect;
         
-        marchive >> CHNVP(m_double);  // deserialize data n.1
+        marchive >> CHNVP(m_double,"custom double");  // deserialize data n.1
         marchive >> CHNVP(m_int);     // deserialize data n.2
         marchive >> CHNVP(m_array);   // deserialize data n.3
         marchive >> CHNVP(m_text);    // deserialize data n....
         marchive >> CHNVP(m_string);  
         marchive >> CHNVP(m_stlvector);
+        marchive >> CHNVP(m_stllist);
         marchive >> CHNVP(m_matr);
         marchive >> CHNVP(m_vect);  
         marchive >> CHNVP(m_quat);        
@@ -266,6 +276,9 @@ void my_deserialization_example(ChArchiveIn& marchive)
 
         // Also deserialize the C++ pointer: an object will be created!
         marchive >> CHNVP(a_vect); 
+
+        // Also deserialize the null C++ pointer: no object is created, and pointer set as null.
+        marchive >> CHNVP(a_null_ptr);
 
         // Also retrieve c++ objects, referenced by a base class pointer, using the
         // class abstraction (class factory) mechanism, so that it
@@ -300,6 +313,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
         GetLog() << "\n\n We also loaded a myEmployeeBoss object:\n";
         GetLog() << m_boss;
         GetLog() << *a_vect;
+        GetLog() << "\n The null pointer: " << (int)a_null_ptr;
 
         if (a_boss) {
             GetLog() << "\n\n We loaded an obj inherited from myEmployee class:\n";
@@ -413,7 +427,7 @@ int main(int argc, char* argv[]) {
             }
             
         }
-  
+ 
 
         GetLog() << "Serialization test ended with success.\n";
 
