@@ -15,10 +15,11 @@
 
 
 #include "serialization/ChArchive.h"
-#include "serialization/rapidjson/document.h"
-#include "serialization/rapidjson/prettywriter.h"
-#include "serialization/rapidjson/filereadstream.h"
-#include "serialization/rapidjson/filewritestream.h"
+#include "thirdparty/rapidjson/document.h"
+#include "thirdparty/rapidjson/prettywriter.h"
+#include "thirdparty/rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filewritestream.h"
+#include "core/ChLog.h"
 #include "core/ChMathematics.h"
 #include <stack>
 #include <fstream>
