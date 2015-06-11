@@ -41,7 +41,6 @@ namespace chrono {
 ///
 /// then call as myfunct(myvalue);
 
-#include <iterator>
 
 #define CH_CREATE_MEMBER_DETECTOR(X)                                                   \
 template<typename T> class ChDetect_##X {                                             \
