@@ -275,6 +275,36 @@ class ChApi ChSparseMatrix : public ChMatrix<double> {
     /// Write first few rows and columns to the console
     /// Method to allow serializing transient data into in ascii
     void StreamOUT(ChStreamOutAscii& mstream);
+
+	/**
+	* Functions used to convert to CSR3 format (ChEigenMatrix)
+	*/
+
+	/// Used to convert to CSR3 format (ChEigenMatrix)
+	/// Returns the array to 1st column elements
+	ChMelement* GetElarrayDereferenced() { return *elarray; }; // used to scan the matrix faster than GetElement
+
+	/// Used to convert to CSR3 format (ChEigenMatrix)
+	/// Returns a pointer to an array/vector of type \areserveSizeType.
+	///reserveSizeType[i] gives the number of non-zero elements in the i-th row;
+	/// \areserveSize must have the same row-dimension as ChSparseMatrix instance.
+	template <typename reserveSizeType>
+	void CountNonZeros(reserveSizeType& reserveSize, int offset = 0) {
+		ChMelement* el_temp;
+		// from the first element of each row scan until there's no "next" linked element
+		for (int i = 0; i < GetRows(); i++){	// for each row
+			el_temp = elarray[i];				// start from the element [i,0]
+			while (el_temp){
+				if (el_temp->val != 0)
+					reserveSize[i + offset]++;			// assert("i" should be equal to el_temp->row)
+				el_temp = el_temp->next;		// move right until no "next" element is found
+			};
+			// there is no backward search because we always start from guess[j]
+			// that points to (j-th row, 1st column) element also if it is zero
+		};
+	}; // END CountNonZeros
+
+
 };
 
 // used internally:

@@ -30,8 +30,9 @@
 
 #include "ChApiMkl.h"
 #include "mkl.h"
-#include "core/ChCSR3matrix.h"
+#include "ChCSR3matrix.h"
 #include "core/ChMatrix.h"
+#include "core/ChSpmatrix.h"
 
 
 namespace chrono {
@@ -142,13 +143,39 @@ namespace chrono {
 
 		inline bool SetKnownVector(double* insb){ f = insb; return 0; }
 
-		inline bool SetUnknownVector(double* insx){	u = insx; return 0;	}
+		/// It simply pastes two vectors (insf over insb) in a third vector fdest that
+		/// is set as the KnownVector of the problem.
+		/// It could be put also in ChMatrix if needed
+		inline void SetKnownVector(ChMatrix<>* insf, ChMatrix<>* insb, ChMatrix<>* fdest){
+			// assures that the destination vector has the correct dimension
+			if ((insb->GetRows() + insf->GetRows()) != fdest->GetRows())
+				fdest->Resize((insb->GetRows() + insf->GetRows()), 1);
+
+			// pastes values of insf and insb in fdest
+			for (int i = 0; i < insf->GetRows(); i++)
+				fdest->SetElement(i,0,insf->GetElement(i,0));
+			for (int i = 0; i < insb->GetRows(); i++)
+				fdest->SetElement(i + insf->GetRows(), 0, insb->GetElement(i, 0));
+
+			// takes the fdest as KnownTerm of the problem
+			f = fdest->GetAddress();
+		}
+
+		inline bool SetUnknownVector(double* insu){ u = insu; return 0; }
+		inline bool SetUnknownVector(ChMatrix<>* insx){
+			assert(insx->GetRows() == n);
+			u = insx->GetAddress();
+			return 0;
+		}
 
 		bool SetProblem(ChEigenMatrix* Z, double* insb, double* insx){
 			return (!SetMatrix(Z) && !SetKnownVector(insb) && !SetUnknownVector(insx)) ? 0 : 1;
 		}
 
 		bool SetProblem(ChEigenMatrix* Z, ChMatrix<>* insb, ChMatrix<>* insx){
+			assert(Z->GetRows() == n);
+			assert(insb->GetRows() == n);
+			assert(insx->GetRows() == n);
 			return (!SetMatrix(Z) && !SetKnownVector(insb->GetAddress()) && !SetUnknownVector(insx->GetAddress())) ? 0 : 1;
 		}
 

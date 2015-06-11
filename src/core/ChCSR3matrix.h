@@ -1,8 +1,8 @@
 #ifndef CHCSR3MATRIX_H
 #define CHCSR3MATRIX_H
 
-
-#include <Eigen\Sparse>
+#include <Eigen/Sparse>
+#include <core/ChSpmatrix.h>
 
 namespace chrono{
 	class ChEigenMatrix : public Eigen::SparseMatrix < double, 1 > {
@@ -10,6 +10,7 @@ namespace chrono{
 		ChEigenMatrix() : Eigen::SparseMatrix<double,1>() {};
 		ChEigenMatrix(Index rows, Index cols) : Eigen::SparseMatrix<double,1>(rows, cols){};
 		ChEigenMatrix(Index dimension) : Eigen::SparseMatrix<double, 1>(dimension, dimension){};
+
 		/*template<typename OtherDerived>
 		ChEigenMatrix(const Eigen::SparseMatrixBase<SparseMatrix<OtherDerived>>& other) : Eigen::SparseMatrix<other>(){};
 		template<typename OtherDerived>
@@ -17,7 +18,6 @@ namespace chrono{
 			this->Eigen::SparseMatrix<double>::operator=(other);
 			return *this;
 		};*/
-
 
 
 	public:
@@ -32,15 +32,15 @@ namespace chrono{
 		};
 
 		inline double* GetValueArray(){
-			return this->valuePtr();
+			return valuePtr();
 		}
 
 		inline int* GetColumnIndex(){
-			return this->innerIndexPtr();
+			return innerIndexPtr();
 		}
 
 		inline int* GetRowIndex(){
-			return this->outerIndexPtr();
+			return outerIndexPtr();
 		}
 
 
@@ -93,7 +93,6 @@ namespace chrono{
 			return this->coeff(row, col);
 		};
 
-
 		inline int GetRows(){
 			return (int) this->rows();
 		}
@@ -101,6 +100,8 @@ namespace chrono{
 		inline int GetColumns(){
 			return (int) this->cols();
 		}
+
+		//void makeCompressed(); // if we choose to have Eigen::SparseMatrix as PRIVATE base
 
 
 		template <bool overwrite = 1, class ChMatrixIN>
@@ -125,13 +126,109 @@ namespace chrono{
 		double& operator()(const int row, const int col) { return Element(row, col); }
 		double& operator()(const int index)              { return Element( (int)index/cols(), index % cols() ); }
 
-
 		inline void Reset(int new_rows, int new_cols){
 			if ( (new_rows != this->rows()) || (new_cols != this->cols()) )
 				resize(new_rows, new_cols);
 		}
 
-		inline void Reset(int){}; // square matrix
+		inline void Reset(int mat_size){
+			Reset(mat_size, mat_size);
+		}
+
+
+
+		// Import function from ChSparseMatrix format; this function resets the matrix!
+		void LoadFromChSparseMatrix(ChSparseMatrix* mat)
+		{
+			// Create the CSR3 matrix with just the right amount of elements
+			int mat_rows = mat->GetRows();
+			resize(mat_rows, mat->GetColumns());	// rectangular matrices allowed; matrix still empty
+			std::vector<int> reserveSize(mat_rows); // will take the number of elements for each row
+			mat->CountNonZeros<std::vector<int>>(reserveSize);
+			reserve(reserveSize);
+
+			// Import values from ChSparseMatrix
+			ChMelement* elarray = mat->GetElarrayDereferenced();
+			ChMelement* el_temp;
+			for (int i = 0; i < mat_rows; i++){
+				el_temp = &elarray[i];
+				while (el_temp){
+					if (el_temp->val != 0)
+						SetElement(i, el_temp->col, el_temp->val);
+					el_temp = el_temp->next;
+				};
+
+			};
+
+		} // END LoadFromChSparseMatrix;
+
+		void LoadFromChSparseMatrix(ChSparseMatrix* M, ChSparseMatrix* Cq, ChSparseMatrix* E)
+		{	
+			// Create the CSR3 matrix
+			int M_rows = M->GetRows();
+			int Cq_rows = Cq->GetRows();
+			int mat_rows = M_rows + Cq_rows;
+			resize(mat_rows, mat_rows); // only square matrices allowed
+
+			// Preallocate a ChEigenMatrix with the exact number of non-zeros of the ChSparseMatrix
+			std::vector<int> reserveSize(mat_rows); // will take the number of elements for each row
+			ChMelement* Cq_elarray = Cq->GetElarrayDereferenced();
+			ChMelement* el_temp;
+
+			// scan Cq matrix for non-zeros
+			for (int i = 0; i < Cq_rows; i++){
+				el_temp = &Cq_elarray[i];
+				while (el_temp){
+					if (el_temp->val != 0){
+						reserveSize[M_rows + i]++;
+						reserveSize[el_temp->col]++;
+					};
+					el_temp = el_temp->next; 
+				};
+			};
+
+			M->CountNonZeros<std::vector<int>>(reserveSize);
+			E->CountNonZeros<std::vector<int>>(reserveSize, M_rows);
+
+			reserve(reserveSize);
+
+			// Import values from ChSparseMatrix
+
+			for (int i = 0; i < Cq_rows; i++){
+				el_temp = &Cq_elarray[i];
+				while (el_temp){
+					if (el_temp->val != 0){
+						SetElement(M_rows+i , el_temp->col, el_temp->val); // sets the Cq
+						SetElement(el_temp->col, M_rows + i , el_temp->val); // sets the Cq'
+					};
+					el_temp = el_temp->next;
+				};
+			};
+
+			ChMelement* M_elarray = M->GetElarrayDereferenced();
+			for (int i = 0; i < M_rows; i++){
+				el_temp = &M_elarray[i];
+				while (el_temp){
+					if (el_temp->val != 0)
+						SetElement(i, el_temp->col, el_temp->val);
+					el_temp = el_temp->next;
+				};
+			};
+
+			ChMelement* E_elarray = E->GetElarrayDereferenced();
+			for (int i = 0; i < Cq_rows; i++){
+				el_temp = &E_elarray[i];
+				while (el_temp){
+					if (el_temp->val != 0)
+						SetElement(i + M_rows, M_rows + el_temp->col, el_temp->val);
+					el_temp = el_temp->next;
+				};
+			};
+			
+
+
+
+		} // END LoadFromChSparseMatrix;
 
 	}; // END class
 }; // END namespace

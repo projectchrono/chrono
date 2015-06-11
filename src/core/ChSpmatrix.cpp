@@ -306,8 +306,7 @@ ChMelement* ChSparseMatrix::GetElement(int row, int col, double* val, ChMelement
     assert(guess->row == row)
 #endif
 
-            ChMelement *
-        enext;
+    ChMelement* enext;
     ChMelement* eprev;
 
     while (guess->col != col) {

@@ -22,33 +22,44 @@ ELSE()
 ENDIF()
 
 if (ENABLE_UNIT_MKL)
-	# SET(CH_EIGEN_PATH "D:/SourceTreeWS/libraries/eigen"     CACHE PATH   "Where is your Eigen library main folder? (should contain ./Engine)")
-	SET(CH_MKLROOT "C:/Program Files (x86)/Intel/Composer XE/mkl"     CACHE PATH   "Where is your MKL SDK installed? Ex. C:/Program Files (x86)/Intel/Composer XE/mkl. You must set this path to compile demos with MKL interface.")
-
-	# include_directories( ${CH_INCLUDES} )
-
+	
+# INTERNAL FILES
+	# Header files
 	SET(ChronoEngine_UNIT_MKL_HEADERS
 	  ChApiMkl.h
-	  ChMklEngine.h
 	  ChLcpMklSolver.h
 	)
 
-	# SET(ChronoEngine_UNIT_MKL_SPARSEMATRIX
-	  # ChCSR3matrix.h
-	  # ChCSR3matrix.cpp
-	# )
-
-	SET(ChronoEngine_UNIT_MKL_SOURCES
-	  ChMklEngine.cpp
-	  ChLcpMklSolver.cpp
+	SET(ChronoEngine_CSR3_HEADERS
+	  ChCSR3matrix.h
+	)
+	
+	# Source files
+	SET(ChronoEngine_CSR3_SOURCES
+	  ChCSR3matrix.cpp
 	)
 
-	# SOURCE_GROUP(MatrixCS3 FILES ${ChronoEngine_UNIT_MKL_SPARSEMATRIX})
-	SOURCE_GROUP(UNIT FILES ${ChronoEngine_UNIT_MKL_SOURCES} ${ChronoEngine_UNIT_MKL_HEADERS})
+	SET(ChronoEngine_UNIT_MKL_SOURCES
+	  ChLcpMklSolver.cpp
+	)
+	
+	# Organizing...
+	SET (ChronoEngine_UNIT_MKL_INCLUDE ${ChronoEngine_CSR3_HEADERS} ${ChronoEngine_UNIT_MKL_HEADERS})
 
-
+	SOURCE_GROUP(MatrixCSR3 FILES ${ChronoEngine_CSR3_HEADERS} ${ChronoEngine_CSR3_SOURCES})
+	SOURCE_GROUP(UNIT FILES ${ChronoEngine_UNIT_MKL_HEADERS} ${ChronoEngine_UNIT_MKL_SOURCES})
+	
+# 3RD PARTY LIBRARIES
+	# request path to Eigen and Intel MKL library
+	SET(CH_EIGEN_PATH "D:/SourceTreeWS/libraries/eigen"     CACHE PATH   "Where is your Eigen library main folder? (should contain ./Engine)")
+	SET(CH_MKLROOT "C:/Program Files (x86)/Intel/Composer XE/mkl"     CACHE PATH   "Where is your MKL SDK installed? Ex. C:/Program Files (x86)/Intel/Composer XE/mkl. You must set this path to compile demos with MKL interface.")
+	
+	# Header files
 	SET (CH_MKLINC "${CH_MKLROOT}/include")
-
+	SET (CH_MKLINC "${CH_MKLINC}"		PARENT_SCOPE )
+	SET (CH_EIGEN_PATH	"${CH_EIGEN_PATH}"    	PARENT_SCOPE )
+	
+	# Library files
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
 			SET (CH_MKLLIB
@@ -60,7 +71,7 @@ if (ENABLE_UNIT_MKL)
 					"${CH_MKLROOT}/lib/intel64/mkl_intel_lp64_dll.lib" 
 					"${CH_MKLROOT}/lib/intel64/mkl_intel_thread_dll.lib" 
 					"${CH_MKLROOT}/lib/intel64/mkl_core_dll.lib" )
-			# SET (CH_MKL_LINK_FLAGS "/Qopenmp")
+			# SET (CH_MKL_LINK_FLAGS "/Qopenmp") # not yet implemented
 		ENDIF()
 	# ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		# SET (CH_MKLLIB 
@@ -75,21 +86,16 @@ if (ENABLE_UNIT_MKL)
 				# "${CH_MKLROOT}/../bin/maci64/libmat.dylib")
 	ENDIF()
 
-	SET (CH_MKLINC    "${CH_MKLINC}"    PARENT_SCOPE )
-	SET (CH_MKLLIB    "${CH_MKLLIB}"    PARENT_SCOPE )
+	SET (CH_MKLLIB    	"${CH_MKLLIB}"    		PARENT_SCOPE )
+	
+# PROJECT SETTINGS
+	INCLUDE_DIRECTORIES(${CH_MKLINC}
+						${CH_EIGEN_PATH}
+						)
 
-	INCLUDE_DIRECTORIES( ${CH_MKLROOT}/include
-							# ${CH_EIGEN_PATH}
-							)
-
-	# ADD_LIBRARY(ChronoEngine_MKL  
-				# ${ChronoEngine_UNIT_MKL_SPARSEMATRIX}
-				# ${ChronoEngine_UNIT_MKL_SOURCES}
-				# ${ChronoEngine_UNIT_MKL_HEADERS}
-				# )
-				
 	ADD_LIBRARY(ChronoEngine_MKL SHARED 
-				# ${ChronoEngine_UNIT_MKL_SPARSEMATRIX}
+				${ChronoEngine_CSR3_HEADERS}
+				${ChronoEngine_CSR3_SOURCES}
 				${ChronoEngine_UNIT_MKL_SOURCES}
 				${ChronoEngine_UNIT_MKL_HEADERS}
 				)
@@ -99,18 +105,19 @@ if (ENABLE_UNIT_MKL)
 				LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MKL_LINK_FLAGS}"
 				COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_MKL")
 							  
-	TARGET_LINK_LIBRARIES(ChronoEngine_MKL 
-		ChronoEngine
-		${CH_MKLLIB}
-		)
+	TARGET_LINK_LIBRARIES(	ChronoEngine_MKL 
+							ChronoEngine
+							${CH_MKLLIB}
+							# Eigen doesn't have library files
+							)
 		
 	ADD_DEPENDENCIES (ChronoEngine_MKL ChronoEngine)  # better, because not automatic
 
 	INSTALL(TARGETS ChronoEngine_MKL
-		RUNTIME DESTINATION bin
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib
+			RUNTIME DESTINATION bin
+			LIBRARY DESTINATION lib
+			ARCHIVE DESTINATION lib
 	)       
 
-	INSTALL(FILES ${ChronoEngine_UNIT_MKL_HEADERS} DESTINATION include/chrono/unit_MKL)
+	INSTALL(FILES ${ChronoEngine_UNIT_MKL_HEADERS} ${ChronoEngine_UNIT_MKL_CSR3_HEADERS} DESTINATION include/chrono/unit_MKL)
 ENDIF()
