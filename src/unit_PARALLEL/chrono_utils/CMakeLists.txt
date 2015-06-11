@@ -34,7 +34,7 @@ INCLUDE_DIRECTORIES(
 # Link to Chrono and Chrono_Parallel LIBRARIES
 
 SET(LIBRARIES
-    ${CHRONOENGINE_LIBRARY}
+    ChronoEngine
     ChronoEngine_Parallel
     )
 

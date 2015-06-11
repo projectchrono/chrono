@@ -1234,6 +1234,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" DESTINATION include
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
 
+add_subdirectory(unit_PARALLEL)
 add_subdirectory(unit_MATLAB)
 add_subdirectory(unit_CASCADE)
 add_subdirectory(unit_IRRLICHT)
