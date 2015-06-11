@@ -56,7 +56,7 @@ SET(TESTS
     test_shafts
 )
 
-MESSAGE(STATUS "Unit test programs...")
+MESSAGE(STATUS "Unit test programs for PARALLEL module...")
 
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")
