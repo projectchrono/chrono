@@ -345,6 +345,24 @@ class  ChArchiveOut : public ChArchive {
           }
           this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
       }
+        // trick to wrap stl::list container
+      template<class T>
+      void out     (ChNameValue< std::list<T> > bVal) {
+          this->out_array_pre(bVal.name(), bVal.value().size(), typeid(T).name());
+          std::list<T>::iterator iter;
+          size_t i = 0;
+          for (iter = bVal.value().begin(); iter != bVal.value().end(); ++iter, ++i)
+          {
+              char buffer[20];
+              sprintf(buffer, "el_%d", (unsigned int)i);
+              ChNameValue< T > array_val(buffer, (*iter));
+              this->out (array_val);
+              this->out_array_between(bVal.value().size(), typeid(bVal.value()).name());
+          }
+          this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
+      }
+     
+
 
         // trick to call out_ref on ChSharedPointer, with class abstraction:
       template<class T>
@@ -501,6 +519,24 @@ class  ChArchiveIn : public ChArchive {
               ChNameValue< T > array_val(idname, element);
               this->in (array_val);
               bVal.value()[i]=element;
+              this->in_array_between(bVal.name());
+          }
+          this->in_array_end(bVal.name());
+      }
+             // trick to wrap stl::list container
+      template<class T>
+      void in     (ChNameValue< std::list<T> > bVal) {
+          bVal.value().clear();
+          size_t arraysize;
+          this->in_array_pre(bVal.name(), arraysize);
+          for (size_t i = 0; i<arraysize; ++i)
+          {
+              char idname[20];
+              sprintf(idname, "el_%d", i);
+              T element;
+              ChNameValue< T > array_val(idname, element);
+              this->in (array_val);
+              bVal.value().push_back(element);
               this->in_array_between(bVal.name());
           }
           this->in_array_end(bVal.name());
