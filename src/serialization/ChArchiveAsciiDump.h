@@ -32,6 +32,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       ChArchiveAsciiDump( ChStreamOutAsciiFile& mostream) {
           ostream = &mostream;
           tablevel = 0;
+          use_versions = false;
       };
 
       virtual ~ChArchiveAsciiDump() {};
@@ -137,8 +138,12 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
           (*ostream) << bVal.name() << "->   [" << classname << "]  (class factory support)   ID=" << position <<"\n";
           ++tablevel;
           if (!already_inserted) {
-            // New Object, we have to full serialize it
-            bVal.value().CallArchiveOut(*this);
+              if (!bVal.value().IsNull()) {
+                    // New Object, we have to full serialize it
+                    bVal.value().CallArchiveOut(*this);
+              } else {
+                  (*ostream) << "NULL\n";
+              }
           }
           --tablevel;
       }
@@ -149,8 +154,12 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
           (*ostream) << bVal.name() << "->   [" << classname << "]   ID=" << position <<"\n";
           ++tablevel;
           if (!already_inserted) {
-            // New Object, we have to full serialize it
-            bVal.value().CallArchiveOut(*this);
+             if (!bVal.value().IsNull()) {
+                    // New Object, we have to full serialize it
+                    bVal.value().CallArchiveOut(*this);
+              } else {
+                  (*ostream) << "NULL\n";
+              }
           } 
           --tablevel;
       }
