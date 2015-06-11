@@ -73,7 +73,7 @@ using namespace thrust;
 
 // Enable thread safe logging
 #define ELPP_THREAD_SAFE
-#include "third_party/easylogging/easylogging.h"
+#include "thirdparty/easylogging/easylogging.h"
 #define LOGGINGENABLED
 #else
 class NullBuffer : public std::streambuf {
