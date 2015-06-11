@@ -23,14 +23,6 @@ SET(ChronoEngine_Utils_HEADERS
     ChUtilsInputOutput.h
     )
 
-# Include Chrono and Chrono_Parallel HEADERS
-
-INCLUDE_DIRECTORIES(
-    ${CH_CHRONO_SDKDIR}
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_BINARY_DIR}
-    )
-
 # Link to Chrono and Chrono_Parallel LIBRARIES
 
 SET(LIBRARIES
