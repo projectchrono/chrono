@@ -267,6 +267,8 @@ include_directories( ${CH_INCLUDES} )
     # You can add both .cpp and .h, only the .cpp will be compiled.
     #
 
+    message(STATUS "==== Chrono Engine core module ====")
+
     # Set version string and Git commit hash.
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/core/ChVersion.h.in" "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" @ONLY)
 

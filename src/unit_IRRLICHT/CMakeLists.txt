@@ -6,15 +6,17 @@
 
 option(ENABLE_UNIT_IRRLICHT "Enable the Chrono Irrlicht module" OFF)
 
+# Return now if this module is not enabled
 IF(NOT ENABLE_UNIT_IRRLICHT)
   MARK_AS_ADVANCED(FORCE CH_IRRLICHTLIB)
   MARK_AS_ADVANCED(FORCE CH_IRRLICHTDIR)
   RETURN()
-ELSE()
-  MARK_AS_ADVANCED(CLEAR CH_IRRLICHTLIB)
-  MARK_AS_ADVANCED(CLEAR CH_IRRLICHTDIR)
-  MESSAGE(STATUS "...enabling Irrlicht Unit")
 ENDIF()
+
+MESSAGE(STATUS "==== Chrono Irrlicht module ====")
+
+MARK_AS_ADVANCED(CLEAR CH_IRRLICHTLIB)
+MARK_AS_ADVANCED(CLEAR CH_IRRLICHTDIR)
 
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_IRRLICHT library

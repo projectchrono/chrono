@@ -4,21 +4,20 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
+option(ENABLE_UNIT_MATLAB "Enable the Chrono Matlab module" OFF)
 
-SET(ENABLE_UNIT_MATLAB   
-    FALSE CACHE BOOL   
-    "Turn this ON to generate the Chrono::Engine Matlab unit."
-    )
-
+# Return now if this module is not enabled
 IF(NOT ENABLE_UNIT_MATLAB)
-    MARK_AS_ADVANCED(FORCE CH_MATLABSDK)
-    RETURN()
-ELSE()
-    MARK_AS_ADVANCED(CLEAR CH_MATLABSDK)
-    MESSAGE(STATUS "...enabling Matlab Unit")    
+  MARK_AS_ADVANCED(FORCE CH_MATLABSDK)
+  RETURN()
 ENDIF()
 
-SET(CH_MATLABSDK         ""     CACHE PATH   "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
+MESSAGE(STATUS "==== Chrono Matlab module ====")
+
+MARK_AS_ADVANCED(CLEAR CH_MATLABSDK)
+
+SET(CH_MATLABSDK "" CACHE PATH
+    "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
 
 SET(ChronoEngine_UNIT_MATLAB_HEADERS
   ChApiMatlab.h

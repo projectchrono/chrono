@@ -4,15 +4,14 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
+option(ENABLE_UNIT_COSIMULATION "Enable the Chrono Cosimulation module" OFF)
 
-SET(ENABLE_UNIT_COSIMULATION      FALSE	CACHE BOOL   "Turn ON this to generate the Chrono::Engine unit for co-simulation.")
-
+# Return now if this module is not enabled
 IF(NOT ENABLE_UNIT_COSIMULATION)
   RETURN()
-ELSE()
-  MESSAGE(STATUS "...enabling Cosimulation Unit")
 ENDIF()
 
+MESSAGE(STATUS "==== Chrono Cosimulation module ====")
 
 #-----------------------------------------------------------------------------
 #
