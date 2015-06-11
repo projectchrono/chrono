@@ -1,23 +1,16 @@
 #--------------------------------------------------------------
 # Additional include paths and libraries
-INCLUDE_DIRECTORIES(
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_BINARY_DIR}
-)
+
+INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 
 SET(LIBRARIES
-    ${CHRONO_LIB}
+    ChronoEngine
     ChronoEngine_Parallel
     ChronoEngine_Utils
 )
 
-IF (ENABLE_OPENGL)
-    INCLUDE_DIRECTORIES(
-        ${GLM_INCLUDE_DIRS}
-        ${GLEW_INCLUDE_DIR}
-        ${GLFW_INCLUDE_DIR}
-    )
-
+IF(ENABLE_OPENGL)
+    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
     SET(LIBRARIES ${LIBRARIES} ChronoEngine_OpenGL)
 ENDIF()
 
