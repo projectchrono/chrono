@@ -33,9 +33,17 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
           ostream = &mostream;
           tablevel = 0;
           use_versions = false;
+          suppress_names= false;
       };
 
       virtual ~ChArchiveAsciiDump() {};
+
+      /// If true, the variables namesare not printed. 
+      /// Useful when used for GetLog() << ...  (for more compact formatting).
+      void SetSuppressNames(bool msu) {suppress_names = msu;}
+
+      /// Access the stream used by the archive.
+      ChStreamOutAscii* GetStream() {return ostream;}
 
       void indent() {
           for (int i=0; i<tablevel; ++i)
@@ -167,6 +175,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
   protected:
       int tablevel;
       ChStreamOutAsciiFile* ostream;
+      bool suppress_names;
 };
 
 
