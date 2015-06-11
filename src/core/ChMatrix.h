@@ -62,7 +62,7 @@ namespace chrono {
 // forward declaration
 template <class Real = double>
 class ChMatrixDynamic;
-
+class ChArchiveAsciiDump;
 ///
 /// ChMatrix:
 ///
@@ -381,13 +381,30 @@ class ChMatrix {
         marchive << make_ChNameValue("columns",columns);
 
         // custom output of matrix data as array
-        int tot_elements = GetRows() * GetColumns();
-        marchive.out_array_pre("data", tot_elements, typeid(Real).name());
-        for (int i = 0; i < tot_elements; i++) {
-            marchive << CHNVP(ElementN(i));
-            marchive.out_array_between(tot_elements, typeid(Real).name());
+        if (ChArchiveAsciiDump* mascii = dynamic_cast<ChArchiveAsciiDump*>(&marchive))
+        {
+            // CUSTOM row x col table 'intuitive' serialization when using ChArchiveAsciiDump:
+
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < columns; j++) {
+                    mascii->GetStream()->operator<<(Element(i,j));
+                    mascii->GetStream()->operator<<(", ");
+                }
+                mascii->GetStream()->operator<<("\n");
+            }
+        } 
+        else 
+        {
+            // NORMAL array-based serialization:
+
+            int tot_elements = GetRows() * GetColumns();
+            marchive.out_array_pre("data", tot_elements, typeid(Real).name());
+            for (int i = 0; i < tot_elements; i++) {
+                marchive << CHNVP(ElementN(i),"");
+                marchive.out_array_between(tot_elements, typeid(Real).name());
+            }
+            marchive.out_array_end(tot_elements, typeid(Real).name());
         }
-        marchive.out_array_end(tot_elements, typeid(Real).name());
     }
 
     /// Method to allow de serialization of transient data from archives.
