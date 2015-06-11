@@ -383,7 +383,7 @@ class  ChArchiveOut : public ChArchive {
       template<class T>
       void out     (ChNameValue< std::list<T> > bVal) {
           this->out_array_pre(bVal.name(), bVal.value().size(), typeid(T).name());
-          std::list<T>::iterator iter;
+          typename std::list<T>::iterator iter;
           size_t i = 0;
           for (iter = bVal.value().begin(); iter != bVal.value().end(); ++iter, ++i)
           {
