@@ -26,9 +26,9 @@ FOREACH(GLSL_SHADER ${GLSL_SHADERS})
     OUTPUT  ${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
     COMMAND embedfile 
             ${GLSL_SHADER}
-            ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${GLSL_SHADER}.glsl 
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl 
             ${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
-    DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${GLSL_SHADER}.glsl
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 ENDFOREACH()
 
@@ -44,9 +44,9 @@ FOREACH(DEFAULT_OBJ_FILE ${DEFAULT_OBJ_FILES})
     OUTPUT  ${CMAKE_BINARY_DIR}/resources/${DEFAULT_OBJ_FILE}.h
     COMMAND embedfile 
             ${DEFAULT_OBJ_FILE}_mesh_data
-            ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${DEFAULT_OBJ_FILE}.obj
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/${DEFAULT_OBJ_FILE}.obj
             ${CMAKE_BINARY_DIR}/resources/${DEFAULT_OBJ_FILE}.h
-    DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${DEFAULT_OBJ_FILE}.obj
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/${DEFAULT_OBJ_FILE}.obj
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 ENDFOREACH()
 
@@ -69,7 +69,7 @@ ELSE()
 ENDIF()
 
 FOREACH(OBJ_FILE ${OBJ_FILES})
-  FILE(COPY        "${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${OBJ_FILE}"
+  FILE(COPY        "${CMAKE_CURRENT_SOURCE_DIR}/resources/${OBJ_FILE}"
        DESTINATION "${OBJ_FILES_DEST}")
 ENDFOREACH()
 
@@ -132,7 +132,7 @@ SET(ChronoEngine_OpenGL_HEADERS
 IF (MSVC)
 	# On Windows, include necessary Bullet source files.
 	SET(ChronoEngine_OpenGL_SOURCES ${ChronoEngine_OpenGL_SOURCES}
-		${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
+		${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
 		)
 ENDIF()
 
@@ -163,7 +163,7 @@ TARGET_LINK_LIBRARIES(ChronoEngine_OpenGL
 	${GLEW_LIBRARY}
 	${GLFW_LIBRARY}
 	${OPENGL_LIBRARIES}
-	${CHRONO_LIB}
+	ChronoEngine
 	ChronoEngine_Parallel)
 
 INSTALL(TARGETS ChronoEngine_OpenGL
@@ -171,3 +171,23 @@ INSTALL(TARGETS ChronoEngine_OpenGL
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	)
+
+# On Windows, copy yhe GLEW and GLFW DLLs (if specified)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    IF(EXISTS ${GLEW_DLL})
+      ADD_CUSTOM_COMMAND(
+        TARGET ChronoEngine_OpenGL POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${GLEW_DLL}"
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+      )
+    ENDIF()
+    IF(EXISTS ${GLFW_DLL})
+      ADD_CUSTOM_COMMAND(
+        TARGET ChronoEngine_OpenGL POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${GLFW_DLL}"
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+      )
+    ENDIF()
+ENDIF()
