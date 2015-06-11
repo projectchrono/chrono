@@ -41,6 +41,8 @@ namespace chrono {
 ///
 /// then call as myfunct(myvalue);
 
+#include <iterator>
+
 #define CH_CREATE_MEMBER_DETECTOR(X)                                                   \
 template<typename T> class ChDetect_##X {                                             \
     struct Fallback { int X; };                                                     \
@@ -64,6 +66,22 @@ struct enable_if {};
  
 template<class T>
 struct enable_if<true, T> { typedef T type; };
+
+/// This is used to detect if dealing with a STL container (vector, map, list, etc.)
+
+template<typename T>
+struct has_const_iterator
+{
+private:
+    typedef char                      yes;
+    typedef struct { char array[2]; } no;
+
+    template<typename C> static yes test(typename C::const_iterator*);
+    template<typename C> static no  test(...);
+public:
+    static const bool value = sizeof(test<T>(0)) == sizeof(yes);
+    typedef T type;
+};
 
 
 } // end namespace
