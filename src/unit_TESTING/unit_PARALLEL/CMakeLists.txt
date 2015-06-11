@@ -1,12 +1,10 @@
 #--------------------------------------------------------------
 # Additional include paths (for ChronoEngine_Utils)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}
-                    ${CMAKE_BINARY_DIR}
-)
+INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 
 # Libraries
 SET(LIBRARIES
-    ${CHRONO_LIB}
+    ChronoEngine
     ChronoEngine_Parallel
     ChronoEngine_Utils
 )
@@ -56,7 +54,6 @@ SET(TESTS
     test_apgd
     test_shur_performance
     test_shafts
-    
 )
 
 MESSAGE(STATUS "Unit test programs...")
@@ -103,24 +100,24 @@ SET(TESTS_B
 # included.
 IF (MSVC)
   SET(BULLET_FILES
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.cpp
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.h
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.h
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.cpp
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.h
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btConeShape.h
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btConeShape.cpp
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h
-        ${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.cpp
-        ${CH_CHRONO_SDKDIR}/collision/bullet/LinearMath/btAlignedAllocator.h
-        ${CH_CHRONO_SDKDIR}/collision/bullet/LinearMath/btAlignedAllocator.cpp
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.cpp
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.h
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.h
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.cpp
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.h
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btConeShape.h
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btConeShape.cpp
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h
+        ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.cpp
+        ${CMAKE_SOURCE_DIR}/collision/bullet/LinearMath/btAlignedAllocator.h
+        ${CMAKE_SOURCE_DIR}/collision/bullet/LinearMath/btAlignedAllocator.cpp
   )
   SOURCE_GROUP(bullet FILES ${BULLET_FILES})
 ELSE()
@@ -152,12 +149,7 @@ ENDFOREACH(PROGRAM)
 # Executables that use OpenGL
 
 IF (ENABLE_OPENGL)
-    INCLUDE_DIRECTORIES(
-        ${GLM_INCLUDE_DIRS}
-        ${GLEW_INCLUDE_DIR}
-        ${GLFW_INCLUDE_DIR}
-    )
-
+    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
     SET(LIBRARIES ${LIBRARIES} ChronoEngine_OpenGL)
 ENDIF()
 
