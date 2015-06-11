@@ -181,6 +181,24 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 
 
 
+/// This is used to stream out in 'readable' form on a ChStreamOutAscii 
+/// stream whatever C++ object that implements the archive serialization, i.e. 
+/// objects that have ArchiveOUT implemented.
+/// For example:  GetLog() < mymatrix;
+
+template <class T>
+ChStreamOutAscii & operator<(ChStreamOutAscii &mstream, T& obj) {
+    std::vector<char> mvect;
+    ChStreamOutAsciiVector mtempstream(&mvect);
+    mtempstream.SetNumFormat(mstream.GetNumFormat());
+    ChArchiveAsciiDump marchive(mtempstream);
+    // this avoids printing too much except the object:
+    marchive.SetCutPointers(true);
+    marchive << CHNVP(obj,"");
+    std::string mystring(mtempstream.GetVector()->begin(),mtempstream.GetVector()->end());
+    return mstream << mystring;
+}
+
 
 }  // END_OF_NAMESPACE____
 
