@@ -384,9 +384,10 @@ class ChMatrix {
         // custom output of matrix data as array
         if (ChArchiveAsciiDump* mascii = dynamic_cast<ChArchiveAsciiDump*>(&marchive))
         {
-            // CUSTOM row x col table 'intuitive' serialization when using ChArchiveAsciiDump:
+            // CUSTOM row x col 'intuitive' table-like log when using ChArchiveAsciiDump:
 
             for (int i = 0; i < rows; i++) {
+                mascii->indent();
                 for (int j = 0; j < columns; j++) {
                     mascii->GetStream()->operator<<(Element(i,j));
                     mascii->GetStream()->operator<<(", ");
