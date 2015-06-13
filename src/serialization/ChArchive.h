@@ -19,6 +19,7 @@
 #include "core/ChSmartpointers.h"
 #include "core/ChTemplateExpressions.h"
 #include <string>
+#include <sstream>
 #include <vector>
 #include <list>
 #include <typeinfo>
@@ -181,6 +182,10 @@ class  ChNameValue {
             return this->_name;
         }
 
+        unsigned int& flags() {
+            return this->_flags;
+        }
+
         T & value() const {
             return *(this->_value);
         }
@@ -244,6 +249,139 @@ ChNameValue< T > make_ChNameValue(const char * auto_name, T & t, char flags = 0)
 
 
 
+/// Class for mapping enums to ChNameValue pairs that contain a 'readable' ascii string
+/// of the selected enum. This could be used when streaming from/to human readable formats
+/// such as JSON or XML or ascii dumps.
+
+class ChEnumMapperBase {
+public:
+    ChEnumMapperBase ()  {};
+
+    virtual int  GetValueAsInt() = 0;
+    virtual void SetValueAsInt(const int mval) = 0;
+
+    virtual std::string GetValueAsString() = 0;
+    virtual bool SetValueAsString(const std::string& mname) = 0;
+
+};
+
+template <class Te>
+class ChEnumNamePair {
+public:
+    ChEnumNamePair(const char* mname, Te menumid) : name(mname), enumid(menumid) {}
+
+    std::string name;
+    Te enumid;
+};
+
+template <class Te>
+class ChEnumMapper : public ChEnumMapperBase {
+public:
+    ChEnumMapper () : 
+        value_ptr(0) {
+        enummap = ChSmartPtr< std::vector< ChEnumNamePair<Te> > >(new std::vector< ChEnumNamePair<Te> >);
+    };
+    ChEnumMapper (ChSmartPtr< std::vector< ChEnumNamePair<Te> > >  mmap) : 
+        value_ptr(0), 
+        enummap(mmap) {};
+
+    void AddMapping(const char* name, Te enumid) {
+        ChEnumNamePair<Te> mpair (name, enumid);
+        enummap->push_back(mpair);
+    }
+    void AddMapping(const char* autoname, Te enumid, const char* custom_name) {
+        const char* name = autoname;
+        if (custom_name)
+            name = custom_name;
+        ChEnumNamePair<Te> mpair (name, enumid);
+        enummap->push_back(mpair);
+    }
+
+    Te& Value() {return *value_ptr;}
+
+    virtual int  GetValueAsInt() { 
+        return static_cast<int>(*value_ptr);
+    };
+    virtual void SetValueAsInt(const int mval) {
+        *value_ptr = static_cast<Te>(mval);
+    };
+
+    virtual std::string GetValueAsString() {
+        for (int i = 0; i < enummap->size(); ++i)
+        {
+            if(enummap->at(i).enumid == *value_ptr)
+                return enummap->at(i).name;
+        }
+        // not found, just string as number:
+        char buffer [10];
+        sprintf(buffer, "%d", GetValueAsInt());
+        return std::string(buffer);
+    };
+
+    virtual bool SetValueAsString(const std::string& mname) {
+        for (int i = 0; i < enummap->size(); ++i)
+        {
+            if(enummap->at(i).name == mname) {
+                *value_ptr = enummap->at(i).enumid;
+                return true;
+            }
+        }
+        // try to find from integer:
+        int numb;
+        std::istringstream mstream(mname);
+        mstream >> numb;
+        if (mstream.fail()) 
+            return false;
+        else{
+            SetValueAsInt(numb);
+            return true;
+        }
+        // neither found enum from string, nor from number...
+        return false; 
+    };
+
+    Te* value_ptr;
+
+ protected:
+        
+    ChSmartPtr< std::vector< ChEnumNamePair<Te> > > enummap;
+};
+
+/// Three macros to simplify the use of enum mapper.
+/// Use them always in sequence, with nothing else in between. 
+/// Possibly, use them just after you defined an enum.
+/// After this, you have a class called "MyEnum_mapper", inherited
+/// from ChEnumMapper, and you can use it for converting enums from/to strings.
+/// Example:
+///
+/// enum eChMyenum {
+///           ATHLETIC = 0,
+///           SKINNY = 3,
+///           FAT
+///   };
+///
+///  CH_ENUM_MAPPER_BEGIN(MyEnum);
+///   CH_ENUM_VAL(ATHLETIC);
+///   CH_ENUM_VAL(SKINNY);
+///   CH_ENUM_VAL(FAT, "fatty");  // overrides the "FAT" mapped string with "fatty"
+///  CH_ENUM_MAPPER_END(MyEnum);
+/// 
+
+#define CH_ENUM_MAPPER_BEGIN(__enum_type) \
+            class __enum_type##_mapper : public ChEnumMapper< __enum_type > { \
+            public: \
+                __enum_type##_mapper() { 
+
+#define CH_ENUM_VAL(...) \
+        this->AddMapping("" STRINGIFY(FIRST(__VA_ARGS__)) "", FIRST(__VA_ARGS__) REST(__VA_ARGS__) );
+
+#define CH_ENUM_MAPPER_END(__enum_type) \
+            }; \
+        ChEnumMapper< __enum_type > operator() ( __enum_type & mval) { \
+            ChEnumMapper< __enum_type > res(this->enummap); \
+            res.value_ptr = &mval; \
+            return res; \
+        } }; 
 
 
 ///
@@ -331,6 +469,7 @@ class  ChArchiveOut : public ChArchive {
       virtual void out     (ChNameValue<std::string> bVal) = 0;
       virtual void out     (ChNameValue<unsigned long> bVal) = 0;
       virtual void out     (ChNameValue<unsigned long long> bVal) =0;
+      virtual void out     (ChNameValue<ChEnumMapperBase> bVal) =0;
 
         // for custom C++ objects - see 'wrapping' trick below
       virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) = 0;
@@ -348,6 +487,13 @@ class  ChArchiveOut : public ChArchive {
 
 
       //---------------------------------------------------
+
+           // trick to wrap enum mappers:
+      template<class T>
+      void out     (ChNameValue< ChEnumMapper<T> > bVal) {
+          ChNameValue< ChEnumMapperBase > tmpnv(bVal.name(),bVal.value(),bVal.flags());
+          this->out(tmpnv);
+      }
 
         // trick to wrap C++ fixed-size arrays:
       template<class T, size_t N>
@@ -516,6 +662,7 @@ class  ChArchiveIn : public ChArchive {
       virtual void in     (ChNameValue<std::string> bVal) = 0;
       virtual void in     (ChNameValue<unsigned long> bVal) = 0;
       virtual void in     (ChNameValue<unsigned long long> bVal) = 0;
+      virtual void in     (ChNameValue<ChEnumMapperBase> bVal) =0;
 
         // for custom C++ objects - see 'wrapping' trick below
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
@@ -530,6 +677,13 @@ class  ChArchiveIn : public ChArchive {
       virtual void in_array_end (const char* name) = 0;
 
       //---------------------------------------------------
+
+           // trick to wrap enum mappers:
+      template<class T>
+      void in     (ChNameValue< ChEnumMapper<T> > bVal) {
+          ChNameValue< ChEnumMapperBase > tmpnv(bVal.name(),bVal.value(),bVal.flags());
+          this->in(tmpnv);
+      }
 
              // trick to wrap C++ fixed-size arrays:
       template<class T, size_t N>

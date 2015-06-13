@@ -65,6 +65,9 @@ class  ChArchiveOutBinary : public ChArchiveOut {
       virtual void out     (ChNameValue<unsigned long long> bVal){
             (*ostream) << bVal.value();
       }
+      virtual void out     (ChNameValue<ChEnumMapperBase> bVal) {
+            (*ostream) << bVal.value().GetValueAsInt();
+      }
 
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
             (*ostream) << msize;
@@ -157,7 +160,11 @@ class  ChArchiveInBinary : public ChArchiveIn {
       virtual void in     (ChNameValue<unsigned long long> bVal){
             (*istream) >> bVal.value();
       }
-
+      virtual void in     (ChNameValue<ChEnumMapperBase> bVal) {
+            int foo;
+            (*istream) >>  foo;
+            bVal.value().SetValueAsInt(foo);
+      }
          // for wrapping arrays and lists
       virtual void in_array_pre (const char* name, size_t& msize) {
             (*istream) >> msize;
