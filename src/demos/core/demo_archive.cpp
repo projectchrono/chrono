@@ -219,7 +219,7 @@ void my_serialization_example(ChArchiveOut& marchive)
         marchive << CHNVP(m_stllist);
         marchive << CHNVP(m_matr);    
         marchive << CHNVP(m_vect);    
-        marchive << CHNVP(m_quat);  
+        marchive << CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);  
         
         // Also store a c++ object 
         // In order to use this feature, the classes must implement 
@@ -298,7 +298,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
         marchive >> CHNVP(m_stllist);
         marchive >> CHNVP(m_matr);
         marchive >> CHNVP(m_vect);  
-        marchive >> CHNVP(m_quat);        
+        marchive >> CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);        
 
         // Also deserialize the C++ object
         marchive >> CHNVP(m_boss); 

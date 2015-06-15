@@ -16,13 +16,47 @@
 #include "assets/ChColor.h"
 #include <string>
 #include <vector>
+#include "serialization/ChArchive.h"
 
 namespace chrono {
 
-enum ChMaterialType { CH_MATERIAL_DIFFUSE, CH_MATERIAL_PHONG, CH_MATERIAL_CONDUCTOR, CH_MATERIAL_PLASTIC };
+enum ChMaterialType { 
+    CH_MATERIAL_DIFFUSE, 
+    CH_MATERIAL_PHONG, 
+    CH_MATERIAL_CONDUCTOR, 
+    CH_MATERIAL_PLASTIC };
+
+CH_ENUM_MAPPER_BEGIN(ChMaterialType);
+  CH_ENUM_VAL(CH_MATERIAL_DIFFUSE);
+  CH_ENUM_VAL(CH_MATERIAL_PHONG);
+  CH_ENUM_VAL(CH_MATERIAL_CONDUCTOR);
+  CH_ENUM_VAL(CH_MATERIAL_PLASTIC);
+CH_ENUM_MAPPER_END(ChMaterialType);
+
 
 struct material_option {
     std::string type, parameter, value;
+
+    // SERIALIZATION
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        marchive.VersionWrite(1);
+        // serialize all member data:
+        marchive << CHNVP(type);
+        marchive << CHNVP(parameter);
+        marchive << CHNVP(value);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        int version = marchive.VersionRead();
+        // deserialize all member data:
+        marchive >> CHNVP(type);
+        marchive >> CHNVP(parameter);
+        marchive >> CHNVP(value);
+    }
 };
 
 class ChApi ChMaterial {
@@ -64,6 +98,41 @@ class ChApi ChMaterial {
     ChMaterialType material_type;
     std::vector<material_option> options;
     bool visible;
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+
+        // serialize all member data:
+        marchive << CHNVP(color);
+        marchive << CHNVP(fading);
+        ChMaterialType_mapper mmapper;
+        marchive << CHNVP(mmapper(material_type));
+        marchive << CHNVP(options);
+        marchive << CHNVP(visible);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+
+        // stream in all member data:
+        marchive >> CHNVP(color);
+        marchive >> CHNVP(fading);
+        ChMaterialType_mapper mmapper;
+        marchive >> CHNVP(mmapper(material_type));
+        marchive >> CHNVP(options);
+        marchive >> CHNVP(visible);
+    }
+
 };
 }
 

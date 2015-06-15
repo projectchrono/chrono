@@ -193,7 +193,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -204,6 +204,13 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             ++tablevel;
             nitems.push(0);
             is_array.push(false);
+
+            if(tracked) {
+                comma_cr();
+                indent();
+                (*ostream) << "\"_object_ID\"\t: "  << position;
+                ++nitems.top();
+            }
 
             bVal.value().CallArchiveOut(*this);
             
@@ -428,6 +435,10 @@ class  ChArchiveInJSON : public ChArchiveIn {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
 
+            if (bVal.flags() & NVP_TRACK_OBJECT){
+              objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+            }
+            
             this->levels.push(mval);
             this->level = this->levels.top();
             this->is_array.push(false);
@@ -474,7 +485,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
             }
 
             } else {
-                if (ref_ID >= objects_pointers.size()) {throw (ChExceptionArchive( "Object _reference_ID is larger than pointer array"));}
+                if (ref_ID >= objects_pointers.size()) {throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID is larger than pointer array"));}
                 bVal.value().CallSetRawPtr(*this, objects_pointers[ref_ID]);
             }
             this->levels.pop();

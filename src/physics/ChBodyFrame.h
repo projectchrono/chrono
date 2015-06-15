@@ -45,6 +45,17 @@ class ChApi ChBodyFrame : public ChFrameMoving<double>, public virtual ChShared 
     /// Transform generic cartesian torque into absolute torque applied to body COG.
     /// If local=1, torque is intended as expressed in local coordinates, if =0, in absolute.
     void To_abs_torque(const ChVector<>& torque, int local, ChVector<>& resulttorque);
+
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 }  // END_OF_NAMESPACE____

@@ -77,8 +77,8 @@ class  ChArchiveOutBinary : public ChArchiveOut {
 
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) {
-            bVal.value().CallArchiveOut(*this);
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+          bVal.value().CallArchiveOut(*this);
       }
 
         // for pointed objects (if pointer hasn't been already serialized, otherwise save offset)
@@ -174,7 +174,10 @@ class  ChArchiveInBinary : public ChArchiveIn {
 
         //  for custom c++ objects:
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) {
-            bVal.value().CallArchiveIn(*this);
+          if (bVal.flags() & NVP_TRACK_OBJECT){
+              objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+          }
+          bVal.value().CallArchiveIn(*this);
       }
 
       // for pointed objects (if position != -1 , pointer has been already serialized)

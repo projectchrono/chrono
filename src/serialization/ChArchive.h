@@ -171,18 +171,23 @@ public:
 template<class T>
 class  ChNameValue {
   public:
-        ChNameValue(const char* mname, T& mvalue, unsigned int mflags = 0) : 
+        ChNameValue(const char* mname, T& mvalue, char mflags = 0) : 
             _name(mname), 
             _value((T*)(& mvalue)),
-            _flags((unsigned int)mflags) {}
+            _flags((char)mflags) {}
 
+        ChNameValue(const ChNameValue<T>& other){
+            _name  = other._name;
+            _value = other._value;
+            _flags = other._flags;
+        }
         virtual ~ChNameValue() {};
 
         const char * name() const {
             return this->_name;
         }
 
-        unsigned int& flags() {
+        char& flags() {
             return this->_flags;
         }
 
@@ -194,17 +199,15 @@ class  ChNameValue {
             return *(this->_value);
         }
 
-        // Flags:
-
-        static const char TRACK_OBJECT = (1 << 0);
- 
   protected:
         T* _value;
         const char* _name;
-        unsigned int _flags;
+        char _flags;
 };
 
-
+// Flag to mark a ChNameValue for a C++ object serialized by value but that
+// that can be later referenced by pointer too.
+static const char NVP_TRACK_OBJECT = (1 << 0);
 
 
 template<class T>
@@ -472,7 +475,7 @@ class  ChArchiveOut : public ChArchive {
       virtual void out     (ChNameValue<ChEnumMapperBase> bVal) =0;
 
         // for custom C++ objects - see 'wrapping' trick below
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) = 0;
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) = 0;
 
         // for pointed objects with abstract class system (i.e. supporting class factory)
       virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) = 0;
@@ -572,7 +575,7 @@ class  ChArchiveOut : public ChArchive {
           PutPointer(mptr, already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA), 
+              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
               pos, 
               typeid(T).name() ); // note, this class name is not platform independent
@@ -589,7 +592,7 @@ class  ChArchiveOut : public ChArchive {
           PutPointer(mptr, already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref_abstract(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA), 
+              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
               pos, 
               bVal.value()->GetRTTI()->GetName() ); // this class name is platform independent
@@ -606,7 +609,7 @@ class  ChArchiveOut : public ChArchive {
           PutPointer(mptr, already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA), 
+              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
               pos, 
               typeid(T).name() ); // note, this class name is not platform independent
@@ -615,10 +618,22 @@ class  ChArchiveOut : public ChArchive {
         // trick to apply 'virtual out..' on remaining C++ object, that has a function "ArchiveOUT":
       template<class T>
       void out     (ChNameValue<T> bVal) {
+          bool tracked = false;
+          size_t pos =0;
+          if (bVal.flags() & NVP_TRACK_OBJECT)
+          {
+              bool already_stored; 
+              T* mptr = &bVal.value();
+              PutPointer(mptr, already_stored, pos);
+              if (already_stored) 
+                  {throw (ChExceptionArchive( "Cannot serialize tracked object '" + std::string(bVal.name()) + "' by value, AFTER already serialized by pointer."));}
+              tracked = true;
+          }
           ChFunctorArchiveOutSpecific<T> specFuncA(&bVal.value(), &T::ArchiveOUT);
           this->out(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA), 
-              typeid(T).name() );
+              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
+              typeid(T).name(),
+              tracked, pos);
       }
 
         /// Operator to allow easy serialization as   myarchive >> mydata;
@@ -748,7 +763,7 @@ class  ChArchiveIn : public ChArchive {
       in     (ChNameValue< ChSharedPtr<T> > bVal) {
           T* mptr;
           ChFunctorArchiveInSpecificPtrAbstract<T> specFuncA(&mptr, &T::ArchiveIN);
-          ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA);
+          ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
           this->in_ref_abstract(mtmp);
           bVal.value() = ChSharedPtr<T> ( mptr );
       }
@@ -759,7 +774,7 @@ class  ChArchiveIn : public ChArchive {
       in     (ChNameValue< ChSharedPtr<T> > bVal) {
           T* mptr;
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&mptr, &T::ArchiveIN);
-          ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA);
+          ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
           this->in_ref(mtmp);
           bVal.value() = ChSharedPtr<T> ( mptr );
       }
@@ -769,7 +784,7 @@ class  ChArchiveIn : public ChArchive {
       typename enable_if< ChDetect_GetRTTI<T>::value >::type
       in     (ChNameValue<T*> bVal) {
           ChFunctorArchiveInSpecificPtrAbstract<T> specFuncA(&bVal.value(), &T::ArchiveIN);
-          this->in_ref_abstract(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA) );
+          this->in_ref_abstract(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
       }
 
         // trick to call in_ref on plain pointers (no class abstraction):
@@ -777,14 +792,14 @@ class  ChArchiveIn : public ChArchive {
       typename enable_if< !ChDetect_GetRTTI<T>::value >::type
       in     (ChNameValue<T*> bVal) {
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value(), &T::ArchiveIN);
-          this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA) );
+          this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
       }
 
         // trick to apply 'virtual in..' on C++ objects that has a function "ArchiveIN":
       template<class T>
       void in     (ChNameValue<T> bVal) {
           ChFunctorArchiveInSpecific<T> specFuncA(&bVal.value(), &T::ArchiveIN);
-          this->in(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA));
+          this->in(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()));
       }
 
         /// Operator to allow easy serialization as   myarchive << mydata;

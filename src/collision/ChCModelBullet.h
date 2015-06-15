@@ -52,6 +52,10 @@ class ChConvexDecomposition;
 ///  library
 
 class ChApi ChModelBullet : public ChCollisionModel {
+
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChModelBullet, ChCollisionModel);
+
   protected:
     // The Bullet collision object containing Bullet geometries
     btCollisionObject* bt_collision_object;
@@ -239,15 +243,23 @@ class ChApi ChModelBullet : public ChCollisionModel {
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const;
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
+    //***OBSOLETE***
     virtual void StreamIN(ChStreamInBinary& mstream);
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
+    //***OBSOLETE***
     virtual void StreamOUT(ChStreamOutBinary& mstream);
 
     //

@@ -406,6 +406,7 @@ if(BUILD_CH_SDK)
         physics/ChContactContainerDEM.cpp
         physics/ChContactDEM.cpp
         physics/ChMaterialSurfaceDEM.cpp
+		physics/ChMaterialSurface.cpp
         physics/ChContinuumMaterial.cpp
         )
     set(ChronoEngine_physics_HEADERS
@@ -521,9 +522,13 @@ if(BUILD_CH_SDK)
         geometry/ChCCylinder.cpp
         geometry/ChCCapsule.cpp
         geometry/ChCLine.cpp
+		geometry/ChCLineArc.cpp
+		geometry/ChCLineSegment.cpp
+		geometry/ChCLinePath.cpp
         geometry/ChCLineCam.cpp
         geometry/ChCLinePoly.cpp
         geometry/ChCTriangle.cpp
+		geometry/ChCTriangleMeshSoup.cpp
         geometry/ChCTriangleMeshConnected.cpp
         geometry/ChCRoundedBox.cpp
         geometry/ChCRoundedCylinder.cpp
@@ -571,6 +576,7 @@ if(BUILD_CH_SDK)
         assets/ChTexture.cpp
         assets/ChCamera.cpp
         assets/ChAssetLevel.cpp
+		assets/ChColor.cpp
         assets/ChGlyphs.cpp
         assets/ChColorAsset.cpp
         assets/ChRoundedCylinderShape.cpp

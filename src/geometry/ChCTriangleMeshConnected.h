@@ -135,12 +135,45 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     virtual int GetClassType() { return CH_GEOCLASS_TRIANGLEMESHCONNECTED; };
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    // void StreamOUT(ChStreamOutBinary& mstream);//***TO DO***
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChTriangleMesh::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(m_vertices);
+        marchive << CHNVP(m_normals);
+        marchive << CHNVP(m_UV);
+        marchive << CHNVP(m_colors);
+        marchive << CHNVP(m_face_v_indices);
+        marchive << CHNVP(m_face_n_indices);
+        marchive << CHNVP(m_face_u_indices);
+        marchive << CHNVP(m_face_col_indices);
+        marchive << CHNVP(m_filename);
+    }
 
-    // void StreamIN(ChStreamInBinary& mstream); //***TO DO***
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChTriangleMesh::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(m_vertices);
+        marchive >> CHNVP(m_normals);
+        marchive >> CHNVP(m_UV);
+        marchive >> CHNVP(m_colors);
+        marchive >> CHNVP(m_face_v_indices);
+        marchive >> CHNVP(m_face_n_indices);
+        marchive >> CHNVP(m_face_u_indices);
+        marchive >> CHNVP(m_face_col_indices);
+        marchive >> CHNVP(m_filename);
+    }
 };
 
 }  // END_OF_NAMESPACE____

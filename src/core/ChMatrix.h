@@ -435,6 +435,7 @@ class ChMatrix {
 
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
+    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream) {
         mstream << "\n"
                 << "Matrix " << GetRows() << " rows, " << GetColumns() << " columns."
@@ -465,6 +466,7 @@ class ChMatrix {
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
+    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream) {
         mstream << GetRows();
         mstream << GetColumns();
@@ -476,6 +478,7 @@ class ChMatrix {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
+    /// ***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream) {
         int m_row, m_col;
         mstream >> m_row;

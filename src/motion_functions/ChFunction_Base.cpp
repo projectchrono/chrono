@@ -196,6 +196,25 @@ int ChFunction::OptVariableCount() {
 
 ////////////
 
+void ChFunction::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    //ChShared::ArchiveOUT(marchive);
+    // serialize all member data:
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChFunction::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    //ChShared::ArchiveIN(marchive);
+    // stream in all member data:
+}
+
 void ChFunction::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);

@@ -1,7 +1,8 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
+// Copyright (c) 2010-2012 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,21 +10,17 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChBoxShape.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
-#include "assets/ChBoxShape.h"
+#include "physics/ChMaterialSurface.h"
+#include "core/ChClassRegister.h"
+
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChBoxShape> a_registration_ChBoxShape;
+ChClassRegister<ChMaterialSurface> a_registration_ChMaterialSurface;
 
 }  // END_OF_NAMESPACE____
+
+/////////////////////

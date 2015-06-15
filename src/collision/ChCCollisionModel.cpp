@@ -24,6 +24,11 @@
 namespace chrono {
 namespace collision {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegisterABSTRACT<ChCollisionModel> a_registration_ChCollisionModel;
+
+
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
 

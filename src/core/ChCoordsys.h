@@ -275,7 +275,7 @@ class ChCoordsys {
     //
 
     /// Method to allow serialization of transient data in archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    void ArchiveOUT(ChArchiveOut& marchive)
     {
         // suggested: use versioning
         marchive.VersionWrite(1);
@@ -285,7 +285,7 @@ class ChCoordsys {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    void ArchiveIN(ChArchiveIn& marchive) 
     {
         // suggested: use versioning
         int version = marchive.VersionRead();
