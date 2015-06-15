@@ -367,7 +367,6 @@ if(BUILD_CH_SDK)
         physics/ChSolvmin.cpp
         physics/ChProbe.cpp
         physics/ChControls.cpp
-        physics/ChIntegrator.cpp
         physics/ChController.cpp
         physics/ChIterative.cpp
         physics/ChRef.cpp
@@ -434,7 +433,6 @@ if(BUILD_CH_SDK)
         physics/ChHistory.h
         physics/ChIndexedNodes.h
         physics/ChIndexedParticles.h
-        physics/ChIntegrator.h
         physics/ChIterative.h
         physics/ChLimit.h
         physics/ChLinkBase.h
