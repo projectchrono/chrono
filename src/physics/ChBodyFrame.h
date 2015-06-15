@@ -15,7 +15,6 @@
 
 #include "core/ChFrameMoving.h"
 #include "core/ChShared.h"
-#include "physics/ChVariablesInterface.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 
 namespace chrono {
@@ -25,7 +24,7 @@ namespace chrono {
 /// i.e. items with translational and rotational degrees of freedom
 /// This class is used as a base for the very used ChBody class
 
-class ChApi ChBodyFrame : public ChFrameMoving<double>, public ChVariablesInterface, public virtual ChShared {
+class ChApi ChBodyFrame : public ChFrameMoving<double>, public virtual ChShared {
   public:
     /// Returns reference to the encapsulated ChLcpVariablesBody,
     /// representing body variables (pos, speed or accel.- see VariablesLoad...() )

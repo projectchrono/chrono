@@ -470,7 +470,6 @@ if(BUILD_CH_SDK)
         physics/ChMaterialSurfaceDEM.h
         physics/ChMatterSPH.h
         physics/ChNlsolver.h
-        physics/ChVariablesInterface.h
         physics/ChNodeBase.h
         physics/ChNodeXYZ.h
         physics/ChObject.h
