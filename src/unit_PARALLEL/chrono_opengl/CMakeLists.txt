@@ -1,7 +1,7 @@
 #=============================================================================
-# CMake configuration file for Chrono OpenGL
+# CMake configuration file for the ChronoEngine_ParallelOpenGL
 #
-# Invoked from the main CMakeLists.txt using ADD_SUBDIRECTORY()
+# Invoked from the unit_PARALLEL CMakeLists.txt using ADD_SUBDIRECTORY()
 #=============================================================================
 
 ADD_EXECUTABLE(embedfile embedfile.cpp)
@@ -75,51 +75,51 @@ ENDFOREACH()
 
 # ------------------------------------------------------------------------------
 
-SET(ChronoEngine_OpenGL_SOURCES 
-	core/ChOpenGLShader.cpp
-	core/ChOpenGLObject.cpp
-	core/ChOpenGLVertexAttributes.cpp
-	shapes/ChOpenGLMesh.cpp
-	shapes/ChOpenGLCloud.cpp
-	shapes/ChOpenGLWires.cpp
-	shapes/ChOpenGLText.cpp
-	shapes/ChOpenGLOBJ.cpp
-	shapes/obj/ChOpenGLOBJLoader.cpp
-	shapes/obj/tiny_obj_loader.cc
-	UI/ChOpenGLContacts.cpp
-	UI/ChOpenGLHUD.cpp
-	UI/ChOpenGLGraphs.cpp
-	ChOpenGLViewer.cpp 
-	ChOpenGLCamera.cpp
-	ChOpenGLWindow.cpp
-	)
+SET(ChronoEngine_ParallelOpenGL_SOURCES 
+  core/ChOpenGLShader.cpp
+  core/ChOpenGLObject.cpp
+  core/ChOpenGLVertexAttributes.cpp
+  shapes/ChOpenGLMesh.cpp
+  shapes/ChOpenGLCloud.cpp
+  shapes/ChOpenGLWires.cpp
+  shapes/ChOpenGLText.cpp
+  shapes/ChOpenGLOBJ.cpp
+  shapes/obj/ChOpenGLOBJLoader.cpp
+  shapes/obj/tiny_obj_loader.cc
+  UI/ChOpenGLContacts.cpp
+  UI/ChOpenGLHUD.cpp
+  UI/ChOpenGLGraphs.cpp
+  ChOpenGLViewer.cpp 
+  ChOpenGLCamera.cpp
+  ChOpenGLWindow.cpp
+  )
 
-SET(ChronoEngine_OpenGL_HEADERS
-	core/ChOpenGLBase.h
-	core/ChApiOpenGL.h
-	core/ChOpenGLShader.h
-	core/ChOpenGLObject.h
-	core/ChOpenGLVertexAttributes.h
-	shapes/ChOpenGLCloud.h
-	shapes/ChOpenGLWires.h
-	shapes/ChOpenGLText.h
-	shapes/ChOpenGLOBJ.h
-	shapes/obj/ChOpenGLOBJLoader.h
-	shapes/obj/tiny_obj_loader.h
-	UI/ChOpenGLContacts.h
-	UI/ChOpenGLHUD.h
-	UI/ChOpenGLGraphs.h
-	ChOpenGLViewer.h 
-	ChOpenGLCamera.h
-	ChOpenGLWindow.h
-	ChOpenGLMaterials.h
-	${CMAKE_BINARY_DIR}/resources/text_frag.h
-	${CMAKE_BINARY_DIR}/resources/text_vert.h
-	${CMAKE_BINARY_DIR}/resources/phong_frag.h
-	${CMAKE_BINARY_DIR}/resources/phong_vert.h
-	${CMAKE_BINARY_DIR}/resources/cloud_frag.h
-	${CMAKE_BINARY_DIR}/resources/cloud_vert.h
-	${CMAKE_BINARY_DIR}/resources/dot_frag.h
+SET(ChronoEngine_ParallelOpenGL_HEADERS
+  core/ChOpenGLBase.h
+  core/ChApiOpenGL.h
+  core/ChOpenGLShader.h
+  core/ChOpenGLObject.h
+  core/ChOpenGLVertexAttributes.h
+  shapes/ChOpenGLCloud.h
+  shapes/ChOpenGLWires.h
+  shapes/ChOpenGLText.h
+  shapes/ChOpenGLOBJ.h
+  shapes/obj/ChOpenGLOBJLoader.h
+  shapes/obj/tiny_obj_loader.h
+  UI/ChOpenGLContacts.h
+  UI/ChOpenGLHUD.h
+  UI/ChOpenGLGraphs.h
+  ChOpenGLViewer.h 
+  ChOpenGLCamera.h
+  ChOpenGLWindow.h
+  ChOpenGLMaterials.h
+  ${CMAKE_BINARY_DIR}/resources/text_frag.h
+  ${CMAKE_BINARY_DIR}/resources/text_vert.h
+  ${CMAKE_BINARY_DIR}/resources/phong_frag.h
+  ${CMAKE_BINARY_DIR}/resources/phong_vert.h
+  ${CMAKE_BINARY_DIR}/resources/cloud_frag.h
+  ${CMAKE_BINARY_DIR}/resources/cloud_vert.h
+  ${CMAKE_BINARY_DIR}/resources/dot_frag.h
   ${CMAKE_BINARY_DIR}/resources/dot_vert.h
   ${CMAKE_BINARY_DIR}/resources/sphere_frag.h
   ${CMAKE_BINARY_DIR}/resources/sphere_vert.h
@@ -127,53 +127,53 @@ SET(ChronoEngine_OpenGL_HEADERS
   ${CMAKE_BINARY_DIR}/resources/cone.h
   ${CMAKE_BINARY_DIR}/resources/sphere.h
   ${CMAKE_BINARY_DIR}/resources/cylinder.h
-	)
+  )
 
 IF (MSVC)
-	# On Windows, include necessary Bullet source files.
-	SET(ChronoEngine_OpenGL_SOURCES ${ChronoEngine_OpenGL_SOURCES}
-		${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
-		)
+  # On Windows, include necessary Bullet source files.
+  SET(ChronoEngine_ParallelOpenGL_SOURCES ${ChronoEngine_ParallelOpenGL_SOURCES}
+    ${CMAKE_SOURCE_DIR}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
+    )
 ENDIF()
 
 SET(INCLUDE_DIR
-	${GLM_INCLUDE_DIRS}
-	${GLEW_INCLUDE_DIR}
-	${GLFW_INCLUDE_DIR}
-	)
+  ${GLM_INCLUDE_DIRS}
+  ${GLEW_INCLUDE_DIR}
+  ${GLFW_INCLUDE_DIR}
+  )
 
 INCLUDE_DIRECTORIES(${INCLUDE_DIR} ${CUDA_TOOLKIT_INCLUDE})
 
 # The OPENGL library is added to the project,
 # and some custom properties of this target are set.
 
-ADD_LIBRARY(ChronoEngine_OpenGL SHARED 
-	${ChronoEngine_OpenGL_SOURCES}
-	${ChronoEngine_OpenGL_HEADERS})
+ADD_LIBRARY(ChronoEngine_ParallelOpenGL SHARED 
+  ${ChronoEngine_ParallelOpenGL_SOURCES}
+  ${ChronoEngine_ParallelOpenGL_HEADERS})
 
-SET_TARGET_PROPERTIES(ChronoEngine_OpenGL PROPERTIES 
-	COMPILE_FLAGS "${CH_BUILDFLAGS}"
-LINK_FLAGS "${CH_LINKERFLAG_GPU}"
-	COMPILE_DEFINITIONS "CH_API_COMPILE_OPENGL")
+SET_TARGET_PROPERTIES(ChronoEngine_ParallelOpenGL PROPERTIES 
+  COMPILE_FLAGS "${CH_BUILDFLAGS}"
+  LINK_FLAGS "${CH_LINKERFLAG_GPU}"
+  COMPILE_DEFINITIONS "CH_API_COMPILE_OPENGL")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_OpenGL
-	${GLEW_LIBRARY}
-	${GLFW_LIBRARY}
-	${OPENGL_LIBRARIES}
-	ChronoEngine
-	ChronoEngine_Parallel)
+TARGET_LINK_LIBRARIES(ChronoEngine_ParallelOpenGL
+  ${GLEW_LIBRARY}
+  ${GLFW_LIBRARY}
+  ${OPENGL_LIBRARIES}
+  ChronoEngine
+  ChronoEngine_Parallel)
 
-INSTALL(TARGETS ChronoEngine_OpenGL
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-	)
+INSTALL(TARGETS ChronoEngine_ParallelOpenGL
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  )
 
-# On Windows, copy yhe GLEW and GLFW DLLs (if specified)
+# On Windows, copy the GLEW and GLFW DLLs (if specified)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     IF(EXISTS ${GLEW_DLL})
       ADD_CUSTOM_COMMAND(
-        TARGET ChronoEngine_OpenGL POST_BUILD
+        TARGET ChronoEngine_ParallelOpenGL POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${GLEW_DLL}"
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
@@ -181,7 +181,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     ENDIF()
     IF(EXISTS ${GLFW_DLL})
       ADD_CUSTOM_COMMAND(
-        TARGET ChronoEngine_OpenGL POST_BUILD
+        TARGET ChronoEngine_ParallelOpenGL POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${GLFW_DLL}"
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"

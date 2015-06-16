@@ -11,7 +11,7 @@ SET(LIBRARIES
 
 IF(ENABLE_OPENGL)
     INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-    SET(LIBRARIES ${LIBRARIES} ChronoEngine_OpenGL)
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_ParallelOpenGL)
 ENDIF()
 
 #--------------------------------------------------------------
