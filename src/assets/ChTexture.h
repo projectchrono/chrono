@@ -12,19 +12,6 @@
 #ifndef CHTEXTURE_H
 #define CHTEXTURE_H
 
-///////////////////////////////////////////////////
-//
-//   ChTexture.h
-//
-//   Base class for attaching a texture asset
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "assets/ChAsset.h"
 
@@ -38,6 +25,9 @@ namespace chrono {
 /// classes of textures with more properties.
 
 class ChApi ChTexture : public ChAsset {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChTexture, ChAsset);
+
   protected:
     //
     // DATA
@@ -63,6 +53,32 @@ class ChApi ChTexture : public ChAsset {
     const std::string& GetTextureFilename() const { return filename; }
     // Set the texture filename. This information could be used by visualization postprocessing.
     void SetTextureFilename(const std::string& mfile) { filename = mfile; }
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChAsset::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(filename);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChAsset::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(filename);
+    }
 };
 
 //////////////////////////////////////////////////////

@@ -156,11 +156,32 @@ class ChApi ChGeometry : public ChShared {
     virtual void Update(){};
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        //ChShared::ArchiveOUT(marchive);
+        // serialize all member data:
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        //ChShared::ArchiveIN(marchive);
+        // stream in all member data:
+    }
+
+    //***OBSOLETE***
     virtual void StreamOUT(ChStreamOutBinary& mstream);
 
+    //***OBSOLETE***
     virtual void StreamIN(ChStreamInBinary& mstream);
 };
 

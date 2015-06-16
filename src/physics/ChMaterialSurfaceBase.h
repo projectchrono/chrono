@@ -13,6 +13,7 @@
 #define CHMATERIALSURFACEBASE_H
 
 #include "core/ChShared.h"
+#include "serialization/ChArchive.h"
 
 namespace chrono {
 ///
@@ -20,7 +21,18 @@ namespace chrono {
 /// generation.
 ///
 class ChApi ChMaterialSurfaceBase : public ChShared {
+
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChMaterialSurfaceBase, ChShared);
+
   public:
+
+
+    // SERIALIZATION
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {};
+    virtual void ArchiveIN(ChArchiveIn& marchive) {};
+    //***OBSOLETE***
     virtual void StreamOUT(ChStreamOutAscii& mstream) = 0;
     virtual void StreamOUT(ChStreamOutBinary& mstream) = 0;
     virtual void StreamIN(ChStreamInBinary& mstream) = 0;

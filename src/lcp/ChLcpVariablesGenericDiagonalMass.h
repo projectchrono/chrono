@@ -103,11 +103,7 @@ class ChApi ChLcpVariablesGenericDiagonalMass : public ChLcpVariables {
             storage.SetElement(insrow + i, inscol + i, (*MmassDiag)(i));
         }
     };
-	void Build_M(ChEigenMatrix& storage, int insrow, int inscol) {
-		for (int i = 0; i < MmassDiag->GetRows(); ++i) {
-			storage.SetElement(insrow + i, inscol + i, (*MmassDiag)(i));
-		}
-	};
+
 };
 
 }  // END_OF_NAMESPACE____

@@ -34,7 +34,7 @@ namespace chrono {
 
 #define FUNCT_OPERATION 12
 
-enum {
+enum eChOperation {
     ChOP_ADD = 0,
     ChOP_SUB,
     ChOP_MUL,
@@ -46,6 +46,18 @@ enum {
     ChOP_FABS,
     ChOP_FUNCT,
 };
+CH_ENUM_MAPPER_BEGIN(eChOperation);
+  CH_ENUM_VAL(ChOP_ADD);
+  CH_ENUM_VAL(ChOP_SUB);
+  CH_ENUM_VAL(ChOP_MUL);
+  CH_ENUM_VAL(ChOP_DIV);
+  CH_ENUM_VAL(ChOP_POW);
+  CH_ENUM_VAL(ChOP_MAX);
+  CH_ENUM_VAL(ChOP_MIN);
+  CH_ENUM_VAL(ChOP_MODULO);
+  CH_ENUM_VAL(ChOP_FABS);
+  CH_ENUM_VAL(ChOP_FUNCT);
+CH_ENUM_MAPPER_END(eChOperation);
 
 /// OPERATION BETWEEN FUNCTIONS
 /// (math operation between A and  B operands
@@ -58,7 +70,7 @@ class ChApi ChFunction_Operation : public ChFunction {
   private:
     ChSharedPtr<ChFunction> fa;
     ChSharedPtr<ChFunction> fb;
-    int op_type;  // see operation type IDS
+    eChOperation op_type;  // see operation type IDS
 
   public:
     ChFunction_Operation() {
@@ -70,8 +82,8 @@ class ChApi ChFunction_Operation : public ChFunction {
     void Copy(ChFunction_Operation* source);
     ChFunction* new_Duplicate();
 
-    void Set_optype(int m_op) { op_type = m_op; }
-    int Get_optype() { return op_type; }
+    void Set_optype(eChOperation m_op) { op_type = m_op; }
+    eChOperation Get_optype() { return op_type; }
 
     void Set_fa(ChSharedPtr<ChFunction> m_fa) { fa = m_fa; }
     ChSharedPtr<ChFunction> Get_fa() { return fa; }
@@ -89,6 +101,39 @@ class ChApi ChFunction_Operation : public ChFunction {
 
     int MakeOptVariableTree(ChList<chjs_propdata>* mtree);
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChFunction::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(fa);
+        marchive << CHNVP(fb);
+        eChOperation_mapper mmapper;
+        marchive << CHNVP(mmapper(op_type));
+    }
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChFunction::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(fa);
+        marchive >> CHNVP(fb);
+        eChOperation_mapper mmapper;
+        marchive >> CHNVP(mmapper(op_type));
+    }
+
+    //***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream);
     void StreamIN(ChStreamInBinary& mstream);
     void StreamOUT(ChStreamOutBinary& mstream);

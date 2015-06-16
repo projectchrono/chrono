@@ -459,8 +459,14 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor){};
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

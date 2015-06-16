@@ -517,8 +517,36 @@ class ChFrameMoving : public ChFrame<Real> {
     // STREAMING
     //
 
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+
+        // serialize parent class
+        ChFrame<Real>::ArchiveOUT(marchive);
+
+        // serialize all member data
+        marchive << CHNVP(coord_dt);
+        marchive << CHNVP(coord_dtdt);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+
+        // deserialize parent class
+        ChFrame<Real>::ArchiveIN(marchive);
+
+        // stream in all member data
+        marchive >> CHNVP(coord_dt);
+        marchive >> CHNVP(coord_dtdt);
+    }
+
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
+    /// ***OBSOLETE***
     virtual void StreamOUT(ChStreamOutAscii& mstream) {
         ChFrame<Real>::StreamOUT(mstream);
         ChVector<Real> mwl = GetWvel_loc();
@@ -532,6 +560,7 @@ class ChFrameMoving : public ChFrame<Real> {
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
+    /// ***OBSOLETE***
     virtual void StreamOUT(ChStreamOutBinary& mstream) {
         // Serialize parent class
         ChFrame<Real>::StreamOUT(mstream);
@@ -543,6 +572,7 @@ class ChFrameMoving : public ChFrame<Real> {
 
     /// Operator to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
+    /// ***OBSOLETE***
     virtual void StreamIN(ChStreamInBinary& mstream) {
         // Deserialize parent class
         ChFrame<Real>::StreamIN(mstream);

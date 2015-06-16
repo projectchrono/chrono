@@ -20,6 +20,8 @@
 namespace chrono {
 
 
+
+
 ///
 /// This is a class for serializing to binary archives
 ///
@@ -63,6 +65,9 @@ class  ChArchiveOutBinary : public ChArchiveOut {
       virtual void out     (ChNameValue<unsigned long long> bVal){
             (*ostream) << bVal.value();
       }
+      virtual void out     (ChNameValue<ChEnumMapperBase> bVal) {
+            (*ostream) << bVal.value().GetValueAsInt();
+      }
 
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
             (*ostream) << msize;
@@ -72,14 +77,13 @@ class  ChArchiveOutBinary : public ChArchiveOut {
 
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) {
-            bVal.value().CallArchiveOut(*this);
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+          bVal.value().CallArchiveOut(*this);
       }
 
         // for pointed objects (if pointer hasn't been already serialized, otherwise save offset)
       virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
       {
-   GetLog() << "binary out_ref_abstract : pos " << position << "already inserted:" << already_inserted << "\n";
           if (!already_inserted) {
             // New Object, we have to full serialize it
             std::string str(classname);
@@ -87,7 +91,7 @@ class  ChArchiveOutBinary : public ChArchiveOut {
             bVal.value().CallArchiveOut(*this);
           } else {
             // Object already in list. Only store position as ID
-            std::string str("ID");
+            std::string str("POS");
             (*ostream) << str;       // serialize 'this was already saved' info
             (*ostream) << position;  // serialize position in pointers vector as ID
           }
@@ -95,7 +99,6 @@ class  ChArchiveOutBinary : public ChArchiveOut {
 
       virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position,  const char* classname) 
       {
-GetLog() << "binary out_ref : pos " << position << "already inserted:" << already_inserted << "\n";
           if (!already_inserted) {
             // New Object, we have to full serialize it
             std::string str("OBJ"); // not usable for class factory.
@@ -103,7 +106,7 @@ GetLog() << "binary out_ref : pos " << position << "already inserted:" << alread
             bVal.value().CallArchiveOut(*this);
           } else {
             // Object already in list. Only store position
-            std::string str("ID");
+            std::string str("POS");
             (*ostream) << str;       // serialize 'this was already saved' info
             (*ostream) << position;  // serialize position in pointers vector
           }
@@ -157,7 +160,11 @@ class  ChArchiveInBinary : public ChArchiveIn {
       virtual void in     (ChNameValue<unsigned long long> bVal){
             (*istream) >> bVal.value();
       }
-
+      virtual void in     (ChNameValue<ChEnumMapperBase> bVal) {
+            int foo;
+            (*istream) >>  foo;
+            bVal.value().SetValueAsInt(foo);
+      }
          // for wrapping arrays and lists
       virtual void in_array_pre (const char* name, size_t& msize) {
             (*istream) >> msize;
@@ -167,7 +174,10 @@ class  ChArchiveInBinary : public ChArchiveIn {
 
         //  for custom c++ objects:
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) {
-            bVal.value().CallArchiveIn(*this);
+          if (bVal.flags() & NVP_TRACK_OBJECT){
+              objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+          }
+          bVal.value().CallArchiveIn(*this);
       }
 
       // for pointed objects (if position != -1 , pointer has been already serialized)
@@ -175,8 +185,8 @@ class  ChArchiveInBinary : public ChArchiveIn {
       {
           std::string cls_name;
           (*istream) >> cls_name;
-      GetLog() << "in_ref_abstract : " << cls_name << "\n";
-          if (!(cls_name == "ID")) {
+
+          if (!(cls_name == "POS")) {
             // 2) Dynamically create using class factory
             bVal.value().CallNewAbstract(*this, cls_name.c_str()); 
 
@@ -185,12 +195,12 @@ class  ChArchiveInBinary : public ChArchiveIn {
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this);
             } else {
-                throw(ChException("Archive cannot create abstract object \'" + cls_name + "\' " ));
+                throw(ChExceptionArchive("Archive cannot create abstract object \'" + cls_name + "\' " ));
             }
 
           } else {
             size_t pos = 0;
-            // 2b) Was a shared object: just get the pointer to already-retrieved
+            // Was a shared object: just get the pointer to already-retrieved
             (*istream) >> pos;
 
             bVal.value().CallSetRawPtr(*this, objects_pointers[pos]);
@@ -201,8 +211,8 @@ class  ChArchiveInBinary : public ChArchiveIn {
       {
           std::string cls_name;
           (*istream) >> cls_name;
-       GetLog() << "in_ref : " << cls_name << "\n";
-          if (!(cls_name == "ID")) {
+
+          if (!(cls_name == "POS")) {
             // 2) Dynamically create using class factory
             bVal.value().CallNew(*this);
             
@@ -211,12 +221,12 @@ class  ChArchiveInBinary : public ChArchiveIn {
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this);
             } else {
-                throw(ChException("Archive cannot create object"));
+                throw(ChExceptionArchive("Archive cannot create object"));
             }
 
           } else {
-            int pos = 0;
-            // 2b) Was a shared object: just get the pointer to already-retrieved
+            size_t pos = 0;
+            //  Was a shared object: just get the pointer to already-retrieved
             (*istream) >> pos;
 
             bVal.value().CallSetRawPtr(*this, objects_pointers[pos]);

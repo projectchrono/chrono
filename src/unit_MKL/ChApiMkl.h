@@ -37,7 +37,11 @@
 #define CH_VERSION_UNIT_MKL 0x00000100
 
 // When compiling this library, remember to define CH_API_COMPILE_UNIT_MKL
+<<<<<<< HEAD
 // (so that the symbols with 'ChApiPostProcess' in front of them will be
+=======
+// (so that the symbols with 'ChApiMkl' in front of them will be
+>>>>>>> unit_MKL_throughLinkedList
 // marked as exported). Otherwise, just do not define it if you
 // link the library to your code, and the symbols will be imported.
 

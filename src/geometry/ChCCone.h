@@ -12,17 +12,6 @@
 #ifndef CHC_CONE_H
 #define CHC_CONE_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCone.h
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "ChCGeometry.h"
 

@@ -30,6 +30,7 @@
 #include "core/ChCoordsys.h"
 #include "core/ChStream.h"
 #include "core/ChException.h"
+#include "serialization/ChArchiveAsciiDump.h"
 
 // Thresholds for OpenMP parallelization.
 // The larger, the less likely the operations will be parallelized in multiple threads.
@@ -381,13 +382,31 @@ class ChMatrix {
         marchive << make_ChNameValue("columns",columns);
 
         // custom output of matrix data as array
-        int tot_elements = GetRows() * GetColumns();
-        marchive.out_array_pre("data", tot_elements, typeid(Real).name());
-        for (int i = 0; i < tot_elements; i++) {
-            marchive << CHNVP(ElementN(i));
-            marchive.out_array_between(tot_elements, typeid(Real).name());
+        if (ChArchiveAsciiDump* mascii = dynamic_cast<ChArchiveAsciiDump*>(&marchive))
+        {
+            // CUSTOM row x col 'intuitive' table-like log when using ChArchiveAsciiDump:
+
+            for (int i = 0; i < rows; i++) {
+                mascii->indent();
+                for (int j = 0; j < columns; j++) {
+                    mascii->GetStream()->operator<<(Element(i,j));
+                    mascii->GetStream()->operator<<(", ");
+                }
+                mascii->GetStream()->operator<<("\n");
+            }
+        } 
+        else 
+        {
+            // NORMAL array-based serialization:
+
+            int tot_elements = GetRows() * GetColumns();
+            marchive.out_array_pre("data", tot_elements, typeid(Real).name());
+            for (int i = 0; i < tot_elements; i++) {
+                marchive << CHNVP(ElementN(i),"");
+                marchive.out_array_between(tot_elements, typeid(Real).name());
+            }
+            marchive.out_array_end(tot_elements, typeid(Real).name());
         }
-        marchive.out_array_end(tot_elements, typeid(Real).name());
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -416,6 +435,7 @@ class ChMatrix {
 
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
+    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream) {
         mstream << "\n"
                 << "Matrix " << GetRows() << " rows, " << GetColumns() << " columns."
@@ -446,6 +466,7 @@ class ChMatrix {
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
+    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream) {
         mstream << GetRows();
         mstream << GetColumns();
@@ -457,6 +478,7 @@ class ChMatrix {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
+    /// ***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream) {
         int m_row, m_col;
         mstream >> m_row;

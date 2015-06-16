@@ -32,6 +32,10 @@ struct ChCompositeMaterialDEM {
 };
 
 class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
+
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChMaterialSurfaceDEM, ChMaterialSurfaceBase);
+
   public:
     float young_modulus;  ///< Young's modulus (elastic modulus)
     float poisson_ratio;  ///< Poisson ratio
@@ -100,8 +104,56 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
     virtual void StreamOUT(ChStreamOutAscii& mstream) { mstream << "Material DEM \n"; }
 
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive){
+        // version number
+        marchive.VersionWrite(1);
+
+        // serialize parent class
+        ChMaterialSurfaceBase::ArchiveOUT(marchive);
+
+        // serialize all member data:
+        marchive << CHNVP(young_modulus);
+        marchive << CHNVP(poisson_ratio);
+        marchive << CHNVP(static_friction);
+        marchive << CHNVP(sliding_friction);
+        marchive << CHNVP(restitution);
+        marchive << CHNVP(cohesion);
+        marchive << CHNVP(kn);
+        marchive << CHNVP(kt);
+        marchive << CHNVP(gn);
+        marchive << CHNVP(gt);
+    }
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive){
+        // version number
+        int version = marchive.VersionRead();
+
+        // deserialize parent class
+        ChMaterialSurfaceBase::ArchiveIN(marchive);
+
+        // stream in all member data:
+        marchive >> CHNVP(young_modulus);
+        marchive >> CHNVP(poisson_ratio);
+        marchive >> CHNVP(static_friction);
+        marchive >> CHNVP(sliding_friction);
+        marchive >> CHNVP(restitution);
+        marchive >> CHNVP(cohesion);
+        marchive >> CHNVP(kn);
+        marchive >> CHNVP(kt);
+        marchive >> CHNVP(gn);
+        marchive >> CHNVP(gt);
+    }
+
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
+    /// ***OBSOLETE***
     virtual void StreamOUT(ChStreamOutBinary& mstream) {
         // class version number
         mstream.VersionWrite(1);
@@ -125,6 +177,7 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
 
     /// Operator to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
+    /// ***OBSOLETE***
     virtual void StreamIN(ChStreamInBinary& mstream) {
         // class version number
         int version = mstream.VersionRead();

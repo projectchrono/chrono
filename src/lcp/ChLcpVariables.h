@@ -207,10 +207,19 @@ class ChApi ChLcpVariables {
 	virtual void Build_M(ChEigenMatrix& storage, int insrow, int inscol) = 0;
 
 
+
     /// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }
     /// Get offset in global q vector
     int GetOffset() const { return offset; }
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {};
+    virtual void ArchiveIN(ChArchiveIn& marchive) {};
+
 };
 
 }  // END_OF_NAMESPACE____

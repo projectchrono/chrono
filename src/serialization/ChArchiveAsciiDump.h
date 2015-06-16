@@ -29,12 +29,21 @@ namespace chrono {
 class  ChArchiveAsciiDump : public ChArchiveOut {
   public:
 
-      ChArchiveAsciiDump( ChStreamOutAsciiFile& mostream) {
+      ChArchiveAsciiDump( ChStreamOutAscii& mostream) {
           ostream = &mostream;
           tablevel = 0;
+          use_versions = false;
+          suppress_names= false;
       };
 
       virtual ~ChArchiveAsciiDump() {};
+
+      /// If true, the variables namesare not printed. 
+      /// Useful when used for GetLog() << ...  (for more compact formatting).
+      void SetSuppressNames(bool msu) {suppress_names = msu;}
+
+      /// Access the stream used by the archive.
+      ChStreamOutAscii* GetStream() {return ostream;}
 
       void indent() {
           for (int i=0; i<tablevel; ++i)
@@ -43,29 +52,29 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 
       virtual void out     (ChNameValue<bool> bVal) {
             indent();
-            (*ostream) << bVal.name();
-            (*ostream) << "\t";
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
       virtual void out     (ChNameValue<int> bVal) {
             indent();
-            (*ostream) << bVal.name();
-            (*ostream) << "\t";
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
       virtual void out     (ChNameValue<double> bVal) {
             indent();
-            (*ostream) << bVal.name();
-            (*ostream) << "\t";
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
       virtual void out     (ChNameValue<float> bVal){
             indent();
-            (*ostream) << bVal.name();
-            (*ostream) << "\t";
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
@@ -78,35 +87,48 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
       virtual void out     (ChNameValue<unsigned int> bVal){
             indent();
-            (*ostream) << bVal.name();
-            (*ostream) << "\t";
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
       virtual void out     (ChNameValue<std::string> bVal){
             indent();
-            (*ostream) << bVal.name();
-            (*ostream) << "\t\"";
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "\t";
+            (*ostream) << "\"";
             (*ostream) << bVal.value();
             (*ostream) << "\"\n";
       }
       virtual void out     (ChNameValue<unsigned long> bVal){
             indent();
-            (*ostream) << bVal.name();
-            (*ostream) << "\t";
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
       virtual void out     (ChNameValue<unsigned long long> bVal){
             indent();
-            (*ostream) << bVal.name();
-            (*ostream) << "\t";
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
+      virtual void out     (ChNameValue<ChEnumMapperBase> bVal) {
+            indent();
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "\t";
+            (*ostream) << "\"";
+            std::string mstr = bVal.value().GetValueAsString();
+            (*ostream) << mstr;
+            (*ostream) << "\"\n";
+      }
+
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
             indent();
-            (*ostream) << name << "   array of "<< msize << " [" << classname << "]\n";
+            if (!suppress_names) 
+                (*ostream) << name << "\t"; 
+            (*ostream) << "array of "<< msize << " [" << classname << "]\n";
             ++tablevel;
             indent();
             (*ostream) << "[ \n";
@@ -122,9 +144,14 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
             indent();
-            (*ostream) << bVal.name() << "   [" << classname << "]\n";
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "  "; 
+            (*ostream) << "[" << classname << "]";
+            if (tracked)
+                (*ostream) << " (tracked)   ID= " << position; 
+            (*ostream) << " \n";
             ++tablevel;
             bVal.value().CallArchiveOut(*this);
             --tablevel;
@@ -134,11 +161,17 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
       {
           indent();
-          (*ostream) << bVal.name() << "->   [" << classname << "]  (class factory support)   ID=" << position <<"\n";
+          if (!suppress_names) 
+                (*ostream) << bVal.name(); 
+          (*ostream) << "->   [" << classname << "]  (class factory support)   ID=" << position <<"\n";
           ++tablevel;
           if (!already_inserted) {
-            // New Object, we have to full serialize it
-            bVal.value().CallArchiveOut(*this);
+              if (!bVal.value().IsNull()) {
+                    // New Object, we have to full serialize it
+                    bVal.value().CallArchiveOut(*this);
+              } else {
+                  (*ostream) << "NULL\n";
+              }
           }
           --tablevel;
       }
@@ -146,22 +179,47 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname) 
       {
           indent();
-          (*ostream) << bVal.name() << "->   [" << classname << "]   ID=" << position <<"\n";
+          if (!suppress_names) 
+                (*ostream) << bVal.name(); 
+          (*ostream) << "->   [" << classname << "]   ID=" << position <<"\n";
           ++tablevel;
           if (!already_inserted) {
-            // New Object, we have to full serialize it
-            bVal.value().CallArchiveOut(*this);
+             if (!bVal.value().IsNull()) {
+                    // New Object, we have to full serialize it
+                    bVal.value().CallArchiveOut(*this);
+              } else {
+                  (*ostream) << "NULL\n";
+              }
           } 
           --tablevel;
       }
 
   protected:
       int tablevel;
-      ChStreamOutAsciiFile* ostream;
+      ChStreamOutAscii* ostream;
+      bool suppress_names;
 };
 
 
 
+
+/// This is used to stream out in 'readable' form on a ChStreamOutAscii 
+/// stream whatever C++ object that implements the archive serialization, i.e. 
+/// objects that have ArchiveOUT implemented.
+/// For example:  GetLog() < mymatrix;
+
+template <class T>
+ChStreamOutAscii & operator<(ChStreamOutAscii &mstream, T& obj) {
+    std::vector<char> mvect;
+    ChStreamOutAsciiVector mtempstream(&mvect);
+    mtempstream.SetNumFormat(mstream.GetNumFormat());
+    ChArchiveAsciiDump marchive(mtempstream);
+    // this avoids printing too much except the object:
+    marchive.SetCutPointers(true);
+    marchive << CHNVP(obj,"");
+    std::string mystring(mtempstream.GetVector()->begin(),mtempstream.GetVector()->end());
+    return mstream << mystring;
+}
 
 
 }  // END_OF_NAMESPACE____

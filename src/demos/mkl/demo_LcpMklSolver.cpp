@@ -27,6 +27,10 @@
 
 // Include some headers used by this tutorial...
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> unit_MKL_throughLinkedList
 #include "lcp/ChLcpVariablesGeneric.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
@@ -38,8 +42,13 @@
 #include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpSimplexSolver.h"
 #include "core/ChLinearAlgebra.h"
+<<<<<<< HEAD
 #include <unit_MKL/ChLcpMklSolver.h>
 #include "core/ChMatrixDynamic.h"
+=======
+#include <unit_MKL/ChCSR3matrix.h>
+#include <unit_MKL/ChLcpMklSolver.h>
+>>>>>>> unit_MKL_throughLinkedList
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -136,7 +145,11 @@ void test_1() {
 	mcb.Get_Cq_a()->ElementN(1) = 1;
 	mcb.Get_Cq_a()->ElementN(2) = 0;
 	mcb.Get_Cq_b()->ElementN(0) = 0;
+<<<<<<< HEAD
 	mcb.Get_Cq_b()->ElementN(1) = -2;
+=======
+	mcb.Get_Cq_b()->ElementN(1) = -1;
+>>>>>>> unit_MKL_throughLinkedList
 	mcb.Get_Cq_b()->ElementN(2) = 0;
 
 	mdescriptor.InsertConstraint(&mca);
@@ -144,6 +157,7 @@ void test_1() {
 
 	mdescriptor.EndInsertion();  // ----- system description ends here
 
+<<<<<<< HEAD
 	// Solve the problem with an iterative fixed-point solver, for an
 	// approximate (but very fast) solution:
 	//
@@ -224,6 +238,48 @@ void test_1() {
 	GetLog() << "constraint residuals c_1 and c_2 ---\n";
 	GetLog() << mca.Get_c_i() << "  \n";
 	GetLog() << mcb.Get_c_i() << "  \n";
+=======
+	// Solve the problem with Intel® MKL Pardiso Sparse Direct Solver
+	// Temporary solution: pass through ChSparseMatrix (LinkedList format) -> doubled storage!
+
+	chrono::ChSparseMatrix mdM;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+	
+	
+	ChEigenMatrix matCSR3;
+	matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
+	const int n = matCSR3.GetRows();
+	ChMKLSolver pardiso_solver(n);
+	pardiso_solver.SetMatrix(&matCSR3);
+	chrono::ChMatrixDynamic<double> mdf_full;
+	pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
+	ChMatrixDynamic<double> solution(n,1);
+	pardiso_solver.SetUnknownVector(&solution);
+
+	pardiso_solver.PardisoSolve();
+	ChMatrixDynamic<double> residual(n, 1);
+	pardiso_solver.GetResidual(&residual);
+
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nMatrix \n");
+	for (int i = 0; i < matCSR3.GetRows(); i++){
+		for (int j = 0; j < matCSR3.GetColumns(); j++)
+			printf("%.1f ", matCSR3(i, j));
+		printf("\n");
+	};
+
+	printf("\nApprox solution | Residual");
+	for (int i = 0; i < solution.GetRows(); i++)
+		printf("\n%f | %e", solution(i, 0), residual(i, 0));
+	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
+
+>>>>>>> unit_MKL_throughLinkedList
 }
 
 // Test 2
@@ -274,6 +330,10 @@ void test_2() {
 		chrono::ChMatrixDynamic<double> mdb;
 		chrono::ChMatrixDynamic<double> mdfric;
 		mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+<<<<<<< HEAD
+=======
+
+>>>>>>> unit_MKL_throughLinkedList
 		chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
 		mdM.StreamOUTsparseMatlabFormat(file_M);
 		chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
@@ -327,8 +387,59 @@ void test_2() {
 	GetLog() << "CONSTRAINTS: \n";
 	for (int ic = 0; ic < constraints.size(); ic++)
 		GetLog() << "   " << constraints[ic]->Get_l_i() << "\n";
+<<<<<<< HEAD
 }
 
+=======
+
+	// Try again with MKL Pardiso
+
+	chrono::ChSparseMatrix mdM;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
+	ChEigenMatrix matCSR3;
+	matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
+	const int n = matCSR3.GetRows();
+	ChMKLSolver pardiso_solver(n);
+	pardiso_solver.SetMatrix(&matCSR3);
+	chrono::ChMatrixDynamic<double> mdf_full;
+	pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
+	ChMatrixDynamic<double> solution(n, 1);
+	pardiso_solver.SetUnknownVector(&solution);
+
+	pardiso_solver.PardisoSolve();
+	ChMatrixDynamic<double> residual(n, 1);
+	pardiso_solver.GetResidual(&residual);
+
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nApprox solution | Residual");
+	for (int i = 0; i < solution.GetRows(); i++)
+		printf("\n%f | %e", solution(i, 0), residual(i, 0));
+	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
+
+
+}
+
+// Test 3
+// Create three variables, with some mass, and also add a
+// ChLcpStiffness item that connects two of these variables
+// with random stiffness.
+// Also use the ChLcpSystemDescriptor functions FromUnknownsToVector
+// and FromVectorToUnknowns for doing checks.
+//
+//  | M+K   K       . Cq' | |q_a |   |f_a|   |  0|
+//  |  K   M+K      . Cq' | |q_b |   |f_b|   |  0|
+//  |            M  .     | |q_c |   |f_c| = |  0|
+//  | ....................| |... |   |...|   |...|
+//  |  Cq   Cq      .     | |-l_1|   |  5|   |c_1|
+
+>>>>>>> unit_MKL_throughLinkedList
 void test_3() {
 	GetLog() << "\n-------------------------------------------------\n";
 	GetLog() << "TEST: generic system with stiffness blocks \n\n";
@@ -467,6 +578,7 @@ void test_3() {
 	for (int ic = 0; ic < mdescriptor.GetConstraintsList().size(); ic++)
 	GetLog() << "   " << mdescriptor.GetConstraintsList()[ic]->Get_l_i() << "\n";
 	*/
+<<<<<<< HEAD
 }
 
 void test_1_MKL() {
@@ -566,11 +678,43 @@ void test_1_MKL() {
 		printf("\n ");
 	};
 	getchar();
+=======
+
+	chrono::ChSparseMatrix mdM;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
+	ChEigenMatrix matCSR3;
+	matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
+	const int n = matCSR3.GetRows();
+	ChMKLSolver pardiso_solver(n);
+	pardiso_solver.SetMatrix(&matCSR3);
+	chrono::ChMatrixDynamic<double> mdf_full;
+	pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
+	ChMatrixDynamic<double> solution(n, 1);
+	pardiso_solver.SetUnknownVector(&solution);
+
+	pardiso_solver.PardisoSolve();
+	ChMatrixDynamic<double> residual(n, 1);
+	pardiso_solver.GetResidual(&residual);
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nApprox solution | Residual");
+	for (int i = 0; i < solution.GetRows(); i++)
+		printf("\n%f | %e", solution(i, 0), residual(i, 0));
+	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
+
+>>>>>>> unit_MKL_throughLinkedList
 }
 
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
 
+<<<<<<< HEAD
 int main(int argc, char* argv[]) {
 	//GetLog() << " Example: the HyperOCTANT techology for solving LCP\n\n\n";
 
@@ -587,4 +731,26 @@ int main(int argc, char* argv[]) {
 	//test_3();
 
 	return 0;
+=======
+
+int main(int argc, char* argv[]) {
+	//GetLog() << " Example: the HyperOCTANT techology for solving LCP\n\n\n";
+
+	//// Test: an introductory problem:
+	test_1();
+
+	//// Test: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
+	test_2();
+
+	//// Test: the stiffness benchmark (add also sparse stiffness blocks over M)
+	test_3();
+
+	getchar();
+
+	return 0;
+
+
+	
+
+>>>>>>> unit_MKL_throughLinkedList
 }

@@ -41,6 +41,10 @@ namespace collision {
 /// Uses features of the Bullet library.
 
 class ChApi ChModelBulletParticle : public ChModelBullet {
+
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChModelBulletParticle, ChModelBullet);
+
   public:
     ChModelBulletParticle();
     virtual ~ChModelBulletParticle();

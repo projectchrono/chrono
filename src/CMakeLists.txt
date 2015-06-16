@@ -93,10 +93,6 @@ set(BUILD_CH_SDK         TRUE    CACHE BOOL   "Turn this ON to generate the Chro
 set(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
 set(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
 
-SET(CH_EIGEN_PATH "D:/SourceTreeWS/libraries/eigen"     CACHE PATH   "Where is your Eigen library main folder? (should contain ./Engine)")
-
-
-
 # Also, some variables that were used in previous makefile system (some
 # of them could be set automatically because CMake should recognize automatically
 # the compiler, generator, platform, etc....
@@ -180,11 +176,8 @@ else()
 endif()
 
 # Enable C++11 support
-option(ENABLE_CXX11 "Enable C++11 support" ON)
-if(ENABLE_CXX11)
-    find_package(ModernCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
-endif()
+find_package(ModernCXX)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
 
 set(CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -304,7 +297,6 @@ if(BUILD_CH_SDK)
         core/ChWrapHashmap.h
         core/ChDistribution.h
         core/ChQuadrature.h
-		core/ChCSR3matrix.h
 		core/ChTemplateExpressions.h        )
 
     list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")
@@ -375,7 +367,6 @@ if(BUILD_CH_SDK)
         physics/ChSolvmin.cpp
         physics/ChProbe.cpp
         physics/ChControls.cpp
-        physics/ChIntegrator.cpp
         physics/ChController.cpp
         physics/ChIterative.cpp
         physics/ChRef.cpp
@@ -415,6 +406,7 @@ if(BUILD_CH_SDK)
         physics/ChContactContainerDEM.cpp
         physics/ChContactDEM.cpp
         physics/ChMaterialSurfaceDEM.cpp
+		physics/ChMaterialSurface.cpp
         physics/ChContinuumMaterial.cpp
         )
     set(ChronoEngine_physics_HEADERS
@@ -442,7 +434,6 @@ if(BUILD_CH_SDK)
         physics/ChHistory.h
         physics/ChIndexedNodes.h
         physics/ChIndexedParticles.h
-        physics/ChIntegrator.h
         physics/ChIterative.h
         physics/ChLimit.h
         physics/ChLinkBase.h
@@ -480,7 +471,6 @@ if(BUILD_CH_SDK)
         physics/ChMaterialSurfaceDEM.h
         physics/ChMatterSPH.h
         physics/ChNlsolver.h
-        physics/ChVariablesInterface.h
         physics/ChNodeBase.h
         physics/ChNodeXYZ.h
         physics/ChObject.h
@@ -532,9 +522,13 @@ if(BUILD_CH_SDK)
         geometry/ChCCylinder.cpp
         geometry/ChCCapsule.cpp
         geometry/ChCLine.cpp
+		geometry/ChCLineArc.cpp
+		geometry/ChCLineSegment.cpp
+		geometry/ChCLinePath.cpp
         geometry/ChCLineCam.cpp
         geometry/ChCLinePoly.cpp
         geometry/ChCTriangle.cpp
+		geometry/ChCTriangleMeshSoup.cpp
         geometry/ChCTriangleMeshConnected.cpp
         geometry/ChCRoundedBox.cpp
         geometry/ChCRoundedCylinder.cpp
@@ -582,6 +576,7 @@ if(BUILD_CH_SDK)
         assets/ChTexture.cpp
         assets/ChCamera.cpp
         assets/ChAssetLevel.cpp
+		assets/ChColor.cpp
         assets/ChGlyphs.cpp
         assets/ChColorAsset.cpp
         assets/ChRoundedCylinderShape.cpp
