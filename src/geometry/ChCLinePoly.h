@@ -12,19 +12,6 @@
 #ifndef CHC_LINEPOLY_H
 #define CHC_LINEPOLY_H
 
-//////////////////////////////////////////////////
-//
-//   ChCLinePoly.h
-//
-//   Base class for lines with control points
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <math.h>
 
@@ -51,8 +38,7 @@ class ChApi ChLinePoly : public ChLine {
     // DATA
     //
 
-    Vector* points;  // control points
-    int numpoints;
+    std::vector< ChVector<> > points;  // control points
     int degree;
 
   public:
@@ -65,7 +51,6 @@ class ChApi ChLinePoly : public ChLine {
     ~ChLinePoly();
 
     ChLinePoly(const ChLinePoly& source) {
-        points = 0;
         Copy(&source);
     }
 
@@ -82,10 +67,10 @@ class ChApi ChLinePoly : public ChLine {
 
     virtual int GetClassType() { return CH_GEOCLASS_LINEPOLY; };
 
-    virtual int Get_closed();
-    virtual void Set_closed(int mc);
+    virtual bool Get_closed();
+    virtual void Set_closed(bool mc);
 
-    virtual int Get_complexity() { return numpoints; };
+    virtual int Get_complexity() { return (int)points.size(); };
     virtual void Set_complexity(int mc){};
 
     /// Curve evaluation (only parU is used, in 0..1 range)
@@ -102,24 +87,50 @@ class ChApi ChLinePoly : public ChLine {
     //
 
     /// Gets the number of control points
-    virtual int Get_numpoints();
+    virtual size_t Get_numpoints();
 
     /// Get the degree of the curve (1= linear,
     /// 2= quadric, 3= cubic, etc.)
     virtual int Get_degree();
 
     /// Get the n-th control point
-    virtual Vector Get_point(int mnum);
+    virtual Vector Get_point(size_t mnum);
 
     /// Set the n-th control point
     virtual int Set_point(int mnum, Vector mpoint);
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChLine::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(points);
+        marchive << CHNVP(degree);
+    }
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChLine::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(points);
+        marchive >> CHNVP(degree);
+    }
+
+    //***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream);
 
+    //***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream);
 };
 

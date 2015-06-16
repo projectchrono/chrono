@@ -40,6 +40,9 @@ namespace chrono {
 /// its parent level.
 
 class ChApi ChAssetLevel : public ChAsset {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChAsset, ChShared);
+
   protected:
     //
     // DATA
@@ -83,6 +86,34 @@ class ChApi ChAssetLevel : public ChAsset {
 
     /// Updates all children assets, if any. Overrides default behaviour that does nothing.
     virtual void Update();
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChAsset::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(levelframe);
+        marchive << CHNVP(assets);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChAsset::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(levelframe);
+        marchive >> CHNVP(assets);
+    }
 };
 
 //////////////////////////////////////////////////////

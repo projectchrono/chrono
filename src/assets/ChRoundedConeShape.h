@@ -12,20 +12,6 @@
 #ifndef CHROUNDEDCONESHAPE_H
 #define CHROUNDEDCONESHAPE_H
 
-///////////////////////////////////////////////////
-//
-//   ChRoundedConeShape.h
-//
-//   Class for defining a rounded cone as an asset
-//   shape that can be visualized in some way.
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "assets/ChVisualization.h"
 #include "geometry/ChCRoundedCone.h"
@@ -36,6 +22,9 @@ namespace chrono {
 /// visualized in some way.
 
 class ChApi ChRoundedConeShape : public ChVisualization {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChRoundedConeShape, ChVisualization);
+
   protected:
     //
     // DATA
@@ -58,6 +47,32 @@ class ChApi ChRoundedConeShape : public ChVisualization {
 
     // Access the rounded cone geometry
     geometry::ChRoundedCone& GetRoundedConeGeometry() { return groundedcone; }
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChVisualization::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(groundedcone);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChVisualization::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(groundedcone);
+    }
 };
 
 //////////////////////////////////////////////////////

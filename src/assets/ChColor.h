@@ -13,12 +13,19 @@
 #define CHCOLOR_H
 
 #include "core/ChStream.h"
+#include "core/ChRunTimeType.h"
+#include "serialization/ChArchive.h"
+
+
 
 namespace chrono {
 
 /// Class for setting a color (used by ChVisualization)
 
 class ChApi ChColor {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI_ROOT(ChColor);
+
   public:
     float R;  /// red channel (0,1)
     float G;  /// green channel (0,1)
@@ -41,7 +48,36 @@ class ChApi ChColor {
         return *this;
     }
 
-    /// Streaming:
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+
+        // serialize all member data:
+        marchive << CHNVP(R);
+        marchive << CHNVP(G);
+        marchive << CHNVP(B);
+        marchive << CHNVP(A);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+
+        // stream in all member data:
+        marchive >> CHNVP(R);
+        marchive >> CHNVP(G);
+        marchive >> CHNVP(B);
+        marchive >> CHNVP(A);
+    }
+
     void StreamOUT(ChStreamOutAscii& mstream) {
         mstream << "\nRGB=" << R << "\n" << G << "\n" << B << " A=" << A << "\n";
     }

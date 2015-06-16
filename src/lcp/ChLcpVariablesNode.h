@@ -115,6 +115,32 @@ class ChApi ChLcpVariablesNode : public ChLcpVariables {
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
     /// Optimised: doesn't fill unneeded elements except mass.
     void Build_M(ChSparseMatrix& storage, int insrow, int inscol);
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChLcpVariables::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(mass);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChLcpVariables::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(mass);
+        SetNodeMass(mass);
+    }
 };
 
 }  // END_OF_NAMESPACE____

@@ -23,6 +23,9 @@ namespace chrono {
 /// visualized in some way.
 
 class ChApi ChLineShape : public ChVisualization {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChLineShape, ChVisualization);
+
   protected:
     //
     // DATA
@@ -51,6 +54,32 @@ class ChApi ChLineShape : public ChVisualization {
 
     // Set the line geometry
     void SetLineGeometry(ChSharedPtr<geometry::ChLine> mline) { gline = mline; }
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChVisualization::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(gline);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChVisualization::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(gline);
+    }
 };
 
 //////////////////////////////////////////////////////

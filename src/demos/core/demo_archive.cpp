@@ -31,8 +31,32 @@
 #include "core/ChMatrix.h"
 #include "core/ChException.h"
 #include "core/ChShared.h"
+#include <typeinfo>
 
 using namespace chrono;
+
+
+/// A bit of forewords on 'enums'. 
+/// Serializing enums to ascii 'human readable' strings is possible by means
+/// of the three macros CH_ENUM_MAPPER_BEGIN CH_ENUM_VAL CH_ENUM_MAPPER_END.
+/// Use them as in the following example - possibly implement it right after your enums.
+/// After this, you have a class called "MyEnum_mapper", inherited
+/// from ChEnumMapper, and you can use it for converting enums from/to strings.
+/// If you forget one of the CH_ENUM_VAL, the correspondent enum value will
+/// be simply converted to a string with a number, and all will work fine.
+
+enum myEnum {
+     ATHLETIC = 0,
+     SKINNY = 3,
+     FAT
+};
+
+CH_ENUM_MAPPER_BEGIN(myEnum);
+  CH_ENUM_VAL(ATHLETIC);
+  CH_ENUM_VAL(SKINNY);
+  CH_ENUM_VAL(FAT, "fatty");  // overrides the "FAT" mapped string with "fatty"
+CH_ENUM_MAPPER_END(myEnum);
+
 
 //
 // Define some example classes just for showing how CHRONO serialization
@@ -62,8 +86,12 @@ class myEmployee : public ChShared {
   public:
     int age;
     double wages;
+    myEnum body;
 
-    myEmployee(int m_age = 18, double m_wages = 1020.3) : age(m_age), wages(m_wages){};
+    myEmployee(int m_age = 18, double m_wages = 1020.3, myEnum m_body = myEnum::ATHLETIC) : 
+        age(m_age), 
+        wages(m_wages),
+        body(m_body){};
 
     // MEMBER FUNCTIONS FOR BINARY I/O
     // NOTE!!!In order to allow serialization with Chrono approach,
@@ -77,6 +105,8 @@ class myEmployee : public ChShared {
         // stream out all member data
         marchive << CHNVP(age);
         marchive << CHNVP(wages);
+        myEnum_mapper enum_map;
+        marchive << CHNVP(enum_map(body), "body"); // note: CHNVP macro can override names used when streaming to ascii..
     }
     virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
     {
@@ -85,15 +115,16 @@ class myEmployee : public ChShared {
         // stream in all member data
         marchive >> CHNVP(age);
         marchive >> CHNVP(wages);
+        myEnum_mapper enum_map;
+        marchive >> CHNVP(enum_map(body), "body");
     }
 
-    // Optional: stream of data into readable ASCII format, if you later want
-    // (ex) to output to console using chrono::GetLog() << my_object;
-    virtual void StreamOUT(ChStreamOutAscii& mstream) {
-        mstream << "Age is:  " << age << "\n";
-        mstream << "Wage is: " << wages << "\n";
-    }
 };
+
+
+
+
+
 
 // Somewhere in your cpp code (not in .h headers!) you should put the
 // 'class factory' registration of your class, assuming it has the CH_RTTI_..,
@@ -113,8 +144,11 @@ class myEmployeeBoss : public myEmployee {
     bool is_dumb;
     myEmployee slave;
 
+
     myEmployeeBoss(int m_age = 38, double m_wages = 9000.4, bool m_is_dumb = true)
-        : myEmployee(m_age, m_wages), is_dumb(m_is_dumb), slave(21, 300){};
+        : myEmployee(m_age, m_wages), 
+        is_dumb(m_is_dumb),
+        slave(21, 300){};
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
@@ -138,17 +172,11 @@ class myEmployeeBoss : public myEmployee {
 
         // stream in member data
         marchive >> CHNVP(is_dumb);
-        if (version > 1)
+        if (version > 1){
             marchive >> CHNVP(slave);  // this added only from version >1
+        }
     }
 
-    // Optional: stream of data into readable ASCII format:
-    virtual void StreamOUT(ChStreamOutAscii& mstream) {
-        myEmployee::StreamOUT(mstream);
-
-        mstream << "is dumb? =" << is_dumb << "\n";
-        mstream << "..the boss has a slave employee: \n" << slave << "\n";
-    }
 };
 
 chrono::ChClassRegister<myEmployeeBoss> a_registration2;  //***** for _advanced_ Chrono serialization
@@ -174,25 +202,30 @@ void my_serialization_example(ChArchiveOut& marchive)
         m_stlvector.push_back (2.3); 
         m_stlvector.push_back (45.3);
         m_stlvector.push_back (66.44);
+        std::list< std::string > m_stllist; 
+        m_stllist.push_back ("foo"); 
+        m_stllist.push_back ("bar");
         ChMatrixDynamic<double> m_matr(3, 5);
         m_matr.FillRandom(10, 0);
         ChVector<> m_vect(0.5, 0.6, 0.7);
         ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
         
-        marchive << CHNVP(m_double);  // store data n.1      
+        marchive << CHNVP(m_double,"custom double");  // store data n.1      
         marchive << CHNVP(m_int);     // store data n.2 
         marchive << CHNVP(m_array);   // store data n.3
         marchive << CHNVP(m_text);    // store data n....
         marchive << CHNVP(m_string);  
         marchive << CHNVP(m_stlvector);
+        marchive << CHNVP(m_stllist);
         marchive << CHNVP(m_matr);    
         marchive << CHNVP(m_vect);    
-        marchive << CHNVP(m_quat);  
-
+        marchive << CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);  
+        
         // Also store a c++ object 
         // In order to use this feature, the classes must implement 
         // ArchiveIN and ArchiveOUT functions.
         myEmployeeBoss m_boss(53, 12000.34, true);
+        m_boss.body = FAT;
         marchive << CHNVP(m_boss);    
 
         // Also store a c++ objects referenced by pointer(s).
@@ -203,6 +236,10 @@ void my_serialization_example(ChArchiveOut& marchive)
         ChVector<>* a_vect = new ChVector<>(1,2,3); 
         marchive << CHNVP(a_vect);
         delete a_vect;
+
+        // Null pointers can be serialized. They will be deserialized as null.
+        ChVector<>* a_null_ptr = 0; 
+        marchive << CHNVP(a_null_ptr);
 
         // Also store c++ objects referenced by pointer, using the
         // class abstraction (class factory) mechanism, so that it
@@ -244,28 +281,33 @@ void my_deserialization_example(ChArchiveIn& marchive)
         char m_text[12]; // better use std::string
         std::string m_string;
         std::vector< double > m_stlvector;
+        std::list< std::string > m_stllist;
         ChMatrixDynamic<> m_matr;
         ChVector<> m_vect;
         ChQuaternion<> m_quat;
         myEmployeeBoss m_boss;
         ChVector<>* a_vect;
-
+        ChVector<>* a_null_ptr;
         
-        marchive >> CHNVP(m_double);  // deserialize data n.1
+        marchive >> CHNVP(m_double,"custom double");  // deserialize data n.1
         marchive >> CHNVP(m_int);     // deserialize data n.2
         marchive >> CHNVP(m_array);   // deserialize data n.3
         marchive >> CHNVP(m_text);    // deserialize data n....
         marchive >> CHNVP(m_string);  
         marchive >> CHNVP(m_stlvector);
+        marchive >> CHNVP(m_stllist);
         marchive >> CHNVP(m_matr);
         marchive >> CHNVP(m_vect);  
-        marchive >> CHNVP(m_quat);        
+        marchive >> CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);        
 
         // Also deserialize the C++ object
         marchive >> CHNVP(m_boss); 
 
         // Also deserialize the C++ pointer: an object will be created!
         marchive >> CHNVP(a_vect); 
+
+        // Also deserialize the null C++ pointer: no object is created, and pointer set as null.
+        marchive >> CHNVP(a_null_ptr);
 
         // Also retrieve c++ objects, referenced by a base class pointer, using the
         // class abstraction (class factory) mechanism, so that it
@@ -290,28 +332,25 @@ void my_deserialization_example(ChArchiveIn& marchive)
         // Just for safety, log some of the restored data:
 
         GetLog() << "\n\nResult of binary I/O: \n " << m_text << " \n " << m_int << " \n" << m_double << "\n";
-        GetLog() << m_matr;
-        GetLog() << m_vect;
-        GetLog() << m_quat;
-        GetLog() << m_string.c_str();
-        GetLog() << "\n stl::vector of size " <<  m_stlvector.size() << ":\n";
-        for(int i=0; i< m_stlvector.size(); ++i)
-            GetLog() << m_stlvector[i] << " ";
-        GetLog() << "\n\n We also loaded a myEmployeeBoss object:\n";
-        GetLog() << m_boss;
-        GetLog() << *a_vect;
+        GetLog() < m_matr;
+        GetLog() < m_vect;
+        GetLog() < m_quat;
+        GetLog() << m_string.c_str() << "\n";
+        GetLog() < m_stlvector;
+        GetLog() < m_boss;
+        GetLog() < a_vect;
 
         if (a_boss) {
             GetLog() << "\n\n We loaded an obj inherited from myEmployee class:\n";
-            GetLog() << *a_boss;
+            GetLog() < *a_boss;
 
         if (a_boss2) {
             GetLog() << "\n\n We loaded a 2nd obj inherited from myEmployee class (referencing the 1st):\n";
-            GetLog() << *a_boss2;
+            GetLog() < *a_boss2;
         }
         if (s_boss) {
             GetLog() << "\n\n We loaded a 3nd obj inherited from myEmployee class:\n";
-            GetLog() << *(s_boss);
+            GetLog() < *(s_boss);
         }
 
             // By the way, now show some feaures of Chrono run-time-type-identifier
@@ -413,7 +452,7 @@ int main(int argc, char* argv[]) {
             }
             
         }
-  
+ 
 
         GetLog() << "Serialization test ended with success.\n";
 

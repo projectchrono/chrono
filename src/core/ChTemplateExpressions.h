@@ -41,6 +41,7 @@ namespace chrono {
 ///
 /// then call as myfunct(myvalue);
 
+
 #define CH_CREATE_MEMBER_DETECTOR(X)                                                   \
 template<typename T> class ChDetect_##X {                                             \
     struct Fallback { int X; };                                                     \
@@ -64,6 +65,7 @@ struct enable_if {};
  
 template<class T>
 struct enable_if<true, T> { typedef T type; };
+
 
 
 } // end namespace
