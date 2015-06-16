@@ -506,7 +506,7 @@ class  ChArchiveOut : public ChArchive {
           for (size_t i = 0; i<arraysize; ++i)
           {
               char buffer[20];
-              sprintf(buffer, "el_%d", (unsigned int)i);
+              sprintf(buffer, "el_%zu", i);
               ChNameValue< T > array_val(buffer, bVal.value()[i]);
               this->out (array_val);
               this->out_array_between(arraysize, typeid(bVal.value()).name());
@@ -521,7 +521,7 @@ class  ChArchiveOut : public ChArchive {
           for (size_t i = 0; i<bVal.value().size(); ++i)
           {
               char buffer[20];
-              sprintf(buffer, "el_%d", (unsigned int)i);
+              sprintf(buffer, "el_%zu", i);
               ChNameValue< T > array_val(buffer, bVal.value()[i]);
               this->out (array_val);
               this->out_array_between(bVal.value().size(), typeid(bVal.value()).name());
@@ -537,7 +537,7 @@ class  ChArchiveOut : public ChArchive {
           for (iter = bVal.value().begin(); iter != bVal.value().end(); ++iter, ++i)
           {
               char buffer[20];
-              sprintf(buffer, "el_%d", (unsigned int)i);
+              sprintf(buffer, "el_%zu", i);
               ChNameValue< T > array_val(buffer, (*iter));
               this->out (array_val);
               this->out_array_between(bVal.value().size(), typeid(bVal.value()).name());
@@ -709,7 +709,7 @@ class  ChArchiveIn : public ChArchive {
           for (size_t i = 0; i<arraysize; ++i)
           {
               char idname[20];
-              sprintf(idname, "el_%d", i);
+              sprintf(idname, "el_%zu", i);
               T element;
               ChNameValue< T > array_val(idname, element);
               this->in (array_val);
@@ -729,7 +729,7 @@ class  ChArchiveIn : public ChArchive {
           for (size_t i = 0; i<arraysize; ++i)
           {
               char idname[20];
-              sprintf(idname, "el_%d", i);
+              sprintf(idname, "el_%zu", i);
               T element;
               ChNameValue< T > array_val(idname, element);
               this->in (array_val);
@@ -747,7 +747,7 @@ class  ChArchiveIn : public ChArchive {
           for (size_t i = 0; i<arraysize; ++i)
           {
               char idname[20];
-              sprintf(idname, "el_%d", i);
+              sprintf(idname, "el_%zu", i);
               T element;
               ChNameValue< T > array_val(idname, element);
               this->in (array_val);
