@@ -245,9 +245,8 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     normtype = NORM_INF;
     maxiter = 6;
 
-    SetIntegrationType(INT_ANITESCU);
+    SetIntegrationType(INT_EULER_IMPLICIT_LINEARIZED); 
     modeXY = FALSE;
-    contact_container = 0;
 
     min_bounce_speed = 0.15;
     max_penetration_recovery_speed = 0.6;
@@ -2198,6 +2197,8 @@ int ChSystem::Integrate_Y() {
 //
 
 int ChSystem::Integrate_Y_impulse_Anitescu() {
+    GetLog() << "WARNING! The INT_ANITESCU timestepper is deprecated. Use the INT_EULER_IMPLICIT_LINEARIZED instead.\n";
+
     int ret_code = TRUE;
 
     timer_step.start();
@@ -2324,6 +2325,8 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
 //
 
 int ChSystem::Integrate_Y_impulse_Tasora() {
+    GetLog() << "WARNING! The INT_TASORA timestepper is deprecated. Use the INT_EULER_IMPLICIT_PROJECTED instead.\n";
+
     int ret_code = TRUE;
 
     timer_step.start();
