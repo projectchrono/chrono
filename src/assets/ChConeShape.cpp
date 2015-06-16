@@ -20,4 +20,10 @@
 
 #include "assets/ChConeShape.h"
 
-namespace chrono {}  // END_OF_NAMESPACE____
+namespace chrono {
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChConeShape> a_registration_ChConeShape;
+
+}  // END_OF_NAMESPACE____

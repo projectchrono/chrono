@@ -65,6 +65,9 @@ class  ChArchiveOutBinary : public ChArchiveOut {
       virtual void out     (ChNameValue<unsigned long long> bVal){
             (*ostream) << bVal.value();
       }
+      virtual void out     (ChNameValue<ChEnumMapperBase> bVal) {
+            (*ostream) << bVal.value().GetValueAsInt();
+      }
 
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
             (*ostream) << msize;
@@ -74,8 +77,8 @@ class  ChArchiveOutBinary : public ChArchiveOut {
 
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) {
-            bVal.value().CallArchiveOut(*this);
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+          bVal.value().CallArchiveOut(*this);
       }
 
         // for pointed objects (if pointer hasn't been already serialized, otherwise save offset)
@@ -157,7 +160,11 @@ class  ChArchiveInBinary : public ChArchiveIn {
       virtual void in     (ChNameValue<unsigned long long> bVal){
             (*istream) >> bVal.value();
       }
-
+      virtual void in     (ChNameValue<ChEnumMapperBase> bVal) {
+            int foo;
+            (*istream) >>  foo;
+            bVal.value().SetValueAsInt(foo);
+      }
          // for wrapping arrays and lists
       virtual void in_array_pre (const char* name, size_t& msize) {
             (*istream) >> msize;
@@ -167,7 +174,10 @@ class  ChArchiveInBinary : public ChArchiveIn {
 
         //  for custom c++ objects:
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) {
-            bVal.value().CallArchiveIn(*this);
+          if (bVal.flags() & NVP_TRACK_OBJECT){
+              objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+          }
+          bVal.value().CallArchiveIn(*this);
       }
 
       // for pointed objects (if position != -1 , pointer has been already serialized)

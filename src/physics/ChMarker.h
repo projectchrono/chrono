@@ -265,6 +265,16 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     // STREAMING
     //
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
+
     /// Method to allow serialization of transient data in ascii,
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
     void StreamOUT(ChStreamOutAscii& mstream);

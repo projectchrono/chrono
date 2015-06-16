@@ -9,15 +9,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChCamera.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "assets/ChCamera.h"
 
-namespace chrono {}  // END_OF_NAMESPACE____
+namespace chrono {
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChCamera> a_registration_ChCamera;
+
+}  // END_OF_NAMESPACE____

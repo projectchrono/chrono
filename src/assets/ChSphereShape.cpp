@@ -9,15 +9,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChSphereShape.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "assets/ChSphereShape.h"
 
-namespace chrono {}  // END_OF_NAMESPACE____
+namespace chrono {
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChSphereShape> a_registration_ChSphereShape;
+
+}  // END_OF_NAMESPACE____

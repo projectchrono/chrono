@@ -40,6 +40,36 @@ void ChBodyFrame::To_abs_torque(const ChVector<>& torque, int local, ChVector<>&
     }
 }
 
+
+
+
+void ChBodyFrame::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChFrameMoving<double>::ArchiveOUT(marchive);
+    // serialize parent class
+    //ChBodyFrame::ArchiveOUT(marchive);
+
+    // serialize all member data:
+}
+
+void ChBodyFrame::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class
+    ChFrameMoving<double>::ArchiveIN(marchive);
+    // deserialize parent class
+    //ChShared::ArchiveIN(marchive);
+
+    // stream in all member data:
+}
+
+
 }  // END_OF_NAMESPACE____
 
 /////////////////////
