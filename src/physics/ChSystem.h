@@ -986,16 +986,6 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     int DoStaticRelaxing();
 
     //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
-
-    //
     // STREAMING
     //
 

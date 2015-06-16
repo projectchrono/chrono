@@ -350,35 +350,6 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
 
 ////////////////  FILE I/O
 
-void ChMarker::ArchiveOUT(ChArchiveOut& marchive)
-{
-    // version number
-    marchive.VersionWrite(1);
-
-    // serialize parent class
-    ChObj::ArchiveOUT(marchive);
-    // serialize parent class
-    ChFrameMoving<double>::ArchiveOUT(marchive);
-
-    // serialize all member data:
-    //***TODO***
-}
-
-/// Method to allow de serialization of transient data from archives.
-void ChMarker::ArchiveIN(ChArchiveIn& marchive) 
-{
-    // version number
-    int version = marchive.VersionRead();
-
-    // deserialize parent class
-    ChObj::ArchiveIN(marchive);
-    // deserialize parent class
-    ChFrameMoving<double>::ArchiveIN(marchive);
-
-    // stream in all member data:
-    //***TODO***
-}
-
 void ChMarker::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(2);

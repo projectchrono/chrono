@@ -27,10 +27,6 @@
 namespace chrono {
 namespace collision {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChModelBulletNode> a_registration_ChModelBulletNode;
-
 ChModelBulletNode::ChModelBulletNode() {
     this->nodes = 0;
     this->node_id = 0;

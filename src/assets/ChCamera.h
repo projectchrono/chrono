@@ -12,6 +12,20 @@
 #ifndef CHCAMERA_H
 #define CHCAMERA_H
 
+///////////////////////////////////////////////////
+//
+//   ChCamera.h
+//
+//   Class for defining a videocamera point of view
+//   with basic settings
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "assets/ChAsset.h"
 #include "core/ChVector.h"
@@ -22,9 +36,6 @@ namespace chrono {
 /// with basic settings
 
 class ChApi ChCamera : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChCamera, ChAsset);
-
   private:
     //
     // DATA
@@ -103,44 +114,6 @@ class ChApi ChCamera : public ChAsset {
     /// If 'true' it means that perspective projection is disabled and you get a 'flat' view.
     /// This must be supported by the visualization system. By default is 'false'.
     bool GetOrthographic() { return this->isometric; }
-
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChAsset::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(position);
-        marchive << CHNVP(aimpoint);
-        marchive << CHNVP(upvector);
-        marchive << CHNVP(angle);
-        marchive << CHNVP(fov);
-        marchive << CHNVP(hvratio);
-        marchive << CHNVP(isometric);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChAsset::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(position);
-        marchive >> CHNVP(aimpoint);
-        marchive >> CHNVP(upvector);
-        marchive >> CHNVP(angle);
-        marchive >> CHNVP(fov);
-        marchive >> CHNVP(hvratio);
-        marchive >> CHNVP(isometric);
-    }
 };
 
 //////////////////////////////////////////////////////

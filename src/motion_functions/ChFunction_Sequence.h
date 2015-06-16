@@ -29,7 +29,6 @@
 
 #include "ChFunction_Base.h"
 #include "core/ChSmartpointers.h"
-#include <list>
 
 namespace chrono {
 
@@ -60,53 +59,9 @@ class ChApi ChFseqNode {
         duration = t_end - t_start;
     };
 
-    ChFseqNode();
     ChFseqNode(ChSharedPtr<ChFunction> myfx, double mdur);
-    ChFseqNode(const ChFseqNode& other){
-        this->Copy(&other);
-    }
     ~ChFseqNode();
-    void Copy(const ChFseqNode* source);
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-
-        // serialize all member data:
-        marchive << CHNVP(fx);
-        marchive << CHNVP(duration);
-        marchive << CHNVP(weight);
-        marchive << CHNVP(t_start);
-        marchive << CHNVP(t_end);
-        marchive << CHNVP(Iy);
-        marchive << CHNVP(Iydt);
-        marchive << CHNVP(Iydtdt);
-        marchive << CHNVP(y_cont);
-        marchive << CHNVP(ydt_cont);
-        marchive << CHNVP(ydtdt_cont);
-    }
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-
-        // stream in all member data:
-        marchive >> CHNVP(fx);
-        marchive >> CHNVP(duration);
-        marchive >> CHNVP(weight);
-        marchive >> CHNVP(t_start);
-        marchive >> CHNVP(t_end);
-        marchive >> CHNVP(Iy);
-        marchive >> CHNVP(Iydt);
-        marchive >> CHNVP(Iydtdt);
-        marchive >> CHNVP(y_cont);
-        marchive >> CHNVP(ydt_cont);
-        marchive >> CHNVP(ydtdt_cont);
-    }
+    void Copy(ChFseqNode* source);
 
     void StreamIN(ChStreamInBinary& mstream);
     void StreamOUT(ChStreamOutBinary& mstream);
@@ -122,8 +77,7 @@ class ChApi ChFunction_Sequence : public ChFunction {
     CH_RTTI(ChFunction_Sequence, ChFunction);
 
   private:
-    //ChList<ChFseqNode> functions;  // the list of sub functions
-    std::list< ChFseqNode > functions;
+    ChList<ChFseqNode> functions;  // the list of sub functions
     double start;                  // start time for sequence
   public:
     ChFunction_Sequence();
@@ -138,7 +92,7 @@ class ChApi ChFunction_Sequence : public ChFunction {
     double Get_start() { return start; };
 
     /// Access the list of the sub-functions.
-    std::list< ChFseqNode >& Get_list() { return functions; };
+    ChList<ChFseqNode>* Get_list() { return &functions; };
 
     /// Scans all the seq.of functions and setup the timings and continuity
     /// offsets, to satisfy all constraints.
@@ -163,6 +117,13 @@ class ChApi ChFunction_Sequence : public ChFunction {
                     bool c1 = false,
                     bool c2 = false,     // impose continuity to previous f() by offsetting/slanting
                     int position = -1);  // position index, 0,1,2,3.. (if -1 insert at the end)
+    int InsertFunct(ChFunction* myfx,
+                    double duration,
+                    double weight = 1,
+                    bool c0 = false,
+                    bool c1 = false,
+                    bool c2 = false,
+                    int position = -1);  // backward compatible ***OBSOLETE***
 
     /// Remove and deletes function with defined "position", and returns TRUE.
     ///	 - If position = 0, removes always head (beginning),
@@ -199,35 +160,6 @@ class ChApi ChFunction_Sequence : public ChFunction {
     int HandleNumber();
     int HandleAccess(int handle_id, double mx, double my, bool set_mode);
 
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(start);
-        marchive << CHNVP(functions);
-    }
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(start);
-        marchive >> CHNVP(functions);
-    }
-
-    //***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream);
     void StreamIN(ChStreamInBinary& mstream);
     void StreamOUT(ChStreamOutBinary& mstream);

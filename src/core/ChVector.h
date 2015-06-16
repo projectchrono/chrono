@@ -392,7 +392,7 @@ class ChVector {
     //
 
     /// Method to allow serialization of transient data in archives.
-    void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // suggested: use versioning
         marchive.VersionWrite(1);
@@ -403,7 +403,7 @@ class ChVector {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // suggested: use versioning
         int version = marchive.VersionRead();

@@ -23,9 +23,6 @@ namespace chrono {
 /// It contains basic information about position, color, and visibility.
 
 class ChApi ChVisualization : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChVisualization, ChAsset);
-
   public:
     virtual ~ChVisualization() {}
 
@@ -56,40 +53,6 @@ class ChApi ChVisualization : public ChAsset {
     bool visible;
     ChColor color;
     float fading;
-
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChAsset::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(Pos);
-        marchive << CHNVP(Rot);
-        marchive << CHNVP(visible);
-        marchive << CHNVP(color);
-        marchive << CHNVP(fading);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChAsset::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(Pos);
-        marchive >> CHNVP(Rot);
-        marchive >> CHNVP(visible);
-        marchive >> CHNVP(color);
-        marchive >> CHNVP(fading);
-    }
 };
 
 }  // END_OF_NAMESPACE____

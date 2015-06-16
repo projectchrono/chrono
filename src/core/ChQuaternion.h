@@ -662,9 +662,9 @@ class ChQuaternion {
     // STREAMING
     //
 
-    void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
-        // version number
+        // suggested: use versioning
         marchive.VersionWrite(1);
         // stream out all member data
         marchive << CHNVP(e0);
@@ -674,9 +674,9 @@ class ChQuaternion {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
-        // version number
+        // suggested: use versioning
         int version = marchive.VersionRead();
         // stream in all member data
         marchive >> CHNVP(e0);

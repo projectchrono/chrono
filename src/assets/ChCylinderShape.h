@@ -12,6 +12,20 @@
 #ifndef CHCYLINDERSHAPE_H
 #define CHCYLINDERSHAPE_H
 
+///////////////////////////////////////////////////
+//
+//   ChCylinderShape.h
+//
+//   Class for defining a cylinder as an asset shape
+//   that can be visualized in some way.
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "assets/ChVisualization.h"
 #include "geometry/ChCCylinder.h"
@@ -22,9 +36,6 @@ namespace chrono {
 /// visualized in some way.
 
 class ChApi ChCylinderShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChCylinderShape, ChVisualization);
-
   protected:
     //
     // DATA
@@ -47,32 +58,6 @@ class ChApi ChCylinderShape : public ChVisualization {
 
     // Access the sphere geometry
     geometry::ChCylinder& GetCylinderGeometry() { return gcylinder; }
-
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(gcylinder);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(gcylinder);
-    }
 };
 
 //////////////////////////////////////////////////////

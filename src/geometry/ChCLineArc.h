@@ -105,39 +105,10 @@ class ChApi ChLineArc : public ChLine {
     // shortcut for setting angle2 in degrees instead than radians
     void SetAngle2deg(double a2) { angle2 = a2 * CH_C_DEG_TO_RAD; }
 
-
     //
-    // SERIALIZATION
+    // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChLine::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(origin);
-        marchive << CHNVP(radius);
-        marchive << CHNVP(angle1);
-        marchive << CHNVP(angle2);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChLine::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(origin);
-        marchive >> CHNVP(radius);
-        marchive >> CHNVP(angle1);
-        marchive >> CHNVP(angle2);
-    }
-
-    //***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream) {
         // class version number
         mstream.VersionWrite(1);
@@ -152,7 +123,6 @@ class ChApi ChLineArc : public ChLine {
         mstream << angle2;
     }
 
-    //***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream) {
         // class version number
         int version = mstream.VersionRead();

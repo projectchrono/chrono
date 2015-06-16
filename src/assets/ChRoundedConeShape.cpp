@@ -9,13 +9,15 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
+///////////////////////////////////////////////////
+//
+//   ChRoundedConeShape.cpp
+//
+// ------------------------------------------------
+//             www.projectchrono.org
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "assets/ChRoundedConeShape.h"
 
-namespace chrono {
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChRoundedConeShape> a_registration_ChRoundedConeShape;
-
-}  // END_OF_NAMESPACE____
+namespace chrono {}  // END_OF_NAMESPACE____

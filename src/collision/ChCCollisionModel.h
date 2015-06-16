@@ -69,10 +69,6 @@ enum ShapeType {
 ///
 
 class ChApi ChCollisionModel {
-
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChCollisionModel);
-
   public:
     ChCollisionModel();
 
@@ -315,41 +311,15 @@ class ChApi ChCollisionModel {
     void SetBody(ChBody* mbo) { mbody = mbo; };
 
     //
-    // SERIALIZATION
+    // STREAMING
     //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-
-        // serialize all member data:
-        marchive << CHNVP(model_envelope);
-        marchive << CHNVP(model_safe_margin);
-        //marchive << CHNVP(mbody);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-
-        // stream in all member data:
-        marchive >> CHNVP(model_envelope);
-        marchive >> CHNVP(model_safe_margin);
-        //marchive >> CHNVP(mbody);
-        mbody=0;
-    }
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    //***OBSOLETE***
     virtual void StreamIN(ChStreamInBinary& mstream);
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    //***OBSOLETE***
     virtual void StreamOUT(ChStreamOutBinary& mstream);
 
   protected:

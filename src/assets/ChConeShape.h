@@ -36,9 +36,6 @@ namespace chrono {
 /// visualized in some way.
 
 class ChApi ChConeShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChConeShape, ChVisualization);
-
   protected:
     //
     // DATA
@@ -61,32 +58,6 @@ class ChApi ChConeShape : public ChVisualization {
 
     // Access the sphere geometry
     geometry::ChCone& GetConeGeometry() { return gcone; }
-
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(gcone);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(gcone);
-    }
 };
 
 //////////////////////////////////////////////////////

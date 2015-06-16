@@ -9,13 +9,15 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
+///////////////////////////////////////////////////
+//
+//   ChTriangleMeshShape.cpp
+//
+// ------------------------------------------------
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "assets/ChTriangleMeshShape.h"
 
-namespace chrono {
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChTriangleMeshShape> a_registration_ChTriangleMeshShape;
-
-}  // END_OF_NAMESPACE____
+namespace chrono {}  // END_OF_NAMESPACE____

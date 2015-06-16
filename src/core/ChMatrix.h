@@ -384,10 +384,9 @@ class ChMatrix {
         // custom output of matrix data as array
         if (ChArchiveAsciiDump* mascii = dynamic_cast<ChArchiveAsciiDump*>(&marchive))
         {
-            // CUSTOM row x col 'intuitive' table-like log when using ChArchiveAsciiDump:
+            // CUSTOM row x col table 'intuitive' serialization when using ChArchiveAsciiDump:
 
             for (int i = 0; i < rows; i++) {
-                mascii->indent();
                 for (int j = 0; j < columns; j++) {
                     mascii->GetStream()->operator<<(Element(i,j));
                     mascii->GetStream()->operator<<(", ");
@@ -435,7 +434,6 @@ class ChMatrix {
 
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream) {
         mstream << "\n"
                 << "Matrix " << GetRows() << " rows, " << GetColumns() << " columns."
@@ -466,7 +464,6 @@ class ChMatrix {
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream) {
         mstream << GetRows();
         mstream << GetColumns();
@@ -478,7 +475,6 @@ class ChMatrix {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    /// ***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream) {
         int m_row, m_col;
         mstream >> m_row;

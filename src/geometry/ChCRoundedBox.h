@@ -13,6 +13,20 @@
 #ifndef CHC_ROUNDEDBOX_H
 #define CHC_ROUNDEDBOX_H
 
+//////////////////////////////////////////////////
+//
+//   ChCRoundedBox.h
+//
+//   Header for the rounded box geometry, used for
+//   collision detection and other stuff.
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include <math.h>
 
@@ -133,43 +147,11 @@ class ChApi ChRoundedBox : public ChGeometry {
     double GetVolume() { return Size.x * Size.y * Size.z * 8.0; };
 
     //
-    // SERIALIZATION
+    // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(Pos);
-        marchive << CHNVP(Rot);
-        ChVector<> Lengths = GetLengths();
-        marchive << CHNVP(Lengths); // avoid storing 'Size', i.e. half lenths, because less intuitive
-        marchive << CHNVP(radsphere);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(Pos);
-        marchive >> CHNVP(Rot);
-        ChVector<> Lengths;
-        marchive >> CHNVP(Lengths); 
-        SetLengths(Lengths);
-        marchive >> CHNVP(radsphere);
-    }
-
-    //***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream);
 
-    //***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream);
 
     //

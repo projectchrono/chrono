@@ -12,6 +12,21 @@
 #ifndef CHOBJSHAPEFILE_H
 #define CHOBJSHAPEFILE_H
 
+///////////////////////////////////////////////////
+//
+//   ChObjShapeFile.h
+//
+//   Class for referencing a Wavefront/Alias .obj
+//   file containing a shape that can be visualized
+//   in some way.
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "assets/ChVisualization.h"
 
@@ -24,9 +39,6 @@ namespace chrono {
 /// is simply a reference to the resource on the disk.
 
 class ChApi ChObjShapeFile : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChObjShapeFile, ChVisualization);
-
   protected:
     //
     // DATA
@@ -48,32 +60,6 @@ class ChApi ChObjShapeFile : public ChVisualization {
 
     std::string GetFilename() const { return filename; }
     void SetFilename(const std::string ms) { filename = ms; }
-
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(filename);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(filename);
-    }
 };
 
 //////////////////////////////////////////////////////

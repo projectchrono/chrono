@@ -41,10 +41,6 @@ namespace collision {
 /// Uses features of the Bullet library.
 
 class ChApi ChModelBulletNode : public ChModelBullet {
-
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChModelBulletNode, ChModelBullet);
-
   public:
     ChModelBulletNode();
     virtual ~ChModelBulletNode();

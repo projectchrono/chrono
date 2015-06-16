@@ -155,16 +155,6 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << bVal.value();
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<ChEnumMapperBase> bVal) {
-            comma_cr();
-            indent();
-            if (is_array.top()==false)
-                (*ostream) << "\"" << bVal.name() << "\"" << "\t: ";
-            std::string mstr = bVal.value().GetValueAsString();
-            (*ostream) << "\"" << mstr << "\"";
-            ++nitems.top();
-      }
-
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
             comma_cr();
             indent();
@@ -193,7 +183,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) {
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -204,13 +194,6 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             ++tablevel;
             nitems.push(0);
             is_array.push(false);
-
-            if(tracked) {
-                comma_cr();
-                indent();
-                (*ostream) << "\"_object_ID\"\t: "  << position;
-                ++nitems.top();
-            }
 
             bVal.value().CallArchiveOut(*this);
             
@@ -403,12 +386,6 @@ class  ChArchiveInJSON : public ChArchiveIn {
             if (!mval->IsUint64()) {throw (ChExceptionArchive( "Invalid unsigned long long number after '"+std::string(bVal.name())+"'"));}
 			bVal.value() = mval->GetUint64();
       }
-      virtual void in     (ChNameValue<ChEnumMapperBase> bVal) {
-            rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
-            if (!mval->IsString()) {throw (ChExceptionArchive( "Invalid string after '"+std::string(bVal.name())+"'"));}
-			std::string mstr = mval->GetString();
-            if (!bVal.value().SetValueAsString(mstr)) {throw (ChExceptionArchive( "Not recognized enum type '"+mstr+"'"));}
-      }
 
          // for wrapping arrays and lists
       virtual void in_array_pre (const char* name, size_t& msize) {
@@ -435,10 +412,6 @@ class  ChArchiveInJSON : public ChArchiveIn {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
 
-            if (bVal.flags() & NVP_TRACK_OBJECT){
-              objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
-            }
-            
             this->levels.push(mval);
             this->level = this->levels.top();
             this->is_array.push(false);
@@ -485,7 +458,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
             }
 
             } else {
-                if (ref_ID >= objects_pointers.size()) {throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID is larger than pointer array"));}
+                if (ref_ID >= objects_pointers.size()) {throw (ChExceptionArchive( "Object _reference_ID is larger than pointer array"));}
                 bVal.value().CallSetRawPtr(*this, objects_pointers[ref_ID]);
             }
             this->levels.pop();

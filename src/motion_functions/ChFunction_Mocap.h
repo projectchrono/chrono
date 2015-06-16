@@ -84,43 +84,6 @@ class ChApi ChFunction_Mocap : public ChFunction {
     void Estimate_x_range(double& xmin, double& xmax);
     int Get_Type() { return (FUNCT_MOCAP); }
 
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(array_y);
-        marchive << CHNVP(array_y_dt);
-        marchive << CHNVP(array_y_dtdt);
-        marchive << CHNVP(samp_freq);
-        marchive << CHNVP(samples);
-        marchive << CHNVP(timetot);
-    }
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(array_y);
-        marchive >> CHNVP(array_y_dt);
-        marchive >> CHNVP(array_y_dtdt);
-        marchive >> CHNVP(samp_freq);
-        marchive >> CHNVP(samples);
-        marchive >> CHNVP(timetot);
-    }
-
-    //***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream);
     void StreamIN(ChStreamInBinary& mstream);
     void StreamOUT(ChStreamOutBinary& mstream);
