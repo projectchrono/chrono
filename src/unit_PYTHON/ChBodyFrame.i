@@ -7,8 +7,7 @@ using namespace chrono;
 
 %}
 
-#define ChApi 
-%include "../physics/ChVariablesInterface.h" 
+
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 

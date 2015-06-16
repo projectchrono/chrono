@@ -86,31 +86,38 @@ class ChApi ChLineSegment : public ChLine {
     //
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    void StreamOUT(ChStreamOutBinary& mstream) {
-        // class version number
-        mstream.VersionWrite(1);
-
-        // serialize parent class too
-        ChLine::StreamOUT(mstream);
-
-        // stream out all member data
-        mstream << pA;
-        mstream << pB;
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChLine::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(pA);
+        marchive << CHNVP(pB);
     }
 
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChLine::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(pA);
+        marchive >> CHNVP(pB);
+    }
+
+    //***OBSOLETE***
+    void StreamOUT(ChStreamOutBinary& mstream) {
+    }
+
+    //***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream) {
-        // class version number
-        int version = mstream.VersionRead();
-
-        // deserialize parent class too
-        ChLine::StreamIN(mstream);
-
-        // stream in all member data
-        mstream >> pA;
-        mstream >> pB;
     }
 };
 

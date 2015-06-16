@@ -9,21 +9,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChBoxShape.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
-#include "assets/ChBoxShape.h"
+#include "assets/ChColor.h"
+#include "core/ChClassRegister.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChBoxShape> a_registration_ChBoxShape;
+ChClassRegister<ChColor> a_registration_ChColor;
 
 }  // END_OF_NAMESPACE____

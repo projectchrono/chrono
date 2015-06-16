@@ -114,6 +114,16 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
+      virtual void out     (ChNameValue<ChEnumMapperBase> bVal) {
+            indent();
+            if (!suppress_names) 
+                (*ostream) << bVal.name() << "\t";
+            (*ostream) << "\"";
+            std::string mstr = bVal.value().GetValueAsString();
+            (*ostream) << mstr;
+            (*ostream) << "\"\n";
+      }
+
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
             indent();
             if (!suppress_names) 
@@ -134,11 +144,14 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
             indent();
             if (!suppress_names) 
-                (*ostream) << bVal.name(); 
-            (*ostream) << "   [" << classname << "]\n";
+                (*ostream) << bVal.name() << "  "; 
+            (*ostream) << "[" << classname << "]";
+            if (tracked)
+                (*ostream) << " (tracked)   ID= " << position; 
+            (*ostream) << " \n";
             ++tablevel;
             bVal.value().CallArchiveOut(*this);
             --tablevel;

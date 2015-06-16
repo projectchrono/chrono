@@ -24,8 +24,20 @@ namespace chrono {
 /// (POVray, Irrlicht,etc.) this asset might not be supported.
 
 class ChApi ChGlyphs : public ChVisualization {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChGlyphs, ChVisualization);
+
   public:
-    enum eCh_GlyphType { GLYPH_POINT = 0, GLYPH_VECTOR, GLYPH_COORDSYS };
+    enum eCh_GlyphType { 
+        GLYPH_POINT = 0, 
+        GLYPH_VECTOR, 
+        GLYPH_COORDSYS };
+
+    CH_ENUM_MAPPER_BEGIN(eCh_GlyphType);
+     CH_ENUM_VAL(GLYPH_POINT);
+     CH_ENUM_VAL(GLYPH_VECTOR);
+     CH_ENUM_VAL(GLYPH_COORDSYS); 
+    CH_ENUM_MAPPER_END(eCh_GlyphType);
 
   public:
     //
@@ -100,6 +112,46 @@ class ChApi ChGlyphs : public ChVisualization {
     /// Fast method to set a glyph for GLYPH_COORDSYS draw mode.
     /// If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
     void SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord);
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChVisualization::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(points);
+        marchive << CHNVP(colors);
+        marchive << CHNVP(vectors);
+        marchive << CHNVP(rotations);
+        eCh_GlyphType_mapper mmapper;
+        marchive << CHNVP(mmapper(draw_mode));
+        marchive << CHNVP(size);
+        marchive << CHNVP(zbuffer_hide);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChVisualization::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(points);
+        marchive >> CHNVP(colors);
+        marchive >> CHNVP(vectors);
+        marchive >> CHNVP(rotations);
+        eCh_GlyphType_mapper mmapper;
+        marchive >> CHNVP(mmapper(draw_mode));
+        marchive >> CHNVP(size);
+        marchive >> CHNVP(zbuffer_hide);
+    }
 };
 
 //////////////////////////////////////////////////////

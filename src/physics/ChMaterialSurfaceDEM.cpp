@@ -18,6 +18,11 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChMaterialSurfaceDEM> a_registration_ChMaterialSurfaceDEM;
+
+
 // Constructors for a DEM material
 ChMaterialSurfaceDEM::ChMaterialSurfaceDEM()
     : young_modulus(2e5),

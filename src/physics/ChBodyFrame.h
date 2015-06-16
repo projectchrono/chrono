@@ -15,7 +15,6 @@
 
 #include "core/ChFrameMoving.h"
 #include "core/ChShared.h"
-#include "physics/ChVariablesInterface.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 
 namespace chrono {
@@ -25,7 +24,7 @@ namespace chrono {
 /// i.e. items with translational and rotational degrees of freedom
 /// This class is used as a base for the very used ChBody class
 
-class ChApi ChBodyFrame : public ChFrameMoving<double>, public ChVariablesInterface, public virtual ChShared {
+class ChApi ChBodyFrame : public ChFrameMoving<double>, public virtual ChShared {
   public:
     /// Returns reference to the encapsulated ChLcpVariablesBody,
     /// representing body variables (pos, speed or accel.- see VariablesLoad...() )
@@ -46,6 +45,17 @@ class ChApi ChBodyFrame : public ChFrameMoving<double>, public ChVariablesInterf
     /// Transform generic cartesian torque into absolute torque applied to body COG.
     /// If local=1, torque is intended as expressed in local coordinates, if =0, in absolute.
     void To_abs_torque(const ChVector<>& torque, int local, ChVector<>& resulttorque);
+
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 }  // END_OF_NAMESPACE____

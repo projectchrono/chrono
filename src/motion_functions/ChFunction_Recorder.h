@@ -38,6 +38,18 @@ class ChApi ChRecPoint {
     double x;
     double y;
     double w;  // weight
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive){
+        marchive << CHNVP(x);
+        marchive << CHNVP(y);
+        marchive << CHNVP(w);
+    }
+
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
+        marchive >> CHNVP(x);
+        marchive >> CHNVP(y);
+        marchive >> CHNVP(w);
+    }
 };
 
 #define CH_RECORDER_EPSILON 1.e-10
@@ -78,6 +90,51 @@ class ChApi ChFunction_Recorder : public ChFunction {
 
     int Get_Type() { return (FUNCT_RECORDER); }
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChFunction::ArchiveOUT(marchive);
+        // serialize all member data:
+        std::vector< ChRecPoint > tmpvect; // promote to modern array
+        for (ChNode<ChRecPoint>* mnode = points.GetHead(); mnode != NULL; mnode = mnode->next)
+        {
+            ChRecPoint tmprec; 
+            tmprec.x = mnode->data->x;
+            tmprec.y = mnode->data->y;
+            tmprec.w = mnode->data->w;
+            tmpvect.push_back( tmprec );
+        }
+        marchive << CHNVP(tmpvect);
+    }
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChFunction::ArchiveIN(marchive);
+        // stream in all member data:
+        std::vector< ChRecPoint > tmpvect; // load from modern array
+        marchive >> CHNVP(tmpvect);
+        points.KillAll();
+        for (int i = 0; i < tmpvect.size(); i++) {
+            ChRecPoint* mpt = new ChRecPoint;
+            mpt->x = tmpvect[i].x;
+            mpt->y = tmpvect[i].y;
+            mpt->w = tmpvect[i].w;
+            points.AddTail(mpt);
+        }
+    }
+
+    //***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream);
     void StreamIN(ChStreamInBinary& mstream);
     void StreamOUT(ChStreamOutBinary& mstream);
