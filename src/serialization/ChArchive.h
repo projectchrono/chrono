@@ -171,7 +171,7 @@ public:
 template<class T>
 class  ChNameValue {
   public:
-        ChNameValue(const char* mname, T& mvalue, char mflags = 0) : 
+        ChNameValue(const char* mname, const T& mvalue, char mflags = 0) : 
             _name(mname), 
             _value((T*)(& mvalue)),
             _flags((char)mflags) {}
@@ -211,14 +211,14 @@ static const char NVP_TRACK_OBJECT = (1 << 0);
 
 
 template<class T>
-ChNameValue< T > make_ChNameValue(const char * auto_name, T & t, const char * custom_name, char flags = 0){
+ChNameValue< T > make_ChNameValue(const char * auto_name, const T & t, const char * custom_name, char flags = 0){
     const char* mname = auto_name;
     if (custom_name)
         mname = custom_name;
     return ChNameValue< T >(mname, t, flags);
 }
 template<class T>
-ChNameValue< T > make_ChNameValue(const char * auto_name, T & t, char flags = 0){
+ChNameValue< T > make_ChNameValue(const char * auto_name, const T & t, char flags = 0){
     const char* mname = auto_name;
     return ChNameValue< T >(mname, t, flags);
 }
