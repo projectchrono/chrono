@@ -6,7 +6,7 @@ INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 SET(LIBRARIES
     ChronoEngine
     ChronoEngine_Parallel
-    ChronoEngine_Utils
+    ChronoEngine_ParallelUtils
 )
 
 #--------------------------------------------------------------
@@ -34,11 +34,11 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 #--------------------------------------------------------------
 
 IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ENDIF()
 
 #IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-#	SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
+#  SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
 #ENDIF()
 
 #--------------------------------------------------------------
