@@ -173,8 +173,6 @@ namespace chrono {
 
 		inline void GetResidual(ChMatrix<>* res){ GetResidual(res->GetAddress()); };
 
-		
-
 	};
 
 }  // END_OF_NAMESPACE____
