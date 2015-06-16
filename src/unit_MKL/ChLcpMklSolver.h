@@ -200,6 +200,18 @@ namespace chrono {
 
 		inline void GetResidual(ChMatrix<>* res){ GetResidual(res->GetAddress()); };
 
+		inline double GetResidualNorm(ChMatrix<>* res){
+			assert(res->GetRows() == n);
+			return GetResidualNorm(res->GetAddress());
+		};
+		inline double GetResidualNorm(double* res){
+			double norm = 0;
+			for (int i = 0; i < n; i++){
+				norm += res[i]*res[i];
+			};
+			norm = sqrt(norm);
+			return norm;
+		};
 		
 
 	};

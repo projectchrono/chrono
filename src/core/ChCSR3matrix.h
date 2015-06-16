@@ -1,18 +1,23 @@
 #ifndef CHCSR3MATRIX_H
 #define CHCSR3MATRIX_H
 
+#include "ChApiCSR3.h"
 #include <Eigen/Sparse>
 #include <core/ChSpmatrix.h>
 
-namespace chrono{
-	class ChEigenMatrix : public Eigen::SparseMatrix < double, 1 > {
+
+namespace  chrono{
+
+
+	class ChEigenMatrix : public Eigen::SparseMatrix<double, Eigen::RowMajor, int>{
 	public:
-		ChEigenMatrix() : Eigen::SparseMatrix<double,1>() {};
-		ChEigenMatrix(Index rows, Index cols) : Eigen::SparseMatrix<double,1>(rows, cols){};
-		ChEigenMatrix(Index dimension) : Eigen::SparseMatrix<double, 1>(dimension, dimension){};
+		ChEigenMatrix() : Eigen::SparseMatrix<double, Eigen::RowMajor, int>() {};
+		ChEigenMatrix(int rows, int cols) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) {};
+		ChEigenMatrix(int dimension) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(dimension, dimension) {};
 
 		/*template<typename OtherDerived>
 		ChEigenMatrix(const Eigen::SparseMatrixBase<SparseMatrix<OtherDerived>>& other) : Eigen::SparseMatrix<other>(){};
+
 		template<typename OtherDerived>
 		ChEigenMatrix& operator= (const Eigen::SparseMatrixBase<SparseMatrix<OtherDerived>>& other)	{
 			this->Eigen::SparseMatrix<double>::operator=(other);
@@ -89,6 +94,7 @@ namespace chrono{
 		inline void PasteTranspMatrixFloat(ChMatrixIN* matra, int insrow, int inscol) { PasteTranspMatrix(matra, insrow, inscol); };
 
 		// GetElement returns 0 also if indexes are out of bound!
+		//***TODO*** see http://eigen.tuxfamily.org/dox/group__TutorialSparse.html for a better way to find elements
 		inline double GetElement(const int row, const int col) const{
 			return this->coeff(row, col);
 		};
@@ -163,7 +169,7 @@ namespace chrono{
 		} // END LoadFromChSparseMatrix;
 
 		void LoadFromChSparseMatrix(ChSparseMatrix* M, ChSparseMatrix* Cq, ChSparseMatrix* E)
-		{	
+		{
 			// Create the CSR3 matrix
 			int M_rows = M->GetRows();
 			int Cq_rows = Cq->GetRows();
@@ -183,7 +189,7 @@ namespace chrono{
 						reserveSize[M_rows + i]++;
 						reserveSize[el_temp->col]++;
 					};
-					el_temp = el_temp->next; 
+					el_temp = el_temp->next;
 				};
 			};
 
@@ -198,8 +204,8 @@ namespace chrono{
 				el_temp = &Cq_elarray[i];
 				while (el_temp){
 					if (el_temp->val != 0){
-						SetElement(M_rows+i , el_temp->col, el_temp->val); // sets the Cq
-						SetElement(el_temp->col, M_rows + i , el_temp->val); // sets the Cq'
+						SetElement(M_rows + i, el_temp->col, el_temp->val); // sets the Cq
+						SetElement(el_temp->col, M_rows + i, el_temp->val); // sets the Cq'
 					};
 					el_temp = el_temp->next;
 				};
@@ -224,11 +230,7 @@ namespace chrono{
 					el_temp = el_temp->next;
 				};
 			};
-			
-
-
-
-		} // END LoadFromChSparseMatrix;
+		} // END LoadFromChSparseMatrix
 
 	}; // END class
 }; // END namespace

@@ -31,7 +31,8 @@ if (ENABLE_UNIT_MKL)
 	)
 
 	SET(ChronoEngine_CSR3_HEADERS
-	  ChCSR3matrix.h
+		ChApiCSR3.h
+		ChCSR3matrix.h
 	)
 	
 	# Source files

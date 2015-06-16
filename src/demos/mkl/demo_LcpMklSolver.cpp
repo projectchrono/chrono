@@ -155,37 +155,35 @@ void test_1() {
 	chrono::ChMatrixDynamic<double> mdb;
 	chrono::ChMatrixDynamic<double> mdfric;
 	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-
+	
+	
 	ChEigenMatrix matCSR3;
 	matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
+	const int n = matCSR3.GetRows();
+	ChMKLSolver pardiso_solver(n);
+	pardiso_solver.SetMatrix(&matCSR3);
+	chrono::ChMatrixDynamic<double> mdf_full;
+	pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
+	ChMatrixDynamic<double> solution(n,1);
+	pardiso_solver.SetUnknownVector(&solution);
 
-	printf("Matrix (full) \n");
+	pardiso_solver.PardisoSolve();
+	ChMatrixDynamic<double> residual(n, 1);
+	pardiso_solver.GetResidual(&residual);
+
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nMatrix \n");
 	for (int i = 0; i < matCSR3.GetRows(); i++){
 		for (int j = 0; j < matCSR3.GetColumns(); j++)
 			printf("%.1f ", matCSR3(i, j));
 		printf("\n");
 	};
-	
-	const int n = matCSR3.GetRows();
-
-	ChMKLSolver PardisoSolver(n);
-	PardisoSolver.SetMatrix(&matCSR3);
-	chrono::ChMatrixDynamic<double> mdf_full;
-	PardisoSolver.SetKnownVector(&mdf, &mdb, &mdf_full);
-	ChMatrixDynamic<double> solution(n,1);
-	PardisoSolver.SetUnknownVector(&solution);
-
-	PardisoSolver.PardisoSolve();
-	ChMatrixDynamic<double> residual(n, 1);
-	PardisoSolver.GetResidual(&residual);
 
 	printf("\nApprox solution | Residual");
 	for (int i = 0; i < solution.GetRows(); i++)
 		printf("\n%f | %e", solution(i, 0), residual(i, 0));
-
-
-
-	getchar();
+	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
 
 }
 
@@ -237,6 +235,7 @@ void test_2() {
 		chrono::ChMatrixDynamic<double> mdb;
 		chrono::ChMatrixDynamic<double> mdfric;
 		mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
 		chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
 		mdM.StreamOUTsparseMatlabFormat(file_M);
 		chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
@@ -290,6 +289,39 @@ void test_2() {
 	GetLog() << "CONSTRAINTS: \n";
 	for (int ic = 0; ic < constraints.size(); ic++)
 		GetLog() << "   " << constraints[ic]->Get_l_i() << "\n";
+
+	// Try again with MKL Pardiso
+
+	chrono::ChSparseMatrix mdM;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
+	ChEigenMatrix matCSR3;
+	matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
+	const int n = matCSR3.GetRows();
+	ChMKLSolver pardiso_solver(n);
+	pardiso_solver.SetMatrix(&matCSR3);
+	chrono::ChMatrixDynamic<double> mdf_full;
+	pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
+	ChMatrixDynamic<double> solution(n, 1);
+	pardiso_solver.SetUnknownVector(&solution);
+
+	pardiso_solver.PardisoSolve();
+	ChMatrixDynamic<double> residual(n, 1);
+	pardiso_solver.GetResidual(&residual);
+
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nApprox solution | Residual");
+	for (int i = 0; i < solution.GetRows(); i++)
+		printf("\n%f | %e", solution(i, 0), residual(i, 0));
+	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
+
+
 }
 
 // Test 3
@@ -443,6 +475,35 @@ void test_3() {
 	for (int ic = 0; ic < mdescriptor.GetConstraintsList().size(); ic++)
 	GetLog() << "   " << mdescriptor.GetConstraintsList()[ic]->Get_l_i() << "\n";
 	*/
+
+	chrono::ChSparseMatrix mdM;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
+	ChEigenMatrix matCSR3;
+	matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
+	const int n = matCSR3.GetRows();
+	ChMKLSolver pardiso_solver(n);
+	pardiso_solver.SetMatrix(&matCSR3);
+	chrono::ChMatrixDynamic<double> mdf_full;
+	pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
+	ChMatrixDynamic<double> solution(n, 1);
+	pardiso_solver.SetUnknownVector(&solution);
+
+	pardiso_solver.PardisoSolve();
+	ChMatrixDynamic<double> residual(n, 1);
+	pardiso_solver.GetResidual(&residual);
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nApprox solution | Residual");
+	for (int i = 0; i < solution.GetRows(); i++)
+		printf("\n%f | %e", solution(i, 0), residual(i, 0));
+	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
+
 }
 
 // Do some tests in a single run, inside the main() function.
@@ -459,9 +520,11 @@ int main(int argc, char* argv[]) {
 	test_2();
 
 	//// Test: the stiffness benchmark (add also sparse stiffness blocks over M)
-	//test_3();
+	test_3();
 
-	//return 0;
+	getchar();
+
+	return 0;
 
 
 	

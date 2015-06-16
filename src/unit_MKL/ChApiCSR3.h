@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHAPIMKL_H
-#define CHAPIMKL_H
+#ifndef CHAPICSR3_H
+#define CHAPICSR3_H
 
 //////////////////////////////////////////////////
 //
@@ -29,22 +29,15 @@
 
 #include "core/ChPlatform.h"
 
-// Chrono::Engine version
-//
-// This is an integer, as 0xaabbccdd where
-// for example version 1.2.0 is 0x00010200
-
-#define CH_VERSION_UNIT_MKL 0x00000100
-
 // When compiling this library, remember to define CH_API_COMPILE_UNIT_MKL
-// (so that the symbols with 'ChApiMkl' in front of them will be
+// (so that the symbols with 'ChApiCSR3' in front of them will be
 // marked as exported). Otherwise, just do not define it if you
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_UNIT_MKL)
-#define ChApiMkl ChApiEXPORT
+#define ChApiCSR3 ChApiEXPORT
 #else
-#define ChApiMkl ChApiIMPORT
+#define ChApiCSR3 ChApiIMPORT
 #endif
 
 #endif  // END of header
