@@ -15,7 +15,7 @@
 
 
 #include "ChElementShell.h"
-#include "physics\ChContinuumMaterial.h"
+#include "physics/ChContinuumMaterial.h"
 #include "ChNodeFEAxyzD.h"
 #include "core/ChQuadrature.h"
 
