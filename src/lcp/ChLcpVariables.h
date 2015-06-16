@@ -35,7 +35,6 @@
 #include "core/ChApiCE.h"
 #include "core/ChMatrixDynamic.h"
 #include "core/ChSpmatrix.h"
-#include "core/ChCSR3matrix.h"
 
 namespace chrono {
 
@@ -204,7 +203,6 @@ class ChApi ChLcpVariables {
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol) = 0;
-	virtual void Build_M(ChEigenMatrix& storage, int insrow, int inscol) = 0;
 
 
     /// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)

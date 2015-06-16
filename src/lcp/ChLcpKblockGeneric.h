@@ -129,7 +129,6 @@ class ChApi ChLcpKblockGeneric : public ChLcpKblock {
     /// Most solvers do not need this: the sparse 'storage' matrix is used for testing, for
     /// direct solvers, for dumping full matrix to Matlab for checks, etc.
 	virtual void Build_K(ChSparseMatrix& storage, bool add = true);
-	virtual void Build_K(ChEigenMatrix& storage, bool add = true);
 };
 
 }  // END_OF_NAMESPACE____

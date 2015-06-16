@@ -93,10 +93,6 @@ set(BUILD_CH_SDK         TRUE    CACHE BOOL   "Turn this ON to generate the Chro
 set(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
 set(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
 
-SET(CH_EIGEN_PATH "D:/SourceTreeWS/libraries/eigen"     CACHE PATH   "Where is your Eigen library main folder? (should contain ./Engine)")
-
-
-
 # Also, some variables that were used in previous makefile system (some
 # of them could be set automatically because CMake should recognize automatically
 # the compiler, generator, platform, etc....
@@ -264,7 +260,6 @@ if(BUILD_CH_SDK)
         core/ChCoordsys.cpp
         core/ChSpmatrix.cpp
         core/ChQuadrature.cpp
-		core/ChCSR3matrix.cpp
         )
     set(ChronoEngine_core_HEADERS
         core/ChApiCE.h
@@ -301,7 +296,6 @@ if(BUILD_CH_SDK)
         core/ChWrapHashmap.h
         core/ChDistribution.h
         core/ChQuadrature.h
-		core/ChCSR3matrix.h
 		core/ChTemplateExpressions.h        )
 
     list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")

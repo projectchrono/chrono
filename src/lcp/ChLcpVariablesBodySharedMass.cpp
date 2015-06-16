@@ -182,13 +182,6 @@ void ChLcpVariablesBodySharedMass::Build_M(ChSparseMatrix& storage, int insrow, 
     storage.PasteMatrix(&(sharedmass->inertia), insrow + 3, inscol + 3);
 }
 
-void ChLcpVariablesBodySharedMass::Build_M(ChEigenMatrix& storage, int insrow, int inscol) {
-	storage.SetElement(insrow + 0, inscol + 0, sharedmass->mass);
-	storage.SetElement(insrow + 1, inscol + 1, sharedmass->mass);
-	storage.SetElement(insrow + 2, inscol + 2, sharedmass->mass);
-	storage.PasteMatrix(&(sharedmass->inertia), insrow + 3, inscol + 3);
-}
-
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 ChClassRegister<ChLcpVariablesBodySharedMass> a_registration_ChLcpVariablesBodySharedMass;

@@ -256,22 +256,6 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
             storage.PasteTranspMatrixFloat(Cq_c, variables_c->GetOffset(), inscol);
     }
 
-	virtual void Build_Cq(ChEigenMatrix& storage, int insrow) {
-		if (variables_a->IsActive())
-			storage.PasteMatrixFloat(Cq_a, insrow, variables_a->GetOffset());
-		if (variables_b->IsActive())
-			storage.PasteMatrixFloat(Cq_b, insrow, variables_b->GetOffset());
-		if (variables_c->IsActive())
-			storage.PasteMatrixFloat(Cq_c, insrow, variables_c->GetOffset());
-	}
-	virtual void Build_CqT(ChEigenMatrix& storage, int inscol) {
-		if (variables_a->IsActive())
-			storage.PasteTranspMatrixFloat(Cq_a, variables_a->GetOffset(), inscol);
-		if (variables_b->IsActive())
-			storage.PasteTranspMatrixFloat(Cq_b, variables_b->GetOffset(), inscol);
-		if (variables_c->IsActive())
-			storage.PasteTranspMatrixFloat(Cq_c, variables_c->GetOffset(), inscol);
-	}
 
     //
     // STREAMING
