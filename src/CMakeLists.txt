@@ -296,7 +296,8 @@ if(BUILD_CH_SDK)
         core/ChWrapHashmap.h
         core/ChDistribution.h
         core/ChQuadrature.h
-		core/ChTemplateExpressions.h        )
+		core/ChTemplateExpressions.h
+		)
 
     list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")
 
@@ -851,6 +852,7 @@ if(BUILD_CH_SDK)
         lcp/ChLcpVariablesNode.cpp
         lcp/ChLcpKblockGeneric.cpp
         lcp/ChLcpSolverDEM.cpp
+		lcp/ChLcpMatrixTool.cpp
         )
     set(ChronoEngine_lcp_HEADERS
         lcp/ChLcpConstraint.h
@@ -895,6 +897,7 @@ if(BUILD_CH_SDK)
         lcp/ChLcpKblock.h
         lcp/ChLcpKblockGeneric.h
         lcp/ChLcpSolverDEM.h
+		lcp/ChLcpMatrixTool.h
         )
     source_group(lcp FILES
         ${ChronoEngine_lcp_SOURCES}

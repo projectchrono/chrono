@@ -35,6 +35,7 @@
 #include "core/ChApiCE.h"
 #include "core/ChMatrixDynamic.h"
 #include "core/ChSpmatrix.h"
+#include "lcp/ChLcpMatrixTool.h"
 
 namespace chrono {
 
@@ -68,7 +69,6 @@ namespace chrono {
 class ChApi ChLcpVariables {
     CH_RTTI_ROOT(ChLcpVariables)
 public:
-	int prova();
 
   private:
     //
