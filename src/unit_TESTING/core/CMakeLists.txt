@@ -9,6 +9,8 @@ SET(TESTS
     #test_stream
 )
 
+MESSAGE(STATUS "Unit test programs for CORE module...")
+
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")
 

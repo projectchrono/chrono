@@ -15,7 +15,7 @@
 
 
 #include "ChElementShell.h"
-#include "physics\ChContinuumMaterial.h"
+#include "physics/ChContinuumMaterial.h"
 #include "ChNodeFEAxyzD.h"
 #include "core/ChQuadrature.h"
 
@@ -290,7 +290,6 @@ public:
 				/// constant material are assumed 
 	virtual void ComputeStiffnessMatrix()
 				{	
-					assert (!section.IsNull());
 					
 					bool use_numerical_differentiation = false;
 					//bool use_numerical_differentiation = true;
@@ -319,7 +318,6 @@ public:
 				/// constant material are assumed 
 	virtual void ComputeMassMatrix()
 				{	
-					assert (!section.IsNull());
 					
 					ChMatrixNM<double, 24,1> InitialCoord;
 					ChMatrixNM<double, 8,3>   d0;
@@ -444,7 +442,6 @@ public:
 
 	virtual void SetupInitial() 
 				{
-					assert (!section.IsNull());
 					// Compute inital Jacobian
 					ChMatrixDynamic<double>Temp;
 					ComputeInternalForces(Temp);
@@ -469,7 +466,6 @@ public:
 	virtual void ComputeKRMmatricesGlobal	(ChMatrix<>& H, double Kfactor, double Rfactor=0, double Mfactor=0) 
 				{
 					assert((H.GetRows() == 24) && (H.GetColumns()==24));
-					assert (!section.IsNull());
 					
 					// Compute global stiffness matrix:
 					ComputeStiffnessMatrix();
