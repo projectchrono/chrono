@@ -5,6 +5,8 @@ SET(TESTS
     test_matlab
 )
 
+MESSAGE(STATUS "Unit test programs for MATLAB module...")
+
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")
 
