@@ -260,7 +260,6 @@ if(BUILD_CH_SDK)
         core/ChCoordsys.cpp
         core/ChSpmatrix.cpp
         core/ChQuadrature.cpp
-		core/ChCSR3matrix.cpp
         )
     set(ChronoEngine_core_HEADERS
         core/ChApiCE.h
