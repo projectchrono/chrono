@@ -168,12 +168,6 @@ void ChLcpVariablesBodyOwnMass::Build_M(ChSparseMatrix& storage, int insrow, int
     storage.PasteMatrix(&inertia, insrow + 3, inscol + 3);
 }
 
-void ChLcpVariablesBodyOwnMass::Build_M(ChEigenMatrix& storage, int insrow, int inscol){
-	storage.SetElement(insrow + 0, inscol + 0, mass);
-	storage.SetElement(insrow + 1, inscol + 1, mass);
-	storage.SetElement(insrow + 2, inscol + 2, mass);
-	storage.PasteMatrix(&inertia, insrow + 3, inscol + 3);
-};
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence

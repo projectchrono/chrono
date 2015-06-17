@@ -27,10 +27,6 @@
 
 // Include some headers used by this tutorial...
 
-<<<<<<< HEAD
-=======
-
->>>>>>> unit_MKL_throughLinkedList
 #include "lcp/ChLcpVariablesGeneric.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
@@ -42,13 +38,9 @@
 #include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpSimplexSolver.h"
 #include "core/ChLinearAlgebra.h"
-<<<<<<< HEAD
-#include <unit_MKL/ChLcpMklSolver.h>
-#include "core/ChMatrixDynamic.h"
-=======
 #include <unit_MKL/ChCSR3matrix.h>
 #include <unit_MKL/ChLcpMklSolver.h>
->>>>>>> unit_MKL_throughLinkedList
+
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -145,11 +137,7 @@ void test_1() {
 	mcb.Get_Cq_a()->ElementN(1) = 1;
 	mcb.Get_Cq_a()->ElementN(2) = 0;
 	mcb.Get_Cq_b()->ElementN(0) = 0;
-<<<<<<< HEAD
-	mcb.Get_Cq_b()->ElementN(1) = -2;
-=======
 	mcb.Get_Cq_b()->ElementN(1) = -1;
->>>>>>> unit_MKL_throughLinkedList
 	mcb.Get_Cq_b()->ElementN(2) = 0;
 
 	mdescriptor.InsertConstraint(&mca);
@@ -157,88 +145,6 @@ void test_1() {
 
 	mdescriptor.EndInsertion();  // ----- system description ends here
 
-<<<<<<< HEAD
-	// Solve the problem with an iterative fixed-point solver, for an
-	// approximate (but very fast) solution:
-	//
-	// .. create the solver
-
-	ChLcpIterativeSOR msolver_iter(1,      // max iterations
-		false,  // don't use warm start
-		0.0,    // termination tolerance
-		0.8);   // omega
-
-	// .. pass the constraint and the variables to the solver
-	//    to solve - that's all.
-	msolver_iter.Solve(mdescriptor);
-
-	// Ok, now present the result to the user, with some
-	// statistical information:
-	double max_res, max_LCPerr;
-	mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
-
-	// If needed, dump the full system M and Cq matrices
-	// on disk, in Matlab sparse format:
-	ChSparseMatrix matrM;
-	ChSparseMatrix matrCq;
-
-	mdescriptor.BuildMatrices(&matrCq, &matrM);
-
-	try {
-		ChStreamOutAsciiFile fileM("dump_M.dat");
-		ChStreamOutAsciiFile fileCq("dump_Cq.dat");
-		matrM.StreamOUTsparseMatlabFormat(fileM);
-		matrCq.StreamOUTsparseMatlabFormat(fileCq);
-	}
-	catch (ChException myex) {
-		GetLog() << "FILE ERROR: " << myex.what();
-	}
-
-	matrM.StreamOUT(GetLog());
-	matrCq.StreamOUT(GetLog());
-	// Other checks
-
-	GetLog() << "**** Using ChLcpIterativeSOR  ********** \n\n";
-	GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
-	GetLog() << "vars q_a and q_b -------------------\n";
-	GetLog() << mvarA.Get_qb();
-	GetLog() << mvarB.Get_qb() << "  \n";
-
-	GetLog() << "multipliers l_1 and l_2 ------------\n\n";
-	GetLog() << mca.Get_l_i() << " \n";
-	GetLog() << mcb.Get_l_i() << " \n\n";
-	GetLog() << "constraint residuals c_1 and c_2 ---\n";
-	GetLog() << mca.Get_c_i() << "  \n";
-	GetLog() << mcb.Get_c_i() << "  \n\n\n";
-
-	// reset variables
-	mvarA.Get_qb().FillElem(0.);
-	mvarB.Get_qb().FillElem(0.);
-
-	// Now solve it again, but using the simplex solver.
-	// The simplex solver is much slower, and it cannot handle
-	// the case of unilateral constraints. This is recommended
-	// only for reference or very precise solution of systems with only
-	// bilateral constraints, in a limited number.
-
-	ChLcpSimplexSolver msolver_simpl;
-
-	msolver_simpl.Solve(mdescriptor);
-
-	mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
-	GetLog() << "**** Using ChLcpSimplexSolver ********* \n\n";
-	GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
-	GetLog() << "vars q_a and q_b -------------------\n";
-	GetLog() << mvarA.Get_qb();
-	GetLog() << mvarB.Get_qb() << "  \n";
-	;
-	GetLog() << "multipliers l_1 and l_2 ------------\n\n";
-	GetLog() << mca.Get_l_i() << " \n";
-	GetLog() << mcb.Get_l_i() << " \n\n";
-	GetLog() << "constraint residuals c_1 and c_2 ---\n";
-	GetLog() << mca.Get_c_i() << "  \n";
-	GetLog() << mcb.Get_c_i() << "  \n";
-=======
 	// Solve the problem with Intel® MKL Pardiso Sparse Direct Solver
 	// Temporary solution: pass through ChSparseMatrix (LinkedList format) -> doubled storage!
 
@@ -278,8 +184,6 @@ void test_1() {
 	for (int i = 0; i < solution.GetRows(); i++)
 		printf("\n%f | %e", solution(i, 0), residual(i, 0));
 	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
-
->>>>>>> unit_MKL_throughLinkedList
 }
 
 // Test 2
@@ -330,10 +234,6 @@ void test_2() {
 		chrono::ChMatrixDynamic<double> mdb;
 		chrono::ChMatrixDynamic<double> mdfric;
 		mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-<<<<<<< HEAD
-=======
-
->>>>>>> unit_MKL_throughLinkedList
 		chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
 		mdM.StreamOUTsparseMatlabFormat(file_M);
 		chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
@@ -387,10 +287,6 @@ void test_2() {
 	GetLog() << "CONSTRAINTS: \n";
 	for (int ic = 0; ic < constraints.size(); ic++)
 		GetLog() << "   " << constraints[ic]->Get_l_i() << "\n";
-<<<<<<< HEAD
-}
-
-=======
 
 	// Try again with MKL Pardiso
 
@@ -439,7 +335,6 @@ void test_2() {
 //  | ....................| |... |   |...|   |...|
 //  |  Cq   Cq      .     | |-l_1|   |  5|   |c_1|
 
->>>>>>> unit_MKL_throughLinkedList
 void test_3() {
 	GetLog() << "\n-------------------------------------------------\n";
 	GetLog() << "TEST: generic system with stiffness blocks \n\n";
@@ -578,107 +473,6 @@ void test_3() {
 	for (int ic = 0; ic < mdescriptor.GetConstraintsList().size(); ic++)
 	GetLog() << "   " << mdescriptor.GetConstraintsList()[ic]->Get_l_i() << "\n";
 	*/
-<<<<<<< HEAD
-}
-
-void test_1_MKL() {
-	GetLog() << "\n-------------------------------------------------\n";
-	GetLog() << "TEST: generic system with two constraints \n\n";
-
-	// Important: create a 'system descriptor' object that
-	// contains variables and constraints:
-
-	ChLcpSystemDescriptor mdescriptor;
-
-	// Now let's add variables and constraints, as sparse data:
-
-	mdescriptor.BeginInsertion();  // ----- system description starts here
-
-	// create C++ objects representing 'variables':
-
-	ChLcpVariablesGeneric mvarA(3);
-	mvarA.GetMass().SetIdentity();
-	mvarA.GetMass() *= 10;
-	ChLinearAlgebra::Invert(mvarA.GetInvMass(), &mvarA.GetMass());
-	mvarA.Get_fb()(0) = 1;
-	mvarA.Get_fb()(1) = 2;
-
-	ChLcpVariablesGeneric mvarB(3);
-	mvarB.GetMass().SetIdentity();
-	mvarB.GetMass() *= 20;
-	ChLinearAlgebra::Invert(mvarB.GetInvMass(), &mvarB.GetMass());
-
-	mdescriptor.InsertVariables(&mvarA);
-	mdescriptor.InsertVariables(&mvarB);
-
-	// create C++ objects representing 'constraints' between variables:
-
-	ChLcpConstraintTwoGeneric mca(&mvarA, &mvarB);
-	mca.Set_b_i(-5);
-	mca.Get_Cq_a()->ElementN(0) = 1;
-	mca.Get_Cq_a()->ElementN(1) = 2;
-	mca.Get_Cq_a()->ElementN(2) = -1;
-	mca.Get_Cq_b()->ElementN(0) = 1;
-	mca.Get_Cq_b()->ElementN(1) = -2;
-	mca.Get_Cq_b()->ElementN(2) = 0;
-
-	ChLcpConstraintTwoGeneric mcb(&mvarA, &mvarB);
-	mcb.Set_b_i(1);
-	mcb.Get_Cq_a()->ElementN(0) = 0;
-	mcb.Get_Cq_a()->ElementN(1) = 1;
-	mcb.Get_Cq_a()->ElementN(2) = 0;
-	mcb.Get_Cq_b()->ElementN(0) = 0;
-	mcb.Get_Cq_b()->ElementN(1) = -2;
-	mcb.Get_Cq_b()->ElementN(2) = 0;
-
-	mdescriptor.InsertConstraint(&mca);
-	mdescriptor.InsertConstraint(&mcb);
-
-	mdescriptor.EndInsertion();  // ----- system description ends here
-
-	// Solve the problem MKL Pardiso Solver
-
-	int n = mdescriptor.CountActiveVariables() + mdescriptor.CountActiveConstraints();
-
-	ChEigenMatrix Z(n);
-	ChEigenMatrix M(mdescriptor.CountActiveVariables());
-	ChEigenMatrix Cq(mdescriptor.CountActiveConstraints(), mdescriptor.CountActiveVariables());
-	ChMatrixDynamic<double> b(n, 1);
-	ChMatrixDynamic<double> x(n, 1);
-	ChMatrixDynamic<double> res(n, 1);
-
-	mdescriptor.ConvertToMatrixForm(&Z, &b, &Cq, &M, 0, 0, 0, 0, false, false);
-
-	ChMKLSolver MKLSolver(n, 11, 13);
-	double *f = b.GetAddress();
-	double *u = x.GetAddress();
-	MKLSolver.SetProblem(&Z, f , u );
-
-	double* a = Z.GetValueArray();
-	int* ja = Z.GetColumnIndex();
-	int* ia = Z.GetRowIndex();
-
-	// .. pass the constraint and the variables to the solver
-	//    to solve - that's all.
-	int error_output = MKLSolver.PardisoSolve();
-
-	MKLSolver.GetResidual(&res);
-
-	// Ok, now present the result to the user, with some
-	// statistical information:
-	for (int i = 0; i < n; i++)
-		printf("\n%.2f   %.2f", x(i), b(i));
-	printf("\n ");
-	for (int i = 0; i < n; i++)
-		printf("\n%.2e", res(i));
-	printf("\n ");
-	for (int i = 0; i < n; i++){
-		for (int j = 0; j < n; j++)
-			printf("%3.2f ", Z(i, j));
-		printf("\n ");
-	};
-	getchar();
-=======
 
 	chrono::ChSparseMatrix mdM;
 	chrono::ChSparseMatrix mdCq;
@@ -708,30 +502,11 @@ void test_1_MKL() {
 		printf("\n%f | %e", solution(i, 0), residual(i, 0));
 	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
 
->>>>>>> unit_MKL_throughLinkedList
 }
 
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
 
-<<<<<<< HEAD
-int main(int argc, char* argv[]) {
-	//GetLog() << " Example: the HyperOCTANT techology for solving LCP\n\n\n";
-
-	// Test: an introductory problem:
-	test_1();
-
-	// Test: an introductory problem with MKL
-	test_1_MKL();
-
-	//// Test: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
-	//test_2();
-
-	//// Test: the stiffness benchmark (add also sparse stiffness blocks over M)
-	//test_3();
-
-	return 0;
-=======
 
 int main(int argc, char* argv[]) {
 	//GetLog() << " Example: the HyperOCTANT techology for solving LCP\n\n\n";
@@ -748,9 +523,4 @@ int main(int argc, char* argv[]) {
 	getchar();
 
 	return 0;
-
-
-	
-
->>>>>>> unit_MKL_throughLinkedList
 }

@@ -204,18 +204,6 @@ class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo {
             storage.PasteTranspMatrix(&Cq_b, variables_b->GetOffset(), inscol);
     }
 
-	virtual void Build_Cq(ChEigenMatrix& storage, int insrow) {
-		if (variables_a->IsActive())
-			storage.PasteMatrix(&Cq_a, insrow, variables_a->GetOffset());
-		if (variables_b->IsActive())
-			storage.PasteMatrix(&Cq_b, insrow, variables_b->GetOffset());
-	}
-	virtual void Build_CqT(ChEigenMatrix& storage, int inscol) {
-		if (variables_a->IsActive())
-			storage.PasteTranspMatrix(&Cq_a, variables_a->GetOffset(), inscol);
-		if (variables_b->IsActive())
-			storage.PasteTranspMatrix(&Cq_b, variables_b->GetOffset(), inscol);
-	}
 
     //
     // STREAMING

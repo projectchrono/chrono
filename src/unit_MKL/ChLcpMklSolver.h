@@ -30,14 +30,9 @@
 
 #include "ChApiMkl.h"
 #include "mkl.h"
-<<<<<<< HEAD
-#include "core/ChCSR3matrix.h"
-#include "core/ChMatrix.h"
-=======
 #include "ChCSR3matrix.h"
 #include "core/ChMatrix.h"
 #include "core/ChSpmatrix.h"
->>>>>>> unit_MKL_throughLinkedList
 
 
 namespace chrono {
@@ -148,9 +143,6 @@ namespace chrono {
 
 		inline bool SetKnownVector(double* insb){ f = insb; return 0; }
 
-<<<<<<< HEAD
-		inline bool SetUnknownVector(double* insx){	u = insx; return 0;	}
-=======
 		/// It simply pastes two vectors (insf over insb) in a third vector fdest that
 		/// is set as the KnownVector of the problem.
 		/// It could be put also in ChMatrix if needed
@@ -175,19 +167,15 @@ namespace chrono {
 			u = insx->GetAddress();
 			return 0;
 		}
->>>>>>> unit_MKL_throughLinkedList
 
 		bool SetProblem(ChEigenMatrix* Z, double* insb, double* insx){
 			return (!SetMatrix(Z) && !SetKnownVector(insb) && !SetUnknownVector(insx)) ? 0 : 1;
 		}
 
 		bool SetProblem(ChEigenMatrix* Z, ChMatrix<>* insb, ChMatrix<>* insx){
-<<<<<<< HEAD
-=======
 			assert(Z->GetRows() == n);
 			assert(insb->GetRows() == n);
 			assert(insx->GetRows() == n);
->>>>>>> unit_MKL_throughLinkedList
 			return (!SetMatrix(Z) && !SetKnownVector(insb->GetAddress()) && !SetUnknownVector(insx->GetAddress())) ? 0 : 1;
 		}
 
@@ -212,8 +200,6 @@ namespace chrono {
 
 		inline void GetResidual(ChMatrix<>* res){ GetResidual(res->GetAddress()); };
 
-<<<<<<< HEAD
-=======
 		inline double GetResidualNorm(ChMatrix<>* res){
 			assert(res->GetRows() == n);
 			return GetResidualNorm(res->GetAddress());
@@ -228,7 +214,6 @@ namespace chrono {
 		};
 		
 
->>>>>>> unit_MKL_throughLinkedList
 	};
 
 }  // END_OF_NAMESPACE____
