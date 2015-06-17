@@ -31,6 +31,17 @@ namespace chrono {
 
 #define CH_SPINLOCK_HASHSIZE 203
 
+	int prova(){
+		return ChLcpSystemDescriptor::prova;
+	}
+
+// Initialization of static variables
+ChSparseMatrixBase* output_matrix = 0;
+ChSparseMatrixSetElementPtr ChLcpSystemDescriptor::MatrixTools::SetElementPtr = 0;
+ChSparseMatrixPasteMatrixPtr ChLcpSystemDescriptor::MatrixTools::PasteMatrixPtr = 0;
+int ChLcpSystemDescriptor::prova = 3;
+
+
 ChLcpSystemDescriptor::ChLcpSystemDescriptor() {
     vconstraints.clear();
     vvariables.clear();

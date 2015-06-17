@@ -62,6 +62,9 @@ namespace chrono {
 /// supporting parallel GPU solvers) could store constraints
 /// and variables structures with more efficient data schemes.
 
+typedef void (ChSparseMatrixBase::* ChSparseMatrixSetElementPtr)(int, int, double); // type for SetElement
+typedef void (ChSparseMatrixBase::* ChSparseMatrixPasteMatrixPtr)(ChMatrix<>*, int, int); // type for PasteMatrix
+
 class ChApi ChLcpSystemDescriptor {
   protected:
     //
@@ -79,6 +82,24 @@ class ChApi ChLcpSystemDescriptor {
     int n_q;            // n.active variables
     int n_c;            // n.active constraints
     bool freeze_count;  // for optimizations
+
+	//
+	// POINTERs TO MATRIX MEMBER FUNCTIONS
+	//
+public:
+	static int prova;
+	static ChSparseMatrixBase* output_matrix;
+	static struct MatrixTools {
+		static ChSparseMatrixSetElementPtr SetElementPtr;
+		static ChSparseMatrixPasteMatrixPtr PasteMatrixPtr;
+	}; // addresses of various methods of the (derived) matrix
+
+	template <class SparseMatrixType>
+	void SetMatrixTools(SparseMatrixType* dest_matrix){
+		output_matrix = (ChSparseMatrixBase*) dest_matrix; // explicit just to be clear
+		MatrixTools::SetElementPtr = (ChSparseMatrixSetElementPtr) &SparseMatrixType::SetElement;
+		MatrixTools::ChSparseMatrixPasteMatrixPtr = (ChSparseMatrixSetElementPtr) &SparseMatrixType::PasteMatrix;
+	}
 
   public:
     //
@@ -367,6 +388,10 @@ class ChApi ChLcpSystemDescriptor {
                               bool only_bilaterals = false,
                               bool skip_contacts_uv = false);
 };
+
+
+
+
 
 }  // END_OF_NAMESPACE____
 

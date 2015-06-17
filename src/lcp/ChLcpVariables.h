@@ -67,6 +67,8 @@ namespace chrono {
 
 class ChApi ChLcpVariables {
     CH_RTTI_ROOT(ChLcpVariables)
+public:
+	int prova();
 
   private:
     //

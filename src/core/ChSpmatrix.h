@@ -110,7 +110,11 @@ class ChUnilateralData {
 /// come later in future releases.).
 ///
 
-class ChApi ChSparseMatrix : public ChMatrix<double> {
+class ChApi ChSparseMatrixBase{
+
+};
+
+class ChApi ChSparseMatrix : public ChMatrix<double>, public ChSparseMatrixBase {
   private:
     ChMelement** elarray;  // array of 1st column elements
 
