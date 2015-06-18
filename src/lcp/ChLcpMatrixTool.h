@@ -23,7 +23,7 @@ namespace chrono{
 	typedef void (ChSparseMatrixBase::* ChSparseMatrixPasteClippedMatrixPtr)(ChMatrix<>*, int, int, int, int, int, int ); // type for PasteClippedMatrix and PasteSumClippedMatrix
 	typedef void (ChSparseMatrixBase::* ChSparseMatrixResetPtr)(int, int); // type for Reset
 
-	class ChLcpMatrixTool{
+	class __declspec(dllexport) ChLcpMatrixTool{
 		//
 		// POINTERs TO MATRIX MEMBER FUNCTIONS
 		//
@@ -45,7 +45,7 @@ namespace chrono{
 
 		template <class SparseMatrixDerivedType>
 		static void SetMatrixTools(SparseMatrixDerivedType* dest_matrix){
-			output_matrix = (ChSparseMatrixBase*)dest_matrix; // explicit just to be clear
+			output_matrix = dest_matrix;
 			MatrixFunctions::SetElementPtr				= (ChSparseMatrixSetElementPtr)			&SparseMatrixDerivedType::SetElement;
 			MatrixFunctions::PasteMatrixPtr				= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteMatrix;
 			MatrixFunctions::PasteTranspMatrixPtr		= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteTranspMatrix;

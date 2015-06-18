@@ -312,6 +312,14 @@ void test_1_PtrToMembers() {
 	ChLcpMatrixTool::SetMatrixTools(&Z);
 	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
 
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nMatrix \n");
+	for (int i = 0; i < Z.GetRows(); i++){
+		for (int j = 0; j < Z.GetColumns(); j++)
+			printf("%.1f ", Z(i, j));
+		printf("\n");
+	};
+
 	//ChMKLSolver MKLSolver(n, 11, 13);
 	//double *f = b.GetAddress();
 	//double *u = x.GetAddress();
