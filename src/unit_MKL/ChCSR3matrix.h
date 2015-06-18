@@ -112,15 +112,11 @@ namespace  chrono{
 
 		template <bool overwrite = 1, class ChMatrixIN>
 		void PasteClippedMatrix(const ChMatrixIN* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) {
-		/*#pragma omp parallel for if (nrows > CH_OMP_MATR)
-			for (int i = 0; i < nrows; ++i)
-				for (int j = 0; j < ncolumns; ++j)
-					Element(insrow + i, inscol + j) = matra->Element(i + cliprow, j + clipcol);*/
-
 		/*#pragma omp parallel for if (nrows > CH_OMP_MATR)*/
 			for (int i = 0; i < nrows; ++i)
 				for (int j = 0; j < ncolumns; ++j)
-					this->SetElement<overwrite>(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol));
+					/*this->SetElement<overwrite>(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol));*/
+					Element(insrow + i, inscol + j) = matra->Element(i + cliprow, j + clipcol); */
 
 		}
 

@@ -44,17 +44,17 @@ namespace chrono{
 			static ChSparseMatrixResetPtr				ResetPtr;
 		}; // addresses of various methods of the (derived) matrix
 
-		template <class SparseMatrixType>
-		void SetMatrixTools(SparseMatrixType* dest_matrix){
+		template <class SparseMatrixDerivedType>
+		static void SetMatrixTools(SparseMatrixDerivedType* dest_matrix){
 			output_matrix = (ChSparseMatrixBase*)dest_matrix; // explicit just to be clear
-			MatrixFunctions::SetElementPtr				= (ChSparseMatrixSetElementPtr)			&SparseMatrixType::SetElement;
-			MatrixFunctions::PasteMatrixPtr				= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixType::PasteMatrix;
-			MatrixFunctions::TranspPasteMatrixPtr		= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixType::TranspPasteMatrix;
-			MatrixFunctions::PasteMatrixFloatPtr		= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixType::PasteMatrixFloat;
-			MatrixFunctions::PasteTranspMatrixFloatPtr	= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixType::PasteTranspMatrixFloat;
-			MatrixFunctions::PasteClippedMatrixPtr		= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixType::PasteClippedMatrix;
-			MatrixFunctions::PasteSumClippedMatrixPtr	= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixType::PasteSumClippedMatrix;
-			MatrixFunctions::ResetPtr					= (ChSparseMatrixResetPtr)&SparseMatrixType::Reset;
+			MatrixFunctions::SetElementPtr				= (ChSparseMatrixSetElementPtr)			&SparseMatrixDerivedType::SetElement;
+			MatrixFunctions::PasteMatrixPtr				= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteMatrix;
+			MatrixFunctions::PasteTranspMatrixPtr		= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteTranspMatrix;
+			MatrixFunctions::PasteMatrixFloatPtr		= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixDerivedType::PasteMatrixFloat;
+			MatrixFunctions::PasteTranspMatrixFloatPtr	= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixDerivedType::PasteTranspMatrixFloat;
+			MatrixFunctions::PasteClippedMatrixPtr		= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteClippedMatrix;
+			MatrixFunctions::PasteSumClippedMatrixPtr	= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteSumClippedMatrix;
+			MatrixFunctions::ResetPtr					= (ChSparseMatrixResetPtr)				&SparseMatrixDerivedType::Reset;
 		}
 	}; // END class ChLcpMatrixTool
 

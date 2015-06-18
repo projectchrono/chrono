@@ -242,45 +242,90 @@ void test_1_PtrToMembers() {
 
 	mdescriptor.EndInsertion();  // ----- system description ends here
 
-	// Solve the problem with Intel® MKL Pardiso Sparse Direct Solver
-	// Temporary solution: pass through ChSparseMatrix (LinkedList format) -> doubled storage!
+	//// Solve the problem with Intel® MKL Pardiso Sparse Direct Solver
+	//// Temporary solution: pass through ChSparseMatrix (LinkedList format) -> doubled storage!
 
-	chrono::ChSparseMatrix mdM;
-	chrono::ChSparseMatrix mdCq;
-	chrono::ChSparseMatrix mdE;
-	chrono::ChMatrixDynamic<double> mdf;
-	chrono::ChMatrixDynamic<double> mdb;
-	chrono::ChMatrixDynamic<double> mdfric;
-	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-
-
-	ChEigenMatrix matCSR3;
-	matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
-	const int n = matCSR3.GetRows();
-	ChMKLSolver pardiso_solver(n);
-	pardiso_solver.SetMatrix(&matCSR3);
-	chrono::ChMatrixDynamic<double> mdf_full;
-	pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
-	ChMatrixDynamic<double> solution(n, 1);
-	pardiso_solver.SetUnknownVector(&solution);
-
-	pardiso_solver.PardisoSolve();
-	ChMatrixDynamic<double> residual(n, 1);
-	pardiso_solver.GetResidual(&residual);
+	//chrono::ChSparseMatrix mdM;
+	//chrono::ChSparseMatrix mdCq;
+	//chrono::ChSparseMatrix mdE;
+	//chrono::ChMatrixDynamic<double> mdf;
+	//chrono::ChMatrixDynamic<double> mdb;
+	//chrono::ChMatrixDynamic<double> mdfric;
+	//mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
 
-	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	printf("\nMatrix \n");
-	for (int i = 0; i < matCSR3.GetRows(); i++){
-		for (int j = 0; j < matCSR3.GetColumns(); j++)
-			printf("%.1f ", matCSR3(i, j));
-		printf("\n");
+	//ChEigenMatrix matCSR3;
+	//matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
+	//const int n = matCSR3.GetRows();
+	//ChMKLSolver pardiso_solver(n);
+	//pardiso_solver.SetMatrix(&matCSR3);
+	//chrono::ChMatrixDynamic<double> mdf_full;
+	//pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
+	//ChMatrixDynamic<double> solution(n, 1);
+	//pardiso_solver.SetUnknownVector(&solution);
+
+	//pardiso_solver.PardisoSolve();
+	//ChMatrixDynamic<double> residual(n, 1);
+	//pardiso_solver.GetResidual(&residual);
+
+
+	//printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	//printf("\nMatrix \n");
+	//for (int i = 0; i < matCSR3.GetRows(); i++){
+	//	for (int j = 0; j < matCSR3.GetColumns(); j++)
+	//		printf("%.1f ", matCSR3(i, j));
+	//	printf("\n");
+	//};
+
+	//printf("\nApprox solution | Residual");
+	//for (int i = 0; i < solution.GetRows(); i++)
+	//	printf("\n%f | %e", solution(i, 0), residual(i, 0));
+	//printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
+
+	// Solve the problem MKL Pardiso Solver
+	// using PtrToMembers
+
+	int n = mdescriptor.CountActiveVariables() + mdescriptor.CountActiveConstraints();
+
+	ChEigenMatrix Z(n);
+	ChEigenMatrix M(mdescriptor.CountActiveVariables());
+	ChEigenMatrix Cq(mdescriptor.CountActiveConstraints(), mdescriptor.CountActiveVariables());
+	ChMatrixDynamic<double> b(n, 1);
+	ChMatrixDynamic<double> x(n, 1);
+	ChMatrixDynamic<double> res(n, 1);
+
+
+	ChLcpMatrixTool::SetMatrixTools(&Z);
+	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
+
+	ChMKLSolver MKLSolver(n, 11, 13);
+	double *f = b.GetAddress();
+	double *u = x.GetAddress();
+	MKLSolver.SetProblem(&Z, f, u);
+
+	double* a = Z.GetValueArray();
+	int* ja = Z.GetColumnIndex();
+	int* ia = Z.GetRowIndex();
+
+	// .. pass the constraint and the variables to the solver
+	//    to solve - that's all.
+	int error_output = MKLSolver.PardisoSolve();
+
+	MKLSolver.GetResidual(&res);
+
+	// Ok, now present the result to the user, with some
+	// statistical information:
+	for (int i = 0; i < n; i++)
+		printf("\n%.2f   %.2f", x(i), b(i));
+	printf("\n ");
+	for (int i = 0; i < n; i++)
+		printf("\n%.2e", res(i));
+	printf("\n ");
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < n; j++)
+			printf("%3.2f ", Z(i, j));
+		printf("\n ");
 	};
-
-	printf("\nApprox solution | Residual");
-	for (int i = 0; i < solution.GetRows(); i++)
-		printf("\n%f | %e", solution(i, 0), residual(i, 0));
-	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
 
 }
 
