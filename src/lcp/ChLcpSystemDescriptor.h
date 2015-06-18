@@ -347,6 +347,14 @@ class ChApi ChLcpSystemDescriptor {
                                      bool only_bilaterals = false,
                                      bool skip_contacts_uv = false);
 
+	virtual void ConvertToMatrixForm(
+									ChMatrix<>* rhs,
+									ChMatrix<>* Fvector,
+									ChMatrix<>* Bvector,
+									ChMatrix<>* Frict,
+									bool only_bilaterals,
+									bool skip_contacts_uv);
+
 
     /// Saves to disk the LAST used matrices of the problem.
     ///  dump_M.dat  has masses and/or stiffness (Matlab sparse format)

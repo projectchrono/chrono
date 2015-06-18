@@ -184,6 +184,104 @@ void test_1() {
 	for (int i = 0; i < solution.GetRows(); i++)
 		printf("\n%f | %e", solution(i, 0), residual(i, 0));
 	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
+
+}
+
+void test_1_PtrToMembers() {
+	GetLog() << "\n-------------------------------------------------\n";
+	GetLog() << "TEST: generic system with two constraints \n\n";
+
+	// Important: create a 'system descriptor' object that
+	// contains variables and constraints:
+
+	ChLcpSystemDescriptor mdescriptor;
+
+	// Now let's add variables and constraints, as sparse data:
+
+	mdescriptor.BeginInsertion();  // ----- system description starts here
+
+	// create C++ objects representing 'variables':
+
+	ChLcpVariablesGeneric mvarA(3);
+	mvarA.GetMass().SetIdentity();
+	mvarA.GetMass() *= 10;
+	ChLinearAlgebra::Invert(mvarA.GetInvMass(), &mvarA.GetMass());
+	mvarA.Get_fb()(0) = 1;
+	mvarA.Get_fb()(1) = 2;
+
+	ChLcpVariablesGeneric mvarB(3);
+	mvarB.GetMass().SetIdentity();
+	mvarB.GetMass() *= 20;
+	ChLinearAlgebra::Invert(mvarB.GetInvMass(), &mvarB.GetMass());
+
+	mdescriptor.InsertVariables(&mvarA);
+	mdescriptor.InsertVariables(&mvarB);
+
+	// create C++ objects representing 'constraints' between variables:
+
+	ChLcpConstraintTwoGeneric mca(&mvarA, &mvarB);
+	mca.Set_b_i(-5);
+	mca.Get_Cq_a()->ElementN(0) = 1;
+	mca.Get_Cq_a()->ElementN(1) = 2;
+	mca.Get_Cq_a()->ElementN(2) = -1;
+	mca.Get_Cq_b()->ElementN(0) = 1;
+	mca.Get_Cq_b()->ElementN(1) = -2;
+	mca.Get_Cq_b()->ElementN(2) = 0;
+
+	ChLcpConstraintTwoGeneric mcb(&mvarA, &mvarB);
+	mcb.Set_b_i(1);
+	mcb.Get_Cq_a()->ElementN(0) = 0;
+	mcb.Get_Cq_a()->ElementN(1) = 1;
+	mcb.Get_Cq_a()->ElementN(2) = 0;
+	mcb.Get_Cq_b()->ElementN(0) = 0;
+	mcb.Get_Cq_b()->ElementN(1) = -1;
+	mcb.Get_Cq_b()->ElementN(2) = 0;
+
+	mdescriptor.InsertConstraint(&mca);
+	mdescriptor.InsertConstraint(&mcb);
+
+	mdescriptor.EndInsertion();  // ----- system description ends here
+
+	// Solve the problem with Intel® MKL Pardiso Sparse Direct Solver
+	// Temporary solution: pass through ChSparseMatrix (LinkedList format) -> doubled storage!
+
+	chrono::ChSparseMatrix mdM;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
+
+	ChEigenMatrix matCSR3;
+	matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
+	const int n = matCSR3.GetRows();
+	ChMKLSolver pardiso_solver(n);
+	pardiso_solver.SetMatrix(&matCSR3);
+	chrono::ChMatrixDynamic<double> mdf_full;
+	pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
+	ChMatrixDynamic<double> solution(n, 1);
+	pardiso_solver.SetUnknownVector(&solution);
+
+	pardiso_solver.PardisoSolve();
+	ChMatrixDynamic<double> residual(n, 1);
+	pardiso_solver.GetResidual(&residual);
+
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nMatrix \n");
+	for (int i = 0; i < matCSR3.GetRows(); i++){
+		for (int j = 0; j < matCSR3.GetColumns(); j++)
+			printf("%.1f ", matCSR3(i, j));
+		printf("\n");
+	};
+
+	printf("\nApprox solution | Residual");
+	for (int i = 0; i < solution.GetRows(); i++)
+		printf("\n%f | %e", solution(i, 0), residual(i, 0));
+	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
+
 }
 
 // Test 2
@@ -513,6 +611,7 @@ int main(int argc, char* argv[]) {
 
 	//// Test: an introductory problem:
 	test_1();
+	test_1_PtrToMembers();
 
 	//// Test: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
 	test_2();
