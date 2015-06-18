@@ -168,6 +168,13 @@ void ChLcpVariablesBodyOwnMass::Build_M(ChSparseMatrix& storage, int insrow, int
     storage.PasteMatrix(&inertia, insrow + 3, inscol + 3);
 }
 
+void ChLcpVariablesBodyOwnMass::Build_M(int insrow, int inscol) {
+	(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::SetElementPtr)(insrow + 0, inscol + 0, mass);
+	(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::SetElementPtr)(insrow + 1, inscol + 1, mass);
+	(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::SetElementPtr)(insrow + 2, inscol + 2, mass);
+	(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteMatrixPtr)(&inertia, insrow + 3, inscol + 3);
+}
+
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence

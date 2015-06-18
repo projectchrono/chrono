@@ -256,6 +256,23 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
             storage.PasteTranspMatrixFloat(Cq_c, variables_c->GetOffset(), inscol);
     }
 
+	virtual void Build_Cq(int inscol) {
+		if (variables_a->IsActive())
+			(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteMatrixFloatPtr)(Cq_a, variables_a->GetOffset(), inscol);
+		if (variables_b->IsActive())
+			(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteMatrixFloatPtr)(Cq_b, variables_b->GetOffset(), inscol);
+		if (variables_c->IsActive())
+			(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteMatrixFloatPtr)(Cq_c, variables_c->GetOffset(), inscol);
+	}
+	virtual void Build_CqT(int inscol) {
+		if (variables_a->IsActive())
+			(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteTranspMatrixFloatPtr)(Cq_a, variables_a->GetOffset(), inscol);
+		if (variables_b->IsActive())
+			(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteTranspMatrixFloatPtr)(Cq_b, variables_b->GetOffset(), inscol);
+		if (variables_c->IsActive())
+			(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteTranspMatrixFloatPtr)(Cq_c, variables_c->GetOffset(), inscol);
+	}
+
 
 
     //

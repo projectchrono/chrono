@@ -132,6 +132,9 @@ class ChApi ChLcpVariablesGeneric : public ChLcpVariables {
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
     void Build_M(ChSparseMatrix& storage, int insrow, int inscol) { storage.PasteMatrix(Mmass, insrow, inscol); };
+	void Build_M(int insrow, int inscol) {
+		(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteMatrixPtr)(Mmass, insrow, inscol);
+	};
 };
 
 }  // END_OF_NAMESPACE____

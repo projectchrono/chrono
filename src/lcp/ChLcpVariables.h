@@ -205,6 +205,7 @@ public:
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol) = 0;
+	virtual void Build_M(int insrow, int inscol) = 0;
 
 
 

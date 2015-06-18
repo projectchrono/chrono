@@ -182,6 +182,13 @@ void ChLcpVariablesBodySharedMass::Build_M(ChSparseMatrix& storage, int insrow, 
     storage.PasteMatrix(&(sharedmass->inertia), insrow + 3, inscol + 3);
 }
 
+void ChLcpVariablesBodySharedMass::Build_M(int insrow, int inscol) {
+	(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::SetElementPtr)(insrow + 0, inscol + 0, sharedmass->mass);
+	(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::SetElementPtr)(insrow + 1, inscol + 1, sharedmass->mass);
+	(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::SetElementPtr)(insrow + 2, inscol + 2, sharedmass->mass);
+	(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteMatrixPtr)(&(sharedmass->inertia), insrow + 3, inscol + 3);
+}
+
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence

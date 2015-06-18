@@ -19,17 +19,22 @@ namespace chrono{
 
 	typedef void (ChSparseMatrixBase::* ChSparseMatrixSetElementPtr)(int, int, double); // type for SetElement
 	typedef void (ChSparseMatrixBase::* ChSparseMatrixPasteMatrixPtr)(ChMatrix<>*, int, int); // type for PasteMatrix
+	typedef void (ChSparseMatrixBase::* ChSparseMatrixPasteMatrixFloatPtr)(ChMatrix<float>*, int, int); // type for PasteMatrixFloat
 
 	class ChApi ChLcpMatrixTool{
 		//
 		// POINTERs TO MATRIX MEMBER FUNCTIONS
 		//
-	public:
+	public: // it should be protected and made friend of LcpVariables, LcpConstraint, LcpKblock?, LcpSystemDescriptor?
 		static int prova; // dummy variable used in testing
+
+		static int n; // overall matrix dimension
+		static int m; // stiffness/mass matrix dimension
 		static ChSparseMatrixBase* output_matrix;
 		static struct MatrixFunctions {
 			static ChSparseMatrixSetElementPtr SetElementPtr;
 			static ChSparseMatrixPasteMatrixPtr PasteMatrixPtr;
+			static ChSparseMatrixPasteMatrixFloatPtr PasteMatrixFloatPtr; // is this function replaceable?
 		}; // addresses of various methods of the (derived) matrix
 
 		template <class SparseMatrixType>
@@ -37,8 +42,12 @@ namespace chrono{
 			output_matrix = (ChSparseMatrixBase*)dest_matrix; // explicit just to be clear
 			MatrixFunctions::SetElementPtr = (ChSparseMatrixSetElementPtr)&SparseMatrixType::SetElement;
 			MatrixFunctions::ChSparseMatrixPasteMatrixPtr = (ChSparseMatrixSetElementPtr)&SparseMatrixType::PasteMatrix;
+			MatrixFunctions::ChSparseMatrixPasteMatrixFloatPtr = (ChSparseMatrixSetElementPtr)&SparseMatrixType::PasteMatrixFloat;
 		}
 	}; // END class ChLcpMatrixTool
+
+
+
 } // END namespace chrono
 
 #endif
