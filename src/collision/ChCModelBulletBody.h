@@ -46,6 +46,9 @@ class ChApi ChModelBulletBody : public ChModelBullet {
     // Chrono RTTI, needed for serialization
     CH_RTTI(ChModelBulletBody, ChModelBullet);
 
+private:
+    ChBody* mbody;
+
   public:
     ChModelBulletBody();
     virtual ~ChModelBulletBody();
@@ -53,6 +56,7 @@ class ChApi ChModelBulletBody : public ChModelBullet {
     /// Gets the pointer to the client owner rigid body.
     ChBody* GetBody() const { return mbody; };
     /// Sets the pointer to the client owner rigid body
+    void SetBody(ChBody* mbo) { mbody = mbo; };
 
     // Overrides and implementations of base members:
 
@@ -62,6 +66,9 @@ class ChApi ChModelBulletBody : public ChModelBullet {
 
     /// Gets the pointer to the client owner ChPhysicsItem.
     virtual ChPhysicsItem* GetPhysicsItem() { return (ChPhysicsItem*)GetBody(); };
+
+    /// Sets the pointer to the client owner ChPhysicsItem.
+    virtual void SetPhysicsItem(ChPhysicsItem* mitem);
 
   private:
 };

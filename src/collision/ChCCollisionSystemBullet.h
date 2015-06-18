@@ -41,6 +41,10 @@ namespace collision {
 ///
 
 class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
+
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChCollisionSystemBullet, ChCollisionSystem);
+
   public:
     ChCollisionSystemBullet(unsigned int max_objects = 16000, double scene_size = 500);
     virtual ~ChCollisionSystemBullet();
