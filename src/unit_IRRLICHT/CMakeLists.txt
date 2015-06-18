@@ -4,20 +4,19 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #===============================================================================
 
-SET(ENABLE_UNIT_IRRLICHT
-  FALSE  CACHE  BOOL
-  "Turn this ON to generate the Chrono::Engine Irrlicht unit."
-)
+option(ENABLE_UNIT_IRRLICHT "Enable the Chrono Irrlicht module" OFF)
 
+# Return now if this module is not enabled
 IF(NOT ENABLE_UNIT_IRRLICHT)
   MARK_AS_ADVANCED(FORCE CH_IRRLICHTLIB)
   MARK_AS_ADVANCED(FORCE CH_IRRLICHTDIR)
   RETURN()
-ELSE()
-  MARK_AS_ADVANCED(CLEAR CH_IRRLICHTLIB)
-  MARK_AS_ADVANCED(CLEAR CH_IRRLICHTDIR)
-  MESSAGE(STATUS "...enabling Irrlicht Unit")
 ENDIF()
+
+MESSAGE(STATUS "==== Chrono Irrlicht module ====")
+
+MARK_AS_ADVANCED(CLEAR CH_IRRLICHTLIB)
+MARK_AS_ADVANCED(CLEAR CH_IRRLICHTDIR)
 
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_IRRLICHT library
@@ -64,13 +63,16 @@ SOURCE_GROUP(unit_IRRLICHT FILES
 #-------------------------------------------------------------------------------
 # Find the IRRLICHT library
 
+SET(CH_BUILDFLAGS_IRR "${CH_BUILDFLAGS}")
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   SET(CH_IRRLICHTDIR "D:/irrlicht-1.8"  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
-
   IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
     FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-visualstudio")
+    SET(CH_BUILDFLAGS_IRR "${CH_BUILDFLAGS} /wd4275")
   ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
     FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-visualStudio")
+    SET(CH_BUILDFLAGS_IRR "${CH_BUILDFLAGS} /wd4275")
   ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
     FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-gcc")
   ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
@@ -102,37 +104,6 @@ ENDIF()
 INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
 
 
-SET(CH_BUILDFLAGS_IRR "${CH_BUILDFLAGS}")
-
-#-------------------------------------------------------------------------------
-# On Windows, copy the IRRLICHT DLL to the bin/ directory
-# We do this through a custom command so that the Irrlich DLL is copied to the
-# appropriate directory (depending on the build type); however, we use
-# copy_if_different.
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-  ADD_CUSTOM_TARGET(COPY_DLLS ALL)
-
-  IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-    SET(CH_IRRLICHT_DLL "${CH_IRRLICHTDIR}/bin/Win32-VisualStudio/Irrlicht.dll")
-    SET(CH_BUILDFLAGS_IRR "${CH_BUILDFLAGS} /wd4275")
-  ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-    SET(CH_IRRLICHT_DLL "${CH_IRRLICHTDIR}/bin/Win64-VisualStudio/Irrlicht.dll")
-    SET(CH_BUILDFLAGS_IRR "${CH_BUILDFLAGS} /wd4275")
-  ENDIF()
-
-  ADD_CUSTOM_COMMAND(
-    TARGET COPY_DLLS POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CH_IRRLICHT_DLL}"
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-  )
-
-ENDIF()
-
 # Let some variables be visible also from outside this directory
 
 SET(CH_IRRLICHTINC     "${CH_IRRLICHTINC}"     PARENT_SCOPE)
@@ -163,6 +134,33 @@ TARGET_LINK_LIBRARIES(ChronoEngine_IRRLICHT
 ENDIF()
 
 ADD_DEPENDENCIES (ChronoEngine_IRRLICHT ChronoEngine)
+
+#-------------------------------------------------------------------------------
+# On Windows, copy the IRRLICHT DLL to the bin/ directory
+# We do this through a custom command so that the Irrlich DLL is copied to the
+# appropriate directory (depending on the build type); however, we use
+# copy_if_different.
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+  IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+    SET(CH_IRRLICHT_DLL "${CH_IRRLICHTDIR}/bin/Win32-VisualStudio/Irrlicht.dll")
+  ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+    SET(CH_IRRLICHT_DLL "${CH_IRRLICHTDIR}/bin/Win64-VisualStudio/Irrlicht.dll")
+  ENDIF()
+
+  ADD_CUSTOM_COMMAND(
+    TARGET ChronoEngine_IRRLICHT POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CH_IRRLICHT_DLL}"
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+    MAIN_DEPENDENCY ChronoEngine_IRRLICHT
+    COMMENT "Copying Irrlicht DLL..."
+  )
+
+ENDIF()
 
 #-------------------------------------------------------------------------------
 # Install the ChronoEngine_IRRLICHT library
