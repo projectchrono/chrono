@@ -27,7 +27,7 @@ namespace  chrono{
 
 	public:
 		template <bool overwrite = 1>
-		inline void SetElement(int insrow, int inscol, double insval){
+		void SetElement(int insrow, int inscol, double insval){
 			if (overwrite) coeffRef(insrow, inscol) = insval;
 			else coeffRef(insrow, inscol) += insval;
 		};
@@ -69,7 +69,7 @@ namespace  chrono{
 		void PasteMatrixFloat(ChMatrixIN* matra, int insrow, int inscol){ PasteMatrix(matra, insrow, inscol); };
 
 		template <class ChMatrixIN>
-		inline void PasteSumMatrix(ChMatrixIN* matra, int insrow, int inscol){ PasteMatrix<0>(matra, insrow, inscol); };
+		void PasteSumMatrix(ChMatrixIN* matra, int insrow, int inscol){ PasteMatrix<0>(matra, insrow, inscol); };
 
 		template <bool overwrite = 1, class ChMatrixIN>
 		void PasteTranspMatrix(ChMatrixIN* matra, int insrow, int inscol){
@@ -88,10 +88,10 @@ namespace  chrono{
 		};
 
 		template <class ChMatrixIN>
-		inline void PasteSumTranspMatrix(ChMatrixIN* matra, int insrow, int inscol){ PasteTranspMatrix<0>(matra, insrow, inscol); };
+		void PasteSumTranspMatrix(ChMatrixIN* matra, int insrow, int inscol){ PasteTranspMatrix<0>(matra, insrow, inscol); };
 
 		template <class ChMatrixIN>
-		inline void PasteTranspMatrixFloat(ChMatrixIN* matra, int insrow, int inscol) { PasteTranspMatrix(matra, insrow, inscol); };
+		void PasteTranspMatrixFloat(ChMatrixIN* matra, int insrow, int inscol) { PasteTranspMatrix(matra, insrow, inscol); };
 
 		// GetElement returns 0 also if indexes are out of bound!
 		//***TODO*** see http://eigen.tuxfamily.org/dox/group__TutorialSparse.html for a better way to find elements
@@ -116,24 +116,24 @@ namespace  chrono{
 			for (int i = 0; i < nrows; ++i)
 				for (int j = 0; j < ncolumns; ++j)
 					/*this->SetElement<overwrite>(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol));*/
-					Element(insrow + i, inscol + j) = matra->Element(i + cliprow, j + clipcol); */
+					Element(insrow + i, inscol + j) = matra->Element(i + cliprow, j + clipcol);
 
 		}
 
 		template <class ChMatrixIN>
-		inline void PasteSumClippedMatrix(const ChMatrixIN* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) {
+		void PasteSumClippedMatrix(const ChMatrixIN* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) {
 			PasteClippedMatrix<0>(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol);
 		}
 
 		double& operator()(const int row, const int col) { return Element(row, col); }
 		double& operator()(const int index)              { return Element( (int)index/cols(), index % cols() ); }
 
-		inline void Reset(int new_rows, int new_cols){
+		void Reset(int new_rows, int new_cols){
 			if ( (new_rows != this->rows()) || (new_cols != this->cols()) )
 				resize(new_rows, new_cols);
 		}
 
-		inline void Reset(int mat_size){
+		void Reset(int mat_size){
 			Reset(mat_size, mat_size);
 		}
 

@@ -19,16 +19,15 @@ namespace chrono{
 
 	typedef void (ChSparseMatrixBase::* ChSparseMatrixSetElementPtr)(int, int, double); // type for SetElement
 	typedef void (ChSparseMatrixBase::* ChSparseMatrixPasteMatrixPtr)(ChMatrix<>*, int, int); // type for PasteMatrix
-	typedef void (ChSparseMatrixBase::* ChSparseMatrixPasteMatrixFloatPtr)(ChMatrix<float>*, int, int); // type for PasteMatrixFloat and transposed versionk
+	typedef void (ChSparseMatrixBase::* ChSparseMatrixPasteMatrixFloatPtr)(ChMatrix<float>*, int, int); // type for PasteMatrixFloat and transposed version
 	typedef void (ChSparseMatrixBase::* ChSparseMatrixPasteClippedMatrixPtr)(ChMatrix<>*, int, int, int, int, int, int ); // type for PasteClippedMatrix and PasteSumClippedMatrix
 	typedef void (ChSparseMatrixBase::* ChSparseMatrixResetPtr)(int, int); // type for Reset
 
-	class ChApi ChLcpMatrixTool{
+	class ChLcpMatrixTool{
 		//
 		// POINTERs TO MATRIX MEMBER FUNCTIONS
 		//
 	public: // it should be protected and made friend of LcpVariables, LcpConstraint, LcpKblock?, LcpSystemDescriptor?
-		static int prova; // dummy variable used in testing
 
 		static int n; // overall matrix dimension
 		static int m; // stiffness/mass matrix dimension
@@ -39,10 +38,10 @@ namespace chrono{
 			static ChSparseMatrixPasteMatrixPtr			PasteTranspMatrixPtr;
 			static ChSparseMatrixPasteMatrixFloatPtr	PasteMatrixFloatPtr; // is this function replaceable?
 			static ChSparseMatrixPasteMatrixFloatPtr	PasteTranspMatrixFloatPtr;
-			static ChSparseMatrixPasteClippedMatrixPtr	PasteClippedMatrixPtr;
-			static ChSparseMatrixPasteClippedMatrixPtr	PasteSumClippedMatrixPtr;
+			//static ChSparseMatrixPasteClippedMatrixPtr	PasteClippedMatrixPtr;
+			//static ChSparseMatrixPasteClippedMatrixPtr	PasteSumClippedMatrixPtr;
 			static ChSparseMatrixResetPtr				ResetPtr;
-		}; // addresses of various methods of the (derived) matrix
+		};
 
 		template <class SparseMatrixDerivedType>
 		static void SetMatrixTools(SparseMatrixDerivedType* dest_matrix){
@@ -52,13 +51,14 @@ namespace chrono{
 			MatrixFunctions::PasteTranspMatrixPtr		= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteTranspMatrix;
 			MatrixFunctions::PasteMatrixFloatPtr		= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixDerivedType::PasteMatrixFloat;
 			MatrixFunctions::PasteTranspMatrixFloatPtr	= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixDerivedType::PasteTranspMatrixFloat;
-			MatrixFunctions::PasteClippedMatrixPtr		= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteClippedMatrix;
-			MatrixFunctions::PasteSumClippedMatrixPtr	= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteSumClippedMatrix;
+			//MatrixFunctions::PasteClippedMatrixPtr		= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteClippedMatrix;
+			//MatrixFunctions::PasteSumClippedMatrixPtr	= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteSumClippedMatrix;
 			MatrixFunctions::ResetPtr					= (ChSparseMatrixResetPtr)				&SparseMatrixDerivedType::Reset;
+			m = 3;
 		}
+
+
 	}; // END class ChLcpMatrixTool
-
-
 
 } // END namespace chrono
 

@@ -26,7 +26,6 @@
 ///////////////////////////////////////////////////
 
 // Include some headers used by this tutorial...
-
 #include "lcp/ChLcpVariablesGeneric.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
@@ -46,6 +45,19 @@
 // of Chrono::Engine belong to this namespace and its children...
 
 using namespace chrono;
+
+//// Initialization of static variables
+ChSparseMatrixBase*					ChLcpMatrixTool::output_matrix = 0;
+ChSparseMatrixSetElementPtr			ChLcpMatrixTool::MatrixFunctions::SetElementPtr = 0;
+ChSparseMatrixPasteMatrixPtr		ChLcpMatrixTool::MatrixFunctions::PasteMatrixPtr = 0;
+ChSparseMatrixPasteMatrixPtr		ChLcpMatrixTool::MatrixFunctions::PasteTranspMatrixPtr = 0;
+ChSparseMatrixPasteMatrixFloatPtr	ChLcpMatrixTool::MatrixFunctions::PasteMatrixFloatPtr = 0;
+ChSparseMatrixPasteMatrixFloatPtr	ChLcpMatrixTool::MatrixFunctions::PasteTranspMatrixFloatPtr = 0;
+//ChSparseMatrixPasteClippedMatrixPtr	ChLcpMatrixTool::MatrixFunctions::PasteClippedMatrixPtr = 0;
+//ChSparseMatrixPasteClippedMatrixPtr	ChLcpMatrixTool::MatrixFunctions::PasteSumClippedMatrixPtr = 0;
+ChSparseMatrixResetPtr				ChLcpMatrixTool::MatrixFunctions::ResetPtr = 0;
+int									ChLcpMatrixTool::m = 9;
+int									ChLcpMatrixTool::n = 0;
 
 //  The HyperOCTANT solver is aimed at solving linear problems and
 // VI/LCP/CCP complementarity problems, as those arising
@@ -294,38 +306,40 @@ void test_1_PtrToMembers() {
 	ChMatrixDynamic<double> x(n, 1);
 	ChMatrixDynamic<double> res(n, 1);
 
+	
+	int ciao = ChLcpMatrixTool::m;
 
 	ChLcpMatrixTool::SetMatrixTools(&Z);
 	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
 
-	ChMKLSolver MKLSolver(n, 11, 13);
-	double *f = b.GetAddress();
-	double *u = x.GetAddress();
-	MKLSolver.SetProblem(&Z, f, u);
+	//ChMKLSolver MKLSolver(n, 11, 13);
+	//double *f = b.GetAddress();
+	//double *u = x.GetAddress();
+	//MKLSolver.SetProblem(&Z, f, u);
 
-	double* a = Z.GetValueArray();
-	int* ja = Z.GetColumnIndex();
-	int* ia = Z.GetRowIndex();
+	//double* a = Z.GetValueArray();
+	//int* ja = Z.GetColumnIndex();
+	//int* ia = Z.GetRowIndex();
 
-	// .. pass the constraint and the variables to the solver
-	//    to solve - that's all.
-	int error_output = MKLSolver.PardisoSolve();
+	//// .. pass the constraint and the variables to the solver
+	////    to solve - that's all.
+	//int error_output = MKLSolver.PardisoSolve();
 
-	MKLSolver.GetResidual(&res);
+	//MKLSolver.GetResidual(&res);
 
-	// Ok, now present the result to the user, with some
-	// statistical information:
-	for (int i = 0; i < n; i++)
-		printf("\n%.2f   %.2f", x(i), b(i));
-	printf("\n ");
-	for (int i = 0; i < n; i++)
-		printf("\n%.2e", res(i));
-	printf("\n ");
-	for (int i = 0; i < n; i++){
-		for (int j = 0; j < n; j++)
-			printf("%3.2f ", Z(i, j));
-		printf("\n ");
-	};
+	//// Ok, now present the result to the user, with some
+	//// statistical information:
+	//for (int i = 0; i < n; i++)
+	//	printf("\n%.2f   %.2f", x(i), b(i));
+	//printf("\n ");
+	//for (int i = 0; i < n; i++)
+	//	printf("\n%.2e", res(i));
+	//printf("\n ");
+	//for (int i = 0; i < n; i++){
+	//	for (int j = 0; j < n; j++)
+	//		printf("%3.2f ", Z(i, j));
+	//	printf("\n ");
+	//};
 
 }
 

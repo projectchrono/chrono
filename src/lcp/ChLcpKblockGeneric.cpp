@@ -150,35 +150,35 @@ void ChLcpKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
     }
 }
 
-void ChLcpKblockGeneric::Build_K(bool add) {
-	if (!K)
-		return;
-
-	int kio = 0;
-	for (unsigned int iv = 0; iv < this->GetNvars(); iv++) {
-		int io = this->GetVariableN(iv)->GetOffset();
-		int in = this->GetVariableN(iv)->Get_ndof();
-
-		if (this->GetVariableN(iv)->IsActive()) {
-			int kjo = 0;
-			for (unsigned int jv = 0; jv < this->GetNvars(); jv++) {
-				int jo = this->GetVariableN(jv)->GetOffset();
-				int jn = this->GetVariableN(jv)->Get_ndof();
-
-				if (this->GetVariableN(jv)->IsActive()) {
-					if (add)
-						(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteSumClippedMatrixPtr)(this->K, kio, kjo, in, jn, io, jo);
-					else
-						(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteClippedMatrixPtr)(this->K, kio, kjo, in, jn, io, jo);
-				}
-
-				kjo += jn;
-			}
-		}
-
-		kio += in;
-	}
-}
+//void ChLcpKblockGeneric::Build_K(bool add) {
+//	if (!K)
+//		return;
+//
+//	int kio = 0;
+//	for (unsigned int iv = 0; iv < this->GetNvars(); iv++) {
+//		int io = this->GetVariableN(iv)->GetOffset();
+//		int in = this->GetVariableN(iv)->Get_ndof();
+//
+//		if (this->GetVariableN(iv)->IsActive()) {
+//			int kjo = 0;
+//			for (unsigned int jv = 0; jv < this->GetNvars(); jv++) {
+//				int jo = this->GetVariableN(jv)->GetOffset();
+//				int jn = this->GetVariableN(jv)->Get_ndof();
+//
+//				if (this->GetVariableN(jv)->IsActive()) {
+//					if (add)
+//						(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteSumClippedMatrixPtr)(this->K, kio, kjo, in, jn, io, jo);
+//					else
+//						(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteClippedMatrixPtr)(this->K, kio, kjo, in, jn, io, jo);
+//				}
+//
+//				kjo += jn;
+//			}
+//		}
+//
+//		kio += in;
+//	}
+//}
 
 
 /*

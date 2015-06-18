@@ -233,6 +233,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
 
     n_q = this->CountActiveVariables();
 
+
     // Reset and resize (if needed) auxiliary vectors
 
 	if (ChLcpMatrixTool::output_matrix)
@@ -273,15 +274,15 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
         }
     }
 
-    // If some stiffness / hessian matrix has been added to M ,
-    // also add it to the sparse M
-    int s_k = 0;
-    for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
-        if (ChLcpMatrixTool::output_matrix)
-            this->vstiffness[ik]->Build_K(true); // add K matrix in the upper left corner of Z
-        /*if (M)
-            this->vstiffness[ik]->Build_K(*M, true);*/
-    }
+    //// If some stiffness / hessian matrix has been added to M ,
+    //// also add it to the sparse M
+    //int s_k = 0;
+    //for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
+    //    if (ChLcpMatrixTool::output_matrix)
+    //        this->vstiffness[ik]->Build_K(true); // add K matrix in the upper left corner of Z
+    //    /*if (M)
+    //        this->vstiffness[ik]->Build_K(*M, true);*/
+    //}
 
     // Fills Cq jacobian, E 'compliance' matrix , the 'b' vector and friction coeff.vector,
     // by looping on constraints
