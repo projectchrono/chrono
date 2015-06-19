@@ -167,9 +167,9 @@ void ChLcpKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
 //
 //				if (this->GetVariableN(jv)->IsActive()) {
 //					if (add)
-//						(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteSumClippedMatrixPtr)(this->K, kio, kjo, in, jn, io, jo);
+//						(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteSumClippedMatrixPtr)(this->K, kio, kjo, in, jn, io, jo);
 //					else
-//						(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::PasteClippedMatrixPtr)(this->K, kio, kjo, in, jn, io, jo);
+//						(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteClippedMatrixPtr)(this->K, kio, kjo, in, jn, io, jo);
 //				}
 //
 //				kjo += jn;

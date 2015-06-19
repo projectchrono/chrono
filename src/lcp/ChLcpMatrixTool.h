@@ -27,33 +27,33 @@ namespace chrono{
 		//
 		// POINTERs TO MATRIX MEMBER FUNCTIONS
 		//
-	public: // it should be protected and made friend of LcpVariables, LcpConstraint, LcpKblock?, LcpSystemDescriptor?
+	public: // it should be protected at least
 
-		static int n; // overall matrix dimension
-		static int m; // stiffness/mass matrix dimension
-		static ChSparseMatrixBase* output_matrix;
-		static struct MatrixFunctions {
-			static ChSparseMatrixSetElementPtr			SetElementPtr;
-			static ChSparseMatrixPasteMatrixPtr			PasteMatrixPtr;
-			static ChSparseMatrixPasteMatrixPtr			PasteTranspMatrixPtr;
-			static ChSparseMatrixPasteMatrixFloatPtr	PasteMatrixFloatPtr; // is this function replaceable?
-			static ChSparseMatrixPasteMatrixFloatPtr	PasteTranspMatrixFloatPtr;
-			//static ChSparseMatrixPasteClippedMatrixPtr	PasteClippedMatrixPtr;
-			//static ChSparseMatrixPasteClippedMatrixPtr	PasteSumClippedMatrixPtr;
-			static ChSparseMatrixResetPtr				ResetPtr;
-		};
+		int n; // overall matrix dimension
+		int m; // stiffness/mass matrix dimension
+		ChSparseMatrixBase* output_matrix;
+		struct {
+			ChSparseMatrixSetElementPtr				SetElementPtr;
+			ChSparseMatrixPasteMatrixPtr			PasteMatrixPtr;
+			ChSparseMatrixPasteMatrixPtr			PasteTranspMatrixPtr;
+			ChSparseMatrixPasteMatrixFloatPtr		PasteMatrixFloatPtr; // is this function replaceable?
+			ChSparseMatrixPasteMatrixFloatPtr		PasteTranspMatrixFloatPtr;
+			//ChSparseMatrixPasteClippedMatrixPtr	PasteClippedMatrixPtr;
+			//ChSparseMatrixPasteClippedMatrixPtr	PasteSumClippedMatrixPtr;
+			ChSparseMatrixResetPtr					ResetPtr;
+		} MatrixFunctions;
 
 		template <class SparseMatrixDerivedType>
-		static void SetMatrixTools(SparseMatrixDerivedType* dest_matrix){
+		void SetMatrixTools(SparseMatrixDerivedType* dest_matrix){
 			output_matrix = dest_matrix;
-			MatrixFunctions::SetElementPtr				= (ChSparseMatrixSetElementPtr)			&SparseMatrixDerivedType::SetElement;
-			MatrixFunctions::PasteMatrixPtr				= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteMatrix;
-			MatrixFunctions::PasteTranspMatrixPtr		= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteTranspMatrix;
-			MatrixFunctions::PasteMatrixFloatPtr		= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixDerivedType::PasteMatrixFloat;
-			MatrixFunctions::PasteTranspMatrixFloatPtr	= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixDerivedType::PasteTranspMatrixFloat;
-			//MatrixFunctions::PasteClippedMatrixPtr		= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteClippedMatrix;
-			//MatrixFunctions::PasteSumClippedMatrixPtr	= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteSumClippedMatrix;
-			MatrixFunctions::ResetPtr					= (ChSparseMatrixResetPtr)				&SparseMatrixDerivedType::Reset;
+			MatrixFunctions.SetElementPtr				= (ChSparseMatrixSetElementPtr)			&SparseMatrixDerivedType::SetElement;
+			MatrixFunctions.PasteMatrixPtr				= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteMatrix;
+			MatrixFunctions.PasteTranspMatrixPtr		= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteTranspMatrix;
+			MatrixFunctions.PasteMatrixFloatPtr			= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixDerivedType::PasteMatrixFloat;
+			MatrixFunctions.PasteTranspMatrixFloatPtr	= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixDerivedType::PasteTranspMatrixFloat;
+			//MatrixFunctions.PasteClippedMatrixPtr		= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteClippedMatrix;
+			//MatrixFunctions.PasteSumClippedMatrixPtr	= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteSumClippedMatrix;
+			MatrixFunctions.ResetPtr					= (ChSparseMatrixResetPtr)				&SparseMatrixDerivedType::Reset;
 			m = 3;
 		}
 

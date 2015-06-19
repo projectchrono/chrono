@@ -46,19 +46,6 @@
 
 using namespace chrono;
 
-//// Initialization of static variables
-ChSparseMatrixBase*					ChLcpMatrixTool::output_matrix = 0;
-ChSparseMatrixSetElementPtr			ChLcpMatrixTool::MatrixFunctions::SetElementPtr = 0;
-ChSparseMatrixPasteMatrixPtr		ChLcpMatrixTool::MatrixFunctions::PasteMatrixPtr = 0;
-ChSparseMatrixPasteMatrixPtr		ChLcpMatrixTool::MatrixFunctions::PasteTranspMatrixPtr = 0;
-ChSparseMatrixPasteMatrixFloatPtr	ChLcpMatrixTool::MatrixFunctions::PasteMatrixFloatPtr = 0;
-ChSparseMatrixPasteMatrixFloatPtr	ChLcpMatrixTool::MatrixFunctions::PasteTranspMatrixFloatPtr = 0;
-//ChSparseMatrixPasteClippedMatrixPtr	ChLcpMatrixTool::MatrixFunctions::PasteClippedMatrixPtr = 0;
-//ChSparseMatrixPasteClippedMatrixPtr	ChLcpMatrixTool::MatrixFunctions::PasteSumClippedMatrixPtr = 0;
-ChSparseMatrixResetPtr				ChLcpMatrixTool::MatrixFunctions::ResetPtr = 0;
-int									ChLcpMatrixTool::m = 9;
-int									ChLcpMatrixTool::n = 0;
-
 //  The HyperOCTANT solver is aimed at solving linear problems and
 // VI/LCP/CCP complementarity problems, as those arising
 // from QP optimization problems.
@@ -307,18 +294,18 @@ void test_1_PtrToMembers() {
 	ChMatrixDynamic<double> res(n, 1);
 
 	
-	int ciao = ChLcpMatrixTool::m;
+	ChEigenMatrix* Zptr;
+	mdescriptor.SetOutputMatrix(&Z);
+	Zptr = static_cast<ChEigenMatrix*>(mdescriptor.MatTool.output_matrix);
+	//mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
 
-	ChLcpMatrixTool::SetMatrixTools(&Z);
-	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
-
-	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	printf("\nMatrix \n");
-	for (int i = 0; i < Z.GetRows(); i++){
-		for (int j = 0; j < Z.GetColumns(); j++)
-			printf("%.1f ", Z(i, j));
-		printf("\n");
-	};
+	//printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	//printf("\nMatrix \n");
+	//for (int i = 0; i < Z.GetRows(); i++){
+	//	for (int j = 0; j < Z.GetColumns(); j++)
+	//		printf("%.1f ", Z(i, j));
+	//	printf("\n");
+	//};
 
 	//ChMKLSolver MKLSolver(n, 11, 13);
 	//double *f = b.GetAddress();
@@ -677,16 +664,16 @@ int main(int argc, char* argv[]) {
 	//GetLog() << " Example: the HyperOCTANT techology for solving LCP\n\n\n";
 
 	//// Test: an introductory problem:
-	test_1();
+	//test_1();
 	test_1_PtrToMembers();
 
 	//// Test: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
-	test_2();
+	//test_2();
 
 	//// Test: the stiffness benchmark (add also sparse stiffness blocks over M)
-	test_3();
+	//test_3();
 
-	getchar();
+	//getchar();
 
 	return 0;
 }

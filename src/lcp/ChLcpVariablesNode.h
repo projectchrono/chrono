@@ -115,7 +115,7 @@ class ChApi ChLcpVariablesNode : public ChLcpVariables {
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
     /// Optimised: doesn't fill unneeded elements except mass.
     void Build_M(ChSparseMatrix& storage, int insrow, int inscol);
-	void Build_M(int insrow, int inscol);
+	void Build_M(const ChLcpMatrixTool& MatTool, int insrow, int inscol);
 
     //
     // SERIALIZATION

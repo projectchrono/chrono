@@ -79,8 +79,22 @@ class ChApi ChLcpSystemDescriptor {
     int n_q;            // n.active variables
     int n_c;            // n.active constraints
     bool freeze_count;  // for optimizations
+	
+	
+	
 
   public:
+
+	  ChLcpMatrixTool MatTool; // to put in private scope
+	  
+	  template <class ChSparseMatrixDerivedType>
+	  void SetOutputMatrix(ChSparseMatrixDerivedType* dest_matrix){
+		  MatTool.SetMatrixTools<ChSparseMatrixDerivedType>(dest_matrix); // check if the SetMatrixTools function can recognize the derived type!!!
+	  }
+
+
+
+	  
     //
     // CONSTRUCTORS
     //

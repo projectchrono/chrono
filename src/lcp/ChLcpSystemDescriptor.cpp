@@ -236,8 +236,8 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
 
     // Reset and resize (if needed) auxiliary vectors
 
-	if (ChLcpMatrixTool::output_matrix)
-		(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::ResetPtr)(n_q + mn_c, n_q + mn_c);
+	if (MatTool.output_matrix)
+		(MatTool.output_matrix->*MatTool.MatrixFunctions.ResetPtr)(n_q + mn_c, n_q + mn_c);
 
     if (rhs)
         rhs->Reset(n_q + mn_c, 1);
@@ -261,8 +261,8 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
     int s_q = 0;
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive()) {
-            if (ChLcpMatrixTool::output_matrix)
-                mvariables[iv]->Build_M(s_q, s_q);  // .. fills  Z with masses and inertias in the upper left corner
+            if (MatTool.output_matrix)
+                mvariables[iv]->Build_M(MatTool, s_q, s_q);  // .. fills  Z with masses and inertias in the upper left corner
             //if (M)
             //    mvariables[iv]->Build_M(*M, s_q, s_q);  // .. fills  M with masses and inertias
             if (rhs)
@@ -278,8 +278,8 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
     //// also add it to the sparse M
     //int s_k = 0;
     //for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
-    //    if (ChLcpMatrixTool::output_matrix)
-    //        this->vstiffness[ik]->Build_K(true); // add K matrix in the upper left corner of Z
+    //    if (MatTool.output_matrix)
+    //        this->vstiffness[ik]->Build_K(MatTool, true); // add K matrix in the upper left corner of Z
     //    /*if (M)
     //        this->vstiffness[ik]->Build_K(*M, true);*/
     //}
@@ -291,11 +291,11 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
         if (mconstraints[ic]->IsActive())
             if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
                 if (!((dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic])) && skip_contacts_uv)) {
-                    if (ChLcpMatrixTool::output_matrix){
-                        mconstraints[ic]->Build_Cq(n_q + s_c);  // .. fills Z with constraints (lower left corner)
-                        mconstraints[ic]->Build_CqT(n_q + s_c);  // .. fills Z with constraints (upper right corner)
+                    if (MatTool.output_matrix){
+                        mconstraints[ic]->Build_Cq(MatTool, n_q + s_c);  // .. fills Z with constraints (lower left corner)
+						mconstraints[ic]->Build_CqT(MatTool, n_q + s_c);  // .. fills Z with constraints (upper right corner)
                         // .. fills Z with E ( = - cfm ) (lower right corner)
-						(ChLcpMatrixTool::output_matrix->*ChLcpMatrixTool::MatrixFunctions::SetElementPtr)(n_q + s_c, n_q + s_c, -mconstraints[ic]->Get_cfm_i());
+						(MatTool.output_matrix->*MatTool.MatrixFunctions.SetElementPtr)(n_q + s_c, n_q + s_c, -mconstraints[ic]->Get_cfm_i());
                     };
                     if (rhs)
                         (*rhs)(n_q + s_c) = mconstraints[ic]->Get_b_i();  // .. fills 'rhs' with 'b' in the lower section
