@@ -9,7 +9,7 @@
 namespace  chrono{
 
 
-	class ChEigenMatrix : public Eigen::SparseMatrix<double, Eigen::RowMajor, int>, public ChSparseMatrixBase {
+	class ChEigenMatrix : public ChSparseMatrixBase, public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
 	public:
 		ChEigenMatrix() : Eigen::SparseMatrix<double, Eigen::RowMajor, int>() {};
 		ChEigenMatrix(int rows, int cols) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) {};

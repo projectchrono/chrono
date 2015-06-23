@@ -111,10 +111,11 @@ class ChUnilateralData {
 ///
 
 class ChApi ChSparseMatrixBase{
-
+	// dummy base class for all Sparse Matrices, must be the FIRST parent of every class that inherits from this class
+	int dummy;
 };
 
-class ChApi ChSparseMatrix : public ChMatrix<double>, public ChSparseMatrixBase {
+class ChApi ChSparseMatrix : public ChSparseMatrixBase, public ChMatrix<double> {
   private:
     ChMelement** elarray;  // array of 1st column elements
 

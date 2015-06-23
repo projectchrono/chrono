@@ -45,7 +45,7 @@ namespace chrono{
 
 		template <class SparseMatrixDerivedType>
 		void SetMatrixTools(SparseMatrixDerivedType* dest_matrix){
-			output_matrix = dest_matrix;
+			output_matrix = (ChSparseMatrixBase*)dest_matrix; // this conversion should could be also implicit
 			MatrixFunctions.SetElementPtr				= (ChSparseMatrixSetElementPtr)			&SparseMatrixDerivedType::SetElement;
 			MatrixFunctions.PasteMatrixPtr				= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteMatrix;
 			MatrixFunctions.PasteTranspMatrixPtr		= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteTranspMatrix;

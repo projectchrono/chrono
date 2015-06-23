@@ -293,19 +293,32 @@ void test_1_PtrToMembers() {
 	ChMatrixDynamic<double> x(n, 1);
 	ChMatrixDynamic<double> res(n, 1);
 
-	
-	ChEigenMatrix* Zptr;
-	mdescriptor.SetOutputMatrix(&Z);
-	Zptr = static_cast<ChEigenMatrix*>(mdescriptor.MatTool.output_matrix);
-	//mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
+	ChSparseMatrix Z2;
 
-	//printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	//printf("\nMatrix \n");
-	//for (int i = 0; i < Z.GetRows(); i++){
-	//	for (int j = 0; j < Z.GetColumns(); j++)
-	//		printf("%.1f ", Z(i, j));
-	//	printf("\n");
-	//};
+	mdescriptor.SetOutputMatrix(&Z);
+	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nMatrix \n");
+	for (int i = 0; i < Z.GetRows(); i++){
+		for (int j = 0; j < Z.GetColumns(); j++)
+			printf("%.1f ", Z(i, j));
+		printf("\n");
+	};
+
+	ChSparseMatrixBase* Base1Ptr;
+	ChMatrix<>* Base2Ptr;
+
+	Base1Ptr = &Z2;
+	Base2Ptr = &Z2;
+
+	if (Base2Ptr == &Z2)
+		printf("ChMatrix is the 1st base\n");
+	if (Base1Ptr == &Z2)
+		printf("ChSparseMatrixBase is the 1st base\n");
+
+	mdescriptor.SetOutputMatrix(&Z2);
+	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
 
 	//ChMKLSolver MKLSolver(n, 11, 13);
 	//double *f = b.GetAddress();
@@ -673,7 +686,7 @@ int main(int argc, char* argv[]) {
 	//// Test: the stiffness benchmark (add also sparse stiffness blocks over M)
 	//test_3();
 
-	//getchar();
+	getchar();
 
 	return 0;
 }

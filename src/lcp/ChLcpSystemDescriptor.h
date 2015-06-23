@@ -84,8 +84,7 @@ class ChApi ChLcpSystemDescriptor {
 	
 
   public:
-
-	  ChLcpMatrixTool MatTool; // to put in private scope
+	  ChLcpMatrixTool MatTool;
 	  
 	  template <class ChSparseMatrixDerivedType>
 	  void SetOutputMatrix(ChSparseMatrixDerivedType* dest_matrix){
