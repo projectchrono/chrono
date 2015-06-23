@@ -111,7 +111,7 @@ namespace  chrono{
 
 
 		template <bool overwrite = 1, class ChMatrixIN>
-		void PasteClippedMatrix(const ChMatrixIN* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) {
+		void PasteClippedMatrix(ChMatrixIN* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) {
 		/*#pragma omp parallel for if (nrows > CH_OMP_MATR)*/
 			for (int i = 0; i < nrows; ++i)
 				for (int j = 0; j < ncolumns; ++j)
@@ -121,7 +121,7 @@ namespace  chrono{
 		}
 
 		template <class ChMatrixIN>
-		void PasteSumClippedMatrix(const ChMatrixIN* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) {
+		void PasteSumClippedMatrix(ChMatrixIN* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) {
 			PasteClippedMatrix<0>(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol);
 		}
 

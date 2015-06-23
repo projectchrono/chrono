@@ -33,11 +33,12 @@ namespace chrono{
 			ChSparseMatrixPasteMatrixPtr			PasteTranspMatrixPtr;
 			ChSparseMatrixPasteMatrixFloatPtr		PasteMatrixFloatPtr; // is this function replaceable?
 			ChSparseMatrixPasteMatrixFloatPtr		PasteTranspMatrixFloatPtr;
-			//ChSparseMatrixPasteClippedMatrixPtr	PasteClippedMatrixPtr;
-			//ChSparseMatrixPasteClippedMatrixPtr	PasteSumClippedMatrixPtr;
+			ChSparseMatrixPasteClippedMatrixPtr		PasteClippedMatrixPtr;
+			ChSparseMatrixPasteClippedMatrixPtr		PasteSumClippedMatrixPtr;
 			ChSparseMatrixResetPtr					ResetPtr;
 		} MatrixFunctions;
 
+		/// Sets the Pointers-To-Member-Function based on destination matrix.
 		template <class SparseMatrixDerivedType>
 		void SetMatrixTools(SparseMatrixDerivedType* dest_matrix){
 			output_matrix = (ChSparseMatrixBase*)dest_matrix;
@@ -46,8 +47,8 @@ namespace chrono{
 			MatrixFunctions.PasteTranspMatrixPtr		= (ChSparseMatrixPasteMatrixPtr)		&SparseMatrixDerivedType::PasteTranspMatrix;
 			MatrixFunctions.PasteMatrixFloatPtr			= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixDerivedType::PasteMatrixFloat;
 			MatrixFunctions.PasteTranspMatrixFloatPtr	= (ChSparseMatrixPasteMatrixFloatPtr)	&SparseMatrixDerivedType::PasteTranspMatrixFloat;
-			//MatrixFunctions.PasteClippedMatrixPtr		= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteClippedMatrix;
-			//MatrixFunctions.PasteSumClippedMatrixPtr	= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteSumClippedMatrix;
+			MatrixFunctions.PasteClippedMatrixPtr		= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteClippedMatrix;
+			MatrixFunctions.PasteSumClippedMatrixPtr	= (ChSparseMatrixPasteClippedMatrixPtr)	&SparseMatrixDerivedType::PasteSumClippedMatrix;
 			MatrixFunctions.ResetPtr					= (ChSparseMatrixResetPtr)				&SparseMatrixDerivedType::Reset;
 		}
 
