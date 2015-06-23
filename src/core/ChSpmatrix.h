@@ -111,8 +111,23 @@ class ChUnilateralData {
 ///
 
 class ChApi ChSparseMatrixBase{
+public:
 	// dummy base class for all Sparse Matrices, must be the FIRST parent of every class that inherits from this class
 	int dummy;
+	ChSparseMatrixBase():dummy(0){};
+	~ChSparseMatrixBase(){};
+
+	virtual void Reset(int row, int col){};
+	virtual void SetElement(int insrow, int inscol, double insval){};
+	virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
+	virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
+	virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
+	virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
+	virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+
 };
 
 class ChApi ChSparseMatrix : public ChSparseMatrixBase, public ChMatrix<double> {
@@ -158,6 +173,8 @@ class ChApi ChSparseMatrix : public ChSparseMatrixBase, public ChMatrix<double> 
     void CopyFromMatrix(ChMatrix<>* matra);
     void CopyFromMatrix(ChSparseMatrix* matra);
     void CopyToMatrix(ChMatrix<>* matra);
+
+
 
     // optimized SetElement,  returning the fetched Melement*
     ChMelement* SetElement(int row, int col, double val, ChMelement* guess);

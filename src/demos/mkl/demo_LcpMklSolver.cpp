@@ -286,39 +286,42 @@ void test_1_PtrToMembers() {
 
 	int n = mdescriptor.CountActiveVariables() + mdescriptor.CountActiveConstraints();
 
-	ChEigenMatrix Z(n);
-	ChEigenMatrix M(mdescriptor.CountActiveVariables());
-	ChEigenMatrix Cq(mdescriptor.CountActiveConstraints(), mdescriptor.CountActiveVariables());
 	ChMatrixDynamic<double> b(n, 1);
 	ChMatrixDynamic<double> x(n, 1);
 	ChMatrixDynamic<double> res(n, 1);
 
-	ChSparseMatrix Z2;
+	// TEST1: PtrToMemb with ChEigenMatrix
 
+	ChEigenMatrix Z(n);
+	ChEigenMatrix M(mdescriptor.CountActiveVariables());
+	ChEigenMatrix Cq(mdescriptor.CountActiveConstraints(), mdescriptor.CountActiveVariables());
 	mdescriptor.SetOutputMatrix(&Z);
 	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
 
 	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	printf("\nMatrix \n");
+	printf("\nChEigenMatrix\n");
 	for (int i = 0; i < Z.GetRows(); i++){
 		for (int j = 0; j < Z.GetColumns(); j++)
 			printf("%.1f ", Z(i, j));
 		printf("\n");
 	};
 
-	ChSparseMatrixBase* Base1Ptr;
-	ChMatrix<>* Base2Ptr;
 
-	Base1Ptr = &Z2;
-	Base2Ptr = &Z2;
+	// TEST2: PtrToMemb with ChSparseMatrix
 
-	if (Base2Ptr == &Z2)
-		printf("ChMatrix is the 1st base\n");
-	if (Base1Ptr == &Z2)
-		printf("ChSparseMatrixBase is the 1st base\n");
+	ChSparseMatrix Z2;
 
 	mdescriptor.SetOutputMatrix(&Z2);
 	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
+
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nChSparseMatrix\n");
+	for (int i = 0; i < Z2.GetRows(); i++){
+		for (int j = 0; j < Z2.GetColumns(); j++)
+			printf("%.1f ", Z2.GetElement(i, j));
+		printf("\n");
+	};
 
 	//ChMKLSolver MKLSolver(n, 11, 13);
 	//double *f = b.GetAddress();
