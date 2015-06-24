@@ -24,15 +24,126 @@ namespace chrono{
 			this->Eigen::SparseMatrix<double>::operator=(other);
 			return *this;
 		};*/
+		
+		/// Virtualizabile functions
+		virtual void SetElement(int insrow, int inscol, double insval) override {
+			coeffRef(insrow, inscol) = insval;
+		};
+
+		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol) override
+		{
+			int maxrows = matra->GetRows();
+			int maxcols = matra->GetColumns();
+			int i, j;
+
+			// can't use triplets because they expect a compressed matrix with
+			// non existing entries
+
+			for (i = 0; i < maxrows; i++){
+				for (j = 0; j < maxcols; j++){
+					if ((*matra)(i, j) != 0) this->SetElement<1>(insrow + i, inscol + j, (*matra)(i, j));
+				}
+			}
+		}
+
+		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) override
+		{
+			int maxrows = matra->GetRows();
+			int maxcols = matra->GetColumns();
+			int i, j;
+
+			// can't use triplets because they expect a compressed matrix with
+			// non existing entries
+
+			for (i = 0; i < maxrows; i++){
+				for (j = 0; j < maxcols; j++){
+					if ((*matra)(i, j) != 0) this->SetElement<1>(insrow + i, inscol + j, (*matra)(i, j));
+				}
+			}
+		};
 
 
-	public:
-		//template <bool overwrite = 1>
-		//void SetElement(int insrow, int inscol, double insval){
-		//	if (overwrite) coeffRef(insrow, inscol) = insval;
-		//	else coeffRef(insrow, inscol) += insval;
-		//};
+		virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) override
+		{
+			int maxrows = matra->GetRows();
+			int maxcols = matra->GetColumns();
+			int i, j;
 
+			// can't use triplets because they expect a compressed matrix with
+			// non existing entries
+
+			for (i = 0; i < maxrows; i++){
+				for (j = 0; j < maxcols; j++){
+					if ((*matra)(i, j) != 0) this->SetElement<0>(insrow + i, inscol + j, (*matra)(i, j));
+				}
+			}
+		};
+
+		virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override
+		{
+			int maxrows = matra->GetRows();
+			int maxcols = matra->GetColumns();
+			int i, j;
+
+			// can't use triplets because they expect a compressed matrix with
+			// non existing entries
+
+			for (i = 0; i < maxcols; i++){
+				for (j = 0; j < maxrows; j++){
+					if ((*matra)(j, i) != 0) this->SetElement<1>(insrow + i, inscol + j, (*matra)(j, i));
+				}
+			}
+		}
+
+		virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override
+		{
+			int maxrows = matra->GetRows();
+			int maxcols = matra->GetColumns();
+			int i, j;
+
+			// can't use triplets because they expect a compressed matrix with
+			// non existing entries
+
+			for (i = 0; i < maxcols; i++){
+				for (j = 0; j < maxrows; j++){
+					if ((*matra)(j, i) != 0) this->SetElement<0>(insrow + i, inscol + j, (*matra)(j, i));
+				}
+			}
+		};
+
+		virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) override
+		{
+			int maxrows = matra->GetRows();
+			int maxcols = matra->GetColumns();
+			int i, j;
+
+			// can't use triplets because they expect a compressed matrix with
+			// non existing entries
+
+			for (i = 0; i < maxcols; i++){
+				for (j = 0; j < maxrows; j++){
+					if ((*matra)(j, i) != 0) this->SetElement<1>(insrow + i, inscol + j, (*matra)(j, i));
+				}
+			}
+		}
+
+		void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) override
+		{
+			/*#pragma omp parallel for if (nrows > CH_OMP_MATR)*/
+			for (int i = 0; i < nrows; ++i)
+				for (int j = 0; j < ncolumns; ++j)
+					this->SetElement<1>(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol));
+		}
+
+		void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) override
+		{
+			/*#pragma omp parallel for if (nrows > CH_OMP_MATR)*/
+			for (int i = 0; i < nrows; ++i)
+				for (int j = 0; j < ncolumns; ++j)
+					this->SetElement<0>(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol));
+		}
+
+		/// Templatized functions
 		template <bool overwrite = 1>
 		void SetElement(int insrow, int inscol, double insval){
 			if (overwrite) coeffRef(insrow, inscol) = insval;
@@ -64,7 +175,7 @@ namespace chrono{
 		inline int* GetRowIndex(){
 			return outerIndexPtr();
 		}
-
+				
 
 		template <bool overwrite = 1, class ChMatrixIN>
 		void PasteMatrix(ChMatrixIN* matra, int insrow, int inscol){
@@ -78,13 +189,14 @@ namespace chrono{
 			for (i = 0; i < maxrows; i++){
 				for (j = 0; j < maxcols; j++){
 					if ((*matra)(i, j)!=0) this->SetElement<overwrite>(insrow + i, inscol + j, (*matra)(i, j));
-				};
-			};
-		};
+				}
+			}
+		}
 
 		template <bool overwrite = 1, class ChMatrixIN>
 		void PasteMatrixFloat(ChMatrixIN* matra, int insrow, int inscol){ PasteMatrix(matra, insrow, inscol); };
 
+		
 		template <class ChMatrixIN>
 		void PasteSumMatrix(ChMatrixIN* matra, int insrow, int inscol){ PasteMatrix<0>(matra, insrow, inscol); };
 
@@ -132,9 +244,7 @@ namespace chrono{
 		/*#pragma omp parallel for if (nrows > CH_OMP_MATR)*/
 			for (int i = 0; i < nrows; ++i)
 				for (int j = 0; j < ncolumns; ++j)
-					/*this->SetElement<overwrite>(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol));*/
-					Element(insrow + i, inscol + j) = matra->Element(i + cliprow, j + clipcol);
-
+					this->SetElement<overwrite>(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol));
 		}
 
 		template <class ChMatrixIN>
