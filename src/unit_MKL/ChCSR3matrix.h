@@ -27,10 +27,26 @@ namespace chrono{
 
 
 	public:
+		//template <bool overwrite = 1>
+		//void SetElement(int insrow, int inscol, double insval){
+		//	if (overwrite) coeffRef(insrow, inscol) = insval;
+		//	else coeffRef(insrow, inscol) += insval;
+		//};
+
 		template <bool overwrite = 1>
 		void SetElement(int insrow, int inscol, double insval){
 			if (overwrite) coeffRef(insrow, inscol) = insval;
 			else coeffRef(insrow, inscol) += insval;
+		};
+
+		template <>
+		void SetElement<1>(int insrow, int inscol, double insval){
+			coeffRef(insrow, inscol) = insval;
+		};
+
+		template <>
+		void SetElement<0>(int insrow, int inscol, double insval){
+			coeffRef(insrow, inscol) += insval;
 		};
 
 		inline double& Element(int row, int col){
