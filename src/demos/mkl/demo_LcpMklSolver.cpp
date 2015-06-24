@@ -299,7 +299,7 @@ void test_1_PtrToMembers() {
 	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
 
 	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	printf("\nChEigenMatrix\n");
+	printf("\nChEigenMatrix through PtrToMember\n");
 	for (int i = 0; i < Z.GetRows(); i++){
 		for (int j = 0; j < Z.GetColumns(); j++)
 			printf("%.1f ", Z(i, j));
@@ -314,12 +314,43 @@ void test_1_PtrToMembers() {
 	mdescriptor.SetOutputMatrix(&Z2);
 	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
 
-
 	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	printf("\nChSparseMatrix\n");
+	printf("\nChSparseMatrix through PtrToMember\n");
 	for (int i = 0; i < Z2.GetRows(); i++){
 		for (int j = 0; j < Z2.GetColumns(); j++)
 			printf("%.1f ", Z2.GetElement(i, j));
+		printf("\n");
+	};
+
+
+	chrono::ChSparseMatrix mdM;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nChSparseMatrix through virtual\n");
+	for (int i = 0; i < mdM.GetRows(); i++){
+		for (int j = 0; j < mdM.GetColumns(); j++)
+			printf("%.1f ", mdM.GetElement(i, j));
+		printf("\n");
+	};
+
+	chrono::ChSparseMatrix EigenM;
+	chrono::ChSparseMatrix EigenCq;
+	chrono::ChSparseMatrix EigenE;
+	mdescriptor.ConvertToMatrixForm(&EigenCq, &EigenM, &EigenE, &mdf, &mdb, &mdfric);
+
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nEigen matrix through virtual\n");
+	for (int i = 0; i < EigenM.GetRows(); i++){
+		for (int j = 0; j < EigenM.GetColumns(); j++)
+			printf("%.1f ", EigenM.GetElement(i, j));
 		printf("\n");
 	};
 

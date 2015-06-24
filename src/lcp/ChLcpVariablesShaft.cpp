@@ -90,7 +90,7 @@ void ChLcpVariablesShaft::DiagonalAdd(ChMatrix<double>& result) const {
 /// it in 'storage' sparse matrix, at given column/row offset.
 /// Note, most iterative solvers don't need to know mass matrix explicitly.
 /// Optimised: doesn't fill unneeded elements except mass.
-void ChLcpVariablesShaft::Build_M(ChSparseMatrix& storage, int insrow, int inscol) {
+void ChLcpVariablesShaft::Build_M(ChSparseMatrixBase& storage, int insrow, int inscol) {
     storage.SetElement(insrow + 0, inscol + 0, m_inertia);
 }
 

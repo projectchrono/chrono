@@ -342,13 +342,13 @@ class ChApi ChLcpConstraint {
     /// don't need to know jacobians explicitly)
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes!
-    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) = 0;
+    virtual void Build_Cq(ChSparseMatrixBase& storage, int insrow) = 0;
 	virtual void Build_Cq(const ChLcpMatrixTool& MatTool, int insrow) = 0;
 
     /// Same as Build_Cq, but puts the _transposed_ jacobian row as a column.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes!
-    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) = 0;
+	virtual void Build_CqT(ChSparseMatrixBase& storage, int inscol) = 0;
 	virtual void Build_CqT(const ChLcpMatrixTool& MatTool, int inscol) = 0;
 
     /// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)

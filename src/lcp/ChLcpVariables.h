@@ -204,7 +204,7 @@ public:
     /// Most iterative solvers don't need to know this matrix explicitly.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol) = 0;
+	virtual void Build_M(ChSparseMatrixBase& storage, int insrow, int inscol) = 0;
 	virtual void Build_M(const ChLcpMatrixTool& MatTool, int insrow, int inscol) = 0;
 
 

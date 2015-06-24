@@ -5,7 +5,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
+// Use of this source code is governed by a BSD-style license that c%an be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -35,6 +35,27 @@
 #include "core/ChApiCE.h"
 
 namespace chrono {
+
+	class ChApi ChSparseMatrixBase{
+	public:
+		// dummy base class for all Sparse Matrices, must be the FIRST parent of every class that inherits from this class
+	public:
+		ChSparseMatrixBase(){};
+		virtual ~ChSparseMatrixBase(){};
+
+		virtual void Reset(int row, int col){};
+		virtual void SetElement(int insrow, int inscol, double insval){};
+		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+		virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
+		virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
+		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
+		virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
+		virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+		virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+		virtual double GetElement(int row, int col){ return 0; }; // used only for fun
+
+	};
 
 // default predicted density, for allocation, 0<..<1 , default 1/10 th
 #define SPM_DEF_FULLNESS 0.1
@@ -110,26 +131,6 @@ class ChUnilateralData {
 /// come later in future releases.).
 ///
 
-class ChApi ChSparseMatrixBase{
-public:
-	// dummy base class for all Sparse Matrices, must be the FIRST parent of every class that inherits from this class
-protected:
-	ChSparseMatrixBase(){};
-	virtual ~ChSparseMatrixBase(){};
-
-	virtual void Reset(int row, int col){};
-	virtual void SetElement(int insrow, int inscol, double insval){};
-	virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-	virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-	virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
-	virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
-	virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
-	virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
-	virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-	virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-	virtual double GetElement(int row, int col){ return 0; }; // used only for fun
-
-};
 
 class ChApi ChSparseMatrix : public ChSparseMatrixBase, public ChMatrix<double> {
   private:

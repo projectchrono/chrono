@@ -115,9 +115,9 @@ void ChLcpSystemDescriptor::UpdateCountsAndOffsets() {
     freeze_count = true;
 }
 
-void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
-                                                ChSparseMatrix* M,
-                                                ChSparseMatrix* E,
+void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Cq,
+                                                ChSparseMatrixBase* M,
+												ChSparseMatrixBase* E,
                                                 ChMatrix<>* Fvector,
                                                 ChMatrix<>* Bvector,
                                                 ChMatrix<>* Frict,
@@ -324,15 +324,15 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
 
 
 
-void ChLcpSystemDescriptor::BuildMatrices(ChSparseMatrix* Cq,
-                                          ChSparseMatrix* M,
+void ChLcpSystemDescriptor::BuildMatrices(ChSparseMatrixBase* Cq,
+	ChSparseMatrixBase* M,
                                           bool only_bilaterals,
                                           bool skip_contacts_uv) {
     this->ConvertToMatrixForm(Cq, M, 0, 0, 0, 0, only_bilaterals, skip_contacts_uv);
 }
 
-void ChLcpSystemDescriptor::BuildVectors(ChSparseMatrix* f,
-                                         ChSparseMatrix* b,
+void ChLcpSystemDescriptor::BuildVectors(ChMatrix<>* f,
+											ChMatrix<>* b,
                                          bool only_bilaterals,
                                          bool skip_contacts_uv) {
 	this->ConvertToMatrixForm(0, 0, 0, f, b, 0, only_bilaterals, skip_contacts_uv);
