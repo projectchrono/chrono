@@ -113,22 +113,35 @@ class ChUnilateralData {
 class ChApi ChSparseMatrixBase{
 public:
 	// dummy base class for all Sparse Matrices, must be the FIRST parent of every class that inherits from this class
-	int dummy;
-	ChSparseMatrixBase():dummy(0){};
-	~ChSparseMatrixBase(){};
+protected:
+	ChSparseMatrixBase(){};
+	virtual ~ChSparseMatrixBase(){};
 
-	virtual void Reset(int row, int col){};
-	virtual void SetElement(int insrow, int inscol, double insval){};
-	virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-	virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-	virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
-	virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
-	virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
-	virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
-	virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-	virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	virtual void dummyfunction(){};
 
-	virtual double GetElement(int row, int col){ return 0; };
+	//virtual void Reset(int row, int col){};
+	//virtual void SetElement(int insrow, int inscol, double insval){};
+	//virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	//virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	//virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
+	//virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
+	//virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
+	//virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
+	//virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	//virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	//virtual double GetElement(int row, int col){ return 0; }; // used only for fun
+
+	//void Reset(int row, int col){};
+	//void SetElement(int insrow, int inscol, double insval){};
+	//void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	//void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	//void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
+	//void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
+	//void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
+	//void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
+	//void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	//void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
+	//double GetElement(int row, int col){ return 0; }; // used only for fun
 
 };
 

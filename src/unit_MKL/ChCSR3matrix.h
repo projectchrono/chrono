@@ -1,12 +1,11 @@
 #ifndef CHCSR3MATRIX_H
 #define CHCSR3MATRIX_H
 
-#include "ChApiCSR3.h"
 #include <Eigen/Sparse>
 #include <core/ChSpmatrix.h>
 
 
-namespace  chrono{
+namespace chrono{
 
 
 	class ChEigenMatrix : public ChSparseMatrixBase, public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
@@ -102,11 +101,11 @@ namespace  chrono{
 		};
 
 		inline int GetRows(){
-			return (int) this->rows();
+			return static_cast<int>(this->rows());
 		}
 
 		inline int GetColumns(){
-			return (int) this->cols();
+			return static_cast<int>(this->cols());
 		}
 
 		//void makeCompressed(); // if we choose to have Eigen::SparseMatrix as PRIVATE base
@@ -188,8 +187,8 @@ namespace  chrono{
 						reserveSize[el_temp->col]++;
 					};
 					el_temp = el_temp->next;
-				};
-			};
+				}
+			}
 
 			M->CountNonZeros<std::vector<int>>(reserveSize);
 			E->CountNonZeros<std::vector<int>>(reserveSize, M_rows);
@@ -206,8 +205,8 @@ namespace  chrono{
 						SetElement(el_temp->col, M_rows + i, el_temp->val); // sets the Cq'
 					};
 					el_temp = el_temp->next;
-				};
-			};
+				}
+			}
 
 			ChMelement* M_elarray = M->GetElarrayDereferenced();
 			for (int i = 0; i < M_rows; i++){
@@ -216,8 +215,8 @@ namespace  chrono{
 					if (el_temp->val != 0)
 						SetElement(i, el_temp->col, el_temp->val);
 					el_temp = el_temp->next;
-				};
-			};
+				}
+			}
 
 			ChMelement* E_elarray = E->GetElarrayDereferenced();
 			for (int i = 0; i < Cq_rows; i++){
@@ -226,8 +225,8 @@ namespace  chrono{
 					if (el_temp->val != 0)
 						SetElement(i + M_rows, M_rows + el_temp->col, el_temp->val);
 					el_temp = el_temp->next;
-				};
-			};
+				}
+			}
 		} // END LoadFromChSparseMatrix
 
 	}; // END class
