@@ -128,6 +128,8 @@ public:
 	virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){};
 	virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
 
+	virtual double GetElement(int row, int col){ return 0; };
+
 };
 
 class ChApi ChSparseMatrix : public ChSparseMatrixBase, public ChMatrix<double> {

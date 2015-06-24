@@ -13,6 +13,8 @@ namespace  chrono{
 	public:
 		ChEigenMatrix() : Eigen::SparseMatrix<double, Eigen::RowMajor, int>() {};
 		ChEigenMatrix(int rows, int cols) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) {};
+		template<class SizesType>
+		ChEigenMatrix(int rows, int cols, SizesType& reserveSize) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) { reserve(reserveSize); };
 		ChEigenMatrix(int dimension) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(dimension, dimension) {};
 
 		/*template<typename OtherDerived>
@@ -95,7 +97,7 @@ namespace  chrono{
 
 		// GetElement returns 0 also if indexes are out of bound!
 		//***TODO*** see http://eigen.tuxfamily.org/dox/group__TutorialSparse.html for a better way to find elements
-		inline double GetElement(const int row, const int col) const{
+		double GetElement(const int row, const int col) const{
 			return this->coeff(row, col);
 		};
 
