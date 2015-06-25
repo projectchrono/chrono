@@ -1,0 +1,104 @@
+//
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file at the top level of the distribution
+// and at http://projectchrono.org/license-chrono.txt.
+//
+
+#ifndef CHCONTACTABLE_H
+#define CHCONTACTABLE_H
+
+
+
+#include "lcp/ChLcpConstraintTuple.h"
+#include "physics/ChMaterialSurfaceBase.h"
+#include "core/ChVectorDynamic.h"
+
+namespace chrono {
+
+
+/// Interface for objects that generate contacts
+/// One should inherit from ChContactable_1vars, ChContactable_2vars  etc. depending
+/// on the number of ChVariable objects contained in the object (i.e. the variable chuncks
+/// to whom the contact point position depends, also the variables affected by contact force).
+
+class ChContactable  {
+public:
+        /// Tell if the object must be considered in collision detection
+    virtual bool IsContactActive() = 0;
+
+        /// Return the pointer to the surface for the surface. 
+        /// Use dynamic cast to understand if this is a 
+        /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
+    virtual ChSharedPtr<ChMaterialSurfaceBase> GetMaterialSurface() = 0;
+
+        /// Return the pointer to the surface for the surface. 
+        /// Use dynamic cast to understand if this is a 
+        /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
+        /// This function returns a reference to the shared pointer member
+        /// variable and is therefore THREAD SAFE. ///***TODO*** use thread-safe shared ptrs and merge to GetMaterialSurface
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() =0;
+
+        /// Get the absolute speed of point abs_point if attached to the 
+        /// surface.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) = 0;
+
+        /// Apply the force, expressed in absolute reference, applied in pos, to the 
+        /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
+                            const unsigned int off, ChVectorDynamic<>& R, const double c) = 0;
+};
+
+
+// Note that template T1 is the number of DOFs in the referenced ChVariable, 
+// for instance = 6 for rigid bodies, =3 for ChNodeXYZ, etc. 
+
+template <int T1>
+class ChContactable_1vars : public ChContactable,  public ChLcpVariableTupleCarrier_1vars<T1> {
+public:
+    typedef typename ChLcpVariableTupleCarrier_1vars<T1> type_variable_tuple_carrier;
+
+        /// Compute the jacobian(s) part(s) for this contactable item. For example,
+        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(type_constraint_tuple& jacobian_tuple) =0;
+};
+
+
+// Note that template T1 and T2 are the number of DOFs in the referenced ChVariable s, 
+// for instance 3 and 3 for an 'edge' betweeen two xyz nodes. 
+
+template <int T1, int T2>
+class ChContactable_2vars : public ChContactable,  public ChLcpVariableTupleCarrier_2vars<T1,T2> {
+public:
+    typedef typename ChLcpVariableTupleCarrier_2vars<T1, T2> type_variable_tuple_carrier;
+
+        /// Compute the jacobian(s) part(s) for this contactable item. For example,
+        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(type_constraint_tuple& jacobian_tuple) =0;
+};
+
+
+// Note that template T1 and T2 and T3 are the number of DOFs in the referenced ChVariable s, 
+// for instance 3 and 3 and 3 for a 'triangle face' betweeen two xyz nodes. 
+
+template <int T1, int T2, int T3>
+class ChContactable_3vars : public ChContactable,  public ChLcpVariableTupleCarrier_3vars<T1,T2,T3> {
+public:
+    typedef typename ChLcpVariableTupleCarrier_3vars<T1, T2, T3> type_variable_tuple_carrier;
+
+        /// Compute the jacobian(s) part(s) for this contactable item. For example,
+        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(type_constraint_tuple& jacobian_tuple) =0;
+};
+
+
+
+
+}  // END_OF_NAMESPACE____
+
+#endif  

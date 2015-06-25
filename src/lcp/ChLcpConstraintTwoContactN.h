@@ -41,7 +41,7 @@ namespace chrono {
 /// with the CONSTRAINT_UNILATERAL mode.)
 /// Differently from an unilateral constraint, this does not enforce
 /// projection on positive constraint, since it will be up to the 'companion'
-/// ChLcpConstraintTwoFriction objects to call a projection on the cone, by
+/// ChLcpConstraintTwoFrictionT objects to call a projection on the cone, by
 /// modifying all the three components (normal, u, v) at once.
 
 class ChApi ChLcpConstraintTwoContactN : public ChLcpConstraintTwoBodies {

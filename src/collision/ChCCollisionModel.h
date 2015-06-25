@@ -35,6 +35,7 @@
 #include "core/ChApiCE.h"
 
 #include "geometry/ChCTriangleMesh.h"
+#include "physics/ChContactable.h"
 
 namespace chrono {
 
@@ -217,6 +218,12 @@ class ChApi ChCollisionModel {
     // OTHER FUNCTIONS
     //
 
+    /// Gets the pointer to the contactable object 
+    ChContactable* GetContactable() {return mcontactable;}
+
+    /// Sets the pointer to the contactable object
+    void SetContactable(ChContactable* mc) { mcontactable = mc;}
+
     /// Gets the pointer to the client owner ChPhysicsItem.
     /// MUST be implemented by child classes!
     virtual ChPhysicsItem* GetPhysicsItem() = 0;
@@ -353,6 +360,9 @@ class ChApi ChCollisionModel {
     // This is the max.value to be used for fast penetration
     // contact detection.
     float model_safe_margin;
+
+    // Pointer to the contactable object
+    ChContactable* mcontactable;
 
     //ChBody* mbody; //moved to ChModelBulletBody
 };

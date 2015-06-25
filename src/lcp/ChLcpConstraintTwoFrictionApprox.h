@@ -12,21 +12,11 @@
 #ifndef CHLCPCONSTRAINTTWOFRICTIONAPPROX_H
 #define CHLCPCONSTRAINTTWOFRICTIONAPPROX_H
 
-//////////////////////////////////////////////////
-//
-//   ChLcpConstraintTwoFrictionApprox.h
-//
-//  Class used to represent friction constraint
-// between two ChLcpVariable() items.
-// Since
-//
-//
-//   HEADER file for CHRONO HYPEROCTANT LCP solver
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+
+
+///***OBSOLETE***
+
+
 
 #include "ChLcpConstraintTwoFriction.h"
 #include "ChLcpVariables.h"

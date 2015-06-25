@@ -407,6 +407,7 @@ include_directories( ${CH_INCLUDES} )
         physics/ChContactNode.cpp
         physics/ChContactContainerBase.cpp
         physics/ChContactContainer.cpp
+		physics/ChContactContainerDVI.cpp
         physics/ChContactContainerNodes.cpp
         physics/ChProximityContainerBase.cpp
         physics/ChProximityContainerSPH.cpp
@@ -441,6 +442,7 @@ include_directories( ${CH_INCLUDES} )
         physics/ChConstraint.h
         physics/ChContact.h
         physics/ChContactContainer.h
+		physics/ChContactContainerDVI.h
         physics/ChContactContainerBase.h
         physics/ChContactContainerNodes.h
         physics/ChContactNode.h
@@ -527,9 +529,13 @@ include_directories( ${CH_INCLUDES} )
         physics/ChSystemDEM.h
         physics/ChContactContainerDEM.h
         physics/ChContactDEM.h
+		physics/ChContactDVI.h
         physics/ChTensors.h
         physics/ChContinuumMaterial.h
         physics/ChInertiaUtils.h
+		physics/ChContactable.h
+		physics/ChContactTuple.h
+		physics/ChContactDVI.h
         )
     source_group(physics FILES
         ${ChronoEngine_physics_SOURCES}
@@ -886,15 +892,16 @@ include_directories( ${CH_INCLUDES} )
         lcp/ChLcpConstraintThreeGeneric.h
         lcp/ChLcpConstraintTwo.h
         lcp/ChLcpConstraintTwoBodies.h
-        lcp/ChLcpConstraintTwoContact.h
         lcp/ChLcpConstraintTwoContactN.h
-        lcp/ChLcpConstraintTwoFriction.h
-        lcp/ChLcpConstraintTwoFrictionApprox.h
         lcp/ChLcpConstraintTwoFrictionT.h
         lcp/ChLcpConstraintTwoGeneric.h
         lcp/ChLcpConstraintTwoGenericBoxed.h
         lcp/ChLcpConstraintTwoRollingN.h
         lcp/ChLcpConstraintTwoRollingT.h
+		lcp/ChLcpConstraintTuple.h
+		lcp/ChLcpConstraintTwoTuples.h
+		lcp/ChLcpConstraintTwoTuplesContactN.h
+		lcp/ChLcpConstraintTwoTuplesFrictionT.h
         lcp/ChLcpDirectSolver.h
         lcp/ChLcpIterativeJacobi.h
         lcp/ChLcpIterativeMINRES.h

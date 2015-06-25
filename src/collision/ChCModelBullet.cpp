@@ -635,13 +635,13 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
     //***TODO***
 }
 
-
+//***OBSOLETE***
 void ChModelBullet::StreamIN(ChStreamInBinary& mstream) {
     // class version number
     int version = mstream.VersionRead();
 
     // parent class deserialize
-    ChCollisionModel::StreamIN(mstream);
+    //ChCollisionModel::StreamIN(mstream);
 
     // deserialize custom data:
 
@@ -675,12 +675,13 @@ void ChModelBullet::StreamIN(ChStreamInBinary& mstream) {
     delete[] mbuffer;
 }
 
+//***OBSOLETE***
 void ChModelBullet::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
 
     // parent class serialize
-    ChCollisionModel::StreamOUT(mstream);
+    //ChCollisionModel::StreamOUT(mstream);
 
     // serialize custom data:
 
