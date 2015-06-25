@@ -343,15 +343,6 @@ class ChApi ChCollisionModel {
         marchive >> CHNVP(model_safe_margin);
     }
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    //***OBSOLETE***
-    virtual void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    //***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
 
   protected:
     virtual float GetSuggestedFullMargin() { return model_envelope + model_safe_margin; }

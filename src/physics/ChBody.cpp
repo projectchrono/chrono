@@ -1018,7 +1018,7 @@ void ChBody::StreamOUT(ChStreamOutBinary& mstream) {
     mstream << sleep_minspeed;
     mstream << sleep_minwvel;
 
-    this->collision_model->StreamOUT(mstream);  // also  mstream << (*this->collision_model);
+    //this->collision_model->StreamOUT(mstream);  // also  mstream << (*this->collision_model);
 
     this->matsurface->StreamOUT(mstream);
 }
@@ -1117,7 +1117,7 @@ void ChBody::StreamIN(ChStreamInBinary& mstream) {
         GetMaterialSurface()->SetSpinningFriction((float)dfoo);
     }
     if (version >= 6) {
-        this->collision_model->StreamIN(mstream);  // also   mstream >> (*collision_model);
+        //this->collision_model->StreamIN(mstream);  // also   mstream >> (*collision_model);
         this->collision_model->BuildModel();       // because previously removed from ChSystem, if any.
     }
     if (version >= 7) {
