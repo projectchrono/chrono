@@ -519,7 +519,7 @@ class ChLcpConstraintTuple_3vars {
 template <int N1>
 class ChLcpVariableTupleCarrier_1vars {
 public:
-    typedef typename ChLcpConstraintTuple_1vars< ChLcpVariableTupleCarrier_1vars< N1 > > type_constraint_tuple;
+    typedef ChLcpConstraintTuple_1vars< ChLcpVariableTupleCarrier_1vars< N1 > > type_constraint_tuple;
     static const int nvars1 = N1;
     virtual ChLcpVariables* GetVariables() = 0;
 };
@@ -527,7 +527,7 @@ public:
 template <int N1, int N2>
 class ChLcpVariableTupleCarrier_2vars {
 public:
-    typedef typename ChLcpConstraintTuple_3vars< ChLcpVariableTupleCarrier_2vars< N1, N2> > type_constraint_tuple;
+    typedef ChLcpConstraintTuple_3vars< ChLcpVariableTupleCarrier_2vars< N1, N2> > type_constraint_tuple;
     static int  const nvars1 = N1;
     static int  const nvars2 = N2;
     virtual ChLcpVariables* GetVariables1() = 0;
@@ -537,7 +537,7 @@ public:
 template <int N1, int N2, int N3>
 class ChLcpVariableTupleCarrier_3vars {
 public:
-    typedef typename ChLcpConstraintTuple_3vars< ChLcpVariableTupleCarrier_3vars< N1, N2, N3 > > type_constraint_tuple;
+    typedef ChLcpConstraintTuple_3vars< ChLcpVariableTupleCarrier_3vars< N1, N2, N3 > > type_constraint_tuple;
     static int  const nvars1 = N1;
     static int  const nvars2 = N2;
     static int  const nvars3 = N3;
