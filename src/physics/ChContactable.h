@@ -21,6 +21,7 @@
 
 namespace chrono {
 
+class type_constraint_tuple;
 
 /// Interface for objects that generate contacts
 /// One should inherit from ChContactable_1vars, ChContactable_2vars  etc. depending
