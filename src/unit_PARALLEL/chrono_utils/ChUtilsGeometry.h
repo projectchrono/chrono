@@ -99,8 +99,8 @@ inline double CalcCylinderVolume(double radius, double hlen) {
   return 2.0 * CH_C_PI * radius * radius * hlen;
 }
 
-inline double CalcConeVolume(double radius, double hlen) {
-  return CH_C_PI * radius * radius * hlen / 3.0;
+inline double CalcConeVolume(double radius, double len) {
+  return CH_C_PI * radius * radius * len / 3.0;
 }
 
 inline double CalcRoundedCylinderVolume(double radius, double hlen, double srad) {
@@ -167,9 +167,9 @@ inline ChMatrix33<> CalcBoxGyration(const ChVector<>& hdims,
                                     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  J.SetElement(0, 0, (1.0 / 12.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
-  J.SetElement(1, 1, (1.0 / 12.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
-  J.SetElement(2, 2, (1.0 / 12.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
+  J.SetElement(0, 0, (1.0 / 3.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
+  J.SetElement(1, 1, (1.0 / 3.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
+  J.SetElement(2, 2, (1.0 / 3.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
 
   TransformGyration(J, pos, rot);
 
@@ -185,9 +185,9 @@ inline ChMatrix33<> CalcCapsuleGyration(double radius,
   //// TODO: for now, use the gyration of the circumscibed cylinder
   double hlen1 = hlen + radius;
 
-  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + hlen1 * hlen1));
-  J.SetElement(1, 1, (1.0 / 12.0) * (radius * radius));
-  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + hlen1 * hlen1));
+  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen1 * hlen1));
+  J.SetElement(1, 1, (1.0 / 2.0) * (radius * radius));
+  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen1 * hlen1));
 
   TransformGyration(J, pos, rot);
 
@@ -200,9 +200,9 @@ inline ChMatrix33<> CalcCylinderGyration(double radius,
                                          const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + hlen * hlen));
-  J.SetElement(1, 1, (1.0 / 12.0) * (radius * radius));
-  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + hlen * hlen));
+  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen));
+  J.SetElement(1, 1, (1.0 / 2.0) * (radius * radius));
+  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen));
 
   TransformGyration(J, pos, rot);
 
@@ -210,14 +210,14 @@ inline ChMatrix33<> CalcCylinderGyration(double radius,
 }
 
 inline ChMatrix33<> CalcConeGyration(double radius,
-                                     double hlen,
+                                     double len,
                                      const ChVector<>& pos = ChVector<>(0, 0, 0),
                                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  J.SetElement(0, 0, (3.0 / 5.0) * (hlen * hlen) + (3.0 / 20.0) * (radius * radius));
+  J.SetElement(0, 0, (3.0 / 5.0) * (len * len) + (3.0 / 20.0) * (radius * radius));
   J.SetElement(1, 1, (3.0 / 10.0) * (radius * radius));
-  J.SetElement(2, 2, (3.0 / 5.0) * (hlen * hlen) + (3.0 / 20.0) * (radius * radius));
+  J.SetElement(2, 2, (3.0 / 5.0) * (len * len) + (3.0 / 20.0) * (radius * radius));
 
   TransformGyration(J, pos, rot);
 
@@ -232,9 +232,9 @@ inline ChMatrix33<> CalcRoundedCylinderGyration(double radius,
   ChMatrix33<> J;
 
   //// TODO: for now, use the gyration of the skeleton cylinder
-  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + hlen * hlen));
-  J.SetElement(1, 1, (1.0 / 12.0) * (radius * radius));
-  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + hlen * hlen));
+  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen));
+  J.SetElement(1, 1, (1.0 / 2.0) * (radius * radius));
+  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen));
 
   TransformGyration(J, pos, rot);
 
@@ -248,9 +248,9 @@ inline ChMatrix33<> CalcRoundedBoxGyration(const ChVector<>& hdims,
   ChMatrix33<> J;
 
   //// TODO: for now, use the gyration of the skeleton box
-  J.SetElement(0, 0, (1.0 / 12.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
-  J.SetElement(1, 1, (1.0 / 12.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
-  J.SetElement(2, 2, (1.0 / 12.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
+  J.SetElement(0, 0, (1.0 / 3.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
+  J.SetElement(1, 1, (1.0 / 3.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
+  J.SetElement(2, 2, (1.0 / 3.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
 
   TransformGyration(J, pos, rot);
 
