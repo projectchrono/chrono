@@ -43,17 +43,17 @@ namespace chrono {
 		ChSparseMatrixBase(){};
 		virtual ~ChSparseMatrixBase(){};
 
-		virtual void Reset(int row, int col){};
-		virtual void SetElement(int insrow, int inscol, double insval){};
-		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-		virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
-		virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){};
-		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
-		virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){};
-		virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-		virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){};
-		virtual double GetElement(int row, int col){ return 0; }; // used only for fun
+		virtual void Reset(int row, int col){ printf("Called Reset of Base"); };
+		virtual void SetElement(int insrow, int inscol, double insval){ printf("Called SetElement of Base"); };
+		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol){ printf("Called PasteMatrix of Base"); };
+		virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){ printf("Called PasteTranspMatrix of Base"); };
+		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){printf("Called PasteMatrixFloat of Base");};
+		virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){printf("Called PasteTranspMatrixFloat of Base");};
+		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){printf("Called PasteClippedMatrix of Base");};
+		virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){printf("Called PasteSumClippedMatrix of Base");};
+		virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){printf("Called PasteSumMatrix of Base");};
+		virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){ printf("Called PasteSumTranspMatrix of Base"); };
+		virtual double GetElement(int row, int col){ printf("Called GetElement of Base"); return 0; }; // used only for fun
 
 	};
 

@@ -10,46 +10,50 @@ using namespace chrono;
 
 
 int main(){
-	// Initialize matrix (CSR3) and its pointer
-	const unsigned int n = 750;
+	const unsigned int n = 250;
+
+	// Initialize CSR matrix with templatized functions
 	std::vector<int> resizeSize(n);
 	for (unsigned int i = 1; i < n; i++){
 		resizeSize[i] = n;
 	}
 	ChEigenMatrix Zcsr(n, n, resizeSize);
-	
+
+	// Initialize CSR matrix with virtual functions
+	ChEigenMatrixVRT ZcsrVRT(n, n, resizeSize);
+
+
 	// Set Pointer to Member
 	ChLcpMatrixTool MatToolCSR;
 	MatToolCSR.SetMatrixTools(&Zcsr);
 
+
 	// Set Pointer to Base
-	ChSparseMatrixBase* Zcsr_ptr = &Zcsr;
+	ChSparseMatrixBase* ZcsrVRT_ptr = &ZcsrVRT;
 
+	//StartProfile(PROFILE_GLOBALLEVEL, PROFILE_CURRENTID);
 
-	StartProfile(PROFILE_GLOBALLEVEL, PROFILE_CURRENTID);
+	for (int cont = 0; cont < 1000000; cont++){
 
-	for (int cont = 0; cont < 1; cont++){
+		//CommentMarkProfile(75002, "START VirtualCall");
+		for (auto i = 0; i < n; i++)
+			for (auto j = 0; j < n; j++)
+			{
+				ZcsrVRT_ptr->SetElement(i, j, i + j);
+			}
+		//CommentMarkProfile(75003, "STOP VirtualCall");
 
-		CommentMarkProfile(75000, "START PtrToMember");
+		//CommentMarkProfile(75000, "START PtrToMember");
 		for (auto i = 0; i < n; i++)
 			for (auto j = 0; j < n; j++)
 			{
 				(MatToolCSR.output_matrix->*MatToolCSR.MatrixFunctions.SetElementPtr)(i, j, i + j);
 			}
-		CommentMarkProfile(75001, "STOP PtrToMember");
+		//CommentMarkProfile(75001, "STOP PtrToMember");
 
-		CommentMarkProfile(75002, "START VirtualCall");
-		for (auto i = 0; i < n; i++)
-			for (auto j = 0; j < n; j++)
-			{
-				Zcsr_ptr->SetElement(i, j, i + j);
-			}
-		CommentMarkProfile(75003, "STOP VirtualCall");
-
-		//cout << cont << endl;
 	}
 
-	StopProfile(PROFILE_GLOBALLEVEL, PROFILE_CURRENTID);
+	//StopProfile(PROFILE_GLOBALLEVEL, PROFILE_CURRENTID);
 
 	//////////////////////////////////////////////////////////////////
 
