@@ -73,10 +73,10 @@ class ChLcpConstraintTuple_1vars {
 
     void SetVariables(T& m_tuple_carrier) {
 
-        if (!m_tuple_carrier.GetVariables()) {
+        if (!m_tuple_carrier.GetVariables1()) {
             throw ChException("ERROR. SetVariables() getting null pointer. \n");
         }
-        variables = m_tuple_carrier.GetVariables();
+        variables = m_tuple_carrier.GetVariables1();
     }
 
     virtual void Update_auxiliary(double& g_i){
@@ -521,7 +521,7 @@ class ChLcpVariableTupleCarrier_1vars {
 public:
     typedef ChLcpConstraintTuple_1vars< ChLcpVariableTupleCarrier_1vars< N1 > > type_constraint_tuple;
     static const int nvars1 = N1;
-    virtual ChLcpVariables* GetVariables() = 0;
+    virtual ChLcpVariables* GetVariables1() = 0;
 };
 
 template <int N1, int N2>

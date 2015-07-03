@@ -21,6 +21,7 @@
 #include "physics/ChMarker.h"
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
+#include "physics/ChContactable.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 #include "lcp/ChLcpConstraint.h"
 
@@ -59,7 +60,7 @@ typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
 /// be associated to the body, for collision detection.
 ///
 
-class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame {
+class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6> {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChBody, ChPhysicsItem);
 
@@ -372,7 +373,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame {
     /// Access the (generic) material surface properties associated with this
     /// body.  This function returns a reference to the shared pointer member
     /// variable and is therefore THREAD SAFE.
-    ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
+   // ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; } // Moved below
 
     /// Access the DVI material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
@@ -616,6 +617,41 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame {
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..)
     virtual void Update(bool update_assets = true);
+
+    //
+    // INTERFACE TO ChContactable
+    //
+
+
+    virtual ChLcpVariables* GetVariables1() {return &this->variables; }
+
+        /// Tell if the object must be considered in collision detection
+    virtual bool IsContactActive() { return this->IsActive();}
+
+        /// Return the pointer to the surface for the surface. 
+        /// Use dynamic cast to understand if this is a 
+        /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
+        /// This function returns a reference to the shared pointer member
+        /// variable and is therefore THREAD SAFE. ///***TODO*** use thread-safe shared ptrs and merge to GetMaterialSurface
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
+
+        /// Get the absolute speed of point abs_point if attached to the 
+        /// surface.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point);
+
+        /// Apply the force, expressed in absolute reference, applied in pos, to the 
+        /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
+                            const unsigned int off, ChVectorDynamic<>& R, const double c);
+
+        /// Compute the jacobian(s) part(s) for this contactable item. For example,
+        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
+                            type_constraint_tuple& jacobian_tuple_N,
+                            type_constraint_tuple& jacobian_tuple_U,
+                            type_constraint_tuple& jacobian_tuple_V,
+                            bool second);
+
 
     //
     // SERIALIZATION

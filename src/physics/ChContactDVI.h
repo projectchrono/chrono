@@ -95,8 +95,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         ChContactTuple< Ta, Tb >::Reset(objA, objB, cinfo);
 
 
-        Nx.Get_tuple_a().SetVariables(*objA);               
-         Nx.Get_tuple_b().SetVariables(*objB);
+        Nx.Get_tuple_a().SetVariables(*objA);               Nx.Get_tuple_b().SetVariables(*objB);
         Tu.Get_tuple_a().SetVariables(*objA);               Tu.Get_tuple_b().SetVariables(*objB);
         Tv.Get_tuple_a().SetVariables(*objA);               Tv.Get_tuple_b().SetVariables(*objB);
 
@@ -137,10 +136,20 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         // COMPUTE JACOBIANS
 
         // delegate objA to compute its half of jacobian
-        this->objA->ComputeJacobianForContactPart(Nx.Get_tuple_a());
+        this->objA->ComputeJacobianForContactPart(this->p1, 
+                                        this->contact_plane, 
+                                        Nx.Get_tuple_a(),
+                                        Tu.Get_tuple_a(),
+                                        Tv.Get_tuple_a(),
+                                        false);
 
         // delegate objB to compute its half of jacobian
-        this->objB->ComputeJacobianForContactPart(Nx.Get_tuple_b());
+        this->objB->ComputeJacobianForContactPart(this->p2, 
+                                        this->contact_plane, 
+                                        Nx.Get_tuple_b(),
+                                        Tu.Get_tuple_b(),
+                                        Tv.Get_tuple_b(),
+                                        true);
         
         react_force = VNULL;
     }

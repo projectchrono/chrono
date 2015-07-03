@@ -55,12 +55,6 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     std::list<ChContactDVI_6_3*>::iterator lastcontact_6_3;
     std::list<ChContactDVI_3_3*>::iterator lastcontact_3_3;
 
-    //std::list<ChContactRolling*> contactlist_roll;
-
-    //int n_added_roll;
-
-    //std::list<ChContactRolling*>::iterator lastcontact_roll;
-
   public:
     //
     // CONSTRUCTORS
