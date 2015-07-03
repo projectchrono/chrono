@@ -215,7 +215,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
                 Vector Vrel_w = V2_w - V1_w;
                 Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
 
-                double h = container->GetSystem()->GetStep();// = 1.0 / c;  // not all steppers have c = 1/h
+                double h = this->container->GetSystem()->GetStep();// = 1.0 / c;  // not all steppers have c = 1/h
 
                 double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
                 if (neg_rebounce_speed < - this->container->GetSystem()->GetMinBounceSpeed())
