@@ -59,7 +59,7 @@ template <int T1>
 class ChContactable_1vars : public ChContactable,  public ChLcpVariableTupleCarrier_1vars<T1> {
 public:
     typedef ChLcpVariableTupleCarrier_1vars<T1> type_variable_tuple_carrier;
-    typedef ChLcpVariableTupleCarrier_1vars<T1>::type_constraint_tuple type_constraint_tuple;
+    typedef typename ChLcpVariableTupleCarrier_1vars<T1>::type_constraint_tuple type_constraint_tuple;
 
         /// Compute the jacobian(s) part(s) for this contactable item. For example,
         /// if the contactable is a ChBody, this should update the three corresponding 1x6 jacobian rows.
@@ -80,7 +80,7 @@ template <int T1, int T2>
 class ChContactable_2vars : public ChContactable,  public ChLcpVariableTupleCarrier_2vars<T1,T2> {
 public:
     typedef ChLcpVariableTupleCarrier_2vars<T1, T2> type_variable_tuple_carrier;
-    typedef ChLcpVariableTupleCarrier_2vars<T1, T2>::type_constraint_tuple type_constraint_tuple;
+    typedef typename ChLcpVariableTupleCarrier_2vars<T1, T2>::type_constraint_tuple type_constraint_tuple;
 
         /// Compute the jacobian(s) part(s) for this contactable item. For example,
         /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
@@ -101,7 +101,7 @@ template <int T1, int T2, int T3>
 class ChContactable_3vars : public ChContactable,  public ChLcpVariableTupleCarrier_3vars<T1,T2,T3> {
 public:
     typedef ChLcpVariableTupleCarrier_3vars<T1, T2, T3> type_variable_tuple_carrier;
-    typedef ChLcpVariableTupleCarrier_3vars<T1, T2, T3>::type_constraint_tuple type_constraint_tuple;
+    typedef typename ChLcpVariableTupleCarrier_3vars<T1, T2, T3>::type_constraint_tuple type_constraint_tuple;
 
         /// Compute the jacobian(s) part(s) for this contactable item. For example,
         /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
