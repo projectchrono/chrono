@@ -62,7 +62,7 @@ private:
 
     /// Sets the position and orientation of the collision
     /// model as the current position of the corresponding ChBody
-    virtual void SyncPosition();
+  //  virtual void SyncPosition();
 
     /// Gets the pointer to the client owner ChPhysicsItem.
     virtual ChPhysicsItem* GetPhysicsItem() { return (ChPhysicsItem*)GetBody(); };

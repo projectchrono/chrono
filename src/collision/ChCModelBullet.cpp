@@ -613,6 +613,20 @@ void __recurse_add_newcollshapes(btCollisionShape* ashape, std::vector<smartptrs
 }
 
 
+
+void ChModelBullet::SyncPosition()
+{
+    ChCoordsys<> mcsys = this->mcontactable->GetCsysForCollisionModel();
+
+    bt_collision_object->getWorldTransform().setOrigin(btVector3(
+        (btScalar)mcsys.pos.x, (btScalar)mcsys.pos.y, (btScalar)mcsys.pos.z));
+    const ChMatrix33<>& rA(mcsys.rot);
+    btMatrix3x3 basisA((btScalar)rA(0, 0), (btScalar)rA(0, 1), (btScalar)rA(0, 2), (btScalar)rA(1, 0),
+                       (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
+                       (btScalar)rA(2, 2));
+    bt_collision_object->getWorldTransform().setBasis(basisA);
+}
+
 void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
 {
     // version number

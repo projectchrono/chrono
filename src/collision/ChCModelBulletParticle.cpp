@@ -49,6 +49,7 @@ void ChModelBulletParticle::SetParticle(ChIndexedParticles* mpa, unsigned int id
     this->particle_id = id;
 }
 
+/* ***OBSOLETE***
 void ChModelBulletParticle::SyncPosition() {
     assert(particles);
 
@@ -65,6 +66,7 @@ void ChModelBulletParticle::SyncPosition() {
                        (btScalar)rA(2, 2));
     bt_collision_object->getWorldTransform().setBasis(basisA);
 }
+*/
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

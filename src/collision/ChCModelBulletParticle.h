@@ -61,7 +61,7 @@ class ChApi ChModelBulletParticle : public ChModelBullet {
 
     /// Sets the position and orientation of the collision
     /// model as the current position of the corresponding item in ChParticles
-    virtual void SyncPosition();
+ //   virtual void SyncPosition();
 
     /// Gets the pointer to the client owner ChPhysicsItem.
     virtual ChPhysicsItem* GetPhysicsItem() { return (ChPhysicsItem*)GetParticles(); };

@@ -42,6 +42,28 @@ ChNodeXYZ& ChNodeXYZ::operator=(const ChNodeXYZ& other) {
     return *this;
 }
 
+void ChNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
+                            const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    R.PasteSumVector(F * c, off + 0, 0);
+}
+
+void ChNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
+            type_constraint_tuple& jacobian_tuple_N, 
+            type_constraint_tuple& jacobian_tuple_U, 
+            type_constraint_tuple& jacobian_tuple_V, 
+            bool second) {
+    ChMatrix33<> Jx1;
+
+    Jx1.CopyFromMatrixT(contact_plane);
+    if (!second)
+        Jx1.MatrNeg();
+
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
+}
+
+
 }  // END_OF_NAMESPACE____
 
 /////////////////////

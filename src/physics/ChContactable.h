@@ -35,7 +35,7 @@ public:
         /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() = 0;
 
-        /// Return the pointer to the surface for the surface. 
+        /// Return the pointer to the surface material. 
         /// Use dynamic cast to understand if this is a 
         /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
         /// This function returns a reference to the shared pointer member
@@ -45,6 +45,10 @@ public:
         /// Get the absolute speed of point abs_point if attached to the 
         /// surface.
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) = 0;
+
+        /// ChCollisionModel might call this to get the position of the 
+        /// contact model (when rigid) and sync it
+     virtual ChCoordsys<> GetCsysForCollisionModel() =0;
 
         /// Apply the force, expressed in absolute reference, applied in pos, to the 
         /// coordinates of the variables. Force for example could come from a penalty model.

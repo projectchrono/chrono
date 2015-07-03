@@ -34,18 +34,20 @@
 #include "collision/ChCCollisionModel.h"
 #include "lcp/ChLcpVariablesBodySharedMass.h"
 #include "physics/ChMaterialSurface.h"
+#include "physics/ChContactable.h"
 
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
 
 class ChSystem;
+class ChParticlesClones;
 
 /// Class for a single particle clone in the ChParticlesClones cluster
 /// (it does not define mass, inertia and shape becuase those
 /// data are _shared_ between them)
 
-class ChApi ChAparticle : public ChParticleBase {
+class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
   public:
     ChAparticle();
     ~ChAparticle();
@@ -56,6 +58,51 @@ class ChApi ChAparticle : public ChParticleBase {
     // Access the 'LCP variables' of the node
     virtual ChLcpVariables& Variables() { return variables; }
 
+    // Get the container
+    ChParticlesClones* GetContainer() const {return container;}
+    // Set the container
+    void SetContainer(ChParticlesClones* mc) { container = mc;}
+
+    //
+    // INTERFACE TO ChContactable
+    //
+
+        /// Access variables
+    virtual ChLcpVariables* GetVariables1() {return &Variables(); }
+
+        /// Tell if the object must be considered in collision detection
+    virtual bool IsContactActive() { return true; }
+
+     /// Return the pointer to the contact surface material. 
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+
+        /// Get the absolute speed of point abs_point if attached to the 
+        /// surface. Easy in this case because there are no roations..
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point);
+
+        /// ChCollisionModel might call this to get the position of the 
+        /// contact model (when rigid) and sync it
+    virtual ChCoordsys<> GetCsysForCollisionModel() {return this->coord;}
+
+        /// Apply the force, expressed in absolute reference, applied in pos, to the 
+        /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
+                            const unsigned int off, ChVectorDynamic<>& R, const double c);
+
+        /// Compute the jacobian(s) part(s) for this contactable item. For example,
+        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
+                            type_constraint_tuple& jacobian_tuple_N,
+                            type_constraint_tuple& jacobian_tuple_U,
+                            type_constraint_tuple& jacobian_tuple_V,
+                            bool second);
+
+
+    //
+    // DATA
+    //
+
+    ChParticlesClones* container;
     ChLcpVariablesBodySharedMass variables;
     collision::ChCollisionModel* collision_model;
     ChVector<> UserForce;
@@ -95,12 +142,12 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     // Sample collision model
     collision::ChCollisionModel* particle_collision_model;
 
+    // data for surface contact and impact (can be shared):
+    ChSharedPtr<ChMaterialSurfaceBase> matsurface;
+
     bool do_collide;
     bool do_limit_speed;
     bool do_sleep;
-
-    // data for surface contact and impact (can be shared):
-    ChSharedPtr<ChMaterialSurface> matsurface;
 
     float max_speed;  // limit on linear speed (useful for VR & videagames)
     float max_wvel;   // limit on angular vel. (useful for VR & videagames)
@@ -167,6 +214,13 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// NOTE! Define the sample collision shape using GetCollisionModel()->...
     /// before adding particles!
     void AddParticle(ChCoordsys<double> initial_state = CSYSNORM);
+
+
+    /// Set the material surface for contacts
+    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+
+    /// Set the material surface for contacts 
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
 
     //
     // STATE FUNCTIONS
@@ -238,38 +292,6 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// function so that all collision models of particles will reference the sample coll.model.
     void UpdateParticleCollisionModels();
 
-    /// Access the material surface properties, referenced by this
-    /// particle cluster. The material surface contains properties such as friction, etc.
-    /// The ChMaterialSurface can be a shared object! (by default, each cluster creates its
-    /// own as soon as instanced, but later the material object can be replaced).
-    ChSharedPtr<ChMaterialSurface>& GetMaterialSurface() { return this->matsurface; }
-    /// Set the material surface properties by passing a ChMaterialSurface object.
-    /// Thank to smart pointers, the one that was previously used is replaced and,
-    /// if needed, it is automatically dereferenced and deleted.
-    /// The ChMaterialSurface can be a shared object! (by default, each cluster creates its
-    /// own as soon as instanced, but later the material object can be replaced).
-    void SetMaterialSurface(ChSharedPtr<ChMaterialSurface>& mnewsurf) { this->matsurface = mnewsurf; }
-
-    /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float GetImpactC() { return this->matsurface->GetRestitution(); }
-    void SetImpactC(float mval) { this->matsurface->SetRestitution(mval); }
-    /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float GetImpactCt() { return 0; }
-    void SetImpactCt(float mval) {}
-    /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float GetKfriction() { return this->matsurface->GetKfriction(); }
-    void SetKfriction(float mval) { this->matsurface->SetKfriction(mval); }
-    /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float GetSfriction() { return this->matsurface->GetSfriction(); }
-    void SetSfriction(float mval) { this->matsurface->SetSfriction(mval); }
-    /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    void SetFriction(float mval) { this->matsurface->SetFriction(mval); }
-    /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float GetRollingFriction() { return this->matsurface->GetRollingFriction(); }
-    void SetRollingFriction(float mval) { this->matsurface->SetRollingFriction(mval); }
-    /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
-    float GetSpinningFriction() { return this->matsurface->GetSpinningFriction(); }
-    void SetSpinningFriction(float mval) { this->matsurface->SetSpinningFriction(mval); }
 
     /// Mass of each particle. Must be positive.
     void SetMass(double newmass) {

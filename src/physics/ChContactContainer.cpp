@@ -141,7 +141,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact) 
         frameA = &(mmpaA->GetParticles()->GetParticle(mmpaA->GetParticleId()));
         varA = (ChLcpVariablesBody*)&(mmpaA->GetParticles()->GetParticle(mmpaA->GetParticleId())).Variables();
         if (ChParticlesClones* mpclone = dynamic_cast<ChParticlesClones*>(mmpaA->GetParticles())) {
-            mmatA = mpclone->GetMaterialSurface();
+            //mmatA = mpclone->GetMaterialSurface();***OBSOLETE***
         }
     }
 
@@ -155,7 +155,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact) 
         frameB = &(mmpaB->GetParticles()->GetParticle(mmpaB->GetParticleId()));
         varB = (ChLcpVariablesBody*)&(mmpaB->GetParticles()->GetParticle(mmpaB->GetParticleId())).Variables();
         if (ChParticlesClones* mpclone = dynamic_cast<ChParticlesClones*>(mmpaB->GetParticles())) {
-            mmatB = mpclone->GetMaterialSurface();
+            //mmatB = mpclone->GetMaterialSurface(); ***OBSOLETE***
         }
     }
 

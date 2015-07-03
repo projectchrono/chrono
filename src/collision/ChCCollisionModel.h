@@ -234,8 +234,8 @@ class ChApi ChCollisionModel {
 
     /// Sets the position and orientation of the collision
     /// model as the rigid body current position.
-    /// MUST be implemented by child classes!
-    virtual void SyncPosition() = 0;
+    /// By default it uses GetCsysForCollisionModel 
+    virtual void SyncPosition() =0;
 
     /// By default, all collsion objects belong to family n.0,
     /// but you can set family in range 0..15. This is used when

@@ -242,6 +242,10 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// should be invoked before calling this.
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const;
 
+    /// Sets the position and orientation of the collision
+    /// model as the current position of the corresponding ChContactable
+    virtual void SyncPosition();
+
     //
     // SERIALIZATION
     //

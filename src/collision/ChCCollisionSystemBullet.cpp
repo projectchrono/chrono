@@ -378,5 +378,6 @@ void ChCollisionSystemBullet::SetContactBreakingThreshold(double threshold) {
     gContactBreakingThreshold = (btScalar)threshold;
 }
 
+
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

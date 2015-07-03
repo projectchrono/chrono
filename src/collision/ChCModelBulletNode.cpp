@@ -51,6 +51,8 @@ void ChModelBulletNode::SetNode(ChIndexedNodes* mpa, unsigned int id) {
     this->node_id = id;
 }
 
+
+/* ***OBSOLETE***
 void ChModelBulletNode::SyncPosition() {
     assert(nodes);
 
@@ -69,6 +71,7 @@ void ChModelBulletNode::SyncPosition() {
                        (btScalar)0, (btScalar)1);  //**rotation does not matter**
     bt_collision_object->getWorldTransform().setBasis(basisA);
 }
+*/
 
 bool ChModelBulletNode::SetSphereRadius(double coll_radius, double out_envelope) {
     if (this->shapes.size() != 1)

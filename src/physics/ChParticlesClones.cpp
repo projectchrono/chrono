@@ -45,6 +45,8 @@ ChClassRegister<ChParticlesClones> a_registration_ChParticlesClones;
 
 ChAparticle::ChAparticle() {
     this->collision_model = new ChModelBulletParticle;
+    this->collision_model->SetContactable(this);
+    this->container = 0;
     this->UserForce = VNULL;
     this->UserTorque = VNULL;
 }
@@ -56,9 +58,11 @@ ChAparticle::~ChAparticle() {
 ChAparticle::ChAparticle(const ChAparticle& other) : ChParticleBase(other) {
     this->collision_model = new ChModelBulletParticle;
     this->collision_model->AddCopyOfAnotherModel(other.collision_model);
+    this->collision_model->SetContactable(this);
     ((ChModelBulletParticle*)collision_model)
         ->SetParticle(((ChModelBulletParticle*)other.collision_model)->GetParticles(),
                       ((ChModelBulletParticle*)other.collision_model)->GetParticleId());
+    this->container = other.container;
     this->UserForce = other.UserForce;
     this->UserTorque = other.UserTorque;
     this->variables = other.variables;
@@ -73,15 +77,68 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
 
     this->collision_model->ClearModel();
     this->collision_model->AddCopyOfAnotherModel(other.collision_model);
+    this->collision_model->SetContactable(this);
     ((ChModelBulletParticle*)collision_model)
         ->SetParticle(((ChModelBulletParticle*)other.collision_model)->GetParticles(),
                       ((ChModelBulletParticle*)other.collision_model)->GetParticleId());
+    this->container = other.container;
     this->UserForce = other.UserForce;
     this->UserTorque = other.UserTorque;
     this->variables = other.variables;
 
     return *this;
 }
+
+ChSharedPtr<ChMaterialSurfaceBase>& ChAparticle::GetMaterialSurfaceBase()
+{
+    return container->GetMaterialSurfaceBase();
+}
+
+
+ChVector<> ChAparticle::GetContactPointSpeed(const ChVector<>& abs_point) {
+    ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
+    return this->PointSpeedLocalToParent(m_p1_loc);
+}
+
+
+
+void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
+                            const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
+    ChVector<> force1_loc = this->TransformDirectionParentToLocal(F);
+    ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
+    R.PasteSumVector(F * c, off + 0, 0);
+    R.PasteSumVector(torque1_loc * c, off + 3, 0);
+}
+
+void ChAparticle::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
+            type_constraint_tuple& jacobian_tuple_N, 
+            type_constraint_tuple& jacobian_tuple_U, 
+            type_constraint_tuple& jacobian_tuple_V, 
+            bool second) {
+    ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
+    ChMatrix33<> Jx1, Jr1;
+    ChMatrix33<> Ps1, Jtemp;
+    Ps1.Set_X_matrix(m_p1_loc);
+
+    Jx1.CopyFromMatrixT(contact_plane);
+    if (!second)
+        Jx1.MatrNeg();
+
+    Jtemp.MatrMultiply(this->GetA(), Ps1);
+    Jr1.MatrTMultiply(contact_plane, Jtemp);
+    if (second)
+        Jr1.MatrNeg();
+
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jr1, 0, 0, 1, 3, 0, 3);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jr1, 1, 0, 1, 3, 0, 3);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
+}
+
+
 
 //////////////////////////////////////
 //////////////////////////////////////
@@ -103,6 +160,7 @@ ChParticlesClones::ChParticlesClones() {
     this->particles.clear();
     // this->ResizeNparticles(num_particles); // caused memory corruption.. why?
 
+    // default DVI material
     matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
 
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
@@ -165,6 +223,8 @@ void ChParticlesClones::ResizeNparticles(int newsize) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         this->particles[j] = new ChAparticle;
 
+        this->particles[j]->SetContainer(this);
+
         this->particles[j]->variables.SetSharedMass(&this->particle_mass);
         this->particles[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
         ((ChModelBulletParticle*)this->particles[j]->collision_model)->SetParticle(this, j);
@@ -179,6 +239,8 @@ void ChParticlesClones::ResizeNparticles(int newsize) {
 void ChParticlesClones::AddParticle(ChCoordsys<double> initial_state) {
     ChAparticle* newp = new ChAparticle;
     newp->SetCoord(initial_state);
+
+    newp->SetContainer(this);
 
     this->particles.push_back(newp);
 

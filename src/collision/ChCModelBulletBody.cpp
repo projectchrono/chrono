@@ -43,6 +43,8 @@ void ChModelBulletBody::SetPhysicsItem(ChPhysicsItem* mitem) {
         else throw ChException("ERROR. ChModelBulletBody::SetPhysicsItem() must get an item of sub-class ChBody type.\n");
 };
 
+
+/* ***OBSOLETE***
 void ChModelBulletBody::SyncPosition() {
     ChBody* bpointer = GetBody();
     assert(bpointer);
@@ -61,6 +63,7 @@ void ChModelBulletBody::SyncPosition() {
                        (btScalar)rA(2, 2));
     bt_collision_object->getWorldTransform().setBasis(basisA);
 }
+*/
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

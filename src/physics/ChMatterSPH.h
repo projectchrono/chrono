@@ -43,6 +43,7 @@ namespace chrono {
 // Forward references (for parent hierarchy pointer)
 
 class ChSystem;
+class ChMatterSPH;
 
 /// Class for a single node in the SPH cluster
 /// (it does not define mass, inertia and shape becuase those
@@ -76,9 +77,19 @@ class ChApi ChNodeSPH : public ChNodeXYZ {
 	// Access the 'LCP variables' of the node
 	ChLcpVariablesNode& Variables() {return variables;}
 
+    // Get the SPH container
+    ChMatterSPH* GetContainer() const {return container;}
+    // Set the SPH container
+    void SetContainer(ChMatterSPH* mc) { container = mc;}
+
+    /// Return the pointer to the surface material. 
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+
     //
     // DATA
     //
+
+    ChMatterSPH* container;
 
     ChLcpVariablesNode variables;
 
@@ -157,6 +168,9 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
 
     ChContinuumSPH material;
 
+    // data for surface contact and impact (can be shared):
+    ChSharedPtr<ChMaterialSurfaceBase> matsurface;
+
     bool do_collide;
 
   public:
@@ -211,6 +225,12 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     /// Add a new node to the particle cluster, passing a
     /// vector as initial position.
     void AddNode(ChVector<double> initial_state);
+
+    /// Set the material surface for 'boundary contact'
+    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+
+    /// Set the material surface for 'boundary contact' 
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
 
     //
     // STATE FUNCTIONS

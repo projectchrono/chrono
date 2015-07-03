@@ -31,6 +31,7 @@
 #include "physics/ChGlobal.h"
 #include "physics/ChBodyAuxRef.h"
 #include "physics/ChContactContainer.h"
+#include "physics/ChContactContainerDVI.h"
 #include "physics/ChProximityContainerBase.h"
 
 #include "lcp/ChLcpSystemDescriptor.h"
@@ -255,7 +256,9 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     this->contact_container = 0;
     // default contact container
     if (init_sys) {
-        this->contact_container = new ChContactContainer();
+        //this->contact_container = new ChContactContainer(); ***OBSOLETE***
+        this->contact_container = new ChContactContainerDVI();
+        this->contact_container->SetSystem(this);
     }
     collision_system = 0;
     // default GPU collision engine
@@ -451,7 +454,9 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval) {
     LCP_descriptor = new ChLcpSystemDescriptor;
     LCP_descriptor->SetNumThreads(parallel_thread_number);
 
-    contact_container = new ChContactContainer;
+    //contact_container = new ChContactContainer;***OBSOLETE***
+    this->contact_container = new ChContactContainerDVI();
+    this->contact_container->SetSystem(this);
 
     switch (mval) {
         case LCP_ITERATIVE_SOR:
@@ -614,6 +619,7 @@ void ChSystem::ChangeContactContainer(ChContactContainerBase* newcontainer) {
     if (this->contact_container)
         delete (this->contact_container);
     this->contact_container = newcontainer;
+    this->contact_container->SetSystem(this);
 }
 
 void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
