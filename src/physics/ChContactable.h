@@ -21,6 +21,7 @@
 
 namespace chrono {
 
+/// Forward definition (not needed in MSVC!?)
 class type_constraint_tuple;
 
 /// Interface for objects that generate contacts
@@ -32,11 +33,6 @@ class ChContactable  {
 public:
         /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() = 0;
-
-        /// Return the pointer to the surface for the surface. 
-        /// Use dynamic cast to understand if this is a 
-        /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
-    virtual ChSharedPtr<ChMaterialSurfaceBase> GetMaterialSurface() = 0;
 
         /// Return the pointer to the surface for the surface. 
         /// Use dynamic cast to understand if this is a 
@@ -63,10 +59,17 @@ template <int T1>
 class ChContactable_1vars : public ChContactable,  public ChLcpVariableTupleCarrier_1vars<T1> {
 public:
     typedef ChLcpVariableTupleCarrier_1vars<T1> type_variable_tuple_carrier;
+    typedef ChLcpVariableTupleCarrier_1vars<T1>::type_constraint_tuple type_constraint_tuple;
 
         /// Compute the jacobian(s) part(s) for this contactable item. For example,
-        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(type_constraint_tuple& jacobian_tuple) =0;
+        /// if the contactable is a ChBody, this should update the three corresponding 1x6 jacobian rows.
+    virtual void ComputeJacobianForContactPart(
+                            const ChVector<>& abs_point, 
+                            ChMatrix33<>& contact_plane, 
+                            type_constraint_tuple& jacobian_tuple_N,
+                            type_constraint_tuple& jacobian_tuple_U,
+                            type_constraint_tuple& jacobian_tuple_V,
+                            bool second) =0;
 };
 
 
@@ -77,10 +80,17 @@ template <int T1, int T2>
 class ChContactable_2vars : public ChContactable,  public ChLcpVariableTupleCarrier_2vars<T1,T2> {
 public:
     typedef ChLcpVariableTupleCarrier_2vars<T1, T2> type_variable_tuple_carrier;
+    typedef ChLcpVariableTupleCarrier_2vars<T1, T2>::type_constraint_tuple type_constraint_tuple;
 
         /// Compute the jacobian(s) part(s) for this contactable item. For example,
         /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(type_constraint_tuple& jacobian_tuple) =0;
+    virtual void ComputeJacobianForContactPart(
+                            const ChVector<>& abs_point, 
+                            ChMatrix33<>& contact_plane, 
+                            type_constraint_tuple& jacobian_tuple_N,
+                            type_constraint_tuple& jacobian_tuple_U,
+                            type_constraint_tuple& jacobian_tuple_V,
+                            bool second) =0;
 };
 
 
@@ -91,10 +101,17 @@ template <int T1, int T2, int T3>
 class ChContactable_3vars : public ChContactable,  public ChLcpVariableTupleCarrier_3vars<T1,T2,T3> {
 public:
     typedef ChLcpVariableTupleCarrier_3vars<T1, T2, T3> type_variable_tuple_carrier;
+    typedef ChLcpVariableTupleCarrier_3vars<T1, T2, T3>::type_constraint_tuple type_constraint_tuple;
 
         /// Compute the jacobian(s) part(s) for this contactable item. For example,
         /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(type_constraint_tuple& jacobian_tuple) =0;
+    virtual void ComputeJacobianForContactPart(
+                            const ChVector<>& abs_point, 
+                            ChMatrix33<>& contact_plane, 
+                            type_constraint_tuple& jacobian_tuple_N, 
+                            type_constraint_tuple& jacobian_tuple_U, 
+                            type_constraint_tuple& jacobian_tuple_V, 
+                            bool second) =0;
 };
 
 
