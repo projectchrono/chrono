@@ -34,27 +34,9 @@
 #include "core/ChShared.h"
 #include <typeinfo>
 #include "lcp/ChLcpConstraintTuple.h"
-#include "physics/ChContactable.h" //***TEST
-#include "physics/ChContactDVI.h" //***TEST
-#include "physics/ChBody.h" //***TEST
+
 
 using namespace chrono;
-
-class ChBody_test : public ChBody, public ChContactable_1vars<6> {
-};
-
-
-
-template <int N1>
-class ChContactBodyBody : public ChContactDVI<ChBody_test, ChBody_test>{
-
-  protected:
-    /// The [Cq_a] jacobian of the constraint
-    ChMatrixNM<double, 1, N1> Cq_a;
-    /// The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
-    ChMatrixNM<double, N1, 1> Eq_a;
-
-};
 
 
 /// A bit of forewords on 'enums'. 
@@ -482,7 +464,5 @@ int main(int argc, char* argv[]) {
     }
 
 
-//muu<meu> tmpvar;
-//tmpvar.mfunct();
     return 0;
 }

@@ -18,6 +18,7 @@
 #include "lcp/ChLcpConstraintTuple.h"
 #include "physics/ChMaterialSurfaceBase.h"
 #include "core/ChVectorDynamic.h"
+#include "core/ChMatrix33.h"
 
 namespace chrono {
 
