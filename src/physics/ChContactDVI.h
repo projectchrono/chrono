@@ -32,6 +32,10 @@ namespace chrono {
 template <class Ta, class Tb>  
 class ChContactDVI : public ChContactTuple<Ta, Tb> {
 
+  public: 
+    typedef typename ChContactTuple<Ta, Tb>::typecarr_a typecarr_a;
+    typedef typename ChContactTuple<Ta, Tb>::typecarr_b typecarr_b;
+
   protected:
     //
     // DATA

@@ -54,7 +54,7 @@ class ChApi ChLcpConstraintTwoTuplesContactN : public ChLcpConstraintTwoTuples<T
     //
     /// Default constructor
     ChLcpConstraintTwoTuplesContactN() {
-        mode = CONSTRAINT_FRIC;
+        this->mode = CONSTRAINT_FRIC;
         friction = 0.0;
         cohesion = 0.0;
         constraint_U = constraint_V = 0;

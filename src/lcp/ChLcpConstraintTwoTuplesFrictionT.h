@@ -36,7 +36,7 @@ class ChApi ChLcpConstraintTwoTuplesFrictionT : public ChLcpConstraintTwoTuples<
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintTwoTuplesFrictionT() { mode = CONSTRAINT_FRIC; };
+    ChLcpConstraintTwoTuplesFrictionT() { this->mode = CONSTRAINT_FRIC; };
 
 
     /// Copy constructor
