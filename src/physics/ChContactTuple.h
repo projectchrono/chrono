@@ -64,19 +64,19 @@ class ChContactTuple {
 
     ChContactTuple(
               ChContactContainerBase* mcontainer,
-              Ta* objA,  ///< ChContactable object A
-              Tb* objB,  ///< ChContactable object B
+              Ta* mobjA,  ///< ChContactable object A
+              Tb* mobjB,  ///< ChContactable object B
               const collision::ChCollisionInfo& cinfo
               ) {
 
         assert(container);
-        assert(objA);
-        assert(objB);
+        assert(mobjA);
+        assert(mobjB);
 
         container = mcontainer;
 
-        Reset(objA, 
-              objB,
+        Reset(mobjA, 
+              mobjB,
               cinfo);
         }
     
@@ -88,16 +88,16 @@ class ChContactTuple {
 
     /// Initialize again this constraint.
     virtual void Reset(
-            Ta* objA,  ///< ChContactable object A
-            Tb* objB,  ///< ChContactable object B
+            Ta* mobjA,  ///< ChContactable object A
+            Tb* mobjB,  ///< ChContactable object B
             const collision::ChCollisionInfo& cinfo
         ) {
 
-        assert(objA);
-        assert(objB);
+        assert(mobjA);
+        assert(mobjB);
 
-        this->objA = objA;
-        this->objB = objB;
+        this->objA = mobjA;
+        this->objB = mobjB;
 
         this->p1 = cinfo.vpA;
         this->p2 = cinfo.vpB;

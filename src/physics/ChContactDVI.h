@@ -69,17 +69,17 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
 
     ChContactDVI(
               ChContactContainerBase* mcontainer,
-              Ta* objA,  ///< collidable object A
-              Tb* objB,  ///< collidable object B
+              Ta* mobjA,  ///< collidable object A
+              Tb* mobjB,  ///< collidable object B
               const collision::ChCollisionInfo& cinfo
               ) 
-        : ChContactTuple< Ta, Tb >(mcontainer, objA, objB, cinfo)
+        : ChContactTuple< Ta, Tb >(mcontainer, mobjA, mobjB, cinfo)
     {   
         Nx.SetTangentialConstraintU(&Tu);
         Nx.SetTangentialConstraintV(&Tv);
 
-        Reset(objA, 
-              objB,
+        Reset(mobjA, 
+              mobjB,
               cinfo);
     }
     
@@ -91,24 +91,24 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
 
     /// Initialize again this constraint.
     virtual void Reset(
-            Ta* objA,  ///< collidable object A
-            Tb* objB,  ///< collidable object B
+            Ta* mobjA,  ///< collidable object A
+            Tb* mobjB,  ///< collidable object B
             const collision::ChCollisionInfo& cinfo) {
         
         // inherit base class:
-        ChContactTuple< Ta, Tb >::Reset(objA, objB, cinfo);
+        ChContactTuple< Ta, Tb >::Reset(mobjA, mobjB, cinfo);
 
 
-        Nx.Get_tuple_a().SetVariables(*objA);               Nx.Get_tuple_b().SetVariables(*objB);
-        Tu.Get_tuple_a().SetVariables(*objA);               Tu.Get_tuple_b().SetVariables(*objB);
-        Tv.Get_tuple_a().SetVariables(*objA);               Tv.Get_tuple_b().SetVariables(*objB);
+        Nx.Get_tuple_a().SetVariables(*this->objA);               Nx.Get_tuple_b().SetVariables(*this->objB);
+        Tu.Get_tuple_a().SetVariables(*this->objA);               Tu.Get_tuple_b().SetVariables(*this->objB);
+        Tv.Get_tuple_a().SetVariables(*this->objA);               Tv.Get_tuple_b().SetVariables(*this->objB);
 
 
         // Compute the 'average' material
 
           // just low level casting, now, since we are sure that this contact was created only if dynamic casting was fine
-        ChMaterialSurface* mmatA = (ChMaterialSurface*)(objA->GetMaterialSurfaceBase().get_ptr());
-        ChMaterialSurface* mmatB = (ChMaterialSurface*)(objB->GetMaterialSurfaceBase().get_ptr());
+        ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get_ptr());
+        ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get_ptr());
 
         ChMaterialCouple mat;
         mat.static_friction = (float)ChMin(mmatA->static_friction, mmatB->static_friction);
@@ -206,19 +206,19 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         // Elastic Restitution model (use simple Newton model with coeffcient e=v(+)/v(-))
         // Note that this works only if the two connected items are two ChBody.
 
-        if (objA && objB) {
+        if (this->objA && this->objB) {
             
             if (this->restitution) {
                 // compute normal rebounce speed
-                Vector V1_w = objA->GetContactPointSpeed(p1);
-                Vector V2_w = objB->GetContactPointSpeed(p2);
+                Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
+                Vector V2_w = this->objB->GetContactPointSpeed(this->p2);
                 Vector Vrel_w = V2_w - V1_w;
                 Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
 
                 double h = container->GetSystem()->GetStep();// = 1.0 / c;  // not all steppers have c = 1/h
 
                 double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
-                if (neg_rebounce_speed < -container->GetSystem()->GetMinBounceSpeed())
+                if (neg_rebounce_speed < - this->container->GetSystem()->GetMinBounceSpeed())
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
@@ -231,7 +231,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
             // CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
 
             if (this->compliance) {
-                double h = container->GetSystem()->GetStep();// = 1.0 / c;  // not all steppers have c = 1/h
+                double h = this->container->GetSystem()->GetStep();// = 1.0 / c;  // not all steppers have c = 1/h
 
                 double alpha = this->dampingf;              // [R]=alpha*[K]
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
@@ -302,15 +302,15 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         if (objA && objB) {
             if (this->restitution) {
                 // compute normal rebounce speed
-                Vector V1_w = objA->GetContactPointSpeed(p1);
-                Vector V2_w = objB->GetContactPointSpeed(p2);
+                Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
+                Vector V2_w = this->objB->GetContactPointSpeed(this->p2);
                 Vector Vrel_w = V2_w - V1_w;
                 Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
 
                 double h = 1.0 / factor;  // inverse timestep is factor
 
                 double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
-                if (neg_rebounce_speed < -container->GetSystem()->GetMinBounceSpeed())
+                if (neg_rebounce_speed < - this->container->GetSystem()->GetMinBounceSpeed())
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;

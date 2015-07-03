@@ -56,7 +56,7 @@ void ChContactContainerDVI::Update(double mytime, bool update_assets) {
 
 template <class Tcont, class Titer>
 void _RemoveAllContacts(std::list<Tcont*>contactlist, Titer& lastcontact, int& n_added) {
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         delete (*itercontact);
         (*itercontact) = 0;
@@ -200,7 +200,7 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
 
 template <class Tcont>
 void _ReportAllContacts(std::list<Tcont*>contactlist, ChReportContactCallback2* mcallback) {
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         bool proceed =
             mcallback->ReportContactCallback2((*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(),
@@ -227,7 +227,7 @@ void ChContactContainerDVI::ReportAllContacts2(ChReportContactCallback2* mcallba
 template <class Tcont>
 void _IntStateGatherReactions(std::list<Tcont*>contactlist, const unsigned int off_L, ChVectorDynamic<>& L) {
     int coffset = 0;
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntStateGatherReactions(off_L + coffset, L);
         coffset += 3;  // NOTE THAT coffset = 6 for rolling contacts!!!! to be templated ...
@@ -245,7 +245,7 @@ void ChContactContainerDVI::IntStateGatherReactions(const unsigned int off_L, Ch
 template <class Tcont>
 void _IntStateScatterReactions(std::list<Tcont*>contactlist, const unsigned int off_L, const ChVectorDynamic<>& L) {
     int coffset = 0;
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntStateScatterReactions(off_L + coffset, L);
         coffset += 3;
@@ -270,7 +270,7 @@ void _IntLoadResidual_CqL(std::list<Tcont*>contactlist,
                                              )
 {
     int coffset = 0;
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntLoadResidual_CqL(off_L + coffset, R, L, c);
         coffset += 3;
@@ -299,7 +299,7 @@ void _IntLoadConstraint_C(std::list<Tcont*>contactlist,
                                              double recovery_clamp    ///< value for min/max clamping of c*C
                                              ) {
     int coffset = 0;
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntLoadConstraint_C(off + coffset, Qc, c, do_clamp, recovery_clamp);
         coffset += 3;
@@ -330,7 +330,7 @@ void _IntToLCP(std::list<Tcont*>contactlist,
                                   const ChVectorDynamic<>& L,
                                   const ChVectorDynamic<>& Qc) {
     int coffset = 0;
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntToLCP(off_L + coffset, L, Qc);
         coffset += 3;
@@ -359,7 +359,7 @@ void _IntFromLCP(std::list<Tcont*>contactlist,
                                     const unsigned int off_L,  ///< offset in L
                                     ChVectorDynamic<>& L) {
     int coffset = 0;
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntFromLCP(off_L + coffset, L);
         coffset += 3;
@@ -381,7 +381,7 @@ void ChContactContainerDVI::IntFromLCP(const unsigned int off_v,  ///< offset in
 
 template <class Tcont>
 void _InjectConstraints(std::list<Tcont*>contactlist, ChLcpSystemDescriptor& mdescriptor) {
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->InjectConstraints(mdescriptor);
         ++itercontact;
@@ -399,7 +399,7 @@ void ChContactContainerDVI::InjectConstraints(ChLcpSystemDescriptor& mdescriptor
 
 template <class Tcont>
 void _ConstraintsBiReset(std::list<Tcont*>contactlist) {
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ConstraintsBiReset();
         ++itercontact;
@@ -415,7 +415,7 @@ void ChContactContainerDVI::ConstraintsBiReset() {
 
 template <class Tcont>
 void _ConstraintsBiLoad_C(std::list<Tcont*>contactlist, double factor, double recovery_clamp, bool do_clamp) {
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
         ++itercontact;
@@ -437,7 +437,7 @@ void ChContactContainerDVI::ConstraintsLoadJacobians() {
 template <class Tcont>
 void _ConstraintsFetch_react(std::list<Tcont*>contactlist, double factor) {
     // From constraints to react vector:
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ConstraintsFetch_react(factor);
         ++itercontact;
@@ -458,7 +458,7 @@ template <class Tcont>
 void _ConstraintsLiLoadSuggestedSpeedSolution(std::list<Tcont*>contactlist) {
     // Fetch the last computed impulsive reactions from the persistent contact manifold (could
     // be used for warm starting the CCP speed solver):
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ConstraintsLiLoadSuggestedSpeedSolution();
         ++itercontact;
@@ -476,7 +476,7 @@ template <class Tcont>
 void _ConstraintsLiLoadSuggestedPositionSolution(std::list<Tcont*>contactlist) {
     // Fetch the last computed 'positional' reactions from the persistent contact manifold (could
     // be used for warm starting the CCP position stabilization solver):
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ConstraintsLiLoadSuggestedPositionSolution();
         ++itercontact;
@@ -494,7 +494,7 @@ template <class Tcont>
 void _ConstraintsLiFetchSuggestedSpeedSolution(std::list<Tcont*>contactlist) {
     // Store the last computed reactions into the persistent contact manifold (might
     // be used for warm starting CCP the speed solver):
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ConstraintsLiFetchSuggestedSpeedSolution();
         ++itercontact;
@@ -512,7 +512,7 @@ template <class Tcont>
 void _ConstraintsLiFetchSuggestedPositionSolution(std::list<Tcont*>contactlist) {
     // Store the last computed 'positional' reactions into the persistent contact manifold (might
     // be used for warm starting the CCP position stabilization solver):
-    std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ConstraintsLiFetchSuggestedPositionSolution();
         ++itercontact;
