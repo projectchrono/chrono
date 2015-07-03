@@ -299,7 +299,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         // Elastic Restitution model (use simple Newton model with coeffcient e=v(+)/v(-))
         // Note that this works only if the two connected items are two ChBody.
 
-        if (objA && objB) {
+        if (this->objA && this->objB) {
             if (this->restitution) {
                 // compute normal rebounce speed
                 Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
