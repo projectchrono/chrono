@@ -24,11 +24,9 @@ namespace ChOgre {
 	}
 
 	ChOgreBody::~ChOgreBody() {
-		for (int i = 0; i < m_SceneNodes.size(); i++) {
-			if (m_SceneNodes[i]) {
-				m_pSceneManager->getRootSceneNode()->removeChild(m_SceneNodes[i]);
-			}
-		}
+		//for (int i = 0; i < m_Models.size(); i++) {
+		//	m_pSceneManager->getRootSceneNode()->removeChild(m_Models[i].getSceneNode().lock().get());
+		//}
 		m_pBody->RemoveCollisionModelsFromSystem();
 		m_pChSystem->RemoveBody(m_pBody);
 	}
@@ -39,8 +37,11 @@ namespace ChOgre {
 			for (int i = 0; i < l_pAssetList.size(); i++) {
 				if (l_pAssetList[i].IsType<chrono::ChVisualization>()) {
 					chrono::ChVector<> _pos = ((chrono::ChVisualization*)l_pAssetList[i].get_ptr())->Pos;
-					m_SceneNodes[i]->setPosition((_pos.x + m_pBody->GetPos().x), (_pos.y + m_pBody->GetPos().y), (_pos.z) + m_pBody->GetPos().z);
-
+					//m_SceneNodes[i]->setPosition((_pos.x + m_pBody->GetPos().x), (_pos.y + m_pBody->GetPos().y), (_pos.z) + m_pBody->GetPos().z);
+					m_Models[i].getSceneNode()->setPosition(	(_pos.x + m_pBody->GetPos().x), 
+																	(_pos.y + m_pBody->GetPos().y), 
+																	(_pos.z + m_pBody->GetPos().z)
+																	);
 
 					chrono::ChQuaternion<> l_q;
 
@@ -52,12 +53,14 @@ namespace ChOgre {
 					double __x = l_q.e1;
 					double __y = l_q.e2;
 					double __z = l_q.e3;
-					m_SceneNodes[i]->setOrientation(__w, __x, __y, __z);
+					//m_SceneNodes[i]->setOrientation(__w, __x, __y, __z);
+					m_Models[i].getSceneNode()->setOrientation(__w, __x, __y, __z);
 				}
 			}
 		}
 		else {
-			m_SceneNodes[0]->setPosition(m_pBody->GetPos().x, m_pBody->GetPos().y, m_pBody->GetPos().z);
+			//m_SceneNodes[0]->setPosition(m_pBody->GetPos().x, m_pBody->GetPos().y, m_pBody->GetPos().z);
+			m_Models[0].getSceneNode()->setPosition(m_pBody->GetPos().x, m_pBody->GetPos().y, m_pBody->GetPos().z);
 			chrono::ChQuaternion<> l_q;
 			l_q = m_pBody->GetRot();
 			l_q.Normalize();
@@ -66,64 +69,67 @@ namespace ChOgre {
 			double __x = l_q.e1;
 			double __y = l_q.e2;
 			double __z = l_q.e3;
-			m_SceneNodes[0]->setOrientation(__w, __x, __y, __z);
+			//m_SceneNodes[0]->setOrientation(__w, __x, __y, __z);
+			m_Models[0].getSceneNode()->setOrientation(__w, __x, __y, __z);
 		}
 	}
 
 	void ChOgreBody::refresh() {
-		for (int i = 0; i < m_SceneNodes.size(); i++) {
-			if (m_SceneNodes[i]) {
-				m_pSceneManager->getRootSceneNode()->removeChild(m_SceneNodes[i]);
-				m_SceneNodes.clear();
-			}
-		}
+		//for (int i = 0; i < m_SceneNodes.size(); i++) {
+		//	if (m_SceneNodes[i]) {
+		//		m_pSceneManager->getRootSceneNode()->removeChild(m_SceneNodes[i]);
+		//		m_SceneNodes.clear();
+		//	}
+		//}
+		m_Models.clear();
 		for (int i = 0; i < m_pBody->GetAssets().size(); i++) {
 			chrono::ChSharedPtr<chrono::ChAsset> temp_asset = m_pBody->GetAssets().at(i);
 
-			Ogre::SceneNode* l_pNode = m_pSceneManager->getRootSceneNode()->createChildSceneNode();
-			Ogre::Entity* l_pEntity = nullptr;
+			//Ogre::SceneNode* l_pNode = m_pSceneManager->getRootSceneNode()->createChildSceneNode();
+			//Ogre::Entity* l_pEntity = nullptr;
+			ChOgreModel l_Model(m_pSceneManager);
 
 			if (temp_asset.IsType<chrono::ChBoxShape>()) {
-				l_pEntity = m_pSceneManager->createEntity("box.mesh");
+				l_Model.loadMesh("box.mesh");
 				chrono::ChBoxShape* shape = (chrono::ChBoxShape*)temp_asset.get_ptr();
 				double _w = shape->GetBoxGeometry().Size.x;
 				double _h = shape->GetBoxGeometry().Size.y;
 				double _d = shape->GetBoxGeometry().Size.z;
-				l_pNode->setScale((Ogre::Real)_w, (Ogre::Real)_h, (Ogre::Real)_d);
+				l_Model.getSceneNode()->setScale((Ogre::Real)_w, (Ogre::Real)_h, (Ogre::Real)_d);
 
 			}
 			else if (temp_asset.IsType<chrono::ChCapsuleShape>()) {
 				
 			}
 			else if (temp_asset.IsType<chrono::ChConeShape>()) {
-				l_pEntity = m_pSceneManager->createEntity("cone.mesh");
+				l_Model.loadMesh("cone.mesh");
 				chrono::ChConeShape* shape = (chrono::ChConeShape*)temp_asset.get_ptr();
 				double _r1 = shape->GetConeGeometry().rad.x;
 				double _r2 = shape->GetConeGeometry().rad.z;
 				double _h = shape->GetConeGeometry().rad.y;
-				l_pNode->setScale((Ogre::Real)_r1, (Ogre::Real)_h, (Ogre::Real)_r2);
+				l_Model.getSceneNode()->setScale((Ogre::Real)_r1, (Ogre::Real)_h, (Ogre::Real)_r2);
 			}
 			else if (temp_asset.IsType<chrono::ChCylinderShape>()) {
-				l_pEntity = m_pSceneManager->createEntity("cylinder.mesh");
+				l_Model.loadMesh("cylinder.mesh");
 				chrono::ChCylinderShape* shape = (chrono::ChCylinderShape*)temp_asset.get_ptr();
 
 				double _r1 = shape->GetCylinderGeometry().rad;
 				double _h = (shape->GetCylinderGeometry().p1 - shape->GetCylinderGeometry().p2).Length();
-				l_pNode->setScale((Ogre::Real)_r1, (Ogre::Real)_h, (Ogre::Real)_r1);
+				l_Model.getSceneNode()->setScale((Ogre::Real)_r1, (Ogre::Real)_h, (Ogre::Real)_r1);
 			}
 			else if (temp_asset.IsType<chrono::ChEllipsoidShape>()) {
-				l_pEntity = m_pSceneManager->createEntity("sphere.mesh");
+				l_Model.loadMesh("sphere.mesh");
 				chrono::ChEllipsoidShape* shape = (chrono::ChEllipsoidShape*)temp_asset.get_ptr();
 
 				double _rx = shape->GetEllipsoidGeometry().rad.x;
 				double _ry = shape->GetEllipsoidGeometry().rad.y;
 				double _rz = shape->GetEllipsoidGeometry().rad.z;
-				l_pNode->setScale((Ogre::Real)_rx, (Ogre::Real)_ry, (Ogre::Real)_rz);
+				l_Model.getSceneNode()->setScale((Ogre::Real)_rx, (Ogre::Real)_ry, (Ogre::Real)_rz);
 			}
 			else if (temp_asset.IsType<chrono::ChSphereShape>()) {
-				l_pEntity = m_pSceneManager->createEntity("sphere.mesh");
+				l_Model.loadMesh("sphere.mesh");
 				double _r = chrono::static_cast_chshared<chrono::ChSphereShape>(temp_asset)->GetSphereGeometry().rad;
-				l_pNode->setScale((Ogre::Real)_r, (Ogre::Real)_r, (Ogre::Real)_r);
+				l_Model.getSceneNode()->setScale((Ogre::Real)_r, (Ogre::Real)_r, (Ogre::Real)_r);
 			}
 			else if (temp_asset.IsType<chrono::ChTriangleMeshShape>()) {
 
@@ -136,7 +142,7 @@ namespace ChOgre {
 				Ogre::StringUtil::splitFullFilename(filepath, _base, _ext, _path);
 
 				if (_ext == "mesh") {
-					l_pEntity = m_pSceneManager->createEntity(filepath);
+					l_Model.loadMesh(filepath);
 				}
 				else if (_ext == "obj") {
 					std::vector<tinyobj::shape_t> _shapes;
@@ -168,18 +174,19 @@ namespace ChOgre {
 
 						_manual_object->end();
 
-						l_pNode->attachObject(_manual_object);
+						l_Model.getSceneNode()->attachObject(_manual_object);
 					}
 				
 
-					m_SceneNodes.push_back(l_pNode);
+					//m_SceneNodes.push_back(l_pNode);
+					m_Models.push_back(std::move(l_Model));
 
 					chrono::ChTriangleMeshShape* shape = (chrono::ChTriangleMeshShape*)temp_asset.get_ptr();
 
 					double _sx = shape->GetScale().x;
 					double _sy = shape->GetScale().y;
 					double _sz = shape->GetScale().z;
-					l_pNode->setScale((Ogre::Real)_sx, (Ogre::Real)_sy, (Ogre::Real)_sz);
+					l_Model.getSceneNode()->setScale((Ogre::Real)_sx, (Ogre::Real)_sy, (Ogre::Real)_sz);
 
 					m_MeshCount++;
 					return;
@@ -193,32 +200,36 @@ namespace ChOgre {
 				double _sx = shape->GetScale().x;
 				double _sy = shape->GetScale().y;
 				double _sz = shape->GetScale().z;
-				l_pNode->setScale((Ogre::Real)_sx, (Ogre::Real)_sy, (Ogre::Real)_sz);
+				l_Model.getSceneNode()->setScale((Ogre::Real)_sx, (Ogre::Real)_sy, (Ogre::Real)_sz);
 			}
 
-			l_pNode->attachObject(l_pEntity);
-			m_SceneNodes.push_back(l_pNode);
+			//l_pNode->attachObject(l_pEntity);
+			m_Models.push_back(std::move(l_Model));
 		}
 		isStaticMesh = false;
 	}
 
 	void ChOgreBody::setMesh(Ogre::ManualObject* Mesh, chrono::ChVector<>& Scale) {
-		for (int i = 0; i < m_SceneNodes.size(); i++) {
-			if (m_SceneNodes[i]) {
-				m_pSceneManager->getRootSceneNode()->removeChild(m_SceneNodes[i]);
-				m_SceneNodes.clear();
-			}
-		}
+		//for (int i = 0; i < m_SceneNodes.size(); i++) {
+		//	if (m_SceneNodes[i]) {
+		//		m_pSceneManager->getRootSceneNode()->removeChild(m_SceneNodes[i]);
+		//		m_SceneNodes.clear();
+		//	}
+		//}
 
-		Ogre::SceneNode* l_pNode = m_pSceneManager->getRootSceneNode()->createChildSceneNode();
+		m_Models.clear();
+
+		ChOgreModel l_Model(m_pSceneManager);
+		l_Model.setMesh(Mesh->convertToMesh(""));
+
+		//Ogre::SceneNode* l_pNode = m_pSceneManager->getRootSceneNode()->createChildSceneNode();
 		
 		//l_pEntity->setMaterialName("BaseWhite");
 		//l_pEntity->getSubEntity(0)->getMaterial()->getTechnique(0)->getPass(0)->createTextureUnitState("white.png");
 
-		l_pNode->setScale((Ogre::Real)Scale.x, (Ogre::Real)Scale.y, (Ogre::Real)Scale.z);
+		l_Model.getSceneNode()->setScale((Ogre::Real)Scale.x, (Ogre::Real)Scale.y, (Ogre::Real)Scale.z);
 
-		l_pNode->attachObject(Mesh);
-		m_SceneNodes.push_back(l_pNode);
+		m_Models.push_back(std::move(l_Model));
 		isStaticMesh = true;
 	}
 

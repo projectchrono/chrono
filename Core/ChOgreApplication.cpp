@@ -67,7 +67,7 @@ namespace ChOgre {
 		}
 
 		{
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/programs", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/scripts", "FileSystem");

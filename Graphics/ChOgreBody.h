@@ -26,6 +26,7 @@ ChOgreBody is the basic physical body class. It will set up Ogre scene nodes to 
 #include <assets\ChTriangleMeshShape.h>
 
 #include "../ChOgre.h"
+#include "ChOgreModel.h"
 
 namespace ChOgre {
 
@@ -52,7 +53,7 @@ namespace ChOgre {
 
 		chrono::ChSharedBodyPtr m_pBody;
 
-		std::vector<Ogre::SceneNode*> m_SceneNodes;
+		std::vector<ChOgreModel> m_Models;
 
 		Ogre::SceneManager* m_pSceneManager;
 		chrono::ChSystem* m_pChSystem;

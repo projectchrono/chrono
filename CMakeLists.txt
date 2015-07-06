@@ -15,6 +15,10 @@ SET(GRAPHICS_FILES
 	Graphics/ChOgreCameraManager.h
 	Graphics/ChOgreScene.cpp
 	Graphics/ChOgreScene.h
+	Graphics/ChOgreMeshBase.cpp
+	Graphics/ChOgreMeshBase.h
+	Graphics/ChOgreModel.cpp
+	Graphics/ChOgreModel.h
 	)
 	
 #SET(GUI_FILES
