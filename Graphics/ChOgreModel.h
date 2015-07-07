@@ -4,7 +4,7 @@
 
 namespace ChOgre {
 
-	class ChOgreModel {
+	class CHOGRE_DLL_TAG ChOgreModel {
 	public:
 
 		ChOgreModel();

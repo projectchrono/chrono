@@ -2,11 +2,10 @@
 
 #include "../ChOgre.h"
 #include <OGRE/Ogre.h>
-#include <memory>
 
 namespace ChOgre {
 
-	class ChOgreMeshBase {
+	class CHOGRE_DLL_TAG ChOgreMeshBase {
 	public:
 		ChOgreMeshBase();
 		ChOgreMeshBase(Ogre::SceneManager* SceneManager);
