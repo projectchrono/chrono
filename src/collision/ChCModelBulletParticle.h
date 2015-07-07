@@ -66,6 +66,9 @@ class ChApi ChModelBulletParticle : public ChModelBullet {
     /// Gets the pointer to the client owner ChPhysicsItem.
     virtual ChPhysicsItem* GetPhysicsItem() { return (ChPhysicsItem*)GetParticles(); };
 
+    /// Sets the pointer to the client owner ChPhysicsItem.
+    virtual void SetPhysicsItem(ChPhysicsItem* mitem);
+
   private:
     unsigned int particle_id;
     ChIndexedParticles* particles;

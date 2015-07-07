@@ -71,6 +71,9 @@ class ChApi ChModelBulletNode : public ChModelBullet {
     /// Gets the pointer to the client owner ChPhysicsItem.
     virtual ChPhysicsItem* GetPhysicsItem() { return (ChPhysicsItem*)GetNodes(); };
 
+    /// Sets the pointer to the client owner ChPhysicsItem.
+    virtual void SetPhysicsItem(ChPhysicsItem* mitem);
+
   private:
     unsigned int node_id;
     ChIndexedNodes* nodes;

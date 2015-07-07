@@ -167,9 +167,11 @@ class  ChArchiveOutJSON : public ChArchiveOut {
 
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
             comma_cr();
-            indent();
             if (is_array.top()==false)
+            {
+                indent();
                 (*ostream) << "\"" << name << "\"" << "\t: ";
+            }
             (*ostream) << "\n";
             indent();
             (*ostream) << "[ ";
@@ -195,9 +197,11 @@ class  ChArchiveOutJSON : public ChArchiveOut {
         // for custom c++ objects:
       virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
             comma_cr();
-            indent();
             if (is_array.top()==false)
+            {
+                indent();
                 (*ostream) << "\"" << bVal.name() << "\"" << "\t: \n";
+            }
             indent();
             (*ostream) << "{";
             
@@ -221,6 +225,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << "\n";
             indent();
             (*ostream) << "}";
+            ++nitems.top();
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
@@ -262,6 +267,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           (*ostream) << "\n";
           indent();
           (*ostream) << "}";
+          ++nitems.top();
       }
 
       virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname)  {
@@ -297,6 +303,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           (*ostream) << "\n";
           indent();
           (*ostream) << "}";
+          ++nitems.top();
       }
 
   protected:

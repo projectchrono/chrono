@@ -52,6 +52,10 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
 
   /// Gets the pointer to the client owner ChPhysicsItem.
   virtual ChPhysicsItem* GetPhysicsItem();
+
+  /// Sets the pointer to the client owner ChPhysicsItem.
+  virtual void SetPhysicsItem(ChPhysicsItem* item);
+
   //
   // GEOMETRY DESCRIPTION
   //
@@ -201,6 +205,9 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
   /// Return a pointer to the body
   ChBody* GetBody() const { return mbody; }
 
+  /// Set the pointer to the owner rigid body.
+  void SetBody(ChBody* body) { mbody = body; }
+
   /// Return the number of objects in this model.
   int GetNObjects() const { return nObjects; }
 
@@ -210,6 +217,8 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
   std::vector<real3> local_convex_data;
 
  protected:
+   ChBody* mbody;
+
   unsigned int nObjects;
   short family_group;
   short family_mask;

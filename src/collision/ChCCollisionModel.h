@@ -40,7 +40,7 @@ namespace chrono {
 
 // forward references
 class ChPhysicsItem;
-class ChBody;
+
 
 namespace collision {
 /// Shape types that can be created.
@@ -221,6 +221,10 @@ class ChApi ChCollisionModel {
     /// MUST be implemented by child classes!
     virtual ChPhysicsItem* GetPhysicsItem() = 0;
 
+    /// Gets the pointer to the client owner ChPhysicsItem.
+    /// MUST be implemented by child classes!
+    virtual void SetPhysicsItem(ChPhysicsItem* mitem) = 0;
+
     /// Sets the position and orientation of the collision
     /// model as the rigid body current position.
     /// MUST be implemented by child classes!
@@ -312,7 +316,7 @@ class ChApi ChCollisionModel {
     /// MUST be implemented by child classes!
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const = 0;
 
-    void SetBody(ChBody* mbo) { mbody = mbo; };
+    //void SetBody(ChBody* mbo) { mbody = mbo; }; // moved to ChModelBulletBody
 
     //
     // SERIALIZATION
@@ -326,7 +330,6 @@ class ChApi ChCollisionModel {
         // serialize all member data:
         marchive << CHNVP(model_envelope);
         marchive << CHNVP(model_safe_margin);
-        //marchive << CHNVP(mbody);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -338,8 +341,6 @@ class ChApi ChCollisionModel {
         // stream in all member data:
         marchive >> CHNVP(model_envelope);
         marchive >> CHNVP(model_safe_margin);
-        //marchive >> CHNVP(mbody);
-        mbody=0;
     }
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
@@ -362,7 +363,7 @@ class ChApi ChCollisionModel {
     // contact detection.
     float model_safe_margin;
 
-    ChBody* mbody;
+    //ChBody* mbody; //moved to ChModelBulletBody
 };
 
 }  // END_OF_NAMESPACE____
