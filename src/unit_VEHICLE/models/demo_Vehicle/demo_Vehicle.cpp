@@ -59,8 +59,8 @@ using namespace chrono;
 //std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
 //std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 //std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
-std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
-//std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
+//std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
+std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
 //std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
 //std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
 //std::string vehicle_file("generic/vehicle/Vehicle_ThreeAxles.json");
@@ -125,6 +125,7 @@ int main(int argc, char* argv[])
 
   // Create the ground
   RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.8);
+  terrain.AddFixedObstacles();
 
   // Create and initialize the powertrain system
   SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
