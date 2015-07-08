@@ -309,16 +309,16 @@ ChMatrix33<> rot;
   ///*
 
   // Create and initialize the spring/damper between axle housing and chassis
-  m_shockLB[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
-  m_shockLB[side]->SetNameString(m_name + "_shockAH" + suffix);
-  m_shockLB[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKAH_C], points[SHOCKAH_AH]);
-  m_shockLB[side]->Set_SpringCallback(getShockAHForceCallback());
+  m_shockAH[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
+  m_shockAH[side]->SetNameString(m_name + "_shockAH" + suffix);
+  m_shockAH[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKAH_C], points[SHOCKAH_AH]);
+  m_shockAH[side]->Set_SpringCallback(getShockAHForceCallback());
   chassis->GetSystem()->AddLink(m_shockAH[side]);
 
-  m_springLB[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
-  m_springLB[side]->SetNameString(m_name + "_springLB" + suffix);
-  m_springLB[side]->Initialize(chassis, m_axlehousing, false, points[SPRINGLB_C], points[SPRINGLB_LB], false, getSpringLBRestLength());
-  m_springLB[side]->Set_SpringCallback(getSpringLBForceCallback());
+  m_springAH[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
+  m_springAH[side]->SetNameString(m_name + "_springLB" + suffix);
+  m_springAH[side]->Initialize(chassis, m_axlehousing, false, points[SPRINGLB_C], points[SPRINGLB_LB], false, getSpringLBRestLength());
+  m_springAH[side]->Set_SpringCallback(getSpringLBForceCallback());
   chassis->GetSystem()->AddLink(m_springLB[side]);
 
   // Create and initialize the spring/damper between lower beam and chassis
