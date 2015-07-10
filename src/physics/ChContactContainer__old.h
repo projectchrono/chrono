@@ -10,24 +10,10 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHCONTACTCONTAINER_H
-#define CHCONTACTCONTAINER_H
+#ifndef CHCONTACTCONTAINER__OLD_H
+#define CHCONTACTCONTAINER__OLD_H
 
-///////////////////////////////////////////////////
-//
-//   ChContactContainer.h
-//
-//   Class for container of many contacts, as CPU
-//   typical linked list of ChContact objects (that
-//   is contacts between two 6DOF bodies)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+///***OBSOLETE*** old-contact-system!
 
 #include "physics/ChContactContainerBase.h"
 #include "physics/ChContact.h"
@@ -44,9 +30,10 @@ namespace chrono {
 /// This is the default contact container used in most
 /// cases.
 ///
+///***OBSOLETE*** old-contact-system!
 
-class ChApi ChContactContainer : public ChContactContainerBase {
-    CH_RTTI(ChContactContainer, ChContactContainerBase);
+class ChApi ChContactContainer__old : public ChContactContainerBase {
+    CH_RTTI(ChContactContainer__old, ChContactContainerBase);
 
   protected:
     //
@@ -70,9 +57,9 @@ class ChApi ChContactContainer : public ChContactContainerBase {
     // CONSTRUCTORS
     //
 
-    ChContactContainer();
+    ChContactContainer__old();
 
-    virtual ~ChContactContainer();
+    virtual ~ChContactContainer__old();
 
     //
     // FUNCTIONS

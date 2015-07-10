@@ -43,7 +43,26 @@ using namespace video;
 using namespace io;
 using namespace gui;
 
-void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver) {
+
+int main(int argc, char* argv[]) {
+
+    // Create a ChronoENGINE physical system
+    ChSystem mphysicalSystem;
+
+    // Create the Irrlicht visualization (open the Irrlicht device,
+    // bind a simple user interface, etc. etc.)
+    ChIrrApp application(&mphysicalSystem, L"Contacts with rolling friction", core::dimension2d<u32>(800, 600), false,
+                         true);
+
+    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+    ChIrrWizard::add_typical_Logo(application.GetDevice());
+    ChIrrWizard::add_typical_Sky(application.GetDevice());
+    ChIrrWizard::add_typical_Lights(application.GetDevice());
+    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 14, -20));
+
+
+    // Create all the rigid bodies.
+
     double mradius = 0.5;
     double density = 1000;
 
@@ -52,7 +71,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 
     // Create some spheres that roll horizontally,
     // with increasing rolling friction values
-    for (int bi = 0; bi < 10; bi++) {
+    for (int bi = 0; bi < 3; bi++) {
         double initial_angspeed = 10;
         double initial_linspeed = initial_angspeed * mradius;
 
@@ -73,7 +92,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
         msphereBody->GetMaterialSurface()->SetRollingFriction(((float)bi / 10) * 0.05f);
 
         // Add to the system
-        mphysicalSystem->Add(msphereBody);
+        mphysicalSystem.Add(msphereBody);
     }
 
     // Create some spheres that spin on place, for a 'drilling friction' case,
@@ -96,7 +115,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
         msphereBody->GetMaterialSurface()->SetSpinningFriction(((float)bi / 10) * 0.02f);
 
         // Add to the system
-        mphysicalSystem->Add(msphereBody);
+        mphysicalSystem.Add(msphereBody);
 
         // Notes:
         // - setting nonzero spinning frition and/or setting nonzero rolling friction
@@ -123,7 +142,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 
     mfloorBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("blu.png"))));
 
-    mphysicalSystem->Add(mfloorBody);
+    mphysicalSystem.Add(mfloorBody);
 
     // four walls:
 
@@ -134,7 +153,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
     mwallBody1->SetPos(ChVector<>(-10, 0, 0));
     mwallBody1->SetBodyFixed(true);
     mwallBody1->AddAsset(ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)));
-    mphysicalSystem->Add(mwallBody1);
+    mphysicalSystem.Add(mwallBody1);
 
     ChSharedPtr<ChBodyEasyBox> mwallBody2(new ChBodyEasyBox(1, 2, 20.99,  // x,y,z size
                                                             2000,         // density
@@ -143,7 +162,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
     mwallBody2->SetPos(ChVector<>(10, 0, 0));
     mwallBody2->SetBodyFixed(true);
     mwallBody2->AddAsset(ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)));
-    mphysicalSystem->Add(mwallBody2);
+    mphysicalSystem.Add(mwallBody2);
 
     ChSharedPtr<ChBodyEasyBox> mwallBody3(new ChBodyEasyBox(20.99, 2, 1,  // x,y,z size
                                                             2000,         // density
@@ -152,7 +171,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
     mwallBody3->SetPos(ChVector<>(0, 0, -10));
     mwallBody3->SetBodyFixed(true);
     mwallBody3->AddAsset(ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)));
-    mphysicalSystem->Add(mwallBody3);
+    mphysicalSystem.Add(mwallBody3);
 
     ChSharedPtr<ChBodyEasyBox> mwallBody4(new ChBodyEasyBox(20.99, 2, 1,  // x,y,z size
                                                             2000,         // density
@@ -161,26 +180,8 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
     mwallBody4->SetPos(ChVector<>(0, 0, 10));
     mwallBody4->SetBodyFixed(true);
     mwallBody4->AddAsset(ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)));
-    mphysicalSystem->Add(mwallBody4);
-}
+    mphysicalSystem.Add(mwallBody4);
 
-int main(int argc, char* argv[]) {
-    // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
-
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Contacts with rolling friction", core::dimension2d<u32>(800, 600), false,
-                         true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 14, -20));
-
-    // Create all the rigid bodies.
-    create_some_falling_items(&mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver());
 
     // Use this function for adding a ChIrrNodeAsset to all already created items.
     // Otherwise use application.AssetBind(myitem); on a per-item basis.

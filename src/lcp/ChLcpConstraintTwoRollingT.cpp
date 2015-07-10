@@ -9,17 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChLcpConstraintTwoRollingT.cpp
-//
-//
-//    file for CHRONO HYPEROCTANT LCP solver
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+///***OBSOLETE*** old-contact-system!
 
 #include "ChLcpConstraintTwoRollingT.h"
 

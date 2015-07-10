@@ -112,8 +112,6 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
 
         ChMaterialCouple mat;
         mat.static_friction = (float)ChMin(mmatA->static_friction, mmatB->static_friction);
-        //mat.rolling_friction = (float)ChMin(mmatA->rolling_friction, mmatB->rolling_friction);
-        //mat.spinning_friction = (float)ChMin(mmatA->spinning_friction, mmatB->spinning_friction);
         mat.restitution = (float)ChMin(mmatA->restitution, mmatB->restitution);
         mat.cohesion = (float)ChMin(mmatA->cohesion, mmatB->cohesion);
         mat.dampingf = (float)ChMin(mmatA->dampingf, mmatB->dampingf);
@@ -121,6 +119,8 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         mat.complianceT = (float)(mmatA->complianceT + mmatB->complianceT);
         //mat.complianceRoll = (float)(mmatA->complianceRoll + mmatB->complianceRoll);
         //mat.complianceSpin = (float)(mmatA->complianceSpin + mmatB->complianceSpin);
+        //mat.rolling_friction = (float)ChMin(mmatA->rolling_friction, mmatB->rolling_friction);
+        //mat.spinning_friction = (float)ChMin(mmatA->spinning_friction, mmatB->spinning_friction);
 
         // see if the user wants to modify the material via a callback:
         if (this->container->GetAddContactCallback()) {

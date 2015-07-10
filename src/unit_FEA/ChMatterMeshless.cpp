@@ -45,6 +45,7 @@ ChNodeMeshless::ChNodeMeshless() {
     this->volume = 0.01;
     this->density = this->GetMass() / this->volume;
     this->hardening = 0;
+    this->container = 0;
 }
 
 ChNodeMeshless::~ChNodeMeshless() {
@@ -71,6 +72,8 @@ ChNodeMeshless::ChNodeMeshless(const ChNodeMeshless& other) : ChNodeXYZ(other) {
     this->p_strain = other.p_strain;
     this->e_strain = other.e_strain;
     this->e_stress = other.e_stress;
+
+    this->container = other.container;
 
     this->variables = other.variables;
 }
@@ -101,6 +104,8 @@ ChNodeMeshless& ChNodeMeshless::operator=(const ChNodeMeshless& other) {
     this->e_strain = other.e_strain;
     this->e_stress = other.e_stress;
 
+    this->container = other.container;
+
     this->variables = other.variables;
 
     return *this;
@@ -116,6 +121,11 @@ void ChNodeMeshless::SetCollisionRadius(double mr) {
     coll_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
     ((ChModelBulletNode*)this->collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
+}
+
+ChSharedPtr<ChMaterialSurfaceBase>& ChNodeMeshless::GetMaterialSurfaceBase()
+{
+    return container->GetMaterialSurfaceBase();
 }
 
 //////////////////////////////////////
@@ -134,6 +144,9 @@ ChMatterMeshless::ChMatterMeshless() {
 
     this->nodes.clear();
 
+    // default DVI material
+    matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
 }
 
@@ -147,6 +160,8 @@ void ChMatterMeshless::Copy(ChMatterMeshless* source) {
     ChIndexedNodes::Copy(source);
 
     do_collide = source->do_collide;
+
+    this->matsurface = source->matsurface;
 
     ResizeNnodes(source->GetNnodes());
 }
@@ -188,6 +203,8 @@ void ChMatterMeshless::AddNode(ChVector<double> initial_state) {
     newp->SetPosReference(initial_state);
 
     this->nodes.push_back(newp);
+
+    newp->SetMatterContainer(this);
 
     newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
     ((ChModelBulletNode*)newp->collision_model)->SetNode(this, (unsigned int)nodes.size() - 1);

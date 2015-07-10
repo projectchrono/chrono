@@ -15,6 +15,7 @@
 
 #include "physics/ChSystem.h"
 #include "physics/ChContactDEM.h"
+#include "physics/ChContactDEM__old.h"
 
 namespace chrono {
 
@@ -44,13 +45,24 @@ class ChApi ChSystemDEM : public ChSystem {
 
     bool UseMaterialProperties() const { return m_use_mat_props; }
     bool UseContactHistory() const { return m_use_history; }
-    void SetContactForceModel(ChContactDEM::ContactForceModel model) { m_contact_model = model; }
-    ChContactDEM::ContactForceModel GetContactForceModel() const { return m_contact_model; }
+    void SetContactForceModel(ContactForceModel model) { m_contact_model = model; }
+    ContactForceModel GetContactForceModel() const { return m_contact_model; }
+
+    /// Slip velocity threshold. No tangential contact forces are generated
+    /// if the magnitude of the tangential relative velocity is below this.
+    void SetSlipVelocitythreshold(double vel) { m_minSlipVelocity = vel; }
+    double GetSlipVelocitythreshold()  {return m_minSlipVelocity;}
+
+    /// Characteristic impact velocity (Hooke)
+    void SetCharacteristicImpactVelocity(double vel) { m_characteristicVelocity = vel; }
+    double GetCharacteristicImpactVelocity() {return m_characteristicVelocity;}
 
   private:
     bool m_use_mat_props;
     bool m_use_history;
-    ChContactDEM::ContactForceModel m_contact_model;
+    ContactForceModel m_contact_model;
+    double m_minSlipVelocity;
+    double m_characteristicVelocity;
 };
 
 }  // end namespace chrono

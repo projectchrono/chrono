@@ -12,6 +12,7 @@
 
 #include "physics/ChSystemDEM.h"
 #include "physics/ChContactContainerDEM.h"
+#include "physics/ChContactContainerDEM__old.h"
 
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpSolverDEM.h"
@@ -26,7 +27,7 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
     : ChSystem(max_objects, scene_size, false),
       m_use_mat_props(use_material_properties),
       m_use_history(use_history),
-      m_contact_model(ChContactDEM::Hertz) {
+      m_contact_model(ContactForceModel::Hertz) {
     LCP_descriptor = new ChLcpSystemDescriptor;
     LCP_descriptor->SetNumThreads(parallel_thread_number);
 
@@ -38,7 +39,12 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
 
     collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
 
+    //contact_container = new ChContactContainerDEM__old;  // obsolete...
     contact_container = new ChContactContainerDEM;
+    contact_container->SetSystem(this);
+
+    m_minSlipVelocity = 1e-4; 
+    m_characteristicVelocity = 1; 
 }
 
 void ChSystemDEM::SetLcpSolverType(eCh_lcpSolver mval) {

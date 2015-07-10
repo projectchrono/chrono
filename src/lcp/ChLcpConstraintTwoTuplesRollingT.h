@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTTWOTUPLESFRICTIONT_H
-#define CHLCPCONSTRAINTTWOTUPLESFRICTIONT_H
+#ifndef CHLCPCONSTRAINTTWOTUPLESROLLINGT_H
+#define CHLCPCONSTRAINTTWOTUPLESROLLINGT_H
 
 
 #include "ChLcpConstraintTwoTuples.h"
@@ -19,8 +19,8 @@
 namespace chrono {
 
 /// This is enough to use dynamic_casting<> to detect all template types
-/// from ChLcpConstraintTwoTuplesFrictionT
-class ChApi ChLcpConstraintTwoTuplesFrictionTall {
+/// from ChLcpConstraintTwoTuplesRollingT
+class ChApi ChLcpConstraintTwoTuplesRollingTall {
 };
 
 /// Base class for friction constraints between two objects,
@@ -29,9 +29,9 @@ class ChApi ChLcpConstraintTwoTuplesFrictionTall {
 /// a ChLcpConstraintTwoTuplesContactN
 
 template <class Ta, class Tb >
-class ChApi ChLcpConstraintTwoTuplesFrictionT : 
+class ChApi ChLcpConstraintTwoTuplesRollingT : 
                 public ChLcpConstraintTwoTuples< Ta, Tb >, 
-                public ChLcpConstraintTwoTuplesFrictionTall {
+                public ChLcpConstraintTwoTuplesRollingTall {
 
     //
     // DATA
@@ -43,18 +43,18 @@ class ChApi ChLcpConstraintTwoTuplesFrictionT :
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintTwoTuplesFrictionT() { this->mode = CONSTRAINT_FRIC; };
+    ChLcpConstraintTwoTuplesRollingT() { this->mode = CONSTRAINT_FRIC; };
 
 
     /// Copy constructor
-    ChLcpConstraintTwoTuplesFrictionT(const ChLcpConstraintTwoTuplesFrictionT& other) : ChLcpConstraintTwoTuples< Ta, Tb >(other) {}
+    ChLcpConstraintTwoTuplesRollingT(const ChLcpConstraintTwoTuplesRollingT& other) : ChLcpConstraintTwoTuples< Ta, Tb >(other) {}
 
-    virtual ~ChLcpConstraintTwoTuplesFrictionT(){};
+    virtual ~ChLcpConstraintTwoTuplesRollingT(){};
 
-    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintTwoTuplesFrictionT(*this); };
+    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintTwoTuplesRollingT(*this); };
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintTwoTuplesFrictionT& operator=(const ChLcpConstraintTwoTuplesFrictionT& other) {
+    ChLcpConstraintTwoTuplesRollingT& operator=(const ChLcpConstraintTwoTuplesRollingT& other) {
         if (&other == this)
             return *this;
 
@@ -79,4 +79,4 @@ class ChApi ChLcpConstraintTwoTuplesFrictionT :
 
 }  // END_OF_NAMESPACE____
 
-#endif  // END of ChLcpConstraintTwoFrictionT.h
+#endif  

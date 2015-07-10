@@ -103,12 +103,12 @@ ChVector<> ChAparticle::GetContactPointSpeed(const ChVector<>& abs_point) {
 
 
 void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                            const unsigned int off, ChVectorDynamic<>& R, const double c) {
+                                ChVectorDynamic<>& R) {
     ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
     ChVector<> force1_loc = this->TransformDirectionParentToLocal(F);
     ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
-    R.PasteSumVector(F * c, off + 0, 0);
-    R.PasteSumVector(torque1_loc * c, off + 3, 0);
+    R.PasteSumVector(F , this->Variables().GetOffset() + 0, 0); //***TODO*** implement this->NodeGetOffset_w()
+    R.PasteSumVector(torque1_loc , this->Variables().GetOffset() + 3, 0); //***TODO*** implement this->NodeGetOffset_w()
 }
 
 void ChAparticle::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
@@ -138,7 +138,24 @@ void ChAparticle::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChM
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
 }
 
+void ChAparticle::ComputeJacobianForRollingContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
+            type_constraint_tuple& jacobian_tuple_N, 
+            type_constraint_tuple& jacobian_tuple_U, 
+            type_constraint_tuple& jacobian_tuple_V, 
+            bool second) {
+    ChMatrix33<> Jx1, Jr1;
 
+    Jr1.MatrTMultiply(contact_plane, this->GetA());
+    if (!second)
+        Jr1.MatrNeg();
+    
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jr1, 0, 0, 1, 3, 0, 3);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jr1, 1, 0, 1, 3, 0, 3);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
+}
 
 //////////////////////////////////////
 //////////////////////////////////////

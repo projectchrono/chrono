@@ -10,16 +10,9 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChContactContainer.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+///***OBSOLETE*** old-contact-system!
 
-#include "physics/ChContactContainer.h"
+#include "physics/ChContactContainer__old.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 #include "physics/ChParticlesClones.h"
@@ -34,9 +27,9 @@ using namespace geometry;
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChContactContainer> a_registration_ChContactContainer;
+ChClassRegister<ChContactContainer__old> a_registration_ChContactContainer__old;
 
-ChContactContainer::ChContactContainer() {
+ChContactContainer__old::ChContactContainer__old() {
     contactlist.clear();
     n_added = 0;
 
@@ -44,7 +37,7 @@ ChContactContainer::ChContactContainer() {
     n_added_roll = 0;
 }
 
-ChContactContainer::~ChContactContainer() {
+ChContactContainer__old::~ChContactContainer__old() {
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         delete (*itercontact);
@@ -69,12 +62,12 @@ ChContactContainer::~ChContactContainer() {
     n_added_roll = 0;
 }
 
-void ChContactContainer::Update(double mytime, bool update_assets) {
+void ChContactContainer__old::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class, basically doing nothing :)
     ChContactContainerBase::Update(mytime, update_assets);
 }
 
-void ChContactContainer::RemoveAllContacts() {
+void ChContactContainer__old::RemoveAllContacts() {
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         delete (*itercontact);
@@ -99,7 +92,7 @@ void ChContactContainer::RemoveAllContacts() {
     n_added_roll = 0;
 }
 
-void ChContactContainer::BeginAddContact() {
+void ChContactContainer__old::BeginAddContact() {
     lastcontact = contactlist.begin();
     n_added = 0;
 
@@ -107,7 +100,7 @@ void ChContactContainer::BeginAddContact() {
     n_added_roll = 0;
 }
 
-void ChContactContainer::EndAddContact() {
+void ChContactContainer__old::EndAddContact() {
     // remove contacts that are beyond last contact
     while (lastcontact != contactlist.end()) {
         delete (*lastcontact);
@@ -119,7 +112,7 @@ void ChContactContainer::EndAddContact() {
     }
 }
 
-void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact) {
+void ChContactContainer__old::AddContact(const collision::ChCollisionInfo& mcontact) {
     // Fetch the frames of that contact and other infos
 
     ChFrame<>* frameA = 0;
@@ -226,7 +219,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact) 
     }
 }
 
-void ChContactContainer::ReportAllContacts(ChReportContactCallback* mcallback) {
+void ChContactContainer__old::ReportAllContacts(ChReportContactCallback* mcallback) {
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         bool proceed =
@@ -256,7 +249,7 @@ void ChContactContainer::ReportAllContacts(ChReportContactCallback* mcallback) {
 
 ////////// STATE INTERFACE ////
 
-void ChContactContainer::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
+void ChContactContainer__old::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     int coffset = 0;
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
@@ -272,7 +265,7 @@ void ChContactContainer::IntStateGatherReactions(const unsigned int off_L, ChVec
     }
 }
 
-void ChContactContainer::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
+void ChContactContainer__old::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     int coffset = 0;
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
@@ -288,7 +281,7 @@ void ChContactContainer::IntStateScatterReactions(const unsigned int off_L, cons
     }
 }
 
-void ChContactContainer::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
+void ChContactContainer__old::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
                                              ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                              const ChVectorDynamic<>& L,  ///< the L vector
                                              const double c               ///< a scaling factor
@@ -308,7 +301,7 @@ void ChContactContainer::IntLoadResidual_CqL(const unsigned int off_L,    ///< o
     }
 }
 
-void ChContactContainer::IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
+void ChContactContainer__old::IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
                                              ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
                                              const double c,          ///< a scaling factor
                                              bool do_clamp,           ///< apply clamping to c*C?
@@ -329,7 +322,7 @@ void ChContactContainer::IntLoadConstraint_C(const unsigned int off,  ///< offse
     }
 }
 
-void ChContactContainer::IntToLCP(const unsigned int off_v,  ///< offset in v, R
+void ChContactContainer__old::IntToLCP(const unsigned int off_v,  ///< offset in v, R
                                   const ChStateDelta& v,
                                   const ChVectorDynamic<>& R,
                                   const unsigned int off_L,  ///< offset in L, Qc
@@ -350,7 +343,7 @@ void ChContactContainer::IntToLCP(const unsigned int off_v,  ///< offset in v, R
     }
 }
 
-void ChContactContainer::IntFromLCP(const unsigned int off_v,  ///< offset in v
+void ChContactContainer__old::IntFromLCP(const unsigned int off_v,  ///< offset in v
                                     ChStateDelta& v,
                                     const unsigned int off_L,  ///< offset in L
                                     ChVectorDynamic<>& L) {
@@ -371,7 +364,7 @@ void ChContactContainer::IntFromLCP(const unsigned int off_v,  ///< offset in v
 
 ////////// LCP INTERFACES ////
 
-void ChContactContainer::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChContactContainer__old::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->InjectConstraints(mdescriptor);
@@ -384,7 +377,7 @@ void ChContactContainer::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     }
 }
 
-void ChContactContainer::ConstraintsBiReset() {
+void ChContactContainer__old::ConstraintsBiReset() {
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ConstraintsBiReset();
@@ -397,7 +390,7 @@ void ChContactContainer::ConstraintsBiReset() {
     }
 }
 
-void ChContactContainer::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+void ChContactContainer__old::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
@@ -410,11 +403,11 @@ void ChContactContainer::ConstraintsBiLoad_C(double factor, double recovery_clam
     }
 }
 
-void ChContactContainer::ConstraintsLoadJacobians() {
+void ChContactContainer__old::ConstraintsLoadJacobians() {
     // already loaded when ChContact objects are created
 }
 
-void ChContactContainer::ConstraintsFetch_react(double factor) {
+void ChContactContainer__old::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
@@ -430,7 +423,7 @@ void ChContactContainer::ConstraintsFetch_react(double factor) {
 
 // Following functions are for exploiting the contact persistence
 
-void ChContactContainer::ConstraintsLiLoadSuggestedSpeedSolution() {
+void ChContactContainer__old::ConstraintsLiLoadSuggestedSpeedSolution() {
     // Fetch the last computed impulsive reactions from the persistent contact manifold (could
     // be used for warm starting the CCP speed solver):
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
@@ -445,7 +438,7 @@ void ChContactContainer::ConstraintsLiLoadSuggestedSpeedSolution() {
     }
 }
 
-void ChContactContainer::ConstraintsLiLoadSuggestedPositionSolution() {
+void ChContactContainer__old::ConstraintsLiLoadSuggestedPositionSolution() {
     // Fetch the last computed 'positional' reactions from the persistent contact manifold (could
     // be used for warm starting the CCP position stabilization solver):
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
@@ -460,7 +453,7 @@ void ChContactContainer::ConstraintsLiLoadSuggestedPositionSolution() {
     }
 }
 
-void ChContactContainer::ConstraintsLiFetchSuggestedSpeedSolution() {
+void ChContactContainer__old::ConstraintsLiFetchSuggestedSpeedSolution() {
     // Store the last computed reactions into the persistent contact manifold (might
     // be used for warm starting CCP the speed solver):
     std::list<ChContact*>::iterator itercontact = contactlist.begin();
@@ -475,7 +468,7 @@ void ChContactContainer::ConstraintsLiFetchSuggestedSpeedSolution() {
     }
 }
 
-void ChContactContainer::ConstraintsLiFetchSuggestedPositionSolution() {
+void ChContactContainer__old::ConstraintsLiFetchSuggestedPositionSolution() {
     // Store the last computed 'positional' reactions into the persistent contact manifold (might
     // be used for warm starting the CCP position stabilization solver):
     std::list<ChContact*>::iterator itercontact = contactlist.begin();

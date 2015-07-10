@@ -25,6 +25,10 @@ namespace fea
 {
 
 
+// Forward
+class ChMesh;
+
+
 /// Class for a generic finite element node 
 /// in 3D space, with x,y,z displacement. This is the typical
 /// node that can be used for tetahedrons, etc.
@@ -218,7 +222,14 @@ public:
 						this->SetPos( this->GetPos() + newspeed * step);
 					};
 
+
+    /// Return the pointer to the surface material. 
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+
+
+
 protected:
+
 	ChLcpVariablesNode	variables; /// 3D node variables, with x,y,z
 
 	ChVector<> X0;		///< reference position

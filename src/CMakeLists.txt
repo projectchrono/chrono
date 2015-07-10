@@ -406,7 +406,7 @@ include_directories( ${CH_INCLUDES} )
         physics/ChContactRolling.cpp
         physics/ChContactNode.cpp
         physics/ChContactContainerBase.cpp
-        physics/ChContactContainer.cpp
+        physics/ChContactContainer__old.cpp
 		physics/ChContactContainerDVI.cpp
         physics/ChContactContainerNodes.cpp
         physics/ChProximityContainerBase.cpp
@@ -429,7 +429,8 @@ include_directories( ${CH_INCLUDES} )
         physics/ChAssembly.cpp
         physics/ChSystemDEM.cpp
         physics/ChContactContainerDEM.cpp
-        physics/ChContactDEM.cpp
+		physics/ChContactContainerDEM__old.cpp
+        physics/ChContactDEM__old.cpp
         physics/ChMaterialSurfaceDEM.cpp
 		physics/ChMaterialSurface.cpp
         physics/ChContinuumMaterial.cpp
@@ -441,7 +442,7 @@ include_directories( ${CH_INCLUDES} )
         physics/ChBodyEasy.h
         physics/ChConstraint.h
         physics/ChContact.h
-        physics/ChContactContainer.h
+        physics/ChContactContainer__old.h
 		physics/ChContactContainerDVI.h
         physics/ChContactContainerBase.h
         physics/ChContactContainerNodes.h
@@ -528,14 +529,16 @@ include_directories( ${CH_INCLUDES} )
         physics/ChAssembly.h
         physics/ChSystemDEM.h
         physics/ChContactContainerDEM.h
+		physics/ChContactContainerDEM__old.h
         physics/ChContactDEM.h
+		physics/ChContactDEM__old.h
 		physics/ChContactDVI.h
+		physics/ChContactDVIrolling.h
         physics/ChTensors.h
         physics/ChContinuumMaterial.h
         physics/ChInertiaUtils.h
 		physics/ChContactable.h
 		physics/ChContactTuple.h
-		physics/ChContactDVI.h
         )
     source_group(physics FILES
         ${ChronoEngine_physics_SOURCES}
@@ -902,6 +905,8 @@ include_directories( ${CH_INCLUDES} )
 		lcp/ChLcpConstraintTwoTuples.h
 		lcp/ChLcpConstraintTwoTuplesContactN.h
 		lcp/ChLcpConstraintTwoTuplesFrictionT.h
+		lcp/ChLcpConstraintTwoTuplesRollingN.h
+		lcp/ChLcpConstraintTwoTuplesRollingT.h
         lcp/ChLcpDirectSolver.h
         lcp/ChLcpIterativeJacobi.h
         lcp/ChLcpIterativeMINRES.h

@@ -12,20 +12,7 @@
 #ifndef CHLCPCONSTRAINTTWOROLLINGT_H
 #define CHLCPCONSTRAINTTWOROLLINGT_H
 
-//////////////////////////////////////////////////
-//
-//   ChLcpConstraintTwoRollingT.h
-//
-//  Class used to represent rolling friction constraint
-// between two ChLcpVariable() items.
-//
-//
-//   HEADER file for CHRONO HYPEROCTANT LCP solver
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+///***OBSOLETE*** old-contact-system!
 
 #include "ChLcpConstraintTwoBodies.h"
 #include "ChLcpVariables.h"
@@ -34,6 +21,7 @@ namespace chrono {
 
 /// This is used to make the rolling friction constraint. This
 /// must be used in twice copy each ChLcpConstraintTwoRollingN
+///***OBSOLETE*** old-contact-system!
 
 class ChApi ChLcpConstraintTwoRollingT : public ChLcpConstraintTwoBodies {
     CH_RTTI(ChLcpConstraintTwoRollingT, ChLcpConstraintTwoBodies)

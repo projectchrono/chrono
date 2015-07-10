@@ -209,11 +209,13 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
     // btSphereSphereCollisionAlgorithm::CreateFunc);
 
     // custom collision for cylinder-sphere case, for improved precision
+/*   
     btCollisionAlgorithmCreateFunc* m_collision_sph_cyl = new btSphereCylinderCollisionAlgorithm::CreateFunc;
     btCollisionAlgorithmCreateFunc* m_collision_cyl_sph = new btSphereCylinderCollisionAlgorithm::CreateFunc;
     m_collision_cyl_sph->m_swapped = true;
     bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE, CYLINDER_SHAPE_PROXYTYPE, m_collision_sph_cyl);
     bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE, SPHERE_SHAPE_PROXYTYPE, m_collision_cyl_sph);
+*/ 
 
     // custom collision for GIMPACT mesh case too
     btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);

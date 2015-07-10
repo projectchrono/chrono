@@ -40,6 +40,7 @@ namespace chrono {
 /// Class representing an unilateral contact constraint
 /// between two 6DOF rigid bodies.
 ///
+///***OBSOLETE*** old-contact-system!
 
 class ChApi ChContact {
   protected:

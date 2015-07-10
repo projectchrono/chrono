@@ -12,20 +12,7 @@
 #ifndef CHCONTACTNODE_H
 #define CHCONTACTNODE_H
 
-///////////////////////////////////////////////////
-//
-//   ChContactNode.h
-//
-//   Classes for enforcing constraints (contacts)
-//   between nodes (3DOF) and bodies (6DOF)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+///***OBSOLETE*** old-contact-system!
 
 #include "core/ChFrame.h"
 #include "core/ChVectorDynamic.h"
@@ -39,6 +26,7 @@ namespace chrono {
 /// Class representing an unilateral contact constraint
 /// between a 3DOF node and a 6DOF body
 ///
+///***OBSOLETE*** old-contact-system!
 
 class ChApi ChContactNode {
   protected:

@@ -13,20 +13,7 @@
 #ifndef CHLCPCONSTRAINTTWOFRICTIONT_H
 #define CHLCPCONSTRAINTTWOFRICTIONT_H
 
-//////////////////////////////////////////////////
-//
-//   ChLcpConstraintTwoFrictionT.h
-//
-//  Class used to represent friction constraint
-// between two ChLcpVariable() items.
-//
-//
-//   HEADER file for CHRONO HYPEROCTANT LCP solver
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+///***OBSOLETE*** old-contact-system!
 
 #include "ChLcpConstraintTwoBodies.h"
 #include "ChLcpVariables.h"
@@ -35,6 +22,7 @@ namespace chrono {
 
 /// Base class for friction constraints (see specialized children classes
 /// for more details - this is mostly an interface)
+///***OBSOLETE*** old-contact-system!
 
 class ChApi ChLcpConstraintTwoFrictionT : public ChLcpConstraintTwoBodies {
     CH_RTTI(ChLcpConstraintTwoFrictionT, ChLcpConstraintTwoBodies)

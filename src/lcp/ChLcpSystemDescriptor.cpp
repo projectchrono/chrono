@@ -24,6 +24,8 @@
 
 #include "ChLcpSystemDescriptor.h"
 #include "ChLcpConstraintTwoFrictionT.h"
+#include "ChLcpConstraintTwoTuplesContactN.h"
+#include "ChLcpConstraintTwoTuplesFrictionT.h"
 #include "ChLcpConstraintTwoRollingN.h"
 #include "ChLcpConstraintTwoRollingT.h"
 
@@ -131,7 +133,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
             if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
-                if (!((dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic])) && skip_contacts_uv)) {
+                if (!((dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) && skip_contacts_uv)) {
                     mn_c++;
                 }
     }
@@ -182,7 +184,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
             if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
-                if (!((dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic])) && skip_contacts_uv)) {
+                if (!((dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) && skip_contacts_uv)) {
                     if (Cq)
                         mconstraints[ic]->Build_Cq(*Cq, s_c);  // .. fills Cq
                     if (E)
@@ -192,12 +194,12 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
                     if (Frict)                                          // .. fills vector of friction coefficients
                     {
                         (*Frict)(s_c) = -2;  // mark with -2 flag for bilaterals (default)
-                        if (ChLcpConstraintTwoContactN* mcon =
-                                dynamic_cast<ChLcpConstraintTwoContactN*>(mconstraints[ic]))
+                        if (ChLcpConstraintTwoTuplesContactNall* mcon =
+                                dynamic_cast<ChLcpConstraintTwoTuplesContactNall*>(mconstraints[ic]))
                             (*Frict)(s_c) =
                                 mcon->GetFrictionCoefficient();  // friction coeff only in row of normal component
-                        if (ChLcpConstraintTwoFrictionT* mcon =
-                                dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic]))
+                        if (ChLcpConstraintTwoTuplesFrictionTall* mcon =
+                                dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[ic]))
                             (*Frict)(s_c) = -1;  // mark with -1 flag for rows of tangential components
                     }
                     s_c++;

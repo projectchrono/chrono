@@ -18,6 +18,7 @@
 
 #include "physics/ChIndexedNodes.h"
 #include "physics/ChContinuumMaterial.h"
+#include "physics/ChMaterialSurface.h"
 #include "ChNodeFEAbase.h"
 #include "ChElementBase.h"
 
@@ -40,10 +41,15 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     unsigned int n_dofs;    // total degrees of freedom
     unsigned int n_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
 
+    // data for surface contact and impact (can be shared):
+    ChSharedPtr<ChMaterialSurfaceBase> matsurface;
+
   public:
     ChMesh() {
         n_dofs = 0;
         n_dofs_w = 0;
+        // default DVI material
+        matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
     };
     ~ChMesh(){};
 
@@ -79,6 +85,14 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Update time dependent data, for all elements.
     /// Updates all [A] coord.systems for all (corotational) elements.
     virtual void Update(double m_time, bool update_assets = true);
+
+
+    /// Set the material surface for 'boundary contact'
+    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+
+    /// Set the material surface for 'boundary contact' 
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
+
 
     /// Load tetahedrons from .node and .ele files as saved by TetGen.
     /// The file format for .node (with point# starting from 1) is:

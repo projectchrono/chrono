@@ -51,8 +51,8 @@ namespace fea
 
 using namespace collision;
 
-
-
+// Forward
+class ChMatterMeshless;
 
 
 
@@ -93,9 +93,21 @@ public:
 			// Access the 'LCP variables' of the node
 	ChLcpVariablesNode& Variables() {return variables;}
 
-					//
-					// DATA
-					// 
+
+    // Get the SPH container
+    ChMatterMeshless* GetMatterContainer() const {return container;}
+    // Set the SPH container
+    void SetMatterContainer(ChMatterMeshless* mc) { container = mc;}
+
+    /// Return the pointer to the surface material. 
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+
+    //
+    // DATA
+    //
+
+    ChMatterMeshless* container;
+
 	ChVector<> pos_ref; 
 	
 	ChMatrix33<> Amoment;
@@ -145,6 +157,9 @@ private:
 	double viscosity;
 
 	bool do_collide;
+
+    // data for surface contact and impact (can be shared):
+    ChSharedPtr<ChMaterialSurfaceBase> matsurface;
 
 public:
 
@@ -198,6 +213,14 @@ public:
 				/// Add a new node to the particle cluster, passing a 
 				/// vector as initial position.
 	void AddNode(ChVector<double> initial_state);
+
+
+    
+        /// Set the material surface for 'boundary contact'
+    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+
+    /// Set the material surface for 'boundary contact' 
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
 
 		//
 		// STATE FUNCTIONS

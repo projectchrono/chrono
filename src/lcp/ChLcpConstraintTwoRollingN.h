@@ -13,22 +13,7 @@
 #ifndef CHLCPCONSTRAINTTWOROLLINGN_H
 #define CHLCPCONSTRAINTTWOROLLINGN_H
 
-//////////////////////////////////////////////////
-//
-//   ChLcpConstraintTwoRollingN.h
-//
-//    An 'easy' derived class for modeling rolling friction.
-//   Used with for building sparse variational problems
-//   (VI/CCP/LCP/linear problems) described by
-//   a ChLcpSystemDescriptor
-//
-//
-//   HEADER file for CHRONO HYPEROCTANT LCP solver
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+///***OBSOLETE*** old-contact-system!
 
 #include "ChLcpConstraintTwoRollingT.h"
 #include "ChLcpConstraintTwoContactN.h"
@@ -39,6 +24,7 @@ namespace chrono {
 /// It is used to represent the rolling friction between two objects
 /// ONLY when also two ChLcpConstraintTwoRollingT objects and a
 /// ChLcpConstraintTwoContactN are used to represent contact.
+///***OBSOLETE*** old-contact-system!
 
 class ChApi ChLcpConstraintTwoRollingN : public ChLcpConstraintTwoBodies {
     CH_RTTI(ChLcpConstraintTwoRollingN, ChLcpConstraintTwoBodies)

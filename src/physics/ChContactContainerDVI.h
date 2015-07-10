@@ -17,7 +17,7 @@
 #include "physics/ChContactContainerBase.h"
 #include "physics/ChContactable.h"
 #include "physics/ChContactDVI.h"
-//#include "physics/ChContactRolling.h"
+#include "physics/ChContactDVIrolling.h"
 #include <list>
 
 namespace chrono {
@@ -25,7 +25,10 @@ namespace chrono {
 ///
 /// Class representing a container of many contacts,
 /// implemented as a typical linked list of ChContactDVI
-/// objects (that is, contacts between two ChContactable objects).
+/// objects (that is, contacts between two ChContactable objects, with 3 reactions).
+/// It might also contain ChContactDVIrolling objects (extended 
+/// versions of ChContactDVI, with 6 reactions, that account
+/// also for rolling and spinning resistance), but also for '6dof vs 6dof' contactables.
 /// This is the default contact container used in most
 /// cases.
 ///
@@ -37,6 +40,7 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     typedef ChContactDVI< ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVI_6_6;
     typedef ChContactDVI< ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDVI_6_3;
     typedef ChContactDVI< ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDVI_3_3;
+    typedef ChContactDVIrolling< ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVIrolling_6_6;
 
   protected:
     //
@@ -46,14 +50,17 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     std::list< ChContactDVI_6_6* > contactlist_6_6;
     std::list< ChContactDVI_6_3* > contactlist_6_3;
     std::list< ChContactDVI_3_3* > contactlist_3_3;
+    std::list< ChContactDVIrolling_6_6* > contactlist_6_6_rolling;
 
     int n_added_6_6;
     int n_added_6_3;
     int n_added_3_3;
+    int n_added_6_6_rolling;
 
     std::list<ChContactDVI_6_6*>::iterator lastcontact_6_6;
     std::list<ChContactDVI_6_3*>::iterator lastcontact_6_3;
     std::list<ChContactDVI_3_3*>::iterator lastcontact_3_3;
+    std::list<ChContactDVIrolling_6_6*>::iterator lastcontact_6_6_rolling;
 
   public:
     //
@@ -68,10 +75,12 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     // FUNCTIONS
     //
     /// Tell the number of added contacts
-    virtual int GetNcontacts() { return n_added_6_6 + n_added_6_3 + n_added_3_3;} // TODO + n_added_roll; }
-
-    /// Return the contact List
-    //virtual std::list<ChContact*>& GetContactList() { return contactlist; }
+    virtual int GetNcontacts() { 
+        return  n_added_6_6 + 
+                n_added_6_3 + 
+                n_added_3_3 + 
+                n_added_6_6_rolling;
+    } 
 
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts();
@@ -100,7 +109,13 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
 
     /// Tell the number of scalar bilateral constraints (actually, friction
     /// constraints aren't exactly as unilaterals, but count them too)
-    virtual int GetDOC_d() { return (GetNcontacts() * 3) ;} // TODO  + (n_added_roll * 6); }
+    virtual int GetDOC_d() { 
+        return 3* ( n_added_6_6 + 
+                    n_added_6_3 + 
+                    n_added_3_3 )
+                    + 
+               6* ( n_added_6_6_rolling );
+    } 
 
     /// In detail, it computes jacobians, violations, etc. and stores
     /// results in inner structures of contacts.

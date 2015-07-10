@@ -34,7 +34,6 @@
 #include "ChPovRayAssetCustom.h"
 #include "physics/ChParticlesClones.h"
 #include "physics/ChLinkMate.h"
-#include "physics/ChContactContainer.h"
 
 using namespace chrono;
 using namespace postprocess;

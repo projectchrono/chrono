@@ -82,6 +82,8 @@ void ChMesh::SetNoSpeedNoAcceleration()
 void ChMesh::AddNode ( ChSharedPtr<ChNodeFEAbase> m_node)
 {
 	this->vnodes.push_back(m_node);
+
+    m_node->SetMeshContainer(this);
 }
 
 void ChMesh::AddElement ( ChSharedPtr<ChElementBase> m_elem)

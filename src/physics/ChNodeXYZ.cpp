@@ -43,8 +43,8 @@ ChNodeXYZ& ChNodeXYZ::operator=(const ChNodeXYZ& other) {
 }
 
 void ChNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                            const unsigned int off, ChVectorDynamic<>& R, const double c) {
-    R.PasteSumVector(F * c, off + 0, 0);
+                                    ChVectorDynamic<>& R) {
+    R.PasteSumVector(F, this->NodeGetOffset_w() + 0, 0);
 }
 
 void ChNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 

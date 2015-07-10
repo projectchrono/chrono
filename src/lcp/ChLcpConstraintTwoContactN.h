@@ -12,22 +12,7 @@
 #ifndef CHLCPCONSTRAINTTWOCONTACTN_H
 #define CHLCPCONSTRAINTTWOCONTACTN_H
 
-//////////////////////////////////////////////////
-//
-//   ChLcpConstraintTwoContactN.h
-//
-//    An 'easy' derived class for representing a
-//   constraint between two ChLcpVariable items.
-//   Used with LCP systems including inequalities,
-//   equalities, nonlinearities, etc.
-//
-//
-//   HEADER file for CHRONO HYPEROCTANT LCP solver
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+///***OBSOLETE*** old-contact-system!
 
 #include "ChLcpConstraintTwoFrictionT.h"
 
@@ -43,6 +28,7 @@ namespace chrono {
 /// projection on positive constraint, since it will be up to the 'companion'
 /// ChLcpConstraintTwoFrictionT objects to call a projection on the cone, by
 /// modifying all the three components (normal, u, v) at once.
+///***OBSOLETE*** old-contact-system!
 
 class ChApi ChLcpConstraintTwoContactN : public ChLcpConstraintTwoBodies {
     CH_RTTI(ChLcpConstraintTwoContactN, ChLcpConstraintTwoBodies)

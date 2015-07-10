@@ -36,6 +36,7 @@ namespace chrono {
 /// Class representing an unilateral contact constraint, used by
 /// ChContactContainer, that has also rolling friction.
 ///
+///***OBSOLETE*** old-contact-system!
 
 class ChApi ChContactRolling : public ChContact {
   protected:

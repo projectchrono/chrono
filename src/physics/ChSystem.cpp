@@ -30,7 +30,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChBodyAuxRef.h"
-#include "physics/ChContactContainer.h"
+#include "physics/ChContactContainer__old.h"
 #include "physics/ChContactContainerDVI.h"
 #include "physics/ChProximityContainerBase.h"
 
@@ -256,7 +256,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     this->contact_container = 0;
     // default contact container
     if (init_sys) {
-        //this->contact_container = new ChContactContainer(); ***OBSOLETE***
+        //this->contact_container = new ChContactContainer__old(); //***OBSOLETE***
         this->contact_container = new ChContactContainerDVI();
         this->contact_container->SetSystem(this);
     }
@@ -454,7 +454,7 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval) {
     LCP_descriptor = new ChLcpSystemDescriptor;
     LCP_descriptor->SetNumThreads(parallel_thread_number);
 
-    //contact_container = new ChContactContainer;***OBSOLETE***
+    //this->contact_container = new ChContactContainer__old; //***OBSOLETE***
     this->contact_container = new ChContactContainerDVI();
     this->contact_container->SetSystem(this);
 
@@ -855,7 +855,7 @@ void ChSystem::RemoveOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> mitem) {
 }
 
 void ChSystem::Add(ChSharedPtr<ChPhysicsItem> newitem) {
-    if (newitem.IsType<ChBody>())  // old was: (typeid(*newitem.get_ptr())==typeid(ChBody))
+    if (newitem.IsType<ChBody>()) // (typeid(*newitem.get_ptr())==typeid(ChBody)) // if (newitem.IsType<ChBody>()) sends ChBody descendants in ChBody list: this is bad for ChConveyor
     {
         AddBody(newitem.DynamicCastTo<ChBody>());
     } else if (newitem.IsType<ChLink>()) {
@@ -865,7 +865,7 @@ void ChSystem::Add(ChSharedPtr<ChPhysicsItem> newitem) {
 }
 
 void ChSystem::Remove(ChSharedPtr<ChPhysicsItem> newitem) {
-    if (newitem.IsType<ChBody>())  // old was: (typeid(*newitem.get_ptr())==typeid(ChBody))
+    if (newitem.IsType<ChBody>()) // (typeid(*newitem.get_ptr())==typeid(ChBody)) // if (newitem.IsType<ChBody>()) sends ChBody descendants in ChBody list: this is bad for ChConveyor
     {
         RemoveBody(newitem.DynamicCastTo<ChBody>());
     } else if (newitem.IsType<ChLink>()) {
@@ -1281,9 +1281,9 @@ void ChSystem::Setup() {
 
             ncoords   += Bpointer->GetDOF();
             ncoords_w += Bpointer->GetDOF_w();
-            //ndoc_w    += Bpointer->GetDOC();   // unneeded since ChBody introduces no constraints
-            //ndoc_w_C  += Bpointer->GetDOC_c(); // unneeded since ChBody introduces no constraints
-            //ndoc_w_D  += Bpointer->GetDOC_d(); // unneeded since ChBody introduces no constraints
+            ndoc_w    += Bpointer->GetDOC();   // unneeded since ChBody introduces no constraints
+            ndoc_w_C  += Bpointer->GetDOC_c(); // unneeded since ChBody introduces no constraints
+            ndoc_w_D  += Bpointer->GetDOC_d(); // unneeded since ChBody introduces no constraints
         }
     }
 

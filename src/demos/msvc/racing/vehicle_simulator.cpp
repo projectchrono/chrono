@@ -144,8 +144,8 @@ MySimulator::MySimulator() {
     my_system->SetIterLCPmaxItersSpeed(16);  // the higher, the easier to keep the constraints 'mounted'.
     my_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);  // better than _SYMMSOR - to discover why!!!
 
-    my_system->SetIntegrationType(ChSystem::INT_TASORA);  // can handle large penetrations
-    // my_system->SetIntegrationType(ChSystem::INT_ANITESCU); // a bit faster but more 'spongy'
+    my_system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_PROJECTED);  // can handle large penetrations
+    // my_system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED); // a bit faster but more 'spongy'
 }
 
 /// Delete the simulator.

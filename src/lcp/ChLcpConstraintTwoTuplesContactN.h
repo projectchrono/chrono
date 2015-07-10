@@ -17,6 +17,32 @@
 
 namespace chrono {
 
+
+/// This is enough to use dynamic_casting<> to detect all template types
+/// from ChLcpConstraintTwoTuplesContactN
+
+class ChApi ChLcpConstraintTwoTuplesContactNall {
+
+public:
+
+    /// Get the friction coefficient
+    double GetFrictionCoefficient() { return friction; }
+    /// Set the friction coefficient
+    void SetFrictionCoefficient(double mcoeff) { friction = mcoeff; }
+
+    /// Get the cohesion
+    double GetCohesion() { return cohesion; }
+    /// Set the cohesion
+    void SetCohesion(double mcoh) { cohesion = mcoh; }
+
+protected:
+    /// the friction coefficient 'f', for  sqrt(Tx^2+Ty^2)<f*Nz
+    double friction;
+    /// the cohesion 'c', positive, if any, for  sqrt(Tx^2+Ty^2)<f*(Nz+c)
+    double cohesion;
+
+};
+
 ///  This class is inherited by the ChLcpConstraintTwoTuples(),
 /// It is used to represent the normal reaction between two objects,
 /// each represented by a tuple of ChVariables objects,
@@ -31,17 +57,15 @@ namespace chrono {
 /// Templates Ta and Tb are of ChLcpVariableTupleCarrier_Nvars classes
 
 template <class Ta, class Tb>
-class ChApi ChLcpConstraintTwoTuplesContactN : public ChLcpConstraintTwoTuples<Ta,Tb> {
+class ChApi ChLcpConstraintTwoTuplesContactN : 
+            public ChLcpConstraintTwoTuples<Ta,Tb>, 
+            public ChLcpConstraintTwoTuplesContactNall {
 
     //
     // DATA
     //
 
   protected:
-    /// the friction coefficient 'f', for  sqrt(Tx^2+Ty^2)<f*Nz
-    double friction;
-    /// the cohesion 'c', positive, if any, for  sqrt(Tx^2+Ty^2)<f*(Nz+c)
-    double cohesion;
 
     /// the pointer to U tangential component
     ChLcpConstraintTwoTuplesFrictionT< Ta, Tb >* constraint_U;
@@ -91,15 +115,6 @@ class ChApi ChLcpConstraintTwoTuplesContactN : public ChLcpConstraintTwoTuples<T
     // FUNCTIONS
     //
 
-    /// Get the friction coefficient
-    double GetFrictionCoefficient() { return friction; }
-    /// Set the friction coefficient
-    void SetFrictionCoefficient(double mcoeff) { friction = mcoeff; }
-
-    /// Get the cohesion
-    double GetCohesion() { return cohesion; }
-    /// Set the cohesion
-    void SetCohesion(double mcoh) { cohesion = mcoh; }
 
     /// Get pointer to U tangential component
     ChLcpConstraintTwoTuplesFrictionT< Ta, Tb >* GetTangentialConstraintU() { return constraint_U; }

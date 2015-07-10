@@ -30,6 +30,7 @@ SET(ChronoEngine_UNIT_FEA_SOURCES
 	ChElementTetra_10.cpp
 	ChElementHexa_8.cpp
 	ChElementHexa_20.cpp 
+	ChNodeFEAxyz.cpp
 	ChGaussIntegrationRule.cpp
 	ChGaussPoint.cpp
 	ChMesh.cpp  

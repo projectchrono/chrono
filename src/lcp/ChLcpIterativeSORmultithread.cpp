@@ -24,8 +24,9 @@
 #include "ChLcpIterativeSORmultithread.h"
 #include "parallel/ChThreadsSync.h"
 #include "ChLcpConstraintTwoFrictionT.h"
-#include "ChLcpConstraintTwoRollingN.h"
-#include "ChLcpConstraintTwoRollingT.h"
+#include "ChLcpConstraintTwoTuplesFrictionT.h"
+#include "ChLcpConstraintTwoTuplesRollingN.h"
+#include "ChLcpConstraintTwoTuplesRollingT.h"
 #include <stdio.h>
 
 namespace chrono {
@@ -155,7 +156,7 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
 
                         if ((*mconstraints)[ic]->GetMode() == CONSTRAINT_FRIC) {
                             candidate_violation = 0;
-
+                            
                             // update:   lambda += delta_lambda;
                             old_lambda_friction[i_friction_comp] = (*mconstraints)[ic]->Get_l_i();
                             (*mconstraints)[ic]->Set_l_i(old_lambda_friction[i_friction_comp] + deltal);
@@ -312,16 +313,16 @@ double ChLcpIterativeSORmultithread::Solve(
         unsigned int constr_to = constr_from + ((unsigned int)mconstraints.size() - constr_from) / (numthreads - nth);
         if (constr_to < mconstraints.size())  // do not slice the three contact multipliers (or six in case of rolling)
         {
-            if (dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[constr_to]))
+            if (dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[constr_to]))
                 constr_to++;
-            if (dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[constr_to]))
+            if (dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[constr_to]))
                 constr_to++;
             if (constr_to < mconstraints.size()) {
-                if (dynamic_cast<ChLcpConstraintTwoRollingN*>(mconstraints[constr_to]))
+                if (dynamic_cast<ChLcpConstraintTwoTuplesRollingNall*>(mconstraints[constr_to]))
                     constr_to++;
-                if (dynamic_cast<ChLcpConstraintTwoRollingT*>(mconstraints[constr_to]))
+                if (dynamic_cast<ChLcpConstraintTwoTuplesRollingTall*>(mconstraints[constr_to]))
                     constr_to++;
-                if (dynamic_cast<ChLcpConstraintTwoRollingT*>(mconstraints[constr_to]))
+                if (dynamic_cast<ChLcpConstraintTwoTuplesRollingTall*>(mconstraints[constr_to]))
                     constr_to++;
             }
         }

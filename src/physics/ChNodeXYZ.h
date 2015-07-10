@@ -83,7 +83,7 @@ class ChApi ChNodeXYZ : public ChNodeBase,  public ChContactable_1vars<3> {
         /// Apply the force, expressed in absolute reference, applied in pos, to the 
         /// coordinates of the variables. Force for example could come from a penalty model.
     virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                            const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                         ChVectorDynamic<>& R);
 
         /// Compute the jacobian(s) part(s) for this contactable item. For example,
         /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
@@ -93,6 +93,7 @@ class ChApi ChNodeXYZ : public ChNodeBase,  public ChContactable_1vars<3> {
                             type_constraint_tuple& jacobian_tuple_V,
                             bool second);
 
+    virtual double GetContactableMass()  {return this->GetMass();}
 
     //
     // DATA

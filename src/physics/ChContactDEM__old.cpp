@@ -10,10 +10,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
+///***OBSOLETE*** old-contact-system!
+
 #include <cmath>
 #include <algorithm>
 
-#include "physics/ChContactDEM.h"
+#include "physics/ChContactDEM__old.h"
 #include "physics/ChSystemDEM.h"
 #include "physics/ChBody.h"
 
@@ -22,18 +24,18 @@ namespace chrono {
 using namespace collision;
 
 // Initialize static members
-double ChContactDEM::m_minSlipVelocity = 1e-4;
-double ChContactDEM::m_characteristicVelocity = 1;
+double ChContactDEM__old::m_minSlipVelocity = 1e-4; //***OBSOLETE*** moved to ChSystemDEM
+double ChContactDEM__old::m_characteristicVelocity = 1; //***OBSOLETE*** moved to ChSystemDEM
 
 // Construct a new DEM contact between two models using the specified contact pair information.
-ChContactDEM::ChContactDEM(collision::ChModelBulletBody* mod1,
+ChContactDEM__old::ChContactDEM__old(collision::ChModelBulletBody* mod1,
                            collision::ChModelBulletBody* mod2,
                            const collision::ChCollisionInfo& cinfo) {
     Reset(mod1, mod2, cinfo);
 }
 
 // Worker function for populating a new or reusing an exsting contact.
-void ChContactDEM::Reset(collision::ChModelBulletBody* mod1,
+void ChContactDEM__old::Reset(collision::ChModelBulletBody* mod1,
                          collision::ChModelBulletBody* mod2,
                          const collision::ChCollisionInfo& cinfo) {
     assert(cinfo.distance < 0);
@@ -65,7 +67,7 @@ void ChContactDEM::Reset(collision::ChModelBulletBody* mod1,
 
 // Calculate the contact force to be applied to body2, based on the
 // globally specified contact force model.
-void ChContactDEM::CalculateForce() {
+void ChContactDEM__old::CalculateForce() {
     ChBody* body1 = m_mod1->GetBody();
     ChBody* body2 = m_mod2->GetBody();
 
@@ -74,8 +76,8 @@ void ChContactDEM::CalculateForce() {
     double dT = sys->GetStep();
     bool use_mat_props = sys->UseMaterialProperties();
     bool use_history = sys->UseContactHistory();
-    ContactForceModel force_model = sys->GetContactForceModel();
-
+    ContactForceModel force_model = (ContactForceModel)sys->GetContactForceModel();
+    
     // Relative velocity at contact
     ChVector<> vel2 = body2->PointSpeedLocalToParent(m_p2_loc);
     ChVector<> vel1 = body1->PointSpeedLocalToParent(m_p1_loc);
@@ -176,7 +178,7 @@ void ChContactDEM::CalculateForce() {
 // contact force as calculated must be applied to body2 and inverted for
 // body1.
 // NOTE: SEE NEW VERSION BELOW...
-void ChContactDEM::ConstraintsFbLoadForces(double factor) {
+void ChContactDEM__old::ConstraintsFbLoadForces(double factor) {
     ChBody* body1 = m_mod1->GetBody();
     ChBody* body2 = m_mod2->GetBody();
 
@@ -198,7 +200,7 @@ void ChContactDEM::ConstraintsFbLoadForces(double factor) {
 // torques of the two bodies involved in this contact.  Recall that the
 // contact force as calculated must be applied to body2 and inverted for
 // body1.
-void ChContactDEM::DemIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
+void ChContactDEM__old::DemIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     ChBody* body1 = m_mod1->GetBody();
     ChBody* body2 = m_mod2->GetBody();
 
@@ -206,17 +208,21 @@ void ChContactDEM::DemIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     ChVector<> force2_loc = body2->Dir_World2Body(m_force);
     ChVector<> torque1_loc = Vcross(m_p1_loc, -force1_loc);
     ChVector<> torque2_loc = Vcross(m_p2_loc, force2_loc);
+    
+    if (body1->IsActive()) {
+        R.PasteSumVector(-m_force * c, body1->GetOffset_w() + 0, 0);
+        R.PasteSumVector(torque1_loc * c, body1->GetOffset_w() + 3, 0);
+    }
 
-    R.PasteSumVector(-m_force * c, body1->Variables().GetOffset() + 0, 0);
-    R.PasteSumVector(torque1_loc * c, body1->Variables().GetOffset() + 3, 0);
-
-    R.PasteSumVector(m_force * c, body2->Variables().GetOffset() + 0, 0);
-    R.PasteSumVector(torque2_loc * c, body2->Variables().GetOffset() + 3, 0);
+    if (body2->IsActive()) {
+        R.PasteSumVector(m_force * c, body2->GetOffset_w() + 0, 0);
+        R.PasteSumVector(torque2_loc * c, body2->GetOffset_w() + 3, 0);
+    }
 }
 
 // Return the coordinate system for this contact (centered at point P2
 // and oriented based on the contact plane and normal)
-ChCoordsys<> ChContactDEM::GetContactCoords() const {
+ChCoordsys<> ChContactDEM__old::GetContactCoords() const {
     ChCoordsys<> mcsys;
     ChQuaternion<float> mrot = m_contact_plane.Get_A_quaternion();
 

@@ -323,7 +323,6 @@ class ChApi ChCollisionModel {
     /// MUST be implemented by child classes!
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const = 0;
 
-    //void SetBody(ChBody* mbo) { mbody = mbo; }; // moved to ChModelBulletBody
 
     //
     // SERIALIZATION
