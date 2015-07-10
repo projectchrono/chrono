@@ -109,7 +109,7 @@ ChBody::ChBody(ChCollisionModel* new_collision_model, ContactMethod contact_meth
     Scr_torque = VNULL;
 
     collision_model = new_collision_model;
-    collision_model->SetBody(this);
+    collision_model->SetPhysicsItem(this);
 
     switch (contact_method) {
         case DVI:
@@ -796,7 +796,7 @@ void ChBody::ChangeCollisionModel(ChCollisionModel* new_collision_model) {
     }
 
     collision_model = new_collision_model;
-    collision_model->SetBody(this);
+    collision_model->SetPhysicsItem(this);
 }
 
 // forward reference
@@ -966,7 +966,7 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive)
 
     marchive >> CHNVP(body_id);
     marchive >> CHNVP(collision_model);
-     collision_model->SetBody(this);
+     collision_model->SetPhysicsItem(this);
     marchive >> CHNVP(gyro);
     marchive >> CHNVP(Xforce);
     marchive >> CHNVP(Xtorque);

@@ -5,13 +5,14 @@
 #=============================================================================
 
 
-SET(ENABLE_UNIT_FEA      FALSE	CACHE BOOL   "Turn ON this to generate the Chrono::Engine FEA unit.")
+option(ENABLE_UNIT_FEA "Enable the Chrono FEA module" OFF)
 
+# Return now if this module is not enabled
 IF(NOT ENABLE_UNIT_FEA)
   RETURN()
-ELSE()
-	MESSAGE(STATUS "...enabling FEA Unit")
 ENDIF()
+
+MESSAGE(STATUS "==== Chrono FEA module ====")
 
 #-----------------------------------------------------------------------------
 #
@@ -19,7 +20,6 @@ ENDIF()
 # NOTE: to add a new source to this unit, just add its name
 # here and re-run the CMake.
 #
-
 
 SET(ChronoEngine_UNIT_FEA_SOURCES
 	ChBuilderBeam.cpp

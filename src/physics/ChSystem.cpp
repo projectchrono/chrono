@@ -245,9 +245,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     normtype = NORM_INF;
     maxiter = 6;
 
-    SetIntegrationType(INT_ANITESCU);
-    modeXY = FALSE;
-    contact_container = 0;
+    SetIntegrationType(INT_EULER_IMPLICIT_LINEARIZED); 
 
     min_bounce_speed = 0.15;
     max_penetration_recovery_speed = 0.6;
@@ -274,7 +272,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
 
     iterLCPmaxIters = 30;
     iterLCPmaxItersStab = 10;
-    simplexLCPmaxSteps = 100;
+    
     if (init_sys) {
         SetLcpSolverType(LCP_ITERATIVE_SYMMSOR);
     }
@@ -289,7 +287,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     stepcount = 0;
 
     last_err = 0;
-    strcpy(err_message, "");
 
     scriptEngine = 0;
     scriptForStart = NULL;
@@ -371,12 +368,10 @@ void ChSystem::Copy(ChSystem* source) {
     ncontacts = source->GetNcontacts();
     nbodies_sleep = source->GetNbodiesSleeping();
     nbodies_fixed = source->GetNbodiesFixed();
-    modeXY = source->modeXY;
     min_bounce_speed = source->min_bounce_speed;
     max_penetration_recovery_speed = source->max_penetration_recovery_speed;
     iterLCPmaxIters = source->iterLCPmaxIters;
     iterLCPmaxItersStab = source->iterLCPmaxItersStab;
-    simplexLCPmaxSteps = source->simplexLCPmaxSteps;
     SetLcpSolverType(GetLcpSolverType());
     parallel_thread_number = source->parallel_thread_number;
     use_sleeping = source->use_sleeping;
@@ -386,7 +381,6 @@ void ChSystem::Copy(ChSystem* source) {
     collisionpoint_callback = source->collisionpoint_callback;
 
     last_err = source->last_err;
-    memcpy(err_message, source->err_message, (sizeof(char) * CHSYS_ERRLEN));
 
     RemoveAllLinks();
     RemoveAllBodies();
@@ -2198,6 +2192,8 @@ int ChSystem::Integrate_Y() {
 //
 
 int ChSystem::Integrate_Y_impulse_Anitescu() {
+    GetLog() << "WARNING! The INT_ANITESCU timestepper is deprecated. Use the INT_EULER_IMPLICIT_LINEARIZED instead.\n";
+
     int ret_code = TRUE;
 
     timer_step.start();
@@ -2324,6 +2320,8 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
 //
 
 int ChSystem::Integrate_Y_impulse_Tasora() {
+    GetLog() << "WARNING! The INT_TASORA timestepper is deprecated. Use the INT_EULER_IMPLICIT_PROJECTED instead.\n";
+
     int ret_code = TRUE;
 
     timer_step.start();
@@ -2778,7 +2776,6 @@ int ChSystem::DoStaticRelaxing() {
     int err = 0;
     int reached_tolerance = FALSE;
 
-    ResetErrors();
 
     if (ncoords > 0) {
         if (ndof >= 0) {
@@ -2835,7 +2832,6 @@ int ChSystem::DoStaticRelaxing() {
 int ChSystem::DoEntireKinematics() {
     Setup();
 
-    ResetErrors();
 
     DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
     // first check if there are redundant links (at least one NR cycle
@@ -2861,7 +2857,6 @@ int ChSystem::DoEntireKinematics() {
 int ChSystem::DoEntireDynamics() {
     Setup();
 
-    ResetErrors();
 
     // the system may have wrong layout, or too large
     // clearances in costraints, so it is better to
@@ -2907,8 +2902,6 @@ int ChSystem::DoFrameDynamics(double m_endtime) {
     int restore_oldstep = FALSE;
     int counter = 0;
     double fixed_step_undo;
-
-    ResetErrors();
 
     frame_step = (m_endtime - ChTime);
     fixed_step_undo = step;
@@ -2979,8 +2972,6 @@ int ChSystem::DoFrameKinematics(double m_endtime) {
     int restore_oldstep;
     int counter = 0;
 
-    ResetErrors();
-
     frame_step = (m_endtime - ChTime);
 
     double fixed_step_undo = step;
@@ -3016,7 +3007,6 @@ int ChSystem::DoFrameKinematics(double m_endtime) {
 }
 
 int ChSystem::DoStepKinematics(double m_step) {
-    ResetErrors();
 
     ChTime += m_step;
 
@@ -3035,7 +3025,6 @@ int ChSystem::DoStepKinematics(double m_step) {
 //
 
 int ChSystem::DoFullAssembly() {
-    ResetErrors();
 
     DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
 
@@ -3167,7 +3156,7 @@ void ChSystem::StreamOUT(ChStreamOutBinary& mstream) {
     // v2
     mstream << iterLCPmaxIters;
     mstream << iterLCPmaxItersStab;
-    mstream << simplexLCPmaxSteps;
+    mstream << (int)0;
     mstream << (int)GetLcpSolverType();
     // v3,v4
     mstream << (int)0;  // GetFrictionProjection();
@@ -3238,7 +3227,7 @@ void ChSystem::StreamIN(ChStreamInBinary& mstream) {
     if (version >= 2) {
         mstream >> iterLCPmaxIters;
         mstream >> iterLCPmaxItersStab;
-        mstream >> simplexLCPmaxSteps;
+        mstream >> mint;
         mstream >> mint;
         SetLcpSolverType((eCh_lcpSolver)mint);
     }

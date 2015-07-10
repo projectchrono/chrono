@@ -37,6 +37,13 @@ ChModelBulletParticle::ChModelBulletParticle() {
 ChModelBulletParticle::~ChModelBulletParticle() {
 }
 
+/// Sets the pointer to the client owner ChPhysicsItem.
+void ChModelBulletParticle::SetPhysicsItem(ChPhysicsItem* mitem) { 
+        if (particles = dynamic_cast<ChIndexedParticles*>(mitem))
+            return;
+        else throw ChException("ERROR. ChModelBulletParticles::SetPhysicsItem() must get an item of sub-class ChIndexedParticles type.\n");
+};
+
 void ChModelBulletParticle::SetParticle(ChIndexedParticles* mpa, unsigned int id) {
     this->particles = mpa;
     this->particle_id = id;
