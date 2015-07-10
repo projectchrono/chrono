@@ -53,7 +53,10 @@ public:
         /// Apply the force, expressed in absolute reference, applied in pos, to the 
         /// coordinates of the variables. Force for example could come from a penalty model.
     virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                            const unsigned int off, ChVectorDynamic<>& R, const double c) = 0;
+                                ChVectorDynamic<>& R) = 0;
+
+        /// This can be useful in some DEM code:
+    virtual double GetContactableMass() = 0;
 };
 
 
@@ -75,6 +78,16 @@ public:
                             type_constraint_tuple& jacobian_tuple_U,
                             type_constraint_tuple& jacobian_tuple_V,
                             bool second) =0;
+
+        /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
+        /// (used only for rolling friction DVI contacts)
+    virtual void ComputeJacobianForRollingContactPart(
+                            const ChVector<>& abs_point, 
+                            ChMatrix33<>& contact_plane, 
+                            type_constraint_tuple& jacobian_tuple_N,
+                            type_constraint_tuple& jacobian_tuple_U,
+                            type_constraint_tuple& jacobian_tuple_V,
+                            bool second) {};
 };
 
 
@@ -96,6 +109,16 @@ public:
                             type_constraint_tuple& jacobian_tuple_U,
                             type_constraint_tuple& jacobian_tuple_V,
                             bool second) =0;
+
+        /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
+        /// (used only for rolling friction DVI contacts)
+    virtual void ComputeJacobianForRollingContactPart(
+                            const ChVector<>& abs_point, 
+                            ChMatrix33<>& contact_plane, 
+                            type_constraint_tuple& jacobian_tuple_N,
+                            type_constraint_tuple& jacobian_tuple_U,
+                            type_constraint_tuple& jacobian_tuple_V,
+                            bool second) {};
 };
 
 
@@ -117,6 +140,16 @@ public:
                             type_constraint_tuple& jacobian_tuple_U, 
                             type_constraint_tuple& jacobian_tuple_V, 
                             bool second) =0;
+
+        /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
+        /// (used only for rolling friction DVI contacts)
+    virtual void ComputeJacobianForRollingContactPart(
+                            const ChVector<>& abs_point, 
+                            ChMatrix33<>& contact_plane, 
+                            type_constraint_tuple& jacobian_tuple_N,
+                            type_constraint_tuple& jacobian_tuple_U,
+                            type_constraint_tuple& jacobian_tuple_V,
+                            bool second) {};
 };
 
 
