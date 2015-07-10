@@ -11,7 +11,6 @@
 //
 
 #include "physics/ChLinkMate.h"
-#include "physics/ChContactContainer.h"
 #include "lcp/ChLcpIterativeSolver.h"
 
 #include "unit_IRRLICHT/ChIrrTools.h"
@@ -152,7 +151,7 @@ class _label_reporter_class : public chrono::ChReportContactCallback2 {
         core::position2d<s32> spos =
             this->cdevice->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
         gui::IGUIFont* font = this->cdevice->getGUIEnvironment()->getBuiltInFont();
-
+    
         switch (labeltype) {
             case ChIrrTools::CONTACT_DISTANCES_VAL:
                 sprintf(buffer, "% 6.3g", distance);

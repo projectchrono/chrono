@@ -91,6 +91,15 @@ class ChApiIrr ChIrrAppInterface {
     void SetVideoframeSaveInterval(int val) { videoframe_each = val; }
     int GetVideoframeSaveInterval() { return videoframe_each; }
 
+    /// Set the label mode for contacts
+    void SetContactsLabelMode(ChIrrTools::eCh_ContactsLabelMode mm) {this->gad_labelcontacts->setSelected((int)mm);}
+    /// Set the draw mode for contacts
+    void SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode mm) {this->gad_drawcontacts->setSelected((int)mm);}
+    /// Set the label mode for links
+    void SetLinksLabelMode(ChIrrTools::eCh_LinkLabelMode mm) {this->gad_labellinks->setSelected((int)mm);}
+    /// Set the draw mode for links
+    void SetLinksDrawMode(ChIrrTools::eCh_LinkDrawMode mm) {this->gad_drawlinks->setSelected((int)mm);}
+
     /// Set the scale for symbol drawing (link frames, COGs, etc.)
     void SetSymbolscale(double val);
     double GetSymbolscale() { return symbolscale; }
