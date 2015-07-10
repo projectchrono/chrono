@@ -77,6 +77,7 @@ namespace ChOgre {
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/models", "FileSystem");
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/skyboxes/sky", "FileSystem");
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/heightmaps", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/MyGUI_Media", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/particle", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/DeferredShadingMedia", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/RTShaderLib", "FileSystem");
@@ -201,7 +202,7 @@ namespace ChOgre {
 
 	Ogre::RenderWindow* ChOgreApplication::createWindow(std::string Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync, bool Fullscreen) {
 		Ogre::NameValuePairList l_Params;
-		l_Params["FSAA"] = "0";
+		l_Params["FSAA"] = std::to_string(FSAA_Level);
 		if (VSync) {
 			l_Params["vsync"] = "true";
 		}
@@ -226,7 +227,7 @@ namespace ChOgre {
 		m_pRoot->clearEventTimes();
 
 		m_pInputManager = new ChOgre_SDLInputHandler(m_pRenderWindow);
-		//m_pGUIManager = new ChOgreGUIManager(m_pSceneManager, m_pInputManager);
+		m_pGUIManager = new ChOgreGUIManager(m_pRenderWindow, m_pSceneManager, m_pInputManager);
 
 
 		return m_pRenderWindow;
@@ -289,9 +290,9 @@ namespace ChOgre {
 		return m_pInputManager;
 	}
 
-	//ChOgreGUIManager* ChOgreApplication::getGUIManager() {
-	//	return m_pGUIManager;
-	//}
+	ChOgreGUIManager* ChOgreApplication::getGUIManager() {
+		return m_pGUIManager;
+	}
 
 	Ogre::RenderWindow* ChOgreApplication::getWindow() {
 		return m_pRenderWindow;

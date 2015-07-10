@@ -18,7 +18,7 @@ namespace ChOgre {
 		ChOgreKeyboardCallback() {}
 		~ChOgreKeyboardCallback() {}
 
-		virtual void call(keycode_t KeyCode, const ChOgreKeyState& KeyState) = 0;
+		virtual void call(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState) = 0;
 
 	protected:
 

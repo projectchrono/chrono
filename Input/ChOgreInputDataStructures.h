@@ -11,7 +11,8 @@ Data structures for passing around user input information
 
 namespace ChOgre {
 	
-	typedef uint32_t keycode_t;
+	typedef int32_t keycode_t;
+	typedef int32_t scancode_t;
 
 	///////////////////////////////////////////////////
 	struct CHOGRE_DLL_TAG ChOgreKeyState {

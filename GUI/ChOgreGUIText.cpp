@@ -2,9 +2,9 @@
 Author: Charles Ricchio
 */
 
-#include "ECGUIText.h"
+#include "ChOgreGUIText.h"
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
 	unsigned int ECGUIText::g_count = 0;
 

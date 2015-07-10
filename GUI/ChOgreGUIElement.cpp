@@ -1,20 +1,28 @@
-#include "ECGUIElement.h"
+#include "ChOgreGUIElement.h"
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	ECGUIElement::ECGUIElement(Ogre::Overlay* Overlay) {
-		m_pOverlay = Overlay;
+	ChOgreGUIElement::ChOgreGUIElement() {
+		m_pGUI = nullptr;
 	}
 
-	ECGUIElement::~ECGUIElement() {
-
+	ChOgreGUIElement::ChOgreGUIElement(MyGUI::Gui* GUI) {
+		m_pGUI = GUI;
 	}
 
-	void ECGUIElement::setName(std::string Name) {
+	ChOgreGUIElement::~ChOgreGUIElement() {
+		 
+	}
+
+	void ChOgreGUIElement::setName(std::string Name) {
 		m_Name = Name;
 	}
 
-	std::string ECGUIElement::getName() {
+	void ChOgreGUIElement::setGUI(MyGUI::Gui* GUI) {
+		m_pGUI = GUI;
+	}
+
+	std::string ChOgreGUIElement::getName() {
 		return m_Name;
 	}
 

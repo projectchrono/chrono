@@ -19,7 +19,7 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 #include "ChOgreMouseCallback.h"
 #include "ChOgreControllerCallback.h"
 
-#define INPUT_DEADZONE  0.25
+#define INPUT_DEADZONE  0.07
 
 namespace ChOgre {
 
@@ -63,7 +63,7 @@ namespace ChOgre {
 
 		SDL_Window* m_pSDLWindow;
 
-		void m_CallKeyboardCallbacks(keycode_t KeyCode, const ChOgreKeyState& KeyState);
+		void m_CallKeyboardCallbacks(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState);
 		void m_CallMouseCallbacks();
 		void m_CallControllerCallbacks();
 

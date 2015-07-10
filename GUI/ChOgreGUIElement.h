@@ -1,21 +1,29 @@
 #pragma once
 
-#include <OGRE\Overlay\OgreOverlay.h>
-#include <OGRE\Overlay\OgreOverlayManager.h>
+#include "../ChOgre.h"
+#include <MYGUI/MyGUI.h>
+#include <MYGUI/MyGUI_OgrePlatform.h>
+#include <core/ChVector.h>
+#include <memory>
+#include <string>
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	class ECGUIElement {
+	typedef chrono::ChVector<int> ChInt3;
+
+	class CHOGRE_DLL_TAG ChOgreGUIElement {
 
 	public:
 
-		ECGUIElement(Ogre::Overlay* Overlay);
-		~ECGUIElement();
+		ChOgreGUIElement();
+		ChOgreGUIElement(MyGUI::Gui* GUI);
+		~ChOgreGUIElement();
 
 		virtual void setName(std::string Name);
-		virtual void setPosition(double x, double y) =0;
-		virtual void setSize(double x, double y) =0;
-		virtual void setColor(double r, double g, double b) =0;
+		virtual void setGUI(MyGUI::Gui* GUI);
+		virtual void setPosition(const ChInt3& Position) =0;
+		virtual void setSize(const ChInt3& Size) =0;
+		virtual void setColor(float r, float g, float b) =0;
 		virtual void update() {};
 
 		virtual std::string getName();
@@ -23,12 +31,14 @@ namespace EnvironmentCore {
 	protected:
 
 		std::string m_Name;
-		Ogre::Overlay* m_pOverlay;
-
+		MyGUI::Gui* m_pGUI;
+		
 	private:
 
 
 
 	};
+
+	typedef std::unique_ptr<ChOgreGUIElement> ChOgreGUIElementPtr;
 
 }

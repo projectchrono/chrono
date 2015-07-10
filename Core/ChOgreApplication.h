@@ -22,7 +22,7 @@ Contains the prototype for a basic application. Manages things such as window cr
 #include "../Input/ChOgre_SDLInputHandler.h"
 #include "../Graphics/ChOgreCameraManager.h"
 #include "../Graphics/ChOgreScene.h"
-//#include "ECGUIManager.h"
+#include "../GUI/ChOgreGUIManager.h"
 
 #define ChOgreFunc(N) [&](N)
 
@@ -49,7 +49,7 @@ namespace ChOgre {
 		virtual ChOgreCameraManager* getCameraManager();
 		virtual ChOgreScene* getScene();
 		virtual ChOgre_SDLInputHandler* getInputManager();
-		//virtual ECGUIManager* getGUIManager();
+		virtual ChOgreGUIManager* getGUIManager();
 		virtual Ogre::RenderWindow* getWindow();
 		virtual Ogre::SceneManager* getSceneManager();
 		virtual chrono::ChSystem* getChSystem();
@@ -81,7 +81,7 @@ namespace ChOgre {
 		ChOgreCameraManager* m_pCameraManager;
 		ChOgreScene* m_pScene;
 		ChOgre_SDLInputHandler* m_pInputManager;
-		//ECGUIManager* m_pGUIManager;
+		ChOgreGUIManager* m_pGUIManager;
 
 		bool isVSyncEnabled;
 

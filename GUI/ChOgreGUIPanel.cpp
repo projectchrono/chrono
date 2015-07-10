@@ -2,11 +2,11 @@
 Author: Charles Ricchio
 */
 
-#include "ECGUIPanel.h"
+#include "ChOgreGUIPanel.h"
 #include <OGRE\Ogre.h>
 #include <OGRE\OgreScriptCompiler.h>
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
 	unsigned int ECGUIPanel::g_count = 0;
 

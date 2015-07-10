@@ -4,15 +4,15 @@ Author: Charles Ricchio
 
 #pragma once
 
-#include "ECGUIElement.h"
+#include "ChOgreGUIElement.h"
 #include <core/ChVector.h>
-#include <OGRE\Ogre.h>
-#include <OGRE\Overlay\OgreFontManager.h>
-#include <OGRE\Overlay\OgreFont.h>
-#include <OGRE\Overlay\OgreOverlayContainer.h>
-#include <OGRE\Overlay\OgreTextAreaOverlayElement.h>
+#include <OGRE/Ogre.h>
+#include <OGRE/Overlay/OgreFontManager.h>
+#include <OGRE/Overlay/OgreFont.h>
+#include <OGRE/Overlay/OgreOverlayContainer.h>
+#include <OGRE/Overlay/OgreTextAreaOverlayElement.h>
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
 	class ECGUIText : public ECGUIElement {
 

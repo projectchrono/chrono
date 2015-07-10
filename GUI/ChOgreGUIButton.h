@@ -1,44 +1,43 @@
 #pragma once
 
-#include "ECGUIElement.h"
-#include "ECGUIPanel.h"
-#include "EC_SDL_InputManager.h"
-#include <OGRE\Overlay\OgreFontManager.h>
-#include <OGRE\Overlay\OgreFont.h>
-#include <OGRE\Overlay\OgreTextAreaOverlayElement.h>
+#include "../Input/ChOgre_SDLInputHandler.h"
+#include "ChOgreGUICallback.h"
+#include "ChOgreGUIElement.h"
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	class ECGUIButton : public ECGUIPanel {
+	class CHOGRE_DLL_TAG ChOgreGUIButton : public ChOgreGUIElement {
 
 	public:
 
-		ECGUIButton(Ogre::Overlay* Overlay, EC_SDL_InputManager* InputManager);
-		~ECGUIButton();
+		ChOgreGUIButton();
+		ChOgreGUIButton(MyGUI::Gui* GUI);
+		ChOgreGUIButton(const ChInt3& Position, const ChInt3& Size, MyGUI::Gui* GUI);
+		~ChOgreGUIButton();
 
-		virtual void setTextColor(double r, double g, double b);
-		virtual void setText(std::string Text);
-		virtual void setFont(double CharacterHeight);
+		virtual inline void setColor(float r, float g, float b);
+		virtual inline void setTextColor(float r, float g, float b);
+		virtual inline void setText(const std::string& Text);
+		virtual inline void setFont(const std::string& Name);
+		virtual void setPosition(const chrono::ChVector<int>& Position);
+		virtual void setSize(const chrono::ChVector<int>& Size);
 		virtual void update();
 
-		virtual bool isPressed();
-		bool down;
+		virtual void setClickCallback(ChOgreGUICallback& Callback);
 
 	protected:
 
 		bool m_db;
 		bool m_pressed;
 
-		EC_SDL_InputManager* m_pInputManager;
-		Ogre::TextAreaOverlayElement* m_pText;
-		Ogre::FontPtr m_Font;
-
-		virtual void _resizePanel();
+		MyGUI::ButtonPtr m_pButton;
 
 	private:
 
 
 
 	};
+
+	typedef std::unique_ptr<ChOgreGUIButton> ChOgreGUIButtonPtr;
 
 }

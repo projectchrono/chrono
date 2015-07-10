@@ -97,7 +97,7 @@ namespace ChOgre {
 				m_KeyStates_keycode[_event.key.keysym.sym].timestamp = (double)(_event.key.timestamp) / 1000.0;
 
 				if (!was_set) {
-					m_CallKeyboardCallbacks(_event.key.keysym.sym, m_KeyStates_keycode[_event.key.keysym.sym]);
+					m_CallKeyboardCallbacks(_event.key.keysym.scancode, _event.key.keysym.sym, m_KeyStates_keycode[_event.key.keysym.sym]);
 				}
 #ifdef _DEBUG
 				Ogre::LogManager::getSingleton().logMessage(Ogre::LML_NORMAL, "Key press ; Scanecode: " + std::to_string(_event.key.keysym.scancode) + " Keycode: " + std::to_string(_event.key.keysym.sym) + "\n");
@@ -116,7 +116,7 @@ namespace ChOgre {
 				m_KeyStates_keycode[_event.key.keysym.sym].timestamp = (double)(_event.key.timestamp) / 1000.0;
 
 				if (was_set) {
-					m_CallKeyboardCallbacks(_event.key.keysym.sym, m_KeyStates_keycode[_event.key.keysym.sym]);
+					m_CallKeyboardCallbacks(_event.key.keysym.scancode, _event.key.keysym.sym, m_KeyStates_keycode[_event.key.keysym.sym]);
 				}
 #ifdef _DEBUG
 				Ogre::LogManager::getSingleton().logMessage(Ogre::LML_NORMAL, "Key release ; Scanecode: " + std::to_string(_event.key.keysym.scancode) + " Keycode: " + std::to_string(_event.key.keysym.sym) + "\n");
@@ -492,11 +492,11 @@ namespace ChOgre {
 	///////////////////////////////////////////////////////////////////////////////////////////
 
 
-	void ChOgre_SDLInputHandler::m_CallKeyboardCallbacks(keycode_t KeyCode, const ChOgreKeyState& KeyState) {
+	void ChOgre_SDLInputHandler::m_CallKeyboardCallbacks(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState) {
 		std::for_each(m_KeyboardCallbackPtrs.begin(), m_KeyboardCallbackPtrs.end(),
 
-			[KeyCode, &KeyState](ChOgreKeyboardCallback* ptr) {
-				ptr->call(KeyCode, KeyState);
+			[ScanCode, KeyCode, &KeyState](ChOgreKeyboardCallback* ptr) {
+				ptr->call(ScanCode, KeyCode, KeyState);
 			}
 		);
 	}

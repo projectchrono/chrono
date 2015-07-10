@@ -4,11 +4,11 @@ Author: Charles Ricchio
 
 #pragma once
 
-#include "ECGUIElement.h"
+#include "ChOgreGUIElement.h"
 #include <core/ChVector.h>
-#include <OGRE\Overlay\OgreOverlayContainer.h>
+#include <OGRE/Overlay/OgreOverlayContainer.h>
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
 	class ECGUIPanel : public ECGUIElement {
 

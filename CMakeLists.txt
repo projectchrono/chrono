@@ -21,18 +21,15 @@ SET(GRAPHICS_FILES
 	Graphics/ChOgreModel.h
 	)
 	
-#SET(GUI_FILES
-#	GUI/ChOgreGUIButton.cpp
-#	GUI/ChOgreGUIButton.h
-#	GUI/ChOgreGUIElement.cpp
-#	GUI/ChOgreGUIEelement.h
-#	GUI/ChOgreGUIManager.cpp
-#	GUI/ChOgreGUIManager.h
-#	GUI/ChOgreGUIPanel.cpp
-#	GUI/ChOgreGUIPanel.h
-#	GUI/ChOgreGUIText.cpp
-#	GUI/ChOgreGUIText.h
-#	)
+SET(GUI_FILES
+	GUI/ChOgreGUIManager.cpp
+	GUI/ChOgreGUIManager.h
+	GUI/ChOgreGUIButton.cpp
+	GUI/ChOgreGUIButton.h
+	GUI/ChOgreGUICallback.h
+	GUI/ChOgreGUIElement.cpp
+	GUI/ChOgreGUIElement.h
+	)
 	
 SET(INPUT_FILES
 	Input/ChOgre_SDLInputHandler.cpp
@@ -52,7 +49,7 @@ SET(TINYOBJLOADER_FILES
 SOURCE_GROUP("" FILES ${ROOT_INCLUDE})
 SOURCE_GROUP("Core" FILES ${CORE_FILES})
 SOURCE_GROUP("Graphics" FILES ${GRAPHICS_FILES})
-#SOURCE_GROUP("GUI" FILES ${GUI_FILES})
+SOURCE_GROUP("GUI" FILES ${GUI_FILES})
 SOURCE_GROUP("Input" FILES ${INPUT_FILES})
 SOURCE_GROUP("tinyobjloader" FILES ${TINYOBJLOADER_FILES})
 	
@@ -61,7 +58,7 @@ ADD_DEFINITIONS(-D_CHOGRE_BUILD)
 ADD_LIBRARY(ChOgre SHARED 	${ROOT_INCLUDE} 
 							${CORE_FILES} 
 							${GRAPHICS_FILES} 
-							#${GUI_FILES} 
+							${GUI_FILES} 
 							${INPUT_FILES} 
 							${TINYOBJLOADER_FILES}
 			)

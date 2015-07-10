@@ -1,51 +1,74 @@
 #pragma once
 
-#include "EC_SDL_InputManager.h"
-#include "ECGUIElement.h"
-#include "ECGUIPanel.h"
-#include "ECGUIText.h"
-#include "ECGUIButton.h"
-#include <OGRE\Ogre.h>
-#include <OGRE\OgrePrerequisites.h>
-#include <OGRE\Overlay\OgreOverlaySystem.h>
-#include <OGRE\Overlay\OgreOverlay.h>
-#include <OGRE\Overlay\OgreOverlayManager.h>
+#include "ChOgreGUIButton.h"
+#include "../Input/ChOgre_SDLInputHandler.h"
+#include <MYGUI/MyGUI.h>
+#include <MYGUI/MyGUI_OgrePlatform.h>
+#include <memory>
+#include <core/ChVector.h>
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	class ECGUIManager {
+	class CHOGRE_DLL_TAG ChOgreGUIManager {
 
 	public:
 
-		ECGUIManager(Ogre::SceneManager* SceneManager, EC_SDL_InputManager* InputManager);
-		~ECGUIManager();
+		ChOgreGUIManager(Ogre::RenderWindow* RenderWindow, Ogre::SceneManager* SceneManager, ChOgre_SDLInputHandler* InputManager);
+		~ChOgreGUIManager();
 
-		virtual void setActive(bool Active);
+		void setVisible(bool Visible);
+		bool isVisible() { return m_isVisible; }
 
-		virtual ECGUIPanel* createPanel(std::string Name = "");
-		virtual ECGUIText* createText(std::string Name = "");
-		virtual ECGUIButton* createButton(std::string Name = "");
-
-		virtual void removeElement(std::string Name);
-		virtual void removeElement(ECGUIElement* Element);
-
-		virtual void update();
-
-		template <typename t>
-		t* getElement(std::string Name);
+		template <typename T>
+		inline std::unique_ptr<T> createWidget(const ChInt3& Position, const ChInt3& Size) {
+			static_assert(std::is_base_of<ChOgreGUIElement, T>::value, "T must inherit from ChOgreGUIElement");
+			return std::unique_ptr<T>(new T(Position, Size, m_pGUI));
+		}
 
 	protected:
 
-		Ogre::Overlay* m_pOverlay;
 		Ogre::SceneManager* m_pSceneManager;
-		Ogre::OverlaySystem* m_pOverlaySystem;
-		EC_SDL_InputManager* m_pInputManager;
+		Ogre::RenderWindow* m_pRenderWindow;
+		ChOgre_SDLInputHandler* m_pInputManager;
 
-		std::vector<ECGUIElement*> m_ElementList;
+		MyGUI::Gui* m_pGUI;
+		MyGUI::OgrePlatform* m_pPlatform;
+
+		bool m_isVisible;
+
+
+		class _KeyCallback : public ChOgreKeyboardCallback {
+
+		public:
+
+			_KeyCallback(MyGUI::Gui** GUI);
+
+			void call(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState) override;
+
+		protected:
+
+			MyGUI::Gui** m_pGUI;
+
+		};
+
+		class _MouseCallback : public ChOgreMouseCallback {
+
+		public:
+
+			_MouseCallback(MyGUI::Gui** GUI);
+
+			void call(const ChOgreMouseState& MouseState) override;
+
+		protected:
+
+			MyGUI::Gui** m_pGUI;
+
+		};
+
+		_KeyCallback m_keyboard;
+		_MouseCallback m_mouse;
 
 	private:
-
-
 
 	};
 
