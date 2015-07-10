@@ -180,8 +180,7 @@ int main(int argc, char* argv[]) {
 
     // Prepare the physical system for the simulation
 
-    mphysicalSystem.SetIntegrationType(ChSystem::INT_ANITESCU);
-    // mphysicalSystem.SetIntegrationType(ChSystem::INT_TASORA);
+    // mphysicalSystem.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
 
     // mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SYMMSOR); // here would be the better choiche since the
     // wall is build ground up.
@@ -716,7 +715,7 @@ int main(int argc, char* argv[]) {
                 mphysicalSystem.SetIterLCPsharpnessLambda(0.8);
                 mphysicalSystem.SetIterLCPomega(0.8);
                 mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-                mphysicalSystem.SetIntegrationType(ChSystem::INT_TASORA);
+                mphysicalSystem.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_PROJECTED);
                 mphysicalSystem.SetIterLCPmaxItersSpeed(30);
                 mphysicalSystem.SetIterLCPmaxItersStab(30);
                 mphysicalSystem.SetMaxPenetrationRecoverySpeed(0.0);

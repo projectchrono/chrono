@@ -197,13 +197,14 @@ int main(int argc, char* argv[]) {
 
     // By default, the solver uses the INT_ANITESCU stepper, that is very
     // fast, but may allow some geometric error in constraints (because it is
-    // based on constraint stabilization). Alternatively, the INT_TASORA
-    // stepper is less fast, but it is based on constraint projection, so
+    // based on constraint stabilization). Alternatively, the timestepper
+    // INT_EULER_IMPLICIT_LINEARIZED (formerly INT_TASORA)
+    // is less fast, but it is based on constraint projection, so
     // gaps in constraints are less noticeable (hence avoids the 'spongy'
     // behaviour of the default INT_ANITESCU solver, which operates only
     // on speed-impulse level and keeps constraints'closed' by a continuous
     // stabilization)
-    my_system.SetIntegrationType(ChSystem::INT_TASORA);
+    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
@@ -383,13 +384,14 @@ int main(int argc, char* argv[])
 
     // By default, the solver uses the INT_ANITESCU stepper, that is very
     // fast, but may allow some geometric error in constraints (because it is
-    // based on constraint stabilization). Alternatively, the INT_TASORA
-    // stepper is less fast, but it is based on constraint projection, so
+    // based on constraint stabilization). Alternatively, Alternatively, the 
+    // INT_EULER_IMPLICIT_LINEARIZED timestepper (formerly INT_TASORA)
+    // is less fast, but it is based on constraint projection, so
     // gaps in constraints are less noticeable (hence avoids the 'spongy'
     // behaviour of the default INT_ANITESCU solver, which operates only
     // on speed-impulse level and keeps constraints'closed' by a continuous
     // stabilization)
-    my_system.SetIntegrationType(ChSystem::INT_TASORA);
+    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
 
 
 
