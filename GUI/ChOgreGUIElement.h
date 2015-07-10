@@ -9,7 +9,7 @@
 
 namespace ChOgre {
 
-	typedef chrono::ChVector<int> ChInt3;
+	typedef chrono::ChVector<float> ChFloat3;
 
 	class CHOGRE_DLL_TAG ChOgreGUIElement {
 
@@ -21,8 +21,8 @@ namespace ChOgre {
 
 		virtual void setName(std::string Name);
 		virtual void setGUI(MyGUI::Gui* GUI);
-		virtual void setPosition(const ChInt3& Position) =0;
-		virtual void setSize(const ChInt3& Size) =0;
+		virtual void setPosition(const ChFloat3& Position) = 0;
+		virtual void setSize(const ChFloat3& Size) = 0;
 		virtual void setColor(float r, float g, float b) =0;
 		virtual void update() {};
 

@@ -466,6 +466,10 @@ namespace ChOgre {
 	void ChOgre_SDLInputHandler::addCallback(ChOgreControllerCallback& callback) {
 		m_ControllerCallbackPtrs.push_back(&callback);
 	}
+
+	void ChOgre_SDLInputHandler::addCallback(ChOgreWindowCallback& callback) {
+		m_WindowCallbackPtrs.push_back(&callback);
+	}
 	///////////////////////////////////////////////////////////////////////////////////////////
 
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -488,6 +492,13 @@ namespace ChOgre {
 		auto b = m_ControllerCallbackPtrs.back();
 		std::swap(a, b);
 		m_ControllerCallbackPtrs.pop_back();
+	}
+
+	void ChOgre_SDLInputHandler::removeCallback(ChOgreWindowCallback& callback) {
+		auto a = *std::find(m_WindowCallbackPtrs.begin(), m_WindowCallbackPtrs.end(), &callback)._Ptr;
+		auto b = m_WindowCallbackPtrs.back();
+		std::swap(a, b);
+		m_WindowCallbackPtrs.pop_back();
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -516,6 +527,15 @@ namespace ChOgre {
 			[this](ChOgreControllerCallback* ptr) {
 				ptr->call(this->getControllerState());
 			}
+		);
+	}
+
+	void ChOgre_SDLInputHandler::m_CallWindowCallbacks() {
+		std::for_each(m_WindowCallbackPtrs.begin(), m_WindowCallbackPtrs.end(),
+
+			[this](ChOgreWindowCallback* ptr) {
+			ptr->call();
+		}
 		);
 	}
 

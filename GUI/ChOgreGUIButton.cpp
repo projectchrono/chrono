@@ -10,7 +10,7 @@ namespace ChOgre {
 		m_pGUI = GUI;
 	}
 
-	ChOgreGUIButton::ChOgreGUIButton(const ChInt3& Position, const ChInt3& Size, MyGUI::Gui* GUI) {
+	ChOgreGUIButton::ChOgreGUIButton(const ChFloat3& Position, const ChFloat3& Size, MyGUI::Gui* GUI) {
 		m_pGUI = GUI;
 		
 		m_pButton = m_pGUI->createWidget<MyGUI::Button>("Button", Position.x, Position.y, Size.x, Size.y, MyGUI::Align::Center, "Main");
@@ -39,12 +39,12 @@ namespace ChOgre {
 		m_pButton->setFontName(Name);
 	}
 	
-	void ChOgreGUIButton::setPosition(const ChInt3& Position) {
-		m_pButton->setPosition(Position.x, Position.y);
+	void ChOgreGUIButton::setPosition(const ChFloat3& Position) {
+		m_pButton->setRealPosition(Position.x, Position.y);
 	}
 
-	void ChOgreGUIButton::setSize(const ChInt3& Size) {
-		m_pButton->setSize(Size.x, Size.y);
+	void ChOgreGUIButton::setSize(const ChFloat3& Size) {
+		m_pButton->setRealSize(Size.x, Size.y);
 	}
 
 	void ChOgreGUIButton::update() {

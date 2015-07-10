@@ -6,7 +6,7 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 
 #pragma once
 
-#include <OGRE\Ogre.h>
+#include <OGRE/Ogre.h>
 #include <SDL.h>
 #include <vector>
 #include <map>
@@ -18,6 +18,7 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 #include "ChOgreKeyboardCallback.h"
 #include "ChOgreMouseCallback.h"
 #include "ChOgreControllerCallback.h"
+#include "ChOgreWindowCallback.h"
 
 #define INPUT_DEADZONE  0.07
 
@@ -50,10 +51,12 @@ namespace ChOgre {
 		void addCallback(ChOgreKeyboardCallback& callback);
 		void addCallback(ChOgreMouseCallback& callback);
 		void addCallback(ChOgreControllerCallback& callback);
+		void addCallback(ChOgreWindowCallback& callback);
 
 		void removeCallback(ChOgreKeyboardCallback& callback);
 		void removeCallback(ChOgreMouseCallback& callback);
 		void removeCallback(ChOgreControllerCallback& callback);
+		void removeCallback(ChOgreWindowCallback& callback);
 
 		double AxisThreshold;
 
@@ -66,10 +69,12 @@ namespace ChOgre {
 		void m_CallKeyboardCallbacks(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState);
 		void m_CallMouseCallbacks();
 		void m_CallControllerCallbacks();
+		void m_CallWindowCallbacks();
 
 		std::vector<ChOgreKeyboardCallback*> m_KeyboardCallbackPtrs;
 		std::vector<ChOgreMouseCallback*> m_MouseCallbackPtrs;
 		std::vector<ChOgreControllerCallback*> m_ControllerCallbackPtrs;
+		std::vector<ChOgreWindowCallback*> m_WindowCallbackPtrs;
 
 		std::map<SDL_Scancode, ChOgreKeyState> m_KeyStates_scancode;
 		std::map<SDL_Keycode, ChOgreKeyState> m_KeyStates_keycode;

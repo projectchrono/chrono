@@ -38,6 +38,7 @@ SET(INPUT_FILES
 	Input/ChOgreMouseCallback.h
 	Input/ChOgreKeyboardCallback.h
 	Input/ChOgreInputCallback.h
+	Input/ChOgreWindowCallback.h
 	Input/ChOgreInputDataStructures.h
 	)
 	

@@ -20,7 +20,7 @@ namespace ChOgre {
 		bool isVisible() { return m_isVisible; }
 
 		template <typename T>
-		inline std::unique_ptr<T> createWidget(const ChInt3& Position, const ChInt3& Size) {
+		inline std::unique_ptr<T> createWidget(const ChFloat3& Position, const ChFloat3& Size) {
 			static_assert(std::is_base_of<ChOgreGUIElement, T>::value, "T must inherit from ChOgreGUIElement");
 			return std::unique_ptr<T>(new T(Position, Size, m_pGUI));
 		}
@@ -47,7 +47,7 @@ namespace ChOgre {
 
 		protected:
 
-			MyGUI::Gui** m_pGUI;
+			MyGUI::Gui** m_ppGUI;
 
 		};
 
@@ -61,12 +61,27 @@ namespace ChOgre {
 
 		protected:
 
-			MyGUI::Gui** m_pGUI;
+			MyGUI::Gui** m_ppGUI;
+
+		};
+
+		class _WindowCallback : public ChOgreWindowCallback {
+			
+		public:
+			
+			_WindowCallback(Ogre::RenderWindow* RenderWindow);
+
+			void call() override;
+
+		protected:
+
+			Ogre::RenderWindow* m_pRenderWindow;
 
 		};
 
 		_KeyCallback m_keyboard;
 		_MouseCallback m_mouse;
+		_WindowCallback m_window;
 
 	private:
 
