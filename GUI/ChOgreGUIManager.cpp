@@ -22,32 +22,30 @@ namespace ChOgre {
 	}
 
 	void ChOgreGUIManager::_MouseCallback::call(const ChOgreMouseState& MouseState) {
-		//MyGUI::InputManager::getInstance().injectMouseMove(MouseState.position.x, MouseState.position.y, MouseState.wheel.y);
-		(*m_ppGUI)->injectMouseMove(MouseState.position.x, MouseState.position.y, MouseState.wheel.y);
+		float _x = MouseState.position.x * (*m_ppGUI)->getViewWidth();
+		float _y = MouseState.position.y * (*m_ppGUI)->getViewHeight();
+
+		MyGUI::InputManager::getInstance().injectMouseMove(_x, _y, MouseState.wheel.y);
+		//(*m_ppGUI)->injectMouseMove(MouseState.position.x, MouseState.position.y, MouseState.wheel.y);
+		MyGUI::PointerManager::getInstance().getDefaultPointer();
 
 		if (MouseState.left.down) {
-			//MyGUI::InputManager::getInstance().injectMousePress(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Left);
-			(*m_ppGUI)->injectMousePress(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Left);
+			MyGUI::InputManager::getInstance().injectMousePress(_x, _y, MyGUI::MouseButton::Left);
 		}
 		else if (!MouseState.left.down) {
-			//MyGUI::InputManager::getInstance().injectMouseRelease(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Left);
-			(*m_ppGUI)->injectMouseRelease(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Left);
+			MyGUI::InputManager::getInstance().injectMouseRelease(_x, _y, MyGUI::MouseButton::Left);
 		}
 		if (MouseState.right.down) {
-			//MyGUI::InputManager::getInstance().injectMousePress(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Right);
-			(*m_ppGUI)->injectMousePress(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Right);
+			MyGUI::InputManager::getInstance().injectMousePress(_x, _y, MyGUI::MouseButton::Right);
 		}
 		else if (!MouseState.right.down) {
-			//MyGUI::InputManager::getInstance().injectMouseRelease(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Right);
-			(*m_ppGUI)->injectMouseRelease(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Right);
+			MyGUI::InputManager::getInstance().injectMouseRelease(_x, _y, MyGUI::MouseButton::Right);
 		}
 		if (MouseState.middle.down) {
-			//MyGUI::InputManager::getInstance().injectMousePress(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Middle);
-			(*m_ppGUI)->injectMousePress(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Middle);
+			MyGUI::InputManager::getInstance().injectMousePress(_x, _y, MyGUI::MouseButton::Middle);
 		}
 		else if (!MouseState.middle.down) {
-			//MyGUI::InputManager::getInstance().injectMouseRelease(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Middle);
-			(*m_ppGUI)->injectMouseRelease(MouseState.position.x, MouseState.position.y, MyGUI::MouseButton::Middle);
+			MyGUI::InputManager::getInstance().injectMouseRelease(_x, _y, MyGUI::MouseButton::Middle);
 		}
 	}
 
@@ -70,6 +68,8 @@ namespace ChOgre {
 		m_pPlatform->initialise(m_pRenderWindow, m_pSceneManager);
 		m_pGUI = new MyGUI::Gui();
 		m_pGUI->initialise();
+
+		m_pGUI->hidePointer();
 
 		MyGUI::LayerManager::getInstance().resizeView(MyGUI::IntSize(RenderWindow->getWidth(), RenderWindow->getHeight()));
 
