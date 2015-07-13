@@ -6,37 +6,31 @@ Author: Charles Ricchio
 
 #include "ChOgreGUIElement.h"
 #include <core/ChVector.h>
-#include <OGRE/Ogre.h>
-#include <OGRE/Overlay/OgreFontManager.h>
-#include <OGRE/Overlay/OgreFont.h>
-#include <OGRE/Overlay/OgreOverlayContainer.h>
-#include <OGRE/Overlay/OgreTextAreaOverlayElement.h>
 
 namespace ChOgre {
 
-	class ECGUIText : public ECGUIElement {
+	class CHOGRE_DLL_TAG ChOgreGUIText : public ChOgreGUIElement {
 
 	public:
 
-		ECGUIText(Ogre::Overlay* Overlay);
-		~ECGUIText();
+		ChOgreGUIText();
+		ChOgreGUIText(MyGUI::Gui* GUI);
+		ChOgreGUIText(const ChFloat3& Position, const ChFloat3& Size, MyGUI::Gui* GUI);
+		~ChOgreGUIText();
 
-		virtual void setName(std::string Name);
-		virtual void setPosition(double x, double y);
-		virtual void setSize(double x, double y);
-		virtual void setColor(double r, double g, double b);
+		virtual inline void setColor(float r, float g, float b);
+		virtual inline void setTextColor(float r, float g, float b);
+		virtual inline void setText(const std::string& Text);
+		virtual inline void setFont(const std::string& Name);
+		virtual void setPosition(const ChFloat3& Position);
+		virtual void setSize(const ChFloat3& Size);
 
-		virtual void setText(std::string Text);
-		virtual void setFont(double CharacterHeight);
-
-		chrono::ChVector<> getPosition();
-		chrono::ChVector<> getSize();
+		virtual ChFloat3 getPosition() { return ChFloat3(m_pTextBox->getLeft(), m_pTextBox->getTop(), 0.f); };
+		virtual ChFloat3 getSize() { return ChFloat3(m_pTextBox->getWidth(), m_pTextBox->getHeight(), 0.f); }
 
 	protected:
-
-		Ogre::TextAreaOverlayElement* m_pText;
-		Ogre::OverlayContainer* m_pPanel;
-		Ogre::FontPtr m_Font;
+		
+		MyGUI::TextBox* m_pTextBox;
 
 		static unsigned int g_count;
 
@@ -45,5 +39,7 @@ namespace ChOgre {
 
 
 	};
+
+	typedef std::unique_ptr<ChOgreGUIText> ChOgreGUITextPtr;
 
 }

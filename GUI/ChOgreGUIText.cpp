@@ -6,76 +6,50 @@ Author: Charles Ricchio
 
 namespace ChOgre {
 
-	unsigned int ECGUIText::g_count = 0;
+	unsigned int ChOgreGUIText::g_count = 0;
 
-	ECGUIText::ECGUIText(Ogre::Overlay* Overlay) : ECGUIElement(Overlay) {
-		m_pPanel = static_cast<Ogre::OverlayContainer*>(Ogre::OverlayManager::getSingleton().createOverlayElement("Panel", "TextPanel" + std::to_string(g_count)));
-		m_pText = static_cast<Ogre::TextAreaOverlayElement*>(Ogre::OverlayManager::getSingleton().createOverlayElement("TextArea", "Text" + std::to_string(g_count)));
-
-		m_pOverlay->add2D(m_pPanel);
-		m_pPanel->addChild(m_pText);
-
-		
-		m_Font = Ogre::FontManager::getSingleton().create("default", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-		
-
-		m_Font->setType(Ogre::FT_TRUETYPE);
-		m_Font->setSource("Minecraftia.ttf");
-		m_Font->setTrueTypeSize(8);
-		m_Font->setTrueTypeResolution(70);
-		m_Font->setAntialiasColour(false);
-		m_Font->load();
-
-		g_count++;
+	ChOgreGUIText::ChOgreGUIText() {
+		m_pGUI = nullptr;
 	}
 
-	ECGUIText::~ECGUIText() {
-		Ogre::FontManager::getSingleton().remove((Ogre::ResourcePtr)m_Font);
-		m_pOverlay->remove2D(m_pPanel);
-		Ogre::OverlayManager::getSingleton().destroyOverlayElement(m_pPanel);
-		Ogre::OverlayManager::getSingleton().destroyOverlayElement(m_pText);
-		g_count--;
+	ChOgreGUIText::ChOgreGUIText(MyGUI::Gui* GUI) {
+		m_pGUI = GUI;
 	}
 
-	void ECGUIText::setName(std::string Name) {
-		m_Name = Name;
+	ChOgreGUIText::ChOgreGUIText(const ChFloat3& Position, const ChFloat3& Size, MyGUI::Gui* GUI) {
+		m_pGUI = GUI;
+
+		m_pTextBox = m_pGUI->createWidget<MyGUI::TextBox>("TextBox", Position.x, Position.y, Size.x, Size.y, MyGUI::Align::Center, "Main");
+		m_pTextBox->setDepth(int(Position.z));
 	}
 
-	void ECGUIText::setPosition(double x, double y) {
-		m_pPanel->setPosition((Ogre::Real)x, (Ogre::Real)y);
+	ChOgreGUIText::~ChOgreGUIText() {
+		m_pGUI->destroyWidget(m_pTextBox);
 	}
 
-	void ECGUIText::setSize(double x, double y) {
-		m_pPanel->setDimensions((Ogre::Real)x, (Ogre::Real)y);
-		m_pText->setDimensions((Ogre::Real)x, (Ogre::Real)y);
+	void ChOgreGUIText::setColor(float r, float g, float b) {
+		m_pTextBox->setColour(MyGUI::Colour(r, g, b));
 	}
 
-	void ECGUIText::setColor(double r, double g, double b) {
-
-		Ogre::Real _r = (Ogre::Real)r;
-		Ogre::Real _g = (Ogre::Real)g;
-		Ogre::Real _b = (Ogre::Real)b;
-
-		m_pText->setColour(Ogre::ColourValue(_r, _g, _b));
+	void ChOgreGUIText::setTextColor(float r, float g, float b) {
+		m_pTextBox->setTextColour(MyGUI::Colour(r, g, b));
 	}
 
-	void ECGUIText::setText(std::string Text) {
-		m_pText->setCaption(Text);
+	void ChOgreGUIText::setText(const std::string& Text) {
+		m_pTextBox->setCaption(Text);
 	}
 
-	void ECGUIText::setFont(double Size) {
-		m_pText->setFontName("default");
-		m_pText->setCharHeight((Ogre::Real)Size);
+	void ChOgreGUIText::setFont(const std::string& Name) {
+		m_pTextBox->setFontName(Name);
 	}
 
-	chrono::ChVector<> ECGUIText::getPosition() {
-		chrono::ChVector<> _ret((double)m_pPanel->getLeft(), (double)m_pPanel->getTop(), 0);
-		return _ret;
+	void ChOgreGUIText::setPosition(const ChFloat3& Position) {
+		m_pTextBox->setRealPosition(Position.x, Position.y);
+		m_pTextBox->setDepth(int(Position.z));
 	}
 
-	chrono::ChVector<> ECGUIText::getSize() {
-		chrono::ChVector<> _ret((double)m_pPanel->getWidth(), (double)m_pPanel->getHeight(), 0);
-		return _ret;
+	void ChOgreGUIText::setSize(const ChFloat3& Size) {
+		m_pTextBox->setRealSize(Size.x, Size.y);
 	}
 
 }

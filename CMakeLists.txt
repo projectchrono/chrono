@@ -29,6 +29,8 @@ SET(GUI_FILES
 	GUI/ChOgreGUICallback.h
 	GUI/ChOgreGUIElement.cpp
 	GUI/ChOgreGUIElement.h
+	GUI/ChOgreGUIText.cpp
+	GUI/ChOgreGUIText.h
 	)
 	
 SET(INPUT_FILES

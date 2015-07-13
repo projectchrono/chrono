@@ -27,6 +27,8 @@ namespace ChOgre {
 		virtual void update() {};
 
 		virtual std::string getName();
+		virtual ChFloat3 getSize() =0;
+		virtual ChFloat3 getPosition() =0;
 
 	protected:
 

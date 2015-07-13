@@ -25,12 +25,15 @@ namespace ChOgre {
 
 		virtual void setClickCallback(ChOgreGUICallback& Callback);
 
+		virtual ChFloat3 getPosition() { return ChFloat3(m_pButton->getLeft(), m_pButton->getTop(), 0.f); };
+		virtual ChFloat3 getSize() { return ChFloat3(m_pButton->getWidth(), m_pButton->getHeight(), 0.f); }
+
 	protected:
 
 		bool m_db;
 		bool m_pressed;
 
-		MyGUI::ButtonPtr m_pButton;
+		MyGUI::Button* m_pButton;
 
 	private:
 

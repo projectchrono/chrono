@@ -25,26 +25,26 @@ namespace ChOgre {
 		float _x = MouseState.position.x * (*m_ppGUI)->getViewWidth();
 		float _y = MouseState.position.y * (*m_ppGUI)->getViewHeight();
 
-		MyGUI::InputManager::getInstance().injectMouseMove(_x, _y, MouseState.wheel.y);
-		//(*m_ppGUI)->injectMouseMove(MouseState.position.x, MouseState.position.y, MouseState.wheel.y);
-		MyGUI::PointerManager::getInstance().getDefaultPointer();
+		if (MouseState.position.xrel != 0 || MouseState.position.yrel != 0) {
+			MyGUI::InputManager::getInstance().injectMouseMove(_x, _y, MouseState.wheel.y);
+		}
 
 		if (MouseState.left.down) {
 			MyGUI::InputManager::getInstance().injectMousePress(_x, _y, MyGUI::MouseButton::Left);
 		}
-		else if (!MouseState.left.down) {
+		else if (MouseState.left.down == false) {
 			MyGUI::InputManager::getInstance().injectMouseRelease(_x, _y, MyGUI::MouseButton::Left);
 		}
 		if (MouseState.right.down) {
 			MyGUI::InputManager::getInstance().injectMousePress(_x, _y, MyGUI::MouseButton::Right);
 		}
-		else if (!MouseState.right.down) {
+		else if (MouseState.right.down == false) {
 			MyGUI::InputManager::getInstance().injectMouseRelease(_x, _y, MyGUI::MouseButton::Right);
 		}
 		if (MouseState.middle.down) {
 			MyGUI::InputManager::getInstance().injectMousePress(_x, _y, MyGUI::MouseButton::Middle);
 		}
-		else if (!MouseState.middle.down) {
+		else if (MouseState.middle.down == false) {
 			MyGUI::InputManager::getInstance().injectMouseRelease(_x, _y, MyGUI::MouseButton::Middle);
 		}
 	}

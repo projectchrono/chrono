@@ -14,6 +14,7 @@ namespace ChOgre {
 		m_pGUI = GUI;
 		
 		m_pButton = m_pGUI->createWidget<MyGUI::Button>("Button", Position.x, Position.y, Size.x, Size.y, MyGUI::Align::Center, "Main");
+		m_pButton->setDepth(int(Position.z));
 
 		m_db = true;
 		m_pressed = false;
@@ -41,6 +42,7 @@ namespace ChOgre {
 	
 	void ChOgreGUIButton::setPosition(const ChFloat3& Position) {
 		m_pButton->setRealPosition(Position.x, Position.y);
+		m_pButton->setDepth(int(Position.z));
 	}
 
 	void ChOgreGUIButton::setSize(const ChFloat3& Size) {

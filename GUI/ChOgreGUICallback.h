@@ -5,14 +5,14 @@
 
 namespace ChOgre {
 
-	class ChOgreGUICallback : public ChOgreCallback {
+	class CHOGRE_DLL_TAG ChOgreGUICallback : public ChOgreCallback {
 
 	public:
 
 		ChOgreGUICallback() {}
 		~ChOgreGUICallback() {}
 
-		virtual void call(MyGUI::WidgetPtr Sender) = 0;
+		virtual void call(MyGUI::WidgetPtr Sender) {}
 
 	};
 
