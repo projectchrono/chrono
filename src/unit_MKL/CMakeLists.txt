@@ -111,8 +111,6 @@ if (ENABLE_UNIT_MKL)
 							# Eigen doesn't have library files
 							)
 		
-	ADD_DEPENDENCIES (ChronoEngine_MKL ChronoEngine)  # better, because not automatic
-
 	INSTALL(TARGETS ChronoEngine_MKL
 			RUNTIME DESTINATION bin
 			LIBRARY DESTINATION lib

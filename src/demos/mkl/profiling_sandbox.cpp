@@ -10,7 +10,7 @@ using namespace chrono;
 
 
 int main(){
-	const unsigned int n = 250;
+	const unsigned int n = 10;
 
 	// Initialize CSR matrix with templatized functions
 	std::vector<int> resizeSize(n);
@@ -33,7 +33,7 @@ int main(){
 
 	//StartProfile(PROFILE_GLOBALLEVEL, PROFILE_CURRENTID);
 
-	for (int cont = 0; cont < 1000000; cont++){
+	for (int cont = 0; cont < 100; cont++){
 
 		//CommentMarkProfile(75002, "START VirtualCall");
 		for (auto i = 0; i < n; i++)

@@ -711,7 +711,7 @@ int main(int argc, char* argv[]) {
 	//GetLog() << " Example: the HyperOCTANT techology for solving LCP\n\n\n";
 
 	//// Test: an introductory problem:
-	//test_1();
+	test_1();
 	test_1_PtrToMembers();
 
 	//// Test: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
