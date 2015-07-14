@@ -99,7 +99,6 @@ class ChApi ChLcpKblock {
     /// Most solvers do not need this: the sparse 'storage' matrix is used for testing, for
     /// direct solvers, for dumping full matrix to Matlab for checks, etc.
 	virtual void Build_K(ChSparseMatrixBase& storage, bool add = true) = 0;
-	virtual void Build_K(const ChLcpMatrixTool& MatTool, bool add = true) = 0;
 };
 
 }  // END_OF_NAMESPACE____

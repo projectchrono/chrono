@@ -35,7 +35,6 @@
 #include "core/ChApiCE.h"
 #include "core/ChMatrixDynamic.h"
 #include "core/ChSpmatrix.h"
-#include "lcp/ChLcpMatrixTool.h"
 
 namespace chrono {
 
@@ -205,7 +204,6 @@ public:
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
 	virtual void Build_M(ChSparseMatrixBase& storage, int insrow, int inscol) = 0;
-	virtual void Build_M(const ChLcpMatrixTool& MatTool, int insrow, int inscol) = 0;
 
 
 

@@ -84,15 +84,7 @@ class ChApi ChLcpSystemDescriptor {
 	
 
   public:
-	  ChLcpMatrixTool MatTool;
 	  
-	  template <class ChSparseMatrixDerivedType>
-	  void SetOutputMatrix(ChSparseMatrixDerivedType* dest_matrix){
-		  MatTool.SetMatrixTools<ChSparseMatrixDerivedType>(dest_matrix); // check if the SetMatrixTools function can recognize the derived type!!!
-	  }
-
-
-
 	  
     //
     // CONSTRUCTORS

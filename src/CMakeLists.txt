@@ -877,7 +877,6 @@ include_directories( ${CH_INCLUDES} )
         lcp/ChLcpVariablesNode.cpp
         lcp/ChLcpKblockGeneric.cpp
         lcp/ChLcpSolverDEM.cpp
-		lcp/ChLcpMatrixTool.cpp
         )
     set(ChronoEngine_lcp_HEADERS
         lcp/ChLcpConstraint.h
@@ -922,7 +921,6 @@ include_directories( ${CH_INCLUDES} )
         lcp/ChLcpKblock.h
         lcp/ChLcpKblockGeneric.h
         lcp/ChLcpSolverDEM.h
-		lcp/ChLcpMatrixTool.h
         )
     source_group(lcp FILES
         ${ChronoEngine_lcp_SOURCES}

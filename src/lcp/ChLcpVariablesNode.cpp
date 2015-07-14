@@ -135,13 +135,6 @@ void ChLcpVariablesNode::Build_M(ChSparseMatrixBase& storage, int insrow, int in
     storage.SetElement(insrow + 2, inscol + 2, mass);
 }
 
-void ChLcpVariablesNode::Build_M(const ChLcpMatrixTool& MatTool, int insrow, int inscol) {
-	(MatTool.output_matrix->*MatTool.MatrixFunctions.SetElementPtr)(insrow + 0, inscol + 0, mass);
-	(MatTool.output_matrix->*MatTool.MatrixFunctions.SetElementPtr)(insrow + 1, inscol + 1, mass);
-	(MatTool.output_matrix->*MatTool.MatrixFunctions.SetElementPtr)(insrow + 2, inscol + 2, mass);
-}
-
-
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence

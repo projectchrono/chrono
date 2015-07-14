@@ -104,12 +104,6 @@ class ChApi ChLcpVariablesGenericDiagonalMass : public ChLcpVariables {
         }
     };
 
-	void Build_M(const ChLcpMatrixTool& MatTool, int insrow, int inscol) {
-		for (int i = 0; i < MmassDiag->GetRows(); ++i) {
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.SetElementPtr)(insrow + i, inscol + i, (*MmassDiag)(i));
-		}
-	};
-
 	
 
 };

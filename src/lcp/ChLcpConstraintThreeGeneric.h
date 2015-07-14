@@ -256,23 +256,6 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
             storage.PasteTranspMatrixFloat(Cq_c, variables_c->GetOffset(), inscol);
     }
 
-	virtual void Build_Cq(const ChLcpMatrixTool& MatTool, int inscol) {
-		if (variables_a->IsActive())
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteMatrixFloatPtr)(Cq_a, variables_a->GetOffset(), inscol);
-		if (variables_b->IsActive())
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteMatrixFloatPtr)(Cq_b, variables_b->GetOffset(), inscol);
-		if (variables_c->IsActive())
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteMatrixFloatPtr)(Cq_c, variables_c->GetOffset(), inscol);
-	}
-	virtual void Build_CqT(const ChLcpMatrixTool& MatTool, int inscol) {
-		if (variables_a->IsActive())
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteTranspMatrixFloatPtr)(Cq_a, variables_a->GetOffset(), inscol);
-		if (variables_b->IsActive())
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteTranspMatrixFloatPtr)(Cq_b, variables_b->GetOffset(), inscol);
-		if (variables_c->IsActive())
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteTranspMatrixFloatPtr)(Cq_c, variables_c->GetOffset(), inscol);
-	}
-
 
 
     //

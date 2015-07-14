@@ -94,10 +94,6 @@ void ChLcpVariablesShaft::Build_M(ChSparseMatrixBase& storage, int insrow, int i
     storage.SetElement(insrow + 0, inscol + 0, m_inertia);
 }
 
-void ChLcpVariablesShaft::Build_M(const ChLcpMatrixTool& MatTool, int insrow, int inscol) {
-	(MatTool.output_matrix->*MatTool.MatrixFunctions.SetElementPtr)(insrow + 0, inscol + 0, m_inertia);
-}
-
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 ChClassRegister<ChLcpVariablesShaft> a_registration_ChLcpVariablesShaft;

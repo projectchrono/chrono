@@ -224,19 +224,6 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
             storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
     }
 
-	virtual void Build_Cq(const ChLcpMatrixTool& MatTool, int insrow) {
-		if (variables_a->IsActive())
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteMatrixPtr)(Cq_a, insrow, variables_a->GetOffset());
-		if (variables_b->IsActive())
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteMatrixPtr)(Cq_b, insrow, variables_b->GetOffset());
-	}
-
-	virtual void Build_CqT(const ChLcpMatrixTool& MatTool, int inscol) {
-		if (variables_a->IsActive())
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteTranspMatrixPtr)(Cq_a, variables_a->GetOffset(), inscol);
-		if (variables_b->IsActive())
-			(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteTranspMatrixPtr)(Cq_b, variables_b->GetOffset(), inscol);
-	}
 
 
     //

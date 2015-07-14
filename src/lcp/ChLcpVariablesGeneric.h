@@ -135,9 +135,6 @@ class ChApi ChLcpVariablesGeneric : public ChLcpVariables {
 	{
 		storage.PasteMatrix(Mmass, insrow, inscol);
 	};
-	void Build_M(const ChLcpMatrixTool& MatTool, int insrow, int inscol) {
-		(MatTool.output_matrix->*MatTool.MatrixFunctions.PasteMatrixPtr)(Mmass, insrow, inscol);
-	};
 };
 
 }  // END_OF_NAMESPACE____
