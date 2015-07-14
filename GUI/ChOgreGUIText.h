@@ -18,10 +18,10 @@ namespace ChOgre {
 		ChOgreGUIText(const ChFloat3& Position, const ChFloat3& Size, MyGUI::Gui* GUI);
 		~ChOgreGUIText();
 
-		virtual inline void setColor(float r, float g, float b);
-		virtual inline void setTextColor(float r, float g, float b);
-		virtual inline void setText(const std::string& Text);
-		virtual inline void setFont(const std::string& Name);
+		virtual void setColor(float r, float g, float b);
+		virtual void setTextColor(float r, float g, float b);
+		virtual void setText(const std::string& Text);
+		virtual void setFont(const std::string& Name);
 		virtual void setPosition(const ChFloat3& Position);
 		virtual void setSize(const ChFloat3& Size);
 

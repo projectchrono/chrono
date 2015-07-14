@@ -53,9 +53,22 @@ namespace ChOgre {
 
 	}
 
-	void ChOgreGUIButton::setClickCallback(ChOgreGUICallback& Callback) {
-		auto f_p = &ChOgreGUICallback::call;
-		m_pButton->eventMouseButtonClick += MyGUI::newDelegate(&Callback, f_p);
+	void ChOgreGUIButton::setClickCallback(ChOgreGUIClickCallback& Callback) {
+		auto f_p = &ChOgreGUIClickCallback::call;
+		m_pButton->eventMouseButtonClick = MyGUI::newDelegate(&Callback, f_p);
+	}
+
+	void ChOgreGUIButton::emptyClickCallback() {
+		m_pButton->eventMouseButtonClick.clear();
+	}
+
+	void ChOgreGUIButton::setPressCallback(ChOgreGUIPressCallback& Callback) {
+		auto f_p = &ChOgreGUIPressCallback::call;
+		m_pButton->eventMouseButtonPressed = MyGUI::newDelegate(&Callback, f_p);
+	}
+
+	void ChOgreGUIButton::emptyPressCallback() {
+		m_pButton->eventMouseButtonPressed.clear();
 	}
 
 }
