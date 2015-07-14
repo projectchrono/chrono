@@ -29,6 +29,9 @@ namespace ChOgre {
 		virtual void setPressCallback(ChOgreGUIPressCallback& Callback);
 		virtual void emptyPressCallback();
 
+		virtual void setReleaseCallback(ChOgreGUIReleaseCallback& Callback);
+		virtual void emptyReleaseCallback();
+		
 		virtual ChFloat3 getPosition() { return ChFloat3(m_pButton->getLeft(), m_pButton->getTop(), 0.f); };
 		virtual ChFloat3 getSize() { return ChFloat3(m_pButton->getWidth(), m_pButton->getHeight(), 0.f); }
 

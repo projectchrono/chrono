@@ -71,4 +71,13 @@ namespace ChOgre {
 		m_pButton->eventMouseButtonPressed.clear();
 	}
 
+	void ChOgreGUIButton::setReleaseCallback(ChOgreGUIReleaseCallback& Callback) {
+		auto f_p = &ChOgreGUIReleaseCallback::call;
+		m_pButton->eventMouseButtonReleased = MyGUI::newDelegate(&Callback, f_p);
+	}
+
+	void ChOgreGUIButton::emptyReleaseCallback() {
+		m_pButton->eventMouseButtonReleased.clear();
+	}
+
 }

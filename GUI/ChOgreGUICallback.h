@@ -45,7 +45,7 @@ namespace ChOgre {
 		ChOgreGUIReleaseCallback() {}
 		~ChOgreGUIReleaseCallback() {}
 
-		virtual void call(MyGUI::WidgetPtr Sender) {}
+		virtual void call(MyGUI::WidgetPtr Sender, int x, int y, MyGUI::MouseButton Button) {}
 
 	};
 
