@@ -29,7 +29,7 @@
 ///////////////////////////////////////////////////
 
 #include "ChApiMkl.h"
-#include "mkl.h"
+#include <mkl.h>
 #include "ChCSR3matrix.h"
 #include "core/ChMatrix.h"
 #include "core/ChSpmatrix.h"

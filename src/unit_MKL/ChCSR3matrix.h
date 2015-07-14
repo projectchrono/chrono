@@ -2,7 +2,7 @@
 #define CHCSR3MATRIX_H
 
 #include <Eigen/Sparse>
-#include <core/ChSpmatrix.h>
+#include "core/ChSpmatrix.h"
 
 
 namespace chrono{

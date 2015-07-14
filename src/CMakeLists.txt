@@ -252,7 +252,6 @@ set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_BINARY_DIR}")
 set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/bullet" )
 set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/gimpact" )
 set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/convexdecomposition/HACD" )
-set(CH_INCLUDES ${CH_INCLUDES} "${CH_EIGEN_PATH}" )
 
 include_directories( ${CH_INCLUDES} )
 
@@ -322,6 +321,7 @@ include_directories( ${CH_INCLUDES} )
         core/ChDistribution.h
         core/ChQuadrature.h
 		core/ChTemplateExpressions.h
+		)
 		
 
     list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")
