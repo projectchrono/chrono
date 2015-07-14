@@ -13,7 +13,7 @@
 #define CHMATERIALSURFACEDEM_H
 
 #include "physics/ChMaterialSurfaceBase.h"
-#include "physics/ChContactDEM.h"
+
 
 /// Class for material surface data for DEM contact
 namespace chrono {

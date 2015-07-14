@@ -157,6 +157,12 @@ void ChAparticle::ComputeJacobianForRollingContactPart(const ChVector<>& abs_poi
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
 }
 
+ChPhysicsItem* ChAparticle::GetPhysicsItem()
+{
+    return container;
+}
+
+
 //////////////////////////////////////
 //////////////////////////////////////
 

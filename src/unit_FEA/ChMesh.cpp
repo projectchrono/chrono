@@ -82,8 +82,6 @@ void ChMesh::SetNoSpeedNoAcceleration()
 void ChMesh::AddNode ( ChSharedPtr<ChNodeFEAbase> m_node)
 {
 	this->vnodes.push_back(m_node);
-
-    m_node->SetMeshContainer(this);
 }
 
 void ChMesh::AddElement ( ChSharedPtr<ChElementBase> m_elem)
@@ -94,14 +92,26 @@ void ChMesh::AddElement ( ChSharedPtr<ChElementBase> m_elem)
 void ChMesh::ClearElements ()
 {
 	velements.clear();
+    vcontactsurfaces.clear();
 }
 
 void ChMesh::ClearNodes ()
 {
 	velements.clear();
 	vnodes.clear();
+    vcontactsurfaces.clear();
 }
 
+void ChMesh::AddContactSurface ( ChSharedPtr<ChContactSurface> m_surf)
+{
+    m_surf->SetMesh(this);
+	this->vcontactsurfaces.push_back(m_surf);
+}
+
+void ChMesh::ClearContactSurfaces()
+{
+	vcontactsurfaces.clear();
+}
 
 /// This recomputes the number of DOFs, constraints,
 /// as well as state offsets of contained items 
@@ -141,6 +151,30 @@ void ChMesh::Update(double m_time, bool update_assets)
     velements[i]->Update();
   }
 }
+
+
+void ChMesh::SyncCollisionModels() {
+    for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
+        this->vcontactsurfaces[j]->SurfaceSyncCollisionModels();
+    }
+}
+
+void ChMesh::AddCollisionModelsToSystem() {
+    assert(this->GetSystem());
+    SyncCollisionModels();
+    for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
+        this->vcontactsurfaces[j]->SurfaceAddCollisionModelsToSystem(this->GetSystem());
+    }
+}
+
+void ChMesh::RemoveCollisionModelsFromSystem() {
+    assert(this->GetSystem());
+    for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
+        this->vcontactsurfaces[j]->SurfaceRemoveCollisionModelsFromSystem(this->GetSystem());
+    }
+}
+
+
 
 
 void ChMesh::LoadFromTetGenFile(const char* filename_node, const char* filename_ele, ChSharedPtr<ChContinuumMaterial> my_material)

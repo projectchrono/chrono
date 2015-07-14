@@ -663,8 +663,12 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                             type_constraint_tuple& jacobian_tuple_U,
                             type_constraint_tuple& jacobian_tuple_V,
                             bool second);
-
+         
+        /// Used by some DEM code
     virtual double GetContactableMass()  {return this->GetMass();}
+
+        /// This is only for backward compatibility
+    virtual ChPhysicsItem* GetPhysicsItem() { return this;}
 
     //
     // SERIALIZATION

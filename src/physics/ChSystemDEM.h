@@ -14,10 +14,14 @@
 #define CHSYSTEMDEM_H
 
 #include "physics/ChSystem.h"
-#include "physics/ChContactDEM.h"
-#include "physics/ChContactDEM__old.h"
+
 
 namespace chrono {
+
+
+/// Enum for DEM contact type (out of class because templated class)
+enum ContactForceModel { Hooke, Hertz };
+
 
 /// Class for a physical system in which contact is modeled using a
 /// Penalty Method (aka DEM)
@@ -39,7 +43,7 @@ class ChApi ChSystemDEM : public ChSystem {
 
     virtual ChBody::ContactMethod GetContactMethod() const { return ChBody::DEM; }
 
-    virtual void SetLcpSolverType(eCh_lcpSolver mval);
+//    virtual void SetLcpSolverType(eCh_lcpSolver mval);
     virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
     virtual void ChangeContactContainer(ChContactContainerBase* newcontainer);
 

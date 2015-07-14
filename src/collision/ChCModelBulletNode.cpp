@@ -39,13 +39,6 @@ ChModelBulletNode::ChModelBulletNode() {
 ChModelBulletNode::~ChModelBulletNode() {
 }
 
-/// Sets the pointer to the client owner ChPhysicsItem.
-void ChModelBulletNode::SetPhysicsItem(ChPhysicsItem* mitem) { 
-        if (nodes = dynamic_cast<ChIndexedNodes*>(mitem))
-            return;
-        else throw ChException("ERROR. ChModelBulletNode::SetPhysicsItem() must get an item of sub-class ChIndexedNodes type.\n");
-}
-
 void ChModelBulletNode::SetNode(ChIndexedNodes* mpa, unsigned int id) {
     this->nodes = mpa;
     this->node_id = id;

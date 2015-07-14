@@ -71,9 +71,10 @@ int ChModelBullet::ClearModel() {
 
         // tell to the parent collision system to remove this from collision system,
         // if still connected to a physical system
-        if (GetPhysicsItem()->GetSystem())
-            if (GetPhysicsItem()->GetCollide())
-                GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
+        if (GetPhysicsItem())
+            if (GetPhysicsItem()->GetSystem())
+                if (GetPhysicsItem()->GetCollide())
+                    GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
 
         // at the end, no collision shape
         bt_collision_object->setCollisionShape(0);
@@ -86,9 +87,10 @@ int ChModelBullet::BuildModel() {
     // assert (GetPhysicsItem());
 
     // insert again (we assume it was removed by ClearModel!!!)
-    if (GetPhysicsItem()->GetSystem())
-        if (GetPhysicsItem()->GetCollide())
-            GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
+    if (GetPhysicsItem())
+        if (GetPhysicsItem()->GetSystem())
+            if (GetPhysicsItem()->GetCollide())
+                GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
 
     return 1;
 }

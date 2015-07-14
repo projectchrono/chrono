@@ -17,6 +17,7 @@
 
 #include "lcp/ChLcpConstraintTuple.h"
 #include "physics/ChMaterialSurfaceBase.h"
+//#include "physics/ChPhysicsItem.h"
 #include "core/ChVectorDynamic.h"
 #include "core/ChMatrix33.h"
 
@@ -24,6 +25,7 @@ namespace chrono {
 
 /// Forward definition (not needed in MSVC!?)
 class type_constraint_tuple;
+class ChPhysicsItem;
 
 /// Interface for objects that generate contacts
 /// One should inherit from ChContactable_1vars, ChContactable_2vars  etc. depending
@@ -57,6 +59,12 @@ public:
 
         /// This can be useful in some DEM code:
     virtual double GetContactableMass() = 0;
+
+        /// This is only for backward compatibility. Note that in recent code
+        /// the reference to the ChPhysicsItem should disappear. 
+        /// The ChPhysicsItem could be the ChContactable itself (ex. see the ChBody) or 
+        /// a container (ex. the ChMEsh, for ChContactTriangle)
+    virtual ChPhysicsItem* GetPhysicsItem() = 0;
 };
 
 

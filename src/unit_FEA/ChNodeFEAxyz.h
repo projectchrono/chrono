@@ -223,10 +223,6 @@ public:
 					};
 
 
-    /// Return the pointer to the surface material. 
-    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
-
-
 
 protected:
 

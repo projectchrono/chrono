@@ -20,15 +20,19 @@
 #include "collision/ChCCollisionModel.h"
 #include "physics/ChContactTuple.h"
 #include "physics/ChContactContainerBase.h"
+#include "physics/ChMaterialSurfaceDEM.h"
+#include "physics/ChSystemDEM.h"
+#include <cmath>
+
 
 namespace chrono {
 
 // Forward
-class ChSystem;
-class ChSystemDEM;
+//class ChSystem;
+//class ChSystemDEM;
 
 /// Enum for DEM contact type (out of class because templated class)
-enum ContactForceModel { Hooke, Hertz };
+//enum ContactForceModel { Hooke, Hertz };
 
 
 /// Class for DVI contact between two generic ChContactable objects.
@@ -112,7 +116,6 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         double m_delta = -this->norm_dist;
 
         ChSystemDEM* sys = static_cast<ChSystemDEM*>(this->container->GetSystem());
-        this->container->GetSystem()->GetStep();
         
         double dT = sys->GetStep();
         bool use_mat_props = sys->UseMaterialProperties();

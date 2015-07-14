@@ -39,6 +39,13 @@ ChCollisionModel::ChCollisionModel() {
     mcontactable = 0;
 }
 
+
+ChPhysicsItem* ChCollisionModel::GetPhysicsItem() 
+{
+    return mcontactable->GetPhysicsItem();
+};
+
+
 void ChCollisionModel::SetDefaultSuggestedEnvelope(double menv) {
     default_model_envelope = menv;
 }

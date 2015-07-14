@@ -225,12 +225,10 @@ class ChApi ChCollisionModel {
     void SetContactable(ChContactable* mc) { mcontactable = mc;}
 
     /// Gets the pointer to the client owner ChPhysicsItem.
-    /// MUST be implemented by child classes!
-    virtual ChPhysicsItem* GetPhysicsItem() = 0;
-
-    /// Gets the pointer to the client owner ChPhysicsItem.
-    /// MUST be implemented by child classes!
-    virtual void SetPhysicsItem(ChPhysicsItem* mitem) = 0;
+    /// Default: just casts GetContactable(). Just for backward compatibility.
+    /// It might return null if contactable not inherited by  ChPhysicsItem.
+    /// ***TODO*** remove the need of ChPhysicsItem*, just use ChContactable* in all code
+    virtual ChPhysicsItem* GetPhysicsItem(); 
 
     /// Sets the position and orientation of the collision
     /// model as the rigid body current position.
@@ -363,7 +361,6 @@ class ChApi ChCollisionModel {
     // Pointer to the contactable object
     ChContactable* mcontactable;
 
-    //ChBody* mbody; //moved to ChModelBulletBody
 };
 
 }  // END_OF_NAMESPACE____

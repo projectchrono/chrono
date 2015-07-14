@@ -25,10 +25,6 @@ namespace fea
 {
 
 
-ChSharedPtr<ChMaterialSurfaceBase>& ChNodeFEAxyz::GetMaterialSurfaceBase()
-{
-    return container->GetMaterialSurfaceBase();
-}
 
 
 

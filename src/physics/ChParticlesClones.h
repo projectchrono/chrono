@@ -105,7 +105,12 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
                             type_constraint_tuple& jacobian_tuple_V,
                             bool second);
 
+         /// used by some DEM code
     virtual double GetContactableMass()  {return this->variables.GetBodyMass();}
+
+        /// This is only for backward compatibility
+    virtual ChPhysicsItem* GetPhysicsItem();
+
 
     //
     // DATA
@@ -230,6 +235,8 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
 
     /// Set the material surface for contacts 
     virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
+
+
 
     //
     // STATE FUNCTIONS

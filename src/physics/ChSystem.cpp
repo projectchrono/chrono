@@ -454,7 +454,6 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval) {
     LCP_descriptor = new ChLcpSystemDescriptor;
     LCP_descriptor->SetNumThreads(parallel_thread_number);
 
-    //this->contact_container = new ChContactContainer__old; //***OBSOLETE***
     this->contact_container = new ChContactContainerDVI();
     this->contact_container->SetSystem(this);
 

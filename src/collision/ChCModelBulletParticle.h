@@ -59,15 +59,8 @@ class ChApi ChModelBulletParticle : public ChModelBullet {
 
     // Overrides and implementations of base members:
 
-    /// Sets the position and orientation of the collision
-    /// model as the current position of the corresponding item in ChParticles
- //   virtual void SyncPosition();
-
     /// Gets the pointer to the client owner ChPhysicsItem.
     virtual ChPhysicsItem* GetPhysicsItem() { return (ChPhysicsItem*)GetParticles(); };
-
-    /// Sets the pointer to the client owner ChPhysicsItem.
-    virtual void SetPhysicsItem(ChPhysicsItem* mitem);
 
   private:
     unsigned int particle_id;

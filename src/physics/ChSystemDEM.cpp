@@ -46,7 +46,7 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
     m_minSlipVelocity = 1e-4; 
     m_characteristicVelocity = 1; 
 }
-
+/*
 void ChSystemDEM::SetLcpSolverType(eCh_lcpSolver mval) {
     if (mval != LCP_DEM)
         return;
@@ -70,7 +70,7 @@ void ChSystemDEM::SetLcpSolverType(eCh_lcpSolver mval) {
         delete contact_container;
     contact_container = new ChContactContainerDEM;
 }
-
+*/
 void ChSystemDEM::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
     if (dynamic_cast<ChLcpSolverDEM*>(newsolver))
         ChSystem::ChangeLcpSolverSpeed(newsolver);

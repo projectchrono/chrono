@@ -123,9 +123,35 @@ void ChNodeMeshless::SetCollisionRadius(double mr) {
     ((ChModelBulletNode*)this->collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
+void ChNodeMeshless::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
+                                    ChVectorDynamic<>& R) {
+    R.PasteSumVector(F, this->NodeGetOffset_w() + 0, 0);
+}
+
+void ChNodeMeshless::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
+            type_constraint_tuple& jacobian_tuple_N, 
+            type_constraint_tuple& jacobian_tuple_U, 
+            type_constraint_tuple& jacobian_tuple_V, 
+            bool second) {
+    ChMatrix33<> Jx1;
+
+    Jx1.CopyFromMatrixT(contact_plane);
+    if (!second)
+        Jx1.MatrNeg();
+
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
+}
+
 ChSharedPtr<ChMaterialSurfaceBase>& ChNodeMeshless::GetMaterialSurfaceBase()
 {
     return container->GetMaterialSurfaceBase();
+}
+
+ChPhysicsItem* ChNodeMeshless::GetPhysicsItem()
+{
+    return container;
 }
 
 //////////////////////////////////////

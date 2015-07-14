@@ -12,7 +12,7 @@
 
 #include "physics/ChLinkMate.h"
 #include "lcp/ChLcpIterativeSolver.h"
-
+#include "physics/ChContactContainerBase.h"
 #include "unit_IRRLICHT/ChIrrTools.h"
 
 namespace irr {
