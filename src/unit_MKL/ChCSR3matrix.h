@@ -8,13 +8,13 @@
 namespace chrono{
 
 
-	class ChEigenMatrix : public ChSparseMatrixBase, public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
+	class ChEigenMatrixPTR : public ChSparseMatrixBase, public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
 	public:
-		ChEigenMatrix() : Eigen::SparseMatrix<double, Eigen::RowMajor, int>() {};
-		ChEigenMatrix(int rows, int cols) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) {};
+		ChEigenMatrixPTR() : Eigen::SparseMatrix<double, Eigen::RowMajor, int>() {};
+		ChEigenMatrixPTR(int rows, int cols) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) {};
 		template<class SizesType>
-		ChEigenMatrix(int rows, int cols, SizesType& reserveSize) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) { reserve(reserveSize); };
-		ChEigenMatrix(int dimension) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(dimension, dimension) {};
+		ChEigenMatrixPTR(int rows, int cols, SizesType& reserveSize) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) { reserve(reserveSize); };
+		ChEigenMatrixPTR(int dimension) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(dimension, dimension) {};
 
 		/*template<typename OtherDerived>
 		ChEigenMatrix(const Eigen::SparseMatrixBase<SparseMatrix<OtherDerived>>& other) : Eigen::SparseMatrix<other>(){};
@@ -240,14 +240,14 @@ namespace chrono{
 	}; // END class
 
 
-	class ChEigenMatrixVRT : public ChSparseMatrixBase, public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
+	class ChEigenMatrix : public ChSparseMatrixBase, public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
 	public:
-		ChEigenMatrixVRT() : Eigen::SparseMatrix<double, Eigen::RowMajor, int>() {};
-		ChEigenMatrixVRT(int rows, int cols) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) {};
+		ChEigenMatrix() : Eigen::SparseMatrix<double, Eigen::RowMajor, int>() {};
+		ChEigenMatrix(int rows, int cols) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) {};
 		template<class SizesType>
-		ChEigenMatrixVRT(int rows, int cols, SizesType& reserveSize) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) { reserve(reserveSize); };
-		ChEigenMatrixVRT(int dimension) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(dimension, dimension) {};
-		virtual ~ChEigenMatrixVRT(){};
+		ChEigenMatrix(int rows, int cols, SizesType& reserveSize) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) { reserve(reserveSize); };
+		ChEigenMatrix(int dimension) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(dimension, dimension) {};
+		virtual ~ChEigenMatrix(){};
 
 		/*template<typename OtherDerived>
 		ChEigenMatrix(const Eigen::SparseMatrixBase<SparseMatrix<OtherDerived>>& other) : Eigen::SparseMatrix<other>(){};

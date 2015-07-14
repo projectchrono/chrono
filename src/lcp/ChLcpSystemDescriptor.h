@@ -352,13 +352,13 @@ class ChApi ChLcpSystemDescriptor {
                                      bool only_bilaterals = false,
                                      bool skip_contacts_uv = false);
 
-	virtual void ConvertToMatrixForm(
+	virtual void ConvertToMatrixForm(ChSparseMatrixBase* Z,
 									ChMatrix<>* rhs,
 									ChMatrix<>* Fvector,
 									ChMatrix<>* Bvector,
 									ChMatrix<>* Frict,
-									bool only_bilaterals,
-									bool skip_contacts_uv);
+									bool only_bilaterals = false,
+									bool skip_contacts_uv = false);
 
 
     /// Saves to disk the LAST used matrices of the problem.

@@ -206,13 +206,15 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Cq,
     }
 }
 
-void ChLcpSystemDescriptor::ConvertToMatrixForm(
-								ChMatrix<>* rhs,
-								ChMatrix<>* Fvector,
-								ChMatrix<>* Bvector,
-								ChMatrix<>* Frict,
-								bool only_bilaterals,
-								bool skip_contacts_uv)
+	
+
+void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Z,
+												ChMatrix<>* rhs,
+												ChMatrix<>* Fvector,
+												ChMatrix<>* Bvector,
+												ChMatrix<>* Frict,
+												bool only_bilaterals,
+												bool skip_contacts_uv)
 {
     std::vector<ChLcpConstraint*>& mconstraints = this->GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = this->GetVariablesList();
@@ -236,8 +238,8 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
 
     // Reset and resize (if needed) auxiliary vectors
 
-	if (MatTool.output_matrix)
-		(MatTool.output_matrix->*MatTool.MatrixFunctions.ResetPtr)(n_q + mn_c, n_q + mn_c);
+	if (Z)
+		Z->Reset(n_q + mn_c, n_q + mn_c);
 
     if (rhs)
         rhs->Reset(n_q + mn_c, 1);
@@ -261,8 +263,8 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
     int s_q = 0;
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive()) {
-            if (MatTool.output_matrix)
-                mvariables[iv]->Build_M(MatTool, s_q, s_q);  // .. fills  Z with masses and inertias in the upper left corner
+            if (Z)
+                mvariables[iv]->Build_M(*Z, s_q, s_q);  // .. fills  Z with masses and inertias in the upper left corner
             //if (M)
             //    mvariables[iv]->Build_M(*M, s_q, s_q);  // .. fills  M with masses and inertias
             if (rhs)
@@ -278,8 +280,8 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
     // also add it to the sparse M
     int s_k = 0;
     for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
-        if (MatTool.output_matrix)
-            this->vstiffness[ik]->Build_K(MatTool, true); // add K matrix in the upper left corner of Z
+        if (Z)
+            this->vstiffness[ik]->Build_K(*Z, true); // add K matrix in the upper left corner of Z
         /*if (M)
             this->vstiffness[ik]->Build_K(*M, true);*/
     }
@@ -291,11 +293,11 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(
         if (mconstraints[ic]->IsActive())
             if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
                 if (!((dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic])) && skip_contacts_uv)) {
-                    if (MatTool.output_matrix){
-                        mconstraints[ic]->Build_Cq(MatTool, n_q + s_c);  // .. fills Z with constraints (lower left corner)
-						mconstraints[ic]->Build_CqT(MatTool, n_q + s_c);  // .. fills Z with constraints (upper right corner)
+                    if (Z){
+                        mconstraints[ic]->Build_Cq(*Z, n_q + s_c);  // .. fills Z with constraints (lower left corner)
+						mconstraints[ic]->Build_CqT(*Z, n_q + s_c);  // .. fills Z with constraints (upper right corner)
                         // .. fills Z with E ( = - cfm ) (lower right corner)
-						(MatTool.output_matrix->*MatTool.MatrixFunctions.SetElementPtr)(n_q + s_c, n_q + s_c, -mconstraints[ic]->Get_cfm_i());
+						Z->SetElement(n_q + s_c, n_q + s_c, -mconstraints[ic]->Get_cfm_i());
                     };
                     if (rhs)
                         (*rhs)(n_q + s_c) = mconstraints[ic]->Get_b_i();  // .. fills 'rhs' with 'b' in the lower section

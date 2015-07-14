@@ -40,6 +40,9 @@
 #include <unit_MKL/ChCSR3matrix.h>
 #include <unit_MKL/ChLcpMklSolver.h>
 
+//#include "physics/ChSystem.h"
+//#include "unit_MATLAB/ChMatlabEngine.h"
+
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -241,48 +244,7 @@ void test_1_PtrToMembers() {
 
 	mdescriptor.EndInsertion();  // ----- system description ends here
 
-	//// Solve the problem with Intel® MKL Pardiso Sparse Direct Solver
-	//// Temporary solution: pass through ChSparseMatrix (LinkedList format) -> doubled storage!
-
-	//chrono::ChSparseMatrix mdM;
-	//chrono::ChSparseMatrix mdCq;
-	//chrono::ChSparseMatrix mdE;
-	//chrono::ChMatrixDynamic<double> mdf;
-	//chrono::ChMatrixDynamic<double> mdb;
-	//chrono::ChMatrixDynamic<double> mdfric;
-	//mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-
-
-	//ChEigenMatrix matCSR3;
-	//matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
-	//const int n = matCSR3.GetRows();
-	//ChMKLSolver pardiso_solver(n);
-	//pardiso_solver.SetMatrix(&matCSR3);
-	//chrono::ChMatrixDynamic<double> mdf_full;
-	//pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
-	//ChMatrixDynamic<double> solution(n, 1);
-	//pardiso_solver.SetUnknownVector(&solution);
-
-	//pardiso_solver.PardisoSolve();
-	//ChMatrixDynamic<double> residual(n, 1);
-	//pardiso_solver.GetResidual(&residual);
-
-
-	//printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	//printf("\nMatrix \n");
-	//for (int i = 0; i < matCSR3.GetRows(); i++){
-	//	for (int j = 0; j < matCSR3.GetColumns(); j++)
-	//		printf("%.1f ", matCSR3(i, j));
-	//	printf("\n");
-	//};
-
-	//printf("\nApprox solution | Residual");
-	//for (int i = 0; i < solution.GetRows(); i++)
-	//	printf("\n%f | %e", solution(i, 0), residual(i, 0));
-	//printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
-
 	// Solve the problem MKL Pardiso Solver
-	// using PtrToMembers
 
 	int n = mdescriptor.CountActiveVariables() + mdescriptor.CountActiveConstraints();
 
@@ -295,33 +257,42 @@ void test_1_PtrToMembers() {
 	ChEigenMatrix Z(n);
 	ChEigenMatrix M(mdescriptor.CountActiveVariables());
 	ChEigenMatrix Cq(mdescriptor.CountActiveConstraints(), mdescriptor.CountActiveVariables());
-	mdescriptor.SetOutputMatrix(&Z);
-	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
+	mdescriptor.ConvertToMatrixForm(&Z, &b, 0, 0, 0);
 
+	ChMKLSolver MKLSolver(n, 11, 13);
+	double *f = b.GetAddress();
+	double *u = x.GetAddress();
+	MKLSolver.SetProblem(&Z, f, u);
+
+	double* a = Z.GetValueArray();
+	int* ja = Z.GetColumnIndex();
+	int* ia = Z.GetRowIndex();
+
+	// .. pass the constraint and the variables to the solver
+	//    to solve - that's all.
+	int error_output = MKLSolver.PardisoSolve();
+
+	MKLSolver.GetResidual(&res);
+
+	// Ok, now present the result to the user, with some
+	// statistical information:
+	// Print Matrix and rhs
 	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	printf("\nChEigenMatrix through PtrToMember\n");
-	for (int i = 0; i < Z.GetRows(); i++){
-		for (int j = 0; j < Z.GetColumns(); j++)
-			printf("%.1f ", Z(i, j));
-		printf("\n");
+	printf("\nEigen Matrix \n");
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < n; j++)
+			printf("%3.2f ", Z(i, j));
+		printf(" |   %.2f ", b(i));
+		printf("\n ");
 	};
 
+	printf("\nSolution | Residual");
+	for (int i = 0; i < n; i++)
+		printf("\n%.2f   %.2e", x(i), res(i));
+	printf("\n ");
 
-	// TEST2: PtrToMemb with ChSparseMatrix
 
-	ChSparseMatrix Z2;
-
-	mdescriptor.SetOutputMatrix(&Z2);
-	mdescriptor.ConvertToMatrixForm(&b, 0, 0, 0, false, false);
-
-	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	printf("\nChSparseMatrix through PtrToMember\n");
-	for (int i = 0; i < Z2.GetRows(); i++){
-		for (int j = 0; j < Z2.GetColumns(); j++)
-			printf("%.1f ", Z2.GetElement(i, j));
-		printf("\n");
-	};
-
+	// TEST2: ChSparseMatrix
 
 	chrono::ChSparseMatrix mdM;
 	chrono::ChSparseMatrix mdCq;
@@ -333,55 +304,14 @@ void test_1_PtrToMembers() {
 
 
 	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	printf("\nChSparseMatrix through virtual\n");
+	printf("\nChSparseMatrix\n");
 	for (int i = 0; i < mdM.GetRows(); i++){
 		for (int j = 0; j < mdM.GetColumns(); j++)
 			printf("%.1f ", mdM.GetElement(i, j));
 		printf("\n");
 	};
 
-	chrono::ChSparseMatrix EigenM;
-	chrono::ChSparseMatrix EigenCq;
-	chrono::ChSparseMatrix EigenE;
-	mdescriptor.ConvertToMatrixForm(&EigenCq, &EigenM, &EigenE, &mdf, &mdb, &mdfric);
-
-
-	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
-	printf("\nEigen matrix through virtual\n");
-	for (int i = 0; i < EigenM.GetRows(); i++){
-		for (int j = 0; j < EigenM.GetColumns(); j++)
-			printf("%.1f ", EigenM.GetElement(i, j));
-		printf("\n");
-	};
-
-	//ChMKLSolver MKLSolver(n, 11, 13);
-	//double *f = b.GetAddress();
-	//double *u = x.GetAddress();
-	//MKLSolver.SetProblem(&Z, f, u);
-
-	//double* a = Z.GetValueArray();
-	//int* ja = Z.GetColumnIndex();
-	//int* ia = Z.GetRowIndex();
-
-	//// .. pass the constraint and the variables to the solver
-	////    to solve - that's all.
-	//int error_output = MKLSolver.PardisoSolve();
-
-	//MKLSolver.GetResidual(&res);
-
-	//// Ok, now present the result to the user, with some
-	//// statistical information:
-	//for (int i = 0; i < n; i++)
-	//	printf("\n%.2f   %.2f", x(i), b(i));
-	//printf("\n ");
-	//for (int i = 0; i < n; i++)
-	//	printf("\n%.2e", res(i));
-	//printf("\n ");
-	//for (int i = 0; i < n; i++){
-	//	for (int j = 0; j < n; j++)
-	//		printf("%3.2f ", Z(i, j));
-	//	printf("\n ");
-	//};
+	
 
 }
 
@@ -707,18 +637,94 @@ void test_3() {
 // Results will be simply text-formatted outputs in the console..
 
 
+void MatlabVSPardiso()
+{
+	GetLog() << "\n-------------------------------------------------\n";
+	GetLog() << "TEST: 1D vertical pendulum - MatlabVSPardiso \n\n";
+
+	ChLcpSystemDescriptor mdescriptor;
+
+	mdescriptor.BeginInsertion();  // ----- system description starts here
+
+	int n_masses = 11;
+
+	std::vector<ChLcpVariablesGeneric*> vars;
+	std::vector<ChLcpConstraintTwoGeneric*> constraints;
+
+	for (int im = 0; im < n_masses; im++) {
+		vars.push_back(new ChLcpVariablesGeneric(1));
+		vars[im]->GetMass()(0) = 10;
+		vars[im]->GetInvMass()(0) = 1. / vars[im]->GetMass()(0);
+		vars[im]->Get_fb()(0) = -9.8 * vars[im]->GetMass()(0) * 0.01;
+		// if (im==5) vars[im]->Get_fb()(0)= 50;
+		mdescriptor.InsertVariables(vars[im]);
+		if (im > 0) {
+			constraints.push_back(new ChLcpConstraintTwoGeneric(vars[im], vars[im - 1]));
+			constraints[im - 1]->Set_b_i(0);
+			constraints[im - 1]->Get_Cq_a()->ElementN(0) = 1;
+			constraints[im - 1]->Get_Cq_b()->ElementN(0) = -1;
+			// constraints[im-1]->SetMode(CONSTRAINT_UNILATERAL); // not supported by  ChLcpSimplexSolver
+			mdescriptor.InsertConstraint(constraints[im - 1]);
+		}
+	}
+
+	// First variable of 1st domain is 'fixed' like in a hanging chain
+	vars[0]->SetDisabled(true);
+
+	mdescriptor.EndInsertion();  // ----- system description is finished
+
+
+	// Try with Matlab Solver
+	chrono::ChSparseMatrix mdM;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+	
+
+	// Try again with MKL Pardiso
+
+	ChEigenMatrix matCSR3;
+	matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
+	const int n = matCSR3.GetRows();
+	ChMKLSolver pardiso_solver(n);
+	pardiso_solver.SetMatrix(&matCSR3);
+	chrono::ChMatrixDynamic<double> mdf_full;
+	pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
+	ChMatrixDynamic<double> solution(n, 1);
+	pardiso_solver.SetUnknownVector(&solution);
+
+	pardiso_solver.PardisoSolve();
+	ChMatrixDynamic<double> residual(n, 1);
+	pardiso_solver.GetResidual(&residual);
+
+
+	printf("\nIntel MKL Pardiso Sparse Direct Solver:");
+	printf("\nApprox solution | Residual");
+	for (int i = 0; i < solution.GetRows(); i++)
+		printf("\n%f | %e", solution(i, 0), residual(i, 0));
+	printf("\n\nResidual norm: %e\n", pardiso_solver.GetResidualNorm(&residual));
+
+};
+
 int main(int argc, char* argv[]) {
 	//GetLog() << " Example: the HyperOCTANT techology for solving LCP\n\n\n";
 
 	//// Test: an introductory problem:
-	test_1();
-	test_1_PtrToMembers();
+	//test_1();
+	//test_1_PtrToMembers();
 
 	//// Test: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
-	//test_2();
+	test_2();
 
 	//// Test: the stiffness benchmark (add also sparse stiffness blocks over M)
 	//test_3();
+
+	//// Comparison between Matlab solver and Intel MKL Pardiso
+	//MatlabVSPardiso();
+
 
 	getchar();
 
