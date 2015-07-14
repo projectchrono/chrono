@@ -63,7 +63,7 @@ class ChApi ChLcpConstraintTwoTuplesRollingN :
     //
     /// Default constructor
     ChLcpConstraintTwoTuplesRollingN() {
-        mode = CONSTRAINT_FRIC;
+        this->mode = CONSTRAINT_FRIC;
         rollingfriction = 0.0;
         spinningfriction = 0.0;
         constraint_U = constraint_V = 0;
