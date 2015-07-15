@@ -23,6 +23,8 @@
 #include "unit_FEA/ChMesh.h"
 #include "unit_FEA/ChVisualizationFEAmesh.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
+#include "unit_FEA/ChElementBeamANCF.h"
+#include "unit_FEA/ChBuilderBeam.h"
 
 
 using namespace chrono;
@@ -46,12 +48,18 @@ int main(int argc, char* argv[]) {
     application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
 
     //
-    // Create the system
+    // CREATE THE PHYSICAL SYSTEM
     //
+
+    // Create the surface material, containing information
+    // about friction etc.
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
 
-    // Create a floor
+
+    // RIGID BODIES
+    // Create some rigid bodies, for instance a floor and two bouncing items:
+
     ChSharedPtr<ChBodyEasyBox> mfloor (new ChBodyEasyBox(3,0.1,3,2700, true));
     mfloor->SetBodyFixed(true);
     mfloor->SetMaterialSurface(mysurfmaterial);
@@ -68,11 +76,15 @@ int main(int argc, char* argv[]) {
     my_system.Add(msphere);
 
    
+    // FINITE ELEMENT MESH
     // Create a mesh, that is a container for groups
     // of FEA elements and their referenced nodes.
+
     ChSharedPtr<ChMesh> my_mesh(new ChMesh);
 
-    // Create a material, that must be assigned to each element,
+    // 1) a FEA tetahedron:
+
+    // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
     ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
     mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
@@ -80,48 +92,63 @@ int main(int argc, char* argv[]) {
     mmaterial->Set_RayleighDampingK(0.001);
     mmaterial->Set_density(1000);
 
-    // Create a tetahedron
-    ChSharedPtr<ChNodeFEAxyz> mnode1(new ChNodeFEAxyz(ChVector<>(0, 1, 0)));
-    ChSharedPtr<ChNodeFEAxyz> mnode2(new ChNodeFEAxyz(ChVector<>(0, 1, 1)));
-    ChSharedPtr<ChNodeFEAxyz> mnode3(new ChNodeFEAxyz(ChVector<>(0, 2, 0)));
-    ChSharedPtr<ChNodeFEAxyz> mnode4(new ChNodeFEAxyz(ChVector<>(1, 1, 0)));
+    // Creates the nodes for the tetahedron
+    ChSharedPtr<ChNodeFEAxyz> mnode1(new ChNodeFEAxyz(ChVector<>(0, 0.2, 0)));
+    ChSharedPtr<ChNodeFEAxyz> mnode2(new ChNodeFEAxyz(ChVector<>(0, 0.2, 0.2)));
+    ChSharedPtr<ChNodeFEAxyz> mnode3(new ChNodeFEAxyz(ChVector<>(0, 0.4, 0)));
+    ChSharedPtr<ChNodeFEAxyz> mnode4(new ChNodeFEAxyz(ChVector<>(0.2, 0.2, 0)));
 
     my_mesh->AddNode(mnode1);
     my_mesh->AddNode(mnode2);
     my_mesh->AddNode(mnode3);
     my_mesh->AddNode(mnode4);
 
-    mnode1->SetForce(ChVector<>(0,-15,0));
-
-    // Create the tetrahedron element, and assign
-    // nodes and material
     ChSharedPtr<ChElementTetra_4> melement1(new ChElementTetra_4);
-    melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
+    melement1->SetNodes(mnode1,
+                        mnode2, 
+                        mnode3, 
+                        mnode4);
     melement1->SetMaterial(mmaterial);
 
-    // Remember to add elements to the mesh!
     my_mesh->AddElement(melement1);
 
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
   
+    // 2) an ANCF cable:
 
-    // Create the contact surfaces
+	ChSharedPtr<ChBeamSectionCable> msection_cable2(new ChBeamSectionCable);
+	msection_cable2->SetDiameter(0.05);
+	msection_cable2->SetYoungModulus (0.01e9);
+	msection_cable2->SetBeamRaleyghDamping(0.000);
+
+	ChBuilderBeamANCF builder;
+
+	builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
+						msection_cable2,// the ChBeamSectionCable to use for the ChElementBeamANCF elements
+						10,				// the number of ChElementBeamANCF to create
+						ChVector<>(0, 0.1, -0.1),		// the 'A' point in space (beginning of beam)
+						ChVector<>(0.5, 0.13, -0.1));	// the 'B' point in space (end of beam)
+
+    // Apply some gravity-like forces
+     for (unsigned int i = 0; i< my_mesh->GetNnodes(); ++i)
+        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetForce(ChVector<>(0,-10,0)); // to simulate gravity..
+
+
+    // 3) the contact surface
+
+    // Create the contact surface(s). 
+    // In this case it is a ChContactSurfaceNodeCloud, so just pass 
+    // all nodes to it.
+
     ChSharedPtr<ChContactSurfaceNodeCloud> mcontactsurf (new ChContactSurfaceNodeCloud);
-    mcontactsurf->AddNode(mnode1);
-    mcontactsurf->AddNode(mnode2);
-    mcontactsurf->AddNode(mnode3);
-    mcontactsurf->AddNode(mnode4);
-    
+
+    for (unsigned int i = 0; i< my_mesh->GetNnodes(); ++i)
+        mcontactsurf->AddNode( my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>() );
+
     mcontactsurf->SetMaterialSurface(mysurfmaterial);
 
     my_mesh->AddContactSurface(mcontactsurf);
 
 
-    //
-    // Final touches..
-    //
 
     // This is necessary in order to precompute the
     // stiffness matrices for all inserted elements in mesh
@@ -129,6 +156,12 @@ int main(int argc, char* argv[]) {
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
+
+
+
+    //
+    // Optional...  visualuzation
+    //
 
     // ==Asset== attach a visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
@@ -164,18 +197,16 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
+
     //
     // THE SOFT-REAL-TIME CYCLE
     //
-    my_system.ChangeLcpSolverSpeed(new ChLcpIterativeMINRES);
-    //my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
+
+    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);     
     my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);
-    // chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-    // msolver->SetVerbose(true);
-    // msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  
 
     //***TEST***
     /*
