@@ -96,6 +96,9 @@ ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSur
 
 void ChContactSurfaceNodeCloud::AddNode(ChSharedPtr< ChNodeFEAxyz > mnode) {
 
+    if (!mnode)
+        return;
+
     ChSharedPtr<ChContactNodeXYZsphere> newp(new ChContactNodeXYZsphere(mnode.get_ptr(), this));
     
     newp->GetCollisionModel()->AddSphere(0.01);  //***TODO*** avoid magic number.

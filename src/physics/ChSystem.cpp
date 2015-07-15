@@ -45,7 +45,7 @@
 #include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpIterativePCG.h"
 #include "lcp/ChLcpIterativeAPGD.h"
-#include "lcp/ChLcpSolverDEM.h"
+//#include "lcp/ChLcpSolverDEM.h"
 #include "parallel/ChOpenMP.h"
 
 #include "core/ChTimer.h"

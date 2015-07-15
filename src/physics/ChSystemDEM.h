@@ -43,8 +43,8 @@ class ChApi ChSystemDEM : public ChSystem {
 
     virtual ChBody::ContactMethod GetContactMethod() const { return ChBody::DEM; }
 
-//    virtual void SetLcpSolverType(eCh_lcpSolver mval);
-    virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
+    virtual void SetLcpSolverType(eCh_lcpSolver mval);
+    // virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
     virtual void ChangeContactContainer(ChContactContainerBase* newcontainer);
 
     bool UseMaterialProperties() const { return m_use_mat_props; }

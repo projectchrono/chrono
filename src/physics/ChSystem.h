@@ -44,9 +44,9 @@
 #include "core/ChMath.h"
 #include "core/ChSpmatrix.h"
 #include "core/ChTimer.h"
-#include "physics/ChBody.h"
-#include "physics/ChMarker.h"
-#include "physics/ChForce.h"
+//#include "physics/ChBody.h"
+//#include "physics/ChMarker.h"
+//#include "physics/ChForce.h"
 #include "physics/ChLinksAll.h"
 #include "physics/ChHistory.h"
 #include "physics/ChEvents.h"
@@ -69,7 +69,9 @@ typedef ChSharedPtr<ChControls> ChSharedControlsPtr;
 class ChLcpSolver;
 class ChLcpSystemDescriptor;
 class ChContactContainerBase;
-// class ChTimestepper;
+class ChBody;
+class ChMarker;
+class ChForce;
 
 //  Defines (obsolete: to be removed or ported to enums)
 

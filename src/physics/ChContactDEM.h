@@ -27,12 +27,6 @@
 
 namespace chrono {
 
-// Forward
-//class ChSystem;
-//class ChSystemDEM;
-
-/// Enum for DEM contact type (out of class because templated class)
-//enum ContactForceModel { Hooke, Hertz };
 
 
 /// Class for DVI contact between two generic ChContactable objects.
