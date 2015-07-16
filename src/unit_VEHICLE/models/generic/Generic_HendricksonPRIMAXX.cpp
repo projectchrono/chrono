@@ -36,6 +36,7 @@ const double     Generic_HendricksonPRIMAXX::m_knuckleMass = 1.356;
 const double     Generic_HendricksonPRIMAXX::m_spindleMass = 1.103;
 const double     Generic_HendricksonPRIMAXX::m_torquerodMass = 1.446;
 const double     Generic_HendricksonPRIMAXX::m_lowerbeamMass = 2.892;
+const double     Generic_HendricksonPRIMAXX::m_transversebeamMass = 1.0;
 
 const double     Generic_HendricksonPRIMAXX::m_axlehousingRadius = 0.03;
 const double     Generic_HendricksonPRIMAXX::m_knuckleRadius = 0.01;
@@ -43,14 +44,16 @@ const double     Generic_HendricksonPRIMAXX::m_spindleRadius = 0.15;
 const double     Generic_HendricksonPRIMAXX::m_spindleWidth = 0.06;
 const double     Generic_HendricksonPRIMAXX::m_torquerodRadius = 0.02;
 const double     Generic_HendricksonPRIMAXX::m_lowerbeamRadius = 0.02;
+const double     Generic_HendricksonPRIMAXX::m_transversebeamRadius = 0.02;
 
-const ChVector<> Generic_HendricksonPRIMAXX::m_axleTubeCOM(0, 0, 0);
+const ChVector<> Generic_HendricksonPRIMAXX::m_axlehousingCOM(0, 0, 0);
 
 const ChVector<> Generic_HendricksonPRIMAXX::m_axlehousingInertia(7.744, 0.045, 7.744);
 const ChVector<> Generic_HendricksonPRIMAXX::m_knuckleInertia(0.00255, 0.00134, 0.00196);
 const ChVector<> Generic_HendricksonPRIMAXX::m_spindleInertia(0.0000558, 0.0000279, 0.0000558);
 const ChVector<> Generic_HendricksonPRIMAXX::m_torquerodInertia(0.011, 0.011, 0.000142);
 const ChVector<> Generic_HendricksonPRIMAXX::m_lowerbeamInertia(0.0514, 0.0514, 0.00037);
+const ChVector<> Generic_HendricksonPRIMAXX::m_transversebeamInertia(1, 1, 1);
 
 const double     Generic_HendricksonPRIMAXX::m_axleInertia = 0.4;
 
@@ -130,7 +133,7 @@ const ChVector<> Generic_HendricksonPRIMAXX::getLocation(PointId which)
   case SPRINGLB_CM:       return ChVector<>(-0.0, 0.65, -0.0);  ///< spring at lower beam (LB), center of mass
   case TRANSVERSEBEAM_CM: return ChVector<>(-0.0, 0.0, -0.0);  ///< transverse beam, center of mass
   case AXLEHOUSING_CM:    return ChVector<>(-0.0, 0.0, -0.0);     ///< axle housing (AH), center of mass
-  default:       return ChVector<>(0, 0, 0);
+  default:                return ChVector<>(0, 0, 0);
   }
 }
 
@@ -141,10 +144,10 @@ const ChVector<> Generic_HendricksonPRIMAXX::getLocation(PointId which)
 const ChVector<> Generic_HendricksonPRIMAXX::getDirection(DirectionId which)
 {
   switch (which) {
-  case UNIV_AXIS_LOWERBEAM_L:    return ChVector<>(0, 1, 0);
-  case UNIV_AXIS_CHASSIS_L:      return ChVector<>(0, 0, 1);
-  case UNIV_AXIS_TORQUEROD_T:    return ChVector<>(0, -1, 0);
-  case UNIV_AXIS_CHASSIS_T:      return ChVector<>(0, 0, 1);
-  default:                       return ChVector<>(0, 0, 1);
+  case UNIV_TORQUEROD_AXIS_ROD:      return ChVector<>(0, 1, 0);
+  case UNIV_TORQUEROD_AXIS_CHASSIS:  return ChVector<>(0, 0, 1);
+  case UNIV_LOWERBEAM_AXIS_BEAM:     return ChVector<>(0, -1, 0);
+  case UNIV_LOWERBEAM_AXIS_CHASSIS:  return ChVector<>(0, 0, 1);
+  default:                           return ChVector<>(0, 0, 1);
   }
 }
