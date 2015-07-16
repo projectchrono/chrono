@@ -272,8 +272,8 @@ ChMatrix33<> rot;
 
 
   // Create and initialize the universal joint between chassis and torque rod.
-  u = dirs[UNIV_AXIS_CHASSIS_T];
-  v = dirs[UNIV_AXIS_TORQUEROD_T];
+  u = dirs[UNIV_TORQUEROD_AXIS_CHASSIS];
+  v = dirs[UNIV_TORQUEROD_AXIS_ROD];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
 
@@ -283,8 +283,8 @@ ChMatrix33<> rot;
   chassis->GetSystem()->AddLink(m_universalTorquerod[side]);
 
   // Create and initialize the universal joint between chassis and lower beam.
-  u = dirs[UNIV_AXIS_CHASSIS_L];
-  v = dirs[UNIV_AXIS_LOWERBEAM_L];
+  u = dirs[UNIV_LOWERBEAM_AXIS_CHASSIS];
+  v = dirs[UNIV_LOWERBEAM_AXIS_BEAM];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
 
@@ -413,20 +413,6 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(ChVehicleSide side)
     GetLog() << "  " << C->GetElement(1, 0) << "  ";
     GetLog() << "  " << C->GetElement(2, 0) << "\n";
   }
-  {
-    ChMatrix<>* C = m_sphericalSpringAH[side]->GetC();
-    GetLog() << "SpringAH spherical          ";
-    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    GetLog() << "  " << C->GetElement(2, 0) << "\n";
-  }
-  {
-    ChMatrix<>* C = m_sphericalSpringLB[side]->GetC();
-    GetLog() << "SpringLB spherical          ";
-    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    GetLog() << "  " << C->GetElement(2, 0) << "\n";
-  }
   // Universal joints
   {
     ChMatrix<>* C = m_universalTorquerod[side]->GetC();
@@ -439,22 +425,6 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(ChVehicleSide side)
   {
     ChMatrix<>* C = m_universalLowerbeam[side]->GetC();
     GetLog() << "Lowerbeam universal          ";
-    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    GetLog() << "  " << C->GetElement(3, 0) << "\n";
-  }
-  {
-    ChMatrix<>* C = m_universalSpringAH[side]->GetC();
-    GetLog() << "SpringAH universal          ";
-    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    GetLog() << "  " << C->GetElement(3, 0) << "\n";
-  }
-  {
-    ChMatrix<>* C = m_universalSpringLB[side]->GetC();
-    GetLog() << "SpringLB universal          ";
     GetLog() << "  " << C->GetElement(0, 0) << "  ";
     GetLog() << "  " << C->GetElement(1, 0) << "  ";
     GetLog() << "  " << C->GetElement(2, 0) << "  ";

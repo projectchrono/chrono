@@ -174,10 +174,10 @@ protected:
 
   /// Identifiers for the various vectors.
   enum DirectionId {
-    UNIV_AXIS_LOWERBEAM_L,     ///< universal joint (lowerbeam, beam side)
-    UNIV_AXIS_CHASSIS_L,       ///< universal joint (lowerbeam, chassis side)
-    UNIV_AXIS_TORQUEROD_T,     ///< universal joint (torquerod, rod side)
-    UNIV_AXIS_CHASSIS_T,       ///< universal joint (torquerod, chassis side)
+    UNIV_TORQUEROD_AXIS_ROD,
+    UNIV_TORQUEROD_AXIS_CHASSIS,
+    UNIV_LOWERBEAM_AXIS_BEAM,
+    UNIV_LOWERBEAM_AXIS_CHASSIS,
     NUM_DIRS
   };
 
@@ -187,7 +187,7 @@ protected:
 
   /// HH Question in CHsolidAxle.h there is the follwing vector for direction
   ///// Return the vector of the specified direction.
- virtual const ChVector<> getDirection(DirectionId which) = 0;
+  virtual const ChVector<> getDirection(DirectionId which) = 0;
   /// HH Question ends
 
   /// Return the center of mass of the axle tube.
@@ -203,10 +203,6 @@ protected:
   virtual double getTorquerodMass() const = 0;
   /// Return the mass of the lower beam body.
   virtual double getLowerbeamMass() const = 0;
-  /// Return the mass of the axlehous spring body.
-  virtual double getAxlehousespringMass() const = 0;
-  /// Return the mass of the lower beam spring body.
-  virtual double getLowerbeamspringMass() const = 0;
   /// Return the mass of the transverse beam body.
   virtual double getTransversebeamMass() const = 0;
   /// Return the mass of the axlehousing body.
@@ -220,10 +216,6 @@ protected:
   virtual const ChVector<>& getTorquerodInertia() const = 0;
   /// Return the moments of inertia of the lower beam body.
   virtual const ChVector<>& getLowerbeamInertia() const = 0;
-  /// Return the moments of inertia of the the axlehous spring body.
-  virtual const ChVector<>& getAxlehousespringInertia() const = 0;
-  /// Return the moments of inertia of the lower beam spring body.
-  virtual const ChVector<>& getLowerbeamspringInertia() const = 0;
   /// Return the moments of inertia of the transverse beam body.
   virtual const ChVector<>& getTransversebeamInertia() const = 0;
   /// Return the moments of inertia of the axlehousing body.
@@ -267,8 +259,6 @@ protected:
   ChSharedBodyPtr                   m_knuckle[2];               ///< handles to the knuckle bodies (left/right)
   ChSharedBodyPtr                   m_torquerod[2];
   ChSharedBodyPtr                   m_lowerbeam[2];
-  ChSharedBodyPtr                   m_axlehousespring[2];
-  ChSharedBodyPtr                   m_lowerbeamspring[2];
   ChSharedBodyPtr                   m_transversebeam;
   ChSharedBodyPtr                   m_axlehousing;
 
@@ -278,10 +268,6 @@ protected:
   ChSharedPtr<ChLinkUniversal>      m_universalTorquerod[2];    ///< handles to the torque rod-chassis universal joints (left/right)
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalLowerbeam[2];    ///< handles to the lower beam-axle housing spherical joints (left/right)
   ChSharedPtr<ChLinkUniversal>      m_universalLowerbeam[2];    ///< handles to the lower beam-chassis universal joints (left/right)
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalSpringAH[2];     ///< handles to the spring axle housing-axle housing spherical joints (left/right)
-  ChSharedPtr<ChLinkUniversal>      m_universalSpringAH[2];     ///< handles to the spring axle housing-chassis universal joints (left/right)
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalSpringLB[2];     ///< handles to the spring lower beam-lower beam spherical joints (left/right)
-  ChSharedPtr<ChLinkUniversal>      m_universalSpringLB[2];     ///< handles to the spring lower beam-chassis universal joints (left/right)
   /// think about constraints
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalTB[2];           ///< handles to the transversebeam-lower beam spherical joints (left/right)
   /// end of thinking about transverse beam constraints
