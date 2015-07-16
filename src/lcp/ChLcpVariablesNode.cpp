@@ -129,11 +129,12 @@ void ChLcpVariablesNode::DiagonalAdd(ChMatrix<double>& result) const {
 /// it in 'storage' sparse matrix, at given column/row offset.
 /// Note, most iterative solvers don't need to know mass matrix explicitly.
 /// Optimised: doesn't fill unneeded elements except mass.
-void ChLcpVariablesNode::Build_M(ChSparseMatrix& storage, int insrow, int inscol) {
+void ChLcpVariablesNode::Build_M(ChSparseMatrixBase& storage, int insrow, int inscol) {
     storage.SetElement(insrow + 0, inscol + 0, mass);
     storage.SetElement(insrow + 1, inscol + 1, mass);
     storage.SetElement(insrow + 2, inscol + 2, mass);
 }
+
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
