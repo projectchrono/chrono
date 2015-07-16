@@ -33,11 +33,12 @@
 #include "ChCSR3matrix.h"
 #include "core/ChMatrix.h"
 #include "core/ChSpmatrix.h"
+#include "lcp/ChLcpSystemDescriptor.h"
+#include "lcp/ChLcpSolver.h"
 
 
 namespace chrono {
 
-	/// Class for interfacing with Intel® MKL Library. Currently only Pardiso Sparse Direct Solver.
 
 	/*	void pardiso(
 	_MKL_DSS_HANDLE_t pt,				// internal data structure
@@ -56,6 +57,9 @@ namespace chrono {
 	MKL_INT *error);*/					// error indicator
 
 
+
+    /// Class for interfacing with Pardiso Sparse Direct Solver 
+    /// from the Intel® MKL Library. 
 
 	class ChApiMkl ChMKLSolver {
 	private:
@@ -215,6 +219,61 @@ namespace chrono {
 		
 
 	};
+
+
+
+
+    /// Class that wraps the Intel MKL 'PARDISO' parallel direct solver.
+    /// It can solve linear systems. It cannot solve VI and complementarity problems.
+    
+   class ChApiMkl ChLcpMklSolver : public ChLcpSolver {
+      protected:
+        
+        //ChMKLSolver msolver; // not used - create temporary at each Solve() (temporary might affect performance?)
+
+      public:
+        ChLcpMklSolver() {};
+        virtual ~ChLcpMklSolver() {}
+
+        /// Solve using the MKL Pardiso parallel direct solver (as in x=A\b)
+        virtual double Solve(ChLcpSystemDescriptor& sysd)  ///< system description with constraints and variables
+        {
+            chrono::ChSparseMatrix mdM;
+            chrono::ChSparseMatrix mdCq;
+            chrono::ChSparseMatrix mdE;
+            chrono::ChMatrixDynamic<double> mdf;
+            chrono::ChMatrixDynamic<double> mdb;
+            chrono::ChMatrixDynamic<double> mdfric;
+            sysd.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
+            ChEigenMatrix matCSR3;
+	        matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
+	        const int n = matCSR3.GetRows();
+
+            // Create here a temporary Pardiso solver
+	        ChMKLSolver pardiso_solver(n);
+
+	        pardiso_solver.SetMatrix(&matCSR3);
+	        chrono::ChMatrixDynamic<double> mdf_full;
+	        pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
+	        ChMatrixDynamic<double> solution(n, 1);
+	        pardiso_solver.SetUnknownVector(&solution);
+
+	        pardiso_solver.PardisoSolve();
+
+            sysd.FromVectorToUnknowns(solution);
+
+	        ChMatrixDynamic<double> residual(n, 1);
+	        pardiso_solver.GetResidual(&residual);
+            GetLog() << " Pardiso computed residual: " << pardiso_solver.GetResidualNorm(&residual) << "\n";
+
+            return 0;
+        }
+    };
+
+
+
+
 
 }  // END_OF_NAMESPACE____
 
