@@ -719,7 +719,7 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
         mintegrable->LoadResidual_CqL(R, L, 1.0);                                               //  Cq'*l_new
         mintegrable->LoadResidual_Mv(R, Anew, -(1.0 / (1.0 + alpha)));                          // -1/(1+alpha)*M*a_new
         mintegrable->LoadConstraint_C(Qc, (1.0 / (beta * dt * dt)), Qc_do_clamp, Qc_clamping);  //  1/(beta*dt^2)*C
-
+		verbose=1;
         if (verbose)
             GetLog() << " HHT iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "\n";
 

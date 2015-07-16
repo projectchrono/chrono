@@ -37,6 +37,7 @@ protected:
 	
 	double thickness;
 	int elementnumber;
+	double Alpha;
 	ChSharedPtr<ChContinuumElastic> Material;
 
 	ChMatrixNM<double,24,24> StiffnessMatrix; // stiffness matrix
@@ -160,6 +161,10 @@ public:
 
 	int GetNumLayer(){return NumLayer;} //// 2015/5/28  for Laminate shell
 	
+	/// 2015/6/23 Structural Damping 
+	void SetAlphaDamp(double a) {Alpha = a;}
+
+	double GetAlphaDamp() {return Alpha;}
 
 				/// Get each node
 	ChSharedPtr<ChNodeFEAxyzD> GetNodeA() {return nodes[0];}
@@ -492,7 +497,9 @@ public:
 					temp.MatrScale( Mfactor );
 
 					// Paste scaled M mass matrix in resulting H:
-					H.PasteSumMatrix(&temp,0,0); 
+					H.PasteSumMatrix(&temp,0,0);
+					GetLog()<<H.GetRows()<<"\n"<<H.GetColumns()<<"\n";
+					system("pause");
 
 				}
 
@@ -515,6 +522,16 @@ public:
 					ChVector<> dC = this->nodes[2]->GetD();
 					ChVector<> pD = this->nodes[3]->GetPos();
 					ChVector<> dD = this->nodes[3]->GetD();
+
+					ChMatrixNM<double, 8,3>   v;
+					v(0,0) = this->nodes[0]->GetPos_dt().x;	v(0,1) = this->nodes[0]->GetPos_dt().y;	v(0,2) = this->nodes[0]->GetPos_dt().z;
+					v(1,0) = this->nodes[0]->GetD_dt().x;	v(1,1) = this->nodes[0]->GetD_dt().y;	v(1,2) = this->nodes[0]->GetD_dt().z;
+					v(2,0) = this->nodes[1]->GetPos_dt().x;	v(2,1) = this->nodes[1]->GetPos_dt().y;	v(2,2) = this->nodes[1]->GetPos_dt().z;
+					v(3,0) = this->nodes[1]->GetD_dt().x;	v(3,1) = this->nodes[1]->GetD_dt().y;	v(3,2) = this->nodes[1]->GetD_dt().z;
+					v(4,0) = this->nodes[2]->GetPos_dt().x;	v(4,1) = this->nodes[2]->GetPos_dt().y;	v(4,2) = this->nodes[2]->GetPos_dt().z;
+					v(5,0) = this->nodes[2]->GetD_dt().x;	v(5,1) = this->nodes[2]->GetD_dt().y;	v(5,2) = this->nodes[2]->GetD_dt().z;
+					v(6,0) = this->nodes[3]->GetPos_dt().x;	v(6,1) = this->nodes[3]->GetPos_dt().y;	v(6,2) = this->nodes[3]->GetPos_dt().z;
+					v(7,0) = this->nodes[3]->GetD_dt().x;	v(7,1) = this->nodes[3]->GetD_dt().y;	v(7,2) = this->nodes[3]->GetD_dt().z;
 					
 					ChMatrixNM<double, 8,3>   d;
 					d(0,0) = pA.x;	d(0,1) = pA.y;	d(0,2) = pA.z;
@@ -632,7 +649,8 @@ public:
 							public:
 								ChElementShellANCF* element;
 								//// External values
-								ChMatrixNM<double, 8,3>  *d; 
+								ChMatrixNM<double, 8,3>  *d;
+								ChMatrixNM<double, 8,3> *v;
 								ChMatrixNM<double, 8,1>  *strain_ans; 
 								ChMatrixNM<double, 8,24>  *strainD_ans; 
 								ChMatrixNM<double, 8,3>  *d0;
@@ -644,11 +662,11 @@ public:
 						
 								ChMatrixNM<double, 24,1>  Fint;
 								ChMatrixNM<double, 24,24>  JAC11;
-								ChMatrixNM<double, 8,24>  Gd;
+								ChMatrixNM<double, 9,24>  Gd;
 								ChMatrixNM<double, 6,1>  stress;
-								ChMatrixNM<double, 8,8>  Sigm;
+								ChMatrixNM<double, 9,9>  Sigm;
 								ChMatrixNM<double, 24,6>  temp246;
-								ChMatrixNM<double, 24,8>  temp248;
+								ChMatrixNM<double, 24,9>  temp249;
 								ChMatrixNM<double, 3,24>  Sx;
 								ChMatrixNM<double, 3,24>  Sy;
 								ChMatrixNM<double, 3,24>  Sz;
@@ -673,6 +691,10 @@ public:
 								ChMatrixNM<double, 1,24>  tempB;
 								ChMatrixNM<double, 24,6>  tempC;
 								double detJ0;
+								double dt;
+								double alphaHHT;
+								double betaHHT;
+								double gammaHHT;
 								// ANS
 								ChMatrixNM<double, 1,8>   N;
 								ChMatrixNM<double, 1,4>   S_ANS;
@@ -696,6 +718,11 @@ public:
 							
 									element->shapefunction_ANS_BilinearShell(S_ANS, x, y);
 									element->Basis_M(M,x,y,z); // EAS
+
+									dt=0.0001;
+									alphaHHT=-0.2;
+									betaHHT=0.25*(1.0-alphaHHT)*(1.0-alphaHHT);
+									gammaHHT=0.5-alphaHHT;
 							
 
 									// Expand shape function derivatives in 3x24 matrices
@@ -947,6 +974,29 @@ public:
 									///////////////////////////////////
 									strain += strain_EAS;
 
+									//////////////////////////////////////
+									/// Structural damping (6/23/2015) ///
+									//////////////////////////////////////
+									ChMatrixNM<double, 6,1> dstrain;
+									dstrain.Reset();
+									int kk=0;
+									for(int ii=0;ii<8;ii++)
+									{
+										dstrain(0,0)+=(strainD(0,kk)*(*v)(ii,0))+(strainD(0,kk+1)*(*v)(ii,1))+(strainD(0,kk+2)*(*v)(ii,2));
+										dstrain(1,0)+=(strainD(1,kk)*(*v)(ii,0))+(strainD(1,kk+1)*(*v)(ii,1))+(strainD(1,kk+2)*(*v)(ii,2));
+										dstrain(2,0)+=(strainD(2,kk)*(*v)(ii,0))+(strainD(2,kk+1)*(*v)(ii,1))+(strainD(2,kk+2)*(*v)(ii,2));
+										dstrain(3,0)+=(strainD(3,kk)*(*v)(ii,0))+(strainD(3,kk+1)*(*v)(ii,1))+(strainD(3,kk+2)*(*v)(ii,2));
+										dstrain(4,0)+=(strainD(4,kk)*(*v)(ii,0))+(strainD(4,kk+1)*(*v)(ii,1))+(strainD(4,kk+2)*(*v)(ii,2));
+										dstrain(5,0)+=(strainD(5,kk)*(*v)(ii,0))+(strainD(5,kk+1)*(*v)(ii,1))+(strainD(5,kk+2)*(*v)(ii,2));
+										kk+=3;
+									}
+									kk=0;
+									dstrain=dstrain*(element->GetAlphaDamp());
+									double DampCoefficient = dt*gammaHHT;
+									//if((*v)(0,0)!=0.0){
+									//GetLog()<<dstrain<<"\n"<<strain<<"\n"<<*v<<"\n";
+									//system("pause");}
+									strain-=dstrain;
 									/// Stress tensor calculation
 									stress.MatrMultiply(*E_eps,strain);
 									Sigm(0,0)=stress(0,0); //XX
@@ -987,8 +1037,8 @@ public:
 
 									/// Jacobian calculation ///
 									temp246.MatrTMultiply(strainD,*E_eps);
-									temp248.MatrTMultiply(Gd,Sigm);
-									JAC11=temp246*strainD+temp248*Gd;
+									temp249.MatrTMultiply(Gd,Sigm);
+									JAC11=(temp246*strainD*(1.0+DampCoefficient*(element->GetAlphaDamp())))+temp249*Gd;
 									JAC11*=detJ0*(element->GetLengthX()/2.0)*(element->GetLengthY()/2.0)*(element->GetThickness()/2.0);
 
 									/// Internal force calculation ///
@@ -1091,6 +1141,7 @@ public:
 								//GetLog() << "T0" << T0 << "\n\n";
 								MyForce myformula;
 								myformula.d = &d;
+								myformula.v = &v;
 								myformula.strain_ans = &strain_ans;
 								myformula.strainD_ans = &strainD_ans;
 								myformula.d0 = &d0;

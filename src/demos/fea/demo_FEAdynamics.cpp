@@ -728,6 +728,7 @@ void test_5() {
 		element->SetNumLayer(NumLayer[LayNUM[i]-1]);
 		element->SetThickness(TotalThickness);
 		element->SetElemNum(elemcount);
+		element->SetAlphaDamp(0.0000);
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
@@ -759,7 +760,7 @@ void test_5() {
 									truss);
 									//&ChVector<double>(0.0,0.0,0.0));
 									//&ChVector<double>(COORDFlex[i][3], COORDFlex[i][4], COORDFlex[i][5]));
-
+			constraintD->SetDirectionInBodyCoords(ChVector<double>(COORDFlex[i][3], COORDFlex[i][4], COORDFlex[i][5]));
 		my_system.Add(constraint);
 		my_system.Add(constraintD);
 		

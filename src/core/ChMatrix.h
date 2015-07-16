@@ -37,8 +37,8 @@
 // Too low values could slow down the execution because sometimes the overhead of
 // multithreading setup is larger than the effective computation; in general optimal
 // values depend on processor architecture etc.
-#define CH_OMP_MATRLIGHT 400
-#define CH_OMP_MATR 400
+#define CH_OMP_MATRLIGHT 4800
+#define CH_OMP_MATR 4800
 
 namespace chrono {
 
