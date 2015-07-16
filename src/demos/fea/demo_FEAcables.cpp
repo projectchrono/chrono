@@ -30,8 +30,9 @@
 #include "unit_FEA/ChLinkPointFrame.h"
 #include "unit_FEA/ChLinkDirFrame.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
-#include "unit_MATLAB/ChMatlabEngine.h"
-#include "unit_MATLAB/ChLcpMatlabSolver.h"
+//#include "unit_MATLAB/ChMatlabEngine.h"
+//#include "unit_MATLAB/ChLcpMatlabSolver.h"
+#include "unit_MKL/ChLcpMklSolver.h"
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
@@ -316,15 +317,21 @@ int main(int argc, char* argv[])
 	
 
 	// TEST: The Matlab external linear solver, for max precision in benchmarks
-ChMatlabEngine matlab_engine;
-ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
-ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
-my_system.ChangeLcpSolverStab (matlab_solver_stab);
-my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
-application.GetSystem()->Update();
-application.SetPaused(true);
-
-
+    /*
+    ChMatlabEngine matlab_engine;
+    ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
+    ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+    my_system.ChangeLcpSolverStab (matlab_solver_stab);
+    my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+    application.GetSystem()->Update();
+    */
+    
+    ChLcpMklSolver* mkl_solver_stab  = new ChLcpMklSolver;
+    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+    my_system.ChangeLcpSolverStab (mkl_solver_stab);
+    my_system.ChangeLcpSolverSpeed(mkl_solver_stab);
+    application.GetSystem()->Update();
+    
 	
 	// Change type of integrator: 
     //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
