@@ -75,12 +75,12 @@ int main(int argc, char* argv[])
     
 	// Create a section, i.e. thickness and material properties
 	// for shell. This will be shared among some beams.
-	
+	/*
 	ChSharedPtr<ChShellSectionBasic> msection_shell(new ChShellSectionBasic);
 	msection_shell->SetThickness(shell_thickness);
 	msection_shell->SetYoungModulus (0.01e9);
 	msection_shell->SetBeamRaleyghDamping(0.000);
-
+    */
 	// Create the nodes (each with position & normal to shell)
 
 	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,      0.2,       0), ChVector<>(0,1,0) ) ); 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChElementShellANCF> elementancf1 (new ChElementShellANCF);
 
 	elementancf1->SetNodes(hnodeancf1, hnodeancf2, hnodeancf3, hnodeancf4);
-	elementancf1->SetSection(msection_shell);
+	//elementancf1->SetSection(msection_shell);
 
 	my_mesh->AddElement(elementancf1);
 

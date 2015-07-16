@@ -98,11 +98,14 @@ class ChApi ChLcpVariablesGenericDiagonalMass : public ChLcpVariables {
     /// Build the mass matrix (for these variables) storing
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
-    void Build_M(ChSparseMatrix& storage, int insrow, int inscol) {
+	void Build_M(ChSparseMatrixBase& storage, int insrow, int inscol) {
         for (int i = 0; i < MmassDiag->GetRows(); ++i) {
             storage.SetElement(insrow + i, inscol + i, (*MmassDiag)(i));
         }
     };
+
+	
+
 };
 
 }  // END_OF_NAMESPACE____

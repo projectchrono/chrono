@@ -41,7 +41,7 @@ namespace chrono {
 
 ///
 /// VECTOR:	a class for general purpose 3d vectorial variables, such as
-/// points in 3D. It implements the vectorisl algebra in 3D (Gibbs products).
+/// points in 3D. It implements the vectorial algebra in 3D (Gibbs products).
 ///
 ///  The vector object comes either with the template "ChVector<type>" mode,
 /// either in the 'shortcut' flavour, that is "Vector", which assumes

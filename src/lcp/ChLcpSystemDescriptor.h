@@ -78,9 +78,14 @@ class ChApi ChLcpSystemDescriptor {
   private:
     int n_q;            // n.active variables
     int n_c;            // n.active constraints
-    bool freeze_count;  // for optimizartions
+    bool freeze_count;  // for optimizations
+	
+	
+	
 
   public:
+	  
+	  
     //
     // CONSTRUCTORS
     //
@@ -337,15 +342,24 @@ class ChApi ChLcpSystemDescriptor {
     /// using these matrices, for performance), for example you will load these matrices in Matlab.
     /// Optionally, tangential (u,v) contact jacobians may be skipped, or only bilaterals can be considered
     /// The matrices and vectors are automatically resized if needed.
-    virtual void ConvertToMatrixForm(ChSparseMatrix* Cq,   ///< fill this system jacobian matrix, if not null
-                                     ChSparseMatrix* M,    ///< fill this system mass matrix, if not null
-                                     ChSparseMatrix* E,    ///< fill this system 'compliance' matrix , if not null
+	virtual void ConvertToMatrixForm(ChSparseMatrixBase* Cq,   ///< fill this system jacobian matrix, if not null
+										ChSparseMatrixBase* M,    ///< fill this system mass matrix, if not null
+										ChSparseMatrixBase* E,    ///< fill this system 'compliance' matrix , if not null
                                      ChMatrix<>* Fvector,  ///< fill this vector as the known term 'f', if not null
                                      ChMatrix<>* Bvector,  ///< fill this vector as the known term 'b', if not null
                                      ChMatrix<>* Frict,    ///< fill as a vector with friction coefficients (=-1 for
                                      /// tangent comp.; =-2 for bilaterals), if not null
                                      bool only_bilaterals = false,
                                      bool skip_contacts_uv = false);
+
+	virtual void ConvertToMatrixForm(ChSparseMatrixBase* Z,
+									ChMatrix<>* rhs,
+									ChMatrix<>* Fvector,
+									ChMatrix<>* Bvector,
+									ChMatrix<>* Frict,
+									bool only_bilaterals = false,
+									bool skip_contacts_uv = false);
+
 
     /// Saves to disk the LAST used matrices of the problem.
     ///  dump_M.dat  has masses and/or stiffness (Matlab sparse format)
@@ -356,16 +370,20 @@ class ChApi ChLcpSystemDescriptor {
     virtual void DumpLastMatrices(const char* path = "");
 
     /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm
-    virtual void BuildMatrices(ChSparseMatrix* Cq,
-                               ChSparseMatrix* M,
+	virtual void BuildMatrices(ChSparseMatrixBase* Cq,
+								ChSparseMatrixBase* M,
                                bool only_bilaterals = false,
                                bool skip_contacts_uv = false);
     /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm, or BuildFbVector or BuildBiVector
-    virtual void BuildVectors(ChSparseMatrix* f,
-                              ChSparseMatrix* b,
+	virtual void BuildVectors(ChMatrix<>* f,
+								ChMatrix<>* b,
                               bool only_bilaterals = false,
                               bool skip_contacts_uv = false);
 };
+
+
+
+
 
 }  // END_OF_NAMESPACE____
 
