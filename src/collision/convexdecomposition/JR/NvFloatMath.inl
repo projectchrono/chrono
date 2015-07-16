@@ -103,7 +103,7 @@ REAL fm_getDeterminant(const REAL matrix[16])
 
 }
 
-REAL fm_squared(REAL x) { return x*x; }
+REAL fm_squared(REAL x) { return x*x; };
 
 void fm_decomposeTransform(const REAL local_transform[16],REAL trans[3],REAL rot[4],REAL scale[3])
 {
@@ -865,7 +865,7 @@ bool fm_pointTestXZ(const REAL *p,const REAL *i,const REAL *j)
     ret = true;
 
   return ret;
-}
+};
 
 
 bool  fm_insideTriangleXZ(const REAL *p,const REAL *p1,const REAL *p2,const REAL *p3)
@@ -2944,7 +2944,7 @@ private:
   FloatVector             mVerticesFloat;
 };
 
-} // end of namespace VERTEX_INDEX
+}; // end of namespace VERTEX_INDEX
 
 class MyVertexIndex : public fm_VertexIndex, public Memalloc
 {
@@ -4822,7 +4822,7 @@ static inline void Set(REAL *n,REAL x,REAL y,REAL z)
 	n[0] = x;
 	n[1] = y;
 	n[2] = z;
-}
+};
 
 static inline void Copy(REAL *dest,const REAL *source)
 {
@@ -5604,4 +5604,4 @@ void  fm_multiplyQuat(const REAL *left,const REAL *right,REAL *quat)
 	quat[2] = d;
 }
 
-} // end of namespace
+}; // end of namespace

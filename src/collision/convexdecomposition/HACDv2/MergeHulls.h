@@ -67,6 +67,6 @@ protected:
 
 MergeHullsInterface * createMergeHullsInterface(void);
 
-} // end of HACD namespace
+}; // end of HACD namespace
 
 #endif

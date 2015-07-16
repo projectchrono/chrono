@@ -618,38 +618,26 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame {
     virtual void Update(bool update_assets = true);
 
     //
-    // SERIALIZATION
+    // STREAMING
     //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    //***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream);
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    //***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream);
 
     /// Save data, including child markers and child forces
-    //***OBSOLETE***
     int StreamOUTall(ChStreamOutBinary& m_file);
     /// Read data, including child markers and child forces
-    //***OBSOLETE***
     int StreamINall(ChStreamInBinary& m_file);
 
     /// Method to allow serialization of transient data in ascii,
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    //***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream);
 
-    //***OBSOLETE***
     int StreamOUTall(ChStreamOutAscii& mstream);
 };
 

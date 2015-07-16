@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////
 
 #include "physics/ChLinkTrajectory.h"
+#include "core/ChMemory.h"  // must be last include (memory leak debugger).
 #include "geometry/ChCLineSegment.h"
 
 namespace chrono {

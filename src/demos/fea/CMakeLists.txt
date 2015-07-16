@@ -16,44 +16,14 @@ SET(FEA_DEMOS_IRR_MATLAB
 	demo_FEAbeams
 	demo_FEAbeamsconstr
 	demo_FEAminiature
+	demo_FEAcables
 	demo_FEAshells
 )
-
-
-
-IF(ENABLE_UNIT_MKL)
-
-	INCLUDE_DIRECTORIES( ${CH_MKLINC} )
-	INCLUDE_DIRECTORIES( ${CH_EIGEN_PATH} )
-	INCLUDE_DIRECTORIES( ${ChronoEngine_UNIT_MKL_INCLUDE})
-	INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
-
-	ADD_EXECUTABLE(demo_FEAcables demo_FEAcables.cpp)
-	# SOURCE_GROUP("" FILES demo_FEAcables.cpp)
-	SET_TARGET_PROPERTIES(demo_FEAcables PROPERTIES 
-		FOLDER demos
-		LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}"
-		)
-	TARGET_LINK_LIBRARIES(demo_FEAcables
- 		ChronoEngine
-		ChronoEngine_FEA
- 		ChronoEngine_MKL
-		ChronoEngine_IRRLICHT	
-		)
-	ADD_DEPENDENCIES (demo_FEAcables ChronoEngine ChronoEngine_FEA ChronoEngine_MKL ChronoEngine_IRRLICHT)
-	INSTALL(TARGETS demo_FEAcables DESTINATION bin)
-
-ENDIF()
-
-
 
 #--------------------------------------------------------------
 # Add executables for demos that do not use Irrlicht
 
-MESSAGE(STATUS "Demo programs for FEA module...")
-
 FOREACH(PROGRAM ${FEA_DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
 
 	ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
 	SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
@@ -80,8 +50,7 @@ IF(ENABLE_UNIT_IRRLICHT)
 	INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
 	
 	FOREACH(PROGRAM ${FEA_DEMOS_IRR})
-	    MESSAGE(STATUS "...add ${PROGRAM}")
-
+	
 		ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
 		SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
 		SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
@@ -105,8 +74,7 @@ IF(ENABLE_UNIT_IRRLICHT)
 		INCLUDE_DIRECTORIES( ${CH_MATLABINC} )
 
 		FOREACH(PROGRAM ${FEA_DEMOS_IRR_MATLAB})
-		    MESSAGE(STATUS "...add ${PROGRAM}")
-		    
+		
 			ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
 			SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
 			SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 

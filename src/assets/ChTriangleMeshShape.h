@@ -12,6 +12,19 @@
 #ifndef CHTRIANGLEMESHSHAPE_H
 #define CHTRIANGLEMESHSHAPE_H
 
+///////////////////////////////////////////////////
+//
+//   ChTriangleMeshShape.h
+//
+//   Class for visualing a triangle mesh
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "assets/ChVisualization.h"
 #include "geometry/ChCTriangleMeshConnected.h"
@@ -26,9 +39,6 @@ namespace chrono {
 /// (POVray, Irrlich,etc.) these flags might not be supported.
 
 class ChApi ChTriangleMeshShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChTriangleMeshShape, ChVisualization);
-
   protected:
     //
     // DATA
@@ -71,40 +81,6 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
 
     const ChVector<>& GetScale() const { return scale; }
     void SetScale(const ChVector<>& mscale) { scale = mscale; }
-
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(trimesh);
-        marchive << CHNVP(wireframe);
-        marchive << CHNVP(backface_cull);
-        marchive << CHNVP(name);
-        marchive << CHNVP(scale);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(trimesh);
-        marchive >> CHNVP(wireframe);
-        marchive >> CHNVP(backface_cull);
-        marchive >> CHNVP(name);
-        marchive >> CHNVP(scale);
-    }
 };
 
 //////////////////////////////////////////////////////

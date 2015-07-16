@@ -196,6 +196,6 @@ private:
 													NxF32 *scale);
 };
 
-} // end of namespace
+}; // end of namespace
 
 #endif

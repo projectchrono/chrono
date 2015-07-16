@@ -12,6 +12,20 @@
 #ifndef CHROUNDEDCYLINDERSHAPE_H
 #define CHROUNDEDCYLINDERSHAPE_H
 
+///////////////////////////////////////////////////
+//
+//   ChRoundedCylinderShape.h
+//
+//   Class for defining a rounded cylinder as an
+//   asset shape that can be visualized in some way.
+//
+//   HEADER file for CHRONO,
+//   Multibody dynamics engine
+//
+// ------------------------------------------------
+//             www.projectchrono.org
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "assets/ChVisualization.h"
 #include "geometry/ChCRoundedCylinder.h"
@@ -22,9 +36,6 @@ namespace chrono {
 /// visualized in some way.
 
 class ChApi ChRoundedCylinderShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChRoundedCylinderShape, ChVisualization);
-
   protected:
     //
     // DATA
@@ -47,32 +58,6 @@ class ChApi ChRoundedCylinderShape : public ChVisualization {
 
     // Access the rounded cylinder geometry
     geometry::ChRoundedCylinder& GetRoundedCylinderGeometry() { return groundedcyl; }
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(groundedcyl);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(groundedcyl);
-    }
-
 };
 
 //////////////////////////////////////////////////////

@@ -211,4 +211,31 @@ void SupportRoller::AddCollisionGeometry(VehicleSide side,
     m_roller->GetCollisionModel()->BuildModel();
 }
 
+void SupportRoller::LogConstraintViolations() {
+    // revolute joint, 5 constrained DOFs
+    ChMatrix<>* C = m_revolute->GetC();
+    GetLog() << " -- rev joint name: " << m_revolute->GetName();
+    for (int row = 0; row < C->GetRows(); row++) {
+        GetLog() << "  " << C->GetElement(row, 0) << "  ";
+    }
+
+    GetLog() << "\n";
+}
+
+void SupportRoller::SaveConstraintViolations(std::stringstream& out) {
+    // revolute joint, 5 constrained DOFs
+    ChMatrix<>* C = m_revolute->GetC();
+    for (int row = 0; row < C->GetRows(); row++) {
+        out << "," << C->GetElement(row, 0);
+    }
+    out << "\n";
+}
+
+const std::string SupportRoller::getFileHeader_ConstraintViolations(size_t idx) {
+    // passive rollers have 1 DOF, 5 reactions
+    std::stringstream ss;
+    ss << "time,x,y,z,rx,ry\n";
+    return ss.str();
+}
+
 }  // end namespace chrono

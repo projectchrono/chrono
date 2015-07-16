@@ -33,6 +33,8 @@
 
 #include "ChLcpConstraintNodeFrictionT.h"
 
+#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
+
 namespace chrono {
 
 /// It is used to represent the normal reaction between a 3DOF node
@@ -143,5 +145,7 @@ class ChApi ChLcpConstraintNodeContactN : public ChLcpConstraintTwoGeneric {
 };
 
 }  // END_OF_NAMESPACE____
+
+#include "core/ChMemorynomgr.h"  // back to default new/delete/malloc/calloc etc. Avoid conflicts with system libs.
 
 #endif

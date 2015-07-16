@@ -33,12 +33,12 @@ void ChLcpVariablesShaft::Compute_invMb_v(ChMatrix<float>& result, const ChMatri
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
     result(0) = (float)m_inv_inertia * vect(0);
-}
+};
 void ChLcpVariablesShaft::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
     result(0) = m_inv_inertia * vect(0);
-}
+};
 
 /// Computes the product of the inverse mass matrix by a
 /// vector, and increment result: result += [invMb]*vect
@@ -46,12 +46,12 @@ void ChLcpVariablesShaft::Compute_inc_invMb_v(ChMatrix<float>& result, const ChM
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
     result(0) += (float)m_inv_inertia * vect(0);
-}
+};
 void ChLcpVariablesShaft::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
     result(0) += (float)m_inv_inertia * vect(0);
-}
+};
 
 /// Computes the product of the mass matrix by a
 /// vector, and set in result: result = [Mb]*vect
@@ -59,12 +59,12 @@ void ChLcpVariablesShaft::Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatr
     assert(result.GetRows() == Get_ndof());
     assert(vect.GetRows() == Get_ndof());
     result(0) += (float)m_inertia * vect(0);
-}
+};
 void ChLcpVariablesShaft::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     result(0) += m_inertia * vect(0);
-}
+};
 
 /// Computes the product of the corresponding block in the
 /// system matrix (ie. the mass matrix) by 'vect', and add to 'result'.
@@ -90,7 +90,7 @@ void ChLcpVariablesShaft::DiagonalAdd(ChMatrix<double>& result) const {
 /// it in 'storage' sparse matrix, at given column/row offset.
 /// Note, most iterative solvers don't need to know mass matrix explicitly.
 /// Optimised: doesn't fill unneeded elements except mass.
-void ChLcpVariablesShaft::Build_M(ChSparseMatrixBase& storage, int insrow, int inscol) {
+void ChLcpVariablesShaft::Build_M(ChSparseMatrix& storage, int insrow, int inscol) {
     storage.SetElement(insrow + 0, inscol + 0, m_inertia);
 }
 

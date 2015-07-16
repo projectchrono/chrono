@@ -125,7 +125,7 @@ namespace HACD
 	AutoGeometry * createAutoGeometry();
 	void           releaseAutoGeometry(AutoGeometry *g);
 
-} // end of namespace
+}; // end of namespace
 
 
 #endif

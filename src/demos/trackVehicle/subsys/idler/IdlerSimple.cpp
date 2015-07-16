@@ -86,8 +86,7 @@ IdlerSimple::IdlerSimple(const std::string& name,
                          const ChVector<>& Ixx,
                          double tensionerK,
                          double tensionerC,
-                         double springFreeLen,
-                         double mu)
+                         double springFreeLen)
     : m_vis(vis),
       m_collide(collide),
       m_chainSys_idx(chainSys_idx),
@@ -97,8 +96,7 @@ IdlerSimple::IdlerSimple(const std::string& name,
       m_tensionerC(tensionerC),
       m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
       m_meshName("idler_mesh"),
-      m_springRestLength(springFreeLen),
-      m_mu(mu)
+      m_springRestLength(springFreeLen)
 
 //  , m_shockCB(NULL), m_springCB(NULL)
 {
@@ -134,7 +132,7 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBody> chassis,
                              const ChCoordsys<>& local_Csys,
                              double preLoad) {
     // add collision geometry for the idler wheel
-    (local_Csys.pos.z < 0) ? AddCollisionGeometry(LEFTSIDE, m_mu, 0.9*m_mu) : AddCollisionGeometry(RIGHTSIDE, m_mu, 0.9*m_mu);
+    (local_Csys.pos.z < 0) ? AddCollisionGeometry(LEFTSIDE) : AddCollisionGeometry();
 
     // Express the reference frame in the absolute coordinate system.
     ChFrame<> idler_to_abs(local_Csys);
@@ -335,52 +333,32 @@ double IdlerSimple::Get_SpringReact_Deform_dt() const {
     return spr_react_C;
 }
 
-// ---------------------------------
-// write to file functions
-// --------------------------------
-void IdlerSimple::Write_header(const std::string& filename, DebugType type) {
-    if (type & DBG_BODY) {
-        m_filename_DBG_BODY = filename;
-        ChStreamOutAsciiFile ofile(m_filename_DBG_BODY.c_str());
-        // headers
-        ofile << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,F_tensioner,F_k,F_c\n";
+void IdlerSimple::LogConstraintViolations() {
+    // idler joint has 2 pos and 1 rot
+    ChMatrix<>* C = m_idler_joint->GetC();
+    GetLog() << " -- joint name: " << m_idler_joint->GetName();
+    for (int row = 0; row < C->GetRows(); row++) {
+        GetLog() << "  " << C->GetElement(row, 0) << "  ";
     }
-    if (type & DBG_CONTACTS) {
-        // todo
-    }
-    if (type & DBG_CONSTRAINTS) {
-        m_filename_DBG_CV = filename;
-        ChStreamOutAsciiFile ofile(m_filename_DBG_CV.c_str());
-        // headers
-        ofile << "time,y,z,rx,ry\n";
-    }
+
+    GetLog() << "\n";
 }
 
-void IdlerSimple::Write_data(const double t, DebugType type) {
-    if (type & DBG_BODY) {
-        std::stringstream ss_id;
-        ChSharedPtr<ChBody> ib = GetBody();
-        // time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,F_tensioner,F_k,F_c
-        ss_id << t << "," << ib->GetPos() << "," << ib->GetPos_dt() << "," << ib->GetWvel_loc() << ","
-              << GetSpringForce() << "," << Get_SpringReact_Deform() << "," << Get_SpringReact_Deform_dt() << "\n";
-        ChStreamOutAsciiFile ofile(m_filename_DBG_BODY.c_str(), std::ios::app);
-        ofile << ss_id.str().c_str();
+void IdlerSimple::SaveConstraintViolations(std::stringstream& ss) {
+    // idler joint will have y and z rxn forces, x and y rxn torques
+    ChMatrix<>* C = m_idler_joint->GetC();
+    for (int row = 0; row < C->GetRows(); row++) {
+        ss << "," << C->GetElement(row, 0);
     }
-    if (type & DBG_CONTACTS) {
-        // todo
-    }
-    if (type & DBG_CONSTRAINTS) {
-        std::stringstream ss;
-        ss << t;
-        // idler joint will have y and z rxn forces, x and y rxn torques
-        ChMatrix<>* C = m_idler_joint->GetC();
-        for (int row = 0; row < C->GetRows(); row++) {
-            ss << "," << C->GetElement(row, 0);
-        }
-        ss << "\n";
-        ChStreamOutAsciiFile ofile(m_filename_DBG_CV.c_str(), std::ios::app);
-        ofile << ss.str().c_str();
-    }
+    ss << "\n";
+}
+
+const std::string IdlerSimple::getFileHeader_ConstraintViolations() const {
+    // idler has x-translational and z-rot DOFs
+    // y, z reaction Forces, x,y reaction torques
+    std::stringstream ss;
+    ss << "time,y,z,rx,ry\n";
+    return ss.str();
 }
 
 }  // end namespace chrono

@@ -33,11 +33,6 @@ extern btScalar gContactBreakingThreshold;
 namespace chrono {
 namespace collision {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChCollisionSystemBullet> a_registration_ChCollisionSystemBullet;
-
-
 // Utility class that we use to override the default cylinder-sphere collision
 // case, because the default behavior in Bullet was using the GJK algorithm, that
 // gives not 100% precise results if the cylinder is much larger than the sphere:

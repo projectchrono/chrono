@@ -36,7 +36,7 @@ ChConstraint::ChConstraint() {
     C = NULL;
 
     Reset_Cn(Get_Cn());
-}
+};
 
 ChConstraint::~ChConstraint() {
     if (C)
@@ -89,7 +89,7 @@ bool ChConstraint_Chf::RestoreReferences(ChFunction* mroot) {
     } else {
         return (valid = false);
     }
-}
+};
 
 ////////////////////////////////////
 //
@@ -162,13 +162,13 @@ bool ChConstraint_Chf_Continuity::Update() {
     // b- computes the time instant of discontinuity
     double mt;
     double mc = 0;
-    if ((this->interface_num > mfun->Get_list().size()) || (this->interface_num < 0))  // NO!out of range...
+    if ((this->interface_num > mfun->Get_list()->Count()) || (this->interface_num < 0))  // NO!out of range...
     {
         if (C)
             C->SetElement(0, 0, 0.0);
         return false;
     }
-    if (this->interface_num == mfun->Get_list().size())  // ok, last discontinuity
+    if (this->interface_num == mfun->Get_list()->Count())  // ok, last discontinuity
     {
         mt = mfun->GetNthNode(this->interface_num)->t_end;
     }

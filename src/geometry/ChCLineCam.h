@@ -12,6 +12,19 @@
 #ifndef CHC_LINECAM_H
 #define CHC_LINECAM_H
 
+//////////////////////////////////////////////////
+//
+//   ChCLineCam.h
+//
+//   2D profile of cam, depending on a motion law.
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include <math.h>
 
@@ -29,13 +42,6 @@ enum eChCamType {
     CAM_TYPE_FLAT,
     CAM_TYPE_FLATOSCILLATE,
 };
-CH_ENUM_MAPPER_BEGIN(eChCamType);
-  CH_ENUM_VAL(CAM_TYPE_SLIDEFOLLOWER);
-  CH_ENUM_VAL(CAM_TYPE_ROTATEFOLLOWER);
-  CH_ENUM_VAL(CAM_TYPE_ECCENTRICFOLLOWER);
-  CH_ENUM_VAL(CAM_TYPE_FLAT);
-  CH_ENUM_VAL(CAM_TYPE_FLATOSCILLATE);
-CH_ENUM_MAPPER_END(eChCamType);
 
 #define CH_GEOCLASS_LINECAM 6
 
@@ -55,7 +61,7 @@ class ChApi ChLineCam : public ChLine {
     //
 
     eChCamType type;  // see codes
-    ChSharedPtr<ChFunction> law;
+    ChFunction* law;  // motion law
     double phase;     // 0..2PI  phase (rotation). Def=0, neutral position
 
     double Rb;  // base radius
@@ -83,6 +89,7 @@ class ChApi ChLineCam : public ChLine {
     virtual ~ChLineCam();
 
     ChLineCam(const ChLineCam& source) {
+        law = 0;
         Copy(&source);
     }
 
@@ -99,8 +106,8 @@ class ChApi ChLineCam : public ChLine {
     /// Each inherited class must return an unique ID.
     virtual int GetClassType() { return CH_GEOCLASS_LINECAM; };
 
-    bool Get_closed() { return true; };
-    void Set_closed(bool mc){};
+    int Get_closed() { return TRUE; };
+    void Set_closed(int mc){};
 
     void Set_Phase(double mf) { phase = mf; };
     double Get_Phase() { return phase; }
@@ -120,10 +127,12 @@ class ChApi ChLineCam : public ChLine {
     double Get_Rr() { return Rr; }
 
     /// The motion law, as a ChFunction.
-    void Set_motion_law(ChSharedPtr<ChFunction> mlaw) {
+    void Set_motion_law(ChFunction* mlaw) {
+        if (law)
+            delete law;
         law = mlaw;
     };
-    ChSharedPtr<ChFunction> Get_motion_law() { return law; };
+    ChFunction* Get_motion_law() { return law; };
 
     /// Type of cam (see the eChCamType enum values below).
     void Set_type(eChCamType mt) { type = mt; };
@@ -190,61 +199,11 @@ class ChApi ChLineCam : public ChLine {
     virtual double Get_weight(double par) { return law->Get_weight(par * 2 * CH_C_PI); };
 
     //
-    // SERIALIZATION
+    // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChLine::ArchiveOUT(marchive);
-        // serialize all member data:
-
-        eChCamType_mapper mmapper;
-        marchive << CHNVP(mmapper(type));
-        marchive << CHNVP(law);
-        marchive << CHNVP(phase);
-        marchive << CHNVP(Rb);
-        marchive << CHNVP(Rr);
-        marchive << CHNVP(p);
-        marchive << CHNVP(d);
-        marchive << CHNVP(b0);
-        marchive << CHNVP(e);
-        marchive << CHNVP(s);
-        marchive << CHNVP(negative);
-        marchive << CHNVP(internal);
-        marchive << CHNVP(center);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChLine::ArchiveIN(marchive);
-        // stream in all member data:
-        eChCamType_mapper mmapper;
-        marchive >> CHNVP(mmapper(type));
-        marchive >> CHNVP(law);
-        marchive >> CHNVP(phase);
-        marchive >> CHNVP(Rb);
-        marchive >> CHNVP(Rr);
-        marchive >> CHNVP(p);
-        marchive >> CHNVP(d);
-        marchive >> CHNVP(b0);
-        marchive >> CHNVP(e);
-        marchive >> CHNVP(s);
-        marchive >> CHNVP(negative);
-        marchive >> CHNVP(internal);
-        marchive >> CHNVP(center);
-    }
-
-    //***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream);
 
-    //***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream);
 };
 

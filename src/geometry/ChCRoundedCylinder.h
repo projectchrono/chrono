@@ -12,6 +12,17 @@
 #ifndef CHC_ROUNDEDCYLINDER_H
 #define CHC_ROUNDEDCYLINDER_H
 
+//////////////////////////////////////////////////
+//
+//   ChCRoundedCylinder.h
+//
+//   HEADER file for CHRONO,
+//   Multibody dynamics engine
+//
+// ------------------------------------------------
+//             www.projectchrono.org
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "ChCGeometry.h"
 
@@ -102,40 +113,11 @@ class ChApi ChRoundedCylinder : public ChGeometry {
     double radsphere;
 
     //
-    // SERIALIZATION
+    // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(center);
-        marchive << CHNVP(rad);
-        marchive << CHNVP(hlen);
-        marchive << CHNVP(radsphere);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(center);
-        marchive >> CHNVP(rad);
-        marchive >> CHNVP(hlen);
-        marchive >> CHNVP(radsphere);
-    }
-
-    //***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream);
 
-    //***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream);
 };
 

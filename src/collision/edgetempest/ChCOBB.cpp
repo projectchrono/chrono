@@ -77,8 +77,8 @@ bool CHOBB::OBB_Overlap(ChMatrix33<>& B, Vector T, CHOBB* b1, CHOBB* b2) {
 }
 
 bool CHOBB::OBB_Overlap(ChMatrix33<>& B, Vector T, Vector a, Vector b) {
-    double t, s;
-    int r;
+    register double t, s;
+    register int r;
     static ChMatrix33<> Bf;
     const double reps = (double)1e-6;
 

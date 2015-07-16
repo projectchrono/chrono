@@ -35,38 +35,45 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Static variables
+const double TrackVehicle::mass_override = 5489.2 / 5.0;                // chassis sprung mass override
+const ChVector<> TrackVehicle::COM_override = ChVector<>(0., 0.0, 0.);  // COM location, relative to body Csys REF frame
+const ChVector<> TrackVehicle::inertia_override(1786.9 / 5.0,
+                                                10449.7 / 5.0,
+                                                10721.2 / 5.0);  // chassis inertia (roll,yaw,pitch)
+
 const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackVehicle::TrackVehicle(const std::string& name,
-                           VisualizationType::Enum vis,
-                           CollisionType::Enum collide,
-                           double pin_damping_coef,
-                           double tensioner_preload,
+                           VisualizationType::Enum chassisVis,
+                           CollisionType::Enum chassisCollide,
                            double mass,
                            const ChVector<>& Ixx,
-                           const ChVector<>& COG_to_REF,
                            const ChVector<>& left_pos_rel,
                            const ChVector<>& right_pos_rel)
-    : ChTrackVehicle(name, vis, collide, mass, Ixx, 1),
+    : ChTrackVehicle(name, chassisVis, chassisCollide, mass, Ixx, 1),
       m_num_tracks(2),
-      m_pin_damping(pin_damping_coef),
-      m_tensioner_preload(tensioner_preload) {
+      m_trackSys_L(left_pos_rel),
+      m_trackSys_R(right_pos_rel) {
     // ---------------------------------------------------------------------------
     // Set the base class variables not created by constructor, if we plan to use them.
     m_meshName = "M113_chassis";
     m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
     m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5);  // full length, height, width of chassis box
+    m_pin_damping = 0.5;
 
     // setup the chassis body
     m_chassis->SetIdentifier(0);
-    m_chassis->SetFrame_COG_to_REF(ChFrame<>(COG_to_REF, ChQuaternion<>(1, 0, 0, 0)));
+    m_chassis->SetFrame_COG_to_REF(ChFrame<>(COM_override, ChQuaternion<>(1, 0, 0, 0)));
     // add visualization assets to the chassis
     AddVisualization();
 
+    // resize all vectors for the number of track systems
+    m_TrackSystems.resize(m_num_tracks);
+    m_TrackSystem_locs.resize(m_num_tracks);
     // Right and Left track System relative locations, respectively
-    m_TrackSystem_locs.push_back(right_pos_rel);
-    m_TrackSystem_locs.push_back(left_pos_rel);
+    m_TrackSystem_locs[0] = m_trackSys_L;
+    m_TrackSystem_locs[1] = m_trackSys_R;
 
     // two drive Gears, like a 2WD driven vehicle.
     // m_drivelines.resize(m_num_engines);
@@ -76,7 +83,7 @@ TrackVehicle::TrackVehicle(const std::string& name,
     for (int i = 0; i < m_num_tracks; i++) {
         std::stringstream t_ss;
         t_ss << "track chain " << i;
-        m_TrackSystems.push_back(ChSharedPtr<TrackSystem>(new TrackSystem(t_ss.str(), i)) );
+        m_TrackSystems[i] = ChSharedPtr<TrackSystem>(new TrackSystem(t_ss.str(), i));
     }
 
     // create the powertrain and drivelines
@@ -86,7 +93,7 @@ TrackVehicle::TrackVehicle(const std::string& name,
         std::stringstream pt_ss;
         pt_ss << "powertrain " << j;
         // m_drivelines[j] = ChSharedPtr<TrackDriveline>(new TrackDriveline(dl_ss.str() ) );
-        m_ptrains.push_back( ChSharedPtr<TrackPowertrain>(new TrackPowertrain(pt_ss.str())) );
+        m_ptrains[j] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain(pt_ss.str()));
     }
 
     // TODO: add brakes. Perhaps they are a part of the suspension subsystem?
@@ -113,7 +120,10 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys) {
 
     // initialize the powertrain, drivelines
     for (int j = 0; j < m_num_engines; j++) {
-
+        size_t driveGear_R_idx = 2 * j;
+        size_t driveGear_L_idx = 2 * j + 1;
+        // m_drivelines[j]->Initialize(m_chassis, m_TrackSystems[driveGear_R_idx]->GetDriveGear(),
+        // m_TrackSystems[driveGear_L_idx]->GetDriveGear());
         m_ptrains[j]->Initialize(m_chassis, m_TrackSystems[j]->GetDriveGear()->GetAxle());
     }
 }
@@ -121,9 +131,9 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys) {
 void TrackVehicle::Update(double time, const std::vector<double>& throttle, const std::vector<double>& braking) {
     assert(throttle.size() >= m_num_tracks);
     assert(braking.size() >= m_num_tracks);
-    // update powertrains
+    // update left and right powertrains, with the new left and right throttle/shaftspeed
     for (int i = 0; i < m_num_engines; i++) {
-        m_ptrains[i]->Update(time, throttle[0], GetDriveshaftSpeed(i));
+        m_ptrains[i]->Update(time, throttle[i], GetDriveshaftSpeed(i));
     }
 }
 
@@ -160,7 +170,7 @@ double TrackVehicle::GetDriveshaftSpeed(size_t idx) const {
     return m_TrackSystems[idx]->GetDriveGear()->GetAxle()->GetPos_dt();
 }
 
-ChSharedPtr<TrackPowertrain> TrackVehicle::GetPowertrain(size_t idx) const {
+const ChSharedPtr<TrackPowertrain> TrackVehicle::GetPowertrain(size_t idx) const {
     assert(idx < m_num_engines);
     return m_ptrains[idx];
 }

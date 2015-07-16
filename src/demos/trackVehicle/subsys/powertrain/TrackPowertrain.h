@@ -147,11 +147,6 @@ class CH_SUBSYS_API TrackPowertrain : public ChShared {
     // ChPowertrain
     DriveMode m_drive_mode;
 
-    // output filenames
-    std::string m_filename_DBG_BODY; // write idler body info
-    std::string m_filename_DBG_CV;  // write idler constraint violation
-    std::string m_filename_DBG_CONTACTS;   // write idler contact info
-
     // concrete class variables
     // Shaft inertias.
     static const double m_motorblock_inertia;

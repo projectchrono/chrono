@@ -4,14 +4,14 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_UNIT_PYTHON "Enable the Chrono Python module" OFF)
 
-# Return now if this module is not enabled
+SET(ENABLE_UNIT_PYTHON     FALSE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine PYTHON unit(s).")
+
 IF(NOT ENABLE_UNIT_PYTHON)
   RETURN()
+ELSE()
+  MESSAGE(STATUS "...enabling Python Unit")
 ENDIF()
-
-MESSAGE(STATUS "==== Chrono Python module ====")
 
 
 FIND_PACKAGE(PythonLibs REQUIRED) 

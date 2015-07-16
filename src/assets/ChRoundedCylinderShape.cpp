@@ -9,13 +9,17 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
+///////////////////////////////////////////////////
+//
+//   ChRoundedCylinderShape.cpp
+//
+// ------------------------------------------------
+//             www.projectchrono.org
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "assets/ChRoundedCylinderShape.h"
 
-namespace chrono {
+#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChRoundedCylinderShape> a_registration_ChRoundedCylinderShape;
-
-}  // END_OF_NAMESPACE____
+namespace chrono {}  // END_OF_NAMESPACE____

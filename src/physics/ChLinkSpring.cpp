@@ -10,6 +10,7 @@
 //
 
 #include "physics/ChLinkSpring.h"
+#include "core/ChMemory.h"  // must be last include (memory leak debugger)
 
 namespace chrono {
 

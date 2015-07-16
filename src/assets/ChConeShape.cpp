@@ -20,10 +20,6 @@
 
 #include "assets/ChConeShape.h"
 
-namespace chrono {
+#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChConeShape> a_registration_ChConeShape;
-
-}  // END_OF_NAMESPACE____
+namespace chrono {}  // END_OF_NAMESPACE____

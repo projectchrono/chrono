@@ -86,6 +86,6 @@ public:
 MeshIslandGeneration * createMeshIslandGeneration(void);
 void                   releaseMeshIslandGeneration(MeshIslandGeneration *cm);
 
-} // end of namespace
+}; // end of namespace
 
 #endif

@@ -588,14 +588,14 @@ SWIG_MangledTypeQueryModule(swig_module_info *start,
   swig_module_info *iter = start;
   do {
     if (iter->size) {
-      size_t l = 0;
-      size_t r = iter->size - 1;
+      register size_t l = 0;
+      register size_t r = iter->size - 1;
       do {
 	/* since l+r >= 0, we can (>> 1) instead (/ 2) */
-	size_t i = (l + r) >> 1;
+	register size_t i = (l + r) >> 1; 
 	const char *iname = iter->types[i]->name;
 	if (iname) {
-	  int compare = strcmp(name, iname);
+	  register int compare = strcmp(name, iname);
 	  if (compare == 0) {	    
 	    return iter->types[i];
 	  } else if (compare < 0) {
@@ -639,7 +639,7 @@ SWIG_TypeQueryModule(swig_module_info *start,
        of the str field (the human readable name) */
     swig_module_info *iter = start;
     do {
-      size_t i = 0;
+      register size_t i = 0;
       for (; i < iter->size; ++i) {
 	if (iter->types[i]->str && (SWIG_TypeEquiv(iter->types[i]->str, name)))
 	  return iter->types[i];
@@ -658,10 +658,10 @@ SWIG_TypeQueryModule(swig_module_info *start,
 SWIGRUNTIME char *
 SWIG_PackData(char *c, void *ptr, size_t sz) {
   static const char hex[17] = "0123456789abcdef";
-  const unsigned char *u = (unsigned char *) ptr;
-  const unsigned char *eu =  u + sz;
+  register const unsigned char *u = (unsigned char *) ptr;
+  register const unsigned char *eu =  u + sz;
   for (; u != eu; ++u) {
-    unsigned char uu = *u;
+    register unsigned char uu = *u;
     *(c++) = hex[(uu & 0xf0) >> 4];
     *(c++) = hex[uu & 0xf];
   }
@@ -673,11 +673,11 @@ SWIG_PackData(char *c, void *ptr, size_t sz) {
 */
 SWIGRUNTIME const char *
 SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
-  unsigned char *u = (unsigned char *) ptr;
-  const unsigned char *eu = u + sz;
+  register unsigned char *u = (unsigned char *) ptr;
+  register const unsigned char *eu = u + sz;
   for (; u != eu; ++u) {
-    char d = *(c++);
-    unsigned char uu;
+    register char d = *(c++);
+    register unsigned char uu;
     if ((d >= '0') && (d <= '9'))
       uu = ((d - '0') << 4);
     else if ((d >= 'a') && (d <= 'f'))
@@ -1341,7 +1341,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
   }  
   if (!PyTuple_Check(args)) {
     if (min <= 1 && max >= 1) {
-      int i;
+      register int i;
       objs[0] = args;
       for (i = 1; i < max; ++i) {
 	objs[i] = 0;
@@ -1351,7 +1351,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
     PyErr_SetString(PyExc_SystemError, "UnpackTuple() argument list is not a tuple");
     return 0;
   } else {
-    Py_ssize_t l = PyTuple_GET_SIZE(args);
+    register Py_ssize_t l = PyTuple_GET_SIZE(args);
     if (l < min) {
       PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
 		   name, (min == max ? "" : "at least "), (int)min, (int)l);
@@ -1361,7 +1361,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
 		   name, (min == max ? "" : "at most "), (int)max, (int)l);
       return 0;
     } else {
-      int i;
+      register int i;
       for (i = 0; i < l; ++i) {
 	objs[i] = PyTuple_GET_ITEM(args, i);
       }

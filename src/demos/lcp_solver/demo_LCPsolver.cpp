@@ -493,8 +493,5 @@ int main(int argc, char* argv[]) {
     // Test: the stiffness benchmark (add also sparse stiffness blocks over M)
     test_3();
 
-
-	getchar();
-
     return 0;
 }

@@ -57,6 +57,6 @@ class ChException : public std::exception {
     virtual const char* what() const throw() { return m_swhat.c_str(); }
 };
 
-}  // END_OF_NAMESPACE____
+};  // END_OF_NAMESPACE____
 
 #endif

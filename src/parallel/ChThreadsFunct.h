@@ -52,6 +52,6 @@ struct ChThreadConstructionInfo {
     int m_threadStackSize;
 };
 
-}  // END_OF_NAMESPACE____
+};  // END_OF_NAMESPACE____
 
 #endif

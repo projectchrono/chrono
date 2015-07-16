@@ -84,10 +84,6 @@ class ChApi ChBroadPhaseCallback {
 ///
 
 class ChApi ChCollisionSystem {
-
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChCollisionSystem);
-
   public:
     ChCollisionSystem(unsigned int max_objects = 16000, double scene_size = 500) {
         narrow_callback = 0;

@@ -30,15 +30,14 @@
 #include "core/ChCoordsys.h"
 #include "core/ChStream.h"
 #include "core/ChException.h"
-#include "serialization/ChArchiveAsciiDump.h"
 
 // Thresholds for OpenMP parallelization.
 // The larger, the less likely the operations will be parallelized in multiple threads.
 // Too low values could slow down the execution because sometimes the overhead of
 // multithreading setup is larger than the effective computation; in general optimal
 // values depend on processor architecture etc.
-#define CH_OMP_MATRLIGHT 4800
-#define CH_OMP_MATR 4800
+#define CH_OMP_MATRLIGHT 400
+#define CH_OMP_MATR 400
 
 namespace chrono {
 
@@ -177,26 +176,9 @@ class ChMatrix {
         return *this;
     }
 
- //   // Virtualizable functions
-
-	//virtual void SetElement(int row, int col, double elem) { this->SetElement(row, col, elem); }
-	//virtual void PasteMatrix(const ChMatrix<double>* matra, int insrow, int inscol) { PasteMatrix(matra, insrow, inscol); }
-	//virtual void PasteTranspMatrix(const ChMatrix<double>* matra, int insrow, int inscol) { PasteTranspMatrix(matra, insrow, inscol); }
-	//virtual void PasteMatrixFloat(const ChMatrix<float>* matra, int insrow, int inscol) { PasteMatrix(matra, insrow, inscol); }
-	//virtual void PasteTranspMatrixFloat(const ChMatrix<float>* matra, int insrow, int inscol) { PasteTranspMatrix(matra, insrow, inscol); }
-	//virtual void PasteClippedMatrix(const ChMatrix<double>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
-	//{
-	//	PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol)
-	//}
-	//virtual void PasteSumClippedMatrix(const ChMatrix<double>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
-	//{
-	//	PasteSumClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol)
-	//}
-
-
-	//
-	// FUNCTIONS
-	//
+    //
+    // FUNCTIONS
+    //
 
     /// Sets the element at row,col position. Indexes start with zero.
     void SetElement(int row, int col, Real elem) {
@@ -388,71 +370,9 @@ class ChMatrix {
     //
     // STREAMING
     //
-        /// Method to allow serialization of transient data in archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // suggested: use versioning
-        marchive.VersionWrite(1);
-
-        // stream out all member data
-        marchive << make_ChNameValue("rows",rows);
-        marchive << make_ChNameValue("columns",columns);
-
-        // custom output of matrix data as array
-        if (ChArchiveAsciiDump* mascii = dynamic_cast<ChArchiveAsciiDump*>(&marchive))
-        {
-            // CUSTOM row x col 'intuitive' table-like log when using ChArchiveAsciiDump:
-
-            for (int i = 0; i < rows; i++) {
-                mascii->indent();
-                for (int j = 0; j < columns; j++) {
-                    mascii->GetStream()->operator<<(Element(i,j));
-                    mascii->GetStream()->operator<<(", ");
-                }
-                mascii->GetStream()->operator<<("\n");
-            }
-        } 
-        else 
-        {
-            // NORMAL array-based serialization:
-
-            int tot_elements = GetRows() * GetColumns();
-            marchive.out_array_pre("data", tot_elements, typeid(Real).name());
-            for (int i = 0; i < tot_elements; i++) {
-                marchive << CHNVP(ElementN(i),"");
-                marchive.out_array_between(tot_elements, typeid(Real).name());
-            }
-            marchive.out_array_end(tot_elements, typeid(Real).name());
-        }
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // suggested: use versioning
-        int version = marchive.VersionRead();
-
-        // stream in all member data
-        int m_row, m_col;
-        marchive >> make_ChNameValue("rows",m_row);
-        marchive >> make_ChNameValue("columns",m_col);
-        
-        Reset(m_row, m_col);
-
-        // custom input of matrix data as array
-        size_t tot_elements = GetRows() * GetColumns();
-        marchive.in_array_pre("data", tot_elements);
-        for (int i = 0; i < tot_elements; i++) {
-            marchive >> CHNVP(ElementN(i));
-            marchive.in_array_between("data");
-        }
-        marchive.in_array_end("data");
-
-    }
 
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream) {
         mstream << "\n"
                 << "Matrix " << GetRows() << " rows, " << GetColumns() << " columns."
@@ -483,7 +403,6 @@ class ChMatrix {
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream) {
         mstream << GetRows();
         mstream << GetColumns();
@@ -495,7 +414,6 @@ class ChMatrix {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    /// ***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream) {
         int m_row, m_col;
         mstream >> m_row;
@@ -597,7 +515,7 @@ class ChMatrix {
         assert(matra.GetColumns() == matrb.GetRows());
         assert(this->rows == matra.GetRows());
         assert(this->columns == matrb.GetColumns());
-        int col, row, colres;
+        register int col, row, colres;
         Real sum;
         for (colres = 0; colres < matrb.GetColumns(); ++colres) {
 #pragma omp parallel for private(sum, col) if (matra.GetRows() > CH_OMP_MATR)
@@ -618,7 +536,7 @@ class ChMatrix {
         assert(matra.GetColumns() == matrb.GetColumns());
         assert(this->rows == matra.GetRows());
         assert(this->columns == matrb.GetRows());
-        int col, row, colres;
+        register int col, row, colres;
         Real sum;
         for (colres = 0; colres < matrb.GetRows(); ++colres) {
 #pragma omp parallel for private(sum, col) if (matra.GetRows() > CH_OMP_MATR)
@@ -638,7 +556,7 @@ class ChMatrix {
         assert(matra.GetRows() == matrb.GetRows());
         assert(this->rows == matra.GetColumns());
         assert(this->columns == matrb.GetColumns());
-        int col, row, colres;
+        register int col, row, colres;
         Real sum;
         for (colres = 0; colres < matrb.GetColumns(); ++colres) {
 #pragma omp parallel for private(sum, col) if (matra.GetColumns() > CH_OMP_MATR)
@@ -1020,7 +938,6 @@ class ChMatrix {
     //
     // BOOKKEEPING
     //
-
 
     /// Paste a matrix "matra" into "this", inserting at location insrow-inscol.
     /// Normal copy for insrow=inscol=0

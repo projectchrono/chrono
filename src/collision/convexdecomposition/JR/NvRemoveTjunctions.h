@@ -105,6 +105,6 @@ public:
 RemoveTjunctions * createRemoveTjunctions(void);
 void               releaseRemoveTjunctions(RemoveTjunctions *tj);
 
-} // end of namespace
+}; // end of namespace
 
 #endif

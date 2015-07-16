@@ -9,6 +9,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
+///////////////////////////////////////////////////
+//
+//   ChCLineCam.cpp
+//
+// ------------------------------------------------
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "ChCLineCam.h"
 
@@ -31,13 +39,17 @@ ChLineCam::ChLineCam() {
     center = VNULL;
     e = 0;
     s = Rb;
-    law = ChSharedPtr<ChFunction_Const>(new ChFunction_Const(0)); // default law = no follower motion
+    law = new ChFunction_Const(0);
     negative = FALSE;
     internal = FALSE;
 }
 
 ChLineCam::~ChLineCam() {
-}
+    if (law) {
+        delete law;
+        law = 0;
+    }
+};
 
 void ChLineCam::Copy(const ChLineCam* source) {
     // copy parent class data
@@ -54,10 +66,12 @@ void ChLineCam::Copy(const ChLineCam* source) {
     center = source->center;
     e = source->e;
     s = source->s;
-    law = source->law;
+    if (law)
+        delete law;
+    law = source->law->new_Duplicate();
     negative = source->negative;
     internal = source->internal;
-}
+};
 
 void ChLineCam::EvaluateCamPoint(double par, Vector& res, double& g, double& q) {
     double a = par * 2 * CH_C_PI;  // range : par 0..1 -> angle 0...2PI
@@ -169,7 +183,6 @@ void ChLineCam::Evaluate(Vector& pos, const double parU, const double parV, cons
 }
 
 void ChLineCam::StreamOUT(ChStreamOutBinary& mstream) {
-    // ***OBSOLETE*** !!!
     // class version number
     mstream.VersionWrite(1);
 
@@ -178,7 +191,7 @@ void ChLineCam::StreamOUT(ChStreamOutBinary& mstream) {
 
     // stream out all member data
     mstream << (int)type;
-    mstream.AbstractWrite(law.get_ptr());// ***OBSOLETE*** !!!
+    mstream.AbstractWrite(law);
     mstream << phase;
     mstream << Rb;
     mstream << Rr;
@@ -193,7 +206,6 @@ void ChLineCam::StreamOUT(ChStreamOutBinary& mstream) {
 }
 
 void ChLineCam::StreamIN(ChStreamInBinary& mstream) {
-    // ***OBSOLETE*** !!!
     // class version number
     int version = mstream.VersionRead();
 
@@ -204,9 +216,9 @@ void ChLineCam::StreamIN(ChStreamInBinary& mstream) {
     int mint;
     mstream >> mint;
     type = (eChCamType)mint;
-    ChFunction* mlaw;
-    mstream.AbstractReadCreate(&mlaw);
-    this->law = ChSharedPtr<ChFunction>(mlaw); // ***OBSOLETE*** !!!
+    if (law)
+        delete law;
+    mstream.AbstractReadCreate(&law);
     mstream >> phase;
     mstream >> Rb;
     mstream >> Rr;

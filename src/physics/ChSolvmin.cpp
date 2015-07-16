@@ -260,7 +260,7 @@ double CalcFO(double x[], void* idData) {
     return -(moptimizer->Eval_fx(x));
 }
 
-void showVarFun(){}
+void showVarFun(){};
 
 //// $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
@@ -1507,7 +1507,7 @@ void ChOptimizerHybrid::SetNumOfVars(int mv) {
     C_vars = mv;
     genetic_opt->SetNumOfVars(mv);
     local_opt->SetNumOfVars(mv);
-}
+};
 
 //###################################################################
 /////////////////////////////////////////////////////////////////////
@@ -1605,8 +1605,7 @@ double solvopt(unsigned int n,
     if (B == NULL || g == NULL || g0 == NULL || g1 == NULL || gt == NULL || z == NULL || x1 == NULL) {
         // printf (slv_err2);
         options[8] = -2.e0;
-        f = 0.;
-        goto endrun;
+        return (0.);
     }
 
     /* ANALIZE THE ARGUMENTS PASSED

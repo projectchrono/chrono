@@ -174,23 +174,15 @@ class ChApi ChConveyor : public ChBody {
     virtual void Update(double mytime, bool update_assets = true);
 
     //
-    // SERIALIZATION
+    // STREAMING
     //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    //***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream);
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    //***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream);
 };
 

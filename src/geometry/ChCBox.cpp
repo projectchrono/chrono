@@ -294,7 +294,7 @@ void ChBox::CovarianceMatrix(ChMatrix33<>& C) {
         p1.x * p1.z + p2.x * p2.z + p3.x * p3.z + p4.x * p4.z + p5.x * p5.z + p6.x * p6.z + p7.x * p7.z + p8.x * p8.z;
     C(1, 2) =
         p1.y * p1.z + p2.y * p2.z + p3.y * p3.z + p4.y * p4.z + p5.y * p5.z + p6.y * p6.z + p7.y * p7.z + p8.y * p8.z;
-}
+};
 
 void ChBox::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number

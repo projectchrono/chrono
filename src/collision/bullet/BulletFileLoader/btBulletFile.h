@@ -74,6 +74,6 @@ namespace bParse {
 		void	addStruct(const char* structType,void* data, int len, void* oldPtr, int code);
 
 	};
-}
+};
 
 #endif //BT_BULLET_FILE_H

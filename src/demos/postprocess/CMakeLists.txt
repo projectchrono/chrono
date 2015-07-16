@@ -7,9 +7,7 @@ INCLUDE_DIRECTORIES( ${CH_POSTPROCESSINC} )
 #--------------------------------------------------------------
 # Add executables
 
-MESSAGE(STATUS "Demo programs for POSTPROCESS module...")
 
-MESSAGE(STATUS "...add demo_postprocess")
 ADD_EXECUTABLE(demo_postprocess   		demo_postprocess.cpp)
 SOURCE_GROUP(demos\\postprocess FILES  	    demo_postprocess.cpp)
 SET_TARGET_PROPERTIES(demo_postprocess PROPERTIES 
@@ -22,7 +20,6 @@ ADD_DEPENDENCIES (demo_postprocess ChronoEngine ChronoEngine_POSTPROCESS)
 
 IF(ENABLE_UNIT_IRRLICHT)
 	INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
-	MESSAGE(STATUS "...add demo_emit_creation")
 	ADD_EXECUTABLE(demo_emit_creation   		demo_emit_creation.cpp)
 	SOURCE_GROUP(demos\\postprocess FILES  	    demo_emit_creation.cpp)
 	SET_TARGET_PROPERTIES(demo_emit_creation PROPERTIES 
@@ -40,7 +37,6 @@ IF(ENABLE_UNIT_IRRLICHT)
 	    ChronoEngine_POSTPROCESS ChronoEngine_IRRLICHT)
 ENDIF()
 
-MESSAGE(STATUS "...add demo_timestepping")
 ADD_EXECUTABLE(demo_timestepping	demo_timestepping.cpp)
 SOURCE_GROUP(demos\\postprocess FILES  	demo_timestepping.cpp)
 SET_TARGET_PROPERTIES(demo_timestepping PROPERTIES 
@@ -50,7 +46,6 @@ SET_TARGET_PROPERTIES(demo_timestepping PROPERTIES
 TARGET_LINK_LIBRARIES(demo_timestepping ChronoEngine)
 ADD_DEPENDENCIES (demo_timestepping ChronoEngine ChronoEngine_POSTPROCESS)
 
-MESSAGE(STATUS "...add demo_gnuplot")
 ADD_EXECUTABLE(demo_gnuplot	demo_gnuplot.cpp)
 SOURCE_GROUP(demos\\postprocess FILES  	demo_gnuplot.cpp)
 SET_TARGET_PROPERTIES(demo_gnuplot PROPERTIES 

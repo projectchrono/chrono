@@ -427,4 +427,4 @@ MergeHullsInterface * createMergeHullsInterface(void)
 }
 
 
-}
+};

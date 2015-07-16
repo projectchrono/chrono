@@ -4,21 +4,19 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_UNIT_FEA "Enable the Chrono Cascade module" OFF)
 
-# Return now if this module is not enabled
+SET(ENABLE_UNIT_CASCADE     FALSE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine CASCADE unit.")
+
 IF(NOT ENABLE_UNIT_CASCADE)
-  MARK_AS_ADVANCED(FORCE CH_CASCADEDIR)
-  RETURN()
+	# To hide unneeded option stuff from GUI (require refresh by pressing 'configure', anyway)
+	MARK_AS_ADVANCED(FORCE CH_CASCADEDIR)
+	RETURN()
+ELSE()
+	MESSAGE(STATUS "...enabling Cascade Unit")
+	MARK_AS_ADVANCED(CLEAR CH_CASCADEDIR)
 ENDIF()
 
-MESSAGE(STATUS "==== Chrono Cascade module ====")
-
-MARK_AS_ADVANCED(CLEAR CH_CASCADEDIR)
-
-
-SET(CH_CASCADEDIR "" CACHE PATH   
-    "Where is your OpenCASCADE SDK installed? Ex: 'E:/OpenCASCADE6.3.0'. You must set this path to compile the CASCADE unit.")
+SET(CH_CASCADEDIR           ""      CACHE PATH   "Where is your OpenCASCADE SDK installed? Ex: 'E:/OpenCASCADE6.3.0'. You must set this path to compile the CASCADE unit.")
 
 #-----------------------------------------------------------------------------
 #

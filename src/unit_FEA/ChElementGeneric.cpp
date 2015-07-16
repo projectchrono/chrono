@@ -85,7 +85,7 @@ void ChElementGeneric::VariablesFbLoadInternalForces(double factor)
 		stride += nodedofs;
 	}
 	*/
-}
+};
 
 
 

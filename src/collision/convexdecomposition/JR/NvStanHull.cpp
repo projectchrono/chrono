@@ -3461,4 +3461,4 @@ NxF32 HullLibrary::ComputeNormal(NxF32 *n,const NxF32 *A,const NxF32 *B,const Nx
 	return mag;
 }
 
-} // End of namespace
+}; // End of namespace

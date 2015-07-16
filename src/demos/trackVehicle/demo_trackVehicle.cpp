@@ -81,7 +81,7 @@ double chaseDist = 4.0;
 double chaseHeight = 1;
 ChVector<> trackPoint(0.0, -0.5, 0);
 
-bool do_shadows = true;  // shadow map is experimental
+bool do_shadows = false;  // shadow map is experimental
                           /*
                         #else
                           double tend = 20.0;

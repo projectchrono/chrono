@@ -12,9 +12,6 @@
 
 #include "physics/ChLinkSpring.h"
 #include "collision/ChCModelBulletBody.h"
-#include "serialization/ChArchiveAsciiDump.h"
-#include "serialization/ChArchiveJSON.h"
-#include "core/ChStream.h"
 
 #include "unit_IRRLICHT/ChIrrAppInterface.h"
 #include "unit_IRRLICHT/ChIrrCamera.h"
@@ -65,21 +62,6 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
             case KEY_F10:
                 chrono::GetLog() << "---Computing NONlinear static solution, 20 steps---\n";
                 app->GetSystem()->DoStaticNonlinear(20);
-                return true;
-            case KEY_F8:
-            {
-                chrono::GetLog() << "Saving system in JSON format to dump.json file \n";
-                chrono::ChStreamOutAsciiFile mfileo("dump.json");
-                chrono::ChArchiveOutJSON marchiveout(mfileo);
-                marchiveout.SetUseVersions(false);
-                marchiveout << CHNVP(app->GetSystem(),"System");
-
-                chrono::GetLog() << "Saving system in ASCII format to dump.txt file \n";
-                chrono::ChStreamOutAsciiFile mfileo2("dump.txt");
-                chrono::ChArchiveAsciiDump marchiveout2(mfileo2);
-                marchiveout2.SetUseVersions(false);
-                marchiveout2 << CHNVP(app->GetSystem(),"System");
-            }
                 return true;
             case KEY_SNAPSHOT:
                 if (app->videoframe_save == false) {

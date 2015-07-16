@@ -62,23 +62,15 @@ enum Enum {
 // relative to the chassis when facing forward.
 enum VehicleSide { RIGHTSIDE, LEFTSIDE };
 
-// specify what type of output 
-enum DebugType {
-    DBG_BODY = 1 << 0,
-    DBG_CONSTRAINTS = 1 << 2,
-    DBG_CONTACTS = 1 << 3,
-};
-
-// vehicle writes debug info for these objects (e.g., subsystems)
 enum DebugInformation {
-    DBG_CHASSIS = 1 << 0,
-    DBG_FIRSTSHOE = 1 << 1,
-    DBG_GEAR = 1 << 2,
-    DBG_IDLER = 1 << 3,
-    DBG_PTRAIN = 1 << 4,
+    DBG_FIRSTSHOE = 1 << 0,
+    DBG_GEAR = 1 << 1,
+    DBG_IDLER = 1 << 2,
+    DBG_PTRAIN = 1 << 3,
+    DBG_CONSTRAINTS = 1 << 4,
     DBG_COLLISIONCALLBACK = 1 << 5,
-    DBG_SUSPENSION = 1 << 6,
-    DBG_ALL_CONTACTS = 1 << 7,
+    DBG_ALL_CONTACTS = 1 << 6,
+    DBG_CHASSIS = 1 << 7
 };
 
 static std::ostream& operator<<(std::ostream& out, const ChVector<double>& vect) {

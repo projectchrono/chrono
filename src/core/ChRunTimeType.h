@@ -115,7 +115,7 @@ class ChRunTimeType {
     static const chrono::ChRunTimeType* GetClassRTTI() {   \
         static ChRunTimeType m_RTTI(#classname, NULL);     \
         return &m_RTTI;                                    \
-    }
+    };
 
 #define CH_RTTI(classname, parentclassname)                                       \
                                                                                   \
@@ -127,7 +127,7 @@ class ChRunTimeType {
     static const chrono::ChRunTimeType* GetClassRTTI() {                          \
         static ChRunTimeType m_RTTI(#classname, parentclassname::GetClassRTTI()); \
         return &m_RTTI;                                                           \
-    }
+    };
 
 //////////////////////////////////////////////////////////////
 //
@@ -149,6 +149,6 @@ class ChRunTimeType {
 #define ChDynamicCast(classname, pObj) \
     ((pObj) ? ((pObj)->GetRTTI()->IsDerivedFromClass(classname::GetClassRTTI()) ? (classname*)pObj : NULL) : NULL)
 
-}  // END_OF_NAMESPACE____
+};  // END_OF_NAMESPACE____
 
 #endif

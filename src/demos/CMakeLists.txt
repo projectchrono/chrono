@@ -1,4 +1,18 @@
 
+IF(BUILD_DEMOS)
+	MARK_AS_ADVANCED(CLEAR ENABLE_UNIT_IRRLICHT)
+	IF(ENABLE_UNIT_IRRLICHT)
+		MARK_AS_ADVANCED(CLEAR CH_IRRLICHTDIR)	
+	ELSE()
+		MARK_AS_ADVANCED(FORCE CH_IRRLICHTDIR)
+	ENDIF()
+	
+	
+ELSE()
+	MARK_AS_ADVANCED(FORCE CH_IRRLICHTDIR)
+	MARK_AS_ADVANCED(FORCE ENABLE_UNIT_IRRLICHT)
+ENDIF()
+
 #--------------------------------------------------------------
 # Always use full RPATH (differentiating between the build and install trees)
 
@@ -23,10 +37,9 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
 
-message(STATUS "==== Demo programs ====")
-
+IF(BUILD_DEMOS)
 ADD_SUBDIRECTORY(basics)
-#ADD_SUBDIRECTORY(benchmarks)
+ADD_SUBDIRECTORY(benchmarks)
 ADD_SUBDIRECTORY(core)
 ADD_SUBDIRECTORY(lcp_solver)
 
@@ -43,11 +56,8 @@ IF (ENABLE_UNIT_IRRLICHT)
 ENDIF()
 
 IF (ENABLE_UNIT_MATLAB)
+	INCLUDE_DIRECTORIES( ${CH_MATLABINC} )
 	ADD_SUBDIRECTORY(matlab)
-ENDIF()
-
-IF (ENABLE_UNIT_MKL)
-	ADD_SUBDIRECTORY(mkl)
 ENDIF()
 	
 IF (ENABLE_UNIT_MPI)
@@ -66,9 +76,7 @@ IF (ENABLE_UNIT_POSTPROCESS)
 	ADD_SUBDIRECTORY(postprocess)
 ENDIF()
 
-if(ENABLE_UNIT_PARALLEL)
-  add_subdirectory(parallel)
-endif()
-
-# TODO: this will be soon removed...
+# this contains its own set of demos, for the tracked vehicle subsystems built by Justin
 ADD_SUBDIRECTORY(trackVehicle)
+
+ENDIF()

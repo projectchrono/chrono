@@ -72,7 +72,7 @@ class CH_SUBSYS_API ChTrackVehicle : public ChShared {
     virtual double GetDriveshaftSpeed(size_t idx) const = 0;
 
     /// pointer to the powertrain
-    virtual ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const = 0;
+    virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const = 0;
 
     /// Get the local driver position and orientation, relative to the chassis reference frame.
     virtual const ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(); }
@@ -107,9 +107,6 @@ class CH_SUBSYS_API ChTrackVehicle : public ChShared {
 
     /// number of track chain systems attached to the vehicle
     size_t GetNum_Engines() const { return m_num_engines; }
-
-    /// drive gear sprocket speed
-    virtual double GetSprocketSpeed(const size_t idx) const { return 0; }
 
     /// Initialize at the specified global location and orientation.
     virtual void Initialize(const ChCoordsys<>& chassis_Csys  ///< [in] initial config of vehicle REF frame
@@ -147,6 +144,13 @@ class CH_SUBSYS_API ChTrackVehicle : public ChShared {
     }
 
     // Log data, constraint violations, etc. to console (ChLog), or a file (
+
+    /// log the constraint violations of this and all child subsystems to console
+    virtual void LogConstraintViolations(bool include_chain = false) {}
+
+    /// save the constraint violations, w/ and w/o chain body, to the
+    virtual void SaveConstraintViolations(bool include_chain = false) {}
+
     virtual void Log_to_console(int console_what) {}
 
     /// Log data to file.
@@ -155,39 +159,11 @@ class CH_SUBSYS_API ChTrackVehicle : public ChShared {
 
     /// setup class to save the log to a file for python postprocessing.
     /// Usage: call after construction & Initialize(), else no data is saved.
-    virtual void Setup_logger(int what_subsys,  /// which vehicle objects (e.g. subsystems) to save data for?
-                              int debug_type,   /// data types: _BODY, _CONSTRAINTS, _CONTACTS
-                              const std::string& out_filename,
-                              const std::string& data_dirname = "data_test") {}
-
-
-    // helper functions, for Irrlicht GUI
-    // following variables are populated when DriveChain::reportShoeGearContact() is called
-    // absolute pos of the persistent contact point
-    virtual ChVector<> Get_SG_Persistent_PosAbs(int track, int idx) const {
-        return ChVector<>(0,0,0);
-    }
-
-    // normal force abs. vector of the persistent contact point
-    virtual ChVector<> Get_SG_Persistent_Fn(int track, int idx) const {
-        return ChVector<>(0,0,0);
-    }
-
-    /*
-    // abs. pos. of all shoe-gear contacts found
-    virtual const std::vector<ChVector<> >& Get_SG_PosAbs_all(int track) const {
-        std::vector<ChVector<>> temp;
-        return temp;
-    }
-
-    // abs. normal force of all sh oe-gear contacts
-    virtual const std::vector<ChVector<> >& Get_SG_Fn_all(int track) const {
-        return std::vector<ChVector<> >();
-    }
-    */
+    virtual void Setup_log_to_file(int what,
+                                   const std::string& out_filename,
+                                   const std::string& data_dirname = "data_test") {}
 
   protected:
-
     // private functions
     virtual void AddVisualization();
     virtual void AddCollisionGeometry(double mu = 0.7,
@@ -219,20 +195,10 @@ class CH_SUBSYS_API ChTrackVehicle : public ChShared {
 
     // output/Log variables
     bool m_save_log_to_file;    ///< save the DebugLog() info to file? default false
-    int m_log_what_to_file;     ///< save data for which vehicle objects (subsystems)
-    int m_log_debug_type;       ///< save these data types
+    int m_log_what_to_file;     ///< set this in Setup_log_to_file(), if writing to file
     bool m_log_file_exists;     ///< written the headers for log file yet?
     int m_log_what_to_console;  ///< pre-set what to write to console when calling
     std::string m_log_file_name;
-    // output filenames
-    std::string m_filename_DBG_BODY; // write idler body info
-    std::string m_filename_DBG_CV;  // write idler constraint violation
-    std::string m_filename_DBG_CONTACTS;   // write idler contact info
-    // special file for custom collision class
-    std::string m_filename_DBG_COLLISIONCALLBACK;  // write collision callback info to file
-
-
-
 };
 
 }  // end namespace chrono

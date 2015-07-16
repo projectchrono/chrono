@@ -36,11 +36,6 @@ namespace chrono {
 
 namespace collision {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegisterABSTRACT<ChModelBullet> a_registration_ChModelBullet;
-
-
 ChModelBullet::ChModelBullet() {
     bt_collision_object = new btCollisionObject;
     bt_collision_object->setCollisionShape(0);
@@ -611,30 +606,6 @@ void __recurse_add_newcollshapes(btCollisionShape* ashape, std::vector<smartptrs
         }
     }
 }
-
-
-void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
-{
-    // version number
-    marchive.VersionWrite(1);
-    // serialize parent class
-    ChCollisionModel::ArchiveOUT(marchive);
-    // serialize all member data:
-    //marchive << CHNVP(...);
-    //***TODO***
-}
-
-void ChModelBullet::ArchiveIN(ChArchiveIn& marchive) 
-{
-    // version number
-    int version = marchive.VersionRead();
-    // deserialize parent class
-    ChCollisionModel::ArchiveIN(marchive);
-    // stream in all member data:
-    //marchive >> CHNVP(...);
-    //***TODO***
-}
-
 
 void ChModelBullet::StreamIN(ChStreamInBinary& mstream) {
     // class version number

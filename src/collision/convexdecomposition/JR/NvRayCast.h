@@ -74,6 +74,6 @@ protected:
 iRayCast *createRayCast(const NxF32 *vertices,NxU32 tcount,const NxU32 *indices);
 void	  releaseRayCast(iRayCast *rc);
 
-}
+};
 
 #endif

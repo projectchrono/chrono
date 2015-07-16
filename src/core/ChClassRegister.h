@@ -192,6 +192,6 @@ void create(std::string cls_name, T** ppObj) {
             break;
 }
 
-}  // END_OF_NAMESPACE____
+};  // END_OF_NAMESPACE____
 
 #endif

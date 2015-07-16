@@ -24,9 +24,6 @@ namespace chrono {
 /// able to recognize it and implement the proper translation.
 
 class ChApi ChColorAsset : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChColorAsset, ChAsset);
-
   public:
     ChColorAsset() : fading(0) {}
     ChColorAsset(float mR, float mG, float mB, float mA = 0) : color(mR, mG, mB, mA), fading(0) {}
@@ -45,36 +42,6 @@ class ChApi ChColorAsset : public ChAsset {
   private:
     ChColor color;  // color of material
     float fading;   // transparency of material
-
-
-  public:
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChAsset::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(color);
-        marchive << CHNVP(fading);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChAsset::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(color);
-        marchive >> CHNVP(fading);
-    }
 };
 
 }  // END_OF_NAMESPACE____

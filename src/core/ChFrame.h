@@ -519,28 +519,8 @@ class ChFrame {
     // STREAMING
     //
 
-        /// Method to allow serialization of transient data in archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // suggested: use versioning
-        marchive.VersionWrite(1);
-        // stream out all member data
-        marchive << CHNVP(coord);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // suggested: use versioning
-        int version = marchive.VersionRead();
-        // stream in all member data
-        marchive >> CHNVP(coord);
-        Amatrix.Set_A_quaternion(coord.rot);
-    }
-
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    /// ***OBSOLETE***
     virtual void StreamOUT(ChStreamOutAscii& mstream) {
         mstream << "\n" << coord.pos;
         mstream << "\n" << coord.rot;
@@ -548,12 +528,10 @@ class ChFrame {
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    /// ***OBSOLETE***
     virtual void StreamOUT(ChStreamOutBinary& mstream) { mstream << coord; }
 
     /// Operator to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    /// ***OBSOLETE***
     virtual void StreamIN(ChStreamInBinary& mstream) {
         mstream >> coord;
         Amatrix.Set_A_quaternion(coord.rot);

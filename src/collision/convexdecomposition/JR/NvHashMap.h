@@ -308,7 +308,7 @@ namespace CONVEX_DECOMPOSITION
       MEMALLOC_FREE(ptr);
 		}
 	};
-}
+};
 
 #endif
 
@@ -1522,7 +1522,7 @@ namespace CONVEX_DECOMPOSITION
 			NX_INLINE const Entry *find(const Key &k) const
 			{
 				if(!mHash.size())
-					return 0;
+					return false;
 
 				NxU32 h = hash(k);
 				NxU32 index = mHash[h];

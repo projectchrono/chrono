@@ -87,8 +87,8 @@ bool CHAABB::AABB_Overlap(ChMatrix33<>& B, Vector T, CHAABB* b1, CHAABB* b2) {
 }
 
 bool CHAABB::AABB_Overlap(ChMatrix33<>& B, ChMatrix33<>& Bf, Vector T, CHAABB* b1, CHAABB* b2) {
-    double t, s;
-    int r;
+    register double t, s;
+    register int r;
 
     Vector& a = b1->d;
     Vector& b = b2->d;

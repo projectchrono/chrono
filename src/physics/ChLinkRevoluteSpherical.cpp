@@ -11,6 +11,8 @@
 
 #include "physics/ChLinkRevoluteSpherical.h"
 
+#include "core/ChMemory.h"
+
 namespace chrono {
 
 // Register into the object factory.

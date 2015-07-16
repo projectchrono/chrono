@@ -780,7 +780,7 @@ hacd::HaU32	kmeans_cluster(const Vec *input,
 	HACD_FREE(counts);
 	clumpCount = outCount;
 	return clumpCount;
-}
+};
 
 hacd::HaU32	kmeans_cluster3d(const hacd::HaF32 *input,				// an array of input 3d data points.
 							 hacd::HaU32 inputSize,				// the number of input data points.
@@ -1029,4 +1029,4 @@ WuQuantizer * createWuQuantizer(void)
 }
 
 
-} // end of HACD namespace
+}; // end of HACD namespace

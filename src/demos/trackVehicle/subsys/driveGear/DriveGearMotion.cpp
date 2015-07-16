@@ -18,7 +18,6 @@
 // =============================================================================
 
 #include "DriveGearMotion.h"
-#include "subsys/collision/CollisionReporters.h"
 
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTriangleMeshShape.h"
@@ -45,7 +44,6 @@ DriveGearMotion::DriveGearMotion(const std::string& name,
                                  size_t chainSys_idx,
                                  double mass,
                                  const ChVector<>& gear_Ixx,
-                                 double mu,
                                  double max_gear_omega)
     : m_vis(vis),
       m_collide(collide),
@@ -53,7 +51,6 @@ DriveGearMotion::DriveGearMotion(const std::string& name,
       m_chainSys_idx(chainSys_idx),
       m_mass(mass),
       m_inertia(gear_Ixx),
-      m_mu(mu),
       m_maxOmega(max_gear_omega),
       m_meshName("gear_mesh"),
       m_gearPinGeom(ChSharedPtr<GearPinGeometry>(new GearPinGeometry())),
@@ -91,7 +88,7 @@ void DriveGearMotion::Initialize(ChSharedPtr<ChBody> chassis,
     if (local_Csys.pos.z < 0)
         chassis_side = LEFTSIDE;
 
-    AddCollisionGeometry(shoes, vehicle, chassis_side, m_mu, 0.9*m_mu);
+    AddCollisionGeometry(shoes, vehicle, chassis_side);
 
     // get the local frame in the absolute ref. frame
     ChFrame<> gear_to_abs(local_Csys);
@@ -108,7 +105,7 @@ void DriveGearMotion::Initialize(ChSharedPtr<ChBody> chassis,
 }
 
 void DriveGearMotion::Update(double time, double omega_throttle) {
-    double throttle = clamp(omega_throttle);  // default range [-1,1]
+  double throttle = clamp(omega_throttle);  // default range [-1,1]
     if (ChSharedPtr<ChFunction_Const> func = m_revolute->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
         func->Set_yconst(getMaxOmega() * throttle);
 }
@@ -381,6 +378,32 @@ void DriveGearMotion::AddCollisionGeometry(const std::vector<ChSharedPtr<ChBody>
     m_gear->GetCollisionModel()->BuildModel();
 }
 
+void DriveGearMotion::LogConstraintViolations() {
+    // single revolute joint
+    ChMatrix<>* C = m_revolute->GetC();
+    GetLog() << " -- joint name: " << m_revolute->GetName();
+    for (int row = 0; row < C->GetRows(); row++) {
+        GetLog() << " " << C->GetElement(row, 0) << "  ";
+    }
+    GetLog() << "\n";
+}
+
+void DriveGearMotion::SaveConstraintViolations(std::stringstream& ss) {
+    // single revolute joint
+    ChMatrix<>* C = m_revolute->GetC();
+    for (int row = 0; row < C->GetRows(); row++) {
+        ss << "," << C->GetElement(row, 0);
+    }
+    ss << "\n";
+}
+
+const std::string DriveGearMotion::getFileHeader_ConstraintViolations(size_t idx) const {
+    // gear is a revolute joint, z-rot DOF only
+    std::stringstream ss;
+    ss << "time,x,y,z,rx,ry\n";
+    return ss.str();
+}
+
 // helper functions
 double DriveGearMotion::clamp(double val, double min_val, double max_val) {
     if (val <= min_val)
@@ -388,89 +411,6 @@ double DriveGearMotion::clamp(double val, double min_val, double max_val) {
     if (val >= max_val)
         return max_val;
     return val;
-}
-
-void DriveGearMotion::Write_header(const std::string& filename, DebugType type) {
-    if (type & DBG_BODY) {
-        m_filename_DBG_BODY = filename;
-        ChStreamOutAsciiFile ofile(m_filename_DBG_BODY.c_str());
-        // headers
-        ofile << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz\n";
-    }
-
-    if (type & DBG_CONTACTS) {
-        // report on some specific collision info in a separate file
-        // filename
-        m_filename_DBG_CONTACTS = filename;
-        ChStreamOutAsciiFile ofile(m_filename_DBG_CONTACTS.c_str());
-        // headers
-        ofile << "time,Ncontacts,FnMax,FnAvg,FnVar,FnSig,FtMax,FtAvg,FtVar,FtSig\n";
-    }
-    if (type & DBG_CONSTRAINTS) {
-        m_filename_DBG_CV = filename;
-        ChStreamOutAsciiFile ofile(m_filename_DBG_CV.c_str());
-        // headers
-        ofile << "time,x,y,z,rx,ry,rz\n";
-    }
-}
-
-void DriveGearMotion::Write_data(const double t, ChSystem* system, DebugType type) {
-    if (type & DBG_BODY) {
-        std::stringstream ss_g;
-        ChSharedPtr<ChBody> gb = GetBody();
-        // time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz
-        ss_g << t << "," << gb->GetPos() << "," << gb->GetPos_dt() << "," << gb->GetWvel_loc() << "\n";
-        ChStreamOutAsciiFile ofile(m_filename_DBG_BODY.c_str(), std::ios::app);
-        ofile << ss_g.str().c_str();
-    }
-    if (type & DBG_CONTACTS) {
-        // find what's in contact with the gear by processing all collisions with a special callback function
-        ChVector<> Fn_info = ChVector<>();
-        ChVector<> Ft_info = ChVector<>();
-        // info is: (max, avg., variance)
-        int num_gear_contacts = reportGearContact(GetBody(), system, Fn_info, Ft_info);
-
-        std::stringstream ss_gc;
-        // time,Ncontacts,FnMax,FnAvg,FnVar,FtMax,FtAvg,FtVar
-        ss_gc << t << "," << num_gear_contacts << "," << Fn_info << "," << std::sqrt(Fn_info.z) << "," << Ft_info << ","
-              << std::sqrt(Ft_info.z) << "\n";
-        ChStreamOutAsciiFile ofile(m_filename_DBG_CONTACTS.c_str(), std::ios::app);
-        ofile << ss_gc.str().c_str();
-    }
-    if (type & DBG_CONSTRAINTS) {
-        std::stringstream ss;
-        ss << t;
-        ChMatrix<>* C = m_revolute->GetC();
-        for (int row = 0; row < C->GetRows(); row++) {
-            ss << "," << C->GetElement(row, 0);
-        }
-        ss << "\n";
-        ChStreamOutAsciiFile ofile(m_filename_DBG_CV.c_str(), std::ios::app);
-        ofile << ss.str().c_str();
-    }
-}
-
-// get some data about the gear and its normal and friction contact forces each timestep.
-// info = (max, avg, stdev = sigma)
-// returns: number of contacts for the gear body.
-int DriveGearMotion::reportGearContact(const ChSharedPtr<ChBody> which_gear,
-                                       ChSystem* system,
-                                       ChVector<>& Fn_info,
-                                       ChVector<>& Ft_info) {
-    // setup the reporter, init any variables
-    _gear_report_contact reporter(which_gear);
-
-    // pass the reporter callback to the system
-    system->GetContactContainer()->ReportAllContacts(&reporter);
-
-    // set any data here from the reporter, and return # of bodies in contact with the gear
-    double Fn_avg = (reporter.m_num_gear_contacts > 0) ? reporter.m_Fn_sum / reporter.m_num_gear_contacts : 0;
-    Fn_info = ChVector<>(reporter.m_Fn_max, Fn_avg, std::sqrt(reporter.m_Fn_var));
-
-    double Ft_avg = (reporter.m_num_gear_contacts > 0) ? reporter.m_Ft_sum / reporter.m_num_gear_contacts : 0;
-    Ft_info = ChVector<>(reporter.m_Ft_max, Ft_avg, std::sqrt(reporter.m_Ft_var));
-
-    return reporter.m_num_gear_contacts;
 }
 
 }  // end namespace chrono

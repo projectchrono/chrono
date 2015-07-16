@@ -49,13 +49,10 @@ ENDIF()
 #--------------------------------------------------------------
 
 # Add executables
-
-MESSAGE(STATUS "Demo programs for IRRLICHT module...")
-
 FOREACH(PROGRAM ${DEMOS})
-  MESSAGE(STATUS "...add ${PROGRAM}")
 
   ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+
   SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
 
   SET_TARGET_PROPERTIES(${PROGRAM}  PROPERTIES
@@ -69,7 +66,7 @@ FOREACH(PROGRAM ${DEMOS})
     ChronoEngine_IRRLICHT
     ${CH_IRRLICHTLIB}
     )
-    
+
   ADD_DEPENDENCIES (${PROGRAM} ChronoEngine ChronoEngine_IRRLICHT)
 
   INSTALL(TARGETS ${PROGRAM} DESTINATION bin)

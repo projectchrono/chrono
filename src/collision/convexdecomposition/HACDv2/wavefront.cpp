@@ -762,7 +762,7 @@ private:
   IntVector       mIndices;
 };
 
-}
+};
 
 using namespace WAVEFRONT;
 

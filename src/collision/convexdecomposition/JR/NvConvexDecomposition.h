@@ -106,6 +106,6 @@ protected:
 iConvexDecomposition * createConvexDecomposition(void);
 void				   releaseConvexDecomposition(iConvexDecomposition *ic);
 
-} // end of namespace
+}; // end of namespace
 
 #endif

@@ -172,28 +172,23 @@ class ChApi ChFunction : public ChShared {
     virtual int HandleAccess(int handle_id, double mx, double my, bool set_mode) { return TRUE; };
 
     //
-    // SERIALIZATION
+    // STREAMING
     //
 
-    /// Method to allow serialization of transient data to archives
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    // Persistent data serialization: file functions.
+    // Inherited classes may inherit these methods because they could
+    // have additional data.
 
     /// Method to allow serialization of transient data in ascii,
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    //***OBSOLETE***
     virtual void StreamOUT(ChStreamOutAscii& mstream);
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    //***OBSOLETE***
     virtual void StreamIN(ChStreamInBinary& mstream);
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    //***OBSOLETE***
     virtual void StreamOUT(ChStreamOutBinary& mstream);
 
     /// Plot function in graph space of the ChFile_ps postscript file

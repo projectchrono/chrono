@@ -135,6 +135,6 @@ struct CHOMPscopedLock {
     CHOMPscopedLock(const CHOMPscopedLock&);
 };
 
-}  // END_OF_NAMESPACE____
+};  // END_OF_NAMESPACE____
 
 #endif

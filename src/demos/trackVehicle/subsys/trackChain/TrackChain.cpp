@@ -29,8 +29,7 @@
 
 // collision mesh
 #include "geometry/ChCTriangleMeshSoup.h"
-// report contact data
-#include "subsys/collision/CollisionReporters.h"
+
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
 
@@ -43,7 +42,7 @@ const double TrackChain::m_pin_width = 0.531;                  // total width of
 const double TrackChain::m_pin_dist = 0.15162;  // .205; // linear distance between a shoe chain spacing. exact = 0.205
 const double TrackChain::m_pin_radius = 0.02317;
 const double TrackChain::m_pin_COG_offset = -0.07581;           // local c-sys x-dir offset from body center
-const ChVector<> TrackChain::m_tooth_box(0.06, 0.07967, 0.06);  // length, height, width
+const ChVector<> TrackChain::m_tooth_box(0.08, 0.07967, 0.08);  // length, height, width
 const double TrackChain::m_tooth_COG_offset = -0.07313;         // , -0.0731.  local c-sys y-dir offset from body center
 // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
@@ -54,14 +53,12 @@ TrackChain::TrackChain(const std::string& name,
                        CollisionType::Enum collide,
                        size_t chainSys_idx,
                        double shoe_mass,
-                       const ChVector<>& shoeIxx,
-                       double mu)
+                       const ChVector<>& shoeIxx)
     : m_vis(vis),
       m_collide(collide),
       m_chainSys_idx(chainSys_idx),
       m_mass(shoe_mass),
       m_inertia(shoeIxx),
-      m_mu(mu),
       m_collisionFile(utils::GetModelDataFile("M113/shoe_collision.obj")),
       m_meshFile(utils::GetModelDataFile("M113/shoe_view.obj")),
       m_meshName("M113 shoe"),
@@ -84,13 +81,6 @@ TrackChain::TrackChain(const std::string& name,
 
     // Attach visualization to the base track shoe
     AddVisualization(0, true, "cubetexture_pinkwhite.png");
-
-    // Init. some helper debugging, reporter variables
-    m_SG_info.resize(2, ChVector<>());
-    m_SG_is_persistentContact_set.resize(2, false);
-    m_SG_PosRel.resize(2, ChVector<>());
-    m_SG_PosAbs.resize(2, ChVector<>());
-    m_SG_Fn.resize(2, ChVector<>());
 }
 
 // figure out the control points, 2 per rolling element to wrap the chain around.
@@ -396,11 +386,11 @@ void TrackChain::AddVisualization(size_t track_idx, bool custom_texture, const s
         case VisualizationType::Mesh: {
             // mesh for visualization only.
             geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
+            trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
 
             ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
             trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(GetMeshName());
+            trimesh_shape->SetName(getMeshName());
             m_shoes[track_idx]->AddAsset(trimesh_shape);
 
             // add a color to the shoes
@@ -610,7 +600,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
         m_shoes.front()->SetRot(rot_seg_A);  // can assume its the same as the line segment
 
         // add collision geometry
-        (m_start_loc_bar.z < 0) ? AddCollisionGeometry(LEFTSIDE, m_mu, 0.9*m_mu) : AddCollisionGeometry(RIGHTSIDE, m_mu, 0.9*m_mu);
+        (m_start_loc_bar.z < 0) ? AddCollisionGeometry(LEFTSIDE) : AddCollisionGeometry(RIGHTSIDE);
         chassis->GetSystem()->AddBody(m_shoes.front());
         // First shoe on first line segment should always be aligned.
         m_aligned_with_seg = true;
@@ -639,7 +629,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
         m_numShoes++;
         m_shoes.back()->Copy(m_shoes.front().get_ptr());
         // create the collision geometry for the new shoe
-        (m_start_loc_bar.z < 0) ? AddCollisionGeometry(LEFTSIDE, m_mu, 0.9*m_mu) : AddCollisionGeometry(RIGHTSIDE, m_mu, 0.9*m_mu);
+        (m_start_loc_bar.z < 0) ? AddCollisionGeometry(LEFTSIDE) : AddCollisionGeometry(RIGHTSIDE);
 
         // even shoes can be a different texture
         (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes - 1, true, "spheretexture.png") : AddVisualization();
@@ -790,7 +780,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
     // At this point, wrap the shoes around the curved segment (if there is one).
     //  E.g., roadwheels 1-2, 2-3, 3-4, 4-5 have no curved segment, so skip.
     if ((end_curve_seg - end_seg).LengthInf() < 1e-3) {
-        // GetLog() << " no curved line segment, at location: " << end_curve_seg << " ... \n";
+        GetLog() << " no curved line segment, at location: " << end_curve_seg << " ... \n";
         return;
     }
 
@@ -822,7 +812,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
         m_numShoes++;
         m_shoes.back()->Copy(m_shoes.front().get_ptr());
         // create the collision geometry for the new shoe
-        (m_start_loc_bar.z < 0) ? AddCollisionGeometry(LEFTSIDE, m_mu, 0.9*m_mu) : AddCollisionGeometry(RIGHTSIDE, m_mu, 0.9*m_mu);
+        (m_start_loc_bar.z < 0) ? AddCollisionGeometry(LEFTSIDE) : AddCollisionGeometry(RIGHTSIDE);
 
         // even shoes can be a different texture
         (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes - 1, true, "spheretexture.png") : AddVisualization();
@@ -931,7 +921,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
         m_numShoes++;
         m_shoes.back()->Copy(m_shoes.front().get_ptr());
         // create the collision geometry for the new shoe
-        (m_start_loc_bar.z < 0) ? AddCollisionGeometry(LEFTSIDE, m_mu, 0.9*m_mu) : AddCollisionGeometry(RIGHTSIDE, m_mu, 0.9*m_mu);
+        (m_start_loc_bar.z < 0) ? AddCollisionGeometry(LEFTSIDE) : AddCollisionGeometry(RIGHTSIDE);
 
         // even shoes can be a different texture
         (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes - 1, true, "spheretexture.png") : AddVisualization();
@@ -1203,167 +1193,6 @@ void TrackChain::Set_pin_friction(double damping_C, bool use_custom_damper, doub
 
     // now that custom dampers have been created, we can use them.
     m_use_custom_damper = use_custom_damper;
-}
-
-// Get some data about the gear and its normal and friction contact forces with the specified shoe each timestep.
-// Returns: total number of contacts between the specified shoe body and gear body
-// Sets non-const inputs with contact persistence info, # of contacts, Fn, Ft statistics.
-// SG_info = (Num_contacts, t_persist, t_persist_max)
-// Force_mag_info = (Fn, Ft, 0)
-// PosRel, VRel = relative pos, vel of contact point, relative to gear c-sys
-// NormDirRel = tracked contact normal dir., w.r.t. gear c-sys
-int TrackChain::reportShoeGearContact(ChSystem* system,
-                                      const std::string& shoe_name,
-                                      std::vector<ChVector<> >& SG_info,
-                                      std::vector<ChVector<> >& Force_mag_info,
-                                      std::vector<ChVector<> >& PosRel_contact,
-                                      std::vector<ChVector<> >& VRel_contact,
-                                      std::vector<ChVector<> >& NormDirRel_contact) {
-    // setup the reporter, init any variables that are not history dependent
-    _shoeGear_report_contact reporter(shoe_name);
-
-    // ----------------------------------
-    // history dependent variables.
-    // SG_info = (Num_contacts, t_persist, t_persist_max), carry over timers.
-    reporter.m_t_persist.resize(2, 0);
-    reporter.m_t_persist_max.resize(2, 0);
-    for (int i = 0; i < 2; i++) {
-        reporter.m_t_persist[i] = m_SG_info[i].y;
-        reporter.m_t_persist_max[i] = m_SG_info[i].z;
-    }
-    // track a single shoe pin/gear contact point relative pos,vel., if it has been set, for each side of the gear.
-    reporter.m_is_persistentContact_set.resize(2, 0);
-    for (int pc = 0; pc < 2; pc++) {
-        reporter.m_is_persistentContact_set[pc] = m_SG_is_persistentContact_set[pc];
-        if (reporter.m_is_persistentContact_set[pc])
-            reporter.m_PosRel[pc] = m_SG_PosRel[pc];
-        else {
-            // when not set (between contact events), keep the z-coord (so the contact doesn't swap to the other side)
-            reporter.m_PosRel[pc] = ChVector<>(0, 0, m_SG_PosRel[pc].z);
-            // reporter.m_PosRel = ChVector<>();
-        }
-    }
-    // to be complete
-    reporter.m_ContactPos_all.clear();
-    reporter.m_ContactFn_all.clear();
-
-    // pass the reporter callback to the system
-    system->GetContactContainer()->ReportAllContacts(&reporter);
-
-    // fill the output data vectors. MaKe sure they are empty first
-    SG_info.clear();
-    Force_mag_info.clear();
-    PosRel_contact.clear();
-    VRel_contact.clear();
-    NormDirRel_contact.clear();
-    // fill both persistent contacts
-    for (int rc = 0; rc < 2; rc++) {
-        // process any history dependent values after reporter is called
-        // reset persistent time counter when no contacts
-        if (reporter.m_Fn[rc] == 0) {
-            reporter.m_t_persist[rc] = 0;
-            // allow the relative position of the shoe-gear contact to track to reset
-            // reporter.m_PosRel = ChVector<>();
-            reporter.m_is_persistentContact_set[rc] = false;
-        }
-
-        // set any data here from the reporter,
-        SG_info.push_back(
-            ChVector<>(reporter.m_num_contacts_side[rc], reporter.m_t_persist[rc], reporter.m_t_persist_max[rc]));
-
-        Force_mag_info.push_back(ChVector<>(reporter.m_Fn[rc], reporter.m_Ft[rc], 0));
-
-        // set loc, vel, norm. force dir. of contact point, relative to gear csys
-        PosRel_contact.push_back(reporter.m_PosRel[rc]);
-        VRel_contact.push_back(reporter.m_VelRel[rc]);
-        NormDirRel_contact.push_back(reporter.m_NormDirRel[rc]);
-
-        // finally, set any data that should persist to the next time step to the ChainSystem.
-        m_SG_Fn.push_back(reporter.m_NormDirAbs[rc] * reporter.m_Fn[rc]);
-    }
-
-    // finally, set any data that should persist to the next time step to the ChainSystem.
-    m_SG_numContacts = reporter.m_num_contacts;
-    m_SG_info = SG_info;
-    m_SG_is_persistentContact_set = reporter.m_is_persistentContact_set;
-    m_SG_PosRel = reporter.m_PosRel;
-
-    // set any aother desired info, e.g.  for plotting the contact point and normal dir.
-    m_SG_PosAbs = reporter.m_PosAbs;
-
-    m_SG_ContactPos_all = reporter.m_ContactPos_all;
-    m_SG_ContactFn_all = reporter.m_ContactFn_all;
-
-    //  # of contacts between specified shoe and gear body
-    return reporter.m_num_contacts;
-}
-
-/// write the header for the chain system
-void TrackChain::Write_header(const std::string& filename, DebugType type) {
-    if (type & DBG_BODY) {
-        m_filename_DBG_BODY = filename;
-        ChStreamOutAsciiFile ofileDBG_FIRSTSHOE(m_filename_DBG_BODY.c_str());
-        std::stringstream ss_fs_head;
-        ss_fs_head << "time,x,y,z,xRel,yRel,zRel,Vx,Vy,Vz,Ax,Ay,Az,Wx,Wy,Wz,Fx,Fy,Fz,Tx,Ty,Tz\n";
-        ofileDBG_FIRSTSHOE << ss_fs_head.str().c_str();
-    }
-    if (type & DBG_CONSTRAINTS) {
-        // to-do, constraint violation of two revolute joints of adjacent shoes
-    }
-    if (type & DBG_CONTACTS) {
-        m_filename_DBG_CONTACTS = filename;
-        ChStreamOutAsciiFile ofileDBG_shoeGear(m_filename_DBG_CONTACTS.c_str());
-        std::stringstream ss_sg_head;
-        // suffix "P" is the z-positive side of the gear, "N" is the z-negative side
-        ss_sg_head
-            << "time,Ncontacts,NcontactsP,t_persistP,t_persist_maxP,FnMagP,FtMagP,xRelP,yRelP,zRelP,VxRelP,VyRelP,"
-               "VzRelP,normDirRelxP,normDirRelyP,normDirRelzP"
-            << ",NcontactsN,t_persistN,t_persist_maxN,FnMagN,FtMagN,xRelN,yRelN,zRelN,VxRelN,VyRelN,VzRelN,"
-               "normDirRelxN,normDirRelyN,normDirRelzN\n";
-        ofileDBG_shoeGear << ss_sg_head.str().c_str();
-    }
-}
-
-/// write the data at time t
-void TrackChain::Write_data(const double t, const ChSharedPtr<ChBody> chassis, DebugType type) {
-    if (type & DBG_BODY) {
-        std::stringstream ss;
-        // time,x,y,z,xBar,yBar,zBar,vx,vy,vz,ax,ay,az,wx,wy,wz,fx,fy,fz
-        ChSharedPtr<ChBody> shoe = GetShoeBody(0);
-        ChFrame<> parent_rot(ChVector<>(), chassis->GetA());
-        ss << t << "," << shoe->GetPos() << ","
-           << parent_rot.TransformParentToLocal(shoe->GetPos() - chassis->GetPos()) << ","
-           << shoe->GetPos_dt() << "," << shoe->GetPos_dtdt() << "," << shoe->GetWvel_loc() << ","
-           << GetPinReactForce(0) << "," << GetPinReactTorque(0) << "\n";
-        // open the file for appending, write the data.
-        ChStreamOutAsciiFile ofile(m_filename_DBG_BODY.c_str(), std::ios::app);
-        ofile << ss.str().c_str();
-    }
-    if (type & DBG_CONSTRAINTS) {
-        // todo
-    }
-    if (type & DBG_CONTACTS) {
-        // second file, to specify some collision info with the gear
-        double num_contacts = 0;
-        std::vector<ChVector<> > sg_info;             // output data set
-        std::vector<ChVector<> > Force_mag_info;      // per step contact force magnitude, (Fn, Ft, 0)
-        std::vector<ChVector<> > PosRel_contact;      // location of a contact point relative to the gear c-sys
-        std::vector<ChVector<> > VRel_contact;        // follow the vel. of a contact point relative to the gear c-sys
-        std::vector<ChVector<> > NormDirRel_contact;  // tracked contact normal dir., w.r.t. gear c-sys
-        // sg_info = (Num_contacts, t_persist, t_persist_max)
-        num_contacts = reportShoeGearContact(chassis->GetSystem(), GetShoeBody(0)->GetNameString(), sg_info,
-                                             Force_mag_info, PosRel_contact, VRel_contact, NormDirRel_contact);
-
-        // suffix "P" is the z-positive side of the gear, "N" is the z-negative side
-        // "time,Ncontacts,t_persistP,t_persist_maxP,FnMagP,FtMagP,xRelP,yRelP,zRelP,VxRelP,VyRelP,VzRelP,normDirRelxP,normDirRelyP,normDirRelzP,t_persistN,t_persist_maxN,FnMagN,FtMagN,xRelN,yRelN,zRelN,VxRelN,VyRelN,VzRelN,normDirRelxN,normDirRelyN,normDirRelzN";
-        std::stringstream ss_sg;
-        ss_sg << t << "," << num_contacts << "," << sg_info[0] << "," << Force_mag_info[0].x << ","
-              << Force_mag_info[0].y << "," << PosRel_contact[0] << "," << VRel_contact[0] << ","
-              << NormDirRel_contact[0] << "," << sg_info[1] << "," << Force_mag_info[1].x << "," << Force_mag_info[1].y
-              << "," << PosRel_contact[1] << "," << VRel_contact[1] << "," << NormDirRel_contact[1] << "\n";
-        ChStreamOutAsciiFile ofile_shoeGear(m_filename_DBG_CONTACTS.c_str(), std::ios::app);
-        ofile_shoeGear << ss_sg.str().c_str();
-    }
 }
 
 }  // end namespace chrono

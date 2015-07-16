@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
     //   checkered texture to the floor. This POV specific asset won't be rendered
     //   by Irrlicht or other interfaces.
     ChSharedPtr<ChPovRayAssetCustom> mPOVcustom(new ChPovRayAssetCustom);
-    mPOVcustom->SetCommands((char*)"pigment { checker rgb<0.9,0.9,0.9>, rgb<0.75,0.8,0.8> }");
+    mPOVcustom->SetCommands("pigment { checker rgb<0.9,0.9,0.9>, rgb<0.75,0.8,0.8> }");
     mfloor->AddAsset(mPOVcustom);
 
     // IMPORTANT! Tell to the POVray exporter that

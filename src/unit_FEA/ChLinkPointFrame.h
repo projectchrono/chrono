@@ -34,6 +34,7 @@
 #include "physics/ChBodyFrame.h"
 #include "physics/ChLinkBase.h"
 #include "unit_FEA/ChNodeFEAxyz.h"
+#include "unit_FEA/ChNodeFEAxyzD.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 
 
@@ -185,10 +186,10 @@ public:
 	void SetAttachReferenceInAbsoluteCoords(ChCoordsys<> mattach) {attach_reference = body->coord.TransformParentToLocal(mattach);}
 
 
-				/// Get the reaction force considered as applied to ChShaft.
+				/// Get the reaction torque considered as applied to ChShaft.
 	ChVector<> GetReactionOnNode() {return -(react);}
 
-				/// Get the reaction force considered as applied to ChBody.
+				/// Get the reaction torque considered as applied to ChBody.
 	ChVector<> GetReactionOnBody() {return react;}
 
 	

@@ -4,14 +4,19 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_UNIT_FEA "Enable the Chrono Postprocess module" OFF)
 
-# Return now if this module is not enabled
+SET(ENABLE_UNIT_POSTPROCESS      
+	FALSE	CACHE BOOL   
+	"Turn ON this to generate the Chrono::Engine postprocessing unit."
+	)
+
 IF(NOT ENABLE_UNIT_POSTPROCESS)
 	RETURN()
+ELSE()
+	MESSAGE(STATUS "...enabling Postprocessing Unit")
 ENDIF()
 
-MESSAGE(STATUS "==== Chrono Postprocess module ====")
+
 
 #-----------------------------------------------------------------------------
 #
@@ -19,6 +24,7 @@ MESSAGE(STATUS "==== Chrono Postprocess module ====")
 # NOTE: to add a new source to this unit, just add its name
 # here and re-run the CMake.
 #
+
 
 SET(ChronoEngine_UNIT_POSTPROCESS_SOURCES 
 	ChPovRay.cpp

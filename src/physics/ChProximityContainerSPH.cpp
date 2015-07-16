@@ -25,6 +25,8 @@
 #include "physics/ChBody.h"
 #include "collision/ChCModelBulletNode.h"
 
+#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
+
 namespace chrono {
 
 using namespace collision;

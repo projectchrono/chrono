@@ -6,8 +6,6 @@ SET(TESTS
     benchmark_ChBody
 )
 
-MESSAGE(STATUS "Unit test programs for BENCHMARK module...")
-
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")
 

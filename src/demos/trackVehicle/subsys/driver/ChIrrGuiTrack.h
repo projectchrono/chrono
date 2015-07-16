@@ -39,7 +39,7 @@
 #include "subsys/base/ChDriverTrack.h"
 #include "subsys/powertrain/TrackPowertrain.h"
 
-// #include "subsys/trackVehicle/DriveChain.h"
+#include "subsys/trackVehicle/DriveChain.h"
 
 namespace chrono {
 class CH_SUBSYS_API ChIrrGuiTrack : public ChDriverTrack, public irr::IEventReceiver {
@@ -84,7 +84,7 @@ class CH_SUBSYS_API ChIrrGuiTrack : public ChDriverTrack, public irr::IEventRece
     void renderSprings();
     void renderLinks();
     void renderGrid();
-    void renderContactShoeGear(double lenScale = 1.0, int chain_id = 0);
+    void renderContactShoeGear(double lenScale = 1.0);
     void renderStats();
     void renderLinGauge(const std::string& msg,
                         double factor,

@@ -24,6 +24,8 @@
 
 #include "ChLcpConstraintTwoBodies.h"
 
+#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
+
 namespace chrono {
 
 // Register into the object factory, to enable run-time
@@ -91,7 +93,7 @@ void ChLcpConstraintTwoBodies::Update_auxiliary() {
     // 3- adds the constraint force mixing term (usually zero):
     if (cfm_i)
         g_i += cfm_i;
-}
+};
 
 void ChLcpConstraintTwoBodies::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number

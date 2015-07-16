@@ -113,6 +113,15 @@ public:
 				/// Gets the 'fixed' state of the node.
     bool GetFixed()  {return variables_D->IsDisabled(); }
 
+	void SetFixedPos  (bool mev) 
+					{ 
+						variables.SetDisabled(mev);
+					}
+
+	void SetFixedD  (bool mev) 
+					{ 
+						variables_D->SetDisabled(mev);
+					}
 
 				/// Get the number of degrees of freedom
 	virtual int Get_ndof_x() { return 6;}

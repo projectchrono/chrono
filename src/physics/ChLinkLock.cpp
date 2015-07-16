@@ -21,6 +21,7 @@
 ///////////////////////////////////////////////////
 
 #include "physics/ChLinkLock.h"
+#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
 
 namespace chrono {
 
@@ -1702,7 +1703,7 @@ void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<Real>* mCqw, in
     mCqw->PasteClippedMatrix(mCq, qrow, 0, 1, 3, qwrow, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
-    int col, colres;
+    register int col, colres;
     double sum;
     ChMatrixNM<double, 3, 4> mGl;
     ChFrame<>::SetMatrix_Gl(mGl, mbody->GetCoord().rot);

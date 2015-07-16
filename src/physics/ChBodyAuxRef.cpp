@@ -20,6 +20,8 @@
 
 #include "physics/ChBodyAuxRef.h"
 
+#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
+
 namespace chrono {
 
 using namespace collision;
@@ -94,7 +96,7 @@ void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& mloc) {
         HIER_FORCE_NEXT
     }
     */
-}
+};
 
 void ChBodyAuxRef::SetFrame_REF_to_abs(const ChFrame<>& mfra) {
     mfra.TransformLocalToParent(this->auxref_to_cog.GetInverse(), *this);
@@ -113,33 +115,6 @@ void ChBodyAuxRef::Update(bool update_assets) {
 }
 
 //////// FILE I/O
-
-void ChBodyAuxRef::ArchiveOUT(ChArchiveOut& marchive)
-{
-    // version number
-    marchive.VersionWrite(1);
-
-    // serialize parent class
-    ChBody::ArchiveOUT(marchive);
-
-    // serialize all member data:
-    marchive << CHNVP(auxref_to_cog);
-    marchive << CHNVP(auxref_to_abs);
-}
-
-/// Method to allow de serialization of transient data from archives.
-void ChBodyAuxRef::ArchiveIN(ChArchiveIn& marchive) 
-{
-    // version number
-    int version = marchive.VersionRead();
-
-    // deserialize parent class
-    ChBody::ArchiveIN(marchive);
-
-    // stream in all member data:
-    marchive >> CHNVP(auxref_to_cog);
-    marchive >> CHNVP(auxref_to_abs);
-}
 
 void ChBodyAuxRef::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number

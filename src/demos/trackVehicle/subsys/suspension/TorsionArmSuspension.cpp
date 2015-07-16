@@ -43,7 +43,6 @@ TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
                                            double springK,
                                            double springC,
                                            double springPreload,
-                                           double mu,
                                            double wheel_width,
                                            double wheel_width_gap,
                                            double wheel_radius,
@@ -60,7 +59,6 @@ TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
       m_springK(springK),
       m_springC(springC),
       m_TorquePreload(springPreload),
-      m_mu(mu),
       m_wheelWidth(wheel_width),
       m_wheelWidthGap(wheel_width_gap),
       m_wheelRadius(wheel_radius),
@@ -78,6 +76,24 @@ TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
 
 // 1) load data from file, 2) create bodies using data
 void TorsionArmSuspension::Create(const std::string& name) {
+    /*
+      // load data for the arm
+      m_armMass = d["Arm"]["Mass"].GetDouble();
+      m_armInertia = loadVector(d["Arm"]["Inertia"]);
+      m_armRadius = d["Arm"]["Radius"].GetDouble();
+
+      // load data for the wheel
+      m_wheelMass = d["Wheel"]["Mass"].GetDouble();
+      m_wheelInertia = loadVector(d["Wheel"]["Inertia"]);
+      m_wheelRadius = d["Wheel"]["Radius"].GetDouble();
+      m_wheelWidth = d["Wheel"]["Width"].GetDouble();
+      m_wheelRelLoc = loadVector(d["Wheel"]["Location"]);
+
+      // load data for the torsion bar
+      m_springK = d["Torsion Bar"]["Stiffness"].GetDouble();
+      m_springC = d["Torsion Bar"]["Damping"].GetDouble();
+
+      */
 
     // create the suspension arm body
     m_arm = ChSharedPtr<ChBody>(new ChBody);
@@ -91,6 +107,7 @@ void TorsionArmSuspension::Create(const std::string& name) {
     m_wheel->SetInertiaXX(m_wheelInertia);  // wheel width along z-axis
 
     // relative distance from chassis/arm pin to wheel center
+    // NOTE: correct for which side its on Initialize()
 
     // create the constraints
     m_armChassis_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
@@ -125,8 +142,7 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBody> chassis,
                                       const ChFrame<>& chassis_REF,
                                       const ChCoordsys<>& local_Csys) {
     // add collision geometry, for the wheel
-    (local_Csys.pos.z < 0) ? AddCollisionGeometry(LEFTSIDE, m_mu, 0.9 * m_mu, 0.2)
-                           : AddCollisionGeometry(RIGHTSIDE, m_mu, 0.9 * m_mu, 0.2);
+    (local_Csys.pos.z < 0) ? AddCollisionGeometry(LEFTSIDE) : AddCollisionGeometry();
 
     // correct armpin to wheel distance for left/right sides
     if (local_Csys.pos.z < 0) {
@@ -273,14 +289,13 @@ void TorsionArmSuspension::AddCollisionGeometry(VehicleSide side,
     m_wheel->GetCollisionModel()->ClearModel();
 
     m_wheel->GetCollisionModel()->SetSafeMargin(0.002);  // inward safe margin
-    m_wheel->GetCollisionModel()->SetEnvelope(0.008);    // distance of the outward "collision envelope"
+    m_wheel->GetCollisionModel()->SetEnvelope(0.004);    // distance of the outward "collision envelope"
 
     // set the collision material
     m_wheel->GetMaterialSurface()->SetSfriction(mu);
     m_wheel->GetMaterialSurface()->SetKfriction(mu_sliding);
     m_wheel->GetMaterialSurface()->SetRollingFriction(mu_roll);
     m_wheel->GetMaterialSurface()->SetSpinningFriction(mu_spin);
-    // m_wheel->GetMaterialSurface()->SetCompliance(0.00002);
 
     switch (m_collide) {
         case CollisionType::Primitives: {
@@ -352,52 +367,42 @@ void TorsionArmSuspension::AddCollisionGeometry(VehicleSide side,
     m_wheel->GetCollisionModel()->BuildModel();
 }
 
-/// write headers for the output data file to the input ostream
-void TorsionArmSuspension::Write_header(const std::string& filename, DebugType type) {
-    if (type & DBG_BODY) {
-        m_filename_DBG_BODY = filename;
-        ChStreamOutAsciiFile ofile(m_filename_DBG_BODY.c_str());
-        // headers
-        ofile << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz\n";
+void TorsionArmSuspension::LogConstraintViolations() {
+    // 2 revolute joints
+    ChMatrix<>* C = m_armChassis_rev->GetC();
+    GetLog() << " joint name: " << m_armChassis_rev->GetName();
+    for (int row = 0; row < C->GetRows(); row++) {
+        GetLog() << "  " << C->GetElement(row, 0) << "  ";
     }
-    if (type & DBG_CONTACTS) {
+
+    ChMatrix<>* C2 = m_armWheel_rev->GetC();
+    GetLog() << " joint name " << m_armWheel_rev->GetName();
+    for (int j = 0; j < C2->GetRows(); j++) {
+        GetLog() << "  " << C2->GetElement(j, 0) << "  ";
     }
-    if (type & DBG_CONSTRAINTS) {
-        m_filename_DBG_CV = filename;
-        ChStreamOutAsciiFile ofile(filename.c_str());
-        // headers
-        ofile << "time,x1,y1,z1,rx1,ry1,x2,y2,z2,rx2,ry2\n";
-    }
+
+    GetLog() << "\n";
 }
 
-/// write constraint violation of wheel rev. constraint
-void TorsionArmSuspension::Write_data(double t, DebugType type) {
-    if (type & DBG_BODY) {
-        std::stringstream ss;
-        ChSharedPtr<ChBody> body = GetWheelBody();
-        // time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz
-        ss << t << "," << body->GetPos() << "," << body->GetPos_dt() << "," << body->GetWvel_loc() << "\n";
-        ChStreamOutAsciiFile ofile(m_filename_DBG_BODY.c_str(), std::ios::app);
-        ofile << ss.str().c_str();
+void TorsionArmSuspension::SaveConstraintViolations(std::stringstream& ss) {
+    // 2 revolute joints
+    ChMatrix<>* C = m_armChassis_rev->GetC();
+    for (int row = 0; row < C->GetRows(); row++) {
+        ss << "," << C->GetElement(row, 0);
     }
-    if (type & DBG_CONTACTS) {
-        // todo
-    }
-    if (type & DBG_CONSTRAINTS) {
-        std::stringstream ss;
-        ChMatrix<>* C = m_armChassis_rev->GetC();
-        for (int row = 0; row < C->GetRows(); row++) {
-            ss << "," << C->GetElement(row, 0);
-        }
 
-        C = m_armWheel_rev->GetC();
-        for (int row = 0; row < C->GetRows(); row++) {
-            ss << "," << C->GetElement(row, 0);
-        }
-        ss << "\n";
-        ChStreamOutAsciiFile ofile(m_filename_DBG_CV.c_str(), std::ios::app);
-        ofile << ss.str().c_str();
+    ChMatrix<>* C2 = m_armWheel_rev->GetC();
+    for (int j = 0; j < C2->GetRows(); j++) {
+        ss << "," << C2->GetElement(j, 0);
     }
+    ss << "\n";
+}
+
+const std::string TorsionArmSuspension::getFileHeader_ConstraintViolations(size_t idx) const {
+    // two revolute joints
+    std::stringstream ss;
+    ss << "time,x1,y1,z1,rx1,ry1,x2,y2,z2,rx2,ry2\n";
+    return ss.str();
 }
 
 }  // end namespace chrono

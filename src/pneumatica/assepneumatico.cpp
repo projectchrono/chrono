@@ -84,7 +84,7 @@ AssePneumatico::AssePneumatico() {
 
     // Alloca memoria per le varibili di sistema
     myattuatore->SetSistema();
-}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 AssePneumatico::~AssePneumatico() {
@@ -126,7 +126,7 @@ void AssePneumatico::SetupAssePneumatico(void) {
 
     // ***NOT WANTED???  Alex
     // myattuatore->mypistone->SetComando(valvA_close ,valvB_close); //0 0
-}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // void AssePneumatico::Set_P(double p1, double p2)
@@ -137,7 +137,7 @@ void AssePneumatico::SetupAssePneumatico(void) {
 ///////////////////////////////////////////////////////////////////////////////
 void AssePneumatico::Get_P(double* p1, double* p2){
 
-}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // void AssePneumatico::Set_Pos(double x, double x_dt)
@@ -148,7 +148,7 @@ void AssePneumatico::Get_P(double* p1, double* p2){
 ///////////////////////////////////////////////////////////////////////////////
 void AssePneumatico::Get_Pos(double* x, double* x_dt){
 
-}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 void AssePneumatico::Update(void) {
@@ -167,18 +167,18 @@ void AssePneumatico::Update(void) {
 
     (myattuatore->comandi) = com;
     myattuatore->Comanda(myattuatore->comandi);
-}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 double AssePneumatico::Get_F(void) {
     return myattuatore->mypistone->Forza();
-}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 void AssePneumatico::Get_P_dt(double* p1_dt, double* p2_dt) {
     *(p1_dt) = myattuatore->mypistone->PresA1();
     *(p2_dt) = myattuatore->mypistone->PresB1();
-}
+};
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

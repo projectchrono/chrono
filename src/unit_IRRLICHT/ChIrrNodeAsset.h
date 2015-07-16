@@ -24,10 +24,6 @@ namespace chrono {
 /// This must be added as an 'asset' to the item (ex., a ChBody).
 
 class ChApiIrr ChIrrNodeAsset : public ChAsset {
-
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChIrrNodeAsset, ChAsset);
-
   protected:
     irr::scene::ChIrrNode* mnode;
 

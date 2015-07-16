@@ -71,33 +71,10 @@ class ChApi ChFunction_Const : public ChFunction {
     OPT_VARIABLES_START
     "C", OPT_VARIABLES_END
 
-    //
-    // SERIALIZATION
-    //
+        // Streaming
 
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(C);
-    }
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(C);
-    }
-
-    void StreamOUT(ChStreamOutAscii& mstream);
+        void
+        StreamOUT(ChStreamOutAscii& mstream);
     void StreamIN(ChStreamInBinary& mstream);
     void StreamOUT(ChStreamOutBinary& mstream);
 };

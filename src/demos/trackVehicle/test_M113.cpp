@@ -55,8 +55,8 @@ using namespace chrono;
 // =============================================================================
 
 // *****  User set model parameters, initial conditions
-const double tensioner_preload = 2.8e5;  // idler subsystem tensioner preload [N]
-const double pin_damping_coef = 0.1;  // apply pin damping between connected shoes
+const double tensioner_preload = 5e4;  // idler subsystem tensioner preload [N]
+const double pin_damping_coef = 0.3;   // apply pin damping between connected shoes
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 const ChVector<> initLoc(0, 0.7, 0);
@@ -71,34 +71,35 @@ const double end_time = 10;  // 99999
 // *****  Driver settings
 // Automated simulation controls, applies positive half a sine wave.
 // Otherwise, control throttle with W/S
-const bool autopilot = true;
+const bool autopilot = false;
 const double omega_max = 25.0;  // sprocket max rot. vel [rad/s]
-const double tStart = 1.5;      // time to start applied rot. vel
-const double tEnd = 7.5;        // time to reach max omega
+const double tStart = 1.0e-2;      // time to start applied rot. vel
+const double tEnd = 8.0;  // time to reach max omega
 const double ramp_slope = 1.0 / (tEnd - tStart);
 
+double sineAmp = 0.4;
+double sineFreq = 0.3;
+
 // ***** write to console or a file
-// #define WRITE_OUTPUT  // write output data to file
+// #define WRITE_OUTPUT         // write output data to file
 // #define CONSOLE_DEBUG_INFO   // log output data to console
 // #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in console
 #define CONSOLE_TIMING  // timers for each render and simulation step, log to console
 
-// for each subsystem, decide what TYPE of data to save
-int debug_type = DBG_BODY | DBG_CONSTRAINTS;  //  | DBG_CONTACTS;
-// vehicle subsystems and objects to save data for
-int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_CHASSIS;
-// vehicle subsystems and objects to write data to console
-int what_to_console = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_CHASSIS;
-
-const double save_step_size = 2e-3;    // Time interval for writing data to file, don't exceed 1 kHz.
+// AVAILABLE:
+// DBG_GEAR | DBG_IDLER | DBG_CONSTRAINTS | DBG_CHASSIS
+int what_to_save = DBG_GEAR | DBG_IDLER | DBG_CONSTRAINTS | DBG_CHASSIS;
+int what_to_console = DBG_GEAR | DBG_IDLER | DBG_CONSTRAINTS | DBG_CHASSIS;
+// int what_to_console = DBG_ALL_CONTACTS;
+const double save_step_size = 1e-3;    // Time interval for writing data to file, don't exceed 1 kHz.
 const double console_step_size = 1.0;  // time interval for writing data to console
-const std::string save_filename = "M113_400_200_";
+const std::string save_filename = "M113";
 const std::string save_outDir = "../outdata_M113";
 
 // ***** flat ground size and COG location
-const ChVector<> groundSize(100.0, 1.0, 100.0);
+const ChVector<> groundSize(60.0, 1.0, 80.0);
 const ChVector<> groundPos(0, -1.0, 0);
-double mu = 0.3;  // dry friction coef.
+double mu = 0.67;  // dry friction coef.
 
 // *****  Visualization and camera settings
 const int FPS = 80;
@@ -117,14 +118,14 @@ double chaseDist = 3.5;    // 4.0;
 double chaseHeight = 1.0;  // 1.0;
 
 bool do_shadows = true;  // shadow map is experimental
-                         /*
-                       #else
-                         double tend = 20.0;
-                         
-                         const std::string out_dir = "../M113";
-                         const std::string pov_dir = out_dir + "/POVRAY";
-                       #endif
-                         */
+                          /*
+                        #else
+                          double tend = 20.0;
+                          
+                          const std::string out_dir = "../M113";
+                          const std::string pov_dir = out_dir + "/POVRAY";
+                        #endif
+                          */
 
 /// the ground body, visual assets and collision shape.
 ChSharedPtr<ChBody> Add_FlatGround(TrackVehicleM113* vehicle,
@@ -155,7 +156,7 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicleM113* vehicle,
     vehicle->GetSystem()->AddBody(ground);  // add this body to the system, which is the vehicle
 
     // add some static obstacles
-    if (0) {
+    if (1) {
         ChVector<> rampSize = size / 10.0;
         ChSharedPtr<ChBody> ramp(new ChBodyEasyBox(rampSize.x, rampSize.y, rampSize.z, 1000.0, true, true));
         ramp->SetPos(ground->GetPos());
@@ -183,11 +184,10 @@ int main(int argc, char* argv[]) {
     // Create the tracked vehicle and the ground/environment
 
     // The vehicle inherits ChSystem. Input chassis visual and collision type
-    TrackVehicleM113 vehicle("M113 model for validation", VisualizationType::None, CollisionType::None,
-                             5489.2,                                // chass mass
-                             ChVector<>(1786.9, 10449.7, 10721.2),  // chassis mass
-                             pin_damping_coef,                      // iner-shoe pin damping (if any)
-                             tensioner_preload, omega_max);
+    TrackVehicleM113 vehicle("M113 model for validation", VisualizationType::None, CollisionType::None, 5489.2 / 5.0,
+                             ChVector<>(1786.9 / 5.0, 10449.7 / 5.0, 10721.2 / 5.0), pin_damping_coef,
+                             tensioner_preload,
+                             omega_max);
 
     // set the chassis REF at the specified initial config.
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
 
 // if writing an output file, setup what debugInformation we want added each step data is saved.
 #ifdef WRITE_OUTPUT
-    vehicle.Setup_logger(what_to_save, debug_type, save_filename, save_outDir);
+    vehicle.Setup_log_to_file(what_to_save, save_filename, save_outDir);
 #endif
 
     /*
@@ -251,15 +251,13 @@ int main(int argc, char* argv[]) {
     #endif
     */
 
-    // when autopilot is enabled, input throttle specified as follows:
-    ChSharedPtr<ChFunction_Ramp> ramp_func(new ChFunction_Ramp(0, ramp_slope));
-    Track_FuncDriver<ChFunction_Ramp> function_driver(2, ramp_func, tStart, -1, omega_max);
-
     // test: using a sine function
-    // double sineAmp = 0.4;
-    // double sineFreq = 0.3;
     // ChSharedPtr<ChFunction_Sine> sine_func(new ChFunction_Sine(0, sineFreq, sineAmp));
-    // Track_FuncDriver<ChFunction_Sine> function_driver(2, sine_func, tStart);
+    ChSharedPtr<ChFunction_Ramp> ramp_func(new ChFunction_Ramp(0, ramp_slope));
+
+    // when autopilot is enabled, input throttle specified as follows:
+    //Track_FuncDriver<ChFunction_Sine> function_driver(2, sine_func, tStart);
+    Track_FuncDriver<ChFunction_Ramp> function_driver(2, ramp_func, tStart, -1, omega_max);
 
     // ---------------------
     // GUI and render settings
@@ -377,13 +375,13 @@ int main(int argc, char* argv[]) {
 
 #ifdef CONSOLE_TIMING
             GetLog() << "\n --------- TIMING -------- : time: " << vehicle.GetSystem()->GetChTime()
-                     << "\n total render time (ms): " << total_render_time
+                     << "\n total render time: " << total_render_time
                      << ",  % of total: " << 100. * total_render_time / total_step_time
-                     << "\n total compute time (sec): " << total_step_time / 1000.0 << "\n Avg. time per step (ms): "
+                     << "\n total compute time: " << total_step_time << "\n Avg. time per step "
                      << time_since_last_output * vehicle.GetSystem()->GetStep() / save_steps
-                     << "\n overall avg. time/step (ms): " << total_step_time / step_number / vehicle.GetSystem()->GetChTime()
-                     << "    for a stepsize (ms): " << vehicle.GetSystem()->GetStep() * 1000.0
-                     << "\n RTR : " << total_step_time / vehicle.GetSystem()->GetChTime() / 1000.0;
+                     << "\n overall avg. time/step: " << total_step_time / step_number
+                     << "    for a stepsize: " << vehicle.GetSystem()->GetStep()
+                     << "\n RTR : " << total_step_time / vehicle.GetSystem()->GetChTime();
             time_since_last_output = 0;
 #endif
         }

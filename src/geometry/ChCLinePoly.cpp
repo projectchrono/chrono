@@ -35,11 +35,14 @@ ChClassRegister<ChLinePoly> a_registration_ChLinePoly;
 
 ChLinePoly::ChLinePoly(int mnumpoints) {
     closed = 0;
-    points.resize(mnumpoints);
+    numpoints = mnumpoints;
+    points = new Vector[mnumpoints];
     int degree = 1;
 }
 
 ChLinePoly::~ChLinePoly() {
+    if (points)
+        delete[] points;
 }
 
 void ChLinePoly::Copy(const ChLinePoly* source) {
@@ -47,27 +50,31 @@ void ChLinePoly::Copy(const ChLinePoly* source) {
     ChLine::Copy(source);
 
     // Copy custom data;
-    points = source->points;
+    numpoints = source->numpoints;
     degree = source->degree;
-}
+    if (points)
+        delete[] points;
+    points = new Vector[numpoints];
+    memcpy(points, source->points, (sizeof(Vector) * numpoints));
+};
 
-bool ChLinePoly::Get_closed() {
+int ChLinePoly::Get_closed() {
     return closed;
 }
 
-void ChLinePoly::Set_closed(bool mc) {
+void ChLinePoly::Set_closed(int mc) {
     closed = mc;
 }
 
-size_t ChLinePoly::Get_numpoints() {
-    return points.size();
+int ChLinePoly::Get_numpoints() {
+    return numpoints;
 }
 
 int ChLinePoly::Get_degree() {
     return degree;
 }
 
-Vector ChLinePoly::Get_point(size_t mnum) {
+Vector ChLinePoly::Get_point(int mnum) {
     if (mnum >= Get_numpoints())
         return VNULL;
 
@@ -95,15 +102,15 @@ void ChLinePoly::Evaluate(Vector& pos, const double parU, const double parV, con
         par = 0;
     if (par > 1)
         par = 1;
-    size_t pA = 0;
-    size_t pB = 0;
+    int pA = 0;
+    int pB = 0;
     double epar;
     if (!closed)
         epar = par * (Get_numpoints() - 1);
     else
         epar = par * Get_numpoints();
-    pA = (size_t)floor(epar);
-    pB = (size_t)ceil(epar);
+    pA = (int)floor(epar);
+    pB = (int)ceil(epar);
     if (pA < 0)
         pA = 0;
     if (pA >= (Get_numpoints() - 1))
@@ -154,9 +161,36 @@ int ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_inter
 }
 
 void ChLinePoly::StreamOUT(ChStreamOutBinary& mstream) {
+    // class version number
+    mstream.VersionWrite(1);
+
+    // serialize parent class too
+    ChLine::StreamOUT(mstream);
+
+    // stream out all member data
+    mstream << numpoints;
+    mstream << degree;
+
+    for (int i = 0; i < numpoints; i++)
+        mstream << points[i];
 }
 
 void ChLinePoly::StreamIN(ChStreamInBinary& mstream) {
+    // class version number
+    int version = mstream.VersionRead();
+
+    // deserialize parent class too
+    ChLine::StreamIN(mstream);
+
+    // stream in all member data
+    mstream >> numpoints;
+    mstream >> degree;
+
+    if (points)
+        delete[] points;
+    points = new Vector[numpoints];
+    for (int i = 0; i < numpoints; i++)
+        mstream >> points[i];
 }
 
 }  // END_OF_NAMESPACE____

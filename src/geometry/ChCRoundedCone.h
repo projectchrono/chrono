@@ -12,6 +12,17 @@
 #ifndef CHC_ROUNDEDCONE_H
 #define CHC_ROUNDEDCONE_H
 
+//////////////////////////////////////////////////
+//
+//   ChCRoundedCone.h
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "ChCGeometry.h"
 
@@ -93,33 +104,8 @@ class ChApi ChRoundedCone : public ChGeometry {
     double radsphere;
 
     //
-    // SERIALIZATION
+    // STREAMING
     //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(center);
-        marchive << CHNVP(rad);
-        marchive << CHNVP(radsphere);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(center);
-        marchive >> CHNVP(rad);
-        marchive >> CHNVP(radsphere);
-    }
 
     void StreamOUT(ChStreamOutBinary& mstream);
 

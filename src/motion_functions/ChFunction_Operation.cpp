@@ -138,7 +138,7 @@ void ChFunction_Operation::StreamOUT(ChStreamOutBinary& mstream) {
     ChFunction::StreamOUT(mstream);
 
     // stream out all member data
-    mstream << (int)op_type;
+    mstream << op_type;
 
     mstream.AbstractWrite(this->fa.get_ptr());
     //***TODO*** better direct management of shared pointers serialization
@@ -154,9 +154,7 @@ void ChFunction_Operation::StreamIN(ChStreamInBinary& mstream) {
     ChFunction::StreamIN(mstream);
 
     // stream in all member data
-    int itmp;
-    mstream >> itmp;
-    op_type = (eChOperation) itmp;
+    mstream >> op_type;
 
     ChFunction* foosharedA;
     mstream.AbstractReadCreate(&foosharedA);   // instance new

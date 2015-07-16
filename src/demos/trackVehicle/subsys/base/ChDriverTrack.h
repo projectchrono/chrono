@@ -81,7 +81,7 @@ class CH_SUBSYS_API ChDriverTrack : public ChShared {
     void SetAllThrottle(double delta_throttle, double min_val = -1, double max_val = 1);
 
     /// Set the value for the driver braking input.
-    void SetBraking(size_t track_idx, double val, double min_val = 0, double max_val = 1);
+    void SetBraking(double val, int track_idx, double min_val = 0, double max_val = 1);
 
     /// negative steer increment = left turn, and vice versa. Just modifies throttles on both sides
     void SetSteering(double delta_steering, double min_val = -1, double max_val = 1);

@@ -16,6 +16,8 @@
 #include "physics/ChSystem.h"
 #include "physics/ChIndexedNodes.h"
 
+//#include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
+
 
 using namespace chrono;
 using namespace fea;
@@ -37,7 +39,7 @@ ChLinkDirFrame::ChLinkDirFrame ()
 	this->react= VNULL;
 	this->cache_li_speed = VNULL;
 	this->cache_li_pos = VNULL;
-	this->direction = VECT_X;
+	this->direction = VECT_Z;
 
 	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
@@ -110,12 +112,14 @@ int ChLinkDirFrame::Initialize(ChSharedPtr<ChNodeFEAxyzD> anode,  ///< node to j
 	if (mdir)
 	{
 		this->direction = body->TransformDirectionParentToLocal(*mdir);
+		//GetLog()<<"FLAG1 "<< this->direction<<"\n";
 	}
 	else
 	{
+		//GetLog()<<"FLAG2";
 		// downcasting
 		if (mnode.IsNull()) return false;
-
+		//GetLog()<<"FLAG3";
 		ChVector<> temp= mnode->GetD(); 
 		this->direction = body->TransformDirectionParentToLocal(temp);
 	}

@@ -213,6 +213,6 @@ void performUnitTests(void);
 
 //
 
-} // end of namespace
+}; // end of namespace
 
 #endif

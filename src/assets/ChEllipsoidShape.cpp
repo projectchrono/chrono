@@ -9,13 +9,17 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
+///////////////////////////////////////////////////
+//
+//   ChEllipsoidShape.cpp
+//
+// ------------------------------------------------
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
 #include "assets/ChEllipsoidShape.h"
 
-namespace chrono {
+#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChEllipsoidShape> a_registration_ChEllipsoidShape;
-
-}  // END_OF_NAMESPACE____
+namespace chrono {}  // END_OF_NAMESPACE____

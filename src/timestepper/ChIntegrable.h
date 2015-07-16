@@ -401,6 +401,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// Tells the number of coordinates in the state y.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
     virtual int GetNcoords_y() { return GetNcoords_x() + GetNcoords_v(); };
+    ;
 
     /// Tells the number of coordinates in the state increment Dy.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)

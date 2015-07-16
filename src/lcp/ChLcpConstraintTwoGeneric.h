@@ -34,6 +34,8 @@
 #include "ChLcpConstraintTwo.h"
 #include "ChLcpVariables.h"
 
+#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
+
 namespace chrono {
 
 ///  This class is inherited by the base ChLcpConstraintTwo(),
@@ -211,20 +213,18 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
     /// offset of the corresponding ChLcpVariable.
     /// This is used only by the ChLcpSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-	virtual void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
+    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_a->IsActive())
             storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
         if (variables_b->IsActive())
             storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
     }
-	virtual void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
+    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_a->IsActive())
             storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
         if (variables_b->IsActive())
             storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
     }
-
-
 
     //
     // STREAMING
@@ -240,5 +240,7 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
 };
 
 }  // END_OF_NAMESPACE____
+
+#include "core/ChMemorynomgr.h"  // back to default new/delete/malloc/calloc etc. Avoid conflicts with system libs.
 
 #endif
