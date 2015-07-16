@@ -32,8 +32,8 @@ namespace ChOgre {
 		virtual void setReleaseCallback(ChOgreGUIReleaseCallback& Callback);
 		virtual void emptyReleaseCallback();
 		
-		virtual ChFloat3 getPosition() { return ChFloat3(m_pButton->getLeft(), m_pButton->getTop(), 0.f); };
-		virtual ChFloat3 getSize() { return ChFloat3(m_pButton->getWidth(), m_pButton->getHeight(), 0.f); }
+		virtual ChFloat3 getPosition() { return ChFloat3((float)m_pButton->getLeft(), (float)m_pButton->getTop(), 0.f); };
+		virtual ChFloat3 getSize() { return ChFloat3((float)m_pButton->getWidth(), (float)m_pButton->getHeight(), 0.f); }
 
 	protected:
 

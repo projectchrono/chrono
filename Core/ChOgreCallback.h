@@ -7,8 +7,11 @@ The base class for giving callback points to ChOgre
 #pragma once
 
 #include "../ChOgre.h"
+#include <functional>
 
 namespace ChOgre {
+
+	typedef std::function<void()> ChOgreCall;
 
 	class CHOGRE_DLL_TAG ChOgreCallback {
 
@@ -17,7 +20,8 @@ namespace ChOgre {
 		ChOgreCallback() {}
 		~ChOgreCallback() {}
 
-		virtual void call() {};
+		//virtual void call() {};
+		ChOgreCall call;
 
 	protected:
 

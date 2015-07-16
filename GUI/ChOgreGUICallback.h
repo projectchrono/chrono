@@ -5,6 +5,9 @@
 
 namespace ChOgre {
 
+	typedef std::function<void(MyGUI::WidgetPtr)> ChOgreGUICall;
+	typedef std::function<void(MyGUI::WidgetPtr, int, int, MyGUI::MouseButton)> ChOgreGUIMouseButtonCall;
+
 	class CHOGRE_DLL_TAG ChOgreGUICallback : public ChOgreCallback {
 
 	public:
@@ -12,7 +15,15 @@ namespace ChOgre {
 		ChOgreGUICallback() {}
 		~ChOgreGUICallback() {}
 
-		virtual void call(MyGUI::WidgetPtr Sender) {}
+		ChOgreGUICall call;
+
+	private:
+
+		friend class ChOgreGUIElement;
+
+		void _c(MyGUI::WidgetPtr w) {
+			call(w);
+		}
 
 	};
 
@@ -23,7 +34,15 @@ namespace ChOgre {
 		ChOgreGUIClickCallback() {}
 		~ChOgreGUIClickCallback() {}
 
-		virtual void call(MyGUI::WidgetPtr Sender) {}
+		ChOgreGUICall call;
+
+	private:
+
+		friend class ChOgreGUIButton;
+
+		void _c(MyGUI::WidgetPtr w) {
+			call(w);
+		}
 
 	};
 
@@ -34,7 +53,15 @@ namespace ChOgre {
 		ChOgreGUIPressCallback() {}
 		~ChOgreGUIPressCallback() {}
 
-		virtual void call(MyGUI::WidgetPtr Sender, int x, int y, MyGUI::MouseButton Button) {}
+		ChOgreGUIMouseButtonCall call;
+
+	private:
+
+		friend class ChOgreGUIButton;
+
+		void _c(MyGUI::WidgetPtr w, int x, int y, MyGUI::MouseButton b) {
+			call(w, x, y, b);
+		}
 
 	};
 
@@ -45,7 +72,15 @@ namespace ChOgre {
 		ChOgreGUIReleaseCallback() {}
 		~ChOgreGUIReleaseCallback() {}
 
-		virtual void call(MyGUI::WidgetPtr Sender, int x, int y, MyGUI::MouseButton Button) {}
+		ChOgreGUIMouseButtonCall call;
+
+	private:
+
+		friend class ChOgreGUIButton;
+
+		void _c(MyGUI::WidgetPtr w, int x, int y, MyGUI::MouseButton b) {
+			call(w, x, y, b);
+		}
 
 	};
 

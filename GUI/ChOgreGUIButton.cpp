@@ -13,7 +13,7 @@ namespace ChOgre {
 	ChOgreGUIButton::ChOgreGUIButton(const ChFloat3& Position, const ChFloat3& Size, MyGUI::Gui* GUI) {
 		m_pGUI = GUI;
 		
-		m_pButton = m_pGUI->createWidget<MyGUI::Button>("Button", Position.x, Position.y, Size.x, Size.y, MyGUI::Align::Center, "Main");
+		m_pButton = m_pGUI->createWidgetReal<MyGUI::Button>("Button", Position.x, Position.y, Size.x, Size.y, MyGUI::Align::Center, "Main");
 		m_pButton->setDepth(int(Position.z));
 
 		m_db = true;
@@ -54,8 +54,7 @@ namespace ChOgre {
 	}
 
 	void ChOgreGUIButton::setClickCallback(ChOgreGUIClickCallback& Callback) {
-		auto f_p = &ChOgreGUIClickCallback::call;
-		m_pButton->eventMouseButtonClick = MyGUI::newDelegate(&Callback, f_p);
+		m_pButton->eventMouseButtonClick = MyGUI::newDelegate(&Callback, &ChOgreGUIClickCallback::_c);
 	}
 
 	void ChOgreGUIButton::emptyClickCallback() {
@@ -63,8 +62,7 @@ namespace ChOgre {
 	}
 
 	void ChOgreGUIButton::setPressCallback(ChOgreGUIPressCallback& Callback) {
-		auto f_p = &ChOgreGUIPressCallback::call;
-		m_pButton->eventMouseButtonPressed = MyGUI::newDelegate(&Callback, f_p);
+		m_pButton->eventMouseButtonPressed = MyGUI::newDelegate(&Callback, &ChOgreGUIPressCallback::_c);
 	}
 
 	void ChOgreGUIButton::emptyPressCallback() {
@@ -72,8 +70,7 @@ namespace ChOgre {
 	}
 
 	void ChOgreGUIButton::setReleaseCallback(ChOgreGUIReleaseCallback& Callback) {
-		auto f_p = &ChOgreGUIReleaseCallback::call;
-		m_pButton->eventMouseButtonReleased = MyGUI::newDelegate(&Callback, f_p);
+		m_pButton->eventMouseButtonReleased = MyGUI::newDelegate(&Callback, &ChOgreGUIReleaseCallback::_c);
 	}
 
 	void ChOgreGUIButton::emptyReleaseCallback() {

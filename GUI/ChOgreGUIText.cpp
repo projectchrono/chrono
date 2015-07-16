@@ -19,7 +19,7 @@ namespace ChOgre {
 	ChOgreGUIText::ChOgreGUIText(const ChFloat3& Position, const ChFloat3& Size, MyGUI::Gui* GUI) {
 		m_pGUI = GUI;
 
-		m_pTextBox = m_pGUI->createWidget<MyGUI::TextBox>("TextBox", Position.x, Position.y, Size.x, Size.y, MyGUI::Align::Center, "Main");
+		m_pTextBox = m_pGUI->createWidgetReal<MyGUI::TextBox>("TextBox", Position.x, Position.y, Size.x, Size.y, MyGUI::Align::Center, "Main");
 		m_pTextBox->setDepth(int(Position.z));
 	}
 

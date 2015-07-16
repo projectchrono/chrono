@@ -8,12 +8,12 @@ namespace ChOgre {
 
 	void ChOgreGUIManager::_KeyCallback::call(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState) {
 		if (KeyState.down) {
-			//MyGUI::InputManager::getInstance().injectKeyPress(MyGUI::KeyCode((MyGUI::KeyCode::Enum)ScanCode), SDL_GetKeyName(KeyCode)[0]);
-			(*m_ppGUI)->injectKeyPress(MyGUI::KeyCode((MyGUI::KeyCode::Enum)ScanCode), SDL_GetKeyName(KeyCode)[0]);
+			MyGUI::InputManager::getInstance().injectKeyPress(MyGUI::KeyCode((MyGUI::KeyCode::Enum)ScanCode), SDL_GetKeyName(KeyCode)[0]);
+			//(*m_ppGUI)->injectKeyPress(MyGUI::KeyCode((MyGUI::KeyCode::Enum)ScanCode), SDL_GetKeyName(KeyCode)[0]);
 		}
 		if (!KeyState.down) {
-			//MyGUI::InputManager::getInstance().injectKeyRelease(MyGUI::KeyCode((MyGUI::KeyCode::Enum)ScanCode));
-			(*m_ppGUI)->injectKeyRelease(MyGUI::KeyCode((MyGUI::KeyCode::Enum)ScanCode));
+			MyGUI::InputManager::getInstance().injectKeyRelease(MyGUI::KeyCode((MyGUI::KeyCode::Enum)ScanCode));
+			//(*m_ppGUI)->injectKeyRelease(MyGUI::KeyCode((MyGUI::KeyCode::Enum)ScanCode));
 		}
 	}
 
@@ -69,7 +69,7 @@ namespace ChOgre {
 		m_pGUI = new MyGUI::Gui();
 		m_pGUI->initialise();
 
-		m_pGUI->hidePointer();
+		m_pGUI->setVisiblePointer(false);
 
 		MyGUI::LayerManager::getInstance().resizeView(MyGUI::IntSize(RenderWindow->getWidth(), RenderWindow->getHeight()));
 

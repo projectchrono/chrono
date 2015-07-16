@@ -43,7 +43,7 @@ namespace ChOgre {
 
 			_KeyCallback(MyGUI::Gui** GUI);
 
-			void call(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState) override;
+			void call(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState);
 
 		protected:
 
@@ -57,7 +57,7 @@ namespace ChOgre {
 
 			_MouseCallback(MyGUI::Gui** GUI);
 
-			void call(const ChOgreMouseState& MouseState) override;
+			void call(const ChOgreMouseState& MouseState);
 
 		protected:
 
@@ -71,7 +71,7 @@ namespace ChOgre {
 			
 			_WindowCallback(Ogre::RenderWindow* RenderWindow);
 
-			void call() override;
+			void call();
 
 		protected:
 
