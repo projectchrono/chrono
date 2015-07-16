@@ -36,52 +36,9 @@ namespace ChOgre {
 
 		bool m_isVisible;
 
-
-		class _KeyCallback : public ChOgreKeyboardCallback {
-
-		public:
-
-			_KeyCallback(MyGUI::Gui** GUI);
-
-			void call(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState);
-
-		protected:
-
-			MyGUI::Gui** m_ppGUI;
-
-		};
-
-		class _MouseCallback : public ChOgreMouseCallback {
-
-		public:
-
-			_MouseCallback(MyGUI::Gui** GUI);
-
-			void call(const ChOgreMouseState& MouseState);
-
-		protected:
-
-			MyGUI::Gui** m_ppGUI;
-
-		};
-
-		class _WindowCallback : public ChOgreWindowCallback {
-			
-		public:
-			
-			_WindowCallback(Ogre::RenderWindow* RenderWindow);
-
-			void call();
-
-		protected:
-
-			Ogre::RenderWindow* m_pRenderWindow;
-
-		};
-
-		_KeyCallback m_keyboard;
-		_MouseCallback m_mouse;
-		_WindowCallback m_window;
+		ChOgreKeyboardCallback m_keyboard;
+		ChOgreMouseCallback m_mouse;
+		ChOgreWindowCallback m_window;
 
 	private:
 

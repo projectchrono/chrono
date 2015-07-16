@@ -5,6 +5,8 @@
 
 namespace ChOgre {
 
+	typedef std::function<void()> ChOgreWindowCall;
+
 	class CHOGRE_DLL_TAG ChOgreWindowCallback : public ChOgreInputCallback {
 
 	public:
@@ -12,7 +14,7 @@ namespace ChOgre {
 		ChOgreWindowCallback() {}
 		~ChOgreWindowCallback() {}
 
-		void call() {}
+		ChOgreWindowCall call;
 
 	};
 

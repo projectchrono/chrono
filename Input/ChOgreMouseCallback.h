@@ -11,6 +11,8 @@ Base class for mouse event callbacks
 
 namespace ChOgre {
 
+	typedef std::function<void(const ChOgreMouseState&)> ChOgreMouseCall;
+
 	class CHOGRE_DLL_TAG ChOgreMouseCallback : public ChOgreInputCallback {
 
 	public:
@@ -18,7 +20,7 @@ namespace ChOgre {
 		ChOgreMouseCallback() {}
 		~ChOgreMouseCallback() {}
 
-		virtual void call(const ChOgreMouseState& MouseState) = 0;
+		ChOgreMouseCall call;
 		
 	protected:
 

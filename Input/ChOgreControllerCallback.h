@@ -11,6 +11,8 @@ Base class for controller event callbacks
 
 namespace ChOgre {
 
+	typedef std::function<void(const ChOgreControllerState&)> ChOgreControllerCall;
+
 	class CHOGRE_DLL_TAG ChOgreControllerCallback : public ChOgreInputCallback {
 
 	public:
@@ -18,7 +20,7 @@ namespace ChOgre {
 		ChOgreControllerCallback() {}
 		~ChOgreControllerCallback() {}
 
-		virtual void call(const ChOgreControllerState& ControllerState) = 0;
+		ChOgreControllerCall call;
 
 	protected:
 
