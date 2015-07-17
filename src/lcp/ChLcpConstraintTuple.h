@@ -46,17 +46,16 @@ class ChLcpConstraintTuple_1vars {
   public:
 
     /// Default constructor
-    ChLcpConstraintTuple_1vars() : 
-        variables(0) {};
+    ChLcpConstraintTuple_1vars() : variables(0) {}
 
     /// Copy constructor
-    ChLcpConstraintTuple_1vars(const ChLcpConstraintTuple_1vars& other)  {
+    ChLcpConstraintTuple_1vars(const ChLcpConstraintTuple_1vars& other) {
         variables = other.variables;
         Cq = other.Cq;
         Eq = other.Eq;
     }
 
-    virtual ~ChLcpConstraintTuple_1vars(){};
+    ~ChLcpConstraintTuple_1vars() {}
 
     /// Assignment operator: copy from other object
     ChLcpConstraintTuple_1vars& operator=(const ChLcpConstraintTuple_1vars& other) {
@@ -65,9 +64,9 @@ class ChLcpConstraintTuple_1vars {
         Eq = other.Eq;
     }
 
-    ChMatrix<double>* Get_Cq() {return &Cq;};
+    ChMatrix<double>* Get_Cq() { return &Cq; }
 
-    ChMatrix<double>* Get_Eq() {return &Eq;};
+    ChMatrix<double>* Get_Eq() { return &Eq; }
 
     ChLcpVariables* GetVariables() { return variables; }
 
@@ -79,7 +78,7 @@ class ChLcpConstraintTuple_1vars {
         variables = m_tuple_carrier.GetVariables1();
     }
 
-    virtual void Update_auxiliary(double& g_i){
+    void Update_auxiliary(double& g_i) {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq]=[invM]*[Cq]' and [Eq]
         if (variables->IsActive()) {
@@ -96,7 +95,7 @@ class ChLcpConstraintTuple_1vars {
         }
     }
 
-    virtual double Compute_Cq_q() {
+    double Compute_Cq_q() {
         double ret = 0;
 
         if (variables->IsActive())
@@ -106,34 +105,35 @@ class ChLcpConstraintTuple_1vars {
         return ret;
     }
 
-    virtual void Increment_q(const double deltal) {
+    void Increment_q(const double deltal) {
         if (variables->IsActive())
             for (int i = 0; i < T::nvars1; i++)
                 variables->Get_qb()(i) += Eq.ElementN(i) * deltal;
-    };
+    }
 
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
+    void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
         int off = variables->GetOffset();
 
         if (variables->IsActive())
             for (int i = 0; i < T::nvars1; i++)
                 result += vect(off + i) * Cq.ElementN(i);
-    };
+    }
 
 
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) {
+    void MultiplyTandAdd(ChMatrix<double>& result, double l) {
         int off = variables->GetOffset();
 
         if (variables->IsActive())
             for (int i = 0; i < T::nvars1; i++)
                 result(off + i) += Cq.ElementN(i) * l;
-    };
+    }
 
-    virtual void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
+    void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
         if (variables->IsActive())
             storage.PasteMatrix(&Cq, insrow, variables->GetOffset());
     }
-    virtual void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
+
+    void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
         if (variables->IsActive())
             storage.PasteTranspMatrix(&Cq, variables->GetOffset(), inscol);
     }
@@ -165,7 +165,7 @@ class ChLcpConstraintTuple_2vars {
     ChLcpConstraintTuple_2vars() : 
         variables_1(0), 
         variables_2(0)
-        {};
+        {}
 
     /// Copy constructor
     ChLcpConstraintTuple_2vars(const ChLcpConstraintTuple_2vars& other)  {
@@ -177,7 +177,7 @@ class ChLcpConstraintTuple_2vars {
         Eq_2 = other.Eq_2;
     }
 
-    virtual ~ChLcpConstraintTuple_2vars(){};
+    ~ChLcpConstraintTuple_2vars() {}
 
     /// Assignment operator: copy from other object
     ChLcpConstraintTuple_2vars& operator=(const ChLcpConstraintTuple_2vars& other) {
@@ -189,11 +189,11 @@ class ChLcpConstraintTuple_2vars {
         Eq_2 = other.Eq_2;
     }
 
-    ChMatrix<double>* Get_Cq_1() {return &Cq_1;};
-    ChMatrix<double>* Get_Cq_2() {return &Cq_2;};
+    ChMatrix<double>* Get_Cq_1() { return &Cq_1; }
+    ChMatrix<double>* Get_Cq_2() { return &Cq_2; }
 
-    ChMatrix<double>* Get_Eq_1() {return &Eq_1;};
-    ChMatrix<double>* Get_Eq_2() {return &Eq_2;};
+    ChMatrix<double>* Get_Eq_1() { return &Eq_1; }
+    ChMatrix<double>* Get_Eq_2() { return &Eq_2; }
 
     ChLcpVariables* GetVariables_1() { return variables_1; }
     ChLcpVariables* GetVariables_2() { return variables_2; }
@@ -202,11 +202,11 @@ class ChLcpConstraintTuple_2vars {
         if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2()) {
             throw ChException("ERROR. SetVariables() getting null pointer. \n");
         }
-        variables_1 = m_tuple_carrier.GetVariables1() ;
-        variables_2 = m_tuple_carrier.GetVariables2() ;
+        variables_1 = m_tuple_carrier.GetVariables1();
+        variables_2 = m_tuple_carrier.GetVariables2();
     }
 
-    virtual void Update_auxiliary(double& g_i){
+    void Update_auxiliary(double& g_i) {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
@@ -232,7 +232,7 @@ class ChLcpConstraintTuple_2vars {
         }
     }
 
-    virtual double Compute_Cq_q() {
+    double Compute_Cq_q() {
         double ret = 0;
 
         if (variables_1->IsActive())
@@ -246,7 +246,7 @@ class ChLcpConstraintTuple_2vars {
         return ret;
     }
 
-    virtual void Increment_q(const double deltal) {
+    void Increment_q(const double deltal) {
         if (variables_1->IsActive())
             for (int i = 0; i < T::nvars1; i++)
                 variables_1->Get_qb()(i) += Eq_1.ElementN(i) * deltal;
@@ -254,9 +254,9 @@ class ChLcpConstraintTuple_2vars {
         if (variables_2->IsActive())
             for (int i = 0; i < T::nvars2; i++)
                 variables_2->Get_qb()(i) += Eq_2.ElementN(i) * deltal;
-    };
+    }
 
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
+    void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
         int off_1 = variables_1->GetOffset();
 
         if (variables_1->IsActive())
@@ -268,10 +268,9 @@ class ChLcpConstraintTuple_2vars {
         if (variables_2->IsActive())
             for (int i = 0; i < T::nvars2; i++)
                 result += vect(off_2 + i) * Cq_2.ElementN(i);
-    };
+    }
 
-
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) {
+    void MultiplyTandAdd(ChMatrix<double>& result, double l) {
         int off_1 = variables_1->GetOffset();
 
         if (variables_1->IsActive())
@@ -283,15 +282,16 @@ class ChLcpConstraintTuple_2vars {
         if (variables_2->IsActive())
             for (int i = 0; i < T::nvars2; i++)
                 result(off_2 + i) += Cq_2.ElementN(i) * l;
-    };
+    }
 
-    virtual void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
+    void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
         if (variables_1->IsActive())
             storage.PasteMatrix(&Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
             storage.PasteMatrix(&Cq_2, insrow, variables_2->GetOffset());
     }
-    virtual void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
+
+    void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
         if (variables_1->IsActive())
             storage.PasteTranspMatrix(&Cq_1, variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
@@ -331,10 +331,10 @@ class ChLcpConstraintTuple_3vars {
         variables_1(0), 
         variables_2(0),
         variables_3(0)
-        {};
+        {}
 
     /// Copy constructor
-    ChLcpConstraintTuple_3vars(const ChLcpConstraintTuple_3vars& other)  {
+    ChLcpConstraintTuple_3vars(const ChLcpConstraintTuple_3vars& other) {
         variables_1 = other.variables_1;
         variables_2 = other.variables_2;
         variables_3 = other.variables_3;
@@ -346,7 +346,7 @@ class ChLcpConstraintTuple_3vars {
         Eq_3 = other.Eq_3;
     }
 
-    virtual ~ChLcpConstraintTuple_3vars(){};
+    ~ChLcpConstraintTuple_3vars() {}
 
     /// Assignment operator: copy from other object
     ChLcpConstraintTuple_3vars& operator=(const ChLcpConstraintTuple_3vars& other) {
@@ -361,13 +361,13 @@ class ChLcpConstraintTuple_3vars {
         Eq_3 = other.Eq_3;
     }
 
-    ChMatrix<double>* Get_Cq_1() {return &Cq_1;};
-    ChMatrix<double>* Get_Cq_2() {return &Cq_2;};
-    ChMatrix<double>* Get_Cq_3() {return &Cq_3;};
+    ChMatrix<double>* Get_Cq_1() { return &Cq_1; }
+    ChMatrix<double>* Get_Cq_2() { return &Cq_2; }
+    ChMatrix<double>* Get_Cq_3() { return &Cq_3; }
 
-    ChMatrix<double>* Get_Eq_1() {return &Eq_1;};
-    ChMatrix<double>* Get_Eq_2() {return &Eq_2;};
-    ChMatrix<double>* Get_Eq_3() {return &Eq_3;};
+    ChMatrix<double>* Get_Eq_1() { return &Eq_1; }
+    ChMatrix<double>* Get_Eq_2() { return &Eq_2; }
+    ChMatrix<double>* Get_Eq_3() { return &Eq_3; }
 
     ChLcpVariables* GetVariables_1() { return variables_1; }
     ChLcpVariables* GetVariables_2() { return variables_2; }
@@ -382,7 +382,7 @@ class ChLcpConstraintTuple_3vars {
         variables_3 = m_tuple_carrier.GetVariables3() ;
     }
 
-    virtual void Update_auxiliary(double& g_i){
+    void Update_auxiliary(double& g_i) {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
@@ -417,7 +417,7 @@ class ChLcpConstraintTuple_3vars {
         }
     }
 
-    virtual double Compute_Cq_q() {
+    double Compute_Cq_q() {
         double ret = 0;
 
         if (variables_1->IsActive())
@@ -435,7 +435,7 @@ class ChLcpConstraintTuple_3vars {
         return ret;
     }
 
-    virtual void Increment_q(const double deltal) {
+    void Increment_q(const double deltal) {
         if (variables_1->IsActive())
             for (int i = 0; i < T::nvars1; i++)
                 variables_1->Get_qb()(i) += Eq_1.ElementN(i) * deltal;
@@ -448,9 +448,9 @@ class ChLcpConstraintTuple_3vars {
             for (int i = 0; i < T::nvars3; i++)
                 variables_3->Get_qb()(i) += Eq_3.ElementN(i) * deltal;
 
-    };
+    }
 
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
+    void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
         int off_1 = variables_1->GetOffset();
 
         if (variables_1->IsActive())
@@ -468,10 +468,9 @@ class ChLcpConstraintTuple_3vars {
         if (variables_3->IsActive())
             for (int i = 0; i < T::nvars3; i++)
                 result += vect(off_3 + i) * Cq_3.ElementN(i);
-    };
+    }
 
-
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) {
+    void MultiplyTandAdd(ChMatrix<double>& result, double l) {
         int off_1 = variables_1->GetOffset();
 
         if (variables_1->IsActive())
@@ -489,9 +488,9 @@ class ChLcpConstraintTuple_3vars {
         if (variables_3->IsActive())
             for (int i = 0; i < T::nvars3; i++)
                 result(off_3 + i) += Cq_3.ElementN(i) * l;
-    };
+    }
 
-    virtual void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
+    void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
         if (variables_1->IsActive())
             storage.PasteMatrix(&Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
@@ -499,7 +498,8 @@ class ChLcpConstraintTuple_3vars {
         if (variables_3->IsActive())
             storage.PasteMatrix(&Cq_3, insrow, variables_3->GetOffset());
     }
-    virtual void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
+
+    void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
         if (variables_1->IsActive())
             storage.PasteTranspMatrix(&Cq_1, variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
