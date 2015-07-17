@@ -177,9 +177,26 @@ class ChMatrix {
         return *this;
     }
 
-    //
-    // FUNCTIONS
-    //
+ //   // Virtualizable functions
+
+	//virtual void SetElement(int row, int col, double elem) { this->SetElement(row, col, elem); }
+	//virtual void PasteMatrix(const ChMatrix<double>* matra, int insrow, int inscol) { PasteMatrix(matra, insrow, inscol); }
+	//virtual void PasteTranspMatrix(const ChMatrix<double>* matra, int insrow, int inscol) { PasteTranspMatrix(matra, insrow, inscol); }
+	//virtual void PasteMatrixFloat(const ChMatrix<float>* matra, int insrow, int inscol) { PasteMatrix(matra, insrow, inscol); }
+	//virtual void PasteTranspMatrixFloat(const ChMatrix<float>* matra, int insrow, int inscol) { PasteTranspMatrix(matra, insrow, inscol); }
+	//virtual void PasteClippedMatrix(const ChMatrix<double>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
+	//{
+	//	PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol)
+	//}
+	//virtual void PasteSumClippedMatrix(const ChMatrix<double>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
+	//{
+	//	PasteSumClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol)
+	//}
+
+
+	//
+	// FUNCTIONS
+	//
 
     /// Sets the element at row,col position. Indexes start with zero.
     void SetElement(int row, int col, Real elem) {
@@ -1003,6 +1020,7 @@ class ChMatrix {
     //
     // BOOKKEEPING
     //
+
 
     /// Paste a matrix "matra" into "this", inserting at location insrow-inscol.
     /// Normal copy for insrow=inscol=0

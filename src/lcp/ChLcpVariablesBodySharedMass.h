@@ -187,7 +187,7 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
     /// Optimised: doesn't fill unneeded elements except mass and 3x3 inertia.
-    void Build_M(ChSparseMatrix& storage, int insrow, int inscol);
+	void Build_M(ChSparseMatrixBase& storage, int insrow, int inscol);
 
     //
     // SERIALIZATION

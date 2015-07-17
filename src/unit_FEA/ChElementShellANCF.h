@@ -1323,16 +1323,12 @@ public:
 									element->ShapeFunctionsDerivativeX(Nx, x, y, z);
 									element->ShapeFunctionsDerivativeY(Ny, x, y, z);
 									element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
-									element->shapefunction_ANS_BilinearShell(S_ANS, x, y);
 							
 									// Weights for Gaussian integration
 									double wx2 = (element->GetLengthX())/2.0;
 									double wy2 = (element->GetLengthY())/2.0;
 
 									//Set Air Pressure
-									LocalAirPressure(0,0) = 0.0;
-									LocalAirPressure(1,0) = 0.0;
-									LocalAirPressure(2,0) = 0.0;
 									double Pressure0=0.0; // 220 KPa
 
 									// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
@@ -1385,13 +1381,12 @@ public:
 									double detJ0 = rd0.Det();
 
 									ChMatrixNM<double, 3,1> G1xG2;
-									G1xG2(0,0)=rd(2)*rd(6)-rd(3)*rd(5);
-									G1xG2(1,0)=rd(3)*rd(4)-rd(1)*rd(6);
-									G1xG2(2,0)=rd(1)*rd(5)-rd(2)*rd(4);
+									G1xG2(0)=rd(1,0)*rd(2,1)-rd(2,0)*rd(1,1);
+									G1xG2(1)=rd(2,0)*rd(0,1)-rd(0,0)*rd(2,1);
+									G1xG2(2)=rd(0,0)*rd(1,1)-rd(1,0)*rd(0,1);
 									double G1xG2norm=sqrt(G1xG2(0)*G1xG2(0)+G1xG2(1)*G1xG2(1)+G1xG2(2)*G1xG2(2));
 
-									LocalAirPressure = G1xG2*(Pressure0/G1xG2norm);
-
+									LocalAirPressure = -G1xG2*(Pressure0/G1xG2norm);
 									result.MatrTMultiply(S,LocalAirPressure);
 
 									result *= detJ0*wx2*wy2; // 6/12/2015
@@ -1413,10 +1408,10 @@ public:
 											1,					// end of y
 											2					// order of integration
 											);
-
-							//GetLog() << "Fgravity" << "\n\n";
+							
+							//GetLog() << "Fpressure" << "\n\n";
 							//for(int iii=0;iii<24;iii++){
-							//   GetLog() << Fgravity(iii) << "\n";
+							//   GetLog() << Fpressure(iii) << "\n";
 							//}
 							//system("pause");
 							TempInternalForce += Fpressure;

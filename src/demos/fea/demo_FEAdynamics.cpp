@@ -740,7 +740,7 @@ void test_5() {
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
-	GetLog()<< nodetip->GetD().x<<"\n"<<nodetip->GetD().y<<"\n"<<nodetip->GetD().z<<"\n";
+	//GetLog()<< nodetip->GetD().x<<"\n"<<nodetip->GetD().y<<"\n"<<nodetip->GetD().z<<"\n";
 	i=0;
 	while(i<TotalNumNodes)
 	{

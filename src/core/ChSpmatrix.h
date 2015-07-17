@@ -5,7 +5,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
+// Use of this source code is governed by a BSD-style license that c%an be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -35,6 +35,27 @@
 #include "core/ChApiCE.h"
 
 namespace chrono {
+
+	class ChApi ChSparseMatrixBase{
+	public:
+		// dummy base class for all Sparse Matrices, must be the FIRST parent of every class that inherits from this class
+	public:
+		ChSparseMatrixBase(){};
+		virtual ~ChSparseMatrixBase(){};
+
+		virtual void Reset(int row, int col){ printf("Called Reset of Base"); };
+		virtual void SetElement(int insrow, int inscol, double insval){ printf("Called SetElement of Base"); };
+		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol){ printf("Called PasteMatrix of Base"); };
+		virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){ printf("Called PasteTranspMatrix of Base"); };
+		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){printf("Called PasteMatrixFloat of Base");};
+		virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){printf("Called PasteTranspMatrixFloat of Base");};
+		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){printf("Called PasteClippedMatrix of Base");};
+		virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){printf("Called PasteSumClippedMatrix of Base");};
+		virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){printf("Called PasteSumMatrix of Base");};
+		virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){ printf("Called PasteSumTranspMatrix of Base"); };
+		virtual double GetElement(int row, int col){ printf("Called GetElement of Base"); return 0; }; // used only for fun
+
+	};
 
 // default predicted density, for allocation, 0<..<1 , default 1/10 th
 #define SPM_DEF_FULLNESS 0.1
@@ -107,10 +128,11 @@ class ChUnilateralData {
 /// must be overridden and re-implemented, even if you
 /// would stick with the implementation in the base class!
 /// (here, only few of them are reimplemented, more will
-/// come later in futire releases.).
+/// come later in future releases.).
 ///
 
-class ChApi ChSparseMatrix : public ChMatrix<double> {
+
+class ChApi ChSparseMatrix : public ChSparseMatrixBase, public ChMatrix<double> {
   private:
     ChMelement** elarray;  // array of 1st column elements
 
@@ -154,6 +176,8 @@ class ChApi ChSparseMatrix : public ChMatrix<double> {
     void CopyFromMatrix(ChSparseMatrix* matra);
     void CopyToMatrix(ChMatrix<>* matra);
 
+
+
     // optimized SetElement,  returning the fetched Melement*
     ChMelement* SetElement(int row, int col, double val, ChMelement* guess);
     // optimized GetElement,  returning the fetched Melement*
@@ -182,14 +206,12 @@ class ChApi ChSparseMatrix : public ChMatrix<double> {
 
     void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol);
     void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol);
-    void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol);
+    void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol); // non vedo l'utilità di una specializzazione per il caso float quando poi l'implementazione usa cmq double tra l'altro!
     void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol);
     void PasteMatrix(ChSparseMatrix* matra, int insrow, int inscol);
     void PasteTranspMatrix(ChSparseMatrix* matra, int insrow, int inscol);
-    void
-    PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
-    void
-    PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
+    void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
+    void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
     void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol);
     void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol);
 
@@ -274,9 +296,39 @@ class ChApi ChSparseMatrix : public ChMatrix<double> {
     /// Note: the row and column indexes start from 1, not 0 as in C language.
     void StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream);
 
-    /// Write first few rows an columns to the console
+    /// Write first few rows and columns to the console
     /// Method to allow serializing transient data into in ascii
     void StreamOUT(ChStreamOutAscii& mstream);
+
+	/**
+	* Functions used to convert to CSR3 format (ChEigenMatrix)
+	*/
+
+	/// Used to convert to CSR3 format (ChEigenMatrix)
+	/// Returns the array to 1st column elements
+	ChMelement* GetElarrayDereferenced() { return *elarray; }; // used to scan the matrix faster than GetElement
+
+	/// Used to convert to CSR3 format (ChEigenMatrix)
+	/// Returns a pointer to an array/vector of type \areserveSizeType.
+	///reserveSizeType[i] gives the number of non-zero elements in the i-th row;
+	/// \areserveSize must have the same row-dimension as ChSparseMatrix instance.
+	template <typename reserveSizeType>
+	void CountNonZeros(reserveSizeType& reserveSize, int offset = 0) {
+		ChMelement* el_temp;
+		// from the first element of each row scan until there's no "next" linked element
+		for (int i = 0; i < GetRows(); i++){	// for each row
+			el_temp = elarray[i];				// start from the element [i,0]
+			while (el_temp){
+				if (el_temp->val != 0)
+					reserveSize[i + offset]++;			// assert("i" should be equal to el_temp->row)
+				el_temp = el_temp->next;		// move right until no "next" element is found
+			};
+			// there is no backward search because we always start from guess[j]
+			// that points to (j-th row, 1st column) element also if it is zero
+		};
+	}; // END CountNonZeros
+
+
 };
 
 // used internally:

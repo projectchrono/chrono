@@ -321,7 +321,8 @@ include_directories( ${CH_INCLUDES} )
         core/ChDistribution.h
         core/ChQuadrature.h
 		core/ChTemplateExpressions.h
-        )
+		)
+		
 
     list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")
 
@@ -1251,6 +1252,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" DESTINATION include
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
 
+add_subdirectory(unit_MKL)
 add_subdirectory(unit_MATLAB)
 add_subdirectory(unit_CASCADE)
 add_subdirectory(unit_IRRLICHT)
