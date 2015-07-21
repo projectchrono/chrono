@@ -329,7 +329,7 @@ int main(int argc, char* argv[])
     ChLcpMklSolver* mkl_solver_stab  = new ChLcpMklSolver;
     ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
     my_system.ChangeLcpSolverStab (mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_stab);
+	my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     application.GetSystem()->Update();
     
 	

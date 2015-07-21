@@ -36,6 +36,10 @@
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpSolver.h"
 
+// REMEMBER: indeces start from zero; iparm[0] is "iparm(1)" in documentation
+// use IPARM to avoid misalignment due to different indexing
+#define IPARM(i) iparm[i-1]
+
 
 namespace chrono {
 
@@ -53,7 +57,7 @@ namespace chrono {
 	MKL_INT *iparm,						// parameter vector
 	MKL_INT *msglvl,					// file logging settings
 	void *f,							// array with rhs (>1 col if nhrs>1)
-	void *u,							// OUT: array with solution vector (with iparm(6)=0)
+	void *u,							// OUT: array with solution vector (with IPARM(6)=0)
 	MKL_INT *error);*/					// error indicator
 
 
@@ -63,6 +67,8 @@ namespace chrono {
 
 	class ChApiMkl ChMKLSolver {
 	private:
+
+		ChEigenMatrix system_matrix;
 
 		_MKL_DSS_HANDLE_t  pt[64]; //Handle to internal data structure (must be zeroed at startup)
 
@@ -97,17 +103,20 @@ namespace chrono {
 
 	public:
 
-		ChMKLSolver(int problem_size, int matrix_type = 11, int insphase = 13){
-			n = (MKL_INT)problem_size;
-			mtype = (MKL_INT)matrix_type;
+		ChMKLSolver(int problem_size, int matrix_type = 11, int insphase = 13) : system_matrix{ problem_size, problem_size } {
+			n = static_cast<MKL_INT>(problem_size);
+			mtype = static_cast<MKL_INT>(matrix_type);
 			pardisoinit(pt, &mtype, iparm);
+			
+			IPARM(35) = 1;			/* Zero based indexing */
 
 			//iparm[0] = 1;        /* No default values for solver */
 			//iparm[1] = 2;        /* Fill-in reducing ordering from METIS */
-			//iparm[3] = 0;        /* No iterative-direct algorithm */
+			//IPARM(4)= 0;        /* No iterative algorithm */
+			//IPARM(4) = 0;        /* CGS iteration replaces the computation of LU. */
 			//iparm[4] = 0;        /* No user fill-in reducing permutation */
 			//iparm[5] = 0;        /* Write solution on u */
-			//iparm[7] = 2;        /* Maximum number of iterative refinement steps */
+			IPARM(8) = 10;        /* Maximum number of iterative refinement steps */
 			//iparm[9] = 13;       /* Perturb the pivot elements with 1E-13 */
 			//iparm[10] = 1;        /* Use nonsymmetric permutation and scaling MPS */
 			//iparm[11] = 0;        /* Solve with transposed/conjugate transposed matrix */
@@ -115,7 +124,7 @@ namespace chrono {
 			//iparm[17] = -1;       /* Output: Number of non-zero values in the factor LU */
 			//iparm[18] = -1;       /* Output: Mflops for LU factorization */
 			//iparm[19] = 0;        /* Output: Numbers of CG Iterations */
-			iparm[34] = 1;        /* Zero based indexing */
+			
 
 			phase = insphase; // Analysis, numerical factorization, solve, iterative refinement
 			error = 0;
@@ -128,9 +137,19 @@ namespace chrono {
 
 		~ChMKLSolver(){};
 
-		// Initilization routines
 
+		/// Initialization routines:
+		/// The solver must know:
+		///- the system matrix (here Matrix) in CSR3 format
+		///- the rhs (here KnownVector) in C array format
+		///- where to put the solution (here UnknownVector) in C array format
+
+		/// Set the system matrix (it includes both stiffness/mass matrix and jacobians)
+		/// - through an existing ChEigenMatrix
+		/// - through a triplet of values/column indeces/row indeces
+		/// None of the previous solutions store memory.
 		bool SetMatrix(double* A_CSR_value, MKL_INT* A_CSR3_columnIndex, MKL_INT* A_CSR3_rowIndex){
+			system_matrix.Reset(0, 0);
 			a = A_CSR_value;
 			ja = A_CSR3_columnIndex;
 			ia = A_CSR3_rowIndex;
@@ -145,7 +164,13 @@ namespace chrono {
 			return 0;
 		}
 
-		inline bool SetKnownVector(double* insb){ f = insb; return 0; }
+
+
+		/// Set the rhs/known vector:
+		/// - through a pointer to a C array
+		/// - through a pair of ChMatrix (Chrono::Engine specific format) that will be pasted
+		///   together; it doesn't allocate memory itself, fdest must be prepared first.
+		inline bool SetKnownVector(double* insb){ f = insb; return 0; } //not used directly in Chrono
 
 		/// It simply pastes two vectors (insf over insb) in a third vector fdest that
 		/// is set as the KnownVector of the problem.
@@ -165,21 +190,27 @@ namespace chrono {
 			f = fdest->GetAddress();
 		}
 
-		inline bool SetUnknownVector(double* insu){ u = insu; return 0; }
+
+		/// Set the solution/unknown vector:
+		/// - through a pointer to a C array
+		/// - through a ChMatrix (Chrono::Engine specific format)
+		inline bool SetUnknownVector(double* insu){ u = insu; return 0; } //not used directly in Chrono
 		inline bool SetUnknownVector(ChMatrix<>* insx){
 			assert(insx->GetRows() == n);
 			u = insx->GetAddress();
 			return 0;
 		}
 
-		bool SetProblem(ChEigenMatrix* Z, double* insb, double* insx){
+
+		/// Set the problem (matrix/rhs/solution)in one shot
+		bool SetProblem(ChEigenMatrix* Z, double* insb, double* insx){  //not used directly in Chrono
 			return (!SetMatrix(Z) && !SetKnownVector(insb) && !SetUnknownVector(insx)) ? 0 : 1;
 		}
 
 		bool SetProblem(ChEigenMatrix* Z, ChMatrix<>* insb, ChMatrix<>* insx){
 			assert(Z->GetRows() == n);
 			assert(insb->GetRows() == n);
-			assert(insx->GetRows() == n);
+			insx->Reset(n,1);
 			return (!SetMatrix(Z) && !SetKnownVector(insb->GetAddress()) && !SetUnknownVector(insx->GetAddress())) ? 0 : 1;
 		}
 
@@ -190,24 +221,38 @@ namespace chrono {
 		// Solver routines
 
 		int PardisoSolve(){
+			if (IPARM(5) == 1) // CAUTION of IPARM(5)
+			{
+				assert(!IPARM(31));
+				assert(!IPARM(36));
+			}
 			pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, &perm, &nrhs, iparm, &msglvl, f, u, &error);
 			return error;
 		};
 
+		void PrintInfo()
+		{
+			printf("\nNumber of iterative refinement steps performed: %d", IPARM(7));
+			printf("\nNumber of perturbed pivots: %d", IPARM(14));
+			printf("\nNumber of CG/CGS completed iterations: %d", IPARM(20));
+			printf("\nNumber of positive eigenvalues: %d", IPARM(22));
+			printf("\nNumber of negative eigenvalues: %d", IPARM(23));
+		}
+
 		void GetResidual(double* res){
 			mkl_cspblas_dcsrgemv("N", &n, a, ia, ja, u, res); // performs Matrix*Solution
 			for (int i = 0; i < n; i++){
-				res[i] = f[i] - res[i];	// performs rhs - (Matrix*Solution)
+				res[i] = f[i] - res[i];	// performs: rhs - Matrix*Solution
 			};
-
 		};
+
 
 		inline void GetResidual(ChMatrix<>* res){ GetResidual(res->GetAddress()); };
 
 		inline double GetResidualNorm(ChMatrix<>* res){
-			assert(res->GetRows() == n);
 			return GetResidualNorm(res->GetAddress());
 		};
+
 		inline double GetResidualNorm(double* res){
 			double norm = 0;
 			for (int i = 0; i < n; i++){
@@ -221,51 +266,70 @@ namespace chrono {
 	};
 
 
-
+	static int cont;
 
     /// Class that wraps the Intel MKL 'PARDISO' parallel direct solver.
     /// It can solve linear systems. It cannot solve VI and complementarity problems.
     
    class ChApiMkl ChLcpMklSolver : public ChLcpSolver {
       protected:
-        
+		  
         //ChMKLSolver msolver; // not used - create temporary at each Solve() (temporary might affect performance?)
 
       public:
-        ChLcpMklSolver() {};
+		  ChLcpMklSolver() {};
         virtual ~ChLcpMklSolver() {}
 
-        /// Solve using the MKL Pardiso parallel direct solver (as in x=A\b)
+        /// Solve using the MKL Pardiso sparse direct solver (as in x=A\b)
         virtual double Solve(ChLcpSystemDescriptor& sysd)  ///< system description with constraints and variables
         {
-            chrono::ChSparseMatrix mdM;
-            chrono::ChSparseMatrix mdCq;
-            chrono::ChSparseMatrix mdE;
-            chrono::ChMatrixDynamic<double> mdf;
-            chrono::ChMatrixDynamic<double> mdb;
-            chrono::ChMatrixDynamic<double> mdfric;
-            sysd.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-
             ChEigenMatrix matCSR3;
-	        matCSR3.LoadFromChSparseMatrix(&mdM, &mdCq, &mdE);
-	        const int n = matCSR3.GetRows();
+			ChMatrixDynamic<double> rhs;
+			ChMatrixDynamic<double> solution_vector;
+			
+			// Build matrix and rhs
+			sysd.ConvertToMatrixForm(&matCSR3, &rhs);
+			        
+            // Solve with Pardiso Sparse Direct Solver
+			const int n = matCSR3.GetRows();
+			ChMKLSolver pardiso_solver(n,11);
+			pardiso_solver.SetProblem(&matCSR3, &rhs, &solution_vector);
 
-            // Create here a temporary Pardiso solver
-	        ChMKLSolver pardiso_solver(n);
+	        auto pardiso_message = pardiso_solver.PardisoSolve();
+			if (pardiso_message!=0) printf("\nPardiso exited with code: %d", pardiso_message);
 
-	        pardiso_solver.SetMatrix(&matCSR3);
-	        chrono::ChMatrixDynamic<double> mdf_full;
-	        pardiso_solver.SetKnownVector(&mdf, &mdb, &mdf_full);
-	        ChMatrixDynamic<double> solution(n, 1);
-	        pardiso_solver.SetUnknownVector(&solution);
+			// Update solution in the System Descriptor
+			sysd.FromVectorToUnknowns(solution_vector);
 
-	        pardiso_solver.PardisoSolve();
-
-            sysd.FromVectorToUnknowns(solution);
-
-	        ChMatrixDynamic<double> residual(n, 1);
+			// Print statistics
+			ChMatrixDynamic<double> residual(n, 1);
 	        pardiso_solver.GetResidual(&residual);
-            GetLog() << " Pardiso computed residual: " << pardiso_solver.GetResidualNorm(&residual) << "\n";
+            GetLog() << "\nPardiso res norm: " << pardiso_solver.GetResidualNorm(&residual);
+
+			//// Test
+			/*std::string stringa;
+			stringa = "Z_chrono" + std::to_string(cont++)+".dat";
+
+			matCSR3.PrintMatrix(stringa);*/
+
+			//std::ofstream myfile;
+			//myfile.open("sol_chrono.dat");
+			//myfile << std::scientific << std::setprecision(12);
+			//for (int ii = 0; ii < n; ii++){
+			//	myfile << "\n";
+			//	for (int jj = 0; jj < 1; jj++)
+			//		myfile << solution_vector(ii, jj) << "\t";
+			//}
+			//myfile.close();
+
+			//myfile.open("rhs_chrono.dat");
+			//myfile << std::scientific << std::setprecision(12);
+			//for (int ii = 0; ii < n; ii++){
+			//	myfile << "\n";
+			//	for (int jj = 0; jj < 1; jj++)
+			//		myfile << rhs(ii, jj) << "\t";
+			//}
+			//myfile.close();
 
             return 0;
         }
