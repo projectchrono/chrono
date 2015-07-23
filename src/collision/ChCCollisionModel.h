@@ -35,6 +35,7 @@
 #include "core/ChApiCE.h"
 
 #include "geometry/ChCTriangleMesh.h"
+#include "geometry/ChCLinePath.h"
 #include "physics/ChContactable.h"
 
 namespace chrono {
@@ -201,6 +202,20 @@ class ChApi ChCollisionModel {
                            double R_offset,
                            const ChVector<>& pos = ChVector<>(),
                            const ChMatrix33<>& rot = ChMatrix33<>(1)) = 0;
+
+    /// Add a 2D closed line, defined on the XY plane passing by pos and alinged as rot,
+    /// that defines a 2D collision shape that will collide with another 2D line of the same type
+    /// if aligned on the same plane. This is useful for mechanisms that work on a plane, and that
+    /// require more precise collision that is not possible with current 3D shapes. For example,
+    /// the line can contain concave or convex round fillets. 
+    /// Requirements: 
+    /// - the line must be clockwise for inner material, (counterclockwise=hollow, material outside)
+    /// - the line must contain only ChLineSegment and ChLineArc sub-lines
+    /// - the sublines must follow in the proper order, with cohincident corners, and must be closed.
+    virtual bool Add2Dpath(geometry::ChLinePath& mpath,
+                           const ChVector<>& pos = ChVector<>(),
+                           const ChMatrix33<>& rot = ChMatrix33<>(1),
+                           const double thickness = 0.001) { return true; };
 
     /// Add all shapes already contained in another model.
     /// If possible, child classes implement this so that underlying shapes are
