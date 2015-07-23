@@ -507,5 +507,14 @@ ChPhysicsItem* ChCollisionModelParallel::GetPhysicsItem() {
   return (ChPhysicsItem*)GetBody();
 }
 
+void ChCollisionModelParallel::SetPhysicsItem(ChPhysicsItem* item) {
+  if (mbody = dynamic_cast<ChBody*>(item))
+    return;
+
+  // This is an error.
+  // Currently, a ChCollisionModelParallel can only be a associated
+  // with a rigid body.
+}
+
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

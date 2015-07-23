@@ -67,6 +67,7 @@ namespace chrono {
 
 class ChApi ChLcpVariables {
     CH_RTTI_ROOT(ChLcpVariables)
+public:
 
   private:
     //
@@ -120,7 +121,7 @@ class ChApi ChLcpVariables {
     // FUNCTIONS
     //
 
-    /// Tells if the variables have been deactivated (these 'frozen',
+    /// Deactivates/freezes the variable (these 'frozen',
     /// variables won't be modified by the LCP system solver).
     void SetDisabled(bool mdis) { disabled = mdis; }
 
@@ -202,7 +203,9 @@ class ChApi ChLcpVariables {
     /// Most iterative solvers don't need to know this matrix explicitly.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol) = 0;
+	virtual void Build_M(ChSparseMatrixBase& storage, int insrow, int inscol) = 0;
+
+
 
     /// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }
