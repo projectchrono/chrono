@@ -33,6 +33,7 @@ SET(DEMOS
   demo_ujoint
   demo_earthquake
   demo_paths
+  demo_collision_2d
 )
 
 #--------------------------------------------------------------
