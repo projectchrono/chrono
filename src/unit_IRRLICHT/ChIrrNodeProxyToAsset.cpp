@@ -399,7 +399,7 @@ void ChIrrNodeProxyToAsset::Update() {
 
         video::SColor clr(255, (u32)(0), (u32)(0), (u32)(0));
 
-        size_t nvertexes = 100;
+        size_t nvertexes = 200;
         size_t ntriangles = nvertexes - 1;
 
         // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
