@@ -3,6 +3,8 @@
 
 #include <Eigen/Sparse>
 #include "core/ChSpmatrix.h"
+#include <mkl.h>
+#include <collision/bullet/LinearMath/btQuaternion.h>
 
 
 namespace chrono{
@@ -10,10 +12,21 @@ namespace chrono{
 	class ChEigenMatrix : public ChSparseMatrixBase, public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
 	public:
 		ChEigenMatrix() : Eigen::SparseMatrix<double, Eigen::RowMajor, int>() {};
-		ChEigenMatrix(int rows, int cols) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) {};
+		ChEigenMatrix(int rows, int cols, double reallocRatio = 0.025) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols)
+		{	
+			//resizing is already performed by Eigen
+			std::vector<int> reserveSize(rows, static_cast<int>(cols*reallocRatio));
+			reserve(reserveSize);
+		};
+
 		template<class SizesType>
-		ChEigenMatrix(int rows, int cols, SizesType& reserveSize) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) { reserve(reserveSize); };
-		ChEigenMatrix(int dimension) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(dimension, dimension) {};
+		ChEigenMatrix(SizesType& reserveSize) : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols)
+		{
+			reserve(reserveSize);
+		};
+
+		ChEigenMatrix(int dimension) : ChEigenMatrix(dimension, dimension) {};
+
 		virtual ~ChEigenMatrix(){};
 
 		/*template<typename OtherDerived>
@@ -255,6 +268,7 @@ namespace chrono{
 		double& operator()(const int index)              { return Element((int)index / cols(), index % cols()); }
 
 		void Reset(int new_rows, int new_cols){
+			//TODO verify if it allocates memory or it should be done with resizeNonZeros
 			if ((new_rows != this->rows()) || (new_cols != this->cols()))
 				resize(new_rows, new_cols);
 		}
@@ -321,7 +335,6 @@ namespace chrono{
 			reserve(reserveSize);
 
 			// Import values from ChSparseMatrix
-
 			for (int i = 0; i < Cq_rows; i++){
 				el_temp = &Cq_elarray[i];
 				while (el_temp){
@@ -348,16 +361,143 @@ namespace chrono{
 				el_temp = &E_elarray[i];
 				while (el_temp){
 					if (el_temp->val != 0)
-						SetElement(i + M_rows, M_rows + el_temp->col, el_temp->val);
+						SetElement(i + M_rows, M_rows + el_temp->col, -el_temp->val);
 					el_temp = el_temp->next;
 				}
 			}
 		} // END LoadFromChSparseMatrix
 
-
 	}; // END class ChEigenMatrix
 
 
+	
+	class ChEigenMatrixNEW : public ChSparseMatrixBase
+	{
+	public:
+		ChEigenMatrixNEW();
+		ChEigenMatrixNEW(int insrow, int inscol, double insnonzero_ratio);
+		virtual ~ChEigenMatrixNEW() override;
+
+		virtual void SetElement(int insrow, int inscol, double insval) override;
+		virtual double GetElement(int row, int col) override;
+
+	protected:
+		bool reallocate(int new_rows, int new_cols, double nonzero_ratio);
+		void prune(double epsilon = DBL_EPSILON); // or could simply remove the elements that has col index that equals -1!!!
+
+	private:
+		double* values;
+		double* colIndex;
+		double* rowIndex;
+		int mat_rows;
+		int mat_cols;
+		double nonzero_ratio;
+		int storage_dimension; // could differ from 'rowIndex[mat_rows]' if has been allocated a greater space
+
+	};
+
+	ChEigenMatrixNEW::ChEigenMatrixNEW()
+	{
+	}
+
+	ChEigenMatrixNEW::ChEigenMatrixNEW(int insrow, int inscol, double insnonzero_ratio)
+	{
+		assert(insrow > 0 && inscol > 0 && insnonzero_ratio > 0);
+		mat_rows = insrow;
+		mat_cols = inscol;
+		storage_dimension = static_cast<int>(inscol*insrow*insnonzero_ratio);
+		values = static_cast<double*>(mkl_malloc(storage_dimension*sizeof(double), 64));
+		colIndex = static_cast<double*>(mkl_malloc(storage_dimension*sizeof(double), 64));
+		rowIndex = static_cast<double*>(mkl_malloc(mat_rows+1, 64));
+		for (int row_sel = 0; row_sel < mat_rows; row_sel++)
+		{
+			rowIndex[row_sel] = row_sel * round(storage_dimension / mat_cols);
+		}
+		for (int col_sel = 0; col_sel < storage_dimension; col_sel++)
+		{
+			colIndex[col_sel] = -1;
+		}
+		rowIndex[mat_rows] = storage_dimension;
+
+	}
+
+	ChEigenMatrixNEW::~ChEigenMatrixNEW()
+	{
+	}
+
+	void ChEigenMatrixNEW::SetElement(int insrow, int inscol, double insval)
+	{
+		assert(insrow < mat_rows && inscol < mat_cols);
+		assert(insrow >= 0 && inscol >= 0);
+		bool overwrite = 1;
+		int col_sel;
+		for (col_sel = rowIndex[insrow]; col_sel < rowIndex[insrow + 1] && colIndex[col_sel] < inscol && colIndex[col_sel] != -1; col_sel++)
+		{
+			
+		}
+
+		// if the element is already in memory is overwritten. TODO: let the user choose if overwrite or add
+		if (colIndex[col_sel] == inscol || colIndex[col_sel] == -1)
+		{
+			if (colIndex[col_sel] == -1)
+			{
+				values[col_sel] = insval;
+				colIndex[col_sel] = inscol;
+			}
+			else
+			{
+				if (overwrite)
+					values[col_sel] = insval;
+				else
+					values[col_sel] += insval;
+			}			
+			
+			return;
+		}
+
+		// at this time col_sel should point one space to the right on where 'insval' should be stored
+
+		// check if the memory space should be inflated
+		if (storage_dimension <= rowIndex[mat_rows + 1])
+		{
+			//allocated_size = allocated_size + std::max(ceil(sizeof(double) / 64), 1.0) * 64;
+			storage_dimension = storage_dimension + 1; // TODO: probably it is better to add more spaces for a double
+			values = static_cast<double*>(mkl_realloc(values, storage_dimension * 64)); // WARNING: does it preserve 64byte alignment or only 32?
+			colIndex = static_cast<double*>(mkl_realloc(colIndex, storage_dimension*64)); // WARNING: does it preserve 64byte alignment or only 32?
+		}
+
+		// in any case elements from 'col_sel' and to its right must be moved
+		for (int col_sel_temp = rowIndex[mat_rows + 1]; col_sel_temp >= col_sel; col_sel_temp--)
+		{
+			colIndex[col_sel_temp] = colIndex[col_sel_temp - 1];
+			values[col_sel_temp] = values[col_sel_temp - 1];
+		}
+
+		//update rowIndex
+		for (int i = insrow; i <= mat_rows; i++)
+		{
+			rowIndex[i]++;
+		}
+
+		values[col_sel - 1] = insval;
+		colIndex[col_sel - 1] = inscol;
+
+	}
+
+	double ChEigenMatrixNEW::GetElement(int row, int col)
+	{
+		assert(row < mat_rows && col < mat_cols);
+		assert(row >= 0 && col >= 0);
+		for (int col_sel = rowIndex[row]; col_sel < rowIndex[row + 1]; col_sel++)
+		{
+			if (colIndex[col_sel] == col)
+			{
+				return values[col_sel];
+			}
+		}
+		return 0;
+
+	}
 }; // END namespace chrono
 
 #endif

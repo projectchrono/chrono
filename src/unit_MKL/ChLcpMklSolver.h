@@ -35,13 +35,32 @@
 #include "core/ChSpmatrix.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpSolver.h"
+//#include <process.h>
 
 // REMEMBER: indeces start from zero; iparm[0] is "iparm(1)" in documentation
-// use IPARM to avoid misalignment due to different indexing
+// use IPARM instead to avoid misalignment due to different indexing
 #define IPARM(i) iparm[i-1]
 
 
 namespace chrono {
+
+	static int solver_call;
+	static int solver_call_request;
+	static double residual_norm_tolerance;
+
+	template <class matrix_t>
+	void PrintMatrix(std::string filename, matrix_t& mat)
+	{
+		std::ofstream myfile;
+		myfile.open(filename);
+		myfile << std::scientific << std::setprecision(12);
+		for (int ii = 0; ii < mat.GetRows(); ii++){
+			for (int jj = 0; jj < mat.GetColumns(); jj++)
+				myfile << mat.GetElement(ii, jj) << "\t";
+			myfile << std::endl;
+		}
+		myfile.close();
+	}
 
 
 	/*	void pardiso(
@@ -68,7 +87,7 @@ namespace chrono {
 	class ChApiMkl ChMKLSolver {
 	private:
 
-		ChEigenMatrix system_matrix;
+		//ChEigenMatrix system_matrix;
 
 		_MKL_DSS_HANDLE_t  pt[64]; //Handle to internal data structure (must be zeroed at startup)
 
@@ -103,27 +122,30 @@ namespace chrono {
 
 	public:
 
-		ChMKLSolver(int problem_size, int matrix_type = 11, int insphase = 13) : system_matrix{ problem_size, problem_size } {
+		ChMKLSolver(int problem_size, int matrix_type = 11, int insphase = 13)
+			//: system_matrix{ problem_size, problem_size }
+		{
 			n = static_cast<MKL_INT>(problem_size);
 			mtype = static_cast<MKL_INT>(matrix_type);
 			pardisoinit(pt, &mtype, iparm);
 			
 			IPARM(35) = 1;			/* Zero based indexing */
 
-			//iparm[0] = 1;        /* No default values for solver */
-			//iparm[1] = 2;        /* Fill-in reducing ordering from METIS */
-			//IPARM(4)= 0;        /* No iterative algorithm */
-			//IPARM(4) = 0;        /* CGS iteration replaces the computation of LU. */
-			//iparm[4] = 0;        /* No user fill-in reducing permutation */
-			//iparm[5] = 0;        /* Write solution on u */
-			IPARM(8) = 10;        /* Maximum number of iterative refinement steps */
-			//iparm[9] = 13;       /* Perturb the pivot elements with 1E-13 */
-			//iparm[10] = 1;        /* Use nonsymmetric permutation and scaling MPS */
-			//iparm[11] = 0;        /* Solve with transposed/conjugate transposed matrix */
-			//iparm[12] = 1;        /* Maximum weighted matching algorithm is enabled (default for nonsymmetric matrices) */
-			//iparm[17] = -1;       /* Output: Number of non-zero values in the factor LU */
-			//iparm[18] = -1;       /* Output: Mflops for LU factorization */
-			//iparm[19] = 0;        /* Output: Numbers of CG Iterations */
+			//iparm[0] = 1;				/* No default values for solver */
+			//iparm[1] = 2;				/* Fill-in reducing ordering from METIS */
+			//IPARM(4)= 0;				/* No iterative algorithm */
+			//IPARM(4) = 0;				/* CGS iteration replaces the computation of LU. */
+			//iparm[4] = 0;				/* No user fill-in reducing permutation */
+			//iparm[5] = 0;				/* Write solution on u */
+			IPARM(8) = 10;			/* Maximum number of iterative refinement steps */
+			//IPARM(10) = 8;			/* Perturb the pivot elements with 1E-value */
+			//iparm[10] = 1;			/* Use nonsymmetric permutation and scaling MPS */
+			//iparm[11] = 0;			/* Solve with transposed/conjugate transposed matrix */
+			//iparm[12] = 1;			/* Maximum weighted matching algorithm is enabled (default for nonsymmetric matrices) */
+			//iparm[17] = -1;			/* Output: Number of non-zero values in the factor LU */
+			//iparm[18] = -1;			/* Output: Mflops for LU factorization */
+			//iparm[19] = 0;			/* Output: Numbers of CG Iterations */
+			IPARM(28) = 0;			/* Double precision */
 			
 
 			phase = insphase; // Analysis, numerical factorization, solve, iterative refinement
@@ -149,7 +171,6 @@ namespace chrono {
 		/// - through a triplet of values/column indeces/row indeces
 		/// None of the previous solutions store memory.
 		bool SetMatrix(double* A_CSR_value, MKL_INT* A_CSR3_columnIndex, MKL_INT* A_CSR3_rowIndex){
-			system_matrix.Reset(0, 0);
 			a = A_CSR_value;
 			ja = A_CSR3_columnIndex;
 			ia = A_CSR3_rowIndex;
@@ -157,7 +178,7 @@ namespace chrono {
 		}
 
 		bool SetMatrix(ChEigenMatrix* Z){
-			Z->makeCompressed();
+			Z->prune(std::numeric_limits<double>::min());
 			a = Z->GetValueArray();
 			ja = Z->GetColumnIndex();
 			ia = Z->GetRowIndex();
@@ -186,7 +207,7 @@ namespace chrono {
 			for (int i = 0; i < insb->GetRows(); i++)
 				fdest->SetElement(i + insf->GetRows(), 0, insb->GetElement(i, 0));
 
-			// takes the fdest as KnownTerm of the problem
+			// takes the fdest as known term of the problem
 			f = fdest->GetAddress();
 		}
 
@@ -220,12 +241,13 @@ namespace chrono {
 
 		// Solver routines
 
-		int PardisoSolve(){
+		int PardisoSolve(int message_level = 0){
 			if (IPARM(5) == 1) // CAUTION of IPARM(5)
 			{
 				assert(!IPARM(31));
 				assert(!IPARM(36));
 			}
+			msglvl = message_level;
 			pardiso(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, &perm, &nrhs, iparm, &msglvl, f, u, &error);
 			return error;
 		};
@@ -261,12 +283,32 @@ namespace chrono {
 			norm = sqrt(norm);
 			return norm;
 		};
+
+		void PrintAddresses(){
+			printf("a address: %p /64 = %.2f\n" , &a, static_cast<double>(reinterpret_cast<uintptr_t>(&a))/64 );
+			printf("ja address: %p /64 = %.2f\n" , &ja, static_cast<double>(reinterpret_cast<uintptr_t>(&ja))/64 );
+			printf("ia address: %p /64 = %.2f\n" , &ia, static_cast<double>(reinterpret_cast<uintptr_t>(&ia))/64 );
+		};
+		
+		template <class stream_t>
+		void PrintAddresses(stream_t& stream, double res, int call_num, bool print_address = 0){
+			stream << std::setprecision(12) << std::scientific;
+			stream << call_num << "\t" << res;
+			if (print_address)
+			{
+				stream << "\t";
+				stream << std::setprecision(6) << std::fixed;
+				stream << &a << "\t" << static_cast<double>(reinterpret_cast<uintptr_t>(&a)) / 64 << "\t";
+				stream << &ja << "\t" << static_cast<double>(reinterpret_cast<uintptr_t>(&ja)) / 64 << "\t";
+				stream << &ia << "\t" << static_cast<double>(reinterpret_cast<uintptr_t>(&ia)) / 64;
+			}
+			stream << std::endl;
+			
+		};
 		
 
 	};
 
-
-	static int cont;
 
     /// Class that wraps the Intel MKL 'PARDISO' parallel direct solver.
     /// It can solve linear systems. It cannot solve VI and complementarity problems.
@@ -280,62 +322,108 @@ namespace chrono {
 		  ChLcpMklSolver() {};
         virtual ~ChLcpMklSolver() {}
 
-        /// Solve using the MKL Pardiso sparse direct solver (as in x=A\b)
+        /// Solve using the MKL Pardiso sparse direct solver
         virtual double Solve(ChLcpSystemDescriptor& sysd)  ///< system description with constraints and variables
         {
-            ChEigenMatrix matCSR3;
-			ChMatrixDynamic<double> rhs;
-			ChMatrixDynamic<double> solution_vector;
-			
+
+			const int n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
+			ChEigenMatrix matCSR3(n, n);
+			ChMatrixDynamic<double> rhs(n,1);
+			ChMatrixDynamic<double> solution_vector(n,1);
+
 			// Build matrix and rhs
 			sysd.ConvertToMatrixForm(&matCSR3, &rhs);
-			        
+
+					        
             // Solve with Pardiso Sparse Direct Solver
-			const int n = matCSR3.GetRows();
 			ChMKLSolver pardiso_solver(n,11);
 			pardiso_solver.SetProblem(&matCSR3, &rhs, &solution_vector);
 
-	        auto pardiso_message = pardiso_solver.PardisoSolve();
+	        auto pardiso_message = pardiso_solver.PardisoSolve(0);
 			if (pardiso_message!=0) printf("\nPardiso exited with code: %d", pardiso_message);
 
-			// Update solution in the System Descriptor
-			sysd.FromVectorToUnknowns(solution_vector);
 
 			// Print statistics
 			ChMatrixDynamic<double> residual(n, 1);
 	        pardiso_solver.GetResidual(&residual);
-            GetLog() << "\nPardiso res norm: " << pardiso_solver.GetResidualNorm(&residual);
+			double residual_norm = pardiso_solver.GetResidualNorm(&residual);
+			GetLog() << "\nCall " << solver_call << "; Residual norm: " << residual_norm << "\n";
 
-			//// Test
-			/*std::string stringa;
-			stringa = "Z_chrono" + std::to_string(cont++)+".dat";
+			sysd.FromVectorToUnknowns(solution_vector);
 
-			matCSR3.PrintMatrix(stringa);*/
+			
+			if (false){
+				// Test
+				//if (solver_call == 0){
+				//	pardiso_solver.PrintAddresses();
+				//	std::cout << "\nPrint solver call number: ";
+				//	std::cin >> solver_call_request;
+				//	std::cout << "\nPrint if residual norm > ";
+				//	std::cin >> residual_norm_tolerance;
 
-			//std::ofstream myfile;
-			//myfile.open("sol_chrono.dat");
-			//myfile << std::scientific << std::setprecision(12);
-			//for (int ii = 0; ii < n; ii++){
-			//	myfile << "\n";
-			//	for (int jj = 0; jj < 1; jj++)
-			//		myfile << solution_vector(ii, jj) << "\t";
-			//}
-			//myfile.close();
+				//	//std::ofstream myfile;
+				//	//myfile.open("log.dat", std::ios_base::out|std::ios_base::trunc);
+				//	//myfile.close();
+				//}
 
-			//myfile.open("rhs_chrono.dat");
-			//myfile << std::scientific << std::setprecision(12);
-			//for (int ii = 0; ii < n; ii++){
-			//	myfile << "\n";
-			//	for (int jj = 0; jj < 1; jj++)
-			//		myfile << rhs(ii, jj) << "\t";
-			//}
-			//myfile.close();
+				//std::ofstream myfile;
+				//myfile.open("log.dat", std::ios_base::out | std::ios_base::app);
+				//pardiso_solver.PrintAddresses(myfile, residual_norm, solver_call);
+				//myfile.close();
+
+				solver_call_request = 350;
+				residual_norm_tolerance = 1e-12;
+			
+				if (solver_call == solver_call_request || (residual_norm_tolerance > 0 && pardiso_solver.GetResidualNorm(&residual) > residual_norm_tolerance)){
+					ChSparseMatrix mdM;
+					ChSparseMatrix mdCq;
+					ChSparseMatrix mdE;
+					ChMatrixDynamic<double> mdf;
+					ChMatrixDynamic<double> mdb;
+					ChMatrixDynamic<double> mdfric;
+					sysd.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
+					PrintMatrix("Z_chrono.dat", matCSR3);
+					PrintMatrix("sol_chrono.dat", solution_vector);
+					PrintMatrix("rhs_chrono.dat", rhs);
+					PrintMatrix("res_chrono.dat", residual);
+
+
+					PrintMatrix("M.dat", mdM);
+					PrintMatrix("Cq.dat", mdCq);
+					PrintMatrix("E.dat", mdE);
+					PrintMatrix("f.dat", mdf);
+					PrintMatrix("b.dat", mdb);
+
+					pardiso_solver.PrintAddresses();
+
+
+					std::cout << "\nPrint solver call number: ";
+					std::cin >> solver_call_request;
+
+					//srand(time(NULL));
+					//std::string filename = std::to_string(rand() % 10000) + ".dat";
+
+
+					//std::ofstream myfile;
+					//myfile.open("address.dat", std::ios_base::out | std::ios_base::app);
+					//pardiso_solver.PrintAddresses(myfile, residual_norm, solver_call, 1);
+					//myfile.close();
+
+					//char curdir[80];
+					//GetModuleFileName(NULL, curdir, 80);
+					//_spawnl(_P_NOWAITO, curdir, curdir, NULL);
+					//exit(0);
+
+			}
+
+			}
+
+			solver_call++;
 
             return 0;
         }
     };
-
-
 
 
 

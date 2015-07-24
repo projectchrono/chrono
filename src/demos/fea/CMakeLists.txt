@@ -119,6 +119,7 @@ IF(ENABLE_UNIT_IRRLICHT)
 				${CH_MATLABLIB}
 				ChronoEngine
 				ChronoEngine_FEA
+				ChronoEngine_MKL
 				ChronoEngine_IRRLICHT
 				ChronoEngine_MATLAB
 				)
