@@ -329,13 +329,13 @@ int main(int argc, char* argv[])
     ChLcpMklSolver* mkl_solver_stab  = new ChLcpMklSolver;
     ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
     my_system.ChangeLcpSolverStab (mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_stab);
+	my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     application.GetSystem()->Update();
     
 	
 	// Change type of integrator: 
-    //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-	my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
+    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+	//my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
 	
 	// if later you want to change integrator settings:
 	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )

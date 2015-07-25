@@ -354,9 +354,6 @@ class ChApi ChLcpSystemDescriptor {
 
 	virtual void ConvertToMatrixForm(ChSparseMatrixBase* Z,
 									ChMatrix<>* rhs,
-									ChMatrix<>* Fvector,
-									ChMatrix<>* Bvector,
-									ChMatrix<>* Frict,
 									bool only_bilaterals = false,
 									bool skip_contacts_uv = false);
 
