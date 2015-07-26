@@ -50,11 +50,8 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
   /// model as the rigid body current position.
   virtual void SyncPosition();
 
-  /// Gets the pointer to the client owner ChPhysicsItem.
-  virtual ChPhysicsItem* GetPhysicsItem();
-
-  /// Sets the pointer to the client owner ChPhysicsItem.
-  virtual void SetPhysicsItem(ChPhysicsItem* item);
+  /// Sets the pointer to the contactable object.
+  virtual void SetContactable(ChContactable* mc);
 
   //
   // GEOMETRY DESCRIPTION
