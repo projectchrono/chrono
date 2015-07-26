@@ -12,8 +12,6 @@
 #ifndef CHCONTACTDVI_H
 #define CHCONTACTDVI_H
 
-
-
 #include "core/ChFrame.h"
 #include "core/ChVectorDynamic.h"
 #include "lcp/ChLcpConstraintTwoTuplesContactN.h"
@@ -25,30 +23,23 @@
 
 namespace chrono {
 
-
 /// Class for DVI contact between two generic ChContactable objects.
 /// Ta and Tb are of ChContactable sub classes.
 
-template <class Ta, class Tb>  
+template <class Ta, class Tb>
 class ChContactDVI : public ChContactTuple<Ta, Tb> {
-
-  public: 
+  public:
     typedef typename ChContactTuple<Ta, Tb>::typecarr_a typecarr_a;
     typedef typename ChContactTuple<Ta, Tb>::typecarr_b typecarr_b;
 
   protected:
-    //
-    // DATA
-    //
- 
-    float* reactions_cache;  ///< points to an array[3] of N,U,V reactions which might be stored in a persistent contact
-    /// manifold in the collision engine
+    float* reactions_cache;  ///< N,U,V reactions which might be stored in a persistent contact manifold
 
-    // The three scalar constraints, to be feed into the
-    // system solver. They contain jacobians data and special functions.
-    ChLcpConstraintTwoTuplesContactN < typecarr_a,  typecarr_b> Nx;
-    ChLcpConstraintTwoTuplesFrictionT< typecarr_a,  typecarr_b> Tu;
-    ChLcpConstraintTwoTuplesFrictionT< typecarr_a,  typecarr_b> Tv;
+    /// The three scalar constraints, to be fed into the system solver.
+    /// They contain jacobians data and special functions.
+    ChLcpConstraintTwoTuplesContactN<typecarr_a, typecarr_b> Nx;
+    ChLcpConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tu;
+    ChLcpConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tv;
 
     ChVector<> react_force;
 
@@ -63,50 +54,46 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
     //
 
     ChContactDVI() {
-       Nx.SetTangentialConstraintU(&Tu);
-       Nx.SetTangentialConstraintV(&Tv);
+        Nx.SetTangentialConstraintU(&Tu);
+        Nx.SetTangentialConstraintV(&Tv);
     }
 
-    ChContactDVI(
-              ChContactContainerBase* mcontainer,
-              Ta* mobjA,  ///< collidable object A
-              Tb* mobjB,  ///< collidable object B
-              const collision::ChCollisionInfo& cinfo
-              ) 
-        : ChContactTuple< Ta, Tb >(mcontainer, mobjA, mobjB, cinfo)
-    {   
+    ChContactDVI(ChContactContainerBase* mcontainer,      ///< contact container
+                 Ta* mobjA,                               ///< collidable object A
+                 Tb* mobjB,                               ///< collidable object B
+                 const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+                 )
+        : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo) {
         Nx.SetTangentialConstraintU(&Tu);
         Nx.SetTangentialConstraintV(&Tv);
 
-        Reset(mobjA, 
-              mobjB,
-              cinfo);
+        Reset(mobjA, mobjB, cinfo);
     }
-    
-    virtual ~ChContactDVI() {}
+
+    ~ChContactDVI() {}
 
     //
     // FUNCTIONS
     //
 
     /// Initialize again this constraint.
-    virtual void Reset(
-            Ta* mobjA,  ///< collidable object A
-            Tb* mobjB,  ///< collidable object B
-            const collision::ChCollisionInfo& cinfo) {
-        
+    virtual void Reset(Ta* mobjA,                               ///< collidable object A
+                       Tb* mobjB,                               ///< collidable object B
+                       const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+                       ) {
         // inherit base class:
-        ChContactTuple< Ta, Tb >::Reset(mobjA, mobjB, cinfo);
+        ChContactTuple<Ta, Tb>::Reset(mobjA, mobjB, cinfo);
 
-
-        Nx.Get_tuple_a().SetVariables(*this->objA);               Nx.Get_tuple_b().SetVariables(*this->objB);
-        Tu.Get_tuple_a().SetVariables(*this->objA);               Tu.Get_tuple_b().SetVariables(*this->objB);
-        Tv.Get_tuple_a().SetVariables(*this->objA);               Tv.Get_tuple_b().SetVariables(*this->objB);
-
+        Nx.Get_tuple_a().SetVariables(*this->objA);
+        Nx.Get_tuple_b().SetVariables(*this->objB);
+        Tu.Get_tuple_a().SetVariables(*this->objA);
+        Tu.Get_tuple_b().SetVariables(*this->objB);
+        Tv.Get_tuple_a().SetVariables(*this->objA);
+        Tv.Get_tuple_b().SetVariables(*this->objB);
 
         // Compute the 'average' material
 
-          // just low level casting, now, since we are sure that this contact was created only if dynamic casting was fine
+        // just low level casting, now, since we are sure that this contact was created only if dynamic casting was fine
         ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get_ptr());
         ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get_ptr());
 
@@ -117,10 +104,10 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         mat.dampingf = (float)ChMin(mmatA->dampingf, mmatB->dampingf);
         mat.compliance = (float)(mmatA->compliance + mmatB->compliance);
         mat.complianceT = (float)(mmatA->complianceT + mmatB->complianceT);
-        //mat.complianceRoll = (float)(mmatA->complianceRoll + mmatB->complianceRoll);
-        //mat.complianceSpin = (float)(mmatA->complianceSpin + mmatB->complianceSpin);
-        //mat.rolling_friction = (float)ChMin(mmatA->rolling_friction, mmatB->rolling_friction);
-        //mat.spinning_friction = (float)ChMin(mmatA->spinning_friction, mmatB->spinning_friction);
+        // mat.complianceRoll = (float)(mmatA->complianceRoll + mmatB->complianceRoll);
+        // mat.complianceSpin = (float)(mmatA->complianceSpin + mmatB->complianceSpin);
+        // mat.rolling_friction = (float)ChMin(mmatA->rolling_friction, mmatB->rolling_friction);
+        // mat.spinning_friction = (float)ChMin(mmatA->spinning_friction, mmatB->spinning_friction);
 
         // see if the user wants to modify the material via a callback:
         if (this->container->GetAddContactCallback()) {
@@ -136,38 +123,28 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         this->complianceT = mat.complianceT;
 
         this->reactions_cache = cinfo.reaction_cache;
-         
+
         // COMPUTE JACOBIANS
 
         // delegate objA to compute its half of jacobian
-        this->objA->ComputeJacobianForContactPart(this->p1, 
-                                        this->contact_plane, 
-                                        Nx.Get_tuple_a(),
-                                        Tu.Get_tuple_a(),
-                                        Tv.Get_tuple_a(),
-                                        false);
+        this->objA->ComputeJacobianForContactPart(this->p1, this->contact_plane, Nx.Get_tuple_a(), Tu.Get_tuple_a(),
+                                                  Tv.Get_tuple_a(), false);
 
         // delegate objB to compute its half of jacobian
-        this->objB->ComputeJacobianForContactPart(this->p2, 
-                                        this->contact_plane, 
-                                        Nx.Get_tuple_b(),
-                                        Tu.Get_tuple_b(),
-                                        Tv.Get_tuple_b(),
-                                        true);
-        
+        this->objB->ComputeJacobianForContactPart(this->p2, this->contact_plane, Nx.Get_tuple_b(), Tu.Get_tuple_b(),
+                                                  Tv.Get_tuple_b(), true);
+
         react_force = VNULL;
     }
 
- 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactForce() { return react_force; };
+    virtual ChVector<> GetContactForce() { return react_force; }
 
     /// Get the contact friction coefficient
-    virtual double GetFriction() { return Nx.GetFrictionCoefficient(); };
+    virtual double GetFriction() { return Nx.GetFrictionCoefficient(); }
+
     /// Set the contact friction coefficient
-    virtual void SetFriction(double mf) { Nx.SetFrictionCoefficient(mf); };
-
-
+    virtual void SetFriction(double mf) { Nx.SetFrictionCoefficient(mf); }
 
     //
     // UPDATING FUNCTIONS
@@ -186,28 +163,27 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
     }
 
     virtual void ContIntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                 ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                 const ChVectorDynamic<>& L,  ///< the L vector
-                                 const double c               ///< a scaling factor
-                                 ) {
+                                         ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
+                                         const ChVectorDynamic<>& L,  ///< the L vector
+                                         const double c               ///< a scaling factor
+                                         ) {
         this->Nx.MultiplyTandAdd(R, L(off_L) * c);
         this->Tu.MultiplyTandAdd(R, L(off_L + 1) * c);
         this->Tv.MultiplyTandAdd(R, L(off_L + 2) * c);
     }
 
     virtual void ContIntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                 ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                 const double c,            ///< a scaling factor
-                                 bool do_clamp,             ///< apply clamping to c*C?
-                                 double recovery_clamp      ///< value for min/max clamping of c*C
-                                 )  {
+                                         ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
+                                         const double c,            ///< a scaling factor
+                                         bool do_clamp,             ///< apply clamping to c*C?
+                                         double recovery_clamp      ///< value for min/max clamping of c*C
+                                         ) {
         bool bounced = false;
 
         // Elastic Restitution model (use simple Newton model with coeffcient e=v(+)/v(-))
         // Note that this works only if the two connected items are two ChBody.
 
         if (this->objA && this->objB) {
-            
             if (this->restitution) {
                 // compute normal rebounce speed
                 Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
@@ -215,10 +191,10 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
                 Vector Vrel_w = V2_w - V1_w;
                 Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
 
-                double h = this->container->GetSystem()->GetStep();// = 1.0 / c;  // not all steppers have c = 1/h
+                double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
 
                 double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
-                if (neg_rebounce_speed < - this->container->GetSystem()->GetMinBounceSpeed())
+                if (neg_rebounce_speed < -this->container->GetSystem()->GetMinBounceSpeed())
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
@@ -231,14 +207,14 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
             // CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
 
             if (this->compliance) {
-                double h = this->container->GetSystem()->GetStep();// = 1.0 / c;  // not all steppers have c = 1/h
+                double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
 
                 double alpha = this->dampingf;              // [R]=alpha*[K]
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
                 double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
                 //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
-                Nx.Set_cfm_i((inv_hhpa) * this->compliance);  
+                Nx.Set_cfm_i((inv_hhpa) * this->compliance);
                 Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
                 Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
 
@@ -253,16 +229,12 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
                     Qc(off_L) += c * this->norm_dist;
             }
         }
-
     }
 
-    virtual void ContIntLoadResidual_F(ChVectorDynamic<>& R, const double c)  {
-        // no force to add - this is DVI, not DEM
-    };
-
-    virtual void ContIntToLCP(const unsigned int off_L,  ///< offset in L, Qc
-                      const ChVectorDynamic<>& L,
-                      const ChVectorDynamic<>& Qc)  {
+    virtual void ContIntToLCP(const unsigned int off_L,    ///< offset in L, Qc
+                              const ChVectorDynamic<>& L,  ///<
+                              const ChVectorDynamic<>& Qc  ///<
+                              ) {
         // only for LCP warm start
         Nx.Set_l_i(L(off_L));
         Tu.Set_l_i(L(off_L + 1));
@@ -275,25 +247,26 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
     }
 
     virtual void ContIntFromLCP(const unsigned int off_L,  ///< offset in L
-                        ChVectorDynamic<>& L)  {
+                                ChVectorDynamic<>& L       ///<
+                                ) {
         L(off_L) = Nx.Get_l_i();
         L(off_L + 1) = Tu.Get_l_i();
         L(off_L + 2) = Tv.Get_l_i();
     }
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor)  {
+    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
         mdescriptor.InsertConstraint(&Nx);
         mdescriptor.InsertConstraint(&Tu);
         mdescriptor.InsertConstraint(&Tv);
     }
 
-    virtual void ConstraintsBiReset()  {
+    virtual void ConstraintsBiReset() {
         Nx.Set_b_i(0.);
         Tu.Set_b_i(0.);
         Tv.Set_b_i(0.);
     }
 
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false)  {
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) {
         bool bounced = false;
 
         // Elastic Restitution model (use simple Newton model with coeffcient e=v(+)/v(-))
@@ -310,7 +283,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
                 double h = 1.0 / factor;  // inverse timestep is factor
 
                 double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
-                if (neg_rebounce_speed < - this->container->GetSystem()->GetMinBounceSpeed())
+                if (neg_rebounce_speed < -this->container->GetSystem()->GetMinBounceSpeed())
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
@@ -334,7 +307,8 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
                 Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
                 Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
 
-                // GetLog()<< "compliance " << (int)this << "  compl=" << this->compliance << "  damping=" << this->dampingf
+                // GetLog()<< "compliance " << (int)this << "  compl=" << this->compliance << "  damping=" <<
+                // this->dampingf
                 // << "  h=" << h << "\n";
 
                 // no clamping of residual
@@ -350,17 +324,16 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
                     Nx.Set_b_i(Nx.Get_b_i() + factor * this->norm_dist);
             }
         }
-
     }
 
-    virtual void ConstraintsFetch_react(double factor)  {
+    virtual void ConstraintsFetch_react(double factor) {
         // From constraints to react vector:
         react_force.x = Nx.Get_l_i() * factor;
         react_force.y = Tu.Get_l_i() * factor;
         react_force.z = Tv.Get_l_i() * factor;
     }
 
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution()  {
+    virtual void ConstraintsLiLoadSuggestedSpeedSolution() {
         // Fetch the last computed impulsive reactions from the persistent contact manifold (could
         // be used for warm starting the CCP speed solver):
         if (this->reactions_cache) {
@@ -371,7 +344,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         // GetLog() << "++++      " << (int)this << "  fetching N=" << (double)mn <<"\n";
     }
 
-    virtual void ConstraintsLiLoadSuggestedPositionSolution()  {
+    virtual void ConstraintsLiLoadSuggestedPositionSolution() {
         // Fetch the last computed 'positional' reactions from the persistent contact manifold (could
         // be used for warm starting the CCP position stabilization solver):
         if (this->reactions_cache) {
@@ -381,7 +354,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         }
     }
 
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution()  {
+    virtual void ConstraintsLiFetchSuggestedSpeedSolution() {
         // Store the last computed reactions into the persistent contact manifold (might
         // be used for warm starting CCP the speed solver):
         if (reactions_cache) {
@@ -392,7 +365,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         // GetLog() << "         " << (int)this << "  storing  N=" << Nx.Get_l_i() <<"\n";
     }
 
-    virtual void ConstraintsLiFetchSuggestedPositionSolution()  {
+    virtual void ConstraintsLiFetchSuggestedPositionSolution() {
         // Store the last computed 'positional' reactions into the persistent contact manifold (might
         // be used for warm starting the CCP position stabilization solver):
         if (reactions_cache) {
@@ -401,10 +374,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
             reactions_cache[5] = (float)Tv.Get_l_i();
         }
     }
-
 };
-
-
 
 }  // END_OF_NAMESPACE____
 
