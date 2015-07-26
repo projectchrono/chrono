@@ -236,8 +236,9 @@ class ChApi ChCollisionModel {
     /// Gets the pointer to the contactable object 
     ChContactable* GetContactable() {return mcontactable;}
 
-    /// Sets the pointer to the contactable object
-    void SetContactable(ChContactable* mc) { mcontactable = mc;}
+    /// Sets the pointer to the contactable object.
+    /// A derived class may override this, but should always invoke this base class implementation.
+    virtual void SetContactable(ChContactable* mc) { mcontactable = mc;}
 
     /// Gets the pointer to the client owner ChPhysicsItem.
     /// Default: just casts GetContactable(). Just for backward compatibility.
