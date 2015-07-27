@@ -8,15 +8,15 @@ but instead retains points in space and points to orient to in space for easy ac
 #pragma once
 
 #include "../ChOgre.h"
-
-#include <OGRE\Ogre.h>
-#include <core\ChQuaternion.h>
-#include <core\ChVector.h>
+#include "ChOgreCamera.h"
+#include <OGRE/Ogre.h>
+#include <core/ChQuaternion.h>
+#include <core/ChVector.h>
 #include <vector>
 
 namespace ChOgre {
 
-	struct CHOGRE_DLL_TAG ChOgreCamera {
+	struct CHOGRE_DLL_TAG ChOgreCamera_old {
 		float x, y, z;
 		float wx, wy, wz;
 		float yaw, pitch; // Yaw and Pitch are both in degrees
@@ -78,22 +78,26 @@ namespace ChOgre {
 
 	public:
 
-		ChOgreCameraManager();
+		ChOgreCameraManager(Ogre::SceneManager* SceneManager, Ogre::Viewport* Viewport);
 		~ChOgreCameraManager();
 
-		virtual ChOgreCamera* createCamera(std::string Name=( "Camera" + std::to_string( g_CameraCount ) ) );
+		virtual ChOgreCamera* createCamera(const std::string& Name=( "Camera" + std::to_string( g_CameraCount ) ) );
 
 		virtual ChOgreCamera* getCamera(unsigned int iterator);
 
-		virtual ChOgreCamera* getCamera(std::string Name);
+		virtual ChOgreCamera* getCamera(const std::string& Name);
 
 		virtual ChOgreCamera* operator[] (unsigned int iterator);
 
-		virtual ChOgreCamera* operator[] (std::string Name);
+		virtual ChOgreCamera* operator[] (const std::string& Name);
+
+		virtual void makeActive(ChOgreCamera* Camera);
 
 	protected:
 
 		std::vector<ChOgreCamera*> m_CameraList;
+		Ogre::SceneManager* m_pSceneManager;
+		Ogre::Viewport* m_pViewport;
 
 		static unsigned int g_CameraCount;
 	private:

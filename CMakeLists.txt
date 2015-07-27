@@ -13,6 +13,8 @@ SET(GRAPHICS_FILES
 	Graphics/ChOgreBody.h
 	Graphics/ChOgreCameraManager.cpp
 	Graphics/ChOgreCameraManager.h
+	Graphics/ChOgreCamera.cpp
+	Graphics/ChOgreCamera.h
 	Graphics/ChOgreScene.cpp
 	Graphics/ChOgreScene.h
 	Graphics/ChOgreMeshBase.cpp

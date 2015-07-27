@@ -61,7 +61,6 @@ namespace ChOgre {
 
 			m_pSceneManager = m_pRoot->createSceneManager(Ogre::ST_GENERIC, "MainSceneManager");
 
-			m_pCameraManager = new ChOgreCameraManager;
 			m_pChSystem = new chrono::ChSystem;
 			m_pScene = new ChOgreScene(m_pSceneManager, m_pChSystem);
 		}
@@ -211,6 +210,7 @@ namespace ChOgre {
 		}
 		m_pRenderWindow = m_pRoot->createRenderWindow(Title, Width, Height, Fullscreen, &l_Params);
 
+
 		m_pCamera = m_pSceneManager->createCamera("MainCamera");
 
 		m_pViewport = m_pRenderWindow->addViewport(m_pCamera);
@@ -223,6 +223,7 @@ namespace ChOgre {
 		m_pRenderWindow->setActive(true);
 		m_pRenderWindow->setAutoUpdated(false);
 
+		m_pCameraManager = new ChOgreCameraManager(m_pSceneManager, m_pViewport);
 
 		m_pRoot->clearEventTimes();
 
@@ -239,7 +240,7 @@ namespace ChOgre {
 	}
 
 	void ChOgreApplication::setCamera(ChOgreCamera* Camera) {
-		m_pCamera->setPosition(Camera->x, Camera->y, Camera->z);
+		/*m_pCamera->setPosition(Camera->x, Camera->y, Camera->z);
 		if (!Camera->useAngles && !Camera->useQuaternions) {
 			m_pCamera->lookAt(Camera->wx, Camera->wy, Camera->wz);
 			//logMessage("Camera positioned at: " + std::to_string(Camera->x) + " " + std::to_string(Camera->y) + " " + std::to_string(Camera->z) + "  Looking at: " + std::to_string(Camera->wx) + " " + std::to_string(Camera->wy) + " " + std::to_string(Camera->wz));
@@ -253,7 +254,7 @@ namespace ChOgre {
 		}
 		else if (!Camera->useAngles && Camera->useQuaternions) {
 			m_pCamera->rotate(Ogre::Quaternion(Camera->rot.e0, Camera->rot.e1, Camera->rot.e2, Camera->rot.e3));
-		}
+		}*/
 	}
 
 	void ChOgreApplication::setVSync(bool VSync) {
