@@ -137,6 +137,8 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     /// Gets the current time step used for the integration (dynamical simulation).
     double GetStep() { return step; }
 
+	int Iter;
+
     /// Sets the end of simulation.
     void SetEndTime(double m_end_time) { end_time = m_end_time; }
     /// Gets the end of the simulation

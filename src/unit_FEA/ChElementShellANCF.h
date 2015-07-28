@@ -14,6 +14,7 @@
 #define CHELEMENTSHELLANCF_H
 
 
+
 #include "ChElementShell.h"
 #include "physics/ChContinuumMaterial.h"
 #include "ChNodeFEAxyzD.h"
@@ -47,7 +48,8 @@ protected:
 
 	ChMatrixNM<double, 24,24> stock_KTE; // Analytical Jacobian
 
-	ChMatrixNM<double,24,1> initialposD; // Initial Coordinate per element
+	ChMatrixNM<double, 24,1> initialposD; // Initial Coordinate per element
+	ChMatrixNM<double, 24,1> GravForce;  // Gravity Force 
 
 	// Material Properties for orthotropic per element (14x7) Max #layer is 7
 	ChMatrixNM<double,98,1> InertFlexVec; //2015/5/28  for Laminate shell
@@ -57,6 +59,12 @@ protected:
 	int NumLayer;     
 
 	int flag_HE;
+
+	double dt;
+
+	int FlagGravity;
+
+	int FlagAirPressure;
 
 public:
 
@@ -77,7 +85,6 @@ public:
 
 	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 
-	/// Set four ChNodeFEAxyzD nodes for shell element and store initial position
 	virtual void SetNodes( ChSharedPtr<ChNodeFEAxyzD> nodeA, ChSharedPtr<ChNodeFEAxyzD> nodeB, ChSharedPtr<ChNodeFEAxyzD> nodeC, ChSharedPtr<ChNodeFEAxyzD> nodeD) 
 				{
 					assert(!nodeA.IsNull());
@@ -130,17 +137,25 @@ public:
 
 	void   SetElemNum(int kb){ elementnumber = kb;}         //// 2015/5/23 for EAS
 
-	void   SetStockAlpha(ChMatrixNM<double,35,1> a){ StockAlpha_EAS = a;} //// 2015/5/23 for EAS
+	void   SetStockAlpha(ChMatrixNM<double,35,1> a){ StockAlpha_EAS = a;}
 
 	void   SetStockJac(ChMatrixNM<double,24,24> a){stock_jac_EAS=a;	} //// 2015/5/23  for EAS
 
 	void   SetStockKTE(ChMatrixNM<double,24,24> a){stock_KTE=a;	} //// 2015/5/23  for EAS
+
+	void   SetGravForce(ChMatrixNM<double,24,1> a){GravForce=a; }
 
 	void   SetInertFlexVec(ChMatrixNM<double,98,1> a){InertFlexVec = a;	} //// 2015/5/28  for Laminate shell
 
 	void   SetNumLayer(int a){NumLayer = a;} //// 2015/5/28  for Laminate shell
 
 	void   SetGaussZRange(ChMatrixNM<double,7,2> a){GaussZRange = a;} //// 2015/6/1  for Laminate shell
+
+	void   Setdt(double a) { dt = a;} // To calculate structural damping coefficient
+
+	void   SetGravityZ(int a){FlagGravity = a;} // Gravity Flag
+
+	void   SetAirPressure(int a){FlagAirPressure = a;} // AirPressure Flag
 
 				/// Get the section & material of the element
 	double GetThickness() {return thickness;} /// Total shell thickness
@@ -153,6 +168,8 @@ public:
 
 	ChMatrixNM<double,24,24> GetStockKTE() { return stock_KTE;} //// Retrieve ananyltical jacobian
 
+	ChMatrixNM<double,24,1> GetGravForce() { return GravForce;}
+
 	ChMatrixNM<double,24,1> GetInitialPosD() {return initialposD;} //// 2015/5/23  for Initial position
 
 	ChMatrixNM<double,98,1> GetInertFlexVec() {return InertFlexVec;} //// 2015/5/28  for Laminate shell
@@ -160,11 +177,18 @@ public:
 	ChMatrixNM<double,7,2> GetGaussZRange() {return GaussZRange;} //// 2015/6/1  for Laminate shell
 
 	int GetNumLayer(){return NumLayer;} //// 2015/5/28  for Laminate shell
-	
+
+	double Getdt(){return dt;} //// To calculate structural damping coefficient
+
+	int GetFlagGravity(){return FlagGravity;} // Gravity Flag
+
+	int GetAirPressure(){return FlagAirPressure;} // AirPressure Flag
+
 	/// 2015/6/23 Structural Damping 
 	void SetAlphaDamp(double a) {Alpha = a;}
 
 	double GetAlphaDamp() {return Alpha;}
+	
 
 				/// Get each node
 	ChSharedPtr<ChNodeFEAxyzD> GetNodeA() {return nodes[0];}
@@ -303,17 +327,22 @@ public:
 					{
 						
 					}else{
-
 						///  Recover stored Jacobian
 						ChMatrixNM<double, 24,24>  stock_KTE_elem;
 						stock_KTE_elem=this->GetStockKTE();
 						StiffnessMatrix = stock_KTE_elem;
+
+						//GetLog() << "stock_KTE_elem" << stock_KTE_elem;
+						//system("pause");
 
 						/// Recover stored EAS Jacobian
 						ChMatrixNM<double, 24,24>  stock_jac_EAS_elem;
 						stock_jac_EAS_elem=this->GetStockJac();
 						StiffnessMatrix -= stock_jac_EAS_elem;
 						
+						//GetLog() << "stock_jac_EAS_elem" << stock_jac_EAS_elem;
+						//system("pause");
+
 					}
 
 				}
@@ -323,7 +352,7 @@ public:
 				/// constant material are assumed 
 	virtual void ComputeMassMatrix()
 				{	
-					
+
 					ChMatrixNM<double, 24,1> InitialCoord;
 					ChMatrixNM<double, 8,3>   d0;
 					InitialCoord=this->GetInitialPosD();
@@ -365,7 +394,7 @@ public:
 							ChMatrixNM<double, 1,8> Ny;
 							ChMatrixNM<double, 1,8> Nz;
 
-							/// Evaluate the S'*S  at each Gaussian point
+							/// Evaluate the S'*S  at point x 
 							virtual void Evaluate(ChMatrixNM<double,24,24>& result, const double x, const double y, const double z)
 							{
 								element->ShapeFunctions(N, x, y, z);
@@ -435,24 +464,170 @@ public:
 										);					
 						TempMassMatrix *= rho;
 						this->MassMatrix += TempMassMatrix;
+
+						//GetLog() << "MassMatrix" << "\n\n";
+						//for(int iii=0;iii<24;iii++){
+						//	for(int jjj=0;jjj<24;jjj++){
+						//		GetLog() << this->MassMatrix(iii,jjj) << "\n";
+						//	}
+						//	system("pause");
+						//}
 						
 
-					} // End Layer Loop
+					} // Layer Loop
 
+					//GetLog()<<"this->MassMatrix"<<this->MassMatrix;
+					//system("pause");
 				}
 
 
 				/// Setup. Precompute mass and matrices that do not change during the 
 				/// simulation, ex. the mass matrix in ANCF is constant
+	virtual void ComputeGravityForce()
+				{
+
+					/// Initial nodal coordinates
+					ChMatrixNM<double, 24,1> InitialCoord;
+					ChMatrixNM<double, 8,3>   d0;
+					InitialCoord=this->GetInitialPosD();
+					d0(0,0) = InitialCoord(0,0);	d0(0,1) = InitialCoord(1,0);	d0(0,2) = InitialCoord(2,0);
+					d0(1,0) = InitialCoord(3,0);	d0(1,1) = InitialCoord(4,0);	d0(1,2) = InitialCoord(5,0);
+					d0(2,0) = InitialCoord(6,0);	d0(2,1) = InitialCoord(7,0);	d0(2,2) = InitialCoord(8,0);
+					d0(3,0) = InitialCoord(9,0);	d0(3,1) = InitialCoord(10,0);	d0(3,2) = InitialCoord(11,0);
+					d0(4,0) = InitialCoord(12,0);	d0(4,1) = InitialCoord(13,0);	d0(4,2) = InitialCoord(14,0);
+					d0(5,0) = InitialCoord(15,0);	d0(5,1) = InitialCoord(16,0);	d0(5,2) = InitialCoord(17,0);
+					d0(6,0) = InitialCoord(18,0);	d0(6,1) = InitialCoord(19,0);	d0(6,2) = InitialCoord(20,0);
+					d0(7,0) = InitialCoord(21,0);	d0(7,1) = InitialCoord(22,0);	d0(7,2) = InitialCoord(23,0);
+					
+					ChMatrixNM<double, 98,1> InertFlexVec1;
+					InertFlexVec1=GetInertFlexVec();
+					ChMatrixNM<double, 7,2> GaussZRange1;
+					ChMatrixNM<double,24,1> TempGravityForce;
+					GaussZRange1=GetGaussZRange();
+					int NumLayerPerElem = GetNumLayer();
+					for (int kl=0;kl<NumLayerPerElem;kl++)
+					{
+						
+						int ij=14*kl;
+
+						//// MAterial properties
+						double rho	 = InertFlexVec1(ij);
+						//Add gravity force
+							class MyGravity : public ChIntegrable3D< ChMatrixNM<double,24,1> >
+							{
+							public:
+								ChElementShellANCF* element;
+								ChMatrixNM<double, 8,3> *d0;
+								ChMatrixNM<double, 3,24> S;
+								ChMatrixNM<double, 1,8> N;
+								ChMatrixNM<double, 1,8> Nx;
+								ChMatrixNM<double, 1,8> Ny;
+								ChMatrixNM<double, 1,8> Nz;
+								ChMatrixNM<double, 3,1> LocalGravityForce;
+
+								virtual void Evaluate(ChMatrixNM<double,24,1>& result, const double x, const double y, const double z)
+								{
+									element->ShapeFunctions(N, x, y, z);
+									element->ShapeFunctionsDerivativeX(Nx, x, y, z);
+									element->ShapeFunctionsDerivativeY(Ny, x, y, z);
+									element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
+							
+									// Weights for Gaussian integration
+									double wx2 = (element->GetLengthX())/2.0;
+									double wy2 = (element->GetLengthY())/2.0;
+									double wz2 = (element->GetThickness())/2.0;
+
+									//Set gravity acceleration
+									if(element->GetFlagGravity()==0){
+									LocalGravityForce(0,0) = 0.0;
+									LocalGravityForce(1,0) = 0.0;
+									LocalGravityForce(2,0) = 0.0;
+									}else if(element->GetFlagGravity()==1){
+									LocalGravityForce(0,0) = 0.0;
+									LocalGravityForce(1,0) = 0.0;
+									LocalGravityForce(2,0) = -9.81;
+									}
+
+									// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
+									ChMatrix33<> Si;
+									Si.FillDiag(N(0));
+									S.PasteMatrix(&Si, 0,0);
+									Si.FillDiag(N(1));
+									S.PasteMatrix(&Si, 0,3);
+									Si.FillDiag(N(2));
+									S.PasteMatrix(&Si, 0,6);
+									Si.FillDiag(N(3));
+									S.PasteMatrix(&Si, 0,9);
+									Si.FillDiag(N(4));
+									S.PasteMatrix(&Si, 0,12);
+									Si.FillDiag(N(5));
+									S.PasteMatrix(&Si, 0,15);
+									Si.FillDiag(N(6));
+									S.PasteMatrix(&Si, 0,18);
+									Si.FillDiag(N(7));
+									S.PasteMatrix(&Si, 0,21);
+
+									ChMatrixNM<double, 1,3> Nx_d0;
+									Nx_d0.MatrMultiply(Nx,*d0);
+
+									ChMatrixNM<double, 1,3> Ny_d0;
+									Ny_d0.MatrMultiply(Ny,*d0);
+
+									ChMatrixNM<double, 1,3> Nz_d0;
+									Nz_d0.MatrMultiply(Nz,*d0);
+
+									ChMatrixNM<double, 3,3> rd0;
+									rd0(0,0) = Nx_d0(0,0); rd0(1,0) = Nx_d0(0,1); rd0(2,0) = Nx_d0(0,2);
+									rd0(0,1) = Ny_d0(0,0); rd0(1,1) = Ny_d0(0,1); rd0(2,1) = Ny_d0(0,2);
+									rd0(0,2) = Nz_d0(0,0); rd0(1,2) = Nz_d0(0,1); rd0(2,2) = Nz_d0(0,2);
+
+									double detJ0 = rd0.Det();
+
+									result.MatrTMultiply(S,LocalGravityForce);
+
+									result *= detJ0*wx2*wy2*wz2; //*(element->Material->Get_density()); // 5/28/2015
+								}
+							};
+
+							MyGravity myformula1;
+							myformula1.d0 = &d0;
+							myformula1.element = this;
+
+							ChMatrixNM<double, 24,1> Fgravity;
+							ChQuadrature::Integrate3D< ChMatrixNM<double,24,1> >(
+											Fgravity,				// result of integration will go there
+											myformula1,			// formula to integrate
+											-1,					// start of x
+											1,					// end of x
+											-1,					// start of y
+											1,					// end of y
+											GaussZRange1(kl,0),					// start of z
+											GaussZRange1(kl,1),					// end of z
+											2					// order of integration
+											);
+						
+							Fgravity *= rho;   // 5/28/2015
+
+							//GetLog() << "Fgravity" << "\n\n";
+							//for(int iii=0;iii<24;iii++){
+							//   GetLog() << Fgravity(iii) << "\n";
+							//}
+							//system("pause");
+							TempGravityForce += Fgravity;
+						}
+						ChMatrixNM<double,24,1>Fg = TempGravityForce;
+						SetGravForce(Fg);
+				}
 
 	virtual void SetupInitial() 
 				{
+					ComputeGravityForce();
 					// Compute inital Jacobian
 					ChMatrixDynamic<double>Temp;
 					ComputeInternalForces(Temp);
 					// Compute mass matrix
 					ComputeMassMatrix();
-
+					
 					// initial EAS parameters
 					//stock_jac_EAS.Reset();
 
@@ -471,7 +646,7 @@ public:
 	virtual void ComputeKRMmatricesGlobal	(ChMatrix<>& H, double Kfactor, double Rfactor=0, double Mfactor=0) 
 				{
 					assert((H.GetRows() == 24) && (H.GetColumns()==24));
-					
+
 					// Compute global stiffness matrix:
 					ComputeStiffnessMatrix();
 
@@ -497,9 +672,7 @@ public:
 					temp.MatrScale( Mfactor );
 
 					// Paste scaled M mass matrix in resulting H:
-					H.PasteSumMatrix(&temp,0,0);
-					GetLog()<<H.GetRows()<<"\n"<<H.GetColumns()<<"\n";
-					system("pause");
+					H.PasteSumMatrix(&temp,0,0); 
 
 				}
 
@@ -523,7 +696,17 @@ public:
 					ChVector<> pD = this->nodes[3]->GetPos();
 					ChVector<> dD = this->nodes[3]->GetD();
 
-					ChMatrixNM<double, 8,3>   v;
+					/// Current nodal velocity for structural damping
+					ChVector<> pA_dt = this->nodes[0]->GetPos_dt();
+					ChVector<> dA_dt = this->nodes[0]->GetD_dt();
+					ChVector<> pB_dt = this->nodes[1]->GetPos_dt();
+					ChVector<> dB_dt = this->nodes[1]->GetD_dt();
+					ChVector<> pC_dt = this->nodes[2]->GetPos_dt();
+					ChVector<> dC_dt = this->nodes[2]->GetD_dt();
+					ChVector<> pD_dt = this->nodes[3]->GetPos_dt();
+					ChVector<> dD_dt = this->nodes[3]->GetD_dt();
+
+					/*ChMatrixNM<double, 8,3>   v;
 					v(0,0) = this->nodes[0]->GetPos_dt().x;	v(0,1) = this->nodes[0]->GetPos_dt().y;	v(0,2) = this->nodes[0]->GetPos_dt().z;
 					v(1,0) = this->nodes[0]->GetD_dt().x;	v(1,1) = this->nodes[0]->GetD_dt().y;	v(1,2) = this->nodes[0]->GetD_dt().z;
 					v(2,0) = this->nodes[1]->GetPos_dt().x;	v(2,1) = this->nodes[1]->GetPos_dt().y;	v(2,2) = this->nodes[1]->GetPos_dt().z;
@@ -531,8 +714,20 @@ public:
 					v(4,0) = this->nodes[2]->GetPos_dt().x;	v(4,1) = this->nodes[2]->GetPos_dt().y;	v(4,2) = this->nodes[2]->GetPos_dt().z;
 					v(5,0) = this->nodes[2]->GetD_dt().x;	v(5,1) = this->nodes[2]->GetD_dt().y;	v(5,2) = this->nodes[2]->GetD_dt().z;
 					v(6,0) = this->nodes[3]->GetPos_dt().x;	v(6,1) = this->nodes[3]->GetPos_dt().y;	v(6,2) = this->nodes[3]->GetPos_dt().z;
-					v(7,0) = this->nodes[3]->GetD_dt().x;	v(7,1) = this->nodes[3]->GetD_dt().y;	v(7,2) = this->nodes[3]->GetD_dt().z;
-					
+					v(7,0) = this->nodes[3]->GetD_dt().x;	v(7,1) = this->nodes[3]->GetD_dt().y;	v(7,2) = this->nodes[3]->GetD_dt().z;*/
+
+				    ChMatrixNM<double, 24,1>   d_dt; // for structural damping
+					d_dt(0,0) = pA_dt.x;	d_dt(1,0) = pA_dt.y;	d_dt(2,0) = pA_dt.z;
+					d_dt(3,0) = dA_dt.x;	d_dt(4,0) = dA_dt.y;	d_dt(5,0) = dA_dt.z;
+					d_dt(6,0) = pB_dt.x;	d_dt(7,0) = pB_dt.y;	d_dt(8,0) = pB_dt.z;
+					d_dt(9,0) = dB_dt.x;	d_dt(10,0) = dB_dt.y;	d_dt(11,0) = dB_dt.z;
+					d_dt(12,0) = pC_dt.x;	d_dt(13,0) = pC_dt.y;	d_dt(14,0) = pC_dt.z;
+					d_dt(15,0) = dC_dt.x;	d_dt(16,0) = dC_dt.y;	d_dt(17,0) = dC_dt.z;
+					d_dt(18,0) = pD_dt.x;	d_dt(19,0) = pD_dt.y;	d_dt(20,0) = pD_dt.z;
+					d_dt(21,0) = dD_dt.x;	d_dt(22,0) = dD_dt.y;	d_dt(23,0) = dD_dt.z;
+					//GetLog()<<"Velocity Elem:"<<v<<"\n";
+					//system("pause");
+
 					ChMatrixNM<double, 8,3>   d;
 					d(0,0) = pA.x;	d(0,1) = pA.y;	d(0,2) = pA.z;
 					d(1,0) = dA.x;	d(1,1) = dA.y;	d(1,2) = dA.z;
@@ -561,15 +756,23 @@ public:
 					InertFlexVec1=GetInertFlexVec();
 					ChMatrixNM<double, 35,1> StockAlpha1;
 					StockAlpha1=GetStockAlpha();
+					//GetLog() << "StockAlpha1_Bef" << "\n";
+					//for(int ii=0;ii<35;ii++){
+					//	GetLog() << StockAlpha1(ii) << "\n";
+					//}
+					//system("pause");
+					//GetLog() << "StockAlpha1" << StockAlpha1 << "\n\n";
 					ChMatrixNM<double, 7,2> GaussZRange1;
 					GaussZRange1=GetGaussZRange();
 
 				    ChMatrixNM<double,24,1> TempInternalForce;
 					ChMatrixNM<double,24,24> TempJacobian;
 					ChMatrixNM<double,24,24> TempJacobian_EAS;
+					//TempJacobian_EAS.Reset();
 					ChMatrixNM<double, 24,24> stock_jac_EAS_elem1; // laminate structure
 					ChMatrixNM<double, 24,24> KTE1; // Laminate structure
 
+					//this->.Reset();
 					Fi.Reset();
 					stock_jac_EAS_elem1.Reset();
 					KTE1.Reset();
@@ -597,6 +800,12 @@ public:
 						double Gx = InertFlexVec1(ij+11); //Material->Get_Gx();
 						double Gy = InertFlexVec1(ij+12); //Material->Get_Gy();
 						double Gz = InertFlexVec1(ij+13); //Material->Get_Gz();
+
+						//GetLog() << kl <<"\n\n";
+						//for(int ijkll=0;ijkll<98;ijkll++){
+						//	GetLog() <<InertFlexVec1(ijkll) <<"\n";
+						//}
+						//system("pause");
 
 						//// Cauchy-Green Tensor Calculation						
 						ChMatrixNM<double, 6,6> E_eps;
@@ -650,10 +859,11 @@ public:
 								ChElementShellANCF* element;
 								//// External values
 								ChMatrixNM<double, 8,3>  *d;
-								ChMatrixNM<double, 8,3> *v;
+								//ChMatrixNM<double, 8,3> *v;
 								ChMatrixNM<double, 8,1>  *strain_ans; 
 								ChMatrixNM<double, 8,24>  *strainD_ans; 
 								ChMatrixNM<double, 8,3>  *d0;
+								ChMatrixNM<double, 24,1>  *d_dt; // for structural damping
 								ChMatrixNM<double, 6,6>  *T0;
 								ChMatrixNM<double, 5,1>  *alpha_eas;
 								ChMatrixNM<double, 6,6>  *E_eps;
@@ -691,7 +901,7 @@ public:
 								ChMatrixNM<double, 1,24>  tempB;
 								ChMatrixNM<double, 24,6>  tempC;
 								double detJ0;
-								double dt;
+								//double dt;
 								double alphaHHT;
 								double betaHHT;
 								double gammaHHT;
@@ -719,11 +929,13 @@ public:
 									element->shapefunction_ANS_BilinearShell(S_ANS, x, y);
 									element->Basis_M(M,x,y,z); // EAS
 
-									dt=0.0001;
+									//dt=0.001;
 									alphaHHT=-0.2;
 									betaHHT=0.25*(1.0-alphaHHT)*(1.0-alphaHHT);
 									gammaHHT=0.5-alphaHHT;
-							
+
+									//GetLog() << alphaHHT <<"\n"<<betaHHT<<"\n"<<gammaHHT<<"\n";
+									//system("pause");
 
 									// Expand shape function derivatives in 3x24 matrices
 									ChMatrix33<> Sxi;
@@ -953,7 +1165,7 @@ public:
 										strainD(4,ii)=strainD_til(0,ii)*2.0*beta(0)*beta(2)+strainD_til(1,ii)*2.0*beta(3)*beta(5)+strainD_til(2,ii)*(beta(2)*beta(3)+beta(0)*beta(5))+strainD_til(3,ii)*2.0*beta(6)*beta(8)+strainD_til(4,ii)*(beta(2)*beta(6)+beta(0)*beta(8))+strainD_til(5,ii)*(beta(5)*beta(6)+beta(3)*beta(8));
 										strainD(5,ii)=strainD_til(0,ii)*2.0*beta(1)*beta(2)+strainD_til(1,ii)*2.0*beta(4)*beta(5)+strainD_til(2,ii)*(beta(2)*beta(4)+beta(1)*beta(5))+strainD_til(3,ii)*2.0*beta(7)*beta(8)+strainD_til(4,ii)*(beta(2)*beta(7)+beta(1)*beta(8))+strainD_til(5,ii)*(beta(5)*beta(7)+beta(4)*beta(8));
 									}
-									/// Gd (8x24) calculation
+									/// Gd (9x24) calculation
 									for(int ii=0;ii<8;ii++)
 									{
 										Gd(0,3*(ii)) = j0(0,0)*Nx(0,ii)+j0(1,0)*Ny(0,ii)+j0(2,0)*Nz(0,ii);
@@ -977,7 +1189,7 @@ public:
 									//////////////////////////////////////
 									/// Structural damping (6/23/2015) ///
 									//////////////////////////////////////
-									ChMatrixNM<double, 6,1> dstrain;
+						/*			ChMatrixNM<double, 6,1> dstrain;
 									dstrain.Reset();
 									int kk=0;
 									for(int ii=0;ii<8;ii++)
@@ -988,15 +1200,35 @@ public:
 										dstrain(3,0)+=(strainD(3,kk)*(*v)(ii,0))+(strainD(3,kk+1)*(*v)(ii,1))+(strainD(3,kk+2)*(*v)(ii,2));
 										dstrain(4,0)+=(strainD(4,kk)*(*v)(ii,0))+(strainD(4,kk+1)*(*v)(ii,1))+(strainD(4,kk+2)*(*v)(ii,2));
 										dstrain(5,0)+=(strainD(5,kk)*(*v)(ii,0))+(strainD(5,kk+1)*(*v)(ii,1))+(strainD(5,kk+2)*(*v)(ii,2));
-										kk+=3;
+										kk=kk+3;
 									}
-									kk=0;
-									dstrain=dstrain*(element->GetAlphaDamp());
-									double DampCoefficient = dt*gammaHHT;
+									kk=0;*/
+						            /// Strain time derivative for structural damping
+									ChMatrixNM<double, 6,1>   DEPS;
+									DEPS.Reset();
+									for(int ii=0;ii<24;ii++)
+									{
+										DEPS(0,0)=DEPS(0,0)+strainD(0,ii)*((*d_dt)(ii,0));
+										DEPS(1,0)=DEPS(1,0)+strainD(1,ii)*((*d_dt)(ii,0));
+										DEPS(2,0)=DEPS(2,0)+strainD(2,ii)*((*d_dt)(ii,0));
+										DEPS(3,0)=DEPS(3,0)+strainD(3,ii)*((*d_dt)(ii,0));
+										DEPS(4,0)=DEPS(4,0)+strainD(4,ii)*((*d_dt)(ii,0));
+										DEPS(5,0)=DEPS(5,0)+strainD(5,ii)*((*d_dt)(ii,0));
+									}
+									//dstrain=dstrain*(element->GetAlphaDamp());
+									double DampCoefficient = gammaHHT/(betaHHT*element->Getdt());//dt*gammaHHT;
+									//GetLog() << DampCoefficient << "\n";
 									//if((*v)(0,0)!=0.0){
 									//GetLog()<<dstrain<<"\n"<<strain<<"\n"<<*v<<"\n";
-									//system("pause");}
-									strain-=dstrain;
+									//system("pause");
+									//strain+=dstrain*(element->GetAlphaDamp());
+									///////////////////////////////////
+									/// Add structural damping      ///
+									///////////////////////////////////
+									double stdamp=element->GetAlphaDamp();
+									DEPS*=stdamp;
+									strain +=  DEPS;
+									
 									/// Stress tensor calculation
 									stress.MatrMultiply(*E_eps,strain);
 									Sigm(0,0)=stress(0,0); //XX
@@ -1038,9 +1270,13 @@ public:
 									/// Jacobian calculation ///
 									temp246.MatrTMultiply(strainD,*E_eps);
 									temp249.MatrTMultiply(Gd,Sigm);
+									//GetLog()<<element->GetAlphaDamp()<<"\n";
+									//GetLog() << DampCoefficient<<"\n";
+									//system("pause");
 									JAC11=(temp246*strainD*(1.0+DampCoefficient*(element->GetAlphaDamp())))+temp249*Gd;
 									JAC11*=detJ0*(element->GetLengthX()/2.0)*(element->GetLengthY()/2.0)*(element->GetThickness()/2.0);
-
+									//GetLog()<<(1.0+DampCoefficient*(element->GetAlphaDamp()))<<"\n";
+									//system("pause");
 									/// Internal force calculation ///
 									tempC.MatrTMultiply(strainD,*E_eps);
 									Fint.MatrMultiply(tempC,strain);
@@ -1141,7 +1377,8 @@ public:
 								//GetLog() << "T0" << T0 << "\n\n";
 								MyForce myformula;
 								myformula.d = &d;
-								myformula.v = &v;
+								//myformula.v = &v;
+								myformula.d_dt = &d_dt; // For Structural Damping
 								myformula.strain_ans = &strain_ans;
 								myformula.strainD_ans = &strainD_ans;
 								myformula.d0 = &d0;
@@ -1250,108 +1487,12 @@ public:
 
 							}
 						}
-					
-					
 
-						//Add gravity force
-						class MyGravity : public ChIntegrable3D< ChMatrixNM<double,24,1> >
-						{
-						public:
-							ChElementShellANCF* element;
-							ChMatrixNM<double, 8,3> *d0;
-							ChMatrixNM<double, 3,24> S;
-							ChMatrixNM<double, 1,8> N;
-							ChMatrixNM<double, 1,8> Nx;
-							ChMatrixNM<double, 1,8> Ny;
-							ChMatrixNM<double, 1,8> Nz;
-							ChMatrixNM<double, 3,1> LocalGravityForce;
-
-							virtual void Evaluate(ChMatrixNM<double,24,1>& result, const double x, const double y, const double z)
-							{
-								element->ShapeFunctions(N, x, y, z);
-								element->ShapeFunctionsDerivativeX(Nx, x, y, z);
-								element->ShapeFunctionsDerivativeY(Ny, x, y, z);
-								element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
-							
-								// Weights for Gaussian integration
-								double wx2 = (element->GetLengthX())/2.0;
-								double wy2 = (element->GetLengthY())/2.0;
-								double wz2 = (element->GetThickness())/2.0;
-
-								//Set gravity acceleration
-								LocalGravityForce(0,0) = 0.0;
-								LocalGravityForce(1,0) = 0.0;
-								LocalGravityForce(2,0) = -9.81;
-
-								// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
-								ChMatrix33<> Si;
-								Si.FillDiag(N(0));
-								S.PasteMatrix(&Si, 0,0);
-								Si.FillDiag(N(1));
-								S.PasteMatrix(&Si, 0,3);
-								Si.FillDiag(N(2));
-								S.PasteMatrix(&Si, 0,6);
-								Si.FillDiag(N(3));
-								S.PasteMatrix(&Si, 0,9);
-								Si.FillDiag(N(4));
-								S.PasteMatrix(&Si, 0,12);
-								Si.FillDiag(N(5));
-								S.PasteMatrix(&Si, 0,15);
-								Si.FillDiag(N(6));
-								S.PasteMatrix(&Si, 0,18);
-								Si.FillDiag(N(7));
-								S.PasteMatrix(&Si, 0,21);
-
-								ChMatrixNM<double, 1,3> Nx_d0;
-								Nx_d0.MatrMultiply(Nx,*d0);
-
-								ChMatrixNM<double, 1,3> Ny_d0;
-								Ny_d0.MatrMultiply(Ny,*d0);
-
-								ChMatrixNM<double, 1,3> Nz_d0;
-								Nz_d0.MatrMultiply(Nz,*d0);
-
-								ChMatrixNM<double, 3,3> rd0;
-								rd0(0,0) = Nx_d0(0,0); rd0(1,0) = Nx_d0(0,1); rd0(2,0) = Nx_d0(0,2);
-								rd0(0,1) = Ny_d0(0,0); rd0(1,1) = Ny_d0(0,1); rd0(2,1) = Ny_d0(0,2);
-								rd0(0,2) = Nz_d0(0,0); rd0(1,2) = Nz_d0(0,1); rd0(2,2) = Nz_d0(0,2);
-
-								double detJ0 = rd0.Det();
-
-								result.MatrTMultiply(S,LocalGravityForce);
-
-								result *= detJ0*wx2*wy2*wz2; //*(element->Material->Get_density()); // 5/28/2015
-							}
-						};
-
-						MyGravity myformula1;
-						myformula1.d0 = &d0;
-						myformula1.element = this;
-
-						ChMatrixNM<double, 24,1> Fgravity;
-						ChQuadrature::Integrate3D< ChMatrixNM<double,24,1> >(
-										Fgravity,				// result of integration will go there
-										myformula1,			// formula to integrate
-										-1,					// start of x
-										1,					// end of x
-										-1,					// start of y
-										1,					// end of y
-										GaussZRange1(kl,0),					// start of z
-										GaussZRange1(kl,1),					// end of z
-										2					// order of integration
-										);
 						
-						Fgravity *= rho;   // 5/28/2015
 
-						//GetLog() << "Fgravity" << "\n\n";
-						//for(int iii=0;iii<24;iii++){
-						//   GetLog() << Fgravity(iii) << "\n";
-						//}
-						//system("pause");
-						TempInternalForce += Fgravity;
-
-						if(kl==1)
+						if(kl==0)
 						{
+							
 							//Add Tire Air Pressure force
 							class MyAirPressure : public ChIntegrable2D< ChMatrixNM<double,24,1> >
 							{
@@ -1380,8 +1521,12 @@ public:
 									double wy2 = (element->GetLengthY())/2.0;
 
 									//Set Air Pressure
-									double Pressure0=0.0; // 220 KPa
-
+									double Pressure0;
+									if(element->GetAirPressure()==0){
+									    Pressure0=0000.0; // 220 KPa
+									}else if(element->GetAirPressure()==1){
+										Pressure0=220.0*1000.0; // 220 KPa
+									}
 									// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
 									ChMatrix33<> Si;
 									Si.FillDiag(N(0));
@@ -1468,7 +1613,8 @@ public:
 							TempInternalForce += Fpressure;
 						}
 					} // Layer Loop
-					Fi = TempInternalForce; 
+					TempInternalForce += this->GetGravForce();
+					Fi = TempInternalForce;
 
 				}
 
@@ -1533,7 +1679,7 @@ public:
 						ShapeFunctionsDerivativeY(Ny, temp_knot(kk,0), temp_knot(kk,1), temp_knot(kk,2));
 						ShapeFunctionsDerivativeZ(Nz, temp_knot(kk,0), temp_knot(kk,1), temp_knot(kk,2));
 
-						// Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)...]
+						// Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
 						ChMatrix33<> Sxi;
 						Sxi.FillDiag(Nx(0));
 						Sx.PasteMatrix(&Sxi, 0,0);
@@ -1828,6 +1974,38 @@ public:
 			  }
 			}
 		}
+	//// Temporary function of LU decomposition 1
+	//virtual void LUBKSB55(ChMatrixNM<double,5,5>&A,double N,double NP,ChMatrixNM<int,5,1>& INDX,ChMatrixNM<double,5,1>& B){
+	//		int II=0;
+	//		for (int I=0;I<N;I++){
+	//		  int LL=INDX(I);
+	//		  double SUM=B(LL);
+	//		  B(LL)=B(I);
+	//		  if(II!=0){
+	//		  for (int J=II;J<I-1;J++){
+	//		    SUM=SUM-A(I,J)*B(J);
+	//		  }
+	//		  }else if(SUM!=0.0){
+	//		    II=I;                
+	//		  }
+	//		  B(I)=SUM;
+	//		}
+	//		
+	//	    for(int I=N-1;I>-1;I--){
+	//		  double SUM=B(I);
+	//		 // if(I<N-1){
+	//		 //   for( int J=I+1;J<N-1;J++){
+	//		 //      SUM=SUM-A(I,J)*B(J);
+	//			//}
+	//		 // }
+	//		  if(I<N){
+	//		    for( int J=I+1;J<N;J++){
+	//		       SUM=SUM-A(I,J)*B(J);
+	//			}
+	//		  }
+	//		B(I)=SUM/A(I,I);
+	//		}
+	//}
 	virtual void LUBKSB55(ChMatrixNM<double,5,5>&A,double N,double NP,ChMatrixNM<int,5,1>& INDX,ChMatrixNM<double,5,1>& B){
 			int II=0;
 			int LL;
@@ -1854,6 +2032,73 @@ public:
 			  B(I)=SUM/A(I,I);
 			}
 	}
+	// Temporary function of LU decomposition 2
+	//virtual void LUDCMP55(ChMatrixNM<double,5,5>&A,double N,double NP,ChMatrixNM<int,5,1>& INDX,double D){
+ //     int NMAX=3000;
+	//  double TINY1=1.0e-20;
+	//  ChMatrixNM<double,3000,1> VV; 
+ //     D=1.0;
+ //     for(int I=0;I<N;I++){
+ //       double AAMAX=0.0;
+ //       for(int J=0;J<N;J++){
+	//		if((abs(A(I,J)))>AAMAX){AAMAX=(abs(A(I,J)));};
+	//	}
+	//	if(AAMAX==0.0){ GetLog() <<"SINGULAR MATRIX."; system("pause"); }
+ //       VV(I)=1.0/AAMAX;     
+	//  }
+
+ //     for(int J=0;J<N;J++){          
+ //         if(J>0){       
+	//		  for(int I=0;I<J-1;I++){        
+	//			  double SUM=A(I,J);         
+	//			  if(I>0){       
+	//				  for(int K=0;K<I-1;K++){        
+	//				    SUM=SUM-A(I,K)*A(K,J); 
+	//				  }
+	//				  A(I,J)=SUM;          
+	//			  }              
+	//		  }
+	//	  }
+
+ //     double AAMAX=0.0;           
+	//  int IMAX;
+	//  for(int I=J;I<N;I++){          
+	//	  double SUM=A(I,J);            
+	//	  if(J>0){       
+	//		  for (int K=0;K<J-1;K++){        
+	//		    SUM=SUM-A(I,K)*A(K,J); 
+	//		  }
+	//		  A(I,J)=SUM; 
+	//	  }                 
+	//	  double DUM=VV(I)*(abs(SUM)); 
+	//	  if(DUM>=AAMAX){ 
+	//		  IMAX=I;                
+	//		  AAMAX=DUM;             
+	//	  }
+	//  }
+
+ //     if(J!=IMAX){    
+	//	  for(int K=0;K<N;K++){          
+	//		  double DUM=A(IMAX,K);         
+	//		  A(IMAX,K)=A(J,K);      
+	//		  A(J,K)=DUM;     
+	//	  }
+	//	  D=-D;       
+	//	  VV(IMAX)=VV(J);        
+	//  }
+
+ //     INDX(J)=IMAX;          
+ //     if(J!=N){       
+	//	  if(A(J,J)==0.0){A(J,J)=TINY1;}
+	//	  double DUM=1./A(J,J);                
+	//	  for(int I=J+1;I<N;I++){                 
+	//	    A(I,J)=A(I,J)*DUM;              
+	//	  }
+	//  }
+	//  }
+
+	//  if(A(N,N)==0.0){A(N,N)=TINY1;} 
+	//}
 	virtual void LUDCMP55(ChMatrixNM<double,5,5>&A,double N,double NP,ChMatrixNM<int,5,1>& INDX,double D){
       int NMAX=3000;
 	  double AAMAX;
