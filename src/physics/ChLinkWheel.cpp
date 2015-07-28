@@ -40,9 +40,6 @@ extern "C" {
 
 #include "physics/ChLinkWheel.h"
 #include "physics/ChSystem.h"
-//#include "physics/ChCollide.h"
-//#include "lcp/ChLcpConstraintTwoFrictionOrtho.h"
-//#include "lcp/ChLcpConstraintTwoFrictionApprox.h"
 
 namespace chrono {
 
