@@ -855,10 +855,6 @@ include_directories( ${CH_INCLUDES} )
         lcp/ChLcpConstraintTwoGeneric.cpp
         lcp/ChLcpConstraintTwoGenericBoxed.cpp
         lcp/ChLcpConstraintTwoBodies.cpp
-        lcp/ChLcpConstraintTwoFrictionT.cpp
-        lcp/ChLcpConstraintTwoContactN.cpp
-        lcp/ChLcpConstraintTwoRollingT.cpp
-        lcp/ChLcpConstraintTwoRollingN.cpp
         lcp/ChLcpConstraintNodeFrictionT.cpp
         lcp/ChLcpConstraintNodeContactN.cpp
         lcp/ChLcpConstraintThree.cpp
@@ -884,12 +880,8 @@ include_directories( ${CH_INCLUDES} )
         lcp/ChLcpConstraintThreeGeneric.h
         lcp/ChLcpConstraintTwo.h
         lcp/ChLcpConstraintTwoBodies.h
-        lcp/ChLcpConstraintTwoContactN.h
-        lcp/ChLcpConstraintTwoFrictionT.h
         lcp/ChLcpConstraintTwoGeneric.h
         lcp/ChLcpConstraintTwoGenericBoxed.h
-        lcp/ChLcpConstraintTwoRollingN.h
-        lcp/ChLcpConstraintTwoRollingT.h
         lcp/ChLcpConstraintTuple.h
         lcp/ChLcpConstraintTwoTuples.h
         lcp/ChLcpConstraintTwoTuplesContactN.h
