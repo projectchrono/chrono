@@ -23,7 +23,6 @@
 ///////////////////////////////////////////////////
 
 #include "ChLcpIterativePMINRES.h"
-#include "ChLcpConstraintTwoFrictionT.h"
 
 namespace chrono {
 

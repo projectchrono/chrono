@@ -23,7 +23,6 @@
 ///////////////////////////////////////////////////
 
 #include "ChLcpSystemDescriptor.h"
-#include "ChLcpConstraintTwoFrictionT.h"
 #include "ChLcpConstraintTwoTuplesContactN.h"
 #include "ChLcpConstraintTwoTuplesFrictionT.h"
 
@@ -222,7 +221,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Z,
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
             if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
-                if (!((dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic])) && skip_contacts_uv)) {
+            if (!((dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) && skip_contacts_uv)) {
                     mn_c++;
                 }
     }
@@ -234,8 +233,8 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Z,
 
     // Reset and resize (if needed) auxiliary vectors
 
-	if (Z)
-		Z->Reset(n_q + mn_c, n_q + mn_c);
+    if (Z)
+        Z->Reset(n_q + mn_c, n_q + mn_c);
 
     if (rhs)
         rhs->Reset(n_q + mn_c, 1);
@@ -264,37 +263,33 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Z,
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
             if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
-                if (!((dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic])) && skip_contacts_uv)) {
-                    if (Z){
-                        mconstraints[ic]->Build_Cq(*Z, n_q + s_c);  // .. fills Z with constraints (lower left corner)
-						mconstraints[ic]->Build_CqT(*Z, n_q + s_c);  // .. fills Z with constraints (upper right corner)
-						Z->SetElement(n_q + s_c, n_q + s_c, mconstraints[ic]->Get_cfm_i()); // .. fills Z with -E ( = cfm ) (lower right corner)
-                    };
+                if (!((dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) && skip_contacts_uv)) {
+                    if (Z) {
+                        mconstraints[ic]->Build_Cq(*Z, n_q + s_c);   // .. fills Z with constraints (lower left corner)
+                        mconstraints[ic]->Build_CqT(*Z, n_q + s_c);  // .. fills Z with constraints (upper right corner)
+                        Z->SetElement(
+                            n_q + s_c, n_q + s_c,
+                            mconstraints[ic]->Get_cfm_i());  // .. fills Z with -E ( = cfm ) (lower right corner)
+                    }
                     if (rhs)
-                        (*rhs)(n_q + s_c) = - (mconstraints[ic]->Get_b_i());  // .. fills 'rhs' with '-b' in the lower section
+                        (*rhs)(n_q + s_c) =
+                            -(mconstraints[ic]->Get_b_i());  // .. fills 'rhs' with '-b' in the lower section
 
                     s_c++;
                 }
     }
 }
 
-
-
-
 void ChLcpSystemDescriptor::BuildMatrices(ChSparseMatrixBase* Cq,
-	ChSparseMatrixBase* M,
+                                          ChSparseMatrixBase* M,
                                           bool only_bilaterals,
                                           bool skip_contacts_uv) {
     this->ConvertToMatrixForm(Cq, M, 0, 0, 0, 0, only_bilaterals, skip_contacts_uv);
 }
 
-void ChLcpSystemDescriptor::BuildVectors(ChMatrix<>* f,
-											ChMatrix<>* b,
-                                         bool only_bilaterals,
-                                         bool skip_contacts_uv) {
-	this->ConvertToMatrixForm(0, 0, 0, f, b, 0, only_bilaterals, skip_contacts_uv);
+void ChLcpSystemDescriptor::BuildVectors(ChMatrix<>* f, ChMatrix<>* b, bool only_bilaterals, bool skip_contacts_uv) {
+    this->ConvertToMatrixForm(0, 0, 0, f, b, 0, only_bilaterals, skip_contacts_uv);
 }
-
 
 void ChLcpSystemDescriptor::DumpLastMatrices(const char* path) {
     char filename[300];

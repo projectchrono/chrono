@@ -23,7 +23,6 @@
 
 #include "ChLcpIterativeSORmultithread.h"
 #include "parallel/ChThreadsSync.h"
-#include "ChLcpConstraintTwoFrictionT.h"
 #include "ChLcpConstraintTwoTuplesFrictionT.h"
 #include "ChLcpConstraintTwoTuplesRollingN.h"
 #include "ChLcpConstraintTwoTuplesRollingT.h"
