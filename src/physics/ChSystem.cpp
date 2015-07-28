@@ -30,7 +30,6 @@
 #include "physics/ChSystem.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChBodyAuxRef.h"
-#include "physics/ChContactContainer__old.h"
 #include "physics/ChContactContainerDVI.h"
 #include "physics/ChProximityContainerBase.h"
 
@@ -256,7 +255,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     this->contact_container = 0;
     // default contact container
     if (init_sys) {
-        //this->contact_container = new ChContactContainer__old(); //***OBSOLETE***
         this->contact_container = new ChContactContainerDVI();
         this->contact_container->SetSystem(this);
     }

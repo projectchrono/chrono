@@ -27,7 +27,6 @@
 ///////////////////////////////////////////////////
 
 #include "physics/ChPhysicsItem.h"
-#include "physics/ChContact.h"
 #include "physics/ChMaterialCouple.h"
 #include "collision/ChCCollisionInfo.h"
 
@@ -104,7 +103,7 @@ class ChApi ChReportContactCallback2 {
 ///
 /// Class representing a container of many contacts.
 /// There might be implementations of this interface
-/// in form of plain CPU linked lists of ChContact objects,
+/// in form of plain CPU linked lists of contact objects,
 /// or highly optimized GPU buffers, etc. etc.
 /// This is only the basic interface with the features that are in common.
 ///

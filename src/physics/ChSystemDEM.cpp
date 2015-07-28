@@ -12,7 +12,6 @@
 
 #include "physics/ChSystemDEM.h"
 #include "physics/ChContactContainerDEM.h"
-#include "physics/ChContactContainerDEM__old.h"
 
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpSolverDEM.h"

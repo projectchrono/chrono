@@ -453,7 +453,7 @@ void ChContactContainerDVI::ConstraintsBiLoad_C(double factor, double recovery_c
 
 
 void ChContactContainerDVI::ConstraintsLoadJacobians() {
-    // already loaded when ChContact objects are created
+    // already loaded when contact objects are created
 }
 
 

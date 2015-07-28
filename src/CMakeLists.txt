@@ -320,9 +320,9 @@ include_directories( ${CH_INCLUDES} )
         core/ChWrapHashmap.h
         core/ChDistribution.h
         core/ChQuadrature.h
-		core/ChTemplateExpressions.h
-		)
-		
+        core/ChTemplateExpressions.h
+        )
+
 
     list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")
 
@@ -331,15 +331,13 @@ include_directories( ${CH_INCLUDES} )
         ${ChronoEngine_core_HEADERS}
         )
 
-
-		
     set(ChronoEngine_serialization_SOURCES
         )
     set(ChronoEngine_serialization_HEADERS
         serialization/ChArchive.h
-		serialization/ChArchiveBinary.h
-		serialization/ChArchiveAsciiDump.h
-		serialization/ChArchiveJSON.h
+        serialization/ChArchiveBinary.h
+        serialization/ChArchiveAsciiDump.h
+        serialization/ChArchiveJSON.h
         )
 
     source_group(serialization FILES
@@ -407,8 +405,7 @@ include_directories( ${CH_INCLUDES} )
         physics/ChContactRolling.cpp
         physics/ChContactNode.cpp
         physics/ChContactContainerBase.cpp
-        physics/ChContactContainer__old.cpp
-		physics/ChContactContainerDVI.cpp
+        physics/ChContactContainerDVI.cpp
         physics/ChContactContainerNodes.cpp
         physics/ChProximityContainerBase.cpp
         physics/ChProximityContainerSPH.cpp
@@ -430,10 +427,8 @@ include_directories( ${CH_INCLUDES} )
         physics/ChAssembly.cpp
         physics/ChSystemDEM.cpp
         physics/ChContactContainerDEM.cpp
-		physics/ChContactContainerDEM__old.cpp
-        physics/ChContactDEM__old.cpp
         physics/ChMaterialSurfaceDEM.cpp
-		physics/ChMaterialSurface.cpp
+        physics/ChMaterialSurface.cpp
         physics/ChContinuumMaterial.cpp
         )
     set(ChronoEngine_physics_HEADERS
@@ -443,8 +438,7 @@ include_directories( ${CH_INCLUDES} )
         physics/ChBodyEasy.h
         physics/ChConstraint.h
         physics/ChContact.h
-        physics/ChContactContainer__old.h
-		physics/ChContactContainerDVI.h
+        physics/ChContactContainerDVI.h
         physics/ChContactContainerBase.h
         physics/ChContactContainerNodes.h
         physics/ChContactNode.h
@@ -530,16 +524,14 @@ include_directories( ${CH_INCLUDES} )
         physics/ChAssembly.h
         physics/ChSystemDEM.h
         physics/ChContactContainerDEM.h
-		physics/ChContactContainerDEM__old.h
         physics/ChContactDEM.h
-		physics/ChContactDEM__old.h
-		physics/ChContactDVI.h
-		physics/ChContactDVIrolling.h
+        physics/ChContactDVI.h
+        physics/ChContactDVIrolling.h
         physics/ChTensors.h
         physics/ChContinuumMaterial.h
         physics/ChInertiaUtils.h
-		physics/ChContactable.h
-		physics/ChContactTuple.h
+        physics/ChContactable.h
+        physics/ChContactTuple.h
         )
     source_group(physics FILES
         ${ChronoEngine_physics_SOURCES}
@@ -556,13 +548,13 @@ include_directories( ${CH_INCLUDES} )
         geometry/ChCCylinder.cpp
         geometry/ChCCapsule.cpp
         geometry/ChCLine.cpp
-		geometry/ChCLineArc.cpp
-		geometry/ChCLineSegment.cpp
-		geometry/ChCLinePath.cpp
+        geometry/ChCLineArc.cpp
+        geometry/ChCLineSegment.cpp
+        geometry/ChCLinePath.cpp
         geometry/ChCLineCam.cpp
         geometry/ChCLinePoly.cpp
         geometry/ChCTriangle.cpp
-		geometry/ChCTriangleMeshSoup.cpp
+        geometry/ChCTriangleMeshSoup.cpp
         geometry/ChCTriangleMeshConnected.cpp
         geometry/ChCRoundedBox.cpp
         geometry/ChCRoundedCylinder.cpp
@@ -610,7 +602,7 @@ include_directories( ${CH_INCLUDES} )
         assets/ChTexture.cpp
         assets/ChCamera.cpp
         assets/ChAssetLevel.cpp
-		assets/ChColor.cpp
+        assets/ChColor.cpp
         assets/ChGlyphs.cpp
         assets/ChColorAsset.cpp
         assets/ChRoundedCylinderShape.cpp
@@ -902,12 +894,12 @@ include_directories( ${CH_INCLUDES} )
         lcp/ChLcpConstraintTwoGenericBoxed.h
         lcp/ChLcpConstraintTwoRollingN.h
         lcp/ChLcpConstraintTwoRollingT.h
-		lcp/ChLcpConstraintTuple.h
-		lcp/ChLcpConstraintTwoTuples.h
-		lcp/ChLcpConstraintTwoTuplesContactN.h
-		lcp/ChLcpConstraintTwoTuplesFrictionT.h
-		lcp/ChLcpConstraintTwoTuplesRollingN.h
-		lcp/ChLcpConstraintTwoTuplesRollingT.h
+        lcp/ChLcpConstraintTuple.h
+        lcp/ChLcpConstraintTwoTuples.h
+        lcp/ChLcpConstraintTwoTuplesContactN.h
+        lcp/ChLcpConstraintTwoTuplesFrictionT.h
+        lcp/ChLcpConstraintTwoTuplesRollingN.h
+        lcp/ChLcpConstraintTwoTuplesRollingT.h
         lcp/ChLcpDirectSolver.h
         lcp/ChLcpIterativeJacobi.h
         lcp/ChLcpIterativeMINRES.h
@@ -1136,7 +1128,7 @@ include_directories( ${CH_INCLUDES} )
     set(ChronoEngine_FILES
         ${ChronoEngine_core_SOURCES}
         ${ChronoEngine_core_HEADERS}
-		${ChronoEngine_serialization_SOURCES}
+        ${ChronoEngine_serialization_SOURCES}
         ${ChronoEngine_serialization_HEADERS}
         ${ChronoEngine_physics_SOURCES}
         ${ChronoEngine_physics_HEADERS}
