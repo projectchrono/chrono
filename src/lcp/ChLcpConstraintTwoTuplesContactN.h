@@ -46,7 +46,7 @@ protected:
 ///  This class is inherited by the ChLcpConstraintTwoTuples(),
 /// It is used to represent the normal reaction between two objects,
 /// each represented by a tuple of ChVariables objects,
-/// ONLY when also two ChLcpConstraintTwoFrictionT objects are
+/// ONLY when also two ChLcpConstraintTwoTuplesFrictionT objects are
 /// used to represent friction. (If these two tangent constraint
 /// are not used, for frictionless case, please use a simple ChConstraintTwo
 /// with the CONSTRAINT_UNILATERAL mode.)

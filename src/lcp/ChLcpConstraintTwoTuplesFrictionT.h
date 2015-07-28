@@ -79,4 +79,4 @@ class ChApi ChLcpConstraintTwoTuplesFrictionT :
 
 }  // END_OF_NAMESPACE____
 
-#endif  // END of ChLcpConstraintTwoFrictionT.h
+#endif
