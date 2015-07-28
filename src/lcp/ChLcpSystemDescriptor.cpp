@@ -26,8 +26,6 @@
 #include "ChLcpConstraintTwoFrictionT.h"
 #include "ChLcpConstraintTwoTuplesContactN.h"
 #include "ChLcpConstraintTwoTuplesFrictionT.h"
-#include "ChLcpConstraintTwoRollingN.h"
-#include "ChLcpConstraintTwoRollingT.h"
 
 namespace chrono {
 

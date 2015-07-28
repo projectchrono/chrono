@@ -3,7 +3,6 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 #include "physics/ChParticlesClones.h"
-#include "lcp/ChLcpConstraintTwoContactN.h"
 #include "collision/ChCModelBulletBody.h"
 #include "collision/ChCModelBulletParticle.h"
 
