@@ -434,7 +434,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper() {
         SetAlpha(-0.2);  // default: some dissipation
     };
-	int Iterations;
+
     /// Set the numerical damping parameter.
     /// It must be in the [-1/3, 0] interval.
     /// The closer to -1/3, the more damping.
@@ -448,47 +448,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
             alpha = 0;
         gamma = (1.0 - 2.0 * alpha) / 2.0;
         beta = pow((1.0 - alpha), 2) / 4.0;
-		/*GetLog() << alpha <<"\n"<<beta<<"\n"<<gamma<<"\n";
-		system("pause");*/
     }
-
-	//
-	// It is useful for getting steady solution especially for ANCF tire model. 
-	// This is only used for "position solution vector(HHTflag=2 or 3)" 
-	// Tolernce is usually set to 5e-5 in demo program.  (7/15/2015)
-	//
-	void ConvergenceViolationCheck(ChState& Xnew,ChVectorDynamic<>& L,ChStateDelta& Da,ChVectorDynamic<>& Dl,double &Err1,double &Err2,int HHTflag)
-	{
-			double Temp;
-			ChVectorDynamic<> TempVec;
-			// As for "Da" > Err1
-			if(HHTflag==2||HHTflag==3){
-			TempVec=Xnew+Da;
-			Temp=TempVec.NormTwo();
-			}else{
-				TempVec=Da;
-				Temp=1.0;
-			}
-			if(Temp<0.00000001){
-				Temp=1.0;
-			}
-			TempVec=Da;
-			Err1=TempVec.NormTwo()/Temp;
-			// As for "Dl" > Err2
-			if(HHTflag==2||HHTflag==3){
-			TempVec=L+Dl;
-			Temp=TempVec.NormTwo();
-			}else{
-				TempVec=Dl;
-				Temp=1.0;
-			}
-			if(Temp<0.00000001){
-				Temp=1.0;
-			}
-			TempVec=Dl;
-			Err2=TempVec.NormTwo()/Temp;
-
-	}
 
     double GetAlpha() { return alpha; }
 

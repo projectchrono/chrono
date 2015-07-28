@@ -662,14 +662,39 @@ class ChQuaternion {
     // STREAMING
     //
 
+    void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // stream out all member data
+        marchive << CHNVP(e0);
+        marchive << CHNVP(e1);
+        marchive << CHNVP(e2);
+        marchive << CHNVP(e3);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // stream in all member data
+        marchive >> CHNVP(e0);
+        marchive >> CHNVP(e1);
+        marchive >> CHNVP(e2);
+        marchive >> CHNVP(e3);
+    }
+
     /// Method to allow serializing transient data into ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
+    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutAscii& mstream) {
         mstream << "\n" << e0 << "\n" << e1 << "\n" << e2 << "\n" << e3 << "\n";
     }
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
+    /// ***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream) {
         mstream << e0;
         mstream << e1;
@@ -679,6 +704,7 @@ class ChQuaternion {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
+    /// ***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream) {
         mstream >> e0;
         mstream >> e1;

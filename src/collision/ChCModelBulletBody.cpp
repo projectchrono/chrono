@@ -25,12 +25,23 @@
 namespace chrono {
 namespace collision {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChModelBulletBody> a_registration_ChModelBulletBody;
+
 ChModelBulletBody::ChModelBulletBody() {
     mbody = 0;
 }
 
 ChModelBulletBody::~ChModelBulletBody() {
 }
+
+/// Sets the pointer to the client owner ChPhysicsItem.
+void ChModelBulletBody::SetPhysicsItem(ChPhysicsItem* mitem) { 
+        if (mbody = dynamic_cast<ChBody*>(mitem))
+            return;
+        else throw ChException("ERROR. ChModelBulletBody::SetPhysicsItem() must get an item of sub-class ChBody type.\n");
+};
 
 void ChModelBulletBody::SyncPosition() {
     ChBody* bpointer = GetBody();

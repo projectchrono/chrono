@@ -9,14 +9,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCTriangle.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <stdio.h>
 
@@ -27,7 +19,7 @@ namespace geometry {
 
 ChTriangle::ChTriangle() {
     p1 = p2 = p3 = VNULL;
-};
+}
 
 ChTriangle::ChTriangle(const ChVector<>& mp1, const ChVector<>& mp2, const ChVector<>& mp3) {
     p1 = mp1;
@@ -39,7 +31,7 @@ ChTriangle::ChTriangle(const ChTriangle& source) {
     Copy(&source);
 }
 
-ChTriangle::~ChTriangle(){};
+ChTriangle::~ChTriangle(){}
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
@@ -87,7 +79,7 @@ void ChTriangle::CovarianceMatrix(ChMatrix33<>& C) {
     C(0, 1) = p1.x * p1.y + p2.x * p2.y + p3.x * p3.y;
     C(0, 2) = p1.x * p1.z + p2.x * p2.z + p3.x * p3.z;
     C(1, 2) = p1.y * p1.z + p2.y * p2.z + p3.y * p3.z;
-};
+}
 
 bool ChTriangle::Normal(Vector& N) {
     Vector u;
@@ -106,7 +98,7 @@ bool ChTriangle::Normal(Vector& N) {
         return false;
 
     return true;
-};
+}
 
 bool ChTriangle::IsDegenerated() {
     Vector u = Vsub(p2, p1);

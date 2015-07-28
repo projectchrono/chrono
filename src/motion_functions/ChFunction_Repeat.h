@@ -74,8 +74,38 @@ class ChApi ChFunction_Repeat : public ChFunction {
     OPT_VARIABLES_START
     "window_start", "window_length", OPT_VARIABLES_END
 
-        void
-        StreamOUT(ChStreamOutAscii& mstream);
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChFunction::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(fa);
+        marchive << CHNVP(window_start);
+        marchive << CHNVP(window_length);
+    }
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChFunction::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(fa);
+        marchive >> CHNVP(window_start);
+        marchive >> CHNVP(window_length);
+    }
+
+    //***OBSOLETE***
+    void StreamOUT(ChStreamOutAscii& mstream);
     void StreamIN(ChStreamInBinary& mstream);
     void StreamOUT(ChStreamOutBinary& mstream);
 };

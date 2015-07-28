@@ -23,7 +23,7 @@ namespace geometry {
 #define CH_GEOCLASS_LINEPATH 20
 
 ///
-/// ARC
+/// PATH
 ///
 /// Geometric object representing an sequence of other ChLine objects,
 /// assuming they are concatenated properly, to have C0 continuity.
@@ -237,29 +237,40 @@ class ChApi ChLinePath : public ChLine {
     }
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    void StreamOUT(ChStreamOutBinary& mstream) {
-        // class version number
-        mstream.VersionWrite(1);
-
-        // serialize parent class too
-        ChLine::StreamOUT(mstream);
-
-        // stream out all member data
-        //**TODO**
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChLine::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(lines);
+        marchive << CHNVP(end_times);
+        marchive << CHNVP(durations);
     }
 
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChLine::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(lines);
+        marchive >> CHNVP(end_times);
+        marchive >> CHNVP(durations);
+    }
+
+    //***OBSOLETE***
+    void StreamOUT(ChStreamOutBinary& mstream) {   
+    }
+
+    //***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream) {
-        // class version number
-        int version = mstream.VersionRead();
-
-        // deserialize parent class too
-        ChLine::StreamIN(mstream);
-
-        // stream in all member data
-        //**TODO**
     }
 };
 

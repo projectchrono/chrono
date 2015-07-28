@@ -20,13 +20,17 @@
 
 #include "assets/ChAssetLevel.h"
 
-#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
-
 namespace chrono {
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChAssetLevel> a_registration_ChAssetLevel;
+
 
 void ChAssetLevel::Update() {
     for (unsigned int ia = 0; ia < this->assets.size(); ++ia)
         assets[ia]->Update();
 }
+
 
 }  // END_OF_NAMESPACE____

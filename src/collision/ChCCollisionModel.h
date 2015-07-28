@@ -40,7 +40,7 @@ namespace chrono {
 
 // forward references
 class ChPhysicsItem;
-class ChBody;
+
 
 namespace collision {
 /// Shape types that can be created.
@@ -69,6 +69,10 @@ enum ShapeType {
 ///
 
 class ChApi ChCollisionModel {
+
+    // Chrono RTTI, needed for serialization
+    CH_RTTI_ROOT(ChCollisionModel);
+
   public:
     ChCollisionModel();
 
@@ -217,6 +221,10 @@ class ChApi ChCollisionModel {
     /// MUST be implemented by child classes!
     virtual ChPhysicsItem* GetPhysicsItem() = 0;
 
+    /// Gets the pointer to the client owner ChPhysicsItem.
+    /// MUST be implemented by child classes!
+    virtual void SetPhysicsItem(ChPhysicsItem* mitem) = 0;
+
     /// Sets the position and orientation of the collision
     /// model as the rigid body current position.
     /// MUST be implemented by child classes!
@@ -308,18 +316,41 @@ class ChApi ChCollisionModel {
     /// MUST be implemented by child classes!
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const = 0;
 
-    void SetBody(ChBody* mbo) { mbody = mbo; };
+    //void SetBody(ChBody* mbo) { mbody = mbo; }; // moved to ChModelBulletBody
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+
+        // serialize all member data:
+        marchive << CHNVP(model_envelope);
+        marchive << CHNVP(model_safe_margin);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+
+        // stream in all member data:
+        marchive >> CHNVP(model_envelope);
+        marchive >> CHNVP(model_safe_margin);
+    }
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
+    //***OBSOLETE***
     virtual void StreamIN(ChStreamInBinary& mstream);
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
+    //***OBSOLETE***
     virtual void StreamOUT(ChStreamOutBinary& mstream);
 
   protected:
@@ -332,7 +363,7 @@ class ChApi ChCollisionModel {
     // contact detection.
     float model_safe_margin;
 
-    ChBody* mbody;
+    //ChBody* mbody; //moved to ChModelBulletBody
 };
 
 }  // END_OF_NAMESPACE____

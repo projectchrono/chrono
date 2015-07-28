@@ -983,7 +983,7 @@ void dgMeshEffect::PackVertexArrays ()
 		m_attib = attibArray;
 		m_maxAtribCount = m_atribCount;
 	}
-};
+}
 
 
 void dgMeshEffect::AddPolygon (hacd::HaI32 count, const hacd::HaF64* const vertexList, hacd::HaI32 strideIndBytes, hacd::HaI32 material)

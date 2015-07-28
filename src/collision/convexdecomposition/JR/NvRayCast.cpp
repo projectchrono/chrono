@@ -149,5 +149,5 @@ void	  releaseRayCast(iRayCast *rc)
 	delete r;
 }
 
-};
+}
 

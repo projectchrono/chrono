@@ -28,9 +28,9 @@ namespace geometry {
 // dynamic creation and persistence
 ChClassRegister<ChGeometry> a_registration_ChGeometry;
 
-ChGeometry::ChGeometry(){};
+ChGeometry::ChGeometry(){}
 
-ChGeometry::~ChGeometry(){};
+ChGeometry::~ChGeometry(){}
 
 void ChGeometry::Derive(Vector& dir, const double parU, const double parV, const double parW) {
     double bdf = 10e-9;

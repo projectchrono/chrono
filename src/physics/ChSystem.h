@@ -76,7 +76,6 @@ class ChContactContainerBase;
 #define NORM_INF 0
 #define NORM_TWO 1
 #define STATIC_MAX_STEPS 35
-#define CHSYS_ERRLEN 200
 
 //////////////////////////////////////
 //  MULTIBODY SYSTEM CLASS
@@ -137,8 +136,6 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     }
     /// Gets the current time step used for the integration (dynamical simulation).
     double GetStep() { return step; }
-
-	int Iter;
 
     /// Sets the end of simulation.
     void SetEndTime(double m_end_time) { end_time = m_end_time; }
@@ -273,13 +270,6 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     /// Current maxi. number of iterations, if using an iterative LCP solver for stabilization.
     void SetIterLCPmaxItersStab(int mval) { iterLCPmaxItersStab = mval; }
 
-    /// If you use the LCP_SIMPLEX lcp solver (usually not suggested),
-    /// here you can set a limit on the number of simplex steps (n. of pivots).
-    /// Note: premature truncation of the simplex solver may cause big errors!.
-    /// Set as 0 for no limits on the number of iterations (but it may run forever!)
-    void SetSimplexLCPmaxSteps(int mval) { simplexLCPmaxSteps = mval; }
-    /// Limit on the number of simplex steps, if using LCP_SIMPLEX as LCP solver.
-    int GetSimplexLCPmaxSteps() { return simplexLCPmaxSteps; }
 
     /// If you want to easily turn ON/OFF the warm starting feature of both LCP iterative solvers
     /// (the one for speed and the other for pos.stabilization) you can simply use the
@@ -368,7 +358,7 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     /// Attach a link to this system. Must be an object of ChLink or derived classes.
     virtual void AddLink(ChSharedPtr<ChLink> newlink);
     void AddLink(ChLink* newlink);  // _internal use
-                                    /// Attach a ChPhysicsItem object that is not a body or link
+    /// Attach a ChPhysicsItem object that is not a body or link
     virtual void AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem);
     /// Attach a probe to this system.
     void AddProbe(ChSharedPtr<ChProbe>& newprobe);
@@ -600,15 +590,7 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
         timer_update.reset();
     }
 
-    /// Current warning/error (soon this function will be deprecated and obsolete)
-    char* GetErrMessage() { return err_message; }
-    /// Current warning/error code (soon this function will be deprecated and obsolete)
-    int GetLastErr() { return last_err; }
-    void ResetErrors() {
-        last_err = 0;
-        strcpy(err_message, "");
-    }
-
+    
     /// Gets the cyclic event buffer of this system (it can be used for
     /// debugging/profiling etc.)
     ChEvents* Get_events() { return events; }
@@ -816,9 +798,8 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     void SynchronizeLastCollPositions();
 
     /// Perform the collision detection.
-    /// For each contact, a ChLink object is created and inserted into
-    /// the linklist. Previous contacts, if existing in the linklist,
-    /// are deleted or replaced by the new ones.
+    /// New contacts are inserted in the ChContactContainer object(s), and
+    /// old are removed.
     /// This is mostly called automatically by time integration.
     double ComputeCollisions();
 
@@ -988,6 +969,16 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     int DoStaticRelaxing();
 
     //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
+
+    //
     // STREAMING
     //
 
@@ -1066,16 +1057,8 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     double tol;        // tolerance
     double tol_force;  // tolerance for forces (used to obtain a tolerance for impulses)
     int normtype;      // type of norm
-    int maxiter;       // max iterations for tolerance convergence
+    int maxiter;       // max iterations for nonlinear convergence in DoAssembly()
 
-    int predict;         // true = use prediction to guess if system is getting stiff
-    int modeXY;          // if =1, computes everything on XY plane, for simple bidimensional case.
-    double err_integr;   // current value of integration error -if err.extimation is supported by int.method-
-    double err_constr;   // current value of constraint violation error
-    int auto_assembly;   // keep system automatically assemblated when GUI modifies position of bodies (used by
-                         // interface)
-    int msteps_collide;  // maximum number of steps for bisection rule which rewinds the intgration at the collision
-                         // event //***DISABLED
     bool use_sleeping;   // if true, can put to sleep objects that come to rest, to speed up simulation (but decreasing
                          // the precision)
 
@@ -1098,7 +1081,7 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
 
     int parallel_thread_number;  // used for multithreaded solver etc.
 
-    int stepcount;  // internal counter for steps
+    size_t stepcount;  // internal counter for steps
 
     int nbodies;        // number of bodies (currently active)
     int nlinks;         // number of links
@@ -1125,7 +1108,6 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     ChCustomCollisionPointCallback* collisionpoint_callback;
 
   private:
-    char err_message[CHSYS_ERRLEN];  // the last ok/warning/error messages are written here
     int last_err;                    // If null, no error during last kinematic/dynamics/statics etc.
                                      // otherwise see CHSYS_ERR_xxxx  code
 

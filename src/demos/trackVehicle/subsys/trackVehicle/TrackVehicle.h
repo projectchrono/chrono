@@ -50,8 +50,11 @@ class CH_SUBSYS_API TrackVehicle : public ChTrackVehicle {
         const std::string& name,
         VisualizationType::Enum vis = VisualizationType::None,
         CollisionType::Enum collide = CollisionType::None,
-        double mass = 5489.2,                                                     // default for M113 APC
-        const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),             // default for M113 APC
+        double pin_damping_coef = 0.0,
+        double tensioner_preload = 1e5,
+        double mass = 5489.2,                                          // default for M113
+        const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),  // default for M113
+        const ChVector<>& COG_to_REF = ChVector<>(),
         const ChVector<>& left_pos_rel = ChVector<>(0.23644, -0.4780, 0.83475),   // relative to chassis REF c-sys
         const ChVector<>& right_pos_rel = ChVector<>(0.23644, -0.4780, -0.83475)  // relative to chassis REF c-sys
         );
@@ -64,7 +67,10 @@ class CH_SUBSYS_API TrackVehicle : public ChTrackVehicle {
     virtual void Initialize(const ChCoordsys<>& chassis_Csys);  ///< initial config of vehicle REF frame
 
     /// Update the vehicle with the new settings for throttle and brake
-    virtual void Update(double time, const std::vector<double>& throttle, const std::vector<double>& braking);
+    virtual void Update(double time,                          ///< [in] current time
+        const std::vector<double>& throttle,  ///< [in] current steering input [-1,+1]
+        const std::vector<double>& braking    ///< [in] current braking input [0,1]
+        );
 
     /// Advance the vehicle (and the ChSystem)
     virtual void Advance(double step);
@@ -78,7 +84,7 @@ class CH_SUBSYS_API TrackVehicle : public ChTrackVehicle {
     virtual double GetDriveshaftSpeed(size_t idx) const;
 
     /// pointer to the powertrain
-    virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const;
+    virtual ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const;
 
     /// current value of the integration step size for the vehicle system.
     double GetStepsize() const { return m_stepsize; }
@@ -86,23 +92,16 @@ class CH_SUBSYS_API TrackVehicle : public ChTrackVehicle {
     /// number of track chain systems attached to the vehicle
     int GetNum_TrackSystems() const { return m_num_tracks; }
 
-    // not really relevant, since it's a static system
-    // ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
-
   private:
     // private variables
     std::vector<ChVector<> > m_TrackSystem_locs;  ///< location of each tracksystem, relative to chassis REF c-sys
     std::vector<ChSharedPtr<TrackSystem> > m_TrackSystems;  ///< handles to track systems
-    const ChVector<> m_trackSys_L;  ///< where to place left track system origin, relative to chassis REF c-sys
-    const ChVector<> m_trackSys_R;  ///< where to place right track system origin, relative to chassis REF c-sys
-    const size_t m_num_tracks;      ///< how many track systems to build
+
+    const size_t m_num_tracks;  ///< how many track systems to build
     double m_pin_damping;
+    const double m_tensioner_preload;
 
     // static variables
-    static const double mass_override;         // override chassis mass input
-    static const ChVector<> COM_override;      // location of the chassis COM in the local ref frame
-    static const ChVector<> inertia_override;  // symmetric moments of inertia of the chassis
-
     static const ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
 };
 

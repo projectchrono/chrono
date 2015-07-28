@@ -221,4 +221,4 @@ void        releaseSplitMesh(iSplitMesh *splitMesh)
 	delete sm;
 }
 
-}; // end of namespace
+} // end of namespace

@@ -134,7 +134,37 @@ class ChApi ChLcpVariablesBodyOwnMass : public ChLcpVariablesBody {
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
     /// Optimised: doesn't fill unneeded elements except mass and 3x3 inertia.
-    void Build_M(ChSparseMatrix& storage, int insrow, int inscol);
+	void Build_M(ChSparseMatrixBase& storage, int insrow, int inscol);
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChLcpVariablesBody::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(mass);
+        marchive << CHNVP(inertia);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChLcpVariablesBody::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(mass);
+        marchive >> CHNVP(inertia);
+        SetBodyMass(mass);
+        SetBodyInertia(inertia);
+    }
 };
 
 }  // END_OF_NAMESPACE____

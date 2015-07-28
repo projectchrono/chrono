@@ -249,4 +249,4 @@ NxF32 computeConcavityVolume(NxU32 vcount_hull,
 	return total_volume;
 }
 
-}; // end of namespace
+} // end of namespace

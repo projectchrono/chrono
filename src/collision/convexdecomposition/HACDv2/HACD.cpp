@@ -252,7 +252,7 @@ HACD_API * createHACD_API(void)
 }
 
 
-};
+}
 
 
 

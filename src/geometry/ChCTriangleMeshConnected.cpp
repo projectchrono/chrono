@@ -10,14 +10,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCTriangleMeshConnected.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <stdio.h>
 
@@ -25,6 +17,11 @@
 
 namespace chrono {
 namespace geometry {
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTriangleMeshConnected> a_registration_ChTriangleMeshConnected;
+
 
 // NOTE!!!
 // THE FOLLOWING CODE IS MODIFIED BY A.TASORA TO MATCH SOME
@@ -736,7 +733,7 @@ class BuildMesh : public GeometryInterface {
     FloatVector mTexCoords;
     IntVector mIndices;
 };
-};
+}
 
 // Following function is a modified version of:
 

@@ -122,8 +122,8 @@ int ChFunction::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
     int i = 0;
     while (*(mvars + i) != 0) {
         chjs_propdata* mdata = new chjs_propdata;
-        strcpy(mdata->propname, *(mvars + i));
-        strcpy(mdata->label, *(mvars + i));
+        strncpy(mdata->propname, *(mvars + i), sizeof(mdata->propname)-1);
+        strncpy(mdata->label, *(mvars + i), sizeof(mdata->label)-1);
         mdata->haschildren = FALSE;
         mtree->AddTail(mdata);
         i++;
@@ -192,9 +192,28 @@ int ChFunction::OptVariableCount() {
     MakeOptVariableTree(&mtree);
     VariableTreeToFullNameVar(&mtree, &mlist);
     return mlist.Count();
-};
+}
 
 ////////////
+
+void ChFunction::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    //ChShared::ArchiveOUT(marchive);
+    // serialize all member data:
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChFunction::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    //ChShared::ArchiveIN(marchive);
+    // stream in all member data:
+}
 
 void ChFunction::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number

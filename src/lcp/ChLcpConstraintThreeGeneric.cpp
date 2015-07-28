@@ -24,8 +24,6 @@
 
 #include "ChLcpConstraintThreeGeneric.h"
 
-#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
-
 namespace chrono {
 
 // Register into the object factory, to enable run-time
@@ -157,7 +155,7 @@ void ChLcpConstraintThreeGeneric::SetVariables(ChLcpVariables* mvariables_a,
         if (!Cq_c)
             Cq_c = new ChMatrixDynamic<float>(1, variables_c->Get_ndof());
         else
-            Cq_b->Resize(1, variables_c->Get_ndof());
+            Cq_c->Resize(1, variables_c->Get_ndof());
 
         if (!Eq_c)
             Eq_c = new ChMatrixDynamic<float>(variables_c->Get_ndof(), 1);
@@ -217,7 +215,7 @@ void ChLcpConstraintThreeGeneric::Update_auxiliary() {
     // 3- adds the constraint force mixing term (usually zero):
     if (cfm_i)
         g_i += cfm_i;
-};
+}
 
 void ChLcpConstraintThreeGeneric::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number

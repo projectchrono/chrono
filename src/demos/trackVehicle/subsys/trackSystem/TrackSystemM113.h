@@ -37,9 +37,9 @@ class CH_SUBSYS_API TrackSystemM113 : public ChShared {
   public:
     /// specify name and a unique track identifier
     TrackSystemM113(const std::string& filename,
-      const size_t track_idx,
-      const double tensioner_preload = 1e4,
-      const double omega_max = 25.0);
+                    const size_t track_idx,
+                    const double tensioner_preload = 1e4,
+                    const double omega_max = 25.0);
 
     ~TrackSystemM113() {}
 
@@ -53,8 +53,7 @@ class CH_SUBSYS_API TrackSystemM113 : public ChShared {
                     double pin_damping = 0  ///< damping coef. between connected shoe pads
                     );
 
-    void Create(const size_t track_idx,
-      const double omega_max);
+    void Create(const size_t track_idx, const double omega_max);
 
     /// update the track system components
     void Update(double time, double throttle);
@@ -77,16 +76,28 @@ class CH_SUBSYS_API TrackSystemM113 : public ChShared {
     }
 
     // subsystem relative to TrackSystemM113 coords
-    const ChVector<>& Get_gearPosRel() const { return m_gearPosRel; }
+    const ChVector<>& Get_GearPosRel() const { return m_gearPosRel; }
 
     // subsystem relative to TrackSystemM113 coords
-    const ChVector<>& Get_idlerPosRel() const { return m_idlerPosRel; }
+    const ChVector<>& Get_IdlerPosRel() const { return m_idlerPosRel; }
+
+    // subsystem relative to TrackSystem coords
+    const ChVector<>& Get_SuspensionPosRel(size_t idx = 0) const {
+        assert(idx < m_numSuspensions);
+        return m_suspensionLocs[idx];
+    }
 
     /// get the reaction force vector from the spring in the idler subsystem
-    const ChVector<> Get_idler_spring_react();
+    const ChVector<> Get_Idler_spring_react();
 
     /// get the number of bogie wheels
     size_t Get_NumWheels() const { return m_numSuspensions; }
+
+    /// write the headers specified for all children subsystems
+    void Write_subsys_headers(int what_subys, int debug_type, const std::string& filename);
+
+    /// write the data at time t
+    void Write_subsys_data(const double t, const ChSharedPtr<ChBody> chassis);
 
   private:
     // private functions
@@ -108,6 +119,10 @@ class CH_SUBSYS_API TrackSystemM113 : public ChShared {
 
     int m_track_idx;  // give unique ID to each TrackSystemM113, to use as a collision family ID for all associated
                       // sub-systems
+
+    // filename for each subsystem when writing time domain data
+    int m_log_subsys;
+    int m_debug_type;
 
     // hard-coded in TrackSystemM113.cpp, for now
     // idler

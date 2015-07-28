@@ -171,6 +171,9 @@ class ChApi ChStreamOutAscii : public ChStreamOut {
         if (strlen(mf) < 10)
             strcpy(number_format, mf);
     }
+    char* GetNumFormat() {
+        return number_format;
+    }
     /// Set the trailer symbol before each comment (example: "#" , or "//" etc.)
     void SetCommentTrailer(char* mt) {
         if (strlen(mt) < 10)
@@ -336,6 +339,9 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     ChStreamOutBinary& operator<<(double Val);
     ChStreamOutBinary& operator<<(float Val);
     ChStreamOutBinary& operator<<(std::string& str);
+    ChStreamOutBinary& operator<<(long Val);
+    ChStreamOutBinary& operator<<(unsigned long Val);
+    ChStreamOutBinary& operator<<(unsigned long long Val);
 
     /// Specialized operator for C strings.
     ChStreamOutBinary& operator<<(const char* str);
@@ -449,6 +455,9 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
     ChStreamInBinary& operator>>(unsigned int& Val);
     ChStreamInBinary& operator>>(double& Val);
     ChStreamInBinary& operator>>(float& Val);
+    ChStreamInBinary& operator>>(long& Val);
+    ChStreamInBinary& operator>>(unsigned long& Val);
+    ChStreamInBinary& operator>>(unsigned long long& Val);
     ChStreamInBinary& operator>>(std::string& str);
 
     /// Specialized operator for C strings
@@ -741,6 +750,37 @@ class ChApi ChStreamInBinaryVector : public ChStreamVectorWrapper, public ChStre
   private:
     virtual void Input(char* data, size_t n) { ChStreamVectorWrapper::Read(data, n); }
 };
+
+///
+/// This is a specialized class for ASCII output to wrapped std::vector<char>,
+///
+
+class ChApi ChStreamOutAsciiVector : public ChStreamVectorWrapper, public ChStreamOutAscii {
+  public:
+    ChStreamOutAsciiVector(std::vector<char>* mchars) : ChStreamVectorWrapper(mchars), ChStreamOutAscii(){};
+    virtual ~ChStreamOutAsciiVector(){};
+
+    virtual bool End_of_stream() { return ChStreamVectorWrapper::End_of_stream(); }
+
+  private:
+    virtual void Output(const char* data, size_t n) { ChStreamVectorWrapper::Write(data, n); }
+};
+
+///
+/// This is a specialized class for ASCII input from wrapped std::vector<char>,
+///
+
+class ChApi ChStreamInAsciiVector : public ChStreamVectorWrapper, public ChStreamInAscii {
+  public:
+    ChStreamInAsciiVector(std::vector<char>* mchars) : ChStreamVectorWrapper(mchars), ChStreamInAscii(){};
+    virtual ~ChStreamInAsciiVector(){};
+
+    virtual bool End_of_stream() { return ChStreamVectorWrapper::End_of_stream(); }
+
+  private:
+    virtual void Input(char* data, size_t n) { ChStreamVectorWrapper::Read(data, n); }
+};
+
 
 ///
 /// This is a specialized class for BINARY output on system's file,

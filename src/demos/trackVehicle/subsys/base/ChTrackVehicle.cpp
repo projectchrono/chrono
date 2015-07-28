@@ -19,6 +19,8 @@
 #include <algorithm>
 
 #include "ChTrackVehicle.h"
+#include "physics/ChContactContainer.h"
+#include "subsys/collision/CollisionReporters.h"
 
 #include "assets/ChAssetLevel.h"
 #include "assets/ChBoxShape.h"
@@ -51,6 +53,7 @@ ChTrackVehicle::ChTrackVehicle(const std::string& name,
       m_stepsize(step_size),
       m_save_log_to_file(false),  // save the DebugLog() info to file? default false
       m_log_what_to_file(0),      // set this in Setup_log_to_file(), if writing to file
+      m_log_debug_type(DBG_BODY),    // default
       m_log_file_exists(false),   // written the headers for log file yet?
       m_log_what_to_console(0)    // pre-set what to write to console when calling
 {
@@ -63,9 +66,9 @@ ChTrackVehicle::ChTrackVehicle(const std::string& name,
     m_system->SetIterLCPmaxItersStab(150);
     m_system->SetTol(0);
     m_system->SetMaxPenetrationRecoverySpeed(1.5);
-    m_system->SetMinBounceSpeed(1);
-    // m_system->SetIterLCPomega(0.8);
-    // m_system->SetIterLCPsharpnessLambda(0.9);
+    m_system->SetMinBounceSpeed(2.0);
+    m_system->SetIterLCPomega(0.8);
+    m_system->SetIterLCPsharpnessLambda(1.0);
 
     // create the chassis to attach mass, inertia to.
     m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
@@ -79,9 +82,6 @@ ChTrackVehicle::ChTrackVehicle(const std::string& name,
     m_meshName = "meshName";
     m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
     m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5);  // full length, height, width of chassis box
-
-    // set any vector known sizes here
-    m_ptrains.resize(num_engines);
 }
 
 // system already exists, create vehicle with specified input
@@ -102,6 +102,7 @@ ChTrackVehicle::ChTrackVehicle(ChSystem* system,
       m_stepsize(system->GetStep()),
       m_save_log_to_file(false),  // save the DebugLog() info to file? default false
       m_log_what_to_file(0),      // set this in Setup_log_to_file(), if writing to file
+      m_log_debug_type(DBG_BODY),
       m_log_file_exists(false),   // written the headers for log file yet?
       m_log_what_to_console(0)    // pre-set what to write to console when calling
 {
@@ -280,5 +281,6 @@ void ChTrackVehicle::AddCollisionGeometry(double mu, double mu_sliding, double m
 
     m_chassis->GetCollisionModel()->BuildModel();
 }
+
 
 }  // end namespace chrono

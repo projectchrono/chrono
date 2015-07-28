@@ -41,6 +41,10 @@ namespace collision {
 /// Uses features of the Bullet library.
 
 class ChApi ChModelBulletParticle : public ChModelBullet {
+
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChModelBulletParticle, ChModelBullet);
+
   public:
     ChModelBulletParticle();
     virtual ~ChModelBulletParticle();
@@ -61,6 +65,9 @@ class ChApi ChModelBulletParticle : public ChModelBullet {
 
     /// Gets the pointer to the client owner ChPhysicsItem.
     virtual ChPhysicsItem* GetPhysicsItem() { return (ChPhysicsItem*)GetParticles(); };
+
+    /// Sets the pointer to the client owner ChPhysicsItem.
+    virtual void SetPhysicsItem(ChPhysicsItem* mitem);
 
   private:
     unsigned int particle_id;

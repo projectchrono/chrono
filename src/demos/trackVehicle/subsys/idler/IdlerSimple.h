@@ -46,7 +46,8 @@ class CH_SUBSYS_API IdlerSimple : public ChShared {
                 const ChVector<>& Ixx = ChVector<>(12.55, 12.55, 14.7),
                 double tensionerK = 2e5,    ///< idler tensioner spring coef. [N/m]
                 double tensionerC = 1e4,    ///< idler tensioner damper coef. [N-s/m]
-                double springFreeLen = 1.0  ///< idler tensioner spring free length [m]
+                double springFreeLen = 1.0,  ///< idler tensioner spring free length [m]
+                double mu = 0.1 ///< static friction coef.
                 );
 
     ~IdlerSimple();
@@ -57,15 +58,6 @@ class CH_SUBSYS_API IdlerSimple : public ChShared {
                     const ChFrame<>& chassis_REF,
                     const ChCoordsys<>& local_Csys,
                     double preLoad = 0);
-
-    // log constraint violations of any bilateral constraints
-    void LogConstraintViolations();
-
-    /// write constraint violations to ostream, which will be written to the output file
-    void SaveConstraintViolations(std::stringstream& ss);
-
-    /// write headers for the output data file to the input ostream
-    const std::string getFileHeader_ConstraintViolations() const;
 
     // Accessors
     ChSharedPtr<ChLinkSpring> getShock() const { return m_shock; }
@@ -82,6 +74,17 @@ class CH_SUBSYS_API IdlerSimple : public ChShared {
     double Get_SpringReact_Deform() const;
 
     double Get_SpringReact_Deform_dt() const;
+
+    // log constraint violations of any bilateral constraints
+    void LogConstraintViolations();
+
+    /// write headers for the body
+    void Write_header(const std::string& filename,
+        DebugType type);
+  
+    /// write idler body data
+    void Write_data(const double t,
+        DebugType type);
 
   private:
     // private functions
@@ -109,10 +112,16 @@ class CH_SUBSYS_API IdlerSimple : public ChShared {
     VisualizationType::Enum m_vis;
     CollisionType::Enum m_collide;
     const size_t m_chainSys_idx;  ///< if there are multiple chain systems
+    double m_mu;
     // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
 
     double m_mass;
     ChVector<> m_inertia;  ///< z-axis of rotation
+
+    // output filenames
+    std::string m_filename_DBG_BODY; // write idler body info
+    std::string m_filename_DBG_CV;  // write idler constraint violation
+    std::string m_filename_DBG_CONTACTS;   // write idler contact info
 
     const std::string m_meshName;
     const std::string m_meshFile;

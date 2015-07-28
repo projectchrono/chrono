@@ -5,13 +5,14 @@
 #=============================================================================
 
 
-SET(ENABLE_UNIT_FEA      FALSE	CACHE BOOL   "Turn ON this to generate the Chrono::Engine FEA unit.")
+option(ENABLE_UNIT_FEA "Enable the Chrono FEA module" OFF)
 
+# Return now if this module is not enabled
 IF(NOT ENABLE_UNIT_FEA)
   RETURN()
-ELSE()
-	MESSAGE(STATUS "...enabling FEA Unit")
 ENDIF()
+
+MESSAGE(STATUS "==== Chrono FEA module ====")
 
 #-----------------------------------------------------------------------------
 #
@@ -19,7 +20,6 @@ ENDIF()
 # NOTE: to add a new source to this unit, just add its name
 # here and re-run the CMake.
 #
-
 
 SET(ChronoEngine_UNIT_FEA_SOURCES
 	ChBuilderBeam.cpp
@@ -40,6 +40,7 @@ SET(ChronoEngine_UNIT_FEA_SOURCES
 	ChVisualizationFEAmesh.cpp
 	ChLinkPointFrame.cpp
 	ChLinkDirFrame.cpp
+	ChLinkPointPoint.cpp
 	)
 SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChApiFEA.h  
@@ -61,8 +62,7 @@ SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChElementBar.h 
 	ChElementBeam.h
 	ChElementBeamEuler.h
-	ChElementBeamANCF.h
-	ChElementBrick.h 
+	ChElementBeamANCF.h 
 	ChElement3D.h
 	ChElementTetrahedron.h
 	ChElementTetra_4.h
@@ -81,6 +81,7 @@ SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChVisualizationFEAmesh.h
 	ChLinkPointFrame.h
 	ChLinkDirFrame.h
+	ChLinkPointPoint.h
 	)
 #SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_FEA_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 SOURCE_GROUP(unit_FEA FILES 

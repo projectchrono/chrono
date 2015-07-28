@@ -34,8 +34,6 @@
 #include "ChLcpConstraintThree.h"
 #include "ChLcpVariables.h"
 
-#include "core/ChMemory.h"  // must be after system's include (memory leak debugger).
-
 namespace chrono {
 
 ///  This class is inherited by the base ChLcpConstraintThree(),
@@ -241,15 +239,15 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     /// offset of the corresponding ChLcpVariable.
     /// This is used only by the ChLcpSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
+	virtual void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
         if (variables_a->IsActive())
             storage.PasteMatrixFloat(Cq_a, insrow, variables_a->GetOffset());
         if (variables_b->IsActive())
             storage.PasteMatrixFloat(Cq_b, insrow, variables_b->GetOffset());
-        if (variables_b->IsActive())
+        if (variables_c->IsActive())
             storage.PasteMatrixFloat(Cq_c, insrow, variables_c->GetOffset());
     }
-    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
+	virtual void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
         if (variables_a->IsActive())
             storage.PasteTranspMatrixFloat(Cq_a, variables_a->GetOffset(), inscol);
         if (variables_b->IsActive())
@@ -257,6 +255,8 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
         if (variables_c->IsActive())
             storage.PasteTranspMatrixFloat(Cq_c, variables_c->GetOffset(), inscol);
     }
+
+
 
     //
     // STREAMING
@@ -272,7 +272,5 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
 };
 
 }  // END_OF_NAMESPACE____
-
-#include "core/ChMemorynomgr.h"  // back to default new/delete/malloc/calloc etc. Avoid conflicts with system libs.
 
 #endif

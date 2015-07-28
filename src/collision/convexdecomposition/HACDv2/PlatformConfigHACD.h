@@ -142,7 +142,7 @@ namespace hacd
 
 
 
-}; // end HACD namespace
+} // end HACD namespace
 
 #define UANS hacd	// the user allocator namespace
 

@@ -20,8 +20,19 @@
 
 #include "ChFunction_Sequence.h"
 #include "ChFunction_Fillet3.h"
+#include "ChFunction_Const.h"
 
 namespace chrono {
+
+ChFseqNode::ChFseqNode() {
+    fx = ChSharedPtr< ChFunction >(new ChFunction_Const(0));
+    duration = 1;
+    weight = 1;
+    t_start = 0;
+    t_end = t_start + duration;
+    Iy = Iydt = Iydtdt = 0.0;
+    y_cont = ydt_cont = ydtdt_cont = FALSE;
+}
 
 ChFseqNode::ChFseqNode(ChSharedPtr<ChFunction> myfx, double mdur) {
     fx = myfx;
@@ -37,9 +48,9 @@ ChFseqNode::~ChFseqNode() {
     // no need to delete wrapped function, it is handled with shared pointer
 }
 
-void ChFseqNode::Copy(ChFseqNode* source) {
-    // fx = source->fx;		//***? shallow copy (now sharing same object)...
-    fx = ChSharedPtr<ChFunction>(source->fx->new_Duplicate());  //***? ..or deep copy? make optional with flag?
+void ChFseqNode::Copy(const ChFseqNode* source) {
+    fx = source->fx;		//***? shallow copy (now sharing same object)...
+    //fx = ChSharedPtr<ChFunction>(source->fx->new_Duplicate());  //***? ..or deep copy? make optional with flag?
     duration = source->duration;
     weight = source->weight;
     t_start = source->t_start;
@@ -57,7 +68,7 @@ void ChFseqNode::SetDuration(double mdur) {
     if (duration < 0)
         duration = 0;
     t_end = t_start + duration;
-};
+}
 
 void ChFseqNode::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
@@ -112,18 +123,11 @@ ChFunction_Sequence::ChFunction_Sequence() {
 }
 
 ChFunction_Sequence::~ChFunction_Sequence() {
-    functions.KillAll();
 }
 
 void ChFunction_Sequence::Copy(ChFunction_Sequence* source) {
     start = source->start;
-    functions.KillAll();
-    ChFseqNode* mfxs;
-    for (ChNode<ChFseqNode>* mnode = source->functions.GetHead(); mnode != NULL; mnode = mnode->next) {
-        mfxs = new ChFseqNode(ChSharedPtr<ChFunction>(), 0.0);
-        mfxs->Copy(mnode->data);
-        functions.AddTail(mfxs);
-    }
+    functions = source->functions;
 }
 
 ChFunction* ChFunction_Sequence::new_Duplicate() {
@@ -140,108 +144,94 @@ int ChFunction_Sequence::InsertFunct(ChSharedPtr<ChFunction> myfx,
                                      bool c1,
                                      bool c2,
                                      int position) {
-    ChFseqNode* mfxsegment = new ChFseqNode(myfx, duration);
-    mfxsegment->y_cont = c0;
-    mfxsegment->ydt_cont = c1;
-    mfxsegment->ydtdt_cont = c2;
-    mfxsegment->weight = weight;
+    ChFseqNode mfxsegment(myfx,duration);
+    mfxsegment.y_cont = c0;
+    mfxsegment.ydt_cont = c1;
+    mfxsegment.ydtdt_cont = c2;
+    mfxsegment.weight = weight;
 
     int inserted = FALSE;
-    if (position == 0) {
-        functions.AddHead(mfxsegment);
-        inserted = TRUE;
-    }
+
     if (position == -1) {
-        functions.AddTail(mfxsegment);
+        functions.push_back(mfxsegment);
         inserted = TRUE;
     }
     if (!inserted) {
-        int ind = 1;
-        for (ChNode<ChFseqNode>* mnode = functions.GetHead(); mnode != NULL; mnode = mnode->next) {
-            if (ind == position) {
-                functions.InsertAfter(mnode, mfxsegment);
+        std::list< ChFseqNode >::iterator iter;
+        size_t i = 0;
+        for (iter = functions.begin(); iter != functions.end(); ++iter, ++i){
+              if (i == position) {
+                functions.insert(iter, mfxsegment);
                 inserted = TRUE;
                 break;
             }
-            ind++;
         }
     }
     if (!inserted) {
-        functions.AddTail(mfxsegment);
+        functions.push_back(mfxsegment);
     }
     // update the continuity offsets and timings
     this->Setup();
     return inserted;
 }
 
-// only for backward compatibility:
-int ChFunction_Sequence::InsertFunct(ChFunction* myfx,
-                                     double duration,
-                                     double weight,
-                                     bool c0,
-                                     bool c1,
-                                     bool c2,
-                                     int position) {
-    ChSharedPtr<ChFunction> mysharedfx(myfx);
-    return InsertFunct(mysharedfx, duration, weight, c0, c1, c2, position);
-}
 
 int ChFunction_Sequence::KillFunct(int position) {
-    int fcount = functions.Count();
-    if (fcount == 0)
+    if (functions.size() == 0)
         return FALSE;
-    if ((position == -1) || (position > fcount)) {
-        functions.Kill(functions.GetTail());
+    if ((position == -1) || (position > functions.size())) {
+        functions.erase(functions.end());
         return TRUE;
     }
     if (position == 0) {
-        functions.Kill(functions.GetHead());
+        functions.erase(functions.begin());
         return TRUE;
     }
-    functions.Kill(functions.GetNum(position));
+    std::list< ChFseqNode >::iterator iter;
+    size_t i = 1;
+    for (iter = functions.begin(); iter != functions.end(); ++iter, ++i){
+         if (i == position) {
+              functions.erase(iter);
+              this->Setup();
+              return TRUE;
+         }
+    }
 
     this->Setup();
-    return TRUE;
+    return FALSE;
 }
 
 ChSharedPtr<ChFunction> ChFunction_Sequence::GetNthFunction(int position) {
-    int fcount = functions.Count();
-    if (fcount == 0)
-        return ChSharedPtr<ChFunction>();
-    if ((position == -1) || (position > fcount)) {
-        return functions.GetTail()->data->fx;
-    }
-    if (position == 0) {
-        return functions.GetHead()->data->fx;
-    }
-    return functions.GetNum(position)->data->fx;
+    ChFseqNode* mnode = GetNthNode(position);
+    if (mnode)
+        return mnode->fx;    
+    return ChSharedPtr<ChFunction>();
 }
 
 double ChFunction_Sequence::GetNthDuration(int position) {
-    double default_dur = 0.0;
-    int fcount = functions.Count();
-    if (fcount == 0)
-        return default_dur;
-    if ((position == -1) || (position > fcount)) {
-        return functions.GetTail()->data->duration;
-    }
-    if (position == 0) {
-        return functions.GetHead()->data->duration;
-    }
-    return functions.GetNum(position)->data->duration;
+    ChFseqNode* mnode = GetNthNode(position);
+    if (mnode)
+        return mnode->duration;    
+    return 0.0;
 }
 
 ChFseqNode* ChFunction_Sequence::GetNthNode(int position) {
-    int fcount = functions.Count();
-    if (fcount == 0)
-        return NULL;
-    if ((position == -1) || (position > fcount)) {
-        return functions.GetTail()->data;
+    if (functions.size() == 0)
+        return 0;
+    if ((position == -1) || (position > functions.size())) {
+        return  &(*(functions.end()));
     }
     if (position == 0) {
-        return functions.GetHead()->data;
+        return  &(*(functions.begin()));;
     }
-    return functions.GetNum(position)->data;
+    std::list< ChFseqNode >::iterator iter;
+    size_t i = 1;
+    for (iter = functions.begin(); iter != functions.end(); ++iter, ++i){
+         if (i == position) {
+              return &(*iter);
+         }
+    }
+    return 0;
 }
 
 void ChFunction_Sequence::Setup() {
@@ -250,56 +240,62 @@ void ChFunction_Sequence::Setup() {
     double lastIy_dt = 0;
     double lastIy_dtdt = 0;
 
-    for (ChNode<ChFseqNode>* mnode = functions.GetHead(); mnode != NULL; mnode = mnode->next) {
-        mnode->data->t_start = basetime;
-        mnode->data->t_end = basetime + mnode->data->duration;
-        mnode->data->Iy = 0;
-        mnode->data->Iydt = 0;
-        mnode->data->Iydtdt = 0;
+    std::list< ChFseqNode >::iterator iter;
+    std::list< ChFseqNode >::iterator iter_next;
+    for (iter = functions.begin(); iter != functions.end(); ++iter){
+        iter->t_start = basetime;
+        iter->t_end = basetime + iter->duration;
+        iter->Iy = 0;
+        iter->Iydt = 0;
+        iter->Iydtdt = 0;
 
-        if (mnode->data->fx.IsType<ChFunction_Fillet3>())  // C0 C1 fillet
+        if (iter->fx.IsType<ChFunction_Fillet3>())  // C0 C1 fillet
         {
-            ChSharedPtr<ChFunction_Fillet3> mfillet = mnode->data->fx.DynamicCastTo<ChFunction_Fillet3>();
+            ChSharedPtr<ChFunction_Fillet3> mfillet = iter->fx.DynamicCastTo<ChFunction_Fillet3>();
             mfillet->Set_y1(lastIy);
             mfillet->Set_dy1(lastIy_dt);
-            if (mnode->next) {
-                mfillet->Set_y2(mnode->next->data->fx->Get_y(0));
-                mfillet->Set_dy2(mnode->next->data->fx->Get_y_dx(0));
+
+            iter_next = iter;
+            ++iter_next;
+            if (iter_next != functions.end()) {
+                mfillet->Set_y2(iter_next->fx->Get_y(0));
+                mfillet->Set_dy2(iter_next->fx->Get_y_dx(0));
             } else {
                 mfillet->Set_y2(0);
                 mfillet->Set_dy2(0);
             }
-            mfillet->Set_end(mnode->data->duration);
-            mnode->data->Iy = mnode->data->Iydt = mnode->data->Iydtdt = 0;
+            mfillet->Set_end(iter->duration);
+            iter->Iy = iter->Iydt = iter->Iydtdt = 0;
         } else  // generic continuity conditions
         {
-            if (mnode->data->y_cont)
-                mnode->data->Iy = lastIy - mnode->data->fx->Get_y(0);
-            if (mnode->data->ydt_cont)
-                mnode->data->Iydt = lastIy_dt - mnode->data->fx->Get_y_dx(0);
-            if (mnode->data->ydtdt_cont)
-                mnode->data->Iydtdt = lastIy_dtdt - mnode->data->fx->Get_y_dxdx(0);
+            if (iter->y_cont)
+                iter->Iy = lastIy - iter->fx->Get_y(0);
+            if (iter->ydt_cont)
+                iter->Iydt = lastIy_dt - iter->fx->Get_y_dx(0);
+            if (iter->ydtdt_cont)
+                iter->Iydtdt = lastIy_dtdt - iter->fx->Get_y_dxdx(0);
         }
 
-        lastIy = mnode->data->fx->Get_y(mnode->data->duration) + mnode->data->Iy +
-                 mnode->data->Iydt * mnode->data->duration +
-                 mnode->data->Iydtdt * mnode->data->duration * mnode->data->duration;
-        lastIy_dt = mnode->data->fx->Get_y_dx(mnode->data->duration) + mnode->data->Iydt +
-                    mnode->data->Iydtdt * mnode->data->duration;
-        lastIy_dtdt = mnode->data->fx->Get_y_dxdx(mnode->data->duration) + mnode->data->Iydtdt;
+        lastIy = iter->fx->Get_y(iter->duration) + iter->Iy +
+                 iter->Iydt * iter->duration +
+                 iter->Iydtdt * iter->duration * iter->duration;
+        lastIy_dt = iter->fx->Get_y_dx(iter->duration) + iter->Iydt +
+                    iter->Iydtdt * iter->duration;
+        lastIy_dtdt = iter->fx->Get_y_dxdx(iter->duration) + iter->Iydtdt;
 
-        basetime += mnode->data->duration;
+        basetime += iter->duration;
     }
 }
 
 double ChFunction_Sequence::Get_y(double x) {
     double res = 0;
     double localtime;
-    for (ChNode<ChFseqNode>* mnode = functions.GetHead(); mnode != NULL; mnode = mnode->next) {
-        if ((x >= mnode->data->t_start) && (x < mnode->data->t_end)) {
-            localtime = x - mnode->data->t_start;
-            res = mnode->data->fx->Get_y(localtime) + mnode->data->Iy + mnode->data->Iydt * localtime +
-                  mnode->data->Iydtdt * localtime * localtime;
+    std::list< ChFseqNode >::iterator iter;
+    for (iter = functions.begin(); iter != functions.end(); ++iter){
+        if ((x >= iter->t_start) && (x < iter->t_end)) {
+            localtime = x - iter->t_start;
+            res = iter->fx->Get_y(localtime) + iter->Iy + iter->Iydt * localtime +
+                  iter->Iydtdt * localtime * localtime;
         }
     }
     return res;
@@ -308,10 +304,11 @@ double ChFunction_Sequence::Get_y(double x) {
 double ChFunction_Sequence::Get_y_dx(double x) {
     double res = 0;
     double localtime;
-    for (ChNode<ChFseqNode>* mnode = functions.GetHead(); mnode != NULL; mnode = mnode->next) {
-        if ((x >= mnode->data->t_start) && (x < mnode->data->t_end)) {
-            localtime = x - mnode->data->t_start;
-            res = mnode->data->fx->Get_y_dx(localtime) + mnode->data->Iydt + mnode->data->Iydtdt * localtime;
+    std::list< ChFseqNode >::iterator iter;
+    for (iter = functions.begin(); iter != functions.end(); ++iter){
+        if ((x >= iter->t_start) && (x < iter->t_end)) {
+            localtime = x - iter->t_start;
+            res = iter->fx->Get_y_dx(localtime) + iter->Iydt + iter->Iydtdt * localtime;
         }
     }
     return res;
@@ -320,10 +317,11 @@ double ChFunction_Sequence::Get_y_dx(double x) {
 double ChFunction_Sequence::Get_y_dxdx(double x) {
     double res = 0;
     double localtime;
-    for (ChNode<ChFseqNode>* mnode = functions.GetHead(); mnode != NULL; mnode = mnode->next) {
-        if ((x >= mnode->data->t_start) && (x < mnode->data->t_end)) {
-            localtime = x - mnode->data->t_start;
-            res = mnode->data->fx->Get_y_dxdx(localtime) + mnode->data->Iydtdt;
+    std::list< ChFseqNode >::iterator iter;
+    for (iter = functions.begin(); iter != functions.end(); ++iter){
+        if ((x >= iter->t_start) && (x < iter->t_end)) {
+            localtime = x - iter->t_start;
+            res = iter->fx->Get_y_dxdx(localtime) + iter->Iydtdt;
         }
     }
     return res;
@@ -331,9 +329,10 @@ double ChFunction_Sequence::Get_y_dxdx(double x) {
 
 double ChFunction_Sequence::Get_weight(double x) {
     double res = 1.0;
-    for (ChNode<ChFseqNode>* mnode = functions.GetHead(); mnode != NULL; mnode = mnode->next) {
-        if ((x >= mnode->data->t_start) && (x < mnode->data->t_end)) {
-            res = mnode->data->weight;
+    std::list< ChFseqNode >::iterator iter;
+    for (iter = functions.begin(); iter != functions.end(); ++iter){
+        if ((x >= iter->t_start) && (x < iter->t_end)) {
+            res = iter->weight;
         }
     }
     return res;
@@ -341,7 +340,7 @@ double ChFunction_Sequence::Get_weight(double x) {
 
 void ChFunction_Sequence::Estimate_x_range(double& xmin, double& xmax) {
     xmin = start;
-    xmax = functions.GetTail()->data->t_end;
+    xmax = functions.end()->t_end;
     if (xmin == xmax)
         xmax = xmin + 1.1;
 }
@@ -356,7 +355,8 @@ int ChFunction_Sequence::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
     int cnt = 1;
     char msubduration[50];
     char msubfunction[50];
-    for (ChNode<ChFseqNode>* mnode = this->functions.GetHead(); mnode != NULL; mnode = mnode->next) {
+    std::list< ChFseqNode >::iterator iter;
+    for (iter = functions.begin(); iter != functions.end(); ++iter){
         sprintf(msubduration, "node_n(%d).duration", cnt);
 
         chjs_propdata* mdataA = new chjs_propdata;
@@ -374,7 +374,7 @@ int ChFunction_Sequence::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
         mdataB->haschildren = TRUE;
         mtree->AddTail(mdataB);
 
-        i += mnode->data->fx->MakeOptVariableTree(&mdataB->children);
+        i += iter->fx->MakeOptVariableTree(&mdataB->children);
 
         cnt++;
     }
@@ -384,7 +384,8 @@ int ChFunction_Sequence::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
 
 int ChFunction_Sequence::HandleNumber() {
     int tot = 1;
-    for (ChNode<ChFseqNode>* mnode = this->functions.GetHead(); mnode != NULL; mnode = mnode->next) {
+    std::list< ChFseqNode >::iterator iter;
+    for (iter = functions.begin(); iter != functions.end(); ++iter){
         tot++;
     }
     return tot;
@@ -399,12 +400,13 @@ int ChFunction_Sequence::HandleAccess(int handle_id, double mx, double my, bool 
         return TRUE;
     }
     int tot = 1;
-    for (ChNode<ChFseqNode>* mnode = this->functions.GetHead(); mnode != NULL; mnode = mnode->next) {
+    std::list< ChFseqNode >::iterator iter;
+    for (iter = functions.begin(); iter != functions.end(); ++iter){
         if (handle_id == tot) {
             if (!set_mode)
-                mx = mnode->data->t_end;
+                mx = iter->t_end;
             else {
-                mnode->data->SetTend(mx);
+                iter->SetTend(mx);
                 this->Setup();
             }
             return TRUE;
@@ -416,7 +418,7 @@ int ChFunction_Sequence::HandleAccess(int handle_id, double mx, double my, bool 
 
 void ChFunction_Sequence::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
-    mstream.VersionWrite(1);
+    mstream.VersionWrite(2);
     // serialize parent class too
     ChFunction::StreamOUT(mstream);
 
@@ -426,9 +428,10 @@ void ChFunction_Sequence::StreamOUT(ChStreamOutBinary& mstream) {
 
     mstream << Get_start();
 
-    for (ChNode<ChFseqNode>* mnode = functions.GetHead(); mnode != NULL; mnode = mnode->next) {
+    std::list< ChFseqNode >::iterator iter;
+    for (iter = functions.begin(); iter != functions.end(); ++iter){
         mstream << goID;
-        mstream << *mnode->data;
+        mstream << (*iter);
     }
     mstream << stopID;
 }
@@ -446,9 +449,9 @@ void ChFunction_Sequence::StreamIN(ChStreamInBinary& mstream) {
     int mgoID;
     mstream >> mgoID;
     while (mgoID == 1) {
-        ChFseqNode* mynode = new ChFseqNode(ChSharedPtr<ChFunction>(0), 0.0);
-        mstream >> *mynode;
-        functions.AddTail(mynode);
+        ChFseqNode mynode(ChSharedPtr<ChFunction>(0), 0.0);
+        mstream >> mynode;
+        functions.push_back(mynode);
         mstream >> mgoID;
     }
 }

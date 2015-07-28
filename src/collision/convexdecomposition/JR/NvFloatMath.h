@@ -405,8 +405,8 @@ void fm_planeToQuat(const NxF32 plane[4],NxF32 quat[4],NxF32 pos[3]); // convert
 void fm_planeToMatrix(const NxF64 plane[4],NxF64 matrix[16]); // convert a plane equation to a 4x4 rotation matrix
 void fm_planeToQuat(const NxF64 plane[4],NxF64 quat[4],NxF64 pos[3]); // convert a plane equation to a quaternion and translation
 
-inline void fm_doubleToFloat3(const NxF64 p[3],NxF32 t[3]) { t[0] = (NxF32) p[0]; t[1] = (NxF32)p[1]; t[2] = (NxF32)p[2]; };
-inline void fm_floatToDouble3(const NxF32 p[3],NxF64 t[3]) { t[0] = (NxF64)p[0]; t[1] = (NxF64)p[1]; t[2] = (NxF64)p[2]; };
+inline void fm_doubleToFloat3(const NxF64 p[3],NxF32 t[3]) { t[0] = (NxF32) p[0]; t[1] = (NxF32)p[1]; t[2] = (NxF32)p[2]; }
+inline void fm_floatToDouble3(const NxF32 p[3],NxF64 t[3]) { t[0] = (NxF64)p[0]; t[1] = (NxF64)p[1]; t[2] = (NxF64)p[2]; }
 
 
 void  fm_eulerMatrix(NxF32 ax,NxF32 ay,NxF32 az,NxF32 matrix[16]); // convert euler (in radians) to a dest 4x4 matrix (translation set to zero)
@@ -581,6 +581,6 @@ void fm_computeMeanNormals(NxU32 vcount,       // the number of vertices
 bool fm_isValidTriangle(const NxF32 *p1,const NxF32 *p2,const NxF32 *p3,NxF32 epsilon=0.00001f);
 bool fm_isValidTriangle(const NxF64 *p1,const NxF64 *p2,const NxF64 *p3,NxF64 epsilon=0.00001f);
 
-}; // end of namespace
+} // end of namespace
 
 #endif

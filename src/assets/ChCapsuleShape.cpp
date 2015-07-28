@@ -9,17 +9,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChCapsuleShape.cpp
-//
-// ------------------------------------------------
-//             www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "assets/ChCapsuleShape.h"
 
-#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
+namespace chrono {
 
-namespace chrono {}  // END_OF_NAMESPACE____
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChCapsuleShape> a_registration_ChCapsuleShape;
+
+}  // END_OF_NAMESPACE____

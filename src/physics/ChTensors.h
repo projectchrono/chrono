@@ -50,7 +50,7 @@ class ChVoightTensor : public ChMatrixNM<Real, 6, 1> {
     template <class RealB>
     inline ChVoightTensor(const ChMatrix33<RealB>& msource) {
         this->ConvertFromMatrix(msource);
-    };
+    }
 
     inline Real& XX() { return ChMatrix<Real>::ElementN(0); };
     inline const Real& XX() const { return ChMatrix<Real>::ElementN(0); };
@@ -79,7 +79,7 @@ class ChVoightTensor : public ChMatrixNM<Real, 6, 1> {
         XY() = (Real)msource(0, 1);
         XZ() = (Real)msource(0, 2);
         YZ() = (Real)msource(1, 2);
-    };
+    }
 
     /// Convert to a typical 3D rank-two stress or strain tensor (a 3x3 matrix)
     template <class RealB>
@@ -93,7 +93,7 @@ class ChVoightTensor : public ChMatrixNM<Real, 6, 1> {
         mdest(1, 0) = (RealB)XY();
         mdest(2, 0) = (RealB)XZ();
         mdest(2, 1) = (RealB)YZ();
-    };
+    }
 
     /// Compute the volumetric part of the tensor, that is
     /// the trace V =Txx+Tyy+Tzz.

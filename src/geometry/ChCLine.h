@@ -12,19 +12,6 @@
 #ifndef CHC_LINE_H
 #define CHC_LINE_H
 
-//////////////////////////////////////////////////
-//
-//   ChCLine.h
-//
-//   Base class for lines
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <math.h>
 
@@ -48,7 +35,7 @@ class ChApi ChLine : public ChGeometry {
     CH_RTTI(ChLine, ChGeometry);
 
   protected:
-    int closed;
+    bool closed;
     int complexityU;
 
   public:
@@ -57,7 +44,7 @@ class ChApi ChLine : public ChGeometry {
     //
 
     ChLine() {
-        closed = FALSE;
+        closed = false;
         complexityU = 2;
     };
 
@@ -85,8 +72,8 @@ class ChApi ChLine : public ChGeometry {
     virtual int GetClassType() { return CH_GEOCLASS_LINE; };
 
     /// Tell if the curve is closed
-    virtual int Get_closed() { return closed; };
-    virtual void Set_closed(int mc) { closed = mc; };
+    virtual bool Get_closed() { return closed; };
+    virtual void Set_closed(bool mc) { closed = mc; };
 
     /// Tell the complexity
     virtual int Get_complexity() { return complexityU; };
@@ -143,11 +130,36 @@ class ChApi ChLine : public ChGeometry {
     virtual int DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChGeometry::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(closed);
+        marchive << CHNVP(complexityU);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChGeometry::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(closed);
+        marchive >> CHNVP(complexityU);
+    }
+
+    //***OBSOLETE***
     void StreamOUT(ChStreamOutBinary& mstream);
 
+    //***OBSOLETE***
     void StreamIN(ChStreamInBinary& mstream);
 };
 

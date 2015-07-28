@@ -22,7 +22,7 @@
 
 #include "subsys/ChApiSubsys.h"
 #include "core/ChShared.h"
-#include "subsys/driveGear/DriveGear.h"
+// #include "subsys/driveGear/DriveGear.h" // use abstract gear type here
 
 #include "physics/ChShaftsGear.h"
 #include "physics/ChShaftsGearboxAngled.h"
@@ -58,8 +58,8 @@ class CH_SUBSYS_API TrackDriveline : public ChShared {
 
     /// Initialize the driveline subsystem, connecting it to the drive gears
     void Initialize(ChSharedPtr<ChBody> chassis,         ///< handle to the chassis body
-                    ChSharedPtr<DriveGear> drivegear_L,  ///< handle to the drive gear on the left side
-                    ChSharedPtr<DriveGear> drivegear_R   ///< handle to the drive gear on the right side
+                    ChSharedPtr<ChShaftsBody> drivegear_L,  ///< handle to the drive gear on the left side
+                    ChSharedPtr<ChShaftsBody> drivegear_R   ///< handle to the drive gear on the right side
                     );
 
     /// Apply the specified motor torque.

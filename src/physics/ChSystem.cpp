@@ -53,8 +53,6 @@
 #include "timestepper/ChTimestepper.h"
 #include "timestepper/ChStaticAnalysis.h"
 
-#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
-
 using namespace chrono::collision;
 
 namespace chrono {
@@ -247,9 +245,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     normtype = NORM_INF;
     maxiter = 6;
 
-    SetIntegrationType(INT_ANITESCU);
-    modeXY = FALSE;
-    contact_container = 0;
+    SetIntegrationType(INT_EULER_IMPLICIT_LINEARIZED); 
 
     min_bounce_speed = 0.15;
     max_penetration_recovery_speed = 0.6;
@@ -276,7 +272,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
 
     iterLCPmaxIters = 30;
     iterLCPmaxItersStab = 10;
-    simplexLCPmaxSteps = 100;
+    
     if (init_sys) {
         SetLcpSolverType(LCP_ITERATIVE_SYMMSOR);
     }
@@ -291,7 +287,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     stepcount = 0;
 
     last_err = 0;
-    strcpy(err_message, "");
 
     scriptEngine = 0;
     scriptForStart = NULL;
@@ -373,22 +368,19 @@ void ChSystem::Copy(ChSystem* source) {
     ncontacts = source->GetNcontacts();
     nbodies_sleep = source->GetNbodiesSleeping();
     nbodies_fixed = source->GetNbodiesFixed();
-    modeXY = source->modeXY;
     min_bounce_speed = source->min_bounce_speed;
     max_penetration_recovery_speed = source->max_penetration_recovery_speed;
     iterLCPmaxIters = source->iterLCPmaxIters;
     iterLCPmaxItersStab = source->iterLCPmaxItersStab;
-    simplexLCPmaxSteps = source->simplexLCPmaxSteps;
     SetLcpSolverType(GetLcpSolverType());
     parallel_thread_number = source->parallel_thread_number;
     use_sleeping = source->use_sleeping;
- 
+
 
     collision_callback = source->collision_callback;
     collisionpoint_callback = source->collisionpoint_callback;
 
     last_err = source->last_err;
-    memcpy(err_message, source->err_message, (sizeof(char) * CHSYS_ERRLEN));
 
     RemoveAllLinks();
     RemoveAllBodies();
@@ -637,28 +629,28 @@ void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
 int ChSystem::SetScriptForStartFile(char* mfile) {
     if (!this->scriptEngine)
         return 0;
-    strcpy(this->scriptForStartFile, mfile);
+    strncpy(this->scriptForStartFile, mfile, sizeof(this->scriptForStartFile)-1);
     this->scriptForStart = this->scriptEngine->CreateScript();
     return this->scriptEngine->FileToScript(*this->scriptForStart, mfile);
 }
 int ChSystem::SetScriptForUpdateFile(char* mfile) {
     if (!this->scriptEngine)
         return 0;
-    strcpy(this->scriptForUpdateFile, mfile);
+    strncpy(this->scriptForUpdateFile, mfile, sizeof(this->scriptForUpdateFile)-1);
     this->scriptForUpdate = this->scriptEngine->CreateScript();
     return this->scriptEngine->FileToScript(*this->scriptForUpdate, mfile);
 }
 int ChSystem::SetScriptForStepFile(char* mfile) {
     if (!this->scriptEngine)
         return 0;
-    strcpy(this->scriptForStepFile, mfile);
+    strncpy(this->scriptForStepFile, mfile, sizeof(this->scriptForStepFile)-1);
     this->scriptForStep = this->scriptEngine->CreateScript();
     return this->scriptEngine->FileToScript(*this->scriptForStep, mfile);
 }
 int ChSystem::SetScriptFor3DStepFile(char* mfile) {
     if (!this->scriptEngine)
         return 0;
-    strcpy(this->scriptFor3DStepFile, mfile);
+    strncpy(this->scriptFor3DStepFile, mfile, sizeof(this->scriptFor3DStepFile)-1);
     this->scriptFor3DStep = this->scriptEngine->CreateScript();
     return this->scriptEngine->FileToScript(*this->scriptFor3DStep, mfile);
 }
@@ -908,7 +900,7 @@ void ChSystem::RemoveAllBodies() {
         Bpointer->RemoveRef();
     }
     bodylist.clear();
-};
+}
 
 void ChSystem::RemoveAllLinks() {
     for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
@@ -921,7 +913,7 @@ void ChSystem::RemoveAllLinks() {
         Lpointer->RemoveRef();
     }
     linklist.clear();
-};
+}
 
 void ChSystem::RemoveAllOtherPhysicsItems() {
     for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
@@ -937,7 +929,7 @@ void ChSystem::RemoveAllOtherPhysicsItems() {
         PHpointer->RemoveRef();
     }
     otherphysicslist.clear();
-};
+}
 
 void ChSystem::RemoveAllProbes() {
     for (unsigned int ip = 0; ip < probelist.size(); ++ip)  // ITERATE on probes
@@ -947,7 +939,7 @@ void ChSystem::RemoveAllProbes() {
         Ppointer->RemoveRef();
     }
     probelist.clear();
-};
+}
 
 void ChSystem::RemoveAllControls() {
     for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
@@ -958,7 +950,7 @@ void ChSystem::RemoveAllControls() {
         Cpointer->RemoveRef();
     }
     controlslist.clear();
-};
+}
 
 ChSharedPtr<ChBody> ChSystem::SearchBody(const char* m_name) {
     ChBody* mbody =
@@ -1139,8 +1131,7 @@ void ChSystem::SetIntegrationType(eCh_integrationType m_integration) {
             break;
         case INT_HHT:
             this->timestepper = ChSharedPtr<ChTimestepperHHT>(new ChTimestepperHHT(*this));
-            (this->timestepper.DynamicCastTo<ChTimestepperHHT>())->SetMaxiters(100);
-			Iter=(this->timestepper.DynamicCastTo<ChTimestepperHHT>()->Iterations);
+            (this->timestepper.DynamicCastTo<ChTimestepperHHT>())->SetMaxiters(4);
             break;
         case INT_HEUN:
             this->timestepper = ChSharedPtr<ChTimestepperHeun>(new ChTimestepperHeun(*this));
@@ -2017,7 +2008,7 @@ void ChSystem::LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R 
         if (Lpointer->IsActive())
             Lpointer->IntLoadResidual_CqL(Lpointer->GetOffset_L(), R, L, c);
     }
-    this->contact_container->IntLoadResidual_CqL(contact_container->GetOffset_L(), R, L, c); 
+    this->contact_container->IntLoadResidual_CqL(contact_container->GetOffset_L(), R, L, c);
 }
 
 /// Increment a vector Qc with the term C:
@@ -2044,7 +2035,7 @@ void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  ///< result: the Qc resi
         if (Lpointer->IsActive())
             Lpointer->IntLoadConstraint_C(Lpointer->GetOffset_L(), Qc, c, mdo_clamp, mclam);
     }
-    this->contact_container->IntLoadConstraint_C(contact_container->GetOffset_L(), Qc, c, mdo_clamp, mclam); 
+    this->contact_container->IntLoadConstraint_C(contact_container->GetOffset_L(), Qc, c, mdo_clamp, mclam);
 }
 
 /// Increment a vector Qc with the term Ct = partial derivative dC/dt:
@@ -2201,6 +2192,8 @@ int ChSystem::Integrate_Y() {
 //
 
 int ChSystem::Integrate_Y_impulse_Anitescu() {
+    GetLog() << "WARNING! The INT_ANITESCU timestepper is deprecated. Use the INT_EULER_IMPLICIT_LINEARIZED instead.\n";
+
     int ret_code = TRUE;
 
     timer_step.start();
@@ -2327,6 +2320,8 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
 //
 
 int ChSystem::Integrate_Y_impulse_Tasora() {
+    GetLog() << "WARNING! The INT_TASORA timestepper is deprecated. Use the INT_EULER_IMPLICIT_PROJECTED instead.\n";
+
     int ret_code = TRUE;
 
     timer_step.start();
@@ -2781,7 +2776,6 @@ int ChSystem::DoStaticRelaxing() {
     int err = 0;
     int reached_tolerance = FALSE;
 
-    ResetErrors();
 
     if (ncoords > 0) {
         if (ndof >= 0) {
@@ -2838,7 +2832,6 @@ int ChSystem::DoStaticRelaxing() {
 int ChSystem::DoEntireKinematics() {
     Setup();
 
-    ResetErrors();
 
     DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
     // first check if there are redundant links (at least one NR cycle
@@ -2864,7 +2857,6 @@ int ChSystem::DoEntireKinematics() {
 int ChSystem::DoEntireDynamics() {
     Setup();
 
-    ResetErrors();
 
     // the system may have wrong layout, or too large
     // clearances in costraints, so it is better to
@@ -2910,8 +2902,6 @@ int ChSystem::DoFrameDynamics(double m_endtime) {
     int restore_oldstep = FALSE;
     int counter = 0;
     double fixed_step_undo;
-
-    ResetErrors();
 
     frame_step = (m_endtime - ChTime);
     fixed_step_undo = step;
@@ -2982,8 +2972,6 @@ int ChSystem::DoFrameKinematics(double m_endtime) {
     int restore_oldstep;
     int counter = 0;
 
-    ResetErrors();
-
     frame_step = (m_endtime - ChTime);
 
     double fixed_step_undo = step;
@@ -3019,7 +3007,6 @@ int ChSystem::DoFrameKinematics(double m_endtime) {
 }
 
 int ChSystem::DoStepKinematics(double m_step) {
-    ResetErrors();
 
     ChTime += m_step;
 
@@ -3038,7 +3025,6 @@ int ChSystem::DoStepKinematics(double m_step) {
 //
 
 int ChSystem::DoFullAssembly() {
-    ResetErrors();
 
     DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
 
@@ -3048,6 +3034,86 @@ int ChSystem::DoFullAssembly() {
 ////////
 ////////  STREAMING - FILE HANDLING
 ////////
+
+
+void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChObj::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    
+    marchive << CHNVP(G_acc);
+
+    //marchive << CHNVP(bodylist);
+    // do rather a custom array save:
+    marchive.out_array_pre("bodies", bodylist.size(), "ChBody");
+    for (int i = 0; i < bodylist.size(); i++) {
+        bodylist[i]->AddRef(); // hack: since in list are not as shared pointers
+        ChSharedPtr<ChBody> a_body(bodylist[i]); // wrap into shared ptr
+        marchive << CHNVP(a_body,"");
+        marchive.out_array_between(bodylist.size(), "bodies");
+    }
+    marchive.out_array_end(bodylist.size(), "bodies");
+
+    //marchive << CHNVP(linklist);
+    // do rather a custom array save:
+    marchive.out_array_pre("links", linklist.size(), "ChLink");
+    for (int i = 0; i < linklist.size(); i++) {
+        linklist[i]->AddRef(); // hack: since in list are not as shared pointers
+        ChSharedPtr<ChLink> a_link(linklist[i]); // wrap into shared ptr
+        marchive << CHNVP(a_link,"");
+        marchive.out_array_between(linklist.size(), "links");
+    }
+    marchive.out_array_end(linklist.size(), "links");
+
+    //***TODO*** complete...
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChSystem::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class
+    ChObj::ArchiveIN(marchive);
+
+    // stream in all member data:
+    marchive >> CHNVP(G_acc);
+
+    //marchive >> CHNVP(bodylist);
+    // do rather a custom array load:
+    this->RemoveAllBodies();
+    size_t num_bodies;
+    marchive.in_array_pre("bodies", num_bodies);
+    for (int i = 0; i < num_bodies; i++) {
+        ChSharedPtr<ChBody> a_body;
+        marchive >> CHNVP(a_body,"");
+        this->AddBody(a_body);
+        marchive.in_array_between("bodies");
+    }
+    marchive.in_array_end("bodies");
+
+    //marchive >> CHNVP(linklist);
+    // do rather a custom array load:
+    this->RemoveAllLinks();
+    size_t num_links;
+    marchive.in_array_pre("links", num_links);
+    for (int i = 0; i < num_links; i++) {
+        ChSharedPtr<ChLink> a_link;
+        marchive >> CHNVP(a_link,"");
+        this->AddLink(a_link);
+        marchive.in_array_between("links");
+    }
+    marchive.in_array_end("links");
+
+    //***TODO*** complete...
+}
+
 
 void ChSystem::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
@@ -3090,7 +3156,7 @@ void ChSystem::StreamOUT(ChStreamOutBinary& mstream) {
     // v2
     mstream << iterLCPmaxIters;
     mstream << iterLCPmaxItersStab;
-    mstream << simplexLCPmaxSteps;
+    mstream << (int)0;
     mstream << (int)GetLcpSolverType();
     // v3,v4
     mstream << (int)0;  // GetFrictionProjection();
@@ -3161,7 +3227,7 @@ void ChSystem::StreamIN(ChStreamInBinary& mstream) {
     if (version >= 2) {
         mstream >> iterLCPmaxIters;
         mstream >> iterLCPmaxItersStab;
-        mstream >> simplexLCPmaxSteps;
+        mstream >> mint;
         mstream >> mint;
         SetLcpSolverType((eCh_lcpSolver)mint);
     }
@@ -3435,10 +3501,10 @@ ChSharedPtr<ChBody> ChSystem::IteratorBodies::operator*() {
 }
 ChSystem::IteratorBodies ChSystem::IterBeginBodies() {
     return (IteratorBodies(this->bodylist.begin()));
-};
+}
 ChSystem::IteratorBodies ChSystem::IterEndBodies() {
     return (IteratorBodies(this->bodylist.end()));
-};
+}
 
 //////////////////////////////////////////////////////////////////
 
@@ -3463,10 +3529,10 @@ ChSharedPtr<ChLink> ChSystem::IteratorLinks::operator*() {
 }
 ChSystem::IteratorLinks ChSystem::IterBeginLinks() {
     return (IteratorLinks(this->linklist.begin()));
-};
+}
 ChSystem::IteratorLinks ChSystem::IterEndLinks() {
     return (IteratorLinks(this->linklist.end()));
-};
+}
 
 //////////////////////////////////////////////////////////////////
 
@@ -3492,10 +3558,10 @@ ChSharedPtr<ChPhysicsItem> ChSystem::IteratorOtherPhysicsItems::operator*() {
 }
 ChSystem::IteratorOtherPhysicsItems ChSystem::IterBeginOtherPhysicsItems() {
     return (IteratorOtherPhysicsItems(this->otherphysicslist.begin()));
-};
+}
 ChSystem::IteratorOtherPhysicsItems ChSystem::IterEndOtherPhysicsItems() {
     return (IteratorOtherPhysicsItems(this->otherphysicslist.end()));
-};
+}
 
 //////////////////////////////////////////////////////////////////
 
@@ -3638,10 +3704,10 @@ ChSharedPtr<ChPhysicsItem> ChSystem::IteratorPhysicsItems::operator*() {
 }
 ChSystem::IteratorPhysicsItems ChSystem::IterBeginPhysicsItems() {
     return (IteratorPhysicsItems(this));
-};
+}
 ChSystem::IteratorPhysicsItems ChSystem::IterEndPhysicsItems() {
     return (IteratorPhysicsItems());
-};
+}
 
 }  // END_OF_NAMESPACE____
 

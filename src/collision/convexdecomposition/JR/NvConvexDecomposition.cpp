@@ -795,4 +795,4 @@ void				   releaseConvexDecomposition(iConvexDecomposition *ic)
 	delete cd;
 }
 
-}; // end of namespace
+} // end of namespace

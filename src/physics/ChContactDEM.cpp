@@ -17,9 +17,6 @@
 #include "physics/ChSystemDEM.h"
 #include "physics/ChBody.h"
 
-// Memory leak debugger (must be included last).
-#include "core/ChMemory.h"
-
 namespace chrono {
 
 using namespace collision;
