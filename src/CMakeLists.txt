@@ -401,8 +401,6 @@ include_directories( ${CH_INCLUDES} )
         physics/ChNodeBase.cpp
         physics/ChNodeXYZ.cpp
         physics/ChMatterSPH.cpp
-        physics/ChContact.cpp
-        physics/ChContactRolling.cpp
         physics/ChContactNode.cpp
         physics/ChContactContainerBase.cpp
         physics/ChContactContainerDVI.cpp
@@ -437,12 +435,10 @@ include_directories( ${CH_INCLUDES} )
         physics/ChBodyAuxRef.h
         physics/ChBodyEasy.h
         physics/ChConstraint.h
-        physics/ChContact.h
         physics/ChContactContainerDVI.h
         physics/ChContactContainerBase.h
         physics/ChContactContainerNodes.h
         physics/ChContactNode.h
-        physics/ChContactRolling.h
         physics/ChController.h
         physics/ChControls.h
         physics/ChConveyor.h
