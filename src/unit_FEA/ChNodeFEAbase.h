@@ -24,13 +24,20 @@ namespace fea
 {
 
 
+// Forward
+class ChMesh;
+
+
 /// Base class for a generic finite element node
 /// that can be stored in ChMesh containers.
 /// Children classes must implement specialized versions.
 
-class ChApiFea ChNodeFEAbase  :  public chrono::ChNodeBase
+class ChApiFea ChNodeFEAbase  :  public virtual chrono::ChNodeBase
 {
 public:
+
+    ChNodeFEAbase() {
+    }
 
 				/// Set the rest position as the actual position.
 	virtual void Relax () =0;
@@ -40,10 +47,17 @@ public:
 
 				/// Sets the 'fixed' state of the node. 
 				/// If true, its current field value is not changed by solver.
-	virtual void SetFixed  (bool mev) =0; //{ Variables().SetDisabled(mev); }
+	virtual void SetFixed  (bool mev) =0;  
 				/// Gets the 'fixed' state of the node. 
 				/// If true, its current field value is not changed by solver.
-    virtual bool GetFixed()  =0; // {return Variables().IsDisabled(); }
+    virtual bool GetFixed()  =0;  
+
+
+protected:
+
+    //
+    // DATA
+    //
 
 };
 

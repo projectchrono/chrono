@@ -26,7 +26,7 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
     : ChSystem(max_objects, scene_size, false),
       m_use_mat_props(use_material_properties),
       m_use_history(use_history),
-      m_contact_model(ChContactDEM::Hertz) {
+      m_contact_model(ContactForceModel::Hertz) {
     LCP_descriptor = new ChLcpSystemDescriptor;
     LCP_descriptor->SetNumThreads(parallel_thread_number);
 
@@ -39,36 +39,28 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
     collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
 
     contact_container = new ChContactContainerDEM;
+    contact_container->SetSystem(this);
+
+    m_minSlipVelocity = 1e-4; 
+    m_characteristicVelocity = 1; 
 }
 
 void ChSystemDEM::SetLcpSolverType(eCh_lcpSolver mval) {
-    if (mval != LCP_DEM)
-        return;
 
-    lcp_solver_type = LCP_DEM;
-
-    if (LCP_solver_speed)
-        delete LCP_solver_speed;
-    LCP_solver_speed = new ChLcpSolverDEM();
-
-    if (LCP_solver_stab)
-        delete LCP_solver_stab;
-    LCP_solver_stab = new ChLcpSolverDEM();
-
-    if (LCP_descriptor)
-        delete LCP_descriptor;
-    LCP_descriptor = new ChLcpSystemDescriptor;
-    LCP_descriptor->SetNumThreads(parallel_thread_number);
+    ChSystem::SetLcpSolverType(mval);
 
     if (contact_container)
         delete contact_container;
     contact_container = new ChContactContainerDEM;
+    contact_container->SetSystem(this);
 }
 
+/*
 void ChSystemDEM::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
     if (dynamic_cast<ChLcpSolverDEM*>(newsolver))
         ChSystem::ChangeLcpSolverSpeed(newsolver);
 }
+*/
 
 void ChSystemDEM::ChangeContactContainer(ChContactContainerBase* newcontainer) {
     if (dynamic_cast<ChContactContainerDEM*>(newcontainer))

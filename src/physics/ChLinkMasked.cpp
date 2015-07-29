@@ -266,8 +266,8 @@ void ChLinkMasked::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkMasked::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-  if (react)
-    L.PasteMatrix(react, off_L, 0);
+    if (react)
+        L.PasteMatrix(react, off_L, 0);
 }
 
 void ChLinkMasked::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
@@ -275,7 +275,7 @@ void ChLinkMasked::IntStateScatterReactions(const unsigned int off_L, const ChVe
     react_torque = VNULL;  // Child classes implementations should compute them.
 
     if (react)
-      react->PasteClippedMatrix(&L, off_L, 0, react->GetRows(), 1, 0, 0);
+        react->PasteClippedMatrix(&L, off_L, 0, react->GetRows(), 1, 0, 0);
 }
 
 void ChLinkMasked::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers

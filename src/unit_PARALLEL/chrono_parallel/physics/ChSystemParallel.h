@@ -30,7 +30,6 @@
 #include "physics/ChBodyAuxRef.h"
 #include "physics/ChContactDEM.h"
 #include "physics/ChGlobal.h"
-#include "physics/ChContactContainer.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"

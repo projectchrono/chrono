@@ -40,7 +40,7 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
 void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c)
 {
 	// This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid 
-	// implementing this VariablesFbIncrementMq function, unless you need faster code)
+	// implementing this EleIntLoadResidual_Mv function, unless you need faster code)
 
 	ChMatrixDynamic<> mMi(this->GetNdofs(), this->GetNdofs());
 	this->ComputeKRMmatricesGlobal(mMi, 0, 0, 1.0); // fill M mass matrix 

@@ -222,7 +222,8 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// - the sublines must follow in the proper order, with cohincident corners, and must be closed.
     virtual bool Add2Dpath(geometry::ChLinePath& mpath,
                            const ChVector<>& pos = ChVector<>(),
-                           const ChMatrix33<>& rot = ChMatrix33<>(1));
+                           const ChMatrix33<>& rot = ChMatrix33<>(1),
+                           const double thickness = 0.001);
 
     /// Add all shapes already contained in another model.
     /// Thank to the adoption of shared pointers, underlying shapes are
@@ -241,6 +242,10 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// i.e. max-min along the x,y,z world axes. Remember that SyncPosition()
     /// should be invoked before calling this.
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const;
+
+    /// Sets the position and orientation of the collision
+    /// model as the current position of the corresponding ChContactable
+    virtual void SyncPosition();
 
     //
     // SERIALIZATION

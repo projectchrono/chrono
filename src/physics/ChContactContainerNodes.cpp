@@ -287,7 +287,7 @@ void ChContactContainerNodes::ConstraintsBiLoad_C(double factor, double recovery
 }
 
 void ChContactContainerNodes::ConstraintsLoadJacobians() {
-    // already loaded when ChContact objects are created
+    // already loaded when contact objects are created
 }
 
 void ChContactContainerNodes::ConstraintsFetch_react(double factor) {

@@ -58,17 +58,6 @@ private:
     /// Sets the pointer to the client owner rigid body
     void SetBody(ChBody* mbo) { mbody = mbo; };
 
-    // Overrides and implementations of base members:
-
-    /// Sets the position and orientation of the collision
-    /// model as the current position of the corresponding ChBody
-    virtual void SyncPosition();
-
-    /// Gets the pointer to the client owner ChPhysicsItem.
-    virtual ChPhysicsItem* GetPhysicsItem() { return (ChPhysicsItem*)GetBody(); };
-
-    /// Sets the pointer to the client owner ChPhysicsItem.
-    virtual void SetPhysicsItem(ChPhysicsItem* mitem);
 
   private:
 };

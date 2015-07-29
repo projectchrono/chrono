@@ -43,12 +43,13 @@ namespace chrono {
 // Forward references (for parent hierarchy pointer)
 
 class ChSystem;
+class ChMatterSPH;
 
 /// Class for a single node in the SPH cluster
 /// (it does not define mass, inertia and shape becuase those
 /// data are shared between them)
 
-class ChApi ChNodeSPH : public ChNodeXYZ {
+class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
   public:
     ChNodeSPH();
     ~ChNodeSPH();
@@ -76,9 +77,56 @@ class ChApi ChNodeSPH : public ChNodeXYZ {
 	// Access the 'LCP variables' of the node
 	ChLcpVariablesNode& Variables() {return variables;}
 
+    // Get the SPH container
+    ChMatterSPH* GetContainer() const {return container;}
+    // Set the SPH container
+    void SetContainer(ChMatterSPH* mc) { container = mc;}
+
+
+    //
+    // INTERFACE TO ChContactable
+    //
+
+        /// Access variables
+    virtual ChLcpVariables* GetVariables1() {return &Variables(); }
+
+        /// Tell if the object must be considered in collision detection
+    virtual bool IsContactActive() { return true; }
+
+        /// Get the absolute speed of point abs_point if attached to the 
+        /// surface. Easy in this case because there are no roations..
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) {return this->pos_dt;};
+
+        /// ChCollisionModel might call this to get the position of the 
+        /// contact model (when rigid) and sync it
+    virtual ChCoordsys<> GetCsysForCollisionModel() {return ChCoordsys<>(this->pos, QNULL);}
+
+        /// Apply the force, expressed in absolute reference, applied in pos, to the 
+        /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
+                                         ChVectorDynamic<>& R);
+
+        /// Compute the jacobian(s) part(s) for this contactable item. For example,
+        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
+                            type_constraint_tuple& jacobian_tuple_N,
+                            type_constraint_tuple& jacobian_tuple_U,
+                            type_constraint_tuple& jacobian_tuple_V,
+                            bool second);
+
+    virtual double GetContactableMass()  {return this->GetMass();}
+
+        /// Return the pointer to the surface material. 
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+
+        /// This is only for backward compatibility
+    virtual ChPhysicsItem* GetPhysicsItem();
+
     //
     // DATA
     //
+
+    ChMatterSPH* container;
 
     ChLcpVariablesNode variables;
 
@@ -157,6 +205,9 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
 
     ChContinuumSPH material;
 
+    // data for surface contact and impact (can be shared):
+    ChSharedPtr<ChMaterialSurfaceBase> matsurface;
+
     bool do_collide;
 
   public:
@@ -211,6 +262,12 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     /// Add a new node to the particle cluster, passing a
     /// vector as initial position.
     void AddNode(ChVector<double> initial_state);
+
+    /// Set the material surface for 'boundary contact'
+    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+
+    /// Set the material surface for 'boundary contact' 
+    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
 
     //
     // STATE FUNCTIONS

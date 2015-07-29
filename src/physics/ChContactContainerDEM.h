@@ -12,46 +12,48 @@
 #ifndef CHCONTACTCONTAINERDEM_H
 #define CHCONTACTCONTAINERDEM_H
 
-///////////////////////////////////////////////////
-//
-//   ChContactContainerDEM.h
-//
-//   Class for container of many contacts, as CPU
-//   typical linked list of ChContactDEM objects
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "physics/ChContactContainerBase.h"
+#include "physics/ChContactable.h"
 #include "physics/ChContactDEM.h"
 #include <list>
+#include <cmath>
+#include <algorithm>
 
 namespace chrono {
 
 ///
 /// Class representing a container of many contacts,
-/// implemented as a typical linked list of ChContactNode
-/// objects (contacts between 3DOF nodes and 6DOF bodies)
+/// implemented as a typical linked list of ChContactDEM
+/// objects (that is, contacts between two ChContactable objects).
+/// This is the default contact container used in most
+/// cases.
 ///
 
 class ChApi ChContactContainerDEM : public ChContactContainerBase {
     CH_RTTI(ChContactContainerDEM, ChContactContainerBase);
+
+  public:
+    typedef ChContactDEM< ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDEM_6_6;
+    typedef ChContactDEM< ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDEM_6_3;
+    typedef ChContactDEM< ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDEM_3_3;
 
   protected:
     //
     // DATA
     //
 
-    std::list<ChContactDEM*> contactlist;
+    std::list< ChContactDEM_6_6* > contactlist_6_6;
+    std::list< ChContactDEM_6_3* > contactlist_6_3;
+    std::list< ChContactDEM_3_3* > contactlist_3_3;
 
-    int n_added;
+    int n_added_6_6;
+    int n_added_6_3;
+    int n_added_3_3;
 
-    std::list<ChContactDEM*>::iterator lastcontact;
+    std::list<ChContactDEM_6_6*>::iterator lastcontact_6_6;
+    std::list<ChContactDEM_6_3*>::iterator lastcontact_6_3;
+    std::list<ChContactDEM_3_3*>::iterator lastcontact_3_3;
 
   public:
     //
@@ -65,15 +67,8 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     //
     // FUNCTIONS
     //
-
-    /// Gets the list of contacts -low level function-.
-    /// NOTE! use this list only to enumerate etc., but NOT to
-    /// remove or add items (use the appropriate Remove.. and Add..
-    /// functions instead!)
-    std::list<ChContactDEM*>* Get_contactlist() { return &contactlist; }
-
     /// Tell the number of added contacts
-    virtual int GetNcontacts() { return n_added; };
+    virtual int GetNcontacts() { return n_added_6_6 + n_added_6_3 + n_added_3_3;} 
 
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts();
@@ -98,9 +93,9 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     /// Child classes of ChContactContainerBase should try to implement this (although
     /// in some highly-optimized cases as in ChContactContainerGPU it could be impossible to
     /// report all contacts).
-    virtual void ReportAllContacts(ChReportContactCallback* mcallback);
+    virtual void ReportAllContacts2(ChReportContactCallback2* mcallback);
 
-    /// In detail, it computes jacobians, violations, etc. and stores
+     /// In detail, it computes jacobians, violations, etc. and stores
     /// results in inner structures of contacts.
     virtual void Update(double mtime, bool update_assets = true);
 
@@ -111,11 +106,14 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
 
+
     //
     // LCP INTERFACE
     //
 
     virtual void ConstraintsFbLoadForces(double factor);
+
+    
 };
 
 //////////////////////////////////////////////////////

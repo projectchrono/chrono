@@ -14,7 +14,6 @@
 //   Demo code about
 //
 //     - using paths for defining trajectories
-//     - using paths for 2d collisions
 //
 ///////////////////////////////////////////////////
 
@@ -50,6 +49,10 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(0, 4, -6));
 
+    // This means that contactforces will be shown in Irrlicht application
+    application.SetSymbolscale(0.2);
+    application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_NORMALS);
+
     //
     // EXAMPLE 1:
     //
@@ -65,11 +68,11 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChLinePath> mpath(new ChLinePath);
     ChLineSegment mseg1(ChVector<>(1, 2, 0), ChVector<>(2, 2, 0));
     mpath->AddSubLine(mseg1);
-    ChLineArc marc1(ChCoordsys<>(ChVector<>(2, 2.5, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2);
+    ChLineArc marc1(ChCoordsys<>(ChVector<>(2, 2.5, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
     mpath->AddSubLine(marc1);
     ChLineSegment mseg2(ChVector<>(2, 3, 0), ChVector<>(1, 3, 0));
     mpath->AddSubLine(mseg2);
-    ChLineArc marc2(ChCoordsys<>(ChVector<>(1, 2.5, 0)), 0.5, CH_C_PI_2, 3 * CH_C_PI_2);
+    ChLineArc marc2(ChCoordsys<>(ChVector<>(1, 2.5, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
     mpath->AddSubLine(marc2);
     mpath->Set_closed(true);
 
@@ -125,11 +128,11 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChLinePath> mglyph(new ChLinePath);
     ChLineSegment ms1(ChVector<>(-0.5, -0.5, 0), ChVector<>(0.5, -0.5, 0));
     mglyph->AddSubLine(ms1);
-    ChLineArc ma1(ChCoordsys<>(ChVector<>(0.5, 0, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2);
+    ChLineArc ma1(ChCoordsys<>(ChVector<>(0.5, 0, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
     mglyph->AddSubLine(ma1);
     ChLineSegment ms2(ChVector<>(0.5, 0.5, 0), ChVector<>(-0.5, 0.5, 0));
     mglyph->AddSubLine(ms2);
-    ChLineArc ma2(ChCoordsys<>(ChVector<>(-0.5, 0, 0)), 0.5, CH_C_PI_2, 3 * CH_C_PI_2);
+    ChLineArc ma2(ChCoordsys<>(ChVector<>(-0.5, 0, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
     mglyph->AddSubLine(ma2);
     mglyph->SetPathDuration(1);
     mglyph->Set_closed(true);
@@ -160,6 +163,8 @@ int main(int argc, char* argv[]) {
     mglyphconstraint->Set_trajectory_line(mglyph);
 
     application.GetSystem()->Add(mglyphconstraint);
+
+
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
