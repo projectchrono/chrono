@@ -87,7 +87,7 @@ void test_1() {
 
 
 	int MAXCOUNT = 100;
-	inputfile = fopen("IndataBiLinearShell_Simple1_8x8.DAT","r");
+	inputfile = fopen("IndataBiLinearShell_Simple1.DAT","r");
 	printf("Open IndataBiLinearShell_Simple1.DAT\n");
 	if(inputfile == NULL){
 		printf("IndataBiLinearShell_Simple1.DAT cannot open!!\n");
@@ -179,16 +179,6 @@ void test_1() {
 	}
 	//printf("%lf %lf %lf %lf\n",MPROP[i][0],MPROP[i][1],MPROP[i][2],MPROP[i][3]);
 	}
-	//!--------------------------------------!
-    //!--- Save into INRTAFlex --------------!
-    //!--------------------------------------!
-	//vector<vector<vector<double>>> INRTAFlex(numDiv, vector<vector<double>>(MaxLayInf, vector<double>(MaxMatInf, 0)));
-    //Al_INRTAFlex(INRTAFlex, numDiv, MaxLayInf, MaxMatInf);
-	//for(int i=0;i<numDiv;i++)
-	//{
-	//	//
-
-	//}
 
 	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
 	mmaterial->Set_RayleighDampingK(0.0);
@@ -245,10 +235,6 @@ void test_1() {
 		InertFlexVec(ij+12)=MPROP[MNUM[LayNUM[i]-1][j]-1][8];// Gxz
 		InertFlexVec(ij+13)=MPROP[MNUM[LayNUM[i]-1][j]-1][9];// Gyz
 		}
-		//for(int ijkll=0;ijkll<98;ijkll++){
-		//GetLog() <<InertFlexVec(ijkll) <<"\n";
-		//}
-		//system("pause");
 		ChMatrixNM<double,7,2> GaussZRange;
 		GaussZRange.Reset();
 		double CurrentHeight=0.0;
@@ -260,8 +246,6 @@ void test_1() {
 			GaussZRange(j,0)=AA;
 			GaussZRange(j,1)=AAA;
 		}
-		//GetLog() << "GaussZRange" << GaussZRange;
-		//
 		element->SetInertFlexVec(InertFlexVec);
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
@@ -274,7 +258,6 @@ void test_1() {
 		element->Setdt(0.001); // dt to calculate DampingCoefficient
 		element->SetGravityZ(1); // 0:No Gravity, 1:Gravity(Fz=-9.81)
 		element->SetAirPressure(0); // 0:No AirPressure, 1:220kPa Air Pressure
-		//element->SetStockAlpha(0.0,0.0,0.0,0.0,0.0);
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
@@ -287,7 +270,6 @@ void test_1() {
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
-	//GetLog()<< nodetip->GetD().x<<"\n"<<nodetip->GetD().y<<"\n"<<nodetip->GetD().z<<"\n";
 	i=0;
 	int icount=0;
 	while(i<TotalNumNodes)
@@ -311,9 +293,6 @@ void test_1() {
 			icount++;
 		}
 		
-		//GetLog()<<"\n"<<i<<"\n";
-		//GetLog()<<"\n"<<COORDFlex[i][3]<<"\n"<<COORDFlex[i][4]<<"\n"<<COORDFlex[i][5]<<"\n";
-		//system("pause");
 		i++;
 	}
 	GetLog()<<"\n"<<icount<<"\n";
@@ -341,11 +320,6 @@ void test_1() {
         my_system.DoStepDynamics(timestep);
 		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
 		
-		//GetLog() << "N0: t=" << my_system.GetChTime() << "  x:"<<mnode0->GetPos().x << "  y:"<<mnode0->GetPos().y <<"  z:"<<mnode0->GetPos().z <<"  rx:"<<mnode0->GetD().x <<"  ry:"<<mnode0->GetD().y <<" rz:"<<mnode0->GetD().z<<" \n";
-		//GetLog() << "N11: t=" << my_system.GetChTime() << "  x:"<<mnode11->GetPos().x << "  y:"<<mnode11->GetPos().y <<"  z:"<<mnode11->GetPos().z <<"  rx:"<<mnode11->GetD().x <<"  ry:"<<mnode11->GetD().y <<" rz:"<<mnode11->GetD().z<<" \n";
-		//GetLog() << "N21: t=" << my_system.GetChTime() << "  x:"<<mnode21->GetPos().x << "  y:"<<mnode21->GetPos().y <<"  z:"<<mnode21->GetPos().z <<"  rx:"<<mnode21->GetD().x <<"  ry:"<<mnode21->GetD().y <<" rz:"<<mnode21->GetD().z<<" \n";
-		//GetLog() << "N10: t=" << my_system.GetChTime() << "  x:"<<mnode10->GetPos().x << "  y:"<<mnode10->GetPos().y <<"  z:"<<mnode10->GetPos().z <<"  rx:"<<mnode10->GetD().x <<"  ry:"<<mnode10->GetD().y <<" rz:"<<mnode10->GetD().z<<" \n";
-
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
 		fprintf(outputfile,"%e  ",nodetip->GetPos().y);
@@ -354,13 +328,8 @@ void test_1() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().y);
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
-		//system("pause");
-		//GetLog()<< nodetip->GetPos().x<<"\n"<<nodetip->GetPos().y<<"\n"<<nodetip->GetPos().z<<"\n";
-		//GetLog()<< nodetip->GetD().x<<"\n"<<nodetip->GetD().y<<"\n"<<nodetip->GetD().z<<"\n";
-		//system("pause");
     }
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	//GetLog() << "Iterations: " << my_system.Iter << "\n";
 	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
 	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
@@ -418,9 +387,9 @@ void test_2() {
 
 	int MAXCOUNT = 100;
 	inputfile = fopen("IndataBiLinearShell_Tire3.DAT","r");
-	printf("Open IndataBiLinearShell_Simple1.DAT\n");
+	printf("Open IndataBiLinearShell_Tire3.DAT\n");
 	if(inputfile == NULL){
-		printf("IndataBiLinearShell_Simple1.DAT cannot open!!\n");
+		printf("IndataBiLinearShell_Tire3.DAT cannot open!!\n");
 		system("pause");
 		exit(1);
 	}
@@ -509,16 +478,7 @@ void test_2() {
 	}
 	//printf("%lf %lf %lf %lf\n",MPROP[i][0],MPROP[i][1],MPROP[i][2],MPROP[i][3]);
 	}
-	//!--------------------------------------!
-    //!--- Save into INRTAFlex --------------!
-    //!--------------------------------------!
-	//vector<vector<vector<double>>> INRTAFlex(numDiv, vector<vector<double>>(MaxLayInf, vector<double>(MaxMatInf, 0)));
-    //Al_INRTAFlex(INRTAFlex, numDiv, MaxLayInf, MaxMatInf);
-	//for(int i=0;i<numDiv;i++)
-	//{
-	//	//
 
-	//}
 
 	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
 	mmaterial->Set_RayleighDampingK(0.0);
@@ -541,7 +501,7 @@ void test_2() {
 	GetLog() << "TotalNumNodes: " << TotalNumNodes << "\n\n";
 
 
-	ChSharedPtr<ChNodeFEAxyzD> nodetip (my_mesh->GetNode(/*TotalNumNodes-1*/(numDiv/2)).DynamicCastTo<ChNodeFEAxyzD>());
+	ChSharedPtr<ChNodeFEAxyzD> nodetip (my_mesh->GetNode((numDiv/2)).DynamicCastTo<ChNodeFEAxyzD>());
 	GetLog() << "X : " << nodetip->GetPos().x <<" Y : "<< nodetip->GetPos().y <<" Z : "<< nodetip->GetPos().z <<"\n\n";
 	GetLog() << "dX : " << nodetip->GetD().x <<" dY : "<< nodetip->GetD().y <<" dZ : "<< nodetip->GetD().z <<"\n\n";
 
@@ -575,10 +535,6 @@ void test_2() {
 		InertFlexVec(ij+12)=MPROP[MNUM[LayNUM[i]-1][j]-1][8];// Gxz
 		InertFlexVec(ij+13)=MPROP[MNUM[LayNUM[i]-1][j]-1][9];// Gyz
 		}
-		//for(int ijkll=0;ijkll<98;ijkll++){
-		//GetLog() <<InertFlexVec(ijkll) <<"\n";
-		//}
-		//system("pause");
 		ChMatrixNM<double,7,2> GaussZRange;
 		GaussZRange.Reset();
 		double CurrentHeight=0.0;
@@ -590,8 +546,6 @@ void test_2() {
 			GaussZRange(j,0)=AA;
 			GaussZRange(j,1)=AAA;
 		}
-		//GetLog() << "GaussZRange" << GaussZRange;
-		//
 		element->SetInertFlexVec(InertFlexVec);
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
@@ -604,7 +558,6 @@ void test_2() {
 		element->Setdt(0.00025); // dt to calculate DampingCoefficient
 		element->SetGravityZ(0); // 0:No Gravity, 1:Gravity(Fz=-9.81)
 		element->SetAirPressure(1); // 0:No AirPressure, 1:220kPa Air Pressure
-		//element->SetStockAlpha(0.0,0.0,0.0,0.0,0.0);
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
@@ -617,7 +570,7 @@ void test_2() {
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
-	//GetLog()<< nodetip->GetD().x<<"\n"<<nodetip->GetD().y<<"\n"<<nodetip->GetD().z<<"\n";
+
 	i=0;
 	int icount=0;
 	while(i<TotalNumNodes)
@@ -638,14 +591,9 @@ void test_2() {
 			my_system.Add(constraintD);
 
 		icount++;
-		//GetLog()<<"\n"<<i<<"\n";
 		}
-		//GetLog()<<"\n"<<COORDFlex[i][3]<<"\n"<<COORDFlex[i][4]<<"\n"<<COORDFlex[i][5]<<"\n";
-		//system("pause");
 		i++;
 	}
-	GetLog()<<"\n"<<icount<<"\n";
-	system("pause");
     // Perform a dynamic time integration:
     my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
@@ -668,11 +616,6 @@ void test_2() {
     while (my_system.GetChTime() < 0.1) {
         my_system.DoStepDynamics(timestep);
 		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
-		
-		//GetLog() << "N0: t=" << my_system.GetChTime() << "  x:"<<mnode0->GetPos().x << "  y:"<<mnode0->GetPos().y <<"  z:"<<mnode0->GetPos().z <<"  rx:"<<mnode0->GetD().x <<"  ry:"<<mnode0->GetD().y <<" rz:"<<mnode0->GetD().z<<" \n";
-		//GetLog() << "N11: t=" << my_system.GetChTime() << "  x:"<<mnode11->GetPos().x << "  y:"<<mnode11->GetPos().y <<"  z:"<<mnode11->GetPos().z <<"  rx:"<<mnode11->GetD().x <<"  ry:"<<mnode11->GetD().y <<" rz:"<<mnode11->GetD().z<<" \n";
-		//GetLog() << "N21: t=" << my_system.GetChTime() << "  x:"<<mnode21->GetPos().x << "  y:"<<mnode21->GetPos().y <<"  z:"<<mnode21->GetPos().z <<"  rx:"<<mnode21->GetD().x <<"  ry:"<<mnode21->GetD().y <<" rz:"<<mnode21->GetD().z<<" \n";
-		//GetLog() << "N10: t=" << my_system.GetChTime() << "  x:"<<mnode10->GetPos().x << "  y:"<<mnode10->GetPos().y <<"  z:"<<mnode10->GetPos().z <<"  rx:"<<mnode10->GetD().x <<"  ry:"<<mnode10->GetD().y <<" rz:"<<mnode10->GetD().z<<" \n";
 
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
@@ -682,13 +625,9 @@ void test_2() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().y);
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
-		//system("pause");
-		//GetLog()<< nodetip->GetPos().x<<"\n"<<nodetip->GetPos().y<<"\n"<<nodetip->GetPos().z<<"\n";
-		//GetLog()<< nodetip->GetD().x<<"\n"<<nodetip->GetD().y<<"\n"<<nodetip->GetD().z<<"\n";
-		//system("pause");
     }
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	//GetLog() << "Iterations: " << my_system.Iter << "\n";
+
 	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
 	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
@@ -745,7 +684,7 @@ void test_3() {
 
 
 	int MAXCOUNT = 100;
-	inputfile = fopen("IndataBiLinearShell_Simple1_8x8.DAT","r");
+	inputfile = fopen("IndataBiLinearShell_Simple1.DAT","r");
 	printf("Open IndataBiLinearShell_Simple1.DAT\n");
 	if(inputfile == NULL){
 		printf("IndataBiLinearShell_Simple1.DAT cannot open!!\n");
@@ -837,26 +776,11 @@ void test_3() {
 	}
 	//printf("%lf %lf %lf %lf\n",MPROP[i][0],MPROP[i][1],MPROP[i][2],MPROP[i][3]);
 	}
-	//!--------------------------------------!
-    //!--- Save into INRTAFlex --------------!
-    //!--------------------------------------!
-	//vector<vector<vector<double>>> INRTAFlex(numDiv, vector<vector<double>>(MaxLayInf, vector<double>(MaxMatInf, 0)));
-    //Al_INRTAFlex(INRTAFlex, numDiv, MaxLayInf, MaxMatInf);
-	//for(int i=0;i<numDiv;i++)
-	//{
-	//	//
 
-	//}
 
 	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
 	mmaterial->Set_RayleighDampingK(0.0);
 	mmaterial->Set_RayleighDampingM(0.0);
-
-	
-	// Create also a truss
-    //ChSharedPtr<ChBody> truss(new ChBody);
-    //truss->SetBodyFixed(true);
-    //my_system.Add(truss);
 
 	int i=0;
 	while(i<TotalNumNodes)
@@ -907,10 +831,7 @@ void test_3() {
 		InertFlexVec(ij+12)=MPROP[MNUM[LayNUM[i]-1][j]-1][8];// Gxz
 		InertFlexVec(ij+13)=MPROP[MNUM[LayNUM[i]-1][j]-1][9];// Gyz
 		}
-		//for(int ijkll=0;ijkll<98;ijkll++){
-		//GetLog() <<InertFlexVec(ijkll) <<"\n";
-		//}
-		//system("pause");
+
 		ChMatrixNM<double,7,2> GaussZRange;
 		GaussZRange.Reset();
 		double CurrentHeight=0.0;
@@ -936,7 +857,6 @@ void test_3() {
 		element->Setdt(0.001); // dt to calculate DampingCoefficient
 		element->SetGravityZ(1); // 0:No Gravity, 1:Gravity(Fz=-9.81)
 		element->SetAirPressure(0); // 0:No AirPressure, 1:220kPa Air Pressure
-		//element->SetStockAlpha(0.0,0.0,0.0,0.0,0.0);
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
@@ -949,36 +869,8 @@ void test_3() {
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
-	//GetLog()<< nodetip->GetD().x<<"\n"<<nodetip->GetD().y<<"\n"<<nodetip->GetD().z<<"\n";
+	
 	i=0;
-	int icount=0;
-	//while(i<TotalNumNodes)
-	//{
-	//	ChSharedPtr<ChLinkPointFrame> constraint(new ChLinkPointFrame);
-	//	ChSharedPtr<ChLinkDirFrame> constraintD(new ChLinkDirFrame);
-	//	if(NDR[i][0]==1&&NDR[i][1]==1&&NDR[i][2]==1)
-	//	{
-	//		constraint->Initialize(my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>(),		// node
-	//							   truss);		// body to be connected to
-	//		
-	//		//my_system.Add(constraint);
-	//	}
-	//	if(NDR[i][3]==1&&NDR[i][4]==1&&NDR[i][5]==1)
-	//	{
-	//		constraintD->Initialize(my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyzD>(),
-	//								truss);
-
-	//		constraintD->SetDirectionInBodyCoords(ChVector<double>(COORDFlex[i][3], COORDFlex[i][4], COORDFlex[i][5]));
-	//		//my_system.Add(constraintD);
-	//	}
-		//icount++;
-		//GetLog()<<"\n"<<i<<"\n";
-		//GetLog()<<"\n"<<COORDFlex[i][3]<<"\n"<<COORDFlex[i][4]<<"\n"<<COORDFlex[i][5]<<"\n";
-		//system("pause");
-		//i++;
-	//}
-	GetLog()<<"\n"<<icount<<"\n";
-	system("pause");
     // Perform a dynamic time integration:
     my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
@@ -1001,11 +893,6 @@ void test_3() {
     while (my_system.GetChTime() < 2.0) {
         my_system.DoStepDynamics(timestep);
 		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
-		
-		//GetLog() << "N0: t=" << my_system.GetChTime() << "  x:"<<mnode0->GetPos().x << "  y:"<<mnode0->GetPos().y <<"  z:"<<mnode0->GetPos().z <<"  rx:"<<mnode0->GetD().x <<"  ry:"<<mnode0->GetD().y <<" rz:"<<mnode0->GetD().z<<" \n";
-		//GetLog() << "N11: t=" << my_system.GetChTime() << "  x:"<<mnode11->GetPos().x << "  y:"<<mnode11->GetPos().y <<"  z:"<<mnode11->GetPos().z <<"  rx:"<<mnode11->GetD().x <<"  ry:"<<mnode11->GetD().y <<" rz:"<<mnode11->GetD().z<<" \n";
-		//GetLog() << "N21: t=" << my_system.GetChTime() << "  x:"<<mnode21->GetPos().x << "  y:"<<mnode21->GetPos().y <<"  z:"<<mnode21->GetPos().z <<"  rx:"<<mnode21->GetD().x <<"  ry:"<<mnode21->GetD().y <<" rz:"<<mnode21->GetD().z<<" \n";
-		//GetLog() << "N10: t=" << my_system.GetChTime() << "  x:"<<mnode10->GetPos().x << "  y:"<<mnode10->GetPos().y <<"  z:"<<mnode10->GetPos().z <<"  rx:"<<mnode10->GetD().x <<"  ry:"<<mnode10->GetD().y <<" rz:"<<mnode10->GetD().z<<" \n";
 
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
@@ -1015,13 +902,8 @@ void test_3() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().y);
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
-		//system("pause");
-		//GetLog()<< nodetip->GetPos().x<<"\n"<<nodetip->GetPos().y<<"\n"<<nodetip->GetPos().z<<"\n";
-		//GetLog()<< nodetip->GetD().x<<"\n"<<nodetip->GetD().y<<"\n"<<nodetip->GetD().z<<"\n";
-		//system("pause");
     }
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	//GetLog() << "Iterations: " << my_system.Iter << "\n";
 	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
 	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
@@ -1079,9 +961,9 @@ void test_4() {
 
 	int MAXCOUNT = 100;
 	inputfile = fopen("IndataBiLinearShell_Tire3.DAT","r");
-	printf("Open IndataBiLinearShell_Simple1.DAT\n");
+	printf("Open IndataBiLinearShell_Tire3.DAT\n");
 	if(inputfile == NULL){
-		printf("IndataBiLinearShell_Simple1.DAT cannot open!!\n");
+		printf("IndataBiLinearShell_Tire3.DAT cannot open!!\n");
 		system("pause");
 		exit(1);
 	}
@@ -1170,46 +1052,12 @@ void test_4() {
 	}
 	//printf("%lf %lf %lf %lf\n",MPROP[i][0],MPROP[i][1],MPROP[i][2],MPROP[i][3]);
 	}
-	//!--------------------------------------!
-    //!--- Save into INRTAFlex --------------!
-    //!--------------------------------------!
-	//vector<vector<vector<double>>> INRTAFlex(numDiv, vector<vector<double>>(MaxLayInf, vector<double>(MaxMatInf, 0)));
-    //Al_INRTAFlex(INRTAFlex, numDiv, MaxLayInf, MaxMatInf);
-	//for(int i=0;i<numDiv;i++)
-	//{
-	//	//
-
-	//}
 
 	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
 	mmaterial->Set_RayleighDampingK(0.0);
 	mmaterial->Set_RayleighDampingM(0.0);
 
 	
-	// Create also a truss
-    ChSharedPtr<ChBody> truss(new ChBody);
-    truss->SetBodyFixed(true);
-    my_system.Add(truss);
-
-	//int i=0;
-	//while(i<TotalNumNodes)
-	//{
-	//	ChSharedPtr<ChNodeFEAxyzD> node(new ChNodeFEAxyzD(ChVector<>(COORDFlex[i][0], COORDFlex[i][1], COORDFlex[i][2]),ChVector<>(COORDFlex[i][3], COORDFlex[i][4], COORDFlex[i][5])));
-	//	node->SetMass(0.0);
-	//	my_mesh->AddNode(node);
-	//	//if(NDR[i][0]==1&&NDR[i][1]==1&&NDR[i][2]==1)
-	//	//{
-	//	//	node->SetFixed(true);
-	//	//}
-	//	if(i<numDiv_x||i>=numNode-numDiv_x){
-	//		node->SetFixed(true);
-	//		//GetLog()<<i<<"\n";
-	//		//GetLog()<<"\n"<<COORDFlex[i][0]<<"\n"<<COORDFlex[i][1]<<"\n"<<COORDFlex[i][2]<<"\n"<<COORDFlex[i][3]<<"\n"<<COORDFlex[i][4]<<"\n"<<COORDFlex[i][5]<<"\n";
-	//		//system("pause");
-	//	}
-	//	i++;
-	//}
-	//GetLog() << "TotalNumNodes: " << TotalNumNodes << "\n\n";
 	int i=0;
 	while(i<TotalNumNodes)
 	{
@@ -1224,7 +1072,7 @@ void test_4() {
 	}
 	GetLog() << "TotalNumNodes: " << TotalNumNodes << "\n\n";
 
-	ChSharedPtr<ChNodeFEAxyzD> nodetip (my_mesh->GetNode(/*TotalNumNodes-1*/(numDiv/2)).DynamicCastTo<ChNodeFEAxyzD>());
+	ChSharedPtr<ChNodeFEAxyzD> nodetip (my_mesh->GetNode((numDiv/2)).DynamicCastTo<ChNodeFEAxyzD>());
 	GetLog() << "X : " << nodetip->GetPos().x <<" Y : "<< nodetip->GetPos().y <<" Z : "<< nodetip->GetPos().z <<"\n\n";
 	GetLog() << "dX : " << nodetip->GetD().x <<" dY : "<< nodetip->GetD().y <<" dZ : "<< nodetip->GetD().z <<"\n\n";
 
@@ -1258,10 +1106,6 @@ void test_4() {
 		InertFlexVec(ij+12)=MPROP[MNUM[LayNUM[i]-1][j]-1][8];// Gxz
 		InertFlexVec(ij+13)=MPROP[MNUM[LayNUM[i]-1][j]-1][9];// Gyz
 		}
-		//for(int ijkll=0;ijkll<98;ijkll++){
-		//GetLog() <<InertFlexVec(ijkll) <<"\n";
-		//}
-		//system("pause");
 		ChMatrixNM<double,7,2> GaussZRange;
 		GaussZRange.Reset();
 		double CurrentHeight=0.0;
@@ -1273,8 +1117,6 @@ void test_4() {
 			GaussZRange(j,0)=AA;
 			GaussZRange(j,1)=AAA;
 		}
-		//GetLog() << "GaussZRange" << GaussZRange;
-		//
 		element->SetInertFlexVec(InertFlexVec);
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
@@ -1287,8 +1129,6 @@ void test_4() {
 		element->Setdt(0.00025); // dt to calculate DampingCoefficient
 		element->SetGravityZ(0); // 0:No Gravity, 1:Gravity(Fz=-9.81)
 		element->SetAirPressure(1); // 0:No AirPressure, 1:220kPa Air Pressure
-		//
-		//element->SetStockAlpha(0.0,0.0,0.0,0.0,0.0);
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
@@ -1301,40 +1141,8 @@ void test_4() {
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
-	//GetLog()<< nodetip->GetD().x<<"\n"<<nodetip->GetD().y<<"\n"<<nodetip->GetD().z<<"\n";
 	i=0;
-	int icount=0;
-	while(i<TotalNumNodes)
-	{
-		ChSharedPtr<ChLinkPointFrame> constraint(new ChLinkPointFrame);
-		ChSharedPtr<ChLinkDirFrame> constraintD(new ChLinkDirFrame);
-		ChSharedPtr<ChLinkDirFrame> constraintD2(new ChLinkDirFrame);
-		if(i<numDiv_x||i>=numNode-numDiv_x){
-		//if(NDR[i][0]==1&&NDR[i][1]==1&&NDR[i][2]==1)
-		//{
-			constraint->Initialize(my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>(),		// node
-								   truss);		// body to be connected to
-			
-			//my_system.Add(constraint);
-		//}
-		//if(NDR[i][3]==1&&NDR[i][4]==1&&NDR[i][5]==1)
-		//{
-			constraintD->Initialize(my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyzD>(),
-									truss);
-
-			constraintD->SetDirectionInBodyCoords(ChVector<double>(COORDFlex[i][3], COORDFlex[i][4], COORDFlex[i][5]));
-			//my_system.Add(constraintD);
-
-		//}
-		icount++;
-		//GetLog()<<"\n"<<i<<"\n";
-		}
-		//GetLog()<<"\n"<<COORDFlex[i][3]<<"\n"<<COORDFlex[i][4]<<"\n"<<COORDFlex[i][5]<<"\n";
-		//system("pause");
-		i++;
-	}
-	GetLog()<<"\n"<<icount<<"\n";
-	system("pause");
+	
     // Perform a dynamic time integration:
     my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
@@ -1358,11 +1166,6 @@ void test_4() {
         my_system.DoStepDynamics(timestep);
 		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
 		
-		//GetLog() << "N0: t=" << my_system.GetChTime() << "  x:"<<mnode0->GetPos().x << "  y:"<<mnode0->GetPos().y <<"  z:"<<mnode0->GetPos().z <<"  rx:"<<mnode0->GetD().x <<"  ry:"<<mnode0->GetD().y <<" rz:"<<mnode0->GetD().z<<" \n";
-		//GetLog() << "N11: t=" << my_system.GetChTime() << "  x:"<<mnode11->GetPos().x << "  y:"<<mnode11->GetPos().y <<"  z:"<<mnode11->GetPos().z <<"  rx:"<<mnode11->GetD().x <<"  ry:"<<mnode11->GetD().y <<" rz:"<<mnode11->GetD().z<<" \n";
-		//GetLog() << "N21: t=" << my_system.GetChTime() << "  x:"<<mnode21->GetPos().x << "  y:"<<mnode21->GetPos().y <<"  z:"<<mnode21->GetPos().z <<"  rx:"<<mnode21->GetD().x <<"  ry:"<<mnode21->GetD().y <<" rz:"<<mnode21->GetD().z<<" \n";
-		//GetLog() << "N10: t=" << my_system.GetChTime() << "  x:"<<mnode10->GetPos().x << "  y:"<<mnode10->GetPos().y <<"  z:"<<mnode10->GetPos().z <<"  rx:"<<mnode10->GetD().x <<"  ry:"<<mnode10->GetD().y <<" rz:"<<mnode10->GetD().z<<" \n";
-
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
 		fprintf(outputfile,"%e  ",nodetip->GetPos().y);
@@ -1371,13 +1174,9 @@ void test_4() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().y);
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
-		//system("pause");
-		//GetLog()<< nodetip->GetPos().x<<"\n"<<nodetip->GetPos().y<<"\n"<<nodetip->GetPos().z<<"\n";
-		//GetLog()<< nodetip->GetD().x<<"\n"<<nodetip->GetD().y<<"\n"<<nodetip->GetD().z<<"\n";
-		//system("pause");
     }
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	//GetLog() << "Iterations: " << my_system.Iter << "\n";
+
 	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
 	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
@@ -1423,7 +1222,7 @@ void test_5() {
 	double ElemLengthXY[1000][3];//for brick is 3 (length along x,y,z)
 
 	int MAXCOUNT = 100;
-	inputfile = fopen("IndataSolid_Simple3.DAT","r");//now 10by1 brick
+	inputfile = fopen("IndataSolid_Simple1.DAT","r");//now 10by1 brick
 	printf("Open IndataSolid_Simple1.DAT\n");
 	if(inputfile == NULL){
 		printf("IndataSolid_Simple1.DAT cannot open!!\n");
@@ -1481,25 +1280,6 @@ void test_5() {
 	}
 
 	//!--------------------------------------!
-    //!--- Read Layer Data ------------------!
-    //!--------------------------------------!
-	////fscanf(inputfile,"%s\n",str1);
-	//fgets(str1,MAXCOUNT,inputfile);
-	//printf("%s\n",str1);
-	//for(int i=0;i<MaxLayNum;i++)
-	//{
-	//	fscanf(inputfile,"%d %d\n",&count,&NumLayer[i]);
-	//    for(int j=0;j<NumLayer[i];j++)
-	//	{
-	//	fscanf(inputfile,"%lf %lf %d\n",&LayPROP[i][j][0],&LayPROP[i][j][1],&MNUM[i][j]);
-	//	if(MaxMNUM<MNUM[i][j])
-	//	{MaxMNUM=MNUM[i][j];}
-	//	//printf("%lf %lf %d\n",LayPROP[i][j][0],LayPROP[i][j][1],MNUM[i][j]);
-	//	}
-	//	//system("pause");
-	//}
-
-	//!--------------------------------------!
     //!--- Read Material Data ---------------!
     //!--------------------------------------!
 	//fscanf(inputfile,"%s\n",str1);
@@ -1532,7 +1312,6 @@ void test_5() {
 	while(i<TotalNumNodes)
 	{
 		ChSharedPtr<ChNodeFEAxyz> node(new ChNodeFEAxyz(ChVector<>(COORDFlex[i][0], COORDFlex[i][1], COORDFlex[i][2])));
-		//GetLog() << "TotalNumNodes" << TotalNumNodes << "\n\n";
 		node->SetMass(0.0);
 		my_mesh->AddNode(node);
 		if(NDR[i][0]==1&&NDR[i][1]==1&&NDR[i][2]==1)
@@ -1602,22 +1381,14 @@ void test_5() {
         my_system.DoStepDynamics(timestep);
 		GetLog() << " t=  " << my_system.GetChTime() << "\n";
 		
-		//GetLog() << "N0: t=" << my_system.GetChTime() << "  x:"<<mnode0->GetPos().x << "  y:"<<mnode0->GetPos().y <<"  z:"<<mnode0->GetPos().z <<"  rx:"<<mnode0->GetD().x <<"  ry:"<<mnode0->GetD().y <<" rz:"<<mnode0->GetD().z<<" \n";
-		//GetLog() << "N11: t=" << my_system.GetChTime() << "  x:"<<mnode11->GetPos().x << "  y:"<<mnode11->GetPos().y <<"  z:"<<mnode11->GetPos().z <<"  rx:"<<mnode11->GetD().x <<"  ry:"<<mnode11->GetD().y <<" rz:"<<mnode11->GetD().z<<" \n";
-		//GetLog() << "N21: t=" << my_system.GetChTime() << "  x:"<<mnode21->GetPos().x << "  y:"<<mnode21->GetPos().y <<"  z:"<<mnode21->GetPos().z <<"  rx:"<<mnode21->GetD().x <<"  ry:"<<mnode21->GetD().y <<" rz:"<<mnode21->GetD().z<<" \n";
-		//GetLog() << "N10: t=" << my_system.GetChTime() << "  x:"<<mnode10->GetPos().x << "  y:"<<mnode10->GetPos().y <<"  z:"<<mnode10->GetPos().z <<"  rx:"<<mnode10->GetD().x <<"  ry:"<<mnode10->GetD().y <<" rz:"<<mnode10->GetD().z<<" \n";
-
 		fprintf(outputfile," %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
 		fprintf(outputfile,"%e  ",nodetip->GetPos().y);
 		fprintf(outputfile,"%e  ",nodetip->GetPos().z);
 		fprintf(outputfile,"\n  ");
-		//system("pause");
     }
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	//GetLog() << "Iterations: " << my_system.Iter << "\n";
 	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	//ChSharedPtr<ChTimestepperNewmark> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperNewmark>();
 	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }

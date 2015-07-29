@@ -510,7 +510,7 @@ public:
 						
 						int ij=14*kl;
 
-						//// MAterial properties
+						//// Material properties
 						double rho	 = InertFlexVec1(ij);
 						//Add gravity force
 							class MyGravity : public ChIntegrable3D< ChMatrixNM<double,24,1> >
@@ -585,7 +585,7 @@ public:
 
 									result.MatrTMultiply(S,LocalGravityForce);
 
-									result *= detJ0*wx2*wy2*wz2; //*(element->Material->Get_density()); // 5/28/2015
+									result *= detJ0*wx2*wy2*wz2; // 5/28/2015
 								}
 							};
 
@@ -622,7 +622,7 @@ public:
 	virtual void SetupInitial() 
 				{
 					ComputeGravityForce();
-					// Compute inital Jacobian
+					// Compute initial Jacobian
 					ChMatrixDynamic<double>Temp;
 					ComputeInternalForces(Temp);
 					// Compute mass matrix
@@ -706,16 +706,6 @@ public:
 					ChVector<> pD_dt = this->nodes[3]->GetPos_dt();
 					ChVector<> dD_dt = this->nodes[3]->GetD_dt();
 
-					/*ChMatrixNM<double, 8,3>   v;
-					v(0,0) = this->nodes[0]->GetPos_dt().x;	v(0,1) = this->nodes[0]->GetPos_dt().y;	v(0,2) = this->nodes[0]->GetPos_dt().z;
-					v(1,0) = this->nodes[0]->GetD_dt().x;	v(1,1) = this->nodes[0]->GetD_dt().y;	v(1,2) = this->nodes[0]->GetD_dt().z;
-					v(2,0) = this->nodes[1]->GetPos_dt().x;	v(2,1) = this->nodes[1]->GetPos_dt().y;	v(2,2) = this->nodes[1]->GetPos_dt().z;
-					v(3,0) = this->nodes[1]->GetD_dt().x;	v(3,1) = this->nodes[1]->GetD_dt().y;	v(3,2) = this->nodes[1]->GetD_dt().z;
-					v(4,0) = this->nodes[2]->GetPos_dt().x;	v(4,1) = this->nodes[2]->GetPos_dt().y;	v(4,2) = this->nodes[2]->GetPos_dt().z;
-					v(5,0) = this->nodes[2]->GetD_dt().x;	v(5,1) = this->nodes[2]->GetD_dt().y;	v(5,2) = this->nodes[2]->GetD_dt().z;
-					v(6,0) = this->nodes[3]->GetPos_dt().x;	v(6,1) = this->nodes[3]->GetPos_dt().y;	v(6,2) = this->nodes[3]->GetPos_dt().z;
-					v(7,0) = this->nodes[3]->GetD_dt().x;	v(7,1) = this->nodes[3]->GetD_dt().y;	v(7,2) = this->nodes[3]->GetD_dt().z;*/
-
 				    ChMatrixNM<double, 24,1>   d_dt; // for structural damping
 					d_dt(0,0) = pA_dt.x;	d_dt(1,0) = pA_dt.y;	d_dt(2,0) = pA_dt.z;
 					d_dt(3,0) = dA_dt.x;	d_dt(4,0) = dA_dt.y;	d_dt(5,0) = dA_dt.z;
@@ -725,8 +715,6 @@ public:
 					d_dt(15,0) = dC_dt.x;	d_dt(16,0) = dC_dt.y;	d_dt(17,0) = dC_dt.z;
 					d_dt(18,0) = pD_dt.x;	d_dt(19,0) = pD_dt.y;	d_dt(20,0) = pD_dt.z;
 					d_dt(21,0) = dD_dt.x;	d_dt(22,0) = dD_dt.y;	d_dt(23,0) = dD_dt.z;
-					//GetLog()<<"Velocity Elem:"<<v<<"\n";
-					//system("pause");
 
 					ChMatrixNM<double, 8,3>   d;
 					d(0,0) = pA.x;	d(0,1) = pA.y;	d(0,2) = pA.z;
@@ -842,7 +830,6 @@ public:
 						/// will be calculated. If the numerical differentiation is not used, the jacobian
 						/// will also be calculated.
 						bool use_numerical_differentiation = false;
-						//bool use_numerical_differentiation = true;
 					
 						/// Internal force and EAS parameters are caulculated for numerical differentiation. 
 						if(use_numerical_differentiation){
@@ -929,7 +916,6 @@ public:
 									element->shapefunction_ANS_BilinearShell(S_ANS, x, y);
 									element->Basis_M(M,x,y,z); // EAS
 
-									//dt=0.001;
 									alphaHHT=-0.2;
 									betaHHT=0.25*(1.0-alphaHHT)*(1.0-alphaHHT);
 									gammaHHT=0.5-alphaHHT;
@@ -1270,13 +1256,8 @@ public:
 									/// Jacobian calculation ///
 									temp246.MatrTMultiply(strainD,*E_eps);
 									temp249.MatrTMultiply(Gd,Sigm);
-									//GetLog()<<element->GetAlphaDamp()<<"\n";
-									//GetLog() << DampCoefficient<<"\n";
-									//system("pause");
 									JAC11=(temp246*strainD*(1.0+DampCoefficient*(element->GetAlphaDamp())))+temp249*Gd;
 									JAC11*=detJ0*(element->GetLengthX()/2.0)*(element->GetLengthY()/2.0)*(element->GetThickness()/2.0);
-									//GetLog()<<(1.0+DampCoefficient*(element->GetAlphaDamp()))<<"\n";
-									//system("pause");
 									/// Internal force calculation ///
 									tempC.MatrTMultiply(strainD,*E_eps);
 									Fint.MatrMultiply(tempC,strain);
