@@ -148,9 +148,12 @@ void ChShaftsTorqueConverter::IntLoadResidual_F(const unsigned int off,  ///< of
                                                 ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                                 const double c           ///< a scaling factor
                                                 ) {
-    R(shaft1->Variables().GetOffset()) += this->torque_in * c;
-    R(shaft2->Variables().GetOffset()) += this->torque_out * c;
-    R(shaft_stator->Variables().GetOffset()) += GetTorqueReactionOnStator() * c;
+    if (shaft1->IsActive())
+        R(shaft1->GetOffset_w()) += this->torque_in * c;
+    if (shaft2->IsActive())
+        R(shaft2->GetOffset_w()) += this->torque_out * c;
+    if (shaft_stator->IsActive())
+        R(shaft_stator->GetOffset_w()) += GetTorqueReactionOnStator() * c;
 }
 
 ////////// LCP INTERFACES ////

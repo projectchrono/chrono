@@ -81,6 +81,7 @@ int main(int argc, char* argv[])
 	msection_shell->SetYoungModulus (0.01e9);
 	msection_shell->SetBeamRaleyghDamping(0.000);
     */
+
 	// Create the nodes (each with position & normal to shell)
 
 	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,      0.2,       0), ChVector<>(0,1,0) ) ); 

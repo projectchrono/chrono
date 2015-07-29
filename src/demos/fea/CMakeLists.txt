@@ -10,6 +10,7 @@ SET(FEA_DEMOS_IRR
 	demo_FEAthermal
 	demo_FEAelectrostatics
 	demo_FEAvisualize
+	demo_FEAcontacts
 )
 
 #List all FEA demos that use both Irrlicht and Matlab
@@ -120,6 +121,7 @@ IF(ENABLE_UNIT_IRRLICHT)
 				${CH_MATLABLIB}
 				ChronoEngine
 				ChronoEngine_FEA
+				ChronoEngine_MKL
 				ChronoEngine_IRRLICHT
 				ChronoEngine_MATLAB
 				)

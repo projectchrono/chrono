@@ -9,6 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
+
 //////////////////////////////////////////////////
 //
 //   Demos code about
@@ -32,6 +33,8 @@
 #include "core/ChException.h"
 #include "core/ChShared.h"
 #include <typeinfo>
+#include "lcp/ChLcpConstraintTuple.h"
+
 
 using namespace chrono;
 
@@ -202,14 +205,14 @@ void my_serialization_example(ChArchiveOut& marchive)
         m_stlvector.push_back (2.3); 
         m_stlvector.push_back (45.3);
         m_stlvector.push_back (66.44);
-        std::list< std::string > m_stllist; 
-        m_stllist.push_back ("foo"); 
-        m_stllist.push_back ("bar");
+        std::list< ChVector<> > m_stllist; 
+        m_stllist.push_back ( ChVector<>(1,2,3) ); 
+        m_stllist.push_back ( ChVector<>(3,4,5) );
         ChMatrixDynamic<double> m_matr(3, 5);
         m_matr.FillRandom(10, 0);
         ChVector<> m_vect(0.5, 0.6, 0.7);
-        ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
-        
+        ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);  
+   
         marchive << CHNVP(m_double,"custom double");  // store data n.1      
         marchive << CHNVP(m_int);     // store data n.2 
         marchive << CHNVP(m_array);   // store data n.3
@@ -218,7 +221,7 @@ void my_serialization_example(ChArchiveOut& marchive)
         marchive << CHNVP(m_stlvector);
         marchive << CHNVP(m_stllist);
         marchive << CHNVP(m_matr);    
-        marchive << CHNVP(m_vect);    
+        marchive << CHNVP(m_vect);
         marchive << CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);  
         
         // Also store a c++ object 
@@ -281,14 +284,14 @@ void my_deserialization_example(ChArchiveIn& marchive)
         char m_text[12]; // better use std::string
         std::string m_string;
         std::vector< double > m_stlvector;
-        std::list< std::string > m_stllist;
+        std::list< ChVector<> > m_stllist;
         ChMatrixDynamic<> m_matr;
         ChVector<> m_vect;
         ChQuaternion<> m_quat;
         myEmployeeBoss m_boss;
         ChVector<>* a_vect;
         ChVector<>* a_null_ptr;
-        
+
         marchive >> CHNVP(m_double,"custom double");  // deserialize data n.1
         marchive >> CHNVP(m_int);     // deserialize data n.2
         marchive >> CHNVP(m_array);   // deserialize data n.3
@@ -459,6 +462,7 @@ int main(int argc, char* argv[]) {
     } catch (ChException myex) {
         GetLog() << "ERROR: " << myex.what() << "\n\n";
     }
+
 
     return 0;
 }

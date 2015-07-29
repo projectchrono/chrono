@@ -35,7 +35,16 @@ static double default_safe_margin = 0.01;
 ChCollisionModel::ChCollisionModel() {
     model_envelope = (float)default_model_envelope;  //  0.03f;
     model_safe_margin = (float)default_safe_margin;  // 0.01f;
+    
+    mcontactable = 0;
 }
+
+
+ChPhysicsItem* ChCollisionModel::GetPhysicsItem() 
+{
+    return mcontactable->GetPhysicsItem();
+};
+
 
 void ChCollisionModel::SetDefaultSuggestedEnvelope(double menv) {
     default_model_envelope = menv;
@@ -102,21 +111,9 @@ bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
     return true;
 }
 
-void ChCollisionModel::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
 
-    mstream >> this->model_envelope;
-    mstream >> this->model_safe_margin;
-}
 
-void ChCollisionModel::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    mstream << this->model_envelope;
-    mstream << this->model_safe_margin;
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

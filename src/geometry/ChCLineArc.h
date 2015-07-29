@@ -25,7 +25,7 @@ namespace geometry {
 /// ARC
 ///
 /// Geometric object representing an arc or a circle in 3D space.
-///
+/// By default it is evaluated clockwise from angle1 to angle2.
 
 class ChApi ChLineArc : public ChLine {
     // Chrono simulation of RTTI, needed for serialization
@@ -40,22 +40,26 @@ class ChApi ChLineArc : public ChLine {
     double radius;
     double angle1;  // in radians
     double angle2;  // in radians
+    bool  counterclockwise;
 
   public:
     //
     // CONSTRUCTORS
     //
 
-    // - Creation by default.
-    // - Creation by origin coordsystem, radius, two angles (if two angles not specified, is a full circle)
+    /// - Creation by default.
+    /// - Creation by origin coordsystem, radius, two angles in counterclockwise mode (if two angles not specified, is a full circle)
+    /// By default it is evaluated clockwise from angle1 to angle2.
     ChLineArc(const ChCoordsys<> morigin = CSYSNULL,
               const double mradius = 1,
-              const double mangle1 = 0,
-              const double mangle2 = CH_C_2PI) {
+              const double mangle1 = CH_C_2PI,
+              const double mangle2 = 0,
+              const bool mcounterclockwise = false) {
         origin = morigin;
         radius = mradius;
         angle1 = mangle1;
         angle2 = mangle2;
+        counterclockwise = mcounterclockwise;
     }
 
     ~ChLineArc(){};
@@ -65,6 +69,7 @@ class ChApi ChLineArc : public ChLine {
         radius = source.radius;
         angle1 = source.angle1;
         angle2 = source.angle2;
+        counterclockwise = source.counterclockwise;
     }
 
     void Copy(const ChLineArc* source) {
@@ -73,6 +78,7 @@ class ChApi ChLineArc : public ChLine {
         radius = source->radius;
         angle1 = source->angle1;
         angle2 = source->angle2;
+        counterclockwise = source->counterclockwise;
     }
 
     ChGeometry* Duplicate() { return new ChLineArc(*this); };
@@ -87,7 +93,17 @@ class ChApi ChLineArc : public ChLine {
 
     /// Curve evaluation (only parU is used, in 0..1 range)
     virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) {
-        double mangle = angle1 * (1 - parU) + angle2 * (parU);
+        double ang1 = this->angle1;
+        double ang2 = this->angle2;
+        if (this->counterclockwise) {
+            if (ang2 < ang1)
+                ang2 += CH_C_2PI;
+        }
+        else {
+            if (ang2 > ang1)
+                ang2 -= CH_C_2PI;
+        }
+        double mangle = ang1 * (1 - parU) + ang2 * (parU);
         ChVector<> localP(radius * cos(mangle), radius * sin(mangle), 0);
         pos = localP >> origin;  // translform to absolute coordinates
     }
@@ -98,6 +114,9 @@ class ChApi ChLineArc : public ChLine {
     //
     // CUSTOM FUNCTIONS
     //
+
+    // shortcut for setting evaluation direction
+    void SetCounterclockwise(bool mcc) { counterclockwise = mcc; }
 
     // shortcut for setting angle1 in degrees instead than radians
     void SetAngle1deg(double a1) { angle1 = a1 * CH_C_DEG_TO_RAD; }
@@ -121,6 +140,7 @@ class ChApi ChLineArc : public ChLine {
         marchive << CHNVP(radius);
         marchive << CHNVP(angle1);
         marchive << CHNVP(angle2);
+        marchive << CHNVP(counterclockwise);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -135,6 +155,7 @@ class ChApi ChLineArc : public ChLine {
         marchive >> CHNVP(radius);
         marchive >> CHNVP(angle1);
         marchive >> CHNVP(angle2);
+        marchive >> CHNVP(counterclockwise);
     }
 
     //***OBSOLETE***

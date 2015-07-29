@@ -22,7 +22,7 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 #include "LinearMath/btQuaternion.h"
 
-bt2DarcShape::bt2DarcShape(btScalar mx, btScalar my, btScalar mradius, btScalar mangle1, btScalar mangle2)
+bt2DarcShape::bt2DarcShape(btScalar mx, btScalar my, btScalar mradius, btScalar mangle1, btScalar mangle2, bool mcounterclock, btScalar mzthickness)
 {
 	x = mx;
 	y = my;
@@ -30,6 +30,8 @@ bt2DarcShape::bt2DarcShape(btScalar mx, btScalar my, btScalar mradius, btScalar 
 	angle1 = mangle1;
 	angle2 = mangle2;
 	m_shapeType = ARC_SHAPE_PROXYTYPE;
+    counterclock = mcounterclock;
+    zthickness = mzthickness;
 }
 
 #include <stdio.h>
@@ -88,14 +90,14 @@ void bt2DarcShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aa
 	btVector3 halfExtents; 
 	halfExtents.setValue((radius), 
 						 (radius),
-						 (radius));
+						 (zthickness*0.5));
 
 	btMatrix3x3 abs_b = t.getBasis().absolute();  
-	btVector3 center = t.getOrigin();
+	btVector3 center = t.getOrigin()+ t.getBasis()*btVector3(this->x, this->y, 0);
 	btVector3 extent = btVector3(abs_b[0].dot(halfExtents),
 		   abs_b[1].dot(halfExtents),
 		  abs_b[2].dot(halfExtents));
-	extent += btVector3(getMargin(),getMargin(),getMargin());
+	extent += btVector3(getMargin(),getMargin(),0);
 
 	aabbMin = center - extent;
 	aabbMax = center + extent;
@@ -106,11 +108,12 @@ void bt2DarcShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aa
 
 ////////////////////////////////////////////////
 
-bt2DsegmentShape::bt2DsegmentShape(const btVector3& mP1, const btVector3& mP2)
+bt2DsegmentShape::bt2DsegmentShape(const btVector3& mP1, const btVector3& mP2, const btScalar mzthickness)
 {
 	P1 = mP1;
 	P2 = mP2;
 	m_shapeType = SEGMENT_SHAPE_PROXYTYPE;
+    zthickness = mzthickness;
 }
 
 #include <stdio.h>
@@ -167,22 +170,13 @@ void	bt2DsegmentShape::calculateLocalInertia(btScalar mass,btVector3& inertia) c
 
 void bt2DsegmentShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
 {
-    btVector3 mvmin (std::min(P1.x(),P2.x()), std::min(P1.y(),P2.y()), std::min(P1.z(),P2.z()));
-    btVector3 mvmax (std::max(P1.x(),P2.x()), std::max(P1.y(),P2.y()), std::max(P1.z(),P2.z()));
-
-	btMatrix3x3 abs_b = t.getBasis().absolute();  
-	btVector3 center = t.getOrigin();
-	btVector3 vminabs = btVector3(   abs_b[0].dot(mvmin),
-		                             abs_b[1].dot(mvmin),
-		                             abs_b[2].dot(mvmin));
-	vminabs -= btVector3(getMargin(),getMargin(),getMargin());
-    btVector3 vmaxabs = btVector3(   abs_b[0].dot(mvmax),
-		                             abs_b[1].dot(mvmax),
-		                             abs_b[2].dot(mvmax));
-	vmaxabs += btVector3(getMargin(),getMargin(),getMargin());
-
-	aabbMin = center+vminabs;
-	aabbMax = center+vmaxabs;
-
+    btVector3 P1w = t*P1;
+    btVector3 P2w = t*P2;
+    btVector3 vminabs (std::min(P1w.x(),P2w.x()), std::min(P1w.y(),P2w.y()), -(zthickness*0.5));
+    btVector3 vmaxabs (std::max(P1w.x(),P2w.x()), std::max(P1w.y(),P2w.y()),  (zthickness*0.5));
+    vminabs -= btVector3(getMargin(),getMargin(),0);
+    vmaxabs += btVector3(getMargin(),getMargin(),0);
+    aabbMin = vminabs;
+    aabbMax = vmaxabs;
 }
 

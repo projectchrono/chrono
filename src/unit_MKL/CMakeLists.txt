@@ -18,7 +18,8 @@ IF(NOT ENABLE_UNIT_MKL)
     RETURN()
 ELSE()
     MARK_AS_ADVANCED(CLEAR CH_MKLROOT)
-    MESSAGE(STATUS "...enabling MKL Unit")    
+    MESSAGE(STATUS "...enabling MKL Unit")
+	MESSAGE(STATUS "Modify envvars to include shared library directory or, in VS, turn on Intel MKL")
 ENDIF()
 
 if (ENABLE_UNIT_MKL)
@@ -64,13 +65,16 @@ if (ENABLE_UNIT_MKL)
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
 			SET (CH_MKLLIB
 					"${CH_MKLROOT}/lib/ia32/mkl_intel_thread_dll.lib" 
-					"${CH_MKLROOT}/lib/ia32/mkl_core_dll.lib" )
+					"${CH_MKLROOT}/lib/ia32/mkl_core_dll.lib"
+					"${CH_MKLROOT}/lib/ia32/mkl_intel_c_dll.lib"
+					"${CH_MKLROOT}/../compiler/lib/ia32/libiomp5md.lib")
 			# SET (CH_MKL_LINK_FLAGS "/Qopenmp") # not yet implemented
 		ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
 			SET (CH_MKLLIB 
 					"${CH_MKLROOT}/lib/intel64/mkl_intel_lp64_dll.lib" 
 					"${CH_MKLROOT}/lib/intel64/mkl_intel_thread_dll.lib" 
-					"${CH_MKLROOT}/lib/intel64/mkl_core_dll.lib" )
+					"${CH_MKLROOT}/lib/intel64/mkl_core_dll.lib"
+					"${CH_MKLROOT}/../compiler/lib/intel64/libiomp5md.lib")
 			# SET (CH_MKL_LINK_FLAGS "/Qopenmp") # not yet implemented
 		ENDIF()
 	# ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -99,7 +103,8 @@ if (ENABLE_UNIT_MKL)
 				${ChronoEngine_UNIT_MKL_SOURCES}
 				${ChronoEngine_UNIT_MKL_HEADERS}
 				)
-				
+
+	
 	SET_TARGET_PROPERTIES(ChronoEngine_MKL PROPERTIES
 				COMPILE_FLAGS "${CH_BUILDFLAGS}"
 				LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MKL_LINK_FLAGS}"

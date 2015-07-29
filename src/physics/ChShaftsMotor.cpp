@@ -99,8 +99,10 @@ void ChShaftsMotor::IntLoadResidual_F(const unsigned int off,  ///< offset in R 
                                       const double c           ///< a scaling factor
                                       ) {
     if (motor_mode == MOT_MODE_TORQUE) {
-        R(shaft1->Variables().GetOffset()) += motor_torque * c;
-        R(shaft2->Variables().GetOffset()) += -motor_torque * c;
+        if (shaft1->IsActive())
+            R(shaft1->GetOffset_w()) += motor_torque * c;
+        if (shaft2->IsActive())
+            R(shaft2->GetOffset_w()) += -motor_torque * c;
     }
 }
 

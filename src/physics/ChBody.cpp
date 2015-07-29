@@ -109,7 +109,7 @@ ChBody::ChBody(ChCollisionModel* new_collision_model, ContactMethod contact_meth
     Scr_torque = VNULL;
 
     collision_model = new_collision_model;
-    collision_model->SetPhysicsItem(this);
+    collision_model->SetContactable(this);
 
     switch (contact_method) {
         case DVI:
@@ -188,8 +188,10 @@ void ChBody::Copy(ChBody* source) {
 }
 
 ChCollisionModel* ChBody::InstanceCollisionModel() {
-    ChCollisionModel* collision_model_t = (ChModelBulletBody*)new ChModelBulletBody();
-    ((ChModelBulletBody*)collision_model_t)->SetBody(this);
+    //ChCollisionModel* collision_model_t = (ChModelBulletBody*)new ChModelBulletBody();
+    //((ChModelBulletBody*)collision_model_t)->SetBody(this);
+    ChCollisionModel* collision_model_t = (ChModelBullet*)new ChModelBullet();
+    collision_model_t->SetContactable(this);
     return collision_model_t;
 }
 
@@ -796,7 +798,7 @@ void ChBody::ChangeCollisionModel(ChCollisionModel* new_collision_model) {
     }
 
     collision_model = new_collision_model;
-    collision_model->SetPhysicsItem(this);
+    collision_model->SetContactable(this);
 }
 
 // forward reference
@@ -836,6 +838,69 @@ void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
     else
         ChPhysicsItem::GetTotalAABB(bbmin, bbmax);  // default: infinite aabb
 }
+
+
+
+ChVector<> ChBody::GetContactPointSpeed(const ChVector<>& abs_point) {
+    ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
+    return this->PointSpeedLocalToParent(m_p1_loc);
+}
+
+void ChBody::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
+                             ChVectorDynamic<>& R) {
+    ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
+    ChVector<> force1_loc = this->Dir_World2Body(F);
+    ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
+    R.PasteSumVector(F, this->GetOffset_w() + 0, 0);
+    R.PasteSumVector(torque1_loc, this->GetOffset_w() + 3, 0);
+}
+
+void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
+            type_constraint_tuple& jacobian_tuple_N, 
+            type_constraint_tuple& jacobian_tuple_U, 
+            type_constraint_tuple& jacobian_tuple_V, 
+            bool second) {
+    ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
+    ChMatrix33<> Jx1, Jr1;
+    ChMatrix33<> Ps1, Jtemp;
+    Ps1.Set_X_matrix(m_p1_loc);
+
+    Jx1.CopyFromMatrixT(contact_plane);
+    if (!second)
+        Jx1.MatrNeg();
+
+    Jtemp.MatrMultiply(this->GetA(), Ps1);
+    Jr1.MatrTMultiply(contact_plane, Jtemp);
+    if (second)
+        Jr1.MatrNeg();
+
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jr1, 0, 0, 1, 3, 0, 3);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jr1, 1, 0, 1, 3, 0, 3);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
+}
+
+void ChBody::ComputeJacobianForRollingContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
+            type_constraint_tuple& jacobian_tuple_N, 
+            type_constraint_tuple& jacobian_tuple_U, 
+            type_constraint_tuple& jacobian_tuple_V, 
+            bool second) {
+    ChMatrix33<> Jx1, Jr1;
+
+    Jr1.MatrTMultiply(contact_plane, this->GetA());
+    if (!second)
+        Jr1.MatrNeg();
+    
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jr1, 0, 0, 1, 3, 0, 3);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jr1, 1, 0, 1, 3, 0, 3);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
+}
+
 
 //////// FILE I/O
 
@@ -966,7 +1031,7 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive)
 
     marchive >> CHNVP(body_id);
     marchive >> CHNVP(collision_model);
-     collision_model->SetPhysicsItem(this);
+     collision_model->SetContactable(this);
     marchive >> CHNVP(gyro);
     marchive >> CHNVP(Xforce);
     marchive >> CHNVP(Xtorque);
@@ -1018,7 +1083,7 @@ void ChBody::StreamOUT(ChStreamOutBinary& mstream) {
     mstream << sleep_minspeed;
     mstream << sleep_minwvel;
 
-    this->collision_model->StreamOUT(mstream);  // also  mstream << (*this->collision_model);
+    //this->collision_model->StreamOUT(mstream);  // also  mstream << (*this->collision_model);
 
     this->matsurface->StreamOUT(mstream);
 }
@@ -1117,7 +1182,7 @@ void ChBody::StreamIN(ChStreamInBinary& mstream) {
         GetMaterialSurface()->SetSpinningFriction((float)dfoo);
     }
     if (version >= 6) {
-        this->collision_model->StreamIN(mstream);  // also   mstream >> (*collision_model);
+        //this->collision_model->StreamIN(mstream);  // also   mstream >> (*collision_model);
         this->collision_model->BuildModel();       // because previously removed from ChSystem, if any.
     }
     if (version >= 7) {

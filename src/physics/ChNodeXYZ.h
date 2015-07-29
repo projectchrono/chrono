@@ -23,7 +23,7 @@ namespace chrono {
 /// Class for a single 'point' node, that has 3 DOF degrees of
 /// freedom and a mass.
 
-class ChApi ChNodeXYZ : public ChNodeBase {
+class ChApi ChNodeXYZ : public virtual ChNodeBase {
   public:
     ChNodeXYZ();
     virtual ~ChNodeXYZ();
@@ -60,6 +60,7 @@ class ChApi ChNodeXYZ : public ChNodeBase {
 
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() { return 3; }
+
 
     //
     // DATA

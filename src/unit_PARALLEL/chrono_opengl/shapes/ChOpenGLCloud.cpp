@@ -76,6 +76,8 @@ void ChOpenGLCloud::TakeDown() {
 void ChOpenGLCloud::Draw(const mat4& projection, const mat4& view) {
   if (this->GLReturnedError("ChOpenGLCloud::Draw - on entry"))
     return;
+  if (this->vertices.size() == 0)
+    return;
   glEnable(GL_DEPTH_TEST);
   // compute the mvp matrix and normal matricies
   // mat4 mvp = projection * modelview;

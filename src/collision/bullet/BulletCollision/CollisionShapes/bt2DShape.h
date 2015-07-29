@@ -24,8 +24,9 @@ subject to the following restrictions:
 /// bt2DarcShape represents an arc. This is meant to interact only 
 /// with other 2D shapes such as bt2DarcShape or bt2DsegmentShape, for
 /// "flat" collision shapes created as polylines on the same plane.
-/// The order of the two angles tell if the arc is clockwise (=convex, inner part is solid)
-/// or counterclockwise (=concave, outer part is solid, inner is hollow)
+/// The 'clockwise' info tell if the arc is clockwise (=convex, inner part is solid)
+/// or counterclockwise (=concave, outer part is solid, inner is hollow) because
+/// the solid part is always 'to the right' of the increasing curvilinear abscyssa
 
 class bt2DarcShape : public btConvexInternalShape
 {
@@ -35,9 +36,17 @@ private:
 	btScalar radius; 
 	btScalar angle1; 
 	btScalar angle2;
+    bool     counterclock;
+    btScalar zthickness;
 
 public:
-	bt2DarcShape(btScalar mx, btScalar my, btScalar mradius, btScalar mangle1, btScalar mangle2);
+	bt2DarcShape(   btScalar mx, 
+                    btScalar my, 
+                    btScalar mradius, 
+                    btScalar mangle1, 
+                    btScalar mangle2, 
+                    bool mcounterclock = false, 
+                    btScalar mzthickness= 0.001);
 
 	///CollisionShape Interface
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
@@ -60,7 +69,9 @@ public:
 	btScalar	get_Y() const {return y;}
 	btScalar	get_radius() const {return radius;}
 	btScalar	get_angle1() const {return angle1;}
-	btScalar	get_angle2() const {return angle2;}
+    btScalar	get_angle2() const {return angle2;}
+	bool     	get_counterclock() const {return counterclock;}
+    btScalar    get_zthickness() const {return zthickness;}
 
 
 };
@@ -69,15 +80,19 @@ public:
 /// bt2DsegmentShape represents a segment. This is meant to interact only 
 /// with other 2D shapes such as bt2DarcShape or bt2DsegmentShape, for
 /// "flat" collision shapes created as polylines on the same plane.
-/// The 'solid' part is on the right side when following the path from 
+/// The 'solid' part is on the right side when following the path from P1 to P2.
+
 class bt2DsegmentShape : public btConvexInternalShape
 {
 private:
 	btVector3 P1;
 	btVector3 P2;
+    btScalar zthickness;
 
 public:
-	bt2DsegmentShape(const btVector3& mP1, const btVector3& mP2);
+	bt2DsegmentShape(   const btVector3& mP1, 
+                        const btVector3& mP2,
+                        const btScalar mzthickness = 0.001);
 
 	///CollisionShape Interface
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
@@ -98,7 +113,7 @@ public:
 
 	btVector3	get_P1() const {return P1;}
 	btVector3	get_P2() const {return P2;}
-
+    btScalar    get_zthickness() const {return zthickness;}
 };
 
 

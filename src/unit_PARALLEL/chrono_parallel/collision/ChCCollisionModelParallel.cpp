@@ -503,17 +503,13 @@ float ChCollisionModelParallel::getVolume() {
   return total_volume;
 }
 
-ChPhysicsItem* ChCollisionModelParallel::GetPhysicsItem() {
-  return (ChPhysicsItem*)GetBody();
-}
+void ChCollisionModelParallel::SetContactable(ChContactable* mc) {
+  // Invoke the base class method.
+  ChCollisionModel::SetContactable(mc);
 
-void ChCollisionModelParallel::SetPhysicsItem(ChPhysicsItem* item) {
-  if (mbody = dynamic_cast<ChBody*>(item))
-    return;
-
-  // This is an error.
-  // Currently, a ChCollisionModelParallel can only be a associated
-  // with a rigid body.
+  // Currently, a ChCollisionModelParallel can only be a associated with a rigid body.
+  mbody = dynamic_cast<ChBody*>(mc);
+  assert(mbody);
 }
 
 }  // END_OF_NAMESPACE____

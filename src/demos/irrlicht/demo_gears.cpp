@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
 
     // Prepare the physical system for the simulation
 
-    mphysicalSystem.SetIntegrationType(ChSystem::INT_TASORA);
+    mphysicalSystem.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_PROJECTED);
 
     //
     // THE SOFT-REAL-TIME CYCLE

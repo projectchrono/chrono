@@ -252,7 +252,7 @@ void test_1_PtrToMembers() {
 	ChMatrixDynamic<double> x(n, 1);
 	ChMatrixDynamic<double> res(n, 1);
 
-	// TEST1: PtrToMemb with ChEigenMatrix
+	// TEST1: MKL with ChEigenMatrix
 
 	ChEigenMatrix Z(n);
 	ChEigenMatrix M(mdescriptor.CountActiveVariables());

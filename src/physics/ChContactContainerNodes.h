@@ -12,20 +12,7 @@
 #ifndef CHCONTACTCONTAINERNODES_H
 #define CHCONTACTCONTAINERNODES_H
 
-///////////////////////////////////////////////////
-//
-//   ChContactContainerNodes.h
-//
-//   Class for container of many contacts, as CPU
-//   typical linked list of ChContactNode objects
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+///***OBSOLETE*** old-contact-system!
 
 #include "physics/ChContactContainerBase.h"
 #include "physics/ChContactNode.h"
@@ -38,6 +25,7 @@ namespace chrono {
 /// implemented as a typical linked list of ChContactNode
 /// objects (contacts between 3DOF nodes and 6DOF bodies)
 ///
+///***OBSOLETE*** old-contact-system!
 
 class ChApi ChContactContainerNodes : public ChContactContainerBase {
     CH_RTTI(ChContactContainerNodes, ChContactContainerBase);

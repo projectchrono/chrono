@@ -22,7 +22,6 @@
 ///////////////////////////////////////////////////
 
 #include "ChLcpIterativeAPGD.h"
-#include "ChLcpConstraintTwoFrictionT.h"
 
 #include "core/ChFileutils.h"
 #include "core/ChStream.h"
