@@ -34,7 +34,6 @@
 #include "ChPovRayAssetCustom.h"
 #include "physics/ChParticlesClones.h"
 #include "physics/ChLinkMate.h"
-#include "physics/ChContactContainer.h"
 
 using namespace chrono;
 using namespace postprocess;
@@ -928,6 +927,7 @@ void ChPovRay::ExportData(const std::string& filename) {
 
         // #) saving contacts ?
         if (this->contacts_show) {
+          /*
             char pathcontacts[200];
             sprintf(pathcontacts, "%s.contacts", filename.c_str());
             ChStreamOutAsciiFile data_contacts(pathcontacts);
@@ -968,6 +968,7 @@ void ChPovRay::ExportData(const std::string& filename) {
 
             // scan all contacts
             this->mSystem->GetContactContainer()->ReportAllContacts(&my_contact_reporter);
+            */
         }
 
         // If a camera have been found in assets, create it and override the default one

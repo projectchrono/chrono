@@ -28,6 +28,8 @@
 #include "unit_MATLAB/ChMatlabEngine.h"
 #include "unit_MATLAB/ChLcpMatlabSolver.h"
 
+#include "unit_MKL/ChLcpMklSolver.h"
+
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
 
@@ -286,11 +288,17 @@ int main(int argc, char* argv[]) {
         // my_system.SetLcpSolverType(ChSystem::LCP_SIMPLEX);
 
         //***TEST***
-        ChMatlabEngine matlab_engine;
+        /*ChMatlabEngine matlab_engine;
         ChLcpMatlabSolver* matlab_solver_stab = new ChLcpMatlabSolver(matlab_engine);
         ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
         my_system.ChangeLcpSolverStab(matlab_solver_stab);
-        my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+        my_system.ChangeLcpSolverSpeed(matlab_solver_speed);*/
+		
+		//***TEST***
+		ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
+		ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+		my_system.ChangeLcpSolverStab(mkl_solver_stab);
+		my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
 
         application.SetTimestep(0.0005);
         application.SetVideoframeSaveInterval(10);
@@ -478,12 +486,18 @@ int main(int argc, char* argv[]) {
 
         // my_system.SetLcpSolverType(ChSystem::LCP_SIMPLEX);
 
-        //***TEST***
-        ChMatlabEngine matlab_engine;
-        ChLcpMatlabSolver* matlab_solver_stab = new ChLcpMatlabSolver(matlab_engine);
-        ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
-        my_system.ChangeLcpSolverStab(matlab_solver_stab);
-        my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+        ////***TEST***
+        //ChMatlabEngine matlab_engine;
+        //ChLcpMatlabSolver* matlab_solver_stab = new ChLcpMatlabSolver(matlab_engine);
+        //ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+        //my_system.ChangeLcpSolverStab(matlab_solver_stab);
+        //my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+		
+		//***TEST***
+		ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
+		ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+		my_system.ChangeLcpSolverStab(mkl_solver_stab);
+		my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
 
         application.SetTimestep(0.001);
         application.SetVideoframeSaveInterval(10);

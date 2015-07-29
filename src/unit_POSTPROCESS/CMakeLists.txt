@@ -4,7 +4,7 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_UNIT_FEA "Enable the Chrono Postprocess module" OFF)
+option(ENABLE_UNIT_POSTPROCESS "Enable the Chrono Postprocess module" OFF)
 
 # Return now if this module is not enabled
 IF(NOT ENABLE_UNIT_POSTPROCESS)

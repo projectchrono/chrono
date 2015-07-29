@@ -233,6 +233,11 @@ class ChApi ChLinePath : public ChLine {
             if (gap > maxerr)
                 maxerr = gap;
         }
+        if (this->closed) {
+            double gap = (lines.back()->GetEndA() - lines.front()->GetEndB()).Length();
+            if (gap > maxerr)
+                maxerr = gap;
+        }
         return maxerr;
     }
 

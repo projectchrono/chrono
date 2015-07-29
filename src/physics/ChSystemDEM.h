@@ -14,9 +14,14 @@
 #define CHSYSTEMDEM_H
 
 #include "physics/ChSystem.h"
-#include "physics/ChContactDEM.h"
+
 
 namespace chrono {
+
+
+/// Enum for DEM contact type (out of class because templated class)
+enum ContactForceModel { Hooke, Hertz };
+
 
 /// Class for a physical system in which contact is modeled using a
 /// Penalty Method (aka DEM)
@@ -39,18 +44,29 @@ class ChApi ChSystemDEM : public ChSystem {
     virtual ChBody::ContactMethod GetContactMethod() const { return ChBody::DEM; }
 
     virtual void SetLcpSolverType(eCh_lcpSolver mval);
-    virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
+    // virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
     virtual void ChangeContactContainer(ChContactContainerBase* newcontainer);
 
     bool UseMaterialProperties() const { return m_use_mat_props; }
     bool UseContactHistory() const { return m_use_history; }
-    void SetContactForceModel(ChContactDEM::ContactForceModel model) { m_contact_model = model; }
-    ChContactDEM::ContactForceModel GetContactForceModel() const { return m_contact_model; }
+    void SetContactForceModel(ContactForceModel model) { m_contact_model = model; }
+    ContactForceModel GetContactForceModel() const { return m_contact_model; }
+
+    /// Slip velocity threshold. No tangential contact forces are generated
+    /// if the magnitude of the tangential relative velocity is below this.
+    void SetSlipVelocitythreshold(double vel) { m_minSlipVelocity = vel; }
+    double GetSlipVelocitythreshold()  {return m_minSlipVelocity;}
+
+    /// Characteristic impact velocity (Hooke)
+    void SetCharacteristicImpactVelocity(double vel) { m_characteristicVelocity = vel; }
+    double GetCharacteristicImpactVelocity() {return m_characteristicVelocity;}
 
   private:
     bool m_use_mat_props;
     bool m_use_history;
-    ChContactDEM::ContactForceModel m_contact_model;
+    ContactForceModel m_contact_model;
+    double m_minSlipVelocity;
+    double m_characteristicVelocity;
 };
 
 }  // end namespace chrono

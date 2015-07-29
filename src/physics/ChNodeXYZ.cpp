@@ -42,6 +42,8 @@ ChNodeXYZ& ChNodeXYZ::operator=(const ChNodeXYZ& other) {
     return *this;
 }
 
+
+
 }  // END_OF_NAMESPACE____
 
 /////////////////////

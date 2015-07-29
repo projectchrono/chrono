@@ -4,7 +4,7 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_UNIT_FEA "Enable the Chrono Cascade module" OFF)
+option(ENABLE_UNIT_CASCADE "Enable the Chrono Cascade module" OFF)
 
 # Return now if this module is not enabled
 IF(NOT ENABLE_UNIT_CASCADE)

@@ -166,7 +166,7 @@ void AddContainer(ChIrrApp& application) {
 
 int main(int argc, char* argv[]) {
     // Simulation and rendering time-step
-    double time_step = 1e-5;
+    double time_step = 1e-4;
     double out_step = 0.02;
 
     // Create a ChronoENGINE physical system

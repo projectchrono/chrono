@@ -35,6 +35,8 @@
 #include "core/ChApiCE.h"
 
 #include "geometry/ChCTriangleMesh.h"
+#include "geometry/ChCLinePath.h"
+#include "physics/ChContactable.h"
 
 namespace chrono {
 
@@ -201,6 +203,20 @@ class ChApi ChCollisionModel {
                            const ChVector<>& pos = ChVector<>(),
                            const ChMatrix33<>& rot = ChMatrix33<>(1)) = 0;
 
+    /// Add a 2D closed line, defined on the XY plane passing by pos and alinged as rot,
+    /// that defines a 2D collision shape that will collide with another 2D line of the same type
+    /// if aligned on the same plane. This is useful for mechanisms that work on a plane, and that
+    /// require more precise collision that is not possible with current 3D shapes. For example,
+    /// the line can contain concave or convex round fillets. 
+    /// Requirements: 
+    /// - the line must be clockwise for inner material, (counterclockwise=hollow, material outside)
+    /// - the line must contain only ChLineSegment and ChLineArc sub-lines
+    /// - the sublines must follow in the proper order, with cohincident corners, and must be closed.
+    virtual bool Add2Dpath(geometry::ChLinePath& mpath,
+                           const ChVector<>& pos = ChVector<>(),
+                           const ChMatrix33<>& rot = ChMatrix33<>(1),
+                           const double thickness = 0.001) { return true; };
+
     /// Add all shapes already contained in another model.
     /// If possible, child classes implement this so that underlying shapes are
     /// shared (not copied) among the models.
@@ -217,18 +233,23 @@ class ChApi ChCollisionModel {
     // OTHER FUNCTIONS
     //
 
-    /// Gets the pointer to the client owner ChPhysicsItem.
-    /// MUST be implemented by child classes!
-    virtual ChPhysicsItem* GetPhysicsItem() = 0;
+    /// Gets the pointer to the contactable object 
+    ChContactable* GetContactable() {return mcontactable;}
+
+    /// Sets the pointer to the contactable object.
+    /// A derived class may override this, but should always invoke this base class implementation.
+    virtual void SetContactable(ChContactable* mc) { mcontactable = mc;}
 
     /// Gets the pointer to the client owner ChPhysicsItem.
-    /// MUST be implemented by child classes!
-    virtual void SetPhysicsItem(ChPhysicsItem* mitem) = 0;
+    /// Default: just casts GetContactable(). Just for backward compatibility.
+    /// It might return null if contactable not inherited by  ChPhysicsItem.
+    /// ***TODO*** remove the need of ChPhysicsItem*, just use ChContactable* in all code
+    virtual ChPhysicsItem* GetPhysicsItem(); 
 
     /// Sets the position and orientation of the collision
     /// model as the rigid body current position.
-    /// MUST be implemented by child classes!
-    virtual void SyncPosition() = 0;
+    /// By default it uses GetCsysForCollisionModel 
+    virtual void SyncPosition() =0;
 
     /// By default, all collsion objects belong to family n.0,
     /// but you can set family in range 0..15. This is used when
@@ -316,7 +337,6 @@ class ChApi ChCollisionModel {
     /// MUST be implemented by child classes!
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const = 0;
 
-    //void SetBody(ChBody* mbo) { mbody = mbo; }; // moved to ChModelBulletBody
 
     //
     // SERIALIZATION
@@ -343,15 +363,6 @@ class ChApi ChCollisionModel {
         marchive >> CHNVP(model_safe_margin);
     }
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    //***OBSOLETE***
-    virtual void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    //***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
 
   protected:
     virtual float GetSuggestedFullMargin() { return model_envelope + model_safe_margin; }
@@ -363,7 +374,9 @@ class ChApi ChCollisionModel {
     // contact detection.
     float model_safe_margin;
 
-    //ChBody* mbody; //moved to ChModelBulletBody
+    // Pointer to the contactable object
+    ChContactable* mcontactable;
+
 };
 
 }  // END_OF_NAMESPACE____

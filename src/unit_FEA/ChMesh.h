@@ -18,8 +18,10 @@
 
 #include "physics/ChIndexedNodes.h"
 #include "physics/ChContinuumMaterial.h"
+#include "physics/ChMaterialSurface.h"
 #include "ChNodeFEAbase.h"
 #include "ChElementBase.h"
+#include "ChContactSurface.h"
 
 namespace chrono {
 
@@ -40,10 +42,14 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     unsigned int n_dofs;    // total degrees of freedom
     unsigned int n_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
 
+    std::vector<ChSharedPtr<ChContactSurface> > vcontactsurfaces;  //  contact surfaces
+    
+
   public:
     ChMesh() {
         n_dofs = 0;
         n_dofs_w = 0;
+
     };
     ~ChMesh(){};
 
@@ -62,6 +68,22 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     virtual int GetDOF() { return n_dofs; }
     virtual int GetDOF_w() { return n_dofs_w; }
 
+    /// Override default in ChPhysicsItem
+    virtual bool GetCollide() { return true; };
+
+    /// Add a contact surface
+    void AddContactSurface(ChSharedPtr<ChContactSurface> m_surf);
+
+    /// Access the N-th contact surface
+    virtual ChSharedPtr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; };
+
+    /// Get number of added contact surfaces
+    unsigned int GetNcontactSurfaces() { return (unsigned int)vnodes.size(); }
+
+    /// Remove all contact surfaces
+    void ClearContactSurfaces();
+
+
     /// - Computes the total number of degrees of freedom
     /// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
     void SetupInitial();
@@ -79,6 +101,12 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Update time dependent data, for all elements.
     /// Updates all [A] coord.systems for all (corotational) elements.
     virtual void Update(double m_time, bool update_assets = true);
+
+    	// Functions to interface this with ChPhysicsItem container 
+	virtual void SyncCollisionModels();
+	virtual void AddCollisionModelsToSystem();
+	virtual void RemoveCollisionModelsFromSystem();
+
 
     /// Load tetahedrons from .node and .ele files as saved by TetGen.
     /// The file format for .node (with point# starting from 1) is:

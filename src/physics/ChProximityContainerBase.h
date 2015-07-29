@@ -27,7 +27,6 @@
 ///////////////////////////////////////////////////
 
 #include "physics/ChPhysicsItem.h"
-#include "physics/ChContact.h"
 #include "physics/ChMaterialCouple.h"
 #include "collision/ChCCollisionInfo.h"
 

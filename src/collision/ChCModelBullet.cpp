@@ -71,9 +71,10 @@ int ChModelBullet::ClearModel() {
 
         // tell to the parent collision system to remove this from collision system,
         // if still connected to a physical system
-        if (GetPhysicsItem()->GetSystem())
-            if (GetPhysicsItem()->GetCollide())
-                GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
+        if (GetPhysicsItem())
+            if (GetPhysicsItem()->GetSystem())
+                if (GetPhysicsItem()->GetCollide())
+                    GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
 
         // at the end, no collision shape
         bt_collision_object->setCollisionShape(0);
@@ -86,9 +87,10 @@ int ChModelBullet::BuildModel() {
     // assert (GetPhysicsItem());
 
     // insert again (we assume it was removed by ClearModel!!!)
-    if (GetPhysicsItem()->GetSystem())
-        if (GetPhysicsItem()->GetCollide())
-            GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
+    if (GetPhysicsItem())
+        if (GetPhysicsItem()->GetSystem())
+            if (GetPhysicsItem()->GetCollide())
+                GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
 
     return 1;
 }
@@ -251,12 +253,17 @@ bool ChModelBullet::AddBarrel(double Y_low,
 
 bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
                            const ChVector<>& pos,
-                           const ChMatrix33<>& rot)
+                           const ChMatrix33<>& rot,
+                           const double mthickness)
 {
-    if (!mpath.Get_closed()) 
-        throw ChException("Error! Add2Dpath requires a CLOSED ChLinePath!"); 
-    
-    for (size_t i=0; i= mpath.GetSubLinesCount(); ++i)
+    // The envelope is not used in this type of collision primitive. 
+    this->SetEnvelope(0); 
+
+    //if (!mpath.Get_closed()) 
+    //    throw ChException("Error! Add2Dpath requires a CLOSED ChLinePath!"); 
+  
+
+    for (size_t i=0; i < mpath.GetSubLinesCount(); ++i)
     {
         if (ChSharedPtr< geometry::ChLineSegment > msegment = mpath.GetSubLineN(i).DynamicCastTo<geometry::ChLineSegment>())
         {
@@ -265,7 +272,7 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
 
             btVector3 pa((btScalar)msegment->pA.x, (btScalar)msegment->pA.y, (btScalar)0);
             btVector3 pb((btScalar)msegment->pB.x, (btScalar)msegment->pB.y, (btScalar)0);
-            bt2DsegmentShape* mshape = new bt2DsegmentShape(pa, pb);
+            bt2DsegmentShape* mshape = new bt2DsegmentShape(pa, pb, (btScalar)mthickness);
            
             mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
             _injectShape(pos, rot, mshape);
@@ -275,12 +282,18 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
         {
             if ((marc->origin.pos.z != 0))
                 throw ChException("Error! Add2Dpath: a sub arc of the ChLinePath had center with non-zero z coordinate! It must be flat on xy.");
+            double mangle1 = marc->angle1;
+            double mangle2 = marc->angle2;
+            if (mangle1-mangle2 == CH_C_2PI)
+                mangle1 -= 1e-7;
             bt2DarcShape* mshape = new bt2DarcShape(
                 (btScalar)marc->origin.pos.x, 
                 (btScalar)marc->origin.pos.y, 
                 (btScalar)marc->radius, 
-                (btScalar)marc->angle1, 
-                (btScalar)marc->angle2);
+                (btScalar)mangle1, 
+                (btScalar)mangle2,
+                marc->counterclockwise, 
+                (btScalar)mthickness);
 
             mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
             _injectShape(pos, rot, mshape);
@@ -288,6 +301,49 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
         else
         {
             throw ChException("Error! Add2Dpath: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
+        }
+        
+        size_t i_prev= i;
+        size_t i_next= i+1;
+        if (i_next >= mpath.GetSubLinesCount()) 
+            if (mpath.Get_closed()) 
+                i_next= 0; // close 
+        if (i_next < mpath.GetSubLinesCount()) {
+            ChSharedPtr< geometry::ChLine > mline_prev = mpath.GetSubLineN(i_prev);
+            ChSharedPtr< geometry::ChLine > mline_next = mpath.GetSubLineN(i_next);
+            ChVector<> pos_prev, pos_next;
+            ChVector<> dir_prev, dir_next;
+            mline_prev->Evaluate(pos_prev, 1);
+            mline_next->Evaluate(pos_next, 0);
+            mline_prev->Derive(dir_prev, 1);
+            mline_next->Derive(dir_next, 0);
+            dir_prev.Normalize();
+            dir_next.Normalize();
+
+            // check if connected segments
+            if ((pos_prev-pos_next).Length() > 1e-9)
+                throw ChException("Error! Add2Dpath: ChLinePath must contain sequence of connected segments/arcs, with no gaps");
+            
+            // insert a 0-radius fillet arc at sharp corners, to allow for sharp-corner vs arc/segment
+            if(Vcross(dir_prev,dir_next).z < -1e-9) {
+                double mangle1 = atan2(dir_prev.y, dir_prev.x) + CH_C_PI_2;
+                double mangle2 = atan2(dir_next.y, dir_next.x) + CH_C_PI_2;
+                bt2DarcShape* mshape = new bt2DarcShape(
+                    (btScalar)pos_prev.x, 
+                    (btScalar)pos_prev.y, 
+                    (btScalar)0, 
+                    (btScalar)mangle1, 
+                    (btScalar)mangle2,
+                    false, 
+                    (btScalar)mthickness);
+
+                mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
+                _injectShape(pos, rot, mshape);
+                //GetLog() << "convex corner between " << i_next << " and " << i_next << " w.angles: " << mangle1 << " " << mangle2 << "\n";
+            }
+            else {
+                //GetLog() << "concave corner between " << i_next << " and " << i_next << "\n";
+            }
         }
     }
 
@@ -613,6 +669,20 @@ void __recurse_add_newcollshapes(btCollisionShape* ashape, std::vector<smartptrs
 }
 
 
+
+void ChModelBullet::SyncPosition()
+{
+    ChCoordsys<> mcsys = this->mcontactable->GetCsysForCollisionModel();
+
+    bt_collision_object->getWorldTransform().setOrigin(btVector3(
+        (btScalar)mcsys.pos.x, (btScalar)mcsys.pos.y, (btScalar)mcsys.pos.z));
+    const ChMatrix33<>& rA(mcsys.rot);
+    btMatrix3x3 basisA((btScalar)rA(0, 0), (btScalar)rA(0, 1), (btScalar)rA(0, 2), (btScalar)rA(1, 0),
+                       (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
+                       (btScalar)rA(2, 2));
+    bt_collision_object->getWorldTransform().setBasis(basisA);
+}
+
 void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
 {
     // version number
@@ -635,13 +705,13 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
     //***TODO***
 }
 
-
+//***OBSOLETE***
 void ChModelBullet::StreamIN(ChStreamInBinary& mstream) {
     // class version number
     int version = mstream.VersionRead();
 
     // parent class deserialize
-    ChCollisionModel::StreamIN(mstream);
+    //ChCollisionModel::StreamIN(mstream);
 
     // deserialize custom data:
 
@@ -675,12 +745,13 @@ void ChModelBullet::StreamIN(ChStreamInBinary& mstream) {
     delete[] mbuffer;
 }
 
+//***OBSOLETE***
 void ChModelBullet::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
 
     // parent class serialize
-    ChCollisionModel::StreamOUT(mstream);
+    //ChCollisionModel::StreamOUT(mstream);
 
     // serialize custom data:
 

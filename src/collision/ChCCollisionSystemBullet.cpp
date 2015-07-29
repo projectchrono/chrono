@@ -27,6 +27,7 @@
 #include "LinearMath/btPoolAllocator.h"
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 #include "BulletCollision/CollisionShapes/btCylinderShape.h"
+#include "BulletCollision/CollisionShapes/bt2DShape.h"
 
 extern btScalar gContactBreakingThreshold;
 
@@ -37,6 +38,9 @@ namespace collision {
 // dynamic creation and persistence
 ChClassRegister<ChCollisionSystemBullet> a_registration_ChCollisionSystemBullet;
 
+
+////////////////////////////////////
+////////////////////////////////////
 
 // Utility class that we use to override the default cylinder-sphere collision
 // case, because the default behavior in Bullet was using the GJK algorithm, that
@@ -185,6 +189,454 @@ class btSphereCylinderCollisionAlgorithm : public btActivatingCollisionAlgorithm
 ////////////////////////////////////
 ////////////////////////////////////
 
+
+// Utility class that we use to override the default 2Dsegment-2Darc collision
+// case (it works only of the two are coplanar)
+class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
+    bool m_ownManifold;
+    btPersistentManifold* m_manifoldPtr;
+    bool m_isSwapped;
+
+  public:
+    btArcSegmentCollisionAlgorithm(btPersistentManifold* mf,
+                                       const btCollisionAlgorithmConstructionInfo& ci,
+                                       btCollisionObject* col0,
+                                       btCollisionObject* col1,
+                                       bool isSwapped)
+        : btActivatingCollisionAlgorithm(ci, col0, col1),
+          m_ownManifold(false),
+          m_manifoldPtr(mf),
+          m_isSwapped(isSwapped) {
+        btCollisionObject* arcObj = m_isSwapped ? col1 : col0;
+        btCollisionObject* segmentObj = m_isSwapped ? col0 : col1;
+
+        if (!m_manifoldPtr) {
+            m_manifoldPtr = m_dispatcher->getNewManifold(arcObj, segmentObj);
+            m_ownManifold = true;
+        }
+    }
+
+    btArcSegmentCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
+        : btActivatingCollisionAlgorithm(ci) {}
+
+    virtual void processCollision(btCollisionObject* body0,
+                                  btCollisionObject* body1,
+                                  const btDispatcherInfo& dispatchInfo,
+                                  btManifoldResult* resultOut) {
+        (void)dispatchInfo;
+
+        if (!m_manifoldPtr)
+            return;
+
+        btCollisionObject* arcObj = m_isSwapped ? body1 : body0;
+        btCollisionObject* segmentObj = m_isSwapped ? body0 : body1;
+
+        resultOut->setPersistentManifold(m_manifoldPtr);
+
+        // only 1 contact per pair, avoid persistence
+        resultOut->getPersistentManifold()->clearManifold();
+
+        bt2DarcShape* arc = (bt2DarcShape*)arcObj->getCollisionShape();
+        bt2DsegmentShape* segment = (bt2DsegmentShape*)segmentObj->getCollisionShape();
+
+        // A concave arc (i.e.with outward volume, counterclockwise abscyssa) will never collide with segments
+        if (arc->get_counterclock()) 
+            return;
+
+        const btTransform& m44Tarc= arcObj->getWorldTransform();
+        const btTransform& m44Tsegment = segmentObj->getWorldTransform();  
+
+        // Shapes on two planes that are not so parallel? no collisions!
+        btVector3 Zarc     = m44Tarc.getBasis().getColumn(2);
+        btVector3 Zsegment = m44Tsegment.getBasis().getColumn(2);
+        if (fabs(Zarc.dot(Zsegment)) < 0.99) //***TODO*** threshold as setting
+            return;
+
+        // Shapes on two planes that are too far? no collisions!
+        btVector3 diff = m44Tsegment.invXform(m44Tarc.getOrigin()); 
+        if (fabs(diff.getZ())> (arc->get_zthickness()+segment->get_zthickness())) 
+            return;
+
+        // vectors of body 1 in body 2 csys:
+        btVector3 local_arc_center = m44Tsegment.invXform( m44Tarc * btVector3(arc->get_X(),arc->get_Y(),0) );
+        btVector3 local_arc_X     = m44Tsegment.getBasis().transpose() * ( m44Tarc.getBasis() * btVector3(1,0,0) );
+        double  local_arc_rot    = atan2(local_arc_X.getY(), local_arc_X.getX());
+        double  arc1_angle1 = local_arc_rot + arc->get_angle1();
+        double  arc1_angle2 = local_arc_rot + arc->get_angle2();
+
+        btVector3 local_CS1 = local_arc_center - segment->get_P1();
+        btVector3 local_seg_S2S1 =  (segment->get_P2() - segment->get_P1());
+        btScalar  seg_length = local_seg_S2S1.length();
+        if (seg_length < 1e-30) 
+            return;
+        btVector3 local_seg_D =  local_seg_S2S1 / seg_length;
+        btScalar param = local_CS1.dot(local_seg_D);
+        
+        // contact out of segment extrema?
+        if (param < 0) 
+            return;
+        if (param > seg_length)
+            return;
+
+        btVector3 local_P2   = segment->get_P1() + local_seg_D * param;
+        btVector3 local_CP2 = local_arc_center - local_P2;
+        btVector3 local_R = local_CP2.normalized() * arc->get_radius();
+        btVector3 local_P1;
+        btVector3 local_N2;
+        if (local_seg_S2S1.cross(local_CP2).getZ() > 0 ) {
+            local_P1 = local_arc_center - local_R;
+            local_N2 = local_R.normalized(); 
+        }
+        else {
+            local_P1 = local_arc_center + local_R;
+            local_N2 = -local_R.normalized(); 
+        }
+        btVector3 local_P1P2 = local_P1 - local_P2;
+
+        double  alpha   = atan2(-local_N2.getY(), -local_N2.getX());
+
+        // Discard points out of min-max angles
+
+        // to always positive angles:
+        arc1_angle1 = fmod(arc1_angle1 + 1e-30, CH_C_2PI);
+        if (arc1_angle1 < 0)
+            arc1_angle1 += CH_C_2PI;
+        arc1_angle2 = fmod(arc1_angle2 + 1e-30, CH_C_2PI);
+        if (arc1_angle2 < 0)
+            arc1_angle2 += CH_C_2PI;
+        alpha = fmod(alpha, CH_C_2PI);
+        if (alpha < 0)
+            alpha += CH_C_2PI;
+     
+        arc1_angle1 = fmod(arc1_angle1, CH_C_2PI);
+        arc1_angle2 = fmod(arc1_angle2, CH_C_2PI);
+
+        alpha = fmod(alpha, CH_C_2PI);
+
+        bool inangle1 = false;
+
+        if (arc1_angle1 < arc1_angle2) {
+            if (alpha >= arc1_angle2 || 
+                alpha <= arc1_angle1) 
+                    inangle1 = true;
+        } else {
+            if (alpha >= arc1_angle2 && 
+                alpha <= arc1_angle1) 
+                    inangle1 = true;
+        }
+        
+        if (!inangle1)
+           return;
+
+        // transform in absolute coords:
+        //btVector3 pos1 = m44Tsegment * local_P1; // not needed
+        btVector3 pos2 = m44Tsegment * local_P2; 
+        btVector3 normal_on_2 = m44Tsegment.getBasis() * local_N2;
+        btScalar dist = local_N2.dot(local_P1 - local_P2);
+
+        // too far or too interpenetrate? discard.
+        if (fabs(dist) > (arc->getMargin()+segment->getMargin()))
+            return;
+
+        /// report a contact. internally this will be kept persistent, and contact reduction is done
+        resultOut->addContactPoint(normal_on_2, pos2, dist);
+
+        resultOut->refreshContactPoints();
+    }
+
+    virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,
+                                           btCollisionObject* body1,
+                                           const btDispatcherInfo& dispatchInfo,
+                                           btManifoldResult* resultOut) {
+        // not yet
+        return btScalar(1.);
+    }
+
+    virtual void getAllContactManifolds(btManifoldArray& manifoldArray) {
+        if (m_manifoldPtr && m_ownManifold) {
+            manifoldArray.push_back(m_manifoldPtr);
+        }
+    }
+
+    virtual ~btArcSegmentCollisionAlgorithm() {
+        if (m_ownManifold) {
+            if (m_manifoldPtr)
+                m_dispatcher->releaseManifold(m_manifoldPtr);
+        }
+    }
+
+    struct CreateFunc : public btCollisionAlgorithmCreateFunc {
+        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci,
+                                                               btCollisionObject* body0,
+                                                               btCollisionObject* body1) {
+            void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btArcSegmentCollisionAlgorithm));
+            if (!m_swapped) {
+                return new (mem) btArcSegmentCollisionAlgorithm(0, ci, body0, body1, false);
+            } else {
+                return new (mem) btArcSegmentCollisionAlgorithm(0, ci, body0, body1, true);
+            }
+        }
+    };
+};
+
+////////////////////////////////////
+////////////////////////////////////
+
+
+
+// Utility class that we use to override the default 2Darc-2Darc collision
+// case (it works only of the two are coplanar)
+class btArcArcCollisionAlgorithm : public btActivatingCollisionAlgorithm {
+    bool m_ownManifold;
+    btPersistentManifold* m_manifoldPtr;
+    bool m_isSwapped;
+
+  public:
+    btArcArcCollisionAlgorithm(btPersistentManifold* mf,
+                                       const btCollisionAlgorithmConstructionInfo& ci,
+                                       btCollisionObject* col0,
+                                       btCollisionObject* col1,
+                                       bool isSwapped)
+        : btActivatingCollisionAlgorithm(ci, col0, col1),
+          m_ownManifold(false),
+          m_manifoldPtr(mf),
+          m_isSwapped(isSwapped) {
+        btCollisionObject* arcObj1 = m_isSwapped ? col1 : col0;
+        btCollisionObject* arcObj2 = m_isSwapped ? col0 : col1;
+
+        if (!m_manifoldPtr) {
+            m_manifoldPtr = m_dispatcher->getNewManifold(arcObj1, arcObj2);
+            m_ownManifold = true;
+        }
+    }
+
+    btArcArcCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
+        : btActivatingCollisionAlgorithm(ci) {}
+
+    virtual void processCollision(btCollisionObject* body0,
+                                  btCollisionObject* body1,
+                                  const btDispatcherInfo& dispatchInfo,
+                                  btManifoldResult* resultOut) {
+        (void)dispatchInfo;
+
+        if (!m_manifoldPtr)
+            return;
+
+        btCollisionObject* arcObj1 = m_isSwapped ? body1 : body0;
+        btCollisionObject* arcObj2 = m_isSwapped ? body0 : body1;
+
+        resultOut->setPersistentManifold(m_manifoldPtr);
+
+        // only 1 contact per pair, avoid persistence
+        resultOut->getPersistentManifold()->clearManifold();
+
+        bt2DarcShape* arc1 = (bt2DarcShape*)arcObj1->getCollisionShape();
+        bt2DarcShape* arc2 = (bt2DarcShape*)arcObj2->getCollisionShape();
+
+        const btTransform& m44Tarc1 = arcObj1->getWorldTransform();
+        const btTransform& m44Tarc2 = arcObj2->getWorldTransform();  
+
+        // Shapes on two planes that are not so parallel? no collisions!
+        btVector3 Zarc1 = m44Tarc1.getBasis().getColumn(2);
+        btVector3 Zarc2 = m44Tarc2.getBasis().getColumn(2);
+        if (fabs(Zarc1.dot(Zarc2)) < 0.99) //***TODO*** threshold as setting
+            return;
+
+        // Shapes on two planes that are too far? no collisions!
+        btVector3 diff = m44Tarc2.invXform(m44Tarc1.getOrigin()); 
+        if (fabs(diff.getZ())> (arc1->get_zthickness()+arc2->get_zthickness())) 
+            return;
+
+        // vectors and angles of arc 1 in arc 2 csys:
+        btVector3 local_arc1_center = m44Tarc2.invXform( m44Tarc1 * btVector3(arc1->get_X(),arc1->get_Y(),0) );
+        btVector3 local_arc1_X      = m44Tarc2.getBasis().transpose() * ( m44Tarc1.getBasis() * btVector3(1,0,0) );
+        double  local_arc1_rot    = atan2(local_arc1_X.getY(), local_arc1_X.getX());
+        double  arc1_angle1 = local_arc1_rot + arc1->get_angle1();
+        double  arc1_angle2 = local_arc1_rot + arc1->get_angle2();
+
+        btVector3 local_arc2_center = btVector3(arc2->get_X(),arc2->get_Y(),0);
+        double  arc2_angle1 = arc2->get_angle1();
+        double  arc2_angle2 = arc2->get_angle2();
+
+        btVector3 local_C1C2 = local_arc1_center - local_arc2_center;
+        btVector3 local_D12  = local_C1C2.normalized();
+
+        btVector3 local_P1;
+        btVector3 local_P2;
+        btVector3 local_N2;
+        double dist = 0;
+        bool paired = false;
+        double  alpha   = atan2(local_C1C2.getY(), local_C1C2.getX());
+        double  alpha1, alpha2;
+
+        // convex-convex
+        if (arc1->get_counterclock() == false && arc2->get_counterclock() == false) {
+            local_P1 = local_arc1_center - local_D12* arc1->get_radius();
+            local_P2 = local_arc2_center + local_D12* arc2->get_radius();
+            local_N2  = local_D12;
+            dist = local_C1C2.length() - arc1->get_radius() - arc2->get_radius();
+            alpha1 = alpha + CH_C_PI;
+            alpha2 = alpha;
+            paired = true;
+        }
+        // convex-concave
+        if (arc1->get_counterclock() == false && arc2->get_counterclock() == true) 
+            if (arc1->get_radius() <= arc2->get_radius()) { 
+                local_P1 = local_arc1_center + local_D12* arc1->get_radius();
+                local_P2 = local_arc2_center + local_D12* arc2->get_radius();
+                local_N2  = - local_D12;
+                dist = - local_C1C2.length() - arc1->get_radius() + arc2->get_radius();
+                alpha1 = alpha;
+                alpha2 = alpha;
+                paired = true;
+            }
+        // concave-convex
+        if (arc1->get_counterclock() == true && arc2->get_counterclock() == false) 
+            if (arc1->get_radius() >= arc2->get_radius()) { 
+                local_P1 = local_arc1_center - local_D12* arc1->get_radius();
+                local_P2 = local_arc2_center - local_D12* arc2->get_radius();
+                local_N2  = - local_D12;
+                dist = - local_C1C2.length() + arc1->get_radius() - arc2->get_radius();
+                alpha1 = alpha + CH_C_PI;
+                alpha2 = alpha + CH_C_PI;
+                paired = true;
+            }
+
+        if (!paired) 
+            return;
+
+        // Discard points out of min-max angles
+
+        // to always positive angles:
+        arc1_angle1 = fmod(arc1_angle1, CH_C_2PI);
+        if (arc1_angle1 < 0)
+            arc1_angle1 += CH_C_2PI;
+        arc1_angle2 = fmod(arc1_angle2, CH_C_2PI);
+        if (arc1_angle2 < 0)
+            arc1_angle2 += CH_C_2PI;
+        arc2_angle1 = fmod(arc2_angle1, CH_C_2PI);
+        if (arc2_angle1 < 0)
+            arc2_angle1 += CH_C_2PI;
+        arc2_angle2 = fmod(arc2_angle2, CH_C_2PI);
+        if (arc2_angle2 < 0)
+            arc2_angle2 += CH_C_2PI;
+        alpha1 = fmod(alpha1, CH_C_2PI);
+        if (alpha1 < 0)
+            alpha1 += CH_C_2PI;
+        alpha2 = fmod(alpha2, CH_C_2PI);
+        if (alpha2 < 0)
+            alpha2 += CH_C_2PI;
+
+        arc1_angle1 = fmod(arc1_angle1, CH_C_2PI);
+        arc1_angle2 = fmod(arc1_angle2, CH_C_2PI);
+        arc2_angle1 = fmod(arc2_angle1, CH_C_2PI);
+        arc2_angle2 = fmod(arc2_angle2, CH_C_2PI);
+        alpha1 = fmod(alpha1, CH_C_2PI);
+        alpha2 = fmod(alpha2, CH_C_2PI);
+
+        bool inangle1 = false;
+        bool inangle2 = false;
+
+        if (arc1->get_counterclock() == true) {
+            if (arc1_angle1 < arc1_angle2) {
+                if (alpha1 >= arc1_angle1 && 
+                    alpha1 <= arc1_angle2) 
+                        inangle1 = true;
+            } else {
+                if (alpha1 >= arc1_angle1 || 
+                    alpha1 <= arc1_angle2) 
+                        inangle1 = true;
+            }
+        } else {
+            if (arc1_angle1 < arc1_angle2) {
+                if (alpha1 >= arc1_angle2 || 
+                    alpha1 <= arc1_angle1) 
+                        inangle1 = true;
+            } else {
+                if (alpha1 >= arc1_angle2 && 
+                    alpha1 <= arc1_angle1) 
+                        inangle1 = true;
+            }
+        }
+
+        if (arc2->get_counterclock() == true) {
+            if (arc2_angle1 < arc2_angle2) {
+                if (alpha2 >= arc2_angle1 && 
+                    alpha2 <= arc2_angle2) 
+                        inangle2 = true;
+            } else {
+                if (alpha2 >= arc2_angle1 || 
+                    alpha2 <= arc2_angle2) 
+                        inangle2 = true;
+            }
+        } else {
+            if (arc2_angle1 < arc2_angle2) {
+                if (alpha2 >= arc2_angle2 || 
+                    alpha2 <= arc2_angle1) 
+                        inangle2 = true;
+            } else {
+                if (alpha2 >= arc2_angle2 && 
+                    alpha2 <= arc2_angle1) 
+                        inangle2 = true;
+            }
+        }
+      
+        if (!(inangle1 && inangle2))
+            return;
+
+        // transform in absolute coords:
+        btVector3 pos2        = m44Tarc2 * local_P2; 
+        btVector3 normal_on_2 = m44Tarc2.getBasis() * local_N2;
+
+        // too far or too interpenetrate? discard.
+        if (fabs(dist) > (arc1->getMargin()+arc2->getMargin()))
+            return;
+
+        /// report a contact.
+        resultOut->addContactPoint(normal_on_2, pos2, (btScalar)dist);
+
+        resultOut->refreshContactPoints();
+    }
+
+    virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,
+                                           btCollisionObject* body1,
+                                           const btDispatcherInfo& dispatchInfo,
+                                           btManifoldResult* resultOut) {
+        // not yet
+        return btScalar(1.);
+    }
+
+    virtual void getAllContactManifolds(btManifoldArray& manifoldArray) {
+        if (m_manifoldPtr && m_ownManifold) {
+            manifoldArray.push_back(m_manifoldPtr);
+        }
+    }
+
+    virtual ~btArcArcCollisionAlgorithm() {
+        if (m_ownManifold) {
+            if (m_manifoldPtr)
+                m_dispatcher->releaseManifold(m_manifoldPtr);
+        }
+    }
+
+    struct CreateFunc : public btCollisionAlgorithmCreateFunc {
+        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci,
+                                                               btCollisionObject* body0,
+                                                               btCollisionObject* body1) {
+            void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btArcArcCollisionAlgorithm));
+            if (!m_swapped) {
+                return new (mem) btArcArcCollisionAlgorithm(0, ci, body0, body1, false);
+            } else {
+                return new (mem) btArcArcCollisionAlgorithm(0, ci, body0, body1, true);
+            }
+        }
+    };
+};
+
+////////////////////////////////////
+////////////////////////////////////
+
+
 ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, double scene_size) {
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new btDefaultCollisionConfiguration();
@@ -209,11 +661,24 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
     // btSphereSphereCollisionAlgorithm::CreateFunc);
 
     // custom collision for cylinder-sphere case, for improved precision
+/*   
     btCollisionAlgorithmCreateFunc* m_collision_sph_cyl = new btSphereCylinderCollisionAlgorithm::CreateFunc;
     btCollisionAlgorithmCreateFunc* m_collision_cyl_sph = new btSphereCylinderCollisionAlgorithm::CreateFunc;
     m_collision_cyl_sph->m_swapped = true;
     bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE, CYLINDER_SHAPE_PROXYTYPE, m_collision_sph_cyl);
     bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE, SPHERE_SHAPE_PROXYTYPE, m_collision_cyl_sph);
+*/ 
+
+    // custom collision for 2D arc-segment case
+    btCollisionAlgorithmCreateFunc* m_collision_arc_seg = new btArcSegmentCollisionAlgorithm::CreateFunc;
+    btCollisionAlgorithmCreateFunc* m_collision_seg_arc = new btArcSegmentCollisionAlgorithm::CreateFunc;
+    m_collision_seg_arc->m_swapped = true;
+    bt_dispatcher->registerCollisionCreateFunc(ARC_SHAPE_PROXYTYPE, SEGMENT_SHAPE_PROXYTYPE, m_collision_arc_seg);
+    bt_dispatcher->registerCollisionCreateFunc(SEGMENT_SHAPE_PROXYTYPE, ARC_SHAPE_PROXYTYPE, m_collision_seg_arc);
+ 
+     // custom collision for 2D arc-arc case
+    btCollisionAlgorithmCreateFunc* m_collision_arc_arc = new btArcArcCollisionAlgorithm::CreateFunc;
+    bt_dispatcher->registerCollisionCreateFunc(ARC_SHAPE_PROXYTYPE, ARC_SHAPE_PROXYTYPE, m_collision_arc_arc);
 
     // custom collision for GIMPACT mesh case too
     btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
@@ -377,6 +842,7 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& t
 void ChCollisionSystemBullet::SetContactBreakingThreshold(double threshold) {
     gContactBreakingThreshold = (btScalar)threshold;
 }
+
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

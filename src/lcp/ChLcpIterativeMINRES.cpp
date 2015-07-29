@@ -23,7 +23,7 @@
 ///////////////////////////////////////////////////
 
 #include "ChLcpIterativeMINRES.h"
-#include "ChLcpConstraintTwoFrictionT.h"
+#include "ChLcpConstraintTwoTuplesFrictionT.h"
 
 namespace chrono {
 
@@ -194,7 +194,7 @@ double ChLcpIterativeMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system desc
                             violation = fabs(ChMin(0.0, violation));
 
                         // ??? trouble with Tang. constraints, for the moment just disable norms
-                        if (!dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic])) {
+                        if (!dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) {
                             norm_corr += pow(new_lp - new_l, 2);
                             norm_jump += pow(new_l - old_l, 2);
                             norm_dlam += pow(new_lp - old_l, 2);

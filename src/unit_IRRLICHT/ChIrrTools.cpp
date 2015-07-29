@@ -11,9 +11,8 @@
 //
 
 #include "physics/ChLinkMate.h"
-#include "physics/ChContactContainer.h"
 #include "lcp/ChLcpIterativeSolver.h"
-
+#include "physics/ChContactContainerBase.h"
 #include "unit_IRRLICHT/ChIrrTools.h"
 
 namespace irr {
@@ -60,17 +59,16 @@ void ChIrrTools::alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const c
 // Draw contact points.
 // Uses the _draw_reporter_class callback class.
 // -----------------------------------------------------------------------------
-class _draw_reporter_class : public chrono::ChReportContactCallback {
+class _draw_reporter_class : public chrono::ChReportContactCallback2 {
   public:
-    virtual bool ReportContactCallback(const chrono::ChVector<>& pA,
+    virtual bool ReportContactCallback2(const chrono::ChVector<>& pA,
                                        const chrono::ChVector<>& pB,
                                        const chrono::ChMatrix33<>& plane_coord,
                                        const double& distance,
-                                       const float& mfriction,
                                        const chrono::ChVector<>& react_forces,
                                        const chrono::ChVector<>& react_torques,
-                                       chrono::collision::ChCollisionModel* modA,
-                                       chrono::collision::ChCollisionModel* modB) {
+                                       chrono::ChContactable* modA,
+                                       chrono::ChContactable* modB) {
         chrono::ChMatrix33<>& mplanecoord = const_cast<chrono::ChMatrix33<>&>(plane_coord);
         chrono::ChVector<> v1 = pA;
         chrono::ChVector<> v2;
@@ -129,7 +127,7 @@ int ChIrrTools::drawAllContactPoints(chrono::ChSystem& mphysicalSystem,
     my_drawer.drawtype = drawtype;
 
     // scan all contacts
-    mphysicalSystem.GetContactContainer()->ReportAllContacts(&my_drawer);
+    mphysicalSystem.GetContactContainer()->ReportAllContacts2(&my_drawer);
 
     return 0;
 }
@@ -138,23 +136,22 @@ int ChIrrTools::drawAllContactPoints(chrono::ChSystem& mphysicalSystem,
 // Draw contact information as labels at the contact point.
 // Uses the _label_reporter_class callback class.
 // -----------------------------------------------------------------------------
-class _label_reporter_class : public chrono::ChReportContactCallback {
+class _label_reporter_class : public chrono::ChReportContactCallback2 {
   public:
-    virtual bool ReportContactCallback(const chrono::ChVector<>& pA,
+    virtual bool ReportContactCallback2(const chrono::ChVector<>& pA,
                                        const chrono::ChVector<>& pB,
                                        const chrono::ChMatrix33<>& plane_coord,
                                        const double& distance,
-                                       const float& mfriction,
                                        const chrono::ChVector<>& react_forces,
                                        const chrono::ChVector<>& react_torques,
-                                       chrono::collision::ChCollisionModel* modA,
-                                       chrono::collision::ChCollisionModel* modB) {
+                                       chrono::ChContactable* modA,
+                                       chrono::ChContactable* modB) {
         char buffer[25];
         core::vector3df mpos((irr::f32)pA.x, (irr::f32)pA.y, (irr::f32)pA.z);
         core::position2d<s32> spos =
             this->cdevice->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
         gui::IGUIFont* font = this->cdevice->getGUIEnvironment()->getBuiltInFont();
-
+    
         switch (labeltype) {
             case ChIrrTools::CONTACT_DISTANCES_VAL:
                 sprintf(buffer, "% 6.3g", distance);
@@ -206,7 +203,7 @@ int ChIrrTools::drawAllContactLabels(chrono::ChSystem& mphysicalSystem,
     my_label_rep.labeltype = labeltype;
 
     // scan all contacts
-    mphysicalSystem.GetContactContainer()->ReportAllContacts(&my_label_rep);
+    mphysicalSystem.GetContactContainer()->ReportAllContacts2(&my_label_rep);
 
     return 0;
 }
