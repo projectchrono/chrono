@@ -110,6 +110,11 @@ public:
 						variables.SetDisabled(mev);
 						variables_D->SetDisabled(mev); 
 					}
+
+	//void SetFixedPos (bool mev)
+	//{
+	//	variables.SetDisabled(mev);
+	//}
 				/// Gets the 'fixed' state of the node.
     bool GetFixed()  {return variables_D->IsDisabled(); }
 

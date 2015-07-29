@@ -2,6 +2,7 @@
 SET(FEA_DEMOS
 	demo_FEAbasic
 	demo_FEAdynamics
+	demo_FEAancf
 )
 
 # List all FEA demos that use Irrlicht
