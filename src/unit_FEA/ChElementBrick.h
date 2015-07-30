@@ -17,7 +17,7 @@
 
 
 #include "ChElementGeneric.h"
-#include "physics\ChContinuumMaterial.h"
+#include "physics/ChContinuumMaterial.h"
 #include "ChNodeFEAxyz.h"
 #include "core/ChQuadrature.h"
 
@@ -27,23 +27,6 @@ namespace chrono
 {
 namespace fea
 {
-
-
-
-/// Simple beam element with two nodes and ANCF gradient-deficient
-/// formulation.
-/// For this 'basic' implementation, constant section and 
-/// constant material are assumed along the beam coordinate.
-/// Torsional stiffness is impossible because of the formulation.
-/// Based on the formulation in:
-///  "Analysis of Thin Beams and Cables Using the Absolute Nodal Co-ordinate Formulation"
-///  J.GERSTMAYR, A.SHABANA
-///  Nonlinear Dynamics (2006) 45: 109–130
-///  DOI: 10.1007/s11071-006-1856-1 
-/// and in:  
-/// "On the Validation and Applications of a Parallel Flexible Multi-body 
-///  Dynamics Implementation"
-///  D. MELANZ
 
 class  ChElementBrick : public ChElementGeneric
 {
@@ -70,9 +53,6 @@ public:
 	ChElementBrick()
 				{
 					nodes.resize(8);
-
-					//this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
-					//this->MassMatrix.Resize(this->GetNdofs(), this->GetNdofs());
 
 				}
 
@@ -140,11 +120,6 @@ public:
 			// FEM functions
 			//
 
-				/// Set the section & material of beam element .
-				/// It is a shared property, so it can be shared between other beams.
-	//void   SetThickness( double th) { thickness = th;}
-				/// Get the section & material of the element
-	//double GetThickness() {return thickness;}
 	//EAS
 	void   SetElemNum(int kb){ elementnumber = kb;}         //// 2015/5/23 for EAS
 
@@ -175,10 +150,9 @@ public:
 	ChMatrixNM<double,24,1> GetInitialPos() {return initialpos;} //// 2015/5/23  for Initial position
 	//EAS
 
-				/// Get the first node (beginning) 
+	//Get element nodes
 	ChSharedPtr<ChNodeFEAxyz> GetNodeA() {return nodes[0];}
 
-				/// Get the second node (ending)
 	ChSharedPtr<ChNodeFEAxyz> GetNodeB() {return nodes[1];}
 
 	ChSharedPtr<ChNodeFEAxyz> GetNodeC() {return nodes[2];}
@@ -193,9 +167,6 @@ public:
 
     ChSharedPtr<ChNodeFEAxyz> GetNodeH() {return nodes[7];}
 
-	//double GetLengthX() {return nodes[1]->GetX0().x - nodes[0]->GetX0().x;}
-	//double GetLengthY() {return nodes[2]->GetX0().y - nodes[0]->GetX0().y;}
-	//double GetLengthZ() {return nodes[4]->GetX0().z - nodes[0]->GetX0().z;}
 
 	double GetLengthX() {return InertFlexVec(0);} 
 	double GetLengthY() {return InertFlexVec(1);}
@@ -207,18 +178,10 @@ public:
 	
 	
 
-				/// Fills the N shape function matrix with the
-				/// values of shape functions at abscyssa 'xi'.
-				/// Note, xi=0 at node1, xi=+1 at node2.
-				/// NOTE! actually N should be a 3row, 12 column sparse matrix,
-				/// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)]; ,
-				/// but to avoid wasting zero and repeated elements, here
-				/// it stores only the s1 s2 s3 s4 values in a 1 row, 4 columns matrix!
+				/// Fills the N shape function matrix
+				/// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
 	virtual void ShapeFunctions(ChMatrix<>& N, double x, double y, double z)
 				{
-					//double a = this->GetLengthX();
-					//double b = this->GetLengthY();
-					//double c = this->GetThickness();
 
 					N(0) = 0.125*(1.0-x)*(1.0-y)*(1.0-z);
 					N(1) = 0.125*(1.0+x)*(1.0-y)*(1.0-z);
@@ -230,22 +193,9 @@ public:
 					N(7) = 0.125*(1.0+x)*(1.0+y)*(1.0+z);
 				};
 
-				/// Fills the N shape function derivative matrix with the
-				/// values of shape function derivatives at abscyssa 'xi'.
-				/// Note, xi=0 at node1, xi=+1 at node2.
-				/// NOTE! to avoid wasting zero and repeated elements, here
-				/// it stores only the four values in a 1 row, 4 columns matrix!
 	virtual void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z)
 				{
 					double a = this->GetLengthX();
-					//double b = this->GetLengthY();
-					//double c = this->GetLengthZ();
-
-					//double a = GetLengthX();
-					//double b = GetLengthY();
-					//double c = GetThickness();
-					//
-					//GetLog()<<a<<"\n"<<b<<"\n"<<c<<"\n";
 
 
 					Nx(0) = 2.0/a*0.125 * (-1.0) * (1.0-y)*(1.0-z);
@@ -261,9 +211,7 @@ public:
 
 	virtual void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z)
 				{
-					//double a = this->GetLengthX();
 					double b = this->GetLengthY();
-					//double c = this->GetThickness();
 
 
 					Ny(0) = 2.0/b*0.125 * (1.0-x)*(-1.0)*(1.0-z);
@@ -279,9 +227,8 @@ public:
 
 	virtual void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z)
 				{
-					//double a = this->GetLengthX();
-					//double b = this->GetLengthY();
 					double c = this->GetLengthZ();
+
 
 					Nz(0) = 2.0/c*0.125 * (1.0-x)*(1.0-y)*(-1.0);
 					Nz(1) = 2.0/c*0.125 * (1.0+x)*(1.0-y)*(-1.0);
@@ -330,9 +277,6 @@ public:
 					
 					bool use_numerical_differentiation = false;
 
-					// Option: compute the stiffness matrix by doing a numerical differentiation
-					// of the internal forces. This fixes a problem with the code by D.Melanz, that 
-					// produces a rank deficient matrix for straight beams.
 					if (use_numerical_differentiation)
 					{
 						double diff = 1e-8;
@@ -344,10 +288,6 @@ public:
 						//EAS
 						this->ComputeInternalForces(F0);
 						
-						// the rest could be in a for loop, if implementing a  ComputeInternalForces that
-						// accepts the DOFs values as a 12-vector state where one increments a value at a time,
-						// but ComputeInternalForces avoids moving that data by using nodes[0]->pos.blabla directly, 
-						// so here we do a sort of 'unrolled' loop:
 
 						//EAS
 						flag_HE=1; // flag_HE is defineded in  [class  ChElementBrick : public ChElementGeneric]
@@ -361,16 +301,6 @@ public:
 							this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn,0,0,24,1,0, 0+inode*3);
 							this->nodes[inode]->pos.x -=diff;
 
-							//for(int i=0;i<24;i++)
-							//{
-							//	GetLog() << F0(i) << "\n";
-							//}
-							//system("pause");
-							//for(int i=0;i<24;i++)
-							//{
-							//	GetLog() << F1(i) << "\n";
-							//}
-							//system("pause");
 
 							this->nodes[inode]->pos.y +=diff;
 							this->ComputeInternalForces(F1);
@@ -399,8 +329,6 @@ public:
 						ChMatrixNM<double, 24,24>  stock_jac_EAS_elem;
 						stock_jac_EAS_elem=this->GetStockJac();
 						StiffnessMatrix -= stock_jac_EAS_elem; //For Enhanced Assumed Strain
-						//GetLog() << "stock_jac" << stock_jac_EAS_elem;
-						//system("pause");
 
 
 					    //GetLog() << this->StiffnessMatrix;
@@ -442,8 +370,6 @@ public:
 					d0(6,0) = InitialCoord(18,0);	d0(6,1) = InitialCoord(19,0);	d0(6,2) = InitialCoord(20,0);
 					d0(7,0) = InitialCoord(21,0);	d0(7,1) = InitialCoord(22,0);	d0(7,2) = InitialCoord(23,0);
 
-					/// Integrate  Area*rho*(S'*S)
-					/// where S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
 
 					class MyMass : public ChIntegrable3D< ChMatrixNM<double,24,24> >
 					{
@@ -467,7 +393,7 @@ public:
 							element->ShapeFunctionsDerivativeY(Ny, x, y, z);
 							element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
 
-							// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
+							// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
 							ChMatrix33<> Si;
 							Si.FillDiag(N(0));
 							S.PasteMatrix(&Si, 0,0);
@@ -486,24 +412,6 @@ public:
 							Si.FillDiag(N(7));
 							S.PasteMatrix(&Si, 0,21);
 
-							//ChVector<> pA = this->element->GetNodeA()->GetX0();
-							//ChVector<> pB = this->element->GetNodeB()->GetX0();
-							//ChVector<> pC = this->element->GetNodeC()->GetX0();
-							//ChVector<> pD = this->element->GetNodeD()->GetX0();
-						 //   ChVector<> pE = this->element->GetNodeE()->GetX0();
-							//ChVector<> pF = this->element->GetNodeF()->GetX0();
-							//ChVector<> pG = this->element->GetNodeG()->GetX0();
-							//ChVector<> pH = this->element->GetNodeH()->GetX0();
-
-							//ChMatrixNM<double, 8,3>   d;
-							//d(0,0) = pA.x;	d(0,1) = pA.y;	d(0,2) = pA.z;
-							//d(1,0) = pB.x;	d(1,1) = pB.y;	d(1,2) = pB.z;
-							//d(2,0) = pC.x;	d(2,1) = pC.y;	d(2,2) = pC.z;
-							//d(3,0) = pD.x;	d(3,1) = pD.y;	d(3,2) = pD.z;
-							//d(4,0) = pE.x;	d(4,1) = pE.y;	d(4,2) = pE.z;
-							//d(5,0) = pF.x;	d(5,1) = pF.y;	d(5,2) = pF.z;
-							//d(6,0) = pG.x;	d(6,1) = pG.y;	d(6,2) = pG.z;
-							//d(7,0) = pH.x;	d(7,1) = pH.y;	d(7,2) = pH.z;
 
 							ChMatrixNM<double, 1,3> Nx_d0;
 							Nx_d0.MatrMultiply(Nx,*d0);
@@ -519,7 +427,7 @@ public:
 							rd0(0,1) = Ny_d0(0,0); rd0(1,1) = Ny_d0(0,1); rd0(2,1) = Ny_d0(0,2);
 							rd0(0,2) = Nz_d0(0,0); rd0(1,2) = Nz_d0(0,1); rd0(2,2) = Nz_d0(0,2);
 
-							double detJ0 = rd0.Det();//if not flat,it's not 1
+							double detJ0 = rd0.Det();
 
 							// perform  r = S'*S
 							result.MatrTMultiply(S,S); 
@@ -563,14 +471,10 @@ public:
 	virtual void SetupInitial() 
 				{
 
-					// Compute rest length, mass:
-					//this->length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
-					//this->mass   = this->GetThickness() * this->GetLengthY() * this->GetLengthX() * this->Material->Get_density();
-
 					// Compute mass matrix
 					ComputeMassMatrix();
 
-					//initial EAS parameters  @@@@@@@@
+					//initial EAS parameters  
 					stock_jac_EAS.Reset();
 
 					// Compute stiffness matrix 
@@ -584,7 +488,6 @@ public:
 	virtual void ComputeKRMmatricesGlobal	(ChMatrix<>& H, double Kfactor, double Rfactor=0, double Mfactor=0) 
 				{
 					assert((H.GetRows() == 24) && (H.GetColumns()==24));
-					assert (!section.IsNull());
 					
 					// Compute global stiffness matrix:
 					ComputeStiffnessMatrix();
@@ -621,19 +524,8 @@ public:
 	virtual void ComputeInternalForces	(ChMatrixDynamic<>& Fi)
 				{
 					assert((Fi.GetRows() == 24) && (Fi.GetColumns()==1));
-					//assert (!section.IsNull());
 
-					/*double Area = section->Area;
-					double E    = section->E;
-					double I    = section->I;
-
-					double l	= this->length;*/
-
-					//EAS
 					int i=this ->GetElemNum();
-					//					GetLog() <<i<<"\n";
-					//system("pause");
-					//EAS
  
 					ChVector<> pA = this->nodes[0]->GetPos();
 					ChVector<> pB = this->nodes[1]->GetPos();
@@ -644,8 +536,6 @@ public:
 					ChVector<> pG = this->nodes[6]->GetPos();
 					ChVector<> pH = this->nodes[7]->GetPos();
 
-					
-					// this matrix will be used in both MyForcesAxial and MyForcesCurv integrators (Current shape)
 					ChMatrixNM<double, 8,3>   d;
 					d(0,0) = pA.x;	d(0,1) = pA.y;	d(0,2) = pA.z;
 					d(1,0) = pB.x;	d(1,1) = pB.y;	d(1,2) = pB.z;
@@ -670,13 +560,9 @@ public:
 					d0(7,0) = InitialCoord(21,0);	d0(7,1) = InitialCoord(22,0);	d0(7,2) = InitialCoord(23,0);
 					
 					double v = Material->Get_v();
-					double E = Material->Get_E();
-									
-					//@@@@@@@@@this part is added by refering ChElementBeamANCF.h (Chrono 6-1) 
+					double E = Material->Get_E();						
 					
 					Fi.Reset();
-
-					// @@@@@@@@ from below, is modified from ChElementBeamANCF.h with EAS (5-27) @@@@@@@@
                     
 					/// If numerical differentiation is used, only the internal force and EAS stiffness
 					/// will be calculated. If the numerical differentiation is not used, the jacobian
@@ -699,7 +585,7 @@ public:
 							double *v;
 
 							ChMatrixNM<double, 24,1>  Fint;
-							ChMatrixNM<double, 6,6>  E_eps;// same as D in FORTRAN
+							ChMatrixNM<double, 6,6>  E_eps;
 							ChMatrixNM<double, 3,24>  Sx;
 							ChMatrixNM<double, 3,24>  Sy;
 							ChMatrixNM<double, 3,24>  Sz;
@@ -998,7 +884,7 @@ public:
 									ChMatrixNM<double, 3,3> JPCN;
 									ChMatrixNM<double, 3,3> STRN;
 
-									ChMatrixNM<double, 6,1> strain_1;// same as EPS1 in FORTRAN
+									ChMatrixNM<double, 6,1> strain_1;
 								    ChMatrixNM<double, 6,1> TEMP5;
 									ChMatrixNM<double, 6,1> TEMP5N;
 									TEMP5.Reset();
@@ -1017,7 +903,7 @@ public:
 									INVCG=CG;
 									INVCG.MatrInverse();
 
-									double Deld=0.000001;// same as DD in FORTRAN
+									double Deld=0.000001;
 									double I1 =CG(0,0)+CG(1,1)+CG(2,2);
 									double I2=0.5*(pow(I1,2)-(pow(CG(0,0),2)+pow(CG(1,0),2)+pow(CG(2,0),2)+pow(CG(0,1),2)+pow(CG(1,1),2)+pow(CG(2,1),2)+pow(CG(0,2),2)+pow(CG(1,2),2)+pow(CG(2,2),2)));
 									double I3=CG(0,0)*CG(1,1)*CG(2,2)-CG(0,0)*CG(1,2)*CG(2,1)+CG(0,1)*CG(1,2)*CG(2,0)-CG(0,1)*CG(1,0)*CG(2,2)+CG(0,2)*CG(1,0)*CG(2,1)-CG(2,0)*CG(1,1)*CG(0,2);
@@ -1027,7 +913,7 @@ public:
 									double CCOM1=551584.0; // C10   not 0.551584
 									double CCOM2=137896.0; // C01   not 0.137896
 									double CCOM3=2.0*(CCOM1+CCOM2)/(1.0-2.0*0.49); //K:bulk modulus
-									double StockEPS;// same as StockEPS in FORTRAN
+									double StockEPS;
 
 									IMAT.Reset();
                                     IMAT(0,0)=1.0;
@@ -1075,12 +961,6 @@ public:
 										strain_1(JJJ,0)=StockEPS;
 										E_eps(JJJ,0)=(TEMP5N(0,0)-TEMP5(0,0))/Deld;E_eps(JJJ,1)=(TEMP5N(1,0)-TEMP5(1,0))/Deld;E_eps(JJJ,2)=(TEMP5N(2,0)-TEMP5(2,0))/Deld;
 										E_eps(JJJ,3)=(TEMP5N(3,0)-TEMP5(3,0))/Deld;E_eps(JJJ,4)=(TEMP5N(4,0)-TEMP5(4,0))/Deld;E_eps(JJJ,5)=(TEMP5N(5,0)-TEMP5(5,0))/Deld;
-										//for(int i=0;i<6;i++){
-										//	GetLog() <<TEMP5N(i)<<"\n";}
-										//system("pause");
-										//for(int i=0;i<6;i++){
-										//	GetLog() <<TEMP5(i)<<"\n";}
-										//system("pause");
 									   }
 									// check E_eps
 									//for(int i=0;i<6;i++){
@@ -1307,7 +1187,7 @@ public:
 
 
 
-						//	/// Evaluate (strainD'*strain)  at point x 
+						//	/// Evaluate (strainD'*strain)  at point  
 							virtual void Evaluate(ChMatrixNM<double,906,1>& result, const double x, const double y, const double z)
 							{
 								element->ShapeFunctionsDerivativeX(Nx, x, y, z);
@@ -1573,7 +1453,7 @@ public:
 									ChMatrixNM<double, 3,3> JPCN;
 									ChMatrixNM<double, 3,3> STRN;
 
-									ChMatrixNM<double, 6,1> strain_1;// same as EPS1 in FORTRAN
+									ChMatrixNM<double, 6,1> strain_1;
 								    ChMatrixNM<double, 6,1> TEMP5;
 									ChMatrixNM<double, 6,1> TEMP5N;
 									TEMP5.Reset();
@@ -1594,7 +1474,7 @@ public:
 
 									//GetLog() << " INVCG"<<INVCG<<"\n";
 
-									double Deld=0.000001;// same as DD in FORTRAN
+									double Deld=0.000001;
 									double I1 =CG(0,0)+CG(1,1)+CG(2,2);
 									double I2=0.5*(pow(I1,2)-(pow(CG(0,0),2)+pow(CG(1,0),2)+pow(CG(2,0),2)+pow(CG(0,1),2)+pow(CG(1,1),2)+pow(CG(2,1),2)+pow(CG(0,2),2)+pow(CG(1,2),2)+pow(CG(2,2),2)));
 									double I3=CG(0,0)*CG(1,1)*CG(2,2)-CG(0,0)*CG(1,2)*CG(2,1)+CG(0,1)*CG(1,2)*CG(2,0)-CG(0,1)*CG(1,0)*CG(2,2)+CG(0,2)*CG(1,0)*CG(2,1)-CG(2,0)*CG(1,1)*CG(0,2);
@@ -1604,7 +1484,7 @@ public:
 									double CCOM1=551584.0; // C10   not 0.551584
 									double CCOM2=137896.0; // C01   not 0.137896
 									double CCOM3=2.0*(CCOM1+CCOM2)/(1.0-2.0*0.49); //K:bulk modulus
-									double StockEPS;// same as StockEPS in FORTRAN
+									double StockEPS;
 
 									IMAT.Reset();
                                     IMAT(0,0)=1.0;
@@ -1887,7 +1767,7 @@ public:
 							LocalGravityForce(1,0) = 0.0;
 							LocalGravityForce(2,0) = -9.81;
 
-							// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
+							// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
 							ChMatrix33<> Si;
 							Si.FillDiag(N(0));
 							S.PasteMatrix(&Si, 0,0);
@@ -1958,8 +1838,6 @@ public:
 					double x = 0;
 					double y = 0;
 					double z = 0;
-					//ChMatrixNM<double,6,6> T0;
-					//double detJ0C;
 					ChMatrixNM<double, 1,8>   Nx;
 					ChMatrixNM<double, 1,8>   Ny;
 					ChMatrixNM<double, 1,8>   Nz;
@@ -2032,7 +1910,6 @@ public:
 					temp = Vdot(AA2,j03); beta(7,0) = temp;
 					temp = Vdot(AA3,j03); beta(8,0) = temp;
 
-					////T0
 					T0(0,0)=pow(beta(0),2);
 					T0(1,0)=pow(beta(1),2);
 					T0(2,0)=2.0*beta(0)*beta(1);

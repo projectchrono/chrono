@@ -419,6 +419,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double alpha;
     double gamma;
     double beta;
+	int HHTflag;
     ChStateDelta Da;
     ChVectorDynamic<> Dl;
     ChState Xnew;
@@ -450,11 +451,10 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
         beta = pow((1.0 - alpha), 2) / 4.0;
     }
 
-	//
-	// It is useful for getting steady solution especially for ANCF tire model. 
-	// This is only used for "position solution vector(HHTflag=2 or 3)" 
-	// Tolernce is usually set to 5e-5 in demo program.  (7/15/2015)
-	//
+	void SetHHTFlag(int mHHTflag) {
+		HHTflag = mHHTflag;
+	}
+
 	void ConvergenceViolationCheck(ChState& Xnew,ChVectorDynamic<>& L,ChStateDelta& Da,ChVectorDynamic<>& Dl,double &Err1,double &Err2,int HHTflag)
 	{
 			double Temp;

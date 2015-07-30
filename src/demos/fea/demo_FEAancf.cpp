@@ -87,7 +87,7 @@ void test_1() {
 
 
 	int MAXCOUNT = 100;
-	inputfile = fopen("IndataBiLinearShell_Simple1.DAT","r");
+	inputfile = fopen("IndataBiLinearShell_Simple1_8x8.DAT","r");
 	printf("Open IndataBiLinearShell_Simple1.DAT\n");
 	if(inputfile == NULL){
 		printf("IndataBiLinearShell_Simple1.DAT cannot open!!\n");
@@ -295,8 +295,6 @@ void test_1() {
 		
 		i++;
 	}
-	GetLog()<<"\n"<<icount<<"\n";
-	system("pause");
     // Perform a dynamic time integration:
     my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
@@ -311,6 +309,7 @@ void test_1() {
 		mystepper->SetAlpha(-0.2);
 		mystepper->SetMaxiters(100);
 		mystepper->SetTolerance(1e-5);
+		mystepper->SetHHTFlag(3);
 		mystepper->Iterations=0;
 	}
 	outputfile = fopen("position.txt","w");
@@ -608,6 +607,7 @@ void test_2() {
 		mystepper->SetAlpha(-0.2);
 		mystepper->SetMaxiters(1000);
 		mystepper->SetTolerance(5e-4);
+		mystepper->SetHHTFlag(3);
 		mystepper->Iterations=0;
 	}
 	outputfile = fopen("position.txt","w");
@@ -684,7 +684,7 @@ void test_3() {
 
 
 	int MAXCOUNT = 100;
-	inputfile = fopen("IndataBiLinearShell_Simple1.DAT","r");
+	inputfile = fopen("IndataBiLinearShell_Simple1_8x8.DAT","r");
 	printf("Open IndataBiLinearShell_Simple1.DAT\n");
 	if(inputfile == NULL){
 		printf("IndataBiLinearShell_Simple1.DAT cannot open!!\n");
@@ -790,12 +790,12 @@ void test_3() {
 		my_mesh->AddNode(node);
 		if(NDR[i][0]==1&&NDR[i][1]==1&&NDR[i][2]==1&&NDR[i][3]==1&&NDR[i][4]==1&&NDR[i][5]==1)
 		{
-			node->SetFixed(true);
+			node->SetFixedPos(true);
 		}
 		i++;
 	}
 	GetLog() << "TotalNumNodes: " << TotalNumNodes << "\n\n";
-
+	system("pause");
 
 	ChSharedPtr<ChNodeFEAxyzD> nodetip (my_mesh->GetNode(TotalNumNodes-1).DynamicCastTo<ChNodeFEAxyzD>());
 	GetLog() << "X : " << nodetip->GetPos().x <<" Y : "<< nodetip->GetPos().y <<" Z : "<< nodetip->GetPos().z <<"\n\n";
@@ -884,7 +884,8 @@ void test_3() {
 	{
 		mystepper->SetAlpha(-0.2);
 		mystepper->SetMaxiters(100);
-		mystepper->SetTolerance(1e-4);
+		mystepper->SetTolerance(1e-5);
+		mystepper->SetHHTFlag(3);
 		mystepper->Iterations=0;
 	}
 	outputfile = fopen("position.txt","w");
@@ -1157,6 +1158,7 @@ void test_4() {
 		mystepper->SetAlpha(-0.2);
 		mystepper->SetMaxiters(1000);
 		mystepper->SetTolerance(5e-5);
+		mystepper->SetHHTFlag(3);
 		mystepper->Iterations=0;
 	}
 	outputfile = fopen("position.txt","w");
@@ -1370,9 +1372,9 @@ void test_5() {
 		mystepper->SetAlpha(-0.2);
 		mystepper->SetMaxiters(100);
 		mystepper->SetTolerance(1e-5);
+		mystepper->SetHHTFlag(3);
 		mystepper->Iterations=0;
 	}
-	my_system.Iter=0;
 	outputfile = fopen("position.txt","w");
 	double start = std::clock();
 
@@ -1402,7 +1404,7 @@ int main(int argc, char* argv[]) {
 	//test_3() : ANCF Shell Simple Case (Fixed)
 	//test_4() : ANCF Tire (Fixed)
 	//test_5() : ANCF Brick Simple Case (Fixed)
-    test_3();
+    test_1();
 	
     system("pause");
     return 0;

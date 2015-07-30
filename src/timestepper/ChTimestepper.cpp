@@ -698,7 +698,6 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
     // extrapolate a prediction as a warm start
 
 	//==7/13/2015
-	int HHTflag=3; // 1:Acceleration 2:Position 3:Position w/ scaling
 	if(HHTflag==1){
 	//Acceleration is Solution vector
 		Vnew = V;// + Anew*dt;
@@ -815,7 +814,7 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
 		}else if(HHTflag==2||HHTflag==3){
 		   	double Err1;
 		    double Err2;
-		    ConvergenceViolationCheck(Xnew,L,Da,Dl,Err1,Err2,HHTflag); // Useful for ANCF tire model
+		    ConvergenceViolationCheck(Xnew,L,Da,Dl,Err1,Err2,HHTflag);
 		    GetLog() << " HHT iteration=" << i << "  |Err1|=" << Err1 << "  |Err2|=" << Err2 << "  Tol="<<this->GetTolerance() << "\n";
 		    if (Err1 < this->GetTolerance() && Err2 < this->GetTolerance())
                 break;
