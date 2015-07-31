@@ -64,7 +64,8 @@ SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChElementBar.h 
 	ChElementBeam.h
 	ChElementBeamEuler.h
-	ChElementBeamANCF.h 
+	ChElementBeamANCF.h
+	ChElementBrick.h 
 	ChElement3D.h
 	ChElementTetrahedron.h
 	ChElementTetra_4.h

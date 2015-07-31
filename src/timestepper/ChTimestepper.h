@@ -419,6 +419,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double alpha;
     double gamma;
     double beta;
+	int HHTflag;
     ChStateDelta Da;
     ChVectorDynamic<> Dl;
     ChState Xnew;
@@ -434,7 +435,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper() {
         SetAlpha(-0.2);  // default: some dissipation
     };
-
+	int Iterations;
     /// Set the numerical damping parameter.
     /// It must be in the [-1/3, 0] interval.
     /// The closer to -1/3, the more damping.
@@ -449,6 +450,43 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
         gamma = (1.0 - 2.0 * alpha) / 2.0;
         beta = pow((1.0 - alpha), 2) / 4.0;
     }
+
+	void SetHHTFlag(int mHHTflag) {
+		HHTflag = mHHTflag;
+	}
+
+	void ConvergenceViolationCheck(ChState& Xnew,ChVectorDynamic<>& L,ChStateDelta& Da,ChVectorDynamic<>& Dl,double &Err1,double &Err2,int HHTflag)
+	{
+			double Temp;
+			ChVectorDynamic<> TempVec;
+			// As for "Da" > Err1
+			if(HHTflag==2||HHTflag==3){
+			TempVec=Xnew+Da;
+			Temp=TempVec.NormTwo();
+			}else{
+				TempVec=Da;
+				Temp=1.0;
+			}
+			if(Temp<0.00000001){
+				Temp=1.0;
+			}
+			TempVec=Da;
+			Err1=TempVec.NormTwo()/Temp;
+			// As for "Dl" > Err2
+			if(HHTflag==2||HHTflag==3){
+			TempVec=L+Dl;
+			Temp=TempVec.NormTwo();
+			}else{
+				TempVec=Dl;
+				Temp=1.0;
+			}
+			if(Temp<0.00000001){
+				Temp=1.0;
+			}
+			TempVec=Dl;
+			Err2=TempVec.NormTwo()/Temp;
+
+	}
 
     double GetAlpha() { return alpha; }
 
