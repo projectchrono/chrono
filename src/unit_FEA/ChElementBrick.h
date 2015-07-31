@@ -523,7 +523,6 @@ public:
 				/// in the Fi vector.
 	virtual void ComputeInternalForces	(ChMatrixDynamic<>& Fi)
 				{
-					assert((Fi.GetRows() == 24) && (Fi.GetColumns()==1));
 
 					int i=this ->GetElemNum();
  

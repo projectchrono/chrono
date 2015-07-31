@@ -87,7 +87,7 @@ void test_1() {
 
 
 	int MAXCOUNT = 100;
-	inputfile = fopen("IndataBiLinearShell_Simple1_8x8Flat.DAT","r");
+	inputfile = fopen("IndataBiLinearShell_Simple1.DAT","r");
 	printf("Open IndataBiLinearShell_Simple1.DAT\n");
 	if(inputfile == NULL){
 		printf("IndataBiLinearShell_Simple1.DAT cannot open!!\n");
@@ -309,7 +309,7 @@ void test_1() {
 		mystepper->SetAlpha(-0.2);
 		mystepper->SetMaxiters(100);
 		mystepper->SetTolerance(1e-5);
-		mystepper->SetHHTFlag(3);
+		mystepper->SetHHTFlag(1);
 		mystepper->Iterations=0;
 	}
 	outputfile = fopen("position.txt","w");
