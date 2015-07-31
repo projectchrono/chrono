@@ -87,7 +87,7 @@ void test_1() {
 
 
 	int MAXCOUNT = 100;
-	inputfile = fopen("IndataBiLinearShell_Simple1_8x8.DAT","r");
+	inputfile = fopen("IndataBiLinearShell_Simple1_8x8Flat.DAT","r");
 	printf("Open IndataBiLinearShell_Simple1.DAT\n");
 	if(inputfile == NULL){
 		printf("IndataBiLinearShell_Simple1.DAT cannot open!!\n");
@@ -684,7 +684,7 @@ void test_3() {
 
 
 	int MAXCOUNT = 100;
-	inputfile = fopen("IndataBiLinearShell_Simple1_8x8.DAT","r");
+	inputfile = fopen("IndataBiLinearShell_Simple1_8x8Flat.DAT","r");
 	printf("Open IndataBiLinearShell_Simple1.DAT\n");
 	if(inputfile == NULL){
 		printf("IndataBiLinearShell_Simple1.DAT cannot open!!\n");
@@ -790,7 +790,7 @@ void test_3() {
 		my_mesh->AddNode(node);
 		if(NDR[i][0]==1&&NDR[i][1]==1&&NDR[i][2]==1&&NDR[i][3]==1&&NDR[i][4]==1&&NDR[i][5]==1)
 		{
-			node->SetFixedPos(true);
+			node->SetFixed(true);
 		}
 		i++;
 	}
