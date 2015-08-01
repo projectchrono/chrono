@@ -90,7 +90,7 @@ void bt2DarcShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aa
 	btVector3 halfExtents; 
 	halfExtents.setValue((radius), 
 						 (radius),
-						 (zthickness*0.5));
+						 (zthickness*0.5f));
 
 	btMatrix3x3 abs_b = t.getBasis().absolute();  
 	btVector3 center = t.getOrigin()+ t.getBasis()*btVector3(this->x, this->y, 0);
@@ -172,8 +172,8 @@ void bt2DsegmentShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3
 {
     btVector3 P1w = t*P1;
     btVector3 P2w = t*P2;
-    btVector3 vminabs (std::min(P1w.x(),P2w.x()), std::min(P1w.y(),P2w.y()), -(zthickness*0.5));
-    btVector3 vmaxabs (std::max(P1w.x(),P2w.x()), std::max(P1w.y(),P2w.y()),  (zthickness*0.5));
+    btVector3 vminabs (std::min(P1w.x(),P2w.x()), std::min(P1w.y(),P2w.y()), -(zthickness*0.5f));
+    btVector3 vmaxabs (std::max(P1w.x(),P2w.x()), std::max(P1w.y(),P2w.y()),  (zthickness*0.5f));
     vminabs -= btVector3(getMargin(),getMargin(),0);
     vmaxabs += btVector3(getMargin(),getMargin(),0);
     aabbMin = vminabs;
