@@ -64,17 +64,19 @@ class ChParticleEmitter {
         created_mass = 0;
         off_mass = 0;
         off_count = 0;
+        inherit_owner_speed = true;
+        jitter_declustering = true;
     }
 
     /// Function that creates random particles with random shape, position
     /// and alignment each time it is called.
     /// Typically, one calls this function once per timestep.
-    void EmitParticles(ChSystem& msystem, double dt) {
+    void EmitParticles(ChSystem& msystem, double mdt, ChFrameMoving<> pre_transform = ChFrameMoving<>() ) {
         double done_particles_per_step = this->off_count;
         double done_mass_per_step = this->off_mass;
 
-        double particles_per_step = dt * particles_per_second;
-        double mass_per_step = dt * mass_per_second;
+        double particles_per_step = mdt * particles_per_second;
+        double mass_per_step = mdt * mass_per_second;
 
         // Loop for creating particles at the timestep. Note that
         // it would run forever, if there were no returns when flow amount is reached.
@@ -100,25 +102,62 @@ class ChParticleEmitter {
                 }
             }
 
+            //
             // Create the particle
+            //
 
+            // 1) compute 
+            // Random position 
             ChCoordsys<> mcoords;
             mcoords.pos = particle_positioner->RandomPosition();
+
+            // 2) 
+            // Random alignment
             mcoords.rot = particle_aligner->RandomAlignment();
+  
+            // transform if pre_transform is used 
+            ChCoordsys<> mcoords_abs;
+            mcoords_abs = mcoords >> pre_transform.GetCoord(); 
 
-            ChSharedPtr<ChBody> mbody = particle_creator->RandomGenerateAndCallbacks(mcoords);
+            // 3)
+            // Random creation of particle
+            ChSharedPtr<ChBody> mbody = particle_creator->RandomGenerateAndCallbacks(mcoords_abs);
 
-            mbody->SetPos_dt(particle_velocity->RandomVelocity());
-            mbody->SetWvel_par(particle_angular_velocity->RandomVelocity());
+            // 4) 
+            // Random velocity and angular speed
+            ChVector<> mv_loc = particle_velocity->RandomVelocity();
+            ChVector<> mw_loc = particle_angular_velocity->RandomVelocity();
+            
+            ChVector<> mv_abs; 
+            ChVector<> mw_abs; 
+            ChVector<> jitter;
+
+            // in case everything is transformed 
+            if (inherit_owner_speed) {
+                mv_abs = pre_transform.PointSpeedLocalToParent(mcoords.pos, mv_loc);
+                mw_abs = pre_transform.TransformDirectionLocalToParent(mw_loc) + pre_transform.GetWvel_par();
+            }else {
+                mv_abs = pre_transform.TransformDirectionLocalToParent(mv_loc);
+                mw_abs = pre_transform.TransformDirectionLocalToParent(mw_loc);
+            }
+            mbody->SetPos_dt(mv_abs);
+            mbody->SetWvel_par(mw_abs);
+
+            if (this->jitter_declustering) {
+                // jitter term: high speed jet clustering
+                jitter  = (ChRandom() * mdt) * mv_abs; 
+                // jitter term: moving source
+                jitter -= (ChRandom() * mdt) * pre_transform.PointSpeedLocalToParent(mcoords.pos, VNULL);
+                mbody->Move(jitter);
+            }
 
             if (this->creation_callback)
-                this->creation_callback->PostCreation(mbody, mcoords, *particle_creator.get_ptr());
+                this->creation_callback->PostCreation(mbody, mcoords_abs, *particle_creator.get_ptr());
 
             msystem.Add(mbody);
 
             this->particle_reservoir -= 1;
             this->mass_reservoir -= mbody->GetMass();
-            ;
 
             this->created_particles += 1;
             this->created_mass += mbody->GetMass();
@@ -187,6 +226,13 @@ class ChParticleEmitter {
     /// Get the total mass of created particles
     double GetTotCreatedMass() { return created_mass; }
 
+    /// Turn on this to have the particles 'inherit' the speed of the owner body in pre_transform.
+    void SetInheritSpeed(bool mi) { this->inherit_owner_speed = mi; }
+
+    /// Turn on this to avoid quantization if generating from an object that has high speed 
+    /// in pre_transform (so avoids clusters in jets of particles).
+    void SetJitterDeclustering(bool mj) { this->jitter_declustering = mj; }
+
   private:
     eChFlowMode flow_mode;
     double particles_per_second;
@@ -209,6 +255,9 @@ class ChParticleEmitter {
 
     double off_count;
     double off_mass;
+
+    bool inherit_owner_speed;
+    bool jitter_declustering;
 };
 
 }  // end of namespace particlefactory
