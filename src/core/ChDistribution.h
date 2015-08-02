@@ -16,6 +16,7 @@
 #include "core/ChMathematics.h"
 #include "core/ChVector.h"
 #include "core/ChMatrix.h"
+#include "core/ChMatrixDynamic.h"
 
 namespace chrono {
 
