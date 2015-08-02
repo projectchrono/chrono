@@ -1180,12 +1180,8 @@ void ChSystem::WakeUpSleepingBodies() {
             ) {
             if (!(modA && modB))
                 return true;
-            ChBody* b1 = 0;
-            ChBody* b2 = 0;
-            if (ChModelBulletBody* mmboA = dynamic_cast<ChModelBulletBody*>(modA))
-                b1 = mmboA->GetBody();
-            if (ChModelBulletBody* mmboB = dynamic_cast<ChModelBulletBody*>(modB))
-                b2 = mmboB->GetBody();
+            ChBody* b1 = dynamic_cast<ChBody*>(modA->GetContactable());
+            ChBody* b2 = dynamic_cast<ChBody*>(modB->GetContactable());
             if (!(b1 && b2))
                 return true;
             bool sleep1 = b1->GetSleeping();

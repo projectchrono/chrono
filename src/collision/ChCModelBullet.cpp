@@ -683,6 +683,20 @@ void ChModelBullet::SyncPosition()
     bt_collision_object->getWorldTransform().setBasis(basisA);
 }
 
+
+bool ChModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
+    if (this->shapes.size() != 1)
+        return false;
+    if (btSphereShape* mshape = dynamic_cast<btSphereShape*>(this->shapes[0].get_ptr())) {
+        this->SetSafeMargin(coll_radius);
+        this->SetEnvelope(out_envelope);
+        mshape->setUnscaledRadius((btScalar)(coll_radius + out_envelope));
+        // mshape->setMargin((btScalar) (coll_radius+out_envelope));
+    } else
+        return false;
+    return true;
+}
+
 void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
 {
     // version number
