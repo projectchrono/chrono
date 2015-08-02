@@ -85,7 +85,9 @@ class ChApi ChAssetLevel : public ChAsset {
     void AddAsset(ChSharedPtr<ChAsset> masset) { this->assets.push_back(masset); }
 
     /// Updates all children assets, if any. Overrides default behaviour that does nothing.
-    virtual void Update();
+    /// Note that when calls Update() on children assets, their 'coords' will be the result
+    /// of concatenating this frame csys and 'coords'.
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords);
 
 
     //

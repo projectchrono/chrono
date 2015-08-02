@@ -226,7 +226,7 @@ void TriangleNormalsSmooth(std::vector< ChVector<> >& normals, std::vector<int>&
 	}
 }
 
-void ChVisualizationFEAmesh::Update ()
+void ChVisualizationFEAmesh::Update (ChPhysicsItem* updater, const ChCoordsys<>& coords)
 {
 	if (!this->FEMmesh) 
 		return;
@@ -980,7 +980,7 @@ void ChVisualizationFEAmesh::Update ()
 
 	// Finally, update also the children, in case they implemented Update(), 
 	// and do this by calling the parent class implementation of ChAssetLevel
-	ChAssetLevel::Update();
+	ChAssetLevel::Update(updater, coords);
 }
 
 
