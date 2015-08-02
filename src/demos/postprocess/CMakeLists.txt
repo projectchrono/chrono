@@ -38,6 +38,24 @@ IF(ENABLE_UNIT_IRRLICHT)
 	)
 	ADD_DEPENDENCIES (demo_emit_creation ChronoEngine
 	    ChronoEngine_POSTPROCESS ChronoEngine_IRRLICHT)
+
+	MESSAGE(STATUS "...add demo_emitter_asset")
+	ADD_EXECUTABLE(demo_emitter_asset   		demo_emitter_asset.cpp)
+	SOURCE_GROUP(demos\\postprocess FILES  	    demo_emitter_asset.cpp)
+	SET_TARGET_PROPERTIES(demo_emitter_asset PROPERTIES 
+		FOLDER demos
+		COMPILE_FLAGS "${CH_BUILDFLAGS}"
+		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		)
+	TARGET_LINK_LIBRARIES(demo_emitter_asset  
+	ChronoEngine 
+	ChronoEngine_POSTPROCESS 
+	ChronoEngine_IRRLICHT
+	${CH_IRRLICHTLIB}
+	)
+	ADD_DEPENDENCIES (demo_emitter_asset ChronoEngine
+	    ChronoEngine_POSTPROCESS ChronoEngine_IRRLICHT)
+
 ENDIF()
 
 MESSAGE(STATUS "...add demo_timestepping")

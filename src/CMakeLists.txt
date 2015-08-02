@@ -606,6 +606,7 @@ include_directories( ${CH_INCLUDES} )
         assets/ChRoundedConeShape.cpp
         assets/ChPathShape.cpp
         assets/ChLineShape.cpp
+		assets/ChEmitterAsset.cpp
         )
     set(ChronoEngine_assets_HEADERS
         assets/ChAsset.h
@@ -631,6 +632,7 @@ include_directories( ${CH_INCLUDES} )
         assets/ChRoundedConeShape.h
         assets/ChPathShape.h
         assets/ChLineShape.h
+		assets/ChEmitterAsset.h
         )
     source_group(assets FILES
         ${ChronoEngine_assets_SOURCES}
