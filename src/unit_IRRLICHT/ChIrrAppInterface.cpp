@@ -107,9 +107,9 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                 chrono::collision::ChCollisionSystem::ChRayhitResult mresult;
                 app->GetSystem()->GetCollisionSystem()->RayHit(mfrom, mto, mresult);
                 if (mresult.hit) {
-                    if (chrono::collision::ChModelBulletBody* mbomod =
-                            dynamic_cast<chrono::collision::ChModelBulletBody*>(mresult.hitModel)) {
-                        app->selectedmover = new chrono::ChSharedPtr<chrono::ChBody>(mbomod->GetBody());
+                    if (chrono::ChBody* mbo =
+                            dynamic_cast<chrono::ChBody*>(mresult.hitModel->GetContactable())) {
+                        app->selectedmover = new chrono::ChSharedPtr<chrono::ChBody>(mbo);
                         app->selectedpoint = (*(app->selectedmover))->Point_World2Body(mresult.abs_hitPoint);
                         app->selecteddist = (mfrom - mresult.abs_hitPoint).Length();
                         app->selectedspring = new chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
