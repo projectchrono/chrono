@@ -1,0 +1,27 @@
+/**
+\mainpage Description
+
+Chrono-Vehicle, an extension of <a href="http://www.projectchrono.org/">Chrono</a>, is a C++ library for creating vehicle subsystems from templates.
+
+Available subsystem templates
+-----------------------------
+
+- vehicle
+- suspension
+  + double wishbone
+  + solid axle
+  + multi-link
+- steering
+  + Pitman arm
+  + Rack and pinion
+- driveline
+  + 2WD
+  + 4WD
+- powertrain
+- brake
+- tire
+  + rigid
+  + LuGre
+  + Pacejka
+
+*/
