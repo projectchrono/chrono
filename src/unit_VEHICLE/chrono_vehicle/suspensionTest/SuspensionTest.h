@@ -47,6 +47,14 @@ public:
                       double              disp_R,
                       const ChTireForces& tire_forces);
 
+  // TODO:  This is a duplicate of flags in the Chrono::Vehicle demos
+  enum DebugInformation {
+    DBG_SPRINGS = 1 << 0,
+    DBG_SHOCKS = 1 << 1,
+    DBG_CONSTRAINTS = 1 << 2,
+    DBG_SUSPENSIONTEST = 1 << 3
+  };
+
   /// Log info to console
   void DebugLog(int console_what);
 

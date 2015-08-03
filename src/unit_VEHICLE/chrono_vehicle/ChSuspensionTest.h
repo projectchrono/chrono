@@ -35,7 +35,6 @@
 #include "chrono_vehicle/ChSuspension.h"
 #include "chrono_vehicle/ChSteering.h"
 #include "chrono_vehicle/ChWheel.h"
-////#include "models/ModelDefs.h"
 
 namespace chrono {
 
