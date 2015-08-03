@@ -401,10 +401,9 @@ include_directories( ${CH_INCLUDES} )
         physics/ChNodeBase.cpp
         physics/ChNodeXYZ.cpp
         physics/ChMatterSPH.cpp
-        physics/ChContactNode.cpp
         physics/ChContactContainerBase.cpp
         physics/ChContactContainerDVI.cpp
-        physics/ChContactContainerNodes.cpp
+		physics/ChContactContainerDEM.cpp
         physics/ChProximityContainerBase.cpp
         physics/ChProximityContainerSPH.cpp
         physics/ChShaft.cpp
@@ -424,7 +423,6 @@ include_directories( ${CH_INCLUDES} )
         physics/ChFx.cpp
         physics/ChAssembly.cpp
         physics/ChSystemDEM.cpp
-        physics/ChContactContainerDEM.cpp
         physics/ChMaterialSurfaceDEM.cpp
         physics/ChMaterialSurface.cpp
         physics/ChContinuumMaterial.cpp
@@ -435,10 +433,9 @@ include_directories( ${CH_INCLUDES} )
         physics/ChBodyAuxRef.h
         physics/ChBodyEasy.h
         physics/ChConstraint.h
+		physics/ChContactContainerBase.h
         physics/ChContactContainerDVI.h
-        physics/ChContactContainerBase.h
-        physics/ChContactContainerNodes.h
-        physics/ChContactNode.h
+		physics/ChContactContainerDEM.h
         physics/ChController.h
         physics/ChControls.h
         physics/ChConveyor.h
@@ -519,7 +516,6 @@ include_directories( ${CH_INCLUDES} )
         physics/ChSystem.h
         physics/ChAssembly.h
         physics/ChSystemDEM.h
-        physics/ChContactContainerDEM.h
         physics/ChContactDEM.h
         physics/ChContactDVI.h
         physics/ChContactDVIrolling.h
@@ -643,9 +639,6 @@ include_directories( ${CH_INCLUDES} )
     set(ChronoEngine_collision_SOURCES
         collision/ChCCollisionModel.cpp
         collision/ChCModelBullet.cpp
-        collision/ChCModelBulletBody.cpp
-        collision/ChCModelBulletParticle.cpp
-        collision/ChCModelBulletNode.cpp
         collision/ChCCollisionSystemBullet.cpp
         collision/ChCConvexDecomposition.cpp
         collision/ChCCollisionUtils.cpp
@@ -658,9 +651,6 @@ include_directories( ${CH_INCLUDES} )
         collision/ChCCollisionSystemBullet.h
         collision/ChCConvexDecomposition.h
         collision/ChCModelBullet.h
-        collision/ChCModelBulletBody.h
-        collision/ChCModelBulletNode.h
-        collision/ChCModelBulletParticle.h
         collision/ChCCollisionUtils.h
         )
     source_group(collision FILES

@@ -11,7 +11,7 @@
 //
 
 #include "physics/ChLinkSpring.h"
-#include "collision/ChCModelBulletBody.h"
+#include "collision/ChCModelBullet.h"
 #include "serialization/ChArchiveAsciiDump.h"
 #include "serialization/ChArchiveJSON.h"
 #include "core/ChStream.h"

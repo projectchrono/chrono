@@ -23,7 +23,7 @@
 #include "physics/ChMatterSPH.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
-#include "collision/ChCModelBulletNode.h"
+#include "collision/ChCModelBullet.h"
 
 namespace chrono {
 

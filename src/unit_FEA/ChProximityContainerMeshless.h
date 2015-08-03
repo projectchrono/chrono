@@ -14,7 +14,7 @@
 #define CHPROXIMITYCONTAINERMESHLESS_H
 
 #include "physics/ChProximityContainerBase.h"
-#include "collision/ChCModelBulletNode.h"
+#include "collision/ChCModelBullet.h"
 #include <list>
 
 namespace chrono {

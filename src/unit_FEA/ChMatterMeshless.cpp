@@ -16,7 +16,7 @@
 #include "ChMatterMeshless.h"
 #include "ChProximityContainerMeshless.h"
 #include "physics/ChSystem.h"
-#include "collision/ChCModelBulletNode.h"
+#include "collision/ChCModelBullet.h"
 #include "core/ChLinearAlgebra.h"
 
 namespace chrono {

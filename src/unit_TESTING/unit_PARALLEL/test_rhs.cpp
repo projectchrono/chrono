@@ -96,11 +96,11 @@ int main(int argc, char* argv[]) {
   int ic = 0;
   timer.start();
   for (std::list<ChContact*>::iterator it = m_list.begin(); it != m_list.end(); ++it) {
-    ChModelBulletBody* model_A = (ChModelBulletBody*)(*it)->GetModelA();
-    ChModelBulletBody* model_B = (ChModelBulletBody*)(*it)->GetModelB();
+    ChModelBullet* model_A = (ChModelBullet*)(*it)->GetModelA();
+    ChModelBullet* model_B = (ChModelBullet*)(*it)->GetModelB();
 
-    ChBody* body_A = model_A->GetBody();
-    ChBody* body_B = model_B->GetBody();
+    ChBody* body_A = (ChBody*)(model_A->GetContactable());
+    ChBody* body_B = (ChBody*)(model_B->GetContactable());
 
     ChVector<real> point_on_A = (*it)->GetContactP1();
     ChVector<real> point_on_B = (*it)->GetContactP2();

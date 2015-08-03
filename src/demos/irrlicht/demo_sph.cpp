@@ -30,7 +30,6 @@
 #include "physics/ChBodyEasy.h"
 #include "physics/ChProximityContainerSPH.h"
 #include "physics/ChMatterSPH.h"
-#include "physics/ChContactContainerNodes.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
@@ -71,7 +70,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp) {
                      1000,                                                         // initial density
                      ChCoordsys<>(ChVector<>(0.1, height * 0.5 + 0.0, 0), QUNIT),  // position & rotation of box
                      true,  // do a centered cubic lattice initial arrangement
-                     1.6,   // set the kernel radius (as multiples of step)
+                     1.5,   // set the kernel radius (as multiples of step)
                      0.3);  // the randomness to avoid too regular initial lattice
 
     // Set some material properties of the SPH fluid
@@ -181,6 +180,8 @@ int main(int argc, char* argv[]) {
     ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 1, -1));
 
     // Create all the rigid bodies.
+    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
+    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.003);
 
     create_some_falling_items(application);
 
@@ -198,10 +199,6 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChProximityContainerSPH> my_sph_proximity(new ChProximityContainerSPH);
     mphysicalSystem.Add(my_sph_proximity);
 
-    // IMPORTANT!
-    // This takes care of the contact between the particles of the SPH material and the walls
-    ChSharedPtr<ChContactContainerNodes> my_nodes_container(new ChContactContainerNodes);
-    mphysicalSystem.Add(my_nodes_container);
 
     // Modify some setting of the physical system for the simulation, if you want
 

@@ -26,7 +26,7 @@
 #include "physics/ChSystem.h"
 
 #include "physics/ChProximityContainerSPH.h"
-#include "collision/ChCModelBulletNode.h"
+#include "collision/ChCModelBullet.h"
 #include "core/ChLinearAlgebra.h"
 
 namespace chrono {

@@ -49,7 +49,7 @@
 
 #include "core/ChTimer.h"
 #include "collision/ChCCollisionSystemBullet.h"
-#include "collision/ChCModelBulletBody.h"
+#include "collision/ChCModelBullet.h"
 #include "timestepper/ChTimestepper.h"
 #include "timestepper/ChStaticAnalysis.h"
 

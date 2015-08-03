@@ -12,7 +12,7 @@
 
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
-#include "collision/ChCModelBulletNode.h"
+#include "collision/ChCModelBullet.h"
 #include "ChMatterMeshless.h"
 #include "ChProximityContainerMeshless.h"
 

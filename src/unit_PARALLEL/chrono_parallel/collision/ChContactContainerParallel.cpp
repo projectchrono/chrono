@@ -3,8 +3,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 #include "physics/ChParticlesClones.h"
-#include "collision/ChCModelBulletBody.h"
-#include "collision/ChCModelBulletParticle.h"
+#include "collision/ChCModelBullet.h"
 
 namespace chrono {
 

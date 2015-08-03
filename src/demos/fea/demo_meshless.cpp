@@ -29,7 +29,6 @@
 ///////////////////////////////////////////////////
 
 #include "physics/ChSystem.h"
-#include "physics/ChContactContainerNodes.h"
 #include "unit_FEA/ChMatterMeshless.h"
 #include "unit_FEA/ChProximityContainerMeshless.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
@@ -141,10 +140,6 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChProximityContainerMeshless> my_sph_proximity(new ChProximityContainerMeshless);
     mphysicalSystem.Add(my_sph_proximity);
 
-    // IMPORTANT!
-    // This takes care of the contact between the particles of the meshless material and the wall
-    ChSharedPtr<ChContactContainerNodes> my_nodes_container(new ChContactContainerNodes);
-    mphysicalSystem.Add(my_nodes_container);
 
     ChBodySceneNode* msphere;
     msphere = (ChBodySceneNode*)addChBodySceneNode_easySphere(&mphysicalSystem, application.GetSceneManager(), 160000.0,

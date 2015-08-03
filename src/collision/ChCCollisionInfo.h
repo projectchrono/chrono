@@ -54,6 +54,27 @@ class ChCollisionInfo {
         reaction_cache = 0;
     }
 
+    /// Copy from other 
+    ChCollisionInfo(const ChCollisionInfo& other, const bool swap=false) {
+        if (!swap) {
+            modelA = other.modelA;
+            modelB = other.modelB;
+            vpA = other.vpA;
+            vpB = other.vpB;
+            vN  = other.vN;
+        } 
+        else {
+            // copy by swapping models !
+            modelA = other.modelB;
+            modelB = other.modelA;
+            vpA = other.vpB;
+            vpB = other.vpA;
+            vN  = -other.vN;
+        }
+        distance = other.distance;
+        reaction_cache = other.reaction_cache;
+    }
+
     /// Swap models, that is modelA becomes modelB and viceversa;
     /// normal and so on are updates as well.
     void SwapModels() {
