@@ -231,6 +231,8 @@ INSTALL(TARGETS ChronoEngine_Vehicle
 # ----------------------------------------------------------------------------
 
 IF (ENABLE_UNIT_IRRLICHT)
+  INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
+  
   ADD_LIBRARY(ChronoEngine_VehicleIrrlicht SHARED
     ${CVIRR_DRIVER_FILES}
   )
@@ -244,7 +246,7 @@ IF (ENABLE_UNIT_IRRLICHT)
   TARGET_LINK_LIBRARIES(ChronoEngine_VehicleIrrlicht
     ChronoEngine_Vehicle
     ChronoEngine
-    ChronoEngine_Irrlicht
+    ChronoEngine_IRRLICHT
     ${CH_IRRKLANGLIB}
   )
 
