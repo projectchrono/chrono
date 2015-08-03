@@ -8,7 +8,7 @@
 // exported). Otherwise, just do not define it if you link the library to your
 // code, and the symbols will be imported.
 
-#if defined(CH_API_COMPILE_SUBSYS)
+#if defined(CH_API_COMPILE_UNIT_VEHICLE)
 #define CH_SUBSYS_API ChApiEXPORT
 #else
 #define CH_SUBSYS_API ChApiIMPORT

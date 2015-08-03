@@ -1,12 +1,12 @@
 #=============================================================================
-# CMake configuration file for the ChronoVehicle_Utils library
+# CMake configuration file for the ChronoEngine_VehicleUtils library
 #=============================================================================
 
-# ------------------------------------------------------------------------------
-# LIST THE FILES in the ChronoVehicle_Utils LIBRARY
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# LIST THE FILES in the ChronoEngine_VehicleUtils LIBRARY
+# ----------------------------------------------------------------------------
 
-SET(CV_UTILS_FILES
+SET(FILES
     ChApiUtils.h
     ChUtilsGeometry.h
     ChUtilsCreators.h
@@ -17,23 +17,30 @@ SET(CV_UTILS_FILES
     ChUtilsValidation.cpp
 )
 
-SOURCE_GROUP("utils" FILES ${CV_UTILS_FILES})
+SOURCE_GROUP("utils" FILES ${FILES})
 
-# ------------------------------------------------------------------------------
-# ADD THE ChronoVehicle_Utils LIBRARY
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Required libraries
+# ----------------------------------------------------------------------------
 
-ADD_LIBRARY(ChronoVehicle_Utils SHARED ${CV_UTILS_FILES})
+SET(LIBRARIES
+    ChronoEngine)
 
-SET_TARGET_PROPERTIES(ChronoVehicle_Utils PROPERTIES
+# ----------------------------------------------------------------------------
+# ADD THE ChronoEngine_VehicleUtils LIBRARY
+# ----------------------------------------------------------------------------
+
+ADD_LIBRARY(ChronoEngine_VehicleUtils SHARED ${FILES})
+
+SET_TARGET_PROPERTIES(ChronoEngine_VehicleUtils PROPERTIES
     COMPILE_FLAGS "${CH_BUILDFLAGS}"
-    LINK_FLAGS "${CH_LINKERFLAG_GPU}"
+    LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
     COMPILE_DEFINITIONS "CH_API_COMPILE_UTILS"
 )
 
-TARGET_LINK_LIBRARIES(ChronoVehicle_Utils ${CHRONOENGINE_LIBRARY})
+TARGET_LINK_LIBRARIES(ChronoEngine_VehicleUtils ${LIBRARIES})
 
-INSTALL(TARGETS ChronoVehicle_Utils
+INSTALL(TARGETS ChronoEngine_VehicleUtils
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

@@ -1,10 +1,10 @@
 #=============================================================================
-# CMake configuration file for the ChronoVehicle library
+# CMake configuration file for the ChronoEngine_Vehicle libraries
 #=============================================================================
 
-# ------------------------------------------------------------------------------
-# LIST THE FILES in the ChronoVehicle LIBRARY
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# LIST THE FILES in the ChronoEngine_Vehicle LIBRARY
+# ----------------------------------------------------------------------------
 
 SET(CV_BASE_FILES
     ChApiSubsys.h
@@ -158,7 +158,7 @@ SET(CV_SUSPENSIONTEST_FILES
     suspensionTest/SuspensionTest.cpp
 )
 
-IF (ENABLE_IRRLICHT)
+IF (ENABLE_UNIT_IRRLICHT)
     SET(CVIRR_DRIVER_FILES
         driver/ChChaseCamera.h
         driver/ChChaseCamera.cpp
@@ -190,11 +190,11 @@ SOURCE_GROUP("antirollbar" FILES ${CV_ANTIROLL_FILES})
 SOURCE_GROUP("terrain" FILES ${CV_TERRAIN_FILES})
 SOURCE_GROUP("suspensionTest" FILES ${CV_SUSPENSIONTEST_FILES})
 
-# ------------------------------------------------------------------------------
-# ADD THE ChronoVehicle LIBRARY
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# ADD THE ChronoEngine_Vehicle LIBRARY
+# ----------------------------------------------------------------------------
 
-ADD_LIBRARY(ChronoVehicle SHARED
+ADD_LIBRARY(ChronoEngine_Vehicle SHARED
     ${CV_BASE_FILES}
     ${CV_VEHICLE_FILES}
     ${CV_SUSPENSION_FILES}
@@ -210,46 +210,69 @@ ADD_LIBRARY(ChronoVehicle SHARED
     ${CV_SUSPENSIONTEST_FILES}
 )
 
-SET_TARGET_PROPERTIES(ChronoVehicle PROPERTIES
+SET_TARGET_PROPERTIES(ChronoEngine_Vehicle PROPERTIES
     COMPILE_FLAGS "${CH_BUILDFLAGS}"
-    LINK_FLAGS "${CH_LINKERFLAG_GPU}"
-    COMPILE_DEFINITIONS "CH_API_COMPILE_SUBSYS"
+    LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
+    COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_VEHICLE"
 )
 
-TARGET_LINK_LIBRARIES(ChronoVehicle 
-    ${CHRONOENGINE_LIBRARY}
+TARGET_LINK_LIBRARIES(ChronoEngine_Vehicle 
+    ChronoEngine
 )
 
-INSTALL(TARGETS ChronoVehicle
+INSTALL(TARGETS ChronoEngine_Vehicle
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
 
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # ADD THE ChronoVehicle_Irrlicht LIBRARY
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
-IF (ENABLE_IRRLICHT)
-    ADD_LIBRARY(ChronoVehicle_Irrlicht SHARED
-        ${CVIRR_DRIVER_FILES}
-    )
+IF (ENABLE_UNIT_IRRLICHT)
+  ADD_LIBRARY(ChronoEngine_VehicleIrrlicht SHARED
+    ${CVIRR_DRIVER_FILES}
+  )
 
-    SET_TARGET_PROPERTIES(ChronoVehicle_Irrlicht PROPERTIES
-        COMPILE_FLAGS "${CH_BUILDFLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_GPU}"
-        COMPILE_DEFINITIONS "CH_API_COMPILE_SUBSYS"
-    )
+  SET_TARGET_PROPERTIES(ChronoEngine_VehicleIrrlicht PROPERTIES
+    COMPILE_FLAGS "${CH_BUILDFLAGS}"
+    LINK_FLAGS "${CH_LINKERFLAG_GPU}"
+    COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_VEHICLE"
+  )
 
-    TARGET_LINK_LIBRARIES(ChronoVehicle_Irrlicht
-        ChronoVehicle
-        ${CHRONOENGINE_LIBRARIES}
-        ${CH_IRRKLANGLIB}
-    )
+  TARGET_LINK_LIBRARIES(ChronoEngine_VehicleIrrlicht
+    ChronoEngine_Vehicle
+    ChronoEngine
+    ChronoEngine_Irrlicht
+    ${CH_IRRKLANGLIB}
+  )
 
-    INSTALL(TARGETS ChronoVehicle_Irrlicht
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-    )
+  INSTALL(TARGETS ChronoEngine_VehicleIrrlicht
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+  )
+
+  # On Windows, copy the Irrklang DLL (if enabled)
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+    IF(ENABLE_IRRKLANG)
+      IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+        SET(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Win32-VisualStudio/irrKlang.dll")
+      ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+        SET(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Winx64-VisualStudio/irrKlang.dll")
+      ENDIF()
+
+      ADD_CUSTOM_COMMAND(
+        TARGET ChronoEngine_VehicleIrrlicht POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CH_IRRKLANG_DLL}"
+                "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+        )
+    ENDIF()
+
+  ENDIF()
+
+
 ENDIF()
