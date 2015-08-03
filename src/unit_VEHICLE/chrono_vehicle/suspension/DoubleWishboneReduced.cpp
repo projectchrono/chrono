@@ -18,9 +18,9 @@
 
 #include <cstdio>
 
-#include "subsys/suspension/DoubleWishboneReduced.h"
+#include "chrono_vehicle/suspension/DoubleWishboneReduced.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

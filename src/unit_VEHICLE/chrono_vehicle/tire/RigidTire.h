@@ -19,10 +19,10 @@
 #ifndef RIGID_TIRE_H
 #define RIGID_TIRE_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/tire/ChRigidTire.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/tire/ChRigidTire.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

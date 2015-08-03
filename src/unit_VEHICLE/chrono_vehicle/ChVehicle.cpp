@@ -18,8 +18,8 @@
 
 #include <algorithm>
 
-#include "subsys/ChVehicle.h"
-#include "subsys/ChDriveline.h"
+#include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/ChDriveline.h"
 
 
 namespace chrono {

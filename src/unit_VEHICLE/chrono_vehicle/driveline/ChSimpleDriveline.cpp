@@ -20,7 +20,7 @@
 // =============================================================================
 
 #include <cmath>
-#include "subsys/driveline/ChSimpleDriveline.h"
+#include "chrono_vehicle/driveline/ChSimpleDriveline.h"
 
 namespace chrono {
 

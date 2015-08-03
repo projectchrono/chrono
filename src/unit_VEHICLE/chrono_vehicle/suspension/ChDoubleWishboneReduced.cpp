@@ -28,7 +28,7 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChColorAsset.h"
 
-#include "subsys/suspension/ChDoubleWishboneReduced.h"
+#include "chrono_vehicle/suspension/ChDoubleWishboneReduced.h"
 
 
 namespace chrono {

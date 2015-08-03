@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-#include "subsys/ChSuspensionTest.h"
+#include "chrono_vehicle/ChSuspensionTest.h"
 
 
 namespace chrono {

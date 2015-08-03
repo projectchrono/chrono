@@ -19,10 +19,10 @@
 #ifndef SOLIDAXLE_H
 #define SOLIDAXLE_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/suspension/ChSolidAxle.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/suspension/ChSolidAxle.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

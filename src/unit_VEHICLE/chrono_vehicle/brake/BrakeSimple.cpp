@@ -16,9 +16,9 @@
 //
 // =============================================================================
 
-#include "subsys/brake/BrakeSimple.h"
+#include "chrono_vehicle/brake/BrakeSimple.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

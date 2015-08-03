@@ -23,7 +23,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "subsys/ChDriver.h"
+#include "chrono_vehicle/ChDriver.h"
 
 
 namespace chrono {

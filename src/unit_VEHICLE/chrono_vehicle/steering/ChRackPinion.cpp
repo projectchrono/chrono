@@ -29,7 +29,7 @@
 #include "assets/ChColorAsset.h"
 #include "assets/ChTexture.h"
 
-#include "subsys/steering/ChRackPinion.h"
+#include "chrono_vehicle/steering/ChRackPinion.h"
 
 
 namespace chrono {

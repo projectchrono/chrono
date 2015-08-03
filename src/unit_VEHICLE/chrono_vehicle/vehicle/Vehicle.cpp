@@ -25,28 +25,28 @@
 #include "assets/ChColorAsset.h"
 #include "physics/ChGlobal.h"
 
-#include "subsys/vehicle/Vehicle.h"
+#include "chrono_vehicle/vehicle/Vehicle.h"
 
-#include "subsys/suspension/DoubleWishbone.h"
-#include "subsys/suspension/DoubleWishboneReduced.h"
-#include "subsys/suspension/SolidAxle.h"
-#include "subsys/suspension/MultiLink.h"
+#include "chrono_vehicle/suspension/DoubleWishbone.h"
+#include "chrono_vehicle/suspension/DoubleWishboneReduced.h"
+#include "chrono_vehicle/suspension/SolidAxle.h"
+#include "chrono_vehicle/suspension/MultiLink.h"
 
-#include "subsys/antirollbar/AntirollBarRSD.h"
+#include "chrono_vehicle/antirollbar/AntirollBarRSD.h"
 
-#include "subsys/steering/PitmanArm.h"
-#include "subsys/steering/RackPinion.h"
+#include "chrono_vehicle/steering/PitmanArm.h"
+#include "chrono_vehicle/steering/RackPinion.h"
 
-#include "subsys/driveline/ShaftsDriveline2WD.h"
-#include "subsys/driveline/ShaftsDriveline4WD.h"
-#include "subsys/driveline/SimpleDriveline.h"
-#include "subsys/wheel/Wheel.h"
-#include "subsys/brake/BrakeSimple.h"
+#include "chrono_vehicle/driveline/ShaftsDriveline2WD.h"
+#include "chrono_vehicle/driveline/ShaftsDriveline4WD.h"
+#include "chrono_vehicle/driveline/SimpleDriveline.h"
+#include "chrono_vehicle/wheel/Wheel.h"
+#include "chrono_vehicle/brake/BrakeSimple.h"
 
-#include "subsys/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/document.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

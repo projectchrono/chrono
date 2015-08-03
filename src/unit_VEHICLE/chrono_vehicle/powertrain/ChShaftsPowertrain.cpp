@@ -18,7 +18,7 @@
 
 #include "physics/ChSystem.h"
 
-#include "subsys/powertrain/ChShaftsPowertrain.h"
+#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 
 namespace chrono {
 

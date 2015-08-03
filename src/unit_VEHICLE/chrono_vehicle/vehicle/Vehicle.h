@@ -22,7 +22,7 @@
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
-#include "subsys/ChVehicle.h"
+#include "chrono_vehicle/ChVehicle.h"
 
 namespace chrono {
 

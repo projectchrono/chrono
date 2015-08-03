@@ -28,7 +28,7 @@
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 
-#include "subsys/tire/ChLugreTire.h"
+#include "chrono_vehicle/tire/ChLugreTire.h"
 
 
 namespace chrono {

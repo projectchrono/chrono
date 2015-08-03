@@ -21,7 +21,7 @@
 //
 // =============================================================================
 
-#include "subsys/ChWheel.h"
+#include "chrono_vehicle/ChWheel.h"
 
 
 namespace chrono {

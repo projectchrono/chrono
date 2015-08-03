@@ -20,8 +20,8 @@
 #ifndef FLATTERRAIN_H
 #define FLATTERRAIN_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChTerrain.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
 

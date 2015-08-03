@@ -17,9 +17,9 @@
 //
 // =============================================================================
 
-#include "subsys/driveline/ShaftsDriveline4WD.h"
+#include "chrono_vehicle/driveline/ShaftsDriveline4WD.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

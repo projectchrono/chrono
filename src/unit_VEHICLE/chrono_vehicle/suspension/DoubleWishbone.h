@@ -19,10 +19,10 @@
 #ifndef DOUBLEWISHBONE_H
 #define DOUBLEWISHBONE_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/suspension/ChDoubleWishbone.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/suspension/ChDoubleWishbone.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

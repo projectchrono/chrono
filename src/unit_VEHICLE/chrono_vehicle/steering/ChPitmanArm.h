@@ -26,8 +26,8 @@
 #ifndef CH_PITMANARM_H
 #define CH_PITMANARM_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChSteering.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChSteering.h"
 
 namespace chrono {
 

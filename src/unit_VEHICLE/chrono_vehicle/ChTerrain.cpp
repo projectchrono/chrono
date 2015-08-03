@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "subsys/ChTerrain.h"
+#include "chrono_vehicle/ChTerrain.h"
 
 
 namespace chrono {

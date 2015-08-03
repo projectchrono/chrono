@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "subsys/ChVehicleModelData.h" 
+#include "chrono_vehicle/ChVehicleModelData.h" 
 
 
 namespace chrono {

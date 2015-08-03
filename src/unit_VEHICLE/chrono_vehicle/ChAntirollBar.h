@@ -26,8 +26,8 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChSubsysDefs.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 
 namespace chrono {
 

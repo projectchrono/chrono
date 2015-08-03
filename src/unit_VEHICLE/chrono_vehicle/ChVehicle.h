@@ -28,14 +28,14 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChSubsysDefs.h"
-#include "subsys/ChSuspension.h"
-#include "subsys/ChAntirollBar.h"
-#include "subsys/ChDriveline.h"
-#include "subsys/ChSteering.h"
-#include "subsys/ChWheel.h"
-#include "subsys/ChBrake.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChSuspension.h"
+#include "chrono_vehicle/ChAntirollBar.h"
+#include "chrono_vehicle/ChDriveline.h"
+#include "chrono_vehicle/ChSteering.h"
+#include "chrono_vehicle/ChWheel.h"
+#include "chrono_vehicle/ChBrake.h"
 
 namespace chrono {
 

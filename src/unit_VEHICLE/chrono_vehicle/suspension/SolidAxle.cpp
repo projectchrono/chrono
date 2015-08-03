@@ -18,9 +18,9 @@
 
 #include <cstdio>
 
-#include "subsys/suspension/SolidAxle.h"
+#include "chrono_vehicle/suspension/SolidAxle.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

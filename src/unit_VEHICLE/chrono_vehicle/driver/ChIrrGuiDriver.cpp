@@ -31,10 +31,10 @@
 #include <fstream>
 #include <algorithm>
 
-#include "subsys/driver/ChIrrGuiDriver.h"
-#include "subsys/driveline/ChShaftsDriveline2WD.h"
-#include "subsys/driveline/ChShaftsDriveline4WD.h"
-#include "subsys/powertrain/ChShaftsPowertrain.h"
+#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driveline/ChShaftsDriveline2WD.h"
+#include "chrono_vehicle/driveline/ChShaftsDriveline4WD.h"
+#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 
 using namespace irr;
 

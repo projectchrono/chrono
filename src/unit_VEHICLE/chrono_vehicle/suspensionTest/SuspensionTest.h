@@ -23,7 +23,7 @@
 #include "physics/ChSystem.h"
 #include "assets/ChColor.h"
 
-#include "subsys/ChSuspensionTest.h"
+#include "chrono_vehicle/ChSuspensionTest.h"
 
 namespace chrono {
 

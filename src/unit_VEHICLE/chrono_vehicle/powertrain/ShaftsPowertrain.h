@@ -19,10 +19,10 @@
 #ifndef SHAFTS_POWERTRAIN_H
 #define SHAFTS_POWERTRAIN_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/powertrain/ChShaftsPowertrain.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

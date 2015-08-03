@@ -19,7 +19,7 @@
 
 #include "physics/ChSystem.h"
 
-#include "subsys/driveline/ChShaftsDriveline2WD.h"
+#include "chrono_vehicle/driveline/ChShaftsDriveline2WD.h"
 
 namespace chrono {
 

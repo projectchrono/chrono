@@ -25,7 +25,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkBrake.h"
 
-#include "subsys/ChBrake.h"
+#include "chrono_vehicle/ChBrake.h"
 
 namespace chrono {
 

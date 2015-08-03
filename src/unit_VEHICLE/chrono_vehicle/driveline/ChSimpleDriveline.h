@@ -21,8 +21,8 @@
 #ifndef CH_SIMPLE_DRIVELINE_H
 #define CH_SIMPLE_DRIVELINE_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChDriveline.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChDriveline.h"
 
 namespace chrono {
 

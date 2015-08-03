@@ -16,9 +16,9 @@
 //
 // =============================================================================
 
-#include "subsys/steering/PitmanArm.h"
+#include "chrono_vehicle/steering/PitmanArm.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

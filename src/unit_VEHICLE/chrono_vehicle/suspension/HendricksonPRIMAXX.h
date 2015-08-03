@@ -19,10 +19,10 @@
 #ifndef HENDRICKSON_PRIMAXX_H
 #define HENDRICKSON_PRIMAXX_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/suspension/ChHendricksonPRIMAXX.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/suspension/ChHendricksonPRIMAXX.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

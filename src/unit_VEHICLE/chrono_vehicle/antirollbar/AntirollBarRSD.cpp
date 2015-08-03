@@ -16,9 +16,9 @@
 //
 // =============================================================================
 
-#include "subsys/antirollbar/AntirollBarRSD.h"
+#include "chrono_vehicle/antirollbar/AntirollBarRSD.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

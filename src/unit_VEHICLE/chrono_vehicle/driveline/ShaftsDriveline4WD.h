@@ -20,10 +20,10 @@
 #ifndef SHAFTS_DRIVELINE_4WD_H
 #define SHAFTS_DRIVELINE_4WD_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/driveline/ChShaftsDriveline4WD.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/driveline/ChShaftsDriveline4WD.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

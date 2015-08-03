@@ -17,7 +17,7 @@
 // =============================================================================
 
 
-#include "subsys/ChSteering.h"
+#include "chrono_vehicle/ChSteering.h"
 
 
 namespace chrono {

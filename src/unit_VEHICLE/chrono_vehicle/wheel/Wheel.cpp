@@ -22,10 +22,10 @@
 #include "assets/ChColorAsset.h"
 #include "physics/ChGlobal.h"
 
-#include "subsys/wheel/Wheel.h"
-#include "subsys/ChVehicleModelData.h"
+#include "chrono_vehicle/wheel/Wheel.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

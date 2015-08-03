@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "subsys/brake/ChBrakeSimple.h"
+#include "chrono_vehicle/brake/ChBrakeSimple.h"
 
 
 namespace chrono {

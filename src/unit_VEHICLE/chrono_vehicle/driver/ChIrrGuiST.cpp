@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "subsys/driver/ChIrrGuiST.h"
+#include "chrono_vehicle/driver/ChIrrGuiST.h"
 
 using namespace irr;
 using namespace gui;

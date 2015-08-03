@@ -21,8 +21,8 @@
 
 #include "core/ChTimer.h"
 
-#include "subsys/tire/ChPacejkaTire.h"
-#include "subsys/tire/ChPac2002_data.h"
+#include "chrono_vehicle/tire/ChPacejkaTire.h"
+#include "chrono_vehicle/tire/ChPac2002_data.h"
 
 namespace chrono {
 

@@ -25,7 +25,7 @@
 //
 // =============================================================================
 
-#include "subsys/driver/ChChaseCamera.h"
+#include "chrono_vehicle/driver/ChChaseCamera.h"
 
 namespace chrono {
 

@@ -19,10 +19,10 @@
 #ifndef WHEEL_H
 #define WHEEL_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChWheel.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChWheel.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

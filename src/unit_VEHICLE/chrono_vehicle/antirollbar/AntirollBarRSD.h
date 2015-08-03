@@ -19,10 +19,10 @@
 #ifndef ANTIROLLBAR_RSD_H
 #define ANTIROLLBAR_RSD_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/antirollbar/ChAntirollBarRSD.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/antirollbar/ChAntirollBarRSD.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

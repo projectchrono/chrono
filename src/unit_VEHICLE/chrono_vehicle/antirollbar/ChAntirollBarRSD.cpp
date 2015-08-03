@@ -26,7 +26,7 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChColorAsset.h"
 
-#include "subsys/antirollbar/ChAntirollBarRSD.h"
+#include "chrono_vehicle/antirollbar/ChAntirollBarRSD.h"
 
 
 namespace chrono {

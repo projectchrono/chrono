@@ -22,7 +22,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "subsys/suspensionTest/SuspensionTest.h"
+#include "chrono_vehicle/suspensionTest/SuspensionTest.h"
 
 #include "assets/ChSphereShape.h"
 #include "assets/ChCylinderShape.h"
@@ -30,19 +30,19 @@
 #include "assets/ChColorAsset.h"
 #include "physics/ChGlobal.h"
 
-#include "subsys/suspension/DoubleWishbone.h"
-#include "subsys/suspension/DoubleWishboneReduced.h"
-#include "subsys/suspension/SolidAxle.h"
-#include "subsys/suspension/MultiLink.h"
+#include "chrono_vehicle/suspension/DoubleWishbone.h"
+#include "chrono_vehicle/suspension/DoubleWishboneReduced.h"
+#include "chrono_vehicle/suspension/SolidAxle.h"
+#include "chrono_vehicle/suspension/MultiLink.h"
 
-#include "subsys/steering/PitmanArm.h"
-#include "subsys/steering/RackPinion.h"
-#include "subsys/wheel/Wheel.h"
+#include "chrono_vehicle/steering/PitmanArm.h"
+#include "chrono_vehicle/steering/RackPinion.h"
+#include "chrono_vehicle/wheel/Wheel.h"
 
-#include "subsys/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/document.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

@@ -22,7 +22,7 @@
 #include "core/ChShared.h"
 #include "core/ChVector.h"
 
-#include "subsys/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiSubsys.h"
 
 
 namespace chrono {

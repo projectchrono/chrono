@@ -26,8 +26,8 @@
 
 #include "physics/ChBody.h"
 
-#include "subsys/ChTire.h"
-#include "subsys/ChTerrain.h"
+#include "chrono_vehicle/ChTire.h"
+#include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
 

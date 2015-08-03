@@ -20,8 +20,8 @@
 #include "assets/ChColorAsset.h"
 #include "assets/ChTexture.h"
 
-#include "subsys/ChVehicleModelData.h"
-#include "subsys/terrain/RigidTerrain.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
 
 
 namespace chrono {

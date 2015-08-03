@@ -16,9 +16,9 @@
 //
 // =============================================================================
 
-#include "subsys/driveline/SimpleDriveline.h"
+#include "chrono_vehicle/driveline/SimpleDriveline.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

@@ -16,9 +16,9 @@
 //
 // =============================================================================
 
-#include "subsys/tire/LugreTire.h"
+#include "chrono_vehicle/tire/LugreTire.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

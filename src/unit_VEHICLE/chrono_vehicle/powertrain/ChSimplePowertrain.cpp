@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "subsys/powertrain/ChSimplePowertrain.h"
+#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
 
 namespace chrono {
 

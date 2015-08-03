@@ -18,9 +18,9 @@
 
 #include "physics/ChGlobal.h"
 
-#include "subsys/powertrain/SimplePowertrain.h"
+#include "chrono_vehicle/powertrain/SimplePowertrain.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

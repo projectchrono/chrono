@@ -25,11 +25,11 @@
 
 #include "ChronoVehicle_config.h"
 
-#include "subsys/driver/ChChaseCamera.h"
+#include "chrono_vehicle/driver/ChChaseCamera.h"
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChDriver.h"
-#include "subsys/ChSuspensionTest.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChDriver.h"
+#include "chrono_vehicle/ChSuspensionTest.h"
 
 
 namespace chrono {

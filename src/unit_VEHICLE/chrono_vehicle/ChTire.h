@@ -27,9 +27,9 @@
 #include "core/ChQuaternion.h"
 #include "core/ChCoordsys.h"
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChSubsysDefs.h"
-#include "subsys/ChTerrain.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
 

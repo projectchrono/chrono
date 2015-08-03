@@ -30,12 +30,12 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChSubsysDefs.h"
-#include "subsys/ChSuspension.h"
-#include "subsys/ChSteering.h"
-#include "subsys/ChWheel.h"
-#include "models/ModelDefs.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChSuspension.h"
+#include "chrono_vehicle/ChSteering.h"
+#include "chrono_vehicle/ChWheel.h"
+////#include "models/ModelDefs.h"
 
 namespace chrono {
 

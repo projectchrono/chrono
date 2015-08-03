@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "subsys/ChBrake.h"
+#include "chrono_vehicle/ChBrake.h"
 
 
 namespace chrono {

@@ -22,7 +22,7 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChColorAsset.h"
 
-#include "subsys/steering/ChPitmanArm.h"
+#include "chrono_vehicle/steering/ChPitmanArm.h"
 
 
 namespace chrono {

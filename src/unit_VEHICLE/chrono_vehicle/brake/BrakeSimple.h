@@ -19,10 +19,10 @@
 #ifndef BRAKE_SIMPLE_H
 #define BRAKE_SIMPLE_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/brake/ChBrakeSimple.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/brake/ChBrakeSimple.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

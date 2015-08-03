@@ -28,7 +28,7 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChColorAsset.h"
 
-#include "subsys/suspension/ChHendricksonPRIMAXX.h"
+#include "chrono_vehicle/suspension/ChHendricksonPRIMAXX.h"
 
 
 namespace chrono {

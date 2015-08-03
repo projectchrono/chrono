@@ -19,10 +19,10 @@
 #ifndef SIMPLE_DRIVELINE_H
 #define SIMPLE_DRIVELINE_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/driveline/ChSimpleDriveline.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/driveline/ChSimpleDriveline.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

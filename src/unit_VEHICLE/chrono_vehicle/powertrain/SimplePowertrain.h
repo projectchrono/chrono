@@ -19,10 +19,10 @@
 #ifndef SIMPLE_POWERTRAIN_H
 #define SIMPLE_POWERTRAIN_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/powertrain/ChSimplePowertrain.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

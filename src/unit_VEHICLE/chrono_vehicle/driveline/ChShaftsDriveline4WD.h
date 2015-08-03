@@ -19,8 +19,8 @@
 #ifndef CH_SHAFTS_DRIVELINE_4WD_H
 #define CH_SHAFTS_DRIVELINE_4WD_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChDriveline.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChDriveline.h"
 
 #include "physics/ChShaftsGear.h" 
 #include "physics/ChShaftsGearboxAngled.h"

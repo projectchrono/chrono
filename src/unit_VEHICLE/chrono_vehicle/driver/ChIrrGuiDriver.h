@@ -37,14 +37,14 @@
 
 #include "ChronoVehicle_config.h"
 
-#include "subsys/driver/ChChaseCamera.h"
+#include "chrono_vehicle/driver/ChChaseCamera.h"
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChDriver.h"
-#include "subsys/ChVehicle.h"
-#include "subsys/ChPowertrain.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChDriver.h"
+#include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/ChPowertrain.h"
 
-#include "subsys/driver/ChDataDriver.h"
+#include "chrono_vehicle/driver/ChDataDriver.h"
 
 #if IRRKLANG_ENABLED
 #include <irrKlang.h>

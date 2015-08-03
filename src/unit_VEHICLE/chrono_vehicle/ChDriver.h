@@ -25,7 +25,7 @@
 #include "core/ChShared.h"
 #include "physics/ChSystem.h"
 
-#include "subsys/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiSubsys.h"
 
 namespace chrono {
 

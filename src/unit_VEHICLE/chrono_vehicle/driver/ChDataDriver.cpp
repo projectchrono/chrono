@@ -27,7 +27,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "subsys/driver/ChDataDriver.h"
+#include "chrono_vehicle/driver/ChDataDriver.h"
 
 namespace chrono {
 

@@ -22,9 +22,9 @@
 #ifndef CH_SIMPLE_POWERTRAIN_H
 #define CH_SIMPLE_POWERTRAIN_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChPowertrain.h"
-#include "subsys/ChSuspension.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChPowertrain.h"
+#include "chrono_vehicle/ChSuspension.h"
 
 namespace chrono {
 

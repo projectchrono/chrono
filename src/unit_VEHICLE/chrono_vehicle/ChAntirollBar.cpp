@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "subsys/ChAntirollBar.h"
+#include "chrono_vehicle/ChAntirollBar.h"
 
 
 namespace chrono {

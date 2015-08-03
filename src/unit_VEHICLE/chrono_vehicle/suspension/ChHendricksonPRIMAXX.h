@@ -33,8 +33,8 @@
 
 #include "assets/ChColorAsset.h"
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChSuspension.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChSuspension.h"
 
 namespace chrono {
 

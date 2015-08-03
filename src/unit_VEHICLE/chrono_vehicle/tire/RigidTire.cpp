@@ -16,10 +16,10 @@
 //
 // =============================================================================
 
-#include "subsys/tire/RigidTire.h"
-#include "subsys/ChVehicleModelData.h"
+#include "chrono_vehicle/tire/RigidTire.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

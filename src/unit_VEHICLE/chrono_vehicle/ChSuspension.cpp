@@ -17,7 +17,7 @@
 // =============================================================================
 
 
-#include "subsys/ChSuspension.h"
+#include "chrono_vehicle/ChSuspension.h"
 
 
 namespace chrono {

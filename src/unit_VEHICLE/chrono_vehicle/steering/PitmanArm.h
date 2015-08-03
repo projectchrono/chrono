@@ -19,10 +19,10 @@
 #ifndef PITMAN_ARM_H
 #define PITMAN_ARM_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/steering/ChPitmanArm.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/steering/ChPitmanArm.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

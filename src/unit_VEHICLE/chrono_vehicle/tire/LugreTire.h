@@ -19,10 +19,10 @@
 #ifndef LUGRE_TIRE_H
 #define LUGRE_TIRE_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/tire/ChLugreTire.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/tire/ChLugreTire.h"
 
-#include "rapidjson/document.h"
+#include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
 

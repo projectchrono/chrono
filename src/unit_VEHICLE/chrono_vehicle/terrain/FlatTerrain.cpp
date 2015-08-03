@@ -17,7 +17,7 @@
 // =============================================================================
 
 
-#include "subsys/terrain/FlatTerrain.h"
+#include "chrono_vehicle/terrain/FlatTerrain.h"
 
 
 namespace chrono {

@@ -18,9 +18,9 @@
 
 #include <cstdio>
 
-#include "subsys/suspension/MultiLink.h"
+#include "chrono_vehicle/suspension/MultiLink.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

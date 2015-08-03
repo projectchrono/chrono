@@ -27,8 +27,8 @@
 #include <string>
 #include <vector>
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChDriver.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChDriver.h"
 
 namespace chrono {
 

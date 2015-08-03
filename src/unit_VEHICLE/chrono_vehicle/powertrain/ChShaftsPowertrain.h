@@ -19,8 +19,8 @@
 #ifndef CH_SHAFTS_POWERTRAIN_H
 #define CH_SHAFTS_POWERTRAIN_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChPowertrain.h"
+#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChPowertrain.h"
 
 #include "physics/ChShaftsGear.h" 
 #include "physics/ChShaftsGearbox.h"

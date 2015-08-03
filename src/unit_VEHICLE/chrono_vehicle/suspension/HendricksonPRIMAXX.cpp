@@ -18,9 +18,9 @@
 
 #include <cstdio>
 
-#include "subsys/suspension/HendricksonPRIMAXX.h"
+#include "chrono_vehicle/suspension/HendricksonPRIMAXX.h"
 
-#include "rapidjson/filereadstream.h"
+#include "thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
