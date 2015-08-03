@@ -30,25 +30,25 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
-#include "subsys/ChVehicleModelData.h"
-#include "subsys/terrain/RigidTerrain.h"
-#include "subsys/tire/ChPacejkaTire.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/tire/ChPacejkaTire.h"
 
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono_utils/ChUtilsInputOutput.h"
 
-#include "models/ModelDefs.h"
-#include "models/hmmwv/vehicle/HMMWV_VehicleReduced.h"
-#include "models/hmmwv/powertrain/HMMWV_Powertrain.h"
-#include "models/hmmwv/powertrain/HMMWV_SimplePowertrain.h"
-#include "models/hmmwv/tire/HMMWV_RigidTire.h"
-#include "models/hmmwv/tire/HMMWV_LugreTire.h"
-#include "models/hmmwv/HMMWV_FuncDriver.h"
+#include "ModelDefs.h"
+#include "hmmwv/vehicle/HMMWV_VehicleReduced.h"
+#include "hmmwv/powertrain/HMMWV_Powertrain.h"
+#include "hmmwv/powertrain/HMMWV_SimplePowertrain.h"
+#include "hmmwv/tire/HMMWV_RigidTire.h"
+#include "hmmwv/tire/HMMWV_LugreTire.h"
+#include "hmmwv/HMMWV_FuncDriver.h"
 
 // If Irrlicht support is available...
 #if IRRLICHT_ENABLED
   // ...include additional headers
 # include "unit_IRRLICHT/ChIrrApp.h"
-# include "subsys/driver/ChIrrGuiDriver.h"
+# include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
   // ...and specify whether the demo should actually use Irrlicht
 # define USE_IRRLICHT
@@ -109,8 +109,6 @@ int pac_out_steps = (int)std::ceil(pac_out_step_size / step_size);
 
 int main(int argc, char* argv[])
 {
-  SetChronoDataPath(CHRONO_DATA_DIR);
-
   // --------------------------
   // Create the various modules
   // --------------------------

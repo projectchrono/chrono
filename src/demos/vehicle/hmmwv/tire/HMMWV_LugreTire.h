@@ -20,7 +20,7 @@
 #define HMMWV_LUGRE_TIRE_H
 
 
-#include "subsys/tire/ChLugreTire.h"
+#include "chrono_vehicle/tire/ChLugreTire.h"
 
 namespace hmmwv {
 

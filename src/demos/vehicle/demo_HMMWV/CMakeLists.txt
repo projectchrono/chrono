@@ -1,20 +1,7 @@
-# HMMWV vehicle model, full double wishbone suspension models.
 # Works with and without Irrlicht run-time visualization
+# ------------------------------------------------------
 
-# ----------------------
-# Configuration options
-# ----------------------
-INCLUDE(CMakeDependentOption)
-
-OPTION(ENABLE_HMMWV_DEMO "Build the full HMMWV vehicle demo" OFF)
-
-IF(NOT ENABLE_HMMWV_DEMO)
-	RETURN()
-ENDIF()
-
-# ----------------------
-
-MESSAGE(STATUS "Adding HMMWV demo...")
+MESSAGE(STATUS "...add HMMWV demo")
 
 SET(MODEL_FILES
 	../ModelDefs.h
@@ -53,29 +40,12 @@ SET(DEMO_FILES
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
 SOURCE_GROUP("" FILES ${DEMO_FILES})
 
-IF (ENABLE_IRRLICHT)
-  SET(LIBRARIES 
-    ${CHRONOENGINE_LIBRARIES}
-    ChronoVehicle_Irrlicht
-    ChronoVehicle_Utils
-    )
-
-    IF (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      SET(CH_BUILDFLAGS "${CH_BUILDFLAGS} /wd4275")
-    ENDIF()
-ELSE()
-  SET(LIBRARIES 
-    ${CHRONOENGINE_LIBRARIES}
-    ChronoVehicle
-    ChronoVehicle_Utils
-    )
-ENDIF()
-
 # Create the executable
+INCLUDE_DIRECTORIES(${CH_VEHICLE_INCLUDES})
 ADD_EXECUTABLE(demo_HMMWV ${DEMO_FILES} ${MODEL_FILES})
 SET_TARGET_PROPERTIES(demo_HMMWV PROPERTIES 
                       COMPILE_FLAGS "${CH_BUILDFLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_HMMWV ${LIBRARIES})
+TARGET_LINK_LIBRARIES(demo_HMMWV ${CH_VEHICLE_LIBRARIES})
 INSTALL(TARGETS demo_HMMWV DESTINATION bin)
 

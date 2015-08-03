@@ -19,15 +19,15 @@
 #include "assets/ChSphereShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
-#include "subsys/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono_utils/ChUtilsInputOutput.h"
 
-#include "models/generic/Generic_SolidAxle.h"
-#include "models/generic/Generic_MultiLink.h"
+#include "generic/Generic_SolidAxle.h"
+#include "generic/Generic_MultiLink.h"
 
-#include "models/articulated/Articulated_Vehicle.h"
-#include "models/articulated/Articulated_Trailer.h"
+#include "articulated/Articulated_Vehicle.h"
+#include "articulated/Articulated_Trailer.h"
 
 using namespace chrono;
 

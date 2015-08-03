@@ -23,7 +23,7 @@
 //
 // =============================================================================
 
-#include "HMMWV_DoubleWishbone.h"
+#include "hmmwv/suspension/HMMWV_DoubleWishbone.h"
 
 using namespace chrono;
 

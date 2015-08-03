@@ -19,8 +19,8 @@
 #ifndef HMMWV_POWERTRAIN_H
 #define HMMWV_POWERTRAIN_H
 
-#include "subsys/powertrain/ChShaftsPowertrain.h"
-#include "subsys/ChVehicle.h"
+#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
+#include "chrono_vehicle/ChVehicle.h"
 
 
 namespace hmmwv {

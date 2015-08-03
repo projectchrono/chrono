@@ -20,7 +20,7 @@
 #define HMMWV_RIGID_TIRE_H
 
 
-#include "subsys/tire/ChRigidTire.h"
+#include "chrono_vehicle/tire/ChRigidTire.h"
 
 namespace hmmwv {
 

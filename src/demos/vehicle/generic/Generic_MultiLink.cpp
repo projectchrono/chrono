@@ -23,7 +23,7 @@
 //
 // =============================================================================
 
-#include "models/generic/Generic_MultiLink.h"
+#include "generic/Generic_MultiLink.h"
 
 using namespace chrono;
 

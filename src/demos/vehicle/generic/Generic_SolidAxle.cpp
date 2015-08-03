@@ -23,7 +23,7 @@
 //
 // =============================================================================
 
-#include "models/generic/Generic_SolidAxle.h"
+#include "generic/Generic_SolidAxle.h"
 
 using namespace chrono;
 

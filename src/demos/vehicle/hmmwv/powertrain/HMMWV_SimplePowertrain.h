@@ -22,8 +22,8 @@
 #ifndef HMMWV_SIMPLEPOWERTRAIN_H
 #define HMMWV_SIMPLEPOWERTRAIN_H
 
-#include "subsys/powertrain/ChSimplePowertrain.h"
-#include "subsys/ChVehicle.h"
+#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
+#include "chrono_vehicle/ChVehicle.h"
 
 namespace hmmwv {
 

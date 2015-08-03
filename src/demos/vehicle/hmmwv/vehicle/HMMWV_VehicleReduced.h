@@ -22,15 +22,15 @@
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
-#include "subsys/ChVehicle.h"
+#include "chrono_vehicle/ChVehicle.h"
 
-#include "models/ModelDefs.h"
-#include "models/hmmwv/wheel/HMMWV_Wheel.h"
-#include "models/hmmwv/suspension/HMMWV_DoubleWishboneReduced.h"
-#include "models/hmmwv/steering/HMMWV_RackPinion.h"
-#include "models/hmmwv/driveline/HMMWV_Driveline2WD.h"
-#include "models/hmmwv/driveline/HMMWV_Driveline4WD.h"
-#include "models/hmmwv/brake/HMMWV_BrakeSimple.h"
+#include "ModelDefs.h"
+#include "hmmwv/wheel/HMMWV_Wheel.h"
+#include "hmmwv/suspension/HMMWV_DoubleWishboneReduced.h"
+#include "hmmwv/steering/HMMWV_RackPinion.h"
+#include "hmmwv/driveline/HMMWV_Driveline2WD.h"
+#include "hmmwv/driveline/HMMWV_Driveline4WD.h"
+#include "hmmwv/brake/HMMWV_BrakeSimple.h"
 
 namespace hmmwv {
 

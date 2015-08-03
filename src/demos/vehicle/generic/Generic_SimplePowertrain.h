@@ -22,7 +22,7 @@
 #ifndef GENERIC_SIMPLEPOWERTRAIN_H
 #define GENERIC_SIMPLEPOWERTRAIN_H
 
-#include "subsys/powertrain/ChSimplePowertrain.h"
+#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
 
 class Generic_SimplePowertrain : public chrono::ChSimplePowertrain
 {

@@ -29,24 +29,24 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
-#include "subsys/ChVehicleModelData.h"
-#include "subsys/terrain/RigidTerrain.h"
-#include "subsys/tire/ChPacejkaTire.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/tire/ChPacejkaTire.h"
 
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono_utils/ChUtilsInputOutput.h"
 
-#include "models/ModelDefs.h"
-#include "models/articulated/Articulated_Vehicle.h"
-#include "models/articulated/Articulated_Trailer.h"
-#include "models/generic/Generic_SimplePowertrain.h"
-#include "models/generic/Generic_RigidTire.h"
-#include "models/generic/Generic_FuncDriver.h"
+#include "ModelDefs.h"
+#include "articulated/Articulated_Vehicle.h"
+#include "articulated/Articulated_Trailer.h"
+#include "generic/Generic_SimplePowertrain.h"
+#include "generic/Generic_RigidTire.h"
+#include "generic/Generic_FuncDriver.h"
 
 // If Irrlicht support is available...
 #if IRRLICHT_ENABLED
   // ...include additional headers
 # include "unit_IRRLICHT/ChIrrApp.h"
-# include "subsys/driver/ChIrrGuiDriver.h"
+# include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
   // ...and specify whether the demo should actually use Irrlicht
 # define USE_IRRLICHT
@@ -97,8 +97,6 @@ double output_step_size = 1.0 / 1;    // once a second
 
 int main(int argc, char* argv[])
 {
-  SetChronoDataPath(CHRONO_DATA_DIR);
-
   // --------------------------
   // Create the various modules
   // --------------------------

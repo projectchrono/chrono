@@ -27,7 +27,7 @@
 #define GENERIC_MULTILINK_H
 
 
-#include "subsys/suspension/ChMultiLink.h"
+#include "chrono_vehicle/suspension/ChMultiLink.h"
 
 
 class Generic_MultiLink : public chrono::ChMultiLink

@@ -19,7 +19,7 @@
 #ifndef HMMWV_DRIVELINE_2WD_H
 #define HMMWV_DRIVELINE_2WD_H
 
-#include "subsys/driveline/ChShaftsDriveline2WD.h"
+#include "chrono_vehicle/driveline/ChShaftsDriveline2WD.h"
 
 namespace hmmwv {
 

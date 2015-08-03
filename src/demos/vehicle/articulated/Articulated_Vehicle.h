@@ -24,9 +24,9 @@
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
-#include "subsys/ChVehicle.h"
+#include "chrono_vehicle/ChVehicle.h"
 
-#include "models/ModelDefs.h"
+#include "ModelDefs.h"
 
 class Articulated_Vehicle : public chrono::ChVehicle
 {

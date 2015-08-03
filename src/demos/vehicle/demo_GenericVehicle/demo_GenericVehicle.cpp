@@ -29,22 +29,22 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
-#include "subsys/ChVehicleModelData.h"
-#include "subsys/terrain/RigidTerrain.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono_utils/ChUtilsInputOutput.h"
 
-#include "models/ModelDefs.h"
-#include "models/generic/Generic_Vehicle.h"
-#include "models/generic/Generic_SimplePowertrain.h"
-#include "models/generic/Generic_RigidTire.h"
-#include "models/generic/Generic_FuncDriver.h"
+#include "ModelDefs.h"
+#include "generic/Generic_Vehicle.h"
+#include "generic/Generic_SimplePowertrain.h"
+#include "generic/Generic_RigidTire.h"
+#include "generic/Generic_FuncDriver.h"
 
 // If Irrlicht support is available...
 #if IRRLICHT_ENABLED
   // ...include additional headers
 # include "unit_IRRLICHT/ChIrrApp.h"
-# include "subsys/driver/ChIrrGuiDriver.h"
+# include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
   // ...and specify whether the demo should actually use Irrlicht
 # define USE_IRRLICHT
@@ -95,8 +95,6 @@ const std::string pov_dir = out_dir + "/POVRAY";
 
 int main(int argc, char* argv[])
 {
-  SetChronoDataPath(CHRONO_DATA_DIR);
-
   // --------------------------
   // Create the various modules
   // --------------------------

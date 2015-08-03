@@ -27,7 +27,7 @@
 #define HMMWV_DOUBLEWISHBONE_H
 
 
-#include "subsys/suspension/ChDoubleWishbone.h"
+#include "chrono_vehicle/suspension/ChDoubleWishbone.h"
 
 namespace hmmwv {
 

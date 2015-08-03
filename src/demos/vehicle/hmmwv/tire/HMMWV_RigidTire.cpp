@@ -17,7 +17,7 @@
 // =============================================================================
 
 
-#include "models/hmmwv/tire/HMMWV_RigidTire.h"
+#include "hmmwv/tire/HMMWV_RigidTire.h"
 
 using namespace chrono;
 

@@ -24,14 +24,14 @@
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
-#include "subsys/ChVehicle.h"
-#include "subsys/suspension/DoubleWishbone.h"
-#include "subsys/steering/PitmanArm.h"
-#include "subsys/driveline/ShaftsDriveline2WD.h"
-#include "subsys/wheel/Wheel.h"
-#include "subsys/brake/BrakeSimple.h"
+#include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/suspension/DoubleWishbone.h"
+#include "chrono_vehicle/steering/PitmanArm.h"
+#include "chrono_vehicle/driveline/ShaftsDriveline2WD.h"
+#include "chrono_vehicle/wheel/Wheel.h"
+#include "chrono_vehicle/brake/BrakeSimple.h"
 
-#include "models/ModelDefs.h"
+#include "ModelDefs.h"
 
 namespace hmmwv {
 

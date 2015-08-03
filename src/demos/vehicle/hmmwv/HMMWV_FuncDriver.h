@@ -18,7 +18,7 @@
 #ifndef HMMWV_FUNCDRIVER_H
 #define HMMWV_FUNCDRIVER_H
 
-#include "subsys/ChDriver.h"
+#include "chrono_vehicle/ChDriver.h"
 
 namespace hmmwv {
 

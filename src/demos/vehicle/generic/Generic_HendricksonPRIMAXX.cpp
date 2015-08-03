@@ -22,7 +22,7 @@
 //
 // =============================================================================
 
-#include "models/generic/Generic_HendricksonPRIMAXX.h"
+#include "generic/Generic_HendricksonPRIMAXX.h"
 
 using namespace chrono;
 

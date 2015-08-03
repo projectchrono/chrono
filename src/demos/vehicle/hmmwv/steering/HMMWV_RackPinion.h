@@ -19,8 +19,7 @@
 #ifndef HMMWV_RACKPINION_H
 #define HMMWV_RACKPINION_H
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/steering/ChRackPinion.h"
+#include "chrono_vehicle/steering/ChRackPinion.h"
 
 namespace hmmwv {
 

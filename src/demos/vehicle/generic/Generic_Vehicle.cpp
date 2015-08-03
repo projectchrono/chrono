@@ -21,23 +21,23 @@
 #include "assets/ChSphereShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
-#include "subsys/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono_utils/ChUtilsInputOutput.h"
 
-#include "models/generic/Generic_Vehicle.h"
+#include "generic/Generic_Vehicle.h"
 
-#include "models/generic/Generic_SolidAxle.h"
-#include "models/generic/Generic_MultiLink.h"
-#include "models/generic/Generic_DoubleWishbone.h"
-#include "models/generic/Generic_HendricksonPRIMAXX.h"
+#include "generic/Generic_SolidAxle.h"
+#include "generic/Generic_MultiLink.h"
+#include "generic/Generic_DoubleWishbone.h"
+#include "generic/Generic_HendricksonPRIMAXX.h"
 
-#include "models/generic/Generic_AntirollBarRSD.h"
+#include "generic/Generic_AntirollBarRSD.h"
 
-#include "models/generic/Generic_Wheel.h"
-#include "models/generic/Generic_RackPinion.h"
-#include "models/generic/Generic_Driveline2WD.h"
-#include "models/generic/Generic_BrakeSimple.h"
+#include "generic/Generic_Wheel.h"
+#include "generic/Generic_RackPinion.h"
+#include "generic/Generic_Driveline2WD.h"
+#include "generic/Generic_BrakeSimple.h"
 
 using namespace chrono;
 

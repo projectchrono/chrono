@@ -1,22 +1,7 @@
-# demo_SuspensionTest, only include front two suspension units, steering system
-#  and a vehicle chassis that is fixed to ground.
-# Wheel bodies are actuated with spring/dampers to test the kinematics of the
-#  steering and suspension linkages.
+# Works with and without Irrlicht run-time visualization
+# ------------------------------------------------------
 
-# ----------------------
-# Configuration options
-# ----------------------
-INCLUDE(CMakeDependentOption)
-
-OPTION(ENABLE_SUSPENSION_TEST "Build the Suspension test for the HMMWV?" OFF)
-
-IF(NOT ENABLE_SUSPENSION_TEST)
-	RETURN()
-ENDIF()
-
-# ----------------------
-
-MESSAGE(STATUS "Adding SUSPENSION_TEST demo...")
+MESSAGE(STATUS "...add SUSPENSION_TEST demo")
 
 SET(TEST_FILES
 	demo_SuspensionTest.cpp
@@ -24,29 +9,11 @@ SET(TEST_FILES
 
 SOURCE_GROUP("" FILES ${TEST_FILES})
 
-IF (ENABLE_IRRLICHT)
-  SET(LIBRARIES 
-    ${CHRONOENGINE_LIBRARIES}
-    ChronoVehicle_Irrlicht
-    ChronoVehicle_Utils
-    )
-
-    IF (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      SET(CH_BUILDFLAGS "${CH_BUILDFLAGS} /wd4275")
-    ENDIF()
-ELSE()
-  SET(LIBRARIES 
-    ${CHRONOENGINE_LIBRARIES}
-    ChronoVehicle
-    ChronoVehicle_Utils
-    )
-ENDIF()
-
 # Create the executable
+INCLUDE_DIRECTORIES(${CH_VEHICLE_INCLUDES})
 ADD_EXECUTABLE(demo_SuspensionTest ${TEST_FILES})
 SET_TARGET_PROPERTIES(demo_SuspensionTest PROPERTIES 
                       COMPILE_FLAGS "${CH_BUILDFLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_SuspensionTest ${LIBRARIES})
+TARGET_LINK_LIBRARIES(demo_SuspensionTest ${CH_VEHICLE_LIBRARIES})
 INSTALL(TARGETS demo_SuspensionTest DESTINATION bin)
-

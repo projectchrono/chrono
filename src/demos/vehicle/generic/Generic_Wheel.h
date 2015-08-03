@@ -22,10 +22,10 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTexture.h"
 
-#include "subsys/ChWheel.h"
-#include "subsys/ChVehicleModelData.h"
+#include "chrono_vehicle/ChWheel.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "models/ModelDefs.h"
+#include "ModelDefs.h"
 
 class Generic_Wheel : public chrono::ChWheel
 {

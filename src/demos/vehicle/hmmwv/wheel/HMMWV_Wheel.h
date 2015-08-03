@@ -19,9 +19,9 @@
 #ifndef HMMWV_WHEEL_H
 #define HMMWV_WHEEL_H
 
-#include "subsys/ChWheel.h"
+#include "chrono_vehicle/ChWheel.h"
 
-#include "models/ModelDefs.h"
+#include "ModelDefs.h"
 
 namespace hmmwv {
 

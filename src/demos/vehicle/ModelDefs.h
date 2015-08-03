@@ -17,7 +17,7 @@
 #ifndef MODEL_DEFS_H
 #define MODEL_DEFS_H
 
-#include "ChronoVehicle_config.h"
+#include "chrono_vehicle/ChConfigVehicle.h"
 
 enum VisualizationType {
   NONE,

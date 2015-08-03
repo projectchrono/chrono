@@ -20,7 +20,7 @@
 #define HMMWV_BRAKESIMPLE_H
 
 
-#include "subsys/brake/ChBrakeSimple.h"
+#include "chrono_vehicle/brake/ChBrakeSimple.h"
 
 namespace hmmwv {
 

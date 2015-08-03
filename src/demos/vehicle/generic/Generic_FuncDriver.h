@@ -18,7 +18,7 @@
 #ifndef GENERIC_FUNCDRIVER_H
 #define GENERIC_FUNCDRIVER_H
 
-#include "subsys/ChDriver.h"
+#include "chrono_vehicle/ChDriver.h"
 
 class Generic_FuncDriver : public chrono::ChDriver
 {

@@ -22,7 +22,7 @@
 //
 // =============================================================================
 
-#include "models/generic/Generic_DoubleWishbone.h"
+#include "generic/Generic_DoubleWishbone.h"
 
 using namespace chrono;
 

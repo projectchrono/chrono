@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "models/hmmwv/steering/HMMWV_RackPinion.h"
+#include "hmmwv/steering/HMMWV_RackPinion.h"
 
 using namespace chrono;
 

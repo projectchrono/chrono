@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "models/hmmwv/steering/HMMWV_PitmanArm.h"
+#include "hmmwv/steering/HMMWV_PitmanArm.h"
 
 using namespace chrono;
 

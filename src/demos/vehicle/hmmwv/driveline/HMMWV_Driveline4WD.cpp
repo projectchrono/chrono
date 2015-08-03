@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "models/hmmwv/driveline/HMMWV_Driveline4WD.h"
+#include "hmmwv/driveline/HMMWV_Driveline4WD.h"
 
 using namespace chrono;
 

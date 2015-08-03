@@ -19,11 +19,11 @@
 #include "assets/ChSphereShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
-#include "subsys/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono_utils/ChUtilsInputOutput.h"
 
-#include "models/hmmwv/vehicle/HMMWV_VehicleReduced.h"
+#include "hmmwv/vehicle/HMMWV_VehicleReduced.h"
 
 using namespace chrono;
 

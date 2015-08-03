@@ -22,9 +22,9 @@
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
-#include "models/ModelDefs.h"
-#include "models/generic/Generic_Wheel.h"
-#include "models/generic/Generic_BrakeSimple.h"
+#include "ModelDefs.h"
+#include "generic/Generic_Wheel.h"
+#include "generic/Generic_BrakeSimple.h"
 
 class Articulated_Trailer
 {

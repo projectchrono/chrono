@@ -31,21 +31,22 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
-#include "subsys/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono_utils/ChUtilsInputOutput.h"
 
 // subsystems, all read in fron JSON files
-#include "models/ModelDefs.h"
-#include "subsys/suspensionTest/SuspensionTest.h"
-#include "subsys/tire/RigidTire.h"
-#include "subsys/terrain/FlatTerrain.h"
-#include "subsys/driver/ChDataDriver.h"
+#include "ModelDefs.h"
+
+#include "chrono_vehicle/suspensionTest/SuspensionTest.h"
+#include "chrono_vehicle/tire/RigidTire.h"
+#include "chrono_vehicle/terrain/FlatTerrain.h"
+#include "chrono_vehicle/driver/ChDataDriver.h"
 
 // Irrlicht includes
 #if IRRLICHT_ENABLED
 # include "unit_IRRLICHT/ChIrrApp.h"
-# include "subsys/driver/ChIrrGuiST.h"
+# include "chrono_vehicle/driver/ChIrrGuiST.h"
 # define USE_IRRLICHT
 #endif
 
@@ -97,8 +98,6 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // =============================================================================
 int main(int argc, char* argv[])
 {
-  SetChronoDataPath(CHRONO_DATA_DIR);
-
   // Create the testing mechanism, initilize ity
   SuspensionTest tester(suspensionTest_file);
   tester.Initialize(ChCoordsys<>(initLoc, initRot));

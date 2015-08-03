@@ -15,7 +15,7 @@
 //
 // =============================================================================
 
-#include "models/hmmwv/HMMWV_FuncDriver.h"
+#include "hmmwv/HMMWV_FuncDriver.h"
 
 using namespace chrono;
 

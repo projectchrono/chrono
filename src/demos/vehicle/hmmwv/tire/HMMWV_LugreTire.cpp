@@ -20,7 +20,7 @@
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 
-#include "models/hmmwv/tire/HMMWV_LugreTire.h"
+#include "hmmwv/tire/HMMWV_LugreTire.h"
 
 using namespace chrono;
 

@@ -19,7 +19,7 @@
 #ifndef GENERIC_ANTIROLLBAR_RSD_H
 #define GENERIC_ANTIROLLBAR_RSD_H
 
-#include "subsys/antirollbar/ChAntirollBarRSD.h"
+#include "chrono_vehicle/antirollbar/ChAntirollBarRSD.h"
 
 class Generic_AntirollBarRSD : public chrono::ChAntirollBarRSD
 {

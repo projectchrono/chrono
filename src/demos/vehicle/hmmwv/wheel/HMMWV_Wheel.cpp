@@ -21,11 +21,11 @@
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 
-#include "subsys/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono_utils/ChUtilsInputOutput.h"
 
-#include "models/hmmwv/wheel/HMMWV_Wheel.h"
+#include "hmmwv/wheel/HMMWV_Wheel.h"
 
 using namespace chrono;
 
