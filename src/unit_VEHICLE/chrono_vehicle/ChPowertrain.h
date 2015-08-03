@@ -23,14 +23,14 @@
 #include "core/ChVector.h"
 #include "physics/ChBody.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
 
 ///
 /// Base class for a powertrain system.
 ///
-class CH_SUBSYS_API ChPowertrain : public ChShared
+class CH_VEHICLE_API ChPowertrain : public ChShared
 {
 public:
 

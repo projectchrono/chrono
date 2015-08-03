@@ -30,7 +30,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChSuspension.h"
 #include "chrono_vehicle/ChSteering.h"
@@ -42,7 +42,7 @@ namespace chrono {
 /// Base class for suspension and steering tester
 /// This class provides the interface between the systems
 ///
-class CH_SUBSYS_API ChSuspensionTest : public ChSystem
+class CH_VEHICLE_API ChSuspensionTest : public ChSystem
 {
 public:
 

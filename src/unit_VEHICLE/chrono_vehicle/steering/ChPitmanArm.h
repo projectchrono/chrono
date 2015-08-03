@@ -26,7 +26,7 @@
 #ifndef CH_PITMANARM_H
 #define CH_PITMANARM_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSteering.h"
 
 namespace chrono {
@@ -41,7 +41,7 @@ namespace chrono {
 /// When attached to a chassis, both an offset and a rotation (as a quaternion)
 /// are provided.
 ///
-class CH_SUBSYS_API ChPitmanArm : public ChSteering
+class CH_VEHICLE_API ChPitmanArm : public ChSteering
 {
 public:
 

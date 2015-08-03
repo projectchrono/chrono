@@ -19,7 +19,7 @@
 #ifndef ANTIROLLBAR_RSD_H
 #define ANTIROLLBAR_RSD_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/antirollbar/ChAntirollBarRSD.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API AntirollBarRSD : public ChAntirollBarRSD
+class CH_VEHICLE_API AntirollBarRSD : public ChAntirollBarRSD
 {
 public:
 

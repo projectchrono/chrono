@@ -19,7 +19,7 @@
 #ifndef LUGRE_TIRE_H
 #define LUGRE_TIRE_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tire/ChLugreTire.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API LugreTire : public ChLugreTire
+class CH_VEHICLE_API LugreTire : public ChLugreTire
 {
 public:
 

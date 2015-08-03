@@ -19,7 +19,7 @@
 #ifndef HENDRICKSON_PRIMAXX_H
 #define HENDRICKSON_PRIMAXX_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/suspension/ChHendricksonPRIMAXX.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX
+class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX
 {
 public:
 

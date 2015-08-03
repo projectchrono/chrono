@@ -19,7 +19,7 @@
 #ifndef MULTILINK_H
 #define MULTILINK_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/suspension/ChMultiLink.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API MultiLink : public ChMultiLink
+class CH_VEHICLE_API MultiLink : public ChMultiLink
 {
 public:
 

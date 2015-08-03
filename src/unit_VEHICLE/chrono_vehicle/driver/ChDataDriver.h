@@ -27,12 +27,12 @@
 #include <string>
 #include <vector>
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 
 namespace chrono {
 
-class CH_SUBSYS_API ChDataDriver : public ChDriver
+class CH_VEHICLE_API ChDataDriver : public ChDriver
 {
 public:
   struct Entry {

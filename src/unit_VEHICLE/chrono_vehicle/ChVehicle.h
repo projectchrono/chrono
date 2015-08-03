@@ -28,7 +28,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChSuspension.h"
 #include "chrono_vehicle/ChAntirollBar.h"
@@ -44,7 +44,7 @@ namespace chrono {
 /// This class provides the interface between the vehicle system and other
 /// systems (tires, driver, etc.)
 ///
-class CH_SUBSYS_API ChVehicle : public ChShared
+class CH_VEHICLE_API ChVehicle : public ChShared
 {
 public:
 

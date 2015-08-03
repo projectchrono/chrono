@@ -37,7 +37,7 @@
 
 #include "chrono_vehicle/driver/ChChaseCamera.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChPowertrain.h"
@@ -52,7 +52,7 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver
+class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver
 {
 public:
   enum InputMode {

@@ -22,13 +22,13 @@
 #ifndef CH_SIMPLE_POWERTRAIN_H
 #define CH_SIMPLE_POWERTRAIN_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/ChSuspension.h"
 
 namespace chrono {
 
-class CH_SUBSYS_API ChSimplePowertrain : public ChPowertrain
+class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain
 {
 public:
 

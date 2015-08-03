@@ -20,7 +20,7 @@
 #ifndef FLATTERRAIN_H
 #define FLATTERRAIN_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
@@ -32,7 +32,7 @@ namespace chrono {
 /// tire models that perform their own collision detection (e.g. ChPacejkaTire
 /// and ChLugreTire).
 ///
-class CH_SUBSYS_API FlatTerrain : public ChTerrain
+class CH_VEHICLE_API FlatTerrain : public ChTerrain
 {
 public:
 

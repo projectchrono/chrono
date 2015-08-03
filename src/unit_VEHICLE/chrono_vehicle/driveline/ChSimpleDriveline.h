@@ -21,7 +21,7 @@
 #ifndef CH_SIMPLE_DRIVELINE_H
 #define CH_SIMPLE_DRIVELINE_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriveline.h"
 
 namespace chrono {
@@ -31,7 +31,7 @@ namespace chrono {
 /// It uses a constant front/rear torque split (a value between 0 and 1) and a
 /// simple model for Torsen limited-slip differentials.
 ///
-class CH_SUBSYS_API ChSimpleDriveline : public ChDriveline
+class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline
 {
 public:
 

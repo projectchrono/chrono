@@ -30,12 +30,12 @@
 
 #include "physics/ChBody.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 
 
 namespace chrono {
 
-class CH_SUBSYS_API ChChaseCamera
+class CH_VEHICLE_API ChChaseCamera
 {
 public:
 

@@ -26,7 +26,7 @@
 #ifndef CH_RACKPINION_H
 #define CH_RACKPINION_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSteering.h"
 
 namespace chrono {
@@ -41,7 +41,7 @@ namespace chrono {
 /// pinion but instead use the implied rack-pinion constraint to calculate the
 /// rack displacement from a given pinion rotation angle.
 ///
-class CH_SUBSYS_API ChRackPinion : public ChSteering
+class CH_VEHICLE_API ChRackPinion : public ChSteering
 {
 public:
 

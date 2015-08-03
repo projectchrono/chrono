@@ -19,7 +19,7 @@
 #ifndef SOLIDAXLE_H
 #define SOLIDAXLE_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/suspension/ChSolidAxle.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API SolidAxle : public ChSolidAxle
+class CH_VEHICLE_API SolidAxle : public ChSolidAxle
 {
 public:
 

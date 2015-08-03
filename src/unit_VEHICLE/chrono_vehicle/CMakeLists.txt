@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 
 SET(CV_BASE_FILES
-    ChApiSubsys.h
+    ChApiVehicle.h
     ChSubsysDefs.h
     ChVehicleModelData.h
     ChVehicleModelData.cpp

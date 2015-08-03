@@ -27,7 +27,7 @@
 #include "core/ChQuaternion.h"
 #include "core/ChCoordsys.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChTerrain.h"
 
@@ -39,7 +39,7 @@ namespace chrono {
 /// information of the wheel body and it produces ground reaction forces and
 /// moments to be applied to the wheel body.
 ///
-class CH_SUBSYS_API ChTire : public ChShared
+class CH_VEHICLE_API ChTire : public ChShared
 {
 public:
 

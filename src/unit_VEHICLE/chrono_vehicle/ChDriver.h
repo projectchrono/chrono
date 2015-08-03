@@ -25,7 +25,7 @@
 #include "core/ChShared.h"
 #include "physics/ChSystem.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
 
@@ -35,7 +35,7 @@ namespace chrono {
 /// (throttle, steering, braking). A concrete driver class must set the member
 /// variables m_throttle, m_steering, and m_braking.
 ///
-class CH_SUBSYS_API ChDriver : public ChShared
+class CH_VEHICLE_API ChDriver : public ChShared
 {
 public:
 

@@ -23,7 +23,7 @@
 #include "core/ChVector.h"
 #include "physics/ChShaft.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSuspension.h"
 
 namespace chrono {
@@ -31,7 +31,7 @@ namespace chrono {
 ///
 /// Base class for a driveline subsystem.
 ///
-class CH_SUBSYS_API ChDriveline : public ChShared
+class CH_VEHICLE_API ChDriveline : public ChShared
 {
 public:
 

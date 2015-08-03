@@ -24,14 +24,14 @@
 #include "core/ChShared.h"
 #include "physics/ChLinkLock.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
 
 ///
 /// Base class for a brake subsystem
 ///
-class CH_SUBSYS_API ChBrake : public ChShared
+class CH_VEHICLE_API ChBrake : public ChShared
 {
 public:
 

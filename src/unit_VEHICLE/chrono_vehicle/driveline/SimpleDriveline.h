@@ -19,7 +19,7 @@
 #ifndef SIMPLE_DRIVELINE_H
 #define SIMPLE_DRIVELINE_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/driveline/ChSimpleDriveline.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API SimpleDriveline : public ChSimpleDriveline
+class CH_VEHICLE_API SimpleDriveline : public ChSimpleDriveline
 {
 public:
 

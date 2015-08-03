@@ -26,7 +26,7 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API Vehicle : public ChVehicle
+class CH_VEHICLE_API Vehicle : public ChVehicle
 {
 public:
 

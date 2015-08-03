@@ -19,7 +19,7 @@
 #ifndef PITMAN_ARM_H
 #define PITMAN_ARM_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/steering/ChPitmanArm.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API PitmanArm : public ChPitmanArm
+class CH_VEHICLE_API PitmanArm : public ChPitmanArm
 {
 public:
 

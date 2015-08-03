@@ -22,7 +22,7 @@
 #include "core/ChShared.h"
 #include "core/ChVector.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 
 
 namespace chrono {
@@ -30,7 +30,7 @@ namespace chrono {
 ///
 /// Base class for a height-field terrain system.
 ///
-class CH_SUBSYS_API ChTerrain : public ChShared
+class CH_VEHICLE_API ChTerrain : public ChShared
 {
 public:
 

@@ -19,7 +19,7 @@
 #ifndef BRAKE_SIMPLE_H
 #define BRAKE_SIMPLE_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/brake/ChBrakeSimple.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API BrakeSimple : public ChBrakeSimple
+class CH_VEHICLE_API BrakeSimple : public ChBrakeSimple
 {
 public:
 

@@ -27,7 +27,7 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API SuspensionTest : public ChSuspensionTest
+class CH_VEHICLE_API SuspensionTest : public ChSuspensionTest
 {
 public:
   /// This takes a vehicle JSON file, and only keeps data

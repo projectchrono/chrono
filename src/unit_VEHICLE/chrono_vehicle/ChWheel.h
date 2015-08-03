@@ -29,7 +29,7 @@
 #include "core/ChShared.h"
 #include "physics/ChBody.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
 
@@ -41,7 +41,7 @@ namespace chrono {
 /// A concrete wheel subsystem can optionally carry its own visualization assets
 /// (which are associated with the suspension's spindle body).
 ///
-class CH_SUBSYS_API ChWheel : public ChShared
+class CH_VEHICLE_API ChWheel : public ChShared
 {
 public:
 

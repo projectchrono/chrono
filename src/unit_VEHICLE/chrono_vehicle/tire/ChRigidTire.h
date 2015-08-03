@@ -31,7 +31,7 @@ namespace chrono {
 /// This tire is modeled as a rigid cylinder.  Requires a terrain system that
 /// supports rigid contact with friction.
 ///
-class CH_SUBSYS_API ChRigidTire : public ChTire
+class CH_VEHICLE_API ChRigidTire : public ChTire
 {
 public:
 

@@ -19,7 +19,7 @@
 #ifndef WHEEL_H
 #define WHEEL_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChWheel.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API Wheel : public ChWheel
+class CH_VEHICLE_API Wheel : public ChWheel
 {
 public:
 

@@ -19,7 +19,7 @@
 #ifndef RIGID_TIRE_H
 #define RIGID_TIRE_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tire/ChRigidTire.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API RigidTire : public ChRigidTire
+class CH_VEHICLE_API RigidTire : public ChRigidTire
 {
 public:
 

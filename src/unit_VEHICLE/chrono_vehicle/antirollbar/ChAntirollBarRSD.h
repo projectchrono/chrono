@@ -32,7 +32,7 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API ChAntirollBarRSD : public ChAntirollBar {
+class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
 public:
 
   ChAntirollBarRSD(

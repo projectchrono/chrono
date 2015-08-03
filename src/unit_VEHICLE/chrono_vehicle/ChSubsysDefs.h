@@ -25,7 +25,7 @@
 #include "core/ChQuaternion.h"
 #include "physics/ChLinkSpringCB.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
 

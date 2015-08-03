@@ -20,7 +20,7 @@
 #ifndef CH_SHAFTS_DRIVELINE_2WD_H
 #define CH_SHAFTS_DRIVELINE_2WD_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriveline.h"
 
 #include "physics/ChShaftsGear.h" 
@@ -36,7 +36,7 @@ namespace chrono {
 /// 2WD driveline model template based on ChShaft objects. This template can be
 /// used to model either a FWD or a RWD driveline.
 ///
-class CH_SUBSYS_API ChShaftsDriveline2WD : public ChDriveline
+class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline
 {
 public:
 

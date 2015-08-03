@@ -28,7 +28,7 @@
 #include "physics/ChShaft.h"
 #include "physics/ChShaftsBody.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
 namespace chrono {
@@ -36,7 +36,7 @@ namespace chrono {
 ///
 /// Base class for a suspension subsystem.
 ///
-class CH_SUBSYS_API ChSuspension : public ChShared
+class CH_VEHICLE_API ChSuspension : public ChShared
 {
 public:
 

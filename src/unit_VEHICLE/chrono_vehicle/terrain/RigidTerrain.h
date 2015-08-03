@@ -21,7 +21,7 @@
 
 #include "physics/ChSystem.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
 
 
@@ -34,7 +34,7 @@ namespace chrono {
 /// enabled. In particular, this type of terrain can be used in conjunction with
 /// a ChRigidTire.
 ///
-class CH_SUBSYS_API RigidTerrain : public ChTerrain
+class CH_VEHICLE_API RigidTerrain : public ChTerrain
 {
 public:
 

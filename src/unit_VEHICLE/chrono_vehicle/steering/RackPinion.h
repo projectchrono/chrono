@@ -19,7 +19,7 @@
 #ifndef RACK_PINION_H
 #define RACK_PINION_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/steering/ChRackPinion.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API RackPinion : public ChRackPinion
+class CH_VEHICLE_API RackPinion : public ChRackPinion
 {
 public:
 

@@ -19,7 +19,7 @@
 #ifndef DOUBLEWISHBONEREDUCED_H
 #define DOUBLEWISHBONEREDUCED_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/suspension/ChDoubleWishboneReduced.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API DoubleWishboneReduced : public ChDoubleWishboneReduced
+class CH_VEHICLE_API DoubleWishboneReduced : public ChDoubleWishboneReduced
 {
 public:
 

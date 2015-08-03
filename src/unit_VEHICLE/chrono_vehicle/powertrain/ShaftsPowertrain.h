@@ -19,7 +19,7 @@
 #ifndef SHAFTS_POWERTRAIN_H
 #define SHAFTS_POWERTRAIN_H
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 
 #include "thirdparty/rapidjson/document.h"
@@ -27,7 +27,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API ShaftsPowertrain : public ChShaftsPowertrain
+class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain
 {
 public:
 

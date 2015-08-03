@@ -29,7 +29,7 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API ChBrakeSimple : public ChBrake {
+class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
 public:
 
   ChBrakeSimple();

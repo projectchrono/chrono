@@ -25,14 +25,14 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
 
 ///
 /// Base class for a steering subsystem.
 ///
-class CH_SUBSYS_API ChSteering : public ChShared
+class CH_VEHICLE_API ChSteering : public ChShared
 {
 public:
 

@@ -26,7 +26,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
 namespace chrono {
@@ -34,7 +34,7 @@ namespace chrono {
 ///
 /// Base class for an anti-roll bar subsystem.
 ///
-class CH_SUBSYS_API ChAntirollBar : public ChShared
+class CH_VEHICLE_API ChAntirollBar : public ChShared
 {
 public:
 

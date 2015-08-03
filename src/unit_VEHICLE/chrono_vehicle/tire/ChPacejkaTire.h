@@ -48,7 +48,7 @@ struct bessel;
 /// Concrete tire class that implements the Pacejka tire model.
 /// Detailed description goes here...
 ///
-class CH_SUBSYS_API ChPacejkaTire : public ChTire
+class CH_VEHICLE_API ChPacejkaTire : public ChTire
 {
 public:
 

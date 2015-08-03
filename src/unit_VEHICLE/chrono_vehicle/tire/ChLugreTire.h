@@ -31,7 +31,7 @@ namespace chrono {
 ///
 /// Tire model based on LuGre friction model.
 ///
-class CH_SUBSYS_API ChLugreTire : public ChTire
+class CH_VEHICLE_API ChLugreTire : public ChTire
 {
 public:
 

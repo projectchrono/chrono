@@ -33,7 +33,7 @@
 
 #include "assets/ChColorAsset.h"
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSuspension.h"
 
 namespace chrono {
@@ -51,7 +51,7 @@ namespace chrono {
 /// supspension and will be mirrored (reflecting the y coordinates) to construct
 /// the right side.
 ///
-class CH_SUBSYS_API ChHendricksonPRIMAXX : public ChSuspension
+class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension
 {
 public:
 

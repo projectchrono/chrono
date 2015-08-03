@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "chrono_vehicle/ChApiSubsys.h"
+#include "chrono_vehicle/ChApiVehicle.h"
 
 
 namespace chrono {
@@ -30,14 +30,14 @@ namespace vehicle {
 
 
 /// Set the path to the ChronoVehicle model data directory (ATTENTION: not thread safe)
-CH_SUBSYS_API void SetDataPath(const std::string& path);
+CH_VEHICLE_API void SetDataPath(const std::string& path);
 
 /// Obtain the current path to the ChronoVehicle model data directory (thread safe)
-CH_SUBSYS_API const std::string& GetDataPath();
+CH_VEHICLE_API const std::string& GetDataPath();
 
 /// Obtain the complete path to the specified filename, given relative to the
 /// ChronoVehicle model data directory (thread safe)
-CH_SUBSYS_API std::string GetDataFile(const std::string& filename);
+CH_VEHICLE_API std::string GetDataFile(const std::string& filename);
 
 
 } // end namespace vehicle
