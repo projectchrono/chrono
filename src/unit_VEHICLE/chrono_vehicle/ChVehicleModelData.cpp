@@ -27,7 +27,7 @@ namespace vehicle {
 // Functions for manipulating the ChronoVehicle data directory
 // -----------------------------------------------------------------------------
 
-static std::string model_data_path("../data/");
+static std::string model_data_path("../data/vehicle/");
 
 // Set the path to the ChronoVehicle model data directory (ATTENTION: not thread safe)
 void SetDataPath(const std::string& path)
