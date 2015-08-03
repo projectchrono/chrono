@@ -24,7 +24,7 @@ IF(ENABLE_IRRKLANG)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       SET(CH_IRRKLANG_SDKDIR ""  CACHE PATH   "Where is your IrrKlang SDK installed?")
-	  SET (CH_IRRKLANGLIB   "" CACHE FILEPATH "Where is your Irrklank library?")
+      SET (CH_IRRKLANGLIB   "" CACHE FILEPATH "Where is your Irrklank library?")
   ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       FIND_PATH(CH_IRRKLANG_SDKDIR NAMES irrlicht.h PATHS "/usr/include/irrklang" "/usr/local/include/irrklang")
       FIND_LIBRARY(CH_IRRKLANGLIB NAMES Irrklang PATHS "/usr/local/lib" ${CH_IRRKLANG_SDKDIR}/lib/Linux)
@@ -66,7 +66,7 @@ INCLUDE_DIRECTORIES(${CH_VEHICLE_INCLUDES})
 
 # Prepare replacement variables
 
-IF(ENABLE_IRRLICHT)
+IF(ENABLE_UNIT_IRRLICHT)
   SET(IRRLICHT_ENABLED "1")
 ELSE()
   SET(IRRLICHT_ENABLED "0")
@@ -77,8 +77,6 @@ IF(ENABLE_IRRKLANG)
 ELSE()
   SET(IRRKLANG_ENABLED "0")
 ENDIF()
-
-SET(CHRONO_DATA_DIR "${CH_CHRONO_SDKDIR}/demos/data/")
 
 # Generate the configuration header file using substitution variables.
 # Place the header file in the library output directory and make sure it can

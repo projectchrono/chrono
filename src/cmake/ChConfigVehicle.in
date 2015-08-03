@@ -2,9 +2,6 @@
 // ChronoVehicle configuration header file
 // -----------------------------------------------------------------
 
-// Path to CHRONO data
-#define CHRONO_DATA_DIR "@CHRONO_DATA_DIR@"
-
 // Specify if Irrlicht support is available
 #define IRRLICHT_ENABLED @IRRLICHT_ENABLED@
 
