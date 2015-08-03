@@ -149,12 +149,12 @@ class ChParticleEmitter {
                 // jitter term: moving source
                 jitter -= (ChRandom() * mdt) * pre_transform.PointSpeedLocalToParent(mcoords.pos, VNULL);
                 mbody->Move(jitter);
-            }
+            }    
+
+            msystem.AddBatch(mbody);  // the Add() alone woud not be thread safe if called from items inserted in system's lists
 
             if (this->creation_callback)
                 this->creation_callback->PostCreation(mbody, mcoords_abs, *particle_creator.get_ptr());
-
-            msystem.Add(mbody);
 
             this->particle_reservoir -= 1;
             this->mass_reservoir -= mbody->GetMass();
