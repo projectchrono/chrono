@@ -29,7 +29,7 @@
 ///////////////////////////////////////////////////
 
 #include "physics/ChProximityContainerBase.h"
-#include "collision/ChCModelBulletNode.h"
+#include "collision/ChCModelBullet.h"
 #include <list>
 
 namespace chrono {
@@ -42,8 +42,8 @@ namespace chrono {
 
 class ChApi ChProximitySPH {
   public:
-    ChProximitySPH(collision::ChModelBulletNode* mmodA,  ///< model A
-                   collision::ChModelBulletNode* mmodB)  ///< model B
+    ChProximitySPH(collision::ChCollisionModel* mmodA,  ///< model A
+                   collision::ChCollisionModel* mmodB)  ///< model B
     {
         Reset(mmodA, mmodB);
     }
@@ -55,8 +55,8 @@ class ChApi ChProximitySPH {
     //
 
     /// Initialize again this constraint.
-    virtual void Reset(collision::ChModelBulletNode* mmodA,  ///< model A
-                       collision::ChModelBulletNode* mmodB)  ///< model B
+    virtual void Reset(collision::ChCollisionModel* mmodA,  ///< model A
+                       collision::ChCollisionModel* mmodB)  ///< model B
     {
         assert(mmodA);
         assert(mmodB);

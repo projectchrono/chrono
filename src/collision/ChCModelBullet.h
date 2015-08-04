@@ -247,6 +247,11 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// model as the current position of the corresponding ChContactable
     virtual void SyncPosition();
 
+    /// If the collision shape is a sphere, resize it and return true (if no
+    /// sphere is found in this collision shape, return false).
+    /// It can also change the outward envelope; the inward margin is automatically the radius of the sphere.
+    bool SetSphereRadius(double coll_radius, double out_envelope);
+
     //
     // SERIALIZATION
     //

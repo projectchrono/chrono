@@ -25,7 +25,7 @@
 #include "physics/ChConveyor.h"
 #include "physics/ChSystem.h"
 
-#include "collision/ChCModelBulletBody.h"
+#include "collision/ChCModelBullet.h"
 
 namespace chrono {
 

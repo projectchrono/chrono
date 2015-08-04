@@ -20,7 +20,7 @@
 #include "physics/ChForce.h"
 #include "physics/ChSystem.h"
 
-#include "collision/ChCModelBulletBody.h"
+#include "collision/ChCModelBullet.h"
 #include "core/ChLinearAlgebra.h"
 
 namespace chrono {
@@ -188,8 +188,6 @@ void ChBody::Copy(ChBody* source) {
 }
 
 ChCollisionModel* ChBody::InstanceCollisionModel() {
-    //ChCollisionModel* collision_model_t = (ChModelBulletBody*)new ChModelBulletBody();
-    //((ChModelBulletBody*)collision_model_t)->SetBody(this);
     ChCollisionModel* collision_model_t = (ChModelBullet*)new ChModelBullet();
     collision_model_t->SetContactable(this);
     return collision_model_t;

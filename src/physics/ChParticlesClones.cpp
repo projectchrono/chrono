@@ -26,7 +26,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChGlobal.h"
 
-#include "collision/ChCModelBulletParticle.h"
+#include "collision/ChCModelBullet.h"
 #include "core/ChLinearAlgebra.h"
 
 namespace chrono {
@@ -44,7 +44,7 @@ ChClassRegister<ChParticlesClones> a_registration_ChParticlesClones;
 /// CLASS FOR A PARTICLE
 
 ChAparticle::ChAparticle() {
-    this->collision_model = new ChModelBulletParticle;
+    this->collision_model = new ChModelBullet;
     this->collision_model->SetContactable(this);
     this->container = 0;
     this->UserForce = VNULL;
@@ -56,12 +56,10 @@ ChAparticle::~ChAparticle() {
 }
 
 ChAparticle::ChAparticle(const ChAparticle& other) : ChParticleBase(other) {
-    this->collision_model = new ChModelBulletParticle;
+    this->collision_model = new ChModelBullet;
     this->collision_model->AddCopyOfAnotherModel(other.collision_model);
     this->collision_model->SetContactable(this);
-    ((ChModelBulletParticle*)collision_model)
-        ->SetParticle(((ChModelBulletParticle*)other.collision_model)->GetParticles(),
-                      ((ChModelBulletParticle*)other.collision_model)->GetParticleId());
+
     this->container = other.container;
     this->UserForce = other.UserForce;
     this->UserTorque = other.UserTorque;
@@ -78,9 +76,7 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     this->collision_model->ClearModel();
     this->collision_model->AddCopyOfAnotherModel(other.collision_model);
     this->collision_model->SetContactable(this);
-    ((ChModelBulletParticle*)collision_model)
-        ->SetParticle(((ChModelBulletParticle*)other.collision_model)->GetParticles(),
-                      ((ChModelBulletParticle*)other.collision_model)->GetParticleId());
+
     this->container = other.container;
     this->UserForce = other.UserForce;
     this->UserTorque = other.UserTorque;
@@ -177,8 +173,8 @@ ChParticlesClones::ChParticlesClones() {
     this->SetInertiaXX(ChVector<double>(1.0, 1.0, 1.0));
     this->SetInertiaXY(ChVector<double>(0, 0, 0));
 
-    particle_collision_model = new ChModelBulletParticle();
-    ((ChModelBulletParticle*)particle_collision_model)->SetParticle(this, 9999999);
+    particle_collision_model = new ChModelBullet();
+    particle_collision_model->SetContactable(0);
 
     this->particles.clear();
     // this->ResizeNparticles(num_particles); // caused memory corruption.. why?
@@ -250,7 +246,8 @@ void ChParticlesClones::ResizeNparticles(int newsize) {
 
         this->particles[j]->variables.SetSharedMass(&this->particle_mass);
         this->particles[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
-        ((ChModelBulletParticle*)this->particles[j]->collision_model)->SetParticle(this, j);
+        
+        this->particles[j]->collision_model->SetContactable(this->particles[j]);
         // this->particles[j]->collision_model->ClearModel();
         this->particles[j]->collision_model->AddCopyOfAnotherModel(this->particle_collision_model);
         this->particles[j]->collision_model->BuildModel();
@@ -269,7 +266,8 @@ void ChParticlesClones::AddParticle(ChCoordsys<double> initial_state) {
 
     newp->variables.SetSharedMass(&this->particle_mass);
     newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
-    ((ChModelBulletParticle*)newp->collision_model)->SetParticle(this, (unsigned int)particles.size() - 1);
+    
+    newp->collision_model->SetContactable(newp);
     // newp->collision_model->ClearModel(); // wasn't already added to system, no need to remove
     newp->collision_model->AddCopyOfAnotherModel(this->particle_collision_model);
     newp->collision_model->BuildModel();  // will also add to system, if collision is on.

@@ -59,9 +59,9 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
         }
     }
 
-    virtual void Update() {
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
         // inherit parent
-        ChAsset::Update();
+        ChAsset::Update(updater, coords);
 
         mnode->UpdateAssetsProxies();
     }

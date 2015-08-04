@@ -28,9 +28,14 @@
 ///////////////////////////////////////////////////
 
 #include "core/ChShared.h"
+#include "core/ChCoordsys.h"
 #include "serialization/ChArchive.h"
 
 namespace chrono {
+
+// Forward
+class ChPhysicsItem;
+
 
 /// Classes for adding user data (such as rendering
 /// shapes, reference to files) to ChPhysicsItem objects.
@@ -59,7 +64,10 @@ class ChApi ChAsset : public ChShared {
     // FUNCTIONS
     //
 
-    virtual void Update(){};
+        /// This is called by the owner, i.e. a ChPhysicsItem. Note that 
+        /// the ChAssets can be shared between owners, so an asset might receive
+        /// different updates from different 'updater's each with different 'coords'.
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords){};
 
     //
     // SERIALIZATION
