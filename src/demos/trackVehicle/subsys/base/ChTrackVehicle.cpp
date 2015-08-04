@@ -19,7 +19,6 @@
 #include <algorithm>
 
 #include "ChTrackVehicle.h"
-#include "physics/ChContactContainer.h"
 #include "subsys/collision/CollisionReporters.h"
 
 #include "assets/ChAssetLevel.h"

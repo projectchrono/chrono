@@ -19,7 +19,7 @@
 #ifndef COLLISIONREPORTERS_H
 #define COLLISIONREPORTERS_H
 
-#include "physics/ChContactContainer.h"
+#include "physics/ChContactContainerBase.h"
 
 namespace chrono {
 
