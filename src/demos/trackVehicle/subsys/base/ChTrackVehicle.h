@@ -34,7 +34,7 @@
 
 // collision callback function
 #include "subsys/collision/TrackCollisionCallback.h"
-#include "physics/ChContactContainer.h"
+#include "physics/ChContactContainerBase.h"
 
 namespace chrono {
 
