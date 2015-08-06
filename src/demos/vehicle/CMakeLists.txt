@@ -32,34 +32,6 @@ ENDIF()
 
 #--------------------------------------------------------------
 
-# Set additional include directories and required libraries for
-# all VEHICLE demos
-
-SET(CH_VEHICLE_INCLUDES
-    "${CMAKE_SOURCE_DIR}/unit_VEHICLE"
-    "${CMAKE_SOURCE_DIR}/demos/vehicle"
-    ${PROJECT_BINARY_DIR})
-
-SET(CH_VEHICLE_LIBRARIES 
-    ChronoEngine
-    ChronoEngine_Vehicle
-    ChronoEngine_VehicleUtils)
-
-IF(ENABLE_UNIT_IRRLICHT)
-   SET(CH_VEHICLE_INCLUDES 
-       ${CH_VEHICLE_INCLUDES}
-       ${CH_IRRLICHTINC})
-
-   SET(CH_VEHICLE_LIBRARIES
-       ${CH_VEHICLE_LIBRARIES}
-       ChronoEngine_IRRLICHT
-       ${CH_IRRLICHTLIB}
-       ChronoEngine_VehicleIrrlicht)
-       
-ENDIF()
-
-#--------------------------------------------------------------
-
 MESSAGE(STATUS "Demo programs for VEHICLE module...")
 
 #ADD_SUBDIRECTORY(slider_crank)
