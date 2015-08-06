@@ -69,7 +69,6 @@ ENDIF()
 #--------------------------------------------------------------
 # Create the executable
 
-INCLUDE_DIRECTORIES(${CH_VEHICLE_INCLUDES})
 ADD_EXECUTABLE(demo_ArticulatedVehicle ${DEMO_FILES} ${MODEL_FILES})
 SET_TARGET_PROPERTIES(demo_ArticulatedVehicle PROPERTIES 
                       COMPILE_FLAGS "${CH_BUILDFLAGS}"

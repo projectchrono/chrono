@@ -80,7 +80,6 @@ ENDIF()
 #--------------------------------------------------------------
 # Create the executable
 
-INCLUDE_DIRECTORIES(${CH_VEHICLE_INCLUDES})
 ADD_EXECUTABLE(demo_HMMWV ${DEMO_FILES} ${MODEL_FILES})
 SET_TARGET_PROPERTIES(demo_HMMWV PROPERTIES 
                       COMPILE_FLAGS "${CH_BUILDFLAGS}"
