@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Justin Madsen
+// Authors: Justin Madsen, Radu Serban
 // =============================================================================
 //
 // Suspension testing mechanism, using force or motion inputs to the locked wheels
@@ -80,14 +80,14 @@ double output_step_size = 1.0 / 1;    // Time interval between two output frames
 
 // =============================================================================
 // JSON file for suspension
-// std::string suspensionTest_file = vehicle::GetDataFile("hmmwv/suspensionTest/HMMWV_ST_front.json");
-std::string suspensionTest_file = vehicle::GetDataFile("hmmwv/suspensionTest/HMMWV_ST_rear.json");
+// std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_front.json");
+std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_rear.json");
 
 // JSON files for tire models (rigid) and powertrain (simple)
-std::string rigidtire_file = vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidTire.json");
+std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
 
 // Driver input file (if not using Irrlicht)
-std::string driver_file = vehicle::GetDataFile("generic/driver/Sample_Maneuver.txt");
+std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // radius of wheel + vertical distance between spindle and chassis center marker
 ChVector<> initLoc(0, 0, 0.496); 
@@ -99,7 +99,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 int main(int argc, char* argv[])
 {
   // Create the testing mechanism, initilize ity
-  SuspensionTest tester(suspensionTest_file);
+  SuspensionTest tester(vehicle::GetDataFile(suspensionTest_file));
   tester.Initialize(ChCoordsys<>(initLoc, initRot));
   // tester.Save_DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS | DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
   tester.Save_DebugLog(DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
@@ -112,8 +112,8 @@ int main(int argc, char* argv[])
   FlatTerrain flat_terrain(0);
 
   // use rigid wheels to actuate suspension
-  ChSharedPtr<RigidTire> tire_FL(new RigidTire(rigidtire_file, flat_terrain));
-  ChSharedPtr<RigidTire> tire_FR(new RigidTire(rigidtire_file, flat_terrain));
+  ChSharedPtr<RigidTire> tire_FL(new RigidTire(vehicle::GetDataFile(rigidtire_file), flat_terrain));
+  ChSharedPtr<RigidTire> tire_FR(new RigidTire(vehicle::GetDataFile(rigidtire_file), flat_terrain));
    
   tire_FL->Initialize(tester.GetWheelBody(FRONT_LEFT));
   tire_FR->Initialize(tester.GetWheelBody(FRONT_RIGHT));
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     application.AddShadowAll();
   }
 #else
-  ChDataDriver driver;
+  ChDataDriver driver(vehicle::GetDataFile(driver_file));
 #endif
 
   // ---------------
@@ -192,7 +192,8 @@ int main(int argc, char* argv[])
   ChTireForces tire_forces(2);
   ChWheelState wheel_states[2];
   double       steering_input;
-  double       post_z_L, post_z_R;
+  double       post_z_L = 0;
+  double       post_z_R = 0;
 
   // Number of simulation steps between two 3D view render frames
   int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -302,8 +303,6 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  vehicle.ExportMeshPovray(out_dir);
-
   char filename[100];
 
   while (time < tend)
@@ -311,7 +310,8 @@ int main(int argc, char* argv[])
     if (step_number % render_steps == 0) {
       // Output render data
       sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-      utils::WriteShapesPovray(&vehicle, filename);
+      //// TODO:  Fix this!  Must modify ChSuspensionTest to conform to ChVehicle
+      ////utils::WriteShapesPovray(&vehicle, filename);
       std::cout << "Output frame:   " << render_frame << std::endl;
       std::cout << "Sim frame:      " << step_number << std::endl;
       std::cout << "Time:           " << time << std::endl;
@@ -334,11 +334,11 @@ int main(int argc, char* argv[])
     tire_forces[FRONT_LEFT.id()] = tire_front_left->GetTireForce();
     tire_forces[FRONT_RIGHT.id()] = tire_front_right->GetTireForce();
 
-    wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
-    wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
+    wheel_states[FRONT_LEFT.id()] = tester.GetWheelState(FRONT_LEFT);
+    wheel_states[FRONT_RIGHT.id()] = tester.GetWheelState(FRONT_RIGHT);
 
     // Update modules (process inputs from other modules)
-    time = vehicle.GetChTime();
+    time = tester.GetChTime();
 
     driver.Update(time);
 
@@ -346,9 +346,8 @@ int main(int argc, char* argv[])
 
     tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
     tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
-   
 
-    tester.Update(time, steering_input);
+    tester.Update(time, steering_input, post_z_L, post_z_R, tire_forces);
 
     // Advance simulation for one timestep for all modules
     driver.Advance(step_size);
