@@ -158,6 +158,11 @@ SET(CV_SUSPENSIONTEST_FILES
     suspensionTest/SuspensionTest.cpp
 )
 
+SET(CV_UTILS_FILES
+    utils/ChWheeledVehicleAssembly.h
+    utils/ChWheeledVehicleAssembly.cpp
+)
+
 IF (ENABLE_UNIT_IRRLICHT)
     SET(CVIRR_DRIVER_FILES
         driver/ChChaseCamera.h
@@ -189,6 +194,7 @@ SOURCE_GROUP("brake" FILES ${CV_BRAKE_FILES})
 SOURCE_GROUP("antirollbar" FILES ${CV_ANTIROLL_FILES})
 SOURCE_GROUP("terrain" FILES ${CV_TERRAIN_FILES})
 SOURCE_GROUP("suspensionTest" FILES ${CV_SUSPENSIONTEST_FILES})
+SOURCE_GROUP("utils" FILES ${CV_UTILS_FILES})
 
 # ----------------------------------------------------------------------------
 # ADD THE ChronoEngine_Vehicle LIBRARY
@@ -208,6 +214,7 @@ ADD_LIBRARY(ChronoEngine_Vehicle SHARED
     ${CV_ANTIROLL_FILES}
     ${CV_TERRAIN_FILES}
     ${CV_SUSPENSIONTEST_FILES}
+    ${CV_UTILS_FILES}
 )
 
 SET_TARGET_PROPERTIES(ChronoEngine_Vehicle PROPERTIES
