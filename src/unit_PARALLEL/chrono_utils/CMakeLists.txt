@@ -15,6 +15,7 @@ SET(ChronoEngine_ParallelUtils_SOURCES
     )
 
 SET(ChronoEngine_ParallelUtils_HEADERS
+    ChApiUtils.h
     ChUtilsCommon.h
     ChUtilsGeometry.h
     ChUtilsCreators.h
