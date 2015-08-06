@@ -18,7 +18,7 @@
 
 #include "assets/ChColorAsset.h"
 
-#include "chrono_utils/ChUtilsInputOutput.h"
+#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
 
 namespace chrono {
 namespace utils {

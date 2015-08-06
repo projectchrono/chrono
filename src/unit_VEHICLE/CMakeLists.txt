@@ -92,5 +92,5 @@ CONFIGURE_FILE(
 # ----------------------------------------------------------------------------
 
 ADD_SUBDIRECTORY(chrono_vehicle)
-ADD_SUBDIRECTORY(chrono_utils)
+ADD_SUBDIRECTORY(chrono_vehicle_utils)
 #ADD_SUBDIRECTORY(tests)

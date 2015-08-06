@@ -32,7 +32,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "chrono_utils/ChUtilsInputOutput.h"
+#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
 
 #include "ModelDefs.h"
 #include "generic/Generic_Vehicle.h"

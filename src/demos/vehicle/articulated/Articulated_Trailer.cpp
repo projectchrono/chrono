@@ -21,7 +21,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_utils/ChUtilsInputOutput.h"
+#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
 
 #include "generic/Generic_SolidAxle.h"
 #include "generic/Generic_MultiLink.h"

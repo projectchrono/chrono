@@ -18,7 +18,7 @@
 // =============================================================================
 
 
-#include "chrono_utils/ChUtilsCreators.h"
+#include "chrono_vehicle_utils/ChUtilsCreators.h"
 
 namespace chrono {
 namespace utils {

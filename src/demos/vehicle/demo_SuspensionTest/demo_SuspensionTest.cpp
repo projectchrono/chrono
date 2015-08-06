@@ -33,7 +33,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_utils/ChUtilsInputOutput.h"
+#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
 
 // subsystems, all read in fron JSON files
 #include "ModelDefs.h"
