@@ -1233,6 +1233,7 @@ add_subdirectory(unit_COSIMULATION)
 add_subdirectory(unit_FEA)
 add_subdirectory(unit_PYTHON)
 add_subdirectory(unit_PARALLEL)
+add_subdirectory(unit_VEHICLE)
 
 # Add directories for demo programs and unit test programs.
 

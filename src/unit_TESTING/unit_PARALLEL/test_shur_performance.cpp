@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
   system_gpu->SetMaxPenetrationRecoverySpeed(10000);
   utils::ReadCheckpoint(system_gpu, ss.str());
   system_gpu->AssembleSystem();
-  ChContactContainer* container = (ChContactContainer*)system_gpu->GetContactContainer();
+  ChContactContainerParallel* container = (ChContactContainerParallel*)system_gpu->GetContactContainer();
 
   std::vector<ChLcpConstraint*>& mconstraints = system_gpu->GetLcpSystemDescriptor()->GetConstraintsList();
   std::vector<ChLcpVariables*>& mvariables = system_gpu->GetLcpSystemDescriptor()->GetVariablesList();

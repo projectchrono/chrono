@@ -1,0 +1,25 @@
+{
+  "Name":                       "Generic RSD Antirollbar",
+  "Type":                       "Antirollbar",
+  "Template":                   "AntirollBarRSD",
+
+  "Arm":
+  {
+    "Mass":                     1.0,
+    "Inertia":                  [1, 1, 1],
+    "Length":                   0.70,
+    "Width":                    0.4,
+    "Radius":                   0.02
+  },
+
+  "Droplink":
+  {
+    "Height":                   -0.04
+  },
+
+  "RSD":
+  {
+    "Spring Coefficient":        1000000,
+    "Damping Coefficient":        2000
+  }
+}

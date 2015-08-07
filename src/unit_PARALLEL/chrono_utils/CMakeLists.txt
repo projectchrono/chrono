@@ -15,6 +15,7 @@ SET(ChronoEngine_ParallelUtils_SOURCES
     )
 
 SET(ChronoEngine_ParallelUtils_HEADERS
+    ChApiUtils.h
     ChUtilsCommon.h
     ChUtilsGeometry.h
     ChUtilsCreators.h
@@ -31,32 +32,6 @@ SET(LIBRARIES
     )
 
 # ------------------------------------------------------------------------------
-# Optional Chrono::Vehicle support
-# ------------------------------------------------------------------------------
-IF(ENABLE_VEHICLE)
-
-  SET(ChronoEngine_ParallelUtils_SOURCES
-      ${ChronoEngine_ParallelUtils_SOURCES}
-      ChUtilsVehicle.cpp
-      )
-
-  SET(ChronoEngine_ParallelUtils_HEADERS
-      ${ChronoEngine_ParallelUtils_HEADERS}
-      ChUtilsVehicle.h
-      )
-
-   INCLUDE_DIRECTORIES(
-      ${CHRONOVEHICLE_INCLUDES}
-      )
-
-  SET(LIBRARIES
-      ${LIBRARIES}
-      ${CHRONOVEHICLE_LIBRARIES}
-      )
-
-ENDIF()
-
-# ------------------------------------------------------------------------------
 # ADD THE ChronoEngine_ParallelUtils LIBRARY
 # ------------------------------------------------------------------------------
 
@@ -65,9 +40,9 @@ ADD_LIBRARY(ChronoEngine_ParallelUtils SHARED
     ${ChronoEngine_ParallelUtils_SOURCES})
 
 SET_TARGET_PROPERTIES(ChronoEngine_ParallelUtils PROPERTIES
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_GPU}"
-  COMPILE_DEFINITIONS "CH_API_COMPILE_UTILS")
+    COMPILE_FLAGS "${CH_BUILDFLAGS}"
+    LINK_FLAGS "${CH_LINKERFLAG_GPU}"
+    COMPILE_DEFINITIONS "CH_API_COMPILE_UTILS")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_ParallelUtils ${LIBRARIES})
 
