@@ -351,6 +351,21 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
 }
 
 
+bool ChModelBullet::AddPoint(double radius, const ChVector<>& pos) {
+    // adjust default inward 'safe' margin (always as radius)
+    this->SetSafeMargin(radius);
+
+    btPointShape* mshape = new btPointShape((btScalar)(radius + this->GetEnvelope()));
+
+    mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
+
+    _injectShape(pos, ChMatrix33<>(1), mshape);
+
+    return true;
+}
+
+
+
 bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
                                   const ChVector<>& pos,
                                   const ChMatrix33<>& rot) {

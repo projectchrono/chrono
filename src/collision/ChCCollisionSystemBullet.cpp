@@ -28,6 +28,7 @@
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 #include "BulletCollision/CollisionShapes/btCylinderShape.h"
 #include "BulletCollision/CollisionShapes/bt2DShape.h"
+#include "BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h"
 
 extern btScalar gContactBreakingThreshold;
 
@@ -680,6 +681,14 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
     btCollisionAlgorithmCreateFunc* m_collision_arc_arc = new btArcArcCollisionAlgorithm::CreateFunc;
     bt_dispatcher->registerCollisionCreateFunc(ARC_SHAPE_PROXYTYPE, ARC_SHAPE_PROXYTYPE, m_collision_arc_arc);
 
+     // custom collision for point-point case (in point clouds, just never create point-point contacts)
+    //btCollisionAlgorithmCreateFunc* m_collision_point_point = new btPointPointCollisionAlgorithm::CreateFunc;
+    void* mem = btAlignedAlloc(sizeof(btEmptyAlgorithm::CreateFunc),16);
+	btCollisionAlgorithmCreateFunc* m_emptyCreateFunc = new(mem) btEmptyAlgorithm::CreateFunc;
+    bt_dispatcher->registerCollisionCreateFunc(POINT_SHAPE_PROXYTYPE, POINT_SHAPE_PROXYTYPE, m_emptyCreateFunc);
+    bt_dispatcher->registerCollisionCreateFunc(POINT_SHAPE_PROXYTYPE, BOX_SHAPE_PROXYTYPE, bt_collision_configuration->getCollisionAlgorithmCreateFunc(SPHERE_SHAPE_PROXYTYPE,BOX_SHAPE_PROXYTYPE)); // just for speedup
+    bt_dispatcher->registerCollisionCreateFunc(BOX_SHAPE_PROXYTYPE,   POINT_SHAPE_PROXYTYPE, bt_collision_configuration->getCollisionAlgorithmCreateFunc(BOX_SHAPE_PROXYTYPE,SPHERE_SHAPE_PROXYTYPE)); // just for speedup
+
     // custom collision for GIMPACT mesh case too
     btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
 }
@@ -796,14 +805,28 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
 
 void ChCollisionSystemBullet::ReportProximities(ChProximityContainerBase* mproximitycontainer) {
     mproximitycontainer->BeginAddProximities();
-
-    int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
+    /*
+    int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds(); 
     for (int i = 0; i < numManifolds; i++) {
         btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
         btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
         btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
         contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
 
+        ChCollisionModel* modelA = (ChCollisionModel*)obA->getUserPointer();
+        ChCollisionModel* modelB = (ChCollisionModel*)obB->getUserPointer();
+
+        // Add to proximity container
+        mproximitycontainer->AddProximity(modelA, modelB);
+    }
+    */
+    int numPairs = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getNumOverlappingPairs();
+    for (int i = 0; i < numPairs; i++) {
+        btBroadphasePair mp = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getOverlappingPairArray().at(i);
+
+        btCollisionObject* obA = static_cast<btCollisionObject*>(mp.m_pProxy0->m_clientObject);
+        btCollisionObject* obB = static_cast<btCollisionObject*>(mp.m_pProxy1->m_clientObject);
+        
         ChCollisionModel* modelA = (ChCollisionModel*)obA->getUserPointer();
         ChCollisionModel* modelB = (ChCollisionModel*)obB->getUserPointer();
 

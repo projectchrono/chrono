@@ -55,8 +55,6 @@ public:
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
-	
-	virtual int	getShapeType() const { return ARC_SHAPE_PROXYTYPE; }
 
 	virtual const char*	getName()const 
 	{
@@ -101,8 +99,6 @@ public:
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
-	
-	virtual int	getShapeType() const { return SEGMENT_SHAPE_PROXYTYPE; }
 
 	virtual const char*	getName()const 
 	{
@@ -115,6 +111,28 @@ public:
 	btVector3	get_P2() const {return P2;}
     btScalar    get_zthickness() const {return zthickness;}
 };
+
+
+////////////////////***TEST***
+
+
+#include "btSphereShape.h"
+
+/// Class for point-like nodes. 
+/// These are like null radii spheres, but node-node collision is never processed at all.
+
+class btPointShape : public btSphereShape {
+public:
+    btPointShape(btScalar mrad) 
+        : btSphereShape(mrad) 
+    { m_shapeType = POINT_SHAPE_PROXYTYPE; };
+
+    virtual const char*	getName()const 
+	{
+		return "PointShape";
+	}
+};
+
 
 
 

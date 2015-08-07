@@ -217,6 +217,12 @@ class ChApi ChCollisionModel {
                            const ChMatrix33<>& rot = ChMatrix33<>(1),
                            const double thickness = 0.001) { return true; };
 
+    /// Add a point-like sphere, that will collide with other geometries,
+    /// but won't ever create contacts between them.
+    virtual bool AddPoint(  double radius = 0,                     ///< the radius of the node 
+                            const ChVector<>& pos = ChVector<>()   ///< the position of the node in model coordinates
+                           ) { this->AddSphere(radius,pos); return true;}
+
     /// Add all shapes already contained in another model.
     /// If possible, child classes implement this so that underlying shapes are
     /// shared (not copied) among the models.
