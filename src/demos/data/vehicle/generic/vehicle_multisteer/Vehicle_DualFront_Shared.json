@@ -1,0 +1,65 @@
+{
+  "Name":     "Dual Front Steering - Common",
+  "Type":     "Vehicle",
+  "Template": "Vehicle",
+
+  "Chassis":
+  {
+    "Mass":     3521.4,
+    "COM":      [-0.4775, -0.0149, 0.8466],
+    "Inertia":  [125.8, 497.4, 531.4]
+  },
+
+  "Axles":
+  [
+    {
+      "Suspension Input File":   "generic/suspension/SolidAxle.json",
+      "Suspension Location":     [2.3, 0, 0.0264],
+      "Steering Index":          0,
+      "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
+      "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
+      "Left Brake Input File":   "generic/brake/BrakeSimple.json",
+      "Right Brake Input File":  "generic/brake/BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File":   "generic/suspension/SolidAxle.json",
+      "Suspension Location":     [1.3, 0, 0.0264],
+      "Steering Index":          0,
+      "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
+      "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
+      "Left Brake Input File":   "generic/brake/BrakeSimple.json",
+      "Right Brake Input File":  "generic/brake/BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File":   "generic/suspension/SolidAxle.json",
+      "Suspension Location":     [-1.8, 0, 0.0264],
+      "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
+      "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
+      "Left Brake Input File":   "generic/brake/BrakeSimple.json",
+      "Right Brake Input File":  "generic/brake/BrakeSimple.json"
+    }
+  ],
+
+  "Steering Subsystems":
+  [
+    {
+      "Input File":           "generic/steering/RackPinion.json",
+      "Location":             [2.2, 0, -0.07],
+      "Orientation":          [1, 0, 0, 0]
+    }
+  ],
+
+  "Driveline":
+  {
+    "Input File":           "generic/driveline/Driveline2WD.json",
+    "Suspension Indexes":   [2]
+  },
+
+  "Driver Position":
+  {
+    "Location":     [0, 0.5, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  }
+}
