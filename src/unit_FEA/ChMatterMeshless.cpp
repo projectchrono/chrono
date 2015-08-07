@@ -56,7 +56,7 @@ ChNodeMeshless::~ChNodeMeshless() {
 ChNodeMeshless::ChNodeMeshless(const ChNodeMeshless& other) : ChNodeXYZ(other) {
     this->collision_model = new ChModelBullet;
     this->collision_model->SetContactable(this);
-    this->collision_model->AddSphere(other.coll_rad);
+    this->collision_model->AddPoint(other.coll_rad);
 
     this->pos_ref = other.pos_ref;
     this->UserForce = other.UserForce;
@@ -84,7 +84,7 @@ ChNodeMeshless& ChNodeMeshless::operator=(const ChNodeMeshless& other) {
     ChNodeXYZ::operator=(other);
 
     this->collision_model->ClearModel();
-    this->collision_model->AddSphere(other.coll_rad);
+    this->collision_model->AddPoint(other.coll_rad);
 
     this->collision_model->SetContactable(this);
 
@@ -213,7 +213,7 @@ void ChMatterMeshless::ResizeNnodes(int newsize) {
 
         this->nodes[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
-        this->nodes[j]->collision_model->AddSphere(0.001);  //***TEST***
+        this->nodes[j]->collision_model->AddPoint(0.001);  //***TEST***
         this->nodes[j]->collision_model->BuildModel();
     }
 
@@ -232,7 +232,7 @@ void ChMatterMeshless::AddNode(ChVector<double> initial_state) {
 
     newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
-    newp->collision_model->AddSphere(0.1);  //***TEST***
+    newp->collision_model->AddPoint(0.1);  //***TEST***
     newp->collision_model->BuildModel();    // will also add to system, if collision is on.
 }
 
