@@ -10,6 +10,7 @@ ChOgreScene is designed to be a layer of abstraction from the Ogre lighting syst
 #include <physics\ChSystem.h>
 
 #include "ChOgreBody.h"
+#include "../Util/ChOgreBodyHandle.h"
 
 namespace ChOgre {
 
@@ -41,11 +42,11 @@ namespace ChOgre {
 		//Body Creation
 		///////
 
-		virtual ChOgreBodySharedPtr createBody(std::string Name="");
+		virtual ChOgreBodyHandle createBody(std::string Name = "");
 
-		virtual ChOgreBodySharedPtr getBody(std::string Name);
+		virtual ChOgreBodyHandle getBody(std::string Name);
 
-		virtual void removeBody(ChOgreBodySharedPtr& Body);
+		virtual void removeBody(ChOgreBodyHandle& Body);
 		virtual void removeBody(std::string Name);
 
 		virtual void update();
@@ -54,43 +55,43 @@ namespace ChOgre {
 		//Convenience functions
 		////////
 
-		virtual ChOgreBodySharedPtr spawnBox(std::string Name = "",
+		virtual ChOgreBodyHandle spawnBox(std::string Name = "",
 										double mass = 1.0, 
 										chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
 										chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1), 
 										chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0), 
 										bool fixed = false);
 
-		virtual ChOgreBodySharedPtr spawnCapsule(std::string Name = ""); // TODO: Actually implement the capsule
+		virtual ChOgreBodyHandle spawnCapsule(std::string Name = ""); // TODO: Actually implement the capsule
 
-		virtual ChOgreBodySharedPtr spawnCone(std::string Name = "",
+		virtual ChOgreBodyHandle spawnCone(std::string Name = "",
 										double mass = 1.0, 
 										chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0), 
 										chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1),
 										chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0), 
 										bool fixed = false);
 
-		virtual ChOgreBodySharedPtr spawnCylinder(std::string Name = "",
+		virtual ChOgreBodyHandle spawnCylinder(std::string Name = "",
 											double mass = 1.0, 
 											chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0), 
 											chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1), 
 											chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0),
 											bool fixed = false);
 
-		virtual ChOgreBodySharedPtr spawnEllipsoid(std::string Name = "",
+		virtual ChOgreBodyHandle spawnEllipsoid(std::string Name = "",
 											double mass = 1.0, 
 											chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
 											chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1), 
 											chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0), 
 											bool fixed = false);
 
-		virtual ChOgreBodySharedPtr spawnSphere(std::string Name = "",
+		virtual ChOgreBodyHandle spawnSphere(std::string Name = "",
 											double mass = 1.0, 
 											chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0), 
 											double radius = 1.0,
 											bool fixed = false);
 
-		virtual ChOgreBodySharedPtr spawnMesh(std::string Name = "",
+		virtual ChOgreBodyHandle spawnMesh(std::string Name = "",
 										double mass = 1.0,
 										chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
 										chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1),
@@ -110,7 +111,7 @@ namespace ChOgre {
 		virtual void setSkyBox(std::string FilePath);
 		virtual void disableSkyBox();
 
-		virtual ChOgreBodySharedPtr loadHeightMap(std::string FilePath, chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
+		virtual ChOgreBodyHandle loadHeightMap(std::string FilePath, chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
 
 	protected:
 

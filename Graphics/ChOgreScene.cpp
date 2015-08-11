@@ -157,29 +157,30 @@ namespace ChOgre {
 	}
 
 
-	ChOgreBodySharedPtr ChOgreScene::createBody(std::string Name) {
-		ChOgreBodySharedPtr _ret(new ChOgreBody(m_pSceneManager, m_pChSystem));
-		_ret->name = Name;
-		m_ChOgreBodies.push_back(_ret);
+	ChOgreBodyHandle ChOgreScene::createBody(std::string Name) {
+		ChOgreBodySharedPtr _body(new ChOgreBody(m_pSceneManager, m_pChSystem));
+		ChOgreBodyHandle _ret(_body);
+		_body->name = Name;
+		m_ChOgreBodies.push_back(_body);
 		return _ret;
 	}
 
-	ChOgreBodySharedPtr ChOgreScene::getBody(std::string Name) {
-		ChOgreBodySharedPtr _ret;
+	ChOgreBodyHandle ChOgreScene::getBody(std::string Name) {
+		ChOgreBodyHandle _ret;
 		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
 			if (m_ChOgreBodies[i]) {
 				if (Name == m_ChOgreBodies[i]->name) {
-					_ret = m_ChOgreBodies[i];
+					_ret.setBodyPtr(m_ChOgreBodies[i]);
 				}
 			}
 		}
 		return _ret;
 	}
 
-	void ChOgreScene::removeBody(ChOgreBodySharedPtr& Body) {
+	void ChOgreScene::removeBody(ChOgreBodyHandle& Body) {
 		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
 			if (m_ChOgreBodies[i]) {
-				if (Body == m_ChOgreBodies[i]) {
+				if (&Body.body() == m_ChOgreBodies[i].get()) {
 					m_ChOgreBodies[i].swap(m_ChOgreBodies.back());
 					m_ChOgreBodies.pop_back();
 				}
@@ -202,169 +203,169 @@ namespace ChOgre {
 		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
 			m_ChOgreBodies[i]->update();
 			if (m_ChOgreBodies[i]->getChBody()->GetPos().y < m_LowerLimit && m_ChOgreBodies[i]->deletable == true && m_LowerLimit < 0) {
-				removeBody(m_ChOgreBodies[i]);
+				removeBody(ChOgreBodyHandle(m_ChOgreBodies[i]));
 			}
 		}
 	}
 
 
-	ChOgreBodySharedPtr ChOgreScene::spawnBox(std::string Name,
+	ChOgreBodyHandle ChOgreScene::spawnBox(std::string Name,
 		double mass,
 		chrono::ChVector<>& position,
 		chrono::ChVector<>& size,
 		chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
-		ChOgreBodySharedPtr _ret = createBody(Name);
+		ChOgreBodyHandle _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChBoxShape> _box(new chrono::ChBoxShape);
 		_box->GetBoxGeometry().Size = size;
 
-		_ret->getChBody()->SetRot(rotation);
-		_ret->getChBody()->SetPos(position);
-		_ret->getChBody()->SetMass(mass);
-		_ret->getChBody()->GetAssets().push_back(_box);
+		_ret->SetRot(rotation);
+		_ret->SetPos(position);
+		_ret->SetMass(mass);
+		_ret->GetAssets().push_back(_box);
 
-		_ret->getChBody()->GetCollisionModel()->ClearModel();
-		_ret->getChBody()->GetCollisionModel()->AddBox(size.x, size.y, size.z);
-		_ret->getChBody()->GetCollisionModel()->BuildModel();
-		_ret->getChBody()->SetCollide(true);
-		_ret->getChBody()->SetBodyFixed(fixed);
+		_ret->GetCollisionModel()->ClearModel();
+		_ret->GetCollisionModel()->AddBox(size.x, size.y, size.z);
+		_ret->GetCollisionModel()->BuildModel();
+		_ret->SetCollide(true);
+		_ret->SetBodyFixed(fixed);
 
-		_ret->refresh();
-
-		return _ret;
-	}
-
-	ChOgreBodySharedPtr ChOgreScene::spawnCapsule(std::string Name) {
-
-		ChOgreBodySharedPtr _ret = createBody(Name);
+		_ret.body().refresh();
 
 		return _ret;
 	}
 
-	ChOgreBodySharedPtr ChOgreScene::spawnCone(std::string Name,
+	ChOgreBodyHandle ChOgreScene::spawnCapsule(std::string Name) {
+
+		ChOgreBodyHandle _ret = createBody(Name);
+
+		return _ret;
+	}
+
+	ChOgreBodyHandle ChOgreScene::spawnCone(std::string Name,
 		double mass,
 		chrono::ChVector<>& position,
 		chrono::ChVector<>& size,
 		chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
-		ChOgreBodySharedPtr _ret = createBody(Name);
+		ChOgreBodyHandle _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChConeShape> _cone(new chrono::ChConeShape);
 		_cone->GetConeGeometry().rad = size;
 
-		_ret->getChBody()->SetRot(rotation);
-		_ret->getChBody()->SetPos(position);
-		_ret->getChBody()->SetMass(mass);
-		_ret->getChBody()->GetAssets().push_back(_cone);
+		_ret->SetRot(rotation);
+		_ret->SetPos(position);
+		_ret->SetMass(mass);
+		_ret->GetAssets().push_back(_cone);
 
-		_ret->getChBody()->GetCollisionModel()->ClearModel();
-		_ret->getChBody()->GetCollisionModel()->AddCone(size.x, size.z, size.y);
-		_ret->getChBody()->GetCollisionModel()->BuildModel();
-		_ret->getChBody()->SetCollide(true);
-		_ret->getChBody()->SetBodyFixed(fixed);
+		_ret->GetCollisionModel()->ClearModel();
+		_ret->GetCollisionModel()->AddCone(size.x, size.z, size.y);
+		_ret->GetCollisionModel()->BuildModel();
+		_ret->SetCollide(true);
+		_ret->SetBodyFixed(fixed);
 
-		_ret->refresh();
+		_ret.body().refresh();
 
 		return _ret;
 	}
 
-	ChOgreBodySharedPtr ChOgreScene::spawnCylinder(std::string Name,
+	ChOgreBodyHandle ChOgreScene::spawnCylinder(std::string Name,
 		double mass,
 		chrono::ChVector<>& position,
 		chrono::ChVector<>& size,
 		chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
-		ChOgreBodySharedPtr _ret = createBody(Name);
+		ChOgreBodyHandle _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChCylinderShape> _cylinder(new chrono::ChCylinderShape);
 		_cylinder->GetCylinderGeometry().rad = size.x;
 		_cylinder->GetCylinderGeometry().p1 = chrono::ChVector<>(0, size.y, 0);
 		_cylinder->GetCylinderGeometry().p2 = chrono::ChVector<>(0, 0, 0);
 
-		_ret->getChBody()->SetRot(rotation);
-		_ret->getChBody()->SetPos(position);
-		_ret->getChBody()->SetMass(mass);
-		_ret->getChBody()->GetAssets().push_back(_cylinder);
+		_ret->SetRot(rotation);
+		_ret->SetPos(position);
+		_ret->SetMass(mass);
+		_ret->GetAssets().push_back(_cylinder);
 
-		_ret->getChBody()->GetCollisionModel()->ClearModel();
-		_ret->getChBody()->GetCollisionModel()->AddCylinder(size.x, size.z, size.y);
-		_ret->getChBody()->GetCollisionModel()->BuildModel();
-		_ret->getChBody()->SetCollide(true);
-		_ret->getChBody()->SetBodyFixed(fixed);
+		_ret->GetCollisionModel()->ClearModel();
+		_ret->GetCollisionModel()->AddCylinder(size.x, size.z, size.y);
+		_ret->GetCollisionModel()->BuildModel();
+		_ret->SetCollide(true);
+		_ret->SetBodyFixed(fixed);
 
-		_ret->refresh();
+		_ret.body().refresh();
 
 		return _ret;
 	}
 
-	ChOgreBodySharedPtr ChOgreScene::spawnEllipsoid(std::string Name,
+	ChOgreBodyHandle ChOgreScene::spawnEllipsoid(std::string Name,
 		double mass,
 		chrono::ChVector<>& position,
 		chrono::ChVector<>& size,
 		chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
-		ChOgreBodySharedPtr _ret = createBody(Name);
+		ChOgreBodyHandle _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChEllipsoidShape> _ellipsoid(new chrono::ChEllipsoidShape);
 		_ellipsoid->GetEllipsoidGeometry().rad = size;
 
-		_ret->getChBody()->SetRot(rotation);
-		_ret->getChBody()->SetPos(position);
-		_ret->getChBody()->SetMass(mass);
-		_ret->getChBody()->GetAssets().push_back(_ellipsoid);
+		_ret->SetRot(rotation);
+		_ret->SetPos(position);
+		_ret->SetMass(mass);
+		_ret->GetAssets().push_back(_ellipsoid);
 
-		_ret->getChBody()->GetCollisionModel()->ClearModel();
-		_ret->getChBody()->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z);
-		_ret->getChBody()->GetCollisionModel()->BuildModel();
-		_ret->getChBody()->SetCollide(true);
-		_ret->getChBody()->SetBodyFixed(fixed);
+		_ret->GetCollisionModel()->ClearModel();
+		_ret->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z);
+		_ret->GetCollisionModel()->BuildModel();
+		_ret->SetCollide(true);
+		_ret->SetBodyFixed(fixed);
 
-		_ret->refresh();
+		_ret.body().refresh();
 
 		return _ret;
 	}
 
-	ChOgreBodySharedPtr ChOgreScene::spawnSphere(std::string Name,
+	ChOgreBodyHandle ChOgreScene::spawnSphere(std::string Name,
 		double mass,
 		chrono::ChVector<>& position,
 		double radius,
 		bool fixed) {
 
-		ChOgreBodySharedPtr _ret = createBody(Name);
+		ChOgreBodyHandle _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChSphereShape> _sphere(new chrono::ChSphereShape);
 		_sphere->GetSphereGeometry().rad = radius;
 
-		_ret->getChBody()->SetPos(position);
-		_ret->getChBody()->SetMass(mass);
-		_ret->getChBody()->GetAssets().push_back(_sphere);
+		_ret->SetPos(position);
+		_ret->SetMass(mass);
+		_ret->GetAssets().push_back(_sphere);
 
-		_ret->getChBody()->GetCollisionModel()->ClearModel();
-		_ret->getChBody()->GetCollisionModel()->AddSphere(radius);
-		_ret->getChBody()->GetCollisionModel()->BuildModel();
-		_ret->getChBody()->SetCollide(true);
-		_ret->getChBody()->SetBodyFixed(fixed);
+		_ret->GetCollisionModel()->ClearModel();
+		_ret->GetCollisionModel()->AddSphere(radius);
+		_ret->GetCollisionModel()->BuildModel();
+		_ret->SetCollide(true);
+		_ret->SetBodyFixed(fixed);
 
-		_ret->refresh();
+		_ret.body().refresh();
 
 		return _ret;
 	}
 
-	ChOgreBodySharedPtr ChOgreScene::spawnMesh(std::string Name, double mass, chrono::ChVector<>& position, chrono::ChVector<>& size, chrono::ChQuaternion<>& rotation, std::string FileName, std::string Path, bool fixed) {
-		ChOgreBodySharedPtr _ret = createBody(Name);
+	ChOgreBodyHandle ChOgreScene::spawnMesh(std::string Name, double mass, chrono::ChVector<>& position, chrono::ChVector<>& size, chrono::ChQuaternion<>& rotation, std::string FileName, std::string Path, bool fixed) {
+		ChOgreBodyHandle _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChTriangleMeshShape> _mesh(new chrono::ChTriangleMeshShape);
 		_mesh->SetName(FileName);
 		_mesh->SetScale(size);
 
-		_ret->getChBody()->SetRot(rotation);
-		_ret->getChBody()->SetPos(position);
-		_ret->getChBody()->SetMass(mass);
+		_ret->SetRot(rotation);
+		_ret->SetPos(position);
+		_ret->SetMass(mass);
 		
 
 		std::string _base;
@@ -376,7 +377,7 @@ namespace ChOgre {
 		std::vector<Ogre::MeshPtr> l_Meshes;
 		Ogre::Entity* l_pEntity = nullptr;
 
-		_ret->getChBody()->GetCollisionModel()->ClearModel();
+		_ret->GetCollisionModel()->ClearModel();
 
 		if (_ext == "mesh") {
 			l_pEntity = m_pSceneManager->createEntity(FileName);
@@ -452,15 +453,15 @@ namespace ChOgre {
 			delete[] l_pvertices;
 			delete[] l_pindices;
 
-			_ret->getChBody()->GetCollisionModel()->AddTriangleMesh(l_triangle_mesh, true, false, chrono::ChVector<>(), chrono::QUNIT);
+			_ret->GetCollisionModel()->AddTriangleMesh(l_triangle_mesh, true, false, chrono::ChVector<>(), chrono::QUNIT);
 		}
 		
-		_ret->getChBody()->GetAssets().push_back(_mesh);
-		_ret->getChBody()->GetCollisionModel()->BuildModel();
-		_ret->getChBody()->SetCollide(true);
-		_ret->getChBody()->SetBodyFixed(fixed);
+		_ret->GetAssets().push_back(_mesh);
+		_ret->GetCollisionModel()->BuildModel();
+		_ret->SetCollide(true);
+		_ret->SetBodyFixed(fixed);
 
-		_ret->refresh();
+		_ret.body().refresh();
 
 		if (_ext == "mesh") {
 			m_pSceneManager->destroyEntity(l_pEntity);
@@ -486,7 +487,7 @@ namespace ChOgre {
 		m_pSceneManager->setSkyBoxEnabled(false);
 	}
 
-	ChOgreBodySharedPtr ChOgreScene::loadHeightMap(std::string FilePath, chrono::ChVector<>& Scale) {
+	ChOgreBodyHandle ChOgreScene::loadHeightMap(std::string FilePath, chrono::ChVector<>& Scale) {
 		Ogre::TexturePtr l_tex = Ogre::TextureManager::getSingleton().load(FilePath, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
 		if (l_tex->getFormat() != Ogre::PF_L16 && l_tex->getFormat() != Ogre::PF_L8) {
@@ -742,9 +743,9 @@ namespace ChOgre {
 		//terrain_object->getSection(0)->getMaterial()->getTechnique(0)->getPass(0)->createTextureUnitState("white.png");
 		//terrain_object->getSection(0)->getMaterial()->getTechnique(0)->getPass(0)->setLightingEnabled(true);
 
-		ChOgreBodySharedPtr _ret = createBody();
+		ChOgreBodyHandle _ret = createBody();
 
-		_ret->setMesh(terrain_object, Scale);
+		_ret.body().setMesh(terrain_object, Scale);
 
 		chrono::geometry::ChTriangleMeshConnected l_triangle_mesh;
 
@@ -768,11 +769,11 @@ namespace ChOgre {
 				);
 		}
 
-		_ret->getChBody()->GetCollisionModel()->ClearModel();
-		_ret->getChBody()->GetCollisionModel()->AddTriangleMesh(l_triangle_mesh, true, false, chrono::ChVector<>(), chrono::QUNIT);
-		_ret->getChBody()->GetCollisionModel()->BuildModel();
-		_ret->getChBody()->SetCollide(true);
-		_ret->getChBody()->SetBodyFixed(true);
+		_ret->GetCollisionModel()->ClearModel();
+		_ret->GetCollisionModel()->AddTriangleMesh(l_triangle_mesh, true, false, chrono::ChVector<>(), chrono::QUNIT);
+		_ret->GetCollisionModel()->BuildModel();
+		_ret->SetCollide(true);
+		_ret->SetBodyFixed(true);
 
 		return _ret;
 	}
