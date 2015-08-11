@@ -65,6 +65,7 @@ namespace ChOgre {
 		bool isRunning;
 
 		bool WriteToFile;
+		std::string OutputImageFolder;
 
 	protected:
 

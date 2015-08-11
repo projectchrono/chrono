@@ -91,7 +91,7 @@ namespace ChOgre {
 		timestep_max = 0.05;
 		timestep_min = 0.001;
 		timestep = 0;
-		isRealTime = true;
+		isRealTime = false;
 		isRunning = false;
 		WriteToFile = false;
 	}
@@ -114,7 +114,7 @@ namespace ChOgre {
 		Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual("RttTex", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D, m_pRenderWindow->getWidth(), m_pRenderWindow->getHeight(), 0, Ogre::PF_R8G8B8, Ogre::TU_RENDERTARGET);
 		Ogre::RenderTexture* renderTexture = rtt_texture->getBuffer()->getRenderTarget();
 
-		renderTexture->addViewport(m_pCamera);
+		renderTexture->addViewport(m_pViewport->getCamera());
 		renderTexture->getViewport(0)->setClearEveryFrame(true);
 		renderTexture->getViewport(0)->setBackgroundColour(Ogre::ColourValue::Black);
 		renderTexture->getViewport(0)->setOverlaysEnabled(false);
@@ -176,7 +176,23 @@ namespace ChOgre {
 			}
 
 			if (WriteToFile) {
-				std::string name = "out/frame" + std::to_string(l_frame) + "time" + std::to_string(l_systemTimeIncriment) + ".png";
+				std::string name;
+				std::string frame_count = std::to_string(l_frame);
+				std::string pad;
+
+				for (unsigned int i = 0; i < (6 - frame_count.size()); i++) {
+					pad += '0';
+				}
+
+				frame_count = pad + frame_count;
+
+				if (!OutputImageFolder.empty()) {
+					name = OutputImageFolder + "/frame" + frame_count + "time" + std::to_string(l_systemTimeIncriment) + ".png";
+				}
+				else {
+					name = "frame" + frame_count + ".png";
+				}
+				
 				renderTexture->update();
 				renderTexture->writeContentsToFile(name);
 				l_frame++;
