@@ -188,7 +188,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
         if (update_assets) {
             for (unsigned int ia = 0; ia < this->assets.size(); ++ia)
-                assets[ia]->Update();
+                assets[ia]->Update(this, this->GetAssetsFrame().GetCoord());
         }
     }
 

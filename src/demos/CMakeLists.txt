@@ -70,5 +70,9 @@ if(ENABLE_UNIT_PARALLEL)
   add_subdirectory(parallel)
 endif()
 
+if(ENABLE_UNIT_VEHICLE)
+  add_subdirectory(vehicle)
+endif()
+
 # TODO: this will be soon removed...
 ADD_SUBDIRECTORY(trackVehicle)

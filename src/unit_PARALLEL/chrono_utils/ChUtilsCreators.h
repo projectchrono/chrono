@@ -49,7 +49,7 @@
 #include "chrono_utils/ChApiUtils.h"
 #include "chrono_utils/ChUtilsCommon.h"
 
-#include "collision/ChCModelBulletBody.h"
+#include "collision/ChCModelBullet.h"
 #include "collision/ChCConvexDecomposition.h"
 
 namespace chrono {
@@ -200,6 +200,36 @@ ChSharedPtr<ChBody> CreateBoxContainer(ChSystem* system,
                                        bool y_up = false,
                                        bool overlap = false,
                                        bool closed = false);
+
+// -----------------------------------------------------------------------------
+// CreateCylindricalContainerFromBoxes
+// InitializeObject
+// FinalizeObject
+// LoadConvex
+// AddConvex
+//
+// Utility functions for creating objects
+// -----------------------------------------------------------------------------
+
+// Create a cylindrical container body with contact and asset geometry representing a cylindrical container
+// represented by boxes.
+// The container is aligned with the z direction. The position refers to the center of the bottom inner circle.
+// Only half of the cylinder is visualized.
+CH_UTILS_API
+ChSharedPtr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
+                                                        int id,
+                                                        ChSharedPtr<ChMaterialSurfaceBase> mat,
+                                                        const ChVector<>& hdim,
+                                                        double hthick,
+                                                        int numBoxes,
+                                                        double rho,
+                                                        double collisionEnvelope,
+                                                        const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                                        const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                                                        bool collide = true,
+                                                        bool overlap = false,
+                                                        bool closed = false,
+                                                        bool isBoxBase = true);
 
 CH_UTILS_API
 void InitializeObject(ChSharedPtr<ChBody> body,

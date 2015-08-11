@@ -225,6 +225,12 @@ class ChApi ChModelBullet : public ChCollisionModel {
                            const ChMatrix33<>& rot = ChMatrix33<>(1),
                            const double thickness = 0.001);
 
+    /// Add a point-like sphere, that will collide with other geometries,
+    /// but won't ever create contacts between them.
+    virtual bool AddPoint(  double radius = 0,                     ///< the radius of the node 
+                            const ChVector<>& pos = ChVector<>()   ///< the position of the node in model coordinates
+                           );
+
     /// Add all shapes already contained in another model.
     /// Thank to the adoption of shared pointers, underlying shapes are
     /// shared (not copied) among the models; this will save memory when you must
@@ -246,6 +252,11 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// Sets the position and orientation of the collision
     /// model as the current position of the corresponding ChContactable
     virtual void SyncPosition();
+
+    /// If the collision shape is a sphere, resize it and return true (if no
+    /// sphere is found in this collision shape, return false).
+    /// It can also change the outward envelope; the inward margin is automatically the radius of the sphere.
+    bool SetSphereRadius(double coll_radius, double out_envelope);
 
     //
     // SERIALIZATION

@@ -87,20 +87,18 @@ int main(int argc, char* argv[]) {
     system_gpu->GetLcpSystemDescriptor()->BuildBiVector(mb_tmp);  // b_i   =   -c   = phi/h
     mb.MatrDec(mb_tmp);
   }
-  ChContactContainer* container = (ChContactContainer*)system_gpu->GetContactContainer();
+  ChContactContainerParallel* container = (ChContactContainerParallel*)system_gpu->GetContactContainer();
 
-  std::list<ChContact*> m_list = container->GetContactList();
+  std::list<ChContactContainerParallel::ChContact_6_6*> m_list = container->GetContactList();
   ChTimer<real> timer;
 
   std::vector<real> b_b(container->GetNcontacts() * 3);
   int ic = 0;
   timer.start();
-  for (std::list<ChContact*>::iterator it = m_list.begin(); it != m_list.end(); ++it) {
-    ChModelBulletBody* model_A = (ChModelBulletBody*)(*it)->GetModelA();
-    ChModelBulletBody* model_B = (ChModelBulletBody*)(*it)->GetModelB();
+  for (std::list<ChContactContainerParallel::ChContact_6_6*>::iterator it = m_list.begin(); it != m_list.end(); ++it) {
 
-    ChBody* body_A = model_A->GetBody();
-    ChBody* body_B = model_B->GetBody();
+    ChBody* body_A = (ChBody*)(*it)->GetObjA();
+    ChBody* body_B = (ChBody*)(*it)->GetObjB();
 
     ChVector<real> point_on_A = (*it)->GetContactP1();
     ChVector<real> point_on_B = (*it)->GetContactP2();

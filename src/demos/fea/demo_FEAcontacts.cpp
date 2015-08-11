@@ -55,7 +55,10 @@ int main(int argc, char* argv[]) {
     // about friction etc.
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
-
+    mysurfmaterial->SetKn(2e5);
+    mysurfmaterial->SetKt(2e5);
+    mysurfmaterial->SetGn(2200);
+    mysurfmaterial->SetGt(2200);
 
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor and two bouncing items:
@@ -89,7 +92,7 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
     mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.3);
-    mmaterial->Set_RayleighDampingK(0.001);
+    mmaterial->Set_RayleighDampingK(0.003);
     mmaterial->Set_density(1000);
 
     // Creates the nodes for the tetahedron
@@ -118,7 +121,7 @@ int main(int argc, char* argv[]) {
 	ChSharedPtr<ChBeamSectionCable> msection_cable2(new ChBeamSectionCable);
 	msection_cable2->SetDiameter(0.05);
 	msection_cable2->SetYoungModulus (0.01e9);
-	msection_cable2->SetBeamRaleyghDamping(0.000);
+	msection_cable2->SetBeamRaleyghDamping(0.05);
 
 	ChBuilderBeamANCF builder;
 

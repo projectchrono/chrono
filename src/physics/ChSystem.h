@@ -44,9 +44,6 @@
 #include "core/ChMath.h"
 #include "core/ChSpmatrix.h"
 #include "core/ChTimer.h"
-//#include "physics/ChBody.h"
-//#include "physics/ChMarker.h"
-//#include "physics/ChForce.h"
 #include "physics/ChLinksAll.h"
 #include "physics/ChHistory.h"
 #include "physics/ChEvents.h"
@@ -366,11 +363,24 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     void AddProbe(ChSharedPtr<ChProbe>& newprobe);
     /// Attach a control to this system.
     void AddControls(ChSharedPtr<ChControls>& newcontrols);
+
     /// Attach whatever type of ChPhysicsItem (ex a ChBody, or a
     /// ChParticles, or a ChLink, etc.) to the system. It will take care
     /// of adding it to the proper list: of bodies, of links, or of other generic
     /// physic item. (i.e. it calls AddBody(), AddLink() or AddOtherPhysicsItem() ).
+    /// Note, you cannot call Add() during an Update (ie. items like particle generators that
+    /// are already inserted in thesystem cannot call this) because not thread safe: rather
+    /// use AddBatch().
     void Add(ChSharedPtr<ChPhysicsItem> newitem);
+
+    /// Items dded in this way are added like in the Add() method, but not instantly,
+    /// they are simply queued in a batch of 'to add' items, that are added automatically 
+    /// at the first Setup() call. This is thread safe.
+    void AddBatch(ChSharedPtr<ChPhysicsItem> newitem);
+
+    /// If some items are queued for addition in system, using AddBatch(), this will
+    /// effectively add them and clean the batch. Called automatically at each Setup().
+    void FlushBatch();
 
     /// Remove a body from this system.
     virtual void RemoveBody(ChSharedPtr<ChBody> mbody);
@@ -1048,6 +1058,9 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
 
     // the container of contacts
     ChContactContainerBase* contact_container;
+
+    // list of items to insert when doing Setup() or Flush.
+    std::vector< ChSharedPtr<ChPhysicsItem> > batch_to_insert;
 
     ChVector<> G_acc;  // gravitational acceleration
 

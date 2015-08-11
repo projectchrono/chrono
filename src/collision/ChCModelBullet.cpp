@@ -351,6 +351,21 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
 }
 
 
+bool ChModelBullet::AddPoint(double radius, const ChVector<>& pos) {
+    // adjust default inward 'safe' margin (always as radius)
+    this->SetSafeMargin(radius);
+
+    btPointShape* mshape = new btPointShape((btScalar)(radius + this->GetEnvelope()));
+
+    mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
+
+    _injectShape(pos, ChMatrix33<>(1), mshape);
+
+    return true;
+}
+
+
+
 bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
                                   const ChVector<>& pos,
                                   const ChMatrix33<>& rot) {
@@ -681,6 +696,20 @@ void ChModelBullet::SyncPosition()
                        (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
                        (btScalar)rA(2, 2));
     bt_collision_object->getWorldTransform().setBasis(basisA);
+}
+
+
+bool ChModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
+    if (this->shapes.size() != 1)
+        return false;
+    if (btSphereShape* mshape = dynamic_cast<btSphereShape*>(this->shapes[0].get_ptr())) {
+        this->SetSafeMargin(coll_radius);
+        this->SetEnvelope(out_envelope);
+        mshape->setUnscaledRadius((btScalar)(coll_radius + out_envelope));
+        // mshape->setMargin((btScalar) (coll_radius+out_envelope));
+    } else
+        return false;
+    return true;
 }
 
 void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)

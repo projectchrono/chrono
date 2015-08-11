@@ -27,9 +27,13 @@ namespace chrono {
 ChClassRegister<ChAssetLevel> a_registration_ChAssetLevel;
 
 
-void ChAssetLevel::Update() {
+void ChAssetLevel::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
+
+    // Concatenate the total transformation
+    ChCoordsys<> composed_coords(this->levelframe.coord >> coords);
+
     for (unsigned int ia = 0; ia < this->assets.size(); ++ia)
-        assets[ia]->Update();
+        assets[ia]->Update(updater, composed_coords);
 }
 
 

@@ -24,8 +24,6 @@
 #include "physics/ChSystemDEM.h"
 #include "physics/ChContactContainerDEM.h"
 
-#include "collision/ChCModelBulletBody.h"
-
 #include "lcp/ChLcpSolverDEM.h"
 
 #include "unit_IRRLICHT/ChIrrApp.h"

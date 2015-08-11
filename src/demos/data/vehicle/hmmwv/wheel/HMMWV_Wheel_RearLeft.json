@@ -1,0 +1,16 @@
+{
+  "Name":                       "HMMWV Wheel Rear-Left",
+  "Type":                       "Wheel",
+  "Template":                   "Wheel",
+
+  "Mass":                       88.39,
+  "Inertia":                    [0.113, 0.113, 0.113],
+
+  "Visualization":
+  {
+    "Mesh Filename":            "hmmwv/wheel_L.obj",
+    "Mesh Name":                "wheel_L_POV_geom",
+	"Radius":                   0.41,
+	"Width":                    0.254
+  }
+}

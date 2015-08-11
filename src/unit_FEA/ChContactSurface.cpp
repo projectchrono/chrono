@@ -83,7 +83,7 @@ ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSur
         this->collision_model = new collision::ChModelBullet;
         this->collision_model->SetContactable(this);
 
-        //this->collision_model->AddSphere(0.001); //***TODO*** avoid magic number.
+        //this->collision_model->AddPoint(0.001); //***TODO*** avoid magic number.
         //this->collision_model->BuildModel();
 
     }
@@ -101,7 +101,7 @@ void ChContactSurfaceNodeCloud::AddNode(ChSharedPtr< ChNodeFEAxyz > mnode) {
 
     ChSharedPtr<ChContactNodeXYZsphere> newp(new ChContactNodeXYZsphere(mnode.get_ptr(), this));
     
-    newp->GetCollisionModel()->AddSphere(0.01);  //***TODO*** avoid magic number.
+    newp->GetCollisionModel()->AddPoint(0.001);  //***TODO*** avoid magic number.
     newp->GetCollisionModel()->BuildModel();    // will also add to system, if collision is on.
     
     this->vnodes.push_back(newp);

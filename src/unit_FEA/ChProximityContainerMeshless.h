@@ -14,7 +14,7 @@
 #define CHPROXIMITYCONTAINERMESHLESS_H
 
 #include "physics/ChProximityContainerBase.h"
-#include "collision/ChCModelBulletNode.h"
+#include "collision/ChCModelBullet.h"
 #include <list>
 
 namespace chrono {
@@ -27,8 +27,8 @@ namespace chrono {
 
 class ChApiFea ChProximityMeshless {
   public:
-    ChProximityMeshless(collision::ChModelBulletNode* mmodA,  ///< model A
-                        collision::ChModelBulletNode* mmodB)  ///< model B
+    ChProximityMeshless(collision::ChCollisionModel* mmodA,  ///< model A
+                        collision::ChCollisionModel* mmodB)  ///< model B
     {
         Reset(mmodA, mmodB);
     }
@@ -40,8 +40,8 @@ class ChApiFea ChProximityMeshless {
     //
 
     /// Initialize again this constraint.
-    virtual void Reset(collision::ChModelBulletNode* mmodA,  ///< model A
-                       collision::ChModelBulletNode* mmodB)  ///< model B
+    virtual void Reset(collision::ChCollisionModel* mmodA,  ///< model A
+                       collision::ChCollisionModel* mmodB)  ///< model B
     {
         assert(mmodA);
         assert(mmodB);

@@ -49,7 +49,7 @@
 
 #include "core/ChTimer.h"
 #include "collision/ChCCollisionSystemBullet.h"
-#include "collision/ChCModelBulletBody.h"
+#include "collision/ChCModelBullet.h"
 #include "timestepper/ChTimestepper.h"
 #include "timestepper/ChStaticAnalysis.h"
 
@@ -861,6 +861,22 @@ void ChSystem::Add(ChSharedPtr<ChPhysicsItem> newitem) {
         AddOtherPhysicsItem(newitem);
 }
 
+void ChSystem::AddBatch(ChSharedPtr<ChPhysicsItem> newitem) {
+    // the following is a openMP critical section:
+    #pragma omp critical
+    {
+        this->batch_to_insert.push_back(newitem);
+        newitem->SetSystem(this);
+    }
+}
+void ChSystem::FlushBatch() {
+    for (int i=0; i<  this->batch_to_insert.size(); ++i) {
+        batch_to_insert[i]->SetSystem(0);
+        this->Add(batch_to_insert[i]);
+    }
+    batch_to_insert.clear();
+}
+
 void ChSystem::Remove(ChSharedPtr<ChPhysicsItem> newitem) {
     if (newitem.IsType<ChBody>()) // (typeid(*newitem.get_ptr())==typeid(ChBody)) // if (newitem.IsType<ChBody>()) sends ChBody descendants in ChBody list: this is bad for ChConveyor
     {
@@ -1180,12 +1196,8 @@ void ChSystem::WakeUpSleepingBodies() {
             ) {
             if (!(modA && modB))
                 return true;
-            ChBody* b1 = 0;
-            ChBody* b2 = 0;
-            if (ChModelBulletBody* mmboA = dynamic_cast<ChModelBulletBody*>(modA))
-                b1 = mmboA->GetBody();
-            if (ChModelBulletBody* mmboB = dynamic_cast<ChModelBulletBody*>(modB))
-                b2 = mmboB->GetBody();
+            ChBody* b1 = dynamic_cast<ChBody*>(modA->GetContactable());
+            ChBody* b2 = dynamic_cast<ChBody*>(modB->GetContactable());
             if (!(b1 && b2))
                 return true;
             bool sleep1 = b1->GetSleeping();
@@ -1258,6 +1270,9 @@ void ChSystem::Setup() {
     ndoc_w_D = 0;
     nlinks = 0;
     nphysicsitems = 0;
+
+    // Any item being queued for insertion in system's lists? add it.
+    this->FlushBatch();
 
     for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {

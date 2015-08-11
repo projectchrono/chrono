@@ -29,6 +29,7 @@ ChIrrApp::~ChIrrApp() {
 }
 
 void ChIrrApp::AssetBind(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem) {
+    #pragma omp critical
     GetAssetConverter()->Bind(mitem);
 }
 

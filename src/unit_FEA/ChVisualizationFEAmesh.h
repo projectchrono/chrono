@@ -184,7 +184,7 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
 
     // Updates the triangle visualization mesh so that it matches with the
     // FEM mesh (ex. tetrahedrons are converted in 4 surfaces, etc.
-    virtual void Update();
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords);
 
   private:
     double ComputeScalarOutput(ChSharedPtr<ChNodeFEAxyz> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);

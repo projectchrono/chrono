@@ -1,0 +1,20 @@
+{
+  "Name":                       "Generic Rack-Pinion Steering",
+  "Type":                       "Steering",
+  "Template":                   "RackPinion",
+
+  "Steering Link":
+  {
+    "Mass":                     10,
+    "COM":                      0,
+    "Inertia":                  [1, 1, 1],
+    "Radius":                   0.03,
+    "Length":                   0.9
+  },
+
+  "Pinion":
+  {
+    "Radius":                   0.1,
+    "Maximum Angle":            0.9
+  }
+}

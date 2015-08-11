@@ -529,6 +529,114 @@ ChSharedPtr<ChBody> CreateBoxContainer(ChSystem* system,
 }
 
 // -----------------------------------------------------------------------------
+// CreateCylindricalContainerFromBoxes
+//
+// Create a fixed body with contact and asset geometry representing a box with 5
+// walls (no top).
+// hdim = (rad, rad, height) (the second and the third components are the same)
+// by default, it is z_up
+// -----------------------------------------------------------------------------
+ChSharedPtr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
+                                                        int id,
+                                                        ChSharedPtr<ChMaterialSurfaceBase> mat,
+                                                        const ChVector<>& hdim,
+                                                        double hthick,
+                                                        int numBoxes,
+                                                        double rho,
+                                                        double collisionEnvelope,
+                                                        const ChVector<>& pos,
+                                                        const ChQuaternion<>& rot,
+                                                        bool collide,
+                                                        bool overlap,
+                                                        bool closed,
+                                                        bool isBoxBase) {
+  // Infer system type and collision type.
+  SystemType sysType = GetSystemType(system);
+  CollisionType cdType = GetCollisionType(system);
+
+  // Infer contact method from the specified material properties object.
+  ChBody::ContactMethod contact_method = GetContactMethod(mat);
+
+  // Verify consistency of input arguments.
+  assert(((sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI) && contact_method == ChBody::DVI) ||
+         ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
+
+  // Create the body and set material
+  ChSharedPtr<ChBody> body;
+
+  if (sysType == SEQUENTIAL_DVI || sysType == SEQUENTIAL_DEM || cdType == BULLET_CD)
+    body = ChSharedPtr<ChBody>(new ChBody(contact_method));
+  else
+    body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel, contact_method));
+
+  body->SetMaterialSurface(mat);
+
+  // Set body properties and geometry.
+  body->SetIdentifier(id);
+  //													  body->SetMass(1);
+  body->SetPos(pos);
+  body->SetRot(rot);
+  body->SetCollide(collide);
+  body->SetBodyFixed(false);
+
+  double box_side = hdim.x * 2.0 * tan(CH_C_PI / numBoxes);  // side length of cyl
+  double o_lap = 0;
+  if (overlap) {
+    o_lap = hthick * 2;
+  }
+  double ang = 2.0 * CH_C_PI / numBoxes;
+  ChVector<> p_boxSize = ChVector<>((box_side + hthick) / 2.0, hthick, hdim.z + o_lap);  // size of plates
+  ChVector<> p_pos = (0, 0, 0);  // position of each plate
+  ChQuaternion<> p_quat = QUNIT;  // rotation of each plate
+  body->GetCollisionModel()->ClearModel();
+
+  for (int i = 0; i < numBoxes; i++) {
+    p_pos = pos + ChVector<>(sin(ang * i) * (hthick + hdim.x), cos(ang * i) * (hthick + hdim.x), hdim.z);
+
+    p_quat = Angle_to_Quat(ANGLESET_RXYZ, ChVector<>(0, 0, ang * i));
+
+    // this is here to make half the cylinder invisible.
+    bool m_visualization = false;
+    if (ang * i < CH_C_PI || ang * i > 3.0 * CH_C_PI / 2.0) {
+      m_visualization = true;
+    }
+    utils::AddBoxGeometry(body.get_ptr(), p_boxSize, p_pos, p_quat, m_visualization);
+  }
+
+  double cyl_volume = CH_C_PI * (2 * p_boxSize.z - 2 * hthick) * (2 * p_boxSize.z - 2 * hthick) *
+                          ((2 * hdim.x + 2 * hthick) * (2 * hdim.x + 2 * hthick) - hdim.x * hdim.x) +
+                      (CH_C_PI) * (hdim.x + 2 * hthick) * (hdim.x + 2 * hthick) * 2 * hthick;
+
+  // Add ground piece
+  if (isBoxBase) {
+    utils::AddBoxGeometry(body.get_ptr(), Vector(hdim.x + 2 * hthick, hdim.x + 2 * hthick, hthick),
+                          Vector(0, 0, -hthick), QUNIT, true);
+  } else {
+    utils::AddCylinderGeometry(body.get_ptr(), hdim.x + 2 * hthick, hthick, ChVector<>(0, 0, -hthick),
+                               Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+  }
+
+  if (closed) {
+    if (isBoxBase) {
+      utils::AddBoxGeometry(body.get_ptr(), Vector(hdim.x + 2 * hthick, hdim.x + 2 * hthick, hthick),
+                            Vector(0, 0, 2 * hdim.z + hthick), QUNIT, true);
+    } else {
+      utils::AddCylinderGeometry(body.get_ptr(), hdim.x + 2 * hthick, hthick, ChVector<>(0, 0, 2 * hdim.z + hthick),
+                                 Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+    }
+  }
+
+  // add up volume of bucket and multiply by rho to get mass;
+  body->SetMass(rho * cyl_volume);
+
+  body->GetCollisionModel()->SetDefaultSuggestedEnvelope(collisionEnvelope);
+  body->GetCollisionModel()->BuildModel();
+
+  system->AddBody(body);
+  return body;
+}
+
+// -----------------------------------------------------------------------------
 void InitializeObject(ChSharedPtr<ChBody> body,
                       double mass,
                       ChSharedPtr<ChMaterialSurfaceBase> mat,
@@ -558,7 +666,7 @@ void FinalizeObject(ChSharedPtr<ChBody> body, ChSystem* system) {
 
   // Verify consistency of input arguments.
   assert(((sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI) && contact_method == ChBody::DVI) ||
-    ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
+         ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
 
   body->GetCollisionModel()->BuildModel();
   system->AddBody(body);

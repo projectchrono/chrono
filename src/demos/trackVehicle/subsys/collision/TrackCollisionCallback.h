@@ -31,11 +31,10 @@
 #include <cmath>
 
 #include "physics/ChSystem.h"
-#include "physics/ChContactContainer.h"
+#include "physics/ChContactContainerBase.h"
 #include "core/ChHashTable.h"
 #include "core/ChHashFunction.h"
-// #include "collision/CHcModelBulletBody.h"
-// #include "collision/ChCModelBulletParticle.h"
+
 
 namespace chrono {
 

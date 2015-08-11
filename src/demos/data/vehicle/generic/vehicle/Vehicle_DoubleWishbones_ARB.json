@@ -1,0 +1,57 @@
+{
+  "Name":     "Test vehicle - Double Wishbone",
+  "Type":     "Vehicle",
+  "Template": "Vehicle",
+
+  "Chassis":
+  {
+    "Mass":     3521.4,
+    "COM":      [-0.4775, -0.0149, 0.8466],
+    "Inertia":  [125.8, 497.4, 531.4]
+  },
+
+  "Axles":
+  [
+    {
+      "Suspension Input File":   "generic/suspension/DoubleWishboneCurve.json",
+      "Suspension Location":     [1.6914, 0, 0.0264],
+      "Steering Index":          0,
+      "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
+      "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
+      "Left Brake Input File":   "generic/brake/BrakeSimple.json",
+      "Right Brake Input File":  "generic/brake/BrakeSimple.json",
+      "Antirollbar Input File":  "generic/antirollbar/AntirollBarRSD.json",
+      "Antirollbar Location":    [1.1, 0, 0]
+    },
+
+    {
+      "Suspension Input File":   "generic/suspension/DoubleWishbone.json",
+      "Suspension Location":     [-1.6866, 0, 0.0264],
+      "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
+      "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
+      "Left Brake Input File":   "generic/brake/BrakeSimple.json",
+      "Right Brake Input File":  "generic/brake/BrakeSimple.json"
+    }
+  ],
+
+  "Steering Subsystems":
+  [
+    {
+      "Input File":           "generic/steering/PitmanArm.json",
+      "Location":             [1.46, 0, -0.08],
+      "Orientation":          [0.98699637, 0, 0.16074256, 0]
+    }
+  ],
+
+  "Driveline":
+  {
+    "Input File":           "generic/driveline/Driveline2WD.json",
+    "Suspension Indexes":   [1]
+  },
+
+  "Driver Position":
+  {
+    "Location":     [0, 0.5, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  }
+}

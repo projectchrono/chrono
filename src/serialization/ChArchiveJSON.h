@@ -337,7 +337,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
 			if (document.HasParseError()) {
 				std::string errstrA( (const char*)(&stringbuffer[ChMax((int)document.GetErrorOffset()-10,0)]) ); errstrA.resize(10);
 				std::string errstrB( (const char*)(&stringbuffer[document.GetErrorOffset()]) ); errstrB.resize(20);
-				throw (ChExceptionArchive("the file has bad JSON syntax," + std::string(document.GetParseError()) + " \n\n[...]" + errstrA + " <--- " + errstrB + "[...]\n" ));
+				throw (ChExceptionArchive("the file has bad JSON syntax," + std::to_string(document.GetParseError()) + " \n\n[...]" + errstrA + " <--- " + errstrB + "[...]\n" ));
 			}
 			if (!document.IsObject())
 				throw (ChExceptionArchive("the file is not a valid JSON document"));

@@ -183,8 +183,8 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
     if (    ChContactable_1vars<3>* mmboA = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelA->GetContactable())) {
         // 3_6 -> 6_3
         if (ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelB->GetContactable())) {
-            collision::ChCollisionInfo scontact = mcontact; scontact.SwapModels();
-            _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboB, mmboA, mcontact);
+            collision::ChCollisionInfo swapped_contact(mcontact,true);
+            _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboB, mmboA, swapped_contact);
         }
         // 3_3
         if (ChContactable_1vars<3>* mmboB = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelB->GetContactable())) {
