@@ -7,6 +7,7 @@ ChOgreBody is the basic physical body class. It will set up Ogre scene nodes to 
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include <OGRE\Ogre.h>
 
@@ -65,5 +66,8 @@ namespace ChOgre {
 
 
 	};
+
+	typedef ChOgreBody* ChOgreBodyPtr;
+	typedef std::shared_ptr<ChOgreBody> ChOgreBodySharedPtr;
 
 }
