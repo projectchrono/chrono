@@ -20,6 +20,7 @@ namespace ChOgre {
 		ChOgreBodyHandle& operator=(ChOgreBodyHandle&& other);
 
 		chrono::ChSharedBodyPtr operator-> ();
+		chrono::ChSharedBodyPtr ChBody();
 		ChOgreBody& body();
 		void setBodyPtr(ChOgreBodySharedPtr& BodyPtr);
 

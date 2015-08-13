@@ -46,6 +46,10 @@ namespace ChOgre {
 		return m_pBody->getChBody();
 	}
 
+	chrono::ChSharedBodyPtr ChOgreBodyHandle::ChBody() {
+		return m_pBody->getChBody();
+	}
+
 	ChOgreBody& ChOgreBodyHandle::body() {
 		return *m_pBody;
 	}
