@@ -718,6 +718,7 @@ namespace ChOgre {
 		}*/
 
 		Ogre::ManualObject* terrain_object = m_pSceneManager->createManualObject(std::to_string(m_TerrainMeshCount));
+		terrain_object->setDynamic(false);
 		m_TerrainMeshCount++;
 
 		terrain_object->begin("lambert1", Ogre::RenderOperation::OT_TRIANGLE_LIST);
@@ -729,13 +730,14 @@ namespace ChOgre {
 			terrain_object->position(l_vertices[i]);
 			terrain_object->normal(l_vertex_normals[i]);
 			terrain_object->colour(Ogre::ColourValue(0.5, 0.5, 0.5));
-			terrain_object->textureCoord(_x/(Ogre::Real)l_tex->getWidth(), _y/(Ogre::Real)l_tex->getHeight());
+			//terrain_object->textureCoord(_x/(Ogre::Real)l_tex->getWidth(), _y/(Ogre::Real)l_tex->getHeight());
 		}
 
 		for (unsigned int i = 0; i < l_indices.size(); i++) {
-			terrain_object->index(l_indices[i].a);
-			terrain_object->index(l_indices[i].b);
-			terrain_object->index(l_indices[i].c);
+			//terrain_object->index(l_indices[i].a);
+			//terrain_object->index(l_indices[i].b);
+			//terrain_object->index(l_indices[i].c);
+			terrain_object->triangle(l_indices[i].a, l_indices[i].b, l_indices[i].c);
 		}
 
 		terrain_object->end();

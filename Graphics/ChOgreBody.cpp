@@ -220,7 +220,7 @@ namespace ChOgre {
 		m_Models.clear();
 
 		ChOgreModel l_Model(m_pSceneManager);
-		l_Model.setMesh(Mesh->convertToMesh(""));
+		l_Model.setMesh(Mesh->convertToMesh(Mesh->getName()));
 
 		//Ogre::SceneNode* l_pNode = m_pSceneManager->getRootSceneNode()->createChildSceneNode();
 		
