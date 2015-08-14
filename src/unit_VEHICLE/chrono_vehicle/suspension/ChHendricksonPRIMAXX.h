@@ -81,54 +81,33 @@ public:
     ChSharedPtr<ChBody>        tierod_body  ///< [in] body to which tireods are connected
     );
 
-  /// TODO Holger
   /// There could be a spring (coil or air) and damper element between chassis and lower beam
   /// and a second spring and damper element between chassis and housing
 
   /// Spring (coil or air) and damper element between chassis and lower beam (LB)
   /// Get the force in the air spring (coil or spring) and a damper element
 
-  /// Get the force in the spring element.
-  double GetSpringLBForce(ChVehicleSide side) const { return m_springLB[side]->Get_SpringReact(); }
-
-  /// Get the current length of the spring element
-  double GetSpringLBLength(ChVehicleSide side) const { return m_springLB[side]->Get_SpringLength(); }
-
-  /// Get the current deformation of the spring element.
-  double GetSpringLBDeformation(ChVehicleSide side) const { return m_springLB[side]->Get_SpringDeform(); }
-
-  /// Get the force in the shock (damper) element.
+  /// Get the force in the spring-damper element.
   double GetShockLBForce(ChVehicleSide side) const { return m_shockLB[side]->Get_SpringReact(); }
 
-  /// Get the current length of the shock (damper) element.
+  /// Get the current length of the spring-damper element.
   double GetShockLBLength(ChVehicleSide side) const { return m_shockLB[side]->Get_SpringLength(); }
 
-  /// Get the current deformation velocity of the shock (damper) element.
+  /// Get the current deformation velocity of the spring-damper element.
   double GetShockLBVelocity(ChVehicleSide side) const { return m_shockLB[side]->Get_SpringVelocity(); }
 
 
   /// Spring (coil or air) and damper element between chassis and axle housing (AH)
   /// Get the force in the air spring (coil or spring) and a damper element
 
-  /// Get the force in the spring element.
-  double GetSpringAHForce(ChVehicleSide side) const { return m_springAH[side]->Get_SpringReact(); }
-
-  /// Get the current length of the spring element
-  double GetSpringAHLength(ChVehicleSide side) const { return m_springAH[side]->Get_SpringLength(); }
-
-  /// Get the current deformation of the spring element.
-  double GetSpringAHDeformation(ChVehicleSide side) const { return m_springAH[side]->Get_SpringDeform(); }
-
-  /// Get the force in the shock (damper) element.
+  /// Get the force in the spring-damper element.
   double GetShockAHForce(ChVehicleSide side) const { return m_shockAH[side]->Get_SpringReact(); }
 
-  /// Get the current length of the shock (damper) element.
+  /// Get the current length of the spring-damper element.
   double GetShockAHLength(ChVehicleSide side) const { return m_shockAH[side]->Get_SpringLength(); }
 
-  /// Get the current deformation velocity of the shock (damper) element.
+  /// Get the current deformation velocity of the spring-damper element.
   double GetShockAHVelocity(ChVehicleSide side) const { return m_shockAH[side]->Get_SpringVelocity(); }
-
-  /// End of TODO Holger
 
   /// Log current constraint violations.
   virtual void LogConstraintViolations(ChVehicleSide side);
@@ -156,12 +135,8 @@ protected:
     LOWERBEAM_TB,      ///< lowerbeam, transverse beam 
     SHOCKAH_C,         ///< shock at axle housing (AH), chasis
     SHOCKAH_AH,        ///< shock at axle housing (AH), axle housing
-    SPRINGAH_C,        ///< spring at axle housing (AH), chasis
-    SPRINGAH_AH,       ///< spring at axle housing (AH), axle housing
     SHOCKLB_C,         ///< shock at lower beam (LB), chasis
     SHOCKLB_LB,        ///< shock at lower beam (LB), lower beam
-    SPRINGLB_C,        ///< spring at lower beam (LB), chasis
-    SPRINGLB_LB,       ///< spring at lower beam (LB), lower beam
     KNUCKLE_CM,        ///< knuckle, center of mass
     TORQUEROD_CM,      ///< torquerod, center of mass
     LOWERBEAM_CM,      ///< lowerbeam, center of mass
@@ -237,19 +212,17 @@ protected:
   /// Return the radius of the axlehousing body (visualization only).
   virtual double getAxlehousingRadius() const = 0;
 
-  /// Lower beam spring and damper
+  // Lower beam spring and damper
+
   /// Return the free (rest) length of the spring element.
-  virtual double getSpringLBRestLength() const = 0;
-  /// Return the callback function for spring force.
-  virtual ChSpringForceCallback* getSpringLBForceCallback() const = 0;
+  virtual double getShockLBRestLength() const = 0;
   /// Return the callback function for shock force.
   virtual ChSpringForceCallback* getShockLBForceCallback()  const = 0;
 
-  /// Axlehousing spring and damper
+  // Axlehousing spring and damper
+
   /// Return the free (rest) length of the spring element.
-  virtual double getSpringAHRestLength() const = 0;
-  /// Return the callback function for spring force.
-  virtual ChSpringForceCallback* getSpringAHForceCallback() const = 0;
+  virtual double getShockAHRestLength() const = 0;
   /// Return the callback function for shock force.
   virtual ChSpringForceCallback* getShockAHForceCallback()  const = 0;
 
@@ -260,21 +233,17 @@ protected:
   ChSharedBodyPtr                   m_axlehousing;              ///< handles to axlehousing body
 
   ChSharedPtr<ChLinkLockRevolute>   m_revoluteKingpin[2];       ///< handles to the knuckle-axle housing revolute joints (left/right)
-  /// HH OK?
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalTorquerod[2];    ///< handles to the torque rod-axle housing spherical joints (left/right)
   ChSharedPtr<ChLinkUniversal>      m_universalTorquerod[2];    ///< handles to the torque rod-chassis universal joints (left/right)
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalLowerbeam[2];    ///< handles to the lower beam-axle housing spherical joints (left/right)
   ChSharedPtr<ChLinkUniversal>      m_universalLowerbeam[2];    ///< handles to the lower beam-chassis universal joints (left/right)
-  /// think about constraints
+  // think about constraints
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalTB[2];           ///< handles to the transversebeam-lower beam spherical joints (left/right)
-  /// end of thinking about transverse beam constraints
+  // end of thinking about transverse beam constraints
   ChSharedPtr<ChLinkDistance>       m_distTierod[2];            ///< handles to the tierod distance constraints (left/right)
 
   ChSharedPtr<ChLinkSpringCB>       m_shockLB[2];                 ///< handles to the spring links (left/right)
-  ChSharedPtr<ChLinkSpringCB>       m_springLB[2];                ///< handles to the shock links (left/right)
   ChSharedPtr<ChLinkSpringCB>       m_shockAH[2];                 ///< handles to the spring links (left/right)
-  ChSharedPtr<ChLinkSpringCB>       m_springAH[2];                ///< handles to the shock links (left/right)
-    /// HH OK? END
 
 private:
 

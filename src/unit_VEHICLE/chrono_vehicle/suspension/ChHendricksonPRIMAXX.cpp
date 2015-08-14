@@ -50,16 +50,12 @@ const std::string ChHendricksonPRIMAXX::m_pointNames[] = {
   "LOWERBEAM_TB",
   "SHOCKAH_C",
   "SHOCKAH_AH",
-  "SPRINGAH_C",
-  "SPRINGAH_AH",
   "SHOCKLB_C",
   "SHOCKLB_LB",
-  "SPRINGLB_C",
-  "SPRINGLB_LB",
   "KNUCKLE_CM",
   "TORQUEROD_CM",
   "LOWERBEAM_CM",
-  "TRANSVERSEBEAM_CM",
+  "TRANSVERSEBEAM_CM"
 };
 
 
@@ -217,8 +213,9 @@ ChMatrix33<> rot;
   m_lowerbeam[side]->SetRot(rot);
   m_lowerbeam[side]->SetMass(getLowerbeamMass());
   m_lowerbeam[side]->SetInertiaXX(getLowerbeamInertia());
-  AddVisualizationLink(m_lowerbeam[side], points[LOWERBEAM_AH], points[LOWERBEAM_C], getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
+  AddVisualizationLink(m_lowerbeam[side], points[LOWERBEAM_C], points[LOWERBEAM_AH], getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
   chassis->GetSystem()->AddBody(m_lowerbeam[side]);
+
   
   ///*
   ///* ENDOF create and initialize the new bodies of template
@@ -312,24 +309,12 @@ ChMatrix33<> rot;
   m_shockAH[side]->Set_SpringCallback(getShockAHForceCallback());
   chassis->GetSystem()->AddLink(m_shockAH[side]);
 
-  m_springAH[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
-  m_springAH[side]->SetNameString(m_name + "_springLB" + suffix);
-  m_springAH[side]->Initialize(chassis, m_axlehousing, false, points[SPRINGLB_C], points[SPRINGLB_LB], false, getSpringLBRestLength());
-  m_springAH[side]->Set_SpringCallback(getSpringLBForceCallback());
-  chassis->GetSystem()->AddLink(m_springLB[side]);
-
   // Create and initialize the spring/damper between lower beam and chassis
   m_shockLB[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
   m_shockLB[side]->SetNameString(m_name + "_shockLB" + suffix);
   m_shockLB[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKLB_C], points[SHOCKLB_LB]);
   m_shockLB[side]->Set_SpringCallback(getShockLBForceCallback());
   chassis->GetSystem()->AddLink(m_shockLB[side]);
-
-  m_springLB[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
-  m_springLB[side]->SetNameString(m_name + "_springLB" + suffix);
-  m_springLB[side]->Initialize(chassis, m_axlehousing, false, points[SPRINGLB_C], points[SPRINGLB_LB], false, getSpringLBRestLength());
-  m_springLB[side]->Set_SpringCallback(getSpringLBForceCallback());
-  chassis->GetSystem()->AddLink(m_springLB[side]);
 
   // Create and initialize the tierod distance constraint between chassis and upright.
   m_distTierod[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);

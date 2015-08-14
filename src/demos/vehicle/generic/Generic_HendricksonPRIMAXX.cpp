@@ -39,11 +39,11 @@ const double     Generic_HendricksonPRIMAXX::m_lowerbeamMass = 2.892;
 const double     Generic_HendricksonPRIMAXX::m_transversebeamMass = 1.0;
 
 const double     Generic_HendricksonPRIMAXX::m_axlehousingRadius = 0.03;
-const double     Generic_HendricksonPRIMAXX::m_knuckleRadius = 0.01;
-const double     Generic_HendricksonPRIMAXX::m_spindleRadius = 0.15;
-const double     Generic_HendricksonPRIMAXX::m_spindleWidth = 0.06;
+const double     Generic_HendricksonPRIMAXX::m_knuckleRadius = 0.001;
+const double     Generic_HendricksonPRIMAXX::m_spindleRadius = 0.06;
+const double     Generic_HendricksonPRIMAXX::m_spindleWidth = 0.04;
 const double     Generic_HendricksonPRIMAXX::m_torquerodRadius = 0.02;
-const double     Generic_HendricksonPRIMAXX::m_lowerbeamRadius = 0.02;
+const double     Generic_HendricksonPRIMAXX::m_lowerbeamRadius = 0.08;
 const double     Generic_HendricksonPRIMAXX::m_transversebeamRadius = 0.02;
 
 const ChVector<> Generic_HendricksonPRIMAXX::m_axlehousingCOM(0, 0, 0);
@@ -61,13 +61,13 @@ const double     Generic_HendricksonPRIMAXX::m_axleInertia = 0.4;
 // HH Values from the springs are copied from SolidAxle
 // Have to be modified
 //
-const double     Generic_HendricksonPRIMAXX::m_springAHCoefficient = 267062.0;
-const double     Generic_HendricksonPRIMAXX::m_dampingAHCoefficient = 22459.0;
-const double     Generic_HendricksonPRIMAXX::m_springAHRestLength = 0.3948;
+const double     Generic_HendricksonPRIMAXX::m_shockAH_springCoefficient = 0;
+const double     Generic_HendricksonPRIMAXX::m_shockAH_dampingCoefficient = 22459.0;
+const double     Generic_HendricksonPRIMAXX::m_shockAH_restLength = 0.3948;
 
-const double     Generic_HendricksonPRIMAXX::m_springLBCoefficient = 267062.0;
-const double     Generic_HendricksonPRIMAXX::m_dampingLBCoefficient = 22459.0;
-const double     Generic_HendricksonPRIMAXX::m_springLBRestLength = 0.3948;
+const double     Generic_HendricksonPRIMAXX::m_shockLB_springCoefficient = 267062.0;
+const double     Generic_HendricksonPRIMAXX::m_shockLB_dampingCoefficient = 0;
+const double     Generic_HendricksonPRIMAXX::m_shockLB_restLength = 0.3948;
 
 
 // -----------------------------------------------------------------------------
@@ -76,11 +76,8 @@ const double     Generic_HendricksonPRIMAXX::m_springLBRestLength = 0.3948;
 Generic_HendricksonPRIMAXX::Generic_HendricksonPRIMAXX(const std::string& name)
 : ChHendricksonPRIMAXX(name)
 {
-  m_springAHForceCB = new LinearSpringForce(m_springAHCoefficient);
-  m_shockAHForceCB = new LinearDamperForce(m_dampingAHCoefficient);
-
-  m_springLBForceCB = new LinearSpringForce(m_springLBCoefficient);
-  m_shockLBForceCB = new LinearDamperForce(m_dampingLBCoefficient);
+  m_shockAHForceCB = new LinearSpringDamperForce(m_shockAH_springCoefficient, m_shockAH_dampingCoefficient);
+  m_shockLBForceCB = new LinearSpringDamperForce(m_shockLB_springCoefficient, m_shockLB_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
@@ -88,12 +85,8 @@ Generic_HendricksonPRIMAXX::Generic_HendricksonPRIMAXX(const std::string& name)
 // -----------------------------------------------------------------------------
 Generic_HendricksonPRIMAXX::~Generic_HendricksonPRIMAXX()
 {
-  delete m_springAHForceCB;
   delete m_shockAHForceCB;
-
-  delete m_springLBForceCB;
   delete m_shockLBForceCB;
-
 }
 
 // -----------------------------------------------------------------------------
@@ -120,12 +113,8 @@ const ChVector<> Generic_HendricksonPRIMAXX::getLocation(PointId which)
   case LOWERBEAM_TB:      return ChVector<>(-0.376, 0.65, -0.197);  ///< lowerbeam, transverse beam 
   case SHOCKAH_C:         return ChVector<>(-0.1, 0.65, 0.15);  ///< shock at axle housing (AH), chasis
   case SHOCKAH_AH:        return ChVector<>(-0.1, 0.65, -0.1);  ///< shock at axle housing (AH), axle housing
-  case SPRINGAH_C:        return ChVector<>(-0.1, 0.65, 0.15);  ///< spring at axle housing (AH), chasis
-  case SPRINGAH_AH:       return ChVector<>(-0.1, 0.65, -0.1);  ///< spring at axle housing (AH), axle housing
   case SHOCKLB_C:         return ChVector<>(-0.376, 0.65, 0.15);  ///< shock at lower beam (LB), chasis
   case SHOCKLB_LB:        return ChVector<>(-0.376, 0.65, -0.197);  ///< shock at lower beam (LB), lower beam
-  case SPRINGLB_C:        return ChVector<>(-0.376, 0.65, 0.15);  ///< spring at lower beam (LB), chasis
-  case SPRINGLB_LB:       return ChVector<>(-0.376, 0.65, -0.197);  ///< spring at lower beam (LB), lower beam
   case KNUCKLE_CM:        return ChVector<>(-0.006, 0.834, 0.015);  ///< knuckle, center of mass
   case TORQUEROD_CM:      return ChVector<>(-0.0, 0.65, -0.0);  ///< torquerod, center of mass
   case LOWERBEAM_CM:      return ChVector<>(-0.0, 0.65, -0.0);  ///< lowerbeam, center of mass

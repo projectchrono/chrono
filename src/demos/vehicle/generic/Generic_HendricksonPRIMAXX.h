@@ -61,12 +61,10 @@ public:
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
-  virtual double getSpringAHRestLength() const { return m_springAHRestLength; }
-  virtual chrono::ChSpringForceCallback* getSpringAHForceCallback() const { return m_springAHForceCB; }
+  virtual double getShockAHRestLength() const { return m_shockAH_restLength; }
   virtual chrono::ChSpringForceCallback* getShockAHForceCallback()  const { return m_shockAHForceCB; }
 
-  virtual double getSpringLBRestLength() const { return m_springLBRestLength; }
-  virtual chrono::ChSpringForceCallback* getSpringLBForceCallback() const { return m_springLBForceCB; }
+  virtual double getShockLBRestLength() const { return m_shockLB_restLength; }
   virtual chrono::ChSpringForceCallback* getShockLBForceCallback()  const { return m_shockLBForceCB; }
 
 private:
@@ -74,10 +72,7 @@ private:
   virtual const chrono::ChVector<> getLocation(PointId which);
   virtual const chrono::ChVector<> getDirection(DirectionId which);
 
-  chrono::ChSpringForceCallback* m_springAHForceCB;
   chrono::ChSpringForceCallback* m_shockAHForceCB;
-
-  chrono::ChSpringForceCallback* m_springLBForceCB;
   chrono::ChSpringForceCallback* m_shockLBForceCB;
 
   static const double      m_axlehousingMass;
@@ -106,14 +101,13 @@ private:
 
   static const double      m_axleInertia;
 
-  static const double      m_springAHCoefficient;
-  static const double      m_dampingAHCoefficient;
-  static const double      m_springAHRestLength;
+  static const double      m_shockAH_springCoefficient;
+  static const double      m_shockAH_dampingCoefficient;
+  static const double      m_shockAH_restLength;
 
-  static const double      m_springLBCoefficient;
-  static const double      m_dampingLBCoefficient;
-  static const double      m_springLBRestLength;
-
+  static const double      m_shockLB_springCoefficient;
+  static const double      m_shockLB_dampingCoefficient;
+  static const double      m_shockLB_restLength;
 };
 
 
