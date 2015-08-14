@@ -165,19 +165,16 @@ protected:
     KNUCKLE_CM,        ///< knuckle, center of mass
     TORQUEROD_CM,      ///< torquerod, center of mass
     LOWERBEAM_CM,      ///< lowerbeam, center of mass
-    SPRINGAH_CM,       ///< spring at axle housing (AH), center of mass
-    SPRINGLB_CM,       ///< spring at lower beam (LB), center of mass
     TRANSVERSEBEAM_CM, ///< transverse beam, center of mass
-    AXLEHOUSING_CM,       ///< axle housing (AH), center of mass
     NUM_POINTS
   };
 
   /// Identifiers for the various vectors.
   enum DirectionId {
-    UNIV_TORQUEROD_AXIS_ROD,
-    UNIV_TORQUEROD_AXIS_CHASSIS,
-    UNIV_LOWERBEAM_AXIS_BEAM,
-    UNIV_LOWERBEAM_AXIS_CHASSIS,
+    UNIV_AXIS_LOWERBEAM_BEAM,     ///< universal joint (lowerbeam, beam side)
+    UNIV_AXIS_LOWERBEAM_CHASSIS,  ///< universal joint (lowerbeam, chassis side)
+    UNIV_AXIS_TORQUEROD_ROD,      ///< universal joint (torquerod, rod side)
+    UNIV_AXIS_TORQUEROD_CHASSIS,  ///< universal joint (torquerod, chasis side)
     NUM_DIRS
   };
 
@@ -257,10 +254,10 @@ protected:
   virtual ChSpringForceCallback* getShockAHForceCallback()  const = 0;
 
   ChSharedBodyPtr                   m_knuckle[2];               ///< handles to the knuckle bodies (left/right)
-  ChSharedBodyPtr                   m_torquerod[2];
-  ChSharedBodyPtr                   m_lowerbeam[2];
-  ChSharedBodyPtr                   m_transversebeam;
-  ChSharedBodyPtr                   m_axlehousing;
+  ChSharedBodyPtr                   m_torquerod[2];             ///< handles to torquerod bodies (left/right)
+  ChSharedBodyPtr                   m_lowerbeam[2];             ///< handles to lowerbeam bodies (left/right)
+  ChSharedBodyPtr                   m_transversebeam;           ///< handles to transversebeam body
+  ChSharedBodyPtr                   m_axlehousing;              ///< handles to axlehousing body
 
   ChSharedPtr<ChLinkLockRevolute>   m_revoluteKingpin[2];       ///< handles to the knuckle-axle housing revolute joints (left/right)
   /// HH OK?

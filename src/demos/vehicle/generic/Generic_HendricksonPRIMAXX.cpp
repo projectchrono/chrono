@@ -129,10 +129,7 @@ const ChVector<> Generic_HendricksonPRIMAXX::getLocation(PointId which)
   case KNUCKLE_CM:        return ChVector<>(-0.006, 0.834, 0.015);  ///< knuckle, center of mass
   case TORQUEROD_CM:      return ChVector<>(-0.0, 0.65, -0.0);  ///< torquerod, center of mass
   case LOWERBEAM_CM:      return ChVector<>(-0.0, 0.65, -0.0);  ///< lowerbeam, center of mass
-  case SPRINGAH_CM:       return ChVector<>(-0.0, 0.65, -0.0);  ///< spring at axle housing (AH), center of mass
-  case SPRINGLB_CM:       return ChVector<>(-0.0, 0.65, -0.0);  ///< spring at lower beam (LB), center of mass
   case TRANSVERSEBEAM_CM: return ChVector<>(-0.0, 0.0, -0.0);  ///< transverse beam, center of mass
-  case AXLEHOUSING_CM:    return ChVector<>(-0.0, 0.0, -0.0);     ///< axle housing (AH), center of mass
   default:                return ChVector<>(0, 0, 0);
   }
 }
@@ -144,10 +141,10 @@ const ChVector<> Generic_HendricksonPRIMAXX::getLocation(PointId which)
 const ChVector<> Generic_HendricksonPRIMAXX::getDirection(DirectionId which)
 {
   switch (which) {
-  case UNIV_TORQUEROD_AXIS_ROD:      return ChVector<>(0, 1, 0);
-  case UNIV_TORQUEROD_AXIS_CHASSIS:  return ChVector<>(0, 0, 1);
-  case UNIV_LOWERBEAM_AXIS_BEAM:     return ChVector<>(0, -1, 0);
-  case UNIV_LOWERBEAM_AXIS_CHASSIS:  return ChVector<>(0, 0, 1);
+  case UNIV_AXIS_TORQUEROD_ROD:      return ChVector<>(0, 1, 0);
+  case UNIV_AXIS_TORQUEROD_CHASSIS:  return ChVector<>(0, 0, 1);
+  case UNIV_AXIS_LOWERBEAM_BEAM:     return ChVector<>(0, -1, 0);
+  case UNIV_AXIS_LOWERBEAM_CHASSIS:  return ChVector<>(0, 0, 1);
   default:                           return ChVector<>(0, 0, 1);
   }
 }

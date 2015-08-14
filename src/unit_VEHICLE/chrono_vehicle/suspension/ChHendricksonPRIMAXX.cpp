@@ -59,10 +59,7 @@ const std::string ChHendricksonPRIMAXX::m_pointNames[] = {
   "KNUCKLE_CM",
   "TORQUEROD_CM",
   "LOWERBEAM_CM",
-  "SPRINGAH_CM",
-  "SPRINGLB_CM",
   "TRANSVERSEBEAM_CM",
-  "AXLEHOUSING_CM",
 };
 
 
@@ -272,8 +269,8 @@ ChMatrix33<> rot;
 
 
   // Create and initialize the universal joint between chassis and torque rod.
-  u = dirs[UNIV_TORQUEROD_AXIS_CHASSIS];
-  v = dirs[UNIV_TORQUEROD_AXIS_ROD];
+  u = dirs[UNIV_AXIS_TORQUEROD_CHASSIS];
+  v = dirs[UNIV_AXIS_TORQUEROD_ROD];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
 
@@ -283,8 +280,8 @@ ChMatrix33<> rot;
   chassis->GetSystem()->AddLink(m_universalTorquerod[side]);
 
   // Create and initialize the universal joint between chassis and lower beam.
-  u = dirs[UNIV_LOWERBEAM_AXIS_CHASSIS];
-  v = dirs[UNIV_LOWERBEAM_AXIS_BEAM];
+  u = dirs[UNIV_AXIS_LOWERBEAM_CHASSIS];
+  v = dirs[UNIV_AXIS_LOWERBEAM_BEAM];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
 
