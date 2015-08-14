@@ -96,9 +96,11 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
   case DOUBLE_WISHBONE:
     m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_DoubleWishbone("Front suspension"));
     m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_DoubleWishbone("Rear suspension"));
+    break;
   case HENDRICKSON_PRIMAXX:
     m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_HendricksonPRIMAXX("Front suspension"));
     m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_HendricksonPRIMAXX("Rear suspension"));
+    break;
   }
 
   // --------------------------------
@@ -150,9 +152,10 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   // relative to the chassis reference frame).
   ChVector<> offset;
   switch (m_suspType) {
-  case SOLID_AXLE:      offset = ChVector<>(1.60, 0, -0.07); break;
-  case MULTI_LINK:      offset = ChVector<>(1.65, 0, -0.12); break;
-  case DOUBLE_WISHBONE: offset = ChVector<>(1.4, 0, -0.03); break;
+  case SOLID_AXLE:          offset = ChVector<>(1.60, 0, -0.07); break;
+  case MULTI_LINK:          offset = ChVector<>(1.65, 0, -0.12); break;
+  case DOUBLE_WISHBONE:     offset = ChVector<>(1.40, 0, -0.03); break;
+  case HENDRICKSON_PRIMAXX: offset = ChVector<>(1.60, 0, -0.07); break;
   }
   m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
