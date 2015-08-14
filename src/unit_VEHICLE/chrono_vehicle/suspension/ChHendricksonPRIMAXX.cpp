@@ -126,6 +126,20 @@ void ChHendricksonPRIMAXX::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
     dirs_R[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
   }
 
+  // Create transverse beam body
+  ChVector<> tbCOM_local = getTransversebeamCOM();
+  ChVector<> tbCOM = suspension_to_abs.TransformLocalToParent(tbCOM_local);
+
+  m_transversebeam = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
+  m_transversebeam->SetNameString(m_name + "_transversebeam");
+  m_transversebeam->SetPos(tbCOM);
+  m_transversebeam->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+  m_transversebeam->SetMass(getTransversebeamMass());
+  m_transversebeam->SetInertiaXX(getTransversebeamInertia());
+  AddVisualizationLink(m_transversebeam, points_L[LOWERBEAM_TB], points_R[LOWERBEAM_TB], getTransversebeamRadius(), ChColor(0.7f, 0.7f, 0.7f));
+  chassis->GetSystem()->AddBody(m_transversebeam);
+
+
   // Initialize left and right sides.
   InitializeSide(LEFT, chassis, tierod_body, points_L, dirs_L);
   InitializeSide(RIGHT, chassis, tierod_body, points_R, dirs_R);
@@ -213,7 +227,7 @@ ChMatrix33<> rot;
   m_lowerbeam[side]->SetRot(rot);
   m_lowerbeam[side]->SetMass(getLowerbeamMass());
   m_lowerbeam[side]->SetInertiaXX(getLowerbeamInertia());
-  AddVisualizationLink(m_lowerbeam[side], points[LOWERBEAM_C], points[LOWERBEAM_AH], getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
+  AddVisualizationLowerBeam(m_lowerbeam[side], points[LOWERBEAM_C], points[LOWERBEAM_AH], points[LOWERBEAM_TB], getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
   chassis->GetSystem()->AddBody(m_lowerbeam[side]);
 
   
@@ -227,7 +241,7 @@ ChMatrix33<> rot;
   ///* Check it
 
   // Append to the axle visualization
-  AddVisualizationLink(m_axlehousing, points[LOWERBEAM_AH], points[TORQUEROD_AH], getLowerbeamRadius(), ChColor(0.7f, 0.7f, 0.7f));
+  AddVisualizationLink(m_axlehousing, points[LOWERBEAM_AH], points[TORQUEROD_AH], getAxlehousingRadius() / 2, ChColor(0.7f, 0.7f, 0.7f));
   ///*
   ///* ENDOF axle visualisation
   ///*
@@ -447,6 +461,34 @@ void ChHendricksonPRIMAXX::AddVisualizationLink(ChSharedBodyPtr   body,
   body->AddAsset(col);
 }
 
+void ChHendricksonPRIMAXX::AddVisualizationLowerBeam(ChSharedBodyPtr   body,
+  const ChVector<>  pt_C,
+  const ChVector<>  pt_AH,
+  const ChVector<>  pt_TB,
+  double            radius,
+  const ChColor&    color)
+{
+  // Express hardpoint locations in body frame.
+  ChVector<> p_C = body->TransformPointParentToLocal(pt_C);
+  ChVector<> p_AH = body->TransformPointParentToLocal(pt_AH);
+  ChVector<> p_TB = body->TransformPointParentToLocal(pt_TB);
+
+  ChSharedPtr<ChCylinderShape> cyl_1(new ChCylinderShape);
+  cyl_1->GetCylinderGeometry().p1 = p_C;
+  cyl_1->GetCylinderGeometry().p2 = p_AH;
+  cyl_1->GetCylinderGeometry().rad = radius;
+  body->AddAsset(cyl_1);
+
+  ChSharedPtr<ChCylinderShape> cyl_2(new ChCylinderShape);
+  cyl_2->GetCylinderGeometry().p1 = p_AH;
+  cyl_2->GetCylinderGeometry().p2 = p_TB;
+  cyl_2->GetCylinderGeometry().rad = radius;
+  body->AddAsset(cyl_2);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  col->SetColor(color);
+  body->AddAsset(col);
+}
 
 //-----------------------------------------------------------------------------
 void ChHendricksonPRIMAXX::AddVisualizationSpindle(ChSharedBodyPtr spindle,

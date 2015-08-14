@@ -36,6 +36,7 @@ public:
   ~Generic_HendricksonPRIMAXX();
 
   virtual const chrono::ChVector<> getAxlehousingCOM() const { return m_axlehousingCOM; }
+  virtual const chrono::ChVector<> getTransversebeamCOM() const { return m_transversebeamCOM; }
 
   virtual double getAxlehousingMass() const { return m_axlehousingMass; }
   virtual double getKnuckleMass() const { return m_knuckleMass; }
@@ -91,7 +92,8 @@ private:
   static const double      m_transversebeamRadius;
 
   static const chrono::ChVector<>  m_axlehousingCOM;
-  
+  static const chrono::ChVector<>  m_transversebeamCOM;
+
   static const chrono::ChVector<>  m_axlehousingInertia;
   static const chrono::ChVector<>  m_knuckleInertia;
   static const chrono::ChVector<>  m_spindleInertia;

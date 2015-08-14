@@ -165,6 +165,9 @@ protected:
   /// Return the center of mass of the axle tube.
   virtual const ChVector<> getAxlehousingCOM() const = 0;
 
+  /// Return the center of mass of the transverse beam.
+  virtual const ChVector<> getTransversebeamCOM() const = 0;
+
   /// Return the mass of the spindle body.
   /// HH QUESTION WHERE IS THE HARDPOINT DEF OF THE SPINDELS MASS???
   virtual double getSpindleMass() const = 0;
@@ -258,7 +261,13 @@ private:
                                       const ChVector<>  pt_2,
                                       double            radius,
                                       const ChColor&    color);
-    static void AddVisualizationKnuckle(ChSharedBodyPtr   knuckle,
+  static void AddVisualizationLowerBeam(ChSharedBodyPtr   body,
+    const ChVector<>  pt_C,
+    const ChVector<>  pt_AH,
+    const ChVector<>  pt_TB,
+    double            radius,
+    const ChColor&    color);
+  static void AddVisualizationKnuckle(ChSharedBodyPtr   knuckle,
                                       const ChVector<>  pt_U,
                                       const ChVector<>  pt_L,
                                       const ChVector<>  pt_T,

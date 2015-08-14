@@ -39,14 +39,15 @@ const double     Generic_HendricksonPRIMAXX::m_lowerbeamMass = 2.892;
 const double     Generic_HendricksonPRIMAXX::m_transversebeamMass = 1.0;
 
 const double     Generic_HendricksonPRIMAXX::m_axlehousingRadius = 0.03;
-const double     Generic_HendricksonPRIMAXX::m_knuckleRadius = 0.001;
-const double     Generic_HendricksonPRIMAXX::m_spindleRadius = 0.06;
+const double     Generic_HendricksonPRIMAXX::m_knuckleRadius = 0.02;
+const double     Generic_HendricksonPRIMAXX::m_spindleRadius = 0.08;
 const double     Generic_HendricksonPRIMAXX::m_spindleWidth = 0.04;
 const double     Generic_HendricksonPRIMAXX::m_torquerodRadius = 0.02;
-const double     Generic_HendricksonPRIMAXX::m_lowerbeamRadius = 0.08;
+const double     Generic_HendricksonPRIMAXX::m_lowerbeamRadius = 0.03;
 const double     Generic_HendricksonPRIMAXX::m_transversebeamRadius = 0.02;
 
 const ChVector<> Generic_HendricksonPRIMAXX::m_axlehousingCOM(0, 0, 0);
+const ChVector<> Generic_HendricksonPRIMAXX::m_transversebeamCOM(-0.376, 0, -0.197);
 
 const ChVector<> Generic_HendricksonPRIMAXX::m_axlehousingInertia(7.744, 0.045, 7.744);
 const ChVector<> Generic_HendricksonPRIMAXX::m_knuckleInertia(0.00255, 0.00134, 0.00196);
