@@ -12,7 +12,7 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
-#include "chrono_utils/ChUtilsVehicle.h"
+//#include "chrono_utils/ChUtilsVehicle.h"
 //#include "chrono_utils/ChUtilsGeometry.h"
 #include "chrono_utils/ChUtilsCreators.h"
 //#include "chrono_utils/ChUtilsGenerators.h"
