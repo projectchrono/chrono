@@ -12,7 +12,6 @@
 #include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
 
 // Chrono::Parallel OpenGL header files
-
 #include "chrono_opengl/ChOpenGLWindow.h"
 
 // Chrono::Parallel utility header files
@@ -23,8 +22,6 @@
 
 // Chrono::Vehicle header files
 #include "chrono_vehicle/utils/ChWheeledVehicleAssembly.h"
-
-////#include "demo_utils.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -201,13 +198,6 @@ int main(int argc, char* argv[]) {
     system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // ----------------------
-    // Enable debug log
-    // ----------------------
-
-    ////system->SetLoggingLevel(LOG_INFO, true);
-    ////system->SetLoggingLevel(LOG_TRACE, true);
-
-    // ----------------------
     // Set number of threads.
     // ----------------------
 
@@ -347,9 +337,6 @@ int main(int argc, char* argv[]) {
             gl_window.Render();
         } else
             break;
-
-        ////progressbar(out_steps + sim_frame - next_out_frame + 1, out_steps);
-        ////TimingOutput(system);
 
         // Periodically display maximum constraint violation
         if (monitor_bilaterals && sim_frame % bilateral_frame_interval == 0) {

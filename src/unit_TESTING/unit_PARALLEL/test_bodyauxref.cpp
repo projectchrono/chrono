@@ -38,7 +38,7 @@
 #include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
   double time = 0;
 
   if (animate) {
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "BodyAuxRef", system);
     gl_window.SetCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));

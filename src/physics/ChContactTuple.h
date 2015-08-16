@@ -59,7 +59,7 @@ class ChContactTuple {
                    Tb* mobjB,                               ///< ChContactable object B
                    const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
                    ) {
-        assert(container);
+        assert(mcontainer);
         assert(mobjA);
         assert(mobjB);
 

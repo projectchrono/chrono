@@ -32,9 +32,9 @@
 //#define BULLET
 
 // Control use of OpenGL run-time rendering
-//#undef CHRONO_PARALLEL_HAS_OPENGL
+//#undef CHRONO_OPENGL
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
@@ -325,7 +325,7 @@ int main(int argc, char* argv[]) {
   double time_end = time_settling_max;
 
   if (animate) {
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Narrowphase", msystem);
     gl_window.SetCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));

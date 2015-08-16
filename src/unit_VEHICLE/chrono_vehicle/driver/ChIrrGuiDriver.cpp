@@ -81,7 +81,7 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&           app,
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 
-#if IRRKLANG_ENABLED
+#ifdef CHRONO_IRRKLANG
   m_sound_engine = 0;   // Sound player
   m_car_sound = 0;      // Sound
 
@@ -270,7 +270,7 @@ void ChIrrGuiDriver::Advance(double step)
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 
-#if IRRKLANG_ENABLED
+#ifdef CHRONO_IRRKLANG
   static int stepsbetweensound = 0;
 
   // Update sound pitch

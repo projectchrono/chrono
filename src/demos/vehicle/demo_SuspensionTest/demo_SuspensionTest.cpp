@@ -44,7 +44,7 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
 // Irrlicht includes
-#if IRRLICHT_ENABLED
+#ifdef CHRONO_IRRLICHT
 # include "unit_IRRLICHT/ChIrrApp.h"
 # include "chrono_vehicle/driver/ChIrrGuiST.h"
 # define USE_IRRLICHT

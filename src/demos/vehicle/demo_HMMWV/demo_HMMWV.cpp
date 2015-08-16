@@ -45,7 +45,7 @@
 #include "hmmwv/HMMWV_FuncDriver.h"
 
 // If Irrlicht support is available...
-#if IRRLICHT_ENABLED
+#ifdef CHRONO_IRRLICHT
   // ...include additional headers
 # include "unit_IRRLICHT/ChIrrApp.h"
 # include "chrono_vehicle/driver/ChIrrGuiDriver.h"
