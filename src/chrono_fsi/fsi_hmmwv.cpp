@@ -41,6 +41,8 @@
 
 // Chrono Vehicle Include
 #include "VehicleExtraProperties.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+
 //#include "chrono_utils/ChUtilsVehicle.h"
 #include "chrono_utils/ChUtilsGeometry.h"
 #include "chrono_utils/ChUtilsCreators.h"
@@ -438,11 +440,11 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
   // according to the specified type of tire/wheel.
   switch (wheel_type) {
     case CYLINDRICAL: {
-      mVehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
+      mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
       tire_cb = new MyCylindricalTire();
     } break;
     case LUGGED: {
-      mVehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
+      mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
       tire_cb = new MyLuggedTire();
     } break;
   }

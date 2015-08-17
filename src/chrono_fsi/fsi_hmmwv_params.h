@@ -268,9 +268,9 @@ int out_fps = 120;
 
 Real vertical_offset = 0;  // vehicle vertical offset
 
-chrono::utils::VehicleSystem* mVehicle;
-chrono::utils::TireContactCallback* tire_cb;
-chrono::utils::ChassisContactCallback* chassis_cb;
+chrono::ChWheeledVehicleAssembly* mVehicle;
+chrono::ChTireContactCallback* tire_cb;
+chrono::ChChassisContactCallback* chassis_cb;
 MyDriverInputs* driver_cb;
 
 #endif  // end of FSI_HMMWV_PARAMS_H_

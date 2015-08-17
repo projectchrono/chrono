@@ -13,6 +13,8 @@
 
 //#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+
 
 
 
