@@ -11,20 +11,20 @@ ChOgreBody is the basic physical body class. It will set up Ogre scene nodes to 
 
 #include <OGRE\Ogre.h>
 
-#include <physics\ChSystem.h>
-#include <physics\ChBody.h>
-#include <core\ChSmartpointers.h>
-#include <assets\ChVisualization.h>
-#include <assets\ChBoxShape.h>
-#include <assets\ChCapsuleShape.h>
-#include <assets\ChConeShape.h>
-#include <assets\ChCylinderShape.h>
-#include <assets\ChEllipsoidShape.h>
-#include <assets\ChRoundedBoxShape.h>
-#include <assets\ChRoundedConeShape.h>
-#include <assets\ChRoundedCylinderShape.h>
-#include <assets\ChSphereShape.h>
-#include <assets\ChTriangleMeshShape.h>
+#include <physics/ChSystem.h>
+#include <physics/ChBody.h>
+#include <core/ChSmartpointers.h>
+#include <assets/ChVisualization.h>
+#include <assets/ChBoxShape.h>
+#include <assets/ChCapsuleShape.h>
+#include <assets/ChConeShape.h>
+#include <assets/ChCylinderShape.h>
+#include <assets/ChEllipsoidShape.h>
+#include <assets/ChRoundedBoxShape.h>
+#include <assets/ChRoundedConeShape.h>
+#include <assets/ChRoundedCylinderShape.h>
+#include <assets/ChSphereShape.h>
+#include <assets/ChTriangleMeshShape.h>
 
 #include "../ChOgre.h"
 #include "ChOgreModel.h"

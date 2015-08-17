@@ -138,26 +138,28 @@ namespace ChOgre {
 		m_pSceneManager->setAmbientLight(Ogre::ColourValue(r, g, b));
 	}
 
-	ChOgreLight& ChOgreScene::createLight() {
-		Ogre::Light* _ret = m_pSceneManager->createLight("Light" + std::to_string(m_LightCount));
-		return *_ret;
+	ChOgreLightHandle ChOgreScene::createLight() {
+		ChOgreLightSharedPtr _light(new ChOgreLight(m_pSceneManager, "Light" + std::to_string(m_LightCount)));
+		ChOgreLightHandle _ret(_light);
+		return _ret;
 	}
 
-	ChOgreLight& ChOgreScene::createLight(std::string Name) {
-		Ogre::Light* _ret = m_pSceneManager->createLight(Name);
-		return *_ret;
+	ChOgreLightHandle ChOgreScene::createLight(const std::string& Name) {
+		ChOgreLightSharedPtr _light(new ChOgreLight(m_pSceneManager, Name));
+		ChOgreLightHandle _ret(_light);
+		return _ret;
 	}
 
-	void ChOgreScene::removeLight(ChOgreLight& Light) {
-		m_pSceneManager->getRootSceneNode()->removeAndDestroyChild(Light.getName());
+	void ChOgreScene::removeLight(ChOgreLightHandle Light) {
+		m_pSceneManager->getRootSceneNode()->removeAndDestroyChild(Light->getName());
 	}
 
-	void ChOgreScene::removeLight(std::string Name) {
+	void ChOgreScene::removeLight(const std::string& Name) {
 		m_pSceneManager->getRootSceneNode()->removeAndDestroyChild(Name);
 	}
 
 
-	ChOgreBodyHandle ChOgreScene::createBody(std::string Name) {
+	ChOgreBodyHandle ChOgreScene::createBody(const std::string& Name) {
 		ChOgreBodySharedPtr _body(new ChOgreBody(m_pSceneManager, m_pChSystem));
 		ChOgreBodyHandle _ret(_body);
 		_body->name = Name;
@@ -165,7 +167,7 @@ namespace ChOgre {
 		return _ret;
 	}
 
-	ChOgreBodyHandle ChOgreScene::getBody(std::string Name) {
+	ChOgreBodyHandle ChOgreScene::getBody(const std::string& Name) {
 		ChOgreBodyHandle _ret;
 		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
 			if (m_ChOgreBodies[i]) {
@@ -188,7 +190,7 @@ namespace ChOgre {
 		}
 	}
 
-	void ChOgreScene::removeBody(std::string Name) {
+	void ChOgreScene::removeBody(const std::string& Name) {
 		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
 			if (m_ChOgreBodies[i]) {
 				if (Name == m_ChOgreBodies[i]->name) {

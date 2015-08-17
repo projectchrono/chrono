@@ -21,11 +21,15 @@ SET(GRAPHICS_FILES
 	Graphics/ChOgreMeshBase.h
 	Graphics/ChOgreModel.cpp
 	Graphics/ChOgreModel.h
+	Graphics/ChOgreLight.cpp
+	Graphics/ChOgreLight.h
 	)
 	
 SET(UTIL_FILES
 	Util/ChOgreBodyHandle.h
 	Util/ChOgreBodyHandle.cpp
+	Util/ChOgreLightHandle.h
+	Util/ChOgreLightHandle.cpp
 	)
 
 SET(GUI_FILES

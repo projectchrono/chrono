@@ -6,17 +6,14 @@ ChOgreScene is designed to be a layer of abstraction from the Ogre lighting syst
 
 #pragma once
 
-#include <OGRE\Ogre.h>
-#include <physics\ChSystem.h>
+#include <OGRE/Ogre.h>
+#include <physics/ChSystem.h>
 
 #include "ChOgreBody.h"
 #include "../Util/ChOgreBodyHandle.h"
+#include "../Util/ChOgreLightHandle.h"
 
 namespace ChOgre {
-
-	typedef Ogre::Light CHOGRE_DLL_TAG ChOgreLight;
-
-	typedef Ogre::Light::LightTypes CHOGRE_DLL_TAG ChOgreLightTypes;
 
 	class CHOGRE_DLL_TAG ChOgreScene {
 
@@ -32,22 +29,22 @@ namespace ChOgre {
 		virtual void setAmbientLight(Ogre::ColourValue Color);
 		virtual void setAmbientLight(float r, float g, float b);
 
-		virtual ChOgreLight& createLight();
-		virtual ChOgreLight& createLight(std::string Name);
+		virtual ChOgreLightHandle createLight();
+		virtual ChOgreLightHandle createLight(const std::string& Name);
 
-		virtual void removeLight(ChOgreLight& Light);
-		virtual void removeLight(std::string Name);
+		virtual void removeLight(ChOgreLightHandle Light);
+		virtual void removeLight(const std::string& Name);
 
 		////////
 		//Body Creation
 		///////
 
-		virtual ChOgreBodyHandle createBody(std::string Name = "");
+		virtual ChOgreBodyHandle createBody(const std::string& Name = "");
 
-		virtual ChOgreBodyHandle getBody(std::string Name);
+		virtual ChOgreBodyHandle getBody(const std::string& Name);
 
 		virtual void removeBody(ChOgreBodyHandle& Body);
-		virtual void removeBody(std::string Name);
+		virtual void removeBody(const std::string& Name);
 
 		virtual void update();
 
