@@ -8,13 +8,10 @@
 
 SET(FILES
     ChApiUtils.h
-    ChUtilsGeometry.h
     ChUtilsCreators.h
     ChUtilsCreators.cpp
     ChUtilsInputOutput.h
     ChUtilsInputOutput.cpp
-    ChUtilsValidation.h
-    ChUtilsValidation.cpp
 )
 
 SOURCE_GROUP("utils" FILES ${FILES})
