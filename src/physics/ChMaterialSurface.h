@@ -89,6 +89,8 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
         complianceSpin = other.complianceSpin;
     }
 
+    virtual ContactMethod GetContactMethod() { return DVI; };
+
     //
     // FUNCTIONS
     //

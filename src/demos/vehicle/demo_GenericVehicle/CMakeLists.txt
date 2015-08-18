@@ -56,7 +56,6 @@ ENDIF()
 SET(LIBRARIES
     ChronoEngine
     ChronoEngine_Vehicle
-    ChronoEngine_VehicleUtils
 )
 
 IF(ENABLE_UNIT_IRRLICHT)

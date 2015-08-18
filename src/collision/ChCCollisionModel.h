@@ -263,10 +263,10 @@ class ChApi ChCollisionModel {
     /// only if the family is within the 'family mask' of the other,
     /// and viceversa.
     /// NOTE: these functions have NO effect if used before you add
-    ///  the body to a ChSystem, using AddBody(). Use after AddBody().
-    /// MUST be implemented by child classes!
-    virtual void SetFamily(int mfamily) = 0;
-    virtual int GetFamily() = 0;
+    ///       the body to a ChSystem, using AddBody(). Use after AddBody().
+    /// These default implementations use the family group.
+    virtual void SetFamily(int mfamily);
+    virtual int GetFamily();
 
     /// By default, family mask is all turned on, so all families
     /// can collide with this object, but you can turn on-off some bytes
@@ -275,17 +275,38 @@ class ChApi ChCollisionModel {
     /// only if the family is within the 'family mask' of the other,
     /// and viceversa.
     /// NOTE: these functions have NO effect if used before you add
-    ///  the body to a ChSystem, using AddBody(). Use after AddBody().
-    /// MUST be implemented by child classes!
-    virtual void SetFamilyMaskNoCollisionWithFamily(int mfamily) = 0;
-    virtual void SetFamilyMaskDoCollisionWithFamily(int mfamily) = 0;
+    ///       the body to a ChSystem, using AddBody(). Use after AddBody().
+    /// These default implementations use the family mask.
+    virtual void SetFamilyMaskNoCollisionWithFamily(int mfamily);
+    virtual void SetFamilyMaskDoCollisionWithFamily(int mfamily);
 
     /// Tells if the family mask of this collision object allows
     /// for the collision with another collision object belonging to
     /// a given family.
     /// NOTE: this function has NO effect if used before you add
-    ///  the body to a ChSystem, using AddBody(). Use after AddBody().
-    virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily) = 0;
+    ///       the body to a ChSystem, using AddBody(). Use after AddBody().
+    /// This default implementation uses the family mask.
+    virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
+
+    /// Return the collision family group of this model.
+    /// The collision family of this model is the position of the single set bit
+    /// in the return value.
+    virtual short int GetFamilyGroup() const { return family_group; }
+    /// Set the collision family group of this model.
+    /// This is an alternative way of specifying the collision family for this
+    /// object.  The value family_group must have a single bit set (i.e. it must
+    /// be a power of 2). The corresponding family is then the bit position.
+    virtual void SetFamilyGroup(short int group);
+
+    /// Return the collision mask for this model.
+    /// Each bit of the return value indicates whether this model collides with
+    /// the corresponding family (bit set) or not (bit unset).
+    virtual short int GetFamilyMask() const { return family_mask; }
+    /// Set the collision mask for this model.
+    /// Any set bit in the specified mask indicates that this model collides with
+    /// all objects whose family is equal to the bit position.
+    virtual void SetFamilyMask(short int mask);
+
 
     // TOLERANCES, ENVELOPES, THRESHOLDS
     //
@@ -372,17 +393,19 @@ class ChApi ChCollisionModel {
 
   protected:
     virtual float GetSuggestedFullMargin() { return model_envelope + model_safe_margin; }
-    // Maximum envelope: surrounding volume from surface
-    // to the exterior
+
+    // Maximum envelope: surrounding volume from surface to the exterior
     float model_envelope;
 
-    // This is the max.value to be used for fast penetration
-    // contact detection.
+    // This is the max.value to be used for fast penetration contact detection.
     float model_safe_margin;
 
     // Pointer to the contactable object
     ChContactable* mcontactable;
 
+    // Collision family group and mask
+    short int family_group;
+    short int family_mask;
 };
 
 }  // END_OF_NAMESPACE____

@@ -350,7 +350,13 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
 
     /// Return the contact method supported by this system.
     /// Bodies added to this system must be compatible.
-    virtual ChBody::ContactMethod GetContactMethod() const { return ChBody::DVI; }
+    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
+
+    /// Create and return the pointer to a new body.
+    /// The returned body is created with a contact model consistent with the type
+    /// of this Chsystem and with the collision system currently associated with this
+    /// ChSystem.  Note that the body is *not* attached to this system.
+    virtual ChBody* NewBody() { return new ChBody(ChMaterialSurfaceBase::DVI); }
 
     /// Attach a body to this system. Must be an object of exactly ChBody class.
     virtual void AddBody(ChSharedPtr<ChBody> newbody);

@@ -24,10 +24,10 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
-#include "chrono_utils/ChUtilsCreators.h"
-#include "chrono_utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsInputOutput.h"
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
@@ -222,13 +222,13 @@ bool VerifySolution(double time,                                 // current time
 // -----------------------------------------------------------------------------
 // Worker function for performing the simulation with specified parameters.
 // -----------------------------------------------------------------------------
-bool TestLinActuator(utils::SystemType sys_type,  // type of system (PARALLEL_DEM or PARALLEL_DVI)
-                     const char* test_name,       // name of this test
-                     const ChQuaternion<>& rot,   // translation along Z axis
-                     double speed,                // imposed translation speed
-                     bool animate)                // if true, animate with OpenGL
+bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system (DEM or DVI)
+                     const char* test_name,                    // name of this test
+                     const ChQuaternion<>& rot,                // translation along Z axis
+                     double speed,                             // imposed translation speed
+                     bool animate)                             // if true, animate with OpenGL
 {
-  std::cout << test_name << std::endl;
+    std::cout << test_name << std::endl;
 
   // Unit vector along translation axis, expressed in global frame
   ChVector<> axis = rot.GetZaxis();
@@ -259,13 +259,13 @@ bool TestLinActuator(utils::SystemType sys_type,  // type of system (PARALLEL_DE
 
   ChSystemParallel* msystem;
 
-  switch (sys_type) {
-    case utils::PARALLEL_DEM:
-      msystem = new ChSystemParallelDEM();
-      break;
-    case utils::PARALLEL_DVI:
-      msystem = new ChSystemParallelDVI();
-      break;
+  switch (cm) {
+      case ChMaterialSurfaceBase::DEM:
+          msystem = new ChSystemParallelDEM();
+          break;
+      case ChMaterialSurfaceBase::DVI:
+          msystem = new ChSystemParallelDVI();
+          break;
   }
   msystem->Set_G_acc(gravity);
 
@@ -280,7 +280,7 @@ bool TestLinActuator(utils::SystemType sys_type,  // type of system (PARALLEL_DE
   msystem->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
   msystem->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-  if (sys_type == utils::PARALLEL_DVI) {
+  if (cm == ChMaterialSurfaceBase::DVI) {
     ChSystemParallelDVI* msystemDVI = static_cast<ChSystemParallelDVI*>(msystem);
     msystemDVI->GetSettings()->solver.solver_mode = SLIDING;
     msystemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
@@ -291,17 +291,7 @@ bool TestLinActuator(utils::SystemType sys_type,  // type of system (PARALLEL_DE
 
   // Create the ground body.
 
-  ChBody* ground_ptr;
-  switch (sys_type) {
-    case utils::PARALLEL_DEM:
-      ground_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DEM);
-      break;
-    case utils::PARALLEL_DVI:
-      ground_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DVI);
-      break;
-  }
-  ChSharedPtr<ChBody> ground(ground_ptr);
-  ground_ptr->AddRef();
+  ChSharedPtr<ChBody> ground(msystem->NewBody());
 
   msystem->AddBody(ground);
   ground->SetBodyFixed(true);
@@ -314,17 +304,7 @@ bool TestLinActuator(utils::SystemType sys_type,  // type of system (PARALLEL_DE
 
   // Create the plate body.
 
-  ChBody* plate_ptr;
-  switch (sys_type) {
-    case utils::PARALLEL_DEM:
-      plate_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DEM);
-      break;
-    case utils::PARALLEL_DVI:
-      plate_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DVI);
-      break;
-  }
-  ChSharedPtr<ChBody> plate(plate_ptr);
-  plate_ptr->AddRef();
+  ChSharedPtr<ChBody> plate(msystem->NewBody());
 
   msystem->AddBody(plate);
   plate->SetPos(ChVector<>(0, 0, 0));
@@ -371,7 +351,7 @@ bool TestLinActuator(utils::SystemType sys_type,  // type of system (PARALLEL_DE
   double time = 0;
 
   if (animate) {
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, test_name, msystem);
     gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
@@ -413,12 +393,12 @@ int main(int argc, char* argv[]) {
   bool test_passed = true;
 
   // Case 1 - Translation axis vertical, imposed speed 1 m/s
-  test_passed &= TestLinActuator(utils::PARALLEL_DEM, "Case 1 (DEM)", QUNIT, 1, animate);
-  test_passed &= TestLinActuator(utils::PARALLEL_DVI, "Case 1 (DVI)", QUNIT, 1, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::DEM, "Case 1 (DEM)", QUNIT, 1, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::DVI, "Case 1 (DVI)", QUNIT, 1, animate);
 
   // Case 2 - Translation axis along X = Z, imposed speed 0.5 m/s
-  test_passed &= TestLinActuator(utils::PARALLEL_DEM, "Case 2 (DEM)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
-  test_passed &= TestLinActuator(utils::PARALLEL_DVI, "Case 2 (DVI)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::DEM, "Case 2 (DEM)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::DVI, "Case 2 (DVI)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
 
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;

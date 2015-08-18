@@ -29,10 +29,10 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
+#include "utils/ChUtilsInputOutput.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-
-#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
 
 #include "ModelDefs.h"
 #include "generic/Generic_Vehicle.h"
@@ -41,7 +41,7 @@
 #include "generic/Generic_FuncDriver.h"
 
 // If Irrlicht support is available...
-#if IRRLICHT_ENABLED
+#ifdef CHRONO_IRRLICHT
   // ...include additional headers
 # include "unit_IRRLICHT/ChIrrApp.h"
 # include "chrono_vehicle/driver/ChIrrGuiDriver.h"

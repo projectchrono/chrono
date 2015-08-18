@@ -14,8 +14,9 @@
 //
 // =============================================================================
 
-#include "chrono_utils/ChUtilsCreators.h"
+#include "utils/ChUtilsCreators.h"
 #include "collision/ChCConvexDecomposition.h"
+
 namespace chrono {
 using namespace geometry;
 using namespace collision;
@@ -202,7 +203,7 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
   for (int c = 0; c < hull_count; c++) {
     used_decomposition->GetConvexHullResult(c, convexhull);
 
-    ((collision::ChCollisionModelParallel*)body->GetCollisionModel())->AddConvexHull(convexhull, pos, rot);
+    body->GetCollisionModel()->AddConvexHull(convexhull, pos, rot);
     if (!use_original_asset) {
       std::stringstream ss;
       ss << name << "_" << c;
@@ -265,7 +266,7 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
     std::vector<ChVector<double> > convexhull;
     used_decomposition->GetConvexHullResult(c, convexhull);
 
-    ((collision::ChCollisionModelParallel*)body->GetCollisionModel())->AddConvexHull(convexhull, pos, rot);
+    body->GetCollisionModel()->AddConvexHull(convexhull, pos, rot);
     if (!use_original_asset) {
       std::stringstream ss;
       ss << name << "_" << c;
@@ -294,13 +295,15 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
 
 //// TODO: extend this to also work for DEM systems.
 
-void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
+void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              const std::string& obj_filename,
                                              const std::string& name,
                                              const ChVector<>& pos,
                                              const ChQuaternion<>& rot,
                                              ChSharedPtr<ChMaterialSurface>& material,
                                              double total_mass) {
+  assert(material->GetContactMethod() == system->GetContactMethod());
+
   geometry::ChTriangleMeshConnected trimesh;
   trimesh.LoadWavefrontMesh(obj_filename, true, false);
 
@@ -330,7 +333,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
   double mass;
   ChVector<> center;
   ChMatrix33<> inertia;
-  real sum = 0;
+  double sum = 0;
   for (int c = 0; c < hull_count; c++) {
     geometry::ChTriangleMeshConnected trimesh_convex;
     used_decomposition->GetConvexHullResult(c, trimesh_convex);
@@ -338,14 +341,14 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
     sum += mass;
   }
 
-  real scale = 1.0 / sum;
+  double scale = 1.0 / sum;
 
   for (int c = 0; c < hull_count; c++) {
     geometry::ChTriangleMeshConnected trimesh_convex;
     used_decomposition->GetConvexHullResult(c, trimesh_convex);
     trimesh_convex.ComputeMassProperties(true, mass, center, inertia);
 
-    body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
+    body = ChSharedPtr<ChBody>(system->NewBody());
 
     InitializeObject(body, scale * mass * total_mass, material, center, Quaternion(1, 0, 0, 0), true, false, 0, 2);
 
@@ -355,7 +358,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
       convexhull[v] = convexhull[v] - center;
     }
 
-    ((collision::ChCollisionModelParallel*)body->GetCollisionModel())->AddConvexHull(convexhull, pos, rot);
+    body->GetCollisionModel()->AddConvexHull(convexhull, pos, rot);
 
     std::stringstream ss;
     ss << name << "_" << c;
@@ -459,24 +462,11 @@ ChSharedPtr<ChBody> CreateBoxContainer(ChSystem* system,
                                        bool y_up,
                                        bool overlap,
                                        bool closed) {
-  // Infer system type and collision type.
-  SystemType sysType = GetSystemType(system);
-  CollisionType cdType = GetCollisionType(system);
-
-  // Infer contact method from the specified material properties object.
-  ChBody::ContactMethod contact_method = GetContactMethod(mat);
-
   // Verify consistency of input arguments.
-  assert(((sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI) && contact_method == ChBody::DVI) ||
-         ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
+  assert(mat->GetContactMethod() == system->GetContactMethod());
 
   // Create the body and set material
-  ChSharedPtr<ChBody> body;
-
-  if (sysType == SEQUENTIAL_DVI || sysType == SEQUENTIAL_DEM || cdType == BULLET_CD)
-    body = ChSharedPtr<ChBody>(new ChBody(contact_method));
-  else
-    body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel, contact_method));
+  ChSharedPtr<ChBody> body = ChSharedPtr<ChBody>(system->NewBody());
 
   body->SetMaterialSurface(mat);
 
@@ -550,30 +540,17 @@ ChSharedPtr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                         bool overlap,
                                                         bool closed,
                                                         bool isBoxBase) {
-  // Infer system type and collision type.
-  SystemType sysType = GetSystemType(system);
-  CollisionType cdType = GetCollisionType(system);
-
-  // Infer contact method from the specified material properties object.
-  ChBody::ContactMethod contact_method = GetContactMethod(mat);
-
   // Verify consistency of input arguments.
-  assert(((sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI) && contact_method == ChBody::DVI) ||
-         ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
+  assert(mat->GetContactMethod() == system->GetContactMethod());
 
   // Create the body and set material
-  ChSharedPtr<ChBody> body;
-
-  if (sysType == SEQUENTIAL_DVI || sysType == SEQUENTIAL_DEM || cdType == BULLET_CD)
-    body = ChSharedPtr<ChBody>(new ChBody(contact_method));
-  else
-    body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel, contact_method));
+  ChSharedPtr<ChBody> body = ChSharedPtr<ChBody>(system->NewBody());
 
   body->SetMaterialSurface(mat);
 
   // Set body properties and geometry.
   body->SetIdentifier(id);
-  //													  body->SetMass(1);
+  //body->SetMass(1);
   body->SetPos(pos);
   body->SetRot(rot);
   body->SetCollide(collide);
@@ -660,13 +637,7 @@ void InitializeObject(ChSharedPtr<ChBody> body,
 // -----------------------------------------------------------------------------
 
 void FinalizeObject(ChSharedPtr<ChBody> body, ChSystem* system) {
-  // Infer system type and contact method.
-  SystemType sysType = GetSystemType(system);
-  ChBody::ContactMethod contact_method = body->GetContactMethod();
-
-  // Verify consistency of input arguments.
-  assert(((sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI) && contact_method == ChBody::DVI) ||
-         ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
+  assert(body->GetContactMethod() == system->GetContactMethod());
 
   body->GetCollisionModel()->BuildModel();
   system->AddBody(body);
@@ -714,7 +685,7 @@ void AddConvexCollisionModel(ChSharedPtr<ChBody> body,
     std::vector<ChVector<double> > convexhull;
     used_decomposition->GetConvexHullResult(c, convexhull);
 
-    ((collision::ChCollisionModelParallel*)body->GetCollisionModel())->AddConvexHull(convexhull, pos, rot);
+    body->GetCollisionModel()->AddConvexHull(convexhull, pos, rot);
     // Add each convex chunk as a new asset
     if (!use_original_asset) {
       std::stringstream ss;

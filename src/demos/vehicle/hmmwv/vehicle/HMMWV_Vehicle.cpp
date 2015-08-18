@@ -19,9 +19,9 @@
 #include "assets/ChSphereShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "hmmwv/vehicle/HMMWV_Vehicle.h"
 

@@ -30,10 +30,10 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
-#include "chrono_utils/ChUtilsCreators.h"
-#include "chrono_utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsInputOutput.h"
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
@@ -78,7 +78,7 @@ void AddContainer(ChSystemParallelDEM* sys) {
   mat->SetRestitution(cr);
 
   // Create the containing bin (4 x 4 x 1)
-  ChSharedPtr<ChBody> bin(new ChBody(new ChCollisionModelParallel, ChBody::DEM));
+  ChSharedPtr<ChBody> bin(new ChBody(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM));
   bin->SetMaterialSurface(mat);
   bin->SetIdentifier(binId);
   bin->SetMass(1);
@@ -121,7 +121,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
     for (int iy = -count_Y; iy <= count_Y; iy++) {
       ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-      ChSharedPtr<ChBody> ball(new ChBody(new ChCollisionModelParallel, ChBody::DEM));
+      ChSharedPtr<ChBody> ball(new ChBody(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM));
       ball->SetMaterialSurface(ballMat);
 
       ball->SetIdentifier(ballId++);
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
 // Perform the simulation
 // ----------------------
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
   opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
   gl_window.Initialize(1280, 720, "ballsDEM", &msystem);
   gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));

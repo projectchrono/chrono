@@ -44,7 +44,7 @@
 
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
-#if IRRKLANG_ENABLED
+#ifdef CHRONO_IRRKLANG
 #include <irrKlang.h>
 #endif
 
@@ -129,7 +129,7 @@ private:
   double m_time_shift;
   ChSharedPtr<ChDataDriver> m_data_driver;
 
-#if IRRKLANG_ENABLED
+#ifdef CHRONO_IRRKLANG
   irrklang::ISoundEngine* m_sound_engine;   // Sound player
   irrklang::ISound*       m_car_sound;      // Sound
 #endif

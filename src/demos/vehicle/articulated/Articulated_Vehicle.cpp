@@ -23,8 +23,6 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
-
 #include "articulated/Articulated_Vehicle.h"
 
 #include "generic/Generic_SolidAxle.h"

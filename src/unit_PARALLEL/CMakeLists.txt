@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for PARALLEL unit
-#
+# 
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
@@ -78,18 +78,6 @@ ELSEIF(USE_SSE)
 
 ENDIF()
 
-#Set c++11 flags
-
-#    IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-#    # using Clang
-#    ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-#      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-#      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c++11")
-#    ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-#    ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-#    # using Visual Studio C++
-#    ENDIF()
-
 # ------------------------------------------------------------------------------
 # OpenMP
 # ------------------------------------------------------------------------------
@@ -142,18 +130,18 @@ IF(BUILD_OPENGL)
 
   # If all dependencies are available, enable building OpenGL support.
   IF(OPENGL_FOUND AND GLM_FOUND AND GLEW_FOUND AND GLFW_FOUND)
-    SET(CHRONO_PARALLEL_HAS_OPENGL "#define CHRONO_PARALLEL_HAS_OPENGL")
+    SET(CHRONO_OPENGL "#define CHRONO_OPENGL")
     SET(ENABLE_OPENGL ON)
   ELSE()
     # Unable to find everything, turn off OpenGL
     MESSAGE("Cannot build ChronoEngine_OpenGL (missing dependencies).")
-    SET(CHRONO_PARALLEL_HAS_OPENGL "")
+    SET(CHRONO_OPENGL "#undef CHRONO_OPENGL")
     SET(ENABLE_OPENGL OFF)
   ENDIF()
 
 ELSE()
 
-  SET(CHRONO_PARALLEL_HAS_OPENGL "")
+  SET(CHRONO_OPENGL "#undef CHRONO_OPENGL")
   SET(ENABLE_OPENGL OFF)
 
 ENDIF()
@@ -203,7 +191,6 @@ SET(CH_OPENGL_INCLUDES "${CH_OPENGL_INCLUDES}" PARENT_SCOPE)
 # Add subdirectories, depending on user-specified options
 # ------------------------------------------------------------------------------
 ADD_SUBDIRECTORY(chrono_parallel)
-ADD_SUBDIRECTORY(chrono_utils)
 
 IF(ENABLE_OPENGL)
   ADD_SUBDIRECTORY(chrono_opengl)

@@ -24,6 +24,7 @@
 #include <vector>
 #include <string>
 
+#include "core/ChApiCE.h"
 #include "core/ChSmartpointers.h"
 #include "core/ChVector.h"
 #include "core/ChQuaternion.h"
@@ -46,9 +47,6 @@
 #include "assets/ChRoundedConeShape.h"
 #include "assets/ChRoundedCylinderShape.h"
 
-#include "chrono_utils/ChApiUtils.h"
-#include "chrono_utils/ChUtilsCommon.h"
-
 #include "collision/ChCModelBullet.h"
 #include "collision/ChCConvexDecomposition.h"
 
@@ -69,28 +67,28 @@ namespace utils {
 //
 // Utility functions for adding contact and asset geometry shapes to a body
 // -----------------------------------------------------------------------------
-CH_UTILS_API
+ChApi
 void AddSphereGeometry(ChBody* body,
                        double radius,
                        const ChVector<>& pos = ChVector<>(0, 0, 0),
                        const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                        bool visualization = true);
 
-CH_UTILS_API
+ChApi
 void AddEllipsoidGeometry(ChBody* body,
                           const ChVector<>& size,
                           const ChVector<>& pos = ChVector<>(0, 0, 0),
                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                           bool visualization = true);
 
-CH_UTILS_API
+ChApi
 void AddBoxGeometry(ChBody* body,
                     const ChVector<>& size,
                     const ChVector<>& pos = ChVector<>(0, 0, 0),
                     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                     bool visualization = true);
 
-CH_UTILS_API
+ChApi
 void AddCapsuleGeometry(ChBody* body,
                         double radius,
                         double hlen,
@@ -98,7 +96,7 @@ void AddCapsuleGeometry(ChBody* body,
                         const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                         bool visualization = true);
 
-CH_UTILS_API
+ChApi
 void AddCylinderGeometry(ChBody* body,
                          double radius,
                          double hlen,
@@ -106,7 +104,7 @@ void AddCylinderGeometry(ChBody* body,
                          const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                          bool visualization = true);
 
-CH_UTILS_API
+ChApi
 void AddConeGeometry(ChBody* body,
                      double radius,
                      double height,
@@ -114,7 +112,7 @@ void AddConeGeometry(ChBody* body,
                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                      bool visualization = true);
 
-CH_UTILS_API
+ChApi
 void AddTriangleMeshGeometry(ChBody* body,
                              const std::string& obj_filename,
                              const std::string& name,
@@ -122,7 +120,7 @@ void AddTriangleMeshGeometry(ChBody* body,
                              const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                              bool visualization = true);
 
-CH_UTILS_API
+ChApi
 void AddTriangleMeshConvexDecomposition(ChBody* body,
                                         const std::string& obj_filename,
                                         const std::string& name,
@@ -131,7 +129,7 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
                                         double skin_thickness = 0,
                                         bool use_original_asset = true);
 
-CH_UTILS_API
+ChApi
 void AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                           const std::string& obj_filename,
                                           const std::string& name,
@@ -139,8 +137,8 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                           bool use_original_asset = true);
 
-CH_UTILS_API
-void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
+ChApi
+void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              const std::string& obj_filename,
                                              const std::string& name,
                                              const ChVector<>& pos,
@@ -148,7 +146,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
                                              ChSharedPtr<ChMaterialSurface> material,
                                              double total_mass);
 
-CH_UTILS_API
+ChApi
 void AddRoundedBoxGeometry(ChBody* body,
                            const ChVector<>& size,
                            double srad,
@@ -156,7 +154,7 @@ void AddRoundedBoxGeometry(ChBody* body,
                            const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                            bool visualization = true);
 
-CH_UTILS_API
+ChApi
 void AddRoundedCylinderGeometry(ChBody* body,
                                 double radius,
                                 double hlen,
@@ -166,7 +164,7 @@ void AddRoundedCylinderGeometry(ChBody* body,
                                 bool visualization = true);
 
 // Creates a compound torus shape using cylinders
-CH_UTILS_API
+ChApi
 void AddTorusGeometry(ChBody* body,
                       double radius,
                       double thickness,
@@ -188,7 +186,7 @@ void AddTorusGeometry(ChBody* body,
 
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
-CH_UTILS_API
+ChApi
 ChSharedPtr<ChBody> CreateBoxContainer(ChSystem* system,
                                        int id,
                                        ChSharedPtr<ChMaterialSurfaceBase> mat,
@@ -215,7 +213,7 @@ ChSharedPtr<ChBody> CreateBoxContainer(ChSystem* system,
 // represented by boxes.
 // The container is aligned with the z direction. The position refers to the center of the bottom inner circle.
 // Only half of the cylinder is visualized.
-CH_UTILS_API
+ChApi
 ChSharedPtr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                         int id,
                                                         ChSharedPtr<ChMaterialSurfaceBase> mat,
@@ -231,7 +229,7 @@ ChSharedPtr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                         bool closed = false,
                                                         bool isBoxBase = true);
 
-CH_UTILS_API
+ChApi
 void InitializeObject(ChSharedPtr<ChBody> body,
                       double mass,
                       ChSharedPtr<ChMaterialSurfaceBase> mat,
@@ -242,12 +240,12 @@ void InitializeObject(ChSharedPtr<ChBody> body,
                       int collision_family = 2,
                       int do_not_collide_with = 4);
 
-CH_UTILS_API
+ChApi
 void FinalizeObject(ChSharedPtr<ChBody> body, ChSystem* system);
 
 // Given a file containing an obj, this function will load the obj file into a
 // mesh and generate its convex decomposition
-CH_UTILS_API
+ChApi
 void LoadConvexMesh(const std::string& file_name,
                     geometry::ChTriangleMeshConnected& convex_mesh,
                     collision::ChConvexDecompositionHACDv2& convex_shape,
@@ -263,7 +261,7 @@ void LoadConvexMesh(const std::string& file_name,
 // Given a convex mesh and it's decomposition add it to a ChBody
 // use_original_asset can be used to specify if the mesh or the convex decomp
 // should be used for visualization
-CH_UTILS_API
+ChApi
 void AddConvexCollisionModel(ChSharedPtr<ChBody> body,
                              geometry::ChTriangleMeshConnected& convex_mesh,
                              collision::ChConvexDecompositionHACDv2& convex_shape,

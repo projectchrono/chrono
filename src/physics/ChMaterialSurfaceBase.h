@@ -26,7 +26,12 @@ class ChApi ChMaterialSurfaceBase : public ChShared {
     CH_RTTI(ChMaterialSurfaceBase, ChShared);
 
   public:
+    enum ContactMethod {
+      DVI,  ///< constraint-based (a.k.a. rigid-body) contact
+      DEM   ///< penalty-based (a.k.a. soft-body) contact
+    };
 
+    virtual ContactMethod GetContactMethod() = 0;
 
     // SERIALIZATION
 

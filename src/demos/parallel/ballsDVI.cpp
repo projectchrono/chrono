@@ -30,10 +30,10 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
-#include "chrono_utils/ChUtilsCreators.h"
-#include "chrono_utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsInputOutput.h"
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
 // Perform the simulation
 // ----------------------
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
   opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
   gl_window.Initialize(1280, 720, "ballsDVI", &msystem);
   gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));

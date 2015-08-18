@@ -27,6 +27,7 @@
 #include <utility>
 #include <string>
 
+#include "core/ChApiCE.h"
 #include "core/ChSmartpointers.h"
 #include "core/ChVector.h"
 #include "core/ChQuaternion.h"
@@ -37,14 +38,10 @@
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
-
-#include "chrono_utils/ChApiUtils.h"
-#include "chrono_utils/ChUtilsCommon.h"
-#include "chrono_utils/ChUtilsSamplers.h"
-#include "chrono_utils/ChUtilsCreators.h"
-#include "chrono_utils/ChUtilsInputOutput.h"
-#include "chrono_utils/ChUtilsGeometry.h"
+#include "utils/ChUtilsSamplers.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsGeometry.h"
 
 namespace chrono {
 namespace utils {
@@ -65,7 +62,7 @@ typedef ChSmartPtr<MixtureIngredient> MixtureIngredientPtr;
 // This class can be defined by the user as a callback function for a mixture
 // that is run after a Chbody has been created. Custom modifications can be done
 // to the bodies here
-class CH_UTILS_API CallbackGenerator {
+class ChApi CallbackGenerator {
  public:
   // Implement this function if you want to provide the post creation callback.
   virtual void PostCreation(ChSharedPtr<ChBody> mbody) = 0;
@@ -81,7 +78,7 @@ class CH_UTILS_API CallbackGenerator {
 // In addition, a mixture ingredient defines the ratio of this particular type
 // in the containing mixture.
 // -----------------------------------------------------------------------------
-class CH_UTILS_API MixtureIngredient {
+class ChApi MixtureIngredient {
  public:
   ~MixtureIngredient();
 
@@ -158,7 +155,7 @@ class CH_UTILS_API MixtureIngredient {
 // This class encapsulates functionality for generating sets of bodies with
 // positions drawn from a specified sampler and various mixture properties.
 // -----------------------------------------------------------------------------
-class CH_UTILS_API Generator {
+class ChApi Generator {
  public:
   typedef Types<double>::PointVector PointVector;
 
@@ -241,8 +238,6 @@ class CH_UTILS_API Generator {
   void createObjects(const PointVector& points, const ChVector<>& vel);
 
   ChSystem* m_system;
-  SystemType m_sysType;
-  CollisionType m_collisionType;
 
   std::uniform_real_distribution<> m_mixDist;
 

@@ -26,8 +26,8 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
-#include "chrono_utils/ChUtilsCreators.h"
-#include "chrono_utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsInputOutput.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -35,7 +35,7 @@ using namespace chrono::collision;
 // -----------------------------------------------------------------------------
 // Create a parallel system of specified type and set solver options
 // -----------------------------------------------------------------------------
-ChSystemParallel* CreateSystem(utils::SystemType sys_type) {
+ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
   // Settings
   int threads = 1;
   bool thread_tuning = false;
@@ -55,13 +55,13 @@ ChSystemParallel* CreateSystem(utils::SystemType sys_type) {
   // Create the mechanical system
   ChSystemParallel* system;
 
-  switch (sys_type) {
-    case utils::PARALLEL_DEM:
-      system = new ChSystemParallelDEM();
-      break;
-    case utils::PARALLEL_DVI:
-      system = new ChSystemParallelDVI();
-      break;
+  switch (cm) {
+      case ChMaterialSurfaceBase::DEM:
+          system = new ChSystemParallelDEM();
+          break;
+      case ChMaterialSurfaceBase::DVI:
+          system = new ChSystemParallelDVI();
+          break;
   }
 
   // Set number of threads.
@@ -75,7 +75,7 @@ ChSystemParallel* CreateSystem(utils::SystemType sys_type) {
   system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
   system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-  if (sys_type == utils::PARALLEL_DVI) {
+  if (cm == ChMaterialSurfaceBase::DVI) {
     ChSystemParallelDVI* systemDVI = static_cast<ChSystemParallelDVI*>(system);
     systemDVI->GetSettings()->solver.solver_mode = SLIDING;
     systemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
@@ -105,7 +105,7 @@ ChSystemParallel* CreateSystem(utils::SystemType sys_type) {
 //    Tr2 = J2 * acc2
 //    Tr1 = -r * Tr2
 // -----------------------------------------------------------------------------
-bool TestShaftShaft(const char* test_name, utils::SystemType sys_type) {
+bool TestShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) {
   std::cout << test_name << std::endl;
 
   // Parameters
@@ -115,7 +115,7 @@ bool TestShaftShaft(const char* test_name, utils::SystemType sys_type) {
   double T = 6;     // torque applied to first shaft
 
   // Create the system
-  ChSystemParallel* system = CreateSystem(sys_type);
+  ChSystemParallel* system = CreateSystem(cm);
 
   // Create two 1-D shaft objects, with a constant torque applied to the first
   // shaft. By default, a ChShaft is free to rotate.
@@ -216,11 +216,11 @@ bool TestShaftShaft(const char* test_name, utils::SystemType sys_type) {
 //         Ta   <>---[ bs ]---||---[ t ]---*
 //
 // -----------------------------------------------------------------------------
-bool TestShaftBody(const char* test_name, utils::SystemType sys_type) {
+bool TestShaftBody(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) {
   std::cout << test_name << std::endl;
 
   // Create the system
-  ChSystemParallel* system = CreateSystem(sys_type);
+  ChSystemParallel* system = CreateSystem(cm);
 
   // Create 'A', a 1D shaft
   ChSharedPtr<ChShaft> shaftA(new ChShaft);
@@ -233,17 +233,7 @@ bool TestShaftBody(const char* test_name, utils::SystemType sys_type) {
   system->Add(shaftC);
 
   // Create 'B', a 3D rigid body
-  ChBody* bodyB_ptr;
-  switch (sys_type) {
-    case utils::PARALLEL_DEM:
-      bodyB_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DEM);
-      break;
-    case utils::PARALLEL_DVI:
-      bodyB_ptr = new ChBody(new ChCollisionModelParallel, ChBody::DVI);
-      break;
-  }
-  ChSharedPtr<ChBody> bodyB(bodyB_ptr);
-  bodyB_ptr->AddRef();
+  ChSharedPtr<ChBody> bodyB(system->NewBody());
 
   bodyB->Accumulate_torque(ChVector<>(0, 0, 3), true);  // set some constant torque to body
   system->Add(bodyB);
@@ -339,11 +329,11 @@ bool TestShaftBody(const char* test_name, utils::SystemType sys_type) {
 //  Ta  ||---[ c ]---||
 //
 // -----------------------------------------------------------------------------
-bool TestClutch(const char* test_name, utils::SystemType sys_type) {
+bool TestClutch(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) {
   std::cout << test_name << std::endl;
 
   // Create the system
-  ChSystemParallel* system = CreateSystem(sys_type);
+  ChSystemParallel* system = CreateSystem(cm);
 
   // Create a ChShaft that starts with nonzero angular velocity
   ChSharedShaftPtr shaftA(new ChShaft);
@@ -409,11 +399,11 @@ bool TestClutch(const char* test_name, utils::SystemType sys_type) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-bool TestShaftShaftShaft(const char* test_name, utils::SystemType sys_type) {
+bool TestShaftShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) {
   std::cout << test_name << std::endl;
 
   // Create the system
-  ChSystemParallel* system = CreateSystem(sys_type);
+  ChSystemParallel* system = CreateSystem(cm);
 
   // Create shaft A, with applied torque
   ChSharedShaftPtr shaftA(new ChShaft);
@@ -505,20 +495,20 @@ int main(int argc, char* argv[]) {
   bool test_passed = true;
 
   // Test shaft - shaft connection
-  test_passed &= TestShaftShaft("shaft-shaft (DEM)", utils::PARALLEL_DEM);
-  test_passed &= TestShaftShaft("shaft-shaft (DVI)", utils::PARALLEL_DVI);
+  test_passed &= TestShaftShaft("shaft-shaft (DEM)", ChMaterialSurfaceBase::DEM);
+  test_passed &= TestShaftShaft("shaft-shaft (DVI)", ChMaterialSurfaceBase::DVI);
 
   // Test shaft - body connection
-  test_passed &= TestShaftBody("shaft-body (DEM)", utils::PARALLEL_DEM);
-  test_passed &= TestShaftBody("shaft-body (DVI)", utils::PARALLEL_DVI);
+  test_passed &= TestShaftBody("shaft-body (DEM)", ChMaterialSurfaceBase::DEM);
+  test_passed &= TestShaftBody("shaft-body (DVI)", ChMaterialSurfaceBase::DVI);
 
   // Test clutch between shafts
-  ////test_passed &= TestClutch("clutch (DEM)", utils::PARALLEL_DEM);
-  ////test_passed &= TestClutch("clutch (DVI)", utils::PARALLEL_DVI);
+  ////test_passed &= TestClutch("clutch (DEM)", ChMaterialSurfaceBase::DEM);
+  ////test_passed &= TestClutch("clutch (DVI)", ChMaterialSurfaceBase::DVI);
 
   // Test shaft - shaft - shaft connection
-  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DEM)", utils::PARALLEL_DEM);
-  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DVI)", utils::PARALLEL_DVI);
+  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DEM)", ChMaterialSurfaceBase::DEM);
+  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DVI)", ChMaterialSurfaceBase::DVI);
 
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;

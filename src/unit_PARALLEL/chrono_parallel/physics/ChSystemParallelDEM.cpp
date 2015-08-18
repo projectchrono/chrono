@@ -14,8 +14,15 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects) : ChSystemPar
   data_manager->system_timer.AddTimer("ChLcpSolverParallelDEM_ProcessContact");
 }
 
+ChBody* ChSystemParallelDEM::NewBody() {
+  if (collision_system_type == COLLSYS_PARALLEL)
+    return new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+
+  return new ChBody(ChMaterialSurfaceBase::DEM);
+}
+
 void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
-  assert(newbody->GetContactMethod() == ChBody::DEM);
+  assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::DEM);
 
   // Reserve space for material properties for the specified body. Not that the
   // actual data is set in UpdateMaterialProperties().

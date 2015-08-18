@@ -39,7 +39,6 @@ SET(LIBRARIES
     ChronoEngine
     ChronoEngine_Vehicle
     ChronoEngine_Parallel
-    ChronoEngine_ParallelUtils
     ChronoEngine_ParallelOpenGL
 )
 

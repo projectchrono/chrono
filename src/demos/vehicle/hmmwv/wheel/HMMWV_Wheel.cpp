@@ -21,9 +21,9 @@
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "hmmwv/wheel/HMMWV_Wheel.h"
 

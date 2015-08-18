@@ -14,7 +14,7 @@
 //
 // =============================================================================
 
-#include "chrono_utils/ChUtilsGenerators.h"
+#include "utils/ChUtilsGenerators.h"
 
 namespace chrono {
 namespace utils {
@@ -259,8 +259,6 @@ double MixtureIngredient::calcMinSeparation() {
 // Constructor: create a generator for the specified system.
 Generator::Generator(ChSystem* system)
     : m_system(system), m_mixDist(0, 1), m_crtBodyId(0), m_totalNumBodies(0), m_totalMass(0), m_totalVolume(0) {
-  m_sysType = GetSystemType(system);
-  m_collisionType = GetCollisionType(system);
 }
 
 // Destructor
@@ -290,7 +288,7 @@ void Generator::createObjectsBox(SamplingType sType,
   normalizeMixture();
 
   // Generate the object locations
-  if (m_sysType == SEQUENTIAL_DEM || m_sysType == PARALLEL_DEM)
+  if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
     dist = calcMinSeparation(dist);
 
   PointVector points;
@@ -325,7 +323,7 @@ void Generator::createObjectsBox(const ChVector<>& dist,
 
   // When using DEM, make sure there is no shape overlap.
   ChVector<> distv;
-  if (m_sysType == SEQUENTIAL_DEM || m_sysType == PARALLEL_DEM)
+  if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
     distv = calcMinSeparation(dist);
   else
     distv = dist;
@@ -352,7 +350,7 @@ void Generator::createObjectsCylinderX(SamplingType sType,
   normalizeMixture();
 
   // Generate the object locations
-  if (m_sysType == SEQUENTIAL_DEM || m_sysType == PARALLEL_DEM)
+  if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
     dist = calcMinSeparation(dist);
 
   PointVector points;
@@ -384,7 +382,7 @@ void Generator::createObjectsCylinderY(SamplingType sType,
   normalizeMixture();
 
   // Generate the object locations
-  if (m_sysType == SEQUENTIAL_DEM || m_sysType == PARALLEL_DEM)
+  if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
     dist = calcMinSeparation(dist);
 
   PointVector points;
@@ -416,7 +414,7 @@ void Generator::createObjectsCylinderZ(SamplingType sType,
   normalizeMixture();
 
   // Generate the object locations
-  if (m_sysType == SEQUENTIAL_DEM || m_sysType == PARALLEL_DEM)
+  if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
     dist = calcMinSeparation(dist);
 
   PointVector points;
@@ -500,40 +498,17 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
     // Select the type of object to be created.
     int index = selectIngredient();
 
-    // Create the body and set contact material
-    ChBody* body;
+    // Create the body (with appropriate contact method and collision model, consistent
+    // with the associated system) and set contact material
+    ChBody* body = m_system->NewBody();
 
-    switch (m_sysType) {
-      case SEQUENTIAL_DVI:
-        body = new ChBody(ChBody::DVI);
-        m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
-        break;
-      case SEQUENTIAL_DEM:
-        body = new ChBody(ChBody::DEM);
-        m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceDEM());
-        break;
-      case PARALLEL_DVI:
-        switch (m_collisionType) {
-          case BULLET_CD:
-            body = new ChBody(ChBody::DVI);
-            break;
-          case PARALLEL_CD:
-            body = new ChBody(new collision::ChCollisionModelParallel, ChBody::DVI);
-            break;
-        }
-        m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
-        break;
-      case PARALLEL_DEM:
-        switch (m_collisionType) {
-          case BULLET_CD:
-            body = new ChBody(ChBody::DEM);
-            break;
-          case PARALLEL_CD:
-            body = new ChBody(new collision::ChCollisionModelParallel, ChBody::DEM);
-            break;
-        }
-        m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceDEM());
-        break;
+    switch (m_system->GetContactMethod()) {
+    case ChMaterialSurfaceBase::DVI:
+      m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
+      break;
+    case ChMaterialSurfaceBase::DEM:
+      m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceDEM());
+      break;
     }
 
     // Set identifier
@@ -614,14 +589,12 @@ void Generator::writeObjectInfo(const std::string& filename) {
     csv << m_bodies[i].m_body->GetPos() << m_bodies[i].m_size;
     csv << m_bodies[i].m_density << m_bodies[i].m_body->GetMass();
 
-    switch (m_sysType) {
-      case SEQUENTIAL_DVI:
-      case PARALLEL_DVI: {
+    switch (m_system->GetContactMethod()) {
+      case ChMaterialSurfaceBase::DVI: {
         ChSharedPtr<ChMaterialSurface> mat = m_bodies[i].m_body->GetMaterialSurface();
         csv << mat->GetSfriction() << mat->GetCohesion();
       } break;
-      case SEQUENTIAL_DEM:
-      case PARALLEL_DEM: {
+      case ChMaterialSurfaceBase::DEM: {
         ChSharedPtr<ChMaterialSurfaceDEM> mat = m_bodies[i].m_body->GetMaterialSurfaceDEM();
         csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetRestitution();
       } break;

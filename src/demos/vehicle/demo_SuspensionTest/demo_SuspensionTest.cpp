@@ -31,20 +31,18 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
-
-// subsystems, all read in fron JSON files
 #include "ModelDefs.h"
 
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/suspensionTest/SuspensionTest.h"
 #include "chrono_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
 // Irrlicht includes
-#if IRRLICHT_ENABLED
+#ifdef CHRONO_IRRLICHT
 # include "unit_IRRLICHT/ChIrrApp.h"
 # include "chrono_vehicle/driver/ChIrrGuiST.h"
 # define USE_IRRLICHT

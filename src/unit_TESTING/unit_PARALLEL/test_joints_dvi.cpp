@@ -25,9 +25,9 @@
 
 #include <omp.h>
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_utils/ChUtilsCreators.h"
+#include "utils/ChUtilsCreators.h"
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
@@ -164,7 +164,7 @@ bool TestMechanism(Options opts, bool animate) {
   bool passed = true;
 
   if (animate) {
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Pressure Sinkage Test", system);
     gl_window.SetCamera(ChVector<>(0, -8, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
@@ -179,7 +179,7 @@ bool TestMechanism(Options opts, bool animate) {
     }
 #endif
   } else {
-#ifndef CHRONO_PARALLEL_HAS_OPENGL
+#ifndef CHRONO_OPENGL
     ChTimerParallel timer;
     timer.AddTimer("simulation_time");
     timer.Reset();
