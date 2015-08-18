@@ -120,6 +120,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   uint frame_threads, frame_bins, counter;
   std::vector<ChLink*>::iterator it;
 
+  COLLISIONSYSTEMTYPE collision_system_type;
+
  private:
   void AddShaft(ChSharedPtr<ChShaft> shaft);
 
@@ -136,6 +138,7 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
   void ChangeSolverType(SOLVERTYPE type) { ((ChLcpSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type); }
 
   virtual ChBody::ContactMethod GetContactMethod() const { return ChBody::DVI; }
+  virtual ChBody* NewBody();
   virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
   virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
 
@@ -155,6 +158,7 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
   ChSystemParallelDEM(unsigned int max_objects = 1000);
 
   virtual ChBody::ContactMethod GetContactMethod() const { return ChBody::DEM; }
+  virtual ChBody* NewBody();
   virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
   virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
 

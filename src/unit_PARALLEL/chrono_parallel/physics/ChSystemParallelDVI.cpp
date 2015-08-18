@@ -25,6 +25,13 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemPar
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_N");
 }
 
+ChBody* ChSystemParallelDVI::NewBody() {
+  if (collision_system_type == COLLSYS_PARALLEL)
+    return new ChBody(new collision::ChCollisionModelParallel, ChBody::DVI);
+
+  return new ChBody(ChBody::DVI);
+}
+
 void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
   assert(newbody->GetContactMethod() == ChBody::DVI);
 

@@ -19,6 +19,8 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   contact_container = new ChContactContainerParallel(data_manager);
   collision_system = new ChCollisionSystemParallel(data_manager);
 
+  collision_system_type = COLLSYS_PARALLEL;
+
   fluid_container.SetNull();
   counter = 0;
   timer_accumulator.resize(10, 0);
@@ -561,6 +563,8 @@ void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {
   assert(GetNbodies() == 0);
 
   delete collision_system;
+
+  collision_system_type = type;
 
   switch (type) {
     case COLLSYS_PARALLEL:
