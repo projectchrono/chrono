@@ -31,13 +31,11 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include "utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
-
-// subsystems, all read in fron JSON files
 #include "ModelDefs.h"
 
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/suspensionTest/SuspensionTest.h"
 #include "chrono_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"

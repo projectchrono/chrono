@@ -30,11 +30,11 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
+#include "utils/ChUtilsInputOutput.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/tire/ChPacejkaTire.h"
-
-#include "chrono_vehicle_utils/ChUtilsInputOutput.h"
 
 #include "ModelDefs.h"
 #include "hmmwv/vehicle/HMMWV_Vehicle.h"
