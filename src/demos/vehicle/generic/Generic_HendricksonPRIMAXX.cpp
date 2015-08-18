@@ -57,10 +57,6 @@ const ChVector<> Generic_HendricksonPRIMAXX::m_transversebeamInertia(1, 1, 1);
 
 const double Generic_HendricksonPRIMAXX::m_axleInertia = 0.4;
 
-//
-// HH Values from the springs are copied from SolidAxle
-// Have to be modified
-//
 const double Generic_HendricksonPRIMAXX::m_shockAH_springCoefficient = 0;
 const double Generic_HendricksonPRIMAXX::m_shockAH_dampingCoefficient = 22459.0;
 const double Generic_HendricksonPRIMAXX::m_shockAH_restLength = 0.3948;

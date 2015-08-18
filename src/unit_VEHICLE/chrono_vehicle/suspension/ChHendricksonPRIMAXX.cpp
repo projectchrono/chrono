@@ -53,10 +53,6 @@ void ChHendricksonPRIMAXX::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-    ///* TODO  AXLE STUFF
-    ///*
-    ///* AxleTube is in this template axlehousing
-    ///*
     // Transform the location of the axle body COM to absolute frame.
     ChVector<> axleCOM_local = getAxlehousingCOM();
     ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
@@ -78,9 +74,6 @@ void ChHendricksonPRIMAXX::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     m_axlehousing->SetInertiaXX(getAxlehousingInertia());
     AddVisualizationLink(m_axlehousing, axleOuterL, axleOuterR, getAxlehousingRadius(), ChColor(0.7f, 0.7f, 0.7f));
     chassis->GetSystem()->AddBody(m_axlehousing);
-
-    ///*
-    ///*ENDOF AXLE STUFF
 
     // Transform all points and directions on right and left sides to absolute frame
     std::vector<ChVector<> > points_R(NUM_POINTS);
@@ -158,13 +151,7 @@ void ChHendricksonPRIMAXX::InitializeSide(ChVehicleSide side,
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
     chassis->GetSystem()->AddBody(m_spindle[side]);
-
-    ///*
-    ///* TODO create and initialize the new bodies of template
-    ///*
-    ///*POINTS OF TORQUEROD AND LOWER BEAM TO AXLEHOUSING ARE PROBABLY WRONG
-    ///*PLANE DEFINITION WRONG? CHECK WITH CHSOLIDAXLE.cpp
-
+    
     // Create and initialize torque rod body.
     // Determine the rotation matrix of the torque rod based on the plane of the hard points
     // (z-axis along the length of the torque rod)
@@ -205,25 +192,9 @@ void ChHendricksonPRIMAXX::InitializeSide(ChVehicleSide side,
                               getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
     chassis->GetSystem()->AddBody(m_lowerbeam[side]);
 
-    ///*
-    ///* ENDOF create and initialize the new bodies of template
-    ///*
-
-    ///*
-    ///* TODO axle visualisation
-    ///* NO HARDPOINT FOR THE AXLE DEFINED --> AXLE NOW at the points[LL_A], points[UL_A] definiton from ChSolidAxle.cpp
-    ///* Check it
-
     // Append to the axle visualization
     AddVisualizationLink(m_axlehousing, points[LOWERBEAM_AH], points[TORQUEROD_AH], getAxlehousingRadius() / 2,
                          ChColor(0.7f, 0.7f, 0.7f));
-    ///*
-    ///* ENDOF axle visualisation
-    ///*
-
-    ///*
-    ///* TODO create and initialize the new joints of template
-    ///*
 
     // Create and initialize the revolute joint between axle and knuckle.
     // Determine the joint orientation matrix from the hardpoint locations by
@@ -278,9 +249,6 @@ void ChHendricksonPRIMAXX::InitializeSide(ChVehicleSide side,
                                            ChFrame<>(points[LOWERBEAM_C], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_universalLowerbeam[side]);
 
-    ///*
-    ///* HH TODO check the following revolute joint
-    ///*
     // Create and initialize the revolute joint between upright and spindle.
     ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
 
@@ -288,10 +256,6 @@ void ChHendricksonPRIMAXX::InitializeSide(ChVehicleSide side,
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side], rev_csys);
     chassis->GetSystem()->AddLink(m_revolute[side]);
-
-    ///*
-    ///* ENDOF create and initialize the new joints of template
-    ///*
 
     // Create and initialize the spring/damper between axle housing and chassis
     m_shockAH[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
@@ -351,12 +315,6 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(ChVehicleSide side) {
         GetLog() << "  " << C->GetElement(3, 0) << "  ";
         GetLog() << "  " << C->GetElement(4, 0) << "\n";
     }
-
-    //// TODO
-    ///*
-    ///* HH QQ: in ChsolidAxle.cpp is a Kingpin revolute
-    ///* What is Kingpin
-    ///*
     {
         ChMatrix<>* C = m_revoluteKingpin[side]->GetC();
         GetLog() << "Kingpin revolute      ";
@@ -398,9 +356,6 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(ChVehicleSide side) {
         GetLog() << "  " << C->GetElement(2, 0) << "  ";
         GetLog() << "  " << C->GetElement(3, 0) << "\n";
     }
-    ///* HH thinking about TB constraint
-    ///* Put the constraint of TB in here
-    ///*
 
     // Distance constraint
     GetLog() << "Tierod distance       ";

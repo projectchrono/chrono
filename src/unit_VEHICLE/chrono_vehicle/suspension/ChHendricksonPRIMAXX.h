@@ -150,10 +150,8 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// The returned location must be expressed in the suspension reference frame.
     virtual const ChVector<> getLocation(PointId which) = 0;
 
-    /// HH Question in CHsolidAxle.h there is the follwing vector for direction
     ///// Return the vector of the specified direction.
     virtual const ChVector<> getDirection(DirectionId which) = 0;
-    /// HH Question ends
 
     /// Return the center of mass of the axle tube.
     virtual const ChVector<> getAxlehousingCOM() const = 0;
@@ -162,9 +160,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual const ChVector<> getTransversebeamCOM() const = 0;
 
     /// Return the mass of the spindle body.
-    /// HH QUESTION WHERE IS THE HARDPOINT DEF OF THE SPINDELS MASS???
     virtual double getSpindleMass() const = 0;
-    /// HH END QUESTION
     /// Return the mass of the knuckle body.
     virtual double getKnuckleMass() const = 0;
     /// Return the mass of the torque rod body.
