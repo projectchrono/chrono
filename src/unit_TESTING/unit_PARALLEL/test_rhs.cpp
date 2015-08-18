@@ -19,6 +19,7 @@
 #include <vector>
 #include <cmath>
 #include "unit_testing.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include <chrono_parallel/collision/ChCNarrowphaseUtils.h>

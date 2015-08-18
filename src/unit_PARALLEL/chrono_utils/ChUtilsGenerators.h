@@ -37,10 +37,7 @@
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
-
 #include "chrono_utils/ChApiUtils.h"
-#include "chrono_utils/ChUtilsCommon.h"
 #include "chrono_utils/ChUtilsSamplers.h"
 #include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
@@ -241,8 +238,6 @@ class CH_UTILS_API Generator {
   void createObjects(const PointVector& points, const ChVector<>& vel);
 
   ChSystem* m_system;
-  SystemType m_sysType;
-  CollisionType m_collisionType;
 
   std::uniform_real_distribution<> m_mixDist;
 

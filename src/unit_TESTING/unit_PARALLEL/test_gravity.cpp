@@ -23,6 +23,8 @@
 #include "collision/ChCCollisionModel.h"
 #include "core/ChMathematics.h"
 
+#include "chrono_parallel/physics/ChSystemParallel.h"
+
 #include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
 

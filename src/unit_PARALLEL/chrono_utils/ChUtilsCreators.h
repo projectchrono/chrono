@@ -47,7 +47,6 @@
 #include "assets/ChRoundedCylinderShape.h"
 
 #include "chrono_utils/ChApiUtils.h"
-#include "chrono_utils/ChUtilsCommon.h"
 
 #include "collision/ChCModelBullet.h"
 #include "collision/ChCConvexDecomposition.h"
@@ -140,7 +139,7 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                           bool use_original_asset = true);
 
 CH_UTILS_API
-void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
+void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              const std::string& obj_filename,
                                              const std::string& name,
                                              const ChVector<>& pos,

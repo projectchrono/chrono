@@ -41,10 +41,7 @@
 
 #include "physics/ChSystem.h"
 
-#include "chrono_parallel/ChParallelDefines.h"
-
 #include "chrono_utils/ChApiUtils.h"
-#include "chrono_utils/ChUtilsCommon.h"
 #include "chrono_utils/ChUtilsCreators.h"
 
 namespace chrono {
@@ -113,21 +110,6 @@ inline CSV_writer& operator<<(CSV_writer& out, const ChQuaternion<>& q) {
 
 inline CSV_writer& operator<<(CSV_writer& out, const ChColor& c) {
   out << c.R << c.G << c.B;
-  return out;
-}
-
-inline CSV_writer& operator<<(CSV_writer& out, const real2& r) {
-  out << r.x << r.y;
-  return out;
-}
-
-inline CSV_writer& operator<<(CSV_writer& out, const real3& r) {
-  out << r.x << r.y << r.z;
-  return out;
-}
-
-inline CSV_writer& operator<<(CSV_writer& out, const real4& r) {
-  out << r.w << r.x << r.y << r.z;
   return out;
 }
 
