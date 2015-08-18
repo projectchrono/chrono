@@ -1,20 +1,20 @@
 #=============================================================================
-# CMake configuration file for the ChronoEngine_ParallelUtils library
-#
-# Invoked from the unit_PARALLEL CMakeLists.txt using ADD_SUBDIRECTORY()
+# CMake configuration file for the ChronoEngine_Utils library
+# 
+# Invoked from the main CMakeLists.txt using ADD_SUBDIRECTORY()
 #=============================================================================
 
 # ------------------------------------------------------------------------------
-# LIST THE FILES in the ChronoEngine_ParallelUtils LIBRARY
+# LIST THE FILES in the ChronoEngine_Utils LIBRARY
 # ------------------------------------------------------------------------------
 
-SET(ChronoEngine_ParallelUtils_SOURCES
+SET(ChronoEngine_Utils_SOURCES
     ChUtilsCreators.cpp
     ChUtilsGenerators.cpp
     ChUtilsInputOutput.cpp
     )
 
-SET(ChronoEngine_ParallelUtils_HEADERS
+SET(ChronoEngine_Utils_HEADERS
     ChApiUtils.h
     ChUtilsGeometry.h
     ChUtilsCreators.h
@@ -23,29 +23,22 @@ SET(ChronoEngine_ParallelUtils_HEADERS
     ChUtilsInputOutput.h
     )
 
-# Link to Chrono and Chrono_Parallel LIBRARIES
-
-SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_Parallel
-    )
-
 # ------------------------------------------------------------------------------
-# ADD THE ChronoEngine_ParallelUtils LIBRARY
+# ADD THE ChronoEngine_Utils LIBRARY
 # ------------------------------------------------------------------------------
 
-ADD_LIBRARY(ChronoEngine_ParallelUtils SHARED
-    ${ChronoEngine_ParallelUtils_HEADERS}
-    ${ChronoEngine_ParallelUtils_SOURCES})
+ADD_LIBRARY(ChronoEngine_Utils SHARED
+    ${ChronoEngine_Utils_HEADERS}
+    ${ChronoEngine_Utils_SOURCES})
 
-SET_TARGET_PROPERTIES(ChronoEngine_ParallelUtils PROPERTIES
+SET_TARGET_PROPERTIES(ChronoEngine_Utils PROPERTIES
     COMPILE_FLAGS "${CH_BUILDFLAGS}"
     LINK_FLAGS "${CH_LINKERFLAG_GPU}"
     COMPILE_DEFINITIONS "CH_API_COMPILE_UTILS")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_ParallelUtils ${LIBRARIES})
+TARGET_LINK_LIBRARIES(ChronoEngine_Utils ChronoEngine)
 
-INSTALL(TARGETS ChronoEngine_ParallelUtils
+INSTALL(TARGETS ChronoEngine_Utils
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

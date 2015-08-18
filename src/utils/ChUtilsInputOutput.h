@@ -41,8 +41,8 @@
 
 #include "physics/ChSystem.h"
 
-#include "chrono_utils/ChApiUtils.h"
-#include "chrono_utils/ChUtilsCreators.h"
+#include "utils/ChApiUtils.h"
+#include "utils/ChUtilsCreators.h"
 
 namespace chrono {
 namespace utils {

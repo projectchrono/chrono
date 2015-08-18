@@ -26,8 +26,8 @@
 #include "collision/ChCCollisionModel.h"
 #include "core/ChMathematics.h"
 
-#include "chrono_utils/ChUtilsCreators.h"
-#include "chrono_utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsInputOutput.h"
 
 using namespace chrono;
 using namespace chrono::collision;

@@ -14,11 +14,11 @@
 // Chrono::Parallel OpenGL header files
 #include "chrono_opengl/ChOpenGLWindow.h"
 
-// Chrono::Parallel utility header files
-#include "chrono_utils/ChUtilsGeometry.h"
-#include "chrono_utils/ChUtilsCreators.h"
-#include "chrono_utils/ChUtilsGenerators.h"
-#include "chrono_utils/ChUtilsInputOutput.h"
+// Chrono utility header files
+#include "utils/ChUtilsGeometry.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsGenerators.h"
+#include "utils/ChUtilsInputOutput.h"
 
 // Chrono::Vehicle header files
 #include "chrono_vehicle/utils/ChWheeledVehicleAssembly.h"

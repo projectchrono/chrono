@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     ball->SetPos(pos);
     ball->SetRot(rot);
     ball->SetPos_dt(init_vel);
-ball->SetWvel_par(ChVector<>(0,0,3));
+    //ball->SetWvel_par(ChVector<>(0,0,3));
     ball->SetBodyFixed(false);
     ball->SetMaterialSurface(material);
 

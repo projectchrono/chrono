@@ -5,8 +5,8 @@ INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 # Libraries
 SET(LIBRARIES
     ChronoEngine
+    ChronoEngine_Utils
     ChronoEngine_Parallel
-    ChronoEngine_ParallelUtils
 )
 
 #--------------------------------------------------------------

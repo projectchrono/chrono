@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for PARALLEL unit
-#
+# 
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
@@ -191,7 +191,6 @@ SET(CH_OPENGL_INCLUDES "${CH_OPENGL_INCLUDES}" PARENT_SCOPE)
 # Add subdirectories, depending on user-specified options
 # ------------------------------------------------------------------------------
 ADD_SUBDIRECTORY(chrono_parallel)
-ADD_SUBDIRECTORY(chrono_utils)
 
 IF(ENABLE_OPENGL)
   ADD_SUBDIRECTORY(chrono_opengl)

@@ -14,7 +14,7 @@
 //
 // =============================================================================
 
-#include "chrono_utils/ChUtilsCreators.h"
+#include "utils/ChUtilsCreators.h"
 #include "collision/ChCConvexDecomposition.h"
 
 namespace chrono {

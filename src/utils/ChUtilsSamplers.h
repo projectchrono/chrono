@@ -41,7 +41,7 @@
 
 #include "core/ChVector.h"
 
-#include "chrono_utils/ChApiUtils.h"
+#include "utils/ChApiUtils.h"
 
 namespace chrono {
 namespace utils {

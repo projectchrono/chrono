@@ -46,7 +46,7 @@
 #include "assets/ChRoundedConeShape.h"
 #include "assets/ChRoundedCylinderShape.h"
 
-#include "chrono_utils/ChApiUtils.h"
+#include "utils/ChApiUtils.h"
 
 #include "collision/ChCModelBullet.h"
 #include "collision/ChCConvexDecomposition.h"

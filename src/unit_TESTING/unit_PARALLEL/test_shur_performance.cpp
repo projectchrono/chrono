@@ -25,11 +25,13 @@
 #include "collision/ChCCollisionModel.h"
 #include "core/ChMathematics.h"
 
-#include "chrono_utils/ChUtilsCreators.h"
-#include "chrono_utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsInputOutput.h"
+
 #include <blaze/math/CompressedMatrix.h>
 #include <blaze/math/DynamicVector.h>
 //#include <blaze/math/SymmetricMatrix.h>
+
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
 using namespace chrono;

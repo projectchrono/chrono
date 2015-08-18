@@ -37,11 +37,11 @@
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 
-#include "chrono_utils/ChApiUtils.h"
-#include "chrono_utils/ChUtilsSamplers.h"
-#include "chrono_utils/ChUtilsCreators.h"
-#include "chrono_utils/ChUtilsInputOutput.h"
-#include "chrono_utils/ChUtilsGeometry.h"
+#include "utils/ChApiUtils.h"
+#include "utils/ChUtilsSamplers.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsGeometry.h"
 
 namespace chrono {
 namespace utils {

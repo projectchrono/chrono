@@ -1221,6 +1221,10 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" DESTINATION include
 # Propagates the CMake build to other directories
 #------------------------------------------------------------
 
+# Add subdirectory to build the ChronoEngine_Utils library.
+
+add_subdirectory(utils)
+
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
 

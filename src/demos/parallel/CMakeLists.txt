@@ -5,8 +5,8 @@ INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 
 SET(LIBRARIES
     ChronoEngine
+    ChronoEngine_Utils
     ChronoEngine_Parallel
-    ChronoEngine_ParallelUtils
 )
 
 IF(ENABLE_OPENGL)
