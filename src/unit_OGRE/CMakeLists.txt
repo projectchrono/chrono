@@ -190,10 +190,4 @@ include_directories(
 
 
 	
-ADD_SUBDIRECTORY(source/ChOgre)
-ADD_SUBDIRECTORY(source/demo_ball_plane)
-ADD_SUBDIRECTORY(source/demo_wheel)
-ADD_SUBDIRECTORY(source/demo_gui)
-ADD_SUBDIRECTORY(source/demo_brick_collide)
-ADD_SUBDIRECTORY(source/demo_vehicle)
-ADD_SUBDIRECTORY(source/demo_heightmap)
+ADD_SUBDIRECTORY(chrono_ogre)
