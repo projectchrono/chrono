@@ -59,6 +59,11 @@ SET(CH_VEHICLE_INCLUDES
 
 INCLUDE_DIRECTORIES(${CH_VEHICLE_INCLUDES})
 
+# ------------------------------------------------------------------------------
+# Make some variables visible from parent directory
+# ------------------------------------------------------------------------------
+
+SET(CH_VEHICLE_INCLUDES "${CH_VEHICLE_INCLUDES}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
 # Create configuration file
