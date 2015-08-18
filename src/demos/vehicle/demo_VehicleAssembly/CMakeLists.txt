@@ -37,7 +37,6 @@ INCLUDE_DIRECTORIES(
 
 SET(LIBRARIES
     ChronoEngine
-    ChronoEngine_Utils
     ChronoEngine_Vehicle
     ChronoEngine_Parallel
     ChronoEngine_ParallelOpenGL

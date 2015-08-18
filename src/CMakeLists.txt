@@ -1101,6 +1101,24 @@ include_directories( ${CH_INCLUDES} )
         )
     source_group(collision\\convexdecomp\\HACDv2 FILES  ${ChronoEngine_collision_convexdecompHACDv2_SOURCES})
 
+    set(ChronoEngine_utils_SOURCES
+        utils/ChUtilsCreators.cpp
+        utils/ChUtilsGenerators.cpp
+        utils/ChUtilsInputOutput.cpp
+    )
+
+    set(ChronoEngine_utils_HEADERS
+        utils/ChUtilsGeometry.h
+        utils/ChUtilsCreators.h
+        utils/ChUtilsGenerators.h
+        utils/ChUtilsSamplers.h
+        utils/ChUtilsInputOutput.h
+    )
+
+    source_group(utils FILES
+        ${ChronoEngine_utils_SOURCES}
+        ${ChronoEngine_utils_HEADERS}
+        )
 
     # OK, now chain all the source groups for building the library,
     # creating a very long list of source files:
@@ -1140,6 +1158,8 @@ include_directories( ${CH_INCLUDES} )
         ${ChronoEngine_collision_bullet_HEADERS}
         ${ChronoEngine_collision_gimpact_SOURCES}
         ${ChronoEngine_collision_gimpact_HEADERS}
+        ${ChronoEngine_utils_SOURCES}
+        ${ChronoEngine_utils_HEADERS}
         )
 
 
@@ -1220,10 +1240,6 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" DESTINATION include
 #------------------------------------------------------------
 # Propagates the CMake build to other directories
 #------------------------------------------------------------
-
-# Add subdirectory to build the ChronoEngine_Utils library.
-
-add_subdirectory(utils)
 
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.

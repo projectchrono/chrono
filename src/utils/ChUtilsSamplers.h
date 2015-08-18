@@ -39,9 +39,8 @@
 #include <list>
 #include <utility>
 
+#include "core/ChApiCE.h"
 #include "core/ChVector.h"
-
-#include "utils/ChApiUtils.h"
 
 namespace chrono {
 namespace utils {

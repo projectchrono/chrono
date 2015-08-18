@@ -39,9 +39,9 @@
 #include <sstream>
 #include <fstream>
 
+#include "core/ChApiCE.h"
 #include "physics/ChSystem.h"
 
-#include "utils/ChApiUtils.h"
 #include "utils/ChUtilsCreators.h"
 
 namespace chrono {
@@ -52,7 +52,7 @@ namespace utils {
 //
 // Simple class to output to a Comma-Separated Values file.
 // -----------------------------------------------------------------------------
-class CH_UTILS_API CSV_writer {
+class ChApi CSV_writer {
  public:
   explicit CSV_writer(const std::string& delim = ",") : m_delim(delim) {}
 
@@ -119,7 +119,7 @@ inline CSV_writer& operator<<(CSV_writer& out, const ChColor& c) {
 
 // This function dumps to a CSV file pody position, orientation, and optionally
 // linear and angular velocity. Optionally, only active bodies are processed.
-CH_UTILS_API
+ChApi
 void WriteBodies(ChSystem* system,
                  const std::string& filename,
                  bool active_only = false,
@@ -127,11 +127,11 @@ void WriteBodies(ChSystem* system,
                  const std::string& delim = ",");
 
 // Create a CSV file with a checkpoint...
-CH_UTILS_API
+ChApi
 bool WriteCheckpoint(ChSystem* system, const std::string& filename);
 
 // Read a CSV file with a checkpoint...
-CH_UTILS_API
+ChApi
 void ReadCheckpoint(ChSystem* system, const std::string& filename);
 
 // Write CSV output file for PovRay.
@@ -139,7 +139,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename);
 // follows:
 //    index, x, y, z, e0, e1, e2, e3, type, geometry
 // where 'geometry' depends on 'type' (an enum).
-CH_UTILS_API
+ChApi
 void WriteShapesPovray(ChSystem* system,
                        const std::string& filename,
                        bool body_info = true,
@@ -149,7 +149,7 @@ void WriteShapesPovray(ChSystem* system,
 // include file. The output file will be "[out_dir]/[mesh_name].inc". The mesh
 // vertices will be transformed to the frame with specified offset and
 // orientation.
-CH_UTILS_API
+ChApi
 void WriteMeshPovray(const std::string& obj_filename,
                      const std::string& mesh_name,
                      const std::string& out_dir,

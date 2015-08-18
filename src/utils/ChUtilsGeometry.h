@@ -21,14 +21,13 @@
 
 #include <cmath>
 
+#include "core/ChApiCE.h"
 #include "core/ChSmartpointers.h"
 #include "core/ChVector.h"
 #include "core/ChQuaternion.h"
 #include "core/ChMathematics.h"
 
 #include "collision/ChCCollisionModel.h"
-
-#include "utils/ChApiUtils.h"
 
 namespace chrono {
 namespace utils {

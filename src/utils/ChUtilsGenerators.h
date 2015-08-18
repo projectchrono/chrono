@@ -27,6 +27,7 @@
 #include <utility>
 #include <string>
 
+#include "core/ChApiCE.h"
 #include "core/ChSmartpointers.h"
 #include "core/ChVector.h"
 #include "core/ChQuaternion.h"
@@ -37,7 +38,6 @@
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 
-#include "utils/ChApiUtils.h"
 #include "utils/ChUtilsSamplers.h"
 #include "utils/ChUtilsCreators.h"
 #include "utils/ChUtilsInputOutput.h"
@@ -62,7 +62,7 @@ typedef ChSmartPtr<MixtureIngredient> MixtureIngredientPtr;
 // This class can be defined by the user as a callback function for a mixture
 // that is run after a Chbody has been created. Custom modifications can be done
 // to the bodies here
-class CH_UTILS_API CallbackGenerator {
+class ChApi CallbackGenerator {
  public:
   // Implement this function if you want to provide the post creation callback.
   virtual void PostCreation(ChSharedPtr<ChBody> mbody) = 0;
@@ -78,7 +78,7 @@ class CH_UTILS_API CallbackGenerator {
 // In addition, a mixture ingredient defines the ratio of this particular type
 // in the containing mixture.
 // -----------------------------------------------------------------------------
-class CH_UTILS_API MixtureIngredient {
+class ChApi MixtureIngredient {
  public:
   ~MixtureIngredient();
 
@@ -155,7 +155,7 @@ class CH_UTILS_API MixtureIngredient {
 // This class encapsulates functionality for generating sets of bodies with
 // positions drawn from a specified sampler and various mixture properties.
 // -----------------------------------------------------------------------------
-class CH_UTILS_API Generator {
+class ChApi Generator {
  public:
   typedef Types<double>::PointVector PointVector;
 
