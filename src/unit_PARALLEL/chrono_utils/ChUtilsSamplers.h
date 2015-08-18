@@ -42,7 +42,6 @@
 #include "core/ChVector.h"
 
 #include "chrono_utils/ChApiUtils.h"
-#include "chrono_utils/ChUtilsCommon.h"
 
 namespace chrono {
 namespace utils {
@@ -50,6 +49,32 @@ namespace utils {
 const double Pi = 3.1415926535897932384626433832795;
 
 enum SamplingType { REGULAR_GRID, POISSON_DISK, HCP_PACK };
+
+// -----------------------------------------------------------------------------
+// Construct a single random engine (on first use)
+//
+// Note that this object is never destructed (but this is OK)
+// -----------------------------------------------------------------------------
+inline std::default_random_engine& rengine() {
+  static std::default_random_engine* re = new std::default_random_engine;
+  return *re;
+}
+
+// -----------------------------------------------------------------------------
+// sampleTruncatedDist
+//
+// Utility function for generating samples from a truncated normal distribution.
+// -----------------------------------------------------------------------------
+template <typename T>
+inline T sampleTruncatedDist(std::normal_distribution<T>& distribution, T minVal, T maxVal) {
+  T val;
+
+  do {
+    val = distribution(rengine());
+  } while (val < minVal || val > maxVal);
+
+  return val;
+}
 
 // -----------------------------------------------------------------------------
 // Type definitions
