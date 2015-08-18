@@ -63,9 +63,6 @@ class ChApi ChModelBullet : public ChCollisionModel {
     // Vector of shared pointers to geometric objects.
     std::vector<smartptrshapes> shapes;
 
-    short int family_group;
-    short int family_mask;
-
   public:
     ChModelBullet();
     virtual ~ChModelBullet();
@@ -244,6 +241,17 @@ class ChApi ChModelBullet : public ChCollisionModel {
     virtual void SetFamilyMaskDoCollisionWithFamily(int mfamily);
     virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
 
+    /// Set the collision family group of this model.
+    /// This is an alternative way of specifying the collision family for this
+    /// object.  The value family_group must have a single bit set (i.e. it must
+    /// be a power of 2). The corresponding family is then the bit position.
+    virtual void SetFamilyGroup(short group);
+
+    /// Set the collision mask for this model.
+    /// Any set bit in the specified mask indicates that this model collides with
+    /// all objects whose family is equal to the bit position.
+    virtual void SetFamilyMask(short mask);
+
     /// Returns the axis aligned bounding box (AABB) of the collision model,
     /// i.e. max-min along the x,y,z world axes. Remember that SyncPosition()
     /// should be invoked before calling this.
@@ -284,25 +292,6 @@ class ChApi ChModelBullet : public ChCollisionModel {
 
     /// Return the pointer to the Bullet model
     btCollisionObject* GetBulletModel() { return this->bt_collision_object; }
-
-    /// Return the collision family group of this model.
-    /// The collision family of this model is the position of the single set bit
-    /// in the return value.
-    short GetFamilyGroup() { return family_group; }
-    /// Set the collision family group of this model.
-    /// This is an alternative way of specifying the collision family for this
-    /// object.  The value family_group must have a single bit set (i.e. it must
-    /// be a power of 2). The corresponding family is then the bit position.
-    void SetFamilyGroup(short group);
-
-    /// Return the collision mask for this model.
-    /// Each bit of the return value indicates whether this model collides with
-    /// the corresponding family (bit set) or not (bit unset).
-    short GetFamilyMask() { return family_mask; }
-    /// Set the collision mask for this model.
-    /// Any set bit in the specified mask indicates that this model collides with
-    /// all objects whose family is equal to the bit position.
-    void SetFamilyMask(short mask);
 
   private:
     void _injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, btCollisionShape* mshape);

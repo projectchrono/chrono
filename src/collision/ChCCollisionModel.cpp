@@ -32,19 +32,14 @@ ChClassRegisterABSTRACT<ChCollisionModel> a_registration_ChCollisionModel;
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
 
-ChCollisionModel::ChCollisionModel() {
-    model_envelope = (float)default_model_envelope;  //  0.03f;
-    model_safe_margin = (float)default_safe_margin;  // 0.01f;
-    
-    mcontactable = 0;
+ChCollisionModel::ChCollisionModel() : family_group(1), family_mask(0x7FFF), mcontactable(0) {
+    model_envelope = (float)default_model_envelope;
+    model_safe_margin = (float)default_safe_margin;
 }
 
-
-ChPhysicsItem* ChCollisionModel::GetPhysicsItem() 
-{
+ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
     return mcontactable->GetPhysicsItem();
-};
-
+}
 
 void ChCollisionModel::SetDefaultSuggestedEnvelope(double menv) {
     default_model_envelope = menv;
@@ -62,6 +57,55 @@ double ChCollisionModel::GetDefaultSuggestedEnvelope() {
 // static
 double ChCollisionModel::GetDefaultSuggestedMargin() {
     return default_safe_margin;
+}
+
+// Set family_group to a power of 2, with the set bit in position mfamily.
+void ChCollisionModel::SetFamily(int mfamily) {
+    assert(mfamily >= 0 && mfamily < 15);
+    family_group = (1 << mfamily);
+}
+
+// Return the position of the single bit set in family_group.
+int ChCollisionModel::GetFamily() {
+    unsigned i = 1;
+    int pos = 1;
+    while (!(i & family_group)) {
+        i = i << 1;
+        pos++;
+    }
+    return pos - 1;
+}
+
+// Clear the family_mask bit in position mfamily.
+void ChCollisionModel::SetFamilyMaskNoCollisionWithFamily(int mfamily) {
+    assert(mfamily >= 0 && mfamily < 15);
+    family_mask &= ~(1 << mfamily);
+}
+
+// Set the family_mask bit in position mfamily.
+void ChCollisionModel::SetFamilyMaskDoCollisionWithFamily(int mfamily) {
+    assert(mfamily >= 0 && mfamily < 15);
+    family_mask |= (1 << mfamily);
+}
+
+// Return true if the family_mask bit in position mfamily is set.
+bool ChCollisionModel::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
+    assert(mfamily >= 0 && mfamily < 15);
+    return family_mask & (1 << mfamily);
+}
+
+// Set the collision family group of this model.
+// In orer to properly encode a collision family, the value 'group' must be a power of 2.
+void ChCollisionModel::SetFamilyGroup(short group) {
+    assert(group > 0 && !(group & (group - 1)));
+    family_group = group;
+}
+
+// Set the collision mask for this model.
+// In order to properly encode a collision mask, the value 'mask' must not exceed 0x7FFFF (i.e. 15 right bits all set)
+void ChCollisionModel::SetFamilyMask(short mask) {
+    assert(mask >= 0 && mask <= 0x7FFF);
+    family_mask = mask;
 }
 
 bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,

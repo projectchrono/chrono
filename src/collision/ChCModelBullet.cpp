@@ -46,9 +46,6 @@ ChModelBullet::ChModelBullet() {
     bt_collision_object->setCollisionShape(0);
     bt_collision_object->setUserPointer((void*)this);
 
-    this->family_group = 1;
-    this->family_mask = 0xFF;
-
     shapes.clear();
 }
 
@@ -600,8 +597,7 @@ bool ChModelBullet::AddCopyOfAnotherModel(ChCollisionModel* another) {
 }
 
 void ChModelBullet::SetFamily(int mfamily) {
-    assert(mfamily < 16);
-    this->family_group = (short int)0x1 << mfamily;
+    ChCollisionModel::SetFamily(mfamily);
     onFamilyChange();
 }
 
@@ -616,14 +612,12 @@ int ChModelBullet::GetFamily() {
 }
 
 void ChModelBullet::SetFamilyMaskNoCollisionWithFamily(int mfamily) {
-    assert(mfamily < 16);
-    family_mask &= ~(1 << mfamily);
+    ChCollisionModel::SetFamilyMaskNoCollisionWithFamily(mfamily);
     onFamilyChange();
 }
 
 void ChModelBullet::SetFamilyMaskDoCollisionWithFamily(int mfamily) {
-    assert(mfamily < 16);
-    family_mask |= (1 << mfamily);
+    ChCollisionModel::SetFamilyMaskDoCollisionWithFamily(mfamily);
     onFamilyChange();
 }
 
@@ -635,15 +629,13 @@ bool ChModelBullet::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
     return (bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask & familyflag) != 0;
 }
 
-void ChModelBullet::SetFamilyGroup(short group) {
-    assert(group > 0 && !(group & (group - 1)));
-    family_group = group;
+void ChModelBullet::SetFamilyGroup(short int group) {
+    ChCollisionModel::SetFamilyGroup(group);
     onFamilyChange();
 }
 
-void ChModelBullet::SetFamilyMask(short mask) {
-    assert(mask > 0);
-    family_mask = mask;
+void ChModelBullet::SetFamilyMask(short int mask) {
+    ChCollisionModel::SetFamilyMask(mask);
     onFamilyChange();
 }
 

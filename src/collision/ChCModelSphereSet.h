@@ -52,9 +52,6 @@ class ChApi ChModelSphereSet : public ChCollisionModel {
     int colFam;
     int noCollWith;
 
-    short int family_group;
-    short int family_mask;
-
   public:
     ChModelSphereSet();
     virtual ~ChModelSphereSet();
