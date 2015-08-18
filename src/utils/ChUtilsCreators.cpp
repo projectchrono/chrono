@@ -302,7 +302,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              const ChQuaternion<>& rot,
                                              ChSharedPtr<ChMaterialSurface>& material,
                                              double total_mass) {
-  assert(mat->GetContactMethod() == system->GetContactMethod());
+  assert(material->GetContactMethod() == system->GetContactMethod());
 
   geometry::ChTriangleMeshConnected trimesh;
   trimesh.LoadWavefrontMesh(obj_filename, true, false);
