@@ -56,6 +56,8 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other);
     ~ChMaterialSurfaceDEM() {}
 
+    virtual ContactMethod GetContactMethod() { return DEM; };
+
     /// Young's modulus and Poisson ratio.
     float GetYoungModulus() const { return young_modulus; }
     void SetYoungModulus(float val) { young_modulus = val; }

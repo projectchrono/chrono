@@ -49,7 +49,7 @@ ChClassRegister<ChBody> a_registration_ChBody;
 
 /// CLASS FOR SOLID BODIES
 
-ChBody::ChBody(ContactMethod contact_method) {
+ChBody::ChBody(ChMaterialSurfaceBase::ContactMethod contact_method) {
     marklist.clear();
     forcelist.clear();
 
@@ -66,10 +66,10 @@ ChBody::ChBody(ContactMethod contact_method) {
     collision_model = InstanceCollisionModel();
 
     switch (contact_method) {
-        case DVI:
+        case ChMaterialSurfaceBase::DVI:
             matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
             break;
-        case DEM:
+        case ChMaterialSurfaceBase::DEM:
             matsurface = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
             break;
     }
@@ -94,7 +94,7 @@ ChBody::ChBody(ContactMethod contact_method) {
     body_id = 0;
 }
 
-ChBody::ChBody(ChCollisionModel* new_collision_model, ContactMethod contact_method) {
+ChBody::ChBody(ChCollisionModel* new_collision_model, ChMaterialSurfaceBase::ContactMethod contact_method) {
     marklist.clear();
     forcelist.clear();
 
@@ -112,10 +112,10 @@ ChBody::ChBody(ChCollisionModel* new_collision_model, ContactMethod contact_meth
     collision_model->SetContactable(this);
 
     switch (contact_method) {
-        case DVI:
+        case ChMaterialSurfaceBase::DVI:
             matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
             break;
-        case DEM:
+        case ChMaterialSurfaceBase::DEM:
             matsurface = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
             break;
     }

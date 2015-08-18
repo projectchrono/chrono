@@ -99,18 +99,6 @@ inline CollisionType GetCollisionType(ChSystem* system) {
   return BULLET_CD;
 }
 
-// -----------------------------------------------------------------------------
-// GetContactMethod()
-//
-// This utility function infers the type of the contact method type from the
-// specified material properties object.
-// -----------------------------------------------------------------------------
-inline ChBody::ContactMethod GetContactMethod(ChSharedPtr<ChMaterialSurfaceBase> mat) {
-  if (mat.IsType<ChMaterialSurface>())
-    return ChBody::DVI;
-
-  return ChBody::DEM;
-}
 
 }  // end namespace utils
 }  // end namespace chrono

@@ -459,24 +459,11 @@ ChSharedPtr<ChBody> CreateBoxContainer(ChSystem* system,
                                        bool y_up,
                                        bool overlap,
                                        bool closed) {
-  // Infer system type and collision type.
-  SystemType sysType = GetSystemType(system);
-  CollisionType cdType = GetCollisionType(system);
-
-  // Infer contact method from the specified material properties object.
-  ChBody::ContactMethod contact_method = GetContactMethod(mat);
-
   // Verify consistency of input arguments.
-  assert(((sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI) && contact_method == ChBody::DVI) ||
-         ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
+  assert(mat->GetContactMethod() == system->GetContactMethod());
 
   // Create the body and set material
-  ChSharedPtr<ChBody> body;
-
-  if (sysType == SEQUENTIAL_DVI || sysType == SEQUENTIAL_DEM || cdType == BULLET_CD)
-    body = ChSharedPtr<ChBody>(new ChBody(contact_method));
-  else
-    body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel, contact_method));
+  ChSharedPtr<ChBody> body = ChSharedPtr<ChBody>(system->NewBody());
 
   body->SetMaterialSurface(mat);
 
@@ -550,30 +537,17 @@ ChSharedPtr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                         bool overlap,
                                                         bool closed,
                                                         bool isBoxBase) {
-  // Infer system type and collision type.
-  SystemType sysType = GetSystemType(system);
-  CollisionType cdType = GetCollisionType(system);
-
-  // Infer contact method from the specified material properties object.
-  ChBody::ContactMethod contact_method = GetContactMethod(mat);
-
   // Verify consistency of input arguments.
-  assert(((sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI) && contact_method == ChBody::DVI) ||
-         ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
+  assert(mat->GetContactMethod() == system->GetContactMethod());
 
   // Create the body and set material
-  ChSharedPtr<ChBody> body;
-
-  if (sysType == SEQUENTIAL_DVI || sysType == SEQUENTIAL_DEM || cdType == BULLET_CD)
-    body = ChSharedPtr<ChBody>(new ChBody(contact_method));
-  else
-    body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel, contact_method));
+  ChSharedPtr<ChBody> body = ChSharedPtr<ChBody>(system->NewBody());
 
   body->SetMaterialSurface(mat);
 
   // Set body properties and geometry.
   body->SetIdentifier(id);
-  //													  body->SetMass(1);
+  //body->SetMass(1);
   body->SetPos(pos);
   body->SetRot(rot);
   body->SetCollide(collide);
@@ -660,13 +634,7 @@ void InitializeObject(ChSharedPtr<ChBody> body,
 // -----------------------------------------------------------------------------
 
 void FinalizeObject(ChSharedPtr<ChBody> body, ChSystem* system) {
-  // Infer system type and contact method.
-  SystemType sysType = GetSystemType(system);
-  ChBody::ContactMethod contact_method = body->GetContactMethod();
-
-  // Verify consistency of input arguments.
-  assert(((sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI) && contact_method == ChBody::DVI) ||
-         ((sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM) && contact_method == ChBody::DEM));
+  assert(body->GetContactMethod() == system->GetContactMethod());
 
   body->GetCollisionModel()->BuildModel();
   system->AddBody(body);

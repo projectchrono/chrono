@@ -40,8 +40,10 @@ class ChApi ChBodyAuxRef : public ChBody {
     //
 
     /// Nothing to be done, going with default values for the two frames
-    ChBodyAuxRef(ContactMethod contact_method = DVI) : ChBody(contact_method) {}
-    ChBodyAuxRef(collision::ChCollisionModel* new_coll_model, ContactMethod contact_method = DVI)
+    ChBodyAuxRef(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
+        : ChBody(contact_method) {}
+    ChBodyAuxRef(collision::ChCollisionModel* new_coll_model,
+                 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
         : ChBody(new_coll_model, contact_method) {}
 
     /// Destructor

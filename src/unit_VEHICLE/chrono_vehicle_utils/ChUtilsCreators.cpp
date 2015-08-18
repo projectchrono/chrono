@@ -40,7 +40,7 @@ void CreateBoxContainer(ChSystem*                           system,
                         bool                                collide)
 {
   // Infer the type of contact method from the specified material properties.
-  ChBody::ContactMethod contact_method = mat.IsType<ChMaterialSurface>() ? ChBody::DVI : ChBody::DEM;
+  ChMaterialSurfaceBase::ContactMethod contact_method = mat.IsType<ChMaterialSurface>() ? ChMaterialSurfaceBase::DVI : ChMaterialSurfaceBase::DEM;
 
   // Create the body and set material
   ChSharedPtr<ChBody> body(new ChBody(contact_method));

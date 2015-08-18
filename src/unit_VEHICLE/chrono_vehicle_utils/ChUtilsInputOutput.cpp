@@ -68,7 +68,7 @@ bool WriteCheckpoint(ChSystem*          system,
     ChBody* body = *ibody;
 
     // Infer body type (0: DVI, 1:DEM)
-    int btype = (body->GetContactMethod() == ChBody::DVI) ? 0 : 1;
+    int btype = (body->GetContactMethod() == ChMaterialSurfaceBase::DVI) ? 0 : 1;
 
     // Write body type, body identifier, the body fixed flag, and the collide flag
     csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();
@@ -212,13 +212,13 @@ void ReadCheckpoint(ChSystem*          system,
     // Create a body of the appropriate type, read and apply material properties
     ChBody* body;
     if (btype == 0) {
-      body = new ChBody(ChBody::DVI);
+      body = new ChBody(ChMaterialSurfaceBase::DVI);
       ChSharedPtr<ChMaterialSurface> mat = body->GetMaterialSurface();
       iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
       iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
       iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
     } else {
-      body = new ChBody(ChBody::DEM);
+      body = new ChBody(ChMaterialSurfaceBase::DEM);
       ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
       iss2 >> mat->young_modulus >> mat->poisson_ratio;
       iss2 >> mat->static_friction >> mat->sliding_friction;

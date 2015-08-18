@@ -117,20 +117,17 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     float sleep_starttime;
 
   public:
-    enum ContactMethod {
-        DVI,  ///< constraint-based (a.k.a. rigid-body) contact
-        DEM   ///< penalty-based (a.k.a. soft-body) contact
-    };
 
     //
     // CONSTRUCTORS
     //
 
     /// Build a rigid body.
-    ChBody(ContactMethod contact_method = DVI);
+    ChBody(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
     /// Build a rigid body with a different collision model.
-    ChBody(collision::ChCollisionModel* new_collision_model, ContactMethod contact_method = DVI);
+    ChBody(collision::ChCollisionModel* new_collision_model,
+           ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
     /// Destructor
     ~ChBody();
@@ -368,7 +365,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual void StreamOUTstate(ChStreamOutBinary& mstream);
 
     /// Infer the contact method from the underlying material properties object.
-    ContactMethod GetContactMethod() { return matsurface.IsType<ChMaterialSurface>() ? DVI : DEM; }
+    ChMaterialSurfaceBase::ContactMethod GetContactMethod() { return matsurface->GetContactMethod(); }
 
     /// Access the (generic) material surface properties associated with this
     /// body.  This function returns a reference to the shared pointer member

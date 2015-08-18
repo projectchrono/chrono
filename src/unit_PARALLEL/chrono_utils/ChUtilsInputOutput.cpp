@@ -54,9 +54,6 @@ void WriteBodies(ChSystem* system,
 //
 // -----------------------------------------------------------------------------
 bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
-  // Infer collision system type (true: parallel, false: bullet)
-  bool cd_par = dynamic_cast<collision::ChCollisionSystemParallel*>(system->GetCollisionSystem());
-
   // Create the CSV stream.
   CSV_writer csv(" ");
 
@@ -65,25 +62,13 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     ChBody* body = *ibody;
 
     // Infer body type (0: DVI, 1:DEM)
-    int btype = (body->GetContactMethod() == ChBody::DVI) ? 0 : 1;
+    int btype = (body->GetContactMethod() == ChMaterialSurfaceBase::DVI) ? 0 : 1;
 
     // Write body type, body identifier, the body fixed flag, and the collide flag
     csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();
 
     // Write collision family information.
-    short family_group = 1;
-    short family_mask = 0x7FFF;
-    if (cd_par) {
-      collision::ChCollisionModelParallel* cmodel =
-          static_cast<collision::ChCollisionModelParallel*>(body->GetCollisionModel());
-      family_group = cmodel->GetFamilyGroup();
-      family_mask = cmodel->GetFamilyMask();
-    } else {
-      collision::ChModelBullet* cmodel = static_cast<collision::ChModelBullet*>(body->GetCollisionModel());
-      family_group = cmodel->GetFamilyGroup();
-      family_mask = cmodel->GetFamilyMask();
-    }
-    csv << family_group << family_mask;
+    csv << body->GetCollisionModel()->GetFamilyGroup() << body->GetCollisionModel()->GetFamilyMask();
 
     // Write body mass and inertia
     csv << body->GetMass() << body->GetInertiaXX();
@@ -173,12 +158,6 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 //
 // -----------------------------------------------------------------------------
 void ReadCheckpoint(ChSystem* system, const std::string& filename) {
-  // Infer system type (true: parallel, false: sequential)
-  bool sys_par = dynamic_cast<ChSystemParallelDVI*>(system) || dynamic_cast<ChSystemParallelDEM*>(system);
-
-  // Infer collision system type (true: parallel, false: bullet)
-  bool cd_par = dynamic_cast<collision::ChCollisionSystemParallel*>(system->GetCollisionSystem());
-
   // Open input file stream
   std::ifstream ifile(filename.c_str());
   std::string line;
@@ -207,17 +186,13 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
     std::istringstream iss2(line);
 
     // Create a body of the appropriate type, read and apply material properties
-    ChBody* body;
+    ChBody* body = system->NewBody();
     if (btype == 0) {
-      body = (sys_par && cd_par) ? new ChBody(new collision::ChCollisionModelParallel, ChBody::DVI)
-                                 : new ChBody(ChBody::DVI);
       ChSharedPtr<ChMaterialSurface> mat = body->GetMaterialSurface();
       iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
       iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
       iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
     } else {
-      body = (sys_par && cd_par) ? new ChBody(new collision::ChCollisionModelParallel, ChBody::DEM)
-                                 : new ChBody(ChBody::DEM);
       ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
       iss2 >> mat->young_modulus >> mat->poisson_ratio;
       iss2 >> mat->static_friction >> mat->sliding_friction;
@@ -310,16 +285,8 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
     }
 
     // Set the collision family group and the collision family mask.
-    if (cd_par) {
-      collision::ChCollisionModelParallel* cmodel =
-          static_cast<collision::ChCollisionModelParallel*>(body->GetCollisionModel());
-      cmodel->SetFamilyGroup(family_group);
-      cmodel->SetFamilyMask(family_mask);
-    } else {
-      collision::ChModelBullet* cmodel = static_cast<collision::ChModelBullet*>(body->GetCollisionModel());
-      cmodel->SetFamilyGroup(family_group);
-      cmodel->SetFamilyMask(family_mask);
-    }
+    body->GetCollisionModel()->SetFamilyGroup(family_group);
+    body->GetCollisionModel()->SetFamilyMask(family_mask);
 
     // Complete construction of the collision model.
     body->GetCollisionModel()->BuildModel();

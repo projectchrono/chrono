@@ -27,13 +27,13 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemPar
 
 ChBody* ChSystemParallelDVI::NewBody() {
   if (collision_system_type == COLLSYS_PARALLEL)
-    return new ChBody(new collision::ChCollisionModelParallel, ChBody::DVI);
+    return new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DVI);
 
-  return new ChBody(ChBody::DVI);
+  return new ChBody(ChMaterialSurfaceBase::DVI);
 }
 
 void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
-  assert(newbody->GetContactMethod() == ChBody::DVI);
+  assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::DVI);
 
   // Reserve space for material properties for the specified body. Not that the
   // actual data is set in UpdateMaterialProperties().

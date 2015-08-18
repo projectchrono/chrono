@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     material->SetFriction(0.4f);
 
     // Create the falling ball
-    ChSharedPtr<ChBody> ball(new ChBody(ChBody::DEM));
+    ChSharedPtr<ChBody> ball(new ChBody(ChMaterialSurfaceBase::DEM));
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
@@ -128,7 +128,7 @@ ball->SetWvel_par(ChVector<>(0,0,3));
     msystem.AddBody(ball);
 
     // Create container
-    ChSharedPtr<ChBody> bin(new ChBody(ChBody::DEM));
+    ChSharedPtr<ChBody> bin(new ChBody(ChMaterialSurfaceBase::DEM));
 
     bin->SetIdentifier(binId);
     bin->SetMass(1);

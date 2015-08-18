@@ -505,20 +505,20 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
 
     switch (m_sysType) {
       case SEQUENTIAL_DVI:
-        body = new ChBody(ChBody::DVI);
+        body = new ChBody(ChMaterialSurfaceBase::DVI);
         m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
         break;
       case SEQUENTIAL_DEM:
-        body = new ChBody(ChBody::DEM);
+        body = new ChBody(ChMaterialSurfaceBase::DEM);
         m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceDEM());
         break;
       case PARALLEL_DVI:
         switch (m_collisionType) {
           case BULLET_CD:
-            body = new ChBody(ChBody::DVI);
+            body = new ChBody(ChMaterialSurfaceBase::DVI);
             break;
           case PARALLEL_CD:
-            body = new ChBody(new collision::ChCollisionModelParallel, ChBody::DVI);
+            body = new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DVI);
             break;
         }
         m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
@@ -526,10 +526,10 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
       case PARALLEL_DEM:
         switch (m_collisionType) {
           case BULLET_CD:
-            body = new ChBody(ChBody::DEM);
+            body = new ChBody(ChMaterialSurfaceBase::DEM);
             break;
           case PARALLEL_CD:
-            body = new ChBody(new collision::ChCollisionModelParallel, ChBody::DEM);
+            body = new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
             break;
         }
         m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceDEM());
