@@ -1345,6 +1345,16 @@ configure_file(
 
 
 #------------------------------------------------------------
+# Create the Chrono CMake project configuration file
+#------------------------------------------------------------
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/ChronoConfig.cmake"
+  @ONLY)
+
+
+#------------------------------------------------------------
 # Use CPack
 #------------------------------------------------------------
 
