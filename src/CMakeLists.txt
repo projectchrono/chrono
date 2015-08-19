@@ -1223,19 +1223,23 @@ set(CPACK_SOURCE_STRIP_FILES "")
 install(TARGETS ChronoEngine
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    )
+    ARCHIVE DESTINATION lib)
 
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/demos/data/
+    DESTINATION data 
+    PATTERN .svn EXCLUDE)
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION data PATTERN .svn EXCLUDE)
-
-# Catchall, installs all header files, excluding optional units
+# Catchall, installs all header files, excluding optional units and the demo
+# and cmake directories.
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/
     DESTINATION include/chrono
     FILES_MATCHING PATTERN "*.h"
     PATTERN "unit_*" EXCLUDE
-    )
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" DESTINATION include/chrono/core)
+    PATTERN "demos" EXCLUDE
+    PATTERN "cmake" EXCLUDE)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h"
+    DESTINATION include/chrono/core)
 
 #------------------------------------------------------------
 # Propagates the CMake build to other directories

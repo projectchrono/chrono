@@ -279,8 +279,11 @@ TARGET_LINK_LIBRARIES(ChronoEngine_Parallel ChronoEngine ${CUDA_FRAMEWORK} ${MPI
 INSTALL(TARGETS ChronoEngine_Parallel
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-)
+        ARCHIVE DESTINATION lib)
+
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION include/chrono_parallel
+    FILES_MATCHING PATTERN "*.h")
 
 mark_as_advanced(FORCE
     CUDA_BUILD_CUBIN

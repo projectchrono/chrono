@@ -230,8 +230,11 @@ TARGET_LINK_LIBRARIES(ChronoEngine_Vehicle
 INSTALL(TARGETS ChronoEngine_Vehicle
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+    ARCHIVE DESTINATION lib)
+
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION include/chrono_vehicle
+    FILES_MATCHING PATTERN "*.h")
 
 # ----------------------------------------------------------------------------
 # ADD THE ChronoVehicle_Irrlicht LIBRARY
@@ -260,8 +263,7 @@ IF (ENABLE_UNIT_IRRLICHT)
   INSTALL(TARGETS ChronoEngine_VehicleIrrlicht
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-  )
+    ARCHIVE DESTINATION lib)
 
   # On Windows, copy the Irrklang DLL (if enabled)
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
