@@ -18,7 +18,6 @@ IF(NOT ENABLE_UNIT_IRRLICHT)
   RETURN()
 ENDIF()
 
-ADD_SUBDIRECTORY(utils)
 
 cmake_minimum_required(VERSION 2.8)
 
