@@ -14,14 +14,6 @@ IF(ENABLE_OPENGL)
 ENDIF()
 
 #--------------------------------------------------------------
-# OpenMP flags
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-
-IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-ENDIF()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
@@ -51,7 +43,7 @@ FOREACH(PROGRAM ${DEMOS})
 
     SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
         FOLDER demos
-        COMPILE_FLAGS "${CH_BUILDFLAGS}"
+        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_EXE}"
     )
 

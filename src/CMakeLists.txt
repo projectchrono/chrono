@@ -147,10 +147,17 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 #-----------------------------------------------------------------------------
+# Compiler flags
+
+set(CH_C_FLAGS "")
+set(CH_CXX_FLAGS "")
+
+#-----------------------------------------------------------------------------
 # Enable C++11 support
 
 find_package(ModernCXX)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
 
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
@@ -159,6 +166,8 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 
 # We always look for OpenMP (which is required for the PARALLEL unit).
 # However, we allow the user to optionally disable OpenMP support in the
@@ -199,6 +208,8 @@ cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" O
 if(ENABLE_OPENMP)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set(CH_C_FLAGS "${CH_C_GLAGS} ${OpenMP_C_FLAGS}")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -223,12 +234,14 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif(MSVC)
 
     if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-        set(CH_BUILDFLAGS "-D_MINGW -D_WINDOWS")
+        set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -D_MINGW -D_WINDOWS")
+        set(CH_C_FLAGS "${CH_C_FLAGS} -D_MINGW -D_WINDOWS")
         set(CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
         set(CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
 
         if(CMAKE_SIZEOF_VOID_P MATCHES 8)
-            set(CH_BUILDFLAGS "${CH_BUILDFLAGS} -m64")
+            set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -m64")
+            set(CH_C_FLAGS "${CH_C_FLAGS} -m64")
         endif()
     endif()
 endif()
@@ -239,12 +252,14 @@ endif()
 #
 # Definitions that are used by ALL targets:
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CH_BUILDFLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CH_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CH_CXX_FLAGS} -D_DEBUG -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_CXX_FLAGS} -DNDEBUG")
+
 
 add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )   # for Bullet to use 32 bit math
 
+#-----------------------------------------------------------------------------
 # Includes that are used by ALL targets
 
 set(CH_INCLUDES "${CMAKE_SOURCE_DIR}")
@@ -1175,18 +1190,9 @@ include_directories( ${CH_INCLUDES} )
     endif()
 
     set_target_properties(ChronoEngine PROPERTIES
-        COMPILE_FLAGS "${CH_BUILDFLAGS}"
+        COMPILE_FLAGS "${CH_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
         COMPILE_DEFINITIONS "CH_API_COMPILE")
-
-
-    #ADD_CUSTOM_COMMAND(
-    #    TARGET ChronoEngine
-    #    POST_BUILD
-    #    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CH_CHRONODIR}/bin/data/ ${PROJECT_BINARY_DIR}/data
-    #    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BINARY_DIR}/data/.svn
-    #)
-
 
 #------------------------------------------------------------
 

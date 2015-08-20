@@ -3,8 +3,6 @@
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  SET(CH_BUILDFLAGS "${CH_BUILDFLAGS} /wd4275")
 ENDIF()
 
 #--------------------------------------------------------------

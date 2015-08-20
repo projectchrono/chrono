@@ -31,6 +31,9 @@ mark_as_advanced(CLEAR BLAZE_DIR)
 mark_as_advanced(CLEAR BOOST_DIR)
 
 
+set(CH_PARALLEL_CXX_FLAGS "")
+set(CH_PARALLEL_C_FLAGS "")
+
 # ------------------------------------------------------------------------------
 # Figure out SSE level support
 # ------------------------------------------------------------------------------
@@ -46,6 +49,8 @@ IF(USE_DOUBLE)
     ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
       SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wa,-q")
       SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -Wa,-q")
+      set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS} -march=native -Wa,-q")
+      set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS} -march=native -Wa,-q")
     ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
     ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     ENDIF()
@@ -69,9 +74,13 @@ ELSEIF(USE_SSE)
   ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS}")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS}")
+    set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS} ${SSE_FLAGS}")
+    set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS} ${SSE_FLAGS}")
   ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xsse${SSE_VERSION}")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -xsse${SSE_VERSION}")
+    set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS} -xsse${SSE_VERSION}")
+    set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS} -xsse${SSE_VERSION}")
   ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     # using Visual Studio C++
   ENDIF()
@@ -85,6 +94,8 @@ ENDIF()
 # Add the OpenMP-specific compiler and linker flags
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 # ------------------------------------------------------------------------------
 # Thrust
@@ -183,6 +194,8 @@ INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 # Make some variables visible from parent directory
 # ------------------------------------------------------------------------------
 
+set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS}" PARENT_SCOPE)
+set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS}" PAREANT_SCOPE)
 SET(CH_PARALLEL_INCLUDES "${CH_PARALLEL_INCLUDES}" PARENT_SCOPE)
 SET(ENABLE_OPENGL "${ENABLE_OPENGL}" PARENT_SCOPE)
 SET(CH_OPENGL_INCLUDES "${CH_OPENGL_INCLUDES}" PARENT_SCOPE)

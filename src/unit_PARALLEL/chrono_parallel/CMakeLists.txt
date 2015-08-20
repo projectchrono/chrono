@@ -270,8 +270,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ENDIF()
 
 SET_TARGET_PROPERTIES(ChronoEngine_Parallel PROPERTIES
-                      COMPILE_FLAGS "${CH_BUILDFLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_GPU}"
+                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_PARALLEL")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_Parallel ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES})

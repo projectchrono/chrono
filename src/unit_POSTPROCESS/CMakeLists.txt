@@ -52,7 +52,7 @@ ADD_LIBRARY(ChronoEngine_POSTPROCESS SHARED
 			${ChronoEngine_UNIT_POSTPROCESS_HEADERS})
 
 SET_TARGET_PROPERTIES(ChronoEngine_POSTPROCESS PROPERTIES
-                          COMPILE_FLAGS "${CH_BUILDFLAGS}"
+                          COMPILE_FLAGS "${CH_CXX_FLAGS}"
                           LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
                           COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_POSTPROCESS")
                           
@@ -64,7 +64,7 @@ ADD_DEPENDENCIES (ChronoEngine_POSTPROCESS ChronoEngine)  # better, because not 
 	
 # Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 
-SET (CH_POSTPROCESSINC      		"${CH_POSTPROCESSINC}" 			 PARENT_SCOPE )
+SET(CH_POSTPROCESSINC "${CH_POSTPROCESSINC}" PARENT_SCOPE )
 	
 INSTALL(TARGETS ChronoEngine_POSTPROCESS
     RUNTIME DESTINATION bin

@@ -14,7 +14,7 @@ ADD_EXECUTABLE(demo_postprocess   		demo_postprocess.cpp)
 SOURCE_GROUP(demos\\postprocess FILES  	    demo_postprocess.cpp)
 SET_TARGET_PROPERTIES(demo_postprocess PROPERTIES 
 	FOLDER demos
-    COMPILE_FLAGS "${CH_BUILDFLAGS}"
+    COMPILE_FLAGS "${CH_CXX_FLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_postprocess  ChronoEngine  ChronoEngine_POSTPROCESS)
@@ -27,7 +27,7 @@ IF(ENABLE_UNIT_IRRLICHT)
 	SOURCE_GROUP(demos\\postprocess FILES  	    demo_emit_creation.cpp)
 	SET_TARGET_PROPERTIES(demo_emit_creation PROPERTIES 
 		FOLDER demos
-		COMPILE_FLAGS "${CH_BUILDFLAGS}"
+		COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
 		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 		)
 	TARGET_LINK_LIBRARIES(demo_emit_creation  
@@ -44,7 +44,7 @@ IF(ENABLE_UNIT_IRRLICHT)
 	SOURCE_GROUP(demos\\postprocess FILES  	    demo_emitter_asset.cpp)
 	SET_TARGET_PROPERTIES(demo_emitter_asset PROPERTIES 
 		FOLDER demos
-		COMPILE_FLAGS "${CH_BUILDFLAGS}"
+		COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
 		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 		)
 	TARGET_LINK_LIBRARIES(demo_emitter_asset  
@@ -63,6 +63,7 @@ ADD_EXECUTABLE(demo_timestepping	demo_timestepping.cpp)
 SOURCE_GROUP(demos\\postprocess FILES  	demo_timestepping.cpp)
 SET_TARGET_PROPERTIES(demo_timestepping PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_CXX_FLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_timestepping ChronoEngine)
@@ -73,6 +74,7 @@ ADD_EXECUTABLE(demo_gnuplot	demo_gnuplot.cpp)
 SOURCE_GROUP(demos\\postprocess FILES  	demo_gnuplot.cpp)
 SET_TARGET_PROPERTIES(demo_gnuplot PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_CXX_FLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_gnuplot ChronoEngine)
