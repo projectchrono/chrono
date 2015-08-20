@@ -110,6 +110,16 @@ void ChChaseCamera::Turn(int val) {
 }
 
 // -----------------------------------------------------------------------------
+// Set fixed camera position.
+// Note that this also forces the state to 'Track'
+// -----------------------------------------------------------------------------
+void ChChaseCamera::SetCameraPos(const ChVector<>& pos) {
+    m_loc = pos;
+    m_lastLoc = pos;
+    m_state = Track;
+}
+
+// -----------------------------------------------------------------------------
 // Return the camera location and the camera target (look at) location,
 // respectively.
 // Note that in Inside mode, in order to accomodate a narrow field of view, we

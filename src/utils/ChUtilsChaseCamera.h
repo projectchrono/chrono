@@ -54,6 +54,8 @@ class ChApi ChChaseCamera {
     void Turn(int val);
     void SetState(State s);
 
+    void SetCameraPos(const ChVector<>& pos);
+
     State GetState() const { return m_state; }
     const std::string& GetStateName() const { return m_stateNames[m_state]; }
 
