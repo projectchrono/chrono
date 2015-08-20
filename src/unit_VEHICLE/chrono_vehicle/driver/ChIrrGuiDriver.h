@@ -33,9 +33,9 @@
 #include <vector>
 
 #include "physics/ChSystem.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "utils/ChUtilsChaseCamera.h"
 
-#include "chrono_vehicle/driver/ChChaseCamera.h"
+#include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
@@ -111,7 +111,7 @@ private:
   ChVehicle&                m_car;
   ChPowertrain&             m_powertrain;
 
-  ChChaseCamera             m_camera;
+  utils::ChChaseCamera      m_camera;
 
   double m_stepsize;
 

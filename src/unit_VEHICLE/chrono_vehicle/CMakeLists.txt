@@ -165,8 +165,6 @@ SET(CV_UTILS_FILES
 
 IF (ENABLE_UNIT_IRRLICHT)
     SET(CVIRR_DRIVER_FILES
-        driver/ChChaseCamera.h
-        driver/ChChaseCamera.cpp
         driver/ChIrrGuiDriver.h
         driver/ChIrrGuiDriver.cpp
         driver/ChIrrGuiST.h

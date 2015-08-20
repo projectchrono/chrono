@@ -1120,6 +1120,7 @@ include_directories( ${CH_INCLUDES} )
         utils/ChUtilsCreators.cpp
         utils/ChUtilsGenerators.cpp
         utils/ChUtilsInputOutput.cpp
+        utils/ChUtilsChaseCamera.cpp
     )
 
     set(ChronoEngine_utils_HEADERS
@@ -1128,6 +1129,7 @@ include_directories( ${CH_INCLUDES} )
         utils/ChUtilsGenerators.h
         utils/ChUtilsSamplers.h
         utils/ChUtilsInputOutput.h
+        utils/ChUtilsChaseCamera.h
     )
 
     source_group(utils FILES
