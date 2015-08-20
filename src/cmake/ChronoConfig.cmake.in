@@ -14,13 +14,14 @@
 # Variables set by this script:
 # CHRONO_FOUND
 #       set to true if Chrono and all required components were found
-# CHRONO_CFLAGS
-#       additional compilation flags
+# CHRONO_C_FLAGS
+# CHRONO_CXX_FLAGS
+#       C and C++ compilation flags
 # CHRONO_INCLUDE_DIRS
 #       additional paths for included headers
 # CHRONO_LIBRARIES
 #       list of required libraries (with full path)
-# CHRONO_LDFLAGS
+# CHRONO_LINKER_FLAGS
 #       additional linker flags
 # CHRONO_DLLS
 #       list of all DLL dependencies (with full path)
@@ -158,6 +159,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_FEA")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_FEA.dll")
+
+    elseif(${COMPONENT_UPPER} MATCHES "POSTPROCESS")
+
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_POSTPROCESS")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_POSTPROCESS.dll")
 
     endif()
 
