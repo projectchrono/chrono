@@ -19,8 +19,6 @@
 
 #include <cstdio>
 
-#include "subsys/suspension/TorsionArmSuspension.h"
-
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
@@ -28,7 +26,9 @@
 #include "physics/ChFunction.h"
 
 #include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
+
+#include "subsys/ChVehicleModelData.h"
+#include "subsys/suspension/TorsionArmSuspension.h"
 
 namespace chrono {
 
@@ -67,7 +67,7 @@ TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
       m_wheel_PosRel(wheel_pos_rel),
       m_armRadius(arm_radius),
       m_use_custom_spring(use_custom_spring),
-      m_meshFile(utils::GetModelDataFile("M113/Roller_XforwardYup.obj")),
+      m_meshFile(vehicle::GetDataFile("M113/Roller_XforwardYup.obj")),
       m_meshName("Road wheel") {
     // FILE* fp = fopen(filename.c_str(), "r");
     // char readBuffer[65536];

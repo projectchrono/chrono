@@ -30,13 +30,13 @@
 #define CH_IRRGUITRACK_H
 
 #include "physics/ChSystem.h"
+#include "utils/ChUtilsChaseCamera.h"
+
 #include "unit_IRRLICHT/ChIrrApp.h"
 
-#include "utils/ChChaseCamera.h"
-
-#include "subsys/base/ChTrackVehicle.h"
+#include "subsys/ChTrackVehicle.h"
 #include "subsys/ChApiSubsys.h"
-#include "subsys/base/ChDriverTrack.h"
+#include "subsys/ChDriverTrack.h"
 #include "subsys/powertrain/TrackPowertrain.h"
 
 // #include "subsys/trackVehicle/DriveChain.h"

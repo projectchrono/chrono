@@ -20,6 +20,7 @@
 
 #include "ChTrackVehicle.h"
 #include "subsys/collision/CollisionReporters.h"
+#include "subsys/ChVehicleModelData.h"
 
 #include "assets/ChAssetLevel.h"
 #include "assets/ChBoxShape.h"
@@ -30,7 +31,6 @@
 #include "assets/ChTexture.h"
 
 #include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
 
 // collision mesh
 #include "geometry/ChCTriangleMeshSoup.h"
@@ -79,7 +79,7 @@ ChTrackVehicle::ChTrackVehicle(const std::string& name,
 
     // init. any other variables with a default value
     m_meshName = "meshName";
-    m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
+    m_meshFile = vehicle::GetDataFile("M113/Chassis_XforwardYup.obj");
     m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5);  // full length, height, width of chassis box
 }
 
@@ -117,7 +117,7 @@ ChTrackVehicle::ChTrackVehicle(ChSystem* system,
 
     // init. any other variables with a default value
     m_meshName = "meshName";
-    m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
+    m_meshFile = vehicle::GetDataFile("M113/Chassis_XforwardYup.obj");
     m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5);  // full length, height, width of chassis box
 }
 

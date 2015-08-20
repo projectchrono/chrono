@@ -19,7 +19,7 @@
 #define TRACK_FUNCDRIVER_H
 
 #include "motion_functions/ChFunction_Base.h"
-#include "subsys/base/ChDriverTrack.h"
+#include "subsys/ChDriverTrack.h"
 // #include "core/ChLog.h"
 
 namespace chrono {

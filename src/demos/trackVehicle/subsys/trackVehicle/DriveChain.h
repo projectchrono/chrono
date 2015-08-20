@@ -26,7 +26,7 @@
 #include "physics/ChSystem.h"
 #include "ModelDefs.h"
 
-#include "subsys/base/ChTrackVehicle.h"
+#include "subsys/ChTrackVehicle.h"
 #include "subsys/trackSystem/TrackSystem.h"
 
 

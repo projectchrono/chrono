@@ -23,7 +23,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "subsys/base/ChDriverTrack.h"
+#include "subsys/ChDriverTrack.h"
 
 namespace chrono {
 

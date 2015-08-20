@@ -23,11 +23,12 @@
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 #include "assets/ChAssetLevel.h"
-// collision mesh
+
 #include "geometry/ChCTriangleMeshSoup.h"
 
-#include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
+
+#include "subsys/ChVehicleModelData.h"
 
 namespace chrono {
 
@@ -46,7 +47,7 @@ DriveGear::DriveGear(const std::string& name,
                      const ChVector<>& gear_Ixx)
     : m_vis(vis),
       m_collide(collide),
-      m_meshFile(utils::GetModelDataFile("M113/Sprocket_XforwardYup.obj")),
+      m_meshFile(vehicle::GetDataFile("M113/Sprocket_XforwardYup.obj")),
       m_chainSys_idx(chainSys_idx),
       m_mass(mass),
       m_inertia(gear_Ixx),

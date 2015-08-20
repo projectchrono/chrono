@@ -19,14 +19,14 @@ IF(NOT ENABLE_UNIT_IRRLICHT)
 ENDIF()
 
 
-cmake_minimum_required(VERSION 2.8)
-
 SET(CT_BASE_FILES
 	subsys/ChApiSubsys.h
-	subsys/base/ChTrackVehicle.h
-	subsys/base/ChTrackVehicle.cpp
-	subsys/base/ChDriverTrack.h
-	subsys/base/ChDriverTrack.cpp
+	subsys/ChTrackVehicle.h
+	subsys/ChTrackVehicle.cpp
+	subsys/ChDriverTrack.h
+	subsys/ChDriverTrack.cpp
+	subsys/ChVehicleModelData.h
+    subsys/ChVehicleModelData.cpp
 )
 
 SET(CT_VEHICLE_FILES
@@ -122,28 +122,19 @@ SET_TARGET_PROPERTIES(TrackVehicle PROPERTIES
 	LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
 	COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_TRACKS")
 
-# two extra target libraries if using Irrlicht, plus include dirs
-IF(ENABLE_UNIT_IRRLICHT)	
-	SET(CT_TARGET_LIBS
-		Chrono_Utils
+# two extra target libraries if using Irrlicht, plus include dirs	
+SET(CT_TARGET_LIBS
 		ChronoEngine
 		ChronoEngine_IRRLICHT
 		${CH_IRRLICHTLIB}
-	)
-	INCLUDE_DIRECTORIES(${CH_IRRLICHTINC} )
-ELSE()
-	SET(CT_TARGET_LIBS
-		Chrono_Utils
-		ChronoEngine
-	)
-ENDIF()
+)
+INCLUDE_DIRECTORIES(${CH_IRRLICHTINC} )
+
 
 	
 TARGET_LINK_LIBRARIES(TrackVehicle ${CT_TARGET_LIBS})
 
 
-	
-# ADD_DEPENDENCIES (TrackVehicle ChronoEngine Chrono_Utils ChronoEngine_IRRLICHT)  #  not automatic
 		
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/demos/trackVehicle/)
 
@@ -153,18 +144,6 @@ INSTALL(TARGETS TrackVehicle
 	ARCHIVE DESTINATION lib
 )
 
-# INSTALL(FILES ${} DESTINATION include/demos/trackVehicle)
-	
-
-# ------------------------------------------------------------------------------
-# Copy the track_data folder to the bin directory
-IF(MSVC)
-  FILE( COPY ${CMAKE_SOURCE_DIR}/demos/trackVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
-ELSEIF(XCODE_VERSION)
-  FILE( COPY ${CMAKE_SOURCE_DIR}/demos/trackVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
-ELSE()
-  FILE( COPY ${CMAKE_SOURCE_DIR}/demos/trackVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/data/)
-ENDIF()
 
 # add demo models here
 # ---------------------------------------------
@@ -195,7 +174,7 @@ FOREACH(PROGRAM ${TRACK_DEMOS})
 		${CT_TARGET_LIBS}
 		TrackVehicle
 		)
-	ADD_DEPENDENCIES(${PROGRAM} ${CT_TARGET_LIBS} TrackVehicle)
+
 	INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
 
 ENDFOREACH()
