@@ -205,7 +205,8 @@ namespace ChOgre {
 		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
 			m_ChOgreBodies[i]->update();
 			if (m_ChOgreBodies[i]->getChBody()->GetPos().y < m_LowerLimit && m_ChOgreBodies[i]->deletable == true && m_LowerLimit < 0) {
-				removeBody(ChOgreBodyHandle(m_ChOgreBodies[i]));
+			ChOgreBodyHandle _remove_body_handle(m_ChOgreBodies[i]);
+			removeBody(_remove_body_handle);
 			}
 		}
 	}
@@ -213,9 +214,9 @@ namespace ChOgre {
 
 	ChOgreBodyHandle ChOgreScene::spawnBox(std::string Name,
 		double mass,
-		chrono::ChVector<>& position,
-		chrono::ChVector<>& size,
-		chrono::ChQuaternion<>& rotation,
+		const chrono::ChVector<>& position,
+		const chrono::ChVector<>& size,
+		const chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
 		ChOgreBodyHandle _ret = createBody(Name);
@@ -248,9 +249,9 @@ namespace ChOgre {
 
 	ChOgreBodyHandle ChOgreScene::spawnCone(std::string Name,
 		double mass,
-		chrono::ChVector<>& position,
-		chrono::ChVector<>& size,
-		chrono::ChQuaternion<>& rotation,
+		const chrono::ChVector<>& position,
+		const chrono::ChVector<>& size,
+		const chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
 		ChOgreBodyHandle _ret = createBody(Name);
@@ -276,9 +277,9 @@ namespace ChOgre {
 
 	ChOgreBodyHandle ChOgreScene::spawnCylinder(std::string Name,
 		double mass,
-		chrono::ChVector<>& position,
-		chrono::ChVector<>& size,
-		chrono::ChQuaternion<>& rotation,
+		const chrono::ChVector<>& position,
+		const chrono::ChVector<>& size,
+		const chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
 		ChOgreBodyHandle _ret = createBody(Name);
@@ -306,9 +307,9 @@ namespace ChOgre {
 
 	ChOgreBodyHandle ChOgreScene::spawnEllipsoid(std::string Name,
 		double mass,
-		chrono::ChVector<>& position,
-		chrono::ChVector<>& size,
-		chrono::ChQuaternion<>& rotation,
+		const chrono::ChVector<>& position,
+		const chrono::ChVector<>& size,
+		const chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
 		ChOgreBodyHandle _ret = createBody(Name);
@@ -334,7 +335,7 @@ namespace ChOgre {
 
 	ChOgreBodyHandle ChOgreScene::spawnSphere(std::string Name,
 		double mass,
-		chrono::ChVector<>& position,
+		const chrono::ChVector<>& position,
 		double radius,
 		bool fixed) {
 
@@ -358,7 +359,13 @@ namespace ChOgre {
 		return _ret;
 	}
 
-	ChOgreBodyHandle ChOgreScene::spawnMesh(std::string Name, double mass, chrono::ChVector<>& position, chrono::ChVector<>& size, chrono::ChQuaternion<>& rotation, std::string FileName, std::string Path, bool fixed) {
+	ChOgreBodyHandle ChOgreScene::spawnMesh(std::string Name, 
+		double mass, 
+		const chrono::ChVector<>& position, 
+		const chrono::ChVector<>& size, 
+		const chrono::ChQuaternion<>& rotation, 
+		std::string FileName, 
+		std::string Path, bool fixed) {
 		ChOgreBodyHandle _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChTriangleMeshShape> _mesh(new chrono::ChTriangleMeshShape);
@@ -489,11 +496,12 @@ namespace ChOgre {
 		m_pSceneManager->setSkyBoxEnabled(false);
 	}
 
-	ChOgreBodyHandle ChOgreScene::loadHeightMap(std::string FilePath, chrono::ChVector<>& Scale) {
+	ChOgreBodyHandle ChOgreScene::loadHeightMap(std::string FilePath, const chrono::ChVector<>& Scale) {
 		Ogre::TexturePtr l_tex = Ogre::TextureManager::getSingleton().load(FilePath, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
 		if (l_tex->getFormat() != Ogre::PF_L16 && l_tex->getFormat() != Ogre::PF_L8) {
-			Ogre::TextureManager::getSingleton().remove((Ogre::ResourcePtr)l_tex);
+			Ogre::ResourcePtr _tex_ptr=(Ogre::ResourcePtr)l_tex;
+			Ogre::TextureManager::getSingleton().remove(_tex_ptr);
 			l_tex.setNull();
 			l_tex = Ogre::TextureManager::getSingleton().load(FilePath, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D, -1, 1.0f, false, Ogre::PF_L8);
 		}

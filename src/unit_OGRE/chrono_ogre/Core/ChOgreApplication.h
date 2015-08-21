@@ -6,9 +6,9 @@ Contains the prototype for a basic application. Manages things such as window cr
 
 #pragma once
 
-#include <OGRE\Ogre.h>
+#include <Ogre.h>
 
-#include <physics\ChSystem.h>
+#include <physics/ChSystem.h>
 
 #include <memory>
 #include <exception>

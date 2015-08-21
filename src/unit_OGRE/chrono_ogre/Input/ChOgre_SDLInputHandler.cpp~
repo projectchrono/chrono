@@ -474,28 +474,28 @@ namespace ChOgre {
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	void ChOgre_SDLInputHandler::removeCallback(ChOgreKeyboardCallback& callback) {
-		auto a = *std::find(m_KeyboardCallbackPtrs.begin(), m_KeyboardCallbackPtrs.end(), &callback);
+		auto a = *std::find(m_KeyboardCallbackPtrs.begin(), m_KeyboardCallbackPtrs.end(), &callback)._Ptr;
 		auto b = m_KeyboardCallbackPtrs.back();
 		std::swap(a, b);
 		m_KeyboardCallbackPtrs.pop_back();
 	}
 
 	void ChOgre_SDLInputHandler::removeCallback(ChOgreMouseCallback& callback) {
-		auto a = *std::find(m_MouseCallbackPtrs.begin(), m_MouseCallbackPtrs.end(), &callback);
+		auto a = *std::find(m_MouseCallbackPtrs.begin(), m_MouseCallbackPtrs.end(), &callback)._Ptr;
 		auto b = m_MouseCallbackPtrs.back();
 		std::swap(a, b);
 		m_MouseCallbackPtrs.pop_back();
 	}
 
 	void ChOgre_SDLInputHandler::removeCallback(ChOgreControllerCallback& callback) {
-		auto a = *std::find(m_ControllerCallbackPtrs.begin(), m_ControllerCallbackPtrs.end(), &callback);
+		auto a = *std::find(m_ControllerCallbackPtrs.begin(), m_ControllerCallbackPtrs.end(), &callback)._Ptr;
 		auto b = m_ControllerCallbackPtrs.back();
 		std::swap(a, b);
 		m_ControllerCallbackPtrs.pop_back();
 	}
 
 	void ChOgre_SDLInputHandler::removeCallback(ChOgreWindowCallback& callback) {
-		auto a = *std::find(m_WindowCallbackPtrs.begin(), m_WindowCallbackPtrs.end(), &callback);
+		auto a = *std::find(m_WindowCallbackPtrs.begin(), m_WindowCallbackPtrs.end(), &callback)._Ptr;
 		auto b = m_WindowCallbackPtrs.back();
 		std::swap(a, b);
 		m_WindowCallbackPtrs.pop_back();

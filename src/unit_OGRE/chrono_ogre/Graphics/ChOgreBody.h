@@ -9,7 +9,7 @@ ChOgreBody is the basic physical body class. It will set up Ogre scene nodes to 
 #include <vector>
 #include <memory>
 
-#include <OGRE\Ogre.h>
+#include <Ogre.h>
 
 #include <physics/ChSystem.h>
 #include <physics/ChBody.h>
@@ -40,7 +40,7 @@ namespace ChOgre {
 
 		virtual void update();
 		virtual void refresh();
-		virtual void setMesh(Ogre::ManualObject* Mesh, chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
+		virtual void setMesh(Ogre::ManualObject* Mesh, const chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
 
 		virtual chrono::ChSharedBodyPtr getChBody();
 
