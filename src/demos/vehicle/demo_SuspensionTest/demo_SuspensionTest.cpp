@@ -35,6 +35,7 @@
 
 #include "ModelDefs.h"
 
+#include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/suspensionTest/SuspensionTest.h"
 #include "chrono_vehicle/tire/RigidTire.h"
@@ -43,7 +44,7 @@
 
 // Irrlicht includes
 #ifdef CHRONO_IRRLICHT
-# include "unit_IRRLICHT/ChIrrApp.h"
+# include "chrono_irrlicht/ChIrrApp.h"
 # include "chrono_vehicle/driver/ChIrrGuiST.h"
 # define USE_IRRLICHT
 #endif

@@ -22,7 +22,7 @@
 #define CH_CONFIG_VEHICLE_H
 
 // Include main Chrono configuration header
-#include "ChConfig.h"
+#include "chrono/ChConfig.h"
 
 // -----------------------------------------------------------------------------
 

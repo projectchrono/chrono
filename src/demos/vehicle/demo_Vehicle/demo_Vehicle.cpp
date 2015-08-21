@@ -31,6 +31,7 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
+#include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_vehicle/vehicle/Vehicle.h"
@@ -44,7 +45,7 @@
 // If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
   // ...include additional headers
-# include "unit_IRRLICHT/ChIrrApp.h"
+# include "chrono_irrlicht/ChIrrApp.h"
 # include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
   // ...and specify whether the demo should actually use Irrlicht

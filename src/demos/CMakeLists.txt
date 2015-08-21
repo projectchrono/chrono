@@ -69,7 +69,7 @@ if(ENABLE_MODULE_PARALLEL)
   add_subdirectory(parallel)
 endif()
 
-if(ENABLE_UNIT_VEHICLE)
+if(ENABLE_MODULE_VEHICLE)
   add_subdirectory(vehicle)
 endif()
 

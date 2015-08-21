@@ -143,7 +143,7 @@ add_subdirectory(chrono_fea)
 add_subdirectory(chrono_python)
 add_subdirectory(chrono_parallel)
 add_subdirectory(chrono_opengl)
-#add_subdirectory(chrono_vehicle)
+add_subdirectory(chrono_vehicle)
 
 # Add directories for demo programs and unit test programs.
 if(BUILD_DEMOS)
@@ -222,7 +222,7 @@ else()
   set(CHRONO_PYTHON "#undef CHRONO_PYTHON")
 endif()
 
-if(ENABLE_UNIT_VEHICLE)
+if(ENABLE_MODULE_VEHICLE)
   set(CHRONO_VEHICLE "#define CHRONO_VEHICLE")
 else()
   set(CHRONO_VEHICLE "#undef CHRONO_VEHICLE")

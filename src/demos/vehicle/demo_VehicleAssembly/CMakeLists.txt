@@ -5,9 +5,8 @@
 
 #--------------------------------------------------------------
 # Check dependencies.
-# Note that it is enough to check if ENABLE_OPENGL is true.
 
-IF(NOT ENABLE_OPENGL)
+IF(NOT ENABLE_MODULE_OPENGL OR NOT ENABLE_MODULE_PARALLEL)
   RETURN()
 ENDIF()
 
@@ -26,21 +25,17 @@ SOURCE_GROUP("" FILES ${DEMO_FILES})
 # Additional include directories
 
 INCLUDE_DIRECTORIES(
-    "${CMAKE_SOURCE_DIR}/unit_VEHICLE"
     ${CH_PARALLEL_INCLUDES}
-    ${CH_OPENGL_INCLUDES}
-    ${PROJECT_BINARY_DIR}
-)
+    ${CH_OPENGL_INCLUDES})
 
 #--------------------------------------------------------------
 # List of all required libraries
 
 SET(LIBRARIES
     ChronoEngine
-    ChronoEngine_Vehicle
-    ChronoEngine_Parallel
-    ChronoEngine_ParallelOpenGL
-)
+    ChronoEngine_vehicle
+    ChronoEngine_parallel
+    ChronoEngine_opengl)
 
 #--------------------------------------------------------------
 

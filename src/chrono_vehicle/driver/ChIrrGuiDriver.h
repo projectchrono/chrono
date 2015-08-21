@@ -35,7 +35,7 @@
 #include "physics/ChSystem.h"
 #include "utils/ChUtilsChaseCamera.h"
 
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriver.h"

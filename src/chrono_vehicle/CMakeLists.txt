@@ -1,12 +1,73 @@
 #=============================================================================
-# CMake configuration file for the ChronoEngine_Vehicle libraries
+# CMake configuration file for Chrono Vehicle module
+#
+# Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
+option(ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
+
+# Return now if this module is not enabled
+if(NOT ENABLE_MODULE_VEHICLE)
+  return()
+endif()
+
+# If Irrlicht support was enabled, provide option to add Irrklang support.
+cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
+                       "ENABLE_MODULE_IRRLICHT" OFF)
+
 # ----------------------------------------------------------------------------
-# LIST THE FILES in the ChronoEngine_Vehicle LIBRARY
+# Find IrrKlang library
+# ----------------------------------------------------------------------------
+if(ENABLE_IRRKLANG)
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      set(CH_IRRKLANG_SDKDIR ""  CACHE PATH   "Where is your IrrKlang SDK installed?")
+      set(CH_IRRKLANGLIB   "" CACHE FILEPATH "Where is your Irrklank library?")
+  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      FIND_PATH(CH_IRRKLANG_SDKDIR NAMES irrlicht.h PATHS "/usr/include/irrklang" "/usr/local/include/irrklang")
+      FIND_LIBRARY(CH_IRRKLANGLIB NAMES Irrklang PATHS "/usr/local/lib" ${CH_IRRKLANG_SDKDIR}/lib/Linux)
+  endif()
+
+  if(EXISTS "${CH_IRRKLANG_SDKDIR}/include")
+      set(CH_IRRKLANGINC "${CH_IRRKLANG_SDKDIR}/include")
+  else()
+      set(CH_IRRKLANGINC "${CH_IRRKLANG_SDKDIR}")
+  endif()
+
+  include_directories(${CH_IRRKLANGINC})
+
+  mark_as_advanced(CLEAR CH_IRRKLANG_SDKDIR)
+  mark_as_advanced(CLEAR CH_IRRKLANGLIB)
+
+else()
+
+  mark_as_advanced(FORCE CH_IRRKLANG_SDKDIR)
+  mark_as_advanced(FORCE CH_IRRKLANGLIB)
+
+endif()
+
+# ----------------------------------------------------------------------------
+# Create configuration file
 # ----------------------------------------------------------------------------
 
-SET(CV_BASE_FILES
+# Prepare replacement variables
+
+if(ENABLE_IRRKLANG)
+  set(CHRONO_IRRKLANG "#define CHRONO_IRRKLANG")
+else()
+  set(CHRONO_IRRKLANG "#undef CHRONO_IRRKLANG")
+endif()
+
+# Generate the configuration header file using substitution variables.
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicle.h.in
+               ${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h)
+
+# ----------------------------------------------------------------------------
+# List the files in the ChronoEngine_vehicle library
+# ----------------------------------------------------------------------------
+
+set(CV_BASE_FILES
     ChApiVehicle.h
     ChSubsysDefs.h
     ChVehicleModelData.h
@@ -37,12 +98,12 @@ SET(CV_BASE_FILES
     ChAntirollBar.cpp
 )
 
-SET(CV_VEHICLE_FILES
+set(CV_VEHICLE_FILES
     vehicle/Vehicle.h
     vehicle/Vehicle.cpp
 )
 
-SET(CV_SUSPENSION_FILES
+set(CV_SUSPENSION_FILES
     suspension/ChDoubleWishbone.h
     suspension/ChDoubleWishbone.cpp
     suspension/ChDoubleWishboneReduced.h
@@ -66,12 +127,12 @@ SET(CV_SUSPENSION_FILES
     suspension/HendricksonPRIMAXX.cpp
 )
 
-SET(CV_WHEEL_FILES
+set(CV_WHEEL_FILES
     wheel/Wheel.h
     wheel/Wheel.cpp
 )
 
-SET(CV_STEERING_FILES
+set(CV_STEERING_FILES
     steering/ChPitmanArm.h
     steering/ChPitmanArm.cpp
     steering/ChRackPinion.h
@@ -83,7 +144,7 @@ SET(CV_STEERING_FILES
     steering/RackPinion.cpp
 )
 
-SET(CV_DRIVELINE_FILES
+set(CV_DRIVELINE_FILES
     driveline/ChShaftsDriveline2WD.h
     driveline/ChShaftsDriveline2WD.cpp
     driveline/ChShaftsDriveline4WD.h
@@ -99,12 +160,12 @@ SET(CV_DRIVELINE_FILES
     driveline/SimpleDriveline.cpp
 )
 
-SET(CV_DRIVER_FILES
+set(CV_DRIVER_FILES
     driver/ChDataDriver.h
     driver/ChDataDriver.cpp
 )
 
-SET(CV_POVERTRAIN_FILES
+set(CV_POVERTRAIN_FILES
     powertrain/ChSimplePowertrain.h
     powertrain/ChSimplePowertrain.cpp
     powertrain/ChShaftsPowertrain.h
@@ -116,7 +177,7 @@ SET(CV_POVERTRAIN_FILES
     powertrain/ShaftsPowertrain.cpp
 )
 
-SET(CV_TIRE_FILES
+set(CV_TIRE_FILES
     tire/ChRigidTire.h
     tire/ChRigidTire.cpp
     tire/ChPacejkaTire.h
@@ -130,7 +191,7 @@ SET(CV_TIRE_FILES
     tire/LugreTire.cpp
 )
 
-SET(CV_BRAKE_FILES
+set(CV_BRAKE_FILES
     brake/ChBrakeSimple.h
     brake/ChBrakeSimple.cpp
 
@@ -138,7 +199,7 @@ SET(CV_BRAKE_FILES
     brake/BrakeSimple.cpp
 )
 
-SET(CV_ANTIROLL_FILES
+set(CV_ANTIROLL_FILES
     antirollbar/ChAntirollBarRSD.h
     antirollbar/ChAntirollBarRSD.cpp
 
@@ -146,54 +207,63 @@ SET(CV_ANTIROLL_FILES
     antirollbar/AntirollBarRSD.cpp
 )
 
-SET(CV_TERRAIN_FILES
+set(CV_TERRAIN_FILES
     terrain/FlatTerrain.h
     terrain/FlatTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
 )
 
-SET(CV_SUSPENSIONTEST_FILES
+set(CV_SUSPENSIONTEST_FILES
     suspensionTest/SuspensionTest.h
     suspensionTest/SuspensionTest.cpp
 )
 
-SET(CV_UTILS_FILES
+set(CV_UTILS_FILES
     utils/ChWheeledVehicleAssembly.h
     utils/ChWheeledVehicleAssembly.cpp
 )
 
-IF (ENABLE_UNIT_IRRLICHT)
-    SET(CVIRR_DRIVER_FILES
+if(ENABLE_MODULE_IRRLICHT)
+    set(CVIRR_DRIVER_FILES
         driver/ChIrrGuiDriver.h
         driver/ChIrrGuiDriver.cpp
         driver/ChIrrGuiST.h
         driver/ChIrrGuiST.cpp
     )
-ELSE()
-    SET(CVIRR_DRIVER_FILES "")
-ENDIF()
+else()
+    set(CVIRR_DRIVER_FILES "")
+endif()
 
-SOURCE_GROUP("base" FILES ${CV_BASE_FILES})
-SOURCE_GROUP("vehicle" FILES ${CV_VEHICLE_FILES})
-SOURCE_GROUP("suspension" FILES ${CV_SUSPENSION_FILES})
-SOURCE_GROUP("wheel" FILES ${CV_WHEEL_FILES})
-SOURCE_GROUP("steering" FILES ${CV_STEERING_FILES})
-SOURCE_GROUP("driveline" FILES ${CV_DRIVELINE_FILES})
-SOURCE_GROUP("driver" FILES ${CV_DRIVER_FILES} ${CVIRR_DRIVER_FILES})
-SOURCE_GROUP("powertrain" FILES ${CV_POVERTRAIN_FILES})
-SOURCE_GROUP("tire" FILES ${CV_TIRE_FILES})
-SOURCE_GROUP("brake" FILES ${CV_BRAKE_FILES})
-SOURCE_GROUP("antirollbar" FILES ${CV_ANTIROLL_FILES})
-SOURCE_GROUP("terrain" FILES ${CV_TERRAIN_FILES})
-SOURCE_GROUP("suspensionTest" FILES ${CV_SUSPENSIONTEST_FILES})
-SOURCE_GROUP("utils" FILES ${CV_UTILS_FILES})
+source_group("base" FILES ${CV_BASE_FILES})
+source_group("vehicle" FILES ${CV_VEHICLE_FILES})
+source_group("suspension" FILES ${CV_SUSPENSION_FILES})
+source_group("wheel" FILES ${CV_WHEEL_FILES})
+source_group("steering" FILES ${CV_STEERING_FILES})
+source_group("driveline" FILES ${CV_DRIVELINE_FILES})
+source_group("driver" FILES ${CV_DRIVER_FILES} ${CVIRR_DRIVER_FILES})
+source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
+source_group("tire" FILES ${CV_TIRE_FILES})
+source_group("brake" FILES ${CV_BRAKE_FILES})
+source_group("antirollbar" FILES ${CV_ANTIROLL_FILES})
+source_group("terrain" FILES ${CV_TERRAIN_FILES})
+source_group("suspensionTest" FILES ${CV_SUSPENSIONTEST_FILES})
+source_group("utils" FILES ${CV_UTILS_FILES})
 
 # ----------------------------------------------------------------------------
-# ADD THE ChronoEngine_Vehicle LIBRARY
+# Add the ChronoEngine_vehicle library
 # ----------------------------------------------------------------------------
 
-ADD_LIBRARY(ChronoEngine_Vehicle SHARED
+set(CXX_FLAGS ${CH_CXX_FLAGS})
+set(LIBRARIES "ChronoEngine")
+if(ENABLE_MODULE_IRRLICHT)
+    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+    list(APPEND LIBRARIES ChronoEngine_irrlicht)
+    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
+    include_directories( ${CH_IRRLICHTINC} )
+endif()
+
+add_library(ChronoEngine_vehicle SHARED
     ${CV_BASE_FILES}
     ${CV_VEHICLE_FILES}
     ${CV_SUSPENSION_FILES}
@@ -208,75 +278,37 @@ ADD_LIBRARY(ChronoEngine_Vehicle SHARED
     ${CV_TERRAIN_FILES}
     ${CV_SUSPENSIONTEST_FILES}
     ${CV_UTILS_FILES}
-)
-
-SET_TARGET_PROPERTIES(ChronoEngine_Vehicle PROPERTIES
-    COMPILE_FLAGS "${CH_CXX_FLAGS}"
-    LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-    COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_VEHICLE"
-)
-
-TARGET_LINK_LIBRARIES(ChronoEngine_Vehicle 
-    ChronoEngine
-)
-
-INSTALL(TARGETS ChronoEngine_Vehicle
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib)
-
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-    DESTINATION include/chrono_vehicle
-    FILES_MATCHING PATTERN "*.h")
-
-# ----------------------------------------------------------------------------
-# ADD THE ChronoVehicle_Irrlicht LIBRARY
-# ----------------------------------------------------------------------------
-
-IF (ENABLE_UNIT_IRRLICHT)
-  INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
-  
-  ADD_LIBRARY(ChronoEngine_VehicleIrrlicht SHARED
     ${CVIRR_DRIVER_FILES}
-  )
+)
 
-  SET_TARGET_PROPERTIES(ChronoEngine_VehicleIrrlicht PROPERTIES
-    COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-    LINK_FLAGS "${CH_LINKERFLAG_GPU}"
-    COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_VEHICLE"
-  )
+set_target_properties(ChronoEngine_vehicle PROPERTIES
+                      COMPILE_FLAGS "${CXX_FLAGS}"
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_VEHICLE")
 
-  TARGET_LINK_LIBRARIES(ChronoEngine_VehicleIrrlicht
-    ChronoEngine_Vehicle
-    ChronoEngine
-    ChronoEngine_IRRLICHT
-    ${CH_IRRKLANGLIB}
-  )
+target_link_libraries(ChronoEngine_vehicle ${LIBRARIES})
 
-  INSTALL(TARGETS ChronoEngine_VehicleIrrlicht
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib)
+install(TARGETS ChronoEngine_vehicle
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
-  # On Windows, copy the Irrklang DLL (if enabled)
-  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+        DESTINATION include/chrono_vehicle
+        FILES_MATCHING PATTERN "*.h")
 
-    IF(ENABLE_IRRKLANG)
-      IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        SET(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Win32-VisualStudio/irrKlang.dll")
-      ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        SET(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Winx64-VisualStudio/irrKlang.dll")
-      ENDIF()
+#-------------------------------------------------------------------------------
+# On Windows, copy the Irrklang DLL (if enabled)
+#-------------------------------------------------------------------------------
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND ENBALE_IRRKLANG)
+    if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+        set(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Win32-VisualStudio/irrKlang.dll")
+    elseif("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+        set(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Winx64-VisualStudio/irrKlang.dll")
+    endif()
 
-      ADD_CUSTOM_COMMAND(
-        TARGET ChronoEngine_VehicleIrrlicht POST_BUILD
+    add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${CH_IRRKLANG_DLL}"
-                "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-        )
-    ENDIF()
-
-  ENDIF()
-
-
-ENDIF()
+        "${CH_IRRKLANG_DLL}"
+        "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
+endif()
