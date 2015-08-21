@@ -26,18 +26,19 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChParticlesClones.h"
-#include "assets/ChBoxShape.h"
-#include "assets/ChSphereShape.h"
-#include "assets/ChCylinderShape.h"
-#include "assets/ChObjShapeFile.h"
-#include "assets/ChCamera.h"
-#include "assets/ChColorAsset.h"
-#include "assets/ChTexture.h"
-#include "assets/ChAssetLevel.h"
+#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/assets/ChCamera.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChAssetLevel.h"
+#include "chrono/core/ChFileutils.h"
+
 #include "chrono_postprocess/ChPovRay.h"
 #include "chrono_postprocess/ChPovRayAssetCustom.h"
-#include "core/ChFileutils.h"
 
 // Use the namespace of Chrono
 

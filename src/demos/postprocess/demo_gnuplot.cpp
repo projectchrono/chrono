@@ -18,10 +18,11 @@
 
 #include <math.h>
 
-#include "core/ChLog.h"
-#include "core/ChVectorDynamic.h"
-#include "motion_functions/ChFunction_Recorder.h"
-#include "motion_functions/ChFunction_Sine.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/motion_functions/ChFunction_Recorder.h"
+#include "chrono/motion_functions/ChFunction_Sine.h"
+
 #include "chrono_postprocess/ChGnuPlot.h"
 
 using namespace chrono;

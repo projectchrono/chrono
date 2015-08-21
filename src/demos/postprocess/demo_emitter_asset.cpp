@@ -20,14 +20,15 @@
 //
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystem.h"
-#include "particlefactory/ChParticleEmitter.h"
-#include "particlefactory/ChParticleRemover.h"
-#include "assets/ChEmitterAsset.h"
-#include "assets/ChTexture.h"
-#include "assets/ChColorAsset.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/particlefactory/ChParticleEmitter.h"
+#include "chrono/particlefactory/ChParticleRemover.h"
+#include "chrono/assets/ChEmitterAsset.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/core/ChFileutils.h"
+
 #include "chrono_irrlicht/ChIrrApp.h"
-#include "core/ChFileutils.h"
 
 #define USE_UNIT_POSTPROCESSING
 

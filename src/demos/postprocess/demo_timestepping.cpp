@@ -19,9 +19,10 @@
 
 #include <math.h>
 
-#include "core/ChLog.h"
-#include "core/ChLinearAlgebra.h"
-#include "timestepper/ChTimestepper.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/timestepper/ChTimestepper.h"
+
 #include "chrono_postprocess/ChGnuPlot.h"
 
 using namespace chrono;
