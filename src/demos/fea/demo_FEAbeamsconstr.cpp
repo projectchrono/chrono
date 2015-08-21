@@ -16,19 +16,22 @@
 
 // Include some headers used by this tutorial...
 
-#include "physics/ChSystem.h"
-#include "physics/ChLinkMate.h"
-#include "physics/ChLinkLock.h"
-#include "lcp/ChLcpIterativeMINRES.h"
-#include "unit_FEA/ChElementBeamEuler.h"
-#include "unit_FEA/ChBuilderBeam.h"
-#include "unit_FEA/ChMesh.h"
-#include "unit_FEA/ChVisualizationFEAmesh.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
-#include "unit_MATLAB/ChMatlabEngine.h"
-#include "unit_MATLAB/ChLcpMatlabSolver.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChLinkLock.h"
+#include "chrono/lcp/ChLcpIterativeMINRES.h"
 
-#include "unit_MKL/ChLcpMklSolver.h"
+#include "chrono_fea/ChElementBeamEuler.h"
+#include "chrono_fea/ChBuilderBeam.h"
+#include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
+
+#include "chrono_irrlicht/ChIrrApp.h"
+
+#include "chrono_matlab/ChMatlabEngine.h"
+#include "chrono_matlab/ChLcpMatlabSolver.h"
+
+#include "chrono_mkl/ChLcpMklSolver.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...

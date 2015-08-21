@@ -15,16 +15,18 @@
 //     - contacts in FEA
 
 
-#include "physics/ChSystem.h"
-#include "physics/ChSystemDEM.h"
-#include "physics/ChBodyEasy.h"
-#include "lcp/ChLcpIterativeMINRES.h"
-#include "unit_FEA/ChElementTetra_4.h"
-#include "unit_FEA/ChMesh.h"
-#include "unit_FEA/ChVisualizationFEAmesh.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
-#include "unit_FEA/ChElementBeamANCF.h"
-#include "unit_FEA/ChBuilderBeam.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/lcp/ChLcpIterativeMINRES.h"
+
+#include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono_fea/ChBuilderBeam.h"
+
+#include "chrono_irrlicht/ChIrrApp.h"
 
 
 using namespace chrono;

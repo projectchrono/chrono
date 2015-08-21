@@ -36,7 +36,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 
-# We always look for OpenMP (which is required for the PARALLEL unit).
+# We always look for OpenMP (which is required for the PARALLEL module).
 # However, we allow the user to optionally disable OpenMP support in the
 # main ChronoEngine library, regardless on whether or not OpenMP is found.
 
@@ -157,9 +157,9 @@ endif()
 # Create Chrono configuration header
 #------------------------------------------------------------
 
-# Prepare substitution variables for the units that were enabled
+# Prepare substitution variables for the modules that were enabled
 # TODO: the following tests should be more precise (we should test
-#       that a particular unit was successfully built, not just
+#       that a particular module was successfully built, not just
 #       enabled)
 
 if(ENABLE_UNIT_CASCADE)
@@ -174,7 +174,7 @@ else()
   set(CHRONO_COSIMULATION "#undef CHRONO_COSIMULATION")
 endif()
 
-if(ENABLE_UNIT_FEA)
+if(ENABLE_MODULE_FEA)
   set(CHRONO_FEA "#define CHRONO_FEA")
 else()
   set(CHRONO_FEA "#undef CHRONO_FEA")

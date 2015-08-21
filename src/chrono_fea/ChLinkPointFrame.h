@@ -33,7 +33,7 @@
 
 #include "physics/ChBodyFrame.h"
 #include "physics/ChLinkBase.h"
-#include "unit_FEA/ChNodeFEAxyz.h"
+#include "chrono_fea/ChNodeFEAxyz.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 
 

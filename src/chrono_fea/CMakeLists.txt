@@ -1,27 +1,23 @@
 #=============================================================================
-# CHRONO::ENGINE   CMake configuration file for FEA unit
+# CMake configuration file for the Chrono FEA module
 # 
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
 
-option(ENABLE_UNIT_FEA "Enable the Chrono FEA module" OFF)
+option(ENABLE_MODULE_FEA "Enable the Chrono FEA module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_UNIT_FEA)
+IF(NOT ENABLE_MODULE_FEA)
   RETURN()
 ENDIF()
 
 MESSAGE(STATUS "==== Chrono FEA module ====")
 
 #-----------------------------------------------------------------------------
-#
 # LIST THE FILES THAT MAKE THE FEA FINITE ELEMENT LIBRARY
-# NOTE: to add a new source to this unit, just add its name
-# here and re-run the CMake.
-#
 
-SET(ChronoEngine_UNIT_FEA_SOURCES
+SET(ChronoEngine_FEA_SOURCES
 	ChBuilderBeam.cpp
 	ChElementGeneric.cpp
 	ChElementSpring.cpp  
@@ -44,7 +40,8 @@ SET(ChronoEngine_UNIT_FEA_SOURCES
 	ChLinkPointPoint.cpp
 	ChContactSurface.cpp
 	)
-SET(ChronoEngine_UNIT_FEA_HEADERS
+
+SET(ChronoEngine_FEA_HEADERS
 	ChApiFEA.h  
 	ChBeamSection.h
 	ChShellSection.h
@@ -87,43 +84,32 @@ SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChLinkPointPoint.h
 	ChContactSurface.h
 	)
-#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_FEA_HEADERS PROPERTIES  HEADER_FILE_ONLY)
-SOURCE_GROUP(unit_FEA FILES 
-			${ChronoEngine_UNIT_FEA_SOURCES} 
-			${ChronoEngine_UNIT_FEA_HEADERS})
-			
 
-			
+SOURCE_GROUP("" FILES 
+    ${ChronoEngine_FEA_SOURCES} 
+    ${ChronoEngine_FEA_HEADERS})
+
 #-----------------------------------------------------------------------------	
-# In most cases, you do not need to edit the lines below.
+# Create the ChronoEngine_fea library
 
+ADD_LIBRARY(ChronoEngine_fea SHARED 
+			${ChronoEngine_FEA_SOURCES}
+			${ChronoEngine_FEA_HEADERS})
 
-# The FEA library is added to the project,
-# and some custom properties of this target are set.
-
-ADD_LIBRARY(ChronoEngine_FEA SHARED 
-			${ChronoEngine_UNIT_FEA_SOURCES}
-			${ChronoEngine_UNIT_FEA_HEADERS})
-
-SET_TARGET_PROPERTIES(ChronoEngine_FEA PROPERTIES
-                           COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_FEA")
+SET_TARGET_PROPERTIES(ChronoEngine_fea PROPERTIES
+                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_FEA")
                           
-TARGET_LINK_LIBRARIES(ChronoEngine_FEA 
-	ChronoEngine
-)
+TARGET_LINK_LIBRARIES(ChronoEngine_fea
+                      ChronoEngine)
 	
-ADD_DEPENDENCIES (ChronoEngine_FEA ChronoEngine)  # better, because not automatic
+ADD_DEPENDENCIES(ChronoEngine_fea ChronoEngine)
 	
-	
-# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
-#SET (CH_FEAfoo      		"${CH_FEAfoo}" 			 PARENT_SCOPE )
-	
-INSTALL(TARGETS ChronoEngine_FEA
+INSTALL(TARGETS ChronoEngine_fea
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-)
+	ARCHIVE DESTINATION lib)
 
-INSTALL(FILES ${ChronoEngine_UNIT_FEA_HEADERS} DESTINATION include/chrono/unit_FEA)
+INSTALL(FILES ${ChronoEngine_FEA_HEADERS}
+        DESTINATION include/chrono_fea)

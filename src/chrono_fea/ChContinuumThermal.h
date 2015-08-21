@@ -13,7 +13,7 @@
 #ifndef CHCONTINUUMTHERMAL_H
 #define CHCONTINUUMTHERMAL_H
 
-#include "unit_FEA/ChContinuumPoisson3D.h"
+#include "chrono_fea/ChContinuumPoisson3D.h"
 
 namespace chrono {
 namespace fea {

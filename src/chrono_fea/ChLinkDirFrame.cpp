@@ -12,7 +12,7 @@
 
 
 
-#include "unit_FEA/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkDirFrame.h"
 #include "physics/ChSystem.h"
 #include "physics/ChIndexedNodes.h"
 

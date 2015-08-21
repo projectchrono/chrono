@@ -18,19 +18,22 @@
      
 // Include some headers used by this tutorial...
 
-#include "physics/ChSystem.h"
-#include "physics/ChBodyEasy.h"
-#include "timestepper/ChTimestepper.h"
-#include "lcp/ChLcpIterativePMINRES.h"
-#include "lcp/ChLcpIterativeMINRES.h"
-#include "unit_FEA/ChElementShellANCF.h"
-#include "unit_FEA/ChMesh.h"
-#include "unit_FEA/ChVisualizationFEAmesh.h"
-#include "unit_FEA/ChLinkPointFrame.h"
-#include "unit_FEA/ChLinkDirFrame.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
-#include "unit_MATLAB/ChMatlabEngine.h"
-#include "unit_MATLAB/ChLcpMatlabSolver.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/lcp/ChLcpIterativePMINRES.h"
+#include "chrono/lcp/ChLcpIterativeMINRES.h"
+
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChLinkDirFrame.h"
+
+#include "chrono_irrlicht/ChIrrApp.h"
+
+#include "chrono_matlab/ChMatlabEngine.h"
+#include "chrono_matlab/ChLcpMatlabSolver.h"
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...

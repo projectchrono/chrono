@@ -14,11 +14,11 @@
 #define CHCONTACTSURFACE_H
 
 #include "physics/ChContactable.h"
-#include "unit_FEA/ChNodeFEAxyz.h"
+#include "chrono_fea/ChNodeFEAxyz.h"
 
 #include "physics/ChMaterialSurfaceBase.h"
 #include "physics/ChMaterialSurface.h"
-#include "unit_FEA/ChElementBase.h"
+#include "chrono_fea/ChElementBase.h"
 
 #include "collision/ChCCollisionModel.h"
 

@@ -11,14 +11,14 @@
 // File author: A. Tasora
   
 
-#include "unit_FEA/ChVisualizationFEAmesh.h"
-#include "unit_FEA/ChElementTetra_4.h"
-#include "unit_FEA/ChElementTetra_10.h"
-#include "unit_FEA/ChElementHexa_8.h"
-#include "unit_FEA/ChElementHexa_20.h"
-#include "unit_FEA/ChElementBeamEuler.h"
-#include "unit_FEA/ChElementBeamANCF.h"
-#include "unit_FEA/ChElementShellANCF.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChElementTetra_10.h"
+#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono_fea/ChElementHexa_20.h"
+#include "chrono_fea/ChElementBeamEuler.h"
+#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono_fea/ChElementShellANCF.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChGlyphs.h"
 

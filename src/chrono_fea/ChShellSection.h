@@ -15,7 +15,7 @@
 
 
 #include "core/ChShared.h"
-#include "unit_FEA/ChApiFEA.h"
+#include "chrono_fea/ChApiFEA.h"
 
 
 namespace chrono

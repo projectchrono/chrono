@@ -10,7 +10,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "unit_FEA/ChLinkPointFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
 #include "physics/ChSystem.h"
 #include "physics/ChIndexedNodes.h"
 

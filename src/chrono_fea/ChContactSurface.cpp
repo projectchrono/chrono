@@ -12,7 +12,7 @@
 
 
 #include "core/ChMath.h"
-#include "unit_FEA/ChContactSurface.h"
+#include "chrono_fea/ChContactSurface.h"
 #include "physics/ChSystem.h"
 #include "collision/ChCModelBullet.h"
 

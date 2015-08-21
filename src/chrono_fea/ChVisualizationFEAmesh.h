@@ -16,10 +16,10 @@
 #include "assets/ChAssetLevel.h"
 #include "assets/ChColor.h"
 #include "geometry/ChCTriangleMeshConnected.h"
-#include "unit_FEA/ChMesh.h"
-#include "unit_FEA/ChNodeFEAxyz.h"
-#include "unit_FEA/ChNodeFEAxyzP.h"
-#include "unit_FEA/ChNodeFEAxyzrot.h"
+#include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono_fea/ChNodeFEAxyzP.h"
+#include "chrono_fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
 namespace fea {
