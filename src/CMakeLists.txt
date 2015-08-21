@@ -104,7 +104,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 #-----------------------------------------------------------------------------
-# Set the compilation flags
+# Set the base compilation flags
+#-----------------------------------------------------------------------------
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CH_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CH_CXX_FLAGS} -D_DEBUG -DDEBUG")
@@ -112,6 +113,13 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_CXX_FLAGS} -DNDEBUG
 
 # For Bullet to use 32 bit math
 add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )
+
+#-----------------------------------------------------------------------------
+# Set the base include directories
+#-----------------------------------------------------------------------------
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${PROJECT_BINARY_DIR})
 
 #------------------------------------------------------------
 # Propagates the CMake build to other directories

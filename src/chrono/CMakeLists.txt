@@ -10,11 +10,10 @@ message(STATUS "==== Chrono Engine core module ====")
 # Includes for the main library
 #-----------------------------------------------------------------------------
 
-set(CH_INCLUDES "${CMAKE_SOURCE_DIR}")
-set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_BINARY_DIR}")
-set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/bullet" )
-set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/gimpact" )
-set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/convexdecomposition/HACD" )
+set(CH_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}")
+set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/collision/bullet" )
+set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/collision/gimpact" )
+set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/collision/convexdecomposition/HACD" )
 
 # Make CH_INCLUDES visible in parent scope
 set(CH_INCLUDES "${CH_INCLUDES}" PARENT_SCOPE)
