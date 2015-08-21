@@ -1,13 +1,13 @@
 #=============================================================================
-# CHRONO::ENGINE   CMake configuration file for COSIMULATION unit
+# CMake configuration file for chrono cosimulation module
 # 
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_UNIT_COSIMULATION "Enable the Chrono Cosimulation module" OFF)
+option(ENABLE_MODULE_COSIMULATION "Enable the Chrono Cosimulation module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_UNIT_COSIMULATION)
+IF(NOT ENABLE_MODULE_COSIMULATION)
   RETURN()
 ENDIF()
 
@@ -73,7 +73,7 @@ ADD_LIBRARY(ChronoEngine_cosimulation SHARED
 
 SET_TARGET_PROPERTIES(ChronoEngine_cosimulation PROPERTIES 
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_COSIMULATION")
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_COSIMULATION")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_cosimulation 
                       ChronoEngine

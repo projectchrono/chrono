@@ -14,7 +14,7 @@ SET_TARGET_PROPERTIES(demo_postprocess PROPERTIES
 TARGET_LINK_LIBRARIES(demo_postprocess  ChronoEngine  ChronoEngine_postprocess)
 ADD_DEPENDENCIES (demo_postprocess ChronoEngine ChronoEngine_postprocess)
 
-IF(ENABLE_UNIT_IRRLICHT)
+IF(ENABLE_MODULE_IRRLICHT)
 	INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
 	MESSAGE(STATUS "...add demo_emit_creation")
 	ADD_EXECUTABLE(demo_emit_creation   		demo_emit_creation.cpp)

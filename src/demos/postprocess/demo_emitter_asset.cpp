@@ -30,9 +30,9 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#define USE_UNIT_POSTPROCESSING
+#define USE_POSTPROCESSING_MODULE
 
-#if defined USE_UNIT_POSTPROCESSING
+#if defined USE_POSTPROCESSING_MODULE
 #include "chrono_postprocess/ChPovRay.h"
 #include "chrono_postprocess/ChPovRayAsset.h"
 #include "chrono_postprocess/ChPovRayAssetCustom.h"
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
     floorBody->AddAsset(mvisual);
 
-    #if defined USE_UNIT_POSTPROCESSING
+    #if defined USE_POSTPROCESSING_MODULE
     // Custom rendering in POVray:
     ChSharedPtr<ChPovRayAssetCustom> mPOVcustom(new ChPovRayAssetCustom);
     mPOVcustom->SetCommands("texture{ pigment{ color rgb<1,1,1>}} \n\
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
                 airrlicht_application->AssetBind(mbody);
                 airrlicht_application->AssetUpdate(mbody);
 
-                #if defined USE_UNIT_POSTPROCESSING
+                #if defined USE_POSTPROCESSING_MODULE
                     // Enable PovRay rendering
                     ChSharedPtr<ChPovRayAsset> mpov_asset(new ChPovRayAsset);
                     mbody->AddAsset(mpov_asset);
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
 
-    #if defined USE_UNIT_POSTPROCESSING
+    #if defined USE_POSTPROCESSING_MODULE
 
     // Create an exporter to POVray !!
     ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
 
         // Create the incremental nnnn.dat and nnnn.pov files that will be load
         // by the pov .ini script in POV-Ray (do this at each simulation timestep)
-        #if defined USE_UNIT_POSTPROCESSING
+        #if defined USE_POSTPROCESSING_MODULE
           pov_exporter.ExportData();
         #endif
     }

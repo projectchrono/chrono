@@ -19,14 +19,14 @@
 // This is an integer, as 0xaabbccdd where
 // for example version 1.2.0 is 0x00010200
 
-#define CH_VERSION_UNIT_IRRLICHT 0x00000100
+#define CH_VERSION_IRRLICHT_MODULE 0x00000100
 
-// When compiling this library, remember to define CH_API_COMPILE_UNIT_IRRLICHT
+// When compiling this library, remember to define CH_API_COMPILE_IRRLICHT
 // (so that the symbols with 'ChApiIrr' in front of them will be
 // marked as exported). Otherwise, just do not define it if you
 // link the library to your code, and the symbols will be imported.
 
-#if defined(CH_API_COMPILE_UNIT_IRRLICHT)
+#if defined(CH_API_COMPILE_IRRLICHT)
 #define ChApiIrr ChApiEXPORT
 #else
 #define ChApiIrr ChApiIMPORT

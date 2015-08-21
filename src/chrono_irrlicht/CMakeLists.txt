@@ -1,13 +1,13 @@
 #===============================================================================
-# CHRONO::ENGINE   CMake configuration file for IRRLICHT unit
+# CMake configuration file for the Chrono irrlicht module
 # 
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #===============================================================================
 
-option(ENABLE_UNIT_IRRLICHT "Enable the Chrono Irrlicht module" OFF)
+option(ENABLE_MODULE_IRRLICHT "Enable the Chrono Irrlicht module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_UNIT_IRRLICHT)
+IF(NOT ENABLE_MODULE_IRRLICHT)
   MARK_AS_ADVANCED(FORCE CH_IRRLICHTLIB)
   MARK_AS_ADVANCED(FORCE CH_IRRLICHTDIR)
   RETURN()
@@ -125,7 +125,7 @@ ADD_LIBRARY(ChronoEngine_irrlicht SHARED
 SET_TARGET_PROPERTIES(ChronoEngine_irrlicht PROPERTIES
   COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
   LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-  COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_IRRLICHT")
+  COMPILE_DEFINITIONS "CH_API_COMPILE_IRRLICHT")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
   ChronoEngine
