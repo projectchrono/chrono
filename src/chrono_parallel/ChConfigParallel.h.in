@@ -22,7 +22,7 @@
 #define CH_CONFIG_PARALLEL_H
 
 // Include main Chrono configuration header
-#include "ChConfig.h"
+#include "chrono/ChConfig.h"
 
 // -----------------------------------------------------------------------------
 // SSE settings
@@ -51,13 +51,6 @@
 @CHRONO_PARALLEL_SSE_4_1@
 @CHRONO_PARALLEL_SSE_4_2@
 
-
-// -----------------------------------------------------------------------------
-// OpenGL support
-// -----------------------------------------------------------------------------
-
-// If OpenGL suppport was enabled, define CHRONO_OPENGL
-@CHRONO_OPENGL@
 
 // -----------------------------------------------------------------------------
 

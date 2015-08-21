@@ -18,7 +18,9 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
+
 #include "unit_testing.h"
+
 #include "chrono_parallel/math/real3.h"
 
 #ifdef CHRONO_PARALLEL_USE_DOUBLE

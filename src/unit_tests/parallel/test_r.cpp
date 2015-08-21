@@ -19,11 +19,12 @@
 #include <vector>
 #include <cmath>
 
-#include "collision/ChCCollisionModel.h"
-#include "core/ChMathematics.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/core/ChMathematics.h"
 
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
+
 #include "unit_testing.h"
 
 using namespace chrono;

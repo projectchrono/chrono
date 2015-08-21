@@ -25,7 +25,9 @@
 
 #include <omp.h>
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "utils/ChUtilsCreators.h"
+
+#include "chrono/ChConfig.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"

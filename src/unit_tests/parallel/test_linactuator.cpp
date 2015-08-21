@@ -20,12 +20,12 @@
 #include <fstream>
 #include <omp.h>
 
-#include "core/ChFileutils.h"
+#include "chrono/ChConfig.h"
+#include "chrono/core/ChFileutils.h"
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-
-#include "utils/ChUtilsCreators.h"
-#include "utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"

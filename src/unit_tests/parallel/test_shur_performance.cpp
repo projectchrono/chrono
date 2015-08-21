@@ -19,14 +19,16 @@
 #include <vector>
 #include <cmath>
 #include <omp.h>
+
 #include "unit_testing.h"
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
-#include "collision/ChCCollisionModel.h"
-#include "core/ChMathematics.h"
 
-#include "utils/ChUtilsCreators.h"
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include <blaze/math/CompressedMatrix.h>
 #include <blaze/math/DynamicVector.h>

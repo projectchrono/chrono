@@ -1,27 +1,30 @@
-#--------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Additional include paths and libraries
+# ------------------------------------------------------------------------------
 
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 
 SET(LIBRARIES
     ChronoEngine
-    ChronoEngine_Parallel
+    ChronoEngine_parallel
 )
 
-IF(ENABLE_OPENGL)
+IF(ENABLE_MODULE_OPENGL)
     INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-    SET(LIBRARIES ${LIBRARIES} ChronoEngine_ParallelOpenGL)
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
 ENDIF()
 
-#--------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
 ENDIF()
 
-#--------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # List of all executables
+# ------------------------------------------------------------------------------
 
+# Programs that can work with or without OpenGL
 SET(DEMOS
     ballsDEM
     ballsDVI
@@ -29,9 +32,14 @@ SET(DEMOS
     mixerDVI
 )
 
-IF(ENABLE_OPENGL)
+# Programs that require OpenGL support
+IF(ENABLE_MODULE_OPENGL)
     SET(DEMOS ${DEMOS} benchmarkOpenGL shapesOpenGL)
 ENDIF()
+
+# ------------------------------------------------------------------------------
+# Add all executables
+# ------------------------------------------------------------------------------
 
 MESSAGE(STATUS "Demo programs for PARALLEL module...")
 

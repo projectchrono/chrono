@@ -18,16 +18,15 @@
 
 #include <omp.h>
 
-#include "physics/ChShaftsGear.h"
-#include "physics/ChShaftsTorsionSpring.h"
-#include "physics/ChShaftsBody.h"
-#include "physics/ChShaftsPlanetary.h"
-#include "physics/ChShaftsClutch.h"
+#include "chrono/physics/ChShaftsGear.h"
+#include "chrono/physics/ChShaftsTorsionSpring.h"
+#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
+#include "chrono/physics/ChShaftsClutch.h"
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-
-#include "utils/ChUtilsCreators.h"
-#include "utils/ChUtilsInputOutput.h"
 
 using namespace chrono;
 using namespace chrono::collision;

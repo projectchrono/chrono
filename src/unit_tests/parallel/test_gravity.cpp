@@ -19,14 +19,15 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
+
 #include "unit_testing.h"
-#include "collision/ChCCollisionModel.h"
-#include "core/ChMathematics.h"
+
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-
-#include "utils/ChUtilsCreators.h"
-#include "utils/ChUtilsInputOutput.h"
 
 using namespace chrono;
 using namespace chrono::collision;

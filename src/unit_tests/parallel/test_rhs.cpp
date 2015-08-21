@@ -18,16 +18,18 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
+
 #include "unit_testing.h"
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
-#include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
-#include "collision/ChCCollisionModel.h"
-#include "core/ChMathematics.h"
+#include "chrono_parallel/collision/ChCNarrowphaseUtils.h"
 
-#include "utils/ChUtilsCreators.h"
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 using namespace chrono;
 using namespace chrono::collision;

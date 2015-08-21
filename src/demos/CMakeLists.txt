@@ -65,7 +65,7 @@ IF (ENABLE_MODULE_POSTPROCESS)
 	ADD_SUBDIRECTORY(postprocess)
 ENDIF()
 
-if(ENABLE_UNIT_PARALLEL)
+if(ENABLE_MODULE_PARALLEL)
   add_subdirectory(parallel)
 endif()
 

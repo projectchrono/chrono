@@ -19,12 +19,15 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
+
 #include "unit_testing.h"
+
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
-#include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
+#include "chrono_parallel/collision/ChCNarrowphaseUtils.h"
 #include "chrono_parallel/collision/ChCNarrowphaseGJK_EPA.h"
-#include "collision/ChCCollisionModel.h"
-#include "core/ChMathematics.h"
+
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/core/ChMathematics.h"
 //
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
