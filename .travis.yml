@@ -27,7 +27,7 @@ env:
 before_install:
 before_script:
   - mkdir build && cd build
-  - cmake $CMAKE_EXTRA_FLAGS ../src
+  - cmake $CMAKE_EXTRA_FLAGS ..
 script:
   - make -j 4
   - make test
