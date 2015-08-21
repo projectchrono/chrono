@@ -142,7 +142,7 @@ add_subdirectory(chrono_cosimulation)
 add_subdirectory(chrono_fea)
 add_subdirectory(chrono_python)
 add_subdirectory(chrono_parallel)
-#add_subdirectory(chrono_opengl)
+add_subdirectory(chrono_opengl)
 #add_subdirectory(chrono_vehicle)
 
 # Add directories for demo programs and unit test programs.
@@ -202,6 +202,12 @@ if(ENABLE_MODULE_PARALLEL)
   set(CHRONO_PARALLEL "#define CHRONO_PARALLEL")
 else()
   set(CHRONO_PARALLEL "#undef CHRONO_PARALLEL")
+endif()
+
+if(ENABLE_MODULE_OPENGL)
+  set(CHRONO_OPENGL "#define CHRONO_OPENGL")
+else()
+  set(CHRONO_OPENGL "#undef CHRONO_OPENGL")
 endif()
 
 if(ENABLE_MODULE_POSTPROCESS)
