@@ -69,7 +69,8 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${CHRONOENGINE_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${CHRONOENGINE_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${CHRONOENGINE_VERSION_PATCH}")
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+#list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC VCS_REVISION)
 
@@ -1253,6 +1254,7 @@ add_subdirectory(unit_COSIMULATION)
 add_subdirectory(unit_FEA)
 add_subdirectory(unit_PYTHON)
 add_subdirectory(unit_PARALLEL)
+add_subdirectory(unit_OGRE)
 add_subdirectory(unit_VEHICLE)
 
 # Add directories for demo programs and unit test programs.
@@ -1308,6 +1310,12 @@ if(ENABLE_UNIT_MKL)
   set(CHRONO_MKL "#define CHRONO_MKL")
 else()
   set(CHRONO_MKL "#undef CHRONO_MKL")
+endif()
+
+if(ENABLE_UNIT_OGRE)
+  set(CHRONO_OGRE "#define CHRONO_OGRE")
+else()
+  set(CHRONO_OGRE "#undef CHRONO_OGRE")
 endif()
 
 if(ENABLE_UNIT_PARALLEL)
