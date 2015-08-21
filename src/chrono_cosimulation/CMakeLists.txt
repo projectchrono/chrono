@@ -20,26 +20,25 @@ MESSAGE(STATUS "==== Chrono Cosimulation module ====")
 # here and re-run the CMake.
 #
 
+SET(ChronoEngine_COSIMULATION_SOURCES 
+    ChHostInfo.cpp 
+    ChSocket.cpp
+    ChSocketFramework.cpp
+    ChCosimulation.cpp
+)
 
-SET(ChronoEngine_UNIT_COSIMULATION_SOURCES 
-		ChHostInfo.cpp 
-		ChSocket.cpp
-		ChSocketFramework.cpp
-		ChCosimulation.cpp
-	)
-SET(ChronoEngine_UNIT_COSIMULATION_HEADERS
-		ChApiCosimulation.h
-		ChExceptionSocket.h
-		ChHostInfo.h 
-		ChSocket.h
-		ChSocketFramework.h
-		ChCosimulation.h
-	)
+SET(ChronoEngine_COSIMULATION_HEADERS
+    ChApiCosimulation.h
+    ChExceptionSocket.h
+    ChHostInfo.h 
+    ChSocket.h
+    ChSocketFramework.h
+    ChCosimulation.h
+)
 
-#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_COSIMULATION_HEADERS PROPERTIES  HEADER_FILE_ONLY)
-SOURCE_GROUP(unit_COSIMULATION FILES 
-			${ChronoEngine_UNIT_COSIMULATION_SOURCES} 
-			${ChronoEngine_UNIT_COSIMULATION_HEADERS})
+SOURCE_GROUP("" FILES 
+			${ChronoEngine_COSIMULATION_SOURCES} 
+			${ChronoEngine_COSIMULATION_HEADERS})
 			
 # Add the 'socket' library to the linking, but this depends on the 
 # different platforms. CMake does not have an automatic script to 
@@ -65,39 +64,28 @@ ENDIF()
 #-----------------------------------------------------------------------------	
 # In most cases, you do not need to edit the lines below.
 
-
-
-# INCLUDE_DIRECTORIES( ${CH_COSIMULATIONINC} ) 
-
-
 # The COSIMULATION library is added to the project,
 # and some custom properties of this target are set.
 
-ADD_LIBRARY(ChronoEngine_COSIMULATION SHARED 
-			${ChronoEngine_UNIT_COSIMULATION_SOURCES}
-			${ChronoEngine_UNIT_COSIMULATION_HEADERS})
+ADD_LIBRARY(ChronoEngine_cosimulation SHARED 
+			${ChronoEngine_COSIMULATION_SOURCES}
+			${ChronoEngine_COSIMULATION_HEADERS})
 
-SET_TARGET_PROPERTIES(ChronoEngine_COSIMULATION PROPERTIES 
-                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_COSIMULATION")
-                          
-TARGET_LINK_LIBRARIES(ChronoEngine_COSIMULATION 
-	ChronoEngine
-	${CH_SOCKET_LIB}
-)
-	
-ADD_DEPENDENCIES (ChronoEngine_COSIMULATION ChronoEngine)  # better, because not automatic
-	
-	
-# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
+SET_TARGET_PROPERTIES(ChronoEngine_cosimulation PROPERTIES 
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_COSIMULATION")
 
-# SET (CH_COSIMULATIONINC      		"${CH_COSIMULATIONINC}" 			 PARENT_SCOPE )
+TARGET_LINK_LIBRARIES(ChronoEngine_cosimulation 
+                      ChronoEngine
+                      ${CH_SOCKET_LIB})
 	
-INSTALL(TARGETS ChronoEngine_COSIMULATION
-			RUNTIME DESTINATION bin
-			LIBRARY DESTINATION lib
-			ARCHIVE DESTINATION lib
-)		
+ADD_DEPENDENCIES (ChronoEngine_cosimulation ChronoEngine)
+	
+INSTALL(TARGETS ChronoEngine_cosimulation
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)		
 
-INSTALL(FILES ${ChronoEngine_UNIT_COSIMULATION_HEADERS} DESTINATION include/chrono/unit_COSIMULATION)
+INSTALL(FILES ${ChronoEngine_COSIMULATION_HEADERS}
+        DESTINATION include/chrono_cosimulation)
 
