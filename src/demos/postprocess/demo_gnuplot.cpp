@@ -22,7 +22,7 @@
 #include "core/ChVectorDynamic.h"
 #include "motion_functions/ChFunction_Recorder.h"
 #include "motion_functions/ChFunction_Sine.h"
-#include "unit_POSTPROCESS/ChGnuPlot.h"
+#include "chrono_postprocess/ChGnuPlot.h"
 
 using namespace chrono;
 using namespace postprocess;

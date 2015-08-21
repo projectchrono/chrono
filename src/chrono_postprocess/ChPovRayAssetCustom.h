@@ -26,7 +26,7 @@
 ///////////////////////////////////////////////////
 
 #include <string>
-#include "ChPostProcessBase.h"
+#include "chrono_postprocess/ChPostProcessBase.h"
 #include "assets/ChVisualization.h"
 
 namespace chrono {

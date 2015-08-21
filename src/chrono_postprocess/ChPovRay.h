@@ -29,7 +29,7 @@
 #include <string>
 #include <sstream>
 #include "physics/ChSystem.h"
-#include "ChPostProcessBase.h"
+#include "chrono_postprocess/ChPostProcessBase.h"
 #include "core/ChHashTable.h"
 #include "core/ChHashFunction.h"
 #include "assets/ChVisualization.h"

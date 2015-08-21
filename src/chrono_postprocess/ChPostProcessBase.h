@@ -29,7 +29,7 @@
 #include <string>
 #include <sstream>
 #include "physics/ChSystem.h"
-#include "ChApiPostProcess.h"
+#include "chrono_postprocess/ChApiPostProcess.h"
 
 namespace chrono {
 namespace postprocess {

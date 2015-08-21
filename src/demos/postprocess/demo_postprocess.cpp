@@ -35,8 +35,8 @@
 #include "assets/ChColorAsset.h"
 #include "assets/ChTexture.h"
 #include "assets/ChAssetLevel.h"
-#include "unit_POSTPROCESS/ChPovRay.h"
-#include "unit_POSTPROCESS/ChPovRayAssetCustom.h"
+#include "chrono_postprocess/ChPovRay.h"
+#include "chrono_postprocess/ChPovRayAssetCustom.h"
 #include "core/ChFileutils.h"
 
 // Use the namespace of Chrono

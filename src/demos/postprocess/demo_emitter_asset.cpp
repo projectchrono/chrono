@@ -26,15 +26,15 @@
 #include "assets/ChEmitterAsset.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "core/ChFileutils.h"
 
 #define USE_UNIT_POSTPROCESSING
 
 #if defined USE_UNIT_POSTPROCESSING
-#include "unit_POSTPROCESS/ChPovRay.h"
-#include "unit_POSTPROCESS/ChPovRayAsset.h"
-#include "unit_POSTPROCESS/ChPovRayAssetCustom.h"
+#include "chrono_postprocess/ChPovRay.h"
+#include "chrono_postprocess/ChPovRayAsset.h"
+#include "chrono_postprocess/ChPovRayAssetCustom.h"
 using namespace chrono::postprocess;
 #endif
 

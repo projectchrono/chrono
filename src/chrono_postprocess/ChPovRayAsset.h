@@ -12,7 +12,7 @@
 #ifndef CHPOVRAYASSET_H
 #define CHPOVRAYASSET_H
 
-#include "ChPostProcessBase.h"
+#include "chrono_postprocess/ChPostProcessBase.h"
 #include "assets/ChAsset.h"
 
 namespace chrono {

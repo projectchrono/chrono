@@ -19,8 +19,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChPovRay.h"
-#include "ChPovRayAsset.h"
+#include "chrono_postprocess/ChPovRay.h"
+#include "chrono_postprocess/ChPovRayAsset.h"
 #include "geometry/ChCTriangleMeshConnected.h"
 #include "assets/ChObjShapeFile.h"
 #include "assets/ChTriangleMeshShape.h"
@@ -31,7 +31,7 @@
 #include "assets/ChAssetLevel.h"
 #include "assets/ChCamera.h"
 #include "assets/ChColorAsset.h"
-#include "ChPovRayAssetCustom.h"
+#include "chrono_postprocess/ChPovRayAssetCustom.h"
 #include "physics/ChParticlesClones.h"
 #include "physics/ChLinkMate.h"
 

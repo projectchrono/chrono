@@ -18,8 +18,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChPovRay.h"
-#include "ChPovRayAssetCustom.h"
+#include "chrono_postprocess/ChPovRay.h"
+#include "chrono_postprocess/ChPovRayAssetCustom.h"
 
 using namespace chrono;
 using namespace postprocess;

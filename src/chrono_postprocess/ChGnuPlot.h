@@ -17,7 +17,7 @@
 #include "core/ChStream.h"
 #include "core/ChMatrixDynamic.h"
 #include "core/ChVectorDynamic.h"
-#include "ChApiPostProcess.h"
+#include "chrono_postprocess/ChApiPostProcess.h"
 #include "assets/ChColor.h"
 #include "motion_functions/ChFunction_Base.h"
 #include "motion_functions/ChFunction_Recorder.h"
