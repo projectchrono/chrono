@@ -1,5 +1,5 @@
-#include "ChCosimulation.h"
-#include "ChExceptionSocket.h"
+#include "chrono_cosimulation/ChCosimulation.h"
+#include "chrono_cosimulation/ChExceptionSocket.h"
 #include <vector>
 
 using namespace chrono;

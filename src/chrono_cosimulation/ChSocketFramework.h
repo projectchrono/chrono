@@ -12,7 +12,7 @@
 //
 ///////////////////////////////////////////////////
 
-#include "ChSocket.h"
+#include "chrono_cosimulation/ChSocket.h"
 
 /// A single object of this class must be instantiated before using
 /// all classes related to sockets, because it initializes some platform-specific

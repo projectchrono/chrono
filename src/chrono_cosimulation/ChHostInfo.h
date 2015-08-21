@@ -36,7 +36,7 @@
 */
 
 #include <string>
-#include "ChApiCosimulation.h"
+#include "chrono_cosimulation/ChApiCosimulation.h"
 
 // This version is for both Windows and UNIX, the following statements
 // are used to set the flags WINDOWS_XP or UNIX that in these few files of 'socket'

@@ -13,8 +13,8 @@
 //
 ///////////////////////////////////////////////////
 
-#include "ChSocketFramework.h"
-#include "ChSocket.h"
+#include "chrono_cosimulation/ChSocketFramework.h"
+#include "chrono_cosimulation/ChSocket.h"
 #include "core/ChMatrix.h"
 
 namespace chrono {

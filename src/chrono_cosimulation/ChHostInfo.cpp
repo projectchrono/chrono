@@ -1,6 +1,5 @@
-#include "ChHostInfo.h"
-//#include "myLog.h"
-#include "ChExceptionSocket.h"
+#include "chrono_cosimulation/ChHostInfo.h"
+#include "chrono_cosimulation/ChExceptionSocket.h"
 
 using namespace std;
 using namespace chrono;

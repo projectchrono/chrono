@@ -1,5 +1,5 @@
-#include "ChSocketFramework.h"
-#include "ChExceptionSocket.h"
+#include "chrono_cosimulation/ChSocketFramework.h"
+#include "chrono_cosimulation/ChExceptionSocket.h"
 
 using namespace chrono;
 using namespace chrono::cosimul;

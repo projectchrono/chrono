@@ -14,8 +14,8 @@
 
 // Based on the work of Liyang Yu in the tutorial of Codeproject
 
-#include "ChHostInfo.h"
-#include "ChApiCosimulation.h"
+#include "chrono_cosimulation/ChHostInfo.h"
+#include "chrono_cosimulation/ChApiCosimulation.h"
 
 #ifdef UNIX
 #include <sys/socket.h>

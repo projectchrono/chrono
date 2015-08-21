@@ -19,7 +19,7 @@
 
 #include "core/ChException.h"
 #include "core/ChLog.h"
-#include "ChApiCosimulation.h"
+#include "chrono_cosimulation/ChApiCosimulation.h"
 
 namespace chrono {
 namespace cosimul {
