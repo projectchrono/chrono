@@ -14,8 +14,9 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChLog.h"
-#include "core/ChMatrixDynamic.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMatrixDynamic.h"
+
 #include "chrono_cosimulation/ChCosimulation.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
 

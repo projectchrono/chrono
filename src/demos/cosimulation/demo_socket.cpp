@@ -11,9 +11,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChLog.h"
-//#include "chrono_cosimulation/ChHostInfo.h"
-//#include "chrono_cosimulation/ChSocket.h"
+#include "chrono/core/ChLog.h"
+
 #include "chrono_cosimulation/ChSocketFramework.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
 
