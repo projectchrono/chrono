@@ -19,9 +19,9 @@ MARK_AS_ADVANCED(CLEAR CH_IRRLICHTLIB)
 MARK_AS_ADVANCED(CLEAR CH_IRRLICHTDIR)
 
 #-------------------------------------------------------------------------------
-# List all the files in the ChronoEngine_IRRLICHT library
+# List all the files in the ChronoEngine_irrlicht library
 
-SET(ChronoEngine_UNIT_IRRLICHT_SOURCES
+SET(ChronoEngine_IRRLICHT_SOURCES
   ChIrrApp.cpp
   ChBodySceneNode.cpp
   ChBodySceneNodeTools.cpp
@@ -37,7 +37,7 @@ SET(ChronoEngine_UNIT_IRRLICHT_SOURCES
   ChIrrNodeAsset.cpp
 )
 
-SET(ChronoEngine_UNIT_IRRLICHT_HEADERS
+SET(ChronoEngine_IRRLICHT_HEADERS
   ChApiIrr.h
   ChBodySceneNode.h
   ChBodySceneNodeTools.h
@@ -55,9 +55,9 @@ SET(ChronoEngine_UNIT_IRRLICHT_HEADERS
   ChIrrEffects.h
 )
 
-SOURCE_GROUP(unit_IRRLICHT FILES
-  ${ChronoEngine_UNIT_IRRLICHT_SOURCES}
-  ${ChronoEngine_UNIT_IRRLICHT_HEADERS}
+SOURCE_GROUP("" FILES
+  ${ChronoEngine_IRRLICHT_SOURCES}
+  ${ChronoEngine_IRRLICHT_HEADERS}
 )
 
 #-------------------------------------------------------------------------------
@@ -115,29 +115,29 @@ set(CH_IRRLICHT_CXX_FLAGS "${CH_IRRLICHT_CXX_FLAGS}" PARENT_SCOPE)
 set(CH_IRRLICHT_C_FLAGS "${CH_IRRLICHT_C_FLAGS}" PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
-# Create the ChronoEngine_IRRLICHT library
+# Create the ChronoEngine_irrlicht library
 
-ADD_LIBRARY(ChronoEngine_IRRLICHT SHARED
-  ${ChronoEngine_UNIT_IRRLICHT_SOURCES}
-  ${ChronoEngine_UNIT_IRRLICHT_HEADERS}
+ADD_LIBRARY(ChronoEngine_irrlicht SHARED
+  ${ChronoEngine_IRRLICHT_SOURCES}
+  ${ChronoEngine_IRRLICHT_HEADERS}
 )
 
-SET_TARGET_PROPERTIES(ChronoEngine_IRRLICHT PROPERTIES
+SET_TARGET_PROPERTIES(ChronoEngine_irrlicht PROPERTIES
   COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
   LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
   COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_IRRLICHT")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_IRRLICHT
+TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
   ChronoEngine
   ${CH_IRRLICHTLIB}
 )
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-TARGET_LINK_LIBRARIES(ChronoEngine_IRRLICHT
+TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
   ${MAC_LIBS}
 )
 ENDIF()
 
-ADD_DEPENDENCIES (ChronoEngine_IRRLICHT ChronoEngine)
+ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine)
 
 #-------------------------------------------------------------------------------
 # On Windows, copy the IRRLICHT DLL to the bin/ directory
@@ -154,13 +154,13 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   ENDIF()
 
   ADD_CUSTOM_COMMAND(
-    TARGET ChronoEngine_IRRLICHT POST_BUILD
+    TARGET ChronoEngine_irrlicht POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CH_IRRLICHT_DLL}"
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    MAIN_DEPENDENCY ChronoEngine_IRRLICHT
+    MAIN_DEPENDENCY ChronoEngine_irrlicht
     COMMENT "Copying Irrlicht DLL..."
   )
 
@@ -170,12 +170,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ENDIF()
 
 #-------------------------------------------------------------------------------
-# Install the ChronoEngine_IRRLICHT library
+# Install the ChronoEngine_irrlicht library
 
-INSTALL(TARGETS ChronoEngine_IRRLICHT
+INSTALL(TARGETS ChronoEngine_irrlicht
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
 
-INSTALL(FILES ${ChronoEngine_UNIT_IRRLICHT_HEADERS} DESTINATION include/chrono/unit_IRRLICHT)
+INSTALL(FILES ${ChronoEngine_IRRLICHT_HEADERS} DESTINATION include/chrono_irrlicht)
