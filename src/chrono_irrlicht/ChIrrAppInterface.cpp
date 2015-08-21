@@ -16,8 +16,8 @@
 #include "serialization/ChArchiveJSON.h"
 #include "core/ChStream.h"
 
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
-#include "unit_IRRLICHT/ChIrrCamera.h"
+#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrCamera.h"
 
 namespace irr {
 

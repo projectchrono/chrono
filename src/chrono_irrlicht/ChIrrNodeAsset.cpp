@@ -10,7 +10,7 @@
 //
 
 
-#include "unit_IRRLICHT/ChIrrNodeAsset.h"
+#include "chrono_irrlicht/ChIrrNodeAsset.h"
 
 namespace chrono {
 

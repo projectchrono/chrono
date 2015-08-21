@@ -10,7 +10,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "unit_IRRLICHT/ChIrrMeshTools.h"
+#include "chrono_irrlicht/ChIrrMeshTools.h"
 
 namespace irr {
 namespace scene {

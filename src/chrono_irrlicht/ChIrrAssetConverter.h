@@ -29,9 +29,9 @@
 #include "assets/ChPathShape.h"
 #include "assets/ChLineShape.h"
 
-#include "unit_IRRLICHT/ChApiIrr.h"
-#include "unit_IRRLICHT/ChBodySceneNodeTools.h"
-#include "unit_IRRLICHT/ChIrrNodeAsset.h"
+#include "chrono_irrlicht/ChApiIrr.h"
+#include "chrono_irrlicht/ChBodySceneNodeTools.h"
+#include "chrono_irrlicht/ChIrrNodeAsset.h"
 
 namespace irr {
 namespace scene {

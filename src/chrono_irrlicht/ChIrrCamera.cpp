@@ -10,7 +10,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "unit_IRRLICHT/ChIrrCamera.h"
+#include "chrono_irrlicht/ChIrrCamera.h"
 
 namespace irr {
 namespace scene {

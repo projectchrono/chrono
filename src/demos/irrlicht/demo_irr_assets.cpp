@@ -30,7 +30,7 @@
 ///////////////////////////////////////////////////
 
 #include "physics/ChParticlesClones.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include <irrlicht.h>
 
 // Use the namespace of Chrono

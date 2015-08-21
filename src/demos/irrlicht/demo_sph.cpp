@@ -30,9 +30,9 @@
 #include "physics/ChBodyEasy.h"
 #include "physics/ChProximityContainerSPH.h"
 #include "physics/ChMatterSPH.h"
-#include "unit_IRRLICHT/ChBodySceneNode.h"
-#include "unit_IRRLICHT/ChBodySceneNodeTools.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChBodySceneNode.h"
+#include "chrono_irrlicht/ChBodySceneNodeTools.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "core/ChRealtimeStep.h"
 
 #include <irrlicht.h>

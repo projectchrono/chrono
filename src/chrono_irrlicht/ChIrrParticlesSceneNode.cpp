@@ -8,7 +8,7 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 
-#include "unit_IRRLICHT/ChIrrParticlesSceneNode.h"
+#include "chrono_irrlicht/ChIrrParticlesSceneNode.h"
 
 namespace irr {
 namespace scene {

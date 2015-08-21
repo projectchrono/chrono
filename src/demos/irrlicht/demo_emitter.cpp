@@ -33,7 +33,7 @@
 #include "particlefactory/ChParticleRemover.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the main namespace of Chrono, and other chrono namespaces
 

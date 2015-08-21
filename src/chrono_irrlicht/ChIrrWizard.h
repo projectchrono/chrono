@@ -17,8 +17,8 @@
 
 #include "physics/ChGlobal.h"
 
-#include "unit_IRRLICHT/ChApiIrr.h"
-#include "unit_IRRLICHT/ChIrrCamera.h"
+#include "chrono_irrlicht/ChApiIrr.h"
+#include "chrono_irrlicht/ChIrrCamera.h"
 
 namespace irr {
 

@@ -10,7 +10,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "unit_IRRLICHT/ChBodySceneNode.h"
+#include "chrono_irrlicht/ChBodySceneNode.h"
 
 namespace irr {
 namespace scene {

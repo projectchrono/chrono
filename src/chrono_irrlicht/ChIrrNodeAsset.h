@@ -14,9 +14,9 @@
 #include <irrlicht.h>
 #include "assets/ChAsset.h"
 
-#include "unit_IRRLICHT/ChApiIrr.h"
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
-#include "unit_IRRLICHT/ChIrrNode.h"
+#include "chrono_irrlicht/ChApiIrr.h"
+#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrNode.h"
 
 namespace chrono {
 

@@ -15,7 +15,7 @@
 
 #include <irrlicht.h>
 
-#include "unit_IRRLICHT/ChApiIrr.h"
+#include "chrono_irrlicht/ChApiIrr.h"
 
 namespace irr {
 namespace scene {

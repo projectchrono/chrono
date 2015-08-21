@@ -32,7 +32,7 @@
 #include "physics/ChBodyEasy.h"
 #include "core/ChTimer.h"
 #include "core/ChRealtimeStep.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the namespace of Chrono
 using namespace chrono;

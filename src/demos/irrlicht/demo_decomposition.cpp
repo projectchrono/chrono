@@ -23,8 +23,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
-#include "unit_IRRLICHT/ChIrrMeshTools.h"
+#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrMeshTools.h"
 #include "core/ChRealtimeStep.h"
 #include "collision/ChCConvexDecomposition.h"
 

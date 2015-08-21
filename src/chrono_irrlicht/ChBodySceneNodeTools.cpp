@@ -14,7 +14,7 @@
 #include "geometry/ChCBox.h"
 #include "geometry/ChCTriangleMeshSoup.h"
 
-#include "unit_IRRLICHT/ChBodySceneNodeTools.h"
+#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 
 namespace irr {
 namespace scene {

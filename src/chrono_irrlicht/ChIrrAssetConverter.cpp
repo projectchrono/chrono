@@ -16,10 +16,10 @@
 #include "geometry/ChCTriangleMeshSoup.h"
 #include "geometry/ChCLinePath.h"
 
-#include "unit_IRRLICHT/ChIrrAssetConverter.h"
-#include "unit_IRRLICHT/ChIrrTools.h"
-#include "unit_IRRLICHT/ChIrrMeshTools.h"
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrAssetConverter.h"
+#include "chrono_irrlicht/ChIrrTools.h"
+#include "chrono_irrlicht/ChIrrMeshTools.h"
+#include "chrono_irrlicht/ChIrrAppInterface.h"
 
 namespace irr {
 namespace scene {

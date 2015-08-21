@@ -17,7 +17,7 @@
 //
 ///////////////////////////////////////////////////
 
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "physics/ChBodyEasy.h"
 #include "physics/ChLinkTrajectory.h"
 

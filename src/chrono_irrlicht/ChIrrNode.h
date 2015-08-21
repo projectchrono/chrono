@@ -16,9 +16,9 @@
 #include "physics/ChSystem.h"
 #include "physics/ChPhysicsItem.h"
 
-#include "unit_IRRLICHT/ChApiIrr.h"
-#include "unit_IRRLICHT/ChIrrNodeProxyToAsset.h"
-#include "unit_IRRLICHT/ChIrrTools.h"
+#include "chrono_irrlicht/ChApiIrr.h"
+#include "chrono_irrlicht/ChIrrNodeProxyToAsset.h"
+#include "chrono_irrlicht/ChIrrTools.h"
 
 #define ESNT_CHIRRNODE 1201
 

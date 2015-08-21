@@ -16,8 +16,8 @@
 #include "physics/ChSystem.h"
 #include "physics/ChParticlesClones.h"
 
-#include "unit_IRRLICHT/ChApiIrr.h"
-#include "unit_IRRLICHT/ChIrrMeshTools.h"
+#include "chrono_irrlicht/ChApiIrr.h"
+#include "chrono_irrlicht/ChIrrMeshTools.h"
 
 #define ESNT_CHPARTICLES 1201
 

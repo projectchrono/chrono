@@ -18,10 +18,10 @@
 #include "core/ChRealtimeStep.h"
 #include "physics/ChSystem.h"
 
-#include "unit_IRRLICHT/ChApiIrr.h"
-#include "unit_IRRLICHT/ChIrrWizard.h"
-#include "unit_IRRLICHT/ChIrrTools.h"
-#include "unit_IRRLICHT/ChIrrEffects.h"
+#include "chrono_irrlicht/ChApiIrr.h"
+#include "chrono_irrlicht/ChIrrWizard.h"
+#include "chrono_irrlicht/ChIrrTools.h"
+#include "chrono_irrlicht/ChIrrEffects.h"
 
 namespace irr {
 

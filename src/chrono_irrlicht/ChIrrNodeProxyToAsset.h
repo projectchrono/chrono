@@ -13,7 +13,7 @@
 
 #include <irrlicht.h>
 
-#include "unit_IRRLICHT/ChApiIrr.h"
+#include "chrono_irrlicht/ChApiIrr.h"
 
 #define ESNT_CHIRRNODEPROXYTOASSET 1202
 

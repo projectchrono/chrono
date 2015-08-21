@@ -11,8 +11,8 @@
 // File author: A.Tasora
 
 #include "core/ChLog.h"
-#include "unit_IRRLICHT/ChIrrNode.h"
-#include "unit_IRRLICHT/ChIrrNodeProxyToAsset.h"
+#include "chrono_irrlicht/ChIrrNode.h"
+#include "chrono_irrlicht/ChIrrNodeProxyToAsset.h"
 
 namespace irr {
 namespace scene {

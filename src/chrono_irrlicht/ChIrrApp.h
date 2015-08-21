@@ -12,9 +12,9 @@
 #ifndef CHIRRAPP_H
 #define CHIRRAPP_H
 
-#include "unit_IRRLICHT/ChApiIrr.h"
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
-#include "unit_IRRLICHT/ChIrrAssetConverter.h"
+#include "chrono_irrlicht/ChApiIrr.h"
+#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrAssetConverter.h"
 
 namespace irr {
 

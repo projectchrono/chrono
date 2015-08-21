@@ -17,7 +17,7 @@
 #include "assets/ChPathShape.h"
 #include "assets/ChLineShape.h"
 
-#include "unit_IRRLICHT/ChIrrNodeProxyToAsset.h"
+#include "chrono_irrlicht/ChIrrNodeProxyToAsset.h"
 
 namespace irr {
 namespace scene {

@@ -29,7 +29,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBodyEasy.h"
 #include "assets/ChTexture.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "core/ChRealtimeStep.h"
 #include "lcp/ChLcpIterativeMINRES.h"
 

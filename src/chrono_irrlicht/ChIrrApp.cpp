@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 namespace irr {
 

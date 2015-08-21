@@ -21,7 +21,7 @@
 #include <irrlicht.h>
 
 #include "physics/ChSystem.h"
-#include "unit_IRRLICHT/ChApiIrr.h"
+#include "chrono_irrlicht/ChApiIrr.h"
 
 #define ESNT_CHBODY 1200
 
