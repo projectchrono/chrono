@@ -26,12 +26,13 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystem.h"
-#include "physics/ChBodyEasy.h"
-#include "assets/ChTexture.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/lcp/ChLcpIterativeMINRES.h"
+
 #include "chrono_irrlicht/ChIrrApp.h"
-#include "core/ChRealtimeStep.h"
-#include "lcp/ChLcpIterativeMINRES.h"
 
 // Use the namespace of Chrono
 

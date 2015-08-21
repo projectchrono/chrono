@@ -25,9 +25,10 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystem.h"
-#include "physics/ChBodyEasy.h"
-#include "physics/ChConveyor.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChConveyor.h"
+
 #include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the namespace of Chrono

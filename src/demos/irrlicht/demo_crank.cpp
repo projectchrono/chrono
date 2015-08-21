@@ -32,12 +32,13 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystem.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
+
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrWizard.h"
-#include "core/ChRealtimeStep.h"
 
 #include <irrlicht.h>
 

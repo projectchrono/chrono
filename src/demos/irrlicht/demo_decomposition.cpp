@@ -23,10 +23,11 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/collision/ChCConvexDecomposition.h"
+
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"
-#include "core/ChRealtimeStep.h"
-#include "collision/ChCConvexDecomposition.h"
 
 #include <irrlicht.h>
 

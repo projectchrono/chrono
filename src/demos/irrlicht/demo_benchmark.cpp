@@ -27,17 +27,17 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystem.h"
-#include "physics/ChContactContainerBase.h"
-#include "geometry/ChCSphere.h"
-#include "geometry/ChCBox.h"
+#include "chrono/core/ChTimer.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/lcp/ChLcpIterativeJacobi.h"
+#include "chrono/geometry/ChCSphere.h"
+#include "chrono/geometry/ChCBox.h"
+
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
-#include "core/ChTimer.h"
-#include "core/ChRealtimeStep.h"
-
-#include "lcp/ChLcpIterativeJacobi.h"
 
 #include <irrlicht.h>
 

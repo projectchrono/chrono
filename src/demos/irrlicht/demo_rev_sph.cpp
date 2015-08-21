@@ -21,8 +21,8 @@
 
 #include <stdio.h>
 
-#include "physics/ChSystem.h"
-#include "physics/ChBody.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBody.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 

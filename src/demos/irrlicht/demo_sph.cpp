@@ -26,14 +26,15 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystem.h"
-#include "physics/ChBodyEasy.h"
-#include "physics/ChProximityContainerSPH.h"
-#include "physics/ChMatterSPH.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChProximityContainerSPH.h"
+#include "chrono/physics/ChMatterSPH.h"
+
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-#include "core/ChRealtimeStep.h"
 
 #include <irrlicht.h>
 
