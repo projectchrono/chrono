@@ -222,10 +222,9 @@ else()
   set(CHRONO_VEHICLE "#undef CHRONO_VEHICLE")
 endif()
 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/ChConfig.in
-  ${PROJECT_BINARY_DIR}/chrono/ChConfig.h
-  )
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"
+               "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
+               @ONLY)
 
 install(FILES "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
         DESTINATION include/chrono)
@@ -234,8 +233,9 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
 # Generate and install the versioning header file 
 #-----------------------------------------------------------------------------
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ChVersion.h.in"
-               "${PROJECT_BINARY_DIR}/chrono/ChVersion.h" @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChVersion.h.in"
+               "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
+               @ONLY)
 
 install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
         DESTINATION include/chrono)
@@ -245,7 +245,6 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 #------------------------------------------------------------
 
 # For the BUILD tree
-configure_file(
-  "${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
-  "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake"
-  @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
+               "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake"
+               @ONLY)
