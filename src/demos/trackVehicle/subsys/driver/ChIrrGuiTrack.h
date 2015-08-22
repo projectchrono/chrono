@@ -32,7 +32,7 @@
 #include "physics/ChSystem.h"
 #include "utils/ChUtilsChaseCamera.h"
 
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 #include "subsys/ChTrackVehicle.h"
 #include "subsys/ChApiSubsys.h"

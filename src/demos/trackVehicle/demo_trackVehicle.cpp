@@ -36,7 +36,7 @@
 /*
 #if IRRLICHT_ENABLED
 */
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "subsys/driver/ChIrrGuiTrack.h"
 /*
 # define USE_IRRLICHT
