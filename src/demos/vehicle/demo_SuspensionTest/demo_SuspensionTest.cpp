@@ -25,13 +25,12 @@
 
 #include <vector>
 
-#include "core/ChFileutils.h"
-#include "core/ChStream.h"
-#include "core/ChRealtimeStep.h"
-#include "physics/ChSystem.h"
-#include "physics/ChLinkDistance.h"
-
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono/core/ChFileutils.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChLinkDistance.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "ModelDefs.h"
 
