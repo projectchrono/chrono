@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "ChLcpMatlabSolver.h"
+#include "chrono_matlab/ChLcpMatlabSolver.h"
 
 namespace chrono {
 

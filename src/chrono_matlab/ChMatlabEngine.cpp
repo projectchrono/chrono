@@ -1,6 +1,8 @@
-#include "ChMatlabEngine.h"
+#include "chrono_matlab/ChMatlabEngine.h"
+
 using namespace chrono;
 using namespace std;
+
 ChMatlabEngine::ChMatlabEngine() {
 #ifdef __APPLE__
     if (!(ep = matlabengine::engOpen("matlab -automation -nosplash \0"))) {

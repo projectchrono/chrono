@@ -27,7 +27,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChApiMatlab.h"
+#include "chrono_matlab/ChApiMatlab.h"
 #include "core/ChMath.h"
 #include "core/ChSpmatrix.h"
 #include "lcp/ChLcpSystemDescriptor.h"

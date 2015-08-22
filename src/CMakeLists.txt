@@ -186,7 +186,7 @@ else()
   set(CHRONO_IRRLICHT "#undef CHRONO_IRRLICHT")
 endif()
 
-if(ENABLE_UNIT_MATLAB)
+if(ENABLE_MODULE_MATLAB)
   set(CHRONO_MATLAB "#define CHRONO_MATLAB")
 else()
   set(CHRONO_MATLAB "#undef CHRONO_MATLAB")

@@ -1,13 +1,13 @@
 #=============================================================================
-# CHRONO::ENGINE   CMake configuration file for MATLAB unit
+# CMake configuration file for Chrono Matlab module
 # 
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_UNIT_MATLAB "Enable the Chrono Matlab module" OFF)
+option(ENABLE_MODULE_MATLAB "Enable the Chrono Matlab module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_UNIT_MATLAB)
+IF(NOT ENABLE_MODULE_MATLAB)
   MARK_AS_ADVANCED(FORCE CH_MATLABSDK)
   RETURN()
 ENDIF()
@@ -19,13 +19,13 @@ MARK_AS_ADVANCED(CLEAR CH_MATLABSDK)
 SET(CH_MATLABSDK "" CACHE PATH
     "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
 
-SET(ChronoEngine_UNIT_MATLAB_HEADERS
+SET(ChronoEngine_MATLAB_HEADERS
   ChApiMatlab.h
   ChMatlabEngine.h
   ChLcpMatlabSolver.h
 )
 
-SET(ChronoEngine_UNIT_MATLAB_SOURCES
+SET(ChronoEngine_MATLAB_SOURCES
   ChMatlabEngine.cpp
   ChLcpMatlabSolver.cpp
 )
@@ -58,31 +58,30 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
             "${CH_MATLABSDK}/../bin/maci64/libmat.dylib")
 ENDIF()
 
-SET (CH_MATLABINC    "${CH_MATLABINC}"    PARENT_SCOPE )
-SET (CH_MATLABLIB    "${CH_MATLABLIB}"    PARENT_SCOPE )
+SET (CH_MATLABINC "${CH_MATLABINC}" PARENT_SCOPE )
+SET (CH_MATLABLIB "${CH_MATLABLIB}" PARENT_SCOPE )
 
-INCLUDE_DIRECTORIES( ${CH_MATLABSDK}/include )
+INCLUDE_DIRECTORIES(${CH_MATLABSDK}/include)
 
-ADD_LIBRARY(ChronoEngine_MATLAB SHARED 
-            ${ChronoEngine_UNIT_MATLAB_SOURCES}
-            ${ChronoEngine_UNIT_MATLAB_HEADERS})
+ADD_LIBRARY(ChronoEngine_matlab SHARED 
+            ${ChronoEngine_MATLAB_SOURCES}
+            ${ChronoEngine_MATLAB_HEADERS})
             
-SET_TARGET_PROPERTIES(ChronoEngine_MATLAB PROPERTIES
+SET_TARGET_PROPERTIES(ChronoEngine_matlab PROPERTIES
             COMPILE_FLAGS "${CH_CXX_FLAGS}"
             LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-            COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_MATLAB")
+            COMPILE_DEFINITIONS "CH_API_COMPILE_MATLAB")
                           
-TARGET_LINK_LIBRARIES(ChronoEngine_MATLAB 
-    ChronoEngine
-    ${CH_MATLABLIB}
-    )
+TARGET_LINK_LIBRARIES(ChronoEngine_matlab 
+                      ChronoEngine
+                      ${CH_MATLABLIB})
     
-ADD_DEPENDENCIES (ChronoEngine_MATLAB ChronoEngine)  # better, because not automatic
+ADD_DEPENDENCIES(ChronoEngine_matlab ChronoEngine) 
 
-INSTALL(TARGETS ChronoEngine_MATLAB
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)       
+INSTALL(TARGETS ChronoEngine_matlab
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)       
 
-INSTALL(FILES ${ChronoEngine_UNIT_MATLAB_HEADERS} DESTINATION include/chrono/unit_MATLAB)
+INSTALL(FILES ${ChronoEngine_MATLAB_HEADERS}
+        DESTINATION include/chrono/unit_MATLAB)

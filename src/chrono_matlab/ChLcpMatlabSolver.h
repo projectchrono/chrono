@@ -12,11 +12,11 @@
 #ifndef CHLCPMATLABSOLVER_H
 #define CHLCPMATLABSOLVER_H
 
-#include "ChApiMatlab.h"
+#include "chrono_matlab/ChApiMatlab.h"
+#include "chrono_matlab/ChMatlabEngine.h"
+
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpSolver.h"
-
-#include "ChMatlabEngine.h"
 
 namespace chrono {
 
