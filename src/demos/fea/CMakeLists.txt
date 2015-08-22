@@ -17,7 +17,6 @@ SET(FEA_DEMOS_IRR
 # List all FEA demos that use both Irrlicht and Matlab
 SET(FEA_DEMOS_IRR_MATLAB
     demo_FEAbeams
-    demo_FEAbeamsconstr
     demo_FEAminiature
     demo_FEAshells
 )
@@ -27,6 +26,10 @@ SET(FEA_DEMOS_IRR_MKL
     demo_FEAcables
 )
 
+# List all FEA demos that use Irrlicht, Matlab, and MKL
+SET(FEA_DEMOS_IRR_MATLAB_MKL
+    demo_FEAbeamsconstr
+)
 
 MESSAGE(STATUS "Demo programs for FEA module...")
 
@@ -53,7 +56,7 @@ ENDFOREACH()
 
 #--------------------------------------------------------------
 # For demo executables that use Irrlicht
-# (and posibly Matlab or MKL)
+# (and posibly Matlab and/or MKL)
 
 IF(ENABLE_MODULE_IRRLICHT)
 
@@ -84,7 +87,7 @@ IF(ENABLE_MODULE_IRRLICHT)
 
         FOREACH(PROGRAM ${FEA_DEMOS_IRR_MATLAB})
             MESSAGE(STATUS "...add ${PROGRAM}")
-            
+
             ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
             SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
             SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
@@ -96,7 +99,6 @@ IF(ENABLE_MODULE_IRRLICHT)
                 ${CH_MATLABLIB}
                 ChronoEngine
                 ChronoEngine_fea
-                ChronoEngine_mkl
                 ChronoEngine_irrlicht
                 ChronoEngine_matlab)
             ADD_DEPENDENCIES(${PROGRAM}
@@ -104,7 +106,7 @@ IF(ENABLE_MODULE_IRRLICHT)
                 ChronoEngine_fea
                 ChronoEngine_irrlicht
                 ChronoEngine_matlab)
-            INSTALL(TARGETS ${PROGRAM} DESTINATION bin)    
+            INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
         ENDFOREACH()
     ENDIF()
 
@@ -115,7 +117,6 @@ IF(ENABLE_MODULE_IRRLICHT)
         INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
         FOREACH(PROGRAM ${DEMOS})
-
             MESSAGE(STATUS "...add ${PROGRAM}")
 
             ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
@@ -125,6 +126,7 @@ IF(ENABLE_MODULE_IRRLICHT)
                 COMPILE_GLAGS "${CH_CXX_FLAGS} ${CH_MKL_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
                 LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}")
             TARGET_LINK_LIBRARIES(${PROGRAM}
+                ${CH_IRRLICHTLIB}
                 ChronoEngine
                 ChronoEngine_fea
                 ChronoEngine_mkl
@@ -134,6 +136,41 @@ IF(ENABLE_MODULE_IRRLICHT)
                 ChronoEngine_fea
                 ChronoEngine_mkl
                 ChronoEngine_irrlicht)
+            INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+        ENDFOREACH()
+    ENDIF()
+
+    IF(ENABLE_MODULE_MATLAB AND ENABLE_MODULE_MKL)
+        INCLUDE_DIRECTORIES( ${CH_MATLABINC} )
+
+        INCLUDE_DIRECTORIES(${CH_MKLINC})
+        INCLUDE_DIRECTORIES(${CH_EIGEN_PATH})
+        INCLUDE_DIRECTORIES(${ChronoEngine_UNIT_MKL_INCLUDE})
+        INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
+
+        FOREACH(PROGRAM ${FEA_DEMOS_IRR_MATLAB_MKL})
+            MESSAGE(STATUS "...add ${PROGRAM}")
+
+            ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+            SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+            SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+                FOLDER demos
+                COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_MKL_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+                LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}")
+            TARGET_LINK_LIBRARIES(${PROGRAM}
+                ${CH_IRRLICHTLIB}
+                ${CH_MATLABLIB}
+                ChronoEngine
+                ChronoEngine_fea
+                ChronoEngine_mkl
+                ChronoEngine_irrlicht
+                ChronoEngine_matlab)
+            ADD_DEPENDENCIES(${PROGRAM}
+                ChronoEngine
+                ChronoEngine_fea
+                ChronoEngine_mkl
+                ChronoEngine_irrlicht
+                ChronoEngine_matlab)
             INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
         ENDFOREACH()
     ENDIF()
