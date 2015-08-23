@@ -2,68 +2,68 @@
 # Always use full RPATH (differentiating between the build and install trees)
 
 # use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+set(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
 
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 # add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # the RPATH to be used when installing, but only if it's not a system directory
-LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-IF("${isSystemDir}" STREQUAL "-1")
-   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-ENDIF("${isSystemDir}" STREQUAL "-1")
+list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+if("${isSystemDir}" STREQUAL "-1")
+   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+endif("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
 
 message(STATUS "==== Demo programs ====")
 
-ADD_SUBDIRECTORY(basics)
-#ADD_SUBDIRECTORY(benchmarks)
-ADD_SUBDIRECTORY(core)
-ADD_SUBDIRECTORY(lcp_solver)
+add_subdirectory(basics)
+#add_subdirectory(benchmarks)
+add_subdirectory(core)
+add_subdirectory(lcp_solver)
 
-IF (ENABLE_UNIT_FEA)
-	ADD_SUBDIRECTORY(fea)
-ENDIF()
+if(ENABLE_MODULE_FEA)
+	add_subdirectory(fea)
+endif()
 
-IF (ENABLE_MODULE_COSIMULATION)
-	ADD_SUBDIRECTORY(cosimulation)
-ENDIF()
+if(ENABLE_MODULE_COSIMULATION)
+	add_subdirectory(cosimulation)
+endif()
 
-IF (ENABLE_MODULE_IRRLICHT)
-	ADD_SUBDIRECTORY(irrlicht)
-ENDIF()
+if(ENABLE_MODULE_IRRLICHT)
+	add_subdirectory(irrlicht)
+endif()
 
-IF (ENABLE_UNIT_MATLAB)
-	ADD_SUBDIRECTORY(matlab)
-ENDIF()
+if(ENABLE_MODULE_MATLAB)
+	add_subdirectory(matlab)
+endif()
 
-IF (ENABLE_UNIT_MKL)
-	ADD_SUBDIRECTORY(mkl)
-ENDIF()
+if(ENABLE_MODULE_MKL)
+	add_subdirectory(mkl)
+endif()
 	
-IF (ENABLE_UNIT_MPI)
-	ADD_SUBDIRECTORY(mpi)
-ENDIF()
+#if(ENABLE_MODULE_MPI)
+#	add_subdirectory(mpi)
+#endif()
 
-IF (ENABLE_UNIT_CASCADE)
-	ADD_SUBDIRECTORY(cascade)
-ENDIF()
+if(ENABLE_UNIT_CASCADE)
+	add_subdirectory(cascade)
+endif()
 
-IF (ENABLE_MODULE_PYTHON)
-	ADD_SUBDIRECTORY(pyparser)
-ENDIF()
+if(ENABLE_MODULE_PYTHON)
+	add_subdirectory(pyparser)
+endif()
 
-IF (ENABLE_MODULE_POSTPROCESS)
-	ADD_SUBDIRECTORY(postprocess)
-ENDIF()
+if(ENABLE_MODULE_POSTPROCESS)
+	add_subdirectory(postprocess)
+endif()
 
 if(ENABLE_MODULE_PARALLEL)
   add_subdirectory(parallel)
@@ -74,4 +74,4 @@ if(ENABLE_MODULE_VEHICLE)
 endif()
 
 # TODO: this will be soon removed...
-ADD_SUBDIRECTORY(trackVehicle)
+add_subdirectory(trackVehicle)
