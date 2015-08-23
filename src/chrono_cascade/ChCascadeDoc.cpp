@@ -18,10 +18,11 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChCascadeDoc.h"
+#include "chrono_cascade/ChCascadeDoc.h"
+
 #include "core/ChMatrixDynamic.h"
 
-//#include "ChIrrCascadeMeshTools.h"
+//#include "chrono_cascade/ChIrrCascadeMeshTools.h"
 
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>

@@ -31,8 +31,8 @@
 
 #include <irrlicht.h>
 
-#include "ChCascadeDoc.h"
-#include "ChCascadeMeshTools.h"
+#include "chrono_cascade/ChCascadeDoc.h"
+#include "chrono_cascade/ChCascadeMeshTools.h"
 
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>

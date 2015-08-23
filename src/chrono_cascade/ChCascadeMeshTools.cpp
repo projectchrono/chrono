@@ -18,7 +18,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChCascadeMeshTools.h"
+#include "chrono_cascade/ChCascadeMeshTools.h"
 
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>

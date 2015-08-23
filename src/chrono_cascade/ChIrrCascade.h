@@ -29,12 +29,14 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "unit_IRRLICHT/ChBodySceneNode.h"
-#include "unit_IRRLICHT/ChIrrMeshTools.h"
+#include "chrono_irrlicht/ChBodySceneNode.h"
+#include "chrono_irrlicht/ChIrrMeshTools.h"
+
 #include "geometry/ChCTriangleMesh.h"
 #include "physics/ChBodyAuxRef.h"
-#include "ChIrrCascadeMeshTools.h"
-#include "ChCascadeDoc.h"
+
+#include "chrono_cascade/ChIrrCascadeMeshTools.h"
+#include "chrono_cascade/ChCascadeDoc.h"
 
 namespace irr {
 namespace scene {

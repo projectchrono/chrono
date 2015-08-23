@@ -27,7 +27,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "unit_CASCADE/ChApiCASCADE.h"
+#include "chrono_cascade/ChApiCASCADE.h"
+
 #include "core/ChStream.h"
 #include "geometry/ChCTriangleMesh.h"
 

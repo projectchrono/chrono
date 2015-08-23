@@ -1,13 +1,13 @@
 #=============================================================================
-# CHRONO::ENGINE   CMake configuration file for OpenCASCADE unit
+# CMake configuration file for the Chrono OpenCASCADE module
 # 
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_UNIT_CASCADE "Enable the Chrono Cascade module" OFF)
+option(ENABLE_MODULE_CASCADE "Enable the Chrono Cascade module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_UNIT_CASCADE)
+IF(NOT ENABLE_MODULE_CASCADE)
   MARK_AS_ADVANCED(FORCE CH_CASCADEDIR)
   RETURN()
 ENDIF()
@@ -21,29 +21,20 @@ SET(CH_CASCADEDIR "" CACHE PATH
     "Where is your OpenCASCADE SDK installed? Ex: 'E:/OpenCASCADE6.3.0'. You must set this path to compile the CASCADE unit.")
 
 #-----------------------------------------------------------------------------
-#
 # LIST THE FILES THAT MAKE THE OpenCASCADE LIBRARY
-# NOTE: to add a new source to this unit, just add its name
-# here and re-run the CMake.
-#
 
-SET(ChronoEngine_unit_CASCADE_SOURCES 
+SET(ChronoEngine_CASCADE_SOURCES 
 	ChCascadeMeshTools.cpp
 	ChCascadeDoc.cpp
 	)
-SET(ChronoEngine_unit_CASCADE_HEADERS
+
+SET(ChronoEngine_CASCADE_HEADERS
 	ChCascadeMeshTools.h
 	ChCascadeDoc.h
 	ChIrrCascadeMeshTools.h
 	ChIrrCascade.h
 	)
-#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_unit_CASCADE_HEADERS PROPERTIES  HEADER_FILE_ONLY)
-SOURCE_GROUP(unit_CASCADE FILES 
-			${ChronoEngine_unit_CASCADE_SOURCES} 
-			${ChronoEngine_unit_CASCADE_HEADERS})
-			
-
-			
+		
 #-----------------------------------------------------------------------------	
 # In most cases, you do not need to edit the lines below.
 
@@ -87,16 +78,16 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ENDIF()
 INCLUDE_DIRECTORIES( "${CH_CASCADEINC}" )
 
-# The CASCADE library is added to the project,
-# and some custom properties of this target are set.
+#-----------------------------------------------------------------------------	
+# Add the ChronoEngine_cascade library
 
-ADD_LIBRARY(ChronoEngine_CASCADE SHARED 
-			${ChronoEngine_unit_CASCADE_SOURCES}
-			${ChronoEngine_unit_CASCADE_HEADERS})
+ADD_LIBRARY(ChronoEngine_cascade SHARED 
+			${ChronoEngine_CASCADE_SOURCES}
+			${ChronoEngine_CASCADE_HEADERS})
 
-SET_TARGET_PROPERTIES(ChronoEngine_CASCADE PROPERTIES 
-                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_CASCADE")
+SET_TARGET_PROPERTIES(ChronoEngine_cascade PROPERTIES 
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_CASCADE")
                
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     ADD_DEFINITIONS( "/DWNT" )
@@ -105,21 +96,20 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     ADD_DEFINITIONS(-DHAVE_LIMITS_H)
 ENDIF()
 
-TARGET_LINK_LIBRARIES(ChronoEngine_CASCADE
+TARGET_LINK_LIBRARIES(ChronoEngine_cascade
         ${CH_CASCADELIBS} 
         ChronoEngine)
-ADD_DEPENDENCIES (ChronoEngine_CASCADE ChronoEngine)  # better, because not automatic
+ADD_DEPENDENCIES(ChronoEngine_cascade ChronoEngine)
 	
 # Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 
-SET (CH_CASCADEINC    "${CH_CASCADEINC}"    PARENT_SCOPE )
-SET (CH_CASCADELIBS    "${CH_CASCADELIBS}"    PARENT_SCOPE )
+SET (CH_CASCADEINC "${CH_CASCADEINC}" PARENT_SCOPE )
+SET (CH_CASCADELIBS "${CH_CASCADELIBS}" PARENT_SCOPE )
 
-INSTALL(TARGETS ChronoEngine_CASCADE
+INSTALL(TARGETS ChronoEngine_cascade
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+    ARCHIVE DESTINATION lib)
 
-INSTALL(FILES ${ChronoEngine_unit_CASCADE_HEADERS} DESTINATION include/chrono/unit_CASCADE)
+INSTALL(FILES ${ChronoEngine_CASCADE_HEADERS} DESTINATION include/chrono_cascade)
 
