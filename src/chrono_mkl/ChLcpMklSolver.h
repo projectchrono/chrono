@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHMKLENGINE_H
-#define CHMKLENGINE_H
+#ifndef CH_MKL_SOLVER_H
+#define CH_MKL_SOLVER_H
 
 ///////////////////////////////////////////////////
 //
@@ -28,9 +28,10 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChApiMkl.h"
 #include <mkl.h>
-#include "ChCSR3matrix.h"
+
+#include "chrono_mkl/ChApiMkl.h"
+#include "chrono_mkl/ChCSR3matrix.h"
 #include "core/ChMatrix.h"
 #include "core/ChSpmatrix.h"
 #include "lcp/ChLcpSystemDescriptor.h"

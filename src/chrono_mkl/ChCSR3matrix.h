@@ -2,9 +2,9 @@
 #define CHCSR3MATRIX_H
 
 #include <Eigen/Sparse>
-#include "core/ChSpmatrix.h"
 #include <mkl.h>
-#include <collision/bullet/LinearMath/btQuaternion.h>
+#include "core/ChSpmatrix.h"
+#include "collision/bullet/LinearMath/btQuaternion.h"
 
 
 namespace chrono{

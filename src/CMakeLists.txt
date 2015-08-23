@@ -192,7 +192,7 @@ else()
   set(CHRONO_MATLAB "#undef CHRONO_MATLAB")
 endif()
 
-if(ENABLE_UNIT_MKL)
+if(ENABLE_MODULE_MKL)
   set(CHRONO_MKL "#define CHRONO_MKL")
 else()
   set(CHRONO_MKL "#undef CHRONO_MKL")
