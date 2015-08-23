@@ -69,7 +69,7 @@ using std::endl;
 // Define General variables
 SimParams paramsH;
 
-#define haveFluid true
+#define haveFluid false
 #define useWallBce true
 
 #if haveFluid
@@ -744,7 +744,9 @@ int main(int argc, char* argv[]) {
   //****************************************************************************************
   // Arman take care of this block.
   // Set path to ChronoVehicle data files
-  vehicle::SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+//  vehicle::SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+  vehicle::SetDataPath("/home/arman/Repos/GitBeta/chrono/src/demos/data/");
+
 
   // --------------------------
   // Create output directories.
