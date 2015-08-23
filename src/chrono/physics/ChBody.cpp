@@ -853,11 +853,12 @@ void ChBody::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& a
     R.PasteSumVector(torque1_loc, this->GetOffset_w() + 3, 0);
 }
 
-void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-            type_constraint_tuple& jacobian_tuple_N, 
-            type_constraint_tuple& jacobian_tuple_U, 
-            type_constraint_tuple& jacobian_tuple_V, 
-            bool second) {
+void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                           ChMatrix33<>& contact_plane,
+                                           ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+                                           ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+                                           ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                           bool second) {
     ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
     ChMatrix33<> Jx1, Jr1;
     ChMatrix33<> Ps1, Jtemp;
@@ -880,11 +881,13 @@ void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
 }
 
-void ChBody::ComputeJacobianForRollingContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-            type_constraint_tuple& jacobian_tuple_N, 
-            type_constraint_tuple& jacobian_tuple_U, 
-            type_constraint_tuple& jacobian_tuple_V, 
-            bool second) {
+void ChBody::ComputeJacobianForRollingContactPart(
+    const ChVector<>& abs_point,
+    ChMatrix33<>& contact_plane,
+    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+    bool second) {
     ChMatrix33<> Jx1, Jr1;
 
     Jr1.MatrTMultiply(contact_plane, this->GetA());

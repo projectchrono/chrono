@@ -91,19 +91,23 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 
         /// Compute the jacobian(s) part(s) for this contactable item. For example,
         /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N,
-                            type_constraint_tuple& jacobian_tuple_U,
-                            type_constraint_tuple& jacobian_tuple_V,
-                            bool second);
+    virtual void ComputeJacobianForContactPart(
+        const ChVector<>& abs_point,
+        ChMatrix33<>& contact_plane,
+        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+        bool second);
 
         /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
         /// (used only for rolling friction DVI contacts)
-    virtual void ComputeJacobianForRollingContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N,
-                            type_constraint_tuple& jacobian_tuple_U,
-                            type_constraint_tuple& jacobian_tuple_V,
-                            bool second);
+    virtual void ComputeJacobianForRollingContactPart(
+        const ChVector<>& abs_point,
+        ChMatrix33<>& contact_plane,
+        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+        bool second);
 
          /// used by some DEM code
     virtual double GetContactableMass()  {return this->variables.GetBodyMass();}

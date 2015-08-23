@@ -107,11 +107,13 @@ void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector
     R.PasteSumVector(torque1_loc , this->Variables().GetOffset() + 3, 0); //***TODO*** implement this->NodeGetOffset_w()
 }
 
-void ChAparticle::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-            type_constraint_tuple& jacobian_tuple_N, 
-            type_constraint_tuple& jacobian_tuple_U, 
-            type_constraint_tuple& jacobian_tuple_V, 
-            bool second) {
+void ChAparticle::ComputeJacobianForContactPart(
+    const ChVector<>& abs_point,
+    ChMatrix33<>& contact_plane,
+    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+    bool second) {
     ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
     ChMatrix33<> Jx1, Jr1;
     ChMatrix33<> Ps1, Jtemp;
@@ -134,11 +136,13 @@ void ChAparticle::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChM
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
 }
 
-void ChAparticle::ComputeJacobianForRollingContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-            type_constraint_tuple& jacobian_tuple_N, 
-            type_constraint_tuple& jacobian_tuple_U, 
-            type_constraint_tuple& jacobian_tuple_V, 
-            bool second) {
+void ChAparticle::ComputeJacobianForRollingContactPart(
+    const ChVector<>& abs_point,
+    ChMatrix33<>& contact_plane,
+    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+    bool second) {
     ChMatrix33<> Jx1, Jr1;
 
     Jr1.MatrTMultiply(contact_plane, this->GetA());
