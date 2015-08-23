@@ -19,5 +19,5 @@ using namespace collision;
 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChProximityContainerBase.h"    
+%include "../chrono/physics/ChProximityContainerBase.h"    
 

@@ -15,7 +15,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChLinkRevoluteSpherical.h"  
+%include "../chrono/physics/ChLinkRevoluteSpherical.h"  
 
 
 

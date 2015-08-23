@@ -11,10 +11,10 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import ChronoEngine_PYTHON_irrlicht as ceirrlicht'
+//  'import ChronoEngine_python_irrlicht as ceirrlicht'
 
 
-%module(directors="1") ChronoEngine_PYTHON_irrlicht
+%module(directors="1") ChronoEngine_python_irrlicht
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
@@ -47,10 +47,10 @@
 
 %{
 
-//#include "unit_IRRLICHT/ChXxxyyyzzz.h"
+//#include "chrono_irrlicht/ChXxxyyyzzz.h"
 #include <irrlicht.h>
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
-#include "unit_IRRLICHT/ChIrrAssetConverter.h"
+#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrAssetConverter.h"
 
 using namespace chrono;
 using namespace irr;

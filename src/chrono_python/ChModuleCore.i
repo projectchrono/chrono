@@ -11,10 +11,10 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import ChronoEngine_PYTHON_core as chrono'
+//  'import ChronoEngine_python_core as chrono'
 
 
-%module(directors="1") ChronoEngine_PYTHON_core
+%module(directors="1") ChronoEngine_python_core
 
 
 // Turn on the documentation of members, for more intuitive IDE typing

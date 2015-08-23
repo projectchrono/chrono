@@ -16,7 +16,7 @@ namespace chrono { class ChBody; }
 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChMarker.h"  
+%include "../chrono/physics/ChMarker.h"  
 
 
 // Define also the shared pointer chrono::ChShared<ChForce> 

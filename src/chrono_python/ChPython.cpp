@@ -20,16 +20,16 @@
 ///////////////////////////////////////////////////
  
 
-#include "unit_PYTHON/ChSwigutils.h"
+#include "chrono_python/ChSwigutils.h"
 
 
-#include "unit_PYTHON/ChPython.h"
+#include "chrono_python/ChPython.h"
 #include <Python.h>
 #include <iostream>
 #include <sstream>
 #include <typeinfo>
 
-#ifndef CH_API_COMPILE_UNIT_PYPARSER
+#ifndef CH_API_COMPILE_PYPARSER
 #error Warning! You are compiling the PYTHON unit of Chrono::Engine, \
 	so you need to define CH_API_COMPILE_UNIT_PYTHON (add that symbol \
 	to the compiler defines, for all compiled files in this unit). 

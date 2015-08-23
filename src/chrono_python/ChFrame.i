@@ -17,7 +17,7 @@ using namespace chrono;
 //}
 
 /* Parse the header file to generate wrappers */
-%include "../core/ChFrame.h"    
+%include "../chrono/core/ChFrame.h"    
 
 
 

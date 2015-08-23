@@ -8,7 +8,7 @@ using namespace chrono;
 %}
  
 /* Parse the header file to generate wrappers */
- %include "../core/ChLinearAlgebra.h"    
+ %include "../chrono/core/ChLinearAlgebra.h"    
 
 
 

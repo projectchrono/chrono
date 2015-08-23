@@ -11,10 +11,10 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import ChronoEngine_PYTHON_postprocess as postprocess'
+//  'import ChronoEngine_python_postprocess as postprocess'
 
 
-%module(directors="1") ChronoEngine_PYTHON_postprocess
+%module(directors="1") ChronoEngine_python_postprocess
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
@@ -47,10 +47,10 @@
 
 %{
 
-#include "unit_POSTPROCESS/ChPostProcessBase.h"
-#include "unit_POSTPROCESS/ChPovRay.h"
-#include "unit_POSTPROCESS/ChPovRayAssetCustom.h"
-#include "unit_POSTPROCESS/ChGnuPlot.h"
+#include "chrono_postprocess/ChPostProcessBase.h"
+#include "chrono_postprocess/ChPovRay.h"
+#include "chrono_postprocess/ChPovRayAssetCustom.h"
+#include "chrono_postprocess/ChGnuPlot.h"
 
 using namespace chrono;
 using namespace postprocess;
@@ -100,7 +100,7 @@ using namespace postprocess;
 %include "ChPovRay.i"
 %include "ChPovRayAssetCustom.i"
 
-%include "../unit_POSTPROCESS/ChGnuPlot.h"
+%include "../chrono_postprocess/ChGnuPlot.h"
 
 
 

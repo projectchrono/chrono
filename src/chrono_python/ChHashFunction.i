@@ -1,4 +1,4 @@
-/* %module ChronoEngine_PYTHON_mod */
+/* %module ChronoEngine_python_mod */
 
 %include "std_string.i"
 
@@ -9,7 +9,7 @@
 %}
  
 /* Shortcut: let Swig directly parse the header file to generate wrappers */
-%include "../core/ChHashFunction.h"
+%include "../chrono/core/ChHashFunction.h"
 
 
 %template(HashFunctionInteger) chrono::HashFunction_Generic<int>;

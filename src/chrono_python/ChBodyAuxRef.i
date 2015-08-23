@@ -11,7 +11,7 @@ using namespace chrono;
 #define ChApi 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChBodyAuxRef.h"    
+%include "../chrono/physics/ChBodyAuxRef.h"    
 
 // Define also the shared pointer chrono::ChShared<ChBody> 
 // (renamed as 'ChBodyShared' in python)

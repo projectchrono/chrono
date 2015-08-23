@@ -11,6 +11,6 @@ using namespace chrono;
 #define ChApi 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChMaterialCouple.h"    
+%include "../chrono/physics/ChMaterialCouple.h"    
 
 

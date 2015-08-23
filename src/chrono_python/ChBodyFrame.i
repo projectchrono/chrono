@@ -13,7 +13,7 @@ using namespace chrono;
 #define ChApi 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChBodyFrame.h"    
+%include "../chrono/physics/ChBodyFrame.h"    
 
 
 // Define also the shared pointer chrono::ChShared<ChBodyFrame> 

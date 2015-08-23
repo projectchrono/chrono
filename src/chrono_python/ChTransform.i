@@ -8,7 +8,7 @@ using namespace chrono;
 %}
  
 /* Parse the header file to generate wrappers */
-%include "../core/ChTransform.h"
+%include "../chrono/core/ChTransform.h"
 
 
 %template(ChTransformD) chrono::ChTransform<double>;

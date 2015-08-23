@@ -1,4 +1,4 @@
-/* %module ChronoEngine_PYTHON_mod */
+/* %module ChronoEngine_python_mod */
 
 %include "std_string.i"
 
@@ -9,4 +9,4 @@
 %}
  
 /* Shortcut: let Swig directly parse the header file to generate wrappers */
-%include "../core/ChException.h"
+%include "../chrono/core/ChException.h"

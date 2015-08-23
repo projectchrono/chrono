@@ -14,10 +14,10 @@ using namespace chrono;
 #define ChApi  
 
 /* Parse the header file to generate wrappers */
-%include "../core/ChMatrix.h"    
-%include "../core/ChMatrixDynamic.h"
-%include "../core/ChMatrixNM.h"
-%include "../core/ChMatrix33.h"
+%include "../chrono/core/ChMatrix.h"    
+%include "../chrono/core/ChMatrixDynamic.h"
+%include "../chrono/core/ChMatrixNM.h"
+%include "../chrono/core/ChMatrix33.h"
 
 //%feature("notabstract") chrono::ChMatrix;
 

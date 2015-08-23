@@ -16,7 +16,7 @@ using namespace chrono;
 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChPhysicsItem.h"    
+%include "../chrono/physics/ChPhysicsItem.h"    
 
 // Define also the shared pointer chrono::ChShared<ChAsset> 
 // (renamed as 'ChAssetShared' in python)

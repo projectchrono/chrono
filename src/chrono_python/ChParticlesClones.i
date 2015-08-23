@@ -15,7 +15,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChParticlesClones.h"  
+%include "../chrono/physics/ChParticlesClones.h"  
 
 
 

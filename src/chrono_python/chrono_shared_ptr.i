@@ -1,5 +1,5 @@
 
-%include "../core/ChSmartpointers.h"
+%include "../chrono/core/ChSmartpointers.h"
 
 
 // #######################################################

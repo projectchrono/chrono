@@ -8,7 +8,7 @@ using namespace chrono;
 %}
  
 /* Parse the header file to generate wrappers */
-%include "../assets/ChTexture.h"    
+%include "../chrono/assets/ChTexture.h"    
 
 // Define also the shared pointer 
 

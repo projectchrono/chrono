@@ -9,7 +9,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../unit_POSTPROCESS/ChPovRayAssetCustom.h"    
+%include "../chrono_postprocess/ChPovRayAssetCustom.h"    
 
 
 // Define also the shared pointer 

@@ -11,7 +11,7 @@ using namespace chrono;
 #define ChApi 
 
 /* Parse the header file to generate wrappers */
-%include "../core/ChStream.h"    
+%include "../chrono/core/ChStream.h"    
 
 
 

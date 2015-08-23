@@ -16,7 +16,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChBody.h"  
+%include "../chrono/physics/ChBody.h"  
 
 
 // Define also the shared pointer chrono::ChShared<ChBody> 

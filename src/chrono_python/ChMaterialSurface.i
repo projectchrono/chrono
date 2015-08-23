@@ -11,7 +11,7 @@ using namespace chrono;
 #define ChApi 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChMaterialSurface.h"    
+%include "../chrono/physics/ChMaterialSurface.h"    
 
 
 // Define also the shared pointer chrono::ChShared<ChXxxx> 

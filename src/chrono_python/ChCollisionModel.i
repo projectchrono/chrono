@@ -24,5 +24,5 @@ using namespace collision;
 %template(vector_ChVectorD) std::vector< chrono::ChVector<double> >;
 
 /* Parse the header file to generate wrappers */
-%include "../collision/ChCCollisionModel.h"
+%include "../chrono/collision/ChCCollisionModel.h"
 

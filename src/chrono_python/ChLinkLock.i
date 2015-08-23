@@ -13,7 +13,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChLinkLock.h"  
+%include "../chrono/physics/ChLinkLock.h"  
 
 
 

@@ -11,10 +11,10 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import ChronoEngine_PYTHON_fea as fea'
+//  'import ChronoEngine_python_fea as fea'
 
 
-%module(directors="1") ChronoEngine_PYTHON_fea
+%module(directors="1") ChronoEngine_python_fea
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
@@ -47,23 +47,23 @@
 
 %{
 
-#include "unit_FEA/ChNodeFEAbase.h"
-#include "unit_FEA/ChNodeFEAxyz.h"
-#include "unit_FEA/ChNodeFEAxyzP.h"
-#include "unit_FEA/ChNodeFEAxyzrot.h"
-#include "unit_FEA/ChElementBase.h"
-#include "unit_FEA/ChElementGeneric.h"
-#include "unit_FEA/ChElementBeam.h"
-#include "unit_FEA/ChElementBeamEuler.h"
-#include "unit_FEA/ChElementTetra_4.h"
-#include "unit_FEA/ChElementTetra_10.h"
-#include "unit_FEA/ChElementHexa_8.h"
-#include "unit_FEA/ChElementHexa_20.h"
-#include "unit_FEA/ChBuilderBeam.h"
-#include "unit_FEA/ChMesh.h"
+#include "chrono_fea/ChNodeFEAbase.h"
+#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono_fea/ChNodeFEAxyzP.h"
+#include "chrono_fea/ChNodeFEAxyzrot.h"
+#include "chrono_fea/ChElementBase.h"
+#include "chrono_fea/ChElementGeneric.h"
+#include "chrono_fea/ChElementBeam.h"
+#include "chrono_fea/ChElementBeamEuler.h"
+#include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChElementTetra_10.h"
+#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono_fea/ChElementHexa_20.h"
+#include "chrono_fea/ChBuilderBeam.h"
+#include "chrono_fea/ChMesh.h"
 #include "physics/ChContinuumMaterial.h"
-#include "unit_FEA/ChContinuumElectrostatics.h"
-#include "unit_FEA/ChContinuumThermal.h"
+#include "chrono_fea/ChContinuumElectrostatics.h"
+#include "chrono_fea/ChContinuumThermal.h"
 
 using namespace chrono;
 using namespace fea;
@@ -113,74 +113,74 @@ using namespace fea;
 %import  "ChBodyFrame.i"
 
 //  core/  classes
-%include "../unit_FEA/ChElementBase.h"
+%include "../chrono_fea/ChElementBase.h"
 %DefChSharedPtr(chrono::fea::,ChElementBase)
 
-%include "../unit_FEA/ChElementGeneric.h"
+%include "../chrono_fea/ChElementGeneric.h"
 %DefChSharedPtr(chrono::fea::,ChElementGeneric)
 
-%include "../unit_FEA/ChBeamSection.h"
+%include "../chrono_fea/ChBeamSection.h"
 %DefChSharedPtr(chrono::fea::,ChBeamSection)
 %DefChSharedPtr(chrono::fea::,ChBeamSectionAdvanced)
 
-%include "../unit_FEA/ChElementBeam.h"
+%include "../chrono_fea/ChElementBeam.h"
 %DefChSharedPtr(chrono::fea::,ChElementBeam)
 
-%include "../unit_FEA/ChElementBeamEuler.h"
+%include "../chrono_fea/ChElementBeamEuler.h"
 %DefChSharedPtr(chrono::fea::,ChElementBeamEuler)
 
-%include "../physics/ChContinuumMaterial.h"
+%include "../chrono/physics/ChContinuumMaterial.h"
 %DefChSharedPtr(chrono::fea::,ChContinuumMaterial)
 %DefChSharedPtr(chrono::fea::,ChContinuumElastic)
 %DefChSharedPtr(chrono::fea::,ChContinuumElastoplastic)
 %DefChSharedPtr(chrono::fea::,ChContinuumPlasticVonMises)
 %DefChSharedPtr(chrono::fea::,ChContinuumDruckerPrager)
 
-%include "../unit_FEA/ChContinuumPoisson3D.h"
+%include "../chrono_fea/ChContinuumPoisson3D.h"
 %DefChSharedPtr(chrono::fea::,ChContinuumPoisson3D)
 
-%include "../unit_FEA/ChContinuumElectrostatics.h"
+%include "../chrono_fea/ChContinuumElectrostatics.h"
 %DefChSharedPtr(chrono::fea::,ChContinuumElectrostatics)
 
-%include "../unit_FEA/ChContinuumThermal.h"
+%include "../chrono_fea/ChContinuumThermal.h"
 %DefChSharedPtr(chrono::fea::,ChContinuumThermal)
 
-//%include "../unit_FEA/ChElementTetrahedron.h"  	// pure virtual: do not create Python obj
+//%include "../chrono_fea/ChElementTetrahedron.h"  	// pure virtual: do not create Python obj
 //%DefChSharedPtr(chrono::fea::,ChElementTetrahedron)
 
-%include "../unit_FEA/ChElementTetra_4.h"
+%include "../chrono_fea/ChElementTetra_4.h"
 %DefChSharedPtr(chrono::fea::,ChElementTetrahedron)
 %DefChSharedPtr(chrono::fea::,ChElementTetra_4)
 
-%include "../unit_FEA/ChElementTetra_10.h"
+%include "../chrono_fea/ChElementTetra_10.h"
 %DefChSharedPtr(chrono::fea::,ChElementTetra_10)
 
-//%include "../unit_FEA/ChElementHexahedron.h"		// pure virtual: do not create Python obj
+//%include "../chrono_fea/ChElementHexahedron.h"		// pure virtual: do not create Python obj
 //%DefChSharedPtr(chrono::fea::,ChElementHexahedron)
 
-%include "../unit_FEA/ChElementHexa_8.h"
+%include "../chrono_fea/ChElementHexa_8.h"
 %DefChSharedPtr(chrono::fea::,ChElementHexahedron)
 %DefChSharedPtr(chrono::fea::,ChElementHexa_8)
 
-%include "../unit_FEA/ChElementHexa_20.h"
+%include "../chrono_fea/ChElementHexa_20.h"
 %DefChSharedPtr(chrono::fea::,ChElementHexa_20)
 
-%include "../unit_FEA/ChNodeFEAbase.h"
+%include "../chrono_fea/ChNodeFEAbase.h"
 %DefChSharedPtr(chrono::fea::,ChNodeFEAbase)
 
-%include "../unit_FEA/ChNodeFEAxyz.h"
+%include "../chrono_fea/ChNodeFEAxyz.h"
 %DefChSharedPtr(chrono::fea::,ChNodeFEAxyz)
 
-%include "../unit_FEA/ChNodeFEAxyzP.h"
+%include "../chrono_fea/ChNodeFEAxyzP.h"
 %DefChSharedPtr(chrono::fea::,ChNodeFEAxyzP)
 
-%include "../unit_FEA/ChNodeFEAxyzrot.h"
+%include "../chrono_fea/ChNodeFEAxyzrot.h"
 %DefChSharedPtr(chrono::fea::,ChNodeFEAxyzrot)
 
-%include "../unit_FEA/ChBuilderBeam.h"
+%include "../chrono_fea/ChBuilderBeam.h"
 //%DefChSharedPtr(chrono::fea::,ChBuilderBeam)
 
-%include "../unit_FEA/ChMesh.h"
+%include "../chrono_fea/ChMesh.h"
 %DefChSharedPtr(chrono::fea::,ChMesh)
 
 

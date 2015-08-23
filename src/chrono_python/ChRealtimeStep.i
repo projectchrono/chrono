@@ -8,7 +8,7 @@ using namespace chrono;
 %}
  
 /* Parse the header file to generate wrappers */
- %include "../core/ChRealtimeStep.h"    
+ %include "../chrono/core/ChRealtimeStep.h"    
 
 
 

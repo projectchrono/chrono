@@ -8,7 +8,7 @@ using namespace chrono;
 %}
  
 /* Parse the header file to generate wrappers */
- %include "../assets/ChBoxShape.h"    
+ %include "../chrono/assets/ChBoxShape.h"    
 
 // Define also the shared pointer chrono::ChShared<ChBoxShape> 
 // (renamed as 'ChBoxShapeShared' in python)

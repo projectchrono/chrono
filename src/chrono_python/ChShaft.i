@@ -13,7 +13,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChShaft.h"  
+%include "../chrono/physics/ChShaft.h"  
 
 
 

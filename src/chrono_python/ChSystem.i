@@ -224,7 +224,7 @@ class ChCustomComputeCollisionCallbackP
 #define ChApi 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChSystem.h" 
+%include "../chrono/physics/ChSystem.h" 
 
 
 

@@ -15,7 +15,7 @@ namespace chrono { class ChBody; }
 #define ChApi 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChForce.h"  
+%include "../chrono/physics/ChForce.h"  
 
 
 

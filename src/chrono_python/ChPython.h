@@ -25,7 +25,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "unit_PYTHON/ChApiPyParser.h"
+#include "chrono_python/ChApiPyParser.h"
 #include "core/ChLog.h"
 #include "physics/ChSystem.h"
 

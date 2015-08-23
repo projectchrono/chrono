@@ -12,7 +12,7 @@
 #define ChApi 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChLinkBase.h"  
+%include "../chrono/physics/ChLinkBase.h"  
 
 
 

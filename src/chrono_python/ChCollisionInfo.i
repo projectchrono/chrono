@@ -16,6 +16,6 @@ using namespace collision;
 
 
 /* Parse the header file to generate wrappers */
-%include "../collision/ChCCollisionInfo.h"    
+%include "../chrono/collision/ChCCollisionInfo.h"    
 
 

@@ -9,7 +9,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../unit_POSTPROCESS/ChPovRay.h"    
+%include "../chrono_postprocess/ChPovRay.h"    
 
 
 // Define also the shared pointer chrono::ChShared<thisclass> 
