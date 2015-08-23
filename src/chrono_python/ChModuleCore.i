@@ -135,6 +135,7 @@ using namespace chrono::geometry;
 // physics/  classes
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
+%include "ChMaterialSurfaceBase.i"
 %include "ChMaterialSurface.i"
 %include "ChMaterialCouple.i"
 %include "ChBodyFrame.i"
