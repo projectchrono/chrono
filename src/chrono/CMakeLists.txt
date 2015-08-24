@@ -979,4 +979,5 @@ install(TARGETS ChronoEngine
 # Install all header files for the main ChronoEngine library 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
     DESTINATION include/chrono
-    FILES_MATCHING PATTERN "*.h")
+    FILES_MATCHING REGEX ".*\\.(h|inl)$")
+#    FILES_MATCHING PATTERN "*.h")
