@@ -47,7 +47,7 @@ else()
 endif()
 
 # ----------------------------------------------------------------------------
-# Create configuration file
+# Generate and install configuration file
 # ----------------------------------------------------------------------------
 
 # Prepare replacement variables
@@ -62,6 +62,9 @@ endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicle.h.in
                ${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h)
+
+install(FILES "${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h"
+        DESTINATION include/chrono_vehicle)
 
 # ----------------------------------------------------------------------------
 # List the files in the ChronoEngine_vehicle library

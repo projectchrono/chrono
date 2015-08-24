@@ -111,7 +111,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ENDIF()
 
 # ----------------------------------------------------------------------------
-# Generate configuration header file.
+# Generate and install configuration header file.
 # ----------------------------------------------------------------------------
 # Generate the configuration header file using substitution variables.
 # Place the header file in the library output directory and make sure it can
@@ -121,6 +121,9 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/ChConfigParallel.h.in
   ${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h
   )
+
+install(FILES "${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h"
+        DESTINATION include/chrono_parallel)
 
 # ------------------------------------------------------------------------------
 # Collect all additional include directories necessary for the PARALLEL module
