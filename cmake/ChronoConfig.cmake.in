@@ -51,18 +51,16 @@ set(CHRONO_C_FLAGS "@CH_C_FLAGS@")
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CHRONO_LINKER_FLAGS "")
 else()
-  set(CHRONO_LINKER_FLAGS "-L@PROJECT_BINARY_DIR@/lib")
+  set(CHRONO_LINKER_FLAGS "-L@CH_BINARY_DIR@/lib")
 endif()
 
-list(APPEND CHRONO_INCLUDE_DIRS "@CMAKE_SOURCE_DIR@/src")
-list(APPEND CHRONO_INCLUDE_DIRS "@PROJECT_BINARY_DIR@")
-list(APPEND CHRONO_INCLUDE_DIRS "@CH_INCLUDES@")
+list(APPEND CHRONO_INCLUDE_DIRS "@CH_INCLUDE_DIRS@")
 list(APPEND CHRONO_LIBRARIES "")
 list(APPEND CHRONO_LIB_NAMES "ChronoEngine")
 list(APPEND CHRONO_DLLS "")
 list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
 
-set(CHRONO_DATA_DIR "@CMAKE_SOURCE_DIR@/data/")
+set(CHRONO_DATA_DIR "@CH_DATA_DIR@")
 
 #-------------------------------------------------------------------------------
 # Local variables specifying which Chrono modules are enabled
@@ -147,7 +145,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "VEHICLE")
  
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_VEHICLE_INCLUDES@")
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle.dll")
 
@@ -174,7 +171,7 @@ endforeach()
 foreach(lib ${CHRONO_LIB_NAMES})
   set(onelib "${lib}-NOTFOUND")
   find_library(onelib ${lib}
-    PATHS "@PROJECT_BINARY_DIR@/lib"
+    PATHS "@CH_BINARY_DIR@/lib"
     PATH_SUFFIXES "Release"
     NO_DEFAULT_PATH
   )
@@ -196,7 +193,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   foreach(dll ${CHRONO_DLL_NAMES})
     set(onedll "${dll}-NOTFOUND")
     find_file(onedll ${dll}
-      PATHS "@PROJECT_BINARY_DIR@/bin"
+      PATHS "@CH_BINARY_DIR@/bin"
       PATH_SUFFIXES "Release"
       NO_DEFAULT_PATH
     )

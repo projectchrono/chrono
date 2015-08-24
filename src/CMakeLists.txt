@@ -259,6 +259,32 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 #------------------------------------------------------------
 
 # For the BUILD tree
+set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/convexdecomposition/HACD" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
+set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
+set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
+
 configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
                "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake"
                @ONLY)
+
+# For the INSTALL tree
+set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/convexdecomposition/HACD" )
+set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
+set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/data/")
+
+configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
+               "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
+               @ONLY)
+
+install(FILES "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
+        DESTINATION cmake
+        RENAME ChronoConfig.cmake)
