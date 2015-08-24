@@ -204,7 +204,7 @@ void SetupParamsH(SimParams& paramsH) {
 enum WheelType { CYLINDRICAL, LUGGED };
 
 // Type of wheel/tire (controls both contact and visualization)
-WheelType wheel_type = LUGGED;  // CYLINDRICAL;
+WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
 
 enum ChassisType { CSPHERE, CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIGINAL };
 
@@ -218,7 +218,8 @@ std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
 std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 
 // JSON files for powertrain (simple)
-std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain_Arman.json");
+std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
+//std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain_Arman.json");  // yo yo yo yo Arman Arman
 
 // Initial vehicle position and orientation
 // ChVector<> initLoc(-3.0, 0, 0.75);

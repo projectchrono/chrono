@@ -367,69 +367,138 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
   mphysicalSystem.AddBody(ground);
 
+  printf("  c1 ********* \n");
+
+  // version 1
+//  // -----------------------------------------
+//  // Create and initialize the vehicle system.
+//  // -----------------------------------------
+//  // Create the vehicle assembly and the callback object for tire contact
+//  // according to the specified type of tire/wheel.
+//  switch (wheel_type) {
+//    case CYLINDRICAL: {
+//    	  printf("  c11 ********* \n");
+//
+//      mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
+//      printf("  c12 ********* \n");
+//
+//      tire_cb = new MyCylindricalTire();
+//      printf("  c22 ********* \n");
+//
+//    } break;
+//    case LUGGED: {
+//      mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
+//      tire_cb = new MyLuggedTire();
+//    } break;
+//  }
+//
+//  printf("  c33 ********* \n");
+//
+//
+//
+//  mVehicle->SetTireContactCallback(tire_cb);
+//
+//
+//  printf("  c2 ********* \n");
+//
+//  // Set the callback object for chassis.
+//  switch (chassis_type) {
+//    case CBOX: {
+//      chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//      ChVector<> boxSize(1, .5, .2);
+//      ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
+//      mVehicle->SetChassisContactCallback(chassis_cb);
+//    } break;
+//
+//    case CSPHERE: {
+//      chassis_cb = new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//      Real radius = 1;
+//      ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
+//      mVehicle->SetChassisContactCallback(chassis_cb);
+//    } break;
+//
+//    case C_SIMPLE_CONVEX_MESH: {
+//      chassis_cb =
+//          new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//      mVehicle->SetChassisContactCallback(chassis_cb);
+//    } break;
+//
+//    case C_SIMPLE_TRI_MESH: {
+//      chassis_cb =
+//          new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//      mVehicle->SetChassisContactCallback(chassis_cb);
+//    } break;
+//  }
+//
+//
+//  printf("  c3 ********* \n");
+//
+//  // Set the callback object for driver inputs. Pass the hold time as a delay in
+//  // generating driver inputs.
+//  driver_cb = new MyDriverInputs(time_hold_vehicle);
+//  mVehicle->SetDriverInputsCallback(driver_cb);
+//
+//  printf("  c4 ********* \n");
+//
+//  // Initialize the vehicle at a height above the terrain.
+//  mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+//
+//  // Initially, fix the chassis (will be released after time_hold_vehicle).
+//  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+//  // Initially, fix the wheels (will be released after time_hold_vehicle).
+//  for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+//    mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+//  }
+//
+//  printf("  c6 ********* \n");
+
+
+
+  // version 2
   // -----------------------------------------
   // Create and initialize the vehicle system.
   // -----------------------------------------
 
+  std::string vehicle_file_cyl1("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
+  std::string vehicle_file_lug1("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
+
+  // JSON files for powertrain (simple)
+  std::string simplepowertrain_file1("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
+
+
+
   // Create the vehicle assembly and the callback object for tire contact
   // according to the specified type of tire/wheel.
   switch (wheel_type) {
-    case CYLINDRICAL: {
-      mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
-      tire_cb = new MyCylindricalTire();
-    } break;
-    case LUGGED: {
-      mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
-      tire_cb = new MyLuggedTire();
-    } break;
+      case CYLINDRICAL: {
+    	  mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl1, simplepowertrain_file1);
+          tire_cb = new MyCylindricalTire();
+      } break;
+      case LUGGED: {
+    	  mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug1, simplepowertrain_file1);
+          tire_cb = new MyLuggedTire();
+      } break;
   }
+
   mVehicle->SetTireContactCallback(tire_cb);
-
-  // Set the callback object for chassis.
-  switch (chassis_type) {
-    case CBOX: {
-      chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      ChVector<> boxSize(1, .5, .2);
-      ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
-      mVehicle->SetChassisContactCallback(chassis_cb);
-    } break;
-
-    case CSPHERE: {
-      chassis_cb = new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      Real radius = 1;
-      ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
-      mVehicle->SetChassisContactCallback(chassis_cb);
-    } break;
-
-    case C_SIMPLE_CONVEX_MESH: {
-      chassis_cb =
-          new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      mVehicle->SetChassisContactCallback(chassis_cb);
-    } break;
-
-    case C_SIMPLE_TRI_MESH: {
-      chassis_cb =
-          new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      mVehicle->SetChassisContactCallback(chassis_cb);
-    } break;
-  }
 
   // Set the callback object for driver inputs. Pass the hold time as a delay in
   // generating driver inputs.
-  driver_cb = new MyDriverInputs(time_hold_vehicle);
-  mVehicle->SetDriverInputsCallback(driver_cb);
-
-  // Initially, fix the chassis (will be released after time_hold_vehicle).
-  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+  MyDriverInputs driver_cb(time_hold_vehicle);
+  mVehicle->SetDriverInputsCallback(&driver_cb);
 
   // Initialize the vehicle at a height above the terrain.
   mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
 
-  // Initially, fix the wheels (will be released after time_hold_vehicle).
+  // Initially, fix the chassis and wheel bodies (will be released after time_hold).
+  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
   for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-    mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+	  mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
   }
 
+
+
+  // extra objects
   // -----------------------------------------
   // Add extra collision body to test the collision shape
   // -----------------------------------------
@@ -770,6 +839,7 @@ int main(int argc, char* argv[]) {
   // ***************************** Create Rigid ********************************************
   ChSystemParallelDVI mphysicalSystem;
   InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
+  printf("a0 ********* \n");
 
   // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
   CreateMbdPhysicalSystemObjects(mphysicalSystem,
