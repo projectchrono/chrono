@@ -154,7 +154,15 @@ if(BUILD_TESTING)
 endif()
 
 #------------------------------------------------------------
-# Create Chrono configuration header
+# Install headers form thirdparty folder
+#------------------------------------------------------------
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+        DESTINATION include
+        FILES_MATCHING PATTERN "*.h")
+
+#------------------------------------------------------------
+# Generate and install the Chrono configuration header
 #------------------------------------------------------------
 
 # Prepare substitution variables for the modules that were enabled
