@@ -127,7 +127,6 @@ CONFIGURE_FILE(
 # ------------------------------------------------------------------------------
 
 SET(CH_PARALLEL_INCLUDES
-    ${CMAKE_CURRENT_SOURCE_DIR}
     ${BLAZE_DIR}
     ${BOOST_DIR}
     ${THRUST_INCLUDE_DIR}
