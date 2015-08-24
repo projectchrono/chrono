@@ -7,8 +7,9 @@ if(NOT ENABLE_UNIT_OGRE)
 endif()
 
 find_package(SDL2 REQUIRED)
-find_package(MyGUI REQUIRED)
+
 find_package(Ogre REQUIRED)
+find_package(MyGUI REQUIRED)
 
 #SET(Boost_USE_STATIC_LIBS ON)
 #SET(Boost_USE_MULTITHREADED ON)
@@ -21,18 +22,10 @@ find_package(Boost COMPONENTS thread system chrono date_time REQUIRED)
 # SET(Boost_DATE_TIME_LIBDIR "Boost_DATE_TIME_LIBDIR-NOT_FOUND" CACHE PATH "Path to Boost date_time lib dir")
 # SET(Boost_CHRONO_LIBDIR "Boost_CHRONO_LIBDIR-NOT_FOUND" CACHE PATH "Path to Boost chrono lib dir")
 
-SET(MyGUI_LIBDIR_DEBUG "MyGUI_LIBDIR_DEBUG-NOT_FOUND" CACHE PATH "Path to MyGUI debug lib dir")
-SET(MyGUI_LIBDIR_RELEASE "MyGUI_LIBDIR_RELEASE-NOT_FOUND" CACHE PATH "Path to MyGUI release lib dir")
-SET(MyGUI_INCLUDEDIR "MyGUI_INCLUDEDIR-NOT_FOUND" CACHE PATH "Path to MyGUI include dir")
-
-IF (EXISTS "${MyGUI_INCLUDEDIR}/MYGUI/MyGUI.h")
-	include_directories(${MyGUI_INCLUDEDIR})
-ELSE()
-	SET(MyGUI_INCLUDEDIR "MyGUI_INCLUDEDIR-NOT_FOUND")
-ENDIF()
 
 
-SET(LIBRARIES ${CHRONOENGINE_LIBRARIES} 
+SET(LIBRARIES 
+    ChronoEngine
 	${SDL2_LIBRARY} 
 	#${Boost_threadlib}
 	#${Boost_systemlib}
@@ -41,7 +34,7 @@ SET(LIBRARIES ${CHRONOENGINE_LIBRARIES}
 	${Boost_LIBRARIES} 
 	${OGRE_LIBRARIES}
 	${MYGUI_LIBRARIES}
-	${MyGUI_ogrelib}
+	${MYGUI_PLATFORM_LIBRARIES}
 	)
 
 include_directories(
@@ -49,7 +42,7 @@ include_directories(
 	${OGRE_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIR}
 	${SDL_INCLUDE_DIR}
-	${MyGUI_INCLUDEDIR}
+	${MYGUI_INCLUDE_DIRS}
 	${SDL2_INCLUDE_DIR}
     "${CHRONOENGINE_INCLUDES}/collision" 
     "${CHRONOENGINE_INCLUDES}/collision/bullet" 

@@ -30,7 +30,7 @@
 #include "tiny_obj_loader.h"
 
 #ifdef _MSC_VER
-	define SSCANF sscanf_s
+	#define SSCANF sscanf_s
 #else
 	#define SSCANF sscanf
 #endif
