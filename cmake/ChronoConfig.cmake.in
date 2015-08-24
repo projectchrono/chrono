@@ -54,30 +54,31 @@ else()
   set(CHRONO_LINKER_FLAGS "-L@PROJECT_BINARY_DIR@/lib")
 endif()
 
+list(APPEND CHRONO_INCLUDE_DIRS "@CMAKE_SOURCE_DIR@/src")
+list(APPEND CHRONO_INCLUDE_DIRS "@PROJECT_BINARY_DIR@")
 list(APPEND CHRONO_INCLUDE_DIRS "@CH_INCLUDES@")
 list(APPEND CHRONO_LIBRARIES "")
 list(APPEND CHRONO_LIB_NAMES "ChronoEngine")
 list(APPEND CHRONO_DLLS "")
 list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
 
-set(CHRONO_DATA_DIR "@CMAKE_SOURCE_DIR@/demos/data/")
+set(CHRONO_DATA_DIR "@CMAKE_SOURCE_DIR@/data/")
 
 #-------------------------------------------------------------------------------
-# Local variables specifying which Chrono units are enabled
+# Local variables specifying which Chrono modules are enabled
 #-------------------------------------------------------------------------------
 
-set(Chrono_HAS_cascade @ENABLE_UNIT_CASCADE@)
-set(Chrono_HAS_cosimulation @ENABLE_UNIT_COSIMULATION@)
-set(Chrono_HAS_fea @ENABLE_UNIT_FEA@)
-set(Chrono_HAS_irrlicht @ENABLE_UNIT_IRRLICHT@)
-set(Chrono_HAS_matlab @ENABLE_UNIT_MATLAB@)
-set(Chrono_HAS_mkl @ENABLE_UNIT_MKL@)
-set(Chrono_HAS_parallel @ENABLE_UNIT_PARALLEL@)
-set(Chrono_HAS_postprocess @ENABLE_UNIT_POSTPROCESS@)
-set(Chrono_HAS_python @ENABLE_UNIT_PYTHON@)
-set(Chrono_HAS_vehicle @ENABLE_UNIT_VEHICLE@)
-
-set(Chrono_HAS_opengl @ENABLE_OPENGL@)
+set(Chrono_HAS_cascade @ENABLE_MODULE_CASCADE@)
+set(Chrono_HAS_cosimulation @ENABLE_MODULE_COSIMULATION@)
+set(Chrono_HAS_fea @ENABLE_MODULE_FEA@)
+set(Chrono_HAS_irrlicht @ENABLE_MODULE_IRRLICHT@)
+set(Chrono_HAS_matlab @ENABLE_MODULE_MATLAB@)
+set(Chrono_HAS_mkl @ENABLE_MODULE_MKL@)
+set(Chrono_HAS_parallel @ENABLE_MODULE_PARALLEL@)
+set(Chrono_HAS_opengl @ENABLE_MODULE_OPENGL@)
+set(Chrono_HAS_postprocess @ENABLE_MODULE_POSTPROCESS@)
+set(Chrono_HAS_python @ENABLE_MODULE_PYTHON@)
+set(Chrono_HAS_vehicle @ENABLE_MODULE_VEHICLE@)
 
 #-------------------------------------------------------------------------------
 # Loop over the list of requested components
@@ -122,48 +123,43 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       set(CHRONO_C_FLAGS "${CHRONO_C_FLAGS} @CH_PARALLEL_C_FLAGS@")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_PARALLEL_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_Parallel")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_Parallel.dll")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_parallel")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_parallel.dll")
 
-      if(Chrono_HAS_opengl)
-        list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
-        list(APPEND CHRONO_LIB_NAMES "ChronoEngine_ParallelOpenGL")
-        list(APPEND CHRONO_LIBRARIES "@GLEW_LIBRARY@")
-        list(APPEND CHRONO_LIBRARIES "@GLFW_LIBRARY@")
-        list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARY@")        
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_ParallelOpenGL.dll")
-        list(APPEND CHRONO_DLLS "@GLEW_DLL@")
-        list(APPEND CHRONO_DLLS "@GLFW_DLL@")
-      endif()
+    elseif(${COMPONENT_UPPER} MATCHES "OPENGL")
+
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
+      list(APPEND CHRONO_LIBRARIES "@GLEW_LIBRARY@")
+      list(APPEND CHRONO_LIBRARIES "@GLFW_LIBRARY@")
+      list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARY@")        
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
+      list(APPEND CHRONO_DLLS "@GLEW_DLL@")
+      list(APPEND CHRONO_DLLS "@GLFW_DLL@")
 
     elseif(${COMPONENT_UPPER} MATCHES "IRRLICHT")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_IRRLICHTINC@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_IRRLICHT")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
       list(APPEND CHRONO_LIBRARIES "@CH_IRRLICHTLIB@")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_IRRLICHT.dll")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
       list(APPEND CHRONO_DLLS "@CH_IRRLICHT_DLL@")
 
     elseif(${COMPONENT_UPPER} MATCHES "VEHICLE")
  
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_VEHICLE_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_Vehicle")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_Vehicle.dll")
-
-      if(Chrono_HAS_irrlicht)
-        list(APPEND CHRONO_LIB_NAMES "ChronoEngine_VehicleIrrlicht")
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_VehicleIrrlicht.dll")
-      endif()
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "FEA")
 
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_FEA")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_FEA.dll")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_fea")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fea.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "POSTPROCESS")
 
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_POSTPROCESS")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_POSTPROCESS.dll")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
 
     endif()
 
