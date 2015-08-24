@@ -14,7 +14,7 @@
 
 #include "chrono_vehicle/utils/ChWheeledVehicleAssembly.h"
 //#include "chrono_utils/ChUtilsGeometry.h"
-#include "chrono_utils/ChUtilsCreators.h"
+#include "utils/ChUtilsCreators.h"
 //#include "chrono_utils/ChUtilsGenerators.h"
 //#include "chrono_utils/ChUtilsInputOutput.h"
 
