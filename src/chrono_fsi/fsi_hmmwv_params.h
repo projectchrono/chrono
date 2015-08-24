@@ -233,11 +233,6 @@ chrono::ChQuaternion<> initRot(1, 0, 0, 0);
 // Specification of the terrain
 // -----------------------------------------------------------------------------
 
-enum TerrainType { RIGID, GRANULAR };
-
-// Type of terrain
-TerrainType terrain_type = RIGID;
-
 // Control visibility of containing bin walls
 bool visible_walls = false;
 

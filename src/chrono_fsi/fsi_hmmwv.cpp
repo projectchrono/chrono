@@ -97,11 +97,11 @@ using namespace gui;
 std::shared_ptr<ChIrrApp> application;
 #endif
 
-//#ifdef CHRONO_PARALLEL_HAS_OPENGL
-//#undef CHRONO_PARALLEL_HAS_OPENGL
+//#ifdef CHRONO_OPENGL
+//#undef CHRONO_OPENGL
 //#endif
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 #endif
@@ -212,39 +212,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
 //    mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;   // global collisionEnvelop does not work. Maybe due to sph-tire size mismatch
   mphysicalSystem.GetSettings()->collision.bins_per_axis = _make_int3(40, 40, 40);  // Arman check
 }
-// =============================================================================
 
-double CreateGranularBed(ChSystem* mphysicalSystem) {
-  // Create a material
-
-  ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
-  mat_g->SetFriction(mu_g);
-
-  // Create a particle generator and a mixture entirely made out of spheres
-
-  utils::Generator gen(mphysicalSystem);
-  utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
-  m1->setDefaultMaterialDVI(mat_g);
-  m1->setDefaultDensity(rho_g);
-  m1->setDefaultSize(r_g);
-
-  // Set starting value for body identifiers
-
-  gen.setBodyIdentifier(Id_g);
-
-  // Create particles in layers until reaching the desired number of particles
-
-  double r = 1.01 * r_g;
-  ChVector<> hdims(hdimX - r, hdimY - r, 0);
-  ChVector<> center(0, 0, 2 * r);
-
-  while (gen.getTotalNumBodies() < num_particles) {
-    gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
-    center.z += 2 * r;
-  }
-
-  return center.z;
-}
 // =============================================================================
 void AddBoxBceToChSystemAndSPH(
 		ChBody* body,
@@ -381,33 +349,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
   //      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),
   //      true);
 
-  if (terrain_type == GRANULAR) {
-    // Front box
-    utils::AddBoxGeometry(ground.get_ptr(),
-                          ChVector<>(hthick, hdimY, hdimZ + hthick),
-                          ChVector<>(hdimX + hthick, 0, hdimZ - hthick),
-                          ChQuaternion<>(1, 0, 0, 0),
-                          visible_walls);
-    // Rear box
-    utils::AddBoxGeometry(ground.get_ptr(),
-                          ChVector<>(hthick, hdimY, hdimZ + hthick),
-                          ChVector<>(-hdimX - hthick, 0, hdimZ - hthick),
-                          ChQuaternion<>(1, 0, 0, 0),
-                          visible_walls);
-    // Left box
-    utils::AddBoxGeometry(ground.get_ptr(),
-                          ChVector<>(hdimX, hthick, hdimZ + hthick),
-                          ChVector<>(0, hdimY + hthick, hdimZ - hthick),
-                          ChQuaternion<>(1, 0, 0, 0),
-                          visible_walls);
-    // Right box
-    utils::AddBoxGeometry(ground.get_ptr(),
-                          ChVector<>(hdimX, hthick, hdimZ + hthick),
-                          ChVector<>(0, -hdimY - hthick, hdimZ - hthick),
-                          ChQuaternion<>(1, 0, 0, 0),
-                          visible_walls);
-  }
-
   if (initializeFluidFromFile) {
 	  if (numObjects.numBoundaryMarkers > 0) {
 		  ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
@@ -427,10 +368,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
   mphysicalSystem.AddBody(ground);
 
   // Create the granular material.
-
-  if (terrain_type == GRANULAR) {
-    vertical_offset = CreateGranularBed(&mphysicalSystem);
-  }
 
 //  // -----------------------------------------
 //  // Create and initialize the vehicle system.
@@ -548,7 +485,7 @@ void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem) {
 	ChVector<> CameraLocation = ChVector<>(0, -10, 0);
 	ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
   gl_window.Initialize(1280, 720, "HMMWV", &mphysicalSystem);
   gl_window.SetCamera(CameraLocation, CameraLookAt, ChVector<>(0, 0, 1));
   gl_window.SetRenderMode(opengl::WIREFRAME);
@@ -685,6 +622,7 @@ void printSimulationParameters() {
 
 int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTime) {
 
+    printf(" b1 ********* \n");
 	// Release the vehicle chassis at the end of the hold time.
   if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold_vehicle) {
     mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
@@ -693,9 +631,11 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTi
     }
   }
 
+  printf(" b2 ********* \n");
   // Update vehicle
   mVehicle->Update(mTime);
 
+  printf(" b3 ********* \n");
 
 #if irrlichtVisualization
   Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
@@ -716,10 +656,13 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTi
   application->DoStep();
   application->GetVideoDriver()->endScene();
 #else
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#ifdef CHRONO_OPENGL
   if (gl_window.Active()) {
+	    printf(" b4 ********* \n");
     gl_window.DoStepDynamics(dT);
+    printf(" b5 ********* \n");
     gl_window.Render();
+    printf(" b6 ********* \n");
   }
 #else
   mphysicalSystem.DoStepDynamics(dT);
@@ -842,11 +785,13 @@ int main(int argc, char* argv[]) {
 #if haveFluid
   AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily, sphMarkerMass);
 
+  printf("a1 ********* \n");
   thrust::device_vector<Real3> posRadD = posRadH;
   thrust::device_vector<Real4> velMasD = velMasH;
   thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
   thrust::device_vector<uint> bodyIndexD = bodyIndex;
   thrust::device_vector<Real4> derivVelRhoD;
+  printf("a2 ********* \n");
   ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
 #endif
   cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
@@ -854,6 +799,7 @@ int main(int argc, char* argv[]) {
   // ***************************** System Initialize ********************************************
 
   InitializeChronoGraphics(mphysicalSystem);
+  printf("a3 ********* \n");
 
   double mTime = 0;
   double exec_time = 0;
@@ -883,6 +829,7 @@ int main(int argc, char* argv[]) {
 
 
   simParams.close();
+  printf("a4 ********* \n");
 
   // ***************************** Simulation loop ********************************************
 
@@ -908,6 +855,7 @@ int main(int argc, char* argv[]) {
 
     int out_steps = std::ceil((1.0 / paramsH.dT) / out_fps);
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep, out_steps, pov_dir_fluid);
+    printf("a5 ********* \n");
 
     // ******* slow down the sys.Check point the sys.
    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep, tStepsCheckPoint);
@@ -924,6 +872,7 @@ int main(int argc, char* argv[]) {
     }
     InitSystem(currentParamsH, numObjects);
     mphysicalSystem.Set_G_acc(ChVector<>(currentParamsH.gravity.x, currentParamsH.gravity.y, currentParamsH.gravity.z));
+    printf("a6 ********* \n");
 
     // ** initialize host mid step data
     thrust::host_vector<Real3> posRadH2(numObjects.numAllMarkers);
@@ -936,6 +885,7 @@ int main(int argc, char* argv[]) {
     // **
     thrust::device_vector<Real3> vel_XSPH_D;
     ResizeMyThrust3(vel_XSPH_D, numObjects.numAllMarkers);
+    printf("a7 ********* \n");
 
     FillMyThrust4(derivVelRhoD, mR4(0));
     thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
@@ -954,6 +904,7 @@ int main(int argc, char* argv[]) {
 #if haveFluid
 
     	fsi_timer.start("force_sph");
+    	  printf("a8 ********* \n");
 
     ForceSPH(posRadD,
              velMasD,
@@ -966,18 +917,22 @@ int main(int argc, char* argv[]) {
              currentParamsH,
              bceType,
              0.5 * currentParamsH.dT);
+    printf("a9 ********* \n");
 
     	fsi_timer.stop("force_sph");
+        printf("a10 ********* \n");
 
 #endif
 
     	fsi_timer.start("stepDynamic_mbd");
 
     mTime += 0.5 * currentParamsH.dT;
+    printf("a11 ********* \n");
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
 
     	fsi_timer.stop("stepDynamic_mbd");
+    	  printf("a12 ********* \n");
 
 #if haveFluid
     CopyD2H(derivVelRhoChronoH, derivVelRhoD);
@@ -994,6 +949,7 @@ int main(int argc, char* argv[]) {
     // assumes ...D2 is a copy of ...D
     ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 
+	  printf("a13 ********* \n");
     CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
 
@@ -1013,10 +969,12 @@ int main(int argc, char* argv[]) {
              currentParamsH,
              bceType,
              currentParamsH.dT);
+	  printf("a14 ********* \n");
 #endif
     mTime += 0.5 * currentParamsH.dT;
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+	  printf("a15 ********* \n");
 #if haveFluid
     CopyD2H(derivVelRhoChronoH, derivVelRhoD);
     AddChSystemForcesToSphForces(
@@ -1031,13 +989,16 @@ int main(int argc, char* argv[]) {
     UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
     ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
 
+	  printf("a16 ********* \n");
     CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
     UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
 
+	  printf("a17 ********* \n");
     if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
         DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
     }
 
+	  printf("a18 ********* \n");
 #endif
     // ****************** End RK2
 
@@ -1058,6 +1019,7 @@ int main(int argc, char* argv[]) {
     ClearMyThrustR4(rhoPresMuD2);
     ClearMyThrustR3(vel_XSPH_D);
 
+	  printf("a19 ********* \n");
     mCpuTimer.Stop();
     myGpuTimer.Stop();
     if (tStep % 2 == 0) {
