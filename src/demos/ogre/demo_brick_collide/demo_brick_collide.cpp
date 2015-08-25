@@ -44,21 +44,21 @@ int main(int argc, char** args) {
 
 	ChOgreBodyHandle Alpha = app.getScene()->spawnBox("Boox", 1, chrono::ChVector<>(0, 0, 0), chrono::ChVector<>(100, 0.5, 20), chrono::ChQuaternion<>(), true);
 
-	ChOgreLight& yeh = app.getScene()->createLight("Swag");
-	yeh.setType(ChOgreLightTypes::LT_POINT);
-	yeh.setPosition(0.0f, 100.0f, 0.0f);
-	yeh.setDiffuseColour(1.0f, 1.0f, 1.0f);
-	yeh.setSpecularColour(1.0f, 1.0f, 1.0f);
-	yeh.setDirection(0.0f, 0.0f, 0.0f);
-	yeh.setPowerScale(400.0f);
+	ChOgreLightHandle yeh = app.getScene()->createLight("Swag");
+	yeh->setType(ChOgreLight::POINT);
+	yeh->setPosition(0.0f, 100.0f, 0.0f);
+	yeh->setDiffuse(1.0f, 1.0f, 1.0f);
+	yeh->setSpecular(1.0f, 1.0f, 1.0f);
+	yeh->setDirection(0.0f, 0.0f, 0.0f);
+	yeh->setIntensity(400.0f);
 
-	ChOgreLight& yeh2 = app.getScene()->createLight("Yeh");
-	yeh2.setType(ChOgreLightTypes::LT_POINT);
-	yeh2.setPosition(0.0f, 30.0f, -5.0f);
-	yeh2.setDiffuseColour(1.0f, 1.0f, 1.0f);
-	yeh2.setSpecularColour(1.0f, 1.0f, 1.0f);
-	yeh2.setDirection(0.0f, 0.0f, 0.0f);
-	yeh2.setPowerScale(800.0f);
+	ChOgreLightHandle yeh2 = app.getScene()->createLight("Yeh");
+	yeh2->setType(ChOgreLight::POINT);
+	yeh2->setPosition(0.0f, 30.0f, -5.0f);
+	yeh2->setDiffuse(1.0f, 1.0f, 1.0f);
+	yeh2->setSpecular(1.0f, 1.0f, 1.0f);
+	yeh2->setDirection(0.0f, 0.0f, 0.0f);
+	yeh2->setIntensity(800.0f);
 
 	app.getScene()->setSkyBox("sky");
 	

@@ -20,8 +20,8 @@ SET(OGRE_DEMO_INCLUDES
     )
 
 add_subdirectory(demo_ball_plane)
-#add_subdirectory(demo_brick_collide)
+add_subdirectory(demo_brick_collide)
 #add_subdirectory(demo_gui)
 #add_subdirectory(demo_heightmap)
 add_subdirectory(demo_vehicle)
-#add_subdirectory(demo_wheel)
+add_subdirectory(demo_wheel)

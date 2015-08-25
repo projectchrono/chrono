@@ -28,13 +28,13 @@ int main(int argc, char** args) {
 
 	ChOgreBodyHandle Alpha = app.getScene()->spawnBox("Boox", 1, chrono::ChVector<>(0, 0, 0), chrono::ChVector<>(50, 0.5, 50), chrono::ChQuaternion<>(), true);
 
-	ChOgreLight& yeh = app.getScene()->createLight("Swag");
-	yeh.setType(ChOgreLightTypes::LT_POINT);
-	yeh.setPosition(0.0f, 100.0f, 0.0f);
-	yeh.setDiffuseColour(1.0f, 1.0f, 1.0f);
-	yeh.setSpecularColour(1.0f, 1.0f, 1.0f);
-	yeh.setDirection(0.0f, 0.0f, 0.0f);
-	yeh.setPowerScale(400.0f);
+	ChOgreLightHandle yeh = app.getScene()->createLight("Swag");
+	yeh->setType(ChOgreLight::POINT);
+	yeh->setPosition(0.0f, 100.0f, 0.0f);
+	yeh->setDiffuse(1.0f, 1.0f, 1.0f);
+	yeh->setSpecular(1.0f, 1.0f, 1.0f);
+	yeh->setDirection(0.0f, 0.0f, 0.0f);
+	yeh->setIntensity(400.0f);
 
 	app.getScene()->setSkyBox("sky");
 
