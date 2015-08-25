@@ -19,7 +19,7 @@ SET(OGRE_DEMO_INCLUDES
     "${CHRONOENGINE_INCLUDES}/collision/bullet"
     )
 
-#add_subdirectory(demo_ball_plane)
+add_subdirectory(demo_ball_plane)
 #add_subdirectory(demo_brick_collide)
 #add_subdirectory(demo_gui)
 #add_subdirectory(demo_heightmap)
