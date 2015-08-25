@@ -61,6 +61,10 @@ if(ENABLE_MODULE_PYTHON)
 	add_subdirectory(pyparser)
 endif()
 
+if(ENABLE_MODULE_OGRE)
+	add_subdirectory(ogre)
+endif()
+
 if(ENABLE_MODULE_POSTPROCESS)
 	add_subdirectory(postprocess)
 endif()
