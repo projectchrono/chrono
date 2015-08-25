@@ -28,14 +28,15 @@
 #include "physics/ChLinkDistance.h"
 #include "physics/ChBodyEasy.h"
 
-#include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
+
+#include "utils/ChUtilsInputOutput.h"
+
 /*
 #if IRRLICHT_ENABLED
 */
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "subsys/driver/ChIrrGuiTrack.h"
 /*
 # define USE_IRRLICHT

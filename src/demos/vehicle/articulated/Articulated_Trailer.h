@@ -19,8 +19,8 @@
 #ifndef ARTICULATED_TRAILER_H
 #define ARTICULATED_TRAILER_H
 
-#include "core/ChCoordsys.h"
-#include "physics/ChSystem.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/physics/ChSystem.h"
 
 #include "ModelDefs.h"
 #include "generic/Generic_Wheel.h"

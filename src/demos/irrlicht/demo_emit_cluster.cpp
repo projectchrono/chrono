@@ -29,11 +29,12 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystem.h"
-#include "particlefactory/ChParticleEmitter.h"
-#include "assets/ChTexture.h"
-#include "assets/ChColorAsset.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/particlefactory/ChParticleEmitter.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColorAsset.h"
+
+#include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the main namespace of Chrono, and other chrono namespaces
 

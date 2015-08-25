@@ -1,57 +1,30 @@
-#--------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Additional include paths and libraries
+# ------------------------------------------------------------------------------
 
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 
 SET(LIBRARIES
     ChronoEngine
-    ChronoEngine_Parallel
+    ChronoEngine_parallel
 )
 
-IF(ENABLE_OPENGL)
+IF(ENABLE_MODULE_OPENGL)
     INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-    SET(LIBRARIES ${LIBRARIES} ChronoEngine_ParallelOpenGL)
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
 ENDIF()
 
-#--------------------------------------------------------------
-# Always use full RPATH (differentiating between the build and install trees)
-
-# use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
-
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-
-# add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-# the RPATH to be used when installing, but only if it's not a system directory
-LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-IF("${isSystemDir}" STREQUAL "-1")
-    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-ENDIF("${isSystemDir}" STREQUAL "-1")
-
-#--------------------------------------------------------------
-
-# OpenMP flags
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-
-IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-ENDIF()
+# ------------------------------------------------------------------------------
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
 ENDIF()
 
-#--------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # List of all executables
+# ------------------------------------------------------------------------------
 
+# Programs that can work with or without OpenGL
 SET(DEMOS
     ballsDEM
     ballsDVI
@@ -59,9 +32,14 @@ SET(DEMOS
     mixerDVI
 )
 
-IF(ENABLE_OPENGL)
+# Programs that require OpenGL support
+IF(ENABLE_MODULE_OPENGL)
     SET(DEMOS ${DEMOS} benchmarkOpenGL shapesOpenGL)
 ENDIF()
+
+# ------------------------------------------------------------------------------
+# Add all executables
+# ------------------------------------------------------------------------------
 
 MESSAGE(STATUS "Demo programs for PARALLEL module...")
 
@@ -73,7 +51,7 @@ FOREACH(PROGRAM ${DEMOS})
 
     SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
         FOLDER demos
-        COMPILE_FLAGS "${CH_BUILDFLAGS}"
+        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_EXE}"
     )
 

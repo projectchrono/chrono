@@ -29,9 +29,9 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "unit_PYTHON/ChPython.h"
-#include "physics/ChSystem.h"
-#include "physics/ChBodyAuxRef.h"
+#include "chrono_python/ChPython.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 #include <iostream>
 #include <sstream>
 

@@ -21,18 +21,19 @@
 #include "TrackChain.h"
 
 #include "physics/ChBody.h"
+
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 #include "assets/ChAssetLevel.h"
 
-// collision mesh
 #include "geometry/ChCTriangleMeshSoup.h"
-// report contact data
-#include "subsys/collision/CollisionReporters.h"
-#include "utils/ChUtilsData.h"
+
 #include "utils/ChUtilsInputOutput.h"
+
+#include "subsys/ChVehicleModelData.h"
+#include "subsys/collision/CollisionReporters.h"
 
 namespace chrono {
 
@@ -62,8 +63,8 @@ TrackChain::TrackChain(const std::string& name,
       m_mass(shoe_mass),
       m_inertia(shoeIxx),
       m_mu(mu),
-      m_collisionFile(utils::GetModelDataFile("M113/shoe_collision.obj")),
-      m_meshFile(utils::GetModelDataFile("M113/shoe_view.obj")),
+      m_collisionFile(vehicle::GetDataFile("M113/shoe_collision.obj")),
+      m_meshFile(vehicle::GetDataFile("M113/shoe_view.obj")),
       m_meshName("M113 shoe"),
       m_numShoes(0),
       m_use_custom_damper(false) {

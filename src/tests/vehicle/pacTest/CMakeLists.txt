@@ -1,0 +1,42 @@
+# ----------------------
+# Configuration options
+# ----------------------
+INCLUDE(CMakeDependentOption)
+
+OPTION(ENABLE_PACEJKA_TEST "Enable test of single ChPacejkaTire" OFF)
+
+IF(NOT ENABLE_PACEJKA_TEST)
+  RETURN()
+ENDIF()
+
+MESSAGE(STATUS "Adding ChPacejkaTire tests...")
+
+SET(TEST_PROGRAMS
+  test_pacTire
+  test_pacUpdate
+  )
+
+SET(LIBRARIES 
+    ${CHRONOENGINE_LIBRARIES}
+    ChronoVehicle
+)
+
+# Add executables
+FOREACH(PROGRAM ${TEST_PROGRAMS})
+  MESSAGE(STATUS "... ${PROGRAM}")
+  
+  ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+  SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+
+  SET_TARGET_PROPERTIES(${PROGRAM}  PROPERTIES
+    FOLDER tests
+    COMPILE_FLAGS "${CH_CXX_FLAGS}"
+    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+    )
+
+  TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+
+  INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+
+ENDFOREACH()
+

@@ -28,14 +28,16 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChRealtimeStep.h"
-#include "unit_CASCADE/ChCascadeDoc.h"
-#include "unit_CASCADE/ChCascadeMeshTools.h"
-#include "unit_CASCADE/ChIrrCascadeMeshTools.h"
-#include "unit_CASCADE/ChIrrCascade.h"
-#include "unit_IRRLICHT/ChBodySceneNode.h"
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
-#include "unit_IRRLICHT/ChBodySceneNodeTools.h"
+#include "chrono/core/ChRealtimeStep.h"
+
+#include "chrono_cascade/ChCascadeDoc.h"
+#include "chrono_cascade/ChCascadeMeshTools.h"
+#include "chrono_cascade/ChIrrCascadeMeshTools.h"
+#include "chrono_cascade/ChIrrCascade.h"
+
+#include "chrono_irrlicht/ChBodySceneNode.h"
+#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 
 #include <irrlicht.h>
 

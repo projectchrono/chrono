@@ -21,7 +21,7 @@
 #define DRIVEGEARMOTION_H
 
 #include "subsys/ChApiSubsys.h"
-#include "subsys/base/ChTrackVehicle.h"
+#include "subsys/ChTrackVehicle.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
 #include "ModelDefs.h"

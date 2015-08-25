@@ -33,11 +33,12 @@
 //  system, now the preferred way is using ChAsset items
 //  as in demo_collision.cpp etc.
 
-#include "physics/ChSystem.h"
-#include "physics/ChLinkLinActuator.h"
-#include "unit_IRRLICHT/ChBodySceneNodeTools.h"
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
-#include "core/ChRealtimeStep.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChLinkLinActuator.h"
+
+#include "chrono_irrlicht/ChBodySceneNodeTools.h"
+#include "chrono_irrlicht/ChIrrAppInterface.h"
 
 #include <irrlicht.h>
 

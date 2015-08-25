@@ -19,8 +19,8 @@
 #ifndef HMMWV_VEHICLE_REDUCED_H
 #define HMMWV_VEHICLE_REDUCED_H
 
-#include "core/ChCoordsys.h"
-#include "physics/ChSystem.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/ChVehicle.h"
 

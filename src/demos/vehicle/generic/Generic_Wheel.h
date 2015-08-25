@@ -19,8 +19,8 @@
 #ifndef GENERIC_WHEEL_H
 #define GENERIC_WHEEL_H
 
-#include "assets/ChCylinderShape.h"
-#include "assets/ChTexture.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/ChWheel.h"
 #include "chrono_vehicle/ChVehicleModelData.h"

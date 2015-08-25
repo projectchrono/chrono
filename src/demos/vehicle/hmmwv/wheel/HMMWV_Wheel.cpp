@@ -16,12 +16,11 @@
 //
 // =============================================================================
 
-#include "assets/ChCylinderShape.h"
-#include "assets/ChTriangleMeshShape.h"
-#include "assets/ChTexture.h"
-#include "assets/ChColorAsset.h"
-
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 

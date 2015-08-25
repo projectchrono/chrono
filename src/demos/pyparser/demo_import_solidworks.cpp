@@ -25,8 +25,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "unit_IRRLICHT/ChIrrApp.h"
-#include "unit_PYTHON/ChPython.h"
+#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_python/ChPython.h"
 
 #include <irrlicht.h>
 

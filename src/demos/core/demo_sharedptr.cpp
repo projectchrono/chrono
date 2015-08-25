@@ -28,9 +28,9 @@
 #include <stdio.h>
 #include <vector>
 
-#include "core/ChException.h"
-#include "core/ChShared.h"
-#include "core/ChFrame.h"
+#include "chrono/core/ChException.h"
+#include "chrono/core/ChShared.h"
+#include "chrono/core/ChFrame.h"
 
 using namespace chrono;
 
