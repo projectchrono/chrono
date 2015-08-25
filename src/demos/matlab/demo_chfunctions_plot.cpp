@@ -27,8 +27,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChFunction.h"
-#include "unit_MATLAB/ChMatlabEngine.h"
+#include "chrono/physics/ChFunction.h"
+#include "chrono_matlab/ChMatlabEngine.h"
 
 // Use the namespace of Chrono
 
