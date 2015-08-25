@@ -2,7 +2,7 @@
 
 #include "../ChOgre.h"
 #include <core/ChVector.h>
-#include <OGRE/Ogre.h>
+#include <Ogre.h>
 #include <cmath>
 
 namespace ChOgre {

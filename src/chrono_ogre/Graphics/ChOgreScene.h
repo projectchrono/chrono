@@ -6,7 +6,7 @@ ChOgreScene is designed to be a layer of abstraction from the Ogre lighting syst
 
 #pragma once
 
-#include <OGRE/Ogre.h>
+#include <Ogre.h>
 #include <physics/ChSystem.h>
 
 #include "ChOgreBody.h"

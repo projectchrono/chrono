@@ -2,6 +2,7 @@ SET(OGRE_DEMO_LIBRARIES
     ChronoEngine
     ChronoEngine_ogre
     ${SDL2_LIBRARY}
+    ${SDL2MAIN_LIBRARY}
     ${Boost_LIBRARIES}
     ${OGRE_LIBRARIES}
     ${MYGUI_LIBRARIES}

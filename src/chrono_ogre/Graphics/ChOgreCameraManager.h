@@ -9,7 +9,7 @@ but instead retains points in space and points to orient to in space for easy ac
 
 #include "../ChOgre.h"
 #include "ChOgreCamera.h"
-#include <OGRE/Ogre.h>
+#include <Ogre.h>
 #include <core/ChQuaternion.h>
 #include <core/ChVector.h>
 #include <vector>

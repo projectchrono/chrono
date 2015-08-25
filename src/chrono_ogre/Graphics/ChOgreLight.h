@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../ChOgre.h"
-#include <OGRE/Ogre.h>
+#include <Ogre.h>
 #include <core/ChVector.h>
 #include <memory>
 
