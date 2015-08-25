@@ -22,18 +22,19 @@
 //
 ///////////////////////////////////////////////////
 
-#include "serialization/ChArchive.h"
-#include "serialization/ChArchiveBinary.h"
-#include "serialization/ChArchiveAsciiDump.h"
-#include "serialization/ChArchiveJSON.h"
-#include "core/ChLog.h"
-#include "core/ChVector.h"
-#include "core/ChMatrixDynamic.h"
-#include "core/ChMatrix.h"
-#include "core/ChException.h"
-#include "core/ChShared.h"
 #include <typeinfo>
-#include "lcp/ChLcpConstraintTuple.h"
+
+#include "chrono/serialization/ChArchive.h"
+#include "chrono/serialization/ChArchiveBinary.h"
+#include "chrono/serialization/ChArchiveAsciiDump.h"
+#include "chrono/serialization/ChArchiveJSON.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChException.h"
+#include "chrono/core/ChShared.h"
+#include "chrono/lcp/ChLcpConstraintTuple.h"
 
 
 using namespace chrono;

@@ -1,23 +1,22 @@
 #=============================================================================
 # CMake configuration file for Tracked Vehicle modeling library
 #=============================================================================
-SET(ENABLE_TRACK_VEHICLE
+SET(ENABLE_MODULE_TRACK_VEHICLE
   FALSE  CACHE  BOOL
-  "Turn this ON to generate the Tracked Vehicle modeling unit."
+  "Turn this ON to generate the Tracked Vehicle demo module."
 )
 
-IF(NOT ENABLE_TRACK_VEHICLE)
+IF(NOT ENABLE_MODULE_TRACK_VEHICLE)
   RETURN()
-ELSE()
-  MESSAGE(STATUS "...enabling Tracked Vehicle library and models. Also creates Chrono_Utils library")
 ENDIF()
+
+MESSAGE(STATUS "Demo module for track vehicle...")
 
 # require irrlicht
-IF(NOT ENABLE_UNIT_IRRLICHT)
-  MESSAGE(WARNING "need irrlicht for GUI input")
+IF(NOT ENABLE_MODULE_IRRLICHT)
+  MESSAGE(WARNING "...need irrlicht for GUI input")
   RETURN()
 ENDIF()
-
 
 SET(CT_BASE_FILES
 	subsys/ChApiSubsys.h
@@ -120,29 +119,24 @@ ADD_LIBRARY(TrackVehicle SHARED
 SET_TARGET_PROPERTIES(TrackVehicle PROPERTIES
 	COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-	COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_TRACKS")
+	COMPILE_DEFINITIONS "CH_API_COMPILE_TRACKS")
 
 # two extra target libraries if using Irrlicht, plus include dirs	
 SET(CT_TARGET_LIBS
 		ChronoEngine
-		ChronoEngine_IRRLICHT
+		ChronoEngine_irrlicht
 		${CH_IRRLICHTLIB}
 )
 INCLUDE_DIRECTORIES(${CH_IRRLICHTINC} )
 
-
-	
 TARGET_LINK_LIBRARIES(TrackVehicle ${CT_TARGET_LIBS})
 
-
-		
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/demos/trackVehicle/)
-
 INSTALL(TARGETS TrackVehicle
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-)
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/demos/trackVehicle/)
 
 
 # add demo models here
@@ -154,12 +148,12 @@ INSTALL(TARGETS TrackVehicle
 # DEMO 3: DriveChain test
 # ---------------------------------------------
 # DEMO 4: track vehicle model created by Justin, M113 vehicle from Wallin, driven by a motion on the gear sprockets.
-SET(TRACK_DEMOS
-demo_trackVehicle
-test_idlerJoint
-test_driveChain
-test_M113)
 
+SET(TRACK_DEMOS
+    demo_trackVehicle
+    test_idlerJoint
+    test_driveChain
+    test_M113)
 
 FOREACH(PROGRAM ${TRACK_DEMOS})
 
@@ -168,12 +162,10 @@ FOREACH(PROGRAM ${TRACK_DEMOS})
 	SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
 		FOLDER demos
 		COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-		)
+		LINK_FLAGS "${CH_LINKERFLAG_EXE}")
 	TARGET_LINK_LIBRARIES(${PROGRAM}
 		${CT_TARGET_LIBS}
-		TrackVehicle
-		)
+		TrackVehicle)
 
 	INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
 

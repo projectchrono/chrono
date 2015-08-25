@@ -42,7 +42,7 @@
 /*
 #if IRRLICHT_ENABLED
 */
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "subsys/driver/ChIrrGuiTrack.h"
 // Use the main namespaces of Irrlicht
 using namespace irr;

@@ -39,7 +39,7 @@
 #include "utils/ChUtilsInputOutput.h"
 
 #include <irrlicht.h>
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
 using namespace irr;

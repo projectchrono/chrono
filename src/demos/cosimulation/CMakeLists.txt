@@ -21,8 +21,8 @@ FOREACH(PROGRAM ${DEMOS})
         LINK_FLAGS "${CH_LINKERFLAG_EXE}"
     )
 
-    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_COSIMULATION)
-    ADD_DEPENDENCIES(${PROGRAM} ChronoEngine ChronoEngine_COSIMULATION)
+    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_cosimulation)
+    ADD_DEPENDENCIES(${PROGRAM} ChronoEngine ChronoEngine_cosimulation)
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
 

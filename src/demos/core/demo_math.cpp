@@ -23,12 +23,12 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChTransform.h"
-#include "core/ChMatrix.h"
-#include "core/ChLog.h"
-#include "core/ChVector.h"
-#include "core/ChQuadrature.h"
-#include "core/ChException.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuadrature.h"
+#include "chrono/core/ChException.h"
 
 using namespace chrono;
 

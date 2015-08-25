@@ -25,8 +25,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChVersion.h"
-#include "physics/ChFunction.h"
+#include "chrono/ChVersion.h"
+#include "chrono/physics/ChFunction.h"
 
 // Use the namespace of Chrono
 

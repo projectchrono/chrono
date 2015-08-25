@@ -1,70 +1,56 @@
 #--------------------------------------------------------------
-# Additional include paths and stuff
+# Additional include paths and settings
 
-INCLUDE_DIRECTORIES( "${CH_CASCADEINC}" 
-		      "${CH_IRRLICHTINC}")
+INCLUDE_DIRECTORIES("${CH_CASCADEINC}")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")	
-ADD_DEFINITIONS( "/DWNT" )
+    ADD_DEFINITIONS( "/DWNT" )
 ENDIF()	
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-ADD_DEFINITIONS(-DHAVE_IOSTREAM)
-ADD_DEFINITIONS(-DHAVE_LIMITS_H)
+    ADD_DEFINITIONS(-DHAVE_IOSTREAM)
+    ADD_DEFINITIONS(-DHAVE_LIMITS_H)
 ENDIF()
 
-
-IF (ENABLE_UNIT_IRRLICHT)
 #--------------------------------------------------------------
-# Add executables
+# List of all Cascade demos which also require Irrlicht support
 
+set(DEMOS_IRR
+	demo_converter
+	demo_stepfile
+	demo_robot
+)
 
-ADD_EXECUTABLE(demo_converter   		demo_converter.cpp)
-SOURCE_GROUP(demos\\cascade FILES  	    demo_converter.cpp)
-SET_TARGET_PROPERTIES(demo_converter PROPERTIES 
-	FOLDER demos
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	)
-TARGET_LINK_LIBRARIES(demo_converter 
-	${CH_IRRLICHTLIB}
-	${CH_CASCADELIBS}
-        ChronoEngine
- 	ChronoEngine_CASCADE
-	ChronoEngine_IRRLICHT
- 	)
-ADD_DEPENDENCIES (demo_converter ChronoEngine ChronoEngine_CASCADE)
- 	
+message(STATUS "Demo programs for CASCADE module...")
 
+#--------------------------------------------------------------
+# Add demo executables that use Irrlicht
 
-ADD_EXECUTABLE(demo_stepfile   		    demo_stepfile.cpp)
-SOURCE_GROUP(demos\\cascade FILES  	    demo_stepfile.cpp)
-SET_TARGET_PROPERTIES(demo_stepfile PROPERTIES 
-	FOLDER demos
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	)
-TARGET_LINK_LIBRARIES(demo_stepfile 
-	${CH_IRRLICHTLIB}
-	${CH_CASCADELIBS}
- 	ChronoEngine
- 	ChronoEngine_CASCADE
-	ChronoEngine_IRRLICHT
- 	)
-ADD_DEPENDENCIES (demo_stepfile ChronoEngine ChronoEngine_CASCADE)
+if(ENABLE_MODULE_IRRLICHT)
 
+   INCLUDE_DIRECTORIES("${CH_IRRLICHTINC}")
 
+   FOREACH(PROGRAM ${DEMOS_IRR})
+        MESSAGE(STATUS "...add ${PROGRAM}")
 
-ADD_EXECUTABLE(demo_robot   		    demo_robot.cpp)
-SOURCE_GROUP(demos\\cascade FILES  	    demo_robot.cpp)
-SET_TARGET_PROPERTIES(demo_robot PROPERTIES 
-	FOLDER demos
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	)
-TARGET_LINK_LIBRARIES(demo_robot 
-	${CH_IRRLICHTLIB}
-	${CH_CASCADELIBS}
- 	ChronoEngine
- 	ChronoEngine_CASCADE 
-	ChronoEngine_IRRLICHT
- 	)
-ADD_DEPENDENCIES (demo_robot ChronoEngine ChronoEngine_CASCADE)
+        ADD_EXECUTABLE(${PROGRAM} "${PROGRAM}.cpp")
+        SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+        SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+            FOLDER demos
+            COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+            LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+        TARGET_LINK_LIBRARIES(${PROGRAM}
+            ${CH_IRRLICHTLIB}
+            ${CH_CASCADELIBS}
+            ChronoEngine
+            ChronoEngine_cascade
+            ChronoEngine_irrlicht)
+        ADD_DEPENDENCIES(${PROGRAM}
+            ChronoEngine
+            ChronoEngine_cascade
+            ChronoEngine_irrlicht)
+        INSTALL(TARGETS ${PROGRAM} DESTINATION bin) 
+    ENDFOREACH()
 
-ENDIF()
+endif()
+

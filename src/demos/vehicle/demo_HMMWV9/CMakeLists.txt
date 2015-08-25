@@ -46,13 +46,9 @@ SOURCE_GROUP("" FILES ${DEMO_FILES})
 #--------------------------------------------------------------
 # Additional include directories
 
-INCLUDE_DIRECTORIES(
-    "${CMAKE_SOURCE_DIR}/unit_VEHICLE"
-    "${CMAKE_SOURCE_DIR}/demos/vehicle"
-    ${PROJECT_BINARY_DIR}
-)
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/demos/vehicle")
 
-IF(ENABLE_UNIT_IRRLICHT)
+IF(ENABLE_MODULE_IRRLICHT)
   INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 ENDIF()
 
@@ -61,15 +57,12 @@ ENDIF()
 
 SET(LIBRARIES
     ChronoEngine
-    ChronoEngine_Vehicle
-)
+    ChronoEngine_vehicle)
 
-IF(ENABLE_UNIT_IRRLICHT)
+IF(ENABLE_MODULE_IRRLICHT)
   SET(LIBRARIES_IRR
-      ChronoEngine_IRRLICHT
-      ChronoEngine_VehicleIrrlicht
-      ${CH_IRRLICHTLIB}
-  )
+      ChronoEngine_irrlicht
+      ${CH_IRRLICHTLIB})
 ELSE()
   SET(LIBRARIES_IRR "")
 ENDIF()
@@ -77,7 +70,7 @@ ENDIF()
 #--------------------------------------------------------------
 # Create the executable
 
-if(ENABLE_UNIT_IRRLICHT)
+if(ENABLE_MODULE_IRRLICHT)
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
 else()
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")

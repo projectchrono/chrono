@@ -17,9 +17,10 @@
 //
 ///////////////////////////////////////////////////
 
-#include "unit_IRRLICHT/ChIrrApp.h"
-#include "physics/ChBodyEasy.h"
-#include "physics/ChLinkTrajectory.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLinkTrajectory.h"
+
+#include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the namespace of Chrono
 

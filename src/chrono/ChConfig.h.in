@@ -1,0 +1,82 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+//
+// Chrono configuration header file
+//
+// Automatically created during CMake configuration.
+//
+// =============================================================================
+
+#ifndef CH_CONFIG_H
+#define CH_CONFIG_H
+
+// -----------------------------------------------------------------------------
+// Macros specifying enabled Chrono modules
+// -----------------------------------------------------------------------------
+
+// If module CASCADE was enabled, define CHRONO_CASCADE
+@CHRONO_CASCADE@
+
+// If module COSIMULATION was enabled, define CHRONO_COSIMULATION
+@CHRONO_COSIMULATION@
+
+// If module FEA was enabled, define CHRONO_FEA
+@CHRONO_FEA@
+
+// If module IRRLICHT was enabled, define CHRONO_IRRLICHT
+@CHRONO_IRRLICHT@
+
+// If module MATLAB was enabled, define CHRONO_MATLAB
+@CHRONO_MATLAB@
+
+// If module MKL was enabled, define CHRONO_MKL
+@CHRONO_MKL@
+
+// If module OPENGL was enabled, define CHRONO_OPENGL
+@CHRONO_OPENGL@
+
+// If module PARALLEL was enabled, define CHRONO_PARALLEL
+@CHRONO_PARALLEL@
+
+// If module POSTPROCESS was enabled, define CHRONO_POSTPROCESS
+@CHRONO_POSTPROCESS@
+
+// If module PYTHON was enabled, define CHRONO_PYTHON
+@CHRONO_PYTHON@
+
+// If module VEHICLE was enabled, define CHRONO_VEHICLE
+@CHRONO_VEHICLE@
+
+// -----------------------------------------------------------------------------
+// OpenMP settings
+// -----------------------------------------------------------------------------
+
+// If OpenMP is found the following define is set
+//   #define CHRONO_OMP_FOUND
+// Set the highest OpenMP version supported, one of:
+//   #define CHRONO_OMP_VERSION "2.0"
+//   #define CHRONO_OMP_VERSION "3.0"
+//   #define CHRONO_OMP_VERSION "4.0"
+// and define one or more of the following, as appropriate
+//   #define CHRONO_OMP_20
+//   #define CHRONO_OMP_30
+//   #define CHRONO_OMP_40
+@CHRONO_OMP_FOUND@
+@CHRONO_OMP_VERSION@
+@CHRONO_OMP_20@
+@CHRONO_OMP_30@
+@CHRONO_OMP_40@
+
+
+#endif

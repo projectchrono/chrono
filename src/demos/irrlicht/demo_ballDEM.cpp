@@ -21,12 +21,12 @@
 //
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystemDEM.h"
-#include "physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/lcp/ChLcpSolverDEM.h"
 
-#include "lcp/ChLcpSolverDEM.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
-#include "unit_IRRLICHT/ChIrrApp.h"
 #include <irrlicht.h>
 
 // Use the namespace of Chrono

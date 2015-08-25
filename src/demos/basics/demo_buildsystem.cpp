@@ -27,7 +27,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystem.h"
+#include "chrono/physics/ChSystem.h"
 
 using namespace chrono;
 
