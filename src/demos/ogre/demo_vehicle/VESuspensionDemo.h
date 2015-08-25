@@ -18,9 +18,9 @@ namespace VehicleEnvironment {
 		VESuspensionDemo(ChOgre::ChOgreApplication* App);
 		~VESuspensionDemo();
 
-		virtual void build(chrono::ChVector<>& Pos);
+		virtual void build(const chrono::ChVector<>& Pos);
 		virtual void update();
-		virtual void reset(chrono::ChVector<>& Pos);
+		virtual void reset(const chrono::ChVector<>& Pos);
 
 		virtual void shift(uint8_t gear);
 		virtual void brake();
