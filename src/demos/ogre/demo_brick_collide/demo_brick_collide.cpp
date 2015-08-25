@@ -1,4 +1,4 @@
-#include <ChOgre/Core/ChOgreApplication.h>
+#include <chrono_ogre/Core/ChOgreApplication.h>
 
 using namespace ChOgre;
 

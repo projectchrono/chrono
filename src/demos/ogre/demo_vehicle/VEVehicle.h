@@ -6,8 +6,8 @@ This is the basic vehicle class, which all vehicles should inherit from
 
 #pragma once
 
-#include <ChOgre/Core/ChOgreApplication.h>
-#include <ChOgre/Graphics/ChOgreBody.h>
+#include <chrono_ogre/Core/ChOgreApplication.h>
+#include <chrono_ogre/Graphics/ChOgreBody.h>
 
 namespace VehicleEnvironment {
 

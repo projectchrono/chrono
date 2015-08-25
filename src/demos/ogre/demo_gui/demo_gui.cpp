@@ -1,7 +1,7 @@
-#include <ChOgre/Core/ChOgreApplication.h>
+#include <chrono_ogre/Core/ChOgreApplication.h>
 #include <cmath>
-#include <ChOgre/GUI/ChOgreGUIButton.h>
-#include <ChOgre/GUI/ChOgreGUIText.h>
+#include <chrono_ogre/GUI/ChOgreGUIButton.h>
+#include <chrono_ogre/GUI/ChOgreGUIText.h>
 
 using namespace ChOgre;
 
