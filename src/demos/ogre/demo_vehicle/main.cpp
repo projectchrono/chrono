@@ -2,10 +2,10 @@
 #include <chrono>
 #include <cmath>
 
-#include <ChOgre/Core/ChOgreApplication.h>
-#include <ChOgre/GUI/ChOgreGUIManager.h>
-#include <ChOgre/GUI/ChOgreGUIText.h>
-#include <ChOgre/GUI/ChOgreGUIButton.h>
+#include <chrono_ogre/Core/ChOgreApplication.h>
+#include <chrono_ogre/GUI/ChOgreGUIManager.h>
+#include <chrono_ogre/GUI/ChOgreGUIText.h>
+#include <chrono_ogre/GUI/ChOgreGUIButton.h>
 #include "VESuspensionDemo.h"
 
 int main(int argc, char *argv[]) {
