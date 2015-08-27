@@ -158,6 +158,17 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
 
+    elseif(${COMPONENT_UPPER} MATCHES "PYTHON")
+
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_PYTHONINC@")
+      list(APPEND CHRONO_LIB_NAMES "_ChronoEngine_python_core")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_pyparser")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pyparser.dll")
+
+      if(${Chrono_HAS_irrlicht})
+        list(APPEND CHRONO_LIB_NAMES "_ChronoEngine_python_irrlicht")
+      endif()
+
     endif()
 
   endif()
