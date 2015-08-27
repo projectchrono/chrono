@@ -94,8 +94,8 @@ SET(INPUT_FILES
 	)
 	
 SET(TINYOBJLOADER_FILES
-	tinyobjloader/tiny_obj_loader.cc
-	tinyobjloader/tiny_obj_loader.h
+	${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.cc
+	${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.h
 	)
 	
 SOURCE_GROUP("" FILES ${ROOT_INCLUDE})

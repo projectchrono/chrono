@@ -5,7 +5,7 @@ Contains the definitions for ChOgreScene
 */
 
 #include "ChOgreScene.h"
-#include "../tinyobjloader/tiny_obj_loader.h"
+#include "thirdparty/tinyobjloader/tiny_obj_loader.h"
 #include <thread>
 
 namespace ChOgre {
