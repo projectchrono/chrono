@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Core/ChOgreCallback.h"
+#include "chrono_ogre/Core/ChOgreCallback.h"
 #include <MYGUI/MyGUI.h>
 
 namespace ChOgre {

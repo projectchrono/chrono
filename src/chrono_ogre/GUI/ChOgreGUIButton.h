@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Input/ChOgre_SDLInputHandler.h"
+#include "chrono_ogre/Input/ChOgre_SDLInputHandler.h"
 #include "ChOgreGUICallback.h"
 #include "ChOgreGUIElement.h"
 

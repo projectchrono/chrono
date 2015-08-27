@@ -10,8 +10,8 @@ ChOgreScene is designed to be a layer of abstraction from the Ogre lighting syst
 #include <physics/ChSystem.h>
 
 #include "ChOgreBody.h"
-#include "../Util/ChOgreBodyHandle.h"
-#include "../Util/ChOgreLightHandle.h"
+#include "chrono_ogre/Util/ChOgreBodyHandle.h"
+#include "chrono_ogre/Util/ChOgreLightHandle.h"
 
 namespace ChOgre {
 

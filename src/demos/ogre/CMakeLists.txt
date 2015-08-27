@@ -9,14 +9,11 @@ SET(OGRE_DEMO_LIBRARIES
     )
 
 SET(OGRE_DEMO_INCLUDES
-    ${CMAKE_CURRENT_SOURCE_DIR}
     ${OGRE_INCLUDE_DIR}
     ${Boost_INCLUDE_DIR}
     ${SDL_INCLUDE_DIR}
     ${MYGUI_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIR}
-    "${CHRONOENGINE_INCLUDES}/collision"
-    "${CHRONOENGINE_INCLUDES}/collision/bullet"
     )
 
 add_subdirectory(demo_ball_plane)

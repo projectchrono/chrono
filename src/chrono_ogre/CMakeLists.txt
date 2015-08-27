@@ -33,8 +33,6 @@ include_directories(
 	${SDL_INCLUDE_DIR}
 	${MYGUI_INCLUDE_DIRS}
 	${SDL2_INCLUDE_DIR}
-    "${CHRONOENGINE_INCLUDES}/collision" 
-    "${CHRONOENGINE_INCLUDES}/collision/bullet" 
     )
 
 

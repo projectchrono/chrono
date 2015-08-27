@@ -17,12 +17,12 @@ Contains the prototype for a basic application. Manages things such as window cr
 #include <vector>
 #include <random>
 
-#include "../ChOgre.h"
+#include "chrono_ogre/ChOgre.h"
 
-#include "../Input/ChOgre_SDLInputHandler.h"
-#include "../Graphics/ChOgreCameraManager.h"
-#include "../Graphics/ChOgreScene.h"
-#include "../GUI/ChOgreGUIManager.h"
+#include "chrono_ogre/Input/ChOgre_SDLInputHandler.h"
+#include "chrono_ogre/Graphics/ChOgreCameraManager.h"
+#include "chrono_ogre/Graphics/ChOgreScene.h"
+#include "chrono_ogre/GUI/ChOgreGUIManager.h"
 
 #define ChOgreFunc(N) [&](N)
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ChOgreGUIButton.h"
-#include "../Input/ChOgre_SDLInputHandler.h"
+#include "chrono_ogre/Input/ChOgre_SDLInputHandler.h"
 #include <MYGUI/MyGUI.h>
 #include <MYGUI/MyGUI_OgrePlatform.h>
 #include <memory>

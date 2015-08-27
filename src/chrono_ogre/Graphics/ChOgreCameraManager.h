@@ -7,7 +7,7 @@ but instead retains points in space and points to orient to in space for easy ac
 
 #pragma once
 
-#include "../ChOgre.h"
+#include "chrono_ogre/ChOgre.h"
 #include "ChOgreCamera.h"
 #include <Ogre.h>
 #include <core/ChQuaternion.h>
