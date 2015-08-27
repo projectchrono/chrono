@@ -6,7 +6,7 @@ Data structures for passing around user input information
 
 #pragma once
 
-#include "../ChOgre.h"
+#include "chrono_ogre/ChOgreApi.h"
 #include <cinttypes>
 
 namespace ChOgre {

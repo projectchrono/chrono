@@ -17,7 +17,7 @@ Contains the prototype for a basic application. Manages things such as window cr
 #include <vector>
 #include <random>
 
-#include "chrono_ogre/ChOgre.h"
+#include "chrono_ogre/ChOgreApi.h"
 
 #include "chrono_ogre/Input/ChOgre_SDLInputHandler.h"
 #include "chrono_ogre/Graphics/ChOgreCameraManager.h"

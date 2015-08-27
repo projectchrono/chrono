@@ -26,7 +26,7 @@ ChOgreBody is the basic physical body class. It will set up Ogre scene nodes to 
 #include <assets/ChSphereShape.h>
 #include <assets/ChTriangleMeshShape.h>
 
-#include "chrono_ogre/ChOgre.h"
+#include "chrono_ogre/ChOgreApi.h"
 #include "ChOgreModel.h"
 
 namespace ChOgre {

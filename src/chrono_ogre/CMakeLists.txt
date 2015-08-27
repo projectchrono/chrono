@@ -37,7 +37,7 @@ include_directories(${CH_OGRE_INCLUDES})
 
 
 SET(ROOT_INCLUDE
-	ChOgre.h
+	ChOgreApi.h
 	)
 	
 SET(CORE_FILES

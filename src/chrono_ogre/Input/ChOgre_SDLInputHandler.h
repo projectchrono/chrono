@@ -11,7 +11,7 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 #include <vector>
 #include <map>
 
-#include "../ChOgre.h"
+#include "chrono_ogre/ChOgreApi.h"
 #include "ChOgreInputDataStructures.h"
 
 #include "ChOgreInputCallback.h"

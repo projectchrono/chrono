@@ -6,7 +6,7 @@ The base class for giving callback points to ChOgre
 
 #pragma once
 
-#include "chrono_ogre/ChOgre.h"
+#include "chrono_ogre/ChOgreApi.h"
 #include <functional>
 
 namespace ChOgre {

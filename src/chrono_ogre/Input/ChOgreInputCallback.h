@@ -6,8 +6,8 @@ A callback for user input
 
 #pragma once
 
-#include "../ChOgre.h"
-#include "../Core/ChOgreCallback.h"
+#include "chrono_ogre/ChOgreApi.h"
+#include "chrono_ogre/Core/ChOgreCallback.h"
 #include "ChOgreInputDataStructures.h"
 
 namespace ChOgre {

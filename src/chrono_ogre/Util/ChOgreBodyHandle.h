@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../ChOgre.h"
-#include "../Graphics/ChOgreBody.h"
+#include "chrono_ogre/ChOgreApi.h"
+#include "chrono_ogre/Graphics/ChOgreBody.h"
 
 namespace ChOgre {
 

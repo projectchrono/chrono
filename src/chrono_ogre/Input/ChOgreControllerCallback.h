@@ -6,7 +6,7 @@ Base class for controller event callbacks
 
 #pragma once
 
-#include "../ChOgre.h"
+#include "chrono_ogre/ChOgreApi.h"
 #include "ChOgreInputCallback.h"
 
 namespace ChOgre {

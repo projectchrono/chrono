@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chrono_ogre/ChOgre.h"
+#include "chrono_ogre/ChOgreApi.h"
 #include <MYGUI/MyGUI.h>
 #include <MYGUI/MyGUI_OgrePlatform.h>
 #include <core/ChVector.h>
