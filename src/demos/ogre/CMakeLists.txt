@@ -8,13 +8,7 @@ SET(OGRE_DEMO_LIBRARIES
     ${MYGUI_LIBRARIES}
     )
 
-SET(OGRE_DEMO_INCLUDES
-    ${OGRE_INCLUDE_DIR}
-    ${Boost_INCLUDE_DIR}
-    ${SDL_INCLUDE_DIR}
-    ${MYGUI_INCLUDE_DIRS}
-    ${SDL2_INCLUDE_DIR}
-    )
+include_directories(${CH_OGRE_INCLUDES})
 
 add_subdirectory(demo_ball_plane)
 add_subdirectory(demo_brick_collide)
