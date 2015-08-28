@@ -18,69 +18,12 @@ ChOgreApplication.
 
 namespace ChOgre {
 
-<<<<<<< HEAD
-	class CHOGRE_DLL_TAG ChOgreCameraManager {
-=======
-struct CHOGRE_DLL_TAG ChOgreCamera_old {
-    float x, y, z;
-    float wx, wy, wz;
-    float yaw, pitch;  // Yaw and Pitch are both in degrees
-    chrono::ChQuaternion<> rot;
-    std::string name;
-    bool useAngles = false;
-    bool useQuaternions = false;
-
-    void orient(float _x, float _y, float _z, float _wx, float _wy, float _wz) {
-        x = _x;
-        y = _y;
-        z = _z;
-        wx = _wx;
-        wy = _wy;
-        wz = _wz;
-
-        useAngles = false;
-        useQuaternions = false;
-    }
-
-    void orient(float _x, float _y, float _z, float _yaw, float _pitch) {
-        yaw = _yaw;
-        pitch = _pitch;
-
-        x = _x;
-        y = _y;
-        z = _z;
-
-        useAngles = true;
-        useQuaternions = false;
-    }
-
-    void orient(float _x, float _y, float _z, chrono::ChQuaternion<>& _rot) {
-        rot = _rot;
-
-        x = _x;
-        y = _y;
-        z = _z;
-
-        useAngles = false;
-        useQuaternions = true;
-    }
-
-    void operator()(float _x, float _y, float _z, float _wx, float _wy, float _wz) {
-        orient(_x, _y, _z, _wx, _wy, _wz);
-    }
-
-    void operator()(float _x, float _y, float _z, float _yaw, float _pitch) { orient(_x, _y, _z, _yaw, _pitch); }
-
-    void operator()(float _x, float _y, float _z, chrono::ChQuaternion<>& _rot) { orient(_x, _y, _z, _rot); }
-};
-
 class CHOGRE_DLL_TAG ChOgreCameraManager {
   public:
     ChOgreCameraManager(Ogre::SceneManager* SceneManager, Ogre::Viewport* Viewport);
     ~ChOgreCameraManager();
 
     virtual ChOgreCamera* createCamera(const std::string& Name = ("Camera" + std::to_string(g_CameraCount)));
->>>>>>> 00243cad6a0ed3f5fd64ce725f35123e530737ee
 
     virtual ChOgreCamera* getCamera(unsigned int iterator);
 
