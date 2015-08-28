@@ -1,7 +1,8 @@
 /*
 Author: Charles Ricchio
 
-The actual definitions for ChOgreApplication. Most of the code in the constructor is from a tutorial, and could probably be
+The actual definitions for ChOgreApplication. Most of the code in the constructor is from a tutorial, and could probably
+be
 written more elegantly.
 */
 
@@ -9,6 +10,7 @@ written more elegantly.
 #include "physics/ChGlobal.h"
 
 namespace ChOgre {
+
 
 	ChOgreApplication::ChOgreApplication() {
 		m_pRoot = new Ogre::Root("", "", "ChOgre.log");
@@ -308,4 +310,5 @@ namespace ChOgre {
 	void ChOgreApplication::logMessage(const std::string& Message, Ogre::LogMessageLevel lml, bool maskDebug) {
 		Ogre::LogManager::getSingleton().logMessage(Message, lml, maskDebug);
 	}
+
 }

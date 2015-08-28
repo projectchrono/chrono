@@ -1,8 +1,10 @@
 /*
 Author: Charles Ricchio
 
-Contains a managment class for easy manipulation of the camera. ChOgreCameraManager doesn't actually manage any Ogre camera objects, 
-but instead retains points in space and points to orient to in space for easy access for the actual camera object within ChOgreApplication.
+Contains a managment class for easy manipulation of the camera. ChOgreCameraManager doesn't actually manage any Ogre
+camera objects,
+but instead retains points in space and points to orient to in space for easy access for the actual camera object within
+ChOgreApplication.
 */
 
 #pragma once
@@ -16,34 +18,87 @@ but instead retains points in space and points to orient to in space for easy ac
 
 namespace ChOgre {
 
+<<<<<<< HEAD
 	class CHOGRE_DLL_TAG ChOgreCameraManager {
+=======
+struct CHOGRE_DLL_TAG ChOgreCamera_old {
+    float x, y, z;
+    float wx, wy, wz;
+    float yaw, pitch;  // Yaw and Pitch are both in degrees
+    chrono::ChQuaternion<> rot;
+    std::string name;
+    bool useAngles = false;
+    bool useQuaternions = false;
 
-	public:
+    void orient(float _x, float _y, float _z, float _wx, float _wy, float _wz) {
+        x = _x;
+        y = _y;
+        z = _z;
+        wx = _wx;
+        wy = _wy;
+        wz = _wz;
 
-		ChOgreCameraManager(Ogre::SceneManager* SceneManager, Ogre::Viewport* Viewport);
-		~ChOgreCameraManager();
+        useAngles = false;
+        useQuaternions = false;
+    }
 
-		virtual ChOgreCamera* createCamera(const std::string& Name=( "Camera" + std::to_string( g_CameraCount ) ) );
+    void orient(float _x, float _y, float _z, float _yaw, float _pitch) {
+        yaw = _yaw;
+        pitch = _pitch;
 
-		virtual ChOgreCamera* getCamera(unsigned int iterator);
+        x = _x;
+        y = _y;
+        z = _z;
 
-		virtual ChOgreCamera* getCamera(const std::string& Name);
+        useAngles = true;
+        useQuaternions = false;
+    }
 
-		virtual ChOgreCamera* operator[] (unsigned int iterator);
+    void orient(float _x, float _y, float _z, chrono::ChQuaternion<>& _rot) {
+        rot = _rot;
 
-		virtual ChOgreCamera* operator[] (const std::string& Name);
+        x = _x;
+        y = _y;
+        z = _z;
 
-		virtual void makeActive(ChOgreCamera* Camera);
+        useAngles = false;
+        useQuaternions = true;
+    }
 
-	protected:
+    void operator()(float _x, float _y, float _z, float _wx, float _wy, float _wz) {
+        orient(_x, _y, _z, _wx, _wy, _wz);
+    }
 
-		std::vector<ChOgreCamera*> m_CameraList;
-		Ogre::SceneManager* m_pSceneManager;
-		Ogre::Viewport* m_pViewport;
+    void operator()(float _x, float _y, float _z, float _yaw, float _pitch) { orient(_x, _y, _z, _yaw, _pitch); }
 
-		static unsigned int g_CameraCount;
-	private:
+    void operator()(float _x, float _y, float _z, chrono::ChQuaternion<>& _rot) { orient(_x, _y, _z, _rot); }
+};
 
-	};
+class CHOGRE_DLL_TAG ChOgreCameraManager {
+  public:
+    ChOgreCameraManager(Ogre::SceneManager* SceneManager, Ogre::Viewport* Viewport);
+    ~ChOgreCameraManager();
 
+    virtual ChOgreCamera* createCamera(const std::string& Name = ("Camera" + std::to_string(g_CameraCount)));
+>>>>>>> 00243cad6a0ed3f5fd64ce725f35123e530737ee
+
+    virtual ChOgreCamera* getCamera(unsigned int iterator);
+
+    virtual ChOgreCamera* getCamera(const std::string& Name);
+
+    virtual ChOgreCamera* operator[](unsigned int iterator);
+
+    virtual ChOgreCamera* operator[](const std::string& Name);
+
+    virtual void makeActive(ChOgreCamera* Camera);
+
+  protected:
+    std::vector<ChOgreCamera*> m_CameraList;
+    Ogre::SceneManager* m_pSceneManager;
+    Ogre::Viewport* m_pViewport;
+
+    static unsigned int g_CameraCount;
+
+  private:
+};
 }

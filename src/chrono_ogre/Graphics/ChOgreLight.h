@@ -7,60 +7,48 @@
 
 namespace ChOgre {
 
-	class CHOGRE_DLL_TAG ChOgreLight {
+class CHOGRE_DLL_TAG ChOgreLight {
+  public:
+    enum LightTypes { POINT = 0, DIRECTIONAL, SPOTLIGHT };
 
-	public:
+  public:
+    ChOgreLight(Ogre::SceneManager* SceneManager);
+    ChOgreLight(Ogre::SceneManager* SceneManager, const std::string& Name);
+    ~ChOgreLight();
 
-		enum LightTypes {
-			POINT = 0,
-			DIRECTIONAL,
-			SPOTLIGHT
-		};
+    void setType(LightTypes Type);
 
-	public:
+    void setDiffuse(const chrono::ChVector<>& color);
+    void setDiffuse(float r, float g, float b);
 
-		ChOgreLight(Ogre::SceneManager* SceneManager);
-		ChOgreLight(Ogre::SceneManager* SceneManager, const std::string& Name);
-		~ChOgreLight();
+    void setSpecular(const chrono::ChVector<>& color);
+    void setSpecular(float r, float g, float b);
 
-		void setType(LightTypes Type);
+    void setPosition(const chrono::ChVector<>& position);
+    void setPosition(float x, float y, float z);
 
-		void setDiffuse(const chrono::ChVector<>& color);
-		void setDiffuse(float r, float g, float b);
+    void setDirection(const chrono::ChVector<>& direction);
+    void setDirection(float x, float y, float z);
 
-		void setSpecular(const chrono::ChVector<>& color);
-		void setSpecular(float r, float g, float b);
+    void pointAt(const chrono::ChVector<>& position);
+    void pointAt(float x, float y, float z);
 
-		void setPosition(const chrono::ChVector<>& position);
-		void setPosition(float x, float y, float z);
+    void setIntensity(float i);
 
-		void setDirection(const chrono::ChVector<>& direction);
-		void setDirection(float x, float y, float z);
+    LightTypes getType();
+    chrono::ChVector<> getDiffuse();
+    chrono::ChVector<> getSpecular();
+    chrono::ChVector<> getPosition();
+    chrono::ChVector<> getDirection();
+    float getIntensity();
+    std::string getName();
 
-		void pointAt(const chrono::ChVector<>& position);
-		void pointAt(float x, float y, float z);
+  protected:
+    Ogre::Light* m_pLight;
 
-		void setIntensity(float i);
+  private:
+};
 
-		LightTypes getType();
-		chrono::ChVector<> getDiffuse();
-		chrono::ChVector<> getSpecular();
-		chrono::ChVector<> getPosition();
-		chrono::ChVector<> getDirection();
-		float getIntensity();
-		std::string getName();
-
-	protected:
-
-		Ogre::Light* m_pLight;
-
-	private:
-
-
-
-	};
-
-	typedef ChOgreLight* ChOgreLightPtr;
-	typedef std::shared_ptr<ChOgreLight> ChOgreLightSharedPtr;
-
+typedef ChOgreLight* ChOgreLightPtr;
+typedef std::shared_ptr<ChOgreLight> ChOgreLightSharedPtr;
 }

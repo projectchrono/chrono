@@ -11,26 +11,17 @@ The base class for giving callback points to ChOgre
 
 namespace ChOgre {
 
-	typedef std::function<void()> ChOgreCall;
+typedef std::function<void()> ChOgreCall;
 
-	class CHOGRE_DLL_TAG ChOgreCallback {
+class CHOGRE_DLL_TAG ChOgreCallback {
+  public:
+    ChOgreCallback() {}
+    ~ChOgreCallback() {}
 
-	public:
+    // virtual void call() {};
+    ChOgreCall call;
 
-		ChOgreCallback() {}
-		~ChOgreCallback() {}
-
-		//virtual void call() {};
-		ChOgreCall call;
-
-	protected:
-
-
-
-	private:
-
-
-
-	};
-
+  protected:
+  private:
+};
 }

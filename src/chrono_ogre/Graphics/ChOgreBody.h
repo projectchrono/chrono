@@ -1,7 +1,8 @@
 /*
 Author: Charles Ricchio
 
-ChOgreBody is the basic physical body class. It will set up Ogre scene nodes to display the assets of its ChBody every time refresh() is called.
+ChOgreBody is the basic physical body class. It will set up Ogre scene nodes to display the assets of its ChBody every
+time refresh() is called.
 */
 
 #pragma once
@@ -31,43 +32,37 @@ ChOgreBody is the basic physical body class. It will set up Ogre scene nodes to 
 
 namespace ChOgre {
 
-	class CHOGRE_DLL_TAG ChOgreBody {
+class CHOGRE_DLL_TAG ChOgreBody {
+  public:
+    ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* System);
+    ~ChOgreBody();
 
-	public:
+    virtual void update();
+    virtual void refresh();
+    virtual void setMesh(Ogre::ManualObject* Mesh, const chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
 
-		ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* System);
-		~ChOgreBody();
+    virtual chrono::ChSharedBodyPtr getChBody();
 
-		virtual void update();
-		virtual void refresh();
-		virtual void setMesh(Ogre::ManualObject* Mesh, const chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
+    virtual chrono::ChSharedBodyPtr operator->();  // Operator magic. Allows a refrence to an ChOgreBody to offer
+                                                   // members as an ChOgreBody object, and as a ChBody pointer
 
-		virtual chrono::ChSharedBodyPtr getChBody();
+    std::string name;
+    bool deletable;
+    bool isStaticMesh;
 
-		virtual chrono::ChSharedBodyPtr operator-> (); //Operator magic. Allows a refrence to an ChOgreBody to offer members as an ChOgreBody object, and as a ChBody pointer
+  protected:
+    chrono::ChSharedBodyPtr m_pBody;
 
-		std::string name;
-		bool deletable;
-		bool isStaticMesh;
+    std::vector<ChOgreModel> m_Models;
 
-	protected:
+    Ogre::SceneManager* m_pSceneManager;
+    chrono::ChSystem* m_pChSystem;
 
-		chrono::ChSharedBodyPtr m_pBody;
+    static unsigned int m_MeshCount;
 
-		std::vector<ChOgreModel> m_Models;
+  private:
+};
 
-		Ogre::SceneManager* m_pSceneManager;
-		chrono::ChSystem* m_pChSystem;
-
-		static unsigned int m_MeshCount;
-
-	private:
-
-
-
-	};
-
-	typedef ChOgreBody* ChOgreBodyPtr;
-	typedef std::shared_ptr<ChOgreBody> ChOgreBodySharedPtr;
-
+typedef ChOgreBody* ChOgreBodyPtr;
+typedef std::shared_ptr<ChOgreBody> ChOgreBodySharedPtr;
 }

@@ -5,83 +5,58 @@
 
 namespace ChOgre {
 
-	typedef std::function<void(MyGUI::WidgetPtr)> ChOgreGUICall;
-	typedef std::function<void(MyGUI::WidgetPtr, int, int, MyGUI::MouseButton)> ChOgreGUIMouseButtonCall;
+typedef std::function<void(MyGUI::WidgetPtr)> ChOgreGUICall;
+typedef std::function<void(MyGUI::WidgetPtr, int, int, MyGUI::MouseButton)> ChOgreGUIMouseButtonCall;
 
-	class CHOGRE_DLL_TAG ChOgreGUICallback : public ChOgreCallback {
+class CHOGRE_DLL_TAG ChOgreGUICallback : public ChOgreCallback {
+  public:
+    ChOgreGUICallback() {}
+    ~ChOgreGUICallback() {}
 
-	public:
+    ChOgreGUICall call;
 
-		ChOgreGUICallback() {}
-		~ChOgreGUICallback() {}
+  private:
+    friend class ChOgreGUIElement;
 
-		ChOgreGUICall call;
+    void _c(MyGUI::WidgetPtr w) { call(w); }
+};
 
-	private:
+class CHOGRE_DLL_TAG ChOgreGUIClickCallback : public ChOgreGUICallback {
+  public:
+    ChOgreGUIClickCallback() {}
+    ~ChOgreGUIClickCallback() {}
 
-		friend class ChOgreGUIElement;
+    ChOgreGUICall call;
 
-		void _c(MyGUI::WidgetPtr w) {
-			call(w);
-		}
+  private:
+    friend class ChOgreGUIButton;
 
-	};
+    void _c(MyGUI::WidgetPtr w) { call(w); }
+};
 
-	class CHOGRE_DLL_TAG ChOgreGUIClickCallback : public ChOgreGUICallback {
+class CHOGRE_DLL_TAG ChOgreGUIPressCallback : public ChOgreGUICallback {
+  public:
+    ChOgreGUIPressCallback() {}
+    ~ChOgreGUIPressCallback() {}
 
-	public:
+    ChOgreGUIMouseButtonCall call;
 
-		ChOgreGUIClickCallback() {}
-		~ChOgreGUIClickCallback() {}
+  private:
+    friend class ChOgreGUIButton;
 
-		ChOgreGUICall call;
+    void _c(MyGUI::WidgetPtr w, int x, int y, MyGUI::MouseButton b) { call(w, x, y, b); }
+};
 
-	private:
+class CHOGRE_DLL_TAG ChOgreGUIReleaseCallback : public ChOgreGUICallback {
+  public:
+    ChOgreGUIReleaseCallback() {}
+    ~ChOgreGUIReleaseCallback() {}
 
-		friend class ChOgreGUIButton;
+    ChOgreGUIMouseButtonCall call;
 
-		void _c(MyGUI::WidgetPtr w) {
-			call(w);
-		}
+  private:
+    friend class ChOgreGUIButton;
 
-	};
-
-	class CHOGRE_DLL_TAG ChOgreGUIPressCallback : public ChOgreGUICallback {
-
-	public:
-
-		ChOgreGUIPressCallback() {}
-		~ChOgreGUIPressCallback() {}
-
-		ChOgreGUIMouseButtonCall call;
-
-	private:
-
-		friend class ChOgreGUIButton;
-
-		void _c(MyGUI::WidgetPtr w, int x, int y, MyGUI::MouseButton b) {
-			call(w, x, y, b);
-		}
-
-	};
-
-	class CHOGRE_DLL_TAG ChOgreGUIReleaseCallback : public ChOgreGUICallback {
-
-	public:
-
-		ChOgreGUIReleaseCallback() {}
-		~ChOgreGUIReleaseCallback() {}
-
-		ChOgreGUIMouseButtonCall call;
-
-	private:
-
-		friend class ChOgreGUIButton;
-
-		void _c(MyGUI::WidgetPtr w, int x, int y, MyGUI::MouseButton b) {
-			call(w, x, y, b);
-		}
-
-	};
-
+    void _c(MyGUI::WidgetPtr w, int x, int y, MyGUI::MouseButton b) { call(w, x, y, b); }
+};
 }

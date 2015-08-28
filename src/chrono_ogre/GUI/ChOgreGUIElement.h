@@ -9,38 +9,31 @@
 
 namespace ChOgre {
 
-	typedef chrono::ChVector<float> ChFloat3;
+typedef chrono::ChVector<float> ChFloat3;
 
-	class CHOGRE_DLL_TAG ChOgreGUIElement {
+class CHOGRE_DLL_TAG ChOgreGUIElement {
+  public:
+    ChOgreGUIElement();
+    ChOgreGUIElement(MyGUI::Gui* GUI);
+    ~ChOgreGUIElement();
 
-	public:
+    virtual void setName(std::string Name);
+    virtual void setGUI(MyGUI::Gui* GUI);
+    virtual void setPosition(const ChFloat3& Position) = 0;
+    virtual void setSize(const ChFloat3& Size) = 0;
+    virtual void setColor(float r, float g, float b) = 0;
+    virtual void update(){};
 
-		ChOgreGUIElement();
-		ChOgreGUIElement(MyGUI::Gui* GUI);
-		~ChOgreGUIElement();
+    virtual std::string getName();
+    virtual ChFloat3 getSize() = 0;
+    virtual ChFloat3 getPosition() = 0;
 
-		virtual void setName(std::string Name);
-		virtual void setGUI(MyGUI::Gui* GUI);
-		virtual void setPosition(const ChFloat3& Position) = 0;
-		virtual void setSize(const ChFloat3& Size) = 0;
-		virtual void setColor(float r, float g, float b) =0;
-		virtual void update() {};
+  protected:
+    std::string m_Name;
+    MyGUI::Gui* m_pGUI;
 
-		virtual std::string getName();
-		virtual ChFloat3 getSize() =0;
-		virtual ChFloat3 getPosition() =0;
+  private:
+};
 
-	protected:
-
-		std::string m_Name;
-		MyGUI::Gui* m_pGUI;
-		
-	private:
-
-
-
-	};
-
-	typedef std::unique_ptr<ChOgreGUIElement> ChOgreGUIElementPtr;
-
+typedef std::unique_ptr<ChOgreGUIElement> ChOgreGUIElementPtr;
 }
