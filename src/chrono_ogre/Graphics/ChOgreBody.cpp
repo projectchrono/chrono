@@ -194,7 +194,9 @@ void ChOgreBody::refresh() {
             double _sy = shape->GetScale().y;
             double _sz = shape->GetScale().z;
             l_Model.getSceneNode()->setScale((Ogre::Real)_sx, (Ogre::Real)_sy, (Ogre::Real)_sz);
-        }
+		} else if (temp_asset.IsType<chrono::ChTexture>()) {
+
+		}
 
         // l_pNode->attachObject(l_pEntity);
         m_Models.push_back(std::move(l_Model));

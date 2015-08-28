@@ -26,6 +26,7 @@ time refresh() is called.
 #include <assets/ChRoundedCylinderShape.h>
 #include <assets/ChSphereShape.h>
 #include <assets/ChTriangleMeshShape.h>
+#include <assets/ChTexture.h>
 
 #include "chrono_ogre/ChOgreApi.h"
 #include "ChOgreModel.h"

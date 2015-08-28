@@ -16,16 +16,16 @@ void ChOgreLight::setType(LightTypes Type) {
     m_pLight->setType(Ogre::Light::LightTypes(Type));
 }
 
-void ChOgreLight::setDiffuse(const chrono::ChVector<>& color) {
-    m_pLight->setDiffuseColour(color.x, color.y, color.z);
+void ChOgreLight::setDiffuse(const chrono::ChColor& color) {
+    m_pLight->setDiffuseColour(color.R, color.G, color.B);
 }
 
 void ChOgreLight::setDiffuse(float r, float g, float b) {
     m_pLight->setDiffuseColour(r, g, b);
 }
 
-void ChOgreLight::setSpecular(const chrono::ChVector<>& color) {
-    m_pLight->setSpecularColour(color.x, color.y, color.z);
+void ChOgreLight::setSpecular(const chrono::ChColor& color) {
+    m_pLight->setSpecularColour(color.R, color.G, color.B);
 }
 
 void ChOgreLight::setSpecular(float r, float g, float b) {
@@ -65,14 +65,14 @@ ChOgreLight::LightTypes ChOgreLight::getType() {
     return ChOgreLight::LightTypes(m_pLight->getType());
 }
 
-chrono::ChVector<> ChOgreLight::getDiffuse() {
-    return chrono::ChVector<>(m_pLight->getDiffuseColour().r, m_pLight->getDiffuseColour().g,
-                              m_pLight->getDiffuseColour().b);
+chrono::ChColor ChOgreLight::getDiffuse() {
+    return chrono::ChColor(m_pLight->getDiffuseColour().r, m_pLight->getDiffuseColour().g,
+                              m_pLight->getDiffuseColour().b, 1.0f);
 }
 
-chrono::ChVector<> ChOgreLight::getSpecular() {
-    return chrono::ChVector<>(m_pLight->getSpecularColour().r, m_pLight->getSpecularColour().g,
-                              m_pLight->getSpecularColour().b);
+chrono::ChColor ChOgreLight::getSpecular() {
+    return chrono::ChColor(m_pLight->getSpecularColour().r, m_pLight->getSpecularColour().g,
+                              m_pLight->getSpecularColour().b, 1.0f);
 }
 
 chrono::ChVector<> ChOgreLight::getPosition() {

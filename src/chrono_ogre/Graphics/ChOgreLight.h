@@ -3,6 +3,7 @@
 #include "chrono_ogre/ChOgreApi.h"
 #include <Ogre.h>
 #include <core/ChVector.h>
+#include <assets/ChColor.h>
 #include <memory>
 
 namespace ChOgre {
@@ -18,13 +19,13 @@ class CHOGRE_DLL_TAG ChOgreLight {
 
     void setType(LightTypes Type);
 
-    void setDiffuse(const chrono::ChVector<>& color);
+    void setDiffuse(const chrono::ChColor& color);
     void setDiffuse(float r, float g, float b);
 
-    void setSpecular(const chrono::ChVector<>& color);
+	void setSpecular(const chrono::ChColor& color);
     void setSpecular(float r, float g, float b);
 
-    void setPosition(const chrono::ChVector<>& position);
+	void setPosition(const chrono::ChVector<>& position);
     void setPosition(float x, float y, float z);
 
     void setDirection(const chrono::ChVector<>& direction);
@@ -36,8 +37,8 @@ class CHOGRE_DLL_TAG ChOgreLight {
     void setIntensity(float i);
 
     LightTypes getType();
-    chrono::ChVector<> getDiffuse();
-    chrono::ChVector<> getSpecular();
+	chrono::ChColor getDiffuse();
+	chrono::ChColor getSpecular();
     chrono::ChVector<> getPosition();
     chrono::ChVector<> getDirection();
     float getIntensity();
