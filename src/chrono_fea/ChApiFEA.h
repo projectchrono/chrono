@@ -13,7 +13,7 @@
 #ifndef CHAPIFEA_H
 #define CHAPIFEA_H
 
-#include "core/ChPlatform.h"
+#include "chrono/core/ChPlatform.h"
 
 // Chrono::Engine version
 //

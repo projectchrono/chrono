@@ -12,22 +12,7 @@
 #ifndef CHAPICSR3_H
 #define CHAPICSR3_H
 
-//////////////////////////////////////////////////
-//
-//   ChApiCE.h
-//
-//   Base header for all headers that have symbols
-//   that can be exported.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChPlatform.h"
+#include "chrono/core/ChPlatform.h"
 
 // When compiling this library, remember to define CH_API_COMPILE_MKL
 // (so that the symbols with 'ChApiCSR3' in front of them will be

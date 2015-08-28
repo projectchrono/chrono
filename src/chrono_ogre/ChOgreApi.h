@@ -1,7 +1,12 @@
-#if defined(_WIN32) && defined(CH_API_COMPILE_OGRE)
-#define CHOGRE_DLL_TAG __declspec(dllexport)
-#elif defined(_WIN32) && !defined(_CHOGRE_BUILD)
-#define CHOGRE_DLL_TAG __declspec(dllimport)
-#elif !defined(_WIN32)
-#define CHOGRE_DLL_TAG
+#ifndef CH_API_OGRE_H
+#define CH_API_OGRE_H
+
+#include "chrono/core/ChPlatform.h"
+
+#if defined(CH_API_COMPILE_OGRE)
+#define CHOGRE_DLL_TAG ChApiEXPORT
+#else
+#define CHOGRE_DLL_TAG ChApiIMPORT
+#endif
+
 #endif

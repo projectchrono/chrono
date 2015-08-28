@@ -12,7 +12,7 @@
 #ifndef CHAPIMATLAB_H
 #define CHAPIMATLAB_H
 
-#include "core/ChPlatform.h"
+#include "chrono/core/ChPlatform.h"
 
 // Chrono::Engine version
 //
