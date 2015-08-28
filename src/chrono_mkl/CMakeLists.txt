@@ -11,8 +11,7 @@ IF(NOT ENABLE_MODULE_MKL)
     RETURN()
 ENDIF()
 
-MESSAGE(STATUS "==== Chrono Irrlicht module ====")
-MESSAGE(STATUS "   Modify envvars to include shared library directory or, in VS, turn on Intel MKL")
+MESSAGE(STATUS "==== Chrono MKL module ====")
 
 MARK_AS_ADVANCED(CLEAR CH_MKLROOT)
 
