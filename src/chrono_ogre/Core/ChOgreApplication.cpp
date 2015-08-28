@@ -15,9 +15,7 @@ namespace ChOgre {
 
 		//NOTE: Probably terrible practice. Do better
 		{
-			typedef std::vector<std::string> __Strings_t__;
-
-			__Strings_t__ l_Plugins;
+			std::vector<std::string> l_Plugins;
 
 			l_Plugins.push_back("RenderSystem_GL");
 			l_Plugins.push_back("Plugin_ParticleFX");
@@ -29,16 +27,13 @@ namespace ChOgre {
 
 			//NOTE: Again, this is straight from a tutorial, so this could probably be done better
 			{
-				__Strings_t__::iterator l_Iterator = l_Plugins.begin();
-				__Strings_t__::iterator l_IteratorEnd = l_Plugins.end();
-
-				for (l_Iterator; l_Iterator != l_IteratorEnd; l_Iterator++) {
-					std::string& l_PluginName = (*l_Iterator);
+				for (auto p : l_Plugins) {
+					std::string& l_PluginName = p;
 
 					bool l_IsInDebugMode = OGRE_DEBUG_MODE;
 
 					if (l_IsInDebugMode) {
-						l_PluginName.append("_d");
+						l_PluginName += "_d";
 					}
 					m_pRoot->loadPlugin(l_PluginName);
 				}
@@ -130,17 +125,19 @@ namespace ChOgre {
 			try {
 				m_pChSystem->DoFrameDynamics((l_systemTimeIncriment / 2.0));
 			}
-			catch (std::exception e) {
+			catch (...) {
 
 			}
 			try {
 				m_pChSystem->DoFrameDynamics((l_systemTimeIncriment / 2.0));
 			}
-			catch (std::exception e) {
+			catch (...) {
 
 			}
 
 			m_pInputManager->update();
+
+			l_run = _func();
 
 			if (m_pInputManager->WindowClose) {
 				l_run++;
@@ -148,8 +145,6 @@ namespace ChOgre {
 			}
 
 			//m_pGUIManager->update();
-
-			l_run = _func();
 
 			m_pScene->update();
 
@@ -161,7 +156,6 @@ namespace ChOgre {
 			m_pRoot->renderOneFrame();
 
 			m_pCamera->setAspectRatio((((float)(m_pViewport->getActualWidth())) / ((float)(m_pViewport->getActualHeight()))));
-
 
 			if (!isRealTime) {
 				l_systemTimeIncriment += timestep_max;
@@ -201,7 +195,6 @@ namespace ChOgre {
 			}
 
 			Ogre::WindowEventUtilities::messagePump();
-
 			
 		}
 		isRunning = false;
@@ -217,17 +210,20 @@ namespace ChOgre {
 		}
 	}
 
-	Ogre::RenderWindow* ChOgreApplication::createWindow(std::string Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync, bool Fullscreen) {
+	Ogre::RenderWindow* ChOgreApplication::createWindow(const std::string& Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync, bool Fullscreen) {
+
 		Ogre::NameValuePairList l_Params;
+
 		l_Params["FSAA"] = std::to_string(FSAA_Level);
+
 		if (VSync) {
 			l_Params["vsync"] = "true";
 		}
 		else {
 			l_Params["vsync"] = "false";
 		}
-		m_pRenderWindow = m_pRoot->createRenderWindow(Title, Width, Height, Fullscreen, &l_Params);
 
+		m_pRenderWindow = m_pRoot->createRenderWindow(Title, Width, Height, Fullscreen, &l_Params);
 
 		m_pCamera = m_pSceneManager->createCamera("MainCamera");
 
@@ -248,31 +244,16 @@ namespace ChOgre {
 		m_pInputManager = new ChOgre_SDLInputHandler(m_pRenderWindow);
 		m_pGUIManager = new ChOgreGUIManager(m_pRenderWindow, m_pSceneManager, m_pInputManager);
 
-
 		return m_pRenderWindow;
 	}
 
-	void ChOgreApplication::loadResourcePath(std::string Path, std::string Title) {
+	void ChOgreApplication::loadResourcePath(const std::string& Path, const std::string& Title) {
 		Ogre::ResourceGroupManager::getSingleton().addResourceLocation(Path, Title);
 		Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup(Title);
 	}
 
 	void ChOgreApplication::setCamera(ChOgreCamera* Camera) {
-		/*m_pCamera->setPosition(Camera->x, Camera->y, Camera->z);
-		if (!Camera->useAngles && !Camera->useQuaternions) {
-			m_pCamera->lookAt(Camera->wx, Camera->wy, Camera->wz);
-			//logMessage("Camera positioned at: " + std::to_string(Camera->x) + " " + std::to_string(Camera->y) + " " + std::to_string(Camera->z) + "  Looking at: " + std::to_string(Camera->wx) + " " + std::to_string(Camera->wy) + " " + std::to_string(Camera->wz));
-		}
-		else if (Camera->useAngles && !Camera->useQuaternions) {
-			auto _yaw = Ogre::Degree::Degree(Camera->yaw);
-			auto _pitch = Ogre::Degree::Degree(Camera->pitch);
-			m_pCamera->yaw(Ogre::Radian::Radian(_yaw));
-			m_pCamera->pitch(Ogre::Radian::Radian(_pitch));
-			//logMessage("Camera positioned at: " + std::to_string(Camera->x) + " " + std::to_string(Camera->y) + " " + std::to_string(Camera->z) + "  Looking at: " + std::to_string(Camera->yaw) + " " + std::to_string(Camera->pitch));
-		}
-		else if (!Camera->useAngles && Camera->useQuaternions) {
-			m_pCamera->rotate(Ogre::Quaternion(Camera->rot.e0, Camera->rot.e1, Camera->rot.e2, Camera->rot.e3));
-		}*/
+		m_pCameraManager->makeActive(Camera);
 	}
 
 	void ChOgreApplication::setVSync(bool VSync) {
@@ -290,7 +271,6 @@ namespace ChOgre {
 
 				m_pRenderWindow->removeAllViewports();
 				m_pRenderWindow->destroy();
-
 			}
 			delete m_pRenderWindow;
 			delete m_pInputManager;

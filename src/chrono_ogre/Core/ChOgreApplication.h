@@ -37,8 +37,8 @@ namespace ChOgre {
 		typedef std::function<int()> ChOgreLoopCallFunc;
 
 		virtual int startLoop(ChOgreLoopCallFunc PerFrame);
-		virtual Ogre::RenderWindow* createWindow(std::string Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync=false, bool Fullscreen=false);
-		virtual void loadResourcePath(std::string Path, std::string Title="FileSystem");
+		virtual Ogre::RenderWindow* createWindow(const std::string& Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync=false, bool Fullscreen=false);
+		virtual void loadResourcePath(const std::string& Path, const std::string& Title = "FileSystem");
 		virtual void setCamera(ChOgreCamera* Camera);
 		virtual void setVSync(bool VSync);
 
