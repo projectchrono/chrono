@@ -6,48 +6,41 @@
 
 namespace ChOgre {
 
-	class CHOGRE_DLL_TAG ChOgreGUIButton : public ChOgreGUIElement {
+class CHOGRE_DLL_TAG ChOgreGUIButton : public ChOgreGUIElement {
+  public:
+    ChOgreGUIButton();
+    ChOgreGUIButton(MyGUI::Gui* GUI);
+    ChOgreGUIButton(const ChFloat3& Position, const ChFloat3& Size, MyGUI::Gui* GUI);
+    ~ChOgreGUIButton();
 
-	public:
+    virtual void setColor(float r, float g, float b);
+    virtual void setTextColor(float r, float g, float b);
+    virtual void setText(const std::string& Text);
+    virtual void setFont(const std::string& Name);
+    virtual void setPosition(const ChFloat3& Position);
+    virtual void setSize(const ChFloat3& Size);
+    virtual void update();
 
-		ChOgreGUIButton();
-		ChOgreGUIButton(MyGUI::Gui* GUI);
-		ChOgreGUIButton(const ChFloat3& Position, const ChFloat3& Size, MyGUI::Gui* GUI);
-		~ChOgreGUIButton();
+    virtual void setClickCallback(ChOgreGUIClickCallback& Callback);
+    virtual void emptyClickCallback();
 
-		virtual void setColor(float r, float g, float b);
-		virtual void setTextColor(float r, float g, float b);
-		virtual void setText(const std::string& Text);
-		virtual void setFont(const std::string& Name);
-		virtual void setPosition(const ChFloat3& Position);
-		virtual void setSize(const ChFloat3& Size);
-		virtual void update();
+    virtual void setPressCallback(ChOgreGUIPressCallback& Callback);
+    virtual void emptyPressCallback();
 
-		virtual void setClickCallback(ChOgreGUIClickCallback& Callback);
-		virtual void emptyClickCallback();
+    virtual void setReleaseCallback(ChOgreGUIReleaseCallback& Callback);
+    virtual void emptyReleaseCallback();
 
-		virtual void setPressCallback(ChOgreGUIPressCallback& Callback);
-		virtual void emptyPressCallback();
+    virtual ChFloat3 getPosition() { return ChFloat3((float)m_pButton->getLeft(), (float)m_pButton->getTop(), 0.f); };
+    virtual ChFloat3 getSize() { return ChFloat3((float)m_pButton->getWidth(), (float)m_pButton->getHeight(), 0.f); }
 
-		virtual void setReleaseCallback(ChOgreGUIReleaseCallback& Callback);
-		virtual void emptyReleaseCallback();
-		
-		virtual ChFloat3 getPosition() { return ChFloat3((float)m_pButton->getLeft(), (float)m_pButton->getTop(), 0.f); };
-		virtual ChFloat3 getSize() { return ChFloat3((float)m_pButton->getWidth(), (float)m_pButton->getHeight(), 0.f); }
+  protected:
+    bool m_db;
+    bool m_pressed;
 
-	protected:
+    MyGUI::Button* m_pButton;
 
-		bool m_db;
-		bool m_pressed;
+  private:
+};
 
-		MyGUI::Button* m_pButton;
-
-	private:
-
-
-
-	};
-
-	typedef std::unique_ptr<ChOgreGUIButton> ChOgreGUIButtonPtr;
-
+typedef std::unique_ptr<ChOgreGUIButton> ChOgreGUIButtonPtr;
 }

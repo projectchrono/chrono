@@ -7,39 +7,34 @@
 
 namespace ChOgre {
 
-	class CHOGRE_DLL_TAG ChOgreCamera {
+class CHOGRE_DLL_TAG ChOgreCamera {
+  public:
+    ChOgreCamera(Ogre::Camera* Camera);
+    ChOgreCamera(const ChOgreCamera& rhs);
+    ChOgreCamera(ChOgreCamera&& lhs);
+    ~ChOgreCamera();
 
-	public:
+    ChOgreCamera& operator=(const ChOgreCamera& rhs);
+    ChOgreCamera& operator=(ChOgreCamera&& lhs);
 
-		ChOgreCamera(Ogre::Camera* Camera);
-		ChOgreCamera(const ChOgreCamera& rhs);
-		ChOgreCamera(ChOgreCamera&& lhs);
-		~ChOgreCamera();
+    void lookAt(float x, float y, float z);
+    void lookAt(const chrono::ChVector<>& dir);
+    void orient(float pitch, float yaw);
 
-		ChOgreCamera& operator=(const ChOgreCamera& rhs);
-		ChOgreCamera& operator=(ChOgreCamera&& lhs);
+    void setPosition(float x, float y, float z);
+    void setPosition(const chrono::ChVector<>& position);
 
-		void lookAt(float x, float y, float z);
-		void lookAt(const chrono::ChVector<>& dir);
-		void orient(float pitch, float yaw );
+    void setName(const std::string& Name);
 
-		void setPosition(float x, float y, float z);
-		void setPosition(const chrono::ChVector<>& position);
+    Ogre::Camera* getCamera() { return m_pCamera; }
+    chrono::ChVector<> getPosition() {
+        return chrono::ChVector<>(m_pCamera->getPosition().x, m_pCamera->getPosition().y, m_pCamera->getPosition().z);
+    }
+    const std::string& getName() { return m_pCamera->getName(); }
 
-		void setName(const std::string& Name);
+  protected:
+    Ogre::Camera* m_pCamera;
 
-		Ogre::Camera* getCamera() { return m_pCamera; }
-		chrono::ChVector<> getPosition() { return chrono::ChVector<>(m_pCamera->getPosition().x, m_pCamera->getPosition().y, m_pCamera->getPosition().z); }
-		const std::string& getName() { return m_pCamera->getName(); }
-
-	protected:
-
-		Ogre::Camera* m_pCamera;
-
-	private:
-
-
-
-	};
-
+  private:
+};
 }

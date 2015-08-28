@@ -2,28 +2,25 @@
 
 namespace ChOgre {
 
-	ChOgreGUIElement::ChOgreGUIElement() {
-		m_pGUI = nullptr;
-	}
+ChOgreGUIElement::ChOgreGUIElement() {
+    m_pGUI = nullptr;
+}
 
-	ChOgreGUIElement::ChOgreGUIElement(MyGUI::Gui* GUI) {
-		m_pGUI = GUI;
-	}
+ChOgreGUIElement::ChOgreGUIElement(MyGUI::Gui* GUI) {
+    m_pGUI = GUI;
+}
 
-	ChOgreGUIElement::~ChOgreGUIElement() {
-		 
-	}
+ChOgreGUIElement::~ChOgreGUIElement() {}
 
-	void ChOgreGUIElement::setName(std::string Name) {
-		m_Name = Name;
-	}
+void ChOgreGUIElement::setName(std::string Name) {
+    m_Name = Name;
+}
 
-	void ChOgreGUIElement::setGUI(MyGUI::Gui* GUI) {
-		m_pGUI = GUI;
-	}
+void ChOgreGUIElement::setGUI(MyGUI::Gui* GUI) {
+    m_pGUI = GUI;
+}
 
-	std::string ChOgreGUIElement::getName() {
-		return m_Name;
-	}
-
+std::string ChOgreGUIElement::getName() {
+    return m_Name;
+}
 }

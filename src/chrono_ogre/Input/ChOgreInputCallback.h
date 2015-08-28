@@ -12,25 +12,16 @@ A callback for user input
 
 namespace ChOgre {
 
-	typedef std::function<void()> ChOgreInputCall;
+typedef std::function<void()> ChOgreInputCall;
 
-	class CHOGRE_DLL_TAG ChOgreInputCallback : public ChOgreCallback {
+class CHOGRE_DLL_TAG ChOgreInputCallback : public ChOgreCallback {
+  public:
+    ChOgreInputCallback() {}
+    ~ChOgreInputCallback() {}
 
-	public:
+    ChOgreInputCall call;
 
-		ChOgreInputCallback() {}
-		~ChOgreInputCallback() {}
-
-		ChOgreInputCall call;
-
-	protected:
-
-
-
-	private:
-
-
-
-	};
-
+  protected:
+  private:
+};
 }

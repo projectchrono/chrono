@@ -20,78 +20,71 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 #include "ChOgreControllerCallback.h"
 #include "ChOgreWindowCallback.h"
 
-#define INPUT_DEADZONE  0.07
+#define INPUT_DEADZONE 0.07
 
 namespace ChOgre {
 
-	class CHOGRE_DLL_TAG ChOgre_SDLInputHandler {
+class CHOGRE_DLL_TAG ChOgre_SDLInputHandler {
+  public:
+    ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow);
+    ~ChOgre_SDLInputHandler();
 
-	public:
+    virtual void update();
 
-		ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow);
-		~ChOgre_SDLInputHandler();
+    virtual void grabMouse(bool grab);
 
-		virtual void update();
+    virtual void runHapticEffect(ChOgreHapticEffect& Effect, int Iterations);
+    virtual void runHapticRumble(float Strength, double Length);
+    virtual void stopHapticRumble();
 
-		virtual void grabMouse(bool grab);
+    virtual ChOgreKeyState& getKeyState(SDL_Scancode scancode);
+    virtual ChOgreKeyState& getKeyState(SDL_Keycode keycode);
 
-		virtual void runHapticEffect(ChOgreHapticEffect& Effect, int Iterations);
-		virtual void runHapticRumble(float Strength, double Length);
-		virtual void stopHapticRumble();
+    virtual ChOgreMouseState& getMouseState();
 
-		virtual ChOgreKeyState& getKeyState(SDL_Scancode scancode);
-		virtual ChOgreKeyState& getKeyState(SDL_Keycode keycode);
+    virtual ChOgreControllerState& getControllerState();
 
-		virtual ChOgreMouseState& getMouseState();
+    virtual ChOgreWheelState& getWheelState();
 
-		virtual ChOgreControllerState& getControllerState();
+    void addCallback(ChOgreKeyboardCallback& callback);
+    void addCallback(ChOgreMouseCallback& callback);
+    void addCallback(ChOgreControllerCallback& callback);
+    void addCallback(ChOgreWindowCallback& callback);
 
-		virtual ChOgreWheelState& getWheelState();
+    void removeCallback(ChOgreKeyboardCallback& callback);
+    void removeCallback(ChOgreMouseCallback& callback);
+    void removeCallback(ChOgreControllerCallback& callback);
+    void removeCallback(ChOgreWindowCallback& callback);
 
-		void addCallback(ChOgreKeyboardCallback& callback);
-		void addCallback(ChOgreMouseCallback& callback);
-		void addCallback(ChOgreControllerCallback& callback);
-		void addCallback(ChOgreWindowCallback& callback);
+    double AxisThreshold;
 
-		void removeCallback(ChOgreKeyboardCallback& callback);
-		void removeCallback(ChOgreMouseCallback& callback);
-		void removeCallback(ChOgreControllerCallback& callback);
-		void removeCallback(ChOgreWindowCallback& callback);
+    bool WindowClose;
 
-		double AxisThreshold;
+  protected:
+    SDL_Window* m_pSDLWindow;
 
-		bool WindowClose;
+    void m_CallKeyboardCallbacks(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState);
+    void m_CallMouseCallbacks();
+    void m_CallControllerCallbacks();
+    void m_CallWindowCallbacks();
 
-	protected:
+    std::vector<ChOgreKeyboardCallback*> m_KeyboardCallbackPtrs;
+    std::vector<ChOgreMouseCallback*> m_MouseCallbackPtrs;
+    std::vector<ChOgreControllerCallback*> m_ControllerCallbackPtrs;
+    std::vector<ChOgreWindowCallback*> m_WindowCallbackPtrs;
 
-		SDL_Window* m_pSDLWindow;
+    std::map<SDL_Scancode, ChOgreKeyState> m_KeyStates_scancode;
+    std::map<SDL_Keycode, ChOgreKeyState> m_KeyStates_keycode;
 
-		void m_CallKeyboardCallbacks(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState);
-		void m_CallMouseCallbacks();
-		void m_CallControllerCallbacks();
-		void m_CallWindowCallbacks();
+    ChOgreMouseState m_MouseState;
+    ChOgreControllerState m_ControllerState;
+    ChOgreWheelState m_WheelState;
 
-		std::vector<ChOgreKeyboardCallback*> m_KeyboardCallbackPtrs;
-		std::vector<ChOgreMouseCallback*> m_MouseCallbackPtrs;
-		std::vector<ChOgreControllerCallback*> m_ControllerCallbackPtrs;
-		std::vector<ChOgreWindowCallback*> m_WindowCallbackPtrs;
+    SDL_Joystick* m_pController;
+    SDL_Haptic* m_pHaptic;
 
-		std::map<SDL_Scancode, ChOgreKeyState> m_KeyStates_scancode;
-		std::map<SDL_Keycode, ChOgreKeyState> m_KeyStates_keycode;
+    static std::string const WheelGUID;
 
-		ChOgreMouseState m_MouseState;
-		ChOgreControllerState m_ControllerState;
-		ChOgreWheelState m_WheelState;
-		
-		SDL_Joystick* m_pController;
-		SDL_Haptic* m_pHaptic;
-
-		static std::string const WheelGUID;
-
-	private:
-
-
-
-	};
-
+  private:
+};
 }

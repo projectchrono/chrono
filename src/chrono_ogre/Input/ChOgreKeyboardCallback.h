@@ -11,25 +11,16 @@ Base class for keyboard event callbacks
 
 namespace ChOgre {
 
-	typedef std::function<void(scancode_t, keycode_t, const ChOgreKeyState&)> ChOgreKeyboardCall;
+typedef std::function<void(scancode_t, keycode_t, const ChOgreKeyState&)> ChOgreKeyboardCall;
 
-	class CHOGRE_DLL_TAG ChOgreKeyboardCallback : public ChOgreInputCallback {
+class CHOGRE_DLL_TAG ChOgreKeyboardCallback : public ChOgreInputCallback {
+  public:
+    ChOgreKeyboardCallback() {}
+    ~ChOgreKeyboardCallback() {}
 
-	public:
+    ChOgreKeyboardCall call;
 
-		ChOgreKeyboardCallback() {}
-		~ChOgreKeyboardCallback() {}
-
-		ChOgreKeyboardCall call;
-
-	protected:
-
-
-
-	private:
-
-
-
-	};
-
+  protected:
+  private:
+};
 }
