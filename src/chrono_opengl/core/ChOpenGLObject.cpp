@@ -89,7 +89,7 @@ bool ChOpenGLObject::PostGLInitialize(const GLvoid* ptr, GLsizeiptr size) {
   // glBindBuffer(GL_ARRAY_BUFFER, 0);
   // glBindVertexArray(0);
 
-  return !this->GLReturnedError("ChOpenGLObject::PostGLInitialize - on exit");
+  return !GLReturnedError("ChOpenGLObject::PostGLInitialize - on exit");
 }
 
 bool ChOpenGLObject::Initialize() {

@@ -41,7 +41,7 @@ ChOpenGLHUD::ChOpenGLHUD() : ChOpenGLBase() {
 }
 
 bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimerParallel* viewer_timer) {
-  if (this->GLReturnedError("ChOpenGLHUD::Initialize - on entry"))
+  if (GLReturnedError("ChOpenGLHUD::Initialize - on entry"))
     return false;
 
   if (!font_shader.InitializeStrings("text", text_vert, text_frag)) {

@@ -29,7 +29,7 @@ ChOpenGLCloud::ChOpenGLCloud() : ChOpenGLObject() {
 }
 
 bool ChOpenGLCloud::Initialize(const std::vector<glm::vec3>& data, ChOpenGLMaterial mat, ChOpenGLShader* _shader) {
-  if (this->GLReturnedError("Background::Initialize - on entry"))
+  if (GLReturnedError("Background::Initialize - on entry"))
     return false;
 
   if (!super::Initialize()) {
@@ -52,7 +52,7 @@ bool ChOpenGLCloud::Initialize(const std::vector<glm::vec3>& data, ChOpenGLMater
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 
-  if (this->GLReturnedError("Cloud::Initialize - on exit"))
+  if (GLReturnedError("Cloud::Initialize - on exit"))
     return false;
 
   this->AttachShader(_shader);
@@ -74,7 +74,7 @@ void ChOpenGLCloud::TakeDown() {
 }
 
 void ChOpenGLCloud::Draw(const mat4& projection, const mat4& view) {
-  if (this->GLReturnedError("ChOpenGLCloud::Draw - on entry"))
+  if (GLReturnedError("ChOpenGLCloud::Draw - on entry"))
     return;
   if (this->vertices.size() == 0)
     return;
@@ -85,12 +85,12 @@ void ChOpenGLCloud::Draw(const mat4& projection, const mat4& view) {
 
   // Enable the shader
   shader->Use();
-  this->GLReturnedError("ChOpenGLCloud::Draw - after use");
+  GLReturnedError("ChOpenGLCloud::Draw - after use");
   // Send our common uniforms to the shader
   shader->CommonSetup(value_ptr(projection), value_ptr(view));
   glUniform4fv(color_handle, 1, glm::value_ptr(color));
   glUniform1fv(point_size_handle, 1, &point_size);
-  this->GLReturnedError("ChOpenGLCloud::Draw - after common setup");
+  GLReturnedError("ChOpenGLCloud::Draw - after common setup");
   // Bind and draw! (in this case we draw as triangles)
   glBindVertexArray(this->vertex_array_handle);
 
@@ -102,12 +102,12 @@ void ChOpenGLCloud::Draw(const mat4& projection, const mat4& view) {
 
   glDrawElements(GL_POINTS, this->vertex_indices.size(), GL_UNSIGNED_INT, (void*)0);
 
-  this->GLReturnedError("ChOpenGLCloud::Draw - after draw");
+  GLReturnedError("ChOpenGLCloud::Draw - after draw");
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glUseProgram(0);
 
-  if (this->GLReturnedError("ChOpenGLCloud::Draw - on exit"))
+  if (GLReturnedError("ChOpenGLCloud::Draw - on exit"))
     return;
 }
 

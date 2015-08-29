@@ -45,7 +45,7 @@ void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSys
   // Disable vsync!!
   glfwSwapInterval(0);
 
-  GLUGetError("Initialize GLFW");
+  GLReturnedError("Initialize GLFW");
 
   glewExperimental = GL_TRUE;
   GLenum err = glewInit();
@@ -62,7 +62,7 @@ void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSys
   glfwSetMouseButtonCallback(window, CallbackMouseButton);
   glfwSetCursorPosCallback(window, CallbackMousePos);
 
-  GLUGetError("Initialize GLEW");
+  GLReturnedError("Initialize GLEW");
   GLFWGetVersion(window);
 
   viewer = new ChOpenGLViewer(msystem);
@@ -81,12 +81,12 @@ void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSys
   viewer->Initialize();
 
   glfwSetWindowUserPointer(window, viewer);
-  GLUGetError("Initialize Viewer ");
+  GLReturnedError("Initialize Viewer ");
   poll_frame = 0;
 }
 
 void ChOpenGLWindow::StartDrawLoop(double time_step) {
-  GLUGetError("Start Draw Loop");
+  GLReturnedError("Start Draw Loop");
   ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));
   while (Active()) {
     pointer->Update(time_step);
@@ -106,9 +106,9 @@ void ChOpenGLWindow::Render() {
     glEnable(GL_CULL_FACE);
     glClearColor(18.0f / 255.0f, 26.0f / 255.0f, 32.0f / 255.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    GLUGetError("Before Render");
+    GLReturnedError("Before Render");
     pointer->Render();
-    GLUGetError("After Render");
+    GLReturnedError("After Render");
     glfwSwapBuffers(window);
   }
 
@@ -129,19 +129,6 @@ void ChOpenGLWindow::Pause() {
   ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));
   pointer->pause_sim = true;
 }
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-bool ChOpenGLWindow::GLUGetError(std::string err) {
-  bool return_error = false;
-  GLenum glerror;
-  // Go through list of errors until no errors remain
-  while ((glerror = glGetError()) != GL_NO_ERROR) {
-    return_error = true;
-    std::cerr << err << " - " << gluErrorString(glerror) << std::endl;
-  }
-  return return_error;
-}
-#pragma GCC diagnostic pop
 
 void ChOpenGLWindow::GLFWGetVersion(GLFWwindow* main_window) {
   int major, minor, rev;

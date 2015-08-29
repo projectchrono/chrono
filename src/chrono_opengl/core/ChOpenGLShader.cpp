@@ -56,7 +56,7 @@ void ChOpenGLShader::CommonSetup(const GLfloat* projection, const GLfloat* view)
   if (this->viewport_size_handle != BAD_GL_VALUE) {
     glUniform2iv(viewport_size_handle, 1, glm::value_ptr(viewport_size));
   }
-  this->GLReturnedError("Draw - after common setup");
+  GLReturnedError("Draw - after common setup");
 }
 
 void ChOpenGLShader::SetTime(const float& _time) {
@@ -78,7 +78,7 @@ void ChOpenGLShader::Use() {
   if (this->camera_handle != BAD_GL_VALUE) {
     glUniform3fv(this->camera_handle, 1, glm::value_ptr(camera_pos));
   }
-  this->GLReturnedError("ChOpenGLShader::Use - exit");
+  GLReturnedError("ChOpenGLShader::Use - exit");
 }
 
 bool ChOpenGLShader::CompileStrings(std::string shader_name, const char* vertex_shader, const char* fragment_shader) {

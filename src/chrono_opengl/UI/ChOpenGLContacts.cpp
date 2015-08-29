@@ -26,7 +26,7 @@ ChOpenGLContacts::ChOpenGLContacts() {
 }
 
 bool ChOpenGLContacts::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader) {
-  if (this->GLReturnedError("Contacts::Initialize - on entry"))
+  if (GLReturnedError("Contacts::Initialize - on entry"))
     return false;
   contact_data.push_back(vec3(0, 0, 0));
   contacts.Initialize(contact_data, mat, shader);
