@@ -26,11 +26,12 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChColorAsset.h"
 #include "assets/ChTexture.h"
-// collision mesh
+
 #include "geometry/ChCTriangleMeshSoup.h"
 
 #include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
+
+#include "subsys/ChVehicleModelData.h"
 
 namespace chrono {
 
@@ -95,7 +96,7 @@ IdlerSimple::IdlerSimple(const std::string& name,
       m_inertia(Ixx),
       m_tensionerK(tensionerK),
       m_tensionerC(tensionerC),
-      m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
+      m_meshFile(vehicle::GetDataFile("M113/Idler_XforwardYup.obj")),
       m_meshName("idler_mesh"),
       m_springRestLength(springFreeLen),
       m_mu(mu)

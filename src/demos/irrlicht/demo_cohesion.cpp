@@ -28,10 +28,11 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystem.h"
-#include "physics/ChBodyEasy.h"
-#include "assets/ChTexture.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/assets/ChTexture.h"
+
+#include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the namespace of Chrono
 

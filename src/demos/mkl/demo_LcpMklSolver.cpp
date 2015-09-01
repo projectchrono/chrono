@@ -26,22 +26,23 @@
 ///////////////////////////////////////////////////
 
 // Include some headers used by this tutorial...
-#include "lcp/ChLcpVariablesGeneric.h"
-#include "lcp/ChLcpVariablesBodyOwnMass.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
-#include "lcp/ChLcpKblockGeneric.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "lcp/ChLcpIterativeSOR.h"
-#include "lcp/ChLcpIterativePMINRES.h"
-#include "lcp/ChLcpIterativeBB.h"
-#include "lcp/ChLcpSimplexSolver.h"
-#include "core/ChLinearAlgebra.h"
-#include <unit_MKL/ChCSR3matrix.h>
-#include <unit_MKL/ChLcpMklSolver.h>
+#include "chrono/lcp/ChLcpVariablesGeneric.h"
+#include "chrono/lcp/ChLcpVariablesBodyOwnMass.h"
+#include "chrono/lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/lcp/ChLcpKblockGeneric.h"
+#include "chrono/lcp/ChLcpSystemDescriptor.h"
+#include "chrono/lcp/ChLcpIterativeSOR.h"
+#include "chrono/lcp/ChLcpIterativePMINRES.h"
+#include "chrono/lcp/ChLcpIterativeBB.h"
+#include "chrono/lcp/ChLcpSimplexSolver.h"
+#include "chrono/core/ChLinearAlgebra.h"
 
-//#include "physics/ChSystem.h"
-//#include "unit_MATLAB/ChMatlabEngine.h"
+#include "chrono_mkl/ChCSR3matrix.h"
+#include "chrono_mkl/ChLcpMklSolver.h"
+
+//#include "chrono/physics/ChSystem.h"
+//#include "chrono_matlab/ChMatlabEngine.h"
 
 
 // Remember to use the namespace 'chrono' because all classes

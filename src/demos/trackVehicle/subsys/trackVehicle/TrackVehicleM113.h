@@ -24,7 +24,7 @@
 #include "physics/ChSystem.h"
 #include "ModelDefs.h"
 
-#include "subsys/base/ChTrackVehicle.h"
+#include "subsys/ChTrackVehicle.h"
 #include "subsys/trackSystem/TrackSystemM113.h"
 
 namespace chrono {

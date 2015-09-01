@@ -11,11 +11,10 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChLog.h"
-//#include "unit_COSIMULATION/ChHostInfo.h"
-//#include "unit_COSIMULATION/ChSocket.h"
-#include "unit_COSIMULATION/ChSocketFramework.h"
-#include "unit_COSIMULATION/ChExceptionSocket.h"
+#include "chrono/core/ChLog.h"
+
+#include "chrono_cosimulation/ChSocketFramework.h"
+#include "chrono_cosimulation/ChExceptionSocket.h"
 
 using namespace chrono;
 using namespace chrono::cosimul;

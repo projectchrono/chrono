@@ -29,12 +29,12 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChSystem.h"
-#include "unit_IRRLICHT/ChBodySceneNode.h"
-#include "unit_IRRLICHT/ChBodySceneNodeTools.h"
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
-#include "core/ChRealtimeStep.h"
-#include "geometry/ChCTriangleMeshSoup.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono_irrlicht/ChBodySceneNode.h"
+#include "chrono_irrlicht/ChBodySceneNodeTools.h"
+#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/geometry/ChCTriangleMeshSoup.h"
 
 #include <irrlicht.h>
 

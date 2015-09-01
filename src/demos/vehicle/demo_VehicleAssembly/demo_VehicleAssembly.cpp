@@ -3,8 +3,8 @@
 #include <cmath>
 
 // Chrono::Engine header files
-#include "core/ChFileutils.h"
-#include "core/ChStream.h"
+#include "chrono/core/ChFileutils.h"
+#include "chrono/core/ChStream.h"
 
 // Chrono::Parallel header files
 #include "chrono_parallel/physics/ChSystemParallel.h"

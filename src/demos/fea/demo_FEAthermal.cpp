@@ -16,21 +16,23 @@
 
 // Include some headers used by this tutorial...
 
-#include "physics/ChSystem.h"
-#include "lcp/ChLcpIterativeMINRES.h"
-#include "unit_FEA/ChElementSpring.h"
-#include "unit_FEA/ChElementBar.h"
-#include "unit_FEA/ChElementTetra_4.h"
-#include "unit_FEA/ChElementTetra_10.h"
-#include "unit_FEA/ChElementHexa_8.h"
-#include "unit_FEA/ChElementHexa_20.h"
-#include "unit_FEA/ChContinuumThermal.h"
-#include "unit_FEA/ChContinuumElectrostatics.h"
-#include "unit_FEA/ChNodeFEAxyzP.h"
-#include "unit_FEA/ChMesh.h"
-#include "unit_FEA/ChLinkPointFrame.h"
-#include "unit_FEA/ChVisualizationFEAmesh.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/lcp/ChLcpIterativeMINRES.h"
+
+#include "chrono_fea/ChElementSpring.h"
+#include "chrono_fea/ChElementBar.h"
+#include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChElementTetra_10.h"
+#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono_fea/ChElementHexa_20.h"
+#include "chrono_fea/ChContinuumThermal.h"
+#include "chrono_fea/ChContinuumElectrostatics.h"
+#include "chrono_fea/ChNodeFEAxyzP.h"
+#include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
+
+#include "chrono_irrlicht/ChIrrApp.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -73,8 +75,8 @@ int main(int argc, char* argv[]) {
     // This is much easier than creating all nodes and elements via C++ programming.
     // You can generate these files using the TetGen tool.
     try {
-        my_mesh->LoadFromTetGenFile(GetChronoDataFile("unit_FEA/beam.node").c_str(),
-                                    GetChronoDataFile("unit_FEA/beam.ele").c_str(), mmaterial);
+        my_mesh->LoadFromTetGenFile(GetChronoDataFile("fea/beam.node").c_str(),
+                                    GetChronoDataFile("fea/beam.ele").c_str(), mmaterial);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;

@@ -14,10 +14,11 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChLog.h"
-#include "core/ChMatrixDynamic.h"
-#include "unit_COSIMULATION/ChCosimulation.h"
-#include "unit_COSIMULATION/ChExceptionSocket.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMatrixDynamic.h"
+
+#include "chrono_cosimulation/ChCosimulation.h"
+#include "chrono_cosimulation/ChExceptionSocket.h"
 
 using namespace chrono;
 using namespace chrono::cosimul;

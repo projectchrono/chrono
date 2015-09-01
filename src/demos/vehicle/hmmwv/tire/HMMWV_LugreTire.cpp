@@ -16,9 +16,9 @@
 //
 // =============================================================================
 
-#include "assets/ChCylinderShape.h"
-#include "assets/ChTexture.h"
-#include "assets/ChColorAsset.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColorAsset.h"
 
 #include "hmmwv/tire/HMMWV_LugreTire.h"
 

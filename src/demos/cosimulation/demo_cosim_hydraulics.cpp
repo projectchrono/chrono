@@ -15,10 +15,11 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChLog.h"
-#include "physics/ChSystem.h"
-#include "unit_COSIMULATION/ChCosimulation.h"
-#include "unit_COSIMULATION/ChExceptionSocket.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/physics/ChSystem.h"
+
+#include "chrono_cosimulation/ChCosimulation.h"
+#include "chrono_cosimulation/ChExceptionSocket.h"
 
 using namespace chrono;
 using namespace chrono::cosimul;

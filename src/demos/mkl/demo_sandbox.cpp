@@ -1,6 +1,6 @@
-#include <unit_MKL/ChCSR3matrix.h>
-#include <core/ChSpmatrix.h>
-#include <core/ChMatrixDynamic.h>
+#include "chrono_mkl/ChCSR3matrix.h"
+#include "chrono/core/ChSpmatrix.h"
+#include "chrono/core/ChMatrixDynamic.h"
 
 using namespace chrono;
 //

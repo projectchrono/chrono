@@ -25,12 +25,12 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChRealtimeStep.h"
-#include "collision/ChCConvexDecomposition.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/collision/ChCConvexDecomposition.h"
 
-#include "unit_CASCADE/ChCascadeDoc.h"
-#include "unit_CASCADE/ChCascadeMeshTools.h"
-#include "unit_CASCADE/ChIrrCascadeMeshTools.h"
+#include "chrono_cascade/ChCascadeDoc.h"
+#include "chrono_cascade/ChCascadeMeshTools.h"
+#include "chrono_cascade/ChIrrCascadeMeshTools.h"
 
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
@@ -86,8 +86,8 @@
 #include <TObj_TReference.hxx>
 #include <TNaming_NamedShape.hxx>
 
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
-#include "unit_IRRLICHT/ChIrrMeshTools.h"
+#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrMeshTools.h"
 
 // Use the namespace of Chrono
 using namespace chrono;

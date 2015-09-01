@@ -27,17 +27,17 @@
 
 // Include some headers used by this tutorial...
 
-#include "lcp/ChLcpVariablesGeneric.h"
-#include "lcp/ChLcpVariablesBodyOwnMass.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
-#include "lcp/ChLcpKblockGeneric.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "lcp/ChLcpIterativeSOR.h"
-#include "lcp/ChLcpIterativePMINRES.h"
-#include "lcp/ChLcpIterativeBB.h"
-#include "lcp/ChLcpSimplexSolver.h"
-#include "core/ChLinearAlgebra.h"
+#include "chrono/lcp/ChLcpVariablesGeneric.h"
+#include "chrono/lcp/ChLcpVariablesBodyOwnMass.h"
+#include "chrono/lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/lcp/ChLcpKblockGeneric.h"
+#include "chrono/lcp/ChLcpSystemDescriptor.h"
+#include "chrono/lcp/ChLcpIterativeSOR.h"
+#include "chrono/lcp/ChLcpIterativePMINRES.h"
+#include "chrono/lcp/ChLcpIterativeBB.h"
+#include "chrono/lcp/ChLcpSimplexSolver.h"
+#include "chrono/core/ChLinearAlgebra.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...

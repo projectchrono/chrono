@@ -1,9 +1,10 @@
 #include <iostream>
 #include <cstdlib>
 #include <VSPerf.h>
-#include <lcp/ChLcpSystemDescriptor.h>
-#include <unit_MKL/ChCSR3matrix.h>
-#include <lcp/ChLcpMatrixTool.h>
+
+#include "chrono/lcp/ChLcpSystemDescriptor.h"
+#include "chrono/lcp/ChLcpMatrixTool.h"
+#include "chrono_mkl/ChCSR3matrix.h"
 
 using namespace std;
 using namespace chrono;

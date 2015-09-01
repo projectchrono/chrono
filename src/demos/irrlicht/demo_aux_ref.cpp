@@ -39,11 +39,11 @@
 
 #include <stdio.h>
 
-#include "physics/ChSystem.h"
-#include "physics/ChBody.h"
-#include "physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
 using namespace irr;

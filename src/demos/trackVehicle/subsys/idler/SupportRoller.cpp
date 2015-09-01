@@ -25,8 +25,9 @@
 // collision mesh
 // #include "geometry/ChCTriangleMeshSoup.h"
 
-#include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
+
+#include "subsys/ChVehicleModelData.h"
 
 namespace chrono {
 

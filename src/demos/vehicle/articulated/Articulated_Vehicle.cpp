@@ -18,8 +18,8 @@
 //
 // =============================================================================
 
-#include "assets/ChSphereShape.h"
-#include "assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 

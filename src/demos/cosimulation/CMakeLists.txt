@@ -17,12 +17,12 @@ FOREACH(PROGRAM ${DEMOS})
 
     SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
         FOLDER cosimulation
-        COMPILE_FLAGS "${CH_BUILDFLAGS}"
+        COMPILE_FLAGS "${CH_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_EXE}"
     )
 
-    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_COSIMULATION)
-    ADD_DEPENDENCIES(${PROGRAM} ChronoEngine ChronoEngine_COSIMULATION)
+    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_cosimulation)
+    ADD_DEPENDENCIES(${PROGRAM} ChronoEngine ChronoEngine_cosimulation)
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
 

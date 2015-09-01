@@ -23,13 +23,14 @@
 
 #include "physics/ChGlobal.h"
 
+#include "utils/ChUtilsInputOutput.h"
+
 #include "TrackVehicle.h"
 
+#include "subsys/ChVehicleModelData.h"
 #include "subsys/trackSystem/TrackSystem.h"
 // #include "subsys/driveline/TrackDriveline.h"
 
-#include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
 
 namespace chrono {
 
@@ -55,7 +56,7 @@ TrackVehicle::TrackVehicle(const std::string& name,
     // ---------------------------------------------------------------------------
     // Set the base class variables not created by constructor, if we plan to use them.
     m_meshName = "M113_chassis";
-    m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
+    m_meshFile = vehicle::GetDataFile("M113/Chassis_XforwardYup.obj");
     m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5);  // full length, height, width of chassis box
 
     // setup the chassis body
