@@ -12,6 +12,7 @@ SET(FEA_DEMOS_IRR
     demo_FEAelectrostatics
     demo_FEAvisualize
     demo_FEAcontacts
+    demo_FEAcables
 )
 
 # List all FEA demos that use both Irrlicht and Matlab
@@ -19,17 +20,20 @@ SET(FEA_DEMOS_IRR_MATLAB
     demo_FEAbeams
     demo_FEAminiature
     demo_FEAshells
+    demo_FEAcableMATLAB
 )
 
 # List all FEA demos that use both Irrlicht and MKL
 SET(FEA_DEMOS_IRR_MKL
-    demo_FEAcables
+    demo_FEAcablesMKL
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL
 SET(FEA_DEMOS_IRR_MATLAB_MKL
     demo_FEAbeamsconstr
 )
+
+INCLUDE_DIRECTORIES(CMAKE_CURRENT_SOURCE_DIR)
 
 MESSAGE(STATUS "Demo programs for FEA module...")
 

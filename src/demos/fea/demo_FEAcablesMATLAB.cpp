@@ -13,10 +13,11 @@
 //   Demo code about
 //
 //     - FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
+//       Uses the Chrono MATLAB module
 
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/lcp/ChLcpIterativePMINRES.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono_matlab/ChMatlabEngine.h"
+#include "chrono_matlab/ChLcpMatlabSolver.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "FEAcables.h"
@@ -88,16 +89,13 @@ int main(int argc, char* argv[]) {
     // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
     application.AssetUpdateAll();
 
-    // Change solver settings
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED THIS OR ::LCP_SIMPLEX because other
-                                                                 // solvers can't handle stiffness matrices
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(200);
-    my_system.SetIterLCPmaxItersStab(200);
-    my_system.SetTolForce(1e-13);
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-    msolver->SetVerbose(false);
-    msolver->SetDiagonalPreconditioning(true);
+    // Change solver to Matlab external linear solver, for max precision in benchmarks
+    ChMatlabEngine matlab_engine;
+    ChLcpMatlabSolver* matlab_solver_stab = new ChLcpMatlabSolver(matlab_engine);
+    ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+    my_system.ChangeLcpSolverStab(matlab_solver_stab);
+    my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+    application.GetSystem()->Update();
 
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise

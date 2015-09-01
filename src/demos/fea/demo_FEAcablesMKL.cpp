@@ -13,11 +13,11 @@
 //   Demo code about
 //
 //     - FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
+//       uses the Chrono MKL module
 
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/lcp/ChLcpIterativePMINRES.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_mkl/ChLcpMklSolver.h"
 
 #include "FEAcables.h"
 
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Cables FEM", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Cables FEM (MKL)", core::dimension2d<u32>(800, 600), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -43,9 +43,7 @@ int main(int argc, char* argv[]) {
     // their referenced nodes.
     ChSharedPtr<ChMesh> my_mesh(new ChMesh);
 
-    // Create one of the available models (defined in FEAcables.h)
-    // model1(my_system, my_mesh);
-    // model2(my_system, my_mesh);
+    // Create the model (defined in FEAcables.h)
     model3(my_system, my_mesh);
 
     // This is necessary in order to precompute the stiffness matrices for all
@@ -88,16 +86,12 @@ int main(int argc, char* argv[]) {
     // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
     application.AssetUpdateAll();
 
-    // Change solver settings
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED THIS OR ::LCP_SIMPLEX because other
-                                                                 // solvers can't handle stiffness matrices
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(200);
-    my_system.SetIterLCPmaxItersStab(200);
-    my_system.SetTolForce(1e-13);
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-    msolver->SetVerbose(false);
-    msolver->SetDiagonalPreconditioning(true);
+    // Change solver to MKL
+    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
+    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+    my_system.ChangeLcpSolverStab(mkl_solver_stab);
+    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    application.GetSystem()->Update();
 
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
@@ -113,6 +107,7 @@ int main(int argc, char* argv[]) {
     //
     // THE SOFT-REAL-TIME CYCLE
     //
+
     application.SetTimestep(0.01);
 
     while (application.GetDevice()->run()) {
