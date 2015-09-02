@@ -40,127 +40,26 @@ class ChEigenMatrix : public ChSparseMatrixBase, public Eigen::SparseMatrix<doub
     /// Virtualizabile functions
     virtual void SetElement(int insrow, int inscol, double insval) override { coeffRef(insrow, inscol) = insval; };
 
-    virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol) override {
-        int maxrows = matra->GetRows();
-        int maxcols = matra->GetColumns();
-        int i, j;
-
-        // can't use triplets because they expect a compressed matrix with
-        // non existing entries
-
-        for (i = 0; i < maxrows; i++) {
-            for (j = 0; j < maxcols; j++) {
-                if ((*matra)(i, j) != 0)
-                    this->SetElement<1>(insrow + i, inscol + j, (*matra)(i, j));
-            }
-        }
-    }
-
-    virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) override {
-        int maxrows = matra->GetRows();
-        int maxcols = matra->GetColumns();
-        int i, j;
-
-        // can't use triplets because they expect a compressed matrix with
-        // non existing entries
-
-        for (i = 0; i < maxrows; i++) {
-            for (j = 0; j < maxcols; j++) {
-                if ((*matra)(i, j) != 0)
-                    this->SetElement<1>(insrow + i, inscol + j, (*matra)(i, j));
-            }
-        }
-    };
-
-    virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) override {
-        int maxrows = matra->GetRows();
-        int maxcols = matra->GetColumns();
-        int i, j;
-
-        // can't use triplets because they expect a compressed matrix with
-        // non existing entries
-
-        for (i = 0; i < maxrows; i++) {
-            for (j = 0; j < maxcols; j++) {
-                if ((*matra)(i, j) != 0)
-                    this->SetElement<0>(insrow + i, inscol + j, (*matra)(i, j));
-            }
-        }
-    };
-
-    virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override {
-        int maxrows = matra->GetRows();
-        int maxcols = matra->GetColumns();
-        int i, j;
-
-        // can't use triplets because they expect a compressed matrix with
-        // non existing entries
-
-        for (i = 0; i < maxcols; i++) {
-            for (j = 0; j < maxrows; j++) {
-                if ((*matra)(j, i) != 0)
-                    this->SetElement<1>(insrow + i, inscol + j, (*matra)(j, i));
-            }
-        }
-    }
-
-    virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override {
-        int maxrows = matra->GetRows();
-        int maxcols = matra->GetColumns();
-        int i, j;
-
-        // can't use triplets because they expect a compressed matrix with
-        // non existing entries
-
-        for (i = 0; i < maxcols; i++) {
-            for (j = 0; j < maxrows; j++) {
-                if ((*matra)(j, i) != 0)
-                    this->SetElement<0>(insrow + i, inscol + j, (*matra)(j, i));
-            }
-        }
-    };
-
-    virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) override {
-        int maxrows = matra->GetRows();
-        int maxcols = matra->GetColumns();
-        int i, j;
-
-        // can't use triplets because they expect a compressed matrix with
-        // non existing entries
-
-        for (i = 0; i < maxcols; i++) {
-            for (j = 0; j < maxrows; j++) {
-                if ((*matra)(j, i) != 0)
-                    this->SetElement<1>(insrow + i, inscol + j, (*matra)(j, i));
-            }
-        }
-    }
-
+    virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
+    virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) override;
+    virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
+    virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
+    virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
+    virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) override;
     virtual void PasteClippedMatrix(ChMatrix<>* matra,
                                     int cliprow,
                                     int clipcol,
                                     int nrows,
                                     int ncolumns,
                                     int insrow,
-                                    int inscol) override {
-        /*#pragma omp parallel for if (nrows > CH_OMP_MATR)*/
-        for (int i = 0; i < nrows; ++i)
-            for (int j = 0; j < ncolumns; ++j)
-                this->SetElement<1>(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol));
-    }
-
+                                    int inscol) override;
     virtual void PasteSumClippedMatrix(ChMatrix<>* matra,
                                        int cliprow,
                                        int clipcol,
                                        int nrows,
                                        int ncolumns,
                                        int insrow,
-                                       int inscol) override {
-        /*#pragma omp parallel for if (nrows > CH_OMP_MATR)*/
-        for (int i = 0; i < nrows; ++i)
-            for (int j = 0; j < ncolumns; ++j)
-                this->SetElement<0>(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol));
-    }
+                                       int inscol) override;
 
     /// Templatized functions
     template <bool overwrite = 1>
@@ -169,16 +68,6 @@ class ChEigenMatrix : public ChSparseMatrixBase, public Eigen::SparseMatrix<doub
             coeffRef(insrow, inscol) = insval;
         else
             coeffRef(insrow, inscol) += insval;
-    };
-
-    template <>
-    void SetElement<1>(int insrow, int inscol, double insval) {
-        coeffRef(insrow, inscol) = insval;
-    };
-
-    template <>
-    void SetElement<0>(int insrow, int inscol, double insval) {
-        coeffRef(insrow, inscol) += insval;
     };
 
     inline double& Element(int row, int col) { return coeffRef(row, col); };
@@ -369,6 +258,21 @@ class ChEigenMatrix : public ChSparseMatrixBase, public Eigen::SparseMatrix<doub
 
 };  // END class ChEigenMatrix
 
+// -----------------------------------------------------------------------------
+// Specializations of ChEigenMatrix::SetElement()
+
+template <>
+inline void ChEigenMatrix::SetElement<1>(int insrow, int inscol, double insval) {
+    coeffRef(insrow, inscol) = insval;
+}
+
+template <>
+inline void ChEigenMatrix::SetElement<0>(int insrow, int inscol, double insval) {
+    coeffRef(insrow, inscol) += insval;
+}
+
+// -----------------------------------------------------------------------------
+
 class ChEigenMatrixNEW : public ChSparseMatrixBase {
   public:
     ChEigenMatrixNEW();
@@ -393,10 +297,10 @@ class ChEigenMatrixNEW : public ChSparseMatrixBase {
     int storage_dimension;  // could differ from 'rowIndex[mat_rows]' if has been allocated a greater space
 };
 
-ChEigenMatrixNEW::ChEigenMatrixNEW() {
+inline ChEigenMatrixNEW::ChEigenMatrixNEW() {
 }
 
-ChEigenMatrixNEW::ChEigenMatrixNEW(int insrow, int inscol, double insnonzero_ratio) {
+inline ChEigenMatrixNEW::ChEigenMatrixNEW(int insrow, int inscol, double insnonzero_ratio) {
     assert(insrow > 0 && inscol > 0 && insnonzero_ratio > 0);
     mat_rows = insrow;
     mat_cols = inscol;
@@ -413,10 +317,10 @@ ChEigenMatrixNEW::ChEigenMatrixNEW(int insrow, int inscol, double insnonzero_rat
     rowIndex[mat_rows] = storage_dimension;
 }
 
-ChEigenMatrixNEW::~ChEigenMatrixNEW() {
+inline ChEigenMatrixNEW::~ChEigenMatrixNEW() {
 }
 
-void ChEigenMatrixNEW::SetElement(int insrow, int inscol, double insval) {
+inline void ChEigenMatrixNEW::SetElement(int insrow, int inscol, double insval) {
     assert(insrow < mat_rows && inscol < mat_cols);
     assert(insrow >= 0 && inscol >= 0);
     bool overwrite = 1;
@@ -467,7 +371,7 @@ void ChEigenMatrixNEW::SetElement(int insrow, int inscol, double insval) {
     colIndex[col_sel - 1] = inscol;
 }
 
-double ChEigenMatrixNEW::GetElement(int row, int col) {
+inline double ChEigenMatrixNEW::GetElement(int row, int col) {
     assert(row < mat_rows && col < mat_cols);
     assert(row >= 0 && col >= 0);
     for (int col_sel = rowIndex[row]; col_sel < rowIndex[row + 1]; col_sel++) {
