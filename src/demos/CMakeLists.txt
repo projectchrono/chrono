@@ -73,6 +73,10 @@ if(ENABLE_MODULE_PARALLEL)
   add_subdirectory(parallel)
 endif()
 
+if(ENABLE_MODULE_OPENGL)
+  add_subdirectory(opengl)
+endif()
+
 if(ENABLE_MODULE_VEHICLE)
   add_subdirectory(vehicle)
 endif()
