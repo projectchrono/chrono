@@ -3,13 +3,8 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-# TODO:
-# For now, the OpenGL module requires the PARALLEL module.
-# Later, only use this:
-#option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
+option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
 
-cmake_dependent_option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF
-                       "ENABLE_MODULE_PARALLEL" OFF)
 include_directories(${CH_PARALLEL_INCLUDES})
 
 # Return now if this module is not enabled
@@ -225,8 +220,7 @@ TARGET_LINK_LIBRARIES(ChronoEngine_opengl
   ${GLEW_LIBRARY}
   ${GLFW_LIBRARY}
   ${OPENGL_LIBRARIES}
-  ChronoEngine
-  ChronoEngine_parallel)
+  ChronoEngine)
 
 INSTALL(TARGETS ChronoEngine_opengl
   RUNTIME DESTINATION bin

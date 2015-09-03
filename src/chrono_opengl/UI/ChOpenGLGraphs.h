@@ -20,7 +20,7 @@
 #include "chrono_opengl/core/ChOpenGLObject.h"
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
 #include "chrono_opengl/shapes/ChOpenGLWires.h"
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "physics/ChSystem.h"
 
 namespace chrono {
 namespace opengl {

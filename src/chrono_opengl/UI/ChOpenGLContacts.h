@@ -18,7 +18,7 @@
 #define CHOPENGLCONTACTS_H
 #include "chrono_opengl/core/ChOpenGLBase.h"
 #include "chrono_opengl/shapes/ChOpenGLCloud.h"
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "physics/ChSystem.h"
 namespace chrono {
 namespace opengl {
 class CH_OPENGL_API ChOpenGLContacts : public ChOpenGLBase {
@@ -32,7 +32,7 @@ class CH_OPENGL_API ChOpenGLContacts : public ChOpenGLBase {
 
  private:
   void UpdateChrono(ChSystem* physics_system);
-  void UpdateChronoParallel(ChSystemParallel* system);
+  //void UpdateChronoParallel(ChSystemParallel* system);
 
   ChOpenGLCloud contacts;
   std::vector<glm::vec3> contact_data;

@@ -31,8 +31,6 @@
 #include "physics/ChSystem.h"
 #include "core/ChTimer.h"
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChTimerParallel.h"
 #include <glfw3.h>
 
 namespace chrono {
@@ -95,7 +93,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   bool use_vsync;
   RenderMode render_mode;
 
-  ChTimerParallel timer;
+  ChTimer<double > timer_text, timer_render, timer_geometry;
 
   glm::mat4 model, view, projection, modelview;
 
