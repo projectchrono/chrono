@@ -246,6 +246,9 @@ message(STATUS "   CHRONO_DATA_DIR     (Path to Chrono data folder): ${CHRONO_DA
 #
 # The input list must contain a list of DLLs with full paths, such as that
 # returned by the ChronoConfig script.
+#
+# Note that EXECUTABLE_OUTPUT_PATH must be defined (even if it's simply
+# CMAKE_BINARY_DIR or PROJECT_BINARY_DIR)
 #===============================================================================
 
 function(add_DLL_copy_command DLL_LIST)
@@ -274,7 +277,7 @@ function(add_DLL_copy_command DLL_LIST)
             TARGET COPY_DLLS PRE_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${DLL}"
-                "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/"
+                "${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>/"
         )
     endforeach()
 
