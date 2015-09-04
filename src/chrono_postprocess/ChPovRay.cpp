@@ -531,12 +531,6 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
                     assets_file << " }\n";
                 }
 
-                // assets_file <<" pigment {color rgbt <" <<
-                //	myobjshapeasset->GetColor().R << "," <<
-                //	myobjshapeasset->GetColor().G << "," <<
-                //	myobjshapeasset->GetColor().B << "," <<
-                //	myobjshapeasset->GetFading() << "> }\n";
-
                 assets_file << "}\n";
 
                 // POV macro - end
@@ -562,9 +556,6 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
                 assets_file << "," << myobjshapeasset->GetSphereGeometry().center.y;
                 assets_file << "," << myobjshapeasset->GetSphereGeometry().center.z << ">\n";
                 assets_file << " " << myobjshapeasset->GetSphereGeometry().rad << "\n";
-
-                // assets_file << "pigment {rgb<" << myobjshapeasset->GetColor().R << "," <<
-                // myobjshapeasset->GetColor().G << "," << myobjshapeasset->GetColor().B << "> }\n";
 
                 assets_file << "}\n";
 
@@ -723,14 +714,14 @@ void ChPovRay::_recurseExportObjData(std::vector<ChSharedPtr<ChAsset> >& assetli
     for (unsigned int k = 0; k < assetlist.size(); k++) {
         ChSharedPtr<ChAsset> k_asset = assetlist[k];
 
-        // 1) asset k of object i references an .obj wavefront mesh?
-        if (k_asset.IsType<ChObjShapeFile>() || k_asset.IsType<ChTriangleMeshShape>() ||
-            k_asset.IsType<ChSphereShape>() || k_asset.IsType<ChCylinderShape>() || k_asset.IsType<ChBoxShape>()) {
+        // asset k of object i references a mesh, a box, a sphere, i.e. any exported shape?
+        if (k_asset.IsType<ChObjShapeFile>() || 
+            k_asset.IsType<ChTriangleMeshShape>() ||
+            k_asset.IsType<ChSphereShape>() || 
+            k_asset.IsType<ChCylinderShape>() || 
+            k_asset.IsType<ChBoxShape>()) {
             mfilepov << "sh_" << (size_t)k_asset.get_ptr() << "()\n";
-        }
-        if (k_asset.IsType<ChPovRayAssetCustom>() || k_asset.IsType<ChTexture>() || k_asset.IsType<ChColorAsset>()) {
-            mfilepov << "cm_" << (size_t)k_asset.get_ptr() << "()\n";
-        }
+        }    
 
         if (k_asset.IsType<ChCamera>()) {
             this->camera_found_in_assets = true;
@@ -754,6 +745,19 @@ void ChPovRay::_recurseExportObjData(std::vector<ChSharedPtr<ChAsset> >& assetli
         }
 
     }  // end loop on assets
+
+    // Scan again assets in object and write the macros for setting color/texture etc.
+    // (this because the pigments must be last in the POV union{}
+    for (unsigned int k = 0; k < assetlist.size(); k++) {
+        ChSharedPtr<ChAsset> k_asset = assetlist[k];
+
+        if (k_asset.IsType<ChPovRayAssetCustom>() || 
+            k_asset.IsType<ChTexture>() || 
+            k_asset.IsType<ChColorAsset>()) {
+            mfilepov << "cm_" << (size_t)k_asset.get_ptr() << "()\n";
+        }
+    }
+
 
     // write the rotation and position
     if (!(parentframe.GetCoord() == CSYSNORM)) {
