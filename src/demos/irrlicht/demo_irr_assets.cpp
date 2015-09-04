@@ -236,12 +236,14 @@ int main(int argc, char* argv[]) {
     // Create a ChParticleClones cluster, and attach 'assets'
     // that define a single "sample" 3D shape. This will be shown
     // N times in Irrlicht.
+    //***NOTE*** This crashes with Irrlicht 1.8 , it is ok with 1.7.x and 1.8.1 + ,
 
     // Create the ChParticleClones, populate it with some random particles,
     // and add it to physical system:
     ChSharedPtr<ChParticlesClones> mparticles(new ChParticlesClones);
 
-    // Note: coll. shape, if needed, must be specified before creating particles
+    // Note: coll. shape, if needed, must be specified before creating particles.
+    // This will be shared among all particles in the ChParticlesClones.
     mparticles->GetCollisionModel()->ClearModel();
     mparticles->GetCollisionModel()->AddSphere(0.05);
     mparticles->GetCollisionModel()->BuildModel();
@@ -251,23 +253,27 @@ int main(int argc, char* argv[]) {
     for (int np = 0; np < 100; ++np)
         mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1.5, ChRandom() + 2)));
 
+    // Mass and inertia properties.
+    // This will be shared among all particles in the ChParticlesClones.
+    mparticles->SetMass(0.1);
+    mparticles->SetInertiaXX(ChVector<>(0.001,0.001,0.001));
+
     // Do not forget to add the particle cluster to the system:
     application.GetSystem()->Add(mparticles);
-    /*
-                //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
-                // shape to display all particles when rendering in 3D!
-        ChSharedPtr<ChSphereShape> mspherepart(new ChSphereShape);
-        mspherepart->GetSphereGeometry().rad = 0.05;
-        mparticles->AddAsset(mspherepart);
-    */
-    /*
+    
+            //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
+            // shape to display all particles when rendering in 3D!
+    ChSharedPtr<ChSphereShape> mspherepart(new ChSphereShape);
+    mspherepart->GetSphereGeometry().rad = 0.05;
+    mparticles->AddAsset(mspherepart);
+
             //  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
             // to 'show' all the assets that we added to the body!
             // OTHERWISE: use the application.AssetBind() function as at the end!
     ChSharedPtr<ChIrrNodeAsset> mirr_assetpart(new ChIrrNodeAsset);
     mirr_assetpart->Bind(mparticles, application);
     mparticles->AddAsset(mirr_assetpart);
-    */
+
 
     ////////////////////////
 

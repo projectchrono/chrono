@@ -361,8 +361,7 @@ void ChParticlesClones::IntLoadResidual_F(const unsigned int off,  ///< offset i
 
         // add applied forces and torques (and also the gyroscopic torque and gravity!) to 'fb' vector
         R.PasteSumVector((this->particles[j]->UserForce + Gforce) * c, off + 6 * j, 0);
-        this->particles[j]->variables.Get_fb().PasteSumVector((this->particles[j]->UserTorque - gyro) * c,
-                                                              off + 6 * j + 3, 0);
+        R.PasteSumVector((this->particles[j]->UserTorque - gyro) * c, off + 6 * j + 3, 0);
     }
 }
 
