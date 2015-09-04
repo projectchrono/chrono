@@ -304,20 +304,22 @@ void test_1() {
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-5);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);  // INT_HHT);//INT_EULER_IMPLICIT);
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(100);
-		mystepper->SetTolerance(1e-5);
-		mystepper->SetHHTFlag(1);
-		mystepper->Iterations=0;
-	}
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(100);
+	mystepper->SetTolerance(1e-5);
+    mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
+
 	outputfile = fopen("position.txt","w");
 	double start = std::clock();
     double timestep = 0.001;
+    int Iterations = 0;
+
     while (my_system.GetChTime() < 2.0) {
         my_system.DoStepDynamics(timestep);
+        Iterations += mystepper->GetNumIterations();
+
 		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
 		
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
@@ -329,9 +331,9 @@ void test_1() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
     }
+
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
+	GetLog() << "Iterations: " << Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }
 
@@ -602,21 +604,24 @@ void test_2() {
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);  // INT_HHT);//INT_EULER_IMPLICIT);
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(1000);
-		mystepper->SetTolerance(5e-4);
-		mystepper->SetHHTFlag(3);
-		mystepper->Iterations=0;
-	}
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(1000);
+	mystepper->SetTolerance(5e-4);
+    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetScaling(true);
+
 	outputfile = fopen("position.txt","w");
 	double start = std::clock();
     double timestep = 0.00025;
+    int Iterations = 0;
+
     while (my_system.GetChTime() < 0.1) {
         my_system.DoStepDynamics(timestep);
-		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
+        Iterations += mystepper->GetNumIterations();
+
+        GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
 
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
@@ -627,10 +632,9 @@ void test_2() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
     }
-	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
-	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
+	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+	GetLog() << "Iterations: " << Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }
 
@@ -880,21 +884,24 @@ void test_3() {
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);  // INT_HHT);//INT_EULER_IMPLICIT);
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(100);
-		mystepper->SetTolerance(1e-5);
-		mystepper->SetHHTFlag(3);
-		mystepper->Iterations=0;
-	}
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(100);
+	mystepper->SetTolerance(1e-5);
+    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetScaling(true);
+
 	outputfile = fopen("position.txt","w");
 	double start = std::clock();
     double timestep = 0.001;
+    int Iterations = 0;
+
     while (my_system.GetChTime() < 2.0) {
         my_system.DoStepDynamics(timestep);
-		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
+        Iterations += mystepper->GetNumIterations();
+
+        GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
 
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
@@ -905,9 +912,9 @@ void test_3() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
     }
+
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
+	GetLog() << "Iterations: " << Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }
 
@@ -1153,21 +1160,24 @@ void test_4() {
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);  // INT_HHT);//INT_EULER_IMPLICIT);
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(1000);
-		mystepper->SetTolerance(5e-5);
-		mystepper->SetHHTFlag(3);
-		mystepper->Iterations=0;
-	}
-	outputfile = fopen("position.txt","w");
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(1000);
+	mystepper->SetTolerance(5e-5);
+    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetScaling(true);
+
+    outputfile = fopen("position.txt","w");
 	double start = std::clock();
     double timestep = 0.00025;
+    int Iterations = 0;
+
     while (my_system.GetChTime() < 0.1) {
         my_system.DoStepDynamics(timestep);
-		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
+        Iterations += mystepper->GetNumIterations();
+
+        GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
 		
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
@@ -1178,10 +1188,9 @@ void test_4() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
     }
-	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
-	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
+	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+	GetLog() << "Iterations: " << Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }
 
@@ -1367,22 +1376,24 @@ void test_5() {
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);  // INT_HHT);//INT_EULER_IMPLICIT);
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(100);
-		mystepper->SetTolerance(1e-5);
-		mystepper->SetHHTFlag(3);
-		mystepper->Iterations=0;
-	}
-	outputfile = fopen("position.txt","w");
-	double start = std::clock();
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(100);
+	mystepper->SetTolerance(1e-5);
+    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetScaling(true);
 
+    outputfile = fopen("position.txt","w");
+	double start = std::clock();
     double timestep = 0.001;
+    int Iterations = 0;
+
     while (my_system.GetChTime() < 2.0) {
         my_system.DoStepDynamics(timestep);
-		GetLog() << " t=  " << my_system.GetChTime() << "\n";
+        Iterations += mystepper->GetNumIterations();
+        
+        GetLog() << " t=  " << my_system.GetChTime() << "\n";
 		
 		fprintf(outputfile," %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
@@ -1390,11 +1401,12 @@ void test_5() {
 		fprintf(outputfile,"%e  ",nodetip->GetPos().z);
 		fprintf(outputfile,"\n  ");
     }
+
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
+	GetLog() << "Iterations: " << Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }
+
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
 

@@ -12,24 +12,9 @@
 #ifndef CHAPI_CASCADE_H
 #define CHAPI_CASCADE_H
 
-//////////////////////////////////////////////////
-//
-//   ChApiGPU.h
-//
-//   Base header for all headers that have symbols
-//   that can be exported.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 //#pragma warning(disable: 4251)
 
-#include "core/ChPlatform.h"
+#include "chrono/core/ChPlatform.h"
 
 // Chrono::Engine unit GPU, version
 //

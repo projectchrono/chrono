@@ -75,8 +75,8 @@ int main(int argc, char* argv[]) {
     // This is much easier than creating all nodes and elements via C++ programming.
     // You can generate these files using the TetGen tool.
     try {
-        my_mesh->LoadFromTetGenFile(GetChronoDataFile("unit_FEA/beam.node").c_str(),
-                                    GetChronoDataFile("unit_FEA/beam.ele").c_str(), mmaterial);
+        my_mesh->LoadFromTetGenFile(GetChronoDataFile("fea/beam.node").c_str(),
+                                    GetChronoDataFile("fea/beam.ele").c_str(), mmaterial);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;

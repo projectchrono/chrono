@@ -1,7 +1,7 @@
 #ifndef CH_APISUBSYS_H
 #define CH_APISUBSYS_H
 
-#include "core/ChPlatform.h"
+#include "chrono/core/ChPlatform.h"
 
 // When compiling this library, remember to define CH_API_COMPILE_VEHICLE
 // (so that the symbols with 'CH_VEHICLE_API' in front of them will be marked as

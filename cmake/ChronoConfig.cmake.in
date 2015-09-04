@@ -158,6 +158,17 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
 
+    elseif(${COMPONENT_UPPER} MATCHES "PYTHON")
+
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_PYTHONINC@")
+      list(APPEND CHRONO_LIB_NAMES "_ChronoEngine_python_core")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_pyparser")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pyparser.dll")
+
+      if(${Chrono_HAS_irrlicht})
+        list(APPEND CHRONO_LIB_NAMES "_ChronoEngine_python_irrlicht")
+      endif()
+
     endif()
 
   endif()
@@ -227,3 +238,47 @@ message(STATUS "   CHRONO_LIBRARIES    (Chrono libraries): ${CHRONO_LIBRARIES}")
 message(STATUS "   CHRONO_DLL_NAMES    (Chrono DLL names): ${CHRONO_DLL_NAMES}")
 message(STATUS "   CHRONO_DLLS         (Chrono DLLs): ${CHRONO_DLLS}")
 message(STATUS "   CHRONO_DATA_DIR     (Path to Chrono data folder): ${CHRONO_DATA_DIR}")
+
+#===============================================================================
+# Provide a CMake function which adds a custom command (COPY_DLLS), invoked
+# pre-build to copy all DLLs specified in the input list to the appropriate
+# folder for the current VS configuration.
+#
+# The input list must contain a list of DLLs with full paths, such as that
+# returned by the ChronoConfig script.
+#
+# Note that EXECUTABLE_OUTPUT_PATH must be defined (even if it's simply
+# CMAKE_BINARY_DIR or PROJECT_BINARY_DIR)
+#===============================================================================
+
+function(add_DLL_copy_command DLL_LIST)
+
+    # Return now if not windows
+    if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      return()
+    endif()
+    
+    # Remove duplicates in the input list
+    list(REMOVE_DUPLICATES DLL_LIST)
+    
+    message(STATUS "==== Add custom commands for copying DLLs ====")
+    message(STATUS "DLL list...")
+    
+    # Create custom target for copying DLLs; add it to the default build target
+    add_custom_target(COPY_DLLS ALL)
+    
+    # Loop over the list of all DLLs and create a custom command
+    foreach(DLL ${DLL_LIST})
+        message(STATUS "...${DLL}")
+    
+        # Create custom commands, invoked pre-build to copy DLLs to the appropriate
+        # directory (depending on the configuration selected at build time in VS)
+        add_custom_command(
+            TARGET COPY_DLLS PRE_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${DLL}"
+                "${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>/"
+        )
+    endforeach()
+
+endfunction()

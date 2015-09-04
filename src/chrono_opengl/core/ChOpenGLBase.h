@@ -29,6 +29,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <string>
 //#include <string>
 //#include <iomanip>
 //#include <fstream>
@@ -40,14 +41,53 @@
 
 #include "chrono_opengl/core/ChApiOpenGL.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 namespace chrono {
 namespace opengl {
 
 #ifndef BAD_GL_VALUE
 #define BAD_GL_VALUE GLuint(-1)
 #endif
+
+static std::string GetErrorString(GLenum error) {
+    std::string ret_val;
+    switch (error) {
+        case GL_NO_ERROR:
+            break;
+        case GL_INVALID_ENUM:
+            ret_val = "GL_INVALID_ENUM";
+            break;
+        case GL_INVALID_VALUE:
+            ret_val = "GL_INVALID_VALUE";
+            break;
+        case GL_INVALID_OPERATION:
+            ret_val = "GL_INVALID_OPERATION";
+            break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            ret_val = "GL_INVALID_FRAMEBUFFER_OPERATION";
+            break;
+        case GL_OUT_OF_MEMORY:
+            ret_val = "GL_OUT_OF_MEMORY";
+            break;
+        case GL_STACK_UNDERFLOW:
+            ret_val = "GL_STACK_UNDERFLOW";
+            break;
+        case GL_STACK_OVERFLOW:
+            ret_val = "GL_STACK_OVERFLOW";
+            break;
+    }
+    return ret_val;
+}
+
+// Checks if there are any errors in the opengl context
+static bool GLReturnedError(std::string err) {
+    bool return_error = false;
+    GLenum glerror;
+    while ((glerror = glGetError()) != GL_NO_ERROR) {
+        return_error = true;
+        std::cerr << err << ": " << GetErrorString(glerror) << std::endl;
+    }
+    return return_error;
+}
 
 class CH_OPENGL_API ChOpenGLBase {
  public:
@@ -57,20 +97,9 @@ class CH_OPENGL_API ChOpenGLBase {
   // Children must implement this function
   virtual void TakeDown() = 0;
 
-  // Check for opengl Errors and output if error along with input char strings
-  bool GLReturnedError(const char* s) {
-    bool return_error = false;
-    GLenum glerror;
-    // Go through list of errors until no errors remain
-    while ((glerror = glGetError()) != GL_NO_ERROR) {
-      return_error = true;
-      std::cerr << s << ": " << gluErrorString(glerror) << std::endl;
-    }
-    return return_error;
-  }
 };
 }
 }
-#pragma GCC diagnostic pop
+
 
 #endif  // END of CHOPENGLBASE_H

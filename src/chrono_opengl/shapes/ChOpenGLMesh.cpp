@@ -28,7 +28,7 @@ bool ChOpenGLMesh::Initialize(std::vector<glm::vec3>& vertices,
                               std::vector<glm::vec2>& texcoords,
                               std::vector<GLuint>& indices,
                               ChOpenGLMaterial mat) {
-  if (this->GLReturnedError("Mesh::Initialize - on entry")) {
+  if (GLReturnedError("Mesh::Initialize - on entry")) {
     return false;
   }
 
@@ -47,7 +47,7 @@ bool ChOpenGLMesh::Initialize(std::vector<glm::vec3>& vertices,
 
   PostInitialize();
 
-  if (this->GLReturnedError("ChOpenGLMesh::Initialize - on exit")) {
+  if (GLReturnedError("ChOpenGLMesh::Initialize - on exit")) {
     return false;
   }
 
@@ -55,7 +55,7 @@ bool ChOpenGLMesh::Initialize(std::vector<glm::vec3>& vertices,
 }
 
 bool ChOpenGLMesh::Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMaterial mat) {
-  if (this->GLReturnedError("Mesh::Initialize - on entry")) {
+  if (GLReturnedError("Mesh::Initialize - on entry")) {
     return false;
   }
 
@@ -115,7 +115,7 @@ bool ChOpenGLMesh::Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMat
 
   PostInitialize();
 
-  if (this->GLReturnedError("ChOpenGLMesh::Initialize - on exit")) {
+  if (GLReturnedError("ChOpenGLMesh::Initialize - on exit")) {
     return false;
   }
 
@@ -123,7 +123,7 @@ bool ChOpenGLMesh::Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMat
 }
 
 bool ChOpenGLMesh::PostInitialize() {
-  if (this->GLReturnedError("ChOpenGLMesh::PostInitialize - on entry"))
+  if (GLReturnedError("ChOpenGLMesh::PostInitialize - on entry"))
     return false;
   // Generation complete bind everything!
   if (!this->PostGLInitialize((GLuint*)(&this->data[0]), this->data.size() * sizeof(ChOpenGLVertexAttributesPN))) {
@@ -175,7 +175,7 @@ bool ChOpenGLMesh::PostInitialize() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 
-  if (this->GLReturnedError("ChOpenGLMesh::PostInitialize - on exit"))
+  if (GLReturnedError("ChOpenGLMesh::PostInitialize - on exit"))
     return false;
 
   return true;
@@ -214,16 +214,16 @@ void ChOpenGLMesh::Update(std::vector<glm::mat4>& model) {
   size = model.size();
 }
 void ChOpenGLMesh::Draw(const mat4& projection, const mat4& view) {
-  if (this->GLReturnedError("ChOpenGLMesh::Draw - on entry"))
+  if (GLReturnedError("ChOpenGLMesh::Draw - on entry"))
     return;
 
   // Enable the shader
   shader->Use();
-  this->GLReturnedError("ChOpenGLMesh::Draw - after use");
+  GLReturnedError("ChOpenGLMesh::Draw - after use");
   // Send our common uniforms to the shader
   shader->CommonSetup(value_ptr(projection), value_ptr(view));
 
-  this->GLReturnedError("ChOpenGLMesh::Draw - after common setup");
+  GLReturnedError("ChOpenGLMesh::Draw - after common setup");
   // Bind and draw! (in this case we draw as triangles)
   glBindVertexArray(this->vertex_array_handle);
   glBindBuffer(GL_ARRAY_BUFFER, vertex_data_handle);
@@ -232,15 +232,15 @@ void ChOpenGLMesh::Draw(const mat4& projection, const mat4& view) {
   glBindBuffer(GL_ARRAY_BUFFER, vertex_model_handle);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vertex_element_handle);
 
-  this->GLReturnedError("ChOpenGLMesh::Draw - before draw");
+  GLReturnedError("ChOpenGLMesh::Draw - before draw");
   glDrawElementsInstanced(GL_TRIANGLES, this->vertex_indices.size(), GL_UNSIGNED_INT, (void*)0, size);
-  this->GLReturnedError("ChOpenGLMesh::Draw - after draw");
+  GLReturnedError("ChOpenGLMesh::Draw - after draw");
   // unbind everything and cleanup
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glUseProgram(0);
 
-  if (this->GLReturnedError("ChOpenGLMesh::Draw - on exit"))
+  if (GLReturnedError("ChOpenGLMesh::Draw - on exit"))
     return;
 }
 }

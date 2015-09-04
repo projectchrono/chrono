@@ -12,7 +12,7 @@
 #ifndef CHAPIIRRLICHT_H
 #define CHAPIIRRLICHT_H
 
-#include "core/ChPlatform.h"
+#include "chrono/core/ChPlatform.h"
 
 // Chrono::Engine version
 //

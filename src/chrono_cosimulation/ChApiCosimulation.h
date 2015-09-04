@@ -12,22 +12,7 @@
 #ifndef CHAPICOSIMULATION_H
 #define CHAPICOSIMULATION_H
 
-//////////////////////////////////////////////////
-//
-//   ChApiCosimulation.h
-//
-//   Base header for all headers that have symbols
-//   that can be exported.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChPlatform.h"
+#include "chrono/core/ChPlatform.h"
 
 // Chrono::Engine version
 //

@@ -961,6 +961,10 @@ set(ChronoEngine_FILES
 # Add the ChronoEngine library to the project
 add_library(ChronoEngine SHARED ${ChronoEngine_FILES})
 
+if (UNIX)
+  target_link_libraries(ChronoEngine pthread)
+endif()
+
 # Set some custom properties of this target
 set_target_properties(ChronoEngine PROPERTIES
     COMPILE_FLAGS "${CH_CXX_FLAGS}"
@@ -968,7 +972,7 @@ set_target_properties(ChronoEngine PROPERTIES
     COMPILE_DEFINITIONS "CH_API_COMPILE")
 
 if(XCODE_VERSION)
-    set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES)
+    set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${ENABLE_OPENMP})
 endif()
 
 # Install the main ChronoEngine library

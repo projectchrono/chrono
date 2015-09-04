@@ -1,98 +1,122 @@
 #--------------------------------------------------------------
-#
-# Example of file to be used in CMake to build an external 
-# project based on Chrono::Engine
-#
-# Copy the entire directory template_project in some directory of yours,
-# then modify this file in points highlighted with numbers 1,2,3.
-#
+# 
+# Example of CMake configuration file to build an external 
+# project depending on Chrono and on optionam Chrono modules.
+# 
+# This minimal sample project can be used as a template for a
+# user project.  Modify sections 1, 2, and 3 below as appropriate.
+# 
 #--------------------------------------------------------------
  
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8)
 
 #--------------------------------------------------------------
-#		  === 1 === 
-#         Modify the project name if you want: 
+# === 1 === 
+# Modify the project name if you want: 
+#--------------------------------------------------------------
+
+project(my_project)
+
+#--------------------------------------------------------------
+# === 2 ===
+# Find the Chrono package and any REQUIRED or OPTIONAL modules
+# by invoking the find_package function in CONFIG mode:
+#    find_package(Chrono
+#	              COMPONENTS req_module1 req_module1 ...
+#	              OPTIONAL opt_module1 opt_module2 ...
+#                 CONFIG)
+# The following Chrono modules can be requested (their names
+# are case insensitive): Cascade, Cosimulation, FEA, Irrlicht,
+# Matlab, Parallel, Postprocess, Python, Vehicle.
 # 
-
-PROJECT(my_project)
-
-
-#--------------------------------------------------------------
-# NOTE!   use find_package() to define ChronoEngine libraries and variables, 
-#         along with some optional units (components).
-#         This requires that you copied FindChronoEngine.cmake in
-#         the Modules/ directory of your Cmake installation. If it 
-#         is not there, you can copy it in a cmake/ directory in your project, 
-#         and add that directory to the search path of CMake by typing
-#         set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-
-
-#--------------------------------------------------------------
-#	      === 2 ===
-#         Here add the Chrono::Engine units that you might want to link 
-#         with your project. Append their name after the COMPONENTS keyword.
-#         Some examples:  
-#           unit_COSIMULATION unit_FEA  unit_PYPARSER unit_POSTPROCESS
-#           unit_IRRLICHT unit_MATLAB unit_CASCADE
-#         etc. (see the wiki for the list of available unit components.)
-#         After a successfull run of this find script you will have two 
-#         important variables automatically set for you: 
-#           CHRONOENGINE_INCLUDES   with all directories for including .h headers
-#           CHRONOENGINE_LIBRARIES  with all libraries that must be linked
-#         Note: if you want to use, say, unit_IRRLICHT, you must have 
-#         compiled Chrono::Engine with ENABLE_UNIT_IRRLICHT turned on. 
-#         The same for other units. 
-
-FIND_PACKAGE(ChronoEngine COMPONENTS unit_IRRLICHT)
-
-
-#--------------------------------------------------------------
-#         This is needed so your .cpp and .h files will find 
-#         all Chrono::Engine .h headers.
-
-INCLUDE_DIRECTORIES(${CHRONOENGINE_INCLUDES})
-
-
-#--------------------------------------------------------------
-#	      === 3 ===
-#         Here append the .cpp file(s) of your project. 
-#        
-
-ADD_EXECUTABLE(myexe my_example.cpp)
-
-
-#--------------------------------------------------------------
-#         This is needed in order to link the libraries of 
-#         Chrono::Engine and its optional units.
-
-TARGET_LINK_LIBRARIES(myexe ${CHRONOENGINE_LIBRARIES})
-
-
-#--------------------------------------------------------------
-#	      === OPTIONAL ===
-#         
-#         Use this macro to copy the files in the data/ directory 
-#         into a data/ directory in the binary directory, close 
-#         to the executables. For example if you have textures, etc. 
-#         This is because by default Chrono::Engine demos find 
-#         their textures in ../data .
-
-CHRONOENGINE_COPY_PROJECT_DATA_DIR()
-
-
-#--------------------------------------------------------------
-#	      === OPTIONAL ===
+# Note that you will have to set the variable Chrono_DIR to 
+# specify the location of the ChronoConfig.cmake script. This
+# can be either a Chrono build tree or a Chrono install tree.
 # 
-#         Use this macro on Windows for enabling automatic copy of 
-#         the .dll of the Chrono::Engine API from ChronoEngine binary 
-#         directory into your project binary directory, at each build
-#         of the solution. This done, the .exe files can find the dlls 
-#         because they are in the same directory. 
-#         Alternatively: A)you could copy the dlls by hand, or B)you 
-#         can put them in a globally accessible PATH. 
+# The following variables are set and can be used further down:
+# CHRONO_FOUND
+#   set to true if Chrono and all required components were found
+# CHRONO_C_FLAGS
+# CHRONO_CXX_FLAGS
+#   C and C++ compilation flags
+# CHRONO_INCLUDE_DIRS
+#   additional paths for included headers
+# CHRONO_LIBRARIES
+#   list of required libraries (with full path)
+# CHRONO_LINKER_FLAGS
+#   additional linker flags
+# CHRONO_DLLS
+#   list of all DLL dependencies (with full path)
+# CHRONO_DATA_DIR
+#   path to the Chrono data make_directory
+# 
+# In addition, for each requested component [COMPONENT], the
+# following variable is set to true (ON) or false (OFF):
+# CHRONO_[COMPONENT]_FOUND
+# 
+# In this example, we only request the Irrlicht module (required)
+#--------------------------------------------------------------
 
-CHRONOENGINE_ENABLE_CHRONODLLCOPY()
+find_package(Chrono
+             COMPONENTS Irrlicht
+             CONFIG)
+
+#--------------------------------------------------------------
+# Return now if Chrono or a required component was not found.
+#--------------------------------------------------------------
+
+if (NOT Chrono_FOUND)
+  message("Could not find requirements for FEA projects")
+  return()
+endif()
+
+
+#--------------------------------------------------------------
+# Add path to Chrono headers and to headers of all dependencies
+# of the requested modules.
+#--------------------------------------------------------------
+
+include_directories(${CHRONO_INCLUDE_DIRS})
+
+#--------------------------------------------------------------
+# === 3 ===
+# Add the executable from your project and specify all C++ 
+# files in your project. 
+#--------------------------------------------------------------
+
+add_executable(myexe my_example.cpp)
+
+#--------------------------------------------------------------
+# Set properties for your executable target
+# 
+# Note that here we define a macro CHRONO_DATA_DIR which will
+# contain the path to the Chrono data directory, either in its
+# source tree (if using a build version of Chrono), or in its
+# install tree (if using an installed version of Chrono).
+#--------------------------------------------------------------
+
+set_target_properties(myexe PROPERTIES 
+	    COMPILE_FLAGS "${CHRONO_CSS_FLAGS}"
+	    COMPILE_DEFINITIONS "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\""
+	    LINK_FLAGS "${CHRONO_CSS_FLAGS}")
+
+#--------------------------------------------------------------
+# Link to Chrono libraries and dependency libraries
+#--------------------------------------------------------------
+
+target_link_libraries(myexe ${CHRONO_LIBRARIES})
+
+#--------------------------------------------------------------
+# === 4 (OPTIONAL) ===
+# 
+# Optionally, add a custom command for copying all Chrono and
+# dependency DLLs to the appropriate binary output folder.
+# This function has effect only on Windows.
+# 
+# Note that you must first set EXECUTABLE_OUTPUT_PATH
+# (this can simply be ${CMAKE_BINARY_DIR}, like in this example)
+#--------------------------------------------------------------
+
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+add_DLL_copy_command("${CHRONO_DLLS}")

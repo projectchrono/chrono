@@ -27,7 +27,7 @@ ChOpenGLOBJ::ChOpenGLOBJ() {
 ChOpenGLOBJ::~ChOpenGLOBJ() {
 }
 bool ChOpenGLOBJ::Initialize(std::string filename, ChOpenGLMaterial mat, ChOpenGLShader* shader) {
-  if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on entry")) {
+  if (GLReturnedError("ChOpenGLOBJ::Initialize - on entry")) {
     return false;
   }
 
@@ -51,7 +51,7 @@ bool ChOpenGLOBJ::Initialize(std::string filename, ChOpenGLMaterial mat, ChOpenG
     meshes[i].AttachShader(shader);
   }
 
-  if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on exit")) {
+  if (GLReturnedError("ChOpenGLOBJ::Initialize - on exit")) {
     return false;
   }
 
@@ -59,7 +59,7 @@ bool ChOpenGLOBJ::Initialize(std::string filename, ChOpenGLMaterial mat, ChOpenG
 }
 
 bool ChOpenGLOBJ::InitializeString(const char* mesh_data, ChOpenGLMaterial mat, ChOpenGLShader* shader) {
-  if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on entry")) {
+  if (GLReturnedError("ChOpenGLOBJ::Initialize - on entry")) {
     return false;
   }
 
@@ -70,7 +70,7 @@ bool ChOpenGLOBJ::InitializeString(const char* mesh_data, ChOpenGLMaterial mat, 
     meshes[i].AttachShader(shader);
   }
 
-  if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on exit")) {
+  if (GLReturnedError("ChOpenGLOBJ::Initialize - on exit")) {
     return false;
   }
 
@@ -96,14 +96,14 @@ void ChOpenGLOBJ::Update(std::vector<glm::mat4>& model) {
   }
 }
 void ChOpenGLOBJ::Draw(const mat4& projection, const mat4& view) {
-  if (this->GLReturnedError("ChOpenGLOBJ::Draw - on entry"))
+  if (GLReturnedError("ChOpenGLOBJ::Draw - on entry"))
     return;
 
   for (unsigned int i = 0; i < meshes.size(); i++) {
     meshes[i].Draw(projection, view);
   }
 
-  if (this->GLReturnedError("ChOpenGLOBJ::Draw - on exit"))
+  if (GLReturnedError("ChOpenGLOBJ::Draw - on exit"))
     return;
 }
 }

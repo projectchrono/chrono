@@ -13,11 +13,10 @@
 // =============================================================================
 // OpenGL viewer, this class draws the system to the screen and handles input
 // =============================================================================
-#include "chrono_parallel/ChApiParallel.h"
 #include "chrono_opengl/ChOpenGLViewer.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
 
-#include "chrono_parallel/physics/ChNodeFluid.h"
+//#include "chrono_parallel/physics/ChNodeFluid.h"
 
 #include "assets/ChBoxShape.h"
 #include "assets/ChSphereShape.h"
@@ -125,7 +124,7 @@ bool ChOpenGLViewer::Initialize() {
   cylinder.InitializeString(cylinder_mesh_data, apple, &main_shader);
   cone.InitializeString(cone_mesh_data, white, &main_shader);
 
-  HUD_renderer.Initialize(&render_camera, &timer);
+  HUD_renderer.Initialize(&render_camera);
 
   cloud_data.push_back(glm::vec3(0, 0, 0));
   grid_data.push_back(glm::vec3(0, 0, 0));
@@ -135,10 +134,6 @@ bool ChOpenGLViewer::Initialize() {
 
   contact_renderer.Initialize(darkred, &cloud_shader);
   graph_renderer.Initialize(darkriver, &cloud_shader);
-
-  timer.AddTimer("render");
-  timer.AddTimer("text");
-  timer.AddTimer("geometry");
 
   // glEnable(GL_MULTISAMPLE);
   glEnable(GL_POINT_SPRITE);
@@ -159,11 +154,10 @@ bool ChOpenGLViewer::Update(double time_step) {
   return true;
 }
 void ChOpenGLViewer::Render() {
-  timer.Reset();
 
-  timer.start("render");
+  timer_render.start();
   if (pause_vis == false) {
-    timer.start("geometry");
+    timer_geometry.start();
     render_camera.aspect = window_aspect;
     render_camera.window_width = window_size.x;
     render_camera.window_height = window_size.y;
@@ -234,16 +228,16 @@ void ChOpenGLViewer::Render() {
     RenderPlots();
     RenderContacts();
 
-    timer.stop("geometry");
-    time_geometry = .5 * timer.GetTime("geometry") + .5 * time_geometry;
+    timer_geometry.stop();
+    time_geometry = .5 * timer_geometry() + .5 * time_geometry;
 
-    timer.start("text");
+    timer_text.start();
     DisplayHUD();
-    timer.stop("text");
-    time_text = .5 * timer.GetTime("text") + .5 * time_text;
+    timer_text.stop();
+    time_text = .5 * timer_text() + .5 * time_text;
   }
-  timer.stop("render");
-  time_total = .5 * timer.GetTime("render") + .5 * time_total;
+  timer_render.stop();
+  time_total = .5 * timer_render() + .5 * time_total;
   current_time = time_total;
   current_time = current_time * 0.5 + old_time * 0.5;
   old_time = current_time;
@@ -465,31 +459,31 @@ void ChOpenGLViewer::RenderAABB() {
     return;
   }
 
-  if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-    ChParallelDataManager* data_manager = system->data_manager;
-    model_box.clear();
-
-    host_vector<real3>& aabb_min_rigid = data_manager->host_data.aabb_min_rigid;
-    host_vector<real3>& aabb_max_rigid = data_manager->host_data.aabb_max_rigid;
-
-    model_box.resize(data_manager->num_rigid_shapes);
-#pragma omp parallel for
-    for (int i = 0; i < data_manager->num_rigid_shapes; i++) {
-      real3 min_p = aabb_min_rigid[i] + data_manager->measures.collision.global_origin;
-      real3 max_p = aabb_max_rigid[i] + data_manager->measures.collision.global_origin;
-
-      real3 radius = (max_p - min_p) * .5;
-      real3 center = (min_p + max_p) * .5;
-
-      glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(center.x, center.y, center.z));
-      model = glm::scale(model, glm::vec3(radius.x, radius.y, radius.z));
-      model_box[i] = (model);
-    }
-    if (model_box.size() > 0) {
-      box.Update(model_box);
-      box.Draw(projection, view);
-    }
-  }
+//  if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
+//    ChParallelDataManager* data_manager = system->data_manager;
+//    model_box.clear();
+//
+//    host_vector<real3>& aabb_min_rigid = data_manager->host_data.aabb_min_rigid;
+//    host_vector<real3>& aabb_max_rigid = data_manager->host_data.aabb_max_rigid;
+//
+//    model_box.resize(data_manager->num_rigid_shapes);
+//#pragma omp parallel for
+//    for (int i = 0; i < data_manager->num_rigid_shapes; i++) {
+//      real3 min_p = aabb_min_rigid[i] + data_manager->measures.collision.global_origin;
+//      real3 max_p = aabb_max_rigid[i] + data_manager->measures.collision.global_origin;
+//
+//      real3 radius = (max_p - min_p) * .5;
+//      real3 center = (min_p + max_p) * .5;
+//
+//      glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(center.x, center.y, center.z));
+//      model = glm::scale(model, glm::vec3(radius.x, radius.y, radius.z));
+//      model_box[i] = (model);
+//    }
+//    if (model_box.size() > 0) {
+//      box.Update(model_box);
+//      box.Draw(projection, view);
+//    }
+//  }
 }
 
 void ChOpenGLViewer::RenderGrid() {
@@ -497,42 +491,42 @@ void ChOpenGLViewer::RenderGrid() {
     return;
   }
   grid_data.clear();
-  if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-    int3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
-    real3 bin_size_vec = parallel_sys->data_manager->measures.collision.bin_size_vec;
-    real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
-    real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
-    real3 center = (min_pt + max_pt) * .5;
-
-    for (int i = 0; i <= bins_per_axis.x; i++) {
-      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z));
-      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z));
-    }
-    for (int i = 0; i <= bins_per_axis.z; i++) {
-      grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
-      grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
-    }
-
-    for (int i = 0; i <= bins_per_axis.y; i++) {
-      grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
-      grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
-    }
-    for (int i = 0; i <= bins_per_axis.y; i++) {
-      grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z));
-      grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z));
-    }
-
-    for (int i = 0; i <= bins_per_axis.x; i++) {
-      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z));
-      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z));
-    }
-    for (int i = 0; i <= bins_per_axis.z; i++) {
-      grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z));
-      grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z));
-    }
-
-    grid.Update(grid_data);
-  }
+//  if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+//    int3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
+//    real3 bin_size_vec = parallel_sys->data_manager->measures.collision.bin_size_vec;
+//    real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
+//    real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
+//    real3 center = (min_pt + max_pt) * .5;
+//
+//    for (int i = 0; i <= bins_per_axis.x; i++) {
+//      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z));
+//      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z));
+//    }
+//    for (int i = 0; i <= bins_per_axis.z; i++) {
+//      grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
+//      grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
+//    }
+//
+//    for (int i = 0; i <= bins_per_axis.y; i++) {
+//      grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
+//      grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
+//    }
+//    for (int i = 0; i <= bins_per_axis.y; i++) {
+//      grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z));
+//      grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z));
+//    }
+//
+//    for (int i = 0; i <= bins_per_axis.x; i++) {
+//      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z));
+//      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z));
+//    }
+//    for (int i = 0; i <= bins_per_axis.z; i++) {
+//      grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z));
+//      grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z));
+//    }
+//
+//    grid.Update(grid_data);
+//  }
 
   glm::mat4 model(1);
   grid.Draw(projection, view * model);

@@ -33,7 +33,7 @@ ChOpenGLText::ChOpenGLText() : ChOpenGLObject() {
 }
 
 bool ChOpenGLText::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* _shader) {
-  if (this->GLReturnedError("Background::Initialize - on entry"))
+  if (GLReturnedError("Background::Initialize - on entry"))
     return false;
 
   if (!super::Initialize()) {
@@ -129,7 +129,7 @@ void ChOpenGLText::TakeDown() {
 }
 
 void ChOpenGLText::Draw(const mat4& projection, const mat4& view) {
-  if (this->GLReturnedError("ChOpenGLText::Draw - on entry"))
+  if (GLReturnedError("ChOpenGLText::Draw - on entry"))
     return;
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -153,7 +153,7 @@ void ChOpenGLText::Draw(const mat4& projection, const mat4& view) {
   glBindTexture(GL_TEXTURE_2D, 0);
   glUseProgram(0);
 
-  if (this->GLReturnedError("ChOpenGLText::Draw - on exit"))
+  if (GLReturnedError("ChOpenGLText::Draw - on exit"))
     return;
 }
 }

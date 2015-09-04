@@ -12,22 +12,7 @@
 #ifndef CHAPIMKL_H
 #define CHAPIMKL_H
 
-//////////////////////////////////////////////////
-//
-//   ChApiCE.h
-//
-//   Base header for all headers that have symbols
-//   that can be exported.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChPlatform.h"
+#include "chrono/core/ChPlatform.h"
 
 // Chrono::Engine version
 //

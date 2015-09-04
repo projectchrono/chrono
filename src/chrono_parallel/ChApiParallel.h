@@ -1,30 +1,14 @@
 #ifndef CHAPIPARALLEL_H
 #define CHAPIPARALLEL_H
 
-//////////////////////////////////////////////////
-//
-//   ChApiParallel.h
-//
-//   Base header for all headers that have symbols
-//   that can be exported.
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//   Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include "chrono/core/ChPlatform.h"
 
-#include "core/ChPlatform.h"
-
-// Chrono::Engine unit GPU, version
+// Chrono::Engine parallel module, version
 //
 // This is an integer, as 0xaabbccdd where
 // for example version 1.2.0 is 0x00010200
 
-#define CH_VERSION_UNIT_GPU 0x00010200
+#define CH_VERSION_PARALLEL_MODULE 0x00010200
 
 // When compiling this library, remember to define CH_API_COMPILE_PARALLEL
 // (so that the symbols with 'CH_PARALLEL_API' in front of them will be

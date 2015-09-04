@@ -12,6 +12,7 @@ SET(FEA_DEMOS_IRR
     demo_FEAelectrostatics
     demo_FEAvisualize
     demo_FEAcontacts
+    demo_FEAcables
 )
 
 # List all FEA demos that use both Irrlicht and Matlab
@@ -19,17 +20,20 @@ SET(FEA_DEMOS_IRR_MATLAB
     demo_FEAbeams
     demo_FEAminiature
     demo_FEAshells
+    demo_FEAcableMATLAB
 )
 
 # List all FEA demos that use both Irrlicht and MKL
 SET(FEA_DEMOS_IRR_MKL
-    demo_FEAcables
+    demo_FEAcablesMKL
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL
 SET(FEA_DEMOS_IRR_MATLAB_MKL
     demo_FEAbeamsconstr
 )
+
+INCLUDE_DIRECTORIES(CMAKE_CURRENT_SOURCE_DIR)
 
 MESSAGE(STATUS "Demo programs for FEA module...")
 
@@ -111,8 +115,7 @@ IF(ENABLE_MODULE_IRRLICHT)
     ENDIF()
 
     IF(ENABLE_MODULE_MKL)
-        INCLUDE_DIRECTORIES(${CH_MKLINC})
-        INCLUDE_DIRECTORIES(${CH_EIGEN_PATH})
+        INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
         INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
         FOREACH(PROGRAM ${FEA_DEMOS_IRR_MKL})
@@ -122,8 +125,8 @@ IF(ENABLE_MODULE_IRRLICHT)
             SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")    
             SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
                 FOLDER demos
-                COMPILE_GLAGS "${CH_CXX_FLAGS} ${CH_MKL_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-                LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}")
+                COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+                LINK_FLAGS "${CH_LINKERFLAG_EXE}")
             TARGET_LINK_LIBRARIES(${PROGRAM}
                 ${CH_IRRLICHTLIB}
                 ChronoEngine
@@ -140,11 +143,8 @@ IF(ENABLE_MODULE_IRRLICHT)
     ENDIF()
 
     IF(ENABLE_MODULE_MATLAB AND ENABLE_MODULE_MKL)
-        INCLUDE_DIRECTORIES( ${CH_MATLABINC} )
-
-        INCLUDE_DIRECTORIES(${CH_MKLINC})
-        INCLUDE_DIRECTORIES(${CH_EIGEN_PATH})
-        INCLUDE_DIRECTORIES(${ChronoEngine_UNIT_MKL_INCLUDE})
+        INCLUDE_DIRECTORIES(${CH_MATLABINC})
+        INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
         INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
         FOREACH(PROGRAM ${FEA_DEMOS_IRR_MATLAB_MKL})
@@ -154,8 +154,8 @@ IF(ENABLE_MODULE_IRRLICHT)
             SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
             SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
                 FOLDER demos
-                COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_MKL_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-                LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}")
+                COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+                LINK_FLAGS "${CH_LINKERFLAG_EXE}")
             TARGET_LINK_LIBRARIES(${PROGRAM}
                 ${CH_IRRLICHTLIB}
                 ${CH_MATLABLIB}

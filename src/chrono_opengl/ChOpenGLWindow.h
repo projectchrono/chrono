@@ -74,9 +74,6 @@ class CH_OPENGL_API ChOpenGLWindow {
 
   void SetRenderMode(RenderMode mode) { viewer->render_mode = mode; }
 
-  // Checks if there are any errors in the opengl context
-  static bool GLUGetError(std::string err = ""  // User specified string, prints before gl error
-                          );
   // Provides the version of the opengl context along with driver information
   static void GLFWGetVersion(GLFWwindow* main_window  // A pointer to the window/context
                              );
