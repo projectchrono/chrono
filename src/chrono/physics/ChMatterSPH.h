@@ -99,7 +99,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
         /// ChCollisionModel might call this to get the position of the 
         /// contact model (when rigid) and sync it
-    virtual ChCoordsys<> GetCsysForCollisionModel() {return ChCoordsys<>(this->pos, QNULL);}
+    virtual ChCoordsys<> GetCsysForCollisionModel() {return ChCoordsys<>(this->pos, QUNIT);}
 
         /// Apply the force, expressed in absolute reference, applied in pos, to the 
         /// coordinates of the variables. Force for example could come from a penalty model.
