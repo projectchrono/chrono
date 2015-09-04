@@ -730,6 +730,7 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp
     collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/bt2DShape.cpp
+	collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp
