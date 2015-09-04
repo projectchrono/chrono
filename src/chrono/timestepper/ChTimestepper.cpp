@@ -695,134 +695,139 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
     mintegrable->StateGatherAcceleration(A);  // <- system
     mintegrable->StateGatherReactions(L);     // <- system
 
-    // extrapolate a prediction as a warm start
+    // Set scaling factor
+    double scaling_factor = scaling ? dt * dt : 1;
 
-	//==7/13/2015
-	if(HHTflag==1){
-	//Acceleration is Solution vector
-		Vnew = V;// + Anew*dt;
-		Xnew = X + Vnew * dt;// + Anew * dt * dt;
-	}else if(HHTflag==2||HHTflag==3){
-	//Position is solution vector
-		Xnew = X;
-		Vnew = V * (-(gamma/beta-1.0))  - A * dt*(gamma/(2.0*beta)-1.0);
-		Anew = V *(-1.0/(beta*dt))- A * (1.0/(2.0*beta)-1.0);
-	}
-	//
-	//GetLog()<<"Velocity 1:"<<Vnew<<"\n";
-	//system("pause");
-	if(HHTflag==1){
-    mintegrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)));       // -alpha/(1.0+alpha) * f_old
-    mintegrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)));  // -alpha/(1.0+alpha) * Cq'*l_old
-	}else if(HHTflag==2){
-    mintegrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)));       // -alpha/(1.0+alpha) * f_old
-    mintegrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)));  // -alpha/(1.0+alpha) * Cq'*l_old
-	}else if(HHTflag==3){
-    mintegrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha))*dt*dt);       // -alpha/(1.0+alpha) * f_old
-    mintegrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha))*dt*dt);  // -alpha/(1.0+alpha) * Cq'*l_old
-	}
-    // use Newton Raphson iteration to solve HHT for a_new
+    // Extrapolate a prediction as a warm start
+    switch (mode) {
+        case ACCELERATION:
+            Vnew = V;              // + Anew*dt;
+            Xnew = X + Vnew * dt;  // + Anew * dt * dt;
+            mintegrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)));       // -alpha/(1.0+alpha) * f_old
+            mintegrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)));  // -alpha/(1.0+alpha) * Cq'*l_old
+            break;
+        case POSITION:
+            Xnew = X;
+            Vnew = V * (-(gamma / beta - 1.0)) - A * dt * (gamma / (2.0 * beta) - 1.0);
+            Anew = V * (-1.0 / (beta * dt)) - A * (1.0 / (2.0 * beta) - 1.0);
+            mintegrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)) * scaling_factor);
+            mintegrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)) * scaling_factor);
+            break;
+    }
+
+    // Use Newton Raphson iteration to solve HHT for a_new
     // Note: l and l_new and Dl with opposite sign if compared to Negrut et al. 2007.
-
     //
-    // [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da       ] = [-1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) -
-    // (alpha/(1+alpha))(f_old +Cq*l_old)]
-    // [ Cq                                      0   ] [ Dl       ] = [ 1/(beta*dt^2)*C ]
-
-    for (int i = 0; i < this->GetMaxiters(); ++i) {
+    // [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da ] =
+    // [ Cq                                      0   ] [ Dl ]
+    //                [ -1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) - (alpha/(1+alpha))(f_old +Cq*l_old)]
+    //                [  1/(beta*dt^2)*C                                                               ]
+    for (num_it = 0; num_it < GetMaxiters(); ++num_it) {
         mintegrable->StateScatter(Xnew, Vnew, T + dt);  // state -> system
+
         R = Rold;
         Qc.Reset();
-		if(HHTflag==1){
-        mintegrable->LoadResidual_F(R, 1.0);                                                    //  f_new
-        mintegrable->LoadResidual_CqL(R, L, 1.0);                                               //  Cq'*l_new
-        mintegrable->LoadResidual_Mv(R, Anew, -(1.0 / (1.0 + alpha)));                          // -1/(1+alpha)*M*a_new
-        mintegrable->LoadConstraint_C(Qc, (1.0 / (beta * dt * dt)), Qc_do_clamp, Qc_clamping);  //  1/(beta*dt^2)*C
-		}else if(HHTflag==2){
-	    //Position is solution vector
-        mintegrable->LoadResidual_F(R, 1.0);                                                    //  f_new
-        mintegrable->LoadResidual_CqL(R, L, 1.0);                                               //  Cq'*l_new
-        mintegrable->LoadResidual_Mv(R, Anew, -(1.0 / (1.0 + alpha)));                          // -1/(1+alpha)*M*a_new
-        mintegrable->LoadConstraint_C(Qc, (1.0), Qc_do_clamp, Qc_clamping);  //  1/(beta*dt^2)*C
-        }else if(HHTflag==3){
-	    //Position is solution vector with Scaling
-        mintegrable->LoadResidual_F(R, dt*dt);                                                    //  f_new
-        mintegrable->LoadResidual_CqL(R, L, dt*dt);                                               //  Cq'*l_new
-        mintegrable->LoadResidual_Mv(R, Anew, -(1.0 / (1.0 + alpha))*dt*dt);                          // -1/(1+alpha)*M*a_new
-        mintegrable->LoadConstraint_C(Qc, (1.0), Qc_do_clamp, Qc_clamping);  //  1/(beta*dt^2)*C
-        }
-		verbose=1;
-		Iterations+=1;
- /*       if (verbose)
-            GetLog() << " HHT iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "\n";
 
-        if ((R.NormInf() < this->GetTolerance()) && (Qc.NormInf() < this->GetTolerance()))
-            break;*/
+        switch (mode) {
+            case ACCELERATION:
+                mintegrable->LoadResidual_F(R, 1.0);                      //  f_new
+                mintegrable->LoadResidual_CqL(R, L, 1.0);                 //  Cq'*l_new
+                mintegrable->LoadResidual_Mv(R, Anew, -1 / (1 + alpha));  // -1/(1+alpha)*M*a_new
+                mintegrable->LoadConstraint_C(Qc, 1 / (beta * dt * dt), Qc_do_clamp, Qc_clamping);  //  1/(beta*dt^2)*C
 
-		if(HHTflag==1){
-        mintegrable->StateSolveCorrection(
-            Da, Dl, R, Qc,
-            (1.0 / (1.0 + alpha)),  // factor for  M (was 1 in Negrut paper ?!)
-            -dt * gamma,            // factor for  dF/dv
-            -dt * dt * beta,        // factor for  dF/dx
-            Xnew, Vnew, T + dt,
-            false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-            );
-		}else if(HHTflag==2){
-		mintegrable->StateSolveCorrection(
-            Da, Dl, R, Qc,
-            (1.0 / (1.0 + alpha) / (beta*dt*dt)),  // factor for  M (was 1 in Negrut paper ?!)
-            -1.0 / (dt * gamma),            // factor for  dF/dv
-            -1.0,        // factor for  dF/dx
-            Xnew, Vnew, T + dt,
-            false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-            );
-		}else if(HHTflag==3){
-		mintegrable->StateSolveCorrection(
-            Da, Dl, R, Qc,
-            (1.0 / (1.0 + alpha) / (beta)),  // factor for  M (was 1 in Negrut paper ?!)
-            -1.0 *dt / ( gamma) ,            // factor for  dF/dv
-            -dt*dt,        // factor for  dF/dx
-            Xnew, Vnew, T + dt,
-            false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-            );
-		}
+                mintegrable->StateSolveCorrection(
+                    Da, Dl, R, Qc,
+                    1 / (1 + alpha),  // factor for  M (was 1 in Negrut paper ?!)
+                    -dt * gamma,      // factor for  dF/dv
+                    -dt * dt * beta,  // factor for  dF/dx
+                    Xnew, Vnew, T + dt,
+                    false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                    );
 
-        L += Dl;  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
-        if(HHTflag==1){
-		Anew += Da;
-        Xnew = X + V * dt + A * (dt * dt * (0.5 - beta)) + Anew * (dt * dt * beta);
-        Vnew = V + A * (dt * (1.0 - gamma)) + Anew * (dt * gamma);
-		}else if(HHTflag==2||HHTflag==3){
-        Xnew = Xnew +Da; // X + V * dt + A * (dt * dt * (0.5 - beta)) + Anew * (dt * dt * beta);
+                L += Dl;  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
 
-		//Vnew = V * (-(gamma/beta-1.0))  - A * dt*(gamma/(2.0*beta)-1.0);
-		//Anew = V *(-1.0/(beta*dt))- A * (1.0/(2.0*beta)-1.0);
+                Anew += Da;
+                Xnew = X + V * dt + A * (dt * dt * (0.5 - beta)) + Anew * (dt * dt * beta);
+                Vnew = V + A * (dt * (1.0 - gamma)) + Anew * (dt * gamma);
 
-        Vnew =  V * (-(gamma/beta-1.0)) - A * dt * (gamma/(2.0*beta)-1.0);
-		Vnew += (Xnew-X) * (gamma /(beta*dt));  //V + A * (dt * (1.0 - gamma)) + Anew * (dt * gamma);
-		Anew =  -V*(1.0/(beta*dt))-A*(1.0/(2.0*beta)-1.0);
-		Anew += (Xnew-X)*(1.0/(beta*dt*dt));
-		}
-
-		// Creteria for HHT method 7/15/2015
-		if(HHTflag==1){
-			GetLog() << " HHT iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "  " << this->GetTolerance() << "\n";
-		    GetLog() << " HHT iteration=" << i << "  |DA|=" << Da.NormTwo() << "  |Dl|=" << Dl.NormTwo() << "  " << this->GetTolerance() << "\n";
-			if (((R.NormTwo() < this->GetTolerance()) && (Qc.NormTwo() < this->GetTolerance())) || ((Da.NormTwo() < this->GetTolerance()) && (Dl.NormTwo() < this->GetTolerance())))
-				break;
-		}else if(HHTflag==2||HHTflag==3){
-		   	double Err1;
-		    double Err2;
-		    ConvergenceViolationCheck(Xnew,L,Da,Dl,Err1,Err2,HHTflag);
-		    GetLog() << " HHT iteration=" << i << "  |Err1|=" << Err1 << "  |Err2|=" << Err2 << "  Tol="<<this->GetTolerance() << "\n";
-		    if (Err1 < this->GetTolerance() && Err2 < this->GetTolerance())
                 break;
-		}
 
-		//GetLog()<<"Velocity 1:"<<V<<"\n";
-		//GetLog()<<"Velocity 2:"<<Vnew<<"\n";
-		//system("pause");
+            case POSITION:
+                mintegrable->LoadResidual_F(R, scaling_factor);                            //  f_new
+                mintegrable->LoadResidual_CqL(R, L, scaling_factor);                       //  Cq'*l_new
+                mintegrable->LoadResidual_Mv(R, Anew, -1 / (1 + alpha) * scaling_factor);  // -1/(1+alpha)*M*a_new
+                mintegrable->LoadConstraint_C(Qc, 1.0, Qc_do_clamp, Qc_clamping);          //  1/(beta*dt^2)*C
+
+                mintegrable->StateSolveCorrection(
+                    Da, Dl, R, Qc,
+                    scaling_factor / ((1 + alpha) * beta * dt * dt),  // factor for  M (was 1 in Negrut paper ?!)
+                    -scaling_factor / (gamma * dt),                   // factor for  dF/dv
+                    -scaling_factor,                                  // factor for  dF/dx
+                    Xnew, Vnew, T + dt,
+                    false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                    );
+
+                L += Dl;  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
+
+                Xnew = Xnew + Da;  // X + V * dt + A * (dt * dt * (0.5 - beta)) + Anew * (dt * dt * beta);
+                Vnew = V * (-(gamma / beta - 1.0)) - A * dt * (gamma / (2.0 * beta) - 1.0);
+                Vnew += (Xnew - X) * (gamma / (beta * dt));  // V + A * (dt * (1.0 - gamma)) + Anew * (dt * gamma);
+                Anew = -V * (1.0 / (beta * dt)) - A * (1.0 / (2.0 * beta) - 1.0);
+                Anew += (Xnew - X) * (1.0 / (beta * dt * dt));
+
+                break;
+        }
+
+        // Check stopping criteria.
+        bool converged = false;
+
+        switch (mode) {
+            case ACCELERATION: {
+                double R_nrm = R.NormTwo();
+                double Qc_nrm = Qc.NormTwo();
+                double Da_nrm = Da.NormTwo();
+                double Dl_nrm = Dl.NormTwo();
+
+                if (verbose) {
+                    GetLog() << " HHT iteration=" << num_it << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm
+                             << "  tol=" << GetTolerance() << "\n";
+                    GetLog() << " HHT iteration=" << num_it << "  |DA|=" << Da_nrm << "  |Dl|=" << Dl_nrm
+                             << "  tol=" << GetTolerance() << "\n";
+                }
+
+                if ((R.NormTwo() < GetTolerance() && Qc.NormTwo() < GetTolerance()) ||
+                    (Da.NormTwo() < GetTolerance() && Dl.NormTwo() < GetTolerance()))
+                    converged = true;
+
+                break;
+            }
+            case POSITION: {
+                double tmp = (Xnew + Da).NormTwo();
+                if (tmp < 1e-8)
+                    tmp = 1;
+                double Err_Da = Da.NormTwo() / tmp;
+                tmp = (L + Dl).NormTwo();
+                if (tmp < 1e-8)
+                    tmp = 1;
+                double Err_Dl = Dl.NormTwo() / tmp;
+
+                if (verbose) {
+                    GetLog() << " HHT iteration=" << num_it << "  |Err_Da|=" << Err_Da << "  |Err_Dl|=" << Err_Dl
+                             << "  tol=" << GetTolerance() << "\n";
+                }
+
+                if (Err_Da < GetTolerance() && Err_Dl < GetTolerance())
+                    converged = true;
+
+                break;
+            }
+        }
+
+        // Stop iterations if converged.
+        if (converged) {
+            ++num_it;
+            break;
+        }
     }
 
     X = Xnew;
