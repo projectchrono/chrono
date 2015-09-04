@@ -9,11 +9,7 @@ SET(DEMOS
 #--------------------------------------------------------------
 # Additional include paths
 
-INCLUDE_DIRECTORIES(     
-    ${GLM_INCLUDE_DIRS}
-    ${GLEW_INCLUDE_DIR}
-    ${GLFW_INCLUDE_DIR}
-    )
+INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
 
 #--------------------------------------------------------------
 
