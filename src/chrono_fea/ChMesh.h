@@ -128,7 +128,10 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Load tetahedrons, if any, saved in a .inp file for Abaqus.
     void LoadFromAbaqusFile(const char* filename,
                             ChSharedPtr<ChContinuumMaterial> my_material,
-                            std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > >& node_sets);
+                            std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > >& node_sets,  ///< vect of vectors of 'marked'nodes 
+                            ChVector<> pos_transform = VNULL,               ///< optional displacement of imported mesh
+                            ChMatrix33<> rot_transform = ChMatrix33<>(1),   ///< optional rotation/scaling of imported mesh
+                            bool discard_unused_nodes = true);              ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
 
     //
     // STATE FUNCTIONS
