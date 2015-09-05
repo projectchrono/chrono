@@ -20,12 +20,13 @@ SET(FEA_DEMOS_IRR_MATLAB
     demo_FEAbeams
     demo_FEAminiature
     demo_FEAshells
-    demo_FEAcableMATLAB
+    demo_FEAcablesMATLAB
 )
 
 # List all FEA demos that use both Irrlicht and MKL
 SET(FEA_DEMOS_IRR_MKL
     demo_FEAcablesMKL
+	demo_FEAabaqus_wheel
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL
