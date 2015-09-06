@@ -3,7 +3,7 @@
 
 SET(DEMOS
   demo_cohesion_gl
-  
+  demo_inv_pendulum
 )
 
 #--------------------------------------------------------------
