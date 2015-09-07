@@ -111,8 +111,8 @@ enum WheelType { CYLINDRICAL, LUGGED };
 WheelType wheel_type = CYLINDRICAL;
 
 // JSON files for mVehicle model (using different wheel visualization meshes)
-std::string vehicle_file_cyl("hmmwv/mVehicle/HMMWV_Vehicle_simple.json");
-std::string vehicle_file_lug("hmmwv/mVehicle/HMMWV_Vehicle_simple_lugged.json");
+std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
+std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 
 // JSON files for powertrain (simple)
 std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
@@ -571,26 +571,25 @@ int main(int argc, char* argv[]) {
 
     while (time < time_end) {
         // If enabled, output data for PovRay postprocessing.
-        if (sim_frame == next_out_frame) {
-								cout << endl;
-								cout << "---- Frame:          " << out_frame + 1 << endl;
-								cout << "     Sim frame:      " << sim_frame << endl;
-								cout << "     Time:           " << time << endl;
-								cout << "     Speed:          " << mVehicle->GetVehicle()->GetVehicleSpeed() << endl;
-								cout << "     Avg. contacts:  " << num_contacts / out_steps << endl;
-								cout << "     Execution time: " << exec_time << endl;
-
-								if (povray_output) {
-									char filename[100];
-									sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
-									utils::WriteShapesPovray(system, filename);
-								}
-
-								out_frame++;
-								next_out_frame += out_steps;
-								num_contacts = 0;
-							}
-
+//        if (sim_frame == next_out_frame) {
+//								cout << endl;
+//								cout << "---- Frame:          " << out_frame + 1 << endl;
+//								cout << "     Sim frame:      " << sim_frame << endl;
+//								cout << "     Time:           " << time << endl;
+//								cout << "     Speed:          " << vehicle->GetVehicle()->GetVehicleSpeed() << endl;
+//								cout << "     Avg. contacts:  " << num_contacts / out_steps << endl;
+//								cout << "     Execution time: " << exec_time << endl;
+//
+//								if (povray_output) {
+//									char filename[100];
+//									sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
+//									utils::WriteShapesPovray(system, filename);
+//								}
+//
+//								out_frame++;
+//								next_out_frame += out_steps;
+//								num_contacts = 0;
+//							}
 							// Release the mVehicle chassis at the end of the hold time.
 							if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && time > time_hold) {
 								cout << endl << "Release mVehicle t = " << time << endl;

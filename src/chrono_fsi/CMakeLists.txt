@@ -75,7 +75,8 @@ endif()
 set(DEMOS
 	#demo_VehicleAssembly
 #hmmwv
-	    fsi_hmmwv
+hmmwv2
+#	    fsi_hmmwv
 	#fsi_hmmwv
 	#fsi_hmmwv4
 		#fsi_hmmwv
