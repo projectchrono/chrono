@@ -320,80 +320,80 @@ double CreateParticles(ChSystem* system) {
 
 int DoStepChronoSystem(ChSystemParallelDVI* mphysicalSystem, double dT, double mTime) {
 
-//    printf(" b1 ********* \n");
-//	// Release the mVehicle chassis at the end of the hold time.
-//  if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold) {
-//    mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
-//    for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-//      mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
-//    }
-//  }
+    printf(" b1 ********* \n");
+	// Release the mVehicle chassis at the end of the hold time.
+  if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold) {
+    mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
+    for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+      mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
+    }
+  }
+
+  printf(" b2 ********* \n");
+  // Update mVehicle
+  mVehicle->Update(mTime);
+
+  printf(" b3 ********* \n");
+
+#if irrlichtVisualization
+  Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+  if (!(application->GetDevice()->run()))
+    return 0;
+  application->SetTimestep(dT);
+  application->GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+  ChIrrTools::drawGrid(application->GetVideoDriver(),
+                       2 * paramsH.HSML,
+                       2 * paramsH.HSML,
+                       50,
+                       50,
+                       ChCoordsys<>(ChVector<>(domainCenter.x, paramsH.worldOrigin.y, domainCenter.z),
+                                    Q_from_AngAxis(CH_C_PI / 2, VECT_X)),
+                       video::SColor(50, 90, 90, 150),
+                       true);
+  application->DrawAll();
+  application->DoStep();
+  application->GetVideoDriver()->endScene();
+#else
+#ifdef CHRONO_OPENGL
+  if (gl_window.Active()) {
+	    printf(" b4 ********* \n");
+    gl_window.DoStepDynamics(dT);
+    printf(" b5 ********* \n");
+    gl_window.Render();
+    printf(" b6 ********* \n");
+  }
+#else
+  mphysicalSystem->DoStepDynamics(dT);
+#endif
+#endif
+  return 1;
+
+
+
 //
-//  printf(" b2 ********* \n");
-//  // Update mVehicle
-//  mVehicle->Update(mTime);
+//								// Release the mVehicle chassis at the end of the hold time.
+//								if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold) {
+////									cout << endl << "Release mVehicle t = " << time << endl;
+//									mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
+//									for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+//										mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
+//									}
+//								}
 //
-//  printf(" b3 ********* \n");
+//								// Update mVehicle
+//								mVehicle->Update(mTime);
 //
-//#if irrlichtVisualization
-//  Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-//  if (!(application->GetDevice()->run()))
-//    return 0;
-//  application->SetTimestep(dT);
-//  application->GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
-//  ChIrrTools::drawGrid(application->GetVideoDriver(),
-//                       2 * paramsH.HSML,
-//                       2 * paramsH.HSML,
-//                       50,
-//                       50,
-//                       ChCoordsys<>(ChVector<>(domainCenter.x, paramsH.worldOrigin.y, domainCenter.z),
-//                                    Q_from_AngAxis(CH_C_PI / 2, VECT_X)),
-//                       video::SColor(50, 90, 90, 150),
-//                       true);
-//  application->DrawAll();
-//  application->DoStep();
-//  application->GetVideoDriver()->endScene();
-//#else
-//#ifdef CHRONO_OPENGL
-//  if (gl_window.Active()) {
-//	    printf(" b4 ********* \n");
-//    gl_window.DoStepDynamics(dT);
-//    printf(" b5 ********* \n");
-//    gl_window.Render();
-//    printf(" b6 ********* \n");
-//  }
-//#else
-//  mphysicalSystem->DoStepDynamics(dT);
-//#endif
-//#endif
-//  return 1;
-
-
-
-
-								// Release the mVehicle chassis at the end of the hold time.
-								if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold) {
-//									cout << endl << "Release mVehicle t = " << time << endl;
-									mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
-									for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-										mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
-									}
-								}
-
-								// Update mVehicle
-								mVehicle->Update(mTime);
-
-						// Advance dynamics.
-						#ifdef CHRONO_OPENGL
-								if (gl_window.Active()) {
-									gl_window.DoStepDynamics(time_step);
-									gl_window.Render();
-								}
-//								else
-//									break;
-						#else
-								system->DoStepDynamics(time_step);
-						#endif
+//						// Advance dynamics.
+//						#ifdef CHRONO_OPENGL
+//								if (gl_window.Active()) {
+//									gl_window.DoStepDynamics(time_step);
+//									gl_window.Render();
+//								}
+////								else
+////									break;
+//						#else
+//								system->DoStepDynamics(time_step);
+//						#endif
 }
 
 // =============================================================================
