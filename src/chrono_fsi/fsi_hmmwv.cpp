@@ -484,8 +484,8 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
   // Set the callback object for driver inputs. Pass the hold time as a delay in
   // generating driver inputs.
-  MyDriverInputs driver_cb(time_hold_vehicle);
-  mVehicle->SetDriverInputsCallback(&driver_cb);
+  driver_cb = new MyDriverInputs(time_hold_vehicle);
+  mVehicle->SetDriverInputsCallback(driver_cb);
 
   // Initialize the vehicle at a height above the terrain.
   mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
@@ -842,8 +842,306 @@ int main(int argc, char* argv[]) {
   printf("a0 ********* \n");
 
   // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
-  CreateMbdPhysicalSystemObjects(mphysicalSystem,
-			posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+//  CreateMbdPhysicalSystemObjects(mphysicalSystem,
+//			posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // Ground body
+  ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
+  ground->SetIdentifier(-1);
+  ground->SetBodyFixed(true);
+  ground->SetCollide(true);
+
+  ground->GetMaterialSurface()->SetFriction(mu_g);
+
+  ground->GetCollisionModel()->ClearModel();
+
+  // Bottom box
+  double hdimSide = hdimX / 4.0;
+  double midSecDim = hdimX - 2 * hdimSide;
+
+  // basin info
+  double phi = CH_C_PI / 9;
+  double bottomWidth = midSecDim - basinDepth / tan(phi);  // for a 45 degree slope
+  double bottomBuffer = .4 * bottomWidth;
+
+  double inclinedWidth = 0.5 * basinDepth / sin(phi);  // for a 45 degree slope
+
+  double smallBuffer = .7 * hthick;
+  double x1I = -midSecDim + inclinedWidth * cos(phi) - hthick * sin(phi) - smallBuffer;
+  double zI = -inclinedWidth * sin(phi) - hthick * cos(phi);
+  double x2I = midSecDim - inclinedWidth * cos(phi) + hthick * sin(phi) + smallBuffer;
+
+  // beginning third
+  AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+                        ChVector<>(hdimSide, hdimY, hthick),
+                        ChVector<>(-midSecDim - hdimSide, 0, -hthick),
+                        ChQuaternion<>(1, 0, 0, 0),
+                        true,
+                        posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+
+    // end third
+  AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+                          ChVector<>(hdimSide, hdimY, hthick),
+                          ChVector<>(midSecDim + hdimSide, 0, -hthick),
+                          ChQuaternion<>(1, 0, 0, 0),
+                          true,
+                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+    // basin
+  AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+                          ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
+                          ChVector<>(0, 0, -basinDepth - hthick),
+                          ChQuaternion<>(1, 0, 0, 0),
+                          true,
+                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+    // slope 1
+  AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+                          ChVector<>(inclinedWidth, hdimY, hthick),
+                          ChVector<>(x1I, 0, zI),
+                          Q_from_AngAxis(phi, ChVector<>(0, 1, 0)),
+                          true,
+                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+
+    // slope 2
+  AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+                          ChVector<>(inclinedWidth, hdimY, hthick),
+                          ChVector<>(x2I, 0, zI),
+                          Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)),
+                          true,
+                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+
+    // a flat surface altogether
+  //  utils::AddBoxGeometry(
+  //      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),
+  //      true);
+
+  if (initializeFluidFromFile) {
+	  if (numObjects.numBoundaryMarkers > 0) {
+		  ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
+		  ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
+	  }
+  } else {
+#if haveFluid
+#if useWallBce
+  ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
+  ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
+#endif
+#endif
+  }
+
+  ground->GetCollisionModel()->BuildModel();
+
+  mphysicalSystem.AddBody(ground);
+
+  printf("  c1 ********* \n");
+
+  // version 1
+//  // -----------------------------------------
+//  // Create and initialize the vehicle system.
+//  // -----------------------------------------
+//  // Create the vehicle assembly and the callback object for tire contact
+//  // according to the specified type of tire/wheel.
+//  switch (wheel_type) {
+//    case CYLINDRICAL: {
+//    	  printf("  c11 ********* \n");
+//
+//      mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
+//      printf("  c12 ********* \n");
+//
+//      tire_cb = new MyCylindricalTire();
+//      printf("  c22 ********* \n");
+//
+//    } break;
+//    case LUGGED: {
+//      mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
+//      tire_cb = new MyLuggedTire();
+//    } break;
+//  }
+//
+//  printf("  c33 ********* \n");
+//
+//
+//
+//  mVehicle->SetTireContactCallback(tire_cb);
+//
+//
+//  printf("  c2 ********* \n");
+//
+//  // Set the callback object for chassis.
+//  switch (chassis_type) {
+//    case CBOX: {
+//      chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//      ChVector<> boxSize(1, .5, .2);
+//      ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
+//      mVehicle->SetChassisContactCallback(chassis_cb);
+//    } break;
+//
+//    case CSPHERE: {
+//      chassis_cb = new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//      Real radius = 1;
+//      ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
+//      mVehicle->SetChassisContactCallback(chassis_cb);
+//    } break;
+//
+//    case C_SIMPLE_CONVEX_MESH: {
+//      chassis_cb =
+//          new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//      mVehicle->SetChassisContactCallback(chassis_cb);
+//    } break;
+//
+//    case C_SIMPLE_TRI_MESH: {
+//      chassis_cb =
+//          new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//      mVehicle->SetChassisContactCallback(chassis_cb);
+//    } break;
+//  }
+//
+//
+//  printf("  c3 ********* \n");
+//
+//  // Set the callback object for driver inputs. Pass the hold time as a delay in
+//  // generating driver inputs.
+//  driver_cb = new MyDriverInputs(time_hold_vehicle);
+//  mVehicle->SetDriverInputsCallback(driver_cb);
+//
+//  printf("  c4 ********* \n");
+//
+//  // Initialize the vehicle at a height above the terrain.
+//  mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+//
+//  // Initially, fix the chassis (will be released after time_hold_vehicle).
+//  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+//  // Initially, fix the wheels (will be released after time_hold_vehicle).
+//  for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+//    mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+//  }
+//
+//  printf("  c6 ********* \n");
+
+
+
+  // version 2
+  // -----------------------------------------
+  // Create and initialize the vehicle system.
+  // -----------------------------------------
+
+  std::string vehicle_file_cyl1("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
+  std::string vehicle_file_lug1("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
+
+  // JSON files for powertrain (simple)
+  std::string simplepowertrain_file1("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
+
+
+
+  // Create the vehicle assembly and the callback object for tire contact
+  // according to the specified type of tire/wheel.
+  switch (wheel_type) {
+      case CYLINDRICAL: {
+    	  mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl1, simplepowertrain_file1);
+          tire_cb = new MyCylindricalTire();
+      } break;
+      case LUGGED: {
+    	  mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug1, simplepowertrain_file1);
+          tire_cb = new MyLuggedTire();
+      } break;
+  }
+
+  mVehicle->SetTireContactCallback(tire_cb);
+
+  // Set the callback object for driver inputs. Pass the hold time as a delay in
+  // generating driver inputs.
+  driver_cb = new MyDriverInputs(time_hold_vehicle);
+  mVehicle->SetDriverInputsCallback(driver_cb);
+
+  // Initialize the vehicle at a height above the terrain.
+  mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+
+  // Initially, fix the chassis and wheel bodies (will be released after time_hold).
+  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+  for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+	  mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+  }
+
+
+
+  // extra objects
+  // -----------------------------------------
+  // Add extra collision body to test the collision shape
+  // -----------------------------------------
+//
+//  Real rad = 0.1;
+//  // NOTE: mass properties and shapes are all for sphere
+//  double volume = utils::CalcSphereVolume(rad);
+//  ChVector<> gyration = utils::CalcSphereGyration(rad).Get_Diag();
+//  double density = paramsH.rho0;
+//  double mass = density * volume;
+//  double muFriction = 0;
+//
+//  // Create a common material
+//  ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
+//  mat_g->SetFriction(muFriction);
+//  mat_g->SetCohesion(0);
+//  mat_g->SetCompliance(0.0);
+//  mat_g->SetComplianceT(0.0);
+//  mat_g->SetDampingF(0.2);
+//
+//  for (Real x = -4; x < 2; x += 0.25) {
+//    for (Real y = -1; y < 1; y += 0.25) {
+//      ChSharedPtr<ChBody> mball = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
+//      ChVector<> pos = ChVector<>(-8.5, .20, 3) + ChVector<>(x, y, 0);
+//      mball->SetMaterialSurface(mat_g);
+//      // body->SetIdentifier(fId);
+//      mball->SetPos(pos);
+//      mball->SetCollide(true);
+//      mball->SetBodyFixed(false);
+//      mball->SetMass(mass);
+//      mball->SetInertiaXX(mass * gyration);
+//
+//      mball->GetCollisionModel()->ClearModel();
+//      utils::AddSphereGeometry(mball.get_ptr(), rad);  // O
+//                                                       //	utils::AddEllipsoidGeometry(body.get_ptr(), size);					// X
+//
+//      mball->GetCollisionModel()->SetFamily(100);
+//      mball->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(100);
+//
+//      mball->GetCollisionModel()->BuildModel();
+//      mphysicalSystem.AddBody(mball);
+//    }
+//  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // ***************************** Create Interface ********************************************
 
