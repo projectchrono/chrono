@@ -77,12 +77,25 @@ public:
     char               delim = '\t'     ///< delimiter (default TAB)
     );
 
+  /// Process the data in the two specified structures.
+  /// Excluding the first column (which must contain identical values in the two
+  /// input structures), we subtract the data in corresponding columns in the two
+  /// structures are and calculate the norms of the difference vectors.
+  bool Process(const Data& sim_data,  ///< simulation data strcture
+      const Data& ref_data   ///< reference data structure
+      );
+
   /// Read the data in the specified file and process it.
   /// We calculate the vector norms of all columns except the first one.
   bool Process(
     const std::string& sim_filename,    ///< name of the file with simulation results
     char               delim = '\t'     ///< delimiter (default TAB)
     );
+
+  /// Process the data in the specified structure.
+  /// We calculate the vector norms of all columns except the first one.
+  bool Process(const Data& sim_data  ///< simulation data structure
+               );
 
   /// Return the number of data columns.
   size_t GetNumColumns() const { return m_num_cols; }
@@ -154,14 +167,23 @@ private:
 /// given tolerance and false otherwise.
 /// It is assumed that the input files are TAB-delimited.
 ///
-ChApi
-bool Validate(
-          const std::string& sim_filename,
-          const std::string& ref_filename,
-          ChNormType         norm_type,
-          double             tolerance,
-          DataVector&        norms
-          );
+ChApi bool Validate(const std::string& sim_filename,
+                    const std::string& ref_filename,
+                    ChNormType norm_type,
+                    double tolerance,
+                    DataVector& norms);
+
+///
+/// Compare the data in the two specified structures
+/// The comparison is done using the specified norm type and tolerance. The
+/// function returns true if the norms of all column differences are below the
+/// given tolerance and false otherwise.
+///
+ChApi bool Validate(const Data& sim_data,
+                    const Data& ref_data,
+                    ChNormType norm_type,
+                    double tolerance,
+                    DataVector& norms);
 
 ///
 /// Validation of a constraint violation data file.
@@ -170,13 +192,15 @@ bool Validate(
 /// are below the given tolerance and false otherwise.
 /// It is assumed that the input file is TAB-delimited.
 ///
-ChApi
-bool Validate(
-          const std::string& sim_filename,
-          ChNormType         norm_type,
-          double             tolerance,
-          DataVector&        norms
-          );
+ChApi bool Validate(const std::string& sim_filename, ChNormType norm_type, double tolerance, DataVector& norms);
+
+///
+/// Validation of a constraint violation data structure.
+/// The validation is done using the specified norm type and tolerance. The
+/// function returns true if the norms of all columns, excluding the first one,
+/// are below the given tolerance and false otherwise.
+///
+ChApi bool Validate(const Data& sim_data, ChNormType norm_type, double tolerance, DataVector& norms);
 
 // -----------------------------------------------------------------------------
 // Global functions for accessing the reference validation data.
