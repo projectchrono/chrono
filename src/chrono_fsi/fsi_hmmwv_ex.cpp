@@ -195,7 +195,6 @@ void InitializeChronoGraphics(ChSystemParallelDVI* mphysicalSystem) {
 // =============================================================================
 int DoStepChronoSystem(ChSystemParallelDVI* mphysicalSystem, double dT, double mTime) {
 
-    printf(" b1 ********* \n");
 	// Release the mVehicle chassis at the end of the hold time.
   if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold_vehicle) {
     mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
@@ -204,7 +203,6 @@ int DoStepChronoSystem(ChSystemParallelDVI* mphysicalSystem, double dT, double m
     }
   }
 
-  printf(" b2 ********* \n");
   // Update mVehicle
   mVehicle->Update(mTime);
 

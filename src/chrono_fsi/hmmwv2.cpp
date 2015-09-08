@@ -229,6 +229,17 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI* mphysicalSystem, int argc,
 void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI* system
 		) {
 
+    switch (wheel_type) {
+        case CYLINDRICAL: {
+            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_cyl, simplepowertrain_file);
+            tire_cb = new MyCylindricalTire();
+        } break;
+        case LUGGED: {
+            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_lug, simplepowertrain_file);
+            tire_cb = new MyLuggedTire();
+        } break;
+    }
+    driver_cb = new MyDriverInputs(time_hold_vehicle);
 
     mVehicle->SetTireContactCallback(tire_cb);
 
@@ -256,17 +267,17 @@ int main(int argc, char* argv[]) {
 
 
     //******************
-    switch (wheel_type) {
-        case CYLINDRICAL: {
-            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_cyl, simplepowertrain_file);
-            tire_cb = new MyCylindricalTire();
-        } break;
-        case LUGGED: {
-            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_lug, simplepowertrain_file);
-            tire_cb = new MyLuggedTire();
-        } break;
-    }
-    driver_cb = new MyDriverInputs(time_hold_vehicle);
+//    switch (wheel_type) {
+//        case CYLINDRICAL: {
+//            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_cyl, simplepowertrain_file);
+//            tire_cb = new MyCylindricalTire();
+//        } break;
+//        case LUGGED: {
+//            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_lug, simplepowertrain_file);
+//            tire_cb = new MyLuggedTire();
+//        } break;
+//    }
+//    driver_cb = new MyDriverInputs(time_hold_vehicle);
 
 //    mVehicle->SetTireContactCallback(tire_cb);
 //
