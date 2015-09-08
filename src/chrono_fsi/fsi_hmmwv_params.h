@@ -25,7 +25,7 @@ const std::string out_dir = "PostProcess";
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold_vehicle = 1.0;//0.1;  // 0.2;
+Real time_hold_vehicle = 0.2;//0.1;  // 0.2;
 Real time_pause_fluid_external_force = 0;//.05;//0.1;//0.1;  // 0.2;
 
 Real contact_recovery_speed = 1;
@@ -209,7 +209,7 @@ WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
 enum ChassisType { CSPHERE, CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIGINAL };
 
 // Type of chassis (controls both contact and visualization)
-ChassisType chassis_type = C_SIMPLE_CONVEX_MESH;
+ChassisType chassis_type = CBOX;
 
 // JSON files for vehicle model (using different wheel visualization meshes)
 //std::string vehicle_file_cyl("hmmwv/vehicle/myHMMWV.json");
