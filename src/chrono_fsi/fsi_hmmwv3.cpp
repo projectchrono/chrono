@@ -200,6 +200,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   mphysicalSystem.GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;      // max_iteration / 3
   mphysicalSystem.GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;    // 0
   mphysicalSystem.GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;  // max_iteration / 3
+  mphysicalSystem.GetSettings()->solver.use_full_inertia_tensor = true;
   mphysicalSystem.GetSettings()->solver.tolerance = tolerance;
   mphysicalSystem.GetSettings()->solver.alpha = 0;  // Arman, find out what is this
   mphysicalSystem.GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
@@ -977,8 +978,8 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.data_manager->system_timer.PrintReport();
 
   }
-#if haveFluid
   ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
+#if haveFluid
   ClearMyThrustR3(posRadD);
   ClearMyThrustR4(velMasD);
   ClearMyThrustR4(rhoPresMuD);
