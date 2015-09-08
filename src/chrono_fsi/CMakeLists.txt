@@ -74,14 +74,12 @@ endif()
 
 set(DEMOS
 	#demo_VehicleAssembly
-#hmmwv
-#hmmwv2
-#fsi_hmmwv_ex
-hmmwv_simplified
-	    fsi_hmmwv
-	#fsi_hmmwv
-	#fsi_hmmwv4
-		#fsi_hmmwv
+  #hmmwv
+#  hmmwv_simplified
+  fsi_hmmwv
+#  fsi_hmmwv2
+#  fsi_hmmwv3
+#  fsi_hmmwv4
 )
 
 #--------------------------------------------------------------
