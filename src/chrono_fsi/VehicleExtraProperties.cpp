@@ -101,6 +101,8 @@ void MyLuggedTire::onCallback(ChSharedPtr<ChBody> wheelBody, double radius, doub
 void MyChassisBoxModel_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
   // Clear any existing assets (will be overriden)
 
+  chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+
   chassisBody->GetCollisionModel()->ClearModel();
   ChVector<> chLoc = ChVector<>(0, 0, 0);
   //    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
@@ -133,6 +135,8 @@ void MyChassisBoxModel_vis::SetAttributes(const ChVector<>& otherSize,
 // chassis body with the collision meshes.
 void MyChassisSphereModel_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
   // Clear any existing assets (will be overriden)
+
+	chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
 
   chassisBody->GetCollisionModel()->ClearModel();
   ChVector<> chLoc = ChVector<>(0, 0, 0);
@@ -173,6 +177,8 @@ MyChassisSimpleConvexMesh::MyChassisSimpleConvexMesh() :
 }
 
 void MyChassisSimpleConvexMesh::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
+	chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+
   ChVector<> chLoc = ChVector<>(0, 0, 0);  // chassisBody->GetFrame_REF_to_COG().GetPos();
   chassisBody->GetCollisionModel()->ClearModel();
   //    utils::AddConvexCollisionModel(chassisBody, chassis_mesh, chassis_convex, chLoc, ChQuaternion<>(1, 0, 0, 0),
@@ -217,6 +223,8 @@ MyChassisSimpleTriMesh_vis::MyChassisSimpleTriMesh_vis() :
 }
 
 void MyChassisSimpleTriMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
+	chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+
   // Clear any existing assets (will be overriden)
   const std::string mesh_name("chassis");
 
