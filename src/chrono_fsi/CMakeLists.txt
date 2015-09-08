@@ -77,9 +77,9 @@ set(DEMOS
   #hmmwv
 #  hmmwv_simplified
   fsi_hmmwv
-#  fsi_hmmwv2
-#  fsi_hmmwv3
-#  fsi_hmmwv4
+  fsi_hmmwv2
+  fsi_hmmwv3
+  fsi_hmmwv4
 )
 
 #--------------------------------------------------------------
