@@ -25,7 +25,7 @@ const std::string out_dir = "PostProcess";
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold_vehicle = 1.0;//0.1;  // 0.2;
+Real time_hold_vehicle = 0.2;//0.1;  // 0.2;
 Real time_pause_fluid_external_force = 0;//.05;//0.1;//0.1;  // 0.2;
 
 Real contact_recovery_speed = 1;
@@ -204,12 +204,12 @@ void SetupParamsH(SimParams& paramsH) {
 enum WheelType { CYLINDRICAL, LUGGED };
 
 // Type of wheel/tire (controls both contact and visualization)
-WheelType wheel_type = LUGGED;  // CYLINDRICAL;
+WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
 
 enum ChassisType { CSPHERE, CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIGINAL };
 
 // Type of chassis (controls both contact and visualization)
-ChassisType chassis_type = C_SIMPLE_CONVEX_MESH;
+ChassisType chassis_type = CBOX;
 
 // JSON files for vehicle model (using different wheel visualization meshes)
 //std::string vehicle_file_cyl("hmmwv/vehicle/myHMMWV.json");
@@ -218,7 +218,8 @@ std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
 std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 
 // JSON files for powertrain (simple)
-std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain_Arman.json");
+std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
+//std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain_Arman.json");  // yo yo yo yo Arman Arman
 
 // Initial vehicle position and orientation
 // ChVector<> initLoc(-3.0, 0, 0.75);
@@ -232,11 +233,6 @@ chrono::ChQuaternion<> initRot(1, 0, 0, 0);
 // -----------------------------------------------------------------------------
 // Specification of the terrain
 // -----------------------------------------------------------------------------
-
-enum TerrainType { RIGID, GRANULAR };
-
-// Type of terrain
-TerrainType terrain_type = RIGID;
 
 // Control visibility of containing bin walls
 bool visible_walls = false;
@@ -268,9 +264,9 @@ int out_fps = 120;
 
 Real vertical_offset = 0;  // vehicle vertical offset
 
-chrono::utils::VehicleSystem* mVehicle;
-chrono::utils::TireContactCallback* tire_cb;
-chrono::utils::ChassisContactCallback* chassis_cb;
+chrono::ChWheeledVehicleAssembly* mVehicle;
+chrono::ChTireContactCallback* tire_cb;
+chrono::ChChassisContactCallback* chassis_cb;
 MyDriverInputs* driver_cb;
 
 #endif  // end of FSI_HMMWV_PARAMS_H_

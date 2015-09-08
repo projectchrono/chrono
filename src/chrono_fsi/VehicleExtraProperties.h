@@ -12,14 +12,14 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
-#include "chrono_utils/ChUtilsVehicle.h"
+#include "chrono_vehicle/utils/ChWheeledVehicleAssembly.h"
 //#include "chrono_utils/ChUtilsGeometry.h"
-#include "chrono_utils/ChUtilsCreators.h"
+#include "utils/ChUtilsCreators.h"
 //#include "chrono_utils/ChUtilsGenerators.h"
 //#include "chrono_utils/ChUtilsInputOutput.h"
 
 // Callback class for providing driver inputs.
-class MyDriverInputs : public chrono::utils::DriverInputsCallback {
+class MyDriverInputs : public chrono::ChDriverInputsCallback {
  public:
   MyDriverInputs(double delay);
   virtual void onCallback(double time, double& throttle, double& steering, double& braking);
@@ -30,14 +30,14 @@ class MyDriverInputs : public chrono::utils::DriverInputsCallback {
 
 // Callback class for specifying rigid tire contact model.
 // This version uses cylindrical contact shapes.
-class MyCylindricalTire : public chrono::utils::TireContactCallback {
+class MyCylindricalTire : public chrono::ChTireContactCallback {
  public:
   virtual void onCallback(chrono::ChSharedPtr<chrono::ChBody> wheelBody, double radius, double width);
 };
 
 // Callback class for specifying rigid tire contact model.
 // This version uses a collection of convex contact shapes (meshes).
-class MyLuggedTire : public chrono::utils::TireContactCallback {
+class MyLuggedTire : public chrono::ChTireContactCallback {
  public:
   MyLuggedTire();
   virtual void onCallback(chrono::ChSharedPtr<chrono::ChBody> wheelBody, double radius, double width);
@@ -51,7 +51,7 @@ class MyLuggedTire : public chrono::utils::TireContactCallback {
 // This version uses a box representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
 // chassis body with the collision meshes.
-class MyChassisBoxModel_vis : public chrono::utils::ChassisContactCallback {
+class MyChassisBoxModel_vis : public chrono::ChChassisContactCallback {
  public:
   virtual void onCallback(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassisBody);
   virtual void SetAttributes(const chrono::ChVector<>& otherSize,
@@ -71,7 +71,7 @@ class MyChassisBoxModel_vis : public chrono::utils::ChassisContactCallback {
 // This version uses a sphere representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
 // chassis body with the collision meshes.
-class MyChassisSphereModel_vis : public chrono::utils::ChassisContactCallback {
+class MyChassisSphereModel_vis : public chrono::ChChassisContactCallback {
  public:
   virtual void onCallback(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassisBody) ;
   virtual void SetAttributes(double otherRad,
@@ -91,7 +91,7 @@ class MyChassisSphereModel_vis : public chrono::utils::ChassisContactCallback {
 // This version uses a convex decomposition of an obj representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
 // chassis body with the collision meshes.
-class MyChassisSimpleConvexMesh : public chrono::utils::ChassisContactCallback {
+class MyChassisSimpleConvexMesh : public chrono::ChChassisContactCallback {
  public:
   MyChassisSimpleConvexMesh();
   virtual void onCallback(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassisBody);
@@ -109,7 +109,7 @@ class MyChassisSimpleConvexMesh : public chrono::utils::ChassisContactCallback {
 // This version uses a triangular given in an obj representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
 // chassis body with the collision meshes.
-class MyChassisSimpleTriMesh_vis : public chrono::utils::ChassisContactCallback {
+class MyChassisSimpleTriMesh_vis : public chrono::ChChassisContactCallback {
  public:
   MyChassisSimpleTriMesh_vis();
   virtual void onCallback(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassisBody);

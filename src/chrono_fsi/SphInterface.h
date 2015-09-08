@@ -18,7 +18,7 @@
 //#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 //#include "chrono_utils/ChUtilsCreators.h"  //Arman: why is this
 //#include "chrono_utils/ChUtilsInputOutput.h" //Arman: Why is this
-#include "chrono_utils/ChUtilsGenerators.h"
+#include "utils/ChUtilsGenerators.h"
 
 //using namespace chrono;
 //using namespace chrono::collision;
