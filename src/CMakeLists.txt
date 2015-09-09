@@ -77,7 +77,7 @@ if(ENABLE_OPENMP)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_GLAGS} ${OpenMP_C_FLAGS}")
+  set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
 endif()
 
 #-----------------------------------------------------------------------------
