@@ -148,7 +148,7 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads, int& max_
 
 void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc, char* argv[]) {
   // Desired number of OpenMP threads (will be clamped to maximum available)
-  int threads = 32;
+  int threads = 4;
   // Perform dynamic tuning of number of threads?
   bool thread_tuning = true;
 
