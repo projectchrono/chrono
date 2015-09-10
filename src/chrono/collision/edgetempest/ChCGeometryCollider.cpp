@@ -1013,7 +1013,7 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
         double dist = 0;
 
         if ((fabs(relC.x) <= mgeo2.Size.x + mgeo1.rad) && (fabs(relC.y) <= mgeo2.Size.y) &&
-            (fabs(relC.z) <= mgeo2.Size.z))
+            (fabs(relC.z) <= mgeo2.Size.z)) {
             if (relC.x >= 0) {
                 pt_loc = relC;
                 pt_loc.x = mgeo2.Size.x;
@@ -1023,9 +1023,10 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
                 pt_loc.x = -mgeo2.Size.x;
                 done = true;
             }
-        if (!done)
+        }
+        if (!done) {
             if ((fabs(relC.y) <= mgeo2.Size.y + mgeo1.rad) && (fabs(relC.z) <= mgeo2.Size.z) &&
-                (fabs(relC.x) <= mgeo2.Size.x))
+                (fabs(relC.x) <= mgeo2.Size.x)) {
                 if (relC.y >= 0) {
                     pt_loc = relC;
                     pt_loc.y = mgeo2.Size.y;
@@ -1035,9 +1036,11 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
                     pt_loc.y = -mgeo2.Size.y;
                     done = true;
                 }
-        if (!done)
+            }
+        }
+        if (!done) {
             if ((fabs(relC.z) <= mgeo2.Size.z + mgeo1.rad) && (fabs(relC.x) <= mgeo2.Size.x) &&
-                (fabs(relC.y) <= mgeo2.Size.y))
+                (fabs(relC.y) <= mgeo2.Size.y)) {
                 if (relC.z >= 0) {
                     pt_loc = relC;
                     pt_loc.z = mgeo2.Size.z;
@@ -1047,10 +1050,12 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
                     pt_loc.z = -mgeo2.Size.z;
                     done = true;
                 }
-        if (!done)
+            }
+        }
+        if (!done) {
             if ((sqrt(pow(fabs(relC.x) - mgeo2.Size.x, 2) + pow(fabs(relC.y) - mgeo2.Size.y, 2)) <= mgeo1.rad) &&
-                (fabs(relC.z) <= mgeo2.Size.z))
-                if (relC.x > 0)
+                (fabs(relC.z) <= mgeo2.Size.z)) {
+                if (relC.x > 0) {
                     if (relC.y > 0) {
                         pt_loc = relC;
                         pt_loc.x = mgeo2.Size.x;
@@ -1062,7 +1067,7 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
                         pt_loc.y = -mgeo2.Size.y;
                         done = true;
                     }
-                else if (relC.y > 0) {
+                } else if (relC.y > 0) {
                     pt_loc = relC;
                     pt_loc.x = -mgeo2.Size.x;
                     pt_loc.y = mgeo2.Size.y;
@@ -1073,10 +1078,12 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
                     pt_loc.y = -mgeo2.Size.y;
                     done = true;
                 }
-        if (!done)
+            }
+        }
+        if (!done) {
             if ((sqrt(pow(fabs(relC.y) - mgeo2.Size.y, 2) + pow(fabs(relC.z) - mgeo2.Size.z, 2)) <= mgeo1.rad) &&
-                (fabs(relC.x) <= mgeo2.Size.x))
-                if (relC.y > 0)
+                (fabs(relC.x) <= mgeo2.Size.x)) {
+                if (relC.y > 0) {
                     if (relC.z > 0) {
                         pt_loc = relC;
                         pt_loc.y = mgeo2.Size.y;
@@ -1088,7 +1095,7 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
                         pt_loc.z = -mgeo2.Size.z;
                         done = true;
                     }
-                else if (relC.z > 0) {
+                } else if (relC.z > 0) {
                     pt_loc = relC;
                     pt_loc.y = -mgeo2.Size.y;
                     pt_loc.z = mgeo2.Size.z;
@@ -1099,10 +1106,12 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
                     pt_loc.z = -mgeo2.Size.z;
                     done = true;
                 }
-        if (!done)
+            }
+        }
+        if (!done) {
             if ((sqrt(pow(fabs(relC.z) - mgeo2.Size.z, 2) + pow(fabs(relC.x) - mgeo2.Size.x, 2)) <= mgeo1.rad) &&
-                (fabs(relC.y) <= mgeo2.Size.y))
-                if (relC.z > 0)
+                (fabs(relC.y) <= mgeo2.Size.y)) {
+                if (relC.z > 0) {
                     if (relC.x > 0) {
                         pt_loc = relC;
                         pt_loc.z = mgeo2.Size.z;
@@ -1114,7 +1123,7 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
                         pt_loc.x = -mgeo2.Size.x;
                         done = true;
                     }
-                else if (relC.x > 0) {
+                } else if (relC.x > 0) {
                     pt_loc = relC;
                     pt_loc.z = -mgeo2.Size.z;
                     pt_loc.x = mgeo2.Size.x;
@@ -1125,6 +1134,8 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
                     pt_loc.x = -mgeo2.Size.x;
                     done = true;
                 }
+            }
+        }
         for (int i = 1; i <= 8; i++) {
             if (done)
                 break;

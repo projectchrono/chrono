@@ -63,12 +63,15 @@ double ChLcpSimplexSolver::Solve(ChLcpSystemDescriptor& sysd  ///< system descri
     int n_c = 0;
     int n_d = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->IsActive())
-            if (mconstraints[ic]->IsLinear())
-                if (mconstraints[ic]->IsUnilateral())
+        if (mconstraints[ic]->IsActive()) {
+            if (mconstraints[ic]->IsLinear()) {
+                if (mconstraints[ic]->IsUnilateral()) {
                     n_d++;
-                else
+                } else {
                     n_c++;
+                }
+            }
+        }
     }
 
     // --
@@ -140,8 +143,8 @@ double ChLcpSimplexSolver::Solve(ChLcpSystemDescriptor& sysd  ///< system descri
     int s_c = 0;
     int s_d = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->IsActive())
-            if (mconstraints[ic]->IsLinear())
+        if (mconstraints[ic]->IsActive()){
+            if (mconstraints[ic]->IsLinear()){
                 if (mconstraints[ic]->IsUnilateral()) {
                     mconstraints[ic]->Build_Cq(*MC, n_q + n_c + s_d);                 // .. fills MC (Cq  part)
                     mconstraints[ic]->Build_CqT(*MC, n_q + n_c + s_d);                // .. fills MC (Cq' part)
@@ -154,6 +157,8 @@ double ChLcpSimplexSolver::Solve(ChLcpSystemDescriptor& sysd  ///< system descri
                     B->SetElement(n_q + s_c, 0, -mconstraints[ic]->Get_b_i());
                     s_c++;
                 }
+            }
+        }
     }
 
     //***DEBUG***
@@ -192,8 +197,8 @@ double ChLcpSimplexSolver::Solve(ChLcpSystemDescriptor& sysd  ///< system descri
     s_c = 0;
     s_d = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->IsActive())
-            if (mconstraints[ic]->IsLinear())
+        if (mconstraints[ic]->IsActive()){
+            if (mconstraints[ic]->IsLinear()){
                 if (mconstraints[ic]->IsUnilateral()) {  //(change sign of multipliers!)
                     mconstraints[ic]->Set_l_i(-X->GetElement(n_q + n_c + s_d, 0));
                     s_d++;
@@ -201,6 +206,8 @@ double ChLcpSimplexSolver::Solve(ChLcpSystemDescriptor& sysd  ///< system descri
                     mconstraints[ic]->Set_l_i(-X->GetElement(n_q + s_c, 0));
                     s_c++;
                 }
+            }
+        }
     }
 
     return maxviolation;

@@ -1583,106 +1583,130 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
     ChLinkMasked::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
 
     if (limit_X && limit_X->Get_active()) {
-        if (limit_X->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_X->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_X->constr_lower.Set_b_i(limit_X->constr_lower.Get_b_i() +
                                               factor * (-limit_X->Get_min() + relM.pos.x));
-            else
+            } else {
                 limit_X->constr_lower.Set_b_i(limit_X->constr_lower.Get_b_i() +
                                               ChMax(factor * (-limit_X->Get_min() + relM.pos.x), -recovery_clamp));
-        if (limit_X->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_X->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i() +
                                               factor * (limit_X->Get_max() - relM.pos.x));
-            else
+            } else {
                 limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i() +
                                               ChMax(factor * (limit_X->Get_max() - relM.pos.x), -recovery_clamp));
+            }
+        }
     }
     if (limit_Y && limit_Y->Get_active()) {
-        if (limit_Y->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_Y->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_Y->constr_lower.Set_b_i(limit_Y->constr_lower.Get_b_i() +
                                               factor * (-limit_Y->Get_min() + relM.pos.y));
-            else
+            } else {
                 limit_Y->constr_lower.Set_b_i(limit_Y->constr_lower.Get_b_i() +
                                               ChMax(factor * (-limit_Y->Get_min() + relM.pos.y), -recovery_clamp));
-        if (limit_Y->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_Y->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i() +
                                               factor * (limit_Y->Get_max() - relM.pos.y));
-            else
+            } else {
                 limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i() +
                                               ChMax(factor * (limit_Y->Get_max() - relM.pos.y), -recovery_clamp));
+            }
+        }
     }
     if (limit_Z && limit_Z->Get_active()) {
-        if (limit_Z->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_Z->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_Z->constr_lower.Set_b_i(limit_Z->constr_lower.Get_b_i() +
                                               factor * (-limit_Z->Get_min() + relM.pos.z));
-            else
+            } else {
                 limit_Z->constr_lower.Set_b_i(limit_Z->constr_lower.Get_b_i() +
                                               ChMax(factor * (-limit_Z->Get_min() + relM.pos.z), -recovery_clamp));
-        if (limit_Z->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_Z->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i() +
                                               factor * (limit_Z->Get_max() - relM.pos.z));
-            else
+            } else {
                 limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i() +
                                               ChMax(factor * (limit_Z->Get_max() - relM.pos.z), -recovery_clamp));
+            }
+        }
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        if (limit_Rx->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_Rx->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_Rx->constr_lower.Set_b_i(limit_Rx->constr_lower.Get_b_i() +
                                                factor * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1));
-            else
+            } else {
                 limit_Rx->constr_lower.Set_b_i(
                     limit_Rx->constr_lower.Get_b_i() +
                     ChMax(factor * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1), -recovery_clamp));
-        if (limit_Rx->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_Rx->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_Rx->constr_upper.Set_b_i(limit_Rx->constr_upper.Get_b_i() +
                                                factor * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1));
-            else
+            } else {
                 limit_Rx->constr_upper.Set_b_i(
                     limit_Rx->constr_upper.Get_b_i() +
                     ChMax(factor * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1), -recovery_clamp));
+            }
+        }
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        if (limit_Ry->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_Ry->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_Ry->constr_lower.Set_b_i(limit_Ry->constr_lower.Get_b_i() +
                                                factor * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e2));
-            else
+            } else {
                 limit_Ry->constr_lower.Set_b_i(
                     limit_Ry->constr_lower.Get_b_i() +
                     ChMax(factor * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e2), -recovery_clamp));
-        if (limit_Ry->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_Ry->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_Ry->constr_upper.Set_b_i(limit_Ry->constr_upper.Get_b_i() +
                                                factor * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e2));
-            else
+            } else {
                 limit_Ry->constr_upper.Set_b_i(
                     limit_Ry->constr_upper.Get_b_i() +
                     ChMax(factor * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e2), -recovery_clamp));
+            }
+        }
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        if (limit_Rz->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_Rz->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_Rz->constr_lower.Set_b_i(limit_Rz->constr_lower.Get_b_i() +
                                                factor * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e3));
-            else
+            } else {
                 limit_Rz->constr_lower.Set_b_i(
                     limit_Rz->constr_lower.Get_b_i() +
                     ChMax(factor * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e3), -recovery_clamp));
-        if (limit_Rz->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_Rz->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_Rz->constr_upper.Set_b_i(limit_Rz->constr_upper.Get_b_i() +
                                                factor * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e3));
-            else
+            } else {
                 limit_Rz->constr_upper.Set_b_i(
                     limit_Rz->constr_upper.Get_b_i() +
                     ChMax(factor * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e3), -recovery_clamp));
+            }
+        }
     }
 }
 
