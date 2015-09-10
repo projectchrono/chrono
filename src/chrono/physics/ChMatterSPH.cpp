@@ -356,7 +356,7 @@ void ChMatterSPH::IntLoadResidual_F(
     ChProximityContainerSPH* edges = 0;
     std::vector<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics))
+        if ((edges = dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics)))
             break;
         iterotherphysics++;
     }
@@ -469,7 +469,7 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
     ChProximityContainerSPH* edges = 0;
     std::vector<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics))
+        if ((edges = dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics)))
             break;
         iterotherphysics++;
     }
