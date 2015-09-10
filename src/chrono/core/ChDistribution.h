@@ -24,9 +24,12 @@ namespace chrono {
 
 class ChDistribution {
   public:
+	/// Default destructor for distribution object
+    virtual ~ChDistribution(){};
     /// Compute a random value whose probability is defined by the distribution.
     /// MUST be implemented by children classes.
     virtual double GetRandom() = 0;
+
 };
 
 /// Class for a distribution with a single 'value' that
