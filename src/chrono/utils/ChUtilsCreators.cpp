@@ -563,7 +563,7 @@ ChSharedPtr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
   }
   double ang = 2.0 * CH_C_PI / numBoxes;
   ChVector<> p_boxSize = ChVector<>((box_side + hthick) / 2.0, hthick, hdim.z + o_lap);  // size of plates
-  ChVector<> p_pos = (0, 0, 0);  // position of each plate
+  ChVector<> p_pos;  // position of each plate
   ChQuaternion<> p_quat = QUNIT;  // rotation of each plate
   body->GetCollisionModel()->ClearModel();
 
