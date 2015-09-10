@@ -215,13 +215,11 @@ void ChConvexHullLibraryWrapper::ComputeHull(std::vector<ChVector<> >& points,
 
         vshape.getIndicesVertexes().resize(hresult.mNumFaces);
         for (unsigned int it = 0; it < hresult.mNumFaces; ++it) {
-            hresult;
             vshape.getIndicesVertexes()[it] = ChVector<int>(
                 hresult.m_Indices[it * 3 + 0], hresult.m_Indices[it * 3 + 1], hresult.m_Indices[it * 3 + 2]);
         }
         vshape.getCoordsVertices().resize(hresult.mNumOutputVertices);
         for (unsigned int iv = 0; iv < hresult.mNumOutputVertices; ++iv) {
-            hresult;
             vshape.getCoordsVertices()[iv] = ChVector<>(
                 hresult.m_OutputVertices[iv].x(), hresult.m_OutputVertices[iv].y(), hresult.m_OutputVertices[iv].z());
         }
