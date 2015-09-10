@@ -572,7 +572,7 @@ class BoxBoxCollisionTest2 {
         //--- use the letter 'r' or 'R' for it. The other box is named the incident box,
         //--- its closest face towards the reference face is called the incidient face, and
         //--- is denoted by the letter 'i' or 'I'.
-        Vector* R_r, *R_i;      //--- Box direction vectors in WCS
+        Vector *R_r, *R_i;      //--- Box direction vectors in WCS
         Vector ext_r, ext_i;    //--- Box extents
         Vector p_r, p_i;        //--- Box centers in WCS
         bool* incident_inside;  //--- corner inside state of incident box.

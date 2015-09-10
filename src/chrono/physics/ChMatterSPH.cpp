@@ -65,7 +65,7 @@ ChNodeSPH::ChNodeSPH(const ChNodeSPH& other) : ChNodeXYZ(other) {
     this->collision_model = new ChModelBullet;
     this->collision_model->SetContactable(this);
     this->collision_model->AddPoint(other.coll_rad);
-    this->container =  other.container;
+    this->container = other.container;
     this->UserForce = other.UserForce;
     this->SetKernelRadius(other.h_rad);
     this->SetCollisionRadius(other.coll_rad);
@@ -86,7 +86,7 @@ ChNodeSPH& ChNodeSPH::operator=(const ChNodeSPH& other) {
     this->collision_model->ClearModel();
     this->collision_model->AddPoint(other.coll_rad);
     this->collision_model->SetContactable(this);
-    this->container =  other.container;
+    this->container = other.container;
     this->UserForce = other.UserForce;
     this->SetKernelRadius(other.h_rad);
     this->SetCollisionRadius(other.coll_rad);
@@ -111,16 +111,16 @@ void ChNodeSPH::SetCollisionRadius(double mr) {
     ((ChModelBullet*)this->collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
-void ChNodeSPH::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                    ChVectorDynamic<>& R) {
+void ChNodeSPH::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
     R.PasteSumVector(F, this->NodeGetOffset_w() + 0, 0);
 }
 
-void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-            type_constraint_tuple& jacobian_tuple_N, 
-            type_constraint_tuple& jacobian_tuple_U, 
-            type_constraint_tuple& jacobian_tuple_V, 
-            bool second) {
+void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                              ChMatrix33<>& contact_plane,
+                                              type_constraint_tuple& jacobian_tuple_N,
+                                              type_constraint_tuple& jacobian_tuple_U,
+                                              type_constraint_tuple& jacobian_tuple_V,
+                                              bool second) {
     ChMatrix33<> Jx1;
 
     Jx1.CopyFromMatrixT(contact_plane);
@@ -132,14 +132,11 @@ void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMat
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-
-ChSharedPtr<ChMaterialSurfaceBase>& ChNodeSPH::GetMaterialSurfaceBase()
-{
+ChSharedPtr<ChMaterialSurfaceBase>& ChNodeSPH::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
-ChPhysicsItem* ChNodeSPH::GetPhysicsItem()
-{
+ChPhysicsItem* ChNodeSPH::GetPhysicsItem() {
     return container;
 }
 
@@ -239,15 +236,15 @@ void ChMatterSPH::AddNode(ChVector<double> initial_state) {
     ChSharedPtr<ChNodeSPH> newp(new ChNodeSPH);
 
     newp->SetContainer(this);
-    
+
     newp->SetPos(initial_state);
 
     this->nodes.push_back(newp);
-    
+
     newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
     newp->collision_model->AddPoint(0.1);  //***TEST***
-    newp->collision_model->BuildModel();    // will also add to system, if collision is on.
+    newp->collision_model->BuildModel();   // will also add to system, if collision is on.
 }
 
 void ChMatterSPH::FillBox(const ChVector<> size,

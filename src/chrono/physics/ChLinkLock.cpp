@@ -1169,19 +1169,15 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     // react_torque = Vadd(react_torque, C_torque);
 }
 
-
 void ChLinkLock::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     // parent (from ChConstraint objects to react vector)
     ChLinkMasked::IntStateGatherReactions(off_L, L);
 
-
     int local_off = this->GetDOC_c();
 
-    // gather also the contribution from link limits 
+    // gather also the contribution from link limits
     // TODO not yet implemented
-
 }
-
 
 void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
                                      ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
