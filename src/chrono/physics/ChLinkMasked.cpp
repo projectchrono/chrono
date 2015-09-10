@@ -499,7 +499,7 @@ void ChLinkMasked::Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBody
     mCqw->PasteClippedMatrix(mCq, 0, 0, mCq->GetRows(), 3, 0, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
-    register int col, row, colres;
+    int col, row, colres;
     double sum;
 
     ChMatrixNM<double, 3, 4> mGl;
