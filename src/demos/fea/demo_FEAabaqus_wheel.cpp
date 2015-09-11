@@ -50,6 +50,9 @@ int main(int argc, char* argv[]) {
     application.AddTypicalCamera(core::vector3df(1, (f32)1.6, -2));
     application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
 
+    application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+                                   video::SColorf(0.8, 0.8, 1));
+
     //
     // CREATE THE PHYSICAL SYSTEM
     //
@@ -58,26 +61,30 @@ int main(int argc, char* argv[]) {
     // about friction etc.
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
-    mysurfmaterial->SetKn(1e6);
-    mysurfmaterial->SetKt(1e6);
+    mysurfmaterial->SetKn(2e6);
+    mysurfmaterial->SetKt(2e6);
     mysurfmaterial->SetGn(4200);
     mysurfmaterial->SetGt(4200);
 
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor and two bouncing items:
 
-    ChSharedPtr<ChBodyEasyBox> mfloor (new ChBodyEasyBox(5,0.2,5,2700, true));
+    ChSharedPtr<ChBodyEasyBox> mfloor (new ChBodyEasyBox(2,0.2,2,2700, true));
     mfloor->SetBodyFixed(true);
     mfloor->SetMaterialSurface(mysurfmaterial);
     my_system.Add(mfloor);
 
-    /*
-    ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.1,0.1,0.1,2700, true));
-    mcube->SetPos(ChVector<>(1,0.5,1));
-    mcube->SetMaterialSurface(mysurfmaterial);
-    my_system.Add(mcube);
-    */
-
+    ChSharedPtr<ChColorAsset> mfloorcolor(new ChColorAsset);
+    mfloorcolor->SetColor(ChColor(0.5f, 0.5f, 0.3f));
+    mfloor->AddAsset(mfloorcolor);
+/*
+    for (int i=0; i<10; ++i) {
+        ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.3,0.1,0.2,2700, true));
+        mcube->SetPos(ChVector<>((ChRandom()-0.5)*0.8,ChRandom()*0.2+0.05,(ChRandom()-0.5)*1));
+        mcube->SetMaterialSurface(mysurfmaterial);
+        my_system.Add(mcube);
+    }
+*/
    
     // FINITE ELEMENT MESH
     // Create a mesh, that is a container for groups
@@ -104,7 +111,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
 
     try {
-       my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/Ruota_V3_rifilata.INP").c_str(), mmaterial, node_sets, ChVector<>(0,0.8,0));
+        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/Ruota_V3_rifilata.INP").c_str(), mmaterial, node_sets, ChVector<>(0,0.3+0.8,0));
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
@@ -113,7 +120,7 @@ int main(int argc, char* argv[]) {
 
     // Apply some gravity-like forces
      for (unsigned int i = 0; i< my_mesh->GetNnodes(); ++i)
-        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetForce(ChVector<>(0,-4,0)); // to simulate gravity..
+        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetForce(ChVector<>(0,-2,0)); // to simulate gravity..
 
 
 
@@ -184,7 +191,7 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-
+application.AddShadowAll();
     //
     // THE SOFT-REAL-TIME CYCLE
     //
@@ -196,14 +203,14 @@ int main(int argc, char* argv[]) {
     my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);  
 
-    /*
+/*   
         // Change solver to pluggable MKL
     ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
     ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     application.GetSystem()->Update();
-    */
+ */ 
 
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
