@@ -204,7 +204,7 @@ __device__ inline Real3 Distance(Real4 posRadA, Real3 posRadB) {
  * @param p Position vector of particle with respect to paramsD.worldOrigin
  * @return gridPos
  */
-__device__ int3 calcGridPos(real3 p);
+__device__ int3 calcGridPos(Real3 p);
 
 /**
  * @brief calcGridHash - calcGridHashD
