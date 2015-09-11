@@ -1,19 +1,25 @@
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
+/* C/C++ Standard library */
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
+#include <sstream>
+#include <fstream>
+
+/* Thrust library*/
 #include <thrust/sort.h>
 #include <thrust/scan.h>
 #include <thrust/reduce.h>
 #include <thrust/extrema.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+
+/* Chrono::FSI library*/
+#include "custom_cutil_math.h"
+#include "SPHCudaUtils.h"
 #include "SDKCollisionSystem.cuh"
 #include "collideSphereSphere.cuh"
 #include "printToFile.cuh"
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <sstream>
-#include <fstream>
+
 using namespace std;
 //#####################################################################################
 #define B_SIZE 128
@@ -100,23 +106,21 @@ void MapSPH_ToGrid(
 	rho_Pres_CartD.clear();
 	vel_VelMag_CartD.clear();
 }
-//*******************************************************************************************************************************
-//builds the neighbors' list of each particle and finds the force on each particle
-//calculates the interaction force between 1- fluid-fluid, 2- fluid-solid, 3- solid-fluid particles
-//calculates forces from other SPH or solid particles, as wall as boundaries
-void ForceSPH(
-		thrust::device_vector<Real3> & posRadD,
-		thrust::device_vector<Real4> & velMasD,
-		thrust::device_vector<Real3> & vel_XSPH_D,
-		thrust::device_vector<Real4> & rhoPresMuD,
-
-		thrust::device_vector<uint> & bodyIndexD,
-		thrust::device_vector<Real4> & derivVelRhoD,
-		const thrust::host_vector<int3> & referenceArray,
-		const NumberOfObjects & numObjects,
-		SimParams paramsH,
-		BceVersion bceType,
-		Real dT) {
+/**
+ * @brief Calculates the force on each particles. See collideSphereSphere.cuh for more info.
+ * @details See collideSphereSphere.cuh for more info
+ */
+void ForceSPH(thrust::device_vector<Real3> & posRadD,
+			  thrust::device_vector<Real4> & velMasD,
+			  thrust::device_vector<Real3> & vel_XSPH_D,
+			  thrust::device_vector<Real4> & rhoPresMuD,
+			  thrust::device_vector<uint> & bodyIndexD,
+			  thrust::device_vector<Real4> & derivVelRhoD,
+			  const thrust::host_vector<int3> & referenceArray,
+			  const NumberOfObjects & numObjects,
+			  SimParams paramsH,
+			  BceVersion bceType,
+			  Real dT) {
 	// Part1: contact detection #########################################################################################################################
 	// grid data for sorting method
 //	Real3* m_dSortedPosRad;
@@ -125,35 +129,49 @@ void ForceSPH(
 //	uint* m_dCellStart; // index of start of each cell in sorted list
 //	uint* m_dCellEnd; // index of end of cell
 
+	/* Part 1: Sorting - Sort using grid data, this will accelerate contact detection. */
+
+	/* Calculate total number of cells in the domain. */
 	uint m_numGridCells = paramsH.gridSize.x * paramsH.gridSize.y * paramsH.gridSize.z; //m_gridSize = SIDE
-	//TODO here
-
+	/* Total number of markers (fluid + boundary) */
 	int numAllMarkers = numObjects.numAllMarkers;
-	// calculate grid hash
+	/* Allocate space for each vector */
+	/* Store positions of each particle in the device memory */
 	thrust::device_vector<Real3> m_dSortedPosRad(numAllMarkers);
+	/* Store velocities of each particle in the device memory */
 	thrust::device_vector<Real4> m_dSortedVelMas(numAllMarkers);
+	/* Store Rho, Pressure, Mu of each particle in the device memory */
 	thrust::device_vector<Real4> m_dSortedRhoPreMu(numAllMarkers);
+	/* Store XSPH velocities of each particle in the device memory */
 	thrust::device_vector<Real3> vel_XSPH_Sorted_D(numAllMarkers);
-
+	/* Store Hash for each particle */
 	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers);
+	/* Store index for each particle */
 	thrust::device_vector<uint> m_dGridMarkerIndex(numAllMarkers);
-
+	/* Store mapOriginalToSorted[originalIndex] = sortedIndex */
 	thrust::device_vector<uint> mapOriginalToSorted(numAllMarkers);
-
+	/* Index of start cell in sorted list */
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
+	/* Index of end cell in sorted list */
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
-	// calculate grid hash
+
+	/* Calculate grid hash */
 	calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
 
 //	GpuTimer myT0;
 //	myT0.Start();
+	/* Sort by hash key. Hash is associated to location. The following line sorts m_dGridMarkerHash
+	 * in ascending order and using the same permutations it used to sort m_dGridMarkerHash it    * also sorts m_dGridMarkerIndex.
+	 */
 	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(), m_dGridMarkerIndex.begin());
 //	myT0.Stop();
 //	Real t0 = (Real)myT0.Elapsed();
 //	printf("(0) ** Sort by key timer %f, array size %d\n", t0, m_dGridMarkerHash.size());
 
 
-	// reorder particle arrays into sorted order and find start and end of each cell
+	/* Reorder particle arrays into sorted order given by m_dGridMarkerIndex and find start and
+	 * end of each bin in the hash array.
+	 */
 	reorderDataAndFindCellStart(m_dCellStart, m_dCellEnd, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, m_dGridMarkerHash,
 			m_dGridMarkerIndex, mapOriginalToSorted, posRadD, velMasD, rhoPresMuD, numAllMarkers, m_numGridCells);
 
@@ -164,20 +182,25 @@ void ForceSPH(
 				m_dCellStart, m_dCellEnd, numAllMarkers);
 	}
 
-	//process collisions
-//	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
+	/* Part 2: Collision Detection */
+	/* Process collisions */
+
+	//	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
+	/* Add outside forces. Don't add gravity, it is added in ChSystem */
 	Real3 totalFluidBodyForce3 = paramsH.bodyForce3;  // gravity is added in ChSystem
-	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), mR4(0)); //initialize derivVelRhoD with zero. necessary
+	/* Initialize derivVelRhoD with zero. NECESSARY. */
+	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), mR4(0)); 
 //	GpuTimer myT1;
 //	myT1.Start();
+	/* Add body force to fluid particles. Skip boundary particles that are in the bodies ???????*/
 	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, mR4(totalFluidBodyForce3)); //add body force to fluid particles.
 //	myT1.Stop();
 //	Real t1 = (Real)myT1.Elapsed();
 //	printf("(1) *** fill timer %f, array size %d\n", t1, referenceArray[0].y - referenceArray[0].x);
-
+	/* Calculate vel_XSPH */
 	RecalcVelocity_XSPH(vel_XSPH_Sorted_D, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, m_dGridMarkerIndex, m_dCellStart,
 			m_dCellEnd, numAllMarkers, m_numGridCells);
-
+	/* Collide */
 	collide(derivVelRhoD, m_dSortedPosRad, m_dSortedVelMas, vel_XSPH_Sorted_D, m_dSortedRhoPreMu, m_dGridMarkerIndex, m_dCellStart,
 			m_dCellEnd, numAllMarkers, m_numGridCells, dT);
 
@@ -394,7 +417,9 @@ void DensityReinitialization(
 	m_dCellStart.clear();
 	m_dCellEnd.clear();
 }
-////##############################################################################################################################################
+/**
+ * @brief See collideSphereSphere.cuh for documentation.
+ */
 void InitSystem(
 		SimParams paramsH,
 		NumberOfObjects numObjects) {
@@ -403,20 +428,35 @@ void InitSystem(
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
 }
-//******
+/**
+ * @brief See collideSphereSphere.cuh for documentation.
+ */
 void ResizeMyThrust3(thrust::device_vector<Real3> & mThrustVec, int mSize) {mThrustVec.resize(mSize);}
 void ResizeMyThrust4(thrust::device_vector<Real4> & mThrustVec, int mSize) {mThrustVec.resize(mSize);}
-//******
-void FillMyThrust4(thrust::device_vector<Real4> & mThrustVec, Real4 v) {
+
+/**
+ * @brief See collideSphereSphere.cuh for documentation.
+ */
+void FillMyThrust(thrust::device_vector<T> & mThrustVec, T v) 
+{
 	thrust::fill(mThrustVec.begin(), mThrustVec.end(), v);
 }
-//******
+void FillMyThrust4(thrust::device_vector<Real4> & mThrustVec, Real4 v) 
+{
+	thrust::fill(mThrustVec.begin(), mThrustVec.end(), v);
+}
+
+/**
+ * @brief See collideSphereSphere.cuh for documentation.
+ */
 void ClearMyThrustR3(thrust::device_vector<Real3> & mThrustVec) {mThrustVec.clear();}
 void ClearMyThrustR4(thrust::device_vector<Real4> & mThrustVec) {mThrustVec.clear();}
 void ClearMyThrustU1(thrust::device_vector<uint> & mThrustVec) {mThrustVec.clear();}
 
 
-
+/**
+ * @brief See collideSphereSphere.cuh for more documentation.
+ */
 void IntegrateSPH(
 		thrust::device_vector<Real3> & posRadD2,
 		thrust::device_vector<Real4> & velMasD2,

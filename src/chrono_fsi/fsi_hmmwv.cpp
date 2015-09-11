@@ -54,7 +54,7 @@
 #include <core/ChTransform.h> //transform acc from GF to LF for post process
 
 // FSI Interface Includes
-#include "fsi_hmmwv_params.h"
+#include "fsi_hmmwv_params.h" //SetupParamsH()
 //#include "BallDropParams.h"
 #include "SphInterface.h"
 #include "InitializeSphMarkers.h"
@@ -751,7 +751,7 @@ int main(int argc, char* argv[]) {
   //****************************************************************************************
   const std::string simulationParams = out_dir + "/simulation_specific_parameters.txt";
   simParams.open(simulationParams);
-  simParams << " Job was submittet at date/time: " << asctime(timeinfo) << endl;
+  simParams << " Job was submitted at date/time: " << asctime(timeinfo) << endl;
   printSimulationParameters();
 // ***************************** Create Fluid ********************************************
   thrust::host_vector<::int3> referenceArray;
