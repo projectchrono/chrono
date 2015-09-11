@@ -7,7 +7,7 @@
 
 #include "InitializeSphMarkers.h"
 
-//**********************************************
+
 int2 CreateFluidMarkers(
 		thrust::host_vector<Real3> & posRadH,
 		thrust::host_vector<Real4> & velMasH,
@@ -16,18 +16,28 @@ int2 CreateFluidMarkers(
 		const SimParams & paramsH,
 		Real & sphMarkerMass) {
 
+	/* Number of fluid particles */
 	int num_FluidMarkers = 0;
+	/* Number of boundary particles */
 	int num_BoundaryMarkers = 0;
 	srand(964);
+	/* Initial separation of both fluid and boundary particles */
 	Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
+	/* Number of particles per x dimension */
 	int nFX = ceil((paramsH.cMaxInit.x - paramsH.cMinInit.x) / (initSpace0));
+	/* Spacing between center of particles in x dimension*/
 	Real initSpaceX = (paramsH.cMaxInit.x - paramsH.cMinInit.x) / nFX;
+	/* Number of particles per y dimension */
 	int nFY = ceil((paramsH.cMaxInit.y - paramsH.cMinInit.y) / (initSpace0));
+	/* Spacing between center of particles in y dimension*/
 	Real initSpaceY = (paramsH.cMaxInit.y - paramsH.cMinInit.y) / nFY;
+	/* Number of particles per z dimension */
 	int nFZ = ceil((paramsH.cMaxInit.z - paramsH.cMinInit.z) / (initSpace0));
+	/* Spacing between center of particles in z dimension*/
 	Real initSpaceZ = (paramsH.cMaxInit.z - paramsH.cMinInit.z) / nFZ;
 	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ,
 			(nFY - 1) * initSpaceY, initSpaceY);
+	/* Mass of a small cube in the fluid = (dx*dy*dz) * density */
 	sphMarkerMass = (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0;
 
 	for (int i = 0; i < nFX; i++) {
@@ -148,11 +158,12 @@ void CreateBCE_On_Box(
 	}
 }
 
-//**********************************************
+
 void SetNumObjects(
 		NumberOfObjects & numObjects,
 		const thrust::host_vector<int3> & referenceArray,
 		int numAllMarkers) {
+
 	numObjects.numFluidMarkers = (referenceArray[0]).y - (referenceArray[0]).x;
 	numObjects.numBoundaryMarkers = (referenceArray[1]).y - (referenceArray[1]).x;
 	numObjects.numAllMarkers = numAllMarkers;
@@ -160,11 +171,15 @@ void SetNumObjects(
 	numObjects.numRigidBodies = 0;
 	numObjects.numRigid_SphMarkers = 0;
 	numObjects.numFlex_SphMarkers = 0;
-	printf("********************\n numFlexBodies: %d\n numRigidBodies: %d\n numFluidMarkers: %d\n "
-			"numBoundaryMarkers: %d\n numRigid_SphMarkers: %d\n numFlex_SphMarkers: %d\n numAllMarkers: %d\n",
-			numObjects.numFlexBodies, numObjects.numRigidBodies, numObjects.numFluidMarkers, numObjects.numBoundaryMarkers,
-			numObjects.numRigid_SphMarkers, numObjects.numFlex_SphMarkers, numObjects.numAllMarkers);
-	printf("********************\n");
+	std::cout << "********************" << std::endl;
+	std::cout << "numFlexBodies: " << numObjects.numFlexBodies << std::endl;
+	std::cout << "numRigidBodies: " << numObjects.numRigidBodies << std::endl;
+	std::cout << "numFluidMarkers: " << numObjects.numFluidMarkers << std::endl;
+	std::cout << "numBoundaryMarkers: " << numObjects.numBoundaryMarkers << std::endl;
+	std::cout << "numRigid_SphMarkers: " << numObjects.numRigid_SphMarkers << std::endl;
+	std::cout << "numFlex_SphMarkers: " << numObjects.numFlex_SphMarkers << std::endl;
+	std::cout << "numAllMarkers: " << numObjects.numAllMarkers << std::endl;
+	std::cout << "********************" << std::endl;
 }
 
 

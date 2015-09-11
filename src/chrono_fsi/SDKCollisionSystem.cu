@@ -1,14 +1,18 @@
+/* Chrono::FSI Library */
 #include "SDKCollisionSystem.cuh"
-//#include "extraOptionalFunctions.cuh"
 
+//#include "extraOptionalFunctions.cuh"
 //#include "SDKCollisionSystemAdditional.cuh"
 
 __constant__ Real dTD;
 __constant__ int2 updatePortionD;
 
 
-//--------------------------------------------------------------------------------------------------------------------------------
-// calculate position in uniform grid
+
+/**
+ * @brief calcGridHash
+ * @details  See SDKCollisionSystem.cuh
+ */
 __device__ int3 calcGridPos(Real3 p) {
 	int3 gridPos;
 	gridPos.x = floor((p.x - paramsD.worldOrigin.x) / paramsD.cellSize.x);
@@ -16,8 +20,11 @@ __device__ int3 calcGridPos(Real3 p) {
 	gridPos.z = floor((p.z - paramsD.worldOrigin.z) / paramsD.cellSize.z);
 	return gridPos;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-// calculate address in grid from position (clamping to edges)
+
+/**
+ * @brief calcGridHash
+ * @details  See SDKCollisionSystem.cuh
+ */
 __device__ uint calcGridHash(int3 gridPos) {
 
 	gridPos.x -= ((gridPos.x >= paramsD.gridSize.x) ? paramsD.gridSize.x : 0);
@@ -30,8 +37,11 @@ __device__ uint calcGridHash(int3 gridPos) {
 
 	return __umul24(__umul24(gridPos.z, paramsD.gridSize.y), paramsD.gridSize.x) + __umul24(gridPos.y, paramsD.gridSize.x) + gridPos.x;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-//computes dV/dt and dRho/dt, i.e. force terms. First
+
+/**
+ * @brief calcGridHash
+ * @details  See SDKCollisionSystem.cuh
+ */
 __device__ inline Real4 DifVelocityRho(
 		const Real3 & dist3,
 		const Real & d,
@@ -479,17 +489,32 @@ void calcOnCartesianShare(
 		}
 	}
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-// calculate grid hash value for each particle
+
+/**
+ * @brief calcHashD
+ * @details 
+ * 		 1. Get particle index. Determine by the block and thread we are in.
+ * 		 2. From x,y,z position determine which bin it is in.
+ * 		 3. Calculate hash from bin index. 
+ * 		 4. Store hash and particle index associated with it. 
+ * 		  
+ * @param gridMarkerHash 
+ * @param gridMarkerIndex 
+ * @param posRad 
+ * @param numAllMarkers
+ */
 __global__ void calcHashD(uint* gridMarkerHash, // output
-		uint* gridMarkerIndex, // output
-		Real3* posRad, // input: positions
-		uint numAllMarkers) {
+						  uint* gridMarkerIndex, // output
+						  Real3* posRad, // input: positions
+						  uint numAllMarkers) 
+{
+	/* Calculate the index of where the particle is stored in posRad. */
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index >= numAllMarkers) return;
 
 	Real3 p = posRad[index];
 
+	/* Check particle is inside the domain. */
 	Real3 boxCorner = paramsD.worldOrigin;
 	if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) {
 		printf("Out of Min Boundary\n");
@@ -501,18 +526,21 @@ __global__ void calcHashD(uint* gridMarkerHash, // output
 		return;
 	}
 
-	// get address in grid
+	/* Get x,y,z bin index in grid */
 	int3 gridPos = calcGridPos(p);
+	/* Calculate a hash from the bin index */
 	uint hash = calcGridHash(gridPos);
 
-	// store grid hash and particle index
+	/* Store grid hash */
 	gridMarkerHash[index] = hash;
+	/* Store particle index associated to the hash we stored in gridMarkerHash */
 	gridMarkerIndex[index] = index;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
 
-// rearrange particle data into sorted order, and find the start of each cell
-// in the sorted hash array
+/**
+ * @brief reorderDataAndFindCellStartD
+ * @details See SDKCollisionSystem.cuh for more info
+ */
 __global__
 void reorderDataAndFindCellStartD(
 		uint* cellStart, // output: cell start index
@@ -526,22 +554,24 @@ void reorderDataAndFindCellStartD(
 		Real3* oldPosRad, // input: sorted position array
 		Real4* oldVelMas, // input: sorted velocity array
 		Real4* oldRhoPreMu,
-		uint numAllMarkers) {
+		uint numAllMarkers) 
+{
 	extern __shared__ uint sharedHash[]; // blockSize + 1 elements
+	/* Get the particle index the current thread is supposed to be looking at. */
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 
 	uint hash;
-	// handle case when no. of particles not multiple of block size
+
+	/* handle case when no. of particles not multiple of block size */
 	if (index < numAllMarkers) {
 		hash = gridMarkerHash[index];
-
-		// Load hash data into shared memory so that we can look
-		// at neighboring particle's hash value without loading
-		// two hash values per thread
+		/* Load hash data into shared memory so that we can look at neighboring particle's hash 
+		 * value without loading two hash values per thread
+		 */
 		sharedHash[threadIdx.x + 1] = hash;
 
 		if (index > 0 && threadIdx.x == 0) {
-			// first thread in block must load neighbor particle hash
+			/* first thread in block must load neighbor particle hash */
 			sharedHash[0] = gridMarkerHash[index - 1];
 		}
 	}
@@ -549,12 +579,10 @@ void reorderDataAndFindCellStartD(
 	__syncthreads();
 
 	if (index < numAllMarkers) {
-		// If this particle has a different cell index to the previous
-		// particle then it must be the first particle in the cell,
-		// so store the index of this particle in the cell.
-		// As it isn't the first particle, it must also be the cell end of
-		// the previous particle's cell
-
+		/* If this particle has a different cell index to the previous particle then it must be 
+		 * the first particle in the cell, so store the index of this particle in the cell. As it 
+		 * isn't the first particle, it must also be the cell end of the previous particle's cell
+		 */
 		if (index == 0 || hash != sharedHash[threadIdx.x]) {
 			cellStart[hash] = index;
 			if (index > 0) cellEnd[sharedHash[threadIdx.x]] = index;
@@ -564,7 +592,7 @@ void reorderDataAndFindCellStartD(
 			cellEnd[hash] = index + 1;
 		}
 
-		// Now use the sorted index to reorder the pos and vel data
+		/* Now use the sorted index to reorder the pos and vel data */
 		uint sortedIndex = gridMarkerIndex[index];	  // map sorted to original
 		mapOriginalToSorted[sortedIndex] = index;
 		Real3 posRad = FETCH(oldPosRad, sortedIndex); // macro does either global read or texture fetch
@@ -1108,8 +1136,15 @@ __global__ void UpdateFluidD_EveryThing_LF(Real3 * posRadD, Real4 * velMasD_half
 	rhoPresMu.x = rho2;
 	rhoPresMuD_half[index] = rhoPresMu; //rhoPresMuD_half updated
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-//copies the sortedVelXSPH to velXSPH according to indexing
+
+/**
+ * @brief Copies the sortedVelXSPH to velXSPH according to indexing
+ * @details [long description]
+ * 
+ * @param vel_XSPH_D 
+ * @param vel_XSPH_Sorted_D Pointer to new sorted vel_XSPH vector
+ * @param m_dGridMarkerIndex List of indeces used to sort vel_XSPH_D
+ */
 __global__ void Copy_SortedVelXSPH_To_VelXSPHD(Real3 * vel_XSPH_D, Real3 * vel_XSPH_Sorted_D, uint * m_dGridMarkerIndex) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index >= numObjectsD.numAllMarkers) return;
@@ -1247,45 +1282,79 @@ void allocateArray(void **devPtr, size_t size) {
 void freeArray(void *devPtr) {
 	cutilSafeCall(cudaFree(devPtr));
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-//Round a / b to nearest higher integer value
+
+/**
+ * @brief iDivUp
+ * @details Round a / b to nearest higher integer value
+ * 
+ * @param a numerator
+ * @param b denominator
+ * 
+ * @return ceil(a/b)
+ */
 uint iDivUp(uint a, uint b) {
 	return (a % b != 0) ? (a / b + 1) : (a / b);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-// compute grid and thread block size for a given number of elements
+
+/**
+ * @brief computeGridSize
+ * @details Compute grid and thread block size for a given number of elements
+ * 
+ * @param n Total number of elements. Each elements needs a thread to be computed
+ * @param blockSize Number of threads per block.
+ * @param numBlocks output
+ * @param numThreads Output: number of threads per block
+ */
 void computeGridSize(uint n, uint blockSize, uint &numBlocks, uint &numThreads) {
 	uint n2 = (n == 0) ? 1 : n;
 	numThreads = min(blockSize, n2);
 	numBlocks = iDivUp(n2, numThreads);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief [brief description]
+ * @details [long description]
+ * 
+ * @param hostParams [description]
+ * @param numObjects [description]
+ */
 void setParameters(SimParams *hostParams, NumberOfObjects *numObjects) {
 	// copy parameters to constant memory
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, hostParams, sizeof(SimParams)));
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, numObjects, sizeof(NumberOfObjects)));
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief Wrapper function for calcHashD
+ * @details See SDKCollisionSystem.cuh for more info
+ */
 void calcHash(
 		thrust::device_vector<uint>   & gridMarkerHash,
 		thrust::device_vector<uint>   & gridMarkerIndex,
 		thrust::device_vector<Real3>  & posRad,
 		int numAllMarkers) {
+
+	/* Is there a need to optimize the number of threads used at once? */
 	uint numThreads, numBlocks;
 	computeGridSize(numAllMarkers, 256, numBlocks, numThreads);
 
-	// execute the kernel
+	/* Execute Kernel */
 	calcHashD<<< numBlocks, numThreads >>>(
 			U1CAST(gridMarkerHash),
 			U1CAST(gridMarkerIndex),
 			mR3CAST(posRad),
 			numAllMarkers);
 
-	// check if kernel invocation generated an error
+	/* Check for errors in kernel execution */
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: calcHash");
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief Wrapper function for reorderDataAndFindCellStartD
+ * @details 
+ * 		See SDKCollisionSystem.cuh for brief.
+ */
 void reorderDataAndFindCellStart(
 		thrust::device_vector<uint>  & cellStart,
 		thrust::device_vector<uint>  & cellEnd,
@@ -1307,7 +1376,7 @@ void reorderDataAndFindCellStart(
 	computeGridSize(numAllMarkers, 256, numBlocks, numThreads); //?$ 256 is blockSize
 
 
-	// set all cells to empty
+	/* Set all cells to empty */
 	cutilSafeCall(cudaMemset(U1CAST(cellStart), 0xffffffff, numCells*sizeof(uint)));
 
 //#if USE_TEX
@@ -1338,7 +1407,10 @@ void reorderDataAndFindCellStart(
 //    cutilSafeCall(cudaUnbindTexture(oldVelTex));
 //#endif
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief Wrapper function for newVel_XSPH_D
+ */
 void RecalcVelocity_XSPH(
 		thrust::device_vector<Real3> & vel_XSPH_Sorted_D,
 		thrust::device_vector<Real3> & sortedPosRad,
@@ -1350,11 +1422,11 @@ void RecalcVelocity_XSPH(
 		uint numAllMarkers,
 		uint numCells) {
 
-	// thread per particle
+	/* thread per particle */
 	uint numThreads, numBlocks;
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
-	// execute the kernel
+	/* Execute the kernel */
 	newVel_XSPH_D<<< numBlocks, numThreads >>>(
 			mR3CAST(vel_XSPH_Sorted_D),
 			mR3CAST(sortedPosRad),
@@ -1429,7 +1501,12 @@ void CalcBCE_Stresses(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcBCE_MainStresses_kernel");
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief Wrapper function for collideD
+ * @details 
+ * 		See SDKCollisionSystem.cuh for informaton on collide
+ */
 void collide(
 		thrust::device_vector<Real4> & derivVelRhoD,
 		thrust::device_vector<Real3> & sortedPosRad,
@@ -1742,7 +1819,11 @@ void UpdateBoundary(
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelBoundary");
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+/**
+ * @brief ApplyBoundarySPH_Markers
+ * @details 
+ * 		See SDKCollisionSystem.cuh for more info
+ */
 void ApplyBoundarySPH_Markers(
 		thrust::device_vector<Real3> & posRadD,
 		thrust::device_vector<Real4> & rhoPresMuD,

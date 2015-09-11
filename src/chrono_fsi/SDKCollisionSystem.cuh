@@ -156,7 +156,16 @@ __device__ inline Real InvEos(Real pw) {
 	return paramsD.rho0 * pow((pw - paramsD.BASEPRES) / B + 1, 1.0/gama);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-//distance between two particles, considering the periodic boundary condition
+/**
+ * @brief Distance
+ * @details 
+ *          Distance between two particles, considering the periodic boundary condition
+ * 
+ * @param posRadA Position of Particle A
+ * @param posRadB Position of Particle B
+ * 
+ * @return Distance vector (distance in x, distance in y, distance in z)
+ */
 __device__ inline Real3 Distance(Real3 a, Real3 b) {
 	Real3 dist3 = a - b;
 	dist3.x -= ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
@@ -169,29 +178,93 @@ __device__ inline Real3 Distance(Real3 a, Real3 b) {
 	dist3.z += ((dist3.z < -0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
 	return dist3;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-//distance between two particles, considering the periodic boundary condition
+
+/**
+ * @brief Distance
+ * @details 
+ *      	See Distance(real3 posRadA, real3 posRadB)
+ */
 __device__ inline Real3 Distance(Real4 posRadA, Real4 posRadB) {
 	return Distance(mR3(posRadA), mR3(posRadB));
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-//distance between two particles, considering the periodic boundary condition
+
+/**
+ * @brief Distance
+ * @details 
+ *      	See Distance(real3 posRadA, real3 posRadB)
+ */
 __device__ inline Real3 Distance(Real4 posRadA, Real3 posRadB) {
 	return Distance(mR3(posRadA), posRadB);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief calcGridPos
+ * @details Maps a position vector to a grid cell index. This function is executed in the GPU.
+ * 
+ * @param p Position vector of particle with respect to paramsD.worldOrigin
+ * @return gridPos
+ */
+__device__ int3 calcGridPos(real3 p);
+
+/**
+ * @brief calcGridHash - calcGridHashD
+ * @details Calculates address in grid from position in grid
+ * 
+ * @param gridPos Integer coordinates of a cell.
+ * 
+ * @return index in grid
+ */
+__device__ uint calcGridHash(int3 gridPos); 
+
+
 void allocateArray(void **devPtr, size_t size);
 void freeArray(void *devPtr);
 void setParameters(SimParams *hostParams, NumberOfObjects *numObjects);
 
 void computeGridSize(uint n, uint blockSize, uint &numBlocks, uint &numThreads);
 
+/**
+ * @brief calcHash - calcHashD
+ * 
+ * @details calcHash is the wrapper function for calcHashD. calcHashD is a kernel function, which
+ * means that all the code in it is executed in parallel on the GPU.
+ * 			calcHashD:
+ * 		 				1. Get particle index. Determine by the block and thread we are in.
+ * 		     			2. From x,y,z position determine which bin it is in.
+ * 		        		3. Calculate hash from bin index. 
+ * 		          		4. Store hash and particle index associated with it. 
+ * 		  
+ * @param gridMarkerHash Store marker hash here
+ * @param gridMarkerIndex Store marker index here
+ * @param posRad Vector containing the positions of all particles, including boundary particles
+ * @param numAllMarkers Total number of markers (fluid + boundary)
+ */
 void calcHash(
 		thrust::device_vector<uint>   & gridMarkerHash,
 		thrust::device_vector<uint>   & gridMarkerIndex,
 		thrust::device_vector<Real3>  & posRad,
 		int numAllMarkers);
 
+/**
+ * @brief reorderDataAndFindCellStart - reorderDataAndFindCellStartD
+ * @details
+ *      reorderDataAndFindCellStart: Wrapper function for reorderDataAndFindCellStartD
+ * 		Rearrange particle data into sorted order, and find the start of each cell in the sorted 
+ * 		hash array.
+ * 		  
+ * @param cellStart Output: Start index for each group of hashes == Size = total number of bins
+ * @param cellEnd Output: End index for each group of hashes == Size = total number of bins
+ * @param sortedPosRad Output: Sorted position using the indices in gridMarkerIndex.
+ * @param sortedVelMas Output: Sorted velocities using the indices in gridMarkerIndex.
+ * @param sortedRhoPreMu Output: Ditto
+ * @param gridMarkerHash Input
+ * @param gridMarkerIndex Input 
+ * @param mapOriginalToSorted Output: mapOriginalToSorted[originalIndex] = sortedIndex
+ * @param oldPosRad Input
+ * @param oldVelMas Input
+ * @param oldRhoPreMu Input
+ * @param numAllMarkers Input: Total number of SPH Markers
+ */
 void reorderDataAndFindCellStart(
 		thrust::device_vector<uint>  & cellStart,
 		thrust::device_vector<uint>  & cellEnd,
@@ -249,7 +322,23 @@ void RecalcSortedVelocityPressure_BCE(
 		thrust::device_vector<uint> & cellStart,
 		thrust::device_vector<uint> & cellEnd,
 		uint numAllMarkers);
-
+/**
+ * @brief Wrapper function for collideD
+ * @details collide is the wrapper function for collideD. collideD is a kernel function, which
+ * means that all the code in it is executed in parallel on the GPU.
+ * 
+ * @param derivVelRhoD
+ * @param sortedPosRad 
+ * @param sortedVelMas 
+ * @param vel_XSPH_Sorted_D 
+ * @param sortedRhoPreMu 
+ * @param gridMarkerIndex 
+ * @param cellStart 
+ * @param cellEnd 
+ * @param numAllMarkers Total number of markers (fluid + boundary)
+ * @param numCells [description]
+ * @param  dT Time Step
+ */
 void collide(
 		thrust::device_vector<Real4> & derivVelRhoD,
 		thrust::device_vector<Real3> & sortedPosRad,
@@ -419,6 +508,14 @@ void UpdateBoundary(
 		const thrust::host_vector<int3> & referenceArray,
 		Real dT);
 
+/**
+ * @brief ApplyBoundarySPH_Markers
+ * @details Applies Periodic Boundary Conditions
+ * 
+ * @param posRadD x, y, z position of particle.
+ * @param rhoPresMuD rho, pressure, mu and particle type
+ * @param numAllMarkers 
+ */
 void ApplyBoundarySPH_Markers(
 		thrust::device_vector<Real3> & posRadD,
 		thrust::device_vector<Real4> & rhoPresMuD,

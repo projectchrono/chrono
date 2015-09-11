@@ -1,4 +1,3 @@
-
 /*
  * SetupFsiParams.h
  *
@@ -8,10 +7,16 @@
 #ifndef FSI_HMMWV_PARAMS_H_
 #define FSI_HMMWV_PARAMS_H_
 
+/* C/C++ standard library*/
+#include <fstream> // for simParams definition
+
+/* Chrono::FSI Library*/
 #include "SPHCudaUtils.h"
 #include "MyStructs.cuh"  //just for SimParams
 #include "VehicleExtraProperties.h"
-#include <fstream> // for simParams definition
+#include "include/utils.h"
+
+
 
 // -----------------------------------------------------------------------------
 // Specification post processing directory
@@ -62,8 +67,16 @@ BceVersion bceType = ADAMI;//mORIGINAL; //ADAMI; // when set to adami, change th
 
 NumberOfObjects numObjects;
 
+/**
+ * @brief 
+ *    Fills in paramsH with simulation parameters.
+ * @details
+ *    The description of each parameter set here can be found in MyStruct.h
+ * 
+ * @param paramsH: struct defined in MyStructs.cuh
+ */
 void SetupParamsH(SimParams& paramsH) {
-  //**********************************************
+  
   paramsH.sizeScale = 1;  // don't change it.
   paramsH.HSML = 0.06;//0.06;//0.04;
   paramsH.MULT_INITSPACE = 1.0;
@@ -88,11 +101,9 @@ void SetupParamsH(SimParams& paramsH) {
   // the time step will be 1/10 * dT.
   paramsH.kdT = 5;  // I don't know what is kdT
   paramsH.gammaBB = 0.5;
-  // ************
   paramsH.binSize0;           // will be changed
   paramsH.rigidRadius;        // will be changed
   paramsH.densityReinit = 1;  // 0: no re-initialization, 1: with initialization
-
   paramsH.enableTweak = 1 ; // 0: no tweak, 1: have tweak
   paramsH.enableAggressiveTweak = 1 ; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
   paramsH.tweakMultV = paramsH.v_Max / (paramsH.HSML / paramsH.dT);		//0.04;		// NOTE: HSML and dT must be defined. So this line comes after them
@@ -146,56 +157,46 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.worldOrigin = paramsH.cMin;
   paramsH.cellSize = mR3(mBinSize, mBinSize, mBinSize);
 
-  //***** print numbers
-  printf(
-      "********************\n paramsH.sizeScale: %f\n paramsH.HSML: %f\n paramsH.bodyForce3: %f %f %f\n "
-      "paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n "
-      "paramsH.tFinal: %f\n  paramsH.timePause: %f\n  paramsH.timePauseRigidFlex: %f\n paramsH.densityReinit: %d\n",
-      paramsH.sizeScale,
-      paramsH.HSML,
-      paramsH.bodyForce3.x,
-      paramsH.bodyForce3.y,
-      paramsH.bodyForce3.z,
-      paramsH.gravity.x,
-      paramsH.gravity.y,
-      paramsH.gravity.z,
-      paramsH.rho0,
-      paramsH.mu0,
-      paramsH.v_Max,
-      paramsH.dT,
-      paramsH.tFinal,
-      paramsH.timePause,
-      paramsH.timePauseRigidFlex,
-      paramsH.densityReinit);
-  printf(" paramsH.cMin: %f %f %f, paramsH.cMax: %f %f %f\n binSize: %f\n",
-         paramsH.cMin.x,
-         paramsH.cMin.y,
-         paramsH.cMin.z,
-         paramsH.cMax.x,
-         paramsH.cMax.y,
-         paramsH.cMax.z,
-         paramsH.binSize0);
-  printf(" paramsH.MULT_INITSPACE: %f\n", paramsH.MULT_INITSPACE);
-  printf(
-      " paramsH.NUM_BOUNDARY_LAYERS: %d\n paramsH.toleranceZone: %f\n paramsH.NUM_BCE_LAYERS: %d\n "
-      "paramsH.solidSurfaceAdjust: %f\n",
-      paramsH.NUM_BOUNDARY_LAYERS,
-      paramsH.toleranceZone,
-      paramsH.NUM_BCE_LAYERS,
-      paramsH.solidSurfaceAdjust);
-  printf(" paramsH.BASEPRES: %f\n paramsH.LARGE_PRES: %f\n paramsH.deltaPress: %f %f %f\n",
-         paramsH.BASEPRES,
-         paramsH.LARGE_PRES,
-         paramsH.deltaPress.x,
-         paramsH.deltaPress.y,
-         paramsH.deltaPress.z);
-  printf(" paramsH.nPeriod: %d\n paramsH.EPS_XSPH: %f\n paramsH.multViscosity_FSI: %f\n paramsH.rigidRadius: %f\n",
-         paramsH.nPeriod,
-         paramsH.EPS_XSPH,
-         paramsH.multViscosity_FSI,
-         paramsH.rigidRadius);
-  printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
-  printf("SIDE: %d, %d, %d\n", paramsH.gridSize.x, paramsH.gridSize.y, paramsH.gridSize.z);
+  std::cout << "******************** paramsH Content" << std::endl;
+  std::cout << "paramsH.sizeScale: " << paramsH.sizeScale << std::endl;
+  std::cout << "paramsH.HSML: " << paramsH.HSML << std::endl;
+  std::cout << "paramsH.bodyForce3: ";
+  printStruct(paramsH.bodyForce3);
+  std::cout << "paramsH.gravity: ";
+  printStruct(paramsH.gravity);
+  std::cout << "paramsH.rho0: " << paramsH.rho0 << std::endl;
+  std::cout << "paramsH.mu0: " << paramsH.mu0 << std::endl;
+  std::cout << "paramsH.v_Max: " << paramsH.v_Max << std::endl;
+  std::cout << "paramsH.dT: " << paramsH.dT << std::endl;
+  std::cout << "paramsH.tFinal: " << paramsH.tFinal << std::endl;
+  std::cout << "paramsH.timePause: " << paramsH.timePause << std::endl;
+  std::cout << "paramsH.timePauseRigidFlex: " << paramsH.timePauseRigidFlex << std::endl;
+  std::cout << "paramsH.densityReinit: " << paramsH.densityReinit << std::endl;
+  std::cout << "paramsH.cMin: ";
+  printStruct(paramsH.cMin);
+  std::cout << "paramsH.cMax: ";
+  printStruct(paramsH.cMax);
+  std::cout << "paramsH.MULT_INITSPACE: " << paramsH.MULT_INITSPACE << std::endl;
+  std::cout << "paramsH.NUM_BOUNDARY_LAYERS: " << paramsH.NUM_BOUNDARY_LAYERS << std::endl;
+  std::cout << "paramsH.toleranceZone: " << paramsH.toleranceZone << std::endl;
+  std::cout << "paramsH.NUM_BCE_LAYERS: " << paramsH.NUM_BCE_LAYERS << std::endl;
+  std::cout << "paramsH.solidSurfaceAdjust: " << paramsH.solidSurfaceAdjust << std::endl;
+  std::cout << "paramsH.BASEPRES: " << paramsH.BASEPRES << std::endl;
+  std::cout << "paramsH.LARGE_PRES: " << paramsH.LARGE_PRES << std::endl;
+  std::cout << "paramsH.deltaPress: ";
+  printStruct(paramsH.deltaPress);
+  std::cout << "paramsH.nPeriod: " << paramsH.nPeriod << std::endl;
+  std::cout << "paramsH.EPS_XSPH: " << paramsH.EPS_XSPH << std::endl;
+  std::cout << "paramsH.multViscosity_FSI: " << paramsH.multViscosity_FSI << std::endl;
+  std::cout << "paramsH.rigidRadius: ";
+  printStruct(paramsH.rigidRadius);
+  std::cout << "paramsH.binSize0: " << paramsH.binSize0 << std::endl;
+  std::cout << "paramsH.boxDims: ";
+  printStruct(paramsH.boxDims);
+  std::cout << "paramsH.gridSize: ";
+  printStruct(paramsH.gridSize);
+  std::cout << "********************" << std::endl;
+
 }
 
 // -----------------------------------------------------------------------------
