@@ -31,7 +31,7 @@ namespace fea
 
 /// ANCF laminated shell element with four nodes.
 
-class  ChElementShellANCF : public ChElementGeneric
+class  ChElementShellANCF : public ChElementShell
 {
 protected:
 	std::vector< ChSharedPtr<ChNodeFEAxyzD> > nodes;
@@ -2152,8 +2152,29 @@ public:
 				}
 
 			//
-			// Functions for interfacing to the LCP solver 
-			//            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
+			// Functions for interface to ChElementShell base
+			// 
+
+    virtual void EvaluateSectionDisplacement(const double u,
+                                             const double v,
+                                             const ChMatrix<>& displ,
+                                             ChVector<>& u_displ,
+                                             ChVector<>& u_rotaz) {
+        // this is not a corotational element, so just do:
+        EvaluateSectionPoint(u,v,displ, u_displ);
+        u_rotaz = VNULL; // no angles.. this is ANCF (or maybe return here the slope derivatives?)
+    }
+
+    virtual void EvaluateSectionFrame(const double u,
+                                      const double v,
+                                      const ChMatrix<>& displ,
+                                      ChVector<>& point,
+                                      ChQuaternion<>& rot) {
+        // this is not a corotational element, so just do:
+        EvaluateSectionPoint(u,v,displ, point);
+        rot = QUNIT; // or maybe use gram-schmidt to get csys of section from slopes?
+    }
+
     virtual void EvaluateSectionPoint(const double u,
                                       const double v,
                                       const ChMatrix<>& displ,
@@ -2163,8 +2184,8 @@ public:
 					
 					ChMatrixNM<double,1,8> N;
 
-					double x = (u+1.0)*0.5; // because ShapeFunctions() works in 0..1 range
-                    double y = (v+1.0)*0.5; // because ShapeFunctions() works in 0..1 range
+					double x = u; // because ShapeFunctions() works in -1..1 range
+                    double y = v; // because ShapeFunctions() works in -1..1 range
 					double z = 0;
 
 					this->ShapeFunctions(N, x, y, z);
