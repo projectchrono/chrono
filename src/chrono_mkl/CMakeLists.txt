@@ -32,7 +32,7 @@ if(NOT MKL_FOUND)
   set(MKL_ROOT "" CACHE PATH "Location of MKL installation")
 endif()
 
-SET(EIGEN3_INCLUDE_DIRS "" CACHE PATH "Location of Eigen3 headers (should contain ./Engine)")
+# SET(EIGEN3_INCLUDE_DIRS "" CACHE PATH "Location of Eigen3 headers (should contain ./Engine)")
 
 # ------------------------------------------------------------------------------
 # Collect all additional include directories necessary for the MKL module
@@ -40,7 +40,7 @@ SET(EIGEN3_INCLUDE_DIRS "" CACHE PATH "Location of Eigen3 headers (should contai
 
 SET(CH_MKL_INCLUDES
     ${MKL_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIRS}
+    # ${EIGEN3_INCLUDE_DIRS}
 )
 
 INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
@@ -54,13 +54,15 @@ SET(CH_MKL_INCLUDES "${CH_MKL_INCLUDES}" PARENT_SCOPE)
 SET(ChronoEngine_MKL_HEADERS
   ChApiMkl.h
   ChLcpMklSolver.h
+  ChMklEngine.h
   ChApiCSR3.h
-  ChCSR3matrix.h
+  ChCSR3Matrix.h
 )
 
 SET(ChronoEngine_MKL_SOURCES
   ChLcpMklSolver.cpp
-  ChCSR3matrix.cpp
+  ChMklEngine.cpp
+  ChCSR3Matrix.cpp
 )
 
 SOURCE_GROUP("" FILES ${ChronoEngine_MKL_HEADERS} ${ChronoEngine_MKL_SOURCES})

@@ -233,10 +233,10 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Z,
 
     // Reset and resize (if needed) auxiliary vectors
 
-    if (Z)
+	if (Z)
         Z->Reset(n_q + mn_c, n_q + mn_c);
 
-    if (rhs)
+	if (rhs)
         rhs->Reset(n_q + mn_c, 1);
 
     // Fills Z and rhs with masses and inertias, fills rhs with 'f'

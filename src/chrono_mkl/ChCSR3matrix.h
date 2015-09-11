@@ -1,387 +1,124 @@
 #ifndef CHCSR3MATRIX_H
 #define CHCSR3MATRIX_H
 
-#include <Eigen/Sparse>
 #include <mkl.h>
 #include "core/ChSpmatrix.h"
-#include "collision/bullet/LinearMath/btQuaternion.h"
-
-namespace chrono {
-
-class ChEigenMatrix : public ChSparseMatrixBase, public Eigen::SparseMatrix<double, Eigen::RowMajor, int> {
-  public:
-    ChEigenMatrix() : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(){};
-    ChEigenMatrix(int rows, int cols, double reallocRatio = 0.025)
-        : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) {
-        // resizing is already performed by Eigen
-        std::vector<int> reserveSize(rows, static_cast<int>(cols * reallocRatio));
-        reserve(reserveSize);
-    };
-
-    template <class SizesType>
-    ChEigenMatrix(SizesType& reserveSize)
-        : Eigen::SparseMatrix<double, Eigen::RowMajor, int>(rows, cols) {
-        reserve(reserveSize);
-    };
-
-    ChEigenMatrix(int dimension) : ChEigenMatrix(dimension, dimension){};
-
-    virtual ~ChEigenMatrix(){};
-
-    /*template<typename OtherDerived>
-    ChEigenMatrix(const Eigen::SparseMatrixBase<SparseMatrix<OtherDerived>>& other) : Eigen::SparseMatrix<other>(){};
-
-    template<typename OtherDerived>
-    ChEigenMatrix& operator= (const Eigen::SparseMatrixBase<SparseMatrix<OtherDerived>>& other)	{
-    this->Eigen::SparseMatrix<double>::operator=(other);
-    return *this;
-    };*/
-
-    /// Virtualizabile functions
-    virtual void SetElement(int insrow, int inscol, double insval) override { coeffRef(insrow, inscol) = insval; };
-
-    virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
-    virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) override;
-    virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
-    virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
-    virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
-    virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) override;
-    virtual void PasteClippedMatrix(ChMatrix<>* matra,
-                                    int cliprow,
-                                    int clipcol,
-                                    int nrows,
-                                    int ncolumns,
-                                    int insrow,
-                                    int inscol) override;
-    virtual void PasteSumClippedMatrix(ChMatrix<>* matra,
-                                       int cliprow,
-                                       int clipcol,
-                                       int nrows,
-                                       int ncolumns,
-                                       int insrow,
-                                       int inscol) override;
-
-    /// Templatized functions
-    template <bool overwrite = 1>
-    void SetElement(int insrow, int inscol, double insval) {
-        if (overwrite)
-            coeffRef(insrow, inscol) = insval;
-        else
-            coeffRef(insrow, inscol) += insval;
-    };
-
-    inline double& Element(int row, int col) { return coeffRef(row, col); };
-
-    inline double* GetValueArray() { return valuePtr(); }
-
-    inline int* GetColumnIndex() { return innerIndexPtr(); }
-
-    inline int* GetRowIndex() { return outerIndexPtr(); }
-
-    template <bool overwrite = 1, class ChMatrixIN>
-    void PasteMatrix(ChMatrixIN* matra, int insrow, int inscol) {
-        int maxrows = matra->GetRows();
-        int maxcols = matra->GetColumns();
-        int i, j;
-
-        // can't use triplets because they expect a compressed matrix with
-        // non existing entries
-
-        for (i = 0; i < maxrows; i++) {
-            for (j = 0; j < maxcols; j++) {
-                if ((*matra)(i, j) != 0)
-                    this->SetElement<overwrite>(insrow + i, inscol + j, (*matra)(i, j));
-            }
-        }
-    }
-
-    template <bool overwrite = 1, class ChMatrixIN>
-    void PasteMatrixFloat(ChMatrixIN* matra, int insrow, int inscol) {
-        PasteMatrix(matra, insrow, inscol);
-    };
-
-    template <class ChMatrixIN>
-    void PasteSumMatrix(ChMatrixIN* matra, int insrow, int inscol) {
-        PasteMatrix<0>(matra, insrow, inscol);
-    };
-
-    template <bool overwrite = 1, class ChMatrixIN>
-    void PasteTranspMatrix(ChMatrixIN* matra, int insrow, int inscol) {
-        int maxrows = matra->GetRows();
-        int maxcols = matra->GetColumns();
-        int i, j;
-
-        // can't use triplets because they expect a compressed matrix with
-        // non existing entries
-
-        for (i = 0; i < maxcols; i++) {
-            for (j = 0; j < maxrows; j++) {
-                if ((*matra)(j, i) != 0)
-                    this->SetElement<overwrite>(insrow + i, inscol + j, (*matra)(j, i));
-            };
-        };
-    };
-
-    template <class ChMatrixIN>
-    void PasteSumTranspMatrix(ChMatrixIN* matra, int insrow, int inscol) {
-        PasteTranspMatrix<0>(matra, insrow, inscol);
-    };
-
-    template <class ChMatrixIN>
-    void PasteTranspMatrixFloat(ChMatrixIN* matra, int insrow, int inscol) {
-        PasteTranspMatrix(matra, insrow, inscol);
-    };
-
-    // GetElement returns 0 also if indexes are out of bound!
-    //***TODO*** see http://eigen.tuxfamily.org/dox/group__TutorialSparse.html for a better way to find elements
-    double GetElement(const int row, const int col) const { return this->coeff(row, col); };
-
-    inline int GetRows() const { return static_cast<int>(this->rows()); }
-
-    inline int GetColumns() const { return static_cast<int>(this->cols()); }
-
-    template <bool overwrite = 1, class ChMatrixIN>
-    void
-    PasteClippedMatrix(ChMatrixIN* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) {
-        /*#pragma omp parallel for if (nrows > CH_OMP_MATR)*/
-        for (int i = 0; i < nrows; ++i)
-            for (int j = 0; j < ncolumns; ++j)
-                this->SetElement<overwrite>(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol));
-    }
-
-    template <class ChMatrixIN>
-    void PasteSumClippedMatrix(ChMatrixIN* matra,
-                               int cliprow,
-                               int clipcol,
-                               int nrows,
-                               int ncolumns,
-                               int insrow,
-                               int inscol) {
-        PasteClippedMatrix<0>(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol);
-    }
-
-    double& operator()(const int row, const int col) { return Element(row, col); }
-    double& operator()(const int index) { return Element((int)index / cols(), index % cols()); }
-
-    void Reset(int new_rows, int new_cols) {
-        // TODO verify if it allocates memory or it should be done with resizeNonZeros
-        if ((new_rows != this->rows()) || (new_cols != this->cols()))
-            resize(new_rows, new_cols);
-    }
-
-    void Reset(int mat_size) { Reset(mat_size, mat_size); }
-
-    // Import function from ChSparseMatrix format; this function resets the matrix!
-    void LoadFromChSparseMatrix(ChSparseMatrix* mat) {
-        // Create the CSR3 matrix with just the right amount of elements
-        int mat_rows = mat->GetRows();
-        resize(mat_rows, mat->GetColumns());     // rectangular matrices allowed; matrix still empty
-        std::vector<int> reserveSize(mat_rows);  // will take the number of elements for each row
-        mat->CountNonZeros<std::vector<int>>(reserveSize);
-        reserve(reserveSize);
-
-        // Import values from ChSparseMatrix
-        ChMelement* elarray = mat->GetElarrayDereferenced();
-        ChMelement* el_temp;
-        for (int i = 0; i < mat_rows; i++) {
-            el_temp = &elarray[i];
-            while (el_temp) {
-                if (el_temp->val != 0)
-                    SetElement(i, el_temp->col, el_temp->val);
-                el_temp = el_temp->next;
-            };
-        };
-
-    }  // END LoadFromChSparseMatrix;
-
-    void LoadFromChSparseMatrix(ChSparseMatrix* M, ChSparseMatrix* Cq, ChSparseMatrix* E) {
-        // Create the CSR3 matrix
-        int M_rows = M->GetRows();
-        int Cq_rows = Cq->GetRows();
-        int mat_rows = M_rows + Cq_rows;
-        resize(mat_rows, mat_rows);  // only square matrices allowed
-
-        // Preallocate a ChEigenMatrix with the exact number of non-zeros of the ChSparseMatrix
-        std::vector<int> reserveSize(mat_rows);  // will take the number of elements for each row
-        ChMelement* Cq_elarray = Cq->GetElarrayDereferenced();
-        ChMelement* el_temp;
-
-        // scan Cq matrix for non-zeros
-        for (int i = 0; i < Cq_rows; i++) {
-            el_temp = &Cq_elarray[i];
-            while (el_temp) {
-                if (el_temp->val != 0) {
-                    reserveSize[M_rows + i]++;
-                    reserveSize[el_temp->col]++;
-                };
-                el_temp = el_temp->next;
-            }
-        }
-
-        M->CountNonZeros<std::vector<int>>(reserveSize);
-        E->CountNonZeros<std::vector<int>>(reserveSize, M_rows);
-
-        reserve(reserveSize);
-
-        // Import values from ChSparseMatrix
-        for (int i = 0; i < Cq_rows; i++) {
-            el_temp = &Cq_elarray[i];
-            while (el_temp) {
-                if (el_temp->val != 0) {
-                    SetElement(M_rows + i, el_temp->col, el_temp->val);  // sets the Cq
-                    SetElement(el_temp->col, M_rows + i, el_temp->val);  // sets the Cq'
-                };
-                el_temp = el_temp->next;
-            }
-        }
-
-        ChMelement* M_elarray = M->GetElarrayDereferenced();
-        for (int i = 0; i < M_rows; i++) {
-            el_temp = &M_elarray[i];
-            while (el_temp) {
-                if (el_temp->val != 0)
-                    SetElement(i, el_temp->col, el_temp->val);
-                el_temp = el_temp->next;
-            }
-        }
-
-        ChMelement* E_elarray = E->GetElarrayDereferenced();
-        for (int i = 0; i < Cq_rows; i++) {
-            el_temp = &E_elarray[i];
-            while (el_temp) {
-                if (el_temp->val != 0)
-                    SetElement(i + M_rows, M_rows + el_temp->col, -el_temp->val);
-                el_temp = el_temp->next;
-            }
-        }
-    }  // END LoadFromChSparseMatrix
-
-};  // END class ChEigenMatrix
-
-// -----------------------------------------------------------------------------
-// Specializations of ChEigenMatrix::SetElement()
-
-template <>
-inline void ChEigenMatrix::SetElement<1>(int insrow, int inscol, double insval) {
-    coeffRef(insrow, inscol) = insval;
-}
-
-template <>
-inline void ChEigenMatrix::SetElement<0>(int insrow, int inscol, double insval) {
-    coeffRef(insrow, inscol) += insval;
-}
-
-// -----------------------------------------------------------------------------
-
-class ChEigenMatrixNEW : public ChSparseMatrixBase {
-  public:
-    ChEigenMatrixNEW();
-    ChEigenMatrixNEW(int insrow, int inscol, double insnonzero_ratio);
-    virtual ~ChEigenMatrixNEW() override;
-
-    virtual void SetElement(int insrow, int inscol, double insval) override;
-    virtual double GetElement(int row, int col) override;
-
-  protected:
-    bool reallocate(int new_rows, int new_cols, double nonzero_ratio);
-    void prune(
-        double epsilon = DBL_EPSILON);  // or could simply remove the elements that has col index that equals -1!!!
-
-  private:
-    double* values;
-    double* colIndex;
-    double* rowIndex;
-    int mat_rows;
-    int mat_cols;
-    double nonzero_ratio;
-    int storage_dimension;  // could differ from 'rowIndex[mat_rows]' if has been allocated a greater space
-};
-
-inline ChEigenMatrixNEW::ChEigenMatrixNEW() {
-}
-
-inline ChEigenMatrixNEW::ChEigenMatrixNEW(int insrow, int inscol, double insnonzero_ratio) {
-    assert(insrow > 0 && inscol > 0 && insnonzero_ratio > 0);
-    mat_rows = insrow;
-    mat_cols = inscol;
-    storage_dimension = static_cast<int>(inscol * insrow * insnonzero_ratio);
-    values = static_cast<double*>(mkl_malloc(storage_dimension * sizeof(double), 64));
-    colIndex = static_cast<double*>(mkl_malloc(storage_dimension * sizeof(double), 64));
-    rowIndex = static_cast<double*>(mkl_malloc(mat_rows + 1, 64));
-    for (int row_sel = 0; row_sel < mat_rows; row_sel++) {
-        rowIndex[row_sel] = row_sel * round(storage_dimension / mat_cols);
-    }
-    for (int col_sel = 0; col_sel < storage_dimension; col_sel++) {
-        colIndex[col_sel] = -1;
-    }
-    rowIndex[mat_rows] = storage_dimension;
-}
-
-inline ChEigenMatrixNEW::~ChEigenMatrixNEW() {
-}
-
-inline void ChEigenMatrixNEW::SetElement(int insrow, int inscol, double insval) {
-    assert(insrow < mat_rows && inscol < mat_cols);
-    assert(insrow >= 0 && inscol >= 0);
-    bool overwrite = 1;
-    int col_sel;
-    for (col_sel = rowIndex[insrow];
-         col_sel < rowIndex[insrow + 1] && colIndex[col_sel] < inscol && colIndex[col_sel] != -1; col_sel++) {
-    }
-
-    // if the element is already in memory is overwritten. TODO: let the user choose if overwrite or add
-    if (colIndex[col_sel] == inscol || colIndex[col_sel] == -1) {
-        if (colIndex[col_sel] == -1) {
-            values[col_sel] = insval;
-            colIndex[col_sel] = inscol;
-        } else {
-            if (overwrite)
-                values[col_sel] = insval;
-            else
-                values[col_sel] += insval;
-        }
-
-        return;
-    }
-
-    // at this time col_sel should point one space to the right on where 'insval' should be stored
-
-    // check if the memory space should be inflated
-    if (storage_dimension <= rowIndex[mat_rows + 1]) {
-        // allocated_size = allocated_size + std::max(ceil(sizeof(double) / 64), 1.0) * 64;
-        storage_dimension = storage_dimension + 1;  // TODO: probably it is better to add more spaces for a double
-        values = static_cast<double*>(
-            mkl_realloc(values, storage_dimension * 64));  // WARNING: does it preserve 64byte alignment or only 32?
-        colIndex = static_cast<double*>(
-            mkl_realloc(colIndex, storage_dimension * 64));  // WARNING: does it preserve 64byte alignment or only 32?
-    }
-
-    // in any case elements from 'col_sel' and to its right must be moved
-    for (int col_sel_temp = rowIndex[mat_rows + 1]; col_sel_temp >= col_sel; col_sel_temp--) {
-        colIndex[col_sel_temp] = colIndex[col_sel_temp - 1];
-        values[col_sel_temp] = values[col_sel_temp - 1];
-    }
-
-    // update rowIndex
-    for (int i = insrow; i <= mat_rows; i++) {
-        rowIndex[i]++;
-    }
-
-    values[col_sel - 1] = insval;
-    colIndex[col_sel - 1] = inscol;
-}
-
-inline double ChEigenMatrixNEW::GetElement(int row, int col) {
-    assert(row < mat_rows && col < mat_cols);
-    assert(row >= 0 && col >= 0);
-    for (int col_sel = rowIndex[row]; col_sel < rowIndex[row + 1]; col_sel++) {
-        if (colIndex[col_sel] == col) {
-            return values[col_sel];
-        }
-    }
-    return 0;
-}
-
-};  // END namespace chrono
+#include "chrono_mkl/ChApiCSR3.h"
+
+
+#define ALIGNMENT_REQUIRED true
+#define TESTING_CSR3 true
+
+namespace chrono{
+	using namespace std;
+
+	/* ChCSR3Matrix is a class that implements CSR3 sparse matrix format;
+	* - The more useful constructor specifies rows, columns and nonzeros
+	* - The argument "nonzeros": if 0<nonzeros<=1 specifies non-zeros/(mat_rows*mat_cols);
+	*                            if nonzeros>1 specifies exactly the number non-zeros in the matrix.
+	* - It's better to overestimate the number of non-zero elements to avoid reallocations in memory.
+	* - Each of the 3 arrays is stored contiguously in memory (e.g. as needed by MKL Pardiso).
+	* - The array of column indexes (colIndex) is initialized with "-1": that means that the corrisponing element in the "values" array
+	*   doesn't hold any significant number, so it can be overwritten.
+	* - It's preferrable to insert elements in the matrix in increasing column order to avoid rearranging.
+	* - When a new element should be inserted the algorithm seeks the nearest not-initialized location (i.e. with "-1" in colIndex);
+	    if it has to search too far ("max_shifts" exceeded) or if it finds no available spaces THEN it reallocates the arrays
+	* It's better to use GetElement to read from matrix; Element() creates the space if the element does not exist.
+	*/
+
+	// The CSR3 format for a 3x3 matrix is like this:
+	//  | 1.1  1.2  1.3 |    values =   { 1.1, 1.2, 1.3, 2.2, 2.3, 3.3 };
+	//  |  0   2.2  2.3 |	 colIndex = {  0,   1,   2,   1,   2,   2  };
+	//  |  0    0   3.3 |	 rowIndex = {  0,             3,        5  , 6};
+	// but it's difficult to have an exact estimate of how many nonzero element there will be before actually storing them;
+	// so how many location should be preallocated? an overestimation is usually preferred to avoid further reallocations.
+	// Let's say that we would like to allocate all the 9 elements: (NI means Not Initialized)
+	//  | 1.1  1.2  1.3 |    values =   { 1.1, 1.2, 1.3, 2.2, 2.3, NI, 3.3, NI, NI };
+	//  |  0   2.2  2.3 |	 colIndex = {  0,   1,   2,   1,   2,  -1,  2,  -1, -1 };
+	//  |  0    0   3.3 |	 rowIndex = {  0,             3,            6,          , 9 };
+	// So, if a new element should be stored (e.g. the [2,0] element) only one insignificant arrangement should be done instead of reallocating the arrays:
+	// the algorithm, starting from colIndex[6] will find the nearest uninitialized space (i.e. a colIndex cell that has "-1" in it) and moves the elements
+	// in order to let the new element to be written in that place!
+	// When all the writing operations are performed the matrix can be "compressed" (i.e. call Compress()): all the uninitialized locations are purged and
+	// (optionally) the arrays are trimmed at the exact dimension.
+
+
+	/*
+	* Reset VS Resize
+	* Reset() function initializes arrays to their default values. Always succesfull.
+	* Resize() always preserve data in the arrays. The return value tells the user if the resizing has been done.
+	*/
+	
+	class ChApiCSR3 ChCSR3Matrix : public ChSparseMatrixBase
+	{
+	public:
+		ChCSR3Matrix(int insrow, int inscol, double nonzeros = 0.5);
+		virtual ~ChCSR3Matrix() override;
+
+		double* GetValuesAddress() { return values; };
+		int* GetColIndexAddress() { return colIndex; };
+		int* GetRowIndexAddress() { return rowIndex; };
+		virtual int GetRows() const override { return mat_rows; };
+		virtual int GetColumns() const override { return mat_cols; };
+
+		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
+		virtual double GetElement(int row, int col) override;
+		double& Element(int row, int col);
+		double& operator()(int row, int col) { return Element(row, col); }
+		double& operator()(int index) { return Element( index / GetColumns(), index % GetColumns()); }
+
+		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) override;
+		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) override;
+		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true) override;
+
+
+		virtual void Reset(int nrows, int ncols, double nonzeros = -1) override;
+		virtual bool Resize(int nrows, int ncols, double nonzeros = -1) override;
+		void Compress(bool trim_after_compressing = false); // purge the matrix from all the unininitialized elements
+		void Trim(); // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
+
+		int GetArrayDimension() const { return rowIndex[mat_rows] - 1 ; };
+		double GetNonZeroRatio() const { return rowIndex[mat_rows] / static_cast<double>(mat_rows*mat_cols);  };
+		void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; };
+
+		// Testing functions
+		bool CheckArraysAlignment(int alignment = 0);
+		void GetMemoryInfo();
+		int VerifyMatrix();
+
+		// Import/Export functions
+		void ImportFromDatFile(std::string filepath);
+		void ExportToDatFile(std::string filepath, int precision = 12);
+
+	protected:
+		void prune(double pruning_threshold = DBL_EPSILON);
+		void insert(int insrow, int inscol, double insval, int& col_sel);
+		void initialize();
+		void copy(double* values_temp, int* colIndex_temp, bool to_internal_arrays, int col_sel = 0, int shifts = 0);
+
+	private:
+		
+		bool reallocation_occurred;
+		const int array_alignment = 64;
+		bool isCompressed;
+		int max_shifts;
+		double* values;
+		int* colIndex;
+		int* rowIndex;
+		int mat_rows;
+		int mat_cols;
+		int storage_dimension; // refers to the length of "values" and "colIndex" array; "rowIndex" is always (mat_rows+1) long.
+		// storage_dimensione differs from rowIndex[mat_rows] only if a compress has occurred without a Resize
+
+		MKL_INT64 mkl_peak_mem_CSR3;
+
+		// TODO: can be useful to count how many nonzeros element there are for each row in order to perform faster copies
+		// but this could affect performances... there will be one more operation for every SetElement or Element call
+		// std::vector<int> nonzeros_counter;
+		
+
+	};
+
+}; // END namespace chrono
 
 #endif

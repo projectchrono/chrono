@@ -343,8 +343,8 @@ class ChApi ChLcpSystemDescriptor {
     /// Optionally, tangential (u,v) contact jacobians may be skipped, or only bilaterals can be considered
     /// The matrices and vectors are automatically resized if needed.
 	virtual void ConvertToMatrixForm(ChSparseMatrixBase* Cq,   ///< fill this system jacobian matrix, if not null
-										ChSparseMatrixBase* M,    ///< fill this system mass matrix, if not null
-										ChSparseMatrixBase* E,    ///< fill this system 'compliance' matrix , if not null
+									 ChSparseMatrixBase* M,    ///< fill this system mass matrix, if not null
+									 ChSparseMatrixBase* E,    ///< fill this system 'compliance' matrix , if not null
                                      ChMatrix<>* Fvector,  ///< fill this vector as the known term 'f', if not null
                                      ChMatrix<>* Bvector,  ///< fill this vector as the known term 'b', if not null
                                      ChMatrix<>* Frict,    ///< fill as a vector with friction coefficients (=-1 for
@@ -353,9 +353,9 @@ class ChApi ChLcpSystemDescriptor {
                                      bool skip_contacts_uv = false);
 
 	virtual void ConvertToMatrixForm(ChSparseMatrixBase* Z,
-									ChMatrix<>* rhs,
-									bool only_bilaterals = false,
-									bool skip_contacts_uv = false);
+									 ChMatrix<>* rhs,
+									 bool only_bilaterals = false,
+									 bool skip_contacts_uv = false);
 
 
     /// Saves to disk the LAST used matrices of the problem.

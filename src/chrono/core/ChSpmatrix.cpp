@@ -163,7 +163,7 @@ void ChSparseMatrix::Reset() {
     Reset(rows, columns);
 }
 
-void ChSparseMatrix::Reset(int row, int col) {
+void ChSparseMatrix::Reset(int row, int col, double nonzero_ratio) {
     // realloc 1st column array, only if needed
     if (row != rows) {
         if (elarray)
@@ -350,7 +350,7 @@ ChMelement* ChSparseMatrix::GetElement(int row, int col, double* val, ChMelement
     return (guess);
 }
 
-void ChSparseMatrix::SetElement(int row, int col, double elem) {
+void ChSparseMatrix::SetElement(int row, int col, double elem, bool overwrite) {
     ChMelement* guess;
     guess = *(elarray + row);
     SetElement(row, col, elem, guess);
@@ -392,7 +392,7 @@ void ChSparseMatrix::SwapColumns(int a, int b) {
     }
 }
 
-void ChSparseMatrix::PasteMatrix(ChMatrix<>* matra, int insrow, int inscol) {
+void ChSparseMatrix::PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite, bool transp) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -409,6 +409,7 @@ void ChSparseMatrix::PasteMatrix(ChMatrix<>* matra, int insrow, int inscol) {
         }
     }
 }
+
 
 void ChSparseMatrix::PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
     int i, j;
@@ -428,7 +429,7 @@ void ChSparseMatrix::PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol
     }
 }
 
-void ChSparseMatrix::PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) {
+void ChSparseMatrix::PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite, bool transp) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -553,7 +554,8 @@ void ChSparseMatrix::PasteClippedMatrix(ChMatrix<>* matra,
                                         int nrows,
                                         int ncolumns,
                                         int insrow,
-                                        int inscol) {
+                                        int inscol,
+										bool overwrite) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();

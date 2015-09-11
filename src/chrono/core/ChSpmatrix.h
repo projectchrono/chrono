@@ -35,25 +35,29 @@
 #include "core/ChApiCE.h"
 
 namespace chrono {
-
-	class ChApi ChSparseMatrixBase{
-	public:
-		// dummy base class for all Sparse Matrices, must be the FIRST parent of every class that inherits from this class
+	
+	class ChApi ChSparseMatrixBase : public ChMatrix<double> {
 	public:
 		ChSparseMatrixBase(){};
 		virtual ~ChSparseMatrixBase(){};
 
-		virtual void Reset(int row, int col){ printf("Called Reset of Base"); };
-		virtual void SetElement(int insrow, int inscol, double insval){ printf("Called SetElement of Base"); };
-		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol){ printf("Called PasteMatrix of Base"); };
-		virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){ printf("Called PasteTranspMatrix of Base"); };
-		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){printf("Called PasteMatrixFloat of Base");};
-		virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){printf("Called PasteTranspMatrixFloat of Base");};
-		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){printf("Called PasteClippedMatrix of Base");};
-		virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){printf("Called PasteSumClippedMatrix of Base");};
-		virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){printf("Called PasteSumMatrix of Base");};
-		virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){ printf("Called PasteSumTranspMatrix of Base"); };
-		virtual double GetElement(int row, int col){ printf("Called GetElement of Base"); return 0; }; // used only for fun
+		virtual void Reset(int row, int col, double nonzero_ratio = 0.5){assert(0);};
+		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true){assert(0);};
+		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false)	{ assert(0);};
+		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false){assert(0);};
+		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true){assert(0);};
+		virtual double GetElement(int row, int col) { assert(0);	return 0; };
+		virtual bool Resize(int nrows, int ncols, double nonzeros = -1){ assert(0); return 0; };
+
+
+		virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){ PasteMatrix(matra, insrow, inscol, true, true); };
+		virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol){ PasteMatrix(matra, insrow, inscol, false, false); };
+		virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){ PasteMatrix(matra, insrow, inscol, false, true); };
+		virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol){ PasteMatrixFloat(matra, insrow, inscol, true, true);  };
+		virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol){ PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol, false); };
+
+		virtual int GetRows() const { return 0; }; // TODO: if also CSR3Matrix will use rows, cols variables instead of mat_rows, mat_cols this function can be the same for all the matrices
+		virtual int GetColumns() const { return 0; };
 
 	};
 
@@ -132,7 +136,7 @@ class ChUnilateralData {
 ///
 
 
-class ChApi ChSparseMatrix : public ChSparseMatrixBase, public ChMatrix<double> {
+class ChApi ChSparseMatrix : public ChSparseMatrixBase {
   private:
     ChMelement** elarray;  // array of 1st column elements
 
@@ -189,31 +193,39 @@ class ChApi ChSparseMatrix : public ChSparseMatrixBase, public ChMatrix<double> 
     void MoreBuffer(double inflate);
 
     // Overloadings of standard matrix functions:
-    void Resize(int nrows, int ncols) { assert(false); };  // not implemented
+	virtual bool Resize(int nrows, int ncols, double nonzeros) override { assert(false); return 0; };  // not implemented
 
     void Reset();                  // reset to null matrix
-    void Reset(int row, int col);  // reset to null matrix and (if needed) changes the size.
+	virtual void Reset(int row, int col, double nonzero_ratio = 0.5) override;  // reset to null matrix and (if needed) changes the size.
     void ResetBlocks(int row,
                      int col);  // if size changes, is like the above, otherwise just sets to zero the elements .
 
-    void SetElement(int row, int col, double elem);
-    double GetElement(int row, int col);
+    virtual void SetElement(int row, int col, double elem, bool overwrite = true) override;
+	virtual double GetElement(int row, int col) override;
 
     void SwapColumns(int a, int b);
     void SwapRows(int a, int b);
 
+	/// Gets the number of rows
+	virtual int GetRows() const override { return rows; }
+
+	/// Gets the number of columns
+	virtual int GetColumns() const override { return columns; }
+
     // Customized functions, speed-optimized for sparse matrices:
 
-    void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol);
-    void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol);
-    void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol); // non vedo l'utilità di una specializzazione per il caso float quando poi l'implementazione usa cmq double tra l'altro!
-    void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol);
-    void PasteMatrix(ChSparseMatrix* matra, int insrow, int inscol);
-    void PasteTranspMatrix(ChSparseMatrix* matra, int insrow, int inscol);
-    void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
-    void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
-    void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol);
-    void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol);
+    virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite, bool transp) override;
+	virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
+	virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite, bool transp) override;
+	virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) override;
+	virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite) override;
+    virtual void PasteSumClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol) override;
+    virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
+    virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
+
+	// Specialized functions
+	virtual void PasteMatrix(ChSparseMatrix* matra, int insrow, int inscol);
+	virtual void PasteTranspMatrix(ChSparseMatrix* matra, int insrow, int inscol);
 
     void MatrMultiply(ChSparseMatrix* matra, ChSparseMatrix* matrb);
     void MatrMultiplyT(ChSparseMatrix* matra, ChSparseMatrix* matrb);
