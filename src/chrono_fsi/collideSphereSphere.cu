@@ -437,10 +437,6 @@ void ResizeMyThrust4(thrust::device_vector<Real4> & mThrustVec, int mSize) {mThr
 /**
  * @brief See collideSphereSphere.cuh for documentation.
  */
-void FillMyThrust(thrust::device_vector<T> & mThrustVec, T v) 
-{
-	thrust::fill(mThrustVec.begin(), mThrustVec.end(), v);
-}
 void FillMyThrust4(thrust::device_vector<Real4> & mThrustVec, Real4 v) 
 {
 	thrust::fill(mThrustVec.begin(), mThrustVec.end(), v);
