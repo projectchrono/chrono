@@ -8,15 +8,13 @@
 #define FSI_HMMWV_PARAMS_H_
 
 /* C/C++ standard library*/
-#include <fstream> // for simParams definition
+#include <fstream>  // for simParams definition
 
 /* Chrono::FSI Library*/
 #include "SPHCudaUtils.h"
 #include "MyStructs.cuh"  //just for SimParams
 #include "VehicleExtraProperties.h"
 #include "include/utils.h"
-
-
 
 // -----------------------------------------------------------------------------
 // Specification post processing directory
@@ -30,13 +28,13 @@ const std::string out_dir = "PostProcess";
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold_vehicle = 0.2;//0.1;  // 0.2;
-Real time_pause_fluid_external_force = 0;//.05;//0.1;//0.1;  // 0.2;
+Real time_hold_vehicle = 0.2;              // 0.1;  // 0.2;
+Real time_pause_fluid_external_force = 0;  //.05;//0.1;//0.1;  // 0.2;
 
 Real contact_recovery_speed = 1;
 Real maxFlowVelocity = 12;  // in an ideal case, these two need to be the same
 
-Real time_step = 2e-4;//0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
+Real time_step = 2e-4;  // 0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
 Real time_end = 15;
 
@@ -49,9 +47,9 @@ Real basinDepth = 2;
 
 Real fluidInitDimX = 2;
 Real fluidInitDimY = hdimY;
-Real fluidHeight = 1.4;// 2.0;
+Real fluidHeight = 1.4;  // 2.0;
 
-int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
+int fluidCollisionFamily = 1;  // 2 and 3 are reserved for tire and chassis
 
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
@@ -59,32 +57,34 @@ int fluidCollisionFamily = 1; // 2 and 3 are reserved for tire and chassis
 const std::string pov_dir_fluid = out_dir + "/povFilesFluid";
 
 int tStepsCheckPoint = 1000;
-bool initializeFluidFromFile = false; 	// 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
-										//	when adding functionality using "useWallBce" and "haveFluid" macros, pay attention to  "initializeFluidFromFile" options.
-										//	for a double security, do your best to set "haveFluid" and "useWallBce" based on the data you have from checkpoint files
-BceVersion bceType = ADAMI;//mORIGINAL; //ADAMI; // when set to adami, change the LARGE_PRES to zero. although not very important, since this option will overwrite the BCE pressure and
-							// paramsH.LARGE_PRES is only used for the initialization of the BCE markers
+bool initializeFluidFromFile = false;  // 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
+//	when adding functionality using "useWallBce" and "haveFluid" macros, pay attention to  "initializeFluidFromFile"
+// options.
+//	for a double security, do your best to set "haveFluid" and "useWallBce" based on the data you have from
+// checkpoint files
+BceVersion bceType = ADAMI;  // mORIGINAL; //ADAMI; // when set to adami, change the LARGE_PRES to zero. although not
+                             // very important, since this option will overwrite the BCE pressure and
+// paramsH.LARGE_PRES is only used for the initialization of the BCE markers
 
 NumberOfObjects numObjects;
 
 /**
- * @brief 
+ * @brief
  *    Fills in paramsH with simulation parameters.
  * @details
  *    The description of each parameter set here can be found in MyStruct.h
- * 
+ *
  * @param paramsH: struct defined in MyStructs.cuh
  */
 void SetupParamsH(SimParams& paramsH) {
-  
   paramsH.sizeScale = 1;  // don't change it.
-  paramsH.HSML = 0.06;//0.06;//0.04;
+  paramsH.HSML = 0.06;    // 0.06;//0.04;
   paramsH.MULT_INITSPACE = 1.0;
   paramsH.NUM_BOUNDARY_LAYERS = 3;
   paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
-  paramsH.BASEPRES = 0;        // 10;
+  paramsH.BASEPRES = 0;    // 10;
   paramsH.LARGE_PRES = 0;  // paramsH.BASEPRES;//10000;
-  paramsH.deltaPress;          //** modified below
+  paramsH.deltaPress;      //** modified below
   paramsH.multViscosity_FSI = 5.0;
   paramsH.gravity = mR3(0, 0, -9.81);  // mR3(0);//mR3(0, -9.81, 0);
   paramsH.bodyForce3 =
@@ -94,9 +94,10 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.v_Max = maxFlowVelocity;  // Arman, I changed it to 0.1 for vehicle. Check this
                                     // later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
   paramsH.EPS_XSPH = .5f;
-  paramsH.dT = time_step;         // 0.0005;//0.1;//.001; //sph alone: .01 for Re 10;
-  paramsH.tFinal = time_end;      // 20 * paramsH.dT; //400
-  paramsH.timePause = time_pause_fluid_external_force;  //.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any
+  paramsH.dT = time_step;                               // 0.0005;//0.1;//.001; //sph alone: .01 for Re 10;
+  paramsH.tFinal = time_end;                            // 20 * paramsH.dT; //400
+  paramsH.timePause = time_pause_fluid_external_force;  //.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time
+  // before applying any
   // bodyforce. Particles move only due to initialization. keep it as small as possible.
   // the time step will be 1/10 * dT.
   paramsH.kdT = 5;  // I don't know what is kdT
@@ -104,12 +105,16 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.binSize0;           // will be changed
   paramsH.rigidRadius;        // will be changed
   paramsH.densityReinit = 1;  // 0: no re-initialization, 1: with initialization
-  paramsH.enableTweak = 1 ; // 0: no tweak, 1: have tweak
-  paramsH.enableAggressiveTweak = 1 ; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
-  paramsH.tweakMultV = paramsH.v_Max / (paramsH.HSML / paramsH.dT);		//0.04;		// NOTE: HSML and dT must be defined. So this line comes after them
-																					// Assume the particles move at most (tweakMultV * HSML / dT)
-  paramsH.tweakMultRho = .002 ; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
-    //********************************************************************************************************
+  paramsH.enableTweak = 1;    // 0: no tweak, 1: have tweak
+  paramsH.enableAggressiveTweak =
+      1;  // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
+  paramsH.tweakMultV =
+      paramsH.v_Max /
+      (paramsH.HSML /
+       paramsH.dT);  // 0.04;		// NOTE: HSML and dT must be defined. So this line comes after them
+  // Assume the particles move at most (tweakMultV * HSML / dT)
+  paramsH.tweakMultRho = .002;  // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
+  //********************************************************************************************************
   //**  reminiscent of the past******************************************************************************
   //	paramsH.cMin = mR3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);
   //// 3D channel
@@ -196,7 +201,6 @@ void SetupParamsH(SimParams& paramsH) {
   std::cout << "paramsH.gridSize: ";
   printStruct(paramsH.gridSize);
   std::cout << "********************" << std::endl;
-
 }
 
 // -----------------------------------------------------------------------------
@@ -213,14 +217,14 @@ enum ChassisType { CSPHERE, CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIG
 ChassisType chassis_type = CBOX;
 
 // JSON files for vehicle model (using different wheel visualization meshes)
-//std::string vehicle_file_cyl("hmmwv/vehicle/myHMMWV.json");
-//std::string vehicle_file_lug("hmmwv/vehicle/myHMMWV_lugged.json");
+// std::string vehicle_file_cyl("hmmwv/vehicle/myHMMWV.json");
+// std::string vehicle_file_lug("hmmwv/vehicle/myHMMWV_lugged.json");
 std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
 std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 
 // JSON files for powertrain (simple)
 std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
-//std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain_Arman.json");  // yo yo yo yo Arman Arman
+// std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain_Arman.json");  // yo yo yo yo Arman Arman
 
 // Initial vehicle position and orientation
 // ChVector<> initLoc(-3.0, 0, 0.75);

@@ -101,7 +101,11 @@ opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 #endif
 
 // =============================================================================
-void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads, int& max_iteration_sliding, int& max_iteration_bilateral) {
+void SetArgumentsForMbdFromInput(int argc,
+                                 char* argv[],
+                                 int& threads,
+                                 int& max_iteration_sliding,
+                                 int& max_iteration_bilateral) {
   if (argc > 1) {
     const char* text = argv[1];
     threads = atoi(text);
@@ -116,7 +120,13 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads, int& max_
   }
 }
 // =============================================================================
-void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads, int& max_iteration_normal, int& max_iteration_sliding, int& max_iteration_spinning, int& max_iteration_bilateral) {
+void SetArgumentsForMbdFromInput(int argc,
+                                 char* argv[],
+                                 int& threads,
+                                 int& max_iteration_normal,
+                                 int& max_iteration_sliding,
+                                 int& max_iteration_spinning,
+                                 int& max_iteration_bilateral) {
   if (argc > 1) {
     const char* text = argv[1];
     threads = atoi(text);
@@ -169,26 +179,24 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   omp_set_num_threads(threads);
 
   mphysicalSystem.GetSettings()->perform_thread_tuning = thread_tuning;
-  mphysicalSystem.GetSettings()->min_threads = max(1, threads/2);
+  mphysicalSystem.GetSettings()->min_threads = max(1, threads / 2);
   mphysicalSystem.GetSettings()->max_threads = 3 * threads / 2;
 
   // ---------------------
   // Print the rest of parameters
   // ---------------------
 
-  simParams << endl <<
-		  " number of threads: " << threads << endl <<
-		  " max_iteration_normal: " << max_iteration_normal << endl <<
-		  " max_iteration_sliding: " << max_iteration_sliding << endl <<
-		  " max_iteration_spinning: " << max_iteration_spinning << endl <<
-		  " max_iteration_bilateral: " << max_iteration_bilateral << endl << endl;
+  simParams << endl << " number of threads: " << threads << endl << " max_iteration_normal: " << max_iteration_normal
+            << endl << " max_iteration_sliding: " << max_iteration_sliding << endl
+            << " max_iteration_spinning: " << max_iteration_spinning << endl
+            << " max_iteration_bilateral: " << max_iteration_bilateral << endl << endl;
 
   // ---------------------
   // Edit mphysicalSystem settings.
   // ---------------------
 
   double tolerance = 0.1;  // 1e-3;  // Arman, move it to paramsH
-  //double collisionEnvelop = 0.04 * paramsH.HSML;
+  // double collisionEnvelop = 0.04 * paramsH.HSML;
   mphysicalSystem.Set_G_acc(ChVector<>(paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z));
 
   mphysicalSystem.GetSettings()->solver.solver_mode = SLIDING;                              // NORMAL, SPINNING
@@ -202,7 +210,8 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   mphysicalSystem.ChangeSolverType(APGD);  // Arman check this APGD APGDBLAZE
   //  mphysicalSystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
-//    mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;   // global collisionEnvelop does not work. Maybe due to sph-tire size mismatch
+  //    mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;   // global collisionEnvelop
+  //    does not work. Maybe due to sph-tire size mismatch
   mphysicalSystem.GetSettings()->collision.bins_per_axis = _make_int3(40, 40, 40);  // Arman check
 }
 // =============================================================================
@@ -240,71 +249,69 @@ double CreateGranularBed(ChSystem* mphysicalSystem) {
 }
 // =============================================================================
 void AddBoxBceToChSystemAndSPH(
-		ChBody* body,
-		const ChVector<>& size,
-		const ChVector<>& pos,
-		const ChQuaternion<>& rot,
-		bool visualization,
+    ChBody* body,
+    const ChVector<>& size,
+    const ChVector<>& pos,
+    const ChQuaternion<>& rot,
+    bool visualization,
 
-		  thrust::host_vector<Real3> & posRadH,  // do not set the size here since you are using push back later
-		  thrust::host_vector<Real4> & velMasH,
-		  thrust::host_vector<Real4> & rhoPresMuH,
-		  thrust::host_vector<uint> & bodyIndex,
-		  thrust::host_vector<::int3> & referenceArray,
-		  NumberOfObjects & numObjects,
-		  const SimParams & paramsH,
-		  Real sphMarkerMass) {
-	utils::AddBoxGeometry(body,	size, pos, rot,	visualization);
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector<uint>& bodyIndex,
+    thrust::host_vector< ::int3>& referenceArray,
+    NumberOfObjects& numObjects,
+    const SimParams& paramsH,
+    Real sphMarkerMass) {
+  utils::AddBoxGeometry(body, size, pos, rot, visualization);
 
-	if (!initializeFluidFromFile) {
-
+  if (!initializeFluidFromFile) {
 #if haveFluid
 #if useWallBce
-		assert(referenceArray.size() > 1 && "error: fluid need to be initialized before boundary. Reference array should have two components");
+    assert(referenceArray.size() > 1 &&
+           "error: fluid need to be initialized before boundary. Reference array should have two components");
 
-		thrust::host_vector<Real3> posRadBCE;
-		thrust::host_vector<Real4> velMasBCE;
-		thrust::host_vector<Real4> rhoPresMuBCE;
+    thrust::host_vector<Real3> posRadBCE;
+    thrust::host_vector<Real4> velMasBCE;
+    thrust::host_vector<Real4> rhoPresMuBCE;
 
-		CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE,
-				paramsH, sphMarkerMass, size, pos, rot,
-				12);
-		int numBCE = posRadBCE.size();
-		int numSaved = posRadH.size();
-		for (int i = 0; i < numBCE; i ++ ) {
-			posRadH.push_back(posRadBCE[i]);
-			velMasH.push_back(velMasBCE[i]);
-			rhoPresMuH.push_back(rhoPresMuBCE[i]);
-			bodyIndex.push_back(i + numSaved);
-		}
+    CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE, paramsH, sphMarkerMass, size, pos, rot, 12);
+    int numBCE = posRadBCE.size();
+    int numSaved = posRadH.size();
+    for (int i = 0; i < numBCE; i++) {
+      posRadH.push_back(posRadBCE[i]);
+      velMasH.push_back(velMasBCE[i]);
+      rhoPresMuH.push_back(rhoPresMuBCE[i]);
+      bodyIndex.push_back(i + numSaved);
+    }
 
-		::int3 ref3 = referenceArray[1];
-		ref3.y = ref3.y + numBCE;
-		referenceArray[1] = ref3;
+    ::int3 ref3 = referenceArray[1];
+    ref3.y = ref3.y + numBCE;
+    referenceArray[1] = ref3;
 
-		int numAllMarkers = numBCE + numSaved;
-		SetNumObjects(numObjects, referenceArray, numAllMarkers);
+    int numAllMarkers = numBCE + numSaved;
+    SetNumObjects(numObjects, referenceArray, numAllMarkers);
 
-		posRadBCE.clear();
-		velMasBCE.clear();
-		rhoPresMuBCE.clear();
+    posRadBCE.clear();
+    velMasBCE.clear();
+    rhoPresMuBCE.clear();
 #endif
 #endif
-	}
-
+  }
 }
 
 // =============================================================================
 
-void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
-		thrust::host_vector<Real3> & posRadH,  // do not set the size here since you are using push back later
-		thrust::host_vector<Real4> & velMasH,
-		thrust::host_vector<Real4> & rhoPresMuH,
-		thrust::host_vector<uint> & bodyIndex,
-		thrust::host_vector<::int3> & referenceArray,
-		NumberOfObjects & numObjects,
-		const SimParams & paramsH,
-		Real sphMarkerMass) {
+void CreateMbdPhysicalSystemObjects(
+    ChSystemParallelDVI& mphysicalSystem,
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector<uint>& bodyIndex,
+    thrust::host_vector< ::int3>& referenceArray,
+    NumberOfObjects& numObjects,
+    const SimParams& paramsH,
+    Real sphMarkerMass) {
   // Ground body
   ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
   ground->SetIdentifier(-1);
@@ -333,43 +340,78 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
   // beginning third
   AddBoxBceToChSystemAndSPH(ground.get_ptr(),
-                        ChVector<>(hdimSide, hdimY, hthick),
-                        ChVector<>(-midSecDim - hdimSide, 0, -hthick),
-                        ChQuaternion<>(1, 0, 0, 0),
-                        true,
-                        posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+                            ChVector<>(hdimSide, hdimY, hthick),
+                            ChVector<>(-midSecDim - hdimSide, 0, -hthick),
+                            ChQuaternion<>(1, 0, 0, 0),
+                            true,
+                            posRadH,
+                            velMasH,
+                            rhoPresMuH,
+                            bodyIndex,
+                            referenceArray,
+                            numObjects,
+                            paramsH,
+                            sphMarkerMass);
 
-    // end third
+  // end third
   AddBoxBceToChSystemAndSPH(ground.get_ptr(),
-                          ChVector<>(hdimSide, hdimY, hthick),
-                          ChVector<>(midSecDim + hdimSide, 0, -hthick),
-                          ChQuaternion<>(1, 0, 0, 0),
-                          true,
-                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
-    // basin
+                            ChVector<>(hdimSide, hdimY, hthick),
+                            ChVector<>(midSecDim + hdimSide, 0, -hthick),
+                            ChQuaternion<>(1, 0, 0, 0),
+                            true,
+                            posRadH,
+                            velMasH,
+                            rhoPresMuH,
+                            bodyIndex,
+                            referenceArray,
+                            numObjects,
+                            paramsH,
+                            sphMarkerMass);
+  // basin
   AddBoxBceToChSystemAndSPH(ground.get_ptr(),
-                          ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
-                          ChVector<>(0, 0, -basinDepth - hthick),
-                          ChQuaternion<>(1, 0, 0, 0),
-                          true,
-                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
-    // slope 1
+                            ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
+                            ChVector<>(0, 0, -basinDepth - hthick),
+                            ChQuaternion<>(1, 0, 0, 0),
+                            true,
+                            posRadH,
+                            velMasH,
+                            rhoPresMuH,
+                            bodyIndex,
+                            referenceArray,
+                            numObjects,
+                            paramsH,
+                            sphMarkerMass);
+  // slope 1
   AddBoxBceToChSystemAndSPH(ground.get_ptr(),
-                          ChVector<>(inclinedWidth, hdimY, hthick),
-                          ChVector<>(x1I, 0, zI),
-                          Q_from_AngAxis(phi, ChVector<>(0, 1, 0)),
-                          true,
-                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+                            ChVector<>(inclinedWidth, hdimY, hthick),
+                            ChVector<>(x1I, 0, zI),
+                            Q_from_AngAxis(phi, ChVector<>(0, 1, 0)),
+                            true,
+                            posRadH,
+                            velMasH,
+                            rhoPresMuH,
+                            bodyIndex,
+                            referenceArray,
+                            numObjects,
+                            paramsH,
+                            sphMarkerMass);
 
-    // slope 2
+  // slope 2
   AddBoxBceToChSystemAndSPH(ground.get_ptr(),
-                          ChVector<>(inclinedWidth, hdimY, hthick),
-                          ChVector<>(x2I, 0, zI),
-                          Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)),
-                          true,
-                          posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+                            ChVector<>(inclinedWidth, hdimY, hthick),
+                            ChVector<>(x2I, 0, zI),
+                            Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)),
+                            true,
+                            posRadH,
+                            velMasH,
+                            rhoPresMuH,
+                            bodyIndex,
+                            referenceArray,
+                            numObjects,
+                            paramsH,
+                            sphMarkerMass);
 
-    // a flat surface altogether
+  // a flat surface altogether
   //  utils::AddBoxGeometry(
   //      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),
   //      true);
@@ -402,15 +444,15 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
   }
 
   if (initializeFluidFromFile) {
-	  if (numObjects.numBoundaryMarkers > 0) {
-		  ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
-		  ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
-	  }
+    if (numObjects.numBoundaryMarkers > 0) {
+      ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
+      ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
+    }
   } else {
 #if haveFluid
 #if useWallBce
-  ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
-  ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
+    ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
+    ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
 #endif
 #endif
   }
@@ -429,73 +471,73 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
   // Create and initialize the vehicle system.
   // -----------------------------------------
 
-//  // Create the vehicle assembly and the callback object for tire contact
-//  // according to the specified type of tire/wheel.
-//  switch (wheel_type) {
-//    case CYLINDRICAL: {
-//      mVehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
-//      tire_cb = new MyCylindricalTire();
-//    } break;
-//    case LUGGED: {
-//      mVehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
-//      tire_cb = new MyLuggedTire();
-//    } break;
-//  }
-//  mVehicle->SetTireContactCallback(tire_cb);
-//
-//  // Set the callback object for chassis.
-//  switch (chassis_type) {
-//    case CBOX: {
-//      chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-//      ChVector<> boxSize(1, .5, .2);
-//      ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
-//      mVehicle->SetChassisContactCallback(chassis_cb);
-//    } break;
-//
-//    case CSPHERE: {
-//      chassis_cb = new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-//      Real radius = 1;
-//      ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
-//      mVehicle->SetChassisContactCallback(chassis_cb);
-//    } break;
-//
-//    case C_SIMPLE_CONVEX_MESH: {
-//      chassis_cb =
-//          new MyChassisSimpleConvexMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-//      ChVector<> mPos = ChVector<>(0, 0, 0.5);
-//      ((MyChassisSimpleConvexMesh_vis*)chassis_cb)->SetAttributes(mPos);
-//      mVehicle->SetChassisContactCallback(chassis_cb);
-//    } break;
-//
-//    case C_SIMPLE_TRI_MESH: {
-//      chassis_cb =
-//          new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-//      ChVector<> mPos = ChVector<>(0, 0, 0.5);
-//      ((MyChassisSimpleTriMesh_vis*)chassis_cb)->SetAttributes(mPos);
-//      mVehicle->SetChassisContactCallback(chassis_cb);
-//    } break;
-//  }
-//
-//  // Set the callback object for driver inputs. Pass the hold time as a delay in
-//  // generating driver inputs.
-//  driver_cb = new MyDriverInputs(time_hold_vehicle);
-//  mVehicle->SetDriverInputsCallback(driver_cb);
-//
-//  // Initially, fix the chassis (will be released after time_hold_vehicle).
-//  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
-//
-//  // Initialize the vehicle at a height above the terrain.
-//  mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
-//
-//  // Initially, fix the wheels (will be released after time_hold_vehicle).
-//  for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-//    mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
-//  }
+  //  // Create the vehicle assembly and the callback object for tire contact
+  //  // according to the specified type of tire/wheel.
+  //  switch (wheel_type) {
+  //    case CYLINDRICAL: {
+  //      mVehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
+  //      tire_cb = new MyCylindricalTire();
+  //    } break;
+  //    case LUGGED: {
+  //      mVehicle = new utils::VehicleSystem(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
+  //      tire_cb = new MyLuggedTire();
+  //    } break;
+  //  }
+  //  mVehicle->SetTireContactCallback(tire_cb);
+  //
+  //  // Set the callback object for chassis.
+  //  switch (chassis_type) {
+  //    case CBOX: {
+  //      chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+  //      ChVector<> boxSize(1, .5, .2);
+  //      ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
+  //      mVehicle->SetChassisContactCallback(chassis_cb);
+  //    } break;
+  //
+  //    case CSPHERE: {
+  //      chassis_cb = new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+  //      Real radius = 1;
+  //      ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
+  //      mVehicle->SetChassisContactCallback(chassis_cb);
+  //    } break;
+  //
+  //    case C_SIMPLE_CONVEX_MESH: {
+  //      chassis_cb =
+  //          new MyChassisSimpleConvexMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+  //      ChVector<> mPos = ChVector<>(0, 0, 0.5);
+  //      ((MyChassisSimpleConvexMesh_vis*)chassis_cb)->SetAttributes(mPos);
+  //      mVehicle->SetChassisContactCallback(chassis_cb);
+  //    } break;
+  //
+  //    case C_SIMPLE_TRI_MESH: {
+  //      chassis_cb =
+  //          new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+  //      ChVector<> mPos = ChVector<>(0, 0, 0.5);
+  //      ((MyChassisSimpleTriMesh_vis*)chassis_cb)->SetAttributes(mPos);
+  //      mVehicle->SetChassisContactCallback(chassis_cb);
+  //    } break;
+  //  }
+  //
+  //  // Set the callback object for driver inputs. Pass the hold time as a delay in
+  //  // generating driver inputs.
+  //  driver_cb = new MyDriverInputs(time_hold_vehicle);
+  //  mVehicle->SetDriverInputsCallback(driver_cb);
+  //
+  //  // Initially, fix the chassis (will be released after time_hold_vehicle).
+  //  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+  //
+  //  // Initialize the vehicle at a height above the terrain.
+  //  mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+  //
+  //  // Initially, fix the wheels (will be released after time_hold_vehicle).
+  //  for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+  //    mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+  //  }
 
   // -----------------------------------------
   // Add extra collision body to test the collision shape
   // -----------------------------------------
-//
+  //
   Real rad = 0.1;
   // NOTE: mass properties and shapes are all for sphere
   double volume = utils::CalcSphereVolume(rad);
@@ -539,11 +581,11 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 // =============================================================================
 
 void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem) {
-//	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-//	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
-//	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
-	ChVector<> CameraLocation = ChVector<>(0, -10, 0);
-	ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
+  //	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+  //	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
+  //	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
+  ChVector<> CameraLocation = ChVector<>(0, -10, 0);
+  ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
   gl_window.Initialize(1280, 720, "HMMWV", &mphysicalSystem);
@@ -611,28 +653,23 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
   }
 }
 // =============================================================================
-void SetMarkersVelToZero(
-		thrust::device_vector<Real4> & velMasD,
-		thrust::host_vector<Real4> & velMasH) {
-	for (int i = 0; i < velMasH.size(); i++) {
-		Real4 vM = velMasH[i];
-		velMasH[i] = mR4(0, 0, 0, vM.w);
-		velMasD[i] = mR4(0, 0, 0, vM.w);
-	}
+void SetMarkersVelToZero(thrust::device_vector<Real4>& velMasD, thrust::host_vector<Real4>& velMasH) {
+  for (int i = 0; i < velMasH.size(); i++) {
+    Real4 vM = velMasH[i];
+    velMasH[i] = mR4(0, 0, 0, vM.w);
+    velMasD[i] = mR4(0, 0, 0, vM.w);
+  }
 }
 // =============================================================================
 void printSimulationParameters() {
-	simParams << " time_hold_vehicle: " << time_hold_vehicle << endl <<
-			" time_pause_fluid_external_force: " << time_pause_fluid_external_force << endl <<
-			" contact_recovery_speed: " << contact_recovery_speed << endl <<
-			" maxFlowVelocity " << maxFlowVelocity << endl <<
-			" time_step: " << time_step << endl <<
-			" time_end: " << time_end << endl;
+  simParams << " time_hold_vehicle: " << time_hold_vehicle << endl
+            << " time_pause_fluid_external_force: " << time_pause_fluid_external_force << endl
+            << " contact_recovery_speed: " << contact_recovery_speed << endl << " maxFlowVelocity " << maxFlowVelocity
+            << endl << " time_step: " << time_step << endl << " time_end: " << time_end << endl;
 }
 // =============================================================================
 
 int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTime) {
-
 //	// Release the vehicle chassis at the end of the hold time.
 //  if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold_vehicle) {
 //    mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
@@ -643,7 +680,6 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTi
 //
 //  // Update vehicle
 //  mVehicle->Update(mTime);
-
 
 #if irrlichtVisualization
   Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
@@ -713,52 +749,52 @@ int main(int argc, char* argv[]) {
     }
   }
 
-// ***************************** Create Fluid ********************************************
-  thrust::host_vector<::int3> referenceArray;
+  // ***************************** Create Fluid ********************************************
+  thrust::host_vector< ::int3> referenceArray;
   thrust::host_vector<Real3> posRadH;  // do not set the size here since you are using push back later
   thrust::host_vector<Real4> velMasH;
   thrust::host_vector<Real4> rhoPresMuH;
   thrust::host_vector<uint> bodyIndex;
-  Real sphMarkerMass = 0; // To be initialized in CreateFluidMarkers, and used in other places
+  Real sphMarkerMass = 0;  // To be initialized in CreateFluidMarkers, and used in other places
 
   SetupParamsH(paramsH);
 
   if (initializeFluidFromFile) {
-	  CheckPointMarkers_Read(initializeFluidFromFile,
-			  posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
-	  if (numObjects.numAllMarkers == 0) {
-		ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
-		return 0;
-	  }
+    CheckPointMarkers_Read(
+        initializeFluidFromFile, posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
+    if (numObjects.numAllMarkers == 0) {
+      ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
+      return 0;
+    }
 #if haveFluid
 #else
-	  printf("Error! Initialized from file But haveFluid is false! \n");
-	  return;
+    printf("Error! Initialized from file But haveFluid is false! \n");
+    return;
 #endif
   } else {
-
 #if haveFluid
 
-  //*** default num markers
+    //*** default num markers
 
-  int numAllMarkers = 0;
+    int numAllMarkers = 0;
 
-  //*** initialize fluid particles
-  ::int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
-  printf("num_fluidOrBoundaryMarkers %d %d \n", num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
-  referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1));  // map fluid -1
-  numAllMarkers += num_fluidOrBoundaryMarkers.x;
-  referenceArray.push_back(mI3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0));
-  numAllMarkers += num_fluidOrBoundaryMarkers.y;
+    //*** initialize fluid particles
+    ::int2 num_fluidOrBoundaryMarkers =
+        CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
+    printf("num_fluidOrBoundaryMarkers %d %d \n", num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
+    referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1));  // map fluid -1
+    numAllMarkers += num_fluidOrBoundaryMarkers.x;
+    referenceArray.push_back(mI3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0));
+    numAllMarkers += num_fluidOrBoundaryMarkers.y;
 
-  //*** set num objects
+    //*** set num objects
 
-  SetNumObjects(numObjects, referenceArray, numAllMarkers);
-  assert(posRadH.size() == numObjects.numAllMarkers && "numObjects is not set correctly");
-  if (numObjects.numAllMarkers == 0) {
-    ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
-    return 0;
-  }
+    SetNumObjects(numObjects, referenceArray, numAllMarkers);
+    assert(posRadH.size() == numObjects.numAllMarkers && "numObjects is not set correctly");
+    if (numObjects.numAllMarkers == 0) {
+      ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
+      return 0;
+    }
 #endif
   }
   // ***************************** Create Rigid ********************************************
@@ -774,8 +810,8 @@ int main(int argc, char* argv[]) {
   InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
 
   // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
-  CreateMbdPhysicalSystemObjects(mphysicalSystem,
-			posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+  CreateMbdPhysicalSystemObjects(
+      mphysicalSystem, posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
 
   // ***************************** Create Interface ********************************************
 
@@ -783,7 +819,8 @@ int main(int argc, char* argv[]) {
 
   int startIndexSph = 0;
 #if haveFluid
-  AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily, sphMarkerMass);
+  AddSphDataToChSystem(
+      mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily, sphMarkerMass);
 
   thrust::device_vector<Real3> posRadD = posRadH;
   thrust::device_vector<Real4> velMasD = velMasH;
@@ -821,27 +858,27 @@ int main(int argc, char* argv[]) {
          paramsH.timePauseRigidFlex,
          int((paramsH.timePauseRigidFlex - paramsH.timePause) / paramsH.dT + paramsH.timePause / paramsH.dT));
 
-
   InitSystem(paramsH, numObjects);
   mphysicalSystem.Set_G_acc(ChVector<>(paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z));
 
   simParams.close();
-  // ***************************** Middle values for leap-frog (LF) ********************************************
+// ***************************** Middle values for leap-frog (LF) ********************************************
 #if haveFluid
   ForceSPH_LF(posRadD,
-           velMasD,
-           rhoPresMuD,
-           bodyIndexD,
-           derivVelRhoD,
-           referenceArray,
-           numObjects,
-           paramsH,
-           bceType,
-           0.5 * paramsH.dT);
+              velMasD,
+              rhoPresMuD,
+              bodyIndexD,
+              derivVelRhoD,
+              referenceArray,
+              numObjects,
+              paramsH,
+              bceType,
+              0.5 * paramsH.dT);
 
   UpdateFluid_init_LF(posRadD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, paramsH.dT);
 
-//  printf("******************* v1 %f %f %f and v2 %f %f %f and dd %f %f %f %f and p1 %f %f %f and p2 %f %f %f\n", v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, dd.x, dd.y, dd.z, dd.w, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+//  printf("******************* v1 %f %f %f and v2 %f %f %f and dd %f %f %f %f and p1 %f %f %f and p2 %f %f %f\n", v1.x,
+//  v1.y, v1.z, v2.x, v2.y, v2.z, dd.x, dd.y, dd.z, dd.w, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
 
 #endif
   // ***************************** Simulation loop ********************************************
@@ -859,13 +896,12 @@ int main(int argc, char* argv[]) {
   // *****************************
   // *****************************
   for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-
-	// -------------------
-	// SPH Block
-	// -------------------
-	  myCpuTimerHalfStep.start();
-	  myGpuTimerHalfStep.Start();
-	  fsi_timer.Reset();
+    // -------------------
+    // SPH Block
+    // -------------------
+    myCpuTimerHalfStep.start();
+    myGpuTimerHalfStep.Start();
+    fsi_timer.Reset();
 
 #if haveFluid
     CpuTimer mCpuTimer;
@@ -875,9 +911,9 @@ int main(int argc, char* argv[]) {
 
     //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
 
-    	fsi_timer.start("half_step_dynamic_fsi_12");
+    fsi_timer.start("half_step_dynamic_fsi_12");
 
-    #endif
+#endif
     // -------------------
     // End SPH Block
     // -------------------
@@ -888,101 +924,107 @@ int main(int argc, char* argv[]) {
 // ****************** RK2: 1/2
 #if haveFluid
 
-    UpdateFluid_rho_vel_LF(velMasD, rhoPresMuD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, 0.5 * paramsH.dT);
+    UpdateFluid_rho_vel_LF(
+        velMasD, rhoPresMuD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, 0.5 * paramsH.dT);
     // At this point, posRadD, velMasD, and rhoPresMuD are all the same time
 
     ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
 
-        FillMyThrust4(derivVelRhoD, mR4(0)); //Arman yo yo
+    FillMyThrust4(derivVelRhoD, mR4(0));  // Arman yo yo
 
-    	fsi_timer.start("fluid_initialization");
+    fsi_timer.start("fluid_initialization");
     PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep);
 
     // ******* slow down the sys.Check point the sys.
     if (tStep % 200 == 0) {
-    	CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
+      CheckPointMarkers_Write(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
     }
-//    if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
-//    	SetMarkersVelToZero(velMasD, velMasH);
-//    }
+    //    if (fmod(realTime, 0.6) < time_step && realTime < 1.3) {
+    //    	SetMarkersVelToZero(velMasD, velMasH);
+    //    }
     // *******
-    	fsi_timer.stop("fluid_initialization");
+    fsi_timer.stop("fluid_initialization");
 
-    	fsi_timer.start("force_sph");
+    fsi_timer.start("force_sph");
 
     ForceSPH_LF(posRadD,
-             velMasD,
-             rhoPresMuD,
-             bodyIndexD,
-             derivVelRhoD,
-             referenceArray,
-             numObjects,
-             paramsH,
-             bceType,
-             paramsH.dT); // Arman later take care of dT. It is useless and you can remove it.
+                velMasD,
+                rhoPresMuD,
+                bodyIndexD,
+                derivVelRhoD,
+                referenceArray,
+                numObjects,
+                paramsH,
+                bceType,
+                paramsH.dT);  // Arman later take care of dT. It is useless and you can remove it.
 
-    	fsi_timer.stop("force_sph");
+    fsi_timer.stop("force_sph");
 
-   Real4 derv0 = derivVelRhoD[0];
-   printf("derv %f %f %f %f \n", derv0.x, derv0.y, derv0.z, derv0.w);
-   Real3 v1 = mR3(velMasD[0]);
-   Real3 dd = mR3(derivVelRhoD[0]);
-   Real3 p1 = posRadD[0];
+    Real4 derv0 = derivVelRhoD[0];
+    printf("derv %f %f %f %f \n", derv0.x, derv0.y, derv0.z, derv0.w);
+    Real3 v1 = mR3(velMasD[0]);
+    Real3 dd = mR3(derivVelRhoD[0]);
+    Real3 p1 = posRadD[0];
 
-   Real3 vMid = mR3(velMasD_half[0]);
+    Real3 vMid = mR3(velMasD_half[0]);
 
-   UpdateFluid_EveryThing_LF(posRadD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, paramsH.dT);
+    UpdateFluid_EveryThing_LF(posRadD, velMasD_half, rhoPresMuD_half, derivVelRhoD, referenceArray, paramsH.dT);
 
-   Real3 v2 = mR3(velMasD_half[0]);
-   Real3 p2 = posRadD[0];
-   Real3 p2anal = p1 + v1 * paramsH.dT + 0.5 * paramsH.gravity * (paramsH.dT * paramsH.dT);
-   Real3 v2anal = v1 + paramsH.gravity * paramsH.dT;
-//   printf("******************* v1 %f %f %f and v2 %f %f %f and dd %f %f %f %f and p1 %f %f %f and p2 %f %f %f\n", v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, dd.x, dd.y, dd.z, dd.w, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+    Real3 v2 = mR3(velMasD_half[0]);
+    Real3 p2 = posRadD[0];
+    Real3 p2anal = p1 + v1 * paramsH.dT + 0.5 * paramsH.gravity * (paramsH.dT * paramsH.dT);
+    Real3 v2anal = v1 + paramsH.gravity * paramsH.dT;
+//   printf("******************* v1 %f %f %f and v2 %f %f %f and dd %f %f %f %f and p1 %f %f %f and p2 %f %f %f\n",
+//   v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, dd.x, dd.y, dd.z, dd.w, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
 
 #endif
 
-    	fsi_timer.start("stepDynamic_mbd");
+    fsi_timer.start("stepDynamic_mbd");
 
+    ChVector<> bp2 = (*bodyIter)->GetPos();
+    ChVector<> bv2 = (*bodyIter)->GetPos_dt();
+    ChVector<> bp2anal =
+        bp1 + bv1 * mTime + 0.5 * ChVector<>(paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z) * (mTime * mTime);
+    ChVector<> bv2anal = bv1 + ChVector<>(paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z) * mTime;
 
-        ChVector<> bp2 = (*bodyIter)->GetPos();
-        ChVector<> bv2 = (*bodyIter)->GetPos_dt();
-        ChVector<> bp2anal = bp1 + bv1 * mTime + 0.5 * ChVector<>(paramsH.gravity.x,paramsH.gravity.y, paramsH.gravity.z) * (mTime*mTime);
-        ChVector<> bv2anal = bv1 + ChVector<>(paramsH.gravity.x,paramsH.gravity.y, paramsH.gravity.z) * mTime;
+    double deltaP = bp2anal.z - bp2.z;
 
-        double deltaP = bp2anal.z - bp2.z;
+    printf("************** mtime %f delta p %f \n", mTime, deltaP);
+    //        printf("**** sphpos2 %f %f %f vel2 %f %f %f, posanal %f %f %f velanal %f %f %f\n",
+    //        		bp2.x, bp2.y, bp2.z, bv2.x, bv2.y, bv2.z, bp2anal.x, bp2anal.y, bp2anal.z, bv2anal.x, bv2anal.y,
+    //        bv2anal.z);
 
+    DoStepChronoSystem(
+        mphysicalSystem, paramsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
 
-        printf("************** mtime %f delta p %f \n", mTime, deltaP);
-//        printf("**** sphpos2 %f %f %f vel2 %f %f %f, posanal %f %f %f velanal %f %f %f\n",
-//        		bp2.x, bp2.y, bp2.z, bv2.x, bv2.y, bv2.z, bp2anal.x, bp2anal.y, bp2anal.z, bv2anal.x, bv2anal.y, bv2anal.z);
+    //        ChVector<> bp2anal = bp1 + bv1 * paramsH.dT + 0.5 * ChVector<>(paramsH.gravity.x,paramsH.gravity.y,
+    //        paramsH.gravity.z) * (paramsH.dT * paramsH.dT);
+    //        ChVector<> bv2anal = bv1 + ChVector<>(paramsH.gravity.x,paramsH.gravity.y, paramsH.gravity.z) *
+    //        paramsH.dT;
 
+    //        printf("**** sphpos1 %f vel1 %f, sphpos2 %f vel2 %f, posanal %f velanal %f\n", p1.z, v1.z,
+    //        		p2.z, v2.z, p2anal.z, v2anal.z);
+    //        printf("**** Chbpos1 %f vel1 %f, sphpos2 %f vel2 %f, posanal %f velanal %f\n", bp1.z, bv1.z,
+    //        		bp2.z, bv2.z, bp2anal.z, bv2anal.z);
+    //        printf("**** sphpos1 %f %f %f vel1 %f %f %f, sphpos2 %f %f %f vel2 %f %f %f, posanal %f %f %f velanal %f
+    //        %f %f\n", p1.x, p1.y, p1.z, v1.x, v1.y, v1.z,
+    //        		p2.x, p2.y, p2.z, v2.x, v2.y, v2.z, p2anal.x, p2anal.y, p2anal.z, v2anal.x, v2anal.y, v2anal.z);
+    //        printf("**** Chbpos1 %f %f %f vel1 %f %f %f, sphpos2 %f %f %f vel2 %f %f %f, posanal %f %f %f velanal %f
+    //        %f %f\n", bp1.x, bp1.y, bp1.z, bv1.x, bv1.y, bv1.z,
+    //        		bp2.x, bp2.y, bp2.z, bv2.x, bv2.y, bv2.z, bp2anal.x, bp2anal.y, bp2anal.z, bv2anal.x, bv2anal.y,
+    //        bv2anal.z);
+    //        printf("**** sphpos2 %f %f %f vel2 %f %f %f, posanal %f %f %f velanal %f %f %f\n",
+    //        		p2.x, p2.y, p2.z, v2.x, v2.y, v2.z, p2anal.x, p2anal.y, p2anal.z, v2anal.x, v2anal.y, v2anal.z);
+    //        printf("**** sphpos2 %f %f %f vel2 %f %f %f, posanal %f %f %f velanal %f %f %f\n",
+    //        		bp2.x, bp2.y, bp2.z, bv2.x, bv2.y, bv2.z, bp2anal.x, bp2anal.y, bp2anal.z, bv2anal.x, bv2anal.y,
+    //        bv2anal.z);
 
-    DoStepChronoSystem(mphysicalSystem, paramsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+    //    printf()
 
+    //    ChVector<> mBody = *(mphysicalSystem.Get_bodylist()[0]);
+    //    printf
 
-//        ChVector<> bp2anal = bp1 + bv1 * paramsH.dT + 0.5 * ChVector<>(paramsH.gravity.x,paramsH.gravity.y, paramsH.gravity.z) * (paramsH.dT * paramsH.dT);
-//        ChVector<> bv2anal = bv1 + ChVector<>(paramsH.gravity.x,paramsH.gravity.y, paramsH.gravity.z) * paramsH.dT;
-
-
-//        printf("**** sphpos1 %f vel1 %f, sphpos2 %f vel2 %f, posanal %f velanal %f\n", p1.z, v1.z,
-//        		p2.z, v2.z, p2anal.z, v2anal.z);
-//        printf("**** Chbpos1 %f vel1 %f, sphpos2 %f vel2 %f, posanal %f velanal %f\n", bp1.z, bv1.z,
-//        		bp2.z, bv2.z, bp2anal.z, bv2anal.z);
-//        printf("**** sphpos1 %f %f %f vel1 %f %f %f, sphpos2 %f %f %f vel2 %f %f %f, posanal %f %f %f velanal %f %f %f\n", p1.x, p1.y, p1.z, v1.x, v1.y, v1.z,
-//        		p2.x, p2.y, p2.z, v2.x, v2.y, v2.z, p2anal.x, p2anal.y, p2anal.z, v2anal.x, v2anal.y, v2anal.z);
-//        printf("**** Chbpos1 %f %f %f vel1 %f %f %f, sphpos2 %f %f %f vel2 %f %f %f, posanal %f %f %f velanal %f %f %f\n", bp1.x, bp1.y, bp1.z, bv1.x, bv1.y, bv1.z,
-//        		bp2.x, bp2.y, bp2.z, bv2.x, bv2.y, bv2.z, bp2anal.x, bp2anal.y, bp2anal.z, bv2anal.x, bv2anal.y, bv2anal.z);
-//        printf("**** sphpos2 %f %f %f vel2 %f %f %f, posanal %f %f %f velanal %f %f %f\n",
-//        		p2.x, p2.y, p2.z, v2.x, v2.y, v2.z, p2anal.x, p2anal.y, p2anal.z, v2anal.x, v2anal.y, v2anal.z);
-//        printf("**** sphpos2 %f %f %f vel2 %f %f %f, posanal %f %f %f velanal %f %f %f\n",
-//        		bp2.x, bp2.y, bp2.z, bv2.x, bv2.y, bv2.z, bp2anal.x, bp2anal.y, bp2anal.z, bv2anal.x, bv2anal.y, bv2anal.z);
-
-//    printf()
-
-//    ChVector<> mBody = *(mphysicalSystem.Get_bodylist()[0]);
-//    printf
-
-    	fsi_timer.stop("stepDynamic_mbd");
+    fsi_timer.stop("stepDynamic_mbd");
 
 #if haveFluid
     CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
@@ -1021,7 +1063,6 @@ int main(int argc, char* argv[]) {
     fflush(stdout);
     realTime += paramsH.dT;
     mphysicalSystem.data_manager->system_timer.PrintReport();
-
   }
 #if haveFluid
   ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);

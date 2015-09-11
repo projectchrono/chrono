@@ -17,42 +17,37 @@
 
 /**
  * @brief Create the fluid markers
- * @details 
+ * @details
  * 		This function is a model specific function. Depends on what kind of container your fluid
  * 		will be in. Currently it sets up a box of fluid and this is dropped into a container
  */
-int2 CreateFluidMarkers(
-		thrust::host_vector<Real3> & posRadH,
-		thrust::host_vector<Real4> & velMasH,
-		thrust::host_vector<Real4> & rhoPresMuH,
-		thrust::host_vector<uint> & bodyIndex,
-		const SimParams & paramsH,
-		Real & sphMarkerMass);
+int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
+                        thrust::host_vector<Real4>& velMasH,
+                        thrust::host_vector<Real4>& rhoPresMuH,
+                        thrust::host_vector<uint>& bodyIndex,
+                        const SimParams& paramsH,
+                        Real& sphMarkerMass);
 
-void CreateBCE_On_Box(
-		thrust::host_vector<Real3> & posRadBCE,
-		thrust::host_vector<Real4> & velMasBCE,
-		thrust::host_vector<Real4> & rhoPresMuBCE,
-		const SimParams & paramsH,
-		const Real & sphMarkerMass,
-		const chrono::ChVector<>& size,
-		const chrono::ChVector<>& pos = chrono::ChVector<>(0, 0, 0),
-		const chrono::ChQuaternion<>& rot = chrono::ChQuaternion<>(1, 0, 0, 0),
-		int face = 12);
+void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE,
+                      thrust::host_vector<Real4>& velMasBCE,
+                      thrust::host_vector<Real4>& rhoPresMuBCE,
+                      const SimParams& paramsH,
+                      const Real& sphMarkerMass,
+                      const chrono::ChVector<>& size,
+                      const chrono::ChVector<>& pos = chrono::ChVector<>(0, 0, 0),
+                      const chrono::ChQuaternion<>& rot = chrono::ChQuaternion<>(1, 0, 0, 0),
+                      int face = 12);
 
 /**
  * @brief Set the number of objects (rigid and flexible)
  * @details [long description]
- * 
+ *
  * @param numObjects Reference where the objects will be stored in
- * @param referenceArray referenceArray[0].y = number of fluid markers, 
+ * @param referenceArray referenceArray[0].y = number of fluid markers,
  *                       referenceArray[1].x = number of fluid markers,
  *                       referenceArray[1].y = Total number of markers,
  * @param numAllMarkers Total number of markers (fluid + boundary)
  */
-void SetNumObjects(
-		NumberOfObjects & numObjects,
-		const thrust::host_vector<int3> & referenceArray,
-		int numAllMarkers);
+void SetNumObjects(NumberOfObjects& numObjects, const thrust::host_vector<int3>& referenceArray, int numAllMarkers);
 
 #endif /* INITIALIZESPHMARKERS_H_ */

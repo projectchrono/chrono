@@ -46,8 +46,6 @@
 #include "VehicleExtraProperties.h"
 #include "fsi_hmmwv_params.h"
 
-
-
 // Control use of OpenGL run-time rendering
 // Note: CHRONO_OPENGL is defined in ChConfigParallel.h
 //#undef CHRONO_OPENGL
@@ -64,7 +62,6 @@ using namespace chrono::collision;
 using std::cout;
 using std::endl;
 
-
 // Define General variables
 SimParams paramsH;
 
@@ -74,10 +71,7 @@ SimParams paramsH;
 // Specification of the terrain
 // -----------------------------------------------------------------------------
 
-
-
 opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -88,7 +82,6 @@ int threads = 20;
 
 // Perform dynamic tuning of number of threads?
 bool thread_tuning = false;
-
 
 // Duration of the "hold time" (mVehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
@@ -104,12 +97,10 @@ int max_iteration_spinning = 0;
 bool monitor_bilaterals = false;
 int bilateral_frame_interval = 100;
 
-
 // =============================================================================
 
 void DoStepChronoSystem(ChSystemParallelDVI* mphysicalSystem, double dT, double mTime) {
-
-	// Release the mVehicle chassis at the end of the hold time.
+  // Release the mVehicle chassis at the end of the hold time.
   if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold_vehicle) {
     mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
     for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
@@ -153,11 +144,11 @@ void DoStepChronoSystem(ChSystemParallelDVI* mphysicalSystem, double dT, double 
 // =============================================================================
 
 void InitializeChronoGraphics(ChSystemParallelDVI* mphysicalSystem) {
-//	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-//	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
-//	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
-	ChVector<> CameraLocation = ChVector<>(0, -10, 0);
-	ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
+  //	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+  //	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
+  //	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
+  ChVector<> CameraLocation = ChVector<>(0, -10, 0);
+  ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
 
 #ifdef CHRONO_OPENGL
   gl_window.Initialize(1280, 720, "HMMWV", mphysicalSystem);
@@ -193,7 +184,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI* mphysicalSystem, int argc,
   omp_set_num_threads(threads);
 
   mphysicalSystem->GetSettings()->perform_thread_tuning = thread_tuning;
-  mphysicalSystem->GetSettings()->min_threads = max(1, threads/2);
+  mphysicalSystem->GetSettings()->min_threads = max(1, threads / 2);
   mphysicalSystem->GetSettings()->max_threads = int(3.0 * threads / 2);
 
   // ---------------------
@@ -201,7 +192,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI* mphysicalSystem, int argc,
   // ---------------------
 
   double tolerance = 0.1;  // 1e-3;  // Arman, move it to paramsH
-  //double collisionEnvelop = 0.04 * paramsH.HSML;
+  // double collisionEnvelop = 0.04 * paramsH.HSML;
   mphysicalSystem->Set_G_acc(ChVector<>(paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z));
 
   mphysicalSystem->GetSettings()->solver.solver_mode = SLIDING;                              // NORMAL, SPINNING
@@ -215,95 +206,89 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI* mphysicalSystem, int argc,
   mphysicalSystem->ChangeSolverType(APGD);  // Arman check this APGD APGDBLAZE
   //  mphysicalSystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
-//    mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;   // global collisionEnvelop does not work. Maybe due to sph-tire size mismatch
+  //    mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;   // global collisionEnvelop
+  //    does not work. Maybe due to sph-tire size mismatch
   mphysicalSystem->GetSettings()->collision.bins_per_axis = _make_int3(40, 40, 40);  // Arman check
 }
 // =============================================================================
-void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI* system
-		) {
+void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI* system) {
+  switch (wheel_type) {
+    case CYLINDRICAL: {
+      mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_cyl, simplepowertrain_file);
+      tire_cb = new MyCylindricalTire();
+    } break;
+    case LUGGED: {
+      mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_lug, simplepowertrain_file);
+      tire_cb = new MyLuggedTire();
+    } break;
+  }
+  driver_cb = new MyDriverInputs(time_hold_vehicle);
 
-    switch (wheel_type) {
-        case CYLINDRICAL: {
-            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_cyl, simplepowertrain_file);
-            tire_cb = new MyCylindricalTire();
-        } break;
-        case LUGGED: {
-            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_lug, simplepowertrain_file);
-            tire_cb = new MyLuggedTire();
-        } break;
-    }
-    driver_cb = new MyDriverInputs(time_hold_vehicle);
+  mVehicle->SetTireContactCallback(tire_cb);
 
-    mVehicle->SetTireContactCallback(tire_cb);
+  // Set the callback object for driver inputs. Pass the hold time as a delay in
+  // generating driver inputs.
+  mVehicle->SetDriverInputsCallback(driver_cb);
 
-    // Set the callback object for driver inputs. Pass the hold time as a delay in
-    // generating driver inputs.
-    mVehicle->SetDriverInputsCallback(driver_cb);
+  // Initialize the mVehicle at a height above the terrain.
+  mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
 
-    // Initialize the mVehicle at a height above the terrain.
-    mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
-
-    // Initially, fix the chassis and wheel bodies (will be released after time_hold).
-    mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
-    for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-        mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
-    }
-
+  // Initially, fix the chassis and wheel bodies (will be released after time_hold).
+  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+  for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+    mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+  }
 }
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    // Set path to Chrono data directory
-    SetChronoDataPath(CHRONO_DATA_DIR);
-    ChSystemParallelDVI* system = new ChSystemParallelDVI();
-    InitializeMbdPhysicalSystem(system, argc, argv);
+  // Set path to Chrono data directory
+  SetChronoDataPath(CHRONO_DATA_DIR);
+  ChSystemParallelDVI* system = new ChSystemParallelDVI();
+  InitializeMbdPhysicalSystem(system, argc, argv);
 
+  //******************
+  //    switch (wheel_type) {
+  //        case CYLINDRICAL: {
+  //            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_cyl, simplepowertrain_file);
+  //            tire_cb = new MyCylindricalTire();
+  //        } break;
+  //        case LUGGED: {
+  //            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_lug, simplepowertrain_file);
+  //            tire_cb = new MyLuggedTire();
+  //        } break;
+  //    }
+  //    driver_cb = new MyDriverInputs(time_hold_vehicle);
 
-    //******************
-//    switch (wheel_type) {
-//        case CYLINDRICAL: {
-//            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_cyl, simplepowertrain_file);
-//            tire_cb = new MyCylindricalTire();
-//        } break;
-//        case LUGGED: {
-//            mVehicle = new ChWheeledVehicleAssembly(system, vehicle_file_lug, simplepowertrain_file);
-//            tire_cb = new MyLuggedTire();
-//        } break;
-//    }
-//    driver_cb = new MyDriverInputs(time_hold_vehicle);
+  //    mVehicle->SetTireContactCallback(tire_cb);
+  //
+  //    // Set the callback object for driver inputs. Pass the hold time as a delay in
+  //    // generating driver inputs.
+  //    MyDriverInputs driver_cb(time_hold_vehicle);
+  //    mVehicle->SetDriverInputsCallback(&driver_cb);
+  //
+  //    // Initialize the mVehicle at a height above the terrain.
+  //    mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+  //
+  //    // Initially, fix the chassis and wheel bodies (will be released after time_hold).
+  //    mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+  //    for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+  //        mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+  //    }
 
-//    mVehicle->SetTireContactCallback(tire_cb);
-//
-//    // Set the callback object for driver inputs. Pass the hold time as a delay in
-//    // generating driver inputs.
-//    MyDriverInputs driver_cb(time_hold_vehicle);
-//    mVehicle->SetDriverInputsCallback(&driver_cb);
-//
-//    // Initialize the mVehicle at a height above the terrain.
-//    mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
-//
-//    // Initially, fix the chassis and wheel bodies (will be released after time_hold).
-//    mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
-//    for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-//        mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
-//    }
+  CreateMbdPhysicalSystemObjects(system);
+  InitializeChronoGraphics(system);
 
+  // Run simulation for specified time.
+  double time = 0;
+  while (time < time_end) {
+    DoStepChronoSystem(system, time_step, time);  // Keep only this if you are just interested in the rigid sys
+    time += time_step;
+  }
 
-    CreateMbdPhysicalSystemObjects(system);
-    InitializeChronoGraphics(system);
+  delete mVehicle;
+  delete tire_cb;
+  delete driver_cb;
 
-
-    // Run simulation for specified time.
-    double time = 0;
-    while (time < time_end) {
-            DoStepChronoSystem(
-                system, time_step, time);  // Keep only this if you are just interested in the rigid sys
-        time += time_step;
-    }
-
-    delete mVehicle;
-    delete tire_cb;
-    delete driver_cb;
-
-    return 0;
+  return 0;
 }

@@ -7,16 +7,12 @@
 
 #include "VehicleExtraProperties.h"
 
-
 // Arman : maybe too many includes
 #include "core/ChStream.h"
 
 //#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 //#include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-
-
-
 
 int chassisFam = 2;
 int tireFam = 3;
@@ -30,69 +26,69 @@ using namespace collision;
 float mu_t = 0.8;
 
 // Callback class for providing driver inputs.
-MyDriverInputs::MyDriverInputs(double delay) : m_delay(delay) {}
+MyDriverInputs::MyDriverInputs(double delay) : m_delay(delay) {
+}
 void MyDriverInputs::onCallback(double time, double& throttle, double& steering, double& braking) {
-	throttle = 0;
-	steering = 0;
-	braking = 0;
+  throttle = 0;
+  steering = 0;
+  braking = 0;
 
-	double eff_time = time - m_delay;
+  double eff_time = time - m_delay;
 
-	// Do not generate any driver inputs for a duration equal to m_delay.
-	if (eff_time < 0)
-		return;
+  // Do not generate any driver inputs for a duration equal to m_delay.
+  if (eff_time < 0)
+    return;
 
-	if (eff_time > 0.2)
-		throttle = 1.0;
-	else if (eff_time > 0.1)
-		throttle = 10 * (eff_time - 0.1);
+  if (eff_time > 0.2)
+    throttle = 1.0;
+  else if (eff_time > 0.1)
+    throttle = 10 * (eff_time - 0.1);
 }
 
 // Callback class for specifying rigid tire contact model.
 // This version uses cylindrical contact shapes.
 void MyCylindricalTire::onCallback(ChSharedPtr<ChBody> wheelBody, double radius, double width) {
-	wheelBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+  wheelBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
 
-	wheelBody->GetCollisionModel()->ClearModel();
-	wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, width / 2);
-	wheelBody->GetCollisionModel()->BuildModel();
+  wheelBody->GetCollisionModel()->ClearModel();
+  wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, width / 2);
+  wheelBody->GetCollisionModel()->BuildModel();
 
-	wheelBody->GetMaterialSurface()->SetFriction(mu_t);
+  wheelBody->GetMaterialSurface()->SetFriction(mu_t);
 }
 
 // Callback class for specifying rigid tire contact model.
 // This version uses a collection of convex contact shapes (meshes).
 MyLuggedTire::MyLuggedTire() {
-	std::string lugged_file("hmmwv/lugged_wheel_section.obj");
-	geometry::ChTriangleMeshConnected lugged_mesh;
-	utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
-	num_hulls = lugged_convex.GetHullCount();
+  std::string lugged_file("hmmwv/lugged_wheel_section.obj");
+  geometry::ChTriangleMeshConnected lugged_mesh;
+  utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
+  num_hulls = lugged_convex.GetHullCount();
 }
 void MyLuggedTire::onCallback(ChSharedPtr<ChBody> wheelBody, double radius, double width) {
-	wheelBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+  wheelBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
 
-	ChCollisionModelParallel* coll_model = (ChCollisionModelParallel*)wheelBody->GetCollisionModel();
-	coll_model->ClearModel();
+  ChCollisionModelParallel* coll_model = (ChCollisionModelParallel*)wheelBody->GetCollisionModel();
+  coll_model->ClearModel();
 
-	// Assemble the tire contact from 15 segments, properly offset.
-	// Each segment is further decomposed in convex hulls.
-	for (int iseg = 0; iseg < 15; iseg++) {
-		ChQuaternion<> rot = Q_from_AngAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
-		for (int ihull = 0; ihull < num_hulls; ihull++) {
-			std::vector<ChVector<> > convexhull;
-			lugged_convex.GetConvexHullResult(ihull, convexhull);
-			coll_model->AddConvexHull(convexhull, VNULL, rot);
-		}
-	}
+  // Assemble the tire contact from 15 segments, properly offset.
+  // Each segment is further decomposed in convex hulls.
+  for (int iseg = 0; iseg < 15; iseg++) {
+    ChQuaternion<> rot = Q_from_AngAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
+    for (int ihull = 0; ihull < num_hulls; ihull++) {
+      std::vector<ChVector<> > convexhull;
+      lugged_convex.GetConvexHullResult(ihull, convexhull);
+      coll_model->AddConvexHull(convexhull, VNULL, rot);
+    }
+  }
 
-	// Add a cylinder to represent the wheel hub.
-	coll_model->AddCylinder(0.223, 0.223, 0.126);
+  // Add a cylinder to represent the wheel hub.
+  coll_model->AddCylinder(0.223, 0.223, 0.126);
 
-	coll_model->BuildModel();
+  coll_model->BuildModel();
 
-	wheelBody->GetMaterialSurface()->SetFriction(mu_t);
+  wheelBody->GetMaterialSurface()->SetFriction(mu_t);
 }
-
 
 // Callback class for specifying chassis contact model.
 // This version uses a box representing the chassis.
@@ -122,8 +118,8 @@ void MyChassisBoxModel_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
 }
 
 void MyChassisBoxModel_vis::SetAttributes(const ChVector<>& otherSize,
-                           const ChQuaternion<>& otherRot,
-                           const ChVector<>& otherLoc) {
+                                          const ChQuaternion<>& otherRot,
+                                          const ChVector<>& otherLoc) {
   size = otherSize;
   rot = otherRot;
   loc = otherLoc;
@@ -136,11 +132,11 @@ void MyChassisBoxModel_vis::SetAttributes(const ChVector<>& otherSize,
 void MyChassisSphereModel_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
   // Clear any existing assets (will be overriden)
 
-	chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+  chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
 
   chassisBody->GetCollisionModel()->ClearModel();
   ChVector<> chLoc = ChVector<>(0, 0, 0);
-//        ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
+  //        ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
   chassisBody->GetCollisionModel()->AddSphere(rad, chLoc);
   //    utils::AddBoxGeometry(
   //        chassisBody.get_ptr(), ChVector<>(1, .5, .05), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
@@ -156,8 +152,8 @@ void MyChassisSphereModel_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody)
 }
 
 void MyChassisSphereModel_vis::SetAttributes(double otherRad,
-                           const ChQuaternion<>& otherRot,
-                           const ChVector<>& otherLoc) {
+                                             const ChQuaternion<>& otherRot,
+                                             const ChVector<>& otherLoc) {
   rad = otherRad;
   rot = otherRot;
   loc = otherLoc;
@@ -165,19 +161,19 @@ void MyChassisSphereModel_vis::SetAttributes(double otherRad,
 
 // Callback class for specifying chassis contact model.
 // This version uses a convex decomposition of an obj representing the chassis.
-MyChassisSimpleConvexMesh::MyChassisSimpleConvexMesh() :
-	pos(chrono::ChVector<>(0, 0, 0)) , rot( chrono::ChQuaternion<>(1, 0, 0, 0)) {
+MyChassisSimpleConvexMesh::MyChassisSimpleConvexMesh()
+    : pos(chrono::ChVector<>(0, 0, 0)), rot(chrono::ChQuaternion<>(1, 0, 0, 0)) {
   //    std::string chassis_obj_file("hmmwv/lugged_wheel_section.obj");
   //    std::string chassis_obj_file("hmmwv/lugged_wheel.obj");
   //    std::string chassis_obj_file("hmmwv/myHumvee.obj");
-//  chassis_obj_file = std::string("hmmwv/myHumvee1.obj");
-	chassis_obj_file = std::string("hmmwv/hmmwv_chassis_simple.obj");
+  //  chassis_obj_file = std::string("hmmwv/myHumvee1.obj");
+  chassis_obj_file = std::string("hmmwv/hmmwv_chassis_simple.obj");
 
   utils::LoadConvexMesh(vehicle::GetDataFile(chassis_obj_file), chassis_mesh, chassis_convex);
 }
 
 void MyChassisSimpleConvexMesh::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
-	chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+  chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
 
   ChVector<> chLoc = ChVector<>(0, 0, 0);  // chassisBody->GetFrame_REF_to_COG().GetPos();
   chassisBody->GetCollisionModel()->ClearModel();
@@ -200,7 +196,7 @@ void MyChassisSimpleConvexMesh::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody
     ((collision::ChCollisionModelParallel*)body->GetCollisionModel())->AddConvexHull(convexhull, chLoc, rot);
   }
   chassisBody->GetCollisionModel()->SetFamily(chassisFam);
-//    printf("chassis family %d \n", chassisBody->GetCollisionModel()->GetFamily());
+  //    printf("chassis family %d \n", chassisBody->GetCollisionModel()->GetFamily());
   chassisBody->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(tireFam);
   chassisBody->GetCollisionModel()->BuildModel();
 
@@ -216,14 +212,14 @@ void MyChassisSimpleConvexMesh::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody
 // This version uses a triangular given in an obj representing the chassis.
 // In addition, this version overrides the visualization assets of the provided
 // chassis body with the collision meshes.
-MyChassisSimpleTriMesh_vis::MyChassisSimpleTriMesh_vis() :
-	pos(chrono::ChVector<>(0, 0, 0)) , rot( chrono::ChQuaternion<>(1, 0, 0, 0)) {
-//	chassis_obj_file = std::string("hmmwv/myHumvee1.obj");
-	chassis_obj_file = std::string("hmmwv/hmmwv_chassis_simple.obj");
+MyChassisSimpleTriMesh_vis::MyChassisSimpleTriMesh_vis()
+    : pos(chrono::ChVector<>(0, 0, 0)), rot(chrono::ChQuaternion<>(1, 0, 0, 0)) {
+  //	chassis_obj_file = std::string("hmmwv/myHumvee1.obj");
+  chassis_obj_file = std::string("hmmwv/hmmwv_chassis_simple.obj");
 }
 
 void MyChassisSimpleTriMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody) {
-	chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+  chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
 
   // Clear any existing assets (will be overriden)
   const std::string mesh_name("chassis");
@@ -235,8 +231,8 @@ void MyChassisSimpleTriMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBod
   //    utils::AddTriangleMeshGeometry(chassisBody.get_ptr(), vehicle::GetDataFile(chassis_obj_file), mesh_name, pos,
   //    rot, true);
 
-      ChVector<> chLoc = ChVector<>(0, 0, 0);  // chassisBody->GetFrame_REF_to_COG().GetPos();
-//    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
+  ChVector<> chLoc = ChVector<>(0, 0, 0);  // chassisBody->GetFrame_REF_to_COG().GetPos();
+                                           //    ChVector<> chLoc = chassisBody->GetFrame_REF_to_COG().GetPos();
 
   // *** here
   std::string obj_filename = vehicle::GetDataFile(chassis_obj_file);
@@ -265,6 +261,3 @@ void MyChassisSimpleTriMesh_vis::onCallback(ChSharedPtr<ChBodyAuxRef> chassisBod
 
   chassisBody->GetMaterialSurface()->SetFriction(mu_t);
 }
-
-
-

@@ -49,13 +49,32 @@ static inline void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAscii
 
   if (ofile) {
     char buf[200];
-    sprintf(buf, "%8.5f  %7.4f  %7.4f  %7.4f  %7.4f  %7.4f  %7d  %7d  %7d  %7.4f\n", TIME, STEP, BROD, NARR, LCP, UPDT,
-            BODS, CNTC, REQ_ITS, RESID);
+    sprintf(buf,
+            "%8.5f  %7.4f  %7.4f  %7.4f  %7.4f  %7.4f  %7d  %7d  %7d  %7.4f\n",
+            TIME,
+            STEP,
+            BROD,
+            NARR,
+            LCP,
+            UPDT,
+            BODS,
+            CNTC,
+            REQ_ITS,
+            RESID);
     *ofile << buf;
   }
 
-  printf("   %8.5f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n", TIME, STEP, BROD, NARR, LCP,
-         UPDT, BODS, CNTC, REQ_ITS, RESID);
+  printf("   %8.5f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n",
+         TIME,
+         STEP,
+         BROD,
+         NARR,
+         LCP,
+         UPDT,
+         BODS,
+         CNTC,
+         REQ_ITS,
+         RESID);
 }
 
 #endif

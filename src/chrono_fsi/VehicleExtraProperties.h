@@ -8,8 +8,6 @@
 #ifndef VEHICLEEXTRAPROPERTIES_H_
 #define VEHICLEEXTRAPROPERTIES_H_
 
-
-
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono_vehicle/utils/ChWheeledVehicleAssembly.h"
@@ -73,10 +71,10 @@ class MyChassisBoxModel_vis : public chrono::ChChassisContactCallback {
 // chassis body with the collision meshes.
 class MyChassisSphereModel_vis : public chrono::ChChassisContactCallback {
  public:
-  virtual void onCallback(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassisBody) ;
+  virtual void onCallback(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassisBody);
   virtual void SetAttributes(double otherRad,
                              const chrono::ChQuaternion<>& otherRot = chrono::ChQuaternion<>(1, 0, 0, 0),
-                             const chrono::ChVector<>& otherLoc = chrono::ChVector<>(0, 0, 0)) ;
+                             const chrono::ChVector<>& otherLoc = chrono::ChVector<>(0, 0, 0));
 
  private:
   chrono::collision::ChConvexDecompositionHACDv2 chassis_convex;

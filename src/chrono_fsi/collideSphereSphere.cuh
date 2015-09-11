@@ -3,66 +3,64 @@
 
 #include <thrust/device_vector.h>
 
-#include "MyStructs.cuh" //just for SimParams
+#include "MyStructs.cuh"  //just for SimParams
 
 /**
  * @brief InitSystem
- * @details 
+ * @details
  * 			Initializes paramsD and numObjectsD in collideSphereSphere.cu and SDKCollisionSystem.cu
- * 			These two are exactly the same struct as paramsH and numObjects but they are stored in 
+ * 			These two are exactly the same struct as paramsH and numObjects but they are stored in
  * 			the device memory.
- * 
+ *
  * @param paramsH Parameters that will be used in the system
  * @param numObjects [description]
  */
-void InitSystem(SimParams paramsH,
-				NumberOfObjects numObjects);
+void InitSystem(SimParams paramsH, NumberOfObjects numObjects);
 
 /**
  * @brief ResizeMyThrust, ResizeMyThrust3, ResizeMyThrust4
- * @details 
- * 			This function needs to exist because resizing thrust vectors can only happen in .cu 
- * 			files. So in order to resize a thrust vector in a .cpp file, this file will need to 
+ * @details
+ * 			This function needs to exist because resizing thrust vectors can only happen in .cu
+ * 			files. So in order to resize a thrust vector in a .cpp file, this file will need to
  * 			call a ResizeMyThrust function
  * @param mThrustVec Vector to resize
  * @param mSize Size to resize
  */
-void ResizeMyThrust3(thrust::device_vector<Real3> & mThrustVec, int mSize);
-void ResizeMyThrust4(thrust::device_vector<Real4> & mThrustVec, int mSize);
+void ResizeMyThrust3(thrust::device_vector<Real3>& mThrustVec, int mSize);
+void ResizeMyThrust4(thrust::device_vector<Real4>& mThrustVec, int mSize);
 
 /**
  * @brief FillMyThrust, FillMyThrust4
- * @details 
+ * @details
  * 			Same explanation as ResizeMyThrust.
  * @param mThrustVec Vector to resize
  * @param v Value to fill thrust vector with.
  */
-void FillMyThrust4(thrust::device_vector<Real4> & mThrustVec, Real4 v);
+void FillMyThrust4(thrust::device_vector<Real4>& mThrustVec, Real4 v);
 
 /**
  * @brief ClearMyThrust, ClearMyThrust3, ClearMyThrust4, ClearMyThrustU
- * @details 
+ * @details
  * 			Same explanation as ResizeMyThrust.
  * @param mThrustVec Vector to clear
  */
-void ClearMyThrustR3(thrust::device_vector<Real3> & mThrustVec);
-void ClearMyThrustR4(thrust::device_vector<Real4> & mThrustVec);
-void ClearMyThrustU1(thrust::device_vector<uint> & mThrustVec);
-
+void ClearMyThrustR3(thrust::device_vector<Real3>& mThrustVec);
+void ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec);
+void ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec);
 
 /**
  * @brief Calculates the force on each particles
- * @details 
+ * @details
  * 			Algorithm:
  *          1. Build neighbor list of each particle. These are the particles that are within the
- *          interaction radius (HSML). 
- *          2. Calculate interaction force between: 
+ *          interaction radius (HSML).
+ *          2. Calculate interaction force between:
  *          	- fluid-fluid
  *          	- fluid-solid
  *          	- solid-fluid
  *          3. Calculates forces from other SPH or solid particles as well as boundaries.
- * 
- * @param &posRadD 
+ *
+ * @param &posRadD
  * @param &velMasD
  * @param &vel_XSPH_D
  * @param &rhoPresMuD
@@ -73,65 +71,60 @@ void ClearMyThrustU1(thrust::device_vector<uint> & mThrustVec);
  * @param paramsH These are the simulation parameters which were set in the initialization part.
  * @param dT Time step
  */
-void ForceSPH(
-		thrust::device_vector<Real3> & posRadD,
-		thrust::device_vector<Real4> & velMasD,
-		thrust::device_vector<Real3> & vel_XSPH_D,
-		thrust::device_vector<Real4> & rhoPresMuD,
+void ForceSPH(thrust::device_vector<Real3>& posRadD,
+              thrust::device_vector<Real4>& velMasD,
+              thrust::device_vector<Real3>& vel_XSPH_D,
+              thrust::device_vector<Real4>& rhoPresMuD,
 
-		thrust::device_vector<uint> & bodyIndexD,
-		thrust::device_vector<Real4> & derivVelRhoD,
-		const thrust::host_vector<int3> & referenceArray,
-		const NumberOfObjects & numObjects,
-		SimParams paramsH,
-		BceVersion bceType,
-		Real dT);
+              thrust::device_vector<uint>& bodyIndexD,
+              thrust::device_vector<Real4>& derivVelRhoD,
+              const thrust::host_vector<int3>& referenceArray,
+              const NumberOfObjects& numObjects,
+              SimParams paramsH,
+              BceVersion bceType,
+              Real dT);
 
-void ForceSPH_LF(
-		thrust::device_vector<Real3> & posRadD,
-		thrust::device_vector<Real4> & velMasD,
-		thrust::device_vector<Real4> & rhoPresMuD,
+void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
+                 thrust::device_vector<Real4>& velMasD,
+                 thrust::device_vector<Real4>& rhoPresMuD,
 
-		thrust::device_vector<uint> & bodyIndexD,
-		thrust::device_vector<Real4> & derivVelRhoD,
-		const thrust::host_vector<int3> & referenceArray,
-		const NumberOfObjects & numObjects,
-		SimParams paramsH,
-		BceVersion bceType,
-		Real dT);
+                 thrust::device_vector<uint>& bodyIndexD,
+                 thrust::device_vector<Real4>& derivVelRhoD,
+                 const thrust::host_vector<int3>& referenceArray,
+                 const NumberOfObjects& numObjects,
+                 SimParams paramsH,
+                 BceVersion bceType,
+                 Real dT);
 
-void DensityReinitialization(
-		thrust::device_vector<Real3> & posRadD,
-		thrust::device_vector<Real4> & velMasD,
-		thrust::device_vector<Real4> & rhoPresMuD,
-		int numAllMarkers,
-		int3 SIDE);
+void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
+                             thrust::device_vector<Real4>& velMasD,
+                             thrust::device_vector<Real4>& rhoPresMuD,
+                             int numAllMarkers,
+                             int3 SIDE);
 
-void IntegrateSPH(
-		thrust::device_vector<Real3> & posRadD2,
-		thrust::device_vector<Real4> & velMasD2,
-		thrust::device_vector<Real4> & rhoPresMuD2,
+void IntegrateSPH(thrust::device_vector<Real3>& posRadD2,
+                  thrust::device_vector<Real4>& velMasD2,
+                  thrust::device_vector<Real4>& rhoPresMuD2,
 
-		thrust::device_vector<Real3> & posRadD,
-		thrust::device_vector<Real4> & velMasD,
-		thrust::device_vector<Real3> & vel_XSPH_D,
-		thrust::device_vector<Real4> & rhoPresMuD,
+                  thrust::device_vector<Real3>& posRadD,
+                  thrust::device_vector<Real4>& velMasD,
+                  thrust::device_vector<Real3>& vel_XSPH_D,
+                  thrust::device_vector<Real4>& rhoPresMuD,
 
-		thrust::device_vector<uint> & bodyIndexD,
-		thrust::device_vector<Real4> & derivVelRhoD,
-		const thrust::host_vector<int3> & referenceArray,
-		const NumberOfObjects & numObjects,
-		SimParams currentParamsH,
-		Real dT);
+                  thrust::device_vector<uint>& bodyIndexD,
+                  thrust::device_vector<Real4>& derivVelRhoD,
+                  const thrust::host_vector<int3>& referenceArray,
+                  const NumberOfObjects& numObjects,
+                  SimParams currentParamsH,
+                  Real dT);
 
-void cudaCollisions(
-		thrust::host_vector<Real3> & mPosRad,
-		thrust::host_vector<Real4> & mVelMas,
-		thrust::host_vector<Real4> & mRhoPresMu,
-		const thrust::host_vector<uint> & bodyIndex,
-		const thrust::host_vector<int3> & referenceArray,
+void cudaCollisions(thrust::host_vector<Real3>& mPosRad,
+                    thrust::host_vector<Real4>& mVelMas,
+                    thrust::host_vector<Real4>& mRhoPresMu,
+                    const thrust::host_vector<uint>& bodyIndex,
+                    const thrust::host_vector<int3>& referenceArray,
 
-		SimParams paramsH,
-		NumberOfObjects numObjects);
+                    SimParams paramsH,
+                    NumberOfObjects numObjects);
 
 #endif
