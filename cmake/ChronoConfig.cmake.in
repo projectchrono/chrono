@@ -267,6 +267,10 @@ function(add_DLL_copy_command DLL_LIST)
     # Create custom target for copying DLLs; add it to the default build target
     add_custom_target(COPY_DLLS ALL)
     
+    # Add custom command to create the destination folder
+    add_custom_command(TARGET COPY_DLLS PRE_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>/")
+
     # Loop over the list of all DLLs and create a custom command
     foreach(DLL ${DLL_LIST})
         message(STATUS "...${DLL}")
