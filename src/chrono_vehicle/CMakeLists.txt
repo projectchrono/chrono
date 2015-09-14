@@ -11,6 +11,8 @@ if(NOT ENABLE_MODULE_VEHICLE)
   return()
 endif()
 
+message(STATUS "==== Chrono Vehicle module ====")
+
 # If Irrlicht support was enabled, provide option to add Irrklang support.
 cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
                        "ENABLE_MODULE_IRRLICHT" OFF)

@@ -1,8 +1,10 @@
-option(ENABLE_MODULE_OGRE "Enable the Chrono Matlab module" OFF)
+option(ENABLE_MODULE_OGRE "Enable the Chrono Ogre module" OFF)
 
 if(NOT ENABLE_MODULE_OGRE)
   return()
 endif()
+
+message(STATUS "==== Chrono Ogre module ====")
 
 find_package(SDL2 REQUIRED)
 find_package(Ogre REQUIRED)

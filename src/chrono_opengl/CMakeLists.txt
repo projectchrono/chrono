@@ -5,15 +5,13 @@
 
 option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
 
-include_directories(${CH_PARALLEL_INCLUDES})
-
 # Return now if this module is not enabled
 
 if(NOT ENABLE_MODULE_OPENGL)
   return()
 endif()
 
-message(STATUS "==== Chrono Parallel module ====")
+message(STATUS "==== Chrono OpenGL module ====")
 
 # ------------------------------------------------------------------------------
 # Dependencies for OpenGL module
