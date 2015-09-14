@@ -10,7 +10,6 @@ IF(NOT ENABLE_MODULE_MKL)
     MARK_AS_ADVANCED(FORCE MKL_ROOT)
     MARK_AS_ADVANCED(FORCE MATH_LIBRARY)
     MARK_AS_ADVANCED(FORCE IOMP5_LIBRARY)
-    MARK_AS_ADVANCED(FORCE EIGEN3_INCLUDE_DIRS)
     RETURN()
 ENDIF()
 
@@ -18,7 +17,6 @@ MESSAGE(STATUS "==== Chrono MKL module ====")
 
 MARK_AS_ADVANCED(CLEAR MATH_LIBRARY)
 MARK_AS_ADVANCED(CLEAR IOMP5_LIBRARY)
-MARK_AS_ADVANCED(CLEAR EIGEN3_INCLUDE_DIRS)
 
 # ------------------------------------------------------------------------------
 # Dependencies for MKL module
@@ -32,15 +30,12 @@ if(NOT MKL_FOUND)
   set(MKL_ROOT "" CACHE PATH "Location of MKL installation")
 endif()
 
-# SET(EIGEN3_INCLUDE_DIRS "" CACHE PATH "Location of Eigen3 headers (should contain ./Engine)")
-
 # ------------------------------------------------------------------------------
 # Collect all additional include directories necessary for the MKL module
 # ------------------------------------------------------------------------------
 
 SET(CH_MKL_INCLUDES
     ${MKL_INCLUDE_DIRS}
-    # ${EIGEN3_INCLUDE_DIRS}
 )
 
 INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
@@ -85,7 +80,6 @@ SET_TARGET_PROPERTIES(ChronoEngine_mkl PROPERTIES
 TARGET_LINK_LIBRARIES(ChronoEngine_mkl
                       ChronoEngine
                       ${MKL_LIBRARIES})
-# Note: Eigen doesn't have library files
 
 INSTALL(TARGETS ChronoEngine_mkl
         RUNTIME DESTINATION bin

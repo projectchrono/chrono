@@ -25,12 +25,12 @@ SET(FEA_DEMOS_IRR_MATLAB
 # List all FEA demos that use both Irrlicht and MKL
 SET(FEA_DEMOS_IRR_MKL
     demo_FEAcablesMKL
-	demo_FEAbeams
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL
 SET(FEA_DEMOS_IRR_MATLAB_MKL
     demo_FEAbeamsconstr
+    demo_FEAbeams
 )
 
 INCLUDE_DIRECTORIES(CMAKE_CURRENT_SOURCE_DIR)
@@ -115,8 +115,7 @@ IF(ENABLE_MODULE_IRRLICHT)
     ENDIF()
 
     IF(ENABLE_MODULE_MKL)
-        INCLUDE_DIRECTORIES(${CH_MKLINC})
-        INCLUDE_DIRECTORIES(${CH_EIGEN_PATH})
+        INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
         INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
         FOREACH(PROGRAM ${FEA_DEMOS_IRR_MKL})
