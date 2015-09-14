@@ -40,28 +40,7 @@
 
 
 
-
-
 namespace chrono {
-
-	// Functions for testing purpose
-	static int solver_call = 0;
-	static int solver_call_request = 0;
-	static double residual_norm_tolerance = 1e-8;
-
-	template <class matrix_t>
-	void PrintMatrix(std::string filename, matrix_t& mat, int precision=12)
-	{
-		std::ofstream myfile;
-		myfile.open(filename);
-		myfile << std::scientific << std::setprecision(precision);
-		for (int ii = 0; ii < mat.GetRows(); ii++){
-			for (int jj = 0; jj < mat.GetColumns(); jj++)
-				myfile << mat.GetElement(ii, jj) << "\t";
-			myfile << std::endl;
-		}
-		myfile.close();
-	}
 
 
     /// Class that wraps the Intel MKL 'PARDISO' parallel direct solver.
@@ -70,14 +49,12 @@ namespace chrono {
    class ChApiMkl ChLcpMklSolver : public ChLcpSolver {
 
       public:
-		ChLcpMklSolver() {};
+		ChLcpMklSolver() {}
         virtual ~ChLcpMklSolver() {}
 
         /// Solve using the MKL Pardiso sparse direct solver
-		virtual double Solve(ChLcpSystemDescriptor& sysd) override; ///< system description with constraints and variables
+		virtual double Solve(ChLcpSystemDescriptor& sysd); ///< system description with constraints and variables
     };
-
-
 
 }  // END_OF_NAMESPACE____
 

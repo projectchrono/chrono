@@ -50,7 +50,6 @@ SET(ChronoEngine_MKL_HEADERS
   ChApiMkl.h
   ChLcpMklSolver.h
   ChMklEngine.h
-  ChApiCSR3.h
   ChCSR3Matrix.h
 )
 

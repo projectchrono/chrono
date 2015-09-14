@@ -5,12 +5,18 @@
 
 namespace chrono
 {
+
+	// Functions for testing purpose
+	static int solver_call = 0;
+	static int solver_call_request = 0;
+	static double residual_norm_tolerance = 1e-8;
+
 	double ChLcpMklSolver::Solve(ChLcpSystemDescriptor& sysd) ///< system description with constraints and variables
 	{
 		solver_call++;
 		
 		const int n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
-		ChCSR3Matrix matCSR3(n, n, 1);
+		ChCSR3Matrix matCSR3(n, n);
 		ChMatrixDynamic<double> rhs(n, 1);
 		ChMatrixDynamic<double> solution_vector(n, 1);
 
@@ -127,4 +133,20 @@ namespace chrono
 
 		return 0;
 	}
-}
+
+
+	template <class matrix_t>
+	void PrintMatrix(std::string filename, matrix_t& mat, int precision = 12)
+	{
+		std::ofstream myfile;
+		myfile.open(filename);
+		myfile << std::scientific << std::setprecision(precision);
+		for (int ii = 0; ii < mat.GetRows(); ii++){
+			for (int jj = 0; jj < mat.GetColumns(); jj++)
+				myfile << mat.GetElement(ii, jj) << "\t";
+			myfile << std::endl;
+		}
+		myfile.close();
+	}
+
+} // namespace chrono

@@ -3,33 +3,30 @@
 
 namespace chrono {
 
-	ChCSR3Matrix::ChCSR3Matrix(int insrow, int inscol, double nonzeros):
+	ChCSR3Matrix::ChCSR3Matrix(int insrow, int inscol, int nonzeros):
 		max_shifts(std::numeric_limits<int>::max())
 	{
-		assert(insrow > 0 && inscol > 0 && nonzeros > 0);
+		assert(insrow > 0 && inscol > 0 && nonzeros >= 0);
 		mat_rows = insrow;
 		mat_cols = inscol;
 		reallocation_occurred = false;
 		isCompressed = false;
 
-		if (nonzeros > 1)
-			storage_dimension = std::max(mat_rows, static_cast<int>(nonzeros));
-		else
-			storage_dimension = std::max(mat_rows, static_cast<int>(static_cast<double>(insrow)*static_cast<double>(inscol)*nonzeros));
+		if (nonzeros == 0)
+			nonzeros = static_cast<int>( static_cast<double>(mat_rows*mat_cols)*SPM_DEF_FULLNESS );
 
+		colIndex_occupancy = std::max(mat_rows, static_cast<int>(nonzeros));
+		rowIndex_occupancy = mat_rows + 1;
 		
 		if (TESTING_CSR3){
 			mkl_peak_mem_usage(MKL_PEAK_MEM_ENABLE);
 			mkl_peak_mem_CSR3 = 0;
-		}
-
-		if (TESTING_CSR3){
 			mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
 		}
 
-		values = static_cast<double*>(mkl_malloc(storage_dimension*sizeof(double), array_alignment));
-		colIndex = static_cast<int*>(mkl_malloc(storage_dimension*sizeof(int), array_alignment));
-		rowIndex = static_cast<int*>(mkl_malloc((mat_rows + 1)*sizeof(int), array_alignment));
+		values = static_cast<double*>(mkl_malloc(colIndex_occupancy*sizeof(double), array_alignment));
+		colIndex = static_cast<int*>(mkl_malloc(colIndex_occupancy*sizeof(int), array_alignment));
+		rowIndex = static_cast<int*>(mkl_malloc(rowIndex_occupancy*sizeof(int), array_alignment));
 
 		initialize();
 
@@ -38,7 +35,12 @@ namespace chrono {
 		}
 	}
 
-	
+
+	ChCSR3Matrix::ChCSR3Matrix()
+	{
+		ChCSR3Matrix(3, 3, 3);
+	}
+
 	ChCSR3Matrix::~ChCSR3Matrix()
 	{
 		mkl_free(values);
@@ -91,8 +93,8 @@ namespace chrono {
 		int col_shift = 1;
 		int col_sel_empty = col_sel;
 
-		// There are 3 While cycles; they all search for the NEAREST empty space (i.e. in which the colIndex array has a "-1") in order to
-		// reduce shifts; no rearrangement is done at this stage.
+		// STEP 1: find an empty space in the array so part of the array can be shifted in order to give space to the new element
+		// There are 3 While cycles; they all search for the NEAREST empty space (i.e. in which the colIndex array has a "-1"); no rearrangement is done at this stage.
 		// 1st While: it scans both Backward and Forward, but only until at least ONE of the limits of the colIndex is reached;
 		// 2nd While: it scans only Backward, but only if the 1st cycle did not find anything AND the beginning of colIndex is not reached yet;
 		// 3rd While: it scans only Forward, but only if the 1st cycle did not find anything AND the end of colIndex is not reached yet;
@@ -180,9 +182,12 @@ namespace chrono {
 
 
 		// If an uninitialized location is found "col_sel_empty" should point at it, so it would be different from col_sel.
+		
+		// STEP 2: shift the array to make space for the new element; eventually update "col_sel"
 		// case 1: the uninitialized location is found forward;
 		// case 2: the uninitialized location is found backward;
 		// case 3: the location is not found in the neighborhood ("max_shifts") of the "col_sel" cell; a reallocation is needed.
+
 		// case 1
 		if (col_sel_empty > col_sel && col_sel + col_shift < rowIndex[mat_rows] && col_shift < max_shifts)
 		{
@@ -215,7 +220,7 @@ namespace chrono {
 		// case 3
 		else
 		{
-			if (storage_dimension >= rowIndex[mat_rows]) // that happens when a Compress() is not followed by a Resize() or Trim()
+			if (colIndex_occupancy >= rowIndex[mat_rows]) // that happens when a Compress() or a Reset() is not followed by a Trim()
 			{
 				copy(values, colIndex, rowIndex, col_sel, 1);
 			}
@@ -223,14 +228,14 @@ namespace chrono {
 			{ // effective reallocation
 
 				int storage_augmentation = 4;
-				storage_dimension = storage_dimension + storage_augmentation;
+				colIndex_occupancy = colIndex_occupancy + storage_augmentation;
 
 				if (TESTING_CSR3) mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
 
 				if (ALIGNMENT_REQUIRED)
 				{
-					double* new_values = static_cast<double*>(mkl_malloc(storage_dimension*sizeof(double), array_alignment));
-					int* new_colIndex = static_cast<int*>(mkl_malloc(storage_dimension*sizeof(int), array_alignment));
+					double* new_values = static_cast<double*>(mkl_malloc(colIndex_occupancy*sizeof(double), array_alignment));
+					int* new_colIndex = static_cast<int*>(mkl_malloc(colIndex_occupancy*sizeof(int), array_alignment));
 					reallocation_occurred = true;
 					copy(new_values, new_colIndex, false, col_sel, storage_augmentation);
 					if (new_values != values) mkl_free(values);
@@ -240,8 +245,8 @@ namespace chrono {
 				}
 				else
 				{
-					values = static_cast<double*>(mkl_realloc(values, storage_dimension * sizeof(double)));
-					colIndex = static_cast<int*>(mkl_realloc(colIndex, storage_dimension * sizeof(int)));
+					values = static_cast<double*>(mkl_realloc(values, colIndex_occupancy * sizeof(double)));
+					colIndex = static_cast<int*>(mkl_realloc(colIndex, colIndex_occupancy * sizeof(int)));
 					reallocation_occurred = true;
 					copy(values, colIndex, false, col_sel, storage_augmentation);
 				}
@@ -265,7 +270,7 @@ namespace chrono {
 		// initialize arrays
 		for (int row_sel = 0; row_sel <= mat_rows; row_sel++) // rowIndex is initialized with equally spaced indexes
 		{
-			rowIndex[row_sel] = static_cast<int>(round(static_cast<double>(row_sel) * (static_cast<double>(storage_dimension)) / static_cast<double>(mat_rows)));
+			rowIndex[row_sel] = static_cast<int>(round(static_cast<double>(row_sel) * (static_cast<double>(colIndex_occupancy)) / static_cast<double>(mat_rows)));
 		}
 
 		for (int col_sel = 0; col_sel < rowIndex[mat_rows]; col_sel++) // colIndex is initialized with -1; it means that the cell has been stored but contains an uninitialized value
@@ -350,9 +355,14 @@ namespace chrono {
 	{
 		if (TESTING_CSR3)
 			printf("\nPeak memory in CSR3 class (bytes): %lld", mkl_peak_mem_CSR3);
-		printf("\nMemory allocated: %llu", storage_dimension*(sizeof(double) * 2 + sizeof(int)));
+		printf("\nMemory allocated: %.2f MB", static_cast<double>( (2*colIndex_occupancy*sizeof(double) + rowIndex_occupancy* sizeof(int)) )/1000000  );
 	}
 
+	// Verify Matrix; output:
+	//  3 - warning message: in the row there are no initialized elements
+	//  0 - all good!
+	// -1 - error message: rowIndex is not strictly ascending
+	// -2 - error message: colIndex has not ascending indexes within the rows
 	int ChCSR3Matrix::VerifyMatrix()
 	{
 		for (int row_sel = 0; row_sel < mat_rows; row_sel++)
@@ -394,7 +404,7 @@ namespace chrono {
 			ia_file >> rowIndex[row_sel];
 		row_sel--;
 
-		Resize(mat_rows, mat_cols, 1);
+		Reset(mat_rows, mat_cols);
 		
 		ia_file.seekg(0);
 
@@ -474,64 +484,61 @@ namespace chrono {
 
 
 	/* Resize HOW-TO. If asked to:
-	*  AutoStore: nonzeros==-1    the algorithm decides how many memory locations are needed and expands the arrays to occupy all the available storage
+	*  LeaveStoreAsIs: nonzeros==0    the algorithm doesn't change the occupancy of the "values" and "colIndex" arrays
 	*        if rows++ (row_increment) a certain amount of space is allocated for each new row
-	*        if rows== it simply Trim() the array
+	*        if rows== nothing will happen
 	*  SetStorage: nonzeros>0    the new dimension is prescribed.
 	*        if rows++ it's verified that the prescribed dimension fits the row increment (there must be at least one element for each new row)
 	*        if rows== ONLY the last row is expanded and filled with uninitialized spaces
 	*/
 
-	bool ChCSR3Matrix::Resize(int nrows, int ncols, double nonzeros)
+	bool ChCSR3Matrix::Resize(int nrows, int ncols, int nonzeros)
 	{
-		assert(nrows > 0 && ncols > 0 && (nonzeros > 0 || nonzeros == -1));
+		assert(nrows > 0 && ncols > 0 && nonzeros >=0);
 
+		// we can't preserve data if any row will be cut
 		if (nrows < mat_rows)
 			return false;
 
+		// STEP1: figure out the new storage dimension
 		int new_mat_rows = nrows;
 		int new_mat_cols = ncols;
 
-		int new_storage_dimension = 0;
+		int new_colIndex_occupancy = 0;
 		int storage_augmentation_foreachrow = 4;
 
-		if (nonzeros == -1) // case AutoStore
+		if (nonzeros == 0) // case LeaveStoreAsIs
 		{
-			if (mat_rows == new_mat_rows) // case Autostore&row==
-			{
-				Trim();
+			if (mat_rows == new_mat_rows) // case LeaveStoreAsIs&row==
 				return true;
-			}
 
-			if (new_mat_rows > mat_rows) // case Autostore&row++
-				new_storage_dimension = storage_dimension + (new_mat_rows - mat_rows)*storage_augmentation_foreachrow; // decision about new dimension
+			if (new_mat_rows > mat_rows) // case LeaveStoreAsIs&row++
+				new_colIndex_occupancy = colIndex_occupancy + (new_mat_rows - mat_rows)*storage_augmentation_foreachrow; // decision about new dimension
 		}
 		else // case SetStorage
 		{
-			if (nonzeros > 1)
-				new_storage_dimension = nonzeros;
-			else
-				new_storage_dimension = new_mat_rows*new_mat_cols*nonzeros;
+			new_colIndex_occupancy = nonzeros;
 
-			if (new_mat_rows > mat_rows && new_storage_dimension < storage_dimension + (new_mat_rows - mat_rows) * 1)
+			if (new_mat_rows > mat_rows && new_colIndex_occupancy < colIndex_occupancy + (new_mat_rows - mat_rows) * 1)
 				return false;
 		}
 
-		// At this point the algorithm should know the storage new size
 
 		// if the size requested would led to data losses then stop and return FALSE
-		if (new_storage_dimension < rowIndex[mat_rows] - 1) 
+		if (new_colIndex_occupancy < rowIndex[mat_rows] - 1) 
 			return false;
+
+		// STEP 2: find the space for the new storage and paste the arrays in their new location
 
 		if (TESTING_CSR3) mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
 		
 		// if new the size exceeds the current storage size a reallocation is required
-		if (new_storage_dimension > storage_dimension)
+		if (new_colIndex_occupancy > colIndex_occupancy)
 		{
 			if (ALIGNMENT_REQUIRED)
 			{
-				double* new_values = static_cast<double*>(mkl_malloc(new_storage_dimension*sizeof(double), array_alignment));
-				int* new_colIndex = static_cast<int*>(mkl_malloc(new_storage_dimension*sizeof(int), array_alignment));
+				double* new_values = static_cast<double*>(mkl_malloc(new_colIndex_occupancy*sizeof(double), array_alignment));
+				int* new_colIndex = static_cast<int*>(mkl_malloc(new_colIndex_occupancy*sizeof(int), array_alignment));
 				reallocation_occurred = true;
 				copy(new_values, new_colIndex, false, 0, 0);
 				if (new_values != values) mkl_free(values);
@@ -541,104 +548,116 @@ namespace chrono {
 			}
 			else
 			{
-				values = static_cast<double*>(mkl_realloc(values, new_storage_dimension * sizeof(double)));
-				colIndex = static_cast<int*>(mkl_realloc(colIndex, new_storage_dimension * sizeof(int)));
+				values = static_cast<double*>(mkl_realloc(values, new_colIndex_occupancy * sizeof(double)));
+				colIndex = static_cast<int*>(mkl_realloc(colIndex, new_colIndex_occupancy * sizeof(int)));
 				reallocation_occurred = true;
 			}
 		}
 		// if the new size is between the current storage size and the effective length of the arrays there is no need to reallocate
-		else if (new_storage_dimension < storage_dimension)
+		else if (new_colIndex_occupancy < colIndex_occupancy)
 		{
-			values = static_cast<double*>(mkl_realloc(values, new_storage_dimension * sizeof(double)));
-			colIndex = static_cast<int*>(mkl_realloc(colIndex, new_storage_dimension * sizeof(int)));
+			values = static_cast<double*>(mkl_realloc(values, new_colIndex_occupancy * sizeof(double)));
+			colIndex = static_cast<int*>(mkl_realloc(colIndex, new_colIndex_occupancy * sizeof(int)));
 		}
 
 
-		// At this point the new arrays have to be already reallocated and they should have exactly the new requested size
-		// and their values did not change. Now it's time to get advantage of this new space i.e. rowIndex[new_mat_rows] should point to the new end of the arrays
+		// STEP 3: expand the arrays. Update rowIndex
 		// case row++
 		if (new_mat_rows > mat_rows)
 		{
-			if (ALIGNMENT_REQUIRED)
+			if (new_mat_rows + 1 > rowIndex_occupancy)
 			{
-				int* new_rowIndex = static_cast<int*>(mkl_malloc((new_mat_rows + 1)*sizeof(int), array_alignment));
-				reallocation_occurred = true;
-				for (int row_sel = 0; row_sel <= mat_rows; row_sel++)
-					new_rowIndex[row_sel] = rowIndex[row_sel];
-				if (new_rowIndex != rowIndex) mkl_free(rowIndex);
-				rowIndex = new_rowIndex;
-			}
-			else
-			{
-				rowIndex = static_cast<int*>(mkl_realloc(rowIndex, (new_mat_rows + 1) * sizeof(int)));
-				reallocation_occurred = true;
+				if (ALIGNMENT_REQUIRED)
+				{
+					int* new_rowIndex = static_cast<int*>(mkl_malloc((new_mat_rows + 1)*sizeof(int), array_alignment));
+					reallocation_occurred = true;
+					for (int row_sel = 0; row_sel <= mat_rows; row_sel++)
+						new_rowIndex[row_sel] = rowIndex[row_sel];
+					if (new_rowIndex != rowIndex) mkl_free(rowIndex);
+					rowIndex = new_rowIndex;
+				}
+				else
+				{
+					rowIndex = static_cast<int*>(mkl_realloc(rowIndex, (new_mat_rows + 1) * sizeof(int)));
+					reallocation_occurred = true;
+				}
+
+				rowIndex_occupancy = new_mat_rows + 1;
 			}
 
+			
 			// the newly acquired space is equally distributed to the new rows
-			double effective_augmentation_foreachrow = (static_cast<double>(new_storage_dimension) - static_cast<double>(rowIndex[mat_rows]) ) / static_cast<double>(new_mat_rows - mat_rows);
+			double effective_augmentation_foreachrow = (static_cast<double>(new_colIndex_occupancy) - static_cast<double>(rowIndex[mat_rows]) ) / static_cast<double>(new_mat_rows - mat_rows);
 
 			for (int row_sel = 1; row_sel <= new_mat_rows - mat_rows; row_sel++)
 			{
 				rowIndex[mat_rows+row_sel] = rowIndex[mat_rows] + round(static_cast<double>(row_sel) *effective_augmentation_foreachrow);
 			}
+
 		}
 		// case row==
 		else if (mat_rows == new_mat_rows)
-			rowIndex[new_mat_rows] = new_storage_dimension+1;
+			rowIndex[new_mat_rows] = new_colIndex_occupancy+1;
 
-		// set the new elements in colIndex as "not-initialized" i.e. "-1"
+
+		if (TESTING_CSR3) mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
+
+
+		// Update colInde. Set the new elements in colIndex as "not-initialized" i.e. "-1"
 		for (int col_sel = rowIndex[mat_rows]; col_sel < rowIndex[new_mat_rows]; col_sel++)
 		{
 			colIndex[col_sel] = -1;
 		}
 
-		if (TESTING_CSR3) mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
 
-
-		storage_dimension = new_storage_dimension;
+		colIndex_occupancy = new_colIndex_occupancy;
 		mat_rows = new_mat_rows;
 		mat_cols = new_mat_cols;
 		
 		return true;
 
 
-	}  //end Resize
+	}  // Resize
 
 
-	void ChCSR3Matrix::Reset(int nrows, int ncols, double nonzeros)
+	void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros)
 	{
-		assert(nrows > 0 && ncols > 0 && (nonzeros > 0 || nonzeros == -1));
-
-		mat_rows = nrows;
-		mat_cols = ncols;
-
-		int old_storage_dimension = storage_dimension;
-		
-
-		if (nonzeros > 1)
-			storage_dimension = std::max(mat_rows, static_cast<int>(nonzeros));
-		else
-		{
-			if (nonzeros == -1) // preserve the current nonzero ratio
-				nonzeros = GetNonZeroRatio();
-			storage_dimension = std::max(mat_rows, static_cast<int>(static_cast<double>(ncols)*static_cast<double>(nrows)*nonzeros));
-		}
-			
+		assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
 		if (TESTING_CSR3){
 			mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
 		}
 
-		mkl_free(values);
-		mkl_free(colIndex);
-		values = static_cast<double*>(mkl_malloc(storage_dimension*sizeof(double), array_alignment));
-		colIndex = static_cast<int*>(mkl_malloc(storage_dimension*sizeof(int), array_alignment));
+		if (nonzeros == 0)
+			nonzeros = GetColIndexLength();
+
+		if (nrows > mat_rows)
+		{
+			mkl_free(rowIndex);
+			rowIndex = static_cast<int*>(mkl_malloc((nrows + 1)*sizeof(int), array_alignment));
+			reallocation_occurred = true;
+			rowIndex_occupancy = nrows + 1;
+		}
+
+
+		if (nonzeros>rowIndex[mat_rows])
+		{
+			mkl_free(values);
+			mkl_free(colIndex);
+			values = static_cast<double*>(mkl_malloc(nonzeros*sizeof(double), array_alignment));
+			colIndex = static_cast<int*>(mkl_malloc(nonzeros*sizeof(int), array_alignment));
+			reallocation_occurred = true;
+			colIndex_occupancy = nonzeros;
+		}
 
 		if (TESTING_CSR3){
 			mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
 		}
 
-		reallocation_occurred = true;
+
+		mat_rows = nrows;
+		mat_cols = ncols;
+
 		initialize();
 	}
 
@@ -676,8 +695,7 @@ namespace chrono {
 		isCompressed = true;
 	}
 
-
-	void ChCSR3Matrix::prune(double pruning_threshold) //TODO: use the same technique as Compress also to avoid zero-element lines
+	void ChCSR3Matrix::Prune(double pruning_threshold) //TODO: use the same technique as Compress also to avoid zero-element lines
 	{
 		for (int col_sel = 0; col_sel < rowIndex[mat_rows]; col_sel++)
 		{
@@ -686,17 +704,29 @@ namespace chrono {
 		}
 	}
 
-
 	void ChCSR3Matrix::Trim()
 	{
-		reallocation_occurred = true;
-		double* old_values = values;
-		int* old_colIndex = colIndex;
-		values = static_cast<double*>(mkl_realloc(values, rowIndex[mat_rows] * sizeof(double)));
-		colIndex = static_cast<int*>(mkl_realloc(colIndex, rowIndex[mat_rows] * sizeof(int)));
-		storage_dimension = rowIndex[mat_rows];
+		if (colIndex_occupancy > rowIndex[mat_rows])
+		{
+			double* old_values = values;
+			int* old_colIndex = colIndex;
+			values = static_cast<double*>(mkl_realloc(values, rowIndex[mat_rows] * sizeof(double)));
+			colIndex = static_cast<int*>(mkl_realloc(colIndex, rowIndex[mat_rows] * sizeof(int)));
+			reallocation_occurred = true;
+			colIndex_occupancy = rowIndex[mat_rows];
+			assert(old_values == values && old_colIndex);
+		}
 
-		assert(old_values == values && old_colIndex == colIndex);
+		if (rowIndex_occupancy>mat_rows + 1)
+		{
+			int* old_rowIndex = rowIndex;
+			rowIndex = static_cast<int*>(mkl_realloc(rowIndex, (mat_rows + 1) * sizeof(int)));
+			rowIndex_occupancy = mat_rows + 1;
+			reallocation_occurred = true;
+			assert(old_rowIndex == rowIndex);
+		}
+
+		
 	}
 
 	void ChCSR3Matrix::PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite, bool transp)
@@ -753,7 +783,6 @@ namespace chrono {
 			for (int j = 0; j < ncolumns; ++j)
 				this->SetElement(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol), overwrite);
 	}
-
 
 	void ChCSR3Matrix::ExportToDatFile(std::string filepath, int precision)
 	{

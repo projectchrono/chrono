@@ -3,7 +3,7 @@
 
 #include <mkl.h>
 #include "core/ChSpmatrix.h"
-#include "chrono_mkl/ChApiCSR3.h"
+#include "chrono_mkl/ChApiMkl.h"
 
 
 #define ALIGNMENT_REQUIRED true
@@ -47,38 +47,45 @@ namespace chrono{
 	* Reset VS Resize
 	* Reset() function initializes arrays to their default values. Always succesfull.
 	* Resize() always preserve data in the arrays. The return value tells the user if the resizing has been done.
+	* 
+	* Reset() and Resize() expands the arrays dimension (increase occupancy)
+	* but they DO NOT REDUCE the occupancy. Eventually it has to be done manually with Trim().
 	*/
 	
-	class ChApiCSR3 ChCSR3Matrix : public ChSparseMatrixBase
+	class ChApiMkl ChCSR3Matrix : public ChSparseMatrixBase
 	{
 	public:
-		ChCSR3Matrix(int insrow, int inscol, double nonzeros = 0.5);
-		virtual ~ChCSR3Matrix() override;
+		ChCSR3Matrix();
+		ChCSR3Matrix(int insrow, int inscol, int nonzeros = 0);
+		virtual ~ChCSR3Matrix() ;
 
 		double* GetValuesAddress() { return values; };
 		int* GetColIndexAddress() { return colIndex; };
 		int* GetRowIndexAddress() { return rowIndex; };
-		virtual int GetRows() const override { return mat_rows; };
-		virtual int GetColumns() const override { return mat_cols; };
+		virtual int GetRows() const  { return mat_rows; };
+		virtual int GetColumns() const  { return mat_cols; };
 
-		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
-		virtual double GetElement(int row, int col) override;
+		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) ;
+		virtual double GetElement(int row, int col) ;
 		double& Element(int row, int col);
 		double& operator()(int row, int col) { return Element(row, col); }
 		double& operator()(int index) { return Element( index / GetColumns(), index % GetColumns()); }
 
-		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) override;
-		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) override;
-		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true) override;
+		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) ;
+		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) ;
+		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true) ;
 
-
-		virtual void Reset(int nrows, int ncols, double nonzeros = -1) override;
-		virtual bool Resize(int nrows, int ncols, double nonzeros = -1) override;
+		// Size manipulation
+		virtual void Reset(int nrows, int ncols, int nonzeros = 0) ;
+		virtual bool Resize(int nrows, int ncols, int nonzeros = 0) ;
 		void Compress(bool trim_after_compressing = false); // purge the matrix from all the unininitialized elements
 		void Trim(); // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
+		void Prune(double pruning_threshold = DBL_EPSILON);
 
-		int GetArrayDimension() const { return rowIndex[mat_rows] - 1 ; };
-		double GetNonZeroRatio() const { return rowIndex[mat_rows] / static_cast<double>(mat_rows*mat_cols);  };
+		// Auxiliary functions
+		int GetColIndexLength() const { return rowIndex[mat_rows]; };
+		int GetColIndexMemOccupancy() const { return colIndex_occupancy; };
+		int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; };
 		void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; };
 
 		// Testing functions
@@ -91,7 +98,6 @@ namespace chrono{
 		void ExportToDatFile(std::string filepath, int precision = 12);
 
 	protected:
-		void prune(double pruning_threshold = DBL_EPSILON);
 		void insert(int insrow, int inscol, double insval, int& col_sel);
 		void initialize();
 		void copy(double* values_temp, int* colIndex_temp, bool to_internal_arrays, int col_sel = 0, int shifts = 0);
@@ -107,8 +113,9 @@ namespace chrono{
 		int* rowIndex;
 		int mat_rows;
 		int mat_cols;
-		int storage_dimension; // refers to the length of "values" and "colIndex" array; "rowIndex" is always (mat_rows+1) long.
-		// storage_dimensione differs from rowIndex[mat_rows] only if a compress has occurred without a Resize
+		int colIndex_occupancy; // refers to the length of "values" and "colIndex" array; "rowIndex" is always (mat_rows+1) long.
+		// "colIndex_occupancy" differs from "rowIndex[mat_rows]" only if a Compress() or Reset() occurred without a Trim();
+		int rowIndex_occupancy;
 
 		MKL_INT64 mkl_peak_mem_CSR3;
 

@@ -163,7 +163,7 @@ void ChSparseMatrix::Reset() {
     Reset(rows, columns);
 }
 
-void ChSparseMatrix::Reset(int row, int col, double nonzero_ratio) {
+void ChSparseMatrix::Reset(int row, int col, int nonzeros) {
     // realloc 1st column array, only if needed
     if (row != rows) {
         if (elarray)
