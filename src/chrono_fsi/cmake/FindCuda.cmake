@@ -38,7 +38,7 @@ macro(enable_cuda_support)
 		set(CUDA_CUSTOM_COMPILER "" CACHE STRING "Custom C++ Compiler for CUDA If Needed")
 
 		# Shows register usage, etc
-		set(CUDA_VERBOSE_PTX TRUE CACHE BOOL "Show Verbose Kernel Info During Compilation")
+		set(CUDA_VERBOSE_PTX FALSE CACHE BOOL "Show Verbose Kernel Info During Compilation")
 
 
 		# Let's get going...
