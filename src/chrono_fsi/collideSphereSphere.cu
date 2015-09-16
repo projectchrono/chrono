@@ -251,7 +251,7 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
           m_dCellEnd,
           numAllMarkers,
           m_numGridCells,
-          dT);
+          dT); //Arman: you can probably safely remove dT from this function.
 
   Copy_SortedVelXSPH_To_VelXSPH(vel_XSPH_D, vel_XSPH_Sorted_D, m_dGridMarkerIndex, numAllMarkers);
 
@@ -730,7 +730,10 @@ void ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec) {
 /**
  * @brief See collideSphereSphere.cuh for more documentation.
  */
-void IntegrateSPH(thrust::device_vector<Real3>& posRadD2,
+void IntegrateSPH(
+        			thrust::device_vector<Real4>& derivVelRhoD,
+
+        			thrust::device_vector<Real3>& posRadD2,
                   thrust::device_vector<Real4>& velMasD2,
                   thrust::device_vector<Real4>& rhoPresMuD2,
 
@@ -740,7 +743,6 @@ void IntegrateSPH(thrust::device_vector<Real3>& posRadD2,
                   thrust::device_vector<Real4>& rhoPresMuD,
 
                   thrust::device_vector<uint>& bodyIndexD,
-                  thrust::device_vector<Real4>& derivVelRhoD,
                   const thrust::host_vector<int3>& referenceArray,
                   const NumberOfObjects& numObjects,
                   SimParams currentParamsH,

@@ -102,7 +102,10 @@ void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
                              int numAllMarkers,
                              int3 SIDE);
 
-void IntegrateSPH(thrust::device_vector<Real3>& posRadD2,
+void IntegrateSPH(
+        			thrust::device_vector<Real4>& derivVelRhoD,
+
+        			thrust::device_vector<Real3>& posRadD2,
                   thrust::device_vector<Real4>& velMasD2,
                   thrust::device_vector<Real4>& rhoPresMuD2,
 
@@ -112,7 +115,6 @@ void IntegrateSPH(thrust::device_vector<Real3>& posRadD2,
                   thrust::device_vector<Real4>& rhoPresMuD,
 
                   thrust::device_vector<uint>& bodyIndexD,
-                  thrust::device_vector<Real4>& derivVelRhoD,
                   const thrust::host_vector<int3>& referenceArray,
                   const NumberOfObjects& numObjects,
                   SimParams currentParamsH,

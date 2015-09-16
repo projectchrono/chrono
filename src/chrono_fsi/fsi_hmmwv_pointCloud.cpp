@@ -842,15 +842,27 @@ int main(int argc, char* argv[]) {
 
   int startIndexSph = 0;
 #if haveFluid
-  AddSphDataToChSystem(
-      mphysicalSystem, startIndexSph, posRadH, velMasH, paramsH, numObjects, fluidCollisionFamily, sphMarkerMass);
-
   thrust::device_vector<Real3> posRadD = posRadH;
   thrust::device_vector<Real4> velMasD = velMasH;
   thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
   thrust::device_vector<uint> bodyIndexD = bodyIndex;
-  thrust::device_vector<Real4> derivVelRhoD;
-  ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
+  thrust::device_vector<Real4> derivVelRhoD(numObjects.numAllMarkers);
+
+
+
+
+
+
+  // ** initialize device mid step data
+  thrust::device_vector<Real3> posRadD2 = posRadD;
+  thrust::device_vector<Real4> velMasD2 = velMasD;
+  thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
+  thrust::device_vector<Real3> vel_XSPH_D;
+
+
+
+  thrust::device_vector<Real3> rigid_FSI_Forces;
+  thrust::device_vector<Real3> rigid_FSI_Torques;
 #endif
   cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
 
@@ -886,6 +898,10 @@ int main(int argc, char* argv[]) {
 
   simParams.close();
 
+  // ******************************************************************************************
+  // ******************************************************************************************
+  // ******************************************************************************************
+  // ******************************************************************************************
   // ***************************** Simulation loop ********************************************
 
   for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
@@ -915,9 +931,10 @@ int main(int argc, char* argv[]) {
     CheckPointMarkers_Write(
         posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep, tStepsCheckPoint);
 
-    if (fmod(realTime, 0.6) < paramsH.dT && realTime < 1.3) {
-      FreezeSPH(velMasD, velMasH);
-    }
+//    // freeze sph. check it later
+//    if (fmod(realTime, 0.6) < paramsH.dT && realTime < 1.3) {
+//      FreezeSPH(velMasD, velMasH);
+//    }
     // *******
 
     if (realTime <= paramsH.timePause) {
@@ -929,19 +946,11 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Set_G_acc(ChVector<>(currentParamsH.gravity.x, currentParamsH.gravity.y, currentParamsH.gravity.z));
 
     // ** initialize host mid step data
-    thrust::host_vector<Real3> posRadH2(numObjects.numAllMarkers);
-    thrust::host_vector<Real4> velMasH2 = velMasH;
-    thrust::host_vector<Real4> rhoPresMuH2(numObjects.numAllMarkers);
-    // ** initialize device mid step data
-    thrust::device_vector<Real3> posRadD2 = posRadD;
-    thrust::device_vector<Real4> velMasD2 = velMasD;
-    thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
-    // **
-    thrust::device_vector<Real3> vel_XSPH_D;
-    ResizeMyThrust3(vel_XSPH_D, numObjects.numAllMarkers);
+    thrust::copy(posRadD.begin(), posRadD.end(), posRadD2.begin());
+    thrust::copy(velMasD.begin(), velMasD.end(), velMasD2.begin());
+    thrust::copy(rhoPresMuD2.begin(), rhoPresMuD2.end(), rhoPresMuD.begin());
 
     FillMyThrust4(derivVelRhoD, mR4(0));
-    thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
 
     fsi_timer.stop("fluid_initialization");
 
@@ -952,25 +961,26 @@ int main(int argc, char* argv[]) {
 
     // If enabled, output data for PovRay postprocessing.
     SavePovFilesMBD(mphysicalSystem, tStep, mTime, num_contacts, exec_time);
-
+// ******************
+// ******************
+// ******************
+// ******************
 // ****************** RK2: 1/2
 #if haveFluid
 
-    fsi_timer.start("force_sph");
 
-    ForceSPH(posRadD,
-             velMasD,
-             vel_XSPH_D,
-             rhoPresMuD,
-             bodyIndexD,
-             derivVelRhoD,
-             referenceArray,
-             numObjects,
-             currentParamsH,
-             bceType,
-             0.5 * currentParamsH.dT);
+    fsi_timer.start("integrate_sph");
+    // //assumes ...D2 is a copy of ...D
+    void IntegrateSPH(derivVelRhoD, posRadD2, velMasD2, rhoPresMuD2,
+                      posRadD, velMasD, vel_XSPH_D, rhoPresMuD,
+                      bodyIndexD, referenceArray, numObjects, currentParamsH,  0.5 * currentParamsH.dT); // Arman vel_XSPH_D does not need to be sent essentially
+    fsi_timer.start("integrate_sph");
 
-    fsi_timer.stop("force_sph");
+
+    Rigid_Forces_Torques(rigid_FSI_Forces, rigid_FSI_Torques,
+    		posRadD, posRigidD, derivVelRhoD, rigidIdentifierD, numObjects, sphMass); // Arman: posRigidD needs to be updated back and force between chsystem and gpusystem
+    Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_Forces, rigid_FSI_Torques, mapIndex); // Arman: take care of this
+
 
 #endif
 
@@ -983,68 +993,69 @@ int main(int argc, char* argv[]) {
     fsi_timer.stop("stepDynamic_mbd");
 
 #if haveFluid
-    CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-    AddChSystemForcesToSphForces(
-        derivVelRhoChronoH,
-        velMasH2,
-        mphysicalSystem,
-        numObjects,
-        startIndexSph,
-        0.5 *
-            currentParamsH.dT);  // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
-    CopyH2D(derivVelRhoD, derivVelRhoChronoH);
-    UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
-    // assumes ...D2 is a copy of ...D
-    ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 
-    CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
-    UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
+    Update_RigidPosVel_from_ChSystem(posRigidD2, velMassRigidD2, omegaLRF_D2, AD1_2,AD2_2,AD3_2, mphysicalSystem);
+    UpdateRigidMarkersPosition(posRadD2, velMasD2,
+    		rigidSPH_MeshPos_LRF_D, rigidIdentifierD, posRigidD2, velMassRigidD2, omegaLRF_D2,
+    		AD1_2,AD2_2,AD3_2, numObjects);
 
-    myCpuTimerHalfStep.stop();
-    myGpuTimerHalfStep.Stop();
-    fsi_timer.stop("half_step_dynamic_fsi_12");
-    // ****************** RK2: 2/2
-    fsi_timer.start("half_step_dynamic_fsi_22");
-    ForceSPH(posRadD2,
-             velMasD2,
-             vel_XSPH_D,
-             rhoPresMuD2,
-             bodyIndexD,
-             derivVelRhoD,
-             referenceArray,
-             numObjects,
-             currentParamsH,
-             bceType,
-             currentParamsH.dT);
 #endif
-    mTime += 0.5 * currentParamsH.dT;
-    DoStepChronoSystem(
-        mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
-#if haveFluid
-    CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-    AddChSystemForcesToSphForces(
-        derivVelRhoChronoH,
-        velMasH2,
-        mphysicalSystem,
-        numObjects,
-        startIndexSph,
-        0.5 *
-            currentParamsH.dT);  // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
-    CopyH2D(derivVelRhoD, derivVelRhoChronoH);
-    UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
-    ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
 
-    CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
-    UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
+
+// ******************
+// ******************
+// ******************
+// ******************
+// ****************** RK2: 2/2
+    FillMyThrust4(derivVelRhoD, mR4(0));
+
+#if haveFluid
+
+    // //assumes ...D2 is a copy of ...D
+    void IntegrateSPH(derivVelRhoD, posRadD, velMasD, rhoPresMuD,
+                      posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2,
+                      bodyIndexD, referenceArray, numObjects, currentParamsH,  currentParamsH.dT);
+    fsi_timer.start("integrate_sph");
+
+
+    Rigid_Forces_Torques(rigid_FSI_Forces, rigid_FSI_Torques,
+    		posRadD2, posRigidD2, derivVelRhoD, rigidIdentifierD, numObjects, sphMass); // Arman: posRigidD needs to be updated back and force between chsystem and gpusystem
+    Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_Forces, rigid_FSI_Torques, mapIndex); // Arman: take care of this
+
+
+#endif
+    mTime -= 0.5 * currentParamsH.dT;
+    HardSet_PosRot_In_ChSystem(mphysicalSystem, posRigidD, velMassRigidD, omegaLRF_D, AD1,AD2,AD3);
+
+    fsi_timer.start("stepDynamic_mbd");
+
+
+
+    mTime += currentParamsH.dT;
+    DoStepChronoSystem(
+        mphysicalSystem, currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+
+    fsi_timer.stop("stepDynamic_mbd");
+
+#if haveFluid
+
+    Update_RigidPosVel_from_ChSystem(posRigidD, velMassRigidD, omegaLRF_D, AD1,AD2,AD3, mphysicalSystem);
+    UpdateRigidMarkersPosition(posRadD, velMasD,
+    		rigidSPH_MeshPos_LRF_D, rigidIdentifierD, posRigidD, velMassRigidD, omegaLRF_D,
+    		AD1,AD2,AD3, numObjects);
+
 
     if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
       DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
     }
 
 #endif
-    // ****************** End RK2
 
-    OutputVehicleData(mphysicalSystem, tStep);
+
+
+// ****************** End RK2
+
+//    OutputVehicleData(mphysicalSystem, tStep);
 
     // Update counters.
     exec_time += mphysicalSystem.GetTimerStep();
@@ -1055,12 +1066,6 @@ int main(int argc, char* argv[]) {
 // -------------------
 
 #if haveFluid
-    ClearArraysH(posRadH2, velMasH2, rhoPresMuH2);
-    ClearMyThrustR3(posRadD2);
-    ClearMyThrustR4(velMasD2);
-    ClearMyThrustR4(rhoPresMuD2);
-    ClearMyThrustR3(vel_XSPH_D);
-
     mCpuTimer.Stop();
     myGpuTimer.Stop();
     if (tStep % 2 == 0) {
@@ -1090,6 +1095,14 @@ int main(int argc, char* argv[]) {
   ClearMyThrustR4(rhoPresMuD);
   ClearMyThrustU1(bodyIndexD);
   ClearMyThrustR4(derivVelRhoD);
+
+  ClearMyThrustR3(posRadD2);
+  ClearMyThrustR4(velMasD2);
+  ClearMyThrustR4(rhoPresMuD2);
+  ClearMyThrustR3(vel_XSPH_D);
+
+  ClearMyThrustR3(rigid_FSI_Forces);
+  ClearMyThrustR3(rigid_FSI_Torques);
 #endif
   delete mVehicle;
   delete tire_cb;
