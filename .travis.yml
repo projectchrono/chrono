@@ -6,6 +6,8 @@ addons:
     - libirrlicht-dev
     - libxxf86vm-dev
     - freeglut3-dev
+    - libstdc++-4.8-dev
+    - g++-4.8
   coverity_scan:
     project:
       name: "projectchrono/chrono"
@@ -25,8 +27,6 @@ env:
   global:
     - secure: "YY9gwr3+p3xwX7Kaw+j51JKjYdNl2oNBIHOBfXwLzVCh6F+HVIQAT7C9nSFH4O+brImwhDe7q3BzI1m0hdU5L1nyKtPjG5eolRafkvZYIVjvNduh65OS1rIzV9JibmEjqE6I9x1ndYaW3Yc8tdR6TVr+M2UK907jrBClUdv1uwE="
 before_install:
-  - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq libstdc++-4.8-dev; fi
-  - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
   - if [ "$CXX" = "g++" ]; then export CMAKE_COMPILER_FLAGS="-DCMAKE_CXX_COMPILER=/usr/bin/g++-4.8 -DCMAKE_CC_COMPILER=/usr/bin/gcc-4.8"; fi 
 before_script:
   - mkdir build && cd build
