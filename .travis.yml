@@ -11,8 +11,6 @@ addons:
       - freeglut3-dev
       - gcc-4.9
       - g++-4.9
-      - clang-3.4
-      - llvm-3.4-dev
   coverity_scan:
     project:
       name: "projectchrono/chrono"
@@ -23,7 +21,6 @@ addons:
       branch_pattern: coverity_scan
 compiler:
   - gcc
-  - clang
 env:
   matrix:
     - CMAKE_EXTRA_FLAGS="-DENABLE_MODULE_IRRLICHT=OFF -DENABLE_MODULE_FEA=OFF -DENABLE_MODULE_POSTPROCESS=OFF"
@@ -34,7 +31,6 @@ env:
 before_install:
 before_script:
   - mkdir build && cd build
-  - if [ "$CXX" = "clang++" ]; then cmake $CMAKE_EXTRA_FLAGS ..; fi
   - if [ "$CXX" = "g++" ]; then CXX=g++-4.9 CC=gcc-4.9 cmake $CMAKE_EXTRA_FLAGS ..; fi
 script:
   - make -j 4
