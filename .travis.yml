@@ -11,6 +11,7 @@ addons:
       - freeglut3-dev
       - gcc-4.9
       - g++-4.9
+      - llvm-toolchain-3.4
   coverity_scan:
     project:
       name: "projectchrono/chrono"
