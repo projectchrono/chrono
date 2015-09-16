@@ -57,13 +57,11 @@ namespace chrono
 		MKL_INT* ja;			// columns indices
 		MKL_INT* ia;			// row index
 
-		// rhs (eventually more than one)
-		double* f;				// rhs
+		// rhs
+		double* b;				// rhs
 
 		// Output
-		double* u;				// solution vector
-		MKL_INT error;          // error indicator
-
+		double* x;				// solution vector
 
 		// Problem properties
 		MKL_INT n;				//(square-)matrix size
@@ -73,112 +71,57 @@ namespace chrono
 		// Pardiso solver settings
 		MKL_INT iparm[64];		// Pardiso solver parameter
 		MKL_INT maxfct;			// maximum number of numerical factorizations
-		MKL_INT msglvl;         // print statistical information on file
 		MKL_INT* perm;			// permutation vector
 
 		// Pardiso solver settings
-		MKL_INT phase;          // phase of the Pardiso solver (analysis, solution, etc...)
 		MKL_INT mnum;           // 1<=mnum<=maxfct : which factorizations to use; usually 1
 
+		// Auxiliary variables
+		int rhs_dimension;
+		int sol_dimension;
+		bool consistency_check; //< enables dimension consistency check
+		int last_phase_called;
 
 	public:
 
-		ChMklEngine(int problem_size, int matrix_type = 11, int insphase = 13);
+		ChMklEngine(int problem_size = 3, int matrix_type = 11);
 		~ChMklEngine();
 
+		/**Setting the linear system <tt>A*x=b</tt> to be solved means that the user must provide:
+		*	- the matrix \c Z: in \c ChCSR3Matrix format or directly through the 3 CSR3 array format
+		*	- the solution vector \c x: in any ChMatrix<> derived format or in bare C array
+		*	- the unknowns vector \c b: in any ChMatrix<> derived format or in bare C array
+		*/
 
-		/** Initialization routines: */
-		/// The solver must know:
-		///- the system matrix (here Matrix) in CSR3 format
-		///- the rhs (here KnownVector) in C array format
-		///- where to put the solution (here UnknownVector) in C array format
+		void SetMatrix(ChCSR3Matrix& Z);
+		void SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex);
 
-		/// Set the system matrix (it includes both stiffness/mass matrix and jacobians)
-		/// - through an existing ChCSR3Matrix
-		/// - through a triplet of values/column indeces/row indeces
-		/// None of the previous solutions store memory.
-		bool SetMatrix(double* A_CSR_value, MKL_INT* A_CSR3_columnIndex, MKL_INT* A_CSR3_rowIndex){
-			a = A_CSR_value;
-			ja = A_CSR3_columnIndex;
-			ia = A_CSR3_rowIndex;
-			return 0;
-		}
+		void SetSolutionVector(ChMatrix<>& insx);
+		void SetSolutionVector(double* insx){ x = insx;  consistency_check = false; }
 
-		bool SetMatrix(ChCSR3Matrix* Z){
-			a = Z->GetValuesAddress();
-			ja = Z->GetColIndexAddress();
-			ia = Z->GetRowIndexAddress();
-			return 0;
-		}
+		void SetKnownVector(ChMatrix<>& insb);
+		void SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest);
+		void SetKnownVector(double* insb){ b = insb; consistency_check = false; }
 
+		void SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx);
 
+		// Solver routine
+		int PardisoCall(int set_phase = 13, int message_level = 0);
+		void ResetSolver(int new_mat_type = 0); //< reinitializes the solver for the next iteration
+		void SetProblemSize(int new_size) { n = new_size; }
 
-		/// Set the rhs/known vector:
-		/// - through a pointer to a C array
-		/// - through a pair of ChMatrix (Chrono::Engine specific format) that will be pasted
-		///   together; it doesn't allocate memory itself, fdest must be prepared first.
-		inline bool SetKnownVector(double* insb){ f = insb; return 0; } //not used directly in Chrono
-
-		/// It pastes two vectors (insf over insb) in a third vector fdest that
-		/// is set as the KnownVector of the problem.
-		/// It could be put also in ChMatrix if needed
-		inline void SetKnownVector(ChMatrix<>* insf, ChMatrix<>* insb, ChMatrix<>* fdest){
-			// assures that the destination vector has the correct dimension
-			if ((insb->GetRows() + insf->GetRows()) != fdest->GetRows())
-				fdest->Resize((insb->GetRows() + insf->GetRows()), 1);
-
-			// pastes values of insf and insb in fdest
-			for (int i = 0; i < insf->GetRows(); i++)
-				fdest->SetElement(i, 0, insf->GetElement(i, 0));
-			for (int i = 0; i < insb->GetRows(); i++)
-				fdest->SetElement(i + insf->GetRows(), 0, insb->GetElement(i, 0));
-
-			// takes the fdest as known term of the problem
-			f = fdest->GetAddress();
-		}
-
-
-		/// Set the solution/unknown vector:
-		/// - through a pointer to a C array
-		/// - through a ChMatrix (Chrono::Engine specific format)
-		inline bool SetUnknownVector(double* insu){ u = insu; return 0; } //not used directly in Chrono
-		inline bool SetUnknownVector(ChMatrix<>* insx){
-			assert(insx->GetRows() == n);
-			u = insx->GetAddress();
-			return 0;
-		}
-
-
-		/// Set the problem (matrix/rhs/solution)in one shot
-		bool SetProblem(ChCSR3Matrix* Z, double* insb, double* insx){  //not used directly in Chrono
-			return (!SetMatrix(Z) && !SetKnownVector(insb) && !SetUnknownVector(insx)) ? 0 : 1;
-		}
-
-		bool SetProblem(ChCSR3Matrix* Z, ChMatrix<>* insb, ChMatrix<>* insx){
-			assert(Z->GetRows() == n);
-			assert(insb->GetRows() == n);
-			insx->Reset(n, 1);
-			return (!SetMatrix(Z) && !SetKnownVector(insb->GetAddress()) && !SetUnknownVector(insx->GetAddress())) ? 0 : 1;
-		}
-
-		bool SetProblem(double* A_CSR_value, MKL_INT* A_CSR3_columnIndex, MKL_INT* A_CSR3_rowIndex, double* insb, double* insx){
-			return (!(SetMatrix(A_CSR_value, A_CSR3_columnIndex, A_CSR3_rowIndex) && SetKnownVector(insb) && SetUnknownVector(insx))) ? 0 : 1;
-		}
-
-		// Solver routines
-
-		int PardisoSolve(int message_level = 0);
-
+		// Output functions
 		void GetResidual(double* res) const;
-		void GetResidual(ChMatrix<>* res) const;
-		double GetResidualNorm(ChMatrix<>* res) const;
+		void GetResidual(ChMatrix<>& res) const { GetResidual(res.GetAddress()); }
 		double GetResidualNorm(double* res) const;
+		double GetResidualNorm(ChMatrix<>& res) const { return GetResidualNorm(res.GetAddress()); }
 
-		// Test output function
+		// Auxiliary functions
+		int* GetIparmAddress(){ return iparm; }
+		void PrintIparmOutput();
+		void SetConsistencyCheck(bool input){ consistency_check = input; }
 
-		void GetIPARMoutput();
-
-	}; // end of ChMklEngine class
+	}; // ChMklEngine
 
 
 

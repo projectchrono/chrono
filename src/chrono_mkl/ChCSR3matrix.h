@@ -57,6 +57,7 @@ namespace chrono{
 	public:
 		ChCSR3Matrix();
 		ChCSR3Matrix(int insrow, int inscol, int nonzeros = 0);
+		ChCSR3Matrix(int insrow, int inscol, int* nonzeros);
 		virtual ~ChCSR3Matrix() ;
 
 		double* GetValuesAddress() { return values; };
@@ -76,22 +77,25 @@ namespace chrono{
 		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true) ;
 
 		// Size manipulation
-		virtual void Reset(int nrows, int ncols, int nonzeros = 0) ;
+		virtual bool Reset(int nrows, int ncols, int nonzeros = 0) ;
 		virtual bool Resize(int nrows, int ncols, int nonzeros = 0) ;
 		void Compress(bool trim_after_compressing = false); // purge the matrix from all the unininitialized elements
 		void Trim(); // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
 		void Prune(double pruning_threshold = DBL_EPSILON);
 
 		// Auxiliary functions
-		int GetColIndexLength() const { return rowIndex[mat_rows]; };
+		int GetColIndexLength() const { return rowIndex[mat_rows]-1; };
 		int GetColIndexMemOccupancy() const { return colIndex_occupancy; };
 		int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; };
+		void GetNonZerosVector(int* nonzeros_vector) const;
 		void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; };
+		void SetRowIndexLock(bool on_off){ row_spacing_lock = on_off; }
 
 		// Testing functions
 		bool CheckArraysAlignment(int alignment = 0);
 		void GetMemoryInfo();
 		int VerifyMatrix();
+		int VerifyMatrix2();
 
 		// Import/Export functions
 		void ImportFromDatFile(std::string filepath);
@@ -99,8 +103,10 @@ namespace chrono{
 
 	protected:
 		void insert(int insrow, int inscol, double insval, int& col_sel);
-		void initialize();
-		void copy(double* values_temp, int* colIndex_temp, bool to_internal_arrays, int col_sel = 0, int shifts = 0);
+		void initialize(int colIndex_length = 0);
+		void initialize(int* nonzeros_vector);
+		void initialize_colIndex();
+		void copy(double* values_temp, int* colIndex_temp, bool to_internal_arrays, int insrow = 0, int col_sel = 0, int shifts = 0);
 
 	private:
 		
@@ -113,16 +119,13 @@ namespace chrono{
 		int* rowIndex;
 		int mat_rows;
 		int mat_cols;
-		int colIndex_occupancy; // refers to the length of "values" and "colIndex" array; "rowIndex" is always (mat_rows+1) long.
-		// "colIndex_occupancy" differs from "rowIndex[mat_rows]" only if a Compress() or Reset() occurred without a Trim();
+		int colIndex_occupancy; ///< effective occupancy of \c values (and so of \c colIndex) arrays in memory;
+		///< \c colIndex_occupancy differs from \c rowIndex[mat_rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
 		int rowIndex_occupancy;
-
-		MKL_INT64 mkl_peak_mem_CSR3;
-
-		// TODO: can be useful to count how many nonzeros element there are for each row in order to perform faster copies
-		// but this could affect performances... there will be one more operation for every SetElement or Element call
-		// std::vector<int> nonzeros_counter;
+		///< \c rowIndex_occupancy differs from \c rowIndex[mat_rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
+		bool row_spacing_lock; ///< TRUE if the matrix has been initialized specifing how many zeros there are for every row
 		
+		MKL_INT64 mkl_peak_mem_CSR3;
 
 	};
 

@@ -53,8 +53,8 @@ namespace chrono {
 		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false){assert(0);};
 		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true){assert(0);};
 		
-		virtual void Reset(int row, int col, int nonzeros = 0){ assert(0); };
-		virtual bool Resize(int nrows, int ncols, int nonzeros = 0){ assert(0); return 0; };
+		virtual bool Reset(int row, int col, int nonzeros = 0){ assert(0); return 1; };
+		virtual bool Resize(int nrows, int ncols, int nonzeros = 0){ assert(0); return 1; };
 
 		// Redirected functions
 		virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol){ PasteMatrix(matra, insrow, inscol, true, true); };
@@ -199,7 +199,7 @@ class ChApi ChSparseMatrix : public ChSparseMatrixBase {
 	virtual bool Resize(int nrows, int ncols, int nonzeros = 0)  { assert(false); return 0; };  // not implemented
 
     void Reset();                  // reset to null matrix
-	virtual void Reset(int row, int col, int nonzeros = 0) ;  // reset to null matrix and (if needed) changes the size.
+	virtual bool Reset(int row, int col, int nonzeros = 0) ;  // reset to null matrix and (if needed) changes the size.
     void ResetBlocks(int row,
                      int col);  // if size changes, is like the above, otherwise just sets to zero the elements .
 

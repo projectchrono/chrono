@@ -3,11 +3,26 @@
 
 namespace chrono
 {
-	ChMklEngine::ChMklEngine(int problem_size, int matrix_type, int insphase)
+	const enum phase_t
 	{
-		n = static_cast<MKL_INT>(problem_size);
-		mtype = static_cast<MKL_INT>(matrix_type);
-		pardisoinit(pt, &mtype, iparm);
+		COMPLETE = 13,
+		ANALYSIS = 11,
+		ANALYSIS_NUMFACTORIZATION = 12,
+		NUMFACTORIZATION = 22,
+		NUMFACTORIZATION_SOLVE = 23,
+		SOLVE = 33,
+		SOLVE_FORWARD = 331,
+		SOLVE_DIAGONAL = 332,
+		SOLVE_BACKWARD = 333,
+		RELEASE_FACTORS = 0,
+		RELEASE_ALL = -1
+	};
+
+
+	ChMklEngine::ChMklEngine(int problem_size, int matrix_type)
+	{
+		SetProblemSize(problem_size);
+		ResetSolver(matrix_type);
 
 		/*
 		* NOTE: for highly indefinite symmetric matrices (e.g. interior point optimizations or saddle point problems)
@@ -43,48 +58,107 @@ namespace chrono
 		IPARM(34) = 0;				/* ADV Optimal number of threads for conditional numerical reproducibility (CNR) mode [def:0, disable]*/
 		
 
-		a = nullptr;	ia = nullptr;	ja = nullptr;	f = nullptr;	u = nullptr;
+		a = nullptr;	ia = nullptr;	ja = nullptr;	b = nullptr;	x = nullptr;	perm = nullptr;
 
-		phase = insphase; // 13 for Analysis, numerical factorization, solve, iterative refinement
-		error = 0;
-		nrhs = 1;					/* Number of KnownVectors */
-		maxfct = 1;					/* Maximum number of factors with identical sparsity structure that must be kept in memory at the same time [def: 1]*/
-		mnum = 1;					/* Actual matrix for the solution phase (1 ≤ mnum ≤ maxfct) [def: 1] */
-		perm = nullptr;
-		msglvl = 0;					/* Report switch */
+		last_phase_called = -1;
+		// reset consistencies to their default
+		rhs_dimension = 0;
+		sol_dimension = 0;
+		consistency_check = false;
+
+		// Currently only one rhs is supported
+		nrhs = 1;				/* Number of KnownVectors */
+		maxfct = 1;				/* Maximum number of factors with identical sparsity structure that must be kept in memory at the same time [def: 1]*/
+		mnum = 1;				/* Actual matrix for the solution phase (1 ≤ mnum ≤ maxfct) [def: 1] */
 	}
 
 	ChMklEngine::~ChMklEngine()
 	{
-		phase = -1;
-		msglvl = 1;
-		PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, perm, &nrhs, iparm, &msglvl, f, u, &error);
+		int phase = RELEASE_ALL;
+		int msglvl = 1;
+		int error;
+		PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, perm, &nrhs, iparm, &msglvl, b, x, &error);
 		if (error)
 			printf("Error while releasing memory: %d",error);
 	}
 
-	int ChMklEngine::PardisoSolve(int message_level){
+	void ChMklEngine::SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex){
+		a = Z_values;
+		ja = Z_colIndex;
+		ia = Z_rowIndex;
+	}
+
+	void ChMklEngine::SetMatrix(ChCSR3Matrix& Z){
+		a = Z.GetValuesAddress();
+		ja = Z.GetColIndexAddress();
+		ia = Z.GetRowIndexAddress();
+		SetProblemSize(Z.GetRows());
+	}
+
+	void ChMklEngine::SetSolutionVector(ChMatrix<>& insx){
+		x = insx.GetAddress();
+		sol_dimension = insx.GetRows();
+	}
+
+	void ChMklEngine::SetKnownVector(ChMatrix<>& insb)
+	{
+		b = insb.GetAddress();
+		rhs_dimension = insb.GetRows();
+	}
+
+	void ChMklEngine::SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest){
+		// assures that the destination vector has the correct dimension
+		if ((insb_chrono.GetRows() + insf_chrono.GetRows()) != bdest.GetRows())
+			bdest.Resize((insb_chrono.GetRows() + insf_chrono.GetRows()), 1);
+
+		// pastes values of insf and insb in fdest
+		for (int i = 0; i < insf_chrono.GetRows(); i++)
+			bdest.SetElement(i, 0, insf_chrono.GetElement(i, 0));
+		for (int i = 0; i < insb_chrono.GetRows(); i++)
+			bdest.SetElement(i + insf_chrono.GetRows(), 0, insb_chrono.GetElement(i, 0));
+
+		// takes the fdest as known term of the problem
+		SetKnownVector(bdest);
+	}
+
+	void ChMklEngine::SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx){
+		SetMatrix(Z);
+		SetSolutionVector(insx);
+		SetKnownVector(insb);
+	}
+	
+	int ChMklEngine::PardisoCall(int set_phase, int message_level){
 		if (IPARM(5) == 1) // CAUTION of IPARM(5)
 		{
 			assert(!IPARM(31));
 			assert(!IPARM(36));
 		}
-		msglvl = message_level;
-		PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, perm, &nrhs, iparm, &msglvl, f, u, &error);
+
+		if (consistency_check && (rhs_dimension!=n || sol_dimension !=n))
+			return +1;
+
+		int error;
+		last_phase_called = set_phase;
+		int phase_now = set_phase;
+		PARDISO(pt, &maxfct, &mnum, &mtype, &phase_now, &n, a, ia, ja, perm, &nrhs, iparm, &message_level, b, x, &error);
 		return error;
-	};
+	}
+
+	void ChMklEngine::ResetSolver(int new_mat_type)
+	{
+		// After the first call to pardiso do not directly modify "pt", as that could cause a serious memory leak.
+		mtype = new_mat_type;
+		pardisoinit(pt, &mtype, iparm);
+		IPARM(35) = 1;
+	}
 
 	void ChMklEngine::GetResidual(double* res) const {
-		mkl_cspblas_dcsrgemv("N", &n, a, ia, ja, u, res); // performs Matrix*Solution
+		mkl_cspblas_dcsrgemv("N", &n, a, ia, ja, x, res); // performs Matrix*Solution
 		for (int i = 0; i < n; i++){
-			res[i] = f[i] - res[i];	// performs: rhs - Matrix*Solution
+			res[i] = b[i] - res[i];	// performs: rhs - Matrix*Solution
 		};
 	};
-
-	inline void ChMklEngine::GetResidual(ChMatrix<>* res) const { GetResidual(res->GetAddress()); };
-
-	inline double ChMklEngine::GetResidualNorm(ChMatrix<>* res) const {	return GetResidualNorm(res->GetAddress()); };
-
+	
 	double ChMklEngine::GetResidualNorm(double* res) const{
 		double norm = 0;
 		for (int i = 0; i < n; i++){
@@ -94,12 +168,12 @@ namespace chrono
 		return norm;
 	};
 
-	void ChMklEngine::GetIPARMoutput()
+	void ChMklEngine::PrintIparmOutput()
 	{
 		printf("\n[7] Number of iterative refinement steps performed: %d", IPARM(7));
 		if (mtype == 11 || mtype == 13 || mtype == -2 || mtype == -4 || mtype == -6)
 			printf("\n[14] Number of perturbed pivots: %d", IPARM(14));
-		if (phase == 11 || phase == 12 || phase == 13)
+		if (last_phase_called == 11 || last_phase_called == 12 || last_phase_called == 13)
 		{
 			printf("\n[15] Peak memory on symbolic factorization (kB): %d", IPARM(15));
 			printf("\n[16] Permanent memory on symbolic factorization (kB): %d", IPARM(16));

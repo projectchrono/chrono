@@ -5,27 +5,29 @@ MESSAGE(STATUS "Demo programs for MKL module...")
 
 # ---------------------------------------------------------------------
 
-#MESSAGE(STATUS "...add demo_LcpMklSolver")
-#ADD_EXECUTABLE(demo_LcpMklSolver demo_LcpMklSolver.cpp demo_LcpMklSolver.h)
-#SOURCE_GROUP("" FILES demo_pardiso.cpp demo_pardiso.h)
-#SET_TARGET_PROPERTIES(demo_LcpMklSolver PROPERTIES 
-#                      FOLDER demos
-#                      LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-#TARGET_LINK_LIBRARIES(demo_LcpMklSolver ChronoEngine ChronoEngine_mkl)
-#ADD_DEPENDENCIES (demo_LcpMklSolver ChronoEngine ChronoEngine_mkl)
-#INSTALL(TARGETS demo_LcpMklSolver DESTINATION bin)
-
-# ---------------------------------------------------------------------
-
 MESSAGE(STATUS "...add demo_sandbox")
-ADD_EXECUTABLE(demo_sandbox demo_sandbox.cpp demo_sandbox.h)
-SOURCE_GROUP("" FILES demo_pardiso.cpp demo_pardiso.h)
+ADD_EXECUTABLE(demo_sandbox demo_sandbox.cpp)
+SOURCE_GROUP("" FILES demo_pardiso.cpp)
 SET_TARGET_PROPERTIES(demo_sandbox PROPERTIES 
                       FOLDER demos
                       LINK_FLAGS "${CH_LINKERFLAG_EXE}")
 TARGET_LINK_LIBRARIES(demo_sandbox ChronoEngine ChronoEngine_mkl)
 ADD_DEPENDENCIES(demo_sandbox ChronoEngine ChronoEngine_mkl)
 INSTALL(TARGETS demo_sandbox DESTINATION bin)
+
+
+# ---------------------------------------------------------------------
+
+MESSAGE(STATUS "...add demo_unit_test_ChCSR3Matrix")
+ADD_EXECUTABLE(demo_unit_test_ChCSR3Matrix demo_unit_test_ChCSR3Matrix.cpp)
+SOURCE_GROUP("" FILES demo_unit_test_ChCSR3Matrix.cpp)
+SET_TARGET_PROPERTIES(demo_unit_test_ChCSR3Matrix PROPERTIES 
+                      FOLDER demos
+                      LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+TARGET_LINK_LIBRARIES(demo_unit_test_ChCSR3Matrix ChronoEngine ChronoEngine_mkl)
+ADD_DEPENDENCIES(demo_unit_test_ChCSR3Matrix ChronoEngine ChronoEngine_mkl)
+INSTALL(TARGETS demo_unit_test_ChCSR3Matrix DESTINATION bin)
+
 
 # ---------------------------------------------------------------------
 
