@@ -12,6 +12,7 @@ addons:
       - gcc-4.9
       - g++-4.9
       - clang-3.4
+      - llvm-3.4-dev
   coverity_scan:
     project:
       name: "projectchrono/chrono"
