@@ -16,13 +16,7 @@
 // functionality required by its base ChDriver class using keyboard inputs.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 // and update the current driver inputs. As such it does not need to override
-// the default no-op Update() virtual method.
-//
-// In addition, this class provides additional Irrlicht support for rendering:
-//  - implements a custom camera (which follows the vehicle)
-//  - provides support for rendering links, force elements, displaying stats,
-//    etc.  In order to render these elements, call the its DrawAll() method
-//    instead of ChIrrAppInterface::DrawAll().
+// the default no-op Advance() virtual method.
 //
 // =============================================================================
 
@@ -30,125 +24,49 @@
 #define CH_IRRGUIDRIVER_H
 
 #include <string>
-#include <vector>
-
-#include "physics/ChSystem.h"
-#include "utils/ChUtilsChaseCamera.h"
-
-#include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChPowertrain.h"
 
+#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-
-#ifdef CHRONO_IRRKLANG
-#include <irrKlang.h>
-#endif
-
-
 
 namespace chrono {
 
-class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver
-{
-public:
-  enum InputMode {
-    LOCK,
-    KEYBOARD,
-    DATAFILE
-  };
+class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver {
+  public:
+    enum InputMode { LOCK, KEYBOARD, DATAFILE };
 
-  ChIrrGuiDriver(
-    irr::ChIrrApp&      app,
-    ChVehicle&          car,
-    ChPowertrain&       powertrain,
-    const ChVector<>&   ptOnChassis,
-    double              chaseDist,
-    double              chaseHeight,
-    bool                enable_sound = false,
-    int                 HUD_x = 740,
-    int                 HUD_y = 20
-    );
+    ChIrrGuiDriver(ChVehicleIrrApp& app, ChVehicle& car, ChPowertrain& powertrain);
 
-  ~ChIrrGuiDriver() {}
+    ~ChIrrGuiDriver() {}
 
-  virtual bool OnEvent(const irr::SEvent& event);
-  virtual void Update(double time);
-  virtual void Advance(double step);
+    virtual bool OnEvent(const irr::SEvent& event);
+    virtual void Update(double time);
 
-  void DrawAll();
+    void SetThrottleDelta(double delta) { m_throttleDelta = delta; }
+    void SetSteeringDelta(double delta) { m_steeringDelta = delta; }
+    void SetBrakingDelta(double delta) { m_brakingDelta = delta; }
 
-  void EnableGrid(bool val) { m_renderGrid = val; }
-  void EnableLinks(bool val) { m_renderLinks = val; }
-  void EnableSprings(bool val) { m_renderSprings = val; }
-  void EnableStats(bool val) { m_renderStats = val; }
+    void SetInputDataFile(const std::string& filename);
+    void SetInputMode(InputMode mode);
+    std::string GetInputModeAsString() const;
 
-  void SetGridHeight(double height) { m_gridHeight = height; }
+  private:
+    ChVehicle& m_car;
+    ChPowertrain& m_powertrain;
 
-  void SetThrottleDelta(double delta)  { m_throttleDelta = delta; }
-  void SetSteeringDelta(double delta)  { m_steeringDelta = delta; }
-  void SetBrakingDelta (double delta)  { m_brakingDelta = delta; }
+    double m_throttleDelta;
+    double m_steeringDelta;
+    double m_brakingDelta;
 
-  void SetStepsize(double val) { m_stepsize = val; }
-  double GetStepsize() const { return m_stepsize; }
-
-  void SetInputDataFile(const std::string& filename);
-  void SetInputMode(InputMode mode);
-
-private:
-
-  void renderSprings();
-  void renderLinks();
-  void renderGrid();
-  void renderStats();
-  void renderLinGauge(const std::string& msg,
-                      double factor, bool sym,
-                      int xpos, int ypos,
-                      int length = 120, int height = 15);
-  void renderTextBox(const std::string& msg,
-                     int xpos, int ypos,
-                     int length = 120, int height = 15);
-
-  irr::ChIrrAppInterface&   m_app;
-  ChVehicle&                m_car;
-  ChPowertrain&             m_powertrain;
-
-  utils::ChChaseCamera      m_camera;
-
-  double m_stepsize;
-
-  bool m_renderGrid;
-  bool m_renderLinks;
-  bool m_renderSprings;
-  bool m_renderStats;
-
-  double m_gridHeight;
-
-  double m_throttleDelta;
-  double m_steeringDelta;
-  double m_brakingDelta;
-
-  int  m_HUD_x;
-  int  m_HUD_y;
-
-  bool m_sound;
-
-  InputMode m_mode;
-  double m_time_shift;
-  ChSharedPtr<ChDataDriver> m_data_driver;
-
-#ifdef CHRONO_IRRKLANG
-  irrklang::ISoundEngine* m_sound_engine;   // Sound player
-  irrklang::ISound*       m_car_sound;      // Sound
-#endif
-
+    InputMode m_mode;
+    double m_time_shift;
+    ChSharedPtr<ChDataDriver> m_data_driver;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif
