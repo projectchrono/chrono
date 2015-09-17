@@ -64,7 +64,7 @@ namespace chrono {
 		colIndex = static_cast<int*>(mkl_malloc(colIndex_occupancy*sizeof(int), array_alignment));
 		rowIndex = static_cast<int*>(mkl_malloc(rowIndex_occupancy*sizeof(int), array_alignment));
 
-		initialize();
+		initialize(nonzeros_vector);
 
 		if (TESTING_CSR3){
 			mkl_peak_mem_CSR3 = max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
