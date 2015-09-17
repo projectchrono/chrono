@@ -105,7 +105,7 @@ class ChApiIrr ChIrrAppInterface {
     double GetSymbolscale() { return symbolscale; }
 
     /// Use this function to hook a custom event receiver to the application.
-    void SetUserEventReceiver(IEventReceiver* mreceiver) { user_receiver = mreceiver; }
+    void SetUserEventReceiver(IEventReceiver* mreceiver) { user_receivers.push_back(mreceiver); }
 
     /// Set the fonts to be used from now on. Note that the font must be in the
     /// XML format of Irrlicht - this can be generated using a tool provided with
@@ -211,7 +211,7 @@ class ChApiIrr ChIrrAppInterface {
 
     ChIrrAppEventReceiver* receiver;
 
-    IEventReceiver* user_receiver;
+    std::vector<IEventReceiver*> user_receivers;
 
     scene::ISceneNode* container;
 
