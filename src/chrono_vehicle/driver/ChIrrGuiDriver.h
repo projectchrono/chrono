@@ -81,7 +81,12 @@ public:
 
   void DrawAll();
 
-  void SetTerrainHeight(double height) { m_terrainHeight = height; }
+  void EnableGrid(bool val) { m_renderGrid = val; }
+  void EnableLinks(bool val) { m_renderLinks = val; }
+  void EnableSprings(bool val) { m_renderSprings = val; }
+  void EnableStats(bool val) { m_renderStats = val; }
+
+  void SetGridHeight(double height) { m_gridHeight = height; }
 
   void SetThrottleDelta(double delta)  { m_throttleDelta = delta; }
   void SetSteeringDelta(double delta)  { m_steeringDelta = delta; }
@@ -115,7 +120,13 @@ private:
 
   double m_stepsize;
 
-  double m_terrainHeight;
+  bool m_renderGrid;
+  bool m_renderLinks;
+  bool m_renderSprings;
+  bool m_renderStats;
+
+  double m_gridHeight;
+
   double m_throttleDelta;
   double m_steeringDelta;
   double m_brakingDelta;

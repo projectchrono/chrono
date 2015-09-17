@@ -56,7 +56,11 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&           app,
   m_powertrain(powertrain),
   m_HUD_x(HUD_x),
   m_HUD_y(HUD_y),
-  m_terrainHeight(0),
+  m_renderGrid(true),
+  m_renderLinks(true),
+  m_renderSprings(true),
+  m_renderStats(true),
+  m_gridHeight(0.02),
   m_throttleDelta(1.0/50),
   m_steeringDelta(1.0/50),
   m_brakingDelta(1.0/50),
@@ -295,13 +299,17 @@ void ChIrrGuiDriver::Advance(double step)
 // -----------------------------------------------------------------------------
 void ChIrrGuiDriver::DrawAll()
 {
-  renderGrid();
+    if (m_renderGrid)
+        renderGrid();
 
-  m_app.DrawAll();
+    m_app.DrawAll();
 
-  renderSprings();
-  renderLinks();
-  renderStats();
+    if (m_renderSprings)
+        renderSprings();
+    if (m_renderLinks)
+        renderLinks();
+    if (m_renderStats)
+        renderStats();
 }
 
 void ChIrrGuiDriver::renderSprings()
@@ -344,7 +352,7 @@ void ChIrrGuiDriver::renderLinks()
 
 void ChIrrGuiDriver::renderGrid()
 {
-  ChCoordsys<> gridCsys(ChVector<>(0, 0, m_terrainHeight + 0.02),
+  ChCoordsys<> gridCsys(ChVector<>(0, 0, m_gridHeight),
                         chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
 
   ChIrrTools::drawGrid(m_app.GetVideoDriver(),
