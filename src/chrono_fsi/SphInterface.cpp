@@ -280,3 +280,35 @@ void CopyD2H(thrust::host_vector<Real3>& posRadH,  // do not set the size here s
   thrust::copy(velMasD.begin(), velMasD.end(), velMasH.begin());
   thrust::copy(rhoPresMuD.begin(), rhoPresMuD.end(), rhoPresMuH.begin());
 }
+
+
+
+
+
+
+
+
+
+//------------------------------------------------------------------------------------
+// mapIndex[i] is the the index of the i_th sph represented rigid body in ChSystem
+void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
+		const thrust::host_vector<Real3>& rigid_FSI_Forces,
+		const thrust::host_vector<Real3>& rigid_FSI_Torques,
+		const thrust::host_vector<int>& mapIndex) {
+	int numRigids = mapIndex.size();
+	std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
+#pragma omp parallel for
+  for (int i = 0; i < numRigids; i++) {
+	  chrono::ChBody* bodyPtr = *(myIter + mapIndex[i]);
+
+
+	  bodyPtr->Empty_forces_accumulators();
+
+		Real3 mforce = rigid_FSI_Forces[i];
+		bodyPtr->Accumulate_force(chrono::ChVector<>(mforce.x, mforce.y, mforce.z), bodyPtr->GetPos(), false);
+
+		Real3 mtorque = rigid_FSI_Torques[i];
+		bodyPtr->Accumulate_torque(chrono::ChVector<>(mtorque.x, mtorque.y, mtorque.z), false);
+
+  }
+}

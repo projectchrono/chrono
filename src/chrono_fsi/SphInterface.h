@@ -102,4 +102,14 @@ void CopyD2H(thrust::host_vector<Real3>& posRadH,  // do not set the size here s
              const thrust::device_vector<Real4>& velMasD,
              const thrust::device_vector<Real4>& rhoPresMuD);
 
+
+
+
+
+
+
+void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
+		const thrust::host_vector<Real3>& rigid_FSI_Forces,
+		const thrust::host_vector<Real3>& rigid_FSI_Torques,
+		const thrust::host_vector<int>& mapIndex);
 #endif /* SPHINTERFACE_H_ */
