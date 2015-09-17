@@ -23,6 +23,8 @@
 #ifndef CH_VEHICLE_IRRAPP_H
 #define CH_VEHICLE_IRRAPP_H
 
+#include <string>
+
 #include "physics/ChSystem.h"
 #include "utils/ChUtilsChaseCamera.h"
 
@@ -113,6 +115,9 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
     /// Render the Irrlicht scene and additional visual elements.
     virtual void DrawAll() override;
 
+    /// Update information related to driver inputs.
+    void Update(const std::string& msg, double steering, double throttle, double braking);
+
     /// Advance the dynamics of the chase camera.
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance
     /// by the specified duration.
@@ -149,6 +154,11 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
 
     int m_HUD_x;  ///< x-coordinate of upper-left corner of HUD elements
     int m_HUD_y;  ///< y-coordinate of upper-left corner of HUD elements
+
+    std::string m_driver_msg;  ///< HUD message from driver system
+    double m_steering;         ///< driver steering input
+    double m_throttle;         ///< driver throttle input
+    double m_braking;          ///< driver braking input
 
 #ifdef CHRONO_IRRKLANG
     irrklang::ISoundEngine* m_sound_engine;  ///< Sound player

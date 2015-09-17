@@ -90,7 +90,7 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle& car,
       m_powertrain(powertrain),
       m_camera(car.GetChassis()),
       m_stepsize(1e-3),
-      m_HUD_x(740),
+      m_HUD_x(700),
       m_HUD_y(20),
       m_renderGrid(true),
       m_renderLinks(true),
@@ -172,6 +172,16 @@ void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chase
     m_camera.Initialize(ptOnChassis, m_car.GetLocalDriverCoordsys(), chaseDist, chaseHeight);
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChVehicleIrrApp::Update(const std::string& msg, double steering, double throttle, double braking)
+{
+    m_driver_msg = msg;
+    m_steering = steering;
+    m_throttle = throttle;
+    m_braking = braking;
 }
 
 // -----------------------------------------------------------------------------
@@ -386,6 +396,18 @@ void ChVehicleIrrApp::renderStats() {
         sprintf(msg, "Torque wheel FR: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 270, 120, 15);
     }
+
+    // Display information from driver system.
+    renderTextBox(m_driver_msg, m_HUD_x + 140, m_HUD_y, 120, 15);
+
+    sprintf(msg, "Steering: %+.2f", m_steering);
+    renderLinGauge(std::string(msg), m_steering, true, m_HUD_x + 140, m_HUD_y + 30, 120, 15);
+
+    sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
+    renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x + 140, m_HUD_y + 50, 120, 15);
+
+    sprintf(msg, "Braking: %+.2f", m_braking*100.);
+    renderLinGauge(std::string(msg), m_braking, false, m_HUD_x + 140, m_HUD_y + 70, 120, 15);
 }
 
 }  // end namespace chrono
