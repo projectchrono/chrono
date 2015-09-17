@@ -236,8 +236,13 @@ if(ENABLE_MODULE_IRRLICHT)
         driver/ChIrrGuiST.h
         driver/ChIrrGuiST.cpp
     )
+    set(CVIRR_UTILS_FILES
+        utils/ChVehicleIrrApp.h
+        utils/ChVehicleIrrApp.cpp
+    )
 else()
     set(CVIRR_DRIVER_FILES "")
+    set(CVIRR_UTILS_FILES "")
 endif()
 
 source_group("base" FILES ${CV_BASE_FILES})
@@ -253,7 +258,7 @@ source_group("brake" FILES ${CV_BRAKE_FILES})
 source_group("antirollbar" FILES ${CV_ANTIROLL_FILES})
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
 source_group("suspensionTest" FILES ${CV_SUSPENSIONTEST_FILES})
-source_group("utils" FILES ${CV_UTILS_FILES})
+source_group("utils" FILES ${CV_UTILS_FILES} ${CVIRR_UTILS_FILES})
 
 # ----------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle library
@@ -284,6 +289,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_SUSPENSIONTEST_FILES}
     ${CV_UTILS_FILES}
     ${CVIRR_DRIVER_FILES}
+    ${CVIRR_UTILS_FILES}
 )
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES
