@@ -13,6 +13,8 @@
 #ifndef CHIRRAPPINTERFACE_H
 #define CHIRRAPPINTERFACE_H
 
+#include <vector>
+
 #include <irrlicht.h>
 
 #include "core/ChRealtimeStep.h"
@@ -43,7 +45,7 @@ class ChApiIrr ChIrrAppInterface {
                       video::E_DRIVER_TYPE mydriver = video::EDT_DIRECT3D9);
 
     /// Safely delete all Irrlicht items (including the Irrlicht scene nodes)
-    ~ChIrrAppInterface();
+    virtual ~ChIrrAppInterface();
 
     //// Accessor functions
     IrrlichtDevice* GetDevice() { return device; }
@@ -113,7 +115,7 @@ class ChApiIrr ChIrrAppInterface {
     void SetFonts(const std::string& mfontdir = chrono::GetChronoDataFile("fonts/arial8.xml"));
 
     /// Call this to clean the canvas at the beginning of each animation frame
-    void BeginScene(bool backBuffer = true, bool zBuffer = true, video::SColor color = video::SColor(255, 0, 0, 0));
+    virtual void BeginScene(bool backBuffer = true, bool zBuffer = true, video::SColor color = video::SColor(255, 0, 0, 0));
 
     /// Call this important function inside a cycle like
     ///    while(application.GetDevice()->run()) {...}
@@ -122,15 +124,15 @@ class ChApiIrr ChIrrAppInterface {
     /// if your simulation can run in realtime.
     /// Alternatively, if you want to use ChSystem::DoStepDynamics() directly in
     /// your loop, use SetStepManage(false).
-    void DoStep();
+    virtual void DoStep();
 
     /// Call this important function inside a loop like
     ///    while(application.GetDevice()->run()) {...}
     /// in order to get the redrawing of all 3D shapes and all the GUI elements.
-    void DrawAll();
+    virtual void DrawAll();
 
     /// Call this to end the scene draw at the end of each animation frame
-    void EndScene();
+    virtual void EndScene();
 
     /// Dump the last used system matrices and vectors in the current directory,
     /// as 'dump_xxxx.dat' files that can be loaded with Matlab for debugging,

@@ -33,7 +33,7 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
              video::E_DRIVER_TYPE mydriver = video::EDT_DIRECT3D9);
 
     /// Safely delete every Irrlicht item (including the Irrlicht scene nodes)
-    ~ChIrrApp();
+    virtual ~ChIrrApp();
 
     /// Gets the asset converter
     scene::ChIrrAssetConverter* GetAssetConverter() { return mconverter; }
