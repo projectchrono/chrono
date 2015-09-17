@@ -58,19 +58,18 @@ namespace chrono {
 	   ChMklEngine mkl_engine{ 1, 11 };
 
 	   bool size_lock = true;
-	   bool sparsity_pattern_lock = false;
-	   int n = 0;
+	   bool sparsity_pattern_lock = true;
 
    public:
 
-	   ChLcpMklSolver(){};
+	   ChLcpMklSolver() { SetSparsityPatternLock(true); };
 	   virtual ~ChLcpMklSolver(){};
 	   
 	   ChMklEngine& GetMklEngine(){ return mkl_engine; }
 	   ChCSR3Matrix& GetMatrix(){ return matCSR3; }
 
 	   void SetProblemSizeLock(bool on_off){ size_lock = on_off; };
-	   void SetSparsityPatternLock(bool on_off){ sparsity_pattern_lock = on_off; };
+	   void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; };
 
         /// Solve using the MKL Pardiso sparse direct solver
 		virtual double Solve(ChLcpSystemDescriptor& sysd); ///< system description with constraints and variables

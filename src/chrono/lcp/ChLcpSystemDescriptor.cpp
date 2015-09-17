@@ -231,7 +231,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Z,
 
     n_q = this->CountActiveVariables();
 
-    // Reset and resize (if needed) auxiliary vectors
+    // Reset and resize (if needed) auxiliary vectors. Most of the times the matrix will be only erased
 
 	if (Z)
         Z->Reset(n_q + mn_c, n_q + mn_c);

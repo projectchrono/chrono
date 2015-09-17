@@ -89,13 +89,15 @@ namespace chrono{
 		int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; };
 		void GetNonZerosVector(int* nonzeros_vector) const;
 		void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; };
-		void SetRowIndexLock(bool on_off){ row_spacing_lock = on_off; }
+		void SetRowIndexLock(bool on_off){ rowIndex_lock = on_off; }
+		void SetColIndexLock(bool on_off){ colIndex_lock = on_off; }
+		bool IsRowIndexLockBroken() const { return rowIndex_lock_broken; }
+		bool IsColIndexLockBroken() const { return colIndex_lock_broken; }
 
 		// Testing functions
 		bool CheckArraysAlignment(int alignment = 0);
 		void GetMemoryInfo();
 		int VerifyMatrix();
-		int VerifyMatrix2();
 
 		// Import/Export functions
 		void ImportFromDatFile(std::string filepath);
@@ -105,7 +107,7 @@ namespace chrono{
 		void insert(int insrow, int inscol, double insval, int& col_sel);
 		void initialize(int colIndex_length = 0);
 		void initialize(int* nonzeros_vector);
-		void initialize_colIndex();
+		void initialize_ValuesColIndex();
 		void copy(double* values_temp, int* colIndex_temp, bool to_internal_arrays, int insrow = 0, int col_sel = 0, int shifts = 0);
 
 	private:
@@ -123,7 +125,13 @@ namespace chrono{
 		///< \c colIndex_occupancy differs from \c rowIndex[mat_rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
 		int rowIndex_occupancy;
 		///< \c rowIndex_occupancy differs from \c rowIndex[mat_rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
-		bool row_spacing_lock; ///< TRUE if the matrix has been initialized specifing how many zeros there are for every row
+		bool rowIndex_lock = false; ///< TRUE if the matrix always keeps the same number of element for each row
+		bool colIndex_lock = false; ///< TRUE if the matrix elements keep always the same position
+		bool rowIndex_lock_broken = false;
+		bool colIndex_lock_broken = false;
+
+		
+
 		
 		MKL_INT64 mkl_peak_mem_CSR3;
 
