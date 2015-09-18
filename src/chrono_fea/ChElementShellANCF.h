@@ -58,7 +58,7 @@ protected:
 	
 	int NumLayer;     
 
-	int flag_HE;
+	int flag_HE=0;
 
 	double dt;
 
@@ -208,7 +208,7 @@ public:
 	void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { Material = my_material; }
     ChSharedPtr<ChContinuumElastic> GetMaterial() { return Material; }
 
-
+	 
 	
 
 				/// Fills the N shape function matrix.
@@ -979,14 +979,16 @@ public:
 
 									//==EAS and Initial Shape==//					
 									ChMatrixNM<double, 3,3>   rd0;
-									ChMatrixNM<double, 3,3>   temp33;
+									ChMatrixNM<double, 1,3>   temp33;
 									temp33.Reset();
 									temp33=(Nx*(*d0));
 									temp33.MatrTranspose();
 									rd0.PasteClippedMatrix(&temp33,0,0,3,1,0,0);
+									temp33.MatrTranspose();
 									temp33=(Ny*(*d0));
 									temp33.MatrTranspose();
 									rd0.PasteClippedMatrix(&temp33,0,0,3,1,0,1);
+									temp33.MatrTranspose();
 									temp33=(Nz*(*d0));
 									temp33.MatrTranspose();
 									rd0.PasteClippedMatrix(&temp33,0,0,3,1,0,2);
@@ -999,7 +1001,6 @@ public:
 									ChVector<double> G2;
 									ChVector<double> G3;
 									ChVector<double> G1xG2;
-									double G1norm;
 									double G1dotG1;
 									G1(0)=rd0(0,0); G2(0)=rd0(0,1); G3(0)=rd0(0,2);
 									G1(1)=rd0(1,0); G2(1)=rd0(1,1); G3(1)=rd0(1,2);
@@ -1082,9 +1083,9 @@ public:
 									//tempA=Ny*ddNz;
 									//strain_til(5,0) = tempA(0,0);
 									//== Incompatible strain (ANS) ==//
-									strain_til(3,0) = N(0,0)*(*strain_ans)(0,0)+N(0,2)*(*strain_ans)(0,1)+N(0,4)*(*strain_ans)(0,2)+N(0,6)*(*strain_ans)(0,3);
-									strain_til(4,0) = S_ANS(0,2)*(*strain_ans)(0,6)+S_ANS(0,3)*(*strain_ans)(0,7);
-									strain_til(5,0) = S_ANS(0,0)*(*strain_ans)(0,4)+S_ANS(0,1)*(*strain_ans)(0,5);
+									strain_til(3,0) = N(0,0)*(*strain_ans)(0,0)+N(0,2)*(*strain_ans)(1,0)+N(0,4)*(*strain_ans)(2,0)+N(0,6)*(*strain_ans)(3,0);
+									strain_til(4,0) = S_ANS(0,2)*(*strain_ans)(6,0)+S_ANS(0,3)*(*strain_ans)(7,0);
+									strain_til(5,0) = S_ANS(0,0)*(*strain_ans)(4,0)+S_ANS(0,1)*(*strain_ans)(5,0);
 									//// For orthotropic material ///
 									strain(0,0)=strain_til(0,0)*beta(0)*beta(0)+strain_til(1,0)*beta(3)*beta(3)+strain_til(2,0)*beta(0)*beta(3)+strain_til(3,0)*beta(6)*beta(6)+strain_til(4,0)*beta(0)*beta(6)+strain_til(5,0)*beta(3)*beta(6);
 									strain(1,0)=strain_til(0,0)*beta(1)*beta(1)+strain_til(1,0)*beta(4)*beta(4)+strain_til(2,0)*beta(1)*beta(4)+strain_til(3,0)*beta(7)*beta(7)+strain_til(4,0)*beta(1)*beta(7)+strain_til(5,0)*beta(4)*beta(7);
@@ -1285,12 +1286,28 @@ public:
 									KALPHA.MatrMultiply(temp56,G);
 									KALPHA*=detJ0*(element->GetLengthX()/2.0)*(element->GetLengthY()/2.0)*(element->GetThickness()/2.0);
 									result.Reset();
-									GDEPSPVec = GDEPSP;
-									KALPHAVec = KALPHA;
-									JACVec = JAC11;
+
+									for (int i = 0; i < 5;i++){
+										for (int j = 0; j < 24; j++){
+										GDEPSPVec(i*24+j) = GDEPSP(i,j);
+										}
+									}
+									for (int i = 0; i < 5; i++){
+										for (int j = 0; j < 5; j++){
+											KALPHAVec(i * 5 + j) = KALPHA(i, j);
+										}
+									}
+									for (int i = 0; i < 24; i++){
+										for (int j = 0; j < 24; j++){
+											JACVec(i * 24 + j) = JAC11(i, j);
+										}
+									}
+
 									
 									//GetLog() << "GDEPSP" << GDEPSP << "\n\n";
+									//GetLog() << "GDEPSPVec" << GDEPSPVec << "\n\n";
 									//GetLog() << "KALPHA" << KALPHA << "\n\n";
+									//GetLog() << "KALPHAVec" << KALPHAVec << "\n\n";
 									//GetLog() << "Fint" << Fint << "\n\n";
 									//GetLog() << "HE1" << HE1 << "\n\n";
 									//GetLog() << "JAC11" << JAC11 << "\n\n";
@@ -1335,7 +1352,7 @@ public:
 							int count=0;
 							int fail=1;
 							/// Begin EAS loop ///
-							while(fail==1)
+							while (fail == 1)
 							{
 								alpha_eas = alpha_eas - ResidHE;
 								renewed_alpha_eas = alpha_eas;
@@ -1348,12 +1365,12 @@ public:
 								strainD_ans.Reset();
 
 								// Assumed Natural Strain (ANS)
-								AssumedNaturalStrain_BilinearShell(d,d0,strain_ans,strainD_ans);
+								AssumedNaturalStrain_BilinearShell(d, d0, strain_ans, strainD_ans);
 
 								// Enhanced Assumed Strain (EAS)
 								T0.Reset();
-								detJ0C=0.0;
-								T0DetJElementCenterForEAS(d0,T0,detJ0C,theta);
+								detJ0C = 0.0;
+								T0DetJElementCenterForEAS(d0, T0, detJ0C, theta);
 								//GetLog() << "T0" << T0 << "\n\n";
 								MyForce myformula;
 								myformula.d = &d;
@@ -1369,18 +1386,18 @@ public:
 								myformula.detJ0C = &detJ0C;
 								myformula.theta = &theta;
 								myformula.alpha_eas = &alpha_eas;
-								ChQuadrature::Integrate3D< ChMatrixNM<double,750,1> >(
-												TempIntegratedResult,				// result of integration will go there
-												myformula,			// formula to integrate
-												-1,					// start of x
-												1,					// end of x
-												-1,					// start of y
-												1,					// end of y
-												GaussZRange1(kl,0),					// start of z
-												GaussZRange1(kl,1),					// end of z
-												2					// order of integration
-												);
-							
+								ChQuadrature::Integrate3D< ChMatrixNM<double, 750, 1> >(
+									TempIntegratedResult,				// result of integration will go there
+									myformula,			// formula to integrate
+									-1,					// start of x
+									1,					// end of x
+									-1,					// start of y
+									1,					// end of y
+									GaussZRange1(kl, 0),					// start of z
+									GaussZRange1(kl, 1),					// end of z
+									2					// order of integration
+									);
+
 								///===============================================================//
 								///===TempIntegratedResult(0:23,1) -> InternalForce(24x1)=========//
 								///===TempIntegratedResult(24:28,1) -> HE(5x1)           =========//
@@ -1388,18 +1405,36 @@ public:
 								///===TempIntegratedResult(149:173,1) -> KALPHA(5x5)     =========//
 								///===TempIntegratedResult(174:749,1) -> Stiffness Matrix(24x24) =//
 								///===============================================================//
-								ChMatrixNM<double, 120,1> GDEPSPvec;
-								ChMatrixNM<double, 25,1> KALPHAvec;
-								ChMatrixNM<double, 576,1> JACvec;
+								ChMatrixNM<double, 120, 1> GDEPSPvec;
+								ChMatrixNM<double, 25, 1> KALPHAvec;
+								ChMatrixNM<double, 576, 1> JACvec;
 								/// Storing result vector ///
-								Finternal.PasteClippedMatrix(&TempIntegratedResult,0,0,24,1,0,0); // 
-								HE.PasteClippedMatrix(&TempIntegratedResult,24,0,5,1,0,0); // 
-								GDEPSPvec.PasteClippedMatrix(&TempIntegratedResult,29,0,120,1,0,0); //
-								KALPHAvec.PasteClippedMatrix(&TempIntegratedResult,149,0,25,1,0,0); //
-								JACvec.PasteClippedMatrix(&TempIntegratedResult,174,0,576,1,0,0); //
-								GDEPSP=GDEPSPvec;
-								KALPHA=KALPHAvec;
-								TempJacobian = JACvec; // For Laminate shell
+								Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0); // 
+								HE.PasteClippedMatrix(&TempIntegratedResult, 24, 0, 5, 1, 0, 0); // 
+								GDEPSPvec.PasteClippedMatrix(&TempIntegratedResult, 29, 0, 120, 1, 0, 0); //
+								KALPHAvec.PasteClippedMatrix(&TempIntegratedResult, 149, 0, 25, 1, 0, 0); //
+								JACvec.PasteClippedMatrix(&TempIntegratedResult, 174, 0, 576, 1, 0, 0); //
+								{
+								for (int i = 0; i < 5; i++){
+									for (int j = 0; j < 24; j++){
+										GDEPSP(i, j) = GDEPSPvec(i * 24 + j);
+									}
+								}
+								for (int i = 0; i < 5; i++){
+									for (int j = 0; j < 5; j++){
+										KALPHA(i, j) = KALPHAvec(i * 5 + j);
+									}
+								}
+								for (int i = 0; i < 24; i++){
+									for (int j = 0; j < 24; j++){
+										TempJacobian(i, j) = JACvec(i * 24 + j);
+									}
+								}
+							}
+
+								// GDEPSP=GDEPSPvec;
+								// KALPHA=KALPHAvec;
+								// TempJacobian = JACvec; // For Laminate shell
 
 								//GetLog() << "GDEPSP" << GDEPSP << "\n\n";
 								//GetLog() << "KALPHA" << KALPHA << "\n\n";
@@ -1762,7 +1797,7 @@ public:
 					ChMatrixNM<double, 1,8>   Ny;
 					ChMatrixNM<double, 1,8>   Nz;
 					ChMatrixNM<double, 3,3>   rd0;
-					ChMatrixNM<double, 3,3>   tempA;
+					ChMatrixNM<double, 1,3>   tempA;
 					tempA.Reset();
 					ShapeFunctionsDerivativeX(Nx, x, y, z);
 					ShapeFunctionsDerivativeY(Ny, x, y, z);
@@ -1770,9 +1805,11 @@ public:
 					tempA=(Nx*d0);
 					tempA.MatrTranspose();
 					rd0.PasteClippedMatrix(&tempA,0,0,3,1,0,0);
+					tempA.MatrTranspose();					
 					tempA=(Ny*d0);
 					tempA.MatrTranspose();
 					rd0.PasteClippedMatrix(&tempA,0,0,3,1,0,1);
+					tempA.MatrTranspose();					
 					tempA=(Nz*d0);
 					tempA.MatrTranspose();
 					rd0.PasteClippedMatrix(&tempA,0,0,3,1,0,2);
@@ -1785,7 +1822,6 @@ public:
 					ChVector<double> G2;
 					ChVector<double> G3;
 					ChVector<double> G1xG2;
-					double G1norm;
 					double G1dotG1;
 					//G1.PasteClippedMatrix(&rd0,0,0,3,1,0,0);
 					//G2.PasteClippedMatrix(&rd0,0,1,3,1,0,0);
@@ -1895,9 +1931,6 @@ public:
 			double d;
 			double preValue = 0.0;
 			ChMatrixNM<double,5,1> temp;
-			int i;
-			int j;
-			int k;
 			int m;
 			int count;
 			ChMatrixNM<int,1,1> imax;
@@ -1986,7 +2019,7 @@ public:
 	//		B(I)=SUM/A(I,I);
 	//		}
 	//}
-	virtual void LUBKSB55(ChMatrixNM<double,5,5>&A,double N,double NP,ChMatrixNM<int,5,1>& INDX,ChMatrixNM<double,5,1>& B){
+	virtual void LUBKSB55(ChMatrixNM<double,5,5>&A,int N,int NP,ChMatrixNM<int,5,1>& INDX,ChMatrixNM<double,5,1>& B){
 			int II=0;
 			int LL;
 			double SUM;
