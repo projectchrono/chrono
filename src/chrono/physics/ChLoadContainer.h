@@ -42,7 +42,8 @@ public:
 
         /// Add a load to the container list of loads
     void Add(ChSharedPtr<ChLoadBase> newload) {
-        assert(std::find<std::list<ChBody*>::iterator>(loadlist.begin(), loadlist.end(), newload) == bodylist.end());
+        //// Radu: I don't think find can be used on a container of ChSharedPtr which does not support the == operator.
+        ////assert(std::find<std::vector<ChSharedPtr<ChLoadBase> >::iterator>(loadlist.begin(), loadlist.end(), newload) == loadlist.end());
         loadlist.push_back(newload);
     }
         /// Direct access to the load vector, for iterating etc.

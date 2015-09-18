@@ -94,9 +94,9 @@ public:
     virtual void ComputeQ( ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) {
-        assert(GetIntegrationPointsU() <= GetStaticTables()->Lroots.size());
-        assert(GetIntegrationPointsV() <= GetStaticTables()->Lroots.size());
-        assert(GetIntegrationPointsW() <= GetStaticTables()->Lroots.size());
+        assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Lroots.size());
+        assert(GetIntegrationPointsV() <= ChQuadrature::GetStaticTables()->Lroots.size());
+        assert(GetIntegrationPointsW() <= ChQuadrature::GetStaticTables()->Lroots.size());
 
         Q.Reset(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
@@ -244,8 +244,8 @@ public:
     virtual void ComputeQ( ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) {
-        assert(GetIntegrationPointsU() <= GetStaticTables()->Lroots.size());
-        assert(GetIntegrationPointsV() <= GetStaticTables()->Lroots.size());
+        assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Lroots.size());
+        assert(GetIntegrationPointsV() <= ChQuadrature::GetStaticTables()->Lroots.size());
 
         Q.Reset(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
@@ -387,8 +387,7 @@ public:
     virtual void ComputeQ( ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) {
-        assert(GetIntegrationPointsU() <= GetStaticTables()->Lroots.size());
-        assert(GetIntegrationPointsV() <= GetStaticTables()->Lroots.size());
+        assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Lroots.size());
 
         Q.Reset(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
