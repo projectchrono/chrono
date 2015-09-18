@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/geometry/ChCLineBezier.h"
 #include "chrono/core/ChMathematics.h"
 
