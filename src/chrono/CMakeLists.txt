@@ -180,6 +180,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChMaterialSurfaceDEM.cpp
     physics/ChMaterialSurface.cpp
     physics/ChContinuumMaterial.cpp
+	physics/ChLoadContainer.cpp
     )
 
 set(ChronoEngine_physics_HEADERS
@@ -279,6 +280,13 @@ set(ChronoEngine_physics_HEADERS
     physics/ChInertiaUtils.h
     physics/ChContactable.h
     physics/ChContactTuple.h
+	physics/ChLoadable.h
+	physics/ChLoader.h
+	physics/ChLoaderU.h
+	physics/ChLoaderUV.h
+	physics/ChLoaderUVW.h
+	physics/ChLoad.h
+	physics/ChLoadContainer.h
     )
 
 source_group(physics FILES
@@ -903,6 +911,7 @@ set(ChronoEngine_utils_SOURCES
     utils/ChUtilsInputOutput.cpp
     utils/ChUtilsChaseCamera.cpp
     utils/ChUtilsValidation.cpp
+	utils/ChProfiler.cpp
     )
 
 set(ChronoEngine_utils_HEADERS
@@ -913,6 +922,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChUtilsInputOutput.h
     utils/ChUtilsChaseCamera.h
     utils/ChUtilsValidation.h
+	utils/ChProfiler.h
 )
 
 source_group(utils FILES
