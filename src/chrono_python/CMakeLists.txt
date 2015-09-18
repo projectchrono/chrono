@@ -13,16 +13,18 @@ ENDIF()
 
 MESSAGE(STATUS "==== Chrono Python module ====")
 
-
-FIND_PACKAGE(PythonLibs REQUIRED) 
+set(Python_ADDITIONAL_VERSIONS 3.4)
 FIND_PACKAGE(PythonInterp REQUIRED)
+FIND_PACKAGE(PythonLibs ${PYTHON_VERSION_STRING} EXACT) 
 
 GET_FILENAME_COMPONENT(CH_PYTHONDIR "${PYTHON_EXECUTABLE}" PATH)
 SET (CH_PYTHONINC "${PYTHON_INCLUDE_DIR}")
 SET (CH_PYTHONLIB "${PYTHON_LIBRARIES}")
 
-# this to fix warnings about the use of LOCATION
-cmake_policy(SET CMP0026 OLD)
+# this to fix warnings about the use of LOCATION with CMake version >= 3.0
+if(POLICY CMP0026)
+    cmake_policy(SET CMP0026 OLD)
+endif()
 
 #-----------------------------------------------------------------------------
 # List the files in the Python parser library to e used via C++
