@@ -37,6 +37,7 @@ set(ChronoEngine_core_SOURCES
     core/ChCoordsys.cpp
     core/ChSpmatrix.cpp
     core/ChQuadrature.cpp
+    core/ChBezierCurve.cpp
     )
 
 set(ChronoEngine_core_HEADERS
@@ -75,6 +76,7 @@ set(ChronoEngine_core_HEADERS
     core/ChDistribution.h
     core/ChQuadrature.h
     core/ChTemplateExpressions.h
+    core/ChBezierCurve.h
     )
 
 source_group(core FILES
