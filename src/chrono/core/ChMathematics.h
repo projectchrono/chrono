@@ -113,6 +113,32 @@ inline double ChMin(double a, double b) {
     return b;
 }
 
+/// Clamp and modify the specified value to lie within the given limits.
+template <typename T>
+void ChClampValue(T& value, T limitMin, T limitMax) {
+    if (value < limitMin)
+        value = limitMin;
+    else if (value > limitMax)
+        value = limitMax;
+}
+
+/// Clamp the specified value to lie within the given limits.
+template <typename T>
+T ChClamp(T value, T limitMin, T limitMax) {
+    if (value < limitMin)
+        return limitMin;
+    if (value > limitMax)
+        return limitMax;
+
+    return value;
+}
+
+/// Signum function.
+template <typename T>
+int ChSignum(T x) {
+    return (x > T(0)) - (x < T(0));
+}
+
 /// Parameter make periodic in 0..1
 /// (using 0..1 modulus if closed, otherwise clamping in 0..1 range)
 ChApi void ChPeriodicPar(double& u, int closed);

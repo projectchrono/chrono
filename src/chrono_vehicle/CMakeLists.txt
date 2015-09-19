@@ -227,6 +227,8 @@ set(CV_SUSPENSIONTEST_FILES
 set(CV_UTILS_FILES
     utils/ChWheeledVehicleAssembly.h
     utils/ChWheeledVehicleAssembly.cpp
+    utils/ChSteeringController.h
+    utils/ChSteeringController.cpp
 )
 
 if(ENABLE_MODULE_IRRLICHT)
