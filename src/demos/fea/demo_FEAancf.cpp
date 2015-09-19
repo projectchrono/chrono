@@ -257,7 +257,7 @@ void test_1() {
 		element->SetAlphaDamp(0.00);
 		//== 7/14/2015
 		element->Setdt(0.001); // dt to calculate DampingCoefficient
-		element->SetGravityZ(1); // 0:No Gravity, 1:Gravity(Fz=-9.81)
+		element->SetGravityY(1); // 0:No Gravity, 1:Gravity(Fz=-9.81)
 		element->SetAirPressure(0); // 0:No AirPressure, 1:220kPa Air Pressure
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
@@ -558,7 +558,7 @@ void test_2() {
 		element->SetAlphaDamp(0.005);
 		//== 7/14/2015
 		element->Setdt(0.00025); // dt to calculate DampingCoefficient
-		element->SetGravityZ(0); // 0:No Gravity, 1:Gravity(Fz=-9.81)
+		element->SetGravityY(0); // 0:No Gravity, 1:Gravity(Fz=-9.81)
 		element->SetAirPressure(1); // 0:No AirPressure, 1:220kPa Air Pressure
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
@@ -860,7 +860,7 @@ void test_3() {
 		element->SetAlphaDamp(0.00);
 		//== 7/14/2015
 		element->Setdt(0.001); // dt to calculate DampingCoefficient
-		element->SetGravityZ(1); // 0:No Gravity, 1:Gravity(Fz=-9.81)
+		element->SetGravityY(1); // 0:No Gravity, 1:Gravity(Fz=-9.81)
 		element->SetAirPressure(0); // 0:No AirPressure, 1:220kPa Air Pressure
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
@@ -1136,7 +1136,7 @@ void test_4() {
 		element->SetAlphaDamp(0.005);
 		//== 7/14/2015
 		element->Setdt(0.00025); // dt to calculate DampingCoefficient
-		element->SetGravityZ(0); // 0:No Gravity, 1:Gravity(Fz=-9.81)
+		element->SetGravityY(0); // 0:No Gravity, 1:Gravity(Fz=-9.81)
 		element->SetAirPressure(1); // 0:No AirPressure, 1:220kPa Air Pressure
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
