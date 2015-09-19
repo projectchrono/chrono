@@ -32,6 +32,7 @@
 #include "chrono_vehicle/tire/LugreTire.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
 #include "ModelDefs.h"
 #include "generic/Generic_PathFollowerDriver.h"
@@ -74,17 +75,63 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // =============================================================================
 
+// Custom Irrlicht event receiver for selecting current driver model.
+class ChDriverSelector : public irr::IEventReceiver {
+  public:
+    ChDriverSelector(Generic_PathFollowerDriver* driver_follower, ChIrrGuiDriver* driver_gui, ChDriver** driver)
+        : m_driver_follower(driver_follower), m_driver_gui(driver_gui), m_driver(driver) {
+        *m_driver = m_driver_gui;
+        m_using_gui = true;
+    }
+
+    bool UsingGUI() const { return m_using_gui; }
+
+    virtual bool OnEvent(const irr::SEvent& event) {
+        // Only interpret keyboard inputs.
+        if (event.EventType != irr::EET_KEY_INPUT_EVENT)
+            return false;
+
+        // Disregard key pressed
+        if (event.KeyInput.PressedDown)
+            return false;
+
+        if (event.KeyInput.Key == irr::KEY_COMMA && *m_driver != m_driver_follower) {
+            *m_driver = m_driver_follower;
+            m_using_gui = false;
+            return true;
+        }
+        if (event.KeyInput.Key == irr::KEY_PERIOD && *m_driver != m_driver_gui) {
+            m_driver_gui->SetThrottle(m_driver_follower->GetThrottle());
+            m_driver_gui->SetSteering(m_driver_follower->GetSteering());
+            m_driver_gui->SetBraking(m_driver_follower->GetBraking());
+            *m_driver = m_driver_gui;
+            m_using_gui = true;
+            return true;
+        }
+
+        return false;
+    }
+
+  private:
+    bool m_using_gui;
+    Generic_PathFollowerDriver* m_driver_follower;
+    ChIrrGuiDriver* m_driver_gui;
+    ChDriver** m_driver;
+};
+
+// =============================================================================
+
 int main(int argc, char* argv[]) {
     // --------------------------
-    // Create the various modules
+    // Create the various systems
     // --------------------------
 
-    // Create the vehicle system
+    // Create and initialize the vehicle system
     Vehicle vehicle(vehicle::GetDataFile(vehicle_file));
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetBodyFixed(true);
 
-    // Create the ground
+    // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.9);
 
     // Create and initialize the powertrain system
@@ -134,15 +181,6 @@ int main(int argc, char* argv[]) {
     path_asset->SetColor(ChColor(0.0f, 0.8f, 0.0f));
     road->AddAsset(path_asset);
 
-    // ------------------------
-    // Create the driver system
-    // ------------------------
-
-    Generic_PathFollowerDriver driver(vehicle, path);
-    driver.GetSteeringController().SetLookAheadDistance(20);
-    driver.GetSteeringController().SetGains(0.5, 0, 0);
-    driver.Reset();
-
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
@@ -165,6 +203,24 @@ int main(int argc, char* argv[]) {
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
 
+    // -------------------------
+    // Create the driver systems
+    // -------------------------
+
+    // Create both a path-follower and a GUI driver and allow switching between the,
+    Generic_PathFollowerDriver driver_follower(vehicle, path);
+    driver_follower.GetSteeringController().SetLookAheadDistance(20);
+    driver_follower.GetSteeringController().SetGains(0.5, 0, 0);
+    driver_follower.Reset();
+
+    ChIrrGuiDriver driver_gui(app, vehicle, powertrain);
+
+    // Create and register a custom Irrlicht event receiver to allow selecting the
+    // current driver model.
+    ChDriver* driver;
+    ChDriverSelector selector(&driver_follower, &driver_gui, &driver);
+    app.SetUserEventReceiver(&selector);
+
     // ---------------
     // Simulation loop
     // ---------------
@@ -181,21 +237,26 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
 
     while (app.GetDevice()->run()) {
-        // Render sentinel and target locations for the path-follower controller.
-        const ChVector<>& pS = driver.GetSteeringController().GetSentinelLocation();
-        const ChVector<>& pT = driver.GetSteeringController().GetTargetLocation();
+        // Update sentinel and target location markers for the path-follower controller.
+        // Note that we do this whether or not we are currently using the path-follower driver.
+        const ChVector<>& pS = driver_follower.GetSteeringController().GetSentinelLocation();
+        const ChVector<>& pT = driver_follower.GetSteeringController().GetTargetLocation();
         ballS->setPosition(irr::core::vector3df(pS.x, pS.y, pS.z));
         ballT->setPosition(irr::core::vector3df(pT.x, pT.y, pT.z));
 
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
+        irr::core::dimension2d<irr::u32> xy = app.GetDevice()->getVideoDriver()->getScreenSize();
+        std::string msg = selector.UsingGUI() ? "GUI driver" : "Follower driver";
+        irr::gui::IGUIFont* font = app.GetIGUIEnvironment()->getBuiltInFont();
+        font->draw(msg.c_str(), irr::core::rect<irr::s32>(xy.Width-120, xy.Height-50, xy.Width-20, xy.Height-20), irr::video::SColor(255, 250, 250, 0));
         app.EndScene();
 
         // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
+        throttle_input = driver->GetThrottle();
+        steering_input = driver->GetSteering();
+        braking_input = driver->GetBraking();
         powertrain_torque = powertrain.GetOutputTorque();
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
         for (int i = 0; i < num_wheels; i++) {
@@ -205,7 +266,8 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
-        driver.Update(time);
+        driver_follower.Update(time);
+        driver_gui.Update(time);
         powertrain.Update(time, throttle_input, driveshaft_speed);
         vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Update(time);
@@ -215,7 +277,8 @@ int main(int argc, char* argv[]) {
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
+        driver_follower.Advance(step);
+        driver_gui.Advance(step);
         powertrain.Advance(step);
         vehicle.Advance(step);
         terrain.Advance(step);
