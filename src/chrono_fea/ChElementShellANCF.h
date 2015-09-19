@@ -26,6 +26,8 @@ namespace fea {
 
 class ChElementShellANCF : public ChElementShell {
   protected:
+    enum JacobianType { ANALYTICAL, NUMERICAL };
+
     std::vector<ChSharedPtr<ChNodeFEAxyzD> > nodes;
 
     double thickness;
@@ -50,7 +52,7 @@ class ChElementShellANCF : public ChElementShell {
 
     int NumLayer;
 
-    int flag_HE = 0;
+    JacobianType flag_HE;
 
     double dt;
 
@@ -59,7 +61,7 @@ class ChElementShellANCF : public ChElementShell {
     int FlagAirPressure;
 
   public:
-    ChElementShellANCF() {
+    ChElementShellANCF() : flag_HE(ANALYTICAL) {
         nodes.resize(4);
 
         this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
@@ -1570,7 +1572,7 @@ class ChElementShellANCF : public ChElementShell {
                     // system("pause");
 
                     KALPHA1 = KALPHA;
-                    if (flag_HE == 1)
+                    if (flag_HE == NUMERICAL)
                         break;  // When numerical jacobian loop, no need to calculate HE
                     count = count + 1;
                     double norm_HE = HE.NormTwo();
@@ -1584,7 +1586,7 @@ class ChElementShellANCF : public ChElementShell {
                         LUDCMP55(KALPHA1, 5, 5, INDX, DAMMY);
                         LUBKSB55(KALPHA1, 5, 5, INDX, ResidHE);
                     }
-                    if (flag_HE == 0 && count > 2) {
+                    if (flag_HE == ANALYTICAL && count > 2) {
                         GetLog() << i << "  count " << count << "  NormHE " << norm_HE << "\n";
                     }
                 }
@@ -1593,7 +1595,7 @@ class ChElementShellANCF : public ChElementShell {
                 //===============================//
                 //== Stock_Alpha=================//
                 //===============================//
-                if (flag_HE == 0) {
+                if (flag_HE == ANALYTICAL) {
                     int ijkl = kl * 5;
                     StockAlpha1(ijkl) = renewed_alpha_eas(0, 0);
                     StockAlpha1(ijkl + 1) = renewed_alpha_eas(1, 0);
@@ -1610,7 +1612,7 @@ class ChElementShellANCF : public ChElementShell {
                 //===============================//
                 //== Jacobian Matrix for alpha ==//
                 //===============================//
-                if (flag_HE == 0) {
+                if (flag_HE == ANALYTICAL) {
                     ChMatrixNM<double, 5, 5> INV_KALPHA;
                     ChMatrixNM<double, 5, 24> TEMP_GDEPSP;
                     ChMatrixNM<double, 5, 5> INV_KALPHA_Temp;
