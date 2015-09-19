@@ -153,7 +153,7 @@ public:
 
 	void   Setdt(double a) { dt = a;} // To calculate structural damping coefficient
 
-	void   SetGravityZ(int a){FlagGravity = a;} // Gravity Flag
+	void   SetGravityY(int a){FlagGravity = a;} // Gravity Flag
 
 	void   SetAirPressure(int a){FlagAirPressure = a;} // AirPressure Flag
 
@@ -544,8 +544,8 @@ public:
 									LocalGravityForce(2,0) = 0.0;
 									}else if(element->GetFlagGravity()==1){
 									LocalGravityForce(0,0) = 0.0;
-									LocalGravityForce(1,0) = 0.0;
-									LocalGravityForce(2,0) = -9.81;
+									LocalGravityForce(1,0) = -9.81;
+									LocalGravityForce(2,0) = 0.0;
 									}
 
 									// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
