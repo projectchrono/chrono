@@ -13,6 +13,7 @@
 #ifndef CHELEMENTSHELL_H
 #define CHELEMENTSHELL_H
 
+#include "ChApiFEA.h"
 #include "ChElementGeneric.h"
 
 
@@ -22,7 +23,7 @@ namespace fea {
 
 /// Base class for most structral elements of 'shell' type.
 
-class  ChElementShell : public ChElementGeneric {
+class ChApiFea ChElementShell : public ChElementGeneric {
   protected:
     double mass;
 
