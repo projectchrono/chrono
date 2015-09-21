@@ -28,117 +28,87 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#if ((defined _WIN32) && !(defined(__MINGW32__) || defined(__CYGWIN__)))
-#include <time.h>
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <time.h>
-#undef WIN32_LEAN_AND_MEAN
-#undef NOMINMAX
-#else
-#include <sys/time.h>
-#endif
+
+
+#include <ratio>
+#include <chrono>
 
 namespace chrono {
 
-/// Class for high-resolution timer.
-/// This class can be used to get the execution time of
-/// fast algorithms, for example for profiling.
-///
-/// Based on http://www-106.ibm.com/developerworks/library/l-rt1/
-/// and on the timer of the OpenTissue project ( (C) J.Sporring, K.Erleben)
-///
-/// How to use it:
-///
-///  ChTimer<double> timer;
-///
-///  timer.start();
-///  ...
-///  timer.stop();
-///  GetLog() << "It took " << timer() << " seconds to perform" << std::endl;
-///
 
-template <typename real_type>
+/// Class for high-resolution timing.
+/// Use the start() ... stop() commands, then request the elapsed time between 
+/// them using GetTimeMilliseconds() or GetTimeSeconds() etc.
+/// Note: the elapsed time is not computed at GetTime... functions, but only at stop().
+/// If you use multiple  start() ... stop()  pairs, each time the duration is accumulated,
+/// until a reset() is done.
+
+template <class seconds_type = double>
 class ChTimer {
-#if ((defined _WIN32) && !(defined(__MINGW32__) || defined(__CYGWIN__)))
 
   private:
-    LARGE_INTEGER m_start;
-    LARGE_INTEGER m_end;
-    LARGE_INTEGER m_freq;
-    bool m_first;
-    real_type total;
+    std::chrono::high_resolution_clock::time_point m_start;
+    std::chrono::high_resolution_clock::time_point m_end;
+    std::chrono::duration<seconds_type> m_total;
 
   public:
-    ChTimer() : m_first(true), total(0) {}
+    ChTimer() {}
 
-  public:
     /// Start the timer
     void start() {
-        if (m_first) {
-            QueryPerformanceFrequency(&m_freq);
-            m_first = false;
-        }
-        QueryPerformanceCounter(&m_start);
+        m_start = std::chrono::high_resolution_clock::now();
     }
 
     /// Stops the timer
     void stop() { 
-        QueryPerformanceCounter(&m_end); 
-        real_type end = static_cast<real_type>(m_end.QuadPart);
-        real_type start = static_cast<real_type>(m_start.QuadPart);
-        real_type freq = static_cast<real_type>(m_freq.QuadPart);
-        total += (end - start) / freq;
+        m_end = std::chrono::high_resolution_clock::now();
+        m_total += m_end-m_start;
     }
 
     /// Reset the total accumulated time (when repeating multiple start() stop() start() stop() )
-    void reset() { total = 0; }
+    void reset() { m_total = std::chrono::duration<double>(0); }
 
-    /// Get the timer value, with the () operator.
-    real_type operator()() const {
-        return total;
+    /// Returns the time in [ms]. 
+    /// Use start()..stop() before calling this.
+	unsigned long long GetTimeMilliseconds() const {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(m_total).count();
     }
 
-#else
-
-  private:
-    struct timeval m_start;
-    struct timeval m_end;
-    real_type total;
-
-#ifdef SGI
-    time_t m_tz;
-#else
-    struct timezone m_tz;
-#endif
-
-  public:
-    ChTimer() : total(0) {}
-
-    /// Start the timer
-    void start() { gettimeofday(&m_start, &m_tz); }
-
-    /// Stops the timer
-    void stop() { 
-        gettimeofday(&m_end, &m_tz); 
-        real_type t1 = static_cast<real_type>(m_start.tv_sec) + static_cast<real_type>(m_start.tv_usec) / (1000 * 1000);
-        real_type t2 = static_cast<real_type>(m_end.tv_sec) + static_cast<real_type>(m_end.tv_usec) / (1000 * 1000);
-        total += t2 - t1;
+    /// Returns the time in [ms] since start(). It does not require stop(). 
+	unsigned long long GetTimeMillisecondsIntermediate() const {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(m_start - std::chrono::high_resolution_clock::now()).count();
     }
 
-    /// Reset the total accumulated time (when repeating multiple start() stop() start() stop() )
-    void reset() { total = 0; }
-
-    /// Get the timer value, with the () operator.
-    real_type operator()() const {
-        return total;
+	/// Returns the time in [us]. 
+    /// Use start()..stop() before calling this.
+	unsigned long long GetTimeMicroseconds() const {
+        return std::chrono::duration_cast<std::chrono::microseconds>(m_total).count();
     }
 
-#endif
+    /// Returns the time in [us] since start(). It does not require stop(). 
+	unsigned long long GetTimeMicrosecondsIntermediate() const {
+        return std::chrono::duration_cast<std::chrono::microseconds>(m_start - std::chrono::high_resolution_clock::now()).count();
+    }
+
+    /// Returns the time in [s], with real_type precision
+    /// Use start()..stop() before calling this.
+	seconds_type GetTimeSeconds() const {
+        return m_total.count();
+    }
+
+    /// Returns the time in [s] since start(). It does not require stop(). 
+	seconds_type GetTimeSecondsIntermediate() const {
+        std::chrono::duration<seconds_type> int_time = m_start - std::chrono::high_resolution_clock::now();
+        return (mstart - std::chrono::high_resolution_clock::now()).count();
+    }
+
+    /// Get the last timer value, in seconds, with the () operator.
+    seconds_type operator()() const {
+        return GetTimeSeconds();
+    }
+
 };
+
 
 }  // END_OF_NAMESPACE____
 
