@@ -113,6 +113,20 @@ int main(){
 	}
 
 
+	/////////////////
+	cout << endl << "//////////// CSR3 Matrix: Sparsity pattern testing //////////////" << endl;
+	matCSR3_1.SetRowIndexLock(true);
+	matCSR3_1.SetColIndexLock(true);
+	matCSR3_1.Reset(matCSR3_1.GetRows(), matCSR3_1.GetColumns());
+
+	for (int i = 0; i < m; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			printf("%f ", matCSR3_1.GetElement(i, j));
+		}
+		printf("\n");
+	}
 	
 
 	///////////////////////////////////
@@ -133,21 +147,21 @@ int main(){
 	ChMklEngine pardiso_solver_prec24(n, 11);
 	matCSR3_prec12.Compress();
 	matCSR3_prec24.Compress();
-	pardiso_solver_prec12.SetProblem(&matCSR3_prec12, &rhs, &solution_vector_prec12);
-	pardiso_solver_prec24.SetProblem(&matCSR3_prec24, &rhs, &solution_vector_prec24);
+	pardiso_solver_prec12.SetProblem(matCSR3_prec12, rhs, solution_vector_prec12);
+	pardiso_solver_prec24.SetProblem(matCSR3_prec24, rhs, solution_vector_prec24);
 
-	int pardiso_message = pardiso_solver_prec12.PardisoSolve(0);
+	int pardiso_message = pardiso_solver_prec12.PardisoCall(13,0);
 	printf("\nPardiso prec12 exited with code: %d", pardiso_message);
-	pardiso_message = pardiso_solver_prec24.PardisoSolve(0);
+	pardiso_message = pardiso_solver_prec24.PardisoCall(13, 0);
 	printf("\nPardiso prec24 exited with code: %d", pardiso_message);
 
 	// Print statistics
 	ChMatrixDynamic<double> residual_prec12(n, 1);
 	ChMatrixDynamic<double> residual_prec24(n, 1);
-	pardiso_solver_prec12.GetResidual(&residual_prec12);
-	pardiso_solver_prec24.GetResidual(&residual_prec24);
-	double residual_norm_prec12 = pardiso_solver_prec12.GetResidualNorm(&residual_prec12);
-	double residual_norm_prec24 = pardiso_solver_prec24.GetResidualNorm(&residual_prec24);
+	pardiso_solver_prec12.GetResidual(residual_prec12);
+	pardiso_solver_prec24.GetResidual(residual_prec24);
+	double residual_norm_prec12 = pardiso_solver_prec12.GetResidualNorm(residual_prec12);
+	double residual_norm_prec24 = pardiso_solver_prec24.GetResidualNorm(residual_prec24);
 	GetLog() << "\nResidual norm prec12: " << residual_norm_prec12;
 	GetLog() << "\nResidual norm prec24: " << residual_norm_prec24;
 

@@ -71,7 +71,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
-    virtual void GetField(ChMatrixDynamic<>& mD) {
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) {
         mD.Reset(this->GetNdofs(), 1);
         mD.PasteVector(A.MatrT_x_Vect(nodes[0]->pos) - nodes[0]->GetX0(), 0, 0);
         mD.PasteVector(A.MatrT_x_Vect(nodes[1]->pos) - nodes[1]->GetX0(), 3, 0);
@@ -324,7 +324,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
 
         // set up vector of nodal displacements (in local element system) u_l = R*p - p0
         ChMatrixDynamic<> displ(12, 1);
-        this->GetField(displ);  // nodal displacements, local
+        this->GetStateBlock(displ);  // nodal displacements, local
 
         // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
         ChMatrixDynamic<> FiK_local(12, 1);
@@ -369,7 +369,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
     ChStrainTensor<> GetStrain() {
         // set up vector of nodal displacements (in local element system) u_l = R*p - p0
         ChMatrixDynamic<> displ(12, 1);
-        this->GetField(displ);  // nodal displacements, local
+        this->GetStateBlock(displ);  // nodal displacements, local
 
         ChStrainTensor<> mstrain;
         mstrain.MatrMultiply(MatrB, displ);
@@ -441,7 +441,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
-    virtual void GetField(ChMatrixDynamic<>& mD) {
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) {
         mD.Reset(this->GetNdofs(), 1);
         mD(0) = nodes[0]->GetP();
         mD(1) = nodes[1]->GetP();
@@ -570,7 +570,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
 
         // set up vector of nodal fields
         ChMatrixDynamic<> displ(4, 1);
-        this->GetField(displ);
+        this->GetStateBlock(displ);
 
         // [local Internal Forces] = [Klocal] * P
         ChMatrixDynamic<> FiK_local(4, 1);
@@ -603,7 +603,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
     ChMatrixNM<double, 3, 1> GetPgradient() {
         // set up vector of nodal displacements (in local element system) u_l = R*p - p0
         ChMatrixDynamic<> displ(4, 1);
-        this->GetField(displ);
+        this->GetStateBlock(displ);
 
         ChMatrixNM<double, 3, 1> mPgrad;
         mPgrad.MatrMultiply(MatrB, displ);

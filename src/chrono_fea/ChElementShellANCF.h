@@ -185,7 +185,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell {
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     ///  {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
-    virtual void GetField(ChMatrixDynamic<>& mD) override;
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
 
     /// Computes the STIFFNESS MATRIX of the element:
     /// K = integral( .... ),

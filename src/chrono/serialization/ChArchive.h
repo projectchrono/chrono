@@ -152,7 +152,7 @@ public:
         { (**pt2Object.*fpt)(marchive);};             // execute member function
 
       virtual void CallNewAbstract(ChArchiveIn& marchive, const char* classname)
-        { chrono::create(classname, pt2Object); }
+        { ::chrono::create(classname, pt2Object); }
 
       virtual void  CallSetRawPtr(ChArchiveIn& marchive, void* mptr) 
         { *pt2Object = static_cast<TClass*>(mptr); };

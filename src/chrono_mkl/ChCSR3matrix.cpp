@@ -32,7 +32,7 @@ namespace chrono {
 		initialize();
 
 		if (TESTING_CSR3){
-			mkl_peak_mem_CSR3 = max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
+			mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
 		}
 	}
 
@@ -67,7 +67,7 @@ namespace chrono {
 		initialize(nonzeros_vector);
 
 		if (TESTING_CSR3){
-			mkl_peak_mem_CSR3 = max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
+			mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
 		}
 	}
 

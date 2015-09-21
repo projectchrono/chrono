@@ -253,7 +253,7 @@ public:
 				/// field values at the nodes of the element, with proper ordering.
 				/// If the D vector has not the size of this->GetNdofs(), it will be resized.
 				///  {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
-	virtual void GetField(ChMatrixDynamic<>& mD)
+	virtual void GetStateBlock(ChMatrixDynamic<>& mD)
 				{
 					mD.Reset(24,1);
 

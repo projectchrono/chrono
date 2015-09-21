@@ -1,11 +1,11 @@
-SET(LIBRARIES ChronoEngine ChronoEngine_matlab)
-INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_MATLABINC})
+SET(LIBRARIES ChronoEngine ChronoEngine_mkl)
+INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_MKL_INCLUDES})
 
 SET(TESTS
-    test_matlab
+    test_ChCSR3Matrix
 )
 
-MESSAGE(STATUS "Unit test programs for MATLAB module...")
+MESSAGE(STATUS "Unit test programs for MKL module...")
 
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")

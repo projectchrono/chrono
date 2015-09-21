@@ -304,7 +304,7 @@ application.SetPaused(true);
 	ChVector<> F, M;
 	ChMatrixDynamic<> displ;
 
-	belement1->GetField(displ);
+	belement1->GetStateBlock(displ);
 	GetLog()<< displ;
 	for (double eta = -1; eta <= 1; eta += 0.4)
 	{	
@@ -312,7 +312,7 @@ application.SetPaused(true);
 		GetLog() << "  b1_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
 	}
 	GetLog()<< "\n";
-	belement2->GetField(displ);
+	belement2->GetStateBlock(displ);
 	for (double eta = -1; eta <= 1; eta += 0.4)
 	{	
 		belement2->EvaluateSectionForceTorque(eta, displ, F, M);

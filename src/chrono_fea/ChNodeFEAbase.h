@@ -32,7 +32,7 @@ class ChMesh;
 /// that can be stored in ChMesh containers.
 /// Children classes must implement specialized versions.
 
-class ChApiFea ChNodeFEAbase  :  public virtual chrono::ChNodeBase
+class ChApiFea ChNodeFEAbase  :  public virtual ChNodeBase
 {
 public:
 

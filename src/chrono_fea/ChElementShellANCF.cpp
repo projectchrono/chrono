@@ -162,7 +162,7 @@ void ChElementShellANCF::Update() {
 
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::GetField(ChMatrixDynamic<>& mD) {
+void ChElementShellANCF::GetStateBlock(ChMatrixDynamic<>& mD) {
     mD.Reset(24, 1);
 
     mD.PasteVector(this->nodes[0]->GetPos(), 0, 0);
