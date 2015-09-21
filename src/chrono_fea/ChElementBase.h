@@ -14,6 +14,7 @@
 #define CHELEMENTBASE_H
 
 #include "physics/ChContinuumMaterial.h"
+#include "physics/ChLoadable.h"
 #include "core/ChMath.h"
 #include "core/ChShared.h"
 #include "lcp/ChLcpSystemDescriptor.h"
@@ -25,7 +26,7 @@ namespace fea {
 /// Base class for all finite elements, that can be
 /// used in the ChMesh physics item.
 
-class ChApiFea ChElementBase : public ChShared {
+class ChApiFea ChElementBase : public virtual ChShared {
   protected:
   public:
     ChElementBase(){};
