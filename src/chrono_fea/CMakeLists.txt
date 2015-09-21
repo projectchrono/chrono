@@ -26,6 +26,7 @@ SET(ChronoEngine_FEA_SOURCES
     ChElementHexa_8.cpp
     ChElementHexa_20.cpp 
     ChElementShellANCF.cpp
+    ChElementBrick.cpp
     ChNodeFEAxyz.cpp
     ChGaussIntegrationRule.cpp
     ChGaussPoint.cpp
