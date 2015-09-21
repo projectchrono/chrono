@@ -477,7 +477,7 @@ class ChQuaternion {
 
     /// Converts the quaternion to an agle of rotation and an axis,
     /// defined in _absolute_ coords. Resulting angle and axis must be passed as parameters
-    void Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) {
+    void Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const {
         Real arg, invsine;
         if (fabs(e0) < 0.99999999) {
             arg = acos(e0);
