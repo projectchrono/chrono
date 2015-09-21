@@ -20,11 +20,11 @@
 #include "chrono_mkl/ChLcpMklSolver.h"
 
 #include "FEAcables.h"
-
+/*
 using namespace chrono;
 using namespace fea;
 using namespace irr;
-
+*/
 int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
     ChSystem my_system;
