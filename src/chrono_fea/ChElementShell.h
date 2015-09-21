@@ -38,7 +38,7 @@ class  ChElementShell : public ChElementGeneric {
     /// Gets the xyz displacement of a point on the shell,
     /// and the rotation RxRyRz of section reference, at parametric coordinates 'u' and 'v'.
     /// Note, u=-1..+1 , v= -1..+1.
-    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetField()
+    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
     virtual void EvaluateSectionDisplacement(const double u,
                                              const double v,
@@ -49,7 +49,7 @@ class  ChElementShell : public ChElementGeneric {
     /// Gets the absolute xyz position of a point on the shell,
     /// and the absolute rotation of section reference,  at parametric coordinates 'u' and 'v'.
     /// Note, u=-1..+1 , v= -1..+1.
-    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetField()
+    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetStateBlock()
     /// Results are corotated.
     virtual void EvaluateSectionFrame(const double u,
                                       const double v,
@@ -60,7 +60,7 @@ class  ChElementShell : public ChElementGeneric {
     /// Gets the absolute xyz position of a point on the shell,
     /// at parametric coordinates 'u' and 'v'.
     /// Note, u=-1..+1 , v= -1..+1.
-    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetField()
+    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetStateBlock()
     /// Results are corotated.
     virtual void EvaluateSectionPoint(const double u,
                                       const double v,
@@ -72,7 +72,7 @@ class  ChElementShell : public ChElementGeneric {
     /// Gets the tensional state at a point on the shell
     /// at parametric coordinates 'u' and 'v'.
     /// Note, u=-1..+1 , v= -1..+1.
-    /// Note, 'displ' is the displ.state of  nodes, ex. get it as GetField().
+    /// Note, 'displ' is the displ.state of  nodes, ex. get it as GetStateBlock().
     /// Results are not corotated, and are expressed in the reference system of beam.
     virtual void EvaluateSectionForceTorque(const double eta,
                                             const ChMatrix<>& displ,

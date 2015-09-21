@@ -192,7 +192,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam, public ChElementCorota
     /// For corotational elements, field is assumed in local reference!
     /// Give that this element includes rotations at nodes, this gives:
     ///  {x_a y_a z_a Rx_a Ry_a Rz_a x_b y_b z_b Rx_b Ry_b Rz_b}
-    virtual void GetField(ChMatrixDynamic<>& mD) {
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) {
         mD.Reset(12, 1);
 
         ChVector<> delta_rot_dir;
@@ -430,7 +430,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam, public ChElementCorota
             // compute [H(theta)]'[K_loc] [H(theta]
 
             ChMatrixDynamic<> displ(12, 1);
-            this->GetField(displ);
+            this->GetStateBlock(displ);
 
             ChMatrix33<> mI;
             mI.Set33Identity();
@@ -663,7 +663,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam, public ChElementCorota
 
         // set up vector of nodal displacements and small rotations (in local element system)
         ChMatrixDynamic<> displ(12, 1);
-        this->GetField(displ);
+        this->GetStateBlock(displ);
 
         // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
         ChMatrixDynamic<> FiK_local(12, 1);
@@ -687,7 +687,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam, public ChElementCorota
             //
 
             ChMatrixDynamic<> displ(12, 1);
-            this->GetField(displ);
+            this->GetStateBlock(displ);
             ChMatrix33<> mI;
             mI.Set33Identity();
             ChMatrix33<> LambdaA;
@@ -805,7 +805,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam, public ChElementCorota
     /// Gets the xyz displacement of a point on the beam line,
     /// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
     virtual void EvaluateSectionDisplacement(const double eta,
                                              const ChMatrix<>& displ,
@@ -837,7 +837,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam, public ChElementCorota
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated (expressed in world reference)
     virtual void EvaluateSectionFrame(const double eta,
                                       const ChMatrix<>& displ,
@@ -867,7 +867,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam, public ChElementCorota
     /// torque (torsion on x, bending on y, on bending on z) at a section along
     /// the beam line, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField().
+    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
     /// Results are not corotated, and are expressed in the reference system of beam.
     virtual void EvaluateSectionForceTorque(const double eta,
                                             const ChMatrix<>& displ,

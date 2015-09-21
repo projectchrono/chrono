@@ -63,7 +63,7 @@ class ChApiFea ChElementBar : public ChElementGeneric {
     /// Fills the D vector (column matrix) with the current
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
-    virtual void GetField(ChMatrixDynamic<>& mD) {
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) {
         mD.Reset(this->GetNdofs(), 1);
         mD.PasteVector(this->nodes[0]->GetPos(), 0, 0);
         mD.PasteVector(this->nodes[1]->GetPos(), 3, 0);
