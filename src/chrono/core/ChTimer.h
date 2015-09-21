@@ -99,7 +99,7 @@ class ChTimer {
     /// Returns the time in [s] since start(). It does not require stop(). 
 	seconds_type GetTimeSecondsIntermediate() const {
         std::chrono::duration<seconds_type> int_time = m_start - std::chrono::high_resolution_clock::now();
-        return (mstart - std::chrono::high_resolution_clock::now()).count();
+        return int_time.count();
     }
 
     /// Get the last timer value, in seconds, with the () operator.
