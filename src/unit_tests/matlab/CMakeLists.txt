@@ -1,4 +1,4 @@
-SET(LIBRARIES ChronoEngine ChronoEngine_MATLAB)
+SET(LIBRARIES ChronoEngine ChronoEngine_matlab)
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_MATLABINC})
 
 SET(TESTS
