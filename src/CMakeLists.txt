@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
+option(BUILD_ADDITIONAL_TESTS "Build additional test programs" OFF)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
@@ -129,7 +130,7 @@ include_directories(${PROJECT_BINARY_DIR})
 add_subdirectory(chrono)
 
 # Let all modules have access to the headers of the main library
-include_directories( ${CH_INCLUDES} )
+include_directories(${CH_INCLUDES})
 
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
@@ -146,12 +147,15 @@ add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
 
-# Add directories for demo programs and unit test programs.
+# Add directories for demo programs, unit test programs, and additional test programs.
 if(BUILD_DEMOS)
   add_subdirectory(demos)
 endif()
 if(BUILD_TESTING)
   add_subdirectory(unit_tests)
+endif()
+if(BUILD_ADDITIONAL_TESTS)
+  add_subdirectory(tests)
 endif()
 
 #------------------------------------------------------------
