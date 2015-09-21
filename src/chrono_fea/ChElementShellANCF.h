@@ -19,11 +19,12 @@
 #ifndef CHELEMENTSHELLANCF_H
 #define CHELEMENTSHELLANCF_H
 
-#include "ChApiFEA.h"
-#include "ChElementShell.h"
-#include "physics/ChContinuumMaterial.h"
-#include "ChNodeFEAxyzD.h"
 #include "core/ChQuadrature.h"
+#include "chrono/physics/ChContinuumMaterial.h"
+
+#include "chrono_fea/ChApiFEA.h"
+#include "chrono_fea/ChElementShell.h"
+#include "chrono_fea/ChNodeFEAxyzD.h"
 
 namespace chrono {
 
@@ -257,11 +258,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell {
     //
     // Helper functions
     //
-
-    //// Temporary function of LU decomposition 1
-    static void LUBKSB55(ChMatrixNM<double, 5, 5>& A, int N, int NP, ChMatrixNM<int, 5, 1>& INDX, ChMatrixNM<double, 5, 1>& B);
-
-    static void LUDCMP55(ChMatrixNM<double, 5, 5>& A, double N, double NP, ChMatrixNM<int, 5, 1>& INDX, double D);
 
     /// Numerial inverse for a 5x5 matrix
     static void Inverse55_Numerical(ChMatrixNM<double, 5, 5>& a, int n);

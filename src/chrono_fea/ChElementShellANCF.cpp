@@ -16,7 +16,8 @@
 //
 // =============================================================================
 
-#include "ChElementShellANCF.h"
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChUtilsFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -1434,8 +1435,8 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     ChMatrixNM<int, 5, 1> INDX;
                     double DAMMY = 0.0;
                     ResidHE = HE;
-                    LUDCMP55(KALPHA1, 5, 5, INDX, DAMMY);
-                    LUBKSB55(KALPHA1, 5, 5, INDX, ResidHE);
+                    LU_factor(KALPHA1, INDX, DAMMY);
+                    LU_solve(KALPHA1, INDX, ResidHE);
                 }
                 if (flag_HE == ANALYTICAL && count > 2) {
                     GetLog() << i << "  count " << count << "  NormHE " << norm_HE << "\n";
@@ -1980,111 +1981,6 @@ void ChElementShellANCF::EvaluateSectionPoint(const double u,
     point.x = N(0) * pA.x + N(2) * pB.x + N(4) * pC.x + N(6) * pD.x;
     point.y = N(0) * pA.y + N(2) * pB.y + N(4) * pC.y + N(6) * pD.y;
     point.z = N(0) * pA.z + N(2) * pB.z + N(4) * pC.z + N(6) * pD.z;
-}
-
-// -----------------------------------------------------------------------------
-
-void ChElementShellANCF::LUBKSB55(ChMatrixNM<double, 5, 5>& A,
-                                  int N,
-                                  int NP,
-                                  ChMatrixNM<int, 5, 1>& INDX,
-                                  ChMatrixNM<double, 5, 1>& B) {
-    int II = 0;
-    int LL;
-    double SUM;
-    for (int I = 0; I < N; I++) {
-        LL = INDX(I);
-        SUM = B(LL);
-        B(LL) = B(I);
-        if (II != 0) {
-            for (int J = II - 1; J < I; J++) {
-                SUM -= A(I, J) * B(J);
-            }
-        } else if (SUM != 0.0) {
-            II = I + 1;
-        }
-        B(I) = SUM;
-    }
-
-    for (int I = N - 1; I >= 0; I--) {
-        SUM = B(I);
-        for (int J = I + 1; J < N; J++) {
-            SUM -= A(I, J) * B(J);
-        }
-        B(I) = SUM / A(I, I);
-    }
-}
-
-void ChElementShellANCF::LUDCMP55(ChMatrixNM<double, 5, 5>& A,
-                                  double N,
-                                  double NP,
-                                  ChMatrixNM<int, 5, 1>& INDX,
-                                  double D) {
-    int NMAX = 3000;
-    double AAMAX;
-    double SUM;
-    double DUM;
-    int IMAX;
-    double TINY = 1.0e-20;
-    ChMatrixNM<double, 3000, 1> VV;
-    D = 1.0;
-    for (int I = 0; I < N; I++) {
-        AAMAX = 0.0;
-        for (int J = 0; J < NP; J++) {
-            if ((abs(A(I, J))) > AAMAX) {
-                AAMAX = (abs(A(I, J)));
-            };
-        }
-        if (AAMAX == 0.0) {
-            GetLog() << "SINGULAR MATRIX.";
-            system("pause");
-        }
-        VV(I) = 1.0 / AAMAX;
-    }
-
-    for (int J = 0; J < NP; J++) {
-        for (int I = 0; I < J; I++) {
-            SUM = A(I, J);
-            for (int K = 0; K < I; K++) {
-                SUM -= A(I, K) * A(K, J);
-            }
-            A(I, J) = SUM;
-        }
-
-        AAMAX = 0.0;
-        for (int I = J; I < N; I++) {
-            SUM = A(I, J);
-            for (int K = 0; K < J; K++) {
-                SUM -= A(I, K) * A(K, J);
-            }
-            A(I, J) = SUM;
-            if (DUM = VV(I) * (abs(SUM)) >= AAMAX) {
-                IMAX = I;
-                AAMAX = DUM;
-            }
-        }
-
-        if (J != IMAX) {
-            for (int K = 0; K < NP; K++) {
-                DUM = A(IMAX, K);
-                A(IMAX, K) = A(J, K);
-                A(J, K) = DUM;
-            }
-            D = -D;
-            VV(IMAX) = VV(J);
-        }
-
-        INDX(J) = IMAX;
-        if (A(J, J) == 0.0) {
-            A(J, J) = TINY;
-        }
-        if (J != N - 1) {
-            DUM = 1.0 / A(J, J);
-            for (int I = J + 1; I < N; I++) {
-                A(I, J) *= DUM;
-            }
-        }
-    }
 }
 
 // -----------------------------------------------------------------------------

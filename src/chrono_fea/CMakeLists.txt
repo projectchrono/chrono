@@ -84,6 +84,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChLinkDirFrame.h
     ChLinkPointPoint.h
     ChContactSurface.h
+    ChUtilsFEA.h
 )
 
 SOURCE_GROUP("" FILES 
