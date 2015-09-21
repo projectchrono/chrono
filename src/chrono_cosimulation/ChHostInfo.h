@@ -61,7 +61,6 @@
 namespace chrono {
 namespace cosimul {
 
-// using namespace std;
 
 enum hostType { NAME, ADDRESS };
 const int HOST_NAME_LENGTH = 64;

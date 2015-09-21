@@ -636,7 +636,7 @@ void ChVisualizationFEAmesh::Update (ChPhysicsItem* updater, const ChCoordsys<>&
 
 			// displacements & rotations state of the nodes:
 			ChMatrixDynamic<> displ(mybeam->GetNdofs(),1);
-			mybeam->GetField(displ); // for field of corotated element, u_displ will be always 0 at ends
+			mybeam->GetStateBlock(displ); // for field of corotated element, u_displ will be always 0 at ends
 
 			for (int in= 0; in < beam_resolution; ++in)
 			{
@@ -747,7 +747,7 @@ void ChVisualizationFEAmesh::Update (ChPhysicsItem* updater, const ChCoordsys<>&
 
 			// displacements & rotations state of the nodes:
 			ChMatrixDynamic<> displ(myshell->GetNdofs(),1);
-			myshell->GetField(displ); 
+			myshell->GetStateBlock(displ); 
 
             for (int iu= 0; iu < shell_resolution; ++iu)
 			 for (int iv= 0; iv < shell_resolution; ++iv)

@@ -50,7 +50,7 @@ namespace chrono
 		// Get residual
 		mkl_engine.GetResidual(res);
 		res_norm = mkl_engine.GetResidualNorm(res);
-		cout << "\nCall: " << solver_call << "; Residual norm: " << res_norm;
+		std::cout << "\nCall: " << solver_call << "; Residual norm: " << res_norm;
 
 		sysd.FromVectorToUnknowns(sol);
 

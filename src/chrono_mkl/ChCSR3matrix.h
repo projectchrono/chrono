@@ -10,7 +10,7 @@
 #define TESTING_CSR3 true
 
 namespace chrono{
-	using namespace std;
+	
 
 	/* ChCSR3Matrix is a class that implements CSR3 sparse matrix format;
 	* - The more useful constructor specifies rows, columns and nonzeros
