@@ -24,11 +24,12 @@
 namespace chrono {
 namespace fea {
 
-/// In-place LU factorization
-template <typename int N>
-void LU_factor(ChMatrixNM<double, N, N>& A,  ///< [input/output] matrix to be factorized
+/// In-place LU factorization.
+/// Return false if the matrix is (close to) singular
+template <int N>
+bool LU_factor(ChMatrixNM<double, N, N>& A,  ///< [input/output] matrix to be factorized
                ChMatrixNM<int, N, 1>& INDX,  ///< [output] vector of pivots
-               double D                      ///< ???
+               bool& pivoting                ///< [output] true if pivoting was required; false otherwise
                ) {
     double AAMAX;
     double SUM;
@@ -37,7 +38,6 @@ void LU_factor(ChMatrixNM<double, N, N>& A,  ///< [input/output] matrix to be fa
     double TINY = 1.0e-20;
     ChMatrixNM<double, N, 1> VV;
 
-    D = 1.0;
     for (int I = 0; I < N; I++) {
         AAMAX = 0.0;
         for (int J = 0; J < N; J++) {
@@ -46,11 +46,12 @@ void LU_factor(ChMatrixNM<double, N, N>& A,  ///< [input/output] matrix to be fa
             }
         }
         if (AAMAX == 0.0) {
-            GetLog() << "SINGULAR MATRIX.";
-            system("pause");
+            return false;  // singular matrix
         }
         VV(I) = 1.0 / AAMAX;
     }
+
+    pivoting = false;
 
     for (int J = 0; J < N; J++) {
         for (int I = 0; I < J; I++) {
@@ -80,7 +81,7 @@ void LU_factor(ChMatrixNM<double, N, N>& A,  ///< [input/output] matrix to be fa
                 A(IMAX, K) = A(J, K);
                 A(J, K) = DUM;
             }
-            D = -D;
+            pivoting = true;
             VV(IMAX) = VV(J);
         }
 
@@ -95,10 +96,12 @@ void LU_factor(ChMatrixNM<double, N, N>& A,  ///< [input/output] matrix to be fa
             }
         }
     }
+
+    return true;
 }
 
 /// LU linear system solution (back substitution)
-template <typename int N>
+template <int N>
 void LU_solve(const ChMatrixNM<double, N, N>& A,  ///< [input] LU factorized matrix
               const ChMatrixNM<int, N, 1>& INDX,  ///< [output] vector of pivots
               ChMatrixNM<double, N, 1>& B         ///< [input/output] on entry, the RHS; on return, the solution vector

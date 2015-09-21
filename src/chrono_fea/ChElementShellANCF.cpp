@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChException.h"
+
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChUtilsFEA.h"
 
@@ -1433,9 +1435,10 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     fail = 0;
                 } else {
                     ChMatrixNM<int, 5, 1> INDX;
-                    double DAMMY = 0.0;
+                    bool pivoting;
                     ResidHE = HE;
-                    LU_factor(KALPHA1, INDX, DAMMY);
+                    if (!LU_factor(KALPHA1, INDX, pivoting))
+                        throw ChException("Singular matrix in LU factorization");
                     LU_solve(KALPHA1, INDX, ResidHE);
                 }
                 if (flag_HE == ANALYTICAL && count > 2) {
@@ -1653,7 +1656,6 @@ void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8
     temp_knot(7, 0) = 0.0;   // D
     temp_knot(7, 1) = 1.0;   // D
 
-    ChElementShellANCF* element;
     ChMatrixNM<double, 3, 24> Sx;
     ChMatrixNM<double, 3, 24> Sy;
     ChMatrixNM<double, 3, 24> Sz;
