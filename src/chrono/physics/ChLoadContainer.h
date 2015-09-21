@@ -53,7 +53,7 @@ public:
     }
 
     virtual void Update(double mytime, bool update_assets = true) {
-        for (size_t i; i<loadlist.size(); ++i)  {
+        for (size_t i=0; i<loadlist.size(); ++i)  {
             loadlist[i]->Update();
         }
     }
@@ -63,7 +63,7 @@ public:
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                    const double c           ///< a scaling factor
                                    ){
-        for (size_t i; i<loadlist.size(); ++i)  { 
+        for (size_t i=0; i<loadlist.size(); ++i)  { 
             loadlist[i]->LoadIntLoadResidual_F(R,c);
         }
     };
@@ -73,7 +73,7 @@ public:
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor){
 
-        for (size_t i; i<loadlist.size(); ++i) {
+        for (size_t i=0; i<loadlist.size(); ++i) {
             loadlist[i]->InjectKRMmatrices(mdescriptor);
         }
     };
@@ -85,7 +85,7 @@ public:
     /// NOTE: signs are flipped respect to the ChTimestepper dF/dx terms:  K = -dF/dq, R = -dF/dv
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor){
 
-         for (size_t i; i<loadlist.size(); ++i) {
+         for (size_t i=0; i<loadlist.size(); ++i) {
              loadlist[i]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
          }
     };
