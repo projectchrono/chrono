@@ -43,38 +43,13 @@ CODE MODIFIED FROM:
 #include <new>
 #include <cfloat>
 #include <float.h>
+#include <ctime>
+#include <ratio>
+#include <chrono>
 
 
 namespace chrono {
 namespace utils {
-
-struct ChClockData;
-
-///The ChClock is a portable basic clock that measures accurate time in seconds, use for profiling.
-class ChClock
-{
-public:
-	ChClock();
-
-	ChClock(const ChClock& other);
-	ChClock& operator=(const ChClock& other);
-
-	~ChClock();
-
-	/// Resets the initial reference time.
-	void reset();
-
-	/// Returns the time in ms since the last call to reset or since 
-	/// the ChClock was created.
-	unsigned long int getTimeMilliseconds();
-
-	/// Returns the time in us since the last call to reset or since 
-	/// the Clock was created.
-	unsigned long int getTimeMicroseconds();
-private:
-	ChClockData* m_data;
-};
-
 
 
 
