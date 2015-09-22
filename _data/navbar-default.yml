@@ -3,10 +3,10 @@ main:
       url: '#'
     - title: Download
       url: '/download'
-    - title: Blog
+    - title: News
       url: '/news/'
-    - title: Community
-      url: '/community/'
+    - title: Forum
+      url: '/forum'
     - title: Gallery
       url: '/gallery'
 
