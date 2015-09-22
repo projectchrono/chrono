@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Bryan Peterson, Milad Rakhsha, Antonio Recuero
+// Authors: Bryan Peterson, Milad Rakhsha, Antonio Recuero, Radu Serban
 // =============================================================================
 //
 // ANCF laminated shell element with four nodes.
@@ -19,7 +19,6 @@
 #ifndef CHELEMENTSHELLANCF_H
 #define CHELEMENTSHELLANCF_H
 
-#include "core/ChQuadrature.h"
 #include "chrono/physics/ChContinuumMaterial.h"
 
 #include "chrono_fea/ChApiFEA.h"
@@ -30,53 +29,61 @@ namespace chrono {
 
 namespace fea {
 
+///
 /// ANCF laminated shell element with four nodes.
+///
 class ChApiFea ChElementShellANCF : public ChElementShell {
   protected:
     enum JacobianType { ANALYTICAL, NUMERICAL };
 
-    std::vector<ChSharedPtr<ChNodeFEAxyzD> > nodes;
+    std::vector<ChSharedPtr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
 
-    double thickness;
-    int elementnumber;
-    double Alpha;
-    ChSharedPtr<ChContinuumElastic> Material;
+    double m_thickness;
+    int m_element_number;                        ///< element number (for EAS)
+    double m_Alpha;                              ///< structural damping
+    ChSharedPtr<ChContinuumElastic> m_Material;  ///< elastic material
 
-    ChMatrixNM<double, 24, 24> StiffnessMatrix;  ///< stiffness matrix
-    ChMatrixNM<double, 24, 24> MassMatrix;       ///< mass matrix
+    ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< stiffness matrix
+    ChMatrixNM<double, 24, 24> m_MassMatrix;       ///< mass matrix
 
-    ChMatrixNM<double, 24, 24> stock_jac_EAS;  ///< EAS per elmeent 24
+    ChMatrixNM<double, 24, 24> m_stock_jac_EAS;  ///< EAS per elmeent 24
+    ChMatrixNM<double, 24, 24> m_stock_KTE;      ///< Analytical Jacobian
 
-    ChMatrixNM<double, 24, 24> stock_KTE;  ///< Analytical Jacobian
-
-    ChMatrixNM<double, 24, 1> initialposD;  ///< Initial Coordinate per element
-    ChMatrixNM<double, 24, 1> GravForce;    ///< Gravity Force
+    ChMatrixNM<double, 24, 1> m_initialposD;  ///< Initial Coordinate per element
+    ChMatrixNM<double, 24, 1> m_GravForce;    ///< Gravity Force
 
     // Material Properties for orthotropic per element (14x7) Max #layer is 7
-    ChMatrixNM<double, 98, 1> InertFlexVec;    ///< for Laminate shell
-    ChMatrixNM<double, 35, 1> StockAlpha_EAS;  ///< StockAlpha(5*7,1): Max #Layer is 7
-    ChMatrixNM<double, 7, 2> GaussZRange;      ///< StockAlpha(7,2): Max #Layer is 7 (-1 < GaussZ < 1)
+    ChMatrixNM<double, 98, 1> m_InertFlexVec;    ///< for Laminate shell
+    ChMatrixNM<double, 35, 1> m_StockAlpha_EAS;  ///< StockAlpha(5*7,1): Max #Layer is 7
+    ChMatrixNM<double, 7, 2> m_GaussZRange;      ///< StockAlpha(7,2): Max #Layer is 7 (-1 < GaussZ < 1)
 
-    int NumLayer;
+    int m_numLayers;  ///< number of layers for this element
 
-    JacobianType flag_HE;
+    JacobianType m_flag_HE;  ///< Jacobian evaluation type (analytical or numerical)
 
-    double dt;
+    double m_dt;  ///< time step used in calculating structural damping coefficient
 
-    int FlagGravity;
-
-    int FlagAirPressure;
+    bool m_gravity_on;       ///< flag indicating whether or not gravity is included
+    bool m_air_pressure_on;  ///< flag indicating whether or not air pressure is included
 
   public:
     ChElementShellANCF();
     ~ChElementShellANCF() {}
 
+    /// Get the number of nodes used by this element.
     virtual int GetNnodes() override { return 4; }
+
+    /// Get the number of coordinates of the node positions in space.
+    /// Note this is not the coordinates of the field, use GetNdofs() instead.
     virtual int GetNcoords() override { return 4 * 6; }
+
+    /// Get the number of coordinates in the field used by the referenced nodes.
     virtual int GetNdofs() override { return 4 * 6; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+    /// Access the n-th node of this element.
+    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
 
+    /// Specify the nodes of this element.
     void SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
                   ChSharedPtr<ChNodeFEAxyzD> nodeB,
                   ChSharedPtr<ChNodeFEAxyzD> nodeC,
@@ -86,81 +93,69 @@ class ChApiFea ChElementShellANCF : public ChElementShell {
     // FEM functions
     //
 
-    /// Set the section & material of shell element .
-    /// It is a shared property, so it can be shared between other beams.
-    void SetThickness(double th) { thickness = th; }  // Total shell thickness
+    /// Set the stotal shell thickness.
+    void SetThickness(double th) { m_thickness = th; }
 
-    void SetElemNum(int kb) { elementnumber = kb; }  //// 2015/5/23 for EAS
+    /// Set the element number (for EAS).
+    /// Used for debugging purposes only.
+    void SetElemNum(int kb) { m_element_number = kb; }
 
-    void SetStockAlpha(ChMatrixNM<double, 35, 1> a) { StockAlpha_EAS = a; }
+    void SetStockAlpha(const ChMatrixNM<double, 35, 1>& a) { m_StockAlpha_EAS = a; }
 
-    void SetStockJac(ChMatrixNM<double, 24, 24> a) { stock_jac_EAS = a; }  //// 2015/5/23  for EAS
+    void SetStockJac(const ChMatrixNM<double, 24, 24>& a) { m_stock_jac_EAS = a; }  //// for EAS
 
-    void SetStockKTE(ChMatrixNM<double, 24, 24> a) { stock_KTE = a; }  //// 2015/5/23  for EAS
+    void SetStockKTE(const ChMatrixNM<double, 24, 24>& a) { m_stock_KTE = a; }  //// for EAS
 
-    void SetGravForce(ChMatrixNM<double, 24, 1> a) { GravForce = a; }
+    void SetInertFlexVec(const ChMatrixNM<double, 98, 1>& a) { m_InertFlexVec = a; }  //// for Laminate shell
 
-    void SetInertFlexVec(ChMatrixNM<double, 98, 1> a) { InertFlexVec = a; }  //// 2015/5/28  for Laminate shell
+    /// Set the numbber of layers (for laminate shell)
+    void SetNumLayers(int numLayers) { m_numLayers = numLayers; }
 
-    void SetNumLayer(int a) { NumLayer = a; }  //// 2015/5/28  for Laminate shell
+    void SetGaussZRange(const ChMatrixNM<double, 7, 2>& a) { m_GaussZRange = a; }  //// for Laminate shell
 
-    void SetGaussZRange(ChMatrixNM<double, 7, 2> a) { GaussZRange = a; }  //// 2015/6/1  for Laminate shell
+    /// Set the step size used in calculating the structural damping coefficient.
+    void Setdt(double a) { m_dt = a; }
 
-    void Setdt(double a) { dt = a; }  // To calculate structural damping coefficient
+    /// Turn gravity on/off.
+    void SetGravityOn(bool val) { m_gravity_on = val; }
 
-    void SetGravityZ(int a) { FlagGravity = a; }  // Gravity Flag
+    /// Turn air pressure on/off.
+    void SetAirPressureOn(bool val) { m_air_pressure_on = val; }
 
-    void SetAirPressure(int a) { FlagAirPressure = a; }  // AirPressure Flag
+    const ChMatrixNM<double, 35, 1>& GetStockAlpha() const { return m_StockAlpha_EAS; }  //// for EAS
 
-    /// Get the section & material of the element
-    double GetThickness() { return thickness; }  /// Total shell thickness
+    const ChMatrixNM<double, 98, 1>& GetInertFlexVec() const { return m_InertFlexVec; }  //// for Laminate shell
 
-    int GetElemNum() { return elementnumber; }  //// 2015/5/23  for EAS
+    const ChMatrixNM<double, 7, 2>& GetGaussZRange() const { return m_GaussZRange; }  //// for Laminate shell
 
-    ChMatrixNM<double, 35, 1> GetStockAlpha() { return StockAlpha_EAS; }  //// 2015/5/23  for EAS
+    /// Set the structural damping.
+    void SetAlphaDamp(double a) { m_Alpha = a; }
 
-    ChMatrixNM<double, 24, 24> GetStockJac() { return stock_jac_EAS; }  //// 2015/5/23  for EAS
+    /// Get a handle to the first node of this element.
+    ChSharedPtr<ChNodeFEAxyzD> GetNodeA() const { return m_nodes[0]; }
 
-    ChMatrixNM<double, 24, 24> GetStockKTE() { return stock_KTE; }  //// Retrieve ananyltical jacobian
+    /// Get a handle to the second node of this element.
+    ChSharedPtr<ChNodeFEAxyzD> GetNodeB() const { return m_nodes[1]; }
 
-    ChMatrixNM<double, 24, 1> GetGravForce() { return GravForce; }
+    /// Get a handle to the third node of this element.
+    ChSharedPtr<ChNodeFEAxyzD> GetNodeC() const { return m_nodes[2]; }
 
-    ChMatrixNM<double, 24, 1> GetInitialPosD() { return initialposD; }  //// 2015/5/23  for Initial position
+    /// Get a handle to the fourth node of this element.
+    ChSharedPtr<ChNodeFEAxyzD> GetNodeD() const { return m_nodes[3]; }
 
-    ChMatrixNM<double, 98, 1> GetInertFlexVec() { return InertFlexVec; }  //// 2015/5/28  for Laminate shell
+    /// Get the element length in the X direction.
+    /// For laminate shell. each layer has the same element length
+    double GetLengthX() const { return m_InertFlexVec(1); }
 
-    ChMatrixNM<double, 7, 2> GetGaussZRange() { return GaussZRange; }  //// 2015/6/1  for Laminate shell
+    /// Get the element length in the Y direction.
+    /// For laminate shell. each layer has the same element length
+    double GetLengthY() const { return m_InertFlexVec(2); }
 
-    int GetNumLayer() { return NumLayer; }  //// 2015/5/28  for Laminate shell
+    /// set the continuum elastic material.
+    void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { m_Material = my_material; }
 
-    double Getdt() { return dt; }  //// To calculate structural damping coefficient
-
-    int GetFlagGravity() { return FlagGravity; }  // Gravity Flag
-
-    int GetAirPressure() { return FlagAirPressure; }  // AirPressure Flag
-
-    /// 2015/6/23 Structural Damping
-    void SetAlphaDamp(double a) { Alpha = a; }
-
-    double GetAlphaDamp() { return Alpha; }
-
-    /// Get each node
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeA() { return nodes[0]; }
-
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeB() { return nodes[1]; }
-
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeC() { return nodes[2]; }
-
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeD() { return nodes[3]; }
-
-    // double GetLengthX() {return nodes[1]->GetX0().x - nodes[0]->GetX0().x;}
-    double GetLengthX() { return InertFlexVec(1); }  // For laminate shell. each layer has the same elmenet length
-
-    // double GetLengthY() {return nodes[2]->GetX0().y - nodes[0]->GetX0().y;}
-    double GetLengthY() { return InertFlexVec(2); }  // For laminate shell. each layer has the same elmenet length
-
-    void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { Material = my_material; }
-    ChSharedPtr<ChContinuumElastic> GetMaterial() { return Material; }
+    /// Get a handle to the material for this element.
+    ChSharedPtr<ChContinuumElastic> GetMaterial() const { return m_Material; }
 
     /// Fills the N shape function matrix.
     /// NOTE! actually N should be a 3row, 24 column sparse matrix,
@@ -169,16 +164,22 @@ class ChApiFea ChElementShellANCF : public ChElementShell {
     /// it stores only the s1 through s8 values in a 1 row, 8 columns matrix!
     void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
 
-    /// Fills the N shape function derivative matrix with respect to
-    /// the x, y, and z coordinate.
+    /// Fills the Nx shape function derivative matrix with respect to X.
     /// NOTE! to avoid wasting zero and repeated elements, here
     /// it stores only the four values in a 1 row, 8 columns matrix!
     void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z);
 
+    /// Fills the Ny shape function derivative matrix with respect to Y.
+    /// NOTE! to avoid wasting zero and repeated elements, here
+    /// it stores only the four values in a 1 row, 8 columns matrix!
     void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
 
+    /// Fills the Nz shape function derivative matrix with respect to Z.
+    /// NOTE! to avoid wasting zero and repeated elements, here
+    /// it stores only the four values in a 1 row, 8 columns matrix!
     void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
 
+    /// Update the state of this element.
     virtual void Update() override;
 
     /// Fills the D vector (column matrix) with the current
@@ -187,32 +188,35 @@ class ChApiFea ChElementShellANCF : public ChElementShell {
     ///  {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
     virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
 
-    /// Computes the STIFFNESS MATRIX of the element:
+    /// Compute the STIFFNESS MATRIX of the element.
     /// K = integral( .... ),
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
     void ComputeStiffnessMatrix();
 
-    /// Computes the MASS MATRIX of the element
+    /// Compute the MASS MATRIX of the element.
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
     void ComputeMassMatrix();
 
-    /// Setup. Precompute mass and matrices that do not change during the
-    /// simulation, ex. the mass matrix in ANCF is constant
+    /// Compute the gravitational forces.
     void ComputeGravityForce();
 
+    /// Initial setup.
+    /// This is used mostly to precompute matrices that do not change during the simulation,
+    /// such as the local stiffness of each element (if any), the mass, etc.
     virtual void SetupInitial() override;
 
-    /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
-    /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
+    /// Sets H as the global stiffness matrix K, scaled  by Kfactor.
+    /// Optionally, also superimposes global damping matrix R, scaled by Rfactor, and global
+    /// mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
-    /// Computes the internal forces (ex. the actual position of
-    /// nodes is not in relaxed reference position) and set values
+    /// Computes the internal forces.
+    /// (E.g. the actual position of nodes is not in relaxed reference position) and set values
     /// in the Fi vector.
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
 

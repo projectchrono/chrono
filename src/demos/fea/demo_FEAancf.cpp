@@ -251,14 +251,14 @@ void test_1() {
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
 		element->SetMaterial(mmaterial);
-		element->SetNumLayer(NumLayer[LayNUM[i]-1]);
+		element->SetNumLayers(NumLayer[LayNUM[i]-1]);
 		element->SetThickness(TotalThickness);
 		element->SetElemNum(elemcount);
 		element->SetAlphaDamp(0.00);
 		//== 7/14/2015
 		element->Setdt(0.001); // dt to calculate DampingCoefficient
-		element->SetGravityZ(1); // 0:No Gravity, 1:Gravity(Fz=-9.81)
-		element->SetAirPressure(0); // 0:No AirPressure, 1:220kPa Air Pressure
+		element->SetGravityOn(true); // turn gravity on/off
+		element->SetAirPressureOn(false); // turn air pressure on/off
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
@@ -552,14 +552,14 @@ void test_2() {
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
 		element->SetMaterial(mmaterial);
-		element->SetNumLayer(NumLayer[LayNUM[i]-1]);
+		element->SetNumLayers(NumLayer[LayNUM[i]-1]);
 		element->SetThickness(TotalThickness);
 		element->SetElemNum(elemcount);
 		element->SetAlphaDamp(0.005);
 		//== 7/14/2015
 		element->Setdt(0.00025); // dt to calculate DampingCoefficient
-		element->SetGravityZ(0); // 0:No Gravity, 1:Gravity(Fz=-9.81)
-		element->SetAirPressure(1); // 0:No AirPressure, 1:220kPa Air Pressure
+		element->SetGravityOn(false); // turn gravity on/off
+        element->SetAirPressureOn(true); // turn air pressure on/off
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
@@ -854,15 +854,15 @@ void test_3() {
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
 		element->SetMaterial(mmaterial);
-		element->SetNumLayer(NumLayer[LayNUM[i]-1]);
+		element->SetNumLayers(NumLayer[LayNUM[i]-1]);
 		element->SetThickness(TotalThickness);
 		element->SetElemNum(elemcount);
 		element->SetAlphaDamp(0.00);
 		//== 7/14/2015
 		element->Setdt(0.001); // dt to calculate DampingCoefficient
-		element->SetGravityZ(1); // 0:No Gravity, 1:Gravity(Fz=-9.81)
-		element->SetAirPressure(0); // 0:No AirPressure, 1:220kPa Air Pressure
-		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
+		element->SetGravityOn(true); // turn gravity on/off
+        element->SetAirPressureOn(false); // turn air pressure on/off
+        ChMatrixNM<double, 35, 1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
 		my_mesh->AddElement(element);
@@ -1130,15 +1130,15 @@ void test_4() {
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
 		element->SetMaterial(mmaterial);
-		element->SetNumLayer(NumLayer[LayNUM[i]-1]);
+		element->SetNumLayers(NumLayer[LayNUM[i]-1]);
 		element->SetThickness(TotalThickness);
 		element->SetElemNum(elemcount);
 		element->SetAlphaDamp(0.005);
 		//== 7/14/2015
 		element->Setdt(0.00025); // dt to calculate DampingCoefficient
-		element->SetGravityZ(0); // 0:No Gravity, 1:Gravity(Fz=-9.81)
-		element->SetAirPressure(1); // 0:No AirPressure, 1:220kPa Air Pressure
-		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
+		element->SetGravityOn(false); // turn gravity on/off
+        element->SetAirPressureOn(true); // turn air pressure on/off
+        ChMatrixNM<double, 35, 1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
 		my_mesh->AddElement(element);

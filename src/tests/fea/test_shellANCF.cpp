@@ -255,14 +255,14 @@ int main(int argc, char* argv[]) {
                           my_mesh->GetNode(NumNodes[elemcount][2]).DynamicCastTo<ChNodeFEAxyzD>(),
                           my_mesh->GetNode(NumNodes[elemcount][3]).DynamicCastTo<ChNodeFEAxyzD>());
         element->SetMaterial(mmaterial);
-        element->SetNumLayer(NumLayer(LayNum(i, 0) - 1, 0));
+        element->SetNumLayers(NumLayer(LayNum(i, 0) - 1, 0));
         element->SetThickness(TotalThickness);
         element->SetElemNum(elemcount);
         element->SetAlphaDamp(0.00);
 
         element->Setdt(0.001);                     // dt to calculate DampingCoefficient
-        element->SetGravityZ(1);                   // 0:No Gravity, 1:Gravity(Fz=-9.81)
-        element->SetAirPressure(0);                // 0:No AirPressure, 1:220kPa Air Pressure
+        element->SetGravityOn(true);               // turn gravity on/off
+        element->SetAirPressureOn(false);          // turn air pressure on/off
         ChMatrixNM<double, 35, 1> StockAlpha_EAS;  // StockAlpha(5*7,1): Max #Layer is 7
         StockAlpha_EAS.Reset();
         element->SetStockAlpha(StockAlpha_EAS);
