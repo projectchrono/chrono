@@ -21,7 +21,7 @@ executables. Moreover, the installer also installs a 'Chrono::Engine
 Wizard' in your Microsoft Visual C++ IDE.
 
 <div class="well">
-<h4> Download precompiled Chrono::Engine</h4>
+<h4> <span class="glyphicon glyphicon-download-alt"></span> Download precompiled Chrono::Engine</h4>
 <a href="http://www.chronoengine.info/download/ChronoEngine_v1.7.0.exe">Download Chrono::Engine v 1.7.0 - precompiled libraries for VC++ 32/64 bit (Windows)</a>
 
 <h5> older versions:</h5>
@@ -57,7 +57,7 @@ the 32 bit version of Python is currently supported with this installer.
 
 
 <div class="well">
-<h4> Download PyChrono::Engine for Python</h4>
+<h4> <span class="glyphicon glyphicon-download-alt"></span> Download PyChrono::Engine for Python</h4>
 
 <a href="http://www.chronoengine.info/download/PyChronoEngine_v1.8.0.exe"> Download Chrono::PyEngine v.1.8.0 module for Python v.3.3 64bit</a><br />
 <a href="http://www.chronoengine.info/download/PyChronoEngine_v1.7.1.exe"> Download Chrono::PyEngine v.1.7.1 module for Python v.3.3 32bit</a><br />
@@ -73,7 +73,7 @@ the 32 bit version of Python is currently supported with this installer.
 
 <span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span> If you plan to use ''only'' Python, this is the only installer that you need to download.
 
-<span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span> If you need to plot graphs in Python, we suggest you to consider also the installation of both [http://matplotlib.org/downloads.html Matplotlib] and <a href="http://www.numpy.org/"> Numpy </a> Python packages.
+<span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span> If you need to plot graphs in Python, we suggest you to consider also the installation of both <a href="http://matplotlib.org/downloads.html"> Matplotlib</a>  and <a href="http://www.numpy.org/"> Numpy </a> Python packages.
 
 Chrono::SolidWorks
 ------------------
@@ -90,7 +90,7 @@ and v.2012 64bit supported and tested, for the moment) and adds the
 Chrono::Engine add-in.
 
 <div class="well">
-<h4> Download Chrono::SolidWorks add-in for SolidWorks</h4>
+<h4> <span class="glyphicon glyphicon-download-alt"></span> Download Chrono::SolidWorks add-in for SolidWorks</h4>
 <a href="http://www.chronoengine.info/download/ChronoEngine_SolidWorks_v2.04.exe"> Download Chrono::SolidWorks v.2.0.4 add-in for SolidWorks 2013 and higher (beta)</a><br />
 
 <h5> older versions:</h5>
@@ -112,7 +112,7 @@ is **required** in order to compile the Chrono::Engine demos that use a
 on OpenGL and DirectX.
 
 <div class="well">
-<h4> Download Irrlicht</h4>
+<h4> <span class="glyphicon glyphicon-download-alt"></span> Download Irrlicht</h4>
 <a href="http://downloads.sourceforge.net/irrlicht/irrlicht-1.7.3.zip">Download Irrlicht v.1.7.3 </a>
 </div>
 
