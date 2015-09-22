@@ -1,0 +1,17 @@
+main:
+    - title: Documentation
+      url: '#'
+    - title: Download
+      url: '#'
+    - title: Blog
+      url: '/news/'
+    - title: Community
+      url: '/community/'
+    - title: Gallery
+      url: '#'
+
+right:
+    - title: People
+      url: '/people/'
+    - title: About
+      url: '/about/'
