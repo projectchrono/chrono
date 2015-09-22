@@ -50,3 +50,11 @@ $on-laptop:        800px;
         "layout",
         "syntax-highlighting"
 ;
+
+.container-narrow {
+  margin: 0 auto;
+  max-width: 900px;
+}
+.container-narrow > hr {
+  margin: 30px 0;
+}
