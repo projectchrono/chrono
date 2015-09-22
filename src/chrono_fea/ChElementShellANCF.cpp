@@ -411,7 +411,7 @@ void ChElementShellANCF::ComputeGravityForce() {
 void ChElementShellANCF::SetupInitial() {
     ComputeGravityForce();
     // Compute initial Jacobian
-    ChMatrixDynamic<double> Temp;
+    ChMatrixDynamic<double> Temp(GetNdofs(), 1);
     ComputeInternalForces(Temp);
     // Compute mass matrix
     ComputeMassMatrix();
