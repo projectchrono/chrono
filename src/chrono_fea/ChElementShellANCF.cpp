@@ -56,7 +56,7 @@ void ChElementShellANCF::SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
     mvars.push_back(&m_nodes[3]->Variables_D());
     Kmatr.SetVariables(mvars);
 
-    // Initial position and slope per element //// 2015/5/23  for Initial position
+    // Initial positions and slopes of the element nodes
     ChVector<> pA = m_nodes[0]->GetPos();
     ChVector<> dA = m_nodes[0]->GetD();
     ChVector<> pB = m_nodes[1]->GetPos();
@@ -65,30 +65,38 @@ void ChElementShellANCF::SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
     ChVector<> dC = m_nodes[2]->GetD();
     ChVector<> pD = m_nodes[3]->GetPos();
     ChVector<> dD = m_nodes[3]->GetD();
-    m_initialposD(0, 0) = pA(0);
-    m_initialposD(1, 0) = pA(1);
-    m_initialposD(2, 0) = pA(2);
-    m_initialposD(3, 0) = dA(0);
-    m_initialposD(4, 0) = dA(1);
-    m_initialposD(5, 0) = dA(2);
-    m_initialposD(6, 0) = pB(0);
-    m_initialposD(7, 0) = pB(1);
-    m_initialposD(8, 0) = pB(2);
-    m_initialposD(9, 0) = dB(0);
-    m_initialposD(10, 0) = dB(1);
-    m_initialposD(11, 0) = dB(2);
-    m_initialposD(12, 0) = pC(0);
-    m_initialposD(13, 0) = pC(1);
-    m_initialposD(14, 0) = pC(2);
-    m_initialposD(15, 0) = dC(0);
-    m_initialposD(16, 0) = dC(1);
-    m_initialposD(17, 0) = dC(2);
-    m_initialposD(18, 0) = pD(0);
-    m_initialposD(19, 0) = pD(1);
-    m_initialposD(20, 0) = pD(2);
-    m_initialposD(21, 0) = dD(0);
-    m_initialposD(22, 0) = dD(1);
-    m_initialposD(23, 0) = dD(2);
+
+    m_d0(0, 0) = pA(0);
+    m_d0(0, 1) = pA(1);
+    m_d0(0, 2) = pA(2);
+
+    m_d0(1, 0) = dA(0);
+    m_d0(1, 1) = dA(1);
+    m_d0(1, 2) = dA(2);
+
+    m_d0(2, 0) = pB(0);
+    m_d0(2, 1) = pB(1);
+    m_d0(2, 2) = pB(2);
+
+    m_d0(3, 0) = dB(0);
+    m_d0(3, 1) = dB(1);
+    m_d0(3, 2) = dB(2);
+
+    m_d0(4, 0) = pC(0);
+    m_d0(4, 1) = pC(1);
+    m_d0(4, 2) = pC(2);
+
+    m_d0(5, 0) = dC(0);
+    m_d0(5, 1) = dC(1);
+    m_d0(5, 2) = dC(2);
+
+    m_d0(6, 0) = pD(0);
+    m_d0(6, 1) = pD(1);
+    m_d0(6, 2) = pD(2);
+
+    m_d0(7, 0) = dD(0);
+    m_d0(7, 1) = dD(1);
+    m_d0(7, 2) = dD(2);
 }
 
 // -----------------------------------------------------------------------------
@@ -188,32 +196,6 @@ void ChElementShellANCF::ComputeStiffnessMatrix() {
 }
 
 void ChElementShellANCF::ComputeMassMatrix() {
-    ChMatrixNM<double, 8, 3> d0;
-    d0(0, 0) = m_initialposD(0, 0);
-    d0(0, 1) = m_initialposD(1, 0);
-    d0(0, 2) = m_initialposD(2, 0);
-    d0(1, 0) = m_initialposD(3, 0);
-    d0(1, 1) = m_initialposD(4, 0);
-    d0(1, 2) = m_initialposD(5, 0);
-    d0(2, 0) = m_initialposD(6, 0);
-    d0(2, 1) = m_initialposD(7, 0);
-    d0(2, 2) = m_initialposD(8, 0);
-    d0(3, 0) = m_initialposD(9, 0);
-    d0(3, 1) = m_initialposD(10, 0);
-    d0(3, 2) = m_initialposD(11, 0);
-    d0(4, 0) = m_initialposD(12, 0);
-    d0(4, 1) = m_initialposD(13, 0);
-    d0(4, 2) = m_initialposD(14, 0);
-    d0(5, 0) = m_initialposD(15, 0);
-    d0(5, 1) = m_initialposD(16, 0);
-    d0(5, 2) = m_initialposD(17, 0);
-    d0(6, 0) = m_initialposD(18, 0);
-    d0(6, 1) = m_initialposD(19, 0);
-    d0(6, 2) = m_initialposD(20, 0);
-    d0(7, 0) = m_initialposD(21, 0);
-    d0(7, 1) = m_initialposD(22, 0);
-    d0(7, 2) = m_initialposD(23, 0);
-
     ChMatrixNM<double, 24, 24> TempMassMatrix;
     m_MassMatrix.Reset();
 
@@ -294,7 +276,7 @@ void ChElementShellANCF::ComputeMassMatrix() {
         };
 
         MyMass myformula;
-        myformula.d0 = &d0;
+        myformula.d0 = &m_d0;
         myformula.element = this;
 
         TempMassMatrix.Reset();
@@ -315,33 +297,6 @@ void ChElementShellANCF::ComputeMassMatrix() {
 }
 
 void ChElementShellANCF::ComputeGravityForce() {
-    /// Initial nodal coordinates
-    ChMatrixNM<double, 8, 3> d0;
-    d0(0, 0) = m_initialposD(0, 0);
-    d0(0, 1) = m_initialposD(1, 0);
-    d0(0, 2) = m_initialposD(2, 0);
-    d0(1, 0) = m_initialposD(3, 0);
-    d0(1, 1) = m_initialposD(4, 0);
-    d0(1, 2) = m_initialposD(5, 0);
-    d0(2, 0) = m_initialposD(6, 0);
-    d0(2, 1) = m_initialposD(7, 0);
-    d0(2, 2) = m_initialposD(8, 0);
-    d0(3, 0) = m_initialposD(9, 0);
-    d0(3, 1) = m_initialposD(10, 0);
-    d0(3, 2) = m_initialposD(11, 0);
-    d0(4, 0) = m_initialposD(12, 0);
-    d0(4, 1) = m_initialposD(13, 0);
-    d0(4, 2) = m_initialposD(14, 0);
-    d0(5, 0) = m_initialposD(15, 0);
-    d0(5, 1) = m_initialposD(16, 0);
-    d0(5, 2) = m_initialposD(17, 0);
-    d0(6, 0) = m_initialposD(18, 0);
-    d0(6, 1) = m_initialposD(19, 0);
-    d0(6, 2) = m_initialposD(20, 0);
-    d0(7, 0) = m_initialposD(21, 0);
-    d0(7, 1) = m_initialposD(22, 0);
-    d0(7, 2) = m_initialposD(23, 0);
-
     m_GravForce.Reset();
 
     for (int kl = 0; kl < m_numLayers; kl++) {
@@ -426,12 +381,12 @@ void ChElementShellANCF::ComputeGravityForce() {
 
                 result.MatrTMultiply(S, LocalGravityForce);
 
-                result *= detJ0 * wx2 * wy2 * wz2;  // 5/28/2015
+                result *= detJ0 * wx2 * wy2 * wz2;
             }
         };
 
         MyGravity myformula1;
-        myformula1.d0 = &d0;
+        myformula1.d0 = &m_d0;
         myformula1.element = this;
 
         ChMatrixNM<double, 24, 1> Fgravity;
@@ -574,33 +529,6 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     d(7, 0) = dD.x;
     d(7, 1) = dD.y;
     d(7, 2) = dD.z;
-
-    /// Initial nodal coordinates
-    ChMatrixNM<double, 8, 3> d0;
-    d0(0, 0) = m_initialposD(0, 0);
-    d0(0, 1) = m_initialposD(1, 0);
-    d0(0, 2) = m_initialposD(2, 0);
-    d0(1, 0) = m_initialposD(3, 0);
-    d0(1, 1) = m_initialposD(4, 0);
-    d0(1, 2) = m_initialposD(5, 0);
-    d0(2, 0) = m_initialposD(6, 0);
-    d0(2, 1) = m_initialposD(7, 0);
-    d0(2, 2) = m_initialposD(8, 0);
-    d0(3, 0) = m_initialposD(9, 0);
-    d0(3, 1) = m_initialposD(10, 0);
-    d0(3, 2) = m_initialposD(11, 0);
-    d0(4, 0) = m_initialposD(12, 0);
-    d0(4, 1) = m_initialposD(13, 0);
-    d0(4, 2) = m_initialposD(14, 0);
-    d0(5, 0) = m_initialposD(15, 0);
-    d0(5, 1) = m_initialposD(16, 0);
-    d0(5, 2) = m_initialposD(17, 0);
-    d0(6, 0) = m_initialposD(18, 0);
-    d0(6, 1) = m_initialposD(19, 0);
-    d0(6, 2) = m_initialposD(20, 0);
-    d0(7, 0) = m_initialposD(21, 0);
-    d0(7, 1) = m_initialposD(22, 0);
-    d0(7, 2) = m_initialposD(23, 0);
 
     /// Material properties
     ChMatrixNM<double, 35, 1> StockAlpha1;
@@ -1252,12 +1180,12 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 strainD_ans.Reset();
 
                 // Assumed Natural Strain (ANS)
-                AssumedNaturalStrain_BilinearShell(d, d0, strain_ans, strainD_ans);
+                AssumedNaturalStrain_BilinearShell(d, m_d0, strain_ans, strainD_ans);
 
                 // Enhanced Assumed Strain (EAS)
                 T0.Reset();
                 detJ0C = 0.0;
-                T0DetJElementCenterForEAS(d0, T0, detJ0C, theta);
+                T0DetJElementCenterForEAS(m_d0, T0, detJ0C, theta);
 
                 MyForce myformula;
                 myformula.d = &d;
@@ -1265,7 +1193,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 myformula.d_dt = &d_dt;  // For Structural Damping
                 myformula.strain_ans = &strain_ans;
                 myformula.strainD_ans = &strainD_ans;
-                myformula.d0 = &d0;
+                myformula.d0 = &m_d0;
                 myformula.E_eps = &E_eps;
                 myformula.element = this;
                 // EAS
@@ -1489,7 +1417,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             };
 
             MyAirPressure myformula2;
-            myformula2.d0 = &d0;
+            myformula2.d0 = &m_d0;
             myformula2.d = &d;
             myformula2.element = this;
 

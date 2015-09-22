@@ -136,8 +136,9 @@ class ChApiFea ChElementShellANCF : public ChElementShell {
     ChMatrixNM<double, 24, 24> m_stock_jac_EAS;  ///< EAS per elmeent 24
     ChMatrixNM<double, 24, 24> m_stock_KTE;      ///< Analytical Jacobian
 
-    ChMatrixNM<double, 24, 1> m_initialposD;  ///< Initial Coordinate per element
-    ChMatrixNM<double, 24, 1> m_GravForce;    ///< Gravity Force
+    ChMatrixNM<double, 8, 3> m_d0;  ///< initial nodal coordinates
+
+    ChMatrixNM<double, 24, 1> m_GravForce;  ///< Gravity Force
 
     // Material Properties for orthotropic per element (14x7) Max #layer is 7
     ChMatrixNM<double, 98, 1> m_InertFlexVec;    ///< for Laminate shell
