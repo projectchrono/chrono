@@ -27,7 +27,7 @@ namespace fea {
 
 // -----------------------------------------------------------------------------
 ChElementBrick::ChElementBrick() {
-    nodes.resize(8);
+    m_nodes.resize(8);
 }
 
 // -----------------------------------------------------------------------------
@@ -49,58 +49,58 @@ void ChElementBrick::SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
     assert(!nodeG.IsNull());
     assert(!nodeH.IsNull());
 
-    nodes[0] = nodeA;
-    nodes[1] = nodeB;
-    nodes[2] = nodeC;
-    nodes[3] = nodeD;
-    nodes[4] = nodeE;
-    nodes[5] = nodeF;
-    nodes[6] = nodeG;
-    nodes[7] = nodeH;
+    m_nodes[0] = nodeA;
+	m_nodes[1] = nodeB;
+	m_nodes[2] = nodeC;
+	m_nodes[3] = nodeD;
+	m_nodes[4] = nodeE;
+	m_nodes[5] = nodeF;
+	m_nodes[6] = nodeG;
+	m_nodes[7] = nodeH;
     std::vector<ChLcpVariables*> mvars;
-    mvars.push_back(&nodes[0]->Variables());
-    mvars.push_back(&nodes[1]->Variables());
-    mvars.push_back(&nodes[2]->Variables());
-    mvars.push_back(&nodes[3]->Variables());
-    mvars.push_back(&nodes[4]->Variables());
-    mvars.push_back(&nodes[5]->Variables());
-    mvars.push_back(&nodes[6]->Variables());
-    mvars.push_back(&nodes[7]->Variables());
+	mvars.push_back(&m_nodes[0]->Variables());
+	mvars.push_back(&m_nodes[1]->Variables());
+	mvars.push_back(&m_nodes[2]->Variables());
+	mvars.push_back(&m_nodes[3]->Variables());
+	mvars.push_back(&m_nodes[4]->Variables());
+	mvars.push_back(&m_nodes[5]->Variables());
+	mvars.push_back(&m_nodes[6]->Variables());
+	mvars.push_back(&m_nodes[7]->Variables());
     Kmatr.SetVariables(mvars);
     // EAS
     // Initial position
-    ChVector<> pA = this->nodes[0]->GetPos();
-    ChVector<> pB = this->nodes[1]->GetPos();
-    ChVector<> pC = this->nodes[2]->GetPos();
-    ChVector<> pD = this->nodes[3]->GetPos();
-    ChVector<> pE = this->nodes[4]->GetPos();
-    ChVector<> pF = this->nodes[5]->GetPos();
-    ChVector<> pG = this->nodes[6]->GetPos();
-    ChVector<> pH = this->nodes[7]->GetPos();
-    initialpos(0, 0) = pA(0);
-    initialpos(1, 0) = pA(1);
-    initialpos(2, 0) = pA(2);
-    initialpos(3, 0) = pB(0);
-    initialpos(4, 0) = pB(1);
-    initialpos(5, 0) = pB(2);
-    initialpos(6, 0) = pC(0);
-    initialpos(7, 0) = pC(1);
-    initialpos(8, 0) = pC(2);
-    initialpos(9, 0) = pD(0);
-    initialpos(10, 0) = pD(1);
-    initialpos(11, 0) = pD(2);
-    initialpos(12, 0) = pE(0);
-    initialpos(13, 0) = pE(1);
-    initialpos(14, 0) = pE(2);
-    initialpos(15, 0) = pF(0);
-    initialpos(16, 0) = pF(1);
-    initialpos(17, 0) = pF(2);
-    initialpos(18, 0) = pG(0);
-    initialpos(19, 0) = pG(1);
-    initialpos(20, 0) = pG(2);
-    initialpos(21, 0) = pH(0);
-    initialpos(22, 0) = pH(1);
-    initialpos(23, 0) = pH(2);
+	ChVector<> pA = m_nodes[0]->GetPos();
+	ChVector<> pB = m_nodes[1]->GetPos();
+	ChVector<> pC = m_nodes[2]->GetPos();
+	ChVector<> pD = m_nodes[3]->GetPos();
+	ChVector<> pE = m_nodes[4]->GetPos();
+	ChVector<> pF = m_nodes[5]->GetPos();
+	ChVector<> pG = m_nodes[6]->GetPos();
+	ChVector<> pH = m_nodes[7]->GetPos();
+	m_initialpos(0, 0) = pA(0);
+	m_initialpos(1, 0) = pA(1);
+	m_initialpos(2, 0) = pA(2);
+	m_initialpos(3, 0) = pB(0);
+	m_initialpos(4, 0) = pB(1);
+	m_initialpos(5, 0) = pB(2);
+	m_initialpos(6, 0) = pC(0);
+	m_initialpos(7, 0) = pC(1);
+	m_initialpos(8, 0) = pC(2);
+	m_initialpos(9, 0) = pD(0);
+	m_initialpos(10, 0) = pD(1);
+	m_initialpos(11, 0) = pD(2);
+	m_initialpos(12, 0) = pE(0);
+	m_initialpos(13, 0) = pE(1);
+	m_initialpos(14, 0) = pE(2);
+	m_initialpos(15, 0) = pF(0);
+	m_initialpos(16, 0) = pF(1);
+	m_initialpos(17, 0) = pF(2);
+	m_initialpos(18, 0) = pG(0);
+	m_initialpos(19, 0) = pG(1);
+	m_initialpos(20, 0) = pG(2);
+	m_initialpos(21, 0) = pH(0);
+	m_initialpos(22, 0) = pH(1);
+	m_initialpos(23, 0) = pH(2);
     // EAS
 }
 
@@ -115,30 +115,30 @@ void ChElementBrick::SetStockAlpha(double a1,
                                    double a7,
                                    double a8,
                                    double a9) {
-    stock_alpha_EAS(0, 0) = a1;  //// 2015/5/23  only for 10by1 bench mark
-    stock_alpha_EAS(1, 0) = a2;
-    stock_alpha_EAS(2, 0) = a3;
-    stock_alpha_EAS(3, 0) = a4;
-    stock_alpha_EAS(4, 0) = a5;
-    stock_alpha_EAS(5, 0) = a6;
-    stock_alpha_EAS(6, 0) = a7;
-    stock_alpha_EAS(7, 0) = a8;
-    stock_alpha_EAS(8, 0) = a9;
+	m_stock_alpha_EAS(0, 0) = a1;  //// 2015/5/23  only for 10by1 bench mark
+	m_stock_alpha_EAS(1, 0) = a2;
+	m_stock_alpha_EAS(2, 0) = a3;
+	m_stock_alpha_EAS(3, 0) = a4;
+	m_stock_alpha_EAS(4, 0) = a5;
+	m_stock_alpha_EAS(5, 0) = a6;
+	m_stock_alpha_EAS(6, 0) = a7;
+	m_stock_alpha_EAS(7, 0) = a8;
+	m_stock_alpha_EAS(8, 0) = a9;
 }
 
 // -----------------------------------------------------------------------------
 
 void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
-    int i = this->GetElemNum();
+    int i = GetElemNum();
 
-    ChVector<> pA = this->nodes[0]->GetPos();
-    ChVector<> pB = this->nodes[1]->GetPos();
-    ChVector<> pC = this->nodes[2]->GetPos();
-    ChVector<> pD = this->nodes[3]->GetPos();
-    ChVector<> pE = this->nodes[4]->GetPos();
-    ChVector<> pF = this->nodes[5]->GetPos();
-    ChVector<> pG = this->nodes[6]->GetPos();
-    ChVector<> pH = this->nodes[7]->GetPos();
+	ChVector<> pA = m_nodes[0]->GetPos();
+	ChVector<> pB = m_nodes[1]->GetPos();
+	ChVector<> pC = m_nodes[2]->GetPos();
+	ChVector<> pD = m_nodes[3]->GetPos();
+	ChVector<> pE = m_nodes[4]->GetPos();
+	ChVector<> pF = m_nodes[5]->GetPos();
+	ChVector<> pG = m_nodes[6]->GetPos();
+	ChVector<> pH = m_nodes[7]->GetPos();
 
     ChMatrixNM<double, 8, 3> d;
     d(0, 0) = pA.x;
@@ -169,7 +169,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     /// Initial nodal coordinates
     ChMatrixNM<double, 24, 1> InitialCoord;
     ChMatrixNM<double, 8, 3> d0;
-    InitialCoord = this->GetInitialPos();
+    InitialCoord = GetInitialPos();
     d0(0, 0) = InitialCoord(0, 0);
     d0(0, 1) = InitialCoord(1, 0);
     d0(0, 2) = InitialCoord(2, 0);
@@ -195,8 +195,8 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     d0(7, 1) = InitialCoord(22, 0);
     d0(7, 2) = InitialCoord(23, 0);
 
-    double v = Material->Get_v();
-    double E = Material->Get_E();
+	double v = m_Material->Get_v();
+	double E = m_Material->Get_E();
 
     Fi.Reset();
 
@@ -724,7 +724,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         ChMatrixNM<double, 9, 1> renewed_alpha_eas;
         ChMatrixNM<double, 9, 1> previous_alpha;
 
-        previous_alpha = GetStockAlpha();
+		previous_alpha = m_stock_alpha_EAS;
         alpha_eas = previous_alpha;
         ResidHE.Reset();
         int flag_M = 1;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
@@ -787,7 +787,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             KALPHA = KALPHAvec;
             KALPHA1 = KALPHA;
 
-            if (flag_HE == 1)
+			if (m_flag_HE == 1)
                 break;  // When numerical jacobian loop, no need to calculate HE
             count = count + 1;
             double norm_HE = HE.NormTwo();
@@ -803,19 +803,19 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 }
                 LU_solve(KALPHA1, INDX, ResidHE);
             }
-            if (flag_HE == 0 && count > 2) {
+			if (m_flag_HE == 0 && count > 2) {
                 GetLog() << i << "  count " << count << "  NormHE " << norm_HE << "\n";
             }
         }
         Fi = -Finternal;
         //== Stock_Alpha=================//
-        if (flag_HE == 0) {
+		if (m_flag_HE == 0) {
             SetStockAlpha(renewed_alpha_eas(0, 0), renewed_alpha_eas(1, 0), renewed_alpha_eas(2, 0),
                           renewed_alpha_eas(3, 0), renewed_alpha_eas(4, 0), renewed_alpha_eas(5, 0),
                           renewed_alpha_eas(6, 0), renewed_alpha_eas(7, 0), renewed_alpha_eas(8, 0));  // this->
         }
         //== Jacobian Matrix for alpha ==//
-        if (flag_HE == 0) {
+		if (m_flag_HE == 0) {
             ChMatrixNM<double, 9, 9> INV_KALPHA;
             ChMatrixNM<double, 9, 24> TEMP_GDEPSP;
             ChMatrixNM<double, 9, 9> INV_KALPHA_Temp;
@@ -836,7 +836,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             }
             TEMP_GDEPSP.MatrMultiply(INV_KALPHA, GDEPSP);
             stock_jac_EAS_elem.MatrTMultiply(GDEPSP, TEMP_GDEPSP);
-            this->SetStockJac(stock_jac_EAS_elem);
+            SetStockJac(stock_jac_EAS_elem);
         }
     } else {
         /// Internal force, EAS stiffness, and analytical jacobian are calculated
@@ -1443,7 +1443,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         ChMatrixNM<double, 9, 1> renewed_alpha_eas;
         ChMatrixNM<double, 9, 1> previous_alpha;
 
-        previous_alpha = GetStockAlpha();
+		previous_alpha = m_stock_alpha_EAS;
         alpha_eas = previous_alpha;
         ResidHE.Reset();
         int flag_M = 1;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
@@ -1511,7 +1511,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             // system("pause");
             //      GetLog() <<Finternal<<"\n";
             // system("pause");
-            if (flag_HE == 1)
+			if (m_flag_HE == 1)
                 break;  // When numerical jacobian loop, no need to calculate HE
             count = count + 1;
             double norm_HE = HE.NormTwo();
@@ -1531,7 +1531,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         ////===============================//
         ////== Stock_Alpha=================//
         ////===============================//
-        if (flag_HE == 0) {
+		if (m_flag_HE == 0) {
             SetStockAlpha(renewed_alpha_eas(0, 0), renewed_alpha_eas(1, 0), renewed_alpha_eas(2, 0),
                           renewed_alpha_eas(3, 0), renewed_alpha_eas(4, 0), renewed_alpha_eas(5, 0),
                           renewed_alpha_eas(6, 0), renewed_alpha_eas(7, 0), renewed_alpha_eas(8, 0));  // this->
@@ -1539,7 +1539,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         ////===============================//
         ////== Jacobian Matrix for alpha ==//
         ////===============================//
-        if (flag_HE == 0) {
+		if (m_flag_HE == 0) {
             ChMatrixNM<double, 9, 9> INV_KALPHA;
             ChMatrixNM<double, 9, 24> TEMP_GDEPSP;
             ChMatrixNM<double, 9, 9> INV_KALPHA_Temp;
@@ -1560,8 +1560,8 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             }
             TEMP_GDEPSP.MatrMultiply(INV_KALPHA, GDEPSP);
             stock_jac_EAS_elem.MatrTMultiply(GDEPSP, TEMP_GDEPSP);
-            this->SetStockKTE(KTE);
-            this->SetStockJac(stock_jac_EAS_elem);
+            SetStockKTE(KTE);
+            SetStockJac(stock_jac_EAS_elem);
         }
     }  // end of else for numerical or analytical
 
@@ -1636,7 +1636,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
             result.MatrTMultiply(S, LocalGravityForce);
 
-            result *= detJ0 * wx2 * wy2 * wz2 * (element->Material->Get_density());
+			result *= detJ0 * wx2 * wy2 * wz2 * (element->m_Material->Get_density());
         }
     };
 
@@ -1679,7 +1679,7 @@ void ChElementBrick::ShapeFunctions(ChMatrix<>& N, double x, double y, double z)
 // -----------------------------------------------------------------------------
 
 void ChElementBrick::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z) {
-    double a = this->GetLengthX();
+    double a = GetLengthX();
 
     Nx(0) = 2.0 / a * 0.125 * (-1.0) * (1.0 - y) * (1.0 - z);
     Nx(1) = 2.0 / a * 0.125 * (1.0) * (1.0 - y) * (1.0 - z);
@@ -1694,7 +1694,7 @@ void ChElementBrick::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double 
 // -----------------------------------------------------------------------------
 
 void ChElementBrick::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z) {
-    double b = this->GetLengthY();
+    double b = GetLengthY();
 
     Ny(0) = 2.0 / b * 0.125 * (1.0 - x) * (-1.0) * (1.0 - z);
     Ny(1) = 2.0 / b * 0.125 * (1.0 + x) * (-1.0) * (1.0 - z);
@@ -1709,7 +1709,7 @@ void ChElementBrick::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double 
 // -----------------------------------------------------------------------------
 
 void ChElementBrick::ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z) {
-    double c = this->GetLengthZ();
+    double c = GetLengthZ();
 
     Nz(0) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 - y) * (-1.0);
     Nz(1) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 - y) * (-1.0);
@@ -1730,16 +1730,14 @@ void ChElementBrick::Update() {
 // -----------------------------------------------------------------------------
 
 void ChElementBrick::GetStateBlock(ChMatrixDynamic<>& mD) {
-    mD.Reset(24, 1);
-
-    mD.PasteVector(this->nodes[0]->GetPos(), 0, 0);
-    mD.PasteVector(this->nodes[1]->GetPos(), 3, 0);
-    mD.PasteVector(this->nodes[2]->GetPos(), 6, 0);
-    mD.PasteVector(this->nodes[3]->GetPos(), 9, 0);
-    mD.PasteVector(this->nodes[4]->GetPos(), 12, 0);
-    mD.PasteVector(this->nodes[5]->GetPos(), 15, 0);
-    mD.PasteVector(this->nodes[6]->GetPos(), 18, 0);
-    mD.PasteVector(this->nodes[7]->GetPos(), 21, 0);
+	mD.PasteVector(m_nodes[0]->GetPos(), 0, 0);
+	mD.PasteVector(m_nodes[1]->GetPos(), 3, 0);
+	mD.PasteVector(m_nodes[2]->GetPos(), 6, 0);
+	mD.PasteVector(m_nodes[3]->GetPos(), 9, 0);
+	mD.PasteVector(m_nodes[4]->GetPos(), 12, 0);
+	mD.PasteVector(m_nodes[5]->GetPos(), 15, 0);
+	mD.PasteVector(m_nodes[6]->GetPos(), 18, 0);
+	mD.PasteVector(m_nodes[7]->GetPos(), 21, 0);
 }
 
 // -----------------------------------------------------------------------------
@@ -1752,55 +1750,46 @@ void ChElementBrick::ComputeStiffnessMatrix() {
         ChMatrixDynamic<> Kcolumn(24, 1);
         ChMatrixDynamic<> F0(24, 1);
         ChMatrixDynamic<> F1(24, 1);
-        flag_HE = 0;  // flag_HE is defineded in  [class  ChElementBrick : public ChElementGeneric]
-        this->ComputeInternalForces(F0);
-        flag_HE = 1;  // flag_HE is defineded in  [class  ChElementBrick : public ChElementGeneric]
+		m_flag_HE = 0;  // flag_HE is defineded in  [class  ChElementBrick : public ChElementGeneric]
+        ComputeInternalForces(F0);
+		m_flag_HE = 1;  // flag_HE is defineded in  [class  ChElementBrick : public ChElementGeneric]
         for (int inode = 0; inode < 8; ++inode) {
-            this->nodes[inode]->pos.x += diff;
-            this->ComputeInternalForces(F1);  // Flag=1 > Jacobian of internal force calculation
+			m_nodes[inode]->pos.x += diff;
+            ComputeInternalForces(F1);  // Flag=1 > Jacobian of internal force calculation
             Kcolumn = (F0 - F1) * (1.0 / diff);
-            this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 0 + inode * 3);
-            this->nodes[inode]->pos.x -= diff;
+			m_StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 0 + inode * 3);
+			m_nodes[inode]->pos.x -= diff;
 
-            this->nodes[inode]->pos.y += diff;
-            this->ComputeInternalForces(F1);
+			m_nodes[inode]->pos.y += diff;
+            ComputeInternalForces(F1);
             Kcolumn = (F0 - F1) * (1.0 / diff);
-            this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 1 + inode * 3);
-            this->nodes[inode]->pos.y -= diff;
+			m_StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 1 + inode * 3);
+			m_nodes[inode]->pos.y -= diff;
 
-            this->nodes[inode]->pos.z += diff;
-            this->ComputeInternalForces(F1);
+			m_nodes[inode]->pos.z += diff;
+            ComputeInternalForces(F1);
             Kcolumn = (F0 - F1) * (1.0 / diff);
-            this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 2 + inode * 3);
-            this->nodes[inode]->pos.z -= diff;
+			m_StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 2 + inode * 3);
+			m_nodes[inode]->pos.z -= diff;
         }
 
-        flag_HE = 0;  // flag_HE=0 is default
-        ChMatrixNM<double, 24, 24> stock_jac_EAS_elem;
-        stock_jac_EAS_elem = this->GetStockJac();
-        StiffnessMatrix -= stock_jac_EAS_elem;  // For Enhanced Assumed Strain
+		m_flag_HE = 0;  // flag_HE=0 is default
+		m_StiffnessMatrix -= m_stock_jac_EAS;  // For Enhanced Assumed Strain
     } else {
-        flag_HE = 0;
-        ///  Recover stored Jacobian
-        ChMatrixNM<double, 24, 24> stock_KTE_elem;
-        stock_KTE_elem = this->GetStockKTE();
-        StiffnessMatrix = stock_KTE_elem;
+		m_flag_HE = 0;
+		m_StiffnessMatrix = m_stock_KTE;
+		m_StiffnessMatrix -= m_stock_jac_EAS;
 
-        /// Recover stored EAS Jacobian
-        ChMatrixNM<double, 24, 24> stock_jac_EAS_elem;
-        stock_jac_EAS_elem = this->GetStockJac();
-
-        StiffnessMatrix -= stock_jac_EAS_elem;
     }
 }
 
 // -----------------------------------------------------------------------------
 
 void ChElementBrick::ComputeMassMatrix() {
-    double rho = Material->Get_density();
+	double rho = m_Material->Get_density();
     ChMatrixNM<double, 24, 1> InitialCoord;
     ChMatrixNM<double, 8, 3> d0;
-    InitialCoord = this->GetInitialPos();
+    InitialCoord = GetInitialPos();
     d0(0, 0) = InitialCoord(0, 0);
     d0(0, 1) = InitialCoord(1, 0);
     d0(0, 2) = InitialCoord(2, 0);
@@ -1898,7 +1887,7 @@ void ChElementBrick::ComputeMassMatrix() {
     myformula.d0 = &d0;
     myformula.element = this;
 
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(this->MassMatrix,  // result of integration will go there
+	ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(m_MassMatrix,  // result of integration will go there
                                                            myformula,         // formula to integrate
                                                            -1,                // start of x
                                                            1,                 // end of x
@@ -1909,7 +1898,7 @@ void ChElementBrick::ComputeMassMatrix() {
                                                            2                  // order of integration
                                                            );
 
-    this->MassMatrix *= rho;
+	m_MassMatrix *= rho;
 }
 
 // -----------------------------------------------------------------------------
@@ -1918,7 +1907,7 @@ void ChElementBrick::SetupInitial() {
     // Compute mass matrix
     ComputeMassMatrix();
     // initial EAS parameters
-    stock_jac_EAS.Reset();
+	m_stock_jac_EAS.Reset();
     // Compute stiffness matrix
     // (this is not constant in ANCF and will be called automatically many times by ComputeKRMmatricesGlobal()
     // when the solver will run, yet maybe nice to privide an initial nonzero value)
@@ -1935,16 +1924,16 @@ void ChElementBrick::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, dou
     // 1) Store  +kf*[K] +rf*[R]
     // For K stiffness matrix and R matrix: scale by factors
     // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
-    double kr_factor = Kfactor + Rfactor * this->Material->Get_RayleighDampingK();
+	double kr_factor = Kfactor + Rfactor * m_Material->Get_RayleighDampingK();
 
-    ChMatrixDynamic<> temp(this->StiffnessMatrix);
+	ChMatrixDynamic<> temp(m_StiffnessMatrix);
     temp.MatrScale(kr_factor);
 
     // Paste scaled K stiffness matrix and R matrix in resulting H:
     H.PasteMatrix(&temp, 0, 0);
 
     // 2) Store  +mf*[M]
-    temp = this->MassMatrix;
+	temp = m_MassMatrix;
     temp.MatrScale(Mfactor);
 
     // Paste scaled M mass matrix in resulting H:
@@ -1964,7 +1953,6 @@ void ChElementBrick::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
     ChMatrixNM<double, 1, 8> Nz;
     ChMatrixNM<double, 3, 3> rd0;
     ChMatrixNM<double, 3, 3> tempA;
-    tempA.Reset();
     ShapeFunctionsDerivativeX(Nx, x, y, z);
     ShapeFunctionsDerivativeY(Ny, x, y, z);
     ShapeFunctionsDerivativeZ(Nz, x, y, z);

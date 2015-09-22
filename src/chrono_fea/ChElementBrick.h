@@ -28,21 +28,21 @@ namespace fea {
 
 class ChApiFea ChElementBrick : public ChElementGeneric {
   protected:
-    std::vector<ChSharedPtr<ChNodeFEAxyz> > nodes;
+    std::vector<ChSharedPtr<ChNodeFEAxyz> > m_nodes; ///< Element nodes
 
-    double thickness;
-    ChSharedPtr<ChContinuumElastic> Material;
+    double m_thickness;
+    ChSharedPtr<ChContinuumElastic> m_Material;    ///< Elastic Material
 
-    ChMatrixNM<double, 24, 24> StiffnessMatrix;  ///< stiffness matrix
-    ChMatrixNM<double, 24, 24> MassMatrix;       ///< mass matrix
-    ChMatrixNM<double, 3, 1> InertFlexVec;       ///< for element size (EL,EW,EH)
+    ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< Stiffness matrix
+    ChMatrixNM<double, 24, 24> m_MassMatrix;       ///< Mass matrix
+    ChMatrixNM<double, 3, 1> m_InertFlexVec;       ///< for element size (EL,EW,EH)
     // EAS
-    int elementnumber;
-    ChMatrixNM<double, 24, 24> stock_jac_EAS;  ///< EAS per elmeent
-    ChMatrixNM<double, 9, 1> stock_alpha_EAS;  ///< EAS per element
-    ChMatrixNM<double, 24, 24> stock_KTE;
-    ChMatrixNM<double, 24, 1> initialpos;  ///< Initial Coordinate per element
-    int flag_HE;
+    int m_elementnumber;						///< Element number, for EAS
+    ChMatrixNM<double, 24, 24> m_stock_jac_EAS;  ///< EAS per elmeent
+    ChMatrixNM<double, 9, 1> m_stock_alpha_EAS;  ///< EAS per element
+    ChMatrixNM<double, 24, 24> m_stock_KTE;      ///< Analytical Jacobian
+    ChMatrixNM<double, 24, 1> m_initialpos;  ///< Initial Coordinate per element
+    int m_flag_HE;
 
     // EAS
   public:
@@ -53,7 +53,7 @@ class ChApiFea ChElementBrick : public ChElementGeneric {
     virtual int GetNcoords() override { return 8 * 3; }
     virtual int GetNdofs() override { return 8 * 3; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
 
     void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
                   ChSharedPtr<ChNodeFEAxyz> nodeB,
@@ -64,49 +64,43 @@ class ChApiFea ChElementBrick : public ChElementGeneric {
                   ChSharedPtr<ChNodeFEAxyz> nodeG,
                   ChSharedPtr<ChNodeFEAxyz> nodeH);
 
-    void SetElemNum(int kb) { elementnumber = kb; }
+    void SetElemNum(int kb) { m_elementnumber = kb; }
 
     void
     SetStockAlpha(double a1, double a2, double a3, double a4, double a5, double a6, double a7, double a8, double a9);
 
-    void SetStockJac(ChMatrixNM<double, 24, 24> a) { stock_jac_EAS = a; }
+    void SetStockJac(const ChMatrixNM<double, 24, 24>& a) { m_stock_jac_EAS = a; }
 
-    void SetStockKTE(ChMatrixNM<double, 24, 24> a) { stock_KTE = a; }
+    void SetStockKTE(const ChMatrixNM<double, 24, 24>& a) { m_stock_KTE = a; }
 
-    void SetInertFlexVec(ChMatrixNM<double, 3, 1> a) { InertFlexVec = a; }
+    void SetInertFlexVec(const ChMatrixNM<double, 3, 1>& a) { m_InertFlexVec = a; }
 
-    int GetElemNum() { return elementnumber; }
+    int GetElemNum() const { return m_elementnumber; }
 
-    ChMatrixNM<double, 9, 1> GetStockAlpha() { return stock_alpha_EAS; }
+    const ChMatrixNM<double, 24, 1>& GetInitialPos() const { return m_initialpos; }
 
-    ChMatrixNM<double, 24, 24> GetStockJac() { return stock_jac_EAS; }
+    ChSharedPtr<ChNodeFEAxyz> GetNodeA() const { return m_nodes[0]; }
 
-    ChMatrixNM<double, 24, 24> GetStockKTE() { return stock_KTE; }
+    ChSharedPtr<ChNodeFEAxyz> GetNodeB() const { return m_nodes[1]; }
 
-    ChMatrixNM<double, 24, 1> GetInitialPos() { return initialpos; }
+    ChSharedPtr<ChNodeFEAxyz> GetNodeC() const { return m_nodes[2]; }
 
-    ChSharedPtr<ChNodeFEAxyz> GetNodeA() { return nodes[0]; }
+    ChSharedPtr<ChNodeFEAxyz> GetNodeD() const { return m_nodes[3]; }
 
-    ChSharedPtr<ChNodeFEAxyz> GetNodeB() { return nodes[1]; }
+    ChSharedPtr<ChNodeFEAxyz> GetNodeE() const { return m_nodes[4]; }
 
-    ChSharedPtr<ChNodeFEAxyz> GetNodeC() { return nodes[2]; }
+    ChSharedPtr<ChNodeFEAxyz> GetNodeF() const { return m_nodes[5]; }
 
-    ChSharedPtr<ChNodeFEAxyz> GetNodeD() { return nodes[3]; }
+    ChSharedPtr<ChNodeFEAxyz> GetNodeG() const { return m_nodes[6]; }
 
-    ChSharedPtr<ChNodeFEAxyz> GetNodeE() { return nodes[4]; }
+    ChSharedPtr<ChNodeFEAxyz> GetNodeH() const { return m_nodes[7]; }
 
-    ChSharedPtr<ChNodeFEAxyz> GetNodeF() { return nodes[5]; }
+    double GetLengthX() const { return m_InertFlexVec(0); }
+    double GetLengthY() const { return m_InertFlexVec(1); }
+    double GetLengthZ() const { return m_InertFlexVec(2); }
 
-    ChSharedPtr<ChNodeFEAxyz> GetNodeG() { return nodes[6]; }
-
-    ChSharedPtr<ChNodeFEAxyz> GetNodeH() { return nodes[7]; }
-
-    double GetLengthX() { return InertFlexVec(0); }
-    double GetLengthY() { return InertFlexVec(1); }
-    double GetLengthZ() { return InertFlexVec(2); }
-
-    void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { Material = my_material; }
-    ChSharedPtr<ChContinuumElastic> GetMaterial() { return Material; }
+    void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { m_Material = my_material; }
+    ChSharedPtr<ChContinuumElastic> GetMaterial() const { return m_Material; }
 
     /// Fills the N shape function matrix
     /// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
