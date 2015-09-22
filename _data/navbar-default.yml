@@ -8,7 +8,7 @@ main:
     - title: Community
       url: '/community/'
     - title: Gallery
-      url: '#'
+      url: '/gallery'
 
 right:
     - title: People
