@@ -1229,7 +1229,6 @@ void test_5() {
 	int NumNodes[1000][8];
 	int NDR[1000][3];// constraint flag
 	//int NumLayer[10];
-	int MNUM[10][7];
 	double MPROP[10][12];
 	double ElemLengthXY[1000][3];//for brick is 3 (length along x,y,z)
 
