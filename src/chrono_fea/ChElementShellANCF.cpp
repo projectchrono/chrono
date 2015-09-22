@@ -1897,905 +1897,211 @@ void ChElementShellANCF::Inverse55_Analytical(ChMatrixNM<double, 5, 5>& A, ChMat
     double e4 = B(4, 3);
     double e5 = B(4, 4);
 
+    double denom = a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
+                   a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
+                   a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
+                   a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
+                   a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
+                   a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
+                   a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
+                   a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
+                   a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
+                   a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
+                   a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
+                   a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
+                   a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
+                   a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
+                   a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
+                   a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
+                   a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
+                   a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
+                   a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
+                   a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
+                   a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
+                   a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
+                   a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
+                   a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
+                   a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
+                   a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
+                   a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
+                   a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
+                   a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
+                   a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1;
+
     A[0][0] = (b2 * c3 * d4 * e5 - b2 * c3 * d5 * e4 - b2 * c4 * d3 * e5 + b2 * c4 * d5 * e3 + b2 * c5 * d3 * e4 -
                b2 * c5 * d4 * e3 - b3 * c2 * d4 * e5 + b3 * c2 * d5 * e4 + b3 * c4 * d2 * e5 - b3 * c4 * d5 * e2 -
                b3 * c5 * d2 * e4 + b3 * c5 * d4 * e2 + b4 * c2 * d3 * e5 - b4 * c2 * d5 * e3 - b4 * c3 * d2 * e5 +
                b4 * c3 * d5 * e2 + b4 * c5 * d2 * e3 - b4 * c5 * d3 * e2 - b5 * c2 * d3 * e4 + b5 * c2 * d4 * e3 +
                b5 * c3 * d2 * e4 - b5 * c3 * d4 * e2 - b5 * c4 * d2 * e3 + b5 * c4 * d3 * e2) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[0][1] = -(a2 * c3 * d4 * e5 - a2 * c3 * d5 * e4 - a2 * c4 * d3 * e5 + a2 * c4 * d5 * e3 + a2 * c5 * d3 * e4 -
                 a2 * c5 * d4 * e3 - a3 * c2 * d4 * e5 + a3 * c2 * d5 * e4 + a3 * c4 * d2 * e5 - a3 * c4 * d5 * e2 -
                 a3 * c5 * d2 * e4 + a3 * c5 * d4 * e2 + a4 * c2 * d3 * e5 - a4 * c2 * d5 * e3 - a4 * c3 * d2 * e5 +
                 a4 * c3 * d5 * e2 + a4 * c5 * d2 * e3 - a4 * c5 * d3 * e2 - a5 * c2 * d3 * e4 + a5 * c2 * d4 * e3 +
                 a5 * c3 * d2 * e4 - a5 * c3 * d4 * e2 - a5 * c4 * d2 * e3 + a5 * c4 * d3 * e2) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[0][2] = (a2 * b3 * d4 * e5 - a2 * b3 * d5 * e4 - a2 * b4 * d3 * e5 + a2 * b4 * d5 * e3 + a2 * b5 * d3 * e4 -
                a2 * b5 * d4 * e3 - a3 * b2 * d4 * e5 + a3 * b2 * d5 * e4 + a3 * b4 * d2 * e5 - a3 * b4 * d5 * e2 -
                a3 * b5 * d2 * e4 + a3 * b5 * d4 * e2 + a4 * b2 * d3 * e5 - a4 * b2 * d5 * e3 - a4 * b3 * d2 * e5 +
                a4 * b3 * d5 * e2 + a4 * b5 * d2 * e3 - a4 * b5 * d3 * e2 - a5 * b2 * d3 * e4 + a5 * b2 * d4 * e3 +
                a5 * b3 * d2 * e4 - a5 * b3 * d4 * e2 - a5 * b4 * d2 * e3 + a5 * b4 * d3 * e2) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[0][3] = -(a2 * b3 * c4 * e5 - a2 * b3 * c5 * e4 - a2 * b4 * c3 * e5 + a2 * b4 * c5 * e3 + a2 * b5 * c3 * e4 -
                 a2 * b5 * c4 * e3 - a3 * b2 * c4 * e5 + a3 * b2 * c5 * e4 + a3 * b4 * c2 * e5 - a3 * b4 * c5 * e2 -
                 a3 * b5 * c2 * e4 + a3 * b5 * c4 * e2 + a4 * b2 * c3 * e5 - a4 * b2 * c5 * e3 - a4 * b3 * c2 * e5 +
                 a4 * b3 * c5 * e2 + a4 * b5 * c2 * e3 - a4 * b5 * c3 * e2 - a5 * b2 * c3 * e4 + a5 * b2 * c4 * e3 +
                 a5 * b3 * c2 * e4 - a5 * b3 * c4 * e2 - a5 * b4 * c2 * e3 + a5 * b4 * c3 * e2) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[0][4] = (a2 * b3 * c4 * d5 - a2 * b3 * c5 * d4 - a2 * b4 * c3 * d5 + a2 * b4 * c5 * d3 + a2 * b5 * c3 * d4 -
                a2 * b5 * c4 * d3 - a3 * b2 * c4 * d5 + a3 * b2 * c5 * d4 + a3 * b4 * c2 * d5 - a3 * b4 * c5 * d2 -
                a3 * b5 * c2 * d4 + a3 * b5 * c4 * d2 + a4 * b2 * c3 * d5 - a4 * b2 * c5 * d3 - a4 * b3 * c2 * d5 +
                a4 * b3 * c5 * d2 + a4 * b5 * c2 * d3 - a4 * b5 * c3 * d2 - a5 * b2 * c3 * d4 + a5 * b2 * c4 * d3 +
                a5 * b3 * c2 * d4 - a5 * b3 * c4 * d2 - a5 * b4 * c2 * d3 + a5 * b4 * c3 * d2) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[1][0] = -(b1 * c3 * d4 * e5 - b1 * c3 * d5 * e4 - b1 * c4 * d3 * e5 + b1 * c4 * d5 * e3 + b1 * c5 * d3 * e4 -
                 b1 * c5 * d4 * e3 - b3 * c1 * d4 * e5 + b3 * c1 * d5 * e4 + b3 * c4 * d1 * e5 - b3 * c4 * d5 * e1 -
                 b3 * c5 * d1 * e4 + b3 * c5 * d4 * e1 + b4 * c1 * d3 * e5 - b4 * c1 * d5 * e3 - b4 * c3 * d1 * e5 +
                 b4 * c3 * d5 * e1 + b4 * c5 * d1 * e3 - b4 * c5 * d3 * e1 - b5 * c1 * d3 * e4 + b5 * c1 * d4 * e3 +
                 b5 * c3 * d1 * e4 - b5 * c3 * d4 * e1 - b5 * c4 * d1 * e3 + b5 * c4 * d3 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[1][1] = (a1 * c3 * d4 * e5 - a1 * c3 * d5 * e4 - a1 * c4 * d3 * e5 + a1 * c4 * d5 * e3 + a1 * c5 * d3 * e4 -
                a1 * c5 * d4 * e3 - a3 * c1 * d4 * e5 + a3 * c1 * d5 * e4 + a3 * c4 * d1 * e5 - a3 * c4 * d5 * e1 -
                a3 * c5 * d1 * e4 + a3 * c5 * d4 * e1 + a4 * c1 * d3 * e5 - a4 * c1 * d5 * e3 - a4 * c3 * d1 * e5 +
                a4 * c3 * d5 * e1 + a4 * c5 * d1 * e3 - a4 * c5 * d3 * e1 - a5 * c1 * d3 * e4 + a5 * c1 * d4 * e3 +
                a5 * c3 * d1 * e4 - a5 * c3 * d4 * e1 - a5 * c4 * d1 * e3 + a5 * c4 * d3 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[1][2] = -(a1 * b3 * d4 * e5 - a1 * b3 * d5 * e4 - a1 * b4 * d3 * e5 + a1 * b4 * d5 * e3 + a1 * b5 * d3 * e4 -
                 a1 * b5 * d4 * e3 - a3 * b1 * d4 * e5 + a3 * b1 * d5 * e4 + a3 * b4 * d1 * e5 - a3 * b4 * d5 * e1 -
                 a3 * b5 * d1 * e4 + a3 * b5 * d4 * e1 + a4 * b1 * d3 * e5 - a4 * b1 * d5 * e3 - a4 * b3 * d1 * e5 +
                 a4 * b3 * d5 * e1 + a4 * b5 * d1 * e3 - a4 * b5 * d3 * e1 - a5 * b1 * d3 * e4 + a5 * b1 * d4 * e3 +
                 a5 * b3 * d1 * e4 - a5 * b3 * d4 * e1 - a5 * b4 * d1 * e3 + a5 * b4 * d3 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[1][3] = (a1 * b3 * c4 * e5 - a1 * b3 * c5 * e4 - a1 * b4 * c3 * e5 + a1 * b4 * c5 * e3 + a1 * b5 * c3 * e4 -
                a1 * b5 * c4 * e3 - a3 * b1 * c4 * e5 + a3 * b1 * c5 * e4 + a3 * b4 * c1 * e5 - a3 * b4 * c5 * e1 -
                a3 * b5 * c1 * e4 + a3 * b5 * c4 * e1 + a4 * b1 * c3 * e5 - a4 * b1 * c5 * e3 - a4 * b3 * c1 * e5 +
                a4 * b3 * c5 * e1 + a4 * b5 * c1 * e3 - a4 * b5 * c3 * e1 - a5 * b1 * c3 * e4 + a5 * b1 * c4 * e3 +
                a5 * b3 * c1 * e4 - a5 * b3 * c4 * e1 - a5 * b4 * c1 * e3 + a5 * b4 * c3 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[1][4] = -(a1 * b3 * c4 * d5 - a1 * b3 * c5 * d4 - a1 * b4 * c3 * d5 + a1 * b4 * c5 * d3 + a1 * b5 * c3 * d4 -
                 a1 * b5 * c4 * d3 - a3 * b1 * c4 * d5 + a3 * b1 * c5 * d4 + a3 * b4 * c1 * d5 - a3 * b4 * c5 * d1 -
                 a3 * b5 * c1 * d4 + a3 * b5 * c4 * d1 + a4 * b1 * c3 * d5 - a4 * b1 * c5 * d3 - a4 * b3 * c1 * d5 +
                 a4 * b3 * c5 * d1 + a4 * b5 * c1 * d3 - a4 * b5 * c3 * d1 - a5 * b1 * c3 * d4 + a5 * b1 * c4 * d3 +
                 a5 * b3 * c1 * d4 - a5 * b3 * c4 * d1 - a5 * b4 * c1 * d3 + a5 * b4 * c3 * d1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[2][0] = (b1 * c2 * d4 * e5 - b1 * c2 * d5 * e4 - b1 * c4 * d2 * e5 + b1 * c4 * d5 * e2 + b1 * c5 * d2 * e4 -
                b1 * c5 * d4 * e2 - b2 * c1 * d4 * e5 + b2 * c1 * d5 * e4 + b2 * c4 * d1 * e5 - b2 * c4 * d5 * e1 -
                b2 * c5 * d1 * e4 + b2 * c5 * d4 * e1 + b4 * c1 * d2 * e5 - b4 * c1 * d5 * e2 - b4 * c2 * d1 * e5 +
                b4 * c2 * d5 * e1 + b4 * c5 * d1 * e2 - b4 * c5 * d2 * e1 - b5 * c1 * d2 * e4 + b5 * c1 * d4 * e2 +
                b5 * c2 * d1 * e4 - b5 * c2 * d4 * e1 - b5 * c4 * d1 * e2 + b5 * c4 * d2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[2][1] = -(a1 * c2 * d4 * e5 - a1 * c2 * d5 * e4 - a1 * c4 * d2 * e5 + a1 * c4 * d5 * e2 + a1 * c5 * d2 * e4 -
                 a1 * c5 * d4 * e2 - a2 * c1 * d4 * e5 + a2 * c1 * d5 * e4 + a2 * c4 * d1 * e5 - a2 * c4 * d5 * e1 -
                 a2 * c5 * d1 * e4 + a2 * c5 * d4 * e1 + a4 * c1 * d2 * e5 - a4 * c1 * d5 * e2 - a4 * c2 * d1 * e5 +
                 a4 * c2 * d5 * e1 + a4 * c5 * d1 * e2 - a4 * c5 * d2 * e1 - a5 * c1 * d2 * e4 + a5 * c1 * d4 * e2 +
                 a5 * c2 * d1 * e4 - a5 * c2 * d4 * e1 - a5 * c4 * d1 * e2 + a5 * c4 * d2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[2][2] = (a1 * b2 * d4 * e5 - a1 * b2 * d5 * e4 - a1 * b4 * d2 * e5 + a1 * b4 * d5 * e2 + a1 * b5 * d2 * e4 -
                a1 * b5 * d4 * e2 - a2 * b1 * d4 * e5 + a2 * b1 * d5 * e4 + a2 * b4 * d1 * e5 - a2 * b4 * d5 * e1 -
                a2 * b5 * d1 * e4 + a2 * b5 * d4 * e1 + a4 * b1 * d2 * e5 - a4 * b1 * d5 * e2 - a4 * b2 * d1 * e5 +
                a4 * b2 * d5 * e1 + a4 * b5 * d1 * e2 - a4 * b5 * d2 * e1 - a5 * b1 * d2 * e4 + a5 * b1 * d4 * e2 +
                a5 * b2 * d1 * e4 - a5 * b2 * d4 * e1 - a5 * b4 * d1 * e2 + a5 * b4 * d2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[2][3] = -(a1 * b2 * c4 * e5 - a1 * b2 * c5 * e4 - a1 * b4 * c2 * e5 + a1 * b4 * c5 * e2 + a1 * b5 * c2 * e4 -
                 a1 * b5 * c4 * e2 - a2 * b1 * c4 * e5 + a2 * b1 * c5 * e4 + a2 * b4 * c1 * e5 - a2 * b4 * c5 * e1 -
                 a2 * b5 * c1 * e4 + a2 * b5 * c4 * e1 + a4 * b1 * c2 * e5 - a4 * b1 * c5 * e2 - a4 * b2 * c1 * e5 +
                 a4 * b2 * c5 * e1 + a4 * b5 * c1 * e2 - a4 * b5 * c2 * e1 - a5 * b1 * c2 * e4 + a5 * b1 * c4 * e2 +
                 a5 * b2 * c1 * e4 - a5 * b2 * c4 * e1 - a5 * b4 * c1 * e2 + a5 * b4 * c2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[2][4] = (a1 * b2 * c4 * d5 - a1 * b2 * c5 * d4 - a1 * b4 * c2 * d5 + a1 * b4 * c5 * d2 + a1 * b5 * c2 * d4 -
                a1 * b5 * c4 * d2 - a2 * b1 * c4 * d5 + a2 * b1 * c5 * d4 + a2 * b4 * c1 * d5 - a2 * b4 * c5 * d1 -
                a2 * b5 * c1 * d4 + a2 * b5 * c4 * d1 + a4 * b1 * c2 * d5 - a4 * b1 * c5 * d2 - a4 * b2 * c1 * d5 +
                a4 * b2 * c5 * d1 + a4 * b5 * c1 * d2 - a4 * b5 * c2 * d1 - a5 * b1 * c2 * d4 + a5 * b1 * c4 * d2 +
                a5 * b2 * c1 * d4 - a5 * b2 * c4 * d1 - a5 * b4 * c1 * d2 + a5 * b4 * c2 * d1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[3][0] = -(b1 * c2 * d3 * e5 - b1 * c2 * d5 * e3 - b1 * c3 * d2 * e5 + b1 * c3 * d5 * e2 + b1 * c5 * d2 * e3 -
                 b1 * c5 * d3 * e2 - b2 * c1 * d3 * e5 + b2 * c1 * d5 * e3 + b2 * c3 * d1 * e5 - b2 * c3 * d5 * e1 -
                 b2 * c5 * d1 * e3 + b2 * c5 * d3 * e1 + b3 * c1 * d2 * e5 - b3 * c1 * d5 * e2 - b3 * c2 * d1 * e5 +
                 b3 * c2 * d5 * e1 + b3 * c5 * d1 * e2 - b3 * c5 * d2 * e1 - b5 * c1 * d2 * e3 + b5 * c1 * d3 * e2 +
                 b5 * c2 * d1 * e3 - b5 * c2 * d3 * e1 - b5 * c3 * d1 * e2 + b5 * c3 * d2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[3][1] = (a1 * c2 * d3 * e5 - a1 * c2 * d5 * e3 - a1 * c3 * d2 * e5 + a1 * c3 * d5 * e2 + a1 * c5 * d2 * e3 -
                a1 * c5 * d3 * e2 - a2 * c1 * d3 * e5 + a2 * c1 * d5 * e3 + a2 * c3 * d1 * e5 - a2 * c3 * d5 * e1 -
                a2 * c5 * d1 * e3 + a2 * c5 * d3 * e1 + a3 * c1 * d2 * e5 - a3 * c1 * d5 * e2 - a3 * c2 * d1 * e5 +
                a3 * c2 * d5 * e1 + a3 * c5 * d1 * e2 - a3 * c5 * d2 * e1 - a5 * c1 * d2 * e3 + a5 * c1 * d3 * e2 +
                a5 * c2 * d1 * e3 - a5 * c2 * d3 * e1 - a5 * c3 * d1 * e2 + a5 * c3 * d2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[3][2] = -(a1 * b2 * d3 * e5 - a1 * b2 * d5 * e3 - a1 * b3 * d2 * e5 + a1 * b3 * d5 * e2 + a1 * b5 * d2 * e3 -
                 a1 * b5 * d3 * e2 - a2 * b1 * d3 * e5 + a2 * b1 * d5 * e3 + a2 * b3 * d1 * e5 - a2 * b3 * d5 * e1 -
                 a2 * b5 * d1 * e3 + a2 * b5 * d3 * e1 + a3 * b1 * d2 * e5 - a3 * b1 * d5 * e2 - a3 * b2 * d1 * e5 +
                 a3 * b2 * d5 * e1 + a3 * b5 * d1 * e2 - a3 * b5 * d2 * e1 - a5 * b1 * d2 * e3 + a5 * b1 * d3 * e2 +
                 a5 * b2 * d1 * e3 - a5 * b2 * d3 * e1 - a5 * b3 * d1 * e2 + a5 * b3 * d2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[3][3] = (a1 * b2 * c3 * e5 - a1 * b2 * c5 * e3 - a1 * b3 * c2 * e5 + a1 * b3 * c5 * e2 + a1 * b5 * c2 * e3 -
                a1 * b5 * c3 * e2 - a2 * b1 * c3 * e5 + a2 * b1 * c5 * e3 + a2 * b3 * c1 * e5 - a2 * b3 * c5 * e1 -
                a2 * b5 * c1 * e3 + a2 * b5 * c3 * e1 + a3 * b1 * c2 * e5 - a3 * b1 * c5 * e2 - a3 * b2 * c1 * e5 +
                a3 * b2 * c5 * e1 + a3 * b5 * c1 * e2 - a3 * b5 * c2 * e1 - a5 * b1 * c2 * e3 + a5 * b1 * c3 * e2 +
                a5 * b2 * c1 * e3 - a5 * b2 * c3 * e1 - a5 * b3 * c1 * e2 + a5 * b3 * c2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[3][4] = -(a1 * b2 * c3 * d5 - a1 * b2 * c5 * d3 - a1 * b3 * c2 * d5 + a1 * b3 * c5 * d2 + a1 * b5 * c2 * d3 -
                 a1 * b5 * c3 * d2 - a2 * b1 * c3 * d5 + a2 * b1 * c5 * d3 + a2 * b3 * c1 * d5 - a2 * b3 * c5 * d1 -
                 a2 * b5 * c1 * d3 + a2 * b5 * c3 * d1 + a3 * b1 * c2 * d5 - a3 * b1 * c5 * d2 - a3 * b2 * c1 * d5 +
                 a3 * b2 * c5 * d1 + a3 * b5 * c1 * d2 - a3 * b5 * c2 * d1 - a5 * b1 * c2 * d3 + a5 * b1 * c3 * d2 +
                 a5 * b2 * c1 * d3 - a5 * b2 * c3 * d1 - a5 * b3 * c1 * d2 + a5 * b3 * c2 * d1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[4][0] = (b1 * c2 * d3 * e4 - b1 * c2 * d4 * e3 - b1 * c3 * d2 * e4 + b1 * c3 * d4 * e2 + b1 * c4 * d2 * e3 -
                b1 * c4 * d3 * e2 - b2 * c1 * d3 * e4 + b2 * c1 * d4 * e3 + b2 * c3 * d1 * e4 - b2 * c3 * d4 * e1 -
                b2 * c4 * d1 * e3 + b2 * c4 * d3 * e1 + b3 * c1 * d2 * e4 - b3 * c1 * d4 * e2 - b3 * c2 * d1 * e4 +
                b3 * c2 * d4 * e1 + b3 * c4 * d1 * e2 - b3 * c4 * d2 * e1 - b4 * c1 * d2 * e3 + b4 * c1 * d3 * e2 +
                b4 * c2 * d1 * e3 - b4 * c2 * d3 * e1 - b4 * c3 * d1 * e2 + b4 * c3 * d2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[4][1] = -(a1 * c2 * d3 * e4 - a1 * c2 * d4 * e3 - a1 * c3 * d2 * e4 + a1 * c3 * d4 * e2 + a1 * c4 * d2 * e3 -
                 a1 * c4 * d3 * e2 - a2 * c1 * d3 * e4 + a2 * c1 * d4 * e3 + a2 * c3 * d1 * e4 - a2 * c3 * d4 * e1 -
                 a2 * c4 * d1 * e3 + a2 * c4 * d3 * e1 + a3 * c1 * d2 * e4 - a3 * c1 * d4 * e2 - a3 * c2 * d1 * e4 +
                 a3 * c2 * d4 * e1 + a3 * c4 * d1 * e2 - a3 * c4 * d2 * e1 - a4 * c1 * d2 * e3 + a4 * c1 * d3 * e2 +
                 a4 * c2 * d1 * e3 - a4 * c2 * d3 * e1 - a4 * c3 * d1 * e2 + a4 * c3 * d2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[4][2] = (a1 * b2 * d3 * e4 - a1 * b2 * d4 * e3 - a1 * b3 * d2 * e4 + a1 * b3 * d4 * e2 + a1 * b4 * d2 * e3 -
                a1 * b4 * d3 * e2 - a2 * b1 * d3 * e4 + a2 * b1 * d4 * e3 + a2 * b3 * d1 * e4 - a2 * b3 * d4 * e1 -
                a2 * b4 * d1 * e3 + a2 * b4 * d3 * e1 + a3 * b1 * d2 * e4 - a3 * b1 * d4 * e2 - a3 * b2 * d1 * e4 +
                a3 * b2 * d4 * e1 + a3 * b4 * d1 * e2 - a3 * b4 * d2 * e1 - a4 * b1 * d2 * e3 + a4 * b1 * d3 * e2 +
                a4 * b2 * d1 * e3 - a4 * b2 * d3 * e1 - a4 * b3 * d1 * e2 + a4 * b3 * d2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[4][3] = -(a1 * b2 * c3 * e4 - a1 * b2 * c4 * e3 - a1 * b3 * c2 * e4 + a1 * b3 * c4 * e2 + a1 * b4 * c2 * e3 -
                 a1 * b4 * c3 * e2 - a2 * b1 * c3 * e4 + a2 * b1 * c4 * e3 + a2 * b3 * c1 * e4 - a2 * b3 * c4 * e1 -
                 a2 * b4 * c1 * e3 + a2 * b4 * c3 * e1 + a3 * b1 * c2 * e4 - a3 * b1 * c4 * e2 - a3 * b2 * c1 * e4 +
                 a3 * b2 * c4 * e1 + a3 * b4 * c1 * e2 - a3 * b4 * c2 * e1 - a4 * b1 * c2 * e3 + a4 * b1 * c3 * e2 +
                 a4 * b2 * c1 * e3 - a4 * b2 * c3 * e1 - a4 * b3 * c1 * e2 + a4 * b3 * c2 * e1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 
     A[4][4] = (a1 * b2 * c3 * d4 - a1 * b2 * c4 * d3 - a1 * b3 * c2 * d4 + a1 * b3 * c4 * d2 + a1 * b4 * c2 * d3 -
                a1 * b4 * c3 * d2 - a2 * b1 * c3 * d4 + a2 * b1 * c4 * d3 + a2 * b3 * c1 * d4 - a2 * b3 * c4 * d1 -
                a2 * b4 * c1 * d3 + a2 * b4 * c3 * d1 + a3 * b1 * c2 * d4 - a3 * b1 * c4 * d2 - a3 * b2 * c1 * d4 +
                a3 * b2 * c4 * d1 + a3 * b4 * c1 * d2 - a3 * b4 * c2 * d1 - a4 * b1 * c2 * d3 + a4 * b1 * c3 * d2 +
                a4 * b2 * c1 * d3 - a4 * b2 * c3 * d1 - a4 * b3 * c1 * d2 + a4 * b3 * c2 * d1) /
-              (a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
-               a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
-               a1 * b3 * c4 * d2 * e5 - a1 * b3 * c4 * d5 * e2 - a1 * b3 * c5 * d2 * e4 + a1 * b3 * c5 * d4 * e2 +
-               a1 * b4 * c2 * d3 * e5 - a1 * b4 * c2 * d5 * e3 - a1 * b4 * c3 * d2 * e5 + a1 * b4 * c3 * d5 * e2 +
-               a1 * b4 * c5 * d2 * e3 - a1 * b4 * c5 * d3 * e2 - a1 * b5 * c2 * d3 * e4 + a1 * b5 * c2 * d4 * e3 +
-               a1 * b5 * c3 * d2 * e4 - a1 * b5 * c3 * d4 * e2 - a1 * b5 * c4 * d2 * e3 + a1 * b5 * c4 * d3 * e2 -
-               a2 * b1 * c3 * d4 * e5 + a2 * b1 * c3 * d5 * e4 + a2 * b1 * c4 * d3 * e5 - a2 * b1 * c4 * d5 * e3 -
-               a2 * b1 * c5 * d3 * e4 + a2 * b1 * c5 * d4 * e3 + a2 * b3 * c1 * d4 * e5 - a2 * b3 * c1 * d5 * e4 -
-               a2 * b3 * c4 * d1 * e5 + a2 * b3 * c4 * d5 * e1 + a2 * b3 * c5 * d1 * e4 - a2 * b3 * c5 * d4 * e1 -
-               a2 * b4 * c1 * d3 * e5 + a2 * b4 * c1 * d5 * e3 + a2 * b4 * c3 * d1 * e5 - a2 * b4 * c3 * d5 * e1 -
-               a2 * b4 * c5 * d1 * e3 + a2 * b4 * c5 * d3 * e1 + a2 * b5 * c1 * d3 * e4 - a2 * b5 * c1 * d4 * e3 -
-               a2 * b5 * c3 * d1 * e4 + a2 * b5 * c3 * d4 * e1 + a2 * b5 * c4 * d1 * e3 - a2 * b5 * c4 * d3 * e1 +
-               a3 * b1 * c2 * d4 * e5 - a3 * b1 * c2 * d5 * e4 - a3 * b1 * c4 * d2 * e5 + a3 * b1 * c4 * d5 * e2 +
-               a3 * b1 * c5 * d2 * e4 - a3 * b1 * c5 * d4 * e2 - a3 * b2 * c1 * d4 * e5 + a3 * b2 * c1 * d5 * e4 +
-               a3 * b2 * c4 * d1 * e5 - a3 * b2 * c4 * d5 * e1 - a3 * b2 * c5 * d1 * e4 + a3 * b2 * c5 * d4 * e1 +
-               a3 * b4 * c1 * d2 * e5 - a3 * b4 * c1 * d5 * e2 - a3 * b4 * c2 * d1 * e5 + a3 * b4 * c2 * d5 * e1 +
-               a3 * b4 * c5 * d1 * e2 - a3 * b4 * c5 * d2 * e1 - a3 * b5 * c1 * d2 * e4 + a3 * b5 * c1 * d4 * e2 +
-               a3 * b5 * c2 * d1 * e4 - a3 * b5 * c2 * d4 * e1 - a3 * b5 * c4 * d1 * e2 + a3 * b5 * c4 * d2 * e1 -
-               a4 * b1 * c2 * d3 * e5 + a4 * b1 * c2 * d5 * e3 + a4 * b1 * c3 * d2 * e5 - a4 * b1 * c3 * d5 * e2 -
-               a4 * b1 * c5 * d2 * e3 + a4 * b1 * c5 * d3 * e2 + a4 * b2 * c1 * d3 * e5 - a4 * b2 * c1 * d5 * e3 -
-               a4 * b2 * c3 * d1 * e5 + a4 * b2 * c3 * d5 * e1 + a4 * b2 * c5 * d1 * e3 - a4 * b2 * c5 * d3 * e1 -
-               a4 * b3 * c1 * d2 * e5 + a4 * b3 * c1 * d5 * e2 + a4 * b3 * c2 * d1 * e5 - a4 * b3 * c2 * d5 * e1 -
-               a4 * b3 * c5 * d1 * e2 + a4 * b3 * c5 * d2 * e1 + a4 * b5 * c1 * d2 * e3 - a4 * b5 * c1 * d3 * e2 -
-               a4 * b5 * c2 * d1 * e3 + a4 * b5 * c2 * d3 * e1 + a4 * b5 * c3 * d1 * e2 - a4 * b5 * c3 * d2 * e1 +
-               a5 * b1 * c2 * d3 * e4 - a5 * b1 * c2 * d4 * e3 - a5 * b1 * c3 * d2 * e4 + a5 * b1 * c3 * d4 * e2 +
-               a5 * b1 * c4 * d2 * e3 - a5 * b1 * c4 * d3 * e2 - a5 * b2 * c1 * d3 * e4 + a5 * b2 * c1 * d4 * e3 +
-               a5 * b2 * c3 * d1 * e4 - a5 * b2 * c3 * d4 * e1 - a5 * b2 * c4 * d1 * e3 + a5 * b2 * c4 * d3 * e1 +
-               a5 * b3 * c1 * d2 * e4 - a5 * b3 * c1 * d4 * e2 - a5 * b3 * c2 * d1 * e4 + a5 * b3 * c2 * d4 * e1 +
-               a5 * b3 * c4 * d1 * e2 - a5 * b3 * c4 * d2 * e1 - a5 * b4 * c1 * d2 * e3 + a5 * b4 * c1 * d3 * e2 +
-               a5 * b4 * c2 * d1 * e3 - a5 * b4 * c2 * d3 * e1 - a5 * b4 * c3 * d1 * e2 + a5 * b4 * c3 * d2 * e1);
+              denom;
 }
 
 }  // end of namespace fea
