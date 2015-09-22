@@ -2,7 +2,7 @@ main:
     - title: Documentation
       url: '#'
     - title: Download
-      url: '#'
+      url: '/download'
     - title: Blog
       url: '/news/'
     - title: Community
