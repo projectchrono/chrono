@@ -4,7 +4,6 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-
 option(ENABLE_MODULE_FEA "Enable the Chrono FEA module" OFF)
 
 # Return now if this module is not enabled
@@ -18,72 +17,76 @@ MESSAGE(STATUS "==== Chrono FEA module ====")
 # LIST THE FILES THAT MAKE THE FEA FINITE ELEMENT LIBRARY
 
 SET(ChronoEngine_FEA_SOURCES
-	ChBuilderBeam.cpp
-	ChElementGeneric.cpp
-	ChElementSpring.cpp  
-	ChElementBar.cpp  
-	ChElementTetra_4.cpp
-	ChElementTetra_10.cpp
-	ChElementHexa_8.cpp
-	ChElementHexa_20.cpp 
-	ChNodeFEAxyz.cpp
-	ChGaussIntegrationRule.cpp
-	ChGaussPoint.cpp
-	ChMesh.cpp  
-	ChMatterMeshless.cpp 
-	ChProximityContainerMeshless.cpp
-	ChPolarDecomposition.cpp
-	ChMatrixCorotation.cpp
-	ChVisualizationFEAmesh.cpp
-	ChLinkPointFrame.cpp
-	ChLinkDirFrame.cpp
-	ChLinkPointPoint.cpp
-	ChContactSurface.cpp
-	)
+    ChBuilderBeam.cpp
+    ChElementGeneric.cpp
+    ChElementSpring.cpp  
+    ChElementBar.cpp  
+    ChElementTetra_4.cpp
+    ChElementTetra_10.cpp
+    ChElementHexa_8.cpp
+    ChElementHexa_20.cpp 
+    ChElementShellANCF.cpp
+    ChElementBrick.cpp
+    ChNodeFEAxyz.cpp
+    ChGaussIntegrationRule.cpp
+    ChGaussPoint.cpp
+    ChMesh.cpp  
+    ChMatterMeshless.cpp 
+    ChProximityContainerMeshless.cpp
+    ChPolarDecomposition.cpp
+    ChMatrixCorotation.cpp
+    ChVisualizationFEAmesh.cpp
+    ChLinkPointFrame.cpp
+    ChLinkDirFrame.cpp
+    ChLinkPointPoint.cpp
+    ChContactSurface.cpp
+)
 
 SET(ChronoEngine_FEA_HEADERS
-	ChApiFEA.h  
-	ChBeamSection.h
-	ChShellSection.h
-	ChBuilderBeam.h
-	ChContinuumPoisson3D.h
-	ChContinuumThermal.h
-	ChContinuumElectrostatics.h
-	ChNodeFEAbase.h 
-	ChNodeFEAxyz.h
-	ChNodeFEAxyzrot.h
-	ChNodeFEAxyzP.h 
-	ChNodeFEAxyzD.h 
-	ChElementBase.h
-	ChElementGeneric.h
-	ChElementCorotational.h
-	ChElementSpring.h
-	ChElementBar.h 
-	ChElementBeam.h
-	ChElementBeamEuler.h
-	ChElementBeamANCF.h
-	ChElementBrick.h 
-	ChElement3D.h
-	ChElementTetrahedron.h
-	ChElementTetra_4.h
-	ChElementTetra_10.h
-	ChElementHexahedron.h
-	ChElementHexa_8.h
-	ChElementHexa_20.h
-	ChElementShellANCF.h
-	ChGaussIntegrationRule.h
-	ChGaussPoint.h
-	ChMesh.h 
-	ChMatterMeshless.h 
-	ChProximityContainerMeshless.h
-	ChPolarDecomposition.h
-	ChMatrixCorotation.h
-	ChVisualizationFEAmesh.h
-	ChLinkPointFrame.h
-	ChLinkDirFrame.h
-	ChLinkPointPoint.h
-	ChContactSurface.h
-	)
+    ChApiFEA.h
+    ChBeamSection.h
+    ChShellSection.h
+    ChBuilderBeam.h
+    ChContinuumPoisson3D.h
+    ChContinuumThermal.h
+    ChContinuumElectrostatics.h
+    ChNodeFEAbase.h 
+    ChNodeFEAxyz.h
+    ChNodeFEAxyzrot.h
+    ChNodeFEAxyzP.h 
+    ChNodeFEAxyzD.h 
+    ChElementBase.h
+    ChElementGeneric.h
+    ChElementCorotational.h
+    ChElementSpring.h
+    ChElementBar.h 
+    ChElementBeam.h
+    ChElementBeamEuler.h
+    ChElementBeamANCF.h
+    ChElementBrick.h 
+    ChElement3D.h
+    ChElementTetrahedron.h
+    ChElementTetra_4.h
+    ChElementTetra_10.h
+    ChElementHexahedron.h
+    ChElementHexa_8.h
+    ChElementHexa_20.h
+    ChElementShell.h
+    ChElementShellANCF.h
+    ChGaussIntegrationRule.h
+    ChGaussPoint.h
+    ChMesh.h 
+    ChMatterMeshless.h 
+    ChProximityContainerMeshless.h
+    ChPolarDecomposition.h
+    ChMatrixCorotation.h
+    ChVisualizationFEAmesh.h
+    ChLinkPointFrame.h
+    ChLinkDirFrame.h
+    ChLinkPointPoint.h
+    ChContactSurface.h
+    ChUtilsFEA.h
+)
 
 SOURCE_GROUP("" FILES 
     ${ChronoEngine_FEA_SOURCES} 
@@ -93,8 +96,8 @@ SOURCE_GROUP("" FILES
 # Create the ChronoEngine_fea library
 
 ADD_LIBRARY(ChronoEngine_fea SHARED 
-			${ChronoEngine_FEA_SOURCES}
-			${ChronoEngine_FEA_HEADERS})
+    ${ChronoEngine_FEA_SOURCES}
+    ${ChronoEngine_FEA_HEADERS})
 
 SET_TARGET_PROPERTIES(ChronoEngine_fea PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
@@ -103,13 +106,13 @@ SET_TARGET_PROPERTIES(ChronoEngine_fea PROPERTIES
                           
 TARGET_LINK_LIBRARIES(ChronoEngine_fea
                       ChronoEngine)
-	
+
 ADD_DEPENDENCIES(ChronoEngine_fea ChronoEngine)
-	
+
 INSTALL(TARGETS ChronoEngine_fea
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib)
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 INSTALL(FILES ${ChronoEngine_FEA_HEADERS}
         DESTINATION include/chrono_fea)

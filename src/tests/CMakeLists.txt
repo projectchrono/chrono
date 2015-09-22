@@ -24,6 +24,9 @@ endif("${isSystemDir}" STREQUAL "-1")
 
 message(STATUS "==== Additional test programs ====")
 
+if(ENABLE_MODULE_FEA)
+  add_subdirectory(fea)
+endif() 
 if(ENABLE_MODULE_VEHICLE)
   add_subdirectory(vehicle)
 endif()
