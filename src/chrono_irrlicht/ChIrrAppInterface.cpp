@@ -96,6 +96,9 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                     chrono::GetLog() << "Stop saving frames.\n";
                 }
                 return true;
+            case KEY_ESCAPE:
+                app->GetDevice()->closeDevice();
+                return true;
         }
     }
 
