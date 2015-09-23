@@ -85,7 +85,7 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle& car,
                                  ChPowertrain& powertrain,
                                  const wchar_t* title,
                                  irr::core::dimension2d<irr::u32> dims)
-    : ChIrrApp(car.GetSystem(), title, dims),
+    : ChIrrApp(car.GetSystem(), title, dims, false, false, irr::video::EDT_OPENGL),
       m_car(car),
       m_powertrain(powertrain),
       m_camera(car.GetChassis()),
