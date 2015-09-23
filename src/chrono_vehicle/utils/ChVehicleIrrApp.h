@@ -135,7 +135,12 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
                         int ypos,
                         int length = 120,
                         int height = 15);
-    void renderTextBox(const std::string& msg, int xpos, int ypos, int length = 120, int height = 15);
+    void renderTextBox(const std::string& msg,
+                       int xpos,
+                       int ypos,
+                       int length = 120,
+                       int height = 15,
+                       irr::video::SColor color = irr::video::SColor(255, 20, 20, 20));
 
     ChVehicle& m_car;            ///< reference to the associated vehicle system
     ChPowertrain& m_powertrain;  ///< reference to the associated powertrain system
