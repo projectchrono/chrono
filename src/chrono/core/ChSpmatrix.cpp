@@ -163,7 +163,7 @@ void ChSparseMatrix::Reset() {
     Reset(rows, columns);
 }
 
-bool ChSparseMatrix::Reset(int row, int col, int nonzeros) {
+void ChSparseMatrix::Reset(int row, int col, int nonzeros) {
     // realloc 1st column array, only if needed
     if (row != rows) {
         if (elarray)
@@ -218,7 +218,6 @@ bool ChSparseMatrix::Reset(int row, int col, int nonzeros) {
         mbuffer_added++;                             // increment the counter of "used" elements.
         mnextel++;
     }
-	return 0;
 }
 
 void ChSparseMatrix::ResetBlocks(int row, int col) {

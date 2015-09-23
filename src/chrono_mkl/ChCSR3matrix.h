@@ -77,8 +77,8 @@ namespace chrono{
 		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true) ;
 
 		// Size manipulation
-		virtual bool Reset(int nrows, int ncols, int nonzeros = 0) ;
 		virtual bool Resize(int nrows, int ncols, int nonzeros = 0) ;
+		virtual void Reset(int nrows, int ncols, int nonzeros = 0);
 		void Compress(bool trim_after_compressing = false); // purge the matrix from all the unininitialized elements
 		void Trim(); // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
 		void Prune(double pruning_threshold = DBL_EPSILON);
