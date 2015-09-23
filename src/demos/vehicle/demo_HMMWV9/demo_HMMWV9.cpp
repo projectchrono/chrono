@@ -364,8 +364,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    app.GetDevice()->drop();
-
 #else
 
     int render_frame = 0;

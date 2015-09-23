@@ -273,8 +273,6 @@ int main(int argc, char* argv[]) {
         step_number++;
     }
 
-    app.GetDevice()->drop();
-
 #else
 
     int render_frame = 0;
