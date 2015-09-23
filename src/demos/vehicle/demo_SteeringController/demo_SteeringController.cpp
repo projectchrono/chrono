@@ -50,6 +50,7 @@ std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 std::string rigidtire_file("generic/tire/RigidTire.json");
 std::string lugretire_file("generic/tire/LugreTire.json");
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
+std::string controller_file("generic/driver/SteeringController.json");
 std::string path_file("pathS.txt");
 
 // Initial vehicle position
@@ -78,12 +79,14 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 // Custom Irrlicht event receiver for selecting current driver model.
 class ChDriverSelector : public irr::IEventReceiver {
   public:
-    ChDriverSelector(Generic_PathFollowerDriver* driver_follower, ChIrrGuiDriver* driver_gui, ChDriver** driver)
-        : m_driver_follower(driver_follower), m_driver_gui(driver_gui), m_driver(driver) {
-        *m_driver = m_driver_gui;
-        m_using_gui = true;
-    }
+    ChDriverSelector(const ChVehicle& vehicle, Generic_PathFollowerDriver* driver_follower, ChIrrGuiDriver* driver_gui)
+        : m_vehicle(vehicle),
+          m_driver_follower(driver_follower),
+          m_driver_gui(driver_gui),
+          m_driver(m_driver_gui),
+          m_using_gui(true) {}
 
+    ChDriver* GetDriver() { return m_driver; }
     bool UsingGUI() const { return m_using_gui; }
 
     virtual bool OnEvent(const irr::SEvent& event) {
@@ -95,18 +98,42 @@ class ChDriverSelector : public irr::IEventReceiver {
         if (event.KeyInput.PressedDown)
             return false;
 
-        if (event.KeyInput.Key == irr::KEY_COMMA && *m_driver != m_driver_follower) {
-            *m_driver = m_driver_follower;
-            m_using_gui = false;
-            return true;
-        }
-        if (event.KeyInput.Key == irr::KEY_PERIOD && *m_driver != m_driver_gui) {
-            m_driver_gui->SetThrottle(m_driver_follower->GetThrottle());
-            m_driver_gui->SetSteering(m_driver_follower->GetSteering());
-            m_driver_gui->SetBraking(m_driver_follower->GetBraking());
-            *m_driver = m_driver_gui;
-            m_using_gui = true;
-            return true;
+        switch (event.KeyInput.Key) {
+            case irr::KEY_COMMA:
+                if (m_using_gui) {
+                    m_driver = m_driver_follower;
+                    m_using_gui = false;
+                }
+                return true;
+            case irr::KEY_PERIOD:
+                if (!m_using_gui) {
+                    m_driver_gui->SetThrottle(m_driver_follower->GetThrottle());
+                    m_driver_gui->SetSteering(m_driver_follower->GetSteering());
+                    m_driver_gui->SetBraking(m_driver_follower->GetBraking());
+                    m_driver = m_driver_gui;
+                    m_using_gui = true;
+                }
+                return true;
+            case irr::KEY_HOME:
+                if (!m_using_gui && !m_driver_follower->GetSteeringController().IsDataCollectionEnabled()) {
+                    std::cout << "Data collection started at t = " << m_vehicle.GetChTime() << std::endl;
+                    m_driver_follower->GetSteeringController().StartDataCollection();
+                }
+                return true;
+            case irr::KEY_END:
+                if (!m_using_gui && m_driver_follower->GetSteeringController().IsDataCollectionEnabled()) {
+                    std::cout << "Data collection stopped at t = " << m_vehicle.GetChTime() << std::endl;
+                    m_driver_follower->GetSteeringController().StopDataCollection();
+                }
+                return true;
+            case irr::KEY_INSERT:
+                if (!m_using_gui && m_driver_follower->GetSteeringController().IsDataAvailable()) {
+                    char filename[100];
+                    sprintf(filename, "controller_%.2f.out", m_vehicle.GetChTime());
+                    std::cout << "Data written to file " << filename << std::endl;
+                    m_driver_follower->GetSteeringController().WriteOutputFile(std::string(filename));
+                }
+                return true;
         }
 
         return false;
@@ -114,9 +141,10 @@ class ChDriverSelector : public irr::IEventReceiver {
 
   private:
     bool m_using_gui;
+    const ChVehicle& m_vehicle;
     Generic_PathFollowerDriver* m_driver_follower;
     ChIrrGuiDriver* m_driver_gui;
-    ChDriver** m_driver;
+    ChDriver* m_driver;
 };
 
 // =============================================================================
@@ -189,7 +217,7 @@ int main(int argc, char* argv[]) {
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    //app.EnableGrid(false);
+    // app.EnableGrid(false);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
 
     app.SetTimestep(step_size);
@@ -207,18 +235,21 @@ int main(int argc, char* argv[]) {
     // Create the driver systems
     // -------------------------
 
-    // Create both a path-follower and a GUI driver and allow switching between the,
+    // Create both a GUI driver and a path-follower and allow switching between them
+    ChIrrGuiDriver driver_gui(app, vehicle, powertrain);
+
+    /*
     Generic_PathFollowerDriver driver_follower(vehicle, path);
     driver_follower.GetSteeringController().SetLookAheadDistance(20);
     driver_follower.GetSteeringController().SetGains(0.5, 0, 0);
-    driver_follower.Reset();
+    */
+    Generic_PathFollowerDriver driver_follower(vehicle, vehicle::GetDataFile(controller_file), path);
 
-    ChIrrGuiDriver driver_gui(app, vehicle, powertrain);
+    driver_follower.Reset();
 
     // Create and register a custom Irrlicht event receiver to allow selecting the
     // current driver model.
-    ChDriver* driver;
-    ChDriverSelector selector(&driver_follower, &driver_gui, &driver);
+    ChDriverSelector selector(vehicle, &driver_follower, &driver_gui);
     app.SetUserEventReceiver(&selector);
 
     // ---------------
@@ -247,16 +278,12 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        irr::core::dimension2d<irr::u32> xy = app.GetDevice()->getVideoDriver()->getScreenSize();
-        std::string msg = selector.UsingGUI() ? "GUI driver" : "Follower driver";
-        irr::gui::IGUIFont* font = app.GetIGUIEnvironment()->getBuiltInFont();
-        font->draw(msg.c_str(), irr::core::rect<irr::s32>(xy.Width-120, xy.Height-50, xy.Width-20, xy.Height-20), irr::video::SColor(255, 250, 250, 0));
         app.EndScene();
 
         // Collect output data from modules (for inter-module communication)
-        throttle_input = driver->GetThrottle();
-        steering_input = driver->GetSteering();
-        braking_input = driver->GetBraking();
+        throttle_input = selector.GetDriver()->GetThrottle();
+        steering_input = selector.GetDriver()->GetSteering();
+        braking_input = selector.GetDriver()->GetBraking();
         powertrain_torque = powertrain.GetOutputTorque();
         driveshaft_speed = vehicle.GetDriveshaftSpeed();
         for (int i = 0; i < num_wheels; i++) {
@@ -265,7 +292,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Update modules (process inputs from other modules)
-        double time = vehicle.GetSystem()->GetChTime();
+        double time = vehicle.GetChTime();
         driver_follower.Update(time);
         driver_gui.Update(time);
         powertrain.Update(time, throttle_input, driveshaft_speed);
@@ -273,7 +300,8 @@ int main(int argc, char* argv[]) {
         terrain.Update(time);
         for (int i = 0; i < num_wheels; i++)
             tires[i]->Update(time, wheel_states[i]);
-        app.Update("Driver inputs", steering_input, throttle_input, braking_input);
+        std::string msg = selector.UsingGUI() ? "GUI driver" : "Follower driver";
+        app.Update(msg, steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
@@ -287,6 +315,5 @@ int main(int argc, char* argv[]) {
         app.Advance(step);
     }
 
-    app.GetDevice()->drop();
     return 0;
 }
