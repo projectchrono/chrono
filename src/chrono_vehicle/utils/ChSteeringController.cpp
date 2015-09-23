@@ -26,18 +26,49 @@
 //
 // =============================================================================
 
+#include <cstdio>
+
 #include "chrono/core/ChMathematics.h"
 
 #include "chrono_vehicle/utils/ChSteeringController.h"
+
+#include "thirdparty/rapidjson/document.h"
+#include "thirdparty/rapidjson/filereadstream.h"
+
+using namespace rapidjson;
 
 namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Implementation of the base class ChSteeringController
 // -----------------------------------------------------------------------------
-ChSteeringController::ChSteeringController() : m_dist(0), m_sentinel(0, 0, 0), m_target(0, 0, 0) {
+ChSteeringController::ChSteeringController()
+    : m_dist(0), m_sentinel(0, 0, 0), m_target(0, 0, 0), m_collect(false), m_csv(NULL) {
     // Default PID controller gains all zero (no control).
     SetGains(0, 0, 0);
+}
+
+ChSteeringController::ChSteeringController(const std::string& filename)
+    : m_sentinel(0, 0, 0), m_target(0, 0, 0), m_collect(false), m_csv(NULL) {
+    FILE* fp = fopen(filename.c_str(), "r");
+
+    char readBuffer[65536];
+    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+    fclose(fp);
+
+    Document d;
+    d.ParseStream(is);
+
+    m_Kp = d["Gains"]["Kp"].GetDouble();
+    m_Ki = d["Gains"]["Ki"].GetDouble();
+    m_Kd = d["Gains"]["Kd"].GetDouble();
+
+    m_dist = d["Lookahead Distance"].GetDouble();
+}
+
+ChSteeringController::~ChSteeringController() {
+    delete m_csv;
 }
 
 void ChSteeringController::Reset(const ChVehicle& vehicle) {
@@ -52,6 +83,11 @@ double ChSteeringController::Advance(const ChVehicle& vehicle, double step) {
 
     // Calculate current "target" location.
     CalcTargetLocation();
+
+    // If data collection is enabled, append current target and sentinel locations.
+    if (m_collect) {
+        *m_csv << vehicle.GetChTime() << m_target << m_sentinel << std::endl;
+    }
 
     // The "error" vector is the projection onto the horizontal plane (z=0) of
     // the vector between sentinel and target.
@@ -83,10 +119,41 @@ double ChSteeringController::Advance(const ChVehicle& vehicle, double step) {
     return m_Kp * m_err + m_Ki * m_erri + m_Kd * m_errd;
 }
 
+void ChSteeringController::StartDataCollection() {
+    // Return now if currently collecting data.
+    if (m_collect)
+        return;
+    // Create the CSV_writer object if needed (first call to this function).
+    if (!m_csv) {
+        m_csv = new utils::CSV_writer("\t");
+        m_csv->stream().setf(std::ios::scientific | std::ios::showpos);
+        m_csv->stream().precision(6);
+    }
+    // Enable data collection.
+    m_collect = true;
+}
+
+void ChSteeringController::StopDataCollection() {
+    // Suspend data collection.
+    m_collect = false;
+}
+
+void ChSteeringController::WriteOutputFile(const std::string& filename) {
+    // Do nothing if data collection was never enabled.
+    if (m_csv)
+        m_csv->write_to_file(filename);
+}
+
 // -----------------------------------------------------------------------------
 // Implementation of the derived class ChPathSteeringController.
 // -----------------------------------------------------------------------------
 ChPathSteeringController::ChPathSteeringController(ChBezierCurve* path) : m_path(path) {
+    // Create a tracker object associated with the given path.
+    m_tracker = new ChBezierCurveTracker(path);
+}
+
+ChPathSteeringController::ChPathSteeringController(const std::string& filename, ChBezierCurve* path)
+    : ChSteeringController(filename), m_path(path) {
     // Create a tracker object associated with the given path.
     m_tracker = new ChBezierCurveTracker(path);
 }
