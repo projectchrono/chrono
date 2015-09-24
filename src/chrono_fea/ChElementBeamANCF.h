@@ -43,7 +43,7 @@ namespace fea
 ///  Dynamics Implementation"
 ///  D. MELANZ
 
-class  ChElementBeamANCF : public ChElementBeam
+class  ChElementBeamANCF : public ChElementBeam , public ChLoadableU, public ChLoadableUVW
 {
 protected:
 	std::vector< ChSharedPtr<ChNodeFEAxyzD> > nodes;
@@ -873,17 +873,17 @@ public:
         /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
         mD.PasteVector(this->nodes[0]->GetPos(), block_offset,  0);
-        mD.PasteVector(this->nodes[0]->GetD(), block_offset,  0);
-        mD.PasteVector(this->nodes[1]->GetPos(), block_offset,  0);
-        mD.PasteVector(this->nodes[1]->GetD(), block_offset,  0);
+        mD.PasteVector(this->nodes[0]->GetD(),   block_offset+3,  0);
+        mD.PasteVector(this->nodes[1]->GetPos(), block_offset+6,  0);
+        mD.PasteVector(this->nodes[1]->GetD(),   block_offset+9,  0);
     }
 
         /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
         mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset,  0);
-        mD.PasteVector(this->nodes[0]->GetD_dt(), block_offset,  0);
-        mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset,  0);
-        mD.PasteVector(this->nodes[1]->GetD_dt(), block_offset,  0);
+        mD.PasteVector(this->nodes[0]->GetD_dt(),   block_offset+3,  0);
+        mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset+6,  0);
+        mD.PasteVector(this->nodes[1]->GetD_dt(),   block_offset+9,  0);
     }
 
         /// Number of coordinates in the interpolated field, ex=3 for a 
@@ -895,6 +895,9 @@ public:
 
         /// Get the offset of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockOffset(int nblock) { return nodes[nblock]->NodeGetOffset_w();}
+
+        /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 6;}
 
         /// Evaluate N'*F , where N is some type of shape function
         /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
@@ -939,7 +942,6 @@ public:
                      ) {
          this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
      }
-
 
             /// This is needed so that it can be accessed by ChLoaderVolumeGravity
      virtual double GetDensity() { return this->section->Area * this->section->density; } 
