@@ -131,9 +131,18 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
     /// the equilibrium, the tangent stiffness would be symmetric anyway.
     void SetForceSymmetricStiffness(bool md) { force_symmetric_stiffness = md; }
 
-    /// Fills the N matrix (single row, 12 columns) with the
+    /// Fills the N matrix (compressed! single row, 12 columns) with the
     /// values of shape functions at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
+    /// Given  u = 12-d state block {u1,r1,u2,r2}' , d = 6-d field {u,r},
+    /// one has   f(eta) = [S(eta)]*u   where one fills the sparse [S] matrix 
+    /// with the N shape functions in this pattern:
+    ///      | 0    .   .   .   .   .   3   .   .   .   .   .   |
+    ///      | .    1   .   .   .   2   .   4   .   .   .   5   |
+    /// [S] =| .    .   1   .   -2  .   .   .   4   .   -5  .   |
+    ///      | .    .   .   0   .   .   .   .   .   3   .   .   |
+    ///      | .    .   -6  .   8   .   .   .   -7  .   9   .   |
+    ///      | .    6   .   .   .   8   .   7   .   .   .   9   |
     virtual void ShapeFunctions(ChMatrix<>& N, double eta) {
         double Nx1 = (1. / 2.) * (1 - eta);
         double Nx2 = (1. / 2.) * (1 + eta);
@@ -141,6 +150,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
         double Ny2 = (1. / 4.) * pow((1 + eta), 2) * (2 - eta);
         double Nr1 = (this->length / 8.) * pow((1 - eta), 2) * (1 + eta);
         double Nr2 = (this->length / 8.) * pow((1 + eta), 2) * (eta - 1);
+        /*
         N(0) = Nx1;
         N(1) = Ny1;
         N(2) = Ny1;
@@ -153,6 +163,21 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
         N(9) = Nx2;
         N(10) = -Nr2;
         N(11) = Nr2;
+        */
+        double dN_ua = (1. / (2. * this->length)) * (-3. + 3 * eta * eta);  
+        double dN_ub = (1. / (2. * this->length)) * (3. - 3 * eta * eta);
+        double dN_ra = (1. / 4.) * (-1. - 2 * eta + 3 * eta * eta);
+        double dN_rb = -(1. / 4.) * (1. - 2 * eta - 3 * eta * eta);
+        N(0) = Nx1;
+        N(1) = Ny1;
+        N(2) = Nr1;
+        N(3) = Nx2;
+        N(4) = Ny2;
+        N(5) = Nr2;
+        N(6) = dN_ua;
+        N(7) = dN_ub;
+        N(8) = dN_ra;
+        N(9) = dN_rb;
     };
 
     virtual void Update() {
@@ -816,8 +841,8 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
                                              ChVector<>& u_rotaz) {
         ChMatrixNM<double, 1, 12> N;
 
-        this->ShapeFunctions(N, eta);  // Evaluate shape functions
-
+        this->ShapeFunctions(N, eta);  // Evaluate compressed shape functions
+        /*
         u_displ.x = N(0) * displ(0) + N(6) * displ(6);      // x_a   x_b
         u_displ.y = N(1) * displ(1) + N(7) * displ(7)       // y_a   y_b
                     + N(5) * displ(5) + N(11) * displ(11);  // Rz_a  Rz_b
@@ -835,6 +860,18 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
                     dN_ra * displ(4) + dN_rb * displ(10);   // Ry_a  Ry_b
         u_rotaz.z = dN_ua * displ(1) + dN_ub * displ(7) +   // y_a   y_b
                     dN_ra * displ(5) + dN_rb * displ(11);   // Rz_a  Rz_b
+        */
+        u_displ.x = N(0) * displ(0) + N(3) * displ(6);      // x_a   x_b
+        u_displ.y = N(1) * displ(1) + N(4) * displ(7)       // y_a   y_b
+                    + N(2) * displ(5) + N(5) * displ(11);  // Rz_a  Rz_b
+        u_displ.z = N(1) * displ(2) + N(4) * displ(8)       // z_a   z_b
+                    - N(2) * displ(4) - N(5) * displ(10);  // Ry_a  Ry_b
+
+        u_rotaz.x = N(0) * displ(3) + N(3) * displ(9);  // Rx_a  Rx_b
+        u_rotaz.y = -N(6) * displ(2) - N(7) * displ(8) +  // z_a   z_b   note - sign
+                     N(8) * displ(4) + N(9) * displ(10);   // Ry_a  Ry_b
+        u_rotaz.z =  N(6) * displ(1) + N(7) * displ(7) +   // y_a   y_b
+                     N(8) * displ(5) + N(9) * displ(11);   // Rz_a  Rz_b
     }
 
     /// Gets the absolute xyz position of a point on the beam line,
@@ -880,9 +917,9 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
 
         double Jpolar = section->J;
 
-        ChMatrixNM<double, 1, 12> N;
+        //ChMatrixNM<double, 1, 12> N;
 
-        this->ShapeFunctions(N, eta);  // Evaluate shape functions
+        //this->ShapeFunctions(N, eta);  // Evaluate compressed shape functions
 
         // shape function derivatives are computed here on-the-fly
         double dN_xa = -(1. / length);
