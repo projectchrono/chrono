@@ -349,17 +349,17 @@ void ChLinkMateGeneric::IntStateGatherReactions(const unsigned int off_L, ChVect
     }
     if (c_rx) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -2 * react_torque.x;
+            L(off_L + nc) = -  react_torque.x;
         nc++;
     }
     if (c_ry) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -2 * react_torque.y;
+            L(off_L + nc) = -  react_torque.y;
         nc++;
     }
     if (c_rz) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -2 * react_torque.z;
+            L(off_L + nc) = -  react_torque.z;
         nc++;
     }
 }
@@ -389,17 +389,17 @@ void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const
     }
     if (c_rx) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.x = -0.5 * L(off_L + nc);
+            react_torque.x = - L(off_L + nc);
         nc++;
     }
     if (c_ry) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.y = -0.5 * L(off_L + nc);
+            react_torque.y = - L(off_L + nc);
         nc++;
     }
     if (c_rz) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.z = -0.5 * L(off_L + nc);
+            react_torque.z = - L(off_L + nc);
         nc++;
     }
 }
@@ -565,17 +565,17 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
     }
     if (c_rx) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.x = -0.5 * mask->Constr_N(nc).Get_l_i() * factor;
+            react_torque.x = - mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_ry) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.y = -0.5 * mask->Constr_N(nc).Get_l_i() * factor;
+            react_torque.y = - mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_rz) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.z = -0.5 * mask->Constr_N(nc).Get_l_i() * factor;
+            react_torque.z = - mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
 }
