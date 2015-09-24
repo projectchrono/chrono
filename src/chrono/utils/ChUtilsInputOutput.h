@@ -64,7 +64,7 @@ class ChApi CSV_writer {
 
   ~CSV_writer() {}
 
-  void write_to_file(const std::string& filename, const std::string& header = "") {
+  void write_to_file(const std::string& filename, const std::string& header = "") const {
     std::ofstream ofile(filename.c_str());
     ofile << header;
     ofile << m_ss.str();
