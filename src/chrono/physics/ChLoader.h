@@ -36,7 +36,7 @@ public:
 
     virtual void ComputeQ( ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
-                          );
+                          ) = 0;
 
     virtual ChSharedPtr<ChLoadable> GetLoadable() =0;
 

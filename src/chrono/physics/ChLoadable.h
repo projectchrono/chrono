@@ -49,6 +49,9 @@ public:
 
         /// Get the offset of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockOffset(int nblock) = 0;
+
+        /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) = 0;
 };
 
 
@@ -111,7 +114,7 @@ public:
 class ChLoadableU : public ChLoadable {
 public:
             /// Evaluate N'*F , where N is some type of shape function
-            /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
+            /// evaluated at U coordinate of the line, ranging in -1..+1
             /// F is a load, N'*F is the resulting generalized load
             /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
         virtual void ComputeNF(const double U,   ///< parametric coordinate in line

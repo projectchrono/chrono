@@ -26,7 +26,7 @@ namespace chrono {
 /// add them to this container, then  the container is added to a ChSystem.
 
 
-class  ChApi ChLoadContainer : ChPhysicsItem   {
+class  ChApi ChLoadContainer : public ChPhysicsItem   {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChLoadContainer, ChPhysicsItem);
 
