@@ -159,7 +159,10 @@ void ChSparseMatrix::MoreBuffer(double inflate) {
     mbuffer_added = 0;
 }
 
-void ChSparseMatrix::Reset() {
+	bool ChSparseMatrix::Resize(int nrows, int ncols, int nonzeros)
+	{ assert(false); return 0; }
+
+	void ChSparseMatrix::Reset() {
     Reset(rows, columns);
 }
 
