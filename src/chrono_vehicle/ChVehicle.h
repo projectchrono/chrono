@@ -60,6 +60,9 @@ public:
   /// Get a pointer to the Chrono ChSystem.
   ChSystem* GetSystem() { return m_system; }
 
+  /// Get the current simulation time of the underlying ChSystem.
+  double GetChTime() const { return m_system->GetChTime(); }
+
   /// Get a handle to the vehicle's chassis body.
   ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 

@@ -24,6 +24,13 @@ Generic_PathFollowerDriver::Generic_PathFollowerDriver(ChVehicle& vehicle, ChBez
     m_PID.Reset(vehicle);
 }
 
+Generic_PathFollowerDriver::Generic_PathFollowerDriver(ChVehicle& vehicle,
+                                                       const std::string& filename,
+                                                       ChBezierCurve* path)
+    : m_vehicle(vehicle), m_PID(filename, path) {
+    m_PID.Reset(vehicle);
+}
+
 void Generic_PathFollowerDriver::Reset() {
     m_PID.Reset(m_vehicle);
 }

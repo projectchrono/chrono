@@ -63,22 +63,22 @@ namespace chrono{
 		double* GetValuesAddress() { return values; };
 		int* GetColIndexAddress() { return colIndex; };
 		int* GetRowIndexAddress() { return rowIndex; };
-		virtual int GetRows() const  { return mat_rows; };
-		virtual int GetColumns() const  { return mat_cols; };
+		virtual int GetRows() const override { return mat_rows; };
+		virtual int GetColumns() const override { return mat_cols; };
 
-		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) ;
-		virtual double GetElement(int row, int col) ;
+		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
+		virtual double GetElement(int row, int col) override;
 		double& Element(int row, int col);
 		double& operator()(int row, int col) { return Element(row, col); }
 		double& operator()(int index) { return Element( index / GetColumns(), index % GetColumns()); }
 
-		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) ;
-		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) ;
-		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true) ;
+		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) override;
+		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) override;
+		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true) override;
 
 		// Size manipulation
-		virtual bool Reset(int nrows, int ncols, int nonzeros = 0) ;
-		virtual bool Resize(int nrows, int ncols, int nonzeros = 0) ;
+		virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
+		virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
 		void Compress(bool trim_after_compressing = false); // purge the matrix from all the unininitialized elements
 		void Trim(); // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
 		void Prune(double pruning_threshold = DBL_EPSILON);

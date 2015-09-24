@@ -7,7 +7,7 @@ MESSAGE(STATUS "Demo programs for MKL module...")
 
 MESSAGE(STATUS "...add demo_MklEngine")
 ADD_EXECUTABLE(demo_MklEngine demo_MklEngine.cpp)
-SOURCE_GROUP("" FILES demo_pardiso.cpp)
+SOURCE_GROUP("" FILES demo_MklEngine.cpp)
 SET_TARGET_PROPERTIES(demo_MklEngine PROPERTIES 
                       FOLDER demos
                       LINK_FLAGS "${CH_LINKERFLAG_EXE}")

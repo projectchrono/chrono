@@ -14,6 +14,7 @@ SET(FEA_DEMOS_IRR
     demo_FEAvisualize
     demo_FEAcontacts
     demo_FEAcables
+	demo_FEAancfShell
 )
 
 # List all FEA demos that use both Irrlicht and Matlab

@@ -751,63 +751,61 @@ namespace chrono {
 
 
 
-	bool ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros)
+	void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros)
 	{
 		assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
-		if (rowIndex_lock || colIndex_lock)
+
+		if (TESTING_CSR3){
+			mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
+		}
+
+		if (nonzeros == 0)
+			nonzeros = rowIndex[mat_rows] - 1;
+
+		nonzeros = std::max(nrows, nonzeros);
+
+		if (nrows > mat_rows)
 		{
-			if (nrows != mat_rows || ncols != mat_cols || nonzeros != 0)
-				return false;
+			mkl_free(rowIndex);
+			rowIndex = static_cast<int*>(mkl_malloc((nrows + 1)*sizeof(int), array_alignment));
+			reallocation_occurred = true;
+			isCompressed = false;
+			rowIndex_occupancy = nrows + 1;
+			rowIndex_lock_broken = true;
+			colIndex_lock_broken = true;
+		}
+
+
+		if (nonzeros > rowIndex[mat_rows])
+		{
+			mkl_free(values);
+			mkl_free(colIndex);
+			values = static_cast<double*>(mkl_malloc(nonzeros*sizeof(double), array_alignment));
+			colIndex = static_cast<int*>(mkl_malloc(nonzeros*sizeof(int), array_alignment));
+			reallocation_occurred = true;
+			isCompressed = false;
+			colIndex_occupancy = nonzeros;
+			rowIndex_lock_broken = true;
+			colIndex_lock_broken = true;
+		}
+
+		if (TESTING_CSR3){
+			mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
+		}
+
+		if (!rowIndex_lock_broken && !colIndex_lock_broken && mat_rows == nrows && mat_cols == ncols && nonzeros == rowIndex[mat_rows] - 1)
+		{
 			initialize_ValuesColIndex();
 		}
 		else
 		{
-			if (TESTING_CSR3){
-				mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
-			}
-
-			if (nonzeros == 0)
-				nonzeros = rowIndex[mat_rows] - 1;
-
-			nonzeros = std::max(nrows, nonzeros);
-
-			if (nrows > mat_rows)
-			{
-				mkl_free(rowIndex);
-				rowIndex = static_cast<int*>(mkl_malloc((nrows + 1)*sizeof(int), array_alignment));
-				reallocation_occurred = true;
-				isCompressed = false;
-				rowIndex_occupancy = nrows + 1;
-				rowIndex_lock_broken = true;
-				colIndex_lock_broken = true;
-			}
-
-
-			if (nonzeros>rowIndex[mat_rows])
-			{
-				mkl_free(values);
-				mkl_free(colIndex);
-				values = static_cast<double*>(mkl_malloc(nonzeros*sizeof(double), array_alignment));
-				colIndex = static_cast<int*>(mkl_malloc(nonzeros*sizeof(int), array_alignment));
-				reallocation_occurred = true;
-				isCompressed = false;
-				colIndex_occupancy = nonzeros;
-				rowIndex_lock_broken = true;
-				colIndex_lock_broken = true;
-			}
-
-			if (TESTING_CSR3){
-				mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
-			}
-
-
 			mat_rows = nrows;
 			mat_cols = ncols;
 
 			initialize(nonzeros);
 		}
-		return 0;
+		
 	} // Reset
 
 	void ChCSR3Matrix::Compress(bool trim_after_compressing)

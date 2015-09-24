@@ -16,6 +16,7 @@
 // implements the basic functionality to control the error between the location
 // of a sentinel point (a point at a look-ahead distance in front of the vehicle)
 // and the current target point.
+//
 // Derived classes differ in how they specify the target point.  This can be the
 // closest point to the sentinel point on a pre-defined curve path (currently
 // using a ChBezierCurve) or from some other external sources (e.g. interfacing
@@ -30,9 +31,9 @@
 #define CH_STEERING_CONTROLLER_H
 
 #include <string>
-#include <vector>
 
 #include "chrono/core/ChBezierCurve.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
@@ -41,11 +42,41 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 /// Base class for all steering path-following PID controllers.
-// -----------------------------------------------------------------------------
+/// The base class implements the basic functionality to control the error
+/// between the location of a sentinel point (a point at a look-ahead distance
+/// in front of the vehicle) and the current target point.
+///
+/// The parameters of a steering controller can also be specified through a JSON
+/// file; a sample JSON input file is as follows:
+///
+///      {
+///          "Gains":
+///          {
+///              "Kp":   0.5,
+///                  "Ki" : 0.0,
+///                  "Kd" : 0.0
+///          },
+///
+///          "Lookahead Distance": 20.0
+///      }
+///
+/// Data collection from the steering controller can be started (restarted) and
+/// suspended (stopped) as many times as desired.  Data collected so far can be
+/// written to a file.  The tab-separated output ASCII file contains on each line
+/// the time, location of the target point, and location of the sentinel point.
+///
 class CH_VEHICLE_API ChSteeringController {
   public:
+    /// Construct a steering controller with default parameters.
+    /// Default values are all gains set to zero (no controller).
+    /// The user is responsible for calling SetGains and SetLookAheadDistance.
     ChSteeringController();
-    virtual ~ChSteeringController() {}
+
+    /// Construct a steering controller with parameters read from a JSON file.
+    ChSteeringController(const std::string& filename);
+
+    /// Destructor.
+    virtual ~ChSteeringController();
 
     /// Specify the look-ahead distance.
     /// This defines the location of the "sentinel" point (in front
@@ -79,6 +110,21 @@ class CH_VEHICLE_API ChSteeringController {
     /// component of the PID controller and returns the calculated steering value.
     double Advance(const ChVehicle& vehicle, double step);
 
+    /// Start/restart data collection.
+    void StartDataCollection();
+
+    /// Suspend/stop data collection.
+    void StopDataCollection();
+
+    /// Return true if data is being collected.
+    bool IsDataCollectionEnabled() const { return m_collect; }
+
+    /// Return true if data is available for output.
+    bool IsDataAvailable() const { return m_csv != NULL; }
+
+    /// Output data collected so far to the specified file.
+    void WriteOutputFile(const std::string& filename);
+
   protected:
     /// Calculate the current target point location.
     /// All derived classes must implement this function to calculate the current
@@ -98,6 +144,9 @@ class CH_VEHICLE_API ChSteeringController {
     double m_err;   ///< current error (signed distance to target point)
     double m_errd;  ///< error derivative
     double m_erri;  ///< integral of error
+
+    utils::CSV_writer* m_csv;  ///< CSV_writer object for data collection
+    bool m_collect;            ///< flag indicating whether or not data is being collected
 };
 
 // -----------------------------------------------------------------------------
@@ -105,11 +154,18 @@ class CH_VEHICLE_API ChSteeringController {
 /// The path to be followed is specified as a ChBezierCurve object and the
 /// target point is defined to be the point on that path that is closest to the
 /// current location of the sentinel point.
-// -----------------------------------------------------------------------------
+///
 class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
   public:
     /// Construct a steering controller to track the specified path.
+    /// This version uses default controller parameters (zero gains).
+    /// The user is responsible for calling SetGains and SetLookAheadDistance.
     ChPathSteeringController(ChBezierCurve* path);
+
+    /// Construct a steering controller to track the specified path.
+    /// This version reads controller gains and lookahead distance from the
+    /// specified JSON file.
+    ChPathSteeringController(const std::string& filename, ChBezierCurve* path);
 
     /// Destructor for ChPathSteeringController.
     ~ChPathSteeringController();

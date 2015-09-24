@@ -85,7 +85,7 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle& car,
                                  ChPowertrain& powertrain,
                                  const wchar_t* title,
                                  irr::core::dimension2d<irr::u32> dims)
-    : ChIrrApp(car.GetSystem(), title, dims),
+    : ChIrrApp(car.GetSystem(), title, dims, false, false, irr::video::EDT_OPENGL),
       m_car(car),
       m_powertrain(powertrain),
       m_camera(car.GetChassis()),
@@ -176,8 +176,7 @@ void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chase
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChVehicleIrrApp::Update(const std::string& msg, double steering, double throttle, double braking)
-{
+void ChVehicleIrrApp::Update(const std::string& msg, double steering, double throttle, double braking) {
     m_driver_msg = msg;
     m_steering = steering;
     m_throttle = throttle;
@@ -305,14 +304,18 @@ void ChVehicleIrrApp::renderLinGauge(const std::string& msg,
 }
 
 // Render text in a box.
-void ChVehicleIrrApp::renderTextBox(const std::string& msg, int xpos, int ypos, int length, int height) {
+void ChVehicleIrrApp::renderTextBox(const std::string& msg,
+                                    int xpos,
+                                    int ypos,
+                                    int length,
+                                    int height,
+                                    irr::video::SColor color) {
     irr::core::rect<s32> mclip(xpos, ypos, xpos + length, ypos + height);
     GetVideoDriver()->draw2DRectangle(irr::video::SColor(90, 60, 60, 60),
                                       irr::core::rect<s32>(xpos, ypos, xpos + length, ypos + height), &mclip);
 
     irr::gui::IGUIFont* font = GetIGUIEnvironment()->getBuiltInFont();
-    font->draw(msg.c_str(), irr::core::rect<s32>(xpos + 3, ypos + 3, xpos + length, ypos + height),
-               irr::video::SColor(255, 20, 20, 20));
+    font->draw(msg.c_str(), irr::core::rect<s32>(xpos + 3, ypos + 3, xpos + length, ypos + height), color);
 }
 
 // Render stats for the vehicle and powertrain systems (render the HUD).
@@ -403,11 +406,15 @@ void ChVehicleIrrApp::renderStats() {
     sprintf(msg, "Steering: %+.2f", m_steering);
     renderLinGauge(std::string(msg), m_steering, true, m_HUD_x + 140, m_HUD_y + 30, 120, 15);
 
-    sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
+    sprintf(msg, "Throttle: %+.2f", m_throttle * 100.);
     renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x + 140, m_HUD_y + 50, 120, 15);
 
-    sprintf(msg, "Braking: %+.2f", m_braking*100.);
+    sprintf(msg, "Braking: %+.2f", m_braking * 100.);
     renderLinGauge(std::string(msg), m_braking, false, m_HUD_x + 140, m_HUD_y + 70, 120, 15);
+
+    // Display current simulation time
+    sprintf(msg, "Time %.2f", m_car.GetChTime());
+    renderTextBox(msg, m_HUD_x + 140, m_HUD_y + 100, 120, 15, irr::video::SColor(255, 250, 200, 00));
 }
 
 }  // end namespace chrono

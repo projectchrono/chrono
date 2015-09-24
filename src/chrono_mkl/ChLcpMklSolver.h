@@ -72,7 +72,7 @@ namespace chrono {
 	   void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; };
 
         /// Solve using the MKL Pardiso sparse direct solver
-		virtual double Solve(ChLcpSystemDescriptor& sysd); ///< system description with constraints and variables
+	   virtual double Solve(ChLcpSystemDescriptor& sysd) override; ///< system description with constraints and variables
 
 		
 		

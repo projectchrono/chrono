@@ -18,13 +18,23 @@
 #ifndef GENERIC_PATHFOLLOWER_DRIVER_H
 #define GENERIC_PATHFOLLOWER_DRIVER_H
 
+#include <string>
+
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/utils/ChSteeringController.h"
 
 class Generic_PathFollowerDriver : public chrono::ChDriver {
   public:
-    Generic_PathFollowerDriver(chrono::ChVehicle& vehicle, chrono::ChBezierCurve* path);
+    Generic_PathFollowerDriver(chrono::ChVehicle& vehicle,  ///< associated vehicle
+                               chrono::ChBezierCurve* path  ///< Bezier curve with target path
+                               );
+
+    Generic_PathFollowerDriver(chrono::ChVehicle& vehicle,   ///< associated vehicle
+                               const std::string& filename,  ///< JSON file with steering controller specification
+                               chrono::ChBezierCurve* path   ///< Bezier curve with target path
+                               );
+
     ~Generic_PathFollowerDriver() {}
 
     chrono::ChPathSteeringController& GetSteeringController() { return m_PID; }
