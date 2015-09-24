@@ -48,8 +48,7 @@ public:
 
         /// Number of coordinates in the interpolated field, ex=3 for a 
         /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int LoadGet_field_ncoords();
-
+    virtual int LoadGet_field_ncoords() = 0;
 
         /// Compute Q, the generalized load(s). Each Q is stored in each wrapped ChLoader.
         /// Called automatically at each Update().
@@ -96,14 +95,14 @@ class ChLoad : public ChLoadBase  {
 public:
     Tloader loader;
 
-    ChLoad(typename Tloader::type_loadable mloadable) :
+    ChLoad(ChSharedPtr<typename Tloader::type_loadable> mloadable) :
         loader(mloadable)
     {}
 
     virtual int LoadGet_ndof_x() { return this->loader.GetLoadable()->LoadableGet_ndof_x();}
     virtual int LoadGet_ndof_w() { return this->loader.GetLoadable()->LoadableGet_ndof_w();}
-    virtual void LoadGetStateBlock_x(ChMatrixDynamic<>& mD) { this->loader.GetLoadable()->LoadableGetStateBlock_x(mD);}
-    virtual void LoadGetStateBlock_w(ChMatrixDynamic<>& mD) { this->loader.GetLoadable()->LoadableGetStateBlock_w(mD);}
+    virtual void LoadGetStateBlock_x(ChMatrixDynamic<>& mD) { this->loader.GetLoadable()->LoadableGetStateBlock_x(0, mD);}
+    virtual void LoadGetStateBlock_w(ChMatrixDynamic<>& mD) { this->loader.GetLoadable()->LoadableGetStateBlock_w(0, mD);}
     virtual int LoadGet_field_ncoords() { return this->loader.GetLoadable()->Get_field_ncoords();}
 
     virtual void ComputeQ() {this->loader.ComputeQ(0,0);};
@@ -111,7 +110,7 @@ public:
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) { 
         for (int i =0; i< this->loader.GetLoadable()->GetSubBlocks(); ++i) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
-            for (unsigned int row =0; row< this->loader.Q.GetRows(); ++row) {
+            for (unsigned int row =0; row< this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
                 R(row + moffset) += this->loader.Q(row) * c;
             }
         }
