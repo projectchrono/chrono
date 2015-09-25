@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(1280, 720), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -165,18 +165,18 @@ int main(int argc, char* argv[]) {
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh); 
-/*
+
     ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshB(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-    mvisualizemesh->SetWireframe(true);
-    my_mesh->AddAsset(mvisualizemesh); 
-*/
+    mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    mvisualizemeshB->SetWireframe(true);
+    my_mesh->AddAsset(mvisualizemeshB); 
+/*
     ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.006);
     my_mesh->AddAsset(mvisualizemeshC);
- 
+ */
  
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
@@ -203,14 +203,14 @@ application.AddShadowAll();
     my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);  
 
-/*   
+   
         // Change solver to pluggable MKL
     ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
     ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     application.GetSystem()->Update();
- */ 
+ 
 
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
