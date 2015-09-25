@@ -26,7 +26,7 @@ namespace chrono {
 /// Forces can be distributed on UV surfaces, or lines, etc.,so
 /// look also the more detailed children classes.
 
-class ChLoadable : virtual public ChShared {
+class ChApi ChLoadable : virtual public ChShared {
 public:
         /// Gets the number of DOFs affected by this element (position part)
     virtual int LoadableGet_ndof_x() = 0;
@@ -59,7 +59,7 @@ public:
 /// distributed along UVW coordinates of the object.
 /// For instance finite elements like 3D bricks, ex.for gravitational loads.
 
-class ChLoadableUVW : public ChLoadable {
+class ChApi ChLoadableUVW : public ChLoadable {
 public:
             /// Evaluate N'*F , where N is some type of shape function
             /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
@@ -85,7 +85,7 @@ public:
 /// distributed along UV coordinates of the object.
 /// For instance finite elements like shells, ex.for applied pressure.
 
-class ChLoadableUV : public ChLoadable {
+class ChApi ChLoadableUV : public ChLoadable {
 public:
             /// Evaluate N'*F , where N is some type of shape function
             /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
@@ -111,7 +111,7 @@ public:
 /// distributed along U coordinate of the object.
 /// For instance finite elements like beams.
 
-class ChLoadableU : public ChLoadable {
+class ChApi ChLoadableU : public ChLoadable {
 public:
             /// Evaluate N'*F , where N is some type of shape function
             /// evaluated at U coordinate of the line, ranging in -1..+1
