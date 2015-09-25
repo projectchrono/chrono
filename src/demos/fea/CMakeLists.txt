@@ -33,6 +33,7 @@ SET(FEA_DEMOS_IRR_MKL
 SET(FEA_DEMOS_IRR_MATLAB_MKL
     demo_FEAbeamsconstr
     demo_FEAbeams
+	demo_FEAabaqus_wheel
 )
 
 INCLUDE_DIRECTORIES(CMAKE_CURRENT_SOURCE_DIR)
