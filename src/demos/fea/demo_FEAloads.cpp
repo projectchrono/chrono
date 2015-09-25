@@ -59,8 +59,6 @@ void test_1() {
     mnodeA->SetMass(0.0);
     mnodeB->SetMass(0.0);
 
-    mnodeB->SetForce( ChVector<>(0,0.3,0));
-
     my_mesh->AddNode(mnodeA);
     my_mesh->AddNode(mnodeB);
 
@@ -125,7 +123,7 @@ void test_1() {
                           ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate F
                           ) {
-            F.PasteVector( ChVector<>(0.5,0,0) ,0,0); // load, force part; hardwired for brevity
+            F.PasteVector( ChVector<>(0,-2,0) ,0,0); // load, force part; hardwired for brevity
             F.PasteVector( ChVector<>(0,0,0) ,3,0);   // load, torque part; hardwired for brevity
         }
     };
@@ -135,7 +133,7 @@ void test_1() {
     // It is created using templates, that is instancing a ChLoad<a_loader_class>()
 
     ChSharedPtr< ChLoad<MyLoaderWrench> > mloadA (new ChLoad<MyLoaderWrench>(melementA) );
-    mloadA->loader.SetApplication( 0.5) ; // this ChLoaderUatomic method sets the U abscyssa of load application .
+    mloadA->loader.SetApplication(0.0) ; // this ChLoaderUatomic method sets the U abscyssa of load application (-1..+1, so 0=in the middle).
     mloadcontainer->Add(mloadA);  // do not forget to add the load to the load container.
 
 
