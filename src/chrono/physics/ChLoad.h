@@ -107,11 +107,13 @@ public:
 
     virtual void ComputeQ() {this->loader.ComputeQ(0,0);};
 
-    virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) { 
+    virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
+        unsigned int rowQ = 0;
         for (int i =0; i< this->loader.GetLoadable()->GetSubBlocks(); ++i) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row =0; row< this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
-                R(row + moffset) += this->loader.Q(row) * c;
+                R(row + moffset) += this->loader.Q(rowQ) * c;
+                ++rowQ;
             }
         }
     };
