@@ -441,7 +441,8 @@ public:
         loadable->ComputeNF(Pu, Q, detJ, mF, state_x, state_w);
     }
 
-        /// Set the position, on the surface where the atomic load is applied
+        /// Set the position, on the surface where the atomic load is applied.
+        /// The range is mu=-1...+1  so mu=0 for the middle , etc.
     void SetApplication(double mu) {Pu=mu;}
 };
 
