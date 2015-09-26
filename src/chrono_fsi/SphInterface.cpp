@@ -30,6 +30,12 @@ Real3 ConvertChVectorToR4(chrono::ChVector<> v3, Real m) {
 Real4 ConvertChQuaternionToR4(chrono::ChVector<> v4) {
 	return mR4(v4.x, v4.y, v4.z, v4.w);
 }
+
+Real3 Rotate_By_Quaternion(Real3 q4, Real3 BCE_Pos_local) {
+	chrono::ChVector<> dumPos = ConvertToChQuaternion(q4) * ConvertRealToChVector(BCE_Pos_local);
+	return ConvertChVectorToR3(dumPos);
+
+}
 //------------------------------------------------------------------------------------
 void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                           int& startIndexSph,

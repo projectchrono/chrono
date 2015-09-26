@@ -235,32 +235,33 @@ Real CreateOne3DRigidCylinder(
 		thrust::host_vector<Real4> & qD,
 		thrust::host_vector<Real4> & velMassRigidD,
 		thrust::host_vector<Real3> & omegaLRF_D,
-		real2 rh2,
-		Real mass,
+	    const ChVector<>& pos,
+	    const ChQuaternion<>& rot,
+	    Real cyl_rad,
+	    Real cyl_h,
+		Real rigidMass,
+		Real sphMarkerMass,
 		int type) {
 	int num_BCEMarkers = 0;
-	Real3 pa3 = mR3(.2, .4, .4);
-	Real3 pb3 = pa3 + mR3(0, rh2.y * cos(PI/6), rh2.y * sin(PI/6));
+	ChVector<> chPa3 = pos - rot * ChVector<>(cyl_h / 2, 0, 0);
+	ChVector<> chPa3 = pos + rot * ChVector<>(cyl_h / 2, 0, 0);
+	Real3 pa3 = ConvertChVectorToR3(chPa3);
+	Real3 pb3 = ConvertChVectorToR3(chPb3);
 	Real3 n3 = normalize(pb3 - pa3);
-	Real3 pos = 0.5 * (pa3 + pb3);
-	Real4 q4;
-	QuaternionFromAxisVector(q4, n3);
-
-	posRigidD.push_back(pos);
-	qD.push_back(q4);
-	velMassRigidD.push_back(mR4(0, 0, 0, mass));
+	qD.push_back(ConvertChQuaternionToR4(rot));
+	velMassRigidD.push_back(mR4(0, 0, 0, rigidMass));
 	omegaLRF_D.push_back(mR3(0));
 
 
 	Real spacing = multInitSpace * paramsH.HSML;
-	for (Real s = 0; s <= rh2.y; s += spacing) {
+	for (Real s = 0; s <= cyl_h; s += spacing) {
 		Real3 centerPoint = pa3 + s * n3;
 		posRadH.push_back(centerPoint);
 		velMasH.push_back(mR4(0, 0, 0, sphMarkerMass));
 		rhoPresMuH.push_back(
 				mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
 		num_BCEMarkers++;
-		for (Real r = spacing; r < rad - paramsH.solidSurfaceAdjust; r += spacing) {
+		for (Real r = spacing; r < cyl_rad - paramsH.solidSurfaceAdjust; r += spacing) {
 			Real deltaTeta = spacing / r;
 			for (Real teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
 					teta += deltaTeta) {
@@ -332,8 +333,56 @@ void AddBoxBceToChSystemAndSPH(
   }
 }
 
-// =============================================================================
 
+// =============================================================================
+void AddCylinderBceToChSystemAndSPH(
+		ChSystemParallelDVI& mphysicalSystem,
+    Real radius,
+    Real height,
+    const ChVector<>& pos,
+    const ChQuaternion<>& rot,
+    bool visualization,
+
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector< ::int3>& referenceArray,
+
+	thrust::host_vector<Real3> & posRigidD,
+	thrust::host_vector<Real4> & qD,
+	thrust::host_vector<Real4> & velMassRigidD,
+	thrust::host_vector<Real3> & omegaLRF_D,
+	thrust::host_vector<int>& mapIndex,
+
+    NumberOfObjects& numObjects,
+    Real sphMarkerMass
+) {
+	int numMarkers = posRadH.size();
+	int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
+	int type = 1;
+ ChSharedPtr<ChBody> body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
+// body->SetIdentifier(-1);
+ body->SetBodyFixed(false);
+ body->SetCollide(true);
+ body->GetMaterialSurface()->SetFriction(mu_g);
+ body->GetCollisionModel()->ClearModel();
+  utils::AddCylinderGeometry(body, radius, height, pos, rot, visualization);
+  body->GetCollisionModel()->BuildModel();
+  mphysicalSystem.AddBody(body);
+
+
+  int numBce = CreateOne3DRigidCylinder(posRadH,velMasH, rhoPresMuH,
+		  posRigidD, qD, velMassRigidD, omegaLRF_D,
+		  pos, rot, radius, height, body->GetMass(), sphMarkerMass, type);
+
+  referenceArray.push_back(mR3(numMarkers, numMarkers + numBce, type));
+  numObjects.numRigidBodies += 1;
+  numObjects.startRigidMarkers = numMarkers; // Arman : not sure if you need to set startFlexMarkers
+  numObjects.numRigid_SphMarkers += numBce;
+  numObjects.numAllMarkers = posRadH.size();
+  mapIndex.push_back(numRigidObjects);
+}
+// =============================================================================
 void CreateMbdPhysicalSystemObjects(
     ChSystemParallelDVI& mphysicalSystem,
     thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
@@ -470,6 +519,18 @@ void CreateMbdPhysicalSystemObjects(
   ground->GetCollisionModel()->BuildModel();
 
   mphysicalSystem.AddBody(ground);
+
+
+  double cyl_len = bottomWidth / 5;
+  double cyl_rad = bottomWidth / 10;
+  ChVector<> cyl_pos = ChVector<>(0, 0, 0);
+  ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI/3, VECT_Y);
+
+  // version 0, create one cylinder // note: rigid body initialization should come after boundary initialization
+  AddCylinderBceToChSystemAndSPH(mphysicalSystem, cyl_rad, cyl_len, cyl_pos, cyl_rot, true,
+		  posRadH, velMasH, rhoPresMuH, referenceArray,
+		  posRigidD, qD, velMassRigidD, omegaLRF_D, mapIndex,
+		  numObjects, sphMarkerMass);
 
 //						  // version 1
 //						  // -----------------------------------------
