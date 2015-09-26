@@ -224,6 +224,61 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
   mphysicalSystem.GetSettings()->collision.bins_per_axis = _make_int3(40, 40, 40);  // Arman check
 }
 
+
+// =============================================================================
+Real CreateOne3DRigidCylinder(
+		thrust::host_vector<Real3> & posRadH,
+		thrust::host_vector<Real4> & velMasH,
+		thrust::host_vector<Real4> & rhoPresMuH,
+
+		thrust::host_vector<Real3> & posRigidD,
+		thrust::host_vector<Real4> & qD,
+		thrust::host_vector<Real4> & velMassRigidD,
+		thrust::host_vector<Real3> & omegaLRF_D,
+		real2 rh2,
+		Real mass,
+		int type) {
+	int num_BCEMarkers = 0;
+	Real3 pa3 = mR3(.2, .4, .4);
+	Real3 pb3 = pa3 + mR3(0, rh2.y * cos(PI/6), rh2.y * sin(PI/6));
+	Real3 n3 = normalize(pb3 - pa3);
+	Real3 pos = 0.5 * (pa3 + pb3);
+	Real4 q4;
+	QuaternionFromAxisVector(q4, n3);
+
+	posRigidD.push_back(pos);
+	qD.push_back(q4);
+	velMassRigidD.push_back(mR4(0, 0, 0, mass));
+	omegaLRF_D.push_back(mR3(0));
+
+
+	Real spacing = multInitSpace * paramsH.HSML;
+	for (Real s = 0; s <= rh2.y; s += spacing) {
+		Real3 centerPoint = pa3 + s * n3;
+		posRadH.push_back(centerPoint);
+		velMasH.push_back(mR4(0, 0, 0, sphMarkerMass));
+		rhoPresMuH.push_back(
+				mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
+		num_BCEMarkers++;
+		for (Real r = spacing; r < rad - paramsH.solidSurfaceAdjust; r += spacing) {
+			Real deltaTeta = spacing / r;
+			for (Real teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
+					teta += deltaTeta) {
+				Real3 BCE_Pos_local = mR3(r * cos(teta), r * sin(teta), 0);
+				Real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local)
+						+ centerPoint;
+				posRadH.push_back(BCE_Pos_Global);
+				velMasH.push_back(mR4(0, 0, 0, sphMarkerMass));
+				rhoPresMuH.push_back(
+						mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type
+				num_BCEMarkers++;
+			}
+		}
+	}
+	return num_BCEMarkers;
+}
+
+
 // =============================================================================
 void AddBoxBceToChSystemAndSPH(
     ChBody* body,
@@ -285,6 +340,11 @@ void CreateMbdPhysicalSystemObjects(
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector<uint>& bodyIndex,
+    		thrust::device_vector<Real3>& posRigidD,
+    		thrust::device_vector<Real4>& qD,
+    		thrust::device_vector<Real3>& velMassRigidD,
+    		thrust::device_vector<Real3>& omegaLRF_D,
+    		thrust::host_vector<int>& mapIndex,
     thrust::host_vector< ::int3>& referenceArray,
     NumberOfObjects& numObjects,
     const SimParams& paramsH,
@@ -411,64 +471,64 @@ void CreateMbdPhysicalSystemObjects(
 
   mphysicalSystem.AddBody(ground);
 
-  // version 1
-  // -----------------------------------------
-  // Create and initialize the vehicle system.
-  // -----------------------------------------
-  // Create the vehicle assembly and the callback object for tire contact
-  // according to the specified type of tire/wheel.
-  switch (wheel_type) {
-    case CYLINDRICAL: {
-      mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
-      tire_cb = new MyCylindricalTire();
-    } break;
-    case LUGGED: {
-      mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
-      tire_cb = new MyLuggedTire();
-    } break;
-  }
-  mVehicle->SetTireContactCallback(tire_cb);
-  // Set the callback object for chassis.
-  switch (chassis_type) {
-    case CBOX: {
-      chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      ChVector<> boxSize(1, .5, .2);
-      ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
-      mVehicle->SetChassisContactCallback(chassis_cb);
-    } break;
-
-    case CSPHERE: {
-      chassis_cb = new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      Real radius = 1;
-      ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
-      mVehicle->SetChassisContactCallback(chassis_cb);
-    } break;
-
-    case C_SIMPLE_CONVEX_MESH: {
-      chassis_cb = new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      mVehicle->SetChassisContactCallback(chassis_cb);
-    } break;
-
-    case C_SIMPLE_TRI_MESH: {
-      chassis_cb = new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-      mVehicle->SetChassisContactCallback(chassis_cb);
-    } break;
-  }
-
-  // Set the callback object for driver inputs. Pass the hold time as a delay in
-  // generating driver inputs.
-  driver_cb = new MyDriverInputs(time_hold_vehicle);
-  mVehicle->SetDriverInputsCallback(driver_cb);
-
-  // Initialize the vehicle at a height above the terrain.
-  mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
-
-  // Initially, fix the chassis (will be released after time_hold_vehicle).
-  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
-  // Initially, fix the wheels (will be released after time_hold_vehicle).
-  for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-    mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
-  }
+//						  // version 1
+//						  // -----------------------------------------
+//						  // Create and initialize the vehicle system.
+//						  // -----------------------------------------
+//						  // Create the vehicle assembly and the callback object for tire contact
+//						  // according to the specified type of tire/wheel.
+//						  switch (wheel_type) {
+//							case CYLINDRICAL: {
+//							  mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
+//							  tire_cb = new MyCylindricalTire();
+//							} break;
+//							case LUGGED: {
+//							  mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
+//							  tire_cb = new MyLuggedTire();
+//							} break;
+//						  }
+//						  mVehicle->SetTireContactCallback(tire_cb);
+//						  // Set the callback object for chassis.
+//						  switch (chassis_type) {
+//							case CBOX: {
+//							  chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//							  ChVector<> boxSize(1, .5, .2);
+//							  ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
+//							  mVehicle->SetChassisContactCallback(chassis_cb);
+//							} break;
+//
+//							case CSPHERE: {
+//							  chassis_cb = new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//							  Real radius = 1;
+//							  ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
+//							  mVehicle->SetChassisContactCallback(chassis_cb);
+//							} break;
+//
+//							case C_SIMPLE_CONVEX_MESH: {
+//							  chassis_cb = new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//							  mVehicle->SetChassisContactCallback(chassis_cb);
+//							} break;
+//
+//							case C_SIMPLE_TRI_MESH: {
+//							  chassis_cb = new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+//							  mVehicle->SetChassisContactCallback(chassis_cb);
+//							} break;
+//						  }
+//
+//						  // Set the callback object for driver inputs. Pass the hold time as a delay in
+//						  // generating driver inputs.
+//						  driver_cb = new MyDriverInputs(time_hold_vehicle);
+//						  mVehicle->SetDriverInputsCallback(driver_cb);
+//
+//						  // Initialize the vehicle at a height above the terrain.
+//						  mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+//
+//						  // Initially, fix the chassis (will be released after time_hold_vehicle).
+//						  mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+//						  // Initially, fix the wheels (will be released after time_hold_vehicle).
+//						  for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+//							mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+//						  }
 
   //  // version 2
   //  // -----------------------------------------
@@ -786,6 +846,13 @@ int main(int argc, char* argv[]) {
   thrust::host_vector<Real4> velMasH;
   thrust::host_vector<Real4> rhoPresMuH;
   thrust::host_vector<uint> bodyIndex;
+
+	thrust::device_vector<Real3> posRigidD, posRigidD2;
+	thrust::device_vector<Real4> qD, qD2;
+	thrust::device_vector<Real4> velMassRigidD, velMassRigidD2;
+	thrust::device_vector<Real3> omegaLRF_D, omegaLRF_D2;
+	thrust::host_vector<Real3> mapIndex_H;
+
   Real sphMarkerMass = 0;  // To be initialized in CreateFluidMarkers, and used in other places
 
   SetupParamsH(paramsH);
@@ -835,8 +902,10 @@ int main(int argc, char* argv[]) {
 
   // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
   CreateMbdPhysicalSystemObjects(
-      mphysicalSystem, posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
-  // ***************************** Create Interface ********************************************
+      mphysicalSystem, posRadH, velMasH, rhoPresMuH, bodyIndex,
+      posRigidD,qD,velMassRigidD,omegaLRF_D, mapIndex_H,
+      referenceArray, numObjects, paramsH, sphMarkerMass);
+    // ***************************** Create Interface ********************************************
 
   //*** Add sph data to the physics system
 
@@ -851,8 +920,6 @@ int main(int argc, char* argv[]) {
 
 
 
-
-
   // ** initialize device mid step data
   thrust::device_vector<Real3> posRadD2 = posRadD;
   thrust::device_vector<Real4> velMasD2 = velMasD;
@@ -861,8 +928,8 @@ int main(int argc, char* argv[]) {
 
 
 
-  thrust::device_vector<Real3> rigid_FSI_Forces;
-  thrust::device_vector<Real3> rigid_FSI_Torques;
+  thrust::device_vector<Real3> rigid_FSI_ForcesD;
+  thrust::device_vector<Real3> rigid_FSI_TorquesD;
 #endif
   cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
 
@@ -971,21 +1038,22 @@ int main(int argc, char* argv[]) {
 
     fsi_timer.start("integrate_sph");
     // //assumes ...D2 is a copy of ...D
-    void IntegrateSPH(derivVelRhoD, posRadD2, velMasD2, rhoPresMuD2,
+
+
+    IntegrateSPH(derivVelRhoD, posRadD2, velMasD2, rhoPresMuD2,
                       posRadD, velMasD, vel_XSPH_D, rhoPresMuD,
                       bodyIndexD, referenceArray, numObjects, currentParamsH,  0.5 * currentParamsH.dT); // Arman vel_XSPH_D does not need to be sent essentially
     fsi_timer.start("integrate_sph");
 
 
-    Rigid_Forces_Torques(rigid_FSI_Forces, rigid_FSI_Torques,
-    		posRadD, posRigidD, derivVelRhoD, rigidIdentifierD, numObjects, sphMass); // Arman: posRigidD needs to be updated back and force between chsystem and gpusystem
-    Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_Forces, rigid_FSI_Torques, mapIndex); // Arman: take care of this
+    Rigid_Forces_Torques(rigid_FSI_ForcesD, rigid_FSI_TorquesD,
+    		posRadD, posRigidD, derivVelRhoD, rigidIdentifierD, numObjects, sphMass);
+    Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, mapIndex_H);
 
 
 #endif
 
     fsi_timer.start("stepDynamic_mbd");
-
     mTime += 0.5 * currentParamsH.dT;
     DoStepChronoSystem(
         mphysicalSystem, 0.5 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
@@ -994,10 +1062,10 @@ int main(int argc, char* argv[]) {
 
 #if haveFluid
 
-    Update_RigidPosVel_from_ChSystem(posRigidD2, velMassRigidD2, omegaLRF_D2, AD1_2,AD2_2,AD3_2, mphysicalSystem);
+
+    Update_RigidPosVel_from_ChSystem_H2D(posRigidD2, qD2, velMassRigidD2, omegaLRF_D2, mapIndex, mphysicalSystem);
     UpdateRigidMarkersPosition(posRadD2, velMasD2,
-    		rigidSPH_MeshPos_LRF_D, rigidIdentifierD, posRigidD2, velMassRigidD2, omegaLRF_D2,
-    		AD1_2,AD2_2,AD3_2, numObjects);
+    		rigidSPH_MeshPos_LRF_D, rigidIdentifierD, posRigidD2, qD2, velMassRigidD2, omegaLRF_D2, numObjects); // Arman rigidSPH_MeshPos_LRF_D, rigidIdentifierD, numObjects
 
 #endif
 
@@ -1012,20 +1080,22 @@ int main(int argc, char* argv[]) {
 #if haveFluid
 
     // //assumes ...D2 is a copy of ...D
-    void IntegrateSPH(derivVelRhoD, posRadD, velMasD, rhoPresMuD,
+    IntegrateSPH(derivVelRhoD, posRadD, velMasD, rhoPresMuD,
                       posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2,
                       bodyIndexD, referenceArray, numObjects, currentParamsH,  currentParamsH.dT);
     fsi_timer.start("integrate_sph");
 
 
-    Rigid_Forces_Torques(rigid_FSI_Forces, rigid_FSI_Torques,
-    		posRadD2, posRigidD2, derivVelRhoD, rigidIdentifierD, numObjects, sphMass); // Arman: posRigidD needs to be updated back and force between chsystem and gpusystem
-    Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_Forces, rigid_FSI_Torques, mapIndex); // Arman: take care of this
+    Rigid_Forces_Torques(rigid_FSI_ForcesD, rigid_FSI_TorquesD,
+    		posRadD2, posRigidD2, derivVelRhoD, rigidIdentifierD, numObjects, sphMass);
+    Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, mapIndex_H); // Arman: take care of this
 
 
 #endif
     mTime -= 0.5 * currentParamsH.dT;
-    HardSet_PosRot_In_ChSystem(mphysicalSystem, posRigidD, velMassRigidD, omegaLRF_D, AD1,AD2,AD3);
+
+    // Arman: do it so that you don't need gpu when you don't have fluid
+    HardSet_PosRot_In_ChSystem_D2H(mphysicalSystem, posRigidD, qD, velMassRigidD, omegaLRF_D, mapIndex_H);
 
     fsi_timer.start("stepDynamic_mbd");
 
@@ -1039,10 +1109,9 @@ int main(int argc, char* argv[]) {
 
 #if haveFluid
 
-    Update_RigidPosVel_from_ChSystem(posRigidD, velMassRigidD, omegaLRF_D, AD1,AD2,AD3, mphysicalSystem);
+    Update_RigidPosVel_from_ChSystem_H2D(posRigidD, qD, velMassRigidD, omegaLRF_D, mapIndex, mphysicalSystem);
     UpdateRigidMarkersPosition(posRadD, velMasD,
-    		rigidSPH_MeshPos_LRF_D, rigidIdentifierD, posRigidD, velMassRigidD, omegaLRF_D,
-    		AD1,AD2,AD3, numObjects);
+    		rigidSPH_MeshPos_LRF_D, rigidIdentifierD, posRigidD, qD, velMassRigidD, omegaLRF_D, numObjects);
 
 
     if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
@@ -1089,6 +1158,16 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.data_manager->system_timer.PrintReport();
   }
   ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
+
+  ClearMyThrustR3(posRigidD);
+  ClearMyThrustR4(qD);
+  ClearMyThrustR4(velMassRigidD);
+  ClearMyThrustR3(omegaLRF_D);
+  ClearMyThrustR3(posRigidD2);
+  ClearMyThrustR4(qD2);
+  ClearMyThrustR4(velMassRigidD2);
+  ClearMyThrustR3(omegaLRF_D2);
+  mapIndex_H.clear();
 #if haveFluid
   ClearMyThrustR3(posRadD);
   ClearMyThrustR4(velMasD);
@@ -1096,13 +1175,14 @@ int main(int argc, char* argv[]) {
   ClearMyThrustU1(bodyIndexD);
   ClearMyThrustR4(derivVelRhoD);
 
+
   ClearMyThrustR3(posRadD2);
   ClearMyThrustR4(velMasD2);
   ClearMyThrustR4(rhoPresMuD2);
   ClearMyThrustR3(vel_XSPH_D);
 
-  ClearMyThrustR3(rigid_FSI_Forces);
-  ClearMyThrustR3(rigid_FSI_Torques);
+  ClearMyThrustR3(rigid_FSI_ForcesD);
+  ClearMyThrustR3(rigid_FSI_TorquesD);
 #endif
   delete mVehicle;
   delete tire_cb;

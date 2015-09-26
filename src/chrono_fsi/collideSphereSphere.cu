@@ -430,6 +430,7 @@ void Rigid_Forces_Torques(
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+// obsolete this one later
 void UpdateRigidMarkersPosition(
 		thrust::device_vector<Real3> & posRadD,
 		thrust::device_vector<Real4> & velMasD,
@@ -442,6 +443,36 @@ void UpdateRigidMarkersPosition(
 		const thrust::device_vector<Real3> & AD2,
 		const thrust::device_vector<Real3> & AD3,
 		NumberOfObjects numObjects) {
+
+	uint nBlocks_numRigid_SphMarkers;
+	uint nThreads_SphMarkers;
+	computeGridSize(numObjects.numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
+
+	// Arman: InitSystem has to be called before this lunch to set numObjectsD
+
+	//################################################### update BCE markers position
+	//** "posRadD2"/"velMasD2" associated to BCE markers are updated based on new rigid body (position, orientation)/(velocity, angular velocity)
+	UpdateRigidMarkersPositionD<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
+			mR3CAST(posRadD), mR4CAST(velMasD),
+			mR3CAST(rigidSPH_MeshPos_LRF_D),
+			I1CAST(rigidIdentifierD), mR3CAST(posRigidD), mR4CAST(velMassRigidD), mR3CAST(omegaLRF_D), mR3CAST(AD1), mR3CAST(AD2), mR3CAST(AD3));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+void UpdateRigidMarkersPosition(
+		thrust::device_vector<Real3> & posRadD,
+		thrust::device_vector<Real4> & velMasD,
+		const thrust::device_vector<Real3> & rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<int> & rigidIdentifierD,
+		const thrust::device_vector<Real3> & posRigidD,
+		const thrust::device_vector<Real3> & qD,
+		const thrust::device_vector<Real4> & velMassRigidD,
+		const thrust::device_vector<Real3> & omegaLRF_D,
+		NumberOfObjects numObjects) {
+
+	printf(" implement me  ************************* \n\n\n\n\nn\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
 	uint nBlocks_numRigid_SphMarkers;
 	uint nThreads_SphMarkers;

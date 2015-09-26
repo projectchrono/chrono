@@ -7,6 +7,29 @@
 
 #include "SphInterface.h"
 
+
+chrono::ChVector<> ConvertRealToChVector(Real3 p3) {
+	return chrono::ChVector<>(p3.x, p3.y, p3.z);
+}
+chrono::ChVector<> ConvertRealToChVector(Real4 p4) {
+	return ConvertRealToChVector(mR3(p4));
+}
+
+chrono::ChQuaternion<> ConvertToChQuaternion(Real4 q4) {
+	return chrono::ChQuaternion<>(q4.x, q4.y, q4.z, q4.w);
+}
+
+Real3 ConvertChVectorToR3(chrono::ChVector<> v3) {
+	return mR3(v3.x, v3.y, v3.z);
+}
+
+Real3 ConvertChVectorToR4(chrono::ChVector<> v3, Real m) {
+	return mR4(v3.x, v3.y, v3.z, m);
+}
+
+Real4 ConvertChQuaternionToR4(chrono::ChVector<> v4) {
+	return mR4(v4.x, v4.y, v4.z, v4.w);
+}
 //------------------------------------------------------------------------------------
 void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                           int& startIndexSph,
@@ -41,8 +64,8 @@ void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
   for (int i = 0; i < numObjects.numFluidMarkers; i++) {
     Real3 p3 = posRadH[i];
     Real4 vM4 = velMasH[i];
-    chrono::ChVector<> pos = chrono::ChVector<>(p3.x, p3.y, p3.z);
-    chrono::ChVector<> vel = chrono::ChVector<>(vM4.x, vM4.y, vM4.z);
+    chrono::ChVector<> pos = ConvertRealToChVector(p3);
+    chrono::ChVector<> vel = ConvertRealToChVector(vM4);
     chrono::ChSharedBodyPtr body;
     body = chrono::ChSharedBodyPtr(new chrono::ChBody(new chrono::collision::ChCollisionModelParallel));
     body->SetMaterialSurface(mat_g);
@@ -110,8 +133,8 @@ void UpdateSphDataInChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
   for (int i = 0; i < numObjects.numFluidMarkers; i++) {
     Real3 p3 = posRadH[i];
     Real4 vM4 = velMasH[i];
-    chrono::ChVector<> pos = chrono::ChVector<>(p3.x, p3.y, p3.z);
-    chrono::ChVector<> vel = chrono::ChVector<>(vM4.x, vM4.y, vM4.z);
+    chrono::ChVector<> pos = ConvertRealToChVector(p3);
+    chrono::ChVector<> vel = ConvertRealToChVector(vM4);
 
     int chSystemBodyId = startIndexSph + i;
     std::vector<chrono::ChBody*>::iterator ibody = mphysicalSystem.Get_bodylist()->begin() + chSystemBodyId;
@@ -197,7 +220,7 @@ void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 
     Real4 mDerivVelRho = derivVelRhoD[i];
     Real3 forceSphMarker = mR3(mDerivVelRho) * sphMass;
-    chrono::ChVector<> f3 = chrono::ChVector<>(forceSphMarker.x, forceSphMarker.y, forceSphMarker.z);
+    chrono::ChVector<> f3 = ConvertRealToChVector(forceSphMarker);
     hydroForce->SetMforce(f3.Length());
     f3.Normalize();
     hydroForce->SetDir(f3);
@@ -292,23 +315,62 @@ void CopyD2H(thrust::host_vector<Real3>& posRadH,  // do not set the size here s
 //------------------------------------------------------------------------------------
 // mapIndex[i] is the the index of the i_th sph represented rigid body in ChSystem
 void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
-		const thrust::host_vector<Real3>& rigid_FSI_Forces,
-		const thrust::host_vector<Real3>& rigid_FSI_Torques,
+		const thrust::device_vector<Real3>& rigid_FSI_ForcesD,
+		const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
 		const thrust::host_vector<int>& mapIndex) {
 	int numRigids = mapIndex.size();
 	std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < numRigids; i++) {
 	  chrono::ChBody* bodyPtr = *(myIter + mapIndex[i]);
-
-
 	  bodyPtr->Empty_forces_accumulators();
+		Real3 mforce = rigid_FSI_ForcesD[i];
+		bodyPtr->Accumulate_force(ConvertRealToChVector(mforce), bodyPtr->GetPos(), false);
 
-		Real3 mforce = rigid_FSI_Forces[i];
-		bodyPtr->Accumulate_force(chrono::ChVector<>(mforce.x, mforce.y, mforce.z), bodyPtr->GetPos(), false);
-
-		Real3 mtorque = rigid_FSI_Torques[i];
-		bodyPtr->Accumulate_torque(chrono::ChVector<>(mtorque.x, mtorque.y, mtorque.z), false);
+		Real3 mtorque = rigid_FSI_TorquesD[i];
+		bodyPtr->Accumulate_torque(ConvertRealToChVector(mtorque), false);
 
   }
 }
+//------------------------------------------------------------------------------------
+// mapIndex[i] is the the index of the i_th sph represented rigid body in ChSystem
+void Update_RigidPosVel_from_ChSystem_H2D(
+		thrust::device_vector<Real3>& posRigidD,
+		thrust::device_vector<Real4>& qD,
+		thrust::device_vector<Real3>& velMassRigidD,
+		thrust::device_vector<Real3>& rigidOmegaLRF_D,
+		const thrust::host_vector<int>& mapIndex,
+		chrono::ChSystemParallelDVI& mphysicalSystem) {
+	int numRigids = mapIndex.size();
+	std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
+#pragma omp parallel for
+  for (int i = 0; i < numRigids; i++) {
+	  chrono::ChBody* bodyPtr = *(myIter + mapIndex[i]);
+	  posRigidD[i] = ConvertChVectorToR3(bodyPtr->GetPos());
+	  velMassRigidD[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
+	  qD[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
+	  rigidOmegaLRF_D[i] = ConvertChVectorToR3(bodyPtr->GetWacc_loc());
+  }
+
+}
+//------------------------------------------------------------------------------------
+// mapIndex[i] is the the index of the i_th sph represented rigid body in ChSystem
+void HardSet_PosRot_In_ChSystem_D2H(chrono::ChSystemParallelDVI& mphysicalSystem,
+		const thrust::device_vector<Real3>& posRigidD,
+		const thrust::device_vector<Real4>& qD,
+		const thrust::device_vector<Real3>& velMassRigidD,
+		const thrust::device_vector<Real3>& rigidOmegaLRF_D,
+		const thrust::host_vector<int>& mapIndex) {
+	int numRigids = mapIndex.size();
+	std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
+#pragma omp parallel for
+  for (int i = 0; i < numRigids; i++) {
+	  chrono::ChBody* bodyPtr = *(myIter + mapIndex[i]);
+	  bodyPtr->SetPos(ConvertRealToChVector(posRigidD[i]));
+	  bodyPtr->SetRot(ConvertToChQuaternion(qD[i]));
+	  bodyPtr->SetPos_dt(ConvertToChQuaternion(velMassRigidD[i]));
+	  bodyPtr->SetWacc_loc(ConvertToChQuaternion(omegaLRF_D[i]));
+  }
+
+}
+
