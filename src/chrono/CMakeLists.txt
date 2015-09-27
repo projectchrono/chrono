@@ -138,6 +138,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkRackpinion.cpp
     physics/ChLinkRevolute.cpp
     physics/ChLinkRevoluteSpherical.cpp
+    physics/ChLinkRevoluteTranslational.cpp
     physics/ChLinkUniversal.cpp
     physics/ChHistory.cpp
     physics/ChSystem.cpp
@@ -236,6 +237,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkRackpinion.h
     physics/ChLinkRevolute.h
     physics/ChLinkRevoluteSpherical.h
+    physics/ChLinkRevoluteTranslational.h
     physics/ChLinkUniversal.h
     physics/ChMarker.h
     physics/ChMaterialCouple.h
