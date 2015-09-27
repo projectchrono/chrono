@@ -1,7 +1,12 @@
 #=============================================================================
 # CMake configuration file for the SUSPENSION_TEST demo.
-# This example program works with and without Irrlicht run-time visualization
+# This example program works only with Irrlicht run-time visualization
 #=============================================================================
+
+IF(NOT ENABLE_MODULE_IRRLICHT)
+	MESSAGE(STATUS "---demo_TireTestRig requires Irrlicht support")
+	RETURN()
+ENDIF()
 
 MESSAGE(STATUS "...add TIRE TEST RIG demo")
 
@@ -18,38 +23,22 @@ SOURCE_GROUP("" FILES ${TEST_FILES})
 # Additional include directories
 
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/demos/vehicle")
-
-IF(ENABLE_MODULE_IRRLICHT)
-  INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
-ENDIF()
+INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
 #--------------------------------------------------------------
 # List of all required libraries
 
 SET(LIBRARIES
     ChronoEngine
+    ChronoEngine_irrlicht
     ChronoEngine_vehicle)
-
-IF(ENABLE_MODULE_IRRLICHT)
-  SET(LIBRARIES_IRR
-      ChronoEngine_irrlicht
-      ${CH_IRRLICHTLIB})
-ELSE()
-  SET(LIBRARIES_IRR "")
-ENDIF()
 
 #--------------------------------------------------------------
 # Create the executable
 
-if(ENABLE_MODULE_IRRLICHT)
-  set(MY_CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-else()
-  set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")
-endif()
-
 ADD_EXECUTABLE(demo_TireTestRig ${TEST_FILES})
 SET_TARGET_PROPERTIES(demo_TireTestRig PROPERTIES 
-                      COMPILE_FLAGS "${MY_CXX_FLAGS}"
+                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_TireTestRig ${LIBRARIES} ${LIBRARIES_IRR})
+TARGET_LINK_LIBRARIES(demo_TireTestRig ${LIBRARIES})
 INSTALL(TARGETS demo_TireTestRig DESTINATION bin)

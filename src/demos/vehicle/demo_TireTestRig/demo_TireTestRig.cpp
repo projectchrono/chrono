@@ -34,6 +34,8 @@
 
 #include <vector>
 
+#include "chrono/ChConfig.h"
+
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -44,16 +46,14 @@
 #include "ModelDefs.h"
 
 #include "chrono_vehicle/tire/FialaTire.h"
-//#include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 
-// Irrlicht includes
-#ifdef CHRONO_IRRLICHT
 # include "chrono_irrlicht/ChIrrApp.h"
-# define USE_IRRLICHT
-#endif
 
+#ifdef CHRONO_OPENMP_ENABLED
+#include <omp.h>
+#endif
 
 using namespace chrono;
 using namespace irr;
@@ -77,8 +77,12 @@ public:
   double Get_y(double t) {
     double delay = 0.1;
     double scale = 0.1/180 * CH_C_PI;
-    t = (t - delay)*(t > delay);
-    return (scale*(t-((t-1)*t>1)));
+    if (t <= delay)
+        return 0;
+    double t1 = t - delay;
+    if (t1 >= 1)
+        return scale;
+    return t1 * scale;
     //if (t < 0.000001) {
     //  return (0.);
     //}
@@ -119,7 +123,11 @@ utils::CSV_writer OutStream()
 
 int main()
 {
+  // Ensure that number of OpenMP threads is always set to 1
+#ifdef CHRONO_OPENMP_ENABLED
   omp_set_num_threads(1);
+#endif
+
   // Set the simulation and output time settings
   double sim_step    = 1e-5;
   double out_step    = 1e-2;
@@ -268,10 +276,9 @@ int main()
   cyl_rim->GetCylinderGeometry().p2 = ChVector<>(0, 0.25, 0);
   cyl_rim->GetCylinderGeometry().rad = 0.1;
   rim->AddAsset(cyl_rim);
-  ChSharedPtr<ChColorAsset> col_rim(new ChColorAsset);
-  col_rim->SetColor(ChColor(1.0f, 1.0f, 0.0f));
-  rim->AddAsset(col_rim);
-
+  ChSharedPtr<ChTexture> tex_rim(new ChTexture);
+  tex_rim->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+  rim->AddAsset(tex_rim);
 
   //Create the wheel body
   ChSharedBodyPtr  wheel(new ChBody);
@@ -287,9 +294,9 @@ int main()
   cyl_wheel->GetCylinderGeometry().p2 = ChVector<>(0, width/2, 0);
   cyl_wheel->GetCylinderGeometry().rad = radius;
   wheel->AddAsset(cyl_wheel);
-  ChSharedPtr<ChColorAsset> col_wheel(new ChColorAsset);
-  col_wheel->SetColor(ChColor(0.0f, 1.0f, 1.0f));
-  wheel->AddAsset(col_wheel);
+  ChSharedPtr<ChTexture> tex_wheel(new ChTexture);
+  tex_wheel->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+  wheel->AddAsset(tex_wheel);
 
 
   // Create the joints for the mechanical system
@@ -454,7 +461,7 @@ int main()
 
   application->SetTimestep(sim_step);
 
-  while (simTime <= sim_endtime + sim_step / 2)
+  while (application->GetDevice()->run())
   {
     // Reset 'user forces accumulators':
     wheel_carrier->Empty_forces_accumulators();
@@ -588,6 +595,9 @@ int main()
 
     // Increment simulation time
     simTime += sim_step;
+
+    if (simTime > sim_endtime + sim_step / 2)
+        break;
   }
 
   // Write output files
