@@ -72,10 +72,10 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     ChVector<> GetPoint2Abs() const { return Body2->TransformPointLocalToParent(m_p2); }
     /// Get the first direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
-    ChVector<>& GetDirX2Abs() const { return Body2->TransformDirectionLocalToParent(m_x2); }
+    ChVector<> GetDirX2Abs() const { return Body2->TransformDirectionLocalToParent(m_x2); }
     /// Get the second direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
-    ChVector<>& GetDirY2Abs() const { return Body2->TransformDirectionLocalToParent(m_y2); }
+    ChVector<> GetDirY2Abs() const { return Body2->TransformDirectionLocalToParent(m_y2); }
 
     /// Get the link coordinate system, expressed relative to Body2 (translational side).
     /// This represents the 'main' reference of the link: reaction forces
