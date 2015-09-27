@@ -57,7 +57,7 @@ void LoadFromMatrix(ChMatrix<>& output_mat, std::string filename)
 
 int main(){
 
-	cout << "//////////// CSR3 Matrix: basic functions testing //////////////" << endl;
+	std::cout << "//////////// CSR3 Matrix: basic functions testing //////////////" << std::endl;
 	int m = 3;
 	int n = 5;
 	ChCSR3Matrix matCSR3_1(m, n, 0.1);
@@ -94,7 +94,7 @@ int main(){
 	}
 
 	//////////////////////////////
-	cout << endl << "//////////// CSR3 Matrix: Resize and Reset testing //////////////" << endl;
+	std::cout << std::endl << "//////////// CSR3 Matrix: Resize and Reset testing //////////////" << std::endl;
 	m = m + 3;
 	n = n + 1;
 	matCSR3_1.Resize(m, n, 25);
@@ -114,7 +114,7 @@ int main(){
 
 
 	/////////////////
-	cout << endl << "//////////// CSR3 Matrix: Sparsity pattern testing //////////////" << endl;
+	std::cout << std::endl << "//////////// CSR3 Matrix: Sparsity pattern testing //////////////" << std::endl;
 	matCSR3_1.SetRowIndexLock(true);
 	matCSR3_1.SetColIndexLock(true);
 	matCSR3_1.Reset(matCSR3_1.GetRows(), matCSR3_1.GetColumns());
@@ -130,7 +130,7 @@ int main(){
 	
 
 	///////////////////////////////////
-	cout << endl << "//////////// Comparison MKL Pardiso: different precisions //////////////";
+	std::cout << std::endl << "//////////// Comparison MKL Pardiso: different precisions //////////////";
 	n = 540;
 	ChCSR3Matrix matCSR3_prec12(n, n);
 	ChCSR3Matrix matCSR3_prec24(n, n);
