@@ -75,10 +75,14 @@ public:
 
   //Ramp for 1 second and stay at that value (scale)
   double Get_y(double t) {
-    double delay = 0.5;
-    double scale = 2./180 * CH_C_PI;
+    double delay = 0.1;
+    double scale = 0.1/180 * CH_C_PI;
     t = (t - delay)*(t > delay);
     return (scale*(t-((t-1)*t>1)));
+    //if (t < 0.000001) {
+    //  return (0.);
+    //}
+    //return (0. / 180 * CH_C_PI);
   }
 };
 
@@ -93,7 +97,7 @@ public:
   //  t = (t - delay)*(t > delay);
   //  return (scale*(t - ((t - 1)*t>1)));
   //}
-  double Get_y(double t) { return 0;}
+  double Get_y(double t) { return 0.;}
 };
 
 
@@ -156,9 +160,10 @@ int main()
   FlatTerrain flat_terrain(0);
 
   // create the Fiala tire
-  ChSharedPtr<FialaTire> tire(new FialaTire(vehicle::GetDataFile(Fiala_testfile), flat_terrain));
-  double radius = tire->GetUnloadedRadius();
-  double width = tire->GetWidth();
+  ChSharedPtr<FialaTire> test_tire(new FialaTire(vehicle::GetDataFile(Fiala_testfile), flat_terrain));
+  test_tire->Initialize();
+  double radius = test_tire->GetUnloadedRadius();
+  double width = test_tire->GetWidth();
 
   // Create the ground body.
   ChSharedBodyPtr  ground(new ChBody);
@@ -179,11 +184,12 @@ int main()
   chassis->SetPos_dt(desired_speed * ChVector<>(1, 0, 0));
   chassis->SetMass(chassis_mass);
   chassis->SetInertiaXX(chassis_inertiaXX);
+  chassis->SetPos_dt(ChVector<>(desired_speed, 0, 0));
   my_system.AddBody(chassis);
   // Add some geometry to the chassis body for visualizing the carrier
   ChSharedPtr<ChBoxShape> box_chassis(new ChBoxShape);
   box_chassis->GetBoxGeometry().Size = ChVector<>(.25, .005, .005);
-  box_chassis->Pos = ChVector<>(0,0,0);
+  box_chassis->Pos = ChVector<>(0,0, radius);
   box_chassis->Rot = QUNIT;
   chassis->AddAsset(box_chassis);
   ChSharedPtr<ChColorAsset> col_chassis(new ChColorAsset);
@@ -197,11 +203,12 @@ int main()
   set_toe->SetRot(QUNIT);
   set_toe->SetMass(set_toe_mass);
   set_toe->SetInertiaXX(set_toe_inertiaXX);
+  set_toe->SetPos_dt(ChVector<>(desired_speed, 0, 0));
   my_system.AddBody(set_toe);
   // Add some geometry to the set_toe body for visualizing the carrier
   ChSharedPtr<ChBoxShape> box_set_toe(new ChBoxShape);
   box_set_toe->GetBoxGeometry().Size = ChVector<>(.2, .007, .007);
-  box_set_toe->Pos = ChVector<>(0,0,0);
+  box_set_toe->Pos = ChVector<>(0,0, radius);
   box_set_toe->Rot = QUNIT;
   set_toe->AddAsset(box_set_toe);
   ChSharedPtr<ChColorAsset> col_set_toe(new ChColorAsset);
@@ -215,11 +222,12 @@ int main()
   wheel_carrier->SetRot(QUNIT);
   wheel_carrier->SetMass(wheel_carrier_mass);
   wheel_carrier->SetInertiaXX(wheel_carrier_inertiaXX);
+  wheel_carrier->SetPos_dt(ChVector<>(desired_speed, 0, 0));
   my_system.AddBody(wheel_carrier);
   // Add some geometry to the set_toe body for visualizing the carrier
   ChSharedPtr<ChBoxShape> box_wheel_carrier(new ChBoxShape);
   box_wheel_carrier->GetBoxGeometry().Size = ChVector<>(.15, .009, .009);
-  box_wheel_carrier->Pos = ChVector<>(0,0,0);
+  box_wheel_carrier->Pos = ChVector<>(0,0,radius);
   box_wheel_carrier->Rot = QUNIT;
   wheel_carrier->AddAsset(box_wheel_carrier);
   ChSharedPtr<ChColorAsset> col_wheel_carrier(new ChColorAsset);
@@ -233,11 +241,12 @@ int main()
   set_camber->SetRot(QUNIT);
   set_camber->SetMass(set_camber_mass);
   set_camber->SetInertiaXX(set_camber_inertiaXX);
+  set_camber->SetPos_dt(ChVector<>(desired_speed, 0, 0));
   my_system.AddBody(set_camber);
   // Add some geometry to the set_toe body for visualizing the carrier
   ChSharedPtr<ChBoxShape> box_set_camber(new ChBoxShape);
   box_set_camber->GetBoxGeometry().Size = ChVector<>(.13, .011, .011);
-  box_set_camber->Pos = ChVector<>(0,0,0);
+  box_set_camber->Pos = ChVector<>(0,0,radius);
   box_set_camber->Rot = QUNIT;
   set_camber->AddAsset(box_set_camber);
   ChSharedPtr<ChColorAsset> col_set_camber(new ChColorAsset);
@@ -251,6 +260,8 @@ int main()
   rim->SetRot(QUNIT);
   rim->SetMass(rim_mass);
   rim->SetInertiaXX(rim_inertiaXX);
+  rim->SetWvel_par(ChVector<>(0, desired_speed / radius, 0));
+  rim->SetPos_dt(ChVector<>(desired_speed, 0, 0));
   my_system.AddBody(rim);
   ChSharedPtr<ChCylinderShape> cyl_rim(new ChCylinderShape);
   cyl_rim->GetCylinderGeometry().p1 = ChVector<>(0, -.25, 0);
@@ -268,6 +279,8 @@ int main()
   wheel->SetRot(QUNIT);
   wheel->SetMass(wheel_mass);
   wheel->SetInertiaXX(wheel_inertiaXX);
+  wheel->SetWvel_par(ChVector<>(0, desired_speed / radius, 0));
+  wheel->SetPos_dt(ChVector<>(desired_speed, 0, 0));
   my_system.AddBody(wheel);
   ChSharedPtr<ChCylinderShape> cyl_wheel(new ChCylinderShape);
   cyl_wheel->GetCylinderGeometry().p1 = ChVector<>(0, -width/2, 0);
@@ -279,10 +292,6 @@ int main()
   wheel->AddAsset(col_wheel);
 
 
-  //Create tire system
-  ChSharedPtr<FialaTire> test_tire(new FialaTire(vehicle::GetDataFile(Fiala_testfile), flat_terrain));
-  test_tire->Initialize();
-  
   // Create the joints for the mechanical system
   // -------------------------------------------
 
@@ -430,20 +439,20 @@ int main()
   ChWheelState wheelstate;
 
 
-  //// Create the Irrlicht application for visualization
-  //ChIrrApp * application = new ChIrrApp(&my_system, L"demo_TireTestRig", core::dimension2d<u32>(800, 600), false, true);
-  //application->AddTypicalLogo();
-  //application->AddTypicalSky();
-  //application->AddTypicalLights();
-  //core::vector3df lookat((f32)0, (f32)0, (f32)radius);
-  //application->AddTypicalCamera(lookat + core::vector3df(1, 1, 1), lookat);
+  // Create the Irrlicht application for visualization
+  ChIrrApp * application = new ChIrrApp(&my_system, L"demo_TireTestRig", core::dimension2d<u32>(800, 600), false, true);
+  application->AddTypicalLogo();
+  application->AddTypicalSky();
+  application->AddTypicalLights();
+  core::vector3df lookat((f32)0, (f32)0, (f32)radius);
+  application->AddTypicalCamera(lookat + core::vector3df(1, 1, 1), lookat);
 
-  //// Now have the visulization tool (Irrlicht) create its geometry from the
-  //// assets defined above
-  //application->AssetBindAll();
-  //application->AssetUpdateAll();
+  // Now have the visulization tool (Irrlicht) create its geometry from the
+  // assets defined above
+  application->AssetBindAll();
+  application->AssetUpdateAll();
 
-  //application->SetTimestep(sim_step);
+  application->SetTimestep(sim_step);
 
   while (simTime <= sim_endtime + sim_step / 2)
   {
@@ -452,88 +461,114 @@ int main()
     wheel->Empty_forces_accumulators();
 
     //Calculate the wheelstate
-//    struct ChWheelState {
-//      ChVector<>     pos;      ///< global position
-//      ChQuaternion<> rot;      ///< orientation with respect to global frame
-//      ChVector<>     lin_vel;  ///< linear velocity, expressed in the global frame
-//      ChVector<>     ang_vel;  ///< angular velocity, expressed in the global frame
-//      double         omega;    ///< wheel angular speed about its rotation axis
-//    };
-    wheelstate.pos = wheel->GetPos();
-    wheelstate.rot = wheel->GetRot();
-    wheelstate.lin_vel = wheel->GetPos_dt();
-    wheelstate.ang_vel = wheel->GetWvel_par();
-    wheelstate.omega = revolute_set_camber_rim->GetRelWvel().z;
-    wheelstate.omega = wheelstate.ang_vel.y;
+    wheelstate.pos     = wheel->GetPos();         ///< global position
+    wheelstate.rot     = wheel->GetRot();         ///< orientation with respect to global frame
+    wheelstate.lin_vel = wheel->GetPos_dt();      ///< linear velocity, expressed in the global frame
+    wheelstate.ang_vel = wheel->GetWvel_par();    ///< angular velocity, expressed in the global frame
+    wheelstate.omega   = wheel->GetWvel_loc().y;  ///< wheel angular speed about its rotation axis
 
-    ChVector<> Temp1 = revolute_set_camber_rim->GetRelWvel();
-    ChVector<> Temp2 = revolute_set_camber_rim->GetRelRotaxis();
+    //Advance tire by one step
+    test_tire->Update(simTime, wheelstate);
+    test_tire->Advance(sim_step);
 
-    // apply the desired veritical force to the system
+    // apply the desired veritical force to the system (accounting 
+    //  for the weight of all the test rig bodies acting vertically on the tire)
     wheel_carrier->Accumulate_force(ChVector<>(0,0,-(normal_force - g*(wheel_carrier_mass + 
         set_camber_mass + rim_mass + wheel_mass))), set_toe->GetPos(), false);
 
     // apply the tire forces
     tireforce = test_tire->GetTireForce();
+    tireforce.force.x = 0;
+    tireforce.force.y = 0;
+    tireforce.moment = ChVector<>(0, 0, 0);
     wheel->Accumulate_force(tireforce.force,tireforce.point,false);
     wheel->Accumulate_torque(tireforce.moment,false);
 
     // Ensure that the final data point is recorded.
     if (simTime >= outTime - sim_step / 2)
     {
+      ChMatrix33<> A(wheelstate.rot);
+      ChVector<> disc_normal = A.Get_A_Yaxis();
 
-      std::cout << "Time: " << simTime << std::endl
-        << "chassis" << std::endl
-        << chassis->GetPos().x << ", "
-        << chassis->GetPos().y << ", "
-        << chassis->GetPos().z << std::endl
-        << chassis->GetRot().e0 << ", "
-        << chassis->GetRot().e1 << ", "
-        << chassis->GetRot().e2 << ", "
-        << chassis->GetRot().e3 << std::endl
-        << "set_toe" << std::endl
-        << set_toe->GetPos().x << ", "
-        << set_toe->GetPos().y << ", "
-        << set_toe->GetPos().z << std::endl
-        << set_toe->GetRot().e0 << ", "
-        << set_toe->GetRot().e1 << ", "
-        << set_toe->GetRot().e2 << ", "
-        << set_toe->GetRot().e3 << std::endl
-        << "wheel_carrier" << std::endl
-        << wheel_carrier->GetPos().x << ", "
-        << wheel_carrier->GetPos().y << ", "
-        << wheel_carrier->GetPos().z << std::endl
-        << wheel_carrier->GetRot().e0 << ", "
-        << wheel_carrier->GetRot().e1 << ", "
-        << wheel_carrier->GetRot().e2 << ", "
-        << wheel_carrier->GetRot().e3 << std::endl
-        << "Tire Force & Momemt" << std::endl
-        << tireforce.force.x << ", "
-        << tireforce.force.y << ", "
-        << tireforce.force.z << std::endl
-        << tireforce.moment.x << ", "
-        << tireforce.moment.y << ", "
-        << tireforce.moment.z << std::endl
-        << tireforce.point.x << ", "
-        << tireforce.point.y << ", "
-        << tireforce.point.z << std::endl
-        << "Wheel States" << std::endl
-        << wheelstate.pos.x << ", "
-        << wheelstate.pos.y << ", "
-        << wheelstate.pos.z << std::endl
-        << wheelstate.lin_vel.x << ", "
-        << wheelstate.lin_vel.y << ", "
-        << wheelstate.lin_vel.z << std::endl
-        << wheelstate.ang_vel.x << ", "
-        << wheelstate.ang_vel.y << ", "
-        << wheelstate.ang_vel.z << ", "
-        << wheelstate.omega << std::endl
-        << "Tire States" << std::endl
-        << tire->GetKappa() << ", "
-        << tire->GetAlpha() << std::endl
-        << std::endl;
-
-
+	  std::cout << "Time: " << simTime << std::endl
+		  << "chassis (pos):       " 
+		  << chassis->GetPos().x << ", "
+		  << chassis->GetPos().y << ", "
+		  << chassis->GetPos().z << std::endl
+		  << "chassis (rot):       "
+		  << chassis->GetRot().e0 << ", "
+		  << chassis->GetRot().e1 << ", "
+		  << chassis->GetRot().e2 << ", "
+		  << chassis->GetRot().e3 << std::endl
+		  << "set_toe (pos):       " 
+		  << set_toe->GetPos().x << ", "
+		  << set_toe->GetPos().y << ", "
+		  << set_toe->GetPos().z << std::endl
+		  << "set_toe (rot):       "
+		  << set_toe->GetRot().e0 << ", "
+		  << set_toe->GetRot().e1 << ", "
+		  << set_toe->GetRot().e2 << ", "
+		  << set_toe->GetRot().e3 << std::endl
+		  << "wheel_carrier (pos): "
+		  << wheel_carrier->GetPos().x << ", "
+		  << wheel_carrier->GetPos().y << ", "
+		  << wheel_carrier->GetPos().z << std::endl
+		  << "wheel_carrier (rot): "
+		  << wheel_carrier->GetRot().e0 << ", "
+		  << wheel_carrier->GetRot().e1 << ", "
+		  << wheel_carrier->GetRot().e2 << ", "
+		  << wheel_carrier->GetRot().e3 << std::endl
+		  << "set_camber (pos):    "
+		  << set_camber->GetPos().x << ", "
+		  << set_camber->GetPos().y << ", "
+		  << set_camber->GetPos().z << std::endl
+		  << "set_camber (rot):    "
+		  << set_camber->GetRot().e0 << ", "
+		  << set_camber->GetRot().e1 << ", "
+		  << set_camber->GetRot().e2 << ", "
+		  << set_camber->GetRot().e3 << std::endl
+		  << "rim (pos):           "
+		  << rim->GetPos().x << ", "
+		  << rim->GetPos().y << ", "
+		  << rim->GetPos().z << std::endl
+		  << "rim (rot):           "
+		  << rim->GetRot().e0 << ", "
+		  << rim->GetRot().e1 << ", "
+		  << rim->GetRot().e2 << ", "
+		  << rim->GetRot().e3 << std::endl
+		  << "Tire Force:          "
+		  << tireforce.force.x << ", "
+		  << tireforce.force.y << ", "
+		  << tireforce.force.z << std::endl
+		  << "Tire Moment:         "
+		  << tireforce.moment.x << ", "
+		  << tireforce.moment.y << ", "
+		  << tireforce.moment.z << std::endl
+		  << "Tire Point:          "
+		  << tireforce.point.x << ", "
+		  << tireforce.point.y << ", "
+		  << tireforce.point.z << std::endl
+		  << "Wheel States (pos):     "
+		  << wheelstate.pos.x << ", "
+		  << wheelstate.pos.y << ", "
+		  << wheelstate.pos.z << std::endl
+		  << "Wheel States (lin_vel): "
+		  << wheelstate.lin_vel.x << ", "
+		  << wheelstate.lin_vel.y << ", "
+		  << wheelstate.lin_vel.z << std::endl
+		  << "Wheel States (ang_vel,w): "
+		  << wheelstate.ang_vel.x << ", "
+		  << wheelstate.ang_vel.y << ", "
+		  << wheelstate.ang_vel.z << ", "
+		  << wheelstate.omega << std::endl
+		  << "Wheel Normal:             "
+		  << disc_normal.x << ", "
+		  << disc_normal.y << ", "
+		  << disc_normal.z << std::endl
+		  << "Tire States (Kappa, Alpha): "
+          << test_tire->GetKappa() << ", "
+          << test_tire->GetAlpha() << std::endl
+		  << std::endl;
 
       out_force_moment << simTime << tireforce.force << tireforce.moment << std::endl;
       out_wheelstate << simTime << wheelstate.pos << wheelstate.rot << wheelstate.lin_vel << 
@@ -544,17 +579,12 @@ int main()
     }
 
     // Advance simulation by one step
-    my_system.DoStepDynamics(sim_step);
+    //my_system.DoStepDynamics(sim_step);
 
-    //application->BeginScene();
-    //application->DrawAll();
-    //application->DoStep();  //Take one step in time
-    //application->EndScene();
-
-
-    //Advance tire by one step
-    test_tire->Update(simTime,wheelstate);
-    test_tire->Advance(sim_step);
+    application->BeginScene();
+    application->DrawAll();
+    application->DoStep();  //Take one step in time
+    application->EndScene();
 
     // Increment simulation time
     simTime += sim_step;

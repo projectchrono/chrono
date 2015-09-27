@@ -47,7 +47,7 @@ template <typename T> int sgn(T val) {
 ChFialaTire::ChFialaTire(const std::string& name,
                          const ChTerrain&   terrain)
 : ChTire(name, terrain),
-  m_stepsize(1e-3)
+  m_stepsize(1e-6)
 {
   m_tireforce.force = ChVector<>(0, 0, 0);
   m_tireforce.point = ChVector<>(0, 0, 0);
@@ -93,9 +93,8 @@ void ChFialaTire::Update(double               time,
   m_data.in_contact = disc_terrain_contact(wheel_state.pos, disc_normal, m_unloaded_radius,
                                            m_data.frame, m_data.depth);
   if (m_data.in_contact) {
-    // Relative velocity at contact point (expressed in the global frame and in
-    // the contact frame)  - To Do: Check this 
-    ChVector<> vel = wheel_state.lin_vel; //+ Vcross(wheel_state.ang_vel, m_data.frame.pos - wheel_state.pos);
+    // Wheel velocity in the ISO-C Frame 
+    ChVector<> vel = wheel_state.lin_vel;
     m_data.vel = m_data.frame.TransformDirectionParentToLocal(vel);
 
     // Generate normal contact force (recall, all forces are reduced to the wheel
@@ -182,6 +181,15 @@ void ChFialaTire::Advance(double step)
       t += h;
     }
 
+    ////Overwrite with steady-state alpha & kappa for debugging
+    //if (m_states.abs_vx != 0) {
+    //  m_states.cp_long_slip = -m_states.vsx / m_states.abs_vx;
+    //  m_states.cp_side_slip = std::atan2(m_states.vsy , m_states.abs_vx);
+    //}
+    //else {
+    //  m_states.cp_long_slip = 0;
+    //  m_states.cp_side_slip = 0;
+    //}
 
     //For debugging:
     //std::cout<< "Tire States - K: "<< m_states.cp_long_slip << " A: " << m_states.cp_side_slip << std::endl << std::endl;
@@ -210,8 +218,7 @@ void ChFialaTire::Advance(double step)
       double Fx2 = std::abs(std::pow((U*m_data.normal_force),2)/(4*std::abs(m_states.cp_long_slip)*m_c_slip));
       Fx = -sgn(m_states.cp_long_slip)*(Fx1-Fx2);
     }
-    m_tireforce.force += Fx* m_data.frame.rot.GetXaxis();
-
+    
     //Lateral Force & Aligning Moment (Mz):
     if(std::abs(m_states.cp_side_slip)<=Alpha_critical){
       double H = 1-m_c_alpha*std::abs(std::tan(m_states.cp_side_slip))/(3*U*m_data.normal_force);
@@ -223,49 +230,20 @@ void ChFialaTire::Advance(double step)
       Fy = -U*m_data.normal_force*sgn(m_states.cp_side_slip);
       Mz = 0;
     }
-    m_tireforce.force += Fy* m_data.frame.rot.GetYaxis();
-    m_tireforce.moment += Mz* m_data.frame.rot.GetZaxis();
-
+    
     //Rolling Resistance
     My = -m_rolling_resistance*m_data.normal_force*sgn(m_states.omega);
-    m_tireforce.moment += My* m_data.frame.rot.GetYaxis();
-
+    
     //Debugging - trying the calculation the same way as the Simulink version...needs to ISO section as well
     m_tireforce.force = ChVector<>(Fx, Fy, m_data.normal_force);
     m_tireforce.moment = ChVector<>(0, My, Mz);
 
+    //Rotate into global coordinates
+    m_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
+    m_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
 
     //Move the tire forces from the contact patch to the wheel center
     m_tireforce.moment += Vcross((m_data.frame.pos + ChVector<>(0, 0, m_data.depth)) - m_tireforce.point, m_tireforce.force);
-
-
-
-    //ChVector<> ISO_x;
-    //ChVector<> ISO_y;
-    //ChVector<> ISO_z(0, 0, 1);
-
-    //ISO_x = Vcross(m_states.disc_normal, ISO_z);
-    //ISO_x.Normalize();
-    //ISO_y = Vcross(ISO_z, ISO_x);
-    //ISO_y.Normalize();
-
-    //ChVector<> tempforce;
-    //tempforce.x = Vdot(m_tireforce.force, ChVector<>(ISO_x.x, ISO_y.x, ISO_z.x));
-    //tempforce.y = Vdot(m_tireforce.force, ChVector<>(ISO_x.y, ISO_y.y, ISO_z.y));
-    //tempforce.z = Vdot(m_tireforce.force, ChVector<>(ISO_x.z, ISO_y.z, ISO_z.z));
-
-    //ChVector<> tempmoment;
-    //tempmoment.x = Vdot(m_tireforce.moment, ChVector<>(ISO_x.x, ISO_y.x, ISO_z.x));
-    //tempmoment.y = Vdot(m_tireforce.moment, ChVector<>(ISO_x.y, ISO_y.y, ISO_z.y));
-    //tempmoment.z = Vdot(m_tireforce.moment, ChVector<>(ISO_x.z, ISO_y.z, ISO_z.z));
-
-    //m_tireforce.force = tempforce;
-    //m_tireforce.moment = tempmoment;
-
-    //Rotate into global coordinates  - Do I need this?
-    //m_tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
-    //m_tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
-
 
   }
   //Else do nothing since the "m_tireForce" force and moment values are already 0 (set in Update())

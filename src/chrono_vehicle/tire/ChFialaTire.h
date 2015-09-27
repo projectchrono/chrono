@@ -15,6 +15,10 @@
 // Template for Fiala tire model
 //
 // =============================================================================
+// =============================================================================
+// STILL UNDERDEVELOPMENT - DO NOT USE
+// =============================================================================
+// =============================================================================
 
 #ifndef CH_FIALATIRE_H
 #define CH_FIALATIRE_H
@@ -80,9 +84,9 @@ public:
   double GetWidth() const { return m_width; }
 
   //Temporary debug methods
-  double GetKappa() {return m_states.cp_long_slip;}
+  double GetKappa() const {return m_states.cp_long_slip;}
   double GetAlpha() const {return m_states.cp_side_slip;}
-
+ 
 protected:
 
   /// Return the vertical tire stiffness (for normal force calculation).
@@ -103,6 +107,10 @@ protected:
   double   m_u_max;
   double   m_relax_length_x;
   double   m_relax_length_y;
+
+private:
+
+  double  m_stepsize;
 
   struct ContactData {
     bool         in_contact;     // true if disc in contact with terrain
@@ -125,14 +133,7 @@ protected:
   ContactData  m_data;
   TireStates   m_states;
 
-
-private:
-
-  double  m_stepsize;
-
-
   ChTireForce  m_tireforce;
-
 };
 
 
