@@ -48,6 +48,19 @@ void ClearMyThrustR3(thrust::device_vector<Real3>& mThrustVec);
 void ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec);
 void ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec);
 
+void MakeRigidIdentifier(
+		thrust::device_vector<uint> & rigidIdentifierD,
+		int numRigidBodies, int startRigidMarkers,
+		const thrust::host_vector<int3> & referenceArray);
+
+void Populate_RigidSPH_MeshPos_LRF(
+		thrust::device_vector<uint>& rigidIdentifierD,
+		hrust::device_vector<real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<Real3>&posRadD,
+		const thrust::device_vector<Real3>& posRigidD,
+		const thrust::device_vector<Real4>& qD,
+		const thrust::host_vector<int3> & referenceArray);
+
 /**
  * @brief Calculates the force on each particles
  * @details

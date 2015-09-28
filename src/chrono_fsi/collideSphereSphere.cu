@@ -28,6 +28,19 @@ __constant__ int2 updatePortionD;
 __constant__ Real solid_SPH_massD;
 
 //--------------------------------------------------------------------------------------------------------------------------------
+// first comp of q is rotation, last 3 components are axis of rot
+__device__ __host__ inline void RotationMatirixFromQuaternion(real3 & AD1, real3 & AD2, real3 & AD3, const real4 & q) {
+	AD1 = 2 * R3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w, q.y * q.w + q.x * q.z);
+	AD2 = 2 * R3(q.y * q.z + q.x * q.w, 0.5f - q.y * q.y - q.w * q.w, q.z * q.w - q.x * q.y);
+	AD3 = 2 * R3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__device__ __host__ inline real3 InverseRotate_By_RotationMatrix_DeviceHost(const real3 & A1, const real3 & A2, const real3 & A3, const real3 & r3) {
+	return R3(	A1.x * r3.x + A2.x * r3.y + A3.x * r3.z,
+				A1.y * r3.x + A2.y * r3.y + A3.y * r3.z,
+				A1.z * r3.x + A2.z * r3.y + A3.z * r3.z);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 void MapSPH_ToGrid(Real resolution,
                    int3& cartesianGridDims,
                    thrust::host_vector<Real4>& rho_Pres_CartH,
@@ -332,9 +345,7 @@ __global__ void UpdateRigidMarkersPositionD(
 		Real3 * posRigidD,
 		Real4 * velMassRigidD,
 		Real3 * omegaLRF_D,
-		Real3 * AD1,
-		Real3 * AD2,
-		Real3 * AD3) {
+		Real4 * qD) {
 
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numObjectsD.numRigid_SphMarkers) {
@@ -343,10 +354,9 @@ __global__ void UpdateRigidMarkersPositionD(
 	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortionD = [start, end] index of the update portion
 	int rigidBodyIndex = rigidIdentifierD[index];
 
+	Real4 q4 = qD[rigidBodyIndex];
 	Real3 a1, a2, a3;
-	a1 = AD1[rigidBodyIndex];
-	a2 = AD2[rigidBodyIndex];
-	a3 = AD3[rigidBodyIndex];
+	RotationMatirixFromQuaternion(a1, a2, a3, q4);
 
 	Real3 rigidSPH_MeshPos_LRF = rigidSPH_MeshPos_LRF_D[index];
 
@@ -361,6 +371,98 @@ __global__ void UpdateRigidMarkersPositionD(
 	Real4 vM = velMasD[rigidMarkerIndex];
 	velMasD[rigidMarkerIndex] = mR4(mR3(vM_Rigid) + mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS)), vM.w);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+// applies periodic BC along x
+__global__ void CustomCopyR4ToR3(Real3* velD, Real4* velMasD) {
+  uint index = blockIdx.x * blockDim.x + threadIdx.x;
+  if (index >= numObjectsD.numAllMarkers) {
+    return;
+  }
+  Real4 velMas = velMasD[index];
+  velD[index] = mR3(velMas);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
+		real3* rigidSPH_MeshPos_LRF_D,
+		real3* posRadD,
+		int* rigidIdentifierD,
+		real3* posRigidD,
+		real4 * qD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortionD = [start, end] index of the update portion
+	if (index >= numObjectsD.numRigid_SphMarkers) {
+		return;
+	}
+	int rigidIndex = rigidIdentifierD[index];
+	real4 q4 = qD[rigidIndex];;
+	real3 a1, a2, a3;
+	RotationMatirixFromQuaternion(a1, a2, a3, q4);
+	real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIndex];
+	real3 dist3LF = InverseRotate_By_RotationMatrix_DeviceHost(a1, a2, a3, dist3);
+	rigidSPH_MeshPos_LRF_D[index] = dist3LF;
+}
+
+////--------------------------------------------------------------------------------------------------------------------------------
+void MakeRigidIdentifier(
+		thrust::device_vector<uint> & rigidIdentifierD,
+		int numRigidBodies, int startRigidMarkers, const thrust::host_vector<int3> & referenceArray)
+{
+	if (numRigidBodies > 0) {
+		for (int rigidSphereA = 0; rigidSphereA < numRigidBodies; rigidSphereA++) {
+			int3 referencePart = referenceArray[2 + rigidSphereA];
+			if (referencePart.z != 1) {
+				printf("error in accessing rigid bodies. Reference array indexing is wrong\n");
+				return;
+			}
+			int2 updatePortion = I2(referencePart); //first two component of the referenceArray denote to the fluid and boundary particles
+			thrust::fill(rigidIdentifierD.begin() + (updatePortion.x - startRigidMarkers),
+					rigidIdentifierD.begin() + (updatePortion.y - startRigidMarkers), rigidSphereA);
+		}
+	}
+}
+////--------------------------------------------------------------------------------------------------------------------------------
+
+void Populate_RigidSPH_MeshPos_LRF(
+		thrust::device_vector<uint>& rigidIdentifierD,
+		hrust::device_vector<real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<Real3>&posRadD,
+		const thrust::device_vector<Real3>& posRigidD,
+		const thrust::device_vector<Real4>& qD,
+		const thrust::host_vector<int3> & referenceArray) {
+	MakeRigidIdentifier(rigidIdentifierD, numObjects.numRigidBodies, numObjects.startRigidMarkers, referenceArray);
+
+	uint nBlocks_numRigid_SphMarkers;
+	uint nThreads_SphMarkers;
+	computeGridSize(numObjects.numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
+
+	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD),
+			R4CAST(qD));
+
+
+}
+
+
+
+
+
+
+
+
+
+
 //--------------------------------------------------------------------------------------------------------------------------------
 // applies the time step to the current quantities and saves the new values into variable with the same name and '2' and the end
 // precondition: for the first step of RK2, all variables with '2' at the end have the values the same as those without '2' at the end.
@@ -430,44 +532,13 @@ void Rigid_Forces_Torques(
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-// obsolete this one later
 void UpdateRigidMarkersPosition(
 		thrust::device_vector<Real3> & posRadD,
 		thrust::device_vector<Real4> & velMasD,
 		const thrust::device_vector<Real3> & rigidSPH_MeshPos_LRF_D,
 		const thrust::device_vector<int> & rigidIdentifierD,
 		const thrust::device_vector<Real3> & posRigidD,
-		const thrust::device_vector<Real4> & velMassRigidD,
-		const thrust::device_vector<Real3> & omegaLRF_D,
-		const thrust::device_vector<Real3> & AD1,
-		const thrust::device_vector<Real3> & AD2,
-		const thrust::device_vector<Real3> & AD3,
-		NumberOfObjects numObjects) {
-
-	uint nBlocks_numRigid_SphMarkers;
-	uint nThreads_SphMarkers;
-	computeGridSize(numObjects.numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
-
-	// Arman: InitSystem has to be called before this lunch to set numObjectsD
-
-	//################################################### update BCE markers position
-	//** "posRadD2"/"velMasD2" associated to BCE markers are updated based on new rigid body (position, orientation)/(velocity, angular velocity)
-	UpdateRigidMarkersPositionD<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
-			mR3CAST(posRadD), mR4CAST(velMasD),
-			mR3CAST(rigidSPH_MeshPos_LRF_D),
-			I1CAST(rigidIdentifierD), mR3CAST(posRigidD), mR4CAST(velMassRigidD), mR3CAST(omegaLRF_D), mR3CAST(AD1), mR3CAST(AD2), mR3CAST(AD3));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-void UpdateRigidMarkersPosition(
-		thrust::device_vector<Real3> & posRadD,
-		thrust::device_vector<Real4> & velMasD,
-		const thrust::device_vector<Real3> & rigidSPH_MeshPos_LRF_D,
-		const thrust::device_vector<int> & rigidIdentifierD,
-		const thrust::device_vector<Real3> & posRigidD,
-		const thrust::device_vector<Real3> & qD,
+		const thrust::device_vector<Real4> & qD,
 		const thrust::device_vector<Real4> & velMassRigidD,
 		const thrust::device_vector<Real3> & omegaLRF_D,
 		NumberOfObjects numObjects) {
@@ -485,26 +556,9 @@ void UpdateRigidMarkersPosition(
 	UpdateRigidMarkersPositionD<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
 			mR3CAST(posRadD), mR4CAST(velMasD),
 			mR3CAST(rigidSPH_MeshPos_LRF_D),
-			I1CAST(rigidIdentifierD), mR3CAST(posRigidD), mR4CAST(velMassRigidD), mR3CAST(omegaLRF_D), mR3CAST(AD1), mR3CAST(AD2), mR3CAST(AD3));
+			I1CAST(rigidIdentifierD), mR3CAST(posRigidD), mR4CAST(velMassRigidD), mR3CAST(omegaLRF_D), mR4CAST(qD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
-}
-
-
-
-
-
-
-
-//--------------------------------------------------------------------------------------------------------------------------------
-// applies periodic BC along x
-__global__ void CustomCopyR4ToR3(Real3* velD, Real4* velMasD) {
-  uint index = blockIdx.x * blockDim.x + threadIdx.x;
-  if (index >= numObjectsD.numAllMarkers) {
-    return;
-  }
-  Real4 velMas = velMasD[index];
-  velD[index] = mR3(velMas);
 }
 
 //*******************************************************************************************************************************

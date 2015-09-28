@@ -310,14 +310,6 @@ void CopyD2H(thrust::host_vector<Real3>& posRadH,  // do not set the size here s
   thrust::copy(rhoPresMuD.begin(), rhoPresMuD.end(), rhoPresMuH.begin());
 }
 
-
-
-
-
-
-
-
-
 //------------------------------------------------------------------------------------
 // mapIndex[i] is the the index of the i_th sph represented rigid body in ChSystem
 void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,

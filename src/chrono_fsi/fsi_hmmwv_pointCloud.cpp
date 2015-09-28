@@ -383,6 +383,8 @@ void AddCylinderBceToChSystemAndSPH(
   mapIndex.push_back(numRigidObjects);
 }
 // =============================================================================
+
+// Arman you still need local position of bce markers
 void CreateMbdPhysicalSystemObjects(
     ChSystemParallelDVI& mphysicalSystem,
     thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
@@ -981,6 +983,13 @@ int main(int argc, char* argv[]) {
 
 
 
+  thrust::device_vector<uint> rigidIdentifierD(numObjects.numRigid_SphMarkers);
+  thrust::device_vector<real3> rigidSPH_MeshPos_LRF_D(numObjects.numRigid_SphMarkers);
+  Populate_RigidSPH_MeshPos_LRF(rigidIdentifierD, rigidSPH_MeshPos_LRF_D, posRadD, posRigidD, qD, referenceArray);
+
+
+
+
   // ** initialize device mid step data
   thrust::device_vector<Real3> posRadD2 = posRadD;
   thrust::device_vector<Real4> velMasD2 = velMasD;
@@ -1235,6 +1244,8 @@ int main(int argc, char* argv[]) {
   ClearMyThrustR4(rhoPresMuD);
   ClearMyThrustU1(bodyIndexD);
   ClearMyThrustR4(derivVelRhoD);
+  ClearMyThrustU1(rigidIdentifierD);
+  ClearMyThrustR3(rigidSPH_MeshPos_LRF_D);
 
 
   ClearMyThrustR3(posRadD2);
