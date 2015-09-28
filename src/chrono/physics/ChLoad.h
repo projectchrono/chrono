@@ -16,6 +16,9 @@
 
 
 #include "physics/ChLoader.h"
+#include "physics/ChLoaderU.h"
+#include "physics/ChLoaderUV.h"
+#include "physics/ChLoaderUVW.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 
 
