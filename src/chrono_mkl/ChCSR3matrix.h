@@ -79,7 +79,7 @@ namespace chrono{
 		// Size manipulation
 		virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
 		virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
-		void Compress(bool trim_after_compressing = false); // purge the matrix from all the unininitialized elements
+		void Compress(); // purge the matrix from all the unininitialized elements
 		void Trim(); // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
 		void Prune(double pruning_threshold = DBL_EPSILON);
 

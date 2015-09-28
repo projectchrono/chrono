@@ -813,7 +813,7 @@ namespace chrono {
 		
 	} // Reset
 
-	void ChCSR3Matrix::Compress(bool trim_after_compressing)
+	void ChCSR3Matrix::Compress()
 	{
 		int col_sel_new = 0;
 		int row_sel = 0;
@@ -843,7 +843,6 @@ namespace chrono {
 		}
 
 		rowIndex[row_sel] = col_sel_new;
-		if (trim_after_compressing) Trim();
 		isCompressed = true;
 		rowIndex_lock_broken = false;
 		colIndex_lock_broken = false;

@@ -27,8 +27,12 @@ namespace chrono
 
 		// the compression is needed only on first call or when the supposed-fixed sparsity pattern has to be modified;
 		// and always if the sparsity pattern lock is not turned on
+
+		if (matCSR3.IsRowIndexLockBroken()) printf("\nWARN: RowIndexBlock broken");
+		if (matCSR3.IsColIndexLockBroken()) printf("\nWARN: ColIndexBlock broken");
+
 		if (!sparsity_pattern_lock || solver_call == 0 || matCSR3.IsRowIndexLockBroken() || matCSR3.IsColIndexLockBroken() )
-			matCSR3.Compress(false);
+			matCSR3.Compress();
 
 		// the sparsity pattern lock is turned on only after the first iteration when the matrix is built at least one time
 		if (solver_call == 0)

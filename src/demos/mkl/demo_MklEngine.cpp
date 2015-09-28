@@ -64,7 +64,7 @@ int main(){
 
 	matCSR3_1(2,2 ) = 5;
 
-	matCSR3_1.Compress(true);
+	matCSR3_1.Compress();
 	
 	for (int i = 0; i < m; i++)
 	{
