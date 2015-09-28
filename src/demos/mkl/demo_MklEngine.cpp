@@ -10,24 +10,6 @@
 
 using namespace chrono;
 
-//#include <vector>
-//#include <stdlib.h>     /* srand, rand */
-//#include <stdio.h>
-
-//typedef Eigen::SparseMatrix<double> MatriceSparsa;
-//typedef Eigen::Triplet<double> Tripletta;
-
-//void setCoeff(std::vector<Tripletta>* coeff_list){
-//	for (std::vector<Tripletta>::iterator iterator_loop = coeff_list->begin(); iterator_loop != coeff_list->end(); iterator_loop++){
-//		*iterator_loop = Tripletta(rand() % 10, rand() % 10, (double)(rand() % 1000) / 100);
-//	}
-//}
-
-//void printCoeff(std::vector<Tripletta>* coeff_list){
-//	for (std::vector<Tripletta>::iterator iterator_loop = coeff_list->begin(); iterator_loop != coeff_list->end(); ++iterator_loop){
-//		printf("%d %d %f\n", iterator_loop->row(), iterator_loop->col(), iterator_loop->value());
-//	}
-//}
 
 template<class ChMatrixIN>
 void PrintMatrix(ChMatrixIN* matrice){
