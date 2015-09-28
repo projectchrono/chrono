@@ -1076,9 +1076,6 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
          
          detJ = this->GetRestLength()/2.0;
 
-         //ChVector<>Fv = F.ClipVector(0,0); // force 
-         ///ChVector<>Tv = F.ClipVector(3,0); // torque
-
          Qi(0) = N(0)*F(0);
          Qi(1) = N(1)*F(1) + N(6)*F(5);
          Qi(2) = N(1)*F(2) - N(6)*F(4);
@@ -1108,6 +1105,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
                      ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
                      ) {
          this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
+         detJ /=4.0; // because volume 
      }
 
 

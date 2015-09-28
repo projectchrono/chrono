@@ -941,6 +941,7 @@ public:
                      ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
                      ) {
          this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
+         detJ /=4.0; // because volume 
      }
 
             /// This is needed so that it can be accessed by ChLoaderVolumeGravity
