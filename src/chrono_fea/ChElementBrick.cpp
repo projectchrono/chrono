@@ -936,16 +936,22 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 //		//==EAS and Initial Shape==//
                 ChMatrixNM<double, 3, 3> rd0;
                 ChMatrixNM<double, 3, 3> temp33;
-                temp33.Reset();
-                temp33 = (Nx * (*d0));
-                temp33.MatrTranspose();
-                rd0.PasteClippedMatrix(&temp33, 0, 0, 3, 1, 0, 0);
-                temp33 = (Ny * (*d0));
-                temp33.MatrTranspose();
-                rd0.PasteClippedMatrix(&temp33, 0, 0, 3, 1, 0, 1);
-                temp33 = (Nz * (*d0));
-                temp33.MatrTranspose();
-                rd0.PasteClippedMatrix(&temp33, 0, 0, 3, 1, 0, 2);
+                ChMatrixNM<double, 1, 3> temp13;
+
+                temp13.Reset();
+                temp13 = (Nx * (*d0));
+                temp13.MatrTranspose();
+                rd0.PasteClippedMatrix(&temp13, 0, 0, 3, 1, 0, 0);
+                temp13.MatrTranspose();
+
+                temp13 = (Ny * (*d0));
+                temp13.MatrTranspose();
+                rd0.PasteClippedMatrix(&temp13, 0, 0, 3, 1, 0, 1);
+                temp13.MatrTranspose();
+
+                temp13 = (Nz * (*d0));
+                temp13.MatrTranspose();
+                rd0.PasteClippedMatrix(&temp13, 0, 0, 3, 1, 0, 2);
                 detJ0 = rd0.Det();
 
                 //		//////////////////////////////////////////////////////////////
@@ -1741,7 +1747,7 @@ void ChElementBrick::ComputeMassMatrix() {
     double rho = m_Material->Get_density();
     ChMatrixNM<double, 24, 1> InitialCoord;
     ChMatrixNM<double, 8, 3> d0;
-    InitialCoord = GetInitialPos();
+    d0 = GetInitialPos();
     d0(0, 0) = InitialCoord(0, 0);
     d0(0, 1) = InitialCoord(1, 0);
     d0(0, 2) = InitialCoord(2, 0);
@@ -1905,18 +1911,22 @@ void ChElementBrick::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
     ChMatrixNM<double, 1, 8> Nz;
     ChMatrixNM<double, 3, 3> rd0;
     ChMatrixNM<double, 3, 3> tempA;
+    ChMatrixNM<double, 1, 3> tempVecA;
     ShapeFunctionsDerivativeX(Nx, x, y, z);
     ShapeFunctionsDerivativeY(Ny, x, y, z);
     ShapeFunctionsDerivativeZ(Nz, x, y, z);
-    tempA = (Nx * d0);
-    tempA.MatrTranspose();
-    rd0.PasteClippedMatrix(&tempA, 0, 0, 3, 1, 0, 0);
-    tempA = (Ny * d0);
-    tempA.MatrTranspose();
-    rd0.PasteClippedMatrix(&tempA, 0, 0, 3, 1, 0, 1);
-    tempA = (Nz * d0);
-    tempA.MatrTranspose();
-    rd0.PasteClippedMatrix(&tempA, 0, 0, 3, 1, 0, 2);
+    tempVecA = (Nx * d0);
+    tempVecA.MatrTranspose();
+    rd0.PasteClippedMatrix(&tempVecA, 0, 0, 3, 1, 0, 0);
+    tempVecA.MatrTranspose();
+    tempVecA = (Ny * d0);
+    tempVecA.MatrTranspose();
+    rd0.PasteClippedMatrix(&tempVecA, 0, 0, 3, 1, 0, 1);
+    tempVecA.MatrTranspose();
+    tempVecA = (Nz * d0);
+    tempVecA.MatrTranspose();
+    rd0.PasteClippedMatrix(&tempVecA, 0, 0, 3, 1, 0, 2);
+    tempVecA.MatrTranspose();
     detJ0C = rd0.Det();
     // Transformation : Orthogonal transformation (A and J) ////
     ChVector<double> G1;
