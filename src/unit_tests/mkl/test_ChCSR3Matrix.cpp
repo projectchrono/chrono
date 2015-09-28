@@ -38,8 +38,8 @@ void PrintMatrix(matrix_t& mat)
 {
 	for (int ii = 0; ii < mat.GetRows(); ii++){
 		for (int jj = 0; jj < mat.GetColumns(); jj++)
-			cout << mat.GetElement(ii, jj) << "\t";
-		cout << std::endl;
+			std::cout << mat.GetElement(ii, jj) << "\t";
+		std::cout << std::endl;
 	}
 }
 
@@ -106,7 +106,7 @@ int main(){
 	if (PRINT_RESULTS)
 	{
 		PrintMatrix(mat_base);
-		std::cout << endl;
+		std::cout << std::endl;
 		PrintMatrix(matCSR3);
 	}
 
@@ -134,10 +134,10 @@ int main(){
 
 	if (PRINT_RESULTS)
 	{
-		std::cout << endl;
-		std::cout << "Test 1: " << (test1 ? "passed" : "NOT passed") << endl;
-		std::cout << "Test 2: " << (test2 ? "passed" : "NOT passed") << endl;
-		std::cout << "Test 3: " << (test3 ? "passed" : "NOT passed") << endl;
+		std::cout << std::endl;
+		std::cout << "Test 1: " << (test1 ? "passed" : "NOT passed") << std::endl;
+		std::cout << "Test 2: " << (test2 ? "passed" : "NOT passed") << std::endl;
+		std::cout << "Test 3: " << (test3 ? "passed" : "NOT passed") << std::endl;
 		getchar();
 	}
 	

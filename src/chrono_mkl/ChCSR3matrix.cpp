@@ -90,23 +90,28 @@ namespace chrono {
 		assert(insrow < mat_rows && inscol < mat_cols);
 		assert(insrow >= 0 && inscol >= 0);
 
+
 		int col_sel = rowIndex[insrow];
 		while (1)
 		{
 			// case: element not found in the row OR another element with a higher col number is already been stored
 			if (col_sel >= rowIndex[insrow + 1] || colIndex[col_sel] > inscol){
-				insert(insrow, inscol, insval, col_sel);
+				if (insval!=0) insert(insrow, inscol, insval, col_sel);
 				break;
 			}
 
 			// case: empty space
 			if (colIndex[col_sel] == -1)
 			{
-				values[col_sel] = insval;
-				colIndex[col_sel] = inscol;
+				if (insval != 0)
+				{
+					values[col_sel] = insval;
+					colIndex[col_sel] = inscol;
+				}
 				break;
 			}
 
+			// case: element already allocated
 			if (colIndex[col_sel] == inscol)
 			{
 				if (overwrite)

@@ -189,11 +189,15 @@ set(CV_TIRE_FILES
     tire/ChPacejkaTire.cpp
     tire/ChLugreTire.h
     tire/ChLugreTire.cpp
-
+    tire/ChFialaTire.h
+    tire/ChFialaTire.cpp
+	
     tire/RigidTire.h
     tire/RigidTire.cpp
     tire/LugreTire.h
     tire/LugreTire.cpp
+    tire/FialaTire.h
+    tire/FialaTire.cpp	
 )
 
 set(CV_BRAKE_FILES

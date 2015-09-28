@@ -78,5 +78,7 @@
 @CHRONO_OMP_30@
 @CHRONO_OMP_40@
 
+// If OpenMP support was enabled in the main ChronoEngine library, define CHRONO_OPENMP_ENABLED
+@CHRONO_OPENMP_ENABLED@
 
 #endif

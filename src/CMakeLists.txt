@@ -247,6 +247,12 @@ else()
   set(CHRONO_VEHICLE "#undef CHRONO_VEHICLE")
 endif()
 
+if(ENABLE_OPENMP)
+  set(CHRONO_OPENMP_ENABLED "#define CHRONO_OPENMP_ENABLED")
+else()
+  set(CHRONO_OPENMP_ENABLED "#undef CHRONO_OPENMP_ENABLED")
+endif()
+
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"
                "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
                @ONLY)

@@ -10,24 +10,6 @@
 
 using namespace chrono;
 
-//#include <vector>
-//#include <stdlib.h>     /* srand, rand */
-//#include <stdio.h>
-
-//typedef Eigen::SparseMatrix<double> MatriceSparsa;
-//typedef Eigen::Triplet<double> Tripletta;
-
-//void setCoeff(std::vector<Tripletta>* coeff_list){
-//	for (std::vector<Tripletta>::iterator iterator_loop = coeff_list->begin(); iterator_loop != coeff_list->end(); iterator_loop++){
-//		*iterator_loop = Tripletta(rand() % 10, rand() % 10, (double)(rand() % 1000) / 100);
-//	}
-//}
-
-//void printCoeff(std::vector<Tripletta>* coeff_list){
-//	for (std::vector<Tripletta>::iterator iterator_loop = coeff_list->begin(); iterator_loop != coeff_list->end(); ++iterator_loop){
-//		printf("%d %d %f\n", iterator_loop->row(), iterator_loop->col(), iterator_loop->value());
-//	}
-//}
 
 template<class ChMatrixIN>
 void PrintMatrix(ChMatrixIN* matrice){
@@ -57,7 +39,7 @@ void LoadFromMatrix(ChMatrix<>& output_mat, std::string filename)
 
 int main(){
 
-	cout << "//////////// CSR3 Matrix: basic functions testing //////////////" << endl;
+	std::cout << "//////////// CSR3 Matrix: basic functions testing //////////////" << std::endl;
 	int m = 3;
 	int n = 5;
 	ChCSR3Matrix matCSR3_1(m, n, 0.1);
@@ -94,7 +76,7 @@ int main(){
 	}
 
 	//////////////////////////////
-	cout << endl << "//////////// CSR3 Matrix: Resize and Reset testing //////////////" << endl;
+	std::cout << std::endl << "//////////// CSR3 Matrix: Resize and Reset testing //////////////" << std::endl;
 	m = m + 3;
 	n = n + 1;
 	matCSR3_1.Resize(m, n, 25);
@@ -114,7 +96,7 @@ int main(){
 
 
 	/////////////////
-	cout << endl << "//////////// CSR3 Matrix: Sparsity pattern testing //////////////" << endl;
+	std::cout << std::endl << "//////////// CSR3 Matrix: Sparsity pattern testing //////////////" << std::endl;
 	matCSR3_1.SetRowIndexLock(true);
 	matCSR3_1.SetColIndexLock(true);
 	matCSR3_1.Reset(matCSR3_1.GetRows(), matCSR3_1.GetColumns());
@@ -130,7 +112,7 @@ int main(){
 	
 
 	///////////////////////////////////
-	cout << endl << "//////////// Comparison MKL Pardiso: different precisions //////////////";
+	std::cout << std::endl << "//////////// Comparison MKL Pardiso: different precisions //////////////";
 	n = 540;
 	ChCSR3Matrix matCSR3_prec12(n, n);
 	ChCSR3Matrix matCSR3_prec24(n, n);
