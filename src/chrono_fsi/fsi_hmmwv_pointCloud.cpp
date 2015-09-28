@@ -231,29 +231,33 @@ Real CreateOne3DRigidCylinder(
 		thrust::host_vector<Real4> & velMasH,
 		thrust::host_vector<Real4> & rhoPresMuH,
 
-		thrust::host_vector<Real3> & posRigidD,
-		thrust::host_vector<Real4> & qD,
-		thrust::host_vector<Real4> & velMassRigidD,
-		thrust::host_vector<Real3> & omegaLRF_D,
-	    const ChVector<>& pos,
-	    const ChQuaternion<>& rot,
+		thrust::device_vector<Real3> & posRigidD,
+		thrust::device_vector<Real4> & qD,
+		thrust::device_vector<Real4> & velMassRigidD,
+		thrust::device_vector<Real3> & omegaLRF_D,
+	    ChBody* body,
 	    Real cyl_rad,
 	    Real cyl_h,
 		Real rigidMass,
 		Real sphMarkerMass,
 		int type) {
 	int num_BCEMarkers = 0;
-	ChVector<> chPa3 = pos - rot * ChVector<>(cyl_h / 2, 0, 0);
-	ChVector<> chPa3 = pos + rot * ChVector<>(cyl_h / 2, 0, 0);
+	Real3 vel = ConvertChVectorToR3(body->GetPos_dt());
+	Real3 omega = ConvertChVectorToR3(body->GetWacc_loc());
+	ChVector<> chPa3 = body->GetPos() - body->GetRot().Rotate( ChVector<>(cyl_h / 2, 0, 0) );
+	ChVector<> chPb3 = body->GetPos() + body->GetRot().Rotate(ChVector<>(cyl_h / 2, 0, 0));
 	Real3 pa3 = ConvertChVectorToR3(chPa3);
 	Real3 pb3 = ConvertChVectorToR3(chPb3);
 	Real3 n3 = normalize(pb3 - pa3);
-	qD.push_back(ConvertChQuaternionToR4(rot));
-	velMassRigidD.push_back(mR4(0, 0, 0, rigidMass));
-	omegaLRF_D.push_back(mR3(0));
+	PushBackR3(posRigidD, ConvertChVectorToR3(body->GetPos()));
+	PushBackR4(qD, ConvertChQuaternionToR4(body->GetRot()));
+	PushBackR4(velMassRigidD, mR4(vel.x, vel.y, vel.z, rigidMass));
+	PushBackR3(omegaLRF_D, omega);
+
+	Real4 q4 = ConvertChQuaternionToR4(body->GetRot());
 
 
-	Real spacing = multInitSpace * paramsH.HSML;
+	Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
 	for (Real s = 0; s <= cyl_h; s += spacing) {
 		Real3 centerPoint = pa3 + s * n3;
 		posRadH.push_back(centerPoint);
@@ -348,11 +352,11 @@ void AddCylinderBceToChSystemAndSPH(
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector< ::int3>& referenceArray,
 
-	thrust::host_vector<Real3> & posRigidD,
-	thrust::host_vector<Real4> & qD,
-	thrust::host_vector<Real4> & velMassRigidD,
-	thrust::host_vector<Real3> & omegaLRF_D,
-	thrust::host_vector<int>& mapIndex,
+	thrust::device_vector<Real3> & posRigidD,
+	thrust::device_vector<Real4> & qD,
+	thrust::device_vector<Real4> & velMassRigidD,
+	thrust::device_vector<Real3> & omegaLRF_D,
+	thrust::host_vector<int>& mapIndex_H,
 
     NumberOfObjects& numObjects,
     Real sphMarkerMass
@@ -366,21 +370,21 @@ void AddCylinderBceToChSystemAndSPH(
  body->SetCollide(true);
  body->GetMaterialSurface()->SetFriction(mu_g);
  body->GetCollisionModel()->ClearModel();
-  utils::AddCylinderGeometry(body, radius, height, pos, rot, visualization);
+  utils::AddCylinderGeometry(body.get_ptr(), radius, height, pos, rot, visualization);
   body->GetCollisionModel()->BuildModel();
   mphysicalSystem.AddBody(body);
 
 
   int numBce = CreateOne3DRigidCylinder(posRadH,velMasH, rhoPresMuH,
 		  posRigidD, qD, velMassRigidD, omegaLRF_D,
-		  pos, rot, radius, height, body->GetMass(), sphMarkerMass, type);
+		  body.get_ptr(), radius, height, body->GetMass(), sphMarkerMass, type);
 
-  referenceArray.push_back(mR3(numMarkers, numMarkers + numBce, type));
+  referenceArray.push_back(mI3(numMarkers, numMarkers + numBce, type));
   numObjects.numRigidBodies += 1;
   numObjects.startRigidMarkers = numMarkers; // Arman : not sure if you need to set startFlexMarkers
   numObjects.numRigid_SphMarkers += numBce;
   numObjects.numAllMarkers = posRadH.size();
-  mapIndex.push_back(numRigidObjects);
+  mapIndex_H.push_back(numRigidObjects);
 }
 // =============================================================================
 
@@ -393,9 +397,9 @@ void CreateMbdPhysicalSystemObjects(
     thrust::host_vector<uint>& bodyIndex,
     		thrust::device_vector<Real3>& posRigidD,
     		thrust::device_vector<Real4>& qD,
-    		thrust::device_vector<Real3>& velMassRigidD,
+    		thrust::device_vector<Real4>& velMassRigidD,
     		thrust::device_vector<Real3>& omegaLRF_D,
-    		thrust::host_vector<int>& mapIndex,
+    		thrust::host_vector<int>& mapIndex_H,
     thrust::host_vector< ::int3>& referenceArray,
     NumberOfObjects& numObjects,
     const SimParams& paramsH,
@@ -529,9 +533,10 @@ void CreateMbdPhysicalSystemObjects(
   ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI/3, VECT_Y);
 
   // version 0, create one cylinder // note: rigid body initialization should come after boundary initialization
+
   AddCylinderBceToChSystemAndSPH(mphysicalSystem, cyl_rad, cyl_len, cyl_pos, cyl_rot, true,
 		  posRadH, velMasH, rhoPresMuH, referenceArray,
-		  posRigidD, qD, velMassRigidD, omegaLRF_D, mapIndex,
+		  posRigidD, qD, velMassRigidD, omegaLRF_D, mapIndex_H,
 		  numObjects, sphMarkerMass);
 
 //						  // version 1
@@ -914,7 +919,7 @@ int main(int argc, char* argv[]) {
 	thrust::device_vector<Real4> qD, qD2;
 	thrust::device_vector<Real4> velMassRigidD, velMassRigidD2;
 	thrust::device_vector<Real3> omegaLRF_D, omegaLRF_D2;
-	thrust::host_vector<Real3> mapIndex_H;
+	thrust::host_vector<int> mapIndex_H;
 
   Real sphMarkerMass = 0;  // To be initialized in CreateFluidMarkers, and used in other places
 
@@ -964,6 +969,9 @@ int main(int argc, char* argv[]) {
   InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
 
   // This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
+
+
+
   CreateMbdPhysicalSystemObjects(
       mphysicalSystem, posRadH, velMasH, rhoPresMuH, bodyIndex,
       posRigidD,qD,velMassRigidD,omegaLRF_D, mapIndex_H,
@@ -978,14 +986,17 @@ int main(int argc, char* argv[]) {
   thrust::device_vector<Real4> velMasD = velMasH;
   thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
   thrust::device_vector<uint> bodyIndexD = bodyIndex;
-  thrust::device_vector<Real4> derivVelRhoD(numObjects.numAllMarkers);
+  thrust::device_vector<Real4> derivVelRhoD;
+  ResizeR4(derivVelRhoD, numObjects.numAllMarkers);
 
 
 
 
-  thrust::device_vector<uint> rigidIdentifierD(numObjects.numRigid_SphMarkers);
-  thrust::device_vector<real3> rigidSPH_MeshPos_LRF_D(numObjects.numRigid_SphMarkers);
-  Populate_RigidSPH_MeshPos_LRF(rigidIdentifierD, rigidSPH_MeshPos_LRF_D, posRadD, posRigidD, qD, referenceArray);
+  thrust::device_vector<uint> rigidIdentifierD;
+  ResizeU1(rigidIdentifierD, numObjects.numRigid_SphMarkers);
+  thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;
+  ResizeR3(rigidSPH_MeshPos_LRF_D, numObjects.numRigid_SphMarkers);
+  Populate_RigidSPH_MeshPos_LRF(rigidIdentifierD, rigidSPH_MeshPos_LRF_D, posRadD, posRigidD, qD, referenceArray, numObjects);
 
 
 
@@ -1000,6 +1011,8 @@ int main(int argc, char* argv[]) {
 
   thrust::device_vector<Real3> rigid_FSI_ForcesD;
   thrust::device_vector<Real3> rigid_FSI_TorquesD;
+  ResizeR3(rigid_FSI_ForcesD, numObjects.numRigidBodies);
+  ResizeR3(rigid_FSI_TorquesD, numObjects.numRigidBodies);
 #endif
   cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
 
@@ -1117,7 +1130,7 @@ int main(int argc, char* argv[]) {
 
 
     Rigid_Forces_Torques(rigid_FSI_ForcesD, rigid_FSI_TorquesD,
-    		posRadD, posRigidD, derivVelRhoD, rigidIdentifierD, numObjects, sphMass);
+    		posRadD, posRigidD, derivVelRhoD, rigidIdentifierD, numObjects, sphMarkerMass);
     Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, mapIndex_H);
 
 
@@ -1133,7 +1146,7 @@ int main(int argc, char* argv[]) {
 #if haveFluid
 
 
-    Update_RigidPosVel_from_ChSystem_H2D(posRigidD2, qD2, velMassRigidD2, omegaLRF_D2, mapIndex, mphysicalSystem);
+    Update_RigidPosVel_from_ChSystem_H2D(posRigidD2, qD2, velMassRigidD2, omegaLRF_D2, mapIndex_H, mphysicalSystem);
     UpdateRigidMarkersPosition(posRadD2, velMasD2,
     		rigidSPH_MeshPos_LRF_D, rigidIdentifierD, posRigidD2, qD2, velMassRigidD2, omegaLRF_D2, numObjects); // Arman rigidSPH_MeshPos_LRF_D, rigidIdentifierD, numObjects
 
@@ -1155,9 +1168,8 @@ int main(int argc, char* argv[]) {
                       bodyIndexD, referenceArray, numObjects, currentParamsH,  currentParamsH.dT);
     fsi_timer.start("integrate_sph");
 
-
     Rigid_Forces_Torques(rigid_FSI_ForcesD, rigid_FSI_TorquesD,
-    		posRadD2, posRigidD2, derivVelRhoD, rigidIdentifierD, numObjects, sphMass);
+    		posRadD2, posRigidD2, derivVelRhoD, rigidIdentifierD, numObjects, sphMarkerMass);
     Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, mapIndex_H); // Arman: take care of this
 
 
@@ -1179,7 +1191,7 @@ int main(int argc, char* argv[]) {
 
 #if haveFluid
 
-    Update_RigidPosVel_from_ChSystem_H2D(posRigidD, qD, velMassRigidD, omegaLRF_D, mapIndex, mphysicalSystem);
+    Update_RigidPosVel_from_ChSystem_H2D(posRigidD, qD, velMassRigidD, omegaLRF_D, mapIndex_H, mphysicalSystem);
     UpdateRigidMarkersPosition(posRadD, velMasD,
     		rigidSPH_MeshPos_LRF_D, rigidIdentifierD, posRigidD, qD, velMassRigidD, omegaLRF_D, numObjects);
 

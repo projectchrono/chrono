@@ -23,16 +23,17 @@ Real3 ConvertChVectorToR3(chrono::ChVector<> v3) {
 	return mR3(v3.x, v3.y, v3.z);
 }
 
-Real3 ConvertChVectorToR4(chrono::ChVector<> v3, Real m) {
+Real4 ConvertChVectorToR4(chrono::ChVector<> v3, Real m) {
 	return mR4(v3.x, v3.y, v3.z, m);
 }
 
-Real4 ConvertChQuaternionToR4(chrono::ChVector<> v4) {
-	return mR4(v4.x, v4.y, v4.z, v4.w);
+Real4 ConvertChQuaternionToR4(chrono::ChQuaternion<> q4) {
+	return mR4(q4.e0, q4.e1, q4.e2, q4.e3);
 }
 
-Real3 Rotate_By_Quaternion(Real3 q4, Real3 BCE_Pos_local) {
-	chrono::ChVector<> dumPos = ConvertToChQuaternion(q4) * ConvertRealToChVector(BCE_Pos_local);
+Real3 Rotate_By_Quaternion(Real4 q4, Real3 BCE_Pos_local) {
+	chrono::ChQuaternion<> chQ = ConvertToChQuaternion(q4);
+	chrono::ChVector<> dumPos = chQ.Rotate(ConvertRealToChVector(BCE_Pos_local));
 	return ConvertChVectorToR3(dumPos);
 
 }
@@ -335,7 +336,7 @@ void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSy
 void Update_RigidPosVel_from_ChSystem_H2D(
 		thrust::device_vector<Real3>& posRigidD,
 		thrust::device_vector<Real4>& qD,
-		thrust::device_vector<Real3>& velMassRigidD,
+		thrust::device_vector<Real4>& velMassRigidD,
 		thrust::device_vector<Real3>& rigidOmegaLRF_D,
 		const thrust::host_vector<int>& mapIndex,
 		chrono::ChSystemParallelDVI& mphysicalSystem) {
@@ -356,8 +357,8 @@ void Update_RigidPosVel_from_ChSystem_H2D(
 void HardSet_PosRot_In_ChSystem_D2H(chrono::ChSystemParallelDVI& mphysicalSystem,
 		const thrust::device_vector<Real3>& posRigidD,
 		const thrust::device_vector<Real4>& qD,
-		const thrust::device_vector<Real3>& velMassRigidD,
-		const thrust::device_vector<Real3>& rigidOmegaLRF_D,
+		const thrust::device_vector<Real4>& velMassRigidD,
+		const thrust::device_vector<Real3>& omegaLRF_D,
 		const thrust::host_vector<int>& mapIndex) {
 	int numRigids = mapIndex.size();
 	std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
@@ -366,8 +367,8 @@ void HardSet_PosRot_In_ChSystem_D2H(chrono::ChSystemParallelDVI& mphysicalSystem
 	  chrono::ChBody* bodyPtr = *(myIter + mapIndex[i]);
 	  bodyPtr->SetPos(ConvertRealToChVector(posRigidD[i]));
 	  bodyPtr->SetRot(ConvertToChQuaternion(qD[i]));
-	  bodyPtr->SetPos_dt(ConvertToChQuaternion(velMassRigidD[i]));
-	  bodyPtr->SetWacc_loc(ConvertToChQuaternion(omegaLRF_D[i]));
+	  bodyPtr->SetPos_dt(ConvertRealToChVector(mR3(velMassRigidD[i])));
+	  bodyPtr->SetWacc_loc(ConvertRealToChVector(omegaLRF_D[i]));
   }
 
 }

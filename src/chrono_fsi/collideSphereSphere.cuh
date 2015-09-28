@@ -47,6 +47,11 @@ void FillMyThrust4(thrust::device_vector<Real4>& mThrustVec, Real4 v);
 void ClearMyThrustR3(thrust::device_vector<Real3>& mThrustVec);
 void ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec);
 void ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec);
+void PushBackR3(thrust::device_vector<Real3>& mThrustVec, Real3 a3);
+void PushBackR4(thrust::device_vector<Real4>& mThrustVec, Real4 a4);
+void ResizeR3(thrust::device_vector<Real3>& mThrustVec, int size);
+void ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size);
+void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size);
 
 void MakeRigidIdentifier(
 		thrust::device_vector<uint> & rigidIdentifierD,
@@ -55,11 +60,37 @@ void MakeRigidIdentifier(
 
 void Populate_RigidSPH_MeshPos_LRF(
 		thrust::device_vector<uint>& rigidIdentifierD,
-		hrust::device_vector<real3>& rigidSPH_MeshPos_LRF_D,
+		thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
 		const thrust::device_vector<Real3>&posRadD,
 		const thrust::device_vector<Real3>& posRigidD,
 		const thrust::device_vector<Real4>& qD,
-		const thrust::host_vector<int3> & referenceArray);
+		const thrust::host_vector<int3> & referenceArray,
+		const NumberOfObjects & numObjects);
+
+void Rigid_Forces_Torques(
+		thrust::device_vector<Real3> & rigid_FSI_Forces, // size is numObjects.numRigids , take care of this
+		thrust::device_vector<Real3> & rigid_FSI_Torques, // size is numObjects.numRigids , take care of this
+
+
+		const thrust::device_vector<Real3> & posRadD,
+		const thrust::device_vector<Real3> & posRigidD,
+
+		const thrust::device_vector<Real4> & derivVelRhoD,
+		const thrust::device_vector<int> & rigidIdentifierD,
+
+		const NumberOfObjects & numObjects,
+		Real sphMass);
+
+void UpdateRigidMarkersPosition(
+		thrust::device_vector<Real3> & posRadD,
+		thrust::device_vector<Real4> & velMasD,
+		const thrust::device_vector<Real3> & rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<int> & rigidIdentifierD,
+		const thrust::device_vector<Real3> & posRigidD,
+		const thrust::device_vector<Real4> & qD,
+		const thrust::device_vector<Real4> & velMassRigidD,
+		const thrust::device_vector<Real3> & omegaLRF_D,
+		NumberOfObjects numObjects);
 
 /**
  * @brief Calculates the force on each particles

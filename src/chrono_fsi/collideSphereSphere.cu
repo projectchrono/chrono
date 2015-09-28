@@ -29,14 +29,14 @@ __constant__ Real solid_SPH_massD;
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // first comp of q is rotation, last 3 components are axis of rot
-__device__ __host__ inline void RotationMatirixFromQuaternion(real3 & AD1, real3 & AD2, real3 & AD3, const real4 & q) {
-	AD1 = 2 * R3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w, q.y * q.w + q.x * q.z);
-	AD2 = 2 * R3(q.y * q.z + q.x * q.w, 0.5f - q.y * q.y - q.w * q.w, q.z * q.w - q.x * q.y);
-	AD3 = 2 * R3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);
+__device__ __host__ inline void RotationMatirixFromQuaternion(Real3 & AD1, Real3 & AD2, Real3 & AD3, const Real4 & q) {
+	AD1 = 2 * mR3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w, q.y * q.w + q.x * q.z);
+	AD2 = 2 * mR3(q.y * q.z + q.x * q.w, 0.5f - q.y * q.y - q.w * q.w, q.z * q.w - q.x * q.y);
+	AD3 = 2 * mR3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ __host__ inline real3 InverseRotate_By_RotationMatrix_DeviceHost(const real3 & A1, const real3 & A2, const real3 & A3, const real3 & r3) {
-	return R3(	A1.x * r3.x + A2.x * r3.y + A3.x * r3.z,
+__device__ __host__ inline Real3 InverseRotate_By_RotationMatrix_DeviceHost(const Real3 & A1, const Real3 & A2, const Real3 & A3, const Real3 & r3) {
+	return mR3(	A1.x * r3.x + A2.x * r3.y + A3.x * r3.z,
 				A1.y * r3.x + A2.y * r3.y + A3.y * r3.z,
 				A1.z * r3.x + A2.z * r3.y + A3.z * r3.z);
 }
@@ -383,35 +383,24 @@ __global__ void CustomCopyR4ToR3(Real3* velD, Real4* velMasD) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
-		real3* rigidSPH_MeshPos_LRF_D,
-		real3* posRadD,
+		Real3* rigidSPH_MeshPos_LRF_D,
+		Real3* posRadD,
 		int* rigidIdentifierD,
-		real3* posRigidD,
-		real4 * qD) {
+		Real3* posRigidD,
+		Real4 * qD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortionD = [start, end] index of the update portion
 	if (index >= numObjectsD.numRigid_SphMarkers) {
 		return;
 	}
 	int rigidIndex = rigidIdentifierD[index];
-	real4 q4 = qD[rigidIndex];;
-	real3 a1, a2, a3;
+	Real4 q4 = qD[rigidIndex];;
+	Real3 a1, a2, a3;
 	RotationMatirixFromQuaternion(a1, a2, a3, q4);
-	real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIndex];
-	real3 dist3LF = InverseRotate_By_RotationMatrix_DeviceHost(a1, a2, a3, dist3);
+	Real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIndex];
+	Real3 dist3LF = InverseRotate_By_RotationMatrix_DeviceHost(a1, a2, a3, dist3);
 	rigidSPH_MeshPos_LRF_D[index] = dist3LF;
 }
 
@@ -427,7 +416,7 @@ void MakeRigidIdentifier(
 				printf("error in accessing rigid bodies. Reference array indexing is wrong\n");
 				return;
 			}
-			int2 updatePortion = I2(referencePart); //first two component of the referenceArray denote to the fluid and boundary particles
+			int2 updatePortion = mI2(referencePart); //first two component of the referenceArray denote to the fluid and boundary particles
 			thrust::fill(rigidIdentifierD.begin() + (updatePortion.x - startRigidMarkers),
 					rigidIdentifierD.begin() + (updatePortion.y - startRigidMarkers), rigidSphereA);
 		}
@@ -437,19 +426,20 @@ void MakeRigidIdentifier(
 
 void Populate_RigidSPH_MeshPos_LRF(
 		thrust::device_vector<uint>& rigidIdentifierD,
-		hrust::device_vector<real3>& rigidSPH_MeshPos_LRF_D,
-		const thrust::device_vector<Real3>&posRadD,
+		thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<Real3>& posRadD,
 		const thrust::device_vector<Real3>& posRigidD,
 		const thrust::device_vector<Real4>& qD,
-		const thrust::host_vector<int3> & referenceArray) {
+		const thrust::host_vector<int3> & referenceArray,
+		const NumberOfObjects & numObjects) {
 	MakeRigidIdentifier(rigidIdentifierD, numObjects.numRigidBodies, numObjects.startRigidMarkers, referenceArray);
 
 	uint nBlocks_numRigid_SphMarkers;
 	uint nThreads_SphMarkers;
 	computeGridSize(numObjects.numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
 
-	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD),
-			R4CAST(qD));
+	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(mR3CAST(rigidSPH_MeshPos_LRF_D), mR3CAST(posRadD), I1CAST(rigidIdentifierD), mR3CAST(posRigidD),
+			mR4CAST(qD));
 
 
 }
@@ -467,17 +457,17 @@ void Populate_RigidSPH_MeshPos_LRF(
 // applies the time step to the current quantities and saves the new values into variable with the same name and '2' and the end
 // precondition: for the first step of RK2, all variables with '2' at the end have the values the same as those without '2' at the end.
 void Rigid_Forces_Torques(
-		thrust::device_vector<Real3> & rigid_FSI_Forces, // size is numObjects.numRigids , take care of this
-		thrust::device_vector<Real3> & rigid_FSI_Torques, // size is numObjects.numRigids , take care of this
+		thrust::device_vector<Real3> & rigid_FSI_Forces,
+		thrust::device_vector<Real3> & rigid_FSI_Torques,
 
 
-		thrust::device_vector<Real3> & posRadD,
+		const thrust::device_vector<Real3> & posRadD,
 		const thrust::device_vector<Real3> & posRigidD,
 
 		const thrust::device_vector<Real4> & derivVelRhoD,
 		const thrust::device_vector<int> & rigidIdentifierD,
 
-		NumberOfObjects numObjects,
+		const NumberOfObjects & numObjects,
 		Real sphMass) {
 
 	// Arman: InitSystem has to be called before this point to set the number of objects
@@ -810,6 +800,21 @@ void ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec) {
 }
 void ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec) {
   mThrustVec.clear();
+}
+void PushBackR3(thrust::device_vector<Real3>& mThrustVec, Real3 a3) {
+	mThrustVec.push_back(a3);
+}
+void PushBackR4(thrust::device_vector<Real4>& mThrustVec, Real4 a4) {
+	mThrustVec.push_back(a4);
+}
+void ResizeR3(thrust::device_vector<Real3>& mThrustVec, int size) {
+	mThrustVec.resize(size);
+}
+void ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size) {
+	mThrustVec.resize(size);
+}
+void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size) {
+	mThrustVec.resize(size);
 }
 
 /**
