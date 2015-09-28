@@ -936,21 +936,16 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 //		//==EAS and Initial Shape==//
                 ChMatrixNM<double, 3, 3> rd0;
                 ChMatrixNM<double, 3, 3> temp33;
-                ChMatrixNM<double, 1, 3> temp13;
-
-                temp13.Reset();
-                temp13 = (Nx * (*d0));
-                temp13.MatrTranspose();
-                rd0.PasteClippedMatrix(&temp13, 0, 0, 3, 1, 0, 0);
-                temp13.MatrTranspose();
-                temp13 = (Ny * (*d0));
-                temp13.MatrTranspose();
-                rd0.PasteClippedMatrix(&temp13, 0, 0, 3, 1, 0, 1);
-                temp13.MatrTranspose();
-
-                temp13 = (Nz * (*d0));
-                temp13.MatrTranspose();
-                rd0.PasteClippedMatrix(&temp13, 0, 0, 3, 1, 0, 2);
+                temp33.Reset();
+                temp33 = (Nx * (*d0));
+                temp33.MatrTranspose();
+                rd0.PasteClippedMatrix(&temp33, 0, 0, 3, 1, 0, 0);
+                temp33 = (Ny * (*d0));
+                temp33.MatrTranspose();
+                rd0.PasteClippedMatrix(&temp33, 0, 0, 3, 1, 0, 1);
+                temp33 = (Nz * (*d0));
+                temp33.MatrTranspose();
+                rd0.PasteClippedMatrix(&temp33, 0, 0, 3, 1, 0, 2);
                 detJ0 = rd0.Det();
 
                 //		//////////////////////////////////////////////////////////////
@@ -1746,31 +1741,31 @@ void ChElementBrick::ComputeMassMatrix() {
     double rho = m_Material->Get_density();
     ChMatrixNM<double, 24, 1> InitialCoord;
     ChMatrixNM<double, 8, 3> d0;
-    d0 = GetInitialPos();
-    //    d0(0, 0) = InitialCoord(0, 0);
-    //    d0(0, 1) = InitialCoord(1, 0);
-    //    d0(0, 2) = InitialCoord(2, 0);
-    //    d0(1, 0) = InitialCoord(3, 0);
-    //    d0(1, 1) = InitialCoord(4, 0);
-    //    d0(1, 2) = InitialCoord(5, 0);
-    //    d0(2, 0) = InitialCoord(6, 0);
-    //    d0(2, 1) = InitialCoord(7, 0);
-    //    d0(2, 2) = InitialCoord(8, 0);
-    //    d0(3, 0) = InitialCoord(9, 0);
-    //    d0(3, 1) = InitialCoord(10, 0);
-    //    d0(3, 2) = InitialCoord(11, 0);
-    //    d0(4, 0) = InitialCoord(12, 0);
-    //    d0(4, 1) = InitialCoord(13, 0);
-    //    d0(4, 2) = InitialCoord(14, 0);
-    //    d0(5, 0) = InitialCoord(15, 0);
-    //    d0(5, 1) = InitialCoord(16, 0);
-    //    d0(5, 2) = InitialCoord(17, 0);
-    //    d0(6, 0) = InitialCoord(18, 0);
-    //    d0(6, 1) = InitialCoord(19, 0);
-    //    d0(6, 2) = InitialCoord(20, 0);
-    //    d0(7, 0) = InitialCoord(21, 0);
-    //    d0(7, 1) = InitialCoord(22, 0);
-    //    d0(7, 2) = InitialCoord(23, 0);
+    InitialCoord = GetInitialPos();
+    d0(0, 0) = InitialCoord(0, 0);
+    d0(0, 1) = InitialCoord(1, 0);
+    d0(0, 2) = InitialCoord(2, 0);
+    d0(1, 0) = InitialCoord(3, 0);
+    d0(1, 1) = InitialCoord(4, 0);
+    d0(1, 2) = InitialCoord(5, 0);
+    d0(2, 0) = InitialCoord(6, 0);
+    d0(2, 1) = InitialCoord(7, 0);
+    d0(2, 2) = InitialCoord(8, 0);
+    d0(3, 0) = InitialCoord(9, 0);
+    d0(3, 1) = InitialCoord(10, 0);
+    d0(3, 2) = InitialCoord(11, 0);
+    d0(4, 0) = InitialCoord(12, 0);
+    d0(4, 1) = InitialCoord(13, 0);
+    d0(4, 2) = InitialCoord(14, 0);
+    d0(5, 0) = InitialCoord(15, 0);
+    d0(5, 1) = InitialCoord(16, 0);
+    d0(5, 2) = InitialCoord(17, 0);
+    d0(6, 0) = InitialCoord(18, 0);
+    d0(6, 1) = InitialCoord(19, 0);
+    d0(6, 2) = InitialCoord(20, 0);
+    d0(7, 0) = InitialCoord(21, 0);
+    d0(7, 1) = InitialCoord(22, 0);
+    d0(7, 2) = InitialCoord(23, 0);
 
     class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
       public:
@@ -1910,27 +1905,35 @@ void ChElementBrick::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
     ChMatrixNM<double, 1, 8> Nz;
     ChMatrixNM<double, 3, 3> rd0;
     ChMatrixNM<double, 3, 3> tempA;
-    ChMatrixNM<double, 1, 3> tempVecA;
     ShapeFunctionsDerivativeX(Nx, x, y, z);
     ShapeFunctionsDerivativeY(Ny, x, y, z);
     ShapeFunctionsDerivativeZ(Nz, x, y, z);
+<<<<<<< HEAD
     tempVecA = (Nx * d0);
-    GetLog() << tempVecA(0, 0) << "\t" << tempVecA(0, 1) << "\t" << tempVecA(0, 2) << "\t";
     tempVecA.MatrTranspose();
     rd0.PasteClippedMatrix(&tempVecA, 0, 0, 3, 1, 0, 0);
     tempVecA.MatrTranspose();
     tempVecA = (Ny * d0);
-    GetLog() << tempVecA(0, 0) << "\t" << tempVecA(0, 1) << "\t" << tempVecA(0, 2) << "\t";
 
     tempVecA.MatrTranspose();
     rd0.PasteClippedMatrix(&tempVecA, 0, 0, 3, 1, 0, 1);
     tempVecA.MatrTranspose();
-    GetLog() << tempVecA(0, 0) << "\t" << tempVecA(0, 1) << "\t" << tempVecA(0, 2) << "\t";
 
     tempVecA = (Nz * d0);
     tempVecA.MatrTranspose();
     rd0.PasteClippedMatrix(&tempVecA, 0, 0, 3, 1, 0, 2);
     tempVecA.MatrTranspose();
+=======
+    tempA = (Nx * d0);
+    tempA.MatrTranspose();
+    rd0.PasteClippedMatrix(&tempA, 0, 0, 3, 1, 0, 0);
+    tempA = (Ny * d0);
+    tempA.MatrTranspose();
+    rd0.PasteClippedMatrix(&tempA, 0, 0, 3, 1, 0, 1);
+    tempA = (Nz * d0);
+    tempA.MatrTranspose();
+    rd0.PasteClippedMatrix(&tempA, 0, 0, 3, 1, 0, 2);
+>>>>>>> parent of 76af89d... demo_FEAbrick.cpp was added to the FEA demos.
     detJ0C = rd0.Det();
     // Transformation : Orthogonal transformation (A and J) ////
     ChVector<double> G1;
