@@ -58,13 +58,7 @@ namespace chrono
 		IPARM(34) = 0;				/* ADV Optimal number of threads for conditional numerical reproducibility (CNR) mode [def:0, disable]*/
 		
 
-		a = nullptr;	ia = nullptr;	ja = nullptr;	b = nullptr;	x = nullptr;	perm = nullptr;
-
 		last_phase_called = -1;
-		// reset consistencies to their default
-		rhs_dimension = 0;
-		sol_dimension = 0;
-		consistency_check = false;
 
 		// Currently only one rhs is supported
 		nrhs = 1;				/* Number of KnownVectors */
@@ -97,13 +91,11 @@ namespace chrono
 
 	void ChMklEngine::SetSolutionVector(ChMatrix<>& insx){
 		x = insx.GetAddress();
-		sol_dimension = insx.GetRows();
 	}
 
-	void ChMklEngine::SetKnownVector(ChMatrix<>& insb)
+	void ChMklEngine::SetSolutionVector(double* insx)
 	{
-		b = insb.GetAddress();
-		rhs_dimension = insb.GetRows();
+		x = insx;
 	}
 
 	void ChMklEngine::SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest){
@@ -133,9 +125,6 @@ namespace chrono
 			assert(!IPARM(31));
 			assert(!IPARM(36));
 		}
-
-		if (consistency_check && (rhs_dimension!=n || sol_dimension !=n))
-			return +1;
 
 		int error;
 		last_phase_called = set_phase;

@@ -53,15 +53,15 @@ namespace chrono
 		void* pt[64]; //Handle to internal data structure (must be zeroed at startup)
 
 		// Matrix in CSR3 format
-		double* a;				// (pointer to the) array of non-zero elements of the A
-		MKL_INT* ja;			// columns indices
-		MKL_INT* ia;			// row index
+		double* a = nullptr;				// (pointer to the) array of non-zero elements of the A
+		MKL_INT* ja = nullptr;			// columns indices
+		MKL_INT* ia = nullptr;			// row index
 
 		// rhs
-		double* b;				// rhs
+		double* b = nullptr;				// rhs
 
 		// Output
-		double* x;				// solution vector
+		double* x = nullptr;				// solution vector
 
 		// Problem properties
 		MKL_INT n;				//(square-)matrix size
@@ -71,15 +71,12 @@ namespace chrono
 		// Pardiso solver settings
 		MKL_INT iparm[64];		// Pardiso solver parameter
 		MKL_INT maxfct;			// maximum number of numerical factorizations
-		MKL_INT* perm;			// permutation vector
+		MKL_INT* perm = nullptr;			// permutation vector
 
 		// Pardiso solver settings
 		MKL_INT mnum;           // 1<=mnum<=maxfct : which factorizations to use; usually 1
 
 		// Auxiliary variables
-		int rhs_dimension;
-		int sol_dimension;
-		bool consistency_check; //< enables dimension consistency check
 		int last_phase_called;
 
 	public:
@@ -97,11 +94,11 @@ namespace chrono
 		void SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex);
 
 		void SetSolutionVector(ChMatrix<>& insx);
-		void SetSolutionVector(double* insx){ x = insx;  consistency_check = false; }
+		void SetSolutionVector(double* insx);
 
-		void SetKnownVector(ChMatrix<>& insb);
+		void SetKnownVector(ChMatrix<>& insb) { b = insb.GetAddress(); }
 		void SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest);
-		void SetKnownVector(double* insb){ b = insb; consistency_check = false; }
+		void SetKnownVector(double* insb){ b = insb;}
 
 		void SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx);
 
@@ -119,7 +116,6 @@ namespace chrono
 		// Auxiliary functions
 		int* GetIparmAddress(){ return iparm; }
 		void PrintIparmOutput();
-		void SetConsistencyCheck(bool input){ consistency_check = input; }
 
 	}; // ChMklEngine
 
