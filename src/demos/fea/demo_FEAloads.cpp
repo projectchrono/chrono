@@ -32,6 +32,7 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLoadsBeam.h"
 #include "physics/ChLoadContainer.h"
 
 // Remember to use the namespace 'chrono' because all classes
@@ -70,6 +71,7 @@ void test_1() {
 	msection->SetYoungModulus (0.01e9);
 	msection->SetGshearModulus(0.01e9 * 0.3);
 	msection->SetBeamRaleyghDamping(0.200);
+    msection->SetDensity(1500);
 
     // Create a beam of Eulero-Bernoulli type:
     ChSharedPtr<ChElementBeamEuler> melementA(new ChElementBeamEuler);
@@ -102,17 +104,45 @@ void test_1() {
     ChSharedPtr< ChLoadContainer > mloadcontainer(new ChLoadContainer);
     my_system.Add(mloadcontainer);
 
-    // Now, create an atomic load for the beam.
-    // There are some stubs in the ChLoaderU.h ChLoaderUV.h ChLoaderUVW.h  headers,
-    // from which you can inherit.
-    // For example, an atomic load on the beam is a wrench, i.e. force+load aplied at 
-    // a certain abscyssa U, that is a six-dimensional load. 
-    // It is not a distributed load, so inherit it from ChLoaderUatomic:
 
-    class MyLoaderWrench : public ChLoaderUatomic {
+    // Example 1:
+    
+    // Add a vertical load to the end of the beam element:
+    ChSharedPtr<ChLoadBeamWrench> mwrench(new ChLoadBeamWrench(melementA));
+    mwrench->loader.SetApplication(1.0); // in -1..+1 range, -1: end A, 0: mid, +1: end B
+    mwrench->loader.SetForce(ChVector<>(0,-0.2,0));
+    mloadcontainer->Add(mwrench);  // do not forget to add the load to the load container.
+
+
+    // Example 2:
+
+    // Add a distributed load along the beam element:
+    ChSharedPtr<ChLoadBeamWrenchDistributed> mwrenchdis(new ChLoadBeamWrenchDistributed(melementA));
+    mwrenchdis->loader.SetForcePerUnit(ChVector<>(0,-0.1,0)); // load per unit length
+    mloadcontainer->Add(mwrenchdis);  
+
+
+    // Example 3:
+
+    // Add gravity (constant volumetric load)
+    ChSharedPtr< ChLoad<ChLoaderGravity> > mgravity(new ChLoad<ChLoaderGravity>(melementA));
+    mloadcontainer->Add(mgravity);  
+
+
+    // Example 4:
+
+    // Now, create a custom load for the beam element.
+    // There are some stubs in the ChLoaderU.h ChLoaderUV.h ChLoaderUVW.h  headers,
+    // from which you can inherit. Here we inherit from 
+    // For example, let's make a distributed triangular load. A load on the beam is a 
+    // wrench, i.e. force+load per unit lenght aplied at a certain abscyssa U, that is a six-dimensional load. 
+    // By the way, a triangular load will work as a constant one because a single Euler beam
+    // cannot feel more than this. 
+
+    class MyLoaderTriangular : public ChLoaderUdistributed {
     public:
             // Useful: a constructor that also sets ChLoadable    
-            MyLoaderWrench(ChSharedPtr<ChLoadableU> mloadable) :  ChLoaderUatomic(mloadable) {};
+            MyLoaderTriangular(ChSharedPtr<ChLoadableU> mloadable) :  ChLoaderUdistributed(mloadable) {};
 
             // Compute F=F(u)
             // This is the function that you have to implement. It should return the 
@@ -123,21 +153,24 @@ void test_1() {
                           ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate F
                           ) {
-            F.PasteVector( ChVector<>(0,-2,0) ,0,0); // load, force part; hardwired for brevity
-            F.PasteVector( ChVector<>(0,0,0) ,3,0);   // load, torque part; hardwired for brevity
-        }
+                double Fy_max = 0.005;
+                F.PasteVector( ChVector<>(0, (((1+U)/2)*Fy_max),0) ,0,0); // load, force part; hardwired for brevity
+                F.PasteVector( ChVector<>(0,0,0) ,3,0);   // load, torque part; hardwired for brevity
+            }
+
+            // Needed because inheriting ChLoaderUdistributed. Use 1 because linear load fx.
+            virtual int GetIntegrationPointsU() {return 1;}
     };
 
     // Create the load (and handle it with a shared pointer).
     // The ChLoad is a 'container' for your ChLoader.
     // It is created using templates, that is instancing a ChLoad<a_loader_class>()
 
-    ChSharedPtr< ChLoad<MyLoaderWrench> > mloadA (new ChLoad<MyLoaderWrench>(melementA) );
-    mloadA->loader.SetApplication(0.0) ; // this ChLoaderUatomic method sets the U abscyssa of load application (-1..+1, so 0=in the middle).
-    mloadcontainer->Add(mloadA);  // do not forget to add the load to the load container.
+    ChSharedPtr< ChLoad<MyLoaderTriangular> > mloadtri (new ChLoad<MyLoaderTriangular>(melementA) );
+    mloadcontainer->Add(mloadtri);  // do not forget to add the load to the load container.
 
 
-    
+
 
     // This is mandatory !
     my_mesh->SetupInitial();
