@@ -46,7 +46,7 @@ class HMMWV {
     void SetTireType(TireModelType val) { m_tireType = val; }
 
     void SetChassisVis(VisualizationType val) { m_chassisVis = val; }
-    void SetwheelVis(VisualizationType val) { m_wheelVis = val; }
+    void SetWheelVis(VisualizationType val) { m_wheelVis = val; }
 
     void SetInitPosition(const chrono::ChCoordsys<>& pos) { m_initPos = pos; }
 

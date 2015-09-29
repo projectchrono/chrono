@@ -101,10 +101,17 @@ void HMMWV::Initialize() {
             HMMWV_LugreTire* tire_RL = new HMMWV_LugreTire("RL");
             HMMWV_LugreTire* tire_RR = new HMMWV_LugreTire("RR");
 
-            tire_FL->Initialize();
-            tire_FR->Initialize();
-            tire_RL->Initialize();
-            tire_RR->Initialize();
+            if (m_wheelVis == NONE) {
+                tire_FL->Initialize(m_vehicle->GetWheelBody(FRONT_LEFT));
+                tire_FR->Initialize(m_vehicle->GetWheelBody(FRONT_RIGHT));
+                tire_RL->Initialize(m_vehicle->GetWheelBody(REAR_LEFT));
+                tire_RR->Initialize(m_vehicle->GetWheelBody(REAR_RIGHT));
+            } else {
+                tire_FL->Initialize();
+                tire_FR->Initialize();
+                tire_RL->Initialize();
+                tire_RR->Initialize();
+            }
 
             if (m_tire_step_size > 0) {
                 tire_FL->SetStepsize(m_tire_step_size);
@@ -214,9 +221,9 @@ void HMMWV::Update(double time,
 // -----------------------------------------------------------------------------
 void HMMWV::Advance(double step) {
     m_tireFL->Advance(step);
-    m_tireFL->Advance(step);
-    m_tireFL->Advance(step);
-    m_tireFL->Advance(step);
+    m_tireFR->Advance(step);
+    m_tireRL->Advance(step);
+    m_tireRR->Advance(step);
 
     m_powertrain->Advance(step);
 

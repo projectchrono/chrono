@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     HMMWV_Reduced my_hmmwv;
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetChassisVis(PRIMITIVES);
-    my_hmmwv.SetwheelVis(PRIMITIVES);
+    my_hmmwv.SetWheelVis(PRIMITIVES);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(RWD);
