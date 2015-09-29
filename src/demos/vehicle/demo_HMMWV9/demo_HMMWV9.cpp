@@ -48,7 +48,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = SIMPLE;
 
-// Type of tire model (RIGID, PACEJKA, or LUGRE)
+// Type of tire model (RIGID, PACEJKA, LUGRE, or FIALA)
 TireModelType tire_model = RIGID;
 
 // Rigid terrain dimensions

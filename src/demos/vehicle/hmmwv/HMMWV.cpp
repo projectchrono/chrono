@@ -120,6 +120,31 @@ void HMMWV::Initialize() {
 
             break;
         }
+        case FIALA: {
+            HMMWV_FialaTire* tire_FL = new HMMWV_FialaTire("FL");
+            HMMWV_FialaTire* tire_FR = new HMMWV_FialaTire("FR");
+            HMMWV_FialaTire* tire_RL = new HMMWV_FialaTire("RL");
+            HMMWV_FialaTire* tire_RR = new HMMWV_FialaTire("RR");
+
+            tire_FL->Initialize();
+            tire_FR->Initialize();
+            tire_RL->Initialize();
+            tire_RR->Initialize();
+
+            if (m_tire_step_size > 0) {
+                tire_FL->SetStepsize(m_tire_step_size);
+                tire_FR->SetStepsize(m_tire_step_size);
+                tire_RL->SetStepsize(m_tire_step_size);
+                tire_RR->SetStepsize(m_tire_step_size);
+            }
+
+            m_tireFL = tire_FL;
+            m_tireFR = tire_FR;
+            m_tireRL = tire_RL;
+            m_tireRR = tire_RR;
+
+            break;
+        }
         case PACEJKA: {
             if (m_pacejkaParamFile.empty())
                 throw ChException("Pacejka parameter file not specified.");

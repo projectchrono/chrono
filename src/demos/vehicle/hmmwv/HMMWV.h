@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// wrapper classes for modeling an entire HMMWV vehicle assembly
+// Wrapper classes for modeling an entire HMMWV vehicle assembly
 // (including the vehicle itself, the powertrain, and the tires).
 //
 // =============================================================================
@@ -31,6 +31,7 @@
 #include "hmmwv/powertrain/HMMWV_SimplePowertrain.h"
 #include "hmmwv/tire/HMMWV_RigidTire.h"
 #include "hmmwv/tire/HMMWV_LugreTire.h"
+#include "hmmwv/tire/HMMWV_FialaTire.h"
 
 namespace hmmwv {
 

@@ -9,53 +9,35 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
+//
+// HMMWV Fiala tire subsystem
 //
 // =============================================================================
 
-#ifndef MODEL_DEFS_H
-#define MODEL_DEFS_H
+#ifndef HMMWV_FIALA_TIRE_H
+#define HMMWV_FIALA_TIRE_H
 
-#include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/tire/ChFialaTire.h"
 
-enum VisualizationType {
-  NONE,
-  PRIMITIVES,
-  MESH
+namespace hmmwv {
+
+class HMMWV_FialaTire : public chrono::ChFialaTire {
+  public:
+    HMMWV_FialaTire(const std::string& name);
+    ~HMMWV_FialaTire() {}
+
+    virtual double getNormalStiffness(double depth) const override { return m_normalStiffness; }
+    virtual double getNormalDamping(double depth) const override { return m_normalDamping; }
+
+    virtual void SetFialaParams();
+
+  private:
+    static const double m_normalStiffness;
+    static const double m_normalDamping;
 };
 
-enum TireModelType {
-  RIGID,
-  PACEJKA,
-  LUGRE,
-  FIALA
-};
-
-enum PowertrainModelType {
-  SHAFTS,
-  SIMPLE
-};
-
-enum DrivelineType {
-  FWD,
-  RWD,
-  AWD
-};
-
-enum SuspensionType {
-  DOUBLE_WISHBONE,
-  SOLID_AXLE,
-  MULTI_LINK,
-  HENDRICKSON_PRIMAXX
-};
-
-enum DebugInformation {
-  DBG_SPRINGS     = 1 << 0,
-  DBG_SHOCKS      = 1 << 1,
-  DBG_CONSTRAINTS = 1 << 2,
-  DBG_SUSPENSIONTEST = 1 << 3
-};
-
+}  // end namespace hmmwv
 
 #endif

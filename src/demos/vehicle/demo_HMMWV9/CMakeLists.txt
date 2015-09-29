@@ -44,6 +44,8 @@ SET(MODEL_FILES
     ../hmmwv/tire/HMMWV_RigidTire.cpp
     ../hmmwv/tire/HMMWV_LugreTire.h
     ../hmmwv/tire/HMMWV_LugreTire.cpp
+    ../hmmwv/tire/HMMWV_FialaTire.h
+    ../hmmwv/tire/HMMWV_FialaTire.cpp
 )
 
 SET(DEMO_FILES
