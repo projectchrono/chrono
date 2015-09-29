@@ -14,10 +14,18 @@ MESSAGE(STATUS "...add HMMWV_9BODY demo")
 
 SET(MODEL_FILES
     ../ModelDefs.h
+    ../hmmwv/HMMWV.h
+    ../hmmwv/HMMWV.cpp
+    ../hmmwv/vehicle/HMMWV_Vehicle.h
+    ../hmmwv/vehicle/HMMWV_Vehicle.cpp
     ../hmmwv/vehicle/HMMWV_VehicleReduced.h
     ../hmmwv/vehicle/HMMWV_VehicleReduced.cpp
+    ../hmmwv/suspension/HMMWV_DoubleWishbone.h
+    ../hmmwv/suspension/HMMWV_DoubleWishbone.cpp
     ../hmmwv/suspension/HMMWV_DoubleWishboneReduced.h
     ../hmmwv/suspension/HMMWV_DoubleWishboneReduced.cpp
+    ../hmmwv/steering/HMMWV_PitmanArm.h
+    ../hmmwv/steering/HMMWV_PitmanArm.cpp
     ../hmmwv/steering/HMMWV_RackPinion.h
     ../hmmwv/steering/HMMWV_RackPinion.cpp
     ../hmmwv/driveline/HMMWV_Driveline2WD.h
