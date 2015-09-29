@@ -405,20 +405,19 @@ private:
 // String manipulation utility functions.
 // -----------------------------------------------------------------------------
 
-std::vector<std::string>& splitStr(const std::string &s, char delim, std::vector<std::string> &elems){
-  std::stringstream ss(s);
-  std::string item;
-  while (getline(ss, item, delim)) {
-    elems.push_back(item);
-  }
-  return elems;
+inline std::vector<std::string>& splitStr(const std::string& s, char delim, std::vector<std::string>& elems) {
+    std::stringstream ss(s);
+    std::string item;
+    while (getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+    return elems;
 }
 
-std::vector<std::string> splitStr(const std::string &s, char delim) {
-  std::vector<std::string> elems;
-  return splitStr(s, delim, elems);
+inline std::vector<std::string> splitStr(const std::string& s, char delim) {
+    std::vector<std::string> elems;
+    return splitStr(s, delim, elems);
 }
-
 
 // convert a string to another type
 template<class T> T fromString(const std::string& s){
