@@ -15,10 +15,9 @@ namespace chrono
 		// If it is the first call of the solver, the matrix and vectors are reshaped to adapt to the problem.
 		if (solver_call == 0 || !size_lock)
 		{
-			int n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
+			n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
 			matCSR3.Reset(n, n, static_cast<int>(n*n*SPM_DEF_FULLNESS));
-			sol.Reset(n, 1);
-			res.Reset(n, 1);
+			sol.Resize(n, 1);
 		}
 			
 
@@ -27,9 +26,6 @@ namespace chrono
 
 		// the compression is needed only on first call or when the supposed-fixed sparsity pattern has to be modified;
 		// and always if the sparsity pattern lock is not turned on
-
-		if (matCSR3.IsRowIndexLockBroken()) printf("\nWARN: RowIndexBlock broken");
-		if (matCSR3.IsColIndexLockBroken()) printf("\nWARN: ColIndexBlock broken");
 
 		if (!sparsity_pattern_lock || solver_call == 0 || matCSR3.IsRowIndexLockBroken() || matCSR3.IsColIndexLockBroken() )
 			matCSR3.Compress();
@@ -50,11 +46,17 @@ namespace chrono
 			printf("\nPardiso exited with code: %d", pardiso_message);
 			printf("\nMatrix verification returned: %d\n", matCSR3.VerifyMatrix());
 		}
+		printf("\nPardisoCall: %d; ", solver_call);
 
 		// Get residual
-		mkl_engine.GetResidual(res);
-		res_norm = mkl_engine.GetResidualNorm(res);
-		std::cout << "\nCall: " << solver_call << "; Residual norm: " << res_norm;
+		if (print_residual)
+		{
+			res.Resize(n, 1);
+			mkl_engine.GetResidual(res);
+			double res_norm = mkl_engine.GetResidualNorm(res);
+			printf("ResNorm: %e", res_norm);
+		}
+
 
 		sysd.FromVectorToUnknowns(sol);
 

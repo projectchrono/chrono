@@ -54,11 +54,12 @@ namespace chrono {
 	   ChMatrixDynamic<double> rhs;
 	   ChMatrixDynamic<double> sol;
 	   ChMatrixDynamic<double> res;
-	   double res_norm = 0;
 	   ChMklEngine mkl_engine{ 1, 11 };
+	   int n = 0;
 
 	   bool size_lock = true;
 	   bool sparsity_pattern_lock = true;
+	   bool print_residual = true;
 
    public:
 
@@ -70,6 +71,7 @@ namespace chrono {
 
 	   void SetProblemSizeLock(bool on_off){ size_lock = on_off; };
 	   void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; };
+	   void PrintResidualNorm(bool on_off) { print_residual = on_off; }
 
         /// Solve using the MKL Pardiso sparse direct solver
 	   virtual double Solve(ChLcpSystemDescriptor& sysd) override; ///< system description with constraints and variables
