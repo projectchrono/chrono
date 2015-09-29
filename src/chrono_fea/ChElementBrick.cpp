@@ -1380,9 +1380,24 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 ChMatrixNM<double, 576, 1> JACVec;
 
                 result.Reset();
-                GDEPSPVec = GDEPSP;
-                KALPHAVec = KALPHA;
-                JACVec = JAC11;
+                for (int i = 0; i < 9; i++) {
+                    for (int j = 0; j < 24; j++) {
+                        GDEPSPVec(i * 24 + j, 0) = GDEPSP(i, j);
+                    }
+                }
+                // GDEPSP = GDEPSPvec;
+                for (int i = 0; i < 9; i++) {
+                    for (int j = 0; j < 9; j++) {
+                        KALPHAVec(i * 9 + j, 0) = KALPHA(i, j);
+                    }
+                }
+                // KALPHAVec = KALPHA;
+                for (int i = 0; i < 24; i++) {
+                    for (int j = 0; j < 24; j++) {
+                        JACVec(i * 24 + j, 0) = JAC11(i, j);
+                    }
+                }
+                // JACVec = JAC11;
                 result.PasteClippedMatrix(&Fint, 0, 0, 24, 1, 0, 0);
                 result.PasteClippedMatrix(&HE1, 0, 0, 9, 1, 24, 0);
                 result.PasteClippedMatrix(&GDEPSPVec, 0, 0, 216, 1, 33, 0);
@@ -1466,9 +1481,24 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             GDEPSPvec.PasteClippedMatrix(&TempIntegratedResult, 33, 0, 216, 1, 0, 0);  //
             KALPHAvec.PasteClippedMatrix(&TempIntegratedResult, 249, 0, 81, 1, 0, 0);  //
             JACvec.PasteClippedMatrix(&TempIntegratedResult, 330, 0, 576, 1, 0, 0);    //
-            GDEPSP = GDEPSPvec;
-            KALPHA = KALPHAvec;
-            KTE = JACvec;
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 24; j++) {
+                    GDEPSP(i, j) = GDEPSPvec(i * 24 + j, 0);
+                }
+            }
+            // GDEPSP = GDEPSPvec;
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    KALPHA(i, j) = KALPHAvec(i * 9 + j, 0);
+                }
+            }
+            // KALPHA = KALPHAvec;
+            for (int i = 0; i < 24; i++) {
+                for (int j = 0; j < 24; j++) {
+                    KTE(i, j) = JACvec(i * 24 + j, 0);
+                }
+            }
+            // KTE = JACvec;
             KALPHA1 = KALPHA;
             //   GetLog() <<HE<<"\n";
             // system("pause");
@@ -1485,7 +1515,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 ResidHE = HE;
                 bool pivoting;
                 if (!LU_factor(KALPHA1, INDX, pivoting)) {
-                    throw ChException("Singualr matrix.");
+                    throw ChException("Singular matrix.");
                 }
                 LU_solve(KALPHA1, INDX, ResidHE);
             }
