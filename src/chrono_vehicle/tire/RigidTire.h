@@ -26,32 +26,24 @@
 
 namespace chrono {
 
+class CH_VEHICLE_API RigidTire : public ChRigidTire {
+  public:
+    RigidTire(const std::string& filename);
+    RigidTire(const rapidjson::Document& d);
+    ~RigidTire() {}
 
-class CH_VEHICLE_API RigidTire : public ChRigidTire
-{
-public:
+    virtual float getFrictionCoefficient() const override { return m_mu; }
+    virtual double getRadius() const override { return m_radius; }
+    virtual double getWidth() const override { return m_width; }
 
-  RigidTire(const std::string&       filename,
-            const chrono::ChTerrain& terrain);
-  RigidTire(const rapidjson::Document& d,
-            const chrono::ChTerrain&   terrain);
-  ~RigidTire() {}
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual float getFrictionCoefficient() const { return m_mu; }
-  virtual double getRadius() const             { return m_radius; }
-  virtual double getWidth() const              { return m_width; }
-
-private:
-
-  void Create(const rapidjson::Document& d);
-
-  float   m_mu;
-  double  m_radius;
-  double  m_width;
+    float m_mu;
+    double m_radius;
+    double m_width;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif

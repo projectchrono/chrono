@@ -26,33 +26,24 @@
 
 namespace chrono {
 
+class CH_VEHICLE_API FialaTire : public ChFialaTire {
+  public:
+    FialaTire(const std::string& filename);
+    FialaTire(const rapidjson::Document& d);
+    ~FialaTire();
 
-class CH_VEHICLE_API FialaTire : public ChFialaTire
-{
-public:
+    virtual double getNormalStiffness(double depth) const override { return m_normalStiffness; }
+    virtual double getNormalDamping(double depth) const override { return m_normalDamping; }
 
-  FialaTire(const std::string&       filename,
-            const chrono::ChTerrain& terrain);
-  FialaTire(const rapidjson::Document& d,
-            const chrono::ChTerrain&   terrain);
-  ~FialaTire();
+    virtual void SetFialaParams() override {}
 
-  virtual double getNormalStiffness(double depth) const      { return m_normalStiffness; }
-  virtual double getNormalDamping(double depth) const        { return m_normalDamping; }
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual void SetFialaParams() {}
-
-
-private:
-
-  void Create(const rapidjson::Document& d);
-
-  double   m_normalStiffness;
-  double   m_normalDamping;
+    double m_normalStiffness;
+    double m_normalDamping;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif

@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
         case RIGID: {
             std::vector<ChSharedPtr<RigidTire> > tires_rigid(num_wheels);
             for (int i = 0; i < num_wheels; i++) {
-                tires_rigid[i] = ChSharedPtr<RigidTire>(new RigidTire(vehicle::GetDataFile(rigidtire_file), terrain));
+                tires_rigid[i] = ChSharedPtr<RigidTire>(new RigidTire(vehicle::GetDataFile(rigidtire_file)));
                 tires_rigid[i]->Initialize(vehicle.GetWheelBody(i));
                 tires[i] = tires_rigid[i];
             }
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
         case LUGRE: {
             std::vector<ChSharedPtr<LugreTire> > tires_lugre(num_wheels);
             for (int i = 0; i < num_wheels; i++) {
-                tires_lugre[i] = ChSharedPtr<LugreTire>(new LugreTire(vehicle::GetDataFile(lugretire_file), terrain));
+                tires_lugre[i] = ChSharedPtr<LugreTire>(new LugreTire(vehicle::GetDataFile(lugretire_file)));
                 tires_lugre[i]->Initialize(vehicle.GetWheelBody(i));
                 tires[i] = tires_lugre[i];
             }
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
         vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Update(time);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Update(time, wheel_states[i]);
+            tires[i]->Update(time, wheel_states[i], terrain);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

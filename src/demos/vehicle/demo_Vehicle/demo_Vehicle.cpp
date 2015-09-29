@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChSharedPtr<RigidTire> > tires(num_wheels);
 
     for (int i = 0; i < num_wheels; i++) {
-        tires[i] = ChSharedPtr<RigidTire>(new RigidTire(vehicle::GetDataFile(rigidtire_file), terrain));
+        tires[i] = ChSharedPtr<RigidTire>(new RigidTire(vehicle::GetDataFile(rigidtire_file)));
         tires[i]->Initialize(vehicle.GetWheelBody(i));
     }
 
@@ -256,7 +256,7 @@ int main(int argc, char* argv[]) {
         vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Update(time);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Update(time, wheel_states[i]);
+            tires[i]->Update(time, wheel_states[i], terrain);
         app.Update(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules

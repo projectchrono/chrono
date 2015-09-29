@@ -157,7 +157,7 @@ int main() {
     FlatTerrain flat_terrain(0);
 
     // create the Fiala tire
-    ChSharedPtr<FialaTire> test_tire(new FialaTire(vehicle::GetDataFile(Fiala_testfile), flat_terrain));
+    ChSharedPtr<FialaTire> test_tire(new FialaTire(vehicle::GetDataFile(Fiala_testfile)));
     test_tire->Initialize();
     double radius = test_tire->GetUnloadedRadius();
     double width = test_tire->GetWidth();
@@ -463,7 +463,7 @@ int main() {
         wheelstate.omega = wheel->GetWvel_loc().y;  ///< wheel angular speed about its rotation axis
 
         // Advance tire by one step
-        test_tire->Update(simTime, wheelstate);
+        test_tire->Update(simTime, wheelstate, flat_terrain);
         test_tire->Advance(sim_step);
 
         // Apply the desired veritical force to the system (accounting

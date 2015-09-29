@@ -147,10 +147,10 @@ int main(int argc, char* argv[]) {
 
     switch (tire_model) {
         case RIGID: {
-            ChSharedPtr<HMMWV_RigidTire> tire_FL(new HMMWV_RigidTire("FL", terrain, 0.7f));
-            ChSharedPtr<HMMWV_RigidTire> tire_FR(new HMMWV_RigidTire("FR", terrain, 0.7f));
-            ChSharedPtr<HMMWV_RigidTire> tire_RL(new HMMWV_RigidTire("RL", terrain, 0.7f));
-            ChSharedPtr<HMMWV_RigidTire> tire_RR(new HMMWV_RigidTire("RR", terrain, 0.7f));
+            ChSharedPtr<HMMWV_RigidTire> tire_FL(new HMMWV_RigidTire("FL", 0.7f));
+            ChSharedPtr<HMMWV_RigidTire> tire_FR(new HMMWV_RigidTire("FR", 0.7f));
+            ChSharedPtr<HMMWV_RigidTire> tire_RL(new HMMWV_RigidTire("RL", 0.7f));
+            ChSharedPtr<HMMWV_RigidTire> tire_RR(new HMMWV_RigidTire("RR", 0.7f));
 
             tire_FL->Initialize(vehicle.GetWheelBody(FRONT_LEFT));
             tire_FR->Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
@@ -165,10 +165,10 @@ int main(int argc, char* argv[]) {
             break;
         }
         case LUGRE: {
-            ChSharedPtr<HMMWV_LugreTire> tire_FL(new HMMWV_LugreTire("FL", terrain));
-            ChSharedPtr<HMMWV_LugreTire> tire_FR(new HMMWV_LugreTire("FR", terrain));
-            ChSharedPtr<HMMWV_LugreTire> tire_RL(new HMMWV_LugreTire("RL", terrain));
-            ChSharedPtr<HMMWV_LugreTire> tire_RR(new HMMWV_LugreTire("RR", terrain));
+            ChSharedPtr<HMMWV_LugreTire> tire_FL(new HMMWV_LugreTire("FL"));
+            ChSharedPtr<HMMWV_LugreTire> tire_FR(new HMMWV_LugreTire("FR"));
+            ChSharedPtr<HMMWV_LugreTire> tire_RL(new HMMWV_LugreTire("RL"));
+            ChSharedPtr<HMMWV_LugreTire> tire_RR(new HMMWV_LugreTire("RR"));
 
             tire_FL->Initialize();
             tire_FR->Initialize();
@@ -190,10 +190,10 @@ int main(int argc, char* argv[]) {
         case PACEJKA: {
             std::string param_file = vehicle::GetDataFile("hmmwv/tire/HMMWV_pacejka.tir");
 
-            ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire("FL", param_file, terrain));
-            ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire("FR", param_file, terrain));
-            ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire("RL", param_file, terrain));
-            ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire("RR", param_file, terrain));
+            ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire("FL", param_file));
+            ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire("FR", param_file));
+            ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire("RL", param_file));
+            ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire("RR", param_file));
 
             tire_FL->Initialize(LEFT, false);
             tire_FR->Initialize(RIGHT, false);
@@ -349,10 +349,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Update(time);
 
-        tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
-        tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
-        tire_rear_left->Update(time, wheel_states[REAR_LEFT.id()]);
-        tire_rear_right->Update(time, wheel_states[REAR_RIGHT.id()]);
+        tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()], terrain);
+        tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()], terrain);
+        tire_rear_left->Update(time, wheel_states[REAR_LEFT.id()], terrain);
+        tire_rear_right->Update(time, wheel_states[REAR_RIGHT.id()], terrain);
 
         powertrain->Update(time, throttle_input, driveshaft_speed);
 

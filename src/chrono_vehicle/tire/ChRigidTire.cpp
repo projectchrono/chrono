@@ -12,51 +12,41 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Generic rigid tire
+// Template for a rigid tire
 //
 // =============================================================================
 
-
 #include "ChRigidTire.h"
-
 
 namespace chrono {
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRigidTire::ChRigidTire(const std::string& name,
-                         const ChTerrain&   terrain)
-: ChTire(name, terrain)
-{
+ChRigidTire::ChRigidTire(const std::string& name) : ChTire(name) {
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidTire::Initialize(ChSharedBodyPtr wheel)
-{
-  wheel->SetCollide(true);
+void ChRigidTire::Initialize(ChSharedBodyPtr wheel) {
+    wheel->SetCollide(true);
 
-  wheel->GetCollisionModel()->ClearModel();
-  wheel->GetCollisionModel()->AddCylinder(getRadius(), getRadius(), getWidth() / 2);
-  wheel->GetCollisionModel()->BuildModel();
+    wheel->GetCollisionModel()->ClearModel();
+    wheel->GetCollisionModel()->AddCylinder(getRadius(), getRadius(), getWidth() / 2);
+    wheel->GetCollisionModel()->BuildModel();
 
-  wheel->GetMaterialSurface()->SetFriction(getFrictionCoefficient());
-
+    wheel->GetMaterialSurface()->SetFriction(getFrictionCoefficient());
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChTireForce ChRigidTire::GetTireForce() const
-{
-  ChTireForce tire_force;
+ChTireForce ChRigidTire::GetTireForce() const {
+    ChTireForce tire_force;
 
-  tire_force.force = ChVector<>(0, 0, 0);
-  tire_force.point = ChVector<>(0, 0, 0);
-  tire_force.moment = ChVector<>(0, 0, 0);
+    tire_force.force = ChVector<>(0, 0, 0);
+    tire_force.point = ChVector<>(0, 0, 0);
+    tire_force.moment = ChVector<>(0, 0, 0);
 
-  return tire_force;
+    return tire_force;
 }
 
-
-} // end namespace chrono
+}  // end namespace chrono

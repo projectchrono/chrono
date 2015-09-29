@@ -115,10 +115,10 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize();
 
     // Create the tires
-    Generic_RigidTire tire_front_left("FL", terrain);
-    Generic_RigidTire tire_front_right("FR", terrain);
-    Generic_RigidTire tire_rear_left("RL", terrain);
-    Generic_RigidTire tire_rear_right("RR", terrain);
+    Generic_RigidTire tire_front_left("FL");
+    Generic_RigidTire tire_front_right("FR");
+    Generic_RigidTire tire_rear_left("RL");
+    Generic_RigidTire tire_rear_right("RR");
 
     tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT));
     tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
@@ -261,10 +261,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Update(time);
 
-        tire_front_left.Update(time, wheel_states[FRONT_LEFT.id()]);
-        tire_front_right.Update(time, wheel_states[FRONT_RIGHT.id()]);
-        tire_rear_left.Update(time, wheel_states[REAR_LEFT.id()]);
-        tire_rear_right.Update(time, wheel_states[REAR_RIGHT.id()]);
+        tire_front_left.Update(time, wheel_states[FRONT_LEFT.id()], terrain);
+        tire_front_right.Update(time, wheel_states[FRONT_RIGHT.id()], terrain);
+        tire_rear_left.Update(time, wheel_states[REAR_LEFT.id()], terrain);
+        tire_rear_right.Update(time, wheel_states[REAR_RIGHT.id()], terrain);
 
         powertrain.Update(time, throttle_input, driveshaft_speed);
 
@@ -349,10 +349,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Update(time);
 
-        tire_front_left.Update(time, wheel_states[FRONT_LEFT.id()]);
-        tire_front_right.Update(time, wheel_states[FRONT_RIGHT.id()]);
-        tire_rear_left.Update(time, wheel_states[REAR_LEFT.id()]);
-        tire_rear_right.Update(time, wheel_states[REAR_RIGHT.id()]);
+        tire_front_left.Update(time, wheel_states[FRONT_LEFT.id()], terrain);
+        tire_front_right.Update(time, wheel_states[FRONT_RIGHT.id()], terrain);
+        tire_rear_left.Update(time, wheel_states[REAR_LEFT.id()], terrain);
+        tire_rear_right.Update(time, wheel_states[REAR_RIGHT.id()], terrain);
 
         powertrain.Update(time, throttle_input, driveshaft_speed);
 
