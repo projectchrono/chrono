@@ -1,7 +1,11 @@
 #=============================================================================
 # CMake configuration file for the HMMWV_9BODY demo.
-# This example program works with and without Irrlicht run-time visualization
+# This example program requires Irrlicht run-time visualization
 #=============================================================================
+
+IF(NOT ENABLE_MODULE_IRRLICHT)
+    RETURN()
+ENDIF()
 
 MESSAGE(STATUS "...add HMMWV_9BODY demo")
 
@@ -10,8 +14,6 @@ MESSAGE(STATUS "...add HMMWV_9BODY demo")
 
 SET(MODEL_FILES
     ../ModelDefs.h
-    ../hmmwv/HMMWV_FuncDriver.h
-    ../hmmwv/HMMWV_FuncDriver.cpp
     ../hmmwv/vehicle/HMMWV_VehicleReduced.h
     ../hmmwv/vehicle/HMMWV_VehicleReduced.cpp
     ../hmmwv/suspension/HMMWV_DoubleWishboneReduced.h

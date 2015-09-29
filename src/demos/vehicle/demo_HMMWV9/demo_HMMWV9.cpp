@@ -36,23 +36,15 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/tire/ChPacejkaTire.h"
 
+#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+
 #include "ModelDefs.h"
 #include "hmmwv/vehicle/HMMWV_VehicleReduced.h"
 #include "hmmwv/powertrain/HMMWV_Powertrain.h"
 #include "hmmwv/powertrain/HMMWV_SimplePowertrain.h"
 #include "hmmwv/tire/HMMWV_RigidTire.h"
 #include "hmmwv/tire/HMMWV_LugreTire.h"
-#include "hmmwv/HMMWV_FuncDriver.h"
-
-// If Irrlicht support is available...
-#ifdef CHRONO_IRRLICHT
-// ...include additional headers
-#include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-
-// ...and specify whether the demo should actually use Irrlicht
-#define USE_IRRLICHT
-#endif
 
 using namespace chrono;
 using namespace hmmwv;
@@ -80,30 +72,21 @@ double terrainHeight = 0;
 double terrainLength = 200.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
-// Simulation step size
+// Simulation step sizes
 double step_size = 0.001;
+double tire_step_size = step_size;
 
 // Time interval between two render frames
 int FPS = 50;
 double render_step_size = 1.0 / FPS;  // FPS = 50
 
-#ifdef USE_IRRLICHT
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, .75);
-#else
-double tend = 20.0;
 
+// POV-Ray output
+bool povray_output = false;
 const std::string out_dir = "../HMMWV9";
 const std::string pov_dir = out_dir + "/POVRAY";
-#endif
-
-// ******  PacejkaTire simulation settings
-bool save_pactire_data = false;
-double time_start_output = 1.0;
-double pac_step_size = step_size;
-std::string pac_ofilename_base = "test_HMMWV9_pacTire";
-double pac_out_step_size = 0.01;
-int pac_out_steps = (int)std::ceil(pac_out_step_size / step_size);
 
 // =============================================================================
 
@@ -180,6 +163,11 @@ int main(int argc, char* argv[]) {
             tire_RL->Initialize();
             tire_RR->Initialize();
 
+            tire_FL->SetStepsize(tire_step_size);
+            tire_FR->SetStepsize(tire_step_size);
+            tire_RL->SetStepsize(tire_step_size);
+            tire_RR->SetStepsize(tire_step_size);
+
             tire_front_left = tire_FL;
             tire_front_right = tire_FR;
             tire_rear_left = tire_RL;
@@ -200,10 +188,10 @@ int main(int argc, char* argv[]) {
             tire_RL->Initialize(LEFT, true);
             tire_RR->Initialize(RIGHT, true);
 
-            tire_FL->SetStepsize(pac_step_size);
-            tire_FR->SetStepsize(pac_step_size);
-            tire_RL->SetStepsize(pac_step_size);
-            tire_RR->SetStepsize(pac_step_size);
+            tire_FL->SetStepsize(tire_step_size);
+            tire_FR->SetStepsize(tire_step_size);
+            tire_RL->SetStepsize(tire_step_size);
+            tire_RR->SetStepsize(tire_step_size);
 
             tire_front_left = tire_FL;
             tire_front_right = tire_FR;
@@ -214,7 +202,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
-#ifdef USE_IRRLICHT
+    // -------------------------------------
+    // Create the vehicle Irrlicht interface
+    // -------------------------------------
+
     ChVehicleIrrApp app(vehicle, *powertrain.get_ptr(), L"HMMWV 9-body Demo");
 
     app.SetSkyBox();
@@ -226,6 +217,7 @@ int main(int argc, char* argv[]) {
     app.AssetBindAll();
     app.AssetUpdateAll();
 
+    // Create the interactive driver system
     ChIrrGuiDriver driver(app, vehicle, *powertrain.get_ptr());
 
     // Set the time response for steering and throttle keyboard inputs.
@@ -237,9 +229,24 @@ int main(int argc, char* argv[]) {
     driver.SetThrottleDelta(render_step_size / throttle_time);
     driver.SetBrakingDelta(render_step_size / braking_time);
 
-#else
-    HMMWV_FuncDriver driver;
-#endif
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (povray_output) {
+        // Create output directories (if not already present)
+        if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
+
+        // Export vehicle mesh to POV-Ray format
+        vehicle.ExportMeshPovray(out_dir);
+    }
 
     // ---------------
     // Simulation loop
@@ -254,31 +261,30 @@ int main(int argc, char* argv[]) {
     double steering_input;
     double braking_input;
 
-    // DEBUGGING
-    ChTireForces pac_forces(4);
-
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
+    int render_frame = 0;
     double time = 0;
-    int timer_info_steps = 1000;
-#ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
 
-    double sum_sim_time = 0;
     while (app.GetDevice()->run()) {
-        // keep track of the time spent calculating each sim step
-        ChTimer<double> step_time;
-        step_time.start();
-
-        // Render scene
+        // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
             app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
             app.DrawAll();
             app.EndScene();
+
+            if (povray_output) {
+                char filename[100];
+                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+                utils::WriteShapesPovray(vehicle.GetSystem(), filename);
+            }
+
+            render_frame++;
         }
 
         // Collect output data from modules (for inter-module communication)
@@ -330,125 +336,15 @@ int main(int argc, char* argv[]) {
         tire_rear_left->Advance(step);
         tire_rear_right->Advance(step);
 
-        // write output data if useing PACEJKA tire
-        if (tire_model == PACEJKA && save_pactire_data && time > time_start_output) {
-            if (step_number % pac_out_steps == 0) {
-                tire_front_left.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_FL.csv");
-                tire_front_right.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_FR.csv");
-                tire_rear_right.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_RR.csv");
-                tire_rear_left.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_RL.csv");
-            }
-        }
-
         powertrain->Advance(step);
 
         vehicle.Advance(step);
 
         app.Advance(step);
 
-        // Increment frame number, timer
-        step_number++;
-        step_time.stop();
-        sum_sim_time += step_time();
-
-        // check the average simulation times here, after a certain amount of time
-        // (vehicle in free-fall, not in contact with the ground, so no tire calculations in first few moments)
-        if (tire_model == PACEJKA && step_number % timer_info_steps == 0 && step_number > timer_info_steps) {
-            double avg_chrono_step_time = sum_sim_time / (double)step_number;
-            double avg_ODE_time = tire_front_left.DynamicCastTo<ChPacejkaTire>()->get_average_ODE_time();
-            double avg_advance_time = tire_front_left.DynamicCastTo<ChPacejkaTire>()->get_average_Advance_time();
-            GetLog() << " \n ///////////  simtime = " << time
-                     << "\n timers, average (time, fraction of total) \n chrono = " << avg_chrono_step_time;
-            //  << "\n  ODE time = (" << avg_ODE_time <<", "<< avg_ODE_time /avg_chrono_step_time <<")"
-            //  << "\n Advance time = (" << avg_advance_time <<", "<< avg_advance_time / avg_chrono_step_time <<") \n";
-        }
-    }
-
-#else
-
-    int render_frame = 0;
-
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-        std::cout << "Error creating directory " << pov_dir << std::endl;
-        return 1;
-    }
-
-    vehicle.ExportMeshPovray(out_dir);
-
-    char filename[100];
-
-    while (time < tend) {
-        if (step_number % render_steps == 0) {
-            // Output render data
-            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteShapesPovray(vehicle.GetSystem(), filename);
-            std::cout << "Output frame:   " << render_frame << std::endl;
-            std::cout << "Sim frame:      " << step_number << std::endl;
-            std::cout << "Time:           " << time << std::endl;
-            std::cout << "             throttle: " << driver.GetThrottle() << " steering: " << driver.GetSteering()
-                      << std::endl;
-            std::cout << std::endl;
-            render_frame++;
-        }
-
-        // Collect output data from modules (for inter-module communication)
-        throttle_input = driver.GetThrottle();
-        steering_input = driver.GetSteering();
-        braking_input = driver.GetBraking();
-
-        powertrain_torque = powertrain->GetOutputTorque();
-
-        tire_forces[FRONT_LEFT.id()] = tire_front_left->GetTireForce();
-        tire_forces[FRONT_RIGHT.id()] = tire_front_right->GetTireForce();
-        tire_forces[REAR_LEFT.id()] = tire_rear_left->GetTireForce();
-        tire_forces[REAR_RIGHT.id()] = tire_rear_right->GetTireForce();
-
-        driveshaft_speed = vehicle.GetDriveshaftSpeed();
-
-        wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
-        wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
-        wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
-        wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
-
-        // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
-
-        driver.Update(time);
-
-        terrain.Update(time);
-
-        tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
-        tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
-        tire_rear_left->Update(time, wheel_states[REAR_LEFT.id()]);
-        tire_rear_right->Update(time, wheel_states[REAR_RIGHT.id()]);
-
-        powertrain->Update(time, throttle_input, driveshaft_speed);
-
-        vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
-
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
-
-        terrain.Advance(step_size);
-
-        tire_front_left->Advance(step_size);
-        tire_front_right->Advance(step_size);
-        tire_rear_right->Advance(step_size);
-        tire_rear_left->Advance(step_size);
-
-        powertrain->Advance(step_size);
-
-        vehicle.Advance(step_size);
-
         // Increment frame number
         step_number++;
     }
-
-#endif
 
     return 0;
 }
