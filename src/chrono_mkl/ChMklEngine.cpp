@@ -141,7 +141,7 @@ namespace chrono
 		IPARM(35) = 1;
 	}
 
-	void ChMklEngine::GetResidual(double* res) const {
+	void ChMklEngine::GetResidual(double* res) {
 		mkl_cspblas_dcsrgemv("N", &n, a, ia, ja, x, res); // performs Matrix*Solution
 		for (int i = 0; i < n; i++){
 			res[i] = b[i] - res[i];	// performs: rhs - Matrix*Solution
