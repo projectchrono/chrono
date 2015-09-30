@@ -45,7 +45,7 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     float restitution;  ///< Coefficient of restitution
 
     float cohesion;      ///< Constant cohesion force
-    float adhesionMult;  ///< Adhesion multiplier used in DMT model. cohesion = adhesionMult * sqrt(R_eff). Given the
+    float adhesionMult;  ///< Adhesion multiplier used in DMT model. adhesion = adhesionMult * sqrt(R_eff). Given the
                          ///surface energy, w, adhesionMult = 2 * CH_C_PI * w * sqrt(R_eff). Given the equilibrium
                          ///penetration distance, y_eq, adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
 

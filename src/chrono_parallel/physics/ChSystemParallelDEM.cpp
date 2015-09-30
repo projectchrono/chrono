@@ -28,6 +28,7 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
   // actual data is set in UpdateMaterialProperties().
   data_manager->host_data.mu.push_back(0);
   data_manager->host_data.cohesion_data.push_back(0);
+  data_manager->host_data.adhesionMult_data.push_back(0);
 
   data_manager->host_data.mass_rigid.push_back(0);
 
@@ -50,6 +51,7 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
   custom_vector<real>& mass = data_manager->host_data.mass_rigid;
   custom_vector<real2>& elastic_moduli = data_manager->host_data.elastic_moduli;
   custom_vector<real>& cohesion = data_manager->host_data.cohesion_data;
+  custom_vector<real>& adhesionMult = data_manager->host_data.adhesionMult_data;
   custom_vector<real>& mu = data_manager->host_data.mu;
   custom_vector<real>& cr = data_manager->host_data.cr;
   custom_vector<real4>& dem_coeffs = data_manager->host_data.dem_coeffs;
@@ -64,6 +66,7 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
   mass[index] = body->GetMass();
   mu[index] = mat_ptr->GetSfriction();
   cohesion[index] = mat_ptr->GetCohesion();
+  adhesionMult[index] = mat_ptr->GetAdhesionMult();
 
   if (data_manager->settings.solver.use_material_properties) {
     elastic_moduli[index] = R2(mat_ptr->GetYoungModulus(), mat_ptr->GetPoissonRatio());
