@@ -150,6 +150,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
                 break;
 
+            case Hertz_DMT:
             case Hertz:
                 if (use_mat_props) {
                     double sqrt_Rd = std::sqrt(R_eff * m_delta);
@@ -184,7 +185,11 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         }
 
         // Include cohesion force
-        forceN -= mat.cohesion_eff;
+        if (force_model == ContactForceModel::Hertz_DMT) {
+        	forceN -= mat.adhesionMult_eff * sqrt(R_eff);
+        } else {
+        	forceN -= mat.cohesion_eff;
+        }
 
         // Coulomb law
         forceT = std::min<double>(forceT, mat.mu_eff * std::abs(forceN));

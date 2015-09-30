@@ -31,6 +31,7 @@ ChMaterialSurfaceDEM::ChMaterialSurfaceDEM()
       sliding_friction(0.6f),
       restitution(0.4f),
       cohesion(0),
+	  adhesionMult(0),
       kn(2e5),
       kt(2e5),
       gn(40),
@@ -44,6 +45,7 @@ ChMaterialSurfaceDEM::ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other) {
     sliding_friction = other.sliding_friction;
     restitution = other.restitution;
     cohesion = other.cohesion;
+    adhesionMult = other.adhesionMult;
     kn = other.kn;
     kt = other.kt;
     gn = other.gn;
@@ -69,6 +71,8 @@ ChCompositeMaterialDEM ChMaterialSurfaceDEM::CompositeMaterial(const ChSharedPtr
     mat.cr_eff = (mat1->restitution + mat2->restitution) / 2;
 
     mat.cohesion_eff = std::min<float>(mat1->cohesion, mat2->cohesion);
+
+    mat.adhesionMult_eff = std::min<float>(mat1->adhesionMult, mat2->adhesionMult);
 
     mat.kn = (mat1->kn + mat2->kn) / 2;
     mat.kt = (mat1->kt + mat2->kt) / 2;

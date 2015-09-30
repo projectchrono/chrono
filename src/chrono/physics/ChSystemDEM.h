@@ -20,7 +20,7 @@ namespace chrono {
 
 
 /// Enum for DEM contact type (out of class because templated class)
-enum ContactForceModel { Hooke, Hertz };
+enum ContactForceModel { Hooke, Hertz, Hertz_DMT };
 
 
 /// Class for a physical system in which contact is modeled using a
