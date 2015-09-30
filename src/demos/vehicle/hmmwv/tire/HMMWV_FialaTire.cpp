@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "hmmwv/tire/HMMWV_FialaTire.h"
+#include <cmath>
 
 using namespace chrono;
 
