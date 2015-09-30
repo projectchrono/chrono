@@ -23,7 +23,7 @@ struct ChCompositeMaterialDEM {
     float mu_eff;            ///< Effective coefficient of friction
     float cr_eff;            ///< Effective coefficient of restitution
     float cohesion_eff;      ///< Effective cohesion force
-    float adhesionMult_eff;  ///< Effective cohesion force
+    float adhesionMult_eff;  ///< Effective adhesion multiplier (DMT model)
 
     float kn;
     float kt;
