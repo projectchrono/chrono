@@ -1,6 +1,6 @@
 main:
     - title: Documentation
-      url: '#'
+      url: '/documentation'
     - title: Download
       url: '/download'
     - title: News

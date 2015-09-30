@@ -4,6 +4,9 @@ title: Download
 permalink: /download/
 ---
 
+* This will become a table of contents (this text will be scraped).
+{:toc}
+
 Chrono::Engine precompiled SDK
 ------------------------------
 
@@ -38,6 +41,7 @@ Microsoft Visual C++ IDE, without installing the precompiled SDK above
 <h4> Download Visual Studio Wizard</h4>
 <a href="http://www.chronoengine.info/download/ChronoEngine_wizard_v1.7.0.exe">Download and install Chrono::Engine wizard in Microsoft Visual Studio 9.0/10.0</a>
 </div>
+
 Chrono::PyEngine
 ----------------
 
