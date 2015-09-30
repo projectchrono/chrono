@@ -33,15 +33,17 @@ class ChApi ChTexture : public ChAsset {
     // DATA
     //
     std::string filename;
+    float scale_x;
+    float scale_y;
 
   public:
     //
     // CONSTRUCTORS
     //
 
-    ChTexture() { filename = ""; };
-    ChTexture(const char* mfilename) { filename = mfilename; };
-    ChTexture(const std::string mfilename) { filename = mfilename; };
+    ChTexture() : scale_x(1), scale_y(1) { filename = ""; };
+    ChTexture(const char* mfilename) : scale_x(1), scale_y(1) { filename = mfilename; };
+    ChTexture(const std::string& mfilename) : scale_x(1), scale_y(1) { filename = mfilename; };
 
     virtual ~ChTexture(){};
 
@@ -53,7 +55,11 @@ class ChApi ChTexture : public ChAsset {
     const std::string& GetTextureFilename() const { return filename; }
     // Set the texture filename. This information could be used by visualization postprocessing.
     void SetTextureFilename(const std::string& mfile) { filename = mfile; }
-
+    // Set the texture scale
+    void SetTextureScale(float sx, float sy) { scale_x = sx; scale_y = sy; }
+    // Get the texture scales (in X and Y directions)
+    float GetTextureScaleX() const { return scale_x; }
+    float GetTextureScaleY() const { return scale_y; }
 
     //
     // SERIALIZATION
