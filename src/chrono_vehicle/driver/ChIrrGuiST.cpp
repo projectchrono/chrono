@@ -179,7 +179,7 @@ void ChIrrGuiST::SetShaker_R_disp(double vertical_disp, double min_z, double max
 // -----------------------------------------------------------------------------
 void ChIrrGuiST::DrawAll()
 {
-  renderGrid();
+  // renderGrid();
 
   m_app.DrawAll();
 
