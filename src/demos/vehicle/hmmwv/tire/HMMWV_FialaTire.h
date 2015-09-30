@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
 // HMMWV Fiala tire subsystem
@@ -28,13 +28,12 @@ class HMMWV_FialaTire : public chrono::ChFialaTire {
     HMMWV_FialaTire(const std::string& name);
     ~HMMWV_FialaTire() {}
 
-    virtual double getNormalStiffness(double depth) const override { return m_normalStiffness; }
-    virtual double getNormalDamping(double depth) const override { return m_normalDamping; }
+    virtual double getNormalStiffnessForce(double depth) const override;
+    virtual double getNormalDampingForce(double depth, double velocity) const override { return m_normalDamping * velocity; }
 
     virtual void SetFialaParams();
 
   private:
-    static const double m_normalStiffness;
     static const double m_normalDamping;
 };
 

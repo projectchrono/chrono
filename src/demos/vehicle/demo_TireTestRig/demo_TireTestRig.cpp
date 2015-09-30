@@ -24,10 +24,8 @@
 //
 // TO DO:
 //
-//   Set inital velocity of the wheel
 //   Clean up visualization and set a flag to enable/disable
 //   Make more general purpose
-//   Clean up wheel state calculations
 // =============================================================================
 
 #include "chrono/ChConfig.h"
@@ -68,20 +66,22 @@ class ChFunction_SlipAngle : public ChFunction {
   public:
     ChFunction* new_Duplicate() { return new ChFunction_SlipAngle; }
 
-    // Ramp for 1 second and stay at that value (scale)
+    
     double Get_y(double t) {
+		// Ramp for 1 second and stay at that value (scale)
         double delay = 0.1;
-        double scale = 0.1 / 180 * CH_C_PI;
+        double scale = -10.0 / 180 * CH_C_PI;
         if (t <= delay)
             return 0;
         double t1 = t - delay;
         if (t1 >= 1)
             return scale;
         return t1 * scale;
-        // if (t < 0.000001) {
-        //  return (0.);
-        //}
-        // return (0. / 180 * CH_C_PI);
+
+		// 0.1Hz Sine Wave with an Amplitude of 10 degs
+        //double amplitude = -10. / 180 * CH_C_PI;
+        //double freq = .1 * 2 * CH_C_PI;
+        //return(amplitude*std::sin(freq*t));		
     }
 };
 
@@ -89,13 +89,6 @@ class ChFunction_CamberAngle : public ChFunction {
   public:
     ChFunction* new_Duplicate() { return new ChFunction_CamberAngle; }
 
-    ////Ramp for 1 second and stay at that value (scale)
-    // double Get_y(double t) {
-    //  double delay = 0.5;
-    //  double scale = 2. / 180 * CH_C_PI;
-    //  t = (t - delay)*(t > delay);
-    //  return (scale*(t - ((t - 1)*t>1)));
-    //}
     double Get_y(double t) { return 0.; }
 };
 
@@ -127,17 +120,19 @@ int main() {
     double desired_speed = 20;
     double normal_force = 4500;
 
-    double chassis_mass = 0.001;
-    ChVector<> chassis_inertiaXX(1e-6, 1e-6, 1e-6);
-    double set_toe_mass = 0.001;
-    ChVector<> set_toe_inertiaXX(1e-6, 1e-6, 1e-6);
+    double zeros_inertia = 1e-2;
+	double small_mass = 0.1;
+    double chassis_mass = small_mass;
+    ChVector<> chassis_inertiaXX(zeros_inertia, zeros_inertia, zeros_inertia);
+    double set_toe_mass = small_mass;
+    ChVector<> set_toe_inertiaXX(zeros_inertia, zeros_inertia, zeros_inertia);
     double wheel_carrier_mass = 10.63;
-    ChVector<> wheel_carrier_inertiaXX(1e-6, 1e-6, 1e-6);
-    double set_camber_mass = 0.001;
-    ChVector<> set_camber_inertiaXX(1e-6, 1e-6, 1e-6);
-    double rim_mass = 0.001;
-    ChVector<> rim_inertiaXX(1e-10, 1e-10, 1e-10);
-    double wheel_mass = 0.001;
+    ChVector<> wheel_carrier_inertiaXX(zeros_inertia, zeros_inertia, zeros_inertia);
+    double set_camber_mass = small_mass;
+    ChVector<> set_camber_inertiaXX(zeros_inertia, zeros_inertia, zeros_inertia);
+    double rim_mass = small_mass;
+    ChVector<> rim_inertiaXX(zeros_inertia, zeros_inertia, zeros_inertia);
+    double wheel_mass = small_mass;
     ChVector<> wheel_inertiaXX(0.665, 1.0981, 0.665);
 
     // Create the mechanical system
@@ -474,9 +469,6 @@ int main() {
 
         // apply the tire forces
         tireforce = test_tire->GetTireForce();
-        tireforce.force.x = 0;
-        tireforce.force.y = 0;
-        tireforce.moment = ChVector<>(0, 0, 0);
         wheel->Accumulate_force(tireforce.force, tireforce.point, false);
         wheel->Accumulate_torque(tireforce.moment, false);
 
@@ -514,6 +506,8 @@ int main() {
                       << tireforce.point.z << std::endl
                       << "Wheel States (pos):     " << wheelstate.pos.x << ", " << wheelstate.pos.y << ", "
                       << wheelstate.pos.z << std::endl
+                      << "Wheel States (rot):     " << wheelstate.rot.e0 << ", " << wheelstate.rot.e1 << ", "
+                      << wheelstate.rot.e2 << wheelstate.rot.e3 << std::endl
                       << "Wheel States (lin_vel): " << wheelstate.lin_vel.x << ", " << wheelstate.lin_vel.y << ", "
                       << wheelstate.lin_vel.z << std::endl
                       << "Wheel States (ang_vel,w): " << wheelstate.ang_vel.x << ", " << wheelstate.ang_vel.y << ", "

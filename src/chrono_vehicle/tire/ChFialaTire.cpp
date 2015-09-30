@@ -59,11 +59,6 @@ void ChFialaTire::Initialize() {
     m_states.cp_side_slip = 0;
 }
 
-void ChFialaTire::Initialize(ChSharedPtr<ChBody> wheel) {
-    // Perform the actual initialization
-    Initialize();
-}
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChFialaTire::Update(double time, const ChWheelState& wheel_state, const ChTerrain& terrain) {
@@ -89,7 +84,9 @@ void ChFialaTire::Update(double time, const ChWheelState& wheel_state, const ChT
         // Generate normal contact force (recall, all forces are reduced to the wheel
         // center). If the resulting force is negative, the disc is moving away from
         // the terrain so fast that no contact force is generated.
-        double Fn_mag = getNormalStiffness(m_data.depth) * m_data.depth - getNormalDamping(m_data.depth) * m_data.vel.z;
+        // The sign of the stiffness force and the damping force are opposite since
+        // a positive velocity means a decreasing depth, not an increasing depth
+        double Fn_mag = getNormalStiffnessForce(m_data.depth) - getNormalDampingForce(m_data.depth, m_data.vel.z);
 
         if (Fn_mag < 0) {
             Fn_mag = 0;

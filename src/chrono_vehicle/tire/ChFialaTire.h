@@ -45,10 +45,6 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// Initialize this tire system.
     void Initialize();
 
-    /// Initialize this tire system and enable visualization of the discs.
-    void Initialize(ChSharedPtr<ChBody> wheel  ///< handle to the associated wheel body
-                    );
-
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
@@ -84,9 +80,9 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
 
   protected:
     /// Return the vertical tire stiffness (for normal force calculation).
-    virtual double getNormalStiffness(double depth) const = 0;
+    virtual double getNormalStiffnessForce(double depth) const = 0;
     /// Return the vertical tire damping coefficient (for normal force calculation).
-    virtual double getNormalDamping(double depth) const = 0;
+    virtual double getNormalDampingForce(double depth, double velocity) const = 0;
 
     /// Set the parameters in the Fiala model.
     virtual void SetFialaParams() = 0;
