@@ -155,7 +155,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
                     double sqrt_Rd = std::sqrt(R_eff * m_delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double St = 8 * mat.G_eff * sqrt_Rd;
-                    double loge = std::log(mat.cr_eff);
+                    double loge = (mat.cr_eff < CH_MICROTOL) ? 0 : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
                     kn = (2.0 / 3) * Sn;
                     kt = St;
