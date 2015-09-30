@@ -43,7 +43,7 @@ namespace chrono {
 // Implementation of the base class ChSteeringController
 // -----------------------------------------------------------------------------
 ChSteeringController::ChSteeringController()
-    : m_dist(0), m_sentinel(0, 0, 0), m_target(0, 0, 0), m_collect(false), m_csv(NULL) {
+    : m_dist(0), m_sentinel(0, 0, 0), m_target(0, 0, 0), m_err(0), m_errd(0), m_erri(0), m_collect(false), m_csv(NULL) {
     // Default PID controller gains all zero (no control).
     SetGains(0, 0, 0);
 }
@@ -74,6 +74,9 @@ ChSteeringController::~ChSteeringController() {
 void ChSteeringController::Reset(const ChVehicle& vehicle) {
     // Base class only calculates an updated sentinel location.
     m_sentinel = vehicle.GetChassis()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(m_dist, 0, 0));
+    m_err = 0;
+    m_erri = 0;
+    m_errd = 0;
 }
 
 double ChSteeringController::Advance(const ChVehicle& vehicle, double step) {
