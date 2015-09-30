@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Black-box program for using an external optimization program for tuning 
+// Black-box program for using an external optimization program for tuning
 // parameters of a PID steering controller.
 //
 // =============================================================================
@@ -33,10 +33,12 @@
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/tire/LugreTire.h"
+#include "chrono_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/utils/ChSteeringController.h"
+#include "chrono_vehicle/utils/ChSpeedController.h"
 
 using namespace chrono;
 using namespace geometry;
@@ -52,27 +54,25 @@ struct Data {
         err_x.resize(n);
         err_y.resize(n);
         err_z.resize(n);
+        err_speed.resize(n);
     }
 
-    DataArray time;   // current time
-    DataArray err_x;  // x component of vehicle location error
-    DataArray err_y;  // y component of vehicle location error
-    DataArray err_z;  // z component of vehicle location error
+    DataArray time;       // current time
+    DataArray err_x;      // x component of vehicle location error
+    DataArray err_y;      // y component of vehicle location error
+    DataArray err_z;      // z component of vehicle location error
+    DataArray err_speed;  // vehicle speed error
 };
 
-enum TireModelType {
-    RIGID,
-    PACEJKA,
-    LUGRE,
-    FIALA
-};
+enum TireModelType { RIGID, PACEJKA, LUGRE, FIALA };
 
 // Type of tire model
 TireModelType tire_model = RIGID;
 
 // Input file names for the path-follower driver model
-std::string controller_file("generic/driver/SteeringController.json");
-std::string path_file("pathS.txt");
+std::string steering_controller_file("generic/driver/SteeringController.json");
+std::string speed_controller_file("generic/driver/SpeedController.json");
+std::string path_file("paths/curve.txt");
 
 // Output file name
 std::string out_file("results.out");
@@ -81,11 +81,15 @@ std::string out_file("results.out");
 std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 std::string rigidtire_file("generic/tire/RigidTire.json");
 std::string lugretire_file("generic/tire/LugreTire.json");
+std::string fialatire_file("generic/tire/FialaTire.json");
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // Initial vehicle position and orientation
 ChVector<> initLoc(-125, -125, 0.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
+
+// Desired vehicle speed (m/s)
+double target_speed = 10;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -107,26 +111,57 @@ void processData(const utils::CSV_writer& csv, const Data& data);
 
 class MyDriver : public ChDriver {
   public:
-    MyDriver(chrono::ChVehicle& vehicle, const std::string& filename, chrono::ChBezierCurve* path)
-        : m_vehicle(vehicle), m_PID(filename, path) {
-        m_PID.Reset(vehicle);
+    MyDriver(ChVehicle& vehicle,
+             const std::string& steering_filename,
+             const std::string& speed_filename,
+             ChBezierCurve* path)
+        : m_vehicle(vehicle), m_steeringPID(steering_filename, path), m_speedPID(speed_filename), m_target_speed(0) {
+        m_steeringPID.Reset(vehicle);
+        m_speedPID.Reset(vehicle);
     }
 
     ~MyDriver() {}
 
-    chrono::ChPathSteeringController& GetSteeringController() { return m_PID; }
+    void SetDesiredSpeed(double val) { m_target_speed = val; }
 
-    void Reset() { m_PID.Reset(m_vehicle); }
+    chrono::ChPathSteeringController& GetSteeringController() { return m_steeringPID; }
+    chrono::ChSpeedController& GetSpeedController() { return m_speedPID; }
+
+    void Reset() {
+        m_steeringPID.Reset(m_vehicle);
+        m_speedPID.Reset(m_vehicle);
+    }
 
     virtual void Advance(double step) override {
-        m_throttle = 0.12;
-        m_braking = 0;
-        SetSteering(m_PID.Advance(m_vehicle, step), -1, 1);
+        // Set the throttle and braking values based on the output from the speed controller.
+        double out_speed = m_speedPID.Advance(m_vehicle, m_target_speed, step);
+        ChClampValue(out_speed, -1.0, 1.0);
+
+        if (out_speed > 0) {
+            // Vehicle moving too slow
+            m_braking = 0;
+            m_throttle = out_speed;
+        } else if (m_throttle > 0.3) {
+            // Vehicle moving too fast: reduce throttle
+            m_braking = 0;
+            m_throttle = 1 + out_speed;
+        } else {
+            // Vehicle moving too fast: apply brakes
+            m_braking = -out_speed;
+            m_throttle = 0;
+        }
+
+        // Set the steering value based on the output from the steering controller.
+        double out_steering = m_steeringPID.Advance(m_vehicle, step);
+        ChClampValue(out_steering, -1.0, 1.0);
+        m_steering = out_steering;
     }
 
   private:
     chrono::ChVehicle& m_vehicle;
-    chrono::ChPathSteeringController m_PID;
+    chrono::ChPathSteeringController m_steeringPID;
+    chrono::ChSpeedController m_speedPID;
+    double m_target_speed;
 };
 
 // =============================================================================
@@ -169,12 +204,22 @@ int main(int argc, char* argv[]) {
             }
             break;
         }
+        case FIALA: {
+            std::vector<ChSharedPtr<FialaTire> > tires_fiala(num_wheels);
+            for (int i = 0; i < num_wheels; i++) {
+                tires_fiala[i] = ChSharedPtr<FialaTire>(new FialaTire(vehicle::GetDataFile(fialatire_file)));
+                tires_fiala[i]->Initialize();
+                tires[i] = tires_fiala[i];
+            }
+            break;
+        }
     }
 
     // Create the driver system
     ChBezierCurve* path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
-    MyDriver driver(vehicle, vehicle::GetDataFile(controller_file), path);
-    driver.Reset();
+    MyDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
+                    vehicle::GetDataFile(speed_controller_file), path);
+    driver.SetDesiredSpeed(target_speed);
 
     // Create a path tracker to keep track of the error in vehicle location.
     ChBezierCurveTracker tracker(path);
@@ -210,14 +255,16 @@ int main(int argc, char* argv[]) {
             ChVector<> vehicle_target;
             tracker.calcClosestPoint(vehicle_location, vehicle_target);
             ChVector<> vehicle_err = vehicle_target - vehicle_location;
+            float speed_err = target_speed - vehicle.GetVehicleSpeed();
 
-            csv << vehicle.GetChTime() << vehicle_location << vehicle_target << vehicle_err << std::endl;
+            csv << vehicle.GetChTime() << vehicle_location << vehicle_target << vehicle_err << speed_err << std::endl;
 
             int id = it - num_steps_settling;
             data.time[id] = vehicle.GetChTime();
             data.err_x[id] = vehicle_err.x;
             data.err_y[id] = vehicle_err.y;
             data.err_z[id] = vehicle_err.z;
+            data.err_speed = speed_err;
         }
 
         // Collect output data from modules (for inter-module communication)
@@ -268,16 +315,28 @@ void processData(const utils::CSV_writer& csv, const Data& data) {
     csv.write_to_file(out_file);
 
     // Alternatively, post-process simulation results here and write out results
-    DataArray err_norm2 = data.err_x * data.err_x + data.err_y * data.err_y + data.err_z * data.err_z;
-    double L2_norm = std::sqrt(err_norm2.sum());
-    double RMS_norm = std::sqrt(err_norm2.sum() / num_steps);
-    double INF_norm = std::sqrt(err_norm2.max());
+    DataArray loc_err_norm2 = data.err_x * data.err_x + data.err_y * data.err_y + data.err_z * data.err_z;
+    double loc_L2_norm = std::sqrt(loc_err_norm2.sum());
+    double loc_RMS_norm = std::sqrt(loc_err_norm2.sum() / num_steps);
+    double loc_INF_norm = std::sqrt(loc_err_norm2.max());
 
-    std::cout << "|err|_L2 =  " << L2_norm << std::endl;
-    std::cout << "|err|_RMS = " << RMS_norm << std::endl;
-    std::cout << "|err|_INF = " << INF_norm << std::endl;
+    std::cout << "|location err|_L2 =  " << loc_L2_norm << std::endl;
+    std::cout << "|location err|_RMS = " << loc_RMS_norm << std::endl;
+    std::cout << "|location err|_INF = " << loc_INF_norm << std::endl;
 
     ////std::ofstream ofile(out_file.c_str());
-    ////ofile << L2_norm << std::endl;
+    ////ofile << loc_L2_norm << std::endl;
+    ////ofile.close();
+
+    double speed_L2_norm = std::sqrt((data.err_speed * data.err_speed).sum());
+    double speed_RMS_norm = std::sqrt((data.err_speed * data.err_speed).sum() / num_steps);
+    double speed_INF_norm = std::abs(data.err_speed).max();
+
+    std::cout << "|speed err|_L2 =  " << speed_L2_norm << std::endl;
+    std::cout << "|speed err|_RMS = " << speed_RMS_norm << std::endl;
+    std::cout << "|speed err|_INF = " << speed_INF_norm << std::endl;
+
+    ////std::ofstream ofile(out_file.c_str());
+    ////ofile << speed_L2_norm << std::endl;
     ////ofile.close();
 }
