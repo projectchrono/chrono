@@ -136,7 +136,9 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
                 if (use_mat_props) {
                     double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
                     double v2 = sys->GetCharacteristicImpactVelocity() * sys->GetCharacteristicImpactVelocity();
-                    double tmp_g = 1 + std::pow(CH_C_PI / std::log(mat.cr_eff), 2);
+                    double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
+                    loge = (mat.cr_eff > 1 - CH_MICROTOL) ? std::log(1 - CH_MICROTOL) : loge;
+                    double tmp_g = 1 + std::pow(CH_C_PI / loge, 2);
                     kn = tmp_k * std::pow(m_eff * v2 / tmp_k, 1.0 / 5);
                     kt = kn;
                     gn = std::sqrt(4 * m_eff * kn / tmp_g);
@@ -156,7 +158,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
                     double sqrt_Rd = std::sqrt(R_eff * m_delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double St = 8 * mat.G_eff * sqrt_Rd;
-                    double loge = (mat.cr_eff < CH_MICROTOL) ? 0 : std::log(mat.cr_eff);
+                    double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
                     kn = (2.0 / 3) * Sn;
                     kt = St;
