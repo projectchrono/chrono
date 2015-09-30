@@ -49,7 +49,8 @@ TireModelType tire_model = RIGID;
 // Input file names for the path-follower driver model
 std::string steering_controller_file("generic/driver/SteeringController.json");
 std::string speed_controller_file("generic/driver/SpeedController.json");
-std::string path_file("paths/curve.txt");
+//std::string path_file("paths/curve.txt");
+std::string path_file("paths/ISO_double_lane_change.txt");
 
 // JSON file names for vehicle model, tire models, and (simple) powertrain
 std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
@@ -62,7 +63,7 @@ ChVector<> initLoc(-125, -125, 0.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Desired vehicle speed (m/s)
-double target_speed = 10;
+double target_speed = 12;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -71,6 +72,9 @@ double terrainWidth = 300.0;   // size in Y direction
 
 // Simulation step size
 double step_size = 2e-3;
+
+// Render FPS
+double fps = 60;
 
 // Point on chassis tracked by the chase camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
@@ -214,9 +218,11 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChVehicleIrrApp app(vehicle, powertrain, L"Steering Controller Demo");
+    ChVehicleIrrApp app(vehicle, powertrain, L"Steering Controller Demo", irr::core::dimension2d<irr::u32>(800, 640));
 
+    app.SetHUDLocation(500, 20);
     app.SetSkyBox();
+    app.AddTypicalLogo();
     app.AddTypicalLights(irr::core::vector3df(-150.f, -150.f, 200.f), irr::core::vector3df(-150.f, 150.f, 200.f), 100, 100);
     app.AddTypicalLights(irr::core::vector3df(150.f, -150.f, 200.f), irr::core::vector3df(150.0f, 150.f, 200.f), 100, 100);
     app.EnableGrid(false);
@@ -270,6 +276,9 @@ int main(int argc, char* argv[]) {
     double braking_input;
 
     ChRealtimeStepTimer realtime_timer;
+    double render_step_size = 1 / fps;
+    int render_steps = (int)std::ceil(render_step_size / step_size);
+    int step_number = 0;
 
     while (app.GetDevice()->run()) {
         // Update sentinel and target location markers for the path-follower controller.
@@ -280,9 +289,11 @@ int main(int argc, char* argv[]) {
         ballT->setPosition(irr::core::vector3df(pT.x, pT.y, pT.z));
 
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
+        if (step_number % render_steps == 0) {
+            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.DrawAll();
+            app.EndScene();
+        }
 
         // Collect output data from modules (for inter-module communication)
         throttle_input = selector.GetDriver()->GetThrottle();
@@ -317,6 +328,9 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < num_wheels; i++)
             tires[i]->Advance(step);
         app.Advance(step);
+
+        // Increment step number
+        step_number++;
     }
 
     return 0;
