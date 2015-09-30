@@ -57,6 +57,7 @@ namespace chrono
 		IPARM(31) = 0;				/* ADV Partial solve and computing selected components of the solution vectors [def:0, disable]*/
 		IPARM(34) = 0;				/* ADV Optimal number of threads for conditional numerical reproducibility (CNR) mode [def:0, disable]*/
 		
+		a = nullptr; ia = nullptr; ja = nullptr; perm = nullptr; b = nullptr; x = nullptr;
 
 		last_phase_called = -1;
 

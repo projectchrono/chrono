@@ -49,21 +49,21 @@ namespace chrono {
    class ChApiMkl ChLcpMklSolver : public ChLcpSolver {
 
    private:
-	   long int solver_call = 0;
-	   ChCSR3Matrix matCSR3 = ChCSR3Matrix(1,1,1);
+	   long int solver_call;
+	   ChCSR3Matrix matCSR3;
 	   ChMatrixDynamic<double> rhs;
 	   ChMatrixDynamic<double> sol;
 	   ChMatrixDynamic<double> res;
-	   ChMklEngine mkl_engine{ 1, 11 };
-	   int n = 0;
+	   ChMklEngine mkl_engine;
+	   int n;
 
-	   bool size_lock = true;
-	   bool sparsity_pattern_lock = true;
-	   bool print_residual = true;
+	   bool size_lock;
+	   bool sparsity_pattern_lock;
+	   bool print_residual;
 
    public:
 
-	   ChLcpMklSolver() { SetSparsityPatternLock(true); };
+	   ChLcpMklSolver();
 	   virtual ~ChLcpMklSolver(){};
 	   
 	   ChMklEngine& GetMklEngine(){ return mkl_engine; }

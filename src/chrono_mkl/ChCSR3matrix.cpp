@@ -4,7 +4,12 @@
 namespace chrono {
 
 	ChCSR3Matrix::ChCSR3Matrix(int insrow, int inscol, int nonzeros):
-		max_shifts(std::numeric_limits<int>::max())
+		max_shifts(std::numeric_limits<int>::max()),
+		array_alignment(64),
+		rowIndex_lock(false),
+		colIndex_lock(false),
+		rowIndex_lock_broken(false),
+		colIndex_lock_broken(false)
 	{
 		assert(insrow > 0 && inscol > 0 && nonzeros >= 0);
 		rowIndex_lock = false;
@@ -12,6 +17,7 @@ namespace chrono {
 		mat_cols = inscol;
 		reallocation_occurred = false;
 		isCompressed = false;
+		
 
 		if (nonzeros == 0)
 			nonzeros = static_cast<int>( static_cast<double>(mat_rows*mat_cols)*SPM_DEF_FULLNESS );
@@ -37,7 +43,12 @@ namespace chrono {
 	}
 
 	ChCSR3Matrix::ChCSR3Matrix(int insrow, int inscol, int* nonzeros_vector) :
-		max_shifts(std::numeric_limits<int>::max())
+		max_shifts(std::numeric_limits<int>::max()),
+		array_alignment(64),
+		rowIndex_lock(false),
+		colIndex_lock(false),
+		rowIndex_lock_broken(false),
+		colIndex_lock_broken(false)
 	{
 		assert(insrow > 0 && inscol > 0);
 		rowIndex_lock = true;
@@ -72,10 +83,6 @@ namespace chrono {
 	}
 
 
-	ChCSR3Matrix::ChCSR3Matrix()
-	{
-		ChCSR3Matrix(3, 3, 3);
-	}
 
 	ChCSR3Matrix::~ChCSR3Matrix()
 	{
@@ -317,7 +324,7 @@ namespace chrono {
 			// rowIndex is initialized with equally spaced indexes
 			for (int row_sel = 0; row_sel <= mat_rows; row_sel++)
 			{
-				rowIndex[row_sel] = static_cast<int>(round(static_cast<double>(row_sel)* (static_cast<double>(colIndex_length)+1.0) / (static_cast<double>(mat_rows) +1.0) ));
+				rowIndex[row_sel] = static_cast<int>(ceil(static_cast<double>(row_sel)* (static_cast<double>(colIndex_length)+1.0) / (static_cast<double>(mat_rows) +1.0) ));
 			}
 			isCompressed = false;
 		}
@@ -723,7 +730,7 @@ namespace chrono {
 
 			for (int row_sel = 1; row_sel <= new_mat_rows - mat_rows; row_sel++)
 			{
-				rowIndex[mat_rows+row_sel] = rowIndex[mat_rows] + static_cast<int>(round(static_cast<double>(row_sel) *effective_augmentation_foreachrow));
+				rowIndex[mat_rows+row_sel] = rowIndex[mat_rows] + static_cast<int>(ceil(static_cast<double>(row_sel) *effective_augmentation_foreachrow));
 			}
 
 		}

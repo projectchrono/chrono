@@ -3,6 +3,7 @@
 
 namespace chrono
 {
+
 	/** \brief It calls Intel MKL Pardiso Sparse Direct Solver.
 	*
 	*	On the first call the routine resets the matrix and vectors involved to the size of the current problem.
@@ -10,6 +11,19 @@ namespace chrono
 	*	If the sparsity pattern lock is turned on then the matrix will try, as long as possible, to preserve not only the arrays dimensions,
 	*	but it also keeps column and row indexes through different calls.
 	*/
+
+	ChLcpMklSolver::ChLcpMklSolver():
+		solver_call(0),
+		matCSR3(1, 1, 1),
+		mkl_engine(1, 11),
+		n(0),
+		size_lock(true),
+		sparsity_pattern_lock(true),
+		print_residual(true)
+	{
+		SetSparsityPatternLock(true);
+	}
+
 	double ChLcpMklSolver::Solve(ChLcpSystemDescriptor& sysd) ///< system description with constraints and variables
 	{
 		// If it is the first call of the solver, the matrix and vectors are reshaped to adapt to the problem.
@@ -23,6 +37,7 @@ namespace chrono
 
 		// Build matrix and rhs
 		sysd.ConvertToMatrixForm(&matCSR3, &rhs);
+
 
 		// the compression is needed only on first call or when the supposed-fixed sparsity pattern has to be modified;
 		// and always if the sparsity pattern lock is not turned on

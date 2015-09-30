@@ -53,15 +53,15 @@ namespace chrono
 		void* pt[64]; //Handle to internal data structure (must be zeroed at startup)
 
 		// Matrix in CSR3 format
-		double* a = nullptr;				// (pointer to the) array of non-zero elements of the A
-		MKL_INT* ja = nullptr;			// columns indices
-		MKL_INT* ia = nullptr;			// row index
+		double* a;				// (pointer to the) array of non-zero elements of the A
+		MKL_INT* ja;			// columns indices
+		MKL_INT* ia;			// row index
 
 		// rhs
-		double* b = nullptr;				// rhs
+		double* b;				// rhs
 
 		// Output
-		double* x = nullptr;				// solution vector
+		double* x;				// solution vector
 
 		// Problem properties
 		MKL_INT n;				//(square-)matrix size
@@ -71,7 +71,7 @@ namespace chrono
 		// Pardiso solver settings
 		MKL_INT iparm[64];		// Pardiso solver parameter
 		MKL_INT maxfct;			// maximum number of numerical factorizations
-		MKL_INT* perm = nullptr;			// permutation vector
+		MKL_INT* perm;			// permutation vector
 
 		// Pardiso solver settings
 		MKL_INT mnum;           // 1<=mnum<=maxfct : which factorizations to use; usually 1
