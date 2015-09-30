@@ -114,7 +114,7 @@ void function_CalcContactForces(
 
     real mu_eff = std::min(mu[body1], mu[body2]);
     real cohesion_eff = std::min(cohesion[body1], cohesion[body2]);
-    real adhesionMult_eff = std::min(adhesionMult[body1], adhesionMult[body2]);
+    real adhesionMult_eff = std::max(adhesionMult[body1], adhesionMult[body2]);
 
     real E_eff, G_eff, cr_eff;
     real user_kn, user_kt, user_gn, user_gt;
