@@ -230,7 +230,9 @@ void function_CalcContactForces(
             if (use_mat_props) {
                 double tmp_k = (16.0 / 15) * sqrt(eff_radius[index]) * E_eff;
                 double v2 = char_vel * char_vel;
-                double tmp_g = 1 + pow(CH_C_PI / log(cr_eff), 2);
+                double loge = (cr_eff < CH_MICROTOL) ? log(CH_MICROTOL) : log(cr_eff);
+                loge = (cr_eff > 1 - CH_MICROTOL) ? log(1 - CH_MICROTOL) : loge;
+                double tmp_g = 1 + pow(CH_C_PI / loge, 2);
                 kn = tmp_k * pow(m_eff * v2 / tmp_k, 1.0 / 5);
                 kt = kn;
                 gn = std::sqrt(4 * m_eff * kn / tmp_g);
@@ -250,7 +252,7 @@ void function_CalcContactForces(
                 double sqrt_Rd = sqrt(eff_radius[index] * delta_n);
                 double Sn = 2 * E_eff * sqrt_Rd;
                 double St = 8 * G_eff * sqrt_Rd;
-                double loge = log(cr_eff);
+                double loge = (cr_eff < CH_MICROTOL) ? log(CH_MICROTOL) : log(cr_eff);
                 double beta = loge / sqrt(loge * loge + CH_C_PI * CH_C_PI);
                 kn = (2.0 / 3) * Sn;
                 kt = St;
