@@ -88,8 +88,6 @@ void PitmanArm::Create(const rapidjson::Document& d)
 
   // Read data for the universal joint (Pitman arm - steering link)
   m_points[UNIV] = loadVector(d["Universal Joint"]["Location"]);
-  m_dirs[UNIV_AXIS_ARM] = loadVector(d["Universal Joint"]["Direction Arm"]);
-  m_dirs[UNIV_AXIS_LINK] = loadVector(d["Universal Joint"]["Direction Link"]);
 
   // Read data for the revolute-spherical joint (chassis - steering link)
   m_points[REVSPH_R] = loadVector(d["Revolute-Spherical Joint"]["Location Chassis"]);
