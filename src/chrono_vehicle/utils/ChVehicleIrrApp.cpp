@@ -96,7 +96,10 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle& car,
       m_renderLinks(true),
       m_renderSprings(true),
       m_renderStats(true),
-      m_gridHeight(0.02) {
+      m_gridHeight(0.02),
+      m_steering(0),
+      m_throttle(0),
+      m_braking(0) {
     // Initialize the chase camera with default values.
     m_camera.Initialize(ChVector<>(0, 0, 1), car.GetLocalDriverCoordsys(), 6.0, 0.5);
     ChVector<> cam_pos = m_camera.GetCameraPos();
