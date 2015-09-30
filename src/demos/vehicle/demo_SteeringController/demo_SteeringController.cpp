@@ -41,27 +41,28 @@ using namespace chrono;
 using namespace geometry;
 
 // =============================================================================
+// Problem parameters
 
 // Type of tire model (RIGID or LUGRE)
 TireModelType tire_model = RIGID;
+
+// Input file names for the path-follower driver model
+std::string steering_controller_file("generic/driver/SteeringController.json");
+std::string speed_controller_file("generic/driver/SpeedController.json");
+std::string path_file("paths/curve.txt");
 
 // JSON file names for vehicle model, tire models, and (simple) powertrain
 std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 std::string rigidtire_file("generic/tire/RigidTire.json");
 std::string lugretire_file("generic/tire/LugreTire.json");
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
-std::string controller_file("generic/driver/SteeringController.json");
-std::string path_file("pathS.txt");
 
-// Initial vehicle position
+// Initial vehicle location and orientation
 ChVector<> initLoc(-125, -125, 0.6);
-
-// Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
-// ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-// ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-// ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-// ChQuaternion<> initRot(0, 0, 0, 1);
+
+// Desired vehicle speed (m/s)
+double target_speed = 10;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -160,7 +161,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.GetChassis()->SetBodyFixed(true);
 
     // Create the terrain
-    RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.9);
+    RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.9, GetChronoDataFile("textures/tile4.jpg"), 200, 200);
 
     // Create and initialize the powertrain system
     SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
@@ -241,12 +242,14 @@ int main(int argc, char* argv[]) {
 
     /*
     Generic_PathFollowerDriver driver_follower(vehicle, path);
-    driver_follower.GetSteeringController().SetLookAheadDistance(20);
+    driver_follower.GetSteeringController().SetLookAheadDistance(5);
     driver_follower.GetSteeringController().SetGains(0.5, 0, 0);
+    driver_follower.GetSpeedController().SetGains(0.4, 0, 0);
     */
-    Generic_PathFollowerDriver driver_follower(vehicle, vehicle::GetDataFile(controller_file), path);
+    Generic_PathFollowerDriver driver_follower(vehicle, vehicle::GetDataFile(steering_controller_file),
+                                               vehicle::GetDataFile(speed_controller_file), path);
 
-    driver_follower.Reset();
+    driver_follower.SetDesiredSpeed(target_speed);
 
     // Create and register a custom Irrlicht event receiver to allow selecting the
     // current driver model.
