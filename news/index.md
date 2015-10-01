@@ -25,7 +25,7 @@ permalink: /news/
 
 
 	<p>9-11 December 2014 -- Machine-Ground Interaction Consortium</p>
-	<a class="media-left" href="#"> <img src="/images/news/wacc.png" style="width=100px"> </a>
+	<a class="media-left" href="#"> <img src="/images/news/Wacc.png" style="width=100px"> </a>
 	<div class="media-body"> The [http://machine-ground2014.splashthat.com/ Machine-Ground Interaction Consortium (MAGIC)] December meeting will Take place at the University of Wisconsin, Madison. There will be an update about ongoing research on vehicle-ground interaction, with a focus on trends in high-performance computing, granular materials, terrain modeling and simulation, and virtual prototyping.  The meeting will highlight Project Chrono software: participants will get an overview of the software's modeling and simulation capablities, plus a hands-on demo of Chrono for vehicle dynamics.
 	</div>
 </div>
@@ -33,7 +33,7 @@ permalink: /news/
 
 
 	<p>13-14 May 2014 -- Chrono user group meeting</p>
-	<a class="media-left" href="#"> <img src="/images/news/wacc.png" style="width=100px"> </a>
+	<a class="media-left" href="#"> <img src="/images/news/Wacc.png" style="width=100px"> </a>
 	<div class="media-body"> The first meeting of Chrono::Engine users took place at the University of Wisconsin, USA, within the [http://w-face.splashthat.com/ W-FACE] initiative. The Chrono Interest Group Meeting was attended by researchers from universities (University of Iowa, University of Wisconsin, University of Parma) and companies such as Caterpillar, Harley-Davidson, Statoil-ASA, Oshkosh, MSC, SimLab Soft, Open Source Robotics Foundation, WACC and others. Future development of Chrono::Engine has been discussed.
 	</div>
 </div>
