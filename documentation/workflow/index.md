@@ -17,5 +17,5 @@ simulations with OpenGL, or for parsing Python commands.
 This means that there are many options for the assets workflow. In a
 broad context, the following picture shows some of these possibilities:
 
-![](/images/workflow.png "workflow.png")
+![](/images/Workflow.png "workflow.png")
 
