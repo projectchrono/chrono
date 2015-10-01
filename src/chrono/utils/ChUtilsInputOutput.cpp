@@ -15,6 +15,7 @@
 // =============================================================================
 
 #include "assets/ChColorAsset.h"
+#include "geometry/ChCLineBezier.h"
 
 #include "utils/ChUtilsInputOutput.h"
 
@@ -306,6 +307,22 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
 // NOTE: we do not account for any transform specified for the ChGeometry of
 // a visual asset (except for cylinders where that is implicit)!
 // -----------------------------------------------------------------------------
+enum POVRayShapeType {
+    SPHERE,
+    ELLIPSOID,
+    BOX,
+    CYLINDER,
+    CONVEXHULL,
+    TRIANGLEMESH,
+    BARREL,
+    CAPSULE,
+    CONE,
+    ROUNDEDBOX,
+    ROUNDEDCYL,
+    ROUNDEDCONE,
+    BEZIER
+};
+
 void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_info, const std::string& delim) {
   CSV_writer csv(delim);
 
@@ -354,47 +371,58 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
       Vector pos = body_pos + body_rot.Rotate(asset_pos);
       Quaternion rot = body_rot % asset_rot;
 
+      bool supported = true;
       std::stringstream gss;
 
       if (ChSharedPtr<ChSphereShape> sphere = visual_asset.DynamicCastTo<ChSphereShape>()) {
-        gss << collision::SPHERE << delim << sphere->GetSphereGeometry().rad;
+        gss << SPHERE << delim << sphere->GetSphereGeometry().rad;
         a_count++;
       } else if (ChSharedPtr<ChEllipsoidShape> ellipsoid = visual_asset.DynamicCastTo<ChEllipsoidShape>()) {
         const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
-        gss << collision::ELLIPSOID << delim << size.x << delim << size.y << delim << size.z;
+        gss << ELLIPSOID << delim << size.x << delim << size.y << delim << size.z;
         a_count++;
       } else if (ChSharedPtr<ChBoxShape> box = visual_asset.DynamicCastTo<ChBoxShape>()) {
         const Vector& size = box->GetBoxGeometry().Size;
-        gss << collision::BOX << delim << size.x << delim << size.y << delim << size.z;
+        gss << BOX << delim << size.x << delim << size.y << delim << size.z;
         a_count++;
       } else if (ChSharedPtr<ChCapsuleShape> capsule = visual_asset.DynamicCastTo<ChCapsuleShape>()) {
         const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
-        gss << collision::CAPSULE << delim << geom.rad << delim << geom.hlen;
+        gss << CAPSULE << delim << geom.rad << delim << geom.hlen;
         a_count++;
       } else if (ChSharedPtr<ChCylinderShape> cylinder = visual_asset.DynamicCastTo<ChCylinderShape>()) {
         const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-        gss << collision::CYLINDER << delim << geom.rad << delim << geom.p1.x << delim << geom.p1.y << delim
+        gss << CYLINDER << delim << geom.rad << delim << geom.p1.x << delim << geom.p1.y << delim
             << geom.p1.z << delim << geom.p2.x << delim << geom.p2.y << delim << geom.p2.z;
         a_count++;
       } else if (ChSharedPtr<ChConeShape> cone = visual_asset.DynamicCastTo<ChConeShape>()) {
         const geometry::ChCone& geom = cone->GetConeGeometry();
-        gss << collision::CONE << delim << geom.rad.x << delim << geom.rad.y;
+        gss << CONE << delim << geom.rad.x << delim << geom.rad.y;
         a_count++;
       } else if (ChSharedPtr<ChRoundedBoxShape> rbox = visual_asset.DynamicCastTo<ChRoundedBoxShape>()) {
         const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
-        gss << collision::ROUNDEDBOX << delim << geom.Size.x << delim << geom.Size.y << delim << geom.Size.z << delim
+        gss << ROUNDEDBOX << delim << geom.Size.x << delim << geom.Size.y << delim << geom.Size.z << delim
             << geom.radsphere;
         a_count++;
       } else if (ChSharedPtr<ChRoundedCylinderShape> rcyl = visual_asset.DynamicCastTo<ChRoundedCylinderShape>()) {
         const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
-        gss << collision::ROUNDEDCYL << delim << geom.rad << delim << geom.hlen << delim << geom.radsphere;
+        gss << ROUNDEDCYL << delim << geom.rad << delim << geom.hlen << delim << geom.radsphere;
         a_count++;
       } else if (ChSharedPtr<ChTriangleMeshShape> mesh = visual_asset.DynamicCastTo<ChTriangleMeshShape>()) {
-        gss << collision::TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
+        gss << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
         a_count++;
+      } else if (ChSharedPtr<ChLineShape> line = visual_asset.DynamicCastTo<ChLineShape>()) {
+          ChSharedPtr<geometry::ChLine> geom = line->GetLineGeometry();
+          if (ChSharedPtr<geometry::ChLineBezier> bezier = geom.DynamicCastTo<geometry::ChLineBezier>()) {
+              gss << BEZIER << delim << "\"" << line->GetName() << "\"";
+              a_count++;
+          }
+      } else {
+          supported = false;
       }
 
-      csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << pos << rot << color << gss.str() << std::endl;
+      if (supported) {
+          csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << pos << rot << color << gss.str() << std::endl;
+      }
     }
   }
 
