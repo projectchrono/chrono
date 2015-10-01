@@ -4,8 +4,7 @@
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
-	MESSAGE(STATUS "---demo_SteeringController requires Irrlicht support")
-	RETURN()
+    RETURN()
 ENDIF()
 
 MESSAGE(STATUS "...add STEERING_CONTROLLER demo")
@@ -14,6 +13,39 @@ MESSAGE(STATUS "...add STEERING_CONTROLLER demo")
 # List all model files for this demo
 
 SET(MODEL_FILES
+    ../ModelDefs.h
+    ../hmmwv/HMMWV.h
+    ../hmmwv/HMMWV.cpp
+    ../hmmwv/vehicle/HMMWV_Vehicle.h
+    ../hmmwv/vehicle/HMMWV_Vehicle.cpp
+    ../hmmwv/vehicle/HMMWV_VehicleReduced.h
+    ../hmmwv/vehicle/HMMWV_VehicleReduced.cpp
+    ../hmmwv/suspension/HMMWV_DoubleWishbone.h
+    ../hmmwv/suspension/HMMWV_DoubleWishbone.cpp
+    ../hmmwv/suspension/HMMWV_DoubleWishboneReduced.h
+    ../hmmwv/suspension/HMMWV_DoubleWishboneReduced.cpp
+    ../hmmwv/steering/HMMWV_PitmanArm.h
+    ../hmmwv/steering/HMMWV_PitmanArm.cpp
+    ../hmmwv/steering/HMMWV_RackPinion.h
+    ../hmmwv/steering/HMMWV_RackPinion.cpp
+    ../hmmwv/driveline/HMMWV_Driveline2WD.h
+    ../hmmwv/driveline/HMMWV_Driveline2WD.cpp
+    ../hmmwv/driveline/HMMWV_Driveline4WD.h
+    ../hmmwv/driveline/HMMWV_Driveline4WD.cpp
+    ../hmmwv/powertrain/HMMWV_SimplePowertrain.h
+    ../hmmwv/powertrain/HMMWV_SimplePowertrain.cpp
+    ../hmmwv/powertrain/HMMWV_Powertrain.h
+    ../hmmwv/powertrain/HMMWV_Powertrain.cpp
+    ../hmmwv/brake/HMMWV_BrakeSimple.h
+    ../hmmwv/brake/HMMWV_BrakeSimple.cpp
+    ../hmmwv/wheel/HMMWV_Wheel.h
+    ../hmmwv/wheel/HMMWV_Wheel.cpp
+    ../hmmwv/tire/HMMWV_RigidTire.h
+    ../hmmwv/tire/HMMWV_RigidTire.cpp
+    ../hmmwv/tire/HMMWV_LugreTire.h
+    ../hmmwv/tire/HMMWV_LugreTire.cpp
+    ../hmmwv/tire/HMMWV_FialaTire.h
+    ../hmmwv/tire/HMMWV_FialaTire.cpp
     ../generic/Generic_PathFollowerDriver.h
     ../generic/Generic_PathFollowerDriver.cpp
 )
