@@ -544,6 +544,53 @@ void WriteMeshPovray(const std::string& obj_filename,
   ofile << "      finish  {phong 0.2  diffuse 0.6}" << std::endl;
   ofile << "    }" << std::endl;
   ofile << "}" << std::endl;
+
+  // Close the output file.
+  ofile.close();
+}
+
+// -----------------------------------------------------------------------------
+// WriteCurvePovray
+//
+// Write the specified Bezier curve as a macro in a PovRay include file.
+// -----------------------------------------------------------------------------
+ChApi void WriteCurvePovray(const ChBezierCurve& curve,
+                            const std::string& curve_name,
+                            const std::string& out_dir,
+                            double radius,
+                            const ChColor& col) {
+    int nP = 20;
+    double dt = 1.0 / nP;
+    size_t nS = curve.getNumPoints() - 1;
+
+    // Open output file.
+    std::string pov_filename = out_dir + "/" + curve_name + ".inc";
+    std::ofstream ofile(pov_filename.c_str());
+
+    ofile << "#declare " << curve_name << " = object {" << std::endl;
+    ofile << "  sphere_sweep {" << std::endl;
+    ofile << "    linear_spline " << nP * nS + 1 << "," << std::endl;
+
+    ChVector<> v = curve.eval(0, 0.0);
+    ofile << "        <" << v.x << ", " << v.z << ", " << v.x << "> ," << radius << std::endl;
+
+    for (int iS = 0; iS < nS; iS++) {
+        for (int iP = 1; iP <= nP; iP++) {
+            v = curve.eval(iS, iP * dt);
+            ofile << "        <" << v.x << ", " << v.z << ", " << v.y << "> ," << radius << std::endl;
+        }
+    }
+
+    ofile << "    texture {" << std::endl;
+    ofile << "      pigment {color rgb<" << col.R << ", " << col.G << ", " << col.B << ">}" << std::endl;
+    ofile << "      finish  {phong 0.2  diffuse 0.6}" << std::endl;
+    ofile << "     }" << std::endl;
+
+    ofile << "  }" << std::endl;
+    ofile << "}" << std::endl;
+
+    // Close the output file.
+    ofile.close();
 }
 
 }  // namespace utils
