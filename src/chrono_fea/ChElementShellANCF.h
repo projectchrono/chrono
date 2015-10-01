@@ -32,7 +32,9 @@ namespace fea {
 ///
 /// ANCF laminated shell element with four nodes.
 ///
-class ChApiFea ChElementShellANCF : public ChElementShell {
+class ChApiFea ChElementShellANCF : public ChElementShell, 
+                                    public ChLoadableUV, 
+                                    public ChLoadableUVW {
   public:
     ChElementShellANCF();
     ~ChElementShellANCF() {}
@@ -272,6 +274,132 @@ class ChApiFea ChElementShellANCF : public ChElementShell {
 
     /// Analytical inverse for a 5x5 matrix
     static void Inverse55_Analytical(ChMatrixNM<double, 5, 5>& A, ChMatrixNM<double, 5, 5>& B);
+
+        		//
+			// Functions for ChLoadable interface
+			//  
+
+            /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() {return 4*6;}
+        
+        /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() {return 4*6;}
+
+        /// Gets all the DOFs packed in a single vector (position part)
+    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
+        mD.PasteVector(this->m_nodes[0]->GetPos(), block_offset,  0);
+        mD.PasteVector(this->m_nodes[0]->GetD(),   block_offset+3,  0);
+        mD.PasteVector(this->m_nodes[1]->GetPos(), block_offset+6,  0);
+        mD.PasteVector(this->m_nodes[1]->GetD(),   block_offset+9,  0);
+        mD.PasteVector(this->m_nodes[2]->GetPos(), block_offset+12,  0);
+        mD.PasteVector(this->m_nodes[2]->GetD(),   block_offset+15,  0);
+        mD.PasteVector(this->m_nodes[3]->GetPos(), block_offset+18,  0);
+        mD.PasteVector(this->m_nodes[3]->GetD(),   block_offset+21,  0);
+    }
+
+        /// Gets all the DOFs packed in a single vector (speed part)
+    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
+        mD.PasteVector(this->m_nodes[0]->GetPos_dt(), block_offset,  0);
+        mD.PasteVector(this->m_nodes[0]->GetD_dt(),   block_offset+3,  0);
+        mD.PasteVector(this->m_nodes[1]->GetPos_dt(), block_offset+6,  0);
+        mD.PasteVector(this->m_nodes[1]->GetD_dt(),   block_offset+9,  0);
+        mD.PasteVector(this->m_nodes[2]->GetPos_dt(), block_offset+12,  0);
+        mD.PasteVector(this->m_nodes[2]->GetD_dt(),   block_offset+15,  0);
+        mD.PasteVector(this->m_nodes[3]->GetPos_dt(), block_offset+18,  0);
+        mD.PasteVector(this->m_nodes[3]->GetD_dt(),   block_offset+21,  0);
+    }
+
+        /// Number of coordinates in the interpolated field, ex=3 for a 
+        /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
+    virtual int Get_field_ncoords() {return 6;}
+           
+        /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() {return 4;}
+
+        /// Get the offset of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockOffset(int nblock) { return m_nodes[nblock]->NodeGetOffset_w();}
+
+        /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 6;}
+
+        /// Evaluate N'*F , where N is some type of shape function
+        /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
+        /// F is a load, N'*F is the resulting generalized load
+        /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    virtual void ComputeNF(const double U,      ///< parametric coordinate in surface
+                    const double V,             ///< parametric coordinate in surface
+                    ChVectorDynamic<>& Qi,      ///< Return result of Q = N'*F  here
+                    double& detJ,               ///< Return det[J] here
+                    const ChVectorDynamic<>& F, ///< Input F vector, size is =n. field coords.
+                    ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
+                    ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
+                    ) {
+        ChMatrixNM<double, 1,4> N;
+         this->ShapeFunctions(N, U,V,0); // evaluate shape functions (in compressed vector), btw. not dependant on state
+         
+         detJ = GetLengthX()*GetLengthY(); // ***TODO***  compute exact determinant of jacobian at U,V; approx. is area..
+
+         ChVector<>tmp;
+         ChVector<>Fv = F.ClipVector(0,0);
+         tmp = N(0)*Fv;
+         Qi.PasteVector(tmp,0,0);
+         tmp = N(1)*Fv;
+         Qi.PasteVector(tmp,3,0);
+         tmp = N(2)*Fv;
+         Qi.PasteVector(tmp,6,0);
+         tmp = N(3)*Fv;
+         Qi.PasteVector(tmp,9,0);  
+         tmp = N(4)*Fv;
+         Qi.PasteVector(tmp,12,0);
+         tmp = N(5)*Fv;
+         Qi.PasteVector(tmp,15,0);
+         tmp = N(6)*Fv;
+         Qi.PasteVector(tmp,18,0);  
+         tmp = N(7)*Fv;
+         Qi.PasteVector(tmp,21,0);  
+    }
+
+        /// Evaluate N'*F , where N is some type of shape function
+        /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
+        /// F is a load, N'*F is the resulting generalized load
+        /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+     virtual void ComputeNF(const double U,   ///< parametric coordinate in volume
+                     const double V,             ///< parametric coordinate in volume
+                     const double W,             ///< parametric coordinate in volume 
+                     ChVectorDynamic<>& Qi,      ///< Return result of N'*F  here, maybe with offset block_offset
+                     double& detJ,               ///< Return det[J] here
+                     const ChVectorDynamic<>& F, ///< Input F vector, size is = n.field coords.
+                     ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
+                     ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
+                     ) {
+         this->ComputeNF(U,V, Qi, detJ, F, state_x, state_w);
+         detJ /=2.0; // because UV surface interpreted as volume, cut the effect of integration on -1...+1 on normal 
+     }
+
+            /// This is needed so that it can be accessed by ChLoaderVolumeGravity
+            /// Density is mass per unit surface.
+     virtual double GetDensity() {
+                    //***TODO*** check if the following is correct
+                    //***TODO*** performance improvement: loop on layers to accumulate tot_density 
+                    //           could be at element initialization, and tot_density as aux.data in material
+            double tot_density=0; // to acumulate kg/surface per all layers
+            for (int kl = 0; kl < m_numLayers; kl++) {
+                int ij = 14 * kl;
+                double rho = m_InertFlexVec(ij);
+                tot_density += rho;
+            }
+            return tot_density;
+     } 
+
+            /// Gets the normal to the surface at the parametric coordinate U,V. 
+            /// Each coordinate ranging in -1..+1.
+     virtual ChVector<> ComputeNormal(const double U, const double V) {
+                    //***TODO*** compute normal at precise U,V coordinate, 
+                    //           ex.using shape function derivatives.
+         ChVector<> mnorm (Vcross( GetNodeB()->pos - GetNodeA()->pos,
+                                   GetNodeD()->pos - GetNodeA()->pos) );
+         return mnorm;
+     }
 };
 
 }  // end of namespace fea
