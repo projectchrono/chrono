@@ -51,7 +51,7 @@ There are two options:
 NOTE. Precompiled binaries of Numpy and Matplotlib for Python 3.2 can be downloaded from the unofficial [repository](http://www.lfd.uci.edu/~gohlke/pythonlibs/). A faster option is to install the entire [SciPy stack](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy-stack) that includes both. Otherwise there is a custom Python distribution called [Enthought](http://enthought.com/products/epd.php) that already includes the two packages. 
 
 ## How to write programs
-You can read about Chrono::PyEngine usage, its syntax, its differences respect to the C++ API, etc., at the [Documentation](chrono_pyengine/doc/) page. 
+You can read about Chrono::PyEngine usage, its syntax, its differences respect to the C++ API, etc., at the [Documentation](/documentation/chrono_pyengine/doc/) page. 
 
 ## Demos and Examples
 
