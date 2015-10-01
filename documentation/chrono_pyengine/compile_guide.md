@@ -1,6 +1,8 @@
 ---
 layout: default
 title: Chrono PyEngine Doc
+permalink: /documentation/chrono_pyengine/compile_guide/
+
 ---
 #Chrono PyEngine 
 

@@ -9,11 +9,10 @@ permalink: /documentation/
 	<div class="col-md-4">
 		<div class="well">
 			<ul>
-				<li>Workflow</li>
-				<li>Scientific papers on Chrono::Engine</li>
-				<li>Online books and lessons on C++</li>
+				<li><a href="/documentation/workflow">Workflow</a></li>
+				<li><a href="/documentation/references">Papers and Other References</a></li>
 				<li>Tutorials and examples</li>
-				<li>Develop Your Program</li>
+				<li><a href="/documentation/tutorials/develop/">Develop Your Program</a></li>
 				<li>GIT Code Repository</li>
 			</ul>
 		</div>
