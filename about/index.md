@@ -6,7 +6,7 @@ permalink: /about/
 
 ### HISTORY
 
-The first version of the Chrono::Engine software, once simply called Chrono, had been developed in 1998 by [Prof. Alessandro Tasora](http://dynamics.eng.unipr.it/tasora) when he was a student at the Politecnico di Milano. It was the result of a thesis in Mechanical Engineering. Originally, Chrono::Engine was meant as a multibody tool for robotics and biomechanics.
+The first version of the {% include module.html first="CHRONO" second="ENGINE" %} software, once simply called Chrono, had been developed in 1998 by [Prof. Alessandro Tasora](http://dynamics.eng.unipr.it/tasora) when he was a student at the Politecnico di Milano. It was the result of a thesis in Mechanical Engineering. Originally, Chrono::Engine was meant as a multibody tool for robotics and biomechanics.
 
 Soon after the thesis, Alessandro Tasora started working at the Politecnico di Milano as a researcher and he kept improving the software, which was used in designing mechatronic devices and robots. In those years, the software was closed source and it was not available to the public.
 

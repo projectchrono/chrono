@@ -5,7 +5,7 @@ permalink: /documentation/tutorials/develop/cmake/
 ---
 
 There are different methods to create a C++ program that uses
-Chrono::Engine (see [this page](Develop_a_program "wikilink") to see the
+Chrono::Engine (see [this page](/documentation/tutorials/develop/) to see the
 others).
 
 The method described here is the one that we suggest in most cases,

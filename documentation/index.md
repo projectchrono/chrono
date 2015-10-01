@@ -3,15 +3,25 @@ layout: default
 title: Documentation
 permalink: /documentation/
 ---
+<div class="row">
+<h4>Get Started</h4>
+<div class="well">
+			<ul>
+				<li><a href="/documentation/install">Install</a></li>
+				<li>Tutorials and Examples</li>
+			</ul>
+		</div>
+</div>
+
+
 
 <div class="row">
-	<h4> Project Chrono</h4>
+	<h4> Reference Material</h4>
 	<div class="col-md-4">
 		<div class="well">
 			<ul>
 				<li><a href="/documentation/workflow">Workflow</a></li>
 				<li><a href="/documentation/references">Papers and Other References</a></li>
-				<li>Tutorials and examples</li>
 				<li><a href="/documentation/tutorials/develop/">Develop Your Program</a></li>
 				<li><a href="/documentation/git_repository/">GIT Code Repository</a></li>
 			</ul>
@@ -53,7 +63,7 @@ permalink: /documentation/
 		<div class="well">
 			<h4> Additional Units</h4>
 			<ul>
-				<li>About units</li>
+				<li><a href="/documentation/chrono_engine/units/"> About units</a> </li>
 				<li>Unit for IRRLICHT 3d visualization</li>
 				<li>Unit for Matlab interoperation</li>
 				<li>Unit for GPU parallel computation</li>
