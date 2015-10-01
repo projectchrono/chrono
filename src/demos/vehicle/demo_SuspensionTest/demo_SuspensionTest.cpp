@@ -68,8 +68,8 @@ double output_step_size = 1.0 / 1;    // Time interval between two output frames
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
   ChVector<> trackPoint(1.65, 0.0, 0);
-  double camera_chase = -2.0;
-  double camera_height = 1.0;
+  double camera_chase = 0;
+  double camera_height = 2.0;
 #else
   double tend = 20.0;
   const std::string out_dir = "../HMMWV";
@@ -78,8 +78,8 @@ double output_step_size = 1.0 / 1;    // Time interval between two output frames
 
 // =============================================================================
 // JSON file for suspension
-std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_front.json");
-// std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_rear.json");
+// std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_front.json");
+std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_rear.json");
 
 // JSON files for tire models (rigid) and powertrain (simple)
 std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
@@ -163,8 +163,8 @@ int main(int argc, char* argv[])
 
   // Set the time response for steering keyboard inputs, when they are used
   // NOTE: this is not exact, since not rendered quite at the specified FPS.
-  double steering_time = 1.0;  // time to go from 0 to max
-  double post_time = 2.0; // time to go from 0 to max applied post motion
+  double steering_time = 2.0;  // time to go from 0 to max
+  double post_time = 3.0; // time to go from 0 to max applied post motion
   driver.SetSteeringDelta(render_step_size / steering_time * steer_limit);
   driver.SetPostDelta(render_step_size / post_time * post_limit);
 
