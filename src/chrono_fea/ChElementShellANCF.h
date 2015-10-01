@@ -334,7 +334,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
                     ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
                     ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
                     ) {
-        ChMatrixNM<double, 1,4> N;
+         ChMatrixNM<double, 1,8> N;
          this->ShapeFunctions(N, U,V,0); // evaluate shape functions (in compressed vector), btw. not dependant on state
          
          detJ = GetLengthX()*GetLengthY(); // ***TODO***  compute exact determinant of jacobian at U,V; approx. is area..
