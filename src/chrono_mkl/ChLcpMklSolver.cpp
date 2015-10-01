@@ -19,7 +19,9 @@ namespace chrono
 		n(0),
 		size_lock(true),
 		sparsity_pattern_lock(true),
-		print_residual(true)
+		print_residual(true),
+		use_rhs_sparsity(false),
+		use_perm(false)
 	{
 		SetSparsityPatternLock(true);
 	}
@@ -42,10 +44,17 @@ namespace chrono
 		// the compression is needed only on first call or when the supposed-fixed sparsity pattern has to be modified;
 		// and always if the sparsity pattern lock is not turned on
 
-		if (!sparsity_pattern_lock || solver_call == 0 || matCSR3.IsRowIndexLockBroken() || matCSR3.IsColIndexLockBroken() )
+		if (!sparsity_pattern_lock || solver_call == 0 || matCSR3.IsRowIndexLockBroken() || matCSR3.IsColIndexLockBroken())
+		{
 			matCSR3.Compress();
+			if (use_perm)
+				mkl_engine.UsePermutationVector(true);
+		}
+		
+		if (use_rhs_sparsity && !use_perm)
+			mkl_engine.LeverageSparseRhs(true);
 
-		// the sparsity pattern lock is turned on only after the first iteration when the matrix is built at least one time
+		// the sparsity pattern lock after the matrix is built for the first time
 		if (solver_call == 0)
 		{
 			matCSR3.SetRowIndexLock(sparsity_pattern_lock);

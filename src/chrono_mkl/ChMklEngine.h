@@ -10,8 +10,8 @@
 //
 
 
-/// Class for interfacing with Pardiso Sparse Direct Solver 
-/// from the Intel® MKL Library. 
+/// Class for interfacing with Pardiso Sparse Direct Solver
+/// from the Intel® MKL Library.
 
 
 #ifndef CHMKLENGINE_H
@@ -71,13 +71,15 @@ namespace chrono
 		// Pardiso solver settings
 		MKL_INT iparm[64];		// Pardiso solver parameter
 		MKL_INT maxfct;			// maximum number of numerical factorizations
-		MKL_INT* perm;			// permutation vector
+		std::vector<int> perm;
 
 		// Pardiso solver settings
 		MKL_INT mnum;           // 1<=mnum<=maxfct : which factorizations to use; usually 1
 
 		// Auxiliary variables
 		int last_phase_called;
+
+		void resetIparmElement(int iparm_num, int reset_value = 0);
 
 	public:
 
@@ -101,6 +103,9 @@ namespace chrono
 		void SetKnownVector(double* insb){ b = insb;}
 
 		void SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx);
+
+		void UsePermutationVector(bool on_off);
+		void LeverageSparseRhs(bool on_off);
 
 		// Solver routine
 		int PardisoCall(int set_phase = 13, int message_level = 0);
