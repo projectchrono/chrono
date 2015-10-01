@@ -52,6 +52,8 @@ PitmanArm::PitmanArm(const std::string& filename)
   d.ParseStream(is);
 
   Create(d);
+
+  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 PitmanArm::PitmanArm(const rapidjson::Document& d)

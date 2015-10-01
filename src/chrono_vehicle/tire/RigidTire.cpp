@@ -38,6 +38,8 @@ RigidTire::RigidTire(const std::string& filename) : ChRigidTire("") {
     d.ParseStream(is);
 
     Create(d);
+
+    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 RigidTire::RigidTire(const rapidjson::Document& d) : ChRigidTire("") {

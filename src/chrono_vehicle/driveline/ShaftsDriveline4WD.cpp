@@ -53,6 +53,8 @@ ShaftsDriveline4WD::ShaftsDriveline4WD(const std::string& filename)
   d.ParseStream(is);
 
   Create(d);
+
+  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 ShaftsDriveline4WD::ShaftsDriveline4WD(const rapidjson::Document& d)

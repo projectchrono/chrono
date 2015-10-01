@@ -65,6 +65,8 @@ ChSteeringController::ChSteeringController(const std::string& filename)
     m_Kd = d["Gains"]["Kd"].GetDouble();
 
     m_dist = d["Lookahead Distance"].GetDouble();
+
+    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 ChSteeringController::~ChSteeringController() {

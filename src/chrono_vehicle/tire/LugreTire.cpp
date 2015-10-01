@@ -48,6 +48,8 @@ LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(
     d.ParseStream(is);
 
     Create(d);
+
+    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 LugreTire::LugreTire(const rapidjson::Document& d) : ChLugreTire(""), m_discLocs(NULL) {

@@ -48,6 +48,8 @@ FialaTire::FialaTire(const std::string& filename) : ChFialaTire("") {
     d.ParseStream(is);
 
     Create(d);
+
+    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 FialaTire::FialaTire(const rapidjson::Document& d) : ChFialaTire("") {
