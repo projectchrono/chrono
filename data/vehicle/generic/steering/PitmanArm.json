@@ -28,7 +28,9 @@
 
   "Universal Joint":
   {
-    "Location":                 [ 0.129, 0.249, 0]
+    "Location":                 [ 0.129, 0.249, 0],
+    "Direction Arm":            [0, 0, 1],
+    "Direction Link":           [1, 0, 0]
   },
 
   "Revolute-Spherical Joint":

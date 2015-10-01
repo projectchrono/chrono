@@ -105,15 +105,11 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   chassis->GetSystem()->AddLink(m_revolute);
 
   // Create and initialize the universal joint between the Pitman arm and steering link.
-  // The w-axis should be aligned with the steer link that connects pitman and idler arms,
-  // constructed with hardpoints.
-  u = ChVector<>(1, 0, 0);
-  w = points[UNIV] - points[REVSPH_S];
-  w.Normalize();
-  v = w % u;
-  v.Normalize();
-  u = v % w;
-  rot.Set_A_axis(u, v, w);
+  // The x and y directions of the joint orientation matrix are given by
+  // dirs[UNIV_AXIS_ARM] and dirs[UNIV_AXIS_LINK], assumed to be unit vectors
+  // and orthogonal.
+  w = Vcross(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK]);
+  rot.Set_A_axis(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
 
   m_universal = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
   m_universal->SetNameString(m_name + "_universal");
