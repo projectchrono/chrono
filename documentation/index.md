@@ -6,9 +6,8 @@ permalink: /documentation/
 
 <div class="row">
 	<h4> Project Chrono</h4>
-	<div class="col-md-6">
+	<div class="col-md-4">
 		<div class="well">
-
 			<ul>
 				<li>Workflow</li>
 				<li>Scientific papers on Chrono::Engine</li>
@@ -24,32 +23,34 @@ permalink: /documentation/
 
 <div class="row">
 	<h4> Chrono::Engine</h4>
-	<div class="col-md-3">
+	<div class="col-md-4">
+		<div class="row">
 
-		<div class="well">
+			<div class="well">
+				<h4> Getting Started</h4>
+				<ul>
+					<li>Introduction</li>
+					<li>Features</li>
+					<li>Install</li>
 
-			<ul>
-				<li>Introduction</li>
-				<li>Features</li>
-				<li>Install</li>
+					<li>Manual</li>
 
-				<li>Manual</li>
-
-			</ul>
+				</ul>
+			</div>
+		</div>
+		<div class="row">
+			<div class="well">
+				<h4> Developers</h4>
+				<ul>
+					<li>API classes documentation</li>
+					<li>Add your contributions to Chrono::Engine</li>
+					<li>How to</li>
+					<li>FAQ</li>
+				</ul>
+			</div>
 		</div>
 	</div>
-	<div class="col-md-3">
-		<div class="well">
-			<h4> Developers</h4>
-			<ul>
-				<li>API classes documentation</li>
-				<li>Add your contributions to Chrono::Engine</li>
-				<li>How to</li>
-				<li>FAQ</li>
-			</ul>
-		</div>
-	</div>
-	<div class="col-md-3">
+	<div class="col-md-4">
 		<div class="well">
 			<h4> Additional Units</h4>
 			<ul>
@@ -74,8 +75,8 @@ permalink: /documentation/
 		<div class="well">
 
 			<ul>
-				<li>Introduction</li>
-				<li>Download</li>
+				<li><a href="/documentation/chrono_pyengine">Introduction</a></li>
+				<li><a href="/download/#chronopyengine">Download</a></li>
 				<li>Tutorials And Examples</li>
 			</ul>
 		</div>
