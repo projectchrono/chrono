@@ -110,8 +110,8 @@ int main(int argc, char* argv[])
   FlatTerrain flat_terrain(0);
 
   // use rigid wheels to actuate suspension
-  ChSharedPtr<RigidTire> tire_FL(new RigidTire(vehicle::GetDataFile(rigidtire_file), flat_terrain));
-  ChSharedPtr<RigidTire> tire_FR(new RigidTire(vehicle::GetDataFile(rigidtire_file), flat_terrain));
+  ChSharedPtr<RigidTire> tire_FL(new RigidTire(vehicle::GetDataFile(rigidtire_file)));
+  ChSharedPtr<RigidTire> tire_FR(new RigidTire(vehicle::GetDataFile(rigidtire_file)));
    
   tire_FL->Initialize(tester.GetWheelBody(FRONT_LEFT));
   tire_FR->Initialize(tester.GetWheelBody(FRONT_RIGHT));
@@ -265,8 +265,8 @@ int main(int argc, char* argv[])
 
     flat_terrain.Update(time);
 
-    tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
-    tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
+    tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()], flat_terrain);
+    tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()], flat_terrain);
 
     tester.Update(time, steering_input, post_z_L, post_z_R, tire_forces);
 

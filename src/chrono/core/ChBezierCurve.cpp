@@ -248,7 +248,7 @@ void ChBezierCurve::write(const std::string& filename) {
 
     // Write number of points. Note that we always write the control points.
     size_t numPoints = m_points.size();
-    ofile << numPoints << "9  \n";
+    ofile << numPoints << "  9\n";
 
     // Write points and control polygone vertices
     for (size_t i = 0; i < numPoints; i++) {

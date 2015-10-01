@@ -42,6 +42,8 @@ SimplePowertrain::SimplePowertrain(const std::string& filename)
   d.ParseStream(is);
 
   Create(d);
+
+  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 SimplePowertrain::SimplePowertrain(const rapidjson::Document& d)

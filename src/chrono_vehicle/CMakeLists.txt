@@ -233,6 +233,8 @@ set(CV_UTILS_FILES
     utils/ChWheeledVehicleAssembly.cpp
     utils/ChSteeringController.h
     utils/ChSteeringController.cpp
+    utils/ChSpeedController.h
+    utils/ChSpeedController.cpp
 )
 
 if(ENABLE_MODULE_IRRLICHT)

@@ -55,8 +55,7 @@ namespace chrono{
 	class ChApiMkl ChCSR3Matrix : public ChSparseMatrixBase
 	{
 	public:
-		ChCSR3Matrix();
-		ChCSR3Matrix(int insrow, int inscol, int nonzeros = 0);
+		ChCSR3Matrix(int insrow = 3, int inscol = 3, int nonzeros = 0);
 		ChCSR3Matrix(int insrow, int inscol, int* nonzeros);
 		virtual ~ChCSR3Matrix() ;
 
@@ -79,7 +78,7 @@ namespace chrono{
 		// Size manipulation
 		virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
 		virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
-		void Compress(bool trim_after_compressing = false); // purge the matrix from all the unininitialized elements
+		void Compress(); // purge the matrix from all the unininitialized elements
 		void Trim(); // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
 		void Prune(double pruning_threshold = DBL_EPSILON);
 
@@ -113,7 +112,7 @@ namespace chrono{
 	private:
 		
 		bool reallocation_occurred;
-		const int array_alignment = 64;
+		const int array_alignment;
 		bool isCompressed;
 		int max_shifts;
 		double* values;
@@ -125,10 +124,10 @@ namespace chrono{
 		///< \c colIndex_occupancy differs from \c rowIndex[mat_rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
 		int rowIndex_occupancy;
 		///< \c rowIndex_occupancy differs from \c rowIndex[mat_rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
-		bool rowIndex_lock = false; ///< TRUE if the matrix always keeps the same number of element for each row
-		bool colIndex_lock = false; ///< TRUE if the matrix elements keep always the same position
-		bool rowIndex_lock_broken = false;
-		bool colIndex_lock_broken = false;
+		bool rowIndex_lock; ///< TRUE if the matrix always keeps the same number of element for each row
+		bool colIndex_lock; ///< TRUE if the matrix elements keep always the same position
+		bool rowIndex_lock_broken;
+		bool colIndex_lock_broken;
 
 		
 

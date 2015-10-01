@@ -67,10 +67,10 @@ int main(int argc, char* argv[]) {
     FlatTerrain flat_terrain(0);
 
     // Create the Pac tires, try to open param file and load empirical constants
-    ChPacejkaTire tire_long("LONGITUDINAL", pacParamFile, flat_terrain, F_z, use_transient_slip);
-    ChPacejkaTire tire_lat("LATERAL", pacParamFile, flat_terrain, F_z, use_transient_slip);
-    ChPacejkaTire tire_lat_gamma("LATERAL_GAMMA", pacParamFile, flat_terrain, F_z, use_transient_slip);
-    ChPacejkaTire tire_combined("COMBINED", pacParamFile, flat_terrain, F_z, use_transient_slip);
+    ChPacejkaTire tire_long("LONGITUDINAL", pacParamFile, F_z, use_transient_slip);
+    ChPacejkaTire tire_lat("LATERAL", pacParamFile, F_z, use_transient_slip);
+    ChPacejkaTire tire_lat_gamma("LATERAL_GAMMA", pacParamFile, F_z, use_transient_slip);
+    ChPacejkaTire tire_combined("COMBINED", pacParamFile, F_z, use_transient_slip);
 
     // initialize the tire on the left or right side
     tire_long.Initialize(m_side, true);
@@ -156,10 +156,10 @@ int main(int argc, char* argv[]) {
             int arg = 2;
 
         // update all 4 types of tires, with current wheel state data
-        tire_long.Update(time, long_state);
-        tire_lat.Update(time, lat_state);
-        tire_lat_gamma.Update(time, latGamma_state);
-        tire_combined.Update(time, combined_state);
+        tire_long.Update(time, long_state, flat_terrain);
+        tire_lat.Update(time, lat_state, flat_terrain);
+        tire_lat_gamma.Update(time, latGamma_state, flat_terrain);
+        tire_combined.Update(time, combined_state, flat_terrain);
 
         // advance the slip displacements, calculate reactions
         tire_long.Advance(step_size);

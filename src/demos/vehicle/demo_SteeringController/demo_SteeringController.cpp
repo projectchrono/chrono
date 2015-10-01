@@ -41,27 +41,29 @@ using namespace chrono;
 using namespace geometry;
 
 // =============================================================================
+// Problem parameters
 
 // Type of tire model (RIGID or LUGRE)
 TireModelType tire_model = RIGID;
+
+// Input file names for the path-follower driver model
+std::string steering_controller_file("generic/driver/SteeringController.json");
+std::string speed_controller_file("generic/driver/SpeedController.json");
+//std::string path_file("paths/curve.txt");
+std::string path_file("paths/ISO_double_lane_change.txt");
 
 // JSON file names for vehicle model, tire models, and (simple) powertrain
 std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 std::string rigidtire_file("generic/tire/RigidTire.json");
 std::string lugretire_file("generic/tire/LugreTire.json");
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
-std::string controller_file("generic/driver/SteeringController.json");
-std::string path_file("pathS.txt");
 
-// Initial vehicle position
+// Initial vehicle location and orientation
 ChVector<> initLoc(-125, -125, 0.6);
-
-// Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
-// ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-// ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-// ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-// ChQuaternion<> initRot(0, 0, 0, 1);
+
+// Desired vehicle speed (m/s)
+double target_speed = 12;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -70,6 +72,9 @@ double terrainWidth = 300.0;   // size in Y direction
 
 // Simulation step size
 double step_size = 2e-3;
+
+// Render FPS
+double fps = 60;
 
 // Point on chassis tracked by the chase camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
@@ -160,7 +165,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.GetChassis()->SetBodyFixed(true);
 
     // Create the terrain
-    RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.9);
+    RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.9, GetChronoDataFile("textures/tile4.jpg"), 200, 200);
 
     // Create and initialize the powertrain system
     SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
@@ -176,7 +181,7 @@ int main(int argc, char* argv[]) {
         case RIGID: {
             std::vector<ChSharedPtr<RigidTire> > tires_rigid(num_wheels);
             for (int i = 0; i < num_wheels; i++) {
-                tires_rigid[i] = ChSharedPtr<RigidTire>(new RigidTire(vehicle::GetDataFile(rigidtire_file), terrain));
+                tires_rigid[i] = ChSharedPtr<RigidTire>(new RigidTire(vehicle::GetDataFile(rigidtire_file)));
                 tires_rigid[i]->Initialize(vehicle.GetWheelBody(i));
                 tires[i] = tires_rigid[i];
             }
@@ -185,7 +190,7 @@ int main(int argc, char* argv[]) {
         case LUGRE: {
             std::vector<ChSharedPtr<LugreTire> > tires_lugre(num_wheels);
             for (int i = 0; i < num_wheels; i++) {
-                tires_lugre[i] = ChSharedPtr<LugreTire>(new LugreTire(vehicle::GetDataFile(lugretire_file), terrain));
+                tires_lugre[i] = ChSharedPtr<LugreTire>(new LugreTire(vehicle::GetDataFile(lugretire_file)));
                 tires_lugre[i]->Initialize(vehicle.GetWheelBody(i));
                 tires[i] = tires_lugre[i];
             }
@@ -213,9 +218,11 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChVehicleIrrApp app(vehicle, powertrain, L"Steering Controller Demo");
+    ChVehicleIrrApp app(vehicle, powertrain, L"Steering Controller Demo", irr::core::dimension2d<irr::u32>(800, 640));
 
+    app.SetHUDLocation(500, 20);
     app.SetSkyBox();
+    app.AddTypicalLogo();
     app.AddTypicalLights(irr::core::vector3df(-150.f, -150.f, 200.f), irr::core::vector3df(-150.f, 150.f, 200.f), 100, 100);
     app.AddTypicalLights(irr::core::vector3df(150.f, -150.f, 200.f), irr::core::vector3df(150.0f, 150.f, 200.f), 100, 100);
     app.EnableGrid(false);
@@ -241,12 +248,14 @@ int main(int argc, char* argv[]) {
 
     /*
     Generic_PathFollowerDriver driver_follower(vehicle, path);
-    driver_follower.GetSteeringController().SetLookAheadDistance(20);
+    driver_follower.GetSteeringController().SetLookAheadDistance(5);
     driver_follower.GetSteeringController().SetGains(0.5, 0, 0);
+    driver_follower.GetSpeedController().SetGains(0.4, 0, 0);
     */
-    Generic_PathFollowerDriver driver_follower(vehicle, vehicle::GetDataFile(controller_file), path);
+    Generic_PathFollowerDriver driver_follower(vehicle, vehicle::GetDataFile(steering_controller_file),
+                                               vehicle::GetDataFile(speed_controller_file), path);
 
-    driver_follower.Reset();
+    driver_follower.SetDesiredSpeed(target_speed);
 
     // Create and register a custom Irrlicht event receiver to allow selecting the
     // current driver model.
@@ -267,6 +276,9 @@ int main(int argc, char* argv[]) {
     double braking_input;
 
     ChRealtimeStepTimer realtime_timer;
+    double render_step_size = 1 / fps;
+    int render_steps = (int)std::ceil(render_step_size / step_size);
+    int step_number = 0;
 
     while (app.GetDevice()->run()) {
         // Update sentinel and target location markers for the path-follower controller.
@@ -277,9 +289,11 @@ int main(int argc, char* argv[]) {
         ballT->setPosition(irr::core::vector3df(pT.x, pT.y, pT.z));
 
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
+        if (step_number % render_steps == 0) {
+            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.DrawAll();
+            app.EndScene();
+        }
 
         // Collect output data from modules (for inter-module communication)
         throttle_input = selector.GetDriver()->GetThrottle();
@@ -300,7 +314,7 @@ int main(int argc, char* argv[]) {
         vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Update(time);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Update(time, wheel_states[i]);
+            tires[i]->Update(time, wheel_states[i], terrain);
         std::string msg = selector.UsingGUI() ? "GUI driver" : "Follower driver";
         app.Update(msg, steering_input, throttle_input, braking_input);
 
@@ -314,6 +328,9 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < num_wheels; i++)
             tires[i]->Advance(step);
         app.Advance(step);
+
+        // Increment step number
+        step_number++;
     }
 
     return 0;

@@ -64,7 +64,7 @@ int main(){
 
 	matCSR3_1(2,2 ) = 5;
 
-	matCSR3_1.Compress(true);
+	matCSR3_1.Compress();
 	
 	for (int i = 0; i < m; i++)
 	{
@@ -112,40 +112,52 @@ int main(){
 	
 
 	///////////////////////////////////
-	std::cout << std::endl << "//////////// Comparison MKL Pardiso: different precisions //////////////";
-	n = 540;
-	ChCSR3Matrix matCSR3_prec12(n, n);
-	ChCSR3Matrix matCSR3_prec24(n, n);
-	ChMatrixDynamic<double> rhs(n, 1);
-	ChMatrixDynamic<double> solution_vector_prec12(n, 1);
-	ChMatrixDynamic<double> solution_vector_prec24(n, 1);
+	std::cout << std::endl << "//////////// Simple ChMklEngine call //////////////" << std::endl;
+	std::cout << "This example should give the same results as examples_core_c/solverc/pardiso_unsym_c.c";
 
-	matCSR3_prec12.ImportFromDatFile("./prec12/");
-	matCSR3_prec24.ImportFromDatFile("./prec24/");
-	LoadFromMatrix(rhs, "rhs_chrono24.dat");
+	// This demo should reply the same result of sample "pardiso_unsym_c.c" in "examples_core_c/solverc"
+	// those should be the values of the 3 arrays of matCSR3
+	// int ia[6] = {       0,                3,          5,                8,               11,           13 };
+	// int ja[13] ={       0,    1,    3,    0,    1,    2,    3,    4,    0,    2,    3,    1,    4  };
+	// double a[13] =  {  1.0, -1.0, -3.0, -2.0,  5.0,  4.0,  6.0,  4.0, -4.0,  2.0,  7.0,  8.0, -5.0 };
+
+
+	n = 5;
+	ChCSR3Matrix matCSR3(n, n);
+	ChMatrixDynamic<double> rhs(n, 1);
+	ChMatrixDynamic<double> sol(n, 1);
+
+	matCSR3.SetElement(0, 0,  1.0);
+	matCSR3.SetElement(0, 1, -1.0);
+	matCSR3.SetElement(0, 3, -3.0);
+	matCSR3.SetElement(1, 0, -2.0);
+	matCSR3.SetElement(1, 1,  5.0);
+	matCSR3.SetElement(2, 2,  4.0);
+	matCSR3.SetElement(2, 3,  6.0);
+	matCSR3.SetElement(2, 4,  4.0);
+	matCSR3.SetElement(3, 0, -4.0);
+	matCSR3.SetElement(3, 2,  2.0);
+	matCSR3.SetElement(3, 3,  7.0);
+	matCSR3.SetElement(4, 1,  8.0);
+	matCSR3.SetElement(4, 4, -5.0);
+
+	for (int cont = 0; cont < n; cont++)
+		rhs(cont, 0) = 1.0;
+
 
 	// Solve with Pardiso Sparse Direct Solver
-	ChMklEngine pardiso_solver_prec12(n, 11);
-	ChMklEngine pardiso_solver_prec24(n, 11);
-	matCSR3_prec12.Compress();
-	matCSR3_prec24.Compress();
-	pardiso_solver_prec12.SetProblem(matCSR3_prec12, rhs, solution_vector_prec12);
-	pardiso_solver_prec24.SetProblem(matCSR3_prec24, rhs, solution_vector_prec24);
+	ChMklEngine pardiso_solver(n, 11);
+	matCSR3.Compress();
+	pardiso_solver.SetProblem(matCSR3, rhs, sol);
 
-	int pardiso_message = pardiso_solver_prec12.PardisoCall(13,0);
-	printf("\nPardiso prec12 exited with code: %d", pardiso_message);
-	pardiso_message = pardiso_solver_prec24.PardisoCall(13, 0);
-	printf("\nPardiso prec24 exited with code: %d", pardiso_message);
+	int pardiso_message = pardiso_solver.PardisoCall(13, 0);
+	printf("\nPardiso exited with code: %d", pardiso_message);
 
 	// Print statistics
-	ChMatrixDynamic<double> residual_prec12(n, 1);
-	ChMatrixDynamic<double> residual_prec24(n, 1);
-	pardiso_solver_prec12.GetResidual(residual_prec12);
-	pardiso_solver_prec24.GetResidual(residual_prec24);
-	double residual_norm_prec12 = pardiso_solver_prec12.GetResidualNorm(residual_prec12);
-	double residual_norm_prec24 = pardiso_solver_prec24.GetResidualNorm(residual_prec24);
-	GetLog() << "\nResidual norm prec12: " << residual_norm_prec12;
-	GetLog() << "\nResidual norm prec24: " << residual_norm_prec24;
+	ChMatrixDynamic<double> res(n, 1);
+	pardiso_solver.GetResidual(res);
+	double res_norm = pardiso_solver.GetResidualNorm(res);
+	GetLog() << "\nResidual Norm: " << res_norm;
 
 	getchar();
 

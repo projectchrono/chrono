@@ -35,7 +35,7 @@ const std::string pacParamFile = vehicle::GetDataFile("hmmwv/pactest.tir");
 // -----------------------------------------------------------------------------
 // Process the specified wheel state using two different ChPacejkaTire functions
 // -----------------------------------------------------------------------------
-void processState(ChSharedPtr<ChPacejkaTire> tire, const ChWheelState& state) {
+void processState(ChSharedPtr<ChPacejkaTire> tire, const ChWheelState& state, const ChTerrain& terrain) {
     cout << "--------------------------------------------------" << endl;
     cout << "Position:     " << state.pos.x << "  " << state.pos.y << "  " << state.pos.z << endl;
     cout << "Orientation:  " << state.rot.e0 << "  " << state.rot.e1 << "  " << state.rot.e2 << "  " << state.rot.e3
@@ -44,7 +44,7 @@ void processState(ChSharedPtr<ChPacejkaTire> tire, const ChWheelState& state) {
     cout << "Angular vel.: " << state.ang_vel.x << "  " << state.ang_vel.y << "  " << state.ang_vel.z << endl;
     cout << "Wheel omega:  " << state.omega << endl << endl;
 
-    tire->Update(0, state);
+    tire->Update(0, state, terrain);
     double kappa = tire->get_kappa();
     double alpha = tire->get_alpha();
     double gamma = tire->get_gamma();
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     FlatTerrain flat_terrain(0);
 
     // Create a Pacejka tire
-    ChSharedPtr<ChPacejkaTire> tire(new ChPacejkaTire("TEST", pacParamFile, flat_terrain));
+    ChSharedPtr<ChPacejkaTire> tire(new ChPacejkaTire("TEST", pacParamFile));
     tire->Initialize(ChVehicleSide::LEFT, false);
 
     // Create different wheel state and let the tire process them
@@ -80,14 +80,14 @@ int main(int argc, char* argv[]) {
         state.ang_vel = 5.0 * rot.GetYaxis();                // ||omega|| = 5
         state.omega = +5;                                    // omega > 0, wheel moves forward
 
-        processState(tire, state);
+        processState(tire, state, flat_terrain);
     }
 
     {
         // Test the utility function getState_from_KAG
         ChWheelState state = tire->getState_from_KAG(tire->get_kappa(), tire->get_alpha(), tire->get_gamma(), 10);
 
-        processState(tire, state);
+        processState(tire, state, flat_terrain);
     }
 
     {
@@ -103,14 +103,14 @@ int main(int argc, char* argv[]) {
         state.ang_vel = 5.0 * rot.GetYaxis();   // ||omega|| = 5
         state.omega = +5;                       // omega > 0, wheel moves forward
 
-        processState(tire, state);
+        processState(tire, state, flat_terrain);
     }
 
     {
         // Test the utility function getState_from_KAG
         ChWheelState state = tire->getState_from_KAG(tire->get_kappa(), tire->get_alpha(), tire->get_gamma(), 10);
 
-        processState(tire, state);
+        processState(tire, state, flat_terrain);
     }
 
     return 0;

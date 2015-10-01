@@ -28,7 +28,8 @@ enum VisualizationType {
 enum TireModelType {
   RIGID,
   PACEJKA,
-  LUGRE
+  LUGRE,
+  FIALA
 };
 
 enum PowertrainModelType {

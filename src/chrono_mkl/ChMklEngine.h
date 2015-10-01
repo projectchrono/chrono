@@ -77,9 +77,6 @@ namespace chrono
 		MKL_INT mnum;           // 1<=mnum<=maxfct : which factorizations to use; usually 1
 
 		// Auxiliary variables
-		int rhs_dimension;
-		int sol_dimension;
-		bool consistency_check; //< enables dimension consistency check
 		int last_phase_called;
 
 	public:
@@ -97,11 +94,11 @@ namespace chrono
 		void SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex);
 
 		void SetSolutionVector(ChMatrix<>& insx);
-		void SetSolutionVector(double* insx){ x = insx;  consistency_check = false; }
+		void SetSolutionVector(double* insx);
 
-		void SetKnownVector(ChMatrix<>& insb);
+		void SetKnownVector(ChMatrix<>& insb) { b = insb.GetAddress(); }
 		void SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest);
-		void SetKnownVector(double* insb){ b = insb; consistency_check = false; }
+		void SetKnownVector(double* insb){ b = insb;}
 
 		void SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx);
 
@@ -111,15 +108,14 @@ namespace chrono
 		void SetProblemSize(int new_size) { n = new_size; }
 
 		// Output functions
-		void GetResidual(double* res) const;
-		void GetResidual(ChMatrix<>& res) const { GetResidual(res.GetAddress()); }
+		void GetResidual(double* res);
+		void GetResidual(ChMatrix<>& res) { GetResidual(res.GetAddress()); }
 		double GetResidualNorm(double* res) const;
 		double GetResidualNorm(ChMatrix<>& res) const { return GetResidualNorm(res.GetAddress()); }
 
 		// Auxiliary functions
 		int* GetIparmAddress(){ return iparm; }
 		void PrintIparmOutput();
-		void SetConsistencyCheck(bool input){ consistency_check = input; }
 
 	}; // ChMklEngine
 

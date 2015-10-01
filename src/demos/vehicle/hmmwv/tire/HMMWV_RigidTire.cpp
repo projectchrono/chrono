@@ -31,16 +31,9 @@ static const double in2m = 0.0254;
 const double HMMWV_RigidTire::m_radius = 18.5 * in2m;
 const double HMMWV_RigidTire::m_width = 10 * in2m;
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name,
-                                 const ChTerrain&   terrain,
-                                 float              mu)
-: ChRigidTire(name, terrain),
-  m_mu(mu)
-{
+HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name, float mu) : ChRigidTire(name), m_mu(mu) {
 }
 
-
-} // end namespace hmmwv
+}  // end namespace hmmwv

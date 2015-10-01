@@ -101,8 +101,9 @@ class CH_VEHICLE_API ChSteeringController {
 
     /// Reset the PID controller.
     /// This function must be called at a configuration where a valid location
-    /// for the sentinel point can be calculated.  the default implementation
-    /// in the base class simply calculates the new sentinel point location.
+    /// for the sentinel point can be calculated.  The default implementation
+    /// in the base class simply calculates the new sentinel point location and
+    /// sets all errors to 0.
     virtual void Reset(const ChVehicle& vehicle);
 
     /// Advance the state of the PID controller.

@@ -37,15 +37,15 @@ namespace chrono {
 class CH_VEHICLE_API RigidTerrain : public ChTerrain
 {
 public:
-
-  RigidTerrain(
-    chrono::ChSystem*  system,   ///< [in] pointer to the containing multibody system
-    double             height,   ///< [in] terrain height
-    double             sizeX,    ///< [in] terrain dimension in the X direction
-    double             sizeY,    ///< [in] terrain dimension in the Y direction
-    double             mu,        ///< [in] coefficient of friction
-    const std::string  road_file = "none"
-    );
+  RigidTerrain(chrono::ChSystem* system,             ///< [in] pointer to the containing multibody system
+               double height,                        ///< [in] terrain height
+               double sizeX,                         ///< [in] terrain dimension in the X direction
+               double sizeY,                         ///< [in] terrain dimension in the Y direction
+               double mu,                            ///< [in] coefficient of friction
+               const std::string tex_file = "none",  ///< [in] texture filename
+               float tex_scale_x = 1,                ///< [in] texture scale in X
+               float tex_scale_y = 1                 ///< [in] texture scale in Y
+               );
 
   ~RigidTerrain() {}
 

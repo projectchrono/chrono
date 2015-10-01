@@ -35,109 +35,96 @@ namespace chrono {
 ///
 /// Fiala based tire model.
 ///
-class CH_VEHICLE_API ChFialaTire : public ChTire
-{
-public:
+class CH_VEHICLE_API ChFialaTire : public ChTire {
+  public:
+    ChFialaTire(const std::string& name  ///< [in] name of this tire system
+                );
 
-  ChFialaTire(
-    const std::string& name,     ///< [in] name of this tire system
-    const ChTerrain&   terrain   ///< [in] reference to the terrain system
-    );
+    virtual ~ChFialaTire() {}
 
-  virtual ~ChFialaTire() {}
+    /// Initialize this tire system.
+    void Initialize();
 
-  /// Initialize this tire system.
-  void Initialize();
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual ChTireForce GetTireForce() const override { return m_tireforce; }
 
-  /// Initialize this tire system and enable visualization of the discs.
-  void Initialize(
-    ChSharedPtr<ChBody> wheel   ///< handle to the associated wheel body
-    );
+    /// Update the state of this tire system at the current time.
+    /// The tire system is provided the current state of its associated wheel.
+    virtual void Update(double time,                      ///< [in] current time
+                        const ChWheelState& wheel_state,  ///< [in] current state of associated wheel body
+                        const ChTerrain& terrain          ///< [in] reference to the terrain system
+                        ) override;
 
-  /// Get the tire force and moment.
-  /// This represents the output from this tire system that is passed to the
-  /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
-  /// to the appropriate suspension subsystem which applies it as an external
-  /// force one the wheel body.
-  virtual ChTireForce GetTireForce() const { return m_tireforce; }
+    /// Advance the state of this tire by the specified time step.
+    virtual void Advance(double step) override;
 
-  /// Update the state of this tire system at the current time.
-  /// The tire system is provided the current state of its associated wheel.
-  virtual void Update(
-    double               time,          ///< [in] current time
-    const ChWheelState&  wheel_state    ///< [in] current state of associated wheel body
-    );
+    /// Set the value of the integration step size for the underlying dynamics.
+    void SetStepsize(double val) { m_stepsize = val; }
 
-  /// Advance the state of this tire by the specified time step.
-  virtual void Advance(double step);
+    /// Get the current value of the integration step size.
+    double GetStepsize() const { return m_stepsize; }
 
-  /// Set the value of the integration step size for the underlying dynamics.
-  void SetStepsize(double val) { m_stepsize = val; }
+    /// Get the unloaded radius of the tire
+    double GetUnloadedRadius() const { return m_unloaded_radius; }
 
-  /// Get the current value of the integration step size.
-  double GetStepsize() const { return m_stepsize; }
+    /// Get the width of the tire
+    double GetWidth() const { return m_width; }
 
-  /// Get the unloaded radius of the tire
-  double GetUnloadedRadius() const { return m_unloaded_radius; }
+    // Temporary debug methods
+    double GetKappa() const { return m_states.cp_long_slip; }
+    double GetAlpha() const { return m_states.cp_side_slip; }
 
-  /// Get the width of the tire
-  double GetWidth() const { return m_width; }
+  protected:
+    /// Return the vertical tire stiffness (for normal force calculation).
+    virtual double getNormalStiffnessForce(double depth) const = 0;
+    /// Return the vertical tire damping coefficient (for normal force calculation).
+    virtual double getNormalDampingForce(double depth, double velocity) const = 0;
 
-  //Temporary debug methods
-  double GetKappa() const {return m_states.cp_long_slip;}
-  double GetAlpha() const {return m_states.cp_side_slip;}
- 
-protected:
+    /// Set the parameters in the Fiala model.
+    virtual void SetFialaParams() = 0;
 
-  /// Return the vertical tire stiffness (for normal force calculation).
-  virtual double getNormalStiffness(double depth) const = 0;
-  /// Return the vertical tire damping coefficient (for normal force calculation).
-  virtual double getNormalDamping(double depth) const = 0;
+    /// Fiala tire model parameters
+    double m_unloaded_radius;
+    double m_width;
+    double m_rolling_resistance;
+    double m_c_slip;
+    double m_c_alpha;
+    double m_u_min;
+    double m_u_max;
+    double m_relax_length_x;
+    double m_relax_length_y;
 
-  /// Set the parameters in the Fiala model.
-  virtual void SetFialaParams() = 0;
+  private:
+    double m_stepsize;
 
-  /// Fiala tire model parameters
-  double   m_unloaded_radius;
-  double   m_width;
-  double   m_rolling_resistance;
-  double   m_c_slip;
-  double   m_c_alpha;
-  double   m_u_min;
-  double   m_u_max;
-  double   m_relax_length_x;
-  double   m_relax_length_y;
+    struct ContactData {
+        bool in_contact;      // true if disc in contact with terrain
+        ChCoordsys<> frame;   // contact frame (x: long, y: lat, z: normal)
+        ChVector<> vel;       // relative velocity expressed in contact frame
+        double normal_force;  // magnitude of normal contact force
+        double depth;         // penetration depth
+    };
 
-private:
+    struct TireStates {
+        double cp_long_slip;  // Contact Path - Longitudinal Slip State (Kappa)
+        double cp_side_slip;  // Contact Path - Side Slip State (Alpha)
+        double abs_vx;  // Longitudinal speed
+        double vsx;  // Longitudinal slip velocity
+        double vsy;  // Lateral slip velocity = Lateral velocity
+        double omega;  // Wheel angular velocity about its spin axis (temporary for debug)
+        ChVector<> disc_normal;  //(temporary for debug)
+    };
 
-  double  m_stepsize;
+    ContactData m_data;
+    TireStates m_states;
 
-  struct ContactData {
-    bool         in_contact;     // true if disc in contact with terrain
-    ChCoordsys<> frame;          // contact frame (x: long, y: lat, z: normal)
-    ChVector<>   vel;            // relative velocity expressed in contact frame
-    double       normal_force;   // magnitude of normal contact force
-    double       depth;          // penetration depth
-  };
-
-  struct TireStates {
-    double  cp_long_slip;   //Contact Path - Longitudinal Slip State (Kappa)
-    double  cp_side_slip;   //Contact Path - Side Slip State (Alpha)
-    double  abs_vx;         //Longitudinal speed
-    double  vsx;            //Longitudinal slip velocity
-    double  vsy;            //Lateral slip velocity = Lateral velocity
-    double  omega;          //Wheel angular velocity about its spin axis (temporary for debug)
-    ChVector<> disc_normal; //(temporary for debug)
-  };
-
-  ContactData  m_data;
-  TireStates   m_states;
-
-  ChTireForce  m_tireforce;
+    ChTireForce m_tireforce;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif

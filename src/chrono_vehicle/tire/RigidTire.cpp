@@ -17,7 +17,6 @@
 // =============================================================================
 
 #include "chrono_vehicle/tire/RigidTire.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "thirdparty/rapidjson/filereadstream.h"
 
@@ -25,46 +24,39 @@ using namespace rapidjson;
 
 namespace chrono {
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-RigidTire::RigidTire(const std::string&       filename,
-                     const chrono::ChTerrain& terrain)
-: ChRigidTire("", terrain)
-{
-  FILE* fp = fopen(filename.c_str(), "r");
+RigidTire::RigidTire(const std::string& filename) : ChRigidTire("") {
+    FILE* fp = fopen(filename.c_str(), "r");
 
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    char readBuffer[65536];
+    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
-  fclose(fp);
+    fclose(fp);
 
-  Document d;
-  d.ParseStream(is);
+    Document d;
+    d.ParseStream(is);
 
-  Create(d);
+    Create(d);
+
+    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-RigidTire::RigidTire(const rapidjson::Document& d,
-                     const chrono::ChTerrain&   terrain)
-: ChRigidTire("", terrain)
-{
-  Create(d);
+RigidTire::RigidTire(const rapidjson::Document& d) : ChRigidTire("") {
+    Create(d);
 }
 
-void RigidTire::Create(const rapidjson::Document& d)
-{
-  // Read top-level data
-  assert(d.HasMember("Type"));
-  assert(d.HasMember("Template"));
-  assert(d.HasMember("Name"));
+void RigidTire::Create(const rapidjson::Document& d) {
+    // Read top-level data
+    assert(d.HasMember("Type"));
+    assert(d.HasMember("Template"));
+    assert(d.HasMember("Name"));
 
-  SetName(d["Name"].GetString());
+    SetName(d["Name"].GetString());
 
-  m_mu = d["Coefficient of Friction"].GetDouble();
-  m_radius = d["Radius"].GetDouble();
-  m_width = d["Width"].GetDouble();
+    m_mu = d["Coefficient of Friction"].GetDouble();
+    m_radius = d["Radius"].GetDouble();
+    m_width = d["Width"].GetDouble();
 }
-
 
 }  // end namespace chrono

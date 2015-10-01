@@ -3,6 +3,7 @@
 
 namespace chrono
 {
+
 	/** \brief It calls Intel MKL Pardiso Sparse Direct Solver.
 	*
 	*	On the first call the routine resets the matrix and vectors involved to the size of the current problem.
@@ -10,25 +11,39 @@ namespace chrono
 	*	If the sparsity pattern lock is turned on then the matrix will try, as long as possible, to preserve not only the arrays dimensions,
 	*	but it also keeps column and row indexes through different calls.
 	*/
+
+	ChLcpMklSolver::ChLcpMklSolver():
+		solver_call(0),
+		matCSR3(1, 1, 1),
+		mkl_engine(1, 11),
+		n(0),
+		size_lock(true),
+		sparsity_pattern_lock(true),
+		print_residual(true)
+	{
+		SetSparsityPatternLock(true);
+	}
+
 	double ChLcpMklSolver::Solve(ChLcpSystemDescriptor& sysd) ///< system description with constraints and variables
 	{
 		// If it is the first call of the solver, the matrix and vectors are reshaped to adapt to the problem.
 		if (solver_call == 0 || !size_lock)
 		{
-			int n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
+			n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
 			matCSR3.Reset(n, n, static_cast<int>(n*n*SPM_DEF_FULLNESS));
-			sol.Reset(n, 1);
-			res.Reset(n, 1);
+			sol.Resize(n, 1);
 		}
 			
 
 		// Build matrix and rhs
 		sysd.ConvertToMatrixForm(&matCSR3, &rhs);
 
+
 		// the compression is needed only on first call or when the supposed-fixed sparsity pattern has to be modified;
 		// and always if the sparsity pattern lock is not turned on
+
 		if (!sparsity_pattern_lock || solver_call == 0 || matCSR3.IsRowIndexLockBroken() || matCSR3.IsColIndexLockBroken() )
-			matCSR3.Compress(false);
+			matCSR3.Compress();
 
 		// the sparsity pattern lock is turned on only after the first iteration when the matrix is built at least one time
 		if (solver_call == 0)
@@ -46,11 +61,17 @@ namespace chrono
 			printf("\nPardiso exited with code: %d", pardiso_message);
 			printf("\nMatrix verification returned: %d\n", matCSR3.VerifyMatrix());
 		}
+		printf("\nPardisoCall: %d; ", solver_call);
 
 		// Get residual
-		mkl_engine.GetResidual(res);
-		res_norm = mkl_engine.GetResidualNorm(res);
-		std::cout << "\nCall: " << solver_call << "; Residual norm: " << res_norm;
+		if (print_residual)
+		{
+			res.Resize(n, 1);
+			mkl_engine.GetResidual(res);
+			double res_norm = mkl_engine.GetResidualNorm(res);
+			printf("ResNorm: %e", res_norm);
+		}
+
 
 		sysd.FromVectorToUnknowns(sol);
 

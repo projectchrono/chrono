@@ -33,7 +33,9 @@ RigidTerrain::RigidTerrain(ChSystem*         system,
                            double            sizeX,
                            double            sizeY,
                            double            mu,
-                           const std::string road_file)
+                           const std::string tex_file,
+                           float             tex_scale_x,
+                           float             tex_scale_y)
 : m_system(system),
   m_height(height),
   m_sizeX(sizeX),
@@ -49,13 +51,14 @@ RigidTerrain::RigidTerrain(ChSystem*         system,
   ground->SetBodyFixed(true);
 
   // if the user did not specify a texture to use for the ground
-  if(road_file == "none"){
+  if(tex_file == "none"){
     ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
     groundColor->SetColor(ChColor(0.4f, 0.4f, 0.6f));
     ground->AddAsset(groundColor);
   } else {
     ChSharedPtr<ChTexture> groundTexture(new ChTexture);
-    groundTexture->SetTextureFilename(vehicle::GetDataFile(road_file));
+    groundTexture->SetTextureFilename(tex_file);
+    groundTexture->SetTextureScale(tex_scale_x, tex_scale_y);
     ground->AddAsset(groundTexture);
   }
 

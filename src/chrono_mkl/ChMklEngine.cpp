@@ -57,14 +57,9 @@ namespace chrono
 		IPARM(31) = 0;				/* ADV Partial solve and computing selected components of the solution vectors [def:0, disable]*/
 		IPARM(34) = 0;				/* ADV Optimal number of threads for conditional numerical reproducibility (CNR) mode [def:0, disable]*/
 		
-
-		a = nullptr;	ia = nullptr;	ja = nullptr;	b = nullptr;	x = nullptr;	perm = nullptr;
+		a = nullptr; ia = nullptr; ja = nullptr; perm = nullptr; b = nullptr; x = nullptr;
 
 		last_phase_called = -1;
-		// reset consistencies to their default
-		rhs_dimension = 0;
-		sol_dimension = 0;
-		consistency_check = false;
 
 		// Currently only one rhs is supported
 		nrhs = 1;				/* Number of KnownVectors */
@@ -97,13 +92,11 @@ namespace chrono
 
 	void ChMklEngine::SetSolutionVector(ChMatrix<>& insx){
 		x = insx.GetAddress();
-		sol_dimension = insx.GetRows();
 	}
 
-	void ChMklEngine::SetKnownVector(ChMatrix<>& insb)
+	void ChMklEngine::SetSolutionVector(double* insx)
 	{
-		b = insb.GetAddress();
-		rhs_dimension = insb.GetRows();
+		x = insx;
 	}
 
 	void ChMklEngine::SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest){
@@ -134,9 +127,6 @@ namespace chrono
 			assert(!IPARM(36));
 		}
 
-		if (consistency_check && (rhs_dimension!=n || sol_dimension !=n))
-			return +1;
-
 		int error;
 		last_phase_called = set_phase;
 		int phase_now = set_phase;
@@ -152,7 +142,7 @@ namespace chrono
 		IPARM(35) = 1;
 	}
 
-	void ChMklEngine::GetResidual(double* res) const {
+	void ChMklEngine::GetResidual(double* res) {
 		mkl_cspblas_dcsrgemv("N", &n, a, ia, ja, x, res); // performs Matrix*Solution
 		for (int i = 0; i < n; i++){
 			res[i] = b[i] - res[i];	// performs: rhs - Matrix*Solution
