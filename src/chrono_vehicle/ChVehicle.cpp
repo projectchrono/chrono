@@ -113,6 +113,12 @@ void ChVehicle::Advance(double step)
   }
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChVector<> ChVehicle::GetVehicleAcceleration(const ChVector<>& locpos) const {
+    ChVector<> acc_abs = m_chassis->GetFrame_REF_to_abs().PointAccelerationLocalToParent(locpos);
+    return m_chassis->GetFrame_REF_to_abs().TransformDirectionParentToLocal(acc_abs);
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

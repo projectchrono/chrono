@@ -99,6 +99,11 @@ public:
   /// Return the speed measured at the chassis center of mass.
   double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
 
+  /// Get the acceleration at the specified point.
+  /// The point is assumed to be given relative to the chassis reference frame.
+  /// The returned acceleration is expressed in the chassis reference frame.
+  ChVector<> GetVehicleAcceleration(const ChVector<>& locpos) const;
+
   /// Return the number of axles for this vehicle.
   virtual int GetNumberAxles() const = 0;
 
