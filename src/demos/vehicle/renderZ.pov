@@ -56,7 +56,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
 #declare global_frame_len = 10;
 
 // Draw body frames?
-#declare draw_body_frame = true;
+#declare draw_body_frame = false;
 #declare body_frame_radius = 0.004;
 #declare body_frame_len = 0.3;
 
@@ -298,13 +298,11 @@ global_settings { ambient_light rgb<1, 1, 1> }
 // NOTES:
 //   (1) It is assumed that a file [mesh_name].inc exists in the search path
 //   (2) This file must define a macro "mesh_name()" which returns a mesh object
-//       the input argument is the color for the mesh
-//   (3) It is assumed that the mesh vertices are specified in a RIGHT-HAND-FRAME
-//       with Z up.
+//   (3) The mesh vertices are specified in a RIGHT-HAND-FRAME with Z up.
 //
 // Use as:
 //    object {
-//       MyMesh(mesh_name, pos, rot, col)
+//       MyMesh(mesh_name, pos, rot)
 //       [object_modifiers]
 //    }
 //
@@ -314,6 +312,24 @@ global_settings { ambient_light rgb<1, 1, 1> }
 #end   
   
   
+// --------------------------------------------------------------------------------------------          
+// Render a curve at specified location and with specified orientation
+//
+// NOTES:
+//    (1) It is assumed that a file [curve_name].inc exists in the search path
+//    (2) This file muct define a macro "curve_name()" which return an object
+//
+// Use as:
+//    object {
+//       MyCurve(curve_name, pos, rot)
+//       [object_modifiers]
+//    }
+//
+#macro MyCurve(curve_name, pos, rot)
+    Parse_String(concat("#include \"", curve_name,"\""))
+    Parse_String(concat(curve_name, " position(pos,rot)"))
+#end
+
 
 // ============================================================================================
 //
@@ -355,28 +371,27 @@ global_settings { ambient_light rgb<1, 1, 1> }
         #case (0)
             # read (MyDataFile, ar)  
             #if (render_objects & (active | render_static))
-			    sphere {
-				    <0,0,0>, ar
-					position(<ax,ay,az>,<e0,e1,e2,e3>)
-					pigment {color rgbt <cR, cG, cB, 0> }
-					finish {diffuse 1 ambient 0.0 specular .05 } 
-				}  
+			         sphere {
+				         <0,0,0>, ar
+					       position(<ax,ay,az>,<e0,e1,e2,e3>)
+					       pigment {color rgbt <cR, cG, cB, 0> }
+					       finish {diffuse 1 ambient 0.0 specular .05 } 
+				       }   
             #end                                             
         #break     
               
         // box ----------------
         #case (2)
-            #read (MyDataFile, hx, hy, hz)
-			#if (render_objects & (active | render_static))  
-				box {   
-				    <-hx, -hz, -hy>, 
-					<hx, hz, hy>     
-					position(<ax,ay,az>,<e0,e1,e2,e3>)
-					pigment {color rgbt <cR, cG, cB, 0>}
-					finish {diffuse 1 ambient 0.0 specular .05 } 
-				}   
-			#end
-                                                                      
+           #read (MyDataFile, hx, hy, hz)
+			     #if (render_objects & (active | render_static))  
+				      box {   
+				        <-hx, -hz, -hy>, 
+					      <hx, hz, hy>     
+					      position(<ax,ay,az>,<e0,e1,e2,e3>)
+					      pigment {color rgbt <cR, cG, cB, 0>}
+					      finish {diffuse 1 ambient 0.0 specular .05 } 
+				      }   
+			     #end                                                           
         #break
               
         // cylinder --------------
@@ -385,58 +400,64 @@ global_settings { ambient_light rgb<1, 1, 1> }
             #if (p1x = p2x & p1y = p2y & p1z = p2z) 
                  #warning concat("DEGENERATE CYLINDER : ",  str(id,-3,0), "\n")
             #end
-			#if (render_objects & (active | render_static))
-				cylinder {
-			        <p1x,p1z,p1y>, <p2x,p2z,p2y>, ar      
-					pigment {color rgbt <cR, cG, cB, 0> transmit 0}
-					position(<ax,ay,az>,<e0,e1,e2,e3>)     
-					finish {diffuse 1 ambient 0.0 specular .05 }
-				}   
-			#end
+			      #if (render_objects & (active | render_static))
+				       cylinder {
+			           <p1x,p1z,p1y>, <p2x,p2z,p2y>, ar      
+					       pigment {color rgbt <cR, cG, cB, 0> transmit 0}
+					       position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					       finish {diffuse 1 ambient 0.0 specular .05 }
+				       }   
+			      #end
         #break
          
         // rounded cylinder --------------
         #case (10)
             #read (MyDataFile, ar, hl, sr)
-			#if (render_objects & (active | render_static))
-				object {
-			        Round_Cylinder(<0,0,hl + sr>, <0,0,-hl - sr>, ar+sr, sr, 0)     
-					pigment {color rgbt <cR, cG, cB, 0> }
-					position(<ax,ay,az>,<e0,e1,e2,e3>)     
-					finish {diffuse 1 ambient 0.0 specular .05 }
-				}   
-			#end
+			      #if (render_objects & (active | render_static))
+				       object {
+			           Round_Cylinder(<0,0,hl + sr>, <0,0,-hl - sr>, ar+sr, sr, 0)     
+					       pigment {color rgbt <cR, cG, cB, 0> }
+					       position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					       finish {diffuse 1 ambient 0.0 specular .05 }
+				       }   
+			      #end
         #break
 
         // capsule ------------
         #case (7)
             #read (MyDataFile, ar, hl)  
-			#if (render_objects & (active | render_static))
-				sphere_sweep {
-			        linear_spline
-					2
-					<0,0,-hl>,ar,<0,0,hl>,ar
-					pigment {color rgbt <cR, cG, cB, 0> }
-					position(<ax,ay,az>,<e0,e1,e2,e3>)     
-					finish {diffuse 1 ambient 0.0 specular .05 }
-				}
-			#end
+			      #if (render_objects & (active | render_static))
+				       sphere_sweep {
+			           linear_spline
+					       2
+					       <0,0,-hl>,ar,<0,0,hl>,ar
+					       pigment {color rgbt <cR, cG, cB, 0> }
+					       position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					       finish {diffuse 1 ambient 0.0 specular .05 }
+				       }
+			      #end
         #break  
         
         // mesh ----------------
         #case (5)
             #read (MyDataFile, mesh_name)
-			#if (render_objects & (active | render_static))
-			    #warning concat("Mesh name: ", mesh_name, "\n")   
-				object {
-			        MyMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>)     
-			    }
-			#end
-        #break  
+			      #if (render_objects & (active | render_static))
+			         #warning concat("Mesh name: ", mesh_name, "\n")   
+				       object { MyMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>) }
+			      #end
+        #break      
+        
+        // Bezier curve ----------
+        #case (12)
+             #read (MyDataFile, curve_name) 
+             #if (render_objects)
+                #warning concat("Curve name: ", curve_name, "\n")   
+                object { MyCurve(curve_name, <ax,ay,az>,<e0,e1,e2,e3>) } 
+             #end
+        #break
            
     #end  // switch (shape)     
      
-       
 #end  // for objects      
  
         // ---------------------------------------------
@@ -446,7 +467,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
 #if (render_links)                                           
 #for (i, 1, numLinks)                               
               
-    #read (MyDataFile, link)
+  #read (MyDataFile, link)
    
 	#switch (link) 
 	    // Spherical ------
@@ -458,90 +479,88 @@ global_settings { ambient_light rgb<1, 1, 1> }
 			}
 	    #break
 	    
-		// Revolute -------
-		#case (8)
-			#read (MyDataFile, px, py, pz, dx, dy, dz)
-            cylinder {
+		  // Revolute -------
+		  #case (8)
+			    #read (MyDataFile, px, py, pz, dx, dy, dz)
+          cylinder {
                 <px-revolute_halflen*dx,  pz-revolute_halflen*dz, py-revolute_halflen*dy>, 
                 <px+revolute_halflen*dx,  pz+revolute_halflen*dz, py+revolute_halflen*dy>, 
                 revolute_radius   
                 pigment{Bronze2}
-            }
-		#break
+          }
+	    #break
                      
-
-        // Prismatic -------
-		#case (5)
-			#read (MyDataFile, px, py, pz, dx, dy, dz)     
-            cylinder {
+      // Prismatic -------
+		  #case (5)
+			    #read (MyDataFile, px, py, pz, dx, dy, dz)     
+          cylinder {
                 <px-prismatic_halflen*dx,  pz-prismatic_halflen*dz, py-prismatic_halflen*dy>, 
                 <px+prismatic_halflen*dx,  pz+prismatic_halflen*dz, py+prismatic_halflen*dy>, 
                 prismatic_radius   
                 pigment {color Bronze2}
             }
-		#break
+		  #break
 
-        // Universal ----
-        #case (16)
-            #read (MyDataFile, px, py, pz, ux, uy, uz, vx, vy, vz)
-            cylinder {
+      // Universal ----
+      #case (16)
+          #read (MyDataFile, px, py, pz, ux, uy, uz, vx, vy, vz)
+          cylinder {
                 <px-revolute_halflen*ux,  pz-revolute_halflen*uz, py-revolute_halflen*uy>, 
                 <px+revolute_halflen*ux,  pz+revolute_halflen*uz, py+revolute_halflen*uy>, 
                 revolute_radius   
                 pigment{Bronze2}
-            }  
-            cylinder {
+          }  
+          cylinder {
                 <px-revolute_halflen*vx,  pz-revolute_halflen*vz, py-revolute_halflen*vy>, 
                 <px+revolute_halflen*vx,  pz+revolute_halflen*vz, py+revolute_halflen*vy>, 
                 revolute_radius   
                 pigment{Bronze2}
-            }                  
-        #break
+          }                  
+      #break
                      
-		// Linkspring ------
-		#case (25)
-			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
-			cylinder {
-			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius
-			   ////pigment {color Orange }
-			   texture{Peel scale revolute_halflen/2}
-			} 
-			//sphere {<p1x,p1z,p1y> 1.01 * spring_radius pigment{Orange}} 
-			//sphere {<p2x,p2z,p2y> 1.01 * spring_radius pigment{Orange}} 
-		#break
+		  // Linkspring ------
+		  #case (25)
+			    #read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
+			    cylinder {
+			      <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius
+			      ////pigment {color Orange }
+			      texture{Peel scale revolute_halflen/2}
+			    } 
+			    //sphere {<p1x,p1z,p1y> 1.01 * spring_radius pigment{Orange}} 
+			    //sphere {<p2x,p2z,p2y> 1.01 * spring_radius pigment{Orange}} 
+		  #break
   
-  
- 		// LinkspringCB ------
-		#case (30)
-			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
-			cylinder {
-			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius 
-			   ////pigment {color Orange } 
-			   texture{Peel scale revolute_halflen/2}
-			}
-			//sphere {<p1x,p1z,p1y> 1.01 * spring_radius pigment{Orange}} 
-			//sphere {<p2x,p2z,p2y> 1.01 * spring_radius pigment{Orange}} 
-		#break
+ 		  // LinkspringCB ------
+		  #case (30)
+			    #read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
+			    cylinder {
+			      <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius 
+			      ////pigment {color Orange } 
+			      texture{Peel scale revolute_halflen/2}
+			    }
+			    //sphere {<p1x,p1z,p1y> 1.01 * spring_radius pigment{Orange}} 
+			    //sphere {<p2x,p2z,p2y> 1.01 * spring_radius pigment{Orange}} 
+		  #break
 
-		// LinkEngine ------
-		#case (31)
-			#read (MyDataFile, px, py, pz, dx, dy, dz)
-            cylinder {
+		  // LinkEngine ------
+		  #case (31)
+			    #read (MyDataFile, px, py, pz, dx, dy, dz)
+          cylinder {
                 <px-revolute_halflen*dx,  pz-revolute_halflen*dz, py-revolute_halflen*dy>, 
                 <px+revolute_halflen*dx,  pz+revolute_halflen*dz, py+revolute_halflen*dy>, 
                 spring_radius   
                 pigment{Scarlet}
-            }
-		#break
+          }
+		  #break
 
-		// Distance constraint -------
-		#case (37)
-			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
-			cylinder {
-			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, distance_cnstr_radius
-			   pigment {color DarkSlateGray }
-			}
-		#break
+		  // Distance constraint -------
+		  #case (37)
+			    #read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
+			    cylinder {
+			      <p1x,p1z,p1y>, <p2x,p2z,p2y>, distance_cnstr_radius
+			      pigment {color DarkSlateGray }
+			    }
+		  #break
 
 	#end  // switch (link)
     
@@ -558,11 +577,11 @@ XYZframe(global_frame_len, global_frame_radius)
       
                     
                     
-// ============================================================================================     
+// ============================================================================================
 //
 // CAMERA
 //                     
-// ============================================================================================     
+// ============================================================================================
     
        
 // Convert camera location and look_at to LEFT-HAND-FRAME with Y up  
