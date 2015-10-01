@@ -89,7 +89,7 @@ permalink: /documentation/
 			<ul>
 				<li><a href="/documentation/chrono_pyengine">Introduction</a></li>
 				<li><a href="/download/#chronopyengine">Download</a></li>
-				<li>Documentation</li>
+				<li><a href="/documentation/chrono_pyengine/doc">Documentation</a></li>
 				<li>Tutorials And Examples</li>
 			</ul>
 		</div>
