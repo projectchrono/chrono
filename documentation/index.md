@@ -13,7 +13,7 @@ permalink: /documentation/
 				<li><a href="/documentation/references">Papers and Other References</a></li>
 				<li>Tutorials and examples</li>
 				<li><a href="/documentation/tutorials/develop/">Develop Your Program</a></li>
-				<li>GIT Code Repository</li>
+				<li><a href="/documentation/git_repository/">GIT Code Repository</a></li>
 			</ul>
 		</div>
 	</div>
@@ -74,8 +74,8 @@ permalink: /documentation/
 		<div class="well">
 
 			<ul>
-				<li><a href="/documentation/chrono_pyengine">Introduction</a></li>
-				<li><a href="/download/#chronopyengine">Download</a></li>
+				<li><a href="/documentation/chrono_solidworks">Introduction</a></li>
+				<li><a href="/download/#chronosolidworks">Download</a></li>
 				<li>Tutorials And Examples</li>
 			</ul>
 		</div>
@@ -87,8 +87,8 @@ permalink: /documentation/
 	<div class="col-md-6">
 		<div class="well">
 			<ul>
-				<li>Introduction</li>
-				<li>Download</li>
+				<li><a href="/documentation/chrono_pyengine">Introduction</a></li>
+				<li><a href="/download/#chronopyengine">Download</a></li>
 				<li>Documentation</li>
 				<li>Tutorials And Examples</li>
 			</ul>
