@@ -316,7 +316,7 @@ namespace chrono {
 
 	void ChCSR3Matrix::initialize(int colIndex_length)
 	{
-		if (!rowIndex_lock)
+		if (!rowIndex_lock || rowIndex_lock_broken)
 		{
 			if (colIndex_length == 0)
 				colIndex_length = colIndex_occupancy;
@@ -352,7 +352,7 @@ namespace chrono {
 
 	void ChCSR3Matrix::initialize_ValuesColIndex()
 	{
-		if (colIndex_lock)
+		if (colIndex_lock && !colIndex_lock_broken)
 		{
 			for (int col_sel = 0; col_sel < rowIndex[mat_rows]; col_sel++)
 			{
