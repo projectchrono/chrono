@@ -93,7 +93,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         bool use_mat_props = sys->UseMaterialProperties();
         bool use_history = sys->UseContactHistory();
         ContactForceModel contact_model = sys->GetContactForceModel();
-        AdhesionForceModel cohesion_model = sys->GetAdhesionForceModel();
+        AdhesionForceModel adhesion_model = sys->GetAdhesionForceModel();
 
 
         // Relative velocity at contact
@@ -188,15 +188,15 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
             forceT = 0;
         }
 
-        // Include cohesion force
-        switch (cohesion_model) {
+        // Include adhesion force
+        switch (adhesion_model) {
         case Constant:
         	forceN -= mat.cohesion_eff;
 
         	break;
 
         case DMT:
-        	forceN -= mat.adhesionMult_eff * sqrt(R_eff);
+        	forceN -= mat.adhesionMultDMT_eff * sqrt(R_eff);
 
         	break;
         }

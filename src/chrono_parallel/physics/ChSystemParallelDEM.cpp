@@ -66,7 +66,7 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
   mass[index] = body->GetMass();
   mu[index] = mat_ptr->GetSfriction();
   cohesion[index] = mat_ptr->GetCohesion();
-  adhesionMult[index] = mat_ptr->GetAdhesionMult();
+  adhesionMult[index] = mat_ptr->GetAdhesionMultDMT();
 
   if (data_manager->settings.solver.use_material_properties) {
     elastic_moduli[index] = R2(mat_ptr->GetYoungModulus(), mat_ptr->GetPoissonRatio());

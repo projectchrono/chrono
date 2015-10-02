@@ -23,7 +23,7 @@ struct ChCompositeMaterialDEM {
     float mu_eff;            ///< Effective coefficient of friction
     float cr_eff;            ///< Effective coefficient of restitution
     float cohesion_eff;      ///< Effective cohesion force
-    float adhesionMult_eff;  ///< Effective adhesion multiplier (DMT model)
+    float adhesionMultDMT_eff;  ///< Effective adhesion multiplier (DMT model)
 
     float kn;
     float kt;
@@ -45,9 +45,9 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     float restitution;  ///< Coefficient of restitution
 
     float cohesion;      ///< Constant cohesion force
-    float adhesionMult;  ///< Adhesion multiplier used in DMT model. adhesion = adhesionMult * sqrt(R_eff). Given the
-                         ///surface energy, w, adhesionMult = 2 * CH_C_PI * w * sqrt(R_eff). Given the equilibrium
-                         ///penetration distance, y_eq, adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
+    float adhesionMultDMT;  ///< Adhesion multiplier used in DMT model. adhesion = adhesionMultDMT * sqrt(R_eff). Given the
+                         ///surface energy, w, adhesionMultDMT = 2 * CH_C_PI * w * sqrt(R_eff). Given the equilibrium
+                         ///penetration distance, y_eq, adhesionMultDMT = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
 
     float kn;  ///< user-specified normal stiffness coefficient
     float kt;  ///< user-specified tangential stiffness coefficient
@@ -90,8 +90,8 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     void SetCohesion(float val) { cohesion = val; }
 
     /// Adhesion multiplier
-    float GetAdhesionMult() const { return adhesionMult; }
-    void SetAdhesionMult(float val) { adhesionMult = val; }
+    float GetAdhesionMultDMT() const { return adhesionMultDMT; }
+    void SetAdhesionMultDMT(float val) { adhesionMultDMT = val; }
 
     /// Stiffness and damping coefficients
     float GetKn() const { return kn; }
