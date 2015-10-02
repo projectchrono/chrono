@@ -38,11 +38,17 @@ using namespace geometry;
 // =============================================================================
 // Problem parameters
 
-// Type of tire model (RIGID, LUGRE, FIALA)
+// Type of tire model (RIGID, LUGRE, FIALA, or PACEJKA)
 TireModelType tire_model = RIGID;
 
-// Type of powertrain model (SHAFTS, SIMPLE)
+// Type of powertrain model (SHAFTS or SIMPLE)
 PowertrainModelType powertrain_model = SHAFTS;
+
+// Drive type (FWD, RWD, or AWD)
+DrivelineType drive_type = RWD;
+
+// Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)
+VisualizationType vis_type = MESH;
 
 // Input file names for the path-follower driver model
 std::string steering_controller_file("generic/driver/SteeringController.json");
@@ -75,8 +81,11 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 double step_size = 1e-3;
 double tire_step_size = step_size;
 
+// Simulation end time
+double t_end = 100;
+
 // Render FPS
-double fps = 30;
+double fps = 60;
 
 // Debug logging
 bool debug_output = false;
@@ -87,7 +96,10 @@ const std::string out_dir = "../STEERING_CONTROLLER";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 // POV-Ray output
-bool povray_output = true;
+bool povray_output = false;
+
+// Vehicle state output (forced to true if povray output enabled)
+bool state_output = false;
 
 // =============================================================================
 
@@ -172,11 +184,11 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(PRIMITIVES);
-    my_hmmwv.SetWheelVis(PRIMITIVES);
+    my_hmmwv.SetChassisVis(vis_type);
+    my_hmmwv.SetWheelVis(vis_type);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
-    my_hmmwv.SetDriveType(RWD);
+    my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
@@ -248,18 +260,26 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
-    if (povray_output) {
+    state_output = state_output || povray_output;
+
+    if (state_output) {
         if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
+    }
+
+    if (povray_output) {
         if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
-        my_hmmwv.ExportMeshPovray(out_dir);
         driver_follower.ExportPathPovray(out_dir);
     }
+
+    utils::CSV_writer csv("\t");
+    csv.stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.stream().precision(6);
 
     // ---------------
     // Simulation loop
@@ -282,6 +302,15 @@ int main(int argc, char* argv[]) {
     while (app.GetDevice()->run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
+        // End simulation
+        if (time >= t_end)
+            break;
+
+        // Collect output data from modules (for inter-module communication)
+        double throttle_input = selector.GetDriver()->GetThrottle();
+        double steering_input = selector.GetDriver()->GetSteering();
+        double braking_input = selector.GetDriver()->GetBraking();
+
         // Update sentinel and target location markers for the path-follower controller.
         // Note that we do this whether or not we are currently using the path-follower driver.
         const ChVector<>& pS = driver_follower.GetSteeringController().GetSentinelLocation();
@@ -301,6 +330,12 @@ int main(int argc, char* argv[]) {
                 utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
             }
 
+            if (state_output) {
+                csv << time << steering_input << throttle_input << braking_input;
+                csv << my_hmmwv.GetVehicle().GetVehicleSpeed();
+                csv << std::endl;
+            }
+
             render_frame++;
         }
 
@@ -313,11 +348,6 @@ int main(int argc, char* argv[]) {
             GetLog() << "CG acceleration:      " << acc.x << "  " << acc.y << "  " << acc.z << "\n";
             GetLog() << "\n";
         }
-
-        // Collect output data from modules (for inter-module communication)
-        double throttle_input = selector.GetDriver()->GetThrottle();
-        double steering_input = selector.GetDriver()->GetSteering();
-        double braking_input = selector.GetDriver()->GetBraking();
 
         // Update modules (process inputs from other modules)
         driver_follower.Update(time);
@@ -338,6 +368,9 @@ int main(int argc, char* argv[]) {
         // Increment simulation frame number
         sim_frame++;
     }
+
+    if (state_output)
+        csv.write_to_file(out_dir + "/state.out");
 
     return 0;
 }
