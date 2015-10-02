@@ -33,7 +33,8 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 void function_CalcContactForces(
     int index,                              // index of this contact pair
-    CONTACTFORCEMODEL force_model,          // contact force model
+    CONTACTFORCEMODEL contact_model,        // contact force model
+    ADHESIONFORCEMODEL adhesion_model,      // contact force model
     TANGENTIALDISPLACEMENTMODE displ_mode,  // type of tangential displacement history
     bool use_mat_props,                     // flag specifying how coefficients are obtained
     real char_vel,                          // characteristic velocity (Hooke)
@@ -48,20 +49,21 @@ void function_CalcContactForces(
     real4* dem_coeffs,                      // stiffness and damping coefficients (per body)
     real* mu,                               // coefficient of friction (per body)
     real* cohesion,                         // cohesion force (per body)
-    real* adhesionMult,                     // Adhesion force multiplier (per body). Adhesion force is adhesionMult * sqrt(eff_radius)
-    int2* body_id,                          // body IDs (per contact)
-    int2* shape_id,                         // shape IDs (per contact)
-    real3* pt1,                             // point on shape 1 (per contact)
-    real3* pt2,                             // point on shape 2 (per contact)
-    real3* normal,                          // contact normal (per contact)
-    real* depth,                            // penetration depth (per contact)
-    real* eff_radius,                       // effective contact radius (per contact)
-    int3* shear_neigh,                      // neighbor list of contacting bodies and shapes (max_shear per body)
-    bool* shear_touch,                      // flag if contact in neighbor list is persistent (max_shear per body)
-    real3* shear_disp,                      // accumulated shear displacement for each neighbor (max_shear per body)
-    int* ext_body_id,                       // [output] body IDs (two per contact)
-    real3* ext_body_force,                  // [output] body force (two per contact)
-    real3* ext_body_torque)                 // [output] body torque (two per contact)
+    real* adhesionMultDMT,   // Adhesion force multiplier (per body), in DMT model. Adhesion force is adhesionMultDMT *
+                             // sqrt(eff_radius)
+    int2* body_id,           // body IDs (per contact)
+    int2* shape_id,          // shape IDs (per contact)
+    real3* pt1,              // point on shape 1 (per contact)
+    real3* pt2,              // point on shape 2 (per contact)
+    real3* normal,           // contact normal (per contact)
+    real* depth,             // penetration depth (per contact)
+    real* eff_radius,        // effective contact radius (per contact)
+    int3* shear_neigh,       // neighbor list of contacting bodies and shapes (max_shear per body)
+    bool* shear_touch,       // flag if contact in neighbor list is persistent (max_shear per body)
+    real3* shear_disp,       // accumulated shear displacement for each neighbor (max_shear per body)
+    int* ext_body_id,        // [output] body IDs (two per contact)
+    real3* ext_body_force,   // [output] body force (two per contact)
+    real3* ext_body_torque)  // [output] body torque (two per contact)
 {
     // Identify the two bodies in contact.
     int body1 = body_id[index].x;
@@ -114,7 +116,7 @@ void function_CalcContactForces(
 
     real mu_eff = std::min(mu[body1], mu[body2]);
     real cohesion_eff = std::min(cohesion[body1], cohesion[body2]);
-    real adhesionMult_eff = std::max(adhesionMult[body1], adhesionMult[body2]);
+    real adhesionMultDMT_eff = std::max(adhesionMultDMT[body1], adhesionMultDMT[body2]);
 
     real E_eff, G_eff, cr_eff;
     real user_kn, user_kt, user_gn, user_gt;
@@ -225,7 +227,7 @@ void function_CalcContactForces(
         }
     }
 
-    switch (force_model) {
+    switch (contact_model) {
         case HOOKE:
             if (use_mat_props) {
                 double tmp_k = (16.0 / 15) * sqrt(eff_radius[index]) * E_eff;
@@ -246,7 +248,6 @@ void function_CalcContactForces(
 
             break;
 
-        case HERTZ_DMT:
         case HERTZ:
             if (use_mat_props) {
                 double sqrt_Rd = sqrt(eff_radius[index] * delta_n);
@@ -291,13 +292,19 @@ void function_CalcContactForces(
         forceT_damp.z = 0;
     }
 
-    // Include cohesion force.
-    if (force_model == HERTZ_DMT) {
-        // Derjaguin, Muller and Toporov (DMT) adhesion force,
-        forceN_mag -= adhesionMult_eff * sqrt(eff_radius[index]);
-    } else {
-        // (This is a very simple model, which can perhaps be improved later.)
-        forceN_mag -= cohesion_eff;
+    // Include adhesion force.
+    switch (adhesion_model) {
+        case CONSTANT:
+            // (This is a very simple model, which can perhaps be improved later.)
+
+            forceN_mag -= cohesion_eff;
+
+            break;
+        case _DMT:
+            // Derjaguin, Muller and Toporov (DMT) adhesion force,
+            forceN_mag -= adhesionMultDMT_eff * sqrt(eff_radius[index]);
+
+            break;
     }
 
     // Apply Coulomb friction law.
@@ -368,6 +375,7 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body
     for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
         function_CalcContactForces(index,
                                    data_manager->settings.solver.contact_force_model,
+								   data_manager->settings.solver.adhesion_force_model,
                                    data_manager->settings.solver.tangential_displ_mode,
                                    data_manager->settings.solver.use_material_properties,
                                    data_manager->settings.solver.characteristic_vel,
@@ -382,7 +390,7 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body
                                    data_manager->host_data.dem_coeffs.data(),
                                    data_manager->host_data.mu.data(),
                                    data_manager->host_data.cohesion_data.data(),
-                                   data_manager->host_data.adhesionMult_data.data(),
+                                   data_manager->host_data.adhesionMultDMT_data.data(),
                                    data_manager->host_data.bids_rigid_rigid.data(),
                                    shape_pairs.data(),
                                    data_manager->host_data.cpta_rigid_rigid.data(),

@@ -149,7 +149,7 @@ struct host_container {
     host_vector<real> mu;                 // Coefficient of friction
     host_vector<real> cr;                 // Coefficient of restitution
     host_vector<real4> dem_coeffs;        // Stiffness and damping coefficients
-    host_vector<real> adhesionMult_data;  // adhesion multipliers used in Derjaguin, Muller and Toporov (DMT) model.
+    host_vector<real> adhesionMultDMT_data;  // adhesion multipliers used in Derjaguin, Muller and Toporov (DMT) model.
     // adhesion = adhesionMult * sqrt(R_eff). Given the surface energy, w, adhesionMult = 2 * CH_C_PI * w * sqrt(R_eff).
     // Given the equilibrium penetration distance, y_eq, adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
 
