@@ -53,7 +53,7 @@ int count_Y = 2;
 // Material properties (same on bin and balls)
 float Y = 2e6f;
 float mu = 0.4f;
-float cr = 0;//0.4f;
+float cr = 0.4f;
 
 // -----------------------------------------------------------------------------
 // Generate postprocessing output with current system state.
@@ -111,8 +111,6 @@ void AddFallingBalls(ChSystemParallel* sys) {
   ballMat->SetYoungModulus(Y);
   ballMat->SetFriction(mu);
   ballMat->SetRestitution(cr);
-  ballMat->SetAdhesionMult(4.0/3.0*Y*pow(.05, 1.5));
-
 
   // Create the falling balls
   int ballId = 0;
@@ -183,8 +181,6 @@ int main(int argc, char* argv[]) {
 
   msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
   msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
-
-  msystem.GetSettings()->solver.contact_force_model = HERTZ_DMT;
 
   // Create the fixed and moving bodies
   // ----------------------------------
