@@ -20,7 +20,10 @@ namespace chrono {
 
 
 /// Enum for DEM contact type (out of class because templated class)
-enum ContactForceModel { Hooke, Hertz, Hertz_DMT };
+enum ContactForceModel { Hooke, Hertz };
+
+/// Enum for Cohesion force model (out of class because templated class)
+enum AdhesionForceModel { Constant, DMT };
 
 
 /// Class for a physical system in which contact is modeled using a
@@ -53,6 +56,10 @@ class ChApi ChSystemDEM : public ChSystem {
     void SetContactForceModel(ContactForceModel model) { m_contact_model = model; }
     ContactForceModel GetContactForceModel() const { return m_contact_model; }
 
+    void SetAdhesionForceModel(AdhesionForceModel model) { m_adhesion_model = model; }
+    AdhesionForceModel GetAdhesionForceModel() const { return m_adhesion_model; }
+
+
     /// Slip velocity threshold. No tangential contact forces are generated
     /// if the magnitude of the tangential relative velocity is below this.
     void SetSlipVelocitythreshold(double vel) { m_minSlipVelocity = vel; }
@@ -66,6 +73,7 @@ class ChApi ChSystemDEM : public ChSystem {
     bool m_use_mat_props;
     bool m_use_history;
     ContactForceModel m_contact_model;
+    AdhesionForceModel m_adhesion_model;
     double m_minSlipVelocity;
     double m_characteristicVelocity;
 };

@@ -92,7 +92,9 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         double dT = sys->GetStep();
         bool use_mat_props = sys->UseMaterialProperties();
         bool use_history = sys->UseContactHistory();
-        ContactForceModel force_model = sys->GetContactForceModel();
+        ContactForceModel contact_model = sys->GetContactForceModel();
+        AdhesionForceModel cohesion_model = sys->GetAdhesionForceModel();
+
 
         // Relative velocity at contact
         ChVector<> vel2 = this->objB->GetContactPointSpeed(this->p2);
@@ -131,7 +133,8 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
         double delta_t = use_history ? relvel_t_mag * dT : 0;
 
-        switch (force_model) {
+        // Include contact force
+        switch (contact_model) {
             case Hooke:
                 if (use_mat_props) {
                     double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
@@ -152,7 +155,6 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
                 break;
 
-            case Hertz_DMT:
             case Hertz:
                 if (use_mat_props) {
                     double sqrt_Rd = std::sqrt(R_eff * m_delta);
@@ -187,10 +189,16 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         }
 
         // Include cohesion force
-        if (force_model == ContactForceModel::Hertz_DMT) {
-        	forceN -= mat.adhesionMult_eff * sqrt(R_eff);
-        } else {
+        switch (cohesion_model) {
+        case Constant:
         	forceN -= mat.cohesion_eff;
+
+        	break;
+
+        case DMT:
+        	forceN -= mat.adhesionMult_eff * sqrt(R_eff);
+
+        	break;
         }
 
         // Coulomb law
