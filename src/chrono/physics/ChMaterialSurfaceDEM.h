@@ -131,6 +131,7 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         marchive << CHNVP(sliding_friction);
         marchive << CHNVP(restitution);
         marchive << CHNVP(constant_adhesion);
+        marchive << CHNVP(adhesionMultDMT);
         marchive << CHNVP(kn);
         marchive << CHNVP(kt);
         marchive << CHNVP(gn);
@@ -152,6 +153,7 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         marchive >> CHNVP(sliding_friction);
         marchive >> CHNVP(restitution);
         marchive >> CHNVP(constant_adhesion);
+        marchive >> CHNVP(adhesionMultDMT);
         marchive >> CHNVP(kn);
         marchive >> CHNVP(kt);
         marchive >> CHNVP(gn);
@@ -175,6 +177,7 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         mstream << sliding_friction;
         mstream << restitution;
         mstream << constant_adhesion;
+        mstream << adhesionMultDMT;
 
         mstream << kn;
         mstream << kt;
@@ -199,6 +202,7 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         mstream >> sliding_friction;
         mstream >> restitution;
         mstream >> constant_adhesion;
+        mstream >> adhesionMultDMT;
 
         mstream >> kn;
         mstream >> kt;
