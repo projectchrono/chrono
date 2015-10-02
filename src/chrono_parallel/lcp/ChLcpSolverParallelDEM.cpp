@@ -48,7 +48,7 @@ void function_CalcContactForces(
     real* cr,                               // coefficient of restitution (per body)
     real4* dem_coeffs,                      // stiffness and damping coefficients (per body)
     real* mu,                               // coefficient of friction (per body)
-    real* cohesion,                         // cohesion force (per body)
+    real* adhesion,                         // constant force (per body)
     real* adhesionMultDMT,   // Adhesion force multiplier (per body), in DMT model. Adhesion force is adhesionMultDMT *
                              // sqrt(eff_radius)
     int2* body_id,           // body IDs (per contact)
@@ -115,7 +115,7 @@ void function_CalcContactForces(
     real m_eff = mass[body1] * mass[body2] / (mass[body1] + mass[body2]);
 
     real mu_eff = std::min(mu[body1], mu[body2]);
-    real cohesion_eff = std::min(cohesion[body1], cohesion[body2]);
+    real adhesion_eff = std::min(adhesion[body1], adhesion[body2]);
     real adhesionMultDMT_eff = std::max(adhesionMultDMT[body1], adhesionMultDMT[body2]);
 
     real E_eff, G_eff, cr_eff;
@@ -297,7 +297,7 @@ void function_CalcContactForces(
         case CONSTANT:
             // (This is a very simple model, which can perhaps be improved later.)
 
-            forceN_mag -= cohesion_eff;
+            forceN_mag -= adhesion_eff;
 
             break;
         case _DMT:

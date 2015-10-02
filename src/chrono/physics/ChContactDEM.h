@@ -191,7 +191,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         // Include adhesion force
         switch (adhesion_model) {
         case Constant:
-        	forceN -= mat.cohesion_eff;
+        	forceN -= mat.adhesion_eff;
 
         	break;
 

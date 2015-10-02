@@ -91,7 +91,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
       ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
       csv << mat->young_modulus << mat->poisson_ratio;
       csv << mat->static_friction << mat->sliding_friction;
-      csv << mat->restitution << mat->cohesion;
+      csv << mat->restitution << mat->constant_adhesion;
     }
 
     csv << std::endl;
@@ -196,7 +196,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
       ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
       iss2 >> mat->young_modulus >> mat->poisson_ratio;
       iss2 >> mat->static_friction >> mat->sliding_friction;
-      iss2 >> mat->restitution >> mat->cohesion;
+      iss2 >> mat->restitution >> mat->constant_adhesion;
     }
 
     // Add the body to the system.
