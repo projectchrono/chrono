@@ -4,7 +4,9 @@ title: Download
 permalink: /download/
 ---
 
-* This will become a table of contents (this text will be scraped).
+Table of Contents
+
+* line will be removed
 {:toc}
 
 Chrono::Engine precompiled SDK
