@@ -150,6 +150,7 @@ enum BILATERALTYPE { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAF
 
 // DEM contact force model
 enum CONTACTFORCEMODEL { HOOKE, HERTZ };
+enum ADHESIONFORCEMODEL { CONSTANT, _DMT }; 	// _DMT model is callled DMT in chrono. To avoid collision, it is called _DMT in chrono_parallel
 enum TANGENTIALDISPLACEMENTMODE { NONE, ONE_STEP, MULTI_STEP };
 
 // Supported Logging Levels

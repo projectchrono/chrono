@@ -14,16 +14,16 @@
 
 #include "physics/ChMaterialSurfaceBase.h"
 
-
 /// Class for material surface data for DEM contact
 namespace chrono {
 
 struct ChCompositeMaterialDEM {
-    float E_eff;         ///< Effective elasticity modulus
-    float G_eff;         ///< Effective shear modulus
-    float mu_eff;        ///< Effective coefficient of friction
-    float cr_eff;        ///< Effective coefficient of restitution
-    float cohesion_eff;  ///< Effective cohesion force
+    float E_eff;             ///< Effective elasticity modulus
+    float G_eff;             ///< Effective shear modulus
+    float mu_eff;            ///< Effective coefficient of friction
+    float cr_eff;            ///< Effective coefficient of restitution
+    float adhesion_eff;      ///< Effective cohesion force
+    float adhesionMultDMT_eff;  ///< Effective adhesion multiplier (DMT model)
 
     float kn;
     float kt;
@@ -32,7 +32,6 @@ struct ChCompositeMaterialDEM {
 };
 
 class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
-
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChMaterialSurfaceDEM, ChMaterialSurfaceBase);
 
@@ -45,7 +44,10 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
 
     float restitution;  ///< Coefficient of restitution
 
-    float cohesion;  ///< Constant cohesion force
+    float constant_adhesion;      ///< Constant adhesion force, when constant adhesion model is used
+    float adhesionMultDMT;  ///< Adhesion multiplier used in DMT model. adhesion = adhesionMultDMT * sqrt(R_eff). Given the
+                         ///surface energy, w, adhesionMultDMT = 2 * CH_C_PI * w * sqrt(R_eff). Given the equilibrium
+                         ///penetration distance, y_eq, adhesionMultDMT = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
 
     float kn;  ///< user-specified normal stiffness coefficient
     float kt;  ///< user-specified tangential stiffness coefficient
@@ -84,8 +86,12 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     void SetRestitution(float val) { restitution = val; }
 
     /// Constant cohesion force
-    float GetCohesion() const { return cohesion; }
-    void SetCohesion(float val) { cohesion = val; }
+    float GetAdhesion() const { return constant_adhesion; }
+    void SetAdhesion(float val) { constant_adhesion = val; }
+
+    /// Adhesion multiplier
+    float GetAdhesionMultDMT() const { return adhesionMultDMT; }
+    void SetAdhesionMultDMT(float val) { adhesionMultDMT = val; }
 
     /// Stiffness and damping coefficients
     float GetKn() const { return kn; }
@@ -106,13 +112,12 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
     virtual void StreamOUT(ChStreamOutAscii& mstream) { mstream << "Material DEM \n"; }
 
-
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive){
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite(1);
 
@@ -125,7 +130,8 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         marchive << CHNVP(static_friction);
         marchive << CHNVP(sliding_friction);
         marchive << CHNVP(restitution);
-        marchive << CHNVP(cohesion);
+        marchive << CHNVP(constant_adhesion);
+        marchive << CHNVP(adhesionMultDMT);
         marchive << CHNVP(kn);
         marchive << CHNVP(kt);
         marchive << CHNVP(gn);
@@ -133,7 +139,7 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive){
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
 
@@ -146,7 +152,8 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         marchive >> CHNVP(static_friction);
         marchive >> CHNVP(sliding_friction);
         marchive >> CHNVP(restitution);
-        marchive >> CHNVP(cohesion);
+        marchive >> CHNVP(constant_adhesion);
+        marchive >> CHNVP(adhesionMultDMT);
         marchive >> CHNVP(kn);
         marchive >> CHNVP(kt);
         marchive >> CHNVP(gn);
@@ -169,7 +176,8 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         mstream << static_friction;
         mstream << sliding_friction;
         mstream << restitution;
-        mstream << cohesion;
+        mstream << constant_adhesion;
+        mstream << adhesionMultDMT;
 
         mstream << kn;
         mstream << kt;
@@ -193,7 +201,8 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         mstream >> static_friction;
         mstream >> sliding_friction;
         mstream >> restitution;
-        mstream >> cohesion;
+        mstream >> constant_adhesion;
+        mstream >> adhesionMultDMT;
 
         mstream >> kn;
         mstream >> kt;
