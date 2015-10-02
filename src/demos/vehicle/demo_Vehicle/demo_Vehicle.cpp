@@ -320,7 +320,7 @@ int main(int argc, char* argv[]) {
         vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Update(time);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Update(time, wheel_states[i]);
+            tires[i]->Update(time, wheel_states[i],terrain);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
