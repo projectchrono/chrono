@@ -36,9 +36,9 @@ ChSuspensionTest::ChSuspensionTest()
 
   // Integration and Solver settings
   SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-  SetIterLCPmaxItersSpeed(150);
-  SetIterLCPmaxItersStab(150);
-  SetMaxPenetrationRecoverySpeed(4.0);
+  SetIterLCPmaxItersSpeed(75);
+  SetIterLCPmaxItersStab(50);
+  SetMaxPenetrationRecoverySpeed(1.0);
 }
 
 
