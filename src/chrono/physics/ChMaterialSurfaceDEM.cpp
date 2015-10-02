@@ -72,7 +72,7 @@ ChCompositeMaterialDEM ChMaterialSurfaceDEM::CompositeMaterial(const ChSharedPtr
 
     mat.adhesion_eff = std::min<float>(mat1->constant_adhesion, mat2->constant_adhesion);
 
-    mat.adhesionMultDMT_eff = std::max<float>(mat1->adhesionMultDMT, mat2->adhesionMultDMT);
+    mat.adhesionMultDMT_eff = std::min<float>(mat1->adhesionMultDMT, mat2->adhesionMultDMT);
 
     mat.kn = (mat1->kn + mat2->kn) / 2;
     mat.kt = (mat1->kt + mat2->kt) / 2;
