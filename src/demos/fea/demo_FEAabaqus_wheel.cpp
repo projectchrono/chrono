@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     mysurfmaterial->SetGt(4200);
 
     // RIGID BODIES
-    // Create some rigid bodies, for instance a floor and two bouncing items:
+    // Create some rigid bodies, for instance a floor:
 
     ChSharedPtr<ChBodyEasyBox> mfloor (new ChBodyEasyBox(2,0.2,2,2700, true));
     mfloor->SetBodyFixed(true);
@@ -79,6 +79,7 @@ int main(int argc, char* argv[]) {
     mfloorcolor->SetColor(ChColor(0.5f, 0.5f, 0.3f));
     mfloor->AddAsset(mfloorcolor);
 /*
+    // Create some stones / obstacles on the ground
     for (int i=0; i<10; ++i) {
         ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.3,0.1,0.2,2700, true));
         mcube->SetPos(ChVector<>((ChRandom()-0.5)*0.8,ChRandom()*0.2+0.05,(ChRandom()-0.5)*1));
@@ -98,9 +99,9 @@ int main(int argc, char* argv[]) {
     // and set its parameters
 
     ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
-    mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.3);
-    mmaterial->Set_RayleighDampingK(0.006);
+    mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
+    mmaterial->Set_v(0.4);
+    mmaterial->Set_RayleighDampingK(0.004);
     mmaterial->Set_density(1000);
 
 
@@ -112,16 +113,11 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
 
     try {
-        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/Ruota_V3_rifilata.INP").c_str(), mmaterial, node_sets, ChVector<>(0,0.3+0.8,0));
+        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel.INP").c_str(), mmaterial, node_sets, ChVector<>(0,0.3+0.8,0));
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
     }
-
-
-    // Apply some gravity-like forces
-     for (unsigned int i = 0; i< my_mesh->GetNnodes(); ++i)
-        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetForce(ChVector<>(0,-2,0)); // to simulate gravity..
 
 
 
@@ -211,7 +207,9 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-application.AddShadowAll();
+    // Use shadows in realtime view
+    application.AddShadowAll();
+
     //
     // THE SOFT-REAL-TIME CYCLE
     //
