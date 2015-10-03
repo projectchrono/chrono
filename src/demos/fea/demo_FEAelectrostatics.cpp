@@ -60,6 +60,8 @@ int main(int argc, char* argv[]) {
     // of elements and their referenced nodes.
     ChSharedPtr<ChMesh> my_mesh(new ChMesh);
 
+    my_mesh->SetAutomaticGravity(false);
+
     // Create a material, that must be assigned to each element,
     // and set its parameters
     ChSharedPtr<ChContinuumElectrostatics> mmaterial(new ChContinuumElectrostatics);

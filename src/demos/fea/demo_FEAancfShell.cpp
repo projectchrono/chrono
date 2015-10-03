@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
         element->SetAlphaDamp(0.00);
         //== 7/14/2015
         element->Setdt(0.001);                     // dt to calculate DampingCoefficient
-        element->SetGravityOn(true);               // turn gravity on/off
+        element->SetGravityOn(false);               // turn gravity on/off
         element->SetAirPressureOn(false);          // turn air pressure on/off
         ChMatrixNM<double, 35, 1> StockAlpha_EAS;  // StockAlpha(5*7,1): Max #Layer is 7
         StockAlpha_EAS.Reset();
@@ -287,6 +287,8 @@ int main(int argc, char* argv[]) {
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
+
+    my_system.Set_G_acc(ChVector<>(0,0,-9.8)); // default was Y up.
 
     // Options for visualization in irrlicht
 

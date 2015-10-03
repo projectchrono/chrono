@@ -18,6 +18,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
 
 #include "chrono_fea/ChElementTetra_4.h"
@@ -117,7 +118,6 @@ int main(int argc, char* argv[]) {
 
     my_mesh->AddElement(melement1);
 
-  
     // 2) an ANCF cable:
 
 	ChSharedPtr<ChBeamSectionCable> msection_cable2(new ChBeamSectionCable);
@@ -132,11 +132,6 @@ int main(int argc, char* argv[]) {
 						10,				// the number of ChElementBeamANCF to create
 						ChVector<>(0, 0.1, -0.1),		// the 'A' point in space (beginning of beam)
 						ChVector<>(0.5, 0.13, -0.1));	// the 'B' point in space (end of beam)
-
-    // Apply some gravity-like forces
-     for (unsigned int i = 0; i< my_mesh->GetNnodes(); ++i)
-        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetForce(ChVector<>(0,-10,0)); // to simulate gravity..
-
 
     // 3) the contact surface
 

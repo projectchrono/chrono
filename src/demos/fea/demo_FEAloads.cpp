@@ -128,6 +128,10 @@ void test_1() {
     ChSharedPtr< ChLoad<ChLoaderGravity> > mgravity(new ChLoad<ChLoaderGravity>(melementA));
     mloadcontainer->Add(mgravity);  
 
+    // note that by default all solid elements in the mesh will already 
+    // get gravitational force, if you want to bypass this automatic gravity, do:
+    my_mesh->SetAutomaticGravity(false);
+
 
     // Example 4:
 

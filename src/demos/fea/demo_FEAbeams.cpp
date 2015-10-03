@@ -194,11 +194,13 @@ int main(int argc, char* argv[])
 				// stiffness matrices for all inserted elements in mesh
 	my_mesh->SetupInitial();
 
+                // We do not want gravity effect on FEA elements in this demo
+    my_mesh->SetAutomaticGravity(false);
 
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);
 
-
+    
 	
 
 			// ==Asset== attach a visualization of the FEM mesh.
