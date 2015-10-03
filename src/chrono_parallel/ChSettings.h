@@ -109,6 +109,7 @@ struct solver_settings {
     local_solver_mode = NORMAL;
 
     contact_force_model = HERTZ;
+    adhesion_force_model = CONSTANT;
     tangential_displ_mode = ONE_STEP;
     use_material_properties = true;
     characteristic_vel = 1;
@@ -161,6 +162,8 @@ struct solver_settings {
 
   // Contact force model for DEM
   CONTACTFORCEMODEL contact_force_model;
+  // Contact force model for DEM
+  ADHESIONFORCEMODEL adhesion_force_model;
   // Tangential contact displacement history. NONE indicates no tangential stiffness,
   // ONE_STEP indicates estimating tangential displacement using only current velocity,
   // MULTI_STEP uses full contact history over multiple steps.

@@ -171,6 +171,9 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     /// Destructor for ChPathSteeringController.
     ~ChPathSteeringController();
 
+    /// Return a pointer to the Bezier curve
+    ChBezierCurve* GetPath() const { return m_path; }
+
     /// Reset the PID controller.
     /// This function resets the underlying path tracker using the current location
     /// of the sentinel point.

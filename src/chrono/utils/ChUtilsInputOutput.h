@@ -40,6 +40,7 @@
 #include <fstream>
 
 #include "core/ChApiCE.h"
+#include "core/ChBezierCurve.h"
 #include "physics/ChSystem.h"
 
 #include "utils/ChUtilsCreators.h"
@@ -156,6 +157,13 @@ void WriteMeshPovray(const std::string& obj_filename,
                      const ChColor& color = ChColor(0.4f, 0.4f, 0.4f),
                      const ChVector<>& pos = ChVector<>(0, 0, 0),
                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+
+// Write the Bezier curve from
+ChApi void WriteCurvePovray(const ChBezierCurve& curve,
+                            const std::string& curve_name,
+                            const std::string& out_dir,
+                            double radius = 0.03,
+                            const ChColor& col = ChColor(0.8f, 0.8f, 0.2f));
 
 }  // namespace utils
 }  // namespace chrono

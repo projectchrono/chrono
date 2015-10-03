@@ -185,9 +185,9 @@ void MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM> 
     mat->SetRestitution(m_defMaterialDEM->GetRestitution());
 
   if (m_cohesionDist)
-    mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_minCohesion, m_maxCohesion));
+    mat->SetAdhesion(sampleTruncatedDist<float>(*m_cohesionDist, m_minCohesion, m_maxCohesion));
   else
-    mat->SetCohesion(m_defMaterialDEM->GetCohesion());
+    mat->SetAdhesion(m_defMaterialDEM->GetAdhesion());
 }
 
 // Return a size for an object created based on attributes of this ingredient.

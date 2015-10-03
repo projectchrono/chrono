@@ -27,15 +27,17 @@
 
 class Generic_PathFollowerDriver : public chrono::ChDriver {
   public:
-    Generic_PathFollowerDriver(chrono::ChVehicle& vehicle,  ///< associated vehicle
-                               chrono::ChBezierCurve* path  ///< Bezier curve with target path
+    Generic_PathFollowerDriver(chrono::ChVehicle& vehicle,   ///< associated vehicle
+                               chrono::ChBezierCurve* path,  ///< Bezier curve with target path
+                               const std::string& path_name  ///< name of the path curve
                                );
 
     Generic_PathFollowerDriver(
         chrono::ChVehicle& vehicle,            ///< associated vehicle
         const std::string& steering_filename,  ///< JSON file with steering controller specification
         const std::string& speed_filename,     ///< JSON file with speed controller specification
-        chrono::ChBezierCurve* path            ///< Bezier curve with target path
+        chrono::ChBezierCurve* path,           ///< Bezier curve with target path
+        const std::string& path_name           ///< name of the path curve
         );
 
     ~Generic_PathFollowerDriver() {}
@@ -48,11 +50,16 @@ class Generic_PathFollowerDriver : public chrono::ChDriver {
     void Reset();
     virtual void Advance(double step) override;
 
+    void ExportPathPovray(const std::string& out_dir);
+
   private:
-    chrono::ChVehicle& m_vehicle;
-    chrono::ChPathSteeringController m_steeringPID;
-    chrono::ChSpeedController m_speedPID;
-    double m_target_speed;
+    void Create();
+
+    chrono::ChVehicle& m_vehicle;                    ///< reference to associated vehicle
+    chrono::ChPathSteeringController m_steeringPID;  ///< steering controller
+    chrono::ChSpeedController m_speedPID;            ///< speed controller
+    double m_target_speed;                           ///< desired vehicle speed
+    std::string m_pathName;                          ///< for path visualization
 };
 
 #endif
