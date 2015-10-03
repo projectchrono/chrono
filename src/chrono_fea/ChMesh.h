@@ -44,12 +44,13 @@ class ChApiFea ChMesh : public ChIndexedNodes {
 
     std::vector<ChSharedPtr<ChContactSurface> > vcontactsurfaces;  //  contact surfaces
     
+    bool automatic_gravity_load;
 
   public:
     ChMesh() {
         n_dofs = 0;
         n_dofs_w = 0;
-
+        automatic_gravity_load = true;
     };
     ~ChMesh(){};
 
@@ -107,6 +108,12 @@ class ChApiFea ChMesh : public ChIndexedNodes {
 	virtual void AddCollisionModelsToSystem();
 	virtual void RemoveCollisionModelsFromSystem();
 
+    /// If true, as by default, this mesh will add automatically a gravity load 
+    /// to all contained elements (that support gravity) using the G value from the ChSystem.
+    /// So this saves you from adding many ChLoad<ChLoaderGravity> to all elements.
+    void SetAutomaticGravity(bool mg) {automatic_gravity_load = mg;} 
+    /// Tell if this mesh will add automatically a gravity load to all contained elements 
+    bool GetAutomaticGravity() {return automatic_gravity_load;} 
 
     /// Load tetahedrons from .node and .ele files as saved by TetGen.
     /// The file format for .node (with point# starting from 1) is:

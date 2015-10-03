@@ -13,6 +13,8 @@
 
 #include "core/ChMath.h"
 #include "physics/ChObject.h"
+#include "physics/ChLoad.h"
+#include "physics/ChSystem.h"
 #include "ChMesh.h"
 // for the TetGen parsing:
 #include "ChNodeFEAxyz.h"
@@ -471,14 +473,12 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 				ChSharedPtr<ChNodeFEAxyz> mnode( new ChNodeFEAxyz(node_position) );
 				parsed_nodes.push_back(mnode);
                 parsed_nodes_used.push_back(false);
-                //this->AddNode(mnode);
 			}
 			else if (my_material.IsType<ChContinuumPoisson3D>() )
 			{
 				ChSharedPtr<ChNodeFEAxyzP> mnode( new ChNodeFEAxyzP(ChVector<>(x,y,z)) );
                 parsed_nodes.push_back(mnode);
                 parsed_nodes_used.push_back(false);
-				//this->AddNode(mnode);
 			}
 			else throw ChException("ERROR in .inp generation. Material type not supported. \n");
 
@@ -563,8 +563,8 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 			for (int nt = 0; nt< ntoken; ++nt)
 			{
 				int idnode = (int) tokenvals[nt];
-				node_sets.back().push_back( this->GetNode(nodes_offset + idnode -1).DynamicCastTo<ChNodeFEAbase>() );
-                parsed_nodes_used[ idnode -1 ] = true;
+				node_sets.back().push_back( parsed_nodes[idnode -1].DynamicCastTo<ChNodeFEAbase>() );
+                parsed_nodes_used[idnode -1] = true;
 			}
 
 		}
@@ -708,6 +708,27 @@ void ChMesh::IntLoadResidual_F(
 	{
 		this->velements[ie]->EleIntLoadResidual_F(R, c);
 	}
+
+    // Apply gravity loads without the need of adding 
+    // a ChLoad object to each element: just instance here a single ChLoad and reuse 
+    // it for all 'volume' objects.
+    if (automatic_gravity_load) {
+        ChSharedPtr< ChLoadableUVW > mloadable;// still null
+        ChSharedPtr< ChLoad< ChLoaderGravity > > common_gravity_loader(new ChLoad< ChLoaderGravity >( mloadable ));
+        common_gravity_loader->loader.Set_G_acc( this->GetSystem()->Get_G_acc() );
+
+        for (unsigned int ie = 0; ie < this->velements.size(); ie++) {
+            mloadable = this->velements[ie].DynamicCastTo<ChLoadableUVW>();
+            if (mloadable) {
+                if (mloadable->GetDensity()) {
+                    // temporary set loader target and compute generalized forces term
+                    common_gravity_loader->loader.loadable = mloadable;
+                    common_gravity_loader->ComputeQ();
+                    common_gravity_loader->LoadIntLoadResidual_F(R, c);
+                }
+            }
+	    }
+    }
 }
 
 
