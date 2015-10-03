@@ -24,13 +24,14 @@
 #include "collision/bullet/btBulletCollisionCommon.h"
 #include "GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "GIMPACTUtils/btGImpactConvexDecompositionShape.h"
-#include "BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #include "BulletWorldImporter/btBulletWorldImporter.h"
 #include "collision/ChCConvexDecomposition.h"
 #include "geometry/ChCLineArc.h"
 #include "geometry/ChCLineSegment.h"
+#include "BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "BulletCollision/CollisionShapes/bt2DShape.h"
+#include "BulletCollision/CollisionShapes/btCEtriangleShape.h"
 
 namespace chrono {
 
@@ -362,6 +363,28 @@ bool ChModelBullet::AddPoint(double radius, const ChVector<>& pos) {
     return true;
 }
 
+
+bool ChModelBullet::AddTriangleProxy(ChVector<>* p1,                ///< points to vertex1 coords
+                                    ChVector<>* p2,                 ///< points to vertex2 coords
+                                    ChVector<>* p3,                 ///< points to vertex3 coords
+                                    bool mowns_vertex_1,            ///< vertex is owned by this triangle (otherwise, owned by neighbour)
+                                    bool mowns_vertex_2,
+                                    bool mowns_vertex_3,
+                                    bool mowns_edge_1,              ///< edge is owned by this triangle (otherwise, owned by neighbour)
+                                    bool mowns_edge_2,
+                                    bool mowns_edge_3,
+                                    double msphereswept_rad       ///< sphere swept triangle ('fat' triangle, improves robustness)
+                                    ) {
+    btCEtriangleShape* mshape = new btCEtriangleShape(p1,p2,p3,
+        mowns_vertex_1, mowns_vertex_2, mowns_vertex_3, 
+        mowns_edge_1, mowns_vertex_2, mowns_vertex_3, msphereswept_rad);
+
+    mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
+
+    _injectShape(VNULL, ChMatrix33<>(1), mshape);
+
+    return true;
+}
 
 
 bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
