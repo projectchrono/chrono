@@ -276,7 +276,7 @@ class ChApi ChQuadrature {
                             ChIntegrable2D<T>& integrand,  ///< this is the integrand
                             const int order)               ///< order of integration
     {
-        if ((unsigned int)order > GetStaticTablesTriangle()->Lroots.size()) 
+        if ((unsigned int)order > GetStaticTablesTriangle()->Weight.size()) 
             throw ChException("Too high order of quadrature for triangle. Use lower order.");
 
         ChQuadratureTablesTriangle* mtables = GetStaticTablesTriangle();
@@ -304,7 +304,7 @@ class ChApi ChQuadrature {
                             ChIntegrable3D<T>& integrand,  ///< this is the integrand
                             const int order)               ///< order of integration
     {
-        if ((unsigned int)order > GetStaticTables()->Lroots.size()) 
+        if ((unsigned int)order > GetStaticTablesTetrahedron()->Weight.size()) 
             throw ChException("Too high order of quadrature for tetrahedron. Use lower order.");
 
         ChQuadratureTablesTetrahedron* mtables = GetStaticTablesTetrahedron();
