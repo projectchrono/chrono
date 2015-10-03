@@ -76,8 +76,13 @@ public:
                      ) =0;
 
             /// This can be useful for loadable objects that has some density property, so it can be
-            /// accessed by ChLoaderVolumeGravity
+            /// accessed by ChLoaderVolumeGravity. Return 0 if the element/nodes does not support xyz gravity.
         virtual double GetDensity() = 0;
+
+            /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w 
+            /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
+        virtual bool IsTetrahedronIntegrationNeeded() {return false;}
+
 };
 
 
@@ -103,6 +108,10 @@ public:
             /// Gets the normal to the surface at the parametric coordinate u,v.
             /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
         virtual ChVector<> ComputeNormal(const double U, const double V) = 0;
+
+            /// If true, use quadrature over u,v in [0..1] range as triangle area coords, with w=1-u-v 
+            /// otherwise use quadrature over u,v in [-1..+1] as rectangular isoparametric coords.
+        virtual bool IsTriangleIntegrationNeeded() {return false;}
 };
 
 

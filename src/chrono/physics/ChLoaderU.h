@@ -75,7 +75,7 @@ public:
 
         ChVectorDynamic<> mNF (Q.GetRows());        // temporary value for loop
         
-        // Gauss quadrature :  Q = sum (N'*F*detJ * wi*wj*wk)
+        // Gauss quadrature :  Q = sum (N'*F*detJ * wi)
         for (unsigned int iu = 0; iu < Ulroots->size(); iu++) {
                     double detJ;
                     // Compute F= F(u)
@@ -84,7 +84,7 @@ public:
                     // Compute mNF= N(u)'*F
                     loadable->ComputeNF(Ulroots->at(iu),
                                         mNF, detJ, mF, state_x, state_w);
-                    // Compute Q+= mNF detJ * wi*wj*wk
+                    // Compute Q+= mNF detJ * wi
                     mNF *= (detJ * Uweight->at(iu) );
                     Q += mNF;
         }

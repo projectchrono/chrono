@@ -67,32 +67,56 @@ public:
     virtual void ComputeQ( ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) {
-        assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Lroots.size());
-        assert(GetIntegrationPointsV() <= ChQuadrature::GetStaticTables()->Lroots.size());
-
         Q.Reset(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
  
-        std::vector<double>* Ulroots = &ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU()-1];
-        std::vector<double>* Uweight = &ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU()-1];
-        std::vector<double>* Vlroots = &ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsV()-1];
-        std::vector<double>* Vweight = &ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsV()-1];
+        if (!loadable->IsTriangleIntegrationNeeded()) {
+            // Case of normal quadrilateral isoparametric coords
+            assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Weight.size());
+            assert(GetIntegrationPointsV() <= ChQuadrature::GetStaticTables()->Weight.size());
+            std::vector<double>* Ulroots = &ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU()-1];
+            std::vector<double>* Uweight = &ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU()-1];
+            std::vector<double>* Vlroots = &ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsV()-1];
+            std::vector<double>* Vweight = &ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsV()-1];
 
-        ChVectorDynamic<> mNF (Q.GetRows());        // temporary value for loop
+            ChVectorDynamic<> mNF (Q.GetRows());        // temporary value for loop
         
-        // Gauss quadrature :  Q = sum (N'*F*detJ * wi*wj*wk)
-        for (unsigned int iu = 0; iu < Ulroots->size(); iu++) {
-            for (unsigned int iv = 0; iv < Vlroots->size(); iv++) {
-                    double detJ;
-                    // Compute F= F(u,v,w)
-                    this->ComputeF(Ulroots->at(iu),Vlroots->at(iv), 
-                                    mF, state_x, state_w);
-                    // Compute mNF= N(u,v,w)'*F
-                    loadable->ComputeNF(Ulroots->at(iu),Vlroots->at(iv),
-                                        mNF, detJ, mF, state_x, state_w);
-                    // Compute Q+= mNF detJ * wi*wj*wk
-                    mNF *= (detJ * Uweight->at(iu) * Vweight->at(iv) );
-                    Q += mNF;
+            // Gauss quadrature :  Q = sum (N'*F*detJ * wi*wj)
+            for (unsigned int iu = 0; iu < Ulroots->size(); iu++) {
+                for (unsigned int iv = 0; iv < Vlroots->size(); iv++) {
+                        double detJ;
+                        // Compute F= F(u,v)
+                        this->ComputeF(Ulroots->at(iu),Vlroots->at(iv), 
+                                        mF, state_x, state_w);
+                        // Compute mNF= N(u,v)'*F
+                        loadable->ComputeNF(Ulroots->at(iu),Vlroots->at(iv),
+                                            mNF, detJ, mF, state_x, state_w);
+                        // Compute Q+= mNF detJ * wi*wj
+                        mNF *= (detJ * Uweight->at(iu) * Vweight->at(iv) );
+                        Q += mNF;
+                }
+            }
+        } else {
+            // case of triangle: use special 3d quadrature tables (given U,V,W orders, use the U only)
+            assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTablesTriangle()->Weight.size());
+            std::vector<double>* Ulroots = &ChQuadrature::GetStaticTablesTriangle()->LrootsU[GetIntegrationPointsU()-1];
+            std::vector<double>* Vlroots = &ChQuadrature::GetStaticTablesTriangle()->LrootsV[GetIntegrationPointsU()-1];
+            std::vector<double>* weight  = &ChQuadrature::GetStaticTablesTriangle()->Weight [GetIntegrationPointsU()-1];
+
+            ChVectorDynamic<> mNF (Q.GetRows());        // temporary value for loop
+        
+            // Gauss quadrature :  Q = sum (N'*F*detJ * wi *1/2)   often detJ= 2 * triangle area
+            for (unsigned int i = 0; i < Ulroots->size(); i++) {
+                double detJ;
+                // Compute F= F(u,v)
+                this->ComputeF(Ulroots->at(i),Vlroots->at(i), 
+                                mF, state_x, state_w);
+                // Compute mNF= N(u,v)'*F
+                loadable->ComputeNF(Ulroots->at(i),Vlroots->at(i),
+                                    mNF, detJ, mF, state_x, state_w);
+                // Compute Q+= mNF detJ * wi *1/2
+                mNF *= (detJ * weight->at(i) *(1./2.)); // (the 1/2 coefficient is not in the table);
+                Q += mNF;
             }
         }
     }
