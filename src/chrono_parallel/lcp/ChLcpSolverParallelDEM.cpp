@@ -20,6 +20,7 @@
 // on the velocity manifold of the bilateral constraints.
 // =============================================================================
 
+#include "chrono/physics/ChSystemDEM.h"
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 
 using namespace chrono;
@@ -32,39 +33,38 @@ using namespace chrono;
 // contact (with opposite signs for the two bodies).
 // -----------------------------------------------------------------------------
 void function_CalcContactForces(
-    int index,                              // index of this contact pair
-    CONTACTFORCEMODEL contact_model,        // contact force model
-    ADHESIONFORCEMODEL adhesion_model,      // contact force model
-    TANGENTIALDISPLACEMENTMODE displ_mode,  // type of tangential displacement history
-    bool use_mat_props,                     // flag specifying how coefficients are obtained
-    real char_vel,                          // characteristic velocity (Hooke)
-    real min_slip_vel,                      // threshold tangential velocity
-    real dT,                                // integration time step
-    real* mass,                             // body masses
-    real3* pos,                             // body positions
-    real4* rot,                             // body orientations
-    real* vel,                              // body linear and angular velocities
-    real2* elastic_moduli,                  // Young's modulus (per body)
-    real* cr,                               // coefficient of restitution (per body)
-    real4* dem_coeffs,                      // stiffness and damping coefficients (per body)
-    real* mu,                               // coefficient of friction (per body)
-    real* adhesion,                         // constant force (per body)
-    real* adhesionMultDMT,   // Adhesion force multiplier (per body), in DMT model. Adhesion force is adhesionMultDMT *
-                             // sqrt(eff_radius)
-    int2* body_id,           // body IDs (per contact)
-    int2* shape_id,          // shape IDs (per contact)
-    real3* pt1,              // point on shape 1 (per contact)
-    real3* pt2,              // point on shape 2 (per contact)
-    real3* normal,           // contact normal (per contact)
-    real* depth,             // penetration depth (per contact)
-    real* eff_radius,        // effective contact radius (per contact)
-    int3* shear_neigh,       // neighbor list of contacting bodies and shapes (max_shear per body)
-    bool* shear_touch,       // flag if contact in neighbor list is persistent (max_shear per body)
-    real3* shear_disp,       // accumulated shear displacement for each neighbor (max_shear per body)
-    int* ext_body_id,        // [output] body IDs (two per contact)
-    real3* ext_body_force,   // [output] body force (two per contact)
-    real3* ext_body_torque)  // [output] body torque (two per contact)
-{
+    int index,                                            // index of this contact pair
+    ChSystemDEM::ContactForceModel contact_model,         // contact force model
+    ChSystemDEM::AdhesionForceModel adhesion_model,       // contact force model
+    ChSystemDEM::TangentialDisplacementModel displ_mode,  // type of tangential displacement history
+    bool use_mat_props,                                   // flag specifying how coefficients are obtained
+    real char_vel,                                        // characteristic velocity (Hooke)
+    real min_slip_vel,                                    // threshold tangential velocity
+    real dT,                                              // integration time step
+    real* mass,                                           // body masses
+    real3* pos,                                           // body positions
+    real4* rot,                                           // body orientations
+    real* vel,                                            // body linear and angular velocities
+    real2* elastic_moduli,                                // Young's modulus (per body)
+    real* cr,                                             // coefficient of restitution (per body)
+    real4* dem_coeffs,                                    // stiffness and damping coefficients (per body)
+    real* mu,                                             // coefficient of friction (per body)
+    real* adhesion,                                       // constant force (per body)
+    real* adhesionMultDMT,                                // Adhesion force multiplier (per body), in DMT model.
+    int2* body_id,                                        // body IDs (per contact)
+    int2* shape_id,                                       // shape IDs (per contact)
+    real3* pt1,                                           // point on shape 1 (per contact)
+    real3* pt2,                                           // point on shape 2 (per contact)
+    real3* normal,                                        // contact normal (per contact)
+    real* depth,                                          // penetration depth (per contact)
+    real* eff_radius,                                     // effective contact radius (per contact)
+    int3* shear_neigh,      // neighbor list of contacting bodies and shapes (max_shear per body)
+    bool* shear_touch,      // flag if contact in neighbor list is persistent (max_shear per body)
+    real3* shear_disp,      // accumulated shear displacement for each neighbor (max_shear per body)
+    int* ext_body_id,       // [output] body IDs (two per contact)
+    real3* ext_body_force,  // [output] body force (two per contact)
+    real3* ext_body_torque  // [output] body torque (two per contact)
+    ) {
     // Identify the two bodies in contact.
     int body1 = body_id[index].x;
     int body2 = body_id[index].y;
@@ -163,10 +163,10 @@ void function_CalcContactForces(
     int shear_shape2;
     bool newcontact = true;
 
-    if (displ_mode == ONE_STEP) {
+    if (displ_mode == ChSystemDEM::TangentialDisplacementModel::OneStep) {
         delta_t = relvel_t * dT;
 
-    } else if (displ_mode == MULTI_STEP) {
+    } else if (displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
         delta_t = relvel_t * dT;
 
         // Contact history information should be stored on the body with
@@ -228,7 +228,7 @@ void function_CalcContactForces(
     }
 
     switch (contact_model) {
-        case HOOKE:
+        case ChSystemDEM::ContactForceModel::Hooke:
             if (use_mat_props) {
                 double tmp_k = (16.0 / 15) * sqrt(eff_radius[index]) * E_eff;
                 double v2 = char_vel * char_vel;
@@ -248,7 +248,7 @@ void function_CalcContactForces(
 
             break;
 
-        case HERTZ:
+        case ChSystemDEM::ContactForceModel::Hertz:
             if (use_mat_props) {
                 double sqrt_Rd = sqrt(eff_radius[index] * delta_n);
                 double Sn = 2 * E_eff * sqrt_Rd;
@@ -294,16 +294,13 @@ void function_CalcContactForces(
 
     // Include adhesion force.
     switch (adhesion_model) {
-        case CONSTANT:
+        case ChSystemDEM::AdhesionForceModel::Constant:
             // (This is a very simple model, which can perhaps be improved later.)
-
             forceN_mag -= adhesion_eff;
-
             break;
-        case _DMT:
+        case ChSystemDEM::AdhesionForceModel::DMT:
             // Derjaguin, Muller and Toporov (DMT) adhesion force,
             forceN_mag -= adhesionMultDMT_eff * sqrt(eff_radius[index]);
-
             break;
     }
 
@@ -324,7 +321,7 @@ void function_CalcContactForces(
             real forceT_stiff_mag = length(forceT_stiff);
             double ratio = forceT_slide / forceT_stiff_mag;
             forceT_stiff *= ratio;
-            if (displ_mode == MULTI_STEP) {
+            if (displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
                 if (shear_body1 == body1) {
                     shear_disp[max_shear * shear_body1 + contact_id] = forceT_stiff / kt;
                 } else {
@@ -458,7 +455,7 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
     custom_vector<int2> shape_pairs;
     custom_vector<bool> shear_touch;
 
-    if (data_manager->settings.solver.tangential_displ_mode == MULTI_STEP) {
+    if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
         shape_pairs.resize(data_manager->num_rigid_contacts);
         shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
         thrust::fill(thrust_parallel, shear_touch.begin(), shear_touch.end(), false);
@@ -472,7 +469,7 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
 
     host_CalcContactForces(ext_body_id, ext_body_force, ext_body_torque, shape_pairs, shear_touch);
 
-    if (data_manager->settings.solver.tangential_displ_mode == MULTI_STEP) {
+    if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
 #pragma omp parallel for
         for (int index = 0; index < data_manager->num_rigid_bodies; index++) {
             for (int i = 0; i < max_shear; i++) {
