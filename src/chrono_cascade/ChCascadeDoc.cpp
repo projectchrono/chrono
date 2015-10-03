@@ -440,7 +440,7 @@ void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Locat
 
     ((gp_Trsf)(to_coord.Transformation()))
         .SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x, from_mat(1, 0), from_mat(1, 1),
-                   from_mat(1, 2), mpos.y, from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z, 0, 0);
+                   from_mat(1, 2), mpos.y, from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z); //0, 0);
 }
 
 /////////////////////

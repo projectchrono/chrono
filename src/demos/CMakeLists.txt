@@ -53,7 +53,7 @@ endif()
 #	add_subdirectory(mpi)
 #endif()
 
-if(ENABLE_UNIT_CASCADE)
+if(ENABLE_MODULE_CASCADE)
 	add_subdirectory(cascade)
 endif()
 

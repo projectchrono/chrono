@@ -63,8 +63,9 @@ class ChApiCASCADE ChCascadeMeshTools {
     static void fillTriangleMeshFromCascade(
         geometry::ChTriangleMesh& chmesh,  ///< Mesh that will be filled with triangles
         const TopoDS_Shape& mshape,        ///< OpenCASCADE face to be meshed
-        double deflection = 0.5,           ///< Tolerance on meshing (the lower, the finer the mesh)
-        double angulardeflection = 20);
+        double deflection = 1,             ///< Tolerance on meshing (the lower, the finer the mesh)
+        bool   relative_deflection= false, ///< If true, deflection is relative to face size
+        double angulardeflection = 0.5);
 
     //---------------------------------------------------------------------------------
     // CONVERSION TO 'OBJ' WAVEFRONT FILE FORMAT
@@ -75,8 +76,9 @@ class ChApiCASCADE ChCascadeMeshTools {
     static void fillObjFileFromCascade(
         ChStreamOutAscii& objfile,   ///< the .obj file will be written here
         const TopoDS_Shape& mshape,  ///<
-        double deflection = 0.5,     ///< Tolerance on meshing (the lower, the finer the mesh)
-        double angulardeflection = 20);
+        double deflection = 1,       ///< Tolerance on meshing (the lower, the finer the mesh)
+        bool   relative_deflection= false, ///< If true, deflection is relative to face size
+        double angulardeflection = 0.5);
 
     //---------------------------------------------------------------------------------
     // Oter utility stuff

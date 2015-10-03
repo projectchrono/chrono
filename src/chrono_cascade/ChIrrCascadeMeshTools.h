@@ -51,10 +51,13 @@
 #include <TopLoc_Location.hxx>
 #include <TopoDS_Iterator.hxx>
 #include <BRepAdaptor_HSurface.hxx>
+#include <Poly.hxx>
 #include <Poly_Connect.hxx>
 #include <Poly_Triangle.hxx>
 #include <Poly_Triangulation.hxx>
 #include <TColgp_Array1OfDir.hxx>
+#include <BRepMesh_IncrementalMesh.hxx>
+#include <TShort_Array1OfShortReal.hxx>
 
 namespace irr {
 namespace scene {
@@ -76,9 +79,6 @@ class ChIrrCascadeMeshTools {
         BRepAdaptor_Surface BS(F, Standard_False);
         Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
         GeomAbs_SurfaceType thetype = BS.GetType();
-        if (thetype == GeomAbs_Cylinder) {
-            ;
-        };
 
         Handle(Poly_Triangulation) T;
         TopLoc_Location theLocation;
@@ -88,7 +88,6 @@ class ChIrrCascadeMeshTools {
         int vertshift = 1;
 
         if (!T.IsNull()) {
-            Poly_Connect pc(T);
 
             irr::scene::SMeshBuffer* buffer = new irr::scene::SMeshBuffer();
 
@@ -96,19 +95,21 @@ class ChIrrCascadeMeshTools {
             buffer->Indices.set_used(T->NbTriangles() * 3);
 
             const TColgp_Array1OfPnt& mNodes = T->Nodes();
-            TColgp_Array1OfDir mNormals(mNodes.Lower(), mNodes.Upper());
 
-            // to compute the normal.
-            chrono::cascade::ChCascadeMeshTools::ComputeNormal(F, pc, mNormals);
+            Poly::ComputeNormals(T);
+            const TShort_Array1OfShortReal& mNormals = T->Normals();
+            
 
             int ivert = 0;
             for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
                 gp_Pnt p;
                 gp_Dir pn;
                 p = mNodes(j).Transformed(theLocation.Transformation());
-                pn = mNormals(j);
+
                 chrono::ChVector<> pos(p.X(), p.Y(), p.Z());
-                chrono::ChVector<> nor(pn.X(), pn.Y(), pn.Z());
+                chrono::ChVector<> nor(mNormals((j-1)*3+1), mNormals((j-1)*3+2), mNormals((j-1)*3+3));
+                if (F.Orientation() == TopAbs_REVERSED)
+                    nor*= -1;
 
                 buffer->Vertices[ivert] =
                     irr::video::S3DVertex((irr::f32)pos.x, (irr::f32)pos.y, (irr::f32)pos.z, (irr::f32)nor.x,
@@ -138,6 +139,7 @@ class ChIrrCascadeMeshTools {
             mmesh->addMeshBuffer(buffer);
             mmesh->recalculateBoundingBox();
         }
+        
     }
 
     /// Function to use to convert a OpenCASCADE shape into a Irrlicht mesh,
@@ -145,12 +147,12 @@ class ChIrrCascadeMeshTools {
 
     static void fillIrrlichtMeshFromCascade(scene::IMesh* pMesh,
                                             const TopoDS_Shape& mshape,
-                                            double deflection = 0.5,
-                                            double angulardeflection = 20,
+                                            double deflection = 1,
+                                            bool  relative_deflection = false,
+                                            double angulardeflection = 0.5,
                                             video::SColor clr = video::SColor(255, 255, 255, 255)) {
         BRepTools::Clean(mshape);
-        BRepMesh::Mesh(mshape, deflection);
-        // BRepMesh_IncrementalMesh M(mshape, deflection, Standard_False , angulardeflection);
+        BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection , angulardeflection,true);
         // GetLog() << "    ..tesselation done \n";
 
         // Loop on faces..

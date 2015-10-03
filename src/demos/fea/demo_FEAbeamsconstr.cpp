@@ -442,6 +442,9 @@ int main(int argc, char* argv[]) {
         // stiffness matrices for all inserted elements in mesh
         my_mesh->SetupInitial();
 
+        // note, this benchmark not using gravity.. use my_system.Set_G_acc(VNULL); or..
+        my_mesh->SetAutomaticGravity(false);
+        
         // Remember to add the mesh to the system!
         my_system.Add(my_mesh);
 
