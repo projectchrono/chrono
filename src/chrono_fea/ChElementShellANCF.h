@@ -337,7 +337,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
          ChMatrixNM<double, 1,8> N;
          this->ShapeFunctions(N, U,V,0); // evaluate shape functions (in compressed vector), btw. not dependant on state
          
-         detJ = GetLengthX()*GetLengthY(); // ***TODO***  compute exact determinant of jacobian at U,V; approx. is area..
+         detJ = GetLengthX()*GetLengthY() / 4.0; // ***TODO***  compute exact determinant of jacobian at U,V; approx. is area/4..
 
          ChVector<>tmp;
          ChVector<>Fv = F.ClipVector(0,0);
@@ -388,7 +388,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
                 double rho = m_InertFlexVec(ij);
                 tot_density += rho;
             }
-            return tot_density;
+            return tot_density * this->m_thickness;
      } 
 
             /// Gets the normal to the surface at the parametric coordinate U,V. 
