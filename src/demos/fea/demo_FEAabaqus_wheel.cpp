@@ -24,6 +24,7 @@
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_mkl/ChLcpMklSolver.h"
 #include "chrono_matlab/ChMatlabEngine.h"
 #include "chrono_matlab/ChLcpMatlabSolver.h"
@@ -146,6 +147,25 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
+
+    // Add a rim
+    ChSharedPtr<ChBody> mwheel_rim(new ChBody);
+    mwheel_rim->SetPos(ChVector<>(0,0.3+0.8,0));
+    application.GetSystem()->Add(mwheel_rim);
+
+    ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
+    mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
+    mwheel_rim->AddAsset(mobjmesh);
+
+
+    // Conect rim and tire using constraints.
+    // Do these constraints where the 2nd node set has been marked in the .INP file.
+    int nodeset_index =1;
+    for (int i=0; i< node_sets[nodeset_index].size(); ++i) {
+        ChSharedPtr< ChLinkPointFrame > mlink(new ChLinkPointFrame);
+        mlink->Initialize(node_sets[nodeset_index][i].DynamicCastTo<ChNodeFEAxyz>(), mwheel_rim );
+        my_system.Add(mlink);
+    }
 
 
     //
