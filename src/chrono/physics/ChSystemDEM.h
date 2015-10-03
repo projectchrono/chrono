@@ -18,20 +18,31 @@
 
 namespace chrono {
 
-
-/// Enum for DEM contact type (out of class because templated class)
-enum ContactForceModel { Hooke, Hertz };
-
-/// Enum for Cohesion force model (out of class because templated class)
-enum AdhesionForceModel { Constant, DMT };
-
-
 /// Class for a physical system in which contact is modeled using a
 /// Penalty Method (aka DEM)
 class ChApi ChSystemDEM : public ChSystem {
     CH_RTTI(ChSystemDEM, ChSystem);
 
   public:
+    /// Enum for DEM contact type
+    enum ContactForceModel {
+        Hooke,  ///< linear Hookean model
+        Hertz   ///< nonlinear Hertzian model
+    };
+
+    /// Enum for adhesion force model
+    enum AdhesionForceModel {
+        Constant,  ///< constant adhesion force
+        DMT        ///< Derjagin-Muller-Toropov model
+    };
+
+    /// Enum for tangential displacement model
+    enum TangentialDisplacementModel {
+        None,      ///< no tangential force
+        OneStep,   ///< use only current relative tangential velocity
+        MultiStep  ///< use contact history (from contact initiation)
+    };
+
     /// Constructor
     /// Note, in case you will use collision detection, the values of
     /// 'max_objects' and 'scene_size' can be used to initialize the broadphase

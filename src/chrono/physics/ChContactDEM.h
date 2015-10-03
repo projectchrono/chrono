@@ -92,8 +92,8 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         double dT = sys->GetStep();
         bool use_mat_props = sys->UseMaterialProperties();
         bool use_history = sys->UseContactHistory();
-        ContactForceModel contact_model = sys->GetContactForceModel();
-        AdhesionForceModel adhesion_model = sys->GetAdhesionForceModel();
+        ChSystemDEM::ContactForceModel contact_model = sys->GetContactForceModel();
+        ChSystemDEM::AdhesionForceModel adhesion_model = sys->GetAdhesionForceModel();
 
 
         // Relative velocity at contact
@@ -135,7 +135,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
         // Include contact force
         switch (contact_model) {
-            case Hooke:
+        case ChSystemDEM::ContactForceModel::Hooke:
                 if (use_mat_props) {
                     double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
                     double v2 = sys->GetCharacteristicImpactVelocity() * sys->GetCharacteristicImpactVelocity();
@@ -155,7 +155,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
                 break;
 
-            case Hertz:
+        case ChSystemDEM::ContactForceModel::Hertz:
                 if (use_mat_props) {
                     double sqrt_Rd = std::sqrt(R_eff * m_delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
@@ -190,15 +190,12 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
         // Include adhesion force
         switch (adhesion_model) {
-        case Constant:
-        	forceN -= mat.adhesion_eff;
-
-        	break;
-
-        case DMT:
-        	forceN -= mat.adhesionMultDMT_eff * sqrt(R_eff);
-
-        	break;
+        case ChSystemDEM::AdhesionForceModel::Constant:
+            forceN -= mat.adhesion_eff;
+            break;
+        case ChSystemDEM::AdhesionForceModel::DMT:
+            forceN -= mat.adhesionMultDMT_eff * sqrt(R_eff);
+            break;
         }
 
         // Coulomb law
