@@ -80,12 +80,7 @@ class ChApiCASCADE ChCascadeMeshTools {
         bool   relative_deflection= false, ///< If true, deflection is relative to face size
         double angulardeflection = 0.5);
 
-    //---------------------------------------------------------------------------------
-    // Oter utility stuff
 
-    /// Given an OpenCASCADE face, computes the normals of triangles, if
-    /// already meshed. Mostly used internally.
-    static void ComputeNormal(const TopoDS_Face& aFace, Poly_Connect& pc, TColgp_Array1OfDir& Nor);
 };
 
 }  // END_OF_NAMESPACE____
