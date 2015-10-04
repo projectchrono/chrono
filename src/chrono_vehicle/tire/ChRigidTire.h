@@ -38,6 +38,13 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     virtual ~ChRigidTire() {}
 
+    /// Set contact material properties
+    void SetContactMaterial(float friction_coefficient = 0.6f,    ///< [in] coefficient of friction
+                            float restitution_coefficient = 0.1,  ///< [in] coefficient of restitution
+                            float young_modulus = 2e5f,           ///< [in] Young's modulus of elasticity
+                            float poisson_ratio = 0.3f            ///< [in] Poisson ratio
+                            );
+
     /// Get the tire force and moment.
     /// For a rigid tire, the tire forces are automatically applied to the
     /// associated wheel (through Chrono's frictional contact system). The values
@@ -51,14 +58,17 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
                     );
 
   protected:
-    /// Return the coefficient of friction for the tire material.
-    virtual float getFrictionCoefficient() const = 0;
-
     /// Return the tire radius.
     virtual double getRadius() const = 0;
 
     /// Return the tire width.
     virtual double getWidth() const = 0;
+
+  private:
+    float m_friction;
+    float m_restitution;
+    float m_young_modulus;
+    float m_poisson_ratio;
 };
 
 }  // end namespace chrono

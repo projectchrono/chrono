@@ -25,16 +25,13 @@ namespace hmmwv {
 
 class HMMWV_RigidTire : public chrono::ChRigidTire {
   public:
-    HMMWV_RigidTire(const std::string& name, float mu);
+    HMMWV_RigidTire(const std::string& name);
     ~HMMWV_RigidTire() {}
 
-    virtual float getFrictionCoefficient() const override { return m_mu; }
     virtual double getRadius() const override { return m_radius; }
     virtual double getWidth() const override { return m_width; }
 
   private:
-    float m_mu;
-
     static const double m_radius;
     static const double m_width;
 };
