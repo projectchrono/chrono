@@ -305,8 +305,8 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
         size_t i_prev= i;
         size_t i_next= i+1;
         if (i_next >= mpath.GetSubLinesCount()) 
-            if (mpath.Get_closed()) 
-                i_next= 0; // close 
+            if ((mpath.GetEndA()-mpath.GetEndB()).Length() < 1e-9) // can't use Get_closed() that is user preference via Set_closed()
+                i_next= 0; // closed path 
         if (i_next < mpath.GetSubLinesCount()) {
             ChSharedPtr< geometry::ChLine > mline_prev = mpath.GetSubLineN(i_prev);
             ChSharedPtr< geometry::ChLine > mline_next = mpath.GetSubLineN(i_next);
