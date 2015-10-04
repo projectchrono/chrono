@@ -1,0 +1,13 @@
+{
+  "Name":     "MAN_5t Rear Suspension Test",
+  "Type":     "SuspensionTest",
+  "Template": "SuspensionTest",
+
+  "Suspension":
+  {
+    "Input File":   "MAN_5t/suspension/MAN_5t_SolidAxle.json",
+    "Location":     [-0.0100, 0, 0.0264],
+    "Left Wheel Input File":   "MAN_5t/wheel/MAN_5t_Wheel_RearLeft.json",
+    "Right Wheel Input File":  "MAN_5t/wheel/MAN_5t_Wheel_RearRight.json"
+  }
+}
