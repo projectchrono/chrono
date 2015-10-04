@@ -911,7 +911,7 @@ public:
                     ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
                     ) {
         ChMatrixNM<double, 1,4> N;
-         this->ShapeFunctions(N, U); // evaluate shape functions (in compressed vector), btw. not dependant on state
+         this->ShapeFunctions(N, (U+1)*0.5); // evaluate shape functions (in compressed vector), btw. not dependant on state
          
          detJ = this->GetRestLength()/2.0;
 
