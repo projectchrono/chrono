@@ -44,12 +44,12 @@ const ChCoordsys<> HMMWV_Vehicle::m_driverCsys(ChVector<>(0.8735, -0.27475, 1.05
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
-                             DrivelineType        driveType,
-                             VisualizationType    chassisVis,
-                             VisualizationType    wheelVis)
-: m_driveType(driveType)
-{
+HMMWV_Vehicle::HMMWV_Vehicle(const bool fixed,
+                             DrivelineType driveType,
+                             VisualizationType chassisVis,
+                             VisualizationType wheelVis,
+                             ChMaterialSurfaceBase::ContactMethod contactMethod)
+  : ChVehicle(contactMethod), m_driveType(driveType) {
   // -------------------------------------------
   // Create the chassis body
   // -------------------------------------------

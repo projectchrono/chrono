@@ -26,6 +26,7 @@
 
 #include "core/ChVector.h"
 #include "physics/ChSystem.h"
+#include "physics/ChSystemDEM.h"
 #include "physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -49,7 +50,7 @@ class CH_VEHICLE_API ChVehicle : public ChShared
 public:
 
   /// Construct a vehicle system with a default ChSystem.
-  ChVehicle();
+  ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
   /// Construct a vehicle system using the specified ChSystem.
   ChVehicle(ChSystem* system);

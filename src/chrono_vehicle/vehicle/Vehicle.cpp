@@ -54,7 +54,7 @@ namespace chrono {
 
 
 // -----------------------------------------------------------------------------
-// These utility functions return a ChVector and a ChQuaternion<>, respectively,
+// These utility functions return a ChVector and a ChQuaternion, respectively,
 // from the specified JSON array.
 // -----------------------------------------------------------------------------
 static ChVector<> loadVector(const Value& a)
@@ -296,20 +296,14 @@ void Vehicle::LoadBrake(const std::string& filename, int axle, int side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Vehicle::Vehicle(const std::string& filename)
-: m_chassisUseMesh(false)
-{
-  Create(filename);
+Vehicle::Vehicle(const std::string& filename, ChMaterialSurfaceBase::ContactMethod contact_method)
+    : ChVehicle(contact_method), m_chassisUseMesh(false) {
+    Create(filename);
 }
 
-Vehicle::Vehicle(ChSystem*          system,
-                 const std::string& filename)
-: ChVehicle(system),
-  m_chassisUseMesh(false)
-{
-  Create(filename);
+Vehicle::Vehicle(ChSystem* system, const std::string& filename) : ChVehicle(system), m_chassisUseMesh(false) {
+    Create(filename);
 }
-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
