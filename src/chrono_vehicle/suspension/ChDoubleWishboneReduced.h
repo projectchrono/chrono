@@ -138,7 +138,7 @@ protected:
   /// Return the callback function for shock force (spring-damper).
   virtual ChSpringForceCallback* getShockForceCallback()  const = 0;
 
-  ChSharedBodyPtr                   m_upright[2];      ///< handles to the upright bodies (left/right)
+  ChSharedPtr<ChBody>               m_upright[2];      ///< handles to the upright bodies (left/right)
 
   ChSharedPtr<ChLinkDistance>       m_distUCA_F[2];    ///< handles to the front UCA distance constraints (left/right)
   ChSharedPtr<ChLinkDistance>       m_distUCA_B[2];    ///< handles to the back UCA distance constraints (left/right)
@@ -155,17 +155,14 @@ private:
                       ChSharedPtr<ChBody>             tierod_body,
                       const std::vector<ChVector<> >& points);
 
-  static void AddVisualizationUpright(ChSharedBodyPtr   upright,
-                                      const ChVector<>  pt_C,
-                                      const ChVector<>  pt_U,
-                                      const ChVector<>  pt_L,
-                                      const ChVector<>  pt_T,
-                                      double            radius);
-  static void AddVisualizationSpindle(ChSharedBodyPtr spindle,
-                                      double          radius,
-                                      double          width);
+  static void AddVisualizationUpright(ChSharedPtr<ChBody> upright,
+                                      const ChVector<> pt_C,
+                                      const ChVector<> pt_U,
+                                      const ChVector<> pt_L,
+                                      const ChVector<> pt_T,
+                                      double radius);
+  static void AddVisualizationSpindle(ChSharedPtr<ChBody> spindle, double radius, double width);
 };
-
 
 } // end namespace chrono
 

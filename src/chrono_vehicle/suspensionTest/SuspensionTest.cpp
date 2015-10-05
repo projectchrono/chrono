@@ -823,13 +823,11 @@ void SuspensionTest::LoadWheel(const std::string& filename, int axle, int side)
   }
 }
 
-
-void SuspensionTest::AddVisualize_post(ChSharedBodyPtr post_body,
-                                       ChSharedBodyPtr ground_body,
+void SuspensionTest::AddVisualize_post(ChSharedPtr<ChBody> post_body,
+                                       ChSharedPtr<ChBody> ground_body,
                                        double height,
                                        double rad,
-                                       const ChColor& color)
-{
+                                       const ChColor& color) {
   // post platform visualized as a cylinder
   ChSharedPtr<ChCylinderShape> base_cyl(new ChCylinderShape);
   base_cyl->GetCylinderGeometry().rad = rad;

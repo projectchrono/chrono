@@ -218,11 +218,11 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Return the callback function for shock force.
     virtual ChSpringForceCallback* getShockAHForceCallback() const = 0;
 
-    ChSharedBodyPtr m_knuckle[2];      ///< handles to the knuckle bodies (left/right)
-    ChSharedBodyPtr m_torquerod[2];    ///< handles to torquerod bodies (left/right)
-    ChSharedBodyPtr m_lowerbeam[2];    ///< handles to lowerbeam bodies (left/right)
-    ChSharedBodyPtr m_transversebeam;  ///< handles to transversebeam body
-    ChSharedBodyPtr m_axlehousing;     ///< handles to axlehousing body
+    ChSharedPtr<ChBody> m_knuckle[2];      ///< handles to the knuckle bodies (left/right)
+    ChSharedPtr<ChBody> m_torquerod[2];    ///< handles to torquerod bodies (left/right)
+    ChSharedPtr<ChBody> m_lowerbeam[2];    ///< handles to lowerbeam bodies (left/right)
+    ChSharedPtr<ChBody> m_transversebeam;  ///< handles to transversebeam body
+    ChSharedPtr<ChBody> m_axlehousing;     ///< handles to axlehousing body
 
     ChSharedPtr<ChLinkLockRevolute>
         m_revoluteKingpin[2];  ///< handles to the knuckle-axle housing revolute joints (left/right)
@@ -248,23 +248,23 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
                         const std::vector<ChVector<> >& points,
                         const std::vector<ChVector<> >& dirs);
 
-    static void AddVisualizationLink(ChSharedBodyPtr body,
+    static void AddVisualizationLink(ChSharedPtr<ChBody> body,
                                      const ChVector<> pt_1,
                                      const ChVector<> pt_2,
                                      double radius,
                                      const ChColor& color);
-    static void AddVisualizationLowerBeam(ChSharedBodyPtr body,
+    static void AddVisualizationLowerBeam(ChSharedPtr<ChBody> body,
                                           const ChVector<> pt_C,
                                           const ChVector<> pt_AH,
                                           const ChVector<> pt_TB,
                                           double radius,
                                           const ChColor& color);
-    static void AddVisualizationKnuckle(ChSharedBodyPtr knuckle,
+    static void AddVisualizationKnuckle(ChSharedPtr<ChBody> knuckle,
                                         const ChVector<> pt_U,
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
-    static void AddVisualizationSpindle(ChSharedBodyPtr spindle, double radius, double width);
+    static void AddVisualizationSpindle(ChSharedPtr<ChBody> spindle, double radius, double width);
 
     static const std::string m_pointNames[NUM_POINTS];
 };

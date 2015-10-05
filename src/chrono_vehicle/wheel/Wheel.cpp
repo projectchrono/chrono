@@ -98,7 +98,7 @@ void Wheel::Create(const rapidjson::Document& d)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Wheel::Initialize(ChSharedBodyPtr spindle)
+void Wheel::Initialize(ChSharedPtr<ChBody> spindle)
 {
   // Call the base class initialization function
   ChWheel::Initialize(spindle);
