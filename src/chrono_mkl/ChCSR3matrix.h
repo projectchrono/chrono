@@ -52,66 +52,11 @@ namespace chrono{
 	* but they DO NOT REDUCE the occupancy. Eventually it has to be done manually with Trim().
 	*/
 	
+	
 	class ChApiMkl ChCSR3Matrix : public ChSparseMatrixBase
 	{
-	public:
-		ChCSR3Matrix(int insrow = 3, int inscol = 3, int nonzeros = 0);
-		ChCSR3Matrix(int insrow, int inscol, int* nonzeros);
-		virtual ~ChCSR3Matrix() ;
-
-		double* GetValuesAddress() { return values; };
-		int* GetColIndexAddress() { return colIndex; };
-		int* GetRowIndexAddress() { return rowIndex; };
-		virtual int GetRows() const override { return mat_rows; };
-		virtual int GetColumns() const override { return mat_cols; };
-
-		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
-		virtual double GetElement(int row, int col) override;
-		double& Element(int row, int col);
-		double& operator()(int row, int col) { return Element(row, col); }
-		double& operator()(int index) { return Element( index / GetColumns(), index % GetColumns()); }
-
-		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) override;
-		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) override;
-		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true) override;
-
-		// Size manipulation
-		virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
-		virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
-		void Compress(); // purge the matrix from all the unininitialized elements
-		void Trim(); // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
-		void Prune(double pruning_threshold = DBL_EPSILON);
-
-		// Auxiliary functions
-		int GetColIndexLength() const { return rowIndex[mat_rows]-1; };
-		int GetColIndexMemOccupancy() const { return colIndex_occupancy; };
-		int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; };
-		void GetNonZerosVector(int* nonzeros_vector) const;
-		void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; };
-		void SetRowIndexLock(bool on_off){ rowIndex_lock = on_off; }
-		void SetColIndexLock(bool on_off){ colIndex_lock = on_off; }
-		bool IsRowIndexLockBroken() const { return rowIndex_lock_broken; }
-		bool IsColIndexLockBroken() const { return colIndex_lock_broken; }
-		int GetWriteCounter() const { return write_counter; };
-
-		// Testing functions
-		bool CheckArraysAlignment(int alignment = 0);
-		void GetMemoryInfo();
-		int VerifyMatrix();
-
-		// Import/Export functions
-		void ImportFromDatFile(std::string filepath);
-		void ExportToDatFile(std::string filepath, int precision = 12);
-
-	protected:
-		void insert(int insrow, int inscol, double insval, int& col_sel);
-		void initialize(int colIndex_length = 0);
-		void initialize(int* nonzeros_vector);
-		void initialize_ValuesColIndex();
-		void copy(double* values_temp, int* colIndex_temp, bool to_internal_arrays, int insrow = 0, int col_sel = 0, int shifts = 0);
 
 	private:
-		
 		bool reallocation_occurred;
 		const int array_alignment;
 		bool isCompressed;
@@ -130,11 +75,76 @@ namespace chrono{
 		bool rowIndex_lock_broken;
 		bool colIndex_lock_broken;
 		int write_counter;
+		enum symmetry_type
+		{
+			NO_SYMMETRY = 0,
+			UPPER_SYMMETRY = 1,
+			LOWER_SYMMETRY = 2,
+			STRUCTURAL_SYMMETRY = 3
+		} symmetry;
 
-		
-
-		
 		MKL_INT64 mkl_peak_mem_CSR3;
+
+
+
+
+	protected:
+		void insert(int insrow, int inscol, double insval, int& col_sel);
+		void initialize(int colIndex_length = 0);
+		void initialize(int* nonzeros_vector);
+		void initialize_ValuesColIndex();
+		void copy(double* values_temp, int* colIndex_temp, bool to_internal_arrays, int insrow = 0, int col_sel = 0, int shifts = 0);
+
+	public:
+		ChCSR3Matrix(int insrow = 3, int inscol = 3, int nonzeros = 0);
+		ChCSR3Matrix(int insrow, int inscol, int* nonzeros);
+		virtual ~ChCSR3Matrix();
+
+		double* GetValuesAddress() { return values; };
+		int* GetColIndexAddress() { return colIndex; };
+		int* GetRowIndexAddress() { return rowIndex; };
+		virtual int GetRows() const override { return mat_rows; };
+		virtual int GetColumns() const override { return mat_cols; };
+
+		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
+		virtual double GetElement(int row, int col) override;
+		double& Element(int row, int col);
+		double& operator()(int row, int col) { return Element(row, col); }
+		double& operator()(int index) { return Element(index / GetColumns(), index % GetColumns()); }
+
+		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) override;
+		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) override;
+		virtual void PasteClippedMatrix(ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol, bool overwrite = true) override;
+
+		// Size manipulation
+		virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
+		virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
+		void Compress(); // purge the matrix from all the unininitialized elements
+		void Trim(); // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
+		void Prune(double pruning_threshold = DBL_EPSILON);
+
+		// Auxiliary functions
+		int GetColIndexLength() const { return rowIndex[mat_rows] - 1; };
+		int GetColIndexMemOccupancy() const { return colIndex_occupancy; };
+		int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; };
+		void GetNonZerosVector(int* nonzeros_vector) const;
+		void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; };
+		void SetRowIndexLock(bool on_off){ rowIndex_lock = on_off; }
+		void SetColIndexLock(bool on_off){ colIndex_lock = on_off; }
+		bool IsRowIndexLockBroken() const { return rowIndex_lock_broken; }
+		bool IsColIndexLockBroken() const { return colIndex_lock_broken; }
+		int GetWriteCounter() const { return write_counter; }
+		void SetSymmetry(symmetry_type sym) { symmetry = sym; }
+
+		// Testing functions
+		bool CheckArraysAlignment(int alignment = 0);
+		void GetMemoryInfo();
+		int VerifyMatrix();
+
+		// Import/Export functions
+		void ImportFromDatFile(std::string filepath);
+		void ExportToDatFile(std::string filepath, int precision = 12);
+
 
 	};
 

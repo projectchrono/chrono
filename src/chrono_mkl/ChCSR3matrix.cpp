@@ -10,7 +10,8 @@ namespace chrono {
 		colIndex_lock(false),
 		rowIndex_lock_broken(false),
 		colIndex_lock_broken(false),
-		write_counter(0)
+		write_counter(0),
+		symmetry(NO_SYMMETRY)
 	{
 		assert(insrow > 0 && inscol > 0 && nonzeros >= 0);
 		rowIndex_lock = false;
@@ -50,7 +51,8 @@ namespace chrono {
 		colIndex_lock(false),
 		rowIndex_lock_broken(false),
 		colIndex_lock_broken(false),
-		write_counter(0)
+		write_counter(0),
+		symmetry(NO_SYMMETRY)
 	{
 		assert(insrow > 0 && inscol > 0);
 		rowIndex_lock = true;
@@ -99,6 +101,9 @@ namespace chrono {
 		assert(insrow < mat_rows && inscol < mat_cols);
 		assert(insrow >= 0 && inscol >= 0);
 
+		if (symmetry == UPPER_SYMMETRY && insrow<inscol ||
+			symmetry == LOWER_SYMMETRY && insrow>inscol)
+			return;
 
 		int col_sel = rowIndex[insrow];
 		while (1)
