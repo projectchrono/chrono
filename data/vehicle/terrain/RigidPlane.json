@@ -6,8 +6,8 @@
   "Material Properties":
   {
     "Coefficient of Friction":  0.9,
-    "Coefficient of Restitution": 0.1,
-    "Young Modulus":  2e5,
+    "Coefficient of Restitution": 0.01,
+    "Young Modulus":  2e7,
     "Poisson Ratio":  0.3
   },
 

@@ -23,7 +23,7 @@
 
 class Generic_RigidTire : public chrono::ChRigidTire {
   public:
-    Generic_RigidTire(const std::string& name) : ChRigidTire(name) { SetContactMaterial(0.7f, 0.1f, 2e5f, 0.3f); }
+    Generic_RigidTire(const std::string& name) : ChRigidTire(name) { SetContactMaterial(0.9f, 0.1f, 2e7f, 0.3f); }
 
     ~Generic_RigidTire() {}
 

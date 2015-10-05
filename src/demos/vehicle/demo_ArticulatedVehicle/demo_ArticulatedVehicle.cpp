@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem());
-    terrain.SetContactMaterial(0.8f);
+    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
     terrain.SetColor(ChColor(0.5f, 0.5f, 1));
     terrain.SetTexture(GetChronoDataFile("textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
