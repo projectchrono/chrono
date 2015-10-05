@@ -21,6 +21,7 @@
 
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -37,6 +38,9 @@ using namespace geometry;
 
 // =============================================================================
 // Problem parameters
+
+// Contact method type
+ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DEM;
 
 // Type of tire model (RIGID, LUGRE, FIALA, or PACEJKA)
 TireModelType tire_model = RIGID;
@@ -100,6 +104,7 @@ bool povray_output = false;
 
 // Vehicle state output (forced to true if povray output enabled)
 bool state_output = false;
+int filter_window_size = 20;
 
 // =============================================================================
 
@@ -110,8 +115,8 @@ class ChDriverSelector : public irr::IEventReceiver {
         : m_vehicle(vehicle),
           m_driver_follower(driver_follower),
           m_driver_gui(driver_gui),
-          m_driver(m_driver_gui),
-          m_using_gui(true) {}
+          m_driver(m_driver_follower),
+          m_using_gui(false) {}
 
     ChDriver* GetDriver() { return m_driver; }
     bool UsingGUI() const { return m_using_gui; }
@@ -183,6 +188,7 @@ int main(int argc, char* argv[]) {
 
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv;
+    my_hmmwv.SetContactMethod(contact_method);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetChassisVis(vis_type);
     my_hmmwv.SetWheelVis(vis_type);
@@ -195,7 +201,7 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactMaterial(0.9f);
+    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
     terrain.SetColor(ChColor(1, 1, 1));
     terrain.SetTexture(GetChronoDataFile("textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
@@ -284,6 +290,9 @@ int main(int argc, char* argv[]) {
     csv.stream().setf(std::ios::scientific | std::ios::showpos);
     csv.stream().precision(6);
 
+    utils::ChRunningAverage acc_GC_filter(filter_window_size);
+    utils::ChRunningAverage acc_driver_filter(filter_window_size);
+
     // ---------------
     // Simulation loop
     // ---------------
@@ -303,7 +312,12 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     while (app.GetDevice()->run()) {
+        // Extract system state
         double time = my_hmmwv.GetSystem()->GetChTime();
+        ChVector<> acc_CG = my_hmmwv.GetVehicle().GetChassis()->GetPos_dtdt();
+        ChVector<> acc_driver = my_hmmwv.GetVehicle().GetVehicleAcceleration(driver_pos);
+        double lat_acc_CG = acc_GC_filter.Add(acc_CG.y);
+        double lat_acc_driver = acc_driver_filter.Add(acc_driver.y);
 
         // End simulation
         if (time >= t_end)
@@ -334,10 +348,9 @@ int main(int argc, char* argv[]) {
             }
 
             if (state_output) {
-                ChVector<> acc = my_hmmwv.GetVehicle().GetChassis()->GetPos_dtdt();
                 csv << time << steering_input << throttle_input << braking_input;
                 csv << my_hmmwv.GetVehicle().GetVehicleSpeed();
-                csv << acc.y;
+                csv << acc_CG.y << lat_acc_CG << acc_driver.y << lat_acc_driver;
                 csv << std::endl;
             }
 
@@ -346,11 +359,9 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && sim_frame % debug_steps == 0) {
-            ChVector<> driver_acc = my_hmmwv.GetVehicle().GetVehicleAcceleration(driver_pos);
-            GetLog() << "driver acceleration:  " << driver_acc.x << "  " << driver_acc.y << "  " << driver_acc.z
+            GetLog() << "driver acceleration:  " << acc_driver.x << "  " << acc_driver.y << "  " << acc_driver.z
                      << "\n";
-            ChVector<> acc = my_hmmwv.GetVehicle().GetChassis()->GetPos_dtdt();
-            GetLog() << "CG acceleration:      " << acc.x << "  " << acc.y << "  " << acc.z << "\n";
+            GetLog() << "CG acceleration:      " << acc_CG.x << "  " << acc_CG.y << "  " << acc_CG.z << "\n";
             GetLog() << "\n";
         }
 
