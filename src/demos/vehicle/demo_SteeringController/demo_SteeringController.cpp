@@ -58,6 +58,7 @@ VisualizationType vis_type = PRIMITIVES;
 std::string steering_controller_file("generic/driver/SteeringController.json");
 std::string speed_controller_file("generic/driver/SpeedController.json");
 // std::string path_file("paths/curve.txt");
+//std::string path_file("paths/NATO_double_lane_change.txt");
 std::string path_file("paths/ISO_double_lane_change.txt");
 
 // JSON file names for vehicle model, tire models, and (simple) powertrain
