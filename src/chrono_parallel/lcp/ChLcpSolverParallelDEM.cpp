@@ -114,9 +114,9 @@ void function_CalcContactForces(
 
     real m_eff = mass[body1] * mass[body2] / (mass[body1] + mass[body2]);
 
-    real mu_eff = std::min(mu[body1], mu[body2]);
-    real adhesion_eff = std::min(adhesion[body1], adhesion[body2]);
-    real adhesionMultDMT_eff = std::min(adhesionMultDMT[body1], adhesionMultDMT[body2]);
+    real mu_eff = Min(mu[body1], mu[body2]);
+    real adhesion_eff = Min(adhesion[body1], adhesion[body2]);
+    real adhesionMultDMT_eff = Min(adhesionMultDMT[body1], adhesionMultDMT[body2]);
 
     real E_eff, G_eff, cr_eff;
     real user_kn, user_kt, user_gn, user_gt;
@@ -177,10 +177,10 @@ void function_CalcContactForces(
         int shape1 = shape_id[index].x;
         int shape2 = shape_id[index].y;
 
-        shear_body1 = std::max(body1, body2);
-        shear_body2 = std::min(body1, body2);
-        shear_shape1 = std::max(shape1, shape2);
-        shear_shape2 = std::min(shape1, shape2);
+        shear_body1 = Max(body1, body2);
+        shear_body2 = Min(body1, body2);
+        shear_shape1 = Max(shape1, shape2);
+        shear_shape2 = Min(shape1, shape2);
 
         // Check if contact history already exists.
         // If not, initialize new contact history.
@@ -230,14 +230,14 @@ void function_CalcContactForces(
     switch (contact_model) {
         case ChSystemDEM::ContactForceModel::Hooke:
             if (use_mat_props) {
-                real tmp_k = (16.0 / 15) * sqrt(eff_radius[index]) * E_eff;
+                real tmp_k = (16.0 / 15) * Sqrt(eff_radius[index]) * E_eff;
                 real v2 = char_vel * char_vel;
-                real loge = (cr_eff < CH_MICROTOL) ? log(CH_MICROTOL) : log(cr_eff);
-                loge = (cr_eff > 1 - CH_MICROTOL) ? log(1 - CH_MICROTOL) : loge;
-                real tmp_g = 1 + pow(CH_C_PI / loge, 2);
-                kn = tmp_k * pow(m_eff * v2 / tmp_k, 1.0 / 5);
+                real loge = (cr_eff < CH_MICROTOL) ? Log(CH_MICROTOL) : Log(cr_eff);
+                loge = (cr_eff > 1 - CH_MICROTOL) ? Log(1 - CH_MICROTOL) : loge;
+                real tmp_g = 1 + Pow(CH_C_PI / loge, 2);
+                kn = tmp_k * Pow(m_eff * v2 / tmp_k, 1.0 / 5);
                 kt = kn;
-                gn = std::sqrt(4 * m_eff * kn / tmp_g);
+                gn = Sqrt(4 * m_eff * kn / tmp_g);
                 gt = gn;
             } else {
                 kn = user_kn;
@@ -250,17 +250,17 @@ void function_CalcContactForces(
 
         case ChSystemDEM::ContactForceModel::Hertz:
             if (use_mat_props) {
-                real sqrt_Rd = sqrt(eff_radius[index] * delta_n);
+                real sqrt_Rd = Sqrt(eff_radius[index] * delta_n);
                 real Sn = 2 * E_eff * sqrt_Rd;
                 real St = 8 * G_eff * sqrt_Rd;
-                real loge = (cr_eff < CH_MICROTOL) ? log(CH_MICROTOL) : log(cr_eff);
-                real beta = loge / sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                real loge = (cr_eff < CH_MICROTOL) ? Log(CH_MICROTOL) : Log(cr_eff);
+                real beta = loge / Sqrt(loge * loge + CH_C_PI * CH_C_PI);
                 kn = (2.0 / 3) * Sn;
                 kt = St;
-                gn = -2 * sqrt(5.0 / 6) * beta * sqrt(Sn * m_eff);
-                gt = -2 * sqrt(5.0 / 6) * beta * sqrt(St * m_eff);
+                gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
+                gt = -2 * Sqrt(5.0 / 6) * beta * Sqrt(St * m_eff);
             } else {
-                real tmp = eff_radius[index] * std::sqrt(delta_n);
+                real tmp = eff_radius[index] * Sqrt(delta_n);
                 kn = tmp * user_kn;
                 kt = tmp * user_kt;
                 gn = tmp * m_eff * user_gn;
@@ -300,7 +300,7 @@ void function_CalcContactForces(
             break;
         case ChSystemDEM::AdhesionForceModel::DMT:
             // Derjaguin, Muller and Toporov (DMT) adhesion force,
-            forceN_mag -= adhesionMultDMT_eff * sqrt(eff_radius[index]);
+            forceN_mag -= adhesionMultDMT_eff * Sqrt(eff_radius[index]);
             break;
     }
 
@@ -315,7 +315,7 @@ void function_CalcContactForces(
     //  real forceT_mag = length(forceT_stiff + forceT_damp);  // This seems correct
     real forceT_mag = length(forceT_stiff);  // This is what LAMMPS/LIGGGHTS does
     real delta_t_mag = length(delta_t);
-    real forceT_slide = mu_eff * fabs(forceN_mag);
+    real forceT_slide = mu_eff * Abs(forceN_mag);
     if (forceT_mag > forceT_slide) {
         if (delta_t_mag != 0.0) {
             real forceT_stiff_mag = length(forceT_stiff);

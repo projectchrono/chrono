@@ -18,7 +18,7 @@ void function_Integrate_Timestep_Semi_Implicit(uint& index,
   }
 
   // Do 1st order integration of quaternion position as q[t+dt] = qw_abs^(dt) * q[dt] = q[dt] * qw_local^(dt)
-  // where qw^(dt) is the quaternion { cos(0.5|w|), wx/|w| sin(0.5|w|), wy/|w| sin(0.5|w|), wz/|w| sin(0.5|w|)}^dt
+  // where qw^(dt) is the quaternion { Cos(0.5|w|), wx/|w| Sin(0.5|w|), wy/|w| Sin(0.5|w|), wz/|w| Sin(0.5|w|)}^dt
   // that is argument of sine and cosines are multiplied by dt.
   real3 omg = omega[index];
   real3 limits = lim[index];
@@ -28,7 +28,7 @@ void function_Integrate_Timestep_Semi_Implicit(uint& index,
   //
   //        if (w > limits.z) {
   //            omg = omg * limits.z / w;
-  //            wlen = sqrt(dot3(omg, omg));
+  //            wlen = Sqrt(dot3(omg, omg));
   //        }
   //
   //        real v = length(velocity);
@@ -53,7 +53,7 @@ void function_Integrate_Timestep_Semi_Implicit(uint& index,
   // singularity for near zero angular speed
   // Rw = normalize(Rw);
   real4 mq = mult2(mdeltarot, rot[index]);
-  // mq = mq /sqrt(dot(mq, mq));
+  // mq = mq /Sqrt(dot(mq, mq));
   rot[index] = mq;
   acc[index] = (velocity - acc[index]) / step_size;
 }

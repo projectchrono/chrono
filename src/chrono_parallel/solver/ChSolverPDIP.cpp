@@ -20,7 +20,7 @@ real ChSolverPDIP::Res4(DynamicVector<real>& gamma, DynamicVector<real>& tmp) {
   Project(tmp.data());
   tmp = (1.0 / gdiff) * (gamma - tmp);
 
-  return sqrt((double)(tmp, tmp));
+  return Sqrt((real)(tmp, tmp));
 }
 
 void ChSolverPDIP::SchurComplementProduct(DynamicVector<real>& src, DynamicVector<real>& dst) {
@@ -144,7 +144,7 @@ void ChSolverPDIP::conjugateGradient(DynamicVector<real>& x) {
     x = x + alpha_cg * p_cg;
     r_cg = r_cg - alpha_cg * Ap_cg;
     rsnew_cg = (r_cg, r_cg);
-    if (sqrt(rsnew_cg) < data_manager->settings.solver.tol_speed / 100.0) {
+    if (Sqrt(rsnew_cg) < data_manager->settings.solver.tol_speed / 100.0) {
       return;
     }
     p_cg = r_cg + rsnew_cg / rsold_cg * p_cg;
@@ -187,7 +187,7 @@ int ChSolverPDIP::preconditionedConjugateGradient(DynamicVector<real>& x, const 
     r_cg = r_cg - alpha_cg * Ap_cg;
     applyPreconditioning(r_cg, z_cg);
     rsnew_cg = (z_cg, r_cg);
-    if (sqrt(rsnew_cg) < data_manager->settings.solver.tol_speed / 100.0) {
+    if (Sqrt(rsnew_cg) < data_manager->settings.solver.tol_speed / 100.0) {
       return iter;
     }
     p_cg = z_cg + rsnew_cg / rsold_cg * p_cg;
@@ -321,15 +321,15 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
         lambda_tmp[i] = 1.0;
     }
 
-    s_max = std::fmin(1.0, (double)blaze::min(lambda_tmp));
+    s_max = Min(1.0, (real)blaze::min(lambda_tmp));
 
     // (11) s = 0.99 * s_max
     s = 0.99 * s_max;
 
-    // (12) while max(f(gamma_k + s * delta_gamma) > 0)
+    // (12) while Max(f(gamma_k + s * delta_gamma) > 0)
     gamma_tmp = gamma + s * delta_gamma;
     getConstraintVector(gamma_tmp, lambda_tmp, size);
-    while (max(lambda_tmp) > 0) {
+    while (blaze::max(lambda_tmp) > 0) {
       // (13) s = beta * s
       s = beta * s;
       gamma_tmp = gamma + s * delta_gamma;
@@ -339,11 +339,11 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     }
 
     // (15) while norm(r_t(gamma_k + s * delta_gamma, lambda_k + s * delta_lambda),2) > (1-alpha*s)*norm(r_t,2)
-    norm_rt = sqrt((r_d, r_d) + (r_g, r_g));
+    norm_rt = Sqrt((r_d, r_d) + (r_g, r_g));
     lambda_tmp = lambda + s * delta_lambda;
     getConstraintVector(gamma_tmp, f, size);
     updateNewtonStepVector(gamma_tmp, lambda_tmp, f, t, size);
-    while (sqrt((r_d, r_d) + (r_g, r_g)) > (1 - alpha * s) * norm_rt) {
+    while (Sqrt((r_d, r_d) + (r_g, r_g)) > (1 - alpha * s) * norm_rt) {
       // (16) s = beta * s
       s = beta * s;
       gamma_tmp = gamma + s * delta_gamma;
@@ -361,7 +361,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     lambda = lambda + s * delta_lambda;
 
     // (20) r = r(gamma_(k+1))
-    residual = sqrt((r_g, r_g));  // Res4(gamma, gamma_tmp);
+    residual = Sqrt((r_g, r_g));  // Res4(gamma, gamma_tmp);
 
     // (21) if r < tau
     AtIterationEnd(residual, objective_value);

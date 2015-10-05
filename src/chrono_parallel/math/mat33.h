@@ -234,7 +234,7 @@ static inline real4 GetQuat(const M33 &A) {
     tr = m00 + m11 + m22;  // diag sum
 
     if (tr >= 0) {
-        s = sqrt(tr + 1);
+        s = Sqrt(tr + 1);
         q.w = half * s;
         s = half / s;
         q.x = (m21 - m12) * s;
@@ -254,7 +254,7 @@ static inline real4 GetQuat(const M33 &A) {
 
         switch (i) {
             case 0:
-                s = sqrt(m00 - m11 - m22 + 1);
+                s = Sqrt(m00 - m11 - m22 + 1);
                 q.x = half * s;
                 s = half / s;
                 q.y = (m01 + m10) * s;
@@ -262,7 +262,7 @@ static inline real4 GetQuat(const M33 &A) {
                 q.w = (m21 - m12) * s;
                 break;
             case 1:
-                s = sqrt(m11 - m22 - m00 + 1);
+                s = Sqrt(m11 - m22 - m00 + 1);
                 q.y = half * s;
                 s = half / s;
                 q.z = (m12 + m21) * s;
@@ -270,7 +270,7 @@ static inline real4 GetQuat(const M33 &A) {
                 q.w = (m02 - m20) * s;
                 break;
             case 2:
-                s = sqrt(m22 - m00 - m11 + 1);
+                s = Sqrt(m22 - m00 - m11 + 1);
                 q.z = half * s;
                 s = half / s;
                 q.x = (m20 + m02) * s;

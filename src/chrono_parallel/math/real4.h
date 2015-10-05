@@ -209,7 +209,7 @@ static inline bool operator==(const real4& a, const real4& b) {
 }
 
 static inline quaternion normalize(const quaternion& a) {
-  real length = sqrt(dot(a, a));
+  real length = Sqrt(dot(a, a));
   if (length < ZERO_EPSILON) {
     return R4(1, 0, 0, 0);
   }
@@ -271,7 +271,7 @@ static inline quaternion lerp(const quaternion& a, const quaternion& b, real alp
 }
 
 static inline real angle(const quaternion& a, const quaternion& b) {
-  real s = sqrtf(dot(a, a) * dot(b, b));
+  real s = Sqrt(dot(a, a) * dot(b, b));
 
   return acos(dot(a, b) / s);
 }

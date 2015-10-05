@@ -24,7 +24,7 @@ void chrono::Orthogonalize(real3& Vx, real3& Vy, real3& Vz) {
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 bool Cone_generalized(real& gamma_n, real& gamma_u, real& gamma_v, const real& mu) {
-  real f_tang = sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
+  real f_tang = Sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
 
   // inside upper cone? keep untouched!
   if (f_tang < (mu * gamma_n)) {
@@ -32,7 +32,7 @@ bool Cone_generalized(real& gamma_n, real& gamma_u, real& gamma_v, const real& m
   }
 
   // inside lower cone? reset  normal,u,v to zero!
-  if ((f_tang) < -(1.0 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
+  if ((f_tang) < -(1.0 / mu) * gamma_n || (Abs(gamma_n) < 10e-15)) {
     gamma_n = 0;
     gamma_u = 0;
     gamma_v = 0;
@@ -49,7 +49,7 @@ bool Cone_generalized(real& gamma_n, real& gamma_u, real& gamma_v, const real& m
 }
 
 void Cone_single(real& gamma_n, real& gamma_s, const real& mu) {
-  real f_tang = fabs(gamma_s);
+  real f_tang = Abs(gamma_s);
 
   // inside upper cone? keep untouched!
   if (f_tang < (mu * gamma_n)) {
@@ -57,7 +57,7 @@ void Cone_single(real& gamma_n, real& gamma_s, const real& mu) {
   }
 
   // inside lower cone? reset  normal,u,v to zero!
-  if ((f_tang) < -(1.0 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
+  if ((f_tang) < -(1.0 / mu) * gamma_n || (Abs(gamma_n) < 10e-15)) {
     gamma_n = 0;
     gamma_s = 0;
     return;
@@ -136,7 +136,7 @@ void ChConstraintRigidRigid::func_Project_spinning(int index, const int2* ids, c
   //		gam[index + number_of_contacts * 2] = 0;
   //	}
 
-  real gamma_n = fabs(gam[index * 1 + 0]);
+  real gamma_n = Abs(gam[index * 1 + 0]);
   real gamma_s = gam[3 * data_manager->num_rigid_contacts + index * 3 + 0];
   real gamma_tu = gam[3 * data_manager->num_rigid_contacts + index * 3 + 1];
   real gamma_tv = gam[3 * data_manager->num_rigid_contacts + index * 3 + 2];
@@ -263,8 +263,8 @@ void ChConstraintRigidRigid::Build_b() {
     } else if (data_manager->settings.solver.contact_recovery_speed < 0) {
       bi = inv_h * depth;
     } else {
-      bi = std::max(inv_h * depth, -data_manager->settings.solver.contact_recovery_speed);
-      //bi = std::min(bi, inv_h * data_manager->settings.solver.cohesion_epsilon);
+      bi = Max(inv_h * depth, -data_manager->settings.solver.contact_recovery_speed);
+      //bi = Min(bi, inv_h * data_manager->settings.solver.cohesion_epsilon);
     }
 
     data_manager->host_data.b[index * 1 + 0] = bi;
@@ -357,7 +357,7 @@ void ChConstraintRigidRigid::Build_s() {
                D_t_T(index * 2 + 1, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] +
                D_t_T(index * 2 + 1, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
 
-    data_manager->host_data.s[index * 1 + 0] = sqrt(s_v * s_v + s_w * s_w) * fric;
+    data_manager->host_data.s[index * 1 + 0] = Sqrt(s_v * s_v + s_w * s_w) * fric;
   }
 }
 
