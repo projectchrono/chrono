@@ -1013,6 +1013,7 @@ int main(int argc, char* argv[]) {
   thrust::device_vector<Real3> rigid_FSI_TorquesD;
   ResizeR3(rigid_FSI_ForcesD, numObjects.numRigidBodies);
   ResizeR3(rigid_FSI_TorquesD, numObjects.numRigidBodies);
+
 #endif
   cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
 

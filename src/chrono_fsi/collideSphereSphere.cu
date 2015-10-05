@@ -317,16 +317,16 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Calc_Rigid_FSI_ForcesD(Real3 * rigid_FSI_Forces, Real4 * totalSurfaceInteractionRigid4) {
+__global__ void Calc_Rigid_FSI_ForcesD(Real3 * rigid_FSI_ForcesD, Real4 * totalSurfaceInteractionRigid4) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numObjectsD.numRigidBodies) {
 		return;
 	}
 	Real3 force3 = solid_SPH_massD * mR3(totalSurfaceInteractionRigid4[rigidSphereA]);
-	rigid_FSI_Forces[rigidSphereA] = force3;
+	rigid_FSI_ForcesD[rigidSphereA] = force3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Calc_Markers_TorquesD(Real3* torqueMarkersD, Real4* derivVelRhoD, Real3* posRadD, int* rigidIdentifierD, Real3* posRigidD) {
+__global__ void Calc_Markers_TorquesD(Real3* torqueMarkersD, Real4* derivVelRhoD, Real3* posRadD, uint* rigidIdentifierD, Real3* posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
 	if (index >= numObjectsD.numRigid_SphMarkers) {
@@ -341,7 +341,7 @@ __global__ void UpdateRigidMarkersPositionD(
 		Real3 * posRadD,
 		Real4 * velMasD,
 		const Real3 * rigidSPH_MeshPos_LRF_D,
-		const int * rigidIdentifierD,
+		const uint * rigidIdentifierD,
 		Real3 * posRigidD,
 		Real4 * velMassRigidD,
 		Real3 * omegaLRF_D,
@@ -387,7 +387,7 @@ __global__ void CustomCopyR4ToR3(Real3* velD, Real4* velMasD) {
 __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 		Real3* rigidSPH_MeshPos_LRF_D,
 		Real3* posRadD,
-		int* rigidIdentifierD,
+		uint* rigidIdentifierD,
 		Real3* posRigidD,
 		Real4 * qD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -438,7 +438,7 @@ void Populate_RigidSPH_MeshPos_LRF(
 	uint nThreads_SphMarkers;
 	computeGridSize(numObjects.numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
 
-	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(mR3CAST(rigidSPH_MeshPos_LRF_D), mR3CAST(posRadD), I1CAST(rigidIdentifierD), mR3CAST(posRigidD),
+	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(mR3CAST(rigidSPH_MeshPos_LRF_D), mR3CAST(posRadD), U1CAST(rigidIdentifierD), mR3CAST(posRigidD),
 			mR4CAST(qD));
 
 
@@ -457,15 +457,15 @@ void Populate_RigidSPH_MeshPos_LRF(
 // applies the time step to the current quantities and saves the new values into variable with the same name and '2' and the end
 // precondition: for the first step of RK2, all variables with '2' at the end have the values the same as those without '2' at the end.
 void Rigid_Forces_Torques(
-		thrust::device_vector<Real3> & rigid_FSI_Forces,
-		thrust::device_vector<Real3> & rigid_FSI_Torques,
+		thrust::device_vector<Real3> & rigid_FSI_ForcesD,
+		thrust::device_vector<Real3> & rigid_FSI_TorquesD,
 
 
 		const thrust::device_vector<Real3> & posRadD,
 		const thrust::device_vector<Real3> & posRigidD,
 
 		const thrust::device_vector<Real4> & derivVelRhoD,
-		const thrust::device_vector<int> & rigidIdentifierD,
+		const thrust::device_vector<uint> & rigidIdentifierD,
 
 		const NumberOfObjects & numObjects,
 		Real sphMass) {
@@ -481,20 +481,20 @@ void Rigid_Forces_Torques(
 	thrust::device_vector<Real4> totalSurfaceInteractionRigid4(numObjects.numRigidBodies);
 	thrust::fill(totalSurfaceInteractionRigid4.begin(), totalSurfaceInteractionRigid4.end(), mR4(0));
 	thrust::device_vector<int> dummyIdentify(numObjects.numRigidBodies);
-	thrust::equal_to<int> binary_pred;
+	thrust::equal_to<uint> binary_pred;
 
 	//** forces on BCE markers of each rigid body are accumulated at center. "totalSurfaceInteractionRigid4" is got built.
 	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), derivVelRhoD.begin() + numObjects.startRigidMarkers, dummyIdentify.begin(),
 			totalSurfaceInteractionRigid4.begin(), binary_pred, thrust::plus<Real4>());
-	thrust::fill(rigid_FSI_Forces.begin(), rigid_FSI_Forces.end(), mR3(0));
+	thrust::fill(rigid_FSI_ForcesD.begin(), rigid_FSI_ForcesD.end(), mR3(0));
 
 	uint nBlock_UpdateRigid;
 	uint nThreads_rigidParticles;
 	computeGridSize(numObjects.numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
 
-	//** accumulated BCE forces at center are transformed to acceleration of rigid body "rigid_FSI_Forces". "rigid_FSI_Forces" gets built.
+	//** accumulated BCE forces at center are transformed to acceleration of rigid body "rigid_FSI_ForcesD". "rigid_FSI_ForcesD" gets built.
 	Calc_Rigid_FSI_ForcesD<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
-			mR3CAST(rigid_FSI_Forces), mR4CAST(totalSurfaceInteractionRigid4));
+			mR3CAST(rigid_FSI_ForcesD), mR4CAST(totalSurfaceInteractionRigid4));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: Calc_Rigid_FSI_ForcesD");
 
@@ -510,12 +510,12 @@ void Rigid_Forces_Torques(
 	//** the current position of the rigid, 'posRigidD', is used to calculate the moment of BCE acceleration at the rigid
 	//*** body center (i.e. torque/mass). "torqueMarkersD" gets built.
 	Calc_Markers_TorquesD<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
-			mR3CAST(torqueMarkersD), mR4CAST(derivVelRhoD), mR3CAST(posRadD), I1CAST(rigidIdentifierD), mR3CAST(posRigidD));
+			mR3CAST(torqueMarkersD), mR4CAST(derivVelRhoD), mR3CAST(posRadD), U1CAST(rigidIdentifierD), mR3CAST(posRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: Calc_Markers_TorquesD");
 
 	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueMarkersD.begin(), dummyIdentify.begin(),
-			rigid_FSI_Torques.begin(), binary_pred, thrust::plus<Real3>());
+			rigid_FSI_TorquesD.begin(), binary_pred, thrust::plus<Real3>());
 
 	torqueMarkersD.clear();
 	dummyIdentify.clear();
@@ -526,7 +526,7 @@ void UpdateRigidMarkersPosition(
 		thrust::device_vector<Real3> & posRadD,
 		thrust::device_vector<Real4> & velMasD,
 		const thrust::device_vector<Real3> & rigidSPH_MeshPos_LRF_D,
-		const thrust::device_vector<int> & rigidIdentifierD,
+		const thrust::device_vector<uint> & rigidIdentifierD,
 		const thrust::device_vector<Real3> & posRigidD,
 		const thrust::device_vector<Real4> & qD,
 		const thrust::device_vector<Real4> & velMassRigidD,
@@ -546,7 +546,7 @@ void UpdateRigidMarkersPosition(
 	UpdateRigidMarkersPositionD<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
 			mR3CAST(posRadD), mR4CAST(velMasD),
 			mR3CAST(rigidSPH_MeshPos_LRF_D),
-			I1CAST(rigidIdentifierD), mR3CAST(posRigidD), mR4CAST(velMassRigidD), mR3CAST(omegaLRF_D), mR4CAST(qD));
+			U1CAST(rigidIdentifierD), mR3CAST(posRigidD), mR4CAST(velMassRigidD), mR3CAST(omegaLRF_D), mR4CAST(qD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }

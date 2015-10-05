@@ -68,15 +68,15 @@ void Populate_RigidSPH_MeshPos_LRF(
 		const NumberOfObjects & numObjects);
 
 void Rigid_Forces_Torques(
-		thrust::device_vector<Real3> & rigid_FSI_Forces, // size is numObjects.numRigids , take care of this
-		thrust::device_vector<Real3> & rigid_FSI_Torques, // size is numObjects.numRigids , take care of this
+		thrust::device_vector<Real3> & rigid_FSI_ForcesD,
+		thrust::device_vector<Real3> & rigid_FSI_TorquesD,
 
 
 		const thrust::device_vector<Real3> & posRadD,
 		const thrust::device_vector<Real3> & posRigidD,
 
 		const thrust::device_vector<Real4> & derivVelRhoD,
-		const thrust::device_vector<int> & rigidIdentifierD,
+		const thrust::device_vector<uint> & rigidIdentifierD,
 
 		const NumberOfObjects & numObjects,
 		Real sphMass);
@@ -85,7 +85,7 @@ void UpdateRigidMarkersPosition(
 		thrust::device_vector<Real3> & posRadD,
 		thrust::device_vector<Real4> & velMasD,
 		const thrust::device_vector<Real3> & rigidSPH_MeshPos_LRF_D,
-		const thrust::device_vector<int> & rigidIdentifierD,
+		const thrust::device_vector<uint> & rigidIdentifierD,
 		const thrust::device_vector<Real3> & posRigidD,
 		const thrust::device_vector<Real4> & qD,
 		const thrust::device_vector<Real4> & velMassRigidD,
