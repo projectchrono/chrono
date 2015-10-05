@@ -79,8 +79,12 @@ if(ENABLE_OPENMP)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
+  
+else()
+	# As an alternative, if TBB is located the Parallel module will use it for all thrust calls
+	find_package("TBB")
+	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
 endif()
-
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -251,6 +255,12 @@ if(ENABLE_OPENMP)
   set(CHRONO_OPENMP_ENABLED "#define CHRONO_OPENMP_ENABLED")
 else()
   set(CHRONO_OPENMP_ENABLED "#undef CHRONO_OPENMP_ENABLED")
+endif()
+
+if(ENABLE_TBB)
+  set(CHRONO_TBB_ENABLED "#define CHRONO_TBB_ENABLED")
+else()
+  set(CHRONO_TBB_ENABLED "#undef CHRONO_TBB_ENABLED")
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"

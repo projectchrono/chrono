@@ -517,6 +517,7 @@ void ChSystemParallel::Setup() {
 }
 
 void ChSystemParallel::RecomputeThreads() {
+#ifdef CHRONO_OMP_FOUND
   timer_accumulator.insert(timer_accumulator.begin(), data_manager->system_timer.GetTime("step"));
   timer_accumulator.pop_back();
 
@@ -557,6 +558,7 @@ void ChSystemParallel::RecomputeThreads() {
     omp_set_num_threads(data_manager->settings.min_threads);
   }
   frame_threads++;
+#endif
 }
 
 void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {

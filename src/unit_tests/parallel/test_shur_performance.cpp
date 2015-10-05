@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
-#include <omp.h>
 
 #include "unit_testing.h"
 
@@ -43,7 +42,7 @@ double timestep = .001;
 double factor = 1.0 / timestep;
 
 int main(int argc, char* argv[]) {
-  omp_set_num_threads(8);
+  CHOMPfunctions::SetNumThreads(8);
   ChSystemParallelDVI* system_gpu = new ChSystemParallelDVI;
   system_gpu->SetIntegrationType(ChSystem::INT_ANITESCU);
 

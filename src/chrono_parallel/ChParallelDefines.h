@@ -27,18 +27,33 @@
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChConfigParallel.h"
 
-//Without the following define, thrust needs the cuda sdk to compile
+// Without the following define, thrust needs the cuda sdk to compile
+
+#if defined(CHRONO_OMP_FOUND)
 #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
 #define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_OMP
+#elif defined(CHRONO_TBB_ENABLED)
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_TBB
+#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_TBB
+#else
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
+#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_CPP
+#endif
 
 #include <thrust/execution_policy.h>
 #include <thrust/system/cpp/execution_policy.h>
 #include <thrust/system/omp/execution_policy.h>
 
-#ifdef _MSC_VER
-#define thrust_parallel thrust::cpp::par
+#if defined(_MSC_VER)
+	#define thrust_parallel thrust::tbb::cpp
 #else
-#define thrust_parallel thrust::omp::par
+	#if defined(CHRONO_OMP_FOUND)
+		#define thrust_parallel thrust::omp::par
+	#elif defined(CHRONO_TBB_ENABLED)
+		#define thrust_parallel thrust::tbb::par
+	#else
+		#define thrust_parallel thrust::tbb::cpp
+	#endif
 #endif
 
 typedef int shape_type;
@@ -77,30 +92,28 @@ using namespace thrust;
 #define LOGGINGENABLED
 #else
 class NullBuffer : public std::streambuf {
- public:
-  int overflow(int c) { return c; }
+  public:
+    int overflow(int c) { return c; }
 };
 static NullBuffer null_buffer;
 static std::ostream null_stream(&null_buffer);
 #define LOG(X) null_stream
 #endif
 
-
-
 #define CHVECCAST(v) ChVector<>(v.x, v.y, v.z)
 #define CHQUATCAST(q) ChQuaternion<>(q.w, q.x, q.y, q.z)
 
-#define Thrust_Inclusive_Scan_Sum(x, y)                  \
-  thrust::inclusive_scan(x.begin(), x.end(), x.begin()); \
-  y = x.back();
+#define Thrust_Inclusive_Scan_Sum(x, y)                    \
+    thrust::inclusive_scan(x.begin(), x.end(), x.begin()); \
+    y = x.back();
 #define Thrust_Sort_By_Key(x, y) thrust::sort_by_key(x.begin(), x.end(), y.begin())
-#define Thrust_Reduce_By_KeyA(x, y, z)                                                                               \
-  x = (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), y.begin(), z.begin()).second) - \
-      z.begin()
+#define Thrust_Reduce_By_KeyA(x, y, z)                                                                                 \
+    x = (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), y.begin(), z.begin()).second) - \
+        z.begin()
 
-#define Thrust_Reduce_By_Key(y, z, w)                                                                            \
-  (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
-      w.begin()
+#define Thrust_Reduce_By_Key(y, z, w)                                                                              \
+    (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
+        w.begin()
 #define Thrust_Inclusive_Scan(x) thrust::inclusive_scan(x.begin(), x.end(), x.begin())
 #define Thrust_Exclusive_Scan(x) thrust::exclusive_scan(x.begin(), x.end(), x.begin())
 #define Thrust_Fill(x, y) thrust::fill(x.begin(), x.end(), y)
@@ -115,19 +128,19 @@ static std::ostream null_stream(&null_buffer);
 #define DBG(x) printf(x);
 
 enum SOLVERTYPE {
-  STEEPEST_DESCENT,
-  GRADIENT_DESCENT,
-  CONJUGATE_GRADIENT,
-  CONJUGATE_GRADIENT_SQUARED,
-  BICONJUGATE_GRADIENT,
-  BICONJUGATE_GRADIENT_STAB,
-  MINIMUM_RESIDUAL,
-  QUASAI_MINIMUM_RESIDUAL,
-  APGD,
-  APGDREF,
-  JACOBI,
-  GAUSS_SEIDEL,
-  PDIP
+    STEEPEST_DESCENT,
+    GRADIENT_DESCENT,
+    CONJUGATE_GRADIENT,
+    CONJUGATE_GRADIENT_SQUARED,
+    BICONJUGATE_GRADIENT,
+    BICONJUGATE_GRADIENT_STAB,
+    MINIMUM_RESIDUAL,
+    QUASAI_MINIMUM_RESIDUAL,
+    APGD,
+    APGDREF,
+    JACOBI,
+    GAUSS_SEIDEL,
+    PDIP
 };
 
 enum SOLVERMODE { NORMAL, SLIDING, SPINNING, BILATERAL };
@@ -135,11 +148,11 @@ enum SOLVERMODE { NORMAL, SLIDING, SPINNING, BILATERAL };
 enum COLLISIONSYSTEMTYPE { COLLSYS_PARALLEL, COLLSYS_BULLET_PARALLEL };
 
 enum NARROWPHASETYPE {
-  NARROWPHASE_MPR,
-  NARROWPHASE_GJK,
-  NARROWPHASE_R,
-  NARROWPHASE_HYBRID_MPR,
-  NARROWPHASE_HYBRID_GJK
+    NARROWPHASE_MPR,
+    NARROWPHASE_GJK,
+    NARROWPHASE_R,
+    NARROWPHASE_HYBRID_MPR,
+    NARROWPHASE_HYBRID_GJK
 };
 
 // This is set so that parts of the code that have been "flattened" can know what
