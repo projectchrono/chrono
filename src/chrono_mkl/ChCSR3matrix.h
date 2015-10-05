@@ -92,6 +92,7 @@ namespace chrono{
 		void SetColIndexLock(bool on_off){ colIndex_lock = on_off; }
 		bool IsRowIndexLockBroken() const { return rowIndex_lock_broken; }
 		bool IsColIndexLockBroken() const { return colIndex_lock_broken; }
+		int GetWriteCounter() const { return write_counter; };
 
 		// Testing functions
 		bool CheckArraysAlignment(int alignment = 0);
@@ -128,6 +129,7 @@ namespace chrono{
 		bool colIndex_lock; ///< TRUE if the matrix elements keep always the same position
 		bool rowIndex_lock_broken;
 		bool colIndex_lock_broken;
+		int write_counter;
 
 		
 
