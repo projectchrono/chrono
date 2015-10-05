@@ -917,7 +917,8 @@ set(ChronoEngine_utils_SOURCES
     utils/ChUtilsInputOutput.cpp
     utils/ChUtilsChaseCamera.cpp
     utils/ChUtilsValidation.cpp
-	utils/ChProfiler.cpp
+    utils/ChProfiler.cpp
+    utils/ChFilters.cpp
     )
 
 set(ChronoEngine_utils_HEADERS
@@ -928,7 +929,8 @@ set(ChronoEngine_utils_HEADERS
     utils/ChUtilsInputOutput.h
     utils/ChUtilsChaseCamera.h
     utils/ChUtilsValidation.h
-	utils/ChProfiler.h
+    utils/ChProfiler.h
+    utils/ChFilters.h
 )
 
 source_group(utils FILES
