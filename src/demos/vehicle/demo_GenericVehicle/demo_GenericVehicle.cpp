@@ -105,9 +105,11 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Create the ground
-    RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.8);
-    // terrain.AddMovingObstacles(10);
-    terrain.AddFixedObstacles();
+    RigidTerrain terrain(vehicle.GetSystem());
+    terrain.SetContactMaterial(0.8f);
+    terrain.SetColor(ChColor(0.5f, 0.8f, 0.5f));
+    terrain.SetTexture(GetChronoDataFile("textures/tile4.jpg"), 200, 200);
+    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
     // Create and initialize the powertrain system
     Generic_SimplePowertrain powertrain;

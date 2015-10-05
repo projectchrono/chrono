@@ -33,7 +33,6 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/tire/ChPacejkaTire.h"
 
 #include "ModelDefs.h"
 #include "articulated/Articulated_Vehicle.h"
@@ -112,10 +111,12 @@ int main(int argc, char* argv[]) {
 
     trailer.Initialize(ChCoordsys<>(initLoc + ChVector<>(-6, 0, 0), initRot), true, vehicle.GetChassis());
 
-    // Create the ground
-    RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.8);
-    // terrain.AddMovingObstacles(10);
-    terrain.AddFixedObstacles();
+    // Create the terrain
+    RigidTerrain terrain(vehicle.GetSystem());
+    terrain.SetContactMaterial(0.8f);
+    terrain.SetColor(ChColor(0.5f, 0.5f, 1));
+    terrain.SetTexture(GetChronoDataFile("textures/tile4.jpg"), 200, 200);
+    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
     // Create and initialize the powertrain system
     Generic_SimplePowertrain powertrain;

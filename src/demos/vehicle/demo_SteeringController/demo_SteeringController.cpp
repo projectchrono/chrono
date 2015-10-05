@@ -48,7 +48,7 @@ PowertrainModelType powertrain_model = SHAFTS;
 DrivelineType drive_type = RWD;
 
 // Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)
-VisualizationType vis_type = MESH;
+VisualizationType vis_type = PRIMITIVES;
 
 // Input file names for the path-follower driver model
 std::string steering_controller_file("generic/driver/SteeringController.json");
@@ -194,8 +194,11 @@ int main(int argc, char* argv[]) {
     my_hmmwv.Initialize();
 
     // Create the terrain
-    RigidTerrain terrain(my_hmmwv.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.9,
-                         GetChronoDataFile("textures/tile4.jpg"), 200, 200);
+    RigidTerrain terrain(my_hmmwv.GetSystem());
+    terrain.SetContactMaterial(0.9f);
+    terrain.SetColor(ChColor(1, 1, 1));
+    terrain.SetTexture(GetChronoDataFile("textures/tile4.jpg"), 200, 200);
+    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
     // ----------------------
     // Create the Bezier path
@@ -331,8 +334,10 @@ int main(int argc, char* argv[]) {
             }
 
             if (state_output) {
+                ChVector<> acc = my_hmmwv.GetVehicle().GetChassis()->GetPos_dtdt();
                 csv << time << steering_input << throttle_input << braking_input;
                 csv << my_hmmwv.GetVehicle().GetVehicleSpeed();
+                csv << acc.y;
                 csv << std::endl;
             }
 

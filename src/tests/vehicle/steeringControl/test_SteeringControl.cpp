@@ -77,12 +77,13 @@ std::string path_file("paths/curve.txt");
 // Output file name
 std::string out_file("results.out");
 
-// JSON file names for vehicle model, tire models, and (simple) powertrain
+// JSON file names for vehicle model, tire models, (simple) powertrain, and (rigid) terrain
 std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 std::string rigidtire_file("generic/tire/RigidTire.json");
 std::string lugretire_file("generic/tire/LugreTire.json");
 std::string fialatire_file("generic/tire/FialaTire.json");
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
+std::string rigidterrain_file("terrain/RigidPlane.json");
 
 // Initial vehicle position and orientation
 ChVector<> initLoc(-125, -125, 0.6);
@@ -173,7 +174,7 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Create the terrain
-    RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.9);
+    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
 
     // Create and initialize the powertrain system
     SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));

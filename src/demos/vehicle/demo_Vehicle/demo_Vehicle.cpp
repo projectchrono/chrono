@@ -67,7 +67,8 @@ std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
 // std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Independent.json");
 // std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
 
-// JSON files for tire models (rigid) and powertrain (simple)
+// JSON files for terrain (rigid plane), tire models (rigid), and powertrain (simple)
+std::string rigidterrain_file("terrain/RigidPlane.json");
 std::string rigidtire_file("generic/tire/RigidTire.json");
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
@@ -121,8 +122,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.GetChassis()->SetBodyFixed(true);
 
     // Create the ground
-    RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.8);
-    terrain.AddFixedObstacles();
+    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
 
     // Create and initialize the powertrain system
     SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
