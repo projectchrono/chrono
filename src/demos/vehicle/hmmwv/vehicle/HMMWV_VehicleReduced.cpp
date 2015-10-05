@@ -58,9 +58,9 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
   // -------------------------------------------
   // Create the chassis body
   // -------------------------------------------
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
 
-    m_chassis->SetIdentifier(0);
+  m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
   m_chassis->SetMass(m_chassisMass);
   m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));

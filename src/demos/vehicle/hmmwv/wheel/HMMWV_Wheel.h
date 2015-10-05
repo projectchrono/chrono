@@ -34,7 +34,7 @@ public:
   virtual double GetMass() const { return m_mass; }
   virtual chrono::ChVector<> GetInertia() const { return m_inertia; }
 
-  virtual void Initialize(chrono::ChSharedBodyPtr spindle);
+  virtual void Initialize(chrono::ChSharedPtr<chrono::ChBody> spindle);
 
   virtual const std::string& getMeshName() const = 0;
   virtual const std::string& getMeshFile() const = 0;

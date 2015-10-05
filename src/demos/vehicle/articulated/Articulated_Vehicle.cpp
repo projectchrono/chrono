@@ -56,7 +56,7 @@ Articulated_Vehicle::Articulated_Vehicle(const bool fixed,
   // -------------------------------------------
   // Create the chassis body
   // -------------------------------------------
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
 
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");

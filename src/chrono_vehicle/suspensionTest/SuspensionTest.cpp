@@ -97,7 +97,7 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   assert(d.HasMember("Name"));
 
   // Create the ground body, no visualizastion
-  m_ground = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_ground = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(GetContactMethod()));
 
   m_groundCOM = ChVector<>(0,0,0);
 
@@ -168,7 +168,7 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   m_post_rad = 0.4;
 
   // left post body
-  m_post_L = ChSharedPtr<ChBody>(new ChBody());
+  m_post_L = ChSharedPtr<ChBody>(new ChBody(GetContactMethod()));
 
   // Cylinders for left post visualization
   // AddVisualize_post(m_post_L, m_chassis, m_post_height, m_post_rad);
@@ -182,7 +182,7 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   m_post_L_linact->SetNameString("L_post_linActuator");
 
   // right post body
-  m_post_R = ChSharedPtr<ChBody>(new ChBody());
+  m_post_R = ChSharedPtr<ChBody>(new ChBody(GetContactMethod()));
   // Cylinder for visualization of right post
   // AddVisualize_post(m_post_R, m_chassis, m_post_height, m_post_rad);
   Add(m_post_R);  // add right post body to System
