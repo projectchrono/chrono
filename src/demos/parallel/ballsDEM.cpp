@@ -111,6 +111,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
     ballMat->SetYoungModulus(Y);
     ballMat->SetFriction(mu);
     ballMat->SetRestitution(cr);
+    ballMat->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling balls
     int ballId = 0;
@@ -182,9 +183,13 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
 
+    // The following two lines are optional, since they are the default options. They are added for future reference,
+    // i.e. when needed to change those models.
+    msystem.GetSettings()->solver.contact_force_model = ChSystemDEM::ContactForceModel::Hertz;
+    msystem.GetSettings()->solver.adhesion_force_model = ChSystemDEM::AdhesionForceModel::Constant;
+
     // Create the fixed and moving bodies
     // ----------------------------------
-
     AddContainer(&msystem);
     AddFallingBalls(&msystem);
 
