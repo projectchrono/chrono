@@ -424,6 +424,13 @@ void ChLcpSolverParallelDEM::host_SetContactForcesMap(uint ct_body_count, const 
     }
 }
 
+// Binary operation for adding two-object tuples
+struct sum_tuples {
+  thrust::tuple<real3, real3> operator()(const thrust::tuple<real3, real3> & a, const thrust::tuple<real3, real3> & b) const {
+    return thrust::tuple<real3, real3> (thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
+  }
+};
+
 // -----------------------------------------------------------------------------
 // Process contact information reported by the narrowphase collision detection,
 // generate contact forces, and update the (linear and rotational) impulses for
