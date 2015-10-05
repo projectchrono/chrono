@@ -111,7 +111,6 @@ static inline real sign(const real& x) {
         return 0;
     }
 }
-}
 
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
 inline real Sin(real theta) {
@@ -194,5 +193,5 @@ inline real Log(real x) {
     return logf(x);
 }
 #endif
-
+}
 #endif
