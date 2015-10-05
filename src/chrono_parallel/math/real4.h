@@ -68,7 +68,7 @@ class CHRONO_ALIGN_16 real4 {
   inline real4() : mmvalue(_mm_setzero_ps()) {}
   inline real4(real a) : mmvalue(_mm_set1_ps(a)) {}
   inline real4(real a, real b, real c) : mmvalue(_mm_setr_ps(0, a, b, c)) {}
-  inline real4(real3 a) : mmvalue(_mm_setr_ps(0, a.x, a.y, a.z)) {}
+  inline real4(const real3 &a) : mmvalue(_mm_setr_ps(0, a.x, a.y, a.z)) {}
   inline real4(real d, real a, real b, real c) : mmvalue(_mm_setr_ps(d, a, b, c)) {}
   inline real4(__m128 m) : mmvalue(m) {}
 
@@ -99,7 +99,7 @@ class CHRONO_ALIGN_16 real4 {
   inline real4() : w(0), x(0), y(0), z(0) {}
   inline real4(real a) : w(a), x(a), y(a), z(a) {}
   inline real4(real a, real b, real c) : w(0), x(a), y(b), z(c) {}
-  inline real4(real3 a) : w(0), x(a.x), y(a.y), z(a.z) {}
+  inline real4(const real3 & a) : w(0), x(a.x), y(a.y), z(a.z) {}
   inline real4(real d, real a, real b, real c) : w(d), x(a), y(b), z(c) {}
 
   inline real4 operator+(const real4& b) const { return real4(w + b.w, x + b.x, y + b.y, z + b.z); }
