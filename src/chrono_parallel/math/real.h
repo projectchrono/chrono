@@ -91,7 +91,7 @@ inline real InvSqrt(real x) {
     return 1.0f / sqrt(x);  // could also use rsqrt(x) here and avoid division
 }
 inline real Abs(real x) {
-    return Abs(x);
+    return fabs(x);
 }
 inline real Pow(real b, real e) {
     return pow(b, e);
