@@ -264,12 +264,11 @@ static inline std::ostream& operator<<(std::ostream& out, const thrust::host_vec
   }
   return out;
 }
-
 // Binary operation for adding two-object tuples
 struct sum_tuples {
-  template <typename Tuple>
-  Tuple operator()(const Tuple& a, const Tuple& b) const {
-    return Tuple(thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
+  template <typename T >
+  thrust::tuple<T, T> operator()(const thrust::tuple<T, T> & a, const thrust::tuple<T, T> & b) const {
+    return thrust::tuple<T, T> (thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
   }
 };
 
