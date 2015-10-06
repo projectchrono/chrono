@@ -79,6 +79,7 @@ namespace chrono
 		// Auxiliary variables
 		int last_phase_called;
 
+	protected:
 		void resetIparmElement(int iparm_num, int reset_value = 0);
 
 	public:

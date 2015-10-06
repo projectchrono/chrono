@@ -122,13 +122,13 @@ namespace chrono{
 		virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
 		void Compress(); // purge the matrix from all the unininitialized elements
 		void Trim(); // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
-		void Prune(double pruning_threshold = DBL_EPSILON);
+		void Prune(double pruning_threshold = 0);
 
 		// Auxiliary functions
 		int GetColIndexLength() const { return rowIndex[mat_rows] - 1; };
 		int GetColIndexMemOccupancy() const { return colIndex_occupancy; };
 		int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; };
-		void GetNonZerosVector(int* nonzeros_vector) const;
+		void GetNonZerosDistribution(int* nonzeros_vector) const;
 		void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; };
 		void SetRowIndexLock(bool on_off){ rowIndex_lock = on_off; }
 		void SetColIndexLock(bool on_off){ colIndex_lock = on_off; }

@@ -465,7 +465,7 @@ namespace chrono {
 			
 	}
 
-	void ChCSR3Matrix::GetNonZerosVector(int* nonzeros_vector) const
+	void ChCSR3Matrix::GetNonZerosDistribution(int* nonzeros_vector) const
 	{
 		for (int row_sel = 0; row_sel < mat_rows; row_sel++)
 			nonzeros_vector[row_sel] = rowIndex[row_sel + 1] - rowIndex[row_sel];

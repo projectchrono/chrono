@@ -204,6 +204,7 @@ namespace chrono
 		// After the first call to pardiso do not directly modify "pt", as that could cause a serious memory leak.
 		mtype = new_mat_type;
 		pardisoinit(pt, &mtype, iparm);
+		IPARM(1) = 1;
 		IPARM(35) = 1;
 	}
 
