@@ -341,10 +341,10 @@ int main(int argc, char* argv[]) {
 
         terrain.Update(time);
 
-        tire_front_left.Update(time, wheel_states[FRONT_LEFT.id()]);
-        tire_front_right.Update(time, wheel_states[FRONT_RIGHT.id()]);
-        tire_rear_left.Update(time, wheel_states[REAR_LEFT.id()]);
-        tire_rear_right.Update(time, wheel_states[REAR_RIGHT.id()]);
+        tire_front_left.Update(time, wheel_states[FRONT_LEFT.id()], terrain);
+        tire_front_right.Update(time, wheel_states[FRONT_RIGHT.id()], terrain);
+        tire_rear_left.Update(time, wheel_states[REAR_LEFT.id()], terrain);
+        tire_rear_right.Update(time, wheel_states[REAR_RIGHT.id()], terrain);
 
         powertrain.Update(time, throttle_input, driveshaft_speed);
 
