@@ -109,9 +109,9 @@ struct solver_settings {
     solver_mode = SLIDING;
     local_solver_mode = NORMAL;
 
-    contact_force_model = ChSystemDEM::ContactForceModel::Hertz;
-    adhesion_force_model = ChSystemDEM::AdhesionForceModel::Constant;
-    tangential_displ_mode = ChSystemDEM::TangentialDisplacementModel::OneStep;
+    contact_force_model = ChSystemDEM::Hertz;
+    adhesion_force_model = ChSystemDEM::Constant;
+    tangential_displ_mode = ChSystemDEM::OneStep;
     use_material_properties = true;
     characteristic_vel = 1;
     min_slip_vel = 1e-4;

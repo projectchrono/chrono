@@ -135,7 +135,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
         // Include contact force
         switch (contact_model) {
-        case ChSystemDEM::ContactForceModel::Hooke:
+        case ChSystemDEM::Hooke:
                 if (use_mat_props) {
                     double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
                     double v2 = sys->GetCharacteristicImpactVelocity() * sys->GetCharacteristicImpactVelocity();
@@ -155,7 +155,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
                 break;
 
-        case ChSystemDEM::ContactForceModel::Hertz:
+        case ChSystemDEM::Hertz:
                 if (use_mat_props) {
                     double sqrt_Rd = std::sqrt(R_eff * m_delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
@@ -190,10 +190,10 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
         // Include adhesion force
         switch (adhesion_model) {
-        case ChSystemDEM::AdhesionForceModel::Constant:
+        case ChSystemDEM::Constant:
             forceN -= mat.adhesion_eff;
             break;
-        case ChSystemDEM::AdhesionForceModel::DMT:
+        case ChSystemDEM::DMT:
             forceN -= mat.adhesionMultDMT_eff * sqrt(R_eff);
             break;
         }
