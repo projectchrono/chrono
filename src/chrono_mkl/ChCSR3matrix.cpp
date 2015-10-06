@@ -101,14 +101,14 @@ namespace chrono {
 		assert(insrow < mat_rows && inscol < mat_cols);
 		assert(insrow >= 0 && inscol >= 0);
 
-		if (symmetry == UPPER_SYMMETRY && insrow<inscol ||
+		if ((symmetry == UPPER_SYMMETRY_POSDEF || symmetry == UPPER_SYMMETRY_INDEF) && insrow<inscol ||
 			symmetry == LOWER_SYMMETRY && insrow>inscol)
 			return;
 
 		int col_sel = rowIndex[insrow];
+		write_counter++;
 		while (1)
 		{
-			write_counter++;
 			// case: element not found in the row OR another element with a higher col number is already been stored
 			if (col_sel >= rowIndex[insrow + 1] || colIndex[col_sel] > inscol){
 				if (insval!=0) // avoid to insert zero elements

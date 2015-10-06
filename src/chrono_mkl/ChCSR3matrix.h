@@ -77,10 +77,11 @@ namespace chrono{
 		int write_counter;
 		enum symmetry_type
 		{
-			NO_SYMMETRY = 0,
-			UPPER_SYMMETRY = 1,
-			LOWER_SYMMETRY = 2,
-			STRUCTURAL_SYMMETRY = 3
+			NO_SYMMETRY = 11,
+			UPPER_SYMMETRY_POSDEF = 2,
+			UPPER_SYMMETRY_INDEF = -2,
+			LOWER_SYMMETRY = 20,
+			STRUCTURAL_SYMMETRY = 1
 		} symmetry;
 
 		MKL_INT64 mkl_peak_mem_CSR3;
@@ -135,6 +136,7 @@ namespace chrono{
 		bool IsColIndexLockBroken() const { return colIndex_lock_broken; }
 		int GetWriteCounter() const { return write_counter; }
 		void SetSymmetry(symmetry_type sym) { symmetry = sym; }
+		int GetSymmetry() const { return symmetry; }
 
 		// Testing functions
 		bool CheckArraysAlignment(int alignment = 0);

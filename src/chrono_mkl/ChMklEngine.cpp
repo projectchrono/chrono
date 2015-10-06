@@ -87,6 +87,8 @@ namespace chrono
 		a = Z.GetValuesAddress();
 		ja = Z.GetColIndexAddress();
 		ia = Z.GetRowIndexAddress();
+		if (Z.GetSymmetry() != mtype)
+			ResetSolver(Z.GetSymmetry());
 		SetProblemSize(Z.GetRows());
 	}
 
