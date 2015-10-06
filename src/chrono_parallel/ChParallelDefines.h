@@ -46,14 +46,14 @@
 #include <thrust/system/omp/execution_policy.h>
 
 #if defined(_MSC_VER)
-	#define thrust_parallel thrust::tbb::cpp
+	#define thrust_parallel thrust::cpp::par
 #else
 	#if defined(CHRONO_OMP_FOUND)
 		#define thrust_parallel thrust::omp::par
 	#elif defined(CHRONO_TBB_ENABLED)
 		#define thrust_parallel thrust::tbb::par
 	#else
-		#define thrust_parallel thrust::tbb::cpp
+		#define thrust_parallel thrust::cpp::par
 	#endif
 #endif
 
