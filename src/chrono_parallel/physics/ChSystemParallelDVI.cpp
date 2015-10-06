@@ -96,6 +96,8 @@ void ChSystemParallelDVI::CalculateContactForces() {
       SubVectorType gamma_s = blaze::subvector(gamma, 3 * num_contacts, 3 * num_contacts);
       Fc = D_n * gamma_n + D_t * gamma_t + D_s * gamma_s;
     } break;
+    case BILATERAL: {
+    } break;
   }
 
   Fc = Fc / data_manager->settings.step_size;

@@ -179,6 +179,8 @@ void ChConstraintRigidRigid::host_Project_single(int index, int2* ids, real3* fr
       func_Project_sliding(index, ids, friction, cohesion, gamma);
       func_Project_spinning(index, ids, friction, gamma);
     } break;
+    case BILATERAL: {
+    } break;
   }
 }
 
@@ -208,6 +210,8 @@ void ChConstraintRigidRigid::Project(real* gamma) {
         func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
         func_Project_spinning(index, bids.data(), friction.data(), gamma);
       }
+    } break;
+    case BILATERAL: {
     } break;
   }
 }
@@ -321,6 +325,8 @@ void ChConstraintRigidRigid::Build_s() {
 
       v_new = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_s * gamma_s + M_invD_b * gamma_b;
 
+    } break;
+    case BILATERAL: {
     } break;
   }
 
@@ -524,6 +530,8 @@ void ChConstraintRigidRigid::Build_D() {
       M_invD_t = M_inv * D_t;
       LOG(INFO) << "ChConstraintRigidRigid::Build_D - M_invD_s";
       M_invD_s = M_inv * D_s;
+      break;
+    case BILATERAL:
       break;
   }
 }
