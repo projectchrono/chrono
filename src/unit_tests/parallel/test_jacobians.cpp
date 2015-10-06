@@ -212,7 +212,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
   real3* ptA = msystem->data_manager->host_data.cpta_rigid_rigid.data();
   real3* ptB = msystem->data_manager->host_data.cptb_rigid_rigid.data();
   real3* pos_data = msystem->data_manager->host_data.pos_rigid.data();
-  int2* ids = msystem->data_manager->host_data.bids_rigid_rigid.data();
+  chrono::int2* ids = msystem->data_manager->host_data.bids_rigid_rigid.data();
   real4* rot = msystem->data_manager->host_data.rot_rigid.data();
 
   ((ChLcpSolverParallelDVI*)msystem->GetLcpSolverSpeed())->ComputeD();
@@ -242,7 +242,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
 
     Orthogonalize(U, V, W);
 
-    int2 body_id = ids[index];
+    chrono::int2 body_id = ids[index];
 
     int row = index;
 
