@@ -19,9 +19,8 @@ namespace chrono
 		n(0),
 		size_lock(true),
 		sparsity_pattern_lock(true),
-		print_residual(true),
-		use_rhs_sparsity(false),
-		use_perm(false)
+		use_perm(false),
+		use_rhs_sparsity(false)
 	{
 		SetSparsityPatternLock(true);
 	}
@@ -85,7 +84,7 @@ namespace chrono
 		
 
 		// Solve with Pardiso Sparse Direct Solver
-		// the problem size must be updated also in the Engine: this is done by SetProblem itself.
+		// the problem size must be updated also in the Engine: this is done by SetProblem() itself.
 		mkl_engine.SetProblem(matCSR3, rhs, sol);
 		int pardiso_message = mkl_engine.PardisoCall(13, 0);
 		solver_call++;
@@ -99,14 +98,10 @@ namespace chrono
 		
 
 		// Get residual;
-		// the operation quite expensive; do it only if really interested!
-		if (print_residual)
-		{
-			res.Resize(n, 1);
-			mkl_engine.GetResidual(res);
-			double res_norm = mkl_engine.GetResidualNorm(res);
-			printf("ResNorm: %e", res_norm);
-		}
+		res.Resize(n, 1);
+		mkl_engine.GetResidual(res);
+		double res_norm = mkl_engine.GetResidualNorm(res);
+		printf("ResNorm: %e", res_norm);
 
 
 
