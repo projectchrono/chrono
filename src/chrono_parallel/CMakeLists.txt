@@ -100,6 +100,21 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ENDIF()
 
+#Configure Blaze and Thrust
+
+IF(ENABLE_OPENMP)
+	add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
+	add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
+ELSEIF(ENABLE_TBB)
+	add_definitions(-DBLAZE_USE_CPP_THREADS)
+	add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_TBB)
+	add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_TBB)
+ELSE()
+	add_definitions(-DBLAZE_USE_CPP_THREADS)
+	add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP)
+	add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP)
+ENDIF()
+
 # Find BOOST -- required for Blaze
 # TODO: is this robust enough on other platforms?
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
