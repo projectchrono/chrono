@@ -182,14 +182,14 @@ average pigment_map{
 //==================================================
 //Material definitions
 #declare None_001_=
-#declare PR_DIFFUSE=pigment {color srgb <0.40,0.40,0.40> transmit 0/100 }
+#declare PR_DIFFUSE=pigment {color srgb <0.08,0.08,0.09> transmit 0/100 }
 
 
-#declare F1=finish{specular albedo 0 //Max highlight intensity: 0 -> 1
-                   roughness 0.09632328 //surface roughness: 0.0005 -> 1
+#declare F1=finish{specular albedo 0.09019608 //Max highlight intensity: 0 -> 1
+                   roughness 0.04839499 //surface roughness: 0.0005 -> 1
                    phong albedo 0 phong_size 0 //Phong specular disabled
                    
-                   ambient <0,0,0> emission srgb <0.00,0.00,0.00> //ambient RGB color: 0->1 for each component
+                   ambient <0,0,0> emission srgb <0.08,0.08,0.08> //ambient RGB color: 0->1 for each component
                    diffuse albedo 0.6 
                    reflection{0 } conserve_energy //reflection amount: 0 -> 1
                    }
