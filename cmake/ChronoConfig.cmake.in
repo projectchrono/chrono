@@ -77,6 +77,7 @@ set(Chrono_HAS_opengl @ENABLE_MODULE_OPENGL@)
 set(Chrono_HAS_postprocess @ENABLE_MODULE_POSTPROCESS@)
 set(Chrono_HAS_python @ENABLE_MODULE_PYTHON@)
 set(Chrono_HAS_vehicle @ENABLE_MODULE_VEHICLE@)
+set(Chrono_HAS_fsi @ENABLE_MODULE_FSI@)
 
 #-------------------------------------------------------------------------------
 # Loop over the list of requested components

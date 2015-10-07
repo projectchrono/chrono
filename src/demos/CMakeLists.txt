@@ -81,5 +81,9 @@ if(ENABLE_MODULE_VEHICLE)
   add_subdirectory(vehicle)
 endif()
 
+if(ENABLE_MODULE_FSI)
+  add_subdirectory(fsi)
+endif()
+
 # TODO: this will be soon removed...
 add_subdirectory(trackVehicle)
