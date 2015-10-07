@@ -93,7 +93,8 @@ namespace chrono
 		*	- the unknowns vector \c b: in any ChMatrix<> derived format or in bare C array
 		*/
 
-		void SetMatrix(ChCSR3Matrix& Z);
+		// Problem input functions
+		void SetMatrix(ChCSR3Matrix& Z); //< It sets the matrix, but also the problem size \c n and the matrix type \c mtype
 		void SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex);
 
 		void SetSolutionVector(ChMatrix<>& insx);
@@ -103,14 +104,11 @@ namespace chrono
 		void SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest);
 		void SetKnownVector(double* insb){ b = insb;}
 
-		void SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx);
-
-		void UsePermutationVector(bool on_off);
-		void LeverageSparseRhs(bool on_off);
+		void SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx); //< It sets the data arrays, but also the problem size \c n and the matrix type \c mtype
 
 		// Solver routine
 		int PardisoCall(int set_phase = 13, int message_level = 0);
-		void ResetSolver(int new_mat_type = 0); //< reinitializes the solver for the next iteration
+		void ResetSolver(int new_mat_type = 0); //< reinitializes the solver to default values
 		void SetProblemSize(int new_size) { n = new_size; }
 
 		// Output functions
@@ -121,7 +119,13 @@ namespace chrono
 
 		// Auxiliary functions
 		int* GetIparmAddress(){ return iparm; }
-		void PrintIparmOutput();
+		void PrintIparmOutput() const;
+
+		// Advanced functions
+		void UsePermutationVector(bool on_off);
+		void UsePartialSolution(int option = 1, int start_row = 0, int end_row = 0);
+		void OutputSchurComplement(int option, int start_row, int end_row = 0);
+
 
 	}; // ChMklEngine
 

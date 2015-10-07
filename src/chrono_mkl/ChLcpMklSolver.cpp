@@ -34,6 +34,7 @@ namespace chrono
 			n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
 			matCSR3.Reset(n, n, static_cast<int>(n*n*SPM_DEF_FULLNESS)); 
 			sol.Resize(n, 1); // ConvertToMatrixForm() takes care of eventually resizing matCSR3 and rhs, but not sol; this can be done also AFTER CTMF()
+			res.Resize(n, 1);
 		}
 			
 
@@ -65,6 +66,7 @@ namespace chrono
 			{
 				n = matCSR3.GetRows();
 				sol.Resize(n, 1);
+				res.Resize(n, 1);
 			}
 			
 			// if sparsity is not locked OR the sparsity_lock is broken (like in the first cycle!); the matrix must be recompressed
@@ -79,7 +81,7 @@ namespace chrono
 		
 		// the sparsity of rhs must be updated at every cycle (am I wrong?)
 		if (use_rhs_sparsity && !use_perm)
-			mkl_engine.LeverageSparseRhs(true);
+			mkl_engine.UsePartialSolution(2);
 
 		
 
@@ -98,7 +100,6 @@ namespace chrono
 		
 
 		// Get residual;
-		res.Resize(n, 1);
 		mkl_engine.GetResidual(res);
 		double res_norm = mkl_engine.GetResidualNorm(res);
 		printf("ResNorm: %e", res_norm);

@@ -19,52 +19,15 @@ namespace chrono
 	};
 
 
-	ChMklEngine::ChMklEngine(int problem_size, int matrix_type)
+	ChMklEngine::ChMklEngine(int problem_size, int matrix_type):
+		a(nullptr), ia(nullptr), ja(nullptr), b(nullptr), x(nullptr), last_phase_called(-1),
+		/*Currently only one rhs is supported*/
+		nrhs(1), //< Number of KnownVectors
+		maxfct(1), //< Maximum number of factors with identical sparsity structure that must be kept in memory at the same time [def: 1]
+		mnum(1)  //< Actual matrix for the solution phase (1 ≤ mnum ≤ maxfct) [def: 1]
 	{
 		SetProblemSize(problem_size);
-		ResetSolver(matrix_type);
-
-		/*
-		* NOTE: for highly indefinite symmetric matrices (e.g. interior point optimizations or saddle point problems)
-		* use IPARM(11) = 1 (scaling) and IPARM(13) = 1 (matchings);
-		*/
-
-		/*IPARM easy settings*/
-		IPARM(1) = 1;				/* No default values for solver */
-		IPARM(6) = 0;				/* Write solution on u */
-		IPARM(12) = 0;				/* Solve with transposed/conjugate transposed matrix [def: 0, solve simply A*x=b]*/
-		IPARM(18) = -1;				/* Report number of nonzeros */
-		IPARM(19) = -1;				/* Report number of floating point operations */
-		IPARM(35) = 1;				/* Zero based indexing */
-		IPARM(27) = 1;				/* Matrix checker */
-		IPARM(28) = 0;				/* Double precision */
-		IPARM(36) = 0;				/* Schur complement matrix computation control [def:0, do not compute Schur] */
-		IPARM(56) = 0;				/* Diagonal and pivoting control [def:0, disabled] */
-		IPARM(60) = 0;				/* In-Core (OC) / Out-Of-Core (OOC) switch [def:0, IC mode] */
-
-
-		/* IPARM fine settings */
-		IPARM(2) = 2;				/* Fill-in reducing ordering [def:2] */	
-		IPARM(4) = 0;				/* Preconditioned CGS/CG [def:0] - HIGHLY RECOMMENDED */
-		IPARM(5) = 0;				/* User fill-in reducing permutation [def:0, default filling]*/
-		IPARM(8) = 10;				/* Maximum number of iterative refinement steps */
-		IPARM(10) = 13;				/* Perturb the pivot elements with 1E-value [def:13 for unsymm/8 for symm, 1e-13 perturbation]*/
-		IPARM(11) = 1;				/* Scaling MPS [def: 1 for unsym/0 for sym, scaling enabled] */
-		IPARM(13) = 1;				/* Maximum weighted matching algorithm [def: 1 for nonsymmetric matrices, enabled) */
-		IPARM(21) = 1;				/* Pivoting for symmetric indefinite matrices */
-		IPARM(24) = 0;				/* Parallel factorization control [def:0, classic algorithm] */
-		IPARM(25) = 0;				/* Parallel/sequential solve control [def:0, parallel] */
-		IPARM(31) = 0;				/* ADV Partial solve and computing selected components of the solution vectors [def:0, disable]*/
-		IPARM(34) = 0;				/* ADV Optimal number of threads for conditional numerical reproducibility (CNR) mode [def:0, disable]*/
-		
-		a = nullptr; ia = nullptr; ja = nullptr; b = nullptr; x = nullptr;
-
-		last_phase_called = -1;
-
-		// Currently only one rhs is supported
-		nrhs = 1;				/* Number of KnownVectors */
-		maxfct = 1;				/* Maximum number of factors with identical sparsity structure that must be kept in memory at the same time [def: 1]*/
-		mnum = 1;				/* Actual matrix for the solution phase (1 ≤ mnum ≤ maxfct) [def: 1] */
+		ResetSolver(matrix_type);		
 	}
 
 	ChMklEngine::~ChMklEngine()
@@ -77,7 +40,8 @@ namespace chrono
 			printf("Error while releasing memory: %d",error);
 	}
 
-	void ChMklEngine::SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex){
+	void ChMklEngine::SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex)
+	{
 		a = Z_values;
 		ja = Z_colIndex;
 		ia = Z_rowIndex;
@@ -92,7 +56,8 @@ namespace chrono
 		SetProblemSize(Z.GetRows());
 	}
 
-	void ChMklEngine::SetSolutionVector(ChMatrix<>& insx){
+	void ChMklEngine::SetSolutionVector(ChMatrix<>& insx)
+	{
 		x = insx.GetAddress();
 	}
 
@@ -103,7 +68,7 @@ namespace chrono
 
 	void ChMklEngine::SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest){
 		// assures that the destination vector has the correct dimension
-		if ((insb_chrono.GetRows() + insf_chrono.GetRows()) != bdest.GetRows())
+		if (insb_chrono.GetRows() + insf_chrono.GetRows() != bdest.GetRows())
 			bdest.Resize((insb_chrono.GetRows() + insf_chrono.GetRows()), 1);
 
 		// pastes values of insf and insb in fdest
@@ -122,21 +87,25 @@ namespace chrono
 		SetKnownVector(insb);
 	}
 
+	/// Tells the solver to store the permutation vector \c perm and use it in the next calls.
 	void ChMklEngine::UsePermutationVector(bool on_off)
 	{
+		// The perm array is not set yet; it is built by Pardiso during the next factorization phase.
+		// IPARM(5)=2 (perm as output) says to Pardiso to output the perm vector used by the factorization;
+		// PardisoCall() will then switch IPARM(5) to 1 (perm as input)
+		IPARM(5) = (on_off) ? 2 : 0;
+
 		if (on_off == true)
 		{
-			perm.resize(n);
-
 			resetIparmElement(31);
 			resetIparmElement(36);
+
+			perm.resize(n);
 		}
-		else
-			IPARM(5) = 0;
 		
 	}
 
-
+	/// Warns if a incompatible parameter has been previously set
 	void ChMklEngine::resetIparmElement(int iparm_num, int reset_value)
 	{ 
 		if (IPARM(iparm_num) != reset_value)
@@ -163,26 +132,64 @@ namespace chrono
 		}
 	}
 
-	void ChMklEngine::LeverageSparseRhs(bool on_off)
+
+
+	void ChMklEngine::UsePartialSolution(int option, int start_row, int end_row)
 	{
-		if (on_off == true)
+		assert(option == 0 || option == 1 || option == 2 || option == 3);
+
+		IPARM(31) = option;
+
+		if (option)
 		{
-			resetIparmElement(60);
-			resetIparmElement(8);
 			resetIparmElement(4);
 			resetIparmElement(5);
+			resetIparmElement(8);
 			resetIparmElement(36);
-
-			IPARM(31) = 1;
+			resetIparmElement(60);
 
 			perm.resize(n);
 
-			for (int row_sel = 0; row_sel < n; row_sel++)
-				perm[row_sel] = (b[row_sel] == 0) ? 0 : 1;
+			if (option == 1 || option == 2)
+			{
+				for (int row_sel = 0; row_sel < n; row_sel++)
+					perm[row_sel] = (b[row_sel] == 0) ? 0 : 1;
+			}
+			else if (option == 3)
+			{
+				for (int row_sel = 0; row_sel < n; row_sel++)
+					perm[row_sel] = (row_sel < start_row || row_sel > end_row) ? 0 : 1;
+			}
 		}
-		else
-			IPARM(31) = 0;
 
+	}
+
+
+	/// The Schur complement is output on the solution vector \c x that has to be resized to \c n x \c n size;
+	/// The next call to Pardiso must not involve a solution phase. So no phase 33, 331, 332, 333, 23, 13 ecc...
+	/// Any solution phase in fact would ouput the solution on the solution vector \c x.
+	/// The element (\param[start_row],\param[start_row] must be the top-left element of the matrix on which the Schur complement will be computed;
+	/// The element (\param[end_row],\param[end_row] must be the bottom-right element of the matrix on which the Schur complement will be computed;
+	void ChMklEngine::OutputSchurComplement(int option, int start_row, int end_row)
+	{
+		IPARM(36) = option;
+
+		if (option)
+		{
+			resetIparmElement(5);
+			resetIparmElement(31);
+
+			perm.resize(n);
+
+			assert(!(start_row == 0) && (end_row == 0));
+
+			if (end_row == 0)
+				end_row = n-1;
+
+			for (int row_sel = 0; row_sel < n; row_sel++)
+				perm[row_sel] = (row_sel < start_row || row_sel > end_row) ? 0 : 1;
+
+		}
 	}
 
 	int ChMklEngine::PardisoCall(int set_phase, int message_level){
@@ -202,10 +209,35 @@ namespace chrono
 	void ChMklEngine::ResetSolver(int new_mat_type)
 	{
 		// After the first call to pardiso do not directly modify "pt", as that could cause a serious memory leak.
-		mtype = new_mat_type;
+		if (new_mat_type)
+			mtype = new_mat_type;
 		pardisoinit(pt, &mtype, iparm);
-		IPARM(1) = 1;
-		IPARM(35) = 1;
+
+		/*
+		* NOTE: for highly indefinite symmetric matrices (e.g. interior point optimizations or saddle point problems)
+		* use IPARM(11) = 1 (scaling) and IPARM(13) = 1 (matchings);
+		*/
+
+		/*IPARM easy settings*/
+		IPARM(1) = 1;				/* No default values for solver */
+		IPARM(6) = 0;				/* Write solution on u */
+		IPARM(12) = 0;				/* Solve with transposed/conjugate transposed matrix [def: 0, solve simply A*x=b]*/
+		IPARM(18) = -1;				/* Report number of nonzeros */
+		IPARM(19) = -1;				/* Report number of floating point operations */
+		IPARM(35) = 1;				/* Zero based indexing */
+		IPARM(27) = 0;				/* Matrix checker */
+		IPARM(28) = 0;				/* Double precision */
+		IPARM(36) = 0;				/* Schur complement matrix computation control [def:0, do not compute Schur] */
+		IPARM(56) = 0;				/* Diagonal and pivoting control [def:0, disabled] */
+		IPARM(60) = 0;				/* In-Core (OC) / Out-Of-Core (OOC) switch [def:0, IC mode] */
+
+
+		/* IPARM fine settings */
+		IPARM(2) = 2;				/* Fill-in reducing ordering [def:2] */
+		IPARM(4) = 0;				/* Preconditioned CGS/CG [def:0] - HIGHLY RECOMMENDED */
+		IPARM(5) = 0;				/* User fill-in reducing permutation [def:0, default filling]*/
+		IPARM(8) = 10;				/* Maximum number of iterative refinement steps */
+
 	}
 
 	void ChMklEngine::GetResidual(double* res) {
@@ -224,7 +256,7 @@ namespace chrono
 		return norm;
 	};
 
-	void ChMklEngine::PrintIparmOutput()
+	void ChMklEngine::PrintIparmOutput() const
 	{
 		printf("\n[7] Number of iterative refinement steps performed: %d", IPARM(7));
 		if (mtype == 11 || mtype == 13 || mtype == -2 || mtype == -4 || mtype == -6)
