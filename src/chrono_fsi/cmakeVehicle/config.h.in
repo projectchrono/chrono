@@ -1,0 +1,7 @@
+// -----------------------------------------------------------------
+// Configuration header file
+// -----------------------------------------------------------------
+
+// Path to ChronoVehicle data
+#define CHRONOVEHICLE_DATA_DIR "@CHRONOVEHICLE_DATA_DIR@"
+
