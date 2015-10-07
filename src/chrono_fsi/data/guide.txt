@@ -1,2 +1,0 @@
-The obj files in the hmmwv directory are modified hmmwv models which go to the chrono-vehicle source directory /data/hmmwv.
-
