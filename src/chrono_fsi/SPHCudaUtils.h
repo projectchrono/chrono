@@ -81,7 +81,17 @@
 // Legacy CUTIL macros. Currently default to no-ops (TODO)
 // ----------------------------------------------------------------------------
 #define cutilSafeCall(x) x
-#define CUT_CHECK_ERROR(x) x
+
+
+#define cudaCheckError() {       \
+ cudaError_t e=cudaGetLastError();                  \
+ if(e!=cudaSuccess) {                           \
+   printf("Cuda failure %s:%d: '%s'\n",__FILE__,__LINE__,cudaGetErrorString(e));  \
+   exit(0); \
+ }        \
+}
+
+#define CUT_CHECK_ERROR(x) cudaCheckError()
 
 // --------------------------------------------------------------------
 // GpuTimer
