@@ -21,8 +21,8 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 OPTION(ENABLE_CUDA "Cuda Support" ON)
 IF(ENABLE_CUDA)
-include(cmake/FindCuda.cmake)
-enable_cuda_support()
+find_package(CUDA)
+
 SET(CHRONO_INCLUDE_DIRS 
 	${CHRONO_INCLUDE_DIRS} 
 	"${CUDA_TOOLKIT_ROOT_DIR}/include"
@@ -80,8 +80,8 @@ SOURCE_GROUP("" FILES
 # Create the ChronoEngine_fsi library
 
 CUDA_ADD_LIBRARY(ChronoEngine_fsi SHARED 
-    ${ChronoEngine_fsi_SOURCES}
-    ${ChronoEngine_fsi_HEADERS})
+    ${ChronoEngine_FSI_SOURCES}
+    ${ChronoEngine_FSI_HEADERS})
 
 SET_TARGET_PROPERTIES(ChronoEngine_fsi PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"

@@ -5,60 +5,133 @@
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 
 SET(LIBRARIES
-    ChronoEngine
+    ChronoEngine   
+    ChronoEngine_fsi
+)
+IF(ENABLE_MODULE_PARALLEL)
+SET(LIBRARIES ${LIBRARIES} 
     ChronoEngine_parallel
 )
-
+ENDIF()
+IF(ENABLE_MODULE_VEHICLE)
+SET(LIBRARIES ${LIBRARIES}
+    ChronoEngine_vehicle   
+)
+ENDIF()
 IF(ENABLE_MODULE_OPENGL)
     INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
     SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
 ENDIF()
 
 # ------------------------------------------------------------------------------
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-ENDIF()
-
-# ------------------------------------------------------------------------------
 # List of all executables
 # ------------------------------------------------------------------------------
 
-# Programs that can work with or without OpenGL
-SET(DEMOS
-    ballsDEM
-    ballsDVI
-    mixerDEM
-    mixerDVI
+# List all FSI TESTS that use chrono
+SET(FSI_TESTS
+# add generic fsi TESTS here
 )
 
-# Programs that require OpenGL support
-IF(ENABLE_MODULE_OPENGL)
-    SET(DEMOS ${DEMOS} benchmarkOpenGL shapesOpenGL)
+# List all FSI TESTS that use chrono-parallel
+SET(FSI_PARALLEL_TESTS
+# add fsi parallel TESTS here
+)
+
+# List all FSI TESTS use vehicle
+SET(FSI_VEHICLE_TESTS
+# add fsi vehicle TESTS here
+)
+
+# List all FSI TESTS use parallel and vehicle
+SET(FSI_PARALLEL_VEHICLE_TESTS
+# add fsi parallel vehicle TESTS here
+	fsi_hmmwv_pointCloud
+)
+
+#--------------------------------------------------------------
+# Add executables for TESTS that have no other dependencies
+IF(ENABLE_MODULE_PARALLEL)
+	IF(ENABLE_MODULE_VEHICLE)
+		FOREACH(PROGRAM ${FSI_PARALLEL_VEHICLE_TESTS})
+		    MESSAGE(STATUS "...add ${PROGRAM}")
+
+		    CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+		    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+
+		    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+			FOLDER demos
+			COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
+			LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		    )
+
+		    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+		    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+
+		    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+
+		ENDFOREACH(PROGRAM)
+	ELSE()
+		FOREACH(PROGRAM ${FSI_PARALLEL_TESTS})
+		    MESSAGE(STATUS "...add ${PROGRAM}")
+
+		    CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+		    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+
+		    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+			FOLDER demos
+			COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
+			LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		    )
+
+		    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+		    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+
+		    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+
+		ENDFOREACH(PROGRAM)
+	ENDIF()
+ELSE()
+	IF(ENABLE_MODULE_VEHICLE)
+		FOREACH(PROGRAM ${FSI_VEHICLE_TESTS})
+		    MESSAGE(STATUS "...add ${PROGRAM}")
+
+		    CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+		    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+
+		    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+			FOLDER demos
+			COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
+			LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		    )
+
+		    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+		    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+
+		    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+
+		ENDFOREACH(PROGRAM)
+	ELSE()
+		FOREACH(PROGRAM ${FSI_TESTS})
+		    MESSAGE(STATUS "...add ${PROGRAM}")
+
+		    CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+		    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+
+		    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+			FOLDER demos
+			COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
+			LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		    )
+
+		    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+		    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+
+		    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+
+		ENDFOREACH(PROGRAM)
+	ENDIF()
 ENDIF()
 
-# ------------------------------------------------------------------------------
-# Add all executables
-# ------------------------------------------------------------------------------
 
-MESSAGE(STATUS "Demo programs for PARALLEL module...")
 
-FOREACH(PROGRAM ${DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
-
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
-
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-    )
-
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
-
-    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
-
-ENDFOREACH(PROGRAM)
 
