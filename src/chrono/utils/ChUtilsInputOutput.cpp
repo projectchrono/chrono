@@ -504,10 +504,17 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
                      const std::string& out_dir,
                      const ChColor& col,
                      const ChVector<>& pos,
-                     const ChQuaternion<>& rot) {
+                     const ChQuaternion<>& rot,
+                     bool smoothed) {
     // Transform vertices.
-    for (int i = 0; i < trimesh.m_vertices.size(); i++)
+    for (unsigned int i = 0; i < trimesh.m_vertices.size(); i++)
         trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+
+    // Transform normals
+    if (smoothed) {
+        for (unsigned int i = 0; i < trimesh.m_normals.size(); i++)
+            trimesh.m_normals[i] = rot.Rotate(trimesh.m_normals[i]);
+    }
 
     // Open output file.
     std::string pov_filename = out_dir + "/" + mesh_name + ".inc";
@@ -518,9 +525,18 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
     // Write vertices.
     ofile << "vertex_vectors {" << std::endl;
     ofile << trimesh.m_vertices.size();
-    for (int i = 0; i < trimesh.m_vertices.size(); i++) {
+    for (unsigned int i = 0; i < trimesh.m_vertices.size(); i++) {
         ChVector<> v = trimesh.m_vertices[i];
         ofile << ",\n<" << v.x << ", " << v.z << ", " << v.y << ">";
+    }
+    ofile << "\n}" << std::endl;
+
+    // Write normals.
+    ofile << "normal_vectors {" << std::endl;
+    ofile << trimesh.m_normals.size();
+    for (unsigned int i = 0; i < trimesh.m_normals.size(); i++) {
+        ChVector<> n = trimesh.m_normals[i];
+        ofile << ",\n<" << n.x << ", " << n.z << ", " << n.y << ">";
     }
     ofile << "\n}" << std::endl;
 
