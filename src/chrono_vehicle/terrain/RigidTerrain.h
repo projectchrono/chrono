@@ -25,6 +25,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChColorAsset.h"
+#include "chrono/geometry/ChCTriangleMeshConnected.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -96,6 +97,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                     double hMax                         ///< [in] maximum height (white level)
                     );
 
+    /// Export the terrain mesh (if any) as a macro in a PovRay include file.
+    void ExportMeshPovray(const std::string& out_dir);
+
     /// Get the terrain height at the specified (x,y) location.
     virtual double GetHeight(double x, double y) const override;
 
@@ -106,6 +110,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     Type m_type;
     ChSharedPtr<ChBody> m_ground;
     ChSharedPtr<ChColorAsset> m_color;
+    geometry::ChTriangleMeshConnected m_trimesh;
+    std::string m_mesh_name;
     double m_height;
 };
 

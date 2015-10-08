@@ -24,6 +24,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -203,20 +204,20 @@ void RigidTerrain::Initialize(double height, double sizeX, double sizeY) {
 // Initialize the terrain from a specified mesh file.
 // -----------------------------------------------------------------------------
 void RigidTerrain::Initialize(const std::string& mesh_file, const std::string& mesh_name) {
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(mesh_file, true, true);
+    m_trimesh.LoadWavefrontMesh(mesh_file, true, true);
 
     // Create the visualization asset.
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetMesh(m_trimesh);
     trimesh_shape->SetName(mesh_name);
     m_ground->AddAsset(trimesh_shape);
 
     // Create contact geometry.
     m_ground->GetCollisionModel()->ClearModel();
-    m_ground->GetCollisionModel()->AddTriangleMesh(trimesh, true, false, ChVector<>(0, 0, 0));
+    m_ground->GetCollisionModel()->AddTriangleMesh(m_trimesh, true, false, ChVector<>(0, 0, 0));
     m_ground->GetCollisionModel()->BuildModel();
 
+    m_mesh_name = mesh_name;
     m_type = MESH;
 }
 
@@ -242,8 +243,6 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     // The gray level of a pixel is mapped to the height range, with black corresponding
     // to hMin and white corresponding to hMax.
     // UV coordinates are mapped in [0,1] x [0,1].
-    geometry::ChTriangleMeshConnected trimesh;
-
     double dx = sizeX / (nv_x - 1);
     double dy = sizeY / (nv_y - 1);
     double h_scale = (hMax - hMin) / 255;
@@ -252,12 +251,12 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     unsigned int n_verts = nv_x * nv_y;
     unsigned int n_faces = 2 * (nv_x - 1) * (nv_y - 1);
 
-    trimesh.getCoordsVertices().resize(n_verts);
-    trimesh.getCoordsNormals().resize(n_verts);
-    trimesh.getCoordsUV().resize(n_verts);
-    trimesh.getCoordsColors().resize(n_verts);
+    m_trimesh.getCoordsVertices().resize(n_verts);
+    m_trimesh.getCoordsNormals().resize(n_verts);
+    m_trimesh.getCoordsUV().resize(n_verts);
+    m_trimesh.getCoordsColors().resize(n_verts);
 
-    trimesh.getIndicesVertexes().resize(n_faces);
+    m_trimesh.getIndicesVertexes().resize(n_faces);
 
     // Load mesh vertices.
     // Note that pixels in a BMP start at top-left corner.
@@ -276,11 +275,11 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
             ebmpBYTE blue = hmap(ix, iy)->Blue;
             double gray = 0.299 * red + 0.587 * green + 0.114 * blue;  // RGB -> YUV
             double z = hMin + gray * h_scale;
-            trimesh.getCoordsVertices()[iv] = ChVector<>(x, y, z);
-            trimesh.getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
-            trimesh.getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
+            m_trimesh.getCoordsVertices()[iv] = ChVector<>(x, y, z);
+            m_trimesh.getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
+            m_trimesh.getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
             //// TODO: better normal calculation
-            trimesh.getCoordsNormals()[iv] = ChVector<>(0, 0, 1);
+            m_trimesh.getCoordsNormals()[iv] = ChVector<>(0, 0, 1);
             ++iv;
         }
     }
@@ -292,25 +291,36 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     for (int iy = nv_y - 2; iy >= 0; --iy) {
         for (int ix = 0; ix < nv_x - 1; ++ix) {
             int v0 = ix + nv_x * iy;
-            trimesh.getIndicesVertexes()[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
+            m_trimesh.getIndicesVertexes()[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
             ++it;
-            trimesh.getIndicesVertexes()[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
+            m_trimesh.getIndicesVertexes()[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
             ++it;
         }
     }
 
     // Create the visualization asset.
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetMesh(m_trimesh);
     trimesh_shape->SetName(mesh_name);
     m_ground->AddAsset(trimesh_shape);
 
     // Create contact geometry.
     m_ground->GetCollisionModel()->ClearModel();
-    m_ground->GetCollisionModel()->AddTriangleMesh(trimesh, true, false, ChVector<>(0, 0, 0));
+    m_ground->GetCollisionModel()->AddTriangleMesh(m_trimesh, true, false, ChVector<>(0, 0, 0));
     m_ground->GetCollisionModel()->BuildModel();
 
+    m_mesh_name = mesh_name;
     m_type = HEIGHT_MAP;
+}
+
+// -----------------------------------------------------------------------------
+// Export the terrain mesh (if any) as a macro in a PovRay include file.
+// -----------------------------------------------------------------------------
+void RigidTerrain::ExportMeshPovray(const std::string& out_dir)
+{
+    if (m_type != FLAT) {
+        utils::WriteMeshPovray(m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1));
+    }
 }
 
 // -----------------------------------------------------------------------------

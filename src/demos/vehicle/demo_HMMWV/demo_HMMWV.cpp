@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
-        my_hmmwv.ExportMeshPovray(out_dir);
+        terrain.ExportMeshPovray(out_dir);
     }
 
     if (driver_output) {
