@@ -1,0 +1,28 @@
+{
+  "Name":     "Rigid plane",
+  "Type":     "Terrain",
+  "Template": "RigidTerrain",
+
+  "Material Properties":
+  {
+    "Coefficient of Friction":  0.9,
+    "Coefficient of Restitution": 0.01,
+    "Young Modulus":  2e7,
+    "Poisson Ratio":  0.3
+  },
+
+  "Geometry":
+  {
+    "Height Map Filename":  "terrain/height_maps/test64.bmp",
+    "Mesh Name":            "terrain_test64_POV_geom",
+    "Size":                 [128, 128],
+    "Height Range":         [0, 4]
+  },
+
+  "Visualization":
+  {
+    "Color": [1.0, 1.0, 1.0],
+    "Texture File": "terrain/textures/grass.jpg",
+    "Texture Scaling": [16, 16]
+  }
+}

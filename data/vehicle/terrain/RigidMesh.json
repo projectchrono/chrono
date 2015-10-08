@@ -13,14 +13,14 @@
 
   "Geometry":
   {
-    "Mesh Filename":  "terrain/terrain_test.obj",
+    "Mesh Filename":  "terrain/meshes/test.obj",
     "Mesh Name":      "terrain_test_POV_geom"
   },
 
   "Visualization":
   {
     "Color": [0.5, 0.5, 0.8],
-    "Texture File": "../textures/tile4.jpg",
+    "Texture File": "terrain/textures/dirt.jpg",
     "Texture Scaling": [200, 200]
   }
 }

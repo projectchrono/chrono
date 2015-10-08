@@ -253,6 +253,14 @@ else()
     set(CVIRR_UTILS_FILES "")
 endif()
 
+set(CV_EASYBMP_FILES
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP.h
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP.cpp
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_BMP.h
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_DataStructures.h
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_VariousBMPutilities.h
+    )
+
 source_group("base" FILES ${CV_BASE_FILES})
 source_group("vehicle" FILES ${CV_VEHICLE_FILES})
 source_group("suspension" FILES ${CV_SUSPENSION_FILES})
@@ -267,6 +275,7 @@ source_group("antirollbar" FILES ${CV_ANTIROLL_FILES})
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
 source_group("suspensionTest" FILES ${CV_SUSPENSIONTEST_FILES})
 source_group("utils" FILES ${CV_UTILS_FILES} ${CVIRR_UTILS_FILES})
+source_group("easyBMP" FILES ${CV_EASYBMP_FILES})
 
 # ----------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle library
@@ -298,6 +307,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_UTILS_FILES}
     ${CVIRR_DRIVER_FILES}
     ${CVIRR_UTILS_FILES}
+    ${CV_EASYBMP_FILES}
 )
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES
