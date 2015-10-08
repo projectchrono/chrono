@@ -499,16 +499,12 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
 // Write the triangular mesh from the specified OBJ file as a macro in a PovRay
 // include file.
 // -----------------------------------------------------------------------------
-void WriteMeshPovray(const std::string& obj_filename,
+void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
                      const std::string& mesh_name,
                      const std::string& out_dir,
                      const ChColor& col,
                      const ChVector<>& pos,
                      const ChQuaternion<>& rot) {
-    // Read trimesh from OBJ file
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(obj_filename, false, false);
-
     // Transform vertices.
     for (int i = 0; i < trimesh.m_vertices.size(); i++)
         trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
@@ -553,16 +549,30 @@ void WriteMeshPovray(const std::string& obj_filename,
     ofile.close();
 }
 
+void WriteMeshPovray(const std::string& obj_filename,
+                     const std::string& mesh_name,
+                     const std::string& out_dir,
+                     const ChColor& col,
+                     const ChVector<>& pos,
+                     const ChQuaternion<>& rot) {
+    // Read trimesh from OBJ file
+    geometry::ChTriangleMeshConnected trimesh;
+    trimesh.LoadWavefrontMesh(obj_filename, false, false);
+
+    // Generate output
+    WriteMeshPovray(trimesh, mesh_name, out_dir, col, pos, rot);
+}
+
 // -----------------------------------------------------------------------------
 // WriteCurvePovray
 //
 // Write the specified Bezier curve as a macro in a PovRay include file.
 // -----------------------------------------------------------------------------
-ChApi void WriteCurvePovray(const ChBezierCurve& curve,
-                            const std::string& curve_name,
-                            const std::string& out_dir,
-                            double radius,
-                            const ChColor& col) {
+void WriteCurvePovray(const ChBezierCurve& curve,
+                      const std::string& curve_name,
+                      const std::string& out_dir,
+                      double radius,
+                      const ChColor& col) {
     int nP = 20;
     double dt = 1.0 / nP;
     size_t nS = curve.getNumPoints() - 1;
