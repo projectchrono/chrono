@@ -243,6 +243,7 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     // The gray level of a pixel is mapped to the height range, with black corresponding
     // to hMin and white corresponding to hMax.
     // UV coordinates are mapped in [0,1] x [0,1].
+    // We use smoothed vertex normals.
     double dx = sizeX / (nv_x - 1);
     double dy = sizeY / (nv_y - 1);
     double h_scale = (hMax - hMin) / 255;
@@ -251,51 +252,89 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     unsigned int n_verts = nv_x * nv_y;
     unsigned int n_faces = 2 * (nv_x - 1) * (nv_y - 1);
 
+    // Resize mesh arrays.
     m_trimesh.getCoordsVertices().resize(n_verts);
     m_trimesh.getCoordsNormals().resize(n_verts);
     m_trimesh.getCoordsUV().resize(n_verts);
     m_trimesh.getCoordsColors().resize(n_verts);
 
     m_trimesh.getIndicesVertexes().resize(n_faces);
+    m_trimesh.getIndicesNormals().resize(n_faces);
+
+    // Initialize the array of accumulators (number of adjacent faces to a vertex)
+    std::vector<int> accumulators(n_verts, 0);
+
+    // Readibility aliases
+    std::vector<ChVector<> >& vertices = m_trimesh.getCoordsVertices();
+    std::vector<ChVector<> >& normals = m_trimesh.getCoordsNormals();
+    std::vector<ChVector<int> >& idx_vertices = m_trimesh.getIndicesVertexes();
+    std::vector<ChVector<int> >& idx_normals = m_trimesh.getIndicesNormals();
 
     // Load mesh vertices.
     // Note that pixels in a BMP start at top-left corner.
     // We order the vertices starting at the bottom-left corner, row after row.
     // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
-    // To accommodate color BMP, we calculate the gray level by converting to YUV.
-    // We assign a white color to all vertices.
     std::cout << "Load vertices..." << std::endl;
     unsigned int iv = 0;
     for (int iy = nv_y - 1; iy >= 0; --iy) {
         double y = 0.5 * sizeY - iy * dy;
         for (int ix = 0; ix < nv_x; ++ix) {
             double x = ix * dx - 0.5 * sizeX;
+            // Calculate equivalent gray level (RGB -> YUV)
             ebmpBYTE red = hmap(ix, iy)->Red;
             ebmpBYTE green = hmap(ix, iy)->Green;
             ebmpBYTE blue = hmap(ix, iy)->Blue;
-            double gray = 0.299 * red + 0.587 * green + 0.114 * blue;  // RGB -> YUV
+            double gray = 0.299 * red + 0.587 * green + 0.114 * blue;
+            // Map gray level to vertex height
             double z = hMin + gray * h_scale;
-            m_trimesh.getCoordsVertices()[iv] = ChVector<>(x, y, z);
+            // Set vertex location
+            vertices[iv] = ChVector<>(x, y, z);
+            // Initialize vertex normal to (0, 0, 0).
+            normals[iv] = ChVector<>(0, 0, 0);
+            // Assign color white to all vertices
             m_trimesh.getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
+            // Set UV coordinates in [0,1] x [0,1]
             m_trimesh.getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
-            //// TODO: better normal calculation
-            m_trimesh.getCoordsNormals()[iv] = ChVector<>(0, 0, 1);
             ++iv;
         }
     }
 
     // Specify triangular faces (two at a time).
     // Specify the face vertices counter-clockwise.
+    // Set the normal indices same as the vertex indices.
     std::cout << "Load faces..." << std::endl;
     unsigned int it = 0;
     for (int iy = nv_y - 2; iy >= 0; --iy) {
         for (int ix = 0; ix < nv_x - 1; ++ix) {
             int v0 = ix + nv_x * iy;
-            m_trimesh.getIndicesVertexes()[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
+            idx_vertices[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
+            idx_normals[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
             ++it;
-            m_trimesh.getIndicesVertexes()[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
+            idx_vertices[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
+            idx_normals[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
             ++it;
         }
+    }
+
+    // Calculate normals and then average the normals from all adjacent faces.
+    for (unsigned int it = 0; it < n_faces; ++it) {
+        // Calculate the triangle normal as a normalized cross product.
+        ChVector<> nrm = Vcross(vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x],
+                                vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x]);
+        nrm.Normalize();
+        // Increment the normals of all incident vertices by the face normal
+        normals[idx_normals[it].x] += nrm;
+        normals[idx_normals[it].y] += nrm;
+        normals[idx_normals[it].z] += nrm;
+        // Increment the count of all incident vertices by 1
+        accumulators[idx_normals[it].x] += 1;
+        accumulators[idx_normals[it].y] += 1;
+        accumulators[idx_normals[it].z] += 1;
+    }
+
+    // Set the normals to the average values.
+    for (unsigned int in = 0; in < n_verts; ++in) {
+        normals[in] /= (double)accumulators[in];
     }
 
     // Create the visualization asset.
@@ -316,10 +355,15 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
 // -----------------------------------------------------------------------------
 // Export the terrain mesh (if any) as a macro in a PovRay include file.
 // -----------------------------------------------------------------------------
-void RigidTerrain::ExportMeshPovray(const std::string& out_dir)
-{
-    if (m_type != FLAT) {
-        utils::WriteMeshPovray(m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1));
+void RigidTerrain::ExportMeshPovray(const std::string& out_dir) {
+    switch (m_type) {
+        case MESH:
+            utils::WriteMeshPovray(m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1));
+            break;
+        case HEIGHT_MAP:
+            utils::WriteMeshPovray(m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1), ChVector<>(0, 0, 0),
+                                   ChQuaternion<>(1, 0, 0, 0), true);
+            break;
     }
 }
 

@@ -98,7 +98,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                     );
 
     /// Export the terrain mesh (if any) as a macro in a PovRay include file.
-    void ExportMeshPovray(const std::string& out_dir);
+    void ExportMeshPovray(const std::string& out_dir  ///< [in] output directory
+                          );
 
     /// Get the terrain height at the specified (x,y) location.
     virtual double GetHeight(double x, double y) const override;
