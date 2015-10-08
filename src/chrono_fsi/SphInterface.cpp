@@ -5,7 +5,7 @@
  *      Author: arman
  */
 
-#include "SphInterface.h"
+#include "chrono_fsi/SphInterface.h"
 
 
 chrono::ChVector<> ConvertRealToChVector(Real3 p3) {

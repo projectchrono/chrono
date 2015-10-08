@@ -11,10 +11,10 @@
 #include <fstream>  // for simParams definition
 
 /* Chrono::FSI Library*/
-#include "SPHCudaUtils.h"
-#include "MyStructs.cuh"  //just for SimParams
-#include "VehicleExtraProperties.h"
-#include "include/utils.h"
+#include "chrono_fsi/SPHCudaUtils.h"
+#include "chrono_fsi/MyStructs.cuh"  //just for SimParams
+#include "chrono_fsi/VehicleExtraProperties.h"
+#include "chrono_fsi/include/utils.h"
 
 // -----------------------------------------------------------------------------
 // Specification post processing directory

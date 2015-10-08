@@ -5,7 +5,7 @@
  *      Author: arman
  */
 
-#include "VehicleExtraProperties.h"
+#include "chrono_fsi/VehicleExtraProperties.h"
 
 // Arman : maybe too many includes
 #include "core/ChStream.h"

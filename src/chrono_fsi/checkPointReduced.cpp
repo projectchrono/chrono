@@ -18,12 +18,11 @@
 #include <string>
 #include <sstream>
 #include <cstdlib>  //for atof
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
-#include "MyStructs.cuh"
+#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/SPHCudaUtils.h"
+#include "chrono_fsi/MyStructs.cuh"
+#include "chrono_fsi/checkPointReduced.h"
 
-#include <thrust/host_vector.h>
-#include "checkPointReduced.h"
 
 using namespace std;
 

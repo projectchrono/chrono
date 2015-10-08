@@ -43,8 +43,8 @@
 #include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
 
-#include "VehicleExtraProperties.h"
-#include "fsi_hmmwv_params.h"
+#include "chrono_fsi/VehicleExtraProperties.h"
+#include "chrono_fsi/fsi_hmmwv_params.h"
 
 // Control use of OpenGL run-time rendering
 // Note: CHRONO_OPENGL is defined in ChConfigParallel.h

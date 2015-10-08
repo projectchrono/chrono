@@ -7,7 +7,7 @@
 
 #ifndef MYSTRUCTS_CUH_
 #define MYSTRUCTS_CUH_
-#include "custom_cutil_math.h"
+#include "chrono_fsi/custom_cutil_math.h"
 
 enum BceVersion { ADAMI, mORIGINAL };
 

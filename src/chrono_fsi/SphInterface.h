@@ -10,9 +10,9 @@
 
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
-#include "MyStructs.cuh"  //just for SimParams
+#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/SPHCudaUtils.h"
+#include "chrono_fsi/MyStructs.cuh"  //just for SimParams
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 //#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"

@@ -1,8 +1,8 @@
 #ifndef PRINTTOFILE_CUH
 #define PRINTTOFILE_CUH
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
-#include "SDKCollisionSystem.cuh"
+#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/SPHCudaUtils.h"
+#include "chrono_fsi/SDKCollisionSystem.cuh"
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 

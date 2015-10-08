@@ -9,9 +9,9 @@
 #define INITIALIZESPHMARKERS_H_
 
 #include <thrust/host_vector.h>
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
-#include "MyStructs.cuh"
+#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/SPHCudaUtils.h"
+#include "chrono_fsi/MyStructs.cuh"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 

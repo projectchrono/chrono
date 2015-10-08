@@ -14,11 +14,11 @@
 #include <thrust/device_vector.h>
 
 /* Chrono::FSI library*/
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
-#include "SDKCollisionSystem.cuh"
-#include "collideSphereSphere.cuh"
-#include "printToFile.cuh"
+#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/SPHCudaUtils.h"
+#include "chrono_fsi/SDKCollisionSystem.cuh"
+#include "chrono_fsi/collideSphereSphere.cuh"
+#include "chrono_fsi/printToFile.cuh"
 
 using namespace std;
 //#####################################################################################

@@ -3,9 +3,9 @@
 #include <sstream>
 #include <fstream>
 #include <thrust/reduce.h>
-#include "printToFile.cuh"
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
+#include "chrono_fsi/printToFile.cuh"
+#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/SPHCudaUtils.h"
 using namespace std;
 
 //*******************************************************************************************************************************

@@ -1,5 +1,5 @@
 /* Chrono::FSI Library */
-#include "SDKCollisionSystem.cuh"
+#include "chrono_fsi/SDKCollisionSystem.cuh"
 
 //#include "extraOptionalFunctions.cuh"
 //#include "SDKCollisionSystemAdditional.cuh"

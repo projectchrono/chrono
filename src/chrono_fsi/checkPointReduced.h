@@ -12,6 +12,7 @@
 //
 //	Created by Arman Pazouki
 
+#include <thrust/host_vector.h>
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
                              const thrust::host_vector<Real4>& mVelMas,

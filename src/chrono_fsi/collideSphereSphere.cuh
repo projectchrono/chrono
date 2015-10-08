@@ -3,7 +3,7 @@
 
 #include <thrust/device_vector.h>
 
-#include "MyStructs.cuh"  //just for SimParams
+#include "chrono_fsi/MyStructs.cuh"  //just for SimParams
 
 /**
  * @brief InitSystem

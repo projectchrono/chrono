@@ -28,19 +28,19 @@
 #include <stdlib.h>  // system
 
 // SPH includes
-#include "MyStructs.cuh"  //just for SimParams
-#include "collideSphereSphere.cuh"
-#include "printToFile.cuh"
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
-#include "checkPointReduced.h"
+#include "chrono_fsi/MyStructs.cuh"  //just for SimParams
+#include "chrono_fsi/collideSphereSphere.cuh"
+#include "chrono_fsi/printToFile.cuh"
+#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/SPHCudaUtils.h"
+#include "chrono_fsi/checkPointReduced.h"
 
 // Chrono Parallel Includes
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 
 // Chrono Vehicle Include
-#include "VehicleExtraProperties.h"
+#include "chrono_fsi/VehicleExtraProperties.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 //#include "chrono_utils/ChUtilsVehicle.h"
@@ -54,10 +54,10 @@
 #include <core/ChTransform.h>  //transform acc from GF to LF for post process
 
 // FSI Interface Includes
-#include "fsi_hmmwv_params.h"  //SetupParamsH()
+#include "chrono_fsi/fsi_hmmwv_params.h"  //SetupParamsH()
 //#include "BallDropParams.h"
-#include "SphInterface.h"
-#include "InitializeSphMarkers.h"
+#include "chrono_fsi/SphInterface.h"
+#include "chrono_fsi/InitializeSphMarkers.h"
 
 // Chrono namespaces
 using namespace chrono;

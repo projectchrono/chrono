@@ -5,7 +5,7 @@
  *      Author: arman
  */
 
-#include "InitializeSphMarkers.h"
+#include "chrono_fsi/InitializeSphMarkers.h"
 
 int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
                         thrust::host_vector<Real4>& velMasH,
