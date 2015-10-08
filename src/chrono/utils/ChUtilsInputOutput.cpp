@@ -532,13 +532,15 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
     ofile << "\n}" << std::endl;
 
     // Write normals.
-    ofile << "normal_vectors {" << std::endl;
-    ofile << trimesh.m_normals.size();
-    for (unsigned int i = 0; i < trimesh.m_normals.size(); i++) {
-        ChVector<> n = trimesh.m_normals[i];
-        ofile << ",\n<" << n.x << ", " << n.z << ", " << n.y << ">";
+    if (smoothed) {
+        ofile << "normal_vectors {" << std::endl;
+        ofile << trimesh.m_normals.size();
+        for (unsigned int i = 0; i < trimesh.m_normals.size(); i++) {
+            ChVector<> n = trimesh.m_normals[i];
+            ofile << ",\n<" << n.x << ", " << n.z << ", " << n.y << ">";
+        }
+        ofile << "\n}" << std::endl;
     }
-    ofile << "\n}" << std::endl;
 
     // Write face connectivity.
     ofile << "face_indices {" << std::endl;
