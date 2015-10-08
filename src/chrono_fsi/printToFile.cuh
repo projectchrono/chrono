@@ -1,3 +1,9 @@
+/*
+ * printToFile.cuh
+ *
+ *  Created on: Mar 2, 2015
+ *      Author: Arman Pazouki
+ */
 #ifndef PRINTTOFILE_CUH
 #define PRINTTOFILE_CUH
 #include "chrono_fsi/custom_cutil_math.h"

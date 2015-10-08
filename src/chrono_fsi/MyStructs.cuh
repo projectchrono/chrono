@@ -2,7 +2,7 @@
  * MyStruncts.cuh
  *
  *  Created on: Mar 4, 2015
- *      Author: arman
+ *      Author: Arman Pazouki
  */
 
 #ifndef MYSTRUCTS_CUH_

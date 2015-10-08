@@ -110,30 +110,23 @@ void CopyD2H(thrust::host_vector<Real3>& posRadH,  // do not set the size here s
              const thrust::device_vector<Real4>& velMasD,
              const thrust::device_vector<Real4>& rhoPresMuD);
 
-
-
-
-
-
-
 void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
-		const thrust::device_vector<Real3>& rigid_FSI_ForcesD,
-		const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
-		const thrust::host_vector<int>& mapIndex);
+                                        const thrust::device_vector<Real3>& rigid_FSI_ForcesD,
+                                        const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
+                                        const thrust::host_vector<int>& mapIndex);
 
-void Update_RigidPosVel_from_ChSystem_H2D(
-		thrust::device_vector<Real3>& posRigidD,
-		thrust::device_vector<Real4>& qD,
-		thrust::device_vector<Real4>& velMassRigidD,
-		thrust::device_vector<Real3>& rigidOmegaLRF_D,
-		const thrust::host_vector<int>& mapIndex,
-		chrono::ChSystemParallelDVI& mphysicalSystem);
+void Update_RigidPosVel_from_ChSystem_H2D(thrust::device_vector<Real3>& posRigidD,
+                                          thrust::device_vector<Real4>& qD,
+                                          thrust::device_vector<Real4>& velMassRigidD,
+                                          thrust::device_vector<Real3>& rigidOmegaLRF_D,
+                                          const thrust::host_vector<int>& mapIndex,
+                                          chrono::ChSystemParallelDVI& mphysicalSystem);
 
 void HardSet_PosRot_In_ChSystem_D2H(chrono::ChSystemParallelDVI& mphysicalSystem,
-		const thrust::device_vector<Real3>& posRigidD,
-		const thrust::device_vector<Real4>& qD,
-		const thrust::device_vector<Real4>& velMassRigidD,
-		const thrust::device_vector<Real3>& omegaLRF_D,
-		const thrust::host_vector<int>& mapIndex);
+                                    const thrust::device_vector<Real3>& posRigidD,
+                                    const thrust::device_vector<Real4>& qD,
+                                    const thrust::device_vector<Real4>& velMassRigidD,
+                                    const thrust::device_vector<Real3>& omegaLRF_D,
+                                    const thrust::host_vector<int>& mapIndex);
 
 #endif /* SPHINTERFACE_H_ */

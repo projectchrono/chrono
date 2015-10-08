@@ -2,7 +2,7 @@
  * InitializeFluidSystem.h
  *
  *  Created on: Mar 2, 2015
- *      Author: arman
+ *      Author: Arman Pazouki
  */
 
 #ifndef INITIALIZESPHMARKERS_H_

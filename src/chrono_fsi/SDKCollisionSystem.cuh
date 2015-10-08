@@ -1,3 +1,10 @@
+/*
+ * SDKCollisionSystem.cuh
+ *
+ *  Created on: Mar 2, 2013
+ *      Author: Arman Pazouki
+ */
+
 #ifndef SDKCOLLISIONSYSTEM_CUH
 #define SDKCOLLISIONSYSTEM_CUH
 
@@ -65,7 +72,7 @@ __device__ inline Real W3_Spline(
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////2D SPH kernel function, W2_SplineA
 //__device__ inline Real W2_Spline(Real d) { // d is positive. h is the sph particle radius (i.e. h in the document) d
-//is the distance of 2 particles
+// is the distance of 2 particles
 //	Real h = paramsD.HSML;
 //	Real q = fabs(d) / h;
 //	if (q < 1) {
@@ -79,7 +86,7 @@ __device__ inline Real W3_Spline(
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////3D SPH kernel function, W3_QuadraticA
 //__device__ inline Real W3_Quadratic(Real d, Real h) { // d is positive. h is the sph particle radius (i.e. h in the
-//document) d is the distance of 2 particles
+// document) d is the distance of 2 particles
 //	Real q = fabs(d) / h;
 //	if (q < 2) {
 //		return (1.25f / (PI * h * h * h) * .75f * (pow(.5f * q, Real(2)) - q + 1));
@@ -89,7 +96,7 @@ __device__ inline Real W3_Spline(
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////2D SPH kernel function, W2_QuadraticA
 //__device__ inline Real W2_Quadratic(Real d, Real h) { // d is positive. h is the sph particle radius (i.e. h in the
-//document) d is the distance of 2 particles
+// document) d is the distance of 2 particles
 //	Real q = fabs(d) / h;
 //	if (q < 2) {
 //		return (2.0f / (PI * h * h) * .75f * (pow(.5f * q, Real(2)) - q + 1));
@@ -120,9 +127,9 @@ __device__ inline Real3 GradW_Spline(
 ////Gradient of the kernel function
 //// d: magnitude of the distance of the two particles
 //// dW * dist3 gives the gradiant of W3_Quadratic, where dist3 is the distance vector of the two particles, (dist3)a =
-///pos_a - pos_b
+/// pos_a - pos_b
 //__device__ inline Real3 GradW_Quadratic(Real3 d, Real h) { // d is positive. r is the sph particle radius (i.e. h in
-//the document) d is the distance of 2 particles
+// the document) d is the distance of 2 particles
 //	Real q = length(d) / h;
 //	if (q < 2) {
 //		return 1.25f / (PI * pow(h, Real(5))) * .75f * (.5f - 1.0f / q) * d;

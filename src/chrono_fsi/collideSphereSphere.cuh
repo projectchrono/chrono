@@ -1,3 +1,8 @@
+///////////////////////////////////////////////////////////////////////////////
+//	collideSphereSphere.cuh
+//	header file implements kernels and functions for fluid force calculation and update, rigids, and bce
+//
+//	Created by Arman Pazouki
 #ifndef COLLIDESPHERESPHERE_CUH
 #define COLLIDESPHERESPHERE_CUH
 
@@ -53,44 +58,40 @@ void ResizeR3(thrust::device_vector<Real3>& mThrustVec, int size);
 void ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size);
 void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size);
 
-void MakeRigidIdentifier(
-		thrust::device_vector<uint> & rigidIdentifierD,
-		int numRigidBodies, int startRigidMarkers,
-		const thrust::host_vector<int3> & referenceArray);
+void MakeRigidIdentifier(thrust::device_vector<uint>& rigidIdentifierD,
+                         int numRigidBodies,
+                         int startRigidMarkers,
+                         const thrust::host_vector<int3>& referenceArray);
 
-void Populate_RigidSPH_MeshPos_LRF(
-		thrust::device_vector<uint>& rigidIdentifierD,
-		thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
-		const thrust::device_vector<Real3>&posRadD,
-		const thrust::device_vector<Real3>& posRigidD,
-		const thrust::device_vector<Real4>& qD,
-		const thrust::host_vector<int3> & referenceArray,
-		const NumberOfObjects & numObjects);
+void Populate_RigidSPH_MeshPos_LRF(thrust::device_vector<uint>& rigidIdentifierD,
+                                   thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+                                   const thrust::device_vector<Real3>& posRadD,
+                                   const thrust::device_vector<Real3>& posRigidD,
+                                   const thrust::device_vector<Real4>& qD,
+                                   const thrust::host_vector<int3>& referenceArray,
+                                   const NumberOfObjects& numObjects);
 
-void Rigid_Forces_Torques(
-		thrust::device_vector<Real3> & rigid_FSI_ForcesD,
-		thrust::device_vector<Real3> & rigid_FSI_TorquesD,
+void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
+                          thrust::device_vector<Real3>& rigid_FSI_TorquesD,
 
+                          const thrust::device_vector<Real3>& posRadD,
+                          const thrust::device_vector<Real3>& posRigidD,
 
-		const thrust::device_vector<Real3> & posRadD,
-		const thrust::device_vector<Real3> & posRigidD,
+                          const thrust::device_vector<Real4>& derivVelRhoD,
+                          const thrust::device_vector<uint>& rigidIdentifierD,
 
-		const thrust::device_vector<Real4> & derivVelRhoD,
-		const thrust::device_vector<uint> & rigidIdentifierD,
+                          const NumberOfObjects& numObjects,
+                          Real sphMass);
 
-		const NumberOfObjects & numObjects,
-		Real sphMass);
-
-void UpdateRigidMarkersPosition(
-		thrust::device_vector<Real3> & posRadD,
-		thrust::device_vector<Real4> & velMasD,
-		const thrust::device_vector<Real3> & rigidSPH_MeshPos_LRF_D,
-		const thrust::device_vector<uint> & rigidIdentifierD,
-		const thrust::device_vector<Real3> & posRigidD,
-		const thrust::device_vector<Real4> & qD,
-		const thrust::device_vector<Real4> & velMassRigidD,
-		const thrust::device_vector<Real3> & omegaLRF_D,
-		NumberOfObjects numObjects);
+void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
+                                thrust::device_vector<Real4>& velMasD,
+                                const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+                                const thrust::device_vector<uint>& rigidIdentifierD,
+                                const thrust::device_vector<Real3>& posRigidD,
+                                const thrust::device_vector<Real4>& qD,
+                                const thrust::device_vector<Real4>& velMassRigidD,
+                                const thrust::device_vector<Real3>& omegaLRF_D,
+                                NumberOfObjects numObjects);
 
 /**
  * @brief Calculates the force on each particles
@@ -146,10 +147,9 @@ void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
                              int numAllMarkers,
                              int3 SIDE);
 
-void IntegrateSPH(
-        			thrust::device_vector<Real4>& derivVelRhoD,
+void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
 
-        			thrust::device_vector<Real3>& posRadD2,
+                  thrust::device_vector<Real3>& posRadD2,
                   thrust::device_vector<Real4>& velMasD2,
                   thrust::device_vector<Real4>& rhoPresMuD2,
 

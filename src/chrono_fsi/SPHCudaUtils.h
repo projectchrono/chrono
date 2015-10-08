@@ -1,3 +1,9 @@
+/*
+ * SPHCudaUtils.h
+ *
+ *  Created on: Mar 2, 2015
+ *      Author: Arman Pazouki
+ */
 // ****************************************************************************
 // This file contains miscellaneous macros and utilities used in the SPH code.
 // ****************************************************************************
@@ -82,14 +88,14 @@
 // ----------------------------------------------------------------------------
 #define cutilSafeCall(x) x
 
-
-#define cudaCheckError() {       \
- cudaError_t e=cudaGetLastError();                  \
- if(e!=cudaSuccess) {                           \
-   printf("Cuda failure %s:%d: '%s'\n",__FILE__,__LINE__,cudaGetErrorString(e));  \
-   exit(0); \
- }        \
-}
+#define cudaCheckError()                                                               \
+  {                                                                                    \
+    cudaError_t e = cudaGetLastError();                                                \
+    if (e != cudaSuccess) {                                                            \
+      printf("Cuda failure %s:%d: '%s'\n", __FILE__, __LINE__, cudaGetErrorString(e)); \
+      exit(0);                                                                         \
+    }                                                                                  \
+  }
 
 #define CUT_CHECK_ERROR(x) cudaCheckError()
 

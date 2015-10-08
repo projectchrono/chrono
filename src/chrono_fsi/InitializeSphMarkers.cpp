@@ -2,7 +2,7 @@
  * InitializeSphMarkers.cpp
  *
  *  Created on: Mar 2, 2015
- *      Author: arman
+ *      Author: Arman Pazouki
  */
 
 #include "chrono_fsi/InitializeSphMarkers.h"
@@ -41,7 +41,7 @@ int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
       for (int k = 0; k < nFZ; k++) {
         Real3 posRad;
         //					printf("initSpace X, Y, Z %f %f %f \n", initSpaceX, initSpaceY,
-        //initSpaceZ);
+        // initSpaceZ);
         posRad = paramsH.cMinInit + mR3(i * initSpaceX, j * initSpaceY, k * initSpaceZ) +
                  mR3(.5 * initSpace0) /* + mR3(sphR) + initSpace * .05 * (Real(rand()) / RAND_MAX)*/;
         if ((posRad.x > paramsH.straightChannelBoundaryMin.x && posRad.x < paramsH.straightChannelBoundaryMax.x) &&
@@ -58,8 +58,9 @@ int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
           //					num_BoundaryMarkers++;
           //					mPosRadBoundary.push_back(posRad);
           //					mVelMasBoundary.push_back(mR4(0, 0, 0, sphMarkerMass));
-          //					mRhoPresMuBoundary.push_back(mR4(paramsH.rho0, paramsH.LARGE_PRES, paramsH.mu0,
-          //0));
+          //					mRhoPresMuBoundary.push_back(mR4(paramsH.rho0, paramsH.LARGE_PRES,
+          //paramsH.mu0,
+          // 0));
         }
       }
     }

@@ -1,3 +1,9 @@
+/*
+ * printToFile.cu
+ *
+ *  Created on: Mar 2, 2015
+ *      Author: Arman Pazouki
+ */
 #include <string.h>
 #include <stdio.h>
 #include <sstream>
@@ -20,8 +26,9 @@ void PrintCartesianData_MidLine(const thrust::host_vector<Real4>& rho_Pres_CartH
     int index = (cartesianGridDims.x * cartesianGridDims.y) * k + cartesianGridDims.x * gridCenter.y + gridCenter.x;
     Real3 v = mR3(vel_VelMag_CartH[index]);
     Real3 rp = mR3(rho_Pres_CartH[index]);
-    //		midLineProfile << v.x << ", " << v.y << ", " << v.z << ", " << length(v) << ", " << rp.x << ", " << rp.y <<
-    //endl;
+    //		midLineProfile << v.x << ", " << v.y << ", " << v.z << ", " << length(v) << ", " << rp.x << ", " << rp.y
+    //<<
+    // endl;
     midLineProfile << v.x << ", ";
   }
   midLineProfile << endl;
@@ -67,14 +74,14 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
   //
   //	if (tStep % stepCalcCartesian == 0) {
   //		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD,
-  //rhoPresMuD,
+  // rhoPresMuD,
   //				referenceArray[referenceArray.size() - 1].y, paramsH);
   //	}
   //	if (tStep % tStepCartesianTotal == 0) {
   //		if (tStep / tStepCartesianTotal == 0) {
   //			fileNameCartesianTotal.open("dataCartesianTotal.txt");
   //			fileNameCartesianTotal<<"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity
-  //Magnitude\", \"Rho\", \"Pressure\"\n";
+  // Magnitude\", \"Rho\", \"Pressure\"\n";
   //		} else {
   //			fileNameCartesianTotal .open("dataCartesianTotal.txt", ios::app);
   //		}
@@ -85,12 +92,13 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
   //			for (int j = 0; j < cartesianGridDims.y; j++) {
   //				for (int i = 0; i < cartesianGridDims.x; i++) {
   //					int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x *
-  //cartesianGridDims.y;
+  // cartesianGridDims.y;
   //					Real3 gridNodeLoc = resolution * mR3(i, j, k) + paramsH.worldOrigin;
   //					ssCartesianTotal<<gridNodeLoc.x<<", "<< gridNodeLoc.y<<", "<< gridNodeLoc.z<<",
   //"<<
-  //							vel_VelMag_CartH[index].x<<", "<< vel_VelMag_CartH[index].y<<", "<<
-  //vel_VelMag_CartH[index].z<<", "<< vel_VelMag_CartH[index].w<<", "<<
+  //							vel_VelMag_CartH[index].x<<", "<< vel_VelMag_CartH[index].y<<",
+  //"<<
+  // vel_VelMag_CartH[index].z<<", "<< vel_VelMag_CartH[index].w<<", "<<
   //							rho_Pres_CartH[index].x<<", "<< rho_Pres_CartH[index].y<<endl;
   //				}
   //			}
@@ -103,7 +111,8 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
   //	if (tStep % tStepCartesianSlice == 0) {
   //		if (tStep / tStepCartesianSlice == 0) {
   //			fileNameCartesianMidplane.open("dataCartesianMidplane.txt");
-  //			fileNameCartesianMidplane<<"variables = \"x\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\",
+  //			fileNameCartesianMidplane<<"variables = \"x\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity
+  //Magnitude\",
   //\"Rho\", \"Pressure\"\n";
   //		} else {
   //			fileNameCartesianMidplane .open("dataCartesianMidplane.txt", ios::app);
@@ -115,10 +124,11 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
   //			for (int i = 0; i < cartesianGridDims.x; i++) {
   //				int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
   //				Real3 gridNodeLoc = resolution * mR3(i, j, k) + paramsH.worldOrigin;
-  //				ssCartesianMidplane<<gridNodeLoc.x<<", "<< gridNodeLoc.z<<", "<< vel_VelMag_CartH[index].x<<",
+  //				ssCartesianMidplane<<gridNodeLoc.x<<", "<< gridNodeLoc.z<<", "<<
+  //vel_VelMag_CartH[index].x<<",
   //"<<
   //						vel_VelMag_CartH[index].y<<", "<< vel_VelMag_CartH[index].z<<", "<<
-  //vel_VelMag_CartH[index].w<<", "<< rho_Pres_CartH[index].x<<", "<<
+  // vel_VelMag_CartH[index].w<<", "<< rho_Pres_CartH[index].x<<", "<<
   //						rho_Pres_CartH[index].y<<endl;
   //			}
   //		}
@@ -196,7 +206,8 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
     //			Real3 vel = mR3(velMasH[i]);
     //			Real4 rP = rhoPresMuH[i];
     //			Real velMag = length(vel);
-    //			ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<",
+    //			ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<<
+    //velMag<<",
     //"<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
     //		}
     //		fileNameBoundaries << ssBoundary.str();

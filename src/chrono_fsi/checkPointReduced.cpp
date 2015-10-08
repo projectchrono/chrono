@@ -7,8 +7,9 @@
 //					This file contains the sph particles specifications. The description
 //					reads the number of particles first. The each line provides the
 //					properties of one SPH particl:
-//					position(x,y,z), radius, velocity(x,y,z), mass, \rho, pressure, mu, particle_type(rigid
-//or fluid)
+//					position(x,y,z), radius, velocity(x,y,z), mass, \rho, pressure, mu,
+//particle_type(rigid
+// or fluid)
 //
 //	Created by Arman Pazouki
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,7 +23,6 @@
 #include "chrono_fsi/SPHCudaUtils.h"
 #include "chrono_fsi/MyStructs.cuh"
 #include "chrono_fsi/checkPointReduced.h"
-
 
 using namespace std;
 

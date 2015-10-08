@@ -1,4 +1,9 @@
-/* Chrono::FSI Library */
+/*
+ * SDKCollisionSystem.cu
+ *
+ *  Created on: Mar 2, 2013
+ *      Author: Arman Pazouki
+ */
 #include "chrono_fsi/SDKCollisionSystem.cuh"
 
 //#include "extraOptionalFunctions.cuh"
@@ -78,7 +83,6 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3,
                      gradW +
                  velMasB.w * (8.0f * multViscosity) * paramsD.mu0 * pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2)) *
                      rAB_Dot_GradW_OverDist * mR3(velMasA - velMasB);
-  Real zeta = 0;  //.05;//.1;
   Real derivRho = rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW);
   //	Real zeta = 0;//.05;//.1;
   //	Real derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
@@ -296,15 +300,17 @@ __device__ Real4 collideCell(int3 gridPos,
             //						rhoPresMuB.y = rhoPresMuA.y;
           }
           //*** modify the pressure at the periodic boundary
-          //					if (length(posRadA - posRadB) > (RESOLUTION_LENGTH_MULT + 1) * paramsD.HSML) { //i.e.
-          //at
+          //					if (length(posRadA - posRadB) > (RESOLUTION_LENGTH_MULT + 1) * paramsD.HSML) {
+          ////i.e.
+          // at
           // periodic BC. project pressure up the periodic boundary
           //						rhoPresMuB.x = rhoPresMuA.x;
           //						rhoPresMuB.y = rhoPresMuA.y;
           //					}
           //*** end modify the pressure at the boundary
-          //					else { //**One of them is fluid, the other one is fluid/solid (boundary was
-          //considered
+          //					else { //**One of them is fluid, the other one is fluid/solid (boundary
+          //was
+          // considered
           // previously)
           //						multViscosit = 1.0f;
           //					}
@@ -342,7 +348,6 @@ __device__ __inline__ void stressCell(Real3& devS3,
   uint gridHash = calcGridHash(gridPos);
   // get start of bucket for this cell
   Real3 derivV = mR3(0.0f);
-  Real derivRho = 0.0f;
 
   uint startIndex = FETCH(cellStart, gridHash);
   if (startIndex != 0xffffffff) {  // cell is not empty
@@ -648,7 +653,7 @@ __global__ void newVel_XSPH_D(Real3* vel_XSPH_Sorted_D,  // output: new velocity
   // sortedVel_XSPH[index] = mR3(velMasA) + paramsD.EPS_XSPH * deltaV;
 
   // write new velocity back to original unsorted location
-  uint originalIndex = gridMarkerIndex[index];
+  // uint originalIndex = gridMarkerIndex[index];
   vel_XSPH_Sorted_D[index] = mR3(velMasA) + paramsD.EPS_XSPH * deltaV;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -985,7 +990,7 @@ __global__ void CalcCartesianDataD(Real4* rho_Pres_CartD,
     }
   }
   // write new velocity back to original unsorted location
-  uint originalIndex = gridMarkerIndex[index];
+  //  uint originalIndex = gridMarkerIndex[index];
 
   // Real newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
   // if (rhoPreMuA.w < -.1) { rhoPreMuA.x = newDensity; }

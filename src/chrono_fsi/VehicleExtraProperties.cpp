@@ -2,7 +2,7 @@
  * VehicleExtraProperties.cpp
  *
  *  Created on: Apr 25, 2015
- *      Author: arman
+ *      Author: Arman Pazouki
  */
 
 #include "chrono_fsi/VehicleExtraProperties.h"
