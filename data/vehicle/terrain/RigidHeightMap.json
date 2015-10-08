@@ -13,14 +13,16 @@
 
   "Geometry":
   {
-    "Mesh Filename":  "terrain/meshes/test.obj",
-    "Mesh Name":      "terrain_test_POV_geom"
+    "Height Map Filename":  "terrain/height_maps/test64.bmp",
+    "Mesh Name":            "terrain_test64_POV_geom",
+    "Size":                 [128, 128],
+    "Height Range":         [0, 4]
   },
 
   "Visualization":
   {
-    "Color": [0.5, 0.5, 0.8],
-    "Texture File": "terrain/textures/dirt.jpg",
-    "Texture Scaling": [200, 200]
+    "Color": [1.0, 1.0, 1.0],
+    "Texture File": "terrain/textures/grass.jpg",
+    "Texture Scaling": [16, 16]
   }
 }

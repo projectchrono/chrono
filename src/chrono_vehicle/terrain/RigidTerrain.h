@@ -40,6 +40,8 @@ namespace chrono {
 ///
 class CH_VEHICLE_API RigidTerrain : public ChTerrain {
   public:
+    enum Type { FLAT, MESH, HEIGHT_MAP };
+
     /// Construct a default RigidTerrain.
     /// The user is responsible for calling various Set methods before Initialize.
     RigidTerrain(chrono::ChSystem* system  ///< [in] pointer to the containing multibody system
@@ -69,7 +71,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                     float tex_scale_y = 1        ///< [in] texture scale in Y
                     );
 
-    /// Initialize the terrain system (box).
+    /// Initialize the terrain system (flat).
     /// This version uses a rigid box of specified dimensions and with specified
     /// material properties.
     void Initialize(double height,  ///< [in] terrain height
@@ -78,9 +80,20 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                     );
 
     /// Initialize the terrain system (mesh).
-    /// This version uses the specified OBJ mesh for both contact and visualization.
-    void Initialize(const std::string& mesh_file,  ///< [in] filename for the OBJ mesh
+    /// this version uses the specified mesh, for both visualization and contact.
+    void Initialize(const std::string& mesh_file,  ///< [in] filename of the input mesh (OBJ)
                     const std::string& mesh_name   ///< [in] name of the mesh asset
+                    );
+
+    /// Initialize the terrain system (height map).
+    /// This version uses the specified BMP file as a height map to create a mesh for
+    /// both contact and visualization.
+    void Initialize(const std::string& heightmap_file,  ///< [in] filename for the height map (BMP)
+                    const std::string& mesh_name,       ///< [in] name of the mesh asset
+                    double sizeX,                       ///< [in] terrain dimension in the X direction
+                    double sizeY,                       ///< [in] terrain dimension in the Y direction
+                    double hMin,                        ///< [in] minimum height (black level)
+                    double hMax                         ///< [in] maximum height (white level)
                     );
 
     /// Get the terrain height at the specified (x,y) location.
@@ -90,9 +103,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     virtual chrono::ChVector<> GetNormal(double x, double y) const override;
 
   private:
+    Type m_type;
     ChSharedPtr<ChBody> m_ground;
     ChSharedPtr<ChColorAsset> m_color;
-    bool m_isBox;
     double m_height;
 };
 

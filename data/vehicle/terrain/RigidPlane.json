@@ -20,7 +20,7 @@
   "Visualization":
   {
     "Color": [0.5, 0.5, 0.8],
-    "Texture File": "../textures/tile4.jpg",
+    "Texture File": "terrain/textures/tile4.jpg",
     "Texture Scaling": [200, 200]
   }
 }
