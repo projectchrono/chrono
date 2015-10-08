@@ -641,7 +641,7 @@ void ChVisualizationFEAmesh::Update (ChPhysicsItem* updater, const ChCoordsys<>&
 			for (int in= 0; in < beam_resolution; ++in)
 			{
 				double eta = -1.0+(2.0*in/(beam_resolution-1));
-				
+
 				ChVector<> P;
 				ChQuaternion<> msectionrot;
 				mybeam->EvaluateSectionFrame(eta, displ, P, msectionrot);  // compute abs. pos and rot of section plane
@@ -675,6 +675,15 @@ void ChVisualizationFEAmesh::Update (ChPhysicsItem* updater, const ChCoordsys<>&
 						mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
 						sresult = vresult.z; 
 						break;
+					case E_PLOT_ANCF_BEAM_AX:
+						mybeam->EvaluateSectionStrain(eta, displ, vresult);
+						sresult = vresult.x;
+						break;
+					case E_PLOT_ANCF_BEAM_BD:
+						mybeam->EvaluateSectionStrain(eta, displ, vresult);
+						sresult = vresult.y;
+						break;
+
 				}
 				ChVector<float> mcol = ComputeFalseColor(sresult);
 

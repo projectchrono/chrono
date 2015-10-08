@@ -1016,7 +1016,8 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
             // Note: can be improved with more unrolling.
         }
     }
-
+	virtual void EvaluateSectionStrain(const double eta, const ChMatrix<>& displ, ChVector<>& StrainV)
+	{/* To be completed: Created to be consistent with base class implementation*/}
     //
     // Functions for interfacing to the LCP solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)

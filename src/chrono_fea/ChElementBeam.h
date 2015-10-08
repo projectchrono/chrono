@@ -67,7 +67,9 @@ class ChApiFea ChElementBeam : public ChElementGeneric {
                                             const ChMatrix<>& displ,
                                             ChVector<>& Fforce,
                                             ChVector<>& Mtorque) = 0;
+    /// Gets the axial and bending strain of the ANCF "cable" element
 
+    virtual void EvaluateSectionStrain(const double eta, const ChMatrix<>& displ, ChVector<>& StrainV) = 0;
     /// The full mass of the beam, (with const. section, density, etc.)
     double GetMass() { return this->mass; }
 

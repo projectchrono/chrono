@@ -16,6 +16,7 @@
 //#define BEAM_VERBOSE
 
 #include "ChElementBeam.h"
+#include "chrono/core/ChVector.h"
 #include "ChBeamSection.h"
 #include "ChNodeFEAxyzD.h"
 #include "core/ChQuadrature.h"
@@ -836,25 +837,79 @@ public:
 				/// showing results, etc.
 	virtual void EvaluateSectionForceTorque(const double eta, const ChMatrix<>& displ, ChVector<>& Fforce, ChVector<>& Mtorque)
 				{
-					assert (!section.IsNull());
+	
+		            assert (!section.IsNull());
 
 					ChMatrixNM<double,1,4> N;
+					ChMatrixNM<double,1,4> Nd;
+					ChMatrixNM<double, 1, 4> Ndd;
+					// double xi = (eta*2 - 1.0);
+					double xi = (eta + 1.0)/2.0;
 
-					double xi = (eta*2 - 1.0);
-					this->ShapeFunctions(N, xi); // Evaluate shape functions
-					/*
-					TO DO....
-						 
-					Fforce.x = ...;
-					Fforce.y = ...;
-					Fforce.z = ...;		
-									 
-					Mtorque.x = ...;
-					Mtorque.y = ...;	
-					Mtorque.z = ...;
-					*/
+					/* To be completed*/
 				}
+	/// Gets the axial and bending strain of the ANCF element
+	/// torque (torsion on x, bending on y, on bending on z) at a section along 
+	/// the beam line, at abscyssa 'eta'.
+	/// Note, eta=-1 at node1, eta=+1 at node2.
+	/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
+	/// Results are not corotated, and are expressed in the reference system of beam.
+	/// This is not mandatory for the element to work, but it can be useful for plotting,
+	/// showing results, etc.
+	virtual void EvaluateSectionStrain (const double eta, const ChMatrix<>& displ, ChVector<>& StrainV) override
+	{
 
+		assert(!section.IsNull());
+
+		ChMatrixNM<double, 1, 4> N;
+		ChMatrixNM<double, 1, 4> Nd;
+		ChMatrixNM<double, 1, 4> Ndd;
+		// double xi = (eta*2 - 1.0);
+		double xi = (eta + 1.0) / 2.0;
+
+		this->ShapeFunctions(N, xi); // Evaluate shape functions
+		this->ShapeFunctionsDerivatives(Nd, xi);
+		this->ShapeFunctionsDerivatives2(Ndd, xi);
+		ChMatrixDynamic<> mD(GetNdofs(), 1);
+		ChMatrix33<> Sdi;
+		ChMatrixNM<double, 3, 12>  Sd;
+		ChMatrixNM<double, 3, 12>  Sdd;
+		ChMatrixNM<double, 3, 1>   r_x;
+		ChMatrixNM<double, 3, 1>   r_xx;
+
+		this->GetStateBlock(mD);
+		Sdi.FillDiag(Nd(0));
+		Sd.PasteMatrix(&Sdi, 0, 0);
+		Sdi.FillDiag(Nd(1));
+		Sd.PasteMatrix(&Sdi, 0, 3);
+		Sdi.FillDiag(Nd(2));
+		Sd.PasteMatrix(&Sdi, 0, 6);
+		Sdi.FillDiag(Nd(3));
+		Sd.PasteMatrix(&Sdi, 0, 9);
+		Sdi.Reset();
+		Sdi.FillDiag(Ndd(0));
+		Sdd.PasteMatrix(&Sdi, 0, 0);
+		Sdi.FillDiag(Ndd(1));
+		Sdd.PasteMatrix(&Sdi, 0, 3);
+		Sdi.FillDiag(Ndd(2));
+		Sdd.PasteMatrix(&Sdi, 0, 6);
+		Sdi.FillDiag(Ndd(3));
+		Sdd.PasteMatrix(&Sdi, 0, 9);
+
+		r_x.MatrMultiply(Sd, mD);	   // r_x=d'*Nd';  (transposed)
+		r_xx.MatrMultiply(Sdd, mD);
+
+		ChVector<> vr_x(r_x(0), r_x(1), r_x(2));
+		ChVector<> vr_xx(r_xx(0), r_xx(1), r_xx(2));
+		ChVector<> vf1 = Vcross(vr_x, vr_xx);
+		double f = vf1.Length();
+		double g1 = vr_x.Length();
+		double g = pow(g1, 3);
+
+		StrainV.x = (pow(r_x(0), 2) + pow(r_x(1), 2) + pow(r_x(2), 2) - 1.0);
+		StrainV.y = f / g;  // Bending strain measure (Gertmayer and Shabana, 2006)
+
+	}
 
 			//
 			// Functions for interfacing to the LCP solver 
