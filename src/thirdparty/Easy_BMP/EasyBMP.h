@@ -24,7 +24,9 @@
 // with most compilers, and fopen_s uses different 
 // syntax than fopen. (i.e., a macro won't work) 
 // So, we'lll use this:
+#ifndef _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_DEPRECATE
+#endif
 #endif
 
 #include <iostream>
