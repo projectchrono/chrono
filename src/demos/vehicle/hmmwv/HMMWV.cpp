@@ -33,6 +33,7 @@ HMMWV::HMMWV()
       m_tireFR(NULL),
       m_tireRL(NULL),
       m_tireRR(NULL),
+      m_contactMethod(ChMaterialSurfaceBase::DVI),
       m_fixed(false),
       m_driveType(AWD),
       m_powertrainType(SHAFTS),
@@ -78,10 +79,10 @@ void HMMWV::Initialize() {
     // Create and initialize the tires
     switch (m_tireType) {
         case RIGID: {
-            HMMWV_RigidTire* tire_FL = new HMMWV_RigidTire("FL", 0.7f);
-            HMMWV_RigidTire* tire_FR = new HMMWV_RigidTire("FR", 0.7f);
-            HMMWV_RigidTire* tire_RL = new HMMWV_RigidTire("RL", 0.7f);
-            HMMWV_RigidTire* tire_RR = new HMMWV_RigidTire("RR", 0.7f);
+            HMMWV_RigidTire* tire_FL = new HMMWV_RigidTire("FL");
+            HMMWV_RigidTire* tire_FR = new HMMWV_RigidTire("FR");
+            HMMWV_RigidTire* tire_RL = new HMMWV_RigidTire("RL");
+            HMMWV_RigidTire* tire_RR = new HMMWV_RigidTire("RR");
 
             tire_FL->Initialize(m_vehicle->GetWheelBody(FRONT_LEFT));
             tire_FR->Initialize(m_vehicle->GetWheelBody(FRONT_RIGHT));

@@ -57,7 +57,7 @@ namespace chrono
 		IPARM(31) = 0;				/* ADV Partial solve and computing selected components of the solution vectors [def:0, disable]*/
 		IPARM(34) = 0;				/* ADV Optimal number of threads for conditional numerical reproducibility (CNR) mode [def:0, disable]*/
 		
-		a = nullptr; ia = nullptr; ja = nullptr; perm = nullptr; b = nullptr; x = nullptr;
+		a = nullptr; ia = nullptr; ja = nullptr; b = nullptr; x = nullptr;
 
 		last_phase_called = -1;
 
@@ -72,7 +72,7 @@ namespace chrono
 		int phase = RELEASE_ALL;
 		int msglvl = 1;
 		int error;
-		PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, perm, &nrhs, iparm, &msglvl, b, x, &error);
+		PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, perm.data() , &nrhs, iparm, &msglvl, b, x, &error);
 		if (error)
 			printf("Error while releasing memory: %d",error);
 	}
@@ -119,19 +119,82 @@ namespace chrono
 		SetSolutionVector(insx);
 		SetKnownVector(insb);
 	}
-	
-	int ChMklEngine::PardisoCall(int set_phase, int message_level){
-		if (IPARM(5) == 1) // CAUTION of IPARM(5)
+
+	void ChMklEngine::UsePermutationVector(bool on_off)
+	{
+		if (on_off == true)
 		{
-			assert(!IPARM(31));
-			assert(!IPARM(36));
+			perm.resize(n);
+
+			resetIparmElement(31);
+			resetIparmElement(36);
 		}
+		else
+			IPARM(5) = 0;
+		
+	}
+
+
+	void ChMklEngine::resetIparmElement(int iparm_num, int reset_value)
+	{ 
+		if (IPARM(iparm_num) != reset_value)
+		{
+			IPARM(iparm_num) = reset_value;
+
+			switch (iparm_num)
+			{
+			case 4:
+				printf("Preconditioned CGS has been disabled. IPARM(4) = 0"); break;
+			case 5:
+				printf("Permutation vector has been disabled.IPARM(5) = 0"); break;
+			case 8:
+				printf("Iterative refinement steps has been disabled. IPARM(8) = 0"); break;
+			case 31:
+				printf("Partial solution has been disabled. IPARM(31) = 0"); break;
+			case 36:
+				printf("Schur computation has been disabled. IPARM(36) = 0"); break;
+			case 60:
+				printf("Mkl is now running in-core. IPARM(60) = 0"); break;
+			default:
+				printf("WARN: IparmReset not handled");
+			}
+		}
+	}
+
+	void ChMklEngine::LeverageSparseRhs(bool on_off)
+	{
+		if (on_off == true)
+		{
+			resetIparmElement(60);
+			resetIparmElement(8);
+			resetIparmElement(4);
+			resetIparmElement(5);
+			resetIparmElement(36);
+
+			IPARM(31) = 1;
+
+			perm.resize(n);
+
+			for (int row_sel = 0; row_sel < n; row_sel++)
+				perm[row_sel] = (b[row_sel] == 0) ? 0 : 1;
+		}
+		else
+			IPARM(31) = 0;
+
+	}
+
+	int ChMklEngine::PardisoCall(int set_phase, int message_level){
 
 		int error;
 		last_phase_called = set_phase;
 		int phase_now = set_phase;
-		PARDISO(pt, &maxfct, &mnum, &mtype, &phase_now, &n, a, ia, ja, perm, &nrhs, iparm, &message_level, b, x, &error);
+		PARDISO(pt, &maxfct, &mnum, &mtype, &phase_now, &n, a, ia, ja, perm.data() , &nrhs, iparm, &message_level, b, x, &error);
+
+		if (IPARM(5) == 2)
+			IPARM(5) = 1;
+
 		return error;
+		
 	}
 
 	void ChMklEngine::ResetSolver(int new_mat_type)

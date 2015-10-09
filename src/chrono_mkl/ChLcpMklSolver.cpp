@@ -19,40 +19,73 @@ namespace chrono
 		n(0),
 		size_lock(true),
 		sparsity_pattern_lock(true),
-		print_residual(true)
+		print_residual(true),
+		use_rhs_sparsity(false),
+		use_perm(false)
 	{
 		SetSparsityPatternLock(true);
 	}
 
 	double ChLcpMklSolver::Solve(ChLcpSystemDescriptor& sysd) ///< system description with constraints and variables
 	{
-		// If it is the first call of the solver, the matrix and vectors are reshaped to adapt to the problem.
-		if (solver_call == 0 || !size_lock)
+		// Initial resizing;
+		if (solver_call == 0)
 		{
+			// not mandatory, but it speeds up the first build of the matrix, guessing its sparsity; needs to stay BEFORE ConvertToMatrixForm()
 			n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
-			matCSR3.Reset(n, n, static_cast<int>(n*n*SPM_DEF_FULLNESS));
-			sol.Resize(n, 1);
+			matCSR3.Reset(n, n, static_cast<int>(n*n*SPM_DEF_FULLNESS)); 
+			sol.Resize(n, 1); // ConvertToMatrixForm() takes care of eventually resizing matCSR3 and rhs, but not sol; this can be done also AFTER CTMF()
 		}
 			
 
-		// Build matrix and rhs
+		// Build matrix and rhs;
+		// in case the matrix changes size (rows) then RowIndexLockBroken is turned on
+		// in case the matrix has to insert a new element in the matrix then ColIndexLockBroken is turned on
+		// in case the matrix inserts LESS elements than the previous cycle:
+		//     - if sparsity_pattern_lock is ON the matrix will remain with unuseful filling zeros; they have to be eventually removed with a Purge();
+		//     - if sparsity_pattern_lock is ON the matrix will have some uninitialized element flagged with -1 in the colIndex;
+		//          those have to be removed by Compress().
 		sysd.ConvertToMatrixForm(&matCSR3, &rhs);
 
 
-		// the compression is needed only on first call or when the supposed-fixed sparsity pattern has to be modified;
-		// and always if the sparsity pattern lock is not turned on
 
-		if (!sparsity_pattern_lock || solver_call == 0 || matCSR3.IsRowIndexLockBroken() || matCSR3.IsColIndexLockBroken() )
-			matCSR3.Compress();
 
-		// the sparsity pattern lock is turned on only after the first iteration when the matrix is built at least one time
+		// Set up the locks;
+		// after the first build the sparsity pattern is eventually locked; needs to stay AFTER ConvertToMatrixForm()
 		if (solver_call == 0)
 		{
 			matCSR3.SetRowIndexLock(sparsity_pattern_lock);
 			matCSR3.SetColIndexLock(sparsity_pattern_lock);
 		}
 
+		// remember: the matrix is constructed with broken locks; so for solver_call==0 they are broken!
+		if (!sparsity_pattern_lock || matCSR3.IsRowIndexLockBroken() || matCSR3.IsColIndexLockBroken())
+		{
+			// breaking the row_index_block means that the size has changed
+			if (matCSR3.IsRowIndexLockBroken())
+			{
+				n = matCSR3.GetRows();
+				sol.Resize(n, 1);
+			}
+			
+			// if sparsity is not locked OR the sparsity_lock is broken (like in the first cycle!); the matrix must be recompressed
+			matCSR3.Compress();
+
+			// the permutation vector is based on the sparsity of the matrix;
+			// if ColIndexLockBroken/RowIndexLockBroken are on then the permutation must be updated
+			if (use_perm) 
+				mkl_engine.UsePermutationVector(true);
+		}
+
+		
+		// the sparsity of rhs must be updated at every cycle (am I wrong?)
+		if (use_rhs_sparsity && !use_perm)
+			mkl_engine.LeverageSparseRhs(true);
+
+		
+
 		// Solve with Pardiso Sparse Direct Solver
+		// the problem size must be updated also in the Engine: this is done by SetProblem itself.
 		mkl_engine.SetProblem(matCSR3, rhs, sol);
 		int pardiso_message = mkl_engine.PardisoCall(13, 0);
 		solver_call++;
@@ -63,7 +96,10 @@ namespace chrono
 		}
 		printf("\nPardisoCall: %d; ", solver_call);
 
-		// Get residual
+		
+
+		// Get residual;
+		// the operation quite expensive; do it only if really interested!
 		if (print_residual)
 		{
 			res.Resize(n, 1);
@@ -73,6 +109,8 @@ namespace chrono
 		}
 
 
+
+		// Replies the changes on the vvariables and vconstraint into LcpSystemDescriptor
 		sysd.FromVectorToUnknowns(sol);
 
 		return 0.0;

@@ -4,11 +4,10 @@
 # Invoked from the main CMakeLists.txt using ADD_SUBDIRECTORY()
 #===============================================================================
 
-# The Chrono Parallel module requires OpenMP.  Provide an option for building
-# this module dependent on OPENMP_FOUND
+# The Chrono Parallel will build even if openmp is not found, it just won't have parallel computation support
+# If TBB is defined, thrust will use TBB but the rest of the code will be single threaded
 
-cmake_dependent_option(ENABLE_MODULE_PARALLEL "Enable the Chrono Parallel module" OFF
-                       "OPENMP_FOUND" OFF)
+option(ENABLE_MODULE_PARALLEL "Enable the Chrono Parallel module" OFF)
 
 # Return now if this module is not enabled
 
@@ -99,6 +98,21 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
+ENDIF()
+
+#Configure Blaze and Thrust
+
+IF(ENABLE_OPENMP)
+	add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
+	add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
+ELSEIF(ENABLE_TBB)
+	add_definitions(-DBLAZE_USE_CPP_THREADS)
+	add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_TBB)
+	add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_TBB)
+ELSE()
+	add_definitions(-DBLAZE_USE_CPP_THREADS)
+	add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP)
+	add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP)
 ENDIF()
 
 # Find BOOST -- required for Blaze
@@ -412,7 +426,7 @@ SET_TARGET_PROPERTIES(ChronoEngine_parallel PROPERTIES
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_PARALLEL")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_parallel ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES})
+TARGET_LINK_LIBRARIES(ChronoEngine_parallel ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_parallel
         RUNTIME DESTINATION bin

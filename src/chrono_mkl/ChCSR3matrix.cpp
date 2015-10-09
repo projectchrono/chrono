@@ -9,7 +9,8 @@ namespace chrono {
 		rowIndex_lock(false),
 		colIndex_lock(false),
 		rowIndex_lock_broken(false),
-		colIndex_lock_broken(false)
+		colIndex_lock_broken(false),
+		write_counter(0)
 	{
 		assert(insrow > 0 && inscol > 0 && nonzeros >= 0);
 		rowIndex_lock = false;
@@ -48,7 +49,8 @@ namespace chrono {
 		rowIndex_lock(false),
 		colIndex_lock(false),
 		rowIndex_lock_broken(false),
-		colIndex_lock_broken(false)
+		colIndex_lock_broken(false),
+		write_counter(0)
 	{
 		assert(insrow > 0 && inscol > 0);
 		rowIndex_lock = true;
@@ -101,16 +103,18 @@ namespace chrono {
 		int col_sel = rowIndex[insrow];
 		while (1)
 		{
+			write_counter++;
 			// case: element not found in the row OR another element with a higher col number is already been stored
 			if (col_sel >= rowIndex[insrow + 1] || colIndex[col_sel] > inscol){
-				if (insval!=0) insert(insrow, inscol, insval, col_sel);
+				if (insval!=0) // avoid to insert zero elements
+					insert(insrow, inscol, insval, col_sel);
 				break;
 			}
 
 			// case: empty space
 			if (colIndex[col_sel] == -1)
 			{
-				if (insval != 0)
+				if (insval != 0) // avoid to insert zero elements
 				{
 					values[col_sel] = insval;
 					colIndex[col_sel] = inscol;
@@ -121,9 +125,11 @@ namespace chrono {
 			// case: element already allocated
 			if (colIndex[col_sel] == inscol)
 			{
-				if (overwrite)
+				if (overwrite) // allows to write zeros
 					values[col_sel] = insval;
 				else
+					if (values[col_sel] != 0)
+						write_counter--;
 					values[col_sel] += insval;
 				break;
 			}
@@ -316,7 +322,7 @@ namespace chrono {
 
 	void ChCSR3Matrix::initialize(int colIndex_length)
 	{
-		if (!rowIndex_lock)
+		if (!rowIndex_lock || rowIndex_lock_broken)
 		{
 			if (colIndex_length == 0)
 				colIndex_length = colIndex_occupancy;
@@ -352,7 +358,7 @@ namespace chrono {
 
 	void ChCSR3Matrix::initialize_ValuesColIndex()
 	{
-		if (colIndex_lock)
+		if (colIndex_lock && !colIndex_lock_broken)
 		{
 			for (int col_sel = 0; col_sel < rowIndex[mat_rows]; col_sel++)
 			{
@@ -767,7 +773,7 @@ namespace chrono {
 	{
 		assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
-
+		write_counter = 0;
 		if (TESTING_CSR3){
 			mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
 		}

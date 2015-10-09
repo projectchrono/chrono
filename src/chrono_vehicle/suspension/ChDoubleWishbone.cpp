@@ -107,7 +107,7 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
   ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
   // Create and initialize spindle body (same orientation as the chassis)
-  m_spindle[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
+  m_spindle[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
   m_spindle[side]->SetPos(points[SPINDLE]);
   m_spindle[side]->SetRot(chassisRot);
@@ -117,7 +117,7 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
   chassis->GetSystem()->AddBody(m_spindle[side]);
 
   // Create and initialize upright body (same orientation as the chassis)
-  m_upright[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
+  m_upright[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_upright[side]->SetNameString(m_name + "_upright" + suffix);
   m_upright[side]->SetPos(points[UPRIGHT]);
   m_upright[side]->SetRot(chassisRot);
@@ -142,7 +142,7 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
   v = Vcross(w, u);
   rot.Set_A_axis(u, v, w);
 
-  m_UCA[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
+  m_UCA[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_UCA[side]->SetNameString(m_name + "_UCA" + suffix);
   m_UCA[side]->SetPos(points[UCA_CM]);
   m_UCA[side]->SetRot(rot);
@@ -161,7 +161,7 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
   v = Vcross(w, u);
   rot.Set_A_axis(u, v, w);
 
-  m_LCA[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
+  m_LCA[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_LCA[side]->SetNameString(m_name + "_LCA" + suffix);
   m_LCA[side]->SetPos(points[LCA_CM]);
   m_LCA[side]->SetRot(rot);
@@ -328,11 +328,11 @@ void ChDoubleWishbone::LogConstraintViolations(ChVehicleSide side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::AddVisualizationControlArm(ChSharedBodyPtr   arm,
-                                                  const ChVector<>  pt_F,
-                                                  const ChVector<>  pt_B,
-                                                  const ChVector<>  pt_U,
-                                                  double            radius)
+void ChDoubleWishbone::AddVisualizationControlArm(ChSharedPtr<ChBody> arm,
+                                                  const ChVector<> pt_F,
+                                                  const ChVector<> pt_B,
+                                                  const ChVector<> pt_U,
+                                                  double radius)
 {
   // Express hardpoint locations in body frame.
   ChVector<> p_F = arm->TransformPointParentToLocal(pt_F);
@@ -356,13 +356,12 @@ void ChDoubleWishbone::AddVisualizationControlArm(ChSharedBodyPtr   arm,
   arm->AddAsset(col);
 }
 
-
-void ChDoubleWishbone::AddVisualizationUpright(ChSharedBodyPtr   upright,
-                                               const ChVector<>  pt_C,
-                                               const ChVector<>  pt_U,
-                                               const ChVector<>  pt_L,
-                                               const ChVector<>  pt_T,
-                                               double            radius)
+void ChDoubleWishbone::AddVisualizationUpright(ChSharedPtr<ChBody> upright,
+                                               const ChVector<> pt_C,
+                                               const ChVector<> pt_U,
+                                               const ChVector<> pt_L,
+                                               const ChVector<> pt_T,
+                                               double radius)
 {
   static const double threshold2 = 1e-6;
 
@@ -401,7 +400,7 @@ void ChDoubleWishbone::AddVisualizationUpright(ChSharedBodyPtr   upright,
   upright->AddAsset(col);
 }
 
-void ChDoubleWishbone::AddVisualizationSpindle(ChSharedBodyPtr spindle,
+void ChDoubleWishbone::AddVisualizationSpindle(ChSharedPtr<ChBody> spindle,
                                                double          radius,
                                                double          width)
 {

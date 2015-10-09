@@ -49,16 +49,16 @@ const ChCoordsys<> HMMWV_VehicleReduced::m_driverCsys(ChVector<>(0.0, 0.5, 1.2),
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
-                                           DrivelineType        driveType,
-                                           VisualizationType    chassisVis,
-                                           VisualizationType    wheelVis)
-: m_driveType(driveType)
-{
+HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
+                                           DrivelineType driveType,
+                                           VisualizationType chassisVis,
+                                           VisualizationType wheelVis,
+                                           ChMaterialSurfaceBase::ContactMethod contactMethod)
+  : ChVehicle(contactMethod), m_driveType(driveType) {
   // -------------------------------------------
   // Create the chassis body
   // -------------------------------------------
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
 
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");

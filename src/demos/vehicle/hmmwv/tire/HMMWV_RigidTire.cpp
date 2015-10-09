@@ -33,7 +33,8 @@ const double HMMWV_RigidTire::m_width = 10 * in2m;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name, float mu) : ChRigidTire(name), m_mu(mu) {
+HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name) : ChRigidTire(name) {
+    SetContactMaterial(0.9f, 0.1f, 2e7f, 0.3f);
 }
 
 }  // end namespace hmmwv

@@ -200,7 +200,7 @@
 //}
 //
 // struct abs_functor : public thrust::unary_function<real, real> {
-//  __host__ __device__ real operator()(const real& x) const { return fabs(x); }
+//  __host__ __device__ real operator()(const real& x) const { return Abs(x); }
 //};
 //
 // static custom_vector<real> Abs(const custom_vector<real>& x) {
@@ -212,12 +212,12 @@
 //#pragma omp parallel for
 //#endif
 //  for (int i = 0; i < x.size(); i++) {
-//    temp[i] = fabs(x[i]);
+//    temp[i] = Abs(x[i]);
 //  }
 //  return temp;
 //}
 //
-// static custom_vector<real> max(const real a, const custom_vector<real>& x) {
+// static custom_vector<real> Max(const real a, const custom_vector<real>& x) {
 //  custom_vector<real> temp(x.size());
 //
 //#ifdef CHRONO_PARALLEL_OMP_40
@@ -226,7 +226,7 @@
 //#pragma omp parallel for
 //#endif
 //  for (int i = 0; i < x.size(); i++) {
-//    temp[i] = std::max(a, x[i]);
+//    temp[i] = Max(a, x[i]);
 //  }
 //  return temp;
 //}
@@ -243,7 +243,7 @@
 //    real _x = x[i];
 //    sum += _x * _x;
 //  }
-//  return sqrt(sum);
+//  return Sqrt(sum);
 //}
 // static real NormInf(const custom_vector<real>& x) {
 //  custom_vector<real> res = Abs(x);
@@ -254,7 +254,7 @@
 //  // real minval = *thrust::min_element(res.begin(), res.end());
 //  // real minval = *thrust::min_element(res.begin(), res.begin()+n_o_c);
 //  real minval = res[thrust::min_element(thrust::omp::par, res.begin(), res.begin() + n_o_c) - res.begin()];
-//  return std::fmax(real(0.0), -minval);
+//  return Max(real(0.0), -minval);
 //}
 
 template <class T>
@@ -264,13 +264,12 @@ static inline std::ostream& operator<<(std::ostream& out, const thrust::host_vec
   }
   return out;
 }
-
-// Binary operation for adding two-object tuples
-struct sum_tuples {
-  template <typename Tuple>
-  Tuple operator()(const Tuple& a, const Tuple& b) const {
-    return Tuple(thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
-  }
-};
+//// Binary operation for adding two-object tuples
+//struct sum_tuples {
+//  template <typename T >
+//  thrust::tuple<T, T> operator()(const thrust::tuple<T, T> & a, const thrust::tuple<T, T> & b) const {
+//    return thrust::tuple<T, T> (thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
+//  }
+//};
 
 #endif

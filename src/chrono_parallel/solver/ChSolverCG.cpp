@@ -11,7 +11,7 @@ uint ChSolverCG::SolveCG(const uint max_iter,
 
   r.resize(size), Ap.resize(size);
 
-  real rsold, alpha, rsnew = 0, normb = sqrt((mb, mb));
+  real rsold, alpha, rsnew = 0, normb = Sqrt((mb, mb));
   if (normb == 0.0) {
     normb = 1;
   }
@@ -20,7 +20,7 @@ uint ChSolverCG::SolveCG(const uint max_iter,
   p = r = mb - r;
   rsold = (r, r);
   normb = 1.0 / normb;
-  if (sqrt(rsold) * normb <= data_manager->settings.solver.tolerance) {
+  if (Sqrt(rsold) * normb <= data_manager->settings.solver.tolerance) {
     return 0;
   }
   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
@@ -32,7 +32,7 @@ uint ChSolverCG::SolveCG(const uint max_iter,
     r = -alpha * Ap + r;
     rsnew = (r, r);
 
-    residual = sqrt(rsnew) * normb;
+    residual = Sqrt(rsnew) * normb;
     if (residual < data_manager->settings.solver.tolerance) {
       break;
     }

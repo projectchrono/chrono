@@ -114,9 +114,9 @@ void function_CalcContactForces(
 
     real m_eff = mass[body1] * mass[body2] / (mass[body1] + mass[body2]);
 
-    real mu_eff = std::min(mu[body1], mu[body2]);
-    real adhesion_eff = std::min(adhesion[body1], adhesion[body2]);
-    real adhesionMultDMT_eff = std::min(adhesionMultDMT[body1], adhesionMultDMT[body2]);
+    real mu_eff = Min(mu[body1], mu[body2]);
+    real adhesion_eff = Min(adhesion[body1], adhesion[body2]);
+    real adhesionMultDMT_eff = Min(adhesionMultDMT[body1], adhesionMultDMT[body2]);
 
     real E_eff, G_eff, cr_eff;
     real user_kn, user_kt, user_gn, user_gt;
@@ -177,10 +177,10 @@ void function_CalcContactForces(
         int shape1 = shape_id[index].x;
         int shape2 = shape_id[index].y;
 
-        shear_body1 = std::max(body1, body2);
-        shear_body2 = std::min(body1, body2);
-        shear_shape1 = std::max(shape1, shape2);
-        shear_shape2 = std::min(shape1, shape2);
+        shear_body1 = Max(body1, body2);
+        shear_body2 = Min(body1, body2);
+        shear_shape1 = Max(shape1, shape2);
+        shear_shape2 = Min(shape1, shape2);
 
         // Check if contact history already exists.
         // If not, initialize new contact history.
@@ -230,14 +230,14 @@ void function_CalcContactForces(
     switch (contact_model) {
         case ChSystemDEM::ContactForceModel::Hooke:
             if (use_mat_props) {
-                double tmp_k = (16.0 / 15) * sqrt(eff_radius[index]) * E_eff;
-                double v2 = char_vel * char_vel;
-                double loge = (cr_eff < CH_MICROTOL) ? log(CH_MICROTOL) : log(cr_eff);
-                loge = (cr_eff > 1 - CH_MICROTOL) ? log(1 - CH_MICROTOL) : loge;
-                double tmp_g = 1 + pow(CH_C_PI / loge, 2);
-                kn = tmp_k * pow(m_eff * v2 / tmp_k, 1.0 / 5);
+                real tmp_k = (16.0 / 15) * Sqrt(eff_radius[index]) * E_eff;
+                real v2 = char_vel * char_vel;
+                real loge = (cr_eff < CH_MICROTOL) ? Log(CH_MICROTOL) : Log(cr_eff);
+                loge = (cr_eff > 1 - CH_MICROTOL) ? Log(1 - CH_MICROTOL) : loge;
+                real tmp_g = 1 + Pow(CH_C_PI / loge, 2);
+                kn = tmp_k * Pow(m_eff * v2 / tmp_k, 1.0 / 5);
                 kt = kn;
-                gn = std::sqrt(4 * m_eff * kn / tmp_g);
+                gn = Sqrt(4 * m_eff * kn / tmp_g);
                 gt = gn;
             } else {
                 kn = user_kn;
@@ -250,17 +250,17 @@ void function_CalcContactForces(
 
         case ChSystemDEM::ContactForceModel::Hertz:
             if (use_mat_props) {
-                double sqrt_Rd = sqrt(eff_radius[index] * delta_n);
-                double Sn = 2 * E_eff * sqrt_Rd;
-                double St = 8 * G_eff * sqrt_Rd;
-                double loge = (cr_eff < CH_MICROTOL) ? log(CH_MICROTOL) : log(cr_eff);
-                double beta = loge / sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                real sqrt_Rd = Sqrt(eff_radius[index] * delta_n);
+                real Sn = 2 * E_eff * sqrt_Rd;
+                real St = 8 * G_eff * sqrt_Rd;
+                real loge = (cr_eff < CH_MICROTOL) ? Log(CH_MICROTOL) : Log(cr_eff);
+                real beta = loge / Sqrt(loge * loge + CH_C_PI * CH_C_PI);
                 kn = (2.0 / 3) * Sn;
                 kt = St;
-                gn = -2 * sqrt(5.0 / 6) * beta * sqrt(Sn * m_eff);
-                gt = -2 * sqrt(5.0 / 6) * beta * sqrt(St * m_eff);
+                gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
+                gt = -2 * Sqrt(5.0 / 6) * beta * Sqrt(St * m_eff);
             } else {
-                double tmp = eff_radius[index] * std::sqrt(delta_n);
+                real tmp = eff_radius[index] * Sqrt(delta_n);
                 kn = tmp * user_kn;
                 kt = tmp * user_kt;
                 gn = tmp * m_eff * user_gn;
@@ -300,7 +300,7 @@ void function_CalcContactForces(
             break;
         case ChSystemDEM::AdhesionForceModel::DMT:
             // Derjaguin, Muller and Toporov (DMT) adhesion force,
-            forceN_mag -= adhesionMultDMT_eff * sqrt(eff_radius[index]);
+            forceN_mag -= adhesionMultDMT_eff * Sqrt(eff_radius[index]);
             break;
     }
 
@@ -315,11 +315,11 @@ void function_CalcContactForces(
     //  real forceT_mag = length(forceT_stiff + forceT_damp);  // This seems correct
     real forceT_mag = length(forceT_stiff);  // This is what LAMMPS/LIGGGHTS does
     real delta_t_mag = length(delta_t);
-    real forceT_slide = mu_eff * fabsf(forceN_mag);
+    real forceT_slide = mu_eff * Abs(forceN_mag);
     if (forceT_mag > forceT_slide) {
         if (delta_t_mag != 0.0) {
             real forceT_stiff_mag = length(forceT_stiff);
-            double ratio = forceT_slide / forceT_stiff_mag;
+            real ratio = forceT_slide / forceT_stiff_mag;
             forceT_stiff *= ratio;
             if (displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
                 if (shear_body1 == body1) {
@@ -370,37 +370,22 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body
                                                     custom_vector<bool>& shear_touch) {
 #pragma omp parallel for
     for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
-        function_CalcContactForces(index,
-                                   data_manager->settings.solver.contact_force_model,
-								   data_manager->settings.solver.adhesion_force_model,
-                                   data_manager->settings.solver.tangential_displ_mode,
-                                   data_manager->settings.solver.use_material_properties,
-                                   data_manager->settings.solver.characteristic_vel,
-                                   data_manager->settings.solver.min_slip_vel,
-                                   data_manager->settings.step_size,
-                                   data_manager->host_data.mass_rigid.data(),
-                                   data_manager->host_data.pos_rigid.data(),
-                                   data_manager->host_data.rot_rigid.data(),
-                                   data_manager->host_data.v.data(),
-                                   data_manager->host_data.elastic_moduli.data(),
-                                   data_manager->host_data.cr.data(),
-                                   data_manager->host_data.dem_coeffs.data(),
-                                   data_manager->host_data.mu.data(),
-                                   data_manager->host_data.cohesion_data.data(),
-                                   data_manager->host_data.adhesionMultDMT_data.data(),
-                                   data_manager->host_data.bids_rigid_rigid.data(),
-                                   shape_pairs.data(),
-                                   data_manager->host_data.cpta_rigid_rigid.data(),
-                                   data_manager->host_data.cptb_rigid_rigid.data(),
-                                   data_manager->host_data.norm_rigid_rigid.data(),
-                                   data_manager->host_data.dpth_rigid_rigid.data(),
-                                   data_manager->host_data.erad_rigid_rigid.data(),
-                                   data_manager->host_data.shear_neigh.data(),
-                                   shear_touch.data(),
-                                   data_manager->host_data.shear_disp.data(),
-                                   ext_body_id.data(),
-                                   ext_body_force.data(),
-                                   ext_body_torque.data());
+        function_CalcContactForces(
+            index, data_manager->settings.solver.contact_force_model,
+            data_manager->settings.solver.adhesion_force_model, data_manager->settings.solver.tangential_displ_mode,
+            data_manager->settings.solver.use_material_properties, data_manager->settings.solver.characteristic_vel,
+            data_manager->settings.solver.min_slip_vel, data_manager->settings.step_size,
+            data_manager->host_data.mass_rigid.data(), data_manager->host_data.pos_rigid.data(),
+            data_manager->host_data.rot_rigid.data(), data_manager->host_data.v.data(),
+            data_manager->host_data.elastic_moduli.data(), data_manager->host_data.cr.data(),
+            data_manager->host_data.dem_coeffs.data(), data_manager->host_data.mu.data(),
+            data_manager->host_data.cohesion_data.data(), data_manager->host_data.adhesionMultDMT_data.data(),
+            data_manager->host_data.bids_rigid_rigid.data(), shape_pairs.data(),
+            data_manager->host_data.cpta_rigid_rigid.data(), data_manager->host_data.cptb_rigid_rigid.data(),
+            data_manager->host_data.norm_rigid_rigid.data(), data_manager->host_data.dpth_rigid_rigid.data(),
+            data_manager->host_data.erad_rigid_rigid.data(), data_manager->host_data.shear_neigh.data(),
+            shear_touch.data(), data_manager->host_data.shear_disp.data(), ext_body_id.data(), ext_body_force.data(),
+            ext_body_torque.data());
     }
 }
 
@@ -438,6 +423,13 @@ void ChLcpSolverParallelDEM::host_SetContactForcesMap(uint ct_body_count, const 
         ct_body_map[ct_body_id[index]] = index;
     }
 }
+
+// Binary operation for adding two-object tuples
+struct sum_tuples {
+  thrust::tuple<real3, real3> operator()(const thrust::tuple<real3, real3> & a, const thrust::tuple<real3, real3> & b) const {
+    return thrust::tuple<real3, real3> (thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
+  }
+};
 
 // -----------------------------------------------------------------------------
 // Process contact information reported by the narrowphase collision detection,
@@ -484,9 +476,7 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
     //    involved in at least one contact, by reducing the contact forces and
     //    torques from all contacts these bodies are involved in. The number of
     //    bodies that experience at least one contact is 'ct_body_count'.
-    thrust::sort_by_key(thrust_parallel,
-                        ext_body_id.begin(),
-                        ext_body_id.end(),
+    thrust::sort_by_key(thrust_parallel, ext_body_id.begin(), ext_body_id.end(),
                         thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
 
     custom_vector<int> ct_body_id(data_manager->num_rigid_bodies);
@@ -501,13 +491,12 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
     // zip iterators.
     uint ct_body_count =
         thrust::reduce_by_key(
-            ext_body_id.begin(),
-            ext_body_id.end(),
+            ext_body_id.begin(), ext_body_id.end(),
             thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
             ct_body_id.begin(),
             thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
-            thrust::equal_to<int>(),
-            sum_tuples()).first -
+            thrust::equal_to<int>(), sum_tuples())
+            .first -
         ct_body_id.begin();
 
     ct_body_force.resize(ct_body_count);
@@ -628,8 +617,8 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
     ComputeImpulses();
 
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
-        AtIterationEnd(
-            data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i], i);
+        AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
+                       i);
     }
     tot_iterations = data_manager->measures.solver.maxd_hist.size();
 }

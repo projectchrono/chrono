@@ -188,7 +188,7 @@ void SetupSystem(ChSystemParallelDVI* msystem) {
   msystem->ChangeSolverType(APGD);
   msystem->GetSettings()->collision.collision_envelope = 0.00;
   msystem->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
-  omp_set_num_threads(1);
+  CHOMPfunctions::SetNumThreads(1);
   msystem->GetSettings()->max_threads = 1;
   msystem->GetSettings()->perform_thread_tuning = false;
 
@@ -212,7 +212,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
   real3* ptA = msystem->data_manager->host_data.cpta_rigid_rigid.data();
   real3* ptB = msystem->data_manager->host_data.cptb_rigid_rigid.data();
   real3* pos_data = msystem->data_manager->host_data.pos_rigid.data();
-  int2* ids = msystem->data_manager->host_data.bids_rigid_rigid.data();
+  chrono::int2* ids = msystem->data_manager->host_data.bids_rigid_rigid.data();
   real4* rot = msystem->data_manager->host_data.rot_rigid.data();
 
   ((ChLcpSolverParallelDVI*)msystem->GetLcpSolverSpeed())->ComputeD();
@@ -242,7 +242,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
 
     Orthogonalize(U, V, W);
 
-    int2 body_id = ids[index];
+    chrono::int2 body_id = ids[index];
 
     int row = index;
 
@@ -303,7 +303,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
 }
 
 int main(int argc, char* argv[]) {
-  omp_set_num_threads(1);
+  CHOMPfunctions::SetNumThreads(1);
 
   // No animation by default (i.e. when no program arguments)
   bool animate = (argc > 1);

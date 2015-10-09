@@ -13,7 +13,7 @@ real ChSolverAPGDREF::Res4(DynamicVector<real>& gamma,
   Project(tmp.data());
   tmp = (1.0 / gdiff) * (gamma - tmp);
 
-  return sqrt((double)(tmp, tmp));
+  return Sqrt((double)(tmp, tmp));
 }
 
 uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter,
@@ -63,10 +63,10 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter,
 
   // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
   tmp = gamma - gamma_hat;
-  L = sqrt((double)(tmp, tmp));
+  L = Sqrt((double)(tmp, tmp));
   if (L > 0) {
     ShurProduct(tmp, tmp);
-    L = sqrt((double)(tmp, tmp)) / L;
+    L = Sqrt((double)(tmp, tmp)) / L;
   } else {
     L = 1;
   }
@@ -120,8 +120,8 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter,
       // (14) endwhile
     }
 
-    // (15) theta_(k+1) = (-theta_k^2 + theta_k * sqrt(theta_k^2 + 4)) / 2;
-    thetaNew = (-pow(theta, 2.0) + theta * sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
+    // (15) theta_(k+1) = (-theta_k^2 + theta_k * Sqrt(theta_k^2 + 4)) / 2;
+    thetaNew = (-pow(theta, 2.0) + theta * Sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
 
     // (16) Beta_(k+1) = theta_k * (1 - theta_k) / (theta_k^2 + theta_(k+1))
     Beta = theta * (1.0 - theta) / (pow(theta, 2) + thetaNew);

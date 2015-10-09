@@ -26,6 +26,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
@@ -92,9 +93,11 @@ int main(int argc, char* argv[]) {
     my_hmmwv.Initialize();
 
     // Create the terrain
-    RigidTerrain terrain(my_hmmwv.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.8);
-    // terrain.AddMovingObstacles(10);
-    terrain.AddFixedObstacles();
+    RigidTerrain terrain(my_hmmwv.GetSystem());
+    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain.SetColor(ChColor(0.8f, 0.8f, 0.5f));
+    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
     // Create the vehicle Irrlicht interface
     ChVehicleIrrApp app(my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain(), L"HMMWV Demo");

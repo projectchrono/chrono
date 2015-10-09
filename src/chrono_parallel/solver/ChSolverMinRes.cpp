@@ -19,14 +19,14 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
   mtmp.resize(size, 0);
 
   real grad_diffstep = 0.01;
-  double rel_tol = data_manager->settings.solver.tolerance;
-  double abs_tol = data_manager->settings.solver.tolerance;
+  real rel_tol = data_manager->settings.solver.tolerance;
+  real abs_tol = data_manager->settings.solver.tolerance;
 
   real max_element = -1e8;
   for (int i = 0; i < size; i++) {
-    max_element = std::max(max_element, mb[i]);
+    max_element = Max(max_element, mb[i]);
   }
-  double rel_tol_b = max_element * rel_tol;
+  real rel_tol_b = max_element * rel_tol;
   // ml = x;
 
   ShurProduct(ml, mr);  // mr = data_manager->host_data.D_T *
@@ -51,8 +51,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
     mMNp = mNp;
 
-    double zNMr = (mz, mNMr);
-    double MNpNp = (mMNp, mNp);
+    real zNMr = (mz, mNMr);
+    real MNpNp = (mMNp, mNp);
     if (std::abs(MNpNp) < 10e-30) {
       if (data_manager->settings.solver.verbose) {
         std::cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp
@@ -60,7 +60,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       }
       MNpNp = 10e-12;
     }
-    double alpha = zNMr / MNpNp;
+    real alpha = zNMr / MNpNp;
     mtmp = mp * alpha;
     ml = ml + mtmp;
 
@@ -71,9 +71,9 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
     mr = mr * grad_diffstep + ml;
     Project(mr.data());
     mr = (mr - ml) * (1.0 / grad_diffstep);
-    residual = sqrt((mr, mr));
+    residual = Sqrt((mr, mr));
 
-    if (residual < std::max(rel_tol_b, abs_tol)) {
+    if (residual < Max(rel_tol_b, abs_tol)) {
       if (data_manager->settings.solver.verbose) {
         std::cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << residual << "\n";
       }
@@ -87,9 +87,9 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
     ShurProduct(mz, mNMr);  // mNMr = data_manager->host_data.D_T *
                             // (data_manager->host_data.M_invD * mz);
 
-    double numerator = (mz, mNMr - mNMr_old);
-    double denominator = (mz_old, mNMr_old);
-    double beta = numerator / numerator;
+    real numerator = (mz, mNMr - mNMr_old);
+    real denominator = (mz_old, mNMr_old);
+    real beta = numerator / numerator;
 
     if (std::abs(denominator) < 10e-30 || std::abs(numerator) < 10e-30) {
       if (data_manager->settings.solver.verbose) {
@@ -139,7 +139,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
   //		s_oold = s_old;
   //		s_old = s;
   //		r1_hat = c_old * alpha - c_oold * s_old * beta_old;
-  //		r1 = 1 / sqrt(r1_hat * r1_hat + beta * beta);
+  //		r1 = 1 / Sqrt(r1_hat * r1_hat + beta * beta);
   //		r2 = s_old * alpha + c_oold * c_old * beta_old;
   //		r3 = s_oold * beta_old;
   //		//// Givens Rotation

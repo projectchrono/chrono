@@ -1,0 +1,26 @@
+{
+  "Name":     "Rigid plane",
+  "Type":     "Terrain",
+  "Template": "RigidTerrain",
+
+  "Material Properties":
+  {
+    "Coefficient of Friction":  0.9,
+    "Coefficient of Restitution": 0.01,
+    "Young Modulus":  2e7,
+    "Poisson Ratio":  0.3
+  },
+
+  "Geometry":
+  {
+    "Size": [300, 300],
+    "Height": 0
+  },
+
+  "Visualization":
+  {
+    "Color": [0.5, 0.5, 0.8],
+    "Texture File": "terrain/textures/tile4.jpg",
+    "Texture Scaling": [200, 200]
+  }
+}

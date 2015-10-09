@@ -138,7 +138,7 @@ uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc) {
 
   if (d2 > rad * rad) {
     code |= 2;
-    real d = sqrt(d2);
+    real d = Sqrt(d2);
     loc.x *= (rad / d);
     loc.z *= (rad / d);
   }
@@ -162,15 +162,15 @@ uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc) {
 uint snap_to_box(const real3& hdims, real3& loc) {
   uint code = 0;
 
-  if (fabs(loc.x) > hdims.x) {
+  if (Abs(loc.x) > hdims.x) {
     code |= 1;
     loc.x = (loc.x > 0) ? hdims.x : -hdims.x;
   }
-  if (fabs(loc.y) > hdims.y) {
+  if (Abs(loc.y) > hdims.y) {
     code |= 2;
     loc.y = (loc.y > 0) ? hdims.y : -hdims.y;
   }
-  if (fabs(loc.z) > hdims.z) {
+  if (Abs(loc.z) > hdims.z) {
     code |= 4;
     loc.z = (loc.z > 0) ? hdims.z : -hdims.z;
   }
@@ -214,7 +214,7 @@ real3 box_closest_corner(const real3& hdims, const real3& dir) {
 uint box_closest_feature(const real3& dir) {
   const real threshold = 0.01;
 
-  return ((fabs(dir.x) > threshold) << 0) | ((fabs(dir.y) > threshold) << 1) | ((fabs(dir.z) > threshold) << 2);
+  return ((Abs(dir.x) > threshold) << 0) | ((Abs(dir.y) > threshold) << 1) | ((Abs(dir.z) > threshold) << 2);
 }
 
 // ----------------------------------------------------------------------------
@@ -236,7 +236,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
   // 1. Test the axes of box1 (3 cases)
   // x-axis
   r2 = Rabs.U.x * hdims2.x + Rabs.V.x * hdims2.y + Rabs.W.x * hdims2.z;
-  overlap = hdims1.x + r2 - fabs(pos.x);
+  overlap = hdims1.x + r2 - Abs(pos.x);
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
@@ -245,7 +245,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
   }
   // y-axis
   r2 = Rabs.U.y * hdims2.x + Rabs.V.y * hdims2.y + Rabs.W.y * hdims2.z;
-  overlap = hdims1.y + r2 - fabs(pos.y);
+  overlap = hdims1.y + r2 - Abs(pos.y);
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
@@ -254,7 +254,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
   }
   // z-axis
   r2 = Rabs.U.z * hdims2.x + Rabs.V.z * hdims2.y + Rabs.W.z * hdims2.z;
-  overlap = hdims1.z + r2 - fabs(pos.z);
+  overlap = hdims1.z + r2 - Abs(pos.z);
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
@@ -265,7 +265,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
   // 2. Test the axes of box2 (3 cases)
   // x-axis
   r1 = dot(Rabs.U, hdims1);
-  overlap = r1 + hdims2.x - fabs(dot(R.U, pos));
+  overlap = r1 + hdims2.x - Abs(dot(R.U, pos));
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
@@ -274,7 +274,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
   }
   // y-axis
   r1 = dot(Rabs.V, hdims1);
-  overlap = r1 + hdims2.y - fabs(dot(R.V, pos));
+  overlap = r1 + hdims2.y - Abs(dot(R.V, pos));
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
@@ -283,7 +283,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
   }
   // z-axis
   r1 = dot(Rabs.W, hdims1);
-  overlap = r1 + hdims2.z - fabs(dot(R.W, pos));
+  overlap = r1 + hdims2.z - Abs(dot(R.W, pos));
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {

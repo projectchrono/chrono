@@ -37,7 +37,7 @@ public:
   virtual double GetMass() const { return 45.4; }
   virtual chrono::ChVector<> GetInertia() const { return chrono::ChVector<>(0.113, 0.113, 0.113); }
 
-  virtual void Initialize(chrono::ChSharedBodyPtr spindle)
+  virtual void Initialize(chrono::ChSharedPtr<chrono::ChBody> spindle)
   {
     // First, invoke the base class method
     chrono::ChWheel::Initialize(spindle);

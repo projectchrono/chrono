@@ -181,15 +181,223 @@ average pigment_map{
  
 //==================================================
 //Material definitions
-#declare COLOR_R203G210B239_=
-#declare PR_DIFFUSE=pigment {color srgb <0.77,0.77,0.55> transmit 0/100 }
+#declare Material_Window_001_=
+#declare PR_DIFFUSE=pigment {color srgb <0.29,0.29,0.33> transmit 70/100 }
 
 
-#declare F1=finish{specular albedo 0 //Max highlight intensity: 0 -> 1
-                   roughness 0.09632328 //surface roughness: 0.0005 -> 1
+#declare F1=finish{specular albedo 0.5019608 //Max highlight intensity: 0 -> 1
+                   roughness 0.00286312 //surface roughness: 0.0005 -> 1
                    phong albedo 0 phong_size 0 //Phong specular disabled
                    
-                   ambient <0,0,0> emission srgb <0.00,0.00,0.00> //ambient RGB color: 0->1 for each component
+                   ambient <0,0,0> emission srgb <0.28,0.28,0.28> //ambient RGB color: 0->1 for each component
+                   diffuse albedo 0.6 
+                   reflection{0 } conserve_energy //reflection amount: 0 -> 1
+                   }
+
+
+#declare T1=texture{
+                   pigment{uv_mapping PR_DIFFUSE }
+                            finish{F1}
+                    }
+
+
+material{
+         texture{/*uv_mapping*/
+                 T1
+                }
+}
+//==================================================
+#declare Material_Window_004_=
+#declare PR_DIFFUSE=pigment {color srgb <0.29,0.29,0.33> transmit 70/100 }
+
+
+#declare F1=finish{specular albedo 0.5019608 //Max highlight intensity: 0 -> 1
+                   roughness 0.00286312 //surface roughness: 0.0005 -> 1
+                   phong albedo 0 phong_size 0 //Phong specular disabled
+                   
+                   ambient <0,0,0> emission srgb <0.28,0.28,0.28> //ambient RGB color: 0->1 for each component
+                   diffuse albedo 0.6 
+                   reflection{0 } conserve_energy //reflection amount: 0 -> 1
+                   }
+
+
+#declare T1=texture{
+                   pigment{uv_mapping PR_DIFFUSE }
+                            finish{F1}
+                    }
+
+
+material{
+         texture{/*uv_mapping*/
+                 T1
+                }
+}
+//==================================================
+#declare Material_Cover_004_=
+#declare PR_DIFFUSE=pigment {color srgb <0.55,0.49,0.39> transmit 0/100 }
+
+
+#declare F1=finish{specular albedo 0.5019608 //Max highlight intensity: 0 -> 1
+                   roughness 0.00286312 //surface roughness: 0.0005 -> 1
+                   phong albedo 0 phong_size 0 //Phong specular disabled
+                   
+                   ambient <0,0,0> emission srgb <0.49,0.49,0.49> //ambient RGB color: 0->1 for each component
+                   diffuse albedo 0.6 
+                   reflection{0 } conserve_energy //reflection amount: 0 -> 1
+                   }
+
+
+#declare T1=texture{
+                   pigment{uv_mapping PR_DIFFUSE }
+                            finish{F1}
+                    }
+
+
+material{
+         texture{/*uv_mapping*/
+                 T1
+                }
+}
+//==================================================
+#declare Material_Cabin_005_=
+#declare PR_DIFFUSE=pigment {color srgb <0.54,0.46,0.32> transmit 0/100 }
+
+
+#declare F1=finish{specular albedo 0.545098 //Max highlight intensity: 0 -> 1
+                   roughness 0.01244878 //surface roughness: 0.0005 -> 1
+                   phong albedo 0 phong_size 0 //Phong specular disabled
+                   
+                   ambient <0,0,0> emission srgb <0.35,0.35,0.35> //ambient RGB color: 0->1 for each component
+                   diffuse albedo 0.6 
+                   reflection{0 } conserve_energy //reflection amount: 0 -> 1
+                   }
+
+
+#declare T1=texture{
+                   pigment{uv_mapping PR_DIFFUSE }
+                            finish{F1}
+                    }
+
+
+material{
+         texture{/*uv_mapping*/
+                 T1
+                }
+}
+//==================================================
+#declare Material_Window_007_=
+#declare PR_DIFFUSE=pigment {color srgb <0.29,0.29,0.33> transmit 70/100 }
+
+
+#declare F1=finish{specular albedo 0.5019608 //Max highlight intensity: 0 -> 1
+                   roughness 0.00286312 //surface roughness: 0.0005 -> 1
+                   phong albedo 0 phong_size 0 //Phong specular disabled
+                   
+                   ambient <0,0,0> emission srgb <0.28,0.28,0.28> //ambient RGB color: 0->1 for each component
+                   diffuse albedo 0.6 
+                   reflection{0 } conserve_energy //reflection amount: 0 -> 1
+                   }
+
+
+#declare T1=texture{
+                   pigment{uv_mapping PR_DIFFUSE }
+                            finish{F1}
+                    }
+
+
+material{
+         texture{/*uv_mapping*/
+                 T1
+                }
+}
+//==================================================
+#declare Material_Skip_000_=
+#declare PR_DIFFUSE=pigment {color srgb <0.29,0.33,0.29> transmit 0/100 }
+
+
+#declare F1=finish{specular albedo 0.5019608 //Max highlight intensity: 0 -> 1
+                   roughness 0.01244878 //surface roughness: 0.0005 -> 1
+                   phong albedo 0 phong_size 0 //Phong specular disabled
+                   
+                   ambient <0,0,0> emission srgb <0.47,0.47,0.47> //ambient RGB color: 0->1 for each component
+                   diffuse albedo 0.6 
+                   reflection{0 } conserve_energy //reflection amount: 0 -> 1
+                   }
+
+
+#declare T1=texture{
+                   pigment{uv_mapping PR_DIFFUSE }
+                            finish{F1}
+                    }
+
+
+material{
+         texture{/*uv_mapping*/
+                 T1
+                }
+}
+//==================================================
+#declare Material_Seat_007_=
+#declare PR_DIFFUSE=pigment {color srgb <0.27,0.27,0.28> transmit 0/100 }
+
+
+#declare F1=finish{specular albedo 0.5019608 //Max highlight intensity: 0 -> 1
+                   roughness 0.01244878 //surface roughness: 0.0005 -> 1
+                   phong albedo 0 phong_size 0 //Phong specular disabled
+                   
+                   ambient <0,0,0> emission srgb <0.27,0.27,0.27> //ambient RGB color: 0->1 for each component
+                   diffuse albedo 0.6 
+                   reflection{0 } conserve_energy //reflection amount: 0 -> 1
+                   }
+
+
+#declare T1=texture{
+                   pigment{uv_mapping PR_DIFFUSE }
+                            finish{F1}
+                    }
+
+
+material{
+         texture{/*uv_mapping*/
+                 T1
+                }
+}
+//==================================================
+#declare Material_Frame_006_=
+#declare PR_DIFFUSE=pigment {color srgb <0.11,0.11,0.11> transmit 0/100 }
+
+
+#declare F1=finish{specular albedo 0.5019608 //Max highlight intensity: 0 -> 1
+                   roughness 0.00286312 //surface roughness: 0.0005 -> 1
+                   phong albedo 0 phong_size 0 //Phong specular disabled
+                   
+                   ambient <0,0,0> emission srgb <0.29,0.29,0.29> //ambient RGB color: 0->1 for each component
+                   diffuse albedo 0.6 
+                   reflection{0 } conserve_energy //reflection amount: 0 -> 1
+                   }
+
+
+#declare T1=texture{
+                   pigment{uv_mapping PR_DIFFUSE }
+                            finish{F1}
+                    }
+
+
+material{
+         texture{/*uv_mapping*/
+                 T1
+                }
+}
+//==================================================
+#declare Material_Window_000_=
+#declare PR_DIFFUSE=pigment {color srgb <0.29,0.29,0.33> transmit 70/100 }
+
+
+#declare F1=finish{specular albedo 0.5019608 //Max highlight intensity: 0 -> 1
+                   roughness 0.00286312 //surface roughness: 0.0005 -> 1
+                   phong albedo 0 phong_size 0 //Phong specular disabled
+                   
+                   ambient <0,0,0> emission srgb <0.28,0.28,0.28> //ambient RGB color: 0->1 for each component
                    diffuse albedo 0.6 
                    reflection{0 } conserve_energy //reflection amount: 0 -> 1
                    }

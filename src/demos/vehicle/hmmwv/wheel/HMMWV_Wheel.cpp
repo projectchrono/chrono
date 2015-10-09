@@ -70,7 +70,7 @@ HMMWV_WheelRight::HMMWV_WheelRight(VisualizationType  visType)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV_Wheel::Initialize(ChSharedBodyPtr spindle)
+void HMMWV_Wheel::Initialize(ChSharedPtr<ChBody> spindle)
 {
   // First, invoke the base class method
   ChWheel::Initialize(spindle);

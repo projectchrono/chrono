@@ -23,7 +23,7 @@
 //
 // =============================================================================
 
-#include <omp.h>
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono/ChConfig.h"
@@ -84,7 +84,7 @@ bool TestMechanism(Options opts, bool animate) {
   system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
   // Set number of threads.
-  omp_set_num_threads(threads);
+  CHOMPfunctions::SetNumThreads(threads);
   system->GetSettings()->max_threads = threads;
   system->GetSettings()->perform_thread_tuning = thread_tuning;
 

@@ -121,7 +121,7 @@ int main() {
     double normal_force = 4500;
 
     double zeros_inertia = 1e-2;
-	double small_mass = 0.1;
+    double small_mass = 0.1;
     double chassis_mass = small_mass;
     ChVector<> chassis_inertiaXX(zeros_inertia, zeros_inertia, zeros_inertia);
     double set_toe_mass = small_mass;
@@ -158,7 +158,7 @@ int main() {
     double width = test_tire->GetWidth();
 
     // Create the ground body.
-    ChSharedBodyPtr ground(new ChBody);
+    ChSharedPtr<ChBody> ground(new ChBody);
     ground->SetBodyFixed(true);
     my_system.AddBody(ground);
     // Add some geometry to the ground body for visualizing the road
@@ -169,7 +169,7 @@ int main() {
     ground->AddAsset(box_gnd);
 
     // Create the Chassis Body
-    ChSharedBodyPtr chassis(new ChBody);
+    ChSharedPtr<ChBody> chassis(new ChBody);
     chassis->SetPos(ChVector<>(0, 0, radius));
     chassis->SetRot(QUNIT);
     chassis->SetPos_dt(desired_speed * ChVector<>(1, 0, 0));
@@ -188,7 +188,7 @@ int main() {
     chassis->AddAsset(col_chassis);
 
     // Create the set_toe body
-    ChSharedBodyPtr set_toe(new ChBody);
+    ChSharedPtr<ChBody> set_toe(new ChBody);
     set_toe->SetPos(ChVector<>(0, 0, radius));
     set_toe->SetRot(QUNIT);
     set_toe->SetMass(set_toe_mass);
@@ -206,7 +206,7 @@ int main() {
     set_toe->AddAsset(col_set_toe);
 
     // Create the wheel_carrier body
-    ChSharedBodyPtr wheel_carrier(new ChBody);
+    ChSharedPtr<ChBody> wheel_carrier(new ChBody);
     wheel_carrier->SetPos(ChVector<>(0, 0, radius));
     wheel_carrier->SetRot(QUNIT);
     wheel_carrier->SetMass(wheel_carrier_mass);
@@ -224,7 +224,7 @@ int main() {
     wheel_carrier->AddAsset(col_wheel_carrier);
 
     // Create the set_camber body
-    ChSharedBodyPtr set_camber(new ChBody);
+    ChSharedPtr<ChBody> set_camber(new ChBody);
     set_camber->SetPos(ChVector<>(0, 0, radius));
     set_camber->SetRot(QUNIT);
     set_camber->SetMass(set_camber_mass);
@@ -242,7 +242,7 @@ int main() {
     set_camber->AddAsset(col_set_camber);
 
     // Create the rim body
-    ChSharedBodyPtr rim(new ChBody);
+    ChSharedPtr<ChBody> rim(new ChBody);
     rim->SetPos(ChVector<>(0, 0, radius));
     rim->SetRot(QUNIT);
     rim->SetMass(rim_mass);
@@ -260,7 +260,7 @@ int main() {
     rim->AddAsset(tex_rim);
 
     // Create the wheel body
-    ChSharedBodyPtr wheel(new ChBody);
+    ChSharedPtr<ChBody> wheel(new ChBody);
     wheel->SetPos(ChVector<>(0, 0, radius));
     wheel->SetRot(QUNIT);
     wheel->SetMass(wheel_mass);

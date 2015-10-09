@@ -81,4 +81,7 @@
 // If OpenMP support was enabled in the main ChronoEngine library, define CHRONO_OPENMP_ENABLED
 @CHRONO_OPENMP_ENABLED@
 
+// If TBB support was enabled in the main ChronoEngine library, define CHRONO_TBB_ENABLED
+@CHRONO_TBB_ENABLED@
+
 #endif

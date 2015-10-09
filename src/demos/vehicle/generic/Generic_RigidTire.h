@@ -23,11 +23,10 @@
 
 class Generic_RigidTire : public chrono::ChRigidTire {
   public:
-    Generic_RigidTire(const std::string& name) : ChRigidTire(name) {}
+    Generic_RigidTire(const std::string& name) : ChRigidTire(name) { SetContactMaterial(0.9f, 0.1f, 2e7f, 0.3f); }
 
     ~Generic_RigidTire() {}
 
-    virtual float getFrictionCoefficient() const override { return 0.7f; }
     virtual double getRadius() const override { return 0.47; }
     virtual double getWidth() const override { return 0.25; }
 };

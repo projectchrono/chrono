@@ -68,10 +68,10 @@ typedef unsigned char U1;
 
 template <class T>
 inline void PlaneSpace1(const T& n, T& p, T& q) {
-  if (fabs(n.z) > CH_C_SQRT_1_2) {
+  if (Abs(n.z) > CH_C_SQRT_1_2) {
     // choose p in y-z plane
     real a = n.y * n.y + n.z * n.z;
-    real k = 1.0 / sqrt(a);
+    real k = 1.0 / Sqrt(a);
     p.x = 0;
     p.y = -n.z * k;
     p.z = n.y * k;
@@ -82,7 +82,7 @@ inline void PlaneSpace1(const T& n, T& p, T& q) {
   } else {
     // choose p in x-y plane
     real a = n.x * n.x + n.y * n.y;
-    real k = 1.0 / sqrt(a);
+    real k = 1.0 / Sqrt(a);
     p.x = -n.y * k;
     p.y = n.x * k;
     p.z = 0;
@@ -220,7 +220,7 @@ struct GJK {
       }
       /* Check for termination            */
       const real omega = dot(m_ray, w) / rl;
-      alpha = std::max(omega, alpha);
+      alpha = Max(omega, alpha);
       if (((rl - alpha) - (GJK_ACCURARY * rl)) <= 0) { /* Return old simplex            */
         removevertice(m_simplices[m_current]);
         break;
@@ -320,7 +320,7 @@ struct GJK {
         }
       } break;
       case 4: {
-        if (fabs(det(m_simplex->c[0]->w - m_simplex->c[3]->w, m_simplex->c[1]->w - m_simplex->c[3]->w,
+        if (Abs(det(m_simplex->c[0]->w - m_simplex->c[3]->w, m_simplex->c[1]->w - m_simplex->c[3]->w,
                      m_simplex->c[2]->w - m_simplex->c[3]->w)) > 0)
           return (true);
       } break;
@@ -389,7 +389,7 @@ struct GJK {
       }
       if (mindist < 0) {
         const real d = dot(a, n);
-        const real s = sqrt(l);
+        const real s = Sqrt(l);
         const real3 p = n * (d / l);
         mindist = p.length2();
         m = 7;
@@ -407,7 +407,7 @@ struct GJK {
     const real3 dl[] = {a - d, b - d, c - d};
     const real vl = det(dl[0], dl[1], dl[2]);
     const bool ng = (vl * dot(a, cross(b - c, a - b))) <= 0;
-    if (ng && (fabs(vl) > GJK_SIMPLEX4_EPS)) {
+    if (ng && (Abs(vl) > GJK_SIMPLEX4_EPS)) {
       real mindist = -1;
       real subw[3] = {0.f, 0.f, 0.f};
       U subm(0);
@@ -642,7 +642,7 @@ struct EPA {
       } else {
         // Pick distance to edge a->b
         const real a_dot_b = dot(a->w, b->w);
-        dist = std::sqrt(std::max((a->w.length2() * b->w.length2() - a_dot_b * a_dot_b) / ba_l2, (real)0));
+        dist = Sqrt(Max((a->w.length2() * b->w.length2() - a_dot_b * a_dot_b) / ba_l2, (real)0));
       }
 
       return true;
@@ -960,9 +960,9 @@ bool GJKCollide(const ConvexShape& shape0,
         m_degenerateSimplex = 5;
       }
       if (lenSqr > ZERO_EPSILON * ZERO_EPSILON) {
-        real rlen = real(1.) / sqrt(lenSqr);
+        real rlen = real(1.) / Sqrt(lenSqr);
         normalInB *= rlen;  // normalize
-        real s = sqrt(squaredDistance);
+        real s = Sqrt(squaredDistance);
 
         pointOnA -= m_cachedSeparatingAxis * (marginA / s);
         pointOnB += m_cachedSeparatingAxis * (marginB / s);
@@ -1002,7 +1002,7 @@ bool GJKCollide(const ConvexShape& shape0,
         }
 
         if (lenSqr > (ZERO_EPSILON * ZERO_EPSILON)) {
-          tmpNormalInB /= sqrt(lenSqr);
+          tmpNormalInB /= Sqrt(lenSqr);
           real distance2 = -real3(tmpPointOnA - tmpPointOnB).length();
           // only replace valid penetrations when the result is deeper (check)
           if (!isValid || (distance2 < distance)) {

@@ -1,0 +1,26 @@
+{
+  "Name":     "Rigid plane",
+  "Type":     "Terrain",
+  "Template": "RigidTerrain",
+
+  "Material Properties":
+  {
+    "Coefficient of Friction":  0.9,
+    "Coefficient of Restitution": 0.01,
+    "Young Modulus":  2e7,
+    "Poisson Ratio":  0.3
+  },
+
+  "Geometry":
+  {
+    "Mesh Filename":  "terrain/meshes/test.obj",
+    "Mesh Name":      "terrain_test_POV_geom"
+  },
+
+  "Visualization":
+  {
+    "Color": [0.5, 0.5, 0.8],
+    "Texture File": "terrain/textures/dirt.jpg",
+    "Texture Scaling": [200, 200]
+  }
+}

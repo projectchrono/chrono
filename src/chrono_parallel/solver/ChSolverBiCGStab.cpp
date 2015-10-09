@@ -14,7 +14,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
   r.resize(size);
   t.resize(size);
   v.resize(size);
-  real normb = sqrt((mb, mb));
+  real normb = Sqrt((mb, mb));
 
   ShurProduct(ml, r);  // r = data_manager->host_data.D_T *
                        // (data_manager->host_data.M_invD * ml);
@@ -25,7 +25,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
     normb = 1;
   }
 
-  if ((residual = sqrt((r, r)) / normb) <= data_manager->settings.solver.tolerance) {
+  if ((residual = Sqrt((r, r)) / normb) <= data_manager->settings.solver.tolerance) {
     return 0;
   }
 
@@ -46,7 +46,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
                            // (data_manager->host_data.M_invD * phat);
     alpha = rho_1 / (rtilde, v);
     s = r - alpha * v;  // SEAXPY(-alpha,v,r,s);//
-    residual = sqrt((s, s)) / normb;
+    residual = Sqrt((s, s)) / normb;
 
     if (residual < data_manager->settings.solver.tolerance) {
       ml = ml + alpha * phat;
@@ -60,7 +60,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
     ml = ml + alpha * phat + omega * shat;
     r = s - omega * t;
     rho_2 = rho_1;
-    residual = sqrt((r, r)) / normb;
+    residual = Sqrt((r, r)) / normb;
 
     objective_value = GetObjective(ml, mb);
     AtIterationEnd(residual, objective_value);

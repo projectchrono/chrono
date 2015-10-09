@@ -63,9 +63,9 @@ class CHRONO_ALIGN_16 real3 {
   inline real3 operator/(real b) const { return _mm_div_ps(mmvalue, _mm_set1_ps(b)); }
 
   inline real dot(const real3& b) const { return _mm_cvtss_f32(_mm_dp_ps(mmvalue, b.mmvalue, 0x71)); }
-  inline real length() const { return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71))); }
-  inline real rlength() const { return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71))); }
-  inline real3 normalize() const { return _mm_div_ps(mmvalue, _mm_sqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0x7F))); }
+  inline real length() const { return _mm_cvtss_f32(_mm_Sqrt(_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71))); }
+  inline real rlength() const { return _mm_cvtss_f32(_mm_rSqrt(_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71))); }
+  inline real3 normalize() const { return _mm_div_ps(mmvalue, _mm_Sqrt(_ps(_mm_dp_ps(mmvalue, mmvalue, 0x7F))); }
   inline real3 cross(const real3& b) const {
     return _mm_sub_ps(_mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 0, 2, 1)),
                                  _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 1, 0, 2))),
@@ -90,7 +90,7 @@ class CHRONO_ALIGN_16 real3 {
   inline real3 operator/(real b) const { return real3(x / b, y / b, z / b); }
 
   inline real dot(const real3& b) const { return x * b.x + y * b.y + z * b.z; }
-  inline real length() const { return sqrt(x * x + y * y + z * z); }
+  inline real length() const { return Sqrt(x * x + y * y + z * z); }
   inline real rlength() const { return real(1.0) / length(); }
   inline real3 normalize() const { return real3(x, y, z) * rlength(); }
 
@@ -188,7 +188,7 @@ static inline real3 lerp(const real3& a, const real3& b, real alpha) {
   return (a + alpha * (b - a));
 }
 static inline real3 absolute(const real3& a) {
-  return R3(std::fabs(a.x), std::fabs(a.y), std::fabs(a.z));
+  return R3(Abs(a.x), Abs(a.y), Abs(a.z));
 }
 static inline bool isEqual(const real3& a, const real3& b) {
   return isEqual(a.x, b.x) && isEqual(a.y, b.y) && isEqual(a.z, b.z);
@@ -198,11 +198,11 @@ static inline bool IsZero(const real3& a) {
 }
 
 static real max3(const real3& a) {
-  return std::max(a.x, std::max(a.y, a.z));
+  return Max(a.x, Max(a.y, a.z));
 }
 
 static real min3(const real3& a) {
-  return std::min(a.x, std::min(a.y, a.z));
+  return Min(a.x, Min(a.y, a.z));
 }
 
 static inline real3 clamp(const real3& a, const real3& clamp_min, const real3& clamp_max) {

@@ -340,8 +340,8 @@ int main(int argc, char* argv[])
 
     flat_terrain.Update(time);
 
-    tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
-    tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
+    tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()],flat_terrain);
+    tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()],flat_terrain);
 
     tester.Update(time, steering_input, post_z_L, post_z_R, tire_forces);
 

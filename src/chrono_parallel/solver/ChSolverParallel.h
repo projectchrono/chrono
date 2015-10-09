@@ -95,7 +95,7 @@ class CH_PARALLEL_API ChSolverParallel {
     DynamicVector<real> inside = x - gdiff * (temp - b);
     Project(inside.data());
     temp = (1.0 / gdiff) * (x - inside);
-    return sqrt((real)(temp, temp));
+    return Sqrt((real)(temp, temp));
   }
 
   void AtIterationEnd(real maxd, real maxdeltalambda) {

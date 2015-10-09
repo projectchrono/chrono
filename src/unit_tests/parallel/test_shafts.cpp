@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-#include <omp.h>
-
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsTorsionSpring.h"
 #include "chrono/physics/ChShaftsBody.h"
@@ -64,7 +62,7 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
   }
 
   // Set number of threads.
-  omp_set_num_threads(threads);
+  CHOMPfunctions::SetNumThreads(threads);
   system->GetSettings()->max_threads = threads;
   system->GetSettings()->perform_thread_tuning = thread_tuning;
 

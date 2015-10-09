@@ -21,6 +21,7 @@
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChMaterialSurfaceBase.h"
 
 #include "chrono_vehicle/ChVehicle.h"
 
@@ -37,11 +38,11 @@ namespace hmmwv {
 class HMMWV_VehicleReduced : public chrono::ChVehicle
 {
 public:
-
-  HMMWV_VehicleReduced(const bool            fixed = false,
-                       DrivelineType         driveType = AWD,
-                       VisualizationType     chassisVis = NONE,
-                       VisualizationType     wheelVis = PRIMITIVES);
+  HMMWV_VehicleReduced(const bool fixed = false,
+                       DrivelineType driveType = AWD,
+                       VisualizationType chassisVis = NONE,
+                       VisualizationType wheelVis = PRIMITIVES,
+                       chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
   ~HMMWV_VehicleReduced();
 

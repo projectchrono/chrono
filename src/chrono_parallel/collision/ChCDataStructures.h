@@ -20,7 +20,7 @@ struct ContactPoint {
   real3 pointA, pointB, normal;
   real depth;
   ContactPoint() {}
-  ContactPoint(real3 pa, real3 pb, real3 norm, real d) {
+  ContactPoint(const real3 &pa, const real3 &pb, const real3 &norm, const real d) {
     pointA = pa;
     pointB = pb;
     normal = norm;

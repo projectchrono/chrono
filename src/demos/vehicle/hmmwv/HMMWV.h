@@ -39,6 +39,8 @@ class HMMWV {
   public:
     virtual ~HMMWV();
 
+    void SetContactMethod(chrono::ChMaterialSurfaceBase::ContactMethod val) { m_contactMethod = val; }
+
     void SetChassisFixed(bool val) { m_fixed = val; }
 
     void SetDriveType(DrivelineType val) { m_driveType = val; }
@@ -73,6 +75,7 @@ class HMMWV {
 
     virtual chrono::ChVehicle* CreateVehicle() = 0;
 
+    chrono::ChMaterialSurfaceBase::ContactMethod m_contactMethod;
     bool m_fixed;
     VisualizationType m_chassisVis;
     VisualizationType m_wheelVis;
@@ -105,7 +108,7 @@ class HMMWV_Full : public HMMWV {
 
   private:
     virtual chrono::ChVehicle* CreateVehicle() override {
-        return new HMMWV_Vehicle(m_fixed, m_driveType, m_chassisVis, m_wheelVis);
+        return new HMMWV_Vehicle(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
     }
 };
 
@@ -118,7 +121,7 @@ class HMMWV_Reduced : public HMMWV {
 
   private:
     virtual chrono::ChVehicle* CreateVehicle() override {
-        return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_chassisVis, m_wheelVis);
+        return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
     }
 };
 

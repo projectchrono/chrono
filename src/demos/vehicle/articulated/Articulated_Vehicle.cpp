@@ -48,15 +48,15 @@ const ChCoordsys<> Articulated_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Articulated_Vehicle::Articulated_Vehicle(const bool        fixed,
-                                         SuspensionType    suspType,
-                                         VisualizationType wheelVis)
-: m_suspType(suspType)
-{
+Articulated_Vehicle::Articulated_Vehicle(const bool fixed,
+                                         SuspensionType suspType,
+                                         VisualizationType wheelVis,
+                                         ChMaterialSurfaceBase::ContactMethod contactMethod)
+  : ChVehicle(contactMethod), m_suspType(suspType) {
   // -------------------------------------------
   // Create the chassis body
   // -------------------------------------------
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
 
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");

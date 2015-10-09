@@ -18,7 +18,7 @@
 
 #include <ostream>
 #include <fstream>
-#include <omp.h>
+
 
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChFileutils.h"
@@ -270,7 +270,7 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   msystem->Set_G_acc(gravity);
 
   // Set number of threads.
-  omp_set_num_threads(threads);
+  CHOMPfunctions::SetNumThreads(threads);
   msystem->GetSettings()->max_threads = threads;
   msystem->GetSettings()->perform_thread_tuning = thread_tuning;
 

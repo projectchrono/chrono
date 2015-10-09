@@ -72,7 +72,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
   // mg = mg - r;
 
   temp = gamma - one;
-  real norm_temp = sqrt((real)(temp, temp));
+  real norm_temp = Sqrt((real)(temp, temp));
 
   // If gamma is one temp should be zero, in that case set L to one
   // We cannot divide by 0
@@ -82,7 +82,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
     // If the N matrix is zero for some reason, temp will be zero
     ShurProduct(temp, temp);
     // If temp is zero then L will be zero
-    L = sqrt((real)(temp, temp)) / norm_temp;
+    L = Sqrt((real)(temp, temp)) / norm_temp;
   }
   // When L is zero the step length can't be computed, in this case just return
   // If the N is indeed zero then solving doesn't make sense
@@ -129,7 +129,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
       dot_g_temp = (g, temp);
       norm_ms = (temp, temp);
     }
-    theta_new = (-pow(theta, 2.0) + theta * sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
+    theta_new = (-pow(theta, 2.0) + theta * Sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
     beta_new = theta * (1.0 - theta) / (pow(theta, 2.0) + theta_new);
 
     temp = gamma_new - gamma;
@@ -147,7 +147,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
     Project(temp.data());
     temp = (1.0 / g_diff) * (gamma_new - temp);
     real temp_dotb = (real)(temp, temp);
-    real res = sqrt(temp_dotb);
+    real res = Sqrt(temp_dotb);
 
     if (res < residual) {
       residual = res;

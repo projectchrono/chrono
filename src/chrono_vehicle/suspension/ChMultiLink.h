@@ -201,10 +201,10 @@ protected:
   /// Return the callback function for shock force.
   virtual ChSpringForceCallback* getShockForceCallback()  const = 0;
 
-  ChSharedBodyPtr                   m_upright[2];      ///< handles to the upright bodies (left/right)
-  ChSharedBodyPtr                   m_upperArm[2];     ///< handles to the upper arm bodies (left/right)
-  ChSharedBodyPtr                   m_lateral[2];      ///< handles to the lateral bodies (left/right)
-  ChSharedBodyPtr                   m_trailingLink[2]; ///< handles to the trailing link bodies (left/right)
+  ChSharedPtr<ChBody>               m_upright[2];      ///< handles to the upright bodies (left/right)
+  ChSharedPtr<ChBody>               m_upperArm[2];     ///< handles to the upper arm bodies (left/right)
+  ChSharedPtr<ChBody>               m_lateral[2];      ///< handles to the lateral bodies (left/right)
+  ChSharedPtr<ChBody>               m_trailingLink[2]; ///< handles to the trailing link bodies (left/right)
 
   ChSharedPtr<ChLinkLockRevolute>   m_revoluteUA[2];              ///< handles to the chassis-UA revolute joints (left/right)
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalUA[2];             ///< handles to the upright-UA spherical joints (left/right)
@@ -225,30 +225,28 @@ private:
                       const std::vector<ChVector<> >& points,
                       const std::vector<ChVector<> >& dirs);
 
-  static void AddVisualizationUpperArm(ChSharedBodyPtr   arm,
-                                       const ChVector<>  pt_F,
-                                       const ChVector<>  pt_B,
-                                       const ChVector<>  pt_U,
-                                       double            radius);
-  static void AddVisualizationLateral(ChSharedBodyPtr   rod,
-                                      const ChVector<>  pt_C,
-                                      const ChVector<>  pt_U,
-                                      double            radius);
-  static void AddVisualizationTrailingLink(ChSharedBodyPtr   link,
-                                           const ChVector<>  pt_C,
-                                           const ChVector<>  pt_S,
-                                           const ChVector<>  pt_U,
-                                           double            radius);
-  static void AddVisualizationUpright(ChSharedBodyPtr   upright,
-                                      const ChVector<>  pt_UA,
-                                      const ChVector<>  pt_TR,
-                                      const ChVector<>  pt_TL,
-                                      const ChVector<>  pt_T,
-                                      const ChVector<>  pt_U,
-                                      double            radius);
-  static void AddVisualizationSpindle(ChSharedBodyPtr spindle,
-                                      double          radius,
-                                      double          width);
+  static void AddVisualizationUpperArm(ChSharedPtr<ChBody> arm,
+                                       const ChVector<> pt_F,
+                                       const ChVector<> pt_B,
+                                       const ChVector<> pt_U,
+                                       double radius);
+  static void AddVisualizationLateral(ChSharedPtr<ChBody> rod,
+                                      const ChVector<> pt_C,
+                                      const ChVector<> pt_U,
+                                      double radius);
+  static void AddVisualizationTrailingLink(ChSharedPtr<ChBody> link,
+                                           const ChVector<> pt_C,
+                                           const ChVector<> pt_S,
+                                           const ChVector<> pt_U,
+                                           double radius);
+  static void AddVisualizationUpright(ChSharedPtr<ChBody> upright,
+                                      const ChVector<> pt_UA,
+                                      const ChVector<> pt_TR,
+                                      const ChVector<> pt_TL,
+                                      const ChVector<> pt_T,
+                                      const ChVector<> pt_U,
+                                      double radius);
+  static void AddVisualizationSpindle(ChSharedPtr<ChBody> spindle, double radius, double width);
 
   static const std::string  m_pointNames[NUM_POINTS];
 };

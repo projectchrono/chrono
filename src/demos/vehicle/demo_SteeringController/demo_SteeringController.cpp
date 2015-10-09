@@ -21,6 +21,7 @@
 
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -38,6 +39,9 @@ using namespace geometry;
 // =============================================================================
 // Problem parameters
 
+// Contact method type
+ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DEM;
+
 // Type of tire model (RIGID, LUGRE, FIALA, or PACEJKA)
 TireModelType tire_model = RIGID;
 
@@ -48,12 +52,14 @@ PowertrainModelType powertrain_model = SHAFTS;
 DrivelineType drive_type = RWD;
 
 // Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)
-VisualizationType vis_type = MESH;
+VisualizationType vis_type = PRIMITIVES;
 
 // Input file names for the path-follower driver model
 std::string steering_controller_file("generic/driver/SteeringController.json");
 std::string speed_controller_file("generic/driver/SpeedController.json");
+// std::string path_file("paths/straight.txt");
 // std::string path_file("paths/curve.txt");
+// std::string path_file("paths/NATO_double_lane_change.txt");
 std::string path_file("paths/ISO_double_lane_change.txt");
 
 // JSON file names for vehicle model, tire models, and (simple) powertrain
@@ -100,6 +106,7 @@ bool povray_output = false;
 
 // Vehicle state output (forced to true if povray output enabled)
 bool state_output = false;
+int filter_window_size = 20;
 
 // =============================================================================
 
@@ -110,8 +117,8 @@ class ChDriverSelector : public irr::IEventReceiver {
         : m_vehicle(vehicle),
           m_driver_follower(driver_follower),
           m_driver_gui(driver_gui),
-          m_driver(m_driver_gui),
-          m_using_gui(true) {}
+          m_driver(m_driver_follower),
+          m_using_gui(false) {}
 
     ChDriver* GetDriver() { return m_driver; }
     bool UsingGUI() const { return m_using_gui; }
@@ -183,6 +190,7 @@ int main(int argc, char* argv[]) {
 
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv;
+    my_hmmwv.SetContactMethod(contact_method);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetChassisVis(vis_type);
     my_hmmwv.SetWheelVis(vis_type);
@@ -194,8 +202,11 @@ int main(int argc, char* argv[]) {
     my_hmmwv.Initialize();
 
     // Create the terrain
-    RigidTerrain terrain(my_hmmwv.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.9,
-                         GetChronoDataFile("textures/tile4.jpg"), 200, 200);
+    RigidTerrain terrain(my_hmmwv.GetSystem());
+    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain.SetColor(ChColor(1, 1, 1));
+    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
     // ----------------------
     // Create the Bezier path
@@ -281,6 +292,12 @@ int main(int argc, char* argv[]) {
     csv.stream().setf(std::ios::scientific | std::ios::showpos);
     csv.stream().precision(6);
 
+    utils::ChRunningAverage fwd_acc_GC_filter(filter_window_size);
+    utils::ChRunningAverage lat_acc_GC_filter(filter_window_size);
+
+    utils::ChRunningAverage fwd_acc_driver_filter(filter_window_size);
+    utils::ChRunningAverage lat_acc_driver_filter(filter_window_size);
+
     // ---------------
     // Simulation loop
     // ---------------
@@ -300,7 +317,14 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     while (app.GetDevice()->run()) {
+        // Extract system state
         double time = my_hmmwv.GetSystem()->GetChTime();
+        ChVector<> acc_CG = my_hmmwv.GetVehicle().GetChassis()->GetPos_dtdt();
+        ChVector<> acc_driver = my_hmmwv.GetVehicle().GetVehicleAcceleration(driver_pos);
+        double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x);
+        double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y);
+        double fwd_acc_driver = fwd_acc_driver_filter.Add(acc_driver.x);
+        double lat_acc_driver = lat_acc_driver_filter.Add(acc_driver.y);
 
         // End simulation
         if (time >= t_end)
@@ -310,6 +334,20 @@ int main(int argc, char* argv[]) {
         double throttle_input = selector.GetDriver()->GetThrottle();
         double steering_input = selector.GetDriver()->GetSteering();
         double braking_input = selector.GetDriver()->GetBraking();
+
+        /*
+        // Hack for acceleration-braking maneuver
+        static bool braking = false;
+        if (my_hmmwv.GetVehicle().GetVehicleSpeed() > target_speed)
+            braking = true;
+        if (braking) {
+            throttle_input = 0;
+            braking_input = 1;
+        } else {
+            throttle_input = 1;
+            braking_input = 0;
+        }
+        */
 
         // Update sentinel and target location markers for the path-follower controller.
         // Note that we do this whether or not we are currently using the path-follower driver.
@@ -333,6 +371,8 @@ int main(int argc, char* argv[]) {
             if (state_output) {
                 csv << time << steering_input << throttle_input << braking_input;
                 csv << my_hmmwv.GetVehicle().GetVehicleSpeed();
+                csv << acc_CG.x << fwd_acc_CG << acc_CG.y << lat_acc_CG;
+                csv << acc_driver.x << fwd_acc_driver << acc_driver.y << lat_acc_driver;
                 csv << std::endl;
             }
 
@@ -341,11 +381,9 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && sim_frame % debug_steps == 0) {
-            ChVector<> driver_acc = my_hmmwv.GetVehicle().GetVehicleAcceleration(driver_pos);
-            GetLog() << "driver acceleration:  " << driver_acc.x << "  " << driver_acc.y << "  " << driver_acc.z
+            GetLog() << "driver acceleration:  " << acc_driver.x << "  " << acc_driver.y << "  " << acc_driver.z
                      << "\n";
-            ChVector<> acc = my_hmmwv.GetVehicle().GetChassis()->GetPos_dtdt();
-            GetLog() << "CG acceleration:      " << acc.x << "  " << acc.y << "  " << acc.z << "\n";
+            GetLog() << "CG acceleration:      " << acc_CG.x << "  " << acc_CG.y << "  " << acc_CG.z << "\n";
             GetLog() << "\n";
         }
 

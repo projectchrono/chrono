@@ -9,71 +9,113 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
-// Simple flat rigid terrain
+// Rigid terrain
 //
 // =============================================================================
 
-#ifndef RIGIDTERRAIN_H
-#define RIGIDTERRAIN_H
+#ifndef RIGID_TERRAIN_H
+#define RIGID_TERRAIN_H
 
-#include "physics/ChSystem.h"
+#include <string>
+
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/assets/ChColor.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/geometry/ChCTriangleMeshConnected.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
 
-
 namespace chrono {
 
 ///
-/// Concrete class for a rigid flat terrain.
-/// This class implements a terrain modeled as a rigid box which can interact
-/// through contact anf friction with any other bodies whose contact flag is
+/// Rigid terrain model.
+/// This class implements a terrain modeled as a rigid shape which can interact
+/// through contact and friction with any other bodies whose contact flag is
 /// enabled. In particular, this type of terrain can be used in conjunction with
 /// a ChRigidTire.
 ///
-class CH_VEHICLE_API RigidTerrain : public ChTerrain
-{
-public:
-  RigidTerrain(chrono::ChSystem* system,             ///< [in] pointer to the containing multibody system
-               double height,                        ///< [in] terrain height
-               double sizeX,                         ///< [in] terrain dimension in the X direction
-               double sizeY,                         ///< [in] terrain dimension in the Y direction
-               double mu,                            ///< [in] coefficient of friction
-               const std::string tex_file = "none",  ///< [in] texture filename
-               float tex_scale_x = 1,                ///< [in] texture scale in X
-               float tex_scale_y = 1                 ///< [in] texture scale in Y
-               );
+class CH_VEHICLE_API RigidTerrain : public ChTerrain {
+  public:
+    enum Type { FLAT, MESH, HEIGHT_MAP };
 
-  ~RigidTerrain() {}
+    /// Construct a default RigidTerrain.
+    /// The user is responsible for calling various Set methods before Initialize.
+    RigidTerrain(chrono::ChSystem* system  ///< [in] pointer to the containing multibody system
+                 );
 
-  /// Get the terrain height at the specified (x,y) location.
-  /// Returns the constant value passed at construction.
-  virtual double GetHeight(double x, double y) const { return m_height; }
+    /// Construct a RigidTerrain from a JSON specification file.
+    RigidTerrain(chrono::ChSystem* system,    ///< [in] pointer to the containing multibody system
+                 const std::string& filename  ///< [in] name of the JSON specification file
+                 );
 
-  /// Get the terrain normal at the specified (x,y) location.
-  /// Returns a constant unit vector along the Z axis.
-  virtual chrono::ChVector<> GetNormal(double x, double y) const { return chrono::ChVector<>(0, 0, 1); }
+    ~RigidTerrain() {}
 
-  /// Add the specified number of rigid bodies, modeled as boxes of random size
-  /// and created at random locations above the terrain.
-  void AddMovingObstacles(int numObstacles);
+    /// Set contact material properties.
+    void SetContactMaterial(float friction_coefficient = 0.6f,    ///< [in] coefficient of friction
+                            float restitution_coefficient = 0.1,  ///< [in] coefficient of restitution
+                            float young_modulus = 2e5f,           ///< [in] Young's modulus of elasticity
+                            float poisson_ratio = 0.3f            ///< [in] Poisson ratio
+                            );
 
-  /// Add a few contact objects, rigidly attached to the terrain.
-  void AddFixedObstacles();
+    /// Set visualization color.
+    void SetColor(ChColor color  ///< [in] color of the visualization material
+                  );
 
-private:
+    /// Set texture properties.
+    void SetTexture(const std::string tex_file,  ///< [in] texture filename
+                    float tex_scale_x = 1,       ///< [in] texture scale in X
+                    float tex_scale_y = 1        ///< [in] texture scale in Y
+                    );
 
-  ChSystem*  m_system;
-  double     m_sizeX;
-  double     m_sizeY;
-  double     m_height;
+    /// Initialize the terrain system (flat).
+    /// This version uses a rigid box of specified dimensions and with specified
+    /// material properties.
+    void Initialize(double height,  ///< [in] terrain height
+                    double sizeX,   ///< [in] terrain dimension in the X direction
+                    double sizeY    ///< [in] terrain dimension in the Y direction
+                    );
+
+    /// Initialize the terrain system (mesh).
+    /// this version uses the specified mesh, for both visualization and contact.
+    void Initialize(const std::string& mesh_file,  ///< [in] filename of the input mesh (OBJ)
+                    const std::string& mesh_name   ///< [in] name of the mesh asset
+                    );
+
+    /// Initialize the terrain system (height map).
+    /// This version uses the specified BMP file as a height map to create a mesh for
+    /// both contact and visualization.
+    void Initialize(const std::string& heightmap_file,  ///< [in] filename for the height map (BMP)
+                    const std::string& mesh_name,       ///< [in] name of the mesh asset
+                    double sizeX,                       ///< [in] terrain dimension in the X direction
+                    double sizeY,                       ///< [in] terrain dimension in the Y direction
+                    double hMin,                        ///< [in] minimum height (black level)
+                    double hMax                         ///< [in] maximum height (white level)
+                    );
+
+    /// Export the terrain mesh (if any) as a macro in a PovRay include file.
+    void ExportMeshPovray(const std::string& out_dir  ///< [in] output directory
+                          );
+
+    /// Get the terrain height at the specified (x,y) location.
+    virtual double GetHeight(double x, double y) const override;
+
+    /// Get the terrain normal at the specified (x,y) location.
+    virtual chrono::ChVector<> GetNormal(double x, double y) const override;
+
+  private:
+    Type m_type;
+    ChSharedPtr<ChBody> m_ground;
+    ChSharedPtr<ChColorAsset> m_color;
+    geometry::ChTriangleMeshConnected m_trimesh;
+    std::string m_mesh_name;
+    double m_height;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif
