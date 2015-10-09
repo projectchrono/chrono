@@ -29,6 +29,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
 #include "hmmwv/HMMWV.h"
@@ -45,6 +46,9 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
 // ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
 // ChQuaternion<> initRot(0, 0, 0, 1);
+
+enum DriverMode {DEFAULT, RECORD, PLAYBACK};
+DriverMode driver_mode = DEFAULT;
 
 // Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)
 VisualizationType vis_type = PRIMITIVES;
@@ -72,6 +76,9 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 double step_size = 0.001;
 double tire_step_size = step_size;
 
+// Simulation end time
+double t_end = 1000;
+
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
@@ -82,10 +89,6 @@ const std::string pov_dir = out_dir + "/POVRAY";
 // Debug logging
 bool debug_output = false;
 double debug_step_size = 1.0 / 1;  // FPS = 1
-
-// Save driver inputs
-bool driver_output = false;
-double driver_step_size = 1.0 / 1;  // FPS = 1
 
 // POV-Ray output
 bool povray_output = false;
@@ -137,6 +140,29 @@ int main(int argc, char* argv[]) {
     app.AssetBindAll();
     app.AssetUpdateAll();
 
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (povray_output) {
+        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
+        terrain.ExportMeshPovray(out_dir);
+    }
+
+    std::string driver_file = out_dir + "/driver_inputs.txt";
+    utils::CSV_writer driver_csv(" ");
+
+    // ------------------------
+    // Create the driver system
+    // ------------------------
+
     // Create the interactive driver system
     ChIrrGuiDriver driver(app, my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain());
 
@@ -148,26 +174,11 @@ int main(int argc, char* argv[]) {
     driver.SetThrottleDelta(render_step_size / throttle_time);
     driver.SetBrakingDelta(render_step_size / braking_time);
 
-    // -----------------
-    // Initialize output
-    // -----------------
-
-    if (driver_output || povray_output) {
-        if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-            std::cout << "Error creating directory " << out_dir << std::endl;
-            return 1;
-        }
-    }
-    if (povray_output) {
-        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-            std::cout << "Error creating directory " << pov_dir << std::endl;
-            return 1;
-        }
-        terrain.ExportMeshPovray(out_dir);
-    }
-
-    if (driver_output) {
-        driver.LogInit(out_dir + "/driver_inputs.out");
+    // If in playback mode, attach the data file to the driver system and
+    // force it to playback the driver inputs.
+    if (driver_mode == PLAYBACK) {
+        driver.SetInputDataFile(driver_file);
+        driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
     }
 
     // ---------------
@@ -182,7 +193,6 @@ int main(int argc, char* argv[]) {
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int debug_steps = (int)std::ceil(debug_step_size / step_size);
-    int driver_steps = (int)std::ceil(driver_step_size / step_size);
 
     // Initialize simulation frame counter and simulation time
     ChRealtimeStepTimer realtime_timer;
@@ -192,6 +202,10 @@ int main(int argc, char* argv[]) {
 
     while (app.GetDevice()->run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
+
+        // End simulation
+        if (time >= t_end)
+            break;
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
@@ -215,15 +229,15 @@ int main(int argc, char* argv[]) {
             my_hmmwv.DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS);
         }
 
-        // Driver output
-        if (driver_output && step_number % driver_steps == 0) {
-            driver.Log(time);
-        }
-
         // Collect output data from modules (for inter-module communication)
         double throttle_input = driver.GetThrottle();
         double steering_input = driver.GetSteering();
         double braking_input = driver.GetBraking();
+
+        // Driver output
+        if (driver_mode == RECORD) {
+            driver_csv << time << steering_input << throttle_input << braking_input << std::endl;
+        }
 
         // Update modules (process inputs from other modules)
         driver.Update(time);
@@ -240,6 +254,10 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+    }
+
+    if (driver_mode == RECORD) {
+        driver_csv.write_to_file(driver_file);
     }
 
     return 0;
