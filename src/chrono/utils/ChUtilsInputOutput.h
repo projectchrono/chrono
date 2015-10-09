@@ -146,6 +146,17 @@ void WriteShapesPovray(ChSystem* system,
                        bool body_info = true,
                        const std::string& delim = ",");
 
+// Write the specified mesh as a macro in a PovRay include file. The output file
+// will be "[out_dir]/[mesh_name].inc". The mesh vertices will be transformed to
+// the frame with specified offset and orientation.
+ChApi void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
+                           const std::string& mesh_name,
+                           const std::string& out_dir,
+                           const ChColor& color = ChColor(0.4f, 0.4f, 0.4f),
+                           const ChVector<>& pos = ChVector<>(0, 0, 0),
+                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                           bool smoothed = false);
+
 // Write the triangular mesh from the specified OBJ file as a macro in a PovRay
 // include file. The output file will be "[out_dir]/[mesh_name].inc". The mesh
 // vertices will be transformed to the frame with specified offset and

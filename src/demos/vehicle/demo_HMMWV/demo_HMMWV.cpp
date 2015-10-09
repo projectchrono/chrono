@@ -26,6 +26,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
@@ -38,21 +39,29 @@ using namespace hmmwv;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector<> initLoc(0, 0, 2.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
 // ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
 // ChQuaternion<> initRot(0, 0, 0, 1);
 
+// Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)
+VisualizationType vis_type = PRIMITIVES;
+
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = SHAFTS;
+
+// Drive type (FWD, RWD, or AWD)
+DrivelineType drive_type = AWD;
 
 // Type of tire model (RIGID, PACEJKA, LUGRE, FIALA)
 TireModelType tire_model = RIGID;
 
-// Rigid terrain dimensions
-double terrainHeight = 0;
+// Rigid terrain
+RigidTerrain::Type terrain_model = RigidTerrain::FLAT;
+
+double terrainHeight = 0;      // terrain height (FLAT terrain only)
 double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
@@ -91,11 +100,11 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(PRIMITIVES);
-    my_hmmwv.SetWheelVis(PRIMITIVES);
+    my_hmmwv.SetChassisVis(vis_type);
+    my_hmmwv.SetWheelVis(vis_type);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
-    my_hmmwv.SetDriveType(RWD);
+    my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
@@ -104,8 +113,20 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(my_hmmwv.GetSystem());
     terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
     terrain.SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    terrain.SetTexture(GetChronoDataFile("textures/tile4.jpg"), 200, 200);
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
+    switch (terrain_model) {
+        case RigidTerrain::FLAT:
+            terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
+            break;
+        case RigidTerrain::HEIGHT_MAP:
+            terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+            terrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 128, 128, 0, 4);
+            break;
+        case RigidTerrain::MESH:
+            terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
+            terrain.Initialize(vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
+            break;
+    }
 
     // Create the vehicle Irrlicht interface
     ChVehicleIrrApp app(my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain(), L"HMMWV Demo");
@@ -142,7 +163,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
-        my_hmmwv.ExportMeshPovray(out_dir);
+        terrain.ExportMeshPovray(out_dir);
     }
 
     if (driver_output) {

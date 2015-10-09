@@ -28,9 +28,9 @@ namespace fea {
 /// For this 'basic' implementation, constant section and
 /// constant material are assumed.
 
-class ChApiFea ChElementBeamEuler : public ChElementBeam , 
-                                    public ChLoadableU, 
-                                    public ChLoadableUVW, 
+class ChApiFea ChElementBeamEuler : public ChElementBeam,
+                                    public ChLoadableU,
+                                    public ChLoadableUVW,
                                     public ChElementCorotational {
   protected:
     std::vector<ChSharedPtr<ChNodeFEAxyzrot> > nodes;
@@ -135,7 +135,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
     /// values of shape functions at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Given  u = 12-d state block {u1,r1,u2,r2}' , d = 6-d field {u,r},
-    /// one has   f(eta) = [S(eta)]*u   where one fills the sparse [S] matrix 
+    /// one has   f(eta) = [S(eta)]*u   where one fills the sparse [S] matrix
     /// with the N shape functions in this pattern:
     ///      | 0    .   .   .   .   .   3   .   .   .   .   .   |
     ///      | .    1   .   .   .   2   .   4   .   .   .   5   |
@@ -164,7 +164,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
         N(10) = -Nr2;
         N(11) = Nr2;
         */
-        double dN_ua = (1. / (2. * this->length)) * (-3. + 3 * eta * eta);  
+        double dN_ua = (1. / (2. * this->length)) * (-3. + 3 * eta * eta);
         double dN_ub = (1. / (2. * this->length)) * (3. - 3 * eta * eta);
         double dN_ra = (1. / 4.) * (-1. - 2 * eta + 3 * eta * eta);
         double dN_rb = -(1. / 4.) * (1. - 2 * eta - 3 * eta * eta);
@@ -861,17 +861,17 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
         u_rotaz.z = dN_ua * displ(1) + dN_ub * displ(7) +   // y_a   y_b
                     dN_ra * displ(5) + dN_rb * displ(11);   // Rz_a  Rz_b
         */
-        u_displ.x = N(0) * displ(0) + N(3) * displ(6);      // x_a   x_b
-        u_displ.y = N(1) * displ(1) + N(4) * displ(7)       // y_a   y_b
+        u_displ.x = N(0) * displ(0) + N(3) * displ(6);     // x_a   x_b
+        u_displ.y = N(1) * displ(1) + N(4) * displ(7)      // y_a   y_b
                     + N(2) * displ(5) + N(5) * displ(11);  // Rz_a  Rz_b
-        u_displ.z = N(1) * displ(2) + N(4) * displ(8)       // z_a   z_b
+        u_displ.z = N(1) * displ(2) + N(4) * displ(8)      // z_a   z_b
                     - N(2) * displ(4) - N(5) * displ(10);  // Ry_a  Ry_b
 
-        u_rotaz.x = N(0) * displ(3) + N(3) * displ(9);  // Rx_a  Rx_b
+        u_rotaz.x = N(0) * displ(3) + N(3) * displ(9);    // Rx_a  Rx_b
         u_rotaz.y = -N(6) * displ(2) - N(7) * displ(8) +  // z_a   z_b   note - sign
-                     N(8) * displ(4) + N(9) * displ(10);   // Ry_a  Ry_b
-        u_rotaz.z =  N(6) * displ(1) + N(7) * displ(7) +   // y_a   y_b
-                     N(8) * displ(5) + N(9) * displ(11);   // Rz_a  Rz_b
+                    N(8) * displ(4) + N(9) * displ(10);   // Ry_a  Ry_b
+        u_rotaz.z = N(6) * displ(1) + N(7) * displ(7) +   // y_a   y_b
+                    N(8) * displ(5) + N(9) * displ(11);   // Rz_a  Rz_b
     }
 
     /// Gets the absolute xyz position of a point on the beam line,
@@ -917,9 +917,9 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
 
         double Jpolar = section->J;
 
-        //ChMatrixNM<double, 1, 12> N;
+        // ChMatrixNM<double, 1, 12> N;
 
-        //this->ShapeFunctions(N, eta);  // Evaluate compressed shape functions
+        // this->ShapeFunctions(N, eta);  // Evaluate compressed shape functions
 
         // shape function derivatives are computed here on-the-fly
         double dN_xa = -(1. / length);
@@ -1016,102 +1016,104 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam ,
             // Note: can be improved with more unrolling.
         }
     }
-
+    virtual void EvaluateSectionStrain(
+        const double eta,
+        const ChMatrix<>& displ,
+        ChVector<>& StrainV) { /* To be completed: Created to be consistent with base class implementation*/
+    }
     //
     // Functions for interfacing to the LCP solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
     //
     // Functions for ChLoadable interface
-    //  
+    //
 
-            /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() {return 2*7;}
-        
-        /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() {return 2*6;}
+    /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() { return 2 * 7; }
 
-        /// Gets all the DOFs packed in a single vector (position part)
+    /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() { return 2 * 6; }
+
+    /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
-        mD.PasteVector    (this->nodes[0]->GetPos(), block_offset,  0);
-        mD.PasteQuaternion(this->nodes[0]->GetRot(), block_offset+3,  0);
-        mD.PasteVector    (this->nodes[1]->GetPos(), block_offset+7,  0);
-        mD.PasteQuaternion(this->nodes[1]->GetRot(), block_offset+10,  0);
+        mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
+        mD.PasteQuaternion(this->nodes[0]->GetRot(), block_offset + 3, 0);
+        mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 7, 0);
+        mD.PasteQuaternion(this->nodes[1]->GetRot(), block_offset + 10, 0);
     }
 
-        /// Gets all the DOFs packed in a single vector (speed part)
+    /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
-        mD.PasteVector(this->nodes[0]->GetPos_dt(),   block_offset,  0);
-        mD.PasteVector(this->nodes[0]->GetWvel_loc(), block_offset+3,  0);
-        mD.PasteVector(this->nodes[1]->GetPos_dt(),   block_offset+6,  0);
-        mD.PasteVector(this->nodes[1]->GetWvel_loc(), block_offset+9,  0);
+        mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
+        mD.PasteVector(this->nodes[0]->GetWvel_loc(), block_offset + 3, 0);
+        mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 6, 0);
+        mD.PasteVector(this->nodes[1]->GetWvel_loc(), block_offset + 9, 0);
     }
 
-        /// Number of coordinates in the interpolated field, ex=3 for a 
-        /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() {return 6;}
-           
-        /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() {return 2;}
+    /// Number of coordinates in the interpolated field, ex=3 for a
+    /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
+    virtual int Get_field_ncoords() { return 6; }
 
-        /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return nodes[nblock]->NodeGetOffset_w();}
+    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() { return 2; }
 
-        /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 6;}
+    /// Get the offset of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockOffset(int nblock) { return nodes[nblock]->NodeGetOffset_w(); }
 
-        /// Evaluate N'*F , where N is some type of shape function
-        /// evaluated at U coordinates of the line, each ranging in -1..+1
-        /// F is a load, N'*F is the resulting generalized load
-        /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
-    virtual void ComputeNF(const double U,   ///< parametric coordinate in line
-                    ChVectorDynamic<>& Qi,      ///< Return result of Q = N'*F  here
-                    double& detJ,               ///< Return det[J] here
-                    const ChVectorDynamic<>& F, ///< Input F vector, size is =n. field coords.
-                    ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
-                    ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
-                    ) {
-        ChMatrixNM<double, 1,12> N;
-         this->ShapeFunctions(N, U); // evaluate shape functions (in compressed vector), btw. not dependant on state
-         
-         detJ = this->GetRestLength()/2.0;
+    /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
 
-         Qi(0) = N(0)*F(0);
-         Qi(1) = N(1)*F(1) + N(6)*F(5);
-         Qi(2) = N(1)*F(2) - N(6)*F(4);
-         Qi(3) = N(0)*F(3);
-         Qi(4) =-N(2)*F(2) + N(8)*F(4);
-         Qi(5) = N(2)*F(1) + N(8)*F(5);
+    /// Evaluate N'*F , where N is some type of shape function
+    /// evaluated at U coordinates of the line, each ranging in -1..+1
+    /// F is a load, N'*F is the resulting generalized load
+    /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    virtual void ComputeNF(const double U,              ///< parametric coordinate in line
+                           ChVectorDynamic<>& Qi,       ///< Return result of Q = N'*F  here
+                           double& detJ,                ///< Return det[J] here
+                           const ChVectorDynamic<>& F,  ///< Input F vector, size is =n. field coords.
+                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                           ) {
+        ChMatrixNM<double, 1, 12> N;
+        this->ShapeFunctions(N, U);  // evaluate shape functions (in compressed vector), btw. not dependant on state
 
-         Qi(6) = N(3)*F(0);
-         Qi(7) = N(4)*F(1) + N(7)*F(5);
-         Qi(8) = N(4)*F(2) - N(7)*F(4);
-         Qi(9) = N(3)*F(3);
-         Qi(10)=-N(5)*F(2) + N(9)*F(4);
-         Qi(11)= N(5)*F(1) + N(9)*F(5);
+        detJ = this->GetRestLength() / 2.0;
+
+        Qi(0) = N(0) * F(0);
+        Qi(1) = N(1) * F(1) + N(6) * F(5);
+        Qi(2) = N(1) * F(2) - N(6) * F(4);
+        Qi(3) = N(0) * F(3);
+        Qi(4) = -N(2) * F(2) + N(8) * F(4);
+        Qi(5) = N(2) * F(1) + N(8) * F(5);
+
+        Qi(6) = N(3) * F(0);
+        Qi(7) = N(4) * F(1) + N(7) * F(5);
+        Qi(8) = N(4) * F(2) - N(7) * F(4);
+        Qi(9) = N(3) * F(3);
+        Qi(10) = -N(5) * F(2) + N(9) * F(4);
+        Qi(11) = N(5) * F(1) + N(9) * F(5);
     }
 
-        /// Evaluate N'*F , where N is some type of shape function
-        /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
-        /// F is a load, N'*F is the resulting generalized load
-        /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
-     virtual void ComputeNF(const double U,   ///< parametric coordinate in volume
-                     const double V,             ///< parametric coordinate in volume
-                     const double W,             ///< parametric coordinate in volume 
-                     ChVectorDynamic<>& Qi,      ///< Return result of N'*F  here, maybe with offset block_offset
-                     double& detJ,               ///< Return det[J] here
-                     const ChVectorDynamic<>& F, ///< Input F vector, size is = n.field coords.
-                     ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
-                     ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
-                     ) {
-         this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
-         detJ /=4.0; // because volume 
-     }
+    /// Evaluate N'*F , where N is some type of shape function
+    /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
+    /// F is a load, N'*F is the resulting generalized load
+    /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    virtual void ComputeNF(const double U,              ///< parametric coordinate in volume
+                           const double V,              ///< parametric coordinate in volume
+                           const double W,              ///< parametric coordinate in volume
+                           ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
+                           double& detJ,                ///< Return det[J] here
+                           const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
+                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                           ) {
+        this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
+        detJ /= 4.0;  // because volume
+    }
 
-
-            /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-     virtual double GetDensity() { return this->section->Area * this->section->density; } 
-
+    /// This is needed so that it can be accessed by ChLoaderVolumeGravity
+    virtual double GetDensity() { return this->section->Area * this->section->density; }
 };
 
 }  // END_OF_NAMESPACE____

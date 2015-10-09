@@ -40,6 +40,7 @@ SET(ChronoEngine_FEA_SOURCES
     ChLinkDirFrame.cpp
     ChLinkPointPoint.cpp
     ChContactSurface.cpp
+	ChMeshSurface.cpp
 )
 
 SET(ChronoEngine_FEA_HEADERS
@@ -87,6 +88,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChLinkDirFrame.h
     ChLinkPointPoint.h
     ChContactSurface.h
+	ChMeshSurface.h
     ChUtilsFEA.h
 )
 

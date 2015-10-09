@@ -19,6 +19,8 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLoaderUV.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
 
 #include "chrono_fea/ChElementTetra_4.h"
@@ -37,6 +39,15 @@ using namespace irr;
 
 int main(int argc, char* argv[]) {
 
+    // Global parameter for tire:
+    double tire_rad = 0.8;
+    double tire_vel_z0 = -3;
+    ChVector<> tire_center(0, 0.02+tire_rad, 0.5);
+    ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y)); // create rotated 180° on y
+
+    double tire_w0 = tire_vel_z0/tire_rad;
+
+
     // Create a Chrono::Engine physical system
     ChSystemDEM my_system;
 
@@ -48,8 +59,8 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1, (f32)1.6, -2));
-    application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
+    application.AddTypicalCamera(core::vector3df(1, (f32)1.4, -1.2), core::vector3df(0, tire_rad, 0));
+    //application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
 
     application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                                    video::SColorf(0.8, 0.8, 1));
@@ -67,26 +78,70 @@ int main(int argc, char* argv[]) {
     mysurfmaterial->SetGn(4200);
     mysurfmaterial->SetGt(4200);
 
+    ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial2 (new ChMaterialSurfaceDEM);
+    mysurfmaterial2->SetKn(12e6);
+    mysurfmaterial2->SetKt(12e6);
+    mysurfmaterial2->SetGn(16000);
+    mysurfmaterial2->SetGt(16000);
+
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor:
 
-    ChSharedPtr<ChBodyEasyBox> mfloor (new ChBodyEasyBox(2,0.2,2,2700, true));
+    ChSharedPtr<ChBodyEasyBox> mfloor (new ChBodyEasyBox(2,0.2,6,2700, true));
     mfloor->SetBodyFixed(true);
     mfloor->SetMaterialSurface(mysurfmaterial);
     my_system.Add(mfloor);
 
-    ChSharedPtr<ChColorAsset> mfloorcolor(new ChColorAsset);
-    mfloorcolor->SetColor(ChColor(0.5f, 0.5f, 0.3f));
-    mfloor->AddAsset(mfloorcolor);
-/*
-    // Create some stones / obstacles on the ground
-    for (int i=0; i<10; ++i) {
-        ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.3,0.1,0.2,2700, true));
-        mcube->SetPos(ChVector<>((ChRandom()-0.5)*0.8,ChRandom()*0.2+0.05,(ChRandom()-0.5)*1));
-        mcube->SetMaterialSurface(mysurfmaterial);
-        my_system.Add(mcube);
+    ChSharedPtr<ChTexture> mtexture(new ChTexture);
+    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mfloor->AddAsset(mtexture);
+
+
+    // Create a step
+    if (false) {
+        ChSharedPtr<ChBodyEasyBox> mfloor_step (new ChBodyEasyBox(1,0.2,0.5,2700, true));
+        mfloor_step->SetPos( ChVector<>(0,0.1,-0.2));
+        mfloor_step->SetBodyFixed(true);
+        mfloor_step->SetMaterialSurface(mysurfmaterial);
+        my_system.Add(mfloor_step);
     }
-*/
+
+    // Create some bent rectangular fixed slabs
+    if (false) {
+        for (int i=0; i<50; ++i) {
+            ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.25,0.2,0.25,2700, true));
+            ChQuaternion<> vrot;
+            vrot.Q_from_AngAxis(ChRandom()*CH_C_2PI, VECT_Y);
+            mcube->Move( ChCoordsys<>(VNULL,vrot) );
+            vrot.Q_from_AngAxis((ChRandom()-0.5)*2*CH_C_DEG_TO_RAD*20, ChVector<>(ChRandom()-0.5,0,ChRandom()-0.5).Normalize());
+            mcube->Move( ChCoordsys<>(VNULL,vrot) );
+            mcube->SetPos(ChVector<>((ChRandom()-0.5)*1.8, ChRandom()*0.1, -ChRandom()*3.2+0.9));
+            mcube->SetBodyFixed(true);
+            mcube->SetMaterialSurface(mysurfmaterial);
+            my_system.Add(mcube);
+            ChSharedPtr<ChColorAsset> mcubecol(new ChColorAsset);
+            mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+            mcube->AddAsset(mcubecol);
+
+        }
+    }
+
+    // Create some stones / obstacles on the ground
+    if (true) {
+        for (int i=0; i<150; ++i) {
+            ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.18,0.04,0.18,2700, true));
+            ChQuaternion<> vrot;
+            vrot.Q_from_AngAxis(ChRandom()*CH_C_2PI, VECT_Y);
+            mcube->Move( ChCoordsys<>(VNULL,vrot) );
+            mcube->SetPos(ChVector<>((ChRandom()-0.5)*1.4, ChRandom()*0.2+0.05,-ChRandom()*2.6+0.2));
+            mcube->SetMaterialSurface(mysurfmaterial2);
+            my_system.Add(mcube);
+            ChSharedPtr<ChColorAsset> mcubecol(new ChColorAsset);
+            mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+            mcube->AddAsset(mcubecol);
+        }
+    }
+
    
     // FINITE ELEMENT MESH
     // Create a mesh, that is a container for groups
@@ -113,7 +168,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
 
     try {
-        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel.INP").c_str(), mmaterial, node_sets, ChVector<>(0,0.3+0.8,0));
+        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel.INP").c_str(), mmaterial, node_sets, tire_center, tire_alignment);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
@@ -135,6 +190,13 @@ int main(int argc, char* argv[]) {
     my_mesh->AddContactSurface(mcontactsurf);
 
 
+    // Apply initial speed and angular speed
+    double speed_x0 = 0.5;
+    for (unsigned int i = 0; i< my_mesh->GetNnodes(); ++i) {
+        ChVector<> node_pos = my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->GetPos();
+        ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos-tire_center);
+        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetPos_dt(ChVector<>(0 , 0, tire_vel_z0) +  tang_vel);
+    }
 
     // This is necessary in order to precompute the
     // stiffness matrices for all inserted elements in mesh
@@ -146,7 +208,12 @@ int main(int argc, char* argv[]) {
 
     // Add a rim
     ChSharedPtr<ChBody> mwheel_rim(new ChBody);
-    mwheel_rim->SetPos(ChVector<>(0,0.3+0.8,0));
+    mwheel_rim->SetMass(80);
+    mwheel_rim->SetInertiaXX(ChVector<>(60,60,60));
+    mwheel_rim->SetPos(tire_center);
+    mwheel_rim->SetRot(tire_alignment);
+    mwheel_rim->SetPos_dt(ChVector<>( 0, 0, tire_vel_z0));
+    mwheel_rim->SetWvel_par(ChVector<>( tire_w0, 0, 0));
     application.GetSystem()->Add(mwheel_rim);
 
     ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
@@ -162,6 +229,29 @@ int main(int argc, char* argv[]) {
         mlink->Initialize(node_sets[nodeset_index][i].DynamicCastTo<ChNodeFEAxyz>(), mwheel_rim );
         my_system.Add(mlink);
     }
+
+
+    /// Create a mesh surface, for applying loads:
+
+    ChSharedPtr<ChMeshSurface> mmeshsurf (new ChMeshSurface);
+    my_mesh->AddMeshSurface(mmeshsurf);
+    
+      // In the .INP file there are two additional NSET nodesets, the 1st is used to mark load surface:
+    mmeshsurf->AddFacesFromNodeSet(node_sets[0]);
+
+
+    /// Apply load to all surfaces in the mesh surface
+
+    ChSharedPtr<ChLoadContainer> mloadcontainer(new ChLoadContainer);
+    my_system.Add(mloadcontainer);
+
+    for (int i= 0; i< mmeshsurf->GetFacesList().size(); ++i) {
+        ChSharedPtr<ChLoadableUV> aface = mmeshsurf->GetFacesList()[i];
+        ChSharedPtr<ChLoad< ChLoaderPressure > >  faceload (new ChLoad< ChLoaderPressure >(aface));
+        faceload->loader.SetPressure(10000); // low pressure... the tire has no ply!
+        mloadcontainer->Add(faceload);
+    }
+
 
 
     //

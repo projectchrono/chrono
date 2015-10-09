@@ -23,7 +23,7 @@ namespace fea {
 /// Face of a linear ChElementTetra_4 tetrahedron. 
 /// This is a proxy to the tetrahedron. It can be used to apply pressure loads.
 /// Note, face_id is the number of the vertex to whom it is opposed: 0,1,2,3.
-/// Corner nodes, obtainable with GetNodeN(), are in clockwise order seen from the outside.
+/// Corner nodes, obtainable with GetNodeN(), are in counterclockwise order seen from the outside.
 
 class ChApiFea ChFaceTetra_4 : public ChLoadableUV {
 protected:
@@ -39,20 +39,22 @@ public:
     // Get the node 'i' of face , with i=0,1,2
     ChSharedPtr<ChNodeFEAxyz> GetNodeN(int i) {
 
-        int iface0[] = {1,2,3};
-        int iface1[] = {0,2,3};
-        int iface2[] = {1,0,3};
-        int iface3[] = {1,2,0};
+        int iface0[] = {2,1,3};
+        int iface1[] = {3,0,2};
+        int iface2[] = {3,1,0};
+        int iface3[] = {0,1,2};
         switch (face_id) {
             case 0:
-                return melement->GetNodeN(iface0[i]);
+                return melement->GetNodeN(iface0[i]).DynamicCastTo<ChNodeFEAxyz>();
             case 1:
-                return melement->GetNodeN(iface1[i]);
+                return melement->GetNodeN(iface1[i]).DynamicCastTo<ChNodeFEAxyz>();
             case 2:
-                return melement->GetNodeN(iface2[i]);
+                return melement->GetNodeN(iface2[i]).DynamicCastTo<ChNodeFEAxyz>();
             case 3:
-                return melement->GetNodeN(iface3[i]);
+                return melement->GetNodeN(iface3[i]).DynamicCastTo<ChNodeFEAxyz>();
         }
+        ChSharedPtr<ChNodeFEAxyz> foo_null;
+        return foo_null;
     }
 
     /// Fills the N shape function matrix (1 row, 3 columns) with the
@@ -122,7 +124,7 @@ public:
          ChVector<> p0 = GetNodeN(0)->GetPos();
          ChVector<> p1 = GetNodeN(1)->GetPos();
          ChVector<> p2 = GetNodeN(2)->GetPos();
-         detJ = (Vcross(p1-p0,p2-p0)).Length(); 
+         detJ = (Vcross(p2-p0,p1-p0)).Length(); 
 
          Qi(0) = N(0)*F(0);
          Qi(1) = N(0)*F(1);
@@ -145,7 +147,7 @@ public:
          ChVector<> p0 = GetNodeN(0)->GetPos();
          ChVector<> p1 = GetNodeN(1)->GetPos();
          ChVector<> p2 = GetNodeN(2)->GetPos();
-         return Vcross(p2-p0, p1-p0).GetNormalized();
+         return Vcross(p1-p0, p2-p0).GetNormalized();
      }
 
 };

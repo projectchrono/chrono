@@ -443,4 +443,39 @@ void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Locat
                    from_mat(1, 2), mpos.y, from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z); //0, 0);
 }
 
+
+
+/// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
+ChSharedPtr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
+                const TopoDS_Shape& mshape,   ///< pass the shape here
+                const double density          ///< pass the density here
+                )
+{
+    ChSharedPtr<ChBodyAuxRef> mbody(new ChBodyAuxRef);
+    
+    chrono::ChFrame<> frame_ref_to_abs;
+
+    TopLoc_Location loc_shape_to_abs = mshape.Location();
+    chrono::cascade::ChCascadeDoc::FromCascadeToChrono(loc_shape_to_abs, frame_ref_to_abs);   
+
+    TopoDS_Shape objshape = mshape;
+    objshape.Location(TopLoc_Location());  // Reset shape location to local ref csys (identity).
+
+    chrono::ChVector<> mcog;
+    chrono::ChVector<> minertiaXX;
+    chrono::ChVector<> minertiaXY;
+    double mvol;
+    double mmass;
+    chrono::cascade::ChCascadeDoc::GetVolumeProperties(objshape, density, mcog, minertiaXX, minertiaXY, mvol, mmass);
+
+    mbody->SetFrame_REF_to_abs(frame_ref_to_abs);
+
+    //mbody->SetFrame_COG_to_REF(frame_ref_to_abs.Invert() * mcog );
+
+    chrono::ChFrame<>* frame_cog_to_ref = (chrono::ChFrame<>*)mbody.get_ptr();
+    frame_cog_to_ref->SetPos(mcog);
+    frame_cog_to_ref->SetRot(chrono::QUNIT);
+}
+
+
 /////////////////////

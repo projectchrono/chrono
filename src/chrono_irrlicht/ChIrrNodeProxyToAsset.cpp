@@ -160,6 +160,8 @@ void ChIrrNodeProxyToAsset::Update() {
         irrmesh->setHardwareMappingHint(EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
         irrmesh->recalculateBoundingBox();
 
+        meshnode->setAutomaticCulling(EAC_OFF);
+
         meshnode->setMaterialFlag(video::EMF_WIREFRAME, trianglemesh->IsWireframe());
         meshnode->setMaterialFlag(video::EMF_LIGHTING, !trianglemesh->IsWireframe());  // avoid shading for wireframes
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());

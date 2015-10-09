@@ -22,6 +22,7 @@
 #include "ChNodeFEAbase.h"
 #include "ChElementBase.h"
 #include "ChContactSurface.h"
+#include "ChMeshSurface.h"
 
 namespace chrono {
 
@@ -43,6 +44,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     unsigned int n_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
 
     std::vector<ChSharedPtr<ChContactSurface> > vcontactsurfaces;  //  contact surfaces
+    std::vector<ChSharedPtr<ChMeshSurface> >    vmeshsurfaces;     //  mesh surfaces, ex.for loads
     
     bool automatic_gravity_load;
 
@@ -79,10 +81,24 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     virtual ChSharedPtr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; };
 
     /// Get number of added contact surfaces
-    unsigned int GetNcontactSurfaces() { return (unsigned int)vnodes.size(); }
+    unsigned int GetNcontactSurfaces() { return (unsigned int)vcontactsurfaces.size(); }
 
     /// Remove all contact surfaces
     void ClearContactSurfaces();
+
+
+    /// Add a mesh surface (set of ChLoadableUV items that support area loads such as pressure, etc.)
+    void AddMeshSurface(ChSharedPtr<ChMeshSurface> m_surf);
+
+    /// Access the N-th mesh surface
+    virtual ChSharedPtr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; };
+
+    /// Get number of added mesh surfaces
+    unsigned int GetNmeshSurfaces() { return (unsigned int)vmeshsurfaces.size(); }
+
+    /// Remove all mesh surfaces
+    void ClearMeshSurfaces() { vmeshsurfaces.clear(); }
+
 
 
     /// - Computes the total number of degrees of freedom

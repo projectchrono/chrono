@@ -17,16 +17,19 @@
 // =============================================================================
 
 #include <cstdio>
+#include <cmath>
 
 #include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/physics/ChMaterialSurfaceDEM.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
+#include "thirdparty/Easy_BMP/EasyBMP.h"
 #include "thirdparty/rapidjson/document.h"
 #include "thirdparty/rapidjson/filereadstream.h"
 
@@ -121,15 +124,23 @@ RigidTerrain::RigidTerrain(chrono::ChSystem* system, const std::string& filename
     }
 
     // Read geometry and initialize terrain
-    if (d["Geometry"].HasMember("Size")) {
+    if (d["Geometry"].HasMember("Height")) {
         double sx = d["Geometry"]["Size"][0u].GetDouble();
         double sy = d["Geometry"]["Size"][1u].GetDouble();
         double h = d["Geometry"]["Height"].GetDouble();
         Initialize(h, sx, sy);
-    } else {
+    } else if (d["Geometry"].HasMember("Mesh Filename")) {
         std::string mesh_file = d["Geometry"]["Mesh Filename"].GetString();
         std::string mesh_name = d["Geometry"]["Mesh Name"].GetString();
-        Initialize(mesh_file, mesh_name);
+        Initialize(vehicle::GetDataFile(mesh_file), mesh_name);
+    } else if (d["Geometry"].HasMember("Height Map Filename")) {
+        std::string bmp_file = d["Geometry"]["Height Map Filename"].GetString();
+        std::string mesh_name = d["Geometry"]["Mesh Name"].GetString();
+        double sx = d["Geometry"]["Size"][0u].GetDouble();
+        double sy = d["Geometry"]["Size"][1u].GetDouble();
+        double hMin = d["Geometry"]["Height Range"][0u].GetDouble();
+        double hMax = d["Geometry"]["Height Range"][1u].GetDouble();
+        Initialize(vehicle::GetDataFile(bmp_file), mesh_name, sx, sy, hMin, hMax);
     }
 }
 
@@ -185,47 +196,219 @@ void RigidTerrain::Initialize(double height, double sizeX, double sizeY) {
     m_ground->AddAsset(box);
     m_ground->GetCollisionModel()->BuildModel();
 
-    m_isBox = true;
+    m_type = FLAT;
     m_height = height;
 }
 
 // -----------------------------------------------------------------------------
-// Initialize the terrain as a rigid mesh
+// Initialize the terrain from a specified mesh file.
 // -----------------------------------------------------------------------------
 void RigidTerrain::Initialize(const std::string& mesh_file, const std::string& mesh_name) {
-    //// TODO
+    m_trimesh.LoadWavefrontMesh(mesh_file, true, true);
 
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(mesh_file, false, false);
-
+    // Create the visualization asset.
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetMesh(m_trimesh);
     trimesh_shape->SetName(mesh_name);
     m_ground->AddAsset(trimesh_shape);
 
-    m_isBox = false;
+    // Create contact geometry.
+    m_ground->GetCollisionModel()->ClearModel();
+    m_ground->GetCollisionModel()->AddTriangleMesh(m_trimesh, true, false, ChVector<>(0, 0, 0));
+    m_ground->GetCollisionModel()->BuildModel();
+
+    m_mesh_name = mesh_name;
+    m_type = MESH;
+}
+
+// -----------------------------------------------------------------------------
+// Initialize the terrain from a specified height map.
+// -----------------------------------------------------------------------------
+void RigidTerrain::Initialize(const std::string& heightmap_file,
+                              const std::string& mesh_name,
+                              double sizeX,
+                              double sizeY,
+                              double hMin,
+                              double hMax) {
+    // Read the BMP file nd extract number of pixels.
+    BMP hmap;
+    if (!hmap.ReadFromFile(heightmap_file.c_str())) {
+        throw ChException("Cannot open height map BMP file");
+    }
+    int nv_x = hmap.TellWidth();
+    int nv_y = hmap.TellHeight();
+
+    // Construct a triangular mesh of sizeX x sizeY.
+    // Each pixel in the BMP represents a vertex.
+    // The gray level of a pixel is mapped to the height range, with black corresponding
+    // to hMin and white corresponding to hMax.
+    // UV coordinates are mapped in [0,1] x [0,1].
+    // We use smoothed vertex normals.
+    double dx = sizeX / (nv_x - 1);
+    double dy = sizeY / (nv_y - 1);
+    double h_scale = (hMax - hMin) / 255;
+    double x_scale = 1.0 / (nv_x - 1);
+    double y_scale = 1.0 / (nv_y - 1);
+    unsigned int n_verts = nv_x * nv_y;
+    unsigned int n_faces = 2 * (nv_x - 1) * (nv_y - 1);
+
+    // Resize mesh arrays.
+    m_trimesh.getCoordsVertices().resize(n_verts);
+    m_trimesh.getCoordsNormals().resize(n_verts);
+    m_trimesh.getCoordsUV().resize(n_verts);
+    m_trimesh.getCoordsColors().resize(n_verts);
+
+    m_trimesh.getIndicesVertexes().resize(n_faces);
+    m_trimesh.getIndicesNormals().resize(n_faces);
+
+    // Initialize the array of accumulators (number of adjacent faces to a vertex)
+    std::vector<int> accumulators(n_verts, 0);
+
+    // Readibility aliases
+    std::vector<ChVector<> >& vertices = m_trimesh.getCoordsVertices();
+    std::vector<ChVector<> >& normals = m_trimesh.getCoordsNormals();
+    std::vector<ChVector<int> >& idx_vertices = m_trimesh.getIndicesVertexes();
+    std::vector<ChVector<int> >& idx_normals = m_trimesh.getIndicesNormals();
+
+    // Load mesh vertices.
+    // Note that pixels in a BMP start at top-left corner.
+    // We order the vertices starting at the bottom-left corner, row after row.
+    // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
+    std::cout << "Load vertices..." << std::endl;
+    unsigned int iv = 0;
+    for (int iy = nv_y - 1; iy >= 0; --iy) {
+        double y = 0.5 * sizeY - iy * dy;
+        for (int ix = 0; ix < nv_x; ++ix) {
+            double x = ix * dx - 0.5 * sizeX;
+            // Calculate equivalent gray level (RGB -> YUV)
+            ebmpBYTE red = hmap(ix, iy)->Red;
+            ebmpBYTE green = hmap(ix, iy)->Green;
+            ebmpBYTE blue = hmap(ix, iy)->Blue;
+            double gray = 0.299 * red + 0.587 * green + 0.114 * blue;
+            // Map gray level to vertex height
+            double z = hMin + gray * h_scale;
+            // Set vertex location
+            vertices[iv] = ChVector<>(x, y, z);
+            // Initialize vertex normal to (0, 0, 0).
+            normals[iv] = ChVector<>(0, 0, 0);
+            // Assign color white to all vertices
+            m_trimesh.getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
+            // Set UV coordinates in [0,1] x [0,1]
+            m_trimesh.getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
+            ++iv;
+        }
+    }
+
+    // Specify triangular faces (two at a time).
+    // Specify the face vertices counter-clockwise.
+    // Set the normal indices same as the vertex indices.
+    std::cout << "Load faces..." << std::endl;
+    unsigned int it = 0;
+    for (int iy = nv_y - 2; iy >= 0; --iy) {
+        for (int ix = 0; ix < nv_x - 1; ++ix) {
+            int v0 = ix + nv_x * iy;
+            idx_vertices[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
+            idx_normals[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
+            ++it;
+            idx_vertices[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
+            idx_normals[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
+            ++it;
+        }
+    }
+
+    // Calculate normals and then average the normals from all adjacent faces.
+    for (unsigned int it = 0; it < n_faces; ++it) {
+        // Calculate the triangle normal as a normalized cross product.
+        ChVector<> nrm = Vcross(vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x],
+                                vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x]);
+        nrm.Normalize();
+        // Increment the normals of all incident vertices by the face normal
+        normals[idx_normals[it].x] += nrm;
+        normals[idx_normals[it].y] += nrm;
+        normals[idx_normals[it].z] += nrm;
+        // Increment the count of all incident vertices by 1
+        accumulators[idx_normals[it].x] += 1;
+        accumulators[idx_normals[it].y] += 1;
+        accumulators[idx_normals[it].z] += 1;
+    }
+
+    // Set the normals to the average values.
+    for (unsigned int in = 0; in < n_verts; ++in) {
+        normals[in] /= (double)accumulators[in];
+    }
+
+    // Create the visualization asset.
+    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    trimesh_shape->SetMesh(m_trimesh);
+    trimesh_shape->SetName(mesh_name);
+    m_ground->AddAsset(trimesh_shape);
+
+    // Create contact geometry.
+    m_ground->GetCollisionModel()->ClearModel();
+    m_ground->GetCollisionModel()->AddTriangleMesh(m_trimesh, true, false, ChVector<>(0, 0, 0));
+    m_ground->GetCollisionModel()->BuildModel();
+
+    m_mesh_name = mesh_name;
+    m_type = HEIGHT_MAP;
+}
+
+// -----------------------------------------------------------------------------
+// Export the terrain mesh (if any) as a macro in a PovRay include file.
+// -----------------------------------------------------------------------------
+void RigidTerrain::ExportMeshPovray(const std::string& out_dir) {
+    switch (m_type) {
+        case MESH:
+            utils::WriteMeshPovray(m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1));
+            break;
+        case HEIGHT_MAP:
+            utils::WriteMeshPovray(m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1), ChVector<>(0, 0, 0),
+                                   ChQuaternion<>(1, 0, 0, 0), true);
+            break;
+    }
 }
 
 // -----------------------------------------------------------------------------
 // Return the terrain height at the specified location
 // -----------------------------------------------------------------------------
 double RigidTerrain::GetHeight(double x, double y) const {
-    if (m_isBox)
-        return m_height;
-
-    //// TODO
-    return 0;
+    switch (m_type) {
+        case FLAT:
+            return m_height;
+        case MESH: {
+            double height = 0;
+            //// TODO
+            return height;
+        }
+        case HEIGHT_MAP: {
+            double height = 0;
+            //// TODO
+            return height;
+        }
+        default:
+            return 0;
+    }
 }
 
 // -----------------------------------------------------------------------------
 // Return the terrain normal at the specified location
 // -----------------------------------------------------------------------------
 ChVector<> RigidTerrain::GetNormal(double x, double y) const {
-    if (m_isBox)
-        return ChVector<>(0, 0, 1);
-
-    //// TODO
-    return ChVector<>(0, 0, 1);
+    switch (m_type) {
+        case FLAT:
+            return ChVector<>(0, 0, 1);
+        case MESH: {
+            ChVector<> normal(0, 0, 1);
+            //// TODO
+            return normal;
+        }
+        case HEIGHT_MAP: {
+            ChVector<> normal(0, 0, 1);
+            //// TODO
+            return normal;
+        }
+        default:
+            return ChVector<>(0, 0, 1);
+    }
 }
 
 }  // end namespace chrono

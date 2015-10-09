@@ -199,10 +199,8 @@ SET(CE_OpenGL_RESOURCES_FILES
   )
 
 SET(CE_OpenGL_TINYOBJLOADER_FILES
-#  ${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.cc
-#  ${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.h
-  shapes/obj//tiny_obj_loader.cc
-  shapes/obj//tiny_obj_loader.h
+  ${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.cc
+  ${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.h
   )
 
 SOURCE_GROUP("" FILES ${CE_OpenGL_BASE_FILES})
