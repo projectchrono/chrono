@@ -175,9 +175,13 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
   /* Part 1: Sorting - Sort using grid data, this will accelerate contact detection. */
 
   /* Calculate total number of cells in the domain. */
+
+
   uint m_numGridCells = paramsH.gridSize.x * paramsH.gridSize.y * paramsH.gridSize.z;  // m_gridSize = SIDE
   /* Total number of markers (fluid + boundary) */
   int numAllMarkers = numObjects.numAllMarkers;
+
+
   /* Allocate space for each vector */
   /* Store positions of each particle in the device memory */
   thrust::device_vector<Real3> m_dSortedPosRad(numAllMarkers);
@@ -541,7 +545,7 @@ void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
                                 const thrust::device_vector<Real4>& velMassRigidD,
                                 const thrust::device_vector<Real3>& omegaLRF_D,
                                 NumberOfObjects numObjects) {
-  printf(" implement me  ************************* \n\n\n\n\nn\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+  printf(" \n\n\n\n\n\n\n\n implement me  ************************* \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
   uint nBlocks_numRigid_SphMarkers;
   uint nThreads_SphMarkers;
