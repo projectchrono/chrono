@@ -19,6 +19,7 @@
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChFaceTetra_4.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChGlyphs.h"
 
@@ -318,6 +319,33 @@ void ChVisualizationFEAmesh::Update (ChPhysicsItem* updater, const ChCoordsys<>&
 		//***TO DO*** other types of elements...
 
 	}
+
+    // loop on mesh surfaces for pressure loads etc.
+    for (unsigned int isu=0; isu < this->FEMmesh->GetNmeshSurfaces(); ++isu)
+	{
+        ChSharedPtr<ChMeshSurface> msurface = this->FEMmesh->GetMeshSurface(isu);
+        for (unsigned int ifa=0; ifa < msurface->GetFacesList().size(); ++ifa)
+	    {
+            ChSharedPtr<ChLoadableUV> mface = msurface->GetFacesList()[ifa];
+		    // FACE ELEMENT IS A TETRAHEDRON FACE
+		    if (mface.IsType<ChFaceTetra_4>() )
+		    {
+			    n_verts +=3;
+			    n_vcols +=3;
+			    n_vnorms +=1; // flat face
+			    n_triangles +=1; // n. triangle faces
+		    }
+
+		    // FACE ELEMENT IS A SHELL
+		    if (mface.IsType<ChElementTetra_4_P>() )
+		    {
+			    n_verts += shell_resolution*shell_resolution;
+			    n_vcols += shell_resolution*shell_resolution;
+			    n_vnorms += shell_resolution*shell_resolution;
+			    n_triangles +=2*(shell_resolution-1)*(shell_resolution-1); // n. triangle faces
+		    }
+        }
+    }
 
 	if (this->fem_data_type == E_PLOT_NONE)
 	{
@@ -804,6 +832,73 @@ void ChVisualizationFEAmesh::Update (ChPhysicsItem* updater, const ChCoordsys<>&
 		// ------------***TO DO*** other types of elements...
 
 	}
+
+
+     // loop on mesh surfaces for pressure loads etc.
+    if (this->fem_data_type != E_PLOT_NONE)
+     for (unsigned int isu=0; isu < this->FEMmesh->GetNmeshSurfaces(); ++isu)
+	{
+        ChSharedPtr<ChMeshSurface> msurface = this->FEMmesh->GetMeshSurface(isu);
+        for (unsigned int ifa=0; ifa < msurface->GetFacesList().size(); ++ifa)
+	    {
+            ChSharedPtr<ChLoadableUV> mface = msurface->GetFacesList()[ifa];
+		    // FACE ELEMENT IS A TETRAHEDRON FACE
+		    if ( mface.IsType<ChFaceTetra_4>() )
+		    {
+                ChSharedPtr<ChFaceTetra_4> mfacetetra = mface.DynamicCastTo<ChFaceTetra_4>(); 
+			    ChSharedPtr<ChNodeFEAxyz> node0( mfacetetra->GetNodeN(0).DynamicCastTo<ChNodeFEAxyz>() ); 
+			    ChSharedPtr<ChNodeFEAxyz> node1( mfacetetra->GetNodeN(1).DynamicCastTo<ChNodeFEAxyz>() );
+			    ChSharedPtr<ChNodeFEAxyz> node2( mfacetetra->GetNodeN(2).DynamicCastTo<ChNodeFEAxyz>() );
+
+			    unsigned int ivert_el = i_verts;
+			    unsigned int inorm_el = i_vnorms;
+
+			    // vertexes
+			    ChVector<> p0 = node0->GetPos();
+			    ChVector<> p1 = node1->GetPos();
+			    ChVector<> p2 = node2->GetPos();
+ p0.x+= -1;
+ p1.x+= -1;
+ p2.x+= -1;
+			    trianglemesh.getCoordsVertices()[i_verts] = p0; 
+			    ++i_verts;
+			    trianglemesh.getCoordsVertices()[i_verts] = p1; 
+			    ++i_verts;
+			    trianglemesh.getCoordsVertices()[i_verts] = p2; 
+			    ++i_verts;
+	
+			    // colour
+			    trianglemesh.getCoordsColors()[i_vcols] =  ChVector<>(1,0,0);
+			    ++i_vcols;
+			    trianglemesh.getCoordsColors()[i_vcols] =  ChVector<>(1,0,0);
+			    ++i_vcols;
+			    trianglemesh.getCoordsColors()[i_vcols] =  ChVector<>(1,0,0);
+			    ++i_vcols;
+
+			    // faces indexes
+			    ChVector<int> ivert_offset(ivert_el,ivert_el,ivert_el);
+			    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,1,2) +  ivert_offset;
+			    ++i_triindex;
+
+
+			    // normals indices (if not defaulting to flat triangles)
+			    if (this->smooth_faces)
+			    {
+				    ChVector<int> inorm_offset = ChVector<int> (inorm_el,inorm_el,inorm_el);
+				    trianglemesh.getIndicesNormals()[i_triindex-4] = ChVector<int> (0,0,0) + inorm_offset;
+				    i_vnorms +=1;
+			    }
+		    }
+
+		    // FACE ELEMENT IS A SHELL
+		    if (mface.IsType<ChElementTetra_4_P>() )
+		    {
+			    //***TODO***
+		    }
+        }
+    }
+
+
 
 
 	if (this->smooth_faces)
