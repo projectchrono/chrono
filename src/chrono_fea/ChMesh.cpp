@@ -115,6 +115,14 @@ void ChMesh::ClearContactSurfaces()
 	vcontactsurfaces.clear();
 }
 
+
+void ChMesh::AddMeshSurface ( ChSharedPtr<ChMeshSurface> m_surf)
+{
+    m_surf->SetMesh(this);
+	this->vmeshsurfaces.push_back(m_surf);
+}
+
+
 /// This recomputes the number of DOFs, constraints,
 /// as well as state offsets of contained items 
 void ChMesh::Setup()
