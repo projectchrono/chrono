@@ -31,6 +31,7 @@
 
 #include "core/ChStream.h"
 #include "core/ChFrameMoving.h"
+#include "physics/ChBodyAuxRef.h"
 
 class TopoDS_Face;
 class TopoDS_Shape;
@@ -113,6 +114,12 @@ class ChApiCASCADE ChCascadeDoc {
 
     /// Convert Chrono coordinates into OpenCascade coordinates
     static void FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord);
+
+    /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
+    static ChSharedPtr<ChBodyAuxRef> CreateBodyFromShape(
+                const TopoDS_Shape& mshape,   ///< pass the shape here
+                const double density          ///< pass the density here
+                );
 
   private:
     // pointer to cascade OCAF doc handle;
