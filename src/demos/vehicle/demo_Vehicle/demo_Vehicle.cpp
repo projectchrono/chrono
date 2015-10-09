@@ -48,7 +48,7 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
 // ...and specify whether the demo should actually use Irrlicht
-#define USE_IRRLICHT
+//#define USE_IRRLICHT
 #endif
 
 using namespace chrono;
@@ -60,7 +60,8 @@ using namespace chrono;
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
-std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
+//std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
+std::string vehicle_file("MAN_5t/vehicle/MAN_5t_Vehicle_4WD.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_ThreeAxles.json");
@@ -68,8 +69,13 @@ std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
 // std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
 
 // JSON files for terrain (rigid plane), tire models (rigid), and powertrain (simple)
+//std::string rigidterrain_file("terrain/RigidPlane.json");
+//std::string rigidtire_file("generic/tire/RigidTire.json");
+//std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
+
+// JSON files MAN 5t for terrain (rigid plane), tire models (rigid), and powertrain (simple)
 std::string rigidterrain_file("terrain/RigidPlane.json");
-std::string rigidtire_file("generic/tire/RigidTire.json");
+std::string rigidtire_file("MAN_5t/tire/MAN_5t_RigidTire.json");
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // Driver input file (if not using Irrlicht)
@@ -91,7 +97,7 @@ double terrainLength = 300.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 1e-4;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50

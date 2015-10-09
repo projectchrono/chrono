@@ -5,8 +5,8 @@
 
   "Chassis":
   {
-    "Mass":     2086.524902,
-    "COM":      [0.055765, 0, 0.52349],
+    "Mass":     5400.00,
+    "COM":      [2,0, 0, 1.0],
     "Inertia":  [1078.52344, 2955.66050, 3570.20377]
   },
 
@@ -14,7 +14,7 @@
   [
     {
       "Suspension Input File":   "MAN_5t/suspension/MAN_5t_SolidAxle.json",
-      "Suspension Location":     [4.3013, 0, 0.0264],
+      "Suspension Location":     [4.311, 0, -0.040],
       "Steering Index":          0,
       "Left Wheel Input File":   "MAN_5t/wheel/MAN_5t_Wheel_FrontLeft.json",
       "Right Wheel Input File":  "MAN_5t/wheel/MAN_5t_Wheel_FrontRight.json",
@@ -24,7 +24,7 @@
 
     {
       "Suspension Input File":   "MAN_5t/suspension/MAN_5t_SolidAxle.json",
-      "Suspension Location":     [-0.0100, 0, 0.0264],
+      "Suspension Location":     [0.0200, 0, -0.040],
       "Left Wheel Input File":   "MAN_5t/wheel/MAN_5t_Wheel_RearLeft.json",
       "Right Wheel Input File":  "MAN_5t/wheel/MAN_5t_Wheel_RearRight.json",
       "Left Brake Input File":   "MAN_5t/brake/MAN_5t_BrakeSimple.json",

@@ -10,7 +10,7 @@
   {
     "Mesh Filename":            "MAN_5t/MAN_5t_wheel_L.obj",
     "Mesh Name":                "MAN_5t_wheel_L_POV_geom",
-    "Radius":                   0.62,
+    "Radius":                   0.6,
     "Width":                    0.3
   }
 }
