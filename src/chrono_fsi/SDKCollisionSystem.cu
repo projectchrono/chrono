@@ -300,7 +300,9 @@ __device__ Real4 collideCell(int3 gridPos,
             //						rhoPresMuB.y = rhoPresMuA.y;
           }
           //*** modify the pressure at the periodic boundary
-          //					if (length(posRadA - posRadB) > (RESOLUTION_LENGTH_MULT + 1) * paramsD.HSML) {
+          //					if (length(posRadA - posRadB) > (RESOLUTION_LENGTH_MULT + 1) *
+          // paramsD.HSML)
+          //{
           ////i.e.
           // at
           // periodic BC. project pressure up the periodic boundary
@@ -309,7 +311,7 @@ __device__ Real4 collideCell(int3 gridPos,
           //					}
           //*** end modify the pressure at the boundary
           //					else { //**One of them is fluid, the other one is fluid/solid (boundary
-          //was
+          // was
           // considered
           // previously)
           //						multViscosit = 1.0f;
@@ -1329,11 +1331,11 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real3* posRadD, Real4* rhoPresMuD) 
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void allocateArray(void** devPtr, size_t size) {
-  cutilSafeCall(cudaMalloc(devPtr, size));
+  cudaMalloc(devPtr, size);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void freeArray(void* devPtr) {
-  cutilSafeCall(cudaFree(devPtr));
+  cudaFree(devPtr);
 }
 
 /**
@@ -1373,8 +1375,8 @@ void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads) 
  */
 void setParameters(SimParams* hostParams, NumberOfObjects* numObjects) {
   // copy parameters to constant memory
-  cutilSafeCall(cudaMemcpyToSymbolAsync(paramsD, hostParams, sizeof(SimParams)));
-  cutilSafeCall(cudaMemcpyToSymbolAsync(numObjectsD, numObjects, sizeof(NumberOfObjects)));
+  cudaMemcpyToSymbolAsync(paramsD, hostParams, sizeof(SimParams));
+  cudaMemcpyToSymbolAsync(numObjectsD, numObjects, sizeof(NumberOfObjects));
 }
 
 /**
@@ -1395,7 +1397,7 @@ void calcHash(thrust::device_vector<uint>& gridMarkerHash,
 
   /* Check for errors in kernel execution */
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: calcHash");
+  cudaCheckError();
 }
 
 /**
@@ -1423,7 +1425,7 @@ void reorderDataAndFindCellStart(thrust::device_vector<uint>& cellStart,
   computeGridSize(numAllMarkers, 256, numBlocks, numThreads);  //?$ 256 is blockSize
 
   /* Set all cells to empty */
-  cutilSafeCall(cudaMemset(U1CAST(cellStart), 0xffffffff, numCells * sizeof(uint)));
+  cudaMemset(U1CAST(cellStart), 0xffffffff, numCells * sizeof(uint));
 
   //#if USE_TEX
   //#if 0
@@ -1445,7 +1447,7 @@ void reorderDataAndFindCellStart(thrust::device_vector<uint>& cellStart,
                                                                        mR4CAST(oldRhoPreMu),
                                                                        numAllMarkers);
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: reorderDataAndFindCellStartD");
+  cudaCheckError();
   //#if USE_TEX
   //#if 0
   //    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -1480,7 +1482,7 @@ void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
                                               numAllMarkers);
 
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: newVel_XSPH_D");
+  cudaCheckError();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void RecalcSortedVelocityPressure_BCE(thrust::device_vector<Real4>& sortedVelMas,
@@ -1507,7 +1509,7 @@ void RecalcSortedVelocityPressure_BCE(thrust::device_vector<Real4>& sortedVelMas
        U1CAST(cellEnd),
        numAllMarkers);
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: new_BCE_VelocityPressure");
+  cudaCheckError();
 
   thrust::copy(sortedVelMas_ModifiedBCE.begin(), sortedVelMas_ModifiedBCE.end(), sortedVelMas.begin());
   thrust::copy(sortedRhoPreMu_ModifiedBCE.begin(), sortedRhoPreMu_ModifiedBCE.end(), sortedRhoPreMu.begin());
@@ -1540,13 +1542,13 @@ void CalcBCE_Stresses(thrust::device_vector<Real3>& devStressD,
                                                         numBCE);
 
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: CalcBCE_Stresses_kernel");
+  cudaCheckError();
 
   CalcBCE_MainStresses_kernel << <numBlocks, numThreads>>>
       (mR4CAST(mainStressD), mR3CAST(devStressD), mR3CAST(volStressD), numBCE);
 
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: CalcBCE_MainStresses_kernel");
+  cudaCheckError();
 }
 
 /**
@@ -1591,7 +1593,7 @@ void collide(thrust::device_vector<Real4>& derivVelRhoD,
                                          numAllMarkers);
 
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: collideD");
+  cudaCheckError();
 
   //#if USE_TEX
   //    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -1635,7 +1637,7 @@ void ReCalcDensity(thrust::device_vector<Real3>& oldPosRad,
                                                   numAllMarkers);
 
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
+  cudaCheckError();
 
   //#if USE_TEX
   //    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -1673,7 +1675,7 @@ void ProjectDensityPressureToBCandBCE(thrust::device_vector<Real4>& oldRhoPreMu,
                                                                    numAllMarkers);
 
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
+  cudaCheckError();
 
   //#if USE_TEX
   //    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -1694,8 +1696,8 @@ void CalcCartesianData(thrust::device_vector<Real4>& rho_Pres_CartD,
                        uint cartesianGridSize,
                        int3 cartesianGridDims,
                        Real resolution) {
-  cutilSafeCall(cudaMemcpyToSymbolAsync(cartesianGridDimsD, &cartesianGridDims, sizeof(cartesianGridDims)));
-  cutilSafeCall(cudaMemcpyToSymbolAsync(resolutionD, &resolution, sizeof(resolution)));
+  cudaMemcpyToSymbolAsync(cartesianGridDimsD, &cartesianGridDims, sizeof(cartesianGridDims));
+  cudaMemcpyToSymbolAsync(resolutionD, &resolution, sizeof(resolution));
 
   // thread per particle
   uint numThreads, numBlocks;
@@ -1712,7 +1714,7 @@ void CalcCartesianData(thrust::device_vector<Real4>& rho_Pres_CartD,
                                                    U1CAST(cellEnd));
 
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
+  cudaCheckError();
 
   //#if USE_TEX
   //    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -1747,7 +1749,7 @@ void UpdateFluid(thrust::device_vector<Real3>& posRadD,
   UpdateFluidD << <nBlock_UpdateFluid, nThreads>>>
       (mR3CAST(posRadD), mR4CAST(velMasD), mR3CAST(vel_XSPH_D), mR4CAST(rhoPresMuD), mR4CAST(derivVelRhoD));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
+  cudaCheckError();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles by calling UpdateFluid_init_LF
@@ -1772,7 +1774,7 @@ void UpdateFluid_init_LF(thrust::device_vector<Real3>& posRadD,
   UpdateFluidD_init_LF << <nBlock_UpdateFluid, nThreads>>>
       (mR3CAST(posRadD), mR4CAST(velMasD_half), mR4CAST(rhoPresMuD_half), mR4CAST(derivVelRhoD));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: UpdateFluid_init_LF");
+  cudaCheckError();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles by calling UpdateFluid_rho_vel_LF
@@ -1798,7 +1800,7 @@ void UpdateFluid_rho_vel_LF(thrust::device_vector<Real4>& velMasD,
   UpdateFluidD_rho_vel_LF << <nBlock_UpdateFluid, nThreads>>>
       (mR4CAST(velMasD), mR4CAST(rhoPresMuD), mR4CAST(velMasD_old), mR4CAST(rhoPresMuD_old), mR4CAST(derivVelRhoD));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: UpdateFluid_rho_vel_LF");
+  cudaCheckError();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles by calling UpdateFluid_EveryThing_LF
@@ -1823,7 +1825,7 @@ void UpdateFluid_EveryThing_LF(thrust::device_vector<Real3>& posRadD,
   UpdateFluidD_EveryThing_LF << <nBlock_UpdateFluid, nThreads>>>
       (mR3CAST(posRadD), mR4CAST(velMasD_half), mR4CAST(rhoPresMuD_half), mR4CAST(derivVelRhoD));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: UpdateFluid_EveryThing_LF");
+  cudaCheckError();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1836,7 +1838,7 @@ void Copy_SortedVelXSPH_To_VelXSPH(thrust::device_vector<Real3>& vel_XSPH_D,
   Copy_SortedVelXSPH_To_VelXSPHD << <nBlock_NumSpheres, nThreads_SphMarkers>>>
       (mR3CAST(vel_XSPH_D), mR3CAST(vel_XSPH_Sorted_D), U1CAST(m_dGridMarkerIndex));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: Copy_SortedVelXSPH_To_VelXSPH");
+  cudaCheckError();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles by calling UpdateBoundary
@@ -1860,7 +1862,7 @@ void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
   UpdateKernelBoundary << <nBlock_UpdateFluid, nThreads>>>
       (mR3CAST(posRadD), mR4CAST(velMasD), mR4CAST(rhoPresMuD), mR4CAST(derivVelRhoD));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelBoundary");
+  cudaCheckError();
 }
 
 /**
@@ -1875,16 +1877,16 @@ void ApplyBoundarySPH_Markers(thrust::device_vector<Real3>& posRadD,
   computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
   ApplyPeriodicBoundaryXKernel << <nBlock_NumSpheres, nThreads_SphMarkers>>> (mR3CAST(posRadD), mR4CAST(rhoPresMuD));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
+  cudaCheckError();
   // these are useful anyway for out of bound particles
   ApplyPeriodicBoundaryYKernel << <nBlock_NumSpheres, nThreads_SphMarkers>>> (mR3CAST(posRadD), mR4CAST(rhoPresMuD));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryYKernel");
+  cudaCheckError();
   ApplyPeriodicBoundaryZKernel << <nBlock_NumSpheres, nThreads_SphMarkers>>> (mR3CAST(posRadD), mR4CAST(rhoPresMuD));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryZKernel");
+  cudaCheckError();
 
   //	SetOutputPressureToZero_X<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR3CAST(posRadD), mR4CAST(rhoPresMuD));
-  //	cudaThreadSynchronize();
-  //	CUT_CHECK_ERROR("Kernel execution failed: SetOutputPressureToZero");
+  //    cudaThreadSynchronize();
+  //    cudaCheckError();
 }

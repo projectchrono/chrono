@@ -86,8 +86,6 @@
 //
 // Legacy CUTIL macros. Currently default to no-ops (TODO)
 // ----------------------------------------------------------------------------
-#define cutilSafeCall(x) x
-
 #define cudaCheckError()                                                               \
   {                                                                                    \
     cudaError_t e = cudaGetLastError();                                                \
@@ -96,8 +94,6 @@
       exit(0);                                                                         \
     }                                                                                  \
   }
-
-#define CUT_CHECK_ERROR(x) cudaCheckError()
 
 // --------------------------------------------------------------------
 // GpuTimer

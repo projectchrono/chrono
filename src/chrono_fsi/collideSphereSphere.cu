@@ -450,6 +450,8 @@ void Populate_RigidSPH_MeshPos_LRF(thrust::device_vector<uint>& rigidIdentifierD
 
   Populate_RigidSPH_MeshPos_LRF_kernel << <nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>
       (mR3CAST(rigidSPH_MeshPos_LRF_D), mR3CAST(posRadD), U1CAST(rigidIdentifierD), mR3CAST(posRigidD), mR4CAST(qD));
+  cudaThreadSynchronize();
+  cudaCheckError();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -473,7 +475,7 @@ void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
   if (numObjects.numRigidBodies == 0) {
     return;
   }
-  cutilSafeCall(cudaMemcpyToSymbolAsync(solid_SPH_massD, &sphMass, sizeof(sphMass)));
+  cudaMemcpyToSymbolAsync(solid_SPH_massD, &sphMass, sizeof(sphMass));
   //################################################### make force and torque arrays
   //####### Force (Acceleration)
   thrust::device_vector<Real4> totalSurfaceInteractionRigid4(numObjects.numRigidBodies);
@@ -500,7 +502,7 @@ void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
   Calc_Rigid_FSI_ForcesD << <nBlock_UpdateRigid, nThreads_rigidParticles>>>
       (mR3CAST(rigid_FSI_ForcesD), mR4CAST(totalSurfaceInteractionRigid4));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: Calc_Rigid_FSI_ForcesD");
+  cudaCheckError();
 
   totalSurfaceInteractionRigid4.clear();
 
@@ -515,7 +517,7 @@ void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
   Calc_Markers_TorquesD << <nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>
       (mR3CAST(torqueMarkersD), mR4CAST(derivVelRhoD), mR3CAST(posRadD), U1CAST(rigidIdentifierD), mR3CAST(posRigidD));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: Calc_Markers_TorquesD");
+  cudaCheckError();
 
   (void)thrust::reduce_by_key(rigidIdentifierD.begin(),
                               rigidIdentifierD.end(),
@@ -549,7 +551,7 @@ void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
 
   //################################################### update BCE markers position
   //** "posRadD2"/"velMasD2" associated to BCE markers are updated based on new rigid body (position,
-  //orientation)/(velocity, angular velocity)
+  // orientation)/(velocity, angular velocity)
   UpdateRigidMarkersPositionD << <nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>> (mR3CAST(posRadD),
                                                                                        mR4CAST(velMasD),
                                                                                        mR3CAST(rigidSPH_MeshPos_LRF_D),
@@ -559,7 +561,7 @@ void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
                                                                                        mR3CAST(omegaLRF_D),
                                                                                        mR4CAST(qD));
   cudaThreadSynchronize();
-  CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
+  cudaCheckError();
 }
 
 //*******************************************************************************************************************************
@@ -650,6 +652,8 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
   uint nBlock_NumSpheres, nThreads_SphMarkers;
   computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
   CustomCopyR4ToR3 << <nBlock_NumSpheres, nThreads_SphMarkers>>> (mR3CAST(dummy_XSPH), mR4CAST(m_dSortedVelMas));
+  cudaThreadSynchronize();
+  cudaCheckError();
 
   collide(derivVelRhoD,
           m_dSortedPosRad,
@@ -780,8 +784,8 @@ void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
  */
 void InitSystem(SimParams paramsH, NumberOfObjects numObjects) {
   setParameters(&paramsH, &numObjects);                                          // sets paramsD in SDKCollisionSystem
-  cutilSafeCall(cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams)));  // sets paramsD for this file
-  cutilSafeCall(cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
+  cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams));  // sets paramsD for this file
+  cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects));
 }
 /**
  * @brief See collideSphereSphere.cuh for documentation.
