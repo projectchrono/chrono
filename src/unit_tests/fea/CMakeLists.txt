@@ -6,6 +6,15 @@ SET(TESTS
 
 MESSAGE(STATUS "Unit test programs for FEA module...")
 
+# A hack to set the working directory in which to execute the CTest
+# runs.  This is needed for tests that need to access the Chrono data
+# directory (since we use a relative path to it)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>")
+else()
+  set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
+endif()
+
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")
 
@@ -22,5 +31,8 @@ FOREACH(PROGRAM ${TESTS})
     ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
-    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
-ENDFOREACH(PROGRAM)
+
+    ADD_TEST(NAME ${PROGRAM}
+             COMMAND ${PROGRAM}
+             WORKING_DIRECTORY ${MY_WORKING_DIR})
+ENDFOREACH()
