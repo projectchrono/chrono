@@ -22,7 +22,7 @@
 // Nodal Co-ordinate Formulation", Nonlinear Dynamics, 45: 109–130.
 //
 // Special attention must be paid to the number of Gauss points for gravity. For
-// successful verification, this number must be manually set to 2.
+// successful verification, this number must be 2.
 // =============================================================================
 #include <cstdio>
 
@@ -154,16 +154,19 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChLoadContainer> mloadcontainer(new ChLoadContainer);
     my_system.Add(mloadcontainer);
 
-    // Add gravity (constant volumetric load): Use 2 Gauss integration points in "virtual int GetIntegrationPointsU()
-    // {return 2;}" (class ChLoaderGravity)
+    // Add gravity (constant volumetric load): Use 2 Gauss integration points
 
     ChSharedPtr<ChLoad<ChLoaderGravity> > mgravity1(new ChLoad<ChLoaderGravity>(belementancf1));
+    mgravity1->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity1);
     ChSharedPtr<ChLoad<ChLoaderGravity> > mgravity2(new ChLoad<ChLoaderGravity>(belementancf2));
+    mgravity2->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity2);
     ChSharedPtr<ChLoad<ChLoaderGravity> > mgravity3(new ChLoad<ChLoaderGravity>(belementancf3));
+    mgravity3->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity3);
     ChSharedPtr<ChLoad<ChLoaderGravity> > mgravity4(new ChLoad<ChLoaderGravity>(belementancf4));
+    mgravity4->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity4);
 
     // Change solver settings
@@ -206,7 +209,7 @@ int main(int argc, char* argv[]) {
 
         if (AbsVal > precision) {
             std::cout << "Unit test check failed \n";
-            exit(1);
+            return 1;
         }
     }
     std::cout << "Unit test check succeeded \n";

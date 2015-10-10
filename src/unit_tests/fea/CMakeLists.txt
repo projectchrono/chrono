@@ -1,11 +1,10 @@
 SET(LIBRARIES ChronoEngine ChronoEngine_fea)
-INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_FEA_INCLUDES})
 
 SET(TESTS
     test_ANCFBeam
 )
 
-MESSAGE(STATUS "Unit test programs for MATLAB module...")
+MESSAGE(STATUS "Unit test programs for FEA module...")
 
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")
