@@ -36,9 +36,7 @@
 #include "chrono_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "chrono_vehicle/ChDriver.h"
-#include "chrono_vehicle/utils/ChSteeringController.h"
-#include "chrono_vehicle/utils/ChSpeedController.h"
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
 using namespace chrono;
 using namespace geometry;
@@ -108,64 +106,6 @@ int num_steps = 5000;           // number of steps for data colection
 void processData(const utils::CSV_writer& csv, const Data& data);
 
 // =============================================================================
-// Definition of custom driver with PID steering controller
-
-class MyDriver : public ChDriver {
-  public:
-    MyDriver(ChVehicle& vehicle,
-             const std::string& steering_filename,
-             const std::string& speed_filename,
-             ChBezierCurve* path)
-        : m_vehicle(vehicle), m_steeringPID(steering_filename, path), m_speedPID(speed_filename), m_target_speed(0) {
-        m_steeringPID.Reset(vehicle);
-        m_speedPID.Reset(vehicle);
-    }
-
-    ~MyDriver() {}
-
-    void SetDesiredSpeed(double val) { m_target_speed = val; }
-
-    chrono::ChPathSteeringController& GetSteeringController() { return m_steeringPID; }
-    chrono::ChSpeedController& GetSpeedController() { return m_speedPID; }
-
-    void Reset() {
-        m_steeringPID.Reset(m_vehicle);
-        m_speedPID.Reset(m_vehicle);
-    }
-
-    virtual void Advance(double step) override {
-        // Set the throttle and braking values based on the output from the speed controller.
-        double out_speed = m_speedPID.Advance(m_vehicle, m_target_speed, step);
-        ChClampValue(out_speed, -1.0, 1.0);
-
-        if (out_speed > 0) {
-            // Vehicle moving too slow
-            m_braking = 0;
-            m_throttle = out_speed;
-        } else if (m_throttle > 0.3) {
-            // Vehicle moving too fast: reduce throttle
-            m_braking = 0;
-            m_throttle = 1 + out_speed;
-        } else {
-            // Vehicle moving too fast: apply brakes
-            m_braking = -out_speed;
-            m_throttle = 0;
-        }
-
-        // Set the steering value based on the output from the steering controller.
-        double out_steering = m_steeringPID.Advance(m_vehicle, step);
-        ChClampValue(out_steering, -1.0, 1.0);
-        m_steering = out_steering;
-    }
-
-  private:
-    chrono::ChVehicle& m_vehicle;
-    chrono::ChPathSteeringController m_steeringPID;
-    chrono::ChSpeedController m_speedPID;
-    double m_target_speed;
-};
-
-// =============================================================================
 // Main driver program
 
 int main(int argc, char* argv[]) {
@@ -218,9 +158,8 @@ int main(int argc, char* argv[]) {
 
     // Create the driver system
     ChBezierCurve* path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
-    MyDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
-                    vehicle::GetDataFile(speed_controller_file), path);
-    driver.SetDesiredSpeed(target_speed);
+    ChPathFollowerDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
+                                vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
 
     // Create a path tracker to keep track of the error in vehicle location.
     ChBezierCurveTracker tracker(path);

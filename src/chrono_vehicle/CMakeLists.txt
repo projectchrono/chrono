@@ -168,6 +168,8 @@ set(CV_DRIVELINE_FILES
 set(CV_DRIVER_FILES
     driver/ChDataDriver.h
     driver/ChDataDriver.cpp
+    driver/ChPathFollowerDriver.h
+    driver/ChPathFollowerDriver.cpp
 )
 
 set(CV_POVERTRAIN_FILES
