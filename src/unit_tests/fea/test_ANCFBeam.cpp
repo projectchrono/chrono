@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
     ChSystem my_system;
-    unsigned int num_steps = 20000;
+    unsigned int num_steps = 200;
     utils::Data m_data;  // Matrices to store datac
 
     // Create a mesh, that is a container for groups of elements and
