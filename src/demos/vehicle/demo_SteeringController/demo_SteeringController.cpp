@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
     // -------------------------
 
     // Create both a GUI driver and a path-follower and allow switching between them
-    ChIrrGuiDriver driver_gui(app, my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain());
+    ChIrrGuiDriver driver_gui(app);
 
     /*
     ChPathFollowerDriver driver_follower(my_hmmwv.GetVehicle(), path, "my_path", target_speed);

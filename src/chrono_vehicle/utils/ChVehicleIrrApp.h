@@ -171,6 +171,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
 #endif
 
     friend class ChCameraEventReceiver;
+    friend class ChIrrGuiDriver;
 };
 
 }  // end namespace chrono

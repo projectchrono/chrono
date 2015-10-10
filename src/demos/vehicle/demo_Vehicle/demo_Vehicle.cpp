@@ -48,7 +48,7 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
 // ...and specify whether the demo should actually use Irrlicht
-//#define USE_IRRLICHT
+#define USE_IRRLICHT
 #endif
 
 using namespace chrono;
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
         application.AddShadowAll();
     */
 
-    ChIrrGuiDriver driver(app, vehicle, powertrain);
+    ChIrrGuiDriver driver(app);
 
     // Set the time response for steering and throttle keyboard inputs.
     // NOTE: this is not exact, since we do not render quite at the specified FPS.
