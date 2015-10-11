@@ -67,8 +67,17 @@ public:
   /// Get a handle to the vehicle's chassis body.
   ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
-  /// Get a handle to the specified vehicle wheel.
+  /// Get the specified suspension subsystem.
+  ChSharedPtr<ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
+
+  /// Get the specified steering subsystem.
+  ChSharedPtr<ChSteering> GetSteering(int id) { return m_steerings[id]; }
+
+  /// Get a handle to the specified vehicle wheel subsystem.
   ChSharedPtr<ChWheel> GetWheel(const ChWheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
+
+  /// Get a handle to the specified vehicle brake subsystem.
+  ChSharedPtr<ChBrake> GetBrake(const ChWheelID& wheel_id) const { return m_brakes[wheel_id.id()]; }
 
   /// Get a handle to the vehicle's driveline subsystem.
   ChSharedPtr<ChDriveline> GetDriveline() const { return m_driveline; }
