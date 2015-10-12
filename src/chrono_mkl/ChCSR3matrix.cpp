@@ -10,7 +10,7 @@ namespace chrono {
 		colIndex_lock(false),
 		rowIndex_lock_broken(false),
 		colIndex_lock_broken(false),
-		write_counter(0)
+		symmetry(NO_SYMMETRY)
 	{
 		assert(insrow > 0 && inscol > 0 && nonzeros >= 0);
 		rowIndex_lock = false;
@@ -50,7 +50,7 @@ namespace chrono {
 		colIndex_lock(false),
 		rowIndex_lock_broken(false),
 		colIndex_lock_broken(false),
-		write_counter(0)
+		symmetry(NO_SYMMETRY)
 	{
 		assert(insrow > 0 && inscol > 0);
 		rowIndex_lock = true;
@@ -99,11 +99,13 @@ namespace chrono {
 		assert(insrow < mat_rows && inscol < mat_cols);
 		assert(insrow >= 0 && inscol >= 0);
 
+		if ((symmetry == UPPER_SYMMETRY_POSDEF || symmetry == UPPER_SYMMETRY_INDEF) && insrow<inscol ||
+			symmetry == LOWER_SYMMETRY && insrow>inscol)
+			return;
 
 		int col_sel = rowIndex[insrow];
 		while (1)
 		{
-			write_counter++;
 			// case: element not found in the row OR another element with a higher col number is already been stored
 			if (col_sel >= rowIndex[insrow + 1] || colIndex[col_sel] > inscol){
 				if (insval!=0) // avoid to insert zero elements
@@ -128,8 +130,6 @@ namespace chrono {
 				if (overwrite) // allows to write zeros
 					values[col_sel] = insval;
 				else
-					if (values[col_sel] != 0)
-						write_counter--;
 					values[col_sel] += insval;
 				break;
 			}
@@ -460,7 +460,7 @@ namespace chrono {
 			
 	}
 
-	void ChCSR3Matrix::GetNonZerosVector(int* nonzeros_vector) const
+	void ChCSR3Matrix::GetNonZerosDistribution(int* nonzeros_vector) const
 	{
 		for (int row_sel = 0; row_sel < mat_rows; row_sel++)
 			nonzeros_vector[row_sel] = rowIndex[row_sel + 1] - rowIndex[row_sel];
@@ -773,7 +773,6 @@ namespace chrono {
 	{
 		assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
-		write_counter = 0;
 		if (TESTING_CSR3){
 			mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
 		}

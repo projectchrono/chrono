@@ -3,19 +3,16 @@
 #include "chrono/core/ChMatrixDynamic.h"
 
 #include "chrono_mkl/ChLcpMklSolver.h"
-
-
-#define ALIGNMENTTOCHECK 32
-#include <chrono/core/ChMatrixNM.h>
+#include <mkl.h>
 
 using namespace chrono;
 
 
 template<class ChMatrixIN>
-void PrintMatrix(ChMatrixIN* matrice){
-	for (int i = 0; i < matrice->GetRows(); i++){
-		for (int j = 0; j < matrice->GetColumns(); j++){
-			printf("%.1f ", matrice->GetElement(i,j));
+void PrintMatrix(ChMatrixIN& matrice){
+	for (int i = 0; i < matrice.GetRows(); i++){
+		for (int j = 0; j < matrice.GetColumns(); j++){
+			printf("%f ", matrice.GetElement(i,j));
 		}
 		printf("\n");
 	}
@@ -37,8 +34,8 @@ void LoadFromMatrix(ChMatrix<>& output_mat, std::string filename)
 }
 
 
-int main(){
-
+void test_CSR3()
+{
 	std::cout << "//////////// CSR3 Matrix: basic functions testing //////////////" << std::endl;
 	int m = 3;
 	int n = 5;
@@ -59,13 +56,13 @@ int main(){
 	matCSR3_1.SetElement(0, 1, 0.7);
 
 	double elem = matCSR3_1.Element(2, 0);
-	matCSR3_1.Element(2, 0) = matCSR3_1.Element(0,1);
+	matCSR3_1.Element(2, 0) = matCSR3_1.Element(0, 1);
 	//double* elem = &(matCSR3_1.Element(2, 0));
 
-	matCSR3_1(2,2 ) = 5;
+	matCSR3_1(2, 2) = 5;
 
 	matCSR3_1.Compress();
-	
+
 	for (int i = 0; i < m; i++)
 	{
 		for (int j = 0; j < n; j++)
@@ -94,7 +91,6 @@ int main(){
 		printf("\n");
 	}
 
-
 	/////////////////
 	std::cout << std::endl << "//////////// CSR3 Matrix: Sparsity pattern testing //////////////" << std::endl;
 	matCSR3_1.SetRowIndexLock(true);
@@ -109,9 +105,11 @@ int main(){
 		}
 		printf("\n");
 	}
-	
 
-	///////////////////////////////////
+}
+
+void test_MklEngine()
+{
 	std::cout << std::endl << "//////////// Simple ChMklEngine call //////////////" << std::endl;
 	std::cout << "This example should give the same results as examples_core_c/solverc/pardiso_unsym_c.c";
 
@@ -122,23 +120,23 @@ int main(){
 	// double a[13] =  {  1.0, -1.0, -3.0, -2.0,  5.0,  4.0,  6.0,  4.0, -4.0,  2.0,  7.0,  8.0, -5.0 };
 
 
-	n = 5;
+	int n = 5;
 	ChCSR3Matrix matCSR3(n, n);
 	ChMatrixDynamic<double> rhs(n, 1);
 	ChMatrixDynamic<double> sol(n, 1);
 
-	matCSR3.SetElement(0, 0,  1.0);
+	matCSR3.SetElement(0, 0, 1.0);
 	matCSR3.SetElement(0, 1, -1.0);
 	matCSR3.SetElement(0, 3, -3.0);
 	matCSR3.SetElement(1, 0, -2.0);
-	matCSR3.SetElement(1, 1,  5.0);
-	matCSR3.SetElement(2, 2,  4.0);
-	matCSR3.SetElement(2, 3,  6.0);
-	matCSR3.SetElement(2, 4,  4.0);
+	matCSR3.SetElement(1, 1, 5.0);
+	matCSR3.SetElement(2, 2, 4.0);
+	matCSR3.SetElement(2, 3, 6.0);
+	matCSR3.SetElement(2, 4, 4.0);
 	matCSR3.SetElement(3, 0, -4.0);
-	matCSR3.SetElement(3, 2,  2.0);
-	matCSR3.SetElement(3, 3,  7.0);
-	matCSR3.SetElement(4, 1,  8.0);
+	matCSR3.SetElement(3, 2, 2.0);
+	matCSR3.SetElement(3, 3, 7.0);
+	matCSR3.SetElement(4, 1, 8.0);
 	matCSR3.SetElement(4, 4, -5.0);
 
 	for (int cont = 0; cont < n; cont++)
@@ -158,7 +156,13 @@ int main(){
 	pardiso_solver.GetResidual(res);
 	double res_norm = pardiso_solver.GetResidualNorm(res);
 	GetLog() << "\nResidual Norm: " << res_norm;
-
-	getchar();
-
 }
+
+int main(){
+
+	test_CSR3();
+
+	test_MklEngine();
+	
+}
+

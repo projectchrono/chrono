@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
        application.AddShadowAll();
     */
 
-    ChIrrGuiDriver driver(app, vehicle, powertrain);
+    ChIrrGuiDriver driver(app);
 
     // Set the time response for steering and throttle keyboard inputs.
     // NOTE: this is not exact, since we do not render quite at the specified FPS.

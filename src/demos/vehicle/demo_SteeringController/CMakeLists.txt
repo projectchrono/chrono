@@ -46,8 +46,6 @@ SET(MODEL_FILES
     ../hmmwv/tire/HMMWV_LugreTire.cpp
     ../hmmwv/tire/HMMWV_FialaTire.h
     ../hmmwv/tire/HMMWV_FialaTire.cpp
-    ../generic/Generic_PathFollowerDriver.h
-    ../generic/Generic_PathFollowerDriver.cpp
 )
 
 SET(DEMO_FILES

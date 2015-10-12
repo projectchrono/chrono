@@ -59,7 +59,6 @@ namespace chrono {
 
 	   bool size_lock;
 	   bool sparsity_pattern_lock;
-	   bool print_residual;
 	   bool use_perm;
 	   bool use_rhs_sparsity;
 
@@ -73,7 +72,6 @@ namespace chrono {
 
 	   void SetProblemSizeLock(bool on_off){ size_lock = on_off; };
 	   void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; };
-	   void PrintResidualNorm(bool on_off) { print_residual = on_off; }
 	   void UsePermutationVector(bool on_off) { use_perm = on_off;  };
 	   void LeverageRhsSparsity(bool on_off) { use_rhs_sparsity = on_off; };
 

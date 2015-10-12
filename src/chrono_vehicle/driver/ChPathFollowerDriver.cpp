@@ -12,6 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
+// A driver model that uses a path steering controller and a speed controller.
+// The steering controller adjusts the steering input to follow the prescribed
+// path.  The output from the speed controller is used to adjust throttle and
+// braking inputs in order to maintain the prescribed vehicle speed.
 //
 // =============================================================================
 
@@ -19,31 +23,38 @@
 #include "chrono/geometry/ChCLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "generic/Generic_PathFollowerDriver.h"
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
-using namespace chrono;
+namespace chrono {
 
-Generic_PathFollowerDriver::Generic_PathFollowerDriver(ChVehicle& vehicle,
-                                                       ChBezierCurve* path,
-                                                       const std::string& path_name)
-    : m_vehicle(vehicle), m_steeringPID(path), m_pathName(path_name), m_target_speed(0) {
+ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
+                                           ChBezierCurve* path,
+                                           const std::string& path_name,
+                                           double target_speed)
+    : m_vehicle(vehicle),
+      m_steeringPID(path),
+      m_pathName(path_name),
+      m_target_speed(target_speed),
+      m_throttle_threshold(0.2) {
     Create();
 }
 
-Generic_PathFollowerDriver::Generic_PathFollowerDriver(ChVehicle& vehicle,
-                                                       const std::string& steering_filename,
-                                                       const std::string& speed_filename,
-                                                       ChBezierCurve* path,
-                                                       const std::string& path_name)
+ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
+                                           const std::string& steering_filename,
+                                           const std::string& speed_filename,
+                                           ChBezierCurve* path,
+                                           const std::string& path_name,
+                                           double target_speed)
     : m_vehicle(vehicle),
       m_steeringPID(steering_filename, path),
       m_speedPID(speed_filename),
       m_pathName(path_name),
-      m_target_speed(0) {
+      m_target_speed(target_speed),
+      m_throttle_threshold(0.2) {
     Create();
 }
 
-void Generic_PathFollowerDriver::Create() {
+void ChPathFollowerDriver::Create() {
     // Reset the steering and speed controllers
     m_steeringPID.Reset(m_vehicle);
     m_speedPID.Reset(m_vehicle);
@@ -60,12 +71,12 @@ void Generic_PathFollowerDriver::Create() {
     road->AddAsset(path_asset);
 }
 
-void Generic_PathFollowerDriver::Reset() {
+void ChPathFollowerDriver::Reset() {
     m_steeringPID.Reset(m_vehicle);
     m_speedPID.Reset(m_vehicle);
 }
 
-void Generic_PathFollowerDriver::Advance(double step) {
+void ChPathFollowerDriver::Advance(double step) {
     // Set the throttle and braking values based on the output from the speed controller.
     double out_speed = m_speedPID.Advance(m_vehicle, m_target_speed, step);
     ChClampValue(out_speed, -1.0, 1.0);
@@ -74,7 +85,7 @@ void Generic_PathFollowerDriver::Advance(double step) {
         // Vehicle moving too slow
         m_braking = 0;
         m_throttle = out_speed;
-    } else if (m_throttle > 0.3) {
+    } else if (m_throttle > m_throttle_threshold) {
         // Vehicle moving too fast: reduce throttle
         m_braking = 0;
         m_throttle = 1 + out_speed;
@@ -90,6 +101,8 @@ void Generic_PathFollowerDriver::Advance(double step) {
     m_steering = out_steering;
 }
 
-void Generic_PathFollowerDriver::ExportPathPovray(const std::string& out_dir) {
+void ChPathFollowerDriver::ExportPathPovray(const std::string& out_dir) {
     utils::WriteCurvePovray(*m_steeringPID.GetPath(), m_pathName, out_dir, 0.04, ChColor(0.8f, 0.5f, 0.0f));
 }
+
+}  // end namespace chrono

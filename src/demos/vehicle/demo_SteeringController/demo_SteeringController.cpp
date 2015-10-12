@@ -27,10 +27,10 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
 #include "ModelDefs.h"
 #include "hmmwv/HMMWV.h"
-#include "generic/Generic_PathFollowerDriver.h"
 
 using namespace chrono;
 using namespace hmmwv;
@@ -113,7 +113,7 @@ int filter_window_size = 20;
 // Custom Irrlicht event receiver for selecting current driver model.
 class ChDriverSelector : public irr::IEventReceiver {
   public:
-    ChDriverSelector(const ChVehicle& vehicle, Generic_PathFollowerDriver* driver_follower, ChIrrGuiDriver* driver_gui)
+    ChDriverSelector(const ChVehicle& vehicle, ChPathFollowerDriver* driver_follower, ChIrrGuiDriver* driver_gui)
         : m_vehicle(vehicle),
           m_driver_follower(driver_follower),
           m_driver_gui(driver_gui),
@@ -176,7 +176,7 @@ class ChDriverSelector : public irr::IEventReceiver {
   private:
     bool m_using_gui;
     const ChVehicle& m_vehicle;
-    Generic_PathFollowerDriver* m_driver_follower;
+    ChPathFollowerDriver* m_driver_follower;
     ChIrrGuiDriver* m_driver_gui;
     ChDriver* m_driver;
 };
@@ -245,18 +245,16 @@ int main(int argc, char* argv[]) {
     // -------------------------
 
     // Create both a GUI driver and a path-follower and allow switching between them
-    ChIrrGuiDriver driver_gui(app, my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain());
+    ChIrrGuiDriver driver_gui(app);
 
     /*
-    Generic_PathFollowerDriver driver_follower(my_hmmwv.GetVehicle(), path);
+    ChPathFollowerDriver driver_follower(my_hmmwv.GetVehicle(), path, "my_path", target_speed);
     driver_follower.GetSteeringController().SetLookAheadDistance(5);
     driver_follower.GetSteeringController().SetGains(0.5, 0, 0);
     driver_follower.GetSpeedController().SetGains(0.4, 0, 0);
     */
-    Generic_PathFollowerDriver driver_follower(my_hmmwv.GetVehicle(), vehicle::GetDataFile(steering_controller_file),
-                                               vehicle::GetDataFile(speed_controller_file), path, "my_path");
-
-    driver_follower.SetDesiredSpeed(target_speed);
+    ChPathFollowerDriver driver_follower(my_hmmwv.GetVehicle(), vehicle::GetDataFile(steering_controller_file),
+                                         vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
 
     // Create and register a custom Irrlicht event receiver to allow selecting the
     // current driver model.

@@ -27,8 +27,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
-#include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/ChPowertrain.h"
 
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
@@ -39,7 +37,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
   public:
     enum InputMode { LOCK, KEYBOARD, DATAFILE };
 
-    ChIrrGuiDriver(ChVehicleIrrApp& app, ChVehicle& car, ChPowertrain& powertrain);
+    ChIrrGuiDriver(ChVehicleIrrApp& app);
 
     ~ChIrrGuiDriver() {}
 
@@ -55,8 +53,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     std::string GetInputModeAsString() const;
 
   private:
-    ChVehicle& m_car;
-    ChPowertrain& m_powertrain;
+    ChVehicleIrrApp& m_app;
 
     double m_throttleDelta;
     double m_steeringDelta;

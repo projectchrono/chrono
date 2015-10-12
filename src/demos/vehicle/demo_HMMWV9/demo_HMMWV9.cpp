@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     app.AssetUpdateAll();
 
     // Create the interactive driver system
-    ChIrrGuiDriver driver(app, my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain());
+    ChIrrGuiDriver driver(app);
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
