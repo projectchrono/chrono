@@ -34,7 +34,7 @@
 
 #include "chrono_mkl/ChApiMkl.h"
 #include <mkl.h>
-#include "chrono_mkl/ChCSR3matrix.h"
+#include "chrono_mkl/ChCSR3Matrix.h"
 #include "core/ChSpmatrix.h"
 
 
