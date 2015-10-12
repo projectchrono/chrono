@@ -100,7 +100,7 @@ int main(){
 	FillMatrix(matCSR3, mat_base);
 
 	nonzeros_vector = new int[matCSR3.GetRows()];
-	matCSR3.GetNonZerosVector(nonzeros_vector);
+	matCSR3.GetNonZerosDistribution(nonzeros_vector);
 	
 
 	if (PRINT_RESULTS)
