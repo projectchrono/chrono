@@ -10,7 +10,6 @@ namespace chrono {
 		colIndex_lock(false),
 		rowIndex_lock_broken(false),
 		colIndex_lock_broken(false),
-		write_counter(0),
 		symmetry(NO_SYMMETRY)
 	{
 		assert(insrow > 0 && inscol > 0 && nonzeros >= 0);
@@ -51,7 +50,6 @@ namespace chrono {
 		colIndex_lock(false),
 		rowIndex_lock_broken(false),
 		colIndex_lock_broken(false),
-		write_counter(0),
 		symmetry(NO_SYMMETRY)
 	{
 		assert(insrow > 0 && inscol > 0);
@@ -106,7 +104,6 @@ namespace chrono {
 			return;
 
 		int col_sel = rowIndex[insrow];
-		write_counter++;
 		while (1)
 		{
 			// case: element not found in the row OR another element with a higher col number is already been stored
@@ -133,8 +130,6 @@ namespace chrono {
 				if (overwrite) // allows to write zeros
 					values[col_sel] = insval;
 				else
-					if (values[col_sel] != 0)
-						write_counter--;
 					values[col_sel] += insval;
 				break;
 			}
@@ -778,7 +773,6 @@ namespace chrono {
 	{
 		assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
-		write_counter = 0;
 		if (TESTING_CSR3){
 			mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
 		}

@@ -74,7 +74,6 @@ namespace chrono{
 		bool colIndex_lock; ///< TRUE if the matrix elements keep always the same position
 		bool rowIndex_lock_broken;
 		bool colIndex_lock_broken;
-		int write_counter;
 		enum symmetry_type
 		{
 			NO_SYMMETRY = 11,
@@ -134,7 +133,6 @@ namespace chrono{
 		void SetColIndexLock(bool on_off){ colIndex_lock = on_off; }
 		bool IsRowIndexLockBroken() const { return rowIndex_lock_broken; }
 		bool IsColIndexLockBroken() const { return colIndex_lock_broken; }
-		int GetWriteCounter() const { return write_counter; }
 		void SetSymmetry(symmetry_type sym) { symmetry = sym; }
 		int GetSymmetry() const { return symmetry; }
 
