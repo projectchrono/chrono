@@ -25,7 +25,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "chrono_mkl/ChCSR3matrix.h"
+#include "chrono_mkl/ChCSR3Matrix.h"
 #include "chrono/core/ChSpmatrix.h"
 #include "chrono/core/ChMatrixDynamic.h"
 

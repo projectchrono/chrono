@@ -1,4 +1,4 @@
-#include "ChCSR3matrix.h"
+#include "ChCSR3Matrix.h"
 #include <algorithm>
 
 namespace chrono {
