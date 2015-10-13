@@ -43,6 +43,7 @@ void PrintCartesianData_MidLine(const thrust::host_vector<Real4>& rho_Pres_CartH
   midLineData << midLineProfile.str();
   midLineData.close();
 }
+
 //*******************************************************************************************************************************
 void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
                      const thrust::device_vector<Real4>& velMasD,
@@ -58,6 +59,120 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
   thrust::host_vector<Real4> velMasH = velMasD;
   thrust::host_vector<Real4> rhoPresMuH = rhoPresMuD;
 
+  int tStepsPovFiles = stepSave;  // 25;//1000;//2000;
+  if (tStep % tStepsPovFiles == 0) {
+    //#ifdef _WIN32
+    //			system("mkdir povFiles");
+    //#else
+    //			system("mkdir -p povFiles");
+    //#endif
+    if (tStep / tStepsPovFiles == 0) {
+      const string rmCmd = string("rm ") + out_dir + string("/*.csv");
+      system(rmCmd.c_str());
+    }
+    char fileCounter[5];
+    int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles));
+
+    //*****************************************************
+    const string nameFluid = out_dir + string("/fluid") + string(fileCounter) + string(".csv");
+
+    ofstream fileNameFluidParticles;
+    fileNameFluidParticles.open(nameFluid);
+    stringstream ssFluidParticles;
+    for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
+      Real3 pos = posRadH[i];
+      Real3 vel = mR3(velMasH[i]);
+      Real4 rP = rhoPresMuH[i];
+      Real velMag = length(vel);
+      ssFluidParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x << ", " << vel.y << ", " << vel.z
+                       << ", " << velMag << ", " << rP.x << ", " << rP.y << ", " << rP.w << ", " << endl;
+    }
+    fileNameFluidParticles << ssFluidParticles.str();
+    fileNameFluidParticles.close();
+    //*****************************************************
+    const string nameBoundary = out_dir + string("/boundary") + string(fileCounter) + string(".csv");
+
+    //    ofstream fileNameBoundaries;
+    //    fileNameBoundaries.open(nameBoundary);
+    //    stringstream ssBoundary;
+    //    for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
+    //      Real3 pos = posRadH[i];
+    //      Real3 vel = mR3(velMasH[i]);
+    //      Real4 rP = rhoPresMuH[i];
+    //      Real velMag = length(vel);
+    //      ssBoundary << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x << ", " << vel.y << ", " << vel.z <<
+    //      ", "
+    //                 << velMag << ",
+    //                              "<< rP.x<<",
+    //          "<< rP.y<<", "<< rP.w<<", "<<endl;
+    //    }
+    //    fileNameBoundaries << ssBoundary.str();
+    //    fileNameBoundaries.close();
+    //*****************************************************
+    const string nameFluidBoundaries = out_dir + string("/fluid_boundary") + string(fileCounter) + string(".csv");
+
+    ofstream fileNameFluidBoundaries;
+    fileNameFluidBoundaries.open(nameFluidBoundaries);
+    stringstream ssFluidBoundaryParticles;
+    //		ssFluidBoundaryParticles.precision(20);
+    for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
+      Real3 pos = posRadH[i];
+      Real3 vel = mR3(velMasH[i]);
+      Real4 rP = rhoPresMuH[i];
+      Real velMag = length(vel);
+      // if (pos.y > .0002 && pos.y < .0008)
+      ssFluidBoundaryParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x << ", " << vel.y << ", "
+                               << vel.z << ", " << velMag << ", " << rP.x << ", " << rP.y << ", " << rP.z << ", "
+                               << rP.w << ", " << endl;
+    }
+    fileNameFluidBoundaries << ssFluidBoundaryParticles.str();
+    fileNameFluidBoundaries.close();
+    //*****************************************************
+    const string nameBCE = out_dir + string("/BCE") + string(fileCounter) + string(".csv");
+
+    ofstream fileNameBCE;
+    fileNameBCE.open(nameBCE);
+    stringstream ssBCE;
+    //		ssFluidBoundaryParticles.precision(20);
+
+    int refSize = referenceArray.size();
+    if (refSize > 2) {
+      for (int i = referenceArray[2].x; i < referenceArray[refSize - 1].y; i++) {
+        Real3 pos = posRadH[i];
+        Real3 vel = mR3(velMasH[i]);
+        Real4 rP = rhoPresMuH[i];
+        Real velMag = length(vel);
+        // if (pos.y > .0002 && pos.y < .0008)
+        ssBCE << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x << ", " << vel.y << ", " << vel.z << ", "
+              << velMag << ", " << rP.x << ", " << rP.y << ", " << rP.z << ", " << rP.w << ", " << endl;
+      }
+    }
+    fileNameBCE << ssBCE.str();
+    fileNameBCE.close();
+    //*****************************************************
+  }
+  posRadH.clear();
+  velMasH.clear();
+  rhoPresMuH.clear();
+}
+
+//*******************************************************************************************************************************
+
+void PrintToFile(const thrust::device_vector<Real3>& posRadD,
+                 const thrust::device_vector<Real4>& velMasD,
+                 const thrust::device_vector<Real4>& rhoPresMuD,
+                 const thrust::host_vector<int3>& referenceArray,
+                 const SimParams paramsH,
+                 Real realTime,
+                 int tStep,
+                 int stepSave,
+                 const string& out_dir) {
+  // print fluid stuff
+  PrintToFile_SPH(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep, stepSave, out_dir);
+}
+//*******************************************************************************************************************************
+// to be implemented
+void PrintToFileCartesian() {
   // ######## the commented sections need to be fixed. you need cartesian data by calling SphSystemGpu.MapSPH_ToGrid
   ////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//comcom
   //	ofstream fileNameCartesianTotal;
@@ -112,7 +227,7 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
   //		if (tStep / tStepCartesianSlice == 0) {
   //			fileNameCartesianMidplane.open("dataCartesianMidplane.txt");
   //			fileNameCartesianMidplane<<"variables = \"x\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity
-  //Magnitude\",
+  // Magnitude\",
   //\"Rho\", \"Pressure\"\n";
   //		} else {
   //			fileNameCartesianMidplane .open("dataCartesianMidplane.txt", ios::app);
@@ -125,7 +240,7 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
   //				int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
   //				Real3 gridNodeLoc = resolution * mR3(i, j, k) + paramsH.worldOrigin;
   //				ssCartesianMidplane<<gridNodeLoc.x<<", "<< gridNodeLoc.z<<", "<<
-  //vel_VelMag_CartH[index].x<<",
+  // vel_VelMag_CartH[index].x<<",
   //"<<
   //						vel_VelMag_CartH[index].y<<", "<< vel_VelMag_CartH[index].z<<", "<<
   // vel_VelMag_CartH[index].w<<", "<< rho_Pres_CartH[index].x<<", "<<
@@ -162,91 +277,4 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
   //	}
   //	vel_VelMag_CartH.clear();
   //////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++comcom
-
-  ofstream fileNameFluidParticles;
-  ofstream fileNameBoundaries;
-  ofstream fileNameFluidBoundaries;
-
-  int tStepsPovFiles = stepSave;  // 25;//1000;//2000;
-  if (tStep % tStepsPovFiles == 0) {
-    //#ifdef _WIN32
-    //			system("mkdir povFiles");
-    //#else
-    //			system("mkdir -p povFiles");
-    //#endif
-    if (tStep / tStepsPovFiles == 0) {
-      const string rmCmd = string("rm ") + out_dir + string("/*.csv");
-      system(rmCmd.c_str());
-    }
-    char fileCounter[5];
-    int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles));
-
-    const string nameFluid = out_dir + string("/fluid") + string(fileCounter) + string(".csv");
-    const string nameBoundary = out_dir + string("/boundary") + string(fileCounter) + string(".csv");
-    const string nameFluidBoundaries = out_dir + string("/fluid_boundary") + string(fileCounter) + string(".csv");
-
-    //*****************************************************
-    fileNameFluidParticles.open(nameFluid);
-    stringstream ssFluidParticles;
-    for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
-      Real3 pos = posRadH[i];
-      Real3 vel = mR3(velMasH[i]);
-      Real4 rP = rhoPresMuH[i];
-      Real velMag = length(vel);
-      ssFluidParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x << ", " << vel.y << ", " << vel.z
-                       << ", " << velMag << ", " << rP.x << ", " << rP.y << ", " << rP.w << ", " << endl;
-    }
-    fileNameFluidParticles << ssFluidParticles.str();
-    fileNameFluidParticles.close();
-    //*****************************************************
-    //		fileNameBoundaries.open(nameBoundary);
-    //		stringstream ssBoundary;
-    //		for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
-    //			Real3 pos = posRadH[i];
-    //			Real3 vel = mR3(velMasH[i]);
-    //			Real4 rP = rhoPresMuH[i];
-    //			Real velMag = length(vel);
-    //			ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<<
-    //velMag<<",
-    //"<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
-    //		}
-    //		fileNameBoundaries << ssBoundary.str();
-    //		fileNameBoundaries.close();
-    //*****************************************************
-    fileNameFluidBoundaries.open(nameFluidBoundaries);
-    stringstream ssFluidBoundaryParticles;
-    //		ssFluidBoundaryParticles.precision(20);
-    for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
-      Real3 pos = posRadH[i];
-      Real3 vel = mR3(velMasH[i]);
-      Real4 rP = rhoPresMuH[i];
-      Real velMag = length(vel);
-      // if (pos.y > .0002 && pos.y < .0008)
-      ssFluidBoundaryParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x << ", " << vel.y << ", "
-                               << vel.z << ", " << velMag << ", " << rP.x << ", " << rP.y << ", " << rP.z << ", "
-                               << rP.w << ", " << endl;
-    }
-    fileNameFluidBoundaries << ssFluidBoundaryParticles.str();
-    fileNameFluidBoundaries.close();
-    //*****************************************************
-  }
-  posRadH.clear();
-  velMasH.clear();
-  rhoPresMuH.clear();
 }
-
-//*******************************************************************************************************************************
-
-void PrintToFile(const thrust::device_vector<Real3>& posRadD,
-                 const thrust::device_vector<Real4>& velMasD,
-                 const thrust::device_vector<Real4>& rhoPresMuD,
-                 const thrust::host_vector<int3>& referenceArray,
-                 const SimParams paramsH,
-                 Real realTime,
-                 int tStep,
-                 int stepSave,
-                 const string& out_dir) {
-  // print fluid stuff
-  PrintToFile_SPH(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep, stepSave, out_dir);
-}
-//*******************************************************************************************************************************

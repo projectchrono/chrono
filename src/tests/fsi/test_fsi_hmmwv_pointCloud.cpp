@@ -255,6 +255,8 @@ Real CreateOne3DRigidCylinder(thrust::host_vector<Real3>& posRadH,
     PushBackR3(omegaLRF_D, omega);
 
     Real4 q4 = ConvertChQuaternionToR4(body->GetRot());
+    printf("\n\n\n\n\n\n\n\n (2.5) myQ4 %f %f %f %f \n\n\n\n\n\n\n", q4.x, q4.y, q4.z, q4.w);
+
 
     Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
     for (Real s = 0; s <= cyl_h; s += spacing) {
@@ -270,7 +272,9 @@ Real CreateOne3DRigidCylinder(thrust::host_vector<Real3>& posRadH,
             Real deltaTeta = spacing / r;
             for (Real teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta; teta += deltaTeta) {
                 Real3 BCE_Pos_local = mR3(r * cos(teta), r * sin(teta), 0);
-                Real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local) + centerPoint;
+                //                Real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local) + centerPoint;
+                Real3 BCE_Pos_Global = BCE_Pos_local + centerPoint;
+
                 posRadH.push_back(BCE_Pos_Global);
                 velMasH.push_back(mR4(0, 0, 0, sphMarkerMass));
                 rhoPresMuH.push_back(mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));  // take care of type
@@ -343,20 +347,18 @@ void AddCylinderBceToChSystemAndSPH(
     const ChVector<>& pos,
     const ChQuaternion<>& rot,
     bool visualization,
-
     thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector< ::int3>& referenceArray,
-
     thrust::device_vector<Real3>& posRigidD,
     thrust::device_vector<Real4>& qD,
     thrust::device_vector<Real4>& velMassRigidD,
     thrust::device_vector<Real3>& omegaLRF_D,
     thrust::host_vector<int>& mapIndex_H,
-
     NumberOfObjects& numObjects,
     Real sphMarkerMass) {
+    //
     int numMarkers = posRadH.size();
     int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
     int type = 1;
@@ -365,10 +367,14 @@ void AddCylinderBceToChSystemAndSPH(
     body->SetBodyFixed(false);
     body->SetCollide(true);
     body->GetMaterialSurface()->SetFriction(mu_g);
+    body->SetPos(pos);
+    body->SetRot(rot);
     body->GetCollisionModel()->ClearModel();
-    utils::AddCylinderGeometry(body.get_ptr(), radius, height, pos, rot, visualization);
+    utils::AddCylinderGeometry(body.get_ptr(), radius, height);
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
+
+    ChQuaternion<> qaa = body->GetRot();
 
     int numBce = CreateOne3DRigidCylinder(posRadH,
                                           velMasH,
@@ -534,7 +540,7 @@ void CreateMbdPhysicalSystemObjects(
     double cyl_len = bottomWidth / 5;
     double cyl_rad = bottomWidth / 10;
     ChVector<> cyl_pos = ChVector<>(0, 0, 0);
-    ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Y);
+    ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
 
     // version 0, create one cylinder // note: rigid body initialization should come after boundary initialization
 
@@ -557,68 +563,74 @@ void CreateMbdPhysicalSystemObjects(
                                    sphMarkerMass);
 
     if (haveVehicle) {
-//        // version 1
-//        // -----------------------------------------
-//        // Create and initialize the vehicle system.
-//        // -----------------------------------------
-//        // Create the vehicle assembly and the callback object for tire contact
-//        // according to the specified type of tire/wheel.
-//        switch (wheel_type) {
-//            case CYLINDRICAL: {
-//                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
-//                tire_cb = new MyCylindricalTire();
-//            } break;
-//            case LUGGED: {
-//                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
-//                tire_cb = new MyLuggedTire();
-//            } break;
-//        }
-//        mVehicle->SetTireContactCallback(tire_cb);
-//        // Set the callback object for chassis.
-//        switch (chassis_type) {
-//            case CBOX: {
-//                chassis_cb =
-//                    new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-//                ChVector<> boxSize(1, .5, .2);
-//                ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
-//                mVehicle->SetChassisContactCallback(chassis_cb);
-//            } break;
-//
-//            case CSPHERE: {
-//                chassis_cb =
-//                    new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-//                Real radius = 1;
-//                ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
-//                mVehicle->SetChassisContactCallback(chassis_cb);
-//            } break;
-//
-//            case C_SIMPLE_CONVEX_MESH: {
-//                chassis_cb =
-//                    new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-//                mVehicle->SetChassisContactCallback(chassis_cb);
-//            } break;
-//
-//            case C_SIMPLE_TRI_MESH: {
-//                chassis_cb =
-//                    new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
-//                mVehicle->SetChassisContactCallback(chassis_cb);
-//            } break;
-//        }
-//
-//        // Set the callback object for driver inputs. Pass the hold time as a delay in
-//        // generating driver inputs.
-//        driver_cb = new MyDriverInputs(time_hold_vehicle);
-//        mVehicle->SetDriverInputsCallback(driver_cb);
-//
-//        // Initialize the vehicle at a height above the terrain.
-//        mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
-//
-//        // Initially, fix the chassis (will be released after time_hold_vehicle).
-//        mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
-//        // Initially, fix the wheels (will be released after time_hold_vehicle).
-//        for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-//            mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
-//        }
+        //        // version 1
+        //        // -----------------------------------------
+        //        // Create and initialize the vehicle system.
+        //        // -----------------------------------------
+        //        // Create the vehicle assembly and the callback object for tire contact
+        //        // according to the specified type of tire/wheel.
+        //        switch (wheel_type) {
+        //            case CYLINDRICAL: {
+        //                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl,
+        //                simplepowertrain_file);
+        //                tire_cb = new MyCylindricalTire();
+        //            } break;
+        //            case LUGGED: {
+        //                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug,
+        //                simplepowertrain_file);
+        //                tire_cb = new MyLuggedTire();
+        //            } break;
+        //        }
+        //        mVehicle->SetTireContactCallback(tire_cb);
+        //        // Set the callback object for chassis.
+        //        switch (chassis_type) {
+        //            case CBOX: {
+        //                chassis_cb =
+        //                    new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5,
+        //                    .4));
+        //                ChVector<> boxSize(1, .5, .2);
+        //                ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
+        //                mVehicle->SetChassisContactCallback(chassis_cb);
+        //            } break;
+        //
+        //            case CSPHERE: {
+        //                chassis_cb =
+        //                    new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
+        //                    .5, .4));
+        //                Real radius = 1;
+        //                ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
+        //                mVehicle->SetChassisContactCallback(chassis_cb);
+        //            } break;
+        //
+        //            case C_SIMPLE_CONVEX_MESH: {
+        //                chassis_cb =
+        //                    new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
+        //                    .5, .4));
+        //                mVehicle->SetChassisContactCallback(chassis_cb);
+        //            } break;
+        //
+        //            case C_SIMPLE_TRI_MESH: {
+        //                chassis_cb =
+        //                    new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
+        //                    .5, .4));
+        //                mVehicle->SetChassisContactCallback(chassis_cb);
+        //            } break;
+        //        }
+        //
+        //        // Set the callback object for driver inputs. Pass the hold time as a delay in
+        //        // generating driver inputs.
+        //        driver_cb = new MyDriverInputs(time_hold_vehicle);
+        //        mVehicle->SetDriverInputsCallback(driver_cb);
+        //
+        //        // Initialize the vehicle at a height above the terrain.
+        //        mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+        //
+        //        // Initially, fix the chassis (will be released after time_hold_vehicle).
+        //        mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+        //        // Initially, fix the wheels (will be released after time_hold_vehicle).
+        //        for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+        //            mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+        //        }
     }
     // extra objects
     // -----------------------------------------
