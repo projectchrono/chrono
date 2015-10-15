@@ -1,6 +1,8 @@
 #ifndef CHCSR3MATRIX_H
 #define CHCSR3MATRIX_H
 
+#include <limits>
+
 #include <mkl.h>
 #include "core/ChSpmatrix.h"
 #include "chrono_mkl/ChApiMkl.h"

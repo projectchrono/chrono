@@ -3,7 +3,7 @@
 
 namespace chrono
 {
-	const enum phase_t
+	enum phase_t
 	{
 		COMPLETE = 13,
 		ANALYSIS = 11,
