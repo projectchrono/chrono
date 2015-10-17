@@ -24,6 +24,10 @@ namespace chrono {
 /// freedom and a mass.
 
 class ChApi ChNodeXYZ : public virtual ChNodeBase {
+
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChNodeXYZ, ChNodeBase);
+
   public:
     ChNodeXYZ();
     virtual ~ChNodeXYZ();
@@ -60,6 +64,12 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase {
 
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() { return 3; }
+
+
+    // SERIALIZATION
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
 
     //

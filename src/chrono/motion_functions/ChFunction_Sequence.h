@@ -108,8 +108,6 @@ class ChApi ChFseqNode {
         marchive >> CHNVP(ydtdt_cont);
     }
 
-    void StreamIN(ChStreamInBinary& mstream);
-    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 /// SEQUENCE FUNCTION:
@@ -227,10 +225,6 @@ class ChApi ChFunction_Sequence : public ChFunction {
         marchive >> CHNVP(functions);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutAscii& mstream);
-    void StreamIN(ChStreamInBinary& mstream);
-    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

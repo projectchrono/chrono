@@ -162,11 +162,6 @@ class ChApi ChBox : public ChGeometry {
         SetLengths(Lengths);
     }
 
-    // ***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream);
-
-    // ***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream);
 
     //
     // DATA

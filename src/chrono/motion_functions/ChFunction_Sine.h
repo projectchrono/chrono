@@ -116,11 +116,7 @@ class ChApi ChFunction_Sine : public ChFunction {
         marchive >> CHNVP(freq);
     }
 
-    //***OBSOLETE***
 
-    void StreamOUT(ChStreamOutAscii& mstream);
-    void StreamIN(ChStreamInBinary& mstream);
-    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

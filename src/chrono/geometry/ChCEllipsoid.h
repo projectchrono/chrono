@@ -116,12 +116,32 @@ class ChApi ChEllipsoid : public ChGeometry {
     Vector rad;
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChGeometry::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(center);
+        marchive << CHNVP(rad);
+    }
 
-    void StreamIN(ChStreamInBinary& mstream);
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChGeometry::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(center);
+        marchive >> CHNVP(rad);
+    }
+
 };
 
 }  // END_OF_NAMESPACE____

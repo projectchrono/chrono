@@ -1943,76 +1943,89 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 ///////// FILE I/O
 /////////
 
-void ChLinkLock::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(10);
-    // serialize parent class too
-    ChLinkMasked::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << type;
-    mstream.AbstractWrite(GetMotion_X());
-    mstream.AbstractWrite(GetMotion_Y());
-    mstream.AbstractWrite(GetMotion_Z());
-    mstream.AbstractWrite(GetMotion_ang());
-    mstream.AbstractWrite(GetMotion_ang2());
-    mstream.AbstractWrite(GetMotion_ang3());
-    mstream << motion_axis;
-    mstream << angleset;
+void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    mstream << *limit_X;
-    mstream << *limit_Y;
-    mstream << *limit_Z;
-    mstream << *limit_Rx;
-    mstream << *limit_Ry;
-    mstream << *limit_Rz;
-    mstream << *limit_Rp;
-    mstream << *limit_D;
+    // serialize parent class
+    ChLinkMasked::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(type);
+    marchive << CHNVP(motion_X);
+    marchive << CHNVP(motion_Y);
+    marchive << CHNVP(motion_Z);
+    marchive << CHNVP(motion_ang);
+    marchive << CHNVP(motion_ang2);
+    marchive << CHNVP(motion_ang3);
+    marchive << CHNVP(motion_axis);
+    marchive << CHNVP(angleset);
+    marchive << CHNVP(limit_X);
+    marchive << CHNVP(limit_Y);
+    marchive << CHNVP(limit_Z);
+    marchive << CHNVP(limit_Rx);
+    marchive << CHNVP(limit_Ry);
+    marchive << CHNVP(limit_Rz);
+    marchive << CHNVP(limit_Rp);
+    marchive << CHNVP(limit_D);
 }
 
-void ChLinkLock::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkMasked::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    // To restore mask array when loading finishes, (maybe following data loading changes mask..)
-    ChLinkMask* moriginalmask = this->mask->NewDuplicate();
+    // deserialize parent class
+    ChLinkMasked::ArchiveIN(marchive);
+
+    // deserialize all member data:
     int ifoo;
-    Vector vfoo;
-    ChFunction* ffoo;
-    mstream >> ifoo;
-    ChangeLinkType(ifoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_X(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_Y(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_Z(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_ang(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_ang2(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_ang3(ffoo);
-    mstream >> vfoo;
-    SetMotion_axis(vfoo);
-    mstream >> ifoo;
-    Set_angleset(ifoo);
-    mstream >> *limit_X;
-    mstream >> *limit_Y;
-    mstream >> *limit_Z;
-    mstream >> *limit_Rx;
-    mstream >> *limit_Ry;
-    mstream >> *limit_Rz;
-    mstream >> *limit_Rp;
-    mstream >> *limit_D;
-
-    this->mask->Copy(moriginalmask);  // restore mask array, if ChangeLinkType() modified it..
-    this->ChangedLinkMask();
+    marchive >> CHNVP(ifoo);
+    ChangeLinkType(ifoo); // this also setup mask flags and lot of stuff, simplifying the serialization
+    marchive >> CHNVP(motion_X);
+    marchive >> CHNVP(motion_Y);
+    marchive >> CHNVP(motion_Z);
+    marchive >> CHNVP(motion_ang);
+    marchive >> CHNVP(motion_ang2);
+    marchive >> CHNVP(motion_ang3);
+    marchive >> CHNVP(motion_axis);
+    marchive >> CHNVP(angleset);
+    marchive >> CHNVP(limit_X);
+    marchive >> CHNVP(limit_Y);
+    marchive >> CHNVP(limit_Z);
+    marchive >> CHNVP(limit_Rx);
+    marchive >> CHNVP(limit_Ry);
+    marchive >> CHNVP(limit_Rz);
+    marchive >> CHNVP(limit_Rp);
+    marchive >> CHNVP(limit_D);
 }
+
+
 
 ///////////////////////////////////////////////////////////////
+
+
+// SOME WRAPPER CLASSES, TO MAKE 'LINK LOCK' CREATION EASIER...
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+
+ChClassRegister<ChLinkLockRevolute> a_registration_ChLinkLockRevolute;
+ChClassRegister<ChLinkLockLock> a_registration_ChLinkLockLock;
+ChClassRegister<ChLinkLockSpherical> a_registration_ChLinkLockSpherical;
+ChClassRegister<ChLinkLockCylindrical> a_registration_ChLinkLockCylindrical;
+ChClassRegister<ChLinkLockPrismatic> a_registration_ChLinkLockPrismatic;
+ChClassRegister<ChLinkLockPointPlane> a_registration_ChLinkLockPointPlane;
+ChClassRegister<ChLinkLockPointLine> a_registration_ChLinkLockPointLine;
+ChClassRegister<ChLinkLockPlanePlane> a_registration_ChLinkLockPlanePlane;
+ChClassRegister<ChLinkLockOldham> a_registration_ChLinkLockOldham;
+ChClassRegister<ChLinkLockFree> a_registration_ChLinkLockFree;
+ChClassRegister<ChLinkLockAlign> a_registration_ChLinkLockAlign;
+ChClassRegister<ChLinkLockParallel> a_registration_ChLinkLockParallel;
+ChClassRegister<ChLinkLockPerpend> a_registration_ChLinkLockPerpend;
+ChClassRegister<ChLinkLockRevolutePrismatic> a_registration_ChLinkLockRevolutePrismatic;
 
 }  // END_OF_NAMESPACE____

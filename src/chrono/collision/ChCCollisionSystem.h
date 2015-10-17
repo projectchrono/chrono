@@ -168,6 +168,17 @@ class ChApi ChCollisionSystem {
     /// Perform a ray-hit test with the collision models.
     virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) = 0;
 
+    // SERIALIZATION
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+        // version number
+        marchive.VersionWrite(1);
+    }
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
+        // version number
+        int version = marchive.VersionRead();
+    }
+
   protected:
     ChBroadPhaseCallback* broad_callback;    // user callback for each near-enough pair of shapes
     ChNarrowPhaseCallback* narrow_callback;  // user callback for each contact

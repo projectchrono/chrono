@@ -118,54 +118,6 @@ int ChFunction_Integrate::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
     return i;
 }
 
-void ChFunction_Integrate::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << Get_order();
-    mstream << Get_C_start();
-    mstream << Get_x_start();
-    mstream << Get_x_end();
-    mstream << Get_num_samples();
-
-    mstream.AbstractWrite(this->fa.get_ptr());
-    //***TODO*** better direct management of shared pointers serialization
-}
-
-void ChFunction_Integrate::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    int ifoo;
-    double dfoo;
-    mstream >> ifoo;
-    Set_order(ifoo);
-    mstream >> dfoo;
-    Set_C_start(dfoo);
-    mstream >> dfoo;
-    Set_x_start(dfoo);
-    mstream >> dfoo;
-    Set_x_end(dfoo);
-    mstream >> ifoo;
-    Set_num_samples(ifoo);
-
-    ChFunction* fooshared;
-    mstream.AbstractReadCreate(&fooshared);   // instance new
-    fa = ChSharedPtr<ChFunction>(fooshared);  // swap old shared to new shared, may delete old
-                                              //***TODO*** better direct management of shared pointers serialization
-}
-
-void ChFunction_Integrate::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_INTEGRATE  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

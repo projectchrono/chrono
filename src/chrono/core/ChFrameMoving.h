@@ -544,43 +544,6 @@ class ChFrameMoving : public ChFrame<Real> {
         marchive >> CHNVP(coord_dtdt);
     }
 
-    /// Method to allow serializing transient data into in ascii
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    /// ***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutAscii& mstream) {
-        ChFrame<Real>::StreamOUT(mstream);
-        ChVector<Real> mwl = GetWvel_loc();
-        ChVector<Real> mal = GetWacc_loc();
-        mstream << "\n   speed:     " << coord_dt.pos.x << "  " << coord_dt.pos.y << "  " << coord_dt.pos.z;
-        mstream << "\n   ang.speed: " << mwl.x << "  " << mwl.y << "  " << mwl.z;
-        mstream << "\n   accel:     " << coord_dtdt.pos.x << "  " << coord_dtdt.pos.y << "  " << coord_dtdt.pos.z;
-        mstream << "\n   ang.accel: " << mal.x << "  " << mal.y << "  " << mal.z;
-        mstream << "\n ";
-    }
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    /// ***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutBinary& mstream) {
-        // Serialize parent class
-        ChFrame<Real>::StreamOUT(mstream);
-
-        // Serialize other data
-        mstream << coord_dt;
-        mstream << coord_dtdt;
-    }
-
-    /// Operator to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    /// ***OBSOLETE***
-    virtual void StreamIN(ChStreamInBinary& mstream) {
-        // Deserialize parent class
-        ChFrame<Real>::StreamIN(mstream);
-
-        // Deserialize other data
-        mstream >> coord_dt;
-        mstream >> coord_dtdt;
-    }
 };
 
 //

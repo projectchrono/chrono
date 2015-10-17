@@ -48,6 +48,7 @@ class ChParticlesClones;
 /// data are _shared_ between them)
 
 class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
+
   public:
     ChAparticle();
     ~ChAparticle();
@@ -115,6 +116,10 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
         /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem();
 
+    // SERIALIZATION
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
     //
     // DATA
@@ -374,17 +379,10 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// Update all auxiliary data of the particles
     virtual void Update(bool update_assets = true);
 
-    //
-    // STREAMING
-    //
+    // SERIALIZATION
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 typedef ChSharedPtr<ChParticlesClones> ChSharedParticlesClonesPtr;

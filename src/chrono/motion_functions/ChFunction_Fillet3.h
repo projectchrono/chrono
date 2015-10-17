@@ -137,10 +137,6 @@ class ChApi ChFunction_Fillet3 : public ChFunction {
         SetupCoefficients();
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutAscii& mstream);
-    void StreamIN(ChStreamInBinary& mstream);
-    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

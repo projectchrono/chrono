@@ -115,9 +115,15 @@ class ChApi ChLinkRackpinion : public ChLinkMateGeneric {
     /// Get rack position in absolute reference
     ChVector<> GetAbsRackPos();
 
-    // STREAMING
-    virtual void StreamIN(ChStreamInBinary& mstream);
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////

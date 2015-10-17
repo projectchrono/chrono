@@ -40,6 +40,9 @@ namespace fea {
 /// in a continuum.
 
 class ChApi ChContinuumMaterial : public ChShared {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChContinuumMaterial, ChShared);
+
   protected:
     double density;
 
@@ -53,11 +56,11 @@ class ChApi ChContinuumMaterial : public ChShared {
     /// Get the density of the material, in kg/m^2.
     double Get_density() { return density; }
 
-    /// Method to allow deserializing
-    void StreamIN(ChStreamInBinary& mstream);
+    // SERIALIZATION
 
-    /// Method to allow serializing
-    void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 /// Class for the basic properties of materials
@@ -166,19 +169,19 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
     // STREAMING
     //
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
+
 };
 
 /// Class for all elastic materials that can undergo plastic flow
 /// Defines simply some interface functions.
 
 class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChContinuumElastoplastic, ChContinuumElastic);
+
   public:
     ChContinuumElastoplastic(double myoung = 10000000, double mpoisson = 0.4, double mdensity = 1000)
         : ChContinuumElastic(myoung, mpoisson, mdensity){};
@@ -204,6 +207,29 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
     virtual void Set_flow_rate(double mflow_rate) = 0;
     /// Set the plastic flow rate.
     virtual double Get_flow_rate() = 0;
+
+    //
+    // STREAMING
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChContinuumElastic::ArchiveOUT(marchive);
+        // serialize all member data:
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChContinuumElastic::ArchiveIN(marchive);
+        // stream in all member data:
+    }
 };
 
 /// Class for the basic properties of materials
@@ -211,6 +237,9 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
 /// based on Von Mises yeld
 
 class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChContinuumPlasticVonMises, ChContinuumElastoplastic);
+
   private:
     double elastic_yeld;
     double plastic_yeld;
@@ -264,13 +293,30 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
     // STREAMING
     //
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChContinuumElastoplastic::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(this->elastic_yeld);
+        marchive << CHNVP(this->plastic_yeld);
+        marchive << CHNVP(this->flow_rate);
+    }
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChContinuumElastoplastic::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(this->elastic_yeld);
+        marchive >> CHNVP(this->plastic_yeld);
+        marchive >> CHNVP(this->flow_rate);
+    }
 };
 
 /// Class for the basic properties of elastoplastic materials
@@ -278,6 +324,9 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
 /// soils
 
 class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChContinuumDruckerPrager, ChContinuumElastoplastic);
+
   private:
     double elastic_yeld;
     double alpha;
@@ -353,13 +402,36 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
     // STREAMING
     //
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChContinuumElastoplastic::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(this->elastic_yeld);
+        marchive << CHNVP(this->alpha);
+        marchive << CHNVP(this->dilatancy);
+        marchive << CHNVP(this->hardening_speed);
+        marchive << CHNVP(this->hardening_limit);
+        marchive << CHNVP(this->flow_rate);
+    }
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChContinuumElastoplastic::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(this->elastic_yeld);
+        marchive >> CHNVP(this->alpha);
+        marchive >> CHNVP(this->dilatancy);
+        marchive >> CHNVP(this->hardening_speed);
+        marchive >> CHNVP(this->hardening_limit);
+        marchive >> CHNVP(this->flow_rate);
+    }
 };
 
 }  // END_OF_NAMESPACE____

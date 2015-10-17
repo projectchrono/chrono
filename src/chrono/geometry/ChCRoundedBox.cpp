@@ -296,33 +296,6 @@ void ChRoundedBox::CovarianceMatrix(ChMatrix33<>& C) {
         p1.y * p1.z + p2.y * p2.z + p3.y * p3.z + p4.y * p4.z + p5.y * p5.z + p6.y * p6.z + p7.y * p7.z + p8.y * p8.z;
 }
 
-void ChRoundedBox::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-
-    // serialize parent class too
-    ChGeometry::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << Pos;
-    mstream << Rot;
-    mstream << Size;
-    mstream << radsphere;
-}
-
-void ChRoundedBox::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChGeometry::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> Pos;
-    mstream >> Rot;
-    mstream >> Size;
-    mstream >> radsphere;
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

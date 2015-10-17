@@ -39,39 +39,6 @@ ChFunction* ChFunction_Sine::new_Duplicate() {
     return (m_func);
 }
 
-void ChFunction_Sine::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << phase;
-    mstream << freq;
-    mstream << amp;
-}
-
-void ChFunction_Sine::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    double dfoo;
-    mstream >> dfoo;
-    Set_phase(dfoo);
-    mstream >> dfoo;
-    Set_freq(dfoo);
-    mstream >> dfoo;
-    Set_amp(dfoo);
-}
-
-void ChFunction_Sine::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_SINE  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

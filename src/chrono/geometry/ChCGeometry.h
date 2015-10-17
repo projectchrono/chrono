@@ -178,11 +178,6 @@ class ChApi ChGeometry : public ChShared {
         // stream in all member data:
     }
 
-    //***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
-
-    //***OBSOLETE***
-    virtual void StreamIN(ChStreamInBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

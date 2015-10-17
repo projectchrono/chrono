@@ -138,36 +138,36 @@ void ChLinkTrajectory::Initialize(
     this->Set_trajectory_line(mline);
 }
 
-void ChLinkTrajectory::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(2);
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
+void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // stream out all member data
-    mstream.AbstractWrite(this->space_fx.get_ptr());         //***TODO*** proper serialize for ChSharedPtr
-    mstream.AbstractWrite(this->trajectory_line.get_ptr());  //***TODO*** proper serialize for ChSharedPtr
-    mstream << modulo_s;
+    // serialize parent class
+    ChLinkLock::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(space_fx);
+    marchive << CHNVP(trajectory_line);
+    marchive << CHNVP(modulo_s);
 }
 
-void ChLinkTrajectory::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChLinkTrajectory::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
+    // deserialize parent class
+    ChLinkLock::ArchiveIN(marchive);
 
-    // stream in all member data
-    ChFunction* newfun;
-    mstream.AbstractReadCreate(&newfun);  //***TODO*** proper deserialize for ChSharedPtr
-    this->space_fx = ChSharedPtr<ChFunction>(newfun);
-
-    ChLine* mline = 0;
-    mstream.AbstractReadCreate(&mline);  //***TODO*** proper deserialize for ChSharedPtr
-    this->trajectory_line = ChSharedPtr<ChLine>(mline);
-
-    mstream >> modulo_s;
+    // deserialize all member data:
+    marchive >> CHNVP(space_fx);
+    marchive >> CHNVP(trajectory_line);
+    marchive >> CHNVP(modulo_s);
 }
+
+
 
 ///////////////////////////////////////////////////////////////
 

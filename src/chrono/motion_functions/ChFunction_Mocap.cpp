@@ -205,41 +205,7 @@ double ChFunction_Mocap::Get_y_dxdx(double x) {
     return LinInterp(array_y_dtdt, x, timetot);
 }
 
-// File parsing and dumping
 
-void ChFunction_Mocap::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << this->Get_samples();
-    mstream << this->Get_samp_freq();
-    mstream << *this->array_y;
-}
-
-void ChFunction_Mocap::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    double dfoo;
-    int ifoo;
-    mstream >> ifoo;
-    Set_samples(ifoo);
-    mstream >> dfoo;
-    Set_samp_freq(dfoo);
-    mstream >> *this->array_y;
-}
-
-void ChFunction_Mocap::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_MOCAP  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

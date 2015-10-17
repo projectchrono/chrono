@@ -132,11 +132,7 @@ class ChApi ChRoundedCylinder : public ChGeometry {
         marchive >> CHNVP(radsphere);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream);
 
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

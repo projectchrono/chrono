@@ -205,27 +205,37 @@ void ChShaftsBody::ConstraintsLiFetchSuggestedPositionSolution() {
 
 //////// FILE I/O
 
-void ChShaftsBody::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
+void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // stream out all member data
-    mstream << this->shaft_dir;
+    // serialize parent class
+    ChPhysicsItem::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(shaft_dir);
+    //marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    //marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
 }
 
-void ChShaftsBody::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChShaftsBody::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChPhysicsItem::StreamIN(mstream);
+    // deserialize parent class:
+    ChPhysicsItem::ArchiveIN(marchive);
 
-    // deserialize class
-    mstream >> this->shaft_dir;
+    // deserialize all member data:
+    marchive >> CHNVP(shaft_dir);
+    //marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    //marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
 }
+
+
 
 }  // END_OF_NAMESPACE____
 

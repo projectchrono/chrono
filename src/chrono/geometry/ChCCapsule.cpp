@@ -28,31 +28,7 @@ namespace geometry {
 // dynamic creation and persistence
 ChClassRegister<ChCapsule> a_registration_ChCapsule;
 
-void ChCapsule::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChGeometry::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << center;
-    mstream << rad;
-    mstream << hlen;
-}
-
-void ChCapsule::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChGeometry::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> center;
-    mstream >> rad;
-    mstream >> hlen;
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

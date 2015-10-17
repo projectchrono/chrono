@@ -156,11 +156,7 @@ class ChApi ChLine : public ChGeometry {
         marchive >> CHNVP(complexityU);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream);
 
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

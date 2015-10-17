@@ -468,13 +468,6 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

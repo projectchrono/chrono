@@ -78,36 +78,6 @@ void ChObj::SetNameString(const std::string& myname) {
     name = myname;
 }
 
-//
-// FILE BINARY I/O
-//
 
-void ChObj::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(2);
-    // stream out all member data
-    mstream << identifier;
-    mstream << GetName();
-}
-
-void ChObj::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // stream in all member data
-    if (version <= 1) {
-        int mfoo;
-        mstream >> mfoo;
-    }
-    mstream >> identifier;
-    char mbuffer[250];
-    mstream >> mbuffer;
-    SetName(mbuffer);
-}
-
-void ChObj::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "object type:" << this->GetRTTI()->GetName() << "\n";
-    mstream << GetName() << "\n";
-    mstream << GetIdentifier() << "\n";
-}
 
 }  // END_OF_NAMESPACE____

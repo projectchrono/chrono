@@ -49,15 +49,7 @@ void ChGeometry::Derive(Vector& dir, const double parU, const double parV, const
     dir = (vB - vA) * (1 / bdf);
 }
 
-void ChGeometry::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-}
 
-void ChGeometry::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

@@ -598,72 +598,65 @@ void ChLinkWheel::Set_rad_k_def(ChFunction* m_funct) {
 // FILE I/O
 //
 
-void ChLinkWheel::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChLinkWheel::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
+    // serialize parent class
+    ChLinkLock::ArchiveOUT(marchive);
 
-    // stream out all member data
-    mstream << speed_handled;
-    mstream << radius;
-    mstream << thickness;
-    mstream << friction;
-    mstream << allow_sticking;
-    mstream << slip_treshold;
-    mstream << static_friction;
-    mstream << unilateral;
-    mstream << pneus_krp;
-    mstream << rad_k;
-    mstream << rad_r;
-    mstream << rad_p;
-    mstream << pneus_h;
-    mstream.AbstractWrite(wheel_rotation);
-    mstream.AbstractWrite(fri_spe);
-    mstream.AbstractWrite(fri_norm);
-    mstream.AbstractWrite(rad_k_def);
-    mstream << wcollision;
+    // serialize all member data:
+    marchive << CHNVP(speed_handled);
+    marchive << CHNVP(radius);
+    marchive << CHNVP(thickness);
+    marchive << CHNVP(friction);
+    marchive << CHNVP(allow_sticking);
+    marchive << CHNVP(slip_treshold);
+    marchive << CHNVP(static_friction);
+    marchive << CHNVP(unilateral);
+    marchive << CHNVP(pneus_krp);
+    marchive << CHNVP(rad_k);
+    marchive << CHNVP(rad_r);
+    marchive << CHNVP(rad_p);
+    marchive << CHNVP(pneus_h);
+    marchive << CHNVP(wheel_rotation);
+    marchive << CHNVP(fri_spe);
+    marchive << CHNVP(fri_norm);
+    marchive << CHNVP(rad_k_def);
+    marchive << CHNVP(wcollision);
 }
 
-void ChLinkWheel::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChLinkWheel::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
+    // deserialize parent class
+    ChLinkLock::ArchiveIN(marchive);
 
-    // To restore mask array when loading finishes, (maybe following data loading changes mask..)
-    ChLinkMask* moriginalmask = this->mask->NewDuplicate();
-
-    // stream in all member data
-    ChFunction* ffoo;
-    mstream >> speed_handled;
-    mstream >> radius;
-    mstream >> thickness;
-    mstream >> friction;
-    mstream >> allow_sticking;
-    mstream >> slip_treshold;
-    mstream >> static_friction;
-    mstream >> unilateral;
-    mstream >> pneus_krp;
-    mstream >> rad_k;
-    mstream >> rad_r;
-    mstream >> rad_p;
-    mstream >> pneus_h;
-    mstream.AbstractReadCreate(&ffoo);
-    Set_wheel_rotation(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    Set_fri_spe(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    Set_fri_norm(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    Set_rad_k_def(ffoo);
-    mstream >> wcollision;
-
-    this->mask->Copy(moriginalmask);
-    this->ChangedLinkMask();
+    // deserialize all member data:
+    marchive >> CHNVP(speed_handled);
+    marchive >> CHNVP(radius);
+    marchive >> CHNVP(thickness);
+    marchive >> CHNVP(friction);
+    marchive >> CHNVP(allow_sticking);
+    marchive >> CHNVP(slip_treshold);
+    marchive >> CHNVP(static_friction);
+    marchive >> CHNVP(unilateral);
+    marchive >> CHNVP(pneus_krp);
+    marchive >> CHNVP(rad_k);
+    marchive >> CHNVP(rad_r);
+    marchive >> CHNVP(rad_p);
+    marchive >> CHNVP(pneus_h);
+    marchive >> CHNVP(wheel_rotation);
+    marchive >> CHNVP(fri_spe);
+    marchive >> CHNVP(fri_norm);
+    marchive >> CHNVP(rad_k_def);
+    marchive >> CHNVP(wcollision);
 }
+
 
 ///////////////////////////////////////////////////////////////
 

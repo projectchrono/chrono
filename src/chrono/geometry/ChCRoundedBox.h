@@ -166,11 +166,6 @@ class ChApi ChRoundedBox : public ChGeometry {
         marchive >> CHNVP(radsphere);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream);
-
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream);
 
     //
     // DATA

@@ -36,22 +36,28 @@ ChClassRegisterABSTRACT<ChControls> a_registration_ChControls;
 // FILE I/O
 //
 
-void ChControls::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChObj::StreamOUT(mstream);
+void ChControls::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // stream out all member data
+    // serialize parent class
+    ChObj::ArchiveOUT(marchive);
+
+    // serialize all member data:
 }
 
-void ChControls::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChObj::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChControls::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
+    // deserialize parent class
+    ChObj::ArchiveIN(marchive);
+
+    // deserialize all member data:
+
 }
 
 }  // END_OF_NAMESPACE____

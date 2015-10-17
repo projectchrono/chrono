@@ -10,37 +10,45 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChContinuumMaterial.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+
 
 #include "ChContinuumMaterial.h"
 
 namespace chrono {
 namespace fea {
 
-void ChContinuumMaterial::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // stream out all member data
-    mstream << this->density;
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChContinuumMaterial> a_registration_ChContinuumMaterial;
+
+void ChContinuumMaterial::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    // serialize all member data:
+    marchive << CHNVP(density, "density");
 }
 
-void ChContinuumMaterial::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // stream in all member data
-    mstream >> this->density;
+void ChContinuumMaterial::ArchiveIN(ChArchiveIn& marchive)
+{
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    // stream in all member data:
+    marchive >> CHNVP(density, "density");
 }
 
-////////////////////////////////////////
+
+///////////////////////////////
+//////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChContinuumElastic> a_registration_ChContinuumElastic;
 
 ChContinuumElastic::ChContinuumElastic(double myoung, double mpoisson, double mdensity)
     : ChContinuumMaterial(mdensity) {
@@ -93,41 +101,45 @@ void ChContinuumElastic::ComputeStressStrainMatrix() {
     StressStrainMatrix.SetElement(5, 5, (E * (1 - 2 * v)) / (1 + v) / (1 - 2 * v) / 2);
 }
 
-void ChContinuumElastic::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // stream in parent class
-    ChContinuumMaterial::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << this->E;
-    mstream << this->v;
-    mstream << this->G;
-    mstream << this->l;
-    mstream << this->damping_M;
-    mstream << this->damping_K;
+
+void ChContinuumElastic::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    ChContinuumMaterial::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(this->E);
+    marchive << CHNVP(this->v);
+    marchive << CHNVP(this->damping_M);
+    marchive << CHNVP(this->damping_K);
 }
 
-void ChContinuumElastic::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // stream in parent class
-    ChContinuumMaterial::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> this->E;
-    mstream >> this->v;
-    mstream >> this->G;
-    mstream >> this->l;
-    mstream >> this->damping_M;
-    mstream >> this->damping_K;
+void ChContinuumElastic::ArchiveIN(ChArchiveIn& marchive)
+{
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    ChContinuumMaterial::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(this->E);
+    marchive >> CHNVP(this->v);
+    this->Set_v(this->v); // G and l from v
+    marchive >> CHNVP(this->damping_M);
+    marchive >> CHNVP(this->damping_K);
 }
+
 
 ///////////////////////////////
 //////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChContinuumPlasticVonMises> a_registration_ChContinuumPlasticVonMises;
+
 
 ChContinuumPlasticVonMises::ChContinuumPlasticVonMises(double myoung,
                                                        double mpoisson,
@@ -173,35 +185,16 @@ void ChContinuumPlasticVonMises::ComputePlasticStrainFlow(ChStrainTensor<>& mpla
     }
 }
 
-void ChContinuumPlasticVonMises::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // stream out parent class
-    ChContinuumElastoplastic::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << this->elastic_yeld;
-    mstream << this->plastic_yeld;
-    mstream << this->flow_rate;
-}
-
-void ChContinuumPlasticVonMises::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // stream in parent class
-    ChContinuumElastoplastic::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> this->elastic_yeld;
-    mstream >> this->plastic_yeld;
-    mstream >> this->flow_rate;
-}
 
 ///////////////////////////////
 //////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChContinuumDruckerPrager> a_registration_ChContinuumDruckerPrager;
+
 
 ChContinuumDruckerPrager::ChContinuumDruckerPrager(double myoung,
                                                    double mpoisson,
@@ -327,37 +320,8 @@ void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplast
     }
 }
 
-void ChContinuumDruckerPrager::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // stream out parent class
-    ChContinuumElastic::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << this->elastic_yeld;
-    mstream << this->alpha;
-    mstream << this->dilatancy;
-    mstream << this->hardening_speed;
-    mstream << this->hardening_limit;
-    mstream << this->flow_rate;
-}
-
-void ChContinuumDruckerPrager::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // stream in parent class
-    ChContinuumElastic::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> this->elastic_yeld;
-    mstream >> this->alpha;
-    mstream >> this->dilatancy;
-    mstream >> this->hardening_speed;
-    mstream >> this->hardening_limit;
-    mstream >> this->flow_rate;
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

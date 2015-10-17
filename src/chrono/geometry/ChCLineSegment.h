@@ -112,13 +112,7 @@ class ChApi ChLineSegment : public ChLine {
         marchive >> CHNVP(pB);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream) {
-    }
 
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream) {
-    }
 };
 
 }  // END_OF_NAMESPACE____

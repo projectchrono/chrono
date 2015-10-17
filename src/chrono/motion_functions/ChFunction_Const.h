@@ -97,9 +97,6 @@ class ChApi ChFunction_Const : public ChFunction {
         marchive >> CHNVP(C);
     }
 
-    void StreamOUT(ChStreamOutAscii& mstream);
-    void StreamIN(ChStreamInBinary& mstream);
-    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

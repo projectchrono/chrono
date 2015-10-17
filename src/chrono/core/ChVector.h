@@ -413,28 +413,6 @@ class ChVector {
         marchive >> CHNVP(z);
     }
 
-    /// Method to allow serialization of transient data in ascii,
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    /// ***OBSOLETE***
-    void StreamOUT(ChStreamOutAscii& mstream) { mstream << "\n" << x << "\n" << y << "\n" << z << "\n"; }
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    /// ***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream) {
-        mstream << x;
-        mstream << y;
-        mstream << z;
-    }
-
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    /// ***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream) {
-        mstream >> x;
-        mstream >> y;
-        mstream >> z;
-    }
 };
 
 /// Shortcut for faster use of typical double-precision vectors.

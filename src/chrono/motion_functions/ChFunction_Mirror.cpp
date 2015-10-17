@@ -68,39 +68,6 @@ int ChFunction_Mirror::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
     return i;
 }
 
-void ChFunction_Mirror::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << mirror_axis;
-
-    mstream.AbstractWrite(this->fa.get_ptr());
-    //***TODO*** better direct management of shared pointers serialization
-}
-
-void ChFunction_Mirror::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> mirror_axis;
-
-    ChFunction* fooshared;
-    mstream.AbstractReadCreate(&fooshared);   // instance new
-    fa = ChSharedPtr<ChFunction>(fooshared);  // swap old shared to new shared, may delete old
-                                              //***TODO*** better direct management of shared pointers serialization
-}
-
-void ChFunction_Mirror::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_MIRROR  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

@@ -127,6 +127,10 @@ public:
 	virtual void VariablesQbIncrementPosition(double step) {};
 
 
+    // SERIALIZATION
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 

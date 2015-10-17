@@ -158,35 +158,7 @@ class ChApi ChLineArc : public ChLine {
         marchive >> CHNVP(counterclockwise);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream) {
-        // class version number
-        mstream.VersionWrite(1);
 
-        // serialize parent class too
-        ChLine::StreamOUT(mstream);
-
-        // stream out all member data
-        mstream << origin;
-        mstream << radius;
-        mstream << angle1;
-        mstream << angle2;
-    }
-
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream) {
-        // class version number
-        int version = mstream.VersionRead();
-
-        // deserialize parent class too
-        ChLine::StreamIN(mstream);
-
-        // stream in all member data
-        mstream >> origin;
-        mstream >> radius;
-        mstream >> angle1;
-        mstream >> angle2;
-    }
 };
 
 }  // END_OF_NAMESPACE____

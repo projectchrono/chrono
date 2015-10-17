@@ -160,55 +160,6 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         marchive >> CHNVP(gt);
     }
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    /// ***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutBinary& mstream) {
-        // class version number
-        mstream.VersionWrite(1);
-
-        // deserialize parent class too
-        // ChShared::StreamOUT(mstream); // nothing
-
-        // stream out all member data
-        mstream << young_modulus;
-        mstream << poisson_ratio;
-        mstream << static_friction;
-        mstream << sliding_friction;
-        mstream << restitution;
-        mstream << constant_adhesion;
-        mstream << adhesionMultDMT;
-
-        mstream << kn;
-        mstream << kt;
-        mstream << gn;
-        mstream << gt;
-    }
-
-    /// Operator to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    /// ***OBSOLETE***
-    virtual void StreamIN(ChStreamInBinary& mstream) {
-        // class version number
-        int version = mstream.VersionRead();
-
-        // deserialize parent class too
-        // ChShared::StreamIN(mstream); // nothing
-
-        // stream in all member data
-        mstream >> young_modulus;
-        mstream >> poisson_ratio;
-        mstream >> static_friction;
-        mstream >> sliding_friction;
-        mstream >> restitution;
-        mstream >> constant_adhesion;
-        mstream >> adhesionMultDMT;
-
-        mstream >> kn;
-        mstream >> kt;
-        mstream >> gn;
-        mstream >> gt;
-    }
 };
 
 }  // end namespace chrono

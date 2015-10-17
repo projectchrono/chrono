@@ -87,49 +87,40 @@ void ChLinkForce::Set_modul_R(ChFunction* m_funct) {
     modul_R = m_funct;
 }
 
-// file parsing / dumping
 
-void ChLinkForce::StreamOUT(ChStreamOutBinary& mstream) {
+void ChLinkForce::ArchiveOUT(ChArchiveOut& marchive) {
+
     // class version number
-    mstream.VersionWrite(1);
+    marchive.VersionWrite(1);
+    // serialize parent class too
 
     // stream out all member data
-    mstream << Get_active();
-    mstream << Get_iforce();
-    mstream.AbstractWrite(Get_modul_iforce());
-    mstream << Get_K();
-    mstream.AbstractWrite(Get_modul_K());
-    mstream << Get_R();
-    mstream.AbstractWrite(Get_modul_R());
+    marchive << CHNVP(active);
+    marchive << CHNVP(iforce);
+    marchive << CHNVP(modul_iforce);
+    marchive << CHNVP(K);
+    marchive << CHNVP(modul_K);
+    marchive << CHNVP(R);
+    marchive << CHNVP(modul_R);
 }
 
-void ChLinkForce::StreamIN(ChStreamInBinary& mstream) {
+void ChLinkForce::ArchiveIN(ChArchiveIn& marchive) {
+
     // class version number
-    int version = mstream.VersionRead();
+    int version = marchive.VersionRead();
+    // deserialize parent class too
 
     // stream in all member data
-    double dfoo;
-    int ifoo;
-    ChFunction* ffoo;
-    mstream >> ifoo;
-    Set_active(ifoo);
-    mstream >> dfoo;
-    Set_iforce(dfoo);
-    mstream.AbstractReadCreate(&ffoo);
-    Set_modul_iforce(ffoo);
-    mstream >> dfoo;
-    Set_K(dfoo);
-    mstream.AbstractReadCreate(&ffoo);
-    Set_modul_K(ffoo);
-    mstream >> dfoo;
-    Set_R(dfoo);
-    mstream.AbstractReadCreate(&ffoo);
-    Set_modul_R(ffoo);
+    marchive >> CHNVP(active);
+    marchive >> CHNVP(iforce);
+    marchive >> CHNVP(modul_iforce);
+    marchive >> CHNVP(K);
+    marchive >> CHNVP(modul_K);
+    marchive >> CHNVP(R);
+    marchive >> CHNVP(modul_R);
 }
 
-void ChLinkForce::StreamOUT(ChStreamOutAscii& mstream) {
-    //***TO DO***
-}
+
 
 double ChLinkForce::Get_Kcurrent(double x, double x_dt, double t) {
     double mK = 0;

@@ -481,32 +481,6 @@ class ChMatrix {
         }
     }
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    /// ***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream) {
-        mstream << GetRows();
-        mstream << GetColumns();
-        int tot_elements = GetRows() * GetColumns();
-        for (int i = 0; i < tot_elements; i++) {
-            mstream << GetElementN(i);
-        }
-    }
-
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    /// ***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream) {
-        int m_row, m_col;
-        mstream >> m_row;
-        mstream >> m_col;
-        if ((m_row == 0) || (m_col == 0))
-            throw(ChException("Cannot load zero-sized matrix: wrong stream format?"));
-        Reset(m_row, m_col);
-        for (int i = 0; i < (m_row * m_col); i++) {
-            mstream >> ElementN(i);
-        }
-    }
 
     //
     // MATH MEMBER FUNCTIONS.

@@ -146,6 +146,30 @@ class ChApi ChProximityContainerSPH : public ChProximityContainerBase {
     // Perform some SPH per-edge transfer of forces, given stress tensors in A B nodes
     // Will be called by the ChMatterSPH item.
     virtual void AccumulateStep2();
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChProximityContainerBase::ArchiveOUT(marchive);
+        // serialize all member data:
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChProximityContainerBase::ArchiveIN(marchive);
+        // stream in all member data:
+    }
+
 };
 
 //////////////////////////////////////////////////////

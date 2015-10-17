@@ -42,6 +42,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector.h"
+#include "serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -71,6 +72,9 @@ class ChApi ChBezierCurve {
     /// In this case, we evaluate the control polygon vertices inCV and outCV
     /// so that we obtain a piecewise cubic spline interpolant of the given knots.
     ChBezierCurve(const std::vector<ChVector<> >& points);
+
+    /// Default constructor (required by serialization)
+    ChBezierCurve() {}
 
     /// Destructor for ChBezierCurve.
     ~ChBezierCurve() {}
@@ -124,6 +128,42 @@ class ChApi ChBezierCurve {
     /// returned curve is a general Bezier curve using the specified knots and
     /// control polygons.
     static ChBezierCurve* read(const std::string& filename);
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+
+        // serialize all member data:
+        marchive << CHNVP(m_points);
+        marchive << CHNVP(m_inCV);
+        marchive << CHNVP(m_outCV);
+        marchive << CHNVP(m_maxNumIters);
+        marchive << CHNVP(m_sqrDistTol);
+        marchive << CHNVP(m_cosAngleTol);
+        marchive << CHNVP(m_paramTol);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+
+        // stream in all member data:
+        marchive >> CHNVP(m_points);
+        marchive >> CHNVP(m_inCV);
+        marchive >> CHNVP(m_outCV);
+        marchive >> CHNVP(m_maxNumIters);
+        marchive >> CHNVP(m_sqrDistTol);
+        marchive >> CHNVP(m_cosAngleTol);
+        marchive >> CHNVP(m_paramTol);
+    }
 
   private:
     /// Utility function to solve for the outCV control points.

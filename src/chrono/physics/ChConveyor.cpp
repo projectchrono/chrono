@@ -378,31 +378,7 @@ void ChConveyor::ArchiveIN(ChArchiveIn& marchive)
 }
 
 
-void ChConveyor::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChBody::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << this->conveyor_speed;
-    this->conveyor_plate->StreamOUT(mstream);
-    this->internal_link->StreamOUT(mstream);
-}
-
-void ChConveyor::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChBody::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> this->conveyor_speed;
-    this->conveyor_plate->StreamIN(mstream);
-    this->internal_link->StreamIN(mstream);
-}
 
 }  // END_OF_NAMESPACE____
 

@@ -121,9 +121,7 @@ class ChApi ChRoundedCone : public ChGeometry {
         marchive >> CHNVP(radsphere);
     }
 
-    void StreamOUT(ChStreamOutBinary& mstream);
 
-    void StreamIN(ChStreamInBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

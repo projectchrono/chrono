@@ -294,29 +294,6 @@ class ChCoordsys {
         marchive >> CHNVP(rot);
     }
 
-    /// Method to allow serializing transient data into in ascii
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    /// ***OBSOLETE***
-    void StreamOUT(ChStreamOutAscii& mstream) {
-        mstream << "\n" << pos;
-        mstream << "\n" << rot;
-    }
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    /// ***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream) {
-        mstream << pos;
-        mstream << rot;
-    }
-
-    /// Operator to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    /// ***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream) {
-        mstream >> pos;
-        mstream >> rot;
-    }
 };
 
 //

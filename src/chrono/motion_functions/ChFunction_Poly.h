@@ -106,10 +106,7 @@ class ChApi ChFunction_Poly : public ChFunction {
         marchive >> CHNVP(order);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutAscii& mstream);
-    void StreamIN(ChStreamInBinary& mstream);
-    void StreamOUT(ChStreamOutBinary& mstream);
+
 };
 
 }  // END_OF_NAMESPACE____

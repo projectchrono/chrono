@@ -685,32 +685,6 @@ class ChQuaternion {
         marchive >> CHNVP(e3);
     }
 
-    /// Method to allow serializing transient data into ascii
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    /// ***OBSOLETE***
-    void StreamOUT(ChStreamOutAscii& mstream) {
-        mstream << "\n" << e0 << "\n" << e1 << "\n" << e2 << "\n" << e3 << "\n";
-    }
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    /// ***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream) {
-        mstream << e0;
-        mstream << e1;
-        mstream << e2;
-        mstream << e3;
-    }
-
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    /// ***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream) {
-        mstream >> e0;
-        mstream >> e1;
-        mstream >> e2;
-        mstream >> e3;
-    }
 };
 
 /// Shortcut for faster use of typical double-precision quaternion.

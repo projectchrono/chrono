@@ -150,25 +150,32 @@ void ChLinkScrew::UpdateState() {
     Ct->SetElement(2, 0, scr_Ct);
 }
 
-void ChLinkScrew::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << tau;
+void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLinkLock::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(tau);
 }
 
-void ChLinkScrew::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkScrew::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    mstream >> tau;
+    // deserialize parent class
+    ChLinkLock::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(tau);
 }
+
 
 ///////////////////////////////////////////////////////////////
 

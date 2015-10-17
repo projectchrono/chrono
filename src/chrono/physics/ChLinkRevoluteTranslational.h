@@ -171,6 +171,16 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     ChVector<> Get_react_force_body2();
     ChVector<> Get_react_torque_body2();
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
+
   private:
     ChVector<> m_p1;  // point on first frame (in local frame)
     ChVector<> m_p2;  // point on second frame (in local frame)

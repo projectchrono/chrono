@@ -215,25 +215,7 @@ void ChFunction::ArchiveIN(ChArchiveIn& marchive)
     // stream in all member data:
 }
 
-void ChFunction::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // stream out all member data
-}
-
-void ChFunction::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // stream in all member data
-}
-
-void ChFunction::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_BASE  \n";
-
-    //***TO DO***
-}
 
 int ChFunction::FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int plotDDY) {
     int mresol = 800;

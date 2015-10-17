@@ -214,35 +214,44 @@ void ChLinkClearance::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-void ChLinkClearance::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << clearance;
-    mstream << c_friction;
-    mstream << c_restitution;
-    mstream << diameter;
-    mstream << c_tang_restitution;
-    mstream << c_viscous;
+
+void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLinkLock::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(clearance);
+    marchive << CHNVP(c_friction);
+    marchive << CHNVP(c_restitution);
+    marchive << CHNVP(diameter);
+    marchive << CHNVP(c_tang_restitution);
+    marchive << CHNVP(c_viscous);
 }
 
-void ChLinkClearance::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    mstream >> clearance;
-    mstream >> c_friction;
-    mstream >> c_restitution;
-    mstream >> diameter;
-    mstream >> c_tang_restitution;
-    mstream >> c_viscous;
+    // deserialize parent class
+    ChLinkLock::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(clearance);
+    marchive >> CHNVP(c_friction);
+    marchive >> CHNVP(c_restitution);
+    marchive >> CHNVP(diameter);
+    marchive >> CHNVP(c_tang_restitution);
+    marchive >> CHNVP(c_viscous);
 }
+
+
 
 ///////////////////////////////////////////////////////////////
 

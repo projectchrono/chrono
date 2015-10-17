@@ -42,25 +42,29 @@ ChIndexedNodes::~ChIndexedNodes() {
 
 //////// FILE I/O
 
-void ChIndexedNodes::StreamOUT(ChStreamOutBinary& mstream) {
+void ChIndexedNodes::ArchiveOUT(ChArchiveOut& marchive) {
+
     // class version number
-    mstream.VersionWrite(1);
+    marchive.VersionWrite(1);
 
     // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
+    ChPhysicsItem::ArchiveOUT(marchive);
 
     // stream out all member data
 }
 
-void ChIndexedNodes::StreamIN(ChStreamInBinary& mstream) {
+void ChIndexedNodes::ArchiveIN(ChArchiveIn& marchive) {
+
     // class version number
-    int version = mstream.VersionRead();
+    int version = marchive.VersionRead();
 
     // deserialize parent class too
-    ChPhysicsItem::StreamIN(mstream);
+    ChPhysicsItem::ArchiveIN(marchive);
 
     // stream in all member data
 }
+
+
 
 }  // END_OF_NAMESPACE____
 

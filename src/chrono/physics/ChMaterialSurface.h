@@ -224,58 +224,6 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
         marchive >> CHNVP(complianceSpin);     
     }
 
-    /// Method to allow serializing transient data into in ascii
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    //***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutAscii& mstream) { mstream << "Material \n"; }
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    //***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutBinary& mstream) {
-        // class version number
-        mstream.VersionWrite(1);
-
-        // deserialize parent class too
-        // ChShared::StreamOUT(mstream); // nothing
-
-        // stream out all member data
-        mstream << static_friction;
-        mstream << sliding_friction;
-        mstream << rolling_friction;
-        mstream << spinning_friction;
-        mstream << restitution;
-        mstream << cohesion;
-        mstream << dampingf;
-        mstream << compliance;
-        mstream << complianceT;
-        mstream << complianceRoll;
-        mstream << complianceSpin;
-    }
-
-    /// Operator to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    //***OBSOLETE***
-    virtual void StreamIN(ChStreamInBinary& mstream) {
-        // class version number
-        int version = mstream.VersionRead();
-
-        // deserialize parent class too
-        // ChShared::StreamIN(mstream); // nothing
-
-        // stream in all member data
-        mstream >> static_friction;
-        mstream >> sliding_friction;
-        mstream >> rolling_friction;
-        mstream >> spinning_friction;
-        mstream >> restitution;
-        mstream >> cohesion;
-        mstream >> dampingf;
-        mstream >> compliance;
-        mstream >> complianceT;
-        mstream >> complianceRoll;
-        mstream >> complianceSpin;
-    }
 };
 
 }  // END_OF_NAMESPACE____

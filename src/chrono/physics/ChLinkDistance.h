@@ -177,6 +177,16 @@ class ChApi ChLinkDistance : public ChLink {
     virtual void ConstraintsLiLoadSuggestedPositionSolution();
     virtual void ConstraintsLiFetchSuggestedSpeedSolution();
     virtual void ConstraintsLiFetchSuggestedPositionSolution();
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////

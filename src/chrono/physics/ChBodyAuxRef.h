@@ -94,15 +94,6 @@ class ChApi ChBodyAuxRef : public ChBody {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

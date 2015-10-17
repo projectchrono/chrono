@@ -181,20 +181,6 @@ class ChApi ChFunction : public ChShared {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
-    /// Method to allow serialization of transient data in ascii,
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    //***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutAscii& mstream);
-
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    //***OBSOLETE***
-    virtual void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    //***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
 
     /// Plot function in graph space of the ChFile_ps postscript file
     /// where zoom factor, centering, colour, thickness etc. are already defined.

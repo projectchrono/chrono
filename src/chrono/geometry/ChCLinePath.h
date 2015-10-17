@@ -270,13 +270,7 @@ class ChApi ChLinePath : public ChLine {
         marchive >> CHNVP(durations);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream) {   
-    }
 
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream) {
-    }
 };
 
 }  // END_OF_NAMESPACE____
