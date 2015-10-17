@@ -37,9 +37,8 @@ public:
 	chrono::ChVector<Real> TransformLocalToParent (
 								const chrono::ChVector<Real>& local			///< point to transform, given in local coordinates
 								) const;
-	void StreamOUT(chrono::ChStreamOutAscii& mstream);
-	void StreamOUT(chrono::ChStreamOutBinary& mstream);
-	void StreamIN(chrono::ChStreamInBinary& mstream);
+	virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 }; // end namespace
 

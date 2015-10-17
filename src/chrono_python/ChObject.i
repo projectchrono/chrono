@@ -38,9 +38,8 @@ public:
 	std::string GetNameString ();
 	void SetNameString (std::string& myname);
 
-	virtual void StreamOUT(ChStreamOutBinary& mstream);
-	virtual void StreamIN(ChStreamInBinary& mstream);
-	virtual void StreamOUT(ChStreamOutAscii& mstream);
+	virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 }; // end namespace
