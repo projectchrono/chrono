@@ -30,7 +30,6 @@
 #include "core/ChCoordsys.h"
 #include "core/ChStream.h"
 #include "core/ChException.h"
-#include "serialization/ChArchiveAsciiDump.h"
 
 // Thresholds for OpenMP parallelization.
 // The larger, the less likely the operations will be parallelized in multiple threads.
