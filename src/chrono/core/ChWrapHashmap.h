@@ -26,12 +26,8 @@
 //   To avoid this problem you can just use
 //   #include<ChWrapHashmap.h>.
 //
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
+// ***OBSOLETE*** use std::unordered_set instead, since C++11
 //
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
 ///////////////////////////////////////////////////
 
 #ifdef COMPILER_GCC

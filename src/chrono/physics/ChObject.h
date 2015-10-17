@@ -52,9 +52,6 @@ class ChTag;
 /// Base class for items which can be named, deleted,
 /// copied. etc. as in the editor of a 3d modeler.
 ///
-/// This class also embeds a simple linked-list mechanism
-/// for fast management of linked lists of items, instead
-/// of using STL lists or ChList. ***OBSOLETE***
 ///
 /// This class inherits the features of the reference-countable
 /// ChShared class, so that  ChObj  instances can be managed

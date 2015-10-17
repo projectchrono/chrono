@@ -40,7 +40,7 @@ namespace chrono {
 //////////////////////////////////////////////////////////////////
 //
 // GENERIC LISTS AND NODES
-//
+// ***OBSOLETE***
 
 /// Node for linked list.
 /// This will be used by ChList<>
