@@ -140,7 +140,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkRevoluteSpherical.cpp
     physics/ChLinkRevoluteTranslational.cpp
     physics/ChLinkUniversal.cpp
-    physics/ChHistory.cpp
     physics/ChSystem.cpp
     physics/ChGlobal.cpp
     physics/ChEvents.cpp
@@ -205,7 +204,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChFunction.h
     physics/ChFx.h
     physics/ChGlobal.h
-    physics/ChHistory.h
     physics/ChIndexedNodes.h
     physics/ChIndexedParticles.h
     physics/ChIterative.h
