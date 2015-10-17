@@ -23,6 +23,7 @@
 #include <vector>
 #include <list>
 #include <typeinfo>
+#include <unordered_set>
 
 namespace chrono {
 
@@ -398,13 +399,16 @@ class ChArchive {
     /// to avoid saving duplicates or deadlocks
     std::vector<void*> objects_pointers;
 
+    /// container of pointers to not serialize if ever encountered
+    std::unordered_set<void*>  cut_pointers;
+
     bool use_versions;
-    bool cut_pointers;
+    bool cut_all_pointers;
 
   public:
     ChArchive() {
         use_versions = true;
-        cut_pointers = false;
+        cut_all_pointers = false;
         Init();
     }
 
@@ -441,11 +445,21 @@ class ChArchive {
     /// with version info, or not, do not mix because it could give problems in binary archives.).
     void SetUseVersions(bool muse) {this->use_versions = muse;}
 
-    /// If you enable  SetCutPointers(true), no serialization happens for 
+    /// If you enable  SetCutAllPointers(true), no serialization happens for 
     /// objects referenced via pointers. This can be useful to save a single object, 
     /// regardless of the fact that it contains pointers to other 'children' objects.
     /// Cut pointers are turned into null pointers.
-    void SetCutPointers(bool mcut) {this->cut_pointers = mcut;}
+    void SetCutAllPointers(bool mcut) {this->cut_all_pointers = mcut;}
+
+    /// Access the container of pointers that must not be serialized.
+    /// This is in case SetCutAllPointers(true) is too extreme. So you can 
+    /// selectively 'cut' the network of pointers when serializing an object that
+    /// has a network of sub objects. Works also for shared pointers, but remember to store
+    /// the embedded pointer, not the shared pointer itself. For instance:
+    ///    myarchive.CutPointers().insert(my_raw_pointer); // normal pointers
+    ///    myarchive.CutPointers().insert(my_shared_pointer.get_ptr());  // shared pointers
+    /// The cut pointers are serialized as null pointers.
+    std::unordered_set<void*>&  CutPointers() {return cut_pointers;}
 };
 
 
@@ -553,15 +567,22 @@ class  ChArchiveOut : public ChArchive {
       out     (ChNameValue< ChSharedPtr<T> > bVal) {
           bool already_stored; size_t pos;
           T* mptr = bVal.value().get_ptr();
-          if (this->cut_pointers)
+          if (this->cut_all_pointers)
+              mptr = 0;
+          if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
           PutPointer(mptr, already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          const char* class_name;
+          if (bVal.value())
+              class_name = bVal.value()->GetRTTI()->GetName();
+          else // null ptr
+              class_name = typeid(T).name(); // note, this class name is not platform independent but enough here since for null ptr
           this->out_ref_abstract(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA), 
+              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
               pos, 
-              bVal.value()->GetRTTI()->GetName() );
+              class_name );
       }
 
         // trick to call out_ref on ChSharedPointer, without class abstraction:
@@ -570,7 +591,9 @@ class  ChArchiveOut : public ChArchive {
       out     (ChNameValue< ChSharedPtr<T> > bVal) {
           bool already_stored; size_t pos;
           T* mptr = bVal.value().get_ptr();
-          if (this->cut_pointers)
+          if (this->cut_all_pointers)
+              mptr = 0;
+          if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
           PutPointer(mptr, already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
@@ -587,15 +610,22 @@ class  ChArchiveOut : public ChArchive {
       out     (ChNameValue<T*> bVal) {
           bool already_stored; size_t pos;
           T* mptr = bVal.value();
-          if (this->cut_pointers)
+          if (this->cut_all_pointers)
+              mptr = 0;
+          if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
           PutPointer(mptr, already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          const char* class_name;
+          if (bVal.value())
+              class_name = bVal.value()->GetRTTI()->GetName();
+          else // null ptr
+              class_name = typeid(T).name(); // note, this class name is not platform independent but enough here since for null ptr
           this->out_ref_abstract(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
               pos, 
-              bVal.value()->GetRTTI()->GetName() ); // this class name is platform independent
+              class_name ); // this class name is platform independent
       }
 
          // trick to call out_ref on plain pointers (no class abstraction):
@@ -604,7 +634,9 @@ class  ChArchiveOut : public ChArchive {
       out     (ChNameValue<T*> bVal) {
           bool already_stored; size_t pos;
           T* mptr = bVal.value();
-          if (this->cut_pointers)
+          if (this->cut_all_pointers)
+              mptr = 0;
+          if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
           PutPointer(mptr, already_stored, pos);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
