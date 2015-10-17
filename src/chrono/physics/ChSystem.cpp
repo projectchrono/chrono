@@ -3329,11 +3329,11 @@ int ChSystem::FileProcessChR(ChStreamInBinary& m_file) {
 }
 
 int ChSystem::FileWriteChR(ChStreamOutBinary& m_file) {
-    m_file << (int)CH_CHUNK_START;
+    m_file << CH_CHUNK_START;
 
     //this->StreamOUTall(m_file);
 
-    m_file << (int)CH_CHUNK_END;
+    m_file << CH_CHUNK_END;
 
     return 1;
 }
