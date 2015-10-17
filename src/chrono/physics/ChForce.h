@@ -218,21 +218,6 @@ class ChApi ChForce : public ChObj {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
-    //
-    // STREAMING
-    //
-
-    /// Method to allow serialization of transient data in ascii,
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    void StreamOUT(ChStreamOutAscii& mstream);
-
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____
