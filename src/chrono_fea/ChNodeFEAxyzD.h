@@ -248,6 +248,35 @@ public:
 						this->SetD  ( this->GetD()   + newspeed_D * step);
 					};
 
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChNodeFEAxyz::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(D);
+        marchive << CHNVP(D_dt);
+        marchive << CHNVP(D_dtdt);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChNodeFEAxyz::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(D);
+        marchive >> CHNVP(D_dt);
+        marchive >> CHNVP(D_dtdt);
+    }
+
 private:
 	/// 3D node variable - the direction part: Dx,Dy,Dz (the position part is in parent class)
  	ChLcpVariablesGenericDiagonalMass*  variables_D; 

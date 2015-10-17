@@ -305,6 +305,39 @@ public:
 						this->SetRot( mnewrot );
 					};
 
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChNodeFEAbase::ArchiveOUT(marchive);
+        // serialize parent class
+        ChBodyFrame::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(X0);
+        marchive << CHNVP(Force);
+        marchive << CHNVP(Torque);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChNodeFEAbase::ArchiveIN(marchive);
+        // serialize parent class
+        ChBodyFrame::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(X0);
+        marchive >> CHNVP(Force);
+        marchive >> CHNVP(Torque);
+    }
+
 private:
 	ChLcpVariablesBodyOwnMass	variables; /// 3D node variables, with x,y,z displ. and 3D rot.
 
