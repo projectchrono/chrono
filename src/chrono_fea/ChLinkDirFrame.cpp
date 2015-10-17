@@ -326,6 +326,7 @@ void  ChLinkDirFrame::ConstraintsLiFetchSuggestedPositionSolution()
 
 void ChLinkDirFrame::StreamOUT(ChStreamOutBinary& mstream)
 {
+    /*
 			// class version number
 	mstream.VersionWrite(1);
 
@@ -334,12 +335,14 @@ void ChLinkDirFrame::StreamOUT(ChStreamOutBinary& mstream)
 
 		// stream out all member data
 	//mstream << this->node_index;
-	mstream << this->direction;
-	mstream << this->react;
+	mstream < this->direction;
+	mstream < this->react;
+    */
 }
 
 void ChLinkDirFrame::StreamIN(ChStreamInBinary& mstream)
 {
+    /*
 		// class version number
 	int version = mstream.VersionRead();
 
@@ -350,6 +353,7 @@ void ChLinkDirFrame::StreamIN(ChStreamInBinary& mstream)
 	//mstream >> this->node_index;
 	mstream >> this->direction;
 	mstream >> this->react;
+    */
 }
 
 
