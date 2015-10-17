@@ -157,8 +157,9 @@ class ChApi ChStreamOutAscii : public ChStreamOut {
     ChStreamOutAscii& operator<<(unsigned long unVal);
     ChStreamOutAscii& operator<<(unsigned long long unVal);
 
+    ///***OBSOLETE*** use ChArchive << operator and ArchiveOUT()
     template <class T>
-    ChStreamOutAscii& operator<<(T obj) {
+    ChStreamOutAscii& operator<(T obj) {
         obj.StreamOUT(*this);
         return *this;
     }
@@ -322,8 +323,9 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
 
     /// Generic << operator for all classes which implement serialization
     /// by means of a method named  'void StreamOUT(ChStreamOutBinary&)'
+    ///***OBSOLETE*** use ChArchive << operator and ArchiveOUT()
     template <class T>
-    ChStreamOutBinary& operator<<(T& obj) {
+    ChStreamOutBinary& operator<(T& obj) {
         obj.StreamOUT(*this);
         return *this;
     }
@@ -365,6 +367,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     /// Also, the AbstractWrite()-AbstractReadCreate() mechanism avoids
     /// storing/creating multiple times the shared objects.
     /// Supports only objects with Chrono RTTI and serializer member StreamOUT().
+    ///***OBSOLETE*** use ChArchive << operator
     template <class t>
     t* AbstractWrite(t* pObj) {
         int pos = PutPointer(pObj);
@@ -374,7 +377,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
             // New Object, we have to full serialize it
             std::string str = pObj->GetRTTI()->GetName();
             *this << str;    // serialize class type
-            *this << *pObj;  // serialize data
+            *this < *pObj;  // serialize data
         } else {
             // Object already in list. Only store position
             std::string str = "NULL";
@@ -393,6 +396,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     /// Also, the AbstractWrite()-AbstractReadCreate() mechanism avoids
     /// storing/creating multiple times the shared objects.
     /// Supports only objects with Chrono RTTI and serializer member StreamOUT().
+    ///***OBSOLETE*** use ChArchive << operator
     template <class t>
     t* AbstractWriteAll(t* pObj) {
         int pos = PutPointer(pObj);
