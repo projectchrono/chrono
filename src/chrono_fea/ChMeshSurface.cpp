@@ -35,7 +35,7 @@ ChClassRegister<ChMeshSurface> a_registration_ChMeshSurface;
 
 
 void ChMeshSurface::AddFacesFromNodeSet( std::vector<ChSharedPtr<ChNodeFEAbase> >& node_set ) {
-    
+    /*
     ChHashTable<size_t, bool> anode_set_map;
     
     for (int i= 0; i< node_set.size() ; ++i)
@@ -77,41 +77,21 @@ void ChMeshSurface::AddFacesFromNodeSet( std::vector<ChSharedPtr<ChNodeFEAbase> 
                 ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,2));
                 this->AddFace( mface );
             }
-            /*
-           if (n3||n1||n2||n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,3));
-                this->AddFace( mface );
-            }
-            if (n3||n1||n2||n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,0));
-                this->AddFace( mface );
-            }
-            if (n3||n1||n2||n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,1));
-                this->AddFace( mface );
-            }
-            if (n3||n1||n2||n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,2));
-                this->AddFace( mface );
-            }
-            */
            
         }
         if (ChSharedPtr<ChElementShellANCF> mshell = this->mmesh->GetElement(ie).DynamicCastTo<ChElementShellANCF>() ) {
             this->AddFace( mshell );
         }
     }
-    GetLog() << "aFound " << this->faces.size() << " faces \n\n";
+    //GetLog() << "AddFacesFromNodeSet found " << this->faces.size() << " faces \n\n";
     
     return;
-
+    */
 
     std::unordered_set<size_t>  node_set_map;
 
     for (int i= 0; i< node_set.size() ; ++i)
         node_set_map.insert( (size_t)node_set[i].get_ptr() );
-
-GetLog() << "Inserted " << node_set.size() << "nodes from nodeset\n";
 
     for (int ie= 0; ie< this->mmesh->GetNelements() ; ++ie) {
         if (ChSharedPtr<ChElementTetra_4> mtetra = this->mmesh->GetElement(ie).DynamicCastTo<ChElementTetra_4>() ) {
@@ -136,31 +116,13 @@ GetLog() << "Inserted " << node_set.size() << "nodes from nodeset\n";
                 ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,2));
                 this->AddFace( mface );
             }
-            /*
-           if (n3||n1||n2||n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,3));
-                this->AddFace( mface );
-            }
-            if (n3||n1||n2||n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,0));
-                this->AddFace( mface );
-            }
-            if (n3||n1||n2||n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,1));
-                this->AddFace( mface );
-            }
-            if (n3||n1||n2||n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,2));
-                this->AddFace( mface );
-            }
-            */
            
         }
         if (ChSharedPtr<ChElementShellANCF> mshell = this->mmesh->GetElement(ie).DynamicCastTo<ChElementShellANCF>() ) {
             this->AddFace( mshell );
         }
     }
-    GetLog() << "Found " << this->faces.size() << " faces \n\n";
+    //GetLog() << "AddFacesFromNodeSet found " << this->faces.size() << " faces \n\n";
 }
 
 
