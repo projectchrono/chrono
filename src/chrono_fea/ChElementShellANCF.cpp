@@ -210,9 +210,6 @@ void ChElementShellANCF::ComputeMassMatrix() {
             ChElementShellANCF* element;
             ChMatrixNM<double, 8, 3>* d0;  //// pointer to initial coordinates
             ChMatrixNM<double, 3, 24> S;
-            ChMatrixNM<double, 3, 24> Sx;
-            ChMatrixNM<double, 3, 24> Sy;
-            ChMatrixNM<double, 3, 24> Sz;
             ChMatrixNM<double, 1, 8> N;
             ChMatrixNM<double, 1, 8> Nx;
             ChMatrixNM<double, 1, 8> Ny;
@@ -269,7 +266,7 @@ void ChElementShellANCF::ComputeMassMatrix() {
                 // perform  r = S'*S
                 result.MatrTMultiply(S, S);
 
-                // multiply integration weighs
+                // multiply integration weights
                 result *=
                     detJ0 * (element->GetLengthX() / 2) * (element->GetLengthY() / 2) * (element->m_thickness / 2);
             }
@@ -309,7 +306,6 @@ void ChElementShellANCF::ComputeGravityForce() {
           public:
             ChElementShellANCF* element;
             ChMatrixNM<double, 8, 3>* d0;
-            ChMatrixNM<double, 3, 24> S;
             ChMatrixNM<double, 1, 8> N;
             ChMatrixNM<double, 1, 8> Nx;
             ChMatrixNM<double, 1, 8> Ny;
@@ -338,25 +334,6 @@ void ChElementShellANCF::ComputeGravityForce() {
                     LocalGravityForce(2, 0) = 0.0;
                 }
 
-                // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
-                ChMatrix33<> Si;
-                Si.FillDiag(N(0));
-                S.PasteMatrix(&Si, 0, 0);
-                Si.FillDiag(N(1));
-                S.PasteMatrix(&Si, 0, 3);
-                Si.FillDiag(N(2));
-                S.PasteMatrix(&Si, 0, 6);
-                Si.FillDiag(N(3));
-                S.PasteMatrix(&Si, 0, 9);
-                Si.FillDiag(N(4));
-                S.PasteMatrix(&Si, 0, 12);
-                Si.FillDiag(N(5));
-                S.PasteMatrix(&Si, 0, 15);
-                Si.FillDiag(N(6));
-                S.PasteMatrix(&Si, 0, 18);
-                Si.FillDiag(N(7));
-                S.PasteMatrix(&Si, 0, 21);
-
                 ChMatrixNM<double, 1, 3> Nx_d0;
                 Nx_d0.MatrMultiply(Nx, *d0);
 
@@ -379,8 +356,13 @@ void ChElementShellANCF::ComputeGravityForce() {
 
                 double detJ0 = rd0.Det();
 
-                result.MatrTMultiply(S, LocalGravityForce);
-
+				for (int i = 0; i < 8; i++)
+				{
+					for (int j = 0; j < 3; j++)
+					{
+						result(i*3+j,0) = N(0,i)*LocalGravityForce(j, 0);
+					}
+				}
                 result *= detJ0 * wx2 * wy2 * wz2;
             }
         };
@@ -400,7 +382,8 @@ void ChElementShellANCF::ComputeGravityForce() {
                                                               m_GaussZRange(kl, 1),  // end of z
                                                               2                      // order of integration
                                                               );
-
+		//GetLog() << "Rho: " << rho;
+		//system("pause");
         Fgravity *= rho;
         m_GravForce += Fgravity;
     }
@@ -629,9 +612,9 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 ChMatrixNM<double, 9, 9> Sigm;
                 ChMatrixNM<double, 24, 6> temp246;
                 ChMatrixNM<double, 24, 9> temp249;
-                ChMatrixNM<double, 3, 24> Sx;
-                ChMatrixNM<double, 3, 24> Sy;
-                ChMatrixNM<double, 3, 24> Sz;
+                //ChMatrixNM<double, 3, 24> Sx;
+                //ChMatrixNM<double, 3, 24> Sy;
+                //ChMatrixNM<double, 3, 24> Sz;
                 ChMatrixNM<double, 1, 8> Nx;
                 ChMatrixNM<double, 1, 8> Ny;
                 ChMatrixNM<double, 1, 8> Nz;
@@ -684,59 +667,59 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     gammaHHT = 0.5 - alphaHHT;
 
                     // Expand shape function derivatives in 3x24 matrices
-                    ChMatrix33<> Sxi;
-                    Sxi.FillDiag(Nx(0));
-                    Sx.PasteMatrix(&Sxi, 0, 0);
-                    Sxi.FillDiag(Nx(1));
-                    Sx.PasteMatrix(&Sxi, 0, 3);
-                    Sxi.FillDiag(Nx(2));
-                    Sx.PasteMatrix(&Sxi, 0, 6);
-                    Sxi.FillDiag(Nx(3));
-                    Sx.PasteMatrix(&Sxi, 0, 9);
-                    Sxi.FillDiag(Nx(4));
-                    Sx.PasteMatrix(&Sxi, 0, 12);
-                    Sxi.FillDiag(Nx(5));
-                    Sx.PasteMatrix(&Sxi, 0, 15);
-                    Sxi.FillDiag(Nx(6));
-                    Sx.PasteMatrix(&Sxi, 0, 18);
-                    Sxi.FillDiag(Nx(7));
-                    Sx.PasteMatrix(&Sxi, 0, 21);
+                    //ChMatrix33<> Sxi;
+                    //Sxi.FillDiag(Nx(0));
+                    //Sx.PasteMatrix(&Sxi, 0, 0);
+                    //Sxi.FillDiag(Nx(1));
+                    //Sx.PasteMatrix(&Sxi, 0, 3);
+                    //Sxi.FillDiag(Nx(2));
+                    //Sx.PasteMatrix(&Sxi, 0, 6);
+                    //Sxi.FillDiag(Nx(3));
+                    //Sx.PasteMatrix(&Sxi, 0, 9);
+                    //Sxi.FillDiag(Nx(4));
+                    //Sx.PasteMatrix(&Sxi, 0, 12);
+                    //Sxi.FillDiag(Nx(5));
+                    //Sx.PasteMatrix(&Sxi, 0, 15);
+                    //Sxi.FillDiag(Nx(6));
+                    //Sx.PasteMatrix(&Sxi, 0, 18);
+                    //Sxi.FillDiag(Nx(7));
+                    //Sx.PasteMatrix(&Sxi, 0, 21);
 
-                    ChMatrix33<> Syi;
-                    Syi.FillDiag(Ny(0));
-                    Sy.PasteMatrix(&Syi, 0, 0);
-                    Syi.FillDiag(Ny(1));
-                    Sy.PasteMatrix(&Syi, 0, 3);
-                    Syi.FillDiag(Ny(2));
-                    Sy.PasteMatrix(&Syi, 0, 6);
-                    Syi.FillDiag(Ny(3));
-                    Sy.PasteMatrix(&Syi, 0, 9);
-                    Syi.FillDiag(Ny(4));
-                    Sy.PasteMatrix(&Syi, 0, 12);
-                    Syi.FillDiag(Ny(5));
-                    Sy.PasteMatrix(&Syi, 0, 15);
-                    Syi.FillDiag(Ny(6));
-                    Sy.PasteMatrix(&Syi, 0, 18);
-                    Syi.FillDiag(Ny(7));
-                    Sy.PasteMatrix(&Syi, 0, 21);
+                    //ChMatrix33<> Syi;
+                    //Syi.FillDiag(Ny(0));
+                    //Sy.PasteMatrix(&Syi, 0, 0);
+                    //Syi.FillDiag(Ny(1));
+                    //Sy.PasteMatrix(&Syi, 0, 3);
+                    //Syi.FillDiag(Ny(2));
+                    //Sy.PasteMatrix(&Syi, 0, 6);
+                    //Syi.FillDiag(Ny(3));
+                    //Sy.PasteMatrix(&Syi, 0, 9);
+                    //Syi.FillDiag(Ny(4));
+                    //Sy.PasteMatrix(&Syi, 0, 12);
+                    //Syi.FillDiag(Ny(5));
+                    //Sy.PasteMatrix(&Syi, 0, 15);
+                    //Syi.FillDiag(Ny(6));
+                    //Sy.PasteMatrix(&Syi, 0, 18);
+                    //Syi.FillDiag(Ny(7));
+                    //Sy.PasteMatrix(&Syi, 0, 21);
 
-                    ChMatrix33<> Szi;
-                    Szi.FillDiag(Nz(0));
-                    Sz.PasteMatrix(&Szi, 0, 0);
-                    Szi.FillDiag(Nz(1));
-                    Sz.PasteMatrix(&Szi, 0, 3);
-                    Szi.FillDiag(Nz(2));
-                    Sz.PasteMatrix(&Szi, 0, 6);
-                    Szi.FillDiag(Nz(3));
-                    Sz.PasteMatrix(&Szi, 0, 9);
-                    Szi.FillDiag(Nz(4));
-                    Sz.PasteMatrix(&Szi, 0, 12);
-                    Szi.FillDiag(Nz(5));
-                    Sz.PasteMatrix(&Szi, 0, 15);
-                    Szi.FillDiag(Nz(6));
-                    Sz.PasteMatrix(&Szi, 0, 18);
-                    Szi.FillDiag(Nz(7));
-                    Sz.PasteMatrix(&Szi, 0, 21);
+                    //ChMatrix33<> Szi;
+                    //Szi.FillDiag(Nz(0));
+                    //Sz.PasteMatrix(&Szi, 0, 0);
+                    //Szi.FillDiag(Nz(1));
+                    //Sz.PasteMatrix(&Szi, 0, 3);
+                    //Szi.FillDiag(Nz(2));
+                    //Sz.PasteMatrix(&Szi, 0, 6);
+                    //Szi.FillDiag(Nz(3));
+                    //Sz.PasteMatrix(&Szi, 0, 9);
+                    //Szi.FillDiag(Nz(4));
+                    //Sz.PasteMatrix(&Szi, 0, 12);
+                    //Szi.FillDiag(Nz(5));
+                    //Sz.PasteMatrix(&Szi, 0, 15);
+                    //Szi.FillDiag(Nz(6));
+                    //Sz.PasteMatrix(&Szi, 0, 18);
+                    //Szi.FillDiag(Nz(7));
+                    //Sz.PasteMatrix(&Szi, 0, 21);
 
                     //==EAS and Initial Shape==//
                     ChMatrixNM<double, 3, 3> rd0;
@@ -905,12 +888,38 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     /// Straint derivative component ///
                     ////////////////////////////////////
                     ChMatrixNM<double, 6, 24> strainD_til;
+					ChMatrixNM<double, 1, 3> tempB3;
+					ChMatrixNM<double, 1, 3> tempB31;
                     strainD_til.Reset();
-                    tempB = Nx * (*d) * Sx;
+                    //tempB = Nx * (*d) * Sx;
+					tempB3.MatrMultiply(Nx, (*d));
+					for (int i = 0; i < 8; i++)
+					{
+						for (int j = 0; j < 3; j++)
+						{
+							tempB(0 , i * 3 + j) = tempB3(0, j)*Nx(0, i);
+						}
+					}
                     strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 0, 0);
-                    tempB = Ny * (*d) * Sy;
+                    //tempB = Ny * (*d) * Sy;
+					tempB3.MatrMultiply(Ny, (*d));
+					for (int i = 0; i < 8; i++)
+					{
+						for (int j = 0; j < 3; j++)
+						{
+							tempB(0, i * 3 + j) = tempB3(0, j)*Ny(0, i);
+						}
+					}
                     strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 1, 0);
-                    tempB = Nx * (*d) * Sy + Ny * (*d) * Sx;
+                    //tempB = Nx * (*d) * Sy + Ny * (*d) * Sx;
+					tempB31.MatrMultiply(Nx, (*d));
+					for (int i = 0; i < 8; i++)
+					{
+						for (int j = 0; j < 3; j++)
+						{
+							tempB(0, i * 3 + j) = tempB3(0, j)*Nx(0, i) + tempB31(0, j)*Ny(0, i);
+						}
+					}
                     strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 2, 0);
                     //== Compatible strain (No ANS)==//
                     // tempB = Nz*(*d)*Sz;
@@ -984,15 +993,15 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     /// Gd (9x24) calculation
                     for (int ii = 0; ii < 8; ii++) {
                         Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-                        Gd(1, 3 * (ii) + 1) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-                        Gd(2, 3 * (ii) + 2) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+                        Gd(3, 3 * (ii) + 1) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+                        Gd(6, 3 * (ii) + 2) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
 
-                        Gd(3, 3 * (ii)) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+                        Gd(1, 3 * (ii)) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
                         Gd(4, 3 * (ii) + 1) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-                        Gd(5, 3 * (ii) + 2) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+                        Gd(7, 3 * (ii) + 2) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
 
-                        Gd(6, 3 * (ii)) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-                        Gd(7, 3 * (ii) + 1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+                        Gd(2, 3 * (ii)) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+                        Gd(5, 3 * (ii) + 1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
                         Gd(8, 3 * (ii) + 2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
                     }
 
@@ -1076,6 +1085,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     Sigm(6, 6) = stress(3, 0);  // ZZ
                     Sigm(7, 7) = stress(3, 0);
                     Sigm(8, 8) = stress(3, 0);
+
 
                     /// Jacobian calculation ///
                     temp246.MatrTMultiply(strainD, *E_eps);
@@ -1318,7 +1328,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 ChElementShellANCF* element;
                 ChMatrixNM<double, 8, 3>* d0;
                 ChMatrixNM<double, 8, 3>* d;
-                ChMatrixNM<double, 3, 24> S;
+                //ChMatrixNM<double, 3, 24> S;
                 ChMatrixNM<double, 1, 4> S_ANS;
                 ChMatrixNM<double, 1, 8> N;
                 ChMatrixNM<double, 1, 8> Nx;
@@ -1343,23 +1353,23 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                         Pressure0 = 220.0 * 1000.0;  // 220 KPa
 
                     // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
-                    ChMatrix33<> Si;
-                    Si.FillDiag(N(0));
-                    S.PasteMatrix(&Si, 0, 0);
-                    Si.FillDiag(N(1));
-                    S.PasteMatrix(&Si, 0, 3);
-                    Si.FillDiag(N(2));
-                    S.PasteMatrix(&Si, 0, 6);
-                    Si.FillDiag(N(3));
-                    S.PasteMatrix(&Si, 0, 9);
-                    Si.FillDiag(N(4));
-                    S.PasteMatrix(&Si, 0, 12);
-                    Si.FillDiag(N(5));
-                    S.PasteMatrix(&Si, 0, 15);
-                    Si.FillDiag(N(6));
-                    S.PasteMatrix(&Si, 0, 18);
-                    Si.FillDiag(N(7));
-                    S.PasteMatrix(&Si, 0, 21);
+                    //ChMatrix33<> Si;
+                    //Si.FillDiag(N(0));
+                    //S.PasteMatrix(&Si, 0, 0);
+                    //Si.FillDiag(N(1));
+                    //S.PasteMatrix(&Si, 0, 3);
+                    //Si.FillDiag(N(2));
+                    //S.PasteMatrix(&Si, 0, 6);
+                    //Si.FillDiag(N(3));
+                    //S.PasteMatrix(&Si, 0, 9);
+                    //Si.FillDiag(N(4));
+                    //S.PasteMatrix(&Si, 0, 12);
+                    //Si.FillDiag(N(5));
+                    //S.PasteMatrix(&Si, 0, 15);
+                    //Si.FillDiag(N(6));
+                    //S.PasteMatrix(&Si, 0, 18);
+                    //Si.FillDiag(N(7));
+                    //S.PasteMatrix(&Si, 0, 21);
 
                     ChMatrixNM<double, 1, 3> Nx_d;
                     Nx_d.MatrMultiply(Nx, *d);
@@ -1410,7 +1420,14 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     double G1xG2norm = sqrt(G1xG2(0) * G1xG2(0) + G1xG2(1) * G1xG2(1) + G1xG2(2) * G1xG2(2));
 
                     LocalAirPressure = -G1xG2 * (Pressure0 / G1xG2norm);
-                    result.MatrTMultiply(S, LocalAirPressure);
+					for (int i = 0; i < 8; i++)
+					{
+						for (int j = 0; j < 3; j++)
+						{
+							result(i * 3 + j, 0) = N(0, i)*LocalAirPressure(j, 0);
+						}
+					}
+                    //result.MatrTMultiply(S, LocalAirPressure);
 
                     result *= detJ0 * wx2 * wy2;  // 6/12/2015
                 }
@@ -1472,9 +1489,9 @@ void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8
     temp_knot(7, 0) = 0.0;   // D
     temp_knot(7, 1) = 1.0;   // D
 
-    ChMatrixNM<double, 3, 24> Sx;
-    ChMatrixNM<double, 3, 24> Sy;
-    ChMatrixNM<double, 3, 24> Sz;
+    //ChMatrixNM<double, 3, 24> Sx;
+    //ChMatrixNM<double, 3, 24> Sy;
+    //ChMatrixNM<double, 3, 24> Sz;
     ChMatrixNM<double, 1, 8> Nx;
     ChMatrixNM<double, 1, 8> Ny;
     ChMatrixNM<double, 1, 8> Nz;
@@ -1492,6 +1509,8 @@ void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8
     ChMatrixNM<double, 1, 1> tempA;
     ChMatrixNM<double, 1, 1> tempA1;
     ChMatrixNM<double, 1, 24> tempB;
+	ChMatrixNM<double, 1, 3> tempB3;
+	ChMatrixNM<double, 1, 3> tempB31;
 
     for (int kk = 0; kk < 8; kk++) {
         ShapeFunctionsDerivativeX(Nx, temp_knot(kk, 0), temp_knot(kk, 1), temp_knot(kk, 2));
@@ -1499,59 +1518,59 @@ void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8
         ShapeFunctionsDerivativeZ(Nz, temp_knot(kk, 0), temp_knot(kk, 1), temp_knot(kk, 2));
 
         // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
-        ChMatrix33<> Sxi;
-        Sxi.FillDiag(Nx(0));
-        Sx.PasteMatrix(&Sxi, 0, 0);
-        Sxi.FillDiag(Nx(1));
-        Sx.PasteMatrix(&Sxi, 0, 3);
-        Sxi.FillDiag(Nx(2));
-        Sx.PasteMatrix(&Sxi, 0, 6);
-        Sxi.FillDiag(Nx(3));
-        Sx.PasteMatrix(&Sxi, 0, 9);
-        Sxi.FillDiag(Nx(4));
-        Sx.PasteMatrix(&Sxi, 0, 12);
-        Sxi.FillDiag(Nx(5));
-        Sx.PasteMatrix(&Sxi, 0, 15);
-        Sxi.FillDiag(Nx(6));
-        Sx.PasteMatrix(&Sxi, 0, 18);
-        Sxi.FillDiag(Nx(7));
-        Sx.PasteMatrix(&Sxi, 0, 21);
+        //ChMatrix33<> Sxi;
+        //Sxi.FillDiag(Nx(0));
+        //Sx.PasteMatrix(&Sxi, 0, 0);
+        //Sxi.FillDiag(Nx(1));
+        //Sx.PasteMatrix(&Sxi, 0, 3);
+        //Sxi.FillDiag(Nx(2));
+        //Sx.PasteMatrix(&Sxi, 0, 6);
+        //Sxi.FillDiag(Nx(3));
+        //Sx.PasteMatrix(&Sxi, 0, 9);
+        //Sxi.FillDiag(Nx(4));
+        //Sx.PasteMatrix(&Sxi, 0, 12);
+        //Sxi.FillDiag(Nx(5));
+        //Sx.PasteMatrix(&Sxi, 0, 15);
+        //Sxi.FillDiag(Nx(6));
+        //Sx.PasteMatrix(&Sxi, 0, 18);
+        //Sxi.FillDiag(Nx(7));
+        //Sx.PasteMatrix(&Sxi, 0, 21);
 
-        ChMatrix33<> Syi;
-        Syi.FillDiag(Ny(0));
-        Sy.PasteMatrix(&Syi, 0, 0);
-        Syi.FillDiag(Ny(1));
-        Sy.PasteMatrix(&Syi, 0, 3);
-        Syi.FillDiag(Ny(2));
-        Sy.PasteMatrix(&Syi, 0, 6);
-        Syi.FillDiag(Ny(3));
-        Sy.PasteMatrix(&Syi, 0, 9);
-        Syi.FillDiag(Ny(4));
-        Sy.PasteMatrix(&Syi, 0, 12);
-        Syi.FillDiag(Ny(5));
-        Sy.PasteMatrix(&Syi, 0, 15);
-        Syi.FillDiag(Ny(6));
-        Sy.PasteMatrix(&Syi, 0, 18);
-        Syi.FillDiag(Ny(7));
-        Sy.PasteMatrix(&Syi, 0, 21);
+        //ChMatrix33<> Syi;
+        //Syi.FillDiag(Ny(0));
+        //Sy.PasteMatrix(&Syi, 0, 0);
+        //Syi.FillDiag(Ny(1));
+        //Sy.PasteMatrix(&Syi, 0, 3);
+        //Syi.FillDiag(Ny(2));
+        //Sy.PasteMatrix(&Syi, 0, 6);
+        //Syi.FillDiag(Ny(3));
+        //Sy.PasteMatrix(&Syi, 0, 9);
+        //Syi.FillDiag(Ny(4));
+        //Sy.PasteMatrix(&Syi, 0, 12);
+        //Syi.FillDiag(Ny(5));
+        //Sy.PasteMatrix(&Syi, 0, 15);
+        //Syi.FillDiag(Ny(6));
+        //Sy.PasteMatrix(&Syi, 0, 18);
+        //Syi.FillDiag(Ny(7));
+        //Sy.PasteMatrix(&Syi, 0, 21);
 
-        ChMatrix33<> Szi;
-        Szi.FillDiag(Nz(0));
-        Sz.PasteMatrix(&Szi, 0, 0);
-        Szi.FillDiag(Nz(1));
-        Sz.PasteMatrix(&Szi, 0, 3);
-        Szi.FillDiag(Nz(2));
-        Sz.PasteMatrix(&Szi, 0, 6);
-        Szi.FillDiag(Nz(3));
-        Sz.PasteMatrix(&Szi, 0, 9);
-        Szi.FillDiag(Nz(4));
-        Sz.PasteMatrix(&Szi, 0, 12);
-        Szi.FillDiag(Nz(5));
-        Sz.PasteMatrix(&Szi, 0, 15);
-        Szi.FillDiag(Nz(6));
-        Sz.PasteMatrix(&Szi, 0, 18);
-        Szi.FillDiag(Nz(7));
-        Sz.PasteMatrix(&Szi, 0, 21);
+        //ChMatrix33<> Szi;
+        //Szi.FillDiag(Nz(0));
+        //Sz.PasteMatrix(&Szi, 0, 0);
+        //Szi.FillDiag(Nz(1));
+        //Sz.PasteMatrix(&Szi, 0, 3);
+        //Szi.FillDiag(Nz(2));
+        //Sz.PasteMatrix(&Szi, 0, 6);
+        //Szi.FillDiag(Nz(3));
+        //Sz.PasteMatrix(&Szi, 0, 9);
+        //Szi.FillDiag(Nz(4));
+        //Sz.PasteMatrix(&Szi, 0, 12);
+        //Szi.FillDiag(Nz(5));
+        //Sz.PasteMatrix(&Szi, 0, 15);
+        //Szi.FillDiag(Nz(6));
+        //Sz.PasteMatrix(&Szi, 0, 18);
+        //Szi.FillDiag(Nz(7));
+        //Sz.PasteMatrix(&Szi, 0, 21);
 
         d_d.MatrMultiplyT(d, d);
         ddNx.MatrMultiplyT(d_d, Nx);
@@ -1567,21 +1586,47 @@ void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8
             tempA = Nz * ddNz;
             tempA1 = Nz * d0d0Nz;
             strain_ans(kk, 0) = 0.5 * (tempA(0, 0) - tempA1(0, 0));
-            tempB = Nz * (d)*Sz;
+            //tempB = Nz * (d)*Sz;
+			tempB3.MatrMultiply(Nz, d);
+			for (int i = 0; i < 8; i++)
+			{
+				for (int j = 0; j < 3; j++)
+				{
+					tempB(0, i * 3 + j) = tempB3(0, j)*Nz(0, i);
+				}
+			}
             strainD_ans.PasteClippedMatrix(&tempB, 0, 0, 1, 24, kk, 0);
         }
         if (kk == 4 || kk == 5) {  // kk=4,5 =>yz
             tempA = Ny * ddNz;
             tempA1 = Ny * d0d0Nz;
             strain_ans(kk, 0) = tempA(0, 0) - tempA1(0, 0);
-            tempB = Ny * (d)*Sz + Nz * (d)*Sy;
+            //tempB = Ny * (d)*Sz + Nz * (d)*Sy;
+			tempB3.MatrMultiply(Ny, d);
+			tempB31.MatrMultiply(Nz, d);
+			for (int i = 0; i < 8; i++)
+			{
+				for (int j = 0; j < 3; j++)
+				{
+					tempB(0, i * 3 + j) = tempB3(0, j)*Nz(0, i) + tempB31(0, j)*Ny(0, i);
+				}
+			}
             strainD_ans.PasteClippedMatrix(&tempB, 0, 0, 1, 24, kk, 0);
         }
         if (kk == 6 || kk == 7) {  // kk=6,7 =>xz
             tempA = Nx * ddNz;
             tempA1 = Nx * d0d0Nz;
             strain_ans(kk, 0) = tempA(0, 0) - tempA1(0, 0);
-            tempB = Nx * (d)*Sz + Nz * (d)*Sx;
+            //tempB = Nx * (d)*Sz + Nz * (d)*Sx;
+			tempB3.MatrMultiply(Nx, d);
+			tempB31.MatrMultiply(Nz, d);
+			for (int i = 0; i < 8; i++)
+			{
+				for (int j = 0; j < 3; j++)
+				{
+					tempB(0, i * 3 + j) = tempB3(0, j)*Nz(0, i) + tempB31(0, j)*Nx(0, i);
+				}
+			}
             strainD_ans.PasteClippedMatrix(&tempB, 0, 0, 1, 24, kk, 0);
         }
     }

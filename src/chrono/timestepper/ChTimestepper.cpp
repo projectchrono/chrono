@@ -759,7 +759,7 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
                 mintegrable->LoadConstraint_C(Qc, 1.0, Qc_do_clamp, Qc_clamping);          //  1/(beta*dt^2)*C
 
                 mintegrable->StateSolveCorrection(
-                    Da, Dl, R, Qc,
+                    Da, Dl, R/**scaling_factor*/, Qc,
                     scaling_factor / ((1 + alpha) * beta * dt * dt),  // factor for  M (was 1 in Negrut paper ?!)
                     -scaling_factor / (gamma * dt),                   // factor for  dF/dv
                     -scaling_factor,                                  // factor for  dF/dx
@@ -767,7 +767,7 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
                     false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
                     );
 
-                L += Dl;  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
+                L += Dl*(1.0/scaling_factor);  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
 
                 Xnew = Xnew + Da;  // X + V * dt + A * (dt * dt * (0.5 - beta)) + Anew * (dt * dt * beta);
                 Vnew = V * (-(gamma / beta - 1.0)) - A * dt * (gamma / (2.0 * beta) - 1.0);
