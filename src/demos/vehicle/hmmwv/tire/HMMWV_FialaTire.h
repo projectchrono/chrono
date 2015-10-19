@@ -19,7 +19,7 @@
 #ifndef HMMWV_FIALA_TIRE_H
 #define HMMWV_FIALA_TIRE_H
 
-#include "chrono_vehicle/tire/ChFialaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
 namespace hmmwv {
 

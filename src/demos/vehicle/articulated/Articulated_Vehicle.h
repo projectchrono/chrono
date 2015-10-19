@@ -25,11 +25,11 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChMaterialSurfaceBase.h"
 
-#include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 #include "ModelDefs.h"
 
-class Articulated_Vehicle : public chrono::ChVehicle
+class Articulated_Vehicle : public chrono::ChWheeledVehicle
 {
 public:
   Articulated_Vehicle(const bool fixed,

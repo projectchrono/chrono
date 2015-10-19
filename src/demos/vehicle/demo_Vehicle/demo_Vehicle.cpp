@@ -33,11 +33,11 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_vehicle/vehicle/Vehicle.h"
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    Vehicle vehicle(vehicle::GetDataFile(vehicle_file));
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file));
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetBodyFixed(true);
 

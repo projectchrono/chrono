@@ -19,7 +19,7 @@
 #ifndef HMMWV_WHEEL_H
 #define HMMWV_WHEEL_H
 
-#include "chrono_vehicle/ChWheel.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 #include "ModelDefs.h"
 

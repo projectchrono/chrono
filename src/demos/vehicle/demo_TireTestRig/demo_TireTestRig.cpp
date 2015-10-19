@@ -39,9 +39,9 @@
 
 #include "ModelDefs.h"
 
-#include "chrono_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 

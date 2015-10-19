@@ -29,11 +29,11 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/vehicle/Vehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
-#include "chrono_vehicle/tire/RigidTire.h"
-#include "chrono_vehicle/tire/LugreTire.h"
-#include "chrono_vehicle/tire/FialaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -110,7 +110,7 @@ void processData(const utils::CSV_writer& csv, const Data& data);
 
 int main(int argc, char* argv[]) {
     // Create and initialize the vehicle system
-    Vehicle vehicle(vehicle::GetDataFile(vehicle_file));
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file));
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Create the terrain

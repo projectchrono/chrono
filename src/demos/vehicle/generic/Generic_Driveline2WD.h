@@ -19,7 +19,7 @@
 #ifndef GENERIC_DRIVELINE_2WD_H
 #define GENERIC_DRIVELINE_2WD_H
 
-#include "chrono_vehicle/driveline/ChShaftsDriveline2WD.h"
+#include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 
 class Generic_Driveline2WD : public chrono::ChShaftsDriveline2WD
 {

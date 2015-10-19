@@ -22,8 +22,8 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
-#include "chrono_vehicle/ChWheel.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 #include "ModelDefs.h"
 

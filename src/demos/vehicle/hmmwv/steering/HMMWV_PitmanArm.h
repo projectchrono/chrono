@@ -19,7 +19,7 @@
 #ifndef HMMWV_PITMAN_ARM_H
 #define HMMWV_PITMAN_ARM_H
 
-#include "chrono_vehicle/steering/ChPitmanArm.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/ChPitmanArm.h"
 
 namespace hmmwv {
 

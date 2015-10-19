@@ -52,7 +52,7 @@ Articulated_Vehicle::Articulated_Vehicle(const bool fixed,
                                          SuspensionType suspType,
                                          VisualizationType wheelVis,
                                          ChMaterialSurfaceBase::ContactMethod contactMethod)
-  : ChVehicle(contactMethod), m_suspType(suspType) {
+  : ChWheeledVehicle(contactMethod), m_suspType(suspType) {
   // -------------------------------------------
   // Create the chassis body
   // -------------------------------------------

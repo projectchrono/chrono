@@ -19,7 +19,7 @@
 #ifndef GENERIC_RACKPINION_H
 #define GENERIC_RACKPINION_H
 
-#include "chrono_vehicle/steering/ChRackPinion.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/ChRackPinion.h"
 
 class Generic_RackPinion : public chrono::ChRackPinion
 {

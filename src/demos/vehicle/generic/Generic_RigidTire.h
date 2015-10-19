@@ -19,7 +19,7 @@
 #ifndef GENERIC_RIGID_TIRE_H
 #define GENERIC_RIGID_TIRE_H
 
-#include "chrono_vehicle/tire/ChRigidTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
 class Generic_RigidTire : public chrono::ChRigidTire {
   public:
