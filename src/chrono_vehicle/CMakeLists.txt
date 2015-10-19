@@ -100,8 +100,6 @@ if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_DRIVER_FILES
         driver/ChIrrGuiDriver.h
         driver/ChIrrGuiDriver.cpp
-        driver/ChIrrGuiST.h
-        driver/ChIrrGuiST.cpp
     )
 else()
     set(CVIRR_DRIVER_FILES "")
@@ -156,8 +154,6 @@ set(CV_WV_BASE_FILES
     wheeled_vehicle/ChDriveline.cpp
     wheeled_vehicle/ChSuspension.h
     wheeled_vehicle/ChSuspension.cpp
-    wheeled_vehicle/ChSuspensionTest.h
-    wheeled_vehicle/ChSuspensionTest.cpp
     wheeled_vehicle/ChSteering.h
     wheeled_vehicle/ChSteering.cpp
     wheeled_vehicle/ChWheeledVehicle.h
@@ -241,12 +237,6 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/HendricksonPRIMAXX.cpp
 )
 source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
-
-set(CV_WV_SUSPENSIONTEST_FILES
-    wheeled_vehicle/suspensionTest/SuspensionTest.h
-    wheeled_vehicle/suspensionTest/SuspensionTest.cpp
-)
-source_group("wheeled_vehicle\\suspensionTest" FILES ${CV_WV_SUSPENSIONTEST_FILES})
 
 set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.h
@@ -341,7 +331,6 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_DRIVELINE_FILES}
     ${CV_WV_STEERING_FILES}
     ${CV_WV_SUSPENSION_FILES}
-    ${CV_WV_SUSPENSIONTEST_FILES}
     ${CV_WV_TIRE_FILES}
     ${CV_WV_UTILS_FILES}
     ${CVIRR_WV_UTILS_FILES}

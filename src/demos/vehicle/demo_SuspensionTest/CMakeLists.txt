@@ -1,21 +1,22 @@
 #=============================================================================
-# CMake configuration file for the SUSPENSION_TEST demo.
-# These example programs work only with Irrlicht run-time visualization
+# CMake configuration file for the SUSPENSION_TEST_RIG demo.
+# This example program works only with Irrlicht run-time visualization
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
-MESSAGE(STATUS "...add SUSPENSION_TEST demos")
+MESSAGE(STATUS "...add SUSPENSION_TEST_RIG demo")
 
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(DEMOS
-    demo_SuspensionTest
-    demo_SuspensionTestRig
+SET(DEMO_FILES
+    demo_SuspensionTestRig.cpp
 )
+
+SOURCE_GROUP("" FILES ${DEMO_FILES})
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -34,16 +35,12 @@ SET(LIBRARIES
 )
 
 #--------------------------------------------------------------
-# Add executables
+# Add executable
 
-FOREACH(PROGRAM ${DEMOS})
-  ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-  SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
-  SET_TARGET_PROPERTIES(${PROGRAM}  PROPERTIES
-                        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-                        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-  TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-  INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
-
-ENDFOREACH()
+ADD_EXECUTABLE(demo_SuspensionTestRig ${DEMO_FILES})
+SET_TARGET_PROPERTIES(demo_SuspensionTestRig PROPERTIES 
+                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+                      LINK_FLAGS "${LINKERFLAG_EXE}")
+TARGET_LINK_LIBRARIES(demo_SuspensionTestRig ${LIBRARIES})
+INSTALL(TARGETS demo_SuspensionTestRig DESTINATION bin)
 
