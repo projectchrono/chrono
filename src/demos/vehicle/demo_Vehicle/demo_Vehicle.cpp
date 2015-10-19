@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
 
 #else
 
-    ChDataDriver driver(vehicle::GetDataFile(driver_file));
+    ChDataDriver driver(vehicle, vehicle::GetDataFile(driver_file));
 
 #endif
 

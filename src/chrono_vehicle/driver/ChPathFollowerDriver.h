@@ -63,7 +63,6 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChDriver {
   private:
     void Create();
 
-    ChVehicle& m_vehicle;                    ///< reference to associated vehicle
     ChPathSteeringController m_steeringPID;  ///< steering controller
     ChSpeedController m_speedPID;            ///< speed controller
     double m_target_speed;                   ///< desired vehicle speed

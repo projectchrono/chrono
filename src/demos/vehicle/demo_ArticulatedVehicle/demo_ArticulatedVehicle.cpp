@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
     driver.SetBrakingDelta(render_step_size / braking_time);
 
 #else
-    Generic_FuncDriver driver;
+    Generic_FuncDriver driver(vehicle);
 #endif
 
 // ---------------

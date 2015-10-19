@@ -30,7 +30,8 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDriver::ChDriver() : m_throttle(0), m_steering(0), m_braking(0), m_log_filename("") {
+ChDriver::ChDriver(ChVehicle& vehicle)
+    : m_vehicle(vehicle), m_throttle(0), m_steering(0), m_braking(0), m_log_filename("") {
 }
 
 // -----------------------------------------------------------------------------

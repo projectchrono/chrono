@@ -34,7 +34,8 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleIrrApp& app)
-    : m_app(app),
+    : ChDriver(app.m_car),
+      m_app(app),
       m_throttleDelta(1.0 / 50),
       m_steeringDelta(1.0 / 50),
       m_brakingDelta(1.0 / 50),
@@ -120,7 +121,7 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
 // -----------------------------------------------------------------------------
 void ChIrrGuiDriver::SetInputDataFile(const std::string& filename) {
     // Embed a DataDriver.
-    m_data_driver = ChSharedPtr<ChDataDriver>(new ChDataDriver(filename, false));
+    m_data_driver = ChSharedPtr<ChDataDriver>(new ChDataDriver(m_vehicle, filename, false));
 }
 
 // -----------------------------------------------------------------------------
