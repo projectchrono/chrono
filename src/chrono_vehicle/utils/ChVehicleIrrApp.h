@@ -25,8 +25,8 @@
 
 #include <string>
 
-#include "physics/ChSystem.h"
-#include "utils/ChUtilsChaseCamera.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChUtilsChaseCamera.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 

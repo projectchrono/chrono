@@ -22,17 +22,17 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPowertrain.h"
 
-#include "physics/ChShaftsGear.h" 
-#include "physics/ChShaftsGearbox.h"
-#include "physics/ChShaftsGearboxAngled.h"
-#include "physics/ChShaftsClutch.h"
-#include "physics/ChShaftsPlanetary.h"
-#include "physics/ChShaftsBody.h"
-#include "physics/ChShaftsTorsionSpring.h"
-#include "physics/ChShaftsTorqueConverter.h"
-#include "physics/ChShaftsMotor.h"
-#include "physics/ChShaftsTorque.h"
-#include "physics/ChShaftsThermalEngine.h"
+#include "chrono/physics/ChShaftsGear.h" 
+#include "chrono/physics/ChShaftsGearbox.h"
+#include "chrono/physics/ChShaftsGearboxAngled.h"
+#include "chrono/physics/ChShaftsClutch.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
+#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftsTorsionSpring.h"
+#include "chrono/physics/ChShaftsTorqueConverter.h"
+#include "chrono/physics/ChShaftsMotor.h"
+#include "chrono/physics/ChShaftsTorque.h"
+#include "chrono/physics/ChShaftsThermalEngine.h"
 
 namespace chrono {
 

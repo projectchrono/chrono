@@ -21,9 +21,9 @@
 
 #include <vector>
 
-#include "core/ChVector.h"
-#include "core/ChQuaternion.h"
-#include "physics/ChLinkSpringCB.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/physics/ChLinkSpringCB.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 

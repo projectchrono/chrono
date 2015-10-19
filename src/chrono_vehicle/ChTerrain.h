@@ -19,8 +19,8 @@
 #ifndef CH_TERRAIN_H
 #define CH_TERRAIN_H
 
-#include "core/ChShared.h"
-#include "core/ChVector.h"
+#include "chrono/core/ChShared.h"
+#include "chrono/core/ChVector.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 

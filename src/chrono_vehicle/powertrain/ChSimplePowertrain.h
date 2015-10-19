@@ -24,7 +24,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPowertrain.h"
-#include "chrono_vehicle/ChSuspension.h"
 
 namespace chrono {
 

@@ -20,14 +20,14 @@
 #define CH_IRRGUIDRIVER_H
 
 
-#include "physics/ChSystem.h"
-#include "utils/ChUtilsChaseCamera.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChUtilsChaseCamera.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
-#include "chrono_vehicle/ChSuspensionTest.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSuspensionTest.h"
 
 
 namespace chrono {

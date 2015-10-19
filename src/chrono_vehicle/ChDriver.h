@@ -22,8 +22,8 @@
 
 #include <string>
 
-#include "core/ChShared.h"
-#include "physics/ChSystem.h"
+#include "chrono/core/ChShared.h"
+#include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
