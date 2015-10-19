@@ -270,8 +270,18 @@ source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
 set(CV_WV_UTILS_FILES
     wheeled_vehicle/utils/ChWheeledVehicleAssembly.h
     wheeled_vehicle/utils/ChWheeledVehicleAssembly.cpp
+    wheeled_vehicle/utils/ChSuspensionTestRig.h
+    wheeled_vehicle/utils/ChSuspensionTestRig.cpp
 )
-source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES})
+if(ENABLE_MODULE_IRRLICHT)
+    set(CVIRR_WV_UTILS_FILES
+        wheeled_vehicle/utils/ChIrrGuiDriverSTR.h
+        wheeled_vehicle/utils/ChIrrGuiDriverSTR.cpp
+    )
+else()
+    set(CVIRR_WV_UTILS_FILES "")
+endif()
+source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES} ${CVIRR_WV_UTILS_FILES})
 
 set(CV_WV_VEHICLE_FILES
     wheeled_vehicle/vehicle/WheeledVehicle.h
@@ -334,6 +344,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_SUSPENSIONTEST_FILES}
     ${CV_WV_TIRE_FILES}
     ${CV_WV_UTILS_FILES}
+    ${CVIRR_WV_UTILS_FILES}
     ${CV_WV_VEHICLE_FILES}
     ${CV_WV_WHEEL_FILES}
 #
