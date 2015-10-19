@@ -1,55 +1,49 @@
 #=============================================================================
 # CMake configuration file for the SUSPENSION_TEST demo.
-# This example program works with and without Irrlicht run-time visualization
+# These example programs work only with Irrlicht run-time visualization
 #=============================================================================
 
-MESSAGE(STATUS "...add SUSPENSION_TEST demo")
+IF(NOT ENABLE_MODULE_IRRLICHT)
+    RETURN()
+ENDIF()
+
+MESSAGE(STATUS "...add SUSPENSION_TEST demos")
 
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(TEST_FILES
-    demo_SuspensionTest.cpp
+SET(DEMOS
+    demo_SuspensionTest
+    demo_SuspensionTestRig
 )
-
-SOURCE_GROUP("" FILES ${TEST_FILES})
 
 #--------------------------------------------------------------
 # Additional include directories
 
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/demos/vehicle")
-
-IF(ENABLE_MODULE_IRRLICHT)
-  INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
-ENDIF()
+INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
 #--------------------------------------------------------------
 # List of all required libraries
 
 SET(LIBRARIES
     ChronoEngine
-    ChronoEngine_vehicle)
-
-IF(ENABLE_MODULE_IRRLICHT)
-  SET(LIBRARIES_IRR
-      ChronoEngine_irrlicht
-      ${CH_IRRLICHTLIB})
-ELSE()
-  SET(LIBRARIES_IRR "")
-ENDIF()
+    ChronoEngine_irrlicht
+    ChronoEngine_vehicle
+    ${CH_IRRLICHTLIB}
+)
 
 #--------------------------------------------------------------
-# Create the executable
+# Add executables
 
-if(ENABLE_MODULE_IRRLICHT)
-  set(MY_CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-else()
-  set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")
-endif()
+FOREACH(PROGRAM ${DEMOS})
+  ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+  SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+  SET_TARGET_PROPERTIES(${PROGRAM}  PROPERTIES
+                        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+                        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+  TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+  INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
 
-ADD_EXECUTABLE(demo_SuspensionTest ${TEST_FILES})
-SET_TARGET_PROPERTIES(demo_SuspensionTest PROPERTIES 
-                      COMPILE_FLAGS "${MY_CXX_FLAGS}"
-                      LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_SuspensionTest ${LIBRARIES} ${LIBRARIES_IRR})
-INSTALL(TARGETS demo_SuspensionTest DESTINATION bin)
+ENDFOREACH()
+
