@@ -30,10 +30,10 @@ typedef thrust::pair<real3, real3> bbox;
 // reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
 struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
   bbox operator()(bbox a, bbox b) {
-    real3 ll = R3(std::fmin(a.first.x, b.first.x), std::fmin(a.first.y, b.first.y),
-                  std::fmin(a.first.z, b.first.z));  // lower left corner
-    real3 ur = R3(std::fmax(a.second.x, b.second.x), std::fmax(a.second.y, b.second.y),
-                  std::fmax(a.second.z, b.second.z));  // upper right corner
+    real3 ll = R3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
+                  Min(a.first.z, b.first.z));  // lower left corner
+    real3 ur = R3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
+                  Max(a.second.z, b.second.z));  // upper right corner
     return bbox(ll, ur);
   }
 };

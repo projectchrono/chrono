@@ -94,49 +94,6 @@ double ChFunction_Oscilloscope::Get_y(double x) {
     return y;
 }
 
-void ChFunction_Oscilloscope::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << dx;
-    mstream << end_x;
-    mstream << max_amount;
-    mstream << amount;
-    std::list<double>::iterator iter = values.begin();
-    while (iter != values.end()) {
-        mstream << *iter;
-        iter++;
-    }
-}
-
-void ChFunction_Oscilloscope::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> dx;
-    mstream >> end_x;
-    mstream >> max_amount;
-    mstream >> amount;
-    values.clear();
-    int i = 0;
-    while (i < amount) {
-        double mval;
-        mstream >> mval;
-        this->values.push_back(mval);
-    }
-}
-
-void ChFunction_Oscilloscope::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_OSCILLOSCOPE \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

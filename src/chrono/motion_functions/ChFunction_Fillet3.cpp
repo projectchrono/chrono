@@ -110,40 +110,6 @@ int ChFunction_Fillet3::SetupCoefficients() {
     return TRUE;
 }
 
-void ChFunction_Fillet3::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << end;
-    mstream << y1;
-    mstream << y2;
-    mstream << dy1;
-    mstream << dy2;
-}
-
-void ChFunction_Fillet3::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> end;
-    mstream >> y1;
-    mstream >> y2;
-    mstream >> dy1;
-    mstream >> dy2;
-    SetupCoefficients();
-}
-
-void ChFunction_Fillet3::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_FILLET3  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

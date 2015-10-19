@@ -29,6 +29,8 @@ SET(DEMOS
   demo_emit_processor
   demo_aux_ref
   demo_rev_sph
+  demo_rev_trans
+  demo_rev_limits
   demo_spring
   demo_ujoint
   demo_earthquake

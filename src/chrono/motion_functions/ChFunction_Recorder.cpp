@@ -413,46 +413,6 @@ double ChFunction_Recorder::Get_y_dxdx(double x) {
     return ddy;
 }
 
-void ChFunction_Recorder::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << (int)(points.Count());
-
-    for (ChNode<ChRecPoint>* mnode = points.GetTail(); mnode != NULL; mnode = mnode->prev) {
-        mstream << mnode->data->x;
-        mstream << mnode->data->y;
-        mstream << mnode->data->w;
-    }
-}
-
-void ChFunction_Recorder::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    int mcount;
-    mstream >> mcount;
-
-    for (int i = 0; i < mcount; i++) {
-        ChRecPoint* mpt = new ChRecPoint;
-        mstream >> mpt->x;
-        mstream >> mpt->y;
-        mstream >> mpt->w;
-        points.AddHead(mpt);
-    }
-}
-
-void ChFunction_Recorder::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_RECORDER  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

@@ -947,97 +947,7 @@ ChSharedPtr<ChMarker> ChAssembly::SearchMarker(int markID) {
 
 //////// FILE I/O
 
-void ChAssembly::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << do_collide;
-    mstream << do_limit_speed;
-
-    mstream << max_speed;
-    mstream << max_wvel;
-
-    // 2a) write how many bodies
-    mstream << (int)bodylist.size();
-
-    // 2b) write  bodies
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChBody* Bpointer = bodylist[ip];
-        // write the body
-        // Bpointer->StreamOUT(mstream);
-        mstream.AbstractWriteAll(Bpointer);
-        // mstream.AbstractWrite(Bpointer);
-    }
-
-    // 3a) write how many links
-    mstream << (int)linklist.size();
-
-    // 3b) write links links
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChLink* Lpointer = linklist[ip];
-        // Writethe link, using a special downcasting function Link_BinSave which saves also the
-        // inheritance info, depending on link class inheritance from base Link*
-        mstream.AbstractWrite(Lpointer);
-    }
-}
-
-void ChAssembly::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChPhysicsItem::StreamIN(mstream);
-
-    mstream >> do_collide;
-    mstream >> do_limit_speed;
-
-    mstream >> max_speed;
-    mstream >> max_wvel;
-
-    // 2a) read how many bodies
-    int mnbodies = 0;
-    mstream >> mnbodies;
-
-    // 2b) read  bodies
-    ChBody* newbody = NULL;
-    for (int i = 0; i < mnbodies; i++) {
-        // mstream.AbstractReadCreate(&newbody);
-        mstream.AbstractReadAllCreate(&newbody);
-        ChSharedPtr<ChBody> shitem(newbody);
-        this->AddBody(shitem);
-        /*
-        ChSharedPtr<ChBody> newbody(new ChBody);
-        this->AddBody(newbody);
-
-        newbody->StreamIN(mstream);
-        */
-    }
-
-    // 3a) read how many links
-    int mnlinks = 0;
-    mstream >> mnlinks;
-
-    // 3b) read  links
-    ChLink* newlink = NULL;
-    for (int j = 0; j < mnlinks; j++) {
-        // read the link, using a special downcasting function Link_BinRead_Create which creates the
-        // proper inherited object, depending on its class inheritance from base Link*
-
-        mstream.AbstractReadCreate(&newlink);
-
-        ChSharedPtr<ChLink> shlink(newlink);
-        this->AddLink(shlink);
-    }
-
-    // 3c) Rebuild link pointers to markers
-    this->Reference_LM_byID();
-}
 
 void ChAssembly::StreamOUTstate(ChStreamOutBinary& mstream) {
     // Do not serialize parent classes and do not
@@ -1063,126 +973,94 @@ void ChAssembly::StreamINstate(ChStreamInBinary& mstream) {
     }
 }
 
-#define CH_CHUNK_END_ASSEM 18881
 
-int ChAssembly::StreamINall(ChStreamInBinary& m_file) {
-    int mchunk = 0;
-    ChBody* newbody = NULL;
-    ChLink* newlink = NULL;
 
-    // class version number
-    int version = m_file.VersionRead();
 
-    // 0) reset system to have no sub object child
-    this->Clear();
 
-    // 1) read system class data...
-    // deserialize parent class too
-    ChPhysicsItem::StreamIN(m_file);
+void ChAssembly::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    m_file >> do_collide;
-    m_file >> do_limit_speed;
+    // serialize parent class
+    ChObj::ArchiveOUT(marchive);
 
-    m_file >> max_speed;
-    m_file >> max_wvel;
+    // serialize all member data:
 
-    // 2a) read how many bodies
-    int mnbodies = 0;
-    m_file >> mnbodies;
-
-    // 2b) read  bodies
-    for (int i = 0; i < mnbodies; i++) {
-        ChSharedPtr<ChBody> newbody(new ChBody);
-        this->AddBody(newbody);
-
-        if (!newbody->StreamINall(m_file))
-            throw ChException("Cannot read body data");
+    //marchive << CHNVP(bodylist);
+    // do rather a custom array save:
+    marchive.out_array_pre("bodies", bodylist.size(), "ChBody");
+    for (int i = 0; i < bodylist.size(); i++) {
+        bodylist[i]->AddRef(); // hack: since in list are not as shared pointers
+        ChSharedPtr<ChBody> a_body(bodylist[i]); // wrap into shared ptr
+        marchive << CHNVP(a_body,"");
+        marchive.out_array_between(bodylist.size(), "bodies");
     }
+    marchive.out_array_end(bodylist.size(), "bodies");
 
-    // 3a) read how many links
-    int mnlinks = 0;
-    m_file >> mnlinks;
-
-    // 3b) read  links
-    for (int j = 0; j < mnlinks; j++) {
-        // read the link, using a special downcasting function Link_BinRead_Create which creates the
-        // proper inherited object, depending on its class inheritance from base Link*
-
-        m_file.AbstractReadCreate(&newlink);
-        if (!newlink)
-            throw ChException("Cannot read link data");
-
-        ChSharedPtr<ChLink> shlink(newlink);
-        this->AddLink(shlink);
+    //marchive << CHNVP(linklist);
+    // do rather a custom array save:
+    marchive.out_array_pre("links", linklist.size(), "ChLink");
+    for (int i = 0; i < linklist.size(); i++) {
+        linklist[i]->AddRef(); // hack: since in list are not as shared pointers
+        ChSharedPtr<ChLink> a_link(linklist[i]); // wrap into shared ptr
+        marchive << CHNVP(a_link,"");
+        marchive.out_array_between(linklist.size(), "links");
     }
+    marchive.out_array_end(linklist.size(), "links");
 
-    // 3c) Rebuild link pointers to markers
+
+    //***TODO*** complete...
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChAssembly::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class
+    ChObj::ArchiveIN(marchive);
+
+    // stream in all member data:
+
+    //marchive >> CHNVP(bodylist);
+    // do rather a custom array load:
+    this->RemoveAllBodies();
+    size_t num_bodies;
+    marchive.in_array_pre("bodies", num_bodies);
+    for (int i = 0; i < num_bodies; i++) {
+        ChSharedPtr<ChBody> a_body;
+        marchive >> CHNVP(a_body,"");
+        this->AddBody(a_body);
+        marchive.in_array_between("bodies");
+    }
+    marchive.in_array_end("bodies");
+
+    //marchive >> CHNVP(linklist);
+    // do rather a custom array load:
+    this->RemoveAllLinks();
+    size_t num_links;
+    marchive.in_array_pre("links", num_links);
+    for (int i = 0; i < num_links; i++) {
+        ChSharedPtr<ChLink> a_link;
+        marchive >> CHNVP(a_link,"");
+        this->AddLink(a_link);
+        marchive.in_array_between("links");
+    }
+    marchive.in_array_end("links");
+
+    //***TODO*** complete...
+
+    //  Rebuild link pointers to markers
     this->Reference_LM_byID();
 
-    m_file >> mchunk;
-
-    if (mchunk != CH_CHUNK_END_ASSEM)
-        return 0;
-
-    return 1;
+    // Recompute statistics, offsets, etc.
+    this->Setup();
 }
 
-int ChAssembly::StreamOUTall(ChStreamOutBinary& m_file) {
-    // class version number
-    m_file.VersionWrite(1);
 
-    // 1) write system class data...
-    // serialize parent class too
-    ChPhysicsItem::StreamOUT(m_file);
 
-    // stream out all member data
-    m_file << do_collide;
-    m_file << do_limit_speed;
-
-    m_file << max_speed;
-    m_file << max_wvel;
-
-    // 2a) write how many bodies
-    m_file << (int)bodylist.size();
-
-    // 2b) write  bodies
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChBody* Bpointer = bodylist[ip];
-        // write the body + child markers + forces
-        if (!Bpointer->StreamOUTall(m_file))
-            return 0;
-    }
-
-    // 3a) write how many links
-    m_file << (int)linklist.size();
-
-    // 3b) write links links
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChLink* Lpointer = linklist[ip];
-        // Writethe link, using a special downcasting function Link_BinSave which saves also the
-        // inheritance info, depending on link class inheritance from base Link*
-        m_file.AbstractWrite(Lpointer);
-    }
-
-    m_file << (int)CH_CHUNK_END_ASSEM;
-
-    return 1;
-}
-
-void ChAssembly::StreamOUT(ChStreamOutAscii& mstream) {
-    //***TO DO***
-}
-
-int ChAssembly::StreamOUTall(ChStreamOutAscii& mstream)  // dump rigidbody and childrens (markers.forces)
-{
-    //***TO DO***
-
-    StreamOUT(mstream);  // 1) dump the body attrs
-
-    return 1;
-}
 
 }  // END_OF_NAMESPACE____
 

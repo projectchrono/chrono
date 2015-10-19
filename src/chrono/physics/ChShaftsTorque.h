@@ -41,8 +41,6 @@ class ChApi ChShaftsTorque : public ChShaftsTorqueBase {
     // DATA
     //
 
-    double stiffness;
-    double damping;
 
   public:
     //
@@ -73,16 +71,14 @@ class ChApi ChShaftsTorque : public ChShaftsTorqueBase {
     virtual double ComputeTorque();
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 }  // END_OF_NAMESPACE____

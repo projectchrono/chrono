@@ -231,6 +231,35 @@ public:
 						this->P =  this->P + pseudospeed * step;
 					};
 
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChNodeFEAbase::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(P);
+        marchive << CHNVP(P_dt);
+        marchive << CHNVP(F);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChNodeFEAbase::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(P);
+        marchive >> CHNVP(P_dt);
+        marchive >> CHNVP(F);
+    }
+
 private:
 	ChLcpVariablesGeneric	variables; /// solver proxy: variable with scalar field P 
 

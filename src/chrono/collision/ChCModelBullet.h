@@ -228,6 +228,21 @@ class ChApi ChModelBullet : public ChCollisionModel {
                             const ChVector<>& pos = ChVector<>()   ///< the position of the node in model coordinates
                            );
 
+    /// Add a triangle from  mesh. 
+    /// For efficiency, points are stored as pointers. Thus, the user must 
+    /// take care of memory management and of dangling pointers.
+    virtual bool AddTriangleProxy(  ChVector<>* p1,                 ///< points to vertex1 coords
+                                    ChVector<>* p2,                 ///< points to vertex2 coords
+                                    ChVector<>* p3,                 ///< points to vertex3 coords
+                                    bool mowns_vertex_1,            ///< vertex is owned by this triangle (otherwise, owned by neighbour)
+                                    bool mowns_vertex_2,
+                                    bool mowns_vertex_3,
+                                    bool mowns_edge_1,              ///< edge is owned by this triangle (otherwise, owned by neighbour)
+                                    bool mowns_edge_2,
+                                    bool mowns_edge_3,
+                                    double msphereswept_rad=0       ///< sphere swept triangle ('fat' triangle, improves robustness)
+                                  );
+
     /// Add all shapes already contained in another model.
     /// Thank to the adoption of shared pointers, underlying shapes are
     /// shared (not copied) among the models; this will save memory when you must

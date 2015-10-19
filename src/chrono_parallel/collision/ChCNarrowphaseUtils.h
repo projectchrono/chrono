@@ -43,7 +43,7 @@ inline real3 GetSupportPoint_Ellipsoid(const real3& B, const real3& n) {
   //
   //	real3 norm=normalize(n);
   //	real3 dim=(norm*norm)/(B*B);
-  //	real k = sqrt(1/(dim.x+dim.y+dim.z));
+  //	real k = Sqrt(1/(dim.x+dim.y+dim.z));
   //	return k*norm;
 }
 
@@ -58,7 +58,7 @@ inline real3 GetSupportPoint_Cylinder(const real3& B, const real3& n) {
   //      result = sign(dot(u, n)) * B.y * u;
   //   }
   // return result;
-  real s = sqrt(n.x * n.x + n.z * n.z);
+  real s = Sqrt(n.x * n.x + n.z * n.z);
   real3 tmp;
   if (s != 0) {
     tmp.x = n.x * B.x / s;
@@ -86,12 +86,12 @@ inline real3 GetSupportPoint_Cone(const real3& B, const real3& n) {
   real radius = B.x;
   real height = B.y;
 
-  real m_sinAngle = (radius / sqrt(radius * radius + height * height));
+  real m_sinAngle = (radius / Sqrt(radius * radius + height * height));
 
   if (n.y > length(n) * m_sinAngle) {
     return R3(0, height / 2.0, 0);
   } else {
-    real s = sqrt(n.x * n.x + n.z * n.z);
+    real s = Sqrt(n.x * n.x + n.z * n.z);
     if (s > 1e-9) {
       real3 tmp;
       tmp.x = n.x * B.x / s;
@@ -309,10 +309,10 @@ inline void GetBoundingSphere(const chrono::collision::ConvexShape& Shape, real3
       disc = length(Shape.B);
       break;
     case chrono::collision::CYLINDER:
-      disc = sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y);
+      disc = Sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y);
       break;
     case chrono::collision::CONE:
-      disc = sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y);
+      disc = Sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y);
       break;
     case chrono::collision::CAPSULE:
       disc = Shape.B.x + Shape.B.y;
@@ -321,10 +321,10 @@ inline void GetBoundingSphere(const chrono::collision::ConvexShape& Shape, real3
       disc = length(Shape.B) + Shape.C.x;
       break;
     case chrono::collision::ROUNDEDCYL:
-      disc = sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y) + Shape.C.x;
+      disc = Sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y) + Shape.C.x;
       break;
     case chrono::collision::ROUNDEDCONE:
-      disc = sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y) + Shape.C.x;
+      disc = Sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y) + Shape.C.x;
       break;
   }
 }

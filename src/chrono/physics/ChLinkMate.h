@@ -71,12 +71,14 @@ class ChApi ChLinkMate : public ChLink {
     virtual int GetType() { return LNK_MATE; }
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    virtual void StreamIN(ChStreamInBinary& mstream);
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
-    virtual void StreamOUT(ChStreamOutAscii& mstream){};
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////
@@ -255,6 +257,16 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
+
   protected:
     void SetupLinkMask();
     void ChangedLinkMask();
@@ -320,6 +332,16 @@ class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
     virtual void Update(double mtime, bool update_assets = true);
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////
@@ -369,6 +391,16 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
         ChVector<> mdir1,       ///< direction of slave axis, for 1st body (rel. or abs., see flag above)
         ChVector<> mdir2        ///< direction of master axis, for 2nd body (rel. or abs., see flag above)
         );
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////
@@ -460,6 +492,16 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
     virtual void Update(double mtime, bool update_assets = true);
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////
@@ -510,6 +552,16 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
         ChVector<> mdir1,       ///< direction of slave axis, for 1st body (rel. or abs., see flag above)
         ChVector<> mdir2        ///< direction of master axis, for 2nd body (rel. or abs., see flag above
         );
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////
@@ -563,6 +615,16 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
     virtual void Update(double mtime, bool update_assets = true);
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 }  // END_OF_NAMESPACE____

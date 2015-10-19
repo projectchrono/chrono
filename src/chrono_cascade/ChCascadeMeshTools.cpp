@@ -49,6 +49,7 @@
 #include <BRepMesh_IncrementalMesh.hxx>
 #include <TColgp_HArray1OfVec.hxx>
 #include <TColStd_HArray1OfInteger.hxx>
+#include <Poly.hxx>
 #include <Poly_Connect.hxx>
 #include <Poly_Triangle.hxx>
 #include <Poly_Triangulation.hxx>
@@ -73,6 +74,7 @@
 #include <TNaming_NamedShape.hxx>
 #include <GProp_GProps.hxx>
 #include <BRepGProp.hxx>
+#include <TShort_Array1OfShortReal.hxx>
 
 using namespace chrono;
 using namespace cascade;
@@ -81,10 +83,6 @@ using namespace geometry;
 void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh, const TopoDS_Face& F) {
     BRepAdaptor_Surface BS(F, Standard_False);
     Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
-    GeomAbs_SurfaceType thetype = BS.GetType();
-    if (thetype == GeomAbs_Cylinder) {
-        ;
-    };
 
     Handle(Poly_Triangulation) T;
     TopLoc_Location theLocation;
@@ -95,13 +93,10 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh,
         gp_Pnt p;
         gp_Vec V;
 
-        Poly_Connect pc(T);
-
         const TColgp_Array1OfPnt& mNodes = T->Nodes();
-        TColgp_Array1OfDir mNormals(mNodes.Lower(), mNodes.Upper());
-
-        // compute the normal - not needed for triangle soup
-        //   ComputeNormal(F, pc, mNormals);
+        
+        Poly::ComputeNormals(T);
+        const TShort_Array1OfShortReal& mNormals = T->Normals();     
 
         int ivert = 0;
         for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
@@ -147,10 +142,10 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh,
 void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMesh& chmesh,
                                                      const TopoDS_Shape& mshape,
                                                      double deflection,
+                                                     bool   relative_deflection,
                                                      double angulardeflection) {
     BRepTools::Clean(mshape);
-    BRepMesh::Mesh(mshape, deflection);
-    // BRepMesh_IncrementalMesh M(mshape, deflection, Standard_False , angulardeflection);
+    BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection , angulardeflection, true);
     // GetLog() << "    ..tesselation done \n";
 
     // Loop on faces..
@@ -164,10 +159,10 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMesh& chmesh,
 void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
                                                 const TopoDS_Shape& mshape,
                                                 double deflection,
+                                                bool  relative_deflection,
                                                 double angulardeflection) {
     BRepTools::Clean(mshape);
-    BRepMesh::Mesh(mshape, deflection);
-    // BRepMesh_IncrementalMesh M(mshape, deflection, Standard_False , angulardeflection);
+    BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection , angulardeflection, true);
     // GetLog() << "    ..tesselation done \n";
 
     TopExp_Explorer ex;
@@ -184,10 +179,6 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
 
         BRepAdaptor_Surface BS(F, Standard_False);
         Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
-        GeomAbs_SurfaceType thetype = BS.GetType();
-        if (thetype == GeomAbs_Cylinder) {
-            ;
-        };
 
         Handle(Poly_Triangulation) T;
         TopLoc_Location theLocation;
@@ -198,22 +189,20 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
             gp_Pnt p;
             gp_Vec V;
 
-            Poly_Connect pc(T);
-
             const TColgp_Array1OfPnt& mNodes = T->Nodes();
-            TColgp_Array1OfDir mNormals(mNodes.Lower(), mNodes.Upper());
 
-            // to compute the normal.
-            ComputeNormal(F, pc, mNormals);
+            Poly::ComputeNormals(T);
+            const TShort_Array1OfShortReal& mNormals = T->Normals();  
 
             int ivert = 0;
             for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
                 gp_Pnt p;
                 gp_Dir pn;
                 p = mNodes(j).Transformed(theLocation.Transformation());
-                pn = mNormals(j);
                 chrono::ChVector<> pos(p.X(), p.Y(), p.Z());
-                chrono::ChVector<> nor(pn.X(), pn.Y(), pn.Z());
+                chrono::ChVector<> nor(mNormals((j-1)*3+1), mNormals((j-1)*3+2), mNormals((j-1)*3+3));
+                if (F.Orientation() == TopAbs_REVERSED)
+                    nor*= -1;
 
                 char buff[200];
                 sprintf(buff, "v %0.9f %0.9f %0.9f\r\n", pos.x, pos.y, pos.z);
@@ -248,56 +237,7 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
     }  // end face loop
 }
 
-/////////////////////
 
-void ChCascadeMeshTools::ComputeNormal(const TopoDS_Face& aFace, Poly_Connect& pc, TColgp_Array1OfDir& Nor) {
-    const Handle(Poly_Triangulation)& T = pc.Triangulation();
-    BRepAdaptor_Surface S;
-    Standard_Boolean hasUV = T->HasUVNodes();
-    Standard_Integer i;
-    TopLoc_Location l;
-    Handle(Geom_Surface) GS = BRep_Tool::Surface(aFace, l);
 
-    if (hasUV && !GS.IsNull()) {
-        Standard_Boolean OK = Standard_True;
-        gp_Vec D1U, D1V;
-        gp_Vec D2U, D2V, D2UV;
-        gp_Pnt P;
-        Standard_Real U, V;
-        CSLib_DerivativeStatus Status;
-        CSLib_NormalStatus NStat;
-        S.Initialize(aFace);
-        const TColgp_Array1OfPnt2d& UVNodes = T->UVNodes();
-        for (i = UVNodes.Lower(); i <= UVNodes.Upper(); i++) {
-            U = UVNodes(i).X();
-            V = UVNodes(i).Y();
-            S.D1(U, V, P, D1U, D1V);
-            CSLib::Normal(D1U, D1V, Precision::Angular(), Status, Nor(i));
-            if (Status != CSLib_Done) {
-                S.D2(U, V, P, D1U, D1V, D2U, D2V, D2UV);
-                CSLib::Normal(D1U, D1V, D2U, D2V, D2UV, Precision::Angular(), OK, NStat, Nor(i));
-            }
-            if (aFace.Orientation() == TopAbs_REVERSED)
-                (Nor(i)).Reverse();
-        }
-    } else {
-        const TColgp_Array1OfPnt& Nodes = T->Nodes();
-        Standard_Integer n[3];
-        const Poly_Array1OfTriangle& triangles = T->Triangles();
-
-        for (i = Nodes.Lower(); i <= Nodes.Upper(); i++) {
-            gp_XYZ eqPlan(0, 0, 0);
-            for (pc.Initialize(i); pc.More(); pc.Next()) {
-                triangles(pc.Value()).Get(n[0], n[1], n[2]);
-                gp_XYZ v1(Nodes(n[1]).Coord() - Nodes(n[0]).Coord());
-                gp_XYZ v2(Nodes(n[2]).Coord() - Nodes(n[1]).Coord());
-                eqPlan += (v1 ^ v2).Normalized();
-            }
-            Nor(i) = gp_Dir(eqPlan);
-            if (aFace.Orientation() == TopAbs_REVERSED)
-                (Nor(i)).Reverse();
-        }
-    }
-}
 
 /////////////////////

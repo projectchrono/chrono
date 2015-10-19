@@ -104,8 +104,7 @@ void ChLinePoly::Evaluate(Vector& pos, const double parU, const double parV, con
         epar = par * Get_numpoints();
     pA = (size_t)floor(epar);
     pB = (size_t)ceil(epar);
-    if (pA < 0)
-        pA = 0;
+
     if (pA >= (Get_numpoints() - 1))
         pA = (Get_numpoints() - 1);
     if (pB >= Get_numpoints()) {
@@ -153,11 +152,7 @@ int ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_inter
     return TRUE;
 }
 
-void ChLinePoly::StreamOUT(ChStreamOutBinary& mstream) {
-}
 
-void ChLinePoly::StreamIN(ChStreamInBinary& mstream) {
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

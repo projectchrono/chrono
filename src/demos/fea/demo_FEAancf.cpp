@@ -251,14 +251,14 @@ void test_1() {
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
 		element->SetMaterial(mmaterial);
-		element->SetNumLayer(NumLayer[LayNUM[i]-1]);
+		element->SetNumLayers(NumLayer[LayNUM[i]-1]);
 		element->SetThickness(TotalThickness);
 		element->SetElemNum(elemcount);
 		element->SetAlphaDamp(0.00);
 		//== 7/14/2015
 		element->Setdt(0.001); // dt to calculate DampingCoefficient
-		element->SetGravityZ(1); // 0:No Gravity, 1:Gravity(Fz=-9.81)
-		element->SetAirPressure(0); // 0:No AirPressure, 1:220kPa Air Pressure
+		element->SetGravityOn(true); // turn gravity on/off
+		element->SetAirPressureOn(false); // turn air pressure on/off
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
@@ -304,20 +304,22 @@ void test_1() {
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-5);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);  // INT_HHT);//INT_EULER_IMPLICIT);
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(100);
-		mystepper->SetTolerance(1e-5);
-		mystepper->SetHHTFlag(1);
-		mystepper->Iterations=0;
-	}
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(100);
+	mystepper->SetTolerance(1e-5);
+    mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
+
 	outputfile = fopen("position.txt","w");
 	double start = std::clock();
     double timestep = 0.001;
+    int Iterations = 0;
+
     while (my_system.GetChTime() < 2.0) {
         my_system.DoStepDynamics(timestep);
+        Iterations += mystepper->GetNumIterations();
+
 		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
 		
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
@@ -329,9 +331,9 @@ void test_1() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
     }
+
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
+	GetLog() << "Iterations: " << Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }
 
@@ -550,14 +552,14 @@ void test_2() {
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
 		element->SetMaterial(mmaterial);
-		element->SetNumLayer(NumLayer[LayNUM[i]-1]);
+		element->SetNumLayers(NumLayer[LayNUM[i]-1]);
 		element->SetThickness(TotalThickness);
 		element->SetElemNum(elemcount);
 		element->SetAlphaDamp(0.005);
 		//== 7/14/2015
 		element->Setdt(0.00025); // dt to calculate DampingCoefficient
-		element->SetGravityZ(0); // 0:No Gravity, 1:Gravity(Fz=-9.81)
-		element->SetAirPressure(1); // 0:No AirPressure, 1:220kPa Air Pressure
+		element->SetGravityOn(false); // turn gravity on/off
+        element->SetAirPressureOn(true); // turn air pressure on/off
 		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
@@ -602,21 +604,24 @@ void test_2() {
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);  // INT_HHT);//INT_EULER_IMPLICIT);
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(1000);
-		mystepper->SetTolerance(5e-4);
-		mystepper->SetHHTFlag(3);
-		mystepper->Iterations=0;
-	}
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(1000);
+	mystepper->SetTolerance(5e-4);
+    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetScaling(true);
+
 	outputfile = fopen("position.txt","w");
 	double start = std::clock();
     double timestep = 0.00025;
+    int Iterations = 0;
+
     while (my_system.GetChTime() < 0.1) {
         my_system.DoStepDynamics(timestep);
-		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
+        Iterations += mystepper->GetNumIterations();
+
+        GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
 
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
@@ -627,10 +632,9 @@ void test_2() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
     }
-	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
-	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
+	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+	GetLog() << "Iterations: " << Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }
 
@@ -850,15 +854,15 @@ void test_3() {
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
 		element->SetMaterial(mmaterial);
-		element->SetNumLayer(NumLayer[LayNUM[i]-1]);
+		element->SetNumLayers(NumLayer[LayNUM[i]-1]);
 		element->SetThickness(TotalThickness);
 		element->SetElemNum(elemcount);
 		element->SetAlphaDamp(0.00);
 		//== 7/14/2015
 		element->Setdt(0.001); // dt to calculate DampingCoefficient
-		element->SetGravityZ(1); // 0:No Gravity, 1:Gravity(Fz=-9.81)
-		element->SetAirPressure(0); // 0:No AirPressure, 1:220kPa Air Pressure
-		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
+		element->SetGravityOn(true); // turn gravity on/off
+        element->SetAirPressureOn(false); // turn air pressure on/off
+        ChMatrixNM<double, 35, 1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
 		my_mesh->AddElement(element);
@@ -880,21 +884,24 @@ void test_3() {
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);  // INT_HHT);//INT_EULER_IMPLICIT);
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(100);
-		mystepper->SetTolerance(1e-5);
-		mystepper->SetHHTFlag(3);
-		mystepper->Iterations=0;
-	}
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(100);
+	mystepper->SetTolerance(1e-5);
+    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetScaling(true);
+
 	outputfile = fopen("position.txt","w");
 	double start = std::clock();
     double timestep = 0.001;
+    int Iterations = 0;
+
     while (my_system.GetChTime() < 2.0) {
         my_system.DoStepDynamics(timestep);
-		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
+        Iterations += mystepper->GetNumIterations();
+
+        GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
 
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
@@ -905,9 +912,9 @@ void test_3() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
     }
+
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
+	GetLog() << "Iterations: " << Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }
 
@@ -1123,15 +1130,15 @@ void test_4() {
 		element->SetGaussZRange(GaussZRange);
 		element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][1]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][2]-1).DynamicCastTo<ChNodeFEAxyzD>(),my_mesh->GetNode(NumNodes[elemcount][3]-1).DynamicCastTo<ChNodeFEAxyzD>());
 		element->SetMaterial(mmaterial);
-		element->SetNumLayer(NumLayer[LayNUM[i]-1]);
+		element->SetNumLayers(NumLayer[LayNUM[i]-1]);
 		element->SetThickness(TotalThickness);
 		element->SetElemNum(elemcount);
 		element->SetAlphaDamp(0.005);
 		//== 7/14/2015
 		element->Setdt(0.00025); // dt to calculate DampingCoefficient
-		element->SetGravityZ(0); // 0:No Gravity, 1:Gravity(Fz=-9.81)
-		element->SetAirPressure(1); // 0:No AirPressure, 1:220kPa Air Pressure
-		ChMatrixNM<double,35,1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
+		element->SetGravityOn(false); // turn gravity on/off
+        element->SetAirPressureOn(true); // turn air pressure on/off
+        ChMatrixNM<double, 35, 1> StockAlpha_EAS; // StockAlpha(5*7,1): Max #Layer is 7
 		StockAlpha_EAS.Reset();
 		element->SetStockAlpha(StockAlpha_EAS);
 		my_mesh->AddElement(element);
@@ -1153,21 +1160,24 @@ void test_4() {
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);  // INT_HHT);//INT_EULER_IMPLICIT);
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(1000);
-		mystepper->SetTolerance(5e-5);
-		mystepper->SetHHTFlag(3);
-		mystepper->Iterations=0;
-	}
-	outputfile = fopen("position.txt","w");
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(1000);
+	mystepper->SetTolerance(5e-5);
+    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetScaling(true);
+
+    outputfile = fopen("position.txt","w");
 	double start = std::clock();
     double timestep = 0.00025;
+    int Iterations = 0;
+
     while (my_system.GetChTime() < 0.1) {
         my_system.DoStepDynamics(timestep);
-		GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
+        Iterations += mystepper->GetNumIterations();
+
+        GetLog() << " t=  " << my_system.GetChTime() << "\n\n";
 		
 		fprintf(outputfile,"  %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
@@ -1178,10 +1188,9 @@ void test_4() {
 		fprintf(outputfile,"%e  ",nodetip->GetD().z);
 		fprintf(outputfile,"\n  ");
     }
-	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
-	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
+	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+	GetLog() << "Iterations: " << Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }
 
@@ -1220,7 +1229,6 @@ void test_5() {
 	int NumNodes[1000][8];
 	int NDR[1000][3];// constraint flag
 	//int NumLayer[10];
-	int MNUM[10][7];
 	double MPROP[10][12];
 	double ElemLengthXY[1000][3];//for brick is 3 (length along x,y,z)
 
@@ -1367,22 +1375,24 @@ void test_5() {
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);  // INT_HHT);//INT_EULER_IMPLICIT);
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
-		mystepper->SetAlpha(-0.2);
-		mystepper->SetMaxiters(100);
-		mystepper->SetTolerance(1e-5);
-		mystepper->SetHHTFlag(3);
-		mystepper->Iterations=0;
-	}
-	outputfile = fopen("position.txt","w");
-	double start = std::clock();
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(100);
+	mystepper->SetTolerance(1e-5);
+    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetScaling(true);
 
+    outputfile = fopen("position.txt","w");
+	double start = std::clock();
     double timestep = 0.001;
+    int Iterations = 0;
+
     while (my_system.GetChTime() < 2.0) {
         my_system.DoStepDynamics(timestep);
-		GetLog() << " t=  " << my_system.GetChTime() << "\n";
+        Iterations += mystepper->GetNumIterations();
+        
+        GetLog() << " t=  " << my_system.GetChTime() << "\n";
 		
 		fprintf(outputfile," %e  ",my_system.GetChTime());
 		fprintf(outputfile,"%e  ",nodetip->GetPos().x);
@@ -1390,11 +1400,12 @@ void test_5() {
 		fprintf(outputfile,"%e  ",nodetip->GetPos().z);
 		fprintf(outputfile,"\n  ");
     }
+
 	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
-	GetLog() << "Iterations: " << mystepper1->Iterations << "\n";
+	GetLog() << "Iterations: " << Iterations << "\n";
 	GetLog() << "Simulation Time: " << duration << "\n";
 }
+
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
 

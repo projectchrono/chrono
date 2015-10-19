@@ -57,7 +57,7 @@ Articulated_Trailer::Articulated_Trailer(ChSystem*         mysystem,
   // -------------------------------------------
   // Create the chassis body
   // -------------------------------------------
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(mysystem->GetContactMethod()));
 
   m_chassis->SetIdentifier(100);
   m_chassis->SetName("trailer");
@@ -76,7 +76,7 @@ Articulated_Trailer::Articulated_Trailer(ChSystem*         mysystem,
   // -------------------------------------------
   // Create the front steering axle body
   // -------------------------------------------
-  m_frontaxle = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_frontaxle = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(mysystem->GetContactMethod()));
 
   m_frontaxle->SetIdentifier(101);
   m_frontaxle->SetMass(m_frontaxleMass);

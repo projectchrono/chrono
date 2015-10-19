@@ -241,11 +241,6 @@ class ChApi ChLineCam : public ChLine {
         marchive >> CHNVP(center);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream);
-
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

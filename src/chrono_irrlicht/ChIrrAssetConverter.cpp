@@ -373,8 +373,10 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<chrono::ChSharedP
         for (; it != mnode->getChildren().end(); ++it) {
             ISceneNode* mproxynode = (*it);                               // the ChIrrNodeProxyToAsset contains..
             ISceneNode* meshnode = *(mproxynode->getChildren().begin());  // ..one child ISceneNode with a mesh
-            if (meshnode)
+            if (meshnode) {
                 meshnode->setMaterialTexture(0, mtextureMap);
+                meshnode->getMaterial(0).getTextureMatrix(0).setTextureScale(mtexture->GetTextureScaleX(), mtexture->GetTextureScaleY());
+            }
         }
     }
 

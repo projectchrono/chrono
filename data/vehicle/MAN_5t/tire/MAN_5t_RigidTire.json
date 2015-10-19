@@ -1,0 +1,12 @@
+{
+  "Name":                       "MAN_5t Rigid Tire",
+  "Type":                       "Tire",
+  "Template":                   "RigidTire",
+
+  "Radius":                     0.6,
+  "Width":                      0.3,
+  "Coefficient of Friction":    0.9,
+  "Coefficient of Restitution": 0.1,
+  "Young Modulus":              2e7,
+  "Poisson Ratio":              0.3
+}

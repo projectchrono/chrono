@@ -204,22 +204,29 @@ void ChLinkNumdiff::FetchCoords_dt(ChMatrix<>* mc) {
 ///////// FILE I/O
 /////////
 
-void ChLinkNumdiff::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(10);
-    // serialize parent class too
-    ChLinkMasked::StreamOUT(mstream);
+void ChLinkNumdiff::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // stream out all member data
+    // serialize parent class
+    ChLinkMasked::ArchiveOUT(marchive);
+
+    // serialize all member data:
+
 }
 
-void ChLinkNumdiff::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkMasked::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkNumdiff::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
+    // deserialize parent class
+    ChLinkMasked::ArchiveIN(marchive);
+
+    // deserialize all member data:
+
 }
 
 }  // END_OF_NAMESPACE____

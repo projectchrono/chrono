@@ -182,7 +182,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
              r2, r3;
   ShurBilaterals(x, v_hat);
   v_hat = mb - v_hat;
-  beta = sqrt((v_hat, v_hat));
+  beta = Sqrt((v_hat, v_hat));
   w_old = w;
   eta = beta;
   xMR = x;
@@ -201,14 +201,14 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
     alpha = (v, Av);
     v_hat = Av - alpha * v - beta * v_old;
     beta_old = beta;
-    beta = sqrt((v_hat, v_hat));
+    beta = Sqrt((v_hat, v_hat));
     //// QR factorization
     c_oold = c_old;
     c_old = c;
     s_oold = s_old;
     s_old = s;
     r1_hat = c_old * alpha - c_oold * s_old * beta_old;
-    r1 = 1 / sqrt(r1_hat * r1_hat + beta * beta);
+    r1 = 1 / Sqrt(r1_hat * r1_hat + beta * beta);
     r2 = s_old * alpha + c_oold * c_old * beta_old;
     r3 = s_oold * beta_old;
     //// Givens Rotation

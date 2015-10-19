@@ -388,7 +388,7 @@ bool sphere_sphere(const real3& pos1,
     return false;
 
   // Generate contact information.
-  real dist = sqrt(dist2);
+  real dist = Sqrt(dist2);
   norm = delta / dist;
   pt1 = pos1 + norm * radius1;
   pt2 = pos2 - norm * radius2;
@@ -441,7 +441,7 @@ bool capsule_sphere(const real3& pos1,
     return false;
 
   // Generate contact information.
-  real dist = sqrt(dist2);
+  real dist = Sqrt(dist2);
   norm = delta / dist;
   pt1 = loc + norm * radius1;
   pt2 = pos2 - norm * radius2;
@@ -495,7 +495,7 @@ bool cylinder_sphere(const real3& pos1,
     return false;
 
   // Generate contact information
-  real dist = sqrt(dist2);
+  real dist = Sqrt(dist2);
   depth = dist - radius2;
   norm = quatRotateMat(delta / dist, rot1);
   pt1 = TransformLocalToParent(pos1, rot1, cylPos);
@@ -566,7 +566,7 @@ bool roundedcyl_sphere(const real3& pos1,
     return false;
 
   // Generate contact information.
-  real dist = sqrt(dist2);
+  real dist = Sqrt(dist2);
   depth = dist - radSum;
   norm = quatRotateMat(delta / dist, rot1);
   pt2 = pos2 - norm * radius2;
@@ -625,7 +625,7 @@ bool box_sphere(const real3& pos1,
     return false;
 
   // Generate contact information
-  real dist = sqrt(dist2);
+  real dist = Sqrt(dist2);
   depth = dist - radius2;
   norm = quatRotateMat(delta / dist, rot1);
   pt1 = TransformLocalToParent(pos1, rot1, boxPos);
@@ -683,7 +683,7 @@ bool roundedbox_sphere(const real3& pos1,
     return false;
 
   // Generate contact information.
-  real dist = sqrt(dist2);
+  real dist = Sqrt(dist2);
   depth = dist - radSum;
   norm = quatRotateMat(delta / dist, rot1);
   pt2 = pos2 - norm * radius2;
@@ -744,7 +744,7 @@ bool face_sphere(const real3& A1,
     if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
       return false;
 
-    real dist = sqrt(dist2);
+    real dist = Sqrt(dist2);
     norm = delta / dist;
     depth = dist - radius2;
     eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
@@ -816,7 +816,7 @@ int capsule_capsule(const real3& pos1,
 
     // Find overlap of the two axes (as signed distances along the axis of
     // the first capsule).
-    real locs[2] = {std::min(hlen1, pos.y + hlen2), std::max(-hlen1, pos.y - hlen2)};
+    real locs[2] = {Min(hlen1, pos.y + hlen2), Max(-hlen1, pos.y - hlen2)};
 
     if (locs[0] > locs[1]) {
       // The two axes overlap. Both ends of the overlapping segment represent
@@ -878,7 +878,7 @@ int capsule_capsule(const real3& pos1,
       continue;
 
     // Generate contact information.
-    real dist = sqrt(dist2);
+    real dist = Sqrt(dist2);
     *(norm + j) = delta / dist;
     *(pt1 + j) = locs1[i] + (*(norm + j)) * radius1;
     *(pt2 + j) = locs2[i] - (*(norm + j)) * radius2;
@@ -930,46 +930,46 @@ int box_capsule(const real3& pos1,
   real tMin = -FLT_MAX;  //// TODO: should define a REAL_MAX to be used here
   real tMax = FLT_MAX;
 
-  if (fabs(V.x) < 1e-5) {
+  if (Abs(V.x) < 1e-5) {
     // Capsule axis parallel to the box x-faces
-    if (fabs(pos.x) > hdims1_exp.x)
+    if (Abs(pos.x) > hdims1_exp.x)
       return 0;
   } else {
     real t1 = (-hdims1_exp.x - pos.x) / V.x;
     real t2 = (hdims1_exp.x - pos.x) / V.x;
 
-    tMin = std::max(tMin, std::min(t1, t2));
-    tMax = std::min(tMax, std::max(t1, t2));
+    tMin = Max(tMin, Min(t1, t2));
+    tMax = Min(tMax, Max(t1, t2));
 
     if (tMin > tMax)
       return 0;
   }
 
-  if (fabs(V.y) < 1e-5) {
+  if (Abs(V.y) < 1e-5) {
     // Capsule axis parallel to the box y-faces
-    if (fabs(pos.y) > hdims1_exp.y)
+    if (Abs(pos.y) > hdims1_exp.y)
       return 0;
   } else {
     real t1 = (-hdims1_exp.y - pos.y) / V.y;
     real t2 = (hdims1_exp.y - pos.y) / V.y;
 
-    tMin = std::max(tMin, std::min(t1, t2));
-    tMax = std::min(tMax, std::max(t1, t2));
+    tMin = Max(tMin, Min(t1, t2));
+    tMax = Min(tMax, Max(t1, t2));
 
     if (tMin > tMax)
       return 0;
   }
 
-  if (fabs(V.z) < 1e-5) {
+  if (Abs(V.z) < 1e-5) {
     // Capsule axis parallel to the box z-faces
-    if (fabs(pos.z) > hdims1_exp.z)
+    if (Abs(pos.z) > hdims1_exp.z)
       return 0;
   } else {
     real t1 = (-hdims1_exp.z - pos.z) / V.z;
     real t2 = (hdims1_exp.z - pos.z) / V.z;
 
-    tMin = std::max(tMin, std::min(t1, t2));
-    tMax = std::min(tMax, std::max(t1, t2));
+    tMin = Max(tMin, Min(t1, t2));
+    tMax = Min(tMax, Max(t1, t2));
 
     if (tMin > tMax)
       return 0;
@@ -1016,7 +1016,7 @@ int box_capsule(const real3& pos1,
       continue;
 
     // Generate contact information.
-    real dist = sqrt(dist2);
+    real dist = Sqrt(dist2);
 
     *(depth + j) = dist - radius2;
     *(norm + j) = quatRotateMat(delta / dist, rot1);

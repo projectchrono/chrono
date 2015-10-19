@@ -130,11 +130,13 @@ void ChLinkPneumaticActuator::UpdateTime(double mytime) {
     Vector mx = Vnorm(absdist);
 
     Vector my = ma.Get_A_Yaxis();
-    if (Vequal(mx, my))
-        if (mx.x == 1.0)
+    if (Vequal(mx, my)) {
+        if (mx.x == 1.0) {
             my = VECT_Y;
-        else
+        } else {
             my = VECT_X;
+        }
+    }
     Vector mz = Vnorm(Vcross(mx, my));
     my = Vnorm(Vcross(mz, mx));
 
@@ -191,6 +193,7 @@ void ChLinkPneumaticActuator::UpdateForces(double mytime) {
     C_force.x = C_force.x + this->pneu_F;
 }
 
+/*
 void ChLinkPneumaticActuator::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
@@ -279,6 +282,7 @@ void ChLinkPneumaticActuator::StreamIN(ChStreamInBinary& mstream) {
     mstream >> dfoo;
     Set_lin_offset(dfoo);
 }
+*/
 
 ///////////////////////////////////////////////////////////////
 

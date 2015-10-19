@@ -58,6 +58,8 @@ MultiLink::MultiLink(const std::string& filename)
   d.ParseStream(is);
 
   Create(d);
+
+  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 MultiLink::MultiLink(const rapidjson::Document& d)

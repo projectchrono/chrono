@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,12 +12,12 @@
 // A very simple example that can be used as template project for
 // a Chrono::Engine simulator with 3D view.
 
-#include "physics/ChSystem.h"
-#include "physics/ChBodyEasy.h"
-#include "physics/ChLinkMate.h"
-#include "assets/ChTexture.h"
-#include "assets/ChColorAsset.h"
-#include "unit_IRRLICHT/ChIrrApp.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the namespace of Chrono
 
@@ -34,7 +33,10 @@ using namespace irr::io;
 using namespace irr::gui;
 
 int main(int argc, char* argv[]) {
-    // Create a ChronoENGINE physical system
+    // Set path to Chrono data directory
+    SetChronoDataPath(CHRONO_DATA_DIR);
+    
+    // Create a Chrono physical system
     ChSystem mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,

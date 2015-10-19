@@ -71,33 +71,7 @@ double ChFunction_Poly345::Get_y_dxdx(double x) {
     return ret;
 }
 
-void ChFunction_Poly345::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << h;
-    mstream << end;
-}
-
-void ChFunction_Poly345::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> h;
-    mstream >> end;
-}
-
-void ChFunction_Poly345::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_CONST  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

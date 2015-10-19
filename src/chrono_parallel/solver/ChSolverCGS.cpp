@@ -22,14 +22,14 @@ uint ChSolverCGS::SolveCGS(const uint max_iter,
 
   u = r;
 
-  real normb = sqrt((mb, mb));
+  real normb = Sqrt((mb, mb));
   rtilde = r;
 
   if (normb == 0.0) {
     normb = 1;
   }
 
-  if ((sqrt((r, r)) / normb) <= data_manager->settings.solver.tolerance) {
+  if ((Sqrt((r, r)) / normb) <= data_manager->settings.solver.tolerance) {
     return 0;
   }
 
@@ -58,7 +58,7 @@ uint ChSolverCGS::SolveCGS(const uint max_iter,
                               // (data_manager->host_data.M_invD * uhat);
     r = r - alpha * qhat;
     rho_2 = rho_1;
-    residual = (sqrt((r, r)) / normb);
+    residual = (Sqrt((r, r)) / normb);
 
     objective_value = GetObjective(ml, mb);
     AtIterationEnd(residual, objective_value);

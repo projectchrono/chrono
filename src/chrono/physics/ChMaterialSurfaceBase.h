@@ -35,12 +35,19 @@ class ChApi ChMaterialSurfaceBase : public ChShared {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {};
-    virtual void ArchiveIN(ChArchiveIn& marchive) {};
-    //***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutAscii& mstream) = 0;
-    virtual void StreamOUT(ChStreamOutBinary& mstream) = 0;
-    virtual void StreamIN(ChStreamInBinary& mstream) = 0;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+        // version number:
+        marchive.VersionWrite(1);
+        // serialize parent class:
+        // serialize all member data:
+    };
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
+        // version number:
+        int version = marchive.VersionRead();
+        // deserialize parent class:
+        // stream in all member data:
+    };
+
 };
 
 }  // END_OF_NAMESPACE____

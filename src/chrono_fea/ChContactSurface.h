@@ -178,7 +178,7 @@ public:
         /// ChCollisionModel might call this to get the position of the 
         /// contact model (when rigid) and sync it
     virtual ChCoordsys<> GetCsysForCollisionModel() {
-        return ChCoordsys<>(this->mnode1->pos, QNULL);
+        return ChCoordsys<>(this->mnode1->pos, QUNIT);
         // (Note that it has little importance since used with ChModelBulletTrimesh that does not need it.)
     }
 

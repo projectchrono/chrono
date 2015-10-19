@@ -247,41 +247,49 @@ void ChLinkPulley::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-void ChLinkPulley::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << tau;
-    mstream << phase;
-    mstream << checkphase;
-    mstream << a1;
-    mstream << a2;
-    mstream << r1;
-    mstream << r2;
-    mstream << local_shaft1;
-    mstream << local_shaft2;
+
+void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLinkLock::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(tau);
+    marchive << CHNVP(phase);
+    marchive << CHNVP(checkphase);
+    marchive << CHNVP(a1);
+    marchive << CHNVP(a2);
+    marchive << CHNVP(r1);
+    marchive << CHNVP(r2);
+    marchive << CHNVP(local_shaft1);
+    marchive << CHNVP(local_shaft2);
 }
 
-void ChLinkPulley::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkPulley::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    mstream >> tau;
-    mstream >> phase;
-    mstream >> checkphase;
-    mstream >> a1;
-    mstream >> a2;
-    mstream >> r1;
-    mstream >> r2;
-    mstream >> local_shaft1;
-    mstream >> local_shaft2;
+    // deserialize parent class
+    ChLinkLock::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(tau);
+    marchive >> CHNVP(phase);
+    marchive >> CHNVP(checkphase);
+    marchive >> CHNVP(a1);
+    marchive >> CHNVP(a2);
+    marchive >> CHNVP(r1);
+    marchive >> CHNVP(r2);
+    marchive >> CHNVP(local_shaft1);
+    marchive >> CHNVP(local_shaft2);
 }
+
 
 ///////////////////////////////////////////////////////////////
 

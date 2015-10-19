@@ -60,6 +60,8 @@ int main(int argc, char* argv[]) {
     // of elements and their referenced nodes.
     ChSharedPtr<ChMesh> my_mesh(new ChMesh);
 
+    my_mesh->SetAutomaticGravity(false);
+
     // Create a material, that must be assigned to each element,
     // and set its parameters
     ChSharedPtr<ChContinuumElectrostatics> mmaterial(new ChContinuumElectrostatics);
@@ -70,9 +72,9 @@ int main(int argc, char* argv[]) {
     // Add some TETAHEDRONS:
     //
 
-    // Load a .node file and a .ele  file from disk, defining a complicate tetahedron mesh.
+    // Load an Abaqus .INP tetahedron mesh file from disk, defining a complicate tetahedron mesh.
     // This is much easier than creating all nodes and elements via C++ programming.
-    // You can generate these files using the TetGen tool.
+    // Ex. you can generate these .INP files using Abaqus or exporting from SolidWorks simulation.
 
     std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
 

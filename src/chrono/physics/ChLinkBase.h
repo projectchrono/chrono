@@ -43,6 +43,7 @@ namespace chrono {
 #define LNK_POINTSPLINE 20
 #define LNK_TRAJECTORY 22
 #define LNK_REVOLUTESPHERICAL 23
+#define LNK_REVOLUTETRANSLATIONAL 24
 #define LNK_SPRING 25
 #define LNK_WHEEL 26
 #define LNK_LINACTUATOR 27
@@ -155,20 +156,14 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     virtual bool IsRequiringWaking() { return true; }
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
-
-    /// Method to allow serialization of transient data in ascii,
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    virtual void StreamOUT(ChStreamOutAscii& mstream){};
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 }  // END_OF_NAMESPACE____

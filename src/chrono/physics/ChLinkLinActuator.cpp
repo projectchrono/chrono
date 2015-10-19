@@ -183,42 +183,45 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
     mot_rot.StaticCastTo<ChFunction_Recorder>()->AddPoint(mytime, mot_rerot, 1);        // (x,y,w)  x=t
 }
 
-void ChLinkLinActuator::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << learn;
-    mstream << offset;
-    mstream.AbstractWrite(dist_funct.get_ptr());
-    mstream << mot_tau;
-    mstream << mot_eta;
-    mstream << mot_inertia;
-    mstream.AbstractWrite(mot_rot.get_ptr());
-    mstream.AbstractWrite(mot_torque.get_ptr());
+void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLinkLock::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(learn);
+    marchive << CHNVP(offset);
+    marchive << CHNVP(dist_funct);
+    marchive << CHNVP(mot_tau);
+    marchive << CHNVP(mot_eta);
+    marchive << CHNVP(mot_inertia);
+    marchive << CHNVP(mot_rot);
+    marchive << CHNVP(mot_torque);
 }
 
-void ChLinkLinActuator::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkLinActuator::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    ChFunction* newfun;
-    mstream >> learn;
-    mstream >> offset;
-    mstream.AbstractReadCreate(&newfun);
-    dist_funct = ChSharedPtr<ChFunction>(newfun);
-    mstream >> mot_tau;
-    mstream >> mot_eta;
-    mstream >> mot_inertia;
-    mstream.AbstractReadCreate(&newfun);
-    mot_rot = ChSharedPtr<ChFunction>(newfun);
-    mstream.AbstractReadCreate(&newfun);
-    mot_torque = ChSharedPtr<ChFunction>(newfun);
+    // deserialize parent class
+    ChLinkLock::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(learn);
+    marchive >> CHNVP(offset);
+    marchive >> CHNVP(dist_funct);
+    marchive >> CHNVP(mot_tau);
+    marchive >> CHNVP(mot_eta);
+    marchive >> CHNVP(mot_inertia);
+    marchive >> CHNVP(mot_rot);
+    marchive >> CHNVP(mot_torque);
 }
+
 
 }  // END_OF_NAMESPACE____

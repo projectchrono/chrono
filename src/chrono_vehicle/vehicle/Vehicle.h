@@ -19,8 +19,9 @@
 #ifndef VEHICLE_H
 #define VEHICLE_H
 
-#include "core/ChCoordsys.h"
-#include "physics/ChSystem.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChMaterialSurfaceBase.h"
 
 #include "chrono_vehicle/ChVehicle.h"
 
@@ -29,8 +30,8 @@ namespace chrono {
 class CH_VEHICLE_API Vehicle : public ChVehicle
 {
 public:
-
-  Vehicle(const std::string& filename);
+  Vehicle(const std::string& filename,
+          ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
   Vehicle(ChSystem*          system,
           const std::string& filename);

@@ -1,0 +1,21 @@
+{
+  "Name":     "MAN_5t Front Suspension Test",
+  "Type":     "SuspensionTest",
+  "Template": "SuspensionTest",
+
+  "Suspension":
+  {
+    "Input File":   "MAN_5t/suspension/MAN_5t_SolidAxle.json",
+    "Location":     [4.3013, 0, 0.0264],
+      "Left Wheel Input File":   "MAN_5t/wheel/MAN_5t_Wheel_FrontLeft.json",
+      "Right Wheel Input File":  "MAN_5t/wheel/MAN_5t_Wheel_FrontRight.json"
+  },
+
+  "Steering":
+  {
+    "Input File":           "MAN_5t/steering/MAN_5t_RackPinion.json",
+    "Location":             [4.2001, 0, -0.07],
+    "Orientation":          [1, 0, 0, 0],
+    "Suspension Index":     0
+  }
+}

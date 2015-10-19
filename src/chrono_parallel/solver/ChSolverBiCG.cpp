@@ -11,7 +11,7 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
 
 
   q.resize(size), qtilde.resize(size), r.resize(size);
-  real normb = std::sqrt((mb, mb));
+  real normb = Sqrt((mb, mb));
   ShurProduct(ml, r);  // r = data_manager->host_data.D_T *
                        // (data_manager->host_data.M_invD * ml);
   r = mb - r;
@@ -22,7 +22,7 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
     normb = 1;
   }
 
-  if ((residual = std::sqrt((r, r)) / normb) <= data_manager->settings.solver.tolerance) {
+  if ((residual = Sqrt((r, r)) / normb) <= data_manager->settings.solver.tolerance) {
     return 0;
   }
 
@@ -55,7 +55,7 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
     r = r - alpha * q;
     rtilde = rtilde - alpha * qtilde;
     rho_2 = rho_1;
-    residual = sqrt((r, r)) / normb;
+    residual = Sqrt((r, r)) / normb;
 
     objective_value = GetObjective(ml, mb);
     AtIterationEnd(residual, objective_value);

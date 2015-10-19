@@ -88,7 +88,7 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
   ChVector<> axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
   // Create and initialize the axle body.
-  m_axleTube = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
+  m_axleTube = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_axleTube->SetNameString(m_name + "_axleTube");
   m_axleTube->SetPos(axleCOM);
   m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
@@ -141,7 +141,7 @@ void ChSolidAxle::InitializeSide(ChVehicleSide                   side,
   ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
   // Create and initialize knuckle body (same orientation as the chassis)
-  m_knuckle[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
+  m_knuckle[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_knuckle[side]->SetNameString(m_name + "_knuckle" + suffix);
   m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
   m_knuckle[side]->SetRot(chassisRot);
@@ -151,7 +151,7 @@ void ChSolidAxle::InitializeSide(ChVehicleSide                   side,
   chassis->GetSystem()->AddBody(m_knuckle[side]);
 
   // Create and initialize spindle body (same orientation as the chassis)
-  m_spindle[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
+  m_spindle[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
   m_spindle[side]->SetPos(points[SPINDLE]);
   m_spindle[side]->SetRot(chassisRot);
@@ -170,7 +170,7 @@ void ChSolidAxle::InitializeSide(ChVehicleSide                   side,
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
 
-  m_upperLink[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
+  m_upperLink[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_upperLink[side]->SetNameString(m_name + "_upperLink" + suffix);
   m_upperLink[side]->SetPos(points[UL_CM]);
   m_upperLink[side]->SetRot(rot);
@@ -189,7 +189,7 @@ void ChSolidAxle::InitializeSide(ChVehicleSide                   side,
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
 
-  m_lowerLink[side] = ChSharedBodyPtr(new ChBody(chassis->GetSystem()->GetContactMethod()));
+  m_lowerLink[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
   m_lowerLink[side]->SetNameString(m_name + "_lowerLink" + suffix);
   m_lowerLink[side]->SetPos(points[LL_CM]);
   m_lowerLink[side]->SetRot(rot);
@@ -363,11 +363,11 @@ void ChSolidAxle::LogConstraintViolations(ChVehicleSide side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSolidAxle::AddVisualizationLink(ChSharedBodyPtr   body,
-                                       const ChVector<>  pt_1,
-                                       const ChVector<>  pt_2,
-                                       double            radius,
-                                       const ChColor&    color)
+void ChSolidAxle::AddVisualizationLink(ChSharedPtr<ChBody> body,
+                                       const ChVector<> pt_1,
+                                       const ChVector<> pt_2,
+                                       double radius,
+                                       const ChColor& color)
 {
   // Express hardpoint locations in body frame.
   ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
@@ -384,10 +384,7 @@ void ChSolidAxle::AddVisualizationLink(ChSharedBodyPtr   body,
   body->AddAsset(col);
 }
 
-void ChSolidAxle::AddVisualizationSpindle(ChSharedBodyPtr spindle,
-                                          double          radius,
-                                          double          width)
-{
+void ChSolidAxle::AddVisualizationSpindle(ChSharedPtr<ChBody> spindle, double radius, double width) {
   ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
   cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
   cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
@@ -395,11 +392,11 @@ void ChSolidAxle::AddVisualizationSpindle(ChSharedBodyPtr spindle,
   spindle->AddAsset(cyl);
 }
 
-void ChSolidAxle::AddVisualizationKnuckle(ChSharedBodyPtr   knuckle,
-                                          const ChVector<>  pt_U,
-                                          const ChVector<>  pt_L,
-                                          const ChVector<>  pt_T,
-                                          double            radius)
+void ChSolidAxle::AddVisualizationKnuckle(ChSharedPtr<ChBody> knuckle,
+                                          const ChVector<> pt_U,
+                                          const ChVector<> pt_L,
+                                          const ChVector<> pt_T,
+                                          double radius)
 {
   static const double threshold2 = 1e-6;
 

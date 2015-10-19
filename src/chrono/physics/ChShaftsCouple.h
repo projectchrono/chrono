@@ -119,34 +119,36 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     double GetRelativeRotation_dtdt() const { return (this->shaft1->GetPos_dtdt() - this->shaft2->GetPos_dtdt()); }
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream) {
-        // class version number
-        int version = mstream.VersionRead();
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
 
-        // deserialize parent class too
-        ChPhysicsItem::StreamIN(mstream);
+        // serialize parent class
+        ChPhysicsItem::ArchiveOUT(marchive);
 
-        // deserialize class
-        // nothing - pointers must be rebound
-    }
+        // serialize all member data:
+        //marchive << CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
+        //marchive << CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+    } 
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream) {
-        // class version number
-        mstream.VersionWrite(1);
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
 
-        // serialize parent class too
-        ChPhysicsItem::StreamOUT(mstream);
+        // deserialize parent class:
+        ChPhysicsItem::ArchiveIN(marchive);
 
-        // stream out all member data
-        // nothing - pointers must be rebound
-    }
+        // deserialize all member data:
+        //marchive >> CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
+        //marchive >> CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+    } 
+
 };
 
 typedef ChSharedPtr<ChShaftsCouple> ChSharedShaftsCouplePtr;

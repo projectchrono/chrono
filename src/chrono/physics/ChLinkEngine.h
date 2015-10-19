@@ -28,6 +28,24 @@ namespace chrono {
 class ChApi ChLinkEngine : public ChLinkLock {
     CH_RTTI(ChLinkEngine, ChLinkLock);
 
+  public:
+    enum eCh_eng_mode {
+        ENG_MODE_ROTATION = 0,
+        ENG_MODE_SPEED,
+        ENG_MODE_TORQUE,
+        ENG_MODE_KEY_ROTATION,
+        ENG_MODE_KEY_POLAR,
+        ENG_MODE_TO_POWERTRAIN_SHAFT
+    };
+
+    enum eCh_shaft_mode {
+        ENG_SHAFT_LOCK = 0,   // shafts of motor and user (markers 1 and 2) are stiffly joined
+        ENG_SHAFT_PRISM,      // shafts of motor and user (markers 1 and 2) can shift along shaft (Z axis)
+        ENG_SHAFT_OLDHAM,     // shafts of motor and user (markers 1 and 2) may be parallel shifting on X and Y
+        ENG_SHAFT_UNIVERSAL,  // not yet used
+        ENG_SHAFT_CARDANO     // not yet used
+    };
+
   protected:
     ChSharedPtr<ChFunction> rot_funct;  // rotation(t) function
     ChSharedPtr<ChFunction> spe_funct;  // speed(t) function
@@ -52,9 +70,9 @@ class ChApi ChLinkEngine : public ChLinkLock {
     double mot_eta;      // motor: transmission efficiency
     double mot_inertia;  // motor: inertia (added to system)
 
-    int eng_mode;  // mode of controlling the motor (by rotation, speed etc.)
+    eCh_eng_mode eng_mode;  // mode of controlling the motor (by rotation, speed etc.)
 
-    int shaft_mode;  // mode of imposing constraints on extra (non-z) degrees of freedom
+    eCh_shaft_mode shaft_mode;  // mode of imposing constraints on extra (non-z) degrees of freedom
 
     ChSharedPtr<ChFunction> rot_funct_x;  // rotation(t) function for keyframe polar motor
     ChSharedPtr<ChFunction> rot_funct_y;  // rotation(t) function for keyframe polar motor
@@ -117,31 +135,15 @@ class ChApi ChLinkEngine : public ChLinkLock {
 
     int Get_learn() const { return learn; }
     int Get_impose_reducer() const { return impose_reducer; }
-    int Get_eng_mode() const { return eng_mode; }
-
+    
     void Set_learn(int mset);
     void Set_impose_reducer(int mset) { impose_reducer = mset; }
-    void Set_eng_mode(int mset);
 
-    enum eCh_eng_mode {
-        ENG_MODE_ROTATION = 0,
-        ENG_MODE_SPEED,
-        ENG_MODE_TORQUE,
-        ENG_MODE_KEY_ROTATION,
-        ENG_MODE_KEY_POLAR,
-        ENG_MODE_TO_POWERTRAIN_SHAFT
-    };
+    eCh_eng_mode Get_eng_mode() const { return eng_mode; }
+    void Set_eng_mode(eCh_eng_mode mset);
 
-    int Get_shaft_mode() const { return shaft_mode; }
-    void Set_shaft_mode(int mset);
-
-    enum eCh_shaft_mode {
-        ENG_SHAFT_LOCK = 0,   // shafts of motor and user (markers 1 and 2) are stiffly joined
-        ENG_SHAFT_PRISM,      // shafts of motor and user (markers 1 and 2) can shift along shaft (Z axis)
-        ENG_SHAFT_OLDHAM,     // shafts of motor and user (markers 1 and 2) may be parallel shifting on X and Y
-        ENG_SHAFT_UNIVERSAL,  // not yet used
-        ENG_SHAFT_CARDANO     // not yet used
-    };
+    eCh_shaft_mode Get_shaft_mode() const { return shaft_mode; }
+    void Set_shaft_mode(eCh_shaft_mode mset);
 
     double Get_mot_rot() const { return mot_rot; }
     double Get_mot_rot_dt() const { return mot_rot_dt; }
@@ -250,9 +252,15 @@ class ChApi ChLinkEngine : public ChLinkLock {
     virtual void VariablesQbSetSpeed(double step = 0.);
     virtual void VariablesQbIncrementPosition(double step);
 
-    // STREAMING
-    virtual void StreamIN(ChStreamInBinary& mstream);
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////

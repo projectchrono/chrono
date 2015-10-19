@@ -157,39 +157,46 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body2)->TransformParentToLocal(abs_contact, this->frame2);
 }
 
-void ChLinkRackpinion::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChLinkMateGeneric::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << R;
-    mstream << alpha;
-    mstream << beta;
-    mstream << phase;
-    mstream << checkphase;
-    mstream << a1;
-    mstream << local_pinion;
-    mstream << local_rack;
+void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLinkMateGeneric::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(R);
+    marchive << CHNVP(alpha);
+    marchive << CHNVP(beta);
+    marchive << CHNVP(phase);
+    marchive << CHNVP(checkphase);
+    marchive << CHNVP(a1);
+    marchive << CHNVP(local_pinion);
+    marchive << CHNVP(local_rack);
 }
 
-void ChLinkRackpinion::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkMateGeneric::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkRackpinion::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    mstream >> R;
-    mstream >> alpha;
-    mstream >> beta;
-    mstream >> phase;
-    mstream >> checkphase;
-    mstream >> a1;
-    mstream >> local_pinion;
-    mstream >> local_rack;
+    // deserialize parent class
+    ChLinkMateGeneric::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(R);
+    marchive >> CHNVP(alpha);
+    marchive >> CHNVP(beta);
+    marchive >> CHNVP(phase);
+    marchive >> CHNVP(checkphase);
+    marchive >> CHNVP(a1);
+    marchive >> CHNVP(local_pinion);
+    marchive >> CHNVP(local_rack);
 }
+
 
 ///////////////////////////////////////////////////////////////
 

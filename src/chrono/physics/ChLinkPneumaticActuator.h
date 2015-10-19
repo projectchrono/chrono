@@ -105,9 +105,7 @@ class ChApi ChLinkPneumaticActuator : public ChLinkLock {
         pneuma->SetupAssePneumatico();
     }
 
-    // STREAMING
-    virtual void StreamIN(ChStreamInBinary& mstream);
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+
 };
 
 //////////////////////////////////////////////////////

@@ -159,6 +159,33 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     virtual void ConstraintsLiFetchSuggestedSpeedSolution();
     virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChContactContainerBase::ArchiveOUT(marchive);
+        // serialize all member data:
+        // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChContactContainerBase::ArchiveIN(marchive);
+        // stream in all member data:
+        RemoveAllContacts();
+        // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
+    }
 };
 
 //////////////////////////////////////////////////////

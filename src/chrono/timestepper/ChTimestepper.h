@@ -415,11 +415,19 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
 /// See Negrut et al. 2007.
 
 class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
+  public:
+    enum HHT_Mode {
+        ACCELERATION,
+        POSITION,
+    };
+
   private:
     double alpha;
     double gamma;
     double beta;
-	int HHTflag;
+    HHT_Mode mode;
+    bool scaling;
+    int num_it;
     ChStateDelta Da;
     ChVectorDynamic<> Dl;
     ChState Xnew;
@@ -432,15 +440,14 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
   public:
     /// Constructors (default empty)
     ChTimestepperHHT(ChIntegrableIIorder& mintegrable)
-        : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper() {
+        : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper(), mode(ACCELERATION), scaling(false) {
         SetAlpha(-0.2);  // default: some dissipation
     };
-	int Iterations;
+
     /// Set the numerical damping parameter.
-    /// It must be in the [-1/3, 0] interval.
-    /// The closer to -1/3, the more damping.
+    /// It must be in the [-1/3, 0] interval. The closer to -1/3, the more damping.
     /// The closer to 0, the less damping (for 0, it is the trapezoidal method).
-    /// It automatically sets gamma and beta.
+    /// The method coefficients gamma and beta are set automatically, based on alpha.
     void SetAlpha(double malpha) {
         alpha = malpha;
         if (alpha < -1.0 / 3.0)
@@ -451,46 +458,19 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
         beta = pow((1.0 - alpha), 2) / 4.0;
     }
 
-	void SetHHTFlag(int mHHTflag) {
-		HHTflag = mHHTflag;
-	}
-
-	void ConvergenceViolationCheck(ChState& Xnew,ChVectorDynamic<>& L,ChStateDelta& Da,ChVectorDynamic<>& Dl,double &Err1,double &Err2,int HHTflag)
-	{
-			double Temp;
-			ChVectorDynamic<> TempVec;
-			// As for "Da" > Err1
-			if(HHTflag==2||HHTflag==3){
-			TempVec=Xnew+Da;
-			Temp=TempVec.NormTwo();
-			}else{
-				TempVec=Da;
-				Temp=1.0;
-			}
-			if(Temp<0.00000001){
-				Temp=1.0;
-			}
-			TempVec=Da;
-			Err1=TempVec.NormTwo()/Temp;
-			// As for "Dl" > Err2
-			if(HHTflag==2||HHTflag==3){
-			TempVec=L+Dl;
-			Temp=TempVec.NormTwo();
-			}else{
-				TempVec=Dl;
-				Temp=1.0;
-			}
-			if(Temp<0.00000001){
-				Temp=1.0;
-			}
-			TempVec=Dl;
-			Err2=TempVec.NormTwo()/Temp;
-
-	}
-
+    /// Return the current value of the method parameter alpha.
     double GetAlpha() { return alpha; }
 
-    /// Performs an integration timestep
+    /// Set the HHT formulation.
+    void SetMode(HHT_Mode mmode) { mode = mmode; }
+
+    /// Turn scaling on/off.
+    void SetScaling(bool mscaling) { scaling = mscaling; }
+
+    /// Return the number of iterations at last step.
+    int GetNumIterations() const { return num_it; }
+
+    /// Perform an integration timestep.
     virtual void Advance(const double dt  ///< timestep to advance
                          );
 };

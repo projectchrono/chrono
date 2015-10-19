@@ -31,6 +31,7 @@ class ChApi ChLineShape : public ChVisualization {
     // DATA
     //
     ChSharedPtr<geometry::ChLine> gline;
+    std::string name;
 
   public:
     //
@@ -55,6 +56,8 @@ class ChApi ChLineShape : public ChVisualization {
     // Set the line geometry
     void SetLineGeometry(ChSharedPtr<geometry::ChLine> mline) { gline = mline; }
 
+    const std::string& GetName() const { return name; }
+    void SetName(const std::string& mname) { name = mname; }
 
     //
     // SERIALIZATION

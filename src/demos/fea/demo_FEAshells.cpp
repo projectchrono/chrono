@@ -89,8 +89,8 @@ int main(int argc, char* argv[])
 
 	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,      0.2,       0), ChVector<>(0,1,0) ) ); 
 	ChSharedPtr<ChNodeFEAxyzD> hnodeancf2(new ChNodeFEAxyzD( ChVector<>(shell_L,0,       0), ChVector<>(0,1,0) ) );
-    ChSharedPtr<ChNodeFEAxyzD> hnodeancf3(new ChNodeFEAxyzD( ChVector<>(shell_L,0, shell_W), ChVector<>(0,1,0) ) );
-    ChSharedPtr<ChNodeFEAxyzD> hnodeancf4(new ChNodeFEAxyzD( ChVector<>(0,      0, shell_W), ChVector<>(0,1,0) ) );
+    ChSharedPtr<ChNodeFEAxyzD> hnodeancf3(new ChNodeFEAxyzD( ChVector<>(0      ,0, shell_W), ChVector<>(0,1,0) ) );
+    ChSharedPtr<ChNodeFEAxyzD> hnodeancf4(new ChNodeFEAxyzD( ChVector<>(shell_L,0, shell_W), ChVector<>(0,1,0) ) );
 
 	my_mesh->AddNode(hnodeancf1);
 	my_mesh->AddNode(hnodeancf2);

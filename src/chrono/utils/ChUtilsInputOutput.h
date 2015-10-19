@@ -40,6 +40,7 @@
 #include <fstream>
 
 #include "core/ChApiCE.h"
+#include "core/ChBezierCurve.h"
 #include "physics/ChSystem.h"
 
 #include "utils/ChUtilsCreators.h"
@@ -64,7 +65,7 @@ class ChApi CSV_writer {
 
   ~CSV_writer() {}
 
-  void write_to_file(const std::string& filename, const std::string& header = "") {
+  void write_to_file(const std::string& filename, const std::string& header = "") const {
     std::ofstream ofile(filename.c_str());
     ofile << header;
     ofile << m_ss.str();
@@ -145,6 +146,17 @@ void WriteShapesPovray(ChSystem* system,
                        bool body_info = true,
                        const std::string& delim = ",");
 
+// Write the specified mesh as a macro in a PovRay include file. The output file
+// will be "[out_dir]/[mesh_name].inc". The mesh vertices will be transformed to
+// the frame with specified offset and orientation.
+ChApi void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
+                           const std::string& mesh_name,
+                           const std::string& out_dir,
+                           const ChColor& color = ChColor(0.4f, 0.4f, 0.4f),
+                           const ChVector<>& pos = ChVector<>(0, 0, 0),
+                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                           bool smoothed = false);
+
 // Write the triangular mesh from the specified OBJ file as a macro in a PovRay
 // include file. The output file will be "[out_dir]/[mesh_name].inc". The mesh
 // vertices will be transformed to the frame with specified offset and
@@ -156,6 +168,13 @@ void WriteMeshPovray(const std::string& obj_filename,
                      const ChColor& color = ChColor(0.4f, 0.4f, 0.4f),
                      const ChVector<>& pos = ChVector<>(0, 0, 0),
                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+
+// Write the Bezier curve from
+ChApi void WriteCurvePovray(const ChBezierCurve& curve,
+                            const std::string& curve_name,
+                            const std::string& out_dir,
+                            double radius = 0.03,
+                            const ChColor& col = ChColor(0.8f, 0.8f, 0.2f));
 
 }  // namespace utils
 }  // namespace chrono

@@ -24,13 +24,14 @@
 #include "collision/bullet/btBulletCollisionCommon.h"
 #include "GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "GIMPACTUtils/btGImpactConvexDecompositionShape.h"
-#include "BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #include "BulletWorldImporter/btBulletWorldImporter.h"
 #include "collision/ChCConvexDecomposition.h"
 #include "geometry/ChCLineArc.h"
 #include "geometry/ChCLineSegment.h"
+#include "BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "BulletCollision/CollisionShapes/bt2DShape.h"
+#include "BulletCollision/CollisionShapes/btCEtriangleShape.h"
 
 namespace chrono {
 
@@ -68,10 +69,11 @@ int ChModelBullet::ClearModel() {
 
         // tell to the parent collision system to remove this from collision system,
         // if still connected to a physical system
-        if (GetPhysicsItem())
-            if (GetPhysicsItem()->GetSystem())
-                if (GetPhysicsItem()->GetCollide())
-                    GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
+        if (GetContactable())
+            if (GetPhysicsItem())
+                if (GetPhysicsItem()->GetSystem())
+                    if (GetPhysicsItem()->GetCollide())
+                        GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
 
         // at the end, no collision shape
         bt_collision_object->setCollisionShape(0);
@@ -81,13 +83,13 @@ int ChModelBullet::ClearModel() {
 }
 
 int ChModelBullet::BuildModel() {
-    // assert (GetPhysicsItem());
 
     // insert again (we assume it was removed by ClearModel!!!)
-    if (GetPhysicsItem())
-        if (GetPhysicsItem()->GetSystem())
-            if (GetPhysicsItem()->GetCollide())
-                GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
+    if (GetContactable())
+        if (GetPhysicsItem())
+            if (GetPhysicsItem()->GetSystem())
+                if (GetPhysicsItem()->GetCollide())
+                    GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
 
     return 1;
 }
@@ -303,8 +305,8 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
         size_t i_prev= i;
         size_t i_next= i+1;
         if (i_next >= mpath.GetSubLinesCount()) 
-            if (mpath.Get_closed()) 
-                i_next= 0; // close 
+            if ((mpath.GetEndA()-mpath.GetEndB()).Length() < 1e-9) // can't use Get_closed() that is user preference via Set_closed()
+                i_next= 0; // closed path 
         if (i_next < mpath.GetSubLinesCount()) {
             ChSharedPtr< geometry::ChLine > mline_prev = mpath.GetSubLineN(i_prev);
             ChSharedPtr< geometry::ChLine > mline_next = mpath.GetSubLineN(i_next);
@@ -361,6 +363,28 @@ bool ChModelBullet::AddPoint(double radius, const ChVector<>& pos) {
     return true;
 }
 
+
+bool ChModelBullet::AddTriangleProxy(ChVector<>* p1,                ///< points to vertex1 coords
+                                    ChVector<>* p2,                 ///< points to vertex2 coords
+                                    ChVector<>* p3,                 ///< points to vertex3 coords
+                                    bool mowns_vertex_1,            ///< vertex is owned by this triangle (otherwise, owned by neighbour)
+                                    bool mowns_vertex_2,
+                                    bool mowns_vertex_3,
+                                    bool mowns_edge_1,              ///< edge is owned by this triangle (otherwise, owned by neighbour)
+                                    bool mowns_edge_2,
+                                    bool mowns_edge_3,
+                                    double msphereswept_rad       ///< sphere swept triangle ('fat' triangle, improves robustness)
+                                    ) {
+    btCEtriangleShape* mshape = new btCEtriangleShape(p1,p2,p3,
+        mowns_vertex_1, mowns_vertex_2, mowns_vertex_3, 
+        mowns_edge_1, mowns_vertex_2, mowns_vertex_3, msphereswept_rad);
+
+    mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
+
+    _injectShape(VNULL, ChMatrix33<>(1), mshape);
+
+    return true;
+}
 
 
 bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,

@@ -40,6 +40,8 @@ BrakeSimple::BrakeSimple(const std::string& filename)
   d.ParseStream(is);
 
   Create(d);
+
+  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 BrakeSimple::BrakeSimple(const rapidjson::Document& d)

@@ -212,31 +212,36 @@ void ChShaftsClutch::ConstraintsLiFetchSuggestedPositionSolution() {
 
 //////// FILE I/O
 
-void ChShaftsClutch::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChShaftsCouple::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << this->maxT;
-    mstream << this->minT;
-    mstream << this->modulation;
+void ChShaftsClutch::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChShaftsCouple::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(maxT);
+    marchive << CHNVP(minT);
+    marchive << CHNVP(modulation);
 }
 
-void ChShaftsClutch::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChShaftsClutch::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChShaftsCouple::StreamIN(mstream);
+    // deserialize parent class:
+    ChShaftsCouple::ArchiveIN(marchive);
 
-    // deserialize class
-    mstream >> this->maxT;
-    mstream >> this->minT;
-    mstream >> this->modulation;
-}
+    // deserialize all member data:
+    marchive >> CHNVP(maxT);
+    marchive >> CHNVP(minT);
+    marchive >> CHNVP(modulation);
+} 
 
 }  // END_OF_NAMESPACE____
 

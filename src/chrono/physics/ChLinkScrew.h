@@ -61,9 +61,15 @@ class ChApi ChLinkScrew : public ChLinkLock {
     double Get_thread() { return tau * (2 * CH_C_PI); };
     void Set_thread(double mset) { tau = mset / (2 * CH_C_PI); }
 
-    // STREAMING
-    virtual void StreamIN(ChStreamInBinary& mstream);
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////

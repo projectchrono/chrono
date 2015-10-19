@@ -18,7 +18,7 @@
 
 namespace chrono {
 
-/// Class for referencing a sphere shape that can be
+/// Class for referencing an ellipsoid shape that can be
 /// visualized in some way.
 
 class ChApi ChEllipsoidShape : public ChVisualization {

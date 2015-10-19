@@ -54,7 +54,7 @@ namespace chrono {
 
 
 // -----------------------------------------------------------------------------
-// These utility functions return a ChVector and a ChQuaternion<>, respectively,
+// These utility functions return a ChVector and a ChQuaternion, respectively,
 // from the specified JSON array.
 // -----------------------------------------------------------------------------
 static ChVector<> loadVector(const Value& a)
@@ -106,6 +106,8 @@ void Vehicle::LoadSteering(const std::string& filename,
   {
     m_steerings[which] = ChSharedPtr<ChSteering>(new RackPinion(d));
   }
+
+  GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 
@@ -144,6 +146,8 @@ void Vehicle::LoadDriveline(const std::string& filename)
   else if (subtype.compare("SimpleDriveline") == 0) {
     m_driveline = ChSharedPtr<ChDriveline>(new SimpleDriveline(d));
   }
+
+  GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 
@@ -188,6 +192,8 @@ void Vehicle::LoadSuspension(const std::string& filename,
   {
     m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d));
   }
+
+  GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 
@@ -217,6 +223,8 @@ void Vehicle::LoadAntirollbar(const std::string& filename)
   if (subtype.compare("AntirollBarRSD") == 0) {
     m_antirollbars.push_back(ChSharedPtr<ChAntirollBar>(new AntirollBarRSD(d)));
   }
+
+  GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 
@@ -246,8 +254,10 @@ void Vehicle::LoadWheel(const std::string& filename, int axle, int side)
   // Create the wheel using the appropriate template.
   if (subtype.compare("Wheel") == 0)
   {
-    m_wheels[2 * axle + side] = ChSharedPtr<ChWheel>(new Wheel(filename));
+    m_wheels[2 * axle + side] = ChSharedPtr<ChWheel>(new Wheel(d));
   }
+
+  GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 
@@ -277,27 +287,23 @@ void Vehicle::LoadBrake(const std::string& filename, int axle, int side)
   // Create the brake using the appropriate template.
   if (subtype.compare("BrakeSimple") == 0)
   {
-    m_brakes[2 * axle + side] = ChSharedPtr<ChBrake>(new BrakeSimple(filename));
+    m_brakes[2 * axle + side] = ChSharedPtr<ChBrake>(new BrakeSimple(d));
   }
+
+  GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Vehicle::Vehicle(const std::string& filename)
-: m_chassisUseMesh(false)
-{
-  Create(filename);
+Vehicle::Vehicle(const std::string& filename, ChMaterialSurfaceBase::ContactMethod contact_method)
+    : ChVehicle(contact_method), m_chassisUseMesh(false) {
+    Create(filename);
 }
 
-Vehicle::Vehicle(ChSystem*          system,
-                 const std::string& filename)
-: ChVehicle(system),
-  m_chassisUseMesh(false)
-{
-  Create(filename);
+Vehicle::Vehicle(ChSystem* system, const std::string& filename) : ChVehicle(system), m_chassisUseMesh(false) {
+    Create(filename);
 }
-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -464,6 +470,8 @@ void Vehicle::Create(const std::string& filename)
 
   m_driverCsys.pos = loadVector(d["Driver Position"]["Location"]);
   m_driverCsys.rot = loadQuaternion(d["Driver Position"]["Orientation"]);
+
+  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 

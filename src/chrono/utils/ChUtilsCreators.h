@@ -46,6 +46,7 @@
 #include "assets/ChRoundedBoxShape.h"
 #include "assets/ChRoundedConeShape.h"
 #include "assets/ChRoundedCylinderShape.h"
+#include "assets/ChLineShape.h"
 
 #include "collision/ChCModelBullet.h"
 #include "collision/ChCConvexDecomposition.h"

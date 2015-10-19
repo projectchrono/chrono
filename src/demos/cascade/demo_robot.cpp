@@ -383,14 +383,14 @@ int main(int argc, char* argv[]) {
     // motion for Z coordinate and four for Y coordinate, we join them with
     // ChFunction_Sequence and we repeat sequence by ChFunction_Repeat
 
-    ChFunction_ConstAcc* motlaw_z1 = new ChFunction_ConstAcc();
+    ChSharedPtr<ChFunction_ConstAcc> motlaw_z1 (new ChFunction_ConstAcc);
     motlaw_z1->Set_h(-0.7);
     motlaw_z1->Set_end(1);
-    ChFunction_Const* motlaw_z2 = new ChFunction_Const();
-    ChFunction_ConstAcc* motlaw_z3 = new ChFunction_ConstAcc();
+    ChSharedPtr<ChFunction_Const> motlaw_z2 (new ChFunction_Const);
+    ChSharedPtr<ChFunction_ConstAcc> motlaw_z3 (new ChFunction_ConstAcc);
     motlaw_z3->Set_h(0.7);
     motlaw_z3->Set_end(1);
-    ChFunction_Const* motlaw_z4 = new ChFunction_Const();
+    ChSharedPtr<ChFunction_Const> motlaw_z4 (new ChFunction_Const);
     ChSharedPtr<ChFunction_Sequence> motlaw_z_seq(new ChFunction_Sequence);
     motlaw_z_seq->InsertFunct(motlaw_z1, 1, 1, true);
     motlaw_z_seq->InsertFunct(motlaw_z2, 1, 1, true);  // true = force c0 continuity, traslating fx
@@ -400,12 +400,12 @@ int main(int argc, char* argv[]) {
     motlaw_z->Set_fa(motlaw_z_seq);
     motlaw_z->Set_window_length(4);
 
-    ChFunction_Const* motlaw_y1 = new ChFunction_Const();
-    ChFunction_ConstAcc* motlaw_y2 = new ChFunction_ConstAcc();
+    ChSharedPtr<ChFunction_Const>    motlaw_y1 (new ChFunction_Const);
+    ChSharedPtr<ChFunction_ConstAcc> motlaw_y2 (new ChFunction_ConstAcc);
     motlaw_y2->Set_h(-0.6);
     motlaw_y2->Set_end(1);
-    ChFunction_Const* motlaw_y3 = new ChFunction_Const();
-    ChFunction_ConstAcc* motlaw_y4 = new ChFunction_ConstAcc();
+    ChSharedPtr<ChFunction_Const>    motlaw_y3(new ChFunction_Const);
+    ChSharedPtr<ChFunction_ConstAcc> motlaw_y4(new ChFunction_ConstAcc);
     motlaw_y4->Set_h(0.6);
     motlaw_y4->Set_end(1);
     ChSharedPtr<ChFunction_Sequence> motlaw_y_seq(new ChFunction_Sequence);

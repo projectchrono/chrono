@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     mfloor->SetBodyFixed(true);
     application.GetSystem()->Add(mfloor);
 
-/*
+
     // Create a ChBody that contains a 2D convex collision shape:
 
     ChSharedPtr<ChBody> mcoin(new ChBody());
@@ -125,12 +125,12 @@ int main(int argc, char* argv[]) {
     mholeasset->SetLineGeometry(mpathhole);
     mhole->AddAsset(mholeasset);
 
-*/
+
     //
     // EXAMPLE 2: a Geneva wheel
     //
 
-    
+
     // Geneva wheel geometry data:
     int nstations = 5;
     double R = 1;

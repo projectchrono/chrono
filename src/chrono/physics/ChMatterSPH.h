@@ -99,7 +99,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
         /// ChCollisionModel might call this to get the position of the 
         /// contact model (when rigid) and sync it
-    virtual ChCoordsys<> GetCsysForCollisionModel() {return ChCoordsys<>(this->pos, QNULL);}
+    virtual ChCoordsys<> GetCsysForCollisionModel() {return ChCoordsys<>(this->pos, QUNIT);}
 
         /// Apply the force, expressed in absolute reference, applied in pos, to the 
         /// coordinates of the variables. Force for example could come from a penalty model.
@@ -121,6 +121,12 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
         /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem();
+
+
+    // SERIALIZATION
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
     //
     // DATA
@@ -179,11 +185,10 @@ class ChApi ChContinuumSPH : public fea::ChContinuumMaterial {
     /// Set the pressure stiffness.
     double Get_pressure_stiffness() { return pressure_stiffness; }
 
-    /// Method to allow deserializing
-    void StreamIN(ChStreamInBinary& mstream);
+    // SERIALIZATION
 
-    /// Method to allow serializing
-    void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 /// Class for clusters of point nodes that can
@@ -383,17 +388,10 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     /// Update all auxiliary data of the particles
     virtual void Update(bool update_assets = true);
 
-    //
-    // STREAMING
-    //
+    // SERIALIZATION
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 typedef ChSharedPtr<ChMatterSPH> ChSharedMatterSPHPtr;

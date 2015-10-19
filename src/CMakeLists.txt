@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
+option(BUILD_ADDITIONAL_TESTS "Build additional test programs" OFF)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
@@ -77,9 +78,13 @@ if(ENABLE_OPENMP)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_GLAGS} ${OpenMP_C_FLAGS}")
+  set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
+  
+else()
+	# As an alternative, if TBB is located the Parallel module will use it for all thrust calls
+	find_package("TBB")
+	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
 endif()
-
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -129,7 +134,7 @@ include_directories(${PROJECT_BINARY_DIR})
 add_subdirectory(chrono)
 
 # Let all modules have access to the headers of the main library
-include_directories( ${CH_INCLUDES} )
+include_directories(${CH_INCLUDES})
 
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
@@ -146,12 +151,15 @@ add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
 
-# Add directories for demo programs and unit test programs.
+# Add directories for demo programs, unit test programs, and additional test programs.
 if(BUILD_DEMOS)
   add_subdirectory(demos)
 endif()
 if(BUILD_TESTING)
   add_subdirectory(unit_tests)
+endif()
+if(BUILD_ADDITIONAL_TESTS)
+  add_subdirectory(tests)
 endif()
 
 #------------------------------------------------------------
@@ -241,6 +249,18 @@ if(ENABLE_MODULE_VEHICLE)
   set(CHRONO_VEHICLE "#define CHRONO_VEHICLE")
 else()
   set(CHRONO_VEHICLE "#undef CHRONO_VEHICLE")
+endif()
+
+if(ENABLE_OPENMP)
+  set(CHRONO_OPENMP_ENABLED "#define CHRONO_OPENMP_ENABLED")
+else()
+  set(CHRONO_OPENMP_ENABLED "#undef CHRONO_OPENMP_ENABLED")
+endif()
+
+if(ENABLE_TBB)
+  set(CHRONO_TBB_ENABLED "#define CHRONO_TBB_ENABLED")
+else()
+  set(CHRONO_TBB_ENABLED "#undef CHRONO_TBB_ENABLED")
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"

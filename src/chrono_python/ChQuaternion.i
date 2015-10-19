@@ -110,9 +110,8 @@ public:
 	chrono::ChVector<Real> GetXaxis() const;
 	chrono::ChVector<Real> GetYaxis() const;
 	chrono::ChVector<Real> GetZaxis() const;
-	void StreamOUT(chrono::ChStreamOutAscii& mstream);
-	void StreamOUT(chrono::ChStreamOutBinary& mstream);
-	void StreamIN(chrono::ChStreamInBinary& mstream);
+	virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 typedef ChQuaternion<double> Quaternion;

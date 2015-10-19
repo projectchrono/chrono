@@ -18,17 +18,31 @@
 
 namespace chrono {
 
-
-/// Enum for DEM contact type (out of class because templated class)
-enum ContactForceModel { Hooke, Hertz };
-
-
 /// Class for a physical system in which contact is modeled using a
 /// Penalty Method (aka DEM)
 class ChApi ChSystemDEM : public ChSystem {
     CH_RTTI(ChSystemDEM, ChSystem);
 
   public:
+    /// Enum for DEM contact type
+    enum ContactForceModel {
+        Hooke,  ///< linear Hookean model
+        Hertz   ///< nonlinear Hertzian model
+    };
+
+    /// Enum for adhesion force model
+    enum AdhesionForceModel {
+        Constant,  ///< constant adhesion force
+        DMT        ///< Derjagin-Muller-Toropov model
+    };
+
+    /// Enum for tangential displacement model
+    enum TangentialDisplacementModel {
+        None,      ///< no tangential force
+        OneStep,   ///< use only current relative tangential velocity
+        MultiStep  ///< use contact history (from contact initiation)
+    };
+
     /// Constructor
     /// Note, in case you will use collision detection, the values of
     /// 'max_objects' and 'scene_size' can be used to initialize the broadphase
@@ -53,6 +67,10 @@ class ChApi ChSystemDEM : public ChSystem {
     void SetContactForceModel(ContactForceModel model) { m_contact_model = model; }
     ContactForceModel GetContactForceModel() const { return m_contact_model; }
 
+    void SetAdhesionForceModel(AdhesionForceModel model) { m_adhesion_model = model; }
+    AdhesionForceModel GetAdhesionForceModel() const { return m_adhesion_model; }
+
+
     /// Slip velocity threshold. No tangential contact forces are generated
     /// if the magnitude of the tangential relative velocity is below this.
     void SetSlipVelocitythreshold(double vel) { m_minSlipVelocity = vel; }
@@ -66,6 +84,7 @@ class ChApi ChSystemDEM : public ChSystem {
     bool m_use_mat_props;
     bool m_use_history;
     ContactForceModel m_contact_model;
+    AdhesionForceModel m_adhesion_model;
     double m_minSlipVelocity;
     double m_characteristicVelocity;
 };

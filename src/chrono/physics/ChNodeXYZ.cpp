@@ -43,6 +43,35 @@ ChNodeXYZ& ChNodeXYZ::operator=(const ChNodeXYZ& other) {
 }
 
 
+void ChNodeXYZ::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChNodeBase::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(pos);
+    marchive << CHNVP(pos_dt);
+    marchive << CHNVP(pos_dtdt);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChNodeXYZ::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class:
+    ChNodeBase::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(pos);
+    marchive >> CHNVP(pos_dt);
+    marchive >> CHNVP(pos_dtdt);
+}
+
 
 }  // END_OF_NAMESPACE____
 

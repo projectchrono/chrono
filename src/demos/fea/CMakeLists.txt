@@ -4,6 +4,10 @@ SET(FEA_DEMOS
     demo_FEAbasic
     demo_FEAdynamics
     demo_FEAancf
+	demo_FEAloads
+)
+
+SET(FEA_DEMOS_MKL
 )
 
 # List all FEA demos that use Irrlicht
@@ -13,14 +17,15 @@ SET(FEA_DEMOS_IRR
     demo_FEAvisualize
     demo_FEAcontacts
     demo_FEAcables
+	demo_FEAancfShell
+	demo_FEAbrick
 )
 
 # List all FEA demos that use both Irrlicht and Matlab
 SET(FEA_DEMOS_IRR_MATLAB
-    demo_FEAbeams
     demo_FEAminiature
     demo_FEAshells
-    demo_FEAcableMATLAB
+    demo_FEAcablesMATLAB
 )
 
 # List all FEA demos that use both Irrlicht and MKL
@@ -31,6 +36,8 @@ SET(FEA_DEMOS_IRR_MKL
 # List all FEA demos that use Irrlicht, Matlab, and MKL
 SET(FEA_DEMOS_IRR_MATLAB_MKL
     demo_FEAbeamsconstr
+    demo_FEAbeams
+	demo_FEAabaqus_wheel
 )
 
 INCLUDE_DIRECTORIES(CMAKE_CURRENT_SOURCE_DIR)
@@ -54,6 +61,32 @@ FOREACH(PROGRAM ${FEA_DEMOS})
         ChronoEngine_fea)
     ADD_DEPENDENCIES(${PROGRAM}
         ChronoEngine
+        ChronoEngine_fea)
+    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+ENDFOREACH()
+
+#--------------------------------------------------------------
+# Add executables for demos that depend only on MKL
+
+FOREACH(PROGRAM ${FEA_DEMOS_MKL})
+    MESSAGE(STATUS "...add ${PROGRAM}")
+
+    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+    SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+        FOLDER demos
+        COMPILE_FLAGS "${CH_CXX_FLAGS}"
+        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+    TARGET_LINK_LIBRARIES(${PROGRAM}
+        ChronoEngine
+		ChronoEngine_mkl
+        ChronoEngine_fea)
+	TARGET_INCLUDE_DIRECTORIES(${PROGRAM} PUBLIC
+		${CH_MKL_INCLUDES}
+	)
+    ADD_DEPENDENCIES(${PROGRAM}
+        ChronoEngine
+		ChronoEngine_mkl
         ChronoEngine_fea)
     INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
 ENDFOREACH()
@@ -115,8 +148,7 @@ IF(ENABLE_MODULE_IRRLICHT)
     ENDIF()
 
     IF(ENABLE_MODULE_MKL)
-        INCLUDE_DIRECTORIES(${CH_MKLINC})
-        INCLUDE_DIRECTORIES(${CH_EIGEN_PATH})
+        INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
         INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
         FOREACH(PROGRAM ${FEA_DEMOS_IRR_MKL})

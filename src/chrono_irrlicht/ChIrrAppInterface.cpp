@@ -37,9 +37,15 @@ class ChIrrAppEventReceiver : public IEventReceiver {
 };
 
 bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
-    // See if the user wants to handle some event, first.
-    if (app && app->user_receiver && app->user_receiver->OnEvent(event))
-        return true;
+    // Check if there are any user-specified event receivers. Give them the
+    // first chance to process the event (in the order in which the user-specified
+    // event receivers were registered with the application.
+    if (app) {
+        for (size_t ir = 0; ir < app->user_receivers.size(); ir++) {
+            if (app->user_receivers[ir]->OnEvent(event))
+                return true;
+        }
+    }
 
     // Process keyboard events.
     if (event.EventType == EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
@@ -89,6 +95,9 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                     app->videoframe_save = false;
                     chrono::GetLog() << "Stop saving frames.\n";
                 }
+                return true;
+            case KEY_ESCAPE:
+                app->GetDevice()->closeDevice();
                 return true;
         }
     }
@@ -327,7 +336,6 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
       videoframe_num(0),
       videoframe_each(1),
       symbolscale(1.0),
-      user_receiver(0),
       selectedtruss(0),
       selectedspring(0),
       selectedmover(0) {

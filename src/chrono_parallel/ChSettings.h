@@ -20,8 +20,9 @@
 #ifndef CH_SETTINGS_H
 #define CH_SETTINGS_H
 
+#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/parallel/ChOpenMP.h"
 #include "chrono_parallel/ChParallelDefines.h"
-#include "parallel/ChOpenMP.h"
 
 namespace chrono {
 // collision_settings, like the name implies is the structure that contains all
@@ -108,8 +109,9 @@ struct solver_settings {
     solver_mode = SLIDING;
     local_solver_mode = NORMAL;
 
-    contact_force_model = HERTZ;
-    tangential_displ_mode = ONE_STEP;
+    contact_force_model = ChSystemDEM::Hertz;
+    adhesion_force_model = ChSystemDEM::Constant;
+    tangential_displ_mode = ChSystemDEM::OneStep;
     use_material_properties = true;
     characteristic_vel = 1;
     min_slip_vel = 1e-4;
@@ -160,11 +162,13 @@ struct solver_settings {
   bool use_full_inertia_tensor;
 
   // Contact force model for DEM
-  CONTACTFORCEMODEL contact_force_model;
-  // Tangential contact displacement history. NONE indicates no tangential stiffness,
-  // ONE_STEP indicates estimating tangential displacement using only current velocity,
-  // MULTI_STEP uses full contact history over multiple steps.
-  TANGENTIALDISPLACEMENTMODE tangential_displ_mode;
+  ChSystemDEM::ContactForceModel contact_force_model;
+  // Contact force model for DEM
+  ChSystemDEM::AdhesionForceModel adhesion_force_model;
+  // Tangential contact displacement history. None indicates no tangential stiffness,
+  // OneStep indicates estimating tangential displacement using only current velocity,
+  // MultiStep uses full contact history over multiple steps.
+  ChSystemDEM::TangentialDisplacementModel tangential_displ_mode;
   // Flag specifying how the stiffness and damping coefficients in the DEM contact
   // force models are calculated. If true, these coefficients are derived from
   // physical material properties. Otherwise, the user specifies the coefficients

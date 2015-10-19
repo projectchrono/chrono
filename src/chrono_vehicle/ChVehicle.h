@@ -26,6 +26,7 @@
 
 #include "core/ChVector.h"
 #include "physics/ChSystem.h"
+#include "physics/ChSystemDEM.h"
 #include "physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -49,7 +50,7 @@ class CH_VEHICLE_API ChVehicle : public ChShared
 public:
 
   /// Construct a vehicle system with a default ChSystem.
-  ChVehicle();
+  ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
   /// Construct a vehicle system using the specified ChSystem.
   ChVehicle(ChSystem* system);
@@ -60,11 +61,23 @@ public:
   /// Get a pointer to the Chrono ChSystem.
   ChSystem* GetSystem() { return m_system; }
 
+  /// Get the current simulation time of the underlying ChSystem.
+  double GetChTime() const { return m_system->GetChTime(); }
+
   /// Get a handle to the vehicle's chassis body.
   ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
-  /// Get a handle to the specified vehicle wheel.
+  /// Get the specified suspension subsystem.
+  ChSharedPtr<ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
+
+  /// Get the specified steering subsystem.
+  ChSharedPtr<ChSteering> GetSteering(int id) { return m_steerings[id]; }
+
+  /// Get a handle to the specified vehicle wheel subsystem.
   ChSharedPtr<ChWheel> GetWheel(const ChWheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
+
+  /// Get a handle to the specified vehicle brake subsystem.
+  ChSharedPtr<ChBrake> GetBrake(const ChWheelID& wheel_id) const { return m_brakes[wheel_id.id()]; }
 
   /// Get a handle to the vehicle's driveline subsystem.
   ChSharedPtr<ChDriveline> GetDriveline() const { return m_driveline; }
@@ -95,6 +108,11 @@ public:
   /// Get the speed of the chassis COM.
   /// Return the speed measured at the chassis center of mass.
   double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
+
+  /// Get the acceleration at the specified point.
+  /// The point is assumed to be given relative to the chassis reference frame.
+  /// The returned acceleration is expressed in the chassis reference frame.
+  ChVector<> GetVehicleAcceleration(const ChVector<>& locpos) const;
 
   /// Return the number of axles for this vehicle.
   virtual int GetNumberAxles() const = 0;

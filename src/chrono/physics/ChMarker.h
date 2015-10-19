@@ -76,6 +76,11 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
         /// will also provide the correct derivatives.
         M_MOTION_EXTERNAL = 2,
     };
+    CH_ENUM_MAPPER_BEGIN(eChMarkerMotion);
+      CH_ENUM_VAL(M_MOTION_FUNCTIONS);
+      CH_ENUM_VAL(M_MOTION_KEYFRAMED);
+      CH_ENUM_VAL(M_MOTION_EXTERNAL);
+    CH_ENUM_MAPPER_END(eChMarkerMotion);
 
   private:
     /// The way the motion of this marker (if any) is handled.
@@ -275,17 +280,6 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
-    /// Method to allow serialization of transient data in ascii,
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    void StreamOUT(ChStreamOutAscii& mstream);
-
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

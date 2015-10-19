@@ -76,6 +76,11 @@ int main(int argc, char* argv[]) {
     // Create the system
     ChSystemDEM msystem;
 
+    // The following two lines are optional, since they are the default options. They are added for future reference,
+    // i.e. when needed to change those models.
+    msystem.SetContactForceModel(ChSystemDEM::ContactForceModel::Hertz);
+    msystem.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
+
     msystem.Set_G_acc(ChVector<>(0, gravity, 0));
 
     // Create the Irrlicht visualization
@@ -86,7 +91,7 @@ int main(int argc, char* argv[]) {
     application.AddTypicalSky();
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(0, 3, -6));
-    
+
     // This means that contactforces will be shown in Irrlicht application
     application.SetSymbolscale(1e-4);
     application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
@@ -96,6 +101,7 @@ int main(int argc, char* argv[]) {
     material = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
     material->SetRestitution(0.1f);
     material->SetFriction(0.4f);
+    material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling ball
     ChSharedPtr<ChBody> ball(new ChBody(ChMaterialSurfaceBase::DEM));
@@ -105,7 +111,7 @@ int main(int argc, char* argv[]) {
     ball->SetPos(pos);
     ball->SetRot(rot);
     ball->SetPos_dt(init_vel);
-    //ball->SetWvel_par(ChVector<>(0,0,3));
+    // ball->SetWvel_par(ChVector<>(0,0,3));
     ball->SetBodyFixed(false);
     ball->SetMaterialSurface(material);
 

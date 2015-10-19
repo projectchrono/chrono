@@ -92,7 +92,9 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         double dT = sys->GetStep();
         bool use_mat_props = sys->UseMaterialProperties();
         bool use_history = sys->UseContactHistory();
-        ContactForceModel force_model = sys->GetContactForceModel();
+        ChSystemDEM::ContactForceModel contact_model = sys->GetContactForceModel();
+        ChSystemDEM::AdhesionForceModel adhesion_model = sys->GetAdhesionForceModel();
+
 
         // Relative velocity at contact
         ChVector<> vel2 = this->objB->GetContactPointSpeed(this->p2);
@@ -131,12 +133,15 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
         double delta_t = use_history ? relvel_t_mag * dT : 0;
 
-        switch (force_model) {
-            case Hooke:
+        // Include contact force
+        switch (contact_model) {
+        case ChSystemDEM::Hooke:
                 if (use_mat_props) {
                     double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
                     double v2 = sys->GetCharacteristicImpactVelocity() * sys->GetCharacteristicImpactVelocity();
-                    double tmp_g = 1 + std::pow(CH_C_PI / std::log(mat.cr_eff), 2);
+                    double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
+                    loge = (mat.cr_eff > 1 - CH_MICROTOL) ? std::log(1 - CH_MICROTOL) : loge;
+                    double tmp_g = 1 + std::pow(CH_C_PI / loge, 2);
                     kn = tmp_k * std::pow(m_eff * v2 / tmp_k, 1.0 / 5);
                     kt = kn;
                     gn = std::sqrt(4 * m_eff * kn / tmp_g);
@@ -150,12 +155,12 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
                 break;
 
-            case Hertz:
+        case ChSystemDEM::Hertz:
                 if (use_mat_props) {
                     double sqrt_Rd = std::sqrt(R_eff * m_delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double St = 8 * mat.G_eff * sqrt_Rd;
-                    double loge = std::log(mat.cr_eff);
+                    double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
                     kn = (2.0 / 3) * Sn;
                     kt = St;
@@ -183,8 +188,15 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
             forceT = 0;
         }
 
-        // Include cohesion force
-        forceN -= mat.cohesion_eff;
+        // Include adhesion force
+        switch (adhesion_model) {
+        case ChSystemDEM::Constant:
+            forceN -= mat.adhesion_eff;
+            break;
+        case ChSystemDEM::DMT:
+            forceN -= mat.adhesionMultDMT_eff * sqrt(R_eff);
+            break;
+        }
 
         // Coulomb law
         forceT = std::min<double>(forceT, mat.mu_eff * std::abs(forceN));

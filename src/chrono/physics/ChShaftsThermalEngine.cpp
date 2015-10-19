@@ -65,34 +65,36 @@ double ChShaftsThermalEngine::ComputeTorque() {
 
 //////// FILE I/O
 
-void ChShaftsThermalEngine::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChShaftsTorqueBase::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << this->throttle;
-    mstream << this->error_backward;
-    mstream.AbstractWrite(this->Tw.get_ptr());  //***TODO*** proper serialize for ChSharedPtr
+void ChShaftsThermalEngine::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChShaftsTorqueBase::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(Tw);
+    marchive << CHNVP(throttle);
 }
 
-void ChShaftsThermalEngine::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChShaftsThermalEngine::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChShaftsTorqueBase::StreamIN(mstream);
+    // deserialize parent class:
+    ChShaftsTorqueBase::ArchiveIN(marchive);
 
-    // deserialize class data
-    mstream >> this->throttle;
-    mstream >> this->error_backward;
+    // deserialize all member data:
+    marchive >> CHNVP(Tw);
+    marchive >> CHNVP(throttle);
+} 
 
-    ChFunction* newfun;
-    mstream.AbstractReadCreate(&newfun);  //***TODO*** proper deserialize for ChSharedPtr
-    this->Tw = ChSharedPtr<ChFunction>(newfun);
-}
+
 
 }  // END_OF_NAMESPACE____
 

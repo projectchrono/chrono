@@ -28,7 +28,7 @@ bool chrono::collision::MPRSphereSphere(const ConvexShape& ShapeA,
   real d2 = dot(relpos, relpos);
   real collide_dist = ShapeA.B.x + ShapeB.B.x;
   if (d2 <= collide_dist * collide_dist) {
-    // depth = sqrtf(d2)-collide_dist;
+    // depth = Sqrt(d2)-collide_dist;
     N = normalize(relpos);
     p1 = ShapeA.A + N * ShapeA.B.x;
     p2 = ShapeB.A - N * ShapeB.B.x;
@@ -129,8 +129,8 @@ int portalReachTolerance(const simplex& portal, const real3& n) {
   real dot2 = dv4 - dv2;
   real dot3 = dv4 - dv3;
 
-  dot1 = std::fmin(dot1, dot2);
-  dot1 = std::fmin(dot1, dot3);
+  dot1 = Min(dot1, dot2);
+  dot1 = Min(dot1, dot3);
 
   return isEqual(dot1, MPR_TOLERANCE) || dot1 < MPR_TOLERANCE;
 }
@@ -240,7 +240,7 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
   real b0 = dot(diff, edge0);
   real b1 = dot(diff, edge1);
   real c = dot(diff, diff);
-  real det = fabs(a00 * a11 - a01 * a01);
+  real det = Abs(a00 * a11 - a01 * a01);
   real s = a01 * b1 - a11 * b0;
   real t = a01 * b0 - a00 * b1;
   real sqrDistance;
@@ -420,7 +420,7 @@ void FindPenetration(const ConvexShape& shapeA,
     real delta = dot((portal.s4.v - portal.s3.v), dir);
     // std::cout<<dir<<" "<<delta<<std::endl;
     if (portalReachTolerance(portal, dir) || i == MAX_ITERATIONS - 1) {
-      //         depth = -sqrt(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v, n));
+      //         depth = -Sqrt(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v, n));
       //         if (IsZero(n)) {
       //            n = dir;
       //         }

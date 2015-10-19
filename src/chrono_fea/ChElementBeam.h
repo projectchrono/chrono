@@ -40,7 +40,7 @@ class ChApiFea ChElementBeam : public ChElementGeneric {
     /// Gets the xyz displacement of a point on the beam line,
     /// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
     virtual void EvaluateSectionDisplacement(const double eta,
                                              const ChMatrix<>& displ,
@@ -50,7 +50,7 @@ class ChApiFea ChElementBeam : public ChElementGeneric {
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated.
     virtual void EvaluateSectionFrame(const double eta,
                                       const ChMatrix<>& displ,
@@ -61,13 +61,15 @@ class ChApiFea ChElementBeam : public ChElementGeneric {
     /// torque (torsion on x, bending on y, on bending on z) at a section along
     /// the beam line, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField().
+    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
     /// Results are not corotated, and are expressed in the reference system of beam.
     virtual void EvaluateSectionForceTorque(const double eta,
                                             const ChMatrix<>& displ,
                                             ChVector<>& Fforce,
                                             ChVector<>& Mtorque) = 0;
+    /// Gets the axial and bending strain of the ANCF "cable" element
 
+    virtual void EvaluateSectionStrain(const double eta, const ChMatrix<>& displ, ChVector<>& StrainV) = 0;
     /// The full mass of the beam, (with const. section, density, etc.)
     double GetMass() { return this->mass; }
 

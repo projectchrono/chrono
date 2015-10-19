@@ -53,7 +53,7 @@ endif()
 #	add_subdirectory(mpi)
 #endif()
 
-if(ENABLE_UNIT_CASCADE)
+if(ENABLE_MODULE_CASCADE)
 	add_subdirectory(cascade)
 endif()
 
@@ -71,6 +71,10 @@ endif()
 
 if(ENABLE_MODULE_PARALLEL)
   add_subdirectory(parallel)
+endif()
+
+if(ENABLE_MODULE_OPENGL)
+  add_subdirectory(opengl)
 endif()
 
 if(ENABLE_MODULE_VEHICLE)

@@ -12,51 +12,65 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Generic rigid tire
+// Template for a rigid tire
 //
 // =============================================================================
 
-
 #include "ChRigidTire.h"
-
 
 namespace chrono {
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRigidTire::ChRigidTire(const std::string& name,
-                         const ChTerrain&   terrain)
-: ChTire(name, terrain)
-{
+ChRigidTire::ChRigidTire(const std::string& name)
+    : ChTire(name), m_friction(0.6f), m_restitution(0.1f), m_young_modulus(2e5f), m_poisson_ratio(0.3f) {
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidTire::Initialize(ChSharedBodyPtr wheel)
-{
-  wheel->SetCollide(true);
-
-  wheel->GetCollisionModel()->ClearModel();
-  wheel->GetCollisionModel()->AddCylinder(getRadius(), getRadius(), getWidth() / 2);
-  wheel->GetCollisionModel()->BuildModel();
-
-  wheel->GetMaterialSurface()->SetFriction(getFrictionCoefficient());
-
+void ChRigidTire::SetContactMaterial(float friction_coefficient,
+                                     float restitution_coefficient,
+                                     float young_modulus,
+                                     float poisson_ratio) {
+    m_friction = friction_coefficient;
+    m_restitution = restitution_coefficient;
+    m_young_modulus = young_modulus;
+    m_poisson_ratio = poisson_ratio;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChTireForce ChRigidTire::GetTireForce() const
-{
-  ChTireForce tire_force;
+void ChRigidTire::Initialize(ChSharedPtr<ChBody> wheel) {
+    wheel->SetCollide(true);
 
-  tire_force.force = ChVector<>(0, 0, 0);
-  tire_force.point = ChVector<>(0, 0, 0);
-  tire_force.moment = ChVector<>(0, 0, 0);
+    wheel->GetCollisionModel()->ClearModel();
+    wheel->GetCollisionModel()->AddCylinder(getRadius(), getRadius(), getWidth() / 2);
+    wheel->GetCollisionModel()->BuildModel();
 
-  return tire_force;
+    switch (wheel->GetContactMethod()) {
+        case ChMaterialSurfaceBase::DVI:
+            wheel->GetMaterialSurface()->SetFriction(m_friction);
+            wheel->GetMaterialSurface()->SetRestitution(m_restitution);
+            break;
+        case ChMaterialSurfaceBase::DEM:
+            wheel->GetMaterialSurfaceDEM()->SetFriction(m_friction);
+            wheel->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
+            wheel->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
+            wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
+            break;
+    }
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChTireForce ChRigidTire::GetTireForce() const {
+    ChTireForce tire_force;
 
-} // end namespace chrono
+    tire_force.force = ChVector<>(0, 0, 0);
+    tire_force.point = ChVector<>(0, 0, 0);
+    tire_force.moment = ChVector<>(0, 0, 0);
+
+    return tire_force;
+}
+
+}  // end namespace chrono

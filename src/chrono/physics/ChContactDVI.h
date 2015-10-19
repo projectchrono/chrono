@@ -198,7 +198,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
-                        Qc(off_L) += c * neg_rebounce_speed;
+                        Qc(off_L) += neg_rebounce_speed;
                     }
             }
         }

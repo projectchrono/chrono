@@ -55,38 +55,24 @@ ChForce::ChForce() {
     vreldir = VECT_X;
     restpos = VNULL;
     mforce = 0;
-    modula = new ChFunction_Const(1);
+    modula = ChSharedPtr<ChFunction>(new ChFunction_Const(1));
 
     align = FDIR_BODY;
     frame = FPOS_BODY;
     mode = FTYPE_FORCE;
 
-    move_x = new ChFunction_Const(0);
-    move_y = new ChFunction_Const(0);
-    move_z = new ChFunction_Const(0);
-    f_x = new ChFunction_Const(0);
-    f_y = new ChFunction_Const(0);
-    f_z = new ChFunction_Const(0);
+    move_x = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
+    move_y = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
+    move_z = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
+    f_x = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
+    f_y = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
+    f_z = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
 
     ChTime = 0;
 }
 
 ChForce::~ChForce() {
     delete Qf;
-    if (modula)
-        delete modula;
-    if (move_x)
-        delete move_x;
-    if (move_y)
-        delete move_y;
-    if (move_z)
-        delete move_z;
-    if (f_x)
-        delete f_x;
-    if (f_y)
-        delete f_y;
-    if (f_z)
-        delete f_z;
 }
 
 void ChForce::Copy(ChForce* source) {
@@ -111,86 +97,16 @@ void ChForce::Copy(ChForce* source) {
 
     Qf->CopyFromMatrix(*source->Qf);
 
-    if (modula)
-        delete modula;
-    if (source->modula)
-        modula = source->modula->new_Duplicate();
-    else
-        modula = NULL;
-    if (move_x)
-        delete move_x;
-    if (source->move_x)
-        move_x = source->move_x->new_Duplicate();
-    else
-        move_x = NULL;
-    if (move_y)
-        delete move_y;
-    if (source->move_y)
-        move_y = source->move_y->new_Duplicate();
-    else
-        move_y = NULL;
-    if (move_z)
-        delete move_z;
-    if (source->move_z)
-        move_z = source->move_z->new_Duplicate();
-    else
-        move_z = NULL;
-    if (f_x)
-        delete f_x;
-    if (source->f_x)
-        f_x = source->f_x->new_Duplicate();
-    else
-        f_x = NULL;
-    if (f_y)
-        delete f_y;
-    if (source->f_y)
-        f_y = source->f_y->new_Duplicate();
-    else
-        f_y = NULL;
-    if (f_z)
-        delete f_z;
-    if (source->f_z)
-        f_z = source->f_z->new_Duplicate();
-    else
-        f_z = NULL;
-}
-
-//////
-
-void ChForce::SetModulation(ChFunction* m_funct) {
-    if (modula)
-        delete modula;
-    modula = m_funct;
-}
-void ChForce::SetMove_x(ChFunction* m_funct) {
-    if (move_x)
-        delete move_x;
-    move_x = m_funct;
-}
-void ChForce::SetMove_y(ChFunction* m_funct) {
-    if (move_y)
-        delete move_y;
-    move_y = m_funct;
-}
-void ChForce::SetMove_z(ChFunction* m_funct) {
-    if (move_z)
-        delete move_z;
-    move_z = m_funct;
-}
-void ChForce::SetF_x(ChFunction* m_funct) {
-    if (f_x)
-        delete f_x;
-    f_x = m_funct;
-}
-void ChForce::SetF_y(ChFunction* m_funct) {
-    if (f_y)
-        delete f_y;
-    f_y = m_funct;
-}
-void ChForce::SetF_z(ChFunction* m_funct) {
-    if (f_z)
-        delete f_z;
-    f_z = m_funct;
+ 
+    modula = ChSharedPtr<ChFunction>(source->modula->new_Duplicate());
+    
+    move_x = ChSharedPtr<ChFunction>(source->move_x->new_Duplicate());
+    move_y = ChSharedPtr<ChFunction>(source->move_y->new_Duplicate());
+    move_z = ChSharedPtr<ChFunction>(source->move_z->new_Duplicate());
+    
+    f_x = ChSharedPtr<ChFunction>(source->f_x->new_Duplicate());
+    f_y = ChSharedPtr<ChFunction>(source->f_y->new_Duplicate());
+    f_z = ChSharedPtr<ChFunction>(source->f_z->new_Duplicate());
 }
 
 ////// Impose absolute or relative positions, also
@@ -401,81 +317,61 @@ void ChForce::Update(double mytime) {
 
 ////// File  I/O
 
-void ChForce::StreamOUT(ChStreamOutBinary& mstream) {
+
+
+void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
+
     // class version number
-    mstream.VersionWrite(1);
+    marchive.VersionWrite(1);
+
     // serialize parent class too
-    ChObj::StreamOUT(mstream);
+    ChObj::ArchiveOUT(marchive);
 
     // stream out all member data
-    mstream << GetMode();
-    mstream << GetFrame();
-    mstream << GetAlign();
-    mstream << vrelpoint;
-    mstream << vpoint;
-    mstream.AbstractWrite(this->move_x);
-    mstream.AbstractWrite(this->move_y);
-    mstream.AbstractWrite(this->move_z);
-    mstream << restpos;
-    mstream.AbstractWrite(this->f_x);
-    mstream.AbstractWrite(this->f_y);
-    mstream.AbstractWrite(this->f_z);
-    mstream << GetMforce();
-    mstream.AbstractWrite(this->modula);
-    mstream << vreldir;
-    mstream << vdir;
+    marchive << CHNVP(mode);
+    marchive << CHNVP(frame);
+    marchive << CHNVP(align);
+    marchive << CHNVP(vrelpoint);
+    marchive << CHNVP(vpoint);
+    marchive << CHNVP(move_x);
+    marchive << CHNVP(move_y);
+    marchive << CHNVP(move_z);
+    marchive << CHNVP(restpos);
+    marchive << CHNVP(f_x);
+    marchive << CHNVP(f_y);
+    marchive << CHNVP(f_z);
+    marchive << CHNVP(mforce);
+    marchive << CHNVP(modula,"f_time");
+    marchive << CHNVP(vreldir);
+    marchive << CHNVP(vdir);
 }
 
-void ChForce::StreamIN(ChStreamInBinary& mstream) {
+void ChForce::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = mstream.VersionRead();
+    int version = marchive.VersionRead();
     // deserialize parent class too
-    ChObj::StreamIN(mstream);
+    ChObj::ArchiveIN(marchive);
 
     // stream in all member data
-    double dfoo;
-    int ifoo;
-    Vector vfoo;
-    ChFunction* ffoo;
-
-    mstream >> ifoo;
-    SetMode(ifoo);
-    mstream >> ifoo;
-    SetFrame(ifoo);
-    mstream >> ifoo;
-    SetAlign(ifoo);
-    mstream >> vfoo;
-    SetVrelpoint(vfoo);
-    mstream >> vfoo;
-    SetVpoint(vfoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMove_x(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMove_y(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMove_z(ffoo);
-    mstream >> vfoo;  // SetRestpos(dfoo);//not needed,
-    mstream.AbstractReadCreate(&ffoo);
-    SetF_x(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetF_y(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetF_z(ffoo);
-    mstream >> dfoo;
-    SetMforce(dfoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetModulation(ffoo);
-    mstream >> vfoo;
-    SetRelDir(vfoo);
-    mstream >> vfoo;
-    SetDir(vfoo);
+    marchive >> CHNVP(mode);
+    marchive >> CHNVP(frame);
+    marchive >> CHNVP(align);
+    marchive >> CHNVP(vrelpoint);
+    marchive >> CHNVP(vpoint);
+    marchive >> CHNVP(move_x);
+    marchive >> CHNVP(move_y);
+    marchive >> CHNVP(move_z);
+    marchive >> CHNVP(restpos);
+    marchive >> CHNVP(f_x);
+    marchive >> CHNVP(f_y);
+    marchive >> CHNVP(f_z);
+    marchive >> CHNVP(mforce);
+    marchive >> CHNVP(modula,"f_time");
+    marchive >> CHNVP(vreldir);
+    marchive >> CHNVP(vdir);
 }
 
-void ChForce::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FORCE   " << GetName() << "\n";
 
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

@@ -300,29 +300,7 @@ int ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpola
     return TRUE;
 }
 
-void ChLine::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChGeometry::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << closed;
-    mstream << complexityU;
-}
-
-void ChLine::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChGeometry::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> closed;
-    mstream >> complexityU;
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

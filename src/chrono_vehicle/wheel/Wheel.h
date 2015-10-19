@@ -35,7 +35,7 @@ public:
   Wheel(const rapidjson::Document& d);
   ~Wheel() {}
 
-  virtual void Initialize(ChSharedBodyPtr spindle);
+  virtual void Initialize(ChSharedPtr<ChBody> spindle);
 
   virtual double GetMass() const { return m_mass; }
   virtual ChVector<> GetInertia() const { return m_inertia; }

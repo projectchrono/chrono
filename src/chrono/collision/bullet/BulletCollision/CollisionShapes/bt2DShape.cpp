@@ -172,8 +172,8 @@ void bt2DsegmentShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3
 {
     btVector3 P1w = t*P1;
     btVector3 P2w = t*P2;
-    btVector3 vminabs (std::min(P1w.x(),P2w.x()), std::min(P1w.y(),P2w.y()), -(zthickness*0.5f));
-    btVector3 vmaxabs (std::max(P1w.x(),P2w.x()), std::max(P1w.y(),P2w.y()),  (zthickness*0.5f));
+    btVector3 vminabs (std::min(P1w.x(),P2w.x()), std::min(P1w.y(),P2w.y()),  P1w.z()-(zthickness*0.5f));
+    btVector3 vmaxabs (std::max(P1w.x(),P2w.x()), std::max(P1w.y(),P2w.y()),  P1w.z()+(zthickness*0.5f));
     vminabs -= btVector3(getMargin(),getMargin(),0);
     vmaxabs += btVector3(getMargin(),getMargin(),0);
     aabbMin = vminabs;

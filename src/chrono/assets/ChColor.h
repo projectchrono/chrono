@@ -78,21 +78,7 @@ class ChApi ChColor {
         marchive >> CHNVP(A);
     }
 
-    void StreamOUT(ChStreamOutAscii& mstream) {
-        mstream << "\nRGB=" << R << "\n" << G << "\n" << B << " A=" << A << "\n";
-    }
-    void StreamOUT(ChStreamOutBinary& mstream) {
-        mstream << R;
-        mstream << G;
-        mstream << B;
-        mstream << A;
-    }
-    void StreamIN(ChStreamInBinary& mstream) {
-        mstream >> R;
-        mstream >> G;
-        mstream >> B;
-        mstream >> A;
-    }
+
 };
 
 }  // END_OF_NAMESPACE____

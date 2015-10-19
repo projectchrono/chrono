@@ -49,6 +49,7 @@
 #include "physics/ChLinkTrajectory.h"
 #include "physics/ChLinkRevolute.h"
 #include "physics/ChLinkRevoluteSpherical.h"
+#include "physics/ChLinkRevoluteTranslational.h"
 #include "physics/ChLinkUniversal.h"
 
 #endif

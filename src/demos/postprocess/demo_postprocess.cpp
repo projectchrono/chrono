@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)
-        mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1.5, ChRandom() + 2)));
+        mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1, ChRandom() -0.5)));
 
     // Do not forget to add the particle cluster to the system:
     mphysicalSystem.Add(mparticles);

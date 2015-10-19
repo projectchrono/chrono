@@ -23,6 +23,7 @@
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChMaterialSurfaceBase.h"
 
 #include "chrono_vehicle/ChVehicle.h"
 
@@ -31,10 +32,10 @@
 class Articulated_Vehicle : public chrono::ChVehicle
 {
 public:
-
-  Articulated_Vehicle(const bool        fixed,
-                      SuspensionType    suspType,
-                      VisualizationType wheelVis);
+  Articulated_Vehicle(const bool fixed,
+                      SuspensionType suspType,
+                      VisualizationType wheelVis,
+                      chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
   ~Articulated_Vehicle() {}
 

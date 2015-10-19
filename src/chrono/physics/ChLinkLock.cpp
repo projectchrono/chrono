@@ -1169,19 +1169,15 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     // react_torque = Vadd(react_torque, C_torque);
 }
 
-
 void ChLinkLock::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     // parent (from ChConstraint objects to react vector)
     ChLinkMasked::IntStateGatherReactions(off_L, L);
 
-
     int local_off = this->GetDOC_c();
 
-    // gather also the contribution from link limits 
+    // gather also the contribution from link limits
     // TODO not yet implemented
-
 }
-
 
 void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
                                      ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
@@ -1583,106 +1579,130 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
     ChLinkMasked::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
 
     if (limit_X && limit_X->Get_active()) {
-        if (limit_X->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_X->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_X->constr_lower.Set_b_i(limit_X->constr_lower.Get_b_i() +
                                               factor * (-limit_X->Get_min() + relM.pos.x));
-            else
+            } else {
                 limit_X->constr_lower.Set_b_i(limit_X->constr_lower.Get_b_i() +
                                               ChMax(factor * (-limit_X->Get_min() + relM.pos.x), -recovery_clamp));
-        if (limit_X->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_X->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i() +
                                               factor * (limit_X->Get_max() - relM.pos.x));
-            else
+            } else {
                 limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i() +
                                               ChMax(factor * (limit_X->Get_max() - relM.pos.x), -recovery_clamp));
+            }
+        }
     }
     if (limit_Y && limit_Y->Get_active()) {
-        if (limit_Y->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_Y->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_Y->constr_lower.Set_b_i(limit_Y->constr_lower.Get_b_i() +
                                               factor * (-limit_Y->Get_min() + relM.pos.y));
-            else
+            } else {
                 limit_Y->constr_lower.Set_b_i(limit_Y->constr_lower.Get_b_i() +
                                               ChMax(factor * (-limit_Y->Get_min() + relM.pos.y), -recovery_clamp));
-        if (limit_Y->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_Y->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i() +
                                               factor * (limit_Y->Get_max() - relM.pos.y));
-            else
+            } else {
                 limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i() +
                                               ChMax(factor * (limit_Y->Get_max() - relM.pos.y), -recovery_clamp));
+            }
+        }
     }
     if (limit_Z && limit_Z->Get_active()) {
-        if (limit_Z->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_Z->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_Z->constr_lower.Set_b_i(limit_Z->constr_lower.Get_b_i() +
                                               factor * (-limit_Z->Get_min() + relM.pos.z));
-            else
+            } else {
                 limit_Z->constr_lower.Set_b_i(limit_Z->constr_lower.Get_b_i() +
                                               ChMax(factor * (-limit_Z->Get_min() + relM.pos.z), -recovery_clamp));
-        if (limit_Z->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_Z->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i() +
                                               factor * (limit_Z->Get_max() - relM.pos.z));
-            else
+            } else {
                 limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i() +
                                               ChMax(factor * (limit_Z->Get_max() - relM.pos.z), -recovery_clamp));
+            }
+        }
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        if (limit_Rx->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_Rx->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_Rx->constr_lower.Set_b_i(limit_Rx->constr_lower.Get_b_i() +
                                                factor * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1));
-            else
+            } else {
                 limit_Rx->constr_lower.Set_b_i(
                     limit_Rx->constr_lower.Get_b_i() +
                     ChMax(factor * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1), -recovery_clamp));
-        if (limit_Rx->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_Rx->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_Rx->constr_upper.Set_b_i(limit_Rx->constr_upper.Get_b_i() +
                                                factor * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1));
-            else
+            } else {
                 limit_Rx->constr_upper.Set_b_i(
                     limit_Rx->constr_upper.Get_b_i() +
                     ChMax(factor * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1), -recovery_clamp));
+            }
+        }
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        if (limit_Ry->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_Ry->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_Ry->constr_lower.Set_b_i(limit_Ry->constr_lower.Get_b_i() +
                                                factor * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e2));
-            else
+            } else {
                 limit_Ry->constr_lower.Set_b_i(
                     limit_Ry->constr_lower.Get_b_i() +
                     ChMax(factor * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e2), -recovery_clamp));
-        if (limit_Ry->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_Ry->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_Ry->constr_upper.Set_b_i(limit_Ry->constr_upper.Get_b_i() +
                                                factor * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e2));
-            else
+            } else {
                 limit_Ry->constr_upper.Set_b_i(
                     limit_Ry->constr_upper.Get_b_i() +
                     ChMax(factor * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e2), -recovery_clamp));
+            }
+        }
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        if (limit_Rz->constr_lower.IsActive())
-            if (!do_clamp)
+        if (limit_Rz->constr_lower.IsActive()) {
+            if (!do_clamp) {
                 limit_Rz->constr_lower.Set_b_i(limit_Rz->constr_lower.Get_b_i() +
                                                factor * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e3));
-            else
+            } else {
                 limit_Rz->constr_lower.Set_b_i(
                     limit_Rz->constr_lower.Get_b_i() +
                     ChMax(factor * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e3), -recovery_clamp));
-        if (limit_Rz->constr_upper.IsActive())
-            if (!do_clamp)
+            }
+        }
+        if (limit_Rz->constr_upper.IsActive()) {
+            if (!do_clamp) {
                 limit_Rz->constr_upper.Set_b_i(limit_Rz->constr_upper.Get_b_i() +
                                                factor * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e3));
-            else
+            } else {
                 limit_Rz->constr_upper.Set_b_i(
                     limit_Rz->constr_upper.Get_b_i() +
                     ChMax(factor * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e3), -recovery_clamp));
+            }
+        }
     }
 }
 
@@ -1923,76 +1943,89 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 ///////// FILE I/O
 /////////
 
-void ChLinkLock::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(10);
-    // serialize parent class too
-    ChLinkMasked::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << type;
-    mstream.AbstractWrite(GetMotion_X());
-    mstream.AbstractWrite(GetMotion_Y());
-    mstream.AbstractWrite(GetMotion_Z());
-    mstream.AbstractWrite(GetMotion_ang());
-    mstream.AbstractWrite(GetMotion_ang2());
-    mstream.AbstractWrite(GetMotion_ang3());
-    mstream << motion_axis;
-    mstream << angleset;
+void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    mstream << *limit_X;
-    mstream << *limit_Y;
-    mstream << *limit_Z;
-    mstream << *limit_Rx;
-    mstream << *limit_Ry;
-    mstream << *limit_Rz;
-    mstream << *limit_Rp;
-    mstream << *limit_D;
+    // serialize parent class
+    ChLinkMasked::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(type);
+    marchive << CHNVP(motion_X);
+    marchive << CHNVP(motion_Y);
+    marchive << CHNVP(motion_Z);
+    marchive << CHNVP(motion_ang);
+    marchive << CHNVP(motion_ang2);
+    marchive << CHNVP(motion_ang3);
+    marchive << CHNVP(motion_axis);
+    marchive << CHNVP(angleset);
+    marchive << CHNVP(limit_X);
+    marchive << CHNVP(limit_Y);
+    marchive << CHNVP(limit_Z);
+    marchive << CHNVP(limit_Rx);
+    marchive << CHNVP(limit_Ry);
+    marchive << CHNVP(limit_Rz);
+    marchive << CHNVP(limit_Rp);
+    marchive << CHNVP(limit_D);
 }
 
-void ChLinkLock::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkMasked::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    // To restore mask array when loading finishes, (maybe following data loading changes mask..)
-    ChLinkMask* moriginalmask = this->mask->NewDuplicate();
+    // deserialize parent class
+    ChLinkMasked::ArchiveIN(marchive);
+
+    // deserialize all member data:
     int ifoo;
-    Vector vfoo;
-    ChFunction* ffoo;
-    mstream >> ifoo;
-    ChangeLinkType(ifoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_X(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_Y(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_Z(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_ang(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_ang2(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_ang3(ffoo);
-    mstream >> vfoo;
-    SetMotion_axis(vfoo);
-    mstream >> ifoo;
-    Set_angleset(ifoo);
-    mstream >> *limit_X;
-    mstream >> *limit_Y;
-    mstream >> *limit_Z;
-    mstream >> *limit_Rx;
-    mstream >> *limit_Ry;
-    mstream >> *limit_Rz;
-    mstream >> *limit_Rp;
-    mstream >> *limit_D;
-
-    this->mask->Copy(moriginalmask);  // restore mask array, if ChangeLinkType() modified it..
-    this->ChangedLinkMask();
+    marchive >> CHNVP(ifoo);
+    ChangeLinkType(ifoo); // this also setup mask flags and lot of stuff, simplifying the serialization
+    marchive >> CHNVP(motion_X);
+    marchive >> CHNVP(motion_Y);
+    marchive >> CHNVP(motion_Z);
+    marchive >> CHNVP(motion_ang);
+    marchive >> CHNVP(motion_ang2);
+    marchive >> CHNVP(motion_ang3);
+    marchive >> CHNVP(motion_axis);
+    marchive >> CHNVP(angleset);
+    marchive >> CHNVP(limit_X);
+    marchive >> CHNVP(limit_Y);
+    marchive >> CHNVP(limit_Z);
+    marchive >> CHNVP(limit_Rx);
+    marchive >> CHNVP(limit_Ry);
+    marchive >> CHNVP(limit_Rz);
+    marchive >> CHNVP(limit_Rp);
+    marchive >> CHNVP(limit_D);
 }
+
+
 
 ///////////////////////////////////////////////////////////////
+
+
+// SOME WRAPPER CLASSES, TO MAKE 'LINK LOCK' CREATION EASIER...
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+
+ChClassRegister<ChLinkLockRevolute> a_registration_ChLinkLockRevolute;
+ChClassRegister<ChLinkLockLock> a_registration_ChLinkLockLock;
+ChClassRegister<ChLinkLockSpherical> a_registration_ChLinkLockSpherical;
+ChClassRegister<ChLinkLockCylindrical> a_registration_ChLinkLockCylindrical;
+ChClassRegister<ChLinkLockPrismatic> a_registration_ChLinkLockPrismatic;
+ChClassRegister<ChLinkLockPointPlane> a_registration_ChLinkLockPointPlane;
+ChClassRegister<ChLinkLockPointLine> a_registration_ChLinkLockPointLine;
+ChClassRegister<ChLinkLockPlanePlane> a_registration_ChLinkLockPlanePlane;
+ChClassRegister<ChLinkLockOldham> a_registration_ChLinkLockOldham;
+ChClassRegister<ChLinkLockFree> a_registration_ChLinkLockFree;
+ChClassRegister<ChLinkLockAlign> a_registration_ChLinkLockAlign;
+ChClassRegister<ChLinkLockParallel> a_registration_ChLinkLockParallel;
+ChClassRegister<ChLinkLockPerpend> a_registration_ChLinkLockPerpend;
+ChClassRegister<ChLinkLockRevolutePrismatic> a_registration_ChLinkLockRevolutePrismatic;
 
 }  // END_OF_NAMESPACE____

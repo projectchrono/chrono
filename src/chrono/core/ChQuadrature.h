@@ -37,6 +37,36 @@ class ChApi ChQuadratureTables {
     double glege_diff(int n, double x, ChMatrix<>& lcoef);
 };
 
+
+
+/// Class to store polynomial roots and weights for quadrature 
+/// over a triangle. Assumes 2 natural 'area' coordinates u v,
+/// the 3rd assumed 1-u-v.
+/// D. A. Dunavant, High degree efficient symmetrical Gaussian quadrature rules for the triangle, Int. J. Num.
+/// Meth. Engng, 21(1985):1129-1148.
+class ChApi ChQuadratureTablesTriangle {
+  public:
+    ChQuadratureTablesTriangle();
+
+    std::vector<std::vector<double> > Weight;
+    std::vector<std::vector<double> > LrootsU;
+    std::vector<std::vector<double> > LrootsV;
+};
+
+/// Class to store polynomial roots and weights for quadrature 
+/// over a tetrahedron. Assumes 3 natural 'volume' coordinates u v w,
+/// the 4th assumed 1-u-v-w
+class ChApi ChQuadratureTablesTetrahedron {
+  public:
+    ChQuadratureTablesTetrahedron();
+
+    std::vector<std::vector<double> > Weight;
+    std::vector<std::vector<double> > LrootsU;
+    std::vector<std::vector<double> > LrootsV;
+    std::vector<std::vector<double> > LrootsW;
+};
+
+
 /// Base class for 1D integrand T=f(x) to be used in ChQuadrature.
 /// Since the class is templated, the computed valued can be either
 /// a simple 'double' or a more complex object, like ChMatrixNM<..>.
@@ -236,9 +266,75 @@ class ChApi ChQuadrature {
             delete mtables;
     }
 
-    /// For debugging/testing, prints the Legendre weights/roots
-    /// in cout.
+
+    /// Special case of 2D integration: integrate the integrand T = f(u,v) over a triangle,
+    /// with desired order of quadrature. Best if integrand is polynomial.
+    /// Two triangle coordinates are assumed to be 'area' coordinates u,v in [0...1]. The third is assumed 1-u-v.  
+    /// For order in 1..5. Use precomputed polynomial coefficients for max speed.
+    template <class T>
+    static void Integrate2Dtriangle(T& result,                     ///< result is returned here
+                            ChIntegrable2D<T>& integrand,  ///< this is the integrand
+                            const int order)               ///< order of integration
+    {
+        if ((unsigned int)order > GetStaticTablesTriangle()->Weight.size()) 
+            throw ChException("Too high order of quadrature for triangle. Use lower order.");
+
+        ChQuadratureTablesTriangle* mtables = GetStaticTablesTriangle();
+        std::vector<double>* lrootsU = &mtables->LrootsU[order - 1];
+        std::vector<double>* lrootsV = &mtables->LrootsV[order - 1];
+        std::vector<double>* weight = &mtables->Weight[order - 1];
+
+        result *= 0;  // as result = 0, but works also for matrices.
+        T val;        // temporary value for loop
+
+        for (unsigned int i = 0; i < weight->size(); i++) {
+                integrand.Evaluate(val, lrootsU->at(i), lrootsV->at(i));
+                val *= weight->at(i) * 0.5; // the 1/2 coefficient is not in the table
+                result += val;
+        }
+    }
+
+
+    /// Special case of 3D integration: integrate the integrand T = f(u,v,w) over a tetrahedron,
+    /// with desired order of quadrature. Best if integrand is polynomial.
+    /// Three tetrahedron coordinates are assumed to be 'volume' coordinates u,v,w in [0...1]. The 4th is assumed 1-u-v-w.  
+    /// For order in 1..5. Use precomputed polynomial coefficients for max speed.
+    template <class T>
+    static void Integrate3Dtetrahedron(T& result,          ///< result is returned here
+                            ChIntegrable3D<T>& integrand,  ///< this is the integrand
+                            const int order)               ///< order of integration
+    {
+        if ((unsigned int)order > GetStaticTablesTetrahedron()->Weight.size()) 
+            throw ChException("Too high order of quadrature for tetrahedron. Use lower order.");
+
+        ChQuadratureTablesTetrahedron* mtables = GetStaticTablesTetrahedron();
+        std::vector<double>* lrootsU = &mtables->LrootsU[order - 1];
+        std::vector<double>* lrootsV = &mtables->LrootsV[order - 1];
+        std::vector<double>* lrootsW = &mtables->LrootsW[order - 1];
+        std::vector<double>* weight = &mtables->Weight[order - 1];
+
+        result *= 0;  // as result = 0, but works also for matrices.
+        T val;        // temporary value for loop
+
+        for (unsigned int i = 0; i < weight->size(); i++) {
+                integrand.Evaluate(val, lrootsU->at(i), lrootsV->at(i), lrootsW->at(i));
+                val *= weight->at(i) *(1./6.); // the 1/6 coefficient is not in the table
+                result += val;
+        }
+    }
+
+
+    /// Access a statically-allocated set of tables, from 0 to a 10th order,
+    /// with precomputed tables.
     static ChQuadratureTables* GetStaticTables();
+
+    /// Access a statically-allocated set of tables for tetrahedron quadrature,
+    /// with 5 precomputed tables. 
+    static ChQuadratureTablesTriangle* GetStaticTablesTriangle();
+
+    /// Access a statically-allocated set of tables for tetrahedron quadrature,
+    /// with 5 precomputed tables. Use Dunavant theory.
+    static ChQuadratureTablesTetrahedron* GetStaticTablesTetrahedron();
 };
 }
 

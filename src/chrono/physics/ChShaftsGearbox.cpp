@@ -224,33 +224,43 @@ void ChShaftsGearbox::ConstraintsLiFetchSuggestedPositionSolution() {
 
 //////// FILE I/O
 
-void ChShaftsGearbox::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChShaftsGearbox::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
+    // serialize parent class
+    ChPhysicsItem::ArchiveOUT(marchive);
 
-    // stream out all member data
-    mstream << this->r1;
-    mstream << this->r2;
-    mstream << this->r3;
-    mstream << this->shaft_dir;
+    // serialize all member data:
+    marchive << CHNVP(r1);
+    marchive << CHNVP(r2);
+    marchive << CHNVP(r3);
+    marchive << CHNVP(shaft_dir);
+    //marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP(body); //***TODO*** serialize with shared ptr
 }
 
-void ChShaftsGearbox::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChShaftsGearbox::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChPhysicsItem::StreamIN(mstream);
+    // deserialize parent class:
+    ChPhysicsItem::ArchiveIN(marchive);
 
-    // deserialize class
-    mstream >> this->r1;
-    mstream >> this->r2;
-    mstream >> this->r3;
-    mstream >> this->shaft_dir;
-}
+    // deserialize all member data:
+    marchive >> CHNVP(r1);
+    marchive >> CHNVP(r2);
+    marchive >> CHNVP(r3);
+    marchive >> CHNVP(shaft_dir);
+    //marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP(body); //***TODO*** serialize with shared ptr
+} 
+
 
 }  // END_OF_NAMESPACE____
 

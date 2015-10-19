@@ -62,54 +62,149 @@ typedef float real;
 #define ZERO_EPSILON FLT_EPSILON
 #endif
 
+#ifdef CHRONO_PARALLEL_USE_DOUBLE
+inline real Sin(real theta) {
+    return sin(theta);
+}
+inline real Cos(real theta) {
+    return cos(theta);
+}
+inline real Tan(real theta) {
+    return tan(theta);
+}
+inline real ASin(real theta) {
+    return asin(theta);
+}
+inline real ACos(real theta) {
+    return acos(theta);
+}
+inline real ATan(real theta) {
+    return atan(theta);
+}
+inline real ATan2(real x, real y) {
+    return atan2(x, y);
+}
+inline real Sqrt(real x) {
+    return sqrt(x);
+}
+inline real InvSqrt(real x) {
+    return 1.0f / sqrt(x);  // could also use rsqrt(x) here and avoid division
+}
+inline real Abs(real x) {
+    return fabs(x);
+}
+inline real Pow(real b, real e) {
+    return pow(b, e);
+}
+inline real Mod(real x, real y) {
+    return fmod(x, y);
+}
+inline real Log(real x) {
+    return log(x);
+}
+#else
+inline real Sin(real theta) {
+    return sinf(theta);
+}
+inline real Cos(real theta) {
+    return cosf(theta);
+}
+inline real Tan(real theta) {
+    return tanf(theta);
+}
+inline real ASin(real theta) {
+    return asinf(theta);
+}
+inline real ACos(real theta) {
+    return acosf(theta);
+}
+inline real ATan(real theta) {
+    return atanf(theta);
+}
+inline real ATan2(real x, real y) {
+    return atan2f(x, y);
+}
+inline real Sqrt(real x) {
+    return sqrtf(x);
+}
+inline real InvSqrt(real x) {
+    return 1.0f / sqrtf(x);  // could also use rsqrtf(x) here and avoid division
+}
+inline real Abs(real x) {
+    return fabsf(x);
+}
+inline real Pow(real b, real e) {
+    return powf(b, e);
+}
+inline real Mod(real x, real y) {
+    return fmodf(x, y);
+}
+inline real Log(real x) {
+    return logf(x);
+}
+#endif
+
+template <typename T>
+inline  T Min(T a, T b) {
+    return a < b ? a : b;
+}
+
+template <typename T>
+inline  T Max(T a, T b) {
+    return a > b ? a : b;
+}
+
+
 // Clamps a given value a between user specified minimum and maximum values
 static inline real clamp(const real& a, const real& clamp_min, const real& clamp_max) {
-  if (a < clamp_min) {
-    return clamp_min;
-  } else if (a > clamp_max) {
-    return clamp_max;
-  } else {
-    return a;
-  }
+    if (a < clamp_min) {
+        return clamp_min;
+    } else if (a > clamp_max) {
+        return clamp_max;
+    } else {
+        return a;
+    }
 }
 // Performs a linear interpolation between a and b using alpha
 static inline real lerp(const real& a, const real& b, const real& alpha) {
-  return (a + alpha * (b - a));
+    return (a + alpha * (b - a));
 }
 // Checks if the value is zero to within a certain epsilon
 // in this case ZERO_EPSILON is defined based on what the base type of real is
 static inline bool IsZero(const real& a) {
-  return fabs(a) < ZERO_EPSILON;
+    return Abs(a) < ZERO_EPSILON;
 }
 
 // Check if two values are equal using a small delta/epsilon value.
 // Essentially a fuzzy comparison operator
 static inline bool isEqual(const real& _a, const real& _b) {
-  real ab;
-  ab = fabs(_a - _b);
-  if (fabs(ab) < ZERO_EPSILON)
-    return 1;
-  real a, b;
-  a = fabs(_a);
-  b = fabs(_b);
-  if (b > a) {
-    return ab < ZERO_EPSILON * b;
-  } else {
-    return ab < ZERO_EPSILON * a;
-  }
+    real ab;
+    ab = Abs(_a - _b);
+    if (Abs(ab) < ZERO_EPSILON)
+        return 1;
+    real a, b;
+    a = Abs(_a);
+    b = Abs(_b);
+    if (b > a) {
+        return ab < ZERO_EPSILON * b;
+    } else {
+        return ab < ZERO_EPSILON * a;
+    }
 }
 
 // Returns a -1 if the value is negative
 // Returns a +1 if the value is positive
 // Otherwise returns zero, this should only happen if the given value is zero
 static inline real sign(const real& x) {
-  if (x < 0) {
-    return -1;
-  } else if (x > 0) {
-    return 1;
-  } else {
-    return 0;
-  }
+    if (x < 0) {
+        return -1;
+    } else if (x > 0) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
+
+
 }
 #endif

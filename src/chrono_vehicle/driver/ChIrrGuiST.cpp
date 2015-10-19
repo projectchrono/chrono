@@ -18,6 +18,7 @@
 
 #include <algorithm>
 
+#include "chrono/core/ChMathematics.h"
 #include "chrono_vehicle/driver/ChIrrGuiST.h"
 
 using namespace irr;
@@ -166,19 +167,19 @@ void ChIrrGuiST::Advance(double step)
 
 void ChIrrGuiST::SetShaker_L_disp(double vertical_disp, double min_z, double max_z)
 {
-  m_post_L_disp = clamp(vertical_disp, min_z, max_z);
+  m_post_L_disp = ChClamp(vertical_disp, min_z, max_z);
 }
 
 void ChIrrGuiST::SetShaker_R_disp(double vertical_disp, double min_z, double max_z)
 {
-  m_post_R_disp = clamp(vertical_disp, min_z, max_z);
+  m_post_R_disp = ChClamp(vertical_disp, min_z, max_z);
 }
 
 
 // -----------------------------------------------------------------------------
 void ChIrrGuiST::DrawAll()
 {
-  renderGrid();
+  // renderGrid();
 
   m_app.DrawAll();
 

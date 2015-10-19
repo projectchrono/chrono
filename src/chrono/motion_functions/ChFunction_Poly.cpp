@@ -104,41 +104,7 @@ int ChFunction_Poly::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
     return i;
 }
 
-void ChFunction_Poly::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << this->order;
-    for (int i = 0; i <= order; i++) {
-        mstream << Get_coeff(i);
-    }
-}
-
-void ChFunction_Poly::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    int ifoo;
-    double dfoo;
-    mstream >> ifoo;
-    this->Set_order(ifoo);
-    for (int i = 0; i <= order; i++) {
-        mstream >> dfoo;
-        Set_coeff(dfoo, i);
-    }
-}
-
-void ChFunction_Poly::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_POLY  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

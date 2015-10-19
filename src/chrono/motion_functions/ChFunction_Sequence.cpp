@@ -70,47 +70,6 @@ void ChFseqNode::SetDuration(double mdur) {
     t_end = t_start + duration;
 }
 
-void ChFseqNode::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-
-    // stream out all member data
-    mstream << this->duration;
-    mstream << this->weight;
-    mstream << this->t_start;
-    mstream << this->t_end;
-    mstream << this->Iy;
-    mstream << this->Iydt;
-    mstream << this->Iydtdt;
-    mstream << this->y_cont;
-    mstream << this->ydt_cont;
-    mstream << this->ydtdt_cont;
-
-    mstream.AbstractWrite(this->fx.get_ptr());
-    //***TODO*** better direct management of shared pointers serialization
-}
-
-void ChFseqNode::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // stream in all member data
-    mstream >> this->duration;
-    mstream >> this->weight;
-    mstream >> this->t_start;
-    mstream >> this->t_end;
-    mstream >> this->Iy;
-    mstream >> this->Iydt;
-    mstream >> this->Iydtdt;
-    mstream >> this->y_cont;
-    mstream >> this->ydt_cont;
-    mstream >> this->ydtdt_cont;
-
-    ChFunction* fooshared;
-    mstream.AbstractReadCreate(&fooshared);   // instance new
-    fx = ChSharedPtr<ChFunction>(fooshared);  // swap old shared to new shared, may delete old
-                                              //***TODO*** better direct management of shared pointers serialization
-}
 
 /////////
 
@@ -416,51 +375,6 @@ int ChFunction_Sequence::HandleAccess(int handle_id, double mx, double my, bool 
     return FALSE;
 }
 
-void ChFunction_Sequence::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(2);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    int stopID = 0;
-    int goID = 1;
-
-    mstream << Get_start();
-
-    std::list< ChFseqNode >::iterator iter;
-    for (iter = functions.begin(); iter != functions.end(); ++iter){
-        mstream << goID;
-        mstream << (*iter);
-    }
-    mstream << stopID;
-}
-
-void ChFunction_Sequence::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    double dfoo;
-    mstream >> dfoo;
-    Set_start(dfoo);
-    int mgoID;
-    mstream >> mgoID;
-    while (mgoID == 1) {
-        ChFseqNode mynode(ChSharedPtr<ChFunction>(0), 0.0);
-        mstream >> mynode;
-        functions.push_back(mynode);
-        mstream >> mgoID;
-    }
-}
-
-void ChFunction_Sequence::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_SEQUENCE  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

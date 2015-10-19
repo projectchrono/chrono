@@ -35,58 +35,50 @@ namespace chrono {
 /// (throttle, steering, braking). A concrete driver class must set the member
 /// variables m_throttle, m_steering, and m_braking.
 ///
-class CH_VEHICLE_API ChDriver : public ChShared
-{
-public:
+class CH_VEHICLE_API ChDriver : public ChShared {
+  public:
+    ChDriver();
+    virtual ~ChDriver() {}
 
-  ChDriver();
-  virtual ~ChDriver() {}
+    /// Get the driver throttle input (in the range [0,1])
+    double GetThrottle() const { return m_throttle; }
 
-  /// Get the driver throttle input (in the range [0,1])
-  double GetThrottle() const { return m_throttle; }
+    /// Get the driver steering input (in the range [-1,+1])
+    double GetSteering() const { return m_steering; }
 
-  /// Get the driver steering input (in the range [-1,+1])
-  double GetSteering() const { return m_steering; }
+    /// Get the driver braking input (in the range [0,1])
+    double GetBraking() const { return m_braking; }
 
-  /// Get the driver braking input (in the range [0,1])
-  double GetBraking() const  { return m_braking; }
+    /// Update the state of this driver system at the current time.
+    virtual void Update(double time) {}
 
-  /// Update the state of this driver system at the current time.
-  virtual void Update(double time) {}
+    /// Advance the state of this driver system by the specified time step.
+    virtual void Advance(double step) {}
 
-  /// Advance the state of this driver system by the specified time step.
-  virtual void Advance(double step) {}
+    /// Initialize output file for recording driver inputs.
+    bool LogInit(const std::string& filename);
 
-  /// Initialize output file for recording driver inputs.
-  bool LogInit(const std::string& filename);
+    /// Record the current driver inputs to the log file.
+    bool Log(double time);
 
-  /// Record the current driver inputs to the log file.
-  bool Log(double time);
+    /// Overwrite the value for the driver steering input.
+    void SetSteering(double val, double min_val = -1, double max_val = 1);
 
-protected:
-  /// clamp to interval
-  double clamp(double val, double min_val, double max_val);
+    /// Overwrite the value for the driver throttle input.
+    void SetThrottle(double val, double min_val = 0, double max_val = 1);
 
-  /// Set the value for the driver steering input.
-  void SetSteering(double val, double min_val = -1, double max_val = 1);
+    /// Overwrite the value for the driver braking input.
+    void SetBraking(double val, double min_val = 0, double max_val = 1);
 
-  /// Set the value for the driver throttle input.
-  void SetThrottle(double val, double min_val = 0, double max_val = 1);
+  protected:
+    double m_throttle;  ///< current value of throttle input
+    double m_steering;  ///< current value of steering input
+    double m_braking;   ///< current value of braking input
 
-  /// Set the value for the driver braking input.
-  void SetBraking(double val, double min_val = 0, double max_val = 1);
-
-  double m_throttle;   ///< current value of throttle input
-  double m_steering;   ///< current value of steering input
-  double m_braking;    ///< current value of braking input
-
-private:
-  std::string  m_log_filename;  // name of output file for recording driver inputs
-
+  private:
+    std::string m_log_filename;  // name of output file for recording driver inputs
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif

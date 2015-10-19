@@ -24,6 +24,10 @@ namespace chrono {
 /// freedom and a mass.
 
 class ChApi ChNodeXYZ : public virtual ChNodeBase {
+
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChNodeXYZ, ChNodeBase);
+
   public:
     ChNodeXYZ();
     virtual ~ChNodeXYZ();
@@ -35,21 +39,21 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase {
     // FUNCTIONS
     //
 
-			// Access the xyz 'LCP variables' of the node
-	virtual ChLcpVariablesNode& Variables() =0;
+    // Access the xyz 'LCP variables' of the node
+    virtual ChLcpVariablesNode& Variables() =0;
 
-			// Position of the node - in absolute csys.
-	ChVector<> GetPos() {return pos;}
-			// Position of the node - in absolute csys.
-	void SetPos(const ChVector<>& mpos) {pos = mpos;}
+    // Position of the node - in absolute csys.
+    const ChVector<>& GetPos() const { return pos; }
+    // Position of the node - in absolute csys.
+    void SetPos(const ChVector<>& mpos) {pos = mpos;}
 
     // Velocity of the node - in absolute csys.
-    ChVector<> GetPos_dt() { return pos_dt; }
+    const ChVector<>& GetPos_dt() const { return pos_dt; }
     // Velocity of the node - in absolute csys.
     void SetPos_dt(const ChVector<>& mposdt) { pos_dt = mposdt; }
 
     // Acceleration of the node - in absolute csys.
-    ChVector<> GetPos_dtdt() { return pos_dtdt; }
+    const ChVector<>& GetPos_dtdt() const { return pos_dtdt; }
     // Acceleration of the node - in absolute csys.
     void SetPos_dtdt(const ChVector<>& mposdtdt) { pos_dtdt = mposdtdt; }
 
@@ -60,6 +64,12 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase {
 
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() { return 3; }
+
+
+    // SERIALIZATION
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
 
     //

@@ -28,7 +28,8 @@ namespace fea {
 /// with constant stress, constant strain.
 /// It can be easily used for 3D FEA problems.
 
-class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
+class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, 
+                                  public ChLoadableUVW {
   protected:
     std::vector<ChSharedPtr<ChNodeFEAxyz> > nodes;
     ChSharedPtr<ChContinuumElastic> Material;
@@ -67,11 +68,28 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
     // FEM functions
     //
 
+    /// Fills the N shape function matrix with the
+	/// values of shape functions at r,s,t 'volume' coordinates, where
+    /// r=1 at 2nd vertex, s=1 at 3rd, t = 1 at 4th. All ranging in [0...1]. 
+    /// The last (u, u=1 at 1st vertex) is computed form the first 3 as 1.0-r-s-t.  
+	/// NOTE! actually N should be a 3row, 12 column sparse matrix,
+	/// as  N = [n1*eye(3) n2*eye(3) n3*eye(3) n4*eye(3)]; ,
+	/// but to avoid wasting zero and repeated elements, here
+	/// it stores only the n1 n2 n3 n4 values in a 1 row, 4 columns matrix.
+	virtual void ShapeFunctions(ChMatrix<>& N, double r, double s, double t)
+				{
+					N(0) = 1.0 -r -s -t;
+					N(1) = r;
+					N(2) = s;
+					N(3) = t;
+				};
+
+
     /// Fills the D vector (displacement) column matrix with the current
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
-    virtual void GetField(ChMatrixDynamic<>& mD) {
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) {
         mD.Reset(this->GetNdofs(), 1);
         mD.PasteVector(A.MatrT_x_Vect(nodes[0]->pos) - nodes[0]->GetX0(), 0, 0);
         mD.PasteVector(A.MatrT_x_Vect(nodes[1]->pos) - nodes[1]->GetX0(), 3, 0);
@@ -324,7 +342,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
 
         // set up vector of nodal displacements (in local element system) u_l = R*p - p0
         ChMatrixDynamic<> displ(12, 1);
-        this->GetField(displ);  // nodal displacements, local
+        this->GetStateBlock(displ);  // nodal displacements, local
 
         // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
         ChMatrixDynamic<> FiK_local(12, 1);
@@ -349,6 +367,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
 
         // Fi = C * Fi_local  with C block-diagonal rotations A
         ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);
+Fi.Reset();
     }
 
     //
@@ -369,7 +388,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
     ChStrainTensor<> GetStrain() {
         // set up vector of nodal displacements (in local element system) u_l = R*p - p0
         ChMatrixDynamic<> displ(12, 1);
-        this->GetField(displ);  // nodal displacements, local
+        this->GetStateBlock(displ);  // nodal displacements, local
 
         ChStrainTensor<> mstrain;
         mstrain.MatrMultiply(MatrB, displ);
@@ -387,13 +406,97 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron {
     //
     // Functions for interfacing to the LCP solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
+
+    //
+    // Functions for ChLoadable interface
+    //  
+
+            /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() {return 4*3;}
+        
+        /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() {return 4*3;}
+
+        /// Gets all the DOFs packed in a single vector (position part)
+    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
+        mD.PasteVector    (this->nodes[0]->GetPos(), block_offset,  0);
+        mD.PasteVector    (this->nodes[1]->GetPos(), block_offset+3,  0);
+        mD.PasteVector    (this->nodes[2]->GetPos(), block_offset+6,  0);
+        mD.PasteVector    (this->nodes[3]->GetPos(), block_offset+9,  0);
+    }
+
+        /// Gets all the DOFs packed in a single vector (speed part)
+    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
+        mD.PasteVector(this->nodes[0]->GetPos_dt(),   block_offset,  0);
+        mD.PasteVector(this->nodes[1]->GetPos_dt(),   block_offset+3,  0);
+        mD.PasteVector(this->nodes[2]->GetPos_dt(),   block_offset+6,  0);
+        mD.PasteVector(this->nodes[3]->GetPos_dt(),   block_offset+9,  0);
+    }
+
+        /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
+    virtual int Get_field_ncoords() {return 3;}
+           
+        /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() {return 4;}
+
+        /// Get the offset of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockOffset(int nblock) { return nodes[nblock]->NodeGetOffset_w();}
+
+        /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 3;}
+
+        /// Evaluate N'*F , where N is some type of shape function
+        /// evaluated at U,V,W coordinates of the volume, each ranging in 0..+1
+        /// F is a load, N'*F is the resulting generalized load
+        /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+     virtual void ComputeNF(const double U,   ///< parametric coordinate in volume
+                     const double V,             ///< parametric coordinate in volume
+                     const double W,             ///< parametric coordinate in volume 
+                     ChVectorDynamic<>& Qi,      ///< Return result of N'*F  here, maybe with offset block_offset
+                     double& detJ,               ///< Return det[J] here
+                     const ChVectorDynamic<>& F, ///< Input F vector, size is = n.field coords.
+                     ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
+                     ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
+                     ) {
+         // evaluate shape functions (in compressed vector), btw. not dependant on state
+         ChMatrixNM<double, 1,4> N;
+         this->ShapeFunctions(N, U, V, W); // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
+         
+         detJ = 6 * this->GetVolume();
+
+         Qi(0) = N(0)*F(0);
+         Qi(1) = N(0)*F(1);
+         Qi(2) = N(0)*F(2);
+         Qi(3) = N(1)*F(0);
+         Qi(4) = N(1)*F(1);
+         Qi(5) = N(1)*F(2);
+         Qi(6) = N(2)*F(0);
+         Qi(7) = N(2)*F(1);
+         Qi(8) = N(2)*F(2);
+         Qi(9) = N(3)*F(0);
+         Qi(10)= N(3)*F(1);
+         Qi(11)= N(3)*F(2);
+     }
+
+            /// This is needed so that it can be accessed by ChLoaderVolumeGravity
+     virtual double GetDensity() { return this->Material->Get_density(); } 
+
+            /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w 
+            /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
+     virtual bool IsTetrahedronIntegrationNeeded() {return true;}
 };
+
+
+
+
+
 
 /// Tetahedron FEM element with 4 nodes for scalar fields (for Poisson-like problems).
 /// This is a classical element with linear displacement.
 /// ***EXPERIMENTAL***
 
-class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
+class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, 
+                                   public ChLoadableUVW {
   protected:
     std::vector<ChSharedPtr<ChNodeFEAxyzP> > nodes;
     ChSharedPtr<ChContinuumPoisson3D> Material;
@@ -437,11 +540,27 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
     // FEM functions
     //
 
+    /// Fills the N shape function matrix with the
+	/// values of shape functions at zi parametric coordinates, where
+    /// z0=1 at 1st vertex, z1=1 at second, z2 = 1 at third (volumetric shape functions). 
+    /// The 4th is computed form the first 3.  All ranging in [0...1].
+	/// NOTE! actually N should be a 3row, 12 column sparse matrix,
+	/// as  N = [n1*eye(3) n2*eye(3) n3*eye(3) n4*eye(3)]; ,
+	/// but to avoid wasting zero and repeated elements, here
+	/// it stores only the n1 n2 n3 n4 values in a 1 row, 4 columns matrix!
+	virtual void ShapeFunctions(ChMatrix<>& N, double z0, double z1, double z2)
+				{
+					N(0) = z0;
+					N(1) = z1;
+					N(2) = z2;
+					N(3) = 1.0 -z0 -z1 -z2;
+				};
+
     /// Fills the D vector column matrix with the current
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
-    virtual void GetField(ChMatrixDynamic<>& mD) {
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) {
         mD.Reset(this->GetNdofs(), 1);
         mD(0) = nodes[0]->GetP();
         mD(1) = nodes[1]->GetP();
@@ -570,7 +689,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
 
         // set up vector of nodal fields
         ChMatrixDynamic<> displ(4, 1);
-        this->GetField(displ);
+        this->GetStateBlock(displ);
 
         // [local Internal Forces] = [Klocal] * P
         ChMatrixDynamic<> FiK_local(4, 1);
@@ -603,7 +722,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
     ChMatrixNM<double, 3, 1> GetPgradient() {
         // set up vector of nodal displacements (in local element system) u_l = R*p - p0
         ChMatrixDynamic<> displ(4, 1);
-        this->GetField(displ);
+        this->GetStateBlock(displ);
 
         ChMatrixNM<double, 3, 1> mPgrad;
         mPgrad.MatrMultiply(MatrB, displ);
@@ -613,7 +732,81 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron {
     //
     // Functions for interfacing to the LCP solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
+
+    //
+    // Functions for ChLoadable interface
+    //  
+
+            /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() {return 4*3;}
+        
+        /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() {return 4*3;}
+
+        /// Gets all the DOFs packed in a single vector (position part)
+    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
+        mD(block_offset)   = this->nodes[0]->GetP();
+        mD(block_offset+1) = this->nodes[1]->GetP();
+        mD(block_offset+2) = this->nodes[2]->GetP();
+        mD(block_offset+3) = this->nodes[3]->GetP();
+    }
+
+        /// Gets all the DOFs packed in a single vector (speed part)
+    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
+        mD(block_offset)   = this->nodes[0]->GetP_dt();
+        mD(block_offset+1) = this->nodes[1]->GetP_dt();
+        mD(block_offset+2) = this->nodes[2]->GetP_dt();
+        mD(block_offset+3) = this->nodes[3]->GetP_dt();
+    }
+
+        /// Number of coordinates in the interpolated field: here the {t} temperature
+    virtual int Get_field_ncoords() {return 1;}
+           
+        /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() {return 4;}
+
+        /// Get the offset of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockOffset(int nblock) { return nodes[nblock]->NodeGetOffset_w();}
+
+        /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 1;}
+
+        /// Evaluate N'*F , where N is some type of shape function
+        /// evaluated at U,V,W coordinates of the volume, each ranging in 0..+1
+        /// F is a load, N'*F is the resulting generalized load
+        /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+     virtual void ComputeNF(const double U,   ///< parametric coordinate in volume
+                     const double V,             ///< parametric coordinate in volume
+                     const double W,             ///< parametric coordinate in volume 
+                     ChVectorDynamic<>& Qi,      ///< Return result of N'*F  here, maybe with offset block_offset
+                     double& detJ,               ///< Return det[J] here
+                     const ChVectorDynamic<>& F, ///< Input F vector, size is = n.field coords.
+                     ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
+                     ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
+                     ) {
+         // evaluate shape functions (in compressed vector), btw. not dependant on state
+         ChMatrixNM<double, 1,4> N;
+         this->ShapeFunctions(N, U, V, W); // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
+         
+         detJ = 6 * this->GetVolume();
+
+         Qi(0) = N(0)*F(0);
+         Qi(1) = N(1)*F(0);
+         Qi(2) = N(2)*F(0);
+         Qi(3) = N(3)*F(0);
+     }
+
+            /// Return 0 if not supprotable by ChLoaderVolumeGravity
+     virtual double GetDensity() { return 0; } 
+
+            /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w 
+            /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
+     virtual bool IsTetrahedronIntegrationNeeded() {return true;}
 };
+
+
+
+
 
 }  //___end of namespace fea___
 }  //___end of namespace chrono___

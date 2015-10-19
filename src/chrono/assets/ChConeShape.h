@@ -12,27 +12,14 @@
 #ifndef CHOBJCONESHAPE_H
 #define CHOBJCONESHAPE_H
 
-///////////////////////////////////////////////////
-//
-//   ChEllipsoidShape.h
-//
-//   Class for defining a sphere as an asset shape
-//   that can be visualized in some way.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+
 
 #include "assets/ChVisualization.h"
 #include "geometry/ChCCone.h"
 
 namespace chrono {
 
-/// Class for referencing a sphere shape that can be
+/// Class for referencing a cone shape that can be
 /// visualized in some way.
 
 class ChApi ChConeShape : public ChVisualization {

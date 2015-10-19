@@ -194,11 +194,13 @@ int main(int argc, char* argv[])
 				// stiffness matrices for all inserted elements in mesh
 	my_mesh->SetupInitial();
 
+                // We do not want gravity effect on FEA elements in this demo
+    my_mesh->SetAutomaticGravity(false);
 
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);
 
-
+    
 	
 
 			// ==Asset== attach a visualization of the FEM mesh.
@@ -304,7 +306,7 @@ application.SetPaused(true);
 	ChVector<> F, M;
 	ChMatrixDynamic<> displ;
 
-	belement1->GetField(displ);
+	belement1->GetStateBlock(displ);
 	GetLog()<< displ;
 	for (double eta = -1; eta <= 1; eta += 0.4)
 	{	
@@ -312,7 +314,7 @@ application.SetPaused(true);
 		GetLog() << "  b1_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
 	}
 	GetLog()<< "\n";
-	belement2->GetField(displ);
+	belement2->GetStateBlock(displ);
 	for (double eta = -1; eta <= 1; eta += 0.4)
 	{	
 		belement2->EvaluateSectionForceTorque(eta, displ, F, M);

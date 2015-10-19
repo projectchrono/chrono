@@ -1,7 +1,11 @@
 #=============================================================================
 # CMake configuration file for the HMMWV_9BODY demo.
-# This example program works with and without Irrlicht run-time visualization
+# This example program requires Irrlicht run-time visualization
 #=============================================================================
+
+IF(NOT ENABLE_MODULE_IRRLICHT)
+    RETURN()
+ENDIF()
 
 MESSAGE(STATUS "...add HMMWV_9BODY demo")
 
@@ -10,12 +14,18 @@ MESSAGE(STATUS "...add HMMWV_9BODY demo")
 
 SET(MODEL_FILES
     ../ModelDefs.h
-    ../hmmwv/HMMWV_FuncDriver.h
-    ../hmmwv/HMMWV_FuncDriver.cpp
+    ../hmmwv/HMMWV.h
+    ../hmmwv/HMMWV.cpp
+    ../hmmwv/vehicle/HMMWV_Vehicle.h
+    ../hmmwv/vehicle/HMMWV_Vehicle.cpp
     ../hmmwv/vehicle/HMMWV_VehicleReduced.h
     ../hmmwv/vehicle/HMMWV_VehicleReduced.cpp
+    ../hmmwv/suspension/HMMWV_DoubleWishbone.h
+    ../hmmwv/suspension/HMMWV_DoubleWishbone.cpp
     ../hmmwv/suspension/HMMWV_DoubleWishboneReduced.h
     ../hmmwv/suspension/HMMWV_DoubleWishboneReduced.cpp
+    ../hmmwv/steering/HMMWV_PitmanArm.h
+    ../hmmwv/steering/HMMWV_PitmanArm.cpp
     ../hmmwv/steering/HMMWV_RackPinion.h
     ../hmmwv/steering/HMMWV_RackPinion.cpp
     ../hmmwv/driveline/HMMWV_Driveline2WD.h
@@ -34,6 +44,8 @@ SET(MODEL_FILES
     ../hmmwv/tire/HMMWV_RigidTire.cpp
     ../hmmwv/tire/HMMWV_LugreTire.h
     ../hmmwv/tire/HMMWV_LugreTire.cpp
+    ../hmmwv/tire/HMMWV_FialaTire.h
+    ../hmmwv/tire/HMMWV_FialaTire.cpp
 )
 
 SET(DEMO_FILES

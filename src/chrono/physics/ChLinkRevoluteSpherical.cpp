@@ -464,4 +464,37 @@ void ChLinkRevoluteSpherical::ConstraintsLiFetchSuggestedPositionSolution() {
     m_cache_pos[1] = m_cnstr_dot.Get_l_i();
 }
 
+
+void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLink::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(m_pos1);
+    marchive << CHNVP(m_pos2);
+    marchive << CHNVP(m_dir1);
+    marchive << CHNVP(m_dist);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChLinkRevoluteSpherical::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class
+    ChLink::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(m_pos1);
+    marchive >> CHNVP(m_pos2);
+    marchive >> CHNVP(m_dir1);
+    marchive >> CHNVP(m_dist);
+}
+
+
 }  // END_OF_NAMESPACE____

@@ -24,25 +24,18 @@
 namespace hmmwv {
 
 class HMMWV_RigidTire : public chrono::ChRigidTire {
-public:
-  HMMWV_RigidTire(const std::string&       name,
-                  const chrono::ChTerrain& terrain,
-                  float                    mu);
-  ~HMMWV_RigidTire() {}
+  public:
+    HMMWV_RigidTire(const std::string& name);
+    ~HMMWV_RigidTire() {}
 
-  virtual float getFrictionCoefficient() const { return m_mu; }
-  virtual double getRadius() const             { return m_radius; }
-  virtual double getWidth() const              { return m_width; }
+    virtual double getRadius() const override { return m_radius; }
+    virtual double getWidth() const override { return m_width; }
 
-private:
-  float                m_mu;
-
-  static const double  m_radius;
-  static const double  m_width;
+  private:
+    static const double m_radius;
+    static const double m_width;
 };
 
-
-} // end namespace hmmwv
-
+}  // end namespace hmmwv
 
 #endif

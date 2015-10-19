@@ -26,40 +26,32 @@
 
 namespace chrono {
 
+class CH_VEHICLE_API LugreTire : public ChLugreTire {
+  public:
+    LugreTire(const std::string& filename);
+    LugreTire(const rapidjson::Document& d);
+    ~LugreTire();
 
-class CH_VEHICLE_API LugreTire : public ChLugreTire
-{
-public:
+    virtual int getNumDiscs() const override { return m_numDiscs; }
+    virtual double getRadius() const override { return m_radius; }
+    virtual const double* getDiscLocations() const override { return m_discLocs; }
 
-  LugreTire(const std::string&       filename,
-            const chrono::ChTerrain& terrain);
-  LugreTire(const rapidjson::Document& d,
-            const chrono::ChTerrain&   terrain);
-  ~LugreTire();
+    virtual double getNormalStiffness() const override { return m_normalStiffness; }
+    virtual double getNormalDamping() const override { return m_normalDamping; }
 
-  virtual int getNumDiscs() const                { return m_numDiscs; }
-  virtual double getRadius() const               { return m_radius; }
-  virtual const double* getDiscLocations() const { return m_discLocs; }
+    virtual void SetLugreParams() override {}
 
-  virtual double getNormalStiffness() const      { return m_normalStiffness; }
-  virtual double getNormalDamping() const        { return m_normalDamping; }
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual void SetLugreParams() {}
+    double m_radius;
+    int m_numDiscs;
+    double* m_discLocs;
 
-private:
-
-  void Create(const rapidjson::Document& d);
-
-  double   m_radius;
-  int      m_numDiscs;
-  double*  m_discLocs;
-
-  double   m_normalStiffness;
-  double   m_normalDamping;
+    double m_normalStiffness;
+    double m_normalDamping;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif

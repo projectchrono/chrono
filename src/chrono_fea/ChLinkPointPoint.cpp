@@ -241,6 +241,7 @@ void ChLinkPointPoint::ConstraintsLiFetchSuggestedPositionSolution() {
 //////// FILE I/O
 
 void ChLinkPointPoint::StreamOUT(ChStreamOutBinary& mstream) {
+    /*
 			// class version number
 	mstream.VersionWrite(1);
 
@@ -248,10 +249,12 @@ void ChLinkPointPoint::StreamOUT(ChStreamOutBinary& mstream) {
 	ChPhysicsItem::StreamOUT(mstream);
 
 		// stream out all member data
-	mstream << this->react;
+	mstream < this->react;
+    */
 }
 
 void ChLinkPointPoint::StreamIN(ChStreamInBinary& mstream) {
+    /*
 		// class version number
 	int version = mstream.VersionRead();
 
@@ -260,6 +263,7 @@ void ChLinkPointPoint::StreamIN(ChStreamInBinary& mstream) {
 
 		// deserialize class
 	mstream >> this->react;
+    */
 }
 
 /////////////////////

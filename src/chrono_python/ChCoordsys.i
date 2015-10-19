@@ -37,9 +37,8 @@ public:
 	chrono::ChVector<Real> TransformLocalToParent (
 								const chrono::ChVector<Real>& local			///< point to transform, given in local coordinates
 								) const;
-	void StreamOUT(chrono::ChStreamOutAscii& mstream);
-	void StreamOUT(chrono::ChStreamOutBinary& mstream);
-	void StreamIN(chrono::ChStreamInBinary& mstream);
+	virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 }; // end namespace
 
@@ -48,8 +47,8 @@ public:
 //%template(ChCoordsysF) chrono::ChCoordsys<float>; 
 
 
-%constant chrono::ChCoordsys<double> CSYSNULL = chrono::ChCoordsys<double>(chrono::VNULL,chrono::QNULL);
-%constant chrono::ChCoordsys<double> CSYSNORM = chrono::ChCoordsys<double>(chrono::VNULL,chrono::QUNIT);
+//%constant chrono::ChCoordsys<double> CSYSNULL = chrono::ChCoordsys<double>(chrono::VNULL,chrono::QNULL);
+//%constant chrono::ChCoordsys<double> CSYSNORM = chrono::ChCoordsys<double>(chrono::VNULL,chrono::QUNIT);
 
 
 // This because constants do not work well, so implement them in script-side

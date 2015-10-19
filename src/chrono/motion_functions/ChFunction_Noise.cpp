@@ -51,37 +51,6 @@ double ChFunction_Noise::Get_y(double x) {
     return ChNoise(x, amp, freq, octaves, amp_ratio);
 }
 
-void ChFunction_Noise::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << amp;
-    mstream << freq;
-    mstream << amp_ratio;
-    mstream << octaves;
-}
-
-void ChFunction_Noise::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> amp;
-    mstream >> freq;
-    mstream >> amp_ratio;
-    mstream >> octaves;
-}
-
-void ChFunction_Noise::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_NOISE  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

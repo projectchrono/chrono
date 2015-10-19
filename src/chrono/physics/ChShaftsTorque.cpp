@@ -42,25 +42,31 @@ double ChShaftsTorque::ComputeTorque() {
 
 //////// FILE I/O
 
-void ChShaftsTorque::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChShaftsTorque::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // serialize parent class too
-    ChShaftsTorqueBase::StreamOUT(mstream);
+    // serialize parent class
+    ChShaftsTorqueBase::ArchiveOUT(marchive);
 
-    // stream out all member data
+    // serialize all member data:
+
 }
 
-void ChShaftsTorque::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChShaftsTorque::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChShaftsTorqueBase::StreamIN(mstream);
+    // deserialize parent class:
+    ChShaftsTorqueBase::ArchiveIN(marchive);
 
-    // deserialize class
-}
+    // deserialize all member data:
+
+} 
+
 
 }  // END_OF_NAMESPACE____
 

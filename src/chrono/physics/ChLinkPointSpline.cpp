@@ -151,28 +151,32 @@ void ChLinkPointSpline::UpdateTime(double time) {
     }
 }
 
-void ChLinkPointSpline::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream.AbstractWrite(this->trajectory_line.get_ptr());  //***TODO*** proper serialize for ChSharedPtr
+void ChLinkPointSpline::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLinkLock::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(trajectory_line);
 }
 
-void ChLinkPointSpline::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChLinkPointSpline::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
+    // deserialize parent class
+    ChLinkLock::ArchiveIN(marchive);
 
-    // stream in all member data
-    ChLine* mline = 0;
-    mstream.AbstractReadCreate(&mline);  //***TODO*** proper deserialize for ChSharedPtr
-    this->trajectory_line = ChSharedPtr<ChLine>(mline);
+    // deserialize all member data:
+    marchive >> CHNVP(trajectory_line);
 }
+
 
 ///////////////////////////////////////////////////////////////
 

@@ -26,7 +26,8 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
     : ChSystem(max_objects, scene_size, false),
       m_use_mat_props(use_material_properties),
       m_use_history(use_history),
-      m_contact_model(ContactForceModel::Hertz) {
+      m_contact_model(Hertz),
+      m_adhesion_model(Constant) {
     LCP_descriptor = new ChLcpSystemDescriptor;
     LCP_descriptor->SetNumThreads(parallel_thread_number);
 

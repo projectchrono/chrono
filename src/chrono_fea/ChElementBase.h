@@ -14,6 +14,7 @@
 #define CHELEMENTBASE_H
 
 #include "physics/ChContinuumMaterial.h"
+#include "physics/ChLoadable.h"
 #include "core/ChMath.h"
 #include "core/ChShared.h"
 #include "lcp/ChLcpSystemDescriptor.h"
@@ -25,7 +26,7 @@ namespace fea {
 /// Base class for all finite elements, that can be
 /// used in the ChMesh physics item.
 
-class ChApiFea ChElementBase : public ChShared {
+class ChApiFea ChElementBase : public virtual ChShared {
   protected:
   public:
     ChElementBase(){};
@@ -54,7 +55,7 @@ class ChApiFea ChElementBase : public ChShared {
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
     /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-    virtual void GetField(ChMatrixDynamic<>& mD) = 0;
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) = 0;
 
     /// Sets H as the stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and mass matrix M,

@@ -22,6 +22,7 @@
 #include "ChNodeFEAbase.h"
 #include "ChElementBase.h"
 #include "ChContactSurface.h"
+#include "ChMeshSurface.h"
 
 namespace chrono {
 
@@ -43,13 +44,15 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     unsigned int n_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
 
     std::vector<ChSharedPtr<ChContactSurface> > vcontactsurfaces;  //  contact surfaces
+    std::vector<ChSharedPtr<ChMeshSurface> >    vmeshsurfaces;     //  mesh surfaces, ex.for loads
     
+    bool automatic_gravity_load;
 
   public:
     ChMesh() {
         n_dofs = 0;
         n_dofs_w = 0;
-
+        automatic_gravity_load = true;
     };
     ~ChMesh(){};
 
@@ -78,10 +81,24 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     virtual ChSharedPtr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; };
 
     /// Get number of added contact surfaces
-    unsigned int GetNcontactSurfaces() { return (unsigned int)vnodes.size(); }
+    unsigned int GetNcontactSurfaces() { return (unsigned int)vcontactsurfaces.size(); }
 
     /// Remove all contact surfaces
     void ClearContactSurfaces();
+
+
+    /// Add a mesh surface (set of ChLoadableUV items that support area loads such as pressure, etc.)
+    void AddMeshSurface(ChSharedPtr<ChMeshSurface> m_surf);
+
+    /// Access the N-th mesh surface
+    virtual ChSharedPtr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; };
+
+    /// Get number of added mesh surfaces
+    unsigned int GetNmeshSurfaces() { return (unsigned int)vmeshsurfaces.size(); }
+
+    /// Remove all mesh surfaces
+    void ClearMeshSurfaces() { vmeshsurfaces.clear(); }
+
 
 
     /// - Computes the total number of degrees of freedom
@@ -107,6 +124,12 @@ class ChApiFea ChMesh : public ChIndexedNodes {
 	virtual void AddCollisionModelsToSystem();
 	virtual void RemoveCollisionModelsFromSystem();
 
+    /// If true, as by default, this mesh will add automatically a gravity load 
+    /// to all contained elements (that support gravity) using the G value from the ChSystem.
+    /// So this saves you from adding many ChLoad<ChLoaderGravity> to all elements.
+    void SetAutomaticGravity(bool mg) {automatic_gravity_load = mg;} 
+    /// Tell if this mesh will add automatically a gravity load to all contained elements 
+    bool GetAutomaticGravity() {return automatic_gravity_load;} 
 
     /// Load tetahedrons from .node and .ele files as saved by TetGen.
     /// The file format for .node (with point# starting from 1) is:
@@ -128,7 +151,10 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Load tetahedrons, if any, saved in a .inp file for Abaqus.
     void LoadFromAbaqusFile(const char* filename,
                             ChSharedPtr<ChContinuumMaterial> my_material,
-                            std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > >& node_sets);
+                            std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > >& node_sets,  ///< vect of vectors of 'marked'nodes 
+                            ChVector<> pos_transform = VNULL,               ///< optional displacement of imported mesh
+                            ChMatrix33<> rot_transform = ChMatrix33<>(1),   ///< optional rotation/scaling of imported mesh
+                            bool discard_unused_nodes = true);              ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
 
     //
     // STATE FUNCTIONS

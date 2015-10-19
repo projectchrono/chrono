@@ -160,6 +160,8 @@ void ChIrrNodeProxyToAsset::Update() {
         irrmesh->setHardwareMappingHint(EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
         irrmesh->recalculateBoundingBox();
 
+        meshnode->setAutomaticCulling(EAC_OFF);
+
         meshnode->setMaterialFlag(video::EMF_WIREFRAME, trianglemesh->IsWireframe());
         meshnode->setMaterialFlag(video::EMF_LIGHTING, !trianglemesh->IsWireframe());  // avoid shading for wireframes
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());
@@ -384,6 +386,12 @@ void ChIrrNodeProxyToAsset::Update() {
         if (visualization_asset.IsType<chrono::ChLineShape>())
             mline = visualization_asset.DynamicCastTo<chrono::ChLineShape>()->GetLineGeometry();
 
+        video::SColor clr(255, (u32)(0), (u32)(0), (u32)(0));
+        if (chrono::ChSharedPtr<chrono::ChVisualization> vis = visualization_asset.DynamicCastTo<chrono::ChVisualization>()) {
+            chrono::ChColor col = vis->GetColor();
+            clr = video::SColor((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
+        }
+
         // Fetch the 1st child, i.e. the mesh
         ISceneNode* mchildnode = *(getChildren().begin());
         if (!mchildnode || mchildnode->getType() != ESNT_MESH)
@@ -396,8 +404,6 @@ void ChIrrNodeProxyToAsset::Update() {
 
         // SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
         CDynamicMeshBuffer* irrmesh = (CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
-
-        video::SColor clr(255, (u32)(0), (u32)(0), (u32)(0));
 
         size_t nvertexes = 200;
         size_t ntriangles = nvertexes - 1;
@@ -444,6 +450,8 @@ void ChIrrNodeProxyToAsset::Update() {
         irrmesh->setDirty();                           // to force update of hardware buffers
         irrmesh->setHardwareMappingHint(EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
         irrmesh->recalculateBoundingBox();
+
+        meshnode->setAutomaticCulling(EAC_OFF);
 
         meshnode->setMaterialFlag(video::EMF_WIREFRAME, true);
         meshnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe

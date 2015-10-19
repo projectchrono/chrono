@@ -263,4 +263,36 @@ void ChLinkDistance::ConstraintsLiFetchSuggestedPositionSolution() {
     this->cache_li_pos = (float)Cx.Get_l_i();
 }
 
+
+
+void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLink::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(distance);
+    marchive << CHNVP(pos1);
+    marchive << CHNVP(pos2);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChLinkDistance::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class
+    ChLink::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(distance);
+    marchive >> CHNVP(pos1);
+    marchive >> CHNVP(pos2);
+}
+
+
 }  // END_OF_NAMESPACE____

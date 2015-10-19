@@ -11,6 +11,8 @@ if(NOT ENABLE_MODULE_VEHICLE)
   return()
 endif()
 
+message(STATUS "==== Chrono Vehicle module ====")
+
 # If Irrlicht support was enabled, provide option to add Irrklang support.
 cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
                        "ENABLE_MODULE_IRRLICHT" OFF)
@@ -166,6 +168,8 @@ set(CV_DRIVELINE_FILES
 set(CV_DRIVER_FILES
     driver/ChDataDriver.h
     driver/ChDataDriver.cpp
+    driver/ChPathFollowerDriver.h
+    driver/ChPathFollowerDriver.cpp
 )
 
 set(CV_POVERTRAIN_FILES
@@ -187,11 +191,15 @@ set(CV_TIRE_FILES
     tire/ChPacejkaTire.cpp
     tire/ChLugreTire.h
     tire/ChLugreTire.cpp
-
+    tire/ChFialaTire.h
+    tire/ChFialaTire.cpp
+	
     tire/RigidTire.h
     tire/RigidTire.cpp
     tire/LugreTire.h
     tire/LugreTire.cpp
+    tire/FialaTire.h
+    tire/FialaTire.cpp	
 )
 
 set(CV_BRAKE_FILES
@@ -225,6 +233,10 @@ set(CV_SUSPENSIONTEST_FILES
 set(CV_UTILS_FILES
     utils/ChWheeledVehicleAssembly.h
     utils/ChWheeledVehicleAssembly.cpp
+    utils/ChSteeringController.h
+    utils/ChSteeringController.cpp
+    utils/ChSpeedController.h
+    utils/ChSpeedController.cpp
 )
 
 if(ENABLE_MODULE_IRRLICHT)
@@ -234,9 +246,22 @@ if(ENABLE_MODULE_IRRLICHT)
         driver/ChIrrGuiST.h
         driver/ChIrrGuiST.cpp
     )
+    set(CVIRR_UTILS_FILES
+        utils/ChVehicleIrrApp.h
+        utils/ChVehicleIrrApp.cpp
+    )
 else()
     set(CVIRR_DRIVER_FILES "")
+    set(CVIRR_UTILS_FILES "")
 endif()
+
+set(CV_EASYBMP_FILES
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP.h
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP.cpp
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_BMP.h
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_DataStructures.h
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_VariousBMPutilities.h
+    )
 
 source_group("base" FILES ${CV_BASE_FILES})
 source_group("vehicle" FILES ${CV_VEHICLE_FILES})
@@ -251,7 +276,8 @@ source_group("brake" FILES ${CV_BRAKE_FILES})
 source_group("antirollbar" FILES ${CV_ANTIROLL_FILES})
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
 source_group("suspensionTest" FILES ${CV_SUSPENSIONTEST_FILES})
-source_group("utils" FILES ${CV_UTILS_FILES})
+source_group("utils" FILES ${CV_UTILS_FILES} ${CVIRR_UTILS_FILES})
+source_group("easyBMP" FILES ${CV_EASYBMP_FILES})
 
 # ----------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle library
@@ -282,6 +308,8 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_SUSPENSIONTEST_FILES}
     ${CV_UTILS_FILES}
     ${CVIRR_DRIVER_FILES}
+    ${CVIRR_UTILS_FILES}
+    ${CV_EASYBMP_FILES}
 )
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES

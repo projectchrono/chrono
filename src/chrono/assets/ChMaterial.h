@@ -5,7 +5,7 @@
 //
 //   ChMaterial.h
 //
-//   Class for storing a color as an object asset
+//   Class for storing a material
 //
 //   HEADER file for CHRONO,
 //   Multibody dynamics engine

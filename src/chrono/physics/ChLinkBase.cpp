@@ -40,35 +40,36 @@ void ChLinkBase::Copy(ChLinkBase* source) {
     disabled = source->disabled;
 }
 
-// Define some  link-specific flags for backward compatibility
 
-#define LF_INACTIVE (1L << 0)
-#define LF_BROKEN (1L << 2)
-#define LF_DISABLED (1L << 4)
 
-void ChLinkBase::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(12);
+void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
+    // serialize parent class
+    ChPhysicsItem::ArchiveOUT(marchive);
 
-    // stream out all member data
-    mstream << disabled;
-    mstream << valid;
-    mstream << broken;
+    // serialize all member data:
+    marchive << CHNVP(disabled);
+    marchive << CHNVP(valid);
+    marchive << CHNVP(broken);
 }
 
-void ChLinkBase::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChLinkBase::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChPhysicsItem::StreamIN(mstream);
+    // deserialize parent class
+    ChPhysicsItem::ArchiveIN(marchive);
 
-    mstream >> disabled;
-    mstream >> valid;
-    mstream >> broken;
+    // deserialize all member data:
+    marchive >> CHNVP(disabled);
+    marchive >> CHNVP(valid);
+    marchive >> CHNVP(broken);
 }
+
 
 }  // END_OF_NAMESPACE____

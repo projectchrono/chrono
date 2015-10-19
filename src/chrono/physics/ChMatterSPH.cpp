@@ -34,14 +34,18 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChMatterSPH> a_registration_ChMatterSPH;
+
 
 //////////////////////////////////////
 //////////////////////////////////////
 
 /// CLASS FOR A SPH NODE
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChNodeSPH> a_registration_ChNodeSPH;
+
 
 ChNodeSPH::ChNodeSPH() {
     this->collision_model = new ChModelBullet;
@@ -65,7 +69,7 @@ ChNodeSPH::ChNodeSPH(const ChNodeSPH& other) : ChNodeXYZ(other) {
     this->collision_model = new ChModelBullet;
     this->collision_model->SetContactable(this);
     this->collision_model->AddPoint(other.coll_rad);
-    this->container =  other.container;
+    this->container = other.container;
     this->UserForce = other.UserForce;
     this->SetKernelRadius(other.h_rad);
     this->SetCollisionRadius(other.coll_rad);
@@ -86,7 +90,7 @@ ChNodeSPH& ChNodeSPH::operator=(const ChNodeSPH& other) {
     this->collision_model->ClearModel();
     this->collision_model->AddPoint(other.coll_rad);
     this->collision_model->SetContactable(this);
-    this->container =  other.container;
+    this->container = other.container;
     this->UserForce = other.UserForce;
     this->SetKernelRadius(other.h_rad);
     this->SetCollisionRadius(other.coll_rad);
@@ -111,16 +115,16 @@ void ChNodeSPH::SetCollisionRadius(double mr) {
     ((ChModelBullet*)this->collision_model)->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
-void ChNodeSPH::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                    ChVectorDynamic<>& R) {
+void ChNodeSPH::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
     R.PasteSumVector(F, this->NodeGetOffset_w() + 0, 0);
 }
 
-void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-            type_constraint_tuple& jacobian_tuple_N, 
-            type_constraint_tuple& jacobian_tuple_U, 
-            type_constraint_tuple& jacobian_tuple_V, 
-            bool second) {
+void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                              ChMatrix33<>& contact_plane,
+                                              type_constraint_tuple& jacobian_tuple_N,
+                                              type_constraint_tuple& jacobian_tuple_U,
+                                              type_constraint_tuple& jacobian_tuple_V,
+                                              bool second) {
     ChMatrix33<> Jx1;
 
     Jx1.CopyFromMatrixT(contact_plane);
@@ -132,52 +136,107 @@ void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMat
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-
-ChSharedPtr<ChMaterialSurfaceBase>& ChNodeSPH::GetMaterialSurfaceBase()
-{
+ChSharedPtr<ChMaterialSurfaceBase>& ChNodeSPH::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
-ChPhysicsItem* ChNodeSPH::GetPhysicsItem()
-{
+ChPhysicsItem* ChNodeSPH::GetPhysicsItem() {
     return container;
 }
+
+void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChNodeXYZ::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    //marchive << CHNVP(container);
+    marchive << CHNVP(collision_model);
+    marchive << CHNVP(UserForce);
+    marchive << CHNVP(volume);
+    marchive << CHNVP(density);
+    marchive << CHNVP(h_rad);
+    marchive << CHNVP(coll_rad);
+    marchive << CHNVP(pressure);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class
+    ChNodeXYZ::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    //marchive >> CHNVP(container);
+    marchive >> CHNVP(collision_model);
+    marchive >> CHNVP(UserForce);
+    marchive >> CHNVP(volume);
+    marchive >> CHNVP(density);
+    marchive >> CHNVP(h_rad);
+    marchive >> CHNVP(coll_rad);
+    marchive >> CHNVP(pressure);
+}
+
+
+
 
 //////////////////////////////////////
 //////////////////////////////////////
 
 /// CLASS FOR SPH MATERIAL
 
-void ChContinuumSPH::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // stream out parent class
-    ChContinuumMaterial::StreamOUT(mstream);
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChContinuumSPH> a_registration_ChContinuumSPH;
 
-    // stream out all member data
-    mstream << this->viscosity;
-    mstream << this->surface_tension;
-    mstream << this->pressure_stiffness;
+void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChContinuumMaterial::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(viscosity);
+    marchive << CHNVP(surface_tension);
+    marchive << CHNVP(pressure_stiffness);
 }
 
-void ChContinuumSPH::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in parent class
-    ChContinuumMaterial::StreamIN(mstream);
+    // deserialize parent class
+    ChContinuumMaterial::ArchiveIN(marchive);
 
-    // stream in all member data
-    mstream >> this->viscosity;
-    mstream >> this->surface_tension;
-    mstream >> this->pressure_stiffness;
+    // deserialize all member data:
+    marchive >> CHNVP(viscosity);
+    marchive >> CHNVP(surface_tension);
+    marchive >> CHNVP(pressure_stiffness);
 }
+
+
 
 //////////////////////////////////////
 //////////////////////////////////////
 
 /// CLASS FOR SPH NODE CLUSTER
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChMatterSPH> a_registration_ChMatterSPH;
+
 
 ChMatterSPH::ChMatterSPH() {
     this->do_collide = false;
@@ -239,15 +298,15 @@ void ChMatterSPH::AddNode(ChVector<double> initial_state) {
     ChSharedPtr<ChNodeSPH> newp(new ChNodeSPH);
 
     newp->SetContainer(this);
-    
+
     newp->SetPos(initial_state);
 
     this->nodes.push_back(newp);
-    
+
     newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
     newp->collision_model->AddPoint(0.1);  //***TEST***
-    newp->collision_model->BuildModel();    // will also add to system, if collision is on.
+    newp->collision_model->BuildModel();   // will also add to system, if collision is on.
 }
 
 void ChMatterSPH::FillBox(const ChVector<> size,
@@ -356,7 +415,7 @@ void ChMatterSPH::IntLoadResidual_F(
     ChProximityContainerSPH* edges = 0;
     std::vector<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics))
+        if ((edges = dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics)))
             break;
         iterotherphysics++;
     }
@@ -469,7 +528,7 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
     ChProximityContainerSPH* edges = 0;
     std::vector<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics))
+        if ((edges = dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics)))
             break;
         iterotherphysics++;
     }
@@ -648,32 +707,44 @@ void ChMatterSPH::UpdateParticleCollisionModels() {
 
 //////// FILE I/O
 
-void ChMatterSPH::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // serialize parent class too
-    ChIndexedNodes::StreamOUT(mstream);
+    // serialize parent class
+    ChIndexedNodes::ArchiveOUT(marchive);
 
-    // stream out all member data
-    mstream << this->material;
-
-    //***TO DO*** stream nodes
+    // serialize all member data:
+    marchive << CHNVP(material);
+    marchive << CHNVP(matsurface);
+    marchive << CHNVP(do_collide);
+    marchive << CHNVP(nodes);
 }
 
-void ChMatterSPH::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChIndexedNodes::StreamIN(mstream);
+    // deserialize parent class
+    ChIndexedNodes::ArchiveIN(marchive);
 
-    // stream in all member data
+    // deserialize all member data:
+    RemoveCollisionModelsFromSystem();
 
-    mstream >> this->material;
+    marchive >> CHNVP(material);
+    marchive >> CHNVP(matsurface);
+    marchive >> CHNVP(do_collide);
+    marchive >> CHNVP(nodes);
 
-    //***TO DO*** unstream nodes
+    for (unsigned int j = 0; j < nodes.size(); j++) {
+        this->nodes[j]->SetContainer(this);
+    }
+    AddCollisionModelsToSystem();
 }
+
 
 }  // END_OF_NAMESPACE____
 

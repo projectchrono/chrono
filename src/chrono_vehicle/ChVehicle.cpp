@@ -29,11 +29,11 @@ namespace chrono {
 // Constructor for a ChVehicle using a default Chrono Chsystem.
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
-ChVehicle::ChVehicle()
+ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method)
 : m_ownsSystem(true),
   m_stepsize(1e-3)
 {
-  m_system = new ChSystem;
+  m_system = (contact_method == ChMaterialSurfaceBase::DVI) ? new ChSystem : new ChSystemDEM;
 
   m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
@@ -46,7 +46,7 @@ ChVehicle::ChVehicle()
 
 
 // -----------------------------------------------------------------------------
-// Constructor for a ChVehicle using a default Chrono ChSystem.
+// Constructor for a ChVehicle using the specified Chrono ChSystem.
 // -----------------------------------------------------------------------------
 ChVehicle::ChVehicle(ChSystem* system)
 : m_system(system),
@@ -113,6 +113,12 @@ void ChVehicle::Advance(double step)
   }
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChVector<> ChVehicle::GetVehicleAcceleration(const ChVector<>& locpos) const {
+    ChVector<> acc_abs = m_chassis->GetFrame_REF_to_abs().PointAccelerationLocalToParent(locpos);
+    return m_chassis->GetFrame_REF_to_abs().TransformDirectionParentToLocal(acc_abs);
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

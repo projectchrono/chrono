@@ -116,10 +116,10 @@ class ChApi ChLinePath : public ChLine {
     }
 
     /// Return the start point of the line.
-    virtual ChVector<> GetEndA() { return (*lines.begin())->GetEndA(); }
+    virtual ChVector<> GetEndA() { return (lines.front())->GetEndA(); }
 
     /// Return the end point of the line.
-    virtual ChVector<> GetEndB() { return (*lines.end())->GetEndB(); }
+    virtual ChVector<> GetEndB() { return (lines.back())->GetEndB(); }
 
     //
     // CUSTOM FUNCTIONS
@@ -270,13 +270,7 @@ class ChApi ChLinePath : public ChLine {
         marchive >> CHNVP(durations);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream) {   
-    }
 
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream) {
-    }
 };
 
 }  // END_OF_NAMESPACE____

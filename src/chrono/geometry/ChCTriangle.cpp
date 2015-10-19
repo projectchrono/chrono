@@ -177,31 +177,7 @@ double ChTriangle::PointLineDistance(Vector& p, Vector& dA, Vector& dB, double& 
     return mdist;
 }
 
-void ChTriangle::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChGeometry::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << p1;
-    mstream << p2;
-    mstream << p3;
-}
-
-void ChTriangle::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChGeometry::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> p1;
-    mstream >> p2;
-    mstream >> p3;
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

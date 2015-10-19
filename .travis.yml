@@ -1,11 +1,16 @@
-sudo: false
+sudo: false 
 language: cpp
 addons:
-  apt_packages:
-    - libirrlicht1.7a
-    - libirrlicht-dev
-    - libxxf86vm-dev
-    - freeglut3-dev
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libirrlicht1.7a
+      - libirrlicht-dev
+      - libxxf86vm-dev
+      - freeglut3-dev
+      - gcc-4.9
+      - g++-4.9
   coverity_scan:
     project:
       name: "projectchrono/chrono"
@@ -16,7 +21,6 @@ addons:
       branch_pattern: coverity_scan
 compiler:
   - gcc
-  - clang
 env:
   matrix:
     - CMAKE_EXTRA_FLAGS="-DENABLE_MODULE_IRRLICHT=OFF -DENABLE_MODULE_FEA=OFF -DENABLE_MODULE_POSTPROCESS=OFF"
@@ -27,7 +31,7 @@ env:
 before_install:
 before_script:
   - mkdir build && cd build
-  - cmake $CMAKE_EXTRA_FLAGS ..
+  - if [ "$CXX" = "g++" ]; then CXX=g++-4.9 CC=gcc-4.9 cmake $CMAKE_EXTRA_FLAGS ..; fi
 script:
   - make -j 4
   - make test

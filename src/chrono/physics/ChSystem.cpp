@@ -3063,8 +3063,6 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     ChObj::ArchiveOUT(marchive);
 
     // serialize all member data:
-    
-    marchive << CHNVP(G_acc);
 
     //marchive << CHNVP(bodylist);
     // do rather a custom array save:
@@ -3088,6 +3086,58 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     }
     marchive.out_array_end(linklist.size(), "links");
 
+    //marchive << CHNVP(otherphysicsitems);
+    // do rather a custom array save:
+    marchive.out_array_pre("other_physics_list", otherphysicslist.size(), "ChPhysicsItem");
+    for (int i = 0; i < otherphysicslist.size(); i++) {
+        otherphysicslist[i]->AddRef(); // hack: since in list are not as shared pointers
+        ChSharedPtr<ChPhysicsItem> a_item(otherphysicslist[i]); // wrap into shared ptr
+        marchive << CHNVP(a_item,"");
+        marchive.out_array_between(otherphysicslist.size(), "other_physics_list");
+    }
+    marchive.out_array_end(otherphysicslist.size(), "other_physics_list");
+
+    // serialize all system preferences 
+
+    marchive << CHNVP(contact_container);
+    marchive << CHNVP(G_acc);
+    marchive << CHNVP(end_time);
+    marchive << CHNVP(step);   
+    marchive << CHNVP(step_min); 
+    marchive << CHNVP(step_max); 
+    marchive << CHNVP(stepcount);
+
+    marchive << CHNVP(tol); 
+    marchive << CHNVP(tol_force);
+    marchive << CHNVP(normtype); 
+    marchive << CHNVP(maxiter);
+    marchive << CHNVP(use_sleeping);
+
+    eCh_lcpSolver_mapper msolmapper;
+    marchive << CHNVP(msolmapper(lcp_solver_type));
+    //marchive << CHNVP(LCP_descriptor); // ChLcpSystemDescriptor should implement class factory for abstract create
+    //marchive << CHNVP(LCP_solver_speed); // ChLcpSolver should implement class factory for abstract create
+    //marchive << CHNVP(LCP_solver_stab); // ChLcpSolver should implement class factory for abstract create  
+
+    marchive << CHNVP(iterLCPmaxIters);
+    marchive << CHNVP(iterLCPmaxItersStab);
+    marchive << CHNVP(simplexLCPmaxSteps); 
+    marchive << CHNVP(min_bounce_speed); 
+    marchive << CHNVP(max_penetration_recovery_speed);
+    marchive << CHNVP(parallel_thread_number); 
+
+    //marchive << CHNVP(collision_system);// ChCollisionSystem should implement class factory for abstract create
+
+    //marchive << CHNVP(scriptEngine); // ChScriptEngine should implement class factory for abstract create
+    marchive << CHNVP(scriptForStartFile);
+    marchive << CHNVP(scriptForUpdateFile);
+    marchive << CHNVP(scriptForStepFile);
+    marchive << CHNVP(scriptFor3DStepFile);
+
+    eCh_integrationType_mapper mintmapper;
+    marchive << CHNVP(mintmapper(integration_type));
+    //marchive << CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
+
     //***TODO*** complete...
 }
 
@@ -3101,7 +3151,6 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
     ChObj::ArchiveIN(marchive);
 
     // stream in all member data:
-    marchive >> CHNVP(G_acc);
 
     //marchive >> CHNVP(bodylist);
     // do rather a custom array load:
@@ -3129,278 +3178,80 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
     }
     marchive.in_array_end("links");
 
+    //marchive >> CHNVP(otherphysiscslist);
+    // do rather a custom array load:
+    this->RemoveAllOtherPhysicsItems();
+    size_t num_otherphysics;
+    marchive.in_array_pre("other_physics_list", num_otherphysics);
+    for (int i = 0; i < num_otherphysics; i++) {
+        ChSharedPtr<ChPhysicsItem> a_item;
+        marchive >> CHNVP(a_item,"");
+        this->AddOtherPhysicsItem(a_item);
+        marchive.in_array_between("other_physics_list");
+    }
+    marchive.in_array_end("other_physics_list");
+
+    // serialize all system preferences 
+
+    if(contact_container) delete contact_container;
+    marchive >> CHNVP(contact_container);
+
+    marchive >> CHNVP(G_acc);
+    marchive >> CHNVP(end_time);
+    marchive >> CHNVP(step);   
+    marchive >> CHNVP(step_min); 
+    marchive >> CHNVP(step_max); 
+    marchive >> CHNVP(stepcount);
+
+    marchive >> CHNVP(tol); 
+    marchive >> CHNVP(tol_force);
+    marchive >> CHNVP(normtype); 
+    marchive >> CHNVP(maxiter);
+    marchive >> CHNVP(use_sleeping);
+
+    eCh_lcpSolver_mapper msolmapper;
+    marchive >> CHNVP(msolmapper(lcp_solver_type));
+
+    //if (LCP_descriptor) delete LCP_descriptor;
+    //marchive >> CHNVP(LCP_descriptor); // ChLcpSystemDescriptor should implement class factory for abstract create
+
+    //if (LCP_solver_speed) delete LCP_solver_speed;
+    //marchive >> CHNVP(LCP_solver_speed); // ChLcpSolver should implement class factory for abstract create
+    
+    //if (LCP_solver_stab) delete LCP_solver_stab;
+    //marchive >> CHNVP(LCP_solver_stab); // ChLcpSolver should implement class factory for abstract create  
+
+    marchive >> CHNVP(iterLCPmaxIters);
+    marchive >> CHNVP(iterLCPmaxItersStab);
+    marchive >> CHNVP(simplexLCPmaxSteps); 
+    marchive >> CHNVP(min_bounce_speed); 
+    marchive >> CHNVP(max_penetration_recovery_speed);
+    marchive >> CHNVP(parallel_thread_number); 
+
+    if (collision_system) delete collision_system;
+    marchive >> CHNVP(collision_system);// ChCollisionSystem should implement class factory for abstract create
+
+    //marchive >> CHNVP(scriptEngine); // ChScriptEngine should implement class factory for abstract create
+    marchive >> CHNVP(scriptForStartFile);
+    marchive >> CHNVP(scriptForUpdateFile);
+    marchive >> CHNVP(scriptForStepFile);
+    marchive >> CHNVP(scriptFor3DStepFile);
+
+    eCh_integrationType_mapper mintmapper;
+    marchive >> CHNVP(mintmapper(integration_type));
+
+    //marchive >> CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
+
     //***TODO*** complete...
-}
 
-
-void ChSystem::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(7);
-
-    // serialize parent class too
-    ChObj::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << GetEndTime();
-    mstream << GetStep();
-    mstream << GetStepMin();
-    mstream << GetStepMax();
-    mstream << GetTol();
-    mstream << GetNormType();
-    mstream << GetMaxiter();
-    mstream << (int)GetIntegrationType();
-    mstream << (int)0;     // v7
-    mstream << (int)0;     // v7
-    mstream << (int)0;     // v7
-    mstream << (int)0;     // GetBaumgarteStabilize();
-    mstream << (int)0;     // v7
-    mstream << (double)0;  // v7
-    mstream << (int)0;     // v7
-    mstream << (int)0;     // v7
-    mstream << (double)0;  // v7
-    mstream << G_acc;
-    mstream << (int)0;
-    mstream << (int)0;     // v7
-    mstream << (int)0;     // v7
-    mstream << (double)0;  // v7
-    mstream << (double)0;  // v7
-    mstream << (int)0;     // v7
-    mstream << GetScriptForStartFile();
-    mstream << GetScriptForUpdateFile();
-    mstream << GetScriptForStepFile();
-    mstream << GetScriptFor3DStepFile();
-    mstream << (int)0;  // v7
-    mstream << GetMinBounceSpeed();
-    // v2
-    mstream << iterLCPmaxIters;
-    mstream << iterLCPmaxItersStab;
-    mstream << (int)0;
-    mstream << (int)GetLcpSolverType();
-    // v3,v4
-    mstream << (int)0;  // GetFrictionProjection();
-    // v5
-    mstream << parallel_thread_number;
-    mstream << max_penetration_recovery_speed;
-    // v6
-    mstream << use_sleeping;
-}
-
-void ChSystem::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChObj::StreamIN(mstream);
-
-    // stream in all member data
-    double mdouble;
-    int mint;
-    Vector mvector;
-    char buffer[250];
-    mstream >> mdouble;
-    SetEndTime(mdouble);
-    mstream >> mdouble;
-    SetStep(mdouble);
-    mstream >> mdouble;
-    SetStepMin(mdouble);
-    mstream >> mdouble;
-    SetStepMax(mdouble);
-    mstream >> mdouble;
-    SetTol(mdouble);
-    mstream >> mint;
-    SetNormType(mint);
-    mstream >> mint;
-    SetMaxiter(mint);
-    mstream >> mint;
-    SetIntegrationType((eCh_integrationType)mint);
-    mstream >> mint;     // SetOrder(mint);
-    mstream >> mint;     // SetMultisteps(mint);
-    mstream >> mint;     // SetAdaption (mint);
-    mstream >> mint;     // SetBaumgarteStabilize(mint);
-    mstream >> mint;     // SetDynaclose(mint);
-    mstream >> mdouble;  // SetDynatol(mdouble);
-    mstream >> mint;     // SetPredict(mint);
-    mstream >> mint;     // SetPredorder(mint);
-    mstream >> mdouble;  // SetStifftol(mdouble);
-    mstream >> mvector;
-    Set_G_acc(mvector);
-    mstream >> mint;     // SetXYmode(mint);
-    mstream >> mint;     // SetNsClosePos(mint);
-    mstream >> mint;     // SetNsCloseSpeed(mint);
-    mstream >> mdouble;  // SetMonolattol(mdouble);
-    mstream >> mdouble;  // SetIntegrtol(mdouble);
-    mstream >> mint;     // SetAutoAssembly(mint);
-    mstream >> buffer;
-    SetScriptForStartFile(buffer);
-    mstream >> buffer;
-    SetScriptForUpdateFile(buffer);
-    mstream >> buffer;
-    SetScriptForStepFile(buffer);
-    mstream >> buffer;
-    SetScriptFor3DStepFile(buffer);
-    mstream >> mint;  // SetMaxStepsCollide(mint);
-    mstream >> mdouble;
-    SetMinBounceSpeed(mdouble);
-
-    if (version >= 2) {
-        mstream >> iterLCPmaxIters;
-        mstream >> iterLCPmaxItersStab;
-        mstream >> mint;
-        mstream >> mint;
-        SetLcpSolverType((eCh_lcpSolver)mint);
-    }
-    if (version >= 3) {
-        mstream >> mint;  // SetFrictionProjection((eCh_frictionProjection) mint);
-        if (version == 3) {
-        };  // SetFrictionProjection(FRI_CONEORTHO); // for v3, ortho proj anyway
-    }
-    if (version >= 5) {
-        mstream >> parallel_thread_number;
-        mstream >> max_penetration_recovery_speed;
-    }
-    if (version >= 6) {
-        mstream >> use_sleeping;
-    }
-}
-
-void ChSystem::StreamOUT(ChStreamOutAscii& mstream) {
-    // serialize parent class too
-    ChObj::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << "tEnd      : " << GetEndTime() << "\nstepSize   : " << GetStep() << "\nstepMin    : " << GetStepMin()
-            << "\nstepMax    : " << GetStepMax() << "\ntol        : " << GetTol() << "\nnormType   : " << GetNormType()
-            << "\nMaxIter    : " << GetMaxiter() << "\nIntegration: " << (int)GetIntegrationType()
-
-            << "\ngravity  : " << G_acc
-
-            << "\nminBounceSpeed   : " << GetMinBounceSpeed()
-            // v2
-            << "\nLCPmaxIter       : " << iterLCPmaxIters << "\nLCPmaxIterStab   :  " << iterLCPmaxItersStab
-            << "\nmaxRecovSpeed    : " << max_penetration_recovery_speed
-            << "\nLCPSolverType    : " << (int)GetLcpSolverType();
-}
-
-#define CH_CHUNK_END 1234
-#define CH_CHUNK_START 4321
-
-int ChSystem::StreamINall(ChStreamInBinary& m_file) {
-    int mchunk = 0;
-    ChBody* newbody = NULL;
-    ChLink* newlink = NULL;
-    ChPhysicsItem* newitem = NULL;
-
-    // class version number
-    int version = m_file.VersionRead();
-
-    // 0) reset system to have no sub object child
-    this->Clear();
-
-    // 1) read system class data...
-    m_file >> *this;
-
-    // 2a) read how many bodies
-    int mnbodies = 0;
-    m_file >> mnbodies;
-
-    // 2b) read  bodies
-    for (int i = 0; i < mnbodies; i++) {
-        ChSharedPtr<ChBody> newbody(new ChBody);
-        this->AddBody(newbody);
-
-        if (!newbody->StreamINall(m_file))
-            throw ChException("Cannot read body data");
-    }
-
-    // 3a) read how many links
-    int mnlinks = 0;
-    m_file >> mnlinks;
-
-    // 3b) read  links
-    for (int j = 0; j < mnlinks; j++) {
-        // read the link, using a special downcasting function Link_BinRead_Create which creates the
-        // proper inherited object, depending on its class inheritance from base Link*
-
-        m_file.AbstractReadCreate(&newlink);
-        if (!newlink)
-            throw ChException("Cannot read link data");
-
-        ChSharedPtr<ChLink> shlink(newlink);
-        this->AddLink(shlink);
-    }
-
-    // 3c) Rebuild link pointers to markers
+    //  Rebuild link pointers to markers
     this->Reference_LM_byID();
 
-    // 4a) read how many other physics item
-    int mnitems = 0;
-    m_file >> mnitems;
-
-    // 4b) read physics items
-    for (int j = 0; j < mnitems; j++) {
-        // read the item, using a special downcasting function which creates the
-        // proper inherited object, depending on its class inheritance from base ChPhysicsItem*
-
-        m_file.AbstractReadCreate(&newitem);
-        if (!newitem)
-            throw ChException("Cannot read ChPhysicsItem data.");
-
-        ChSharedPtr<ChPhysicsItem> shitem(newitem);
-        this->AddOtherPhysicsItem(shitem);
-    }
-
+    // Recompute statistics, offsets, etc.
     this->Setup();
-
-    return 1;
 }
 
-int ChSystem::StreamOUTall(ChStreamOutBinary& m_file) {
-    // class version number
-    m_file.VersionWrite(2);
 
-    // 1) write system class data...
-    m_file << *this;
-
-    // 2a) write how many bodies
-    m_file << (int)bodylist.size();  // this->ListCount((ChObj**)&bodylist); ***SHAREDBODY***
-
-    // 2b) write  bodies
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChBody* Bpointer = bodylist[ip];
-        // write the body + child markers + forces
-        if (!Bpointer->StreamOUTall(m_file))
-            return 0;
-    }
-
-    // 3a) write how many links
-    m_file << (int)linklist.size();
-
-    // 3b) write links links
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChLink* Lpointer = linklist[ip];
-        // Writethe link, using a special downcasting function Link_BinSave which saves also the
-        // inheritance info, depending on link class inheritance from base Link*
-        m_file.AbstractWrite(Lpointer);
-    }
-
-    // 4a) write how many other physics items
-    m_file << (int)otherphysicslist.size();
-
-    // 4b) write other physics item links
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChPhysicsItem* PHpointer = otherphysicslist[ip];
-        // Write the item, using a special downcasting function which saves also the
-        // inheritance info, depending on class inheritance from base ChPhysicsItem*
-        m_file.AbstractWrite(PHpointer);
-    }
-
-    m_file << (int)CH_CHUNK_END;
-
-    return 1;
-}
 
 void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file) {
     m_file << "\n   List of the " << (int)Get_bodylist()->size() << " added rigid bodies: \n";
@@ -3458,14 +3309,17 @@ void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file) {
     m_file << "\n\n";
 }
 
+#define CH_CHUNK_START "Chrono binary file start"
+#define CH_CHUNK_END "Chrono binary file end"
+
 int ChSystem::FileProcessChR(ChStreamInBinary& m_file) {
-    int mchunk = 0;
+    std::string mchunk;
 
     m_file >> mchunk;
     if (mchunk != CH_CHUNK_START)
         throw ChException("Not a ChR data file.");
 
-    this->StreamINall(m_file);
+    //this->StreamINall(m_file);
 
     m_file >> mchunk;
     if (mchunk != CH_CHUNK_END)
@@ -3475,26 +3329,16 @@ int ChSystem::FileProcessChR(ChStreamInBinary& m_file) {
 }
 
 int ChSystem::FileWriteChR(ChStreamOutBinary& m_file) {
-    m_file << (int)CH_CHUNK_START;
+    m_file << CH_CHUNK_START;
 
-    this->StreamOUTall(m_file);
+    //this->StreamOUTall(m_file);
 
-    m_file << (int)CH_CHUNK_END;
+    m_file << CH_CHUNK_END;
 
     return 1;
 }
 
-// process a scripting instruction file
-int ChSystem::FileProcessJS(char* m_file) {
-    if (!this->scriptEngine)
-        return 0;
 
-    ChScript* mscript = this->scriptEngine->CreateScript();
-    if (!this->scriptEngine->ExecuteScript(*mscript))
-        return 0;
-    delete mscript;
-    return 1;
-}
 
 //////////////////////////////////////////////////////////////////
 

@@ -18,7 +18,7 @@ MARK_AS_ADVANCED(CLEAR CH_CASCADEDIR)
 
 
 SET(CH_CASCADEDIR "" CACHE PATH   
-    "Where is your OpenCASCADE SDK installed? Ex: 'E:/OpenCASCADE6.3.0'. You must set this path to compile the CASCADE unit.")
+    "Where is your OpenCASCADE SDK installed? Ex: 'D:/OpenCASCADE6.9.0/opencascade-6.9.0'. You must set this to compile the CASCADE module.")
 
 #-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE OpenCASCADE LIBRARY
@@ -29,6 +29,7 @@ SET(ChronoEngine_CASCADE_SOURCES
 	)
 
 SET(ChronoEngine_CASCADE_HEADERS
+	ChApiCASCADE.h
 	ChCascadeMeshTools.h
 	ChCascadeDoc.h
 	ChIrrCascadeMeshTools.h
@@ -40,12 +41,12 @@ SET(ChronoEngine_CASCADE_HEADERS
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-            SET (CH_CASCADELIBDIR "${CH_CASCADEDIR}/ros/win32/vc9/lib/")
+            SET (CH_CASCADELIBDIR "${CH_CASCADEDIR}/win32/vc10/lib/")
     ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-            SET (CH_CASCADELIBDIR "${CH_CASCADEDIR}/ros/win64/vc9/lib/")
+            SET (CH_CASCADELIBDIR "${CH_CASCADEDIR}/win64/vc10/lib/")
     ENDIF()
     FILE(GLOB CH_CASCADELIBS "${CH_CASCADELIBDIR}/*.lib")
-    SET (CH_CASCADEINC "${CH_CASCADEDIR}/ros/inc")
+    SET (CH_CASCADEINC "${CH_CASCADEDIR}/inc")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     FIND_PATH(CH_CASCADEINC Standard_Version.hxx
 	HINTS ${CH_CASCADEINC} "${CH_CASCADEDIR}/inc" "${CH_CASCADEDIR}/include"

@@ -57,6 +57,8 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
         E_PLOT_ELEM_BEAM_TY,
         E_PLOT_ELEM_BEAM_TZ,
         E_PLOT_NODE_P,  // scalar field for Poisson problems (ex. temperature if thermal FEM)
+        E_PLOT_ANCF_BEAM_AX,
+        E_PLOT_ANCF_BEAM_BD,
     };
 
     enum eChFemGlyphs {

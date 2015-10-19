@@ -3,14 +3,7 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-# TODO:
-# For now, the OpenGL module requires the PARALLEL module.
-# Later, only use this:
-#option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
-
-cmake_dependent_option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF
-                       "ENABLE_MODULE_PARALLEL" OFF)
-include_directories(${CH_PARALLEL_INCLUDES})
+option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
 
 # Return now if this module is not enabled
 
@@ -18,7 +11,7 @@ if(NOT ENABLE_MODULE_OPENGL)
   return()
 endif()
 
-message(STATUS "==== Chrono Parallel module ====")
+message(STATUS "==== Chrono OpenGL module ====")
 
 # ------------------------------------------------------------------------------
 # Dependencies for OpenGL module
@@ -144,44 +137,51 @@ ENDFOREACH()
 # List the files in the Chrono OpenGL module
 # ------------------------------------------------------------------------------
 
-SET(ChronoEngine_OpenGL_SOURCES 
+SET(CE_OpenGL_BASE_FILES
+  ChOpenGLViewer.cpp 
+  ChOpenGLCamera.cpp
+  ChOpenGLWindow.cpp
+  ChOpenGLViewer.h 
+  ChOpenGLCamera.h
+  ChOpenGLWindow.h
+  ChOpenGLMaterials.h
+  )
+
+SET(CE_OpenGL_CORE_FILES
   core/ChOpenGLShader.cpp
   core/ChOpenGLObject.cpp
   core/ChOpenGLVertexAttributes.cpp
+  core/ChOpenGLBase.h
+  core/ChApiOpenGL.h
+  core/ChOpenGLShader.h
+  core/ChOpenGLObject.h
+  core/ChOpenGLVertexAttributes.h
+  )
+
+SET(CE_OpenGL_SHAPES_FILES
   shapes/ChOpenGLMesh.cpp
   shapes/ChOpenGLCloud.cpp
   shapes/ChOpenGLWires.cpp
   shapes/ChOpenGLText.cpp
   shapes/ChOpenGLOBJ.cpp
   shapes/obj/ChOpenGLOBJLoader.cpp
-  shapes/obj/tiny_obj_loader.cc
-  UI/ChOpenGLContacts.cpp
-  UI/ChOpenGLHUD.cpp
-  UI/ChOpenGLGraphs.cpp
-  ChOpenGLViewer.cpp 
-  ChOpenGLCamera.cpp
-  ChOpenGLWindow.cpp
-  )
-
-SET(ChronoEngine_OpenGL_HEADERS
-  core/ChOpenGLBase.h
-  core/ChApiOpenGL.h
-  core/ChOpenGLShader.h
-  core/ChOpenGLObject.h
-  core/ChOpenGLVertexAttributes.h
   shapes/ChOpenGLCloud.h
   shapes/ChOpenGLWires.h
   shapes/ChOpenGLText.h
   shapes/ChOpenGLOBJ.h
   shapes/obj/ChOpenGLOBJLoader.h
-  shapes/obj/tiny_obj_loader.h
+  )
+
+SET(CE_OpenGL_UI_FILES
+  UI/ChOpenGLContacts.cpp
+  UI/ChOpenGLHUD.cpp
+  UI/ChOpenGLGraphs.cpp
   UI/ChOpenGLContacts.h
   UI/ChOpenGLHUD.h
   UI/ChOpenGLGraphs.h
-  ChOpenGLViewer.h 
-  ChOpenGLCamera.h
-  ChOpenGLWindow.h
-  ChOpenGLMaterials.h
+  )
+
+SET(CE_OpenGL_RESOURCES_FILES
   ${CMAKE_BINARY_DIR}/resources/text_frag.h
   ${CMAKE_BINARY_DIR}/resources/text_vert.h
   ${CMAKE_BINARY_DIR}/resources/phong_frag.h
@@ -198,12 +198,26 @@ SET(ChronoEngine_OpenGL_HEADERS
   ${CMAKE_BINARY_DIR}/resources/cylinder.h
   )
 
+SET(CE_OpenGL_TINYOBJLOADER_FILES
+  ${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.cc
+  ${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.h
+  )
+
+SOURCE_GROUP("" FILES ${CE_OpenGL_BASE_FILES})
+SOURCE_GROUP("core" FILES ${CE_OpenGL_CORE_FILES})
+SOURCE_GROUP("shapes" FILES ${CE_OpenGL_SHAPES_FILES})
+SOURCE_GROUP("ui" FILES ${CE_OpenGL_UI_FILES})
+SOURCE_GROUP("resources" FILES ${CE_OpenGL_RESOURCES_FILES})
+SOURCE_GROUP("tinyobjloader" FILES ${CE_OpenGL_TINYOBJLOADER_FILES})
+
 IF (MSVC)
   # On Windows, include necessary Bullet source files.
-  SET(ChronoEngine_OpenGL_SOURCES 
-    ${ChronoEngine_OpenGL_SOURCES}
+  SET(CE_OpenGL_BULLET_FILES 
     ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
     )
+  SOURCE_GROUP("bullet" ${CE_OpenGL_BULLET_FILES})
+ELSE()
+  SET(CE_OpenGL_BULLET_FILES "")
 ENDIF()
 
 INCLUDE_DIRECTORIES(${CUDA_TOOLKIT_INCLUDE})
@@ -213,8 +227,14 @@ INCLUDE_DIRECTORIES(${CUDA_TOOLKIT_INCLUDE})
 # ------------------------------------------------------------------------------
 
 ADD_LIBRARY(ChronoEngine_opengl SHARED 
-  ${ChronoEngine_OpenGL_SOURCES}
-  ${ChronoEngine_OpenGL_HEADERS})
+  ${CE_OpenGL_BASE_FILES}
+  ${CE_OpenGL_CORE_FILES}
+  ${CE_OpenGL_SHAPES_FILES}
+  ${CE_OpenGL_UI_FILES}
+  ${CE_OpenGL_RESOURCES_FILES}
+  ${CE_OpenGL_TINYOBJLOADER_FILES}
+  ${CE_OpenGL_BULLET_FILES}
+)
 
 SET_TARGET_PROPERTIES(ChronoEngine_opengl PROPERTIES 
   COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
@@ -225,8 +245,7 @@ TARGET_LINK_LIBRARIES(ChronoEngine_opengl
   ${GLEW_LIBRARY}
   ${GLFW_LIBRARY}
   ${OPENGL_LIBRARIES}
-  ChronoEngine
-  ChronoEngine_parallel)
+  ChronoEngine)
 
 INSTALL(TARGETS ChronoEngine_opengl
   RUNTIME DESTINATION bin
