@@ -21,7 +21,7 @@
 #include "utils/ChUtilsInputOutput.h"
 
 // Chrono::Vehicle header files
-#include "chrono_vehicle/utils/ChWheeledVehicleAssembly.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleAssembly.h"
 
 using namespace chrono;
 using namespace chrono::collision;
