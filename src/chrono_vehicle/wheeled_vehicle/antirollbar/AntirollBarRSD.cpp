@@ -23,68 +23,62 @@
 using namespace rapidjson;
 
 namespace chrono {
-
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // This utility function returns a ChVector from the specified JSON array
 // -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a)
-{
-  assert(a.IsArray());
-  assert(a.Size() == 3);
+static ChVector<> loadVector(const Value& a) {
+    assert(a.IsArray());
+    assert(a.Size() == 3);
 
-  return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
+    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-AntirollBarRSD::AntirollBarRSD(const std::string& filename)
-: ChAntirollBarRSD("")
-{
-  FILE* fp = fopen(filename.c_str(), "r");
+AntirollBarRSD::AntirollBarRSD(const std::string& filename) : ChAntirollBarRSD("") {
+    FILE* fp = fopen(filename.c_str(), "r");
 
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    char readBuffer[65536];
+    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
-  fclose(fp);
+    fclose(fp);
 
-  Document d;
-  d.ParseStream(is);
+    Document d;
+    d.ParseStream(is);
 
-  Create(d);
+    Create(d);
 
-  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-AntirollBarRSD::AntirollBarRSD(const rapidjson::Document& d)
-: ChAntirollBarRSD("")
-{
-  Create(d);
+AntirollBarRSD::AntirollBarRSD(const rapidjson::Document& d) : ChAntirollBarRSD("") {
+    Create(d);
 }
 
-void AntirollBarRSD::Create(const rapidjson::Document& d)
-{
-  // Read top-level data
-  assert(d.HasMember("Type"));
-  assert(d.HasMember("Template"));
-  assert(d.HasMember("Name"));
+void AntirollBarRSD::Create(const rapidjson::Document& d) {
+    // Read top-level data
+    assert(d.HasMember("Type"));
+    assert(d.HasMember("Template"));
+    assert(d.HasMember("Name"));
 
-  SetName(d["Name"].GetString());
+    SetName(d["Name"].GetString());
 
-  // Read arm data
-  m_arm_mass = d["Arm"]["Mass"].GetDouble();
-  m_arm_inertia = loadVector(d["Arm"]["Inertia"]);
-  m_arm_length = d["Arm"]["Length"].GetDouble();
-  m_arm_width = d["Arm"]["Width"].GetDouble();
-  m_arm_radius = d["Arm"]["Radius"].GetDouble();
+    // Read arm data
+    m_arm_mass = d["Arm"]["Mass"].GetDouble();
+    m_arm_inertia = loadVector(d["Arm"]["Inertia"]);
+    m_arm_length = d["Arm"]["Length"].GetDouble();
+    m_arm_width = d["Arm"]["Width"].GetDouble();
+    m_arm_radius = d["Arm"]["Radius"].GetDouble();
 
-  // Read droplink data
-  m_link_height = d["Droplink"]["Height"].GetDouble();
+    // Read droplink data
+    m_link_height = d["Droplink"]["Height"].GetDouble();
 
-  // Read RSD data
-  m_spring_coef = d["RSD"]["Spring Coefficient"].GetDouble();
-  m_damping_coef = d["RSD"]["Damping Coefficient"].GetDouble();
+    // Read RSD data
+    m_spring_coef = d["RSD"]["Spring Coefficient"].GetDouble();
+    m_damping_coef = d["RSD"]["Damping Coefficient"].GetDouble();
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

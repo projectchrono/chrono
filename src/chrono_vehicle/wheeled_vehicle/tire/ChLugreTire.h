@@ -27,6 +27,7 @@
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Tire model based on LuGre friction model.
@@ -117,6 +118,7 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     std::vector<DiscState> m_state;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

@@ -25,45 +25,41 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API AntirollBarRSD : public ChAntirollBarRSD {
+  public:
+    AntirollBarRSD(const std::string& filename);
+    AntirollBarRSD(const rapidjson::Document& d);
+    ~AntirollBarRSD() {}
 
-class CH_VEHICLE_API AntirollBarRSD : public ChAntirollBarRSD
-{
-public:
+    virtual double getArmMass() const override { return m_arm_mass; }
+    virtual ChVector<> getArmInertia() override { return m_arm_inertia; }
 
-  AntirollBarRSD(const std::string& filename);
-  AntirollBarRSD(const rapidjson::Document& d);
-  ~AntirollBarRSD() {}
+    virtual double getArmLength() const override { return m_arm_length; }
+    virtual double getArmWidth() const override { return m_arm_width; }
+    virtual double getDroplinkHeight() const override { return m_link_height; }
+    virtual double getArmRadius() const override { return m_arm_radius; }
 
-  virtual double getArmMass() const { return m_arm_mass; }
-  virtual ChVector<> getArmInertia() { return m_arm_inertia; }
+    virtual double getSpringCoefficient() const override { return m_spring_coef; }
+    virtual double getDampingCoefficient() const override { return m_damping_coef; }
 
-  virtual double getArmLength() const { return m_arm_length; }
-  virtual double getArmWidth() const { return m_arm_width; }
-  virtual double getDroplinkHeight() const { return m_link_height; }
-  virtual double getArmRadius() const { return m_arm_radius; }
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual double getSpringCoefficient() const { return m_spring_coef; }
-  virtual double getDampingCoefficient() const { return m_damping_coef; }
+    double m_arm_mass;
+    ChVector<> m_arm_inertia;
 
-private:
+    double m_arm_length;
+    double m_arm_width;
+    double m_link_height;
+    double m_arm_radius;
 
-  void Create(const rapidjson::Document& d);
-
-  double m_arm_mass;
-  ChVector<> m_arm_inertia;
-
-  double m_arm_length;
-  double m_arm_width;
-  double m_link_height;
-  double m_arm_radius;
-
-  double m_spring_coef;
-  double m_damping_coef;
+    double m_spring_coef;
+    double m_damping_coef;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

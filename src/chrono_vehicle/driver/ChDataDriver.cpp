@@ -30,6 +30,7 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -91,4 +92,5 @@ void ChDataDriver::Update(double time) {
     m_braking = left->m_braking + tbar * (right->m_braking - left->m_braking);
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

@@ -33,6 +33,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Base class for chrono wheeled vehicle systems.
@@ -132,6 +133,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     ChBrakeList m_brakes;                  ///< list of handles to brake subsystems
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

@@ -23,42 +23,39 @@
 using namespace rapidjson;
 
 namespace chrono {
-
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-BrakeSimple::BrakeSimple(const std::string& filename)
-{
-  FILE* fp = fopen(filename.c_str(), "r");
+BrakeSimple::BrakeSimple(const std::string& filename) {
+    FILE* fp = fopen(filename.c_str(), "r");
 
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    char readBuffer[65536];
+    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
-  fclose(fp);
+    fclose(fp);
 
-  Document d;
-  d.ParseStream(is);
+    Document d;
+    d.ParseStream(is);
 
-  Create(d);
+    Create(d);
 
-  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-BrakeSimple::BrakeSimple(const rapidjson::Document& d)
-{
-  Create(d);
+BrakeSimple::BrakeSimple(const rapidjson::Document& d) {
+    Create(d);
 }
 
-void BrakeSimple::Create(const rapidjson::Document& d)
-{
-  // Read top-level data
-  assert(d.HasMember("Type"));
-  assert(d.HasMember("Template"));
-  assert(d.HasMember("Name"));
+void BrakeSimple::Create(const rapidjson::Document& d) {
+    // Read top-level data
+    assert(d.HasMember("Type"));
+    assert(d.HasMember("Template"));
+    assert(d.HasMember("Name"));
 
-  // Read maximum braking torque
-  m_maxtorque = d["Maximum Torque"].GetDouble();
+    // Read maximum braking torque
+    m_maxtorque = d["Maximum Torque"].GetDouble();
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

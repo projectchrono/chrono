@@ -39,6 +39,7 @@
 #endif
 
 namespace chrono {
+namespace vehicle {
 
 // Forward declaration
 class ChVehicleIrrApp;
@@ -174,6 +175,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
     friend class ChIrrGuiDriver;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

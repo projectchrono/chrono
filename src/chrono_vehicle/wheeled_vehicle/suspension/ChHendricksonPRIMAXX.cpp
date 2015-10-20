@@ -31,18 +31,34 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChHendricksonPRIMAXX.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChHendricksonPRIMAXX::m_pointNames[] = {
-    "SPINDLE ",     "KNUCKLE_L",   "KNUCKLE_U",    "TIEROD_C",     "TIEROD_K",     "TORQUEROD_C",
-    "TORQUEROD_AH", "LOWERBEAM_C", "LOWERBEAM_AH", "LOWERBEAM_TB", "SHOCKAH_C",    "SHOCKAH_AH",
-    "SHOCKLB_C",    "SHOCKLB_LB",  "KNUCKLE_CM",   "TORQUEROD_CM", "LOWERBEAM_CM", "TRANSVERSEBEAM_CM"};
+const std::string ChHendricksonPRIMAXX::m_pointNames[] = {"SPINDLE ",
+                                                          "KNUCKLE_L",
+                                                          "KNUCKLE_U",
+                                                          "TIEROD_C",
+                                                          "TIEROD_K",
+                                                          "TORQUEROD_C",
+                                                          "TORQUEROD_AH",
+                                                          "LOWERBEAM_C",
+                                                          "LOWERBEAM_AH",
+                                                          "LOWERBEAM_TB",
+                                                          "SHOCKAH_C",
+                                                          "SHOCKAH_AH",
+                                                          "SHOCKLB_C",
+                                                          "SHOCKLB_LB",
+                                                          "KNUCKLE_CM",
+                                                          "TORQUEROD_CM",
+                                                          "LOWERBEAM_CM",
+                                                          "TRANSVERSEBEAM_CM"};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChHendricksonPRIMAXX::ChHendricksonPRIMAXX(const std::string& name) : ChSuspension(name) {}
+ChHendricksonPRIMAXX::ChHendricksonPRIMAXX(const std::string& name) : ChSuspension(name) {
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -151,7 +167,7 @@ void ChHendricksonPRIMAXX::InitializeSide(ChVehicleSide side,
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
     chassis->GetSystem()->AddBody(m_spindle[side]);
-    
+
     // Create and initialize torque rod body.
     // Determine the rotation matrix of the torque rod based on the plane of the hard points
     // (z-axis along the length of the torque rod)
@@ -465,4 +481,5 @@ void ChHendricksonPRIMAXX::AddVisualizationKnuckle(ChSharedPtr<ChBody> knuckle,
     knuckle->AddAsset(col);
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

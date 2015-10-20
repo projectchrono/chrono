@@ -37,6 +37,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Base class for a Hendrickson PRIMAXX EX suspension.
@@ -59,10 +60,10 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual ~ChHendricksonPRIMAXX() {}
 
     /// Specify whether or not this suspension can be steered.
-    virtual bool IsSteerable() const { return true; }
+    virtual bool IsSteerable() const override { return true; }
 
     /// Specify whether or not this is an independent suspension.
-    virtual bool IsIndependent() const { return false; }
+    virtual bool IsIndependent() const override { return false; }
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
@@ -75,7 +76,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,         ///< [in] location relative to the chassis frame
                             ChSharedPtr<ChBody> tierod_body     ///< [in] body to which tireods are connected
-                            );
+                            ) override;
 
     /// There could be a spring (coil or air) and damper element between chassis and lower beam
     /// and a second spring and damper element between chassis and housing
@@ -105,7 +106,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     double GetShockAHVelocity(ChVehicleSide side) const { return m_shockAH[side]->Get_SpringVelocity(); }
 
     /// Log current constraint violations.
-    virtual void LogConstraintViolations(ChVehicleSide side);
+    virtual void LogConstraintViolations(ChVehicleSide side) override;
 
     /// Log the locations of all hardpoints.
     /// The reported locations are expressed in the suspension reference frame.
@@ -269,6 +270,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     static const std::string m_pointNames[NUM_POINTS];
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

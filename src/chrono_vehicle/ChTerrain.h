@@ -24,31 +24,28 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
-
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Base class for a height-field terrain system.
 ///
-class CH_VEHICLE_API ChTerrain : public ChShared
-{
-public:
+class CH_VEHICLE_API ChTerrain : public ChShared {
+  public:
+    ChTerrain() {}
+    virtual ~ChTerrain() {}
 
-  ChTerrain() {}
-  virtual ~ChTerrain() {}
+    virtual void Update(double time) {}
+    virtual void Advance(double step) {}
 
-  virtual void Update(double time) {}
-  virtual void Advance(double step) {}
+    /// Get the terrain height at the specified (x,y) location.
+    virtual double GetHeight(double x, double y) const = 0;
 
-  /// Get the terrain height at the specified (x,y) location.
-  virtual double GetHeight(double x, double y) const = 0;
-
-  /// Get the terrain normal at the specified (x,y) location.
-  virtual ChVector<> GetNormal(double x, double y) const = 0;
+    /// Get the terrain normal at the specified (x,y) location.
+    virtual ChVector<> GetNormal(double x, double y) const = 0;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

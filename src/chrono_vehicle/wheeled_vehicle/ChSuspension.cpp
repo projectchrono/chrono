@@ -16,33 +16,23 @@
 //
 // =============================================================================
 
-
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
-
 namespace chrono {
+namespace vehicle {
 
-
-ChSuspension::ChSuspension(const std::string& name)
-: m_name(name)
-{
+ChSuspension::ChSuspension(const std::string& name) : m_name(name) {
 }
 
-
-void ChSuspension::ApplyAxleTorque(ChVehicleSide side,
-                                   double        torque)
-{
-  m_axle[side]->SetAppliedTorque(torque);
+void ChSuspension::ApplyAxleTorque(ChVehicleSide side, double torque) {
+    m_axle[side]->SetAppliedTorque(torque);
 }
 
-
-void ChSuspension::Update(ChVehicleSide      side,
-                          const ChTireForce& tire_force)
-{
-  m_spindle[side]->Empty_forces_accumulators();
-  m_spindle[side]->Accumulate_force(tire_force.force, tire_force.point, false);
-  m_spindle[side]->Accumulate_torque(tire_force.moment, false);
+void ChSuspension::Update(ChVehicleSide side, const ChTireForce& tire_force) {
+    m_spindle[side]->Empty_forces_accumulators();
+    m_spindle[side]->Accumulate_force(tire_force.force, tire_force.point, false);
+    m_spindle[side]->Accumulate_torque(tire_force.moment, false);
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

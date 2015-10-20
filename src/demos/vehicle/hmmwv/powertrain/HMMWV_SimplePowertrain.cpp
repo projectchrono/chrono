@@ -22,6 +22,7 @@
 #include "hmmwv/powertrain/HMMWV_SimplePowertrain.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 namespace hmmwv {
 
@@ -29,17 +30,13 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 const double HMMWV_SimplePowertrain::m_max_torque = 2400 / 8.851;
-const double HMMWV_SimplePowertrain::m_max_speed  = 2000;
+const double HMMWV_SimplePowertrain::m_max_speed = 2000;
 const double HMMWV_SimplePowertrain::m_fwd_gear_ratio = 0.3;
 const double HMMWV_SimplePowertrain::m_rev_gear_ratio = -0.3;
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_SimplePowertrain::HMMWV_SimplePowertrain()
-: ChSimplePowertrain()
-{
+HMMWV_SimplePowertrain::HMMWV_SimplePowertrain() : ChSimplePowertrain() {
 }
 
-
-} // end namespace hmmwv
+}  // end namespace hmmwv

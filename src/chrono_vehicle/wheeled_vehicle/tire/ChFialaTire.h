@@ -31,6 +31,7 @@
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Fiala based tire model.
@@ -110,12 +111,12 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     };
 
     struct TireStates {
-        double cp_long_slip;  // Contact Path - Longitudinal Slip State (Kappa)
-        double cp_side_slip;  // Contact Path - Side Slip State (Alpha)
-        double abs_vx;  // Longitudinal speed
-        double vsx;  // Longitudinal slip velocity
-        double vsy;  // Lateral slip velocity = Lateral velocity
-        double omega;  // Wheel angular velocity about its spin axis (temporary for debug)
+        double cp_long_slip;     // Contact Path - Longitudinal Slip State (Kappa)
+        double cp_side_slip;     // Contact Path - Side Slip State (Alpha)
+        double abs_vx;           // Longitudinal speed
+        double vsx;              // Longitudinal slip velocity
+        double vsy;              // Lateral slip velocity = Lateral velocity
+        double omega;            // Wheel angular velocity about its spin axis (temporary for debug)
         ChVector<> disc_normal;  //(temporary for debug)
     };
 
@@ -125,6 +126,7 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     ChTireForce m_tireforce;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

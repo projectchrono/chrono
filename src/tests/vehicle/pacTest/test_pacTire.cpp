@@ -35,6 +35,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 int main(int argc, char* argv[]) {
     // Output directory names

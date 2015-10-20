@@ -25,6 +25,7 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
 class CH_VEHICLE_API RigidTire : public ChRigidTire {
   public:
@@ -42,6 +43,7 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
     double m_width;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

@@ -27,41 +27,36 @@
 
 #include "ModelDefs.h"
 
-class Generic_Wheel : public chrono::ChWheel
-{
-public:
+class Generic_Wheel : public chrono::vehicle::ChWheel {
+  public:
+    Generic_Wheel(VisualizationType visType) : m_visType(visType) {}
+    ~Generic_Wheel() {}
 
-  Generic_Wheel(VisualizationType  visType) : m_visType(visType) {}
-  ~Generic_Wheel() {}
+    virtual double GetMass() const override { return 45.4; }
+    virtual chrono::ChVector<> GetInertia() const override { return chrono::ChVector<>(0.113, 0.113, 0.113); }
 
-  virtual double GetMass() const { return 45.4; }
-  virtual chrono::ChVector<> GetInertia() const { return chrono::ChVector<>(0.113, 0.113, 0.113); }
+    virtual void Initialize(chrono::ChSharedPtr<chrono::ChBody> spindle) override {
+        // First, invoke the base class method
+        chrono::vehicle::ChWheel::Initialize(spindle);
 
-  virtual void Initialize(chrono::ChSharedPtr<chrono::ChBody> spindle)
-  {
-    // First, invoke the base class method
-    chrono::ChWheel::Initialize(spindle);
+        // Attach visualization
+        if (m_visType == PRIMITIVES) {
+            double radius = 0.47;
+            double width = 0.25;
+            chrono::ChSharedPtr<chrono::ChCylinderShape> cyl(new chrono::ChCylinderShape);
+            cyl->GetCylinderGeometry().rad = radius;
+            cyl->GetCylinderGeometry().p1 = chrono::ChVector<>(0, width / 2, 0);
+            cyl->GetCylinderGeometry().p2 = chrono::ChVector<>(0, -width / 2, 0);
+            spindle->AddAsset(cyl);
 
-    // Attach visualization
-    if (m_visType == PRIMITIVES) {
-      double radius = 0.47;
-      double width = 0.25;
-      chrono::ChSharedPtr<chrono::ChCylinderShape> cyl(new chrono::ChCylinderShape);
-      cyl->GetCylinderGeometry().rad = radius;
-      cyl->GetCylinderGeometry().p1 = chrono::ChVector<>(0, width / 2, 0);
-      cyl->GetCylinderGeometry().p2 = chrono::ChVector<>(0, -width / 2, 0);
-      spindle->AddAsset(cyl);
-
-      chrono::ChSharedPtr<chrono::ChTexture> tex(new chrono::ChTexture);
-      tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
-      spindle->AddAsset(tex);
+            chrono::ChSharedPtr<chrono::ChTexture> tex(new chrono::ChTexture);
+            tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
+            spindle->AddAsset(tex);
+        }
     }
-  }
 
-private:
-
-  VisualizationType  m_visType;
+  private:
+    VisualizationType m_visType;
 };
-
 
 #endif

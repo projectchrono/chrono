@@ -30,53 +30,49 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Base class for an anti-roll bar subsystem.
 ///
-class CH_VEHICLE_API ChAntirollBar : public ChShared
-{
-public:
+class CH_VEHICLE_API ChAntirollBar : public ChShared {
+  public:
+    ChAntirollBar(const std::string& name  ///< [in] name of the subsystem
+                  );
 
-  ChAntirollBar(
-    const std::string& name          ///< [in] name of the subsystem
-    );
+    virtual ~ChAntirollBar() {}
 
-  virtual ~ChAntirollBar() {}
+    /// Get the name identifier for this suspension subsystem.
+    const std::string& GetName() const { return m_name; }
 
-  /// Get the name identifier for this suspension subsystem.
-  const std::string& GetName() const { return m_name; }
+    /// Set the name identifier for this suspension subsystem.
+    void SetName(const std::string& name) { m_name = name; }
 
-  /// Set the name identifier for this suspension subsystem.
-  void SetName(const std::string& name) { m_name = name; }
+    /// Initialize this anti-roll bar subsystem.
+    /// The anti-roll bar subsystem is initialized by attaching it to the specified
+    /// chassis body at the specified location (with respect to and expressed in
+    /// the reference frame of the chassis). It is assumed that the suspension
+    /// reference frame is always aligned with the chassis reference frame.
+    /// Finally, susp_body_left and susp_body_right are handles to the suspension
+    /// bodies to which the anti-roll bar's droplinks are to be attached.
+    virtual void Initialize(
+        ChSharedPtr<ChBodyAuxRef> chassis,   ///< [in] handle to the chassis body
+        const ChVector<>& location,          ///< [in] location relative to the chassis frame
+        ChSharedPtr<ChBody> susp_body_left,  ///< [in] susp body to which left droplink is connected
+        ChSharedPtr<ChBody> susp_body_right  ///< [in] susp body to which right droplink is connected
+        ) = 0;
 
-  /// Initialize this anti-roll bar subsystem.
-  /// The anti-roll bar subsystem is initialized by attaching it to the specified
-  /// chassis body at the specified location (with respect to and expressed in
-  /// the reference frame of the chassis). It is assumed that the suspension
-  /// reference frame is always aligned with the chassis reference frame.
-  /// Finally, susp_body_left and susp_body_right are handles to the suspension
-  /// bodies to which the anti-roll bar's droplinks are to be attached.
-  virtual void Initialize(
-    ChSharedPtr<ChBodyAuxRef>  chassis,         ///< [in] handle to the chassis body
-    const ChVector<>&          location,        ///< [in] location relative to the chassis frame
-    ChSharedPtr<ChBody>        susp_body_left,  ///< [in] susp body to which left droplink is connected
-    ChSharedPtr<ChBody>        susp_body_right  ///< [in] susp body to which right droplink is connected
-    ) = 0;
+    /// Log current constraint violations.
+    virtual void LogConstraintViolations() {}
 
-  /// Log current constraint violations.
-  virtual void LogConstraintViolations() {}
-
-protected:
-
-  std::string  m_name;    ///< name of the subsystem
+  protected:
+    std::string m_name;  ///< name of the subsystem
 };
 
 /// Vector of handles to antirollbar subsystems.
-typedef std::vector<ChSharedPtr<ChAntirollBar> >  ChAntirollbarList;
+typedef std::vector<ChSharedPtr<ChAntirollBar> > ChAntirollbarList;
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

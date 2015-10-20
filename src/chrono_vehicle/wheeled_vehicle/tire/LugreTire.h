@@ -25,6 +25,7 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
 class CH_VEHICLE_API LugreTire : public ChLugreTire {
   public:
@@ -52,6 +53,7 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
     double m_normalDamping;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

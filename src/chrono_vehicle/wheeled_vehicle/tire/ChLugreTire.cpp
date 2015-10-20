@@ -31,6 +31,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChLugreTire.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -224,4 +225,5 @@ void ChLugreTire::Advance(double step) {
     }  // end loop over discs
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

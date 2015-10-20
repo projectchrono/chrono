@@ -25,45 +25,41 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
+  public:
+    HendricksonPRIMAXX(const std::string& filename);
+    HendricksonPRIMAXX(const rapidjson::Document& d);
+    ~HendricksonPRIMAXX();
 
-class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX
-{
-public:
+    virtual double getSpindleMass() const override { return m_spindleMass; }
 
-  HendricksonPRIMAXX(const std::string& filename);
-  HendricksonPRIMAXX(const rapidjson::Document& d);
-  ~HendricksonPRIMAXX();
+    virtual double getSpindleRadius() const override { return m_spindleRadius; }
+    virtual double getSpindleWidth() const override { return m_spindleWidth; }
 
-  virtual double getSpindleMass() const { return m_spindleMass; }
+    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
 
-  virtual double getSpindleRadius() const { return m_spindleRadius; }
-  virtual double getSpindleWidth() const { return m_spindleWidth; }
+    virtual double getAxleInertia() const override { return m_axleInertia; }
 
-  virtual const ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
+  private:
+    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
 
-  virtual double getAxleInertia() const { return m_axleInertia; }
+    void Create(const rapidjson::Document& d);
 
-private:
+    ChVector<> m_points[NUM_POINTS];
 
-  virtual const ChVector<> getLocation(PointId which) { return m_points[which]; }
+    double m_spindleMass;
 
-  void Create(const rapidjson::Document& d);
+    double m_spindleRadius;
+    double m_spindleWidth;
 
-  ChVector<>  m_points[NUM_POINTS];
+    ChVector<> m_spindleInertia;
 
-  double      m_spindleMass;
-
-  double      m_spindleRadius;
-  double      m_spindleWidth;
-
-  ChVector<>  m_spindleInertia;
-
-  double      m_axleInertia;
+    double m_axleInertia;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

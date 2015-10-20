@@ -25,6 +25,7 @@
 using namespace irr;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -78,4 +79,5 @@ void ChIrrGuiDriverSTR::SetDisplacementRight(double vertical_disp) {
     m_displacementRight = ChClamp(vertical_disp, m_minDisplacement, m_maxDisplacement);
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

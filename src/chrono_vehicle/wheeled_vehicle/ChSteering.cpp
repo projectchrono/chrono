@@ -16,17 +16,13 @@
 //
 // =============================================================================
 
-
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 
-
 namespace chrono {
+namespace vehicle {
 
-
-ChSteering::ChSteering(const std::string& name)
-: m_name(name)
-{
+ChSteering::ChSteering(const std::string& name) : m_name(name) {
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

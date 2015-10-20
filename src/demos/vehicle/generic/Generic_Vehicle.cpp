@@ -39,7 +39,7 @@
 #include "generic/Generic_BrakeSimple.h"
 
 using namespace chrono;
-
+using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 // Static variables

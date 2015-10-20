@@ -24,6 +24,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 namespace chrono {
+namespace vehicle {
 
 ChTire::ChTire(const std::string& name) : m_name(name) {
 }
@@ -84,4 +85,5 @@ bool ChTire::disc_terrain_contact(const ChTerrain& terrain,
     return true;
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

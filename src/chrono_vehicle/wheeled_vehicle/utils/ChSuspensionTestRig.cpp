@@ -47,6 +47,7 @@
 using namespace rapidjson;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // These utility functions return a ChVector and a ChQuaternion, respectively,
@@ -502,4 +503,5 @@ void ChSuspensionTestRig::AddVisualize_post(ChSharedPtr<ChBody> post_body,
     ground_body->AddAsset(cyl);
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

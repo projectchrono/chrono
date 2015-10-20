@@ -36,6 +36,7 @@
 using namespace irr;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Implementation of the custom Irrlicht event receiver for camera control
@@ -429,4 +430,5 @@ void ChVehicleIrrApp::renderStats() {
     renderTextBox(msg, m_HUD_x + 140, m_HUD_y + 100, 120, 15, irr::video::SColor(255, 250, 200, 00));
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

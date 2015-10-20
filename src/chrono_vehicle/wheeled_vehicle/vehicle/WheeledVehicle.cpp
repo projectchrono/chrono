@@ -51,6 +51,7 @@
 using namespace rapidjson;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // These utility functions return a ChVector and a ChQuaternion, respectively,
@@ -473,4 +474,5 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos) {
     m_driveline->Initialize(m_chassis, m_suspensions, m_driven_susp);
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

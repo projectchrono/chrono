@@ -25,6 +25,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -388,7 +389,8 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
     // Check contact with terrain, using a disc of radius R0.
     ChCoordsys<> contact_frame;
     double depth;
-    m_in_contact = disc_terrain_contact(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0, contact_frame, depth);
+    m_in_contact =
+        disc_terrain_contact(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0, contact_frame, depth);
 
     // set the depth if there is contact with terrain
     m_depth = (m_in_contact) ? depth : 0;
@@ -1823,4 +1825,5 @@ ChWheelState ChPacejkaTire::getState_from_KAG(double kappa, double alpha, double
     return state;
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

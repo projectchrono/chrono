@@ -25,51 +25,47 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API PitmanArm : public ChPitmanArm {
+  public:
+    PitmanArm(const std::string& filename);
+    PitmanArm(const rapidjson::Document& d);
+    ~PitmanArm() {}
 
-class CH_VEHICLE_API PitmanArm : public ChPitmanArm
-{
-public:
+    virtual double getSteeringLinkMass() const override { return m_steeringLinkMass; }
+    virtual double getPitmanArmMass() const override { return m_pitmanArmMass; }
 
-  PitmanArm(const std::string& filename);
-  PitmanArm(const rapidjson::Document& d);
-  ~PitmanArm() {}
+    virtual double getSteeringLinkRadius() const override { return m_steeringLinkRadius; }
+    virtual double getPitmanArmRadius() const override { return m_pitmanArmRadius; }
 
-  virtual double getSteeringLinkMass() const { return m_steeringLinkMass; }
-  virtual double getPitmanArmMass() const    { return m_pitmanArmMass; }
+    virtual const ChVector<>& getSteeringLinkInertia() const override { return m_steeringLinkInertia; }
+    virtual const ChVector<>& getPitmanArmInertia() const override { return m_pitmanArmInertia; }
 
-  virtual double getSteeringLinkRadius() const { return m_steeringLinkRadius; }
-  virtual double getPitmanArmRadius() const    { return m_pitmanArmRadius; }
+    virtual double getMaxAngle() const override { return m_maxAngle; }
 
-  virtual const ChVector<>& getSteeringLinkInertia() const { return m_steeringLinkInertia; }
-  virtual const ChVector<>& getPitmanArmInertia() const    { return m_pitmanArmInertia; }
+    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector<> getDirection(DirectionId which) override { return m_dirs[which]; }
 
-  virtual double getMaxAngle() const { return m_maxAngle; }
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual const ChVector<> getLocation(PointId which)      { return m_points[which]; }
-  virtual const ChVector<> getDirection(DirectionId which) { return m_dirs[which]; }
+    ChVector<> m_points[NUM_POINTS];
+    ChVector<> m_dirs[NUM_DIRS];
 
-private:
+    double m_steeringLinkMass;
+    double m_pitmanArmMass;
 
-  void Create(const rapidjson::Document& d);
+    double m_steeringLinkRadius;
+    double m_pitmanArmRadius;
 
-  ChVector<>  m_points[NUM_POINTS];
-  ChVector<>  m_dirs[NUM_DIRS];
+    double m_maxAngle;
 
-  double      m_steeringLinkMass;
-  double      m_pitmanArmMass;
-
-  double      m_steeringLinkRadius;
-  double      m_pitmanArmRadius;
-
-  double      m_maxAngle;
-
-  ChVector<>  m_steeringLinkInertia;
-  ChVector<>  m_pitmanArmInertia;
+    ChVector<> m_steeringLinkInertia;
+    ChVector<> m_pitmanArmInertia;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

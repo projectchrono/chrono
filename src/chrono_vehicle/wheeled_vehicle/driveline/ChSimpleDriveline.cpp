@@ -24,14 +24,12 @@
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChSimpleDriveline.h"
 
 namespace chrono {
-
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Construct a default 4WD simple driveline.
 // -----------------------------------------------------------------------------
-ChSimpleDriveline::ChSimpleDriveline()
-: ChDriveline()
-{
+ChSimpleDriveline::ChSimpleDriveline() : ChDriveline() {
 }
 
 // -----------------------------------------------------------------------------
@@ -39,31 +37,29 @@ ChSimpleDriveline::ChSimpleDriveline()
 // This function connects this driveline subsystem to the axles of the specified
 // suspension subsystems.
 // -----------------------------------------------------------------------------
-void ChSimpleDriveline::Initialize(ChSharedPtr<ChBody>     chassis,
+void ChSimpleDriveline::Initialize(ChSharedPtr<ChBody> chassis,
                                    const ChSuspensionList& suspensions,
-                                   const std::vector<int>& driven_axles)
-{
-  assert(suspensions.size() >= 2);
+                                   const std::vector<int>& driven_axles) {
+    assert(suspensions.size() >= 2);
 
-  m_driven_axles = driven_axles;
+    m_driven_axles = driven_axles;
 
-  // Grab handles to the suspension wheel shafts.
-  m_front_left  = suspensions[m_driven_axles[0]]->GetAxle(LEFT);
-  m_front_right = suspensions[m_driven_axles[0]]->GetAxle(RIGHT);
+    // Grab handles to the suspension wheel shafts.
+    m_front_left = suspensions[m_driven_axles[0]]->GetAxle(LEFT);
+    m_front_right = suspensions[m_driven_axles[0]]->GetAxle(RIGHT);
 
-  m_rear_left   = suspensions[m_driven_axles[1]]->GetAxle(LEFT);
-  m_rear_right  = suspensions[m_driven_axles[1]]->GetAxle(RIGHT);
+    m_rear_left = suspensions[m_driven_axles[1]]->GetAxle(LEFT);
+    m_rear_right = suspensions[m_driven_axles[1]]->GetAxle(RIGHT);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChSimpleDriveline::GetDriveshaftSpeed() const
-{
-  double speed_front = 0.5 * (m_front_left->GetPos_dt() + m_front_right->GetPos_dt());
-  double speed_rear  = 0.5 * (m_rear_left->GetPos_dt() + m_rear_right->GetPos_dt());
-  double alpha = GetFrontTorqueFraction();
+double ChSimpleDriveline::GetDriveshaftSpeed() const {
+    double speed_front = 0.5 * (m_front_left->GetPos_dt() + m_front_right->GetPos_dt());
+    double speed_rear = 0.5 * (m_rear_left->GetPos_dt() + m_rear_right->GetPos_dt());
+    double alpha = GetFrontTorqueFraction();
 
-  return alpha * speed_front + (1 - alpha) * speed_rear;
+    return alpha * speed_front + (1 - alpha) * speed_rear;
 }
 
 // -----------------------------------------------------------------------------
@@ -77,75 +73,74 @@ void differentialSplit(double torque,
                        double speed_left,
                        double speed_right,
                        double& torque_left,
-                       double& torque_right)
-{
-  double diff = std::abs(speed_left - speed_right);
+                       double& torque_right) {
+    double diff = std::abs(speed_left - speed_right);
 
-  // The bias grows from 1 at diff=0.25 to max_bias at diff=0.5
-  double bias = 1;
-  if (diff > 0.5)
-    bias = max_bias;
-  else if (diff > 0.25)
-    bias = 4 * (max_bias - 1) * diff + (2 - max_bias);
+    // The bias grows from 1 at diff=0.25 to max_bias at diff=0.5
+    double bias = 1;
+    if (diff > 0.5)
+        bias = max_bias;
+    else if (diff > 0.25)
+        bias = 4 * (max_bias - 1) * diff + (2 - max_bias);
 
-  // Split torque to the slow and fast wheels.
-  double alpha = bias / (1 + bias);
-  double slow = alpha * torque;
-  double fast = torque - slow;
+    // Split torque to the slow and fast wheels.
+    double alpha = bias / (1 + bias);
+    double slow = alpha * torque;
+    double fast = torque - slow;
 
-  if (std::abs(speed_left) < std::abs(speed_right)) {
-    torque_left = slow;
-    torque_right = fast;
-  } else {
-    torque_left = fast;
-    torque_right = slow;
-  }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSimpleDriveline::Update(double torque)
-{
-  // Split the input torque front/back.
-  double torque_front = torque * GetFrontTorqueFraction();
-  double torque_rear = torque - torque_front;
-
-  // Split the axle torques for the corresponding left/right wheels and apply
-  // them to the suspension wheel shafts.
-  double torque_left;
-  double torque_right;
-
-  differentialSplit(torque_front, GetFrontDifferentialMaxBias(),
-                    m_front_left->GetPos_dt(), m_front_right->GetPos_dt(),
-                    torque_left, torque_right);
-  m_front_left->SetAppliedTorque(-torque_left);
-  m_front_right->SetAppliedTorque(-torque_right);
-
-  differentialSplit(torque_rear, GetRearDifferentialMaxBias(),
-                    m_rear_left->GetPos_dt(), m_rear_right->GetPos_dt(),
-                    torque_left, torque_right);
-  m_rear_left->SetAppliedTorque(-torque_left);
-  m_rear_right->SetAppliedTorque(-torque_right);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChSimpleDriveline::GetWheelTorque(const ChWheelID& wheel_id) const
-{
-  if (wheel_id.axle() == m_driven_axles[0]) {
-    switch (wheel_id.side()) {
-    case LEFT:  return -m_front_left->GetAppliedTorque();
-    case RIGHT: return -m_front_right->GetAppliedTorque();
+    if (std::abs(speed_left) < std::abs(speed_right)) {
+        torque_left = slow;
+        torque_right = fast;
+    } else {
+        torque_left = fast;
+        torque_right = slow;
     }
-  } else if (wheel_id.axle() == m_driven_axles[1]) {
-    switch (wheel_id.side()) {
-    case LEFT:  return -m_rear_left->GetAppliedTorque();
-    case RIGHT: return -m_rear_right->GetAppliedTorque();
-    }
-  }
-
-  return 0;
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChSimpleDriveline::Update(double torque) {
+    // Split the input torque front/back.
+    double torque_front = torque * GetFrontTorqueFraction();
+    double torque_rear = torque - torque_front;
 
-} // end namespace chrono
+    // Split the axle torques for the corresponding left/right wheels and apply
+    // them to the suspension wheel shafts.
+    double torque_left;
+    double torque_right;
+
+    differentialSplit(torque_front, GetFrontDifferentialMaxBias(), m_front_left->GetPos_dt(),
+                      m_front_right->GetPos_dt(), torque_left, torque_right);
+    m_front_left->SetAppliedTorque(-torque_left);
+    m_front_right->SetAppliedTorque(-torque_right);
+
+    differentialSplit(torque_rear, GetRearDifferentialMaxBias(), m_rear_left->GetPos_dt(), m_rear_right->GetPos_dt(),
+                      torque_left, torque_right);
+    m_rear_left->SetAppliedTorque(-torque_left);
+    m_rear_right->SetAppliedTorque(-torque_right);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double ChSimpleDriveline::GetWheelTorque(const ChWheelID& wheel_id) const {
+    if (wheel_id.axle() == m_driven_axles[0]) {
+        switch (wheel_id.side()) {
+            case LEFT:
+                return -m_front_left->GetAppliedTorque();
+            case RIGHT:
+                return -m_front_right->GetAppliedTorque();
+        }
+    } else if (wheel_id.axle() == m_driven_axles[1]) {
+        switch (wheel_id.side()) {
+            case LEFT:
+                return -m_rear_left->GetAppliedTorque();
+            case RIGHT:
+                return -m_rear_right->GetAppliedTorque();
+        }
+    }
+
+    return 0;
+}
+
+}  // end namespace vehicle
+}  // end namespace chrono

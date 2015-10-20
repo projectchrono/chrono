@@ -35,6 +35,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
 namespace chrono {
+namespace vehicle {
 
 template <typename T>
 int sgn(T val) {
@@ -235,4 +236,5 @@ void ChFialaTire::Advance(double step) {
     // Else do nothing since the "m_tireForce" force and moment values are already 0 (set in Update())
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

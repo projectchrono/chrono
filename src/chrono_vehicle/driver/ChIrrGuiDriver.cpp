@@ -30,6 +30,7 @@
 using namespace irr;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -176,4 +177,5 @@ std::string ChIrrGuiDriver::GetInputModeAsString() const {
     return std::string("");
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

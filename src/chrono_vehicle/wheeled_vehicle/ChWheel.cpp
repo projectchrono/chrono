@@ -23,18 +23,16 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
-
 namespace chrono {
-
+namespace vehicle {
 
 // The base class initialization function attaches this wheel to the specified
 // suspension spindle body (by incrementing the spindle's mass and inertia with
 // that of the wheel.  A derived class should always invoke this base method.
-void ChWheel::Initialize(ChSharedPtr<ChBody> spindle)
-{
-  spindle->SetMass(spindle->GetMass() + GetMass());
-  spindle->SetInertiaXX(spindle->GetInertiaXX() + GetInertia());
+void ChWheel::Initialize(ChSharedPtr<ChBody> spindle) {
+    spindle->SetMass(spindle->GetMass() + GetMass());
+    spindle->SetInertiaXX(spindle->GetInertiaXX() + GetInertia());
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

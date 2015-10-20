@@ -50,6 +50,7 @@
 #endif
 
 using namespace chrono;
+using namespace chrono::vehicle;
 using namespace irr;
 
 // =============================================================================
@@ -66,9 +67,8 @@ class ChFunction_SlipAngle : public ChFunction {
   public:
     ChFunction* new_Duplicate() { return new ChFunction_SlipAngle; }
 
-    
     double Get_y(double t) {
-		// Ramp for 1 second and stay at that value (scale)
+        // Ramp for 1 second and stay at that value (scale)
         double delay = 0.1;
         double scale = -10.0 / 180 * CH_C_PI;
         if (t <= delay)
@@ -78,10 +78,10 @@ class ChFunction_SlipAngle : public ChFunction {
             return scale;
         return t1 * scale;
 
-		// 0.1Hz Sine Wave with an Amplitude of 10 degs
-        //double amplitude = -10. / 180 * CH_C_PI;
-        //double freq = .1 * 2 * CH_C_PI;
-        //return(amplitude*std::sin(freq*t));		
+        // 0.1Hz Sine Wave with an Amplitude of 10 degs
+        // double amplitude = -10. / 180 * CH_C_PI;
+        // double freq = .1 * 2 * CH_C_PI;
+        // return(amplitude*std::sin(freq*t));
     }
 };
 

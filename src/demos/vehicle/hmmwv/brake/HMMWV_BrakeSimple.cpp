@@ -19,6 +19,7 @@
 #include "hmmwv/brake/HMMWV_BrakeSimple.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 namespace hmmwv {
 
@@ -26,14 +27,11 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double  HMMWV_BrakeSimple::m_maxtorque = 4000;
-
+const double HMMWV_BrakeSimple::m_maxtorque = 4000;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_BrakeSimple::HMMWV_BrakeSimple()
-{
+HMMWV_BrakeSimple::HMMWV_BrakeSimple() {
 }
-
 
 }  // end namespace hmmwv

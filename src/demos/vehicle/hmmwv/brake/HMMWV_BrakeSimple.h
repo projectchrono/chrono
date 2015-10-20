@@ -23,21 +23,17 @@
 
 namespace hmmwv {
 
+class HMMWV_BrakeSimple : public chrono::vehicle::ChBrakeSimple {
+  public:
+    HMMWV_BrakeSimple();
+    virtual ~HMMWV_BrakeSimple() {}
 
-class  HMMWV_BrakeSimple : public chrono::ChBrakeSimple {
-public:
+    virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
 
-  HMMWV_BrakeSimple();
-  virtual ~HMMWV_BrakeSimple() {}
-
-  virtual double GetMaxBrakingTorque() { return m_maxtorque; }
-
-private:
-  static const double m_maxtorque;
+  private:
+    static const double m_maxtorque;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace chrono
 
 #endif

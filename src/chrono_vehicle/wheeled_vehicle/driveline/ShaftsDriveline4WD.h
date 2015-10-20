@@ -26,50 +26,47 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API ShaftsDriveline4WD : public ChShaftsDriveline4WD {
+  public:
+    ShaftsDriveline4WD(const std::string& filename);
+    ShaftsDriveline4WD(const rapidjson::Document& d);
+    ~ShaftsDriveline4WD() {}
 
-class CH_VEHICLE_API ShaftsDriveline4WD : public ChShaftsDriveline4WD
-{
-public:
+    virtual double GetCentralDifferentialBoxInertia() const override { return m_central_differentialbox_inertia; }
+    virtual double GetFrontDifferentialBoxInertia() const override { return m_front_differentialbox_inertia; }
+    virtual double GetRearDifferentialBoxInertia() const override { return m_rear_differentialbox_inertia; }
+    virtual double GetDriveshaftInertia() const override { return m_driveshaft_inertia; }
+    virtual double GetToFrontDiffShaftInertia() const override { return m_frontshaft_inertia; }
+    virtual double GetToRearDiffShaftInertia() const override { return m_rearshaft_inertia; }
 
-  ShaftsDriveline4WD(const std::string& filename);
-  ShaftsDriveline4WD(const rapidjson::Document& d);
-  ~ShaftsDriveline4WD() {}
+    virtual double GetCentralDifferentialRatio() const override { return m_central_differential_ratio; }
+    virtual double GetFrontDifferentialRatio() const override { return m_front_differential_ratio; }
+    virtual double GetRearDifferentialRatio() const override { return m_rear_differential_ratio; }
+    virtual double GetFrontConicalGearRatio() const override { return m_front_conicalgear_ratio; }
+    virtual double GetRearConicalGearRatio() const override { return m_rear_conicalgear_ratio; }
 
-  virtual double GetCentralDifferentialBoxInertia() const { return m_central_differentialbox_inertia; }
-  virtual double GetFrontDifferentialBoxInertia() const { return m_front_differentialbox_inertia; }
-  virtual double GetRearDifferentialBoxInertia() const { return m_rear_differentialbox_inertia; }
-  virtual double GetDriveshaftInertia() const { return m_driveshaft_inertia; }
-  virtual double GetToFrontDiffShaftInertia() const { return m_frontshaft_inertia; }
-  virtual double GetToRearDiffShaftInertia() const { return m_rearshaft_inertia; }
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual double GetCentralDifferentialRatio() const { return m_central_differential_ratio; }
-  virtual double GetFrontDifferentialRatio() const { return m_front_differential_ratio; }
-  virtual double GetRearDifferentialRatio() const { return m_rear_differential_ratio; }
-  virtual double GetFrontConicalGearRatio() const { return m_front_conicalgear_ratio; }
-  virtual double GetRearConicalGearRatio() const { return m_rear_conicalgear_ratio; }
+    // Shaft inertias.
+    double m_central_differentialbox_inertia;
+    double m_front_differentialbox_inertia;
+    double m_rear_differentialbox_inertia;
+    double m_driveshaft_inertia;
+    double m_frontshaft_inertia;
+    double m_rearshaft_inertia;
 
-private:
-  void Create(const rapidjson::Document& d);
-
-  // Shaft inertias.
-  double  m_central_differentialbox_inertia;
-  double  m_front_differentialbox_inertia;
-  double  m_rear_differentialbox_inertia;
-  double  m_driveshaft_inertia;
-  double  m_frontshaft_inertia;
-  double  m_rearshaft_inertia;
-
-  // Gear ratios.
-  double  m_central_differential_ratio;
-  double  m_front_differential_ratio;
-  double  m_rear_differential_ratio;
-  double  m_front_conicalgear_ratio;
-  double  m_rear_conicalgear_ratio;
+    // Gear ratios.
+    double m_central_differential_ratio;
+    double m_front_differential_ratio;
+    double m_rear_differential_ratio;
+    double m_front_conicalgear_ratio;
+    double m_rear_conicalgear_ratio;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

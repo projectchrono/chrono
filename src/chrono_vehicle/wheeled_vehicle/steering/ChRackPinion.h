@@ -30,6 +30,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Base class for a Rack-Pinion steering subsystem.
@@ -41,71 +42,63 @@ namespace chrono {
 /// pinion but instead use the implied rack-pinion constraint to calculate the
 /// rack displacement from a given pinion rotation angle.
 ///
-class CH_VEHICLE_API ChRackPinion : public ChSteering
-{
-public:
+class CH_VEHICLE_API ChRackPinion : public ChSteering {
+  public:
+    /// Construct a rack-pinion steering mechanism with given base name.
+    ChRackPinion(const std::string& name  ///< [in] name of the subsystem
+                 );
 
-  /// Construct a rack-pinion steering mechanism with given base name.
-  ChRackPinion(
-    const std::string& name    ///< [in] name of the subsystem
-    );
+    virtual ~ChRackPinion() {}
 
-  virtual ~ChRackPinion() {}
+    /// Initialize the steering subsystem.
+    /// This attached the steering mechanism to the specified chassis body at the
+    /// given offset and orientation, relative to the frame of the chassis.
+    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< pin] handle to the chassis body
+                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+                            ) override;
 
-  /// Initialize the steering subsystem.
-  /// This attached the steering mechanism to the specified chassis body at the
-  /// given offset and orientation, relative to the frame of the chassis.
-  virtual void Initialize(
-    ChSharedPtr<ChBodyAuxRef> chassis,   ///< pin] handle to the chassis body
-    const ChVector<>&         location,  ///< [in] location relative to the chassis frame
-    const ChQuaternion<>&     rotation   ///< [in] orientation relative to the chassis frame
-    );
+    /// Update the state of this steering subsystem at the current time.
+    /// The steering subsystem is provided the current steering driver input (a
+    /// value between -1 and +1).  Positive steering input indicates steering
+    /// to the left. This function is called during the vehicle update.
+    virtual void Update(double time,     ///< [in] current time
+                        double steering  ///< [in] current steering input [-1,+1]
+                        ) override;
 
-  /// Update the state of this steering subsystem at the current time.
-  /// The steering subsystem is provided the current steering driver input (a
-  /// value between -1 and +1).  Positive steering input indicates steering
-  /// to the left. This function is called during the vehicle update.
-  virtual void Update(
-    double time,       ///< [in] current time
-    double steering    ///< [in] current steering input [-1,+1]
-    );
+    /// Log current constraint violations.
+    virtual void LogConstraintViolations() override;
 
-  /// Log current constraint violations.
-  virtual void LogConstraintViolations();
+  protected:
+    /// Return the mass of the steering link.
+    virtual double GetSteeringLinkMass() const = 0;
 
-protected:
+    /// Return the moments of inertia of the steering link.
+    virtual ChVector<> GetSteeringLinkInertia() const = 0;
 
-  /// Return the mass of the steering link.
-  virtual double GetSteeringLinkMass() const = 0;
+    /// Return the steering link COM offset in Y direction (positive to the left).
+    virtual double GetSteeringLinkCOM() const = 0;
 
-  /// Return the moments of inertia of the steering link.
-  virtual ChVector<> GetSteeringLinkInertia() const = 0;
+    /// Return the radius of the steering link (visualization only).
+    virtual double GetSteeringLinkRadius() const = 0;
 
-  /// Return the steering link COM offset in Y direction (positive to the left).
-  virtual double GetSteeringLinkCOM() const = 0;
+    /// Return the length of the steering link (visualization only).
+    virtual double GetSteeringLinkLength() const = 0;
 
-  /// Return the radius of the steering link (visualization only).
-  virtual double GetSteeringLinkRadius() const = 0;
+    /// Return the radius of the pinion.
+    virtual double GetPinionRadius() const = 0;
 
-  /// Return the length of the steering link (visualization only).
-  virtual double GetSteeringLinkLength() const = 0;
+    /// Return the maximum rotation angle of the pinion (in either direction).
+    virtual double GetMaxAngle() const = 0;
 
-  /// Return the radius of the pinion.
-  virtual double GetPinionRadius() const = 0;
+    ChSharedPtr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
+    ChSharedPtr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
 
-  /// Return the maximum rotation angle of the pinion (in either direction).
-  virtual double GetMaxAngle() const = 0;
-
-  ChSharedPtr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
-  ChSharedPtr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
-
-private:
-
-  void AddVisualizationSteeringLink();
+  private:
+    void AddVisualizationSteeringLink();
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

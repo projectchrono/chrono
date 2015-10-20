@@ -30,6 +30,7 @@
 #include "chrono_vehicle/utils/ChSpeedController.h"
 
 namespace chrono {
+namespace vehicle {
 
 class CH_VEHICLE_API ChPathFollowerDriver : public ChDriver {
   public:
@@ -70,6 +71,7 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChDriver {
     double m_throttle_threshold;             ///< throttle value below which brakes are applied
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

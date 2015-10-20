@@ -23,13 +23,15 @@
 
 namespace hmmwv {
 
-class HMMWV_FialaTire : public chrono::ChFialaTire {
+class HMMWV_FialaTire : public chrono::vehicle::ChFialaTire {
   public:
     HMMWV_FialaTire(const std::string& name);
     ~HMMWV_FialaTire() {}
 
     virtual double getNormalStiffnessForce(double depth) const override;
-    virtual double getNormalDampingForce(double depth, double velocity) const override { return m_normalDamping * velocity; }
+    virtual double getNormalDampingForce(double depth, double velocity) const override {
+        return m_normalDamping * velocity;
+    }
 
     virtual void SetFialaParams();
 

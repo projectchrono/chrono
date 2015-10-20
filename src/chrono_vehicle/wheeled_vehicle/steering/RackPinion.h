@@ -25,42 +25,38 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API RackPinion : public ChRackPinion {
+  public:
+    RackPinion(const std::string& filename);
+    RackPinion(const rapidjson::Document& d);
+    ~RackPinion() {}
 
-class CH_VEHICLE_API RackPinion : public ChRackPinion
-{
-public:
+    virtual double GetSteeringLinkMass() const override { return m_steeringLinkMass; }
+    virtual ChVector<> GetSteeringLinkInertia() const override { return m_steeringLinkInertia; }
+    virtual double GetSteeringLinkCOM() const override { return m_steeringLinkCOM; }
+    virtual double GetSteeringLinkRadius() const override { return m_steeringLinkRadius; }
+    virtual double GetSteeringLinkLength() const override { return m_steeringLinkLength; }
 
-  RackPinion(const std::string& filename);
-  RackPinion(const rapidjson::Document& d);
-  ~RackPinion() {}
+    virtual double GetPinionRadius() const override { return m_pinionRadius; }
 
-  virtual double GetSteeringLinkMass() const         { return m_steeringLinkMass; }
-  virtual ChVector<> GetSteeringLinkInertia() const  { return m_steeringLinkInertia; }
-  virtual double GetSteeringLinkCOM() const          { return m_steeringLinkCOM; }
-  virtual double GetSteeringLinkRadius() const       { return m_steeringLinkRadius; }
-  virtual double GetSteeringLinkLength() const       { return m_steeringLinkLength; }
+    virtual double GetMaxAngle() const override { return m_maxAngle; }
 
-  virtual double GetPinionRadius() const             { return m_pinionRadius; }
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual double GetMaxAngle() const                 { return m_maxAngle; }
+    double m_steeringLinkMass;
+    ChVector<> m_steeringLinkInertia;
+    double m_steeringLinkCOM;
+    double m_steeringLinkRadius;
+    double m_steeringLinkLength;
 
-private:
-
-  void Create(const rapidjson::Document& d);
-
-  double      m_steeringLinkMass;
-  ChVector<>  m_steeringLinkInertia;
-  double      m_steeringLinkCOM;
-  double      m_steeringLinkRadius;
-  double      m_steeringLinkLength;
-
-  double      m_pinionRadius;
-  double      m_maxAngle;
+    double m_pinionRadius;
+    double m_maxAngle;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

@@ -22,7 +22,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPowertrain.h"
 
-#include "chrono/physics/ChShaftsGear.h" 
+#include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsGearbox.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
 #include "chrono/physics/ChShaftsClutch.h"
@@ -35,122 +35,115 @@
 #include "chrono/physics/ChShaftsThermalEngine.h"
 
 namespace chrono {
+namespace vehicle {
 
 // Forward reference
 class ChVehicle;
 
+class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
+  public:
+    ChShaftsPowertrain(const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
 
-class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain
-{
-public:
+    virtual ~ChShaftsPowertrain() {}
 
-  ChShaftsPowertrain(const ChVector<>& dir_motor_block = ChVector<>(1,0,0));
+    /// To be called after creation, to create all the wrapped ChShaft objects
+    /// and their constraints, torques etc.
+    void Initialize(ChSharedPtr<ChBody> chassis, ChSharedPtr<ChShaft> driveshaft);
 
-  ~ChShaftsPowertrain() {}
+    /// Return the current engine speed.
+    virtual double GetMotorSpeed() const override { return m_crankshaft->GetPos_dt(); }
 
-  /// To be called after creation, to create all the wrapped ChShaft objects 
-  /// and their constraints, torques etc. 
-  void Initialize(ChSharedPtr<ChBody>  chassis,
-                  ChSharedPtr<ChShaft> driveshaft);
+    /// Return the current engine torque.
+    virtual double GetMotorTorque() const override { return m_engine->GetTorqueReactionOn1(); }
 
-  /// Return the current engine speed.
-  virtual double GetMotorSpeed() const { return  m_crankshaft->GetPos_dt(); }
+    /// Return the value of slippage in the torque converter.
+    virtual double GetTorqueConverterSlippage() const override { return m_torqueconverter->GetSlippage(); }
 
-  /// Return the current engine torque.
-  virtual double GetMotorTorque() const { return  m_engine->GetTorqueReactionOn1(); }
+    /// Return the input torque to the torque converter.
+    virtual double GetTorqueConverterInputTorque() const override { return -m_torqueconverter->GetTorqueReactionOnInput(); }
 
-  /// Return the value of slippage in the torque converter.
-  virtual double GetTorqueConverterSlippage() const { return m_torqueconverter->GetSlippage(); }
+    /// Return the output torque from the torque converter.
+    virtual double GetTorqueConverterOutputTorque() const override { return m_torqueconverter->GetTorqueReactionOnOutput(); }
 
-  /// Return the input torque to the torque converter.
-  virtual double GetTorqueConverterInputTorque() const { return -m_torqueconverter->GetTorqueReactionOnInput(); }
+    /// Return the current transmission gear
+    virtual int GetCurrentTransmissionGear() const override { return m_current_gear; }
 
-  /// Return the output torque from the torque converter.
-  virtual double GetTorqueConverterOutputTorque() const { return m_torqueconverter->GetTorqueReactionOnOutput(); }
+    /// Return the ouput torque from the powertrain.
+    /// This is the torque that is passed to a vehicle system, thus providing the
+    /// interface between the powertrain and vehcicle cosimulation modules.
+    /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
+    /// this function returns 0.
+    virtual double GetOutputTorque() const override { return 0; }
 
-  /// Return the current transmission gear
-  virtual int GetCurrentTransmissionGear() const { return m_current_gear; }
+    /// Use this function to set the mode of automatic transmission.
+    virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;
 
-  /// Return the ouput torque from the powertrain.
-  /// This is the torque that is passed to a vehicle system, thus providing the
-  /// interface between the powertrain and vehcicle cosimulation modules.
-  /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
-  /// this function returns 0.
-  virtual double GetOutputTorque() const { return 0; }
+    /// Use this function to shift from one gear to another.
+    /// A zero latency shift is assumed.
+    /// Note, index starts from 0.
+    void SetSelectedGear(int igear);
 
-  /// Use this function to set the mode of automatic transmission.
-  virtual void SetDriveMode(ChPowertrain::DriveMode mmode);
+    /// Use this to define the gear shift latency, in seconds.
+    void SetGearShiftLatency(double ml) { m_gear_shift_latency = ml; }
 
-  /// Use this function to shift from one gear to another.
-  /// A zero latency shift is assumed.
-  /// Note, index starts from 0.
-  void SetSelectedGear(int igear);
+    /// Use this to get the gear shift latency, in seconds.
+    double GetGearShiftLatency(double ml) { return m_gear_shift_latency; }
 
-  /// Use this to define the gear shift latency, in seconds.
-  void SetGearShiftLatency(double ml) {m_gear_shift_latency= ml;}
+    /// Update the state of this powertrain system at the current time.
+    /// The powertrain system is provided the current driver throttle input, a
+    /// value in the range [0,1], and the current angular speed of the transmission
+    /// shaft (from the driveline).
+    virtual void Update(double time,        ///< [in] current time
+                        double throttle,    ///< [in] current throttle input [0,1]
+                        double shaft_speed  ///< [in] current angular speed of the transmission shaft
+                        ) override;
 
-  /// Use this to get the gear shift latency, in seconds.
-  double GetGearShiftLatency(double ml) {return m_gear_shift_latency;}
+    /// Advance the state of this powertrain system by the specified time step.
+    /// Since the state of a ShaftsPowertrain is advanced as part of the vehicle
+    /// state, this function does nothing.
+    virtual void Advance(double step) override {}
 
-  /// Update the state of this powertrain system at the current time.
-  /// The powertrain system is provided the current driver throttle input, a
-  /// value in the range [0,1], and the current angular speed of the transmission
-  /// shaft (from the driveline).
-  virtual void Update(
-    double time,       ///< [in] current time
-    double throttle,   ///< [in] current throttle input [0,1]
-    double shaft_speed ///< [in] current angular speed of the transmission shaft
-    );
+  protected:
+    /// Set up the gears, i.e. the transmission ratios of the various gears.
+    /// A derived class must populate the vector gear_ratios, using the 0 index
+    /// for reverse and 1,2,3,etc. for the forward gears.
+    virtual void SetGearRatios(std::vector<double>& gear_ratios) = 0;
 
-  /// Advance the state of this powertrain system by the specified time step.
-  /// Since the state of a ShaftsPowertrain is advanced as part of the vehicle
-  /// state, this function does nothing.
-  virtual void Advance(double step) {}
+    /// Inertias of the component ChShaft objects.
+    virtual double GetMotorBlockInertia() const = 0;
+    virtual double GetCrankshaftInertia() const = 0;
+    virtual double GetIngearShaftInertia() const = 0;
 
-protected:
+    /// Engine speed-torque map.
+    virtual void SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    /// Engine speed-torque braking effect because of losses.
+    virtual void SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
 
-  /// Set up the gears, i.e. the transmission ratios of the various gears.
-  /// A derived class must populate the vector gear_ratios, using the 0 index
-  /// for reverse and 1,2,3,etc. for the forward gears.
-  virtual void SetGearRatios(std::vector<double>& gear_ratios) = 0;
+    /// Torque converter maps:
+    /// capacity factor and torque ratio as functions of the speed ratio.
+    virtual void SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    virtual void SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
 
-  /// Inertias of the component ChShaft objects.
-  virtual double GetMotorBlockInertia() const = 0;
-  virtual double GetCrankshaftInertia() const = 0;
-  virtual double GetIngearShaftInertia() const = 0;
+  private:
+    ChSharedPtr<ChShaftsBody> m_motorblock_to_body;
+    ChSharedPtr<ChShaft> m_motorblock;
+    ChSharedPtr<ChShaftsThermalEngine> m_engine;
+    ChSharedPtr<ChShaftsThermalEngine> m_engine_losses;
+    ChSharedPtr<ChShaft> m_crankshaft;
+    ChSharedPtr<ChShaftsTorqueConverter> m_torqueconverter;
+    ChSharedPtr<ChShaft> m_shaft_ingear;
+    ChSharedPtr<ChShaftsGearbox> m_gears;
 
-  /// Engine speed-torque map.
-  virtual void SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
-  /// Engine speed-torque braking effect because of losses.
-  virtual void SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    int m_current_gear;
+    std::vector<double> m_gear_ratios;
 
-  /// Torque converter maps:
-  /// capacity factor and torque ratio as functions of the speed ratio.
-  virtual void SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
-  virtual void SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    ChVector<> m_dir_motor_block;
 
-private:
-
-  ChSharedPtr<ChShaftsBody>             m_motorblock_to_body;
-  ChSharedPtr<ChShaft>                  m_motorblock;
-  ChSharedPtr<ChShaftsThermalEngine>    m_engine;
-  ChSharedPtr<ChShaftsThermalEngine>    m_engine_losses;
-  ChSharedPtr<ChShaft>                  m_crankshaft;
-  ChSharedPtr<ChShaftsTorqueConverter>  m_torqueconverter;
-  ChSharedPtr<ChShaft>                  m_shaft_ingear;
-  ChSharedPtr<ChShaftsGearbox>          m_gears;
-
-  int m_current_gear;
-  std::vector<double> m_gear_ratios;
-
-  ChVector<> m_dir_motor_block;
-
-  double m_last_time_gearshift;
-  double m_gear_shift_latency;
+    double m_last_time_gearshift;
+    double m_gear_shift_latency;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

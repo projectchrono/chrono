@@ -30,6 +30,7 @@
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
+namespace vehicle {
 
 // Forward declarations for private structures
 struct slips;
@@ -160,11 +161,11 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     const std::string& getPacTireParamFile() const { return m_paramFile; }
 
     // look for this data file
-    virtual void loadPacTireParamFile();
+    void loadPacTireParamFile();
 
     // once Pac tire input text file has been succesfully opened, read the input
     // data, and populate the data struct
-    virtual void readPacTireInput(std::ifstream& inFile);
+    void readPacTireInput(std::ifstream& inFile);
 
     // functions for reading each section in the paramter file
     void readSection_UNITS(std::ifstream& inFile);
@@ -417,6 +418,7 @@ T fromTline(const std::string& tline) {
     return t;
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

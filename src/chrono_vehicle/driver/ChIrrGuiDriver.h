@@ -32,6 +32,7 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
 namespace chrono {
+namespace vehicle {
 
 class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver {
   public:
@@ -39,10 +40,10 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
 
     ChIrrGuiDriver(ChVehicleIrrApp& app);
 
-    ~ChIrrGuiDriver() {}
+    virtual ~ChIrrGuiDriver() {}
 
-    virtual bool OnEvent(const irr::SEvent& event);
-    virtual void Update(double time);
+    virtual bool OnEvent(const irr::SEvent& event) override;
+    virtual void Update(double time) override;
 
     void SetThrottleDelta(double delta) { m_throttleDelta = delta; }
     void SetSteeringDelta(double delta) { m_steeringDelta = delta; }
@@ -64,6 +65,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     ChSharedPtr<ChDataDriver> m_data_driver;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

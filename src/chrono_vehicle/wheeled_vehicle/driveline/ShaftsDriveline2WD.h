@@ -26,36 +26,33 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API ShaftsDriveline2WD : public ChShaftsDriveline2WD {
+  public:
+    ShaftsDriveline2WD(const std::string& filename);
+    ShaftsDriveline2WD(const rapidjson::Document& d);
+    ~ShaftsDriveline2WD() {}
 
-class CH_VEHICLE_API ShaftsDriveline2WD : public ChShaftsDriveline2WD
-{
-public:
+    virtual double GetDriveshaftInertia() const override { return m_driveshaft_inertia; }
+    virtual double GetDifferentialBoxInertia() const override { return m_differentialbox_inertia; }
 
-  ShaftsDriveline2WD(const std::string& filename);
-  ShaftsDriveline2WD(const rapidjson::Document& d);
-  ~ShaftsDriveline2WD() {}
+    virtual double GetConicalGearRatio() const override { return m_conicalgear_ratio; }
+    virtual double GetDifferentialRatio() const override { return m_differential_ratio; }
 
-  virtual double GetDriveshaftInertia() const      { return m_driveshaft_inertia; }
-  virtual double GetDifferentialBoxInertia() const { return m_differentialbox_inertia; }
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual double GetConicalGearRatio() const       { return m_conicalgear_ratio; }
-  virtual double GetDifferentialRatio() const      { return m_differential_ratio; }
+    // Shaft inertias.
+    double m_driveshaft_inertia;
+    double m_differentialbox_inertia;
 
-private:
-  void Create(const rapidjson::Document& d);
-
-  // Shaft inertias.
-  double  m_driveshaft_inertia;
-  double  m_differentialbox_inertia;
-
-  // Gear ratios.
-  double  m_conicalgear_ratio;
-  double  m_differential_ratio;
+    // Gear ratios.
+    double m_conicalgear_ratio;
+    double m_differential_ratio;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

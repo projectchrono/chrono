@@ -34,6 +34,7 @@
 #include "hmmwv/HMMWV.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 using namespace hmmwv;
 
 // =============================================================================

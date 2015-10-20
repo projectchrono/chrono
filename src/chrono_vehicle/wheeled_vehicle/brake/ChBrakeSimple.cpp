@@ -21,37 +21,32 @@
 
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 
-
 namespace chrono {
+namespace vehicle {
 
-
-ChBrakeSimple::ChBrakeSimple()
-: m_modulation(0)
-{
-  m_brake = ChSharedPtr<ChLinkBrake>(new ChLinkBrake);
+ChBrakeSimple::ChBrakeSimple() : m_modulation(0) {
+    m_brake = ChSharedPtr<ChLinkBrake>(new ChLinkBrake);
 }
 
-void ChBrakeSimple::Initialize(ChSharedPtr<ChLinkLockRevolute> hub)
-{
-  ChSystem* my_system = hub->GetSystem();
+void ChBrakeSimple::Initialize(ChSharedPtr<ChLinkLockRevolute> hub) {
+    ChSystem* my_system = hub->GetSystem();
 
-  // Reuse the same bodies and link coordinate of the hub revolute joint...
-  ChSharedPtr<ChBodyFrame> mbf1(hub->GetBody1());
-  hub->GetBody1()->AddRef(); // because mbf1(mhub->GetBody1()) got a plain pointer, so transformed to shared 
-  ChSharedPtr<ChBodyFrame> mbf2(hub->GetBody2());
-  hub->GetBody2()->AddRef(); // because mbf2(mhub->GetBody2()) got a plain pointer, so transformed to shared 
-  ChSharedPtr<ChBody> mb1 = mbf1.DynamicCastTo<ChBody>();
-  ChSharedPtr<ChBody> mb2 = mbf2.DynamicCastTo<ChBody>();
+    // Reuse the same bodies and link coordinate of the hub revolute joint...
+    ChSharedPtr<ChBodyFrame> mbf1(hub->GetBody1());
+    hub->GetBody1()->AddRef();  // because mbf1(mhub->GetBody1()) got a plain pointer, so transformed to shared
+    ChSharedPtr<ChBodyFrame> mbf2(hub->GetBody2());
+    hub->GetBody2()->AddRef();  // because mbf2(mhub->GetBody2()) got a plain pointer, so transformed to shared
+    ChSharedPtr<ChBody> mb1 = mbf1.DynamicCastTo<ChBody>();
+    ChSharedPtr<ChBody> mb2 = mbf2.DynamicCastTo<ChBody>();
 
-  m_brake->Initialize(mb1, mb2, hub->GetMarker2()->GetCoord());
-  my_system->AddLink(m_brake);
+    m_brake->Initialize(mb1, mb2, hub->GetMarker2()->GetCoord());
+    my_system->AddLink(m_brake);
 }
 
-void ChBrakeSimple::Update(double modulation)
-{
-  m_modulation = modulation;
-  m_brake->Set_brake_torque(modulation * GetMaxBrakingTorque());
+void ChBrakeSimple::Update(double modulation) {
+    m_modulation = modulation;
+    m_brake->Set_brake_torque(modulation * GetMaxBrakingTorque());
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

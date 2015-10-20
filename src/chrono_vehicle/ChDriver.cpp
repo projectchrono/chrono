@@ -27,6 +27,7 @@
 #include "chrono_vehicle/ChDriver.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -80,4 +81,5 @@ void ChDriver::SetBraking(double val, double min_val, double max_val) {
     m_braking = ChClamp(val, min_val, max_val);
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

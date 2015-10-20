@@ -19,11 +19,9 @@
 #ifndef CH_VEHICLE_MODELDATA_H
 #define CH_VEHICLE_MODELDATA_H
 
-
 #include <string>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-
 
 namespace chrono {
 namespace vehicle {
@@ -32,8 +30,7 @@ namespace vehicle {
 /// ChronoVehicle model data directory (thread safe)
 CH_VEHICLE_API std::string GetDataFile(const std::string& filename);
 
-} // end namespace vehicle
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

@@ -52,6 +52,7 @@
 #endif
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 // =============================================================================
 
@@ -60,7 +61,7 @@ using namespace chrono;
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
-//std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
+// std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
 std::string vehicle_file("MAN_5t/vehicle/MAN_5t_Vehicle_4WD.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
@@ -69,9 +70,9 @@ std::string vehicle_file("MAN_5t/vehicle/MAN_5t_Vehicle_4WD.json");
 // std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
 
 // JSON files for terrain (rigid plane), tire models (rigid), and powertrain (simple)
-//std::string rigidterrain_file("terrain/RigidPlane.json");
-//std::string rigidtire_file("generic/tire/RigidTire.json");
-//std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
+// std::string rigidterrain_file("terrain/RigidPlane.json");
+// std::string rigidtire_file("generic/tire/RigidTire.json");
+// std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // JSON files MAN 5t for terrain (rigid plane), tire models (rigid), and powertrain (simple)
 std::string rigidterrain_file("terrain/RigidPlane.json");
@@ -326,7 +327,7 @@ int main(int argc, char* argv[]) {
         vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
         terrain.Update(time);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Update(time, wheel_states[i],terrain);
+            tires[i]->Update(time, wheel_states[i], terrain);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

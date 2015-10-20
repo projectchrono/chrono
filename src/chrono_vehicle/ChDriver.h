@@ -29,6 +29,7 @@
 #include "chrono_vehicle/ChVehicle.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Base class for a vehicle driver system.
@@ -83,6 +84,7 @@ class CH_VEHICLE_API ChDriver : public ChShared {
     std::string m_log_filename;  ///< name of output file for recording driver inputs
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

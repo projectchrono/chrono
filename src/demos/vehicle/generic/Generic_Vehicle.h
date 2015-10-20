@@ -29,46 +29,43 @@
 
 #include "ModelDefs.h"
 
-class Generic_Vehicle : public chrono::ChWheeledVehicle
-{
-public:
-  Generic_Vehicle(const bool fixed,
-                  SuspensionType suspType,
-                  VisualizationType wheelVis,
-                  chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
+class Generic_Vehicle : public chrono::vehicle::ChWheeledVehicle {
+  public:
+    Generic_Vehicle(const bool fixed,
+                    SuspensionType suspType,
+                    VisualizationType wheelVis,
+                    chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
-  ~Generic_Vehicle() {}
+    ~Generic_Vehicle() {}
 
-  virtual int GetNumberAxles() const { return 2; }
+    virtual int GetNumberAxles() const override { return 2; }
 
-  virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
+    virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-  double GetSpringForce(const chrono::ChWheelID& wheel_id) const;
-  double GetSpringLength(const chrono::ChWheelID& wheel_id) const;
-  double GetSpringDeformation(const chrono::ChWheelID& wheel_id) const;
+    double GetSpringForce(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetSpringLength(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetSpringDeformation(const chrono::vehicle::ChWheelID& wheel_id) const;
 
-  double GetShockForce(const chrono::ChWheelID& wheel_id) const;
-  double GetShockLength(const chrono::ChWheelID& wheel_id) const;
-  double GetShockVelocity(const chrono::ChWheelID& wheel_id) const;
+    double GetShockForce(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetShockLength(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetShockVelocity(const chrono::vehicle::ChWheelID& wheel_id) const;
 
-  virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
+    virtual void Initialize(const chrono::ChCoordsys<>& chassisPos) override;
 
-  // Log debugging information
-  void LogHardpointLocations(); /// suspension hardpoints at design
-  void DebugLog(int what);      /// shock forces and lengths, constraints, etc.
+    // Log debugging information
+    void LogHardpointLocations();  /// suspension hardpoints at design
+    void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
-private:
+  private:
+    SuspensionType m_suspType;
 
-  SuspensionType m_suspType;
+    // Chassis mass properties
+    static const double m_chassisMass;
+    static const chrono::ChVector<> m_chassisCOM;
+    static const chrono::ChVector<> m_chassisInertia;
 
-  // Chassis mass properties
-  static const double             m_chassisMass;
-  static const chrono::ChVector<> m_chassisCOM;
-  static const chrono::ChVector<> m_chassisInertia;
-
-  // Driver local coordinate system
-  static const chrono::ChCoordsys<> m_driverCsys;
+    // Driver local coordinate system
+    static const chrono::ChCoordsys<> m_driverCsys;
 };
-
 
 #endif

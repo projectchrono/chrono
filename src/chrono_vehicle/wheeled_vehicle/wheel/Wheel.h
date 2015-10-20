@@ -25,53 +25,45 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API Wheel : public ChWheel {
+  public:
+    Wheel(const std::string& filename);
+    Wheel(const rapidjson::Document& d);
+    ~Wheel() {}
 
-class CH_VEHICLE_API Wheel : public ChWheel
-{
-public:
+    virtual void Initialize(ChSharedPtr<ChBody> spindle) override;
 
-  Wheel(const std::string& filename);
-  Wheel(const rapidjson::Document& d);
-  ~Wheel() {}
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetRadius() const override { return m_radius; }
+    virtual double GetWidth() const override { return m_width; }
 
-  virtual void Initialize(ChSharedPtr<ChBody> spindle);
+    void SetRadius(double rad) { m_radius = rad; }
+    void SetWidth(double width) { m_width = width; }
 
-  virtual double GetMass() const { return m_mass; }
-  virtual ChVector<> GetInertia() const { return m_inertia; }
-  virtual double GetRadius() const { return m_radius; }
-  virtual double GetWidth() const { return m_width; }
+    bool UseVisualizationMesh() const { return m_vis == MESH; }
+    bool UseVisualizationPrimitives() const { return m_vis == PRIMITIVES; }
+    const std::string& GetMeshFilename() const { return m_meshFile; }
+    const std::string& GetMeshName() const { return m_meshName; }
 
-  void SetRadius(double rad) { m_radius = rad; }
-  void SetWidth(double width) { m_width = width; }
+  private:
+    enum VisMode { NONE, PRIMITIVES, MESH };
 
-  bool UseVisualizationMesh() const          { return m_vis == MESH; }
-  bool UseVisualizationPrimitives() const    { return m_vis == PRIMITIVES; }
-  const std::string& GetMeshFilename() const { return m_meshFile; }
-  const std::string& GetMeshName() const     { return m_meshName; }
+    void Create(const rapidjson::Document& d);
 
-private:
+    double m_mass;
+    ChVector<> m_inertia;
 
-  enum VisMode {
-    NONE,
-    PRIMITIVES,
-    MESH
-  };
-
-  void Create(const rapidjson::Document& d);
-
-  double      m_mass;
-  ChVector<>  m_inertia;
-
-  VisMode     m_vis;
-  double      m_radius;
-  double      m_width;
-  std::string m_meshName;
-  std::string m_meshFile;
+    VisMode m_vis;
+    double m_radius;
+    double m_width;
+    std::string m_meshName;
+    std::string m_meshFile;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

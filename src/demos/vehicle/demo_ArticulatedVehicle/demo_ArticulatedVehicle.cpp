@@ -55,6 +55,7 @@
 //#define DEBUG_LOG
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 // =============================================================================
 

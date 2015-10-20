@@ -18,14 +18,11 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 
-
 namespace chrono {
+namespace vehicle {
 
-
-ChAntirollBar::ChAntirollBar(const std::string& name)
-: m_name(name)
-{
+ChAntirollBar::ChAntirollBar(const std::string& name) : m_name(name) {
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

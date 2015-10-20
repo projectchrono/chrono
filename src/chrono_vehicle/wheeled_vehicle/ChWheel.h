@@ -32,6 +32,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Base class for a vehicle wheel subsystem.
@@ -41,38 +42,33 @@ namespace chrono {
 /// A concrete wheel subsystem can optionally carry its own visualization assets
 /// (which are associated with the suspension's spindle body).
 ///
-class CH_VEHICLE_API ChWheel : public ChShared
-{
-public:
+class CH_VEHICLE_API ChWheel : public ChShared {
+  public:
+    ChWheel() {}
+    virtual ~ChWheel() {}
 
-  ChWheel() {}
-  virtual ~ChWheel() {}
+    /// Get the wheel mass.
+    virtual double GetMass() const = 0;
 
-  /// Get the wheel mass.
-  virtual double GetMass() const = 0;
+    /// Get the wheel moments of inertia.
+    virtual ChVector<> GetInertia() const = 0;
 
-  /// Get the wheel moments of inertia.
-  virtual ChVector<> GetInertia() const = 0;
+    /// Get the wheel radius
+    virtual double GetRadius() const { return 0; }
 
-  /// get the wheel radius
-  virtual double GetRadius() const { return 0; }
+    /// Get the wheel width
+    virtual double GetWidth() const { return 0; }
 
-  /// get the wheel width
-  virtual double GetWidth() const { return 0; }
-
-  /// Initialize this wheel subsystem.
-  /// The wheel mass and inertia are used to increment those of the spindle.
-  virtual void Initialize(
-    ChSharedPtr<ChBody> spindle    ///< handle to the associated spindle body
-    );
+    /// Initialize this wheel subsystem.
+    /// The wheel mass and inertia are used to increment those of the spindle.
+    virtual void Initialize(ChSharedPtr<ChBody> spindle  ///< handle to the associated spindle body
+                            );
 };
 
-
 /// Vector of handles to wheel subsystems.
-typedef std::vector<ChSharedPtr<ChWheel> >  ChWheelList;
+typedef std::vector<ChSharedPtr<ChWheel> > ChWheelList;
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

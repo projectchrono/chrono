@@ -23,7 +23,7 @@
 
 namespace hmmwv {
 
-class HMMWV_RigidTire : public chrono::ChRigidTire {
+class HMMWV_RigidTire : public chrono::vehicle::ChRigidTire {
   public:
     HMMWV_RigidTire(const std::string& name);
     ~HMMWV_RigidTire() {}

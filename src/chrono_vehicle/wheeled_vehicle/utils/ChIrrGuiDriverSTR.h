@@ -26,6 +26,7 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
 namespace chrono {
+namespace vehicle {
 
 class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChIrrGuiDriver {
   public:
@@ -57,6 +58,7 @@ class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChIrrGuiDriver {
     double m_maxDisplacement;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

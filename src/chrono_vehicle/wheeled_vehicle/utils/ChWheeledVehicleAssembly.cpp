@@ -21,6 +21,7 @@
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleAssembly.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Constructor from given JSON specification files.
@@ -92,4 +93,5 @@ void ChWheeledVehicleAssembly::Update(double time) {
     m_vehicle->Update(time, steering, braking, m_powertrain->GetOutputTorque(), m_tire_forces);
 }
 
+}  // end namespace vehicle
 }  // namespace chrono

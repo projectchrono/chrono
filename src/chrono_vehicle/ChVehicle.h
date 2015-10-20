@@ -31,6 +31,7 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Base class for chrono vehicle systems.
@@ -124,6 +125,7 @@ class CH_VEHICLE_API ChVehicle : public ChShared {
     double m_stepsize;  ///< integration step-size for the vehicle system
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

@@ -23,6 +23,7 @@
 using namespace rapidjson;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // This utility function returns a ChVector from the specified JSON array
@@ -81,4 +82,5 @@ void FialaTire::Create(const rapidjson::Document& d) {
     m_relax_length_y = d["Fiala Parameters"]["Y Relationation Length"].GetDouble();
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

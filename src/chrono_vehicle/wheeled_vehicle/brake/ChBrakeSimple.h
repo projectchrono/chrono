@@ -28,40 +28,38 @@
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 
 namespace chrono {
+namespace vehicle {
 
 class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
-public:
+  public:
+    ChBrakeSimple();
+    virtual ~ChBrakeSimple() {}
 
-  ChBrakeSimple();
-  virtual ~ChBrakeSimple() {}
+    /// Initialize the brake by providing the wheel's revolute link.
+    virtual void Initialize(ChSharedPtr<ChLinkLockRevolute> hub) override;
 
-  /// Initialize the brake by providing the wheel's revolute link.
-  virtual void Initialize(ChSharedPtr<ChLinkLockRevolute> hub);
+    /// Update the brake subsystem: set the brake modulation, in 0..1 range,
+    /// when = 0 it is completely free,
+    /// when = 1 it should provide the max braking torque
+    /// This function can be called to modulate braking in realtime simulation loops.
+    virtual void Update(double modulation) override;
 
-  /// Update the brake subsystem: set the brake modulation, in 0..1 range, 
-  /// when = 0 it is completely free,
-  /// when = 1 it should provide the max braking torque
-  /// This function can be called to modulate braking in realtime simulation loops.
-  virtual void Update(double modulation);
+    /// Get the current brake torque, as a result of simulation,
+    /// so it might change from time to time
+    virtual double GetBrakeTorque() override { return m_modulation * GetMaxBrakingTorque(); }
 
-  /// Get the current brake torque, as a result of simulation,
-  /// so it might change from time to time
-  virtual double GetBrakeTorque() { return m_modulation * GetMaxBrakingTorque(); }
+    /// Get the current brake angular speed, relative between disc and caliper [rad/s]
+    double GetBrakeSpeed() { return m_brake->GetRelWvel().Length(); }
 
-  /// Get the current brake angular speed, relative between disc and caliper [rad/s]
-  double GetBrakeSpeed() { return m_brake->GetRelWvel().Length(); }
+  protected:
+    /// Get the max braking torque (for modulation =1)
+    virtual double GetMaxBrakingTorque() = 0;
 
-protected:
-
-  /// Get the max braking torque (for modulation =1)
-  virtual double GetMaxBrakingTorque() = 0;
-
-  double                   m_modulation;
-  ChSharedPtr<ChLinkBrake> m_brake;
+    double m_modulation;
+    ChSharedPtr<ChLinkBrake> m_brake;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

@@ -25,30 +25,27 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API SimpleDriveline : public ChSimpleDriveline {
+  public:
+    SimpleDriveline(const std::string& filename);
+    SimpleDriveline(const rapidjson::Document& d);
+    ~SimpleDriveline() {}
 
-class CH_VEHICLE_API SimpleDriveline : public ChSimpleDriveline
-{
-public:
+    virtual double GetFrontTorqueFraction() const override { return m_front_torque_frac; }
+    virtual double GetFrontDifferentialMaxBias() const override { return m_front_diff_bias; }
+    virtual double GetRearDifferentialMaxBias() const override { return m_rear_diff_bias; }
 
-  SimpleDriveline(const std::string& filename);
-  SimpleDriveline(const rapidjson::Document& d);
-  ~SimpleDriveline() {}
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual double GetFrontTorqueFraction() const      { return m_front_torque_frac; }
-  virtual double GetFrontDifferentialMaxBias() const { return m_front_diff_bias; }
-  virtual double GetRearDifferentialMaxBias() const  { return m_rear_diff_bias; }
-
-private:
-  void Create(const rapidjson::Document& d);
-
-  double m_front_torque_frac;
-  double m_front_diff_bias;
-  double m_rear_diff_bias;
+    double m_front_torque_frac;
+    double m_front_diff_bias;
+    double m_rear_diff_bias;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

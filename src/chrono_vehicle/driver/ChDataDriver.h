@@ -31,6 +31,7 @@
 #include "chrono_vehicle/ChDriver.h"
 
 namespace chrono {
+namespace vehicle {
 
 class CH_VEHICLE_API ChDataDriver : public ChDriver {
   public:
@@ -48,7 +49,7 @@ class CH_VEHICLE_API ChDataDriver : public ChDriver {
     ChDataDriver(ChVehicle& vehicle, const std::vector<Entry>& data, bool sorted = true);
     ~ChDataDriver() {}
 
-    virtual void Update(double time);
+    virtual void Update(double time) override;
 
   private:
     static bool compare(const Entry& a, const Entry& b) { return a.m_time < b.m_time; }
@@ -56,6 +57,7 @@ class CH_VEHICLE_API ChDataDriver : public ChDriver {
     std::vector<Entry> m_data;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

@@ -31,6 +31,7 @@
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 /// Callback class for specifying driver inputs at a specified time.
@@ -130,6 +131,7 @@ class CH_VEHICLE_API ChWheeledVehicleAssembly {
     ChChassisContactCallback* m_chassis_cb;
 };
 
+}  // end namespace vehicle
 }  // namespace chrono
 
 #endif

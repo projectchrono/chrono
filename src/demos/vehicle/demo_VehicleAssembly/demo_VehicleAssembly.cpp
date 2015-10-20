@@ -25,6 +25,7 @@
 
 using namespace chrono;
 using namespace chrono::collision;
+using namespace chrono::vehicle;
 
 using std::cout;
 using std::endl;

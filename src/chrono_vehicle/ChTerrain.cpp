@@ -18,9 +18,7 @@
 
 #include "chrono_vehicle/ChTerrain.h"
 
-
 namespace chrono {
-
-
-
+namespace vehicle {
+}  // end namespace vehicle
 }  // end namespace chrono

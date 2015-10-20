@@ -21,6 +21,7 @@
 #include "chrono_vehicle/ChVehicle.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Constructor for a ChVehicle using a default Chrono Chsystem.
@@ -79,4 +80,5 @@ ChVector<> ChVehicle::GetDriverPos() const {
     return m_chassis->GetCoord().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

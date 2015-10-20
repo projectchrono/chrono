@@ -23,6 +23,7 @@
 using namespace rapidjson;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -65,4 +66,5 @@ void RigidTire::Create(const rapidjson::Document& d) {
     m_width = d["Width"].GetDouble();
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

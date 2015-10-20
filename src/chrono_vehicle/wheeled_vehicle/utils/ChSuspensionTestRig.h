@@ -36,6 +36,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Definition of a suspension test rig.
@@ -152,6 +153,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     ChQuaternion<> m_steeringRot;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

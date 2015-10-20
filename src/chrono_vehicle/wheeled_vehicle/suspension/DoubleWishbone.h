@@ -25,72 +25,68 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone {
+  public:
+    DoubleWishbone(const std::string& filename);
+    DoubleWishbone(const rapidjson::Document& d);
+    ~DoubleWishbone();
 
-class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone
-{
-public:
+    virtual double getSpindleMass() const override { return m_spindleMass; }
+    virtual double getUCAMass() const override { return m_UCAMass; }
+    virtual double getLCAMass() const override { return m_LCAMass; }
+    virtual double getUprightMass() const override { return m_uprightMass; }
 
-  DoubleWishbone(const std::string& filename);
-  DoubleWishbone(const rapidjson::Document& d);
-  ~DoubleWishbone();
+    virtual double getSpindleRadius() const override { return m_spindleRadius; }
+    virtual double getSpindleWidth() const override { return m_spindleWidth; }
+    virtual double getUCARadius() const override { return m_UCARadius; }
+    virtual double getLCARadius() const override { return m_LCARadius; }
+    virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-  virtual double getSpindleMass() const { return m_spindleMass; }
-  virtual double getUCAMass() const { return m_UCAMass; }
-  virtual double getLCAMass() const { return m_LCAMass; }
-  virtual double getUprightMass() const { return m_uprightMass; }
+    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector<>& getUCAInertia() const override { return m_UCAInertia; }
+    virtual const ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
+    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
 
-  virtual double getSpindleRadius() const { return m_spindleRadius; }
-  virtual double getSpindleWidth() const { return m_spindleWidth; }
-  virtual double getUCARadius() const { return m_UCARadius; }
-  virtual double getLCARadius() const { return m_LCARadius; }
-  virtual double getUprightRadius() const { return m_uprightRadius; }
+    virtual double getAxleInertia() const override { return m_axleInertia; }
 
-  virtual const ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
-  virtual const ChVector<>& getUCAInertia() const { return m_UCAInertia; }
-  virtual const ChVector<>& getLCAInertia() const { return m_LCAInertia; }
-  virtual const ChVector<>& getUprightInertia() const { return m_uprightInertia; }
+    virtual double getSpringRestLength() const override { return m_springRestLength; }
+    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
+    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
-  virtual double getAxleInertia() const { return m_axleInertia; }
+  private:
+    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
 
-  virtual double getSpringRestLength() const { return m_springRestLength; }
-  virtual ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
-  virtual ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
+    void Create(const rapidjson::Document& d);
 
-private:
+    ChSpringForceCallback* m_springForceCB;
+    ChSpringForceCallback* m_shockForceCB;
 
-  virtual const ChVector<> getLocation(PointId which) { return m_points[which]; }
+    ChVector<> m_points[NUM_POINTS];
 
-  void Create(const rapidjson::Document& d);
+    double m_spindleMass;
+    double m_UCAMass;
+    double m_LCAMass;
+    double m_uprightMass;
 
-  ChSpringForceCallback* m_springForceCB;
-  ChSpringForceCallback* m_shockForceCB;
+    double m_spindleRadius;
+    double m_spindleWidth;
+    double m_UCARadius;
+    double m_LCARadius;
+    double m_uprightRadius;
 
-  ChVector<>  m_points[NUM_POINTS];
+    ChVector<> m_spindleInertia;
+    ChVector<> m_UCAInertia;
+    ChVector<> m_LCAInertia;
+    ChVector<> m_uprightInertia;
 
-  double      m_spindleMass;
-  double      m_UCAMass;
-  double      m_LCAMass;
-  double      m_uprightMass;
+    double m_axleInertia;
 
-  double      m_spindleRadius;
-  double      m_spindleWidth;
-  double      m_UCARadius;
-  double      m_LCARadius;
-  double      m_uprightRadius;
-
-  ChVector<>  m_spindleInertia;
-  ChVector<>  m_UCAInertia;
-  ChVector<>  m_LCAInertia;
-  ChVector<>  m_uprightInertia;
-
-  double      m_axleInertia;
-
-  double      m_springRestLength;
+    double m_springRestLength;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

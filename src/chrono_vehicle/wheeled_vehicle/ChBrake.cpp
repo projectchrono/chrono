@@ -18,13 +18,11 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 
-
 namespace chrono {
+namespace vehicle {
 
-
-ChBrake::ChBrake()
-{
+ChBrake::ChBrake() {
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

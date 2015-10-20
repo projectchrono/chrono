@@ -19,6 +19,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -73,4 +74,5 @@ ChTireForce ChRigidTire::GetTireForce() const {
     return tire_force;
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

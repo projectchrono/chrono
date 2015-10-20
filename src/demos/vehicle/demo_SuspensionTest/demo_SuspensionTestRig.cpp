@@ -29,6 +29,7 @@
 #include "chrono_vehicle/wheeled_vehicle/utils/ChIrrGuiDriverSTR.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 // =============================================================================
 // USER SETTINGS

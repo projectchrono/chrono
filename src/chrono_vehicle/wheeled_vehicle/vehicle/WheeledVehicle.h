@@ -26,6 +26,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 namespace chrono {
+namespace vehicle {
 
 class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   public:
@@ -81,6 +82,7 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
     ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

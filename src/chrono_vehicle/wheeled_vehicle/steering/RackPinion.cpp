@@ -23,65 +23,59 @@
 using namespace rapidjson;
 
 namespace chrono {
-
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // This utility function returns a ChVector from the specified JSON array
 // -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a)
-{
-  assert(a.IsArray());
-  assert(a.Size() == 3);
+static ChVector<> loadVector(const Value& a) {
+    assert(a.IsArray());
+    assert(a.Size() == 3);
 
-  return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
+    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-RackPinion::RackPinion(const std::string& filename)
-: ChRackPinion("")
-{
-  FILE* fp = fopen(filename.c_str(), "r");
+RackPinion::RackPinion(const std::string& filename) : ChRackPinion("") {
+    FILE* fp = fopen(filename.c_str(), "r");
 
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    char readBuffer[65536];
+    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
-  fclose(fp);
+    fclose(fp);
 
-  Document d;
-  d.ParseStream(is);
+    Document d;
+    d.ParseStream(is);
 
-  Create(d);
+    Create(d);
 
-  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-RackPinion::RackPinion(const rapidjson::Document& d)
-: ChRackPinion("")
-{
-  Create(d);
+RackPinion::RackPinion(const rapidjson::Document& d) : ChRackPinion("") {
+    Create(d);
 }
 
-void RackPinion::Create(const rapidjson::Document& d)
-{
-  // Read top-level data
-  assert(d.HasMember("Type"));
-  assert(d.HasMember("Template"));
-  assert(d.HasMember("Name"));
+void RackPinion::Create(const rapidjson::Document& d) {
+    // Read top-level data
+    assert(d.HasMember("Type"));
+    assert(d.HasMember("Template"));
+    assert(d.HasMember("Name"));
 
-  SetName(d["Name"].GetString());
+    SetName(d["Name"].GetString());
 
-  // Read steering link data
-  m_steeringLinkMass = d["Steering Link"]["Mass"].GetDouble();
-  m_steeringLinkInertia = loadVector(d["Steering Link"]["Inertia"]);
-  m_steeringLinkCOM = d["Steering Link"]["COM"].GetDouble();
-  m_steeringLinkRadius = d["Steering Link"]["Radius"].GetDouble();
-  m_steeringLinkLength = d["Steering Link"]["Length"].GetDouble();
+    // Read steering link data
+    m_steeringLinkMass = d["Steering Link"]["Mass"].GetDouble();
+    m_steeringLinkInertia = loadVector(d["Steering Link"]["Inertia"]);
+    m_steeringLinkCOM = d["Steering Link"]["COM"].GetDouble();
+    m_steeringLinkRadius = d["Steering Link"]["Radius"].GetDouble();
+    m_steeringLinkLength = d["Steering Link"]["Length"].GetDouble();
 
-  // Pinion radius
-  m_pinionRadius = d["Pinion"]["Radius"].GetDouble();
-  m_maxAngle = d["Pinion"]["Maximum Angle"].GetDouble();
+    // Pinion radius
+    m_pinionRadius = d["Pinion"]["Radius"].GetDouble();
+    m_maxAngle = d["Pinion"]["Maximum Angle"].GetDouble();
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

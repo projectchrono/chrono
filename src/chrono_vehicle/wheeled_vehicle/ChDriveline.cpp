@@ -19,11 +19,10 @@
 #include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
 
 namespace chrono {
+namespace vehicle {
 
-
-ChDriveline::ChDriveline()
-{
+ChDriveline::ChDriveline() {
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

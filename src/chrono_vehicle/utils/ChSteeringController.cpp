@@ -38,6 +38,7 @@
 using namespace rapidjson;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Implementation of the base class ChSteeringController
@@ -180,4 +181,5 @@ void ChPathSteeringController::Reset(const ChVehicle& vehicle) {
     m_tracker->reset(m_sentinel);
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

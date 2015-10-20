@@ -26,6 +26,7 @@
 #include "generic/Generic_SolidAxle.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 // Static variables

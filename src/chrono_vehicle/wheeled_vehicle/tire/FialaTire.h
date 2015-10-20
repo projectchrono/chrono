@@ -25,6 +25,7 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
 class CH_VEHICLE_API FialaTire : public ChFialaTire {
   public:
@@ -32,8 +33,10 @@ class CH_VEHICLE_API FialaTire : public ChFialaTire {
     FialaTire(const rapidjson::Document& d);
     ~FialaTire();
 
-    virtual double getNormalStiffnessForce(double depth) const override { return m_normalStiffness*depth; }
-    virtual double getNormalDampingForce(double depth, double velocity) const override { return m_normalDamping*velocity; }
+    virtual double getNormalStiffnessForce(double depth) const override { return m_normalStiffness * depth; }
+    virtual double getNormalDampingForce(double depth, double velocity) const override {
+        return m_normalDamping * velocity;
+    }
 
     virtual void SetFialaParams() override {}
 
@@ -44,6 +47,7 @@ class CH_VEHICLE_API FialaTire : public ChFialaTire {
     double m_normalDamping;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

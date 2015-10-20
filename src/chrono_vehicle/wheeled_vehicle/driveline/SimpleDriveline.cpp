@@ -23,45 +23,40 @@
 using namespace rapidjson;
 
 namespace chrono {
-
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-SimpleDriveline::SimpleDriveline(const std::string& filename)
-: ChSimpleDriveline()
-{
-  FILE* fp = fopen(filename.c_str(), "r");
+SimpleDriveline::SimpleDriveline(const std::string& filename) : ChSimpleDriveline() {
+    FILE* fp = fopen(filename.c_str(), "r");
 
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    char readBuffer[65536];
+    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
-  fclose(fp);
+    fclose(fp);
 
-  Document d;
-  d.ParseStream(is);
+    Document d;
+    d.ParseStream(is);
 
-  Create(d);
+    Create(d);
 
-  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SimpleDriveline::SimpleDriveline(const rapidjson::Document& d)
-: ChSimpleDriveline()
-{
-  Create(d);
+SimpleDriveline::SimpleDriveline(const rapidjson::Document& d) : ChSimpleDriveline() {
+    Create(d);
 }
 
-void SimpleDriveline::Create(const rapidjson::Document& d)
-{
-  // Read top-level data.
-  assert(d.HasMember("Type"));
-  assert(d.HasMember("Template"));
-  assert(d.HasMember("Name"));
+void SimpleDriveline::Create(const rapidjson::Document& d) {
+    // Read top-level data.
+    assert(d.HasMember("Type"));
+    assert(d.HasMember("Template"));
+    assert(d.HasMember("Name"));
 
-  m_front_torque_frac = d["Front Torque Fraction"].GetDouble();
-  m_front_diff_bias = d["Front Differential Max Bias"].GetDouble();
-  m_rear_diff_bias = d["Rear Differential Max Bias"].GetDouble();
+    m_front_torque_frac = d["Front Torque Fraction"].GetDouble();
+    m_front_diff_bias = d["Front Differential Max Bias"].GetDouble();
+    m_rear_diff_bias = d["Rear Differential Max Bias"].GetDouble();
 }
 
-
-} // end namespace chrono
+}  // end namespace vehicle
+}  // end namespace chrono

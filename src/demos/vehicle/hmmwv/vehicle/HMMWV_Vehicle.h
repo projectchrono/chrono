@@ -35,56 +35,52 @@
 
 namespace hmmwv {
 
-class HMMWV_Vehicle : public chrono::ChWheeledVehicle
-{
-public:
-  HMMWV_Vehicle(const bool fixed = false,
-                DrivelineType driveType = AWD,
-                VisualizationType chassisVis = NONE,
-                VisualizationType wheelVis = PRIMITIVES,
-                chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
+class HMMWV_Vehicle : public chrono::vehicle::ChWheeledVehicle {
+  public:
+    HMMWV_Vehicle(const bool fixed = false,
+                  DrivelineType driveType = AWD,
+                  VisualizationType chassisVis = NONE,
+                  VisualizationType wheelVis = PRIMITIVES,
+                  chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
-  ~HMMWV_Vehicle();
+    ~HMMWV_Vehicle();
 
-  virtual int GetNumberAxles() const { return 2; }
+    virtual int GetNumberAxles() const override { return 2; }
 
-  virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
+    virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-  double GetSpringForce(const chrono::ChWheelID& wheel_id) const;
-  double GetSpringLength(const chrono::ChWheelID& wheel_id) const;
-  double GetSpringDeformation(const chrono::ChWheelID& wheel_id) const;
+    double GetSpringForce(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetSpringLength(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetSpringDeformation(const chrono::vehicle::ChWheelID& wheel_id) const;
 
-  double GetShockForce(const chrono::ChWheelID& wheel_id) const;
-  double GetShockLength(const chrono::ChWheelID& wheel_id) const;
-  double GetShockVelocity(const chrono::ChWheelID& wheel_id) const;
+    double GetShockForce(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetShockLength(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetShockVelocity(const chrono::vehicle::ChWheelID& wheel_id) const;
 
-  virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
+    virtual void Initialize(const chrono::ChCoordsys<>& chassisPos) override;
 
-  void ExportMeshPovray(const std::string& out_dir);
+    void ExportMeshPovray(const std::string& out_dir);
 
-  // Log debugging information
-  void LogHardpointLocations(); /// suspension hardpoints at design
-  void DebugLog(int what);      /// shock forces and lengths, constraints, etc.
+    // Log debugging information
+    void LogHardpointLocations();  /// suspension hardpoints at design
+    void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
-private:
+  private:
+    DrivelineType m_driveType;
 
-  DrivelineType m_driveType;
+    // Chassis visualization mesh
+    static const std::string m_chassisMeshName;
+    static const std::string m_chassisMeshFile;
 
-  // Chassis visualization mesh
-  static const std::string m_chassisMeshName;
-  static const std::string m_chassisMeshFile;
+    // Chassis mass properties
+    static const double m_chassisMass;
+    static const chrono::ChVector<> m_chassisCOM;
+    static const chrono::ChVector<> m_chassisInertia;
 
-  // Chassis mass properties
-  static const double             m_chassisMass;
-  static const chrono::ChVector<> m_chassisCOM;
-  static const chrono::ChVector<> m_chassisInertia;
-
-  // Driver local coordinate system
-  static const chrono::ChCoordsys<> m_driverCsys;
+    // Driver local coordinate system
+    static const chrono::ChCoordsys<> m_driverCsys;
 };
 
-
-} // end namespace hmmwv
-
+}  // end namespace hmmwv
 
 #endif

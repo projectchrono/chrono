@@ -39,6 +39,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 using namespace geometry;
 
 // =============================================================================

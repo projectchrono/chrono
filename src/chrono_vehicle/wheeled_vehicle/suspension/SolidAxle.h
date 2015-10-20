@@ -25,84 +25,80 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API SolidAxle : public ChSolidAxle {
+  public:
+    SolidAxle(const std::string& filename);
+    SolidAxle(const rapidjson::Document& d);
+    ~SolidAxle();
 
-class CH_VEHICLE_API SolidAxle : public ChSolidAxle
-{
-public:
+    virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
+    virtual double getSpindleMass() const override { return m_spindleMass; }
+    virtual double getULMass() const override { return m_ULMass; }
+    virtual double getLLMass() const override { return m_LLMass; }
+    virtual double getKnuckleMass() const override { return m_knuckleMass; }
 
-  SolidAxle(const std::string& filename);
-  SolidAxle(const rapidjson::Document& d);
-  ~SolidAxle();
+    virtual double getAxleTubeRadius() const override { return m_axleTubeRadius; }
+    virtual double getSpindleRadius() const override { return m_spindleRadius; }
+    virtual double getSpindleWidth() const override { return m_spindleWidth; }
+    virtual double getULRadius() const override { return m_ULRadius; }
+    virtual double getLLRadius() const override { return m_LLRadius; }
+    virtual double getKnuckleRadius() const override { return m_knuckleRadius; }
 
-  virtual double getAxleTubeMass() const { return m_axleTubeMass; }
-  virtual double getSpindleMass() const { return m_spindleMass; }
-  virtual double getULMass() const { return m_ULMass; }
-  virtual double getLLMass() const { return m_LLMass; }
-  virtual double getKnuckleMass() const { return m_knuckleMass; }
+    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector<>& getULInertia() const override { return m_ULInertia; }
+    virtual const ChVector<>& getLLInertia() const override { return m_LLInertia; }
+    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
 
-  virtual double getAxleTubeRadius() const { return m_axleTubeRadius; }
-  virtual double getSpindleRadius() const { return m_spindleRadius; }
-  virtual double getSpindleWidth() const { return m_spindleWidth; }
-  virtual double getULRadius() const { return m_ULRadius; }
-  virtual double getLLRadius() const { return m_LLRadius; }
-  virtual double getKnuckleRadius() const { return m_knuckleRadius; }
+    virtual double getAxleInertia() const override { return m_axleInertia; }
 
-  virtual const ChVector<>& getAxleTubeInertia() const { return m_axleTubeInertia; }
-  virtual const ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
-  virtual const ChVector<>& getULInertia() const { return m_ULInertia; }
-  virtual const ChVector<>& getLLInertia() const { return m_LLInertia; }
-  virtual const ChVector<>& getKnuckleInertia() const { return m_knuckleInertia; }
+    virtual double getSpringRestLength() const override { return m_springRestLength; }
+    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
+    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
-  virtual double getAxleInertia() const { return m_axleInertia; }
+    virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
 
-  virtual double getSpringRestLength() const { return m_springRestLength; }
-  virtual ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
-  virtual ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
+  private:
+    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector<> getDirection(DirectionId which) override { return m_directions[which]; }
 
-  virtual const ChVector<> getAxleTubeCOM() const { return m_axleTubeCOM; }
+    void Create(const rapidjson::Document& d);
 
-private:
+    ChSpringForceCallback* m_springForceCB;
+    ChSpringForceCallback* m_shockForceCB;
 
-  virtual const ChVector<> getLocation(PointId which) { return m_points[which]; }
-  virtual const ChVector<> getDirection(DirectionId which) { return m_directions[which]; }
+    ChVector<> m_points[NUM_POINTS];
+    ChVector<> m_directions[NUM_DIRS];
 
-  void Create(const rapidjson::Document& d);
+    double m_axleTubeMass;
+    double m_spindleMass;
+    double m_ULMass;
+    double m_LLMass;
+    double m_knuckleMass;
 
-  ChSpringForceCallback* m_springForceCB;
-  ChSpringForceCallback* m_shockForceCB;
+    double m_axleTubeRadius;
+    double m_spindleRadius;
+    double m_spindleWidth;
+    double m_ULRadius;
+    double m_LLRadius;
+    double m_knuckleRadius;
 
-  ChVector<>  m_points[NUM_POINTS];
-  ChVector<>  m_directions[NUM_DIRS];
+    ChVector<> m_axleTubeCOM;
 
-  double      m_axleTubeMass;
-  double      m_spindleMass;
-  double      m_ULMass;
-  double      m_LLMass;
-  double      m_knuckleMass;
+    ChVector<> m_axleTubeInertia;
+    ChVector<> m_spindleInertia;
+    ChVector<> m_ULInertia;
+    ChVector<> m_LLInertia;
+    ChVector<> m_knuckleInertia;
 
-  double      m_axleTubeRadius;
-  double      m_spindleRadius;
-  double      m_spindleWidth;
-  double      m_ULRadius;
-  double      m_LLRadius;
-  double      m_knuckleRadius;
+    double m_axleInertia;
 
-  ChVector<>  m_axleTubeCOM;
-
-  ChVector<>  m_axleTubeInertia;
-  ChVector<>  m_spindleInertia;
-  ChVector<>  m_ULInertia;
-  ChVector<>  m_LLInertia;
-  ChVector<>  m_knuckleInertia;
-
-  double      m_axleInertia;
-
-  double      m_springRestLength;
+    double m_springRestLength;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

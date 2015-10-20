@@ -38,6 +38,7 @@
 using namespace rapidjson;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Implementation of the class ChSpeedController
@@ -127,4 +128,5 @@ void ChSpeedController::WriteOutputFile(const std::string& filename) {
         m_csv->write_to_file(filename);
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

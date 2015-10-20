@@ -35,6 +35,7 @@
 #include "hmmwv/HMMWV.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 using namespace hmmwv;
 
 // =============================================================================
@@ -47,7 +48,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
 // ChQuaternion<> initRot(0, 0, 0, 1);
 
-enum DriverMode {DEFAULT, RECORD, PLAYBACK};
+enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
 
 // Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)

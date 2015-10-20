@@ -25,6 +25,7 @@
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Rigid tire model.
@@ -71,6 +72,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     float m_poisson_ratio;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

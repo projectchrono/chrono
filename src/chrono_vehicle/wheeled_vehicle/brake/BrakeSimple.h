@@ -25,27 +25,23 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API BrakeSimple : public ChBrakeSimple {
+  public:
+    BrakeSimple(const std::string& filename);
+    BrakeSimple(const rapidjson::Document& d);
+    ~BrakeSimple() {}
 
-class CH_VEHICLE_API BrakeSimple : public ChBrakeSimple
-{
-public:
+    virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
 
-  BrakeSimple(const std::string& filename);
-  BrakeSimple(const rapidjson::Document& d);
-  ~BrakeSimple() {}
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual double GetMaxBrakingTorque() { return m_maxtorque; }
-
-private:
-
-  void Create(const rapidjson::Document& d);
-
-  double      m_maxtorque;
+    double m_maxtorque;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

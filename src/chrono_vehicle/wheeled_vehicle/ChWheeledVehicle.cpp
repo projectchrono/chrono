@@ -19,6 +19,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
@@ -125,4 +126,5 @@ void ChWheeledVehicle::LogConstraintViolations() {
     GetLog().SetNumFormat("%g");
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

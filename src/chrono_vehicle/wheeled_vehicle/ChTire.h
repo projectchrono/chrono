@@ -32,6 +32,7 @@
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Base class for a tire system.
@@ -91,6 +92,7 @@ class CH_VEHICLE_API ChTire : public ChShared {
     std::string m_name;  ///< name of this tire subsystem
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

@@ -23,6 +23,7 @@
 using namespace rapidjson;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // This utility function returns a ChVector from the specified JSON array
@@ -102,4 +103,5 @@ void LugreTire::Create(const rapidjson::Document& d) {
     m_vs[1] = d["Lugre Parameters"]["vs"][1u].GetDouble();  // lateral
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono
