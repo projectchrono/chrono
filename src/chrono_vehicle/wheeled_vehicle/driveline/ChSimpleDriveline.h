@@ -59,7 +59,7 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
     virtual void Update(double torque) override;
 
     /// Get the motor torque to be applied to the specified wheel.
-    virtual double GetWheelTorque(const ChWheelID& wheel_id) const override;
+    virtual double GetWheelTorque(const WheelID& wheel_id) const override;
 
   protected:
     /// Return the front torque fraction [0,1].

@@ -87,7 +87,7 @@ void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChShaftsDriveline2WD::GetWheelTorque(const ChWheelID& wheel_id) const {
+double ChShaftsDriveline2WD::GetWheelTorque(const WheelID& wheel_id) const {
     if (wheel_id.axle() == m_driven_axles[0]) {
         switch (wheel_id.side()) {
             case LEFT:

@@ -85,7 +85,7 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     virtual ChSharedPtr<ChBody> GetRightBody() const override { return m_upright[1]; }
 
     /// Log current constraint violations.
-    virtual void LogConstraintViolations(ChVehicleSide side) override;
+    virtual void LogConstraintViolations(VehicleSide side) override;
 
   protected:
     /// Identifiers for the various hardpoints.
@@ -145,7 +145,7 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     ChSharedPtr<ChLinkSpringCB> m_shock[2];  ///< handles to the spring-damper force elements (left/right)
 
   private:
-    void InitializeSide(ChVehicleSide side,
+    void InitializeSide(VehicleSide side,
                         ChSharedPtr<ChBodyAuxRef> chassis,
                         ChSharedPtr<ChBody> tierod_body,
                         const std::vector<ChVector<> >& points);

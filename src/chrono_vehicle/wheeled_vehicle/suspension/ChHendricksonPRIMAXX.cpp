@@ -130,7 +130,7 @@ void ChHendricksonPRIMAXX::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     InitializeSide(RIGHT, chassis, tierod_body, points_R, dirs_R);
 }
 
-void ChHendricksonPRIMAXX::InitializeSide(ChVehicleSide side,
+void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
                                           ChSharedPtr<ChBodyAuxRef> chassis,
                                           ChSharedPtr<ChBody> tierod_body,
                                           const std::vector<ChVector<> >& points,
@@ -320,7 +320,7 @@ void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inc
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChHendricksonPRIMAXX::LogConstraintViolations(ChVehicleSide side) {
+void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
         ChMatrix<>* C = m_revolute[side]->GetC();

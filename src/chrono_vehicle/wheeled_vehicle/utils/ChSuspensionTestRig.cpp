@@ -383,8 +383,8 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChWheelState ChSuspensionTestRig::GetWheelState(ChVehicleSide side) const {
-    ChWheelState state;
+WheelState ChSuspensionTestRig::GetWheelState(VehicleSide side) const {
+    WheelState state;
 
     state.pos = GetWheelPos(side);
     state.rot = GetWheelRot(side);
@@ -399,7 +399,7 @@ ChWheelState ChSuspensionTestRig::GetWheelState(ChVehicleSide side) const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChSuspensionTestRig::GetActuatorDisp(ChVehicleSide side) {
+double ChSuspensionTestRig::GetActuatorDisp(VehicleSide side) {
     double time = GetSystem()->GetChTime();
     if (side == LEFT)
         return m_post_L_linact->Get_dist_funct()->Get_y(time);
@@ -407,14 +407,14 @@ double ChSuspensionTestRig::GetActuatorDisp(ChVehicleSide side) {
         return m_post_R_linact->Get_dist_funct()->Get_y(time);
 }
 
-double ChSuspensionTestRig::GetActuatorForce(ChVehicleSide side) {
+double ChSuspensionTestRig::GetActuatorForce(VehicleSide side) {
     if (side == LEFT)
         return m_post_L_linact->Get_react_force().x;
     else
         return m_post_R_linact->Get_react_force().x;
 }
 
-double ChSuspensionTestRig::GetActuatorMarkerDist(ChVehicleSide side) {
+double ChSuspensionTestRig::GetActuatorMarkerDist(VehicleSide side) {
     if (side == LEFT)
         return m_post_L_linact->GetDist();
     else
@@ -427,7 +427,7 @@ void ChSuspensionTestRig::Update(double time,
                                  double steering,
                                  double disp_L,
                                  double disp_R,
-                                 const ChTireForces& tire_forces) {
+                                 const TireForces& tire_forces) {
     if (HasSteering()) {
         // Let the steering subsystem process the steering input.
         m_steering->Update(time, steering);

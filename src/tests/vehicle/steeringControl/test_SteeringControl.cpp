@@ -175,8 +175,8 @@ int main(int argc, char* argv[]) {
     Data data(num_steps);
 
     // Inter-module communication data
-    ChTireForces tire_forces(num_wheels);
-    ChWheelStates wheel_states(num_wheels);
+    TireForces tire_forces(num_wheels);
+    WheelStates wheel_states(num_wheels);
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;

@@ -40,13 +40,13 @@ class Generic_Vehicle : public chrono::vehicle::ChWheeledVehicle {
 
     virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-    double GetSpringForce(const chrono::vehicle::ChWheelID& wheel_id) const;
-    double GetSpringLength(const chrono::vehicle::ChWheelID& wheel_id) const;
-    double GetSpringDeformation(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetSpringForce(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetSpringLength(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetSpringDeformation(const chrono::vehicle::WheelID& wheel_id) const;
 
-    double GetShockForce(const chrono::vehicle::ChWheelID& wheel_id) const;
-    double GetShockLength(const chrono::vehicle::ChWheelID& wheel_id) const;
-    double GetShockVelocity(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetShockForce(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetShockLength(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetShockVelocity(const chrono::vehicle::WheelID& wheel_id) const;
 
     virtual void Initialize(const chrono::ChCoordsys<>& chassisPos) override;
 

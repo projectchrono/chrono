@@ -50,7 +50,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// For a rigid tire, the tire forces are automatically applied to the
     /// associated wheel (through Chrono's frictional contact system). The values
     /// returned here are never used.
-    virtual ChTireForce GetTireForce() const override;
+    virtual TireForce GetTireForce() const override;
 
     /// Initialize this tire system.
     /// This function creates the tire contact shape and attaches it to the

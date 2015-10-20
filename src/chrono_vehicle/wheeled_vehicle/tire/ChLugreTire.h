@@ -51,12 +51,12 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual ChTireForce GetTireForce() const override { return m_tireForce; }
+    virtual TireForce GetTireForce() const override { return m_tireForce; }
 
     /// Update the state of this tire system at the current time.
     /// The tire system is provided the current state of its associated wheel.
     virtual void Update(double time,                      ///< [in] current time
-                        const ChWheelState& wheel_state,  ///< [in] current state of associated wheel body
+                        const WheelState& wheel_state,  ///< [in] current state of associated wheel body
                         const ChTerrain& terrain          ///< [in] reference to the terrain system
                         ) override;
 
@@ -113,7 +113,7 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
 
     double m_stepsize;
 
-    ChTireForce m_tireForce;
+    TireForce m_tireForce;
     std::vector<DiscContactData> m_data;
     std::vector<DiscState> m_state;
 };

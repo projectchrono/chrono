@@ -69,22 +69,22 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     ~ChPacejkaTire();
 
     /// specify the file name to read the Pactire input from
-    void Initialize(ChVehicleSide side,  ///< [in]
+    void Initialize(VehicleSide side,  ///< [in]
                     bool driven);
 
     /// return the reactions for the combined slip EQs, in global coords
-    virtual ChTireForce GetTireForce() const override;
+    virtual TireForce GetTireForce() const override;
 
     ///  Return the reactions for the pure slip EQs, in local or global coords
-    ChTireForce GetTireForce_pureSlip(const bool local = true) const;
+    TireForce GetTireForce_pureSlip(const bool local = true) const;
 
     /// Return the reactions for the combined slip EQs, in local or global coords
-    ChTireForce GetTireForce_combinedSlip(const bool local = true) const;
+    TireForce GetTireForce_combinedSlip(const bool local = true) const;
 
     /// Update the state of this tire system at the current time.
     /// Set the PacTire spindle state data from the global wheel body state.
     virtual void Update(double time,                      ///< [in] current time
-                        const ChWheelState& wheel_state,  ///< [in] current state of associated wheel body
+                        const WheelState& wheel_state,  ///< [in] current state of associated wheel body
                         const ChTerrain& terrain          ///< [in] reference to the terrain system
                         ) override;
 
@@ -102,7 +102,7 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Return orientation, Vx (global) and omega/omega_y (global).
     /// Assumes the tire is going straight forward (global x-dir), and the
     /// returned state's orientation yields gamma and alpha, as x and z NASA angles
-    ChWheelState getState_from_KAG(double kappa,  ///< [in] ...
+    WheelState getState_from_KAG(double kappa,  ///< [in] ...
                                    double alpha,  ///< [in] ...
                                    double gamma,  ///< [in] ...
                                    double Vx      ///< [in] tire forward velocity x-dir
@@ -314,11 +314,11 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     // ----- Data members
     bool m_use_transient_slip;
-    ChVehicleSide m_side;
+    VehicleSide m_side;
     bool m_driven;   // is this a driven tire?
     int m_sameSide;  // does parameter file side equal m_side? 1 = true, -1 opposite
 
-    ChWheelState m_tireState;  // tire state, global coordinates
+    WheelState m_tireState;  // tire state, global coordinates
     ChCoordsys<> m_W_frame;    // tire contact coordinate system, TYDEX W-Axis
     double m_simTime;          // Chrono simulation time
 
@@ -342,11 +342,11 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     int m_num_Advance_calls;
     double m_sum_Advance_time;
 
-    ChTireForce m_FM_pure;      // output tire forces, based on pure slip
-    ChTireForce m_FM_combined;  // output tire forces, based on combined slip
+    TireForce m_FM_pure;      // output tire forces, based on pure slip
+    TireForce m_FM_combined;  // output tire forces, based on combined slip
     // previous steps calculated reaction
-    ChTireForce m_FM_pure_last;
-    ChTireForce m_FM_combined_last;
+    TireForce m_FM_pure_last;
+    TireForce m_FM_combined_last;
 
     // TODO: could calculate these using sigma_kappa_adams and sigma_alpha_adams, in getRelaxationLengths()
     // HARDCODED IN Initialize() for now

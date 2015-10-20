@@ -185,29 +185,29 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double HMMWV_Vehicle::GetSpringForce(const ChWheelID& wheel_id) const {
+double HMMWV_Vehicle::GetSpringForce(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetSpringForce(wheel_id.side());
 }
 
-double HMMWV_Vehicle::GetSpringLength(const ChWheelID& wheel_id) const {
+double HMMWV_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetSpringLength(wheel_id.side());
 }
 
-double HMMWV_Vehicle::GetSpringDeformation(const ChWheelID& wheel_id) const {
+double HMMWV_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetSpringDeformation(wheel_id.side());
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double HMMWV_Vehicle::GetShockForce(const ChWheelID& wheel_id) const {
+double HMMWV_Vehicle::GetShockForce(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetShockForce(wheel_id.side());
 }
 
-double HMMWV_Vehicle::GetShockLength(const ChWheelID& wheel_id) const {
+double HMMWV_Vehicle::GetShockLength(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetShockLength(wheel_id.side());
 }
 
-double HMMWV_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const {
+double HMMWV_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetShockVelocity(wheel_id.side());
 }
 

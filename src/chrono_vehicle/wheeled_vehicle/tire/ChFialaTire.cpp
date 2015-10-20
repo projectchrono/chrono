@@ -62,7 +62,7 @@ void ChFialaTire::Initialize() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChFialaTire::Update(double time, const ChWheelState& wheel_state, const ChTerrain& terrain) {
+void ChFialaTire::Update(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
     ChCoordsys<> contact_frame;
     // Clear the force accumulators and set the application point to the wheel
     // center.

@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
                             ) override;
 
     /// Get the motor torque to be applied to the specified wheel.
-    virtual double GetWheelTorque(const ChWheelID& wheel_id) const override;
+    virtual double GetWheelTorque(const WheelID& wheel_id) const override;
 
   protected:
     /// Return the inertia of the driveshaft.

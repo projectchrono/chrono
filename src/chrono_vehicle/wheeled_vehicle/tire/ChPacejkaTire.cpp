@@ -96,7 +96,7 @@ ChPacejkaTire::~ChPacejkaTire() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // NOTE: no initial conditions passed in at this point, e.g. m_tireState is empty
-void ChPacejkaTire::Initialize(ChVehicleSide side, bool driven) {
+void ChPacejkaTire::Initialize(VehicleSide side, bool driven) {
     m_driven = driven;
     // Create private structures
     m_slip = new slips;
@@ -179,16 +179,16 @@ void ChPacejkaTire::Initialize(ChVehicleSide side, bool driven) {
 // local or global frame). The main GetTireForce() function returns the combined
 // slip tire forces, expressed in the global frame.
 // -----------------------------------------------------------------------------
-ChTireForce ChPacejkaTire::GetTireForce() const {
+TireForce ChPacejkaTire::GetTireForce() const {
     return GetTireForce_combinedSlip(false);
 }
 
-ChTireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
+TireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
     if (local)
         return m_FM_pure;
 
     // reactions are on wheel CM
-    ChTireForce m_FM_global;
+    TireForce m_FM_global;
     m_FM_global.point = m_tireState.pos;
     // only transform the directions of the forces, moments, from local to global
     m_FM_global.force = m_W_frame.TransformDirectionLocalToParent(m_FM_pure.force);
@@ -198,12 +198,12 @@ ChTireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
 }
 
 /// Return the reactions for the combined slip EQs, in local or global coords
-ChTireForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
+TireForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
     if (local)
         return m_FM_combined;
 
     // reactions are on wheel CM
-    ChTireForce m_FM_global;
+    TireForce m_FM_global;
     m_FM_global.point = m_W_frame.pos;
     // only transform the directions of the forces, moments, from local to global
     m_FM_global.force = m_W_frame.TransformDirectionLocalToParent(m_FM_combined.force);
@@ -217,7 +217,7 @@ ChTireForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
 // quantities calculated here will be kept constant until the next call to the
 // Update() function.
 // -----------------------------------------------------------------------------
-void ChPacejkaTire::Update(double time, const ChWheelState& state, const ChTerrain& terrain) {
+void ChPacejkaTire::Update(double time, const WheelState& state, const ChTerrain& terrain) {
     //// TODO: This must be removed from here.  A tire with unspecified or
     ////       incorrect parameters should have been invalidate at initialization.
     // Check that input tire model parameters are defined
@@ -1761,7 +1761,7 @@ void ChPacejkaTire::WriteOutData(double time, const std::string& outFilename) {
         // open file, append
         std::ofstream appFile(outFilename.c_str(), std::ios_base::app);
         // global force/moments applied to wheel rigid body
-        ChTireForce global_FM = GetTireForce_combinedSlip(false);
+        TireForce global_FM = GetTireForce_combinedSlip(false);
         // write the slip info, reaction forces for pure & combined slip cases
         appFile << time << "," << m_slip->kappa << "," << m_slip->alpha * 180. / 3.14159 << "," << m_slip->gamma << ","
                 << m_slip->kappaP << "," << m_slip->alphaP << "," << m_slip->gammaP << "," << m_slip->V_cx << ","
@@ -1796,8 +1796,8 @@ void ChPacejkaTire::WriteOutData(double time, const std::string& outFilename) {
 // - set omega from given kappa and using current R_eff
 // - set angular velocity along the local wheel Y axis
 // -----------------------------------------------------------------------------
-ChWheelState ChPacejkaTire::getState_from_KAG(double kappa, double alpha, double gamma, double Vx) {
-    ChWheelState state;
+WheelState ChPacejkaTire::getState_from_KAG(double kappa, double alpha, double gamma, double Vx) {
+    WheelState state;
 
     // Set wheel position at origin.
     state.pos = ChVector<>(0, 0, 0);

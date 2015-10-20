@@ -85,28 +85,28 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Get the force in the air spring (coil or spring) and a damper element
 
     /// Get the force in the spring-damper element.
-    double GetShockLBForce(ChVehicleSide side) const { return m_shockLB[side]->Get_SpringReact(); }
+    double GetShockLBForce(VehicleSide side) const { return m_shockLB[side]->Get_SpringReact(); }
 
     /// Get the current length of the spring-damper element.
-    double GetShockLBLength(ChVehicleSide side) const { return m_shockLB[side]->Get_SpringLength(); }
+    double GetShockLBLength(VehicleSide side) const { return m_shockLB[side]->Get_SpringLength(); }
 
     /// Get the current deformation velocity of the spring-damper element.
-    double GetShockLBVelocity(ChVehicleSide side) const { return m_shockLB[side]->Get_SpringVelocity(); }
+    double GetShockLBVelocity(VehicleSide side) const { return m_shockLB[side]->Get_SpringVelocity(); }
 
     /// Spring (coil or air) and damper element between chassis and axle housing (AH)
     /// Get the force in the air spring (coil or spring) and a damper element
 
     /// Get the force in the spring-damper element.
-    double GetShockAHForce(ChVehicleSide side) const { return m_shockAH[side]->Get_SpringReact(); }
+    double GetShockAHForce(VehicleSide side) const { return m_shockAH[side]->Get_SpringReact(); }
 
     /// Get the current length of the spring-damper element.
-    double GetShockAHLength(ChVehicleSide side) const { return m_shockAH[side]->Get_SpringLength(); }
+    double GetShockAHLength(VehicleSide side) const { return m_shockAH[side]->Get_SpringLength(); }
 
     /// Get the current deformation velocity of the spring-damper element.
-    double GetShockAHVelocity(ChVehicleSide side) const { return m_shockAH[side]->Get_SpringVelocity(); }
+    double GetShockAHVelocity(VehicleSide side) const { return m_shockAH[side]->Get_SpringVelocity(); }
 
     /// Log current constraint violations.
-    virtual void LogConstraintViolations(ChVehicleSide side) override;
+    virtual void LogConstraintViolations(VehicleSide side) override;
 
     /// Log the locations of all hardpoints.
     /// The reported locations are expressed in the suspension reference frame.
@@ -243,7 +243,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     ChSharedPtr<ChLinkSpringCB> m_shockAH[2];  ///< handles to the spring links (left/right)
 
   private:
-    void InitializeSide(ChVehicleSide side,
+    void InitializeSide(VehicleSide side,
                         ChSharedPtr<ChBodyAuxRef> chassis,
                         ChSharedPtr<ChBody> tierod_body,
                         const std::vector<ChVector<> >& points,

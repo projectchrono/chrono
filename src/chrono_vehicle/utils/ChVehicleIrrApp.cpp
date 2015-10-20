@@ -383,11 +383,11 @@ void ChVehicleIrrApp::renderStats() {
         double torque;
         int axle = driveline->GetDrivenAxleIndexes()[0];
 
-        torque = driveline->GetWheelTorque(ChWheelID(axle, LEFT));
+        torque = driveline->GetWheelTorque(WheelID(axle, LEFT));
         sprintf(msg, "Torque wheel L: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 170, 120, 15);
 
-        torque = driveline->GetWheelTorque(ChWheelID(axle, RIGHT));
+        torque = driveline->GetWheelTorque(WheelID(axle, RIGHT));
         sprintf(msg, "Torque wheel R: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 190, 120, 15);
     } else if (ChSharedPtr<ChShaftsDriveline4WD> driveline =
@@ -395,19 +395,19 @@ void ChVehicleIrrApp::renderStats() {
         double torque;
         std::vector<int> axles = driveline->GetDrivenAxleIndexes();
 
-        torque = driveline->GetWheelTorque(ChWheelID(axles[0], LEFT));
+        torque = driveline->GetWheelTorque(WheelID(axles[0], LEFT));
         sprintf(msg, "Torque wheel FL: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 210, 120, 15);
 
-        torque = driveline->GetWheelTorque(ChWheelID(axles[0], RIGHT));
+        torque = driveline->GetWheelTorque(WheelID(axles[0], RIGHT));
         sprintf(msg, "Torque wheel FR: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 230, 120, 15);
 
-        torque = driveline->GetWheelTorque(ChWheelID(axles[1], LEFT));
+        torque = driveline->GetWheelTorque(WheelID(axles[1], LEFT));
         sprintf(msg, "Torque wheel RL: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 250, 120, 15);
 
-        torque = driveline->GetWheelTorque(ChWheelID(axles[1], RIGHT));
+        torque = driveline->GetWheelTorque(WheelID(axles[1], RIGHT));
         sprintf(msg, "Torque wheel FR: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 270, 120, 15);
     }

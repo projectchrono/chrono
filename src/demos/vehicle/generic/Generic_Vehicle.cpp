@@ -191,7 +191,7 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Generic_Vehicle::GetSpringForce(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetSpringForce(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -205,7 +205,7 @@ double Generic_Vehicle::GetSpringForce(const ChWheelID& wheel_id) const
   }
 }
 
-double Generic_Vehicle::GetSpringLength(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetSpringLength(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -219,7 +219,7 @@ double Generic_Vehicle::GetSpringLength(const ChWheelID& wheel_id) const
   }
 }
 
-double Generic_Vehicle::GetSpringDeformation(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -236,7 +236,7 @@ double Generic_Vehicle::GetSpringDeformation(const ChWheelID& wheel_id) const
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Generic_Vehicle::GetShockForce(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetShockForce(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -250,7 +250,7 @@ double Generic_Vehicle::GetShockForce(const ChWheelID& wheel_id) const
   }
 }
 
-double Generic_Vehicle::GetShockLength(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetShockLength(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -264,7 +264,7 @@ double Generic_Vehicle::GetShockLength(const ChWheelID& wheel_id) const
   }
 }
 
-double Generic_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetShockVelocity(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:

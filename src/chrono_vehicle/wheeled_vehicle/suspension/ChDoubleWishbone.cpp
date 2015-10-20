@@ -87,7 +87,7 @@ void ChDoubleWishbone::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     InitializeSide(RIGHT, chassis, tierod_body, points);
 }
 
-void ChDoubleWishbone::InitializeSide(ChVehicleSide side,
+void ChDoubleWishbone::InitializeSide(VehicleSide side,
                                       ChSharedPtr<ChBodyAuxRef> chassis,
                                       ChSharedPtr<ChBody> tierod_body,
                                       const std::vector<ChVector<> >& points) {
@@ -262,7 +262,7 @@ void ChDoubleWishbone::LogHardpointLocations(const ChVector<>& ref, bool inches)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::LogConstraintViolations(ChVehicleSide side) {
+void ChDoubleWishbone::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
         ChMatrix<>* C = m_revoluteLCA[side]->GetC();

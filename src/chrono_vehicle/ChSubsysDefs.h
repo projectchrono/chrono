@@ -31,7 +31,7 @@ namespace chrono {
 namespace vehicle {
 
 /// Enum for the side (left/right) of a vehicle.
-enum ChVehicleSide {
+enum VehicleSide {
     LEFT = 0,  ///< left side of vehicle is always 0
     RIGHT = 1  ///< right side of vehicle is always 1
 };
@@ -40,10 +40,10 @@ enum ChVehicleSide {
 /// By convention, wheels are counted front to rear and left to right. In other
 /// words, for a vehicle with 2 axles, the order is: front-left, front-right,
 /// rear-left, rear-right.
-class ChWheelID {
+class WheelID {
   public:
-    ChWheelID(int id) : m_id(id), m_axle(id / 2), m_side(ChVehicleSide(id % 2)) {}
-    ChWheelID(int axle, ChVehicleSide side) : m_id(2 * axle + side), m_axle(axle), m_side(side) {}
+    WheelID(int id) : m_id(id), m_axle(id / 2), m_side(VehicleSide(id % 2)) {}
+    WheelID(int axle, VehicleSide side) : m_id(2 * axle + side), m_axle(axle), m_side(side) {}
 
     /// Return the wheel ID.
     int id() const { return m_id; }
@@ -54,22 +54,22 @@ class ChWheelID {
 
     /// Return the side for this wheel ID.
     /// By convention, left is 0 and right is 1.
-    ChVehicleSide side() const { return m_side; }
+    VehicleSide side() const { return m_side; }
 
   private:
     int m_id;              ///< wheel ID
     int m_axle;            ///< axle index (counted from the front)
-    ChVehicleSide m_side;  ///< vehicle side (LEFT: 0, RIGHT: 1)
+    VehicleSide m_side;  ///< vehicle side (LEFT: 0, RIGHT: 1)
 };
 
 /// Global constant wheel IDs for the common topology of a 2-axle vehicle.
-static const ChWheelID FRONT_LEFT(0, LEFT);
-static const ChWheelID FRONT_RIGHT(0, RIGHT);
-static const ChWheelID REAR_LEFT(1, LEFT);
-static const ChWheelID REAR_RIGHT(1, RIGHT);
+static const WheelID FRONT_LEFT(0, LEFT);
+static const WheelID FRONT_RIGHT(0, RIGHT);
+static const WheelID REAR_LEFT(1, LEFT);
+static const WheelID REAR_RIGHT(1, RIGHT);
 
 /// Structure to communicate a full body state.
-struct ChBodyState {
+struct BodyState {
     ChVector<> pos;      ///< global position
     ChQuaternion<> rot;  ///< orientation with respect to global frame
     ChVector<> lin_vel;  ///< linear velocity, expressed in the global frame
@@ -77,12 +77,12 @@ struct ChBodyState {
 };
 
 /// Vector of body state structures
-typedef std::vector<ChBodyState> ChBodyStates;
+typedef std::vector<BodyState> BodyStates;
 
 /// Structure to communicate a full wheel body state.
 /// In addition to the quantities communicated for a generic body, the wheel
 /// state also includes the wheel angular speed about its axis of rotation.
-struct ChWheelState {
+struct WheelState {
     ChVector<> pos;      ///< global position
     ChQuaternion<> rot;  ///< orientation with respect to global frame
     ChVector<> lin_vel;  ///< linear velocity, expressed in the global frame
@@ -91,17 +91,17 @@ struct ChWheelState {
 };
 
 /// Vector of wheel state structures
-typedef std::vector<ChWheelState> ChWheelStates;
+typedef std::vector<WheelState> WheelStates;
 
 /// Structure to communicate a set of generalized tire forces.
-struct ChTireForce {
+struct TireForce {
     ChVector<> force;   ///< force vector, epxressed in the global frame
     ChVector<> point;   ///< global location of the force application point
     ChVector<> moment;  ///< moment vector, expressed in the global frame
 };
 
 /// Vector of tire force structures.
-typedef std::vector<ChTireForce> ChTireForces;
+typedef std::vector<TireForce> TireForces;
 
 /// Utility class for specifying a linear spring force.
 class LinearSpringForce : public ChSpringForceCallback {

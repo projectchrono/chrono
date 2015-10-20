@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChTire : public ChShared {
     /// The tire system is provided the current state of its associated wheel and
     /// a handle to the terrain system.
     virtual void Update(double time,                      ///< [in] current time
-                        const ChWheelState& wheel_state,  ///< [in] current state of associated wheel body
+                        const WheelState& wheel_state,  ///< [in] current state of associated wheel body
                         const ChTerrain& terrain          ///< [in] reference to the terrain system
                         ) {}
 
@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChTire : public ChShared {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual ChTireForce GetTireForce() const = 0;
+    virtual TireForce GetTireForce() const = 0;
 
   protected:
     /// Perform disc-terrain collision detection.

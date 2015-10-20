@@ -57,48 +57,48 @@ class CH_VEHICLE_API ChSuspension : public ChShared {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Get a handle to the spindle body on the specified side.
-    ChSharedPtr<ChBody> GetSpindle(ChVehicleSide side) const { return m_spindle[side]; }
+    ChSharedPtr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
 
     /// Get a handle to the axle shaft on the specified side.
-    ChSharedPtr<ChShaft> GetAxle(ChVehicleSide side) const { return m_axle[side]; }
+    ChSharedPtr<ChShaft> GetAxle(VehicleSide side) const { return m_axle[side]; }
 
     /// Get a handle to the revolute joint on the specified side.
-    ChSharedPtr<ChLinkLockRevolute> GetRevolute(ChVehicleSide side) const { return m_revolute[side]; }
+    ChSharedPtr<ChLinkLockRevolute> GetRevolute(VehicleSide side) const { return m_revolute[side]; }
 
     /// Get the global location of the spindle on the specified side.
-    const ChVector<>& GetSpindlePos(ChVehicleSide side) const { return m_spindle[side]->GetPos(); }
+    const ChVector<>& GetSpindlePos(VehicleSide side) const { return m_spindle[side]->GetPos(); }
 
     /// Get the orientation of the spindle body on the specified side.
     /// The spindle body orientation is returned as a quaternion representing a
     /// rotation with respect to the global reference frame.
-    const ChQuaternion<>& GetSpindleRot(ChVehicleSide side) const { return m_spindle[side]->GetRot(); }
+    const ChQuaternion<>& GetSpindleRot(VehicleSide side) const { return m_spindle[side]->GetRot(); }
 
     /// Get the linear velocity of the spindle body on the specified side.
     /// Return the linear velocity of the spindle center, expressed in the global
     /// reference frame.
-    const ChVector<>& GetSpindleLinVel(ChVehicleSide side) const { return m_spindle[side]->GetPos_dt(); }
+    const ChVector<>& GetSpindleLinVel(VehicleSide side) const { return m_spindle[side]->GetPos_dt(); }
 
     /// Get the angular velocity of the spindle body on the specified side.
     /// Return the angular velocity of the spindle frame, expressed in the global
     /// reference frame.
-    ChVector<> GetSpindleAngVel(ChVehicleSide side) const { return m_spindle[side]->GetWvel_par(); }
+    ChVector<> GetSpindleAngVel(VehicleSide side) const { return m_spindle[side]->GetWvel_par(); }
 
     /// Get the angular speed of the axle on the specified side.
-    double GetAxleSpeed(ChVehicleSide side) const { return m_axle[side]->GetPos_dt(); }
+    double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPos_dt(); }
 
     /// Update the suspension subsystem: apply the provided tire forces.
     /// The given tire force and moment is applied to the specified (left or
     /// right) spindle body. This function provides the interface to the tire
     /// system (intermediated by the vehicle system).
-    void Update(ChVehicleSide side,  ///< indicates the spindle body (left or right) where the forces should be applied
-                const ChTireForce& tire_force  ///< generalized tire forces
+    void Update(VehicleSide side,  ///< indicates the spindle body (left or right) where the forces should be applied
+                const TireForce& tire_force  ///< generalized tire forces
                 );
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the specified (left or right) axle. This
     /// function provides the interface to the drivetrain subsystem (intermediated
     /// by the vehicle system).
-    void ApplyAxleTorque(ChVehicleSide side,  ///< indicates the axle (left or right) where the torque should be applied
+    void ApplyAxleTorque(VehicleSide side,  ///< indicates the axle (left or right) where the torque should be applied
                          double torque        ///< value of applied torque
                          );
 
@@ -124,7 +124,7 @@ class CH_VEHICLE_API ChSuspension : public ChShared {
     virtual ChSharedPtr<ChBody> GetRightBody() const { return ChSharedPtr<ChBody>(); }
 
     /// Log current constraint violations.
-    virtual void LogConstraintViolations(ChVehicleSide side) {}
+    virtual void LogConstraintViolations(VehicleSide side) {}
 
   protected:
     std::string m_name;  ///< name of the subsystem

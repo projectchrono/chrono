@@ -114,7 +114,7 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     InitializeSide(RIGHT, chassis, tierod_body, points_R, dirs_R);
 }
 
-void ChSolidAxle::InitializeSide(ChVehicleSide side,
+void ChSolidAxle::InitializeSide(VehicleSide side,
                                  ChSharedPtr<ChBodyAuxRef> chassis,
                                  ChSharedPtr<ChBody> tierod_body,
                                  const std::vector<ChVector<> >& points,
@@ -298,7 +298,7 @@ void ChSolidAxle::LogHardpointLocations(const ChVector<>& ref, bool inches) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSolidAxle::LogConstraintViolations(ChVehicleSide side) {
+void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
         ChMatrix<>* C = m_revoluteKingpin[side]->GetC();

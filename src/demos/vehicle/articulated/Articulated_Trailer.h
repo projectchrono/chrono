@@ -38,26 +38,26 @@ class Articulated_Trailer {
 
     virtual int GetNumberAxles() const { return 2; }
 
-    double GetSpringForce(const chrono::vehicle::ChWheelID& wheel_id) const;
-    double GetSpringLength(const chrono::vehicle::ChWheelID& wheel_id) const;
-    double GetSpringDeformation(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetSpringForce(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetSpringLength(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetSpringDeformation(const chrono::vehicle::WheelID& wheel_id) const;
 
-    double GetShockForce(const chrono::vehicle::ChWheelID& wheel_id) const;
-    double GetShockLength(const chrono::vehicle::ChWheelID& wheel_id) const;
-    double GetShockVelocity(const chrono::vehicle::ChWheelID& wheel_id) const;
+    double GetShockForce(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetShockLength(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetShockVelocity(const chrono::vehicle::WheelID& wheel_id) const;
 
     virtual void Initialize(const chrono::ChCoordsys<>& chassisPos,
                             const bool connect_to_puller,
                             chrono::ChSharedPtr<chrono::ChBodyAuxRef> pulling_vehicle);
 
-    virtual void Update(double time, double braking, const chrono::vehicle::ChTireForces& tire_forces);
+    virtual void Update(double time, double braking, const chrono::vehicle::TireForces& tire_forces);
 
     // Log debugging information
     void LogHardpointLocations();  /// suspension hardpoints at design
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
     /// Get a handle to the specified wheel body.
-    chrono::ChSharedPtr<chrono::ChBody> GetWheelBody(const chrono::vehicle::ChWheelID& wheelID) const;
+    chrono::ChSharedPtr<chrono::ChBody> GetWheelBody(const chrono::vehicle::WheelID& wheelID) const;
 
   private:
     chrono::vehicle::SuspensionType m_suspType;

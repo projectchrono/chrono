@@ -440,8 +440,8 @@ int main() {
     // Simulation loop
     double simTime = 0;
     double outTime = 0;
-    ChTireForce tireforce;
-    ChWheelState wheelstate;
+    TireForce tireforce;
+    WheelState wheelstate;
 
     while (application->GetDevice()->run()) {
         // Reset 'user forces accumulators':

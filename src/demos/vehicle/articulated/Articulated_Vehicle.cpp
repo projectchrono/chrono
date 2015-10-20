@@ -161,7 +161,7 @@ void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Articulated_Vehicle::GetSpringForce(const ChWheelID& wheel_id) const {
+double Articulated_Vehicle::GetSpringForce(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringForce(wheel_id.side());
@@ -172,7 +172,7 @@ double Articulated_Vehicle::GetSpringForce(const ChWheelID& wheel_id) const {
     }
 }
 
-double Articulated_Vehicle::GetSpringLength(const ChWheelID& wheel_id) const {
+double Articulated_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringLength(wheel_id.side());
@@ -183,7 +183,7 @@ double Articulated_Vehicle::GetSpringLength(const ChWheelID& wheel_id) const {
     }
 }
 
-double Articulated_Vehicle::GetSpringDeformation(const ChWheelID& wheel_id) const {
+double Articulated_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringDeformation(wheel_id.side());
@@ -196,7 +196,7 @@ double Articulated_Vehicle::GetSpringDeformation(const ChWheelID& wheel_id) cons
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Articulated_Vehicle::GetShockForce(const ChWheelID& wheel_id) const {
+double Articulated_Vehicle::GetShockForce(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockForce(wheel_id.side());
@@ -207,7 +207,7 @@ double Articulated_Vehicle::GetShockForce(const ChWheelID& wheel_id) const {
     }
 }
 
-double Articulated_Vehicle::GetShockLength(const ChWheelID& wheel_id) const {
+double Articulated_Vehicle::GetShockLength(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockLength(wheel_id.side());
@@ -218,7 +218,7 @@ double Articulated_Vehicle::GetShockLength(const ChWheelID& wheel_id) const {
     }
 }
 
-double Articulated_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const {
+double Articulated_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockVelocity(wheel_id.side());

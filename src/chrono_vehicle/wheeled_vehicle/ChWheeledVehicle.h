@@ -59,10 +59,10 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     ChSharedPtr<ChSteering> GetSteering(int id) { return m_steerings[id]; }
 
     /// Get a handle to the specified vehicle wheel subsystem.
-    ChSharedPtr<ChWheel> GetWheel(const ChWheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
+    ChSharedPtr<ChWheel> GetWheel(const WheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
 
     /// Get a handle to the specified vehicle brake subsystem.
-    ChSharedPtr<ChBrake> GetBrake(const ChWheelID& wheel_id) const { return m_brakes[wheel_id.id()]; }
+    ChSharedPtr<ChBrake> GetBrake(const WheelID& wheel_id) const { return m_brakes[wheel_id.id()]; }
 
     /// Get a handle to the vehicle's driveline subsystem.
     ChSharedPtr<ChDriveline> GetDriveline() const { return m_driveline; }
@@ -79,35 +79,35 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual int GetNumberAxles() const = 0;
 
     /// Get a handle to the specified wheel body.
-    ChSharedPtr<ChBody> GetWheelBody(const ChWheelID& wheelID) const;
+    ChSharedPtr<ChBody> GetWheelBody(const WheelID& wheelID) const;
 
     /// Get the global location of the specified wheel.
-    const ChVector<>& GetWheelPos(const ChWheelID& wheel_id) const;
+    const ChVector<>& GetWheelPos(const WheelID& wheel_id) const;
 
     /// Get the orientation of the specified wheel.
     /// The wheel orientation is returned as a quaternion representing a rotation
     /// with respect to the global reference frame.
-    const ChQuaternion<>& GetWheelRot(const ChWheelID& wheel_id) const;
+    const ChQuaternion<>& GetWheelRot(const WheelID& wheel_id) const;
 
     /// Get the linear velocity of the specified wheel.
     /// Return the linear velocity of the wheel center, expressed in the global
     /// reference frame.
-    const ChVector<>& GetWheelLinVel(const ChWheelID& wheel_id) const;
+    const ChVector<>& GetWheelLinVel(const WheelID& wheel_id) const;
 
     /// Get the angular velocity of the specified wheel.
     /// Return the angular velocity of the wheel frame, expressed in the global
     /// reference frame.
-    ChVector<> GetWheelAngVel(const ChWheelID& wheel_id) const;
+    ChVector<> GetWheelAngVel(const WheelID& wheel_id) const;
 
     /// Get the angular speed of the specified wheel.
     /// This is the angular speed of the wheel axle.
-    double GetWheelOmega(const ChWheelID& wheel_id) const;
+    double GetWheelOmega(const WheelID& wheel_id) const;
 
     /// Get the complete state for the specified wheel.
     /// This includes the location, orientation, linear and angular velocities,
     /// all expressed in the global reference frame, as well as the wheel angular
     /// speed about its rotation axis.
-    ChWheelState GetWheelState(const ChWheelID& wheel_id) const;
+    WheelState GetWheelState(const WheelID& wheel_id) const;
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between
@@ -118,7 +118,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
                         double steering,                 ///< [in] current steering input [-1,+1]
                         double braking,                  ///< [in] current braking input [0,1]
                         double powertrain_torque,        ///< [in] input torque from powertrain
-                        const ChTireForces& tire_forces  ///< [in] vector of tire force structures
+                        const TireForces& tire_forces  ///< [in] vector of tire force structures
                         );
 
     /// Log current constraint violations.

@@ -66,26 +66,26 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     void SetActuator_func_R(const ChSharedPtr<ChFunction>& funcR) { m_actuator_R = funcR; }
 
     /// Get a handle to the specified wheel body.
-    ChSharedPtr<ChBody> GetWheelBody(ChVehicleSide side) const { return m_suspension->GetSpindle(side); }
+    ChSharedPtr<ChBody> GetWheelBody(VehicleSide side) const { return m_suspension->GetSpindle(side); }
 
     /// Get the global location of the specified wheel.
-    const ChVector<>& GetWheelPos(ChVehicleSide side) const { return m_suspension->GetSpindlePos(side); }
+    const ChVector<>& GetWheelPos(VehicleSide side) const { return m_suspension->GetSpindlePos(side); }
 
     /// Get the global rotation of the specified wheel.
-    const ChQuaternion<>& GetWheelRot(ChVehicleSide side) const { return m_suspension->GetSpindleRot(side); }
+    const ChQuaternion<>& GetWheelRot(VehicleSide side) const { return m_suspension->GetSpindleRot(side); }
 
     /// Get the global linear velocity of wheel.
-    const ChVector<>& GetWheelLinVel(ChVehicleSide side) const { return m_suspension->GetSpindleLinVel(side); }
+    const ChVector<>& GetWheelLinVel(VehicleSide side) const { return m_suspension->GetSpindleLinVel(side); }
 
     /// Get the global angular velocity of wheel.
-    ChVector<> GetWheelAngVel(ChVehicleSide side) const { return m_suspension->GetSpindleAngVel(side); }
+    ChVector<> GetWheelAngVel(VehicleSide side) const { return m_suspension->GetSpindleAngVel(side); }
 
     /// Get the complete state for the specified wheel.
-    ChWheelState GetWheelState(ChVehicleSide side) const;
+    WheelState GetWheelState(VehicleSide side) const;
 
-    double GetActuatorDisp(ChVehicleSide side);
-    double GetActuatorForce(ChVehicleSide side);
-    double GetActuatorMarkerDist(ChVehicleSide side);
+    double GetActuatorDisp(VehicleSide side);
+    double GetActuatorForce(VehicleSide side);
+    double GetActuatorMarkerDist(VehicleSide side);
 
     /// Return true if a steering system is attached.
     bool HasSteering() const { return !m_steering.IsNull(); }
@@ -110,7 +110,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
                 double steering,                 ///< [in] current steering input [-1,+1]
                 double disp_L,                   ///< [in] left post displacement
                 double disp_R,                   ///< [in] right post displacement
-                const ChTireForces& tire_forces  ///< [in] tires force to apply to wheel
+                const TireForces& tire_forces  ///< [in] tires force to apply to wheel
                 );
 
     /// Log current constraint violations.

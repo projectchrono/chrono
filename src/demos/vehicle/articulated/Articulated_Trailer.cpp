@@ -184,7 +184,7 @@ void Articulated_Trailer::Initialize(const ChCoordsys<>& chassisPos,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Articulated_Trailer::GetSpringForce(const ChWheelID& wheel_id) const {
+double Articulated_Trailer::GetSpringForce(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringForce(wheel_id.side());
@@ -195,7 +195,7 @@ double Articulated_Trailer::GetSpringForce(const ChWheelID& wheel_id) const {
     }
 }
 
-double Articulated_Trailer::GetSpringLength(const ChWheelID& wheel_id) const {
+double Articulated_Trailer::GetSpringLength(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringLength(wheel_id.side());
@@ -206,7 +206,7 @@ double Articulated_Trailer::GetSpringLength(const ChWheelID& wheel_id) const {
     }
 }
 
-double Articulated_Trailer::GetSpringDeformation(const ChWheelID& wheel_id) const {
+double Articulated_Trailer::GetSpringDeformation(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringDeformation(wheel_id.side());
@@ -219,7 +219,7 @@ double Articulated_Trailer::GetSpringDeformation(const ChWheelID& wheel_id) cons
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Articulated_Trailer::GetShockForce(const ChWheelID& wheel_id) const {
+double Articulated_Trailer::GetShockForce(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockForce(wheel_id.side());
@@ -230,7 +230,7 @@ double Articulated_Trailer::GetShockForce(const ChWheelID& wheel_id) const {
     }
 }
 
-double Articulated_Trailer::GetShockLength(const ChWheelID& wheel_id) const {
+double Articulated_Trailer::GetShockLength(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockLength(wheel_id.side());
@@ -241,7 +241,7 @@ double Articulated_Trailer::GetShockLength(const ChWheelID& wheel_id) const {
     }
 }
 
-double Articulated_Trailer::GetShockVelocity(const ChWheelID& wheel_id) const {
+double Articulated_Trailer::GetShockVelocity(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SOLID_AXLE:
             return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockVelocity(wheel_id.side());
@@ -254,7 +254,7 @@ double Articulated_Trailer::GetShockVelocity(const ChWheelID& wheel_id) const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Articulated_Trailer::Update(double time, double braking, const ChTireForces& tire_forces) {
+void Articulated_Trailer::Update(double time, double braking, const TireForces& tire_forces) {
     // Apply tire forces to spindle bodies.
     m_suspensions[0]->Update(LEFT, tire_forces[FRONT_LEFT.id()]);
     m_suspensions[0]->Update(RIGHT, tire_forces[FRONT_RIGHT.id()]);
@@ -329,6 +329,6 @@ void Articulated_Trailer::DebugLog(int what) {
     GetLog().SetNumFormat("%g");
 }
 
-ChSharedPtr<ChBody> Articulated_Trailer::GetWheelBody(const ChWheelID& wheel_id) const {
+ChSharedPtr<ChBody> Articulated_Trailer::GetWheelBody(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
 }

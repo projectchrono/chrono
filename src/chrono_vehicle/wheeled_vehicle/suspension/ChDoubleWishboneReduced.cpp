@@ -67,7 +67,7 @@ void ChDoubleWishboneReduced::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     InitializeSide(RIGHT, chassis, tierod_body, points);
 }
 
-void ChDoubleWishboneReduced::InitializeSide(ChVehicleSide side,
+void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
                                              ChSharedPtr<ChBodyAuxRef> chassis,
                                              ChSharedPtr<ChBody> tierod_body,
                                              const std::vector<ChVector<> >& points) {
@@ -206,7 +206,7 @@ void ChDoubleWishboneReduced::AddVisualizationSpindle(ChSharedPtr<ChBody> spindl
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishboneReduced::LogConstraintViolations(ChVehicleSide side) {
+void ChDoubleWishboneReduced::LogConstraintViolations(VehicleSide side) {
     // Revolute joint
     {
         ChMatrix<>* C = m_revolute[side]->GetC();

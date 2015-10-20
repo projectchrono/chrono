@@ -187,8 +187,8 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Inter-module communication data
-    ChTireForces tire_forces(4);
-    ChWheelState wheel_states[4];
+    TireForces tire_forces(4);
+    WheelState wheel_states[4];
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;

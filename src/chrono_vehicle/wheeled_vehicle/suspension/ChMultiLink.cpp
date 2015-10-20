@@ -94,7 +94,7 @@ void ChMultiLink::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     InitializeSide(RIGHT, chassis, tierod_body, points_R, dirs_R);
 }
 
-void ChMultiLink::InitializeSide(ChVehicleSide side,
+void ChMultiLink::InitializeSide(VehicleSide side,
                                  ChSharedPtr<ChBodyAuxRef> chassis,
                                  ChSharedPtr<ChBody> tierod_body,
                                  const std::vector<ChVector<> >& points,
@@ -304,7 +304,7 @@ void ChMultiLink::LogHardpointLocations(const ChVector<>& ref, bool inches) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChMultiLink::LogConstraintViolations(ChVehicleSide side) {
+void ChMultiLink::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
         ChMatrix<>* C = m_revoluteUA[side]->GetC();

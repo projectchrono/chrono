@@ -64,8 +64,8 @@ void ChRigidTire::Initialize(ChSharedPtr<ChBody> wheel) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChTireForce ChRigidTire::GetTireForce() const {
-    ChTireForce tire_force;
+TireForce ChRigidTire::GetTireForce() const {
+    TireForce tire_force;
 
     tire_force.force = ChVector<>(0, 0, 0);
     tire_force.point = ChVector<>(0, 0, 0);

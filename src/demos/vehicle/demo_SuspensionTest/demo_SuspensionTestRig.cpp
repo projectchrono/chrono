@@ -94,8 +94,8 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    ChTireForces tire_forces(2);
-    ChWheelStates wheel_states(2);
+    TireForces tire_forces(2);
+    WheelStates wheel_states(2);
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);

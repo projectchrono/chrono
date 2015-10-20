@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChDriveline : public ChShared {
     const std::vector<int>& GetDrivenAxleIndexes() const { return m_driven_axles; }
 
     /// Get the motor torque to be applied to the specified wheel.
-    virtual double GetWheelTorque(const ChWheelID& wheel_id) const = 0;
+    virtual double GetWheelTorque(const WheelID& wheel_id) const = 0;
 
   protected:
     ChSharedPtr<ChShaft> m_driveshaft;  ///< handle to the shaft connection to the powertrain

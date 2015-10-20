@@ -77,31 +77,31 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
                             ) override;
 
     /// Get the force in the spring element.
-    double GetSpringForce(ChVehicleSide side) const { return m_spring[side]->Get_SpringReact(); }
+    double GetSpringForce(VehicleSide side) const { return m_spring[side]->Get_SpringReact(); }
 
     /// Get the current length of the spring element
-    double GetSpringLength(ChVehicleSide side) const { return m_spring[side]->Get_SpringLength(); }
+    double GetSpringLength(VehicleSide side) const { return m_spring[side]->Get_SpringLength(); }
 
     /// Get the current deformation of the spring element.
-    double GetSpringDeformation(ChVehicleSide side) const { return m_spring[side]->Get_SpringDeform(); }
+    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->Get_SpringDeform(); }
 
     /// Get the force in the shock (damper) element.
-    double GetShockForce(ChVehicleSide side) const { return m_shock[side]->Get_SpringReact(); }
+    double GetShockForce(VehicleSide side) const { return m_shock[side]->Get_SpringReact(); }
 
     /// Get the current length of the shock (damper) element.
-    double GetShockLength(ChVehicleSide side) const { return m_shock[side]->Get_SpringLength(); }
+    double GetShockLength(VehicleSide side) const { return m_shock[side]->Get_SpringLength(); }
 
     /// Get the current deformation velocity of the shock (damper) element.
-    double GetShockVelocity(ChVehicleSide side) const { return m_shock[side]->Get_SpringVelocity(); }
+    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->Get_SpringVelocity(); }
 
     /// Global coordinates, LCA ball joint position
-    ChVector<> Get_LCA_sph_pos(ChVehicleSide side) { return m_sphericalLCA[side]->GetMarker2()->GetAbsCoord().pos; }
+    ChVector<> Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetMarker2()->GetAbsCoord().pos; }
 
     /// Global coordinates, UCA ball joint position
-    ChVector<> Get_UCA_sph_pos(ChVehicleSide side) { return m_sphericalUCA[side]->GetMarker2()->GetAbsCoord().pos; }
+    ChVector<> Get_UCA_sph_pos(VehicleSide side) { return m_sphericalUCA[side]->GetMarker2()->GetAbsCoord().pos; }
 
     /// Log current constraint violations.
-    virtual void LogConstraintViolations(ChVehicleSide side) override;
+    virtual void LogConstraintViolations(VehicleSide side) override;
 
     /// Specify the left body for a possible antirollbar subsystem.
     /// Return a handle to the left Lower Control Arm.
@@ -196,7 +196,7 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     ChSharedPtr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
 
   private:
-    void InitializeSide(ChVehicleSide side,
+    void InitializeSide(VehicleSide side,
                         ChSharedPtr<ChBodyAuxRef> chassis,
                         ChSharedPtr<ChBody> tierod_body,
                         const std::vector<ChVector<> >& points);
