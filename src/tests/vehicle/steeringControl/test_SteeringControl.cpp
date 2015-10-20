@@ -63,8 +63,6 @@ struct Data {
     DataArray err_speed;  // vehicle speed error
 };
 
-enum TireModelType { RIGID, PACEJKA, LUGRE, FIALA };
-
 // Type of tire model
 TireModelType tire_model = RIGID;
 

@@ -22,7 +22,8 @@
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "ModelDefs.h"
+#include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "generic/Generic_Wheel.h"
 #include "generic/Generic_BrakeSimple.h"
 
@@ -30,8 +31,8 @@ class Articulated_Trailer {
   public:
     Articulated_Trailer(chrono::ChSystem* mysystem,
                         const bool fixed,
-                        SuspensionType suspType,
-                        VisualizationType wheelVis);
+                        chrono::vehicle::SuspensionType suspType,
+                        chrono::vehicle::VisualizationType wheelVis);
 
     ~Articulated_Trailer() {}
 
@@ -59,7 +60,7 @@ class Articulated_Trailer {
     chrono::ChSharedPtr<chrono::ChBody> GetWheelBody(const chrono::vehicle::ChWheelID& wheelID) const;
 
   private:
-    SuspensionType m_suspType;
+    chrono::vehicle::SuspensionType m_suspType;
 
     chrono::ChSharedPtr<Generic_Wheel> m_front_right_wheel;
     chrono::ChSharedPtr<Generic_Wheel> m_front_left_wheel;

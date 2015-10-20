@@ -27,13 +27,11 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
-#include "ModelDefs.h"
-
 class Generic_Vehicle : public chrono::vehicle::ChWheeledVehicle {
   public:
     Generic_Vehicle(const bool fixed,
-                    SuspensionType suspType,
-                    VisualizationType wheelVis,
+                    chrono::vehicle::SuspensionType suspType,
+                    chrono::vehicle::VisualizationType wheelVis,
                     chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
     ~Generic_Vehicle() {}
@@ -57,7 +55,7 @@ class Generic_Vehicle : public chrono::vehicle::ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    SuspensionType m_suspType;
+    chrono::vehicle::SuspensionType m_suspType;
 
     // Chassis mass properties
     static const double m_chassisMass;

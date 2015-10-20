@@ -27,6 +27,7 @@
 #include "hmmwv/wheel/HMMWV_Wheel.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 namespace hmmwv {
 

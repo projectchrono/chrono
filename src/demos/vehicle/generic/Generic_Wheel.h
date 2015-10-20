@@ -19,17 +19,17 @@
 #ifndef GENERIC_WHEEL_H
 #define GENERIC_WHEEL_H
 
+#include "chrono/physics/ChGlobal.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
-
-#include "ModelDefs.h"
 
 class Generic_Wheel : public chrono::vehicle::ChWheel {
   public:
-    Generic_Wheel(VisualizationType visType) : m_visType(visType) {}
+    Generic_Wheel(chrono::vehicle::VisualizationType visType) : m_visType(visType) {}
     ~Generic_Wheel() {}
 
     virtual double GetMass() const override { return 45.4; }
@@ -40,7 +40,7 @@ class Generic_Wheel : public chrono::vehicle::ChWheel {
         chrono::vehicle::ChWheel::Initialize(spindle);
 
         // Attach visualization
-        if (m_visType == PRIMITIVES) {
+        if (m_visType == chrono::vehicle::PRIMITIVES) {
             double radius = 0.47;
             double width = 0.25;
             chrono::ChSharedPtr<chrono::ChCylinderShape> cyl(new chrono::ChCylinderShape);
@@ -56,7 +56,7 @@ class Generic_Wheel : public chrono::vehicle::ChWheel {
     }
 
   private:
-    VisualizationType m_visType;
+    chrono::vehicle::VisualizationType m_visType;
 };
 
 #endif

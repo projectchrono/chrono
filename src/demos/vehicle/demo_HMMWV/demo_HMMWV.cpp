@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
         if (debug_output && step_number % debug_steps == 0) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
-            my_hmmwv.DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS);
+            my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         }
 
         // Collect output data from modules (for inter-module communication)

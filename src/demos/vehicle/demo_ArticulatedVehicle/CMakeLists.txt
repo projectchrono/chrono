@@ -9,7 +9,6 @@ MESSAGE(STATUS "...add ARTICULATED_VEHICLE demo")
 # List all model files for this demo
 
 SET(MODEL_FILES
-    ../ModelDefs.h
     ../articulated/Articulated_Vehicle.h
     ../articulated/Articulated_Vehicle.cpp
     ../articulated/Articulated_Trailer.h

@@ -24,7 +24,6 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
-#include "ModelDefs.h"
 #include "hmmwv/vehicle/HMMWV_Vehicle.h"
 #include "hmmwv/vehicle/HMMWV_VehicleReduced.h"
 #include "hmmwv/powertrain/HMMWV_Powertrain.h"
@@ -43,12 +42,12 @@ class HMMWV {
 
     void SetChassisFixed(bool val) { m_fixed = val; }
 
-    void SetDriveType(DrivelineType val) { m_driveType = val; }
-    void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
-    void SetTireType(TireModelType val) { m_tireType = val; }
+    void SetDriveType(chrono::vehicle::DrivelineType val) { m_driveType = val; }
+    void SetPowertrainType(chrono::vehicle::PowertrainModelType val) { m_powertrainType = val; }
+    void SetTireType(chrono::vehicle::TireModelType val) { m_tireType = val; }
 
-    void SetChassisVis(VisualizationType val) { m_chassisVis = val; }
-    void SetWheelVis(VisualizationType val) { m_wheelVis = val; }
+    void SetChassisVis(chrono::vehicle::VisualizationType val) { m_chassisVis = val; }
+    void SetWheelVis(chrono::vehicle::VisualizationType val) { m_wheelVis = val; }
 
     void SetInitPosition(const chrono::ChCoordsys<>& pos) { m_initPos = pos; }
 
@@ -77,12 +76,12 @@ class HMMWV {
 
     chrono::ChMaterialSurfaceBase::ContactMethod m_contactMethod;
     bool m_fixed;
-    VisualizationType m_chassisVis;
-    VisualizationType m_wheelVis;
+    chrono::vehicle::VisualizationType m_chassisVis;
+    chrono::vehicle::VisualizationType m_wheelVis;
 
-    DrivelineType m_driveType;
-    PowertrainModelType m_powertrainType;
-    TireModelType m_tireType;
+    chrono::vehicle::DrivelineType m_driveType;
+    chrono::vehicle::PowertrainModelType m_powertrainType;
+    chrono::vehicle::TireModelType m_tireType;
 
     double m_tire_step_size;
     std::string m_pacejkaParamFile;

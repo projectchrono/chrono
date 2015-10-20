@@ -13,7 +13,6 @@ MESSAGE(STATUS "...add STEERING_CONTROLLER demo")
 # List all model files for this demo
 
 SET(MODEL_FILES
-    ../ModelDefs.h
     ../hmmwv/HMMWV.h
     ../hmmwv/HMMWV.cpp
     ../hmmwv/vehicle/HMMWV_Vehicle.h

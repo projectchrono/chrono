@@ -17,8 +17,6 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "ModelDefs.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"

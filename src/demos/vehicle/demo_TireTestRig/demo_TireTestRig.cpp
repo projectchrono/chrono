@@ -37,8 +37,6 @@
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "ModelDefs.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"

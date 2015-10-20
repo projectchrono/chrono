@@ -30,17 +30,16 @@
 namespace chrono {
 namespace vehicle {
 
+/// Enum for the side (left/right) of a vehicle.
 enum ChVehicleSide {
     LEFT = 0,  ///< left side of vehicle is always 0
     RIGHT = 1  ///< right side of vehicle is always 1
 };
 
-///
 /// Class to encode the ID of a vehicle wheel.
 /// By convention, wheels are counted front to rear and left to right. In other
 /// words, for a vehicle with 2 axles, the order is: front-left, front-right,
 /// rear-left, rear-right.
-///
 class ChWheelID {
   public:
     ChWheelID(int id) : m_id(id), m_axle(id / 2), m_side(ChVehicleSide(id % 2)) {}
@@ -69,9 +68,7 @@ static const ChWheelID FRONT_RIGHT(0, RIGHT);
 static const ChWheelID REAR_LEFT(1, LEFT);
 static const ChWheelID REAR_RIGHT(1, RIGHT);
 
-///
 /// Structure to communicate a full body state.
-///
 struct ChBodyState {
     ChVector<> pos;      ///< global position
     ChQuaternion<> rot;  ///< orientation with respect to global frame
@@ -82,11 +79,9 @@ struct ChBodyState {
 /// Vector of body state structures
 typedef std::vector<ChBodyState> ChBodyStates;
 
-///
-/// Structure to communicate a fulle wheel body state.
+/// Structure to communicate a full wheel body state.
 /// In addition to the quantities communicated for a generic body, the wheel
 /// state also includes the wheel angular speed about its axis of rotation.
-///
 struct ChWheelState {
     ChVector<> pos;      ///< global position
     ChQuaternion<> rot;  ///< orientation with respect to global frame
@@ -98,9 +93,7 @@ struct ChWheelState {
 /// Vector of wheel state structures
 typedef std::vector<ChWheelState> ChWheelStates;
 
-///
 /// Structure to communicate a set of generalized tire forces.
-///
 struct ChTireForce {
     ChVector<> force;   ///< force vector, epxressed in the global frame
     ChVector<> point;   ///< global location of the force application point
@@ -110,9 +103,7 @@ struct ChTireForce {
 /// Vector of tire force structures.
 typedef std::vector<ChTireForce> ChTireForces;
 
-///
 /// Utility class for specifying a linear spring force.
-///
 class LinearSpringForce : public ChSpringForceCallback {
   public:
     LinearSpringForce(double k) : m_k(k) {}
@@ -124,9 +115,7 @@ class LinearSpringForce : public ChSpringForceCallback {
     double m_k;
 };
 
-///
 /// Utility class for specifying a linear damper force.
-///
 class LinearDamperForce : public ChSpringForceCallback {
   public:
     LinearDamperForce(double c) : m_c(c) {}
@@ -136,9 +125,7 @@ class LinearDamperForce : public ChSpringForceCallback {
     double m_c;
 };
 
-///
 /// Utility class for specifying a linear spring-damper force.
-///
 class LinearSpringDamperForce : public ChSpringForceCallback {
   public:
     LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
@@ -151,9 +138,7 @@ class LinearSpringDamperForce : public ChSpringForceCallback {
     double m_c;
 };
 
-///
 /// Utility class for specifying a map spring force.
-///
 class MapSpringForce : public ChSpringForceCallback {
   public:
     MapSpringForce() {}
@@ -171,9 +156,7 @@ class MapSpringForce : public ChSpringForceCallback {
     ChFunction_Recorder m_map;
 };
 
-///
 /// Utility class for specifying a map damper force.
-///
 class MapDamperForce : public ChSpringForceCallback {
   public:
     MapDamperForce() {}
@@ -187,6 +170,52 @@ class MapDamperForce : public ChSpringForceCallback {
 
   private:
     ChFunction_Recorder m_map;
+};
+
+/// Enum for visualization types.
+enum VisualizationType {
+    NONE,        ///< no visualization
+    PRIMITIVES,  ///< use primitve shapes
+    MESH         ///< use meshes
+};
+
+/// Enum for available tire models.
+enum TireModelType {
+    RIGID,    ///< rigid tire
+    PACEJKA,  ///< Pacejka (magic formula) tire
+    LUGRE,    ///< Lugre frition model tire
+    FIALA     ///< Fiala tire
+};
+
+/// Enum for available powertrain model templates.
+enum PowertrainModelType {
+    SHAFTS,  ///< powertrain based on ChShaft elements
+    SIMPLE   ///< simple powertrain model (similar to a DC motor)
+};
+
+/// Enum for available suspension model templates.
+enum SuspensionType {
+    DOUBLE_WISHBONE,          ///< double wishbone
+    DOUBLE_WISHBONE_REDUCED,  ///< simplified double wishbone (constraint-based)
+    SOLID_AXLE,               ///< solid axle
+    MULTI_LINK,               ///< multi-link
+    HENDRICKSON_PRIMAXX       ///< Hendrickson PRIMAXX (walking beam)
+};
+
+/// Enum for drive types.
+enum DrivelineType {
+    FWD,  ///< front-wheel drive
+    RWD,  ///< rear-wheel drive
+    AWD   ///< all-wheel drive
+};
+
+/// Flags for output (log/debug).
+/// These flags can be bit-wise ORed and used as a mask.
+enum OutputInformation {
+    OUT_SPRINGS = 1 << 0,      ///< suspension spring information
+    OUT_SHOCKS = 1 << 1,       ///< suspension shock information
+    OUT_CONSTRAINTS = 1 << 2,  ///< constraint violation information
+    OUT_TESTRIG = 1 << 3       ///< test-rig specific information
 };
 
 }  // end namespace vehicle

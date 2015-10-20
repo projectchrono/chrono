@@ -25,7 +25,6 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
-#include "ModelDefs.h"
 #include "hmmwv/wheel/HMMWV_Wheel.h"
 #include "hmmwv/suspension/HMMWV_DoubleWishboneReduced.h"
 #include "hmmwv/steering/HMMWV_RackPinion.h"
@@ -39,9 +38,9 @@ class HMMWV_VehicleReduced : public chrono::vehicle::ChWheeledVehicle {
   public:
     HMMWV_VehicleReduced(
         const bool fixed = false,
-        DrivelineType driveType = AWD,
-        VisualizationType chassisVis = NONE,
-        VisualizationType wheelVis = PRIMITIVES,
+        chrono::vehicle::DrivelineType driveType = chrono::vehicle::AWD,
+        chrono::vehicle::VisualizationType chassisVis = chrono::vehicle::NONE,
+        chrono::vehicle::VisualizationType wheelVis = chrono::vehicle::PRIMITIVES,
         chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
     ~HMMWV_VehicleReduced();
@@ -55,7 +54,7 @@ class HMMWV_VehicleReduced : public chrono::vehicle::ChWheeledVehicle {
     void ExportMeshPovray(const std::string& out_dir);
 
   private:
-    DrivelineType m_driveType;
+    chrono::vehicle::DrivelineType m_driveType;
 
     // Chassis visualization mesh
     static const std::string m_chassisMeshName;

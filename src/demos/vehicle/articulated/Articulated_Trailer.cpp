@@ -305,7 +305,7 @@ void Articulated_Trailer::LogHardpointLocations() {
 void Articulated_Trailer::DebugLog(int what) {
     GetLog().SetNumFormat("%10.2f");
 
-    if (what & DBG_SPRINGS) {
+    if (what & OUT_SPRINGS) {
         GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
         GetLog() << "Length [inch]       " << GetSpringLength(FRONT_LEFT) << "  " << GetSpringLength(FRONT_RIGHT)
                  << "  " << GetSpringLength(REAR_LEFT) << "  " << GetSpringLength(REAR_RIGHT) << "\n";
@@ -316,7 +316,7 @@ void Articulated_Trailer::DebugLog(int what) {
                  << GetSpringForce(REAR_LEFT) << "  " << GetSpringForce(REAR_RIGHT) << "\n";
     }
 
-    if (what & DBG_SHOCKS) {
+    if (what & OUT_SHOCKS) {
         GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
         GetLog() << "Length [inch]       " << GetShockLength(FRONT_LEFT) << "  " << GetShockLength(FRONT_RIGHT) << "  "
                  << GetShockLength(REAR_LEFT) << "  " << GetShockLength(REAR_RIGHT) << "\n";

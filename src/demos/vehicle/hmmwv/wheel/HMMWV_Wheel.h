@@ -19,15 +19,14 @@
 #ifndef HMMWV_WHEEL_H
 #define HMMWV_WHEEL_H
 
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
-
-#include "ModelDefs.h"
 
 namespace hmmwv {
 
 class HMMWV_Wheel : public chrono::vehicle::ChWheel {
   public:
-    HMMWV_Wheel(VisualizationType visType);
+    HMMWV_Wheel(chrono::vehicle::VisualizationType visType);
     ~HMMWV_Wheel() {}
 
     virtual double GetMass() const override { return m_mass; }
@@ -41,7 +40,7 @@ class HMMWV_Wheel : public chrono::vehicle::ChWheel {
     virtual void ExportMeshPovray(const std::string& out_dir) = 0;
 
   private:
-    VisualizationType m_visType;
+    chrono::vehicle::VisualizationType m_visType;
 
     static const double m_radius;
     static const double m_width;
@@ -51,7 +50,7 @@ class HMMWV_Wheel : public chrono::vehicle::ChWheel {
 
 class HMMWV_WheelLeft : public HMMWV_Wheel {
   public:
-    HMMWV_WheelLeft(VisualizationType visType);
+    HMMWV_WheelLeft(chrono::vehicle::VisualizationType visType);
     ~HMMWV_WheelLeft() {}
 
     virtual const std::string& getMeshName() const override { return m_meshName; }
@@ -66,7 +65,7 @@ class HMMWV_WheelLeft : public HMMWV_Wheel {
 
 class HMMWV_WheelRight : public HMMWV_Wheel {
   public:
-    HMMWV_WheelRight(VisualizationType visType);
+    HMMWV_WheelRight(chrono::vehicle::VisualizationType visType);
     ~HMMWV_WheelRight() {}
 
     virtual const std::string& getMeshName() const override { return m_meshName; }

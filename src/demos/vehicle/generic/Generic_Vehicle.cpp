@@ -325,7 +325,7 @@ void Generic_Vehicle::DebugLog(int what)
 {
   GetLog().SetNumFormat("%10.2f");
 
-  if (what & DBG_SPRINGS)
+  if (what & OUT_SPRINGS)
   {
     GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
     GetLog() << "Length [inch]       "
@@ -345,7 +345,7 @@ void Generic_Vehicle::DebugLog(int what)
       << GetSpringForce(REAR_RIGHT) << "\n";
   }
 
-  if (what & DBG_SHOCKS)
+  if (what & OUT_SHOCKS)
   {
     GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
     GetLog() << "Length [inch]       "
@@ -365,7 +365,7 @@ void Generic_Vehicle::DebugLog(int what)
       << GetShockForce(REAR_RIGHT) << "\n";
   }
 
-  if (what & DBG_CONSTRAINTS)
+  if (what & OUT_CONSTRAINTS)
   {
     // Report constraint violations for all joints
     LogConstraintViolations();

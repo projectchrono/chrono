@@ -34,7 +34,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "ModelDefs.h"
 #include "articulated/Articulated_Vehicle.h"
 #include "articulated/Articulated_Trailer.h"
 #include "generic/Generic_SimplePowertrain.h"
