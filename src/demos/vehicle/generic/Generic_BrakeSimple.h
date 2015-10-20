@@ -19,7 +19,7 @@
 #ifndef GENERIC_BRAKESIMPLE_H
 #define GENERIC_BRAKESIMPLE_H
 
-#include "chrono_vehicle/brake/ChBrakeSimple.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 
 class  Generic_BrakeSimple : public chrono::ChBrakeSimple
 {

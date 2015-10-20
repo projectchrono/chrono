@@ -24,8 +24,13 @@
 
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
-#include "chrono_vehicle/driveline/ChShaftsDriveline2WD.h"
-#include "chrono_vehicle/driveline/ChShaftsDriveline4WD.h"
+//// TODO:  Remove the dependency on wheeled_vehicle driveline
+////        Use either inheritance or callback
+/*
+#include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
+#include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
+*/
+
 #include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 
 using namespace irr;
@@ -370,6 +375,9 @@ void ChVehicleIrrApp::renderStats() {
     }
     renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 150, 120, 15);
 
+    //// TODO: Remove the dependency on wheeled_vehicle driveline
+    ////        Use either inheritance or callback
+    /*
     if (ChSharedPtr<ChShaftsDriveline2WD> driveline = m_car.GetDriveline().DynamicCastTo<ChShaftsDriveline2WD>()) {
         double torque;
         int axle = driveline->GetDrivenAxleIndexes()[0];
@@ -402,6 +410,7 @@ void ChVehicleIrrApp::renderStats() {
         sprintf(msg, "Torque wheel FR: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 270, 120, 15);
     }
+    */
 
     // Display information from driver system.
     renderTextBox(m_driver_msg, m_HUD_x + 140, m_HUD_y, 120, 15);

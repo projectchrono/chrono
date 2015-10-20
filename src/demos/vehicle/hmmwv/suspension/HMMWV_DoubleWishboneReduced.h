@@ -27,7 +27,7 @@
 #define HMMWV9_DOUBLEWISHBONE_REDUCED_H
 
 
-#include "chrono_vehicle/suspension/ChDoubleWishboneReduced.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishboneReduced.h"
 
 namespace hmmwv {
 

@@ -31,8 +31,8 @@
 #include "chrono/physics/ChLinkDistance.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tire/ChPacejkaTire.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
 using namespace chrono;
 

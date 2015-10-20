@@ -25,7 +25,7 @@
 #ifndef GENERIC_HENDRICKSON_PRIMAXX_H
 #define GENERIC_HENDRICKSON_PRIMAXX_H
 
-#include "chrono_vehicle/suspension/ChHendricksonPRIMAXX.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ChHendricksonPRIMAXX.h"
 
 class Generic_HendricksonPRIMAXX : public chrono::ChHendricksonPRIMAXX {
   public:

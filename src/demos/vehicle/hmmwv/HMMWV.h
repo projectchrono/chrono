@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "chrono_vehicle/tire/ChPacejkaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
 #include "ModelDefs.h"
 #include "hmmwv/vehicle/HMMWV_Vehicle.h"
@@ -56,7 +56,7 @@ class HMMWV {
     void SetPacejkaParamfile(const std::string& filename) { m_pacejkaParamFile = filename; }
 
     chrono::ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
-    chrono::ChVehicle& GetVehicle() const { return *m_vehicle; }
+    chrono::ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     chrono::ChPowertrain& GetPowertrain() const { return *m_powertrain; }
 
     void Initialize();
@@ -73,7 +73,7 @@ class HMMWV {
     // Protected constructor -- this class cannot be instantiated by itself.
     HMMWV();
 
-    virtual chrono::ChVehicle* CreateVehicle() = 0;
+    virtual chrono::ChWheeledVehicle* CreateVehicle() = 0;
 
     chrono::ChMaterialSurfaceBase::ContactMethod m_contactMethod;
     bool m_fixed;
@@ -89,7 +89,7 @@ class HMMWV {
 
     chrono::ChCoordsys<> m_initPos;
 
-    chrono::ChVehicle* m_vehicle;
+    chrono::ChWheeledVehicle* m_vehicle;
     chrono::ChPowertrain* m_powertrain;
     chrono::ChTire* m_tireFL;
     chrono::ChTire* m_tireFR;
@@ -107,7 +107,7 @@ class HMMWV_Full : public HMMWV {
     void DebugLog(int what) { ((HMMWV_Vehicle*)m_vehicle)->DebugLog(what); }
 
   private:
-    virtual chrono::ChVehicle* CreateVehicle() override {
+    virtual chrono::ChWheeledVehicle* CreateVehicle() override {
         return new HMMWV_Vehicle(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
     }
 };
@@ -120,7 +120,7 @@ class HMMWV_Reduced : public HMMWV {
     void ExportMeshPovray(const std::string& out_dir) { ((HMMWV_VehicleReduced*)m_vehicle)->ExportMeshPovray(out_dir); }
 
   private:
-    virtual chrono::ChVehicle* CreateVehicle() override {
+    virtual chrono::ChWheeledVehicle* CreateVehicle() override {
         return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
     }
 };

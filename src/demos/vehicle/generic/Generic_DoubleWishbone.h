@@ -26,7 +26,7 @@
 #define GENERIC_DOUBLEWISHBONE_H
 
 
-#include "chrono_vehicle/suspension/ChDoubleWishbone.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishbone.h"
 
 class Generic_DoubleWishbone : public chrono::ChDoubleWishbone
 {

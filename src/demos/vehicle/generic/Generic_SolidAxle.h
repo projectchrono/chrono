@@ -27,7 +27,7 @@
 #define GENERIC_SOLIDAXLE_H
 
 
-#include "chrono_vehicle/suspension/ChSolidAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ChSolidAxle.h"
 
 
 class Generic_SolidAxle : public chrono::ChSolidAxle

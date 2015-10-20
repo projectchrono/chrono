@@ -23,7 +23,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChMaterialSurfaceBase.h"
 
-#include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 #include "ModelDefs.h"
 #include "hmmwv/wheel/HMMWV_Wheel.h"
@@ -35,7 +35,7 @@
 
 namespace hmmwv {
 
-class HMMWV_Vehicle : public chrono::ChVehicle
+class HMMWV_Vehicle : public chrono::ChWheeledVehicle
 {
 public:
   HMMWV_Vehicle(const bool fixed = false,

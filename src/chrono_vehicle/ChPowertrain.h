@@ -19,9 +19,9 @@
 #ifndef CH_POWERTRAIN_H
 #define CH_POWERTRAIN_H
 
-#include "core/ChShared.h"
-#include "core/ChVector.h"
-#include "physics/ChBody.h"
+#include "chrono/core/ChShared.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 

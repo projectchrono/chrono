@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "physics/ChGlobal.h"
+#include "chrono/physics/ChGlobal.h"
 
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 

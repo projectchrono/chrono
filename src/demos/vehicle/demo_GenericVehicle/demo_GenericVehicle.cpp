@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
 
 #else
 
-    Generic_FuncDriver driver;
+    Generic_FuncDriver driver(vehicle);
 
 #endif
 
