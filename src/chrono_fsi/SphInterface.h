@@ -30,6 +30,7 @@ Real3 ConvertChVectorToR3(chrono::ChVector<> v3);
 Real4 ConvertChVectorToR4(chrono::ChVector<> v3, Real m);
 Real4 ConvertChQuaternionToR4(chrono::ChQuaternion<> q4);
 Real3 Rotate_By_Quaternion(Real4 q4, Real3 BCE_Pos_local);
+Real3 R3_LocalToGlobal(Real3 p3LF, chrono::ChVector<> pos, chrono::ChQuaternion<> rot);
 
 void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                           int& startIndexSph,
@@ -115,18 +116,27 @@ void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSy
                                         const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
                                         const thrust::host_vector<int>& mapIndex);
 
-void Update_RigidPosVel_from_ChSystem_H2D(thrust::device_vector<Real3>& posRigidD,
-                                          thrust::device_vector<Real4>& qD,
-                                          thrust::device_vector<Real4>& velMassRigidD,
-                                          thrust::device_vector<Real3>& rigidOmegaLRF_D,
-                                          const thrust::host_vector<int>& mapIndex,
-                                          chrono::ChSystemParallelDVI& mphysicalSystem);
+void Update_RigidPosVel_from_ChSystem_H(thrust::host_vector<Real3>& posRigidH,
+                                        thrust::host_vector<Real4>& qH,
+                                        thrust::host_vector<Real4>& velMassRigidH,
+                                        thrust::host_vector<Real3>& rigidOmegaLRF_H,
+                                        const thrust::host_vector<int>& mapIndex,
+                                        chrono::ChSystemParallelDVI& mphysicalSystem);
 
-void HardSet_PosRot_In_ChSystem_D2H(chrono::ChSystemParallelDVI& mphysicalSystem,
-                                    const thrust::device_vector<Real3>& posRigidD,
-                                    const thrust::device_vector<Real4>& qD,
-                                    const thrust::device_vector<Real4>& velMassRigidD,
-                                    const thrust::device_vector<Real3>& omegaLRF_D,
-                                    const thrust::host_vector<int>& mapIndex);
+void CopyRigidData_H2D(thrust::device_vector<Real3>& posRigidD,
+                       thrust::device_vector<Real4>& qD,
+                       thrust::device_vector<Real4>& velMassRigidD,
+                       thrust::device_vector<Real3>& rigidOmegaLRF_D,
+                       const thrust::host_vector<Real3>& posRigidH,
+                       const thrust::host_vector<Real4>& qH,
+                       const thrust::host_vector<Real4>& velMassRigidH,
+                       const thrust::host_vector<Real3>& rigidOmegaLRF_H);
+
+void HardSet_PosRot_In_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
+                                const thrust::host_vector<Real3>& posRigidH,
+                                const thrust::host_vector<Real4>& qH,
+                                const thrust::host_vector<Real4>& velMassRigidH,
+                                const thrust::host_vector<Real3>& omegaLRF_H,
+                                const thrust::host_vector<int>& mapIndex);
 
 #endif /* SPHINTERFACE_H_ */

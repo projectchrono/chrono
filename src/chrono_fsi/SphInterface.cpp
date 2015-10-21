@@ -6,6 +6,7 @@
  */
 
 #include "chrono_fsi/SphInterface.h"
+#include "chrono/core/ChTransform.h"
 
 chrono::ChVector<> ConvertRealToChVector(Real3 p3) {
   return chrono::ChVector<>(p3.x, p3.y, p3.z);
@@ -34,6 +35,11 @@ Real3 Rotate_By_Quaternion(Real4 q4, Real3 BCE_Pos_local) {
   chrono::ChQuaternion<> chQ = ConvertToChQuaternion(q4);
   chrono::ChVector<> dumPos = chQ.Rotate(ConvertRealToChVector(BCE_Pos_local));
   return ConvertChVectorToR3(dumPos);
+}
+
+Real3 R3_LocalToGlobal(Real3 p3LF, chrono::ChVector<> pos, chrono::ChQuaternion<> rot) {
+  chrono::ChVector<> p3GF = chrono::ChTransform<>::TransformLocalToParent(ConvertRealToChVector(p3LF), pos, rot);
+  return ConvertChVectorToR3(p3GF);
 }
 //------------------------------------------------------------------------------------
 void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
@@ -330,39 +336,53 @@ void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSy
 }
 //------------------------------------------------------------------------------------
 // mapIndex[i] is the the index of the i_th sph represented rigid body in ChSystem
-void Update_RigidPosVel_from_ChSystem_H2D(thrust::device_vector<Real3>& posRigidD,
-                                          thrust::device_vector<Real4>& qD,
-                                          thrust::device_vector<Real4>& velMassRigidD,
-                                          thrust::device_vector<Real3>& rigidOmegaLRF_D,
-                                          const thrust::host_vector<int>& mapIndex,
-                                          chrono::ChSystemParallelDVI& mphysicalSystem) {
+void Update_RigidPosVel_from_ChSystem_H(thrust::host_vector<Real3>& posRigidH,
+                                        thrust::host_vector<Real4>& qH,
+                                        thrust::host_vector<Real4>& velMassRigidH,
+                                        thrust::host_vector<Real3>& rigidOmegaLRF_H,
+                                        const thrust::host_vector<int>& mapIndex,
+                                        chrono::ChSystemParallelDVI& mphysicalSystem) {
   int numRigids = mapIndex.size();
   std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < numRigids; i++) {
     chrono::ChBody* bodyPtr = *(myIter + mapIndex[i]);
-    posRigidD[i] = ConvertChVectorToR3(bodyPtr->GetPos());
-    velMassRigidD[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-    qD[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
-    rigidOmegaLRF_D[i] = ConvertChVectorToR3(bodyPtr->GetWacc_loc());
+    posRigidH[i] = ConvertChVectorToR3(bodyPtr->GetPos());
+    velMassRigidH[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
+    qH[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
+    rigidOmegaLRF_H[i] = ConvertChVectorToR3(bodyPtr->GetWacc_loc());
   }
 }
 //------------------------------------------------------------------------------------
+void CopyRigidData_H2D(thrust::device_vector<Real3>& posRigidD,
+                       thrust::device_vector<Real4>& qD,
+                       thrust::device_vector<Real4>& velMassRigidD,
+                       thrust::device_vector<Real3>& rigidOmegaLRF_D,
+                       const thrust::host_vector<Real3>& posRigidH,
+                       const thrust::host_vector<Real4>& qH,
+                       const thrust::host_vector<Real4>& velMassRigidH,
+                       const thrust::host_vector<Real3>& rigidOmegaLRF_H) {
+  thrust::copy(posRigidH.begin(), posRigidH.end(), posRigidD.begin());
+  thrust::copy(qH.begin(), qH.end(), qD.begin());
+  thrust::copy(velMassRigidH.begin(), velMassRigidH.end(), velMassRigidD.begin());
+  thrust::copy(rigidOmegaLRF_H.begin(), rigidOmegaLRF_H.end(), rigidOmegaLRF_D.begin());
+}
+//------------------------------------------------------------------------------------
 // mapIndex[i] is the the index of the i_th sph represented rigid body in ChSystem
-void HardSet_PosRot_In_ChSystem_D2H(chrono::ChSystemParallelDVI& mphysicalSystem,
-                                    const thrust::device_vector<Real3>& posRigidD,
-                                    const thrust::device_vector<Real4>& qD,
-                                    const thrust::device_vector<Real4>& velMassRigidD,
-                                    const thrust::device_vector<Real3>& omegaLRF_D,
-                                    const thrust::host_vector<int>& mapIndex) {
+void HardSet_PosRot_In_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
+                                const thrust::host_vector<Real3>& posRigidH,
+                                const thrust::host_vector<Real4>& qH,
+                                const thrust::host_vector<Real4>& velMassRigidH,
+                                const thrust::host_vector<Real3>& omegaLRF_H,
+                                const thrust::host_vector<int>& mapIndex) {
   int numRigids = mapIndex.size();
   std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < numRigids; i++) {
     chrono::ChBody* bodyPtr = *(myIter + mapIndex[i]);
-    bodyPtr->SetPos(ConvertRealToChVector(posRigidD[i]));
-    bodyPtr->SetRot(ConvertToChQuaternion(qD[i]));
-    bodyPtr->SetPos_dt(ConvertRealToChVector(mR3(velMassRigidD[i])));
-    bodyPtr->SetWacc_loc(ConvertRealToChVector(omegaLRF_D[i]));
+    bodyPtr->SetPos(ConvertRealToChVector(posRigidH[i]));
+    bodyPtr->SetRot(ConvertToChQuaternion(qH[i]));
+    bodyPtr->SetPos_dt(ConvertRealToChVector(mR3(velMassRigidH[i])));
+    bodyPtr->SetWvel_loc(ConvertRealToChVector(omegaLRF_H[i]));
   }
 }
