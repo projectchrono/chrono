@@ -39,6 +39,10 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
 
     collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
 
+    // For default DEM there is no need to create contacts 'in advance' 
+    // when models are closer than the safety envelope, so set default envelope to 0
+    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
+
     contact_container = new ChContactContainerDEM;
     contact_container->SetSystem(this);
 
