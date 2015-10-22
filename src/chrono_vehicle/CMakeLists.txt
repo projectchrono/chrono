@@ -286,10 +286,25 @@ set(CV_WV_WHEEL_FILES
 source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 
 # --------------- TRACKED VEHICLE FILES
-
 set(CV_TV_BASE_FILES
-
+    tracked_vehicle/ChIdler.h
+    tracked_vehicle/ChIdler.cpp
+    tracked_vehicle/ChRoadWheelAssembly.h
+    tracked_vehicle/ChRoadWheelAssembly.cpp
+    tracked_vehicle/ChSprocket.h
+    tracked_vehicle/ChSprocket.cpp
+    tracked_vehicle/ChTensioner.h
+    tracked_vehicle/ChTensioner.cpp
+    tracked_vehicle/ChTrackAssembly.h
+    tracked_vehicle/ChTrackAssembly.cpp
+    tracked_vehicle/ChTrackDriveline.h
+    tracked_vehicle/ChTrackDriveline.cpp
+    tracked_vehicle/ChTrackedVehicle.h
+    tracked_vehicle/ChTrackedVehicle.cpp
+    tracked_vehicle/ChTrackShoe.h
+    tracked_vehicle/ChTrackShoe.cpp
 )
+source_group("tracked_vehicle\\base" FILES ${CV_TV_BASE_FILES})
 
 # --------------- THIRD-PARTY FILES
 
