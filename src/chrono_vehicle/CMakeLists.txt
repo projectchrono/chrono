@@ -293,8 +293,6 @@ set(CV_TV_BASE_FILES
     tracked_vehicle/ChRoadWheelAssembly.cpp
     tracked_vehicle/ChSprocket.h
     tracked_vehicle/ChSprocket.cpp
-    tracked_vehicle/ChTensioner.h
-    tracked_vehicle/ChTensioner.cpp
     tracked_vehicle/ChTrackAssembly.h
     tracked_vehicle/ChTrackAssembly.cpp
     tracked_vehicle/ChTrackDriveline.h

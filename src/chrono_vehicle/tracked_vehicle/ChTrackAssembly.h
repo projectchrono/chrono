@@ -12,13 +12,9 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a track assembly which consists of one (or more) sprockets,
-// an idler (optional), a tensioner (connected to the idler if present, otherwise
-// to one of the sprockets), a collection of road wheel assemblies (suspensions),
-// and a list of track shoes.
-//
-// The reference frame for a track system is aligned with that of the vehicle
-// (chassis) and is centered at (one of) the sprockets.
+// Base class for a track assembly which consists of one sprocket, one idler,
+// a collection of road wheel assemblies (suspensions), and a collection of
+// track shoes.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -36,7 +32,6 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
-#include "chrono_vehicle/tracked_vehicle/ChTensioner.h"
 #include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 
@@ -95,10 +90,11 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
     /// Initialize this track assembly subsystem.
     /// The subsystem is initialized by attaching it to the specified chassis body
     /// at the specified location (with respect to and expressed in the reference
-    /// frame of the chassis). It is assumed that the track assembly reference frame
-    /// is always aligned with the chassis reference frame.
+    /// frame of the chassis) which represents the location of the sprocket. It is
+    /// assumed that the track assembly reference frame is always aligned with the
+    /// chassis reference frame.
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location          ///< [in] location relative to the chassis frame
+                            const ChVector<>& location          ///< [in] location of sprocket relative to the chassis frame
                             ) = 0;
 
     /// Update the state of this track assembly at the current time.
@@ -109,9 +105,8 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
   protected:
     std::string m_name;  ///< name of the subsystem
 
-    ChSprocketList m_sprockets;
+    ChSharedPtr<ChSprocket> m_sprocket;
     ChSharedPtr<ChIdler> m_idler;
-    ChSharedPtr<ChTensioner> m_tensioner;
     ChRoadWheelAssemblyList m_suspensions;
     ChTrackShoeList m_shoes;
 };

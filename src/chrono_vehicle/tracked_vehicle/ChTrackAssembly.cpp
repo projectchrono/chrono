@@ -12,13 +12,9 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a track assembly which consists of one (or more) sprockets,
-// an idler (optional), a tensioner (connected to the idler if present, otherwise
-// to one of the sprockets), a collection of road wheel assemblies (suspensions),
-// and a list of track shoes.
-//
-// The reference frame for a track system is aligned with that of the vehicle
-// (chassis) and is centered at (one of) the sprockets.
+// Base class for a track assembly which consists of one sprocket, one idler,
+// a collection of road wheel assemblies (suspensions), and a collection of
+// track shoes.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.

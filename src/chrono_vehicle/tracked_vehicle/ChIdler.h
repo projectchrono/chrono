@@ -15,7 +15,12 @@
 // Base class for an idler subsystem.  An idler consists of the idler wheel and
 // a connecting body.  The idler wheel is connected through a revolute joint to
 // the connecting body which in turn is connected to the chassis through a
-// translational joint.
+// translational joint. A linear actuator acts as a tensioner.
+//
+// An idler subsystem is defined with respect to a frame centered at the origin
+// of the idler wheel, possibly pitched relative to the chassis reference frame.
+// The translational joint is aligned with the x axis of this reference frame,
+// while the axis of rotation of the revolute joint is aligned with its y axis.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -27,6 +32,7 @@
 
 #include "chrono/core/ChShared.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLinkLock.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -59,6 +65,16 @@ class CH_VEHICLE_API ChIdler : public ChShared {
 
     /// Get a handle to the revolute joint.
     ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
+
+    /// Initialize this idler subsystem.
+    /// The idler subsystem is initialized by attaching it to the specified
+    /// chassis body at the specified location (with respect to and expressed in
+    /// the reference frame of the chassis) and with specified pitch angle (with
+    /// respect to the chassis reference frame).
+    void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                    const ChVector<>& location,         ///< [in] location relative to the chassis frame
+                    double pitch                        ///< [in] pitch angle relative to the chassis frame
+                    );
 
   protected:
     std::string m_name;  ///< name of the subsystem

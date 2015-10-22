@@ -27,6 +27,9 @@
 namespace chrono {
 namespace vehicle {
 
+void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location, double pitch) {
+    //// TODO
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono
