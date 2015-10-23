@@ -290,6 +290,8 @@ source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 set(CV_TV_BASE_FILES
     tracked_vehicle/ChIdler.h
     tracked_vehicle/ChIdler.cpp
+    tracked_vehicle/ChRoadWheel.h 
+    tracked_vehicle/ChRoadWheel.cpp 
     tracked_vehicle/ChRoadWheelAssembly.h
     tracked_vehicle/ChRoadWheelAssembly.cpp
     tracked_vehicle/ChSprocket.h
@@ -312,6 +314,14 @@ set(CV_TV_IDLER_FILES
     tracked_vehicle/idler/ChDoubleIdler.cpp
 )
 source_group("tracked_vehicle\\idler" FILES ${CV_TV_IDLER_FILES})
+
+set(CV_TV_ROADWHEEL_FILES
+    tracked_vehicle/road_wheel/ChSingleRoadWheel.h
+    tracked_vehicle/road_wheel/ChSingleRoadWheel.cpp
+    tracked_vehicle/road_wheel/ChDoubleRoadWheel.h
+    tracked_vehicle/road_wheel/ChDoubleRoadWheel.cpp
+)
+source_group("tracked_vehicle\\road_wheel" FILES ${CV_TV_ROADWHEEL_FILES})
 
 set(CV_TV_UTILS_FILES
     tracked_vehicle/utils/ChSprocketProfiles.h
@@ -367,6 +377,7 @@ add_library(ChronoEngine_vehicle SHARED
 #
     ${CV_TV_BASE_FILES}
     ${CV_TV_IDLER_FILES}
+    ${CV_TV_ROADWHEEL_FILES}
     ${CV_TV_UTILS_FILES}
 #
     ${CV_EASYBMP_FILES}

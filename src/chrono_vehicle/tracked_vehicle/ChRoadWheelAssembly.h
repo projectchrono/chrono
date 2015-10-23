@@ -32,6 +32,8 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
+#include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
+
 namespace chrono {
 namespace vehicle {
 
@@ -41,8 +43,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChRoadWheelAssembly : public ChShared {
   public:
     ChRoadWheelAssembly(const std::string& name  ///< [in] name of the subsystem
-                        )
-        : m_name(name) {}
+                        );
 
     virtual ~ChRoadWheelAssembly() {}
 
@@ -56,10 +57,13 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChShared {
     TrackShoeType GetType() const { return m_type; }
 
     /// Get a handle to the road wheel body.
-    ChSharedPtr<ChBody> GetWheel() const { return m_wheel; }
+    ChSharedPtr<ChBody> GetWheel() const { return m_road_wheel->GetWheel(); }
 
     /// Get a handle to the revolute joint.
-    ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
+    ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_road_wheel->GetRevolute(); }
+
+    /// Get the radius of the road wheel.
+    double GetWheelRadius() const { return m_road_wheel->GetWheelRadius(); }
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
@@ -71,11 +75,9 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChShared {
                             ) = 0;
 
   protected:
-    std::string m_name;  ///< name of the subsystem
-
-    TrackShoeType m_type;                        ///< type of the track shoe matching this road wheel
-    ChSharedPtr<ChBody> m_wheel;                 ///< handle to the road wheel body
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to road wheel revolute joint
+    std::string m_name;                     ///< name of the subsystem
+    TrackShoeType m_type;                   ///< type of the track shoe matching this road wheel
+    ChSharedPtr<ChRoadWheel> m_road_wheel;  ///< road-wheel subsystem
 };
 
 /// Vector of handles to road wheel assembly subsystems.

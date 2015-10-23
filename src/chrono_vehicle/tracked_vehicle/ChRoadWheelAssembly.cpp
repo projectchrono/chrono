@@ -26,6 +26,8 @@
 namespace chrono {
 namespace vehicle {
 
+ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name) : m_name(name) {
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono
