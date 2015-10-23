@@ -580,19 +580,19 @@ void CreateMbdPhysicalSystemObjects(
     std::cin.get();
     //
 
-//    AddCylinderBceToChSystemAndSPH(mphysicalSystem,
-//                                   cyl_rad,
-//                                   cyl_len,
-//                                   cyl_pos,
-//                                   cyl_rot,
-//                                   true,
-//                                   posRadH,
-//                                   velMasH,
-//                                   rhoPresMuH,
-//                                   referenceArray,
-//                                   FSI_Bodies_Index_H,
-//                                   numObjects,
-//                                   sphMarkerMass);
+    AddCylinderBceToChSystemAndSPH(mphysicalSystem,
+                                   cyl_rad,
+                                   cyl_len,
+                                   cyl_pos,
+                                   cyl_rot,
+                                   true,
+                                   posRadH,
+                                   velMasH,
+                                   rhoPresMuH,
+                                   referenceArray,
+                                   FSI_Bodies_Index_H,
+                                   numObjects,
+                                   sphMarkerMass);
 
     if (haveVehicle) {
         //        // version 1
