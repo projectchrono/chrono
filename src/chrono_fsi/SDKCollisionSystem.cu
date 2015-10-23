@@ -506,6 +506,7 @@ __device__ void calcOnCartesianShare(Real3& v_share,
 __global__ void calcHashD(uint* gridMarkerHash,   // output
                           uint* gridMarkerIndex,  // output
                           Real3* posRad,          // input: positions
+                          Real4* rp,
                           uint numAllMarkers) {
   /* Calculate the index of where the particle is stored in posRad. */
   uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
@@ -522,7 +523,7 @@ __global__ void calcHashD(uint* gridMarkerHash,   // output
   }
   boxCorner = paramsD.worldOrigin + paramsD.boxDims;
   if (p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z) {
-    printf("Out of max Boundary\n");
+    printf("Out of max Boundary, point %f %f %f, type %f, boundary max: %f %f %f \n", p.x, p.y, p.z, rp->w, boxCorner.x, boxCorner.y, boxCorner.z);
     return;
   }
 
@@ -1386,6 +1387,7 @@ void setParameters(SimParams* hostParams, NumberOfObjects* numObjects) {
 void calcHash(thrust::device_vector<uint>& gridMarkerHash,
               thrust::device_vector<uint>& gridMarkerIndex,
               thrust::device_vector<Real3>& posRad,
+              thrust::device_vector<Real4>& rhoPreMu,
               int numAllMarkers) {
   /* Is there a need to optimize the number of threads used at once? */
   uint numThreads, numBlocks;
@@ -1393,7 +1395,7 @@ void calcHash(thrust::device_vector<uint>& gridMarkerHash,
 
   /* Execute Kernel */
   calcHashD << <numBlocks, numThreads>>>
-      (U1CAST(gridMarkerHash), U1CAST(gridMarkerIndex), mR3CAST(posRad), numAllMarkers);
+      (U1CAST(gridMarkerHash), U1CAST(gridMarkerIndex), mR3CAST(posRad), mR4CAST(rhoPreMu), numAllMarkers);
 
   /* Check for errors in kernel execution */
   cudaThreadSynchronize();
