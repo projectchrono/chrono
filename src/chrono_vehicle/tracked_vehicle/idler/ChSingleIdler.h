@@ -39,12 +39,11 @@ class CH_VEHICLE_API ChSingleIdler : public ChIdler {
     virtual ~ChSingleIdler() {}
 
     /// Return the type of track shoe consistent with this idler.
-    virtual TrackShoeType GetType() const { return LATERAL_PIN; }
+    virtual TrackShoeType GetType() const override { return LATERAL_PIN; }
 
     /// Initialize this idler subsystem.
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+                            const ChVector<>& location          ///< [in] location relative to the chassis frame
                             ) override;
 
     /// Add visualization of the idler wheel.

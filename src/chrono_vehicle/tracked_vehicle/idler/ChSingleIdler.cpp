@@ -33,11 +33,9 @@ ChSingleIdler::ChSingleIdler(const std::string& name) : ChIdler(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSingleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                               const ChVector<>& location,
-                               const ChQuaternion<>& rotation) {
+void ChSingleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
     // Invoke the base class method
-    ChIdler::Initialize(chassis, location, rotation);
+    ChIdler::Initialize(chassis, location);
 
     // Add contact geometry.
     m_wheel->SetCollide(true);

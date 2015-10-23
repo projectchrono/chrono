@@ -33,11 +33,9 @@ ChDoubleIdler::ChDoubleIdler(const std::string& name) : ChIdler(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                               const ChVector<>& location,
-                               const ChQuaternion<>& rotation) {
+void ChDoubleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
     // Invoke the base class method
-    ChIdler::Initialize(chassis, location, rotation);
+    ChIdler::Initialize(chassis, location);
 
     // Add contact geometry.
     double radius = getWheelRadius();
