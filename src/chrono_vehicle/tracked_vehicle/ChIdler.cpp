@@ -47,10 +47,9 @@ void ChIdler::SetContactMaterial(float friction_coefficient,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                         const ChVector<>& location,
-                         const ChQuaternion<>& rotation) {
+                         const ChVector<>& location) {
     // Express the idler reference frame in the absolute coordinate system.
-    ChFrame<> idler_to_abs(location, rotation);
+    ChFrame<> idler_to_abs(location);
     idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame.
@@ -88,11 +87,13 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
                            ChCoordsys<>(points[WHEEL], idler_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
 
     // Create and initialize the prismatic joint between carrier and chassis.
-    // The axis of translation is the x axis of the idler reference frame.
+    // The axis of translation is pitched by the specified angle from the x axis
+    // of the idler reference frame.
+
     m_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
     m_prismatic->SetNameString(m_name + "_prismatic");
     m_prismatic->Initialize(chassis, m_carrier,
-                            ChCoordsys<>(points[CARRIER_CHASSIS], idler_to_abs.GetRot() * Q_from_AngY(CH_C_PI_2)));
+                            ChCoordsys<>(points[CARRIER_CHASSIS], idler_to_abs.GetRot() * Q_from_AngY(CH_C_PI_2 + getPitchAngle())));
     chassis->GetSystem()->AddLink(m_prismatic);
 
     // Create and initialize the tensioner force element.
@@ -136,6 +137,7 @@ void ChIdler::AddVisualizationCarrier(ChSharedPtr<ChBody> carrier,
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
     box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
     box->GetBoxGeometry().Pos = p_T;
+    box->GetBoxGeometry().Rot = ChMatrix33<>(getPitchAngle(), ChVector<>(0, 1, 0));
     carrier->AddAsset(box);
 
     ChSharedPtr<ChColorAsset> col(new ChColorAsset);

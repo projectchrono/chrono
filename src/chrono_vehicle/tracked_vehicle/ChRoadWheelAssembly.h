@@ -26,6 +26,7 @@
 
 #include "chrono/core/ChShared.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLinkLock.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -59,6 +60,15 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChShared {
 
     /// Get a handle to the revolute joint.
     ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
+
+    /// Initialize this suspension subsystem.
+    /// The suspension subsystem is initialized by attaching it to the specified
+    /// chassis body at the specified location (with respect to and expressed in
+    /// the reference frame of the chassis). It is assumed that the suspension
+    /// reference frame is always aligned with the chassis reference frame.
+    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location          ///< [in] location relative to the chassis frame
+                            ) = 0;
 
   protected:
     std::string m_name;  ///< name of the subsystem

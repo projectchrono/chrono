@@ -24,6 +24,8 @@
 #ifndef CH_TRACK_ASSEMBLY_H
 #define CH_TRACK_ASSEMBLY_H
 
+#include <vector>
+
 #include "chrono/core/ChShared.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 
@@ -47,7 +49,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
                     )
         : m_name(name) {}
 
-    virtual ~ChTrackAssembly() {}
+    ~ChTrackAssembly() {}
 
     /// Get the name identifier for this track assembly subsystem.
     const std::string& GetName() const { return m_name; }
@@ -84,31 +86,32 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
     /// all expressed in the global reference frame.
     BodyState GetTrackShoeState(size_t id) const;
 
-    /// Assemble track shoes over wheels.
-    void Assemble();
-
     /// Initialize this track assembly subsystem.
-    /// The subsystem is initialized by attaching it to the specified chassis body
-    /// at the specified location (with respect to and expressed in the reference
-    /// frame of the chassis) which represents the location of the sprocket. It is
-    /// assumed that the track assembly reference frame is always aligned with the
-    /// chassis reference frame.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location          ///< [in] location of sprocket relative to the chassis frame
-                            ) = 0;
+    /// The subsystem is initialized by attaching its constituent subsystems to the
+    /// specified chassis body at the specified corresponding locations (with respect
+    /// to and expressed in the reference frame of the chassis).  All subsystem reference
+    /// frames are assumed to be aligned with the chassis reference frame.
+    void Initialize(
+        ChSharedPtr<ChBodyAuxRef> chassis,               ///< [in] handle to the chassis body
+        const ChVector<>& sprocket_loc,                  ///< [in] sprocket location relative to the chassis frame
+        const ChVector<>& idler_loc,                     ///< [in] idler location relative to the chassis frame
+        const std::vector<ChVector<> >& suspension_locs  ///< [in] suspension locations relative to the chassis frame
+        );
 
     /// Update the state of this track assembly at the current time.
     void Update(double time,                        ///< [in] current time
                 const TrackShoeForces& shoe_forces  ///< [in] vector of tire force structures
                 );
 
-  protected:
-    std::string m_name;  ///< name of the subsystem
+  private:
+      /// Assemble track shoes over wheels.
+      void Assemble();
 
-    ChSharedPtr<ChSprocket> m_sprocket;
-    ChSharedPtr<ChIdler> m_idler;
-    ChRoadWheelAssemblyList m_suspensions;
-    ChTrackShoeList m_shoes;
+    std::string m_name;                     ///< name of the subsystem
+    ChSharedPtr<ChSprocket> m_sprocket;     ///< sprocket subsystem
+    ChSharedPtr<ChIdler> m_idler;           ///< idler (and tensioner) subsystem
+    ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
+    ChTrackShoeList m_shoes;                ///< track shoes
 };
 
 }  // end namespace vehicle

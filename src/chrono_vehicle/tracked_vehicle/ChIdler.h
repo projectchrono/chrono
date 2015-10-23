@@ -81,13 +81,12 @@ class CH_VEHICLE_API ChIdler : public ChShared {
     /// Initialize this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis) and with specified orientation (with
-    /// respect to the chassis reference frame).
+    /// the reference frame of the chassis). It is assumed that the idler subsystem
+    /// reference frame is always aligned with the chassis reference frame.
     /// A derived idler subsystem template class must extend this default implementation
     /// and specify contact geometry for the idler wheel.
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+                            const ChVector<>& location          ///< [in] location relative to the chassis frame
                             );
 
     /// Add visualization of the idler wheel.
@@ -98,11 +97,11 @@ class CH_VEHICLE_API ChIdler : public ChShared {
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        WHEEL,            ///< idler wheel location
-        CARRIER,          ///< carrier location
+        WHEEL,              ///< idler wheel location
+        CARRIER,            ///< carrier location
         CARRIER_CHASSIS,  ///< carrier, connection to chassis (translational)
-        TSDA_CARRIER,     ///< TSDA connection to carrier
-        TSDA_CHASSIS,     ///< TSDA connection to chassis
+        TSDA_CARRIER,       ///< TSDA connection to carrier
+        TSDA_CHASSIS,       ///< TSDA connection to chassis
         NUM_POINTS
     };
 
@@ -121,6 +120,9 @@ class CH_VEHICLE_API ChIdler : public ChShared {
     virtual const ChVector<>& getCarrierInertia() = 0;
     /// Return a visualization radius for the carrier body.
     virtual double getCarrierRadius() const = 0;
+
+    /// Return the pitch angle of the prismatic joint.
+    virtual double getPitchAngle() const = 0;
 
     /// Return the free (rest) length of the spring element of the tensioner.
     virtual double getTensionerRestLength() const = 0;

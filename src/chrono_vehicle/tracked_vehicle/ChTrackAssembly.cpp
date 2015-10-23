@@ -41,6 +41,21 @@ BodyState ChTrackAssembly::GetTrackShoeState(size_t id) const {
 }
 
 // -----------------------------------------------------------------------------
+// Initialize this track assembly subsystem.
+// -----------------------------------------------------------------------------
+void ChTrackAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+                                 const ChVector<>& sprocket_loc,
+                                 const ChVector<>& idler_loc,
+                                 const std::vector<ChVector<> >& suspension_locs) {
+    m_sprocket->Initialize(chassis, sprocket_loc);
+    m_idler->Initialize(chassis, idler_loc);
+
+    for (size_t i = 0; i < m_suspensions.size(); ++i) {
+        m_suspensions[i]->Initialize(chassis, suspension_locs[i]);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // Assemble track shoes over wheels.
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::Assemble() {
