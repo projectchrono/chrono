@@ -69,7 +69,7 @@ using std::endl;
 // Define General variables
 SimParams paramsH;
 
-#define haveFluid false
+#define haveFluid true
 #define useWallBce true
 
 #if haveFluid
@@ -1034,10 +1034,15 @@ int main(int argc, char* argv[]) {
     ResizeR4(derivVelRhoD, numObjects.numAllMarkers);
 
     int numFsiBodies = FSI_Bodies_Index_H.size();
-    thrust::device_vector<Real3> posRigid_fsiBodies_D(numFsiBodies);
-    thrust::device_vector<Real4> q_fsiBodies_D(numFsiBodies);
-    thrust::device_vector<Real4> velMassRigid_fsiBodies_D(numFsiBodies);
-    thrust::device_vector<Real3> omegaLRF_fsiBodies_D(numFsiBodies);
+    thrust::device_vector<Real3> posRigid_fsiBodies_D;
+    thrust::device_vector<Real4> q_fsiBodies_D;
+    thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
+    thrust::device_vector<Real3> omegaLRF_fsiBodies_D;
+    ResizeR3(posRigid_fsiBodies_D, numFsiBodies);
+    ResizeR4(q_fsiBodies_D, numFsiBodies);
+    ResizeR4(velMassRigid_fsiBodies_D, numFsiBodies);
+    ResizeR3(omegaLRF_fsiBodies_D, numFsiBodies);
+
 
     thrust::host_vector<Real3> posRigid_fsiBodies_dummyH(numFsiBodies);
     thrust::host_vector<Real4> q_fsiBodies_dummyH(numFsiBodies);
@@ -1052,8 +1057,10 @@ int main(int argc, char* argv[]) {
     thrust::device_vector<Real4> velMassRigid_fsiBodies_D2 = velMassRigid_fsiBodies_D;
     thrust::device_vector<Real3> omegaLRF_fsiBodies_D2 = omegaLRF_fsiBodies_D;
 
-    thrust::device_vector<Real3> rigid_FSI_ForcesD(numFsiBodies);
-    thrust::device_vector<Real3> rigid_FSI_TorquesD(numFsiBodies);
+    thrust::device_vector<Real3> rigid_FSI_ForcesD;
+    thrust::device_vector<Real3> rigid_FSI_TorquesD;
+    ResizeR3(rigid_FSI_ForcesD, numFsiBodies);
+    ResizeR3(rigid_FSI_TorquesD, numFsiBodies);
     // assert
     if (numObjects.numRigidBodies != numFsiBodies) {
     	printf("\n\n\n\n Error! number of fsi bodies does not match numObjects.numRigidBodies \n\n\n\n");
