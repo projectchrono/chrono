@@ -51,10 +51,8 @@ class CH_VEHICLE_API ChSingleIdler : public ChIdler {
     void AddWheelVisualization(const ChColor& color) override;
 
   protected:
-    /// Return the radius of the idler wheel.
-    virtual double getWheelRadius() const = 0;
     /// Return the width of the idler wheel.
-    virtual double getWheelWidth() const = 0;
+    virtual double GetWheelWidth() const = 0;
 };
 
 }  // end namespace vehicle

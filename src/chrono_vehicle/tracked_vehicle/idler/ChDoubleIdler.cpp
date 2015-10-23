@@ -38,9 +38,9 @@ void ChDoubleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector
     ChIdler::Initialize(chassis, location);
 
     // Add contact geometry.
-    double radius = getWheelRadius();
-    double width = 0.5 * (getWheelWidth() - getWheelGap());
-    double offset = 0.25 * (getWheelWidth() + getWheelGap());
+    double radius = GetWheelRadius();
+    double width = 0.5 * (GetWheelWidth() - GetWheelGap());
+    double offset = 0.25 * (GetWheelWidth() + GetWheelGap());
 
     m_wheel->SetCollide(true);
 
@@ -66,9 +66,9 @@ void ChDoubleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleIdler::AddWheelVisualization(const ChColor& color) {
-    double radius = getWheelRadius();
-    double width = getWheelWidth();
-    double gap = getWheelGap();
+    double radius = GetWheelRadius();
+    double width = GetWheelWidth();
+    double gap = GetWheelGap();
 
     ChSharedPtr<ChCylinderShape> cyl_1(new ChCylinderShape);
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);

@@ -38,10 +38,13 @@ void ChSingleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector
     ChIdler::Initialize(chassis, location);
 
     // Add contact geometry.
+    double radius = GetWheelRadius();
+    double width = GetWheelWidth();
+
     m_wheel->SetCollide(true);
 
     m_wheel->GetCollisionModel()->ClearModel();
-    m_wheel->GetCollisionModel()->AddCylinder(getWheelRadius(), getWheelRadius(), getWheelWidth() / 2);
+    m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2);
     m_wheel->GetCollisionModel()->BuildModel();
 
     switch (m_wheel->GetContactMethod()) {
@@ -61,8 +64,8 @@ void ChSingleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSingleIdler::AddWheelVisualization(const ChColor& color) {
-    double radius = getWheelRadius();
-    double width = getWheelWidth();
+    double radius = GetWheelRadius();
+    double width = GetWheelWidth();
 
     ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);

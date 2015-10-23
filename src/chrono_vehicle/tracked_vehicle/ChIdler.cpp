@@ -46,8 +46,7 @@ void ChIdler::SetContactMaterial(float friction_coefficient,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                         const ChVector<>& location) {
+void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
     // Express the idler reference frame in the absolute coordinate system.
     ChFrame<> idler_to_abs(location);
     idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -56,7 +55,7 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     std::vector<ChVector<> > points(NUM_POINTS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        ChVector<> rel_pos = GetLocation(static_cast<PointId>(i));
         points[i] = idler_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
@@ -65,8 +64,8 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     m_wheel->SetNameString(m_name + "_wheel");
     m_wheel->SetPos(points[WHEEL]);
     m_wheel->SetRot(idler_to_abs.GetRot());
-    m_wheel->SetMass(getWheelMass());
-    m_wheel->SetInertiaXX(getWheelInertia());
+    m_wheel->SetMass(GetWheelMass());
+    m_wheel->SetInertiaXX(GetWheelInertia());
     chassis->GetSystem()->AddBody(m_wheel);
 
     // Create and initialize the carrier body.
@@ -74,8 +73,8 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     m_carrier->SetNameString(m_name + "_carrier");
     m_carrier->SetPos(points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
-    m_carrier->SetMass(getWheelMass());
-    m_carrier->SetInertiaXX(getWheelInertia());
+    m_carrier->SetMass(GetWheelMass());
+    m_carrier->SetInertiaXX(GetWheelInertia());
     AddVisualizationCarrier(m_carrier, points[WHEEL], points[CARRIER], points[CARRIER_CHASSIS]);
     chassis->GetSystem()->AddBody(m_wheel);
 
@@ -93,14 +92,15 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     m_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
     m_prismatic->SetNameString(m_name + "_prismatic");
     m_prismatic->Initialize(chassis, m_carrier,
-                            ChCoordsys<>(points[CARRIER_CHASSIS], idler_to_abs.GetRot() * Q_from_AngY(CH_C_PI_2 + getPitchAngle())));
+                            ChCoordsys<>(points[CARRIER_CHASSIS],
+                                         idler_to_abs.GetRot() * Q_from_AngY(CH_C_PI_2 + GetPrismaticPitchAngle())));
     chassis->GetSystem()->AddLink(m_prismatic);
 
     // Create and initialize the tensioner force element.
     m_tensioner = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
     m_tensioner->SetNameString(m_name + "_tensioner");
     m_tensioner->Initialize(chassis, m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
-    m_tensioner->Set_SpringCallback(getTensionerForceCallback());
+    m_tensioner->Set_SpringCallback(GetTensionerForceCallback());
     chassis->GetSystem()->AddLink(m_tensioner);
 }
 
@@ -111,7 +111,7 @@ void ChIdler::AddVisualizationCarrier(ChSharedPtr<ChBody> carrier,
                                       const ChVector<>& pt_C,
                                       const ChVector<>& pt_T) {
     static const double threshold2 = 1e-6;
-    double radius = getCarrierRadius();
+    double radius = GetCarrierVisRadius();
 
     // Express hardpoint locations in body frame.
     ChVector<> p_W = carrier->TransformPointParentToLocal(pt_W);
@@ -137,7 +137,7 @@ void ChIdler::AddVisualizationCarrier(ChSharedPtr<ChBody> carrier,
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
     box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
     box->GetBoxGeometry().Pos = p_T;
-    box->GetBoxGeometry().Rot = ChMatrix33<>(getPitchAngle(), ChVector<>(0, 1, 0));
+    box->GetBoxGeometry().Rot = ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0));
     carrier->AddAsset(box);
 
     ChSharedPtr<ChColorAsset> col(new ChColorAsset);

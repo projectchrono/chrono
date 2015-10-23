@@ -70,6 +70,9 @@ class CH_VEHICLE_API ChIdler : public ChShared {
     /// Get a handle to the revolute joint.
     ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
+    /// Get the radius of the idler wheel.
+    virtual double GetWheelRadius() const = 0;
+
     /// Set contact material properties.
     /// This function must be called before Initialize().
     void SetContactMaterial(float friction_coefficient = 0.6f,    ///< [in] coefficient of friction
@@ -97,37 +100,37 @@ class CH_VEHICLE_API ChIdler : public ChShared {
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        WHEEL,              ///< idler wheel location
-        CARRIER,            ///< carrier location
+        WHEEL,            ///< idler wheel location
+        CARRIER,          ///< carrier location
         CARRIER_CHASSIS,  ///< carrier, connection to chassis (translational)
-        TSDA_CARRIER,       ///< TSDA connection to carrier
-        TSDA_CHASSIS,       ///< TSDA connection to chassis
+        TSDA_CARRIER,     ///< TSDA connection to carrier
+        TSDA_CHASSIS,     ///< TSDA connection to chassis
         NUM_POINTS
     };
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
-    virtual const ChVector<> getLocation(PointId which) = 0;
+    virtual const ChVector<> GetLocation(PointId which) = 0;
 
     /// Return the mass of the idler wheel body.
-    virtual double getWheelMass() const = 0;
+    virtual double GetWheelMass() const = 0;
     /// Return the moments of inertia of the idler wheel body.
-    virtual const ChVector<>& getWheelInertia() = 0;
+    virtual const ChVector<>& GetWheelInertia() = 0;
 
     /// Return the mass of the carrier body.
-    virtual double getCarrierMass() const = 0;
+    virtual double GetCarrierMass() const = 0;
     /// Return the moments of inertia of the carrier body.
-    virtual const ChVector<>& getCarrierInertia() = 0;
+    virtual const ChVector<>& GetCarrierInertia() = 0;
     /// Return a visualization radius for the carrier body.
-    virtual double getCarrierRadius() const = 0;
+    virtual double GetCarrierVisRadius() const = 0;
 
     /// Return the pitch angle of the prismatic joint.
-    virtual double getPitchAngle() const = 0;
+    virtual double GetPrismaticPitchAngle() const = 0;
 
     /// Return the free (rest) length of the spring element of the tensioner.
-    virtual double getTensionerRestLength() const = 0;
+    virtual double GetTensionerRestLength() const = 0;
     /// Return the callback function for spring force.
-    virtual ChSpringForceCallback* getTensionerForceCallback() const = 0;
+    virtual ChSpringForceCallback* GetTensionerForceCallback() const = 0;
 
     std::string m_name;                            ///< name of the subsystem
     ChSharedPtr<ChBody> m_wheel;                   ///< handle to the idler wheel body
