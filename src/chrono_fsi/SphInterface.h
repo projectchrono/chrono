@@ -117,15 +117,15 @@ void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSy
                                         const thrust::host_vector<int>& FSI_Bodies_Index_H);
 
 void Copy_External_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
-                               const thrust::host_vector<Real3>& posRigidH,
-                               const thrust::host_vector<Real4>& qH,
-                               const thrust::host_vector<Real4>& velMassRigidH,
-                               const thrust::host_vector<Real3>& omegaLRF_H);
+                               const thrust::host_vector<Real3>& pos_ChSystemBackupH,
+                               const thrust::host_vector<Real4>& quat_ChSystemBackupH,
+                               const thrust::host_vector<Real3>& vel_ChSystemBackupH,
+                               const thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH);
 
-void Copy_ChSystem_to_External(thrust::host_vector<Real3>& posRigidH,
-                               thrust::host_vector<Real4>& qH,
-                               thrust::host_vector<Real4>& velMassRigidH,
-                               thrust::host_vector<Real3>& omegaLRF_H,
+void Copy_ChSystem_to_External(thrust::host_vector<Real3>& pos_ChSystemBackupH,
+                               thrust::host_vector<Real4>& quat_ChSystemBackupH,
+                               thrust::host_vector<Real3>& vel_ChSystemBackupH,
+                               thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH,
                                chrono::ChSystemParallelDVI& mphysicalSystem);
 
 void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRigid_fsiBodies_D,

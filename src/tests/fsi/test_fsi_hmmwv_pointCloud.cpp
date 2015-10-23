@@ -946,10 +946,10 @@ int main(int argc, char* argv[]) {
     thrust::host_vector<Real4> rhoPresMuH;
     thrust::host_vector<uint> bodyIndex;
 
-    thrust::host_vector<Real3> posRigidH;
-    thrust::host_vector<Real4> qH;
-    thrust::host_vector<Real4> velMassRigidH;
-    thrust::host_vector<Real3> omegaLRF_H;
+    thrust::host_vector<Real3> pos_ChSystemBackupH;
+    thrust::host_vector<Real4> quat_ChSystemBackupH;
+    thrust::host_vector<Real3> vel_ChSystemBackupH;
+    thrust::host_vector<Real3> omegaLRF_ChSystemBackupH;
     thrust::host_vector<int> FSI_Bodies_Index_H;
 
     Real sphMarkerMass = 0;  // To be initialized in CreateFluidMarkers, and used in other places
@@ -1129,7 +1129,7 @@ int main(int argc, char* argv[]) {
         myGpuTimerHalfStep.Start();
         fsi_timer.Reset();
 
-        Copy_ChSystem_to_External(posRigidH, qH, velMassRigidH, omegaLRF_H, mphysicalSystem);
+        Copy_ChSystem_to_External(pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH, mphysicalSystem);
 
 
 #if haveFluid
@@ -1279,7 +1279,7 @@ int main(int argc, char* argv[]) {
         mTime -= 0.5 * currentParamsH.dT;
 
         // Arman: do it so that you don't need gpu when you don't have fluid
-        Copy_External_To_ChSystem(mphysicalSystem, posRigidH, qH, velMassRigidH, omegaLRF_H);
+        Copy_External_To_ChSystem(mphysicalSystem, pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH);
 
         fsi_timer.start("stepDynamic_mbd");
 
@@ -1346,6 +1346,15 @@ int main(int argc, char* argv[]) {
     }
     ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
     FSI_Bodies_Index_H.clear();
+
+    pos_ChSystemBackupH.clear();
+    quat_ChSystemBackupH.clear();
+    vel_ChSystemBackupH.clear();
+    omegaLRF_ChSystemBackupH.clear();
+
+
+    // Arman LRF in omegaLRF may need change
+
 #if haveFluid
     ClearMyThrustR3(posRadD);
     ClearMyThrustR4(velMasD);

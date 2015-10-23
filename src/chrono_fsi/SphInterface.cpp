@@ -356,44 +356,44 @@ void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSy
 //------------------------------------------------------------------------------------
 // FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
 void Copy_External_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
-                               const thrust::host_vector<Real3>& posRigidH,
-                               const thrust::host_vector<Real4>& qH,
-                               const thrust::host_vector<Real4>& velMassRigidH,
-                               const thrust::host_vector<Real3>& omegaLRF_H) {
+                               const thrust::host_vector<Real3>& pos_ChSystemBackupH,
+                               const thrust::host_vector<Real4>& quat_ChSystemBackupH,
+                               const thrust::host_vector<Real3>& vel_ChSystemBackupH,
+                               const thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH) {
   int numBodies = mphysicalSystem.Get_bodylist()->size();
   //  assert(posRigidH.size() == numBodies && "Error!!! Size of the external data does not match the ChSystem");
-  if (posRigidH.size() != numBodies) {
+  if (pos_ChSystemBackupH.size() != numBodies) {
     printf("\n\n\n\n Error!!! Size of the external data does not match the ChSystem \n\n\n\n");
   }
   std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < numBodies; i++) {
     chrono::ChBody* bodyPtr = *(myIter + i);
-    bodyPtr->SetPos(ConvertRealToChVector(posRigidH[i]));
-    bodyPtr->SetRot(ConvertToChQuaternion(qH[i]));
-    bodyPtr->SetPos_dt(ConvertRealToChVector(mR3(velMassRigidH[i])));
-    bodyPtr->SetWvel_par(ConvertRealToChVector(omegaLRF_H[i]));
+    bodyPtr->SetPos(ConvertRealToChVector(pos_ChSystemBackupH[i]));
+    bodyPtr->SetRot(ConvertToChQuaternion(quat_ChSystemBackupH[i]));
+    bodyPtr->SetPos_dt(ConvertRealToChVector(vel_ChSystemBackupH[i]));
+    bodyPtr->SetWvel_par(ConvertRealToChVector(omegaLRF_ChSystemBackupH[i]));
   }
 }
 //------------------------------------------------------------------------------------
-void Copy_ChSystem_to_External(thrust::host_vector<Real3>& posRigidH,
-                               thrust::host_vector<Real4>& qH,
-                               thrust::host_vector<Real4>& velMassRigidH,
-                               thrust::host_vector<Real3>& omegaLRF_H,
+void Copy_ChSystem_to_External(thrust::host_vector<Real3>& pos_ChSystemBackupH,
+                               thrust::host_vector<Real4>& quat_ChSystemBackupH,
+                               thrust::host_vector<Real3>& vel_ChSystemBackupH,
+                               thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH,
                                chrono::ChSystemParallelDVI& mphysicalSystem) {
 	int numBodies = mphysicalSystem.Get_bodylist()->size();
-  posRigidH.resize(numBodies);
-  qH.resize(numBodies);
-  velMassRigidH.resize(numBodies);
-  omegaLRF_H.resize(numBodies);
+	pos_ChSystemBackupH.resize(numBodies);
+	quat_ChSystemBackupH.resize(numBodies);
+	vel_ChSystemBackupH.resize(numBodies);
+	omegaLRF_ChSystemBackupH.resize(numBodies);
   std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < numBodies; i++) {
     chrono::ChBody* bodyPtr = *(myIter + i);
-    posRigidH[i] = ConvertChVectorToR3(bodyPtr->GetPos());
-    qH[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
-    velMassRigidH[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-    omegaLRF_H[i] = ConvertChVectorToR3(bodyPtr->GetWvel_par());
+    pos_ChSystemBackupH[i] = ConvertChVectorToR3(bodyPtr->GetPos());
+    quat_ChSystemBackupH[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
+    vel_ChSystemBackupH[i] = ConvertChVectorToR3(bodyPtr->GetPos_dt());
+    omegaLRF_ChSystemBackupH[i] = ConvertChVectorToR3(bodyPtr->GetWvel_par());
   }
 }
 
