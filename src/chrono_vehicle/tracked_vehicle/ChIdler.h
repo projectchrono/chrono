@@ -31,9 +31,12 @@
 #define CH_IDLER_H
 
 #include "chrono/core/ChShared.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLinkLock.h"
+#include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -57,8 +60,9 @@ class CH_VEHICLE_API ChIdler : public ChShared {
 
     /// Set the name identifier for this idler subsystem.
     void SetName(const std::string& name) { m_name = name; }
+
     /// Return the type of track shoe consistent with this idler.
-    TrackShoeType GetType() const { return m_type; }
+    virtual TrackShoeType GetType() const = 0;
 
     /// Get a handle to the road wheel body.
     ChSharedPtr<ChBody> GetWheel() const { return m_wheel; }
@@ -66,22 +70,80 @@ class CH_VEHICLE_API ChIdler : public ChShared {
     /// Get a handle to the revolute joint.
     ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
+    /// Set contact material properties.
+    /// This function must be called before Initialize().
+    void SetContactMaterial(float friction_coefficient = 0.6f,    ///< [in] coefficient of friction
+                            float restitution_coefficient = 0.1,  ///< [in] coefficient of restitution
+                            float young_modulus = 2e5f,           ///< [in] Young's modulus of elasticity
+                            float poisson_ratio = 0.3f            ///< [in] Poisson ratio
+                            );
+
     /// Initialize this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis) and with specified pitch angle (with
+    /// the reference frame of the chassis) and with specified orientation (with
     /// respect to the chassis reference frame).
-    void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                    const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                    double pitch                        ///< [in] pitch angle relative to the chassis frame
-                    );
+    /// A derived idler subsystem template class must extend this default implementation
+    /// and specify contact geometry for the idler wheel.
+    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+                            );
+
+    /// Add visualization of the idler wheel.
+    /// This (optional) function should be called only after a call to Initialize().
+    /// Must be implemented by derived classes (templates).
+    virtual void AddWheelVisualization(const ChColor& color) {}
 
   protected:
-    std::string m_name;  ///< name of the subsystem
+    /// Identifiers for the various hardpoints.
+    enum PointId {
+        WHEEL,            ///< idler wheel location
+        CARRIER,          ///< carrier location
+        CARRIER_CHASSIS,  ///< carrier, connection to chassis (translational)
+        TSDA_CARRIER,     ///< TSDA connection to carrier
+        TSDA_CHASSIS,     ///< TSDA connection to chassis
+        NUM_POINTS
+    };
 
-    TrackShoeType m_type;                        ///< type of the track shoe matching this idler
-    ChSharedPtr<ChBody> m_wheel;                 ///< handle to the idler wheel body
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to idler wheel revolute joint
+    /// Return the location of the specified hardpoint.
+    /// The returned location must be expressed in the idler subsystem reference frame.
+    virtual const ChVector<> getLocation(PointId which) = 0;
+
+    /// Return the mass of the idler wheel body.
+    virtual double getWheelMass() const = 0;
+    /// Return the moments of inertia of the idler wheel body.
+    virtual const ChVector<>& getWheelInertia() = 0;
+
+    /// Return the mass of the carrier body.
+    virtual double getCarrierMass() const = 0;
+    /// Return the moments of inertia of the carrier body.
+    virtual const ChVector<>& getCarrierInertia() = 0;
+    /// Return a visualization radius for the carrier body.
+    virtual double getCarrierRadius() const = 0;
+
+    /// Return the free (rest) length of the spring element of the tensioner.
+    virtual double getTensionerRestLength() const = 0;
+    /// Return the callback function for spring force.
+    virtual ChSpringForceCallback* getTensionerForceCallback() const = 0;
+
+    std::string m_name;                            ///< name of the subsystem
+    ChSharedPtr<ChBody> m_wheel;                   ///< handle to the idler wheel body
+    ChSharedPtr<ChBody> m_carrier;                 ///< handle to the carrier body
+    ChSharedPtr<ChLinkLockRevolute> m_revolute;    ///< handle to wheel-carrier revolute joint
+    ChSharedPtr<ChLinkLockPrismatic> m_prismatic;  ///< handle to carrier-chassis translational joint
+    ChSharedPtr<ChLinkSpringCB> m_tensioner;       ///< handle to the TSDA tensioner element
+
+    float m_friction;
+    float m_restitution;
+    float m_young_modulus;
+    float m_poisson_ratio;
+
+  private:
+    void AddVisualizationCarrier(ChSharedPtr<ChBody> carrier,
+                                 const ChVector<>& pt_W,
+                                 const ChVector<>& pt_C,
+                                 const ChVector<>& pt_T);
 };
 
 }  // end namespace vehicle
