@@ -191,7 +191,10 @@ void ClearArraysH(thrust::host_vector<Real3>& posRadH,  // do not set the size h
 //------------------------------------------------------------------------------------
 
 void CopyD2H(thrust::host_vector<Real4>& derivVelRhoChronoH, const thrust::device_vector<Real4>& derivVelRhoD) {
-  assert(derivVelRhoChronoH.size() == derivVelRhoD.size() && "Error! size mismatch host and device");
+  //	  assert(derivVelRhoChronoH.size() == derivVelRhoD.size() && "Error! size mismatch host and device");
+  if (derivVelRhoChronoH.size() != derivVelRhoD.size()) {
+    printf("\n\n\n\n Error! size mismatch host and device \n\n\n\n");
+  }
   thrust::copy(derivVelRhoD.begin(), derivVelRhoD.end(), derivVelRhoChronoH.begin());
 }
 
@@ -227,7 +230,10 @@ void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
     //			hydroForce->SetMforce(0);
     //
     //		if (numContactsOnAllSph[i] == 0) continue;
-    assert(!hydroForce.IsNull() && "Error! sph marker does not have hyroforce tag in ChSystem");
+    //    assert(!hydroForce.IsNull() && "Error! sph marker does not have hyroforce tag in ChSystem");
+    if (hydroForce.IsNull()) {
+      printf("\n\n\n\n Error! sph marker does not have hyroforce tag in ChSystem \n\n\n\n");
+    }
 
     Real4 mDerivVelRho = derivVelRhoD[i];
     Real3 forceSphMarker = mR3(mDerivVelRho) * sphMass;
@@ -264,7 +270,10 @@ void CopyH2DPosVel(thrust::device_vector<Real3>& posRadD,
                    thrust::device_vector<Real4>& velMasD,
                    const thrust::host_vector<Real3>& posRadH,
                    const thrust::host_vector<Real4>& velMasH) {
-  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
+  //  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
+  if (posRadH.size() != posRadD.size()) {
+    printf("\n\n\n\n Error! size mismatch host and device \n\n\n\n");
+  }
   thrust::copy(posRadH.begin(), posRadH.end(), posRadD.begin());
   thrust::copy(velMasH.begin(), velMasH.end(), velMasD.begin());
 }
@@ -275,7 +284,10 @@ void CopyD2HPosVel(thrust::host_vector<Real3>& posRadH,
                    thrust::host_vector<Real4>& velMasH,
                    const thrust::host_vector<Real3>& posRadD,
                    const thrust::host_vector<Real4>& velMasD) {
-  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
+  //  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
+  if (posRadH.size() != posRadD.size()) {
+    printf("\n\n\n\n Error! size mismatch host and device \n\n\n\n");
+  }
   thrust::copy(posRadD.begin(), posRadD.end(), posRadH.begin());
   thrust::copy(velMasD.begin(), velMasD.end(), velMasH.begin());
 }
@@ -283,7 +295,10 @@ void CopyD2HPosVel(thrust::host_vector<Real3>& posRadH,
 //------------------------------------------------------------------------------------
 
 void CopyH2D(thrust::device_vector<Real4>& derivVelRhoD, const thrust::host_vector<Real4>& derivVelRhoChronoH) {
-  assert(derivVelRhoChronoH.size() == derivVelRhoD.size() && "Error! size mismatch host and device");
+  //  assert(derivVelRhoChronoH.size() == derivVelRhoD.size() && "Error! size mismatch host and device");
+  if (derivVelRhoChronoH.size() != derivVelRhoD.size()) {
+    printf("\n\n\n\n Error! size mismatch host and device \n\n\n\n");
+  }
   thrust::copy(derivVelRhoChronoH.begin(), derivVelRhoChronoH.end(), derivVelRhoD.begin());
 }
 //------------------------------------------------------------------------------------
@@ -309,23 +324,26 @@ void CopyD2H(thrust::host_vector<Real3>& posRadH,  // do not set the size here s
              const thrust::device_vector<Real3>& posRadD,
              const thrust::device_vector<Real4>& velMasD,
              const thrust::device_vector<Real4>& rhoPresMuD) {
-  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
+  //  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
+  if (posRadH.size() != posRadD.size()) {
+    printf("\n\n\n\n Error! size mismatch host and device \n\n\n\n");
+  }
   thrust::copy(posRadD.begin(), posRadD.end(), posRadH.begin());
   thrust::copy(velMasD.begin(), velMasD.end(), velMasH.begin());
   thrust::copy(rhoPresMuD.begin(), rhoPresMuD.end(), rhoPresMuH.begin());
 }
 
 //------------------------------------------------------------------------------------
-// mapIndex[i] is the the index of the i_th sph represented rigid body in ChSystem
+// FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
 void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                                         const thrust::device_vector<Real3>& rigid_FSI_ForcesD,
                                         const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
-                                        const thrust::host_vector<int>& mapIndex) {
-  int numRigids = mapIndex.size();
+                                        const thrust::host_vector<int>& FSI_Bodies_Index_H) {
+  int numRigids = FSI_Bodies_Index_H.size();
   std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < numRigids; i++) {
-    chrono::ChBody* bodyPtr = *(myIter + mapIndex[i]);
+    chrono::ChBody* bodyPtr = *(myIter + FSI_Bodies_Index_H[i]);
     bodyPtr->Empty_forces_accumulators();
     Real3 mforce = rigid_FSI_ForcesD[i];
     bodyPtr->Accumulate_force(ConvertRealToChVector(mforce), bodyPtr->GetPos(), false);
@@ -334,55 +352,83 @@ void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSy
     bodyPtr->Accumulate_torque(ConvertRealToChVector(mtorque), false);
   }
 }
+
 //------------------------------------------------------------------------------------
-// mapIndex[i] is the the index of the i_th sph represented rigid body in ChSystem
-void Update_RigidPosVel_from_ChSystem_H(thrust::host_vector<Real3>& posRigidH,
-                                        thrust::host_vector<Real4>& qH,
-                                        thrust::host_vector<Real4>& velMassRigidH,
-                                        thrust::host_vector<Real3>& rigidOmegaLRF_H,
-                                        const thrust::host_vector<int>& mapIndex,
-                                        chrono::ChSystemParallelDVI& mphysicalSystem) {
-  int numRigids = mapIndex.size();
-  std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
-#pragma omp parallel for
-  for (int i = 0; i < numRigids; i++) {
-    chrono::ChBody* bodyPtr = *(myIter + mapIndex[i]);
-    posRigidH[i] = ConvertChVectorToR3(bodyPtr->GetPos());
-    velMassRigidH[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-    qH[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
-    rigidOmegaLRF_H[i] = ConvertChVectorToR3(bodyPtr->GetWacc_loc());
+// FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
+void Copy_External_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
+                               const thrust::host_vector<Real3>& posRigidH,
+                               const thrust::host_vector<Real4>& qH,
+                               const thrust::host_vector<Real4>& velMassRigidH,
+                               const thrust::host_vector<Real3>& omegaLRF_H) {
+  int numBodies = mphysicalSystem.Get_bodylist()->size();
+  //  assert(posRigidH.size() == numBodies && "Error!!! Size of the external data does not match the ChSystem");
+  if (posRigidH.size() != numBodies) {
+    printf("\n\n\n\n Error!!! Size of the external data does not match the ChSystem \n\n\n\n");
   }
-}
-//------------------------------------------------------------------------------------
-void CopyRigidData_H2D(thrust::device_vector<Real3>& posRigidD,
-                       thrust::device_vector<Real4>& qD,
-                       thrust::device_vector<Real4>& velMassRigidD,
-                       thrust::device_vector<Real3>& rigidOmegaLRF_D,
-                       const thrust::host_vector<Real3>& posRigidH,
-                       const thrust::host_vector<Real4>& qH,
-                       const thrust::host_vector<Real4>& velMassRigidH,
-                       const thrust::host_vector<Real3>& rigidOmegaLRF_H) {
-  thrust::copy(posRigidH.begin(), posRigidH.end(), posRigidD.begin());
-  thrust::copy(qH.begin(), qH.end(), qD.begin());
-  thrust::copy(velMassRigidH.begin(), velMassRigidH.end(), velMassRigidD.begin());
-  thrust::copy(rigidOmegaLRF_H.begin(), rigidOmegaLRF_H.end(), rigidOmegaLRF_D.begin());
-}
-//------------------------------------------------------------------------------------
-// mapIndex[i] is the the index of the i_th sph represented rigid body in ChSystem
-void HardSet_PosRot_In_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
-                                const thrust::host_vector<Real3>& posRigidH,
-                                const thrust::host_vector<Real4>& qH,
-                                const thrust::host_vector<Real4>& velMassRigidH,
-                                const thrust::host_vector<Real3>& omegaLRF_H,
-                                const thrust::host_vector<int>& mapIndex) {
-  int numRigids = mapIndex.size();
   std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
-  for (int i = 0; i < numRigids; i++) {
-    chrono::ChBody* bodyPtr = *(myIter + mapIndex[i]);
+  for (int i = 0; i < numBodies; i++) {
+    chrono::ChBody* bodyPtr = *(myIter + i);
     bodyPtr->SetPos(ConvertRealToChVector(posRigidH[i]));
     bodyPtr->SetRot(ConvertToChQuaternion(qH[i]));
     bodyPtr->SetPos_dt(ConvertRealToChVector(mR3(velMassRigidH[i])));
-    bodyPtr->SetWvel_loc(ConvertRealToChVector(omegaLRF_H[i]));
+    bodyPtr->SetWvel_par(ConvertRealToChVector(omegaLRF_H[i]));
   }
+}
+//------------------------------------------------------------------------------------
+void Copy_ChSystem_to_External(thrust::host_vector<Real3>& posRigidH,
+                               thrust::host_vector<Real4>& qH,
+                               thrust::host_vector<Real4>& velMassRigidH,
+                               thrust::host_vector<Real3>& omegaLRF_H,
+                               chrono::ChSystemParallelDVI& mphysicalSystem) {
+	int numBodies = mphysicalSystem.Get_bodylist()->size();
+  posRigidH.resize(numBodies);
+  qH.resize(numBodies);
+  velMassRigidH.resize(numBodies);
+  omegaLRF_H.resize(numBodies);
+  std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
+#pragma omp parallel for
+  for (int i = 0; i < numBodies; i++) {
+    chrono::ChBody* bodyPtr = *(myIter + i);
+    posRigidH[i] = ConvertChVectorToR3(bodyPtr->GetPos());
+    qH[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
+    velMassRigidH[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
+    omegaLRF_H[i] = ConvertChVectorToR3(bodyPtr->GetWvel_par());
+  }
+}
+
+//------------------------------------------------------------------------------------
+// FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
+void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRigid_fsiBodies_D,
+                                         thrust::device_vector<Real4>& q_fsiBodies_D,
+                                         thrust::device_vector<Real4>& velMassRigid_fsiBodies_D,
+                                         thrust::device_vector<Real3>& rigidOmegaLRF_fsiBodies_D,
+                                         thrust::host_vector<Real3>& posRigid_fsiBodies_H,
+                                         thrust::host_vector<Real4>& q_fsiBodies_H,
+                                         thrust::host_vector<Real4>& velMassRigid_fsiBodies_H,
+                                         thrust::host_vector<Real3>& rigidOmegaLRF_fsiBodies_H,
+                                         const thrust::host_vector<int>& FSI_Bodies_Index_H,
+                                         chrono::ChSystemParallelDVI& mphysicalSystem) {
+  int num_fsiBodies_Rigids = FSI_Bodies_Index_H.size();
+  //	  assert(posRigid_fsiBodies_D.size() == num_fsiBodies_Rigids && "Error!!! number of fsi bodies that are tracked
+  // does not match the array size");
+
+  if (posRigid_fsiBodies_D.size() != num_fsiBodies_Rigids || posRigid_fsiBodies_H.size() != num_fsiBodies_Rigids) {
+    printf("\n\n\n\n Error!!! number of fsi bodies that are tracked does not match the array size \n\n\n\n");
+  }
+  std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
+  printf("\n\n\n num_fsiBodies_Rigids %d \n", num_fsiBodies_Rigids);
+#pragma omp parallel for
+  for (int i = 0; i < num_fsiBodies_Rigids; i++) {
+    chrono::ChBody* bodyPtr = *(myIter + FSI_Bodies_Index_H[i]);
+    posRigid_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetPos());
+    q_fsiBodies_H[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
+    velMassRigid_fsiBodies_H[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
+    rigidOmegaLRF_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetWacc_par());
+  }
+
+  thrust::copy(posRigid_fsiBodies_H.begin(), posRigid_fsiBodies_H.end(), posRigid_fsiBodies_D.begin());
+  thrust::copy(q_fsiBodies_H.begin(), q_fsiBodies_H.end(), q_fsiBodies_D.begin());
+  thrust::copy(velMassRigid_fsiBodies_H.begin(), velMassRigid_fsiBodies_H.end(), velMassRigid_fsiBodies_D.begin());
+  thrust::copy(rigidOmegaLRF_fsiBodies_H.begin(), rigidOmegaLRF_fsiBodies_H.end(), rigidOmegaLRF_fsiBodies_D.begin());
 }
