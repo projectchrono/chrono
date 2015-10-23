@@ -89,6 +89,7 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
 
     /// Add visualization of the tooth profiles.
     /// This (optional) function should be called only after a call to Initialize().
+    /// It renders the gear profile as a colored path.
     void AddGearVisualization(const ChColor& color);
 
   protected:

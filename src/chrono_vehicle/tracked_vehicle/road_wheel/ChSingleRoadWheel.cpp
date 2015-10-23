@@ -63,7 +63,7 @@ void ChSingleRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVe
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSingleRoadWheel::AddWheelVisualization(const ChColor& color) {
+void ChSingleRoadWheel::AddWheelVisualization() {
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
 

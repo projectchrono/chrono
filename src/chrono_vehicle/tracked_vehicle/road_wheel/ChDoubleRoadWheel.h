@@ -48,7 +48,8 @@ class CH_VEHICLE_API ChDoubleRoadWheel : public ChRoadWheel {
 
     /// Add visualization of the road wheel.
     /// This (optional) function should be called only after a call to Initialize().
-    virtual void AddWheelVisualization(const ChColor& color) override;
+    /// It renders the wheel as two textured cylinders.
+    virtual void AddWheelVisualization() override;
 
   protected:
     /// Return the total width of the road wheel.

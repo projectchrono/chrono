@@ -36,7 +36,6 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkSpringCB.h"
-#include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -95,7 +94,7 @@ class CH_VEHICLE_API ChIdler : public ChShared {
     /// Add visualization of the idler wheel.
     /// This (optional) function should be called only after a call to Initialize().
     /// Must be implemented by derived classes (templates).
-    virtual void AddWheelVisualization(const ChColor& color) {}
+    virtual void AddWheelVisualization() {}
 
   protected:
     /// Identifiers for the various hardpoints.

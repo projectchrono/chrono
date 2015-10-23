@@ -65,7 +65,7 @@ void ChDoubleRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVe
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleRoadWheel::AddWheelVisualization(const ChColor& color) {
+void ChDoubleRoadWheel::AddWheelVisualization() {
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
     double gap = GetWheelGap();

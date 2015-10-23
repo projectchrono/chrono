@@ -48,7 +48,8 @@ class CH_VEHICLE_API ChDoubleIdler : public ChIdler {
 
     /// Add visualization of the idler wheel.
     /// This (optional) function should be called only after a call to Initialize().
-    virtual void AddWheelVisualization(const ChColor& color) override;
+    /// It renders the wheel as two textured cylinders.
+    virtual void AddWheelVisualization() override;
 
   protected:
     /// Return the total width of the idler wheel.

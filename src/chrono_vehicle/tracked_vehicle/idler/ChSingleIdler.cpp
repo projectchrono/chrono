@@ -63,7 +63,7 @@ void ChSingleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSingleIdler::AddWheelVisualization(const ChColor& color) {
+void ChSingleIdler::AddWheelVisualization() {
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
 

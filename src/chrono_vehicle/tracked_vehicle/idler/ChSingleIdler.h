@@ -48,7 +48,8 @@ class CH_VEHICLE_API ChSingleIdler : public ChIdler {
 
     /// Add visualization of the idler wheel.
     /// This (optional) function should be called only after a call to Initialize().
-    void AddWheelVisualization(const ChColor& color) override;
+    /// It renders the wheel as a textured cylinder.
+    void AddWheelVisualization() override;
 
   protected:
     /// Return the width of the idler wheel.

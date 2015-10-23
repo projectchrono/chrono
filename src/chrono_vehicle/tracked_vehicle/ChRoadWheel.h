@@ -27,7 +27,6 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLinkLock.h"
-#include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -86,7 +85,7 @@ class CH_VEHICLE_API ChRoadWheel : public ChShared {
     /// Add visualization of the road wheel.
     /// This (optional) function should be called only after a call to Initialize().
     /// Must be implemented by derived classes (templates).
-    virtual void AddWheelVisualization(const ChColor& color) {}
+    virtual void AddWheelVisualization() {}
 
   protected:
     /// Return the mass of the road wheel body.
