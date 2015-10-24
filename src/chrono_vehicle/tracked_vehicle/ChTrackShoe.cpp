@@ -24,6 +24,8 @@
 namespace chrono {
 namespace vehicle {
 
+ChTrackShoe::ChTrackShoe(const std::string& name) : m_name(name) {
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono
