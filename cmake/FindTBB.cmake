@@ -265,8 +265,8 @@ if (TBB_INCLUDE_DIR)
 endif (TBB_INCLUDE_DIR)
 
 if (NOT TBB_FOUND)
-    message("ERROR: Intel TBB NOT found!")
-    message(STATUS "Looked for Threading Building Blocks in ${_TBB_INSTALL_DIR}")
+    #message("ERROR: Intel TBB NOT found!")
+    #message(STATUS "Looked for Threading Building Blocks in ${_TBB_INSTALL_DIR}")
     # do only throw fatal, if this pkg is REQUIRED
     if (TBB_FIND_REQUIRED)
         message(FATAL_ERROR "Could NOT find TBB library.")

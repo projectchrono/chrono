@@ -2,6 +2,7 @@ SET(LIBRARIES ChronoEngine ChronoEngine_fea)
 
 SET(TESTS
     test_ANCFBeam
+    test_ANCFShell_Iso
 )
 
 MESSAGE(STATUS "Unit test programs for FEA module...")
