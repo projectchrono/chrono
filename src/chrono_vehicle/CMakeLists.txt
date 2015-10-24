@@ -332,8 +332,18 @@ source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 set(CV_TV_UTILS_FILES
     tracked_vehicle/utils/ChSprocketProfiles.h
     tracked_vehicle/utils/ChSprocketProfiles.cpp
+    tracked_vehicle/utils/ChTrackTestRig.h
+    tracked_vehicle/utils/ChTrackTestRig.cpp
 )
-source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES})
+if(ENABLE_MODULE_IRRLICHT)
+    set(CVIRR_TV_UTILS_FILES
+        tracked_vehicle/utils/ChIrrGuiDriverTTR.h
+        tracked_vehicle/utils/ChIrrGuiDriverTTR.cpp
+    )
+else()
+    set(CVIRR_TV_UTILS_FILES "")
+endif()
+source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES} ${CVIRR_TV_UTILS_FILES})
 
 # --------------- THIRD-PARTY FILES
 
@@ -386,6 +396,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_ROADWHEEL_FILES}
     ${CV_TV_TRACKSHOE_FILES}
     ${CV_TV_UTILS_FILES}
+    ${CVIRR_TV_UTILS_FILES}
 #
     ${CV_EASYBMP_FILES}
 )
