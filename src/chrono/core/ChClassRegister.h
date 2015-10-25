@@ -197,8 +197,8 @@ void create(std::string cls_name, T** ppObj) {
 ////////////////////////////////
 
 
-
-
+// Forward
+class ChClassFactory;
 
 /// Base class for all registration data of classes 
 /// whose objects can be created via a class factory.
