@@ -82,8 +82,7 @@ CH_ENUM_MAPPER_END(myEnum);
 
 class myEmployee : public ChShared {
     // Remember to enable the Chrono RTTI features with the CH_RTTI_.. macro
-    // if you want to use the AbstractReadCreate() feature, to deserialize
-    // objects whose exact class is not known in advance!
+    // if you want to deserialize objects whose exact class is not known in advance!
 
     CH_RTTI_ROOT(myEmployee)  //***** for _advanced_ Chrono serialization
 
