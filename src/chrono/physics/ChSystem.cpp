@@ -294,10 +294,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     scriptForUpdate = NULL;
     scriptForStep = NULL;
     scriptFor3DStep = NULL;
-    strcpy(scriptForStartFile, "");
-    strcpy(scriptForUpdateFile, "");
-    strcpy(scriptForStepFile, "");
-    strcpy(scriptFor3DStepFile, "");
 
     events = new ChEvents(250);
 }
@@ -629,33 +625,33 @@ void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
 
 // JS commands
 
-int ChSystem::SetScriptForStartFile(char* mfile) {
+int ChSystem::SetScriptForStartFile(const std::string& mfile) {
     if (!this->scriptEngine)
         return 0;
-    strncpy(this->scriptForStartFile, mfile, sizeof(this->scriptForStartFile)-1);
+    this->scriptForStartFile = mfile;
     this->scriptForStart = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptForStart, mfile);
+    return this->scriptEngine->FileToScript(*this->scriptForStart, mfile.c_str());
 }
-int ChSystem::SetScriptForUpdateFile(char* mfile) {
+int ChSystem::SetScriptForUpdateFile(const std::string& mfile) {
     if (!this->scriptEngine)
         return 0;
-    strncpy(this->scriptForUpdateFile, mfile, sizeof(this->scriptForUpdateFile)-1);
+    this->scriptForUpdateFile = mfile;
     this->scriptForUpdate = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptForUpdate, mfile);
+    return this->scriptEngine->FileToScript(*this->scriptForUpdate, mfile.c_str());
 }
-int ChSystem::SetScriptForStepFile(char* mfile) {
+int ChSystem::SetScriptForStepFile(const std::string& mfile) {
     if (!this->scriptEngine)
         return 0;
-    strncpy(this->scriptForStepFile, mfile, sizeof(this->scriptForStepFile)-1);
+    this->scriptForStepFile = mfile;
     this->scriptForStep = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptForStep, mfile);
+    return this->scriptEngine->FileToScript(*this->scriptForStep, mfile.c_str());
 }
-int ChSystem::SetScriptFor3DStepFile(char* mfile) {
+int ChSystem::SetScriptFor3DStepFile(const std::string& mfile) {
     if (!this->scriptEngine)
         return 0;
-    strncpy(this->scriptFor3DStepFile, mfile, sizeof(this->scriptFor3DStepFile)-1);
+    this->scriptFor3DStepFile = mfile;
     this->scriptFor3DStep = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptFor3DStep, mfile);
+    return this->scriptEngine->FileToScript(*this->scriptFor3DStep, mfile.c_str());
 }
 
 int ChSystem::ExecuteScriptForStart() {

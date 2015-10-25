@@ -818,14 +818,14 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     void SetScriptEngine(ChScriptEngine* mengine) { this->scriptEngine = mengine; }
     ChScriptEngine* GetScriptEngine() { return this->scriptEngine; }
 
-    char* GetScriptForStartFile() { return scriptForStartFile; }
-    char* GetScriptForUpdateFile() { return scriptForUpdateFile; }
-    char* GetScriptForStepFile() { return scriptForStepFile; }
-    char* GetScriptFor3DStepFile() { return scriptFor3DStepFile; }
-    int SetScriptForStartFile(char* mfile);
-    int SetScriptForUpdateFile(char* mfile);
-    int SetScriptForStepFile(char* mfile);
-    int SetScriptFor3DStepFile(char* mfile);
+    const std::string& GetScriptForStartFile() { return scriptForStartFile; }
+    const std::string& GetScriptForUpdateFile() { return scriptForUpdateFile; }
+    const std::string& GetScriptForStepFile() { return scriptForStepFile; }
+    const std::string& GetScriptFor3DStepFile() { return scriptFor3DStepFile; }
+    int SetScriptForStartFile(const std::string& mfile);
+    int SetScriptForUpdateFile(const std::string& mfile);
+    int SetScriptForStepFile(const std::string& mfile);
+    int SetScriptFor3DStepFile(const std::string& mfile);
     int ExecuteScriptForStart();
     int ExecuteScriptForUpdate();
     int ExecuteScriptForStep();
@@ -1142,13 +1142,13 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
 
     ChScriptEngine* scriptEngine;  // points to a script engine
     ChScript* scriptForStart;      // this script is executed when simulation starts.
-    char scriptForStartFile[200];
+    std::string scriptForStartFile;
     ChScript* scriptForUpdate;  // this script is executed for each Update step.
-    char scriptForUpdateFile[200];
+    std::string scriptForUpdateFile;
     ChScript* scriptForStep;  // this script is executed for each integration step
-    char scriptForStepFile[200];
+    std::string scriptForStepFile;
     ChScript* scriptFor3DStep;  // this script is executed for each 3d interface macro step
-    char scriptFor3DStepFile[200];
+    std::string scriptFor3DStepFile;
 
     // timers for profiling execution speed
   protected:
