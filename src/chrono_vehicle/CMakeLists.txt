@@ -323,6 +323,12 @@ set(CV_TV_ROADWHEEL_FILES
 )
 source_group("tracked_vehicle\\road_wheel" FILES ${CV_TV_ROADWHEEL_FILES})
 
+set(CV_TV_SUSPENSION_FILES
+    tracked_vehicle/suspension/ChLinearDamperRWAssembly.h
+    tracked_vehicle/suspension/ChLinearDamperRWAssembly.cpp
+)
+source_group("tracked_vehicle\\suspension" FILES ${CV_TV_SUSPENSION_FILES})
+
 set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/ChSinglePinShoe.h
     tracked_vehicle/track_shoe/ChSinglePinShoe.cpp
@@ -394,6 +400,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_BASE_FILES}
     ${CV_TV_IDLER_FILES}
     ${CV_TV_ROADWHEEL_FILES}
+    ${CV_TV_SUSPENSION_FILES}
     ${CV_TV_TRACKSHOE_FILES}
     ${CV_TV_UTILS_FILES}
     ${CVIRR_TV_UTILS_FILES}
