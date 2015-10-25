@@ -34,6 +34,10 @@ class M113_Idler : public chrono::vehicle::ChDoubleIdler {
     M113_Idler(chrono::vehicle::VisualizationType vis_type);
     ~M113_Idler() {}
 
+    /// Return the location of the specified hardpoint.
+    /// The returned location must be expressed in the idler subsystem reference frame.
+    virtual const chrono::ChVector<> GetLocation(PointId which) override;
+
     /// Return the mass of the idler wheel body.
     virtual double GetWheelMass() const override { return m_wheel_mass; }
     /// Return the moments of inertia of the idler wheel body.
@@ -61,6 +65,8 @@ class M113_Idler : public chrono::vehicle::ChDoubleIdler {
     virtual chrono::ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
 
     /// Initialize this idler subsystem.
+    /// This function extends the base class implementation by adding visualization
+    /// for the M113 idler wheel (as specified at construction).
     virtual void Initialize(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const chrono::ChVector<>& location  ///< [in] location relative to the chassis frame
                             ) override;

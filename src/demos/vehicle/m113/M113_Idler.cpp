@@ -93,4 +93,24 @@ void M113_Idler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
     }
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+const ChVector<> M113_Idler::GetLocation(PointId which) {
+    //// TODO
+    switch (which) {
+        case WHEEL:
+            return ChVector<>(0, 0, 0);
+        case CARRIER:
+            return ChVector<>(0, 0, 0);
+        case CARRIER_CHASSIS:
+            return ChVector<>(0, 0, 0);
+        case TSDA_CARRIER:
+            return ChVector<>(0, 0, 0);
+        case TSDA_CHASSIS:
+            return ChVector<>(0, 0, 0);
+        default:
+            return ChVector<>(0, 0, 0);
+    }
+}
+
 }  // end namespace m113
