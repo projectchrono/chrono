@@ -38,7 +38,9 @@ void ChRoadWheel::SetContactMaterial(float friction_coefficient,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+                             ChSharedPtr<ChBody> carrier,
+                             const ChVector<>& location) {
     // Express the road wheel reference frame in the absolute coordinate system.
     ChFrame<> wheel_to_abs(location);
     wheel_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -52,11 +54,11 @@ void ChRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>
     m_wheel->SetInertiaXX(GetWheelInertia());
     chassis->GetSystem()->AddBody(m_wheel);
 
-    // Create and initialize the revolute joint between wheel and chassis.
+    // Create and initialize the revolute joint between wheel and carrier.
     // The axis of rotation is the y axis of the road wheel reference frame.
     m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
     m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassis, m_wheel,
+    m_revolute->Initialize(carrier, m_wheel,
                            ChCoordsys<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
 }
 

@@ -33,9 +33,11 @@ ChSingleRoadWheel::ChSingleRoadWheel(const std::string& name) : ChRoadWheel(name
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSingleRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChSingleRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+                                   ChSharedPtr<ChBody> carrier,
+                                   const ChVector<>& location) {
     // Invoke the base class method
-    ChRoadWheel::Initialize(chassis, location);
+    ChRoadWheel::Initialize(chassis, carrier, location);
 
     // Add contact geometry.
     double radius = GetWheelRadius();

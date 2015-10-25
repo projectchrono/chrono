@@ -73,12 +73,13 @@ class CH_VEHICLE_API ChRoadWheel : public ChShared {
 
     /// Initialize this road wheel subsystem.
     /// The road wheel subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the idler subsystem
+    /// carrier body at the specified location (with respect to and expressed in the
+    /// reference frame of the chassis). It is assumed that the road wheel subsystem
     /// reference frame is always aligned with the chassis reference frame.
     /// A derived road wheel subsystem template class must extend this default
     /// implementation and specify contact geometry for the road wheel.
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            ChSharedPtr<ChBody> carrier,        ///< [in] handle to the carrier body
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
                             );
 
@@ -95,7 +96,7 @@ class CH_VEHICLE_API ChRoadWheel : public ChShared {
 
     std::string m_name;                          ///< name of the subsystem
     ChSharedPtr<ChBody> m_wheel;                 ///< handle to the road wheel body
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to wheel-chassis revolute joint
+    ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to wheel revolute joint
 
     float m_friction;
     float m_restitution;

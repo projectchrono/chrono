@@ -47,9 +47,11 @@ M113_RoadWheel::M113_RoadWheel(VisualizationType vis_type) : ChDoubleRoadWheel("
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_RoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void M113_RoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+                                ChSharedPtr<ChBody> carrier,
+                                const ChVector<>& location) {
     // Invoke the base class method to perform the actual initialization
-    ChDoubleRoadWheel::Initialize(chassis, location);
+    ChDoubleRoadWheel::Initialize(chassis, carrier, location);
 
     // Attach visualization
     switch (m_vis_type) {

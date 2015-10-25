@@ -43,6 +43,7 @@ class CH_VEHICLE_API ChDoubleRoadWheel : public ChRoadWheel {
 
     /// Initialize this road wheel subsystem.
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            ChSharedPtr<ChBody> carrier,        ///< [in] handle to the carrier body
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
                             ) override;
 

@@ -47,6 +47,7 @@ class M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
 
     /// Initialize this road wheel subsystem.
     virtual void Initialize(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            chrono::ChSharedPtr<chrono::ChBody> carrier,        ///< [in] handle to the carrier body
                             const chrono::ChVector<>& location  ///< [in] location relative to the chassis frame
                             ) override;
 
