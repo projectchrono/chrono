@@ -80,6 +80,16 @@ class ChApi ChSystemDEM : public ChSystem {
     void SetCharacteristicImpactVelocity(double vel) { m_characteristicVelocity = vel; }
     double GetCharacteristicImpactVelocity() {return m_characteristicVelocity;}
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
+
   private:
     bool m_use_mat_props;
     bool m_use_history;

@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
         MyIntegrable mintegrable;
 
         // Create a time-integrator, class: Euler explicit
-        ChTimestepperEulerExpl mystepper(mintegrable);
+        ChTimestepperEulerExpl mystepper(&mintegrable);
 
         // Execute the time integration
         while (mystepper.GetTime() < 4) {
@@ -170,14 +170,14 @@ int main(int argc, char* argv[]) {
         // Create and object from your custom integrable class:
         MyIntegrable mintegrable;
         // Create a time-integrator:
-        ChTimestepperEulerExpl mystepper(mintegrable);
+        ChTimestepperEulerExpl mystepper(&mintegrable);
 
         // Try integrator Runge Kutta 4st  explicit
 
         // Create and object from your custom integrable class:
         MyIntegrable mintegrable_rk;
         // Create a time-integrator, class: Runge Kutta 4 explicit
-        ChTimestepperRungeKuttaExpl mystepper_rk(mintegrable_rk);
+        ChTimestepperRungeKuttaExpl mystepper_rk(&mintegrable_rk);
 
         // Execute the time integration
         while (mystepper.GetTime() < 1) {
@@ -281,9 +281,9 @@ int main(int argc, char* argv[]) {
         MyIntegrable mintegrable3;
 
         // Create few time-integrators to be compared:
-        ChTimestepperRungeKuttaExpl mystepper1(mintegrable1);
-        ChTimestepperEulerExplIIorder mystepper2(mintegrable2);
-        ChTimestepperEulerSemiImplicit mystepper3(mintegrable3);
+        ChTimestepperRungeKuttaExpl mystepper1(&mintegrable1);
+        ChTimestepperEulerExplIIorder mystepper2(&mintegrable2);
+        ChTimestepperEulerSemiImplicit mystepper3(&mintegrable3);
 
         // Execute the time integration
         while (mystepper1.GetTime() < 4) {
@@ -445,18 +445,18 @@ int main(int argc, char* argv[]) {
         MyIntegrable mintegrable8;
 
         // Create few time-integrators to be compared:
-        ChTimestepperEulerImplicit mystepper1(mintegrable1);
-        ChTimestepperTrapezoidal mystepper2(mintegrable2);
-        ChTimestepperEulerExplIIorder mystepper3(mintegrable3);
-        ChTimestepperHHT mystepper4(mintegrable4);
+        ChTimestepperEulerImplicit mystepper1(&mintegrable1);
+        ChTimestepperTrapezoidal mystepper2(&mintegrable2);
+        ChTimestepperEulerExplIIorder mystepper3(&mintegrable3);
+        ChTimestepperHHT mystepper4(&mintegrable4);
         mystepper4.SetAlpha(0);  // HHT with no dissipation -> trapezoidal
-        ChTimestepperHHT mystepper5(mintegrable5);
+        ChTimestepperHHT mystepper5(&mintegrable5);
         mystepper5.SetAlpha(-0.33);  // HHT with max dissipation
-        ChTimestepperNewmark mystepper6(mintegrable6);
+        ChTimestepperNewmark mystepper6(&mintegrable6);
         mystepper6.SetGammaBeta(0.5, 0.25);  // Newmark as const accel. method
-        ChTimestepperNewmark mystepper7(mintegrable7);
+        ChTimestepperNewmark mystepper7(&mintegrable7);
         mystepper7.SetGammaBeta(0.5, 1 / 6);  // Newmark as linear accel. method
-        ChTimestepperNewmark mystepper8(mintegrable8);
+        ChTimestepperNewmark mystepper8(&mintegrable8);
         mystepper8.SetGammaBeta(1.0, 0.25);  // Newmark with max numerical damping
 
         // Execute the time integration
@@ -662,14 +662,14 @@ int main(int argc, char* argv[]) {
         MyIntegrable mintegrable7;
 
         // Create few time-integrators to be compared:
-        ChTimestepperEulerImplicitLinearized mystepper1(mintegrable1);
-        ChTimestepperEulerImplicit mystepper2(mintegrable2);
-        ChTimestepperTrapezoidal mystepper3(mintegrable3);
-        ChTimestepperHHT mystepper4(mintegrable4);
+        ChTimestepperEulerImplicitLinearized mystepper1(&mintegrable1);
+        ChTimestepperEulerImplicit mystepper2(&mintegrable2);
+        ChTimestepperTrapezoidal mystepper3(&mintegrable3);
+        ChTimestepperHHT mystepper4(&mintegrable4);
         mystepper4.SetAlpha(0);  // HHT with no dissipation -> trapezoidal
-        ChTimestepperHHT mystepper5(mintegrable5);
+        ChTimestepperHHT mystepper5(&mintegrable5);
         mystepper5.SetAlpha(-0.2);  // HHT with dissipation
-        ChTimestepperNewmark mystepper6(mintegrable6);
+        ChTimestepperNewmark mystepper6(&mintegrable6);
         mystepper6.SetGammaBeta(0.6, 0.3);  // Newmark
 
         // Execute the time integration
