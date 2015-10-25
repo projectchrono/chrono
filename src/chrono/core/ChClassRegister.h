@@ -197,8 +197,7 @@ void create(std::string cls_name, T** ppObj) {
 ////////////////////////////////
 
 
-// Forward
-class ChClassFactory;
+
 
 /// Base class for all registration data of classes 
 /// whose objects can be created via a class factory.
@@ -210,51 +209,6 @@ public:
 };
 
 
-/// Class for registration data of classes 
-/// whose objects can be created via a class factory.
-
-template <class t>
-class ChClassRegistration : public ChClassRegistrationBase {
-  protected:
-    //
-    // DATA
-    //
-
-    /// Name of the class for dynamic creation
-    std::string m_sConventionalName;
-
-  public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Creator (adds this to the global list of
-    /// ChClassRegistration<t> objects).
-    ChClassRegistration() {
-        // set name using the 'fake' RTTI system of Chrono
-        this->m_sConventionalName = t::FactoryClassNameTag();
-
-        // register in global class factory
-        ChClassFactory::ClassRegister(this->m_sConventionalName, this);
-    }
-
-    /// Destructor (removes this from the global list of
-    /// ChClassRegistration<t> objects).
-    virtual ~ChClassRegistration() {
-
-        // register in global class factory
-        ChClassFactory::ClassUnregister(this->m_sConventionalName);
-    }
-
-    //
-    // METHODS
-    //
-
-    virtual void* create() {
-        return (void*)(new t);
-    }
-
-};
 
 
 /// ChClassFactory is instanced once as a static object at ChronoEngine DLL startup.
@@ -346,6 +300,52 @@ private:
 };
 
 
+
+/// Class for registration data of classes 
+/// whose objects can be created via a class factory.
+
+template <class t>
+class ChClassRegistration : public ChClassRegistrationBase {
+  protected:
+    //
+    // DATA
+    //
+
+    /// Name of the class for dynamic creation
+    std::string m_sConventionalName;
+
+  public:
+    //
+    // CONSTRUCTORS
+    //
+
+    /// Creator (adds this to the global list of
+    /// ChClassRegistration<t> objects).
+    ChClassRegistration() {
+        // set name using the 'fake' RTTI system of Chrono
+        this->m_sConventionalName = t::FactoryClassNameTag();
+
+        // register in global class factory
+        ChClassFactory::ClassRegister(this->m_sConventionalName, this);
+    }
+
+    /// Destructor (removes this from the global list of
+    /// ChClassRegistration<t> objects).
+    virtual ~ChClassRegistration() {
+
+        // register in global class factory
+        ChClassFactory::ClassUnregister(this->m_sConventionalName);
+    }
+
+    //
+    // METHODS
+    //
+
+    virtual void* create() {
+        return (void*)(new t);
+    }
+
+};
 
 
 #define CH_FACTORY_TAG(classname)                           \
