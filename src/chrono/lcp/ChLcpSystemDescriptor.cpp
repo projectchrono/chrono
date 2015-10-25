@@ -28,6 +28,11 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLcpSystemDescriptor> a_registration_ChLcpSystemDescriptor;
+
+
 #define CH_SPINLOCK_HASHSIZE 203
 
 

@@ -116,7 +116,7 @@ class ChApi ChFunction_Operation : public ChFunction {
         marchive << CHNVP(fa);
         marchive << CHNVP(fb);
         eChOperation_mapper mmapper;
-        marchive << CHNVP(mmapper(op_type));
+        marchive << CHNVP(mmapper(op_type),"operation_type");
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -130,7 +130,7 @@ class ChApi ChFunction_Operation : public ChFunction {
         marchive >> CHNVP(fa);
         marchive >> CHNVP(fb);
         eChOperation_mapper mmapper;
-        marchive >> CHNVP(mmapper(op_type));
+        marchive >> CHNVP(mmapper(op_type),"operation_type");
     }
 
 };

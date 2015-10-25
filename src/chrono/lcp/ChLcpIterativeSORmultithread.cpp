@@ -30,6 +30,11 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLcpIterativeSORmultithread> a_registration_ChLcpIterativeSORmultithread;
+
+
 // Each thread will own an instance of the following data:
 
 struct thread_data {

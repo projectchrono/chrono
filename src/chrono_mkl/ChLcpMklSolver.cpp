@@ -3,6 +3,10 @@
 
 namespace chrono
 {
+    // Register into the object factory, to enable run-time
+    // dynamic creation and persistence
+    ChClassRegister<ChLcpMklSolver> a_registration_ChLcpMklSolver;
+
 
 	/** \brief It calls Intel MKL Pardiso Sparse Direct Solver.
 	*

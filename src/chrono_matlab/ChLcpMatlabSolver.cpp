@@ -13,6 +13,10 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLcpMatlabSolver> a_registration_ChLcpMatlabSolver;
+
 ChLcpMatlabSolver::ChLcpMatlabSolver(ChMatlabEngine& me) {
     mengine = &me;
 }

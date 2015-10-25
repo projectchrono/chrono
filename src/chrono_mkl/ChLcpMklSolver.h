@@ -47,6 +47,8 @@ namespace chrono {
     /// It can solve linear systems. It cannot solve VI and complementarity problems.
     
    class ChApiMkl ChLcpMklSolver : public ChLcpSolver {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChLcpMklSolver, ChLcpSolver);
 
    private:
 	   long int solver_call;
@@ -78,7 +80,36 @@ namespace chrono {
         /// Solve using the MKL Pardiso sparse direct solver
 	   virtual double Solve(ChLcpSystemDescriptor& sysd) override; ///< system description with constraints and variables
 
-		
+	    //
+        // SERIALIZATION
+        //
+
+        virtual void ArchiveOUT(ChArchiveOut& marchive)
+        {
+            // version number
+            marchive.VersionWrite(1);
+            // serialize parent class
+            ChLcpSolver::ArchiveOUT(marchive);
+            // serialize all member data:
+            marchive << CHNVP(size_lock);
+	        marchive << CHNVP(sparsity_pattern_lock);
+	        marchive << CHNVP(use_perm);
+	        marchive << CHNVP(use_rhs_sparsity);
+        }
+
+        /// Method to allow de serialization of transient data from archives.
+        virtual void ArchiveIN(ChArchiveIn& marchive) 
+        {
+            // version number
+            int version = marchive.VersionRead();
+            // deserialize parent class
+            ChLcpSolver::ArchiveIN(marchive);
+            // stream in all member data:
+            marchive >> CHNVP(size_lock);
+	        marchive >> CHNVP(sparsity_pattern_lock);
+	        marchive >> CHNVP(use_perm);
+	        marchive >> CHNVP(use_rhs_sparsity);
+        }
 		
 	   
 

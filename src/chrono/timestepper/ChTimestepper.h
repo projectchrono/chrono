@@ -19,6 +19,7 @@
 #include "core/ChVectorDynamic.h"
 #include "timestepper/ChState.h"
 #include "timestepper/ChIntegrable.h"
+#include "serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -27,6 +28,9 @@ namespace chrono {
 /// It operates on systems inherited from ChIntegrable.
 
 class ChApi ChTimestepper : public ChShared {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepper, ChShared);
+
   protected:
     ChIntegrable* integrable;
     double T;
@@ -40,8 +44,8 @@ class ChApi ChTimestepper : public ChShared {
 
   public:
     /// Constructor
-    ChTimestepper(ChIntegrable& mintegrable) {
-        integrable = &mintegrable;
+    ChTimestepper(ChIntegrable* mintegrable =0) {
+        integrable = mintegrable;
         T = 0;
         L.Reset(0);
         verbose = false;
@@ -58,6 +62,9 @@ class ChApi ChTimestepper : public ChShared {
 
     /// Access the lagrangian multipliers, if any
     virtual ChVectorDynamic<>& get_L() { return L; }
+
+    /// Set the integrable object
+    virtual void SetIntegrable(ChIntegrable* mintegrable) { integrable = mintegrable; }
 
     /// Get the integrable object
     ChIntegrable* GetIntegrable() { return integrable; }
@@ -76,21 +83,46 @@ class ChApi ChTimestepper : public ChShared {
 
     /// Turn on/off clamping on the Qcterm
     void SetQcClamping(double mcl) { Qc_clamping = mcl; }
+
+    // SERIALIZATION
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize all member data:
+        marchive << CHNVP(verbose);
+        marchive << CHNVP(Qc_do_clamp);
+        marchive << CHNVP(Qc_clamping);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
+        // version number
+        int version = marchive.VersionRead();
+        // stream in all member data:
+        marchive >> CHNVP(verbose);
+        marchive >> CHNVP(Qc_do_clamp);
+        marchive >> CHNVP(Qc_clamping);
+    }
+
 };
 
 /// Base class for 1st order timesteppers, that is
 /// a time integrator for whatever ChIntegrable.
 
 class ChApi ChTimestepperIorder : public ChTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperIorder, ChTimestepper);
+
   protected:
     ChState Y;
     ChStateDelta dYdt;
 
   public:
     /// Constructor
-    ChTimestepperIorder(ChIntegrable& mintegrable) : ChTimestepper(mintegrable) {
-        Y.Reset(1, &mintegrable);
-        dYdt.Reset(1, &mintegrable);
+    ChTimestepperIorder(ChIntegrable* mintegrable =0) : ChTimestepper(mintegrable) {
+        SetIntegrable(mintegrable);
     };
 
     /// Destructor
@@ -101,6 +133,13 @@ class ChApi ChTimestepperIorder : public ChTimestepper {
 
     /// Access the derivative of state at current time
     virtual ChStateDelta& get_dYdt() { return dYdt; }
+
+    /// Set the integrable object
+    virtual void SetIntegrable(ChIntegrable* mintegrable) { 
+            ChTimestepper::SetIntegrable(mintegrable);
+            Y.Reset(1, mintegrable);
+            dYdt.Reset(1, mintegrable);
+    }
 };
 
 /// Base class for 2nd order timesteppers, that is
@@ -110,6 +149,9 @@ class ChApi ChTimestepperIorder : public ChTimestepper {
 /// with a=acceleration)
 
 class ChApi ChTimestepperIIorder : public ChTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperIIorder, ChTimestepper);
+
   protected:
     ChState X;
     ChStateDelta V;
@@ -117,10 +159,8 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
 
   public:
     /// Constructor
-    ChTimestepperIIorder(ChIntegrableIIorder& mintegrable) : ChTimestepper(mintegrable) {
-        X.Reset(1, &mintegrable);
-        V.Reset(1, &mintegrable);
-        A.Reset(1, &mintegrable);
+    ChTimestepperIIorder(ChIntegrableIIorder* mintegrable =0) : ChTimestepper(mintegrable) {
+        SetIntegrable(mintegrable);
     };
 
     /// Destructor
@@ -134,14 +174,29 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
 
     /// Access the acceleration, at current time
     virtual ChStateDelta& get_A() { return A; }
+
+    /// Set the integrable object
+    virtual void SetIntegrable(ChIntegrableIIorder* mintegrable) { 
+            ChTimestepper::SetIntegrable(mintegrable);
+            X.Reset(1, mintegrable);
+            V.Reset(1, mintegrable);
+            A.Reset(1, mintegrable);
+    }
 };
 
 /// Base properties for implicit solvers (double inheritance)
-class ChApi ChImplicitTimestepper {};
+class ChApi ChImplicitTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI_ROOT(ChImplicitTimestepper);
+
+};
 
 /// Base properties for implicit solvers that compute the solution by iterative
 /// process up to a desired tolerance
 class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChImplicitIterativeTimestepper, ChImplicitTimestepper);
+
   private:
     int maxiters;
     double tolerance;
@@ -159,6 +214,26 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     void SetTolerance(double mtol) { tolerance = mtol; }
     /// Get the tolerance for terminating the Newton Raphson procedure
     double GetTolerance() { return tolerance; }
+
+    // SERIALIZATION
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize all member data:
+        marchive << CHNVP(maxiters);
+        marchive << CHNVP(tolerance);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
+        // version number
+        int version = marchive.VersionRead();
+        // stream in all member data:
+        marchive >> CHNVP(maxiters);
+        marchive >> CHNVP(tolerance);
+    }
 };
 
 /// Euler explicit timestepper
@@ -166,9 +241,12 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
 /// integration with Euler formula.
 
 class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperEulerExpl, ChTimestepperIorder);
+
   public:
     /// Constructors (default empty)
-    ChTimestepperEulerExpl(ChIntegrable& mintegrable) : ChTimestepperIorder(mintegrable){};
+    ChTimestepperEulerExpl(ChIntegrable* mintegrable =0) : ChTimestepperIorder(mintegrable){};
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -185,12 +263,15 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
 /// integration with Euler formula.
 
 class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperEulerExplIIorder, ChTimestepperIIorder);
+
   protected:
     ChStateDelta Dv;
 
   public:
     /// Constructors (default empty)
-    ChTimestepperEulerExplIIorder(ChIntegrableIIorder& mintegrable) : ChTimestepperIIorder(mintegrable){};
+    ChTimestepperEulerExplIIorder(ChIntegrableIIorder* mintegrable =0) : ChTimestepperIIorder(mintegrable){};
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -204,9 +285,12 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
 /// integration with Euler semi-implicit formula.
 
 class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperEulerSemiImplicit, ChTimestepperIIorder);
+
   public:
     /// Constructors (default empty)
-    ChTimestepperEulerSemiImplicit(ChIntegrableIIorder& mintegrable) : ChTimestepperIIorder(mintegrable){};
+    ChTimestepperEulerSemiImplicit(ChIntegrableIIorder* mintegrable =0) : ChTimestepperIIorder(mintegrable){};
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -217,6 +301,9 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
 /// integration scheme.
 
 class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperRungeKuttaExpl, ChTimestepperIorder);
+
   protected:
     ChState y_new;
     ChStateDelta Dydt1;
@@ -226,7 +313,7 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
 
   public:
     /// Constructors (default empty)
-    ChTimestepperRungeKuttaExpl(ChIntegrable& mintegrable) : ChTimestepperIorder(mintegrable){};
+    ChTimestepperRungeKuttaExpl(ChIntegrable* mintegrable =0) : ChTimestepperIorder(mintegrable){};
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -237,6 +324,9 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
 /// a 2nd Runge Kutta.
 
 class ChApi ChTimestepperHeun : public ChTimestepperIorder {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperHeun, ChTimestepperIorder);
+
   protected:
     ChState y_new;
     ChStateDelta Dydt1;
@@ -244,7 +334,7 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder {
 
   public:
     /// Constructors (default empty)
-    ChTimestepperHeun(ChIntegrable& mintegrable) : ChTimestepperIorder(mintegrable){};
+    ChTimestepperHeun(ChIntegrable* mintegrable =0) : ChTimestepperIorder(mintegrable){};
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -260,12 +350,15 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder {
 /// the same accuracy with a bit of faster performance.
 
 class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperLeapfrog, ChTimestepperIIorder);
+
   protected:
     ChStateDelta Aold;
 
   public:
     /// Constructors (default empty)
-    ChTimestepperLeapfrog(ChIntegrableIIorder& mintegrable) : ChTimestepperIIorder(mintegrable){};
+    ChTimestepperLeapfrog(ChIntegrableIIorder* mintegrable =0) : ChTimestepperIIorder(mintegrable){};
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -275,6 +368,9 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
 /// Performs a step of Euler implicit for II order systems
 
 class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperEulerImplicit, ChTimestepperIIorder);
+
   protected:
     ChStateDelta Dv;
     ChVectorDynamic<> Dl;
@@ -285,7 +381,7 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
 
   public:
     /// Constructors (default empty)
-    ChTimestepperEulerImplicit(ChIntegrableIIorder& mintegrable)
+    ChTimestepperEulerImplicit(ChIntegrableIIorder* mintegrable =0)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper(){};
 
     /// Performs an integration timestep
@@ -301,6 +397,9 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
 /// solver, this is the typical Anitescu stabilized timestepper for DVIs.
 
 class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, public ChImplicitTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperEulerImplicitLinearized, ChTimestepperIIorder);
+
   protected:
     ChStateDelta Vold;
     ChVectorDynamic<> Dl;
@@ -309,7 +408,7 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
 
   public:
     /// Constructors (default empty)
-    ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder& mintegrable)
+    ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder* mintegrable =0)
         : ChTimestepperIIorder(mintegrable), ChImplicitTimestepper(){};
 
     /// Performs an integration timestep
@@ -325,6 +424,9 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
 /// solver, this is the Tasora stabilized timestepper for DVIs.
 
 class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, public ChImplicitTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperEulerImplicitProjected, ChTimestepperIIorder);
+
   protected:
     ChStateDelta Vold;
     ChVectorDynamic<> Dl;
@@ -333,7 +435,7 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 
   public:
     /// Constructors (default empty)
-    ChTimestepperEulerImplicitProjected(ChIntegrableIIorder& mintegrable)
+    ChTimestepperEulerImplicitProjected(ChIntegrableIIorder* mintegrable =0)
         : ChTimestepperIIorder(mintegrable), ChImplicitTimestepper(){};
 
     /// Performs an integration timestep
@@ -349,6 +451,9 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 /// more advanced options.
 
 class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperTrapezoidal, ChTimestepperIIorder);
+
   protected:
     ChStateDelta Dv;
     ChVectorDynamic<> Dl;
@@ -360,7 +465,7 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
 
   public:
     /// Constructors (default empty)
-    ChTimestepperTrapezoidal(ChIntegrableIIorder& mintegrable)
+    ChTimestepperTrapezoidal(ChIntegrableIIorder* mintegrable =0)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper(){};
 
     /// Performs an integration timestep
@@ -371,6 +476,9 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
 /// Performs a step of trapezoidal implicit linearized for II order systems
 
 class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperTrapezoidalLinearized, ChTimestepperIIorder);
+
   protected:
     ChStateDelta Dv;
     ChVectorDynamic<> Dl;
@@ -382,7 +490,7 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 
   public:
     /// Constructors (default empty)
-    ChTimestepperTrapezoidalLinearized(ChIntegrableIIorder& mintegrable)
+    ChTimestepperTrapezoidalLinearized(ChIntegrableIIorder* mintegrable =0)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper(){};
 
     /// Performs an integration timestep
@@ -394,6 +502,9 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 ///*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
 
 class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperTrapezoidalLinearized2, ChTimestepperIIorder);
+
   protected:
     ChStateDelta Dv;
     ChState Xnew;
@@ -403,7 +514,7 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
 
   public:
     /// Constructors (default empty)
-    ChTimestepperTrapezoidalLinearized2(ChIntegrableIIorder& mintegrable)
+    ChTimestepperTrapezoidalLinearized2(ChIntegrableIIorder* mintegrable =0)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper(){};
 
     /// Performs an integration timestep
@@ -415,11 +526,18 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
 /// See Negrut et al. 2007.
 
 class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperHHT, ChTimestepperIIorder);
+
   public:
     enum HHT_Mode {
         ACCELERATION,
         POSITION,
     };
+    CH_ENUM_MAPPER_BEGIN(HHT_Mode);
+      CH_ENUM_VAL(ACCELERATION);
+      CH_ENUM_VAL(POSITION);
+    CH_ENUM_MAPPER_END(HHT_Mode);
 
   private:
     double alpha;
@@ -439,7 +557,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
 
   public:
     /// Constructors (default empty)
-    ChTimestepperHHT(ChIntegrableIIorder& mintegrable)
+    ChTimestepperHHT(ChIntegrableIIorder* mintegrable =0)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper(), mode(ACCELERATION), scaling(false) {
         SetAlpha(-0.2);  // default: some dissipation
     };
@@ -473,12 +591,51 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// Perform an integration timestep.
     virtual void Advance(const double dt  ///< timestep to advance
                          );
+
+    // SERIALIZATION
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class:
+        ChTimestepperIIorder::ArchiveOUT(marchive);
+        ChImplicitIterativeTimestepper::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(alpha);
+        marchive << CHNVP(beta);
+        marchive << CHNVP(gamma);
+        marchive << CHNVP(scaling);
+        marchive << CHNVP(num_it);
+        HHT_Mode_mapper modemapper;
+        marchive << CHNVP(modemapper(mode),"mode");
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class:
+        ChTimestepperIIorder::ArchiveIN(marchive);
+        ChImplicitIterativeTimestepper::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(alpha);
+        marchive >> CHNVP(beta);
+        marchive >> CHNVP(gamma);
+        marchive >> CHNVP(scaling);
+        marchive >> CHNVP(num_it);
+        HHT_Mode_mapper modemapper;
+        marchive >> CHNVP(modemapper(mode),"mode");
+    }
 };
 
 /// Performs a step of Newmark constrained implicit for II order DAE systems
 /// See Negrut et al. 2007.
 
 class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChTimestepperNewmark, ChTimestepperIIorder);
+
   private:
     double gamma;
     double beta;
@@ -493,7 +650,7 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
 
   public:
     /// Constructors (default empty)
-    ChTimestepperNewmark(ChIntegrableIIorder& mintegrable)
+    ChTimestepperNewmark(ChIntegrableIIorder* mintegrable =0)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper() {
         SetGammaBeta(0.6, 0.3);  // default values with some damping, and that works also with DAE constraints
     };
@@ -526,6 +683,32 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          );
+
+        // SERIALIZATION
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class:
+        ChTimestepperIIorder::ArchiveOUT(marchive);
+        ChImplicitIterativeTimestepper::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(beta);
+        marchive << CHNVP(gamma);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class:
+        ChTimestepperIIorder::ArchiveIN(marchive);
+        ChImplicitIterativeTimestepper::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(beta);
+        marchive >> CHNVP(gamma);
+    }
 };
 
 }  // END_OF_NAMESPACE____

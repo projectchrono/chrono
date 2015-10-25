@@ -58,6 +58,9 @@ class ChUnilateralData;
 ///   inequalities or in multibody problems.
 
 class ChApi ChLcpSimplexSolver : public ChLcpDirectSolver {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChLcpSimplexSolver, ChLcpDirectSolver);
+
   protected:
     //
     // DATA

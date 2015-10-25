@@ -63,6 +63,9 @@ namespace chrono {
 /// and variables structures with more efficient data schemes.
 
 class ChApi ChLcpSystemDescriptor {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI_ROOT(ChLcpSystemDescriptor);
+
   protected:
     //
     // DATA
@@ -376,6 +379,30 @@ class ChApi ChLcpSystemDescriptor {
 								ChMatrix<>* b,
                               bool only_bilaterals = false,
                               bool skip_contacts_uv = false);
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        // serialize all member data:
+        marchive << CHNVP(num_threads);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        // stream in all member data:
+        marchive >> CHNVP(num_threads);
+    }
+
 };
 
 

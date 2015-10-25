@@ -27,6 +27,10 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLcpIterativeMINRES> a_registration_ChLcpIterativeMINRES;
+
 double ChLcpIterativeMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                                    ) {
     std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();

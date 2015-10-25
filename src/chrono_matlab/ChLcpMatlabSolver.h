@@ -23,6 +23,7 @@ namespace chrono {
 /// Class for usin Matlab from a Chrono::Engine programs.
 
 class ChApiMatlab ChLcpMatlabSolver : public ChLcpSolver {
+
   protected:
     ChMatlabEngine* mengine;
 
