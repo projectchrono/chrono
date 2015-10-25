@@ -26,7 +26,15 @@
 namespace chrono {
 namespace vehicle {
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name) : m_name(name) {
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRoadWheelAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+    m_road_wheel->Initialize(chassis, GetCarrier(), location);
 }
 
 }  // end namespace vehicle

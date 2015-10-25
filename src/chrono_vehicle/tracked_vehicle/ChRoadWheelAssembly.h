@@ -56,6 +56,9 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChShared {
     /// Return the type of track shoe consistent with this road wheel.
     TrackShoeType GetType() const { return m_type; }
 
+    /// Return a handle to the carrier body.
+    virtual ChSharedPtr<ChBody> GetCarrier() const = 0;
+
     /// Get a handle to the road wheel body.
     ChSharedPtr<ChBody> GetWheel() const { return m_road_wheel->GetWheel(); }
 
@@ -69,10 +72,13 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChShared {
     /// The suspension subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
+    /// reference frame is always centered at the location of the road wheel and
+    /// aligned with the chassis reference frame.
+    /// Derived classes must call this base class implementation (which only
+    /// initializes the road wheel).
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
-                            ) = 0;
+                            );
 
   protected:
     std::string m_name;                     ///< name of the subsystem
@@ -82,6 +88,16 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChShared {
 
 /// Vector of handles to road wheel assembly subsystems.
 typedef std::vector<ChSharedPtr<ChRoadWheelAssembly> > ChRoadWheelAssemblyList;
+
+///
+///
+///
+class ChTorsionForce : public ChLinkForce {
+public:
+    //// TODO
+};
+
+
 
 }  // end namespace vehicle
 }  // end namespace chrono
