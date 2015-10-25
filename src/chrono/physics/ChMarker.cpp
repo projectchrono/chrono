@@ -362,7 +362,7 @@ void ChMarker::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
     eChMarkerMotion_mapper mmapper;
-    marchive << CHNVP(mmapper(motion_type));
+    marchive << CHNVP(mmapper(motion_type),"motion_type");
     marchive << CHNVP(motion_X);
     marchive << CHNVP(motion_Y);
     marchive << CHNVP(motion_Z);
@@ -383,7 +383,7 @@ void ChMarker::ArchiveIN(ChArchiveIn& marchive)
 
     // stream in all member data:
     eChMarkerMotion_mapper mmapper;
-    marchive >> CHNVP(mmapper(motion_type));
+    marchive >> CHNVP(mmapper(motion_type),"motion_type");
     marchive >> CHNVP(motion_X);
     marchive >> CHNVP(motion_Y);
     marchive >> CHNVP(motion_Z);

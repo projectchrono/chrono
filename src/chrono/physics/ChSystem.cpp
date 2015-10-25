@@ -3114,10 +3114,10 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(use_sleeping);
 
     eCh_lcpSolver_mapper msolmapper;
-    marchive << CHNVP(msolmapper(lcp_solver_type));
-    //marchive << CHNVP(LCP_descriptor); // ChLcpSystemDescriptor should implement class factory for abstract create
-    //marchive << CHNVP(LCP_solver_speed); // ChLcpSolver should implement class factory for abstract create
-    //marchive << CHNVP(LCP_solver_stab); // ChLcpSolver should implement class factory for abstract create  
+    marchive << CHNVP(msolmapper(lcp_solver_type),"lcp_solver_type");
+    marchive << CHNVP(LCP_descriptor); 
+    marchive << CHNVP(LCP_solver_speed); 
+    marchive << CHNVP(LCP_solver_stab);  
 
     marchive << CHNVP(iterLCPmaxIters);
     marchive << CHNVP(iterLCPmaxItersStab);
@@ -3135,8 +3135,8 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(scriptFor3DStepFile);
 
     eCh_integrationType_mapper mintmapper;
-    marchive << CHNVP(mintmapper(integration_type));
-    //marchive << CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
+    marchive << CHNVP(mintmapper(integration_type),"integration_type");
+    marchive << CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
 
     //***TODO*** complete...
 }
@@ -3210,7 +3210,7 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(use_sleeping);
 
     eCh_lcpSolver_mapper msolmapper;
-    marchive >> CHNVP(msolmapper(lcp_solver_type));
+    marchive >> CHNVP(msolmapper(lcp_solver_type),"lcp_solver_type");
 
     //if (LCP_descriptor) delete LCP_descriptor;
     //marchive >> CHNVP(LCP_descriptor); // ChLcpSystemDescriptor should implement class factory for abstract create
@@ -3238,9 +3238,10 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(scriptFor3DStepFile);
 
     eCh_integrationType_mapper mintmapper;
-    marchive >> CHNVP(mintmapper(integration_type));
+    marchive >> CHNVP(mintmapper(integration_type),"integration_type");
 
-    //marchive >> CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
+    marchive >> CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
+    timestepper->SetIntegrable(this);
 
     //***TODO*** complete...
 

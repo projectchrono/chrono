@@ -808,9 +808,9 @@ void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(mot_eta);
     marchive << CHNVP(mot_inertia);
     my_enum_mappers::eCh_eng_mode_mapper mengmapper;
-    marchive << CHNVP(mengmapper(eng_mode));
+    marchive << CHNVP(mengmapper(eng_mode),"engine_mode");
     my_enum_mappers::eCh_shaft_mode_mapper mshaftmapper;
-    marchive << CHNVP(mshaftmapper(shaft_mode));
+    marchive << CHNVP(mshaftmapper(shaft_mode),"shaft_mode");
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -833,9 +833,9 @@ void ChLinkEngine::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(mot_eta);
     marchive >> CHNVP(mot_inertia);
     my_enum_mappers::eCh_eng_mode_mapper mengmapper;
-    marchive >> CHNVP(mengmapper(eng_mode));
+    marchive >> CHNVP(mengmapper(eng_mode),"engine_mode");
     my_enum_mappers::eCh_shaft_mode_mapper mshaftmapper;
-    marchive >> CHNVP(mshaftmapper(shaft_mode));
+    marchive >> CHNVP(mshaftmapper(shaft_mode),"shaft_mode");
 }
 
 

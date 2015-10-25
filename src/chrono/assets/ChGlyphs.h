@@ -130,7 +130,7 @@ class ChApi ChGlyphs : public ChVisualization {
         marchive << CHNVP(vectors);
         marchive << CHNVP(rotations);
         eCh_GlyphType_mapper mmapper;
-        marchive << CHNVP(mmapper(draw_mode));
+        marchive << CHNVP(mmapper(draw_mode),"draw_mode");
         marchive << CHNVP(size);
         marchive << CHNVP(zbuffer_hide);
     }
@@ -148,7 +148,7 @@ class ChApi ChGlyphs : public ChVisualization {
         marchive >> CHNVP(vectors);
         marchive >> CHNVP(rotations);
         eCh_GlyphType_mapper mmapper;
-        marchive >> CHNVP(mmapper(draw_mode));
+        marchive >> CHNVP(mmapper(draw_mode),"draw_mode");
         marchive >> CHNVP(size);
         marchive >> CHNVP(zbuffer_hide);
     }

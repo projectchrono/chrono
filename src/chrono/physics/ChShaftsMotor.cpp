@@ -275,7 +275,7 @@ void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
     my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
-    marchive << CHNVP(mmapper(motor_mode));
+    marchive << CHNVP(mmapper(motor_mode),"motor_mode");
     marchive << CHNVP(motor_torque);
     marchive << CHNVP(motor_set_rot);
     marchive << CHNVP(motor_set_rot_dt);
@@ -292,7 +292,7 @@ void ChShaftsMotor::ArchiveIN(ChArchiveIn& marchive)
 
     // deserialize all member data:
     my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
-    marchive >> CHNVP(mmapper(motor_mode));
+    marchive >> CHNVP(mmapper(motor_mode),"motor_mode");
     marchive >> CHNVP(motor_torque);
     marchive >> CHNVP(motor_set_rot);
     marchive >> CHNVP(motor_set_rot_dt);
