@@ -34,7 +34,7 @@ namespace vehicle {
 ///
 ///
 ///
-class ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
+class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
   public:
     ChLinearDamperRWAssembly(const std::string& name  ///< [in] name of the subsystem
                              );
