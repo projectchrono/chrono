@@ -92,6 +92,24 @@ class ChApiMatlab ChMatlabEngine {
     /// The used matrix must be of ChMatrixDynamic<double> type because
     /// it might undergo resizing.
     bool GetVariable(ChMatrixDynamic<double>& mmatr, std::string varname);
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+    }
 };
 
 }  // END_OF_NAMESPACE____

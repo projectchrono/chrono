@@ -20,6 +20,9 @@ ChClassRegister<ChLcpMatlabSolver> a_registration_ChLcpMatlabSolver;
 ChLcpMatlabSolver::ChLcpMatlabSolver(ChMatlabEngine& me) {
     mengine = &me;
 }
+ChLcpMatlabSolver::ChLcpMatlabSolver() {
+    mengine = 0;
+}
 
 // Solve using the Matlab default direct solver (as in x=A\b)
 double ChLcpMatlabSolver::Solve(ChLcpSystemDescriptor& sysd) {
