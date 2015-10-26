@@ -39,6 +39,8 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
+    /// A derived class must extend this default implementation and specify the contact
+    /// geometry for the track shoe body.
     virtual void Initialize(ChSystem* system,               ///< [in] containing system
                             const ChVector<>& location,     ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation  ///< [in] orientation relative to the chassis frame

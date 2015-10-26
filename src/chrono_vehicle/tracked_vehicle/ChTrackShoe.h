@@ -55,12 +55,10 @@ class CH_VEHICLE_API ChTrackShoe : public ChShared {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Get a handle to the shoe body.
+    ChSharedPtr<ChBody> GetShoeBody() const { return m_shoe; }
 
     /// Return the height of the track shoe.
     virtual double GetHeight() const = 0;
-
-    /// Return the length of the track shoe.
-    ChSharedPtr<ChBody> GetShoeBody() const { return m_shoe; }
 
     /// Return the length of the track shoe.
     /// This quantity relates to the pitch of the sprocket gear.

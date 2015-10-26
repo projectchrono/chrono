@@ -42,13 +42,10 @@ void ChSinglePinShoe::Initialize(ChSystem* system, const ChVector<>& location, c
     m_shoe->SetMass(GetShoeMass());
     m_shoe->SetInertiaXX(GetShoeInertia());
     system->AddBody(m_shoe);
-
-    // Create contact geometry.
-
-    //// TODO
-
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChSinglePinShoe::Connect(ChSharedPtr<ChTrackShoe> next) {
     // Create and initialize the revolute joint.
     ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetLength() / 2, 0, 0));
