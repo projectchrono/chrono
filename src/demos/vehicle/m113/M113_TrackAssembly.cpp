@@ -34,7 +34,7 @@ M113_TrackAssembly::M113_TrackAssembly(VisualizationType vis_type) : ChTrackAsse
     m_idler = ChSharedPtr<M113_Idler>(new M113_Idler(vis_type));
 
     for (size_t is = 0; is < 5; is++) {
-        m_suspensions.push_back(ChSharedPtr<M113_Suspension>(new M113_Suspension));
+        m_suspensions.push_back(ChSharedPtr<M113_Suspension>(new M113_Suspension(vis_type)));
     }
 }
 
