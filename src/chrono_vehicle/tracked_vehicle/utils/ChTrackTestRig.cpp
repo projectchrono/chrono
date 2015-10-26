@@ -22,8 +22,10 @@
 // =============================================================================
 
 #include <cstdio>
+#include <cmath>
 #include <algorithm>
 
+#include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
@@ -137,6 +139,34 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename, ChMaterialSurfaceBas
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
+ChTrackTestRig::ChTrackTestRig(ChSharedPtr<ChTrackAssembly> assembly,
+                               const ChVector<>& sprocketLoc,
+                               const ChVector<>& idlerLoc,
+                               const std::vector<ChVector<> >& suspLocs,
+                               ChMaterialSurfaceBase::ContactMethod contact_method)
+    : ChVehicle(contact_method),
+      m_track(assembly),
+      m_sprocketLoc(sprocketLoc),
+      m_idlerLoc(idlerLoc),
+      m_suspLocs(suspLocs) {
+    // Create the chassis (ground) body, fixed, no visualizastion
+    m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
+    m_chassis->SetIdentifier(0);
+    m_chassis->SetName("ground");
+    m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    m_chassis->SetBodyFixed(true);
+
+    ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+    box->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 0.1));
+    m_chassis->AddAsset(box);
+
+    ChSharedPtr<ChColorAsset> blue(new ChColorAsset);
+    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
+    m_chassis->AddAsset(blue);
+
+    m_system->Add(m_chassis);
+}
+
 void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     // ---------------------------------
     // Initialize the vehicle subsystems
@@ -144,23 +174,36 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
 
     m_track->Initialize(m_chassis, m_sprocketLoc, m_idlerLoc, m_suspLocs);
 
-    /*
-
     // ------------------------------------------
     // Create and initialize the shaker post body
     // ------------------------------------------
 
-    double post_height = 0.1;
-    double post_rad = 0.4;
+    // Find the lowest road-wheel.
+    double zmin = 100;
+    for (size_t i = 0; i < m_track->GetNumRoadWheelAssemblies(); ++i) {
+        if (m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z < zmin)
+            zmin = m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z;
+    }
 
-    ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);
-    ChVector<> post_L_pos = spindle_L_pos;
-    post_L_pos.z -= (m_wheels[LEFT]->GetRadius() + post_height / 2.0);
+    double idler_radius = m_track->GetIdler()->GetWheelRadius();
+    double rw_radius = m_track->GetRoadWheel(0)->GetWheelRadius();
+    double shoe_height = 0;  //// m_track->GetTrackShoe(0)->GetHeight();
+
+    // Calculate post position under sprocket
+    ChVector<> sprocket_pos = m_track->GetSprocket()->GetGearBody()->GetPos();
+    ChVector<> idler_pos = m_track->GetIdler()->GetWheelBody()->GetPos();
+
+    double post_height = 0.1;
+    double post_width = 0.4;
+    double post_length = std::abs(sprocket_pos.x - idler_pos.x) + 3 * idler_radius;
+
+    m_post_pos = 0.5 * (sprocket_pos + idler_pos);
+    m_post_pos.z = zmin - (rw_radius + shoe_height + post_height / 2.0);
 
     m_post = ChSharedPtr<ChBody>(new ChBody(m_system->GetContactMethod()));
-    m_post->SetPos(post_L_pos);
+    m_post->SetPos(m_post_pos);
     m_system->Add(m_post);
-    AddVisualize_post(m_post, m_chassis, post_height, post_rad, ChColor(0.1f, 0.8f, 0.15f));
+    AddVisualize_post(m_post, m_chassis, post_length, post_width, post_height, ChColor(0.1f, 0.8f, 0.15f));
 
     // ------------------------------------------
     // Create and initialize joints and actuators
@@ -169,26 +212,26 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     // Prismatic joint to force vertical translation
     m_post_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
     m_post_prismatic->SetNameString("L_post_prismatic");
-    m_post_prismatic->Initialize(m_chassis, m_post, ChCoordsys<>(ChVector<>(post_L_pos), QUNIT));
+    m_post_prismatic->Initialize(m_chassis, m_post, ChCoordsys<>(ChVector<>(m_post_pos), QUNIT));
     m_system->AddLink(m_post_prismatic);
 
     // Post actuator
-    ChVector<> m1 = post_L_pos;
+    ChVector<> m1 = m_post_pos;
     m1.z -= 1.0;  // offset marker 1 location 1 meter below marker 2
     m_post_linact = ChSharedPtr<ChLinkLinActuator>(new ChLinkLinActuator);
     m_post_linact->SetNameString("Post_linActuator");
-    m_post_linact->Initialize(m_chassis, m_post, false, ChCoordsys<>(m1, QUNIT), ChCoordsys<>(post_L_pos, QUNIT));
+    m_post_linact->Initialize(m_chassis, m_post, false, ChCoordsys<>(m1, QUNIT), ChCoordsys<>(m_post_pos, QUNIT));
     m_post_linact->Set_lin_offset(1.0);
     ChSharedPtr<ChFunction_Const> func(new ChFunction_Const(0));
     m_post_linact->Set_dist_funct(func);
     m_system->AddLink(m_post_linact);
 
+    /*
     // Constrain in a horizontal plane (based on current post location)
     m_post_ptPlane = ChSharedPtr<ChLinkLockPointPlane>(new ChLinkLockPointPlane());
     m_post_ptPlane->SetNameString("Post_pointPlane");
     m_post_ptPlane->Initialize(m_suspension->GetSpindle(LEFT), m_post, ChCoordsys<>(spindle_L_pos, QUNIT));
     m_system->AddLink(m_post_ptPlane);
-
     */
 }
 
@@ -236,16 +279,15 @@ void ChTrackTestRig::LogConstraintViolations() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackTestRig::AddVisualize_post(ChSharedPtr<ChBody> post_body,
-                                            ChSharedPtr<ChBody> chassis_body,
-                                            double height,
-                                            double rad,
-                                            const ChColor& color) {
+                                       ChSharedPtr<ChBody> chassis_body,
+                                       double length,
+                                       double width,
+                                       double height,
+                                       const ChColor& color) {
     // Platform (on post body)
-    ChSharedPtr<ChCylinderShape> base_cyl(new ChCylinderShape);
-    base_cyl->GetCylinderGeometry().rad = rad;
-    base_cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, height / 2.0);
-    base_cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -height / 2.0);
-    post_body->AddAsset(base_cyl);
+    ChSharedPtr<ChBoxShape> base_box(new ChBoxShape);
+    base_box->GetBoxGeometry().SetLengths(ChVector<>(length, width, height));
+    post_body->AddAsset(base_box);
 
     ChSharedPtr<ChColorAsset> col(new ChColorAsset);
     col->SetColor(color);
@@ -253,14 +295,14 @@ void ChTrackTestRig::AddVisualize_post(ChSharedPtr<ChBody> post_body,
 
     // Piston (on post body)
     ChSharedPtr<ChCylinderShape> piston(new ChCylinderShape);
-    piston->GetCylinderGeometry().rad = rad / 6.0;
+    piston->GetCylinderGeometry().rad = width / 6.0;
     piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -height / 2.0);
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -height * 12.0);
     post_body->AddAsset(piston);  // add asset to post body
 
     // Post sleve (on chassis/ground body)
     ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
-    cyl->GetCylinderGeometry().rad = rad / 4.0;
+    cyl->GetCylinderGeometry().rad = width / 4.0;
     cyl->GetCylinderGeometry().p1 = post_body->GetPos() - ChVector<>(0, 0, 8 * height);
     cyl->GetCylinderGeometry().p2 = post_body->GetPos() - ChVector<>(0, 0, 16 * height);
     chassis_body->AddAsset(cyl);

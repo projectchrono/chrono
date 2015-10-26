@@ -41,15 +41,26 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
   public:
     /// Construct a test rig for a specified track assembly of a given vehicle.
-    ChTrackTestRig(const std::string& filename,  ///< JSON file with vehicle specification
-                   VehicleSide side,             ///< select left or right track assembly
-                   ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< contact method
-                   );
+    ChTrackTestRig(
+        const std::string& filename,  ///< [in] JSON file with vehicle specification
+        VehicleSide side,             ///< [in] select left or right track assembly
+        ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
+        );
 
     /// Construct a test rig from specified file.
-    ChTrackTestRig(const std::string& filename,  ///< JSON file with test rig specification
-                   ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< contact method
-                   );
+    ChTrackTestRig(
+        const std::string& filename,  ///< [in] JSON file with test rig specification
+        ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
+        );
+
+    /// Construct a test rig using the specified track assembly and subsystem locations.
+    ChTrackTestRig(
+        ChSharedPtr<ChTrackAssembly> assembly,     ///< [in] handle to the track assembly
+        const ChVector<>& sprocketLoc,             ///< [in] sprocket location
+        const ChVector<>& idlerLoc,                ///< [in] idler location
+        const std::vector<ChVector<> >& suspLocs,  ///< [in] suspension locations
+        ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
+        );
 
     /// Destructor
     ~ChTrackTestRig() {}
@@ -60,6 +71,9 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     double GetActuatorDisp();
     double GetActuatorForce();
     double GetActuatorMarkerDist();
+
+    /// Return the location of the shaker post.
+    const ChVector<>& GetPostPosition() const { return m_post_pos; }
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
@@ -88,14 +102,16 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
   private:
     static void AddVisualize_post(ChSharedPtr<ChBody> post_body,
                                   ChSharedPtr<ChBody> chassis_body,
+                                  double length,
+                                  double width,
                                   double height,
-                                  double rad,
                                   const ChColor& color);
 
     ChSharedPtr<ChTrackAssembly> m_track;  ///< handle to the track assembly
 
     ChSharedPtr<ChShaft> m_dummy_shaft;  ///< dummy driveshaft
 
+    ChVector<> m_post_pos;                              ///< location of the shaker post
     ChSharedPtr<ChBody> m_post;                         ///< shaker post
     ChSharedPtr<ChLinkLockPrismatic> m_post_prismatic;  ///< post prismatic joint
     ChSharedPtr<ChLinkLinActuator> m_post_linact;       ///< actuate post
