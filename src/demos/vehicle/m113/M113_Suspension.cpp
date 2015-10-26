@@ -16,6 +16,7 @@
 //
 // =============================================================================
 
+#include "m113/M113_RoadWheel.h"
 #include "m113/M113_Suspension.h"
 
 using namespace chrono;
@@ -57,9 +58,11 @@ class M113_TorsionForce : public ChTorsionForce {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Suspension::M113_Suspension() : ChLinearDamperRWAssembly("M113_Suspension") {
+M113_Suspension::M113_Suspension(VisualizationType vis_type) : ChLinearDamperRWAssembly("M113_Suspension") {
     m_shock_forceCB = new M113_ShockForce();
     m_torsion_force = new M113_TorsionForce();
+
+    m_road_wheel = ChSharedPtr<M113_RoadWheel>(new M113_RoadWheel(vis_type));
 }
 
 M113_Suspension::~M113_Suspension() {
