@@ -48,12 +48,21 @@ void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, con
         points[i] = susp_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
-    // Create the trailing arm body
-    // Create and initialize spindle body (same orientation as the chassis)
+    // Create the trailing arm body. The reference frame of the arm body has its
+    // x-axis aligned with the line between the arm-chassis connection point and
+    // the arm-wheel connection point.
+    ChVector<> u = susp_to_abs.GetPos() - points[ARM_CHASSIS];
+    u.Normalize();
+    ChVector<> w = Vcross(u, susp_to_abs.GetA().Get_A_Yaxis());
+    w.Normalize();
+    ChVector<> v = Vcross(w, u);
+    ChMatrix33<> rot;
+    rot.Set_A_axis(u, v, w);
+
     m_arm = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
     m_arm->SetNameString(m_name + "_arm");
     m_arm->SetPos(points[ARM]);
-    m_arm->SetRot(susp_to_abs.GetRot());
+    m_arm->SetRot(rot);
     m_arm->SetMass(GetArmMass());
     m_arm->SetInertiaXX(GetArmInertia());
     AddVisualizationArm(points[ARM], susp_to_abs.GetPos(), points[ARM_CHASSIS]);

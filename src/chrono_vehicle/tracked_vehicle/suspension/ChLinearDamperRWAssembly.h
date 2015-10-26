@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_DOUBLE_IDLER_H
-#define CH_DOUBLE_IDLER_H
+#ifndef CH_LINEAR_DAMPER_RWA_H
+#define CH_LINEAR_DAMPER_RWA_H
 
 #include "chrono/physics/ChLinkSpringCB.h"
 #include "chrono/physics/ChLinkForce.h"
@@ -48,7 +48,8 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     /// The suspension subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
+    /// reference frame is always centered at the location of the road wheel and
+    /// aligned with the chassis reference frame.
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
                             ) override;
