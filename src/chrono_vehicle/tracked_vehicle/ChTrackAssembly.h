@@ -103,15 +103,16 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
                 const TrackShoeForces& shoe_forces  ///< [in] vector of tire force structures
                 );
 
-  private:
-      /// Assemble track shoes over wheels.
-      void Assemble();
-
+  protected:
     std::string m_name;                     ///< name of the subsystem
     ChSharedPtr<ChSprocket> m_sprocket;     ///< sprocket subsystem
     ChSharedPtr<ChIdler> m_idler;           ///< idler (and tensioner) subsystem
     ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
     ChTrackShoeList m_shoes;                ///< track shoes
+
+  private:
+    /// Assemble track shoes over wheels.
+    void Assemble();
 };
 
 }  // end namespace vehicle
