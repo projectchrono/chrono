@@ -67,7 +67,8 @@ M113_Suspension::M113_Suspension(VisualizationType vis_type) : ChLinearDamperRWA
 
 M113_Suspension::~M113_Suspension() {
     delete m_shock_forceCB;
-    delete m_torsion_force;
+    //// NOTE: Do not delete m_torsion_force here (it is deleted in the destructor for the revolute joint)
+    ////delete m_torsion_force;
 }
 
 // -----------------------------------------------------------------------------
