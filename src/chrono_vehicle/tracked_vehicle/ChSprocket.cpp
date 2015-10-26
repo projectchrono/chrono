@@ -61,6 +61,7 @@ void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
     m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_gear, rev_csys);
+    chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the axle shaft and its connection to the gear. Note that the
     // gear rotates about the Y axis.
@@ -84,14 +85,14 @@ void ChSprocket::AddGearVisualization(const ChColor& color) {
 
     ChSharedPtr<ChLineShape> asset_1(new ChLineShape);
     asset_1->SetLineGeometry(profile);
-    asset_1->Pos = ChVector<>(0, 0, sep / 2);
+    asset_1->Pos = ChVector<>(0, sep / 2, 0);
     asset_1->Rot = rot_y2z;
     asset_1->SetColor(color);
     m_gear->AddAsset(asset_1);
 
     ChSharedPtr<ChLineShape> asset_2(new ChLineShape);
     asset_2->SetLineGeometry(profile);
-    asset_2->Pos = ChVector<>(0, 0, -sep / 2);
+    asset_2->Pos = ChVector<>(0, -sep / 2, 0);
     asset_2->Rot = rot_y2z;
     asset_2->SetColor(color);
     m_gear->AddAsset(asset_2);

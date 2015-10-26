@@ -61,8 +61,8 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
     /// Get the number of teeth of the gear.
     virtual int GetNumTeeth() const = 0;
 
-    /// Get a handle to the road wheel body.
-    ChSharedPtr<ChBody> GetWheelBody() const { return m_gear; }
+    /// Get a handle to the gear body.
+    ChSharedPtr<ChBody> GetGearBody() const { return m_gear; }
 
     /// Get a handle to the axle shaft.
     ChSharedPtr<ChShaft> GetAxle() const { return m_axle; }

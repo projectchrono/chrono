@@ -76,7 +76,7 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& lo
     m_carrier->SetMass(GetWheelMass());
     m_carrier->SetInertiaXX(GetWheelInertia());
     AddVisualizationCarrier(m_carrier, points[WHEEL], points[CARRIER], points[CARRIER_CHASSIS]);
-    chassis->GetSystem()->AddBody(m_wheel);
+    chassis->GetSystem()->AddBody(m_carrier);
 
     // Create and initialize the revolute joint between wheel and carrier.
     // The axis of rotation is the y axis of the idler reference frame.
@@ -84,11 +84,11 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& lo
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(m_carrier, m_wheel,
                            ChCoordsys<>(points[WHEEL], idler_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
+    chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the prismatic joint between carrier and chassis.
     // The axis of translation is pitched by the specified angle from the x axis
     // of the idler reference frame.
-
     m_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
     m_prismatic->SetNameString(m_name + "_prismatic");
     m_prismatic->Initialize(chassis, m_carrier,

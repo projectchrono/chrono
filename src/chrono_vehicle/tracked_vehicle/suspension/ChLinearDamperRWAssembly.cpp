@@ -33,9 +33,6 @@ ChLinearDamperRWAssembly::ChLinearDamperRWAssembly(const std::string& name) : Ch
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
-    // Invoke the base class implementation
-    ChRoadWheelAssembly::Initialize(chassis, location);
-
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -84,6 +81,10 @@ void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, con
     m_shock->Initialize(chassis, m_arm, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock->Set_SpringCallback(GetShockForceCallback());
     chassis->GetSystem()->AddLink(m_shock);
+
+    // Invoke the base class implementation. This initializes the associated road wheel.
+    // Note: we must call this here, after the m_arm body is created.
+    ChRoadWheelAssembly::Initialize(chassis, location);
 }
 
 // -----------------------------------------------------------------------------
