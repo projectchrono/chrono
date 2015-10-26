@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef M113_DOUBLE_IDLER_H
-#define M113_DOUBLE_IDLER_H
+#ifndef M113_ROAD_WHEEL_H
+#define M113_ROAD_WHEEL_H
 
 #include <string>
 
@@ -31,8 +31,7 @@ namespace m113 {
 ///
 class M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
   public:
-    M113_RoadWheel(chrono::vehicle::VisualizationType vis_type);
-    ~M113_RoadWheel() {}
+    virtual ~M113_RoadWheel() {}
 
     /// Return the mass of the idler wheel body.
     virtual double GetWheelMass() const override { return m_wheel_mass; }
@@ -51,7 +50,14 @@ class M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
                             const chrono::ChVector<>& location  ///< [in] location relative to the chassis frame
                             ) override;
 
-  private:
+    void ExportMeshPovray(const std::string& out_dir);
+
+  protected:
+    M113_RoadWheel(const std::string& name, chrono::vehicle::VisualizationType vis_type);
+
+    virtual const std::string& GetMeshName() const = 0;
+    virtual const std::string& GetMeshFile() const = 0;
+
     static const double m_wheel_mass;
     static const chrono::ChVector<> m_wheel_inertia;
     static const double m_wheel_radius;
@@ -59,6 +65,30 @@ class M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
     static const double m_wheel_gap;
 
     chrono::vehicle::VisualizationType m_vis_type;
+};
+
+class M113_RoadWheelLeft : public M113_RoadWheel {
+  public:
+    M113_RoadWheelLeft(chrono::vehicle::VisualizationType visType) : M113_RoadWheel("M113_RoadWheelLeft", visType) {}
+    ~M113_RoadWheelLeft() {}
+
+    virtual const std::string& GetMeshName() const override { return m_meshName; }
+    virtual const std::string& GetMeshFile() const override { return m_meshFile; }
+
+  private:
+    static const std::string m_meshName;
+    static const std::string m_meshFile;
+};
+
+class M113_RoadWheelRight : public M113_RoadWheel {
+  public:
+    M113_RoadWheelRight(chrono::vehicle::VisualizationType visType) : M113_RoadWheel("M113_RoadWheelRight", visType) {}
+    ~M113_RoadWheelRight() {}
+
+    virtual const std::string& GetMeshName() const override { return m_meshName; }
+    virtual const std::string& GetMeshFile() const override { return m_meshFile; }
+
+  private:
     static const std::string m_meshName;
     static const std::string m_meshFile;
 };

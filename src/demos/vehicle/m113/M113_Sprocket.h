@@ -31,8 +31,7 @@ namespace m113 {
 ///
 class M113_Sprocket : public chrono::vehicle::ChSprocket {
   public:
-    M113_Sprocket(chrono::vehicle::VisualizationType vis_type);
-    ~M113_Sprocket() {}
+    virtual ~M113_Sprocket() {}
 
     /// Get the number of teeth of the gear.
     virtual int GetNumTeeth() const override { return m_num_teeth; }
@@ -58,7 +57,14 @@ class M113_Sprocket : public chrono::vehicle::ChSprocket {
                             const chrono::ChVector<>& location  ///< [in] location relative to the chassis frame
                             );
 
-  private:
+    void ExportMeshPovray(const std::string& out_dir);
+
+  protected:
+    M113_Sprocket(const std::string& name, chrono::vehicle::VisualizationType vis_type);
+
+    virtual const std::string& GetMeshName() const = 0;
+    virtual const std::string& GetMeshFile() const = 0;
+
     static const int m_num_teeth;
 
     static const double m_gear_mass;
@@ -72,6 +78,30 @@ class M113_Sprocket : public chrono::vehicle::ChSprocket {
     static const double m_gear_R;
 
     chrono::vehicle::VisualizationType m_vis_type;
+};
+
+class M113_SprocketLeft : public M113_Sprocket {
+  public:
+    M113_SprocketLeft(chrono::vehicle::VisualizationType visType) : M113_Sprocket("M113_SprocketLeft", visType) {}
+    ~M113_SprocketLeft() {}
+
+    virtual const std::string& GetMeshName() const override { return m_meshName; }
+    virtual const std::string& GetMeshFile() const override { return m_meshFile; }
+
+  private:
+    static const std::string m_meshName;
+    static const std::string m_meshFile;
+};
+
+class M113_SprocketRight : public M113_Sprocket {
+  public:
+    M113_SprocketRight(chrono::vehicle::VisualizationType visType) : M113_Sprocket("M113_SprocketRight", visType) {}
+    ~M113_SprocketRight() {}
+
+    virtual const std::string& GetMeshName() const override { return m_meshName; }
+    virtual const std::string& GetMeshFile() const override { return m_meshFile; }
+
+  private:
     static const std::string m_meshName;
     static const std::string m_meshFile;
 };

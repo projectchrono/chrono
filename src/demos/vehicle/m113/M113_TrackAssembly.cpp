@@ -29,12 +29,18 @@ namespace m113 {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackAssembly::M113_TrackAssembly(VisualizationType vis_type) : ChTrackAssembly("M113_TrackAssembly") {
-    m_sprocket = ChSharedPtr<M113_Sprocket>(new M113_Sprocket(vis_type));
-    m_idler = ChSharedPtr<M113_Idler>(new M113_Idler(vis_type));
+M113_TrackAssembly::M113_TrackAssembly(VehicleSide side, VisualizationType vis_type)
+    : ChTrackAssembly("M113_TrackAssembly") {
+    if (side == LEFT) {
+        m_sprocket = ChSharedPtr<M113_Sprocket>(new M113_SprocketLeft(vis_type));
+        m_idler = ChSharedPtr<M113_Idler>(new M113_IdlerLeft(vis_type));
+    } else {
+        m_sprocket = ChSharedPtr<M113_Sprocket>(new M113_SprocketRight(vis_type));
+        m_idler = ChSharedPtr<M113_Idler>(new M113_IdlerRight(vis_type));
+    }
 
     for (size_t is = 0; is < 5; is++) {
-        m_suspensions.push_back(ChSharedPtr<M113_Suspension>(new M113_Suspension(vis_type)));
+        m_suspensions.push_back(ChSharedPtr<M113_Suspension>(new M113_Suspension(side, vis_type)));
     }
 }
 

@@ -37,12 +37,15 @@ const double M113_RoadWheel::m_wheel_radius = 0.25;
 const double M113_RoadWheel::m_wheel_width = 0.2;
 const double M113_RoadWheel::m_wheel_gap = 0.06;
 
-const std::string M113_RoadWheel::m_meshName = "roller_POV_geom";
-const std::string M113_RoadWheel::m_meshFile = vehicle::GetDataFile("M113/Roller_XforwardYup.obj");
+const std::string M113_RoadWheelLeft::m_meshName = "Roller_L_POV_geom";
+const std::string M113_RoadWheelLeft::m_meshFile = vehicle::GetDataFile("M113/Roller_L.obj");
+
+const std::string M113_RoadWheelRight::m_meshName = "Roller_R_POV_geom";
+const std::string M113_RoadWheelRight::m_meshFile = vehicle::GetDataFile("M113/Roller_R.obj");
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_RoadWheel::M113_RoadWheel(VisualizationType vis_type) : ChDoubleRoadWheel("M113_RoadWheel"), m_vis_type(vis_type) {
+M113_RoadWheel::M113_RoadWheel(const std::string& name, VisualizationType vis_type) : ChDoubleRoadWheel(name), m_vis_type(vis_type) {
 }
 
 // -----------------------------------------------------------------------------
@@ -61,16 +64,22 @@ void M113_RoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
             break;
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(m_meshFile, false, false);
+            trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
 
             ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
             trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(m_meshName);
+            trimesh_shape->SetName(GetMeshName());
             m_wheel->AddAsset(trimesh_shape);
 
             break;
         }
     }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void M113_RoadWheel::ExportMeshPovray(const std::string& out_dir) {
+    utils::WriteMeshPovray(GetMeshFile(), GetMeshName(), out_dir, ChColor(0.15f, 0.15f, 0.15f));
 }
 
 }  // end namespace m113

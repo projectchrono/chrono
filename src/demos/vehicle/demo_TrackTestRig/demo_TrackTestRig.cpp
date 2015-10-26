@@ -54,7 +54,7 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Create an M113 track assembly.
-    ChSharedPtr<M113_TrackAssembly> track_assembly(new M113_TrackAssembly(PRIMITIVES));
+    ChSharedPtr<M113_TrackAssembly> track_assembly(new M113_TrackAssembly(LEFT, MESH));
 
     // Create and initialize the testing mechanism.
     ChVector<> sprocket_loc(3, 1, 0);

@@ -58,11 +58,13 @@ class M113_TorsionForce : public ChTorsionForce {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Suspension::M113_Suspension(VisualizationType vis_type) : ChLinearDamperRWAssembly("M113_Suspension") {
+M113_Suspension::M113_Suspension(VehicleSide side, VisualizationType vis_type)
+    : ChLinearDamperRWAssembly("M113_Suspension") {
     m_shock_forceCB = new M113_ShockForce();
     m_torsion_force = new M113_TorsionForce();
 
-    m_road_wheel = ChSharedPtr<M113_RoadWheel>(new M113_RoadWheel(vis_type));
+    m_road_wheel = (side == LEFT) ? ChSharedPtr<M113_RoadWheel>(new M113_RoadWheelLeft(vis_type))
+                                  : ChSharedPtr<M113_RoadWheel>(new M113_RoadWheelRight(vis_type));
 }
 
 M113_Suspension::~M113_Suspension() {

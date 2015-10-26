@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef M113_DOUBLE_IDLER_H
-#define M113_DOUBLE_IDLER_H
+#ifndef M113_IDLER_H
+#define M113_IDLER_H
 
 #include <string>
 
@@ -31,8 +31,7 @@ namespace m113 {
 ///
 class M113_Idler : public chrono::vehicle::ChDoubleIdler {
   public:
-    M113_Idler(chrono::vehicle::VisualizationType vis_type);
-    ~M113_Idler() {}
+    virtual ~M113_Idler() {}
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
@@ -71,7 +70,14 @@ class M113_Idler : public chrono::vehicle::ChDoubleIdler {
                             const chrono::ChVector<>& location  ///< [in] location relative to the chassis frame
                             ) override;
 
-  private:
+    void ExportMeshPovray(const std::string& out_dir);
+
+  protected:
+    M113_Idler(const std::string& name, chrono::vehicle::VisualizationType vis_type);
+
+    virtual const std::string& GetMeshName() const = 0;
+    virtual const std::string& GetMeshFile() const = 0;
+
     chrono::ChSpringForceCallback* m_tensionerForceCB;
 
     static const double m_wheel_mass;
@@ -87,6 +93,30 @@ class M113_Idler : public chrono::vehicle::ChDoubleIdler {
     static const double m_tensioner_free_length;
 
     chrono::vehicle::VisualizationType m_vis_type;
+};
+
+class M113_IdlerLeft : public M113_Idler {
+  public:
+    M113_IdlerLeft(chrono::vehicle::VisualizationType visType) : M113_Idler("M113_IdlerLeft", visType) {}
+    ~M113_IdlerLeft() {}
+
+    virtual const std::string& GetMeshName() const override { return m_meshName; }
+    virtual const std::string& GetMeshFile() const override { return m_meshFile; }
+
+  private:
+    static const std::string m_meshName;
+    static const std::string m_meshFile;
+};
+
+class M113_IdlerRight : public M113_Idler {
+  public:
+    M113_IdlerRight(chrono::vehicle::VisualizationType visType) : M113_Idler("M113_IdlerRight", visType) {}
+    ~M113_IdlerRight() {}
+
+    virtual const std::string& GetMeshName() const override { return m_meshName; }
+    virtual const std::string& GetMeshFile() const override { return m_meshFile; }
+
+  private:
     static const std::string m_meshName;
     static const std::string m_meshFile;
 };

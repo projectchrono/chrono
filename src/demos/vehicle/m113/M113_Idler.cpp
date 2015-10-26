@@ -43,8 +43,11 @@ const double M113_Idler::m_carrier_radius = 0.01;
 
 const double M113_Idler::m_tensioner_free_length = 1;
 
-const std::string M113_Idler::m_meshName = "idler_POV_geom";
-const std::string M113_Idler::m_meshFile = vehicle::GetDataFile("M113/Idler_XforwardYup.obj");
+const std::string M113_IdlerLeft::m_meshName = "Idler_L_POV_geom";
+const std::string M113_IdlerLeft::m_meshFile = vehicle::GetDataFile("M113/Idler_L.obj");
+
+const std::string M113_IdlerRight::m_meshName = "Idler_R_POV_geom";
+const std::string M113_IdlerRight::m_meshFile = vehicle::GetDataFile("M113/Idler_R.obj");
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -62,7 +65,8 @@ class M113_TensionerForce : public ChSpringForceCallback {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Idler::M113_Idler(VisualizationType vis_type) : ChDoubleIdler("M113_Idler"), m_vis_type(vis_type) {
+M113_Idler::M113_Idler(const std::string& name, VisualizationType vis_type)
+    : ChDoubleIdler(name), m_vis_type(vis_type) {
     //// TODO
     m_tensionerForceCB = new M113_TensionerForce();
 }
@@ -81,11 +85,11 @@ void M113_Idler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
             break;
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(m_meshFile, false, false);
+            trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
 
             ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
             trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(m_meshName);
+            trimesh_shape->SetName(GetMeshName());
             m_wheel->AddAsset(trimesh_shape);
 
             break;
