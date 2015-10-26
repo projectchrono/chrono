@@ -367,7 +367,6 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron,
 
         // Fi = C * Fi_local  with C block-diagonal rotations A
         ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);
-Fi.Reset();
     }
 
     //
