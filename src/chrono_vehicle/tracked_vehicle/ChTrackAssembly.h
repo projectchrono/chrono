@@ -58,9 +58,27 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Construct a track assembly by mirroring the specified one.
-    virtual ChSharedPtr<ChTrackAssembly> Mirror(ChSharedPtr<ChTrackAssembly> source) = 0;
+    ////virtual ChSharedPtr<ChTrackAssembly> Mirror(ChSharedPtr<ChTrackAssembly> source) = 0;
 
-    /// Get a handle to the speicifed track shoe.
+    /// Get the number of suspensions.
+    size_t GetNumRoadWheelAssemblies() const { return m_suspensions.size(); }
+
+    /// Get the number of track shoes.
+    size_t GetNumTrackShoes() const { return m_shoes.size(); }
+
+    /// Get a handle to the sprocket.
+    ChSharedPtr<ChSprocket> GetSprocket() const { return m_sprocket; }
+
+    /// Get a handle to the idler subsystem.
+    ChSharedPtr<ChIdler> GetIdler() const { return m_idler; }
+
+    /// Get a handle to the specified suspension subsystem.
+    ChSharedPtr<ChRoadWheelAssembly> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
+
+    /// Get a handle to the specified road wheel subsystem.
+    ChSharedPtr<ChRoadWheel> GetRoadWheel(size_t id) const { return m_suspensions[id]->GetRoadWheel(); }
+
+    /// Get a handle to the specified track shoe subsystem.
     ChSharedPtr<ChTrackShoe> GetTrackShoe(size_t id) const { return m_shoes[id]; }
 
     /// Get the global location of the specified track shoe.

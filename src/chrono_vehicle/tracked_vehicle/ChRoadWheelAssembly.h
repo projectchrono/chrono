@@ -56,11 +56,14 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChShared {
     /// Return the type of track shoe consistent with this road wheel.
     TrackShoeType GetType() const { return m_type; }
 
+    /// Return a handle to the road wheel subsystem.
+    ChSharedPtr<ChRoadWheel> GetRoadWheel() const { return m_road_wheel; }
+
     /// Return a handle to the carrier body.
-    virtual ChSharedPtr<ChBody> GetCarrier() const = 0;
+    virtual ChSharedPtr<ChBody> GetCarrierBody() const = 0;
 
     /// Get a handle to the road wheel body.
-    ChSharedPtr<ChBody> GetWheel() const { return m_road_wheel->GetWheel(); }
+    ChSharedPtr<ChBody> GetWheelBody() const { return m_road_wheel->GetWheelBody(); }
 
     /// Get a handle to the revolute joint.
     ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_road_wheel->GetRevolute(); }

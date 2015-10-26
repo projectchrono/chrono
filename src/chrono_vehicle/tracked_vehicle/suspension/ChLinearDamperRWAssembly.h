@@ -42,7 +42,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     virtual ~ChLinearDamperRWAssembly() {}
 
     /// Return a handle to the carrier body.
-    virtual ChSharedPtr<ChBody> GetCarrier() const override { return m_arm; }
+    virtual ChSharedPtr<ChBody> GetCarrierBody() const override { return m_arm; }
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified

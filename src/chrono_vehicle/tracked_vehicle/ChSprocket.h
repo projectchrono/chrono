@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
     virtual int GetNumTeeth() const = 0;
 
     /// Get a handle to the road wheel body.
-    ChSharedPtr<ChBody> GetWheel() const { return m_gear; }
+    ChSharedPtr<ChBody> GetWheelBody() const { return m_gear; }
 
     /// Get a handle to the axle shaft.
     ChSharedPtr<ChShaft> GetAxle() const { return m_axle; }

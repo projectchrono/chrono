@@ -55,7 +55,7 @@ class CH_VEHICLE_API ChRoadWheel : public ChShared {
     virtual TrackShoeType GetType() const = 0;
 
     /// Get a handle to the road wheel body.
-    ChSharedPtr<ChBody> GetWheel() const { return m_wheel; }
+    ChSharedPtr<ChBody> GetWheelBody() const { return m_wheel; }
 
     /// Get a handle to the revolute joint.
     ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
