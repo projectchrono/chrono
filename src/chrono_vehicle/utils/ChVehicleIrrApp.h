@@ -87,6 +87,9 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
                         );
     /// Set the step size for integration of the chase-cam dynamics.
     void SetStepsize(double val) { m_stepsize = val; }
+    /// Set camera position.
+    /// Note that this forces the chase-cam in Track mode.
+    void SetChaseCameraPosition(const ChVector<>& pos) { m_camera.SetCameraPos(pos); }
 
     /// Set the upper-left point of HUD elements.
     void SetHUDLocation(int HUD_x, int HUD_y) {
