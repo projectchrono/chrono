@@ -888,7 +888,7 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
                     false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
                     );
 
-                L += Dl;  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
+				L += Dl*(1.0 / scaling_factor);  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
 
                 Xnew = Xnew + Da;  // X + V * dt + A * (dt * dt * (0.5 - beta)) + Anew * (dt * dt * beta);
                 Vnew = V * (-(gamma / beta - 1.0)) - A * dt * (gamma / (2.0 * beta) - 1.0);
