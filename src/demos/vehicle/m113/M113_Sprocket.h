@@ -36,21 +36,25 @@ class M113_Sprocket : public chrono::vehicle::ChSprocket {
     /// Get the number of teeth of the gear.
     virtual int GetNumTeeth() const override { return m_num_teeth; }
 
+    /// Get the radius of the gear.
+    /// This quantity is used during the automatic track assembly.
+    virtual double GetAssemblyRadius() const override { return m_gear_RA; }
+
     /// Return the mass of the gear body.
-    virtual double getGearMass() const override { return m_gear_mass; }
+    virtual double GetGearMass() const override { return m_gear_mass; }
     /// Return the moments of inertia of the gear body.
-    virtual const chrono::ChVector<>& getGearInertia() override { return m_gear_inertia; }
+    virtual const chrono::ChVector<>& GetGearInertia() override { return m_gear_inertia; }
     /// Return the inertia of the axle shaft.
-    virtual double getAxleInertia() const override { return m_axle_inertia; }
+    virtual double GetAxleInertia() const override { return m_axle_inertia; }
     /// Return the distance between the two gear profiles.
-    virtual double getSeparation() const override { return m_separation; }
+    virtual double GetSeparation() const override { return m_separation; }
 
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
     /// clockwise order, and the end of sub-path i must be coincident with beginning of
     /// sub-path i+1.
-    virtual chrono::ChSharedPtr<chrono::geometry::ChLinePath> getProfile() override;
+    virtual chrono::ChSharedPtr<chrono::geometry::ChLinePath> GetProfile() override;
 
     /// Initialize this sprocket subsystem.
     virtual void Initialize(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
@@ -76,6 +80,7 @@ class M113_Sprocket : public chrono::vehicle::ChSprocket {
     static const double m_gear_RT;
     static const double m_gear_RC;
     static const double m_gear_R;
+    static const double m_gear_RA;
 
     chrono::vehicle::VisualizationType m_vis_type;
 };

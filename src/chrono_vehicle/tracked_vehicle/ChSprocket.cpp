@@ -42,13 +42,13 @@ void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
     m_gear->SetNameString(m_name + "_gear");
     m_gear->SetPos(loc);
     m_gear->SetRot(chassisRot);
-    m_gear->SetMass(getGearMass());
-    m_gear->SetInertiaXX(getGearInertia());
+    m_gear->SetMass(GetGearMass());
+    m_gear->SetInertiaXX(GetGearInertia());
     chassis->GetSystem()->AddBody(m_gear);
 
     // Add collision shape to gear body.
-    double sep = getSeparation();
-    ChSharedPtr<geometry::ChLinePath> profile = getProfile();
+    double sep = GetSeparation();
+    ChSharedPtr<geometry::ChLinePath> profile = GetProfile();
     m_gear->SetCollide(true);
     m_gear->GetCollisionModel()->SetSafeMargin(0.02);
     m_gear->GetCollisionModel()->ClearModel();
@@ -67,7 +67,7 @@ void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
     // gear rotates about the Y axis.
     m_axle = ChSharedPtr<ChShaft>(new ChShaft);
     m_axle->SetNameString(m_name + "_axle");
-    m_axle->SetInertia(getAxleInertia());
+    m_axle->SetInertia(GetAxleInertia());
     chassis->GetSystem()->Add(m_axle);
 
     m_axle_to_spindle = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
@@ -80,8 +80,8 @@ void ChSprocket::AddGearVisualization(const ChColor& color) {
     ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);
 
-    double sep = getSeparation();
-    ChSharedPtr<geometry::ChLinePath> profile = getProfile();
+    double sep = GetSeparation();
+    ChSharedPtr<geometry::ChLinePath> profile = GetProfile();
 
     ChSharedPtr<ChLineShape> asset_1(new ChLineShape);
     asset_1->SetLineGeometry(profile);

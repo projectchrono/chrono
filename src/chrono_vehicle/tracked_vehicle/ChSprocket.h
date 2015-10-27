@@ -61,6 +61,12 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
     /// Get the number of teeth of the gear.
     virtual int GetNumTeeth() const = 0;
 
+    /// Get the track assembly radius.
+    /// This quantity is used during the automatic track assembly. It represents a
+    /// safe distance from the sprocket gear center at which the track shoes can be
+    /// instantiated.
+    virtual double GetAssemblyRadius() const = 0;
+
     /// Get a handle to the gear body.
     ChSharedPtr<ChBody> GetGearBody() const { return m_gear; }
 
@@ -94,23 +100,23 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
 
   protected:
     /// Return the mass of the gear body.
-    virtual double getGearMass() const = 0;
+    virtual double GetGearMass() const = 0;
 
     /// Return the moments of inertia of the gear body.
-    virtual const ChVector<>& getGearInertia() = 0;
+    virtual const ChVector<>& GetGearInertia() = 0;
 
     /// Return the inertia of the axle shaft.
-    virtual double getAxleInertia() const = 0;
+    virtual double GetAxleInertia() const = 0;
 
     /// Return the distance between the two gear profiles.
-    virtual double getSeparation() const = 0;
+    virtual double GetSeparation() const = 0;
 
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
     /// clockwise order, and the end of sub-path i must be coincident with beginning of
     /// sub-path i+1.
-    virtual ChSharedPtr<geometry::ChLinePath> getProfile() = 0;
+    virtual ChSharedPtr<geometry::ChLinePath> GetProfile() = 0;
 
     std::string m_name;                           ///< name of the subsystem
     ChSharedPtr<ChBody> m_gear;                   ///< handle to the sprocket gear body

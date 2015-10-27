@@ -59,10 +59,12 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     virtual ChVector<> GetShoeInertia() const = 0;
 
     /// Return the radius of the track shoe pin.
+    //// TODO: is this really needed?
     virtual double GetPinRadius() const = 0;
 
     /// Return the length of the track shoe pin.
     /// This is the total pin length.
+    //// TODO: is this really needed?
     virtual double GetPinLength() const = 0;
 
     ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe

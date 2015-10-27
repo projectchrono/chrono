@@ -48,7 +48,7 @@ void ChSinglePinShoe::Initialize(ChSystem* system, const ChVector<>& location, c
 // -----------------------------------------------------------------------------
 void ChSinglePinShoe::Connect(ChSharedPtr<ChTrackShoe> next) {
     // Create and initialize the revolute joint.
-    ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetLength() / 2, 0, 0));
+    ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetPitch() / 2, 0, 0));
     ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngY(CH_C_PI_2);
 
     m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);

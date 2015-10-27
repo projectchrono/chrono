@@ -60,9 +60,9 @@ class CH_VEHICLE_API ChTrackShoe : public ChShared {
     /// Return the height of the track shoe.
     virtual double GetHeight() const = 0;
 
-    /// Return the length of the track shoe.
-    /// This quantity relates to the pitch of the sprocket gear.
-    virtual double GetLength() const = 0;
+    /// Return the pitch length of the track shoe.
+    /// This quantity must agree with the pitch of the sprocket gear.
+    virtual double GetPitch() const = 0;
 
     /// Set contact material properties.
     /// This function must be called before Initialize().

@@ -43,6 +43,7 @@ const double M113_Sprocket::m_separation = 0.2;
 const double M113_Sprocket::m_gear_RT = 0.2605;
 const double M113_Sprocket::m_gear_RC = 0.3;
 const double M113_Sprocket::m_gear_R = 0.089;
+const double M113_Sprocket::m_gear_RA = 0.24;
 
 const std::string M113_SprocketLeft::m_meshName = "Sprocket_L_POV_geom";
 const std::string M113_SprocketLeft::m_meshFile = vehicle::GetDataFile("M113/Sprocket_L.obj");
@@ -58,7 +59,7 @@ M113_Sprocket::M113_Sprocket(const std::string& name, VisualizationType vis_type
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSharedPtr<geometry::ChLinePath> M113_Sprocket::getProfile() {
+ChSharedPtr<geometry::ChLinePath> M113_Sprocket::GetProfile() {
     return ChCircularProfile(m_num_teeth, m_gear_RT, m_gear_RC, m_gear_R);
 }
 
