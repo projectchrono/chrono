@@ -47,8 +47,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChSprocket : public ChShared {
   public:
     ChSprocket(const std::string& name  ///< [in] name of the subsystem
-               )
-        : m_name(name) {}
+               );
 
     virtual ~ChSprocket() {}
 
@@ -78,6 +77,14 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
 
     /// Get the angular speed of the axle.
     double GetAxleSpeed() const { return m_axle->GetPos_dt(); }
+
+    /// Set contact material properties.
+    /// This function must be called before Initialize().
+    void SetContactMaterial(float friction_coefficient,     ///< [in] coefficient of friction
+                            float restitution_coefficient,  ///< [in] coefficient of restitution
+                            float young_modulus,            ///< [in] Young's modulus of elasticity
+                            float poisson_ratio             ///< [in] Poisson ratio
+                            );
 
     /// Initialize this sprocket subsystem.
     /// The sprocket subsystem is initialized by attaching it to the specified
@@ -123,6 +130,11 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
     ChSharedPtr<ChShaft> m_axle;                  ///< handle to gear shafts
     ChSharedPtr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
     ChSharedPtr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
+
+    float m_friction;
+    float m_restitution;
+    float m_young_modulus;
+    float m_poisson_ratio;
 };
 
 /// Vector of handles to sprocket subsystems.

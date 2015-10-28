@@ -27,6 +27,26 @@
 namespace chrono {
 namespace vehicle {
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChSprocket::ChSprocket(const std::string& name)
+    : m_name(name), m_friction(0.6f), m_restitution(0.1f), m_young_modulus(2e5f), m_poisson_ratio(0.3f) {
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChSprocket::SetContactMaterial(float friction_coefficient,
+                                    float restitution_coefficient,
+                                    float young_modulus,
+                                    float poisson_ratio) {
+    m_friction = friction_coefficient;
+    m_restitution = restitution_coefficient;
+    m_young_modulus = young_modulus;
+    m_poisson_ratio = poisson_ratio;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
     // The sprocket reference frame is aligned with that of the chassis and centered at the
     // specified location.

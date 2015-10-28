@@ -34,6 +34,12 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+ChIdler::ChIdler(const std::string& name)
+    : m_name(name), m_friction(0.6f), m_restitution(0.1f), m_young_modulus(2e5f), m_poisson_ratio(0.3f) {
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChIdler::SetContactMaterial(float friction_coefficient,
                                  float restitution_coefficient,
                                  float young_modulus,

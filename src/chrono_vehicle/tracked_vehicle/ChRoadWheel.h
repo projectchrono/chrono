@@ -40,8 +40,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChRoadWheel : public ChShared {
   public:
     ChRoadWheel(const std::string& name  ///< [in] name of the subsystem
-                )
-        : m_name(name) {}
+                );
 
     virtual ~ChRoadWheel() {}
 
@@ -65,10 +64,10 @@ class CH_VEHICLE_API ChRoadWheel : public ChShared {
 
     /// Set contact material properties.
     /// This function must be called before Initialize().
-    void SetContactMaterial(float friction_coefficient = 0.6f,    ///< [in] coefficient of friction
-                            float restitution_coefficient = 0.1,  ///< [in] coefficient of restitution
-                            float young_modulus = 2e5f,           ///< [in] Young's modulus of elasticity
-                            float poisson_ratio = 0.3f            ///< [in] Poisson ratio
+    void SetContactMaterial(float friction_coefficient,     ///< [in] coefficient of friction
+                            float restitution_coefficient,  ///< [in] coefficient of restitution
+                            float young_modulus,            ///< [in] Young's modulus of elasticity
+                            float poisson_ratio             ///< [in] Poisson ratio
                             );
 
     /// Initialize this road wheel subsystem.
