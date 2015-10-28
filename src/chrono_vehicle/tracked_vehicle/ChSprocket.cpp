@@ -49,7 +49,8 @@ void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
     // Add collision shape to gear body.
     double sep = GetSeparation();
     ChSharedPtr<geometry::ChLinePath> profile = GetProfile();
-    m_gear->SetCollide(true);
+    //// TODO: enable collision
+    ////m_gear->SetCollide(true);
     m_gear->GetCollisionModel()->SetSafeMargin(0.02);
     m_gear->GetCollisionModel()->ClearModel();
     m_gear->GetCollisionModel()->Add2Dpath(*profile.get_ptr(), ChVector<>(0, 0, sep / 2), rot_y2z);

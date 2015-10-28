@@ -42,7 +42,8 @@ void ChDoubleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector
     double width = 0.5 * (GetWheelWidth() - GetWheelGap());
     double offset = 0.25 * (GetWheelWidth() + GetWheelGap());
 
-    m_wheel->SetCollide(true);
+    //// TODO: enable contact
+    ////m_wheel->SetCollide(true);
 
     m_wheel->GetCollisionModel()->ClearModel();
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, offset, 0));
