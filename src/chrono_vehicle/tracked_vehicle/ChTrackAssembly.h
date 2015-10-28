@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "chrono/core/ChShared.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -130,7 +131,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
 
   private:
     /// Assemble track shoes over wheels.
-    void Assemble();
+    void Assemble(ChSharedPtr<ChBodyAuxRef> chassis);
 };
 
 }  // end namespace vehicle
