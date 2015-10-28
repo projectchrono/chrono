@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     // of elements and their referenced nodes.
     ChSharedPtr<ChMesh> my_mesh(new ChMesh);
     int numFlexBody = 1;
-    const int num_steps = 10;        // Number of time steps for unit test (range 1 to 4000)
+    const int num_steps = 3;        // Number of time steps for unit test (range 1 to 4000)
     const double time_step = 0.002;  // Time step
     // Geometry of the plate
     // double plate_lenght_x = 1; // The length along X axis is defined parametrically in
