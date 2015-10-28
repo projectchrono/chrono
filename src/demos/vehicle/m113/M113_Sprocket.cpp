@@ -38,12 +38,12 @@ const int M113_Sprocket::m_num_teeth = 10;
 const double M113_Sprocket::m_gear_mass = 1;
 const ChVector<> M113_Sprocket::m_gear_inertia(1, 1, 1);
 const double M113_Sprocket::m_axle_inertia = 1;
-const double M113_Sprocket::m_separation = 0.2;
+const double M113_Sprocket::m_separation = 0.225;
 
 const double M113_Sprocket::m_gear_RT = 0.2605;
 const double M113_Sprocket::m_gear_RC = 0.3;
 const double M113_Sprocket::m_gear_R = 0.089;
-const double M113_Sprocket::m_gear_RA = 0.24;
+const double M113_Sprocket::m_gear_RA = 0.245;
 
 const std::string M113_SprocketLeft::m_meshName = "Sprocket_L_POV_geom";
 const std::string M113_SprocketLeft::m_meshFile = vehicle::GetDataFile("M113/Sprocket_L.obj");

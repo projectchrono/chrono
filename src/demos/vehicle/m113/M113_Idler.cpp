@@ -31,14 +31,14 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_Idler::m_wheel_mass = 1;
-const ChVector<> M113_Idler::m_wheel_inertia(1, 1, 1);
-const double M113_Idler::m_wheel_radius = 0.25;
-const double M113_Idler::m_wheel_width = 0.2;
-const double M113_Idler::m_wheel_gap = 0.06;
+const double M113_Idler::m_wheel_mass = 429.5;
+const ChVector<> M113_Idler::m_wheel_inertia(12.55, 14.70, 12.55);
+const double M113_Idler::m_wheel_radius = 0.255;
+const double M113_Idler::m_wheel_width = 0.181;
+const double M113_Idler::m_wheel_gap = 0.051;
 
-const double M113_Idler::m_carrier_mass = 1;
-const ChVector<> M113_Idler::m_carrier_inertia(1, 1, 1);
+const double M113_Idler::m_carrier_mass = 50;
+const ChVector<> M113_Idler::m_carrier_inertia(2, 2, 2);
 const double M113_Idler::m_carrier_radius = 0.01;
 
 const double M113_Idler::m_tensioner_free_length = 1;
@@ -105,13 +105,13 @@ const ChVector<> M113_Idler::GetLocation(PointId which) {
         case WHEEL:
             return ChVector<>(0, 0, 0);
         case CARRIER:
-            return ChVector<>(0, 0, 0);
+            return ChVector<>(0, -0.1, 0);
         case CARRIER_CHASSIS:
-            return ChVector<>(0, 0, 0);
+            return ChVector<>(0, -0.2, 0);
         case TSDA_CARRIER:
-            return ChVector<>(0, 0, 0);
+            return ChVector<>(0, -0.2, 0);
         case TSDA_CHASSIS:
-            return ChVector<>(0, 0, 0);
+            return ChVector<>(0.5, -0.2, 0);
         default:
             return ChVector<>(0, 0, 0);
     }

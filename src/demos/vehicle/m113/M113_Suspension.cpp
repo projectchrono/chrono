@@ -27,9 +27,9 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_Suspension::m_arm_mass = 1;
-const ChVector<> M113_Suspension::m_arm_inertia(1, 1, 1);
-const double M113_Suspension::m_arm_radius = 0.2;
+const double M113_Suspension::m_arm_mass = 75.26;
+const ChVector<> M113_Suspension::m_arm_inertia(0.37, 0.77, 0.77);
+const double M113_Suspension::m_arm_radius = 0.03;
 
 // -----------------------------------------------------------------------------
 // M113 shock functor class - implements a (non)linear damper
@@ -78,9 +78,9 @@ M113_Suspension::~M113_Suspension() {
 const ChVector<> M113_Suspension::GetLocation(PointId which) {
     switch (which) {
         case ARM:
-            return ChVector<>(0, 0, 0);
+            return ChVector<>(0.17, -0.12, 0.11);
         case ARM_CHASSIS:
-            return ChVector<>(0, 0, 0);
+            return ChVector<>(0.34, -0.12, 0.22);
         case SHOCK_A:
             return ChVector<>(0, 0, 0);
         case SHOCK_C:

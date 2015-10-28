@@ -31,11 +31,11 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_RoadWheel::m_wheel_mass = 1;
-const ChVector<> M113_RoadWheel::m_wheel_inertia(1, 1, 1);
-const double M113_RoadWheel::m_wheel_radius = 0.25;
-const double M113_RoadWheel::m_wheel_width = 0.2;
-const double M113_RoadWheel::m_wheel_gap = 0.06;
+const double M113_RoadWheel::m_wheel_mass = 561.1;
+const ChVector<> M113_RoadWheel::m_wheel_inertia(19.82, 26.06, 19.82);
+const double M113_RoadWheel::m_wheel_radius = 0.305;
+const double M113_RoadWheel::m_wheel_width = 0.181;
+const double M113_RoadWheel::m_wheel_gap = 0.051;
 
 const std::string M113_RoadWheelLeft::m_meshName = "Roller_L_POV_geom";
 const std::string M113_RoadWheelLeft::m_meshFile = vehicle::GetDataFile("M113/Roller_L.obj");

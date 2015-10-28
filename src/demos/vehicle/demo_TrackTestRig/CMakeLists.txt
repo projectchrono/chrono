@@ -23,6 +23,8 @@ SET(MODEL_FILES
     ../m113/M113_Suspension.cpp
     ../m113/M113_TrackAssembly.h
     ../m113/M113_TrackAssembly.cpp
+    ../m113/M113_TrackShoe.h
+    ../m113/M113_TrackShoe.cpp
 )
 
 SET(DEMO_FILES
