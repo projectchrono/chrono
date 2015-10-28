@@ -77,7 +77,8 @@ class CH_VEHICLE_API ChTrackShoe : public ChShared {
     /// at the specified location and orientation (expressed in the global frame).
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+                            const ChQuaternion<>& rotation,     ///< [in] orientation relative to the chassis frame
+                            size_t index = 0                    ///< [in] index of this track shoe
                             ) = 0;
 
     /// Connect this track shoe to the specified neighbor.

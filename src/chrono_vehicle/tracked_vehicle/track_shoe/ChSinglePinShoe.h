@@ -43,7 +43,8 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     /// geometry for the track shoe body.
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+                            const ChQuaternion<>& rotation,     ///< [in] orientation relative to the chassis frame
+                            size_t index = 0                    ///< [in] index of this track shoe
                             ) override;
 
     /// Connect this track shoe to the specified neighbor.
