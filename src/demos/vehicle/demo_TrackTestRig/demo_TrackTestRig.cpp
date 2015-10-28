@@ -54,19 +54,21 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Create an M113 track assembly.
-    ChSharedPtr<M113_TrackAssembly> track_assembly(new M113_TrackAssembly(LEFT, MESH));
+    ChSharedPtr<M113_TrackAssembly> track_assembly(new M113_TrackAssembly(LEFT, PRIMITIVES));
 
     // Create and initialize the testing mechanism.
-    ChVector<> sprocket_loc(3, 1, 0);
-    ChVector<> idler_loc(-3, 1, 0);
+    ChVector<> sprocket_loc(0, 1, 0);
+    ChVector<> idler_loc(-3.93, 1, -0.15);   //// Original x value: -3.97
     std::vector<ChVector<> > susp_locs(5);
-    susp_locs[0] = ChVector<>(2, 1, -0.5);
-    susp_locs[1] = ChVector<>(1, 1, -0.5);
-    susp_locs[2] = ChVector<>(0, 1, -0.5);
-    susp_locs[3] = ChVector<>(-1, 1, -0.5);
-    susp_locs[4] = ChVector<>(-2, 1, -0.5);
+    susp_locs[0] = ChVector<>(-0.65, 1, -0.215);
+    susp_locs[1] = ChVector<>(-1.3175, 1, -0.215);
+    susp_locs[2] = ChVector<>(-1.985, 1, -0.215);
+    susp_locs[3] = ChVector<>(-2.6525, 1, -0.215);
+    susp_locs[4] = ChVector<>(-3.32, 1, -0.215);
+
 
     ChTrackTestRig rig(track_assembly, sprocket_loc, idler_loc, susp_locs);
+    rig.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
     rig.Initialize(ChCoordsys<>());
 
     // Create and initialize the powertrain system (not used).
@@ -74,10 +76,15 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize();
 
     // Create the vehicle Irrlicht application.
+    ChVector<> target_point = rig.GetPostPosition();
+    ////ChVector<> target_point = idler_loc;
+    ////ChVector<> target_point = sprocket_loc;
+
     ChVehicleIrrApp app(rig, powertrain, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(rig.GetPostPosition(), 6.0, 2.0);
+    app.SetChaseCamera(target_point, 3.0, 1.0);
+    app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();
