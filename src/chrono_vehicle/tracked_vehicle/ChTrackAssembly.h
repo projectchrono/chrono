@@ -131,7 +131,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
 
   private:
     /// Assemble track shoes over wheels.
-    void Assemble(ChSharedPtr<ChBodyAuxRef> chassis);
+    /// Return true if the track shoes were initialized in a counter clockwise
+    /// direction and false otherwise.
+    bool Assemble(ChSharedPtr<ChBodyAuxRef> chassis);
 };
 
 }  // end namespace vehicle

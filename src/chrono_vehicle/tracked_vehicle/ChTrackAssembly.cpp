@@ -60,21 +60,27 @@ void ChTrackAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
     // Assemble the track. This positions all track shoes around the sprocket,
     // road wheels, and idler.
-    Assemble(chassis);
+    bool ccw = Assemble(chassis);
 
-    /*
     // Loop over all track shoes and allow them to connect themselves to their
     // neighbor.
     size_t num_shoes = m_shoes.size();
+    ChSharedPtr<ChTrackShoe> next;
     for (size_t i = 0; i < num_shoes; ++i) {
-        ChSharedPtr<ChTrackShoe> next = (i == num_shoes - 1) ? m_shoes[0] : m_shoes[i + 1];
+        if (ccw)
+            next = (i == num_shoes - 1) ? m_shoes[0] : m_shoes[i + 1];
+        else
+            next = (i == 0) ? m_shoes[num_shoes - 1] : m_shoes[i - 1];
         m_shoes[i]->Connect(next);
     }
-    */
 }
 
 // -----------------------------------------------------------------------------
 // Assemble track shoes over wheels.
+//
+// Returns true if the track shoes were initialized in a counter clockwise
+// direction and false otherwise.
+//
 // This procedure is performed in the chassis reference frame, taking into
 // account the convention that the chassis reference frame has the x-axis
 // pointing to the front of the vehicle and the z-axis pointing up.
@@ -85,7 +91,7 @@ void ChTrackAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 // TODO: may need fixes for clock-wise wrapping (idler in front of sprocket)
 //
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
+bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
     // Number of track shoes and road wheels.
     size_t num_shoes = m_shoes.size();
     size_t num_wheels = m_suspensions.size();
@@ -181,7 +187,7 @@ void ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
 
     dz = (idler_pos.z - idler_radius) - (wheel_idler_pos.z - wheel_radius);
     dx = idler_pos.x - wheel_idler_pos.x;
-    angle = ccw ? -CH_C_2PI + std::atan2(dz, -dx)  : - CH_C_PI - std::atan2(dz, dx);
+    angle = ccw ? -CH_C_2PI + std::atan2(dz, -dx) : -CH_C_PI - std::atan2(dz, dx);
 
     // Create track shoes with constant orientation
     while (sign * (p2.x - wheel_idler_pos.x) > 0 && index < num_shoes) {
@@ -227,7 +233,7 @@ void ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
             m_shoes[i]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle), i);
             p1 = p2;
         }
-        return;
+        return ccw;
     }
 
     // 8. Complete the loop using the remaining shoes (always an even number)
@@ -256,6 +262,7 @@ void ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
     }
 
     GetLog() << "Track assembly done.  Number of track shoes: " << index << "\n\n";
+    return ccw;
 }
 
 // -----------------------------------------------------------------------------
