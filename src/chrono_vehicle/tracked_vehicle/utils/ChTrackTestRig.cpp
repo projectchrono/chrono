@@ -203,7 +203,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     m_post = ChSharedPtr<ChBody>(new ChBody(m_system->GetContactMethod()));
     m_post->SetPos(m_post_pos);
     m_system->Add(m_post);
-    AddVisualize_post(m_post, m_chassis, post_length, post_width, post_height, ChColor(0.1f, 0.8f, 0.15f));
+    ////AddVisualize_post(m_post, m_chassis, post_length, post_width, post_height, ChColor(0.1f, 0.8f, 0.15f));
 
     // ------------------------------------------
     // Create and initialize joints and actuators
