@@ -40,7 +40,7 @@ void ChDoubleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector
     // Add contact geometry.
     double radius = GetWheelRadius();
     double width = 0.5 * (GetWheelWidth() - GetWheelGap());
-    double offset = 0.25 * (GetWheelWidth() + GetWheelGap());
+    double offset = 0.5 * (GetWheelWidth() + GetWheelGap());
 
     //// TODO: enable contact
     ////m_wheel->SetCollide(true);
