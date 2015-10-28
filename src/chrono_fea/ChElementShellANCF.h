@@ -386,9 +386,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
             for (int kl = 0; kl < m_numLayers; kl++) {
                 int ij = 14 * kl;
                 double rho = m_InertFlexVec(ij);
-                tot_density += rho;
+				double layerthick = m_InertFlexVec(ij + 3);
+				tot_density += rho*layerthick;
             }
-            return tot_density * this->m_thickness;
+            return tot_density;
      } 
 
             /// Gets the normal to the surface at the parametric coordinate U,V. 
