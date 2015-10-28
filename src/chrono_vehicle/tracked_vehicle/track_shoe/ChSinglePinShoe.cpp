@@ -33,15 +33,19 @@ ChSinglePinShoe::ChSinglePinShoe(const std::string& name) : ChTrackShoe(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSinglePinShoe::Initialize(ChSystem* system, const ChVector<>& location, const ChQuaternion<>& rotation) {
+void ChSinglePinShoe::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+                                 const ChVector<>& location,
+                                 const ChQuaternion<>& rotation) {
     // Create the shoe body.
-    m_shoe = ChSharedPtr<ChBody>(new ChBody(system->GetContactMethod()));
+    ChVector<> loc = chassis->TransformPointLocalToParent(location);
+    ChQuaternion<> rot = chassis->GetRot() * rotation;
+    m_shoe = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
     m_shoe->SetNameString(m_name + "_shoe");
-    m_shoe->SetPos(location);
-    m_shoe->SetRot(rotation);
+    m_shoe->SetPos(loc);
+    m_shoe->SetRot(rot);
     m_shoe->SetMass(GetShoeMass());
     m_shoe->SetInertiaXX(GetShoeInertia());
-    system->AddBody(m_shoe);
+    chassis->GetSystem()->AddBody(m_shoe);
 }
 
 // -----------------------------------------------------------------------------
