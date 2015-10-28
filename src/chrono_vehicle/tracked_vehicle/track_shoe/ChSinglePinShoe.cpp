@@ -54,11 +54,12 @@ void ChSinglePinShoe::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 void ChSinglePinShoe::Connect(ChSharedPtr<ChTrackShoe> next) {
     // Create and initialize the revolute joint.
     ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetPitch() / 2, 0, 0));
-    ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngY(CH_C_PI_2);
+    ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
 
     m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
+    m_shoe->GetSystem()->AddLink(m_revolute);
 }
 
 }  // end namespace vehicle
