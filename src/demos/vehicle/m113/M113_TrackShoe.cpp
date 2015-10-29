@@ -46,22 +46,22 @@ const std::string M113_TrackShoe::m_meshFile = vehicle::GetDataFile("M113/TrackS
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_TrackShoe::M113_TrackShoe(VisualizationType vis_type) : ChSinglePinShoe("M113_TrackShoe"), m_vis_type(vis_type) {
+    SetContactMaterial(0.7f, 0.1f, 1e7f, 0.3f);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_TrackShoe::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                                const ChVector<>& location,
-                                const ChQuaternion<>& rotation,
-                                size_t index) {
-    // Invoke the base class method to perform the actual initialization
-    ChSinglePinShoe::Initialize(chassis, location, rotation, index);
+void M113_TrackShoe::AddShoeContact(size_t index) {
+    m_shoe->GetCollisionModel()->ClearModel();
+    m_shoe->GetCollisionModel()->AddBox(0.055, 0.095, 0.03);
+    m_shoe->GetCollisionModel()->AddBox(0.0142, 0.0055, 0.0375, ChVector<>(0.05, 0, 0.0375));
+    //// TODO: add contact surfaces for sprocket (what should these be?)
+    m_shoe->GetCollisionModel()->BuildModel();
+}
 
-    // Add contact geometry
-
-    //// TODO
-
-    // Add visualization
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void M113_TrackShoe::AddShoeVisualization(size_t index) {
     switch (m_vis_type) {
         case PRIMITIVES: {
             ChSharedPtr<ChCylinderShape> rev_axis(new ChCylinderShape);
@@ -95,7 +95,7 @@ void M113_TrackShoe::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
             m_shoe->AddAsset(cyl_RL);
 
             ChSharedPtr<ChBoxShape> box_shoe(new ChBoxShape);
-            box_shoe->GetBoxGeometry().SetLengths(ChVector<>(0.11, 0.19, 0.03));
+            box_shoe->GetBoxGeometry().SetLengths(ChVector<>(0.11, 0.19, 0.06));
             box_shoe->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
             m_shoe->AddAsset(box_shoe);
 

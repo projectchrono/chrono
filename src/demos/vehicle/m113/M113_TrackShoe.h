@@ -54,16 +54,11 @@ class M113_TrackShoe : public chrono::vehicle::ChSinglePinShoe {
     /// This is the total pin length.
     virtual double GetPinLength() const override { return m_pin_length; }
 
-    /// Initialize this track shoe subsystem.
-    /// The track shoe is created within the specified system and initialized
-    /// at the specified location and orientation (expressed in the global frame).
-    /// A derived class must extend this default implementation and specify the contact
-    /// geometry for the track shoe body.
-    virtual void Initialize(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const chrono::ChVector<>& location,      ///< [in] location relative to the chassis frame
-                            const chrono::ChQuaternion<>& rotation,  ///< [in] orientation relative to the chassis frame
-                            size_t index = 0                         ///< [in] index of this track shoe
-                            ) override;
+    /// Add visualization of the track shoe.
+    virtual void AddShoeVisualization(size_t index) override;
+
+    /// Add contact geometry for the track shoe.
+    virtual void AddShoeContact(size_t index) override;
 
   private:
     static const double m_shoe_height;

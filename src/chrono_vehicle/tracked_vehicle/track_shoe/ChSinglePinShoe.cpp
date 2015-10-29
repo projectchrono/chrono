@@ -47,6 +47,13 @@ void ChSinglePinShoe::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     m_shoe->SetMass(GetShoeMass());
     m_shoe->SetInertiaXX(GetShoeInertia());
     chassis->GetSystem()->AddBody(m_shoe);
+
+    // Add contact geometry.
+    m_shoe->SetCollide(true);
+    AddShoeContact(index);
+
+    // Add visualization of the track shoe.
+    AddShoeVisualization(index);
 }
 
 // -----------------------------------------------------------------------------

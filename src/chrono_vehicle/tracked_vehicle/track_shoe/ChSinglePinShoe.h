@@ -68,6 +68,12 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     //// TODO: is this really needed?
     virtual double GetPinLength() const = 0;
 
+    /// Add visualization of the track shoe.
+    virtual void AddShoeVisualization(size_t index) = 0;
+
+    /// Add contact geometry for the track shoe.
+    virtual void AddShoeContact(size_t index) = 0;
+
     ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
 };
 
