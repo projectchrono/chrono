@@ -4,6 +4,7 @@ SET(TESTS
     test_ANCFBeam
     test_ANCFShell_Iso
     test_ANCFShell_Ort
+    test_ANCFShell_OrtGrav
 )
 
 MESSAGE(STATUS "Unit test programs for FEA module...")
