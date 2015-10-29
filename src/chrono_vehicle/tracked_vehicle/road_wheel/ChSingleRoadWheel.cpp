@@ -61,6 +61,9 @@ void ChSingleRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
             m_wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
             break;
     }
+
+    // Add visualization of the wheel.
+    AddWheelVisualization();
 }
 
 // -----------------------------------------------------------------------------

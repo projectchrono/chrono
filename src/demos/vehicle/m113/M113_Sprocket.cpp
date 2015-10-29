@@ -65,25 +65,18 @@ ChSharedPtr<geometry::ChLinePath> M113_Sprocket::GetProfile() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_Sprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
-    // Invoke the base class method to perform the actual initialization
-    ChSprocket::Initialize(chassis, location);
-
-    // Attach visualization
+void M113_Sprocket::AddGearVisualization() {
     switch (m_vis_type) {
         case PRIMITIVES:
-            AddGearVisualization(ChColor(1, 0, 0));
-
+            ChSprocket::AddGearVisualization();
             break;
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
-
             ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
             trimesh_shape->SetMesh(trimesh);
             trimesh_shape->SetName(GetMeshName());
             m_gear->AddAsset(trimesh_shape);
-
             break;
         }
     }

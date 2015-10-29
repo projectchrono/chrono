@@ -44,12 +44,10 @@ class M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
     /// Return the gap width.
     virtual double GetWheelGap() const override { return m_wheel_gap; }
 
-    /// Initialize this road wheel subsystem.
-    virtual void Initialize(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            chrono::ChSharedPtr<chrono::ChBody> carrier,        ///< [in] handle to the carrier body
-                            const chrono::ChVector<>& location  ///< [in] location relative to the chassis frame
-                            ) override;
+    /// Add visualization of the road wheel.
+    virtual void AddWheelVisualization() override;
 
+    /// Export the wheel mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
 
   protected:

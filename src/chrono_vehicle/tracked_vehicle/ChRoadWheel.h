@@ -82,11 +82,6 @@ class CH_VEHICLE_API ChRoadWheel : public ChShared {
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
                             );
 
-    /// Add visualization of the road wheel.
-    /// This (optional) function should be called only after a call to Initialize().
-    /// Must be implemented by derived classes (templates).
-    virtual void AddWheelVisualization() {}
-
   protected:
     /// Return the mass of the road wheel body.
     virtual double GetWheelMass() const = 0;

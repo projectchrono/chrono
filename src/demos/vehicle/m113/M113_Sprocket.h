@@ -56,11 +56,10 @@ class M113_Sprocket : public chrono::vehicle::ChSprocket {
     /// sub-path i+1.
     virtual chrono::ChSharedPtr<chrono::geometry::ChLinePath> GetProfile() override;
 
-    /// Initialize this sprocket subsystem.
-    virtual void Initialize(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const chrono::ChVector<>& location  ///< [in] location relative to the chassis frame
-                            );
+    /// Add visualization of the road wheel.
+    virtual void AddGearVisualization() override;
 
+    /// Export the gear mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
 
   protected:

@@ -33,7 +33,6 @@
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/geometry/ChCLinePath.h"
-#include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -100,10 +99,9 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
     void ApplyAxleTorque(double torque  ///< [in] value of applied torque
                          );
 
-    /// Add visualization of the tooth profiles.
-    /// This (optional) function should be called only after a call to Initialize().
-    /// It renders the gear profile as a colored path.
-    void AddGearVisualization(const ChColor& color);
+    /// Add visualization of the gear wheel.
+    /// The default implementation renders the gear toothe profiles as a line path.
+    virtual void AddGearVisualization();
 
   protected:
     /// Return the mass of the gear body.

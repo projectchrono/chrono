@@ -45,32 +45,25 @@ const std::string M113_RoadWheelRight::m_meshFile = vehicle::GetDataFile("M113/R
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_RoadWheel::M113_RoadWheel(const std::string& name, VisualizationType vis_type) : ChDoubleRoadWheel(name), m_vis_type(vis_type) {
+M113_RoadWheel::M113_RoadWheel(const std::string& name, VisualizationType vis_type)
+    : ChDoubleRoadWheel(name), m_vis_type(vis_type) {
+    SetContactMaterial(0.7f, 0.1f, 1e7f, 0.3f);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_RoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                                ChSharedPtr<ChBody> carrier,
-                                const ChVector<>& location) {
-    // Invoke the base class method to perform the actual initialization
-    ChDoubleRoadWheel::Initialize(chassis, carrier, location);
-
-    // Attach visualization
+void M113_RoadWheel::AddWheelVisualization() {
     switch (m_vis_type) {
         case PRIMITIVES:
-            AddWheelVisualization();
-
+            ChDoubleRoadWheel::AddWheelVisualization();
             break;
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
-
             ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
             trimesh_shape->SetMesh(trimesh);
             trimesh_shape->SetName(GetMeshName());
             m_wheel->AddAsset(trimesh_shape);
-
             break;
         }
     }

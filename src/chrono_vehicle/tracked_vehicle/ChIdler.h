@@ -90,11 +90,6 @@ class CH_VEHICLE_API ChIdler : public ChShared {
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
                             );
 
-    /// Add visualization of the idler wheel.
-    /// This (optional) function should be called only after a call to Initialize().
-    /// Must be implemented by derived classes (templates).
-    virtual void AddWheelVisualization() {}
-
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {

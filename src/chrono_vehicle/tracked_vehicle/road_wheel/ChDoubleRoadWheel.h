@@ -47,16 +47,15 @@ class CH_VEHICLE_API ChDoubleRoadWheel : public ChRoadWheel {
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
                             ) override;
 
-    /// Add visualization of the road wheel.
-    /// This (optional) function should be called only after a call to Initialize().
-    /// It renders the wheel as two textured cylinders.
-    virtual void AddWheelVisualization() override;
-
   protected:
     /// Return the total width of the road wheel.
     virtual double GetWheelWidth() const = 0;
     /// Return the gap width.
     virtual double GetWheelGap() const = 0;
+
+    /// Add visualization of the road wheel.
+    /// The default implementation renders the wheel as two textured cylinders.
+    virtual void AddWheelVisualization();
 };
 
 }  // end namespace vehicle

@@ -21,6 +21,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 
@@ -95,9 +96,14 @@ void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
     m_axle_to_spindle->SetNameString(m_name + "_axle_to_spindle");
     m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
+
+    // Add visualization of the gear.
+    AddGearVisualization();
 }
 
-void ChSprocket::AddGearVisualization(const ChColor& color) {
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChSprocket::AddGearVisualization() {
     ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);
 
@@ -108,17 +114,19 @@ void ChSprocket::AddGearVisualization(const ChColor& color) {
     asset_1->SetLineGeometry(profile);
     asset_1->Pos = ChVector<>(0, sep / 2, 0);
     asset_1->Rot = rot_y2z;
-    asset_1->SetColor(color);
+    asset_1->SetColor(ChColor(1, 0, 0));
     m_gear->AddAsset(asset_1);
 
     ChSharedPtr<ChLineShape> asset_2(new ChLineShape);
     asset_2->SetLineGeometry(profile);
     asset_2->Pos = ChVector<>(0, -sep / 2, 0);
     asset_2->Rot = rot_y2z;
-    asset_2->SetColor(color);
+    asset_2->SetColor(ChColor(1, 0, 0));
     m_gear->AddAsset(asset_2);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChSprocket::ApplyAxleTorque(double torque) {
     //// TODO: is this really needed?
     //// (the axle is connected to the driveline, so torque is automatically transmitted)

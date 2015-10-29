@@ -67,31 +67,25 @@ class M113_TensionerForce : public ChSpringForceCallback {
 // -----------------------------------------------------------------------------
 M113_Idler::M113_Idler(const std::string& name, VisualizationType vis_type)
     : ChDoubleIdler(name), m_vis_type(vis_type) {
+    SetContactMaterial(0.7f, 0.1f, 1e7f, 0.3f);
     //// TODO
     m_tensionerForceCB = new M113_TensionerForce();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_Idler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
-    // Invoke the base class method to perform the actual initialization
-    ChDoubleIdler::Initialize(chassis, location);
-
-    // Attach visualization
+void M113_Idler::AddWheelVisualization() {
     switch (m_vis_type) {
         case PRIMITIVES:
-            AddWheelVisualization();
-
+            ChDoubleIdler::AddWheelVisualization();
             break;
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
-
             ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
             trimesh_shape->SetMesh(trimesh);
             trimesh_shape->SetName(GetMeshName());
             m_wheel->AddAsset(trimesh_shape);
-
             break;
         }
     }

@@ -63,13 +63,10 @@ class M113_Idler : public chrono::vehicle::ChDoubleIdler {
     /// Return the callback function for spring force.
     virtual chrono::ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
 
-    /// Initialize this idler subsystem.
-    /// This function extends the base class implementation by adding visualization
-    /// for the M113 idler wheel (as specified at construction).
-    virtual void Initialize(chrono::ChSharedPtr<chrono::ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const chrono::ChVector<>& location  ///< [in] location relative to the chassis frame
-                            ) override;
+    /// Add visualization of the idler wheel.
+    virtual void AddWheelVisualization() override;
 
+    /// Export the wheel mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
 
   protected:
