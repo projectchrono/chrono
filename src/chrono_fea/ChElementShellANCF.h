@@ -68,6 +68,22 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
     };
 
+	// Add air pressure
+
+	class MyAirPressure : public ChIntegrable2D<ChMatrixNM<double, 24, 1> > {
+	public:
+		ChElementShellANCF* element;
+		ChMatrixNM<double, 8, 3>* d0;
+		ChMatrixNM<double, 8, 3>* d;
+		ChMatrixNM<double, 1, 4> S_ANS;
+		ChMatrixNM<double, 1, 8> N;
+		ChMatrixNM<double, 1, 8> Nx;
+		ChMatrixNM<double, 1, 8> Ny;
+		ChMatrixNM<double, 1, 8> Nz;
+		ChMatrixNM<double, 3, 1> LocalAirPressure;
+
+		virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y);
+	};
     ///============ Internal force, EAS stiffness, and analytical jacobian are calculated
     class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
       public:
