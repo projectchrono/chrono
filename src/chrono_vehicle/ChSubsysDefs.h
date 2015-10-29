@@ -57,8 +57,8 @@ class WheelID {
     VehicleSide side() const { return m_side; }
 
   private:
-    int m_id;              ///< wheel ID
-    int m_axle;            ///< axle index (counted from the front)
+    int m_id;            ///< wheel ID
+    int m_axle;          ///< axle index (counted from the front)
     VehicleSide m_side;  ///< vehicle side (LEFT: 0, RIGHT: 1)
 };
 
