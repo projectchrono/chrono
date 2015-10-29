@@ -3,13 +3,11 @@
 
 #include <limits>
 
-#include <mkl.h>
 #include "chrono/core/ChSparseMatrix.h"
 #include "chrono_mkl/ChApiMkl.h"
 
 
 #define ALIGNMENT_REQUIRED true
-#define TESTING_CSR3 true
 
 namespace chrono{
 	
@@ -41,8 +39,7 @@ namespace chrono{
 	// So, if a new element should be stored (e.g. the [2,0] element) only one insignificant arrangement should be done instead of reallocating the arrays:
 	// the algorithm, starting from colIndex[6] will find the nearest uninitialized space (i.e. a colIndex cell that has "-1" in it) and moves the elements
 	// in order to let the new element to be written in that place!
-	// When all the writing operations are performed the matrix can be "compressed" (i.e. call Compress()): all the uninitialized locations are purged and
-	// (optionally) the arrays are trimmed at the exact dimension.
+	// When all the writing operations are performed the matrix can be "compressed" (i.e. call Compress()): all the uninitialized locations are purged.
 
 
 	/*
@@ -70,8 +67,8 @@ namespace chrono{
 		///< \c colIndex_occupancy differs from \c rowIndex[rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
 		int rowIndex_occupancy;
 		///< \c rowIndex_occupancy differs from \c rowIndex[rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
-		bool rowIndex_lock; ///< TRUE if the matrix always keeps the same number of element for each row
-		bool colIndex_lock; ///< TRUE if the matrix elements keep always the same position
+		bool rowIndex_lock; ///< TRUE if the matrix should always keep the same number of element for each row
+		bool colIndex_lock; ///< TRUE if the matrix elements should keep always the same position
 		bool rowIndex_lock_broken;
 		bool colIndex_lock_broken;
 		enum symmetry_type
@@ -83,8 +80,7 @@ namespace chrono{
 			STRUCTURAL_SYMMETRY = 1
 		} symmetry;
 
-		MKL_INT64 mkl_peak_mem_CSR3;
-
+		
 
 
 
@@ -100,9 +96,9 @@ namespace chrono{
 		ChCSR3Matrix(int insrow, int inscol, int* nonzeros);
 		virtual ~ChCSR3Matrix();
 
-		double* GetValuesAddress() { return values; };
-		int* GetColIndexAddress() { return colIndex; };
-		int* GetRowIndexAddress() { return rowIndex; };
+		double* GetValuesAddress() const { return values; };
+		int* GetColIndexAddress() const { return colIndex; };
+		int* GetRowIndexAddress() const { return rowIndex; };
 
 		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
 		virtual double GetElement(int row, int col) override;
@@ -122,17 +118,18 @@ namespace chrono{
 		void Prune(double pruning_threshold = 0);
 
 		// Auxiliary functions
-		int GetColIndexLength() const { return rowIndex[rows] - 1; };
+		int GetColIndexLength() const { return rowIndex[rows]; };
 		int GetColIndexMemOccupancy() const { return colIndex_occupancy; };
 		int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; };
 		void GetNonZerosDistribution(int* nonzeros_vector) const;
 		void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; };
 		void SetRowIndexLock(bool on_off){ rowIndex_lock = on_off; }
 		void SetColIndexLock(bool on_off){ colIndex_lock = on_off; }
+		bool IsCompressed() const { return isCompressed; }
 		bool IsRowIndexLockBroken() const { return rowIndex_lock_broken; }
 		bool IsColIndexLockBroken() const { return colIndex_lock_broken; }
 		void SetSymmetry(symmetry_type sym) { symmetry = sym; }
-		int GetSymmetry() const { return symmetry; }
+		symmetry_type GetSymmetry() const { return symmetry; }
 
 		// Testing functions
 		bool CheckArraysAlignment(int alignment = 0);

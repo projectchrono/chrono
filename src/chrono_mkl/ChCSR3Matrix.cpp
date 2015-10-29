@@ -1,11 +1,14 @@
 #include "ChCSR3Matrix.h"
 #include <algorithm>
+#include <mkl.h>
 
 namespace chrono {
 
-	ChCSR3Matrix::ChCSR3Matrix(int insrow, int inscol, int nonzeros):
-		max_shifts(std::numeric_limits<int>::max()),
+	ChCSR3Matrix::ChCSR3Matrix(int insrow, int inscol, int nonzeros) :
+		reallocation_occurred(false),
 		array_alignment(64),
+		isCompressed(false),
+		max_shifts(std::numeric_limits<int>::max()),
 		rowIndex_lock(false),
 		colIndex_lock(false),
 		rowIndex_lock_broken(false),
@@ -13,39 +16,30 @@ namespace chrono {
 		symmetry(NO_SYMMETRY)
 	{
 		assert(insrow > 0 && inscol > 0 && nonzeros >= 0);
-		rowIndex_lock = false;
+
 		rows = insrow;
 		columns = inscol;
-		reallocation_occurred = false;
-		isCompressed = false;
 		
 
-		if (nonzeros == 0)
-			nonzeros = static_cast<int>( static_cast<double>(rows*columns)*SPM_DEF_FULLNESS );
+		if (nonzeros == 0) nonzeros = static_cast<int>(rows*columns*SPM_DEF_FULLNESS);
 
-		colIndex_occupancy = std::max(rows, static_cast<int>(nonzeros));
+		colIndex_occupancy = std::max(rows, nonzeros);
 		rowIndex_occupancy = rows + 1;
 		
-		if (TESTING_CSR3){
-			mkl_peak_mem_usage(MKL_PEAK_MEM_ENABLE);
-			mkl_peak_mem_CSR3 = 0;
-			mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
-		}
-
+		
 		values = static_cast<double*>(mkl_malloc(colIndex_occupancy*sizeof(double), array_alignment));
 		colIndex = static_cast<int*>(mkl_malloc(colIndex_occupancy*sizeof(int), array_alignment));
 		rowIndex = static_cast<int*>(mkl_malloc(rowIndex_occupancy*sizeof(int), array_alignment));
 
 		initialize();
 
-		if (TESTING_CSR3){
-			mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
-		}
 	}
 
 	ChCSR3Matrix::ChCSR3Matrix(int insrow, int inscol, int* nonzeros_vector) :
-		max_shifts(std::numeric_limits<int>::max()),
+		reallocation_occurred(false),
 		array_alignment(64),
+		isCompressed(false),
+		max_shifts(std::numeric_limits<int>::max()),
 		rowIndex_lock(false),
 		colIndex_lock(false),
 		rowIndex_lock_broken(false),
@@ -53,11 +47,9 @@ namespace chrono {
 		symmetry(NO_SYMMETRY)
 	{
 		assert(insrow > 0 && inscol > 0);
-		rowIndex_lock = true;
+
 		rows = insrow;
 		columns = inscol;
-		reallocation_occurred = false;
-		isCompressed = false;
 
 		colIndex_occupancy = 0;
 		for (int row_sel = 0; row_sel < rows; row_sel++)
@@ -67,21 +59,13 @@ namespace chrono {
 
 		rowIndex_occupancy = rows + 1;
 
-		if (TESTING_CSR3){
-			mkl_peak_mem_usage(MKL_PEAK_MEM_ENABLE);
-			mkl_peak_mem_CSR3 = 0;
-			mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
-		}
-
+		
 		values = static_cast<double*>(mkl_malloc(colIndex_occupancy*sizeof(double), array_alignment));
 		colIndex = static_cast<int*>(mkl_malloc(colIndex_occupancy*sizeof(int), array_alignment));
 		rowIndex = static_cast<int*>(mkl_malloc(rowIndex_occupancy*sizeof(int), array_alignment));
 
 		initialize(nonzeros_vector);
 
-		if (TESTING_CSR3){
-			mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
-		}
 	}
 
 
@@ -287,8 +271,7 @@ namespace chrono {
 				int storage_augmentation = 4;
 				colIndex_occupancy = colIndex_occupancy + storage_augmentation;
 
-				if (TESTING_CSR3) mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
-
+				
 				if (ALIGNMENT_REQUIRED)
 				{
 					double* new_values = static_cast<double*>(mkl_malloc(colIndex_occupancy*sizeof(double), array_alignment));
@@ -308,7 +291,6 @@ namespace chrono {
 					copy(values, colIndex, false, insrow, col_sel, storage_augmentation);
 				}
 
-				if (TESTING_CSR3) mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
 				
 			} // end effective reallocation
 
@@ -480,8 +462,6 @@ namespace chrono {
 
 	void ChCSR3Matrix::GetMemoryInfo()
 	{
-		if (TESTING_CSR3)
-			printf("\nPeak memory in CSR3 class (bytes): %lld", mkl_peak_mem_CSR3);
 		printf("\nMemory allocated: %.2f MB", static_cast<double>( (2*colIndex_occupancy*sizeof(double) + rowIndex_occupancy* sizeof(int)) )/1000000  );
 	}
 
@@ -675,7 +655,6 @@ namespace chrono {
 
 		// STEP 2: find the space for the new storage and paste the arrays in their new location
 
-		if (TESTING_CSR3) mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
 		
 		// if new the size exceeds the current storage size a reallocation is required
 		if (new_colIndex_occupancy > colIndex_occupancy)
@@ -745,8 +724,7 @@ namespace chrono {
 			rowIndex[new_mat_rows] = new_colIndex_occupancy+1;
 
 
-		if (TESTING_CSR3) mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
-
+		
 
 		// Update colInde. Set the new elements in colIndex as "not-initialized" i.e. "-1"
 		for (int col_sel = rowIndex[rows]; col_sel < rowIndex[new_mat_rows]; col_sel++)
@@ -773,12 +751,9 @@ namespace chrono {
 	{
 		assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
-		if (TESTING_CSR3){
-			mkl_peak_mem_usage(MKL_PEAK_MEM_RESET);
-		}
-
+		
 		if (nonzeros == 0)
-			nonzeros = rowIndex[rows] - 1;
+			nonzeros = GetColIndexLength();
 
 		nonzeros = std::max(nrows, nonzeros);
 
@@ -807,11 +782,8 @@ namespace chrono {
 			colIndex_lock_broken = true;
 		}
 
-		if (TESTING_CSR3){
-			mkl_peak_mem_CSR3 = std::max(mkl_peak_mem_CSR3, mkl_peak_mem_usage(MKL_PEAK_MEM_RESET));
-		}
-
-		if (!rowIndex_lock_broken && !colIndex_lock_broken && rows == nrows && columns == ncols && nonzeros == rowIndex[rows] - 1)
+		
+		if (!rowIndex_lock_broken && !colIndex_lock_broken && rows == nrows && columns == ncols && nonzeros == GetColIndexLength())
 		{
 			initialize_ValuesColIndex();
 		}
