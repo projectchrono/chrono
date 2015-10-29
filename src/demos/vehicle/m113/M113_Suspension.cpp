@@ -31,38 +31,41 @@ const double M113_Suspension::m_arm_mass = 75.26;
 const ChVector<> M113_Suspension::m_arm_inertia(0.37, 0.77, 0.77);
 const double M113_Suspension::m_arm_radius = 0.03;
 
+const double M113_Suspension::m_torsion_a0 = 0;
+const double M113_Suspension::m_torsion_k = 2.5e4;
+const double M113_Suspension::m_torsion_c = 5e2;
+const double M113_Suspension::m_torsion_t = 1.5e3;
+
+const double M113_Suspension::m_shock_c = 1e2;
+
 // -----------------------------------------------------------------------------
 // M113 shock functor class - implements a (non)linear damper
 // -----------------------------------------------------------------------------
 class M113_ShockForce : public ChSpringForceCallback {
   public:
-    M113_ShockForce() {
-        //// TODO
-    }
+    M113_ShockForce(double c) : m_c(c) {}
 
-    virtual double operator()(double time, double rest_length, double length, double vel) {
-        //// TODO
-        return 0;
-    }
-};
+    virtual double operator()(double time, double rest_length, double length, double vel) { return -m_c * vel; }
 
-// -----------------------------------------------------------------------------
-// M113 torsion-bar force - implements a (non)linear rotational elastic force
-// -----------------------------------------------------------------------------
-class M113_TorsionForce : public ChTorsionForce {
-  public:
-    M113_TorsionForce() {
-        //// TODO
-    }
+  private:
+    double m_c;
 };
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_Suspension::M113_Suspension(VehicleSide side, bool has_shock, VisualizationType vis_type)
     : ChLinearDamperRWAssembly("M113_Suspension", has_shock) {
-    m_shock_forceCB = new M113_ShockForce();
-    m_torsion_force = new M113_TorsionForce();
+    // Instantiate the force callback for the shock (damper).
+    m_shock_forceCB = new M113_ShockForce(m_shock_c);
 
+    // Create the torsional force component.
+    m_torsion_force = new ChLinkForce;
+    m_torsion_force->Set_active(1);
+    m_torsion_force->Set_K(m_torsion_k);
+    m_torsion_force->Set_R(m_torsion_c);
+    m_torsion_force->Set_iforce(m_torsion_t);
+
+    // Create the associated road wheel.
     m_road_wheel = (side == LEFT) ? ChSharedPtr<M113_RoadWheel>(new M113_RoadWheelLeft(vis_type))
                                   : ChSharedPtr<M113_RoadWheel>(new M113_RoadWheelRight(vis_type));
 }

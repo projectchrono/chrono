@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     virtual double GetArmVisRadius() const = 0;
 
     /// Return the funtion for torsion force
-    virtual ChTorsionForce* GetTorsionForceFunction() const = 0;
+    virtual ChLinkForce* GetTorsionForceFunction() const = 0;
 
     /// Return the callback function for shock force.
     virtual ChSpringForceCallback* GetShockForceCallback() const = 0;

@@ -46,18 +46,25 @@ class M113_Suspension : public chrono::vehicle::ChLinearDamperRWAssembly {
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
     /// Return the funtion for torsion force
-    virtual chrono::vehicle::ChTorsionForce* GetTorsionForceFunction() const override { return m_torsion_force; }
+    virtual chrono::ChLinkForce* GetTorsionForceFunction() const override { return m_torsion_force; }
 
     /// Return the callback function for shock force.
     virtual chrono::ChSpringForceCallback* GetShockForceCallback() const override { return m_shock_forceCB; }
 
   private:
-    chrono::vehicle::ChTorsionForce* m_torsion_force;
+    chrono::ChLinkForce* m_torsion_force;
     chrono::ChSpringForceCallback* m_shock_forceCB;
 
     static const double m_arm_mass;
     static const chrono::ChVector<> m_arm_inertia;
     static const double m_arm_radius;
+
+    static const double m_torsion_a0;
+    static const double m_torsion_k;
+    static const double m_torsion_c;
+    static const double m_torsion_t;
+
+    static const double m_shock_c;
 };
 
 }  // end namespace m113

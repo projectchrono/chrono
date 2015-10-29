@@ -92,16 +92,6 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChShared {
 /// Vector of handles to road wheel assembly subsystems.
 typedef std::vector<ChSharedPtr<ChRoadWheelAssembly> > ChRoadWheelAssemblyList;
 
-///
-///
-///
-class ChTorsionForce : public ChLinkForce {
-public:
-    //// TODO
-};
-
-
-
 }  // end namespace vehicle
 }  // end namespace chrono
 
