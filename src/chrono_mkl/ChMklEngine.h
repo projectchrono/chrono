@@ -124,6 +124,7 @@ namespace chrono
 		void UsePermutationVector(bool on_off);
 		void UsePartialSolution(int option = 1, int start_row = 0, int end_row = 0);
 		void OutputSchurComplement(int option, int start_row, int end_row = 0);
+		void SetPreconditionedCGS(bool on_off, int L);
 
 
 	}; // ChMklEngine

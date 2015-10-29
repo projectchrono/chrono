@@ -76,6 +76,7 @@ namespace chrono {
 	   void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; };
 	   void UsePermutationVector(bool on_off) { use_perm = on_off;  };
 	   void LeverageRhsSparsity(bool on_off) { use_rhs_sparsity = on_off; };
+	   void SetPreconditionedCGS(bool on_off, int L) { mkl_engine.SetPreconditionedCGS(on_off, L); };
 
         /// Solve using the MKL Pardiso sparse direct solver
 	   virtual double Solve(ChLcpSystemDescriptor& sysd) override; ///< system description with constraints and variables
