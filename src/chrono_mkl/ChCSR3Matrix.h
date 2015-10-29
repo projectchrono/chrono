@@ -4,7 +4,7 @@
 #include <limits>
 
 #include <mkl.h>
-#include "core/ChSpmatrix.h"
+#include "chrono/core/ChSparseMatrix.h"
 #include "chrono_mkl/ChApiMkl.h"
 
 
@@ -16,7 +16,7 @@ namespace chrono{
 
 	/* ChCSR3Matrix is a class that implements CSR3 sparse matrix format;
 	* - The more useful constructor specifies rows, columns and nonzeros
-	* - The argument "nonzeros": if 0<nonzeros<=1 specifies non-zeros/(mat_rows*mat_cols);
+	* - The argument "nonzeros": if 0<nonzeros<=1 specifies non-zeros/(rows*columns);
 	*                            if nonzeros>1 specifies exactly the number non-zeros in the matrix.
 	* - It's better to overestimate the number of non-zero elements to avoid reallocations in memory.
 	* - Each of the 3 arrays is stored contiguously in memory (e.g. as needed by MKL Pardiso).
@@ -55,7 +55,7 @@ namespace chrono{
 	*/
 	
 	
-	class ChApiMkl ChCSR3Matrix : public ChSparseMatrixBase
+	class ChApiMkl ChCSR3Matrix : public ChSparseMatrix
 	{
 
 	private:
@@ -66,12 +66,10 @@ namespace chrono{
 		double* values;
 		int* colIndex;
 		int* rowIndex;
-		int mat_rows;
-		int mat_cols;
 		int colIndex_occupancy; ///< effective occupancy of \c values (and so of \c colIndex) arrays in memory;
-		///< \c colIndex_occupancy differs from \c rowIndex[mat_rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
+		///< \c colIndex_occupancy differs from \c rowIndex[rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
 		int rowIndex_occupancy;
-		///< \c rowIndex_occupancy differs from \c rowIndex[mat_rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
+		///< \c rowIndex_occupancy differs from \c rowIndex[rows] when a \c Compress(), \c Reset() or \c Resize occurred without a \c Trim();
 		bool rowIndex_lock; ///< TRUE if the matrix always keeps the same number of element for each row
 		bool colIndex_lock; ///< TRUE if the matrix elements keep always the same position
 		bool rowIndex_lock_broken;
@@ -105,8 +103,6 @@ namespace chrono{
 		double* GetValuesAddress() { return values; };
 		int* GetColIndexAddress() { return colIndex; };
 		int* GetRowIndexAddress() { return rowIndex; };
-		virtual int GetRows() const override { return mat_rows; };
-		virtual int GetColumns() const override { return mat_cols; };
 
 		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
 		virtual double GetElement(int row, int col) override;
@@ -126,7 +122,7 @@ namespace chrono{
 		void Prune(double pruning_threshold = 0);
 
 		// Auxiliary functions
-		int GetColIndexLength() const { return rowIndex[mat_rows] - 1; };
+		int GetColIndexLength() const { return rowIndex[rows] - 1; };
 		int GetColIndexMemOccupancy() const { return colIndex_occupancy; };
 		int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; };
 		void GetNonZerosDistribution(int* nonzeros_vector) const;

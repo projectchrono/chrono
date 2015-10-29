@@ -26,9 +26,9 @@ ChLcpMatlabSolver::ChLcpMatlabSolver() {
 
 // Solve using the Matlab default direct solver (as in x=A\b)
 double ChLcpMatlabSolver::Solve(ChLcpSystemDescriptor& sysd) {
-    chrono::ChSparseMatrix mdM;
-    chrono::ChSparseMatrix mdCq;
-    chrono::ChSparseMatrix mdE;
+    chrono::ChLinkedListMatrix mdM;
+    chrono::ChLinkedListMatrix mdCq;
+    chrono::ChLinkedListMatrix mdE;
     chrono::ChMatrixDynamic<double> mdf;
     chrono::ChMatrixDynamic<double> mdb;
     chrono::ChMatrixDynamic<double> mdfric;

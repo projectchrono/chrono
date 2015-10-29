@@ -30,8 +30,8 @@
 
 
 
-#include "chrono_mkl/ChApiMkl.h"
-#include "core/ChMatrix.h"
+
+#include "core/ChMatrixDynamic.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpSolver.h"
 #include "chrono_mkl/ChMklEngine.h"

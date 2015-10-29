@@ -58,13 +58,13 @@ bool ChMatlabEngine::PutVariable(const ChMatrix<double>& mmatr, string varname) 
 
 /// Put a sparse matrix in Matlab environment, specifying its name as variable.
 /// If a variable with the same name already exist, it is overwritten.
-bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, string varname) {
+bool ChMatlabEngine::PutSparseMatrix(const ChLinkedListMatrix& mmatr, string varname) {
     int nels = 0;
     for (int ii = 0; ii < mmatr.GetRows(); ii++)
         for (int jj = 0; jj < mmatr.GetColumns(); jj++) {
-            double elVal = ((ChSparseMatrix&)mmatr).GetElement(ii, jj);
+            double elVal = ((ChLinkedListMatrix&)mmatr).GetElement(ii, jj);
             if (elVal ||
-                (ii + 1 == ((ChSparseMatrix&)mmatr).GetRows() && jj + 1 == ((ChSparseMatrix&)mmatr).GetColumns()))
+                (ii + 1 == ((ChLinkedListMatrix&)mmatr).GetRows() && jj + 1 == ((ChLinkedListMatrix&)mmatr).GetColumns()))
                 ++nels;
         }
 
@@ -73,9 +73,9 @@ bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, string varname
     int eln = 0;
     for (int ii = 0; ii < mmatr.GetRows(); ii++)
         for (int jj = 0; jj < mmatr.GetColumns(); jj++) {
-            double elVal = ((ChSparseMatrix&)mmatr).GetElement(ii, jj);
+            double elVal = ((ChLinkedListMatrix&)mmatr).GetElement(ii, jj);
             if (elVal ||
-                (ii + 1 == ((ChSparseMatrix&)mmatr).GetRows() && jj + 1 == ((ChSparseMatrix&)mmatr).GetColumns())) {
+                (ii + 1 == ((ChLinkedListMatrix&)mmatr).GetRows() && jj + 1 == ((ChLinkedListMatrix&)mmatr).GetColumns())) {
                 transfer(eln, 0) = ii + 1;
                 transfer(eln, 1) = jj + 1;
                 transfer(eln, 2) = elVal;

@@ -1,5 +1,4 @@
 #include "chrono_mkl/ChCSR3Matrix.h"
-#include "chrono/core/ChSpmatrix.h"
 #include "chrono/core/ChMatrixDynamic.h"
 
 #include "chrono_mkl/ChLcpMklSolver.h"
