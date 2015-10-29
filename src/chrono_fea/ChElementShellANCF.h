@@ -43,6 +43,13 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// where S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3) N5*eye(3) N6*eye(3) N7*eye(3) N8*eye(3)]
     class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
       public:
+		MyMass();
+		MyMass(ChMatrixNM<double, 8, 3> *m_d0 , ChElementShellANCF* passedelement){
+			d0 = m_d0;
+			element = passedelement;
+		}
+		~MyMass() {}
+	private:
         ChElementShellANCF* element;
         ChMatrixNM<double, 8, 3>* d0;  //// pointer to initial coordinates
         ChMatrixNM<double, 3, 24> S;
@@ -53,10 +60,16 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         /// Evaluate the S'*S  at point x
         virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z);
     };
-
     // Add gravity force
     class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
       public:
+		  MyGravity();
+		  MyGravity(ChMatrixNM<double, 8, 3> *m_d0, ChElementShellANCF* passedelement){
+			  d0 = m_d0;
+			  element = passedelement;
+		  }
+		  ~MyGravity() {}
+	private:
         ChElementShellANCF* element;
         ChMatrixNM<double, 8, 3>* d0;
         ChMatrixNM<double, 1, 8> N;
@@ -69,9 +82,16 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     };
 
 	// Add air pressure
-
 	class MyAirPressure : public ChIntegrable2D<ChMatrixNM<double, 24, 1> > {
 	public:
+		MyAirPressure();
+		MyAirPressure(ChMatrixNM<double, 8, 3> *m_d0, ChMatrixNM<double, 8, 3>* d_, ChElementShellANCF* element_){
+			d0 = m_d0;
+			d = d_;
+			element = element_;
+		}
+		~MyAirPressure() {}
+	private:
 		ChElementShellANCF* element;
 		ChMatrixNM<double, 8, 3>* d0;
 		ChMatrixNM<double, 8, 3>* d;
@@ -87,6 +107,28 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     ///============ Internal force, EAS stiffness, and analytical jacobian are calculated
     class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
       public:
+		  MyForce();
+		  // Constructor
+		  MyForce (ChMatrixNM<double, 8, 3>* d_, ChMatrixNM<double, 24, 1>* d_dt_, ChMatrixNM<double, 8, 1>* strain_ans_, 
+			  ChMatrixNM<double, 8, 24>* strainD_ans_, ChMatrixNM<double, 8, 3> *m_d0, ChMatrixNM<double, 6, 6>* E_eps_, 
+			  ChElementShellANCF* element_, ChMatrixNM<double, 6, 6>* T0_, double* detJ0C_, double* theta_, 
+			  ChMatrixNM<double, 5, 1>* alpha_eas_){
+			  d = d_;
+			  d_dt = d_dt_; // Structural damping
+			  d0 = m_d0;
+			  strain_ans = strain_ans_;
+			  strainD_ans = strainD_ans_;
+			  element = element_;
+			  E_eps = E_eps_;
+			  T0 = T0_;
+			  detJ0C = detJ0C_;
+			  theta = theta_;
+			  alpha_eas = alpha_eas_;
+		  }
+		  ~MyForce() {}
+	private:
+
+
         ChElementShellANCF* element;
         //// External values
         ChMatrixNM<double, 8, 3>* d;

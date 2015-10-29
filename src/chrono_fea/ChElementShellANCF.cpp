@@ -309,8 +309,8 @@ void ChElementShellANCF::MyAirPressure::Evaluate(ChMatrixNM<double, 24, 1>& resu
 			result(i * 3 + j, 0) = N(0, i) * LocalAirPressure(j, 0);
 		}
 	}
-
-	result *= detJ0 * wx2 * wy2;  // 6/12/2015
+	
+			result *= detJ0 * wx2 * wy2;  // 6/12/2015
 };
 // -----------------------------------------------------------------------------
 void ChElementShellANCF::MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result,
@@ -799,17 +799,13 @@ void ChElementShellANCF::ComputeStiffnessMatrix() {
 void ChElementShellANCF::ComputeMassMatrix() {
     ChMatrixNM<double, 24, 24> TempMassMatrix;
     m_MassMatrix.Reset();
-
     for (int kl = 0; kl < m_numLayers; kl++) {
         int ij = 14 * kl;
         double rho = m_InertFlexVec(ij);
 
-        MyMass myformula;
-        myformula.d0 = &m_d0;
-        myformula.element = this;
-
+        // MyMass myformula uses now a constructor;
+		MyMass myformula(&m_d0, this);
         TempMassMatrix.Reset();
-
         ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(TempMassMatrix,  // result of integration will go there
                                                                myformula,       // formula to integrate
                                                                -1,              // start of x
@@ -833,9 +829,8 @@ void ChElementShellANCF::ComputeGravityForce() {
 
         //// Material properties
         double rho = m_InertFlexVec(ij);
-        MyGravity myformula1;
-        myformula1.d0 = &m_d0;
-        myformula1.element = this;
+		// MyGravity constructor
+		MyGravity myformula1(&m_d0, this);
 
         ChMatrixNM<double, 24, 1> Fgravity;
         ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1> >(Fgravity,    // result of integration will go there
@@ -1099,20 +1094,9 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 detJ0C = 0.0;
                 T0DetJElementCenterForEAS(m_d0, T0, detJ0C, theta);
 
-                MyForce myformula;
-                myformula.d = &d;
-                // myformula.v = &v;
-                myformula.d_dt = &d_dt;  // For Structural Damping
-                myformula.strain_ans = &strain_ans;
-                myformula.strainD_ans = &strainD_ans;
-                myformula.d0 = &m_d0;
-                myformula.E_eps = &E_eps;
-                myformula.element = this;
-                // EAS
-                myformula.T0 = &T0;
-                myformula.detJ0C = &detJ0C;
-                myformula.theta = &theta;
-                myformula.alpha_eas = &alpha_eas;
+                // MyForce constructor;
+				MyForce myformula(&d, &d_dt, &strain_ans, &strainD_ans,
+					&m_d0, &E_eps, this, &T0, &detJ0C, &theta, &alpha_eas);
                 ChQuadrature::Integrate3D<ChMatrixNM<double, 750, 1> >(
                     TempIntegratedResult,  // result of integration will go there
                     myformula,             // formula to integrate
@@ -1225,12 +1209,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
         if (kl == 0) {
             // Add Tire Air Pressure force
-
-
-            MyAirPressure myformula2;
-            myformula2.d0 = &m_d0;
-            myformula2.d = &d;
-            myformula2.element = this;
+			MyAirPressure myformula2(&m_d0, &d,this);
 
             ChMatrixNM<double, 24, 1> Fpressure;
             ChQuadrature::Integrate2D<ChMatrixNM<double, 24, 1> >(Fpressure,   // result of integration will go there
