@@ -61,7 +61,7 @@ Building instructions
 
 -   Set the ENABLE\_UNIT\_PYTHON as 'on', then press 'Configure' (to
     refresh the variable list)\
-    ![](cmake_units.gif "fig:cmake_units.gif")
+    ![](/images/cmake_units.gif "fig:cmake_units.gif")
 
 <!-- -->
 

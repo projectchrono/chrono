@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Frequently Asked Questions
-permalink: /documentation/chrono_engine/faq/
+permalink: /chrono_engine/faq/
 ---
 General
 -------
