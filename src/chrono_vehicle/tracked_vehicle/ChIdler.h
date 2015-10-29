@@ -120,8 +120,6 @@ class CH_VEHICLE_API ChIdler : public ChShared {
     /// Return the pitch angle of the prismatic joint.
     virtual double GetPrismaticPitchAngle() const = 0;
 
-    /// Return the free (rest) length of the spring element of the tensioner.
-    virtual double GetTensionerRestLength() const = 0;
     /// Return the callback function for spring force.
     virtual ChSpringForceCallback* GetTensionerForceCallback() const = 0;
 

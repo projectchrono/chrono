@@ -58,8 +58,6 @@ class M113_Idler : public chrono::vehicle::ChDoubleIdler {
     /// Return the pitch angle of the prismatic joint.
     virtual double GetPrismaticPitchAngle() const override { return 0; }
 
-    /// Return the free (rest) length of the spring element of the tensioner.
-    virtual double GetTensionerRestLength() const override { return m_tensioner_free_length; }
     /// Return the callback function for spring force.
     virtual chrono::ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
 
@@ -87,7 +85,10 @@ class M113_Idler : public chrono::vehicle::ChDoubleIdler {
     static const chrono::ChVector<> m_carrier_inertia;
     static const double m_carrier_radius;
 
-    static const double m_tensioner_free_length;
+    static const double m_tensioner_l0;
+    static const double m_tensioner_k;
+    static const double m_tensioner_c;
+    static const double m_tensioner_f;
 
     chrono::vehicle::VisualizationType m_vis_type;
 };
