@@ -64,9 +64,9 @@ class CH_VEHICLE_API ChTrackDriveline : public ChShared {
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the sprockets of the
     /// two track assembly subsystems.
-    virtual void Initialize(ChSharedPtr<ChBody> chassis,         ///< handle to the chassis body
-                            const ChTrackAssembly& tracke_left,  ///< handle to the left track assembly
-                            const ChTrackAssembly& tracke_right  ///< handle to the right track assembly
+    virtual void Initialize(ChSharedPtr<ChBody> chassis,              ///< handle to the chassis body
+                            ChSharedPtr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
+                            ChSharedPtr<ChTrackAssembly> track_right  ///< handle to the right track assembly
                             ) = 0;
 
     /// Update the driveline subsystem.
