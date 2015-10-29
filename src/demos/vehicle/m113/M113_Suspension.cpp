@@ -58,8 +58,8 @@ class M113_TorsionForce : public ChTorsionForce {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Suspension::M113_Suspension(VehicleSide side, VisualizationType vis_type)
-    : ChLinearDamperRWAssembly("M113_Suspension") {
+M113_Suspension::M113_Suspension(VehicleSide side, bool has_shock, VisualizationType vis_type)
+    : ChLinearDamperRWAssembly("M113_Suspension", has_shock) {
     m_shock_forceCB = new M113_ShockForce();
     m_torsion_force = new M113_TorsionForce();
 
@@ -82,9 +82,9 @@ const ChVector<> M113_Suspension::GetLocation(PointId which) {
         case ARM_CHASSIS:
             return ChVector<>(0.34, -0.12, 0.22);
         case SHOCK_A:
-            return ChVector<>(0, 0, 0);
+            return ChVector<>(0.17, -0.12, 0.11);
         case SHOCK_C:
-            return ChVector<>(0, 0, 0);
+            return ChVector<>(-0.3, -0.12, 0.3);
         default:
             return ChVector<>(0, 0, 0);
     }

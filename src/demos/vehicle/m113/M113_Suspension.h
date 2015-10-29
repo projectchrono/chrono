@@ -31,7 +31,7 @@ namespace m113 {
 ///
 class M113_Suspension : public chrono::vehicle::ChLinearDamperRWAssembly {
   public:
-    M113_Suspension(chrono::vehicle::VehicleSide side, chrono::vehicle::VisualizationType vis_type);
+    M113_Suspension(chrono::vehicle::VehicleSide side, bool has_shock, chrono::vehicle::VisualizationType vis_type);
     ~M113_Suspension();
 
     /// Return the location of the specified hardpoint.

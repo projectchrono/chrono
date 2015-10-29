@@ -43,9 +43,12 @@ M113_TrackAssembly::M113_TrackAssembly(VehicleSide side, VisualizationType vis_t
         num_shoes = 64;
     }
 
-    for (size_t is = 0; is < 5; is++) {
-        m_suspensions.push_back(ChSharedPtr<M113_Suspension>(new M113_Suspension(side, vis_type)));
-    }
+    m_suspensions.resize(5);
+    m_suspensions[0] = ChSharedPtr<M113_Suspension>(new M113_Suspension(side, true, vis_type));
+    m_suspensions[1] = ChSharedPtr<M113_Suspension>(new M113_Suspension(side, true, vis_type));
+    m_suspensions[2] = ChSharedPtr<M113_Suspension>(new M113_Suspension(side, false, vis_type));
+    m_suspensions[3] = ChSharedPtr<M113_Suspension>(new M113_Suspension(side, false, vis_type));
+    m_suspensions[4] = ChSharedPtr<M113_Suspension>(new M113_Suspension(side, true, vis_type));
 
     for (size_t it = 0; it < num_shoes; it++) {
         m_shoes.push_back(ChSharedPtr<M113_TrackShoe>(new M113_TrackShoe(vis_type)));

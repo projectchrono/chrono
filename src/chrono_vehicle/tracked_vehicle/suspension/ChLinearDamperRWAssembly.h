@@ -36,7 +36,8 @@ namespace vehicle {
 ///
 class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
   public:
-    ChLinearDamperRWAssembly(const std::string& name  ///< [in] name of the subsystem
+    ChLinearDamperRWAssembly(const std::string& name,  ///< [in] name of the subsystem
+                             bool has_shock = true     ///< [in] specify whether or not the suspension has a damper
                              );
 
     virtual ~ChLinearDamperRWAssembly() {}
@@ -81,6 +82,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     /// Return the callback function for shock force.
     virtual ChSpringForceCallback* GetShockForceCallback() const = 0;
 
+    bool m_has_shock;                            ///< specifies whether or not the suspension has a damper
     ChSharedPtr<ChBody> m_arm;                   ///< handle to the trailing arm body
     ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to the revolute joint arm-chassis
     ChSharedPtr<ChLinkSpringCB> m_shock;         ///< handle to the shock link

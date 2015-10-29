@@ -27,7 +27,8 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChLinearDamperRWAssembly::ChLinearDamperRWAssembly(const std::string& name) : ChRoadWheelAssembly(name) {
+ChLinearDamperRWAssembly::ChLinearDamperRWAssembly(const std::string& name, bool has_shock)
+    : ChRoadWheelAssembly(name), m_has_shock(has_shock) {
 }
 
 // -----------------------------------------------------------------------------
@@ -75,12 +76,14 @@ void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, con
     m_revolute->SetForce_Rz(GetTorsionForceFunction());
     chassis->GetSystem()->AddLink(m_revolute);
 
-    // Create and initialize the tensioner force element.
-    m_shock = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
-    m_shock->SetNameString(m_name + "_shock");
-    m_shock->Initialize(chassis, m_arm, false, points[SHOCK_C], points[SHOCK_A]);
-    m_shock->Set_SpringCallback(GetShockForceCallback());
-    chassis->GetSystem()->AddLink(m_shock);
+    // Create and initialize the shock force element.
+    if (m_has_shock) {
+        m_shock = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
+        m_shock->SetNameString(m_name + "_shock");
+        m_shock->Initialize(chassis, m_arm, false, points[SHOCK_C], points[SHOCK_A]);
+        m_shock->Set_SpringCallback(GetShockForceCallback());
+        chassis->GetSystem()->AddLink(m_shock);
+    }
 
     // Invoke the base class implementation. This initializes the associated road wheel.
     // Note: we must call this here, after the m_arm body is created.
