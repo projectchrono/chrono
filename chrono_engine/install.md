@@ -48,7 +48,7 @@ To develop your C++ program using Chrono::Engine, read the instructions in [this
 
 This page explains how to install the Chrono::Engine sources and to compile them into binaries that later you can use to develop your project.
 
-![](/images/pic_build_ce.png "fig:pic_build_ce.png")
+![](/images/Pic_build_ce.png "fig:pic_build_ce.png")
 
 Note that some steps are mandatory, other are only suggested.
 
@@ -82,9 +82,9 @@ For more informations, see the [Git repository]() page.
 Download the Chrono::Engine SDK by performing a **clone** of the Git repository in a directory of your workstation. 
 Assuming you are using [http://http://www.sourcetreeapp.com/ SourceTree]:
 
-1. press the **Clone / New** button in SourceTree ![](/images/install_ST1.gif)
+1. press the **Clone / New** button in SourceTree ![](/images/Install_ST1.gif)
 2. enter **<tt>https://github.com/projectchrono/chrono.git</tt>** in the field "Source Path / URL"
-3. enter a path to an empty directory, say <tt>C:/chrono_source</tt>, in the field "Destination path" ![](/images/install_ST2.gif)
+3. enter a path to an empty directory, say <tt>C:/chrono_source</tt>, in the field "Destination path" ![](/images/Install_ST2.gif)
 4. press **Clone** and wait few minutes: the source code will be downloaded to your directory.
 
 ###Download the Irrlicht librar
@@ -121,10 +121,10 @@ The project should now build properly
 Start the CMake tool and configure the build. In detail:
 
 1. In the field "Where is the source code" set the path to the directory <tt>/src</tt> (look in the directory where you created your Git repository). 
-2. In the field "Where to build the binaries" set the path to another directory in your system, that must be empty. Here the Visual C++ project will be created (or the makefiles if in Linux). ![](/images/install_5.gif)
+2. In the field "Where to build the binaries" set the path to another directory in your system, that must be empty. Here the Visual C++ project will be created (or the makefiles if in Linux). ![](/images/Install_5.gif)
 3. Press the **Configure** button.
-4. Set the generator in the window that opens , and press **Ok**. (in this case select the Visual Studio 9, because in this example we will compile with Microsoft Visual C++) ![](/images/install_6.gif)
-5. Change the settings in the user interface of CMake. Some of these settings are automatically detected, but some other must be changed. ![](/images/install_7.gif)
+4. Set the generator in the window that opens , and press **Ok**. (in this case select the Visual Studio 9, because in this example we will compile with Microsoft Visual C++) ![](/images/Install_6.gif)
+5. Change the settings in the user interface of CMake. Some of these settings are automatically detected, but some other must be changed. ![](/images/Install_7.gif)
   * Deactivate the advanced units by removing the checkmarks from ENABLE_UNIT_JS, ENABLE_UNIT_MATLAB, ENABLE_UNIT_PYTHON, ENABLE_UNIT_TESTS, ENABLE_UNIT_CASCADE, because they might require additional settings and dependencies. More info on advanced units [Units]().
   * Press **Configure**.
   * Set the directory in CH_IRRLICHTDIR, it must contain the path to your unzipped Irrlicht directory. 
