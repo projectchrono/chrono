@@ -53,6 +53,8 @@ class M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
   protected:
     M113_RoadWheel(const std::string& name, chrono::vehicle::VisualizationType vis_type);
 
+    virtual chrono::vehicle::VehicleSide GetVehicleSide() const = 0;
+
     virtual const std::string& GetMeshName() const = 0;
     virtual const std::string& GetMeshFile() const = 0;
 
@@ -70,6 +72,8 @@ class M113_RoadWheelLeft : public M113_RoadWheel {
     M113_RoadWheelLeft(chrono::vehicle::VisualizationType visType) : M113_RoadWheel("M113_RoadWheelLeft", visType) {}
     ~M113_RoadWheelLeft() {}
 
+    virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::LEFT; }
+
     virtual const std::string& GetMeshName() const override { return m_meshName; }
     virtual const std::string& GetMeshFile() const override { return m_meshFile; }
 
@@ -82,6 +86,8 @@ class M113_RoadWheelRight : public M113_RoadWheel {
   public:
     M113_RoadWheelRight(chrono::vehicle::VisualizationType visType) : M113_RoadWheel("M113_RoadWheelRight", visType) {}
     ~M113_RoadWheelRight() {}
+
+    virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::RIGHT; }
 
     virtual const std::string& GetMeshName() const override { return m_meshName; }
     virtual const std::string& GetMeshFile() const override { return m_meshFile; }

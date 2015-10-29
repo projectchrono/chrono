@@ -54,7 +54,7 @@ class M113_ShockForce : public ChSpringForceCallback {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_Suspension::M113_Suspension(VehicleSide side, bool has_shock, VisualizationType vis_type)
-    : ChLinearDamperRWAssembly("M113_Suspension", has_shock) {
+    : ChLinearDamperRWAssembly("M113_Suspension", has_shock), m_side(side) {
     // Instantiate the force callback for the shock (damper).
     m_shock_forceCB = new M113_ShockForce(m_shock_c);
 
@@ -79,18 +79,30 @@ M113_Suspension::~M113_Suspension() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 const ChVector<> M113_Suspension::GetLocation(PointId which) {
+    ChVector<> point;
+
     switch (which) {
         case ARM:
-            return ChVector<>(0.17, -0.12, 0.11);
+            point = ChVector<>(0.17, -0.12, 0.11);
+            break;
         case ARM_CHASSIS:
-            return ChVector<>(0.34, -0.12, 0.22);
+            point = ChVector<>(0.34, -0.12, 0.22);
+            break;
         case SHOCK_A:
-            return ChVector<>(0.17, -0.12, 0.11);
+            point = ChVector<>(0.17, -0.12, 0.11);
+            break;
         case SHOCK_C:
-            return ChVector<>(-0.3, -0.12, 0.3);
+            point = ChVector<>(-0.3, -0.12, 0.3);
+            break;
         default:
-            return ChVector<>(0, 0, 0);
+            point = ChVector<>(0, 0, 0);
+            break;
     }
+
+    if (m_side == RIGHT)
+        point.y *= -1;
+
+    return point;
 }
 
 }  // end namespace m113

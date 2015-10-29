@@ -70,6 +70,8 @@ class M113_Idler : public chrono::vehicle::ChDoubleIdler {
   protected:
     M113_Idler(const std::string& name, chrono::vehicle::VisualizationType vis_type);
 
+    virtual chrono::vehicle::VehicleSide GetVehicleSide() const = 0;
+
     virtual const std::string& GetMeshName() const = 0;
     virtual const std::string& GetMeshFile() const = 0;
 
@@ -98,6 +100,8 @@ class M113_IdlerLeft : public M113_Idler {
     M113_IdlerLeft(chrono::vehicle::VisualizationType visType) : M113_Idler("M113_IdlerLeft", visType) {}
     ~M113_IdlerLeft() {}
 
+    virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::LEFT; }
+
     virtual const std::string& GetMeshName() const override { return m_meshName; }
     virtual const std::string& GetMeshFile() const override { return m_meshFile; }
 
@@ -110,6 +114,8 @@ class M113_IdlerRight : public M113_Idler {
   public:
     M113_IdlerRight(chrono::vehicle::VisualizationType visType) : M113_Idler("M113_IdlerRight", visType) {}
     ~M113_IdlerRight() {}
+
+    virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::RIGHT; }
 
     virtual const std::string& GetMeshName() const override { return m_meshName; }
     virtual const std::string& GetMeshFile() const override { return m_meshFile; }

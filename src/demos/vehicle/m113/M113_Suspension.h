@@ -52,6 +52,8 @@ class M113_Suspension : public chrono::vehicle::ChLinearDamperRWAssembly {
     virtual chrono::ChSpringForceCallback* GetShockForceCallback() const override { return m_shock_forceCB; }
 
   private:
+    chrono::vehicle::VehicleSide m_side;
+
     chrono::ChLinkForce* m_torsion_force;
     chrono::ChSpringForceCallback* m_shock_forceCB;
 

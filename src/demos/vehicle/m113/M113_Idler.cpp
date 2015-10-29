@@ -39,7 +39,7 @@ const double M113_Idler::m_wheel_gap = 0.051;
 
 const double M113_Idler::m_carrier_mass = 50;
 const ChVector<> M113_Idler::m_carrier_inertia(2, 2, 2);
-const double M113_Idler::m_carrier_radius = 0.01;
+const double M113_Idler::m_carrier_radius = 0.02;
 
 const double M113_Idler::m_tensioner_l0 = 0.6;
 const double M113_Idler::m_tensioner_f = 1e4;
@@ -99,21 +99,33 @@ void M113_Idler::AddWheelVisualization() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 const ChVector<> M113_Idler::GetLocation(PointId which) {
-    //// TODO
+    ChVector<> point;
+
     switch (which) {
         case WHEEL:
-            return ChVector<>(0, 0, 0);
+            point = ChVector<>(0, 0, 0);
+            break;
         case CARRIER:
-            return ChVector<>(0, -0.1, 0);
+            point = ChVector<>(0, -0.1, 0);
+            break;
         case CARRIER_CHASSIS:
-            return ChVector<>(0, -0.2, 0);
+            point = ChVector<>(0, -0.2, 0);
+            break;
         case TSDA_CARRIER:
-            return ChVector<>(0, -0.2, 0);
+            point = ChVector<>(0, -0.2, 0);
+            break;
         case TSDA_CHASSIS:
-            return ChVector<>(0.5, -0.2, 0);
+            point = ChVector<>(0.5, -0.2, 0);
+            break;
         default:
-            return ChVector<>(0, 0, 0);
+            point = ChVector<>(0, 0, 0);
+            break;
     }
+
+    if (GetVehicleSide() == RIGHT)
+        point.y *= -1;
+
+    return point;
 }
 
 }  // end namespace m113
