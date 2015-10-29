@@ -103,6 +103,9 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
     /// The default implementation renders the gear toothe profiles as a line path.
     virtual void AddGearVisualization();
 
+    /// Log current constraint violations.
+    void LogConstraintViolations();
+
   protected:
     /// Return the mass of the gear body.
     virtual double GetGearMass() const = 0;

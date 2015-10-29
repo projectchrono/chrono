@@ -151,5 +151,28 @@ void ChIdler::AddVisualizationCarrier(ChSharedPtr<ChBody> carrier,
     carrier->AddAsset(col);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChIdler::LogConstraintViolations() {
+    {
+        ChMatrix<>* C = m_revolute->GetC();
+        GetLog() << "  Idler-carrier revolute\n";
+        GetLog() << "  " << C->GetElement(0, 0) << "  ";
+        GetLog() << "  " << C->GetElement(1, 0) << "  ";
+        GetLog() << "  " << C->GetElement(2, 0) << "  ";
+        GetLog() << "  " << C->GetElement(3, 0) << "  ";
+        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    }
+    {
+        ChMatrix<>* C = m_prismatic->GetC();
+        GetLog() << "  Carrier-chassis prismatic\n";
+        GetLog() << "  " << C->GetElement(0, 0) << "  ";
+        GetLog() << "  " << C->GetElement(1, 0) << "  ";
+        GetLog() << "  " << C->GetElement(2, 0) << "  ";
+        GetLog() << "  " << C->GetElement(3, 0) << "  ";
+        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    }
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

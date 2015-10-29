@@ -56,7 +56,11 @@ void ChTrackedVehicle::Update(double time,
 void ChTrackedVehicle::LogConstraintViolations() {
     GetLog().SetNumFormat("%16.4e");
 
-    //// TODO
+    // Report constraint violations for the track assemblies.
+    GetLog() << "\n---- LEFT TRACK ASSEMBLY constraint violations\n\n";
+    m_tracks[0]->LogConstraintViolations();
+    GetLog() << "\n---- RIGHT TRACK ASSEMBLY constraint violations\n\n";
+    m_tracks[1]->LogConstraintViolations();
 
     GetLog().SetNumFormat("%g");
 }

@@ -55,6 +55,9 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
                             ) override;
 
+    /// Log current constraint violations.
+    void LogConstraintViolations() override;
+
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {

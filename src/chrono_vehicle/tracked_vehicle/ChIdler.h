@@ -90,6 +90,9 @@ class CH_VEHICLE_API ChIdler : public ChShared {
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
                             );
 
+    /// Log current constraint violations.
+    void LogConstraintViolations();
+
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {

@@ -133,5 +133,17 @@ void ChSprocket::ApplyAxleTorque(double torque) {
     m_axle->SetAppliedTorque(torque);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChSprocket::LogConstraintViolations() {
+    ChMatrix<>* C = m_revolute->GetC();
+    GetLog() << "  Sprocket-chassis revolute\n";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    GetLog() << "  " << C->GetElement(3, 0) << "  ";
+    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

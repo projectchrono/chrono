@@ -278,5 +278,19 @@ void ChTrackAssembly::Update(double time, const TrackShoeForces& shoe_forces) {
     //// TODO
 }
 
+// -----------------------------------------------------------------------------
+// Log constraint violations
+// -----------------------------------------------------------------------------
+void ChTrackAssembly::LogConstraintViolations() {
+    GetLog() << "SPROCKET constraint violations\n";
+    m_sprocket->LogConstraintViolations();
+    GetLog() << "IDLER constraint violations\n";
+    m_idler->LogConstraintViolations();
+    for (size_t i = 0; i < m_suspensions.size(); i++) {
+        GetLog() << "SUSPENSION #" << i << " constraint violations\n";
+        m_suspensions[i]->LogConstraintViolations();
+    }
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

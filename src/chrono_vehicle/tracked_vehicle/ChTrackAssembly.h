@@ -122,6 +122,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
                 const TrackShoeForces& shoe_forces  ///< [in] vector of tire force structures
                 );
 
+    /// Log current constraint violations.
+    void LogConstraintViolations();
+
   protected:
     std::string m_name;                     ///< name of the subsystem
     ChSharedPtr<ChSprocket> m_sprocket;     ///< sprocket subsystem

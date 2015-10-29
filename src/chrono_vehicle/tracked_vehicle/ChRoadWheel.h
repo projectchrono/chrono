@@ -82,6 +82,9 @@ class CH_VEHICLE_API ChRoadWheel : public ChShared {
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
                             );
 
+    /// Log current constraint violations.
+    void LogConstraintViolations();
+
   protected:
     /// Return the mass of the road wheel body.
     virtual double GetWheelMass() const = 0;

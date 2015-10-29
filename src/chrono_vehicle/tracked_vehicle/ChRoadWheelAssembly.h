@@ -83,6 +83,9 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChShared {
                             const ChVector<>& location          ///< [in] location relative to the chassis frame
                             );
 
+    /// Log current constraint violations.
+    virtual void LogConstraintViolations() = 0;
+
   protected:
     std::string m_name;                     ///< name of the subsystem
     TrackShoeType m_type;                   ///< type of the track shoe matching this road wheel

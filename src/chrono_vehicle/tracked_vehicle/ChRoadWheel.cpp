@@ -69,5 +69,17 @@ void ChRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     chassis->GetSystem()->AddLink(m_revolute);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRoadWheel::LogConstraintViolations() {
+    ChMatrix<>* C = m_revolute->GetC();
+    GetLog() << "  Road-wheel revolute\n";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    GetLog() << "  " << C->GetElement(3, 0) << "  ";
+    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono
