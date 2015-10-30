@@ -27,6 +27,8 @@ SET(MODEL_FILES
     ../m113/M113_TrackShoe.cpp
     ../m113/M113_SimpleDriveline.h
     ../m113/M113_SimpleDriveline.cpp
+    ../m113/M113_SimplePowertrain.h
+    ../m113/M113_SimplePowertrain.cpp
     ../m113/M113_Vehicle.h
     ../m113/M113_Vehicle.cpp
 )

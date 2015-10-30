@@ -20,7 +20,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 
@@ -28,6 +27,7 @@
 #include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
 
 #include "m113/M113_Vehicle.h"
+#include "m113/M113_SimplePowertrain.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     // Create the M113 vehicle.
     M113_Vehicle vehicle(true, PRIMITIVES, PRIMITIVES, ChMaterialSurfaceBase::DEM);
 
-    //vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+    // vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
     vehicle.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
     vehicle.GetSystem()->SetIterLCPmaxItersSpeed(150);
     vehicle.GetSystem()->SetIterLCPmaxItersStab(150);
@@ -89,9 +89,8 @@ int main(int argc, char* argv[]) {
     terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
-
     // Create and initialize the powertrain system.
-    SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
+    M113_SimplePowertrain powertrain;
     powertrain.Initialize();
 
     // Create the vehicle Irrlicht application.
@@ -150,7 +149,7 @@ int main(int argc, char* argv[]) {
         terrain.Update(time);
         powertrain.Update(time, throttle_input, driveshaft_speed);
         vehicle.Update(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
-        app.Update("", steering_input, 0, 0);
+        app.Update("", steering_input, throttle_input, 0);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
