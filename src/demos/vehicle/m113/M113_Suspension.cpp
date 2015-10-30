@@ -83,13 +83,13 @@ const ChVector<> M113_Suspension::GetLocation(PointId which) {
 
     switch (which) {
         case ARM:
-            point = ChVector<>(0.17, -0.12, 0.11);
+            point = ChVector<>(0.145, -0.12, 0.06);
             break;
         case ARM_CHASSIS:
-            point = ChVector<>(0.34, -0.12, 0.22);
+            point = ChVector<>(0.29, -0.12, 0.12);
             break;
         case SHOCK_A:
-            point = ChVector<>(0.17, -0.12, 0.11);
+            point = ChVector<>(0.145, -0.12, 0.06);
             break;
         case SHOCK_C:
             point = ChVector<>(-0.3, -0.12, 0.3);
