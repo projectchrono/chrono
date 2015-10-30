@@ -466,7 +466,7 @@ class ChApiFea ChElementHexa_8 : public ChElementHexahedron,
     }
 
         /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->nodes[0]->GetPos_dt(),   block_offset,  0);
         mD.PasteVector(this->nodes[1]->GetPos_dt(),   block_offset+3,  0);
         mD.PasteVector(this->nodes[2]->GetPos_dt(),   block_offset+6,  0);
