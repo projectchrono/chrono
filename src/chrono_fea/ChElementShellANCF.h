@@ -286,7 +286,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
     virtual int LoadableGet_ndof_w() {return 4*6;}
 
         /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->m_nodes[0]->GetPos(), block_offset,  0);
         mD.PasteVector(this->m_nodes[0]->GetD(),   block_offset+3,  0);
         mD.PasteVector(this->m_nodes[1]->GetPos(), block_offset+6,  0);
@@ -321,6 +321,14 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
 
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 6;}
+
+    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+        for (int i=0; i<m_nodes.size(); ++i) {
+            mvars.push_back(&this->m_nodes[i]->Variables());
+            mvars.push_back(&this->m_nodes[i]->Variables_D());
+        }
+    };
 
         /// Evaluate N'*F , where N is some type of shape function
         /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
