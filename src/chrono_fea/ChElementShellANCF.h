@@ -447,7 +447,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
     }
 
         /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->m_nodes[0]->GetPos_dt(), block_offset,  0);
         mD.PasteVector(this->m_nodes[0]->GetD_dt(),   block_offset+3,  0);
         mD.PasteVector(this->m_nodes[1]->GetPos_dt(), block_offset+6,  0);
