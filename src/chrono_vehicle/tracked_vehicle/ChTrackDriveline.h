@@ -39,8 +39,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackDriveline : public ChShared {
   public:
     ChTrackDriveline(const std::string& name  ///< [in] name of the subsystem
-                     )
-        : m_name(name) {}
+                     );
 
     virtual ~ChTrackDriveline() {}
 
@@ -64,6 +63,9 @@ class CH_VEHICLE_API ChTrackDriveline : public ChShared {
     /// Get the motor torque to be applied to the specified sprocket.
     virtual double GetSprocketTorque(VehicleSide side) const = 0;
 
+    /// Turn gyration mode on/off.
+    virtual void SetGyrationMode(bool mode) { m_gyration_mode = mode; }
+
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the sprockets of the
     /// two track assembly subsystems.
@@ -81,8 +83,8 @@ class CH_VEHICLE_API ChTrackDriveline : public ChShared {
     virtual void Update(double steering, double torque) { m_driveshaft->SetAppliedTorque(torque); }
 
   protected:
-    std::string m_name;  ///< name of the subsystem
-
+    std::string m_name;                 ///< name of the subsystem
+    bool m_gyration_mode;               ///< flag indicating if in gyration mode (turn in place)
     ChSharedPtr<ChShaft> m_driveshaft;  ///< handle to the shaft connection to the powertrain
 };
 
