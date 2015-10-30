@@ -175,6 +175,232 @@ void test_1() {
 
 
 
+    // Example 5:
+
+    // Create a custom load with stiff force, acting on a single node.
+    // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
+    // that will be used in statics, implicit integrators, etc.
+
+    ChSharedPtr<ChNodeFEAxyz> mnodeC(new ChNodeFEAxyz( ChVector<>(2, 10, 3) ));
+    my_mesh->AddNode(mnodeC);
+
+    class MyLoaderPointStiff : public ChLoaderUVWatomic {
+    public:   
+            MyLoaderPointStiff(ChSharedPtr<ChLoadableUVW> mloadable) :  ChLoaderUVWatomic(mloadable,0,0,0) {};
+
+            // Compute F=F(u)
+            // This is the function that you have to implement. It should return the F load at U,V,W. 
+            // For ChNodeFEAxyz, loads are expected as 3-rows vectors, containing F absolute force.
+            // As this is a stiff force field, dependency from state_x and state_y must be considered.
+            virtual void ComputeF(const double U, const double V, const double W, 
+                          ChVectorDynamic<>& F,       ///< Result F vector here, size must be = n.field coords.of loadable
+                          ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate F
+                          ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate F
+                          ) {
+                ChVector<> node_pos;
+                ChVector<> node_vel;
+                if (state_x) {
+                    node_pos = state_x->ClipVector(0,0);
+                    node_vel = state_w->ClipVector(0,0);
+                }
+                else {
+                    node_pos = loadable.DynamicCastTo<ChNodeFEAxyz>()->GetPos();
+                    node_vel = loadable.DynamicCastTo<ChNodeFEAxyz>()->GetPos_dt();
+                }
+                // Just implement a simple force+spring+damper in xy plane, 
+                // for spring&damper connected to absolute reference:
+                double Kx = 100; 
+                double Ky = 400;
+                double Dx = 0.6;
+                double Dy = 0.9;
+                double x_offset = 2;
+                double y_offset = 10;
+                double x_force = 50;
+                double y_force = 0;
+                
+                // Store the computed generalized forces in this->load_Q, same x,y,z order as in state_w
+                F(0) = x_force -Kx*(node_pos.x - x_offset) -Dx*node_vel.x; // Fx component of force
+                F(1) = y_force -Ky*(node_pos.y - y_offset) -Dy*node_vel.y; // Fy component of force
+                F(2) = 0; // Fz component of force
+            }
+
+            // Remember to set this as stiff, to enable the jacobians
+            virtual bool IsStiff() {return true;}
+    };
+
+    // Instance a ChLoad object, applying to a node, and passing a ChLoader as a template 
+    // (in this case the ChLoader-inherited class is our MyLoaderPointStiff), and add to container:
+    ChSharedPtr< ChLoad<MyLoaderPointStiff> > mloadstiff (new ChLoad<MyLoaderPointStiff>(mnodeC) );
+    mloadcontainer->Add(mloadstiff);  
+
+
+    
+    // Example 6:
+
+    // As before, create a custom load with stiff force, acting on a single node, but
+    // this time we inherit directly from ChLoadCustom, i.e. a load that does not require ChLoader features.
+    // This is mostly used in case one does not need the automatic surface/volume quadrature of ChLoader.
+    // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
+    // that will be used in statics, implicit integrators, etc.
+
+    ChSharedPtr<ChNodeFEAxyz> mnodeD(new ChNodeFEAxyz( ChVector<>(2, 10, 3) ));
+    my_mesh->AddNode(mnodeD);
+
+    class MyLoadCustom : public ChLoadCustom {
+    public:   
+            MyLoadCustom(ChSharedPtr<ChLoadableUVW> mloadable) :  ChLoadCustom(mloadable) {};
+
+            // Compute Q=Q(x,v)
+            // This is the function that you have to implement. It should return the generalized Q load 
+            // (i.e.the force in generalized lagrangian coordinates).
+            // For ChNodeFEAxyz, Q loads are expected as 3-rows vectors, containing absolute force x,y,z.
+            // As this is a stiff force field, dependency from state_x and state_y must be considered.
+            virtual void ComputeQ(ChState*      state_x, ///< state position to evaluate Q
+                                  ChStateDelta* state_w  ///< state speed to evaluate Q
+                          ) { 
+                ChVector<> node_pos;
+                ChVector<> node_vel;
+                if (state_x && state_w) {
+                    node_pos = state_x->ClipVector(0,0);
+                    node_vel = state_w->ClipVector(0,0);
+                }
+                else {
+                    node_pos = loadable.DynamicCastTo<ChNodeFEAxyz>()->GetPos();
+                    node_vel = loadable.DynamicCastTo<ChNodeFEAxyz>()->GetPos_dt();
+                }
+                // Just implement a simple force+spring+damper in xy plane, 
+                // for spring&damper connected to absolute reference:
+                double Kx = 100; 
+                double Ky = 400;
+                double Dx = 0.6;
+                double Dy = 0.9;
+                double x_offset = 2;
+                double y_offset = 10;
+                double x_force = 50;
+                double y_force = 0;
+                
+                // Store the computed generalized forces in this->load_Q, same x,y,z order as in state_w
+                this->load_Q(0) = x_force -Kx*(node_pos.x - x_offset) -Dx*node_vel.x; 
+                this->load_Q(1) = y_force -Ky*(node_pos.y - y_offset) -Dy*node_vel.y; 
+                this->load_Q(2) = 0; 
+            }
+
+            // OPTIONAL: if you want to provide an analytical jacobian, that might avoid the lengthy and approximate
+            // default numerical jacobian, just implement the following:
+            virtual void ComputeJacobian(ChState*      state_x, ///< state position to evaluate jacobians
+                                 ChStateDelta* state_w, ///< state speed to evaluate jacobians
+                                 ChMatrix<>& mK, ///< result dQ/dx
+                                 ChMatrix<>& mR, ///< result dQ/dv
+                                 ChMatrix<>& mM ///< result dQ/da   
+                                               ) {
+                mK(0,0)=100;
+                mK(1,1)=400;
+                mR(0,0)=0.6;
+                mR(1,1)=0.9;
+            }
+
+            // Remember to set this as stiff, to enable the jacobians
+            virtual bool IsStiff() {return true;}
+    };
+
+    // Instance load object, applying to a node, as in previous example, and add to container:
+    ChSharedPtr< MyLoadCustom > mloadcustom (new MyLoadCustom(mnodeD) );
+    mloadcontainer->Add(mloadcustom);  
+
+  
+    // Example 7:
+
+    // As before, create a custom load with stiff force, acting on MULTIPLE nodes at once.
+    // This time we will need the ChLoadCustomMultiple as base class.
+    // Those nodes (ie.e ChLoadable objects) can be added in my_mesh in whatever order, 
+    // not necessarily contiguous, because the bookkeeping is automated.
+    // Being a stiff load, a jacobian will be automatically generated
+    // by default using numerical differentiation; but if you want you 
+    // can override ComputeJacobian() and compute mK, mR analytically - see prev.example.
+
+    ChSharedPtr<ChNodeFEAxyz> mnodeE(new ChNodeFEAxyz( ChVector<>(2, 10, 3) ));
+    my_mesh->AddNode(mnodeE);
+    ChSharedPtr<ChNodeFEAxyz> mnodeF(new ChNodeFEAxyz( ChVector<>(2, 11, 3) ));
+    my_mesh->AddNode(mnodeF);
+
+    class MyLoadCustomMultiple : public ChLoadCustomMultiple {
+    public:   
+            MyLoadCustomMultiple(std::vector< ChSharedPtr<ChLoadable> >& mloadables) :  ChLoadCustomMultiple(mloadables) {};
+
+            // Compute Q=Q(x,v)
+            // This is the function that you have to implement. It should return the generalized Q load 
+            // (i.e.the force in generalized lagrangian coordinates).
+            // Since here we have multiple connected ChLoadable objects (the two nodes), the rule is that
+            // all the vectors (load_Q, state_x, state_w) are split in the same order that the loadable objects
+            // are added to MyLoadCustomMultiple; in this case for instance Q={Efx,Efy,Efz,Ffx,Ffy,Ffz}.
+            // As this is a stiff force field, dependency from state_x and state_y must be considered.
+            virtual void ComputeQ(ChState*      state_x, ///< state position to evaluate Q
+                                  ChStateDelta* state_w  ///< state speed to evaluate Q
+                          ) { 
+                ChVector<> Enode_pos;
+                ChVector<> Enode_vel;
+                ChVector<> Fnode_pos;
+                ChVector<> Fnode_vel;
+                if (state_x && state_w) {
+                    Enode_pos = state_x->ClipVector(0,0);
+                    Enode_vel = state_w->ClipVector(0,0);
+                    Fnode_pos = state_x->ClipVector(3,0);
+                    Fnode_vel = state_w->ClipVector(3,0);
+                }
+                else { 
+                    // explicit integrators might call ComputeQ(0,0), null pointers mean
+                    // that we assume current state, without passing state_x for efficiency
+                    Enode_pos = loadables[0].DynamicCastTo<ChNodeFEAxyz>()->GetPos();
+                    Enode_vel = loadables[0].DynamicCastTo<ChNodeFEAxyz>()->GetPos_dt();
+                    Fnode_pos = loadables[1].DynamicCastTo<ChNodeFEAxyz>()->GetPos();
+                    Fnode_vel = loadables[1].DynamicCastTo<ChNodeFEAxyz>()->GetPos_dt();
+                }
+                // Just implement two simple force+spring+dampers in xy plane:
+                    // ... from node E to ground, 
+                double Kx1 = 60; 
+                double Ky1 = 50;
+                double Dx1 = 0.3;
+                double Dy1 = 0.2;
+                double E_x_offset = 2;
+                double E_y_offset = 10;
+                ChVector<> spring1 (-Kx1*(Enode_pos.x - E_x_offset) -Dx1*Enode_vel.x, 
+                                    -Ky1*(Enode_pos.y - E_y_offset) -Dy1*Enode_vel.y, 
+                                    0);
+                    // ... from node F to node E, 
+                double Ky2 = 10;
+                double Dy2 = 0.2;
+                double EF_dist = 1;
+                ChVector<> spring2 (0, 
+                                    -Ky2*(Fnode_pos.y - Enode_pos.y - EF_dist) -Dy2*(Enode_vel.y - Fnode_vel.y), 
+                                    0);
+                double Fforcey = 2;
+                // store generalized forces as a contiguous vector in this->load_Q, with same order of state_w
+                this->load_Q(0) = spring1.x - spring2.x; // Fx component of force on 1st node
+                this->load_Q(1) = spring1.y - spring2.y; // Fy component of force on 1st node
+                this->load_Q(2) = spring1.z - spring2.z; // Fz component of force on 1st node
+                this->load_Q(3) = spring2.x         ; // Fx component of force on 2nd node
+                this->load_Q(4) = spring2.y +Fforcey; // Fy component of force on 2nd node
+                this->load_Q(5) = spring2.z         ; // Fz component of force on 2nd node
+            }
+
+            // OPTIONAL: if you want to provide an analytical jacobian, just implement the following:
+            //   virtual void ComputeJacobian(...)
+
+            // Remember to set this as stiff, to enable the jacobians
+            virtual bool IsStiff() {return true;}
+    };
+
+    // Instance load object. This require a list of ChLoadable objects
+    // (these are our two nodes,pay attention to the sequence order), and add to container.
+    std::vector< ChSharedPtr< ChLoadable > > mnodelist;
+    mnodelist.push_back(mnodeE);
+    mnodelist.push_back(mnodeF);
+    ChSharedPtr< MyLoadCustomMultiple > mloadcustommultiple (new MyLoadCustomMultiple(mnodelist) );
+    mloadcontainer->Add(mloadcustommultiple);  
+
+  
+
+    ///////////////////////////////////////
 
     // This is mandatory !
     my_mesh->SetupInitial();
@@ -182,10 +408,10 @@ void test_1() {
 
     // Setup a MINRES solver. For FEA one cannot use the default SOR type solver.
 
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED THIS OR ::LCP_SIMPLEX because other solvers can't handle stiffness matrices
+    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED THIS or MKL because other solvers can't handle stiffness matrices
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(460);
-	my_system.SetIterLCPmaxItersStab(460);
+	my_system.SetIterLCPmaxItersSpeed(100);
+	my_system.SetIterLCPmaxItersStab(100);
 	my_system.SetTolForce(1e-13);
 	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetVerbose(false);
@@ -194,10 +420,18 @@ void test_1() {
     // Perform a static analysis:
     my_system.DoStaticLinear();
 
-    GetLog() << " reaction force  F= " << constr_a->Get_react_force() <<  "  \n";
-    GetLog() << " reaction torque T= " << constr_a->Get_react_torque() <<  "  \n";
+    GetLog() << " constr_a reaction force  F= " << constr_a->Get_react_force() <<  "  \n";
+    GetLog() << " constr_a reaction torque T= " << constr_a->Get_react_torque() <<  "  \n";
 
+    GetLog() << " mnodeC position = "     << mnodeC->GetPos() <<  "  \n";
+    GetLog() << " mloadstiff K jacobian=" << mloadstiff->GetJacobians()->K <<"\n";
 
+    GetLog() << " mnodeD position = "     << mnodeD->GetPos() <<  "  \n";
+    GetLog() << " mloadcustom K jacobian="<< mloadcustom->GetJacobians()->K <<"\n";
+
+    GetLog() << " mnodeE position = "     << mnodeE->GetPos() <<  "  \n";
+    GetLog() << " mnodeF position = "     << mnodeF->GetPos() <<  "  \n";
+    GetLog() << " mloadcustommultiple K jacobian="<< mloadcustommultiple->GetJacobians()->K <<"\n";
 }
 
 
