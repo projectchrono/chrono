@@ -29,8 +29,8 @@
 
 #include "chrono_matlab/ChApiMatlab.h"
 #include "core/ChMath.h"
-#include "core/ChSpmatrix.h"
-#include "lcp/ChLcpSystemDescriptor.h"
+#include "core/ChLinkedListMatrix.h"
+//#include "lcp/ChLcpSystemDescriptor.h"
 
 // include also the Matlab header..
 
@@ -69,7 +69,7 @@ class ChApiMatlab ChMatlabEngine {
 
     ChMatlabEngine();
 
-    ~ChMatlabEngine();
+    virtual ~ChMatlabEngine();
     /// Return pointer to internal Matlab engine (avoid using it directly,
     /// if you can use other functions of this class that 'wrap' it.)
     matlabengine::Engine* GetEngine();
@@ -86,7 +86,7 @@ class ChApiMatlab ChMatlabEngine {
 
     /// Put a sparse matrix in Matlab environment, specifying its name as variable.
     /// If a variable with the same name already exist, it is overwritten.
-    bool PutSparseMatrix(const ChSparseMatrix& mmatr, std::string varname);
+    bool PutSparseMatrix(const ChLinkedListMatrix& mmatr, std::string varname);
 
     /// Fetch a matrix from Matlab environment, specifying its name as variable.
     /// The used matrix must be of ChMatrixDynamic<double> type because

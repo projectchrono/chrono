@@ -1,5 +1,4 @@
 #include "chrono_mkl/ChCSR3Matrix.h"
-#include "chrono/core/ChSpmatrix.h"
 #include "chrono/core/ChMatrixDynamic.h"
 
 #include "chrono_mkl/ChLcpMklSolver.h"
@@ -39,7 +38,7 @@ void test_CSR3()
 	std::cout << "//////////// CSR3 Matrix: basic functions testing //////////////" << std::endl;
 	int m = 3;
 	int n = 5;
-	ChCSR3Matrix matCSR3_1(m, n, 0.1);
+	ChCSR3Matrix matCSR3_1(m, n);
 	int prova = 0;
 	MKL_INT64 mem = mkl_mem_stat(&prova);
 

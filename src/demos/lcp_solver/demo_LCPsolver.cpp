@@ -38,6 +38,7 @@
 #include "chrono/lcp/ChLcpIterativeBB.h"
 #include "chrono/lcp/ChLcpSimplexSolver.h"
 #include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChLinkedListMatrix.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -163,8 +164,8 @@ void test_1() {
 
     // If needed, dump the full system M and Cq matrices
     // on disk, in Matlab sparse format:
-    ChSparseMatrix matrM;
-    ChSparseMatrix matrCq;
+    ChLinkedListMatrix matrM;
+    ChLinkedListMatrix matrCq;
 
     mdescriptor.BuildMatrices(&matrCq, &matrM);
 
@@ -264,9 +265,9 @@ void test_2() {
     mdescriptor.EndInsertion();  // ----- system description is finished
 
     try {
-        chrono::ChSparseMatrix mdM;
-        chrono::ChSparseMatrix mdCq;
-        chrono::ChSparseMatrix mdE;
+        chrono::ChLinkedListMatrix mdM;
+        chrono::ChLinkedListMatrix mdCq;
+        chrono::ChLinkedListMatrix mdE;
         chrono::ChMatrixDynamic<double> mdf;
         chrono::ChMatrixDynamic<double> mdb;
         chrono::ChMatrixDynamic<double> mdfric;

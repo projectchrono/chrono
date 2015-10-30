@@ -489,24 +489,6 @@ void ChBody::Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMat
     mQf->PasteSumQuaternion(ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(mabstorque)), 3, 0);
 }
 
-void ChBody::From_lagrangian_to_forcetorque(const ChMatrixNM<double, 7, 1>& mQf,
-                                            ChVector<>& mforce,
-                                            ChVector<>& mtorque) {
-    mforce = mQf.ClipVector(0, 0);
-    ChQuaternion<> tempq;
-    tempq = mQf.ClipQuaternion(3, 0);
-    mtorque = ChFrame<>::Gl_x_Quat(coord.rot, tempq);
-    mtorque *= 0.25;
-}
-
-void ChBody::From_forcetorque_to_lagrangian(const ChVector<>& mforce,
-                                            const ChVector<>& mtorque,
-                                            ChMatrixNM<double, 7, 1>& mQf) {
-    mQf.PasteVector(mforce, 0, 0);
-    ChQuaternion<> tempq;
-    tempq = ChFrame<>::GlT_x_Vect(coord.rot, mtorque);
-    mQf.PasteQuaternion(tempq, 3, 0);
-}
 
 //////
 

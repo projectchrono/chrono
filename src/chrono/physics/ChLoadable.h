@@ -35,10 +35,10 @@ public:
     virtual int LoadableGet_ndof_w() = 0;
 
         /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) = 0;
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) = 0;
 
         /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) = 0;
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) = 0;
 
         /// Number of coordinates in the interpolated field, ex=3 for a 
         /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
@@ -52,6 +52,9 @@ public:
 
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) = 0;
+
+        /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) = 0;
 };
 
 

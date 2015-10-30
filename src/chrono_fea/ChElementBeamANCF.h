@@ -39,7 +39,9 @@ namespace fea {
 ///  Dynamics Implementation"
 ///  D. MELANZ
 
-class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
+class ChElementBeamANCF :   public ChElementBeam, 
+                            public ChLoadableU, 
+                            public ChLoadableUVW {
   protected:
     std::vector<ChSharedPtr<ChNodeFEAxyzD> > nodes;
 
@@ -883,7 +885,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     virtual int LoadableGet_ndof_w() { return 2 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
         mD.PasteVector(this->nodes[0]->GetD(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 6, 0);
@@ -891,7 +893,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->nodes[0]->GetD_dt(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 6, 0);
@@ -910,6 +912,14 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
 
     /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+
+    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+        mvars.push_back(&this->nodes[0]->Variables());
+        mvars.push_back(&this->nodes[0]->Variables_D());
+        mvars.push_back(&this->nodes[1]->Variables());
+        mvars.push_back(&this->nodes[1]->Variables_D());
+    };
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V coordinates of the surface, each ranging in -1..+1

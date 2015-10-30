@@ -42,7 +42,7 @@
 
 #include "core/ChLog.h"
 #include "core/ChMath.h"
-#include "core/ChSpmatrix.h"
+//#include "core/ChSparseMatrix.h" // it is not needed here, isn't it?
 #include "core/ChTimer.h"
 #include "physics/ChLinksAll.h"
 #include "physics/ChEvents.h"

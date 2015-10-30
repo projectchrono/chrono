@@ -22,6 +22,7 @@
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 #include "physics/ChContactable.h"
+#include "physics/ChLoadable.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 #include "lcp/ChLcpConstraint.h"
 
@@ -60,7 +61,11 @@ typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
 /// be associated to the body, for collision detection.
 ///
 
-class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6> {
+class ChApi ChBody :            public ChPhysicsItem, 
+                                public ChBodyFrame, 
+                                public ChContactable_1vars<6>,
+                                public ChLoadableUVW 
+{
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChBody, ChPhysicsItem);
 
@@ -527,12 +532,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                  ChMatrixNM<double, 7, 1>* mQf);
     void Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMatrixNM<double, 7, 1>* mQf);
 
-    /// Given a lagrangian force (in a 7x1 matrix), computes the fore and torque as vectors.
-    void From_lagrangian_to_forcetorque(const ChMatrixNM<double, 7, 1>& mQf, ChVector<>& mforce, ChVector<>& mtorque);
-    /// Given force and torque as vectors, computes the lagrangian force (in a 7x1 matrix)
-    void From_forcetorque_to_lagrangian(const ChVector<>& mforce,
-                                        const ChVector<>& mtorque,
-                                        ChMatrixNM<double, 7, 1>& mQf);
 
     //
     // UTILITIES FOR FORCES/TORQUES:
@@ -670,6 +669,81 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
         /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() { return this;}
+
+
+    //
+    // INTERFACE to ChLoadable 
+    //
+
+    /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() { return 7; }
+
+    /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() { return 6; }
+
+    /// Gets all the DOFs packed in a single vector (position part)
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+        mD.PasteCoordsys(this->GetCoord(), block_offset, 0);
+    }
+
+    /// Gets all the DOFs packed in a single vector (speed part)
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+        mD.PasteVector(this->GetPos_dt(), block_offset, 0);
+        mD.PasteVector(this->GetWvel_loc(), block_offset + 3, 0);
+    }
+
+    /// Number of coordinates in the interpolated field, ex=3 for a
+    /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
+    virtual int Get_field_ncoords() { return 6; }
+
+    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() { return 1; }
+
+    /// Get the offset of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockOffset(int nblock) { return this->GetOffset_w(); }
+
+    /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+
+    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+        mvars.push_back(&this->Variables());
+    };
+
+    /// Evaluate Q=N'*F , for Q generalized lagrangian load, where N is some type of matrix
+    /// evaluated at point P(U,V,W) assumed in absolute coordinates, and 
+    /// F is a load assumed in absolute coordinates.
+    /// The det[J] is unused.
+    virtual void ComputeNF(const double U,              ///< x coordinate of application point in absolute space
+                           const double V,              ///< y coordinate of application point in absolute space
+                           const double W,              ///< z coordinate of application point in absolute space
+                           ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
+                           double& detJ,                ///< Return det[J] here
+                           const ChVectorDynamic<>& F,  ///< Input F vector, size is 6, it is {Force,Torque} in absolute coords.
+                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                           ) {
+        ChVector<> abs_pos(U,V,W);
+        ChVector<> absF=F.ClipVector(0,0);
+        ChVector<> absT=F.ClipVector(3,0);
+        ChVector<> body_absF;
+        ChVector<> body_absT;
+        ChCoordsys<> bodycoord;
+        if(state_x)
+            bodycoord = state_x->ClipCoordsys(0,0); // the numerical jacobian algo might change state_x
+        else
+            bodycoord = this->coord;
+        // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs csys
+        body_absF = absF;
+        body_absT = bodycoord.rot.RotateBack( absT + ((abs_pos-bodycoord.pos) % absF) );
+        Qi.PasteVector(body_absF,0,0);
+        Qi.PasteVector(body_absT,3,0);
+        detJ=1; // not needed because not used in quadrature.
+    }
+
+    /// This is not needed because not used in quadrature.
+    virtual double GetDensity() { return 1; }
+
 
     //
     // SERIALIZATION

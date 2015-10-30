@@ -12,7 +12,7 @@
 
 ///////////////////////////////////////////////////
 //
-//   ChSpmatrix.cpp
+//   ChLinkedListMatrix.cpp
 //
 // ------------------------------------------------
 //             www.deltaknowledge.com
@@ -20,7 +20,7 @@
 ///////////////////////////////////////////////////
 
 #include "core/ChMath.h"
-#include "core/ChSpmatrix.h"
+#include "core/ChLinkedListMatrix.h"
 
 #define PIVOT_ACCEPT_TRESHOLD 0.8
 #define ACCEPT_PIVOT 0.001
@@ -29,10 +29,9 @@
 
 namespace chrono {
 
-void ChSparseMatrix::Build(int row, int col, double fullness) {
+void ChLinkedListMatrix::Build(int row, int col, double fullness) {
     rows = row;
     columns = col;
-    address = NULL;  // for we don't need this base-class data
 
     mtot_size = 0;
     mbuffer_added = 0;
@@ -66,19 +65,19 @@ void ChSparseMatrix::Build(int row, int col, double fullness) {
     }
 }
 
-ChSparseMatrix::ChSparseMatrix(int row, int col, double fullness) {
-    ChSparseMatrix::Build(row, col, fullness);
+ChLinkedListMatrix::ChLinkedListMatrix(int row, int col, double fullness) {
+    ChLinkedListMatrix::Build(row, col, fullness);
 }
 
-ChSparseMatrix::ChSparseMatrix(int row, int col) {
-    ChSparseMatrix::Build(row, col, SPM_DEF_FULLNESS);
+ChLinkedListMatrix::ChLinkedListMatrix(int row, int col) {
+    ChLinkedListMatrix::Build(row, col, SPM_DEF_FULLNESS);
 }
 
-ChSparseMatrix::ChSparseMatrix() {
-    ChSparseMatrix::Build(3, 3, 1);
+ChLinkedListMatrix::ChLinkedListMatrix() {
+    ChLinkedListMatrix::Build(3, 3, 1);
 }
 
-ChSparseMatrix::~ChSparseMatrix() {
+ChLinkedListMatrix::~ChLinkedListMatrix() {
     mbuffer_size = 0;
     mbuffer_added = 0;
 
@@ -96,7 +95,7 @@ ChSparseMatrix::~ChSparseMatrix() {
 // copy optimized also for source sparse matrix
 // (copy from matrices with structural zeros does not waste space)
 
-void ChSparseMatrix::CopyFromMatrix(ChMatrix<>* matra) {
+void ChLinkedListMatrix::CopyFromMatrix(ChMatrix<>* matra) {
     double el;
     ChMelement* mguess;
 
@@ -113,7 +112,7 @@ void ChSparseMatrix::CopyFromMatrix(ChMatrix<>* matra) {
     }
 }
 
-void ChSparseMatrix::CopyToMatrix(ChMatrix<>* matra) {
+void ChLinkedListMatrix::CopyToMatrix(ChMatrix<>* matra) {
     matra->Reset(rows, columns);  // first, set all zeros in full matrix...
 
     ChMelement* currel;
@@ -124,7 +123,7 @@ void ChSparseMatrix::CopyToMatrix(ChMatrix<>* matra) {
     }
 }
 
-void ChSparseMatrix::CopyFromMatrix(ChSparseMatrix* matra) {
+void ChLinkedListMatrix::CopyFromMatrix(ChLinkedListMatrix* matra) {
     static ChMelement* eguess;
     static ChMelement* srowel;
     double val;
@@ -142,7 +141,7 @@ void ChSparseMatrix::CopyFromMatrix(ChSparseMatrix* matra) {
     }
 }
 
-void ChSparseMatrix::MoreBuffer(double inflate) {
+void ChLinkedListMatrix::MoreBuffer(double inflate) {
     mbuffer_size = (int)(inflate * (double)mbuffer_size);  // inflate buffer size
 
     if (this->rows < 5000)
@@ -159,14 +158,14 @@ void ChSparseMatrix::MoreBuffer(double inflate) {
     mbuffer_added = 0;
 }
 
-	bool ChSparseMatrix::Resize(int nrows, int ncols, int nonzeros)
+	bool ChLinkedListMatrix::Resize(int nrows, int ncols, int nonzeros)
 	{ assert(false); return 0; }
 
-	void ChSparseMatrix::Reset() {
+	void ChLinkedListMatrix::Reset() {
     Reset(rows, columns);
 }
 
-void ChSparseMatrix::Reset(int row, int col, int nonzeros) {
+void ChLinkedListMatrix::Reset(int row, int col, int nonzeros) {
     // realloc 1st column array, only if needed
     if (row != rows) {
         if (elarray)
@@ -223,7 +222,7 @@ void ChSparseMatrix::Reset(int row, int col, int nonzeros) {
     }
 }
 
-void ChSparseMatrix::ResetBlocks(int row, int col) {
+void ChLinkedListMatrix::ResetBlocks(int row, int col) {
     if ((row == rows) && (col == columns))  // size doesn't change
     {
         static ChMelement* currel;
@@ -239,7 +238,7 @@ void ChSparseMatrix::ResetBlocks(int row, int col) {
 }
 
 // optimized SetElement,  returning the fetched Melement*
-ChMelement* ChSparseMatrix::SetElement(int row, int col, double val, ChMelement* guess) {
+ChMelement* ChLinkedListMatrix::SetElement(int row, int col, double val, ChMelement* guess) {
 #ifdef CH_DEBUG
     assert(row >= 0);  // boundary checks
     assert(col >= 0);
@@ -300,7 +299,7 @@ ChMelement* ChSparseMatrix::SetElement(int row, int col, double val, ChMelement*
 }
 
 // optimized GetElement,  returning the fetched Melement*
-ChMelement* ChSparseMatrix::GetElement(int row, int col, double* val, ChMelement* guess) {
+ChMelement* ChLinkedListMatrix::GetElement(int row, int col, double* val, ChMelement* guess) {
 #ifdef CH_DEBUG
     assert(row >= 0);  // boundary checks
     assert(col >= 0);
@@ -353,13 +352,13 @@ ChMelement* ChSparseMatrix::GetElement(int row, int col, double* val, ChMelement
     return (guess);
 }
 
-void ChSparseMatrix::SetElement(int row, int col, double elem, bool overwrite) {
+void ChLinkedListMatrix::SetElement(int row, int col, double elem, bool overwrite) {
     ChMelement* guess;
     guess = *(elarray + row);
     SetElement(row, col, elem, guess);
 }
 
-double ChSparseMatrix::GetElement(int row, int col) {
+double ChLinkedListMatrix::GetElement(int row, int col) {
     double retv;
     ChMelement* guess;
     guess = *(elarray + row);
@@ -367,7 +366,7 @@ double ChSparseMatrix::GetElement(int row, int col) {
     return retv;
 }
 
-void ChSparseMatrix::SwapRows(int a, int b) {
+void ChLinkedListMatrix::SwapRows(int a, int b) {
     ChMelement* mtemp;
     mtemp = *(elarray + a);
     *(elarray + a) = *(elarray + b);  // rows lists easy switched
@@ -381,7 +380,7 @@ void ChSparseMatrix::SwapRows(int a, int b) {
     }
 }
 
-void ChSparseMatrix::SwapColumns(int a, int b) {
+void ChLinkedListMatrix::SwapColumns(int a, int b) {
     ChMelement* guessA;
     ChMelement* guessB;
     double valA, valB;
@@ -395,7 +394,7 @@ void ChSparseMatrix::SwapColumns(int a, int b) {
     }
 }
 
-void ChSparseMatrix::PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite, bool transp) {
+void ChLinkedListMatrix::PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite, bool transp) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -414,7 +413,7 @@ void ChSparseMatrix::PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool
 }
 
 
-void ChSparseMatrix::PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
+void ChLinkedListMatrix::PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -432,7 +431,7 @@ void ChSparseMatrix::PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol
     }
 }
 
-void ChSparseMatrix::PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite, bool transp) {
+void ChLinkedListMatrix::PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite, bool transp) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -450,7 +449,7 @@ void ChSparseMatrix::PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int in
     }
 }
 
-void ChSparseMatrix::PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) {
+void ChLinkedListMatrix::PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -468,7 +467,7 @@ void ChSparseMatrix::PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, 
     }
 }
 
-void ChSparseMatrix::PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) {
+void ChLinkedListMatrix::PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -491,7 +490,7 @@ void ChSparseMatrix::PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) {
     }
 }
 
-void ChSparseMatrix::PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
+void ChLinkedListMatrix::PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -514,7 +513,7 @@ void ChSparseMatrix::PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int ins
     }
 }
 
-void ChSparseMatrix::PasteMatrix(ChSparseMatrix* matra, int insrow, int inscol) {
+void ChLinkedListMatrix::PasteMatrix(ChLinkedListMatrix* matra, int insrow, int inscol) {
     int i;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -533,7 +532,7 @@ void ChSparseMatrix::PasteMatrix(ChSparseMatrix* matra, int insrow, int inscol) 
     }
 }
 
-void ChSparseMatrix::PasteTranspMatrix(ChSparseMatrix* matra, int insrow, int inscol) {
+void ChLinkedListMatrix::PasteTranspMatrix(ChLinkedListMatrix* matra, int insrow, int inscol) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -551,7 +550,7 @@ void ChSparseMatrix::PasteTranspMatrix(ChSparseMatrix* matra, int insrow, int in
     }
 }
 
-void ChSparseMatrix::PasteClippedMatrix(ChMatrix<>* matra,
+void ChLinkedListMatrix::PasteClippedMatrix(ChMatrix<>* matra,
                                         int cliprow,
                                         int clipcol,
                                         int nrows,
@@ -576,7 +575,7 @@ void ChSparseMatrix::PasteClippedMatrix(ChMatrix<>* matra,
     }
 }
 
-void ChSparseMatrix::PasteSumClippedMatrix(ChMatrix<>* matra,
+void ChLinkedListMatrix::PasteSumClippedMatrix(ChMatrix<>* matra,
                                            int cliprow,
                                            int clipcol,
                                            int nrows,
@@ -605,31 +604,31 @@ void ChSparseMatrix::PasteSumClippedMatrix(ChMatrix<>* matra,
     }
 }
 
-void ChSparseMatrix::MatrMultiply(ChSparseMatrix* matra, ChSparseMatrix* matrb) {
+void ChLinkedListMatrix::MatrMultiply(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb) {
     //**** TO DO ****
 }
 
-void ChSparseMatrix::MatrMultiplyT(ChSparseMatrix* matra, ChSparseMatrix* matrb) {
+void ChLinkedListMatrix::MatrMultiplyT(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb) {
     //**** TO DO ****
 }
 
-void ChSparseMatrix::MatrTMultiply(ChSparseMatrix* matra, ChSparseMatrix* matrb) {
+void ChLinkedListMatrix::MatrTMultiply(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb) {
     //**** TO DO ****
 }
 
-void ChSparseMatrix::MatrAdd(ChSparseMatrix* matra, ChSparseMatrix* matrb) {
+void ChLinkedListMatrix::MatrAdd(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb) {
     //**** TO DO ****
 }
 
-void ChSparseMatrix::MatrSub(ChSparseMatrix* matra, ChSparseMatrix* matrb) {
+void ChLinkedListMatrix::MatrSub(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb) {
     //**** TO DO ****
 }
 
-void ChSparseMatrix::MatrInc(ChSparseMatrix* matra) {
+void ChLinkedListMatrix::MatrInc(ChLinkedListMatrix* matra) {
     //**** TO DO ****
 }
 
-void ChSparseMatrix::MatrScale(double factor) {
+void ChLinkedListMatrix::MatrScale(double factor) {
     ChMelement* currel;
 
     for (int i = 0; i < rows; i++) {
@@ -639,11 +638,11 @@ void ChSparseMatrix::MatrScale(double factor) {
     }
 }
 
-void ChSparseMatrix::MatrTranspose() {
+void ChLinkedListMatrix::MatrTranspose() {
     //**** TO DO ****
 }
 
-void ChSparseMatrix::Neg() {
+void ChLinkedListMatrix::Neg() {
     ChMelement* currel;
 
     for (int i = 0; i < rows; i++) {
@@ -655,7 +654,7 @@ void ChSparseMatrix::Neg() {
 
 // Linear algebra function
 
-int ChSparseMatrix::BestPivotRow(int current) {
+int ChLinkedListMatrix::BestPivotRow(int current) {
     double temp = 0;
     int i;
     int pivotrow = current;
@@ -671,7 +670,7 @@ int ChSparseMatrix::BestPivotRow(int current) {
     return pivotrow;
 }
 
-int ChSparseMatrix::BestPivotDiag(int current) {
+int ChLinkedListMatrix::BestPivotDiag(int current) {
     double temp = 0;
     int i;
     int pivotrow = current;
@@ -689,7 +688,7 @@ int ChSparseMatrix::BestPivotDiag(int current) {
 
 // Effect only on upper-left triangle!!!
 
-void ChSparseMatrix::DiagPivotSymmetric(int rowA, int rowB) {
+void ChLinkedListMatrix::DiagPivotSymmetric(int rowA, int rowB) {
     int elcol, elrow;
     double temp;
     for (elrow = 0; elrow < rowA; elrow++) {
@@ -715,7 +714,7 @@ void ChSparseMatrix::DiagPivotSymmetric(int rowA, int rowB) {
 // Solution of linear systems, optimized for sparse matrix.
 // The array of pivot indexes (pivarray) is optional
 
-int ChSparseMatrix::Solve_LinSys(ChMatrix<>* B,
+int ChLinkedListMatrix::Solve_LinSys(ChMatrix<>* B,
                                  ChMatrix<>* X,
                                  int* pivarray,
                                  double* det)  // the object is the [A] matrix.
@@ -822,14 +821,14 @@ int ChSparseMatrix::Solve_LinSys(ChMatrix<>* B,
     return err;
 }
 
-void ChSparseMatrix::Solve_LinSys(ChMatrix<>* B, ChMatrix<>* X) {
+void ChLinkedListMatrix::Solve_LinSys(ChMatrix<>* B, ChMatrix<>* X) {
     double det;
     Solve_LinSys(B, X, (int*)NULL, &det);
 }
 
 // LU decomposition and solution
 
-int ChSparseMatrix::Decompose_LU(int* pivarray, double* det) {
+int ChLinkedListMatrix::Decompose_LU(int* pivarray, double* det) {
     ChMelement* rowel;
     ChMelement* subrowel;
     int i, k, pivrow, eqpivoted;
@@ -912,7 +911,7 @@ int ChSparseMatrix::Decompose_LU(int* pivarray, double* det) {
     return err;
 }
 
-int ChSparseMatrix::Solve_LU(ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
+int ChLinkedListMatrix::Solve_LU(ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
     ChMelement* rowel;
     int k;
     double sum, x;
@@ -965,7 +964,7 @@ int ChSparseMatrix::Solve_LU(ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
 // LDL decomposition (only upper right part of [A] is used!)
 //
 
-int ChSparseMatrix::Decompose_LDL(int* pivarray, double* det, int from_eq) {
+int ChLinkedListMatrix::Decompose_LDL(int* pivarray, double* det, int from_eq) {
     ChMelement* rowel;
     ChMelement* subrowel;
     int i, k, pivrow, eqpivoted;
@@ -1053,7 +1052,7 @@ int ChSparseMatrix::Decompose_LDL(int* pivarray, double* det, int from_eq) {
 // Back substitution after LDL decomposition, to solve for X
 //
 
-int ChSparseMatrix::Solve_LDL(ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
+int ChLinkedListMatrix::Solve_LDL(ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
     ChMelement* rowel;
     int j, k;
     double sum, x;
@@ -1101,7 +1100,7 @@ int ChSparseMatrix::Solve_LDL(ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
 // Decompose and solve at once
 //
 
-int ChSparseMatrix::DecomposeAndSolve_LDL(ChMatrix<>* B, ChMatrix<>* X, double& mdet, int from_eq) {
+int ChLinkedListMatrix::DecomposeAndSolve_LDL(ChMatrix<>* B, ChMatrix<>* X, double& mdet, int from_eq) {
     // decompose and solve at once
 
     assert(B->GetRows() == this->rows);
@@ -1128,7 +1127,7 @@ int ChSparseMatrix::DecomposeAndSolve_LDL(ChMatrix<>* B, ChMatrix<>* X, double& 
 // Decompose and solve at once (optimized for LCP iteration)
 //
 
-int ChSparseMatrix::DecomposeAndSolve_LDL_forLCP(ChMatrix<>* B,
+int ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(ChMatrix<>* B,
                                                  ChMatrix<>* X,
                                                  double& mdet,
                                                  int i_D,
@@ -1136,7 +1135,7 @@ int ChSparseMatrix::DecomposeAndSolve_LDL_forLCP(ChMatrix<>* B,
                                                  int n_unilaterals,
                                                  ChUnilateralData constr_data[],
                                                  int from_eq) {
-    ChSparseMatrix tempM;
+    ChLinkedListMatrix tempM;
     tempM.CopyFromMatrix(this);
 
     // deactivate the non-clamped or not yet considered unilateral constraints
@@ -1150,8 +1149,8 @@ int ChSparseMatrix::DecomposeAndSolve_LDL_forLCP(ChMatrix<>* B,
     return TRUE;
 }
 
-int ChSparseMatrix::DecomposeAndSolve_LDL_forLCP(ChSparseMatrix* Aorig,
-                                                 ChSparseMatrix* Afact,
+int ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(ChLinkedListMatrix* Aorig,
+                                                 ChLinkedListMatrix* Afact,
                                                  ChMatrix<>* B,
                                                  ChMatrix<>* X,
                                                  double& mdet,
@@ -1304,7 +1303,7 @@ int ChSparseMatrix::DecomposeAndSolve_LDL_forLCP(ChSparseMatrix* Aorig,
     return TRUE;
 }
 
-static void LCP_compute_DL_residuals(ChSparseMatrix* M,
+static void LCP_compute_DL_residuals(ChLinkedListMatrix* M,
                                      ChMatrix<>* B,
                                      ChMatrix<>* X,
                                      ChMatrix<>* D,
@@ -1400,7 +1399,7 @@ static bool LCP_compute_maxstep(ChMatrix<>* D,
 
 #define UNOPTIMIZED_LCP 1
 
-int ChSparseMatrix::SolveLCP(ChMatrix<>* B,
+int ChLinkedListMatrix::SolveLCP(ChMatrix<>* B,
                              ChMatrix<>* X,
                              int n_bilaterals,
                              int n_unilaterals,
@@ -1452,7 +1451,7 @@ int ChSparseMatrix::SolveLCP(ChMatrix<>* B,
     ChMatrixDynamic<> Lguess(n_unilaterals, 1);  // for storing guess multipliers
     ChMatrixDynamic<> Xguess(X->GetRows(), 1);   // for storing guess solution
 
-    ChSparseMatrix Mbackup(this->rows, this->columns);  // for storing partial decomposition
+    ChLinkedListMatrix Mbackup(this->rows, this->columns);  // for storing partial decomposition
 
     // initialize status of unilateral constraints (all constraints are unclamped).
     if (!keep_unilateral_status)
@@ -1467,7 +1466,7 @@ int ChSparseMatrix::SolveLCP(ChMatrix<>* B,
 #ifdef UNOPTIMIZED_LCP
     DecomposeAndSolve_LDL_forLCP(B, X, mdet, i_D, i_C, n_unilaterals, constr_data);
 #else
-    ChSparseMatrix::DecomposeAndSolve_LDL_forLCP(this, &Mbackup, B, X, mdet, i_D, i_C, n_unilaterals, constr_data, 0,
+    ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(this, &Mbackup, B, X, mdet, i_D, i_C, n_unilaterals, constr_data, 0,
                                                  i_D);
 #endif
 
@@ -1512,7 +1511,7 @@ int ChSparseMatrix::SolveLCP(ChMatrix<>* B,
 #ifdef UNOPTIMIZED_LCP
                 DecomposeAndSolve_LDL_forLCP(B, &Xguess, mdet, i_D, i_C, n_unilaterals, constr_data);
 #else
-                ChSparseMatrix::DecomposeAndSolve_LDL_forLCP(this, &Mbackup, B, &Xguess, mdet, i_D, i_C, n_unilaterals,
+                ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(this, &Mbackup, B, &Xguess, mdet, i_D, i_C, n_unilaterals,
                                                              constr_data, i_D, i_D);
 #endif
 
@@ -1582,7 +1581,7 @@ int ChSparseMatrix::SolveLCP(ChMatrix<>* B,
     return success;
 }
 
-void ChSparseMatrix::StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream) {
+void ChLinkedListMatrix::StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream) {
     for (int ii = 0; ii < this->GetRows(); ii++) {
         for (int jj = 0; jj < this->GetColumns(); jj++) {
             double elVal = this->GetElement(ii, jj);
@@ -1593,7 +1592,7 @@ void ChSparseMatrix::StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream) {
     }
 }
 
-void ChSparseMatrix::StreamOUT(ChStreamOutAscii& mstream) {
+void ChLinkedListMatrix::StreamOUT(ChStreamOutAscii& mstream) {
   mstream << "\n"
     << "Matrix " << GetRows() << " rows, " << GetColumns() << " columns."
     << "\n";

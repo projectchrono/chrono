@@ -78,14 +78,14 @@ public:
     virtual int LoadableGet_ndof_w() {return 3*3;}
 
         /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector    (this->GetNodeN(0)->GetPos(), block_offset,  0);
         mD.PasteVector    (this->GetNodeN(1)->GetPos(), block_offset+3,  0);
         mD.PasteVector    (this->GetNodeN(2)->GetPos(), block_offset+6,  0);
     }
 
         /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->GetNodeN(0)->GetPos_dt(),   block_offset,  0);
         mD.PasteVector(this->GetNodeN(1)->GetPos_dt(),   block_offset+3,  0);
         mD.PasteVector(this->GetNodeN(2)->GetPos_dt(),   block_offset+6,  0);
@@ -102,6 +102,12 @@ public:
 
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 3;}
+
+        /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+        for (int i=0; i<3; ++i)
+            mvars.push_back(&this->GetNodeN(i)->Variables());
+    };
 
         /// Evaluate N'*F , where N is some type of shape function
         /// evaluated at U,V coordinates of the surface, each ranging in 0..+1

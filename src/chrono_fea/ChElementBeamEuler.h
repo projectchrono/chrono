@@ -1036,7 +1036,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual int LoadableGet_ndof_w() { return 2 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
         mD.PasteQuaternion(this->nodes[0]->GetRot(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 7, 0);
@@ -1044,7 +1044,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->nodes[0]->GetWvel_loc(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 6, 0);
@@ -1063,6 +1063,12 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
     /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+
+    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+        mvars.push_back(&this->nodes[0]->Variables());
+        mvars.push_back(&this->nodes[1]->Variables());
+    };
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U coordinates of the line, each ranging in -1..+1
