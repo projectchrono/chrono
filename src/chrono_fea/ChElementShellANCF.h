@@ -20,10 +20,11 @@
 #define CHELEMENTSHELLANCF_H
 
 #include "chrono/physics/ChContinuumMaterial.h"
-
+#include "core/ChQuadrature.h"
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChElementShell.h"
 #include "chrono_fea/ChNodeFEAxyzD.h"
+#include "chrono_fea/ChUtilsFEA.h"
 
 namespace chrono {
 
@@ -38,7 +39,155 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
   public:
     ChElementShellANCF();
     ~ChElementShellANCF() {}
+    /// New class
 
+    /// Integrate  rho*(S'*S)
+    /// where S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3) N5*eye(3) N6*eye(3) N7*eye(3) N8*eye(3)]
+    class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
+      public:
+		MyMass();
+		MyMass(ChMatrixNM<double, 8, 3> *m_d0 , ChElementShellANCF* passedelement){
+			d0 = m_d0;
+			element = passedelement;
+		}
+		~MyMass() {}
+	private:
+        ChElementShellANCF* element;
+        ChMatrixNM<double, 8, 3>* d0;  //// pointer to initial coordinates
+        ChMatrixNM<double, 3, 24> S;
+        ChMatrixNM<double, 1, 8> N;
+        ChMatrixNM<double, 1, 8> Nx;
+        ChMatrixNM<double, 1, 8> Ny;
+        ChMatrixNM<double, 1, 8> Nz;
+        /// Evaluate the S'*S  at point x
+        virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z);
+    };
+    // Add gravity force
+    class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
+      public:
+		  MyGravity();
+		  MyGravity(ChMatrixNM<double, 8, 3> *m_d0, ChElementShellANCF* passedelement){
+			  d0 = m_d0;
+			  element = passedelement;
+		  }
+		  ~MyGravity() {}
+	private:
+        ChElementShellANCF* element;
+        ChMatrixNM<double, 8, 3>* d0;
+        ChMatrixNM<double, 1, 8> N;
+        ChMatrixNM<double, 1, 8> Nx;
+        ChMatrixNM<double, 1, 8> Ny;
+        ChMatrixNM<double, 1, 8> Nz;
+        ChMatrixNM<double, 3, 1> LocalGravityForce;
+
+        virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
+    };
+
+	// Add air pressure
+	class MyAirPressure : public ChIntegrable2D<ChMatrixNM<double, 24, 1> > {
+	public:
+		MyAirPressure();
+		MyAirPressure(ChMatrixNM<double, 8, 3> *m_d0, ChMatrixNM<double, 8, 3>* d_, ChElementShellANCF* element_){
+			d0 = m_d0;
+			d = d_;
+			element = element_;
+		}
+		~MyAirPressure() {}
+	private:
+		ChElementShellANCF* element;
+		ChMatrixNM<double, 8, 3>* d0;
+		ChMatrixNM<double, 8, 3>* d;
+		ChMatrixNM<double, 1, 4> S_ANS;
+		ChMatrixNM<double, 1, 8> N;
+		ChMatrixNM<double, 1, 8> Nx;
+		ChMatrixNM<double, 1, 8> Ny;
+		ChMatrixNM<double, 1, 8> Nz;
+		ChMatrixNM<double, 3, 1> LocalAirPressure;
+
+		virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y);
+	};
+    ///============ Internal force, EAS stiffness, and analytical jacobian are calculated
+    class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
+      public:
+		  MyForce();
+		  // Constructor
+		  MyForce (ChMatrixNM<double, 8, 3>* d_, ChMatrixNM<double, 24, 1>* d_dt_, ChMatrixNM<double, 8, 1>* strain_ans_, 
+			  ChMatrixNM<double, 8, 24>* strainD_ans_, ChMatrixNM<double, 8, 3> *m_d0, ChMatrixNM<double, 6, 6>* E_eps_, 
+			  ChElementShellANCF* element_, ChMatrixNM<double, 6, 6>* T0_, double* detJ0C_, double* theta_, 
+			  ChMatrixNM<double, 5, 1>* alpha_eas_){
+			  d = d_;
+			  d_dt = d_dt_; // Structural damping
+			  d0 = m_d0;
+			  strain_ans = strain_ans_;
+			  strainD_ans = strainD_ans_;
+			  element = element_;
+			  E_eps = E_eps_;
+			  T0 = T0_;
+			  detJ0C = detJ0C_;
+			  theta = theta_;
+			  alpha_eas = alpha_eas_;
+		  }
+		  ~MyForce() {}
+	private:
+
+
+        ChElementShellANCF* element;
+        //// External values
+        ChMatrixNM<double, 8, 3>* d;
+        ChMatrixNM<double, 8, 1>* strain_ans;
+        ChMatrixNM<double, 8, 24>* strainD_ans;
+        ChMatrixNM<double, 8, 3>* d0;
+        ChMatrixNM<double, 24, 1>* d_dt;  // for structural damping
+        ChMatrixNM<double, 6, 6>* T0;
+        ChMatrixNM<double, 5, 1>* alpha_eas;
+        ChMatrixNM<double, 6, 6>* E_eps;
+        double* detJ0C;
+        double* theta;
+
+        ChMatrixNM<double, 24, 1> Fint;
+        ChMatrixNM<double, 24, 24> JAC11;
+        ChMatrixNM<double, 9, 24> Gd;
+        ChMatrixNM<double, 6, 1> stress;
+        ChMatrixNM<double, 9, 9> Sigm;
+        ChMatrixNM<double, 24, 6> temp246;
+        ChMatrixNM<double, 24, 9> temp249;
+        ChMatrixNM<double, 1, 8> Nx;
+        ChMatrixNM<double, 1, 8> Ny;
+        ChMatrixNM<double, 1, 8> Nz;
+        ChMatrixNM<double, 6, 24> strainD;
+        ChMatrixNM<double, 6, 1> strain;
+        ChMatrixNM<double, 8, 8> d_d;
+        ChMatrixNM<double, 8, 1> ddNx;
+        ChMatrixNM<double, 8, 1> ddNy;
+        ChMatrixNM<double, 8, 1> ddNz;
+        ChMatrixNM<double, 8, 8> d0_d0;
+        ChMatrixNM<double, 8, 1> d0d0Nx;
+        ChMatrixNM<double, 8, 1> d0d0Ny;
+        ChMatrixNM<double, 8, 1> d0d0Nz;
+        ChMatrixNM<double, 1, 3> Nxd;
+        ChMatrixNM<double, 1, 3> Nyd;
+        ChMatrixNM<double, 1, 3> Nzd;
+        ChMatrixNM<double, 1, 1> tempA;
+        ChMatrixNM<double, 1, 1> tempA1;
+        ChMatrixNM<double, 1, 24> tempB;
+        ChMatrixNM<double, 24, 6> tempC;
+        double detJ0;
+        double alphaHHT;
+        double betaHHT;
+        double gammaHHT;
+        // ANS
+        ChMatrixNM<double, 1, 8> N;
+        ChMatrixNM<double, 1, 4> S_ANS;
+        ChMatrixNM<double, 1, 24> tempBB;
+        // EAS
+        ChMatrixNM<double, 6, 5> M;
+        ChMatrixNM<double, 6, 5> G;
+        ChMatrixNM<double, 5, 6> GT;
+        ChMatrixNM<double, 6, 1> strain_EAS;
+
+        /// Evaluate (strainD'*strain)  at point x
+        virtual void Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z);
+    };
     /// Get the number of nodes used by this element.
     virtual int GetNnodes() override { return 4; }
 
@@ -343,9 +492,11 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
                     ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
                     ) {
          ChMatrixNM<double, 1,8> N;
-         this->ShapeFunctions(N, U,V,0); // evaluate shape functions (in compressed vector), btw. not dependant on state
+        this->ShapeFunctions(N, U, V,
+                             0);  // evaluate shape functions (in compressed vector), btw. not dependant on state
          
-         detJ = GetLengthX()*GetLengthY() / 4.0; // ***TODO***  compute exact determinant of jacobian at U,V; approx. is area/4..
+        detJ = GetLengthX() * GetLengthY() /
+               4.0;  // ***TODO***  compute exact determinant of jacobian at U,V; approx. is area/4..
 
          ChVector<>tmp;
          ChVector<>Fv = F.ClipVector(0,0);
@@ -394,9 +545,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
             for (int kl = 0; kl < m_numLayers; kl++) {
                 int ij = 14 * kl;
                 double rho = m_InertFlexVec(ij);
-                tot_density += rho;
+            double layerthick = m_InertFlexVec(ij + 3);
+            tot_density += rho * layerthick;
             }
-            return tot_density * this->m_thickness;
+        return tot_density;
      } 
 
             /// Gets the normal to the surface at the parametric coordinate U,V. 
@@ -404,8 +556,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell,
      virtual ChVector<> ComputeNormal(const double U, const double V) {
                     //***TODO*** compute normal at precise U,V coordinate, 
                     //           ex.using shape function derivatives.
-         ChVector<> mnorm (Vcross( GetNodeB()->pos - GetNodeA()->pos,
-                                   GetNodeD()->pos - GetNodeA()->pos) );
+        ChVector<> mnorm(Vcross(GetNodeB()->pos - GetNodeA()->pos, GetNodeD()->pos - GetNodeA()->pos));
          return mnorm;
      }
 };

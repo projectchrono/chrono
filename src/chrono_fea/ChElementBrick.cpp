@@ -1775,33 +1775,6 @@ void ChElementBrick::ComputeStiffnessMatrix() {
 
 void ChElementBrick::ComputeMassMatrix() {
     double rho = m_Material->Get_density();
-    ChMatrixNM<double, 24, 1> InitialCoord;
-    ChMatrixNM<double, 8, 3> d0;
-    d0 = GetInitialPos();
-    d0(0, 0) = InitialCoord(0, 0);
-    d0(0, 1) = InitialCoord(1, 0);
-    d0(0, 2) = InitialCoord(2, 0);
-    d0(1, 0) = InitialCoord(3, 0);
-    d0(1, 1) = InitialCoord(4, 0);
-    d0(1, 2) = InitialCoord(5, 0);
-    d0(2, 0) = InitialCoord(6, 0);
-    d0(2, 1) = InitialCoord(7, 0);
-    d0(2, 2) = InitialCoord(8, 0);
-    d0(3, 0) = InitialCoord(9, 0);
-    d0(3, 1) = InitialCoord(10, 0);
-    d0(3, 2) = InitialCoord(11, 0);
-    d0(4, 0) = InitialCoord(12, 0);
-    d0(4, 1) = InitialCoord(13, 0);
-    d0(4, 2) = InitialCoord(14, 0);
-    d0(5, 0) = InitialCoord(15, 0);
-    d0(5, 1) = InitialCoord(16, 0);
-    d0(5, 2) = InitialCoord(17, 0);
-    d0(6, 0) = InitialCoord(18, 0);
-    d0(6, 1) = InitialCoord(19, 0);
-    d0(6, 2) = InitialCoord(20, 0);
-    d0(7, 0) = InitialCoord(21, 0);
-    d0(7, 1) = InitialCoord(22, 0);
-    d0(7, 2) = InitialCoord(23, 0);
 
     class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
       public:
@@ -1872,7 +1845,7 @@ void ChElementBrick::ComputeMassMatrix() {
     };
 
     MyMass myformula;
-    myformula.d0 = &d0;
+    myformula.d0 = &m_d0;
     myformula.element = this;
 
     ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(m_MassMatrix,  // result of integration will go there
