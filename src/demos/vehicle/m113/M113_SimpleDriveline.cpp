@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "m113/M113_simpleDriveline.h"
+#include "m113/M113_SimpleDriveline.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
