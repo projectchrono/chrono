@@ -261,7 +261,7 @@ namespace chrono {
 		{
 			rowIndex_lock_broken = true;
 
-			if (colIndex_occupancy >= rowIndex[rows]) // that happens when a Compress() or a Reset() is not followed by a Trim()
+			if (colIndex_occupancy > GetColIndexLength()) // that happens when a Compress() or a Reset() is not followed by a Trim()
 			{
 				copy(values, colIndex, false, insrow, col_sel, 1);
 			}
@@ -342,7 +342,7 @@ namespace chrono {
 	{
 		if (colIndex_lock && !colIndex_lock_broken)
 		{
-			for (int col_sel = 0; col_sel < rowIndex[rows]; col_sel++)
+			for (int col_sel = 0; col_sel < GetColIndexLength(); col_sel++)
 			{
 				values[col_sel] = 0;
 			}
@@ -350,7 +350,7 @@ namespace chrono {
 		else
 		{
 			// colIndex is initialized with -1; it means that the cell has been stored but contains an uninitialized value
-			for (int col_sel = 0; col_sel < rowIndex[rows]; col_sel++)
+			for (int col_sel = 0; col_sel < GetColIndexLength(); col_sel++)
 			{
 				colIndex[col_sel] = -1;
 			}
