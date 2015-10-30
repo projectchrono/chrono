@@ -59,7 +59,6 @@ namespace chrono {
 	   ChMklEngine mkl_engine;
 	   int n;
 
-	   bool size_lock;
 	   bool sparsity_pattern_lock;
 	   bool use_perm;
 	   bool use_rhs_sparsity;
@@ -72,7 +71,6 @@ namespace chrono {
 	   ChMklEngine& GetMklEngine(){ return mkl_engine; }
 	   ChCSR3Matrix& GetMatrix(){ return matCSR3; }
 
-	   void SetProblemSizeLock(bool on_off){ size_lock = on_off; };
 	   void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; };
 	   void UsePermutationVector(bool on_off) { use_perm = on_off;  };
 	   void LeverageRhsSparsity(bool on_off) { use_rhs_sparsity = on_off; };
@@ -85,28 +83,26 @@ namespace chrono {
         // SERIALIZATION
         //
 
-        virtual void ArchiveOUT(ChArchiveOut& marchive)
+        virtual void ArchiveOUT(ChArchiveOut& marchive) override
         {
             // version number
             marchive.VersionWrite(1);
             // serialize parent class
             ChLcpSolver::ArchiveOUT(marchive);
             // serialize all member data:
-            marchive << CHNVP(size_lock);
 	        marchive << CHNVP(sparsity_pattern_lock);
 	        marchive << CHNVP(use_perm);
 	        marchive << CHNVP(use_rhs_sparsity);
         }
 
         /// Method to allow de serialization of transient data from archives.
-        virtual void ArchiveIN(ChArchiveIn& marchive) 
+        virtual void ArchiveIN(ChArchiveIn& marchive) override
         {
             // version number
             int version = marchive.VersionRead();
             // deserialize parent class
             ChLcpSolver::ArchiveIN(marchive);
             // stream in all member data:
-            marchive >> CHNVP(size_lock);
 	        marchive >> CHNVP(sparsity_pattern_lock);
 	        marchive >> CHNVP(use_perm);
 	        marchive >> CHNVP(use_rhs_sparsity);
