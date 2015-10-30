@@ -527,12 +527,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                  ChMatrixNM<double, 7, 1>* mQf);
     void Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMatrixNM<double, 7, 1>* mQf);
 
-    /// Given a lagrangian force (in a 7x1 matrix), computes the fore and torque as vectors.
-    void From_lagrangian_to_forcetorque(const ChMatrixNM<double, 7, 1>& mQf, ChVector<>& mforce, ChVector<>& mtorque);
-    /// Given force and torque as vectors, computes the lagrangian force (in a 7x1 matrix)
-    void From_forcetorque_to_lagrangian(const ChVector<>& mforce,
-                                        const ChVector<>& mtorque,
-                                        ChMatrixNM<double, 7, 1>& mQf);
 
     //
     // UTILITIES FOR FORCES/TORQUES:
