@@ -731,7 +731,7 @@ void ChMesh::IntLoadResidual_F(
                 if (mloadable->GetDensity()) {
                     // temporary set loader target and compute generalized forces term
                     common_gravity_loader->loader.loadable = mloadable;
-                    common_gravity_loader->ComputeQ();
+                    common_gravity_loader->ComputeQ(0,0);
                     common_gravity_loader->LoadIntLoadResidual_F(R, c);
                 }
             }
