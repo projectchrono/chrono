@@ -233,6 +233,11 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Get a handle to the material for this element.
     ChSharedPtr<ChContinuumElastic> GetMaterial() const { return m_Material; }
 
+    /// Calculate the first part of the Jacobian of the elastic forces of the ANCF shell element
+    void JacCalcUnrolled(ChMatrixNM<double, 6, 1> stress,
+                         ChMatrixNM<double, 9, 24> Gd,
+                         ChMatrixNM<double, 24, 24>& JAC11);
+
     void SetStockAlpha(const ChMatrixNM<double, 35, 1>& a) { m_StockAlpha_EAS = a; }
 
     const ChMatrixNM<double, 35, 1>& GetStockAlpha() const { return m_StockAlpha_EAS; }  //// for EAS
