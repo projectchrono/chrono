@@ -61,6 +61,9 @@ class CH_VEHICLE_API ChTrackDriveline : public ChShared {
     /// driveshaft speed.
     virtual double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }
 
+    /// Get the motor torque to be applied to the specified sprocket.
+    virtual double GetSprocketTorque(VehicleSide side) const = 0;
+
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the sprockets of the
     /// two track assembly subsystems.

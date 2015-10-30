@@ -307,6 +307,12 @@ set(CV_TV_BASE_FILES
 )
 source_group("tracked_vehicle\\base" FILES ${CV_TV_BASE_FILES})
 
+set(CV_TV_DRIVELINE_FILES
+    tracked_vehicle/driveline/ChSimpleTrackDriveline.h
+    tracked_vehicle/driveline/ChSimpleTrackDriveline.cpp
+)
+source_group("tracked_vehicle\\driveline" FILES ${CV_TV_DRIVELINE_FILES})
+
 set(CV_TV_IDLER_FILES
     tracked_vehicle/idler/ChSingleIdler.h
     tracked_vehicle/idler/ChSingleIdler.cpp
@@ -398,6 +404,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_WHEEL_FILES}
 #
     ${CV_TV_BASE_FILES}
+    ${CV_TV_DRIVELINE_FILES}
     ${CV_TV_IDLER_FILES}
     ${CV_TV_ROADWHEEL_FILES}
     ${CV_TV_SUSPENSION_FILES}
