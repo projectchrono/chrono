@@ -12,11 +12,11 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Placeholder for an M113 driveline.
+// A simplified M113 driveline.
 //
 // =============================================================================
 
-#include "m113/M113_Driveline.h"
+#include "m113/M113_simpleDriveline.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -26,22 +26,11 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
+const double M113_SimpleDriveline::m_diff_maxBias = 3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Driveline::M113_Driveline() : chrono::vehicle::ChTrackDriveline("M113_Driveline") {
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void M113_Driveline::Initialize(ChSharedPtr<ChBody> chassis,
-                                ChSharedPtr<ChTrackAssembly> track_left,
-                                ChSharedPtr<ChTrackAssembly> track_right) {
-    // Create the driveshaft, a 1 d.o.f. object with rotational inertia which
-    // represents the connection of the driveline to the transmission box.
-    m_driveshaft = ChSharedPtr<ChShaft>(new ChShaft);
-    m_driveshaft->SetInertia(1.0);
-    chassis->GetSystem()->Add(m_driveshaft);
+M113_SimpleDriveline::M113_SimpleDriveline() : ChSimpleTrackDriveline("M113_SimpleDriveline") {
 }
 
 }  // end namespace hmmwv

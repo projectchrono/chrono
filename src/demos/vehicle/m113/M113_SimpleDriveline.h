@@ -12,27 +12,28 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Placeholder for an M113 driveline.
+// A simplified M113 driveline.
 //
 // =============================================================================
 
-#ifndef M113_DRIVELINE_H
-#define M113_DRIVELINE_H
+#ifndef M113_SIMPLE_DRIVELINE_H
+#define M113_SIMPLE_DRIVELINE_H
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/driveline/ChSimpleTrackDriveline.h"
 
 namespace m113 {
 
-class M113_Driveline : public chrono::vehicle::ChTrackDriveline {
+class M113_SimpleDriveline : public chrono::vehicle::ChSimpleTrackDriveline {
   public:
-    M113_Driveline();
-    ~M113_Driveline() {}
+    M113_SimpleDriveline();
+    ~M113_SimpleDriveline() {}
 
-    virtual void Initialize(
-        chrono::ChSharedPtr<chrono::ChBody> chassis,                       ///< handle to the chassis body
-        chrono::ChSharedPtr<chrono::vehicle::ChTrackAssembly> track_left,  ///< handle to the left track assembly
-        chrono::ChSharedPtr<chrono::vehicle::ChTrackAssembly> track_right  ///< handle to the right track assembly
-        ) override;
+    /// Return the torque bias ratio for the differential.
+    /// This is a simple model of a Torsen limited-slip differential.
+    virtual double GetDifferentialMaxBias() const override { return m_diff_maxBias; }
+
+  private:
+    static const double m_diff_maxBias;
 };
 
 }  // end namespace m113
