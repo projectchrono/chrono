@@ -425,52 +425,61 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Analytical inverse for a 5x5 matrix
     static void Inverse55_Analytical(ChMatrixNM<double, 5, 5>& A, ChMatrixNM<double, 5, 5>& B);
 
-    //
-    // Functions for ChLoadable interface
-    //
+	//
+	// Functions for ChLoadable interface
+	//  
 
-    /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() { return 4 * 6; }
+	/// Gets the number of DOFs affected by this element (position part)
+	virtual int LoadableGet_ndof_x() { return 4 * 6; }
 
-    /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() { return 4 * 6; }
+	/// Gets the number of DOFs affected by this element (speed part)
+	virtual int LoadableGet_ndof_w() { return 4 * 6; }
 
-    /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
-        mD.PasteVector(this->m_nodes[0]->GetPos(), block_offset, 0);
-        mD.PasteVector(this->m_nodes[0]->GetD(), block_offset + 3, 0);
-        mD.PasteVector(this->m_nodes[1]->GetPos(), block_offset + 6, 0);
-        mD.PasteVector(this->m_nodes[1]->GetD(), block_offset + 9, 0);
-        mD.PasteVector(this->m_nodes[2]->GetPos(), block_offset + 12, 0);
-        mD.PasteVector(this->m_nodes[2]->GetD(), block_offset + 15, 0);
-        mD.PasteVector(this->m_nodes[3]->GetPos(), block_offset + 18, 0);
-        mD.PasteVector(this->m_nodes[3]->GetD(), block_offset + 21, 0);
-    }
+	/// Gets all the DOFs packed in a single vector (position part)
+	virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+		mD.PasteVector(this->m_nodes[0]->GetPos(), block_offset, 0);
+		mD.PasteVector(this->m_nodes[0]->GetD(), block_offset + 3, 0);
+		mD.PasteVector(this->m_nodes[1]->GetPos(), block_offset + 6, 0);
+		mD.PasteVector(this->m_nodes[1]->GetD(), block_offset + 9, 0);
+		mD.PasteVector(this->m_nodes[2]->GetPos(), block_offset + 12, 0);
+		mD.PasteVector(this->m_nodes[2]->GetD(), block_offset + 15, 0);
+		mD.PasteVector(this->m_nodes[3]->GetPos(), block_offset + 18, 0);
+		mD.PasteVector(this->m_nodes[3]->GetD(), block_offset + 21, 0);
+	}
 
-    /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
-        mD.PasteVector(this->m_nodes[0]->GetPos_dt(), block_offset, 0);
-        mD.PasteVector(this->m_nodes[0]->GetD_dt(), block_offset + 3, 0);
-        mD.PasteVector(this->m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
-        mD.PasteVector(this->m_nodes[1]->GetD_dt(), block_offset + 9, 0);
-        mD.PasteVector(this->m_nodes[2]->GetPos_dt(), block_offset + 12, 0);
-        mD.PasteVector(this->m_nodes[2]->GetD_dt(), block_offset + 15, 0);
-        mD.PasteVector(this->m_nodes[3]->GetPos_dt(), block_offset + 18, 0);
-        mD.PasteVector(this->m_nodes[3]->GetD_dt(), block_offset + 21, 0);
-    }
+	/// Gets all the DOFs packed in a single vector (speed part)
+	virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+		mD.PasteVector(this->m_nodes[0]->GetPos_dt(), block_offset, 0);
+		mD.PasteVector(this->m_nodes[0]->GetD_dt(), block_offset + 3, 0);
+		mD.PasteVector(this->m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
+		mD.PasteVector(this->m_nodes[1]->GetD_dt(), block_offset + 9, 0);
+		mD.PasteVector(this->m_nodes[2]->GetPos_dt(), block_offset + 12, 0);
+		mD.PasteVector(this->m_nodes[2]->GetD_dt(), block_offset + 15, 0);
+		mD.PasteVector(this->m_nodes[3]->GetPos_dt(), block_offset + 18, 0);
+		mD.PasteVector(this->m_nodes[3]->GetD_dt(), block_offset + 21, 0);
+	}
 
-    /// Number of coordinates in the interpolated field, ex=3 for a
-    /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() { return 6; }
+	/// Number of coordinates in the interpolated field, ex=3 for a 
+	/// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
+	virtual int Get_field_ncoords() { return 6; }
 
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 4; }
+	/// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+	virtual int GetSubBlocks() { return 4; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return m_nodes[nblock]->NodeGetOffset_w(); }
+	/// Get the offset of the i-th sub-block of DOFs in global vector
+	virtual unsigned int GetSubBlockOffset(int nblock) { return m_nodes[nblock]->NodeGetOffset_w(); }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+	/// Get the size of the i-th sub-block of DOFs in global vector
+	virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+
+	/// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+	virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+		for (int i = 0; i<m_nodes.size(); ++i) {
+			mvars.push_back(&this->m_nodes[i]->Variables());
+			mvars.push_back(&this->m_nodes[i]->Variables_D());
+		}
+	};
+
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
