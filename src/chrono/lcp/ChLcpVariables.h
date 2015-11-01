@@ -34,7 +34,7 @@
 
 #include "core/ChApiCE.h"
 #include "core/ChMatrixDynamic.h"
-#include "core/ChSpmatrix.h"
+#include "core/ChSparseMatrix.h"
 
 namespace chrono {
 
@@ -203,7 +203,7 @@ public:
     /// Most iterative solvers don't need to know this matrix explicitly.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-	virtual void Build_M(ChSparseMatrixBase& storage, int insrow, int inscol) = 0;
+	virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol) = 0;
 
 
 

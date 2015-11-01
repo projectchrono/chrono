@@ -35,7 +35,7 @@
 namespace chrono {
 
 // forward reference
-class ChSparseMatrix;
+class ChLinkedListMatrix;
 class ChUnilateralData;
 
 ///     ***OBSOLETE****
@@ -67,7 +67,7 @@ class ChApi ChLcpSimplexSolver : public ChLcpDirectSolver {
     //
 
     int truncation_step;            // if 0 no effect, if >0 steps are truncated
-    ChSparseMatrix* MC;             // the sparse matrix for direct solution [MC]X=B (auto fill)
+    ChLinkedListMatrix* MC;             // the sparse matrix for direct solution [MC]X=B (auto fill)
     ChMatrix<>* X;                  // the unknown vector (automatically filled)
     ChMatrix<>* B;                  // the known vector (automatically filled)
     ChUnilateralData* unilaterals;  // array with temporary info for pivoting

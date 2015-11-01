@@ -25,6 +25,7 @@
 #include "ChLcpSystemDescriptor.h"
 #include "ChLcpConstraintTwoTuplesContactN.h"
 #include "ChLcpConstraintTwoTuplesFrictionT.h"
+#include "chrono/core/ChLinkedListMatrix.h"
 
 namespace chrono {
 
@@ -119,9 +120,9 @@ void ChLcpSystemDescriptor::UpdateCountsAndOffsets() {
     freeze_count = true;
 }
 
-void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Cq,
-                                                ChSparseMatrixBase* M,
-												ChSparseMatrixBase* E,
+void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
+                                                ChSparseMatrix* M,
+												ChSparseMatrix* E,
                                                 ChMatrix<>* Fvector,
                                                 ChMatrix<>* Bvector,
                                                 ChMatrix<>* Frict,
@@ -212,7 +213,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Cq,
 
 	
 
-void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Z,
+void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z,
 												ChMatrix<>* rhs,
 												bool only_bilaterals,
 												bool skip_contacts_uv)
@@ -285,8 +286,8 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrixBase* Z,
     }
 }
 
-void ChLcpSystemDescriptor::BuildMatrices(ChSparseMatrixBase* Cq,
-                                          ChSparseMatrixBase* M,
+void ChLcpSystemDescriptor::BuildMatrices(ChSparseMatrix* Cq,
+                                          ChSparseMatrix* M,
                                           bool only_bilaterals,
                                           bool skip_contacts_uv) {
     this->ConvertToMatrixForm(Cq, M, 0, 0, 0, 0, only_bilaterals, skip_contacts_uv);
@@ -300,9 +301,9 @@ void ChLcpSystemDescriptor::DumpLastMatrices(const char* path) {
     char filename[300];
     try {
         const char* numformat = "%.12g";
-        chrono::ChSparseMatrix mdM;
-        chrono::ChSparseMatrix mdCq;
-        chrono::ChSparseMatrix mdE;
+        chrono::ChLinkedListMatrix mdM;
+        chrono::ChLinkedListMatrix mdCq;
+        chrono::ChLinkedListMatrix mdE;
         chrono::ChMatrixDynamic<double> mdf;
         chrono::ChMatrixDynamic<double> mdb;
         chrono::ChMatrixDynamic<double> mdfric;

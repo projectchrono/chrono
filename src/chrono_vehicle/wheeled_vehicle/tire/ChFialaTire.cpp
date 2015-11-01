@@ -34,6 +34,8 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
+#define fialaUseSmallAngle 0
+
 namespace chrono {
 namespace vehicle {
 
@@ -85,9 +87,9 @@ void ChFialaTire::Update(double time, const WheelState& wheel_state, const ChTer
         // Generate normal contact force (recall, all forces are reduced to the wheel
         // center). If the resulting force is negative, the disc is moving away from
         // the terrain so fast that no contact force is generated.
-        // The sign of the stiffness force and the damping force are opposite since
+        // The sign of the velocity term in the damping function is negative since
         // a positive velocity means a decreasing depth, not an increasing depth
-        double Fn_mag = getNormalStiffnessForce(m_data.depth) - getNormalDampingForce(m_data.depth, m_data.vel.z);
+        double Fn_mag = getNormalStiffnessForce(m_data.depth) + getNormalDampingForce(m_data.depth, -m_data.vel.z);
 
         if (Fn_mag < 0) {
             Fn_mag = 0;
@@ -110,37 +112,12 @@ void ChFialaTire::Update(double time, const WheelState& wheel_state, const ChTer
         m_states.omega = 0;
         m_states.disc_normal = ChVector<>(0, 0, 0);
     }
-
-    // For Debugging:
-    // if (m_states.abs_vx != 0) {
-    //  std::cout << "Time:" << time << std::endl;
-    //  std::cout << "Simple Kappa:" << -m_states.vsx/m_data.vel.x << " Simple Alpha:" << m_states.vsy/ m_data.vel.x <<
-    //  std::endl;
-    //  std::cout << "Tire States: Normal Force:" << m_data.normal_force << std::endl;
-    //  std::cout << "Tire States: abs_vx:" << m_states.abs_vx << std::endl;
-    //  std::cout << "Tire States: vsx:" << m_states.vsx << std::endl;
-    //  std::cout << "Tire States: vsy:" << m_states.vsy << std::endl;
-    //  std::cout << "Tire States: omega:" << m_states.omega << std::endl;
-    //  std::cout << "Wheel States" << std::endl
-    //    << wheel_state.pos.x << ", "
-    //    << wheel_state.pos.y << ", "
-    //    << wheel_state.pos.z << std::endl
-    //    << wheel_state.lin_vel.x << ", "
-    //    << wheel_state.lin_vel.y << ", "
-    //    << wheel_state.lin_vel.z << std::endl
-    //    << wheel_state.ang_vel.x << ", "
-    //    << wheel_state.ang_vel.y << ", "
-    //    << wheel_state.ang_vel.z << ", "
-    //    << wheel_state.omega << std::endl;
-    //}
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChFialaTire::Advance(double step) {
     if (m_data.in_contact) {
-        // integrate contact patch states using trapezoidal rule intergration
-        // ref: https://en.wikipedia.org/wiki/Trapezoidal_rule_(differential_equations)
 
         // Take as many integration steps as needed to reach the value 'step'
         double t = 0;
@@ -149,20 +126,37 @@ void ChFialaTire::Advance(double step) {
             double h = std::min<>(m_stepsize, step - t);
 
             // Advance state for longitudinal direction
+			// integrate using trapezoidal rule intergration since this equation is linear
+			// ref: https://en.wikipedia.org/wiki/Trapezoidal_rule_(differential_equations)
+			// cp_long_slip_dot = -1/m_relax_length_x*(Vsx+(abs(Vx)*cp_long_slip))
             m_states.cp_long_slip =
                 ((2 * m_relax_length_x - h * m_states.abs_vx) * m_states.cp_long_slip - 2 * h * m_states.vsx) /
                 (2 * m_relax_length_x + h * m_states.abs_vx);
 
-            // Advance state for lateral direction
-            m_states.cp_side_slip =
-                ((2 * m_relax_length_y - h * m_states.abs_vx) * m_states.cp_side_slip + 2 * h * m_states.vsy) /
-                (2 * m_relax_length_y + h * m_states.abs_vx);
+#if(fialaUseSmallAngle == 0)
+			// integrate using RK2 since this equation is non-linear
+			// ref: http://mathworld.wolfram.com/Runge-KuttaMethod.html
+			// cp_side_slip = 1/m_relax_length_y*(Vsy-(abs(Vx)*tan(cp_long_slip)))
+			double k1 = h / m_relax_length_y*(m_states.vsy - m_states.abs_vx*std::tan(m_states.cp_side_slip));
+			double temp = std::max<>(-CH_C_PI_2 + .0001, std::min<>(CH_C_PI_2 - .0001, m_states.cp_side_slip+k1/2));
+			double k2 = h / m_relax_length_y*(m_states.vsy - m_states.abs_vx*std::tan(temp));
+			m_states.cp_side_slip = m_states.cp_side_slip + k2;
+#else
+			// Advance state for lateral direction
+			// integrate using trapezoidal rule intergration since this equation is linear
+			//  after using a small angle approximation for tan(alpha)
+			// ref: https://en.wikipedia.org/wiki/Trapezoidal_rule_(differential_equations)
+			// cp_long_slip_dot = -1/m_relax_length_x*(Vsx+(abs(Vx)*cp_long_slip))
+			m_states.cp_side_slip =
+				((2 * m_relax_length_y - h * m_states.abs_vx) * m_states.cp_side_slip + 2 * h * m_states.vsy) /
+				(2 * m_relax_length_y + h * m_states.abs_vx);
+#endif
 
             // Ensure that cp_lon_slip stays between -1 & 1
             m_states.cp_long_slip = std::max<>(-1., std::min<>(1., m_states.cp_long_slip));
 
-            // Ensure that cp_side_slip stays between -pi()/2 & pi()/2
-            m_states.cp_side_slip = std::max<>(-CH_C_PI_2, std::min<>(CH_C_PI_2, m_states.cp_side_slip));
+            // Ensure that cp_side_slip stays between -pi()/2 & pi()/2 (a little less to prevent tan from going to infinity)
+            m_states.cp_side_slip = std::max<>(-CH_C_PI_2+.0001, std::min<>(CH_C_PI_2-.0001, m_states.cp_side_slip));
 
             t += h;
         }
@@ -177,34 +171,26 @@ void ChFialaTire::Advance(double step) {
         //  m_states.cp_side_slip = 0;
         //}
 
-        // For debugging:
-        // std::cout<< "Tire States - K: "<< m_states.cp_long_slip << " A: " << m_states.cp_side_slip << std::endl <<
-        // std::endl;
-
         // Now calculate the new force and moment values (normal force and moment has already been accounted for in
         // Update())
         // See reference for more detail on the calculations
-        double SsA = std::sqrt(std::pow(m_states.cp_long_slip, 2) + std::pow(std::tan(m_states.cp_side_slip), 2));
+        double SsA = std::min<>(1.0,std::sqrt(std::pow(m_states.cp_long_slip, 2) + std::pow(std::tan(m_states.cp_side_slip), 2)));
         double U = m_u_max - (m_u_max - m_u_min) * SsA;
         double S_critical = std::abs(U * m_data.normal_force / (2 * m_c_slip));
-        double Alpha_critical = std::atan(3 * U * std::abs(m_data.normal_force) / m_c_alpha);
+        double Alpha_critical = std::atan(3 * U * m_data.normal_force / m_c_alpha);
         double Fx;
         double Fy;
         double My;
         double Mz;
 
-        // Vertical Force:
-        ChVector<> Fn = m_data.normal_force * m_data.frame.rot.GetZaxis();
-        m_tireforce.force += Fn;
-
         // Longitudinal Force:
         if (std::abs(m_states.cp_long_slip) < S_critical) {
             Fx = m_c_slip * m_states.cp_long_slip;
         } else {
-            double Fx1 = -U * m_data.normal_force;
+            double Fx1 = U * m_data.normal_force;
             double Fx2 =
-                std::abs(std::pow((U * m_data.normal_force), 2) / (4 * std::abs(m_states.cp_long_slip) * m_c_slip));
-            Fx = -sgn(m_states.cp_long_slip) * (Fx1 - Fx2);
+                std::abs(std::pow((U * m_data.normal_force), 2) / (4 * m_states.cp_long_slip * m_c_slip));
+            Fx = sgn(m_states.cp_long_slip) * (Fx1 - Fx2);
         }
 
         // Lateral Force & Aligning Moment (Mz):
@@ -221,7 +207,9 @@ void ChFialaTire::Advance(double step) {
         // Rolling Resistance
         My = -m_rolling_resistance * m_data.normal_force * sgn(m_states.omega);
 
-        // Debugging - trying the calculation the same way as the Simulink version...needs to ISO section as well
+
+        // compile the force and moment vectors so that they can be 
+		// transformed into the global coordinate system
         m_tireforce.force = ChVector<>(Fx, Fy, m_data.normal_force);
         m_tireforce.moment = ChVector<>(0, My, Mz);
 
@@ -231,7 +219,7 @@ void ChFialaTire::Advance(double step) {
 
         // Move the tire forces from the contact patch to the wheel center
         m_tireforce.moment +=
-            Vcross((m_data.frame.pos + ChVector<>(0, 0, m_data.depth)) - m_tireforce.point, m_tireforce.force);
+            Vcross((m_data.frame.pos + m_data.depth*m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
     }
     // Else do nothing since the "m_tireForce" force and moment values are already 0 (set in Update())
 }

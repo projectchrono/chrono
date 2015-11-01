@@ -132,11 +132,11 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
     /// on the 'insrow' column, so that the sparse matrix is kept symmetric.
     /// This is used only by the ChLcpSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-    virtual void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
+    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         tuple_a.Build_Cq(storage, insrow);
         tuple_b.Build_Cq(storage, insrow);
     }
-    virtual void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
+    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
         tuple_a.Build_CqT(storage, inscol);
         tuple_b.Build_CqT(storage, inscol);
     }

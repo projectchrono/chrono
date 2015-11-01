@@ -17,7 +17,6 @@
 #include "assets/ChPathShape.h"
 #include "assets/ChLineShape.h"
 
-#include "chrono/core/ChSpmatrix.h"
 
 #include "chrono_irrlicht/ChIrrNodeProxyToAsset.h"
 

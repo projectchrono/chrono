@@ -239,7 +239,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     /// offset of the corresponding ChLcpVariable.
     /// This is used only by the ChLcpSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-	virtual void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
+	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_a->IsActive())
             storage.PasteMatrixFloat(Cq_a, insrow, variables_a->GetOffset());
         if (variables_b->IsActive())
@@ -247,7 +247,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
         if (variables_c->IsActive())
             storage.PasteMatrixFloat(Cq_c, insrow, variables_c->GetOffset());
     }
-	virtual void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
+	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_a->IsActive())
             storage.PasteTranspMatrixFloat(Cq_a, variables_a->GetOffset(), inscol);
         if (variables_b->IsActive())

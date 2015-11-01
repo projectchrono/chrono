@@ -128,12 +128,12 @@ class ChLcpConstraintTuple_1vars {
                 result(off + i) += Cq.ElementN(i) * l;
     }
 
-    void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables->IsActive())
             storage.PasteMatrix(&Cq, insrow, variables->GetOffset());
     }
 
-    void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables->IsActive())
             storage.PasteTranspMatrix(&Cq, variables->GetOffset(), inscol);
     }
@@ -284,14 +284,14 @@ class ChLcpConstraintTuple_2vars {
                 result(off_2 + i) += Cq_2.ElementN(i) * l;
     }
 
-    void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_1->IsActive())
             storage.PasteMatrix(&Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
             storage.PasteMatrix(&Cq_2, insrow, variables_2->GetOffset());
     }
 
-    void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_1->IsActive())
             storage.PasteTranspMatrix(&Cq_1, variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
@@ -490,7 +490,7 @@ class ChLcpConstraintTuple_3vars {
                 result(off_3 + i) += Cq_3.ElementN(i) * l;
     }
 
-    void Build_Cq(ChSparseMatrixBase& storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_1->IsActive())
             storage.PasteMatrix(&Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
@@ -499,7 +499,7 @@ class ChLcpConstraintTuple_3vars {
             storage.PasteMatrix(&Cq_3, insrow, variables_3->GetOffset());
     }
 
-    void Build_CqT(ChSparseMatrixBase& storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_1->IsActive())
             storage.PasteTranspMatrix(&Cq_1, variables_1->GetOffset(), inscol);
         if (variables_2->IsActive())
