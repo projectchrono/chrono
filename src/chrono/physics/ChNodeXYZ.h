@@ -117,7 +117,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
                            const double W,              ///< z coordinate of application point in absolute space
                            ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
                            double& detJ,                ///< Return det[J] here
-                           const ChVectorDynamic<>& F,  ///< Input F vector, size is 6, it is {Force,Torque} in absolute coords.
+                           const ChVectorDynamic<>& F,  ///< Input F vector, size is 3, it is Force x,y,z in absolute coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) {
