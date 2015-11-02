@@ -235,8 +235,7 @@ Real CreateOne3DRigidCylinder(thrust::host_vector<Real3>& posRadH,
                               Real rigidMass,
                               Real sphMarkerMass,
                               int type) {
-
-	// Arman : take care of velocity and w stuff for BCE
+    // Arman : take care of velocity and w stuff for BCE
     int num_BCEMarkers = 0;
     Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
     for (Real s = -0.5 * cyl_h; s <= 0.5 * cyl_h; s += spacing) {
@@ -288,10 +287,13 @@ void AddBoxBceToChSystemAndSPH(
     if (!initializeFluidFromFile) {
 #if haveFluid
 #if useWallBce
-//        assert(referenceArray.size() > 1 &&
-//               "error: fluid need to be initialized before boundary. Reference array should have two components");
+        //        assert(referenceArray.size() > 1 &&
+        //               "error: fluid need to be initialized before boundary. Reference array should have two
+        //               components");
         if (referenceArray.size() <= 1) {
-        	printf("\n\n\n\n Error! fluid need to be initialized before boundary. Reference array should have two components \n\n\n\n");
+            printf(
+                "\n\n\n\n Error! fluid need to be initialized before boundary. Reference array should have two "
+                "components \n\n\n\n");
         }
 
         thrust::host_vector<Real3> posRadBCE;
@@ -361,23 +363,17 @@ void AddCylinderBceToChSystemAndSPH(
     utils::AddCylinderGeometry(body.get_ptr(), radius, 0.5 * height);
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
-    FSI_Bodies_Index_H.push_back(mphysicalSystem.Get_bodylist()->size() - 1);
     //
-    int numBce = CreateOne3DRigidCylinder(posRadH,
-                                          velMasH,
-                                          rhoPresMuH,
-                                          body.get_ptr(),
-                                          radius,
-                                          height,
-                                          body->GetMass(),
-                                          sphMarkerMass,
-                                          type);
+    int numBce = CreateOne3DRigidCylinder(
+        posRadH, velMasH, rhoPresMuH, body.get_ptr(), radius, height, body->GetMass(), sphMarkerMass, type);
 
     referenceArray.push_back(mI3(numMarkers, numMarkers + numBce, type));
     numObjects.numRigidBodies += 1;
     numObjects.startRigidMarkers = numMarkers;  // Arman : not sure if you need to set startFlexMarkers
     numObjects.numRigid_SphMarkers += numBce;
     numObjects.numAllMarkers = posRadH.size();
+    FSI_Bodies_Index_H.push_back(mphysicalSystem.Get_bodylist()->size() - 1);
+
 }
 // =============================================================================
 
@@ -547,39 +543,28 @@ void CreateMbdPhysicalSystemObjects(
     body->GetCollisionModel()->ClearModel();
     utils::AddSphereGeometry(body.get_ptr(), sphereRad);
     body->GetCollisionModel()->BuildModel();
-    //
-
-    ChVector<> omegaL = body->GetWvel_loc();
-    ChVector<> omegaP = body->GetWvel_par();
-    printf("*** w_l %f %f %f w_p %f %f %f \n", omegaL.x, omegaL.y, omegaL.z, omegaP.x, omegaP.y, omegaP.z);
-    //
-    ChVector<> pointPar = ChVector<>(0, 0, 1) + body->GetPos();
-    // method 1
-    ChVector<> l_point = body->Point_World2Body(pointPar);
-    ChVector<> velvel1 = body->RelPoint_AbsSpeed(l_point);
-    printf("\n\n\n\n\n\n\n\n\n ***********   velocity1  %f %f %f \n\n\n\n\n\n\n ", velvel1.x, velvel1.y, velvel1.z);
-
-    // method 2
-    ChVector<> posLoc = ChTransform<>::TransformParentToLocal(pointPar, body->GetPos(), body->GetRot());
-    ChVector<> velvel2 = body->PointSpeedLocalToParent(posLoc);
-    printf("\n\n\n\n\n\n\n\n\n ***********   velocity 2 %f %f %f \n\n\n\n\n\n\n ", velvel2.x, velvel2.y, velvel2.z);
-
-    // method 3
-    ChVector<> velvel3 = body->GetPos_dt() + body->GetWvel_par() % ChVector<>(0, 0, 1);
-    printf("\n\n\n\n\n\n\n\n\n ***********   velocity3  %f %f %f \n\n\n\n\n\n\n ", velvel3.x, velvel3.y, velvel3.z);
-    //
+//    // *** keep this: how to calculate the velocity of a marker lying on a rigid body
+//    //
+//    ChVector<> pointRel = ChVector<>(0, 0, 1);
+//    ChVector<> pointPar = pointRel + body->GetPos();
+//    // method 1
+//    ChVector<> l_point = body->Point_World2Body(pointPar);
+//    ChVector<> velvel1 = body->RelPoint_AbsSpeed(l_point);
+//    printf("\n\n\n\n\n\n\n\n\n ***********   velocity1  %f %f %f \n\n\n\n\n\n\n ", velvel1.x, velvel1.y, velvel1.z);
+//
+//    // method 2
+//    ChVector<> posLoc = ChTransform<>::TransformParentToLocal(pointPar, body->GetPos(), body->GetRot());
+//    ChVector<> velvel2 = body->PointSpeedLocalToParent(posLoc);
+//    printf("\n\n\n\n\n\n\n\n\n ***********   velocity 2 %f %f %f \n\n\n\n\n\n\n ", velvel2.x, velvel2.y, velvel2.z);
+//
+//    // method 3
+//    ChVector<> velvel3 = body->GetPos_dt() + body->GetWvel_par() % pointRel;
+//    printf("\n\n\n\n\n\n\n\n\n ***********   velocity3  %f %f %f \n\n\n\n\n\n\n ", velvel3.x, velvel3.y, velvel3.z);
+//    //
 
     int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
     mphysicalSystem.AddBody(body);
-    FSI_Bodies_Index_H.push_back(numRigidObjects);
-    //
-
-    printf("shere mass: %f rho times v  %f \n", body->GetMass(), paramsH.rho0 * 4 / 3 * CH_C_PI * pow(sphereRad, 3));
-    //
-
-    std::cin.get();
-    //
-
+   //
     AddCylinderBceToChSystemAndSPH(mphysicalSystem,
                                    cyl_rad,
                                    cyl_len,
@@ -988,9 +973,9 @@ int main(int argc, char* argv[]) {
         //*** set num objects
 
         SetNumObjects(numObjects, referenceArray, numAllMarkers);
-//        assert(posRadH.size() == numObjects.numAllMarkers && "(1) numObjects is not set correctly");
+        //        assert(posRadH.size() == numObjects.numAllMarkers && "(1) numObjects is not set correctly");
         if (posRadH.size() != numObjects.numAllMarkers) {
-        	printf("\n\n\n\n Error! (1) numObjects is not set correctly \n\n\n\n");
+            printf("\n\n\n\n Error! (1) numObjects is not set correctly \n\n\n\n");
         }
         if (numObjects.numAllMarkers == 0) {
             ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
@@ -1017,9 +1002,9 @@ int main(int argc, char* argv[]) {
 
     // ***************************** Create Interface ********************************************
 
-//    assert(posRadH.size() == numObjects.numAllMarkers && "(2) numObjects is not set correctly");
+    //    assert(posRadH.size() == numObjects.numAllMarkers && "(2) numObjects is not set correctly");
     if (posRadH.size() != numObjects.numAllMarkers) {
-    	printf("\n\n\n\n Error! (2) numObjects is not set correctly \n\n\n\n");
+        printf("\n\n\n\n Error! (2) numObjects is not set correctly \n\n\n\n");
     }
 
     //*** Add sph data to the physics system
@@ -1043,14 +1028,21 @@ int main(int argc, char* argv[]) {
     ResizeR4(velMassRigid_fsiBodies_D, numFsiBodies);
     ResizeR3(omegaLRF_fsiBodies_D, numFsiBodies);
 
-
     thrust::host_vector<Real3> posRigid_fsiBodies_dummyH(numFsiBodies);
     thrust::host_vector<Real4> q_fsiBodies_dummyH(numFsiBodies);
     thrust::host_vector<Real4> velMassRigid_fsiBodies_dummyH(numFsiBodies);
     thrust::host_vector<Real3> omegaLRF_fsiBodies_dummyH(numFsiBodies);
 
-    Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D, q_fsiBodies_D, velMassRigid_fsiBodies_D, omegaLRF_fsiBodies_D, posRigid_fsiBodies_dummyH, q_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH, FSI_Bodies_Index_H, mphysicalSystem);
-
+    Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D,
+                                           q_fsiBodies_D,
+                                           velMassRigid_fsiBodies_D,
+                                           omegaLRF_fsiBodies_D,
+                                           posRigid_fsiBodies_dummyH,
+                                           q_fsiBodies_dummyH,
+                                           velMassRigid_fsiBodies_dummyH,
+                                           omegaLRF_fsiBodies_dummyH,
+                                           FSI_Bodies_Index_H,
+                                           mphysicalSystem);
 
     thrust::device_vector<Real3> posRigid_fsiBodies_D2 = posRigid_fsiBodies_D;
     thrust::device_vector<Real4> q_fsiBodies_D2 = q_fsiBodies_D;
@@ -1062,19 +1054,27 @@ int main(int argc, char* argv[]) {
     ResizeR3(rigid_FSI_ForcesD, numFsiBodies);
     ResizeR3(rigid_FSI_TorquesD, numFsiBodies);
     // assert
-    if (numObjects.numRigidBodies != numFsiBodies) {
-    	printf("\n\n\n\n Error! number of fsi bodies does not match numObjects.numRigidBodies \n\n\n\n");
+    if ( (numObjects.numRigidBodies != numFsiBodies) || (referenceArray.size() - 2 != numFsiBodies) ) {
+        printf("\n\n\n\n Error! number of fsi bodies (%d) does not match numObjects.numRigidBodies (%d). Size of reference array: %d \n\n\n\n", numFsiBodies, numObjects.numRigidBodies, referenceArray.size());
+        return 1;
     }
     ResizeR3(rigid_FSI_ForcesD, numObjects.numRigidBodies);
     ResizeR3(rigid_FSI_TorquesD, numObjects.numRigidBodies);
-
 
     thrust::device_vector<uint> rigidIdentifierD;
     ResizeU1(rigidIdentifierD, numObjects.numRigid_SphMarkers);
     thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;
     ResizeR3(rigidSPH_MeshPos_LRF_D, numObjects.numRigid_SphMarkers);
-    Populate_RigidSPH_MeshPos_LRF(
-        rigidIdentifierD, rigidSPH_MeshPos_LRF_D, posRadD, posRigid_fsiBodies_D, q_fsiBodies_D, referenceArray, numObjects);
+
+    InitSystem(paramsH, numObjects);
+
+    Populate_RigidSPH_MeshPos_LRF(rigidIdentifierD,
+                                  rigidSPH_MeshPos_LRF_D,
+                                  posRadD,
+                                  posRigid_fsiBodies_D,
+                                  q_fsiBodies_D,
+                                  referenceArray,
+                                  numObjects);
 
     // ** initialize device mid step data
     thrust::device_vector<Real3> posRadD2 = posRadD;
@@ -1082,9 +1082,10 @@ int main(int argc, char* argv[]) {
     thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
     thrust::device_vector<Real3> vel_XSPH_D;
     ResizeR3(vel_XSPH_D, numObjects.numAllMarkers);
-//    assert(posRadD.size() == numObjects.numAllMarkers && "(3) numObjects is not set correctly");
+    //    assert(posRadD.size() == numObjects.numAllMarkers && "(3) numObjects is not set correctly");
     if (posRadD.size() != numObjects.numAllMarkers) {
-    	printf("\n\n\n\n Error! (3) numObjects is not set correctly \n\n\n\n");
+        printf("\n\n\n\n Error! (3) numObjects is not set correctly \n\n\n\n");
+        return 1;
     }
 
 #endif
@@ -1136,8 +1137,8 @@ int main(int argc, char* argv[]) {
         myGpuTimerHalfStep.Start();
         fsi_timer.Reset();
 
-        Copy_ChSystem_to_External(pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH, mphysicalSystem);
-
+        Copy_ChSystem_to_External(
+            pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH, mphysicalSystem);
 
 #if haveFluid
         CpuTimer mCpuTimer;
@@ -1236,7 +1237,16 @@ int main(int argc, char* argv[]) {
         fsi_timer.stop("stepDynamic_mbd");
 
 #if haveFluid
-        Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D2, q_fsiBodies_D2, velMassRigid_fsiBodies_D2, omegaLRF_fsiBodies_D2, posRigid_fsiBodies_dummyH, q_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH, FSI_Bodies_Index_H, mphysicalSystem);
+        Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D2,
+                                               q_fsiBodies_D2,
+                                               velMassRigid_fsiBodies_D2,
+                                               omegaLRF_fsiBodies_D2,
+                                               posRigid_fsiBodies_dummyH,
+                                               q_fsiBodies_dummyH,
+                                               velMassRigid_fsiBodies_dummyH,
+                                               omegaLRF_fsiBodies_dummyH,
+                                               FSI_Bodies_Index_H,
+                                               mphysicalSystem);
 
         UpdateRigidMarkersPosition(posRadD2,
                                    velMasD2,
@@ -1247,6 +1257,7 @@ int main(int argc, char* argv[]) {
                                    velMassRigid_fsiBodies_D2,
                                    omegaLRF_fsiBodies_D2,
                                    numObjects);  // Arman rigidSPH_MeshPos_LRF_D, rigidIdentifierD, numObjects
+
 
         // ******************
         // ******************
@@ -1286,20 +1297,30 @@ int main(int argc, char* argv[]) {
         mTime -= 0.5 * currentParamsH.dT;
 
         // Arman: do it so that you don't need gpu when you don't have fluid
-        Copy_External_To_ChSystem(mphysicalSystem, pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH);
+        Copy_External_To_ChSystem(
+            mphysicalSystem, pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH);
 
         fsi_timer.start("stepDynamic_mbd");
 
         mTime += currentParamsH.dT;
-        DoStepChronoSystem(
-            mphysicalSystem, 1.0 * currentParamsH.dT, mTime);  // Keep only this if you are just interested in the rigid sys
+        DoStepChronoSystem(mphysicalSystem,
+                           1.0 * currentParamsH.dT,
+                           mTime);  // Keep only this if you are just interested in the rigid sys
 
         fsi_timer.stop("stepDynamic_mbd");
 
-
 #if haveFluid
 
-        Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D, q_fsiBodies_D, velMassRigid_fsiBodies_D, omegaLRF_fsiBodies_D, posRigid_fsiBodies_dummyH, q_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH, FSI_Bodies_Index_H, mphysicalSystem);
+        Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D,
+                                               q_fsiBodies_D,
+                                               velMassRigid_fsiBodies_D,
+                                               omegaLRF_fsiBodies_D,
+                                               posRigid_fsiBodies_dummyH,
+                                               q_fsiBodies_dummyH,
+                                               velMassRigid_fsiBodies_dummyH,
+                                               omegaLRF_fsiBodies_dummyH,
+                                               FSI_Bodies_Index_H,
+                                               mphysicalSystem);
         UpdateRigidMarkersPosition(posRadD,
                                    velMasD,
                                    rigidSPH_MeshPos_LRF_D,
@@ -1359,8 +1380,7 @@ int main(int argc, char* argv[]) {
     vel_ChSystemBackupH.clear();
     omegaLRF_ChSystemBackupH.clear();
 
-
-    // Arman LRF in omegaLRF may need change
+// Arman LRF in omegaLRF may need change
 
 #if haveFluid
     ClearMyThrustR3(posRadD);

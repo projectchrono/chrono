@@ -417,7 +417,6 @@ void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRig
     printf("\n\n\n\n Error!!! number of fsi bodies that are tracked does not match the array size \n\n\n\n");
   }
   std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
-  printf("\n\n\n num_fsiBodies_Rigids %d \n", num_fsiBodies_Rigids);
 #pragma omp parallel for
   for (int i = 0; i < num_fsiBodies_Rigids; i++) {
     chrono::ChBody* bodyPtr = *(myIter + FSI_Bodies_Index_H[i]);
