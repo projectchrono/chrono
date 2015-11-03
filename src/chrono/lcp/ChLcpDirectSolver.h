@@ -48,6 +48,9 @@ namespace chrono {
 ///   inequalities or in multibody problems.
 
 class ChApi ChLcpDirectSolver : public ChLcpSolver {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChLcpDirectSolver, ChLcpSolver);
+
   protected:
     //
     // DATA

@@ -19,25 +19,22 @@
 #ifndef GENERIC_RACKPINION_H
 #define GENERIC_RACKPINION_H
 
-#include "chrono_vehicle/steering/ChRackPinion.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/ChRackPinion.h"
 
-class Generic_RackPinion : public chrono::ChRackPinion
-{
-public:
+class Generic_RackPinion : public chrono::vehicle::ChRackPinion {
+  public:
+    Generic_RackPinion(const std::string& name) : chrono::vehicle::ChRackPinion(name) {}
+    ~Generic_RackPinion() {}
 
-  Generic_RackPinion(const std::string& name) : ChRackPinion(name) {}
-  ~Generic_RackPinion() {}
+    virtual double GetSteeringLinkMass() const override { return 9.0; }
+    virtual chrono::ChVector<> GetSteeringLinkInertia() const override { return chrono::ChVector<>(1, 1, 1); }
+    virtual double GetSteeringLinkCOM() const override { return 0.0; }
+    virtual double GetSteeringLinkRadius() const override { return 0.03; }
+    virtual double GetSteeringLinkLength() const override { return 0.896; }
 
-  virtual double GetSteeringLinkMass() const                 { return 9.0; }
-  virtual chrono::ChVector<> GetSteeringLinkInertia() const  { return chrono::ChVector<>(1, 1, 1); }
-  virtual double GetSteeringLinkCOM() const                  { return 0.0; }
-  virtual double GetSteeringLinkRadius() const               { return 0.03; }
-  virtual double GetSteeringLinkLength() const               { return 0.896; }
+    virtual double GetPinionRadius() const override { return 0.1; }
 
-  virtual double GetPinionRadius() const                     { return 0.1; }
-
-  virtual double GetMaxAngle() const                         { return 0.87; }
+    virtual double GetMaxAngle() const override { return 0.87; }
 };
-
 
 #endif

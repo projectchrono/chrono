@@ -23,6 +23,7 @@
 #include "hmmwv/tire/HMMWV_LugreTire.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 namespace hmmwv {
 

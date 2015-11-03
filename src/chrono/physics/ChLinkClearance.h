@@ -97,9 +97,13 @@ class ChApi ChLinkClearance : public ChLinkLock {
 
     int Get_is_in_contact();  // returns: 1= is sliding contact, 0= is flying
 
-    // STREAMING
-    virtual void StreamIN(ChStreamInBinary& mstream);
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    // SERIALIZATION
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////

@@ -39,6 +39,7 @@
 #include "chrono_vehicle/ChVehicle.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 /// Base class for all steering path-following PID controllers.
@@ -189,6 +190,7 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     ChBezierCurveTracker* m_tracker;  ///< path tracker
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

@@ -30,6 +30,7 @@
 #include "chrono_vehicle/ChVehicle.h"
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 ///
@@ -43,13 +44,13 @@ class CH_VEHICLE_API ChSpeedController {
     /// Construct a speed controller with default parameters.
     /// Default values are all gains set to zero (no controller).
     /// The user is responsible for calling SetGains.
-      ChSpeedController();
+    ChSpeedController();
 
     /// Construct a steering controller with parameters read from a JSON file.
-      ChSpeedController(const std::string& filename);
+    ChSpeedController(const std::string& filename);
 
     /// Destructor.
-      virtual ~ChSpeedController();
+    virtual ~ChSpeedController();
 
     /// Set the gains for the PID controller.
     void SetGains(double Kp, double Ki, double Kd) {
@@ -85,7 +86,7 @@ class CH_VEHICLE_API ChSpeedController {
     void WriteOutputFile(const std::string& filename);
 
   protected:
-    double m_speed; ///< current vehicle speed
+    double m_speed;  ///< current vehicle speed
 
     double m_Kp;  ///<
     double m_Ki;  ///< PID controller gains
@@ -99,6 +100,7 @@ class CH_VEHICLE_API ChSpeedController {
     bool m_collect;            ///< flag indicating whether or not data is being collected
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

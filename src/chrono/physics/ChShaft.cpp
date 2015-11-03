@@ -255,63 +255,55 @@ void ChShaft::Update(double mytime, bool update_assets) {
 
 //////// FILE I/O
 
-void ChShaft::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChShaft::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
+    // serialize parent class
+    ChPhysicsItem::ArchiveOUT(marchive);
 
-    // stream out all member data
-    double dfoo;
-    mstream << this->torque;
-    mstream << this->pos;
-    mstream << this->pos_dt;
-    mstream << this->pos_dtdt;
-    mstream << this->inertia;
-    mstream << this->GetShaftFixed();
-
-    mstream << max_speed;
-    mstream << sleep_time;
-    dfoo = (double)sleep_starttime;
-    mstream << dfoo;
-    mstream << sleep_minspeed;
-    mstream << sleep_minwvel;
-
-    mstream << fixed;
-    mstream << limitspeed;
-    mstream << sleeping;
-    mstream << use_sleeping;
+    // serialize all member data:
+    marchive << CHNVP(torque);
+    marchive << CHNVP(pos);
+    marchive << CHNVP(pos_dt);
+    marchive << CHNVP(pos_dtdt);
+    marchive << CHNVP(inertia);
+    marchive << CHNVP(fixed);
+    marchive << CHNVP(limitspeed);
+    marchive << CHNVP(max_speed);
+    marchive << CHNVP(sleep_time);
+    marchive << CHNVP(sleep_starttime);
+    marchive << CHNVP(sleep_minspeed);
+    marchive << CHNVP(sleep_minwvel);
+    marchive << CHNVP(sleeping);
+    marchive << CHNVP(use_sleeping);
 }
 
-void ChShaft::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChShaft::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChPhysicsItem::StreamIN(mstream);
+    // deserialize parent class:
+    ChPhysicsItem::ArchiveIN(marchive);
 
-    double dfoo;
-    bool bfoo;
-    mstream >> this->torque;
-    mstream >> this->pos;
-    mstream >> this->pos_dt;
-    mstream >> this->pos_dtdt;
-    mstream >> this->inertia;
-    mstream >> bfoo;
-    this->SetShaftFixed(bfoo);
-
-    mstream >> max_speed;
-    mstream >> sleep_time;
-    mstream >> dfoo;
-    sleep_starttime = (float)dfoo;
-    mstream >> sleep_minspeed;
-    mstream >> sleep_minwvel;
-
-    mstream >> fixed;
-    mstream >> limitspeed;
-    mstream >> sleeping;
-    mstream >> use_sleeping;
+    // deserialize all member data:
+    marchive >> CHNVP(torque);
+    marchive >> CHNVP(pos);
+    marchive >> CHNVP(pos_dt);
+    marchive >> CHNVP(pos_dtdt);
+    marchive >> CHNVP(inertia);
+    marchive >> CHNVP(fixed);
+    marchive >> CHNVP(limitspeed);
+    marchive >> CHNVP(max_speed);
+    marchive >> CHNVP(sleep_time);
+    marchive >> CHNVP(sleep_starttime);
+    marchive >> CHNVP(sleep_minspeed);
+    marchive >> CHNVP(sleep_minwvel);
+    marchive >> CHNVP(sleeping);
+    marchive >> CHNVP(use_sleeping);
 }
 
 }  // END_OF_NAMESPACE____

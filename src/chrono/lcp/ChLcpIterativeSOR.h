@@ -47,6 +47,9 @@ namespace chrono {
 /// * case CCP: Y_i are friction cones
 
 class ChApi ChLcpIterativeSOR : public ChLcpIterativeSolver {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChLcpIterativeSOR, ChLcpIterativeSolver);
+
   protected:
     //
     // DATA

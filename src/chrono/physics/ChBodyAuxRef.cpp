@@ -141,29 +141,6 @@ void ChBodyAuxRef::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(auxref_to_abs);
 }
 
-void ChBodyAuxRef::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-
-    // serialize parent class too
-    ChBody::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << auxref_to_cog;
-    mstream << auxref_to_abs;
-}
-
-void ChBodyAuxRef::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChBody::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> auxref_to_cog;
-    mstream >> auxref_to_abs;
-}
 
 }  // END_OF_NAMESPACE____
 

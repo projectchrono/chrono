@@ -293,6 +293,7 @@ void ChLinkPointFrame::ConstraintsLiFetchSuggestedPositionSolution() {
 //////// FILE I/O
 
 void ChLinkPointFrame::StreamOUT(ChStreamOutBinary& mstream) {
+    /*
 			// class version number
 	mstream.VersionWrite(1);
 
@@ -301,11 +302,13 @@ void ChLinkPointFrame::StreamOUT(ChStreamOutBinary& mstream) {
 
 		// stream out all member data
 	//mstream << this->node_index;
-	mstream << this->attach_reference;
-	mstream << this->react;
+	mstream < this->attach_reference;
+	mstream < this->react;
+    */
 }
 
 void ChLinkPointFrame::StreamIN(ChStreamInBinary& mstream) {
+    /*
 		// class version number
 	int version = mstream.VersionRead();
 
@@ -316,6 +319,7 @@ void ChLinkPointFrame::StreamIN(ChStreamInBinary& mstream) {
 	//mstream >> this->node_index;
 	mstream >> this->attach_reference;
 	mstream >> this->react;
+    */
 }
 
 /////////////////////

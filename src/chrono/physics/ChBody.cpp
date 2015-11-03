@@ -489,24 +489,6 @@ void ChBody::Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMat
     mQf->PasteSumQuaternion(ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(mabstorque)), 3, 0);
 }
 
-void ChBody::From_lagrangian_to_forcetorque(const ChMatrixNM<double, 7, 1>& mQf,
-                                            ChVector<>& mforce,
-                                            ChVector<>& mtorque) {
-    mforce = mQf.ClipVector(0, 0);
-    ChQuaternion<> tempq;
-    tempq = mQf.ClipQuaternion(3, 0);
-    mtorque = ChFrame<>::Gl_x_Quat(coord.rot, tempq);
-    mtorque *= 0.25;
-}
-
-void ChBody::From_forcetorque_to_lagrangian(const ChVector<>& mforce,
-                                            const ChVector<>& mtorque,
-                                            ChMatrixNM<double, 7, 1>& mQf) {
-    mQf.PasteVector(mforce, 0, 0);
-    ChQuaternion<> tempq;
-    tempq = ChFrame<>::GlT_x_Vect(coord.rot, mtorque);
-    mQf.PasteQuaternion(tempq, 3, 0);
-}
 
 //////
 
@@ -1052,269 +1034,54 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(sleep_starttime);
 }
 
-void ChBody::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(8);
 
-    // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
-
-    // serialize parent class too
-    ChFrameMoving<double>::StreamOUT(mstream);
-
-    // stream out all member data
-    ChVector<> vfoo = VNULL;
-    double dfoo = 0;
-    mstream << variables.GetBodyMass();
-    vfoo = GetInertiaXX();
-    mstream << vfoo;
-    vfoo = GetInertiaXY();
-    mstream << vfoo;
-
-    mstream << dfoo;
-    mstream << bflag;
-    dfoo = (double)density;
-    mstream << dfoo;
-
-    mstream << max_speed;
-    mstream << max_wvel;
-    mstream << sleep_time;
-    dfoo = (double)sleep_starttime;
-    mstream << dfoo;
-    mstream << sleep_minspeed;
-    mstream << sleep_minwvel;
-
-    //this->collision_model->StreamOUT(mstream);  // also  mstream << (*this->collision_model);
-
-    this->matsurface->StreamOUT(mstream);
-}
-
-void ChBody::StreamIN(ChStreamInBinary& mstream) {
-    // Class version number
-    int version = mstream.VersionRead();
-
-    // Deserialize parent class too
-    if (version < 4)
-        ChObj::StreamIN(mstream);
-    else
-        ChPhysicsItem::StreamIN(mstream);
-
-    collision_model->ClearModel();
-
-    if (version == 1) {
-        // stream in all member data
-        int mlock;
-        double dfoo;
-        mstream >> mlock;
-        mstream >> coord;
-        SetCoord(coord);
-        mstream >> coord_dt;
-        SetCoord_dt(coord_dt);
-        mstream >> coord_dtdt;
-        SetCoord_dtdt(coord_dtdt);
-        mstream >> dfoo;
-        SetMass(dfoo);
-        ChVector<> vfoo;
-        mstream >> vfoo;
-        SetInertiaXX(vfoo);
-        mstream >> vfoo;
-        SetInertiaXY(vfoo);
-        mstream >> dfoo;  // bdamper;
-        mstream >> dfoo;
-        GetMaterialSurface()->SetRestitution((float)dfoo);
-        mstream >> dfoo;  // GetMaterialSurface()->SetRestitutionT((float)dfoo);
-        mstream >> dfoo;
-        GetMaterialSurface()->SetKfriction((float)dfoo);
-        mstream >> dfoo;
-        GetMaterialSurface()->SetSfriction((float)dfoo);
-        mstream >> bflag;
-        mstream >> dfoo;
-        density = (float)dfoo;
-        SetBodyFixed(mlock != 0);
-    }
-    if (version >= 2) {
-        // deserialize parent class too
-        ChFrameMoving<double>::StreamIN(mstream);
-
-        // stream in all member data
-        double dfoo;
-        mstream >> dfoo;
-        SetMass(dfoo);
-        ChVector<> vfoo;
-        mstream >> vfoo;
-        SetInertiaXX(vfoo);
-        mstream >> vfoo;
-        SetInertiaXY(vfoo);
-        mstream >> dfoo;  // bdamper;
-        if (version < 7) {
-            mstream >> dfoo;
-            GetMaterialSurface()->SetRestitution((float)dfoo);
-            mstream >> dfoo;  // GetMaterialSurface()->SetRestitutionT((float)dfoo);
-            mstream >> dfoo;
-            GetMaterialSurface()->SetKfriction((float)dfoo);
-            mstream >> dfoo;
-            GetMaterialSurface()->SetSfriction((float)dfoo);
-        }
-        mstream >> bflag;
-        mstream >> dfoo;
-        density = (float)dfoo;
-        if (this->GetBodyFixed())
-            SetBodyFixed(true);
-        else
-            SetBodyFixed(false);
-    }
-    if (version < 3)
-        SetUseSleeping(true);
-    if (version >= 3) {
-        double dfoo;
-        mstream >> max_speed;
-        mstream >> max_wvel;
-        mstream >> sleep_time;
-        mstream >> dfoo;
-        sleep_starttime = (float)dfoo;
-        mstream >> sleep_minspeed;
-        mstream >> sleep_minwvel;
-    }
-    if ((version >= 5) && (version < 7)) {
-        double dfoo;
-        mstream >> dfoo;
-        GetMaterialSurface()->SetRollingFriction((float)dfoo);
-        mstream >> dfoo;
-        GetMaterialSurface()->SetSpinningFriction((float)dfoo);
-    }
-    if (version >= 6) {
-        //this->collision_model->StreamIN(mstream);  // also   mstream >> (*collision_model);
-        this->collision_model->BuildModel();       // because previously removed from ChSystem, if any.
-    }
-    if (version >= 7) {
-        this->matsurface->StreamIN(mstream);
-    }
-}
 
 void ChBody::StreamOUTstate(ChStreamOutBinary& mstream) {
     // Do not serialize parent classes and do not
     // implement versioning, because this must be efficient
     // and will be used just for domain decomposition.
-    this->GetCoord().StreamOUT(mstream);
-    this->GetCoord_dt().StreamOUT(mstream);
+    mstream << this->coord.pos.x;
+    mstream << this->coord.pos.x;
+    mstream << this->coord.pos.x;
+    mstream << this->coord.rot.e0;
+    mstream << this->coord.rot.e1;
+    mstream << this->coord.rot.e2;
+    mstream << this->coord.rot.e3;
+    mstream << this->coord_dt.pos.x;
+    mstream << this->coord_dt.pos.x;
+    mstream << this->coord_dt.pos.x;
+    mstream << this->coord_dt.rot.e0;
+    mstream << this->coord_dt.rot.e1;
+    mstream << this->coord_dt.rot.e2;
+    mstream << this->coord_dt.rot.e3;
 }
 
 void ChBody::StreamINstate(ChStreamInBinary& mstream) {
     // Do not serialize parent classes and do not
     // implement versioning, because this must be efficient
     // and will be used just for domain decomposition.
-    ChCoordsys<> mcoord;
-    mstream >> mcoord;
-    this->SetCoord(mcoord);
-    mstream >> mcoord;
-    this->SetCoord_dt(mcoord);
+    mstream >> this->coord.pos.x;
+    mstream >> this->coord.pos.x;
+    mstream >> this->coord.pos.x;
+    mstream >> this->coord.rot.e0;
+    mstream >> this->coord.rot.e1;
+    mstream >> this->coord.rot.e2;
+    mstream >> this->coord.rot.e3;
+    this->SetCoord(coord);
+    mstream >> this->coord_dt.pos.x;
+    mstream >> this->coord_dt.pos.x;
+    mstream >> this->coord_dt.pos.x;
+    mstream >> this->coord_dt.rot.e0;
+    mstream >> this->coord_dt.rot.e1;
+    mstream >> this->coord_dt.rot.e2;
+    mstream >> this->coord_dt.rot.e3;
+    this->SetCoord_dt(coord_dt);
 
     this->Update();
     this->SyncCollisionModels();
 }
 
-#define CH_CHUNK_END 1234
 
-int ChBody::StreamINall(ChStreamInBinary& m_file) {
-    int mchunk = 0;
-    ChMarker* newmarker = NULL;
-    // ChForce*  newforce= NULL;
-
-    // 0) reset body child lists
-    RemoveAllMarkers();
-    RemoveAllForces();
-
-    // 1) read body class data...
-
-    m_file >> *this;
-
-    m_file >> mchunk;
-
-    // 2) read child markers
-    while (mchunk == CHCLASS_MARKER) {
-        ChSharedPtr<ChMarker> newmarker(new ChMarker);
-        this->AddMarker(newmarker);
-
-        m_file >> *newmarker;
-
-        newmarker->Impose_Abs_Coord(newmarker->GetAbsCoord());
-
-        m_file >> mchunk;
-    }
-
-    // 3) read child links
-    while (mchunk == CHCLASS_FORCE) {
-        ChSharedPtr<ChForce> newforce(new ChForce);
-        this->AddForce(newforce);
-
-        m_file >> *newforce;
-
-        m_file >> mchunk;
-    }
-
-    if (mchunk != CH_CHUNK_END)
-        return 0;
-
-    return 1;
-}
-
-int ChBody::StreamOUTall(ChStreamOutBinary& m_file) {
-    // 1) read body class data...
-    m_file << *this;
-
-    // 2) read child bodies
-    HIER_MARKER_INIT
-    while
-        HIER_MARKER_NOSTOP
-    {
-        m_file << (int)CHCLASS_MARKER;
-        m_file << *MARKpointer;
-        HIER_MARKER_NEXT
-    }
-
-    // 3) read child links
-    HIER_FORCE_INIT
-    while
-        HIER_FORCE_NOSTOP
-    {
-        m_file << (int)CHCLASS_FORCE;
-        m_file << *FORCEpointer;
-        HIER_FORCE_NEXT
-    }
-
-    m_file << (int)CH_CHUNK_END;
-
-    return 1;
-}
-
-void ChBody::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "BODY   " << GetName() << "\n";
-
-    ChFrameMoving<double>::StreamOUT(mstream);
-
-    //***TO DO***
-}
-
-int ChBody::StreamOUTall(ChStreamOutAscii& mstream)  // dump rigidbody and childrens (markers.forces)
-{
-    StreamOUT(mstream);  // 1) dump the body attrs
-
-    HIER_MARKER_INIT
-    while (HIER_MARKER_NOSTOP)  // 2) dump the markers
-    {
-        MARKpointer->StreamOUT(mstream);
-        HIER_MARKER_NEXT
-    }
-
-    HIER_FORCE_INIT
-    while (HIER_FORCE_NOSTOP)  // 3) dump the forces
-    {
-        FORCEpointer->StreamOUT(mstream);
-        HIER_FORCE_NEXT
-    }
-
-    return 1;
-}
 
 }  // END_OF_NAMESPACE____
 

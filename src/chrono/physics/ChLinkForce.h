@@ -81,20 +81,15 @@ class ChApi ChLinkForce {
     double Get_Force(double x, double x_dt, double t);
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
-    /// Method to allow serialization of transient data in ascii,
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    void StreamOUT(ChStreamOutAscii& mstream);
 };
 
 }  // END_OF_NAMESPACE____

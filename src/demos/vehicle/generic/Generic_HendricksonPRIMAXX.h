@@ -25,49 +25,49 @@
 #ifndef GENERIC_HENDRICKSON_PRIMAXX_H
 #define GENERIC_HENDRICKSON_PRIMAXX_H
 
-#include "chrono_vehicle/suspension/ChHendricksonPRIMAXX.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ChHendricksonPRIMAXX.h"
 
-class Generic_HendricksonPRIMAXX : public chrono::ChHendricksonPRIMAXX {
+class Generic_HendricksonPRIMAXX : public chrono::vehicle::ChHendricksonPRIMAXX {
   public:
     Generic_HendricksonPRIMAXX(const std::string& name);
     ~Generic_HendricksonPRIMAXX();
 
-    virtual const chrono::ChVector<> getAxlehousingCOM() const { return m_axlehousingCOM; }
-    virtual const chrono::ChVector<> getTransversebeamCOM() const { return m_transversebeamCOM; }
+    virtual const chrono::ChVector<> getAxlehousingCOM() const override { return m_axlehousingCOM; }
+    virtual const chrono::ChVector<> getTransversebeamCOM() const override { return m_transversebeamCOM; }
 
-    virtual double getAxlehousingMass() const { return m_axlehousingMass; }
-    virtual double getKnuckleMass() const { return m_knuckleMass; }
-    virtual double getSpindleMass() const { return m_spindleMass; }
-    virtual double getTorquerodMass() const { return m_torquerodMass; }
-    virtual double getLowerbeamMass() const { return m_lowerbeamMass; }
-    virtual double getTransversebeamMass() const { return m_transversebeamMass; }
+    virtual double getAxlehousingMass() const override { return m_axlehousingMass; }
+    virtual double getKnuckleMass() const override { return m_knuckleMass; }
+    virtual double getSpindleMass() const override { return m_spindleMass; }
+    virtual double getTorquerodMass() const override { return m_torquerodMass; }
+    virtual double getLowerbeamMass() const override { return m_lowerbeamMass; }
+    virtual double getTransversebeamMass() const override { return m_transversebeamMass; }
 
-    virtual double getAxlehousingRadius() const { return m_axlehousingRadius; }
-    virtual double getKnuckleRadius() const { return m_knuckleRadius; }
-    virtual double getSpindleRadius() const { return m_spindleRadius; }
-    virtual double getSpindleWidth() const { return m_spindleWidth; }
-    virtual double getTorquerodRadius() const { return m_torquerodRadius; }
-    virtual double getLowerbeamRadius() const { return m_lowerbeamRadius; }
-    virtual double getTransversebeamRadius() const { return m_transversebeamRadius; }
+    virtual double getAxlehousingRadius() const override { return m_axlehousingRadius; }
+    virtual double getKnuckleRadius() const override { return m_knuckleRadius; }
+    virtual double getSpindleRadius() const override { return m_spindleRadius; }
+    virtual double getSpindleWidth() const override { return m_spindleWidth; }
+    virtual double getTorquerodRadius() const override { return m_torquerodRadius; }
+    virtual double getLowerbeamRadius() const override { return m_lowerbeamRadius; }
+    virtual double getTransversebeamRadius() const override { return m_transversebeamRadius; }
 
-    virtual const chrono::ChVector<>& getAxlehousingInertia() const { return m_axlehousingInertia; }
-    virtual const chrono::ChVector<>& getKnuckleInertia() const { return m_knuckleInertia; }
-    virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
-    virtual const chrono::ChVector<>& getTorquerodInertia() const { return m_torquerodInertia; }
-    virtual const chrono::ChVector<>& getLowerbeamInertia() const { return m_lowerbeamInertia; }
-    virtual const chrono::ChVector<>& getTransversebeamInertia() const { return m_transversebeamInertia; }
+    virtual const chrono::ChVector<>& getAxlehousingInertia() const override { return m_axlehousingInertia; }
+    virtual const chrono::ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const chrono::ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const chrono::ChVector<>& getTorquerodInertia() const override { return m_torquerodInertia; }
+    virtual const chrono::ChVector<>& getLowerbeamInertia() const override { return m_lowerbeamInertia; }
+    virtual const chrono::ChVector<>& getTransversebeamInertia() const override { return m_transversebeamInertia; }
 
-    virtual double getAxleInertia() const { return m_axleInertia; }
+    virtual double getAxleInertia() const override { return m_axleInertia; }
 
-    virtual double getShockAHRestLength() const { return m_shockAH_restLength; }
-    virtual chrono::ChSpringForceCallback* getShockAHForceCallback() const { return m_shockAHForceCB; }
+    virtual double getShockAHRestLength() const override { return m_shockAH_restLength; }
+    virtual chrono::ChSpringForceCallback* getShockAHForceCallback() const override { return m_shockAHForceCB; }
 
-    virtual double getShockLBRestLength() const { return m_shockLB_restLength; }
-    virtual chrono::ChSpringForceCallback* getShockLBForceCallback() const { return m_shockLBForceCB; }
+    virtual double getShockLBRestLength() const override { return m_shockLB_restLength; }
+    virtual chrono::ChSpringForceCallback* getShockLBForceCallback() const override { return m_shockLBForceCB; }
 
   private:
-    virtual const chrono::ChVector<> getLocation(PointId which);
-    virtual const chrono::ChVector<> getDirection(DirectionId which);
+    virtual const chrono::ChVector<> getLocation(PointId which) override;
+    virtual const chrono::ChVector<> getDirection(DirectionId which) override;
 
     chrono::ChSpringForceCallback* m_shockAHForceCB;
     chrono::ChSpringForceCallback* m_shockLBForceCB;

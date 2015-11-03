@@ -25,6 +25,7 @@
 #include "generic/Generic_HendricksonPRIMAXX.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 // Static variables -- all in SI units

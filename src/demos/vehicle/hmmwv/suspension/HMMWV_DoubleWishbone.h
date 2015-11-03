@@ -26,131 +26,122 @@
 #ifndef HMMWV_DOUBLEWISHBONE_H
 #define HMMWV_DOUBLEWISHBONE_H
 
-
-#include "chrono_vehicle/suspension/ChDoubleWishbone.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishbone.h"
 
 namespace hmmwv {
 
-class HMMWV_DoubleWishboneFront : public chrono::ChDoubleWishbone
-{
-public:
+class HMMWV_DoubleWishboneFront : public chrono::vehicle::ChDoubleWishbone {
+  public:
+    HMMWV_DoubleWishboneFront(const std::string& name);
+    ~HMMWV_DoubleWishboneFront();
 
-  HMMWV_DoubleWishboneFront(const std::string& name);
-  ~HMMWV_DoubleWishboneFront();
+    virtual double getSpindleMass() const override { return m_spindleMass; }
+    virtual double getUCAMass() const override { return m_UCAMass; }
+    virtual double getLCAMass() const override { return m_LCAMass; }
+    virtual double getUprightMass() const override { return m_uprightMass; }
 
-  virtual double getSpindleMass() const { return m_spindleMass; }
-  virtual double getUCAMass() const { return m_UCAMass; }
-  virtual double getLCAMass() const { return m_LCAMass; }
-  virtual double getUprightMass() const { return m_uprightMass; }
+    virtual double getSpindleRadius() const override { return m_spindleRadius; }
+    virtual double getSpindleWidth() const override { return m_spindleWidth; }
+    virtual double getUCARadius() const override { return m_UCARadius; }
+    virtual double getLCARadius() const override { return m_LCARadius; }
+    virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-  virtual double getSpindleRadius() const { return m_spindleRadius; }
-  virtual double getSpindleWidth() const { return m_spindleWidth; }
-  virtual double getUCARadius() const { return m_UCARadius; }
-  virtual double getLCARadius() const { return m_LCARadius; }
-  virtual double getUprightRadius() const { return m_uprightRadius; }
+    virtual const chrono::ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const chrono::ChVector<>& getUCAInertia() const override { return m_UCAInertia; }
+    virtual const chrono::ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
+    virtual const chrono::ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
 
-  virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
-  virtual const chrono::ChVector<>& getUCAInertia() const { return m_UCAInertia; }
-  virtual const chrono::ChVector<>& getLCAInertia() const { return m_LCAInertia; }
-  virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
+    virtual double getAxleInertia() const override { return m_axleInertia; }
 
-  virtual double getAxleInertia() const { return m_axleInertia; }
+    virtual double getSpringRestLength() const override { return m_springRestLength; }
+    virtual chrono::ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
+    virtual chrono::ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
-  virtual double getSpringRestLength() const { return m_springRestLength; }
-  virtual chrono::ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
-  virtual chrono::ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
+  private:
+    virtual const chrono::ChVector<> getLocation(PointId which) override;
 
-private:
+    chrono::ChSpringForceCallback* m_springForceCB;
+    chrono::ChSpringForceCallback* m_shockForceCB;
 
-  virtual const chrono::ChVector<> getLocation(PointId which);
+    static const double m_spindleMass;
+    static const double m_UCAMass;
+    static const double m_LCAMass;
+    static const double m_uprightMass;
 
-  chrono::ChSpringForceCallback* m_springForceCB;
-  chrono::ChSpringForceCallback* m_shockForceCB;
+    static const double m_spindleRadius;
+    static const double m_spindleWidth;
+    static const double m_UCARadius;
+    static const double m_LCARadius;
+    static const double m_uprightRadius;
 
-  static const double      m_spindleMass;
-  static const double      m_UCAMass;
-  static const double      m_LCAMass;
-  static const double      m_uprightMass;
+    static const chrono::ChVector<> m_spindleInertia;
+    static const chrono::ChVector<> m_UCAInertia;
+    static const chrono::ChVector<> m_LCAInertia;
+    static const chrono::ChVector<> m_uprightInertia;
 
-  static const double      m_spindleRadius;
-  static const double      m_spindleWidth;
-  static const double      m_UCARadius;
-  static const double      m_LCARadius;
-  static const double      m_uprightRadius;
+    static const double m_axleInertia;
 
-  static const chrono::ChVector<>  m_spindleInertia;
-  static const chrono::ChVector<>  m_UCAInertia;
-  static const chrono::ChVector<>  m_LCAInertia;
-  static const chrono::ChVector<>  m_uprightInertia;
-
-  static const double      m_axleInertia;
-
-  static const double      m_springCoefficient;
-  static const double      m_springRestLength;
+    static const double m_springCoefficient;
+    static const double m_springRestLength;
 };
 
 // -----------------------------------------------------------------------------
 
-class HMMWV_DoubleWishboneRear : public chrono::ChDoubleWishbone
-{
-public:
+class HMMWV_DoubleWishboneRear : public chrono::vehicle::ChDoubleWishbone {
+  public:
+    HMMWV_DoubleWishboneRear(const std::string& name);
+    ~HMMWV_DoubleWishboneRear();
 
-  HMMWV_DoubleWishboneRear(const std::string& name);
-  ~HMMWV_DoubleWishboneRear();
+    virtual double getSpindleMass() const override { return m_spindleMass; }
+    virtual double getUCAMass() const override { return m_UCAMass; }
+    virtual double getLCAMass() const override { return m_LCAMass; }
+    virtual double getUprightMass() const override { return m_uprightMass; }
 
-  virtual double getSpindleMass() const { return m_spindleMass; }
-  virtual double getUCAMass() const { return m_UCAMass; }
-  virtual double getLCAMass() const { return m_LCAMass; }
-  virtual double getUprightMass() const { return m_uprightMass; }
+    virtual double getSpindleRadius() const override { return m_spindleRadius; }
+    virtual double getSpindleWidth() const override { return m_spindleWidth; }
+    virtual double getUCARadius() const override { return m_UCARadius; }
+    virtual double getLCARadius() const override { return m_LCARadius; }
+    virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-  virtual double getSpindleRadius() const { return m_spindleRadius; }
-  virtual double getSpindleWidth() const { return m_spindleWidth; }
-  virtual double getUCARadius() const { return m_UCARadius; }
-  virtual double getLCARadius() const { return m_LCARadius; }
-  virtual double getUprightRadius() const { return m_uprightRadius; }
+    virtual const chrono::ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const chrono::ChVector<>& getUCAInertia() const override { return m_UCAInertia; }
+    virtual const chrono::ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
+    virtual const chrono::ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
 
-  virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
-  virtual const chrono::ChVector<>& getUCAInertia() const { return m_UCAInertia; }
-  virtual const chrono::ChVector<>& getLCAInertia() const { return m_LCAInertia; }
-  virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
+    virtual double getAxleInertia() const override { return m_axleInertia; }
 
-  virtual double getAxleInertia() const { return m_axleInertia; }
+    virtual double getSpringRestLength() const override { return m_springRestLength; }
+    virtual chrono::ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
+    virtual chrono::ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
-  virtual double getSpringRestLength() const { return m_springRestLength; }
-  virtual chrono::ChSpringForceCallback* getSpringForceCallback() const { return m_springForceCB; }
-  virtual chrono::ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
+  private:
+    virtual const chrono::ChVector<> getLocation(PointId which) override;
 
-private:
+    chrono::ChSpringForceCallback* m_springForceCB;
+    chrono::ChSpringForceCallback* m_shockForceCB;
 
-  virtual const chrono::ChVector<> getLocation(PointId which);
+    static const double m_spindleMass;
+    static const double m_UCAMass;
+    static const double m_LCAMass;
+    static const double m_uprightMass;
 
-  chrono::ChSpringForceCallback* m_springForceCB;
-  chrono::ChSpringForceCallback* m_shockForceCB;
+    static const double m_spindleRadius;
+    static const double m_spindleWidth;
+    static const double m_UCARadius;
+    static const double m_LCARadius;
+    static const double m_uprightRadius;
 
-  static const double      m_spindleMass;
-  static const double      m_UCAMass;
-  static const double      m_LCAMass;
-  static const double      m_uprightMass;
+    static const chrono::ChVector<> m_spindleInertia;
+    static const chrono::ChVector<> m_UCAInertia;
+    static const chrono::ChVector<> m_LCAInertia;
+    static const chrono::ChVector<> m_uprightInertia;
 
-  static const double      m_spindleRadius;
-  static const double      m_spindleWidth;
-  static const double      m_UCARadius;
-  static const double      m_LCARadius;
-  static const double      m_uprightRadius;
+    static const double m_axleInertia;
 
-  static const chrono::ChVector<>  m_spindleInertia;
-  static const chrono::ChVector<>  m_UCAInertia;
-  static const chrono::ChVector<>  m_LCAInertia;
-  static const chrono::ChVector<>  m_uprightInertia;
-
-  static const double      m_axleInertia;
-
-  static const double      m_springCoefficient;
-  static const double      m_springRestLength;
+    static const double m_springCoefficient;
+    static const double m_springRestLength;
 };
 
-
-} // end namespace hmmwv
-
+}  // end namespace hmmwv
 
 #endif

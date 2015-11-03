@@ -9,14 +9,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChLink.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "physics/ChLinkBrake.h"
 
@@ -165,28 +157,34 @@ void ChLinkBrake::UpdateForces(double mytime) {
 
 // FILE I/O
 
-void ChLinkBrake::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << brake_torque;
-    mstream << stick_ratio;
-    mstream << brake_mode;
+void ChLinkBrake::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLinkLock::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(brake_torque);
+    marchive << CHNVP(stick_ratio);
+    marchive << CHNVP(brake_mode);
 }
 
-void ChLinkBrake::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkBrake::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    mstream >> brake_torque;
-    mstream >> stick_ratio;
-    mstream >> brake_mode;
+    // deserialize parent class
+    ChLinkLock::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(brake_torque);
+    marchive >> CHNVP(stick_ratio);
+    marchive >> CHNVP(brake_mode);
 }
 
 ///////////////////////////////////////////////////////////////

@@ -152,11 +152,7 @@ int ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_inter
     return TRUE;
 }
 
-void ChLinePoly::StreamOUT(ChStreamOutBinary& mstream) {
-}
 
-void ChLinePoly::StreamIN(ChStreamInBinary& mstream) {
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

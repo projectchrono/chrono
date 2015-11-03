@@ -16,17 +16,13 @@
 //
 // =============================================================================
 
-
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 
-
 namespace chrono {
+namespace vehicle {
 
-
-FlatTerrain::FlatTerrain(const int height)
-: m_height(height)
-{
+FlatTerrain::FlatTerrain(const int height) : m_height(height) {
 }
 
-
-} // end namespace chrono
+}  // end namespace vehicle
+}  // end namespace chrono

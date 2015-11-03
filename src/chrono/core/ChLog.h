@@ -29,6 +29,7 @@
 #include <assert.h>
 #include "ChStream.h"
 #include "ChApiCE.h"
+#include "serialization/ChArchiveAsciiDump.h"
 
 namespace chrono {
 

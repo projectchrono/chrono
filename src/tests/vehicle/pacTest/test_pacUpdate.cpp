@@ -21,10 +21,11 @@
 #include "chrono/physics/ChGlobal.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tire/ChPacejkaTire.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 using std::cout;
 using std::endl;
 
@@ -35,7 +36,7 @@ const std::string pacParamFile = vehicle::GetDataFile("hmmwv/pactest.tir");
 // -----------------------------------------------------------------------------
 // Process the specified wheel state using two different ChPacejkaTire functions
 // -----------------------------------------------------------------------------
-void processState(ChSharedPtr<ChPacejkaTire> tire, const ChWheelState& state, const ChTerrain& terrain) {
+void processState(ChSharedPtr<ChPacejkaTire> tire, const WheelState& state, const ChTerrain& terrain) {
     cout << "--------------------------------------------------" << endl;
     cout << "Position:     " << state.pos.x << "  " << state.pos.y << "  " << state.pos.z << endl;
     cout << "Orientation:  " << state.rot.e0 << "  " << state.rot.e1 << "  " << state.rot.e2 << "  " << state.rot.e3
@@ -64,7 +65,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Pacejka tire
     ChSharedPtr<ChPacejkaTire> tire(new ChPacejkaTire("TEST", pacParamFile));
-    tire->Initialize(ChVehicleSide::LEFT, false);
+    tire->Initialize(VehicleSide::LEFT, false);
 
     // Create different wheel state and let the tire process them
     {
@@ -73,7 +74,7 @@ int main(int argc, char* argv[]) {
         ChQuaternion<> rx(1, 0, 0, 0);                // rot_x(0)
         ChQuaternion<> rot = rz * rx;
 
-        ChWheelState state;
+        WheelState state;
         state.pos = ChVector<>(2, 1, 0);
         state.rot = rot;
         state.lin_vel = ChVector<>(6.427876, -7.660444, 0);  // ||V|| = 10, alpha = -20 degrees
@@ -85,7 +86,7 @@ int main(int argc, char* argv[]) {
 
     {
         // Test the utility function getState_from_KAG
-        ChWheelState state = tire->getState_from_KAG(tire->get_kappa(), tire->get_alpha(), tire->get_gamma(), 10);
+        WheelState state = tire->getState_from_KAG(tire->get_kappa(), tire->get_alpha(), tire->get_gamma(), 10);
 
         processState(tire, state, flat_terrain);
     }
@@ -96,7 +97,7 @@ int main(int argc, char* argv[]) {
         ChQuaternion<> rx(0.9961947, 0.08715574, 0, 0);  // rot_x(10)
         ChQuaternion<> rot = rz * rx;
 
-        ChWheelState state;
+        WheelState state;
         state.pos = ChVector<>(2, 1, 0);
         state.rot = rot;
         state.lin_vel = ChVector<>(-10, 0, 0);  // ||V|| = 10, alpha = 45 degrees
@@ -108,7 +109,7 @@ int main(int argc, char* argv[]) {
 
     {
         // Test the utility function getState_from_KAG
-        ChWheelState state = tire->getState_from_KAG(tire->get_kappa(), tire->get_alpha(), tire->get_gamma(), 10);
+        WheelState state = tire->getState_from_KAG(tire->get_kappa(), tire->get_alpha(), tire->get_gamma(), 10);
 
         processState(tire, state, flat_terrain);
     }

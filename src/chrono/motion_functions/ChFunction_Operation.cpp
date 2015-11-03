@@ -131,49 +131,6 @@ int ChFunction_Operation::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
     return i;
 }
 
-void ChFunction_Operation::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << (int)op_type;
-
-    mstream.AbstractWrite(this->fa.get_ptr());
-    //***TODO*** better direct management of shared pointers serialization
-
-    mstream.AbstractWrite(this->fb.get_ptr());
-    //***TODO*** better direct management of shared pointers serialization
-}
-
-void ChFunction_Operation::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    int itmp;
-    mstream >> itmp;
-    op_type = (eChOperation) itmp;
-
-    ChFunction* foosharedA;
-    mstream.AbstractReadCreate(&foosharedA);   // instance new
-    fa = ChSharedPtr<ChFunction>(foosharedA);  // swap old shared to new shared, may delete old
-    //***TODO*** better direct management of shared pointers serialization
-
-    ChFunction* foosharedB;
-    mstream.AbstractReadCreate(&foosharedB);   // instance new
-    fb = ChSharedPtr<ChFunction>(foosharedB);  // swap old shared to new shared, may delete old
-                                               //***TODO*** better direct management of shared pointers serialization
-}
-
-void ChFunction_Operation::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_OPERATION  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

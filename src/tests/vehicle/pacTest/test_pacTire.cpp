@@ -31,10 +31,11 @@
 #include "chrono/physics/ChLinkDistance.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tire/ChPacejkaTire.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 int main(int argc, char* argv[]) {
     // Output directory names
@@ -47,7 +48,7 @@ int main(int argc, char* argv[]) {
     const double alpha_lim = CH_C_PI_4 / 3.0;  // slip angle in range [-lim,lim] or [0,lim]
     const double kappa_lim = 1;                // slip rate in range [-lim,lim] or [0,lim]
     const double F_z = 8000;                   // vertical force, [N]
-    const ChVehicleSide m_side = LEFT;
+    const VehicleSide m_side = LEFT;
     const double gamma = 10.0 * CH_C_PI / 180.0;  // gamma, in radians
 
     // for the transient model
@@ -79,17 +80,17 @@ int main(int argc, char* argv[]) {
     tire_combined.Initialize(m_side, true);
 
     // record pacTire output for each of the 3 slip cases
-    ChTireForces long_forces(1);
-    ChTireForces lat_forces(1);
-    ChTireForces latGamma_forces(1);
-    ChTireForces combined_forces(1);
+    TireForces long_forces(1);
+    TireForces lat_forces(1);
+    TireForces latGamma_forces(1);
+    TireForces combined_forces(1);
 
     // update body state based on varying input variables to pacTire:
     // alpha, kappa and gamma
-    ChWheelState long_state;
-    ChWheelState lat_state;
-    ChWheelState latGamma_state;
-    ChWheelState combined_state;
+    WheelState long_state;
+    WheelState lat_state;
+    WheelState latGamma_state;
+    WheelState combined_state;
 
     // keep track of the input variable values
     std::vector<double> latSlip_range;

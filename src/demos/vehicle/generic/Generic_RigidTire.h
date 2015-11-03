@@ -19,11 +19,13 @@
 #ifndef GENERIC_RIGID_TIRE_H
 #define GENERIC_RIGID_TIRE_H
 
-#include "chrono_vehicle/tire/ChRigidTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
-class Generic_RigidTire : public chrono::ChRigidTire {
+class Generic_RigidTire : public chrono::vehicle::ChRigidTire {
   public:
-    Generic_RigidTire(const std::string& name) : ChRigidTire(name) { SetContactMaterial(0.9f, 0.1f, 2e7f, 0.3f); }
+    Generic_RigidTire(const std::string& name) : chrono::vehicle::ChRigidTire(name) {
+        SetContactMaterial(0.9f, 0.1f, 2e7f, 0.3f);
+    }
 
     ~Generic_RigidTire() {}
 

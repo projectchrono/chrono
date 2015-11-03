@@ -143,10 +143,7 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
         marchive >> CHNVP(amount);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutAscii& mstream);
-    void StreamIN(ChStreamInBinary& mstream);
-    void StreamOUT(ChStreamOutBinary& mstream);
+
 };
 
 }  // END_OF_NAMESPACE____

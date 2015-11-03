@@ -105,48 +105,47 @@ void ChLinkSpring::UpdateForces(double mytime) {
     C_force = Vadd(C_force, m_force);
 }
 
-void ChLinkSpring::StreamOUT(ChStreamOutBinary& mstream) {
-    // Class version number
-    mstream.VersionWrite(1);
 
-    // Serialize parent class too
-    ChLinkMarkers::StreamOUT(mstream);
+void ChLinkSpring::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // Stream out all member data
-    mstream << spr_restlength;
-    mstream << spr_f;
-    mstream << spr_k;
-    mstream << spr_r;
-    mstream.AbstractWrite(mod_f_time.get_ptr());
-    mstream.AbstractWrite(mod_k_d.get_ptr());
-    mstream.AbstractWrite(mod_k_speed.get_ptr());
-    mstream.AbstractWrite(mod_r_d.get_ptr());
-    mstream.AbstractWrite(mod_r_speed.get_ptr());
+    // serialize parent class
+    ChLinkMarkers::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(spr_restlength);
+    marchive << CHNVP(spr_f);
+    marchive << CHNVP(spr_k);
+    marchive << CHNVP(spr_r);
+    marchive << CHNVP(mod_f_time);
+    marchive << CHNVP(mod_k_d);
+    marchive << CHNVP(mod_k_speed);
+    marchive << CHNVP(mod_r_d);
+    marchive << CHNVP(mod_r_speed);
 }
 
-void ChLinkSpring::StreamIN(ChStreamInBinary& mstream) {
-    // Class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChLinkSpring::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // Deserialize parent class
-    ChLinkMarkers::StreamIN(mstream);
+    // deserialize parent class
+    ChLinkMarkers::ArchiveIN(marchive);
 
-    // Stream in all member data
-    ChFunction* newfun;
-    mstream >> spr_restlength;
-    mstream >> spr_f;
-    mstream >> spr_k;
-    mstream >> spr_r;
-    mstream.AbstractReadCreate(&newfun);
-    mod_f_time = ChSharedPtr<ChFunction>(newfun);
-    mstream.AbstractReadCreate(&newfun);
-    mod_k_d = ChSharedPtr<ChFunction>(newfun);
-    mstream.AbstractReadCreate(&newfun);
-    mod_k_speed = ChSharedPtr<ChFunction>(newfun);
-    mstream.AbstractReadCreate(&newfun);
-    mod_r_d = ChSharedPtr<ChFunction>(newfun);
-    mstream.AbstractReadCreate(&newfun);
-    mod_r_speed = ChSharedPtr<ChFunction>(newfun);
+    // deserialize all member data:
+    marchive >> CHNVP(spr_restlength);
+    marchive >> CHNVP(spr_f);
+    marchive >> CHNVP(spr_k);
+    marchive >> CHNVP(spr_r);
+    marchive >> CHNVP(mod_f_time);
+    marchive >> CHNVP(mod_k_d);
+    marchive >> CHNVP(mod_k_speed);
+    marchive >> CHNVP(mod_r_d);
+    marchive >> CHNVP(mod_r_speed);
 }
+
 
 }  // END_OF_NAMESPACE____

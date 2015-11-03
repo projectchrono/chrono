@@ -76,53 +76,31 @@ void ChLink::Update(bool update_assets) {
 ///////// FILE I/O
 /////////
 
-// Define some  link-specific flags for backward compatibility
 
-#define LF_INACTIVE (1L << 0)
-#define LF_BROKEN (1L << 2)
-#define LF_DISABLED (1L << 4)
+void ChLink::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-void ChLink::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(11);
+    // serialize parent class
+    ChLinkBase::ArchiveOUT(marchive);
 
-    // serialize parent class too
-    ChLinkBase::StreamOUT(mstream);
-
-    // stream out all member data
-    //...
+    // serialize all member data:
 }
 
-void ChLink::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChLink::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    if (version < 11) {
-        ChObj::StreamIN(mstream);
-    }
-    if (version == 11) {
-        ChPhysicsItem::StreamIN(mstream);
-    }
-    if (version >= 12) {
-        ChLinkBase::StreamIN(mstream);
-    }
+    // deserialize parent class
+    ChLinkBase::ArchiveIN(marchive);
 
-    // deserialize class data
-    if (version == 1) {
-        int mylflag;  // was 'long' in v.1 but 'long' streaming support is removed
-        mstream >> mylflag;
-        valid = !(mylflag & LF_INACTIVE);
-        disabled = (mylflag & LF_DISABLED) != 0;
-        broken = (mylflag & LF_BROKEN) != 0;
-    }
-    if ((version >= 2) && (version < 12)) {
-        mstream >> disabled;
-        mstream >> valid;
-        mstream >> broken;
-    }
-
-    //...
+    // deserialize all member data:
 }
+
+
+
 
 }  // END_OF_NAMESPACE____

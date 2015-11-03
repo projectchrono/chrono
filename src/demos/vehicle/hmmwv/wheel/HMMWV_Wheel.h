@@ -19,72 +19,65 @@
 #ifndef HMMWV_WHEEL_H
 #define HMMWV_WHEEL_H
 
-#include "chrono_vehicle/ChWheel.h"
-
-#include "ModelDefs.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 namespace hmmwv {
 
-class HMMWV_Wheel : public chrono::ChWheel {
-public:
+class HMMWV_Wheel : public chrono::vehicle::ChWheel {
+  public:
+    HMMWV_Wheel(chrono::vehicle::VisualizationType visType);
+    ~HMMWV_Wheel() {}
 
-  HMMWV_Wheel(VisualizationType  visType);
-  ~HMMWV_Wheel() {}
+    virtual double GetMass() const override { return m_mass; }
+    virtual chrono::ChVector<> GetInertia() const override { return m_inertia; }
 
-  virtual double GetMass() const { return m_mass; }
-  virtual chrono::ChVector<> GetInertia() const { return m_inertia; }
+    virtual void Initialize(chrono::ChSharedPtr<chrono::ChBody> spindle) override;
 
-  virtual void Initialize(chrono::ChSharedPtr<chrono::ChBody> spindle);
+    virtual const std::string& getMeshName() const = 0;
+    virtual const std::string& getMeshFile() const = 0;
 
-  virtual const std::string& getMeshName() const = 0;
-  virtual const std::string& getMeshFile() const = 0;
+    virtual void ExportMeshPovray(const std::string& out_dir) = 0;
 
-  virtual void ExportMeshPovray(const std::string& out_dir) = 0;
+  private:
+    chrono::vehicle::VisualizationType m_visType;
 
-private:
-
-  VisualizationType  m_visType;
-
-  static const double  m_radius;
-  static const double  m_width;
-  static const double  m_mass;
-  static const chrono::ChVector<>  m_inertia;
+    static const double m_radius;
+    static const double m_width;
+    static const double m_mass;
+    static const chrono::ChVector<> m_inertia;
 };
-
 
 class HMMWV_WheelLeft : public HMMWV_Wheel {
-public:
-  HMMWV_WheelLeft(VisualizationType  visType);
-  ~HMMWV_WheelLeft() {}
+  public:
+    HMMWV_WheelLeft(chrono::vehicle::VisualizationType visType);
+    ~HMMWV_WheelLeft() {}
 
-  virtual const std::string& getMeshName() const { return m_meshName; }
-  virtual const std::string& getMeshFile() const { return m_meshFile; }
+    virtual const std::string& getMeshName() const override { return m_meshName; }
+    virtual const std::string& getMeshFile() const override { return m_meshFile; }
 
-  virtual void ExportMeshPovray(const std::string& out_dir);
+    virtual void ExportMeshPovray(const std::string& out_dir) override;
 
-private:
-  static const std::string  m_meshName;
-  static const std::string  m_meshFile;
+  private:
+    static const std::string m_meshName;
+    static const std::string m_meshFile;
 };
-
 
 class HMMWV_WheelRight : public HMMWV_Wheel {
-public:
-  HMMWV_WheelRight(VisualizationType  visType);
-  ~HMMWV_WheelRight() {}
+  public:
+    HMMWV_WheelRight(chrono::vehicle::VisualizationType visType);
+    ~HMMWV_WheelRight() {}
 
-  virtual const std::string& getMeshName() const { return m_meshName; }
-  virtual const std::string& getMeshFile() const { return m_meshFile; }
+    virtual const std::string& getMeshName() const override { return m_meshName; }
+    virtual const std::string& getMeshFile() const override { return m_meshFile; }
 
-  virtual void ExportMeshPovray(const std::string& out_dir);
+    virtual void ExportMeshPovray(const std::string& out_dir) override;
 
-private:
-  static const std::string  m_meshName;
-  static const std::string  m_meshFile;
+  private:
+    static const std::string m_meshName;
+    static const std::string m_meshFile;
 };
 
-
-} // end namespace hmmwv
-
+}  // end namespace hmmwv
 
 #endif

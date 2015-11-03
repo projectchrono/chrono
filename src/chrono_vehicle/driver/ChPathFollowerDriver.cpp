@@ -26,12 +26,13 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
 namespace chrono {
+namespace vehicle {
 
 ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
                                            ChBezierCurve* path,
                                            const std::string& path_name,
                                            double target_speed)
-    : m_vehicle(vehicle),
+    : ChDriver(vehicle),
       m_steeringPID(path),
       m_pathName(path_name),
       m_target_speed(target_speed),
@@ -45,7 +46,7 @@ ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
                                            ChBezierCurve* path,
                                            const std::string& path_name,
                                            double target_speed)
-    : m_vehicle(vehicle),
+    : ChDriver(vehicle),
       m_steeringPID(steering_filename, path),
       m_speedPID(speed_filename),
       m_pathName(path_name),
@@ -105,4 +106,5 @@ void ChPathFollowerDriver::ExportPathPovray(const std::string& out_dir) {
     utils::WriteCurvePovray(*m_steeringPID.GetPath(), m_pathName, out_dir, 0.04, ChColor(0.8f, 0.5f, 0.0f));
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

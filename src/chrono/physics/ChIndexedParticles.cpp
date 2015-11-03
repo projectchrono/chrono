@@ -75,22 +75,24 @@ ChIndexedParticles::~ChIndexedParticles() {
 
 //////// FILE I/O
 
-void ChIndexedParticles::StreamOUT(ChStreamOutBinary& mstream) {
+void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) {
+
     // class version number
-    mstream.VersionWrite(1);
+    marchive.VersionWrite(1);
 
     // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
+    ChPhysicsItem::ArchiveOUT(marchive);
 
     // stream out all member data
 }
 
-void ChIndexedParticles::StreamIN(ChStreamInBinary& mstream) {
+void ChIndexedParticles::ArchiveIN(ChArchiveIn& marchive) {
+
     // class version number
-    int version = mstream.VersionRead();
+    int version = marchive.VersionRead();
 
     // deserialize parent class too
-    ChPhysicsItem::StreamIN(mstream);
+    ChPhysicsItem::ArchiveIN(marchive);
 
     // stream in all member data
 }

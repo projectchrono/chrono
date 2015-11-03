@@ -206,8 +206,7 @@ void TrackVehicleM113::Setup_logger(int what_subsys,
         ChStreamOutAsciiFile ofile_hier((m_log_file_name + "_Heirarchy.csv").c_str());
         m_system->ShowHierarchy(ofile_hier);
         ChStreamOutAsciiFile ofile_system((m_log_file_name + "_ChSystem.csv").c_str());
-        m_system->StreamOUT(ofile_system);
-
+        ofile_system << m_system;
     } else {
         GetLog() << " chain subsystem not created yet, not saving data";
     }

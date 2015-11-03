@@ -19,26 +19,22 @@
 #ifndef GENERIC_DRIVELINE_2WD_H
 #define GENERIC_DRIVELINE_2WD_H
 
-#include "chrono_vehicle/driveline/ChShaftsDriveline2WD.h"
+#include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 
-class Generic_Driveline2WD : public chrono::ChShaftsDriveline2WD
-{
-public:
+class Generic_Driveline2WD : public chrono::vehicle::ChShaftsDriveline2WD {
+  public:
+    Generic_Driveline2WD() : chrono::vehicle::ChShaftsDriveline2WD() {
+        SetMotorBlockDirection(chrono::ChVector<>(1, 0, 0));
+        SetAxleDirection(chrono::ChVector<>(0, 1, 0));
+    }
 
-  Generic_Driveline2WD() : ChShaftsDriveline2WD()
-  {
-    SetMotorBlockDirection(chrono::ChVector<>(1, 0, 0));
-    SetAxleDirection(chrono::ChVector<>(0, 1, 0));
-  }
+    ~Generic_Driveline2WD() {}
 
-  ~Generic_Driveline2WD() {}
+    virtual double GetDriveshaftInertia() const override { return 0.5; }
+    virtual double GetDifferentialBoxInertia() const override { return 0.6; }
 
-  virtual double GetDriveshaftInertia() const      { return 0.5; }
-  virtual double GetDifferentialBoxInertia() const { return 0.6; }
-
-  virtual double GetConicalGearRatio() const       { return -0.2; }
-  virtual double GetDifferentialRatio() const      { return -1; }
+    virtual double GetConicalGearRatio() const override { return -0.2; }
+    virtual double GetDifferentialRatio() const override { return -1; }
 };
-
 
 #endif

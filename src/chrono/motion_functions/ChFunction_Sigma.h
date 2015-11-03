@@ -110,10 +110,7 @@ class ChApi ChFunction_Sigma : public ChFunction {
         marchive >> CHNVP(end);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutAscii& mstream);
-    void StreamIN(ChStreamInBinary& mstream);
-    void StreamOUT(ChStreamOutBinary& mstream);
+
 };
 
 }  // END_OF_NAMESPACE____

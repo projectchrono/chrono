@@ -22,39 +22,32 @@
 #include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 #include "chrono_vehicle/ChVehicle.h"
 
-
 namespace hmmwv {
 
-class HMMWV_Powertrain : public chrono::ChShaftsPowertrain {
-public:
+class HMMWV_Powertrain : public chrono::vehicle::ChShaftsPowertrain {
+  public:
+    HMMWV_Powertrain();
 
-  HMMWV_Powertrain();
+    ~HMMWV_Powertrain() {}
 
-  ~HMMWV_Powertrain() {}
+    virtual void SetGearRatios(std::vector<double>& gear_ratios);
 
+    virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
+    virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }
+    virtual double GetIngearShaftInertia() const override { return m_ingear_shaft_inertia; }
 
-  virtual void SetGearRatios(std::vector<double>& gear_ratios);
+    virtual void SetEngineTorqueMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map) override;
+    virtual void SetEngineLossesMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map) override;
+    virtual void SetTorqueConverterCapacityFactorMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map) override;
+    virtual void SetTorqeConverterTorqueRatioMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map) override;
 
-  virtual double GetMotorBlockInertia() const      { return m_motorblock_inertia; }
-  virtual double GetCrankshaftInertia() const      { return m_crankshaft_inertia; }
-  virtual double GetIngearShaftInertia() const     { return m_ingear_shaft_inertia; }
-
-  virtual void SetEngineTorqueMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
-  virtual void SetEngineLossesMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
-  virtual void SetTorqueConverterCapacityFactorMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
-  virtual void SetTorqeConverterTorqueRatioMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
-
-private:
-
-  // Shaft inertias.
-  static const double  m_motorblock_inertia;
-  static const double  m_crankshaft_inertia;
-  static const double  m_ingear_shaft_inertia;
-
+  private:
+    // Shaft inertias.
+    static const double m_motorblock_inertia;
+    static const double m_crankshaft_inertia;
+    static const double m_ingear_shaft_inertia;
 };
 
-
-} // end namespace hmmwv
-
+}  // end namespace hmmwv
 
 #endif

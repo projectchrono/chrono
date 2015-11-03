@@ -269,12 +269,16 @@ class ChApi ChLinkLock : public ChLinkMasked {
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    virtual void StreamIN(ChStreamInBinary& mstream);
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
+
 
 // SOME WRAPPER CLASSES, TO MAKE 'LINK LOCK' CREATION EASIER...
 

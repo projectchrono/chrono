@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
 
                 // Apply a force to a node
     ChSharedPtr<ChNodeFEAxyz> mnodelast = (my_mesh->GetNode(my_mesh->GetNnodes()-1)).DynamicCastTo<ChNodeFEAxyz>();
-    mnodelast->SetForce( ChVector<>(1,1,1));
+    mnodelast->SetForce( ChVector<>(50,0,50));
 
     //
     // Add some HEXAHEDRONS (isoparametric bricks):

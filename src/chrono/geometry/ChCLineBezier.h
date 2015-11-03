@@ -51,14 +51,31 @@ class ChApi ChLineBezier : public ChLine {
     /// Curve evaluation (only parU is used, in 0..1 range)
     virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.);
 
-    /// Serialization of transient data to archive.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
-        //// TODO
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChLine::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(m_own_data);
+        marchive << CHNVP(m_path);
     }
 
-    /// Serialization of transient data from archive.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
-        //// TODO
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChLine::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(m_own_data);
+        marchive >> CHNVP(m_path);
     }
 
   private:

@@ -22,6 +22,7 @@
 #include "hmmwv/HMMWV.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 namespace hmmwv {
 
@@ -192,8 +193,8 @@ void HMMWV::Update(double time,
                    double braking_input,
                    double throttle_input,
                    const ChTerrain& terrain) {
-    ChTireForces tire_forces(4);
-    ChWheelState wheel_states[4];
+    TireForces tire_forces(4);
+    WheelState wheel_states[4];
 
     tire_forces[0] = m_tireFL->GetTireForce();
     tire_forces[1] = m_tireFR->GetTireForce();

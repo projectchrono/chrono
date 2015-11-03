@@ -50,6 +50,9 @@ namespace chrono {
 /// * case CCP: Y_i are friction cones
 
 class ChApi ChLcpIterativeSolver : public ChLcpSolver {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChLcpIterativeSolver, ChLcpSolver);
+
   protected:
     //
     // DATA
@@ -173,6 +176,42 @@ class ChApi ChLcpIterativeSolver : public ChLcpSolver {
         violation_history.push_back(mmaxviolation);
         dlambda_history.push_back(mdeltalambda);
     }
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChLcpSolver::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(max_iterations);
+        marchive << CHNVP(tot_iterations); 
+        marchive << CHNVP(warm_start);
+        marchive << CHNVP(tolerance);
+        marchive << CHNVP(omega);
+        marchive << CHNVP(shlambda);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChLcpSolver::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(max_iterations);
+        marchive >> CHNVP(tot_iterations); 
+        marchive >> CHNVP(warm_start);
+        marchive >> CHNVP(tolerance);
+        marchive >> CHNVP(omega);
+        marchive >> CHNVP(shlambda);
+    }
+
 };
 
 }  // END_OF_NAMESPACE____

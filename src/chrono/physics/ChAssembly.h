@@ -409,24 +409,15 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Method to serialize only the state (position, speed)
     virtual void StreamOUTstate(ChStreamOutBinary& mstream);
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
+    //
+    // SERIALIZATION
+    //
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Save data, including child markers and child forces
-    int StreamOUTall(ChStreamOutBinary& m_file);
-    /// Read data, including child markers and child forces
-    int StreamINall(ChStreamInBinary& m_file);
-
-    /// Method to allow serialization of transient data in ascii,
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    void StreamOUT(ChStreamOutAscii& mstream);
-
-    int StreamOUTall(ChStreamOutAscii& mstream);
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 typedef ChSharedPtr<ChAssembly> ChAssemblyPtr;

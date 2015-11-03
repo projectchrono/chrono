@@ -31,38 +31,33 @@
 #include "chrono_vehicle/ChDriver.h"
 
 namespace chrono {
+namespace vehicle {
 
-class CH_VEHICLE_API ChDataDriver : public ChDriver
-{
-public:
-  struct Entry {
-    Entry() {}
-    Entry(double time, double steering, double throttle, double braking)
-      : m_time(time), m_steering(steering), m_throttle(throttle), m_braking(braking)
-    {}
-    double m_time;
-    double m_steering;
-    double m_throttle;
-    double m_braking;
-  };
+class CH_VEHICLE_API ChDataDriver : public ChDriver {
+  public:
+    struct Entry {
+        Entry() {}
+        Entry(double time, double steering, double throttle, double braking)
+            : m_time(time), m_steering(steering), m_throttle(throttle), m_braking(braking) {}
+        double m_time;
+        double m_steering;
+        double m_throttle;
+        double m_braking;
+    };
 
-  ChDataDriver(const std::string& filename,
-               bool               sorted = true);
-  ChDataDriver(const std::vector<Entry>& data,
-               bool                      sorted = true);
-  ~ChDataDriver() {}
+    ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool sorted = true);
+    ChDataDriver(ChVehicle& vehicle, const std::vector<Entry>& data, bool sorted = true);
+    ~ChDataDriver() {}
 
-  virtual void Update(double time);
+    virtual void Update(double time) override;
 
-private:
+  private:
+    static bool compare(const Entry& a, const Entry& b) { return a.m_time < b.m_time; }
 
-  static bool compare(const Entry& a, const Entry& b) { return a.m_time < b.m_time; }
-
-  std::vector<Entry> m_data;
+    std::vector<Entry> m_data;
 };
 
-
-} // end namespace hmmwv9
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

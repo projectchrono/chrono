@@ -254,35 +254,50 @@ void ChShaftsMotor::ConstraintsLiFetchSuggestedPositionSolution() {
 
 //////// FILE I/O
 
-void ChShaftsMotor::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+// Trick to avoid putting the following mapper macro inside the class definition in .h file:
+// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
+class my_enum_mappers : public ChShaftsMotor {
+public:
+    CH_ENUM_MAPPER_BEGIN(eCh_shaftsmotor_mode);
+      CH_ENUM_VAL(MOT_MODE_ROTATION);
+      CH_ENUM_VAL(MOT_MODE_SPEED);
+      CH_ENUM_VAL(MOT_MODE_TORQUE);
+    CH_ENUM_MAPPER_END(eCh_shaftsmotor_mode);
+};
 
-    // serialize parent class too
-    ChShaftsCouple::StreamOUT(mstream);
+void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // stream out all member data
-    mstream << this->motor_torque;
-    mstream << (int)this->motor_mode;
-    mstream << this->motor_set_rot;
-    mstream << this->motor_set_rot_dt;
+    // serialize parent class
+    ChShaftsCouple::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
+    marchive << CHNVP(mmapper(motor_mode),"motor_mode");
+    marchive << CHNVP(motor_torque);
+    marchive << CHNVP(motor_set_rot);
+    marchive << CHNVP(motor_set_rot_dt);
 }
 
-void ChShaftsMotor::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChShaftsMotor::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChShaftsCouple::StreamIN(mstream);
+    // deserialize parent class:
+    ChShaftsCouple::ArchiveIN(marchive);
 
-    // deserialize class
-    int ifoo;
-    mstream >> this->motor_torque;
-    mstream >> ifoo;
-    this->motor_mode = (ChShaftsMotor::eCh_shaftsmotor_mode)ifoo;
-    mstream >> this->motor_set_rot;
-    mstream >> this->motor_set_rot_dt;
-}
+    // deserialize all member data:
+    my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
+    marchive >> CHNVP(mmapper(motor_mode),"motor_mode");
+    marchive >> CHNVP(motor_torque);
+    marchive >> CHNVP(motor_set_rot);
+    marchive >> CHNVP(motor_set_rot_dt);
+} 
+
 
 }  // END_OF_NAMESPACE____
 

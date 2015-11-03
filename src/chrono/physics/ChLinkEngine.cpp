@@ -151,7 +151,7 @@ void ChLinkEngine::Set_learn(int mset) {
         spe_funct = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
 }
 
-void ChLinkEngine::Set_eng_mode(int mset) {
+void ChLinkEngine::Set_eng_mode(eCh_eng_mode mset) {
     if (Get_learn())
         Set_learn(FALSE);  // reset learn state when changing mode
 
@@ -198,7 +198,7 @@ void ChLinkEngine::Set_eng_mode(int mset) {
     }
 }
 
-void ChLinkEngine::Set_shaft_mode(int mset) {
+void ChLinkEngine::Set_shaft_mode(eCh_shaft_mode mset) {
     shaft_mode = mset;
 
     eChConstraintMode curr_mode_z = ((ChLinkMaskLF*)mask)->Constr_E3().GetMode();
@@ -767,49 +767,77 @@ void ChLinkEngine::VariablesQbIncrementPosition(double step) {
     }
 }
 
-void ChLinkEngine::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
+// Trick to avoid putting the following mapper macro inside the class definition in .h file:
+// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
+class my_enum_mappers : public ChLinkEngine {
+public:
+    CH_ENUM_MAPPER_BEGIN(eCh_eng_mode);
+      CH_ENUM_VAL(ENG_MODE_ROTATION);
+      CH_ENUM_VAL(ENG_MODE_SPEED);
+      CH_ENUM_VAL(ENG_MODE_TORQUE);
+      CH_ENUM_VAL(ENG_MODE_KEY_ROTATION);
+      CH_ENUM_VAL(ENG_MODE_KEY_POLAR);
+      CH_ENUM_VAL(ENG_MODE_TO_POWERTRAIN_SHAFT);
+    CH_ENUM_MAPPER_END(eCh_eng_mode);
 
-    // stream out all member data
-    mstream.AbstractWrite(rot_funct.get_ptr());
-    mstream.AbstractWrite(spe_funct.get_ptr());
-    mstream.AbstractWrite(tor_funct.get_ptr());
-    mstream.AbstractWrite(torque_w.get_ptr());
-    mstream << learn;
-    mstream << impose_reducer;
-    mstream << mot_tau;
-    mstream << mot_eta;
-    mstream << mot_inertia;
-    mstream << eng_mode;
-    mstream << shaft_mode;
+    CH_ENUM_MAPPER_BEGIN(eCh_shaft_mode);
+      CH_ENUM_VAL(ENG_SHAFT_LOCK);
+      CH_ENUM_VAL(ENG_SHAFT_PRISM);
+      CH_ENUM_VAL(ENG_SHAFT_OLDHAM);
+      CH_ENUM_VAL(ENG_SHAFT_UNIVERSAL);
+      CH_ENUM_VAL(ENG_SHAFT_CARDANO);
+    CH_ENUM_MAPPER_END(eCh_shaft_mode);
+};
+
+void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLinkLock::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(rot_funct);
+    marchive << CHNVP(spe_funct);
+    marchive << CHNVP(tor_funct);
+    marchive << CHNVP(torque_w);
+    marchive << CHNVP(learn);
+    marchive << CHNVP(impose_reducer);
+    marchive << CHNVP(mot_tau);
+    marchive << CHNVP(mot_eta);
+    marchive << CHNVP(mot_inertia);
+    my_enum_mappers::eCh_eng_mode_mapper mengmapper;
+    marchive << CHNVP(mengmapper(eng_mode),"engine_mode");
+    my_enum_mappers::eCh_shaft_mode_mapper mshaftmapper;
+    marchive << CHNVP(mshaftmapper(shaft_mode),"shaft_mode");
 }
 
-void ChLinkEngine::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkEngine::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    ChFunction* newfun;
-    mstream.AbstractReadCreate(&newfun);
-    rot_funct = ChSharedPtr<ChFunction>(newfun);
-    mstream.AbstractReadCreate(&newfun);
-    spe_funct = ChSharedPtr<ChFunction>(newfun);
-    mstream.AbstractReadCreate(&newfun);
-    tor_funct = ChSharedPtr<ChFunction>(newfun);
-    mstream.AbstractReadCreate(&newfun);
-    torque_w = ChSharedPtr<ChFunction>(newfun);
-    mstream >> learn;
-    mstream >> impose_reducer;
-    mstream >> mot_tau;
-    mstream >> mot_eta;
-    mstream >> mot_inertia;
-    mstream >> eng_mode;
-    mstream >> shaft_mode;
+    // deserialize parent class
+    ChLinkLock::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(rot_funct);
+    marchive >> CHNVP(spe_funct);
+    marchive >> CHNVP(tor_funct);
+    marchive >> CHNVP(torque_w);
+    marchive >> CHNVP(learn);
+    marchive >> CHNVP(impose_reducer);
+    marchive >> CHNVP(mot_tau);
+    marchive >> CHNVP(mot_eta);
+    marchive >> CHNVP(mot_inertia);
+    my_enum_mappers::eCh_eng_mode_mapper mengmapper;
+    marchive >> CHNVP(mengmapper(eng_mode),"engine_mode");
+    my_enum_mappers::eCh_shaft_mode_mapper mshaftmapper;
+    marchive >> CHNVP(mshaftmapper(shaft_mode),"shaft_mode");
 }
+
+
 
 }  // END_OF_NAMESPACE____

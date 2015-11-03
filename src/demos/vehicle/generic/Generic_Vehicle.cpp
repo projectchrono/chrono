@@ -39,7 +39,7 @@
 #include "generic/Generic_BrakeSimple.h"
 
 using namespace chrono;
-
+using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -58,7 +58,7 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
                                  SuspensionType suspType,
                                  VisualizationType wheelVis,
                                  ChMaterialSurfaceBase::ContactMethod contactMethod)
-  : ChVehicle(contactMethod), m_suspType(suspType) {
+  : ChWheeledVehicle(contactMethod), m_suspType(suspType) {
   // -------------------------------------------
   // Create the chassis body
   // -------------------------------------------
@@ -191,7 +191,7 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Generic_Vehicle::GetSpringForce(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetSpringForce(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -205,7 +205,7 @@ double Generic_Vehicle::GetSpringForce(const ChWheelID& wheel_id) const
   }
 }
 
-double Generic_Vehicle::GetSpringLength(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetSpringLength(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -219,7 +219,7 @@ double Generic_Vehicle::GetSpringLength(const ChWheelID& wheel_id) const
   }
 }
 
-double Generic_Vehicle::GetSpringDeformation(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -236,7 +236,7 @@ double Generic_Vehicle::GetSpringDeformation(const ChWheelID& wheel_id) const
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Generic_Vehicle::GetShockForce(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetShockForce(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -250,7 +250,7 @@ double Generic_Vehicle::GetShockForce(const ChWheelID& wheel_id) const
   }
 }
 
-double Generic_Vehicle::GetShockLength(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetShockLength(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -264,7 +264,7 @@ double Generic_Vehicle::GetShockLength(const ChWheelID& wheel_id) const
   }
 }
 
-double Generic_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetShockVelocity(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
   case SOLID_AXLE:
@@ -325,7 +325,7 @@ void Generic_Vehicle::DebugLog(int what)
 {
   GetLog().SetNumFormat("%10.2f");
 
-  if (what & DBG_SPRINGS)
+  if (what & OUT_SPRINGS)
   {
     GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
     GetLog() << "Length [inch]       "
@@ -345,7 +345,7 @@ void Generic_Vehicle::DebugLog(int what)
       << GetSpringForce(REAR_RIGHT) << "\n";
   }
 
-  if (what & DBG_SHOCKS)
+  if (what & OUT_SHOCKS)
   {
     GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
     GetLog() << "Length [inch]       "
@@ -365,7 +365,7 @@ void Generic_Vehicle::DebugLog(int what)
       << GetShockForce(REAR_RIGHT) << "\n";
   }
 
-  if (what & DBG_CONSTRAINTS)
+  if (what & OUT_CONSTRAINTS)
   {
     // Report constraint violations for all joints
     LogConstraintViolations();

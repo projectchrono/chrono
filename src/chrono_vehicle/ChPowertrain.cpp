@@ -18,14 +18,11 @@
 
 #include "chrono_vehicle/ChPowertrain.h"
 
-
 namespace chrono {
+namespace vehicle {
 
-
-ChPowertrain::ChPowertrain()
-: m_drive_mode(FORWARD)
-{
+ChPowertrain::ChPowertrain() : m_drive_mode(FORWARD) {
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

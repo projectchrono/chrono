@@ -27,28 +27,24 @@
 
 namespace hmmwv {
 
-class HMMWV_SimplePowertrain : public chrono::ChSimplePowertrain {
-public:
+class HMMWV_SimplePowertrain : public chrono::vehicle::ChSimplePowertrain {
+  public:
+    HMMWV_SimplePowertrain();
 
-  HMMWV_SimplePowertrain();
+    ~HMMWV_SimplePowertrain() {}
 
-  ~HMMWV_SimplePowertrain() {}
+    virtual double GetForwardGearRatio() const override { return m_fwd_gear_ratio; }
+    virtual double GetReverseGearRatio() const override { return m_rev_gear_ratio; }
+    virtual double GetMaxTorque() const override { return m_max_torque; }
+    virtual double GetMaxSpeed() const override { return m_max_speed; }
 
-  virtual double GetForwardGearRatio() const { return m_fwd_gear_ratio; }
-  virtual double GetReverseGearRatio() const { return m_rev_gear_ratio; }
-  virtual double GetMaxTorque() const        { return m_max_torque; }
-  virtual double GetMaxSpeed() const         { return m_max_speed; }
-
-private:
-
-  static const double m_fwd_gear_ratio;  // forward gear ratio (single gear transmission)
-  static const double m_rev_gear_ratio;  // reverse gear ratio
-  static const double m_max_torque;      // maximum motor torque
-  static const double m_max_speed;       // maximum motor speed
+  private:
+    static const double m_fwd_gear_ratio;  // forward gear ratio (single gear transmission)
+    static const double m_rev_gear_ratio;  // reverse gear ratio
+    static const double m_max_torque;      // maximum motor torque
+    static const double m_max_speed;       // maximum motor speed
 };
 
-
-} // end namespace hmmwv
-
+}  // end namespace hmmwv
 
 #endif

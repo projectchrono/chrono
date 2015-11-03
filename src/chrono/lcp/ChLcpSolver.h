@@ -54,6 +54,9 @@ namespace chrono {
 /// * case CCP: Y_i are friction cones
 
 class ChApi ChLcpSolver {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI_ROOT(ChLcpSolver);
+
   public:
     //
     // DATA
@@ -92,6 +95,29 @@ class ChApi ChLcpSolver {
 
     void SetVerbose(bool mv) { this->verbose = mv; }
     bool GetVerbose() { return this->verbose; }
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        // serialize all member data:
+        marchive << CHNVP(verbose);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        // stream in all member data:
+        marchive >> CHNVP(verbose);
+    }
 };
 
 }  // END_OF_NAMESPACE____

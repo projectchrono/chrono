@@ -34,7 +34,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "ModelDefs.h"
 #include "articulated/Articulated_Vehicle.h"
 #include "articulated/Articulated_Trailer.h"
 #include "generic/Generic_SimplePowertrain.h"
@@ -55,6 +54,7 @@
 //#define DEBUG_LOG
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 // =============================================================================
 
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
     driver.SetBrakingDelta(render_step_size / braking_time);
 
 #else
-    Generic_FuncDriver driver;
+    Generic_FuncDriver driver(vehicle);
 #endif
 
 // ---------------
@@ -182,9 +182,9 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Inter-module communication data
-    ChTireForces tire_forces(4);
-    ChTireForces tr_tire_forces(4);
-    ChWheelState wheel_states[4];
+    TireForces tire_forces(4);
+    TireForces tr_tire_forces(4);
+    WheelState wheel_states[4];
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;

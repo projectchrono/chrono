@@ -361,7 +361,13 @@ void ChMarker::ArchiveOUT(ChArchiveOut& marchive)
     ChFrameMoving<double>::ArchiveOUT(marchive);
 
     // serialize all member data:
-    //***TODO***
+    eChMarkerMotion_mapper mmapper;
+    marchive << CHNVP(mmapper(motion_type),"motion_type");
+    marchive << CHNVP(motion_X);
+    marchive << CHNVP(motion_Y);
+    marchive << CHNVP(motion_Z);
+    marchive << CHNVP(motion_ang);
+    marchive << CHNVP(motion_axis);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -376,83 +382,15 @@ void ChMarker::ArchiveIN(ChArchiveIn& marchive)
     ChFrameMoving<double>::ArchiveIN(marchive);
 
     // stream in all member data:
-    //***TODO***
+    eChMarkerMotion_mapper mmapper;
+    marchive >> CHNVP(mmapper(motion_type),"motion_type");
+    marchive >> CHNVP(motion_X);
+    marchive >> CHNVP(motion_Y);
+    marchive >> CHNVP(motion_Z);
+    marchive >> CHNVP(motion_ang);
+    marchive >> CHNVP(motion_axis);
 }
 
-void ChMarker::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(2);
-
-    // serialize parent class too
-    ChObj::StreamOUT(mstream);
-
-    // deserialize parent class too
-    ChFrameMoving<double>::StreamOUT(mstream);
-
-    // stream out all member data
-
-    mstream << abs_frame;
-    mstream << rest_coord;
-    mstream << (int)motion_type;
-    mstream.AbstractWrite(GetMotion_X());
-    mstream.AbstractWrite(GetMotion_Y());
-    mstream.AbstractWrite(GetMotion_Z());
-    mstream.AbstractWrite(GetMotion_ang());
-    mstream << motion_axis;
-}
-
-void ChMarker::StreamIN(ChStreamInBinary& mstream) {
-    Coordsys cfoo;
-    ChFunction* ffoo;
-    Vector vfoo;
-    int menum;
-
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChObj::StreamIN(mstream);
-
-    // stream in all member data
-    if (version == 1) {
-        mstream >> cfoo;
-        SetCoord(cfoo);
-        mstream >> cfoo;
-        SetCoord_dt(cfoo);
-        mstream >> cfoo;
-        SetCoord_dtdt(cfoo);
-        mstream >> cfoo;
-        SetAbsCoord(cfoo);
-        mstream >> cfoo;
-        SetAbsCoord_dt(cfoo);
-        mstream >> cfoo;
-        SetAbsCoord_dtdt(cfoo);
-        mstream >> cfoo;  // SetRestCoord(cfoo); not needed?
-    }
-    if (version > 1) {
-        // deserialize parent class too
-        ChFrameMoving<double>::StreamIN(mstream);
-
-        mstream >> abs_frame;
-        mstream >> rest_coord;
-        mstream >> menum;
-        SetMotionType((eChMarkerMotion)menum);
-    }
-
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_X(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_Y(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_Z(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetMotion_ang(ffoo);
-    mstream >> motion_axis;
-}
-
-void ChMarker::StreamOUT(ChStreamOutAscii& mstream) {
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

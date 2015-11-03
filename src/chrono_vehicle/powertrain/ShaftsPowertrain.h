@@ -25,55 +25,55 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
+  public:
+    ShaftsPowertrain(const std::string& filename);
+    ShaftsPowertrain(const rapidjson::Document& d);
+    ~ShaftsPowertrain() {}
 
-class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain
-{
-public:
+    virtual void SetGearRatios(std::vector<double>& gear_ratios) override;
 
-  ShaftsPowertrain(const std::string& filename);
-  ShaftsPowertrain(const rapidjson::Document& d);
-  ~ShaftsPowertrain() {}
+    virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
+    virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }
+    virtual double GetIngearShaftInertia() const override { return m_ingear_shaft_inertia; }
 
-  virtual void SetGearRatios(std::vector<double>& gear_ratios);
+    virtual void SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) override { SetMapData(m_engine_torque, map); }
+    virtual void SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) override { SetMapData(m_engine_losses, map); }
+    virtual void SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map) override {
+        SetMapData(m_tc_capacity_factor, map);
+    }
+    virtual void SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map) override {
+        SetMapData(m_tc_torque_ratio, map);
+    }
 
-  virtual double GetMotorBlockInertia() const { return m_motorblock_inertia; }
-  virtual double GetCrankshaftInertia() const { return m_crankshaft_inertia; }
-  virtual double GetIngearShaftInertia() const { return m_ingear_shaft_inertia; }
+  private:
+    struct MapData {
+        unsigned int m_n;
+        std::vector<double> m_x;
+        std::vector<double> m_y;
+    };
 
-  virtual void SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) { SetMapData(m_engine_torque, map); }
-  virtual void SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) { SetMapData(m_engine_losses, map); }
-  virtual void SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map) { SetMapData(m_tc_capacity_factor, map); }
-  virtual void SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map) { SetMapData(m_tc_torque_ratio, map); }
+    void Create(const rapidjson::Document& d);
 
-private:
+    void ReadMapData(const rapidjson::Value& a, MapData& map_data);
+    void SetMapData(const MapData& map_data, ChSharedPtr<ChFunction_Recorder>& map);
 
-  struct MapData {
-    unsigned int m_n;
-    std::vector<double> m_x;
-    std::vector<double> m_y;
-  };
+    double m_motorblock_inertia;
+    double m_crankshaft_inertia;
+    double m_ingear_shaft_inertia;
 
-  void Create(const rapidjson::Document& d);
+    double m_rev_gear;
+    std::vector<double> m_fwd_gear;
 
-  void ReadMapData(const rapidjson::Value& a, MapData& map_data);
-  void SetMapData(const MapData& map_data, ChSharedPtr<ChFunction_Recorder>& map);
-
-  double m_motorblock_inertia;
-  double m_crankshaft_inertia;
-  double m_ingear_shaft_inertia;
-
-  double m_rev_gear;
-  std::vector<double> m_fwd_gear;
-
-  MapData m_engine_torque;
-  MapData m_engine_losses;
-  MapData m_tc_capacity_factor;
-  MapData m_tc_torque_ratio;
+    MapData m_engine_torque;
+    MapData m_engine_losses;
+    MapData m_tc_capacity_factor;
+    MapData m_tc_torque_ratio;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

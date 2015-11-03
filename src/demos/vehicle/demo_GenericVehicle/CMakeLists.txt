@@ -9,7 +9,6 @@ MESSAGE(STATUS "...add GENERIC_VEHICLE demo")
 # List all model files for this demo
 
 SET(MODEL_FILES
-    ../ModelDefs.h
     ../generic/Generic_Wheel.h
     ../generic/Generic_FuncDriver.h
     ../generic/Generic_Vehicle.h

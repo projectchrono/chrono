@@ -59,6 +59,7 @@
 #include <typeinfo>
 #include "core/ChLog.h"
 #include "core/ChRunTimeType.h"
+#include <unordered_map>
 
 namespace chrono {
 
@@ -191,6 +192,179 @@ void create(std::string cls_name, T** ppObj) {
         if ((*ppObj = reinterpret_cast<T*>(pCurrent->create(cls_name))) != NULL)
             break;
 }
+
+
+////////////////////////////////
+
+
+
+
+/// Base class for all registration data of classes 
+/// whose objects can be created via a class factory.
+
+class ChApi ChClassRegistrationBase {
+public:
+    /// The signature of create method for derived classes.
+    virtual void* create() = 0;
+};
+
+
+
+
+/// ChClassFactory is instanced once as a static object at ChronoEngine DLL startup.
+/// Use the public static methods to add ChClassRegistration objects to the map. 
+
+class ChApi ChClassFactory {
+  public:
+
+    ChClassFactory () {
+        GetLog() << "Create ChClassFactory \n";
+    }
+    ~ChClassFactory () {
+        for(const auto & it : class_map ) {
+           GetLog() << "   registered: " << it.first << "\n";
+        }
+        GetLog() << "Delete ChClassFactory \n";
+    }
+
+    //
+    // METHODS
+    //
+
+    /// Register a class into the global class factory.
+    /// Provide an unique name and a ChClassRegistration object.
+    /// If multiple registrations with the same name are attempted, only one is done.
+    static void ClassRegister(std::string& keyName, ChClassRegistrationBase* mregistration) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+
+        global_factory->_ClassRegister(keyName, mregistration);
+    }
+    
+    /// Unregister a class from the global class factory.
+    /// Provide an unique name.
+    static void ClassUnregister(std::string& keyName) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+
+        global_factory->_ClassUnregister(keyName);
+
+        if (global_factory->_GetNumberOfRegisteredClasses()==0)
+            DisposeGlobalClassFactory();
+    }
+
+    /// Create from tag name, for registered classes.
+    static void* create(std::string& keyName) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        return global_factory->_create(keyName);
+    }
+
+private:
+    /// Access the unique class factory here. It is unique even 
+    /// between dll boundaries. It is allocated the 1st time it is called, if null.
+    static ChClassFactory* GetGlobalClassFactory();
+
+    /// Delete the global class factory
+    static void DisposeGlobalClassFactory();
+
+    void _ClassRegister(std::string& keyName, ChClassRegistrationBase* mregistration)
+    {
+       class_map[keyName] = mregistration;
+    }
+
+    void _ClassUnregister(std::string& keyName)
+    {
+       class_map.erase(keyName);
+    }
+
+    bool _IsClassRegistered(std::string& keyName) {
+        const auto &it = class_map.find(keyName);
+        if (it != class_map.end())
+            return true;
+        else 
+            return false;
+    }
+
+    size_t _GetNumberOfRegisteredClasses() {
+        return class_map.size();
+    }
+
+    void* _create(std::string& keyName) {
+        const auto &it = class_map.find(keyName);
+        if (it != class_map.end()) {
+            return it->second->create();
+        }
+        throw ("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n" );
+    }
+
+private:
+    std::unordered_map<std::string, ChClassRegistrationBase*> class_map;
+};
+
+
+
+/// Class for registration data of classes 
+/// whose objects can be created via a class factory.
+
+template <class t>
+class ChClassRegistration : public ChClassRegistrationBase {
+  protected:
+    //
+    // DATA
+    //
+
+    /// Name of the class for dynamic creation
+    std::string m_sConventionalName;
+
+  public:
+    //
+    // CONSTRUCTORS
+    //
+
+    /// Creator (adds this to the global list of
+    /// ChClassRegistration<t> objects).
+    ChClassRegistration() {
+        // set name using the 'fake' RTTI system of Chrono
+        this->m_sConventionalName = t::FactoryClassNameTag();
+
+        // register in global class factory
+        ChClassFactory::ClassRegister(this->m_sConventionalName, this);
+    }
+
+    /// Destructor (removes this from the global list of
+    /// ChClassRegistration<t> objects).
+    virtual ~ChClassRegistration() {
+
+        // register in global class factory
+        ChClassFactory::ClassUnregister(this->m_sConventionalName);
+    }
+
+    //
+    // METHODS
+    //
+
+    virtual void* create() {
+        return (void*)(new t);
+    }
+
+};
+
+
+#define CH_FACTORY_TAG(classname)                           \
+  public:                                                   \
+    static const std::string& FactoryClassNameTag() {       \
+        static std::string mtag(#classname);                \
+        return mtag;                                        \
+    }                                                       \
+    virtual const std::string& FactoryNameTag() const {     \
+        static std::string mtag(#classname);                \
+        return mtag;                                        \
+    }                                                       \
+
+
+#define CH_FACTORY_REGISTER(classname)                                          \
+namespace class_factory {                                                       \
+    static ChClassRegistration< classname > classname ## _factory_registration; \
+}                                                                               \
+
 
 }  // END_OF_NAMESPACE____
 

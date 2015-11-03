@@ -131,11 +131,7 @@ class ChApi ChSphere : public ChGeometry {
         marchive >> CHNVP(rad);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream);
 
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

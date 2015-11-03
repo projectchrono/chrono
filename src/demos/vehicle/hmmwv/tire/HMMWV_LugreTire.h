@@ -19,23 +19,23 @@
 #ifndef HMMWV_LUGRE_TIRE_H
 #define HMMWV_LUGRE_TIRE_H
 
-#include "chrono_vehicle/tire/ChLugreTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChLugreTire.h"
 
 namespace hmmwv {
 
-class HMMWV_LugreTire : public chrono::ChLugreTire {
+class HMMWV_LugreTire : public chrono::vehicle::ChLugreTire {
   public:
     HMMWV_LugreTire(const std::string& name);
     ~HMMWV_LugreTire() {}
 
-    virtual int getNumDiscs() const { return m_numDiscs; }
-    virtual double getRadius() const { return m_radius; }
-    virtual const double* getDiscLocations() const { return m_discLocs; }
+    virtual int getNumDiscs() const override { return m_numDiscs; }
+    virtual double getRadius() const override { return m_radius; }
+    virtual const double* getDiscLocations() const override { return m_discLocs; }
 
-    virtual double getNormalStiffness() const { return m_normalStiffness; }
-    virtual double getNormalDamping() const { return m_normalDamping; }
+    virtual double getNormalStiffness() const override { return m_normalStiffness; }
+    virtual double getNormalDamping() const override { return m_normalDamping; }
 
-    virtual void SetLugreParams();
+    virtual void SetLugreParams() override;
 
   private:
     static const double m_radius;

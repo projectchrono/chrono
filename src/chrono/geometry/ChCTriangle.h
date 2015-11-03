@@ -186,9 +186,7 @@ class ChApi ChTriangle : public ChGeometry {
         marchive >> CHNVP(p3);
     }
 
-    void StreamOUT(ChStreamOutBinary& mstream);
 
-    void StreamIN(ChStreamInBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

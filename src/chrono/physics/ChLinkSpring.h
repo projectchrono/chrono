@@ -123,11 +123,14 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    virtual void StreamIN(ChStreamInBinary& mstream);
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////

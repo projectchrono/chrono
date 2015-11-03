@@ -21,33 +21,7 @@ namespace geometry {
 // dynamic creation and persistence
 ChClassRegister<ChRoundedCylinder> a_registration_ChRoundedCylinder;
 
-void ChRoundedCylinder::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChGeometry::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << center;
-    mstream << rad;
-    mstream << hlen;
-    mstream << radsphere;
-}
-
-void ChRoundedCylinder::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChGeometry::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> center;
-    mstream >> rad;
-    mstream >> hlen;
-    mstream >> radsphere;
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

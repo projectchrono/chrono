@@ -82,8 +82,7 @@ CH_ENUM_MAPPER_END(myEnum);
 
 class myEmployee : public ChShared {
     // Remember to enable the Chrono RTTI features with the CH_RTTI_.. macro
-    // if you want to use the AbstractReadCreate() feature, to deserialize
-    // objects whose exact class is not known in advance!
+    // if you want to deserialize objects whose exact class is not known in advance!
 
     CH_RTTI_ROOT(myEmployee)  //***** for _advanced_ Chrono serialization
 
@@ -100,7 +99,7 @@ class myEmployee : public ChShared {
     // MEMBER FUNCTIONS FOR BINARY I/O
     // NOTE!!!In order to allow serialization with Chrono approach,
     // at least implement these two functions, with the exact names
-    // StreamIN() and StreamOUT():
+    // ArchiveIN() and ArchiveOUT():
 
     virtual void ArchiveOUT(ChArchiveOut& marchive)  //##### for Chrono serialization
     {
@@ -126,16 +125,13 @@ class myEmployee : public ChShared {
 };
 
 
-
-
-
-
 // Somewhere in your cpp code (not in .h headers!) you should put the
 // 'class factory' registration of your class, assuming it has the CH_RTTI_..,
 // if you want to use the AbstractReadCreate() feature, to deserialize
 // objects whose exact class is not known in advance.
 
 chrono::ChClassRegister<myEmployee> a_registration1;  //***** for _advanced_ Chrono serialization
+
 
 
 // Ok, now let's do something even more difficult: an inherited class.
@@ -268,6 +264,10 @@ void my_serialization_example(ChArchiveOut& marchive)
         ChSharedPtr<myEmployeeBoss> s_boss(new myEmployeeBoss);
         marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
 
+        // Serialize null shared pointer
+        ChSharedPtr<myEmployeeBoss> null_boss(0);
+        marchive << CHNVP(null_boss); 
+
         delete a_boss;
 }
 
@@ -333,28 +333,36 @@ void my_deserialization_example(ChArchiveIn& marchive)
         ChSharedPtr<myEmployeeBoss> s_boss(0);
         marchive >> CHNVP(s_boss);
 
+        // Deserialize a null shared pointer
+        ChSharedPtr<myEmployeeBoss> null_boss(0);
+        marchive >> CHNVP(null_boss);
+
+
         // Just for safety, log some of the restored data:
 
-        GetLog() << "\n\nResult of binary I/O: \n " << m_text << " \n " << m_int << " \n" << m_double << "\n";
-        GetLog() < m_matr;
-        GetLog() < m_vect;
-        GetLog() < m_quat;
+        GetLog() << "\n\nResult of deserialization I/O: \n " << m_text << " \n " << m_int << " \n " << m_double << "\n";
+        GetLog() << m_matr;
+        GetLog() << m_vect;
+        GetLog() << m_quat;
         GetLog() << m_string.c_str() << "\n";
-        GetLog() < m_stlvector;
-        GetLog() < m_boss;
-        GetLog() < a_vect;
+        GetLog() << m_stlvector;
+        GetLog() << m_boss;
+        GetLog() << a_vect;
 
         if (a_boss) {
             GetLog() << "\n\n We loaded an obj inherited from myEmployee class:\n";
-            GetLog() < *a_boss;
+            GetLog() << *a_boss;
 
         if (a_boss2) {
             GetLog() << "\n\n We loaded a 2nd obj inherited from myEmployee class (referencing the 1st):\n";
-            GetLog() < *a_boss2;
+            GetLog() << *a_boss2;
         }
         if (s_boss) {
             GetLog() << "\n\n We loaded a 3nd obj inherited from myEmployee class:\n";
-            GetLog() < *(s_boss);
+            GetLog() << *(s_boss);
+        }
+        if (!null_boss) {
+            GetLog() << "\n\n We tried to load a 4th obj with shared pointer, but was null.\n";
         }
 
             // By the way, now show some feaures of Chrono run-time-type-identifier

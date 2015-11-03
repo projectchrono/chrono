@@ -42,10 +42,9 @@
 
 #include "core/ChLog.h"
 #include "core/ChMath.h"
-#include "core/ChSpmatrix.h"
+//#include "core/ChSparseMatrix.h" // it is not needed here, isn't it?
 #include "core/ChTimer.h"
 #include "physics/ChLinksAll.h"
-#include "physics/ChHistory.h"
 #include "physics/ChEvents.h"
 #include "physics/ChProbe.h"
 #include "physics/ChControls.h"
@@ -175,6 +174,22 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
         INT_LEAPFROG = 15,
         INT_NEWMARK = 16,
     };
+    CH_ENUM_MAPPER_BEGIN(eCh_integrationType);
+      CH_ENUM_VAL(INT_ANITESCU);
+      CH_ENUM_VAL(INT_TASORA);
+      CH_ENUM_VAL(INT_EULER_IMPLICIT);
+      CH_ENUM_VAL(INT_EULER_IMPLICIT_LINEARIZED);
+      CH_ENUM_VAL(INT_EULER_IMPLICIT_PROJECTED);
+      CH_ENUM_VAL(INT_TRAPEZOIDAL);
+      CH_ENUM_VAL(INT_TRAPEZOIDAL_LINEARIZED);
+      CH_ENUM_VAL(INT_HHT);
+      CH_ENUM_VAL(INT_HEUN);
+      CH_ENUM_VAL(INT_RUNGEKUTTA45);
+      CH_ENUM_VAL(INT_EULER_EXPLICIT);
+      CH_ENUM_VAL(INT_LEAPFROG);
+      CH_ENUM_VAL(INT_NEWMARK);
+    CH_ENUM_MAPPER_END(eCh_integrationType);
+
     /// Sets the method for time integration (time stepper).
     /// Some steppers are faster but can run into some troubles
     /// when dealing with large interpenetrations in contacts/impacts (es: INT_ANITESCU),
@@ -239,6 +254,19 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
         LCP_DEM,
         LCP_ITERATIVE_MINRES,
     };
+    CH_ENUM_MAPPER_BEGIN(eCh_lcpSolver);
+      CH_ENUM_VAL(LCP_ITERATIVE_SOR);
+      CH_ENUM_VAL(LCP_ITERATIVE_SYMMSOR);
+      CH_ENUM_VAL(LCP_SIMPLEX);
+      CH_ENUM_VAL(LCP_ITERATIVE_JACOBI);
+      CH_ENUM_VAL(LCP_ITERATIVE_SOR_MULTITHREAD);
+      CH_ENUM_VAL(LCP_ITERATIVE_PMINRES);
+      CH_ENUM_VAL(LCP_ITERATIVE_BARZILAIBORWEIN);
+      CH_ENUM_VAL(LCP_ITERATIVE_PCG);
+      CH_ENUM_VAL(LCP_ITERATIVE_APGD);
+      CH_ENUM_VAL(LCP_DEM);
+      CH_ENUM_VAL(LCP_ITERATIVE_MINRES);
+    CH_ENUM_MAPPER_END(eCh_lcpSolver);
 
     /// Choose the LCP solver type, to be used for the simultaneous
     /// solution of the constraints in dynamical simulations (as well as
@@ -790,14 +818,14 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     void SetScriptEngine(ChScriptEngine* mengine) { this->scriptEngine = mengine; }
     ChScriptEngine* GetScriptEngine() { return this->scriptEngine; }
 
-    char* GetScriptForStartFile() { return scriptForStartFile; }
-    char* GetScriptForUpdateFile() { return scriptForUpdateFile; }
-    char* GetScriptForStepFile() { return scriptForStepFile; }
-    char* GetScriptFor3DStepFile() { return scriptFor3DStepFile; }
-    int SetScriptForStartFile(char* mfile);
-    int SetScriptForUpdateFile(char* mfile);
-    int SetScriptForStepFile(char* mfile);
-    int SetScriptFor3DStepFile(char* mfile);
+    const std::string& GetScriptForStartFile() { return scriptForStartFile; }
+    const std::string& GetScriptForUpdateFile() { return scriptForUpdateFile; }
+    const std::string& GetScriptForStepFile() { return scriptForStepFile; }
+    const std::string& GetScriptFor3DStepFile() { return scriptFor3DStepFile; }
+    int SetScriptForStartFile(const std::string& mfile);
+    int SetScriptForUpdateFile(const std::string& mfile);
+    int SetScriptForStepFile(const std::string& mfile);
+    int SetScriptFor3DStepFile(const std::string& mfile);
     int ExecuteScriptForStart();
     int ExecuteScriptForUpdate();
     int ExecuteScriptForStep();
@@ -1000,24 +1028,6 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     // STREAMING
     //
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
-
-    /// Method to allow serialization of transient data in ascii,
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    void StreamOUT(ChStreamOutAscii& mstream);
-
-    /// Binary save data, for this object and subobjects (bodies, links, etc.)
-    int StreamOUTall(ChStreamOutBinary& m_file);
-
-    /// Binary read data, for this object and subobjects (bodies, links, etc.),
-    /// also rebuilding hierarchy.
-    int StreamINall(ChStreamInBinary& m_file);
 
     /// Writes the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes.
@@ -1032,11 +1042,7 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     /// hierarchy (bodies, forces, links, etc.) (deprecated function - obsolete)
     int FileWriteChR(ChStreamOutBinary& m_file);
 
-    /// If you have initialized SetScriptEngine(), here you can process
-    /// a script file, i.e. a file containing a Chrono scripted
-    /// program (it may build a system and perform simulations, and write to files)
-    /// Example, a ".js"  jvascript file that contain generic javascript commands.
-    int FileProcessJS(char* m_file);
+
 
     /////////////////////////////////////////////////////////////////////////////////////
 
@@ -1136,13 +1142,13 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
 
     ChScriptEngine* scriptEngine;  // points to a script engine
     ChScript* scriptForStart;      // this script is executed when simulation starts.
-    char scriptForStartFile[200];
+    std::string scriptForStartFile;
     ChScript* scriptForUpdate;  // this script is executed for each Update step.
-    char scriptForUpdateFile[200];
+    std::string scriptForUpdateFile;
     ChScript* scriptForStep;  // this script is executed for each integration step
-    char scriptForStepFile[200];
+    std::string scriptForStepFile;
     ChScript* scriptFor3DStep;  // this script is executed for each 3d interface macro step
-    char scriptFor3DStepFile[200];
+    std::string scriptFor3DStepFile;
 
     // timers for profiling execution speed
   protected:

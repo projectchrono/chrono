@@ -72,98 +72,23 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h"
 # List the files in the ChronoEngine_vehicle library
 # ----------------------------------------------------------------------------
 
+# --------------- COMMON FILES
+
 set(CV_BASE_FILES
     ChApiVehicle.h
-    ChSubsysDefs.h
-    ChVehicleModelData.h
-    ChVehicleModelData.cpp
     ChDriver.h
     ChDriver.cpp
     ChPowertrain.h
     ChPowertrain.cpp
-    ChDriveline.h
-    ChDriveline.cpp
-    ChSuspension.h
-    ChSuspension.cpp
-    ChSuspensionTest.h
-    ChSuspensionTest.cpp
-    ChSteering.h
-    ChSteering.cpp
-    ChVehicle.h
-    ChVehicle.cpp
-    ChWheel.h
-    ChWheel.cpp
-    ChTire.h
-    ChTire.cpp
+    ChSubsysDefs.h
     ChTerrain.h
     ChTerrain.cpp
-    ChBrake.h
-    ChBrake.cpp
-    ChAntirollBar.h
-    ChAntirollBar.cpp
+    ChVehicle.h
+    ChVehicle.cpp
+    ChVehicleModelData.h
+    ChVehicleModelData.cpp
 )
-
-set(CV_VEHICLE_FILES
-    vehicle/Vehicle.h
-    vehicle/Vehicle.cpp
-)
-
-set(CV_SUSPENSION_FILES
-    suspension/ChDoubleWishbone.h
-    suspension/ChDoubleWishbone.cpp
-    suspension/ChDoubleWishboneReduced.h
-    suspension/ChDoubleWishboneReduced.cpp
-    suspension/ChSolidAxle.h
-    suspension/ChSolidAxle.cpp
-    suspension/ChMultiLink.h
-    suspension/ChMultiLink.cpp
-    suspension/ChHendricksonPRIMAXX.h
-    suspension/ChHendricksonPRIMAXX.cpp
-
-    suspension/DoubleWishbone.h
-    suspension/DoubleWishbone.cpp
-    suspension/DoubleWishboneReduced.h
-    suspension/DoubleWishboneReduced.cpp
-    suspension/SolidAxle.h
-    suspension/SolidAxle.cpp
-    suspension/MultiLink.h
-    suspension/MultiLink.cpp
-    suspension/HendricksonPRIMAXX.h
-    suspension/HendricksonPRIMAXX.cpp
-)
-
-set(CV_WHEEL_FILES
-    wheel/Wheel.h
-    wheel/Wheel.cpp
-)
-
-set(CV_STEERING_FILES
-    steering/ChPitmanArm.h
-    steering/ChPitmanArm.cpp
-    steering/ChRackPinion.h
-    steering/ChRackPinion.cpp
-
-    steering/PitmanArm.h
-    steering/PitmanArm.cpp
-    steering/RackPinion.h
-    steering/RackPinion.cpp
-)
-
-set(CV_DRIVELINE_FILES
-    driveline/ChShaftsDriveline2WD.h
-    driveline/ChShaftsDriveline2WD.cpp
-    driveline/ChShaftsDriveline4WD.h
-    driveline/ChShaftsDriveline4WD.cpp
-    driveline/ChSimpleDriveline.h
-    driveline/ChSimpleDriveline.cpp
-
-    driveline/ShaftsDriveline2WD.h
-    driveline/ShaftsDriveline2WD.cpp
-    driveline/ShaftsDriveline4WD.h
-    driveline/ShaftsDriveline4WD.cpp
-    driveline/SimpleDriveline.h
-    driveline/SimpleDriveline.cpp
-)
+source_group("base" FILES ${CV_BASE_FILES})
 
 set(CV_DRIVER_FILES
     driver/ChDataDriver.h
@@ -171,6 +96,15 @@ set(CV_DRIVER_FILES
     driver/ChPathFollowerDriver.h
     driver/ChPathFollowerDriver.cpp
 )
+if(ENABLE_MODULE_IRRLICHT)
+    set(CVIRR_DRIVER_FILES
+        driver/ChIrrGuiDriver.h
+        driver/ChIrrGuiDriver.cpp
+    )
+else()
+    set(CVIRR_DRIVER_FILES "")
+endif()
+source_group("driver" FILES ${CV_DRIVER_FILES} ${CVIRR_DRIVER_FILES})
 
 set(CV_POVERTRAIN_FILES
     powertrain/ChSimplePowertrain.h
@@ -183,40 +117,7 @@ set(CV_POVERTRAIN_FILES
     powertrain/ShaftsPowertrain.h
     powertrain/ShaftsPowertrain.cpp
 )
-
-set(CV_TIRE_FILES
-    tire/ChRigidTire.h
-    tire/ChRigidTire.cpp
-    tire/ChPacejkaTire.h
-    tire/ChPacejkaTire.cpp
-    tire/ChLugreTire.h
-    tire/ChLugreTire.cpp
-    tire/ChFialaTire.h
-    tire/ChFialaTire.cpp
-	
-    tire/RigidTire.h
-    tire/RigidTire.cpp
-    tire/LugreTire.h
-    tire/LugreTire.cpp
-    tire/FialaTire.h
-    tire/FialaTire.cpp	
-)
-
-set(CV_BRAKE_FILES
-    brake/ChBrakeSimple.h
-    brake/ChBrakeSimple.cpp
-
-    brake/BrakeSimple.h
-    brake/BrakeSimple.cpp
-)
-
-set(CV_ANTIROLL_FILES
-    antirollbar/ChAntirollBarRSD.h
-    antirollbar/ChAntirollBarRSD.cpp
-
-    antirollbar/AntirollBarRSD.h
-    antirollbar/AntirollBarRSD.cpp
-)
+source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
 
 set(CV_TERRAIN_FILES
     terrain/FlatTerrain.h
@@ -224,36 +125,173 @@ set(CV_TERRAIN_FILES
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
 )
-
-set(CV_SUSPENSIONTEST_FILES
-    suspensionTest/SuspensionTest.h
-    suspensionTest/SuspensionTest.cpp
-)
+source_group("terrain" FILES ${CV_TERRAIN_FILES})
 
 set(CV_UTILS_FILES
-    utils/ChWheeledVehicleAssembly.h
-    utils/ChWheeledVehicleAssembly.cpp
     utils/ChSteeringController.h
     utils/ChSteeringController.cpp
     utils/ChSpeedController.h
     utils/ChSpeedController.cpp
 )
-
 if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_DRIVER_FILES
-        driver/ChIrrGuiDriver.h
-        driver/ChIrrGuiDriver.cpp
-        driver/ChIrrGuiST.h
-        driver/ChIrrGuiST.cpp
-    )
     set(CVIRR_UTILS_FILES
         utils/ChVehicleIrrApp.h
         utils/ChVehicleIrrApp.cpp
     )
 else()
-    set(CVIRR_DRIVER_FILES "")
     set(CVIRR_UTILS_FILES "")
 endif()
+source_group("utils" FILES ${CV_UTILS_FILES} ${CVIRR_UTILS_FILES})
+
+# --------------- WHEELED VEHICLE FILES
+
+set(CV_WV_BASE_FILES
+    wheeled_vehicle/ChAntirollBar.h
+    wheeled_vehicle/ChAntirollBar.cpp
+    wheeled_vehicle/ChBrake.h
+    wheeled_vehicle/ChBrake.cpp
+    wheeled_vehicle/ChDriveline.h
+    wheeled_vehicle/ChDriveline.cpp
+    wheeled_vehicle/ChSuspension.h
+    wheeled_vehicle/ChSuspension.cpp
+    wheeled_vehicle/ChSteering.h
+    wheeled_vehicle/ChSteering.cpp
+    wheeled_vehicle/ChWheeledVehicle.h
+    wheeled_vehicle/ChWheeledVehicle.cpp
+    wheeled_vehicle/ChWheel.h
+    wheeled_vehicle/ChWheel.cpp
+    wheeled_vehicle/ChTire.h
+    wheeled_vehicle/ChTire.cpp
+)
+source_group("wheeled_vehicle\\base" FILES ${CV_WV_BASE_FILES})
+
+set(CV_WV_ANTIROLL_FILES
+    wheeled_vehicle/antirollbar/ChAntirollBarRSD.h
+    wheeled_vehicle/antirollbar/ChAntirollBarRSD.cpp
+
+    wheeled_vehicle/antirollbar/AntirollBarRSD.h
+    wheeled_vehicle/antirollbar/AntirollBarRSD.cpp
+)
+source_group("wheeled_vehicle\\antirollbar" FILES ${CV_WV_ANTIROLL_FILES})
+
+set(CV_WV_BRAKE_FILES
+    wheeled_vehicle/brake/ChBrakeSimple.h
+    wheeled_vehicle/brake/ChBrakeSimple.cpp
+
+    wheeled_vehicle/brake/BrakeSimple.h
+    wheeled_vehicle/brake/BrakeSimple.cpp
+)
+source_group("wheeled_vehicle\\brake" FILES ${CV_WV_BRAKE_FILES})
+
+set(CV_WV_DRIVELINE_FILES
+    wheeled_vehicle/driveline/ChShaftsDriveline2WD.h
+    wheeled_vehicle/driveline/ChShaftsDriveline2WD.cpp
+    wheeled_vehicle/driveline/ChShaftsDriveline4WD.h
+    wheeled_vehicle/driveline/ChShaftsDriveline4WD.cpp
+    wheeled_vehicle/driveline/ChSimpleDriveline.h
+    wheeled_vehicle/driveline/ChSimpleDriveline.cpp
+
+    wheeled_vehicle/driveline/ShaftsDriveline2WD.h
+    wheeled_vehicle/driveline/ShaftsDriveline2WD.cpp
+    wheeled_vehicle/driveline/ShaftsDriveline4WD.h
+    wheeled_vehicle/driveline/ShaftsDriveline4WD.cpp
+    wheeled_vehicle/driveline/SimpleDriveline.h
+    wheeled_vehicle/driveline/SimpleDriveline.cpp
+)
+source_group("wheeled_vehicle\\driveline" FILES ${CV_WV_DRIVELINE_FILES})
+
+set(CV_WV_STEERING_FILES
+    wheeled_vehicle/steering/ChPitmanArm.h
+    wheeled_vehicle/steering/ChPitmanArm.cpp
+    wheeled_vehicle/steering/ChRackPinion.h
+    wheeled_vehicle/steering/ChRackPinion.cpp
+
+    wheeled_vehicle/steering/PitmanArm.h
+    wheeled_vehicle/steering/PitmanArm.cpp
+    wheeled_vehicle/steering/RackPinion.h
+    wheeled_vehicle/steering/RackPinion.cpp
+)
+source_group("wheeled_vehicle\\steering" FILES ${CV_WV_STEERING_FILES})
+
+set(CV_WV_SUSPENSION_FILES
+    wheeled_vehicle/suspension/ChDoubleWishbone.h
+    wheeled_vehicle/suspension/ChDoubleWishbone.cpp
+    wheeled_vehicle/suspension/ChDoubleWishboneReduced.h
+    wheeled_vehicle/suspension/ChDoubleWishboneReduced.cpp
+    wheeled_vehicle/suspension/ChSolidAxle.h
+    wheeled_vehicle/suspension/ChSolidAxle.cpp
+    wheeled_vehicle/suspension/ChMultiLink.h
+    wheeled_vehicle/suspension/ChMultiLink.cpp
+    wheeled_vehicle/suspension/ChHendricksonPRIMAXX.h
+    wheeled_vehicle/suspension/ChHendricksonPRIMAXX.cpp
+
+    wheeled_vehicle/suspension/DoubleWishbone.h
+    wheeled_vehicle/suspension/DoubleWishbone.cpp
+    wheeled_vehicle/suspension/DoubleWishboneReduced.h
+    wheeled_vehicle/suspension/DoubleWishboneReduced.cpp
+    wheeled_vehicle/suspension/SolidAxle.h
+    wheeled_vehicle/suspension/SolidAxle.cpp
+    wheeled_vehicle/suspension/MultiLink.h
+    wheeled_vehicle/suspension/MultiLink.cpp
+    wheeled_vehicle/suspension/HendricksonPRIMAXX.h
+    wheeled_vehicle/suspension/HendricksonPRIMAXX.cpp
+)
+source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
+
+set(CV_WV_TIRE_FILES
+    wheeled_vehicle/tire/ChRigidTire.h
+    wheeled_vehicle/tire/ChRigidTire.cpp
+    wheeled_vehicle/tire/ChPacejkaTire.h
+    wheeled_vehicle/tire/ChPacejkaTire.cpp
+    wheeled_vehicle/tire/ChLugreTire.h
+    wheeled_vehicle/tire/ChLugreTire.cpp
+    wheeled_vehicle/tire/ChFialaTire.h
+    wheeled_vehicle/tire/ChFialaTire.cpp
+
+    wheeled_vehicle/tire/RigidTire.h
+    wheeled_vehicle/tire/RigidTire.cpp
+    wheeled_vehicle/tire/LugreTire.h
+    wheeled_vehicle/tire/LugreTire.cpp
+    wheeled_vehicle/tire/FialaTire.h
+    wheeled_vehicle/tire/FialaTire.cpp
+)
+source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
+
+set(CV_WV_UTILS_FILES
+    wheeled_vehicle/utils/ChWheeledVehicleAssembly.h
+    wheeled_vehicle/utils/ChWheeledVehicleAssembly.cpp
+    wheeled_vehicle/utils/ChSuspensionTestRig.h
+    wheeled_vehicle/utils/ChSuspensionTestRig.cpp
+)
+if(ENABLE_MODULE_IRRLICHT)
+    set(CVIRR_WV_UTILS_FILES
+        wheeled_vehicle/utils/ChIrrGuiDriverSTR.h
+        wheeled_vehicle/utils/ChIrrGuiDriverSTR.cpp
+    )
+else()
+    set(CVIRR_WV_UTILS_FILES "")
+endif()
+source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES} ${CVIRR_WV_UTILS_FILES})
+
+set(CV_WV_VEHICLE_FILES
+    wheeled_vehicle/vehicle/WheeledVehicle.h
+    wheeled_vehicle/vehicle/WheeledVehicle.cpp
+)
+source_group("wheeled_vehicle\\vehicle" FILES ${CV_WV_VEHICLE_FILES})
+
+set(CV_WV_WHEEL_FILES
+    wheeled_vehicle/wheel/Wheel.h
+    wheeled_vehicle/wheel/Wheel.cpp
+)
+source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
+
+# --------------- TRACKED VEHICLE FILES
+
+set(CV_TV_BASE_FILES
+
+)
+
+# --------------- THIRD-PARTY FILES
 
 set(CV_EASYBMP_FILES
     ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP.h
@@ -261,22 +299,7 @@ set(CV_EASYBMP_FILES
     ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_BMP.h
     ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_DataStructures.h
     ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_VariousBMPutilities.h
-    )
-
-source_group("base" FILES ${CV_BASE_FILES})
-source_group("vehicle" FILES ${CV_VEHICLE_FILES})
-source_group("suspension" FILES ${CV_SUSPENSION_FILES})
-source_group("wheel" FILES ${CV_WHEEL_FILES})
-source_group("steering" FILES ${CV_STEERING_FILES})
-source_group("driveline" FILES ${CV_DRIVELINE_FILES})
-source_group("driver" FILES ${CV_DRIVER_FILES} ${CVIRR_DRIVER_FILES})
-source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
-source_group("tire" FILES ${CV_TIRE_FILES})
-source_group("brake" FILES ${CV_BRAKE_FILES})
-source_group("antirollbar" FILES ${CV_ANTIROLL_FILES})
-source_group("terrain" FILES ${CV_TERRAIN_FILES})
-source_group("suspensionTest" FILES ${CV_SUSPENSIONTEST_FILES})
-source_group("utils" FILES ${CV_UTILS_FILES} ${CVIRR_UTILS_FILES})
+)
 source_group("easyBMP" FILES ${CV_EASYBMP_FILES})
 
 # ----------------------------------------------------------------------------
@@ -293,22 +316,29 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 add_library(ChronoEngine_vehicle SHARED
+#
     ${CV_BASE_FILES}
-    ${CV_VEHICLE_FILES}
-    ${CV_SUSPENSION_FILES}
-    ${CV_WHEEL_FILES}
-    ${CV_STEERING_FILES}
-    ${CV_DRIVELINE_FILES}
     ${CV_DRIVER_FILES}
-    ${CV_POVERTRAIN_FILES}
-    ${CV_TIRE_FILES}
-    ${CV_BRAKE_FILES}
-    ${CV_ANTIROLL_FILES}
-    ${CV_TERRAIN_FILES}
-    ${CV_SUSPENSIONTEST_FILES}
-    ${CV_UTILS_FILES}
     ${CVIRR_DRIVER_FILES}
+    ${CV_POVERTRAIN_FILES}
+    ${CV_TERRAIN_FILES}
+    ${CV_UTILS_FILES}
     ${CVIRR_UTILS_FILES}
+#
+    ${CV_WV_BASE_FILES}
+    ${CV_WV_ANTIROLL_FILES}
+    ${CV_WV_BRAKE_FILES}
+    ${CV_WV_DRIVELINE_FILES}
+    ${CV_WV_STEERING_FILES}
+    ${CV_WV_SUSPENSION_FILES}
+    ${CV_WV_TIRE_FILES}
+    ${CV_WV_UTILS_FILES}
+    ${CVIRR_WV_UTILS_FILES}
+    ${CV_WV_VEHICLE_FILES}
+    ${CV_WV_WHEEL_FILES}
+#
+    ${CV_TV_BASE_FILES}
+#
     ${CV_EASYBMP_FILES}
 )
 

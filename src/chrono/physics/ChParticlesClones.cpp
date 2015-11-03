@@ -34,14 +34,15 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChParticlesClones> a_registration_ChParticlesClones;
+
 
 //////////////////////////////////////
 //////////////////////////////////////
 
 /// CLASS FOR A PARTICLE
+
+
+
 
 ChAparticle::ChAparticle() {
     this->collision_model = new ChModelBullet;
@@ -162,11 +163,49 @@ ChPhysicsItem* ChAparticle::GetPhysicsItem()
     return container;
 }
 
+void ChAparticle::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChParticleBase::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    //marchive << CHNVP(container);
+    marchive << CHNVP(collision_model);
+    marchive << CHNVP(UserForce);
+    marchive << CHNVP(UserTorque);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChAparticle::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class:
+    ChParticleBase::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(collision_model);
+    marchive >> CHNVP(UserForce);
+    marchive >> CHNVP(UserTorque);
+}
+
+
+
 
 //////////////////////////////////////
 //////////////////////////////////////
 
 /// CLASS FOR PARTICLE CLUSTER
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChParticlesClones> a_registration_ChParticlesClones;
+
 
 ChParticlesClones::ChParticlesClones() {
     do_collide = false;
@@ -624,40 +663,63 @@ void ChParticlesClones::UpdateParticleCollisionModels() {
 
 //////// FILE I/O
 
-void ChParticlesClones::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // serialize parent class too
-    ChIndexedParticles::StreamOUT(mstream);
+    // serialize parent class
+    ChIndexedParticles::ArchiveOUT(marchive);
 
-    // stream out all member data
-
-    //...
-    // dfoo=(double)rolling_friction;mstream << dfoo;
-    // dfoo=(double)spinning_friction;mstream << dfoo;
-
-    //***TO DO*** stream data & clones
+    // serialize all member data:
+    marchive << CHNVP(particles);
+    //marchive << CHNVP(particle_mass); //***TODO***
+    marchive << CHNVP(particle_collision_model);
+    marchive << CHNVP(matsurface);
+    marchive << CHNVP(do_collide);
+    marchive << CHNVP(do_limit_speed);
+    marchive << CHNVP(do_sleep);
+    marchive << CHNVP(max_speed);
+    marchive << CHNVP(max_wvel);
+    marchive << CHNVP(sleep_time);
+    marchive << CHNVP(sleep_minspeed);
+    marchive << CHNVP(sleep_minwvel);
+    marchive << CHNVP(sleep_starttime);
 }
 
-void ChParticlesClones::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChIndexedParticles::StreamIN(mstream);
+    // deserialize parent class:
+    ChIndexedParticles::ArchiveIN(marchive);
 
-    // stream in all member data
+    // deserialize all member data:
 
-    particle_collision_model->ClearModel();
+    RemoveCollisionModelsFromSystem();
 
-    //...
-    // double dfoo;
-    // mstream >> dfoo;		rolling_friction= (float)dfoo;
-    // mstream >> dfoo;		spinning_friction= (float)dfoo;
+    marchive >> CHNVP(particles);
+    //marchive >> CHNVP(particle_mass); //***TODO***
+    marchive >> CHNVP(particle_collision_model);
+    marchive >> CHNVP(matsurface);
+    marchive >> CHNVP(do_collide);
+    marchive >> CHNVP(do_limit_speed);
+    marchive >> CHNVP(do_sleep);
+    marchive >> CHNVP(max_speed);
+    marchive >> CHNVP(max_wvel);
+    marchive >> CHNVP(sleep_time);
+    marchive >> CHNVP(sleep_minspeed);
+    marchive >> CHNVP(sleep_minwvel);
+    marchive >> CHNVP(sleep_starttime);
 
-    //***TO DO*** unstream data & nodes
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        this->particles[j]->SetContainer(this);
+    }
+    AddCollisionModelsToSystem();
 }
+
+
 
 }  // END_OF_NAMESPACE____
 

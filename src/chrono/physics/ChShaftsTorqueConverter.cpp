@@ -167,33 +167,40 @@ void ChShaftsTorqueConverter::VariablesFbLoadForces(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsTorqueConverter::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
+void ChShaftsTorqueConverter::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // stream out all member data
-    mstream.AbstractWrite(this->K.get_ptr());  //***TODO*** proper serialize for ChSharedPtr
-    mstream.AbstractWrite(this->T.get_ptr());  //***TODO*** proper serialize for ChSharedPtr
+    // serialize parent class
+    ChPhysicsItem::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(K);
+    marchive << CHNVP(T);
+    //marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
 }
 
-void ChShaftsTorqueConverter::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChShaftsTorqueConverter::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChPhysicsItem::StreamIN(mstream);
+    // deserialize parent class:
+    ChPhysicsItem::ArchiveIN(marchive);
 
-    // deserialize class
-    ChFunction* newfun;
-    mstream.AbstractReadCreate(&newfun);  //***TODO*** proper deserialize for ChSharedPtr
-    this->K = ChSharedPtr<ChFunction>(newfun);
-    mstream.AbstractReadCreate(&newfun);  //***TODO*** proper deserialize for ChSharedPtr
-    this->T = ChSharedPtr<ChFunction>(newfun);
-    ;
-}
+    // deserialize all member data:
+    marchive >> CHNVP(K);
+    marchive >> CHNVP(T);
+    //marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
+} 
+
 
 }  // END_OF_NAMESPACE____
 

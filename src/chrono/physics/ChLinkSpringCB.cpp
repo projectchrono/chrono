@@ -77,26 +77,30 @@ void ChLinkSpringCB::UpdateForces(double time) {
     C_force += m_force * relM.pos.GetNormalized();
 }
 
-void ChLinkSpringCB::StreamOUT(ChStreamOutBinary& stream) {
-    // Class version number
-    stream.VersionWrite(1);
+void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // Serialize parent class too
-    ChLinkMarkers::StreamOUT(stream);
+    // serialize parent class
+    ChLinkMarkers::ArchiveOUT(marchive);
 
-    // Stream out all member data
-    stream << m_rest_length;
+    // serialize all member data:
+    marchive << CHNVP(m_rest_length);
 }
 
-void ChLinkSpringCB::StreamIN(ChStreamInBinary& stream) {
-    // Class version number
-    int version = stream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChLinkSpringCB::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // Deserialize parent class
-    ChLinkMarkers::StreamIN(stream);
+    // deserialize parent class
+    ChLinkMarkers::ArchiveIN(marchive);
 
-    // Stream in all member data
-    stream >> m_rest_length;
+    // deserialize all member data:
+    marchive >> CHNVP(m_rest_length);
 }
+
 
 }  // END_OF_NAMESPACE____

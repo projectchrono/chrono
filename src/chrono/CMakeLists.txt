@@ -35,7 +35,7 @@ set(ChronoEngine_core_SOURCES
     core/ChVector.cpp
     core/ChQuaternion.cpp
     core/ChCoordsys.cpp
-    core/ChSpmatrix.cpp
+    core/ChLinkedListMatrix.cpp
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
     )
@@ -71,7 +71,8 @@ set(ChronoEngine_core_HEADERS
     core/ChTimer.h
     core/ChTransform.h
     core/ChVector.h
-    core/ChSpmatrix.h
+    core/ChSparseMatrix.h
+    core/ChLinkedListMatrix.h
     core/ChWrapHashmap.h
     core/ChDistribution.h
     core/ChQuadrature.h
@@ -140,7 +141,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkRevoluteSpherical.cpp
     physics/ChLinkRevoluteTranslational.cpp
     physics/ChLinkUniversal.cpp
-    physics/ChHistory.cpp
     physics/ChSystem.cpp
     physics/ChGlobal.cpp
     physics/ChEvents.cpp
@@ -205,7 +205,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChFunction.h
     physics/ChFx.h
     physics/ChGlobal.h
-    physics/ChHistory.h
     physics/ChIndexedNodes.h
     physics/ChIndexedParticles.h
     physics/ChIterative.h

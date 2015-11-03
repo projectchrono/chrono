@@ -31,6 +31,7 @@
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Rigid terrain model.
@@ -45,11 +46,11 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Construct a default RigidTerrain.
     /// The user is responsible for calling various Set methods before Initialize.
-    RigidTerrain(chrono::ChSystem* system  ///< [in] pointer to the containing multibody system
+    RigidTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
                  );
 
     /// Construct a RigidTerrain from a JSON specification file.
-    RigidTerrain(chrono::ChSystem* system,    ///< [in] pointer to the containing multibody system
+    RigidTerrain(ChSystem* system,    ///< [in] pointer to the containing multibody system
                  const std::string& filename  ///< [in] name of the JSON specification file
                  );
 
@@ -116,6 +117,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     double m_height;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

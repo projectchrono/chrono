@@ -755,6 +755,7 @@ void ChMatterMeshless::UpdateParticleCollisionModels() {
 //////// FILE I/O
 
 void ChMatterMeshless::StreamOUT(ChStreamOutBinary& mstream) {
+    /*
     // class version number
     mstream.VersionWrite(1);
 
@@ -763,11 +764,13 @@ void ChMatterMeshless::StreamOUT(ChStreamOutBinary& mstream) {
 
     // stream out all member data
     mstream.AbstractWrite(this->material.get_ptr());
+    */
 
     //***TO DO*** stream nodes
 }
 
 void ChMatterMeshless::StreamIN(ChStreamInBinary& mstream) {
+    /*
     // class version number
     int version = mstream.VersionRead();
 
@@ -778,6 +781,7 @@ void ChMatterMeshless::StreamIN(ChStreamInBinary& mstream) {
     ChContinuumElastoplastic* mmat;
     mstream.AbstractReadCreate(&mmat);
     this->material = ChSharedPtr<ChContinuumElastoplastic>(mmat);
+    */
 
     //***TO DO*** unstream nodes
 }

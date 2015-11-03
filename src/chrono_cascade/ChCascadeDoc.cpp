@@ -475,6 +475,8 @@ ChSharedPtr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
     chrono::ChFrame<>* frame_cog_to_ref = (chrono::ChFrame<>*)mbody.get_ptr();
     frame_cog_to_ref->SetPos(mcog);
     frame_cog_to_ref->SetRot(chrono::QUNIT);
+
+    return mbody;
 }
 
 

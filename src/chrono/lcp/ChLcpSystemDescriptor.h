@@ -63,6 +63,9 @@ namespace chrono {
 /// and variables structures with more efficient data schemes.
 
 class ChApi ChLcpSystemDescriptor {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI_ROOT(ChLcpSystemDescriptor);
+
   protected:
     //
     // DATA
@@ -342,9 +345,9 @@ class ChApi ChLcpSystemDescriptor {
     /// using these matrices, for performance), for example you will load these matrices in Matlab.
     /// Optionally, tangential (u,v) contact jacobians may be skipped, or only bilaterals can be considered
     /// The matrices and vectors are automatically resized if needed.
-	virtual void ConvertToMatrixForm(ChSparseMatrixBase* Cq,   ///< fill this system jacobian matrix, if not null
-									 ChSparseMatrixBase* M,    ///< fill this system mass matrix, if not null
-									 ChSparseMatrixBase* E,    ///< fill this system 'compliance' matrix , if not null
+	virtual void ConvertToMatrixForm(ChSparseMatrix* Cq,   ///< fill this system jacobian matrix, if not null
+									 ChSparseMatrix* M,    ///< fill this system mass matrix, if not null
+									 ChSparseMatrix* E,    ///< fill this system 'compliance' matrix , if not null
                                      ChMatrix<>* Fvector,  ///< fill this vector as the known term 'f', if not null
                                      ChMatrix<>* Bvector,  ///< fill this vector as the known term 'b', if not null
                                      ChMatrix<>* Frict,    ///< fill as a vector with friction coefficients (=-1 for
@@ -352,7 +355,7 @@ class ChApi ChLcpSystemDescriptor {
                                      bool only_bilaterals = false,
                                      bool skip_contacts_uv = false);
 
-	virtual void ConvertToMatrixForm(ChSparseMatrixBase* Z,
+	virtual void ConvertToMatrixForm(ChSparseMatrix* Z,
 									 ChMatrix<>* rhs,
 									 bool only_bilaterals = false,
 									 bool skip_contacts_uv = false);
@@ -367,8 +370,8 @@ class ChApi ChLcpSystemDescriptor {
     virtual void DumpLastMatrices(const char* path = "");
 
     /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm
-	virtual void BuildMatrices(ChSparseMatrixBase* Cq,
-								ChSparseMatrixBase* M,
+	virtual void BuildMatrices(ChSparseMatrix* Cq,
+								ChSparseMatrix* M,
                                bool only_bilaterals = false,
                                bool skip_contacts_uv = false);
     /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm, or BuildFbVector or BuildBiVector
@@ -376,6 +379,30 @@ class ChApi ChLcpSystemDescriptor {
 								ChMatrix<>* b,
                               bool only_bilaterals = false,
                               bool skip_contacts_uv = false);
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        // serialize all member data:
+        marchive << CHNVP(num_threads);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        // stream in all member data:
+        marchive >> CHNVP(num_threads);
+    }
+
 };
 
 

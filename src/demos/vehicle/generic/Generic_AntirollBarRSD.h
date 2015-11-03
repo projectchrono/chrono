@@ -19,26 +19,23 @@
 #ifndef GENERIC_ANTIROLLBAR_RSD_H
 #define GENERIC_ANTIROLLBAR_RSD_H
 
-#include "chrono_vehicle/antirollbar/ChAntirollBarRSD.h"
+#include "chrono_vehicle/wheeled_vehicle/antirollbar/ChAntirollBarRSD.h"
 
-class Generic_AntirollBarRSD : public chrono::ChAntirollBarRSD
-{
-public:
+class Generic_AntirollBarRSD : public chrono::vehicle::ChAntirollBarRSD {
+  public:
+    Generic_AntirollBarRSD(const std::string& name) : chrono::vehicle::ChAntirollBarRSD(name) {}
+    ~Generic_AntirollBarRSD() {}
 
-  Generic_AntirollBarRSD(const std::string& name) : ChAntirollBarRSD(name) {}
-  ~Generic_AntirollBarRSD() {}
+    virtual double getArmMass() const override { return 1.0; }
+    virtual chrono::ChVector<> getArmInertia() override { return chrono::ChVector<>(1, 1, 1); }
 
-  virtual double getArmMass() const { return 1.0; }
-  virtual chrono::ChVector<> getArmInertia() { return chrono::ChVector<>(1, 1, 1); }
+    virtual double getArmLength() const override { return 0.70; }
+    virtual double getArmWidth() const override { return 0.25; }
+    virtual double getDroplinkHeight() const override { return -0.20; }
+    virtual double getArmRadius() const override { return 0.02; }
 
-  virtual double getArmLength() const { return 0.70; }
-  virtual double getArmWidth() const { return 0.25; }
-  virtual double getDroplinkHeight() const { return -0.20; }
-  virtual double getArmRadius() const { return 0.02; }
-
-  virtual double getSpringCoefficient() const { return 100000.0; }
-  virtual double getDampingCoefficient() const { return 20000.0; }
+    virtual double getSpringCoefficient() const override { return 100000.0; }
+    virtual double getDampingCoefficient() const override { return 20000.0; }
 };
-
 
 #endif

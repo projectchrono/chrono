@@ -20,32 +20,28 @@
 
 #include "chrono_vehicle/ChDriver.h"
 
-class Generic_FuncDriver : public chrono::ChDriver
-{
-public:
+class Generic_FuncDriver : public chrono::vehicle::ChDriver {
+  public:
+    Generic_FuncDriver(chrono::vehicle::ChVehicle& vehicle) : chrono::vehicle::ChDriver(vehicle) {}
+    ~Generic_FuncDriver() {}
 
-  Generic_FuncDriver() {}
-  ~Generic_FuncDriver() {}
+    virtual void Update(double time) override {
+        if (time < 0.5)
+            m_throttle = 0;
+        else if (time < 1.5)
+            m_throttle = 0.4 * (time - 0.5);
+        else
+            m_throttle = 0.4;
 
-  virtual void Update(double time)
-  {
-    if (time < 0.5)
-      m_throttle = 0;
-    else if (time < 1.5)
-      m_throttle = 0.4 * (time - 0.5);
-    else
-      m_throttle = 0.4;
-
-    if (time < 4)
-      m_steering = 0;
-    else if (time < 6)
-      m_steering = 0.25 * (time - 4);
-    else if (time < 10)
-      m_steering = -0.25 * (time - 6) + 0.5;
-    else
-      m_steering = -0.5;
-  }
+        if (time < 4)
+            m_steering = 0;
+        else if (time < 6)
+            m_steering = 0.25 * (time - 4);
+        else if (time < 10)
+            m_steering = -0.25 * (time - 6) + 0.5;
+        else
+            m_steering = -0.5;
+    }
 };
-
 
 #endif

@@ -14,7 +14,7 @@
 #define CHARCHIVEASCIIDUMP_H
 
 
-#include "serialization/ChArchiveAsciiDump.h"
+#include "serialization/ChArchive.h"
 
 
 namespace chrono {
@@ -209,13 +209,13 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 /// For example:  GetLog() < mymatrix;
 
 template <class T>
-ChStreamOutAscii & operator<(ChStreamOutAscii &mstream, T& obj) {
+ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
     std::vector<char> mvect;
     ChStreamOutAsciiVector mtempstream(&mvect);
     mtempstream.SetNumFormat(mstream.GetNumFormat());
     ChArchiveAsciiDump marchive(mtempstream);
     // this avoids printing too much except the object:
-    marchive.SetCutPointers(true);
+    marchive.SetCutAllPointers(true);
     marchive << CHNVP(obj,"");
     std::string mystring(mtempstream.GetVector()->begin(),mtempstream.GetVector()->end());
     return mstream << mystring;

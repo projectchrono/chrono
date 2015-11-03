@@ -22,12 +22,14 @@
 
 #include <string>
 
-#include "core/ChShared.h"
-#include "physics/ChSystem.h"
+#include "chrono/core/ChShared.h"
+#include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChVehicle.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Base class for a vehicle driver system.
@@ -37,7 +39,9 @@ namespace chrono {
 ///
 class CH_VEHICLE_API ChDriver : public ChShared {
   public:
-    ChDriver();
+    ChDriver(ChVehicle& vehicle  ///< associated vehicle
+             );
+
     virtual ~ChDriver() {}
 
     /// Get the driver throttle input (in the range [0,1])
@@ -71,14 +75,16 @@ class CH_VEHICLE_API ChDriver : public ChShared {
     void SetBraking(double val, double min_val = 0, double max_val = 1);
 
   protected:
-    double m_throttle;  ///< current value of throttle input
-    double m_steering;  ///< current value of steering input
-    double m_braking;   ///< current value of braking input
+    ChVehicle& m_vehicle;  ///< reference to associated vehicle
+    double m_throttle;     ///< current value of throttle input
+    double m_steering;     ///< current value of steering input
+    double m_braking;      ///< current value of braking input
 
   private:
-    std::string m_log_filename;  // name of output file for recording driver inputs
+    std::string m_log_filename;  ///< name of output file for recording driver inputs
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

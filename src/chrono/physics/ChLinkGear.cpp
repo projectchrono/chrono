@@ -310,56 +310,54 @@ void ChLinkGear::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-void ChLinkGear::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(2);
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << tau;
-    mstream << alpha;
-    mstream << beta;
-    mstream << phase;
-    mstream << checkphase;
-    mstream << epicyclic;
-    mstream << a1;
-    mstream << a2;
-    mstream << r1;
-    mstream << r2;
-    mstream << local_shaft1;
-    mstream << local_shaft2;
+void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLinkLock::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(tau);
+    marchive << CHNVP(alpha);
+    marchive << CHNVP(beta);
+    marchive << CHNVP(phase);
+    marchive << CHNVP(checkphase);
+    marchive << CHNVP(epicyclic);
+    marchive << CHNVP(a1);
+    marchive << CHNVP(a2);
+    marchive << CHNVP(r1);
+    marchive << CHNVP(r2);
+    marchive << CHNVP(local_shaft1);
+    marchive << CHNVP(local_shaft2);
 }
 
-void ChLinkGear::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkGear::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    mstream >> tau;
-    mstream >> alpha;
-    mstream >> beta;
-    mstream >> phase;
-    mstream >> checkphase;
-    mstream >> epicyclic;
-    mstream >> a1;
-    mstream >> a2;
-    mstream >> r1;
-    mstream >> r2;
-    if (version == 1) {
-        Vector mvfoo;
-        mstream >> mvfoo;
-        mstream >> mvfoo;
-        mstream >> mvfoo;
-        mstream >> mvfoo;
-    }
-    if (version >= 2) {
-        mstream >> local_shaft1;
-        mstream >> local_shaft2;
-    }
+    // deserialize parent class
+    ChLinkLock::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(tau);
+    marchive >> CHNVP(alpha);
+    marchive >> CHNVP(beta);
+    marchive >> CHNVP(phase);
+    marchive >> CHNVP(checkphase);
+    marchive >> CHNVP(epicyclic);
+    marchive >> CHNVP(a1);
+    marchive >> CHNVP(a2);
+    marchive >> CHNVP(r1);
+    marchive >> CHNVP(r2);
+    marchive >> CHNVP(local_shaft1);
+    marchive >> CHNVP(local_shaft2);
 }
+
 
 ///////////////////////////////////////////////////////////////
 

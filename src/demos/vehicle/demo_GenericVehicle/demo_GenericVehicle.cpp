@@ -34,7 +34,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "ModelDefs.h"
 #include "generic/Generic_Vehicle.h"
 #include "generic/Generic_SimplePowertrain.h"
 #include "generic/Generic_RigidTire.h"
@@ -54,6 +53,7 @@
 //#define DEBUG_LOG
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 // =============================================================================
 
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
 
 #else
 
-    Generic_FuncDriver driver;
+    Generic_FuncDriver driver(vehicle);
 
 #endif
 
@@ -187,8 +187,8 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Inter-module communication data
-    ChTireForces tire_forces(4);
-    ChWheelState wheel_states[4];
+    TireForces tire_forces(4);
+    WheelState wheel_states[4];
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;

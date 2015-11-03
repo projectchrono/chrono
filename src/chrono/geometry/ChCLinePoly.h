@@ -127,11 +127,7 @@ class ChApi ChLinePoly : public ChLine {
         marchive >> CHNVP(degree);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream);
 
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

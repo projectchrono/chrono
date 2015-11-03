@@ -87,17 +87,17 @@ class ChApi ChForce : public ChObj {
     Vector vpoint;     // absolute point of application
     Vector vrelpoint;  // relative point of application
 
-    ChFunction* move_x;  // motion x (abs or rel, depends on 'frame')
-    ChFunction* move_y;  // motion y  ""
-    ChFunction* move_z;  // motion z  ""
+    ChSharedPtr<ChFunction> move_x;  // motion x (abs or rel, depends on 'frame')
+    ChSharedPtr<ChFunction> move_y;  // motion y  ""
+    ChSharedPtr<ChFunction> move_z;  // motion z  ""
     Vector restpos;      // t=0 position (abs or rel, depends on 'frame')
 
-    ChFunction* f_x;  // fv strengh x (abs or rel, see 'align')
-    ChFunction* f_y;  // fv strengh y  ""
-    ChFunction* f_z;  // fv strengh z  ""
+    ChSharedPtr<ChFunction> f_x;  // fv strengh x (abs or rel, see 'align')
+    ChSharedPtr<ChFunction> f_y;  // fv strengh y  ""
+    ChSharedPtr<ChFunction> f_z;  // fv strengh z  ""
 
     double mforce;       // fm scalar force strenght
-    ChFunction* modula;  // scalar force fm modulation
+    ChSharedPtr<ChFunction> modula;  // scalar force fm modulation
 
     Vector vdir;     // force/torque abs.direction
     Vector vreldir;  // force/torque rel direction
@@ -166,28 +166,28 @@ class ChApi ChForce : public ChObj {
     double GetMforce() { return mforce; };
 
     /// Sets a f(t) function for time-modulation of the force.
-    void SetModulation(ChFunction* m_funct);
-    ChFunction* GetModulation() { return modula; };
+    void SetModulation(ChSharedPtr<ChFunction> m_funct) {modula = m_funct;}
+    ChSharedPtr<ChFunction> GetModulation() { return modula; };
 
     /// Sets a f(t) function for time dependency of position (on x axis)
-    void SetMove_x(ChFunction* m_funct);
-    ChFunction* GetMove_x() { return move_x; };
+    void SetMove_x(ChSharedPtr<ChFunction> m_funct) {move_x = m_funct;}
+    ChSharedPtr<ChFunction> GetMove_x() { return move_x; };
     /// Sets a f(t) function for time dependency of position (on y axis)
-    void SetMove_y(ChFunction* m_funct);
-    ChFunction* GetMove_y() { return move_y; };
+    void SetMove_y(ChSharedPtr<ChFunction> m_funct) {move_y = m_funct;}
+    ChSharedPtr<ChFunction> GetMove_y() { return move_y; };
     /// Sets a f(t) function for time dependency of position (on z axis)
-    void SetMove_z(ChFunction* m_funct);
-    ChFunction* GetMove_z() { return move_z; };
+    void SetMove_z(ChSharedPtr<ChFunction> m_funct) {move_z = m_funct;}
+    ChSharedPtr<ChFunction> GetMove_z() { return move_z; };
 
     /// Sets a f(t) function for time dependency of force X component.
-    void SetF_x(ChFunction* m_funct);
-    ChFunction* GetF_x() { return f_x; };
+    void SetF_x(ChSharedPtr<ChFunction> m_funct)  {f_x = m_funct;}
+    ChSharedPtr<ChFunction> GetF_x() { return f_x; };
     /// Sets a f(t) function for time dependency of force Y component.
-    void SetF_y(ChFunction* m_funct);
-    ChFunction* GetF_y() { return f_y; };
+    void SetF_y(ChSharedPtr<ChFunction> m_funct)  {f_y = m_funct;}
+    ChSharedPtr<ChFunction> GetF_y() { return f_y; };
     /// Sets a f(t) function for time dependency of force Z component.
-    void SetF_z(ChFunction* m_funct);
-    ChFunction* GetF_z() { return f_z; };
+    void SetF_z(ChSharedPtr<ChFunction> m_funct)  {f_z = m_funct;}
+    ChSharedPtr<ChFunction> GetF_z() { return f_z; };
 
     /// Gets the instant force vector -or torque vector- in absolute coordinates.
     Vector GetForce() { return force; };
@@ -209,20 +209,15 @@ class ChApi ChForce : public ChObj {
     void Update(double mytime);
 
     //
-    // STREAMING
+    // SERIALIZATION
     //
 
-    /// Method to allow serialization of transient data in ascii,
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    void StreamOUT(ChStreamOutAscii& mstream);
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

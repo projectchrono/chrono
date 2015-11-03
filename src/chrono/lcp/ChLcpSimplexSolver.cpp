@@ -23,12 +23,17 @@
 ///////////////////////////////////////////////////
 
 #include "ChLcpSimplexSolver.h"
-#include "core/ChSpmatrix.h"
+#include "core/ChLinkedListMatrix.h"
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLcpSimplexSolver> a_registration_ChLcpSimplexSolver;
+
+
 ChLcpSimplexSolver::ChLcpSimplexSolver() {
-    MC = new ChSparseMatrix(30, 30);   // at least as big as 30x30
+    MC = new ChLinkedListMatrix(30, 30);   // at least as big as 30x30
     X = new ChMatrixDynamic<>(30, 1);  // at least as big as 30x1
     B = new ChMatrixDynamic<>(30, 1);  // at least as big as 30x1
     unilaterals = 0;

@@ -19,17 +19,14 @@
 #ifndef GENERIC_BRAKESIMPLE_H
 #define GENERIC_BRAKESIMPLE_H
 
-#include "chrono_vehicle/brake/ChBrakeSimple.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 
-class  Generic_BrakeSimple : public chrono::ChBrakeSimple
-{
-public:
+class Generic_BrakeSimple : public chrono::vehicle::ChBrakeSimple {
+  public:
+    Generic_BrakeSimple() {}
+    ~Generic_BrakeSimple() {}
 
-  Generic_BrakeSimple() {}
-  ~Generic_BrakeSimple() {}
-
-  virtual double GetMaxBrakingTorque() { return 4000.0; }
+    virtual double GetMaxBrakingTorque() override { return 4000.0; }
 };
-
 
 #endif

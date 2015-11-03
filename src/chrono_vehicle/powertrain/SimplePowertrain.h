@@ -25,33 +25,29 @@
 #include "thirdparty/rapidjson/document.h"
 
 namespace chrono {
+namespace vehicle {
 
+class CH_VEHICLE_API SimplePowertrain : public ChSimplePowertrain {
+  public:
+    SimplePowertrain(const std::string& filename);
+    SimplePowertrain(const rapidjson::Document& d);
+    ~SimplePowertrain() {}
 
-class CH_VEHICLE_API SimplePowertrain : public ChSimplePowertrain
-{
-public:
+    virtual double GetForwardGearRatio() const override { return m_fwd_gear_ratio; }
+    virtual double GetReverseGearRatio() const override { return m_rev_gear_ratio; }
+    virtual double GetMaxTorque() const override { return m_max_torque; }
+    virtual double GetMaxSpeed() const override { return m_max_speed; }
 
-  SimplePowertrain(const std::string& filename);
-  SimplePowertrain(const rapidjson::Document& d);
-  ~SimplePowertrain() {}
+  private:
+    void Create(const rapidjson::Document& d);
 
-  virtual double GetForwardGearRatio() const { return m_fwd_gear_ratio; }
-  virtual double GetReverseGearRatio() const { return m_rev_gear_ratio; }
-  virtual double GetMaxTorque() const        { return m_max_torque; }
-  virtual double GetMaxSpeed() const         { return m_max_speed; }
-
-private:
-
-  void Create(const rapidjson::Document& d);
-
-  double m_fwd_gear_ratio;  // forward gear ratio (single gear transmission)
-  double m_rev_gear_ratio;  // reverse gear ratio
-  double m_max_torque;      // maximum motor torque
-  double m_max_speed;       // maximum motor speed
+    double m_fwd_gear_ratio;  // forward gear ratio (single gear transmission)
+    double m_rev_gear_ratio;  // reverse gear ratio
+    double m_max_torque;      // maximum motor torque
+    double m_max_speed;       // maximum motor speed
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

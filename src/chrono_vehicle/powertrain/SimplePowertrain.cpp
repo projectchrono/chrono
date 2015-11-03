@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "physics/ChGlobal.h"
+#include "chrono/physics/ChGlobal.h"
 
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 
@@ -25,46 +25,43 @@
 using namespace rapidjson;
 
 namespace chrono {
-
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-SimplePowertrain::SimplePowertrain(const std::string& filename)
-{
-  FILE* fp = fopen(filename.c_str(), "r");
+SimplePowertrain::SimplePowertrain(const std::string& filename) {
+    FILE* fp = fopen(filename.c_str(), "r");
 
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    char readBuffer[65536];
+    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
-  fclose(fp);
+    fclose(fp);
 
-  Document d;
-  d.ParseStream(is);
+    Document d;
+    d.ParseStream(is);
 
-  Create(d);
+    Create(d);
 
-  GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SimplePowertrain::SimplePowertrain(const rapidjson::Document& d)
-{
-  Create(d);
+SimplePowertrain::SimplePowertrain(const rapidjson::Document& d) {
+    Create(d);
 }
 
-void SimplePowertrain::Create(const rapidjson::Document& d)
-{
-  // Read top-level data
-  assert(d.HasMember("Type"));
-  assert(d.HasMember("Template"));
-  assert(d.HasMember("Name"));
+void SimplePowertrain::Create(const rapidjson::Document& d) {
+    // Read top-level data
+    assert(d.HasMember("Type"));
+    assert(d.HasMember("Template"));
+    assert(d.HasMember("Name"));
 
-  // Read data
-  m_fwd_gear_ratio = d["Forward Gear Ratio"].GetDouble();
-  m_rev_gear_ratio = d["Reverse Gear Ratio"].GetDouble();
+    // Read data
+    m_fwd_gear_ratio = d["Forward Gear Ratio"].GetDouble();
+    m_rev_gear_ratio = d["Reverse Gear Ratio"].GetDouble();
 
-  m_max_torque = d["Maximum Engine Torque"].GetDouble();
-  m_max_speed = d["Maximum Engine Speed"].GetDouble();
+    m_max_torque = d["Maximum Engine Torque"].GetDouble();
+    m_max_speed = d["Maximum Engine Speed"].GetDouble();
 }
 
-
+}  // end namespace vehicle
 }  // end namespace chrono

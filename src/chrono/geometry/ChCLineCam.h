@@ -202,7 +202,7 @@ class ChApi ChLineCam : public ChLine {
         // serialize all member data:
 
         eChCamType_mapper mmapper;
-        marchive << CHNVP(mmapper(type));
+        marchive << CHNVP(mmapper(type),"type");
         marchive << CHNVP(law);
         marchive << CHNVP(phase);
         marchive << CHNVP(Rb);
@@ -226,7 +226,7 @@ class ChApi ChLineCam : public ChLine {
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
         eChCamType_mapper mmapper;
-        marchive >> CHNVP(mmapper(type));
+        marchive >> CHNVP(mmapper(type),"type");
         marchive >> CHNVP(law);
         marchive >> CHNVP(phase);
         marchive >> CHNVP(Rb);
@@ -241,11 +241,6 @@ class ChApi ChLineCam : public ChLine {
         marchive >> CHNVP(center);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutBinary& mstream);
-
-    //***OBSOLETE***
-    void StreamIN(ChStreamInBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

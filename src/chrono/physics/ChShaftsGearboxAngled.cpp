@@ -223,31 +223,44 @@ void ChShaftsGearboxAngled::ConstraintsLiFetchSuggestedPositionSolution() {
 
 //////// FILE I/O
 
-void ChShaftsGearboxAngled::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream << this->t0;
-    mstream << this->shaft_dir1;
-    mstream << this->shaft_dir2;
+void ChShaftsGearboxAngled::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChPhysicsItem::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(t0);
+    marchive << CHNVP(shaft_dir1);
+    marchive << CHNVP(shaft_dir2);
+    //marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP(body); //***TODO*** serialize with shared ptr
 }
 
-void ChShaftsGearboxAngled::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChShaftsGearboxAngled::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChPhysicsItem::StreamIN(mstream);
+    // deserialize parent class:
+    ChPhysicsItem::ArchiveIN(marchive);
 
-    // deserialize class
-    mstream >> this->t0;
-    mstream >> this->shaft_dir1;
-    mstream >> this->shaft_dir2;
-}
+    // deserialize all member data:
+    marchive >> CHNVP(t0);
+    marchive >> CHNVP(shaft_dir1);
+    marchive >> CHNVP(shaft_dir2);
+    //marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP(body); //***TODO*** serialize with shared ptr
+} 
+
+
 
 }  // END_OF_NAMESPACE____
 

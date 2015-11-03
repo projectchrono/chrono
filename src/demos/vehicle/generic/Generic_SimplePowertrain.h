@@ -24,18 +24,15 @@
 
 #include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
 
-class Generic_SimplePowertrain : public chrono::ChSimplePowertrain
-{
-public:
+class Generic_SimplePowertrain : public chrono::vehicle::ChSimplePowertrain {
+  public:
+    Generic_SimplePowertrain() {}
+    ~Generic_SimplePowertrain() {}
 
-  Generic_SimplePowertrain() {}
-  ~Generic_SimplePowertrain() {}
-
-  virtual double GetForwardGearRatio() const { return 0.3; }
-  virtual double GetReverseGearRatio() const { return -0.3; }
-  virtual double GetMaxTorque() const        { return 670.0; }
-  virtual double GetMaxSpeed() const         { return 2000; }
+    virtual double GetForwardGearRatio() const override { return 0.3; }
+    virtual double GetReverseGearRatio() const override { return -0.3; }
+    virtual double GetMaxTorque() const override { return 670.0; }
+    virtual double GetMaxSpeed() const override { return 2000; }
 };
-
 
 #endif

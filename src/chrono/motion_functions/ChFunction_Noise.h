@@ -97,10 +97,6 @@ class ChApi ChFunction_Noise : public ChFunction {
         marchive >> CHNVP(octaves);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutAscii& mstream);
-    void StreamIN(ChStreamInBinary& mstream);
-    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 }  // END_OF_NAMESPACE____

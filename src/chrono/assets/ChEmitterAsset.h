@@ -20,7 +20,7 @@
 
 namespace chrono {
 
-/// Class tat attachs a ChParticleEmitter to a physics item (most
+/// Class that attachs a ChParticleEmitter to a physics item (most
 /// often that item is a ChBody).
 /// The emitter can move together with the body, then.
 

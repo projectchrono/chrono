@@ -5,7 +5,7 @@
 //
 //   ChMaterial.h
 //
-//   Class for storing a color as an object asset
+//   Class for storing a material
 //
 //   HEADER file for CHRONO,
 //   Multibody dynamics engine
@@ -113,7 +113,7 @@ class ChApi ChMaterial {
         marchive << CHNVP(color);
         marchive << CHNVP(fading);
         ChMaterialType_mapper mmapper;
-        marchive << CHNVP(mmapper(material_type));
+        marchive << CHNVP(mmapper(material_type),"material_type");
         marchive << CHNVP(options);
         marchive << CHNVP(visible);
     }
@@ -128,7 +128,7 @@ class ChApi ChMaterial {
         marchive >> CHNVP(color);
         marchive >> CHNVP(fading);
         ChMaterialType_mapper mmapper;
-        marchive >> CHNVP(mmapper(material_type));
+        marchive >> CHNVP(mmapper(material_type),"material_type");
         marchive >> CHNVP(options);
         marchive >> CHNVP(visible);
     }

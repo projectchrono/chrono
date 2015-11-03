@@ -17,6 +17,7 @@
 #include "assets/ChPathShape.h"
 #include "assets/ChLineShape.h"
 
+
 #include "chrono_irrlicht/ChIrrNodeProxyToAsset.h"
 
 namespace irr {
@@ -386,11 +387,10 @@ void ChIrrNodeProxyToAsset::Update() {
         if (visualization_asset.IsType<chrono::ChLineShape>())
             mline = visualization_asset.DynamicCastTo<chrono::ChLineShape>()->GetLineGeometry();
 
-        video::SColor clr(255, (u32)(0), (u32)(0), (u32)(0));
-        if (chrono::ChSharedPtr<chrono::ChVisualization> vis = visualization_asset.DynamicCastTo<chrono::ChVisualization>()) {
-            chrono::ChColor col = vis->GetColor();
-            clr = video::SColor((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
-        }
+        // Set color.
+        chrono::ChSharedPtr<chrono::ChVisualization> vis = visualization_asset.StaticCastTo<chrono::ChVisualization>();
+        chrono::ChColor col = vis->GetColor();
+        video::SColor clr((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
 
         // Fetch the 1st child, i.e. the mesh
         ISceneNode* mchildnode = *(getChildren().begin());
@@ -421,6 +421,7 @@ void ChIrrNodeProxyToAsset::Update() {
 
         chrono::ChVector<> t1;
         mline->Evaluate(t1, 0, 0, 0);
+        t1 = vis->Pos + vis->Rot * t1;
 
         irrmesh->getVertexBuffer()[0] = video::S3DVertex((f32)t1.x, (f32)t1.y, (f32)t1.z, 1, 0, 0, clr, 0, 0);
 
@@ -434,6 +435,7 @@ void ChIrrNodeProxyToAsset::Update() {
 
             chrono::ChVector<> t2;
             mline->Evaluate(t2, mU, 0, 0);
+            t2 = vis->Pos + vis->Rot * t2;
 
             // create a  small line (a degenerate triangle) per each vector
 

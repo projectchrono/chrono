@@ -168,57 +168,7 @@ void ChLineCam::Evaluate(Vector& pos, const double parU, const double parV, cons
     EvaluateCamPoint(parU, pos, gtmp, qtmp);
 }
 
-void ChLineCam::StreamOUT(ChStreamOutBinary& mstream) {
-    // ***OBSOLETE*** !!!
-    // class version number
-    mstream.VersionWrite(1);
 
-    // serialize parent class too
-    ChLine::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << (int)type;
-    mstream.AbstractWrite(law.get_ptr());// ***OBSOLETE*** !!!
-    mstream << phase;
-    mstream << Rb;
-    mstream << Rr;
-    mstream << p;
-    mstream << d;
-    mstream << b0;
-    mstream << e;
-    mstream << s;
-    mstream << negative;
-    mstream << internal;
-    mstream << center;
-}
-
-void ChLineCam::StreamIN(ChStreamInBinary& mstream) {
-    // ***OBSOLETE*** !!!
-    // class version number
-    int version = mstream.VersionRead();
-
-    // deserialize parent class too
-    ChLine::StreamIN(mstream);
-
-    // stream in all member data
-    int mint;
-    mstream >> mint;
-    type = (eChCamType)mint;
-    ChFunction* mlaw;
-    mstream.AbstractReadCreate(&mlaw);
-    this->law = ChSharedPtr<ChFunction>(mlaw); // ***OBSOLETE*** !!!
-    mstream >> phase;
-    mstream >> Rb;
-    mstream >> Rr;
-    mstream >> p;
-    mstream >> d;
-    mstream >> b0;
-    mstream >> e;
-    mstream >> s;
-    mstream >> negative;
-    mstream >> internal;
-    mstream >> center;
-}
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

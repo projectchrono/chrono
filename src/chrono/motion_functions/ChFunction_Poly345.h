@@ -113,10 +113,7 @@ class ChApi ChFunction_Poly345 : public ChFunction {
         marchive >> CHNVP(end);
     }
 
-    //***OBSOLETE***
-    void StreamOUT(ChStreamOutAscii& mstream);
-    void StreamIN(ChStreamInBinary& mstream);
-    void StreamOUT(ChStreamOutBinary& mstream);
+
 };
 
 }  // END_OF_NAMESPACE____

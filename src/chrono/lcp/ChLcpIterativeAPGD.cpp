@@ -34,6 +34,10 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChIterativeAPGD> a_registration_ChIterativeAPGD;
+
 void ChIterativeAPGD::ShurBvectorCompute(ChLcpSystemDescriptor& sysd) {
     // ***TO DO*** move the following thirty lines in a short function ChLcpSystemDescriptor::ShurBvectorCompute() ?
 

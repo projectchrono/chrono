@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#include "physics/ChGlobal.h"
-#include "chrono_vehicle/ChVehicleModelData.h" 
+#include "chrono/physics/ChGlobal.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 namespace chrono {
 namespace vehicle {
@@ -29,5 +29,4 @@ std::string GetDataFile(const std::string& filename) {
 }
 
 }  // end namespace vehicle
-} // end namespace chrono
-
+}  // end namespace chrono

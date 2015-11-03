@@ -3,7 +3,7 @@
 
 namespace chrono
 {
-	const enum phase_t
+	enum phase_t
 	{
 		COMPLETE = 13,
 		ANALYSIS = 11,
@@ -190,6 +190,19 @@ namespace chrono
 				perm[row_sel] = (row_sel < start_row || row_sel > end_row) ? 0 : 1;
 
 		}
+	}
+
+	void ChMklEngine::SetPreconditionedCGS(bool on_off, int L)
+	{
+		if (on_off)
+		{
+			int iparm4_value = 0;
+			int K = 0;
+			K = (mtype == 11 || mtype == 1) ? 1 : 2;
+			IPARM(4) = 10 * L + K;
+		}
+		else
+			IPARM(4) = 0;
 	}
 
 	int ChMklEngine::PardisoCall(int set_phase, int message_level){

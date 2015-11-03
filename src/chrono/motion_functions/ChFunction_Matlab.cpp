@@ -64,31 +64,6 @@ double ChFunction_Matlab::Get_y(double x) {
     return ret;
 }
 
-void ChFunction_Matlab::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChFunction::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << mat_command;
-}
-
-void ChFunction_Matlab::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChFunction::StreamIN(mstream);
-
-    // stream in all member data
-    mstream >> mat_command;
-}
-
-void ChFunction_Matlab::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "FUNCT_MATLAB  \n";
-
-    //***TO DO***
-}
 
 }  // END_OF_NAMESPACE____
 

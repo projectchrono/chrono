@@ -19,43 +19,37 @@
 #ifndef HMMWV_RACKPINION_H
 #define HMMWV_RACKPINION_H
 
-#include "chrono_vehicle/steering/ChRackPinion.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/ChRackPinion.h"
 
 namespace hmmwv {
 
+class HMMWV_RackPinion : public chrono::vehicle::ChRackPinion {
+  public:
+    HMMWV_RackPinion(const std::string& name);
+    ~HMMWV_RackPinion() {}
 
-class HMMWV_RackPinion : public chrono::ChRackPinion
-{
-public:
+    virtual double GetSteeringLinkMass() const override { return m_steeringLinkMass; }
+    virtual chrono::ChVector<> GetSteeringLinkInertia() const override { return m_steeringLinkInertia; }
+    virtual double GetSteeringLinkCOM() const override { return m_steeringLinkCOM; }
+    virtual double GetSteeringLinkRadius() const override { return m_steeringLinkRadius; }
+    virtual double GetSteeringLinkLength() const override { return m_steeringLinkLength; }
 
-  HMMWV_RackPinion(const std::string& name);
-  ~HMMWV_RackPinion() {}
+    virtual double GetPinionRadius() const override { return m_pinionRadius; }
 
-  virtual double GetSteeringLinkMass() const                 { return m_steeringLinkMass; }
-  virtual chrono::ChVector<> GetSteeringLinkInertia() const  { return m_steeringLinkInertia; }
-  virtual double GetSteeringLinkCOM() const                  { return m_steeringLinkCOM; }
-  virtual double GetSteeringLinkRadius() const               { return m_steeringLinkRadius; }
-  virtual double GetSteeringLinkLength() const               { return m_steeringLinkLength; }
+    virtual double GetMaxAngle() const override { return m_maxAngle; }
 
-  virtual double GetPinionRadius() const                     { return m_pinionRadius; }
+  private:
+    static const double m_steeringLinkMass;
+    static const chrono::ChVector<> m_steeringLinkInertia;
+    static const double m_steeringLinkCOM;
+    static const double m_steeringLinkRadius;
+    static const double m_steeringLinkLength;
 
-  virtual double GetMaxAngle() const                         { return m_maxAngle; }
+    static const double m_pinionRadius;
 
-private:
-
-  static const double              m_steeringLinkMass;
-  static const chrono::ChVector<>  m_steeringLinkInertia;
-  static const double              m_steeringLinkCOM;
-  static const double              m_steeringLinkRadius;
-  static const double              m_steeringLinkLength;
-
-  static const double              m_pinionRadius;
-
-  static const double              m_maxAngle;
+    static const double m_maxAngle;
 };
 
-
-} // end namespace hmmwv
-
+}  // end namespace hmmwv
 
 #endif

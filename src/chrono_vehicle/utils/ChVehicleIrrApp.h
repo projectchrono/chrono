@@ -25,8 +25,8 @@
 
 #include <string>
 
-#include "physics/ChSystem.h"
-#include "utils/ChUtilsChaseCamera.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChUtilsChaseCamera.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -39,6 +39,7 @@
 #endif
 
 namespace chrono {
+namespace vehicle {
 
 // Forward declaration
 class ChVehicleIrrApp;
@@ -174,6 +175,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
     friend class ChIrrGuiDriver;
 };
 
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

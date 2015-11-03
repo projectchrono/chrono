@@ -636,45 +636,50 @@ void ChLinkMasked::Update(double time, bool update_assets) {
 #define LF_BROKEN (1L << 2)
 #define LF_DISABLED (1L << 4)
 
-void ChLinkMasked::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(10);
-    // serialize parent class too
-    ChLinkMarkers::StreamOUT(mstream);
 
-    // stream out all member data
-    mstream.AbstractWrite(mask);
-    mstream << d_restlength;
-    mstream << *force_D;
-    mstream << *force_R;
-    mstream << *force_X;
-    mstream << *force_Y;
-    mstream << *force_Z;
-    mstream << *force_Rx;
-    mstream << *force_Ry;
-    mstream << *force_Rz;
+
+void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLinkMarkers::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    //marchive << CHNVP(mask); // to do? needed?
+    marchive << CHNVP(d_restlength);
+    marchive << CHNVP(force_D);
+    marchive << CHNVP(force_R);
+    marchive << CHNVP(force_X);
+    marchive << CHNVP(force_Y);
+    marchive << CHNVP(force_Z);
+    marchive << CHNVP(force_Rx);
+    marchive << CHNVP(force_Ry);
+    marchive << CHNVP(force_Rz);
 }
 
-void ChLinkMasked::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkMarkers::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkMasked::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    if (mask)
-        delete (mask);
-    mask = NULL;
-    mstream.AbstractReadCreate(&mask);
-    mstream >> d_restlength;
-    mstream >> *force_D;
-    mstream >> *force_R;
-    mstream >> *force_X;
-    mstream >> *force_Y;
-    mstream >> *force_Z;
-    mstream >> *force_Rx;
-    mstream >> *force_Ry;
-    mstream >> *force_Rz;
+    // deserialize parent class
+    ChLinkMarkers::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    // if (mask) delete (mask); marchive >> CHNVP(mask); // to do? needed?
+    marchive >> CHNVP(d_restlength);
+    marchive >> CHNVP(force_D);
+    marchive >> CHNVP(force_R);
+    marchive >> CHNVP(force_X);
+    marchive >> CHNVP(force_Y);
+    marchive >> CHNVP(force_Z);
+    marchive >> CHNVP(force_Rx);
+    marchive >> CHNVP(force_Ry);
+    marchive >> CHNVP(force_Rz);
 }
+
 
 }  // END_OF_NAMESPACE____

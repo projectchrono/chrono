@@ -52,9 +52,6 @@ class ChTag;
 /// Base class for items which can be named, deleted,
 /// copied. etc. as in the editor of a 3d modeler.
 ///
-/// This class also embeds a simple linked-list mechanism
-/// for fast management of linked lists of items, instead
-/// of using STL lists or ChList. ***OBSOLETE***
 ///
 /// This class inherits the features of the reference-countable
 /// ChShared class, so that  ChObj  instances can be managed
@@ -164,18 +161,6 @@ class ChApi ChObj : public virtual ChShared {
         marchive >> CHNVP(ChTime);
     }
 
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file). ***DEPRECATED***
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
-
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data. ***DEPRECATED***
-    virtual void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serialization of transient data in ascii,
-    /// as a readable item, for example   "chrono::GetLog() << myobject;"  ***DEPRECATED***
-    virtual void StreamOUT(ChStreamOutAscii& mstream);
 };
 
 // Functions to manipulate STL containers of ChObj objects

@@ -19,49 +19,44 @@
 #ifndef GENERIC_WHEEL_H
 #define GENERIC_WHEEL_H
 
+#include "chrono/physics/ChGlobal.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
-#include "chrono_vehicle/ChWheel.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
-#include "ModelDefs.h"
+class Generic_Wheel : public chrono::vehicle::ChWheel {
+  public:
+    Generic_Wheel(chrono::vehicle::VisualizationType visType) : m_visType(visType) {}
+    ~Generic_Wheel() {}
 
-class Generic_Wheel : public chrono::ChWheel
-{
-public:
+    virtual double GetMass() const override { return 45.4; }
+    virtual chrono::ChVector<> GetInertia() const override { return chrono::ChVector<>(0.113, 0.113, 0.113); }
 
-  Generic_Wheel(VisualizationType  visType) : m_visType(visType) {}
-  ~Generic_Wheel() {}
+    virtual void Initialize(chrono::ChSharedPtr<chrono::ChBody> spindle) override {
+        // First, invoke the base class method
+        chrono::vehicle::ChWheel::Initialize(spindle);
 
-  virtual double GetMass() const { return 45.4; }
-  virtual chrono::ChVector<> GetInertia() const { return chrono::ChVector<>(0.113, 0.113, 0.113); }
+        // Attach visualization
+        if (m_visType == chrono::vehicle::PRIMITIVES) {
+            double radius = 0.47;
+            double width = 0.25;
+            chrono::ChSharedPtr<chrono::ChCylinderShape> cyl(new chrono::ChCylinderShape);
+            cyl->GetCylinderGeometry().rad = radius;
+            cyl->GetCylinderGeometry().p1 = chrono::ChVector<>(0, width / 2, 0);
+            cyl->GetCylinderGeometry().p2 = chrono::ChVector<>(0, -width / 2, 0);
+            spindle->AddAsset(cyl);
 
-  virtual void Initialize(chrono::ChSharedPtr<chrono::ChBody> spindle)
-  {
-    // First, invoke the base class method
-    chrono::ChWheel::Initialize(spindle);
-
-    // Attach visualization
-    if (m_visType == PRIMITIVES) {
-      double radius = 0.47;
-      double width = 0.25;
-      chrono::ChSharedPtr<chrono::ChCylinderShape> cyl(new chrono::ChCylinderShape);
-      cyl->GetCylinderGeometry().rad = radius;
-      cyl->GetCylinderGeometry().p1 = chrono::ChVector<>(0, width / 2, 0);
-      cyl->GetCylinderGeometry().p2 = chrono::ChVector<>(0, -width / 2, 0);
-      spindle->AddAsset(cyl);
-
-      chrono::ChSharedPtr<chrono::ChTexture> tex(new chrono::ChTexture);
-      tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
-      spindle->AddAsset(tex);
+            chrono::ChSharedPtr<chrono::ChTexture> tex(new chrono::ChTexture);
+            tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
+            spindle->AddAsset(tex);
+        }
     }
-  }
 
-private:
-
-  VisualizationType  m_visType;
+  private:
+    chrono::vehicle::VisualizationType m_visType;
 };
-
 
 #endif

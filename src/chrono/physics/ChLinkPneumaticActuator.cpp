@@ -193,6 +193,7 @@ void ChLinkPneumaticActuator::UpdateForces(double mytime) {
     C_force.x = C_force.x + this->pneu_F;
 }
 
+/*
 void ChLinkPneumaticActuator::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
@@ -281,6 +282,7 @@ void ChLinkPneumaticActuator::StreamIN(ChStreamInBinary& mstream) {
     mstream >> dfoo;
     Set_lin_offset(dfoo);
 }
+*/
 
 ///////////////////////////////////////////////////////////////
 

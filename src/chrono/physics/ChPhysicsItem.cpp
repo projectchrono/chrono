@@ -66,9 +66,9 @@ void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive)
     // serialize all member data:
     //marchive << CHNVP(system); ***TODO***
     marchive << CHNVP(assets);
-    marchive << CHNVP(offset_x);
-    marchive << CHNVP(offset_w);
-    marchive << CHNVP(offset_L);
+    //marchive << CHNVP(offset_x);
+    //marchive << CHNVP(offset_w);
+    //marchive << CHNVP(offset_L);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -83,28 +83,11 @@ void ChPhysicsItem::ArchiveIN(ChArchiveIn& marchive)
     // stream in all member data:
     //marchive >> CHNVP(system); ***TODO***
     marchive >> CHNVP(assets);
-    marchive >> CHNVP(offset_x);
-    marchive >> CHNVP(offset_w);
-    marchive >> CHNVP(offset_L);
+    //marchive >> CHNVP(offset_x);
+    //marchive >> CHNVP(offset_w);
+    //marchive >> CHNVP(offset_L);
 }
 
 
-void ChPhysicsItem::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChObj::StreamOUT(mstream);
-
-    // stream out all member data
-}
-
-void ChPhysicsItem::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChObj::StreamIN(mstream);
-
-    // stream in all member data
-}
 
 }  // END_OF_NAMESPACE____

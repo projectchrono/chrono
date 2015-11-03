@@ -13,6 +13,15 @@
 
 using namespace chrono;
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperEulerExpl> a_registration_ChTimestepperEulerExpl;
+
 /// Euler explicit timestepper
 /// This performs the typical  y_new = y+ dy/dt * dt
 /// integration with Euler formula.
@@ -40,6 +49,15 @@ void ChTimestepperEulerExpl::Advance(const double dt  ///< timestep to advance
     GetIntegrable()->StateScatterDerivative(dYdt);  // -> system auxiliary data
     GetIntegrable()->StateScatterReactions(L);      // -> system auxiliary data
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperEulerExplIIorder> a_registration_ChTimestepperEulerExplIIorder;
 
 /// Euler explicit timestepper customized for II order.
 /// (It gives the same results of ChTimestepperEulerExpl,
@@ -79,6 +97,16 @@ void ChTimestepperEulerExplIIorder::Advance(const double dt  ///< timestep to ad
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperEulerSemiImplicit> a_registration_ChTimestepperEulerSemiImplicit;
+
 /// Euler semi-implicit timestepper
 /// This performs the typical
 ///    v_new = v + a * dt
@@ -112,6 +140,16 @@ void ChTimestepperEulerSemiImplicit::Advance(const double dt  ///< timestep to a
     mintegrable->StateScatterAcceleration(A);  // -> system auxiliary data
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperRungeKuttaExpl> a_registration_ChTimestepperRungeKuttaExpl;
 
 /// Performs a step of a 4th order explicit Runge-Kutta
 /// integration scheme.
@@ -155,6 +193,15 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt  ///< timestep to adva
     GetIntegrable()->StateScatterReactions(L);      // -> system auxiliary data
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperHeun> a_registration_ChTimestepperHeun;
+
 /// Performs a step of a Heun explicit integrator. It is like
 /// a 2nd Runge Kutta.
 
@@ -188,6 +235,15 @@ void ChTimestepperHeun::Advance(const double dt  ///< timestep to advance
     GetIntegrable()->StateScatterDerivative(dYdt);  // -> system auxiliary data
     GetIntegrable()->StateScatterReactions(L);      // -> system auxiliary data
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperLeapfrog> a_registration_ChTimestepperLeapfrog;
 
 /// Performs a step of a Leapfrog explicit integrator.
 /// It is a symplectic method, with 2nd order accuracy,
@@ -228,6 +284,15 @@ void ChTimestepperLeapfrog::Advance(const double dt  ///< timestep to advance
     mintegrable->StateScatterAcceleration(A);  // -> system auxiliary data
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperEulerImplicit> a_registration_ChTimestepperEulerImplicit;
 
 /// Performs a step of Euler implicit for II order systems
 
@@ -303,6 +368,15 @@ void ChTimestepperEulerImplicit::Advance(const double dt  ///< timestep to advan
     mintegrable->StateScatterReactions(L);  // -> system auxiliary data
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperEulerImplicitLinearized> a_registration_ChTimestepperEulerImplicitLinearized;
+
 /// Performs a step of Euler implicit for II order systems
 /// using the Anitescu/Stewart/Trinkle single-iteration method,
 /// that is a bit like an implicit Euler where one performs only
@@ -364,6 +438,15 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt  ///< timeste
     mintegrable->StateScatterReactions(L);  // -> system auxiliary data
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperEulerImplicitProjected> a_registration_ChTimestepperEulerImplicitProjected;
 
 /// Performs a step of Euler implicit for II order systems
 /// using a semi implicit Euler without constr.stabilization, followed by a projection,
@@ -448,6 +531,16 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt  ///< timestep
 
     mintegrable->StateScatter(X, V, T);     // state -> system
 }
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperTrapezoidal> a_registration_ChTimestepperTrapezoidal;
 
 /// Performs a step of trapezoidal implicit for II order systems
 /// NOTE this is a modified version of the trapezoidal for DAE: the
@@ -536,6 +629,15 @@ void ChTimestepperTrapezoidal::Advance(const double dt  ///< timestep to advance
                                        0.5);  // -> system auxiliary data   (*=0.5 cause we used the hack of l_old = 0)
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperTrapezoidalLinearized> a_registration_ChTimestepperTrapezoidalLinearized;
+
 /// Performs a step of trapezoidal implicit linearized for II order systems
 
 void ChTimestepperTrapezoidalLinearized::Advance(const double dt  ///< timestep to advance
@@ -607,6 +709,15 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt  ///< timestep 
     mintegrable->StateScatterReactions(L *= 0.5);  // -> system auxiliary data (*=0.5 cause use l_old = 0)
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperTrapezoidalLinearized2> a_registration_ChTimestepperTrapezoidalLinearized2;
+
 /// Performs a step of trapezoidal implicit linearized for II order systems
 ///*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
 
@@ -668,6 +779,16 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt  ///< timestep
     mintegrable->StateScatter(X, V, T);     // state -> system
     mintegrable->StateScatterReactions(L);  // -> system auxiliary data
 }
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperHHT> a_registration_ChTimestepperHHT;
 
 /// Performs a step of HHT (generalized alpha) implicit for II order systems
 /// See Negrut et al. 2007.
@@ -767,7 +888,7 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
                     false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
                     );
 
-                L += Dl;  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
+				L += Dl*(1.0 / scaling_factor);  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
 
                 Xnew = Xnew + Da;  // X + V * dt + A * (dt * dt * (0.5 - beta)) + Anew * (dt * dt * beta);
                 Vnew = V * (-(gamma / beta - 1.0)) - A * dt * (gamma / (2.0 * beta) - 1.0);
@@ -839,6 +960,15 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
     mintegrable->StateScatterAcceleration(A);  // -> system auxiliary data
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChTimestepperNewmark> a_registration_ChTimestepperNewmark;
 
 /// Performs a step of Newmark constrained implicit for II order DAE systems
 /// See Negrut et al. 2007.

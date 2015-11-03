@@ -30,77 +30,67 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
 namespace chrono {
-
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDataDriver::ChDataDriver(const std::string& filename,
-                           bool               sorted)
-{
-  std::ifstream ifile(filename.c_str());
-  std::string line;
+ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool sorted) : ChDriver(vehicle) {
+    std::ifstream ifile(filename.c_str());
+    std::string line;
 
-  while (std::getline(ifile, line)) {
-    std::istringstream iss(line);
+    while (std::getline(ifile, line)) {
+        std::istringstream iss(line);
 
-    double time, steering, throttle, braking;
+        double time, steering, throttle, braking;
 
-    iss >> time >> steering >> throttle >> braking;
+        iss >> time >> steering >> throttle >> braking;
 
-    if (iss.fail())
-      break;
+        if (iss.fail())
+            break;
 
-    m_data.push_back(Entry(time, steering, throttle, braking));
-  }
+        m_data.push_back(Entry(time, steering, throttle, braking));
+    }
 
-  ifile.close();
+    ifile.close();
 
-  if (!sorted)
-    std::sort(m_data.begin(), m_data.end(), ChDataDriver::compare);
+    if (!sorted)
+        std::sort(m_data.begin(), m_data.end(), ChDataDriver::compare);
 
-  GetLog() << "Loaded driver file: " << filename.c_str() << "\n";
+    GetLog() << "Loaded driver file: " << filename.c_str() << "\n";
 }
 
-ChDataDriver::ChDataDriver(const std::vector<Entry>& data,
-                           bool                      sorted)
-: m_data(data)
-{
-  if (!sorted)
-    std::sort(m_data.begin(), m_data.end(), ChDataDriver::compare);
+ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::vector<Entry>& data, bool sorted)
+    : ChDriver(vehicle), m_data(data) {
+    if (!sorted)
+        std::sort(m_data.begin(), m_data.end(), ChDataDriver::compare);
 }
-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDataDriver::Update(double time)
-{
-  if (time <= m_data[0].m_time)
-  {
-    m_steering = m_data[0].m_steering;
-    m_throttle = m_data[0].m_throttle;
-    m_braking = m_data[0].m_braking;
-    return;
-  }
-  else if (time >= m_data.back().m_time) {
-    m_steering = m_data.back().m_steering;
-    m_throttle = m_data.back().m_throttle;
-    m_braking = m_data.back().m_braking;
-    return;
-  }
+void ChDataDriver::Update(double time) {
+    if (time <= m_data[0].m_time) {
+        m_steering = m_data[0].m_steering;
+        m_throttle = m_data[0].m_throttle;
+        m_braking = m_data[0].m_braking;
+        return;
+    } else if (time >= m_data.back().m_time) {
+        m_steering = m_data.back().m_steering;
+        m_throttle = m_data.back().m_throttle;
+        m_braking = m_data.back().m_braking;
+        return;
+    }
 
-  std::vector<Entry>::iterator right = std::lower_bound(m_data.begin(),
-                                                        m_data.end(),
-                                                        Entry(time, 0, 0, 0),
-                                                        ChDataDriver::compare);
+    std::vector<Entry>::iterator right =
+        std::lower_bound(m_data.begin(), m_data.end(), Entry(time, 0, 0, 0), ChDataDriver::compare);
 
-  std::vector<Entry>::iterator left = right - 1;
+    std::vector<Entry>::iterator left = right - 1;
 
-  double tbar = (time - left->m_time) / (right->m_time - left->m_time);
+    double tbar = (time - left->m_time) / (right->m_time - left->m_time);
 
-  m_steering = left->m_steering + tbar * (right->m_steering - left->m_steering);
-  m_throttle = left->m_throttle + tbar * (right->m_throttle - left->m_throttle);
-  m_braking  = left->m_braking  + tbar * (right->m_braking  - left->m_braking);
+    m_steering = left->m_steering + tbar * (right->m_steering - left->m_steering);
+    m_throttle = left->m_throttle + tbar * (right->m_throttle - left->m_throttle);
+    m_braking = left->m_braking + tbar * (right->m_braking - left->m_braking);
 }
 
-
-} // end namespace hmmwv9
+}  // end namespace vehicle
+}  // end namespace chrono

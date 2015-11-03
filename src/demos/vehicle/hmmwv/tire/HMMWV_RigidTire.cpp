@@ -19,6 +19,7 @@
 #include "hmmwv/tire/HMMWV_RigidTire.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 namespace hmmwv {
 

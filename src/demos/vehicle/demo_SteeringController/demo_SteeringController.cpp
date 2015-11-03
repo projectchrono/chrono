@@ -29,10 +29,10 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
-#include "ModelDefs.h"
 #include "hmmwv/HMMWV.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 using namespace hmmwv;
 using namespace geometry;
 

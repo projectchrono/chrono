@@ -19,31 +19,27 @@
 #include "hmmwv/driveline/HMMWV_Driveline2WD.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 namespace hmmwv {
-
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-  const double HMMWV_Driveline2WD::m_driveshaft_inertia = 0.5;
-  const double HMMWV_Driveline2WD::m_differentialbox_inertia = 0.6;
+const double HMMWV_Driveline2WD::m_driveshaft_inertia = 0.5;
+const double HMMWV_Driveline2WD::m_differentialbox_inertia = 0.6;
 
-  const double HMMWV_Driveline2WD::m_conicalgear_ratio = -0.2;
-  const double HMMWV_Driveline2WD::m_differential_ratio = -1;
-
+const double HMMWV_Driveline2WD::m_conicalgear_ratio = -0.2;
+const double HMMWV_Driveline2WD::m_differential_ratio = -1;
 
 // -----------------------------------------------------------------------------
 // Constructor of the HMMWV_Driveline2WD.
 // the direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-HMMWV_Driveline2WD::HMMWV_Driveline2WD()
-: ChShaftsDriveline2WD()
-{
-  SetMotorBlockDirection(ChVector<>(1, 0, 0));
-  SetAxleDirection(ChVector<>(0, 1, 0));
+HMMWV_Driveline2WD::HMMWV_Driveline2WD() : ChShaftsDriveline2WD() {
+    SetMotorBlockDirection(ChVector<>(1, 0, 0));
+    SetAxleDirection(ChVector<>(0, 1, 0));
 }
 
-
-} // end namespace hmmwv
+}  // end namespace hmmwv

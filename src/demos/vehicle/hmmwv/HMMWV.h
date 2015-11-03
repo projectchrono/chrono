@@ -22,9 +22,8 @@
 
 #include <string>
 
-#include "chrono_vehicle/tire/ChPacejkaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
-#include "ModelDefs.h"
 #include "hmmwv/vehicle/HMMWV_Vehicle.h"
 #include "hmmwv/vehicle/HMMWV_VehicleReduced.h"
 #include "hmmwv/powertrain/HMMWV_Powertrain.h"
@@ -43,12 +42,12 @@ class HMMWV {
 
     void SetChassisFixed(bool val) { m_fixed = val; }
 
-    void SetDriveType(DrivelineType val) { m_driveType = val; }
-    void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
-    void SetTireType(TireModelType val) { m_tireType = val; }
+    void SetDriveType(chrono::vehicle::DrivelineType val) { m_driveType = val; }
+    void SetPowertrainType(chrono::vehicle::PowertrainModelType val) { m_powertrainType = val; }
+    void SetTireType(chrono::vehicle::TireModelType val) { m_tireType = val; }
 
-    void SetChassisVis(VisualizationType val) { m_chassisVis = val; }
-    void SetWheelVis(VisualizationType val) { m_wheelVis = val; }
+    void SetChassisVis(chrono::vehicle::VisualizationType val) { m_chassisVis = val; }
+    void SetWheelVis(chrono::vehicle::VisualizationType val) { m_wheelVis = val; }
 
     void SetInitPosition(const chrono::ChCoordsys<>& pos) { m_initPos = pos; }
 
@@ -56,8 +55,8 @@ class HMMWV {
     void SetPacejkaParamfile(const std::string& filename) { m_pacejkaParamFile = filename; }
 
     chrono::ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
-    chrono::ChVehicle& GetVehicle() const { return *m_vehicle; }
-    chrono::ChPowertrain& GetPowertrain() const { return *m_powertrain; }
+    chrono::vehicle::ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
+    chrono::vehicle::ChPowertrain& GetPowertrain() const { return *m_powertrain; }
 
     void Initialize();
 
@@ -65,7 +64,7 @@ class HMMWV {
                 double steering_input,
                 double braking_input,
                 double throttle_input,
-                const chrono::ChTerrain& terrain);
+                const chrono::vehicle::ChTerrain& terrain);
 
     void Advance(double step);
 
@@ -73,28 +72,28 @@ class HMMWV {
     // Protected constructor -- this class cannot be instantiated by itself.
     HMMWV();
 
-    virtual chrono::ChVehicle* CreateVehicle() = 0;
+    virtual chrono::vehicle::ChWheeledVehicle* CreateVehicle() = 0;
 
     chrono::ChMaterialSurfaceBase::ContactMethod m_contactMethod;
     bool m_fixed;
-    VisualizationType m_chassisVis;
-    VisualizationType m_wheelVis;
+    chrono::vehicle::VisualizationType m_chassisVis;
+    chrono::vehicle::VisualizationType m_wheelVis;
 
-    DrivelineType m_driveType;
-    PowertrainModelType m_powertrainType;
-    TireModelType m_tireType;
+    chrono::vehicle::DrivelineType m_driveType;
+    chrono::vehicle::PowertrainModelType m_powertrainType;
+    chrono::vehicle::TireModelType m_tireType;
 
     double m_tire_step_size;
     std::string m_pacejkaParamFile;
 
     chrono::ChCoordsys<> m_initPos;
 
-    chrono::ChVehicle* m_vehicle;
-    chrono::ChPowertrain* m_powertrain;
-    chrono::ChTire* m_tireFL;
-    chrono::ChTire* m_tireFR;
-    chrono::ChTire* m_tireRR;
-    chrono::ChTire* m_tireRL;
+    chrono::vehicle::ChWheeledVehicle* m_vehicle;
+    chrono::vehicle::ChPowertrain* m_powertrain;
+    chrono::vehicle::ChTire* m_tireFL;
+    chrono::vehicle::ChTire* m_tireFR;
+    chrono::vehicle::ChTire* m_tireRR;
+    chrono::vehicle::ChTire* m_tireRL;
 };
 
 class HMMWV_Full : public HMMWV {
@@ -107,7 +106,7 @@ class HMMWV_Full : public HMMWV {
     void DebugLog(int what) { ((HMMWV_Vehicle*)m_vehicle)->DebugLog(what); }
 
   private:
-    virtual chrono::ChVehicle* CreateVehicle() override {
+    virtual chrono::vehicle::ChWheeledVehicle* CreateVehicle() override {
         return new HMMWV_Vehicle(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
     }
 };
@@ -120,7 +119,7 @@ class HMMWV_Reduced : public HMMWV {
     void ExportMeshPovray(const std::string& out_dir) { ((HMMWV_VehicleReduced*)m_vehicle)->ExportMeshPovray(out_dir); }
 
   private:
-    virtual chrono::ChVehicle* CreateVehicle() override {
+    virtual chrono::vehicle::ChWheeledVehicle* CreateVehicle() override {
         return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
     }
 };

@@ -19,50 +19,45 @@
 #ifndef HMMWV_DRIVELINE_4WD_H
 #define HMMWV_DRIVELINE_4WD_H
 
-#include "chrono_vehicle/driveline/ChShaftsDriveline4WD.h"
+#include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 
 namespace hmmwv {
 
-class HMMWV_Driveline4WD : public chrono::ChShaftsDriveline4WD
-{
-public:
+class HMMWV_Driveline4WD : public chrono::vehicle::ChShaftsDriveline4WD {
+  public:
+    HMMWV_Driveline4WD();
+    ~HMMWV_Driveline4WD() {}
 
-  HMMWV_Driveline4WD();
-  ~HMMWV_Driveline4WD() {}
+    virtual double GetCentralDifferentialBoxInertia() const override { return m_central_differentialbox_inertia; }
+    virtual double GetFrontDifferentialBoxInertia() const override { return m_front_differentialbox_inertia; }
+    virtual double GetRearDifferentialBoxInertia() const override { return m_rear_differentialbox_inertia; }
+    virtual double GetDriveshaftInertia() const override { return m_driveshaft_inertia; }
+    virtual double GetToFrontDiffShaftInertia() const override { return m_frontshaft_inertia; }
+    virtual double GetToRearDiffShaftInertia() const override { return m_rearshaft_inertia; }
 
-  virtual double GetCentralDifferentialBoxInertia() const { return m_central_differentialbox_inertia; }
-  virtual double GetFrontDifferentialBoxInertia() const { return m_front_differentialbox_inertia; }
-  virtual double GetRearDifferentialBoxInertia() const { return m_rear_differentialbox_inertia; }
-  virtual double GetDriveshaftInertia() const { return m_driveshaft_inertia; }
-  virtual double GetToFrontDiffShaftInertia() const { return m_frontshaft_inertia; }
-  virtual double GetToRearDiffShaftInertia() const { return m_rearshaft_inertia; }
+    virtual double GetCentralDifferentialRatio() const override { return m_central_differential_ratio; }
+    virtual double GetFrontDifferentialRatio() const override { return m_front_differential_ratio; }
+    virtual double GetRearDifferentialRatio() const override { return m_rear_differential_ratio; }
+    virtual double GetFrontConicalGearRatio() const override { return m_front_conicalgear_ratio; }
+    virtual double GetRearConicalGearRatio() const override { return m_rear_conicalgear_ratio; }
 
-  virtual double GetCentralDifferentialRatio() const { return m_central_differential_ratio; }
-  virtual double GetFrontDifferentialRatio() const { return m_front_differential_ratio; }
-  virtual double GetRearDifferentialRatio() const { return m_rear_differential_ratio; }
-  virtual double GetFrontConicalGearRatio() const { return m_front_conicalgear_ratio; }
-  virtual double GetRearConicalGearRatio() const { return m_rear_conicalgear_ratio; }
+  private:
+    // Shaft inertias.
+    static const double m_central_differentialbox_inertia;
+    static const double m_front_differentialbox_inertia;
+    static const double m_rear_differentialbox_inertia;
+    static const double m_driveshaft_inertia;
+    static const double m_frontshaft_inertia;
+    static const double m_rearshaft_inertia;
 
-private:
-
-  // Shaft inertias.
-  static const double  m_central_differentialbox_inertia;
-  static const double  m_front_differentialbox_inertia;
-  static const double  m_rear_differentialbox_inertia;
-  static const double  m_driveshaft_inertia;
-  static const double  m_frontshaft_inertia;
-  static const double  m_rearshaft_inertia;
-
-  // Gear ratios.
-  static const double  m_central_differential_ratio;
-  static const double  m_front_differential_ratio;
-  static const double  m_rear_differential_ratio;
-  static const double  m_front_conicalgear_ratio;
-  static const double  m_rear_conicalgear_ratio;
+    // Gear ratios.
+    static const double m_central_differential_ratio;
+    static const double m_front_differential_ratio;
+    static const double m_rear_differential_ratio;
+    static const double m_front_conicalgear_ratio;
+    static const double m_rear_conicalgear_ratio;
 };
 
-
-} // end namespace hmmwv
-
+}  // end namespace hmmwv
 
 #endif

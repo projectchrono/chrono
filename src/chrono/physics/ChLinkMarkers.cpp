@@ -466,26 +466,31 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
 ///////// FILE I/O
 /////////
 
-void ChLinkMarkers::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(10);
-    // serialize parent class too
-    ChLink::StreamOUT(mstream);
+void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // stream out all member data
-    mstream << markID1;
-    mstream << markID2;
+    // serialize parent class
+    ChLink::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(markID1);
+    marchive << CHNVP(markID2);
 }
 
-void ChLinkMarkers::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLink::StreamIN(mstream);
+/// Method to allow de serialization of transient data from archives.
+void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // stream in all member data
-    mstream >> markID1;
-    mstream >> markID2;
+    // deserialize parent class
+    ChLink::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(markID1);
+    marchive >> CHNVP(markID2);
 }
 
 }  // END_OF_NAMESPACE____

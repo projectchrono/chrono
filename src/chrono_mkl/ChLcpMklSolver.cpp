@@ -3,6 +3,10 @@
 
 namespace chrono
 {
+    // Register into the object factory, to enable run-time
+    // dynamic creation and persistence
+    ChClassRegister<ChLcpMklSolver> a_registration_ChLcpMklSolver;
+
 
 	/** \brief It calls Intel MKL Pardiso Sparse Direct Solver.
 	*
@@ -12,17 +16,15 @@ namespace chrono
 	*	but it also keeps column and row indexes through different calls.
 	*/
 
-	ChLcpMklSolver::ChLcpMklSolver():
+	ChLcpMklSolver::ChLcpMklSolver() :
 		solver_call(0),
 		matCSR3(1, 1, 1),
 		mkl_engine(1, 11),
 		n(0),
-		size_lock(true),
-		sparsity_pattern_lock(true),
+		sparsity_pattern_lock(false),
 		use_perm(false),
 		use_rhs_sparsity(false)
 	{
-		SetSparsityPatternLock(true);
 	}
 
 	double ChLcpMklSolver::Solve(ChLcpSystemDescriptor& sysd) ///< system description with constraints and variables

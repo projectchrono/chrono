@@ -180,6 +180,31 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     virtual void ReportAllContacts(ChReportContactCallback* mcallback) {};
 
     virtual void ReportAllContacts2(ChReportContactCallback2* mcallback) {};
+
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChPhysicsItem::ArchiveOUT(marchive);
+        // serialize all member data:
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChPhysicsItem::ArchiveIN(marchive);
+        // stream in all member data:
+    }
+
 };
 
 //////////////////////////////////////////////////////

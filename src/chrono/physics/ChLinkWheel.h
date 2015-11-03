@@ -171,9 +171,15 @@ class ChApi ChLinkWheel : public ChLinkLock {
     double Get_l_tforce() { return l_tforce; };
     double Get_curr_friction() { return curr_friction; };
 
-    // STREAMING
-    virtual void StreamIN(ChStreamInBinary& mstream);
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 //////////////////////////////////////////////////////

@@ -19,17 +19,19 @@
 #ifndef HMMWV_FIALA_TIRE_H
 #define HMMWV_FIALA_TIRE_H
 
-#include "chrono_vehicle/tire/ChFialaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
 namespace hmmwv {
 
-class HMMWV_FialaTire : public chrono::ChFialaTire {
+class HMMWV_FialaTire : public chrono::vehicle::ChFialaTire {
   public:
     HMMWV_FialaTire(const std::string& name);
     ~HMMWV_FialaTire() {}
 
     virtual double getNormalStiffnessForce(double depth) const override;
-    virtual double getNormalDampingForce(double depth, double velocity) const override { return m_normalDamping * velocity; }
+    virtual double getNormalDampingForce(double depth, double velocity) const override {
+        return m_normalDamping * velocity;
+    }
 
     virtual void SetFialaParams();
 

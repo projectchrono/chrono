@@ -248,6 +248,91 @@ public:
 						this->SetD  ( this->GetD()   + newspeed_D * step);
 					};
 
+    //
+    // INTERFACE to ChLoadable 
+    //
+
+    /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() { return 6; }
+
+    /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() { return 6; }
+
+    /// Gets all the DOFs packed in a single vector (position part)
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+        mD.PasteVector(this->pos, block_offset, 0);
+        mD.PasteVector(this->D,   block_offset+3, 0);
+    }
+
+    /// Gets all the DOFs packed in a single vector (speed part)
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+        mD.PasteVector(this->pos_dt, block_offset, 0);
+        mD.PasteVector(this->D_dt,   block_offset+3, 0);
+    }
+
+    /// Number of coordinates in the interpolated field, ex=3 for a
+    /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
+    virtual int Get_field_ncoords() { return 6; }
+
+    /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+
+    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+        mvars.push_back(&this->Variables());
+        mvars.push_back(&this->Variables_D());
+    };
+
+    /// Evaluate Q=N'*F , for Q generalized lagrangian load, where N is some type of matrix
+    /// evaluated at point P(U,V,W) assumed in absolute coordinates, and 
+    /// F is a load assumed in absolute coordinates.
+    /// The det[J] is unused.
+    virtual void ComputeNF(const double U,              ///< x coordinate of application point in absolute space
+                           const double V,              ///< y coordinate of application point in absolute space
+                           const double W,              ///< z coordinate of application point in absolute space
+                           ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
+                           double& detJ,                ///< Return det[J] here
+                           const ChVectorDynamic<>& F,  ///< Input F vector, size is 6, it is contain Force xyz in absolute coords and a 'pseudo' torque.
+                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                           ) {
+        //ChVector<> abs_pos(U,V,W); not needed, nodes has no torque. Assuming load is applied to node center
+        ChVector<> absF=F.ClipVector(0,0);
+        ChVector<> absPseudoTorque=F.ClipVector(3,0);
+        Qi.PasteVector(absF,0,0);
+        Qi.PasteVector(absPseudoTorque,3,0);
+        detJ=1; // not needed because not used in quadrature.
+    }
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChNodeFEAxyz::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(D);
+        marchive << CHNVP(D_dt);
+        marchive << CHNVP(D_dtdt);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChNodeFEAxyz::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(D);
+        marchive >> CHNVP(D_dt);
+        marchive >> CHNVP(D_dtdt);
+    }
+
 private:
 	/// 3D node variable - the direction part: Dx,Dy,Dz (the position part is in parent class)
  	ChLcpVariablesGenericDiagonalMass*  variables_D; 

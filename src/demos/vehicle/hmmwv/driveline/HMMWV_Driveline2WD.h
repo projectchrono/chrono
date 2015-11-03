@@ -19,37 +19,32 @@
 #ifndef HMMWV_DRIVELINE_2WD_H
 #define HMMWV_DRIVELINE_2WD_H
 
-#include "chrono_vehicle/driveline/ChShaftsDriveline2WD.h"
+#include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 
 namespace hmmwv {
 
-class HMMWV_Driveline2WD : public chrono::ChShaftsDriveline2WD {
-public:
+class HMMWV_Driveline2WD : public chrono::vehicle::ChShaftsDriveline2WD {
+  public:
+    HMMWV_Driveline2WD();
 
-  HMMWV_Driveline2WD();
+    ~HMMWV_Driveline2WD() {}
 
-  ~HMMWV_Driveline2WD() {}
+    virtual double GetDriveshaftInertia() const override { return m_driveshaft_inertia; }
+    virtual double GetDifferentialBoxInertia() const override { return m_differentialbox_inertia; }
 
-  virtual double GetDriveshaftInertia() const      { return m_driveshaft_inertia; }
-  virtual double GetDifferentialBoxInertia() const { return m_differentialbox_inertia; }
+    virtual double GetConicalGearRatio() const override { return m_conicalgear_ratio; }
+    virtual double GetDifferentialRatio() const override { return m_differential_ratio; }
 
-  virtual double GetConicalGearRatio() const       { return m_conicalgear_ratio; }
-  virtual double GetDifferentialRatio() const      { return m_differential_ratio; }
+  private:
+    // Shaft inertias.
+    static const double m_driveshaft_inertia;
+    static const double m_differentialbox_inertia;
 
-private:
-
-  // Shaft inertias.
-  static const double  m_driveshaft_inertia;
-  static const double  m_differentialbox_inertia;
-
-  // Gear ratios.
-  static const double  m_conicalgear_ratio;
-  static const double  m_differential_ratio;
-
+    // Gear ratios.
+    static const double m_conicalgear_ratio;
+    static const double m_differential_ratio;
 };
 
-
-} // end namespace hmmwv
-
+}  // end namespace hmmwv
 
 #endif

@@ -223,31 +223,41 @@ void ChShaftsPlanetary::ConstraintsLiFetchSuggestedPositionSolution() {
 
 //////// FILE I/O
 
-void ChShaftsPlanetary::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChShaftsPlanetary::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
 
-    // serialize parent class too
-    ChPhysicsItem::StreamOUT(mstream);
+    // serialize parent class
+    ChPhysicsItem::ArchiveOUT(marchive);
 
-    // stream out all member data
-    mstream << this->r1;
-    mstream << this->r2;
-    mstream << this->r3;
+    // serialize all member data:
+    marchive << CHNVP(r1);
+    marchive << CHNVP(r2);
+    marchive << CHNVP(r3);
+    //marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP(shaft3); //***TODO*** serialize with shared ptr
 }
 
-void ChShaftsPlanetary::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+/// Method to allow de serialization of transient data from archives.
+void ChShaftsPlanetary::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
 
-    // deserialize parent class too
-    ChPhysicsItem::StreamIN(mstream);
+    // deserialize parent class:
+    ChPhysicsItem::ArchiveIN(marchive);
 
-    // deserialize class
-    mstream >> this->r1;
-    mstream >> this->r2;
-    mstream >> this->r3;
-}
+    // deserialize all member data:
+    marchive >> CHNVP(r1);
+    marchive >> CHNVP(r2);
+    marchive >> CHNVP(r3);
+    //marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP(shaft3); //***TODO*** serialize with shared ptr
+} 
+
 
 }  // END_OF_NAMESPACE____
 

@@ -11,4 +11,11 @@
 
 #include "assets/ChColorAsset.h"
 
-namespace chrono {}  // END_OF_NAMESPACE____
+namespace chrono {
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChColorAsset> a_registration_ChColorAsset;
+
+
+}  // END_OF_NAMESPACE____

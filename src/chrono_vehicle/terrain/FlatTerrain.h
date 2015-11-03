@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-
 #ifndef FLATTERRAIN_H
 #define FLATTERRAIN_H
 
@@ -24,6 +23,7 @@
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
+namespace vehicle {
 
 ///
 /// Concrete class for a flat horizontal terrain.
@@ -32,31 +32,26 @@ namespace chrono {
 /// tire models that perform their own collision detection (e.g. ChPacejkaTire
 /// and ChLugreTire).
 ///
-class CH_VEHICLE_API FlatTerrain : public ChTerrain
-{
-public:
+class CH_VEHICLE_API FlatTerrain : public ChTerrain {
+  public:
+    FlatTerrain(const int height  ///< [in] terrain height
+                );
 
-  FlatTerrain(
-    const int height   ///< [in] terrain height
-    );
+    ~FlatTerrain() {}
 
-  ~FlatTerrain() {}
+    /// Get the terrain height at the specified (x,y) location.
+    /// Returns the constant value passed at construction.
+    virtual double GetHeight(double x, double y) const { return m_height; }
 
-  /// Get the terrain height at the specified (x,y) location.
-  /// Returns the constant value passed at construction.
-  virtual double GetHeight(double x, double y) const { return m_height; }
+    /// Get the terrain normal at the specified (x,y) location.
+    /// Returns a constant unit vector along the Z axis.
+    virtual ChVector<> GetNormal(double x, double y) const { return ChVector<>(0, 0, 1); }
 
-  /// Get the terrain normal at the specified (x,y) location.
-  /// Returns a constant unit vector along the Z axis.
-  virtual ChVector<> GetNormal(double x, double y) const { return ChVector<>(0, 0, 1); }
-
-private:
-
-  double m_height;
+  private:
+    double m_height;
 };
 
-
-} // end namespace chrono
-
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

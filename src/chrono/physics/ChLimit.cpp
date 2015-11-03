@@ -166,80 +166,64 @@ void ChLinkLimit::SetPolar_Max(ChFunction* m_funct) {
 
 // file parsing / dumping
 
-void ChLinkLimit::StreamOUT(ChStreamOutBinary& mstream) {
+
+void ChLinkLimit::ArchiveOUT(ChArchiveOut& marchive) {
+
     // class version number
-    mstream.VersionWrite(1);
+    marchive.VersionWrite(1);
+    // serialize parent class too
 
     // stream out all member data
-    mstream << Get_active();
-    mstream << Get_polar();
-    mstream << Get_penalty();
-    mstream << Get_min();
-    mstream << Get_max();
-    mstream << Get_minCushion();
-    mstream << Get_maxCushion();
-    mstream << Get_minElastic();
-    mstream << Get_maxElastic();
-    mstream << Get_Kmin();
-    mstream << Get_Kmax();
-    mstream << Get_Rmin();
-    mstream << Get_Rmax();
-    mstream.AbstractWrite(GetPolar_Max());
-    mstream.AbstractWrite(GetModul_Kmin());
-    mstream.AbstractWrite(GetModul_Kmax());
-    mstream.AbstractWrite(GetModul_Rmin());
-    mstream.AbstractWrite(GetModul_Rmax());
+    marchive << CHNVP(active);
+    marchive << CHNVP(penalty_only);
+    marchive << CHNVP(polar);
+    marchive << CHNVP(rotation);
+    marchive << CHNVP(max);
+    marchive << CHNVP(min);
+    marchive << CHNVP(maxCushion);
+    marchive << CHNVP(minCushion);
+    marchive << CHNVP(Kmax);
+    marchive << CHNVP(Kmin);
+    marchive << CHNVP(Rmax);
+    marchive << CHNVP(Rmin);
+    marchive << CHNVP(maxElastic);
+    marchive << CHNVP(minElastic);
+    marchive << CHNVP(modul_Kmax);
+    marchive << CHNVP(modul_Kmin);
+    marchive << CHNVP(modul_Rmax);
+    marchive << CHNVP(modul_Rmin);
+    marchive << CHNVP(polar_Max);
 }
 
-void ChLinkLimit::StreamIN(ChStreamInBinary& mstream) {
+void ChLinkLimit::ArchiveIN(ChArchiveIn& marchive) {
+
     // class version number
-    int version = mstream.VersionRead();
+    int version = marchive.VersionRead();
+    // deserialize parent class too
 
     // stream in all member data
-    double dfoo;
-    int ifoo;
-    ChFunction* ffoo;
-    mstream >> ifoo;
-    Set_active(ifoo);
-    mstream >> ifoo;
-    Set_polar(ifoo);
-    mstream >> ifoo;
-    Set_penalty(ifoo);
-    mstream >> dfoo;
-    Set_min(dfoo);
-    mstream >> dfoo;
-    Set_max(dfoo);
-    mstream >> dfoo;
-    Set_minCushion(dfoo);
-    mstream >> dfoo;
-    Set_maxCushion(dfoo);
-    mstream >> dfoo;
-    Set_minElastic(dfoo);
-    mstream >> dfoo;
-    Set_maxElastic(dfoo);
-    mstream >> dfoo;
-    Set_Kmin(dfoo);
-    mstream >> dfoo;
-    Set_Kmax(dfoo);
-    mstream >> dfoo;
-    Set_Rmin(dfoo);
-    mstream >> dfoo;
-    Set_Rmax(dfoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetPolar_Max(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetModul_Kmin(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetModul_Kmax(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetModul_Rmin(ffoo);
-    mstream.AbstractReadCreate(&ffoo);
-    SetModul_Rmax(ffoo);
+    marchive >> CHNVP(active);
+    marchive >> CHNVP(penalty_only);
+    marchive >> CHNVP(polar);
+    marchive >> CHNVP(rotation);
+    marchive >> CHNVP(max);
+    marchive >> CHNVP(min);
+    marchive >> CHNVP(maxCushion);
+    marchive >> CHNVP(minCushion);
+    marchive >> CHNVP(Kmax);
+    marchive >> CHNVP(Kmin);
+    marchive >> CHNVP(Rmax);
+    marchive >> CHNVP(Rmin);
+    marchive >> CHNVP(maxElastic);
+    marchive >> CHNVP(minElastic);
+    marchive >> CHNVP(modul_Kmax);
+    marchive >> CHNVP(modul_Kmin);
+    marchive >> CHNVP(modul_Rmax);
+    marchive >> CHNVP(modul_Rmin);
+    marchive >> CHNVP(polar_Max);
 }
 
-void ChLinkLimit::StreamOUT(ChStreamOutAscii& mstream) {
-    //***TO DO***
-}
+
 
 ///////////////////
 

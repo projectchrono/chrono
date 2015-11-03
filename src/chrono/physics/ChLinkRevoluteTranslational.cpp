@@ -616,4 +616,41 @@ void ChLinkRevoluteTranslational::ConstraintsLiFetchSuggestedPositionSolution() 
     m_cache_pos[3] = m_cnstr_dist.Get_l_i();
 }
 
+
+void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChLink::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(m_p1);
+    marchive << CHNVP(m_p2);
+    marchive << CHNVP(m_z1);
+    marchive << CHNVP(m_x2);
+    marchive << CHNVP(m_y2);
+    marchive << CHNVP(m_dist);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChLinkRevoluteTranslational::ArchiveIN(ChArchiveIn& marchive) 
+{
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class
+    ChLink::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(m_p1);
+    marchive >> CHNVP(m_p2);
+    marchive >> CHNVP(m_z1);
+    marchive >> CHNVP(m_x2);
+    marchive >> CHNVP(m_y2);
+    marchive >> CHNVP(m_dist);
+}
+
+
 }  // end namespace chrono

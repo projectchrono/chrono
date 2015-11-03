@@ -36,11 +36,12 @@
 using namespace rapidjson;
 
 namespace chrono {
+namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Default constructor.
 // -----------------------------------------------------------------------------
-RigidTerrain::RigidTerrain(chrono::ChSystem* system) {
+RigidTerrain::RigidTerrain(ChSystem* system) {
     // Create the ground body and add it to the system.
     m_ground = ChSharedPtr<ChBody>(new ChBody(system->GetContactMethod()));
     m_ground->SetIdentifier(-1);
@@ -66,7 +67,7 @@ static ChColor loadColor(const Value& a) {
     return ChColor(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
 }
 
-RigidTerrain::RigidTerrain(chrono::ChSystem* system, const std::string& filename) {
+RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename) {
     // Create the ground body and add it to the system.
     m_ground = ChSharedPtr<ChBody>(new ChBody(system->GetContactMethod()));
     m_ground->SetIdentifier(-1);
@@ -411,4 +412,5 @@ ChVector<> RigidTerrain::GetNormal(double x, double y) const {
     }
 }
 
+}  // end namespace vehicle
 }  // end namespace chrono

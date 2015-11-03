@@ -21,6 +21,11 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLcpSolverDEM> a_registration_ChLcpSolverDEM;
+
+
 double ChLcpSolverDEM::Solve(ChLcpSystemDescriptor& sysd) {
     std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
