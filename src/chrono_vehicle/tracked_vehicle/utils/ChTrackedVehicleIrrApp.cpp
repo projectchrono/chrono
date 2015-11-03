@@ -35,7 +35,7 @@ ChTrackedVehicleIrrApp::ChTrackedVehicleIrrApp(ChVehicle* vehicle,
                                                irr::core::dimension2d<irr::u32> dims)
     : ChVehicleIrrApp(vehicle, powertrain, title, dims) {
     m_tvehicle = dynamic_cast<ChTrackedVehicle*>(vehicle);
-    assert(m_wvehicle);
+    assert(m_tvehicle);
 }
 
 // -----------------------------------------------------------------------------
