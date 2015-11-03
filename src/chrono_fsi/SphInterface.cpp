@@ -423,7 +423,7 @@ void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRig
     posRigid_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetPos());
     q_fsiBodies_H[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
     velMassRigid_fsiBodies_H[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-    rigidOmegaLRF_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetWacc_par());
+    rigidOmegaLRF_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetWacc_loc());
   }
 
   thrust::copy(posRigid_fsiBodies_H.begin(), posRigid_fsiBodies_H.end(), posRigid_fsiBodies_D.begin());

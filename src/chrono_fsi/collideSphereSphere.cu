@@ -33,6 +33,7 @@ using namespace std;
 __constant__ int2 updatePortionD;
 __constant__ Real solid_SPH_massD;
 
+// Arman TODO rotate by quaternion
 //--------------------------------------------------------------------------------------------------------------------------------
 // first comp of q is rotation, last 3 components are axis of rot
 __device__ __host__ inline void RotationMatirixFromQuaternion(Real3& AD1, Real3& AD2, Real3& AD3, const Real4& q) {
@@ -545,8 +546,6 @@ void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
                                 const thrust::device_vector<Real4>& velMassRigidD,
                                 const thrust::device_vector<Real3>& omegaLRF_D,
                                 NumberOfObjects numObjects) {
-  printf(" \n\n\n\n\n\n\n\n implement me  ************************* \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-
   uint nBlocks_numRigid_SphMarkers;
   uint nThreads_SphMarkers;
   computeGridSize(numObjects.numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);

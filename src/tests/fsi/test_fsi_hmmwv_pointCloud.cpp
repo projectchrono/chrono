@@ -1257,8 +1257,6 @@ int main(int argc, char* argv[]) {
                                    velMassRigid_fsiBodies_D2,
                                    omegaLRF_fsiBodies_D2,
                                    numObjects);  // Arman rigidSPH_MeshPos_LRF_D, rigidIdentifierD, numObjects
-
-
         // ******************
         // ******************
         // ******************
