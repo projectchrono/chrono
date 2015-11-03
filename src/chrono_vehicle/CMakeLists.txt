@@ -351,6 +351,8 @@ set(CV_TV_UTILS_FILES
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_UTILS_FILES
+        tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
+        tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
         tracked_vehicle/utils/ChIrrGuiDriverTTR.h
         tracked_vehicle/utils/ChIrrGuiDriverTTR.cpp
     )

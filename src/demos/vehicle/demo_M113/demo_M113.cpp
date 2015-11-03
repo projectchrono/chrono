@@ -20,11 +20,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "m113/M113_Vehicle.h"
 #include "m113/M113_SimplePowertrain.h"
@@ -52,7 +49,7 @@ double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 1e-4;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -94,7 +91,7 @@ int main(int argc, char* argv[]) {
     powertrain.Initialize();
 
     // Create the vehicle Irrlicht application.
-    ChVehicleIrrApp app(vehicle, powertrain, L"M113 Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Vehicle Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 3.0, 1.0);

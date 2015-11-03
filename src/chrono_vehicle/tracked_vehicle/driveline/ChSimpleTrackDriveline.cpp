@@ -114,5 +114,18 @@ double ChSimpleTrackDriveline::GetSprocketTorque(VehicleSide side) const {
     return 0;
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double ChSimpleTrackDriveline::GetSprocketSpeed(VehicleSide side) const {
+    switch (side) {
+        case LEFT:
+            return m_shaft_left->GetPos_dt();
+        case RIGHT:
+            return m_shaft_right->GetPos_dt();
+    }
+
+    return 0;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

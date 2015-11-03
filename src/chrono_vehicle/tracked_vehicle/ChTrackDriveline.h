@@ -63,6 +63,9 @@ class CH_VEHICLE_API ChTrackDriveline : public ChShared {
     /// Get the motor torque to be applied to the specified sprocket.
     virtual double GetSprocketTorque(VehicleSide side) const = 0;
 
+    /// Get the angular speed of the specified sprocket.
+    virtual double GetSprocketSpeed(VehicleSide side) const = 0;
+
     /// Turn gyration mode on/off.
     virtual void SetGyrationMode(bool mode) { m_gyration_mode = mode; }
 

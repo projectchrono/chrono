@@ -56,6 +56,9 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChTrackDriveline {
     /// Get the motor torque to be applied to the specified sprocket.
     virtual double GetSprocketTorque(VehicleSide side) const override;
 
+    /// Get the angular speed of the specified sprocket.
+    double GetSprocketSpeed(VehicleSide side) const override;
+
   protected:
     /// Return the torque bias ratio for the differential.
     /// This is a simple model of a Torsen limited-slip differential.
