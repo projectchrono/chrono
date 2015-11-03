@@ -34,7 +34,6 @@ Real time_pause_fluid_external_force = 0;  //.05;//0.1;//0.1;  // 0.2;
 Real contact_recovery_speed = 1;
 Real maxFlowVelocity = 12;  // in an ideal case, these two need to be the same
 
-Real time_step = 2e-3;  // 0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
 // Total simulation duration.
 Real time_end = 15;
 
@@ -78,7 +77,7 @@ NumberOfObjects numObjects;
  */
 void SetupParamsH(SimParams& paramsH) {
   paramsH.sizeScale = 1;  // don't change it.
-  paramsH.HSML = 0.06;    // 0.06;//0.04;
+  paramsH.HSML = 0.1; //0.06;    // 0.06;//0.04;
   paramsH.MULT_INITSPACE = 1.0;
   paramsH.NUM_BOUNDARY_LAYERS = 3;
   paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
@@ -94,7 +93,7 @@ void SetupParamsH(SimParams& paramsH) {
   paramsH.v_Max = maxFlowVelocity;  // Arman, I changed it to 0.1 for vehicle. Check this
                                     // later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
   paramsH.EPS_XSPH = .5f;
-  paramsH.dT = time_step;                               // 0.0005;//0.1;//.001; //sph alone: .01 for Re 10;
+  paramsH.dT = 2e-3;  // 0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
   paramsH.tFinal = time_end;                            // 20 * paramsH.dT; //400
   paramsH.timePause = time_pause_fluid_external_force;  //.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time
   // before applying any
@@ -265,7 +264,7 @@ bool povray_output = true;
 
 const std::string pov_dir_mbd = out_dir + "/povFilesHmmwv";
 
-int out_fps = 120;
+int out_fps = 30;
 
 Real vertical_offset = 0;  // vehicle vertical offset
 

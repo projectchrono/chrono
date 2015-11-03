@@ -1146,9 +1146,9 @@ int main(int argc, char* argv[]) {
         GpuTimer myGpuTimer;
         myGpuTimer.Start();
 
-        //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
+        fsi_timer.start("total_step_time");
 
-        fsi_timer.start("half_step_dynamic_fsi_12");
+        //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
         fsi_timer.start("fluid_initialization");
 
         int out_steps = std::ceil((1.0 / paramsH.dT) / out_fps);
@@ -1197,7 +1197,7 @@ int main(int argc, char* argv[]) {
 // ****************** RK2: 1/2
 #if haveFluid
 
-        fsi_timer.start("integrate_sph");
+        fsi_timer.start("half_step_dynamic_fsi_12");
         // //assumes ...D2 is a copy of ...D
 
         IntegrateSPH(derivVelRhoD,
@@ -1212,8 +1212,7 @@ int main(int argc, char* argv[]) {
                      referenceArray,
                      numObjects,
                      currentParamsH,
-                     0.5 * currentParamsH.dT);  // Arman vel_XSPH_D does not need to be sent essentially
-        fsi_timer.start("integrate_sph");
+                     0.5 * currentParamsH.dT);
 
         Rigid_Forces_Torques(rigid_FSI_ForcesD,
                              rigid_FSI_TorquesD,
@@ -1224,19 +1223,24 @@ int main(int argc, char* argv[]) {
                              numObjects,
                              sphMarkerMass);
 
-        Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies_Index_H);
+        fsi_timer.stop("half_step_dynamic_fsi_12");
 
+        fsi_timer.start("fsi_copy_force_fluid2ChSystem_12");
+        Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies_Index_H);
+        fsi_timer.stop("fsi_copy_force_fluid2ChSystem_12");
 #endif
 
-        fsi_timer.start("stepDynamic_mbd");
+        fsi_timer.start("stepDynamic_mbd_12");
         mTime += 0.5 * currentParamsH.dT;
         DoStepChronoSystem(mphysicalSystem,
                            0.5 * currentParamsH.dT,
                            mTime);  // Keep only this if you are just interested in the rigid sys
 
-        fsi_timer.stop("stepDynamic_mbd");
+        fsi_timer.stop("stepDynamic_mbd_12");
 
 #if haveFluid
+        fsi_timer.start("fsi_copy_posVel_ChSystem2fluid_12");
+
         Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D2,
                                                q_fsiBodies_D2,
                                                velMassRigid_fsiBodies_D2,
@@ -1247,7 +1251,10 @@ int main(int argc, char* argv[]) {
                                                omegaLRF_fsiBodies_dummyH,
                                                FSI_Bodies_Index_H,
                                                mphysicalSystem);
+        fsi_timer.stop("fsi_copy_posVel_ChSystem2fluid_12");
 
+
+        fsi_timer.start("update_marker_pos_12");
         UpdateRigidMarkersPosition(posRadD2,
                                    velMasD2,
                                    rigidSPH_MeshPos_LRF_D,
@@ -1256,7 +1263,8 @@ int main(int argc, char* argv[]) {
                                    q_fsiBodies_D2,
                                    velMassRigid_fsiBodies_D2,
                                    omegaLRF_fsiBodies_D2,
-                                   numObjects);  // Arman rigidSPH_MeshPos_LRF_D, rigidIdentifierD, numObjects
+                                   numObjects);
+        fsi_timer.stop("update_marker_pos_12");
         // ******************
         // ******************
         // ******************
@@ -1278,7 +1286,6 @@ int main(int argc, char* argv[]) {
                      numObjects,
                      currentParamsH,
                      currentParamsH.dT);
-        fsi_timer.start("integrate_sph");
 
         Rigid_Forces_Torques(rigid_FSI_ForcesD,
                              rigid_FSI_TorquesD,
@@ -1298,14 +1305,12 @@ int main(int argc, char* argv[]) {
         Copy_External_To_ChSystem(
             mphysicalSystem, pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH);
 
-        fsi_timer.start("stepDynamic_mbd");
 
         mTime += currentParamsH.dT;
         DoStepChronoSystem(mphysicalSystem,
                            1.0 * currentParamsH.dT,
                            mTime);  // Keep only this if you are just interested in the rigid sys
 
-        fsi_timer.stop("stepDynamic_mbd");
 
 #if haveFluid
 
@@ -1356,11 +1361,10 @@ int main(int argc, char* argv[]) {
                    realTime,
                    (Real)myGpuTimer.Elapsed(),
                    1000 * mCpuTimer.Elapsed());
-
-            fsi_timer.stop("half_step_dynamic_fsi_22");
-            fsi_timer.PrintReport();
         }
 #endif
+        fsi_timer.stop("total_step_time");
+        fsi_timer.PrintReport();
         // -------------------
         // End SPH Block
         // -------------------
@@ -1368,7 +1372,7 @@ int main(int argc, char* argv[]) {
         fflush(stdout);
         realTime += currentParamsH.dT;
 
-        mphysicalSystem.data_manager->system_timer.PrintReport();
+//        mphysicalSystem.data_manager->system_timer.PrintReport();
     }
     ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
     FSI_Bodies_Index_H.clear();
