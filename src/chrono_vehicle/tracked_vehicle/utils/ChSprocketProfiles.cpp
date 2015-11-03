@@ -22,7 +22,6 @@
 #include <cmath>
 
 #include "chrono/core/ChVector.h"
-#include "chrono/core/ChSpmatrix.h"  //// HACK to force using the exported ChMatrix<double> specialization from there!!!!
 #include "chrono/geometry/ChCLineSegment.h"
 #include "chrono/geometry/ChCLineArc.h"
 
