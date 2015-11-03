@@ -54,7 +54,7 @@
 #include <core/ChTransform.h>  //transform acc from GF to LF for post process
 
 // FSI Interface Includes
-#include "test_fsi_hmmwv_pointCloud_params.h"  //SetupParamsH()
+#include "test_fsi_cylinderDrop_params.h"  //SetupParamsH()
 //#include "BallDropParams.h"
 #include "chrono_fsi/SphInterface.h"
 #include "chrono_fsi/InitializeSphMarkers.h"

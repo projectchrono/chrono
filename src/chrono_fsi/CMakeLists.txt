@@ -60,7 +60,6 @@ checkPointReduced.h
 collideSphereSphere.cuh
 custom_cutil_math.h
 demo_utils.h
-fsi_hmmwv_params.h
 InitializeSphMarkers.h
 MyStructs.cuh
 printToFile.cu
