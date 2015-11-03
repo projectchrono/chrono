@@ -53,6 +53,7 @@ void ChTrackAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
                                  const std::vector<ChVector<> >& suspension_locs) {
     m_sprocket->Initialize(chassis, sprocket_loc);
     m_idler->Initialize(chassis, idler_loc);
+    m_brake->Initialize(m_sprocket->GetRevolute());
 
     for (size_t i = 0; i < m_suspensions.size(); ++i) {
         m_suspensions[i]->Initialize(chassis, suspension_locs[i]);
@@ -268,14 +269,16 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
 // -----------------------------------------------------------------------------
 // Update the state of this track assembly at the current time.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Update(double time, const TrackShoeForces& shoe_forces) {
+void ChTrackAssembly::Update(double time, double braking, const TrackShoeForces& shoe_forces) {
     // Apply track shoe forces
     for (size_t i = 0; i < m_shoes.size(); ++i) {
         m_shoes[i]->m_shoe->Empty_forces_accumulators();
         m_shoes[i]->m_shoe->Accumulate_force(shoe_forces[i].force, shoe_forces[i].point, false);
         m_shoes[i]->m_shoe->Accumulate_torque(shoe_forces[i].moment, false);
     }
-    //// TODO
+
+    // Apply braking input
+    m_brake->Update(braking);
 }
 
 // -----------------------------------------------------------------------------

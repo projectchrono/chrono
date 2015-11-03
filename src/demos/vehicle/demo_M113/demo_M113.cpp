@@ -49,7 +49,7 @@ double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-4;
+double step_size = 1e-3;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -59,7 +59,7 @@ ChVector<> trackPoint(-2.0, 0.0, 0.5);
 
 // =============================================================================
 
-// Dummy powertrain
+// Simple powertrain model
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // =============================================================================
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
         terrain.Update(time);
         powertrain.Update(time, throttle_input, driveshaft_speed);
         vehicle.Update(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
-        app.Update("", steering_input, throttle_input, 0);
+        app.Update("", steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);

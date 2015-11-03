@@ -35,6 +35,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
 #include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 
@@ -72,6 +73,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
 
     /// Get a handle to the idler subsystem.
     ChSharedPtr<ChIdler> GetIdler() const { return m_idler; }
+
+    /// Get a handle to the brake subsystem.
+    ChSharedPtr<ChTrackBrake> GetBrake() const { return m_brake; }
 
     /// Get a handle to the specified suspension subsystem.
     ChSharedPtr<ChRoadWheelAssembly> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
@@ -119,6 +123,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
 
     /// Update the state of this track assembly at the current time.
     void Update(double time,                        ///< [in] current time
+                double braking,                     ///< [in] braking driver input
                 const TrackShoeForces& shoe_forces  ///< [in] vector of tire force structures
                 );
 
@@ -129,6 +134,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
     std::string m_name;                     ///< name of the subsystem
     ChSharedPtr<ChSprocket> m_sprocket;     ///< sprocket subsystem
     ChSharedPtr<ChIdler> m_idler;           ///< idler (and tensioner) subsystem
+    ChSharedPtr<ChTrackBrake> m_brake;      ///< sprocket brake
     ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
     ChTrackShoeList m_shoes;                ///< track shoes
 

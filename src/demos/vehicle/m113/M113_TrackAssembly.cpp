@@ -18,6 +18,7 @@
 
 #include "m113/M113_Sprocket.h"
 #include "m113/M113_Idler.h"
+#include "m113/M113_BrakeSimple.h"
 #include "m113/M113_RoadWheel.h"
 #include "m113/M113_Suspension.h"
 #include "m113/M113_TrackShoe.h"
@@ -36,10 +37,12 @@ M113_TrackAssembly::M113_TrackAssembly(VehicleSide side, VisualizationType vis_t
     if (side == LEFT) {
         m_sprocket = ChSharedPtr<M113_Sprocket>(new M113_SprocketLeft(vis_type));
         m_idler = ChSharedPtr<M113_Idler>(new M113_IdlerLeft(vis_type));
+        m_brake = ChSharedPtr<M113_BrakeSimple>(new M113_BrakeSimple());
         num_shoes = 63;
     } else {
         m_sprocket = ChSharedPtr<M113_Sprocket>(new M113_SprocketRight(vis_type));
         m_idler = ChSharedPtr<M113_Idler>(new M113_IdlerRight(vis_type));
+        m_brake = ChSharedPtr<M113_BrakeSimple>(new M113_BrakeSimple());
         num_shoes = 64;
     }
 

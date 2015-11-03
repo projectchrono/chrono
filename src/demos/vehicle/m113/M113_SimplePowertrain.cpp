@@ -29,8 +29,8 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_SimplePowertrain::m_max_torque = 2400 / 8.851;
-const double M113_SimplePowertrain::m_max_speed = 2000;
+const double M113_SimplePowertrain::m_max_torque = 400;
+const double M113_SimplePowertrain::m_max_speed = 3000;
 const double M113_SimplePowertrain::m_fwd_gear_ratio = 0.3;
 const double M113_SimplePowertrain::m_rev_gear_ratio = -0.3;
 

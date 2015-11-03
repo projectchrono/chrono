@@ -17,6 +17,7 @@ SET(MODEL_FILES
     ../m113/M113_Sprocket.cpp
     ../m113/M113_Idler.h
     ../m113/M113_Idler.cpp
+    ../m113/M113_BrakeSimple.h
     ../m113/M113_RoadWheel.h
     ../m113/M113_RoadWheel.cpp
     ../m113/M113_Suspension.h

@@ -43,11 +43,8 @@ void ChTrackedVehicle::Update(double time,
     m_driveline->Update(steering, powertrain_torque);
 
     // Apply contact track shoe forces.
-    m_tracks[LEFT]->Update(time, shoe_forces_left);
-    m_tracks[RIGHT]->Update(time, shoe_forces_right);
-
-    // Apply braking.
-    //// TODO
+    m_tracks[LEFT]->Update(time, braking, shoe_forces_left);
+    m_tracks[RIGHT]->Update(time, braking, shoe_forces_right);
 }
 
 // -----------------------------------------------------------------------------
