@@ -1,5 +1,5 @@
 # Additional include paths
-INCLUDE_DIRECTORIES( ${CH_MKL_INCLUDES} )
+INCLUDE_DIRECTORIES( ${CH_MKLINC} )
 
 MESSAGE(STATUS "Demo programs for MKL module...")
 

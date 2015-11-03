@@ -33,14 +33,10 @@ endif()
 # ------------------------------------------------------------------------------
 # Collect all additional include directories necessary for the MKL module
 # ------------------------------------------------------------------------------
+SET(CH_MKLINC ${MKL_INCLUDE_DIRS})
+SET(CH_MKLINC ${MKL_INCLUDE_DIRS} PARENT_SCOPE)
+INCLUDE_DIRECTORIES(${CH_MKLINC})
 
-SET(CH_MKL_INCLUDES
-    ${MKL_INCLUDE_DIRS}
-)
-
-INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
-
-SET(CH_MKL_INCLUDES "${CH_MKL_INCLUDES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # List all files in the Chrono mkl module
@@ -50,6 +46,9 @@ SET(ChronoEngine_MKL_HEADERS
   ChApiMkl.h
   ChLcpMklSolver.h
   ChMklEngine.h
+)
+
+SET(ChronoEngine_CSR3_HEADERS
   ChCSR3Matrix.h
 )
 
@@ -59,7 +58,12 @@ SET(ChronoEngine_MKL_SOURCES
   ChCSR3Matrix.cpp
 )
 
-SOURCE_GROUP("" FILES ${ChronoEngine_MKL_HEADERS} ${ChronoEngine_MKL_SOURCES})
+SET(ChronoEngine_CSR3_SOURCES
+  ChCSR3Matrix.cpp
+)
+
+SOURCE_GROUP("MKL" FILES ${ChronoEngine_MKL_HEADERS} ${ChronoEngine_MKL_SOURCES})
+SOURCE_GROUP("CSR3" FILES ${ChronoEngine_CSR3_HEADERS} ${ChronoEngine_CSR3_SOURCES})
 
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_mkl library
