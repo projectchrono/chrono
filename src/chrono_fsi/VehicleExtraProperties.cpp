@@ -21,6 +21,7 @@ int tireFam = 3;
 
 using namespace chrono;
 using namespace collision;
+using namespace vehicle;
 
 // Tire Coefficient of friction
 float mu_t = 0.8;
