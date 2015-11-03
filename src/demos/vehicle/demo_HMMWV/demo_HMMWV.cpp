@@ -30,7 +30,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "hmmwv/HMMWV.h"
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the vehicle Irrlicht interface
-    ChVehicleIrrApp app(my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain(), L"HMMWV Demo");
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"HMMWV Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);

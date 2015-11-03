@@ -19,12 +19,11 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChSuspensionTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChIrrGuiDriverSTR.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -50,9 +49,6 @@ int axle_index = 0;
 // JSON files for tire models (rigid)
 std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
 
-// Dummy powertrain
-std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
-
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Create and initialize the testing mechanism.
@@ -69,12 +65,8 @@ int main(int argc, char* argv[]) {
     tire_L->Initialize(rig.GetWheelBody(LEFT));
     tire_R->Initialize(rig.GetWheelBody(RIGHT));
 
-    // Create and initialize the powertrain system (not used).
-    SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
-    powertrain.Initialize();
-
     // Create the vehicle Irrlicht application.
-    ChVehicleIrrApp app(rig, powertrain, L"Suspension Test Rig");
+    ChVehicleIrrApp app(&rig, NULL, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(0.5 * (rig.GetWheelPos(LEFT) + rig.GetWheelPos(RIGHT)), 2.0, 1.0);
