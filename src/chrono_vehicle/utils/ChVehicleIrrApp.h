@@ -42,24 +42,7 @@ namespace chrono {
 namespace vehicle {
 
 // Forward declaration
-class ChVehicleIrrApp;
-
-///
-/// Custom event receiver for chase-cam control.
-///
-class ChCameraEventReceiver : public irr::IEventReceiver {
-  public:
-    /// Construct a custom event receiver.
-    ChCameraEventReceiver(ChVehicleIrrApp* app) : m_app(app) {}
-
-    /// Implementation of the event processing method.
-    /// This function interprest keyboard inputs for controlling the chase camera in
-    /// the associated vehicle Irrlicht application.
-    virtual bool OnEvent(const irr::SEvent& event);
-
-  private:
-    ChVehicleIrrApp* m_app;  ///< pointer to the associated vehicle Irrlicht app
-};
+class ChCameraEventReceiver;  ///< custom event receiver for chase-cam control
 
 ///
 /// Customized Chrono Irrlicht application for vehicle visualization.
@@ -68,13 +51,13 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
   public:
     /// Construct a vehicle Irrlicht application.
     ChVehicleIrrApp(
-        ChVehicle& car,            ///< reference to the vehicle system
-        ChPowertrain& powertrain,  /// reference to the powertrain system
+        ChVehicle* vehicle,        ///< pointer to the associated vehicle system
+        ChPowertrain* powertrain,  /// pointer to the associated powertrain system
         const wchar_t* title = 0,  ///< window title
         irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000, 800)  ///< window dimensions
         );
 
-    ~ChVehicleIrrApp();
+    virtual ~ChVehicleIrrApp();
 
     /// Create a skybox that has Z pointing up.
     /// Note that the default ChIrrApp::AddTypicalSky() uses Y up.
@@ -124,11 +107,10 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
     /// by the specified duration.
     void Advance(double step);
 
-  private:
-    void renderSprings();
-    void renderLinks();
-    void renderGrid();
-    void renderStats();
+  protected:
+    /// Render additional vehicle information.
+    virtual void renderOtherStats(int left, int top) {}
+
     void renderLinGauge(const std::string& msg,
                         double factor,
                         bool sym,
@@ -136,6 +118,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
                         int ypos,
                         int length = 120,
                         int height = 15);
+
     void renderTextBox(const std::string& msg,
                        int xpos,
                        int ypos,
@@ -143,8 +126,14 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
                        int height = 15,
                        irr::video::SColor color = irr::video::SColor(255, 20, 20, 20));
 
-    ChVehicle& m_car;            ///< reference to the associated vehicle system
-    ChPowertrain& m_powertrain;  ///< reference to the associated powertrain system
+    ChVehicle* m_vehicle;        ///< pointer to the associated vehicle system
+    ChPowertrain* m_powertrain;  ///< pointer to the associated powertrain system
+
+  private:
+    void renderSprings();
+    void renderLinks();
+    void renderGrid();
+    void renderStats();
 
     utils::ChChaseCamera m_camera;            ///< chase camera
     ChCameraEventReceiver* m_camera_control;  ///< event receiver for chase-cam control

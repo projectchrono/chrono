@@ -24,13 +24,6 @@
 
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
-//// TODO:  Remove the dependency on wheeled_vehicle driveline
-////        Use either inheritance or callback
-/*
-#include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
-#include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
-*/
-
 #include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 
 using namespace irr;
@@ -41,6 +34,20 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Implementation of the custom Irrlicht event receiver for camera control
 // -----------------------------------------------------------------------------
+class ChCameraEventReceiver : public irr::IEventReceiver {
+  public:
+    // Construct a custom event receiver.
+    ChCameraEventReceiver(ChVehicleIrrApp* app) : m_app(app) {}
+
+    // Implementation of the event processing method.
+    // This function interprets keyboard inputs for controlling the chase camera in
+    // the associated vehicle Irrlicht application.
+    virtual bool OnEvent(const irr::SEvent& event);
+
+  private:
+    ChVehicleIrrApp* m_app;  // pointer to the associated vehicle Irrlicht app
+};
+
 bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
     // Only interpret keyboard inputs.
     if (event.EventType != EET_KEY_INPUT_EVENT)
@@ -76,7 +83,7 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
                 m_app->m_camera.SetState(utils::ChChaseCamera::Inside);
                 return true;
             case KEY_KEY_V:
-                m_app->m_car.LogConstraintViolations();
+                m_app->m_vehicle->LogConstraintViolations();
                 return true;
         }
     }
@@ -87,14 +94,14 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
 // -----------------------------------------------------------------------------
 // Construct a vehicle Irrlicht application.
 // -----------------------------------------------------------------------------
-ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle& car,
-                                 ChPowertrain& powertrain,
+ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
+                                 ChPowertrain* powertrain,
                                  const wchar_t* title,
                                  irr::core::dimension2d<irr::u32> dims)
-    : ChIrrApp(car.GetSystem(), title, dims, false, false, irr::video::EDT_OPENGL),
-      m_car(car),
+    : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, irr::video::EDT_OPENGL),
+      m_vehicle(vehicle),
       m_powertrain(powertrain),
-      m_camera(car.GetChassis()),
+      m_camera(vehicle->GetChassis()),
       m_stepsize(1e-3),
       m_HUD_x(700),
       m_HUD_y(20),
@@ -107,7 +114,7 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle& car,
       m_throttle(0),
       m_braking(0) {
     // Initialize the chase camera with default values.
-    m_camera.Initialize(ChVector<>(0, 0, 1), car.GetLocalDriverCoordsys(), 6.0, 0.5);
+    m_camera.Initialize(ChVector<>(0, 0, 1), vehicle->GetLocalDriverCoordsys(), 6.0, 0.5);
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 
@@ -178,7 +185,7 @@ void ChVehicleIrrApp::SetSkyBox() {
 // Set parameters for the underlying chase camera.
 // -----------------------------------------------------------------------------
 void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chaseDist, double chaseHeight) {
-    m_camera.Initialize(ptOnChassis, m_car.GetLocalDriverCoordsys(), chaseDist, chaseHeight);
+    m_camera.Initialize(ptOnChassis, m_vehicle->GetLocalDriverCoordsys(), chaseDist, chaseHeight);
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 }
@@ -220,9 +227,9 @@ void ChVehicleIrrApp::Advance(double step) {
     static int stepsbetweensound = 0;
 
     // Update sound pitch
-    if (m_car_sound) {
+    if (m_car_sound && m_powertrain) {
         stepsbetweensound++;
-        double engine_rpm = m_powertrain.GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+        double engine_rpm = m_powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
         double soundspeed = engine_rpm / (8000.);  // denominator: to guess
         if (soundspeed < 0.1)
             soundspeed = 0.1;
@@ -334,33 +341,36 @@ void ChVehicleIrrApp::renderStats() {
     sprintf(msg, "Camera mode: %s", m_camera.GetStateName().c_str());
     renderTextBox(std::string(msg), m_HUD_x, m_HUD_y, 120, 15);
 
-    double speed = m_car.GetVehicleSpeed();
+    double speed = m_vehicle->GetVehicleSpeed();
     sprintf(msg, "Speed: %+.2f", speed);
     renderLinGauge(std::string(msg), speed / 30, false, m_HUD_x, m_HUD_y + 30, 120, 15);
 
-    double engine_rpm = m_powertrain.GetMotorSpeed() * 60 / chrono::CH_C_2PI;
-    sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
-    renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 50, 120, 15);
+    // Display information from powertrain system.
 
-    double engine_torque = m_powertrain.GetMotorTorque();
-    sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
-    renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 70, 120, 15);
+    if (m_powertrain) {
+        double engine_rpm = m_powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+        sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
+        renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 50, 120, 15);
 
-    double tc_slip = m_powertrain.GetTorqueConverterSlippage();
-    sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
-    renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 90, 120, 15);
+        double engine_torque = m_powertrain->GetMotorTorque();
+        sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
+        renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 70, 120, 15);
 
-    double tc_torquein = m_powertrain.GetTorqueConverterInputTorque();
-    sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
-    renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 110, 120, 15);
+        double tc_slip = m_powertrain->GetTorqueConverterSlippage();
+        sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
+        renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 90, 120, 15);
 
-    double tc_torqueout = m_powertrain.GetTorqueConverterOutputTorque();
-    sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
-    renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 120, 15);
+        double tc_torquein = m_powertrain->GetTorqueConverterInputTorque();
+        sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
+        renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 110, 120, 15);
 
-    int ngear = m_powertrain.GetCurrentTransmissionGear();
-    ChPowertrain::DriveMode drivemode = m_powertrain.GetDriveMode();
-    switch (drivemode) {
+        double tc_torqueout = m_powertrain->GetTorqueConverterOutputTorque();
+        sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
+        renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 120, 15);
+
+        int ngear = m_powertrain->GetCurrentTransmissionGear();
+        ChPowertrain::DriveMode drivemode = m_powertrain->GetDriveMode();
+        switch (drivemode) {
         case ChPowertrain::FORWARD:
             sprintf(msg, "Gear: forward, n.gear: %d", ngear);
             break;
@@ -373,47 +383,16 @@ void ChVehicleIrrApp::renderStats() {
         default:
             sprintf(msg, "Gear:");
             break;
+        }
+        renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 150, 120, 15);
     }
-    renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 150, 120, 15);
 
-    //// TODO: Remove the dependency on wheeled_vehicle driveline
-    ////        Use either inheritance or callback
-    /*
-    if (ChSharedPtr<ChShaftsDriveline2WD> driveline = m_car.GetDriveline().DynamicCastTo<ChShaftsDriveline2WD>()) {
-        double torque;
-        int axle = driveline->GetDrivenAxleIndexes()[0];
+    // Display information from concrete vehicle type (e.g. driveline)
 
-        torque = driveline->GetWheelTorque(WheelID(axle, LEFT));
-        sprintf(msg, "Torque wheel L: %+.2f", torque);
-        renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 170, 120, 15);
-
-        torque = driveline->GetWheelTorque(WheelID(axle, RIGHT));
-        sprintf(msg, "Torque wheel R: %+.2f", torque);
-        renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 190, 120, 15);
-    } else if (ChSharedPtr<ChShaftsDriveline4WD> driveline =
-                   m_car.GetDriveline().DynamicCastTo<ChShaftsDriveline4WD>()) {
-        double torque;
-        std::vector<int> axles = driveline->GetDrivenAxleIndexes();
-
-        torque = driveline->GetWheelTorque(WheelID(axles[0], LEFT));
-        sprintf(msg, "Torque wheel FL: %+.2f", torque);
-        renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 210, 120, 15);
-
-        torque = driveline->GetWheelTorque(WheelID(axles[0], RIGHT));
-        sprintf(msg, "Torque wheel FR: %+.2f", torque);
-        renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 230, 120, 15);
-
-        torque = driveline->GetWheelTorque(WheelID(axles[1], LEFT));
-        sprintf(msg, "Torque wheel RL: %+.2f", torque);
-        renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 250, 120, 15);
-
-        torque = driveline->GetWheelTorque(WheelID(axles[1], RIGHT));
-        sprintf(msg, "Torque wheel FR: %+.2f", torque);
-        renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 270, 120, 15);
-    }
-    */
+    renderOtherStats(m_HUD_x, m_HUD_y + 180);
 
     // Display information from driver system.
+
     renderTextBox(m_driver_msg, m_HUD_x + 140, m_HUD_y, 120, 15);
 
     sprintf(msg, "Steering: %+.2f", m_steering);
@@ -425,8 +404,9 @@ void ChVehicleIrrApp::renderStats() {
     sprintf(msg, "Braking: %+.2f", m_braking * 100.);
     renderLinGauge(std::string(msg), m_braking, false, m_HUD_x + 140, m_HUD_y + 70, 120, 15);
 
-    // Display current simulation time
-    sprintf(msg, "Time %.2f", m_car.GetChTime());
+    // Display current simulation time.
+
+    sprintf(msg, "Time %.2f", m_vehicle->GetChTime());
     renderTextBox(msg, m_HUD_x + 140, m_HUD_y + 100, 120, 15, irr::video::SColor(255, 250, 200, 00));
 }
 

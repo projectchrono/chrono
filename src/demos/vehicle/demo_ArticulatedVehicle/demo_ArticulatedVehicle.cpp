@@ -43,8 +43,8 @@
 // If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
 // ...include additional headers
-#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 // ...and specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     tr_tire_rear_right.Initialize(trailer.GetWheelBody(REAR_RIGHT));
 
 #ifdef USE_IRRLICHT
-    ChVehicleIrrApp app(vehicle, powertrain, L"Articulated Vehicle Demo");
+    ChWheeledVehicleIrrApp app(&vehicle, &powertrain, L"Articulated Vehicle Demo");
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);

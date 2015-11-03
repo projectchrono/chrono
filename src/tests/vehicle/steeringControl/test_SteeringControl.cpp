@@ -30,10 +30,10 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
+#include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
