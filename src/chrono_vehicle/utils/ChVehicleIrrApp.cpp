@@ -310,9 +310,14 @@ void ChVehicleIrrApp::renderLinGauge(const std::string& msg,
     int left = sym ? (int)((length / 2 - 2) * std::min<>(factor, 0.0) + length / 2) : 2;
     int right = sym ? (int)((length / 2 - 2) * std::max<>(factor, 0.0) + length / 2) : (int)((length - 4) * factor + 2);
 
-    GetVideoDriver()->draw2DRectangle(irr::video::SColor(255, 250, 200, 00),
+    GetVideoDriver()->draw2DRectangle(irr::video::SColor(255, 250, 200, 0),
                                       irr::core::rect<s32>(xpos + left, ypos + 2, xpos + right, ypos + height - 2),
                                       &mclip);
+    if (sym) {
+        GetVideoDriver()->draw2DLine(irr::core::vector2d<irr::s32>(xpos + length / 2, ypos + 2),
+                                     irr::core::vector2d<irr::s32>(xpos + length / 2, ypos + height - 2),
+                                     irr::video::SColor(255, 250, 0, 0));
+    }
 
     irr::gui::IGUIFont* font = GetIGUIEnvironment()->getBuiltInFont();
     font->draw(msg.c_str(), irr::core::rect<s32>(xpos + 3, ypos + 3, xpos + length, ypos + height),
@@ -371,18 +376,18 @@ void ChVehicleIrrApp::renderStats() {
         int ngear = m_powertrain->GetCurrentTransmissionGear();
         ChPowertrain::DriveMode drivemode = m_powertrain->GetDriveMode();
         switch (drivemode) {
-        case ChPowertrain::FORWARD:
-            sprintf(msg, "Gear: forward, n.gear: %d", ngear);
-            break;
-        case ChPowertrain::NEUTRAL:
-            sprintf(msg, "Gear: neutral");
-            break;
-        case ChPowertrain::REVERSE:
-            sprintf(msg, "Gear: reverse");
-            break;
-        default:
-            sprintf(msg, "Gear:");
-            break;
+            case ChPowertrain::FORWARD:
+                sprintf(msg, "Gear: forward, n.gear: %d", ngear);
+                break;
+            case ChPowertrain::NEUTRAL:
+                sprintf(msg, "Gear: neutral");
+                break;
+            case ChPowertrain::REVERSE:
+                sprintf(msg, "Gear: reverse");
+                break;
+            default:
+                sprintf(msg, "Gear:");
+                break;
         }
         renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 150, 120, 15);
     }
