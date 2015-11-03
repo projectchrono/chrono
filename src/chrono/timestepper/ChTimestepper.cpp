@@ -811,6 +811,7 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
     Rold.Reset(mintegrable->GetNcoords_v());
     Qc.Reset(mintegrable->GetNconstr());
     L.Reset(mintegrable->GetNconstr());
+    ChStateDelta dX(mintegrable->GetNcoords_v(), mintegrable); //**TODO***move in class own data
 
     mintegrable->StateGather(X, V, T);        // state <- system
     mintegrable->StateGatherAcceleration(A);  // <- system
@@ -890,12 +891,21 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
 
 				L += Dl*(1.0 / scaling_factor);  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
 
+                /*
                 Xnew = Xnew + Da;  // X + V * dt + A * (dt * dt * (0.5 - beta)) + Anew * (dt * dt * beta);
                 Vnew = V * (-(gamma / beta - 1.0)) - A * dt * (gamma / (2.0 * beta) - 1.0);
                 Vnew += (Xnew - X) * (gamma / (beta * dt));  // V + A * (dt * (1.0 - gamma)) + Anew * (dt * gamma);
                 Anew = -V * (1.0 / (beta * dt)) - A * (1.0 / (2.0 * beta) - 1.0);
                 Anew += (Xnew - X) * (1.0 / (beta * dt * dt));
+                */
 
+                dX += Da;
+                Xnew = (X + dX);
+                Vnew = V * (-(gamma / beta - 1.0)) - A * dt * (gamma / (2.0 * beta) - 1.0);
+                Vnew += dX * (gamma / (beta * dt));  // V + A * (dt * (1.0 - gamma)) + Anew * (dt * gamma);
+                Anew = -V * (1.0 / (beta * dt)) - A * (1.0 / (2.0 * beta) - 1.0);
+                Anew += dX * (1.0 / (beta * dt * dt));
+                
                 break;
         }
 
