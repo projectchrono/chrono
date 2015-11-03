@@ -25,9 +25,9 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "hmmwv/HMMWV.h"
 
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChVehicleIrrApp app(my_hmmwv.GetVehicle(), my_hmmwv.GetPowertrain(), L"Steering Controller Demo",
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"Steering Controller Demo",
                         irr::core::dimension2d<irr::u32>(800, 640));
 
     app.SetHUDLocation(500, 20);

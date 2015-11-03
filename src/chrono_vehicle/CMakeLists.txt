@@ -265,6 +265,8 @@ set(CV_WV_UTILS_FILES
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_WV_UTILS_FILES
+        wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h
+        wheeled_vehicle/utils/ChWheeledVehicleIrrApp.cpp
         wheeled_vehicle/utils/ChIrrGuiDriverSTR.h
         wheeled_vehicle/utils/ChIrrGuiDriverSTR.cpp
     )
