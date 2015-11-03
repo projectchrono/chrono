@@ -115,8 +115,8 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    TrackShoeForces shoe_forces_left(63);
-    TrackShoeForces shoe_forces_right(64);
+    TrackShoeForces shoe_forces_left(vehicle.GetTrackAssembly(LEFT)->GetNumTrackShoes());
+    TrackShoeForces shoe_forces_right(vehicle.GetTrackAssembly(RIGHT)->GetNumTrackShoes());
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
