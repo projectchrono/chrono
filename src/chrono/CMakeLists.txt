@@ -35,7 +35,7 @@ set(ChronoEngine_core_SOURCES
     core/ChVector.cpp
     core/ChQuaternion.cpp
     core/ChCoordsys.cpp
-    core/ChSpmatrix.cpp
+    core/ChLinkedListMatrix.cpp
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
     )
@@ -71,7 +71,8 @@ set(ChronoEngine_core_HEADERS
     core/ChTimer.h
     core/ChTransform.h
     core/ChVector.h
-    core/ChSpmatrix.h
+    core/ChSparseMatrix.h
+    core/ChLinkedListMatrix.h
     core/ChWrapHashmap.h
     core/ChDistribution.h
     core/ChQuadrature.h

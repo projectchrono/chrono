@@ -26,6 +26,10 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLcpIterativePMINRES> a_registration_ChLcpIterativePMINRES;
+
 double ChLcpIterativePMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                                     ) {
     bool do_preconditioning = this->diag_preconditioning;

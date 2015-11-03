@@ -91,6 +91,8 @@ int main(int argc, char* argv[]) {
     ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+	mkl_solver_stab->SetSparsityPatternLock(true);
+	mkl_solver_speed->SetSparsityPatternLock(true);
     application.GetSystem()->Update();
 
     // Change type of integrator:

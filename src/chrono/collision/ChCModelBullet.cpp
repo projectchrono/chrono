@@ -734,9 +734,29 @@ void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
     marchive.VersionWrite(1);
     // serialize parent class
     ChCollisionModel::ArchiveOUT(marchive);
+
     // serialize all member data:
-    //marchive << CHNVP(...);
-    //***TODO***
+    std::vector< char > serialized(0);
+
+    if (this->bt_collision_object->getCollisionShape()) {
+        // serialize all member data:
+        int maxSerializeBufferSize = 1024 * 1024 * 5;  //***TO DO*** make this more efficient
+        btDefaultSerializer* serializer = new btDefaultSerializer(maxSerializeBufferSize);
+
+        serializer->startSerialization();
+
+        this->bt_collision_object->getCollisionShape()->serializeSingleShape(serializer);
+
+        serializer->finishSerialization();
+    
+        serialized.resize(serializer->getCurrentBufferSize());
+        for (int mpt = 0; mpt < serializer->getCurrentBufferSize(); mpt++)
+            serialized[mpt] = (char)(*(serializer->getBufferPointer() + mpt));
+
+        delete serializer;
+    }
+
+    marchive << CHNVP(serialized, "bullet_serialized_bytes");
 }
 
 void ChModelBullet::ArchiveIN(ChArchiveIn& marchive) 
@@ -745,12 +765,43 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
     int version = marchive.VersionRead();
     // deserialize parent class
     ChCollisionModel::ArchiveIN(marchive);
+
     // stream in all member data:
-    //marchive >> CHNVP(...);
-    //***TODO***
+
+    this->ClearModel();  // remove shape
+
+    std::vector<char> serialized;
+
+    marchive >> CHNVP(serialized, "bullet_serialized_bytes");
+
+    if(serialized.size()) {
+        // convert to char array (maybe just cast from std::vector data ptr might be sufficient)
+        char* mbuffer = new char[serialized.size()];
+        for (int mpt = 0; mpt < serialized.size(); mpt++)
+            mbuffer[mpt] = serialized[mpt];
+
+        btBulletWorldImporter import(0);  // don't store info into the world
+        import.setVerboseMode(false);
+
+        if (import.loadFileFromMemory(mbuffer, serialized.size())) {
+            int numShape = import.getNumCollisionShapes();
+            if (numShape) {
+                btCollisionShape* mshape = import.getCollisionShapeByIndex(0);
+                if (mshape)
+                    bt_collision_object->setCollisionShape(mshape);
+
+                // Update the list of sharedpointers to newly created shapes, so that
+                // the deletion will be automatic
+                __recurse_add_newcollshapes(mshape, this->shapes);
+            }
+        }
+
+        delete[] mbuffer;
+    }
 }
 
 //***OBSOLETE***
+/*
 void ChModelBullet::StreamIN(ChStreamInBinary& mstream) {
     // class version number
     int version = mstream.VersionRead();
@@ -816,6 +867,7 @@ void ChModelBullet::StreamOUT(ChStreamOutBinary& mstream) {
 
     delete serializer;
 }
+*/
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

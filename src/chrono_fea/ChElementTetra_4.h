@@ -367,7 +367,6 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron,
 
         // Fi = C * Fi_local  with C block-diagonal rotations A
         ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);
-Fi.Reset();
     }
 
     //
@@ -418,7 +417,7 @@ Fi.Reset();
     virtual int LoadableGet_ndof_w() {return 4*3;}
 
         /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector    (this->nodes[0]->GetPos(), block_offset,  0);
         mD.PasteVector    (this->nodes[1]->GetPos(), block_offset+3,  0);
         mD.PasteVector    (this->nodes[2]->GetPos(), block_offset+6,  0);
@@ -426,7 +425,7 @@ Fi.Reset();
     }
 
         /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->nodes[0]->GetPos_dt(),   block_offset,  0);
         mD.PasteVector(this->nodes[1]->GetPos_dt(),   block_offset+3,  0);
         mD.PasteVector(this->nodes[2]->GetPos_dt(),   block_offset+6,  0);
@@ -444,6 +443,12 @@ Fi.Reset();
 
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 3;}
+
+    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+        for (int i=0; i<nodes.size(); ++i)
+            mvars.push_back(&this->nodes[i]->Variables());
+    };
 
         /// Evaluate N'*F , where N is some type of shape function
         /// evaluated at U,V,W coordinates of the volume, each ranging in 0..+1
@@ -744,7 +749,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron,
     virtual int LoadableGet_ndof_w() {return 4*3;}
 
         /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
         mD(block_offset)   = this->nodes[0]->GetP();
         mD(block_offset+1) = this->nodes[1]->GetP();
         mD(block_offset+2) = this->nodes[2]->GetP();
@@ -752,7 +757,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron,
     }
 
         /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChMatrixDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
         mD(block_offset)   = this->nodes[0]->GetP_dt();
         mD(block_offset+1) = this->nodes[1]->GetP_dt();
         mD(block_offset+2) = this->nodes[2]->GetP_dt();
@@ -770,6 +775,12 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron,
 
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 1;}
+
+    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+        for (int i=0; i<nodes.size(); ++i)
+            mvars.push_back(&this->nodes[i]->Variables());
+    };
 
         /// Evaluate N'*F , where N is some type of shape function
         /// evaluated at U,V,W coordinates of the volume, each ranging in 0..+1

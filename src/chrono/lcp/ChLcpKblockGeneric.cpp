@@ -120,7 +120,7 @@ void ChLcpKblockGeneric::DiagonalAdd(ChMatrix<double>& result) {
     }
 }
 
-void ChLcpKblockGeneric::Build_K(ChSparseMatrixBase& storage, bool add) {
+void ChLcpKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
     if (!K)
         return;
 

@@ -47,6 +47,9 @@ namespace chrono {
 /// * case CCP: Y_i are friction cones
 
 class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChLcpIterativeMINRES, ChLcpIterativeSolver);
+
   protected:
     //
     // DATA
@@ -102,6 +105,38 @@ class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver {
 
     void SetDiagonalPreconditioning(bool mp) { this->diag_preconditioning = mp; }
     bool GetDiagonalPreconditioning() { return this->diag_preconditioning; }
+
+    //
+    // SERIALIZATION
+    //
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        // version number
+        marchive.VersionWrite(1);
+        // serialize parent class
+        ChLcpIterativeSolver::ArchiveOUT(marchive);
+        // serialize all member data:
+        marchive << CHNVP(feas_tolerance);
+        marchive << CHNVP(max_fixedpoint_steps);
+        marchive << CHNVP(diag_preconditioning);
+        marchive << CHNVP(rel_tolerance);
+    }
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    {
+        // version number
+        int version = marchive.VersionRead();
+        // deserialize parent class
+        ChLcpIterativeSolver::ArchiveIN(marchive);
+        // stream in all member data:
+        marchive >> CHNVP(feas_tolerance);
+        marchive >> CHNVP(max_fixedpoint_steps);
+        marchive >> CHNVP(diag_preconditioning);
+        marchive >> CHNVP(rel_tolerance);
+    }
+
 };
 
 }  // END_OF_NAMESPACE____

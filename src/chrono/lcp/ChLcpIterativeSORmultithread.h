@@ -35,6 +35,9 @@
 namespace chrono {
 
 class ChApi ChLcpIterativeSORmultithread : public ChLcpIterativeSolver {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChLcpIterativeSORmultithread, ChLcpIterativeSolver);
+
   protected:
     //
     // DATA
@@ -47,7 +50,7 @@ class ChApi ChLcpIterativeSORmultithread : public ChLcpIterativeSolver {
     // CONSTRUCTORS
     //
 
-    ChLcpIterativeSORmultithread(char* uniquename,          ///< this name must be unique.
+    ChLcpIterativeSORmultithread(char* uniquename="solver", ///< this name must be unique.
                                  int nthreads = 2,          ///< number of threads
                                  int mmax_iters = 50,       ///< max.number of iterations
                                  bool mwarm_start = false,  ///< uses warm start?

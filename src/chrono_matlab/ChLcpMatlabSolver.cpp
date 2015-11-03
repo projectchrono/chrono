@@ -13,15 +13,22 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLcpMatlabSolver> a_registration_ChLcpMatlabSolver;
+
 ChLcpMatlabSolver::ChLcpMatlabSolver(ChMatlabEngine& me) {
     mengine = &me;
+}
+ChLcpMatlabSolver::ChLcpMatlabSolver() {
+    mengine = 0;
 }
 
 // Solve using the Matlab default direct solver (as in x=A\b)
 double ChLcpMatlabSolver::Solve(ChLcpSystemDescriptor& sysd) {
-    chrono::ChSparseMatrix mdM;
-    chrono::ChSparseMatrix mdCq;
-    chrono::ChSparseMatrix mdE;
+    chrono::ChLinkedListMatrix mdM;
+    chrono::ChLinkedListMatrix mdCq;
+    chrono::ChLinkedListMatrix mdE;
     chrono::ChMatrixDynamic<double> mdf;
     chrono::ChMatrixDynamic<double> mdb;
     chrono::ChMatrixDynamic<double> mdfric;

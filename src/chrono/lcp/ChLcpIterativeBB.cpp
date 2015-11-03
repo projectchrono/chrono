@@ -26,6 +26,10 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLcpIterativeBB> a_registration_ChLcpIterativeBB;
+
 double ChLcpIterativeBB::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                                ) {
     std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();

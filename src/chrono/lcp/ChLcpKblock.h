@@ -31,7 +31,7 @@
 
 #include "core/ChApiCE.h"
 #include "core/ChMatrix.h"
-#include "core/ChSpmatrix.h"
+#include "core/ChSparseMatrix.h"
 #include "lcp/ChLcpVariables.h"
 
 namespace chrono {
@@ -98,7 +98,7 @@ class ChApi ChLcpKblock {
     /// a global 'storage' matrix, at the offsets of variables.
     /// Most solvers do not need this: the sparse 'storage' matrix is used for testing, for
     /// direct solvers, for dumping full matrix to Matlab for checks, etc.
-	virtual void Build_K(ChSparseMatrixBase& storage, bool add = true) = 0;
+	virtual void Build_K(ChSparseMatrix& storage, bool add = true) = 0;
 };
 
 }  // END_OF_NAMESPACE____

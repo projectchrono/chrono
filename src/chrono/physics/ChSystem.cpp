@@ -265,7 +265,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     }
 
     this->timestepper =
-        ChSharedPtr<ChTimestepperEulerImplicitLinearized>(new ChTimestepperEulerImplicitLinearized(*this));  // OK
+        ChSharedPtr<ChTimestepperEulerImplicitLinearized>(new ChTimestepperEulerImplicitLinearized(this));  // OK
 
     LCP_descriptor = 0;
     LCP_solver_speed = 0;
@@ -294,10 +294,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     scriptForUpdate = NULL;
     scriptForStep = NULL;
     scriptFor3DStep = NULL;
-    strcpy(scriptForStartFile, "");
-    strcpy(scriptForUpdateFile, "");
-    strcpy(scriptForStepFile, "");
-    strcpy(scriptFor3DStepFile, "");
 
     events = new ChEvents(250);
 }
@@ -629,33 +625,33 @@ void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
 
 // JS commands
 
-int ChSystem::SetScriptForStartFile(char* mfile) {
+int ChSystem::SetScriptForStartFile(const std::string& mfile) {
     if (!this->scriptEngine)
         return 0;
-    strncpy(this->scriptForStartFile, mfile, sizeof(this->scriptForStartFile)-1);
+    this->scriptForStartFile = mfile;
     this->scriptForStart = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptForStart, mfile);
+    return this->scriptEngine->FileToScript(*this->scriptForStart, mfile.c_str());
 }
-int ChSystem::SetScriptForUpdateFile(char* mfile) {
+int ChSystem::SetScriptForUpdateFile(const std::string& mfile) {
     if (!this->scriptEngine)
         return 0;
-    strncpy(this->scriptForUpdateFile, mfile, sizeof(this->scriptForUpdateFile)-1);
+    this->scriptForUpdateFile = mfile;
     this->scriptForUpdate = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptForUpdate, mfile);
+    return this->scriptEngine->FileToScript(*this->scriptForUpdate, mfile.c_str());
 }
-int ChSystem::SetScriptForStepFile(char* mfile) {
+int ChSystem::SetScriptForStepFile(const std::string& mfile) {
     if (!this->scriptEngine)
         return 0;
-    strncpy(this->scriptForStepFile, mfile, sizeof(this->scriptForStepFile)-1);
+    this->scriptForStepFile = mfile;
     this->scriptForStep = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptForStep, mfile);
+    return this->scriptEngine->FileToScript(*this->scriptForStep, mfile.c_str());
 }
-int ChSystem::SetScriptFor3DStepFile(char* mfile) {
+int ChSystem::SetScriptFor3DStepFile(const std::string& mfile) {
     if (!this->scriptEngine)
         return 0;
-    strncpy(this->scriptFor3DStepFile, mfile, sizeof(this->scriptFor3DStepFile)-1);
+    this->scriptFor3DStepFile = mfile;
     this->scriptFor3DStep = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptFor3DStep, mfile);
+    return this->scriptEngine->FileToScript(*this->scriptFor3DStep, mfile.c_str());
 }
 
 int ChSystem::ExecuteScriptForStart() {
@@ -1128,44 +1124,44 @@ void ChSystem::SetIntegrationType(eCh_integrationType m_integration) {
                 ChSharedPtr<ChTimestepper>();  // null because Integrate_Y_impulse will fallback to old code
             break;
         case INT_EULER_IMPLICIT:
-            this->timestepper = ChSharedPtr<ChTimestepperEulerImplicit>(new ChTimestepperEulerImplicit(*this));
+            this->timestepper = ChSharedPtr<ChTimestepperEulerImplicit>(new ChTimestepperEulerImplicit(this));
             (this->timestepper.DynamicCastTo<ChTimestepperEulerImplicit>())->SetMaxiters(4);
             break;
         case INT_EULER_IMPLICIT_LINEARIZED:
             this->timestepper =
-                ChSharedPtr<ChTimestepperEulerImplicitLinearized>(new ChTimestepperEulerImplicitLinearized(*this));
+                ChSharedPtr<ChTimestepperEulerImplicitLinearized>(new ChTimestepperEulerImplicitLinearized(this));
             break;
         case INT_EULER_IMPLICIT_PROJECTED:
             this->timestepper =
-                ChSharedPtr<ChTimestepperEulerImplicitProjected>(new ChTimestepperEulerImplicitProjected(*this));
+                ChSharedPtr<ChTimestepperEulerImplicitProjected>(new ChTimestepperEulerImplicitProjected(this));
             break;
         case INT_TRAPEZOIDAL:
-            this->timestepper = ChSharedPtr<ChTimestepperTrapezoidal>(new ChTimestepperTrapezoidal(*this));
+            this->timestepper = ChSharedPtr<ChTimestepperTrapezoidal>(new ChTimestepperTrapezoidal(this));
             (this->timestepper.DynamicCastTo<ChTimestepperTrapezoidal>())->SetMaxiters(4);
             break;
         case INT_TRAPEZOIDAL_LINEARIZED:
             this->timestepper =
-                ChSharedPtr<ChTimestepperTrapezoidalLinearized>(new ChTimestepperTrapezoidalLinearized(*this));
+                ChSharedPtr<ChTimestepperTrapezoidalLinearized>(new ChTimestepperTrapezoidalLinearized(this));
             (this->timestepper.DynamicCastTo<ChTimestepperTrapezoidalLinearized>())->SetMaxiters(4);
             break;
         case INT_HHT:
-            this->timestepper = ChSharedPtr<ChTimestepperHHT>(new ChTimestepperHHT(*this));
+            this->timestepper = ChSharedPtr<ChTimestepperHHT>(new ChTimestepperHHT(this));
             (this->timestepper.DynamicCastTo<ChTimestepperHHT>())->SetMaxiters(4);
             break;
         case INT_HEUN:
-            this->timestepper = ChSharedPtr<ChTimestepperHeun>(new ChTimestepperHeun(*this));
+            this->timestepper = ChSharedPtr<ChTimestepperHeun>(new ChTimestepperHeun(this));
             break;
         case INT_RUNGEKUTTA45:
-            this->timestepper = ChSharedPtr<ChTimestepperRungeKuttaExpl>(new ChTimestepperRungeKuttaExpl(*this));
+            this->timestepper = ChSharedPtr<ChTimestepperRungeKuttaExpl>(new ChTimestepperRungeKuttaExpl(this));
             break;
         case INT_EULER_EXPLICIT:
-            this->timestepper = ChSharedPtr<ChTimestepperEulerExplIIorder>(new ChTimestepperEulerExplIIorder(*this));
+            this->timestepper = ChSharedPtr<ChTimestepperEulerExplIIorder>(new ChTimestepperEulerExplIIorder(this));
             break;
         case INT_LEAPFROG:
-            this->timestepper = ChSharedPtr<ChTimestepperLeapfrog>(new ChTimestepperLeapfrog(*this));
+            this->timestepper = ChSharedPtr<ChTimestepperLeapfrog>(new ChTimestepperLeapfrog(this));
             break;
         case INT_NEWMARK:
-            this->timestepper = ChSharedPtr<ChTimestepperNewmark>(new ChTimestepperNewmark(*this));
+            this->timestepper = ChSharedPtr<ChTimestepperNewmark>(new ChTimestepperNewmark(this));
             break;
         default:
             throw ChException("SetIntegrationType: timestepper not supported");
@@ -3100,6 +3096,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     // serialize all system preferences 
 
     marchive << CHNVP(contact_container);
+
     marchive << CHNVP(G_acc);
     marchive << CHNVP(end_time);
     marchive << CHNVP(step);   
@@ -3114,10 +3111,10 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(use_sleeping);
 
     eCh_lcpSolver_mapper msolmapper;
-    marchive << CHNVP(msolmapper(lcp_solver_type));
-    //marchive << CHNVP(LCP_descriptor); // ChLcpSystemDescriptor should implement class factory for abstract create
-    //marchive << CHNVP(LCP_solver_speed); // ChLcpSolver should implement class factory for abstract create
-    //marchive << CHNVP(LCP_solver_stab); // ChLcpSolver should implement class factory for abstract create  
+    marchive << CHNVP(msolmapper(lcp_solver_type),"lcp_solver_type");
+    marchive << CHNVP(LCP_descriptor); 
+    marchive << CHNVP(LCP_solver_speed); 
+    marchive << CHNVP(LCP_solver_stab);  
 
     marchive << CHNVP(iterLCPmaxIters);
     marchive << CHNVP(iterLCPmaxItersStab);
@@ -3126,7 +3123,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(max_penetration_recovery_speed);
     marchive << CHNVP(parallel_thread_number); 
 
-    //marchive << CHNVP(collision_system);// ChCollisionSystem should implement class factory for abstract create
+    marchive << CHNVP(collision_system);// ChCollisionSystem should implement class factory for abstract create
 
     //marchive << CHNVP(scriptEngine); // ChScriptEngine should implement class factory for abstract create
     marchive << CHNVP(scriptForStartFile);
@@ -3135,8 +3132,8 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(scriptFor3DStepFile);
 
     eCh_integrationType_mapper mintmapper;
-    marchive << CHNVP(mintmapper(integration_type));
-    //marchive << CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
+    marchive << CHNVP(mintmapper(integration_type),"integration_type");
+    marchive << CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
 
     //***TODO*** complete...
 }
@@ -3210,16 +3207,16 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(use_sleeping);
 
     eCh_lcpSolver_mapper msolmapper;
-    marchive >> CHNVP(msolmapper(lcp_solver_type));
+    marchive >> CHNVP(msolmapper(lcp_solver_type),"lcp_solver_type");
 
-    //if (LCP_descriptor) delete LCP_descriptor;
-    //marchive >> CHNVP(LCP_descriptor); // ChLcpSystemDescriptor should implement class factory for abstract create
+    if (LCP_descriptor) delete LCP_descriptor;
+    marchive >> CHNVP(LCP_descriptor); 
 
-    //if (LCP_solver_speed) delete LCP_solver_speed;
-    //marchive >> CHNVP(LCP_solver_speed); // ChLcpSolver should implement class factory for abstract create
+    if (LCP_solver_speed) delete LCP_solver_speed;
+    marchive >> CHNVP(LCP_solver_speed); 
     
-    //if (LCP_solver_stab) delete LCP_solver_stab;
-    //marchive >> CHNVP(LCP_solver_stab); // ChLcpSolver should implement class factory for abstract create  
+    if (LCP_solver_stab) delete LCP_solver_stab;
+    marchive >> CHNVP(LCP_solver_stab);  
 
     marchive >> CHNVP(iterLCPmaxIters);
     marchive >> CHNVP(iterLCPmaxItersStab);
@@ -3238,9 +3235,10 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(scriptFor3DStepFile);
 
     eCh_integrationType_mapper mintmapper;
-    marchive >> CHNVP(mintmapper(integration_type));
+    marchive >> CHNVP(mintmapper(integration_type),"integration_type");
 
-    //marchive >> CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
+    marchive >> CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
+    timestepper->SetIntegrable(this);
 
     //***TODO*** complete...
 

@@ -291,15 +291,6 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    //***OBSOLETE***
-    virtual void StreamIN(ChStreamInBinary& mstream);
-
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    //***OBSOLETE***
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
 
     //
     // CUSTOM BULLET

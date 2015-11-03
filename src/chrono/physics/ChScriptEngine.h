@@ -63,7 +63,7 @@ class ChScriptEngine {
     // Create a script object
     virtual ChScript* CreateScript() = 0;
     // Loads a file and precompile it into a script
-    virtual int FileToScript(ChScript& script, char* file) = 0;
+    virtual int FileToScript(ChScript& script, const char* file) = 0;
     // Execute a precompiled script
     virtual int ExecuteScript(ChScript& script) = 0;
 };

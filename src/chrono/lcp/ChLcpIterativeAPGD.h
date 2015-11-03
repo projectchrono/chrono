@@ -40,6 +40,9 @@ namespace chrono {
 /// or similar CCP problem.
 
 class ChApi ChIterativeAPGD : public ChLcpIterativeSolver {
+    // Chrono RTTI, needed for serialization
+    CH_RTTI(ChIterativeAPGD, ChLcpIterativeSolver);
+
   protected:
     //
     // DATA

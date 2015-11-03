@@ -32,13 +32,13 @@
 
 #include "core/ChApiCE.h"
 #include "core/ChMatrix.h"
-#include "core/ChSpmatrix.h"
+#include "core/ChSparseMatrix.h"
 #include "core/ChClassRegister.h"
 
 namespace chrono {
 
 // forward reference
-class ChSparseMatrix;
+class ChLinkedListMatrix;
 
 /// Modes for constraint
 enum eChConstraintMode {
@@ -341,12 +341,12 @@ class ChApi ChLcpConstraint {
     /// don't need to know jacobians explicitly)
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes!
-    virtual void Build_Cq(ChSparseMatrixBase& storage, int insrow) = 0;
+    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) = 0;
 
     /// Same as Build_Cq, but puts the _transposed_ jacobian row as a column.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes!
-	virtual void Build_CqT(ChSparseMatrixBase& storage, int inscol) = 0;
+	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) = 0;
 
     /// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }
