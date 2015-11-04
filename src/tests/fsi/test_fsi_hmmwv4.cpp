@@ -878,6 +878,7 @@ int main(int argc, char* argv[]) {
     // -------------------
     myCpuTimerHalfStep.start();
     myGpuTimerHalfStep.Start();
+    chrono::ChTimerParallel fsi_timer;
     fsi_timer.Reset();
 
 #if haveFluid

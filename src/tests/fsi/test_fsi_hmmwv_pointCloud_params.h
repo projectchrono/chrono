@@ -258,8 +258,6 @@ int num_particles = 1000;
 
 std::ofstream simParams;
 
-chrono::ChTimerParallel fsi_timer;
-
 bool povray_output = true;
 
 const std::string pov_dir_mbd = out_dir + "/povFilesHmmwv";

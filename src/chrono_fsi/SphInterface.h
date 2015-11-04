@@ -20,8 +20,15 @@
 //#include "chrono_utils/ChUtilsInputOutput.h" //Arman: Why is this
 #include "utils/ChUtilsGenerators.h"
 
-// using namespace chrono;
-// using namespace chrono::collision;
+#define haveFluid true
+#define useWallBce true
+bool haveVehicle = false;
+
+#if haveFluid
+#else
+#undef useWallBce
+#define useWallBce false
+#endif
 
 chrono::ChVector<> ConvertRealToChVector(Real3 p3);
 chrono::ChVector<> ConvertRealToChVector(Real4 p4);
