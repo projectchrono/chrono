@@ -85,6 +85,9 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
                             float poisson_ratio             ///< [in] Poisson ratio
                             );
 
+    /// Turn on/off collision flag for the gear wheel.
+    void SetCollide(bool val) { m_gear->SetCollide(val); }
+
     /// Initialize this sprocket subsystem.
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in

@@ -72,6 +72,9 @@ class CH_VEHICLE_API ChTrackShoe : public ChShared {
                             float poisson_ratio             ///< [in] Poisson ratio
                             );
 
+    /// Turn on/off collision flag for the idler wheel.
+    void SetCollide(bool val) { m_shoe->SetCollide(val); }
+
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).

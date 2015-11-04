@@ -79,6 +79,9 @@ class CH_VEHICLE_API ChIdler : public ChShared {
                             float poisson_ratio             ///< [in] Poisson ratio
                             );
 
+    /// Turn on/off collision flag for the idler wheel.
+    void SetCollide(bool val) { m_wheel->SetCollide(val); }
+
     /// Initialize this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in

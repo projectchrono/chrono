@@ -48,6 +48,31 @@ void ChTrackedVehicle::Update(double time,
 }
 
 // -----------------------------------------------------------------------------
+// Override collision flags for various subsystems
+// -----------------------------------------------------------------------------
+void ChTrackedVehicle::SetCollide(int flags) {
+    m_tracks[0]->GetIdler()->SetCollide((flags & static_cast<int>(TrackCollide::IDLER_LEFT)) != 0);
+    m_tracks[1]->GetIdler()->SetCollide((flags & static_cast<int>(TrackCollide::IDLER_RIGHT)) != 0);
+
+    m_tracks[0]->GetSprocket()->SetCollide((flags & static_cast<int>(TrackCollide::SPROCKET_LEFT)) != 0);
+    m_tracks[1]->GetSprocket()->SetCollide((flags & static_cast<int>(TrackCollide::SPROCKET_RIGHT)) != 0);
+
+    bool collide_wheelsL = (flags & static_cast<int>(TrackCollide::WHEELS_LEFT)) != 0;
+    bool collide_wheelsR = (flags & static_cast<int>(TrackCollide::WHEELS_RIGHT)) != 0;
+    for (size_t i = 0; i < m_tracks[0]->GetNumRoadWheelAssemblies(); ++i)
+        m_tracks[0]->GetRoadWheel(i)->SetCollide(collide_wheelsL);
+    for (size_t i = 0; i < m_tracks[1]->GetNumRoadWheelAssemblies(); ++i)
+        m_tracks[1]->GetRoadWheel(i)->SetCollide(collide_wheelsR);
+
+    bool collide_shoesL = (flags & static_cast<int>(TrackCollide::SHOES_LEFT)) != 0;
+    bool collide_shoesR = (flags & static_cast<int>(TrackCollide::SHOES_RIGHT)) != 0;
+    for (size_t i = 0; i < m_tracks[0]->GetNumTrackShoes(); ++i)
+        m_tracks[0]->GetTrackShoe(i)->SetCollide(collide_shoesL);
+    for (size_t i = 0; i < m_tracks[1]->GetNumTrackShoes(); ++i)
+        m_tracks[1]->GetTrackShoe(i)->SetCollide(collide_shoesR);
+}
+
+// -----------------------------------------------------------------------------
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::LogConstraintViolations() {

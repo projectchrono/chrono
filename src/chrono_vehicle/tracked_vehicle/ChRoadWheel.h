@@ -70,6 +70,9 @@ class CH_VEHICLE_API ChRoadWheel : public ChShared {
                             float poisson_ratio             ///< [in] Poisson ratio
                             );
 
+    /// Turn on/off collision flag for the road wheel.
+    void SetCollide(bool val) { m_wheel->SetCollide(val); }
+
     /// Initialize this road wheel subsystem.
     /// The road wheel subsystem is initialized by attaching it to the specified
     /// carrier body at the specified location (with respect to and expressed in the

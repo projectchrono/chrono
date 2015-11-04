@@ -31,6 +31,20 @@
 namespace chrono {
 namespace vehicle {
 
+namespace TrackCollide {
+enum Enum {
+    NONE = 0,
+    SPROCKET_LEFT = 1 << 0,
+    SPROCKET_RIGHT = 1 << 1,
+    IDLER_LEFT = 1 << 2,
+    IDLER_RIGHT = 1 << 3,
+    WHEELS_LEFT = 1 << 4,
+    WHEELS_RIGHT = 1 << 5,
+    SHOES_LEFT = 1 << 6,
+    SHOES_RIGHT = 1 << 7
+};
+}
+
 ///
 /// Base class for chrono tracked vehicle systems.
 /// This class provides the interface between the vehicle system and other
@@ -75,7 +89,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual double GetDriveshaftSpeed() const override { return m_driveline->GetDriveshaftSpeed(); }
 
     /// Get a handle to the specified track shoe.
-    ChSharedPtr<ChTrackShoe> GetTrackShoe(VehicleSide side, size_t id) const { return m_tracks[side]->GetTrackShoe(id); }
+    ChSharedPtr<ChTrackShoe> GetTrackShoe(VehicleSide side, size_t id) const {
+        return m_tracks[side]->GetTrackShoe(id);
+    }
 
     /// Get the complete state for the specified track shoe.
     /// This includes the location, orientation, linear and angular velocities,
@@ -83,6 +99,12 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     BodyState GetTrackShoeState(VehicleSide side, size_t shoe_id) const {
         return m_tracks[side]->GetTrackShoeState(shoe_id);
     }
+
+    /// Set collision flags for the various subsystems.
+    /// By default, collision is enabled for sprocket, idler, road wheels, and
+    /// track shoes. To override these default settings, this function must be
+    /// called after the call to Initialize().
+    void SetCollide(int flags);
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between
