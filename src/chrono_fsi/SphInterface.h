@@ -114,7 +114,7 @@ void CopyD2H(thrust::host_vector<Real3>& posRadH,  // do not set the size here s
 void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                                         const thrust::device_vector<Real3>& rigid_FSI_ForcesD,
                                         const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
-                                        const thrust::host_vector<int>& FSI_Bodies_Index_H);
+                                        const std::vector<chrono::ChSharedPtr<chrono::ChBody>> & FSI_Bodies);
 
 void Copy_External_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                                const thrust::host_vector<Real3>& pos_ChSystemBackupH,
@@ -136,7 +136,7 @@ void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRig
                                          thrust::host_vector<Real4>& q_fsiBodies_H,
                                          thrust::host_vector<Real4>& velMassRigid_fsiBodies_H,
                                          thrust::host_vector<Real3>& rigidOmegaLRF_fsiBodies_H,
-                                         const thrust::host_vector<int>& FSI_Bodies_Index_H,
+                                         const std::vector<chrono::ChSharedPtr<chrono::ChBody>> & FSI_Bodies,
                                          chrono::ChSystemParallelDVI& mphysicalSystem);
 
 #endif /* SPHINTERFACE_H_ */

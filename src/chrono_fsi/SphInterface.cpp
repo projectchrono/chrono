@@ -338,12 +338,12 @@ void CopyD2H(thrust::host_vector<Real3>& posRadH,  // do not set the size here s
 void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                                         const thrust::device_vector<Real3>& rigid_FSI_ForcesD,
                                         const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
-                                        const thrust::host_vector<int>& FSI_Bodies_Index_H) {
-  int numRigids = FSI_Bodies_Index_H.size();
+                                        const std::vector<chrono::ChSharedPtr<chrono::ChBody>> & FSI_Bodies) {
+  int numRigids = FSI_Bodies.size();
   std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < numRigids; i++) {
-    chrono::ChBody* bodyPtr = *(myIter + FSI_Bodies_Index_H[i]);
+	  chrono::ChSharedPtr<chrono::ChBody> bodyPtr = FSI_Bodies[i];
     bodyPtr->Empty_forces_accumulators();
     Real3 mforce = rigid_FSI_ForcesD[i];
     bodyPtr->Accumulate_force(ConvertRealToChVector(mforce), bodyPtr->GetPos(), false);
@@ -407,9 +407,9 @@ void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRig
                                          thrust::host_vector<Real4>& q_fsiBodies_H,
                                          thrust::host_vector<Real4>& velMassRigid_fsiBodies_H,
                                          thrust::host_vector<Real3>& rigidOmegaLRF_fsiBodies_H,
-                                         const thrust::host_vector<int>& FSI_Bodies_Index_H,
+                                         const std::vector<chrono::ChSharedPtr<chrono::ChBody>> & FSI_Bodies,
                                          chrono::ChSystemParallelDVI& mphysicalSystem) {
-  int num_fsiBodies_Rigids = FSI_Bodies_Index_H.size();
+  int num_fsiBodies_Rigids = FSI_Bodies.size();
   //	  assert(posRigid_fsiBodies_D.size() == num_fsiBodies_Rigids && "Error!!! number of fsi bodies that are tracked
   // does not match the array size");
 
@@ -419,7 +419,7 @@ void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRig
   std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < num_fsiBodies_Rigids; i++) {
-    chrono::ChBody* bodyPtr = *(myIter + FSI_Bodies_Index_H[i]);
+	chrono::ChSharedPtr<chrono::ChBody> bodyPtr = FSI_Bodies[i];
     posRigid_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetPos());
     q_fsiBodies_H[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
     velMassRigid_fsiBodies_H[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());

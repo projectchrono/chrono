@@ -337,7 +337,7 @@ void AddCylinderBceToChSystemAndSPH(
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector< ::int3>& referenceArray,
-    thrust::host_vector<int>& FSI_Bodies_Index_H,
+    std::vector<ChSharedPtr<ChBody>> & FSI_Bodies,
     NumberOfObjects& numObjects,
     Real sphMarkerMass) {
     //
@@ -372,7 +372,7 @@ void AddCylinderBceToChSystemAndSPH(
     numObjects.startRigidMarkers = numMarkers;  // Arman : not sure if you need to set startFlexMarkers
     numObjects.numRigid_SphMarkers += numBce;
     numObjects.numAllMarkers = posRadH.size();
-    FSI_Bodies_Index_H.push_back(mphysicalSystem.Get_bodylist()->size() - 1);
+    FSI_Bodies.push_back(body);
 
 }
 // =============================================================================
@@ -384,7 +384,7 @@ void CreateMbdPhysicalSystemObjects(
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector<uint>& bodyIndex,
-    thrust::host_vector<int>& FSI_Bodies_Index_H,
+    std::vector<ChSharedPtr<ChBody>> & FSI_Bodies,
     thrust::host_vector< ::int3>& referenceArray,
     NumberOfObjects& numObjects,
     const SimParams& paramsH,
@@ -575,7 +575,7 @@ void CreateMbdPhysicalSystemObjects(
                                    velMasH,
                                    rhoPresMuH,
                                    referenceArray,
-                                   FSI_Bodies_Index_H,
+                                   FSI_Bodies,
                                    numObjects,
                                    sphMarkerMass);
 
@@ -935,7 +935,9 @@ int main(int argc, char* argv[]) {
     thrust::host_vector<Real4> quat_ChSystemBackupH;
     thrust::host_vector<Real3> vel_ChSystemBackupH;
     thrust::host_vector<Real3> omegaLRF_ChSystemBackupH;
-    thrust::host_vector<int> FSI_Bodies_Index_H;
+
+
+    std::vector<ChSharedPtr<ChBody>> FSI_Bodies;
 
     Real sphMarkerMass = 0;  // To be initialized in CreateFluidMarkers, and used in other places
 
@@ -994,7 +996,7 @@ int main(int argc, char* argv[]) {
                                    velMasH,
                                    rhoPresMuH,
                                    bodyIndex,
-                                   FSI_Bodies_Index_H,
+                                   FSI_Bodies,
                                    referenceArray,
                                    numObjects,
                                    paramsH,
@@ -1018,7 +1020,7 @@ int main(int argc, char* argv[]) {
     thrust::device_vector<Real4> derivVelRhoD;
     ResizeR4(derivVelRhoD, numObjects.numAllMarkers);
 
-    int numFsiBodies = FSI_Bodies_Index_H.size();
+    int numFsiBodies = FSI_Bodies.size();
     thrust::device_vector<Real3> posRigid_fsiBodies_D;
     thrust::device_vector<Real4> q_fsiBodies_D;
     thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
@@ -1041,7 +1043,7 @@ int main(int argc, char* argv[]) {
                                            q_fsiBodies_dummyH,
                                            velMassRigid_fsiBodies_dummyH,
                                            omegaLRF_fsiBodies_dummyH,
-                                           FSI_Bodies_Index_H,
+                                           FSI_Bodies,
                                            mphysicalSystem);
 
     thrust::device_vector<Real3> posRigid_fsiBodies_D2 = posRigid_fsiBodies_D;
@@ -1222,7 +1224,7 @@ int main(int argc, char* argv[]) {
         fsi_timer.stop("half_step_dynamic_fsi_12");
 
         fsi_timer.start("fsi_copy_force_fluid2ChSystem_12");
-        Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies_Index_H);
+        Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies);
         fsi_timer.stop("fsi_copy_force_fluid2ChSystem_12");
 #endif
 
@@ -1245,7 +1247,7 @@ int main(int argc, char* argv[]) {
                                                q_fsiBodies_dummyH,
                                                velMassRigid_fsiBodies_dummyH,
                                                omegaLRF_fsiBodies_dummyH,
-                                               FSI_Bodies_Index_H,
+                                               FSI_Bodies,
                                                mphysicalSystem);
         fsi_timer.stop("fsi_copy_posVel_ChSystem2fluid_12");
 
@@ -1292,7 +1294,7 @@ int main(int argc, char* argv[]) {
                              numObjects,
                              sphMarkerMass);
         Add_Rigid_ForceTorques_To_ChSystem(
-            mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies_Index_H);  // Arman: take care of this
+            mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies);  // Arman: take care of this
 
 #endif
         mTime -= 0.5 * currentParamsH.dT;
@@ -1318,7 +1320,7 @@ int main(int argc, char* argv[]) {
                                                q_fsiBodies_dummyH,
                                                velMassRigid_fsiBodies_dummyH,
                                                omegaLRF_fsiBodies_dummyH,
-                                               FSI_Bodies_Index_H,
+                                               FSI_Bodies,
                                                mphysicalSystem);
         UpdateRigidMarkersPosition(posRadD,
                                    velMasD,
@@ -1371,7 +1373,7 @@ int main(int argc, char* argv[]) {
 //        mphysicalSystem.data_manager->system_timer.PrintReport();
     }
     ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
-    FSI_Bodies_Index_H.clear();
+    FSI_Bodies.clear();
 
     pos_ChSystemBackupH.clear();
     quat_ChSystemBackupH.clear();
