@@ -13,6 +13,7 @@
 #define CHBODYEASY_H
 
 #include "physics/ChBody.h"
+#include "physics/ChBodyAuxRef.h"
 #include "assets/ChCylinderShape.h"
 #include "assets/ChBoxShape.h"
 #include "assets/ChSphereShape.h"
@@ -153,6 +154,8 @@ class ChBodyEasyBox : public ChBody {
 /// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
 /// - mass and moment of inertia is automatically set, according to the geometry.
+/// Note that the convex hull points are automatically displaced so that the
+/// baricenter of the hull is the body reference coordsys.
 
 class ChBodyEasyConvexHull : public ChBody {
   public:
@@ -160,7 +163,7 @@ class ChBodyEasyConvexHull : public ChBody {
     /// a collision shape. Mass and inertia are set automatically depending
     /// on density.
     /// Convex hull is defined with a set of points.
-    ChBodyEasyConvexHull(std::vector<ChVector<> >& points,
+    ChBodyEasyConvexHull(std::vector<ChVector<> >& points, 
                          double mdensity,
                          bool collide = false,
                          bool visual_asset = true) {
@@ -193,9 +196,75 @@ class ChBodyEasyConvexHull : public ChBody {
                 points_reduced[i] = vshape->GetMesh().getCoordsVertices()[i];
 
             GetCollisionModel()->SetSafeMargin(0.0001);
-            // GetCollisionModel()->SetEnvelope(0.002);
+
             GetCollisionModel()->ClearModel();
             GetCollisionModel()->AddConvexHull(points_reduced);
+            GetCollisionModel()->BuildModel();
+            SetCollide(true);
+        }
+    }
+};
+
+/// Easy-to-use class for quick creation of rigid bodies with a
+/// convex hull shape, that has a REF csys distinct from the COG cys (this
+/// is helpful because in many cases the convex hull might have an offset barycenter
+/// respect to the reference that we want to use for the body - otherwise use 
+/// the simplier ChBodyEasyConvexHull)
+/// This class does automatically, at object creation:
+/// - a visualization shape is created and added, if visualization asset is desired
+/// - a collision shape is created and added, if collision is desired,
+/// - mass and moment of inertia is automatically set, according to the geometry.
+/// Note:  this inherits the ChBodyAuxRef, that allow to have the barycenter (COG) and
+/// the body reference (REF) in two different positions. So the REF will remain unchanged,
+/// while the COG reference is moved to the computed barycenter of convex hull and its rotation
+/// is automatically aligned to the main inertia axes of the tensor of inertia.
+
+class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
+  public:
+    /// Creates a ChBody plus adds an optional visualization shape and, optionally,
+    /// a collision shape. Mass and inertia are set automatically depending
+    /// on density.
+    /// Convex hull is defined with a set of points.
+    ChBodyEasyConvexHullAuxRef(std::vector<ChVector<> >& points, ///< points defined respect REF c.sys of body (initially REF=0,0,0 pos.)
+                         double mdensity,
+                         bool collide = false,
+                         bool visual_asset = true) {
+        ChSharedPtr<ChTriangleMeshShape> vshape(new ChTriangleMeshShape());
+        collision::ChConvexHullLibraryWrapper lh;
+        lh.ComputeHull(points, vshape->GetMesh());
+        if (visual_asset) {
+            this->AddAsset(vshape); // assets are respect to REF c.sys
+        }
+
+        double mass;
+        ChVector<> baricenter;
+        ChMatrix33<> inertia;
+        vshape->GetMesh().ComputeMassProperties(true, mass, baricenter, inertia);
+        ChMatrix33<> principal_inertia_csys;
+        double principal_I[3];
+        inertia.FastEigen(principal_inertia_csys,principal_I);
+
+        this->SetDensity((float)mdensity);
+        this->SetMass(mass * mdensity);
+        //this->SetInertia(inertia * mdensity);
+        this->SetInertiaXX(ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
+
+        // Set the COG coordinates to barycenter, without displacing the REF reference
+        this->SetFrame_COG_to_REF(ChFrame<>(baricenter,principal_inertia_csys));
+
+
+        if (collide) {
+            // avoid passing to collision the inner points discarded by convex hull
+            // processor, so use mesh vertexes instead of all argument points
+            std::vector<ChVector<> > points_reduced;
+            points_reduced.resize(vshape->GetMesh().getCoordsVertices().size());
+            for (unsigned int i = 0; i < vshape->GetMesh().getCoordsVertices().size(); ++i)
+                points_reduced[i] = vshape->GetMesh().getCoordsVertices()[i];
+
+            GetCollisionModel()->SetSafeMargin(0.0001);
+
+            GetCollisionModel()->ClearModel();
+            GetCollisionModel()->AddConvexHull(points_reduced); // coll.model is respect to REF c.sys
             GetCollisionModel()->BuildModel();
             SetCollide(true);
         }
