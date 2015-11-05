@@ -1067,8 +1067,54 @@ int main(int argc, char* argv[]) {
 
         SavePovFilesMBD(mphysicalSystem, tStep, mTime);
 
-        DoStepDynamics_FSI(...., currentParamsH);
+        DoStepDynamics_FSI(
+        		mphysicalSystem,
+        		mVehicle,
+        		posRadD,
+                velMasD,
+                vel_XSPH_D,
+                rhoPresMuD,
 
+                 posRadD2,
+                 velMasD2,
+                 rhoPresMuD2,
+
+                  derivVelRhoD,
+                  rigidIdentifierD,
+                 rigidSPH_MeshPos_LRF_D,
+
+                 posRigid_fsiBodies_D,
+                 q_fsiBodies_D,
+                 velMassRigid_fsiBodies_D,
+                 omegaLRF_fsiBodies_D,
+
+                  posRigid_fsiBodies_D2,
+                  q_fsiBodies_D2,
+                  velMassRigid_fsiBodies_D2,
+                  omegaLRF_fsiBodies_D2,
+
+                  pos_ChSystemBackupH,
+                  quat_ChSystemBackupH,
+                  vel_ChSystemBackupH,
+                  omegaLRF_ChSystemBackupH,
+
+                  posRigid_fsiBodies_dummyH,
+                  q_fsiBodies_dummyH,
+                  velMassRigid_fsiBodies_dummyH,
+                  omegaLRF_fsiBodies_dummyH,
+
+                  rigid_FSI_ForcesD,
+                  rigid_FSI_TorquesD,
+
+                  bodyIndexD,
+                  FSI_Bodies,
+                  referenceArray,
+                  numObjects,
+                  paramsH,
+                  sphMarkerMass,
+                  mTime,
+                  time_hold_vehicle,
+                  tStep);
 
 
         //    OutputVehicleData(mphysicalSystem, tStep);

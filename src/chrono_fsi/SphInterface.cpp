@@ -9,8 +9,7 @@
 #include "chrono/core/ChTransform.h"
 #include "chrono_fsi/collideSphereSphere.cuh"
 // Chrono Vehicle Include
-#include "chrono_fsi/VehicleExtraProperties.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+
 
 chrono::ChVector<> ConvertRealToChVector(Real3 p3) {
   return chrono::ChVector<>(p3.x, p3.y, p3.z);
@@ -450,12 +449,12 @@ chrono::opengl::ChOpenGLWindow& gl_window = chrono::opengl::ChOpenGLWindow::getI
 
 // =============================================================================
 
-void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem) {
+void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem) {
     //	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
     //	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
     //	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
-    ChVector<> CameraLocation = ChVector<>(0, -10, 0);
-    ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
+    chrono::ChVector<> CameraLocation = chrono::ChVector<>(0, -10, 0);
+    chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0);
 
 #ifdef CHRONO_OPENGL
     gl_window.Initialize(1280, 720, "HMMWV", &mphysicalSystem);
@@ -497,7 +496,11 @@ void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem) {
 }
 // =============================================================================
 
-int DoStepChronoSystem(chrono::ChSystemParallelDVI& mphysicalSystem, chrono::vehicle::ChWheeledVehicleAssembly* mVehicle, Real dT, double mTime, double time_hold_vehicle) {
+int DoStepChronoSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
+                       chrono::vehicle::ChWheeledVehicleAssembly* mVehicle,
+                       Real dT,
+                       double mTime,
+                       double time_hold_vehicle) {
     if (haveVehicle) {
         // Release the vehicle chassis at the end of the hold time.
 
@@ -587,7 +590,10 @@ void DoStepDynamics_FSI(
                         const thrust::host_vector<int3>& referenceArray,
                         const NumberOfObjects& numObjects,
                         const SimParams& paramsH,
-                        Real sphMarkerMass) {
+                        Real sphMarkerMass,
+                        double mTime,
+                        double time_hold_vehicle,
+                        int tStep) {
   chrono::ChTimerParallel doStep_timer;
 
   Copy_ChSystem_to_External(
@@ -721,9 +727,12 @@ void DoStepDynamics_FSI(
       mphysicalSystem, pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH);
 
   mTime += paramsH.dT;
+
   DoStepChronoSystem(mphysicalSystem,
+		  mVehicle,
                      1.0 * paramsH.dT,
-                     mTime);  // Keep only this if you are just interested in the rigid sys
+                     mTime,
+                     time_hold_vehicle);
 
 #if haveFluid
 

@@ -20,6 +20,9 @@
 //#include "chrono_utils/ChUtilsInputOutput.h" //Arman: Why is this
 #include "utils/ChUtilsGenerators.h"
 
+#include "chrono_fsi/VehicleExtraProperties.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+
 #define haveFluid true
 #define useWallBce true
 bool haveVehicle = false;
@@ -121,7 +124,7 @@ void CopyD2H(thrust::host_vector<Real3>& posRadH,  // do not set the size here s
 void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                                         const thrust::device_vector<Real3>& rigid_FSI_ForcesD,
                                         const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
-                                        const std::vector<chrono::ChSharedPtr<chrono::ChBody>> & FSI_Bodies);
+                                        const std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies);
 
 void Copy_External_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                                const thrust::host_vector<Real3>& pos_ChSystemBackupH,
@@ -136,14 +139,64 @@ void Copy_ChSystem_to_External(thrust::host_vector<Real3>& pos_ChSystemBackupH,
                                chrono::ChSystemParallelDVI& mphysicalSystem);
 
 void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRigid_fsiBodies_D,
-                                         thrust::device_vector<Real4>& q_fsiBodies_D,
-                                         thrust::device_vector<Real4>& velMassRigid_fsiBodies_D,
-                                         thrust::device_vector<Real3>& rigidOmegaLRF_fsiBodies_D,
-                                         thrust::host_vector<Real3>& posRigid_fsiBodies_H,
-                                         thrust::host_vector<Real4>& q_fsiBodies_H,
-                                         thrust::host_vector<Real4>& velMassRigid_fsiBodies_H,
-                                         thrust::host_vector<Real3>& rigidOmegaLRF_fsiBodies_H,
-                                         const std::vector<chrono::ChSharedPtr<chrono::ChBody>> & FSI_Bodies,
-                                         chrono::ChSystemParallelDVI& mphysicalSystem);
+                                            thrust::device_vector<Real4>& q_fsiBodies_D,
+                                            thrust::device_vector<Real4>& velMassRigid_fsiBodies_D,
+                                            thrust::device_vector<Real3>& rigidOmegaLRF_fsiBodies_D,
+                                            thrust::host_vector<Real3>& posRigid_fsiBodies_H,
+                                            thrust::host_vector<Real4>& q_fsiBodies_H,
+                                            thrust::host_vector<Real4>& velMassRigid_fsiBodies_H,
+                                            thrust::host_vector<Real3>& rigidOmegaLRF_fsiBodies_H,
+                                            const std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+                                            chrono::ChSystemParallelDVI& mphysicalSystem);
+
+void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem);
+
+void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
+                        chrono::vehicle::ChWheeledVehicleAssembly* mVehicle,
+                        thrust::device_vector<Real3>& posRadD,
+                        thrust::device_vector<Real4>& velMasD,
+                        thrust::device_vector<Real3>& vel_XSPH_D,
+                        thrust::device_vector<Real4>& rhoPresMuD,
+
+                        thrust::device_vector<Real3>& posRadD2,
+                        thrust::device_vector<Real4>& velMasD2,
+                        thrust::device_vector<Real4>& rhoPresMuD2,
+
+                        thrust::device_vector<Real4>& derivVelRhoD,
+                        thrust::device_vector<uint>& rigidIdentifierD,
+                        thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D,
+
+                        thrust::device_vector<Real3>& posRigid_fsiBodies_D,
+                        thrust::device_vector<Real4>& q_fsiBodies_D,
+                        thrust::device_vector<Real4>& velMassRigid_fsiBodies_D,
+                        thrust::device_vector<Real3>& omegaLRF_fsiBodies_D,
+
+                        thrust::device_vector<Real3>& posRigid_fsiBodies_D2,
+                        thrust::device_vector<Real4>& q_fsiBodies_D2,
+                        thrust::device_vector<Real4>& velMassRigid_fsiBodies_D2,
+                        thrust::device_vector<Real3>& omegaLRF_fsiBodies_D2,
+
+                        thrust::host_vector<Real3>& pos_ChSystemBackupH,
+                        thrust::host_vector<Real4>& quat_ChSystemBackupH,
+                        thrust::host_vector<Real3>& vel_ChSystemBackupH,
+                        thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH,
+
+                        thrust::host_vector<Real3>& posRigid_fsiBodies_dummyH,
+                        thrust::host_vector<Real4>& q_fsiBodies_dummyH,
+                        thrust::host_vector<Real4>& velMassRigid_fsiBodies_dummyH,
+                        thrust::host_vector<Real3>& omegaLRF_fsiBodies_dummyH,
+
+                        thrust::device_vector<Real3>& rigid_FSI_ForcesD,
+                        thrust::device_vector<Real3>& rigid_FSI_TorquesD,
+
+                        thrust::device_vector<uint>& bodyIndexD,
+                        std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+                        const thrust::host_vector<int3>& referenceArray,
+                        const NumberOfObjects& numObjects,
+                        const SimParams& paramsH,
+                        Real sphMarkerMass,
+                        double mTime,
+                        double time_hold_vehicle,
+                        int tStep);
 
 #endif /* SPHINTERFACE_H_ */
