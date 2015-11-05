@@ -58,6 +58,7 @@
 //#include "BallDropParams.h"
 #include "chrono_fsi/SphInterface.h"
 #include "chrono_fsi/InitializeSphMarkers.h"
+#include "chrono_fsi/FSI_Integrate.h"
 
 // Chrono namespaces
 using namespace chrono;
