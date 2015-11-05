@@ -60,6 +60,9 @@
 #include "chrono_fsi/InitializeSphMarkers.h"
 #include "chrono_fsi/FSI_Integrate.h"
 
+#define haveFluid true
+#define haveVehicle false
+
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::collision;
@@ -69,6 +72,7 @@ using std::endl;
 
 // Define General variables
 SimParams paramsH;
+
 
 // =============================================================================
 // Define Graphics
@@ -268,42 +272,40 @@ void AddBoxBceToChSystemAndSPH(
     utils::AddBoxGeometry(body, size, pos, rot, visualization);
 
     if (!initializeFluidFromFile) {
-#if fluidBlock
-        if (haveFluid) {
-            //        assert(referenceArray.size() > 1 &&
-            //               "error: fluid need to be initialized before boundary. Reference array should have two
-            //               components");
-            if (referenceArray.size() <= 1) {
-                printf(
-                    "\n\n\n\n Error! fluid need to be initialized before boundary. Reference array should have two "
-                    "components \n\n\n\n");
-            }
-
-            thrust::host_vector<Real3> posRadBCE;
-            thrust::host_vector<Real4> velMasBCE;
-            thrust::host_vector<Real4> rhoPresMuBCE;
-
-            CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE, paramsH, sphMarkerMass, size, pos, rot, 12);
-            int numBCE = posRadBCE.size();
-            int numSaved = posRadH.size();
-            for (int i = 0; i < numBCE; i++) {
-                posRadH.push_back(posRadBCE[i]);
-                velMasH.push_back(velMasBCE[i]);
-                rhoPresMuH.push_back(rhoPresMuBCE[i]);
-                bodyIndex.push_back(i + numSaved);
-            }
-
-            ::int3 ref3 = referenceArray[1];
-            ref3.y = ref3.y + numBCE;
-            referenceArray[1] = ref3;
-
-            int numAllMarkers = numBCE + numSaved;
-            SetNumObjects(numObjects, referenceArray, numAllMarkers);
-
-            posRadBCE.clear();
-            velMasBCE.clear();
-            rhoPresMuBCE.clear();
+#if haveFluid
+        //        assert(referenceArray.size() > 1 &&
+        //               "error: fluid need to be initialized before boundary. Reference array should have two
+        //               components");
+        if (referenceArray.size() <= 1) {
+            printf(
+                "\n\n\n\n Error! fluid need to be initialized before boundary. Reference array should have two "
+                "components \n\n\n\n");
         }
+
+        thrust::host_vector<Real3> posRadBCE;
+        thrust::host_vector<Real4> velMasBCE;
+        thrust::host_vector<Real4> rhoPresMuBCE;
+
+        CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE, paramsH, sphMarkerMass, size, pos, rot, 12);
+        int numBCE = posRadBCE.size();
+        int numSaved = posRadH.size();
+        for (int i = 0; i < numBCE; i++) {
+            posRadH.push_back(posRadBCE[i]);
+            velMasH.push_back(velMasBCE[i]);
+            rhoPresMuH.push_back(rhoPresMuBCE[i]);
+            bodyIndex.push_back(i + numSaved);
+        }
+
+        ::int3 ref3 = referenceArray[1];
+        ref3.y = ref3.y + numBCE;
+        referenceArray[1] = ref3;
+
+        int numAllMarkers = numBCE + numSaved;
+        SetNumObjects(numObjects, referenceArray, numAllMarkers);
+
+        posRadBCE.clear();
+        velMasBCE.clear();
+        rhoPresMuBCE.clear();
 #endif
     }
 }
@@ -480,11 +482,9 @@ void CreateMbdPhysicalSystemObjects(
             ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
         }
     } else {
-#if fluidBlock
-        if (haveFluid) {
-            ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
-            ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
-        }
+#if haveFluid
+        ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
+        ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
 #endif
     }
 
@@ -837,39 +837,35 @@ int main(int argc, char* argv[]) {
             ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
             return 0;
         }
-#if !fluidBlock
-        if (!haveFluid) {
-            printf("Error! Initialized from file But haveFluid is false! \n");
-            return -1;
-        }
+#if !haveFluid
+        printf("Error! Initialized from file But haveFluid is false! \n");
+        return -1;
 #endif
     } else {
-#if fluidBlock
-        if (haveFluid) {
-            //*** default num markers
+#if haveFluid
+        //*** default num markers
 
-            int numAllMarkers = 0;
+        int numAllMarkers = 0;
 
-            //*** initialize fluid particles
-            ::int2 num_fluidOrBoundaryMarkers =
-                CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
-            printf("num_fluidOrBoundaryMarkers %d %d \n", num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
-            referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1));  // map fluid -1
-            numAllMarkers += num_fluidOrBoundaryMarkers.x;
-            referenceArray.push_back(mI3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0));
-            numAllMarkers += num_fluidOrBoundaryMarkers.y;
+        //*** initialize fluid particles
+        ::int2 num_fluidOrBoundaryMarkers =
+            CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
+        printf("num_fluidOrBoundaryMarkers %d %d \n", num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
+        referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1));  // map fluid -1
+        numAllMarkers += num_fluidOrBoundaryMarkers.x;
+        referenceArray.push_back(mI3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0));
+        numAllMarkers += num_fluidOrBoundaryMarkers.y;
 
-            //*** set num objects
+        //*** set num objects
 
-            SetNumObjects(numObjects, referenceArray, numAllMarkers);
-            //        assert(posRadH.size() == numObjects.numAllMarkers && "(1) numObjects is not set correctly");
-            if (posRadH.size() != numObjects.numAllMarkers) {
-                printf("\n\n\n\n Error! (1) numObjects is not set correctly \n\n\n\n");
-            }
-            if (numObjects.numAllMarkers == 0) {
-                ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
-                return 0;
-            }
+        SetNumObjects(numObjects, referenceArray, numAllMarkers);
+        //        assert(posRadH.size() == numObjects.numAllMarkers && "(1) numObjects is not set correctly");
+        if (posRadH.size() != numObjects.numAllMarkers) {
+            printf("\n\n\n\n Error! (1) numObjects is not set correctly \n\n\n\n");
+        }
+        if (numObjects.numAllMarkers == 0) {
+            ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
+            return 0;
         }
 #endif
     }
@@ -900,89 +896,87 @@ int main(int argc, char* argv[]) {
     //*** Add sph data to the physics system
 
     int startIndexSph = 0;
-#if fluidBlock
-    if (haveFluid) {
-        thrust::device_vector<Real3> posRadD = posRadH;
-        thrust::device_vector<Real4> velMasD = velMasH;
-        thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
-        thrust::device_vector<uint> bodyIndexD = bodyIndex;
-        thrust::device_vector<Real4> derivVelRhoD;
-        ResizeR4(derivVelRhoD, numObjects.numAllMarkers);
+#if haveFluid
+    thrust::device_vector<Real3> posRadD = posRadH;
+    thrust::device_vector<Real4> velMasD = velMasH;
+    thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
+    thrust::device_vector<uint> bodyIndexD = bodyIndex;
+    thrust::device_vector<Real4> derivVelRhoD;
+    ResizeR4(derivVelRhoD, numObjects.numAllMarkers);
 
-        int numFsiBodies = FSI_Bodies.size();
-        thrust::device_vector<Real3> posRigid_fsiBodies_D;
-        thrust::device_vector<Real4> q_fsiBodies_D;
-        thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
-        thrust::device_vector<Real3> omegaLRF_fsiBodies_D;
-        ResizeR3(posRigid_fsiBodies_D, numFsiBodies);
-        ResizeR4(q_fsiBodies_D, numFsiBodies);
-        ResizeR4(velMassRigid_fsiBodies_D, numFsiBodies);
-        ResizeR3(omegaLRF_fsiBodies_D, numFsiBodies);
+    int numFsiBodies = FSI_Bodies.size();
+    thrust::device_vector<Real3> posRigid_fsiBodies_D;
+    thrust::device_vector<Real4> q_fsiBodies_D;
+    thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
+    thrust::device_vector<Real3> omegaLRF_fsiBodies_D;
+    ResizeR3(posRigid_fsiBodies_D, numFsiBodies);
+    ResizeR4(q_fsiBodies_D, numFsiBodies);
+    ResizeR4(velMassRigid_fsiBodies_D, numFsiBodies);
+    ResizeR3(omegaLRF_fsiBodies_D, numFsiBodies);
 
-        thrust::host_vector<Real3> posRigid_fsiBodies_dummyH(numFsiBodies);
-        thrust::host_vector<Real4> q_fsiBodies_dummyH(numFsiBodies);
-        thrust::host_vector<Real4> velMassRigid_fsiBodies_dummyH(numFsiBodies);
-        thrust::host_vector<Real3> omegaLRF_fsiBodies_dummyH(numFsiBodies);
+    thrust::host_vector<Real3> posRigid_fsiBodies_dummyH(numFsiBodies);
+    thrust::host_vector<Real4> q_fsiBodies_dummyH(numFsiBodies);
+    thrust::host_vector<Real4> velMassRigid_fsiBodies_dummyH(numFsiBodies);
+    thrust::host_vector<Real3> omegaLRF_fsiBodies_dummyH(numFsiBodies);
 
-        Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D,
-                                               q_fsiBodies_D,
-                                               velMassRigid_fsiBodies_D,
-                                               omegaLRF_fsiBodies_D,
-                                               posRigid_fsiBodies_dummyH,
-                                               q_fsiBodies_dummyH,
-                                               velMassRigid_fsiBodies_dummyH,
-                                               omegaLRF_fsiBodies_dummyH,
-                                               FSI_Bodies,
-                                               mphysicalSystem);
+    Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D,
+                                           q_fsiBodies_D,
+                                           velMassRigid_fsiBodies_D,
+                                           omegaLRF_fsiBodies_D,
+                                           posRigid_fsiBodies_dummyH,
+                                           q_fsiBodies_dummyH,
+                                           velMassRigid_fsiBodies_dummyH,
+                                           omegaLRF_fsiBodies_dummyH,
+                                           FSI_Bodies,
+                                           mphysicalSystem);
 
-        thrust::device_vector<Real3> posRigid_fsiBodies_D2 = posRigid_fsiBodies_D;
-        thrust::device_vector<Real4> q_fsiBodies_D2 = q_fsiBodies_D;
-        thrust::device_vector<Real4> velMassRigid_fsiBodies_D2 = velMassRigid_fsiBodies_D;
-        thrust::device_vector<Real3> omegaLRF_fsiBodies_D2 = omegaLRF_fsiBodies_D;
+    thrust::device_vector<Real3> posRigid_fsiBodies_D2 = posRigid_fsiBodies_D;
+    thrust::device_vector<Real4> q_fsiBodies_D2 = q_fsiBodies_D;
+    thrust::device_vector<Real4> velMassRigid_fsiBodies_D2 = velMassRigid_fsiBodies_D;
+    thrust::device_vector<Real3> omegaLRF_fsiBodies_D2 = omegaLRF_fsiBodies_D;
 
-        thrust::device_vector<Real3> rigid_FSI_ForcesD;
-        thrust::device_vector<Real3> rigid_FSI_TorquesD;
-        ResizeR3(rigid_FSI_ForcesD, numFsiBodies);
-        ResizeR3(rigid_FSI_TorquesD, numFsiBodies);
-        // assert
-        if ((numObjects.numRigidBodies != numFsiBodies) || (referenceArray.size() - 2 != numFsiBodies)) {
-            printf(
-                "\n\n\n\n Error! number of fsi bodies (%d) does not match numObjects.numRigidBodies (%d). Size of "
-                "reference array: %d \n\n\n\n",
-                numFsiBodies,
-                numObjects.numRigidBodies,
-                referenceArray.size());
-            return 1;
-        }
-        ResizeR3(rigid_FSI_ForcesD, numObjects.numRigidBodies);
-        ResizeR3(rigid_FSI_TorquesD, numObjects.numRigidBodies);
+    thrust::device_vector<Real3> rigid_FSI_ForcesD;
+    thrust::device_vector<Real3> rigid_FSI_TorquesD;
+    ResizeR3(rigid_FSI_ForcesD, numFsiBodies);
+    ResizeR3(rigid_FSI_TorquesD, numFsiBodies);
+    // assert
+    if ((numObjects.numRigidBodies != numFsiBodies) || (referenceArray.size() - 2 != numFsiBodies)) {
+        printf(
+            "\n\n\n\n Error! number of fsi bodies (%d) does not match numObjects.numRigidBodies (%d). Size of "
+            "reference array: %d \n\n\n\n",
+            numFsiBodies,
+            numObjects.numRigidBodies,
+            referenceArray.size());
+        return 1;
+    }
+    ResizeR3(rigid_FSI_ForcesD, numObjects.numRigidBodies);
+    ResizeR3(rigid_FSI_TorquesD, numObjects.numRigidBodies);
 
-        thrust::device_vector<uint> rigidIdentifierD;
-        ResizeU1(rigidIdentifierD, numObjects.numRigid_SphMarkers);
-        thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;
-        ResizeR3(rigidSPH_MeshPos_LRF_D, numObjects.numRigid_SphMarkers);
+    thrust::device_vector<uint> rigidIdentifierD;
+    ResizeU1(rigidIdentifierD, numObjects.numRigid_SphMarkers);
+    thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;
+    ResizeR3(rigidSPH_MeshPos_LRF_D, numObjects.numRigid_SphMarkers);
 
-        InitSystem(paramsH, numObjects);
+    InitSystem(paramsH, numObjects);
 
-        Populate_RigidSPH_MeshPos_LRF(rigidIdentifierD,
-                                      rigidSPH_MeshPos_LRF_D,
-                                      posRadD,
-                                      posRigid_fsiBodies_D,
-                                      q_fsiBodies_D,
-                                      referenceArray,
-                                      numObjects);
+    Populate_RigidSPH_MeshPos_LRF(rigidIdentifierD,
+                                  rigidSPH_MeshPos_LRF_D,
+                                  posRadD,
+                                  posRigid_fsiBodies_D,
+                                  q_fsiBodies_D,
+                                  referenceArray,
+                                  numObjects);
 
-        // ** initialize device mid step data
-        thrust::device_vector<Real3> posRadD2 = posRadD;
-        thrust::device_vector<Real4> velMasD2 = velMasD;
-        thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
-        thrust::device_vector<Real3> vel_XSPH_D;
-        ResizeR3(vel_XSPH_D, numObjects.numAllMarkers);
-        //    assert(posRadD.size() == numObjects.numAllMarkers && "(3) numObjects is not set correctly");
-        if (posRadD.size() != numObjects.numAllMarkers) {
-            printf("\n\n\n\n Error! (3) numObjects is not set correctly \n\n\n\n");
-            return 1;
-        }
+    // ** initialize device mid step data
+    thrust::device_vector<Real3> posRadD2 = posRadD;
+    thrust::device_vector<Real4> velMasD2 = velMasD;
+    thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
+    thrust::device_vector<Real3> vel_XSPH_D;
+    ResizeR3(vel_XSPH_D, numObjects.numAllMarkers);
+    //    assert(posRadD.size() == numObjects.numAllMarkers && "(3) numObjects is not set correctly");
+    if (posRadD.size() != numObjects.numAllMarkers) {
+        printf("\n\n\n\n Error! (3) numObjects is not set correctly \n\n\n\n");
+        return 1;
     }
 #endif
     cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
@@ -1022,61 +1016,52 @@ int main(int argc, char* argv[]) {
     // ******************************************************************************************
     // ***************************** Simulation loop ********************************************
 
+    chrono::ChTimerParallel fsi_timer;
+    fsi_timer.AddTimer("total_step_time");
+    fsi_timer.AddTimer("fluid_initialization");
+    fsi_timer.AddTimer("DoStepDynamics_FSI");
+    fsi_timer.AddTimer("DoStepDynamics_ChronoRK2");
+
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         // -------------------
         // SPH Block
         // -------------------
-        chrono::ChTimerParallel fsi_timer;
         fsi_timer.Reset();
 
-#if fluidBlock
-        if (haveFluid) {
-            CpuTimer mCpuTimer;
-            mCpuTimer.Start();
-            GpuTimer myGpuTimer;
-            myGpuTimer.Start();
+#if haveFluid
+        CpuTimer mCpuTimer;
+        mCpuTimer.Start();
+        GpuTimer myGpuTimer;
+        myGpuTimer.Start();
 
-            if (realTime <= paramsH.timePause) {
-                currentParamsH = paramsH_B;
-            } else {
-                currentParamsH = paramsH;
-            }
-
-            fsi_timer.start("total_step_time");
-
-            //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
-            fsi_timer.start("fluid_initialization");
-
-            int out_steps = std::ceil((1.0 / paramsH.dT) / out_fps);
-            PrintToFile(posRadD,
-                        velMasD,
-                        rhoPresMuD,
-                        referenceArray,
-                        currentParamsH,
-                        realTime,
-                        tStep,
-                        out_steps,
-                        pov_dir_fluid);
-
-            // ******* slow down the sys.Check point the sys.
-            CheckPointMarkers_Write(
-                posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep, tStepsCheckPoint);
-
-            //    // freeze sph. check it later
-            //    if (fmod(realTime, 0.6) < paramsH.dT && realTime < 1.3) {
-            //      FreezeSPH(velMasD, velMasH);
-            //    }
-            // *******
-
-            fsi_timer.stop("fluid_initialization");
+        if (realTime <= paramsH.timePause) {
+            currentParamsH = paramsH_B;
+        } else {
+            currentParamsH = paramsH;
         }
+
+        fsi_timer.start("total_step_time");
+
+        //		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
+        fsi_timer.start("fluid_initialization");
+
+        int out_steps = std::ceil((1.0 / paramsH.dT) / out_fps);
+        PrintToFile(
+            posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep, out_steps, pov_dir_fluid);
+
+        // ******* slow down the sys.Check point the sys.
+        CheckPointMarkers_Write(
+            posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects, tStep, tStepsCheckPoint);
+
+        //    // freeze sph. check it later
+        //    if (fmod(realTime, 0.6) < paramsH.dT && realTime < 1.3) {
+        //      FreezeSPH(velMasD, velMasH);
+        //    }
+        // *******
+
+        fsi_timer.stop("fluid_initialization");
 #endif
-        // -------------------
-        // End SPH Block
-        // -------------------
-
-        SavePovFilesMBD(mphysicalSystem, tStep, mTime);
-
+#if haveFluid
         fsi_timer.start("DoStepDynamics_FSI");
         DoStepDynamics_FSI(mphysicalSystem,
                            mVehicle,
@@ -1125,26 +1110,44 @@ int main(int argc, char* argv[]) {
                            mTime,
                            time_hold_vehicle,
                            tStep,
-                           haveFluid,
                            haveVehicle);
         fsi_timer.stop("DoStepDynamics_FSI");
+#else
+        fsi_timer.start("DoStepDynamics_ChronoRK2");
+        DoStepDynamics_ChronoRK2(mphysicalSystem,
+                           mVehicle,
+
+                           pos_ChSystemBackupH,
+                           quat_ChSystemBackupH,
+                           vel_ChSystemBackupH,
+                           omegaLRF_ChSystemBackupH,
+
+                                                      paramsH,
+                           mTime,
+                           time_hold_vehicle,
+                           haveVehicle);
+        fsi_timer.stop("DoStepDynamics_ChronoRK2");
+#endif
+        // -------------------
+        // End SPH Block
+        // -------------------
+
+        SavePovFilesMBD(mphysicalSystem, tStep, mTime);
 
 //    OutputVehicleData(mphysicalSystem, tStep);
 
 // -------------------
 // SPH Block
 // -------------------
-#if fluidBlock
-        if (haveFluid) {
-            mCpuTimer.Stop();
-            myGpuTimer.Stop();
-            if (tStep % 2 == 0) {
-                printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ",
-                       tStep,
-                       realTime,
-                       (Real)myGpuTimer.Elapsed(),
-                       1000 * mCpuTimer.Elapsed());
-            }
+#if haveFluid
+        mCpuTimer.Stop();
+        myGpuTimer.Stop();
+        if (tStep % 2 == 0) {
+            printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ",
+                   tStep,
+                   realTime,
+                   (Real)myGpuTimer.Elapsed(),
+                   1000 * mCpuTimer.Elapsed());
         }
 #endif
         fsi_timer.stop("total_step_time");
@@ -1167,39 +1170,37 @@ int main(int argc, char* argv[]) {
     omegaLRF_ChSystemBackupH.clear();
 
 // Arman LRF in omegaLRF may need change
-#if fluidBlock
-    if (haveFluid) {
-        ClearMyThrustR3(posRadD);
-        ClearMyThrustR4(velMasD);
-        ClearMyThrustR4(rhoPresMuD);
-        ClearMyThrustU1(bodyIndexD);
-        ClearMyThrustR4(derivVelRhoD);
-        ClearMyThrustU1(rigidIdentifierD);
-        ClearMyThrustR3(rigidSPH_MeshPos_LRF_D);
+#if haveFluid
+    ClearMyThrustR3(posRadD);
+    ClearMyThrustR4(velMasD);
+    ClearMyThrustR4(rhoPresMuD);
+    ClearMyThrustU1(bodyIndexD);
+    ClearMyThrustR4(derivVelRhoD);
+    ClearMyThrustU1(rigidIdentifierD);
+    ClearMyThrustR3(rigidSPH_MeshPos_LRF_D);
 
-        ClearMyThrustR3(posRadD2);
-        ClearMyThrustR4(velMasD2);
-        ClearMyThrustR4(rhoPresMuD2);
-        ClearMyThrustR3(vel_XSPH_D);
+    ClearMyThrustR3(posRadD2);
+    ClearMyThrustR4(velMasD2);
+    ClearMyThrustR4(rhoPresMuD2);
+    ClearMyThrustR3(vel_XSPH_D);
 
-        ClearMyThrustR3(posRigid_fsiBodies_D);
-        ClearMyThrustR4(q_fsiBodies_D);
-        ClearMyThrustR4(velMassRigid_fsiBodies_D);
-        ClearMyThrustR3(omegaLRF_fsiBodies_D);
+    ClearMyThrustR3(posRigid_fsiBodies_D);
+    ClearMyThrustR4(q_fsiBodies_D);
+    ClearMyThrustR4(velMassRigid_fsiBodies_D);
+    ClearMyThrustR3(omegaLRF_fsiBodies_D);
 
-        ClearMyThrustR3(posRigid_fsiBodies_D2);
-        ClearMyThrustR4(q_fsiBodies_D2);
-        ClearMyThrustR4(velMassRigid_fsiBodies_D2);
-        ClearMyThrustR3(omegaLRF_fsiBodies_D2);
+    ClearMyThrustR3(posRigid_fsiBodies_D2);
+    ClearMyThrustR4(q_fsiBodies_D2);
+    ClearMyThrustR4(velMassRigid_fsiBodies_D2);
+    ClearMyThrustR3(omegaLRF_fsiBodies_D2);
 
-        ClearMyThrustR3(rigid_FSI_ForcesD);
-        ClearMyThrustR3(rigid_FSI_TorquesD);
+    ClearMyThrustR3(rigid_FSI_ForcesD);
+    ClearMyThrustR3(rigid_FSI_TorquesD);
 
-        posRigid_fsiBodies_dummyH.clear();
-        q_fsiBodies_dummyH.clear();
-        velMassRigid_fsiBodies_dummyH.clear();
-        omegaLRF_fsiBodies_dummyH.clear();
-    }
+    posRigid_fsiBodies_dummyH.clear();
+    q_fsiBodies_dummyH.clear();
+    velMassRigid_fsiBodies_dummyH.clear();
+    omegaLRF_fsiBodies_dummyH.clear();
 #endif
     delete mVehicle;
     delete tire_cb;

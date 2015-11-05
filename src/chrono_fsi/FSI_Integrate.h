@@ -26,11 +26,6 @@
 //#include "chrono_vehicle/ChVehicleModelData.h"
 
 
-
-//bool haveVehicle = false;
-
-
-
 void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem);
 
 void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
@@ -80,9 +75,19 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
                         double mTime,
                         double time_hold_vehicle,
                         int tStep,
-                        bool haveFluid,
                         bool haveVehicle);
 
+void DoStepDynamics_ChronoRK2(chrono::ChSystemParallelDVI& mphysicalSystem,
+                              chrono::vehicle::ChWheeledVehicleAssembly* mVehicle,
 
+                              thrust::host_vector<Real3>& pos_ChSystemBackupH,
+                              thrust::host_vector<Real4>& quat_ChSystemBackupH,
+                              thrust::host_vector<Real3>& vel_ChSystemBackupH,
+                              thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH,
+
+                              const SimParams& paramsH,
+                              double mTime,
+                              double time_hold_vehicle,
+                              bool haveVehicle);
 
 #endif /* FSI_INTEGRATE_H_ */

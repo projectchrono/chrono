@@ -9,8 +9,6 @@
 #include "chrono_fsi/SphInterface.h"
 #include "chrono_fsi/collideSphereSphere.cuh"
 
-
-
 //#ifdef CHRONO_OPENGL
 //#undef CHRONO_OPENGL
 //#endif
@@ -19,23 +17,19 @@
 chrono::opengl::ChOpenGLWindow& gl_window = chrono::opengl::ChOpenGLWindow::getInstance();
 #endif
 
-#define fluidBlock false
-#define vehicleBlock true
-
-
 // =============================================================================
 
 void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem) {
-    //	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-    //	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
-    //	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
-    chrono::ChVector<> CameraLocation = chrono::ChVector<>(0, -10, 0);
-    chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0);
+  //	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+  //	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
+  //	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
+  chrono::ChVector<> CameraLocation = chrono::ChVector<>(0, -10, 0);
+  chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0);
 
 #ifdef CHRONO_OPENGL
-    gl_window.Initialize(1280, 720, "HMMWV", &mphysicalSystem);
-    gl_window.SetCamera(CameraLocation, CameraLookAt, chrono::ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(chrono::opengl::WIREFRAME);
+  gl_window.Initialize(1280, 720, "HMMWV", &mphysicalSystem);
+  gl_window.SetCamera(CameraLocation, CameraLookAt, chrono::ChVector<>(0, 0, 1));
+  gl_window.SetRenderMode(chrono::opengl::WIREFRAME);
 
 // Uncomment the following two lines for the OpenGL manager to automatically un the simulation in an infinite loop.
 
@@ -51,38 +45,34 @@ int DoStepChronoSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                        double mTime,
                        double time_hold_vehicle,
                        bool haveVehicle) {
-#if vehicleBlock
-    if (haveVehicle) {
-        // Release the vehicle chassis at the end of the hold time.
+  if (haveVehicle) {
+    // Release the vehicle chassis at the end of the hold time.
 
-        if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold_vehicle) {
-            mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
-            for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-                mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
-            }
-        }
-
-        // Update vehicle
-        mVehicle->Update(mTime);
+    if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold_vehicle) {
+      mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
+      for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+        mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
+      }
     }
-#endif
 
+    // Update vehicle
+    mVehicle->Update(mTime);
+  }
 
 #ifdef CHRONO_OPENGL
-    if (gl_window.Active()) {
-        gl_window.DoStepDynamics(dT);
-        gl_window.Render();
-    }
+  if (gl_window.Active()) {
+    gl_window.DoStepDynamics(dT);
+    gl_window.Render();
+  }
 #else
-    mphysicalSystem.DoStepDynamics(dT);
+  mphysicalSystem.DoStepDynamics(dT);
 #endif
-    return 1;
+  return 1;
 }
 //------------------------------------------------------------------------------------
-void DoStepDynamics_FSI(
-		chrono::ChSystemParallelDVI& mphysicalSystem,
-		chrono::vehicle::ChWheeledVehicleAssembly* mVehicle,
-		thrust::device_vector<Real3>& posRadD,
+void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
+                        chrono::vehicle::ChWheeledVehicleAssembly* mVehicle,
+                        thrust::device_vector<Real3>& posRadD,
                         thrust::device_vector<Real4>& velMasD,
                         thrust::device_vector<Real3>& vel_XSPH_D,
                         thrust::device_vector<Real4>& rhoPresMuD,
@@ -92,7 +82,7 @@ void DoStepDynamics_FSI(
                         thrust::device_vector<Real4>& rhoPresMuD2,
 
                         thrust::device_vector<Real4>& derivVelRhoD,
-                        thrust::device_vector<uint> & rigidIdentifierD,
+                        thrust::device_vector<uint>& rigidIdentifierD,
                         thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D,
 
                         thrust::device_vector<Real3>& posRigid_fsiBodies_D,
@@ -119,7 +109,7 @@ void DoStepDynamics_FSI(
                         thrust::device_vector<Real3>& rigid_FSI_TorquesD,
 
                         thrust::device_vector<uint>& bodyIndexD,
-                        std::vector<chrono::ChSharedPtr<chrono::ChBody>> & FSI_Bodies,
+                        std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
                         const thrust::host_vector<int3>& referenceArray,
                         const NumberOfObjects& numObjects,
                         const SimParams& paramsH,
@@ -127,15 +117,20 @@ void DoStepDynamics_FSI(
                         double mTime,
                         double time_hold_vehicle,
                         int tStep,
-                        bool haveFluid,
                         bool haveVehicle) {
   chrono::ChTimerParallel doStep_timer;
+  doStep_timer.AddTimer("half_step_dynamic_fsi_12");
+  doStep_timer.AddTimer("fsi_copy_force_fluid2ChSystem_12");
+  doStep_timer.AddTimer("stepDynamic_mbd_12");
+  doStep_timer.AddTimer("fsi_copy_posVel_ChSystem2fluid_12");
+  doStep_timer.AddTimer("update_marker_pos_12");
 
   Copy_ChSystem_to_External(
       pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH, mphysicalSystem);
-//**********************************
-#if fluidBlock
-if (haveFluid) {
+  //**********************************
+  //----------------------------
+  //--------- start fluid ------
+  //----------------------------
   InitSystem(paramsH, numObjects);
   // ** initialize host mid step data
   thrust::copy(posRadD.begin(), posRadD.end(), posRadD2.begin());
@@ -144,12 +139,12 @@ if (haveFluid) {
 
   FillMyThrust4(derivVelRhoD, mR4(0));
 
-//**********************************
-// ******************
-// ******************
-// ******************
-// ******************
-// ****************** RK2: 1/2
+  //**********************************
+  // ******************
+  // ******************
+  // ******************
+  // ******************
+  // ****************** RK2: 1/2
 
   doStep_timer.start("half_step_dynamic_fsi_12");
   // //assumes ...D2 is a copy of ...D
@@ -182,13 +177,14 @@ if (haveFluid) {
   doStep_timer.start("fsi_copy_force_fluid2ChSystem_12");
   Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies);
   doStep_timer.stop("fsi_copy_force_fluid2ChSystem_12");
-}
-#endif
+  //----------------------------
+  //--------- end fluid ------
+  //----------------------------
 
   doStep_timer.start("stepDynamic_mbd_12");
   mTime += 0.5 * paramsH.dT;
   DoStepChronoSystem(mphysicalSystem,
-		  mVehicle,
+                     mVehicle,
                      0.5 * paramsH.dT,
                      mTime,
                      time_hold_vehicle,
@@ -196,8 +192,10 @@ if (haveFluid) {
 
   doStep_timer.stop("stepDynamic_mbd_12");
 
-#if fluidBlock
-if (haveFluid) {
+  //----------------------------
+  //--------- start fluid ------
+  //----------------------------
+
   doStep_timer.start("fsi_copy_posVel_ChSystem2fluid_12");
 
   Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D2,
@@ -255,8 +253,9 @@ if (haveFluid) {
                        sphMarkerMass);
   Add_Rigid_ForceTorques_To_ChSystem(
       mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies);  // Arman: take care of this
-}
-#endif
+                                                                            //----------------------------
+                                                                            //--------- end fluid ------
+                                                                            //----------------------------
 
   mTime -= 0.5 * paramsH.dT;
 
@@ -266,16 +265,11 @@ if (haveFluid) {
 
   mTime += paramsH.dT;
 
-  DoStepChronoSystem(mphysicalSystem,
-		  mVehicle,
-                     1.0 * paramsH.dT,
-                     mTime,
-                     time_hold_vehicle,
-                     haveVehicle);
+  DoStepChronoSystem(mphysicalSystem, mVehicle, 1.0 * paramsH.dT, mTime, time_hold_vehicle, haveVehicle);
 
-#if fluidBlock
-if (haveFluid) {
-
+  //----------------------------
+  //--------- start fluid ------
+  //----------------------------
   Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D,
                                          q_fsiBodies_D,
                                          velMassRigid_fsiBodies_D,
@@ -299,11 +293,55 @@ if (haveFluid) {
   if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
     DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
   }
-
-}
-#endif
+  //----------------------------
+  //--------- end fluid ------
+  //----------------------------
   doStep_timer.PrintReport();
 
   // ****************** End RK2
 }
 
+//------------------------------------------------------------------------------------
+void DoStepDynamics_ChronoRK2(chrono::ChSystemParallelDVI& mphysicalSystem,
+                              chrono::vehicle::ChWheeledVehicleAssembly* mVehicle,
+
+                              thrust::host_vector<Real3>& pos_ChSystemBackupH,
+                              thrust::host_vector<Real4>& quat_ChSystemBackupH,
+                              thrust::host_vector<Real3>& vel_ChSystemBackupH,
+                              thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH,
+
+                              const SimParams& paramsH,
+                              double mTime,
+                              double time_hold_vehicle,
+                              bool haveVehicle) {
+  chrono::ChTimerParallel doStep_timer;
+  doStep_timer.AddTimer("stepDynamic_mbd_12");
+
+  Copy_ChSystem_to_External(
+      pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH, mphysicalSystem);
+  //**********************************
+  doStep_timer.start("stepDynamic_mbd_12");
+  mTime += 0.5 * paramsH.dT;
+  DoStepChronoSystem(mphysicalSystem,
+                     mVehicle,
+                     0.5 * paramsH.dT,
+                     mTime,
+                     time_hold_vehicle,
+                     haveVehicle);  // Keep only this if you are just interested in the rigid sys
+
+  doStep_timer.stop("stepDynamic_mbd_12");
+
+  mTime -= 0.5 * paramsH.dT;
+
+  // Arman: do it so that you don't need gpu when you don't have fluid
+  Copy_External_To_ChSystem(
+      mphysicalSystem, pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH);
+
+  mTime += paramsH.dT;
+
+  DoStepChronoSystem(mphysicalSystem, mVehicle, 1.0 * paramsH.dT, mTime, time_hold_vehicle, haveVehicle);
+
+  doStep_timer.PrintReport();
+
+  // ****************** End RK2
+}
