@@ -7,6 +7,7 @@
 
 #include "chrono_fsi/InitializeSphMarkers.h"
 
+//**********************************************
 int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
                         thrust::host_vector<Real4>& velMasH,
                         thrust::host_vector<Real4>& rhoPresMuH,
@@ -149,6 +150,22 @@ void CreateBCE_On_Box(
     }
   }
 }
+
+//**********************************************
+
+void LoadBCE_fromFile(
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector< ::int3>& referenceArray,
+    thrust::host_vector<int>& FSI_Bodies_Index_H,
+    NumberOfObjects& numObjects,
+    Real sphMarkerMass,
+    std::string fileName,
+    int bidInChSystem) {
+
+}
+//**********************************************
 
 void SetNumObjects(NumberOfObjects& numObjects, const thrust::host_vector<int3>& referenceArray, int numAllMarkers) {
   numObjects.numFluidMarkers = (referenceArray[0]).y - (referenceArray[0]).x;

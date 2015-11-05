@@ -54,10 +54,11 @@
 #include <core/ChTransform.h>  //transform acc from GF to LF for post process
 
 // FSI Interface Includes
-#include "test_fsi_hmmwv_pointCloud_params.h"  //SetupParamsH()
+#include "test_fsi_cylinderDrop_params.h"  //SetupParamsH()
 //#include "BallDropParams.h"
 #include "chrono_fsi/SphInterface.h"
 #include "chrono_fsi/InitializeSphMarkers.h"
+#include "chrono_fsi/FSI_Integrate.h"
 
 // Chrono namespaces
 using namespace chrono;
@@ -69,14 +70,6 @@ using std::endl;
 // Define General variables
 SimParams paramsH;
 
-#define haveFluid true
-#define useWallBce true
-
-#if haveFluid
-#else
-#undef useWallBce
-#define useWallBce false
-#endif
 // =============================================================================
 // Define Graphics
 #define irrlichtVisualization false
@@ -97,16 +90,6 @@ using namespace gui;
 std::shared_ptr<ChIrrApp> application;
 #endif
 
-//#ifdef CHRONO_OPENGL
-//#undef CHRONO_OPENGL
-//#endif
-
-#ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
-opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-#endif
-
-bool haveVehicle = false;
 // =============================================================================
 void SetArgumentsForMbdFromInput(int argc,
                                  char* argv[],
@@ -332,12 +315,11 @@ void AddCylinderBceToChSystemAndSPH(
     Real height,
     const ChVector<>& pos,
     const ChQuaternion<>& rot,
-    bool visualization,
     thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector< ::int3>& referenceArray,
-    thrust::host_vector<int>& FSI_Bodies_Index_H,
+    std::vector<ChSharedPtr<ChBody>> & FSI_Bodies,
     NumberOfObjects& numObjects,
     Real sphMarkerMass) {
     //
@@ -372,7 +354,7 @@ void AddCylinderBceToChSystemAndSPH(
     numObjects.startRigidMarkers = numMarkers;  // Arman : not sure if you need to set startFlexMarkers
     numObjects.numRigid_SphMarkers += numBce;
     numObjects.numAllMarkers = posRadH.size();
-    FSI_Bodies_Index_H.push_back(mphysicalSystem.Get_bodylist()->size() - 1);
+    FSI_Bodies.push_back(body);
 
 }
 // =============================================================================
@@ -384,7 +366,7 @@ void CreateMbdPhysicalSystemObjects(
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector<uint>& bodyIndex,
-    thrust::host_vector<int>& FSI_Bodies_Index_H,
+    std::vector<ChSharedPtr<ChBody>> & FSI_Bodies,
     thrust::host_vector< ::int3>& referenceArray,
     NumberOfObjects& numObjects,
     const SimParams& paramsH,
@@ -570,12 +552,11 @@ void CreateMbdPhysicalSystemObjects(
                                    cyl_len,
                                    cyl_pos,
                                    cyl_rot,
-                                   true,
                                    posRadH,
                                    velMasH,
                                    rhoPresMuH,
                                    referenceArray,
-                                   FSI_Bodies_Index_H,
+                                   FSI_Bodies,
                                    numObjects,
                                    sphMarkerMass);
 
@@ -695,61 +676,16 @@ void CreateMbdPhysicalSystemObjects(
     //    }
     //  }
 }
-// =============================================================================
 
-void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem) {
-    //	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-    //	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
-    //	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
-    ChVector<> CameraLocation = ChVector<>(0, -10, 0);
-    ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
-
-#ifdef CHRONO_OPENGL
-    gl_window.Initialize(1280, 720, "HMMWV", &mphysicalSystem);
-    gl_window.SetCamera(CameraLocation, CameraLookAt, ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(opengl::WIREFRAME);
-
-// Uncomment the following two lines for the OpenGL manager to automatically un the simulation in an infinite loop.
-
-// gl_window.StartDrawLoop(paramsH.dT);
-// return 0;
-#endif
-
-#if irrlichtVisualization
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    application = std::shared_ptr<ChIrrApp>(
-        new ChIrrApp(&mphysicalSystem, L"Bricks test", core::dimension2d<u32>(800, 600), false, true));
-    //	ChIrrApp application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application->GetDevice());
-    //		ChIrrWizard::add_typical_Sky   (application->GetDevice());
-    ChIrrWizard::add_typical_Lights(
-        application->GetDevice(), core::vector3df(14.0f, 44.0f, -18.0f), core::vector3df(-3.0f, 8.0f, 6.0f), 59, 40);
-    ChIrrWizard::add_typical_Camera(
-        application->GetDevice(),
-        core::vector3df(CameraLocation.x, CameraLocation.y, CameraLocation.z),
-        core::vector3df(CameraLookAt.x, CameraLookAt.y, CameraLookAt.z));  //   (7.2,30,0) :  (-3,12,-8)
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application->AssetBind(myitem); on a per-item basis.
-    application->AssetBindAll();
-    // Use this function for 'converting' into Irrlicht meshes the assets
-    // into Irrlicht-visualizable meshes
-    application->AssetUpdateAll();
-
-    application->SetStepManage(true);
-#endif
-}
 // =============================================================================
 
 void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
                      int tStep,
-                     double mTime,
-                     int& num_contacts,
-                     double exec_time) {
+                     double mTime) {
+	static double exec_time;
     int out_steps = std::ceil((1.0 / paramsH.dT) / out_fps);
+    exec_time += mphysicalSystem.GetTimerStep();
+    int num_contacts = mphysicalSystem.GetNcontacts();
 
     static int out_frame = 0;
 
@@ -771,7 +707,6 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
         cout << "             Execution time: " << exec_time << endl;
 
         out_frame++;
-        num_contacts = 0;
     }
 }
 
@@ -830,53 +765,7 @@ void printSimulationParameters() {
               << " contact_recovery_speed: " << contact_recovery_speed << endl << " maxFlowVelocity " << maxFlowVelocity
               << endl << " time_step (paramsH.dT): " << paramsH.dT << endl << " time_end: " << time_end << endl;
 }
-// =============================================================================
 
-int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT, double mTime) {
-    if (haveVehicle) {
-        // Release the vehicle chassis at the end of the hold time.
-
-        if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed() && mTime > time_hold_vehicle) {
-            mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
-            for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-                mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
-            }
-        }
-
-        // Update vehicle
-        mVehicle->Update(mTime);
-    }
-
-#if irrlichtVisualization
-    Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-    if (!(application->GetDevice()->run()))
-        return 0;
-    application->SetTimestep(dT);
-    application->GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
-    ChIrrTools::drawGrid(application->GetVideoDriver(),
-                         2 * paramsH.HSML,
-                         2 * paramsH.HSML,
-                         50,
-                         50,
-                         ChCoordsys<>(ChVector<>(domainCenter.x, paramsH.worldOrigin.y, domainCenter.z),
-                                      Q_from_AngAxis(CH_C_PI / 2, VECT_X)),
-                         video::SColor(50, 90, 90, 150),
-                         true);
-    application->DrawAll();
-    application->DoStep();
-    application->GetVideoDriver()->endScene();
-#else
-#ifdef CHRONO_OPENGL
-    if (gl_window.Active()) {
-        gl_window.DoStepDynamics(dT);
-        gl_window.Render();
-    }
-#else
-    mphysicalSystem.DoStepDynamics(dT);
-#endif
-#endif
-    return 1;
-}
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -884,8 +773,6 @@ int main(int argc, char* argv[]) {
     time_t rawtime;
     struct tm* timeinfo;
 
-    GpuTimer myGpuTimerHalfStep;
-    ChTimer<double> myCpuTimerHalfStep;
     //(void) cudaSetDevice(0);
 
     time(&rawtime);
@@ -935,7 +822,9 @@ int main(int argc, char* argv[]) {
     thrust::host_vector<Real4> quat_ChSystemBackupH;
     thrust::host_vector<Real3> vel_ChSystemBackupH;
     thrust::host_vector<Real3> omegaLRF_ChSystemBackupH;
-    thrust::host_vector<int> FSI_Bodies_Index_H;
+
+
+    std::vector<ChSharedPtr<ChBody>> FSI_Bodies;
 
     Real sphMarkerMass = 0;  // To be initialized in CreateFluidMarkers, and used in other places
 
@@ -994,7 +883,7 @@ int main(int argc, char* argv[]) {
                                    velMasH,
                                    rhoPresMuH,
                                    bodyIndex,
-                                   FSI_Bodies_Index_H,
+                                   FSI_Bodies,
                                    referenceArray,
                                    numObjects,
                                    paramsH,
@@ -1018,7 +907,7 @@ int main(int argc, char* argv[]) {
     thrust::device_vector<Real4> derivVelRhoD;
     ResizeR4(derivVelRhoD, numObjects.numAllMarkers);
 
-    int numFsiBodies = FSI_Bodies_Index_H.size();
+    int numFsiBodies = FSI_Bodies.size();
     thrust::device_vector<Real3> posRigid_fsiBodies_D;
     thrust::device_vector<Real4> q_fsiBodies_D;
     thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
@@ -1041,7 +930,7 @@ int main(int argc, char* argv[]) {
                                            q_fsiBodies_dummyH,
                                            velMassRigid_fsiBodies_dummyH,
                                            omegaLRF_fsiBodies_dummyH,
-                                           FSI_Bodies_Index_H,
+                                           FSI_Bodies,
                                            mphysicalSystem);
 
     thrust::device_vector<Real3> posRigid_fsiBodies_D2 = posRigid_fsiBodies_D;
@@ -1096,8 +985,7 @@ int main(int argc, char* argv[]) {
     InitializeChronoGraphics(mphysicalSystem);
 
     double mTime = 0;
-    double exec_time = 0;
-    int num_contacts = 0;
+
 
     DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
 
@@ -1132,19 +1020,23 @@ int main(int argc, char* argv[]) {
         // -------------------
         // SPH Block
         // -------------------
-        myCpuTimerHalfStep.start();
-        myGpuTimerHalfStep.Start();
-        chrono::ChTimerParallel fsi_timer;
+    	chrono::ChTimerParallel fsi_timer;
         fsi_timer.Reset();
 
-        Copy_ChSystem_to_External(
-            pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH, mphysicalSystem);
 
 #if haveFluid
         CpuTimer mCpuTimer;
         mCpuTimer.Start();
         GpuTimer myGpuTimer;
         myGpuTimer.Start();
+
+        if (realTime <= paramsH.timePause) {
+          currentParamsH = paramsH_B;
+        } else {
+          currentParamsH = paramsH;
+        }
+
+
 
         fsi_timer.start("total_step_time");
 
@@ -1165,19 +1057,6 @@ int main(int argc, char* argv[]) {
         //    }
         // *******
 
-        if (realTime <= paramsH.timePause) {
-            currentParamsH = paramsH_B;
-        } else {
-            currentParamsH = paramsH;
-        }
-        InitSystem(currentParamsH, numObjects);
-        // ** initialize host mid step data
-        thrust::copy(posRadD.begin(), posRadD.end(), posRadD2.begin());
-        thrust::copy(velMasD.begin(), velMasD.end(), velMasD2.begin());
-        thrust::copy(rhoPresMuD2.begin(), rhoPresMuD2.end(), rhoPresMuD.begin());
-
-        FillMyThrust4(derivVelRhoD, mR4(0));
-
         fsi_timer.stop("fluid_initialization");
 
 #endif
@@ -1185,165 +1064,62 @@ int main(int argc, char* argv[]) {
         // End SPH Block
         // -------------------
 
-        // If enabled, output data for PovRay postprocessing.
-        SavePovFilesMBD(mphysicalSystem, tStep, mTime, num_contacts, exec_time);
-// ******************
-// ******************
-// ******************
-// ******************
-// ****************** RK2: 1/2
-#if haveFluid
+        SavePovFilesMBD(mphysicalSystem, tStep, mTime);
 
-        fsi_timer.start("half_step_dynamic_fsi_12");
-        // //assumes ...D2 is a copy of ...D
+        fsi_timer.start("DoStepDynamics_FSI");
+        DoStepDynamics_FSI(
+        		mphysicalSystem,
+        		mVehicle,
+        		posRadD,
+                velMasD,
+                vel_XSPH_D,
+                rhoPresMuD,
 
-        IntegrateSPH(derivVelRhoD,
-                     posRadD2,
-                     velMasD2,
-                     rhoPresMuD2,
-                     posRadD,
-                     velMasD,
-                     vel_XSPH_D,
-                     rhoPresMuD,
-                     bodyIndexD,
-                     referenceArray,
-                     numObjects,
-                     currentParamsH,
-                     0.5 * currentParamsH.dT);
+                 posRadD2,
+                 velMasD2,
+                 rhoPresMuD2,
 
-        Rigid_Forces_Torques(rigid_FSI_ForcesD,
-                             rigid_FSI_TorquesD,
-                             posRadD,
-                             posRigid_fsiBodies_D,
-                             derivVelRhoD,
-                             rigidIdentifierD,
-                             numObjects,
-                             sphMarkerMass);
+                  derivVelRhoD,
+                  rigidIdentifierD,
+                 rigidSPH_MeshPos_LRF_D,
 
-        fsi_timer.stop("half_step_dynamic_fsi_12");
+                 posRigid_fsiBodies_D,
+                 q_fsiBodies_D,
+                 velMassRigid_fsiBodies_D,
+                 omegaLRF_fsiBodies_D,
 
-        fsi_timer.start("fsi_copy_force_fluid2ChSystem_12");
-        Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies_Index_H);
-        fsi_timer.stop("fsi_copy_force_fluid2ChSystem_12");
-#endif
+                  posRigid_fsiBodies_D2,
+                  q_fsiBodies_D2,
+                  velMassRigid_fsiBodies_D2,
+                  omegaLRF_fsiBodies_D2,
 
-        fsi_timer.start("stepDynamic_mbd_12");
-        mTime += 0.5 * currentParamsH.dT;
-        DoStepChronoSystem(mphysicalSystem,
-                           0.5 * currentParamsH.dT,
-                           mTime);  // Keep only this if you are just interested in the rigid sys
+                  pos_ChSystemBackupH,
+                  quat_ChSystemBackupH,
+                  vel_ChSystemBackupH,
+                  omegaLRF_ChSystemBackupH,
 
-        fsi_timer.stop("stepDynamic_mbd_12");
+                  posRigid_fsiBodies_dummyH,
+                  q_fsiBodies_dummyH,
+                  velMassRigid_fsiBodies_dummyH,
+                  omegaLRF_fsiBodies_dummyH,
 
-#if haveFluid
-        fsi_timer.start("fsi_copy_posVel_ChSystem2fluid_12");
+                  rigid_FSI_ForcesD,
+                  rigid_FSI_TorquesD,
 
-        Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D2,
-                                               q_fsiBodies_D2,
-                                               velMassRigid_fsiBodies_D2,
-                                               omegaLRF_fsiBodies_D2,
-                                               posRigid_fsiBodies_dummyH,
-                                               q_fsiBodies_dummyH,
-                                               velMassRigid_fsiBodies_dummyH,
-                                               omegaLRF_fsiBodies_dummyH,
-                                               FSI_Bodies_Index_H,
-                                               mphysicalSystem);
-        fsi_timer.stop("fsi_copy_posVel_ChSystem2fluid_12");
+                  bodyIndexD,
+                  FSI_Bodies,
+                  referenceArray,
+                  numObjects,
+                  paramsH,
+                  sphMarkerMass,
+                  mTime,
+                  time_hold_vehicle,
+                  tStep);
+        fsi_timer.stop("DoStepDynamics_FSI");
 
-
-        fsi_timer.start("update_marker_pos_12");
-        UpdateRigidMarkersPosition(posRadD2,
-                                   velMasD2,
-                                   rigidSPH_MeshPos_LRF_D,
-                                   rigidIdentifierD,
-                                   posRigid_fsiBodies_D2,
-                                   q_fsiBodies_D2,
-                                   velMassRigid_fsiBodies_D2,
-                                   omegaLRF_fsiBodies_D2,
-                                   numObjects);
-        fsi_timer.stop("update_marker_pos_12");
-        // ******************
-        // ******************
-        // ******************
-        // ******************
-        // ****************** RK2: 2/2
-        FillMyThrust4(derivVelRhoD, mR4(0));
-
-        // //assumes ...D2 is a copy of ...D
-        IntegrateSPH(derivVelRhoD,
-                     posRadD,
-                     velMasD,
-                     rhoPresMuD,
-                     posRadD2,
-                     velMasD2,
-                     vel_XSPH_D,
-                     rhoPresMuD2,
-                     bodyIndexD,
-                     referenceArray,
-                     numObjects,
-                     currentParamsH,
-                     currentParamsH.dT);
-
-        Rigid_Forces_Torques(rigid_FSI_ForcesD,
-                             rigid_FSI_TorquesD,
-                             posRadD2,
-                             posRigid_fsiBodies_D2,
-                             derivVelRhoD,
-                             rigidIdentifierD,
-                             numObjects,
-                             sphMarkerMass);
-        Add_Rigid_ForceTorques_To_ChSystem(
-            mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies_Index_H);  // Arman: take care of this
-
-#endif
-        mTime -= 0.5 * currentParamsH.dT;
-
-        // Arman: do it so that you don't need gpu when you don't have fluid
-        Copy_External_To_ChSystem(
-            mphysicalSystem, pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH);
-
-
-        mTime += currentParamsH.dT;
-        DoStepChronoSystem(mphysicalSystem,
-                           1.0 * currentParamsH.dT,
-                           mTime);  // Keep only this if you are just interested in the rigid sys
-
-
-#if haveFluid
-
-        Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D,
-                                               q_fsiBodies_D,
-                                               velMassRigid_fsiBodies_D,
-                                               omegaLRF_fsiBodies_D,
-                                               posRigid_fsiBodies_dummyH,
-                                               q_fsiBodies_dummyH,
-                                               velMassRigid_fsiBodies_dummyH,
-                                               omegaLRF_fsiBodies_dummyH,
-                                               FSI_Bodies_Index_H,
-                                               mphysicalSystem);
-        UpdateRigidMarkersPosition(posRadD,
-                                   velMasD,
-                                   rigidSPH_MeshPos_LRF_D,
-                                   rigidIdentifierD,
-                                   posRigid_fsiBodies_D,
-                                   q_fsiBodies_D,
-                                   velMassRigid_fsiBodies_D,
-                                   omegaLRF_fsiBodies_D,
-                                   numObjects);
-
-        if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
-            DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
-        }
-
-#endif
-
-        // ****************** End RK2
 
         //    OutputVehicleData(mphysicalSystem, tStep);
 
-        // Update counters.
-        exec_time += mphysicalSystem.GetTimerStep();
-        num_contacts += mphysicalSystem.GetNcontacts();
 
 // -------------------
 // SPH Block
@@ -1372,7 +1148,7 @@ int main(int argc, char* argv[]) {
 //        mphysicalSystem.data_manager->system_timer.PrintReport();
     }
     ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
-    FSI_Bodies_Index_H.clear();
+    FSI_Bodies.clear();
 
     pos_ChSystemBackupH.clear();
     quat_ChSystemBackupH.clear();

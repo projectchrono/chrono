@@ -315,7 +315,6 @@ void AddCylinderBceToChSystemAndSPH(
     Real height,
     const ChVector<>& pos,
     const ChQuaternion<>& rot,
-    bool visualization,
     thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
@@ -553,7 +552,6 @@ void CreateMbdPhysicalSystemObjects(
                                    cyl_len,
                                    cyl_pos,
                                    cyl_rot,
-                                   true,
                                    posRadH,
                                    velMasH,
                                    rhoPresMuH,

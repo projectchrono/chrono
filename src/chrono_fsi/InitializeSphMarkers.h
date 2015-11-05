@@ -38,6 +38,17 @@ void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE,
                       const chrono::ChQuaternion<>& rot = chrono::ChQuaternion<>(1, 0, 0, 0),
                       int face = 12);
 
+void LoadBCE_fromFile(
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector< ::int3>& referenceArray,
+    thrust::host_vector<int>& FSI_Bodies_Index_H,
+    NumberOfObjects& numObjects,
+    Real sphMarkerMass,
+    std::string fileName,
+    int bidInChSystem);
+
 /**
  * @brief Set the number of objects (rigid and flexible)
  * @details [long description]
