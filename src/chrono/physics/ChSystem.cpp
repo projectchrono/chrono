@@ -1869,10 +1869,6 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
 
     contact_container->ConstraintsLoadJacobians();
 
-    // prepare lists of variables and constraints, used by the following LCP solver
-
-    LCPprepare_inject(*this->LCP_descriptor);
-
     bool dump_data = false;
 
     if (dump_data) {
@@ -2544,6 +2540,10 @@ int ChSystem::Integrate_Y_timestepper() {
     // Re-wake the bodies that cannot sleep because they are in contact with
     // some body that is not in sleep state.
     WakeUpSleepingBodies();
+
+    // Prepare lists of variables and constraints. Then update offsets in all variables and constraints.
+    LCPprepare_inject(*this->LCP_descriptor);
+    LCP_descriptor->UpdateCountsAndOffsets();
 
     timer_lcp.reset();
 
