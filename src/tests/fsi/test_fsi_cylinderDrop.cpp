@@ -1068,6 +1068,7 @@ int main(int argc, char* argv[]) {
 
         SavePovFilesMBD(mphysicalSystem, tStep, mTime);
 
+        fsi_timer.start("DoStepDynamics_FSI");
         DoStepDynamics_FSI(
         		mphysicalSystem,
         		mVehicle,
@@ -1116,6 +1117,7 @@ int main(int argc, char* argv[]) {
                   mTime,
                   time_hold_vehicle,
                   tStep);
+        fsi_timer.stop("DoStepDynamics_FSI");
 
 
         //    OutputVehicleData(mphysicalSystem, tStep);
