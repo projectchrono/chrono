@@ -19,6 +19,9 @@
 chrono::opengl::ChOpenGLWindow& gl_window = chrono::opengl::ChOpenGLWindow::getInstance();
 #endif
 
+#define fluidBlock false
+#define vehicleBlock true
+
 
 // =============================================================================
 
@@ -39,33 +42,6 @@ void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem) {
 // gl_window.StartDrawLoop(paramsH.dT);
 // return 0;
 #endif
-
-#if irrlichtVisualization
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    application = std::shared_ptr<ChIrrApp>(
-        new ChIrrApp(&mphysicalSystem, L"Bricks test", core::dimension2d<u32>(800, 600), false, true));
-    //	ChIrrApp application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application->GetDevice());
-    //		ChIrrWizard::add_typical_Sky   (application->GetDevice());
-    ChIrrWizard::add_typical_Lights(
-        application->GetDevice(), core::vector3df(14.0f, 44.0f, -18.0f), core::vector3df(-3.0f, 8.0f, 6.0f), 59, 40);
-    ChIrrWizard::add_typical_Camera(
-        application->GetDevice(),
-        core::vector3df(CameraLocation.x, CameraLocation.y, CameraLocation.z),
-        core::vector3df(CameraLookAt.x, CameraLookAt.y, CameraLookAt.z));  //   (7.2,30,0) :  (-3,12,-8)
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application->AssetBind(myitem); on a per-item basis.
-    application->AssetBindAll();
-    // Use this function for 'converting' into Irrlicht meshes the assets
-    // into Irrlicht-visualizable meshes
-    application->AssetUpdateAll();
-
-    application->SetStepManage(true);
-#endif
 }
 // =============================================================================
 
@@ -73,7 +49,9 @@ int DoStepChronoSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                        chrono::vehicle::ChWheeledVehicleAssembly* mVehicle,
                        Real dT,
                        double mTime,
-                       double time_hold_vehicle) {
+                       double time_hold_vehicle,
+                       bool haveVehicle) {
+#if vehicleBlock
     if (haveVehicle) {
         // Release the vehicle chassis at the end of the hold time.
 
@@ -87,26 +65,9 @@ int DoStepChronoSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
         // Update vehicle
         mVehicle->Update(mTime);
     }
+#endif
 
-#if irrlichtVisualization
-    Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-    if (!(application->GetDevice()->run()))
-        return 0;
-    application->SetTimestep(dT);
-    application->GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
-    ChIrrTools::drawGrid(application->GetVideoDriver(),
-                         2 * paramsH.HSML,
-                         2 * paramsH.HSML,
-                         50,
-                         50,
-                         ChCoordsys<>(ChVector<>(domainCenter.x, paramsH.worldOrigin.y, domainCenter.z),
-                                      Q_from_AngAxis(CH_C_PI / 2, VECT_X)),
-                         video::SColor(50, 90, 90, 150),
-                         true);
-    application->DrawAll();
-    application->DoStep();
-    application->GetVideoDriver()->endScene();
-#else
+
 #ifdef CHRONO_OPENGL
     if (gl_window.Active()) {
         gl_window.DoStepDynamics(dT);
@@ -114,7 +75,6 @@ int DoStepChronoSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
     }
 #else
     mphysicalSystem.DoStepDynamics(dT);
-#endif
 #endif
     return 1;
 }
@@ -166,14 +126,16 @@ void DoStepDynamics_FSI(
                         Real sphMarkerMass,
                         double mTime,
                         double time_hold_vehicle,
-                        int tStep) {
+                        int tStep,
+                        bool haveFluid,
+                        bool haveVehicle) {
   chrono::ChTimerParallel doStep_timer;
 
   Copy_ChSystem_to_External(
       pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH, omegaLRF_ChSystemBackupH, mphysicalSystem);
 //**********************************
-#if haveFluid
-
+#if fluidBlock
+if (haveFluid) {
   InitSystem(paramsH, numObjects);
   // ** initialize host mid step data
   thrust::copy(posRadD.begin(), posRadD.end(), posRadD2.begin());
@@ -181,14 +143,13 @@ void DoStepDynamics_FSI(
   thrust::copy(rhoPresMuD2.begin(), rhoPresMuD2.end(), rhoPresMuD.begin());
 
   FillMyThrust4(derivVelRhoD, mR4(0));
-#endif
+
 //**********************************
 // ******************
 // ******************
 // ******************
 // ******************
 // ****************** RK2: 1/2
-#if haveFluid
 
   doStep_timer.start("half_step_dynamic_fsi_12");
   // //assumes ...D2 is a copy of ...D
@@ -221,6 +182,7 @@ void DoStepDynamics_FSI(
   doStep_timer.start("fsi_copy_force_fluid2ChSystem_12");
   Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies);
   doStep_timer.stop("fsi_copy_force_fluid2ChSystem_12");
+}
 #endif
 
   doStep_timer.start("stepDynamic_mbd_12");
@@ -229,11 +191,13 @@ void DoStepDynamics_FSI(
 		  mVehicle,
                      0.5 * paramsH.dT,
                      mTime,
-                     time_hold_vehicle);  // Keep only this if you are just interested in the rigid sys
+                     time_hold_vehicle,
+                     haveVehicle);  // Keep only this if you are just interested in the rigid sys
 
   doStep_timer.stop("stepDynamic_mbd_12");
 
-#if haveFluid
+#if fluidBlock
+if (haveFluid) {
   doStep_timer.start("fsi_copy_posVel_ChSystem2fluid_12");
 
   Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D2,
@@ -291,8 +255,9 @@ void DoStepDynamics_FSI(
                        sphMarkerMass);
   Add_Rigid_ForceTorques_To_ChSystem(
       mphysicalSystem, rigid_FSI_ForcesD, rigid_FSI_TorquesD, FSI_Bodies);  // Arman: take care of this
-
+}
 #endif
+
   mTime -= 0.5 * paramsH.dT;
 
   // Arman: do it so that you don't need gpu when you don't have fluid
@@ -305,9 +270,11 @@ void DoStepDynamics_FSI(
 		  mVehicle,
                      1.0 * paramsH.dT,
                      mTime,
-                     time_hold_vehicle);
+                     time_hold_vehicle,
+                     haveVehicle);
 
-#if haveFluid
+#if fluidBlock
+if (haveFluid) {
 
   Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D,
                                          q_fsiBodies_D,
@@ -333,6 +300,7 @@ void DoStepDynamics_FSI(
     DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize);
   }
 
+}
 #endif
   doStep_timer.PrintReport();
 

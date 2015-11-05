@@ -27,15 +27,8 @@
 
 
 
-#define haveFluid true
-#define useWallBce true
-bool haveVehicle = false;
+//bool haveVehicle = false;
 
-#if haveFluid
-#else
-#undef useWallBce
-#define useWallBce false
-#endif
 
 
 void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem);
@@ -86,7 +79,9 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
                         Real sphMarkerMass,
                         double mTime,
                         double time_hold_vehicle,
-                        int tStep);
+                        int tStep,
+                        bool haveFluid,
+                        bool haveVehicle);
 
 
 
