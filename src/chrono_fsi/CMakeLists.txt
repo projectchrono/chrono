@@ -31,6 +31,13 @@ SET(CHRONO_INCLUDE_DIRS
 SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 ENDIF()
 # ----------------------------------------------------------------------------
+# OpenGL
+# ----------------------------------------------------------------------------
+IF(ENABLE_MODULE_OPENGL)
+    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
+ENDIF()
+# ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 

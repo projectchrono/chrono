@@ -438,9 +438,9 @@ void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRig
 
 
 
-#ifdef CHRONO_OPENGL
-#undef CHRONO_OPENGL
-#endif
+//#ifdef CHRONO_OPENGL
+//#undef CHRONO_OPENGL
+//#endif
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 chrono::opengl::ChOpenGLWindow& gl_window = chrono::opengl::ChOpenGLWindow::getInstance();
@@ -458,8 +458,8 @@ void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem) {
 
 #ifdef CHRONO_OPENGL
     gl_window.Initialize(1280, 720, "HMMWV", &mphysicalSystem);
-    gl_window.SetCamera(CameraLocation, CameraLookAt, ChVector<>(0, 0, 1));
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    gl_window.SetCamera(CameraLocation, CameraLookAt, chrono::ChVector<>(0, 0, 1));
+    gl_window.SetRenderMode(chrono::opengl::WIREFRAME);
 
 // Uncomment the following two lines for the OpenGL manager to automatically un the simulation in an infinite loop.
 
