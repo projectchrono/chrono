@@ -47,12 +47,14 @@ class M113_TrackShoe : public chrono::vehicle::ChSinglePinShoe {
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const { return m_shoe_mass; }
     /// Return the moments of inertia of the shoe body.
-    virtual chrono::ChVector<> GetShoeInertia() const override { return m_shoe_inertia; }
-    /// Return the radius of the track shoe pin.
-    virtual double GetPinRadius() const override { return m_pin_radius; }
-    /// Return the length of the track shoe pin.
-    /// This is the total pin length.
-    virtual double GetPinLength() const override { return m_pin_length; }
+    virtual const chrono::ChVector<>& GetShoeInertia() const override { return m_shoe_inertia; }
+
+    /// Return the location of the front contact cylinder.
+    virtual double GetFrontCylinderLoc() const { return m_front_cyl_loc; }
+    /// Return the location of the rear contact cylinder.
+    virtual double GetRearCylinderLoc() const { return m_rear_cyl_loc; }
+    /// Return the radius of the contact cylinders.
+    virtual double GetCylinderRadius() const { return m_cyl_radius; }
 
     /// Add visualization of the track shoe.
     virtual void AddShoeVisualization(size_t index) override;
@@ -65,8 +67,10 @@ class M113_TrackShoe : public chrono::vehicle::ChSinglePinShoe {
     static const double m_shoe_pitch;
     static const double m_shoe_mass;
     static const chrono::ChVector<> m_shoe_inertia;
-    static const double m_pin_radius;
-    static const double m_pin_length;
+
+    static const double m_cyl_radius;
+    static const double m_front_cyl_loc;
+    static const double m_rear_cyl_loc;
 
     static const std::string m_meshName;
     static const std::string m_meshFile;

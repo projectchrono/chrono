@@ -37,8 +37,10 @@ const double M113_TrackShoe::m_shoe_height = 0.06;
 const double M113_TrackShoe::m_shoe_pitch = 0.154;
 const double M113_TrackShoe::m_shoe_mass = 18.02;
 const chrono::ChVector<> M113_TrackShoe::m_shoe_inertia(0.22, 0.04, 0.25);
-const double M113_TrackShoe::m_pin_radius = 0.015;
-const double M113_TrackShoe::m_pin_length = 0.2;
+
+const double M113_TrackShoe::m_cyl_radius = 0.015;
+const double M113_TrackShoe::m_front_cyl_loc = 0.0535;
+const double M113_TrackShoe::m_rear_cyl_loc = -0.061;
 
 const std::string M113_TrackShoe::m_meshName = "TrackShoe_POV_geom";
 const std::string M113_TrackShoe::m_meshFile = vehicle::GetDataFile("M113/TrackShoe.obj");
@@ -55,7 +57,6 @@ void M113_TrackShoe::AddShoeContact(size_t index) {
     m_shoe->GetCollisionModel()->ClearModel();
     m_shoe->GetCollisionModel()->AddBox(0.055, 0.095, 0.03);
     m_shoe->GetCollisionModel()->AddBox(0.0142, 0.0055, 0.0375, ChVector<>(0.05, 0, 0.0375));
-    //// TODO: add contact surfaces for sprocket (what should these be?)
     m_shoe->GetCollisionModel()->BuildModel();
 }
 
@@ -71,27 +72,27 @@ void M113_TrackShoe::AddShoeVisualization(size_t index) {
             m_shoe->AddAsset(rev_axis);
 
             ChSharedPtr<ChCylinderShape> cyl_FR(new ChCylinderShape);
-            cyl_FR->GetCylinderGeometry().p1 = ChVector<>(0.0535, -0.1402, 0);
-            cyl_FR->GetCylinderGeometry().p2 = ChVector<>(0.0535, -0.0512, 0);
-            cyl_FR->GetCylinderGeometry().rad = 0.015;
+            cyl_FR->GetCylinderGeometry().p1 = ChVector<>(m_front_cyl_loc, -0.1402, 0);
+            cyl_FR->GetCylinderGeometry().p2 = ChVector<>(m_front_cyl_loc, -0.0512, 0);
+            cyl_FR->GetCylinderGeometry().rad = m_cyl_radius;
             m_shoe->AddAsset(cyl_FR);
 
             ChSharedPtr<ChCylinderShape> cyl_RR(new ChCylinderShape);
-            cyl_RR->GetCylinderGeometry().p1 = ChVector<>(-0.061, -0.1402, 0);
-            cyl_RR->GetCylinderGeometry().p2 = ChVector<>(-0.061, -0.0512, 0);
-            cyl_RR->GetCylinderGeometry().rad = 0.015;
+            cyl_RR->GetCylinderGeometry().p1 = ChVector<>(m_rear_cyl_loc, -0.1402, 0);
+            cyl_RR->GetCylinderGeometry().p2 = ChVector<>(m_rear_cyl_loc, -0.0512, 0);
+            cyl_RR->GetCylinderGeometry().rad = m_cyl_radius;
             m_shoe->AddAsset(cyl_RR);
 
             ChSharedPtr<ChCylinderShape> cyl_FL(new ChCylinderShape);
-            cyl_FL->GetCylinderGeometry().p1 = ChVector<>(0.0535, 0.1402, 0);
-            cyl_FL->GetCylinderGeometry().p2 = ChVector<>(0.0535, 0.0512, 0);
-            cyl_FL->GetCylinderGeometry().rad = 0.015;
+            cyl_FL->GetCylinderGeometry().p1 = ChVector<>(m_front_cyl_loc, 0.1402, 0);
+            cyl_FL->GetCylinderGeometry().p2 = ChVector<>(m_front_cyl_loc, 0.0512, 0);
+            cyl_FL->GetCylinderGeometry().rad = m_cyl_radius;
             m_shoe->AddAsset(cyl_FL);
 
             ChSharedPtr<ChCylinderShape> cyl_RL(new ChCylinderShape);
-            cyl_RL->GetCylinderGeometry().p1 = ChVector<>(-0.061, 0.1402, 0);
-            cyl_RL->GetCylinderGeometry().p2 = ChVector<>(-0.061, 0.0512, 0);
-            cyl_RL->GetCylinderGeometry().rad = 0.015;
+            cyl_RL->GetCylinderGeometry().p1 = ChVector<>(m_rear_cyl_loc, 0.1402, 0);
+            cyl_RL->GetCylinderGeometry().p2 = ChVector<>(m_rear_cyl_loc, 0.0512, 0);
+            cyl_RL->GetCylinderGeometry().rad = m_cyl_radius;
             m_shoe->AddAsset(cyl_RL);
 
             ChSharedPtr<ChBoxShape> box_shoe(new ChBoxShape);

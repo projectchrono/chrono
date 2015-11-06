@@ -57,21 +57,23 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     virtual double GetShoeMass() const = 0;
 
     /// Return the moments of inertia of the shoe body.
-    virtual ChVector<> GetShoeInertia() const = 0;
+    virtual const ChVector<>& GetShoeInertia() const = 0;
 
-    /// Return the radius of the track shoe pin.
-    //// TODO: is this really needed?
-    virtual double GetPinRadius() const = 0;
+    /// Return the location of the front contact cylinder.
+    virtual double GetFrontCylinderLoc() const = 0;
 
-    /// Return the length of the track shoe pin.
-    /// This is the total pin length.
-    //// TODO: is this really needed?
-    virtual double GetPinLength() const = 0;
+    /// Return the location of the rear contact cylinder.
+    virtual double GetRearCylinderLoc() const = 0;
+
+    /// Return the radius of the contact cylinders.
+    virtual double GetCylinderRadius() const = 0;
 
     /// Add visualization of the track shoe.
     virtual void AddShoeVisualization(size_t index) = 0;
 
     /// Add contact geometry for the track shoe.
+    /// Note that this is for contact with wheels, idler, and ground only.
+    /// This contact geometry does not affect contact with the sprocket.
     virtual void AddShoeContact(size_t index) = 0;
 
     ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
