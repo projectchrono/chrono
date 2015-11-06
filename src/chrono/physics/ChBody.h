@@ -83,10 +83,10 @@ class ChApi ChBody :            public ChPhysicsItem,
     unsigned int body_id;  // HM - body specific identifier, used for indexing
 
     // list of child markers
-    std::vector<ChMarker*> marklist;
+    std::vector< ChSharedPtr<ChMarker> > marklist;
 
     // list of child forces
-    std::vector<ChForce*> forcelist;
+    std::vector< ChSharedPtr<ChForce> > forcelist;
 
     ChVector<> gyro;  // The Qm gyroscopic torque, i.e. Qm= Wvel x (XInertia*Wvel)
 
@@ -436,12 +436,12 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// Gets the list of children markers.
     /// NOTE: to modify this list, use the appropriate Remove..
     /// and Add.. functions.
-    const std::vector<ChMarker*>& GetMarkerList() const { return marklist; }
+    const std::vector< ChSharedPtr<ChMarker> >& GetMarkerList() const { return marklist; }
 
     /// Gets the list of children forces.
     /// NOTE: to modify this list, use the appropriate Remove..
     /// and Add.. functions.
-    const std::vector<ChForce*>& GetForceList() const { return forcelist; }
+    const std::vector< ChSharedPtr<ChForce> >& GetForceList() const { return forcelist; }
 
     //
     // Point/vector transf.(NOTE! you may also use operators of ChMovingFrame)
