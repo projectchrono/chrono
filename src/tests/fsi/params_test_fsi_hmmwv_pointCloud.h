@@ -22,6 +22,7 @@
 
 const std::string out_dir = "PostProcess";
 
+
 // -----------------------------------------------------------------------------
 // Simulation parameters FSI
 // -----------------------------------------------------------------------------
@@ -213,7 +214,7 @@ WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
 enum ChassisType { CSPHERE, CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIGINAL };
 
 // Type of chassis (controls both contact and visualization)
-ChassisType chassis_type = CBOX;
+ChassisType chassis_type = C_SIMPLE_TRI_MESH;
 
 // JSON files for vehicle model (using different wheel visualization meshes)
 // std::string vehicle_file_cyl("hmmwv/vehicle/myHMMWV.json");
@@ -257,6 +258,7 @@ int num_particles = 1000;
 // -----------------------------------------------------------------------------
 
 std::ofstream simParams;
+
 
 bool povray_output = true;
 

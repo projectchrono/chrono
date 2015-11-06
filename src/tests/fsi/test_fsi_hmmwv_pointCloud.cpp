@@ -53,12 +53,16 @@
 #include "core/ChFileutils.h"
 #include <core/ChTransform.h>  //transform acc from GF to LF for post process
 
-// FSI Interface Includes
-#include "test_fsi_cylinderDrop_params.h"  //SetupParamsH()
 //#include "BallDropParams.h"
 #include "chrono_fsi/SphInterface.h"
 #include "chrono_fsi/InitializeSphMarkers.h"
 #include "chrono_fsi/FSI_Integrate.h"
+
+// FSI Interface Includes
+#include "params_test_fsi_cylinderDrop.h"  //SetupParamsH()
+
+#define haveFluid true
+#define haveVehicle true
 
 // Chrono namespaces
 using namespace chrono;
@@ -269,7 +273,6 @@ void AddBoxBceToChSystemAndSPH(
 
     if (!initializeFluidFromFile) {
 #if haveFluid
-#if useWallBce
         //        assert(referenceArray.size() > 1 &&
         //               "error: fluid need to be initialized before boundary. Reference array should have two
         //               components");
@@ -304,7 +307,6 @@ void AddBoxBceToChSystemAndSPH(
         velMasBCE.clear();
         rhoPresMuBCE.clear();
 #endif
-#endif
     }
 }
 
@@ -319,7 +321,7 @@ void AddCylinderBceToChSystemAndSPH(
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector< ::int3>& referenceArray,
-    std::vector<ChSharedPtr<ChBody>> & FSI_Bodies,
+    std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
     NumberOfObjects& numObjects,
     Real sphMarkerMass) {
     //
@@ -333,7 +335,7 @@ void AddCylinderBceToChSystemAndSPH(
     body->GetMaterialSurface()->SetFriction(mu_g);
     body->SetPos(pos);
     body->SetRot(rot);
-//    body->SetWvel_par(ChVector<>(0, 10, 0));
+    //    body->SetWvel_par(ChVector<>(0, 10, 0));
     double volume = utils::CalcCylinderVolume(radius, 0.5 * height);
     ChVector<> gyration = utils::CalcCylinderGyration(radius, 0.5 * height).Get_Diag();
     double density = paramsH.rho0;
@@ -355,7 +357,26 @@ void AddCylinderBceToChSystemAndSPH(
     numObjects.numRigid_SphMarkers += numBce;
     numObjects.numAllMarkers = posRadH.size();
     FSI_Bodies.push_back(body);
-
+}
+// =============================================================================
+void CreateVehicleBCE(
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector< ::int3>& referenceArray,
+    thrust::host_vector<int>& FSI_Bodies_Index_H,
+    NumberOfObjects& numObjects,
+    Real sphMarkerMass) {
+    int chassisID = 1;  // mVehicle->
+    LoadBCE_fromFile(posRadH,
+                     velMasH,
+                     rhoPresMuH,
+                     referenceArray,
+                     FSI_Bodies_Index_H,
+                     numObjects,
+                     sphMarkerMass,
+                     "ChassisBCE.csv",
+                     chassisID);
 }
 // =============================================================================
 
@@ -366,7 +387,7 @@ void CreateMbdPhysicalSystemObjects(
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector<uint>& bodyIndex,
-    std::vector<ChSharedPtr<ChBody>> & FSI_Bodies,
+    std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
     thrust::host_vector< ::int3>& referenceArray,
     NumberOfObjects& numObjects,
     const SimParams& paramsH,
@@ -482,10 +503,8 @@ void CreateMbdPhysicalSystemObjects(
         }
     } else {
 #if haveFluid
-#if useWallBce
         ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
         ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(fluidCollisionFamily);
-#endif
 #endif
     }
 
@@ -493,142 +512,69 @@ void CreateMbdPhysicalSystemObjects(
 
     mphysicalSystem.AddBody(ground);
 
-    double cyl_len = bottomWidth / 1.0;
-    double cyl_rad = bottomWidth / 10;
-    ChVector<> cyl_pos = ChVector<>(0, 0, 0);
-    ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
-
-    // version 0, create one cylinder // note: rigid body initialization should come after boundary initialization
-
-    // **************************
-    // **** Test angular velocity
-    // **************************
-
-    ChSharedPtr<ChBody> body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
-    // body->SetIdentifier(-1);
-    body->SetBodyFixed(false);
-    body->SetCollide(true);
-    body->GetMaterialSurface()->SetFriction(mu_g);
-    body->SetPos(ChVector<>(5, 0, 2));
-    body->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Y) * chrono::Q_from_AngAxis(CH_C_PI / 6, VECT_X) *
-                 chrono::Q_from_AngAxis(CH_C_PI / 6, VECT_Z));
-//    body->SetWvel_par(ChVector<>(0, 10, 0));  // Arman : note, SetW should come after SetRot
-    //
-    double sphereRad = 5 * cyl_rad;
-    double volume = utils::CalcSphereVolume(sphereRad);
-    ChVector<> gyration = utils::CalcSphereGyration(sphereRad).Get_Diag();
-    double density = paramsH.rho0;
-    double mass = density * volume;
-    body->SetMass(mass);
-    body->SetInertiaXX(mass * gyration);
-    //
-    body->GetCollisionModel()->ClearModel();
-    utils::AddSphereGeometry(body.get_ptr(), sphereRad);
-    body->GetCollisionModel()->BuildModel();
-//    // *** keep this: how to calculate the velocity of a marker lying on a rigid body
-//    //
-//    ChVector<> pointRel = ChVector<>(0, 0, 1);
-//    ChVector<> pointPar = pointRel + body->GetPos();
-//    // method 1
-//    ChVector<> l_point = body->Point_World2Body(pointPar);
-//    ChVector<> velvel1 = body->RelPoint_AbsSpeed(l_point);
-//    printf("\n\n\n\n\n\n\n\n\n ***********   velocity1  %f %f %f \n\n\n\n\n\n\n ", velvel1.x, velvel1.y, velvel1.z);
-//
-//    // method 2
-//    ChVector<> posLoc = ChTransform<>::TransformParentToLocal(pointPar, body->GetPos(), body->GetRot());
-//    ChVector<> velvel2 = body->PointSpeedLocalToParent(posLoc);
-//    printf("\n\n\n\n\n\n\n\n\n ***********   velocity 2 %f %f %f \n\n\n\n\n\n\n ", velvel2.x, velvel2.y, velvel2.z);
-//
-//    // method 3
-//    ChVector<> velvel3 = body->GetPos_dt() + body->GetWvel_par() % pointRel;
-//    printf("\n\n\n\n\n\n\n\n\n ***********   velocity3  %f %f %f \n\n\n\n\n\n\n ", velvel3.x, velvel3.y, velvel3.z);
-//    //
-
-    int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
-    mphysicalSystem.AddBody(body);
-   //
-    AddCylinderBceToChSystemAndSPH(mphysicalSystem,
-                                   cyl_rad,
-                                   cyl_len,
-                                   cyl_pos,
-                                   cyl_rot,
-                                   posRadH,
-                                   velMasH,
-                                   rhoPresMuH,
-                                   referenceArray,
-                                   FSI_Bodies,
-                                   numObjects,
-                                   sphMarkerMass);
-
     if (haveVehicle) {
-        //        // version 1
-        //        // -----------------------------------------
-        //        // Create and initialize the vehicle system.
-        //        // -----------------------------------------
-        //        // Create the vehicle assembly and the callback object for tire contact
-        //        // according to the specified type of tire/wheel.
-        //        switch (wheel_type) {
-        //            case CYLINDRICAL: {
-        //                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl,
-        //                simplepowertrain_file);
-        //                tire_cb = new MyCylindricalTire();
-        //            } break;
-        //            case LUGGED: {
-        //                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug,
-        //                simplepowertrain_file);
-        //                tire_cb = new MyLuggedTire();
-        //            } break;
-        //        }
-        //        mVehicle->SetTireContactCallback(tire_cb);
-        //        // Set the callback object for chassis.
-        //        switch (chassis_type) {
-        //            case CBOX: {
-        //                chassis_cb =
-        //                    new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5,
-        //                    .4));
-        //                ChVector<> boxSize(1, .5, .2);
-        //                ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
-        //                mVehicle->SetChassisContactCallback(chassis_cb);
-        //            } break;
-        //
-        //            case CSPHERE: {
-        //                chassis_cb =
-        //                    new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
-        //                    .5, .4));
-        //                Real radius = 1;
-        //                ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
-        //                mVehicle->SetChassisContactCallback(chassis_cb);
-        //            } break;
-        //
-        //            case C_SIMPLE_CONVEX_MESH: {
-        //                chassis_cb =
-        //                    new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
-        //                    .5, .4));
-        //                mVehicle->SetChassisContactCallback(chassis_cb);
-        //            } break;
-        //
-        //            case C_SIMPLE_TRI_MESH: {
-        //                chassis_cb =
-        //                    new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
-        //                    .5, .4));
-        //                mVehicle->SetChassisContactCallback(chassis_cb);
-        //            } break;
-        //        }
-        //
-        //        // Set the callback object for driver inputs. Pass the hold time as a delay in
-        //        // generating driver inputs.
-        //        driver_cb = new MyDriverInputs(time_hold_vehicle);
-        //        mVehicle->SetDriverInputsCallback(driver_cb);
-        //
-        //        // Initialize the vehicle at a height above the terrain.
-        //        mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
-        //
-        //        // Initially, fix the chassis (will be released after time_hold_vehicle).
-        //        mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
-        //        // Initially, fix the wheels (will be released after time_hold_vehicle).
-        //        for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-        //            mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
-        //        }
+        // version 1
+        // -----------------------------------------
+        // Create and initialize the vehicle system.
+        // -----------------------------------------
+        // Create the vehicle assembly and the callback object for tire contact
+        // according to the specified type of tire/wheel.
+        switch (wheel_type) {
+            case CYLINDRICAL: {
+                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
+                tire_cb = new MyCylindricalTire();
+            } break;
+            case LUGGED: {
+                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
+                tire_cb = new MyLuggedTire();
+            } break;
+        }
+        mVehicle->SetTireContactCallback(tire_cb);
+        // Set the callback object for chassis.
+        switch (chassis_type) {
+            case CBOX: {
+                chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5,
+                            .4));
+                            ChVector<> boxSize(1, .5, .2);
+                            ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
+                            mVehicle->SetChassisContactCallback(chassis_cb);
+            } break;
+
+            case CSPHERE: {
+                chassis_cb = new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
+                            .5, .4));
+                            Real radius = 1;
+                            ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
+                            mVehicle->SetChassisContactCallback(chassis_cb);
+            } break;
+
+            case C_SIMPLE_CONVEX_MESH: {
+                chassis_cb = new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
+                            .5, .4));
+                            mVehicle->SetChassisContactCallback(chassis_cb);
+            } break;
+
+            case C_SIMPLE_TRI_MESH: {
+                chassis_cb = new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
+                            .5, .4));
+                            mVehicle->SetChassisContactCallback(chassis_cb);
+            } break;
+        }
+
+        // Set the callback object for driver inputs. Pass the hold time as a delay in
+        // generating driver inputs.
+        driver_cb = new MyDriverInputs(time_hold_vehicle);
+        mVehicle->SetDriverInputsCallback(driver_cb);
+
+        // Initialize the vehicle at a height above the terrain.
+        mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+
+        // Initially, fix the chassis (will be released after time_hold_vehicle).
+        mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
+        // Initially, fix the wheels (will be released after time_hold_vehicle).
+        for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
+            mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+        }
     }
     // extra objects
     // -----------------------------------------
@@ -679,10 +625,8 @@ void CreateMbdPhysicalSystemObjects(
 
 // =============================================================================
 
-void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem,
-                     int tStep,
-                     double mTime) {
-	static double exec_time;
+void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, int tStep, double mTime) {
+    static double exec_time;
     int out_steps = std::ceil((1.0 / paramsH.dT) / out_fps);
     exec_time += mphysicalSystem.GetTimerStep();
     int num_contacts = mphysicalSystem.GetNcontacts();
@@ -823,8 +767,7 @@ int main(int argc, char* argv[]) {
     thrust::host_vector<Real3> vel_ChSystemBackupH;
     thrust::host_vector<Real3> omegaLRF_ChSystemBackupH;
 
-
-    std::vector<ChSharedPtr<ChBody>> FSI_Bodies;
+    std::vector<ChSharedPtr<ChBody> > FSI_Bodies;
 
     Real sphMarkerMass = 0;  // To be initialized in CreateFluidMarkers, and used in other places
 
@@ -838,14 +781,12 @@ int main(int argc, char* argv[]) {
             ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
             return 0;
         }
-#if haveFluid
-#else
+#if !haveFluid
         printf("Error! Initialized from file But haveFluid is false! \n");
         return -1;
 #endif
     } else {
 #if haveFluid
-
         //*** default num markers
 
         int numAllMarkers = 0;
@@ -943,8 +884,13 @@ int main(int argc, char* argv[]) {
     ResizeR3(rigid_FSI_ForcesD, numFsiBodies);
     ResizeR3(rigid_FSI_TorquesD, numFsiBodies);
     // assert
-    if ( (numObjects.numRigidBodies != numFsiBodies) || (referenceArray.size() - 2 != numFsiBodies) ) {
-        printf("\n\n\n\n Error! number of fsi bodies (%d) does not match numObjects.numRigidBodies (%d). Size of reference array: %d \n\n\n\n", numFsiBodies, numObjects.numRigidBodies, referenceArray.size());
+    if ((numObjects.numRigidBodies != numFsiBodies) || (referenceArray.size() - 2 != numFsiBodies)) {
+        printf(
+            "\n\n\n\n Error! number of fsi bodies (%d) does not match numObjects.numRigidBodies (%d). Size of "
+            "reference array: %d \n\n\n\n",
+            numFsiBodies,
+            numObjects.numRigidBodies,
+            referenceArray.size());
         return 1;
     }
     ResizeR3(rigid_FSI_ForcesD, numObjects.numRigidBodies);
@@ -976,7 +922,6 @@ int main(int argc, char* argv[]) {
         printf("\n\n\n\n Error! (3) numObjects is not set correctly \n\n\n\n");
         return 1;
     }
-
 #endif
     cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
 
@@ -985,7 +930,6 @@ int main(int argc, char* argv[]) {
     InitializeChronoGraphics(mphysicalSystem);
 
     double mTime = 0;
-
 
     DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
 
@@ -1016,13 +960,17 @@ int main(int argc, char* argv[]) {
     // ******************************************************************************************
     // ***************************** Simulation loop ********************************************
 
+    chrono::ChTimerParallel fsi_timer;
+    fsi_timer.AddTimer("total_step_time");
+    fsi_timer.AddTimer("fluid_initialization");
+    fsi_timer.AddTimer("DoStepDynamics_FSI");
+    fsi_timer.AddTimer("DoStepDynamics_ChronoRK2");
+
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         // -------------------
         // SPH Block
         // -------------------
-    	chrono::ChTimerParallel fsi_timer;
         fsi_timer.Reset();
-
 
 #if haveFluid
         CpuTimer mCpuTimer;
@@ -1031,12 +979,10 @@ int main(int argc, char* argv[]) {
         myGpuTimer.Start();
 
         if (realTime <= paramsH.timePause) {
-          currentParamsH = paramsH_B;
+            currentParamsH = paramsH_B;
         } else {
-          currentParamsH = paramsH;
+            currentParamsH = paramsH;
         }
-
-
 
         fsi_timer.start("total_step_time");
 
@@ -1058,7 +1004,73 @@ int main(int argc, char* argv[]) {
         // *******
 
         fsi_timer.stop("fluid_initialization");
+#endif
+#if haveFluid
+        fsi_timer.start("DoStepDynamics_FSI");
+        DoStepDynamics_FSI(mphysicalSystem,
+                           mVehicle,
+                           posRadD,
+                           velMasD,
+                           vel_XSPH_D,
+                           rhoPresMuD,
 
+                           posRadD2,
+                           velMasD2,
+                           rhoPresMuD2,
+
+                           derivVelRhoD,
+                           rigidIdentifierD,
+                           rigidSPH_MeshPos_LRF_D,
+
+                           posRigid_fsiBodies_D,
+                           q_fsiBodies_D,
+                           velMassRigid_fsiBodies_D,
+                           omegaLRF_fsiBodies_D,
+
+                           posRigid_fsiBodies_D2,
+                           q_fsiBodies_D2,
+                           velMassRigid_fsiBodies_D2,
+                           omegaLRF_fsiBodies_D2,
+
+                           pos_ChSystemBackupH,
+                           quat_ChSystemBackupH,
+                           vel_ChSystemBackupH,
+                           omegaLRF_ChSystemBackupH,
+
+                           posRigid_fsiBodies_dummyH,
+                           q_fsiBodies_dummyH,
+                           velMassRigid_fsiBodies_dummyH,
+                           omegaLRF_fsiBodies_dummyH,
+
+                           rigid_FSI_ForcesD,
+                           rigid_FSI_TorquesD,
+
+                           bodyIndexD,
+                           FSI_Bodies,
+                           referenceArray,
+                           numObjects,
+                           paramsH,
+                           sphMarkerMass,
+                           mTime,
+                           time_hold_vehicle,
+                           tStep,
+                           haveVehicle);
+        fsi_timer.stop("DoStepDynamics_FSI");
+#else
+        fsi_timer.start("DoStepDynamics_ChronoRK2");
+        DoStepDynamics_ChronoRK2(mphysicalSystem,
+                                 mVehicle,
+
+                                 pos_ChSystemBackupH,
+                                 quat_ChSystemBackupH,
+                                 vel_ChSystemBackupH,
+                                 omegaLRF_ChSystemBackupH,
+
+                                 paramsH,
+                                 mTime,
+                                 time_hold_vehicle,
+                                 haveVehicle);
+        fsi_timer.stop("DoStepDynamics_ChronoRK2");
 #endif
         // -------------------
         // End SPH Block
@@ -1066,65 +1078,11 @@ int main(int argc, char* argv[]) {
 
         SavePovFilesMBD(mphysicalSystem, tStep, mTime);
 
-        fsi_timer.start("DoStepDynamics_FSI");
-        DoStepDynamics_FSI(
-        		mphysicalSystem,
-        		mVehicle,
-        		posRadD,
-                velMasD,
-                vel_XSPH_D,
-                rhoPresMuD,
-
-                 posRadD2,
-                 velMasD2,
-                 rhoPresMuD2,
-
-                  derivVelRhoD,
-                  rigidIdentifierD,
-                 rigidSPH_MeshPos_LRF_D,
-
-                 posRigid_fsiBodies_D,
-                 q_fsiBodies_D,
-                 velMassRigid_fsiBodies_D,
-                 omegaLRF_fsiBodies_D,
-
-                  posRigid_fsiBodies_D2,
-                  q_fsiBodies_D2,
-                  velMassRigid_fsiBodies_D2,
-                  omegaLRF_fsiBodies_D2,
-
-                  pos_ChSystemBackupH,
-                  quat_ChSystemBackupH,
-                  vel_ChSystemBackupH,
-                  omegaLRF_ChSystemBackupH,
-
-                  posRigid_fsiBodies_dummyH,
-                  q_fsiBodies_dummyH,
-                  velMassRigid_fsiBodies_dummyH,
-                  omegaLRF_fsiBodies_dummyH,
-
-                  rigid_FSI_ForcesD,
-                  rigid_FSI_TorquesD,
-
-                  bodyIndexD,
-                  FSI_Bodies,
-                  referenceArray,
-                  numObjects,
-                  paramsH,
-                  sphMarkerMass,
-                  mTime,
-                  time_hold_vehicle,
-                  tStep);
-        fsi_timer.stop("DoStepDynamics_FSI");
-
-
-        //    OutputVehicleData(mphysicalSystem, tStep);
-
+//    OutputVehicleData(mphysicalSystem, tStep);
 
 // -------------------
 // SPH Block
 // -------------------
-
 #if haveFluid
         mCpuTimer.Stop();
         myGpuTimer.Stop();
@@ -1145,7 +1103,7 @@ int main(int argc, char* argv[]) {
         fflush(stdout);
         realTime += currentParamsH.dT;
 
-//        mphysicalSystem.data_manager->system_timer.PrintReport();
+        //        mphysicalSystem.data_manager->system_timer.PrintReport();
     }
     ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
     FSI_Bodies.clear();
@@ -1156,7 +1114,6 @@ int main(int argc, char* argv[]) {
     omegaLRF_ChSystemBackupH.clear();
 
 // Arman LRF in omegaLRF may need change
-
 #if haveFluid
     ClearMyThrustR3(posRadD);
     ClearMyThrustR4(velMasD);

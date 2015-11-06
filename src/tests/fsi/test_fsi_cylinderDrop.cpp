@@ -53,12 +53,13 @@
 #include "core/ChFileutils.h"
 #include <core/ChTransform.h>  //transform acc from GF to LF for post process
 
-// FSI Interface Includes
-#include "test_fsi_cylinderDrop_params.h"  //SetupParamsH()
 //#include "BallDropParams.h"
 #include "chrono_fsi/SphInterface.h"
 #include "chrono_fsi/InitializeSphMarkers.h"
 #include "chrono_fsi/FSI_Integrate.h"
+
+// FSI Interface Includes
+#include "params_test_fsi_cylinderDrop.h"  //SetupParamsH()
 
 #define haveFluid true
 #define haveVehicle false
