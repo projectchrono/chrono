@@ -16,7 +16,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   data_manager = new ChParallelDataManager();
 
   LCP_descriptor = new ChLcpSystemDescriptorParallel(data_manager);
-  contact_container = new ChContactContainerParallel(data_manager);
+  contact_container = ChSharedPtr<ChContactContainerParallel>(new ChContactContainerParallel(data_manager));
   collision_system = new ChCollisionSystemParallel(data_manager);
 
   collision_system_type = COLLSYS_PARALLEL;
@@ -73,7 +73,7 @@ int ChSystemParallel::Integrate_Y() {
 
   data_manager->system_timer.start("collision");
   collision_system->Run();
-  collision_system->ReportContacts(this->contact_container);
+  collision_system->ReportContacts(this->contact_container.get_ptr());
   data_manager->system_timer.stop("collision");
 
   data_manager->system_timer.start("lcp");
@@ -155,13 +155,12 @@ int ChSystemParallel::Integrate_Y() {
 // body.
 //
 void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
-  newbody->AddRef();
   newbody->SetSystem(this);
   // This is only need because bilaterals need to know what bodies to
   // refer to. Not used by contacts
   newbody->SetId(data_manager->num_rigid_bodies);
 
-  bodylist.push_back(newbody.get_ptr());
+  bodylist.push_back(newbody);
   data_manager->num_rigid_bodies++;
 
   if (newbody->GetCollide()) {
@@ -195,9 +194,8 @@ void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
   if (ChSharedPtr<ChShaft> shaft = newitem.DynamicCastTo<ChShaft>()) {
     AddShaft(shaft);
   } else {
-    newitem->AddRef();
     newitem->SetSystem(this);
-    otherphysicslist.push_back((newitem).get_ptr());
+    otherphysicslist.push_back(newitem);
 
     if (newitem->GetCollide()) {
       newitem->AddCollisionModelsToSystem();
@@ -320,7 +318,7 @@ void ChSystemParallel::UpdateRigidBodies() {
     collide[i] = bodylist[i]->GetCollide();
 
     // Let derived classes set the specific material surface data.
-    UpdateMaterialSurfaceData(i, bodylist[i]);
+    UpdateMaterialSurfaceData(i, bodylist[i].get_ptr());
 
     bodylist[i]->GetCollisionModel()->SyncPosition();
   }
@@ -434,7 +432,7 @@ void ChSystemParallel::UpdateOtherPhysics() {
     otherphysicslist[i]->VariablesFbLoadForces(GetStep());
     otherphysicslist[i]->VariablesQbLoadSpeed();
 
-    BILATERALTYPE type = GetBilateralType(otherphysicslist[i]);
+    BILATERALTYPE type = GetBilateralType(otherphysicslist[i].get_ptr());
 
     if (type == UNKNOWN)
       continue;
