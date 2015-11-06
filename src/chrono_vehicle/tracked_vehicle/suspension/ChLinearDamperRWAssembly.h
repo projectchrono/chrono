@@ -62,6 +62,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     /// Identifiers for the various hardpoints.
     enum PointId {
         ARM,          ///< arm location
+        ARM_WHEEL,    ///< arm, connection point to road wheel
         ARM_CHASSIS,  ///< arm, connection point to chassis
         SHOCK_A,      ///< shock, arm location
         SHOCK_C,      ///< shock, chassis location
@@ -91,9 +92,11 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     ChSharedPtr<ChLinkSpringCB> m_shock;         ///< handle to the shock link
 
   private:
-    void AddVisualizationArm(const ChVector<>& pt_A,   ///< arm location (in global frame)
+    void AddVisualizationArm(const ChVector<>& pt_O,   ///< wheel center (in global frame)
+                             const ChVector<>& pt_A,   ///< arm location (in global frame)
                              const ChVector<>& pt_AW,  ///< connection to wheel (in global frame)
-                             const ChVector<>& pt_AC   ///< connection to chassis (in global frame)
+                             const ChVector<>& pt_AC,  ///< connection to chassis (in global frame)
+                             const ChVector<>& pt_AS   ///< connection to shock absorber (in global frame)
                              );
 };
 

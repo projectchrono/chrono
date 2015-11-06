@@ -46,6 +46,9 @@ void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, con
         points[i] = susp_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
+    // Sanity check.
+    assert(points[ARM_WHEEL].x == 0 && points[ARM_WHEEL].z == 0);
+
     // Create the trailing arm body. The reference frame of the arm body has its
     // x-axis aligned with the line between the arm-chassis connection point and
     // the arm-wheel connection point.
@@ -63,7 +66,7 @@ void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, con
     m_arm->SetRot(rot);
     m_arm->SetMass(GetArmMass());
     m_arm->SetInertiaXX(GetArmInertia());
-    AddVisualizationArm(points[ARM], susp_to_abs.GetPos(), points[ARM_CHASSIS]);
+    AddVisualizationArm(susp_to_abs.GetPos(), points[ARM], points[ARM_WHEEL], points[ARM_CHASSIS], points[SHOCK_A]);
     chassis->GetSystem()->AddBody(m_arm);
 
     // Create and initialize the revolute joint between arm and chassis.
@@ -92,16 +95,20 @@ void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, con
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_A,
+void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_O,
+                                                   const ChVector<>& pt_A,
                                                    const ChVector<>& pt_AW,
-                                                   const ChVector<>& pt_AC) {
+                                                   const ChVector<>& pt_AC,
+                                                   const ChVector<>& pt_AS) {
     static const double threshold2 = 1e-6;
     double radius = GetArmVisRadius();
 
     // Express hardpoint locations in body frame.
+    ChVector<> p_O = m_arm->TransformPointParentToLocal(pt_O);
     ChVector<> p_A = m_arm->TransformPointParentToLocal(pt_A);
     ChVector<> p_AC = m_arm->TransformPointParentToLocal(pt_AC);
     ChVector<> p_AW = m_arm->TransformPointParentToLocal(pt_AW);
+    ChVector<> p_AS = m_arm->TransformPointParentToLocal(pt_AS);
 
     if ((p_A - p_AW).Length2() > threshold2) {
         ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
@@ -115,6 +122,23 @@ void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_A,
         ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
         cyl->GetCylinderGeometry().p1 = p_A;
         cyl->GetCylinderGeometry().p2 = p_AC;
+        cyl->GetCylinderGeometry().rad = radius;
+        m_arm->AddAsset(cyl);
+    }
+
+    if ((p_A - p_AS).Length2() > threshold2) {
+        ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+        cyl->GetCylinderGeometry().p1 = p_A;
+        cyl->GetCylinderGeometry().p2 = p_AS;
+        cyl->GetCylinderGeometry().rad = 0.75 * radius;
+        m_arm->AddAsset(cyl);
+    }
+
+    if ((p_O - p_AW).Length2() > threshold2) {
+        ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+        double len = (p_O - p_AW).Length();
+        cyl->GetCylinderGeometry().p1 = p_O;
+        cyl->GetCylinderGeometry().p2 = p_AW + (p_AW - p_O) * radius/len;
         cyl->GetCylinderGeometry().rad = radius;
         m_arm->AddAsset(cyl);
     }
