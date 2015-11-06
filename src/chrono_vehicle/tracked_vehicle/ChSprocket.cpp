@@ -24,6 +24,7 @@
 #include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,7 +32,16 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChSprocket::ChSprocket(const std::string& name)
-    : m_name(name), m_friction(0.6f), m_restitution(0.1f), m_young_modulus(2e5f), m_poisson_ratio(0.3f) {
+    : m_name(name),
+      m_callback(NULL),
+      m_friction(0.6f),
+      m_restitution(0.1f),
+      m_young_modulus(2e5f),
+      m_poisson_ratio(0.3f) {
+}
+
+ChSprocket::~ChSprocket() {
+    delete m_callback;
 }
 
 // -----------------------------------------------------------------------------
@@ -48,7 +58,7 @@ void ChSprocket::SetContactMaterial(float friction_coefficient,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
     // The sprocket reference frame is aligned with that of the chassis and centered at the
     // specified location.
     ////ChFrame<> sprocket_to_abs(location);
@@ -66,17 +76,6 @@ void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
     m_gear->SetMass(GetGearMass());
     m_gear->SetInertiaXX(GetGearInertia());
     chassis->GetSystem()->AddBody(m_gear);
-
-    // Add collision shape to gear body.
-    double sep = GetSeparation();
-    ChSharedPtr<geometry::ChLinePath> profile = GetProfile();
-    //// TODO: enable collision
-    ////m_gear->SetCollide(true);
-    m_gear->GetCollisionModel()->SetSafeMargin(0.02);
-    m_gear->GetCollisionModel()->ClearModel();
-    m_gear->GetCollisionModel()->Add2Dpath(*profile.get_ptr(), ChVector<>(0, 0, sep / 2), rot_y2z);
-    m_gear->GetCollisionModel()->Add2Dpath(*profile.get_ptr(), ChVector<>(0, 0, -sep / 2), rot_y2z);
-    m_gear->GetCollisionModel()->BuildModel();
 
     // Create and initialize the revolute joint between chassis and gear.
     ChCoordsys<> rev_csys(loc, chassisRot * y2z);
@@ -99,6 +98,9 @@ void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
 
     // Add visualization of the gear.
     AddGearVisualization();
+
+    // Set user-defined custom collision callback class for sprocket-shoes contact.
+    chassis->GetSystem()->SetCustomComputeCollisionCallback(GetCollisionCallback(track));
 }
 
 // -----------------------------------------------------------------------------

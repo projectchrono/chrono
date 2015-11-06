@@ -15,6 +15,13 @@
 // Base class for a tracked vehicle sprocket. A sprocket is responsible for
 // contact processing with the track shoes of the containing track assembly.
 //
+// A derived class which implements a particular sprocket template must specify
+// the custom collision callback object and provide the gear profile as a 2D
+// path. The gear profile, a ChLinePath geometric object, is made up of an
+// arbitrary number of sub-paths of type ChLineArc or ChLineSegment sub-lines.
+// These must be added in  clockwise order, and the end of sub-path i must be
+// coincident with beginning of sub-path i+1.
+//
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
 //
@@ -33,12 +40,17 @@
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/geometry/ChCLinePath.h"
+#include "chrono/geometry/ChCLineSegment.h"
+#include "chrono/geometry/ChCLineArc.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
 namespace chrono {
 namespace vehicle {
+
+// Forward declaration
+class ChTrackAssembly;
 
 ///
 ///
@@ -48,7 +60,7 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
     ChSprocket(const std::string& name  ///< [in] name of the subsystem
                );
 
-    virtual ~ChSprocket() {}
+    virtual ~ChSprocket();
 
     /// Get the name identifier for this sprocket subsystem.
     const std::string& GetName() const { return m_name; }
@@ -92,19 +104,16 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis).
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location          ///< [in] location relative to the chassis frame
-                            );
+    void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                    const ChVector<>& location,         ///< [in] location relative to the chassis frame
+                    ChTrackAssembly* track              ///< [in] pointer to containing track assembly
+                    );
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the axle. This function provides the interface
     /// to the drivetrain subsystem (intermediated by the vehicle system).
     void ApplyAxleTorque(double torque  ///< [in] value of applied torque
                          );
-
-    /// Add visualization of the gear wheel.
-    /// The default implementation renders the gear toothe profiles as a line path.
-    virtual void AddGearVisualization();
 
     /// Log current constraint violations.
     void LogConstraintViolations();
@@ -129,11 +138,24 @@ class CH_VEHICLE_API ChSprocket : public ChShared {
     /// sub-path i+1.
     virtual ChSharedPtr<geometry::ChLinePath> GetProfile() = 0;
 
+    /// Return the custom collision callback object.
+    /// Note that the derived need not delete this object (it is deleted in the
+    /// destructor of this base class).
+    virtual ChSystem::ChCustomComputeCollisionCallback* GetCollisionCallback(
+        ChTrackAssembly* track  ///< [in] pointer to containing track assembly
+        ) = 0;
+
+    /// Add visualization of the gear wheel.
+    /// The default implementation renders the gear tooth profiles as a line path.
+    virtual void AddGearVisualization();
+
     std::string m_name;                           ///< name of the subsystem
     ChSharedPtr<ChBody> m_gear;                   ///< handle to the sprocket gear body
     ChSharedPtr<ChShaft> m_axle;                  ///< handle to gear shafts
     ChSharedPtr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
     ChSharedPtr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
+
+    ChSystem::ChCustomComputeCollisionCallback* m_callback;  ///< custom collision functor object
 
     float m_friction;
     float m_restitution;

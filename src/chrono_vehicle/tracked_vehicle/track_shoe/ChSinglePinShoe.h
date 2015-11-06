@@ -52,21 +52,23 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     virtual void Connect(ChSharedPtr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
                          ) override;
 
+    /// Return the location of the front contact cylinder.
+    /// This location is relative to the shoe reference frame (in the positive x direction)
+    virtual double GetFrontCylinderLoc() const = 0;
+
+    /// Return the location of the rear contact cylinder.
+    /// This location is relative to the shoe reference frame (in the negative x direction)
+    virtual double GetRearCylinderLoc() const = 0;
+
+    /// Return the radius of the contact cylinders.
+    virtual double GetCylinderRadius() const = 0;
+
   protected:
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;
 
     /// Return the moments of inertia of the shoe body.
     virtual const ChVector<>& GetShoeInertia() const = 0;
-
-    /// Return the location of the front contact cylinder.
-    virtual double GetFrontCylinderLoc() const = 0;
-
-    /// Return the location of the rear contact cylinder.
-    virtual double GetRearCylinderLoc() const = 0;
-
-    /// Return the radius of the contact cylinders.
-    virtual double GetCylinderRadius() const = 0;
 
     /// Add visualization of the track shoe.
     virtual void AddShoeVisualization(size_t index) = 0;

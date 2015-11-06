@@ -51,7 +51,7 @@ void ChTrackAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
                                  const ChVector<>& sprocket_loc,
                                  const ChVector<>& idler_loc,
                                  const std::vector<ChVector<> >& suspension_locs) {
-    m_sprocket->Initialize(chassis, sprocket_loc);
+    m_sprocket->Initialize(chassis, sprocket_loc, this);
     m_idler->Initialize(chassis, idler_loc);
     m_brake->Initialize(m_sprocket->GetRevolute());
 

@@ -21,7 +21,6 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChSprocketProfiles.h"
 
 #include "m113/M113_Sprocket.h"
 
@@ -54,13 +53,7 @@ const std::string M113_SprocketRight::m_meshFile = vehicle::GetDataFile("M113/Sp
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_Sprocket::M113_Sprocket(const std::string& name, VisualizationType vis_type)
-    : ChSprocket(name), m_vis_type(vis_type) {
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChSharedPtr<geometry::ChLinePath> M113_Sprocket::GetProfile() {
-    return ChCircularProfile(m_num_teeth, m_gear_RT, m_gear_RC, m_gear_R);
+    : ChArcSprocket(name), m_vis_type(vis_type) {
 }
 
 // -----------------------------------------------------------------------------

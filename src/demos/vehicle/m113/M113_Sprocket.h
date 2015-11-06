@@ -22,14 +22,14 @@
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
+#include "chrono_vehicle/tracked_vehicle/sprocket/ChArcSprocket.h"
 
 namespace m113 {
 
 ///
 ///
 ///
-class M113_Sprocket : public chrono::vehicle::ChSprocket {
+class M113_Sprocket : public chrono::vehicle::ChArcSprocket {
   public:
     virtual ~M113_Sprocket() {}
 
@@ -49,12 +49,12 @@ class M113_Sprocket : public chrono::vehicle::ChSprocket {
     /// Return the distance between the two gear profiles.
     virtual double GetSeparation() const override { return m_separation; }
 
-    /// Return the 2D gear profile.
-    /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
-    /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
-    /// clockwise order, and the end of sub-path i must be coincident with beginning of
-    /// sub-path i+1.
-    virtual chrono::ChSharedPtr<chrono::geometry::ChLinePath> GetProfile() override;
+    /// Return the radius of the addendum circle.
+    virtual double GetOuterRadius() const { return m_gear_RT; }
+    /// Return the radius of the (concave) tooth circular arc.
+    virtual double GetArcRadius() const { return m_gear_R; }
+    /// Return the radius of the tooth arc centers.
+    virtual double GetArcCentersRadius() const { return m_gear_RC; }
 
     /// Add visualization of the road wheel.
     virtual void AddGearVisualization() override;
