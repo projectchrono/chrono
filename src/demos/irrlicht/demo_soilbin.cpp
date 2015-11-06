@@ -907,11 +907,11 @@ class MyEventReceiver : public IEventReceiver {
     }
 
     void drawSprings() {
-        std::vector<chrono::ChLink*>::iterator iterlink = mapp->GetSystem()->Get_linklist()->begin();
+        auto iterlink = mapp->GetSystem()->Get_linklist()->begin();
         // .. draw the spring constraints as simplified spring helix
         iterlink = mapp->GetSystem()->Get_linklist()->begin();
         while (iterlink != mapp->GetSystem()->Get_linklist()->end()) {
-            if (ChLinkSpring* mylinkspri = ChDynamicCast(ChLinkSpring, (*iterlink)))
+            if (ChLinkSpring* mylinkspri = dynamic_cast<ChLinkSpring*>((*iterlink).get_ptr()))
                 ChIrrTools::drawSpring(mapp->GetVideoDriver(), 0.05, mylinkspri->GetEndPoint1Abs(),
                                        mylinkspri->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 15, true);
             iterlink++;

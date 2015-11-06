@@ -753,9 +753,9 @@ int main(int argc, char* argv[]) {
         guienv->drawAll();
 
         // .. draw the distance constraints (the massless rods) as simplified lines
-        std::vector<chrono::ChLink*>::iterator iterlink = my_system.Get_linklist()->begin();
+        auto iterlink = my_system.Get_linklist()->begin();
         while (iterlink != my_system.Get_linklist()->end()) {
-            if (ChLinkDistance* mylinkdis = ChDynamicCast(ChLinkDistance, (*iterlink)))
+            if (ChSharedPtr<ChLinkDistance> mylinkdis = (*iterlink).DynamicCastTo<ChLinkDistance>() )
                 ChIrrTools::drawSegment(driver, mylinkdis->GetEndPoint1Abs(), mylinkdis->GetEndPoint2Abs(),
                                         video::SColor(255, 0, 20, 0), true);
             iterlink++;
@@ -764,7 +764,7 @@ int main(int argc, char* argv[]) {
         // .. draw the spring constraints as simplified spring helix
         iterlink = my_system.Get_linklist()->begin();
         while (iterlink != my_system.Get_linklist()->end()) {
-            if (ChLinkSpring* mylinkspri = ChDynamicCast(ChLinkSpring, (*iterlink)))
+            if (ChSharedPtr<ChLinkSpring> mylinkspri = (*iterlink).DynamicCastTo<ChLinkSpring>() )
                 ChIrrTools::drawSpring(driver, 0.03, mylinkspri->GetEndPoint1Abs(), mylinkspri->GetEndPoint2Abs(),
                                        video::SColor(255, 150, 20, 20), 80, 5, true);
             iterlink++;

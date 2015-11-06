@@ -412,10 +412,10 @@ void ChMatterSPH::IntLoadResidual_F(
     // First, find if any ChProximityContainerSPH object is present
     // in the system,
 
-    ChProximityContainerSPH* edges = 0;
-    std::vector<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
+    ChSharedPtr<ChProximityContainerSPH> edges;
+    std::vector< ChSharedPtr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if ((edges = dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics)))
+        if ((edges = (*iterotherphysics).DynamicCastTo<ChProximityContainerSPH>()))
             break;
         iterotherphysics++;
     }
@@ -525,10 +525,10 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
     // First, find if any ChProximityContainerSPH object is present
     // in the system,
 
-    ChProximityContainerSPH* edges = 0;
-    std::vector<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
+    ChSharedPtr<ChProximityContainerSPH> edges;
+    std::vector<ChSharedPtr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if ((edges = dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics)))
+        if ((edges = (*iterotherphysics).DynamicCastTo<ChProximityContainerSPH>()))
             break;
         iterotherphysics++;
     }
