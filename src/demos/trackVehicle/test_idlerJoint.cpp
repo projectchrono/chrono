@@ -96,7 +96,7 @@ void OutputData(ChSystem* system, ChStreamOutAsciiFile& ofile, double time) {
     ofile << time << ", ";
 
     for (int i = 0; i < system->Get_bodylist()->size(); i++) {
-        ChBody* body = (ChBody*)system->Get_bodylist()->at(i);
+        ChSharedPtr<ChBody> body = system->Get_bodylist()->at(i);
 
         if (!body->IsActive())
             continue;
@@ -201,9 +201,9 @@ bool run_test(double time,
 
 // use the app to draw all the springs in the specified system
 void draw_springs(ChSystem& system, ChIrrApp& app) {
-    std::vector<chrono::ChLink*>::iterator ilink = system.Get_linklist()->begin();
+    auto ilink = system.Get_linklist()->begin();
     for (; ilink != system.Get_linklist()->end(); ++ilink) {
-        if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>(*ilink)) {
+        if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get_ptr())) {
             ChIrrTools::drawSpring(app.GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
                                    video::SColor(255, 150, 20, 20), 80, 15, true);
         }
