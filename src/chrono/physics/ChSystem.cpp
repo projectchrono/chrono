@@ -280,9 +280,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
 
     use_sleeping = false;
 
-    collision_callback = 0;
-    collisionpoint_callback = 0;
-
     Set_G_acc(ChVector<>(0, -9.8, 0));
 
     stepcount = 0;
@@ -371,7 +368,7 @@ void ChSystem::Copy(ChSystem* source) {
     use_sleeping = source->use_sleeping;
 
 
-    collision_callback = source->collision_callback;
+    collision_callbacks = source->collision_callbacks;
     collisionpoint_callback = source->collisionpoint_callback;
 
     last_err = source->last_err;
@@ -2085,8 +2082,8 @@ double ChSystem::ComputeCollisions() {
     }
 
     // If some other collision engine could add further ChLinkContact into the list..
-    if (collision_callback)
-        collision_callback->PerformCustomCollision(this);
+    for (size_t ic = 0; ic < collision_callbacks.size(); ic++)
+        collision_callbacks[ic]->PerformCustomCollision(this);
 
     // Count the contacts of body-body type.
     this->ncontacts = this->contact_container->GetNcontacts();
