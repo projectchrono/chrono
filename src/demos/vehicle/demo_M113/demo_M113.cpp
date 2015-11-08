@@ -67,17 +67,20 @@ int main(int argc, char* argv[]) {
     // Create the M113 vehicle.
     M113_Vehicle vehicle(true, PRIMITIVES, PRIMITIVES, ChMaterialSurfaceBase::DEM);
 
-    // vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-    vehicle.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-    vehicle.GetSystem()->SetIterLCPmaxItersSpeed(150);
-    vehicle.GetSystem()->SetIterLCPmaxItersStab(150);
-    vehicle.GetSystem()->SetTol(0);
-    vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-    vehicle.GetSystem()->SetMinBounceSpeed(2.0);
-    vehicle.GetSystem()->SetIterLCPomega(0.8);
-    vehicle.GetSystem()->SetIterLCPsharpnessLambda(1.0);
+    //vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+
+    ////vehicle.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
+    ////vehicle.GetSystem()->SetIterLCPmaxItersSpeed(150);
+    ////vehicle.GetSystem()->SetIterLCPmaxItersStab(150);
+    ////vehicle.GetSystem()->SetTol(0);
+    ////vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
+    ////vehicle.GetSystem()->SetMinBounceSpeed(2.0);
+    ////vehicle.GetSystem()->SetIterLCPomega(0.8);
+    ////vehicle.GetSystem()->SetIterLCPsharpnessLambda(1.0);
 
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
+    ////vehicle.SetCollide(TrackCollide::NONE);
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem());
