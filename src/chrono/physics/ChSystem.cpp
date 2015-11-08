@@ -280,6 +280,8 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
 
     use_sleeping = false;
 
+    collisionpoint_callback = 0;
+
     Set_G_acc(ChVector<>(0, -9.8, 0));
 
     stepcount = 0;
