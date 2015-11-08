@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     system_gpu->GetLcpSystemDescriptor()->BuildBiVector(mb_tmp);  // b_i   =   -c   = phi/h
     mb.MatrDec(mb_tmp);
   }
-  ChContactContainerParallel* container = (ChContactContainerParallel*)system_gpu->GetContactContainer();
+  ChSharedPtr<ChContactContainerParallel> container = system_gpu->GetContactContainer().DynamicCastTo<ChContactContainerParallel>();
 
   std::list<ChContactContainerParallel::ChContact_6_6*> m_list = container->GetContactList();
   ChTimer<real> timer;
