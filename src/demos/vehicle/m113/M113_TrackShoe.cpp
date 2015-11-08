@@ -53,7 +53,7 @@ M113_TrackShoe::M113_TrackShoe(VisualizationType vis_type) : ChSinglePinShoe("M1
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_TrackShoe::AddShoeContact(size_t index) {
+void M113_TrackShoe::AddShoeContact() {
     m_shoe->GetCollisionModel()->ClearModel();
     m_shoe->GetCollisionModel()->AddBox(0.055, 0.095, 0.03);
     m_shoe->GetCollisionModel()->AddBox(0.0142, 0.0055, 0.0375, ChVector<>(0.05, 0, 0.0375));
@@ -62,7 +62,7 @@ void M113_TrackShoe::AddShoeContact(size_t index) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_TrackShoe::AddShoeVisualization(size_t index) {
+void M113_TrackShoe::AddShoeVisualization() {
     switch (m_vis_type) {
         case PRIMITIVES: {
             ChSharedPtr<ChCylinderShape> rev_axis(new ChCylinderShape);
@@ -106,9 +106,9 @@ void M113_TrackShoe::AddShoeVisualization(size_t index) {
             m_shoe->AddAsset(box_pin);
 
             ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-            if (index == 0)
+            if (m_index == 0)
                 col->SetColor(ChColor(0.6f, 0.3f, 0.3f));
-            else if (index % 2 == 0)
+            else if (m_index % 2 == 0)
                 col->SetColor(ChColor(0.3f, 0.6f, 0.3f));
             else
                 col->SetColor(ChColor(0.3f, 0.3f, 0.6f));

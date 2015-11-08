@@ -57,10 +57,10 @@ class M113_TrackShoe : public chrono::vehicle::ChSinglePinShoe {
     virtual double GetCylinderRadius() const { return m_cyl_radius; }
 
     /// Add visualization of the track shoe.
-    virtual void AddShoeVisualization(size_t index) override;
+    virtual void AddShoeVisualization() override;
 
     /// Add contact geometry for the track shoe.
-    virtual void AddShoeContact(size_t index) override;
+    virtual void AddShoeContact() override;
 
   private:
     static const double m_shoe_height;

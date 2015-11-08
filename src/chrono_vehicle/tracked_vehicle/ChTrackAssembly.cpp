@@ -144,7 +144,8 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
     // Create track shoes around the sprocket.
     while (std::abs(angle) < CH_C_PI && index < num_shoes) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle), index);
+        m_shoes[index]->SetIndex(index);
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
         p1 = p2;
         angle += 2 * delta_angle;
         ++index;
@@ -163,7 +164,8 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
     // Create track shoes with constant orientation
     while (sign * (idler_pos.x - p2.x + 0.5 * shoe_pitch) > 0 && index < num_shoes) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle), index);
+        m_shoes[index]->SetIndex(index);
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
         p1 = p2;
         ++index;
     }
@@ -176,7 +178,8 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
 
     while (std::abs(angle) < CH_C_2PI && index < num_shoes) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle), index);
+        m_shoes[index]->SetIndex(index);
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
         p1 = p2;
         angle += 2 * delta_angle;
         ++index;
@@ -193,7 +196,8 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
     // Create track shoes with constant orientation
     while (sign * (p2.x - wheel_idler_pos.x) > 0 && index < num_shoes) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle), index);
+        m_shoes[index]->SetIndex(index);
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
         p1 = p2;
         ++index;
     }
@@ -205,7 +209,8 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
 
     while (sign * (p2.x - wheel_sprocket_pos.x) > 0 && index < num_shoes) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle), index);
+        m_shoes[index]->SetIndex(index);
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
         p1 = p2;
         ++index;
     }
@@ -216,7 +221,8 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
 
     if (num_left % 2 == 1) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle), index);
+        m_shoes[index]->SetIndex(index);
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
         p1 = p2;
         ++index;
         --num_left;
@@ -231,7 +237,8 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
         GetLog() << "Missing distance: " << gap - num_left * shoe_pitch << "\n\n";
         for (size_t i = index; i < num_shoes; i++) {
             p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
-            m_shoes[i]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle), i);
+            m_shoes[i]->SetIndex(i);
+            m_shoes[i]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
             p1 = p2;
         }
         return ccw;
@@ -248,7 +255,8 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
     angle = sign * (alpha - beta);
     for (size_t i = 0; i < num_left / 2; i++) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle), index);
+        m_shoes[index]->SetIndex(index);
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
         p1 = p2;
         ++index;
     }
@@ -257,7 +265,8 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
     angle = sign * (alpha + beta);
     for (size_t i = 0; i < num_left / 2; i++) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle), index);
+        m_shoes[index]->SetIndex(index);
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
         p1 = p2;
         ++index;
     }

@@ -64,6 +64,9 @@ class CH_VEHICLE_API ChTrackShoe : public ChShared {
     /// This quantity must agree with the pitch of the sprocket gear.
     virtual double GetPitch() const = 0;
 
+    /// Get the index of this track shoe within its containing track assembly.
+    size_t GetIndex() const { return m_index; }
+
     /// Set contact material properties.
     /// This function must be called before Initialize().
     void SetContactMaterial(float friction_coefficient,     ///< [in] coefficient of friction
@@ -78,19 +81,24 @@ class CH_VEHICLE_API ChTrackShoe : public ChShared {
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
+    /// All actual work is deferred to derived classes (subsystem templates) which
+    /// must create the bodies, joints, etc.
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation,     ///< [in] orientation relative to the chassis frame
-                            size_t index = 0                    ///< [in] index of this track shoe
+                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
                             ) = 0;
 
     /// Connect this track shoe to the specified neighbor.
-    /// This function must be called only after both track shoes have been initialized.
+    /// This function must be called only after all track shoes have been initialized.
     virtual void Connect(ChSharedPtr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
                          ) = 0;
 
   protected:
+    /// Set the index of this track shoe within its containing track assembly.
+    void SetIndex(size_t index) { m_index = index; }
+
     std::string m_name;          ///< name of the subsystem
+    size_t m_index;              ///< index of this track shoe within its containing track assembly
     ChSharedPtr<ChBody> m_shoe;  ///< handle to the shoe body
 
     float m_friction;       ///< coefficient of friction

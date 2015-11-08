@@ -43,8 +43,7 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     /// geometry for the track shoe body.
     virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation,     ///< [in] orientation relative to the chassis frame
-                            size_t index = 0                    ///< [in] index of this track shoe
+                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
                             ) override;
 
     /// Connect this track shoe to the specified neighbor.
@@ -71,12 +70,12 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     virtual const ChVector<>& GetShoeInertia() const = 0;
 
     /// Add visualization of the track shoe.
-    virtual void AddShoeVisualization(size_t index) = 0;
+    virtual void AddShoeVisualization() = 0;
 
     /// Add contact geometry for the track shoe.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
-    virtual void AddShoeContact(size_t index) = 0;
+    virtual void AddShoeContact() = 0;
 
     ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
 };

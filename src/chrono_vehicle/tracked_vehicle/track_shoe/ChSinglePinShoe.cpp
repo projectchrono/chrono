@@ -35,8 +35,7 @@ ChSinglePinShoe::ChSinglePinShoe(const std::string& name) : ChTrackShoe(name) {
 // -----------------------------------------------------------------------------
 void ChSinglePinShoe::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
                                  const ChVector<>& location,
-                                 const ChQuaternion<>& rotation,
-                                 size_t index) {
+                                 const ChQuaternion<>& rotation) {
     // Create the shoe body.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
@@ -50,10 +49,10 @@ void ChSinglePinShoe::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
     // Add contact geometry.
     m_shoe->SetCollide(true);
-    AddShoeContact(index);
+    AddShoeContact();
 
     // Add visualization of the track shoe.
-    AddShoeVisualization(index);
+    AddShoeVisualization();
 }
 
 // -----------------------------------------------------------------------------
