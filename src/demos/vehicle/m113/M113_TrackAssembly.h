@@ -21,7 +21,6 @@
 
 #include <string>
 
-#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace m113 {

@@ -47,9 +47,10 @@ namespace vehicle {
 ///
 class CH_VEHICLE_API ChTrackAssembly : public ChShared {
   public:
-    ChTrackAssembly(const std::string& name  ///< [in] name of the subsystem
+    ChTrackAssembly(const std::string& name,  ///< [in] name of the subsystem
+                    VehicleSide side          ///< [in] assembly on left/right vehicle side
                     )
-        : m_name(name) {}
+        : m_name(name), m_side(side) {}
 
     ~ChTrackAssembly() {}
 
@@ -59,8 +60,8 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
     /// Set the name identifier for this track assembly subsystem.
     void SetName(const std::string& name) { m_name = name; }
 
-    /// Construct a track assembly by mirroring the specified one.
-    ////virtual ChSharedPtr<ChTrackAssembly> Mirror(ChSharedPtr<ChTrackAssembly> source) = 0;
+    /// Return the vehicle side for this track assembly.
+    VehicleSide GetVehicleSide() const { return m_side; }
 
     /// Get the number of suspensions.
     size_t GetNumRoadWheelAssemblies() const { return m_suspensions.size(); }
@@ -132,6 +133,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChShared {
 
   protected:
     std::string m_name;                     ///< name of the subsystem
+    VehicleSide m_side;                     ///< assembly on left/right vehicle side
     ChSharedPtr<ChSprocket> m_sprocket;     ///< sprocket subsystem
     ChSharedPtr<ChIdler> m_idler;           ///< idler (and tensioner) subsystem
     ChSharedPtr<ChTrackBrake> m_brake;      ///< sprocket brake

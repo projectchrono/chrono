@@ -32,7 +32,7 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_TrackAssembly::M113_TrackAssembly(VehicleSide side, VisualizationType vis_type)
-    : ChTrackAssembly("") {
+    : ChTrackAssembly("", side) {
     size_t num_shoes;
     if (side == LEFT) {
         SetName("M113_TrackAssemblyLeft");
