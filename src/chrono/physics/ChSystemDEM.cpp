@@ -45,7 +45,7 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
     // when models are closer than the safety envelope, so set default envelope to 0
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
 
-    contact_container = new ChContactContainerDEM;
+    contact_container = ChSharedPtr<ChContactContainerDEM>(new ChContactContainerDEM);
     contact_container->SetSystem(this);
 
     m_minSlipVelocity = 1e-4; 
@@ -56,9 +56,7 @@ void ChSystemDEM::SetLcpSolverType(eCh_lcpSolver mval) {
 
     ChSystem::SetLcpSolverType(mval);
 
-    if (contact_container)
-        delete contact_container;
-    contact_container = new ChContactContainerDEM;
+    contact_container = ChSharedPtr<ChContactContainerDEM>(new ChContactContainerDEM);
     contact_container->SetSystem(this);
 }
 
@@ -69,8 +67,8 @@ void ChSystemDEM::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
 }
 */
 
-void ChSystemDEM::ChangeContactContainer(ChContactContainerBase* newcontainer) {
-    if (dynamic_cast<ChContactContainerDEM*>(newcontainer))
+void ChSystemDEM::ChangeContactContainer(ChSharedPtr<ChContactContainerBase>  newcontainer) {
+    if (newcontainer.DynamicCastTo<ChContactContainerDEM>())
         ChSystem::ChangeContactContainer(newcontainer);
 }
 

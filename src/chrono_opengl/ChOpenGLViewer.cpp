@@ -183,7 +183,7 @@ void ChOpenGLViewer::Render() {
       model_cylinder.clear();
       model_obj.clear();
       for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-        ChBody* abody = (ChBody*)physics_system->Get_bodylist()->at(i);
+    	ChSharedPtr<ChBody> abody = physics_system->Get_bodylist()->at(i);
         DrawObject(abody);
       }
       if (model_box.size() > 0) {
@@ -212,7 +212,7 @@ void ChOpenGLViewer::Render() {
       cloud_data.resize(physics_system->Get_bodylist()->size());
 #pragma omp parallel for
       for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-        ChBody* abody = (ChBody*)physics_system->Get_bodylist()->at(i);
+    	ChSharedPtr<ChBody> abody = physics_system->Get_bodylist()->at(i);
         ChVector<> pos = abody->GetPos();
         cloud_data[i] = glm::vec3(pos.x, pos.y, pos.z);
       }
@@ -244,7 +244,7 @@ void ChOpenGLViewer::Render() {
   fps = 1.0 / current_time;
 }
 
-void ChOpenGLViewer::DrawObject(ChBody* abody) {
+void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
   if (abody->GetAssets().size() == 0) {
     return;
   }

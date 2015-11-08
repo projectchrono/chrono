@@ -58,7 +58,7 @@ void apply_fan_force(ChSystem* msystem,       // contains all bodies
                      double adensity)         // density (heuristic)
 {
     for (unsigned int i = 0; i < msystem->Get_bodylist()->size(); i++) {
-        ChBody* abody = (*msystem->Get_bodylist())[i];
+        auto abody = (*msystem->Get_bodylist())[i];
 
         // Remember to reset 'user forces accumulators':
         abody->Empty_forces_accumulators();

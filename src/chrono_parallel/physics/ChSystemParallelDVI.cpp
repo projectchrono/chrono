@@ -133,7 +133,7 @@ void ChSystemParallelDVI::SolveSystem() {
 
   data_manager->system_timer.start("collision");
   collision_system->Run();
-  collision_system->ReportContacts(this->contact_container);
+  collision_system->ReportContacts(this->contact_container.get_ptr());
   data_manager->system_timer.stop("collision");
   data_manager->system_timer.start("lcp");
   ((ChLcpSolverParallel*)(LCP_solver_speed))->RunTimeStep();
@@ -144,7 +144,7 @@ void ChSystemParallelDVI::AssembleSystem() {
   Setup();
 
   collision_system->Run();
-  collision_system->ReportContacts(this->contact_container);
+  collision_system->ReportContacts(this->contact_container.get_ptr());
   ChSystem::Update();
   this->contact_container->BeginAddContact();
   chrono::collision::ChCollisionInfo icontact;
@@ -163,12 +163,12 @@ void ChSystemParallelDVI::AssembleSystem() {
   this->contact_container->EndAddContact();
 
   {
-    std::vector<ChLink*>::iterator iterlink = linklist.begin();
+    std::vector<ChSharedPtr<ChLink> >::iterator iterlink = linklist.begin();
     while (iterlink != linklist.end()) {
       (*iterlink)->ConstraintsBiReset();
       iterlink++;
     }
-    std::vector<ChBody*>::iterator ibody = bodylist.begin();
+    std::vector<ChSharedPtr<ChBody> >::iterator ibody = bodylist.begin();
     while (ibody != bodylist.end()) {
       (*ibody)->VariablesFbReset();
       ibody++;
@@ -192,7 +192,7 @@ void ChSystemParallelDVI::AssembleSystem() {
   for (int i = 0; i < bodylist.size(); i++) {
     bodylist[i]->InjectVariables(*this->LCP_descriptor);
   }
-  std::vector<ChLink*>::iterator it;
+  std::vector<ChSharedPtr<ChLink> >::iterator it;
   for (it = linklist.begin(); it != linklist.end(); it++) {
     (*it)->InjectConstraints(*this->LCP_descriptor);
   }

@@ -11,6 +11,7 @@
 
 ///////////////////////////////////////////////////
 //
+
 //   Demo code about
 //
 //     - using the assets system to create shapes
@@ -30,6 +31,7 @@
 ///////////////////////////////////////////////////
 
 #include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -267,13 +269,28 @@ int main(int argc, char* argv[]) {
     mspherepart->GetSphereGeometry().rad = 0.05;
     mparticles->AddAsset(mspherepart);
 
+    /*
             //  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
             // to 'show' all the assets that we added to the body!
             // OTHERWISE: use the application.AssetBind() function as at the end!
     ChSharedPtr<ChIrrNodeAsset> mirr_assetpart(new ChIrrNodeAsset);
     mirr_assetpart->Bind(mparticles, application);
     mparticles->AddAsset(mirr_assetpart);
+    */
 
+    ChVector<> displ(1,0.0,0);
+    std::vector< ChVector<> > mpoints;
+    mpoints.push_back( ChVector<>(0.8,0.0,0.0)+displ );
+    mpoints.push_back( ChVector<>(0.8,0.3,0.0)+displ );
+    mpoints.push_back( ChVector<>(0.8,0.3,0.3)+displ );
+    mpoints.push_back( ChVector<>(0.0,0.3,0.3)+displ );
+    mpoints.push_back( ChVector<>(0.0,0.0,0.3)+displ );
+    mpoints.push_back( ChVector<>(0.8,0.0,0.3)+displ );
+    ChSharedPtr<ChBodyEasyConvexHullAuxRef> mhull(new ChBodyEasyConvexHullAuxRef(mpoints,1000,true,true));
+    //mhull->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(2,0.3,0)));
+    //mhull->SetPos(ChVector<>(2,0.3,0));
+    mhull->Move(ChVector<>(2,0.3,0));
+    application.GetSystem()->Add(mhull);
 
     ////////////////////////
 

@@ -26,7 +26,7 @@ int main() {
         dynamics_system.AddBody(body);
     }
 
-    std::vector<ChBody*>* body_list = dynamics_system.Get_bodylist();
+    std::vector<ChSharedPtr<ChBody> >* body_list = dynamics_system.Get_bodylist();
 
     full.start();
 

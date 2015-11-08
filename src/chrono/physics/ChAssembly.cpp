@@ -927,18 +927,16 @@ void ChAssembly::Reference_LM_byID() {
 
 ChSharedPtr<ChMarker> ChAssembly::SearchMarker(int markID) {
     ChMarker* candidate = NULL;
-    ChMarker* res = NULL;
+    ChSharedPtr<ChMarker> res;
 
     for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChBody* Bpointer = bodylist[ip];
 
-        res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::const_iterator>(
+        res = ChContainerSearchFromID<ChSharedPtr<ChMarker>, std::vector<ChSharedPtr<ChMarker>>::const_iterator>(
             markID, Bpointer->GetMarkerList().begin(), Bpointer->GetMarkerList().end());
-        if (res != NULL) {
-            res->AddRef();  // in that container pointers were not stored as ChSharedPtr, so this is needed..
-            return (ChSharedPtr<ChMarker>(
-                res));  // ..here I am not getting a new() data, but a reference to something created elsewhere
+        if (res) {
+            return res;
         }
     }
 

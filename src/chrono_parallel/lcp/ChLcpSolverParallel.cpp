@@ -23,9 +23,9 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
   bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
   const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
 
-  const std::vector<ChBody*>* body_list = data_manager->body_list;
-  const std::vector<ChLink*>* link_list = data_manager->link_list;
-  const std::vector<ChPhysicsItem*>* other_physics_list = data_manager->other_physics_list;
+  std::vector<ChSharedPtr<ChBody> >* body_list = data_manager->body_list;
+  std::vector<ChSharedPtr<ChLink> >* link_list = data_manager->link_list;
+  std::vector<ChSharedPtr<ChPhysicsItem> >* other_physics_list = data_manager->other_physics_list;
 
   const DynamicVector<real>& hf = data_manager->host_data.hf;
   const DynamicVector<real>& v = data_manager->host_data.v;

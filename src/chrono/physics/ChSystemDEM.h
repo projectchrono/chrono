@@ -60,7 +60,7 @@ class ChApi ChSystemDEM : public ChSystem {
 
     virtual void SetLcpSolverType(eCh_lcpSolver mval);
     // virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
-    virtual void ChangeContactContainer(ChContactContainerBase* newcontainer);
+    virtual void ChangeContactContainer(ChSharedPtr<ChContactContainerBase>  newcontainer);
 
     bool UseMaterialProperties() const { return m_use_mat_props; }
     bool UseContactHistory() const { return m_use_history; }
