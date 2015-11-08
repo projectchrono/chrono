@@ -859,7 +859,7 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     /// collision detection step (ex. all the times that ComputeCollisions() is automatically
     /// called by the integration method). For example some other collision engine could
     /// add further contacts using this callback.
-    void SetCustomComputeCollisionCallback(ChCustomComputeCollisionCallback* mcallb) { collision_callback = mcallb; };
+    void SetCustomComputeCollisionCallback(ChCustomComputeCollisionCallback* mcallb) { collision_callbacks.push_back(mcallb); };
 
     /// Class to be inherited by user and to use in SetCustomCollisionPointCallback()
     class ChApi ChCustomCollisionPointCallback {
@@ -1130,7 +1130,7 @@ class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy {
     // The collision engine, to compute and store contact manifolds
     collision::ChCollisionSystem* collision_system;
 
-    ChCustomComputeCollisionCallback* collision_callback;
+    std::vector<ChCustomComputeCollisionCallback*> collision_callbacks;
 
   public:
     ChCustomCollisionPointCallback* collisionpoint_callback;
