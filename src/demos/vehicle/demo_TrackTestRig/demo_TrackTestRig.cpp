@@ -21,7 +21,7 @@
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
-
+#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
 
@@ -37,7 +37,7 @@ using namespace m113;
 double post_limit = 0.2;
 
 // Simulation step size
-double step_size = 3e-4;
+double step_size = 1e-2;
 double render_step_size = 1.0 / 50;  // Time interval between two render frames
 
 // =============================================================================
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 
     // Create and initialize the testing mechanism.
     ChVector<> sprocket_loc(0, 1, 0);
-    ChVector<> idler_loc(-3.93, 1, -0.15);  //// Original x value: -3.97
+    ChVector<> idler_loc(-3.92, 1, -0.12);  //// Original x value: -3.97
     std::vector<ChVector<> > susp_locs(5);
     susp_locs[0] = ChVector<>(-0.65, 1, -0.215);
     susp_locs[1] = ChVector<>(-1.3175, 1, -0.215);
@@ -76,16 +76,18 @@ int main(int argc, char* argv[]) {
 
     rig.Initialize(ChCoordsys<>());
 
+    ////rig.SetCollide(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT);
+
     // Create the vehicle Irrlicht application.
-    ////ChVector<> target_point = rig.GetPostPosition();
+    ChVector<> target_point = rig.GetPostPosition();
     ////ChVector<> target_point = idler_loc;
-    ChVector<> target_point = sprocket_loc;
+    ////ChVector<> target_point = sprocket_loc;
 
     ChVehicleIrrApp app(&rig, NULL, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(target_point, 3.0, 1.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
+    app.SetChaseCameraPosition(target_point + ChVector<>(0, 4, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();

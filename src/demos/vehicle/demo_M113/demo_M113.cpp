@@ -19,8 +19,8 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "m113/M113_Vehicle.h"
@@ -49,7 +49,7 @@ double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 1e-2;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -65,7 +65,7 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Create the M113 vehicle.
-    M113_Vehicle vehicle(true, PRIMITIVES, PRIMITIVES, ChMaterialSurfaceBase::DVI);
+    M113_Vehicle vehicle(false, PRIMITIVES, PRIMITIVES, ChMaterialSurfaceBase::DVI);
 
     //vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
@@ -97,8 +97,8 @@ int main(int argc, char* argv[]) {
     ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Vehicle Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 3.0, 1.0);
-    app.SetChaseCameraPosition(vehicle.GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos() + ChVector<>(0, 1, 0));
+    app.SetChaseCamera(trackPoint, 6.0, 0.5);
+    app.SetChaseCameraPosition(vehicle.GetChassisPos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();

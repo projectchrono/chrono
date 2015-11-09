@@ -34,7 +34,7 @@ const double M113_Suspension::m_arm_radius = 0.03;
 const double M113_Suspension::m_torsion_a0 = 0;
 const double M113_Suspension::m_torsion_k = 2.5e4;
 const double M113_Suspension::m_torsion_c = 5e2;
-const double M113_Suspension::m_torsion_t = 1.5e3;
+const double M113_Suspension::m_torsion_t = -1e4;
 
 const double M113_Suspension::m_shock_c = 1e2;
 

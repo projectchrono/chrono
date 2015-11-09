@@ -41,8 +41,8 @@ const double M113_Idler::m_carrier_mass = 50;
 const ChVector<> M113_Idler::m_carrier_inertia(2, 2, 2);
 const double M113_Idler::m_carrier_radius = 0.02;
 
-const double M113_Idler::m_tensioner_l0 = 0.6;
-const double M113_Idler::m_tensioner_f = 1e4;
+const double M113_Idler::m_tensioner_l0 = 0.75;
+const double M113_Idler::m_tensioner_f = 2e4;
 const double M113_Idler::m_tensioner_k = 1e6;
 const double M113_Idler::m_tensioner_c = 1.4e4;
 
@@ -73,7 +73,7 @@ class M113_TensionerForce : public ChSpringForceCallback {
 // -----------------------------------------------------------------------------
 M113_Idler::M113_Idler(const std::string& name, VisualizationType vis_type)
     : ChDoubleIdler(name), m_vis_type(vis_type) {
-    SetContactMaterial(0.7f, 0.1f, 1e7f, 0.3f);
+    SetContactMaterial(0.7f, 0.1f, 1e8f, 0.3f);
     m_tensionerForceCB = new M113_TensionerForce(m_tensioner_k, m_tensioner_c, m_tensioner_f, m_tensioner_l0);
 }
 

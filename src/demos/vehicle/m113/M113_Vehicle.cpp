@@ -105,7 +105,7 @@ void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
 
     // Initialize the left track assembly.
     ChVector<> sprocket_loc(0, track_offset, 0);
-    ChVector<> idler_loc(-3.93, track_offset, -0.15);  //// Original x value: -3.97
+    ChVector<> idler_loc(-3.92, track_offset, -0.12);  //// Original x value: -3.97
     std::vector<ChVector<> > susp_locs(5);
     susp_locs[0] = ChVector<>(-0.655, track_offset, -0.215);
     susp_locs[1] = ChVector<>(-1.322, track_offset, -0.215);

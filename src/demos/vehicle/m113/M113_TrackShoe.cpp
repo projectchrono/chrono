@@ -48,7 +48,7 @@ const std::string M113_TrackShoe::m_meshFile = vehicle::GetDataFile("M113/TrackS
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_TrackShoe::M113_TrackShoe(VisualizationType vis_type) : ChSinglePinShoe("M113_TrackShoe"), m_vis_type(vis_type) {
-    SetContactMaterial(0.7f, 0.1f, 1e7f, 0.3f);
+    SetContactMaterial(0.4f, 0.1f, 1e8f, 0.3f);
 }
 
 // -----------------------------------------------------------------------------
