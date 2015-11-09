@@ -175,17 +175,22 @@ void ArcSprocketContactCB::CheckCircleProfile(ChSharedPtr<ChBody> shoe, const Ch
     double dist2 = delta.Length2();
 
     // If the two centers (circle and arc) are separated by less than the difference
-    // of their adjusted radii, there is no contact. Also, ignore contact if the 
-    // distance between the centers is more than the arc radius.
-    if (dist2 <= m_Rhat_diff * m_Rhat_diff || dist2 >= m_gear_R * m_gear_R)
+    // of their adjusted radii, there is no contact.
+    if (dist2 <= m_Rhat_diff * m_Rhat_diff)
         return;
+
+    /*
+    // Ignore contact if the distance between the centers is more than the arc radius.
+    if (dist2 >= m_gear_R * m_gear_R)
+        return;
+    */
 
     // Generate contact information (still in the sprocket frame)
     double dist = std::sqrt(dist2);
     ChVector<> normal = delta / dist;
     ChVector<> pt_gear = center - m_gear_R * normal;
     ChVector<> pt_shoe = loc - m_shoe_R * normal;
-    
+
     // Ignore contact if the contact point on the gear is above the outer radius
     if (pt_gear.x * pt_gear.x + pt_gear.z * pt_gear.z > m_gear_RO * m_gear_RO)
         return;
