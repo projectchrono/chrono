@@ -166,25 +166,25 @@ class ChApi ChObj : public virtual ChShared {
 // Functions to manipulate STL containers of ChObj objects
 
 template <class T, class Iterator>
-T* ChContainerSearchFromName(const char* m_name, Iterator from, Iterator to) {
+T ChContainerSearchFromName(const char* m_name, Iterator from, Iterator to) {
     Iterator iter = from;
     while (iter != to) {
         if (!strcmp(m_name, (*iter)->GetName()))
             return (*iter);
         iter++;
     }
-    return 0;
+    return T(0);
 }
 
 template <class T, class Iterator>
-T* ChContainerSearchFromID(int myID, Iterator from, Iterator to) {
+T ChContainerSearchFromID(int myID, Iterator from, Iterator to) {
     Iterator iter = from;
     while (iter != to) {
         if (myID == (*iter)->GetIdentifier())
             return (*iter);
         iter++;
     }
-    return 0;
+    return T(0);
 }
 
 }  // END_OF_NAMESPACE____

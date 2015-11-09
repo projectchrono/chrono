@@ -210,9 +210,9 @@ class CH_PARALLEL_API ChParallelDataManager {
 
     // These pointers are used to compute the mass matrix instead of filling a
     // a temporary data structure
-    std::vector<ChBody*>* body_list;                  // List of bodies
-    std::vector<ChLink*>* link_list;                  // List of bilaterals
-    std::vector<ChPhysicsItem*>* other_physics_list;  // List to other items
+    std::vector<ChSharedPtr<ChBody> >* body_list;                  // List of bodies
+    std::vector<ChSharedPtr<ChLink> >* link_list;                  // List of bilaterals
+    std::vector<ChSharedPtr<ChPhysicsItem> >* other_physics_list;  // List to other items
 
     // Indexing variables
     uint num_rigid_bodies;          // The number of rigid bodies in a system

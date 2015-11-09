@@ -253,12 +253,12 @@ void ChIrrGuiTrack::DrawAll(bool draw_normal) {
 }
 
 void ChIrrGuiTrack::renderSprings() {
-    std::vector<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
+    auto ilink = m_app.GetSystem()->Get_linklist()->begin();
     for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
-        if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>(*ilink)) {
+        if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get_ptr())) {
             ChIrrTools::drawSpring(m_app.GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
                                    video::SColor(255, 150, 20, 20), 80, 15, true);
-        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>(*ilink)) {
+        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get_ptr())) {
             ChIrrTools::drawSpring(m_app.GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
                                    video::SColor(255, 150, 20, 20), 80, 15, true);
         }
@@ -266,12 +266,12 @@ void ChIrrGuiTrack::renderSprings() {
 }
 
 void ChIrrGuiTrack::renderLinks() {
-    std::vector<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
+    auto ilink = m_app.GetSystem()->Get_linklist()->begin();
     for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
-        if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>(*ilink)) {
+        if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get_ptr())) {
             ChIrrTools::drawSegment(m_app.GetVideoDriver(), link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
                                     video::SColor(255, 0, 20, 0), true);
-        } else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>(*ilink)) {
+        } else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>((*ilink).get_ptr())) {
             ChIrrTools::drawSegment(m_app.GetVideoDriver(), link->GetPoint1Abs(), link->GetPoint2Abs(),
                                     video::SColor(255, 180, 0, 0), true);
         }

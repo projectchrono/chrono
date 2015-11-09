@@ -233,17 +233,17 @@ inline ChSmartPtr<Tout> static_cast_chshared(const ChSmartPtr<Tin>& __r) {
 // Comparisons operators are required for using the shared pointer
 // class in an STL container
 
-template <typename T>
-bool operator==(const ChSmartPtr<T>& left, const ChSmartPtr<T>& right) {
+template <typename T, typename R>
+bool operator==(const ChSmartPtr<T>& left, const ChSmartPtr<R>& right) {
     if (left.get_ptr() == right.get_ptr())
         return true;
-    return *left == *right;
+    return false;
 }
-template <typename T>
-bool operator<(const ChSmartPtr<T>& left, const ChSmartPtr<T>& right) {
-    if (left.get_ptr() == right.get_ptr())
-        return false;
-    return *left < *right;
+template <typename T, typename R>
+bool operator<(const ChSmartPtr<T>& left, const ChSmartPtr<R>& right) {
+    if (left.get_ptr() < right.get_ptr())
+        return true;
+    return false;
 }
 
 // Trick to avoid problems as in  http://www.artima.com/cppsource/safebool2.html
@@ -453,17 +453,17 @@ inline ChSharedPtr<Tout> static_cast_chshared(const ChSharedPtr<Tin>& __r) {
 // Comparisons operators are required for using the shared pointer
 // class in an STL container
 
-template <typename T>
-bool operator==(const ChSharedPtr<T>& left, const ChSharedPtr<T>& right) {
+template <typename T,typename R>
+bool operator==(const ChSharedPtr<T>& left, const ChSharedPtr<R>& right) {
     if (left.get_ptr() == right.get_ptr())
         return true;
-    return *left == *right;
+    return false;
 }
-template <typename T>
-bool operator<(const ChSharedPtr<T>& left, const ChSharedPtr<T>& right) {
-    if (left.get_ptr() == right.get_ptr())
-        return false;
-    return *left < *right;
+template <typename T,typename R>
+bool operator<(const ChSharedPtr<T>& left, const ChSharedPtr<R>& right) {
+    if (left.get_ptr() < right.get_ptr())
+        return true;
+    return false;
 }
 
 // Trick to avoid problems as in  http://www.artima.com/cppsource/safebool2.html
