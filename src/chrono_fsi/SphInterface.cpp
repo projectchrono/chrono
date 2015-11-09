@@ -118,25 +118,27 @@ void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
   }
 }
 //------------------------------------------------------------------------------------
+// Arman : Delete later
 void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
                    int& startIndexSph,
                    const NumberOfObjects& numObjects) {
   // openmp does not work here
-  std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
 #pragma omp parallel for
   for (int i = 0; i < numObjects.numFluidMarkers; i++) {
     char forceTag[] = "hydrodynamics_force";
-    chrono::ChSharedPtr<chrono::ChForce> hydroForce = (*(bodyIter + i))->SearchForce(forceTag);
+    auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
+    chrono::ChSharedPtr<chrono::ChForce> hydroForce = mBody->SearchForce(forceTag);
     if (hydroForce.IsNull()) {
       hydroForce = chrono::ChSharedPtr<chrono::ChForce>(new chrono::ChForce);
       hydroForce->SetMode(FTYPE_FORCE);  // no need for this. It is the default option.
-      (*(bodyIter + i))->AddForce(hydroForce);
+      mBody->AddForce(hydroForce);
       // ** or: hydroForce = ChSharedPtr<ChForce>(new ChForce());
       hydroForce->SetName(forceTag);
     }
   }
 }
 //------------------------------------------------------------------------------------
+// Arman : Delete later
 void UpdateSphDataInChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                              const thrust::host_vector<Real3>& posRadH,
                              const thrust::host_vector<Real4>& velMasH,
@@ -149,23 +151,23 @@ void UpdateSphDataInChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
     chrono::ChVector<> pos = ConvertRealToChVector(p3);
     chrono::ChVector<> vel = ConvertRealToChVector(vM4);
 
-    int chSystemBodyId = startIndexSph + i;
-    std::vector<chrono::ChBody*>::iterator ibody = mphysicalSystem.Get_bodylist()->begin() + chSystemBodyId;
-    (*ibody)->SetPos(pos);
-    (*ibody)->SetPos_dt(vel);
+    auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
+    mBody->SetPos(pos);
+    mBody->SetPos_dt(vel);
   }
 }
 //------------------------------------------------------------------------------------
+// Arman : Delete later
 void AddChSystemForcesToSphForces(thrust::host_vector<Real4>& derivVelRhoChronoH,
                                   const thrust::host_vector<Real4>& velMasH2,
                                   chrono::ChSystemParallelDVI& mphysicalSystem,
                                   const NumberOfObjects& numObjects,
                                   int startIndexSph,
                                   Real dT) {
-  std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
 #pragma omp parallel for
   for (int i = 0; i < numObjects.numFluidMarkers; i++) {
-    chrono::ChVector<> v = ((chrono::ChBody*)(*(bodyIter + i)))->GetPos_dt();
+	    auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
+    chrono::ChVector<> v = mBody->GetPos_dt();
     Real3 a3 = (mR3(v.x, v.y, v.z) - mR3(velMasH2[i])) / dT;  // f = m * a
     derivVelRhoChronoH[i] += mR4(a3, 0);                      // note, gravity force is also coming from rigid system
   }
@@ -223,11 +225,11 @@ void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
                             const thrust::device_vector<Real4>& derivVelRhoD,
                             const thrust::host_vector<short int>& numContactsOnAllSph,
                             Real sphMass) {
-  std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
 #pragma omp parallel for
   for (int i = 0; i < numObjects.numFluidMarkers; i++) {
     char forceTag[] = "hydrodynamics_force";
-    chrono::ChSharedPtr<chrono::ChForce> hydroForce = (*(bodyIter + i))->SearchForce(forceTag);
+    auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
+    chrono::ChSharedPtr<chrono::ChForce> hydroForce = mBody->SearchForce(forceTag);
     //		if (!hydroForce.IsNull())
     //			hydroForce->SetMforce(0);
     //
@@ -254,14 +256,14 @@ void CopyCustomChSystemPosVel2HostThrust(thrust::host_vector<Real3>& posRadH,
                                          const NumberOfObjects& numObjects,
                                          int startIndexSph,
                                          const thrust::host_vector<short int>& numContactsOnAllSph) {
-  std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
 #pragma omp parallel for
   for (int i = 0; i < numObjects.numFluidMarkers; i++) {
     if (numContactsOnAllSph[i] == 0)
       continue;
-    chrono::ChVector<> pos = (*(bodyIter + i))->GetPos();
+    auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
+    chrono::ChVector<> pos = mBody->GetPos();
     posRadH[i] = mR3(pos.x, pos.y, pos.z);
-    chrono::ChVector<> vel = (*(bodyIter + i))->GetPos_dt();
+    chrono::ChVector<> vel = mBody->GetPos_dt();
     Real mass = velMasH[i].w;
     velMasH[i] = mR4(vel.x, vel.y, vel.z, mass);
   }
@@ -310,10 +312,10 @@ void CopySys2D(thrust::device_vector<Real3>& posRadD,
                const NumberOfObjects& numObjects,
                int startIndexSph) {
   thrust::host_vector<Real3> posRadH(numObjects.numFluidMarkers);
-  std::vector<chrono::ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
 #pragma omp parallel for
   for (int i = 0; i < numObjects.numFluidMarkers; i++) {
-    chrono::ChVector<> p = ((chrono::ChBody*)(*(bodyIter + i)))->GetPos();
+	    auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
+    chrono::ChVector<> p = mBody->GetPos();
     posRadH[i] += mR3(p.x, p.y, p.z);
   }
   thrust::copy(posRadH.begin(), posRadH.end(), posRadD.begin());
@@ -342,7 +344,6 @@ void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSy
                                         const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
                                         const std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies) {
   int numRigids = FSI_Bodies.size();
-  std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < numRigids; i++) {
     chrono::ChSharedPtr<chrono::ChBody> bodyPtr = FSI_Bodies[i];
@@ -367,14 +368,13 @@ void Copy_External_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
   if (pos_ChSystemBackupH.size() != numBodies) {
     printf("\n\n\n\n Error!!! Size of the external data does not match the ChSystem \n\n\n\n");
   }
-  std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < numBodies; i++) {
-    chrono::ChBody* bodyPtr = *(myIter + i);
-    bodyPtr->SetPos(ConvertRealToChVector(pos_ChSystemBackupH[i]));
-    bodyPtr->SetRot(ConvertToChQuaternion(quat_ChSystemBackupH[i]));
-    bodyPtr->SetPos_dt(ConvertRealToChVector(vel_ChSystemBackupH[i]));
-    bodyPtr->SetWvel_par(ConvertRealToChVector(omegaLRF_ChSystemBackupH[i]));
+	    auto mBody = mphysicalSystem.Get_bodylist()->at(i);
+    mBody->SetPos(ConvertRealToChVector(pos_ChSystemBackupH[i]));
+    mBody->SetRot(ConvertToChQuaternion(quat_ChSystemBackupH[i]));
+    mBody->SetPos_dt(ConvertRealToChVector(vel_ChSystemBackupH[i]));
+    mBody->SetWvel_par(ConvertRealToChVector(omegaLRF_ChSystemBackupH[i]));
   }
 }
 //------------------------------------------------------------------------------------
@@ -388,14 +388,13 @@ void Copy_ChSystem_to_External(thrust::host_vector<Real3>& pos_ChSystemBackupH,
   quat_ChSystemBackupH.resize(numBodies);
   vel_ChSystemBackupH.resize(numBodies);
   omegaLRF_ChSystemBackupH.resize(numBodies);
-  std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < numBodies; i++) {
-    chrono::ChBody* bodyPtr = *(myIter + i);
-    pos_ChSystemBackupH[i] = ConvertChVectorToR3(bodyPtr->GetPos());
-    quat_ChSystemBackupH[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
-    vel_ChSystemBackupH[i] = ConvertChVectorToR3(bodyPtr->GetPos_dt());
-    omegaLRF_ChSystemBackupH[i] = ConvertChVectorToR3(bodyPtr->GetWvel_par());
+	    auto mBody = mphysicalSystem.Get_bodylist()->at(i);
+    pos_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetPos());
+    quat_ChSystemBackupH[i] = ConvertChQuaternionToR4(mBody->GetRot());
+    vel_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetPos_dt());
+    omegaLRF_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetWvel_par());
   }
 }
 
@@ -418,7 +417,6 @@ void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRig
   if (posRigid_fsiBodies_D.size() != num_fsiBodies_Rigids || posRigid_fsiBodies_H.size() != num_fsiBodies_Rigids) {
     printf("\n\n\n\n Error!!! number of fsi bodies that are tracked does not match the array size \n\n\n\n");
   }
-  std::vector<chrono::ChBody*>::iterator myIter = mphysicalSystem.Get_bodylist()->begin();
 #pragma omp parallel for
   for (int i = 0; i < num_fsiBodies_Rigids; i++) {
     chrono::ChSharedPtr<chrono::ChBody> bodyPtr = FSI_Bodies[i];

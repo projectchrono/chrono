@@ -158,11 +158,9 @@ void LoadBCE_fromFile(
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector< ::int3>& referenceArray,
-    thrust::host_vector<int>& FSI_Bodies_Index_H,
     NumberOfObjects& numObjects,
     Real sphMarkerMass,
-    std::string fileName,
-    int bidInChSystem) {
+    std::string fileName) {
 
 }
 //**********************************************

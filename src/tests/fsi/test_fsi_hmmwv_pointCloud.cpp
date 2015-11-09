@@ -364,19 +364,21 @@ void CreateVehicleBCE(
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector< ::int3>& referenceArray,
-    thrust::host_vector<int>& FSI_Bodies_Index_H,
+    std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
+    const ChSystemParallelDVI& mphysicalSystem,
     NumberOfObjects& numObjects,
     Real sphMarkerMass) {
-    int chassisID = 1;  // mVehicle->
+    //----------------------------
+    //  chassis
+    //----------------------------
     LoadBCE_fromFile(posRadH,
                      velMasH,
                      rhoPresMuH,
                      referenceArray,
-                     FSI_Bodies_Index_H,
                      numObjects,
                      sphMarkerMass,
-                     "ChassisBCE.csv",
-                     chassisID);
+                     "ChassisBCE.csv");
+    FSI_Bodies.push_back(mVehicle->GetVehicle()->GetChassis());
 }
 // =============================================================================
 
