@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     susp_locs[3] = ChVector<>(-2.6525, 1, -0.215);
     susp_locs[4] = ChVector<>(-3.32, 1, -0.215);
 
-    ChTrackTestRig rig(track_assembly, sprocket_loc, idler_loc, susp_locs, ChMaterialSurfaceBase::DEM);
+    ChTrackTestRig rig(track_assembly, sprocket_loc, idler_loc, susp_locs, ChMaterialSurfaceBase::DVI);
     //rig.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
     rig.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
     rig.GetSystem()->SetIterLCPmaxItersSpeed(150);
@@ -77,9 +77,9 @@ int main(int argc, char* argv[]) {
     rig.Initialize(ChCoordsys<>());
 
     // Create the vehicle Irrlicht application.
-    ChVector<> target_point = rig.GetPostPosition();
+    ////ChVector<> target_point = rig.GetPostPosition();
     ////ChVector<> target_point = idler_loc;
-    ////ChVector<> target_point = sprocket_loc;
+    ChVector<> target_point = sprocket_loc;
 
     ChVehicleIrrApp app(&rig, NULL, L"Suspension Test Rig");
     app.SetSkyBox();

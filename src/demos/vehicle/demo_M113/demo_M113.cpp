@@ -55,7 +55,7 @@ double step_size = 1e-3;
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(-2.0, 0.0, 0.5);
+ChVector<> trackPoint(0.0, 0.0, 0.0);
 
 // =============================================================================
 
@@ -65,7 +65,7 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Create the M113 vehicle.
-    M113_Vehicle vehicle(true, PRIMITIVES, PRIMITIVES, ChMaterialSurfaceBase::DEM);
+    M113_Vehicle vehicle(true, PRIMITIVES, PRIMITIVES, ChMaterialSurfaceBase::DVI);
 
     //vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 3.0, 1.0);
-    ////app.SetChaseCameraPosition(trackPoint + ChVector<>(0, 3, 0));
+    app.SetChaseCameraPosition(vehicle.GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos() + ChVector<>(0, 1, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
