@@ -30,7 +30,6 @@
 #include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {

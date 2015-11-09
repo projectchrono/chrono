@@ -31,20 +31,6 @@
 namespace chrono {
 namespace vehicle {
 
-namespace TrackCollide {
-enum Enum {
-    NONE = 0,
-    SPROCKET_LEFT = 1 << 0,
-    SPROCKET_RIGHT = 1 << 1,
-    IDLER_LEFT = 1 << 2,
-    IDLER_RIGHT = 1 << 3,
-    WHEELS_LEFT = 1 << 4,
-    WHEELS_RIGHT = 1 << 5,
-    SHOES_LEFT = 1 << 6,
-    SHOES_RIGHT = 1 << 7
-};
-}
-
 ///
 /// Base class for chrono tracked vehicle systems.
 /// This class provides the interface between the vehicle system and other

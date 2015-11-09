@@ -300,14 +300,15 @@ set(CV_TV_BASE_FILES
     tracked_vehicle/ChSprocket.cpp
     tracked_vehicle/ChTrackAssembly.h
     tracked_vehicle/ChTrackAssembly.cpp
-	tracked_vehicle/ChTrackBrake.h
-	tracked_vehicle/ChTrackBrake.cpp
+    tracked_vehicle/ChTrackBrake.h
+    tracked_vehicle/ChTrackBrake.cpp
     tracked_vehicle/ChTrackDriveline.h
     tracked_vehicle/ChTrackDriveline.cpp
     tracked_vehicle/ChTrackedVehicle.h
     tracked_vehicle/ChTrackedVehicle.cpp
     tracked_vehicle/ChTrackShoe.h
     tracked_vehicle/ChTrackShoe.cpp
+    tracked_vehicle/ChTrackSubsysDefs.h
 )
 source_group("tracked_vehicle\\base" FILES ${CV_TV_BASE_FILES})
 

@@ -117,8 +117,8 @@ bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
     double shoe_pitch = m_shoes[0]->GetPitch();
     double shoe_height = m_shoes[0]->GetHeight();
     double sprocket_radius = m_sprocket->GetAssemblyRadius();
-    double idler_radius = m_idler->GetWheelRadius() + 1.0 * shoe_height;
-    double wheel_radius = m_suspensions[0]->GetWheelRadius() + 0.9 * shoe_height;
+    double idler_radius = m_idler->GetWheelRadius() + 0.9 * shoe_height;
+    double wheel_radius = m_suspensions[0]->GetWheelRadius() + 0.95 * shoe_height;
 
     // Decide whether we wrap counter-clockwise (sprocket in front of idler) or
     // clockwise (sprocket behind idler).

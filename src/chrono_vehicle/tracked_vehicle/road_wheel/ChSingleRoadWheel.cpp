@@ -21,6 +21,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
+#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/road_wheel/ChSingleRoadWheel.h"
 
 namespace chrono {
@@ -44,6 +45,9 @@ void ChSingleRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     double width = GetWheelWidth();
 
     m_wheel->SetCollide(true);
+
+    m_wheel->GetCollisionModel()->SetFamily(TrackCollisionFamily::WHEELS);
+    m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackCollisionFamily::IDLERS);
 
     m_wheel->GetCollisionModel()->ClearModel();
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2);
