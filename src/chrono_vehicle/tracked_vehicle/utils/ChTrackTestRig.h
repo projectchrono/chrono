@@ -30,6 +30,7 @@
 #include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
@@ -88,6 +89,12 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Initialize this chassis at the specified global location and orientation.
     virtual void Initialize(const ChCoordsys<>& chassisPos  ///< [in] initial global position and orientation
                             ) override;
+
+    /// Set collision flags for the various subsystems.
+    /// By default, collision is enabled for sprocket, idler, road wheels, and
+    /// track shoes. To override these default settings, this function must be
+    /// called after the call to Initialize().
+    void SetCollide(int flags);
 
     /// Update the state at the current time.
     /// steering between -1 and +1, and no force need be applied if using external actuation
