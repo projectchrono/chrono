@@ -521,11 +521,13 @@ void CreateMbdPhysicalSystemObjects(
         // according to the specified type of tire/wheel.
         switch (wheel_type) {
             case CYLINDRICAL: {
-                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
+                mVehicle =
+                    new vehicle::ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl, simplepowertrain_file);
                 tire_cb = new MyCylindricalTire();
             } break;
             case LUGGED: {
-                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
+                mVehicle =
+                    new vehicle::ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug, simplepowertrain_file);
                 tire_cb = new MyLuggedTire();
             } break;
         }
@@ -533,31 +535,31 @@ void CreateMbdPhysicalSystemObjects(
         // Set the callback object for chassis.
         switch (chassis_type) {
             case CBOX: {
-                chassis_cb = new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5,
-                            .4));
-                            ChVector<> boxSize(1, .5, .2);
-                            ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
-                            mVehicle->SetChassisContactCallback(chassis_cb);
+                chassis_cb =
+                    new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+                ChVector<> boxSize(1, .5, .2);
+                ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
+                mVehicle->SetChassisContactCallback(chassis_cb);
             } break;
 
             case CSPHERE: {
-                chassis_cb = new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
-                            .5, .4));
-                            Real radius = 1;
-                            ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
-                            mVehicle->SetChassisContactCallback(chassis_cb);
+                chassis_cb =
+                    new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+                Real radius = 1;
+                ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
+                mVehicle->SetChassisContactCallback(chassis_cb);
             } break;
 
             case C_SIMPLE_CONVEX_MESH: {
-                chassis_cb = new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
-                            .5, .4));
-                            mVehicle->SetChassisContactCallback(chassis_cb);
+                chassis_cb =
+                    new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+                mVehicle->SetChassisContactCallback(chassis_cb);
             } break;
 
             case C_SIMPLE_TRI_MESH: {
-                chassis_cb = new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
-                            .5, .4));
-                            mVehicle->SetChassisContactCallback(chassis_cb);
+                chassis_cb =
+                    new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5, .4));
+                mVehicle->SetChassisContactCallback(chassis_cb);
             } break;
         }
 
