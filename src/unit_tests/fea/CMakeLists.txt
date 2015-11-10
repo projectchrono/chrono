@@ -5,10 +5,10 @@ SET(TESTS
     test_ANCFShell_Iso
     test_ANCFShell_Ort
     test_ANCFShell_OrtGrav
-)
-
+    test_ANCFShell_Iso_Pressure
+    test_ANCFShell_Iso_Joint
+    test_EASBrickIso)
 MESSAGE(STATUS "Unit test programs for FEA module...")
-
 # A hack to set the working directory in which to execute the CTest
 # runs.  This is needed for tests that need to access the Chrono data
 # directory (since we use a relative path to it)
