@@ -11,9 +11,7 @@
 // =============================================================================
 // Authors: Bryan Peterson, Antonio Recuero
 // =============================================================================
-//
 // Brick element with 8 nodes (with EAS)
-//
 // =============================================================================
 
 #include "chrono/core/ChException.h"
@@ -29,9 +27,7 @@ namespace fea {
 ChElementBrick::ChElementBrick() {
     m_nodes.resize(8);
 }
-
 // -----------------------------------------------------------------------------
-
 void ChElementBrick::SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
                               ChSharedPtr<ChNodeFEAxyz> nodeB,
                               ChSharedPtr<ChNodeFEAxyz> nodeC,
@@ -230,7 +226,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
                 element->Basis_M(M, x, y, z);  // EAS
 
-                int flag_Mooney = 1;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
+                int flag_Mooney = 0;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
 
                 if (flag_Mooney == 0) {  // 0 means use linear material
                     double DD = (*E) * (1.0 - (*v)) / ((1.0 + (*v)) * (1.0 - 2.0 * (*v)));
@@ -692,7 +688,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         previous_alpha = m_stock_alpha_EAS;
         alpha_eas = previous_alpha;
         ResidHE.Reset();
-        int flag_M = 1;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
+        int flag_M = 0;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
         int count = 0;
         int fail = 1;
         /// Begin EAS loop
@@ -862,7 +858,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
                 element->Basis_M(M, x, y, z);  // EAS
 
-                int flag_Mooney = 1;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
+                int flag_Mooney = 0;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
 
                 if (flag_Mooney == 0) {  // 0 means use linear material
                     double DD = (*E) * (1.0 - (*v)) / ((1.0 + (*v)) * (1.0 - 2.0 * (*v)));
@@ -1424,7 +1420,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         previous_alpha = m_stock_alpha_EAS;
         alpha_eas = previous_alpha;
         ResidHE.Reset();
-        int flag_M = 1;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
+        int flag_M = 0;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
         int count = 0;
         int fail = 1;
         while (fail == 1) {
@@ -1580,7 +1576,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             // Set gravity acceleration
             LocalGravityForce(0, 0) = 0.0;
             LocalGravityForce(1, 0) = 0.0;
-            LocalGravityForce(2, 0) = -9.81;
+            LocalGravityForce(2, 0) = 0.0; //change
 
             // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
             ChMatrix33<> Si;
