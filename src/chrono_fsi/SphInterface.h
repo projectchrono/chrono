@@ -144,6 +144,7 @@ void AddBCE2FluidSystem_FromFile(
     NumberOfObjects& numObjects,
     Real sphMarkerMass,
     const SimParams& paramsH,
-    chrono::ChSharedPtr<chrono::ChBody> body);
+    chrono::ChSharedPtr<chrono::ChBody> body,
+    std::string dataPath);
 
 #endif /* SPHINTERFACE_H_ */

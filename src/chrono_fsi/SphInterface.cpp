@@ -12,7 +12,6 @@
 
 // Chrono Vehicle Include
 
-
 chrono::ChVector<> ConvertRealToChVector(Real3 p3) {
   return chrono::ChVector<>(p3.x, p3.y, p3.z);
 }
@@ -125,7 +124,7 @@ void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
                    int& startIndexSph,
                    const NumberOfObjects& numObjects) {
-  // openmp does not work here
+// openmp does not work here
 #pragma omp parallel for
   for (int i = 0; i < numObjects.numFluidMarkers; i++) {
     char forceTag[] = "hydrodynamics_force";
@@ -169,7 +168,7 @@ void AddChSystemForcesToSphForces(thrust::host_vector<Real4>& derivVelRhoChronoH
                                   Real dT) {
 #pragma omp parallel for
   for (int i = 0; i < numObjects.numFluidMarkers; i++) {
-	    auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
+    auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
     chrono::ChVector<> v = mBody->GetPos_dt();
     Real3 a3 = (mR3(v.x, v.y, v.z) - mR3(velMasH2[i])) / dT;  // f = m * a
     derivVelRhoChronoH[i] += mR4(a3, 0);                      // note, gravity force is also coming from rigid system
@@ -211,7 +210,7 @@ void CountNumContactsPerSph(thrust::host_vector<short int>& numContactsOnAllSph,
                             const NumberOfObjects& numObjects,
                             int startIndexSph) {
   int numContacts = mphysicalSystem.data_manager->host_data.bids_rigid_rigid.size();
-#pragma omp parallel for
+  //#pragma omp parallel for // it is very wrong to do it in parallel. race condition will occur
   for (int i = 0; i < numContacts; i++) {
     chrono::int2 ids = mphysicalSystem.data_manager->host_data.bids_rigid_rigid[i];
     if (ids.x > startIndexSph)
@@ -317,9 +316,9 @@ void CopySys2D(thrust::device_vector<Real3>& posRadD,
   thrust::host_vector<Real3> posRadH(numObjects.numFluidMarkers);
 #pragma omp parallel for
   for (int i = 0; i < numObjects.numFluidMarkers; i++) {
-	    auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
+    auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
     chrono::ChVector<> p = mBody->GetPos();
-    posRadH[i] += mR3(p.x, p.y, p.z);
+    posRadH[i] = mR3(p.x, p.y, p.z);
   }
   thrust::copy(posRadH.begin(), posRadH.end(), posRadD.begin());
 }
@@ -347,7 +346,7 @@ void Add_Rigid_ForceTorques_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSy
                                         const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
                                         const std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies) {
   int numRigids = FSI_Bodies.size();
-#pragma omp parallel for
+  //#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
   for (int i = 0; i < numRigids; i++) {
     chrono::ChSharedPtr<chrono::ChBody> bodyPtr = FSI_Bodies[i];
     bodyPtr->Empty_forces_accumulators();
@@ -371,9 +370,9 @@ void Copy_External_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
   if (pos_ChSystemBackupH.size() != numBodies) {
     printf("\n\n\n\n Error!!! Size of the external data does not match the ChSystem \n\n\n\n");
   }
-#pragma omp parallel for
+  //#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
   for (int i = 0; i < numBodies; i++) {
-	    auto mBody = mphysicalSystem.Get_bodylist()->at(i);
+    auto mBody = mphysicalSystem.Get_bodylist()->at(i);
     mBody->SetPos(ConvertRealToChVector(pos_ChSystemBackupH[i]));
     mBody->SetRot(ConvertToChQuaternion(quat_ChSystemBackupH[i]));
     mBody->SetPos_dt(ConvertRealToChVector(vel_ChSystemBackupH[i]));
@@ -391,9 +390,9 @@ void Copy_ChSystem_to_External(thrust::host_vector<Real3>& pos_ChSystemBackupH,
   quat_ChSystemBackupH.resize(numBodies);
   vel_ChSystemBackupH.resize(numBodies);
   omegaLRF_ChSystemBackupH.resize(numBodies);
-#pragma omp parallel for
+  //#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
   for (int i = 0; i < numBodies; i++) {
-	    auto mBody = mphysicalSystem.Get_bodylist()->at(i);
+    auto mBody = mphysicalSystem.Get_bodylist()->at(i);
     pos_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetPos());
     quat_ChSystemBackupH[i] = ConvertChQuaternionToR4(mBody->GetRot());
     vel_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetPos_dt());
@@ -420,7 +419,7 @@ void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRig
   if (posRigid_fsiBodies_D.size() != num_fsiBodies_Rigids || posRigid_fsiBodies_H.size() != num_fsiBodies_Rigids) {
     printf("\n\n\n\n Error!!! number of fsi bodies that are tracked does not match the array size \n\n\n\n");
   }
-#pragma omp parallel for
+  //#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
   for (int i = 0; i < num_fsiBodies_Rigids; i++) {
     chrono::ChSharedPtr<chrono::ChBody> bodyPtr = FSI_Bodies[i];
     posRigid_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetPos());
@@ -443,42 +442,40 @@ void AddBCE2FluidSystem_FromFile(
     NumberOfObjects& numObjects,
     Real sphMarkerMass,
     const SimParams& paramsH,
-    chrono::ChSharedPtr<chrono::ChBody> body) {
-    //----------------------------
-    //  chassis
-    //----------------------------
-    thrust::host_vector<Real3> posRadBCE;
-    LoadBCE_fromFile(posRadBCE, "ChassisBCE.csv");
-    if (posRadH.size() != numObjects.numAllMarkers) {
-        printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n", numObjects.numAllMarkers, posRadH.size());
-    }
-    ::int3 refSize3 = referenceArray[referenceArray.size() - 1];
-    Real type = refSize3.z + 1;
-    int numBce = posRadBCE.size();
-#pragma omp parallel for
-    for (int i = 0; i < numBce; i++) {
-        posRadH.push_back(posRadBCE[i]);
+    chrono::ChSharedPtr<chrono::ChBody> body,
+    std::string dataPath) {
+  //----------------------------
+  //  chassis
+  //----------------------------
+  thrust::host_vector<Real3> posRadBCE;
 
-        chrono::ChVector<> pointPar = ConvertRealToChVector(posRadBCE[i]);
-        chrono::ChVector<> posLoc = chrono::ChTransform<>::TransformParentToLocal(pointPar, body->GetPos(), body->GetRot());
-        chrono::ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc);
-        Real3 v3 = ConvertChVectorToR3(vAbs);
-        velMasH.push_back(mR4(v3, sphMarkerMass));
+  LoadBCE_fromFile(posRadBCE, dataPath);
+  if (posRadH.size() != numObjects.numAllMarkers) {
+    printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n", numObjects.numAllMarkers, posRadH.size());
+  }
+  ::int3 refSize3 = referenceArray[referenceArray.size() - 1];
+  Real type = refSize3.z + 1;
+  int numBce = posRadBCE.size();
+  //#pragma omp parallel for  // it is very wrong to do it in parallel. race condition will occur
+  for (int i = 0; i < numBce; i++) {
+    posRadH.push_back(posRadBCE[i]);
 
-        rhoPresMuH.push_back(mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));
-    }
-    posRadBCE.clear();
-    referenceArray.push_back(mI3(refSize3.y, refSize3.y + numBce, refSize3.z + 1));
-    numObjects.numAllMarkers += numBce;
-    numObjects.numRigid_SphMarkers += numBce;
-    if (referenceArray.size() < 3) {
-    	printf("Error! referenceArray size is wrong!\n");
-    } else {
-		numObjects.numRigidBodies = referenceArray.size() - 2;
-		numObjects.startRigidMarkers = referenceArray[2].x;
-    }
+    chrono::ChVector<> pointPar = ConvertRealToChVector(posRadBCE[i]);
+    chrono::ChVector<> posLoc = chrono::ChTransform<>::TransformParentToLocal(pointPar, body->GetPos(), body->GetRot());
+    chrono::ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc);
+    Real3 v3 = ConvertChVectorToR3(vAbs);
+    velMasH.push_back(mR4(v3, sphMarkerMass));
+
+    rhoPresMuH.push_back(mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));
+  }
+  posRadBCE.clear();
+  referenceArray.push_back(mI3(refSize3.y, refSize3.y + numBce, refSize3.z + 1));
+  numObjects.numAllMarkers += numBce;
+  numObjects.numRigid_SphMarkers += numBce;
+  if (referenceArray.size() < 3) {
+    printf("Error! referenceArray size is wrong!\n");
+  } else {
+    numObjects.numRigidBodies = referenceArray.size() - 2;
+    numObjects.startRigidMarkers = referenceArray[2].x;
+  }
 }
-
-
-
-

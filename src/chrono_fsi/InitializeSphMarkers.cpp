@@ -164,40 +164,30 @@ void CreateBCE_On_Box(
 void LoadBCE_fromFile(
     thrust::host_vector<Real3>& posRadBCE,  // do not set the size here since you are using push back later
     std::string fileName) {
-  char ddCh;
   std::string ddSt;
+  char buff[256];
   int numBce = 0;
+  const int cols = 3;
   //*******************************************************************
-  printf("reading BCE data\n");
+  std::cout << "  reading BCE data from: " << fileName << " ...\n";
   std::ifstream inMarker;
   inMarker.open(fileName);
   if (!inMarker) {
-    std::cout << "Error! Unable to open file: " << fileName << std::endl;
+    std::cout << "   Error! Unable to open file: " << fileName << std::endl;
   }
-  //	inMarker.ignore(numeric_limits<streamsize>::max(), '\n');
   getline(inMarker, ddSt);
-  if (!inMarker.good()) {
-    std::cout << "Warning! file is empty: " << fileName << std::endl;
-    return;
-  }
-  Real3 p;
-  std::string firstComp;
-  inMarker >> firstComp;
-  if (is_number(firstComp)) {
-    p.x = stof(firstComp);
-    inMarker >> ddCh >> p.y >> ddCh >> p.z;
-    posRadBCE.push_back(p);
+  Real q[cols];
+  while (getline(inMarker, ddSt)) {
+    std::stringstream linestream(ddSt);
+    for (int i = 0; i < cols; i++) {
+      linestream.getline(buff, 50, ',');
+      q[i] = atof(buff);
+    }
+    posRadBCE.push_back(mR3(q[0], q[1], q[2]));
     numBce++;
   }
-  getline(inMarker, ddSt);
 
-  while (inMarker.good()) {
-    inMarker >> p.x >> ddCh >> p.y >> ddCh >> p.z;
-    posRadBCE.push_back(p);
-    numBce++;
-    getline(inMarker, ddSt);
-  }
-  inMarker.close();
+  std::cout << "  Loaded BCE data from: " << fileName << std::endl;
 }
 
 //**********************************************

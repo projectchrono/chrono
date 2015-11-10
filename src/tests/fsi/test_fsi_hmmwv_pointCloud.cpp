@@ -311,64 +311,27 @@ void AddBoxBceToChSystemAndSPH(
 }
 
 // =============================================================================
-void AddCylinderBceToChSystemAndSPH(
-    ChSystemParallelDVI& mphysicalSystem,
-    Real radius,
-    Real height,
-    const ChVector<>& pos,
-    const ChQuaternion<>& rot,
+void CreateVehicleBCE(
     thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector< ::int3>& referenceArray,
     std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
     NumberOfObjects& numObjects,
-    Real sphMarkerMass) {
-    //
-    int numMarkers = posRadH.size();
-    int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
-    int type = 1;
-    ChSharedPtr<ChBody> body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
-    // body->SetIdentifier(-1);
-    body->SetBodyFixed(false);
-    body->SetCollide(true);
-    body->GetMaterialSurface()->SetFriction(mu_g);
-    body->SetPos(pos);
-    body->SetRot(rot);
-    //    body->SetWvel_par(ChVector<>(0, 10, 0));
-    double volume = utils::CalcCylinderVolume(radius, 0.5 * height);
-    ChVector<> gyration = utils::CalcCylinderGyration(radius, 0.5 * height).Get_Diag();
-    double density = paramsH.rho0;
-    double mass = density * volume;
-    body->SetMass(mass);
-    body->SetInertiaXX(mass * gyration);
-    //
-    body->GetCollisionModel()->ClearModel();
-    utils::AddCylinderGeometry(body.get_ptr(), radius, 0.5 * height);
-    body->GetCollisionModel()->BuildModel();
-    mphysicalSystem.AddBody(body);
-    //
-    int numBce = CreateOne3DRigidCylinder(
-        posRadH, velMasH, rhoPresMuH, body.get_ptr(), radius, height, body->GetMass(), sphMarkerMass, type);
-
-    referenceArray.push_back(mI3(numMarkers, numMarkers + numBce, type));
-    numObjects.numRigidBodies += 1;
-    numObjects.startRigidMarkers = numMarkers;  // Arman : not sure if you need to set startFlexMarkers
-    numObjects.numRigid_SphMarkers += numBce;
-    numObjects.numAllMarkers = posRadH.size();
-    FSI_Bodies.push_back(body);
-}
-// =============================================================================
-void CreateVehicleBCE(    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
-	    thrust::host_vector<Real4>& velMasH,
-	    thrust::host_vector<Real4>& rhoPresMuH,
-	    thrust::host_vector< ::int3>& referenceArray,
-	    std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
-	    NumberOfObjects& numObjects,
-	    Real sphMarkerMass,
-	    const SimParams& paramsH) {
-	AddBCE2FluidSystem_FromFile(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects, sphMarkerMass, paramsH, mVehicle->GetVehicle()->GetChassis());
-	FSI_Bodies.push_back(mVehicle->GetVehicle()->GetChassis());
+    Real sphMarkerMass,
+    const SimParams& paramsH) {
+    std::string dataPath = chrono::GetChronoDataPath();
+    dataPath.append("fsi/ChassisBCE.csv");
+    AddBCE2FluidSystem_FromFile(posRadH,
+                                velMasH,
+                                rhoPresMuH,
+                                referenceArray,
+                                numObjects,
+                                sphMarkerMass,
+                                paramsH,
+                                mVehicle->GetVehicle()->GetChassis(),
+                                dataPath);
+    FSI_Bodies.push_back(mVehicle->GetVehicle()->GetChassis());
 }
 
 // =============================================================================
@@ -570,6 +533,11 @@ void CreateMbdPhysicalSystemObjects(
         for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
             mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
         }
+
+        // -----------------
+        // Add BCE
+        // -----------------
+        CreateVehicleBCE(posRadH, velMasH, rhoPresMuH, referenceArray, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
     }
     // extra objects
     // -----------------------------------------
@@ -829,7 +797,11 @@ int main(int argc, char* argv[]) {
 
     //    assert(posRadH.size() == numObjects.numAllMarkers && "(2) numObjects is not set correctly");
     if (posRadH.size() != numObjects.numAllMarkers) {
-        printf("\n\n\n\n Error! (2) numObjects is not set correctly \n\n\n\n");
+        printf(
+            "\n\n\n\n Error! (2) numObjects is not set correctly: posRadH.size() %d  numObjects.numAllMarkers %d "
+            "\n\n\n\n",
+            posRadH.size(),
+            numObjects.numAllMarkers);
     }
 
     //*** Add sph data to the physics system
@@ -914,7 +886,13 @@ int main(int argc, char* argv[]) {
     ResizeR3(vel_XSPH_D, numObjects.numAllMarkers);
     //    assert(posRadD.size() == numObjects.numAllMarkers && "(3) numObjects is not set correctly");
     if (posRadD.size() != numObjects.numAllMarkers) {
-        printf("\n\n\n\n Error! (3) numObjects is not set correctly \n\n\n\n");
+        printf(
+            "\n\n\n\n Error! (3) numObjects is not set correctly: posRadD.size() %d  numObjects.numAllMarkers %d "
+            "\n\n\n\n",
+            posRadD.size(),
+            numObjects.numAllMarkers);
+
+
         return 1;
     }
 #endif
