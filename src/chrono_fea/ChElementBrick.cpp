@@ -562,9 +562,9 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     double I1BAR = I1 / (pow(I3, 1.0 / 3.0));
                     double I2BAR = I2 / (pow(I3, 2.0 / 3.0));
                     double J = sqrt(I3);
-                    double CCOM1 = 551584.0;                                    // C10   not 0.551584
-                    double CCOM2 = 137896.0;                                    // C01   not 0.137896
-                    double CCOM3 = 2.0 * (CCOM1 + CCOM2) / (1.0 - 2.0 * 0.49);  // K:bulk modulus
+                    //double CCOM1 = 551584.0;                                    // C10   not 0.551584
+                    //double CCOM2 = 137896.0;                                    // C01   not 0.137896
+					double CCOM3 = 2.0 * (element->CCOM1 + element->CCOM2) / (1.0 - 2.0 * 0.49);  // K:bulk modulus
                     double StockEPS;
 
                     IMAT.Reset();
@@ -576,7 +576,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     I2PC = (((IMAT * I1) - CG) - (INVCG * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
                     JPC = INVCG * (J / 2.0);
 
-                    STR = I1PC * (CCOM1 * 2.0) + I2PC * (CCOM2 * 2.0) + JPC * (CCOM3 * (J - 1.0) * 2.0);
+					STR = I1PC * (element->CCOM1 * 2.0) + I2PC * (element->CCOM2 * 2.0) + JPC * (CCOM3 * (J - 1.0) * 2.0);
 
                     TEMP5(0, 0) = STR(0, 0);
                     TEMP5(1, 0) = STR(1, 1);
@@ -615,7 +615,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                         I1PCN = (IMAT - INVCGN * (1.0 / 3.0 * I1)) * pow(I3, -1.0 / 3.0);
                         I2PCN = (((IMAT * I1) - CGN) - (INVCGN * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
                         JPCN = INVCGN * (J / 2.0);
-                        STRN = I1PCN * (CCOM1 * 2.0) + I2PCN * (CCOM2 * 2.0) + JPCN * (CCOM3 * (J - 1.0) * 2.0);
+						STRN = I1PCN * (element->CCOM1 * 2.0) + I2PCN * (element->CCOM2 * 2.0) + JPCN * (CCOM3 * (J - 1.0) * 2.0);
                         TEMP5N(0, 0) = STRN(0, 0);
                         TEMP5N(1, 0) = STRN(1, 1);
                         TEMP5N(2, 0) = STRN(0, 1);
@@ -1203,9 +1203,9 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     double I1BAR = I1 / (pow(I3, 1.0 / 3.0));
                     double I2BAR = I2 / (pow(I3, 2.0 / 3.0));
                     double J = sqrt(I3);
-                    double CCOM1 = 551584.0;                                    // C10   not 0.551584
-                    double CCOM2 = 137896.0;                                    // C01   not 0.137896
-                    double CCOM3 = 2.0 * (CCOM1 + CCOM2) / (1.0 - 2.0 * 0.49);  // K:bulk modulus
+                    //double CCOM1 = 551584.0;                                    // C10   not 0.551584
+                    //double CCOM2 = 137896.0;                                    // C01   not 0.137896
+					double CCOM3 = 2.0 * (element->CCOM1 + element->CCOM2) / (1.0 - 2.0 * 0.49);  // K:bulk modulus
                     double StockEPS;
 
                     IMAT.Reset();
@@ -1215,7 +1215,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     I1PC = (IMAT - INVCG * (1.0 / 3.0 * I1)) * pow(I3, -1.0 / 3.0);
                     I2PC = (((IMAT * I1) - CG) - (INVCG * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
                     JPC = INVCG * (J / 2.0);
-                    STR = I1PC * (CCOM1 * 2.0) + I2PC * (CCOM2 * 2.0) + JPC * (CCOM3 * (J - 1.0) * 2.0);
+					STR = I1PC * (element->CCOM1 * 2.0) + I2PC * (element->CCOM2 * 2.0) + JPC * (CCOM3 * (J - 1.0) * 2.0);
 
                     TEMP5(0, 0) = STR(0, 0);
                     TEMP5(1, 0) = STR(1, 1);
@@ -1256,7 +1256,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                         I1PCN = (IMAT - INVCGN * (1.0 / 3.0 * I1)) * pow(I3, -1.0 / 3.0);
                         I2PCN = (((IMAT * I1) - CGN) - (INVCGN * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
                         JPCN = INVCGN * (J / 2.0);
-                        STRN = I1PCN * (CCOM1 * 2.0) + I2PCN * (CCOM2 * 2.0) + JPCN * (CCOM3 * (J - 1.0) * 2.0);
+						STRN = I1PCN * (element->CCOM1 * 2.0) + I2PCN * (element->CCOM2 * 2.0) + JPCN * (CCOM3 * (J - 1.0) * 2.0);
                         TEMP5N(0, 0) = STRN(0, 0);
                         TEMP5N(1, 0) = STRN(1, 1);
                         TEMP5N(2, 0) = STRN(0, 1);

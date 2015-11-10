@@ -75,6 +75,7 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// Turn gravity on/off.
     void SetGravityOn(bool val) { m_gravity_on = val; }
     void SetMooneyRivlin(bool val) { m_isMooney = val; }
+	void SetMRCoefficients(double C1, double C2) { CCOM1 = C1; CCOM2 = C2; }
 
     //
     // Functions for ChLoadable interface
@@ -175,6 +176,8 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     JacobianType m_flag_HE;
     bool m_gravity_on;  ///< flag indicating whether or not gravity is included
     bool m_isMooney;    ///< flag indicating whether or not gravity is included
+	double CCOM1;       ///< First coefficient for Mooney-Rivlin
+	double CCOM2;       ///< Second coefficient for Mooney-Rivlin
                         // Private Methods
     /// Fills the N shape function matrix
     /// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
