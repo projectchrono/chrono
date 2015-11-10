@@ -26,7 +26,7 @@
 namespace chrono {
 namespace fea {
 
-class ChApiFea ChElementBrick : public ChElementGeneric {
+class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
   public:
     ChElementBrick();
     ~ChElementBrick() {}
@@ -127,6 +127,32 @@ class ChApiFea ChElementBrick : public ChElementGeneric {
         for (int i = 0; i < m_nodes.size(); ++i)
             mvars.push_back(&this->m_nodes[i]->Variables());
     };
+
+	/// Evaluate N'*F , where N is some type of shape function
+	/// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
+	/// F is a load, N'*F is the resulting generalized load
+	/// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+	virtual void ComputeNF(const double U,   ///< parametric coordinate in volume
+		const double V,             ///< parametric coordinate in volume
+		const double W,             ///< parametric coordinate in volume 
+		ChVectorDynamic<>& Qi,      ///< Return result of N'*F  here, maybe with offset block_offset
+		double& detJ,               ///< Return det[J] here
+		const ChVectorDynamic<>& F, ///< Input F vector, size is = n.field coords.
+		ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
+		ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
+		) {
+		// evaluate shape functions (in compressed vector), btw. not dependant on state
+		//ChMatrixNM<double, 1, 8> N;
+		//this->ShapeFunctions(N, U, V, W); // note: U,V,W in -1..1 range
+
+		//detJ = this->GetVolume() / 8.0;
+
+		//Qi(0) = N(0)*F(0);
+	// TO DO
+	}
+
+	/// This is needed so that it can be accessed by ChLoaderVolumeGravity
+	virtual double GetDensity() { return 0; }
 
   private:
     enum JacobianType { ANALYTICAL, NUMERICAL };
