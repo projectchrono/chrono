@@ -72,8 +72,12 @@ class ChApiFea ChElementBrick : public ChElementGeneric {
 
     void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { m_Material = my_material; }
     ChSharedPtr<ChContinuumElastic> GetMaterial() const { return m_Material; }
-
+	/// Turn gravity on/off.
+	void SetGravityOn(bool val) { m_gravity_on = val; }
+	void SetMooneyRivlin(bool val) { m_isMooney = val; }
   private:
+	 enum JacobianType { ANALYTICAL, NUMERICAL };
+
     // Private Data
     std::vector<ChSharedPtr<ChNodeFEAxyz> > m_nodes;  ///< Element nodes
 
@@ -89,9 +93,10 @@ class ChApiFea ChElementBrick : public ChElementGeneric {
     ChMatrixNM<double, 9, 1> m_stock_alpha_EAS;  ///< EAS per element
     ChMatrixNM<double, 24, 24> m_stock_KTE;      ///< Analytical Jacobian
     ChMatrixNM<double, 8, 3> m_d0;               ///< Initial Coordinate per element
-    int m_flag_HE;
-
-    // Private Methods
+	JacobianType m_flag_HE;
+	bool m_gravity_on;                           ///< flag indicating whether or not gravity is included
+	bool m_isMooney;							 ///< flag indicating whether or not gravity is included
+	// Private Methods
     /// Fills the N shape function matrix
     /// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
     void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);

@@ -24,7 +24,7 @@ namespace chrono {
 namespace fea {
 
 // -----------------------------------------------------------------------------
-ChElementBrick::ChElementBrick() {
+	ChElementBrick::ChElementBrick() : m_flag_HE(ANALYTICAL) {
     m_nodes.resize(8);
 }
 // -----------------------------------------------------------------------------
@@ -223,12 +223,9 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 element->ShapeFunctionsDerivativeX(Nx, x, y, z);
                 element->ShapeFunctionsDerivativeY(Ny, x, y, z);
                 element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
-
                 element->Basis_M(M, x, y, z);  // EAS
 
-                int flag_Mooney = 0;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
-
-                if (flag_Mooney == 0) {  // 0 means use linear material
+				if (!element->m_isMooney) {  // m_isMooney == false means linear elastic material
                     double DD = (*E) * (1.0 - (*v)) / ((1.0 + (*v)) * (1.0 - 2.0 * (*v)));
                     E_eps.FillDiag(1.0);
                     E_eps(0, 1) = (*v) / (1.0 - (*v));
@@ -518,8 +515,8 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     }
                 }
 
-                // 1=use Iso_Nonlinear_Mooney-Rivlin Material (2-parameters=> 3 inputs)
-                if (flag_Mooney == 1) {
+                // m_isMooney == 1 use Iso_Nonlinear_Mooney-Rivlin Material (2-parameters=> 3 inputs)
+				if (element->m_isMooney == 1) {
                     ChMatrixNM<double, 3, 3> CG;  // CG: Right Cauchy-Green tensor  C=trans(F)*F
                     ChMatrixNM<double, 3, 3> INVCG;
                     ChMatrixNM<double, 3, 3> IMAT;
@@ -688,7 +685,6 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         previous_alpha = m_stock_alpha_EAS;
         alpha_eas = previous_alpha;
         ResidHE.Reset();
-        int flag_M = 0;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
         int count = 0;
         int fail = 1;
         /// Begin EAS loop
@@ -711,7 +707,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             myformula.d = &d;
             myformula.d0 = &m_d0;
 
-            if (flag_M == 0) {
+            if (!m_isMooney) {
                 myformula.E = &E;
                 myformula.v = &v;
             }
@@ -858,9 +854,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
                 element->Basis_M(M, x, y, z);  // EAS
 
-                int flag_Mooney = 0;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
-
-                if (flag_Mooney == 0) {  // 0 means use linear material
+				if (!element->m_isMooney) {  // m_isMooney == false means use linear material
                     double DD = (*E) * (1.0 - (*v)) / ((1.0 + (*v)) * (1.0 - 2.0 * (*v)));
                     E_eps.FillDiag(1.0);
                     E_eps(0, 1) = (*v) / (1.0 - (*v));
@@ -1163,7 +1157,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                         GT(ii, jj) = G(jj, ii);
                     }
                 }
-                if (flag_Mooney == 1) {
+				if (element->m_isMooney) {
                     ChMatrixNM<double, 3, 3> CG;  // CG: Right Cauchy-Green tensor  C=trans(F)*F
                     ChMatrixNM<double, 3, 3> INVCG;
                     ChMatrixNM<double, 3, 3> IMAT;
@@ -1420,7 +1414,6 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         previous_alpha = m_stock_alpha_EAS;
         alpha_eas = previous_alpha;
         ResidHE.Reset();
-        int flag_M = 0;  // 0 means use linear material; 1 means use nonlinear Mooney_Rivlin material
         int count = 0;
         int fail = 1;
         while (fail == 1) {
@@ -1441,7 +1434,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             myformula.d = &d;
             myformula.d0 = &m_d0;
 
-            if (flag_M == 0) {
+			if (!m_isMooney) {
                 myformula.E = &E;
                 myformula.v = &v;
             }
@@ -1574,9 +1567,16 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             double wz2 = (element->GetLengthZ()) / 2;
 
             // Set gravity acceleration
+			if (element->m_gravity_on) {
             LocalGravityForce(0, 0) = 0.0;
             LocalGravityForce(1, 0) = 0.0;
-            LocalGravityForce(2, 0) = 0.0; //change
+			LocalGravityForce(2, 0) = -9.81;
+			}
+			else{
+			LocalGravityForce(0, 0) = 0.0;
+			LocalGravityForce(1, 0) = 0.0;
+			LocalGravityForce(2, 0) = 0.0;
+			}
 
             // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
             ChMatrix33<> Si;
@@ -1735,9 +1735,7 @@ void ChElementBrick::ComputeStiffnessMatrix() {
         ChMatrixDynamic<> Kcolumn(24, 1);
         ChMatrixDynamic<> F0(24, 1);
         ChMatrixDynamic<> F1(24, 1);
-        m_flag_HE = 0;  // flag_HE is defineded in  [class  ChElementBrick : public ChElementGeneric]
         ComputeInternalForces(F0);
-        m_flag_HE = 1;  // flag_HE is defineded in  [class  ChElementBrick : public ChElementGeneric]
         for (int inode = 0; inode < 8; ++inode) {
             m_nodes[inode]->pos.x += diff;
             ComputeInternalForces(F1);  // Flag=1 > Jacobian of internal force calculation
@@ -1757,11 +1755,9 @@ void ChElementBrick::ComputeStiffnessMatrix() {
             m_StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 2 + inode * 3);
             m_nodes[inode]->pos.z -= diff;
         }
-
-        m_flag_HE = 0;                         // flag_HE=0 is default
+                     // flag_HE=0 is default
         m_StiffnessMatrix -= m_stock_jac_EAS;  // For Enhanced Assumed Strain
     } else {
-        m_flag_HE = 0;
         m_StiffnessMatrix = m_stock_KTE;
         m_StiffnessMatrix -= m_stock_jac_EAS;
     }
