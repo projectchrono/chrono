@@ -20,7 +20,9 @@
 //
 // This element is a regular 8-noded trilinear brick element with enhanced assumed
 // strain that alleviates locking. More information on the validation of this element
-// may be found in Chrono's documentation.
+// may be found in Chrono's documentation. This simulation uses an external force
+// that builds up with time using a smooth cosine function. The user may increase
+// the number of brick elements to achieve convergence.
 // =============================================================================
 #include "chrono/core/ChFileutils.h"
 #include "chrono/physics/ChSystem.h"
@@ -38,12 +40,10 @@ using namespace fea;
 double step_size = 1e-3;
 double sim_time = 15;       // Simulation time for generation of reference file
 double precision = 4e-7;    // Precision value used to assess results
-double sim_time_UT = 0.05;  // Simulation time for unit test 0.15
+double sim_time_UT = 0.05;  // Simulation time for unit test 0.05
 
 int main(int argc, char* argv[]) {
-    // If no command line arguments, run in "performance" mode and only report run time.
-    // Otherwise, generate output files to verify correctness.
-    bool output = (0); // Determines whether it tests (0) or generates golden file (1)
+    bool output = (0);  // Determines whether it tests (0) or generates golden file (1)
     ChMatrixDynamic<> FileInputMat(15000, 3);
     if (output) {
         GetLog() << "Output file: ../TEST_Brick/tip_position.txt\n";
@@ -206,11 +206,11 @@ int main(int argc, char* argv[]) {
                           my_mesh->GetNode(NumNodes(elemcount, 7)).DynamicCastTo<ChNodeFEAxyz>());
 
         element->SetMaterial(mmaterial);
-        element->SetElemNum(elemcount);  // for EAS
-		element->SetGravityOn(false);  // turn gravity on/off from within the element
-		element->SetMooneyRivlin(false); // turn on/off Mooney Rivlin (Linear Isotropic by default)
+        element->SetElemNum(elemcount);   // for EAS
+        element->SetGravityOn(false);     // turn gravity on/off from within the element
+        element->SetMooneyRivlin(false);  // turn on/off Mooney Rivlin (Linear Isotropic by default)
         ChMatrixNM<double, 9, 1> stock_alpha_EAS;
-        stock_alpha_EAS.Reset(); 
+        stock_alpha_EAS.Reset();
         element->SetStockAlpha(stock_alpha_EAS(0, 0), stock_alpha_EAS(1, 0), stock_alpha_EAS(2, 0),
                                stock_alpha_EAS(3, 0), stock_alpha_EAS(4, 0), stock_alpha_EAS(5, 0),
                                stock_alpha_EAS(6, 0), stock_alpha_EAS(7, 0), stock_alpha_EAS(8, 0));

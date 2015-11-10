@@ -72,11 +72,64 @@ class ChApiFea ChElementBrick : public ChElementGeneric {
 
     void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { m_Material = my_material; }
     ChSharedPtr<ChContinuumElastic> GetMaterial() const { return m_Material; }
-	/// Turn gravity on/off.
-	void SetGravityOn(bool val) { m_gravity_on = val; }
-	void SetMooneyRivlin(bool val) { m_isMooney = val; }
+    /// Turn gravity on/off.
+    void SetGravityOn(bool val) { m_gravity_on = val; }
+    void SetMooneyRivlin(bool val) { m_isMooney = val; }
+
+    //
+    // Functions for ChLoadable interface
+    //
+
+    /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() { return 8 * 3; }
+
+    /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() { return 8 * 3; }
+
+    /// Gets all the DOFs packed in a single vector (position part)
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+        mD.PasteVector(this->m_nodes[0]->GetPos(), block_offset, 0);
+        mD.PasteVector(this->m_nodes[1]->GetPos(), block_offset + 3, 0);
+        mD.PasteVector(this->m_nodes[2]->GetPos(), block_offset + 6, 0);
+        mD.PasteVector(this->m_nodes[3]->GetPos(), block_offset + 9, 0);
+        mD.PasteVector(this->m_nodes[4]->GetPos(), block_offset + 12, 0);
+        mD.PasteVector(this->m_nodes[5]->GetPos(), block_offset + 15, 0);
+        mD.PasteVector(this->m_nodes[6]->GetPos(), block_offset + 18, 0);
+        mD.PasteVector(this->m_nodes[7]->GetPos(), block_offset + 21, 0);
+    }
+
+    /// Gets all the DOFs packed in a single vector (speed part)
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+        mD.PasteVector(this->m_nodes[0]->GetPos_dt(), block_offset, 0);
+        mD.PasteVector(this->m_nodes[1]->GetPos_dt(), block_offset + 3, 0);
+        mD.PasteVector(this->m_nodes[2]->GetPos_dt(), block_offset + 6, 0);
+        mD.PasteVector(this->m_nodes[3]->GetPos_dt(), block_offset + 9, 0);
+        mD.PasteVector(this->m_nodes[4]->GetPos_dt(), block_offset + 12, 0);
+        mD.PasteVector(this->m_nodes[5]->GetPos_dt(), block_offset + 15, 0);
+        mD.PasteVector(this->m_nodes[6]->GetPos_dt(), block_offset + 18, 0);
+        mD.PasteVector(this->m_nodes[7]->GetPos_dt(), block_offset + 21, 0);
+    }
+
+    /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
+    virtual int Get_field_ncoords() { return 3; }
+
+    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() { return 8; }
+
+    /// Get the offset of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockOffset(int nblock) { return m_nodes[nblock]->NodeGetOffset_w(); }
+
+    /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
+
+    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+        for (int i = 0; i < m_nodes.size(); ++i)
+            mvars.push_back(&this->m_nodes[i]->Variables());
+    };
+
   private:
-	 enum JacobianType { ANALYTICAL, NUMERICAL };
+    enum JacobianType { ANALYTICAL, NUMERICAL };
 
     // Private Data
     std::vector<ChSharedPtr<ChNodeFEAxyz> > m_nodes;  ///< Element nodes
@@ -93,10 +146,10 @@ class ChApiFea ChElementBrick : public ChElementGeneric {
     ChMatrixNM<double, 9, 1> m_stock_alpha_EAS;  ///< EAS per element
     ChMatrixNM<double, 24, 24> m_stock_KTE;      ///< Analytical Jacobian
     ChMatrixNM<double, 8, 3> m_d0;               ///< Initial Coordinate per element
-	JacobianType m_flag_HE;
-	bool m_gravity_on;                           ///< flag indicating whether or not gravity is included
-	bool m_isMooney;							 ///< flag indicating whether or not gravity is included
-	// Private Methods
+    JacobianType m_flag_HE;
+    bool m_gravity_on;  ///< flag indicating whether or not gravity is included
+    bool m_isMooney;    ///< flag indicating whether or not gravity is included
+                        // Private Methods
     /// Fills the N shape function matrix
     /// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
     void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
