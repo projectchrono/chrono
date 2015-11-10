@@ -39,13 +39,16 @@ void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE,
                       int face = 12);
 
 void LoadBCE_fromFile(
-    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
-    thrust::host_vector<Real4>& velMasH,
-    thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector< ::int3>& referenceArray,
-    NumberOfObjects& numObjects,
-    Real sphMarkerMass,
+    thrust::host_vector<Real3>& posRadBCE,  // do not set the size here since you are using push back later
     std::string fileName);
+//void LoadBCE_fromFile(
+//    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+//    thrust::host_vector<Real4>& velMasH,
+//    thrust::host_vector<Real4>& rhoPresMuH,
+//    thrust::host_vector< ::int3>& referenceArray,
+//    NumberOfObjects& numObjects,
+//    Real sphMarkerMass,
+//    std::string fileName);
 
 /**
  * @brief Set the number of objects (rigid and flexible)

@@ -359,27 +359,18 @@ void AddCylinderBceToChSystemAndSPH(
     FSI_Bodies.push_back(body);
 }
 // =============================================================================
-void CreateVehicleBCE(
-    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
-    thrust::host_vector<Real4>& velMasH,
-    thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector< ::int3>& referenceArray,
-    std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
-    const ChSystemParallelDVI& mphysicalSystem,
-    NumberOfObjects& numObjects,
-    Real sphMarkerMass) {
-    //----------------------------
-    //  chassis
-    //----------------------------
-    LoadBCE_fromFile(posRadH,
-                     velMasH,
-                     rhoPresMuH,
-                     referenceArray,
-                     numObjects,
-                     sphMarkerMass,
-                     "ChassisBCE.csv");
-    FSI_Bodies.push_back(mVehicle->GetVehicle()->GetChassis());
+void CreateVehicleBCE(    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+	    thrust::host_vector<Real4>& velMasH,
+	    thrust::host_vector<Real4>& rhoPresMuH,
+	    thrust::host_vector< ::int3>& referenceArray,
+	    std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
+	    NumberOfObjects& numObjects,
+	    Real sphMarkerMass,
+	    const SimParams& paramsH) {
+	AddBCE2FluidSystem_FromFile(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects, sphMarkerMass, paramsH, mVehicle->GetVehicle()->GetChassis());
+	FSI_Bodies.push_back(mVehicle->GetVehicle()->GetChassis());
 }
+
 // =============================================================================
 
 // Arman you still need local position of bce markers

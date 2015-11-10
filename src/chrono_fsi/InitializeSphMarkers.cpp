@@ -6,7 +6,15 @@
  */
 
 #include "chrono_fsi/InitializeSphMarkers.h"
+#include <string>
 
+//**********************************************
+bool is_number(const std::string& s) {
+  std::string::const_iterator it = s.begin();
+  while (it != s.end() && std::isdigit(*it))
+    ++it;
+  return !s.empty() && it == s.end();
+}
 //**********************************************
 int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
                         thrust::host_vector<Real4>& velMasH,
@@ -60,7 +68,7 @@ int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
           //					mPosRadBoundary.push_back(posRad);
           //					mVelMasBoundary.push_back(mR4(0, 0, 0, sphMarkerMass));
           //					mRhoPresMuBoundary.push_back(mR4(paramsH.rho0, paramsH.LARGE_PRES,
-          //paramsH.mu0,
+          // paramsH.mu0,
           // 0));
         }
       }
@@ -154,15 +162,44 @@ void CreateBCE_On_Box(
 //**********************************************
 
 void LoadBCE_fromFile(
-    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
-    thrust::host_vector<Real4>& velMasH,
-    thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector< ::int3>& referenceArray,
-    NumberOfObjects& numObjects,
-    Real sphMarkerMass,
+    thrust::host_vector<Real3>& posRadBCE,  // do not set the size here since you are using push back later
     std::string fileName) {
+  char ddCh;
+  std::string ddSt;
+  int numBce = 0;
+  //*******************************************************************
+  printf("reading BCE data\n");
+  std::ifstream inMarker;
+  inMarker.open(fileName);
+  if (!inMarker) {
+    std::cout << "Error! Unable to open file: " << fileName << std::endl;
+  }
+  //	inMarker.ignore(numeric_limits<streamsize>::max(), '\n');
+  getline(inMarker, ddSt);
+  if (!inMarker.good()) {
+    std::cout << "Warning! file is empty: " << fileName << std::endl;
+    return;
+  }
+  Real3 p;
+  std::string firstComp;
+  inMarker >> firstComp;
+  if (is_number(firstComp)) {
+    p.x = stof(firstComp);
+    inMarker >> ddCh >> p.y >> ddCh >> p.z;
+    posRadBCE.push_back(p);
+    numBce++;
+  }
+  getline(inMarker, ddSt);
 
+  while (inMarker.good()) {
+    inMarker >> p.x >> ddCh >> p.y >> ddCh >> p.z;
+    posRadBCE.push_back(p);
+    numBce++;
+    getline(inMarker, ddSt);
+  }
+  inMarker.close();
 }
+
 //**********************************************
 
 void SetNumObjects(NumberOfObjects& numObjects, const thrust::host_vector<int3>& referenceArray, int numAllMarkers) {

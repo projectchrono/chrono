@@ -20,8 +20,6 @@
 //#include "chrono_utils/ChUtilsInputOutput.h" //Arman: Why is this
 #include "utils/ChUtilsGenerators.h"
 
-
-
 chrono::ChVector<> ConvertRealToChVector(Real3 p3);
 chrono::ChVector<> ConvertRealToChVector(Real4 p4);
 chrono::ChQuaternion<> ConvertToChQuaternion(Real4 q4);
@@ -138,5 +136,14 @@ void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRig
                                             const std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
                                             chrono::ChSystemParallelDVI& mphysicalSystem);
 
+void AddBCE2FluidSystem_FromFile(
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector< ::int3>& referenceArray,
+    NumberOfObjects& numObjects,
+    Real sphMarkerMass,
+    const SimParams& paramsH,
+    chrono::ChSharedPtr<chrono::ChBody> body);
 
 #endif /* SPHINTERFACE_H_ */

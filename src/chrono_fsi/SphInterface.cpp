@@ -7,6 +7,9 @@
 
 #include "chrono_fsi/SphInterface.h"
 #include "chrono/core/ChTransform.h"
+
+#include "chrono_fsi/InitializeSphMarkers.h"
+
 // Chrono Vehicle Include
 
 
@@ -430,6 +433,50 @@ void Copy_fsiBodies_ChSystem_to_FluidSystem(thrust::device_vector<Real3>& posRig
   thrust::copy(q_fsiBodies_H.begin(), q_fsiBodies_H.end(), q_fsiBodies_D.begin());
   thrust::copy(velMassRigid_fsiBodies_H.begin(), velMassRigid_fsiBodies_H.end(), velMassRigid_fsiBodies_D.begin());
   thrust::copy(rigidOmegaLRF_fsiBodies_H.begin(), rigidOmegaLRF_fsiBodies_H.end(), rigidOmegaLRF_fsiBodies_D.begin());
+}
+// =============================================================================
+void AddBCE2FluidSystem_FromFile(
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector< ::int3>& referenceArray,
+    NumberOfObjects& numObjects,
+    Real sphMarkerMass,
+    const SimParams& paramsH,
+    chrono::ChSharedPtr<chrono::ChBody> body) {
+    //----------------------------
+    //  chassis
+    //----------------------------
+    thrust::host_vector<Real3> posRadBCE;
+    LoadBCE_fromFile(posRadBCE, "ChassisBCE.csv");
+    if (posRadH.size() != numObjects.numAllMarkers) {
+        printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n", numObjects.numAllMarkers, posRadH.size());
+    }
+    ::int3 refSize3 = referenceArray[referenceArray.size() - 1];
+    Real type = refSize3.z + 1;
+    int numBce = posRadBCE.size();
+#pragma omp parallel for
+    for (int i = 0; i < numBce; i++) {
+        posRadH.push_back(posRadBCE[i]);
+
+        chrono::ChVector<> pointPar = ConvertRealToChVector(posRadBCE[i]);
+        chrono::ChVector<> posLoc = chrono::ChTransform<>::TransformParentToLocal(pointPar, body->GetPos(), body->GetRot());
+        chrono::ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc);
+        Real3 v3 = ConvertChVectorToR3(vAbs);
+        velMasH.push_back(mR4(v3, sphMarkerMass));
+
+        rhoPresMuH.push_back(mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));
+    }
+    posRadBCE.clear();
+    referenceArray.push_back(mI3(refSize3.y, refSize3.y + numBce, refSize3.z + 1));
+    numObjects.numAllMarkers += numBce;
+    numObjects.numRigid_SphMarkers += numBce;
+    if (referenceArray.size() < 3) {
+    	printf("Error! referenceArray size is wrong!\n");
+    } else {
+		numObjects.numRigidBodies = referenceArray.size() - 2;
+		numObjects.startRigidMarkers = referenceArray[2].x;
+    }
 }
 
 
