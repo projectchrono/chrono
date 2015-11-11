@@ -174,8 +174,8 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     ChMatrixNM<double, 24, 24> m_stock_KTE;      ///< Analytical Jacobian
     ChMatrixNM<double, 8, 3> m_d0;               ///< Initial Coordinate per element
     JacobianType m_flag_HE;
-    bool m_gravity_on;  ///< flag indicating whether or not gravity is included
-    bool m_isMooney;    ///< flag indicating whether or not gravity is included
+    bool m_gravity_on;  ///< Flag indicating whether or not gravity is included
+    bool m_isMooney;    ///< Flag indicating whether the material is Mooney Rivlin
 	double CCOM1;       ///< First coefficient for Mooney-Rivlin
 	double CCOM2;       ///< Second coefficient for Mooney-Rivlin
                         // Private Methods
