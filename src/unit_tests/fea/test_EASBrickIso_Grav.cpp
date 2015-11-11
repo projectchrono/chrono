@@ -41,7 +41,7 @@ using namespace fea;
 const double step_size = 1e-3;  // Step size
 double sim_time = 2;            // Simulation time for generation of reference file
 double precision = 1e-6;        // Precision value used to assess results
-double sim_time_UT = 0.1;       // Simulation time for unit test 0.05
+double sim_time_UT = 0.05;       // Simulation time for unit test 0.05
 
 int main(int argc, char* argv[]) {
     bool output = 0;  // Determines whether it tests (0) or generates golden file (1)
