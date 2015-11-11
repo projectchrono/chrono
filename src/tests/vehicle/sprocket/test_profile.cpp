@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
