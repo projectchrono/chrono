@@ -32,7 +32,14 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     ~ChElementBrick() {}
 
     class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
-      public:
+	public:
+		MyMass();  ///< Constructor
+		MyMass(ChMatrixNM<double, 8, 3>* m_d0, ChElementBrick* element_) {
+			d0 = m_d0;
+			element = element_;
+		}
+		~MyMass() {}
+	private:
         ChElementBrick* element;
         ChMatrixNM<double, 8, 3>* d0;
         ChMatrixNM<double, 3, 24> S;
@@ -47,10 +54,35 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
         /// Evaluate the S'*S  at point x
         virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z);
     };
-
     /// Internal force, EAS stiffness, and analytical jacobian are calculated
     class MyForceAnalytical : public ChIntegrable3D<ChMatrixNM<double, 906, 1> > {
-      public:
+	public:
+		MyForceAnalytical();
+		// Constructor 1
+		MyForceAnalytical(ChMatrixNM<double, 8, 3>* d_, ChMatrixNM<double, 8, 3>* m_d0_, ChElementBrick* element_,
+			ChMatrixNM<double, 6, 6>* T0_, double* detJ0C_, ChMatrixNM<double, 9, 1>* alpha_eas_) {
+			d = d_;
+			d0 = m_d0_;
+			element = element_;
+			T0 = T0_;
+			detJ0C = detJ0C_;
+			alpha_eas = alpha_eas_;
+		}
+		//Constructor 2
+		MyForceAnalytical(ChMatrixNM<double, 8, 3>* d_, ChMatrixNM<double, 8, 3>* m_d0_, ChElementBrick* element_,
+			ChMatrixNM<double, 6, 6>* T0_, double* detJ0C_, ChMatrixNM<double, 9, 1>* alpha_eas_,
+			double* E_, double* v_) {
+			d = d_;
+			d0 = m_d0_;
+			element = element_;
+			T0 = T0_;
+			detJ0C = detJ0C_;
+			alpha_eas = alpha_eas_;
+			E = E_;
+			v = v_;
+		}
+		~MyForceAnalytical() {}
+      private:
         ChElementBrick* element;
         ChMatrixNM<double, 8, 3>* d;  // this is an external matrix, use pointer
         ChMatrixNM<double, 8, 3>* d0;
@@ -103,7 +135,33 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     };  // end of class MyForce
 
     class MyForceNum : public ChIntegrable3D<ChMatrixNM<double, 330, 1> > {
-      public:
+		public:
+		MyForceNum();
+		// Constructor 1
+		MyForceNum(ChMatrixNM<double, 8, 3>* d_, ChMatrixNM<double, 8, 3>* m_d0_, ChElementBrick* element_, 
+			ChMatrixNM<double, 6, 6>* T0_, double* detJ0C_, ChMatrixNM<double, 9, 1>* alpha_eas_) {
+			d = d_;
+			d0 = m_d0_;
+			element = element_;
+			T0 = T0_;
+			detJ0C = detJ0C_;
+			alpha_eas = alpha_eas_;
+		}
+		//Constructor 2
+		MyForceNum(ChMatrixNM<double, 8, 3>* d_, ChMatrixNM<double, 8, 3>* m_d0_, ChElementBrick* element_,
+			ChMatrixNM<double, 6, 6>* T0_, double* detJ0C_, ChMatrixNM<double, 9, 1>* alpha_eas_,
+			double* E_, double* v_) {
+			d = d_;
+			d0 = m_d0_;
+			element = element_;
+			T0 = T0_;
+			detJ0C = detJ0C_;
+			alpha_eas = alpha_eas_;
+			E = E_;
+			v = v_;
+		}
+		~MyForceNum() {}
+	   private:
         ChElementBrick* element;
         /// Pointers used for external values
         ChMatrixNM<double, 8, 3>* d;
@@ -151,6 +209,14 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
 
 	class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
 	public:
+		MyGravity();
+		MyGravity(ChMatrixNM<double, 8, 3>* m_d0, ChElementBrick* element_) {
+			d0 = m_d0;
+			element = element_;
+		}
+		~MyGravity() {}
+
+	private:
 		ChElementBrick* element;
 		ChMatrixNM<double, 8, 3>* d0;
 		ChMatrixNM<double, 3, 24> S;

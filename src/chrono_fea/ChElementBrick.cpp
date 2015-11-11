@@ -210,20 +210,10 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             detJ0C = 0.0;
             T0DetJElementCenterForEAS(m_d0, T0, detJ0C);
             //== F_internal ==//
-            MyForceNum myformula;
-            myformula.d = &d;
-            myformula.d0 = &m_d0;
+			// Choose constructors depending on m_isMooney
+			MyForceNum myformula = !m_isMooney ? MyForceNum (&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v) :
+				MyForceNum (&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
 
-            if (!m_isMooney) {
-                myformula.E = &E;
-                myformula.v = &v;
-            }
-
-            myformula.element = this;
-            // EAS
-            myformula.T0 = &T0;
-            myformula.detJ0C = &detJ0C;
-            myformula.alpha_eas = &alpha_eas;
             ChQuadrature::Integrate3D<ChMatrixNM<double, 330, 1> >(
                 TempIntegratedResult,  // result of integration will go there
                 myformula,             // formula to integrate
@@ -339,20 +329,9 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             detJ0C = 0.0;
             T0DetJElementCenterForEAS(m_d0, T0, detJ0C);
             //== F_internal ==//
-            MyForceAnalytical myformula;
-            myformula.d = &d;
-            myformula.d0 = &m_d0;
-
-            if (!m_isMooney) {
-                myformula.E = &E;
-                myformula.v = &v;
-            }
-
-            myformula.element = this;
-            //	//EAS
-            myformula.T0 = &T0;
-            myformula.detJ0C = &detJ0C;
-            myformula.alpha_eas = &alpha_eas;
+			MyForceAnalytical myformula = !m_isMooney ? MyForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v) :
+				MyForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
+ 
             ChQuadrature::Integrate3D<ChMatrixNM<double, 906, 1> >(
                 TempIntegratedResult,  // result of integration will go there
                 myformula,             // formula to integrate
@@ -453,11 +432,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     }  // end of else for numerical or analytical
 
     // Add gravity force
-
-    MyGravity myformula1;
-    myformula1.d0 = &m_d0;
-    myformula1.element = this;
-
+    MyGravity myformula1(&m_d0, this);
     ChMatrixNM<double, 24, 1> Fgravity;
     ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1> >(Fgravity,    // result of integration will go there
                                                           myformula1,  // formula to integrate
@@ -470,11 +445,6 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                                                           2            // order of integration
                                                           );
     Fi += Fgravity;
-    ////check gravity force
-    // for (i=0;i<24;i++){
-    //	GetLog()<<Fgravity(i)<<"\n";
-    //}
-    // system("pause");
 }  // end of ComputeInternalForces
 
 // -----------------------------------------------------------------------------
@@ -1702,9 +1672,7 @@ void ChElementBrick::MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result, cons
 void ChElementBrick::ComputeMassMatrix() {
     double rho = m_Material->Get_density();
 
-    MyMass myformula;
-    myformula.d0 = &m_d0;
-    myformula.element = this;
+	MyMass myformula(&m_d0, this);
 
     ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(m_MassMatrix,  // result of integration will go there
                                                            myformula,     // formula to integrate
