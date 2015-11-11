@@ -761,8 +761,6 @@ void ChBody::ChangeCollisionModel(ChCollisionModel* new_collision_model) {
     collision_model->SetContactable(this);
 }
 
-// forward reference
-int coll_model_from_r3d(ChCollisionModel* chmodel, ChBody* mbody, int lod, Vector* mt, ChMatrix33<>* mr);
 
 int ChBody::RecomputeCollisionModel() {
     if (!GetCollide())
