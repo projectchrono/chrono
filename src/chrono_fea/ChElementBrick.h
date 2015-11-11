@@ -22,7 +22,7 @@
 #include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
-
+#include "core/ChQuadrature.h"
 namespace chrono {
 namespace fea {
 
@@ -31,6 +31,137 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     ChElementBrick();
     ~ChElementBrick() {}
 
+    class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
+      public:
+        ChElementBrick* element;
+        ChMatrixNM<double, 8, 3>* d0;
+        ChMatrixNM<double, 3, 24> S;
+        ChMatrixNM<double, 3, 24> Sx;
+        ChMatrixNM<double, 3, 24> Sy;
+        ChMatrixNM<double, 3, 24> Sz;
+        ChMatrixNM<double, 1, 8> N;
+        ChMatrixNM<double, 1, 8> Nx;
+        ChMatrixNM<double, 1, 8> Ny;
+        ChMatrixNM<double, 1, 8> Nz;
+
+        /// Evaluate the S'*S  at point x
+        virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z);
+    };
+
+    /// Internal force, EAS stiffness, and analytical jacobian are calculated
+    class MyForceAnalytical : public ChIntegrable3D<ChMatrixNM<double, 906, 1> > {
+      public:
+        ChElementBrick* element;
+        ChMatrixNM<double, 8, 3>* d;  // this is an external matrix, use pointer
+        ChMatrixNM<double, 8, 3>* d0;
+        ChMatrixNM<double, 6, 6>* T0;
+        ChMatrixNM<double, 9, 1>* alpha_eas;
+        double* detJ0C;
+        double* E;
+        double* v;
+
+        ChMatrixNM<double, 24, 1> Fint;
+        ChMatrixNM<double, 24, 24> JAC11;
+        ChMatrixNM<double, 9, 24> Gd;
+        ChMatrixNM<double, 6, 1> stress;
+        ChMatrixNM<double, 9, 9> Sigm;
+        ChMatrixNM<double, 24, 6> temp246;
+        ChMatrixNM<double, 24, 9> temp249;
+        ChMatrixNM<double, 6, 6> E_eps;
+        ChMatrixNM<double, 3, 24> Sx;
+        ChMatrixNM<double, 3, 24> Sy;
+        ChMatrixNM<double, 3, 24> Sz;
+        ChMatrixNM<double, 1, 8> Nx;
+        ChMatrixNM<double, 1, 8> Ny;
+        ChMatrixNM<double, 1, 8> Nz;
+        ChMatrixNM<double, 6, 24> strainD;
+        ChMatrixNM<double, 6, 1> strain;
+        ChMatrixNM<double, 8, 8> d_d;
+        ChMatrixNM<double, 8, 1> ddNx;
+        ChMatrixNM<double, 8, 1> ddNy;
+        ChMatrixNM<double, 8, 1> ddNz;
+        ChMatrixNM<double, 1, 3> Nxd;
+        ChMatrixNM<double, 1, 3> Nyd;
+        ChMatrixNM<double, 1, 3> Nzd;
+        ChMatrixNM<double, 1, 1> tempA;
+        ChMatrixNM<double, 1, 24> tempB;
+        ChMatrixNM<double, 24, 6> tempC;
+        ChMatrixNM<double, 1, 1> tempA1;  // for strain incase of initial curved
+        ChMatrixNM<double, 8, 8> d0_d0;   // for strain incase of initial curved
+        ChMatrixNM<double, 8, 1> d0d0Nx;  // for strain incase of initial curved
+        ChMatrixNM<double, 8, 1> d0d0Ny;  // for strain incase of initial curved
+        ChMatrixNM<double, 8, 1> d0d0Nz;  // for strain incase of initial curved
+        double detJ0;
+        //	//EAS
+        ChMatrixNM<double, 6, 9> M;
+        ChMatrixNM<double, 6, 9> G;
+        ChMatrixNM<double, 9, 6> GT;
+        ChMatrixNM<double, 6, 1> strain_EAS;
+
+        //	/// Evaluate (strainD'*strain)  at point
+        virtual void Evaluate(ChMatrixNM<double, 906, 1>& result, const double x, const double y, const double z);
+    };  // end of class MyForce
+
+    class MyForceNum : public ChIntegrable3D<ChMatrixNM<double, 330, 1> > {
+      public:
+        ChElementBrick* element;
+        /// Pointers used for external values
+        ChMatrixNM<double, 8, 3>* d;
+        ChMatrixNM<double, 8, 3>* d0;
+        ChMatrixNM<double, 6, 6>* T0;
+        ChMatrixNM<double, 9, 1>* alpha_eas;
+        double* detJ0C;
+        double* E;
+        double* v;
+        ChMatrixNM<double, 24, 1> Fint;
+        ChMatrixNM<double, 6, 6> E_eps;
+        ChMatrixNM<double, 3, 24> Sx;
+        ChMatrixNM<double, 3, 24> Sy;
+        ChMatrixNM<double, 3, 24> Sz;
+        ChMatrixNM<double, 1, 8> Nx;
+        ChMatrixNM<double, 1, 8> Ny;
+        ChMatrixNM<double, 1, 8> Nz;
+        ChMatrixNM<double, 6, 24> strainD;
+        ChMatrixNM<double, 6, 1> strain;
+        ChMatrixNM<double, 8, 8> d_d;
+        ChMatrixNM<double, 8, 1> ddNx;
+        ChMatrixNM<double, 8, 1> ddNy;
+        ChMatrixNM<double, 8, 1> ddNz;
+        ChMatrixNM<double, 1, 3> Nxd;
+        ChMatrixNM<double, 1, 3> Nyd;
+        ChMatrixNM<double, 1, 3> Nzd;
+        ChMatrixNM<double, 1, 1> tempA;
+        ChMatrixNM<double, 1, 24> tempB;
+        ChMatrixNM<double, 24, 6> tempC;
+        ChMatrixNM<double, 1, 1> tempA1;  // for strain incase of initial curved
+        ChMatrixNM<double, 8, 8> d0_d0;   // for strain incase of initial curved
+        ChMatrixNM<double, 8, 1> d0d0Nx;  // for strain incase of initial curved
+        ChMatrixNM<double, 8, 1> d0d0Ny;  // for strain incase of initial curved
+        ChMatrixNM<double, 8, 1> d0d0Nz;  // for strain incase of initial curved
+        double detJ0;
+        // EAS
+        ChMatrixNM<double, 6, 9> M;
+        ChMatrixNM<double, 6, 9> G;
+        ChMatrixNM<double, 9, 6> GT;
+        ChMatrixNM<double, 6, 1> strain_EAS;
+
+        /// Gaussian integration to calculate internal forces and EAS matrices
+        virtual void Evaluate(ChMatrixNM<double, 330, 1>& result, const double x, const double y, const double z);
+    };
+
+	class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
+	public:
+		ChElementBrick* element;
+		ChMatrixNM<double, 8, 3>* d0;
+		ChMatrixNM<double, 3, 24> S;
+		ChMatrixNM<double, 1, 8> N;
+		ChMatrixNM<double, 1, 8> Nx;
+		ChMatrixNM<double, 1, 8> Ny;
+		ChMatrixNM<double, 1, 8> Nz;
+		ChMatrixNM<double, 3, 1> LocalGravityForce;
+
+		virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
+	};
     virtual int GetNnodes() override { return 8; }
     virtual int GetNcoords() override { return 8 * 3; }
     virtual int GetNdofs() override { return 8 * 3; }
@@ -75,12 +206,12 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// Turn gravity on/off.
     void SetGravityOn(bool val) { m_gravity_on = val; }
     void SetMooneyRivlin(bool val) { m_isMooney = val; }
-	void SetMRCoefficients(double C1, double C2) { CCOM1 = C1; CCOM2 = C2; }
+    void SetMRCoefficients(double C1, double C2) {
+        CCOM1 = C1;
+        CCOM2 = C2;
+    }
 
-    //
     // Functions for ChLoadable interface
-    //
-
     /// Gets the number of DOFs affected by this element (position part)
     virtual int LoadableGet_ndof_x() { return 8 * 3; }
 
@@ -129,31 +260,31 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
             mvars.push_back(&this->m_nodes[i]->Variables());
     };
 
-	/// Evaluate N'*F , where N is some type of shape function
-	/// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
-	/// F is a load, N'*F is the resulting generalized load
-	/// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
-	virtual void ComputeNF(const double U,   ///< parametric coordinate in volume
-		const double V,             ///< parametric coordinate in volume
-		const double W,             ///< parametric coordinate in volume 
-		ChVectorDynamic<>& Qi,      ///< Return result of N'*F  here, maybe with offset block_offset
-		double& detJ,               ///< Return det[J] here
-		const ChVectorDynamic<>& F, ///< Input F vector, size is = n.field coords.
-		ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
-		ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
-		) {
-		// evaluate shape functions (in compressed vector), btw. not dependant on state
-		//ChMatrixNM<double, 1, 8> N;
-		//this->ShapeFunctions(N, U, V, W); // note: U,V,W in -1..1 range
+    /// Evaluate N'*F , where N is some type of shape function
+    /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
+    /// F is a load, N'*F is the resulting generalized load
+    /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    virtual void ComputeNF(const double U,              ///< parametric coordinate in volume
+                           const double V,              ///< parametric coordinate in volume
+                           const double W,              ///< parametric coordinate in volume
+                           ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
+                           double& detJ,                ///< Return det[J] here
+                           const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
+                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                           ) {
+        // evaluate shape functions (in compressed vector), btw. not dependant on state
+        // ChMatrixNM<double, 1, 8> N;
+        // this->ShapeFunctions(N, U, V, W); // note: U,V,W in -1..1 range
 
-		//detJ = this->GetVolume() / 8.0;
+        // detJ = this->GetVolume() / 8.0;
 
-		//Qi(0) = N(0)*F(0);
-	// TO DO
-	}
+        // Qi(0) = N(0)*F(0);
+        // TO DO
+    }
 
-	/// This is needed so that it can be accessed by ChLoaderVolumeGravity
-	virtual double GetDensity() { return 0; }
+    /// This is needed so that it can be accessed by ChLoaderVolumeGravity
+    virtual double GetDensity() { return 0; }
 
   private:
     enum JacobianType { ANALYTICAL, NUMERICAL };
@@ -176,8 +307,8 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     JacobianType m_flag_HE;
     bool m_gravity_on;  ///< Flag indicating whether or not gravity is included
     bool m_isMooney;    ///< Flag indicating whether the material is Mooney Rivlin
-	double CCOM1;       ///< First coefficient for Mooney-Rivlin
-	double CCOM2;       ///< Second coefficient for Mooney-Rivlin
+    double CCOM1;       ///< First coefficient for Mooney-Rivlin
+    double CCOM2;       ///< Second coefficient for Mooney-Rivlin
                         // Private Methods
     /// Fills the N shape function matrix
     /// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
