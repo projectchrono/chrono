@@ -56,7 +56,7 @@ M113_TrackShoe::M113_TrackShoe(VisualizationType vis_type) : ChSinglePinShoe("M1
 void M113_TrackShoe::AddShoeContact() {
     m_shoe->GetCollisionModel()->ClearModel();
     m_shoe->GetCollisionModel()->AddBox(0.055, 0.095, 0.03);
-    m_shoe->GetCollisionModel()->AddBox(0.0142, 0.0055, 0.0375, ChVector<>(0.05, 0, 0.0375));
+    m_shoe->GetCollisionModel()->AddBox(0.0142, 0.0055, 0.0375, ChVector<>(0.045, 0, 0.0375));
     m_shoe->GetCollisionModel()->BuildModel();
 }
 
@@ -102,7 +102,7 @@ void M113_TrackShoe::AddShoeVisualization() {
 
             ChSharedPtr<ChBoxShape> box_pin(new ChBoxShape);
             box_pin->GetBoxGeometry().SetLengths(ChVector<>(0.0284, 0.0114, 0.075));
-            box_pin->GetBoxGeometry().Pos = ChVector<>(0.0562, 0, 0.0375);
+            box_pin->GetBoxGeometry().Pos = ChVector<>(0.045, 0, 0.0375);
             m_shoe->AddAsset(box_pin);
 
             ChSharedPtr<ChColorAsset> col(new ChColorAsset);
