@@ -13,24 +13,11 @@
 #ifndef CHSYSTEM_H
 #define CHSYSTEM_H
 
-//////////////////////////////////////////////////
-//
-//   ChSystem.h
-//
+
 //   The physical system definition.
 //   A phisical system encloses bodies, links,
 //   probes, etc.
-//   This is the oldest source file of Chrono::Engine
-//   therefore it is poorly written and under major
-//   revisiting... Stay tuned..
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+
 
 #include <stdlib.h>
 #include <iostream>
@@ -42,7 +29,6 @@
 
 #include "core/ChLog.h"
 #include "core/ChMath.h"
-//#include "core/ChSparseMatrix.h" // it is not needed here, isn't it?
 #include "core/ChTimer.h"
 #include "physics/ChLinksAll.h"
 #include "physics/ChEvents.h"
@@ -76,9 +62,6 @@ class ChForce;
 #define NORM_TWO 1
 #define STATIC_MAX_STEPS 35
 
-//////////////////////////////////////
-//  MULTIBODY SYSTEM CLASS
-//
 /// This class is used to represent a multibody physical system,
 /// so it acts also as a database for most items involved in
 /// simulations, most noticeably objects of ChBody and ChLink
