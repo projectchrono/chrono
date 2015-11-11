@@ -49,7 +49,7 @@ void ChElementBrick::SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
     m_nodes[1] = nodeB;
     m_nodes[2] = nodeC;
     m_nodes[3] = nodeD;
-    m_nodes[4] = nodeE;
+    m_nodes[4] = nodeE; 
     m_nodes[5] = nodeF;
     m_nodes[6] = nodeG;
     m_nodes[7] = nodeH;
@@ -744,7 +744,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             KALPHA = KALPHAvec;
             KALPHA1 = KALPHA;
 
-            if (m_flag_HE == 1)
+            if (m_flag_HE == NUMERICAL)
                 break;  // When numerical jacobian loop, no need to calculate HE
             count = count + 1;
             double norm_HE = HE.NormTwo();
@@ -760,19 +760,19 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 }
                 LU_solve(KALPHA1, INDX, ResidHE);
             }
-            if (m_flag_HE == 0 && count > 2) {
+            if (m_flag_HE == ANALYTICAL && count > 2) {
                 GetLog() << i << "  count " << count << "  NormHE " << norm_HE << "\n";
             }
         }
         Fi = -Finternal;
         //== Stock_Alpha=================//
-        if (m_flag_HE == 0) {
+        if (m_flag_HE == ANALYTICAL) {
             SetStockAlpha(renewed_alpha_eas(0, 0), renewed_alpha_eas(1, 0), renewed_alpha_eas(2, 0),
                           renewed_alpha_eas(3, 0), renewed_alpha_eas(4, 0), renewed_alpha_eas(5, 0),
                           renewed_alpha_eas(6, 0), renewed_alpha_eas(7, 0), renewed_alpha_eas(8, 0));  // this->
         }
         //== Jacobian Matrix for alpha ==//
-        if (m_flag_HE == 0) {
+        if (m_flag_HE == ANALYTICAL) {
             ChMatrixNM<double, 9, 9> INV_KALPHA;
             ChMatrixNM<double, 9, 24> TEMP_GDEPSP;
             ChMatrixNM<double, 9, 9> INV_KALPHA_Temp;
@@ -1396,6 +1396,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             }
         };  // end of class MyForce
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         ChMatrixNM<double, 906, 1> TempIntegratedResult;
         ChMatrixNM<double, 24, 1> Finternal;
         // Enhanced Assumed Strain (EAS)
@@ -1493,7 +1494,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             // system("pause");
             //      GetLog() <<Finternal<<"\n";
             // system("pause");
-            if (m_flag_HE == 1)
+            if (m_flag_HE == NUMERICAL)
                 break;  // When numerical jacobian loop, no need to calculate HE
             count = count + 1;
             double norm_HE = HE.NormTwo();
@@ -1511,13 +1512,13 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         }  // end of while
         Fi = -Finternal;
         ////== Stock_Alpha=================//
-        if (m_flag_HE == 0) {
+        if (m_flag_HE == ANALYTICAL) {
             SetStockAlpha(renewed_alpha_eas(0, 0), renewed_alpha_eas(1, 0), renewed_alpha_eas(2, 0),
                           renewed_alpha_eas(3, 0), renewed_alpha_eas(4, 0), renewed_alpha_eas(5, 0),
                           renewed_alpha_eas(6, 0), renewed_alpha_eas(7, 0), renewed_alpha_eas(8, 0));  // this->
         }
         ////== Jacobian Matrix for alpha ==//
-        if (m_flag_HE == 0) {
+		if (m_flag_HE == ANALYTICAL) {
             ChMatrixNM<double, 9, 9> INV_KALPHA;
             ChMatrixNM<double, 9, 24> TEMP_GDEPSP;
             ChMatrixNM<double, 9, 9> INV_KALPHA_Temp;
