@@ -458,7 +458,9 @@ void AddBCE2FluidSystem_FromFile(
   int numBce = posRadBCE.size();
   //#pragma omp parallel for  // it is very wrong to do it in parallel. race condition will occur
   for (int i = 0; i < numBce; i++) {
-    posRadH.push_back(posRadBCE[i]);
+	  chrono::ChVector<> readP3 =  ConvertRealToChVector(posRadBCE[i]);
+	  chrono::ChVector<> posParent = chrono::ChTransform<>::TransformLocalToParent(readP3, body->GetPos(), body->GetRot());
+    posRadH.push_back(ConvertChVectorToR3(posParent));
 
     chrono::ChVector<> pointPar = ConvertRealToChVector(posRadBCE[i]);
     chrono::ChVector<> posLoc = chrono::ChTransform<>::TransformParentToLocal(pointPar, body->GetPos(), body->GetRot());

@@ -59,9 +59,9 @@
 #include "chrono_fsi/FSI_Integrate.h"
 
 // FSI Interface Includes
-#include "params_test_fsi_cylinderDrop.h"  //SetupParamsH()
+#include "params_test_fsi_hmmwv_pointCloud.h"  //SetupParamsH()
 
-#define haveFluid true
+#define haveFluid false
 #define haveVehicle true
 
 // Chrono namespaces
@@ -311,7 +311,32 @@ void AddBoxBceToChSystemAndSPH(
 }
 
 // =============================================================================
-void CreateVehicleBCE(
+void CreateTiresBCE(thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+                   thrust::host_vector<Real4>& velMasH,
+                   thrust::host_vector<Real4>& rhoPresMuH,
+                   thrust::host_vector< ::int3>& referenceArray,
+                   std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
+                   NumberOfObjects& numObjects,
+                   Real sphMarkerMass,
+                   const SimParams& paramsH) {
+    std::string dataPath = chrono::GetChronoDataPath();
+    dataPath.append("fsi/WheelBCE.csv");
+
+    for (int i = 0; i < 4; i++) {
+        AddBCE2FluidSystem_FromFile(posRadH,
+                                    velMasH,
+                                    rhoPresMuH,
+                                    referenceArray,
+                                    numObjects,
+                                    sphMarkerMass,
+                                    paramsH,
+                                    mVehicle->GetVehicle()->GetWheelBody(i),
+                                    dataPath);
+        FSI_Bodies.push_back(mVehicle->GetVehicle()->GetWheelBody(i));
+    }
+}
+// =============================================================================
+void CreateChassisBCE(
     thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
@@ -534,10 +559,13 @@ void CreateMbdPhysicalSystemObjects(
             mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
         }
 
-        // -----------------
-        // Add BCE
-        // -----------------
-        CreateVehicleBCE(posRadH, velMasH, rhoPresMuH, referenceArray, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
+// -----------------
+// Add BCE
+// -----------------
+#if haveFluid
+        CreateChassisBCE(posRadH, velMasH, rhoPresMuH, referenceArray, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
+        CreateTiresBCE(posRadH, velMasH, rhoPresMuH, referenceArray, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
+#endif
     }
     // extra objects
     // -----------------------------------------
@@ -891,7 +919,6 @@ int main(int argc, char* argv[]) {
             "\n\n\n\n",
             posRadD.size(),
             numObjects.numAllMarkers);
-
 
         return 1;
     }
