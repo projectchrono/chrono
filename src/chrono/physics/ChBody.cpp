@@ -782,12 +782,14 @@ void ChBody::SyncCollisionModels() {
 void ChBody::AddCollisionModelsToSystem() {
     assert(this->GetSystem());
     SyncCollisionModels();
-    this->GetSystem()->GetCollisionSystem()->Add(this->GetCollisionModel());
+    if (this->GetCollide())
+        this->GetSystem()->GetCollisionSystem()->Add(this->GetCollisionModel());
 }
 
 void ChBody::RemoveCollisionModelsFromSystem() {
     assert(this->GetSystem());
-    this->GetSystem()->GetCollisionSystem()->Remove(this->GetCollisionModel());
+    if (this->GetCollide())
+        this->GetSystem()->GetCollisionSystem()->Remove(this->GetCollisionModel());
 }
 
 void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
