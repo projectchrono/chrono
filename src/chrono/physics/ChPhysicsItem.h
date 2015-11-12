@@ -74,7 +74,10 @@ class ChApi ChPhysicsItem : public ChObj {
         this->offset_L = 0;
     };
 
-    virtual ~ChPhysicsItem(){};
+    virtual ~ChPhysicsItem(){
+        SetSystem(0); // this also might remove collision model from system
+    };
+
     virtual void Copy(ChPhysicsItem* source);
 
   public:
