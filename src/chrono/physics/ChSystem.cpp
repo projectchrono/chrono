@@ -48,836 +48,6 @@ using namespace chrono::collision;
 
 namespace chrono {
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CLASS FOR ASSEMBLIES
-
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChAssemblyNew> a_registration_ChAssemblyNew;
-
-ChAssemblyNew::ChAssemblyNew() {
-    linklist.clear();
-    bodylist.clear();
-    otherphysicslist.clear();
-    
-    nbodies = 0;
-    nlinks = 0;
-    nphysicsitems = 0;
-    ndof = 0;
-    ndoc = 0;
-    ndoc_w = 0;
-    ndoc_w_C = 0;
-    ndoc_w_D = 0;
-    nsysvars_w = 0;
-    ncoords = 0;
-    ncoords_w = 0;
-    nsysvars = 0;
-    ncoords_w = 0;
-    ncontacts = 0;
-    nbodies_sleep = 0;
-    nbodies_fixed = 0;
-
-    ChTime = 0;
-}
-
-ChAssemblyNew::~ChAssemblyNew() {
-    RemoveAllBodies();
-    RemoveAllLinks();
-    RemoveAllOtherPhysicsItems();
-}
-
-void ChAssemblyNew::Copy(ChAssemblyNew* source) {
-    // first copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    nbodies = source->GetNbodies();
-    nlinks = source->GetNlinks();
-    nphysicsitems = source->GetNphysicsItems();
-    ncoords = source->GetNcoords();
-    ncoords_w = source->GetNcoords_w();
-    ndoc = source->GetNdoc();
-    ndoc_w = source->GetNdoc_w();
-    ndoc_w_C = source->GetNdoc_w_C();
-    ndoc_w_D = source->GetNdoc_w_D();
-    ndof = source->GetNdof();
-    nsysvars = source->GetNsysvars();
-    nsysvars_w = source->GetNsysvars_w();
-    nbodies_sleep = source->GetNbodiesSleeping();
-    nbodies_fixed = source->GetNbodiesFixed();
-    
-    ChTime = source->ChTime;
-}
-
-void ChAssemblyNew::Clear() {
-
-    RemoveAllLinks();
-    RemoveAllBodies();
-    RemoveAllOtherPhysicsItems();
-
-    nbodies = 0;
-    nlinks = 0;
-    nphysicsitems = 0;
-    ndof = 0;
-    ndoc = 0;
-    ndoc_w = 0;
-    ndoc_w_C = 0;
-    ndoc_w_D = 0;
-    nsysvars_w = 0;
-    ncoords = 0;
-    ncoords_w = 0;
-    nsysvars = 0;
-    ncoords_w = 0;
-    nbodies_sleep = 0;
-    nbodies_fixed = 0;
-
-    // contact_container->RemoveAllContacts();
-
-}
-
-void ChAssemblyNew::AddBody(ChSharedPtr<ChBody> newbody) {
-    assert(std::find<std::vector<ChSharedPtr<ChBody> >::iterator>(bodylist.begin(), bodylist.end(), newbody) ==
-           bodylist.end());
-    assert(newbody->GetSystem() == 0);  // should remove from other system before adding here
-
-    // set system and also add collision models to system
-    newbody->SetSystem(this->GetSystem());
-    bodylist.push_back(newbody);
-}
-
-void ChAssemblyNew::RemoveBody(ChSharedPtr<ChBody> mbody) {
-    assert(std::find<std::vector< ChSharedPtr<ChBody> >::iterator>(bodylist.begin(), bodylist.end(), mbody) != bodylist.end());
-
-    // warning! linear time search, to erase pointer from container.
-    bodylist.erase(std::find<std::vector< ChSharedPtr<ChBody> >::iterator>(bodylist.begin(), bodylist.end(), mbody));
-
-    // nullify backward link to system and also remove from collision system
-    mbody->SetSystem(0);
-}
-
-void ChAssemblyNew::AddLink(ChSharedPtr<ChLink> newlink) {
-    assert(std::find<std::vector< ChSharedPtr<ChLink> >::iterator>(linklist.begin(), linklist.end(), newlink) == linklist.end());
-
-    newlink->SetSystem(this->GetSystem());
-    linklist.push_back(newlink);
-}
-
-
-
-// Faster than RemoveLink because it does not require the linear time search
-std::vector<ChSharedPtr<ChLink> >::iterator ChAssemblyNew::RemoveLinkIter(std::vector<ChSharedPtr<ChLink> >::iterator& mlinkiter) {
-    // nullify backward link to system
-    (*mlinkiter)->SetSystem(0);
-
-    return linklist.erase(mlinkiter);
-}
-
-void ChAssemblyNew::RemoveLink(ChSharedPtr<ChLink> mlink) {
-    assert(std::find<std::vector<ChSharedPtr<ChLink> >::iterator>(linklist.begin(), linklist.end(), mlink) !=
-           linklist.end());
-
-    // warning! linear time search, to erase pointer from container!
-    linklist.erase(std::find<std::vector<ChSharedPtr<ChLink> >::iterator>(linklist.begin(), linklist.end(), mlink));
-
-    // nullify backward link to system
-    mlink->SetSystem(0);
-}
-
-void ChAssemblyNew::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
-    assert(std::find<std::vector<ChSharedPtr<ChPhysicsItem> >::iterator>(otherphysicslist.begin(), otherphysicslist.end(),
-                                                            newitem) == otherphysicslist.end());
-    // assert(newitem->GetSystem()==0); // should remove from other system before adding here
-
-    // set system and also add collision models to system
-    newitem->SetSystem(this->GetSystem());
-    otherphysicslist.push_back(newitem);
-}
-
-void ChAssemblyNew::RemoveOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> mitem) {
-    assert(std::find<std::vector<ChSharedPtr<ChPhysicsItem> >::iterator>(otherphysicslist.begin(), otherphysicslist.end(),
-                                                            mitem) != otherphysicslist.end());
-
-    // warning! linear time search, to erase pointer from container.
-    otherphysicslist.erase(std::find<std::vector<ChSharedPtr<ChPhysicsItem> >::iterator>(otherphysicslist.begin(),                                                                         otherphysicslist.end(), mitem));
-
-    // nullify backward link to system and also remove from collision system
-    mitem->SetSystem(0);
-}
-
-void ChAssemblyNew::Add(ChSharedPtr<ChPhysicsItem> newitem) {
-    if (newitem.IsType<ChBody>()) // (typeid(*newitem.get_ptr())==typeid(ChBody)) // if (newitem.IsType<ChBody>()) sends ChBody descendants in ChBody list: this is bad for ChConveyor
-    {
-        AddBody(newitem.DynamicCastTo<ChBody>());
-    } else if (newitem.IsType<ChLink>()) {
-        AddLink(newitem.DynamicCastTo<ChLink>());
-    } else
-        AddOtherPhysicsItem(newitem);
-}
-
-void ChAssemblyNew::AddBatch(ChSharedPtr<ChPhysicsItem> newitem) {
-    // the following is a openMP critical section:
-    #pragma omp critical
-    {
-        this->batch_to_insert.push_back(newitem);
-        //newitem->SetSystem(this->GetSystem());
-    }
-}
-
-void ChAssemblyNew::FlushBatch() {
-    for (int i=0; i<  this->batch_to_insert.size(); ++i) {
-        //batch_to_insert[i]->SetSystem(0);
-        this->Add(batch_to_insert[i]);
-    }
-    batch_to_insert.clear();
-}
-
-void ChAssemblyNew::Remove(ChSharedPtr<ChPhysicsItem> newitem) {
-    if (newitem.IsType<ChBody>()) // (typeid(*newitem.get_ptr())==typeid(ChBody)) // if (newitem.IsType<ChBody>()) sends ChBody descendants in ChBody list: this is bad for ChConveyor
-    {
-        RemoveBody(newitem.DynamicCastTo<ChBody>());
-    } else if (newitem.IsType<ChLink>()) {
-        RemoveLink(newitem.DynamicCastTo<ChLink>());
-    } else
-        RemoveOtherPhysicsItem(newitem);
-}
-
-void ChAssemblyNew::RemoveAllBodies() {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-
-        // nullify backward link to system and also remove from collision system
-        Bpointer->SetSystem(0);
-    }
-    bodylist.clear();
-}
-
-void ChAssemblyNew::RemoveAllLinks() {
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        // nullify backward link to system
-        linklist[ip]->SetSystem(0);
-    }
-    linklist.clear();
-}
-
-void ChAssemblyNew::RemoveAllOtherPhysicsItems() {
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        // nullify backward link to system and also remove from collision system
-        PHpointer->SetSystem(0);
-    }
-    otherphysicslist.clear();
-}
-
-ChSharedPtr<ChBody> ChAssemblyNew::SearchBody(const char* m_name) {
-    return ChContainerSearchFromName<ChSharedPtr<ChBody>, std::vector<ChSharedPtr<ChBody> >::iterator>(m_name, bodylist.begin(), bodylist.end());
-}
-
-ChSharedPtr<ChLink> ChAssemblyNew::SearchLink(const char* m_name) {
-    return ChContainerSearchFromName<ChSharedPtr<ChLink>, std::vector< ChSharedPtr<ChLink> >::iterator>(m_name, linklist.begin(), linklist.end());
-}
-
-ChSharedPtr<ChPhysicsItem> ChAssemblyNew::SearchOtherPhysicsItem(const char* m_name) {
-    return ChContainerSearchFromName<ChSharedPtr<ChPhysicsItem>, std::vector< ChSharedPtr<ChPhysicsItem> >::iterator>(
-        m_name, otherphysicslist.begin(), otherphysicslist.end());
-}
-
-ChSharedPtr<ChPhysicsItem> ChAssemblyNew::Search(const char* m_name) {
-    ChSharedPtr<ChBody> mbo = SearchBody(m_name);
-    if (!mbo.IsNull())
-        return mbo;
-    ChSharedPtr<ChLink> mli = SearchLink(m_name);
-    if (!mli.IsNull())
-        return mli;
-    ChSharedPtr<ChPhysicsItem> mph = SearchOtherPhysicsItem(m_name);
-    if (!mph.IsNull())
-        return mph;
-    return (ChSharedPtr<ChPhysicsItem>());  // not found? return a void shared ptr.
-}
-
-ChSharedPtr<ChMarker> ChAssemblyNew::SearchMarker(const char* m_name) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-
-        ChSharedPtr<ChMarker> mmark = Bpointer->SearchMarker(m_name);
-        if (!mmark.IsNull())
-            return mmark;
-    }
-
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        if (ChSharedPtr<ChBodyAuxRef> mbodyauxref = PHpointer.DynamicCastTo<ChBodyAuxRef>()) {
-            ChSharedPtr<ChMarker> mmark = mbodyauxref->SearchMarker(m_name);
-            if (!mmark.IsNull())
-                return mmark;
-        }
-    }
-
-    return (ChSharedPtr<ChMarker>());  // not found? return a void shared ptr.
-}
-
-ChSharedPtr<ChMarker> ChAssemblyNew::SearchMarker(int markID) {
-
-    ChSharedPtr<ChMarker> res;
-
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-
-        res = ChContainerSearchFromID<ChSharedPtr<ChMarker>, std::vector<ChSharedPtr<ChMarker>>::const_iterator>(
-            markID, Bpointer->GetMarkerList().begin(), Bpointer->GetMarkerList().end());
-        if (res) {
-            return res;
-        }
-    }
-
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        if (ChSharedPtr<ChBodyAuxRef> mbodyauxref = PHpointer.DynamicCastTo<ChBodyAuxRef>()) {
-            res = ChContainerSearchFromID<ChSharedPtr<ChMarker>, std::vector<ChSharedPtr<ChMarker>>::const_iterator>(
-                markID, mbodyauxref->GetMarkerList().begin(), mbodyauxref->GetMarkerList().end());
-            if (res) {
-                return res;
-            }
-        }
-    }
-
-    return (ChSharedPtr<ChMarker>());  // not found? return a void shared ptr.
-}
-
-
-//////////////////////////////////////////////////////////////////
-
-ChAssemblyNew::IteratorBodies& ChAssemblyNew::IteratorBodies::operator=(const IteratorBodies& other) {
-    node_ = other.node_;
-    return (*this);
-}
-bool ChAssemblyNew::IteratorBodies::operator==(const IteratorBodies& other) {
-    return (node_ == other.node_);
-}
-bool ChAssemblyNew::IteratorBodies::operator!=(const IteratorBodies& other) {
-    return (node_ != other.node_);
-}
-ChAssemblyNew::IteratorBodies& ChAssemblyNew::IteratorBodies::operator++() {
-    node_++;
-    return (*this);
-}
-ChSharedPtr<ChBody> ChAssemblyNew::IteratorBodies::operator*() {
-    return (*node_);  // .. here I am not getting a new() data, but a reference to something created elsewhere
-}
-ChAssemblyNew::IteratorBodies ChAssemblyNew::IterBeginBodies() {
-    return (IteratorBodies(this->bodylist.begin()));
-}
-ChAssemblyNew::IteratorBodies ChAssemblyNew::IterEndBodies() {
-    return (IteratorBodies(this->bodylist.end()));
-}
-
-//////////////////////////////////////////////////////////////////
-
-ChAssemblyNew::IteratorLinks& ChAssemblyNew::IteratorLinks::operator=(const IteratorLinks& other) {
-    node_ = other.node_;
-    return (*this);
-}
-bool ChAssemblyNew::IteratorLinks::operator==(const IteratorLinks& other) {
-    return (node_ == other.node_);
-}
-bool ChAssemblyNew::IteratorLinks::operator!=(const IteratorLinks& other) {
-    return (node_ != other.node_);
-}
-ChAssemblyNew::IteratorLinks& ChAssemblyNew::IteratorLinks::operator++() {
-    node_++;
-    return (*this);
-}
-
-ChSharedPtr<ChLink> ChAssemblyNew::IteratorLinks::operator*() {
-    return (*node_);
-}
-ChAssemblyNew::IteratorLinks ChAssemblyNew::IterBeginLinks() {
-    return (IteratorLinks(this->linklist.begin()));
-}
-ChAssemblyNew::IteratorLinks ChAssemblyNew::IterEndLinks() {
-    return (IteratorLinks(this->linklist.end()));
-}
-
-//////////////////////////////////////////////////////////////////
-
-ChAssemblyNew::IteratorOtherPhysicsItems& ChAssemblyNew::IteratorOtherPhysicsItems::operator=(
-    const IteratorOtherPhysicsItems& other) {
-    node_ = other.node_;
-    return (*this);
-}
-bool ChAssemblyNew::IteratorOtherPhysicsItems::operator==(const IteratorOtherPhysicsItems& other) {
-    return (node_ == other.node_);
-}
-bool ChAssemblyNew::IteratorOtherPhysicsItems::operator!=(const IteratorOtherPhysicsItems& other) {
-    return (node_ != other.node_);
-}
-ChAssemblyNew::IteratorOtherPhysicsItems& ChAssemblyNew::IteratorOtherPhysicsItems::operator++() {
-    node_++;
-    return (*this);
-}
-ChSharedPtr<ChPhysicsItem> ChAssemblyNew::IteratorOtherPhysicsItems::operator*() {
-    return (*node_);  // .. here I am not getting a new() data, but a reference to something created elsewhere
-}
-ChAssemblyNew::IteratorOtherPhysicsItems ChAssemblyNew::IterBeginOtherPhysicsItems() {
-    return (IteratorOtherPhysicsItems(this->otherphysicslist.begin()));
-}
-ChAssemblyNew::IteratorOtherPhysicsItems ChAssemblyNew::IterEndOtherPhysicsItems() {
-    return (IteratorOtherPhysicsItems(this->otherphysicslist.end()));
-}
-
-//////////////////////////////////////////////////////////////////
-
-ChAssemblyNew::IteratorPhysicsItems::IteratorPhysicsItems(ChAssemblyNew* msys) {
-    this->msystem = msys;
-    // RewindToBegin();
-    node_body = msystem->Get_bodylist()->begin();
-    node_link = msystem->Get_linklist()->begin();
-    node_otherphysics = msystem->Get_otherphysicslist()->begin();
-    stage = 0;
-    mptr = ChSharedPtr<ChPhysicsItem>(0);
-    this->operator++();  // initialize with 1st available item
-}
-ChAssemblyNew::IteratorPhysicsItems::IteratorPhysicsItems() {
-    this->msystem = 0;
-    this->mptr = ChSharedPtr<ChPhysicsItem>(0);
-    this->stage = 9999;
-}
-
-ChAssemblyNew::IteratorPhysicsItems::~IteratorPhysicsItems() {
-}
-/*
-void ChAssemblyNew::IteratorPhysicsItems::RewindToBegin()
-{
-  node_body   = msystem->Get_bodylist()->begin();
-  node_link	  = msystem->Get_linklist()->begin();
-  node_otherphysics	 = msystem->Get_otherphysicslist()->begin();
-  stage = 0;
-  mptr = ChSharedPtr<ChPhysicsItem>(0);
-  this->operator++(); // initialize with 1st available item
-}
-
-bool ChAssemblyNew::IteratorPhysicsItems::ReachedEnd()
-{
-  if (stage == 9999)
-      return true;
-  return false;
-}
-*/
-bool ChAssemblyNew::IteratorPhysicsItems::HasItem() {
-    if (mptr)
-        return true;
-    return false;
-}
-
-ChAssemblyNew::IteratorPhysicsItems& ChAssemblyNew::IteratorPhysicsItems::operator=(const ChSystem::IteratorPhysicsItems& other) {
-    msystem = other.msystem;
-    node_body = other.node_body;
-    node_link = other.node_link;
-    node_otherphysics = other.node_otherphysics;
-    stage = other.stage;
-    mptr = other.mptr;
-    return (*this);
-}
-
-bool ChAssemblyNew::IteratorPhysicsItems::operator==(const ChAssemblyNew::IteratorPhysicsItems& other) {
-    return ((mptr.get_ptr() == other.mptr.get_ptr()) && (stage == other.stage) && (msystem == other.msystem));  //...***TO CHECK***
-}
-
-bool ChAssemblyNew::IteratorPhysicsItems::operator!=(const ChAssemblyNew::IteratorPhysicsItems& other) {
-    return !(this->operator==(other));  //...***TO CHECK***
-}
-
-ChAssemblyNew::IteratorPhysicsItems& ChAssemblyNew::IteratorPhysicsItems::operator++() {
-    switch (stage) {
-        case 1: {
-            node_body++;  // try next body
-            if (node_body != msystem->Get_bodylist()->end()) {
-                mptr = (*node_body);
-                return (*this);
-            }
-            break;
-        }
-        case 2: {
-            node_link++;  // try next link
-            if (node_link != msystem->Get_linklist()->end()) {
-                mptr = (*node_link);
-                return (*this);
-            }
-            break;
-        }
-        case 3: {
-            node_otherphysics++;  // try next otherphysics
-            if (node_otherphysics != msystem->Get_otherphysicslist()->end()) {
-                mptr = (*node_otherphysics);
-                return (*this);
-            }
-            break;
-        }
-        default:
-            break;
-    }
-    // Something went wrong, some list was at the end, so jump to beginning of next list
-    do {
-        switch (stage) {
-            case 0: {
-                stage = 1;
-                if (node_body != msystem->Get_bodylist()->end()) {
-                    mptr = (*node_body);
-                    return (*this);
-                }
-                break;
-            }
-            case 1: {
-                stage = 2;
-                if (node_link != msystem->Get_linklist()->end()) {
-                    mptr = (*node_link);
-                    return (*this);
-                }
-                break;
-            }
-            case 2: {
-                stage = 3;
-                if (node_otherphysics != msystem->Get_otherphysicslist()->end()) {
-                    mptr = (*node_otherphysics);
-                    return (*this);
-                }
-                break;
-            }
-            case 3: {
-                stage = 9999;
-                mptr = ChSharedPtr<ChPhysicsItem>(0);
-                return (*this);
-            }
-        }  // end cases
-    } while (true);
-
-    return (*this);
-}
-
-ChSharedPtr<ChPhysicsItem> ChAssemblyNew::IteratorPhysicsItems::operator*() {
-    return mptr;  
-}
-ChAssemblyNew::IteratorPhysicsItems ChAssemblyNew::IterBeginPhysicsItems() {
-    return (IteratorPhysicsItems(this));
-}
-ChAssemblyNew::IteratorPhysicsItems ChAssemblyNew::IterEndPhysicsItems() {
-    return (IteratorPhysicsItems());
-}
-
-
-void ChAssemblyNew::SyncCollisionModels() {
-    #pragma omp parallel for
-    for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        bodylist[ip]->SyncCollisionModels();
-    }
-    #pragma omp parallel for
-    for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on bodies
-    {
-        linklist[ip]->SyncCollisionModels();
-    }
-    #pragma omp parallel for
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on bodies
-    {
-        otherphysicslist[ip]->SyncCollisionModels();
-    }
-}
-
-void ChAssemblyNew::AddCollisionModelsToSystem() {
-    SyncCollisionModels();
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        bodylist[ip]->AddCollisionModelsToSystem();
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on bodies
-    {
-        linklist[ip]->AddCollisionModelsToSystem();
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on bodies
-    {
-        otherphysicslist[ip]->AddCollisionModelsToSystem();
-    }
-}
-
-void ChAssemblyNew::RemoveCollisionModelsFromSystem() {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        bodylist[ip]->RemoveCollisionModelsFromSystem();
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on bodies
-    {
-        linklist[ip]->RemoveCollisionModelsFromSystem();
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on bodies
-    {
-        otherphysicslist[ip]->RemoveCollisionModelsFromSystem();
-    }
-}
-
-
-////////////////////////////////
-//////
-////// UPDATING ROUTINES
-//////
-//////
-
-// COUNT ALL BODIES AND LINKS, ETC, COMPUTE &SET DOF FOR STATISTICS,
-// ALLOCATES OR REALLOCATE BOOKKEEPING DATA/VECTORS, IF ANY
-
-void ChAssemblyNew::Setup() {
-    
-    nbodies = 0;
-    nbodies_sleep = 0;
-    nbodies_fixed = 0;
-    ncoords = 0;
-    ncoords_w = 0;
-    ndoc = 0;
-    ndoc_w = 0;
-    ndoc_w_C = 0;
-    ndoc_w_D = 0;
-    nlinks = 0;
-    nphysicsitems = 0;
-
-    // Any item being queued for insertion in system's lists? add it.
-    this->FlushBatch();
-
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-
-        if (Bpointer->GetBodyFixed())
-            nbodies_fixed++;
-        else if (Bpointer->GetSleeping())
-            nbodies_sleep++;
-        else {
-            nbodies++;
-
-            Bpointer->SetOffset_x(this->offset_x + ncoords);
-            Bpointer->SetOffset_w(this->offset_w + ncoords_w);
-            Bpointer->SetOffset_L(this->offset_L + ndoc_w);
-
-            // Bpointer->Setup(); // unneded since in bodies does nothing
-
-            ncoords   += Bpointer->GetDOF();
-            ncoords_w += Bpointer->GetDOF_w();
-            ndoc_w    += Bpointer->GetDOC();   // unneeded since ChBody introduces no constraints
-            ndoc_w_C  += Bpointer->GetDOC_c(); // unneeded since ChBody introduces no constraints
-            ndoc_w_D  += Bpointer->GetDOC_d(); // unneeded since ChBody introduces no constraints
-        }
-    }
-
-    ndoc += nbodies;  // add one quaternion constr. for each active body.
-
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        nphysicsitems++;
-
-        PHpointer->SetOffset_x(this->offset_x + ncoords);
-        PHpointer->SetOffset_w(this->offset_w + ncoords_w);
-        PHpointer->SetOffset_L(this->offset_L + ndoc_w);
-
-        PHpointer->Setup();  // compute DOFs etc. and sets the offsets also in child items, if assembly-type or
-                             // mesh-type stuff
-
-        ncoords   += PHpointer->GetDOF();
-        ncoords_w += PHpointer->GetDOF_w();
-        ndoc_w    += PHpointer->GetDOC();
-        ndoc_w_C  += PHpointer->GetDOC_c();
-        ndoc_w_D  += PHpointer->GetDOC_d();
-    }
-
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-
-        if (Lpointer->IsActive()) {
-            nlinks++;
-
-            Lpointer->SetOffset_x(this->offset_x + ncoords);
-            Lpointer->SetOffset_w(this->offset_w + ncoords_w);
-            Lpointer->SetOffset_L(this->offset_L + ndoc_w);
-
-            Lpointer->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
-
-            ncoords   += Lpointer->GetDOF();
-            ncoords_w += Lpointer->GetDOF_w();
-            ndoc_w    += Lpointer->GetDOC();
-            ndoc_w_C  += Lpointer->GetDOC_c();
-            ndoc_w_D  += Lpointer->GetDOC_d();
-        }
-    }
-
-    ndoc = ndoc_w + nbodies;          // number of constraints including quaternion constraints.
-    nsysvars = ncoords + ndoc;        // total number of variables (coordinates + lagrangian multipliers)
-    nsysvars_w = ncoords_w + ndoc_w;  // total number of variables (with 6 dof per body)
-
-    ndof = ncoords - ndoc;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
-}
-
-// - ALL PHYSICAL ITEMS (BODIES, LINKS,ETC.) ARE UPDATED,
-//   ALSO UPDATING THEIR AUXILIARY VARIABLES (ROT.MATRICES, ETC.).
-// - UPDATES ALL FORCES  (AUTOMATIC, AS CHILDREN OF BODIES)
-// - UPDATES ALL MARKERS (AUTOMATIC, AS CHILDREN OF BODIES).
-
-void ChAssemblyNew::Update(bool update_assets) {
-
-    // --------------------------------------
-    // Updates recursively bodies
-    // --------------------------------------
-    #pragma omp parallel for
-    for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-
-        Bpointer->Update(ChTime, update_assets);
-
-        if (this->GetSystem())
-            if (this->GetSystem()->GetUseSleeping())
-                Bpointer->TrySleeping();
-    }
-    // -----------------------------
-    // Updates other physical items
-    // -----------------------------
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        PHpointer->Update(ChTime, update_assets);
-    }
-    // -----------------------------
-    // Updates all links
-    // -----------------------------
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-
-        Lpointer->Update(ChTime, update_assets);
-    }
-}
-
-
-
-
-
-////////
-////////  STREAMING - FILE HANDLING
-////////
-
-
-void ChAssemblyNew::ArchiveOUT(ChArchiveOut& marchive)
-{
-    // version number
-    marchive.VersionWrite(1);
-
-    // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
-
-    // serialize all member data:
-
-    //marchive << CHNVP(bodylist);
-    // do rather a custom array save:
-    marchive.out_array_pre("bodies", bodylist.size(), "ChBody");
-    for (int i = 0; i < bodylist.size(); i++) {
-        marchive << CHNVP(bodylist[i],"");
-        marchive.out_array_between(bodylist.size(), "bodies");
-    }
-    marchive.out_array_end(bodylist.size(), "bodies");
-
-    //marchive << CHNVP(linklist);
-    // do rather a custom array save:
-    marchive.out_array_pre("links", linklist.size(), "ChLink");
-    for (int i = 0; i < linklist.size(); i++) {
-        marchive << CHNVP(linklist[i],"");
-        marchive.out_array_between(linklist.size(), "links");
-    }
-    marchive.out_array_end(linklist.size(), "links");
-
-    //marchive << CHNVP(otherphysicsitems);
-    // do rather a custom array save:
-    marchive.out_array_pre("other_physics_list", otherphysicslist.size(), "ChPhysicsItem");
-    for (int i = 0; i < otherphysicslist.size(); i++) {
-        marchive << CHNVP(otherphysicslist[i],"");
-        marchive.out_array_between(otherphysicslist.size(), "other_physics_list");
-    }
-    marchive.out_array_end(otherphysicslist.size(), "other_physics_list");
-
-    //***TODO*** complete...
-}
-
-/// Method to allow de serialization of transient data from archives.
-void ChAssemblyNew::ArchiveIN(ChArchiveIn& marchive) 
-{
-    // version number
-    int version = marchive.VersionRead();
-
-    // deserialize parent class
-    ChPhysicsItem::ArchiveIN(marchive);
-
-    // stream in all member data:
-
-    //marchive >> CHNVP(bodylist);
-    // do rather a custom array load:
-    this->RemoveAllBodies();
-    size_t num_bodies;
-    marchive.in_array_pre("bodies", num_bodies);
-    for (int i = 0; i < num_bodies; i++) {
-        ChSharedPtr<ChBody> a_body;
-        marchive >> CHNVP(a_body,"");
-        this->AddBody(a_body);
-        marchive.in_array_between("bodies");
-    }
-    marchive.in_array_end("bodies");
-
-    //marchive >> CHNVP(linklist);
-    // do rather a custom array load:
-    this->RemoveAllLinks();
-    size_t num_links;
-    marchive.in_array_pre("links", num_links);
-    for (int i = 0; i < num_links; i++) {
-        ChSharedPtr<ChLink> a_link;
-        marchive >> CHNVP(a_link,"");
-        this->AddLink(a_link);
-        marchive.in_array_between("links");
-    }
-    marchive.in_array_end("links");
-
-    //marchive >> CHNVP(otherphysiscslist);
-    // do rather a custom array load:
-    this->RemoveAllOtherPhysicsItems();
-    size_t num_otherphysics;
-    marchive.in_array_pre("other_physics_list", num_otherphysics);
-    for (int i = 0; i < num_otherphysics; i++) {
-        ChSharedPtr<ChPhysicsItem> a_item;
-        marchive >> CHNVP(a_item,"");
-        this->AddOtherPhysicsItem(a_item);
-        marchive.in_array_between("other_physics_list");
-    }
-    marchive.in_array_end("other_physics_list");
-
-    // Recompute statistics, offsets, etc.
-    this->Setup();
-}
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1039,6 +209,8 @@ ChClassRegister<ChSystem> a_registration_ChSystem;
 
 ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
 
+    this->system = this; // as needed by ChAssembly
+
     probelist.clear();
     controlslist.clear();
 
@@ -1051,7 +223,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     step_max = 0.04;
     tol = 0.0002;
     tol_force = 1e-3;
-    normtype = NORM_INF;
     maxiter = 6;
 
     ncontacts = 0;
@@ -1070,13 +241,15 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
         this->contact_container->SetSystem(this);
     }
     collision_system = 0;
-    // default GPU collision engine
+    // default collision engine
     if (init_sys) {
         collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
     }
 
     this->timestepper =
         ChSharedPtr<ChTimestepperEulerImplicitLinearized>(new ChTimestepperEulerImplicitLinearized(this));  // OK
+
+    collisionpoint_callback = 0;
 
     LCP_descriptor = 0;
     LCP_solver_speed = 0;
@@ -1107,6 +280,11 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
 }
 
 ChSystem::~ChSystem() {
+
+    // Before proceeding, anticipate Clear(). This would be called also by base ChAssembly destructor, anyway, but
+    // it would happen after this destructor, so the ith_body->SetSystem(0) in Clear() would not be able to remove body's collision
+    // models from the collision_system. Here it is possible, since the collision_system is still alive.
+    Clear();
 
     RemoveAllProbes();
     RemoveAllControls();
@@ -1141,17 +319,19 @@ ChSystem::~ChSystem() {
 
 void ChSystem::Copy(ChSystem* source) {
     // first the parent class data...
-    ChAssemblyNew::Copy(source);
+    ChAssembly::Copy(source);
+
+    this->system = this; // as needed by ChAssembly
 
     G_acc = source->Get_G_acc();
     end_time = source->GetEndTime();
     step = source->GetStep();
     step_min = source->GetStepMin();
     step_max = source->GetStepMax();
+    stepcount = source->stepcount;
     SetIntegrationType(source->GetIntegrationType());
     tol = source->GetTol();
     tol_force = source->tol_force;
-    normtype = source->GetNormType();
     maxiter = source->GetMaxiter();
     
     min_bounce_speed = source->min_bounce_speed;
@@ -1184,7 +364,7 @@ void ChSystem::Copy(ChSystem* source) {
 
 void ChSystem::Clear() {
     // first the parent class data...
-    ChAssemblyNew::Clear();
+    ChAssembly::Clear();
 
 
     events->ResetAllEvents();
@@ -1715,84 +895,40 @@ void ChSystem::WakeUpSleepingBodies() {
     }
 }
 
-////////////////////////////////
-//////
-////// UPDATING ROUTINES
-//////
-//////
 
-// COUNT ALL BODIES AND LINKS, ETC, COMPUTE &SET DOF FOR STATISTICS,
-// ALLOCATES OR REALLOCATE BOOKKEEPING DATA/VECTORS, IF ANY
-
-void ChSystem::Setup() {
-    events->Record(CHEVENT_SETUP);
-
-    // inherit the parent class 
-    // (compute offsets of bodies, links, etc.) 
-    ChAssemblyNew::Setup();
-
-    // also compute offsets for contact container
-    {
-        contact_container->SetOffset_L(this->offset_L+ndoc_w);
-
-        ndoc_w   += contact_container->GetDOC();
-        ndoc_w_C += contact_container->GetDOC_c();
-        ndoc_w_D += contact_container->GetDOC_d();
-    }
-
-    ndoc = ndoc_w + nbodies;          // number of constraints including quaternion constraints.
-    nsysvars = ncoords + ndoc;        // total number of variables (coordinates + lagrangian multipliers)
-    nsysvars_w = ncoords_w + ndoc_w;  // total number of variables (with 6 dof per body)
-
-    ndof = ncoords - ndoc;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
-}
-
-// - ALL PHYSICAL ITEMS (BODIES, LINKS,ETC.) ARE UPDATED,
-//   ALSO UPDATING THEIR AUXILIARY VARIABLES (ROT.MATRICES, ETC.).
-// - UPDATES ALL FORCES  (AUTOMATIC, AS CHILDREN OF BODIES)
-// - UPDATES ALL MARKERS (AUTOMATIC, AS CHILDREN OF BODIES).
-
-void ChSystem::Update(bool update_assets) {
-
-    timer_update.start();  // Timer for profiling
-
-    events->Record(CHEVENT_UPDATE);  // Record an update event
-
-    // Executes the "forUpdate" script, if any
-    ExecuteScriptForUpdate();
-    // Executes the "forUpdate" script
-    // in all controls of controlslist
-    ExecuteControlsForUpdate();
-
-    // Inherit parent class
-    // (recursively update sub objects bodies, links, etc)
-    ChAssemblyNew::Update(update_assets);
-
-    // Update all contacts, if any
-    this->contact_container->Update(ChTime, update_assets);  
-
-    timer_update.stop();
-}
 
 ///////////////////////////////
 /////////
-/////////   SPARSE LCP BOOKKEEPING
+/////////  LCP BOOKKEEPING
 /////////
 
+
+void ChSystem::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor) {
+
+    mdescriptor.BeginInsertion();  // This resets the vectors of constr. and var. pointers.
+
+    this->InjectConstraints(mdescriptor);
+    this->InjectVariables(mdescriptor);
+    this->InjectKRMmatrices(mdescriptor);
+
+    mdescriptor.EndInsertion();
+}
+
+
 void ChSystem::LCPprepare_reset() {
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsBiReset();
     }
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
         Bpointer->VariablesFbReset();
     }
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1812,7 +948,7 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
                                double C_factor,
                                double recovery_clamp,
                                bool do_clamp) {
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
@@ -1828,14 +964,14 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
         if (load_jacobians)
             Lpointer->ConstraintsLoadJacobians();
         if (F_factor) {
-#pragma omp critical
+            #pragma omp critical
             {
                 Lpointer->ConstraintsFbLoadForces(F_factor);  // f*dt
             }
         }
     }
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -1891,39 +1027,16 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
         contact_container->ConstraintsLoadJacobians();
 }
 
-void ChSystem::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor) {
-    mdescriptor.BeginInsertion();  // This resets the vectors of constr. and var. pointers.
 
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        Lpointer->InjectConstraints(mdescriptor);
-    }
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        Bpointer->InjectVariables(mdescriptor);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->InjectVariables(mdescriptor);
-        PHpointer->InjectConstraints(mdescriptor);
-        PHpointer->InjectKRMmatrices(mdescriptor);
-    }
-    this->contact_container->InjectConstraints(mdescriptor);
-
-    mdescriptor.EndInsertion();
-}
 
 void ChSystem::LCPprepare_Li_from_speed_cache() {
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsLiLoadSuggestedSpeedSolution();
     }
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1933,13 +1046,13 @@ void ChSystem::LCPprepare_Li_from_speed_cache() {
 }
 
 void ChSystem::LCPprepare_Li_from_position_cache() {
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsLiLoadSuggestedPositionSolution();
     }
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1949,13 +1062,13 @@ void ChSystem::LCPprepare_Li_from_position_cache() {
 }
 
 void ChSystem::LCPresult_Li_into_speed_cache() {
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsLiFetchSuggestedSpeedSolution();
     }
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1965,13 +1078,13 @@ void ChSystem::LCPresult_Li_into_speed_cache() {
 }
 
 void ChSystem::LCPresult_Li_into_position_cache() {
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsLiFetchSuggestedPositionSolution();
     }
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1981,13 +1094,13 @@ void ChSystem::LCPresult_Li_into_position_cache() {
 }
 
 void ChSystem::LCPresult_Li_into_reactions(double mfactor) {
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsFetch_react(mfactor);
     }
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1996,6 +1109,446 @@ void ChSystem::LCPresult_Li_into_reactions(double mfactor) {
     this->contact_container->ConstraintsFetch_react(mfactor);
 }
 
+
+
+//////////////////////////////////
+////////
+//////// CHPHYSICS ITEM INTERFACE
+////////
+
+
+
+
+//
+// SETUP 
+//
+// Set all  offsets in position/speed global vectors, for all items.
+// Count all bodies and links, etc, compute &set dof for statistics,
+// allocates or reallocate bookkeeping data/vectors, if any,
+
+
+void ChSystem::Setup() {
+    events->Record(CHEVENT_SETUP);
+
+    // inherit the parent class 
+    // (compute offsets of bodies, links, etc.) 
+    ChAssembly::Setup();
+
+    // also compute offsets for contact container
+    {
+        contact_container->SetOffset_L(this->offset_L+ndoc_w);
+
+        ndoc_w   += contact_container->GetDOC();
+        ndoc_w_C += contact_container->GetDOC_c();
+        ndoc_w_D += contact_container->GetDOC_d();
+    }
+
+    ndoc = ndoc_w + nbodies;          // number of constraints including quaternion constraints.
+    nsysvars = ncoords + ndoc;        // total number of variables (coordinates + lagrangian multipliers)
+    nsysvars_w = ncoords_w + ndoc_w;  // total number of variables (with 6 dof per body)
+
+    ndof = ncoords - ndoc;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
+
+
+    // BOOKKEEPING SANITY CHECK 
+    // Test if the bookkeeping is properly aligned, at least for state gather/scatters,
+    // by filling a marked vector, and see if some gaps or overlaps are remaining.
+    
+    if (_DEBUG) {
+       bool check_bookkeeping = false;
+       if (check_bookkeeping) {
+           GetLog() << "Bookkeeping sanity check \n";
+           ChState           test_x(this->GetNcoords_x(), this);
+           ChStateDelta      test_v(this->GetNcoords_w(), this);
+           ChStateDelta      test_a(this->GetNcoords_w(), this);
+           ChVectorDynamic<> test_L(this->GetNconstr());
+           double poison_x = -8888.888;
+           double poison_v = -9999.999;
+           double poison_a = -7777.777;
+           double poison_L = 55555.555;
+           double test_T;
+           test_x.FillElem(poison_x); // poison x
+           test_v.FillElem(poison_v); // poison v
+           test_a.FillElem(poison_a); // poison a
+           test_L.FillElem(poison_L); // poison L
+           this->StateGather(test_x, test_v, test_T);
+           this->StateGatherAcceleration(test_a);
+           this->StateGatherReactions(test_L);
+           for (int i= 0; i< test_x.GetRows(); ++i)
+               assert(test_x(i)!=poison_x);  // if your debugger breaks here, some ChPhysicsItem has a wrong implementation of offsets or DOFs for positions 
+           for (int i= 0; i< test_v.GetRows(); ++i)
+               assert(test_v(i)!=poison_v);  // if your debugger breaks here, some ChPhysicsItem has a wrong implementation of offsets or DOFs for velocities
+           for (int i= 0; i< test_a.GetRows(); ++i)
+               assert(test_a(i)!=poison_a);  // if your debugger breaks here, some ChPhysicsItem has a wrong implementation of offsets or DOFs for accelerations
+           for (int i= 0; i< test_L.GetRows(); ++i)
+               assert(test_L(i)!=poison_L);  // if your debugger breaks here, some ChPhysicsItem has a wrong implementation of offsets or DOFs for reaction forces
+       }   
+    }
+}
+
+//
+// UPDATE
+//
+// - all physical items (bodies, links,etc.) are updated,
+//   also updating their auxiliary variables (rot.matrices, etc.).
+// - updates all forces  (automatic, as children of bodies)
+// - updates all markers (automatic, as children of bodies).
+
+void ChSystem::Update(bool update_assets) {
+
+    timer_update.start();  // Timer for profiling
+
+    events->Record(CHEVENT_UPDATE);  // Record an update event
+
+    // Executes the "forUpdate" script, if any
+    ExecuteScriptForUpdate();
+    // Executes the "forUpdate" script
+    // in all controls of controlslist
+    ExecuteControlsForUpdate();
+
+    // Inherit parent class
+    // (recursively update sub objects bodies, links, etc)
+    ChAssembly::Update(update_assets);
+
+    // Update all contacts, if any
+    this->contact_container->Update(ChTime, update_assets);  
+
+    timer_update.stop();
+}
+
+
+
+void ChSystem::IntStateGather(const unsigned int off_x,  ///< offset in x state vector
+                                ChState& x,                ///< state vector, position part
+                                const unsigned int off_v,  ///< offset in v state vector
+                                ChStateDelta& v,           ///< state vector, speed part
+                                double& T)                 ///< time
+{
+    unsigned int displ_x = off_x - this->offset_x;
+    unsigned int displ_v = off_v - this->offset_w;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntStateGather(off_x, x, off_v, v, T);
+    // Use also on contact container:
+    contact_container->IntStateGather(displ_x + contact_container->GetOffset_x(), x, displ_v + contact_container->GetOffset_w(), v, T);
+}
+
+
+void ChSystem::IntStateScatter(const unsigned int off_x,  ///< offset in x state vector
+                                 const ChState& x,          ///< state vector, position part
+                                 const unsigned int off_v,  ///< offset in v state vector
+                                 const ChStateDelta& v,     ///< state vector, speed part
+                                 const double T)            ///< time
+{
+    unsigned int displ_x = off_x - this->offset_x;
+    unsigned int displ_v = off_v - this->offset_w;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntStateScatter(off_x,  x,  off_v, v, T);
+    // Use also on contact container:
+    contact_container->IntStateScatter(displ_x + contact_container->GetOffset_x(), x, displ_v + contact_container->GetOffset_w(), v, T);
+}
+
+
+void ChSystem::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) 
+{
+    unsigned int displ_a = off_a - this->offset_w;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntStateGatherAcceleration(off_a,  a);
+    // Use also on contact container:
+    contact_container->IntStateGatherAcceleration(displ_a + contact_container->GetOffset_w(), a);
+}
+
+/// From state derivative (acceleration) to system, sometimes might be needed
+void ChSystem::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) 
+{
+    unsigned int displ_a = off_a - this->offset_w;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntStateScatterAcceleration(off_a,  a);
+    // Use also on contact container:
+    contact_container->IntStateScatterAcceleration(displ_a + contact_container->GetOffset_w(), a);
+}
+
+/// From system to reaction forces (last computed) - some timestepper might need this
+void ChSystem::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) 
+{
+    unsigned int displ_L = off_L - this->offset_L;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntStateGatherReactions(off_L,  L);
+    // Use also on contact container:
+    contact_container->IntStateGatherReactions(displ_L + contact_container->GetOffset_L(), L);
+}
+
+/// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
+void ChSystem::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) 
+{
+    unsigned int displ_L = off_L - this->offset_L;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntStateScatterReactions(off_L,  L);
+    // Use also on contact container:
+    contact_container->IntStateScatterReactions(displ_L + contact_container->GetOffset_L(), L);
+}
+
+void ChSystem::IntStateIncrement(const unsigned int off_x,  ///< offset in x state vector
+                                   ChState& x_new,            ///< state vector, position part, incremented result
+                                   const ChState& x,          ///< state vector, initial position part
+                                   const unsigned int off_v,  ///< offset in v state vector
+                                   const ChStateDelta& Dv)    ///< state vector, increment
+{
+    unsigned int displ_x = off_x - this->offset_x;
+    unsigned int displ_v = off_v - this->offset_w;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntStateIncrement(off_x, x_new, x, off_v, Dv);
+    // Use also on contact container:
+    contact_container->IntStateIncrement(displ_x + contact_container->GetOffset_x(), x_new, x, displ_v + contact_container->GetOffset_w(), Dv);
+}
+
+void ChSystem::IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
+                                   ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+                                   const double c           ///< a scaling factor
+                                   ) {
+    unsigned int displ_v = off  - this->offset_w;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntLoadResidual_F(off, R, c);
+    // Use also on contact container:
+    contact_container->IntLoadResidual_F(displ_v + contact_container->GetOffset_w(), R, c);
+}
+
+void ChSystem::IntLoadResidual_Mv(const unsigned int off,   ///< offset in R residual
+                                    ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+                                    const ChVectorDynamic<>& w,  ///< the w vector
+                                    const double c               ///< a scaling factor
+                                    ) {
+    unsigned int displ_v = off  - this->offset_w;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntLoadResidual_Mv(off, R, w, c);
+    // Use also on contact container:
+    contact_container->IntLoadResidual_Mv(displ_v + contact_container->GetOffset_w(), R, w, c);
+}
+
+void ChSystem::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
+                                     ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
+                                     const ChVectorDynamic<>& L,  ///< the L vector
+                                     const double c               ///< a scaling factor
+                                     ) {
+    unsigned int displ_L = off_L  - this->offset_L;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntLoadResidual_CqL(off_L, R, L, c);
+    // Use also on contact container:
+    contact_container->IntLoadResidual_CqL(displ_L + contact_container->GetOffset_L(), R, L, c);
+}
+
+void ChSystem::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
+                                     ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
+                                     const double c,            ///< a scaling factor
+                                     bool do_clamp,             ///< apply clamping to c*C?
+                                     double recovery_clamp      ///< value for min/max clamping of c*C
+                                     ) {
+    unsigned int displ_L = off_L  - this->offset_L;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
+    // Use also on contact container:
+    contact_container->IntLoadConstraint_C(displ_L + contact_container->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+}
+
+void ChSystem::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in Qc residual
+                                      ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*Ct
+                                      const double c             ///< a scaling factor
+                                      ) {
+    unsigned int displ_L = off_L  - this->offset_L;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntLoadConstraint_Ct(off_L, Qc, c);
+    // Use also on contact container:
+    contact_container->IntLoadConstraint_Ct(displ_L + contact_container->GetOffset_L(), Qc, c);
+}
+
+void ChSystem::IntToLCP(const unsigned int off_v,  ///< offset in v, R
+                          const ChStateDelta& v,
+                          const ChVectorDynamic<>& R,
+                          const unsigned int off_L,  ///< offset in L, Qc
+                          const ChVectorDynamic<>& L,
+                          const ChVectorDynamic<>& Qc) {
+    unsigned int displ_L = off_L  - this->offset_L;
+    unsigned int displ_v = off_v  - this->offset_w;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntToLCP(off_v,  v, R, off_L,  L, Qc);
+    // Use also on contact container:
+    contact_container->IntToLCP(displ_v + contact_container->GetOffset_w(),v,R, displ_L + contact_container->GetOffset_L(),L,Qc);
+}
+
+void ChSystem::IntFromLCP(const unsigned int off_v,  ///< offset in v
+                            ChStateDelta& v,
+                            const unsigned int off_L,  ///< offset in L
+                            ChVectorDynamic<>& L) {
+    unsigned int displ_L = off_L  - this->offset_L;
+    unsigned int displ_v = off_v  - this->offset_w;
+
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::IntFromLCP(off_v,  v, off_L, L);
+    // Use also on contact container:
+    contact_container->IntFromLCP(displ_v + contact_container->GetOffset_w(),v, displ_L + contact_container->GetOffset_L(),L);
+}
+
+////
+void ChSystem::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::InjectVariables(mdescriptor);
+    // Use also on contact container:
+    contact_container->InjectVariables(mdescriptor);
+}
+
+void ChSystem::VariablesFbReset() {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::VariablesFbReset();
+    // Use also on contact container:
+    contact_container->VariablesFbReset();
+}
+
+void ChSystem::VariablesFbLoadForces(double factor) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::VariablesFbLoadForces();
+    // Use also on contact container:
+    contact_container->VariablesFbLoadForces();
+}
+
+void ChSystem::VariablesFbIncrementMq() {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::VariablesFbIncrementMq();
+    // Use also on contact container:
+    contact_container->VariablesFbIncrementMq();
+}
+
+void ChSystem::VariablesQbLoadSpeed() {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::VariablesQbLoadSpeed();
+    // Use also on contact container:
+    contact_container->VariablesQbLoadSpeed();
+}
+
+void ChSystem::VariablesQbSetSpeed(double step) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::VariablesQbSetSpeed(step);
+    // Use also on contact container:
+    contact_container->VariablesQbSetSpeed(step);
+}
+
+void ChSystem::VariablesQbIncrementPosition(double dt_step) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::VariablesQbIncrementPosition(dt_step);
+    // Use also on contact container:
+    contact_container->VariablesQbIncrementPosition(dt_step);
+}
+
+void ChSystem::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::InjectConstraints(mdescriptor);
+    // Use also on contact container:
+    contact_container->InjectConstraints(mdescriptor);
+}
+
+void ChSystem::ConstraintsBiReset() {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsBiReset();
+    // Use also on contact container:
+    contact_container->ConstraintsBiReset();
+}
+
+void ChSystem::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+    // Use also on contact container:
+    contact_container->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+}
+
+void ChSystem::ConstraintsBiLoad_Ct(double factor) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsBiLoad_Ct(factor);
+    // Use also on contact container:
+    contact_container->ConstraintsBiLoad_Ct(factor);
+}
+
+void ChSystem::ConstraintsBiLoad_Qc(double factor) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsBiLoad_Qc(factor);
+    // Use also on contact container:
+    contact_container->ConstraintsBiLoad_Qc(factor);
+}
+
+void ChSystem::ConstraintsFbLoadForces(double factor) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsFbLoadForces(factor);
+    // Use also on contact container:
+    contact_container->ConstraintsFbLoadForces(factor);
+}
+
+void ChSystem::ConstraintsLoadJacobians() {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsLoadJacobians();
+    // Use also on contact container:
+    contact_container->ConstraintsLoadJacobians();
+}
+
+void ChSystem::ConstraintsLiLoadSuggestedSpeedSolution() {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsLiLoadSuggestedSpeedSolution();
+    // Use also on contact container:
+    contact_container->ConstraintsLiLoadSuggestedSpeedSolution();
+}
+
+void ChSystem::ConstraintsLiLoadSuggestedPositionSolution() {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsLiLoadSuggestedPositionSolution();
+    // Use also on contact container:
+    contact_container->ConstraintsLiLoadSuggestedPositionSolution();
+}
+
+void ChSystem::ConstraintsLiFetchSuggestedSpeedSolution() {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsLiFetchSuggestedSpeedSolution();
+    // Use also on contact container:
+    contact_container->ConstraintsLiFetchSuggestedSpeedSolution();
+}
+
+void ChSystem::ConstraintsLiFetchSuggestedPositionSolution() {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsLiFetchSuggestedPositionSolution();
+    // Use also on contact container:
+    contact_container->ConstraintsLiFetchSuggestedPositionSolution();
+}
+
+void ChSystem::ConstraintsFetch_react(double factor) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::ConstraintsFetch_react(factor);
+    // Use also on contact container:
+    contact_container->ConstraintsFetch_react(factor);
+}
+
+void ChSystem::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::InjectKRMmatrices(mdescriptor);
+    // Use also on contact container:
+    contact_container->InjectKRMmatrices(mdescriptor);
+}
+
+void ChSystem::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+    // Inherit: operate parent method on sub objects (bodies, links, etc.)
+    ChAssembly::KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+    // Use also on contact container:
+    contact_container->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+}
+
+
 //////////////////////////////////
 ////////
 ////////    TIMESTEPPER INTERFACE
@@ -2003,138 +1556,40 @@ void ChSystem::LCPresult_Li_into_reactions(double mfactor) {
 
 /// From system to state y={x,v}
 void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntStateGather(Bpointer->GetOffset_x(), x, Bpointer->GetOffset_w(), v, T);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntStateGather(PHpointer->GetOffset_x(), x, PHpointer->GetOffset_w(), v, T);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntStateGather(Lpointer->GetOffset_x(), x, Lpointer->GetOffset_w(), v, T);
-    }
-    this->contact_container->IntStateGather(contact_container->GetOffset_x(), x, contact_container->GetOffset_w(), v, T); //  does nothing, but just in case implemented in future.
-    T = this->GetChTime();
+
+    this->IntStateGather(0, x,0, v, T);
 }
 
 /// From state Y={x,v} to system.
 void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntStateScatter(Bpointer->GetOffset_x(), x, Bpointer->GetOffset_w(), v, T);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntStateScatter(PHpointer->GetOffset_x(), x, PHpointer->GetOffset_w(), v, T);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntStateScatter(Lpointer->GetOffset_x(), x, Lpointer->GetOffset_w(), v, T);
-    }
-    this->contact_container->IntStateScatter(contact_container->GetOffset_x(), x, contact_container->GetOffset_w(), v, T); //  does nothing, but just in case implemented in future.
 
-    this->SetChTime(T);
+    this->IntStateScatter(0,x, 0,v, T);
+
     this->Update();  //***TODO*** optimize because maybe IntStateScatter above might have already called Update?
 }
 
 /// From system to state derivative (acceleration), some timesteppers might need last computed accel.
 void ChSystem::StateGatherAcceleration(ChStateDelta& a) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntStateGatherAcceleration(Bpointer->GetOffset_w(), a);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntStateGatherAcceleration(PHpointer->GetOffset_w(), a);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntStateGatherAcceleration(Lpointer->GetOffset_w(), a);
-    }
-    this->contact_container->IntStateGatherAcceleration(contact_container->GetOffset_w(), a); //  does nothing, but just in case implemented in future.
+
+    this->IntStateGatherAcceleration(0, a);
 }
 
 /// From state derivative (acceleration) to system, sometimes might be needed
 void ChSystem::StateScatterAcceleration(const ChStateDelta& a) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntStateScatterAcceleration(Bpointer->GetOffset_w(), a);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntStateScatterAcceleration(PHpointer->GetOffset_w(), a);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntStateScatterAcceleration(Lpointer->GetOffset_w(), a);
-    }
-    this->contact_container->IntStateScatterAcceleration(contact_container->GetOffset_w(), a); //  does nothing, but just in case implemented in future.
+    
+    this->IntStateScatterAcceleration(0, a);
 }
 
 /// From system to reaction forces (last computed) - some timestepper might need this
 void ChSystem::StateGatherReactions(ChVectorDynamic<>& L) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntStateGatherReactions(Bpointer->GetOffset_L(), L);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntStateGatherReactions(PHpointer->GetOffset_L(), L);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntStateGatherReactions(Lpointer->GetOffset_L(), L);
-    }
-    this->contact_container->IntStateGatherReactions(contact_container->GetOffset_L(), L);
+    
+    this->IntStateGatherReactions(0, L);
 }
 
 /// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
 void ChSystem::StateScatterReactions(const ChVectorDynamic<>& L) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntStateScatterReactions(Bpointer->GetOffset_L(), L);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntStateScatterReactions(PHpointer->GetOffset_L(), L);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntStateScatterReactions(Lpointer->GetOffset_L(), L);
-    }
-    this->contact_container->IntStateScatterReactions(contact_container->GetOffset_L(), L);
+    
+    this->IntStateScatterReactions(0, L);
 }
 
 /// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
@@ -2145,24 +1600,7 @@ void ChSystem::StateIncrementX(ChState& x_new,         ///< resulting x_new = x 
                                const ChState& x,       ///< initial state x
                                const ChStateDelta& Dx  ///< state increment Dx
                                ) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntStateIncrement(Bpointer->GetOffset_x(), x_new, x, Bpointer->GetOffset_w(), Dx);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntStateIncrement(PHpointer->GetOffset_x(), x_new, x, PHpointer->GetOffset_w(), Dx);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntStateIncrement(Lpointer->GetOffset_x(), x_new, x, Lpointer->GetOffset_w(), Dx);
-    }
-    this->contact_container->IntStateIncrement(contact_container->GetOffset_x(), x_new, x, contact_container->GetOffset_w(), Dx); //  does nothing, but just in case implemented in future.
+    this->IntStateIncrement(0, x_new, x, 0, Dx);
 }
 
 /// Assuming an explicit DAE in the form
@@ -2192,46 +1630,17 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
 
     // R and Qc vectors  --> LCP sparse solver structures  (also sets L and Dv to warmstart)
 
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntToLCP(Bpointer->GetOffset_w(), Dv, R, Bpointer->GetOffset_L(), L, Qc);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntToLCP(PHpointer->GetOffset_w(), Dv, R, PHpointer->GetOffset_L(), L, Qc);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntToLCP(Lpointer->GetOffset_w(), Dv, R, Lpointer->GetOffset_L(), L, Qc);
-    }
-    this->contact_container->IntToLCP(contact_container->GetOffset_w(), Dv, R, contact_container->GetOffset_L(), L, Qc);
+    this->IntToLCP(0, Dv, R, 0, L, Qc);
 
     // G and Cq  matrices:  fill the LCP sparse solver structures
 
-    //#pragma omp parallel for
-    for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
+    this->ConstraintsLoadJacobians();
+    
+    if (c_a || c_v || c_x)
+        this->KRMmatricesLoad(-c_x, -c_v, c_a);
 
-        Lpointer->ConstraintsLoadJacobians();
-    }
-    //#pragma omp parallel for
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        PHpointer->ConstraintsLoadJacobians();
-
-        if (c_a || c_v || c_x)
-            PHpointer->KRMmatricesLoad(-c_x, -c_v, c_a);
-    }
-
-    contact_container->ConstraintsLoadJacobians();
+    
+    // diagnostics:
 
     bool dump_data = false;
 
@@ -2261,7 +1670,7 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         ((ChMatrix<>)Qc).StreamOUTdenseMatlabFormat(file_Qc);
     }
 
-    // Solve the LCP problem!!!
+    // Solve the LCP problem!!!!!!!!
 
     timer_lcp.start();
 
@@ -2269,26 +1678,12 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
 
     timer_lcp.stop();
 
+
     // Dv and L vectors  <-- LCP sparse solver structures
 
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntFromLCP(Bpointer->GetOffset_w(), Dv, Bpointer->GetOffset_L(), L);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntFromLCP(PHpointer->GetOffset_w(), Dv, PHpointer->GetOffset_L(), L);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntFromLCP(Lpointer->GetOffset_w(), Dv, Lpointer->GetOffset_L(), L);
-    }
-    this->contact_container->IntFromLCP(contact_container->GetOffset_w(), Dv, contact_container->GetOffset_L(), L);
+    this->IntFromLCP(0, Dv, 0, L);
+    
+    // diagnostics:
 
     if (dump_data) {
         const char* numformat = "%.12g";
@@ -2313,24 +1708,7 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
 void ChSystem::LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                               const double c         ///< a scaling factor
                               ) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntLoadResidual_F(Bpointer->GetOffset_w(), R, c);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntLoadResidual_F(PHpointer->GetOffset_w(), R, c);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntLoadResidual_F(Lpointer->GetOffset_w(), R, c);
-    }
-    this->contact_container->IntLoadResidual_F(contact_container->GetOffset_w(), R, c); //  does nothing, but just in case implemented in future.
+    this->IntLoadResidual_F(0, R, c);
 }
 
 /// Increment a vector R with a term that has M multiplied a given vector w:
@@ -2339,24 +1717,7 @@ void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R r
                                const ChVectorDynamic<>& w,  ///< the w vector
                                const double c               ///< a scaling factor
                                ) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntLoadResidual_Mv(Bpointer->GetOffset_w(), R, w, c);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntLoadResidual_Mv(PHpointer->GetOffset_w(), R, w, c);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntLoadResidual_Mv(Lpointer->GetOffset_w(), R, w, c);
-    }
-    this->contact_container->IntLoadResidual_Mv(contact_container->GetOffset_w(), R, w, c); //  does nothing, but just in case implemented in future.
+    this->IntLoadResidual_Mv(0, R, w, c);
 }
 
 /// Increment a vectorR with the term Cq'*L:
@@ -2365,24 +1726,7 @@ void ChSystem::LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R 
                                 const ChVectorDynamic<>& L,  ///< the L vector
                                 const double c               ///< a scaling factor
                                 ) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntLoadResidual_CqL(Bpointer->GetOffset_L(), R, L, c);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntLoadResidual_CqL(PHpointer->GetOffset_L(), R, L, c);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntLoadResidual_CqL(Lpointer->GetOffset_L(), R, L, c);
-    }
-    this->contact_container->IntLoadResidual_CqL(contact_container->GetOffset_L(), R, L, c);
+    this->IntLoadResidual_CqL(0, R, L, c);
 }
 
 /// Increment a vector Qc with the term C:
@@ -2392,24 +1736,7 @@ void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  ///< result: the Qc resi
                                 const bool mdo_clamp,   ///< enable optional clamping of Qc
                                 const double mclam      ///< clamping value
                                 ) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntLoadConstraint_C(Bpointer->GetOffset_L(), Qc, c, mdo_clamp, mclam);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntLoadConstraint_C(PHpointer->GetOffset_L(), Qc, c, mdo_clamp, mclam);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntLoadConstraint_C(Lpointer->GetOffset_L(), Qc, c, mdo_clamp, mclam);
-    }
-    this->contact_container->IntLoadConstraint_C(contact_container->GetOffset_L(), Qc, c, mdo_clamp, mclam);
+    this->IntLoadConstraint_C(0, Qc, c, mdo_clamp, mclam);
 }
 
 /// Increment a vector Qc with the term Ct = partial derivative dC/dt:
@@ -2417,25 +1744,9 @@ void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  ///< result: the Qc resi
 void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
                                  const double c          ///< a scaling factor
                                  ) {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (Bpointer->IsActive())
-            Bpointer->IntLoadConstraint_Ct(Bpointer->GetOffset_L(), Qc, c);
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->IntLoadConstraint_Ct(PHpointer->GetOffset_L(), Qc, c);
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        if (Lpointer->IsActive())
-            Lpointer->IntLoadConstraint_Ct(Lpointer->GetOffset_L(), Qc, c);
-    }
-    this->contact_container->IntLoadConstraint_Ct(contact_container->GetOffset_L(), Qc, c); //  does nothing, but just in case implemented in future.
+    this->IntLoadConstraint_Ct(0, Qc, c);
 }
+
 
 //////////////////////////////////
 ////////
@@ -2447,7 +1758,7 @@ int ChSystem::GetNcontacts() {
 }
 
 void ChSystem::SynchronizeLastCollPositions() {
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2474,14 +1785,14 @@ double ChSystem::ComputeCollisions() {
 
     timer_collision_broad.start();
 
-// Update all positions of collision models
-#pragma omp parallel for
+    // Update all positions of collision models
+    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
         Bpointer->SyncCollisionModels();
     }
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -2642,7 +1953,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
 
 // perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2656,7 +1967,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
         Bpointer->Update(this->ChTime);
     }
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -2768,9 +2079,9 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
     // updates the reactions of the constraint
     LCPresult_Li_into_reactions(1.0 / step);  // R = l/dt  , approximately
 
-// perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
+    // perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2784,7 +2095,7 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
         // Bpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
     }
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -2836,7 +2147,7 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
     LCPresult_Li_into_position_cache();
 
     {
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
         {
             ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2846,7 +2157,7 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
             Bpointer->Update(this->ChTime);
         }
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
         {
             ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -2905,7 +2216,7 @@ int ChSystem::Integrate_Y_timestepper() {
     // some body that is not in sleep state.
     WakeUpSleepingBodies();
 
-    // Prepare lists of variables and constraints. Then update offsets in all variables and constraints.
+    // Prepare lists of variables and constraints. 
     LCPprepare_inject(*this->LCP_descriptor);
     LCP_descriptor->UpdateCountsAndOffsets();
 
@@ -2994,9 +2305,9 @@ int ChSystem::DoAssembly(int action, int mflags) {
             // of iterations as you would use for the speed probl., if iterative solver)
             GetLcpSolverSpeed()->Solve(*this->LCP_descriptor);
 
-// Update bodies and other physics items at new positions
+            // Update bodies and other physics items at new positions
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
             {
                 ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -3004,7 +2315,7 @@ int ChSystem::DoAssembly(int action, int mflags) {
                 Bpointer->Update(this->ChTime);
             }
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
             {
                 ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -3060,10 +2371,10 @@ int ChSystem::DoAssembly(int action, int mflags) {
         // Update the constraint reaction forces.
         LCPresult_Li_into_reactions(1 / step);
 
-// Loop over all bodies and other physics items; approximate speeds using
-// finite diferences (with the local, small time step value) and update all
-// markers and forces.
-#pragma omp parallel for
+        // Loop over all bodies and other physics items; approximate speeds using
+        // finite diferences (with the local, small time step value) and update all
+        // markers and forces.
+        #pragma omp parallel for
         for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
         {
             ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -3071,7 +2382,7 @@ int ChSystem::DoAssembly(int action, int mflags) {
             Bpointer->Update(this->ChTime);
         }
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
         {
             ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -3095,6 +2406,9 @@ int ChSystem::DoStaticLinear() {
 
     int old_maxsteps = this->GetIterLCPmaxItersSpeed();
     this->SetIterLCPmaxItersSpeed(300);
+
+    // Prepare lists of variables and constraints. 
+    LCPprepare_inject(*this->LCP_descriptor);
 
     ChStaticLinearAnalysis manalysis(*this);
 
@@ -3136,6 +2450,9 @@ int ChSystem::DoStaticNonlinear(int nsteps) {
     int old_maxsteps = this->GetIterLCPmaxItersSpeed();
     this->SetIterLCPmaxItersSpeed(300);
 
+    // Prepare lists of variables and constraints. 
+    LCPprepare_inject(*this->LCP_descriptor);
+
     ChStaticNonLinearAnalysis manalysis(*this);
     manalysis.SetMaxiters(nsteps);
 
@@ -3150,22 +2467,22 @@ int ChSystem::DoStaticNonlinear(int nsteps) {
 // **** PERFORM THE STATIC ANALYSIS, FINDING THE STATIC
 // **** EQUILIBRIUM OF THE SYSTEM, WITH ITERATIVE SOLUTION
 
-int ChSystem::DoStaticRelaxing() {
+int ChSystem::DoStaticRelaxing(int nsteps) {
     int err = 0;
     int reached_tolerance = FALSE;
 
 
     if (ncoords > 0) {
         if (ndof >= 0) {
-            for (int m_iter = 0; m_iter < STATIC_MAX_STEPS; m_iter++) {
-#pragma omp parallel for
+            for (int m_iter = 0; m_iter < nsteps; m_iter++) {
+                #pragma omp parallel for
                 for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
                 {
                     ChSharedPtr<ChBody> Bpointer = bodylist[ip];
                     // Set no body speed and no body accel.
                     Bpointer->SetNoSpeedNoAcceleration();
                 }
-#pragma omp parallel for
+                #pragma omp parallel for
                 for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
                 {
                     ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -3174,12 +2491,12 @@ int ChSystem::DoStaticRelaxing() {
 
                 double m_undotime = this->GetChTime();
                 DoFrameDynamics(m_undotime +
-                                (step * 1.8) * (((double)STATIC_MAX_STEPS - (double)m_iter)) /
-                                    (double)STATIC_MAX_STEPS);
+                                (step * 1.8) * (((double)nsteps - (double)m_iter)) /
+                                    (double)nsteps);
                 this->SetChTime(m_undotime);
             }
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
             {
                 ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -3187,7 +2504,7 @@ int ChSystem::DoStaticRelaxing() {
                 Bpointer->SetNoSpeedNoAcceleration();
             }
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
             {
                 ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -3328,7 +2645,7 @@ int ChSystem::DoFrameDynamics(double m_endtime) {
 
 int ChSystem::DoEntireUniformDynamics(double frame_step) {
     // the initial system may have wrong layout, or too large
-    // clearances in costraints.
+    // clearances in constraints.
     Setup();
     DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
 
@@ -3420,7 +2737,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     marchive.VersionWrite(1);
 
     // serialize parent class
-    ChAssemblyNew::ArchiveOUT(marchive);
+    ChAssembly::ArchiveOUT(marchive);
 
     // serialize all member data:
 
@@ -3434,8 +2751,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(stepcount);
 
     marchive << CHNVP(tol); 
-    marchive << CHNVP(tol_force);
-    marchive << CHNVP(normtype); 
+    marchive << CHNVP(tol_force); 
     marchive << CHNVP(maxiter);
     marchive << CHNVP(use_sleeping);
 
@@ -3474,7 +2790,7 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
     int version = marchive.VersionRead();
 
     // deserialize parent class
-    ChAssemblyNew::ArchiveIN(marchive);
+    ChAssembly::ArchiveIN(marchive);
 
     // stream in all member data:
 
@@ -3489,7 +2805,6 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
 
     marchive >> CHNVP(tol); 
     marchive >> CHNVP(tol_force);
-    marchive >> CHNVP(normtype); 
     marchive >> CHNVP(maxiter);
     marchive >> CHNVP(use_sleeping);
 

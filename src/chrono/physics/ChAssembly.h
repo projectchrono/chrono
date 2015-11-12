@@ -12,133 +12,237 @@
 #ifndef CHASSEMBLY_H
 #define CHASSEMBLY_H
 
-//////////////////////////////////////////////////
-//
-//   ChAssembly.h
-//
-//   Class for a sub-assembly of rigid bodies (with constraints).
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <math.h>
-
-#include "core/ChShared.h"
 #include "physics/ChPhysicsItem.h"
-#include "physics/ChForce.h"
-#include "physics/ChMarker.h"
 #include "physics/ChLinksAll.h"
-#include "lcp/ChLcpVariablesBodyOwnMass.h"
-#include "lcp/ChLcpConstraint.h"
+
 
 namespace chrono {
 
-// Forward references (for parent hierarchy pointer)
 
-class ChSystem;
 
-///
-/// Class for a collection of rigid bodies with some constraints, that should always be cosidered together.
-/// A rigid body is an entity which can move in 3D space, and the constraints are ChLink objects.
-/// The objects have mass and inertia properties. A shape can also
-/// be associated to the bodies, for collision detection.
-///
+
+/// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
+/// Note that an assembly can be added to another assembly, to create a tree-like 
+/// hierarchy.
+/// All the positions of rigid bodies, FEA nodes, etc. are assumed respect to 
+/// the absolute position. 
 
 class ChApi ChAssembly : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChAssembly, ChPhysicsItem);
+    CH_RTTI(ChAssembly, ChObj);
 
-  protected:
-    // list of joints (links)
-    std::vector<ChLink*> linklist;
-
-    // list of rigid bodies
-    std::vector<ChBody*> bodylist;
-
-    int nbodies;        // number of bodies (currently active)
-    int nlinks;         // number of links
-    int ncoords;        // number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int ndoc;           // number of scalar costraints (including constr. on quaternions)
-    int nsysvars;       // number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
-    int ncoords_w;      // number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int ndoc_w;         // number of scalar costraints  when using 3 rot. dof. per body;  for all active bodies
-    int nsysvars_w;     // number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
-    int ndof;           // number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
-    int ndoc_w_C;       // number of scalar costraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int ndoc_w_D;       // number of scalar costraints D, when using 3 rot. dof. per body (only unilaterals)
-    int nbodies_sleep;  // number of bodies that are sleeping
-    int nbodies_fixed;  // number of bodies that are fixed
-
-  private:
-    //
-    // DATA
-    //
-
-    bool do_collide;
-    bool do_limit_speed;
-
-    float max_speed;  // limit on linear speed (useful for VR & videagames)
-    float max_wvel;   // limit on angular vel. (useful for VR & videagames)
-
-  public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Build an assembly.
+public:
     ChAssembly();
+
     /// Destructor
-    ~ChAssembly();
+    virtual ~ChAssembly();
 
     /// Copy from another ChAssembly.
-    /// NOTE: all settings of the body are copied, but the
-    /// child hierarchy of ChForces and ChMarkers (if any) are NOT copied.
     void Copy(ChAssembly* source);
 
-    //
-    // FLAGS
-    //
-
-    /// Enable/disable the collision for this cluster of particles.
-    /// After setting ON, remember RecomputeCollisionModel()
-    /// before anim starts (it is not automatically
-    /// recomputed here because of performance issues.)
-    void SetCollide(bool mcoll);
-    bool GetCollide() { return do_collide; }
-
-    /// Trick. Set the maximum linear speed (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, because it reduces the risk of bad collision detection.
-    /// The realism is limited, but the simulation is more stable.
-    void SetLimitSpeed(bool mlimit) { do_limit_speed = mlimit; };
-    bool GetLimitSpeed() { return do_limit_speed; };
 
     //
-    // FUNCTIONS
-    //
+    // CONTAINER FUNCTIONS
+    // 
 
-    /// Set the pointer to the parent ChSystem()
-    void SetSystem(ChSystem* m_system);
-
-    /// Removes all bodies/marker/forces/links/contacts,
-    /// also resets timers and events.
+    /// Removes all inserted items: bodies, links, etc.
     void Clear();
 
+
+    // To attach/remove items (rigid bodies, links, etc.) you must use
+    // shared pointer, so that you don't need to care about item deletion,
+    // which will be automatic when needed.
+    // Please don't add the same item multiple times; also, don't remove
+    // items which haven't ever been added! This will most often cause an assert() failure
+    // in debug mode.
+    // Note. adding/removing items to the system doesn't call Update() automatically.
+   
+    /// Attach a body to this system. Must be an object of exactly ChBody class.
+    virtual void AddBody(ChSharedPtr<ChBody> newbody);
+    
+    /// Attach a link to this system. Must be an object of ChLink or derived classes.
+    virtual void AddLink(ChSharedPtr<ChLink> newlink);
+
+    /// Attach a ChPhysicsItem object that is not a body or link
+    virtual void AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem);
+    
+    /// Attach whatever type of ChPhysicsItem (ex a ChBody, or a
+    /// ChParticles, or a ChLink, etc.) to the system. It will take care
+    /// of adding it to the proper list: of bodies, of links, or of other generic
+    /// physic item. (i.e. it calls AddBody(), AddLink() or AddOtherPhysicsItem() ).
+    /// Note, you cannot call Add() during an Update (ie. items like particle generators that
+    /// are already inserted in thesystem cannot call this) because not thread safe: rather
+    /// use AddBatch().
+    void Add(ChSharedPtr<ChPhysicsItem> newitem);
+
+    /// Items added in this way are added like in the Add() method, but not instantly,
+    /// they are simply queued in a batch of 'to add' items, that are added automatically 
+    /// at the first Setup() call. This is thread safe.
+    void AddBatch(ChSharedPtr<ChPhysicsItem> newitem);
+
+    /// If some items are queued for addition in system, using AddBatch(), this will
+    /// effectively add them and clean the batch. Called automatically at each Setup().
+    void FlushBatch();
+
+    /// Remove a body from this system.
+    virtual void RemoveBody(ChSharedPtr<ChBody> mbody);
+    /// Remove a link from this system.
+    virtual void RemoveLink(ChSharedPtr<ChLink> mlink); 
+    /// Remove a ChPhysicsItem object that is not a body or a link
+    virtual void RemoveOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> mitem);
+    /// Remove whatever type of ChPhysicsItem that was added to the system.
+    /// (suggestion: use this instead of old RemoveBody(), RemoveLink, etc.)
+    void Remove(ChSharedPtr<ChPhysicsItem> newitem);
+
+    /// Remove all bodies from this system.
+    void RemoveAllBodies();
+    /// Remove all links from this system.
+    void RemoveAllLinks();
+    /// Remove all physics items that were not added to body or link lists.
+    void RemoveAllOtherPhysicsItems();
+
+
+    /// Iterator to scan through the list of all added ChBody items
+    /// using a safe smart pointer.
+    class ChApi IteratorBodies {
+      public:
+        IteratorBodies(std::vector< ChSharedPtr<ChBody> >::iterator p) : node_(p) {}
+        IteratorBodies& operator=(const IteratorBodies& other);
+        bool operator==(const IteratorBodies& other);
+        bool operator!=(const IteratorBodies& other);
+        IteratorBodies& operator++();
+        ChSharedPtr<ChBody> operator*();
+        IteratorBodies() {}
+        ~IteratorBodies() {}
+
+      private:
+        std::vector< ChSharedPtr<ChBody> >::iterator node_;
+    };
+    /// Get a ChBody iterator, initialized at the beginning of body list
+    IteratorBodies IterBeginBodies();
+    IteratorBodies IterEndBodies();
+
+    /// Iterator to scan through the list of all added ChLink items
+    /// using a safe smart pointer.
+    class ChApi IteratorLinks {
+      public:
+        IteratorLinks(std::vector< ChSharedPtr<ChLink> >::iterator p) : node_(p) {}
+        IteratorLinks& operator=(const IteratorLinks& other);
+        ~IteratorLinks() {}
+        bool operator==(const IteratorLinks& other);
+        bool operator!=(const IteratorLinks& other);
+        IteratorLinks& operator++();
+        ChSharedPtr<ChLink> operator*();
+        IteratorLinks(){};
+
+      private:
+        std::vector< ChSharedPtr<ChLink> >::iterator node_;
+    };
+    /// Get a ChLink iterator, initialized at the beginning of link list
+    IteratorLinks IterBeginLinks();
+    IteratorLinks IterEndLinks();
+
+    /// Iterator to scan through the list of all physics items
+    /// that were not added to body or link lists, using a safe smart pointer.
+    class ChApi IteratorOtherPhysicsItems {
+      public:
+        IteratorOtherPhysicsItems(std::vector< ChSharedPtr<ChPhysicsItem> >::iterator p) : node_(p) {}
+        IteratorOtherPhysicsItems& operator=(const IteratorOtherPhysicsItems& other);
+        ~IteratorOtherPhysicsItems() {}
+        bool operator==(const IteratorOtherPhysicsItems& other);
+        bool operator!=(const IteratorOtherPhysicsItems& other);
+        IteratorOtherPhysicsItems& operator++();
+        ChSharedPtr<ChPhysicsItem> operator*();
+        IteratorOtherPhysicsItems(){};
+
+      private:
+        std::vector< ChSharedPtr<ChPhysicsItem> >::iterator node_;
+    };
+    /// Get a ChPhysics iterator, initialized at the beginning of additional ChPhysicsItems
+    IteratorOtherPhysicsItems IterBeginOtherPhysicsItems();
+    IteratorOtherPhysicsItems IterEndOtherPhysicsItems();
+
+    /// Iterator to scan through ALL physics items (bodies,
+    /// links, 'other' physics items, contact container)
+    /// Note, for performance reasons, if you know in advance that you
+    /// are going to scan only ChBody items, the IteratorBodies is faster,
+    /// and the same for IteratorLinks; so use IteratorPhysicsItems for generic cases.
+    class ChApi IteratorPhysicsItems {
+      public:
+        IteratorPhysicsItems(ChAssembly* msys);
+        IteratorPhysicsItems();
+        ~IteratorPhysicsItems();
+        IteratorPhysicsItems& operator=(const IteratorPhysicsItems& other);
+        bool operator==(const IteratorPhysicsItems& other);
+        bool operator!=(const IteratorPhysicsItems& other);
+        IteratorPhysicsItems& operator++();
+        ChSharedPtr<ChPhysicsItem> operator*();
+        // void RewindToBegin();
+        // bool ReachedEnd();
+        bool HasItem();
+
+      private:
+        std::vector< ChSharedPtr<ChBody> >::iterator node_body;
+        std::vector< ChSharedPtr<ChLink> >::iterator node_link;
+        std::vector< ChSharedPtr<ChPhysicsItem> >::iterator node_otherphysics;
+        int stage;
+        ChSharedPtr<ChPhysicsItem> mptr;
+        ChAssembly* msystem;
+    };
+    /// Get a ChPhysics iterator
+    IteratorPhysicsItems IterBeginPhysicsItems();
+    IteratorPhysicsItems IterEndPhysicsItems();
+
+    /// Gets the list of children bodies -low level function-.
+    /// NOTE! use this list only to enumerate etc., but NOT to
+    /// remove or add items (use the appropriate Remove.. and Add..
+    /// functions instead!)
+    std::vector< ChSharedPtr<ChBody> >* Get_bodylist() { return &bodylist; }
+    /// Gets the list of children links -low level function-.
+    /// NOTE! use this list only to enumerate etc., but NOT to
+    /// remove or add items (use the appropriate Remove.. and Add..
+    /// functions instead!)
+    std::vector< ChSharedPtr<ChLink> >* Get_linklist() { return &linklist; }
+    /// Gets the list of children physics items that are not in the body or link lists.
+    /// NOTE! use this list only to enumerate etc., but NOT to
+    /// remove or add items (use the appropriate Remove.. and Add..
+    /// functions instead!)
+    std::vector< ChSharedPtr<ChPhysicsItem> >* Get_otherphysicslist() { return &otherphysicslist; }
+
+
+    /// Searches a body from its ChObject name
+    ChSharedPtr<ChBody> SearchBody(const char* m_name);
+    /// Searches a link from its ChObject name
+    ChSharedPtr<ChLink> SearchLink(const char* m_name);
+    /// Searches from other ChPhysics items (not bodies or links) from name
+    ChSharedPtr<ChPhysicsItem> SearchOtherPhysicsItem(const char* m_name);
+    /// Searches whatever item (body, link or other ChPhysics items)
+    ChSharedPtr<ChPhysicsItem> Search(const char* m_name);
+
+    /// Searches a marker from its ChObject name -OBSOLETE
+    ChSharedPtr<ChMarker> SearchMarker(const char* m_name);
     /// Searches a marker from its unique ID -OBSOLETE
     ChSharedPtr<ChMarker> SearchMarker(int markID);
 
-    /// Given inserted markers and links, restores the
-    /// pointers of links to markers given the information
-    /// about the marker IDs.
-    void Reference_LM_byID();
+
+    //
+    // STATISTICS
+    //
+
+    /// Gets the number of active bodies (so, excluding those that are sleeping or are fixed to ground)
+    int GetNbodies() { return nbodies; }
+    /// Gets the number of bodies that are in sleeping mode (excluding fixed bodies).
+    int GetNbodiesSleeping() { return nbodies_sleep; }
+    /// Gets the number of bodies that are fixed to ground.
+    int GetNbodiesFixed() { return nbodies_fixed; }
+    /// Gets the total number of bodies added to the system, including the grounded and sleeping bodies.
+    int GetNbodiesTotal() { return nbodies + nbodies_fixed + nbodies_sleep; }
 
     /// Gets the number of links .
     int GetNlinks() { return nlinks; }
+    /// Gets the number of other physics items (not ChLinks or ChBodies).
+    int GetNphysicsItems() { return nphysicsitems; }
     /// Gets the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions)
     int GetNcoords() { return ncoords; }
     /// Gets the number of degrees of freedom of the system.
@@ -158,10 +262,42 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Gets the number of system variables (coordinates plus the constraint multipliers)
     int GetNsysvars_w() { return nsysvars_w; }
 
-    /// Number of coordinates of the rigid body =6 (internally, 3+4=7 coords are used
-    /// since quaternions are used for large rotations, but local coords -ex. w&v velocity- are 6)
+    //
+    // UPDATING/SETUP FUNCTIONS
+    //
+
+    
+
+
+    //
+    // PHYSICS ITEM INTERFACE
+    //
+
+    /// Set the pointer to the parent ChSystem() and 
+    /// also add to new collision system / remove from old coll.system
+    virtual void SetSystem(ChSystem* m_system);
+
+    virtual void SyncCollisionModels();
+    //virtual void AddCollisionModelsToSystem(); // no, already done in SetSystem iterating on all sub objects
+    //virtual void RemoveCollisionModelsFromSystem(); // no, already done in SetSystem iterating on all sub objects
+
+    /// Counts the number of bodies and links.
+    /// Computes the offsets of object states in the global state.
+    /// Assumes that this->offset_x this->offset_w this->offset_L are already set
+    /// as starting point for offsetting all the contained sub objects.
+    virtual void Setup();
+
+    /// Updates all the auxiliary data and children of
+    /// bodies, forces, links, given their current state.
+    virtual void Update(bool update_assets = true);
+
+    /// Set zero speed (and zero accelerations) in state, without changing the position.
+    virtual void SetNoSpeedNoAcceleration();
+
+
+    /// Get the number of scalar coordinates (ex. dim of position vector)
     virtual int GetDOF() { return GetNcoords(); }
-    /// Number of coordinates of the particle cluster, x6 because derivatives es. angular vel.
+    /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
     virtual int GetDOF_w() { return GetNcoords_w(); }
     /// Get the number of scalar constraints, if any, in this item
     virtual int GetDOC() { return GetNdoc_w(); }
@@ -169,10 +305,6 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual int GetDOC_c() { return GetNdoc_w_C(); };
     /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
     virtual int GetDOC_d() { return GetNdoc_w_D(); };
-
-    //
-    // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
@@ -215,199 +347,38 @@ class ChApi ChAssembly : public ChPhysicsItem {
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
                           const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
-
-    // Override/implement LCP system functions of ChPhysicsItem
-    // (to assembly/manage data for LCP system solver)
-
-    /// Sets the 'fb' part of the encapsulated ChLcpVariablesBodyOwnMass to zero.
-    virtual void VariablesFbReset();
-
-    /// Adds the current forces applied to body (including gyroscopic torque) in
-    /// encapsulated ChLcpVariablesBody, in the 'fb' part: qf+=forces*factor
-    virtual void VariablesFbLoadForces(double factor = 1.);
-
-    /// Initialize the 'qb' part of the ChLcpVariablesBody with the
-    /// current value of body speeds. Note: since 'qb' is the unknown of the LCP, this
-    /// function seems unuseful, unless used before VariablesFbIncrementMq()
-    virtual void VariablesQbLoadSpeed();
-
-    /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
-    /// with v_old using VariablesQbLoadSpeed, this method can be used in
-    /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
-    virtual void VariablesFbIncrementMq();
-
-    /// Fetches the body speed (both linear and angular) from the
-    /// 'qb' part of the ChLcpVariablesBody (does not updates the full body&markers state)
-    /// and sets it as the current body speed.
-    /// If 'step' is not 0, also computes the approximate acceleration of
-    /// the body using backward differences, that is  accel=(new_speed-old_speed)/step.
-    /// Mostly used after the LCP provided the solution in ChLcpVariablesBody .
-    virtual void VariablesQbSetSpeed(double step = 0.);
-
-    /// Increment body position by the 'qb' part of the ChLcpVariablesBody,
-    /// multiplied by a 'step' factor.
-    ///     pos+=qb*step
-    /// If qb is a speed, this behaves like a single step of 1-st order
-    /// numerical integration (Eulero integration).
-    /// Does not automatically update markers & forces.
-    virtual void VariablesQbIncrementPosition(double step);
-
-    /// Tell to a system descriptor that there are variables of type
-    /// ChLcpVariables in this object (for further passing it to a LCP solver)
+    virtual void IntFromLCP(const unsigned int off_v, 
+                            ChStateDelta& v, 
+                            const unsigned int off_L, 
+                            ChVectorDynamic<>& L);
+    
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
-
-    /// Tell to a system descriptor that there are contraints of type
-    /// ChLcpConstraint in this object (for further passing it to a LCP solver)
-    /// Basically does nothing, but maybe that inherited classes may specialize this.
+    
     virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-
-    /// Sets to zero the known term (b_i) of encapsulated ChLcpConstraints
-    virtual void ConstraintsBiReset();
-
-    /// Adds the current C (constraint violation) to the known term (b_i) of
-    /// encapsulated ChLcpConstraints
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-
-    /// Adds the current Ct (partial t-derivative, as in C_dt=0-> [Cq]*q_dt=-Ct)
-    /// to the known term (b_i) of encapsulated ChLcpConstraints
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-
-    /// Adds the current Qc (the vector of C_dtdt=0 -> [Cq]*q_dtdt=Qc )
-    /// to the known term (b_i) of encapsulated ChLcpConstraints
-    virtual void ConstraintsBiLoad_Qc(double factor = 1.);
-
-    /// Adds the current link-forces, if any, (caused by springs, etc.) to the 'fb' vectors
-    /// of the ChLcpVariables referenced by encapsulated ChLcpConstraints
-    virtual void ConstraintsFbLoadForces(double factor = 1.);
-
-    /// Adds the current jacobians in encapsulated ChLcpConstraints
     virtual void ConstraintsLoadJacobians();
 
-    /// Fills the solution of the constraint (the lagrangian multiplier l_i)
-    /// with an initial guess, if any. This can be used for warm-starting the
-    /// LCP solver before starting the solution of the SPEED problem, if some
-    /// approximate solution of constraint impulese l_i already exist (ex. cached
-    /// from a previous LCP execution)
-    /// When implementing this in sub classes, if no guess is available, set l_i as 0.
+    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor);
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
+
+    // Old bookkeeping system - to be removed soon
+    virtual void VariablesFbReset();
+    virtual void VariablesFbLoadForces(double factor = 1.);
+    virtual void VariablesQbLoadSpeed();
+    virtual void VariablesFbIncrementMq();
+    virtual void VariablesQbSetSpeed(double step = 0.);
+    virtual void VariablesQbIncrementPosition(double step);
+    virtual void ConstraintsBiReset();
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
+    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
+    virtual void ConstraintsBiLoad_Qc(double factor = 1.);
+    virtual void ConstraintsFbLoadForces(double factor = 1.);
+    
     virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-
-    /// As ConstraintsLiLoadSuggestedSpeedSolution(), but for the POSITION problem.
     virtual void ConstraintsLiLoadSuggestedPositionSolution();
-
-    /// After the LCP solver has found the l_i lagangian multipliers for the
-    /// SPEED problem, this function will be called to store the solutions in a
-    /// cache (to be implemented in ChLink sub classes) so that it can be later retrieved with
-    /// ConstraintsLiLoadSuggestedSpeedSolution(). If you do not plan to implement a l_i cache,
-    /// just do not override this function in child classes and do nothing.
     virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-
-    /// As ConstraintsLiFetchSuggestedSpeedSolution(), but for the POSITION problem.
     virtual void ConstraintsLiFetchSuggestedPositionSolution();
-
-    /// Fetches the reactions from the lagrangian multiplier (l_i)
-    /// of encapsulated ChLcpConstraints.
-    /// Mostly used after the LCP provided the solution in ChLcpConstraints.
-    /// Also, should convert the reactions obtained from dynamical simulation,
-    /// from link space to intuitive react_force and react_torque.
     virtual void ConstraintsFetch_react(double factor = 1.);
 
-    // Other functions
-
-    /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
-
-    /// Synchronize coll.model coordinate and bounding box to the position of the body.
-    virtual void SyncCollisionModels();
-    virtual void AddCollisionModelsToSystem();
-    virtual void RemoveCollisionModelsFromSystem();
-
-    /// Get the entire AABB axis-aligned bounding box of the object,
-    /// as defined by the collision model (if any).
-    virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax);
-
-    /// Trick. Set the maximum linear speed (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, because it reduces the risk of bad collision detection.
-    /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
-    float GetMaxSpeed() { return max_speed; }
-
-    /// Trick. Set the maximum angualar speed (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, because it reduces the risk of bad collision detection.
-    /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxWvel(float m_max_wvel) { max_wvel = m_max_wvel; }
-    float GetMaxWvel() { return max_wvel; }
-
-    /// When this function is called, the speed of particles is clamped
-    /// into limits posed by max_speed and max_wvel  - but remember to
-    /// put the body in the SetLimitSpeed(true) mode.
-    void ClampSpeed();
-
-    //
-    // DATABASE HANDLING.
-    //
-    // To attach/remove items (rigid bodies, links, etc.) you must use
-    // shared pointer, so that you don't need to care about item deletion,
-    // which will be automatic when needed.
-    // Please don't add the same item multiple times; also, don't remove
-    // items which haven't ever been added.
-    // NOTE! After adding/removing items to the system, you should call Update() !
-
-    /// Get the number of particles
-    size_t GetNbodies() { return bodylist.size(); }
-
-    /// Attach a body to this system. Must be an object of exactly ChBody class.
-    void AddBody(ChSharedPtr<ChBody> newbody);
-    /// Attach a link to this system. Must be an object of ChLink or derived classes.
-    void AddLink(ChSharedPtr<ChLink> newlink);
-    void AddLink(ChLink* newlink);  // _internal use
-
-    /// Remove a body from this system.
-    void RemoveBody(ChSharedPtr<ChBody> mbody);
-    /// Remove a link from this system (faster version, mostly internal use)
-    std::vector<ChLink*>::iterator RemoveLinkIter(std::vector<ChLink*>::iterator& mlinkiter);
-    /// Remove a link from this system.
-    void RemoveLink(ChSharedPtr<ChLink> mlink);
-
-    /// Remove all bodies from this system.
-    void RemoveAllBodies();
-    /// Remove all links from this system.
-    void RemoveAllLinks();
-
-    /// Gets the list of children bodies -low level function-.
-    /// NOTE: to modify this list, use the appropriate Remove..
-    /// and Add.. functions.
-    const std::vector<ChBody*>& Get_bodylist() const { return bodylist; }
-    /// Gets the list of children links -low level function-.
-    /// NOTE: to modify this list, use the appropriate Remove..
-    /// and Add.. functions.
-    const std::vector<ChLink*>& Get_linklist() const { return linklist; }
-
-    //
-    // UPDATE FUNCTIONS
-    //
-
-    /// Counts the number of bodies and links.
-    /// Computes the offsets of object states in the global state.
-    virtual void Setup();
-
-    /// Update all auxiliary data of the rigid body and of
-    /// its children (markers, forces..), at given time
-    virtual void Update(double mytime, bool update_assets = true);
-    /// Update all auxiliary data of the rigid body and of
-    /// its children (markers, forces..)
-    virtual void Update(bool update_assets = true);
-
-    //
-    // STREAMING
-    //
-
-    /// Method to deserialize only the state (position, speed)
-    virtual void StreamINstate(ChStreamInBinary& mstream);
-    /// Method to serialize only the state (position, speed)
-    virtual void StreamOUTstate(ChStreamOutBinary& mstream);
 
     //
     // SERIALIZATION
@@ -418,9 +389,45 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
+
+
+protected:
+
+    //
+    // DATA
+    //
+
+    // list of rigid bodies
+    std::vector< ChSharedPtr<ChBody > > bodylist;
+
+    // list of joints (links)
+    std::vector< ChSharedPtr<ChLink> > linklist;
+
+    // list of other physic objects that are not bodies or links
+    std::vector< ChSharedPtr<ChPhysicsItem> > otherphysicslist;
+
+    // list of items to insert when doing Setup() or Flush.
+    std::vector< ChSharedPtr<ChPhysicsItem> > batch_to_insert;
+
+    // Statistics:
+    int nbodies;        // number of bodies (currently active)
+    int nlinks;         // number of links
+    int nphysicsitems;  // number of other physics items
+    int ncoords;        // number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
+    int ndoc;           // number of scalar costraints (including constr. on quaternions)
+    int nsysvars;       // number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
+    int ncoords_w;      // number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    int ndoc_w;         // number of scalar costraints  when using 3 rot. dof. per body;  for all active bodies
+    int nsysvars_w;     // number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
+    int ndof;           // number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
+    int ndoc_w_C;       // number of scalar costraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int ndoc_w_D;       // number of scalar costraints D, when using 3 rot. dof. per body (only unilaterals)
+    int nbodies_sleep;  // number of bodies that are sleeping
+    int nbodies_fixed;  // number of bodies that are fixed
+
 };
 
-typedef ChSharedPtr<ChAssembly> ChAssemblyPtr;
+
 
 }  // END_OF_NAMESPACE____
 
