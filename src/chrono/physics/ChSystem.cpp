@@ -1154,10 +1154,9 @@ void ChSystem::Setup() {
     // Test if the bookkeeping is properly aligned, at least for state gather/scatters,
     // by filling a marked vector, and see if some gaps or overlaps are remaining.
     
-    if (_DEBUG) {
+    #ifdef _DEBUG
        bool check_bookkeeping = false;
        if (check_bookkeeping) {
-           GetLog() << "Bookkeeping sanity check \n";
            ChState           test_x(this->GetNcoords_x(), this);
            ChStateDelta      test_v(this->GetNcoords_w(), this);
            ChStateDelta      test_a(this->GetNcoords_w(), this);
@@ -1183,7 +1182,7 @@ void ChSystem::Setup() {
            for (int i= 0; i< test_L.GetRows(); ++i)
                assert(test_L(i)!=poison_L);  // if your debugger breaks here, some ChPhysicsItem has a wrong implementation of offsets or DOFs for reaction forces
        }   
-    }
+    #endif // _DEBUG
 }
 
 //
