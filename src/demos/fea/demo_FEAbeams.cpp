@@ -54,13 +54,13 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrApp application(&my_system, L"Beams FEM",core::dimension2d<u32>(800,600),false, true);
+	ChIrrApp application(&my_system, L"Beams (SPACE for dynamics, F10 / F11 statics)",core::dimension2d<u32>(800,600),false, true);
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(0.f, 0.6f, -1.f));
+	application.AddTypicalCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
 
 
 
@@ -297,7 +297,7 @@ application.SetPaused(true);
 
 
 
-//	application.GetSystem()->DoStaticLinear();
+    //	application.GetSystem()->DoStaticLinear();
 
 
 	GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";

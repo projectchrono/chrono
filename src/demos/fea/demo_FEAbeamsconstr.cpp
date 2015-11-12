@@ -311,6 +311,9 @@ int main(int argc, char* argv[]) {
 
         application.SetTimestep(0.0005);
         application.SetVideoframeSaveInterval(10);
+        
+        // Use the following for less numerical damping, 2nd order accuracy (but slower)
+        //my_system.SetIntegrationType(ChSystem::INT_HHT);
 
         // Output data
         chrono::ChStreamOutAsciiFile file_out1("benchmark_CE_buckling_mid.dat");
