@@ -26,13 +26,25 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChMaterialSurfaceBase::ContactMethod contact_method)
+    : ChVehicle(contact_method), m_name(name), m_contacts(new ChTrackContactManager) {
+}
+
+ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChSystem* system)
+    : ChVehicle(system), m_name(name), m_contacts(new ChTrackContactManager) {
+}
+
+ChTrackedVehicle::~ChTrackedVehicle() {
+    delete m_contacts;
+}
+
+// -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
 // The vehicle system is provided the current driver inputs (throttle between
 // 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
 // from the powertrain, and tire forces (expressed in the global reference
 // frame).
-// The default implementation of this function invokes the update functions for
-// all vehicle subsystems.
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::Update(double time,
                               double steering,
@@ -46,6 +58,17 @@ void ChTrackedVehicle::Update(double time,
     // Apply contact track shoe forces.
     m_tracks[LEFT]->Update(time, braking, shoe_forces_left);
     m_tracks[RIGHT]->Update(time, braking, shoe_forces_right);
+}
+
+// -----------------------------------------------------------------------------
+// Advance the state of this vehicle by the specified time step.
+// -----------------------------------------------------------------------------
+void ChTrackedVehicle::Advance(double step) {
+    // Invoke the base class method to perform the actual work.
+    ChVehicle::Advance(step);
+
+    // Process contacts.
+    m_contacts->Process(this);
 }
 
 // -----------------------------------------------------------------------------

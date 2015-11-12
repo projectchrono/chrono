@@ -68,6 +68,31 @@ void ChTrackedVehicleIrrApp::renderOtherStats(int left, int top) {
         sprintf(msg, "Torque sprocket R: %+.2f", torqueR);
         renderLinGauge(std::string(msg), torqueR / 5000, true, left, top + 100, 120, 15);
     }
+
+    //// TODO:  complete and move this somewhere else...
+
+    for (auto it = m_tvehicle->m_contacts->m_sprocket_L_contacts.begin();
+         it != m_tvehicle->m_contacts->m_sprocket_L_contacts.end(); ++it) {
+        ChVector<> v1 = it->m_point;
+        ChVector<> vn = it->m_csys.Get_A_Xaxis();
+        ChVector<> f = it->m_force;
+        ChVector<> v2 = v1 + vn;
+
+        if (v1.y < m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y)
+            ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+    }
+
+    for (auto it = m_tvehicle->m_contacts->m_shoe_L_contacts.begin();
+        it != m_tvehicle->m_contacts->m_shoe_L_contacts.end(); ++it) {
+        ChVector<> v1 = it->m_point;
+        ChVector<> vn = it->m_csys.Get_A_Xaxis();
+        ChVector<> f = it->m_force;
+        ChVector<> v2 = v1 + vn;
+
+        if (v1.y < m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y)
+            ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 0, 0, 180), false);
+    }
+
 }
 
 }  // end namespace vehicle

@@ -81,6 +81,8 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     ////vehicle.SetCollide(TrackCollide::NONE);
+    ////vehicle.MonitorContacts(TrackCollide::SPROCKET_LEFT);
+    ////vehicle.SetContactCollection(true);
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem());
@@ -162,6 +164,8 @@ int main(int argc, char* argv[]) {
         // Increment frame number
         step_number++;
     }
+
+    vehicle.WriteContacts("M113_contacts.out");
 
     return 0;
 }

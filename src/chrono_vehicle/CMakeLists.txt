@@ -309,6 +309,8 @@ set(CV_TV_BASE_FILES
     tracked_vehicle/ChTrackShoe.h
     tracked_vehicle/ChTrackShoe.cpp
     tracked_vehicle/ChTrackSubsysDefs.h
+    tracked_vehicle/ChTrackContactManager.h
+    tracked_vehicle/ChTrackContactManager.cpp
 )
 source_group("tracked_vehicle\\base" FILES ${CV_TV_BASE_FILES})
 
