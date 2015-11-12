@@ -126,8 +126,8 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
             ChMatrixNM<double, 6, 6>*
                 T0_,  ///< Pointer to transformation matrix, function of fiber angle (see Yamashita et al, 2015, JCND)
             double* detJ0C_,  ///< Determinant of the position vector gradient of initial configuration evaluated at the
-                              ///element center
-            double* theta_,   ///< Fiber angle (user input in degrees)
+            /// element center
+            double* theta_,  ///< Fiber angle (user input in degrees)
             ChMatrixNM<double, 5, 1>*
                 alpha_eas_)  ///< Pointer to the vector of internal parameters for Enhanced Assumed Strain formulation
         {
@@ -179,8 +179,8 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         ChMatrixNM<double, 8, 1> ddNz;        ///< d_d*Nz' matrix
         ChMatrixNM<double, 8, 8> d0_d0;       ///< d0*d0' matrix, where d0 contains initial coordinates in matrix form
         ChMatrixNM<double, 8, 1> d0d0Nx;      ///< d0_d0*Nx' matrix
-        ChMatrixNM<double, 8, 1> d0d0Ny;      ///< d0_d0*Nx' matrix
-        ChMatrixNM<double, 8, 1> d0d0Nz;      ///< d0_d0*Nx' matrix
+        ChMatrixNM<double, 8, 1> d0d0Ny;      ///< d0_d0*Ny' matrix
+        ChMatrixNM<double, 8, 1> d0d0Nz;      ///< d0_d0*Nz' matrix
         ChMatrixNM<double, 1, 1> tempA;       ///< Contains temporary strains for ANS
         ChMatrixNM<double, 1, 1> tempA1;      ///< Contains temporary strains for ANS
         ChMatrixNM<double, 1, 24> tempB;      ///< Temporary matrix to calculate strainD
@@ -249,9 +249,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
 
     /// Calculate the first part of the Jacobian of the elastic forces of the ANCF shell element. It exploits sparsity
     /// to speed up computations
-    void JacCalcUnrolled(const ChMatrixNM<double, 6, 1>& stress, ///< [in] Stress vector
-                         const ChMatrixNM<double, 9, 24>& Gd,    ///< [in] Matrix obtained from intermediate step differentiation 
-                         ChMatrixNM<double, 24, 24>& JAC11);     ///< [out] Partial Jacobian computed
+    void JacCalcUnrolled(
+        const ChMatrixNM<double, 6, 1>& stress,  ///< [in] Stress vector
+        const ChMatrixNM<double, 9, 24>& Gd,     ///< [in] Matrix obtained from intermediate step differentiation
+        ChMatrixNM<double, 24, 24>& JAC11);      ///< [out] Partial Jacobian computed
     /// Set the storage of the five alpha parameters for EAS (max no. of layers 7)
     void SetStockAlpha(const ChMatrixNM<double, 35, 1>& a) { m_StockAlpha_EAS = a; }
     /// Set all the alpha parameters for EAS
@@ -425,61 +426,60 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Analytical inverse for a 5x5 matrix
     static void Inverse55_Analytical(ChMatrixNM<double, 5, 5>& A, ChMatrixNM<double, 5, 5>& B);
 
-	//
-	// Functions for ChLoadable interface
-	//  
+    //
+    // Functions for ChLoadable interface
+    //
 
-	/// Gets the number of DOFs affected by this element (position part)
-	virtual int LoadableGet_ndof_x() { return 4 * 6; }
+    /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() { return 4 * 6; }
 
-	/// Gets the number of DOFs affected by this element (speed part)
-	virtual int LoadableGet_ndof_w() { return 4 * 6; }
+    /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() { return 4 * 6; }
 
-	/// Gets all the DOFs packed in a single vector (position part)
-	virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
-		mD.PasteVector(this->m_nodes[0]->GetPos(), block_offset, 0);
-		mD.PasteVector(this->m_nodes[0]->GetD(), block_offset + 3, 0);
-		mD.PasteVector(this->m_nodes[1]->GetPos(), block_offset + 6, 0);
-		mD.PasteVector(this->m_nodes[1]->GetD(), block_offset + 9, 0);
-		mD.PasteVector(this->m_nodes[2]->GetPos(), block_offset + 12, 0);
-		mD.PasteVector(this->m_nodes[2]->GetD(), block_offset + 15, 0);
-		mD.PasteVector(this->m_nodes[3]->GetPos(), block_offset + 18, 0);
-		mD.PasteVector(this->m_nodes[3]->GetD(), block_offset + 21, 0);
-	}
+    /// Gets all the DOFs packed in a single vector (position part)
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+        mD.PasteVector(this->m_nodes[0]->GetPos(), block_offset, 0);
+        mD.PasteVector(this->m_nodes[0]->GetD(), block_offset + 3, 0);
+        mD.PasteVector(this->m_nodes[1]->GetPos(), block_offset + 6, 0);
+        mD.PasteVector(this->m_nodes[1]->GetD(), block_offset + 9, 0);
+        mD.PasteVector(this->m_nodes[2]->GetPos(), block_offset + 12, 0);
+        mD.PasteVector(this->m_nodes[2]->GetD(), block_offset + 15, 0);
+        mD.PasteVector(this->m_nodes[3]->GetPos(), block_offset + 18, 0);
+        mD.PasteVector(this->m_nodes[3]->GetD(), block_offset + 21, 0);
+    }
 
-	/// Gets all the DOFs packed in a single vector (speed part)
-	virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
-		mD.PasteVector(this->m_nodes[0]->GetPos_dt(), block_offset, 0);
-		mD.PasteVector(this->m_nodes[0]->GetD_dt(), block_offset + 3, 0);
-		mD.PasteVector(this->m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
-		mD.PasteVector(this->m_nodes[1]->GetD_dt(), block_offset + 9, 0);
-		mD.PasteVector(this->m_nodes[2]->GetPos_dt(), block_offset + 12, 0);
-		mD.PasteVector(this->m_nodes[2]->GetD_dt(), block_offset + 15, 0);
-		mD.PasteVector(this->m_nodes[3]->GetPos_dt(), block_offset + 18, 0);
-		mD.PasteVector(this->m_nodes[3]->GetD_dt(), block_offset + 21, 0);
-	}
+    /// Gets all the DOFs packed in a single vector (speed part)
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+        mD.PasteVector(this->m_nodes[0]->GetPos_dt(), block_offset, 0);
+        mD.PasteVector(this->m_nodes[0]->GetD_dt(), block_offset + 3, 0);
+        mD.PasteVector(this->m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
+        mD.PasteVector(this->m_nodes[1]->GetD_dt(), block_offset + 9, 0);
+        mD.PasteVector(this->m_nodes[2]->GetPos_dt(), block_offset + 12, 0);
+        mD.PasteVector(this->m_nodes[2]->GetD_dt(), block_offset + 15, 0);
+        mD.PasteVector(this->m_nodes[3]->GetPos_dt(), block_offset + 18, 0);
+        mD.PasteVector(this->m_nodes[3]->GetD_dt(), block_offset + 21, 0);
+    }
 
-	/// Number of coordinates in the interpolated field, ex=3 for a 
-	/// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-	virtual int Get_field_ncoords() { return 6; }
+    /// Number of coordinates in the interpolated field, ex=3 for a
+    /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
+    virtual int Get_field_ncoords() { return 6; }
 
-	/// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-	virtual int GetSubBlocks() { return 4; }
+    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() { return 4; }
 
-	/// Get the offset of the i-th sub-block of DOFs in global vector
-	virtual unsigned int GetSubBlockOffset(int nblock) { return m_nodes[nblock]->NodeGetOffset_w(); }
+    /// Get the offset of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockOffset(int nblock) { return m_nodes[nblock]->NodeGetOffset_w(); }
 
-	/// Get the size of the i-th sub-block of DOFs in global vector
-	virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+    /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
 
-	/// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-	virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
-		for (int i = 0; i<m_nodes.size(); ++i) {
-			mvars.push_back(&this->m_nodes[i]->Variables());
-			mvars.push_back(&this->m_nodes[i]->Variables_D());
-		}
-	};
-
+    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+        for (int i = 0; i < m_nodes.size(); ++i) {
+            mvars.push_back(&this->m_nodes[i]->Variables());
+            mvars.push_back(&this->m_nodes[i]->Variables_D());
+        }
+    };
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
