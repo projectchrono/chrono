@@ -222,7 +222,8 @@ Real CreateOne3DRigidCylinder(thrust::host_vector<Real3>& posRadH,
                               Real cyl_h,
                               Real rigidMass,
                               Real sphMarkerMass,
-                              int type) {
+                              int type,
+                              const SimParams& paramsH) {
     // Arman : take care of velocity and w stuff for BCE
     int num_BCEMarkers = 0;
     Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
@@ -324,11 +325,16 @@ void AddCylinderBceToChSystemAndSPH(
     thrust::host_vector< ::int3>& referenceArray,
     std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
     NumberOfObjects& numObjects,
-    Real sphMarkerMass) {
+    Real sphMarkerMass,
+    const SimParams& paramsH) {
     //
     int numMarkers = posRadH.size();
     int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
-    int type = 1;
+    ::int3 refSize3 = referenceArray[referenceArray.size() - 1];
+    Real type = refSize3.z + 1;
+    if (type < 1) {
+  	  printf("\n\n\n\n Error! rigid type is not a positive number. The issue is possibly due to absence of boundary particles \n\n\n\n");
+    }
     ChSharedPtr<ChBody> body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
     // body->SetIdentifier(-1);
     body->SetBodyFixed(false);
@@ -350,7 +356,7 @@ void AddCylinderBceToChSystemAndSPH(
     mphysicalSystem.AddBody(body);
     //
     int numBce = CreateOne3DRigidCylinder(
-        posRadH, velMasH, rhoPresMuH, body.get_ptr(), radius, height, body->GetMass(), sphMarkerMass, type);
+        posRadH, velMasH, rhoPresMuH, body.get_ptr(), radius, height, body->GetMass(), sphMarkerMass, type, paramsH);
 
     referenceArray.push_back(mI3(numMarkers, numMarkers + numBce, type));
     numObjects.numRigidBodies += 1;
@@ -561,7 +567,8 @@ void CreateMbdPhysicalSystemObjects(
                                    referenceArray,
                                    FSI_Bodies,
                                    numObjects,
-                                   sphMarkerMass);
+                                   sphMarkerMass,
+                                   paramsH);
 
     if (haveVehicle) {
         //        // version 1

@@ -41,7 +41,7 @@ Real time_end = 15;
 // Dimensions
 Real hdimX = 14;  // 5.5;
 Real hdimY = 1.75;
-Real hdimZ = 0.5;
+
 Real hthick = 0.25;
 Real basinDepth = 2;
 

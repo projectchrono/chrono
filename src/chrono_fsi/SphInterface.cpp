@@ -455,6 +455,9 @@ void AddBCE2FluidSystem_FromFile(
   }
   ::int3 refSize3 = referenceArray[referenceArray.size() - 1];
   Real type = refSize3.z + 1;
+  if (type < 1) {
+	  printf("\n\n\n\n Error! rigid type is not a positive number. The issue is possibly due to absence of boundary particles \n\n\n\n");
+  }
   int numBce = posRadBCE.size();
   //#pragma omp parallel for  // it is very wrong to do it in parallel. race condition will occur
   for (int i = 0; i < numBce; i++) {

@@ -41,7 +41,7 @@ Real time_end = 15;
 // Dimensions
 Real hdimX = 14;  // 5.5;
 Real hdimY = 1.75;
-Real hdimZ = 0.5;
+
 Real hthick = 0.25;
 Real basinDepth = 2;
 
@@ -122,7 +122,7 @@ void SetupParamsH(SimParams& paramsH) {
   //  paramsH.cMin = mR3(0, 0, 0);  // 3D channel
   //  paramsH.cMax = mR3(3, 2, 3);
   paramsH.cMin = mR3(-hdimX, -hdimY, -basinDepth - hthick);  // 3D channel
-  paramsH.cMax = mR3(hdimX, hdimY, basinDepth);
+  paramsH.cMax = mR3(hdimX, hdimY, 4);//mR3(hdimX, hdimY, basinDepth);
   //****************************************************************************************
   // printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 *
   // paramsH.HSML);

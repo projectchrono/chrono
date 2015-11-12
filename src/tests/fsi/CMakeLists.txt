@@ -45,7 +45,7 @@ SET(FSI_VEHICLE_TESTS
 # List all FSI TESTS use parallel and vehicle
 SET(FSI_PARALLEL_VEHICLE_TESTS
 # add fsi parallel vehicle TESTS here
-	#test_fsi_cylinderDrop
+	test_fsi_cylinderDrop
 	test_fsi_hmmwv_pointCloud
 )
 
