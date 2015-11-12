@@ -111,7 +111,7 @@ void ChElementBrick::SetStockAlpha(double a1,
                                    double a7,
                                    double a8,
                                    double a9) {
-    m_stock_alpha_EAS(0, 0) = a1;  //// 2015/5/23  only for 10by1 bench mark
+    m_stock_alpha_EAS(0, 0) = a1;  
     m_stock_alpha_EAS(1, 0) = a2;
     m_stock_alpha_EAS(2, 0) = a3;
     m_stock_alpha_EAS(3, 0) = a4;

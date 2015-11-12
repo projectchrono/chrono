@@ -7,13 +7,10 @@
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
-//
 // =============================================================================
 // Authors: Bryan Peterson, Antonio Recuero
 // =============================================================================
-//
 // Brick element with 8 nodes (with EAS)
-//
 // =============================================================================
 
 #ifndef CHELEMENTBRICK_H
@@ -32,208 +29,225 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     ~ChElementBrick() {}
 
     class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
-	public:
-		MyMass();  ///< Constructor
-		MyMass(ChMatrixNM<double, 8, 3>* m_d0, ChElementBrick* element_) {
-			d0 = m_d0;
-			element = element_;
-		}
-		~MyMass() {}
-	private:
+      public:
+        MyMass();  ///< Constructor
+        MyMass(ChMatrixNM<double, 8, 3>* m_d0, ChElementBrick* element_) {
+            d0 = m_d0;
+            element = element_;
+        }
+        ~MyMass() {}
+
+      private:
         ChElementBrick* element;
-        ChMatrixNM<double, 8, 3>* d0;
-        ChMatrixNM<double, 3, 24> S;
-        ChMatrixNM<double, 3, 24> Sx;
-        ChMatrixNM<double, 3, 24> Sy;
-        ChMatrixNM<double, 3, 24> Sz;
-        ChMatrixNM<double, 1, 8> N;
-        ChMatrixNM<double, 1, 8> Nx;
-        ChMatrixNM<double, 1, 8> Ny;
-        ChMatrixNM<double, 1, 8> Nz;
+        ChMatrixNM<double, 8, 3>* d0;  ///< Pointer to a matrix containing the element initial coordinates
+        ChMatrixNM<double, 3, 24> S;   ///< Sparse shape function matrix
+        ChMatrixNM<double, 3, 24> Sx;  ///< Sparse shape function matrix, X derivative
+        ChMatrixNM<double, 3, 24> Sy;  ///< Sparse shape function matrix, Y derivative
+        ChMatrixNM<double, 3, 24> Sz;  ///< Sparse shape function matrix, Z derivative
+        ChMatrixNM<double, 1, 8> N;    ///< Dense shape function vector
+        ChMatrixNM<double, 1, 8> Nx;   ///< Dense shape function vector, X derivative
+        ChMatrixNM<double, 1, 8> Ny;   ///< Dense shape function vector, Y derivative
+        ChMatrixNM<double, 1, 8> Nz;   ///< Dense shape function vector, Z derivative
 
         /// Evaluate the S'*S  at point x
         virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z);
     };
     /// Internal force, EAS stiffness, and analytical jacobian are calculated
     class MyForceAnalytical : public ChIntegrable3D<ChMatrixNM<double, 906, 1> > {
-	public:
-		MyForceAnalytical();
-		// Constructor 1
-		MyForceAnalytical(ChMatrixNM<double, 8, 3>* d_, ChMatrixNM<double, 8, 3>* m_d0_, ChElementBrick* element_,
-			ChMatrixNM<double, 6, 6>* T0_, double* detJ0C_, ChMatrixNM<double, 9, 1>* alpha_eas_) {
-			d = d_;
-			d0 = m_d0_;
-			element = element_;
-			T0 = T0_;
-			detJ0C = detJ0C_;
-			alpha_eas = alpha_eas_;
-		}
-		//Constructor 2
-		MyForceAnalytical(ChMatrixNM<double, 8, 3>* d_, ChMatrixNM<double, 8, 3>* m_d0_, ChElementBrick* element_,
-			ChMatrixNM<double, 6, 6>* T0_, double* detJ0C_, ChMatrixNM<double, 9, 1>* alpha_eas_,
-			double* E_, double* v_) {
-			d = d_;
-			d0 = m_d0_;
-			element = element_;
-			T0 = T0_;
-			detJ0C = detJ0C_;
-			alpha_eas = alpha_eas_;
-			E = E_;
-			v = v_;
-		}
-		~MyForceAnalytical() {}
+      public:
+        MyForceAnalytical();
+        /// Constructor 1
+        MyForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
+                          ChMatrixNM<double, 8, 3>* m_d0_,
+                          ChElementBrick* element_,
+                          ChMatrixNM<double, 6, 6>* T0_,
+                          double* detJ0C_,
+                          ChMatrixNM<double, 9, 1>* alpha_eas_) {
+            d = d_;
+            d0 = m_d0_;
+            element = element_;
+            T0 = T0_;
+            detJ0C = detJ0C_;
+            alpha_eas = alpha_eas_;
+        }
+        /// Constructor 2
+        MyForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
+                          ChMatrixNM<double, 8, 3>* m_d0_,
+                          ChElementBrick* element_,
+                          ChMatrixNM<double, 6, 6>* T0_,
+                          double* detJ0C_,
+                          ChMatrixNM<double, 9, 1>* alpha_eas_,
+                          double* E_,
+                          double* v_) {
+            d = d_;
+            d0 = m_d0_;
+            element = element_;
+            T0 = T0_;
+            detJ0C = detJ0C_;
+            alpha_eas = alpha_eas_;
+            E = E_;
+            v = v_;
+        }
+        ~MyForceAnalytical() {}
+
       private:
         ChElementBrick* element;
-        ChMatrixNM<double, 8, 3>* d;  // this is an external matrix, use pointer
-        ChMatrixNM<double, 8, 3>* d0;
-        ChMatrixNM<double, 6, 6>* T0;
-        ChMatrixNM<double, 9, 1>* alpha_eas;
-        double* detJ0C;
-        double* E;
-        double* v;
+        ChMatrixNM<double, 8, 3>* d;          ///< Pointer to a matrix containing the element coordinates
+        ChMatrixNM<double, 8, 3>* d0;         ///< Pointer to a matrix containing the element initial coordinates
+        ChMatrixNM<double, 6, 6>* T0;         ///< Pointer to transformation matrix for Enhanced Assumed Strain (EAS)
+        ChMatrixNM<double, 9, 1>* alpha_eas;  ///< Pointer to the 9 internal parameters for EAS
+        double* detJ0C;                       ///< Pointer to determinant of the initial Jacobian at the element center
+        double* E;                            ///< Pointer to Young modulus
+        double* v;                            ///< Pointer to Poisson ratio
 
-        ChMatrixNM<double, 24, 1> Fint;
-        ChMatrixNM<double, 24, 24> JAC11;
-        ChMatrixNM<double, 9, 24> Gd;
-        ChMatrixNM<double, 6, 1> stress;
-        ChMatrixNM<double, 9, 9> Sigm;
-        ChMatrixNM<double, 24, 6> temp246;
-        ChMatrixNM<double, 24, 9> temp249;
-        ChMatrixNM<double, 6, 6> E_eps;
-        ChMatrixNM<double, 3, 24> Sx;
-        ChMatrixNM<double, 3, 24> Sy;
-        ChMatrixNM<double, 3, 24> Sz;
-        ChMatrixNM<double, 1, 8> Nx;
-        ChMatrixNM<double, 1, 8> Ny;
-        ChMatrixNM<double, 1, 8> Nz;
-        ChMatrixNM<double, 6, 24> strainD;
-        ChMatrixNM<double, 6, 1> strain;
-        ChMatrixNM<double, 8, 8> d_d;
-        ChMatrixNM<double, 8, 1> ddNx;
-        ChMatrixNM<double, 8, 1> ddNy;
-        ChMatrixNM<double, 8, 1> ddNz;
-        ChMatrixNM<double, 1, 3> Nxd;
-        ChMatrixNM<double, 1, 3> Nyd;
-        ChMatrixNM<double, 1, 3> Nzd;
-        ChMatrixNM<double, 1, 1> tempA;
-        ChMatrixNM<double, 1, 24> tempB;
-        ChMatrixNM<double, 24, 6> tempC;
-        ChMatrixNM<double, 1, 1> tempA1;  // for strain incase of initial curved
-        ChMatrixNM<double, 8, 8> d0_d0;   // for strain incase of initial curved
-        ChMatrixNM<double, 8, 1> d0d0Nx;  // for strain incase of initial curved
-        ChMatrixNM<double, 8, 1> d0d0Ny;  // for strain incase of initial curved
-        ChMatrixNM<double, 8, 1> d0d0Nz;  // for strain incase of initial curved
-        double detJ0;
-        //	//EAS
-        ChMatrixNM<double, 6, 9> M;
-        ChMatrixNM<double, 6, 9> G;
-        ChMatrixNM<double, 9, 6> GT;
-        ChMatrixNM<double, 6, 1> strain_EAS;
+        ChMatrixNM<double, 24, 1> Fint;    ///< Generalized internal (elastic) force vector
+        ChMatrixNM<double, 24, 24> JAC11;  ///< Jacobian of internal forces for implicit numerical integration
+        ChMatrixNM<double, 9, 24> Gd;  ///< Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
+        ChMatrixNM<double, 6, 1> stress;    ///< stress tensor in vector form
+        ChMatrixNM<double, 9, 9> Sigm;      ///< stress tensor in sparse form
+        ChMatrixNM<double, 24, 6> temp246;  ///< Temporary matrix for Jacobian (JAC11) calculation
+        ChMatrixNM<double, 24, 9> temp249;  ///< Temporary matrix for Jacobian (JAC11) calculation
+        ChMatrixNM<double, 6, 6> E_eps;     ///< Matrix of elastic coefficients (features orthotropy)
+        ChMatrixNM<double, 3, 24> Sx;       ///< Sparse shape function matrix, X derivative
+        ChMatrixNM<double, 3, 24> Sy;       ///< Sparse shape function matrix, Y derivative
+        ChMatrixNM<double, 3, 24> Sz;       ///< Sparse shape function matrix, Z derivative
+        ChMatrixNM<double, 1, 8> Nx;        ///< Dense shape function vector, X derivative
+        ChMatrixNM<double, 1, 8> Ny;        ///< Dense shape function vector, Y derivative
+        ChMatrixNM<double, 1, 8> Nz;        ///< Dense shape function vector, Z derivative
+        ChMatrixNM<double, 6, 24> strainD;  ///< Derivative of the strains w.r.t. the coordinates. Includes orthotropy
+        ChMatrixNM<double, 6, 1> strain;    ///< Vector of strains
+        ChMatrixNM<double, 8, 8> d_d;       ///< d*d' matrix, where d contains current coordinates in matrix form
+        ChMatrixNM<double, 8, 1> ddNx;      ///< d_d*Nx' matrix
+        ChMatrixNM<double, 8, 1> ddNy;      ///< d_d*Ny' matrix
+        ChMatrixNM<double, 8, 1> ddNz;      ///< d_d*Nz' matrix
+        ChMatrixNM<double, 1, 1> tempA;     ///< Contains temporary strains
+        ChMatrixNM<double, 1, 24> tempB;    ///< Contains temporary strain derivatives
+        ChMatrixNM<double, 24, 6> tempC;    ///< Used to calculate the internal forces Fint
+        ChMatrixNM<double, 1, 1> tempA1;    ///< Contains temporary strains
+        ChMatrixNM<double, 8, 8> d0_d0;     ///< d0*d0' matrix, where d0 contains initial coordinates in matrix form
+        ChMatrixNM<double, 8, 1> d0d0Nx;    ///< d0_d0*Nx' matrix
+        ChMatrixNM<double, 8, 1> d0d0Ny;    ///< d0_d0*Ny' matrix
+        ChMatrixNM<double, 8, 1> d0d0Nz;    ///< d0_d0*Nz' matrix
+        double detJ0;                       ///< Determinant of the initial position vector gradient matrix
+        // EAS
+        ChMatrixNM<double, 6, 9> M;           ///< Shape function matrix for Enhanced Assumed Strain
+        ChMatrixNM<double, 6, 9> G;           ///< Matrix G interpolates the internal parameters of EAS
+        ChMatrixNM<double, 9, 6> GT;          ///< Tranpose of matrix GT
+        ChMatrixNM<double, 6, 1> strain_EAS;  ///< Enhanced assumed strain vector
 
-        //	/// Evaluate (strainD'*strain)  at point
+        /// Evaluate (strainD'*strain)  at a point
         virtual void Evaluate(ChMatrixNM<double, 906, 1>& result, const double x, const double y, const double z);
     };  // end of class MyForce
-
     class MyForceNum : public ChIntegrable3D<ChMatrixNM<double, 330, 1> > {
-		public:
-		MyForceNum();
-		// Constructor 1
-		MyForceNum(ChMatrixNM<double, 8, 3>* d_, ChMatrixNM<double, 8, 3>* m_d0_, ChElementBrick* element_, 
-			ChMatrixNM<double, 6, 6>* T0_, double* detJ0C_, ChMatrixNM<double, 9, 1>* alpha_eas_) {
-			d = d_;
-			d0 = m_d0_;
-			element = element_;
-			T0 = T0_;
-			detJ0C = detJ0C_;
-			alpha_eas = alpha_eas_;
-		}
-		//Constructor 2
-		MyForceNum(ChMatrixNM<double, 8, 3>* d_, ChMatrixNM<double, 8, 3>* m_d0_, ChElementBrick* element_,
-			ChMatrixNM<double, 6, 6>* T0_, double* detJ0C_, ChMatrixNM<double, 9, 1>* alpha_eas_,
-			double* E_, double* v_) {
-			d = d_;
-			d0 = m_d0_;
-			element = element_;
-			T0 = T0_;
-			detJ0C = detJ0C_;
-			alpha_eas = alpha_eas_;
-			E = E_;
-			v = v_;
-		}
-		~MyForceNum() {}
-	   private:
+      public:
+        MyForceNum();
+        /// Constructor 1
+        MyForceNum(ChMatrixNM<double, 8, 3>* d_,
+                   ChMatrixNM<double, 8, 3>* m_d0_,
+                   ChElementBrick* element_,
+                   ChMatrixNM<double, 6, 6>* T0_,
+                   double* detJ0C_,
+                   ChMatrixNM<double, 9, 1>* alpha_eas_) {
+            d = d_;
+            d0 = m_d0_;
+            element = element_;
+            T0 = T0_;
+            detJ0C = detJ0C_;
+            alpha_eas = alpha_eas_;
+        }
+        /// Constructor 2
+        MyForceNum(ChMatrixNM<double, 8, 3>* d_,
+                   ChMatrixNM<double, 8, 3>* m_d0_,
+                   ChElementBrick* element_,
+                   ChMatrixNM<double, 6, 6>* T0_,
+                   double* detJ0C_,
+                   ChMatrixNM<double, 9, 1>* alpha_eas_,
+                   double* E_,
+                   double* v_) {
+            d = d_;
+            d0 = m_d0_;
+            element = element_;
+            T0 = T0_;
+            detJ0C = detJ0C_;
+            alpha_eas = alpha_eas_;
+            E = E_;
+            v = v_;
+        }
+        ~MyForceNum() {}
+
+      private:
         ChElementBrick* element;
         /// Pointers used for external values
-        ChMatrixNM<double, 8, 3>* d;
-        ChMatrixNM<double, 8, 3>* d0;
-        ChMatrixNM<double, 6, 6>* T0;
-        ChMatrixNM<double, 9, 1>* alpha_eas;
-        double* detJ0C;
-        double* E;
-        double* v;
-        ChMatrixNM<double, 24, 1> Fint;
-        ChMatrixNM<double, 6, 6> E_eps;
-        ChMatrixNM<double, 3, 24> Sx;
-        ChMatrixNM<double, 3, 24> Sy;
-        ChMatrixNM<double, 3, 24> Sz;
-        ChMatrixNM<double, 1, 8> Nx;
-        ChMatrixNM<double, 1, 8> Ny;
-        ChMatrixNM<double, 1, 8> Nz;
-        ChMatrixNM<double, 6, 24> strainD;
-        ChMatrixNM<double, 6, 1> strain;
-        ChMatrixNM<double, 8, 8> d_d;
-        ChMatrixNM<double, 8, 1> ddNx;
-        ChMatrixNM<double, 8, 1> ddNy;
-        ChMatrixNM<double, 8, 1> ddNz;
-        ChMatrixNM<double, 1, 3> Nxd;
-        ChMatrixNM<double, 1, 3> Nyd;
-        ChMatrixNM<double, 1, 3> Nzd;
-        ChMatrixNM<double, 1, 1> tempA;
-        ChMatrixNM<double, 1, 24> tempB;
-        ChMatrixNM<double, 24, 6> tempC;
-        ChMatrixNM<double, 1, 1> tempA1;  // for strain incase of initial curved
-        ChMatrixNM<double, 8, 8> d0_d0;   // for strain incase of initial curved
-        ChMatrixNM<double, 8, 1> d0d0Nx;  // for strain incase of initial curved
-        ChMatrixNM<double, 8, 1> d0d0Ny;  // for strain incase of initial curved
-        ChMatrixNM<double, 8, 1> d0d0Nz;  // for strain incase of initial curved
-        double detJ0;
+        ChMatrixNM<double, 8, 3>* d;          ///< Pointer to a matrix containing the element coordinates
+        ChMatrixNM<double, 8, 3>* d0;         ///< Pointer to a matrix containing the element initial coordinates
+        ChMatrixNM<double, 6, 6>* T0;         ///< Pointer to transformation matrix for Enhanced Assumed Strain (EAS)
+        ChMatrixNM<double, 9, 1>* alpha_eas;  ///< Pointer to the 9 internal parameters for EAS
+        double* detJ0C;                       ///< Pointer to determinant of the initial Jacobian at the element center
+        double* E;                            ///< Pointer to Young modulus
+        double* v;                            ///< Pointer to Poisson ratio
+        ChMatrixNM<double, 24, 1> Fint;       ///< Generalized internal (elastic) force vector
+        ChMatrixNM<double, 6, 6> E_eps;       ///< Matrix of elastic coefficients (features orthotropy)
+        ChMatrixNM<double, 3, 24> Sx;         ///< Sparse shape function matrix, X derivative
+        ChMatrixNM<double, 3, 24> Sy;         ///< Sparse shape function matrix, Y derivative
+        ChMatrixNM<double, 3, 24> Sz;         ///< Sparse shape function matrix, Z derivative
+        ChMatrixNM<double, 1, 8> Nx;          ///< Dense shape function vector, X derivative
+        ChMatrixNM<double, 1, 8> Ny;          ///< Dense shape function vector, Y derivative
+        ChMatrixNM<double, 1, 8> Nz;          ///< Dense shape function vector, Z derivative
+        ChMatrixNM<double, 6, 24> strainD;    ///< Derivative of the strains w.r.t. the coordinates. Includes orthotropy
+        ChMatrixNM<double, 6, 1> strain;      ///< Vector of strains
+        ChMatrixNM<double, 8, 8> d_d;         ///< d*d' matrix, where d contains current coordinates in matrix form
+        ChMatrixNM<double, 8, 1> ddNx;        ///< d_d*Nx' matrix
+        ChMatrixNM<double, 8, 1> ddNy;        ///< d_d*Ny' matrix
+        ChMatrixNM<double, 8, 1> ddNz;        ///< d_d*Nz' matrix
+        ChMatrixNM<double, 1, 1> tempA;       ///< Contains temporary strains
+        ChMatrixNM<double, 1, 24> tempB;      ///< Contains temporary strain derivatives
+        ChMatrixNM<double, 24, 6> tempC;      ///< Used to calculate the internal forces Fint
+        ChMatrixNM<double, 1, 1> tempA1;      ///< Contains temporary strains
+        ChMatrixNM<double, 8, 8> d0_d0;       ///< d0*d0' matrix, where d0 contains initial coordinates in matrix form
+        ChMatrixNM<double, 8, 1> d0d0Nx;      ///< d0_d0*Nx' matrix
+        ChMatrixNM<double, 8, 1> d0d0Ny;      ///< d0_d0*Ny' matrix
+        ChMatrixNM<double, 8, 1> d0d0Nz;      ///< d0_d0*Nz' matrix
+        double detJ0;                         ///< Determinant of the initial position vector gradient matrix
         // EAS
-        ChMatrixNM<double, 6, 9> M;
-        ChMatrixNM<double, 6, 9> G;
-        ChMatrixNM<double, 9, 6> GT;
-        ChMatrixNM<double, 6, 1> strain_EAS;
+        ChMatrixNM<double, 6, 9> M;           ///< Shape function matrix for Enhanced Assumed Strain
+        ChMatrixNM<double, 6, 9> G;           ///< Matrix G interpolates the internal parameters of EAS
+        ChMatrixNM<double, 9, 6> GT;          ///< Tranpose of matrix GT
+        ChMatrixNM<double, 6, 1> strain_EAS;  ///< Enhanced assumed strain vector
 
         /// Gaussian integration to calculate internal forces and EAS matrices
         virtual void Evaluate(ChMatrixNM<double, 330, 1>& result, const double x, const double y, const double z);
     };
+    /// Class to calculate the gravity forces of a brick element
+    class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
+      public:
+        MyGravity();
+        MyGravity(ChMatrixNM<double, 8, 3>* m_d0, ChElementBrick* element_) {
+            d0 = m_d0;
+            element = element_;
+        }
+        ~MyGravity() {}
 
-	class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
-	public:
-		MyGravity();
-		MyGravity(ChMatrixNM<double, 8, 3>* m_d0, ChElementBrick* element_) {
-			d0 = m_d0;
-			element = element_;
-		}
-		~MyGravity() {}
+      private:
+        ChElementBrick* element;
+        ChMatrixNM<double, 8, 3>* d0;                ///< Pointer to a matrix containing the element initial coordinates
+        ChMatrixNM<double, 3, 24> S;                 ///< Sparse shape function matrix
+        ChMatrixNM<double, 1, 8> N;                  ///< Dense shape function vector
+        ChMatrixNM<double, 1, 8> Nx;                 ///< Dense shape function vector, X derivative
+        ChMatrixNM<double, 1, 8> Ny;                 ///< Dense shape function vector, Y derivative
+        ChMatrixNM<double, 1, 8> Nz;                 ///< Dense shape function vector, Z derivative
+        ChMatrixNM<double, 3, 1> LocalGravityForce;  ///< Acceleration vector
 
-	private:
-		ChElementBrick* element;
-		ChMatrixNM<double, 8, 3>* d0;
-		ChMatrixNM<double, 3, 24> S;
-		ChMatrixNM<double, 1, 8> N;
-		ChMatrixNM<double, 1, 8> Nx;
-		ChMatrixNM<double, 1, 8> Ny;
-		ChMatrixNM<double, 1, 8> Nz;
-		ChMatrixNM<double, 3, 1> LocalGravityForce;
-
-		virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
-	};
+        virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
+    };
+    /// Get number of nodes of this element
     virtual int GetNnodes() override { return 8; }
+    /// Get number of coordinates of the element
     virtual int GetNcoords() override { return 8 * 3; }
+    /// Get number of degrees of freedom of this element
     virtual int GetNdofs() override { return 8 * 3; }
-
+    /// Access the n-th node of this element.
     virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
-
+    /// Specify the nodes of this element.
     void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
                   ChSharedPtr<ChNodeFEAxyz> nodeB,
                   ChSharedPtr<ChNodeFEAxyz> nodeC,
@@ -242,16 +256,20 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
                   ChSharedPtr<ChNodeFEAxyz> nodeF,
                   ChSharedPtr<ChNodeFEAxyz> nodeG,
                   ChSharedPtr<ChNodeFEAxyz> nodeH);
-
+    /// Set the element number
     void SetElemNum(int kb) { m_elementnumber = kb; }
+    /// Set EAS internal parameters (stored values)
     void
     SetStockAlpha(double a1, double a2, double a3, double a4, double a5, double a6, double a7, double a8, double a9);
+    /// Set EAS Jacobian matrix
     void SetStockJac(const ChMatrixNM<double, 24, 24>& a) { m_stock_jac_EAS = a; }
+    /// Set Analytical Jacobian
     void SetStockKTE(const ChMatrixNM<double, 24, 24>& a) { m_stock_KTE = a; }
+    /// Set some element parameters (dimensions)
     void SetInertFlexVec(const ChMatrixNM<double, 3, 1>& a) { m_InertFlexVec = a; }
 
     int GetElemNum() const { return m_elementnumber; }
-
+    /// Get initial position of the element in matrix form
     const ChMatrixNM<double, 8, 3>& GetInitialPos() const { return m_d0; }
 
     ChSharedPtr<ChNodeFEAxyz> GetNodeA() const { return m_nodes[0]; }
@@ -271,7 +289,9 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     ChSharedPtr<ChContinuumElastic> GetMaterial() const { return m_Material; }
     /// Turn gravity on/off.
     void SetGravityOn(bool val) { m_gravity_on = val; }
+    /// Set whether material is Mooney-Rivlin (Otherwise linear elastic isotropic)
     void SetMooneyRivlin(bool val) { m_isMooney = val; }
+    /// Set Mooney-Rivlin coefficients
     void SetMRCoefficients(double C1, double C2) {
         CCOM1 = C1;
         CCOM2 = C2;
@@ -366,8 +386,8 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     ChMatrixNM<double, 3, 1> m_InertFlexVec;       ///< for element size (EL,EW,EH)
     // EAS
     int m_elementnumber;                         ///< Element number, for EAS
-    ChMatrixNM<double, 24, 24> m_stock_jac_EAS;  ///< EAS per elmeent
-    ChMatrixNM<double, 9, 1> m_stock_alpha_EAS;  ///< EAS per element
+    ChMatrixNM<double, 24, 24> m_stock_jac_EAS;  ///< EAS Jacobian matrix
+    ChMatrixNM<double, 9, 1> m_stock_alpha_EAS;  ///< EAS previous step internal parameters
     ChMatrixNM<double, 24, 24> m_stock_KTE;      ///< Analytical Jacobian
     ChMatrixNM<double, 8, 3> m_d0;               ///< Initial Coordinate per element
     JacobianType m_flag_HE;
