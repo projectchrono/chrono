@@ -50,7 +50,7 @@ class ChApi ChLcpIterativeSORmultithread : public ChLcpIterativeSolver {
     // CONSTRUCTORS
     //
 
-    ChLcpIterativeSORmultithread(char* uniquename="solver", ///< this name must be unique.
+    ChLcpIterativeSORmultithread(char* uniquename= (char*)"solver", ///< this name must be unique.
                                  int nthreads = 2,          ///< number of threads
                                  int mmax_iters = 50,       ///< max.number of iterations
                                  bool mwarm_start = false,  ///< uses warm start?
