@@ -110,7 +110,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 
                         thrust::device_vector<uint>& bodyIndexD,
                         std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
-                        const thrust::host_vector<int3>& referenceArray,
+                        const thrust::host_vector<int4>& referenceArray,
                         const NumberOfObjects& numObjects,
                         const SimParams& paramsH,
                         Real sphMarkerMass,

@@ -159,7 +159,7 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
               thrust::device_vector<Real4>& rhoPresMuD,
               thrust::device_vector<uint>& bodyIndexD,
               thrust::device_vector<Real4>& derivVelRhoD,
-              const thrust::host_vector<int3>& referenceArray,
+              const thrust::host_vector<int4>& referenceArray,
               const NumberOfObjects& numObjects,
               SimParams paramsH,
               BceVersion bceType,
@@ -377,7 +377,7 @@ __global__ void UpdateRigidMarkersPositionD(Real3* posRadD,
   posRadD[rigidMarkerIndex] =
       p_Rigid + mR3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
 
-  // velociy
+  // velocity
   Real4 vM_Rigid = velMassRigidD[rigidBodyIndex];
   Real3 omega3 = omegaLRF_D[rigidBodyIndex];
   Real3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
@@ -422,12 +422,12 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(Real3* rigidSPH_MeshPos_LRF
 void MakeRigidIdentifier(thrust::device_vector<uint>& rigidIdentifierD,
                          int numRigidBodies,
                          int startRigidMarkers,
-                         const thrust::host_vector<int3>& referenceArray) {
+                         const thrust::host_vector<int4>& referenceArray) {
   if (numRigidBodies > 0) {
     for (int rigidSphereA = 0; rigidSphereA < numRigidBodies; rigidSphereA++) {
-      int3 referencePart = referenceArray[2 + rigidSphereA];
+      int4 referencePart = referenceArray[2 + rigidSphereA];
       if (referencePart.z != 1) {
-        printf("error in accessing rigid bodies. Reference array indexing is wrong\n");
+        printf(" Error! in accessing rigid bodies. Reference array indexing is wrong\n");
         return;
       }
       int2 updatePortion =
@@ -445,7 +445,7 @@ void Populate_RigidSPH_MeshPos_LRF(thrust::device_vector<uint>& rigidIdentifierD
                                    const thrust::device_vector<Real3>& posRadD,
                                    const thrust::device_vector<Real3>& posRigidD,
                                    const thrust::device_vector<Real4>& qD,
-                                   const thrust::host_vector<int3>& referenceArray,
+                                   const thrust::host_vector<int4>& referenceArray,
                                    const NumberOfObjects& numObjects) {
   MakeRigidIdentifier(rigidIdentifierD, numObjects.numRigidBodies, numObjects.startRigidMarkers, referenceArray);
 
@@ -577,7 +577,7 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 
                  thrust::device_vector<uint>& bodyIndexD,
                  thrust::device_vector<Real4>& derivVelRhoD,
-                 const thrust::host_vector<int3>& referenceArray,
+                 const thrust::host_vector<int4>& referenceArray,
                  const NumberOfObjects& numObjects,
                  SimParams paramsH,
                  BceVersion bceType,
@@ -850,7 +850,7 @@ void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
                   thrust::device_vector<Real4>& rhoPresMuD,
 
                   thrust::device_vector<uint>& bodyIndexD,
-                  const thrust::host_vector<int3>& referenceArray,
+                  const thrust::host_vector<int4>& referenceArray,
                   const NumberOfObjects& numObjects,
                   SimParams currentParamsH,
                   Real dT) {
@@ -877,129 +877,4 @@ void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
   // //assumes ...D2 is a copy of ...D
   ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 }
-////##############################################################################################################################################
-//// the main function, which updates the particles and implements BC
-// void cudaCollisions(
-//		thrust::host_vector<Real3> & mPosRad,
-//		thrust::host_vector<Real4> & mVelMas,
-//		thrust::host_vector<Real4> & mRhoPresMu,
-//		const thrust::host_vector<uint> & bodyIndex,
-//		const thrust::host_vector<int3> & referenceArray,
-//
-//		SimParams paramsH,
-//		NumberOfObjects numObjects) {
-//
-//	//--------- initialization ---------------
-//	//cudaError_t dumDevErr = cudaSetDevice(2);
-//	GpuTimer myTotalTime;
-//	myTotalTime.Start();
-//	//printf("cMin.x, y, z, CMAx.x, y, z, binSize %f %f %f , %f %f %f, %f\n", paramsH.cMin.x, paramsH.cMin.y,
-// paramsH.cMin.z, paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
-//	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
-//
-//	thrust::device_vector<Real3> posRadD=mPosRad;
-//	thrust::device_vector<Real4> velMasD=mVelMas;
-//	thrust::device_vector<Real4> rhoPresMuD=mRhoPresMu;
-//
-//	thrust::device_vector<uint> bodyIndexD=bodyIndex;
-//	thrust::device_vector<Real4> derivVelRhoD(numObjects.numAllMarkers);
-//
-//
-//
-//	//******************************************************************************
-//
-//	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-//		//************************************************
-//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
-//		//************
-//
-//		GpuTimer myGpuTimer;
-//		myGpuTimer.Start();
-//
-//		// Arman timer Added
-//		CpuTimer mCpuTimer;
-//		mCpuTimer.Start();
-//
-//		//***********
-//		if (realTime <= paramsH.timePause) 	{
-//			currentParamsH = paramsH_B;
-//		} else {
-//			currentParamsH = paramsH;
-//		}
-//		//***********
-//
-//		setParameters(&currentParamsH, &numObjects);// sets paramsD in SDKCollisionSystem
-//		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD
-// for this file
-//
-//		//computations
-//				//markers
-//		thrust::device_vector<Real3> posRadD2 = posRadD;
-//		thrust::device_vector<Real4> velMasD2 = velMasD;
-//		thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
-//		thrust::device_vector<Real3> vel_XSPH_D(numObjects.numAllMarkers);
-//
-//
-//		//******** RK2
-//		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD,
-// derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
-//		IntegrateSPH(posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD,
-// derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
-//
-//
-//		//************
-//		posRadD2.clear();
-//		velMasD2.clear();
-//		rhoPresMuD2.clear();
-//		vel_XSPH_D.clear();
-//
-//		//density re-initialization
-////		if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
-////			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers,
-/// paramsH.gridSize);
-/////does not work for analytical boundaries (non-meshed) and free surfaces
-////		}
-//
-//		myGpuTimer.Stop();
-//		Real time2 = (Real)myGpuTimer.Elapsed();
-//
-//		//cudaDeviceSynchronize();
-//
-//		//Arman timer Added
-//		mCpuTimer.Stop();
-//
-//		if (tStep % 50 == 0) {
-//			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime,
-// time2, 1000 * mCpuTimer.Elapsed());
-//
-////			// ************ calc and print cartesian data ************************************
-////			int3 cartesianGridDims;
-////			thrust::host_vector<Real4> rho_Pres_CartH(1);
-////			thrust::host_vector<Real4> vel_VelMag_CartH(1);
-////			MapSPH_ToGrid(2 * paramsH.HSML, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH,
-////					posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH);
-////			PrintCartesianData_MidLine(rho_Pres_CartH, vel_VelMag_CartH, cartesianGridDims, paramsH);
-////			// *******************************************************************************
-//		}
-//		fflush(stdout);
-//
-//		realTime += currentParamsH.dT;
-//
-//		//_CrtDumpMemoryLeaks(); //for memory leak detection (msdn suggestion for VS) apparently does not work
-// in
-// conjunction with cuda
-//
-//	}
-//
-//	//you may copy back to host
-//	posRadD.clear();
-//	velMasD.clear();
-//	rhoPresMuD.clear();
-//
-//	bodyIndexD.clear();
-//	derivVelRhoD.clear();
-//
-//	myTotalTime.Stop();
-//	Real time = (Real)myTotalTime.Elapsed();
-//	printf("total Time: %f\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n ", time);
-//}
+

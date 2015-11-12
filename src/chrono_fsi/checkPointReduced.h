@@ -19,7 +19,7 @@ void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
                              const thrust::host_vector<Real4>& mVelMas,
                              const thrust::host_vector<Real4>& mRhoPresMu,
                              const thrust::host_vector<uint>& bodyIndex,
-                             const thrust::host_vector<int3>& referenceArray,
+                             const thrust::host_vector<int4>& referenceArray,
 
                              SimParams paramsH,
                              NumberOfObjects numObjects,
@@ -32,7 +32,7 @@ void CheckPointMarkers_Read(bool shouldIRead,
                             thrust::host_vector<Real4>& mVelMas,
                             thrust::host_vector<Real4>& mRhoPresMu,
                             thrust::host_vector<uint>& bodyIndex,
-                            thrust::host_vector<int3>& referenceArray,
+                            thrust::host_vector<int4>& referenceArray,
 
                             SimParams& paramsH,
                             NumberOfObjects& numObjects);

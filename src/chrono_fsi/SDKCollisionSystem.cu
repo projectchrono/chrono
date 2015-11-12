@@ -1734,9 +1734,9 @@ void UpdateFluid(thrust::device_vector<Real3>& posRadD,
                  thrust::device_vector<Real3>& vel_XSPH_D,
                  thrust::device_vector<Real4>& rhoPresMuD,
                  thrust::device_vector<Real4>& derivVelRhoD,
-                 const thrust::host_vector<int3>& referenceArray,
+                 const thrust::host_vector<int4>& referenceArray,
                  Real dT) {
-  int3 referencePortion = referenceArray[0];
+  int4 referencePortion = referenceArray[0];
   if (referencePortion.z != -1) {
     printf("error in UpdateFluid, accessing non fluid\n");
     return;
@@ -1759,9 +1759,9 @@ void UpdateFluid_init_LF(thrust::device_vector<Real3>& posRadD,
                          thrust::device_vector<Real4>& velMasD_half,
                          thrust::device_vector<Real4>& rhoPresMuD_half,
                          const thrust::device_vector<Real4>& derivVelRhoD,
-                         const thrust::host_vector<int3>& referenceArray,
+                         const thrust::host_vector<int4>& referenceArray,
                          Real dT) {
-  int3 referencePortion = referenceArray[0];
+  int4 referencePortion = referenceArray[0];
   if (referencePortion.z != -1) {
     printf("error in UpdateFluid, accessing non fluid\n");
     return;
@@ -1785,9 +1785,9 @@ void UpdateFluid_rho_vel_LF(thrust::device_vector<Real4>& velMasD,
                             const thrust::device_vector<Real4>& velMasD_old,
                             const thrust::device_vector<Real4>& rhoPresMuD_old,
                             const thrust::device_vector<Real4>& derivVelRhoD,
-                            const thrust::host_vector<int3>& referenceArray,
+                            const thrust::host_vector<int4>& referenceArray,
                             Real dT) {
-  int3 referencePortion = referenceArray[0];
+  int4 referencePortion = referenceArray[0];
   if (referencePortion.z != -1) {
     printf("error in UpdateFluid, accessing non fluid\n");
     return;
@@ -1810,9 +1810,9 @@ void UpdateFluid_EveryThing_LF(thrust::device_vector<Real3>& posRadD,
                                thrust::device_vector<Real4>& velMasD_half,
                                thrust::device_vector<Real4>& rhoPresMuD_half,
                                const thrust::device_vector<Real4>& derivVelRhoD,
-                               const thrust::host_vector<int3>& referenceArray,
+                               const thrust::host_vector<int4>& referenceArray,
                                Real dT) {
-  int3 referencePortion = referenceArray[0];
+  int4 referencePortion = referenceArray[0];
   if (referencePortion.z != -1) {
     printf("error in UpdateFluid, accessing non fluid\n");
     return;
@@ -1848,9 +1848,9 @@ void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
                     thrust::device_vector<Real4>& velMasD,
                     thrust::device_vector<Real4>& rhoPresMuD,
                     thrust::device_vector<Real4>& derivVelRhoD,
-                    const thrust::host_vector<int3>& referenceArray,
+                    const thrust::host_vector<int4>& referenceArray,
                     Real dT) {
-  int3 referencePortion = referenceArray[1];
+  int4 referencePortion = referenceArray[1];
   if (referencePortion.z != 0) {
     printf("error in UpdateBoundary, accessing non boundary\n");
     return;

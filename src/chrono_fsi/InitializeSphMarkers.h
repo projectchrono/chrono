@@ -60,6 +60,6 @@ void LoadBCE_fromFile(
  *                       referenceArray[1].y = Total number of markers,
  * @param numAllMarkers Total number of markers (fluid + boundary)
  */
-void SetNumObjects(NumberOfObjects& numObjects, const thrust::host_vector<int3>& referenceArray, int numAllMarkers);
+void SetNumObjects(NumberOfObjects& numObjects, const thrust::host_vector<int4>& referenceArray, int numAllMarkers);
 
 #endif /* INITIALIZESPHMARKERS_H_ */

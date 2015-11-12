@@ -35,7 +35,7 @@
 
 #define mI2 make_int2
 #define mI3 make_int3
-#define mI4 int4
+#define mI4 make_int4
 
 #define mU3 make_uint3
 

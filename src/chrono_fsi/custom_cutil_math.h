@@ -80,6 +80,9 @@ inline __host__ __device__ int2 make_int2(int s) {
 inline __host__ __device__ int2 make_int2(int3 a) {
   return make_int2(a.x, a.y);
 }
+inline __host__ __device__ int2 make_int2(int4 a) {
+  return make_int2(a.x, a.y);
+}
 inline __host__ __device__ int2 make_int2(uint2 a) {
   return make_int2(int(a.x), int(a.y));
 }

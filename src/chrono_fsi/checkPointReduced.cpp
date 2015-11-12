@@ -31,7 +31,7 @@ void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
                              const thrust::host_vector<Real4>& mVelMas,
                              const thrust::host_vector<Real4>& mRhoPresMu,
                              const thrust::host_vector<uint>& bodyIndex,
-                             const thrust::host_vector<int3>& referenceArray,
+                             const thrust::host_vector<int4>& referenceArray,
 
                              SimParams paramsH,
                              NumberOfObjects numObjects,
@@ -95,8 +95,8 @@ void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
   outRefArray << asctime(timeinfo);
   outRefArray << " referenceArray \n #\n";
   for (int i = 0; i < referenceArray.size(); i++) {
-    int3 ref3 = referenceArray[i];
-    outRefArray << ref3.x << "," << ref3.y << "," << ref3.z << endl;
+    int4 ref4 = referenceArray[i];
+    outRefArray << ref4.x << "," << ref4.y << "," << ref4.z << ref4.w << "," << endl;
   }
 
   outRefArray.close();
@@ -183,7 +183,7 @@ void CheckPointMarkers_Read(bool shouldIRead,
                             thrust::host_vector<Real4>& mVelMas,
                             thrust::host_vector<Real4>& mRhoPresMu,
                             thrust::host_vector<uint>& bodyIndex,
-                            thrust::host_vector<int3>& referenceArray,
+                            thrust::host_vector<int4>& referenceArray,
 
                             SimParams& paramsH,
                             NumberOfObjects& numObjects) {
@@ -251,16 +251,12 @@ void CheckPointMarkers_Read(bool shouldIRead,
       break;
     }
     istringstream ss(s);
-    string s1, s2, s3;
+    string s1, s2, s3, s4;
     getline(ss, s1, ',');
     getline(ss, s2, ',');
     getline(ss, s3, ',');
-    //		ss >> ref3.x;
-    //		if (ss.peek() == ',') ss.ignore();
-    //		ss >> ref3.y;
-    //		if (ss.peek() == ',') ss.ignore();
-    //		ss >> ref3.z;
-    referenceArray.push_back(mI3(atoi(s1.c_str()), atoi(s2.c_str()), atoi(s3.c_str())));
+    getline(ss, s4, ',');
+    referenceArray.push_back(mI4(atoi(s1.c_str()), atoi(s2.c_str()), atoi(s3.c_str()), atoi(s4.c_str())));
   }
   inRefArray.close();
 

@@ -189,7 +189,7 @@ void ClearArraysH(thrust::host_vector<Real3>& posRadH,  // do not set the size h
                   thrust::host_vector<Real4>& velMasH,
                   thrust::host_vector<Real4>& rhoPresMuH,
                   thrust::host_vector<uint>& bodyIndex,
-                  thrust::host_vector< ::int3>& referenceArray) {
+                  thrust::host_vector< ::int4>& referenceArray) {
   ClearArraysH(posRadH, velMasH, rhoPresMuH);
   bodyIndex.clear();
   referenceArray.clear();
@@ -438,7 +438,7 @@ void AddBCE2FluidSystem_FromFile(
     thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector< ::int3>& referenceArray,
+    thrust::host_vector< ::int4>& referenceArray,
     NumberOfObjects& numObjects,
     Real sphMarkerMass,
     const SimParams& paramsH,
@@ -453,8 +453,8 @@ void AddBCE2FluidSystem_FromFile(
   if (posRadH.size() != numObjects.numAllMarkers) {
     printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n", numObjects.numAllMarkers, posRadH.size());
   }
-  ::int3 refSize3 = referenceArray[referenceArray.size() - 1];
-  Real type = refSize3.z + 1;
+  ::int4 refSize4 = referenceArray[referenceArray.size() - 1];
+  Real type = refSize4.w + 1;
   if (type < 1) {
 	  printf("\n\n\n\n Error! rigid type is not a positive number. The issue is possibly due to absence of boundary particles \n\n\n\n");
   }
@@ -474,7 +474,7 @@ void AddBCE2FluidSystem_FromFile(
     rhoPresMuH.push_back(mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));
   }
   posRadBCE.clear();
-  referenceArray.push_back(mI3(refSize3.y, refSize3.y + numBce, refSize3.z + 1));
+  referenceArray.push_back(mI4(refSize4.y, refSize4.y + numBce, 1, refSize4.w + 1)); // 1: for rigid
   numObjects.numAllMarkers += numBce;
   numObjects.numRigid_SphMarkers += numBce;
   if (referenceArray.size() < 3) {

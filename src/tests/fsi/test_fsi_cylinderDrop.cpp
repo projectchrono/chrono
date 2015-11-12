@@ -267,7 +267,7 @@ void AddBoxBceToChSystemAndSPH(
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector<uint>& bodyIndex,
-    thrust::host_vector< ::int3>& referenceArray,
+    thrust::host_vector< ::int4>& referenceArray,
     NumberOfObjects& numObjects,
     const SimParams& paramsH,
     Real sphMarkerMass) {
@@ -298,9 +298,9 @@ void AddBoxBceToChSystemAndSPH(
             bodyIndex.push_back(i + numSaved);
         }
 
-        ::int3 ref3 = referenceArray[1];
-        ref3.y = ref3.y + numBCE;
-        referenceArray[1] = ref3;
+        ::int4 ref4 = referenceArray[1];
+        ref4.y = ref4.y + numBCE;
+        referenceArray[1] = ref4;
 
         int numAllMarkers = numBCE + numSaved;
         SetNumObjects(numObjects, referenceArray, numAllMarkers);
@@ -322,7 +322,7 @@ void AddCylinderBceToChSystemAndSPH(
     thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector< ::int3>& referenceArray,
+    thrust::host_vector< ::int4>& referenceArray,
     std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
     NumberOfObjects& numObjects,
     Real sphMarkerMass,
@@ -330,8 +330,8 @@ void AddCylinderBceToChSystemAndSPH(
     //
     int numMarkers = posRadH.size();
     int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
-    ::int3 refSize3 = referenceArray[referenceArray.size() - 1];
-    Real type = refSize3.z + 1;
+    ::int4 refSize4 = referenceArray[referenceArray.size() - 1];
+    int type = refSize4.w + 1;
     if (type < 1) {
   	  printf("\n\n\n\n Error! rigid type is not a positive number. The issue is possibly due to absence of boundary particles \n\n\n\n");
     }
@@ -358,7 +358,7 @@ void AddCylinderBceToChSystemAndSPH(
     int numBce = CreateOne3DRigidCylinder(
         posRadH, velMasH, rhoPresMuH, body.get_ptr(), radius, height, body->GetMass(), sphMarkerMass, type, paramsH);
 
-    referenceArray.push_back(mI3(numMarkers, numMarkers + numBce, type));
+    referenceArray.push_back(mI4(numMarkers, numMarkers + numBce, 1, type)); // 1: for rigid
     numObjects.numRigidBodies += 1;
     numObjects.startRigidMarkers = numMarkers;  // Arman : not sure if you need to set startFlexMarkers
     numObjects.numRigid_SphMarkers += numBce;
@@ -375,7 +375,7 @@ void CreateMbdPhysicalSystemObjects(
     thrust::host_vector<Real4>& rhoPresMuH,
     thrust::host_vector<uint>& bodyIndex,
     std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
-    thrust::host_vector< ::int3>& referenceArray,
+    thrust::host_vector< ::int4>& referenceArray,
     NumberOfObjects& numObjects,
     const SimParams& paramsH,
     Real sphMarkerMass) {
@@ -820,7 +820,7 @@ int main(int argc, char* argv[]) {
     simParams << " Job was submitted at date/time: " << asctime(timeinfo) << endl;
     printSimulationParameters();
     // ***************************** Create Fluid ********************************************
-    thrust::host_vector< ::int3> referenceArray;
+    thrust::host_vector< ::int4> referenceArray;
     thrust::host_vector<Real3> posRadH;  // do not set the size here since you are using push back later
     thrust::host_vector<Real4> velMasH;
     thrust::host_vector<Real4> rhoPresMuH;
@@ -859,9 +859,9 @@ int main(int argc, char* argv[]) {
         ::int2 num_fluidOrBoundaryMarkers =
             CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
         printf("num_fluidOrBoundaryMarkers %d %d \n", num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
-        referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1));  // map fluid -1
+        referenceArray.push_back(mI4(0, num_fluidOrBoundaryMarkers.x, -1, -1));  // map fluid -1
         numAllMarkers += num_fluidOrBoundaryMarkers.x;
-        referenceArray.push_back(mI3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0));
+        referenceArray.push_back(mI4(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0, 0));
         numAllMarkers += num_fluidOrBoundaryMarkers.y;
 
         //*** set num objects

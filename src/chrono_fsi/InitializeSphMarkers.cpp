@@ -192,7 +192,7 @@ void LoadBCE_fromFile(
 
 //**********************************************
 
-void SetNumObjects(NumberOfObjects& numObjects, const thrust::host_vector<int3>& referenceArray, int numAllMarkers) {
+void SetNumObjects(NumberOfObjects& numObjects, const thrust::host_vector<int4>& referenceArray, int numAllMarkers) {
   numObjects.numFluidMarkers = (referenceArray[0]).y - (referenceArray[0]).x;
   numObjects.numBoundaryMarkers = (referenceArray[1]).y - (referenceArray[1]).x;
   numObjects.numAllMarkers = numAllMarkers;

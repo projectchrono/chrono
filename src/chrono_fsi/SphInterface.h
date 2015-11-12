@@ -66,7 +66,7 @@ void ClearArraysH(thrust::host_vector<Real3>& posRadH,  // do not set the size h
                   thrust::host_vector<Real4>& velMasH,
                   thrust::host_vector<Real4>& rhoPresMuH,
                   thrust::host_vector<uint>& bodyIndex,
-                  thrust::host_vector<int3>& referenceArray);
+                  thrust::host_vector<int4>& referenceArray);
 
 void CopyD2H(thrust::host_vector<Real4>& derivVelRhoChronoH, const thrust::device_vector<Real4>& derivVelRhoD);
 
@@ -140,7 +140,7 @@ void AddBCE2FluidSystem_FromFile(
     thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
     thrust::host_vector<Real4>& velMasH,
     thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector< ::int3>& referenceArray,
+    thrust::host_vector< ::int4>& referenceArray,
     NumberOfObjects& numObjects,
     Real sphMarkerMass,
     const SimParams& paramsH,
