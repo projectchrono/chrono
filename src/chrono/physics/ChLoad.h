@@ -493,7 +493,6 @@ public:
             this->ComputeQ(state_x, state_w);   // Q1 = Q(x+Dx, v)
             Q1 = this->load_Q;
             (*state_x)(i)-= Delta; //***TODO*** use NodeIntStateIncrement
-            
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because K=-dQ/dx
             this->jacobians->K.PasteMatrix(&Jcolumn,0,i);
         }
@@ -523,7 +522,7 @@ public:
             }
             //ndoftot += loadables[i]->LoadableGet_ndof_w();
         }
-        GetLog() << " debug: R=" << R << "\n";
+        // GetLog() << " debug: R=" << R << "\n";
     };
 
         /// Return true if stiff load. 

@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Global function for accessing the Chrono::Vehicle model data.
+// Global functions for accessing the Chrono::Vehicle model data.
 //
 // =============================================================================
 
@@ -22,10 +22,23 @@
 namespace chrono {
 namespace vehicle {
 
-// Obtain the complete path to the specified filename, given relative to the
-// ChronoVehicle model data directory (thread safe)
+static std::string chrono_vehicle_data_path("../data/vehicle/");
+
+// Set the path to the Chrono::Vehicle data directory (ATTENTION: not thread safe).
+void SetDataPath(const std::string& path) {
+    chrono_vehicle_data_path = path;
+}
+
+// Obtain the current path to the Chrono::Vehicle data directory (thread safe).
+const std::string& GetDataPath() {
+    return chrono_vehicle_data_path;
+}
+
+// Get the complete path to the specified filename (thread safe).
+// The filename is assumed to be given relative to the Chrono::Vehicle model
+// data directory.
 std::string GetDataFile(const std::string& filename) {
-    return GetChronoDataPath() + "vehicle/" + filename;
+    return chrono_vehicle_data_path + filename;
 }
 
 }  // end namespace vehicle

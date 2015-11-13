@@ -3918,7 +3918,7 @@ bool  fm_pointInsidePolygon2d(NxU32 pcount,const REAL *points,NxU32 pstride,cons
     REAL x2 = p2[xindex];
     REAL y2 = p2[yindex];
 
-    if ( y1 < y && y2 >= y ||  y2 < y && y1 >= y )
+    if ( (y1 < y && y2 >= y) ||  (y2 < y && y1 >= y) )
     {
       if (x1+(y-y1)/(y2-y1)*(x2-x1)<x)
       {

@@ -108,6 +108,9 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
     void Advance(double step);
 
   protected:
+    /// Render additional graphics
+    virtual void renderOtherGraphics() {}
+
     /// Render additional vehicle information.
     virtual void renderOtherStats(int left, int top) {}
 
