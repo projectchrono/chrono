@@ -258,6 +258,9 @@ void ChVehicleIrrApp::DrawAll() {
         renderLinks();
     if (m_renderStats)
         renderStats();
+
+    // Allow derived classes to render additional graphical elements
+    renderOtherGraphics();
 }
 
 // Render springs in the vehicle model.
@@ -392,10 +395,6 @@ void ChVehicleIrrApp::renderStats() {
         renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 150, 120, 15);
     }
 
-    // Display information from concrete vehicle type (e.g. driveline)
-
-    renderOtherStats(m_HUD_x, m_HUD_y + 180);
-
     // Display information from driver system.
 
     renderTextBox(m_driver_msg, m_HUD_x + 140, m_HUD_y, 120, 15);
@@ -413,6 +412,10 @@ void ChVehicleIrrApp::renderStats() {
 
     sprintf(msg, "Time %.2f", m_vehicle->GetChTime());
     renderTextBox(msg, m_HUD_x + 140, m_HUD_y + 100, 120, 15, irr::video::SColor(255, 250, 200, 00));
+
+    // Allow derived classes to display additional information (e.g. driveline)
+
+    renderOtherStats(m_HUD_x, m_HUD_y + 180);
 }
 
 }  // end namespace vehicle

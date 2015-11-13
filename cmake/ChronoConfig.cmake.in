@@ -26,7 +26,9 @@
 # CHRONO_DLLS
 #       list of all DLL dependencies (with full path)
 # CHRONO_DATA_DIR
-#       path to the Chrono data make_directory
+#       path to the Chrono data directory
+# CHRONO_VEHICLE_DATA_DIR
+#       path to the Chrono::Vehicle data directory
 # 
 # In addition, for each requested component [COMPONENT], the following variable
 # is set to true (ON) or false (OFF):
@@ -61,6 +63,7 @@ list(APPEND CHRONO_DLLS "")
 list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
 
 set(CHRONO_DATA_DIR "@CH_DATA_DIR@")
+set(CHRONO_VEHICLE_DATA_DIR "@CH_DATA_DIR@vehicle/")
 
 #-------------------------------------------------------------------------------
 # Local variables specifying which Chrono modules are enabled
@@ -229,15 +232,16 @@ endif()
 # Report the exported variables
 #-------------------------------------------------------------------------------
 
-message(STATUS "   CHRONO_CXX_FLAGS    (Compiler flags): ${CHRONO_CXX_FLAGS}")
-message(STATUS "   CHRONO_C_FLAGS      (Compiler flags): ${CHRONO_C_FLAGS}")
-message(STATUS "   CHRONO_LINKER_FLAGS (Linker flags): ${CHRONO_LINKER_FLAGS}")
-message(STATUS "   CHRONO_INCLUDE_DIRS (Chrono include directories): ${CHRONO_INCLUDE_DIRS}")
-message(STATUS "   CHRONO_LIB_NAMES    (Chrono library names): ${CHRONO_LIB_NAMES}")
-message(STATUS "   CHRONO_LIBRARIES    (Chrono libraries): ${CHRONO_LIBRARIES}")
-message(STATUS "   CHRONO_DLL_NAMES    (Chrono DLL names): ${CHRONO_DLL_NAMES}")
-message(STATUS "   CHRONO_DLLS         (Chrono DLLs): ${CHRONO_DLLS}")
-message(STATUS "   CHRONO_DATA_DIR     (Path to Chrono data folder): ${CHRONO_DATA_DIR}")
+message(STATUS "   CHRONO_CXX_FLAGS         (Compiler flags): ${CHRONO_CXX_FLAGS}")
+message(STATUS "   CHRONO_C_FLAGS           (Compiler flags): ${CHRONO_C_FLAGS}")
+message(STATUS "   CHRONO_LINKER_FLAGS      (Linker flags): ${CHRONO_LINKER_FLAGS}")
+message(STATUS "   CHRONO_INCLUDE_DIRS      (Chrono include directories): ${CHRONO_INCLUDE_DIRS}")
+message(STATUS "   CHRONO_LIB_NAMES         (Chrono library names): ${CHRONO_LIB_NAMES}")
+message(STATUS "   CHRONO_LIBRARIES         (Chrono libraries): ${CHRONO_LIBRARIES}")
+message(STATUS "   CHRONO_DLL_NAMES         (Chrono DLL names): ${CHRONO_DLL_NAMES}")
+message(STATUS "   CHRONO_DLLS              (Chrono DLLs): ${CHRONO_DLLS}")
+message(STATUS "   CHRONO_DATA_DIR          (Path to Chrono data folder): ${CHRONO_DATA_DIR}")
+message(STATUS "   CHRONO_VEHICLE_DATA_DIR  (Path to Chrono::Vehicle data folder): ${CHRONO_VEHICLE_DATA_DIR}")
 
 #===============================================================================
 # Provide a CMake function which adds a custom command (COPY_DLLS), invoked

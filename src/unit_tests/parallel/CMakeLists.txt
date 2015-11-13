@@ -18,8 +18,6 @@ SET(TESTS
     test_gravity
     test_rhs
     test_r
-    test_apgd
-    test_shur_performance
     test_shafts
 )
 
