@@ -61,6 +61,7 @@ SDKCollisionSystem.cu
 SphInterface.cpp 
 VehicleExtraProperties.cpp
 FSI_Integrate.cpp
+CreateBCE.cpp
 )
 
 SET(ChronoEngine_FSI_HEADERS
@@ -76,6 +77,7 @@ SPHCudaUtils.h
 SphInterface.h
 VehicleExtraProperties.h
 FSI_Integrate.h
+CreateBCE.h
 )
 
 SOURCE_GROUP("" FILES 

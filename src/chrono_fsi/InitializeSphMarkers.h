@@ -28,27 +28,59 @@ int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
                         const SimParams& paramsH,
                         Real& sphMarkerMass);
 
-void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE,
-                      thrust::host_vector<Real4>& velMasBCE,
-                      thrust::host_vector<Real4>& rhoPresMuBCE,
-                      const SimParams& paramsH,
-                      const Real& sphMarkerMass,
-                      const chrono::ChVector<>& size,
-                      const chrono::ChVector<>& pos = chrono::ChVector<>(0, 0, 0),
-                      const chrono::ChQuaternion<>& rot = chrono::ChQuaternion<>(1, 0, 0, 0),
-                      int face = 12);
+void AddBoxBceToChSystemAndSPH(
+    chrono::ChBody* body,
+    const chrono::ChVector<>& size,
+    const chrono::ChVector<>& pos,
+    const chrono::ChQuaternion<>& rot,
+    bool visualization,
 
-void LoadBCE_fromFile(
-    thrust::host_vector<Real3>& posRadBCE,  // do not set the size here since you are using push back later
-    std::string fileName);
-//void LoadBCE_fromFile(
-//    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
-//    thrust::host_vector<Real4>& velMasH,
-//    thrust::host_vector<Real4>& rhoPresMuH,
-//    thrust::host_vector< ::int3>& referenceArray,
-//    NumberOfObjects& numObjects,
-//    Real sphMarkerMass,
-//    std::string fileName);
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector<uint>& bodyIndex,
+    thrust::host_vector< ::int4>& referenceArray,
+    NumberOfObjects& numObjects,
+    const SimParams& paramsH,
+    Real sphMarkerMass);
+
+void AddSphereBceToChSystemAndSPH(chrono::ChSystemParallelDVI& mphysicalSystem,
+		Real radius, const chrono::ChVector<>& pos,
+		const chrono::ChQuaternion<>& rot,
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH);
+
+void AddCylinderBceToChSystemAndSPH(
+		chrono::ChSystemParallelDVI& mphysicalSystem,
+    Real radius,
+    Real height,
+    const chrono::ChVector<>& pos,
+    const chrono::ChQuaternion<>& rot,
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector< ::int4>& referenceArray,
+    std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+    NumberOfObjects& numObjects,
+    Real sphMarkerMass,
+    const SimParams& paramsH);
+
+void AddBCE2FluidSystem_FromFile(
+    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
+    thrust::host_vector<Real4>& velMasH,
+    thrust::host_vector<Real4>& rhoPresMuH,
+    thrust::host_vector< ::int4>& referenceArray,
+    NumberOfObjects& numObjects,
+    Real sphMarkerMass,
+    const SimParams& paramsH,
+    chrono::ChSharedPtr<chrono::ChBody> body,
+    std::string dataPath);
+
 
 /**
  * @brief Set the number of objects (rigid and flexible)

@@ -214,158 +214,6 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
 }
 
 // =============================================================================
-Real CreateOne3DRigidCylinder(thrust::host_vector<Real3>& posRadH,
-                              thrust::host_vector<Real4>& velMasH,
-                              thrust::host_vector<Real4>& rhoPresMuH,
-                              ChBody* body,
-                              Real cyl_rad,
-                              Real cyl_h,
-                              Real rigidMass,
-                              Real sphMarkerMass,
-                              int type,
-                              const SimParams& paramsH) {
-    // Arman : take care of velocity and w stuff for BCE
-    int num_BCEMarkers = 0;
-    Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
-    for (Real s = -0.5 * cyl_h; s <= 0.5 * cyl_h; s += spacing) {
-        Real3 centerPointLF = mR3(0, s, 0);
-        posRadH.push_back(R3_LocalToGlobal(centerPointLF, body->GetPos(), body->GetRot()));
-        //        ChVector<> vel = body->PointSpeedLocalToParent(centerPointLF);
-
-        velMasH.push_back(mR4(0, 0, 0, sphMarkerMass));
-        rhoPresMuH.push_back(mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));  // take care of type			 ///
-                                                                                       // type needs to be unique, to
-                                                                                       // differentiate flex from other
-                                                                                       // flex as well as other rigids
-        num_BCEMarkers++;
-        for (Real r = spacing; r < cyl_rad - paramsH.solidSurfaceAdjust; r += spacing) {
-            Real deltaTeta = spacing / r;
-            for (Real teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta; teta += deltaTeta) {
-                Real3 BCE_Pos_local = mR3(r * cos(teta), 0, r * sin(teta)) + centerPointLF;
-                //                Real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local) + centerPoint;
-
-                posRadH.push_back(R3_LocalToGlobal(BCE_Pos_local, body->GetPos(), body->GetRot()));
-                velMasH.push_back(mR4(0, 0, 0, sphMarkerMass));
-                rhoPresMuH.push_back(mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));  // take care of type
-                num_BCEMarkers++;
-            }
-        }
-    }
-
-    return num_BCEMarkers;
-}
-
-// =============================================================================
-void AddBoxBceToChSystemAndSPH(
-    ChBody* body,
-    const ChVector<>& size,
-    const ChVector<>& pos,
-    const ChQuaternion<>& rot,
-    bool visualization,
-
-    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
-    thrust::host_vector<Real4>& velMasH,
-    thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector<uint>& bodyIndex,
-    thrust::host_vector< ::int4>& referenceArray,
-    NumberOfObjects& numObjects,
-    const SimParams& paramsH,
-    Real sphMarkerMass) {
-    utils::AddBoxGeometry(body, size, pos, rot, visualization);
-
-    if (!initializeFluidFromFile) {
-#if haveFluid
-        //        assert(referenceArray.size() > 1 &&
-        //               "error: fluid need to be initialized before boundary. Reference array should have two
-        //               components");
-        if (referenceArray.size() <= 1) {
-            printf(
-                "\n\n\n\n Error! fluid need to be initialized before boundary. Reference array should have two "
-                "components \n\n\n\n");
-        }
-
-        thrust::host_vector<Real3> posRadBCE;
-        thrust::host_vector<Real4> velMasBCE;
-        thrust::host_vector<Real4> rhoPresMuBCE;
-
-        CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE, paramsH, sphMarkerMass, size, pos, rot, 12);
-        int numBCE = posRadBCE.size();
-        int numSaved = posRadH.size();
-        for (int i = 0; i < numBCE; i++) {
-            posRadH.push_back(posRadBCE[i]);
-            velMasH.push_back(velMasBCE[i]);
-            rhoPresMuH.push_back(rhoPresMuBCE[i]);
-            bodyIndex.push_back(i + numSaved);
-        }
-
-        ::int4 ref4 = referenceArray[1];
-        ref4.y = ref4.y + numBCE;
-        referenceArray[1] = ref4;
-
-        int numAllMarkers = numBCE + numSaved;
-        SetNumObjects(numObjects, referenceArray, numAllMarkers);
-
-        posRadBCE.clear();
-        velMasBCE.clear();
-        rhoPresMuBCE.clear();
-#endif
-    }
-}
-
-// =============================================================================
-void AddCylinderBceToChSystemAndSPH(
-    ChSystemParallelDVI& mphysicalSystem,
-    Real radius,
-    Real height,
-    const ChVector<>& pos,
-    const ChQuaternion<>& rot,
-    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
-    thrust::host_vector<Real4>& velMasH,
-    thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector< ::int4>& referenceArray,
-    std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
-    NumberOfObjects& numObjects,
-    Real sphMarkerMass,
-    const SimParams& paramsH) {
-    //
-    int numMarkers = posRadH.size();
-    int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
-    ::int4 refSize4 = referenceArray[referenceArray.size() - 1];
-    int type = refSize4.w + 1;
-    if (type < 1) {
-  	  printf("\n\n\n\n Error! rigid type is not a positive number. The issue is possibly due to absence of boundary particles \n\n\n\n");
-    }
-    ChSharedPtr<ChBody> body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
-    // body->SetIdentifier(-1);
-    body->SetBodyFixed(false);
-    body->SetCollide(true);
-    body->GetMaterialSurface()->SetFriction(mu_g);
-    body->SetPos(pos);
-    body->SetRot(rot);
-    //    body->SetWvel_par(ChVector<>(0, 10, 0));
-    double volume = utils::CalcCylinderVolume(radius, 0.5 * height);
-    ChVector<> gyration = utils::CalcCylinderGyration(radius, 0.5 * height).Get_Diag();
-    double density = paramsH.rho0;
-    double mass = density * volume;
-    body->SetMass(mass);
-    body->SetInertiaXX(mass * gyration);
-    //
-    body->GetCollisionModel()->ClearModel();
-    utils::AddCylinderGeometry(body.get_ptr(), radius, 0.5 * height);
-    body->GetCollisionModel()->BuildModel();
-    mphysicalSystem.AddBody(body);
-    //
-    int numBce = CreateOne3DRigidCylinder(
-        posRadH, velMasH, rhoPresMuH, body.get_ptr(), radius, height, body->GetMass(), sphMarkerMass, type, paramsH);
-
-    referenceArray.push_back(mI4(numMarkers, numMarkers + numBce, 1, type)); // 1: for rigid
-    numObjects.numRigidBodies += 1;
-    numObjects.startRigidMarkers = numMarkers;  // Arman : not sure if you need to set startFlexMarkers
-    numObjects.numRigid_SphMarkers += numBce;
-    numObjects.numAllMarkers = posRadH.size();
-    FSI_Bodies.push_back(body);
-}
-// =============================================================================
 
 // Arman you still need local position of bce markers
 void CreateMbdPhysicalSystemObjects(
@@ -405,6 +253,8 @@ void CreateMbdPhysicalSystemObjects(
     double zI = -inclinedWidth * sin(phi) - hthick * cos(phi);
     double x2I = midSecDim - inclinedWidth * cos(phi) + hthick * sin(phi) + smallBuffer;
 
+    if (!initializeFluidFromFile) {
+#if haveFluid
     // beginning third
     AddBoxBceToChSystemAndSPH(ground.get_ptr(),
                               ChVector<>(hdimSide, hdimY, hthick),
@@ -477,7 +327,8 @@ void CreateMbdPhysicalSystemObjects(
                               numObjects,
                               paramsH,
                               sphMarkerMass);
-
+#endif
+    }
     // a flat surface altogether
     //  utils::AddBoxGeometry(
     //      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),
@@ -757,14 +608,6 @@ void OutputVehicleData(ChSystemParallelDVI& mphysicalSystem, int tStep) {
                    << ", " <<
 
         std::endl;
-}
-// =============================================================================
-void FreezeSPH(thrust::device_vector<Real4>& velMasD, thrust::host_vector<Real4>& velMasH) {
-    for (int i = 0; i < velMasH.size(); i++) {
-        Real4 vM = velMasH[i];
-        velMasH[i] = mR4(0, 0, 0, vM.w);
-        velMasD[i] = mR4(0, 0, 0, vM.w);
-    }
 }
 // =============================================================================
 void printSimulationParameters() {
