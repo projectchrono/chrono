@@ -820,43 +820,68 @@ void ChSystem::SetIntegrationType(eCh_integrationType m_integration) {
     }
 }
 
-void ChSystem::WakeUpSleepingBodies() {
-    // Make this class for iterating through contacts (if supported by
-    // contact container)
 
-    class _wakeup_reporter_class : public ChReportContactCallback {
+
+bool ChSystem::ManageSleepingBodies() {
+
+    if (!this->GetUseSleeping())
+        return 0;
+
+    // STEP 1: 
+    // See if some body could change from no sleep-> sleep
+
+    #pragma omp parallel for
+    for (int ip = 0; ip < bodylist.size(); ++ip)  {
+        // mark as 'could sleep' candidate
+        bodylist[ip]->TrySleeping();
+    }
+
+    // STEP 2:
+    // See if some sleeping or potential sleeping body is touching a non sleeping one, 
+    // if so, set to no sleep.
+
+    // Make this class for iterating through contacts 
+
+    class _wakeup_reporter_class : public ChReportContactCallback2 {
       public:
         /// Callback, used to report contact points already added to the container.
         /// This must be implemented by a child class of ChReportContactCallback.
         /// If returns false, the contact scanning will be stopped.
-        virtual bool ReportContactCallback(
+        virtual bool ReportContactCallback2(
             const ChVector<>& pA,             ///< get contact pA
             const ChVector<>& pB,             ///< get contact pB
             const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
             const double& distance,           ///< get contact distance
-            const float& mfriction,           ///< get friction info
             const ChVector<>& react_forces,   ///< get react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector<>& react_torques,  ///< get react.torques, if rolling friction (if already computed)
-            collision::ChCollisionModel*
-                modA,  ///< get model A (note: some containers may not support it and could be zero!)
-            collision::ChCollisionModel*
-                modB  ///< get model B (note: some containers may not support it and could be zero!)
+            const ChVector<>& react_torques,  ///< get react.torques, if rolling friction (if already computed).
+            ChContactable* contactobjA,  ///< get model A (note: some containers may not support it and could be zero!)
+            ChContactable* contactobjB   ///< get model B (note: some containers may not support it and could be zero!)
             ) {
-            if (!(modA && modB))
+            if (!(contactobjA && contactobjB))
                 return true;
-            ChBody* b1 = dynamic_cast<ChBody*>(modA->GetContactable());
-            ChBody* b2 = dynamic_cast<ChBody*>(modB->GetContactable());
+            ChBody* b1 = dynamic_cast<ChBody*>(contactobjA);
+            ChBody* b2 = dynamic_cast<ChBody*>(contactobjB);
             if (!(b1 && b2))
                 return true;
             bool sleep1 = b1->GetSleeping();
             bool sleep2 = b2->GetSleeping();
+            bool could_sleep1 = b1->BFlagGet(BF_COULDSLEEP);
+            bool could_sleep2 = b2->BFlagGet(BF_COULDSLEEP);
             bool ground1 = b1->GetBodyFixed();
             bool ground2 = b2->GetBodyFixed();
-            if (sleep1 && !sleep2 && !ground2) {
+            if (sleep1 && !(sleep2||could_sleep2) && !ground2) {
                 b1->SetSleeping(false);
+                need_Setup_A = true;
             }
-            if (sleep2 && !sleep1 && !ground1) {
+            if (sleep2 && !(sleep1||could_sleep1) && !ground1) {
                 b2->SetSleeping(false);
+                need_Setup_A = true;
+            }
+            if (could_sleep1 && !(sleep2||could_sleep2) && !ground2) {
+                b1->BFlagSet(BF_COULDSLEEP,false);
+            }
+            if (could_sleep2 && !(sleep1||could_sleep1) && !ground1) {
+                b2->BFlagSet(BF_COULDSLEEP,false);
             }
             this->someone_sleeps = sleep1 | sleep2 | this->someone_sleeps;
 
@@ -865,34 +890,76 @@ void ChSystem::WakeUpSleepingBodies() {
 
         // Data
         bool someone_sleeps;
+        bool need_Setup_A;
     };
 
     _wakeup_reporter_class my_waker;
+    my_waker.need_Setup_A=false;
 
-    if (this->GetUseSleeping()) {
-        for (int i = 0; i < 1; i++)  //***TO DO*** reconfigurable number of wakeup cycles
+    bool need_Setup_L = false;
+
+    for (int i = 0; i < 1; i++)  //***TO DO*** reconfigurable number of wakeup cycles
+    {
+        my_waker.someone_sleeps = false;
+
+        // scan all links and wake connected bodies
+        for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
         {
-            my_waker.someone_sleeps = false;
+            ChSharedPtr<ChLink> Lpointer = linklist[ip];
 
-            // scan all links and wake connected bodies
-            for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-            {
-                ChSharedPtr<ChLink> Lpointer = linklist[ip];
-
-                if (Lpointer->IsRequiringWaking()) {
-                    ((ChBody*)Lpointer->GetBody1())->SetSleeping(false);
-                    ((ChBody*)Lpointer->GetBody2())->SetSleeping(false);
+            if (Lpointer->IsRequiringWaking()) {
+                ChBody* b1 = dynamic_cast<ChBody*>(Lpointer->GetBody1());
+                ChBody* b2 = dynamic_cast<ChBody*>(Lpointer->GetBody2());
+                if (b1&&b2) {
+                    bool sleep1 = b1->GetSleeping();
+                    bool sleep2 = b2->GetSleeping();
+                    bool could_sleep1 = b1->BFlagGet(BF_COULDSLEEP);
+                    bool could_sleep2 = b2->BFlagGet(BF_COULDSLEEP);
+                    if (sleep1 && !(sleep2||could_sleep2)) {
+                        b1->SetSleeping(false);
+                        need_Setup_L = true;
+                    }
+                    if (sleep2 && !(sleep1||could_sleep1)) {
+                        b2->SetSleeping(false);
+                        need_Setup_L = true;
+                    }
+                    if (could_sleep1 && !(sleep2||could_sleep2)) {
+                        b1->BFlagSet(BF_COULDSLEEP,false);
+                    }
+                    if (could_sleep2 && !(sleep1||could_sleep1)) {
+                        b2->BFlagSet(BF_COULDSLEEP,false);
+                    }
                 }
             }
+        }
 
-            // scan all contacts and wake neighbouring bodies
-            this->contact_container->ReportAllContacts(&my_waker);
+        // scan all contacts and wake neighbouring bodies
+        this->contact_container->ReportAllContacts2(&my_waker);
 
-            // bailout wakeup cycle prematurely, if all bodies are not sleeping
-            if (!my_waker.someone_sleeps)
-                break;
+        // bailout wakeup cycle prematurely, if all bodies are not sleeping
+        if (!my_waker.someone_sleeps)
+            break;
+    }
+
+    /// If some body still must change from no sleep-> sleep, do it
+    int need_Setup_B = 0;
+    #pragma omp parallel for
+    for (int ip = 0; ip < bodylist.size(); ++ip)  {
+        if (bodylist[ip]->BFlagGet(BF_COULDSLEEP)) {
+            bodylist[ip]->SetSleeping(true);
+            #pragma omp atomic
+            ++need_Setup_B;
         }
     }
+
+    // if some body has been activated/deactivated because of sleep state changes, 
+    // the offsets and DOF counts must be updated:
+    if (my_waker.need_Setup_A || need_Setup_B || need_Setup_L) {
+        this->Setup();
+        GetLog() << "need re-setup\n";
+        return true;
+    }
+    return false;
 }
 
 
@@ -1898,13 +1965,13 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
     // Counts dofs, statistics, etc.
     Setup();
 
-    // Update everything - and put to sleep bodies that need it.
+    // Update everything.
     // Note that we do not update visualization assets at this point.
     Update(false);
 
     // Re-wake the bodies that cannot sleep because they are in contact with
     // some body that is not in sleep state.
-    WakeUpSleepingBodies();
+    ManageSleepingBodies();
 
     timer_lcp.start();
 
@@ -2026,13 +2093,13 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
     // Counts dofs, statistics, etc.
     Setup();
 
-    // Update everything - and put to sleep bodies that need it.
+    // Update everything.
     // Note that we do not update visualization assets at this point.
     Update(false);
 
     // Re-wake the bodies that cannot sleep because they are in contact with
     // some body that is not in sleep state.
-    WakeUpSleepingBodies();
+    ManageSleepingBodies();
 
     timer_lcp.reset();
     timer_lcp.start();
@@ -2213,7 +2280,7 @@ int ChSystem::Integrate_Y_timestepper() {
 
     // Re-wake the bodies that cannot sleep because they are in contact with
     // some body that is not in sleep state.
-    WakeUpSleepingBodies();
+    ManageSleepingBodies();
 
     // Prepare lists of variables and constraints. 
     LCPprepare_inject(*this->LCP_descriptor);

@@ -756,10 +756,12 @@ public:
     bool GetUseSleeping() { return use_sleeping; }
 
   private:
-    /// If some body has been tentatively and automatically put into sleeping mode,
-    /// but it is touching some objects that are still moving, this function
-    /// will wake up those sleeping bodies. Used internally.
-    void WakeUpSleepingBodies();
+
+    /// Put bodies to sleep if possible. Also awakens sleeping bodies, if needed.
+    /// Returns true if some body changed from sleep to no sleep or viceversa, 
+    /// returns false if nothing changed. In the former case, also performs Setup() 
+    /// because the sleeping policy changed the totalDOFs and offsets.
+    bool ManageSleepingBodies();
 
     //
     // ANALYSIS FUNCTIONS

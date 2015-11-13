@@ -531,15 +531,20 @@ void ChBody::ComputeGyro() {
 }
 
 bool ChBody::TrySleeping() {
-    if (this->GetUseSleeping()) {
-        if (this->GetSleeping())
-            return true;
 
+    BFlagSet(BF_COULDSLEEP, false);
+
+    if (this->GetUseSleeping()) {
+
+        if (!this->IsActive())
+            return false;
+
+        // if not yet sleeping:
         if ((this->coord_dt.pos.LengthInf() < this->sleep_minspeed) &&
             (2.0 * this->coord_dt.rot.LengthInf() < this->sleep_minwvel)) {
             if ((this->GetChTime() - this->sleep_starttime) > this->sleep_time) {
-                SetSleeping(true);
-                return true;
+                BFlagSet(BF_COULDSLEEP, true); // mark as sleep candidate
+                return true; // could go to sleep!
             }
         } else {
             this->sleep_starttime = float(this->GetChTime());

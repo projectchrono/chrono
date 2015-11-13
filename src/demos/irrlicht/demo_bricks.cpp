@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
 
-    mphysicalSystem.SetUseSleeping(false);
+    //mphysicalSystem.SetUseSleeping(true);
 
     mphysicalSystem.SetMaxPenetrationRecoverySpeed(1.6);  // used by Anitescu stepper only
     mphysicalSystem.SetIterLCPmaxItersSpeed(40);
