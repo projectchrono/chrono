@@ -56,6 +56,7 @@
 #include "chrono_fsi/SphInterface.h"
 #include "chrono_fsi/InitializeSphMarkers.h"
 #include "chrono_fsi/FSI_Integrate.h"
+#include "chrono_fsi/ChFsiModelData.h"
 
 // FSI Interface Includes
 #include "params_test_fsi_hmmwv_pointCloud.h"  //SetupParamsH()
@@ -599,11 +600,8 @@ int main(int argc, char* argv[]) {
 	timeinfo = localtime(&rawtime);
 
 	//****************************************************************************************
-	// Arman take care of this block.
-	// Set path to ChronoVehicle data files
-	//  vehicle::SetDataPath(CHRONO_VEHICLE_DATA_DIR);
-	//  vehicle::SetDataPath("/home/arman/Repos/GitBeta/chrono/src/demos/data/");
-	//  SetChronoDataPath(CHRONO_DATA_DIR);
+	// Arman take care of this. It does not work
+//	chrono::SetFsiDataPath(CHRONO_FSI_DATA_DIR); // Defined in ChronoConfic.cmake.in
 
 	// --------------------------
 	// Create output directories.

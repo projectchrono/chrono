@@ -62,6 +62,7 @@ SphInterface.cpp
 VehicleExtraProperties.cpp
 FSI_Integrate.cpp
 CreateBCE.cpp
+ChFsiModelData.cpp
 )
 
 SET(ChronoEngine_FSI_HEADERS
@@ -78,6 +79,7 @@ SphInterface.h
 VehicleExtraProperties.h
 FSI_Integrate.h
 CreateBCE.h
+ChFsiModelData.h
 )
 
 SOURCE_GROUP("" FILES 
