@@ -91,6 +91,7 @@ Real CreateOne3DRigidSphere(thrust::host_vector<Real3>& posRadH,
 
 
 //**********************************************
+// note, the function in the current implementation creates boundary bce (zero velocity)
 void CreateBCE_On_Box(
     thrust::host_vector<Real3>& posRadBCE,
     thrust::host_vector<Real4>& velMasBCE,

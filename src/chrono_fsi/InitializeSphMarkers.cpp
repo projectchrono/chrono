@@ -96,6 +96,7 @@ int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
 }
 
 // =============================================================================
+// note, the function in the current implementation creates boundary bce (accesses only referenceArray[1])
 void AddBoxBceToChSystemAndSPH(
 		chrono::ChBody* body,
     const chrono::ChVector<>& size,
