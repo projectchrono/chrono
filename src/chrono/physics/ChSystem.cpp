@@ -956,7 +956,6 @@ bool ChSystem::ManageSleepingBodies() {
     // the offsets and DOF counts must be updated:
     if (my_waker.need_Setup_A || need_Setup_B || need_Setup_L) {
         this->Setup();
-        GetLog() << "need re-setup\n";
         return true;
     }
     return false;
@@ -2919,61 +2918,7 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
 
 
 
-void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file) {
-    m_file << "\n   List of the " << (int)Get_bodylist()->size() << " added rigid bodies: \n";
 
-    std::vector<ChSharedPtr<ChBody> >::iterator ibody = Get_bodylist()->begin();
-    while (ibody != Get_bodylist()->end()) {
-        m_file << "     BODY:       " << (*ibody)->GetName() << "\n";
-
-        std::vector<ChSharedPtr<ChMarker> >::const_iterator imarker = (*ibody)->GetMarkerList().begin();
-        while (imarker != (*ibody)->GetMarkerList().end()) {
-            m_file << "        MARKER:   " << (*imarker)->GetName() << "\n";
-            imarker++;
-        }
-
-        std::vector<ChSharedPtr<ChForce> >::const_iterator iforce = (*ibody)->GetForceList().begin();
-        while (iforce != (*ibody)->GetForceList().end()) {
-            m_file << "        FORCE:   " << (*iforce)->GetName() << "\n";
-            iforce++;
-        }
-
-        ibody++;
-    }
-
-    m_file << "\n   List of the " << (int)Get_linklist()->size() << " added links: \n";
-
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-
-        m_file << "     LINK:       " << Lpointer->GetName() << "\n";
-        if (ChSharedPtr<ChLinkMarkers> malink =  Lpointer.DynamicCastTo<ChLinkMarkers>() ) {
-            if (malink->GetMarker1())
-                m_file << "        marker1:     " << malink->GetMarker1()->GetName() << "\n";
-            if (malink->GetMarker2())
-                m_file << "        marker2:     " << malink->GetMarker2()->GetName() << "\n";
-        }
-    }
-
-    m_file << "\n   List of other " << (int)otherphysicslist.size() << " added physic items: \n";
-
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        m_file << "     PHYSIC ITEM :       " << PHpointer->GetName() << "\n";
-    }
-
-    m_file << "\n\nFlat ChPhysicalItem list (class name - object name):----- \n\n";
-
-    IteratorAllPhysics mphiter(this);
-    while (mphiter.HasItem()) {
-        m_file << "  " << mphiter->GetRTTI()->GetName() << "  -  " << mphiter->GetName() << "\n";
-        ++mphiter;
-    }
-    m_file << "\n\n";
-}
 
 #define CH_CHUNK_START "Chrono binary file start"
 #define CH_CHUNK_END "Chrono binary file end"

@@ -894,10 +894,6 @@ public:
     //
 
 
-    /// Writes the hierarchy of contained bodies, markers, etc. in ASCII
-    /// readable form, mostly for debugging purposes.
-    void ShowHierarchy(ChStreamOutAscii& m_file);
-
     /// Process a ".chr" binary file containing the full system object
     /// hierarchy as exported -for example- by the R3D modeler, with chrono plugin version,
     /// or by using the FileWriteChR() function.

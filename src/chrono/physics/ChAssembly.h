@@ -220,9 +220,9 @@ public:
     /// Searches whatever item (body, link or other ChPhysics items)
     ChSharedPtr<ChPhysicsItem> Search(const char* m_name);
 
-    /// Searches a marker from its ChObject name -OBSOLETE
+    /// Searches a marker from its ChObject name 
     ChSharedPtr<ChMarker> SearchMarker(const char* m_name);
-    /// Searches a marker from its unique ID -OBSOLETE
+    /// Searches a marker from its unique ID 
     ChSharedPtr<ChMarker> SearchMarker(int markID);
 
 
@@ -383,6 +383,12 @@ public:
     //
     // SERIALIZATION
     //
+
+    
+    /// Writes the hierarchy of contained bodies, markers, etc. in ASCII
+    /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
+    void ShowHierarchy(ChStreamOutAscii& m_file, int level=0);
+
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);

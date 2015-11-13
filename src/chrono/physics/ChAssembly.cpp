@@ -64,6 +64,18 @@ void ChAssembly::Copy(ChAssembly* source) {
     // first copy the parent class data...
     ChPhysicsItem::Copy(source);
 
+    this->Clear();
+    /*
+    //***TO DO*** deeper copy 
+    for (unsigned int ip = 0; ip < source->Get_bodylist()->size(); ++ip)  // ITERATE on bodies
+        this->Add(source->Get_bodylist()->at(ip)->Clone());
+
+    for (unsigned int ip = 0; ip < source->Get_linklist()->size(); ++ip)  // ITERATE on bodies
+        this->Add(source->Get_linklist()->at(ip)->Clone());
+
+    for (unsigned int ip = 0; ip < source->Get_otherphysicslist()->size(); ++ip)  // ITERATE on bodies
+        this->Add(source->Get_otherphysicslist()->at(ip)->Clone());
+    */
     nbodies = source->GetNbodies();
     nlinks = source->GetNlinks();
     nphysicsitems = source->GetNphysicsItems();
@@ -667,7 +679,7 @@ void ChAssembly::Setup() {
     nsysvars = ncoords + ndoc;        // total number of variables (coordinates + lagrangian multipliers)
     nsysvars_w = ncoords_w + ndoc_w;  // total number of variables (with 6 dof per body)
 
-    ndof = ncoords - ndoc;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
+    ndof = ncoords_w-ndoc_w;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
 }
 
 // - ALL PHYSICAL ITEMS (BODIES, LINKS,ETC.) ARE UPDATED,
@@ -1371,6 +1383,75 @@ void ChAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor)
 ////////
 ////////  STREAMING - FILE HANDLING
 ////////
+
+
+
+void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) {
+    std::string mtabs;
+    for (int i=0; i< level; ++i)
+        mtabs += "  ";
+
+    m_file << "\n" << mtabs << "List of the " << (int)Get_bodylist()->size() << " added rigid bodies: \n";
+
+    std::vector<ChSharedPtr<ChBody> >::iterator ibody = Get_bodylist()->begin();
+    while (ibody != Get_bodylist()->end()) {
+        m_file << mtabs << "  BODY:       " << (*ibody)->GetName() << "\n";
+
+        std::vector<ChSharedPtr<ChMarker> >::const_iterator imarker = (*ibody)->GetMarkerList().begin();
+        while (imarker != (*ibody)->GetMarkerList().end()) {
+            m_file << mtabs << "    MARKER:  " << (*imarker)->GetName() << "\n";
+            imarker++;
+        }
+
+        std::vector<ChSharedPtr<ChForce> >::const_iterator iforce = (*ibody)->GetForceList().begin();
+        while (iforce != (*ibody)->GetForceList().end()) {
+            m_file << mtabs << "    FORCE:  " << (*iforce)->GetName() << "\n";
+            iforce++;
+        }
+
+        ibody++;
+    }
+
+    m_file << "\n" << mtabs << "List of the " << (int)Get_linklist()->size() << " added links: \n";
+
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+    {
+        ChSharedPtr<ChLink> Lpointer = linklist[ip];
+
+        m_file << mtabs << "  LINK:  " << Lpointer->GetName() << " [" << typeid(Lpointer.get_ptr()).name() << "]\n";
+        if (ChSharedPtr<ChLinkMarkers> malink =  Lpointer.DynamicCastTo<ChLinkMarkers>() ) {
+            if (malink->GetMarker1())
+                m_file << mtabs << "    marker1:  " << malink->GetMarker1()->GetName() << "\n";
+            if (malink->GetMarker2())
+                m_file << mtabs << "    marker2:  " << malink->GetMarker2()->GetName() << "\n";
+        }
+    }
+
+    m_file << "\n" << mtabs << "List of other " << (int)otherphysicslist.size() << " added physic items: \n";
+
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
+    {
+        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
+
+        m_file << mtabs << "  PHYSIC ITEM :   " << PHpointer->GetName() << " [" << typeid(PHpointer.get_ptr()).name() << "]\n";
+        
+        // recursion:
+        if (ChSharedPtr<ChAssembly>assem= PHpointer.DynamicCastTo<ChAssembly>())
+            assem->ShowHierarchy(m_file,level+1);
+    }
+
+    /*
+    m_file << "\n\nFlat ChPhysicalItem list (class name - object name):----- \n\n";
+
+    IteratorAllPhysics mphiter(this);
+    while (mphiter.HasItem()) {
+        m_file << "  " << mphiter->GetRTTI()->GetName() << "  -  " << mphiter->GetName() << "\n";
+        ++mphiter;
+    }
+    */
+    m_file << "\n\n";
+}
+
 
 
 void ChAssembly::ArchiveOUT(ChArchiveOut& marchive)
