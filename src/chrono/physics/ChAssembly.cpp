@@ -545,6 +545,7 @@ ChAssembly::IteratorPhysicsItems ChAssembly::IterEndPhysicsItems() {
 }
 
 void ChAssembly::SetSystem(ChSystem* m_system)  {  
+    this->system = m_system;
 
     for (int ip = 0; ip < bodylist.size(); ++ip)  
     {
