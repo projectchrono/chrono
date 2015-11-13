@@ -27,6 +27,7 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
+#include "chrono_vehicle/tracked_vehicle/ChIdler.h"
 
 namespace chrono {
 namespace vehicle {
@@ -75,6 +76,10 @@ class ChTrackContactManager : public chrono::ChReportContactCallback2 {
 
     ChSharedPtr<ChSprocket> m_sprocket_L;
     ChSharedPtr<ChSprocket> m_sprocket_R;
+    ChSharedPtr<ChIdler> m_idler_L;
+    ChSharedPtr<ChIdler> m_idler_R;
+    ChSharedPtr<ChTrackShoe> m_shoe_L;
+    ChSharedPtr<ChTrackShoe> m_shoe_R;
 
     size_t m_shoe_index_L;                                ///< index of monitored track shoe on left track
     size_t m_shoe_index_R;                                ///< index of monitored track shoe on right track

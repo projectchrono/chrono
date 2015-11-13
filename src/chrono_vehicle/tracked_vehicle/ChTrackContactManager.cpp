@@ -39,6 +39,12 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
         m_sprocket_L = vehicle->GetTrackAssembly(LEFT)->GetSprocket();
         m_sprocket_R = vehicle->GetTrackAssembly(RIGHT)->GetSprocket();
 
+        m_shoe_L = vehicle->GetTrackAssembly(LEFT)->GetTrackShoe(m_shoe_index_L);
+        m_shoe_R = vehicle->GetTrackAssembly(RIGHT)->GetTrackShoe(m_shoe_index_R);
+
+        m_idler_L = vehicle->GetTrackAssembly(LEFT)->GetIdler();
+        m_idler_R = vehicle->GetTrackAssembly(RIGHT)->GetIdler();
+
         m_initialized = true;
     }
 
@@ -84,6 +90,7 @@ bool ChTrackContactManager::ReportContactCallback2(const ChVector<>& pA,
     if (react_forces.IsNull())
         return true;
 
+    // Extract contacts on sprockets.
     if (IsFlagSet(TrackCollide::SPROCKET_LEFT)) {
         if (modA == m_sprocket_L->GetGearBody().get_ptr()) {
             info.m_point = pA;
@@ -115,6 +122,76 @@ bool ChTrackContactManager::ReportContactCallback2(const ChVector<>& pA,
             info.m_force = react_forces;
             info.m_torque = react_torques;
             m_sprocket_R_contacts.push_back(info);
+        }
+    }
+
+    // Extract contacts on track shoes (discard contacts with sprockets)
+    if (IsFlagSet(TrackCollide::SHOES_LEFT)) {
+        if (modA == m_shoe_L->GetShoeBody().get_ptr() && modB != m_sprocket_L->GetGearBody().get_ptr()) {
+            info.m_point = pA;
+            info.m_csys = plane_coord;
+            info.m_force = react_forces;
+            info.m_torque = react_torques;
+            m_shoe_L_contacts.push_back(info);
+        }
+        if (modB == m_shoe_L->GetShoeBody().get_ptr() && modA != m_sprocket_L->GetGearBody().get_ptr()) {
+            info.m_point = pB;
+            info.m_csys = plane_coord;
+            info.m_force = react_forces;
+            info.m_torque = react_torques;
+            m_shoe_L_contacts.push_back(info);
+        }
+    }
+
+    if (IsFlagSet(TrackCollide::SHOES_RIGHT)) {
+        if (modA == m_shoe_R->GetShoeBody().get_ptr() && modB != m_sprocket_R->GetGearBody().get_ptr()) {
+            info.m_point = pA;
+            info.m_csys = plane_coord;
+            info.m_force = react_forces;
+            info.m_torque = react_torques;
+            m_shoe_R_contacts.push_back(info);
+        }
+        if (modB == m_shoe_R->GetShoeBody().get_ptr() && modA != m_sprocket_R->GetGearBody().get_ptr()) {
+            info.m_point = pB;
+            info.m_csys = plane_coord;
+            info.m_force = react_forces;
+            info.m_torque = react_torques;
+            m_shoe_R_contacts.push_back(info);
+        }
+    }
+
+    // Extract contacts on idler wheels.
+    if (IsFlagSet(TrackCollide::IDLER_LEFT)) {
+        if (modA == m_idler_L->GetWheelBody().get_ptr()) {
+            info.m_point = pA;
+            info.m_csys = plane_coord;
+            info.m_force = react_forces;
+            info.m_torque = react_torques;
+            m_idler_L_contacts.push_back(info);
+        }
+        if (modB == m_idler_L->GetWheelBody().get_ptr()) {
+            info.m_point = pB;
+            info.m_csys = plane_coord;
+            info.m_force = react_forces;
+            info.m_torque = react_torques;
+            m_idler_L_contacts.push_back(info);
+        }
+    }
+
+    if (IsFlagSet(TrackCollide::IDLER_RIGHT)) {
+        if (modA == m_idler_R->GetWheelBody().get_ptr()) {
+            info.m_point = pA;
+            info.m_csys = plane_coord;
+            info.m_force = react_forces;
+            info.m_torque = react_torques;
+            m_idler_R_contacts.push_back(info);
+        }
+        if (modB == m_idler_R->GetWheelBody().get_ptr()) {
+            info.m_point = pB;
+            info.m_csys = plane_coord;
+            info.m_force = react_forces;
+            info.m_torque = react_torques;
+            m_idler_R_contacts.push_back(info);
         }
     }
 

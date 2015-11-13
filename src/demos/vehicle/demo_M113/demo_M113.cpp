@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     // Create the M113 vehicle.
     M113_Vehicle vehicle(false, PRIMITIVES, PRIMITIVES, ChMaterialSurfaceBase::DVI);
 
-    //vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+    ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
     ////vehicle.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
     ////vehicle.GetSystem()->SetIterLCPmaxItersSpeed(150);
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     ////vehicle.SetCollide(TrackCollide::NONE);
-    ////vehicle.MonitorContacts(TrackCollide::SPROCKET_LEFT);
+    ////vehicle.MonitorContacts(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT | TrackCollide::IDLER_LEFT);
     ////vehicle.SetContactCollection(true);
 
     // Create the ground

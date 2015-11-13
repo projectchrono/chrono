@@ -68,31 +68,51 @@ void ChTrackedVehicleIrrApp::renderOtherStats(int left, int top) {
         sprintf(msg, "Torque sprocket R: %+.2f", torqueR);
         renderLinGauge(std::string(msg), torqueR / 5000, true, left, top + 100, 120, 15);
     }
+}
 
-    //// TODO:  complete and move this somewhere else...
-
+// -----------------------------------------------------------------------------
+// Render contact normals for monitored subsystems
+// -----------------------------------------------------------------------------
+void ChTrackedVehicleIrrApp::renderOtherGraphics() {
+    // Contact normals on left sprocket.
+    // Note that we only render information for contacts on the outside gear profile
     for (auto it = m_tvehicle->m_contacts->m_sprocket_L_contacts.begin();
          it != m_tvehicle->m_contacts->m_sprocket_L_contacts.end(); ++it) {
         ChVector<> v1 = it->m_point;
-        ChVector<> vn = it->m_csys.Get_A_Xaxis();
-        ChVector<> f = it->m_force;
-        ChVector<> v2 = v1 + vn;
+        ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
 
-        if (v1.y < m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y)
+        if (v1.y > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y)
             ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
     }
 
-    for (auto it = m_tvehicle->m_contacts->m_shoe_L_contacts.begin();
-        it != m_tvehicle->m_contacts->m_shoe_L_contacts.end(); ++it) {
+    // Contact normals on rear sprocket.
+    // Note that we only render information for contacts on the outside gear profile
+    for (auto it = m_tvehicle->m_contacts->m_sprocket_R_contacts.begin();
+         it != m_tvehicle->m_contacts->m_sprocket_R_contacts.end(); ++it) {
         ChVector<> v1 = it->m_point;
-        ChVector<> vn = it->m_csys.Get_A_Xaxis();
-        ChVector<> f = it->m_force;
-        ChVector<> v2 = v1 + vn;
+        ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
 
-        if (v1.y < m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y)
-            ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 0, 0, 180), false);
+        if (v1.y < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y)
+            ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
     }
 
+    // Contact normals on monitored track shoes.
+    renderContactNormals(m_tvehicle->m_contacts->m_shoe_L_contacts, video::SColor(255, 180, 180, 0));
+    renderContactNormals(m_tvehicle->m_contacts->m_shoe_R_contacts, video::SColor(255, 180, 180, 0));
+
+    // Contact normals on idler wheels.
+    renderContactNormals(m_tvehicle->m_contacts->m_idler_L_contacts, video::SColor(255, 0, 0, 180));
+    renderContactNormals(m_tvehicle->m_contacts->m_idler_R_contacts, video::SColor(255, 0, 0, 180));
+}
+
+// Render normal for all contacts in the specified list, using the given color.
+void ChTrackedVehicleIrrApp::renderContactNormals(const std::list<ChTrackContactInfo>& lst, video::SColor& col) {
+    for (auto it = lst.begin(); it != lst.end(); ++it) {
+        ChVector<> v1 = it->m_point;
+        ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
+
+        ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, col, false);
+    }
 }
 
 }  // end namespace vehicle

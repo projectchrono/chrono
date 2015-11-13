@@ -42,7 +42,9 @@ class CH_VEHICLE_API ChTrackedVehicleIrrApp : public ChVehicleIrrApp {
     ~ChTrackedVehicleIrrApp() {}
 
   private:
+    virtual void renderOtherGraphics() override;
     virtual void renderOtherStats(int left, int top) override;
+    void renderContactNormals(const std::list<ChTrackContactInfo>& lst, irr::video::SColor& col);
 
     ChTrackedVehicle* m_tvehicle;
 };
