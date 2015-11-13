@@ -154,6 +154,7 @@ class ChApi ChSystem : public ChAssembly,
         INT_EULER_EXPLICIT = 14,
         INT_LEAPFROG = 15,
         INT_NEWMARK = 16,
+        INT_CUSTOM__ = 17,
     };
     CH_ENUM_MAPPER_BEGIN(eCh_integrationType);
       CH_ENUM_VAL(INT_ANITESCU);
@@ -169,15 +170,28 @@ class ChApi ChSystem : public ChAssembly,
       CH_ENUM_VAL(INT_EULER_EXPLICIT);
       CH_ENUM_VAL(INT_LEAPFROG);
       CH_ENUM_VAL(INT_NEWMARK);
+      CH_ENUM_VAL(INT_CUSTOM__);
     CH_ENUM_MAPPER_END(eCh_integrationType);
 
     /// Sets the method for time integration (time stepper).
-    /// Some steppers are faster but can run into some troubles
-    /// when dealing with large interpenetrations in contacts/impacts (es: INT_ANITESCU),
-    /// while others are more precise but at an expense of a lower performance (es. INT_TASORA).
+    /// Suggested for fast dynamics with hard (DVI) contacts: INT_EULER_IMPLICIT_LINEARIZED,
+    /// Suggested for fast dynamics with hard (DVI) contacts and low inter-penetration: INT_EULER_IMPLICIT_PROJECTED,
+    /// Suggested for finite element smooth dynamics: INT_HHT, INT_EULER_IMPLICIT_LINEARIZED.
+    /// NOTE: for more advanced customization, use SetTimestepper().
     void SetIntegrationType(eCh_integrationType m_integration_type);
+
     /// Gets the current method for time integration (time stepper).
     eCh_integrationType GetIntegrationType() { return integration_type; }
+
+
+    /// Set the timestepper to be used for time integration.
+    /// This is more powerful than SetIntegrationType, because you can provide your own object.
+    /// Also sets the mode to INT_CUSTOM__ , should you ever call GetIntegrationType() later.
+    void SetTimestepper(ChSharedPtr<ChTimestepper> mstepper) { this->timestepper = mstepper; integration_type = INT_CUSTOM__; }
+
+    /// Get the timestepper currently used for time integration
+    ChSharedPtr<ChTimestepper> GetTimestepper() { return this->timestepper; }
+
 
     /// Sets outer iteration limit for assembly constraints. When trying to keep constraints together,
     /// the iterative process is stopped if this max.number of iterations (or tolerance) is reached.
@@ -231,6 +245,7 @@ class ChApi ChSystem : public ChAssembly,
         LCP_ITERATIVE_APGD,
         LCP_DEM,
         LCP_ITERATIVE_MINRES,
+        LCP_CUSTOM,
     };
     CH_ENUM_MAPPER_BEGIN(eCh_lcpSolver);
       CH_ENUM_VAL(LCP_ITERATIVE_SOR);
@@ -244,18 +259,18 @@ class ChApi ChSystem : public ChAssembly,
       CH_ENUM_VAL(LCP_ITERATIVE_APGD);
       CH_ENUM_VAL(LCP_DEM);
       CH_ENUM_VAL(LCP_ITERATIVE_MINRES);
+      CH_ENUM_VAL(LCP_CUSTOM);
     CH_ENUM_MAPPER_END(eCh_lcpSolver);
 
     /// Choose the LCP solver type, to be used for the simultaneous
     /// solution of the constraints in dynamical simulations (as well as
     /// in kinematics, statics, etc.)
-    /// You can choose between the eCh_lcpSolver types, for
-    /// example LCP_ITERATIVE_SOR for fast (not 100%precise) approach
-    /// to problems with contacts, or LCP_SIMPLEX (slow,precise), etc.
-    ///  NOTE: This is a shortcut,that internally is equivalent to the two
-    /// calls ChangeLcpSolverStab(..) and ChangeLcpSolverSpeed(...), so in
-    /// future it is better to use directly those two more powerful functions,
-    /// and this shourtcut will be deprecated.
+    /// You can choose between the eCh_lcpSolver types, ex. LCP_ITERATIVE_SOR
+    /// for speed and low precision, LCP_ITERATIVE_BARZILAIBORWEIN for precision, etc.
+    /// NOTE: Do not use LCP_CUSTOM, this type will be set automatically set if one 
+    /// provides its solver via ChangeLcpSolverStab etc.
+    /// NOTE: This is a shortcut, that internally is equivalent to the two
+    ///  calls ChangeLcpSolverStab(..) and ChangeLcpSolverSpeed(...)
     virtual void SetLcpSolverType(eCh_lcpSolver mval);
     /// Gets the current LCP solver type.
     eCh_lcpSolver GetLcpSolverType() { return lcp_solver_type; }
@@ -304,21 +319,23 @@ class ChApi ChSystem : public ChAssembly,
     /// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
     /// it into the system using this function. The replaced solver is automatically deleted.
     /// When the system is deleted, the custom solver that you plugged will be automatically deleted.
-    void ChangeLcpSolverStab(ChLcpSolver* newsolver);
+    /// Note: this also sets the LCP_CUSTOM mode, should you ever call GetLcpSolverType() later.
+    virtual void ChangeLcpSolverStab(ChLcpSolver* newsolver);
 
     /// Access directly the LCP solver, configured to be used for the stabilization
     /// of constraints (solve delta positions). Use mostly for diagnostics.
-    ChLcpSolver* GetLcpSolverStab();
+    virtual ChLcpSolver* GetLcpSolverStab();
 
     /// Instead of using SetLcpSolverType(), you can create your own
     /// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
     /// it into the system using this function. The replaced solver is automatically deleted.
     /// When the system is deleted, the custom solver that you plugged will be automatically deleted.
+    /// Note: this also sets the LCP_CUSTOM mode, should you ever call GetLcpSolverType() later.
     virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
 
     /// Access directly the LCP solver, configured to be used for the main differential
     /// inclusion problem (LCP on speed-impulses). Use mostly for diagnostics.
-    ChLcpSolver* GetLcpSolverSpeed();
+    virtual ChLcpSolver* GetLcpSolverSpeed();
 
     /// Instead of using the default LCP 'system descriptor', you can create your own
     /// custom descriptor (suffice it is inherited from ChLcpSystemDescriptor) and plug
@@ -653,7 +670,6 @@ public:
                                    const double c          ///< a scaling factor
                                    );
 
-  public:
     //
     // UTILITY FUNCTIONS
     //
@@ -732,7 +748,7 @@ public:
     /// contact (otherwise, by default, would be the average of the two frict.coeff.)
     void SetCustomCollisionPointCallback(ChCustomCollisionPointCallback* mcallb) { collisionpoint_callback = mcallb; };
 
-  public:
+
     /// For higher performance (ex. when GPU coprocessors are available) you can create your own
     /// custom collision engine (suffice it is inherited from ChCollisionSystem) and plug
     /// it into the system using this function. The replaced engine is automatically deleted.
@@ -783,11 +799,7 @@ public:
     virtual int Integrate_Y_timestepper();
 
   public:
-    /// Set the timestepper to be used for time integration
-    void SetTimestepper(ChSharedPtr<ChTimestepper> mstepper) { this->timestepper = mstepper; }
 
-    /// Get the timestepper currently used for time integration
-    ChSharedPtr<ChTimestepper> GetTimestepper() { return this->timestepper; }
 
     // ---- DYNAMICS
 

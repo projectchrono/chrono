@@ -228,6 +228,9 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                         case 8:
                             app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_MINRES);
                             break;
+                        case 9:
+                            chrono::GetLog() << "WARNING.\nYou cannot change to a custom solver using the GUI. Use C++ instead.\n";
+                            break;
                     }
                     break;
                 }
@@ -273,6 +276,9 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                             break;
                         case 12:
                             app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_NEWMARK);
+                            break;
+                        case 13:
+                            chrono::GetLog() << "WARNING.\nYou cannot change to a custom timestepper using the GUI. Use C++ instead.\n";
                             break;
                     }
                     break;
@@ -457,7 +463,7 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     gad_ccpsolver->addItem(L"Projected MINRES");
     gad_ccpsolver->addItem(L"APGD");
     gad_ccpsolver->addItem(L"MINRES");
-    gad_ccpsolver->addItem(L" ");
+    gad_ccpsolver->addItem(L"(custom)");
     gad_ccpsolver->setSelected(5);
 
     gad_stepper = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10, 160, 200, 160 + 20), gad_tab2, 9908);
@@ -474,6 +480,7 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     gad_stepper->addItem(L"Euler explicit");
     gad_stepper->addItem(L"Leapfrog");
     gad_stepper->addItem(L"Newmark");
+    gad_stepper->addItem(L"(custom)");
 
     gad_stepper->setSelected(0);
 
@@ -779,6 +786,9 @@ void ChIrrAppInterface::DrawAll() {
                 break;
             case chrono::ChSystem::INT_NEWMARK:
                 gad_stepper->setSelected(12);
+                break;
+            default:
+                gad_stepper->setSelected(13);
                 break;
         }
 

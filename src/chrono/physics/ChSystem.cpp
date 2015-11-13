@@ -382,6 +382,9 @@ void ChSystem::Clear() {
 //
 
 void ChSystem::SetLcpSolverType(eCh_lcpSolver mval) {
+    if (mval == LCP_CUSTOM)
+        return;
+
     lcp_solver_type = mval;
 
     if (LCP_solver_speed)
@@ -547,6 +550,7 @@ void ChSystem::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
     if (this->LCP_solver_speed)
         delete (this->LCP_solver_speed);
     this->LCP_solver_speed = newsolver;
+    this->lcp_solver_type = LCP_CUSTOM;
 }
 
 void ChSystem::ChangeLcpSolverStab(ChLcpSolver* newsolver) {
@@ -554,6 +558,7 @@ void ChSystem::ChangeLcpSolverStab(ChLcpSolver* newsolver) {
     if (this->LCP_solver_stab)
         delete (this->LCP_solver_stab);
     this->LCP_solver_stab = newsolver;
+    this->lcp_solver_type = LCP_CUSTOM;
 }
 
 void ChSystem::ChangeContactContainer(ChSharedPtr<ChContactContainerBase> newcontainer) {
@@ -759,6 +764,8 @@ void ChSystem::Reference_LM_byID() {
 
 void ChSystem::SetIntegrationType(eCh_integrationType m_integration) {
     if (m_integration == integration_type)
+        return;
+    if (m_integration == INT_CUSTOM__)
         return;
 
     // set integration scheme:
