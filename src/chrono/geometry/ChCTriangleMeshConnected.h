@@ -128,6 +128,9 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Get the filename of the triangle mesh
     std::string GetFileName() { return m_filename; }
 
+    /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
+    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale);
+
     //
     // OVERRIDE BASE CLASS FUNCTIONS
     //

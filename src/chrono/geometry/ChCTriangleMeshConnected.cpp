@@ -921,6 +921,15 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
         this->m_face_u_indices.push_back(
             ChVector<int>(obj.mIndexesTexels[iit], obj.mIndexesTexels[iit + 1], obj.mIndexesTexels[iit + 2]));
     }
+
+    if(!load_normals) {
+        this->m_normals.clear();
+        this->m_face_n_indices.clear();
+    }
+    if(!load_uv) {
+        this->m_UV.clear();
+        this->m_face_u_indices.clear();
+    }
 }
 
 /*
@@ -1013,6 +1022,21 @@ bool WavefrontObj::saveObj(const char *fname,int vcount,const float *vertices,in
 }
 
 */
+
+
+void ChTriangleMeshConnected::Transform(const ChVector<> displ, const ChMatrix33<> rotscale) {
+    for (int i= 0; i < m_vertices.size(); ++i) {
+        m_vertices[i] = rotscale * m_vertices[i];
+        m_vertices[i] += displ;
+    } 
+    for (int i= 0; i < m_normals.size(); ++i) {
+        m_normals[i] = rotscale * m_normals[i];
+        m_normals[i].Normalize();
+    } 
+}
+
+
+
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____
