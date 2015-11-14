@@ -1857,19 +1857,8 @@ double ChSystem::ComputeCollisions() {
 
     timer_collision_broad.start();
 
-    // Update all positions of collision models
-    #pragma omp parallel for
-    for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        Bpointer->SyncCollisionModels();
-    }
-    #pragma omp parallel for
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->SyncCollisionModels();
-    }
+    // Update all positions of collision models: delegate this to the ChAssembly
+    SyncCollisionModels();
 
     // Prepare the callback
 
