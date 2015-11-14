@@ -699,10 +699,6 @@ void ChAssembly::Update(bool update_assets) {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
 
         Bpointer->Update(ChTime, update_assets);
-
-        if (this->GetSystem())
-            if (this->GetSystem()->GetUseSleeping())
-                Bpointer->TrySleeping();
     }
     // -----------------------------
     // Updates other physical items
