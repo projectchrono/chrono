@@ -293,9 +293,9 @@ void ChConveyor::Update(double mytime, bool update_assets) {
         this->conveyor_plate->SetInertiaXX(ChVector<>(largemass, largemass, largemass));
         this->conveyor_plate->SetInertiaXY(ChVector<>(0, 0, 0));
     } else {
-        this->conveyor_plate->SetMass(this->conveyor_plate->GetMass());
-        this->conveyor_plate->SetInertiaXX(this->conveyor_plate->GetInertiaXX());
-        this->conveyor_plate->SetInertiaXY(this->conveyor_plate->GetInertiaXY());
+        this->conveyor_plate->SetMass(this->conveyor_truss->GetMass());
+        this->conveyor_plate->SetInertiaXX(this->conveyor_truss->GetInertiaXX());
+        this->conveyor_plate->SetInertiaXY(this->conveyor_truss->GetInertiaXY());
     }
 
 
