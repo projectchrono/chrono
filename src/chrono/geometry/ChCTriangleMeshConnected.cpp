@@ -14,6 +14,9 @@
 #include <stdio.h>
 
 #include "ChCTriangleMeshConnected.h"
+#include <unordered_map>
+#include <map>
+
 
 namespace chrono {
 namespace geometry {
@@ -1033,6 +1036,130 @@ void ChTriangleMeshConnected::Transform(const ChVector<> displ, const ChMatrix33
         m_normals[i] = rotscale * m_normals[i];
         m_normals[i].Normalize();
     } 
+}
+
+
+bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::array<int, 4>>& tri_map) const {
+    
+    bool pathological_edges = false;
+    
+    std::multimap< std::pair<int, int>, int> edge_map;
+        
+    for (int it = 0; it< this->m_face_v_indices.size(); ++it) {
+        // edges = pairs of vertexes indexes
+        std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
+        std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
+        std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
+        // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
+        if (medgeA.first>medgeA.second) 
+            medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
+        if (medgeB.first>medgeB.second) 
+            medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
+        if (medgeC.first>medgeC.second) 
+            medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
+        edge_map.insert( { medgeA , it} );
+        edge_map.insert( { medgeB , it} );
+        edge_map.insert( { medgeC , it} );
+    }
+
+    // Create a map of neighbouring triangles, vector of:
+    // [Ti TieA TieB TieC]
+    tri_map.resize(this->m_face_v_indices.size());
+    for (int it = 0; it< this->m_face_v_indices.size(); ++it) {
+        tri_map[it][0]=it;
+        // edges = pairs of vertexes indexes
+        std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
+        std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
+        std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
+        // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
+        if (medgeA.first>medgeA.second) 
+            medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
+        if (medgeB.first>medgeB.second) 
+            medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
+        if (medgeC.first>medgeC.second) 
+            medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
+        if (edge_map.count(medgeA) >2 ||
+            edge_map.count(medgeB) >2 ||
+            edge_map.count(medgeC) >2) {
+            pathological_edges = true;
+            GetLog() << "Warning, edge shared with more than two triangles! \n";
+        }
+        auto retA = edge_map.equal_range(medgeA);
+        for (auto fedge=retA.first; fedge!=retA.second; ++it) {
+            if (fedge->second != it) {
+                tri_map[it][1]=fedge->second;
+                break;
+            }
+        }
+        auto retB = edge_map.equal_range(medgeB);
+        for (auto fedge=retB.first; fedge!=retB.second; ++it) {
+            if (fedge->second != it) {
+                tri_map[it][2]=fedge->second;
+                break;
+            }
+        }
+        auto retC = edge_map.equal_range(medgeC);
+        for (auto fedge=retC.first; fedge!=retC.second; ++it) {
+            if (fedge->second != it) {
+                tri_map[it][3]=fedge->second;
+                break;
+            }
+        }  
+    }
+    return pathological_edges;
+}
+
+
+bool ChTriangleMeshConnected::ComputeWingedEdges(std::vector<std::array<int,4>>& winged_edges) const {
+
+    bool pathological_edges = false;
+
+    std::multimap< std::pair<int, int>, int> edge_map;
+        
+    for (int it = 0; it< this->m_face_v_indices.size(); ++it) {
+        // edges = pairs of vertexes indexes
+        std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
+        std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
+        std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
+        // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
+        if (medgeA.first>medgeA.second) 
+            medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
+        if (medgeB.first>medgeB.second) 
+            medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
+        if (medgeC.first>medgeC.second) 
+            medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
+        edge_map.insert( { medgeA , it} );
+        edge_map.insert( { medgeB , it} );
+        edge_map.insert( { medgeC , it} );
+    }
+
+    for ( auto aedge = edge_map.begin(); aedge != edge_map.end(); ++aedge ) {
+        auto ret = edge_map.equal_range(aedge->first);
+        int nt=0;
+        std::array<int,4> wing;
+        for (auto fedge=ret.first; fedge!=ret.second; ++fedge) {
+            if (fedge->second == -1)
+                break;
+            wing[0]= fedge->first.first;
+            wing[1]= fedge->first.second;
+            if (nt==0) 
+                wing[2] = fedge->second;
+            if (nt==1) 
+                wing[3] = fedge->second;
+            ++nt;
+            if (nt==2) 
+                break;
+        }
+        if (nt==2) {
+            winged_edges.push_back(wing); // ok found winged edge!
+            aedge->second = -1; // deactivate this way otherwise found again by sister
+        }
+        if (nt==3){
+            pathological_edges = true;
+            //GetLog() << "Warning: winged edge between "<< wing[0] << " and " << wing[1]  << " shared with more than two triangles.\n";
+        }
+    }
+    return pathological_edges;
 }
 
 

@@ -29,6 +29,7 @@
 #include <math.h>
 
 #include "ChCTriangleMesh.h"
+#include <array>
 
 namespace chrono {
 namespace geometry {
@@ -130,6 +131,16 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
     virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale);
+
+    /// Create a map of neighbouring triangles, vector of:
+    /// [Ti TieA TieB TieC]
+    /// Return false if some edge has more than 2 neighbouring triangles
+    bool ComputeNeighbouringTriangleMap(std::vector<std::array<int, 4>>& tri_map) const;
+
+    /// Create a winged edge structure, vector of
+    /// [edgevertexA, edgevertexB, triangleA, triangleB]
+    /// Return false if some edge has more than 2 neighbouring triangles
+    bool ComputeWingedEdges(std::vector<std::array<int,4>>& winged_edges) const;
 
     //
     // OVERRIDE BASE CLASS FUNCTIONS
