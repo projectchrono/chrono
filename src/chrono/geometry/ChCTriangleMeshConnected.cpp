@@ -626,31 +626,40 @@ int OBJ::ParseLine(int /*lineno*/,
             } else if (strcasecmp(argv[0], "f") == 0 && argc >= 4) {
                 // ***ALEX*** do not use the BuildMesh stuff
                 int vcount = argc - 1;
+                const char* argvT[3];
+                argvT[0] = argv[1]; // pivot for triangle fans when quad/poly face
                 for (int i = 1; i < argc; i++) {
-                    if (i > 3)
-                        break;  // should do a fan here..
+                    if (i >= 3) {
+                        argvT[1] = argv[i-1];
+                        argvT[2] = argv[i];
+                    
+                        // do a fan triangle here..
+                        for (int ip=0; ip<3; ++ip) {
+                            // the index of i-th vertex
+                            int index = atoi(argvT[ip]) - 1;
+                            this->mIndexesVerts.push_back(index);
 
-                    // the index of i-th vertex
-                    int index = atoi(argv[i]) - 1;
-                    this->mIndexesVerts.push_back(index);
+                            const char* texel = strstr(argvT[ip], "/");
+                            if (texel) {
+                                // the index of i-th texel
+                                int tindex = atoi(texel + 1) - 1;
+                                // If input file only specifies a face w/ verts, normals, this is -1.
+                                // Don't push index to array if this happens
+                                if (tindex > -1) {
+                                    mIndexesTexels.push_back(tindex);
+                                }
 
-                    const char* texel = strstr(argv[i], "/");
-                    if (texel) {
-                        // the index of i-th texel
-                        int tindex = atoi(texel + 1) - 1;
-                        // If input file only specifies a face w/ verts, normals, this is -1.
-                        // Don't push index to array if this happens
-                        if (tindex > -1) {
-                            mIndexesTexels.push_back(tindex);
+                                const char* normal = strstr(texel + 1, "/");
+                                if (normal) {
+                                    // the index of i-th normal
+                                    int nindex = atoi(normal + 1) - 1;
+                                    this->mIndexesNormals.push_back(nindex);
+                                }
+                            }
                         }
 
-                        const char* normal = strstr(texel + 1, "/");
-                        if (normal) {
-                            // the index of i-th normal
-                            int nindex = atoi(normal + 1) - 1;
-                            this->mIndexesNormals.push_back(nindex);
-                        }
                     }
+
                 }
 
                 /* ***ALEX***
