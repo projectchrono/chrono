@@ -12,26 +12,24 @@
 #ifndef CHTIMER_H
 #define CHTIMER_H
 
-//////////////////////////////////////////////////
-//
-//   ChTimer.h
-//
-//   Class for high-resolution timer.
-//   This class can be used to get the execution time of
-//   fast algorithms, for example for profiling.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#if ((defined _WIN32) && !(defined(__MINGW32__) || defined(__CYGWIN__)))
+    #include <time.h>
+    #ifndef NOMINMAX
+    #define NOMINMAX
+    #endif
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+    #include <time.h>
+    #undef WIN32_LEAN_AND_MEAN
+    #undef NOMINMAX
+#else
+    #include <ratio>
+    #include <chrono>
+#endif
 
 
 
-#include <ratio>
-#include <chrono>
+
 
 namespace chrono {
 
@@ -42,6 +40,94 @@ namespace chrono {
 /// Note: the elapsed time is not computed at GetTime... functions, but only at stop().
 /// If you use multiple  start() ... stop()  pairs, each time the duration is accumulated,
 /// until a reset() is done.
+/// Note: since the Windows std::chrono has a limited resolution (1ms-15ms depending on the
+/// system) here we temporary provide a conditional compilation of another timer that does
+/// not use std::chrono for windows, until Microsoft will provide a better std::chrono.
+
+#if ((defined _WIN32) && !(defined(__MINGW32__) || defined(__CYGWIN__)))
+
+template <typename seconds_type = double>
+class ChTimer {
+
+
+  private:
+    LARGE_INTEGER m_start;
+    LARGE_INTEGER m_end;
+    LARGE_INTEGER m_freq;
+    bool m_first;
+    seconds_type total;
+
+  public:
+    ChTimer() : m_first(true), total(0) {}
+
+  public:
+    /// Start the timer
+    void start() {
+        if (m_first) {
+            QueryPerformanceFrequency(&m_freq);
+            m_first = false;
+        }
+        QueryPerformanceCounter(&m_start);
+    }
+
+    /// Stops the timer
+    void stop() { 
+        QueryPerformanceCounter(&m_end); 
+        seconds_type end = static_cast<seconds_type>(m_end.QuadPart);
+        seconds_type start = static_cast<seconds_type>(m_start.QuadPart);
+        seconds_type freq = static_cast<seconds_type>(m_freq.QuadPart);
+        total += (end - start) / freq;
+    }
+
+    /// Reset the total accumulated time (when repeating multiple start() stop() start() stop() )
+    void reset() { total = 0; }
+
+    /// Returns the time in [ms]. 
+    /// Use start()..stop() before calling this.
+	unsigned long long GetTimeMilliseconds() const {
+        return (long long)(total*1000.);
+    }
+
+    /// Returns the time in [ms] since start(). It does not require stop(). 
+	unsigned long long GetTimeMillisecondsIntermediate() const {
+        return (long long)(GetTimeSecondsIntermediate()*1000.0);
+    }
+
+	/// Returns the time in [us]. 
+    /// Use start()..stop() before calling this.
+	unsigned long long GetTimeMicroseconds() const {
+        return (long long)(total*1000000.0);
+    }
+
+    /// Returns the time in [us] since start(). It does not require stop(). 
+	unsigned long long GetTimeMicrosecondsIntermediate() const {
+        return (long long)(GetTimeSecondsIntermediate()*1000000.0);
+    }
+
+    /// Returns the time in [s], with seconds_type precision
+    /// Use start()..stop() before calling this.
+	seconds_type GetTimeSeconds() const {
+        return total;
+    }
+
+    /// Returns the time in [s] since start(). It does not require stop(). 
+	seconds_type GetTimeSecondsIntermediate() const {
+        LARGE_INTEGER m_inter;
+        QueryPerformanceCounter(&m_inter); 
+        seconds_type end = static_cast<seconds_type>(m_inter.QuadPart);
+        seconds_type start = static_cast<seconds_type>(m_start.QuadPart);
+        seconds_type freq = static_cast<seconds_type>(m_freq.QuadPart);
+        seconds_type intermediate= (end - start) / freq;
+        return intermediate;
+    }
+
+    /// Get the timer value, with the () operator.
+    seconds_type operator()() const {
+        return total;
+    }
+};
+
+#else 
 
 template <class seconds_type = double>
 class ChTimer {
@@ -108,6 +194,8 @@ class ChTimer {
     }
 
 };
+
+#endif
 
 
 }  // END_OF_NAMESPACE____
