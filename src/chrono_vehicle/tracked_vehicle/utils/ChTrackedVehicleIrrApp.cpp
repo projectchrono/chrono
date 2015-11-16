@@ -106,7 +106,7 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
 }
 
 // Render normal for all contacts in the specified list, using the given color.
-void ChTrackedVehicleIrrApp::renderContactNormals(const std::list<ChTrackContactInfo>& lst, video::SColor& col) {
+void ChTrackedVehicleIrrApp::renderContactNormals(const std::list<ChTrackContactInfo>& lst, const video::SColor& col) {
     for (auto it = lst.begin(); it != lst.end(); ++it) {
         ChVector<> v1 = it->m_point;
         ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
