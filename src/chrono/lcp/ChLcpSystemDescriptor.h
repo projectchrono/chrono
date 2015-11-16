@@ -78,13 +78,13 @@ class ChApi ChLcpSystemDescriptor {
 
     ChSpinlock* spinlocktable;
 
+    double c_a;         // coefficient form M mass matrices in vvariables
+
   private:
     int n_q;            // n.active variables
     int n_c;            // n.active constraints
     bool freeze_count;  // for optimizations
-	
-	
-	
+
 
   public:
 	  
@@ -145,6 +145,16 @@ class ChApi ChLcpSystemDescriptor {
     /// if you added/removed some item or if you switched some active state,
     /// otherwise CountActiveVariables() and CountActiveConstraints() might fail.
     virtual void UpdateCountsAndOffsets();
+
+    /// Sets the c_a coefficient (default=1) used for scaling the M masses of the vvariables 
+    /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
+    /// BuildMatrices(), DumpMatrices().
+    virtual void SetMassFactor(const double mc_a) { c_a = mc_a;}
+
+    /// Gets the c_a coefficient (default=1) used for scaling the M masses of the vvariables 
+    /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
+    /// BuildMatrices(), DumpMatrices().
+    virtual double GetMassFactor() { return c_a;}
 
     //
     // DATA <-> MATH.VECTORS FUNCTIONS

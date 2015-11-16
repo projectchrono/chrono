@@ -1704,14 +1704,17 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
 
     this->IntToLCP(0, Dv, R, 0, L, Qc);
 
-    // G and Cq  matrices:  fill the LCP sparse solver structures
+    // G and Cq  matrices:  fill the LCP sparse solver structures:
 
     this->ConstraintsLoadJacobians();
     
-    if (c_a || c_v || c_x)
-        this->KRMmatricesLoad(-c_x, -c_v, c_a);
+    // M, K, R matrices:  fill the LCP sparse solver structures:
 
-    
+    if (c_a || c_v || c_x)
+        this->KRMmatricesLoad(-c_x, -c_v, c_a); // for KRM blocks in ChLcpKblock objects: fill them
+    this->LCP_descriptor->SetMassFactor(c_a); // for ChLcpVariable objects, that does not have ChLcpKblock: just use a coeff., to avoid duplicated data 
+
+
     // diagnostics:
 
     bool dump_data = false;
