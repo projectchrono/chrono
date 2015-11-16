@@ -26,20 +26,20 @@ static std::string chrono_fsi_data_path("../data/fsi/");
 
 // Set the path to the Chrono::Fsi data directory (ATTENTION: not thread safe).
 void SetFsiDataPath(const std::string& path) {
-    chrono_fsi_data_path = path;
+	chrono_fsi_data_path = path;
 }
 
 // Obtain the current path to the Chrono::Fsi data directory (thread safe).
 const std::string& GetFsiDataPath() {
-    return chrono_fsi_data_path;
+	return chrono_fsi_data_path;
 }
 
 // Get the complete path to the specified filename (thread safe).
 // The filename is assumed to be given relative to the Chrono::Fsi model
 // data directory.
 std::string GetFsiDataFile(const std::string& filename) {
-    return chrono_fsi_data_path + filename;
+	return chrono_fsi_data_path + filename;
 }
 
 //}  // end namespace fsi
-}  // end namespace chrono
+}// end namespace chrono

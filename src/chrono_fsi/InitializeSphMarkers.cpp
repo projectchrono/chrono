@@ -80,8 +80,7 @@ int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
 						Real3 v3 = mR3(0);
 						velMasH.push_back(mR4(v3, sphMarkerMass));
 						rhoPresMuH.push_back(
-								mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0,
-										-1));
+						mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
 					}
 				} else {
 					//					num_BoundaryMarkers++;
@@ -330,7 +329,8 @@ void AddBCE2FluidSystem_FromFile(
 	int numBce = posRadBCE.size();
 	//#pragma omp parallel for  // it is very wrong to do it in parallel. race condition will occur
 	for (int i = 0; i < numBce; i++) {
-		chrono::ChVector<> position = TransformBCEToCOG(body.get(), posRadBCE[i]);
+		chrono::ChVector<> position = TransformBCEToCOG(body.get(),
+				posRadBCE[i]);
 
 		chrono::ChVector<> posParent =
 				chrono::ChTransform<>::TransformLocalToParent(position,
@@ -346,11 +346,11 @@ void AddBCE2FluidSystem_FromFile(
 		velMasH.push_back(mR4(v3, sphMarkerMass));
 
 		rhoPresMuH.push_back(
-				mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));
+		mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));
 	}
 	posRadBCE.clear();
 	referenceArray.push_back(
-			mI4(refSize4.y, refSize4.y + numBce, 1, refSize4.w + 1)); // 1: for rigid
+	mI4(refSize4.y, refSize4.y + numBce, 1, refSize4.w + 1)); // 1: for rigid
 	numObjects.numAllMarkers += numBce;
 	numObjects.numRigid_SphMarkers += numBce;
 	if (referenceArray.size() < 3) {

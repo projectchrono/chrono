@@ -297,38 +297,40 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	if (!initializeFluidFromFile) {
 #if haveFluid
 
-	// beginning third
-	AddBoxBceToChSystemAndSPH(ground.get_ptr(),
-			ChVector<>(hdimSide, hdimY, hthick),
-			ChVector<>(-midSecDim - hdimSide, 0, -hthick),
-			ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
-			bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+		// beginning third
+		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+				ChVector<>(hdimSide, hdimY, hthick),
+				ChVector<>(-midSecDim - hdimSide, 0, -hthick),
+				ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
+				bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
 
-	// end third
-	AddBoxBceToChSystemAndSPH(ground.get_ptr(),
-			ChVector<>(hdimSide, hdimY, hthick),
-			ChVector<>(midSecDim + hdimSide, 0, -hthick),
-			ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
-			bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
-	// basin
-	AddBoxBceToChSystemAndSPH(ground.get_ptr(),
-			ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
-			ChVector<>(0, 0, -basinDepth - hthick), ChQuaternion<>(1, 0, 0, 0),
-			true, posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray,
-			numObjects, paramsH, sphMarkerMass);
-	// slope 1
-	AddBoxBceToChSystemAndSPH(ground.get_ptr(),
-			ChVector<>(inclinedWidth, hdimY, hthick), ChVector<>(x1I, 0, zI),
-			Q_from_AngAxis(phi, ChVector<>(0, 1, 0)), true, posRadH, velMasH,
-			rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH,
-			sphMarkerMass);
+		// end third
+		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+				ChVector<>(hdimSide, hdimY, hthick),
+				ChVector<>(midSecDim + hdimSide, 0, -hthick),
+				ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
+				bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+		// basin
+		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
+				ChVector<>(0, 0, -basinDepth - hthick),
+				ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
+				bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+		// slope 1
+		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+				ChVector<>(inclinedWidth, hdimY, hthick),
+				ChVector<>(x1I, 0, zI),
+				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)), true, posRadH,
+				velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects,
+				paramsH, sphMarkerMass);
 
-	// slope 2
-	AddBoxBceToChSystemAndSPH(ground.get_ptr(),
-			ChVector<>(inclinedWidth, hdimY, hthick), ChVector<>(x2I, 0, zI),
-			Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)), true, posRadH, velMasH,
-			rhoPresMuH, bodyIndex, referenceArray, numObjects, paramsH,
-			sphMarkerMass);
+		// slope 2
+		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+				ChVector<>(inclinedWidth, hdimY, hthick),
+				ChVector<>(x2I, 0, zI),
+				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)), true, posRadH,
+				velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects,
+				paramsH, sphMarkerMass);
 #endif
 	}
 
@@ -437,9 +439,9 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 		ChVector<> c_pos = ChVector<>(-9.5, .20, 3);
 
 //		ChVector<> c_pos = ChVector<>(0, 0, 0);
-		AddSphereBceToChSystemAndSPH(mphysicalSystem, c_rad, c_pos,
-				QUNIT, posRadH, velMasH, rhoPresMuH, referenceArray,
-				FSI_Bodies, numObjects, sphMarkerMass, paramsH);
+		AddSphereBceToChSystemAndSPH(mphysicalSystem, c_rad, c_pos, QUNIT,
+				posRadH, velMasH, rhoPresMuH, referenceArray, FSI_Bodies,
+				numObjects, sphMarkerMass, paramsH);
 #endif
 	}
 //    // extra objects
@@ -676,8 +678,7 @@ int main(int argc, char* argv[]) {
 		referenceArray.push_back(mI4(0, num_fluidOrBoundaryMarkers.x, -1, -1)); // map fluid -1
 		numAllMarkers += num_fluidOrBoundaryMarkers.x;
 		referenceArray.push_back(
-				mI4(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y,
-						0, 0));
+		mI4(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0, 0));
 		numAllMarkers += num_fluidOrBoundaryMarkers.y;
 
 		//*** set num objects

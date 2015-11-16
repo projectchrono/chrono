@@ -38,15 +38,15 @@ typedef unsigned int uint;
 #define EPSILON 1e-8
 
 struct Real3By3 {
-  Real3 a;  // first row
-  Real3 b;  // second row
-  Real3 c;  // third row
+	Real3 a;  // first row
+	Real3 b;  // second row
+	Real3 c;  // third row
 };
 struct fluidData {
-  Real rho;
-  Real pressure;
-  Real velocityMag;
-  Real3 velocity;
+	Real rho;
+	Real pressure;
+	Real velocityMag;
+	Real3 velocity;
 };
 
 __constant__ SimParams paramsD;
@@ -57,17 +57,17 @@ __constant__ Real resolutionD;
 #define RESOLUTION_LENGTH_MULT 2
 //--------------------------------------------------------------------------------------------------------------------------------
 // 3D SPH kernel function, W3_SplineA
-__device__ inline Real W3_Spline(
-    Real d) {  // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-  Real h = paramsD.HSML;
-  Real q = fabs(d) / h;
-  if (q < 1) {
-    return (0.25f / (PI * h * h * h) * (pow(2 - q, Real(3)) - 4 * pow(1 - q, Real(3))));
-  }
-  if (q < 2) {
-    return (0.25f / (PI * h * h * h) * pow(2 - q, Real(3)));
-  }
-  return 0;
+__device__ inline Real W3_Spline(Real d) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+	Real h = paramsD.HSML;
+	Real q = fabs(d) / h;
+	if (q < 1) {
+		return (0.25f / (PI * h * h * h)
+				* (pow(2 - q, Real(3)) - 4 * pow(1 - q, Real(3))));
+	}
+	if (q < 2) {
+		return (0.25f / (PI * h * h * h) * pow(2 - q, Real(3)));
+	}
+	return 0;
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////2D SPH kernel function, W2_SplineA
@@ -108,20 +108,20 @@ __device__ inline Real W3_Spline(
 // d: magnitude of the distance of the two particles
 // dW * dist3 gives the gradiant of W3_Quadratic, where dist3 is the distance vector of the two particles, (dist3)a =
 // pos_a - pos_b
-__device__ inline Real3 GradW_Spline(
-    Real3 d) {  // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-  Real h = paramsD.HSML;
-  Real q = length(d) / h;
-  bool less1 = (q < 1);
-  bool less2 = (q < 2);
-  return (less1 * (3 * q - 4) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * (INVPI)*pow(h, Real(-5)) * d;
-  //	if (q < 1) {
-  //		return .75f * (INVPI) *pow(h, Real(-5))* (3 * q - 4) * d;
-  //	}
-  //	if (q < 2) {
-  //		return .75f * (INVPI) *pow(h, Real(-5))* (-q + 4.0f - 4.0f / q) * d;
-  //	}
-  //	return mR3(0);
+__device__ inline Real3 GradW_Spline(Real3 d) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+	Real h = paramsD.HSML;
+	Real q = length(d) / h;
+	bool less1 = (q < 1);
+	bool less2 = (q < 2);
+	return (less1 * (3 * q - 4) + less2 * (!less1) * (-q + 4.0f - 4.0f / q))
+			* .75f * (INVPI) * pow(h, Real(-5)) * d;
+	//	if (q < 1) {
+	//		return .75f * (INVPI) *pow(h, Real(-5))* (3 * q - 4) * d;
+	//	}
+	//	if (q < 2) {
+	//		return .75f * (INVPI) *pow(h, Real(-5))* (-q + 4.0f - 4.0f / q) * d;
+	//	}
+	//	return mR3(0);
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////Gradient of the kernel function
@@ -144,32 +144,29 @@ __device__ inline Real3 GradW_Spline(
 // Eos is also defined in SDKCollisionSystem.cu
 // fluid equation of state
 __device__ inline Real Eos(Real rho, Real type) {
-  ////******************************
-  // Real gama = 1;
-  // if (type < -.1) {
-  //	return 1 * (100000 * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES);
-  //	//return 100 * rho;
-  //}
-  //////else {
-  //////	return 1e9;
-  //////}
+	////******************************
+	// Real gama = 1;
+	// if (type < -.1) {
+	//	return 1 * (100000 * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES);
+	//	//return 100 * rho;
+	//}
+	//////else {
+	//////	return 1e9;
+	//////}
 
-  //******************************
-  Real gama = 7;
-  Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max /
-           gama;  // 200;//314e6; //c^2 * paramsD.rho0 / gama where c = 1484 m/s for water
-  if (type < +.1f) {
-    return B * (pow(rho / paramsD.rho0, gama) - 1) +
-           paramsD.BASEPRES;  // 1 * (B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES);
-  } else
-    return paramsD.BASEPRES;
+	//******************************
+	Real gama = 7;
+	Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama; // 200;//314e6; //c^2 * paramsD.rho0 / gama where c = 1484 m/s for water
+	if (type < +.1f) {
+		return B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES; // 1 * (B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES);
+	} else
+		return paramsD.BASEPRES;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline Real InvEos(Real pw) {
-  int gama = 7;
-  Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max /
-           gama;  // 200;//314e6; //c^2 * paramsD.rho0 / gama where c = 1484 m/s for water
-  return paramsD.rho0 * pow((pw - paramsD.BASEPRES) / B + 1, 1.0 / gama);
+	int gama = 7;
+	Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama; // 200;//314e6; //c^2 * paramsD.rho0 / gama where c = 1484 m/s for water
+	return paramsD.rho0 * pow((pw - paramsD.BASEPRES) / B + 1, 1.0 / gama);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 /**
@@ -183,16 +180,16 @@ __device__ inline Real InvEos(Real pw) {
  * @return Distance vector (distance in x, distance in y, distance in z)
  */
 __device__ inline Real3 Distance(Real3 a, Real3 b) {
-  Real3 dist3 = a - b;
-  dist3.x -= ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
-  dist3.x += ((dist3.x < -0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
+	Real3 dist3 = a - b;
+	dist3.x -= ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
+	dist3.x += ((dist3.x < -0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
 
-  dist3.y -= ((dist3.y > 0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
-  dist3.y += ((dist3.y < -0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
+	dist3.y -= ((dist3.y > 0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
+	dist3.y += ((dist3.y < -0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
 
-  dist3.z -= ((dist3.z > 0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
-  dist3.z += ((dist3.z < -0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
-  return dist3;
+	dist3.z -= ((dist3.z > 0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
+	dist3.z += ((dist3.z < -0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
+	return dist3;
 }
 
 /**
@@ -201,7 +198,7 @@ __device__ inline Real3 Distance(Real3 a, Real3 b) {
  *      	See Distance(real3 posRadA, real3 posRadB)
  */
 __device__ inline Real3 Distance(Real4 posRadA, Real4 posRadB) {
-  return Distance(mR3(posRadA), mR3(posRadB));
+	return Distance(mR3(posRadA), mR3(posRadB));
 }
 
 /**
@@ -210,7 +207,7 @@ __device__ inline Real3 Distance(Real4 posRadA, Real4 posRadB) {
  *      	See Distance(real3 posRadA, real3 posRadB)
  */
 __device__ inline Real3 Distance(Real4 posRadA, Real3 posRadB) {
-  return Distance(mR3(posRadA), posRadB);
+	return Distance(mR3(posRadA), posRadB);
 }
 
 /**
@@ -255,10 +252,9 @@ void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads);
  * @param numAllMarkers Total number of markers (fluid + boundary)
  */
 void calcHash(thrust::device_vector<uint>& gridMarkerHash,
-              thrust::device_vector<uint>& gridMarkerIndex,
-              thrust::device_vector<Real3>& posRad,
-              thrust::device_vector<Real4>& rhoPreMu,
-              int numAllMarkers);
+		thrust::device_vector<uint>& gridMarkerIndex,
+		thrust::device_vector<Real3>& posRad,
+		thrust::device_vector<Real4>& rhoPreMu, int numAllMarkers);
 
 /**
  * @brief reorderDataAndFindCellStart - reorderDataAndFindCellStartD
@@ -281,56 +277,46 @@ void calcHash(thrust::device_vector<uint>& gridMarkerHash,
  * @param numAllMarkers Input: Total number of SPH Markers
  */
 void reorderDataAndFindCellStart(thrust::device_vector<uint>& cellStart,
-                                 thrust::device_vector<uint>& cellEnd,
-                                 thrust::device_vector<Real3>& sortedPosRad,
-                                 thrust::device_vector<Real4>& sortedVelMas,
-                                 thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<uint>& cellEnd,
+		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real4>& sortedRhoPreMu,
 
-                                 thrust::device_vector<uint>& gridMarkerHash,
-                                 thrust::device_vector<uint>& gridMarkerIndex,
+		thrust::device_vector<uint>& gridMarkerHash,
+		thrust::device_vector<uint>& gridMarkerIndex,
 
-                                 thrust::device_vector<uint>& mapOriginalToSorted,
+		thrust::device_vector<uint>& mapOriginalToSorted,
 
-                                 thrust::device_vector<Real3>& oldPosRad,
-                                 thrust::device_vector<Real4>& oldVelMas,
-                                 thrust::device_vector<Real4>& oldRhoPreMu,
-                                 uint numAllMarkers,
-                                 uint numCells);
+		thrust::device_vector<Real3>& oldPosRad,
+		thrust::device_vector<Real4>& oldVelMas,
+		thrust::device_vector<Real4>& oldRhoPreMu, uint numAllMarkers,
+		uint numCells);
 
 void reorderArrays(Real* vDot_PSorted,
-                   uint* bodyIndexSortedArrangedOriginalized,
-                   Real* vDot_P,
-                   uint* bodyIndexD,
-                   uint* gridMarkerIndex,  // input: sorted particle indices
-                   uint numAllMarkers);
+		uint* bodyIndexSortedArrangedOriginalized, Real* vDot_P,
+		uint* bodyIndexD, uint* gridMarkerIndex, // input: sorted particle indices
+		uint numAllMarkers);
 
-void CopyBackSortedToOriginal(Real* vDot_P,
-                              Real3* posRadD,
-                              Real4* velMasD,
-                              Real4* rhoPreMuD,
-                              Real* vDot_PSorted,
-                              Real3* sortedPosRad,
-                              Real4* sortedVelMas,
-                              Real4* sortedRhoPreMu,
-                              uint* gridMarkerIndex,
-                              uint numAllMarkers);
+void CopyBackSortedToOriginal(Real* vDot_P, Real3* posRadD, Real4* velMasD,
+		Real4* rhoPreMuD, Real* vDot_PSorted, Real3* sortedPosRad,
+		Real4* sortedVelMas, Real4* sortedRhoPreMu, uint* gridMarkerIndex,
+		uint numAllMarkers);
 
 void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
-                         thrust::device_vector<Real3>& sortedPosRad,
-                         thrust::device_vector<Real4>& sortedVelMas,
-                         thrust::device_vector<Real4>& sortedRhoPreMu,
-                         thrust::device_vector<uint>& gridMarkerIndex,
-                         thrust::device_vector<uint>& cellStart,
-                         thrust::device_vector<uint>& cellEnd,
-                         uint numAllMarkers,
-                         uint numCells);
+		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<uint>& gridMarkerIndex,
+		thrust::device_vector<uint>& cellStart,
+		thrust::device_vector<uint>& cellEnd, uint numAllMarkers,
+		uint numCells);
 
-void RecalcSortedVelocityPressure_BCE(thrust::device_vector<Real4>& sortedVelMas,
-                                      thrust::device_vector<Real4>& sortedRhoPreMu,
-                                      thrust::device_vector<Real3>& sortedPosRad,
-                                      thrust::device_vector<uint>& cellStart,
-                                      thrust::device_vector<uint>& cellEnd,
-                                      uint numAllMarkers);
+void RecalcSortedVelocityPressure_BCE(
+		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<uint>& cellStart,
+		thrust::device_vector<uint>& cellEnd, uint numAllMarkers);
 /**
  * @brief Wrapper function for collideD
  * @details collide is the wrapper function for collideD. collideD is a kernel function, which
@@ -349,156 +335,117 @@ void RecalcSortedVelocityPressure_BCE(thrust::device_vector<Real4>& sortedVelMas
  * @param  dT Time Step
  */
 void collide(thrust::device_vector<Real4>& derivVelRhoD,
-             thrust::device_vector<Real3>& sortedPosRad,
-             thrust::device_vector<Real4>& sortedVelMas,
-             thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
-             thrust::device_vector<Real4>& sortedRhoPreMu,
-             thrust::device_vector<uint>& gridMarkerIndex,
-             thrust::device_vector<uint>& cellStart,
-             thrust::device_vector<uint>& cellEnd,
-             uint numAllMarkers,
-             uint numCells,
-             Real dT);
+		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
+		thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<uint>& gridMarkerIndex,
+		thrust::device_vector<uint>& cellStart,
+		thrust::device_vector<uint>& cellEnd, uint numAllMarkers, uint numCells,
+		Real dT);
 
 void CalcBCE_Stresses(thrust::device_vector<Real3>& devStressD,
-                      thrust::device_vector<Real3>& volStressD,
-                      thrust::device_vector<Real4>& mainStressD,
-                      thrust::device_vector<Real3>& sortedPosRad,
-                      thrust::device_vector<Real4>& sortedVelMas,
-                      thrust::device_vector<Real4>& sortedRhoPreMu,
-                      thrust::device_vector<uint>& mapOriginalToSorted,
-                      thrust::device_vector<uint>& cellStart,
-                      thrust::device_vector<uint>& cellEnd,
-                      int numBCE);
+		thrust::device_vector<Real3>& volStressD,
+		thrust::device_vector<Real4>& mainStressD,
+		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<uint>& mapOriginalToSorted,
+		thrust::device_vector<uint>& cellStart,
+		thrust::device_vector<uint>& cellEnd, int numBCE);
 
-void UpdatePosVelP(Real3* m_dSortedPosRadNew,
-                   Real4* m_dSortedVelMasNew,
-                   Real4* m_dSortedRhoPreMuNew,
-                   Real3* m_dSortedPosRad,
-                   Real4* m_dSortedVelMas,
-                   Real4* m_dSortedRhoPreMu,
-                   Real* vDot_PSortedNew,
-                   Real* vDot_PSorted,
-                   uint numAllMarkers);
+void UpdatePosVelP(Real3* m_dSortedPosRadNew, Real4* m_dSortedVelMasNew,
+		Real4* m_dSortedRhoPreMuNew, Real3* m_dSortedPosRad,
+		Real4* m_dSortedVelMas, Real4* m_dSortedRhoPreMu, Real* vDot_PSortedNew,
+		Real* vDot_PSorted, uint numAllMarkers);
 
-void UpdateBC(Real3* m_dSortedPosRadNew,
-              Real4* m_dSortedVelMasNew,
-              Real4* m_dSortedRhoPreMuNew,
-              Real* vDot_PSortedNew,
-              int2* ShortestDistanceIndicesBoundaryOrRigidWithFluid,
-              int numBoundaryAndRigid);
+void UpdateBC(Real3* m_dSortedPosRadNew, Real4* m_dSortedVelMasNew,
+		Real4* m_dSortedRhoPreMuNew, Real* vDot_PSortedNew,
+		int2* ShortestDistanceIndicesBoundaryOrRigidWithFluid,
+		int numBoundaryAndRigid);
 
 void ReCalcDensity(thrust::device_vector<Real3>& oldPosRad,
-                   thrust::device_vector<Real4>& oldVelMas,
-                   thrust::device_vector<Real4>& oldRhoPreMu,
-                   thrust::device_vector<Real3>& sortedPosRad,
-                   thrust::device_vector<Real4>& sortedVelMas,
-                   thrust::device_vector<Real4>& sortedRhoPreMu,
-                   thrust::device_vector<uint>& gridMarkerIndex,
-                   thrust::device_vector<uint>& cellStart,
-                   thrust::device_vector<uint>& cellEnd,
-                   uint numAllMarkers);
+		thrust::device_vector<Real4>& oldVelMas,
+		thrust::device_vector<Real4>& oldRhoPreMu,
+		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<uint>& gridMarkerIndex,
+		thrust::device_vector<uint>& cellStart,
+		thrust::device_vector<uint>& cellEnd, uint numAllMarkers);
 
 void ProjectDensityPressureToBCandBCE(thrust::device_vector<Real4>& oldRhoPreMu,
-                                      thrust::device_vector<Real3>& sortedPosRad,
-                                      thrust::device_vector<Real4>& sortedRhoPreMu,
-                                      thrust::device_vector<uint>& gridMarkerIndex,
-                                      thrust::device_vector<uint>& cellStart,
-                                      thrust::device_vector<uint>& cellEnd,
-                                      uint numAllMarkers);
+		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<uint>& gridMarkerIndex,
+		thrust::device_vector<uint>& cellStart,
+		thrust::device_vector<uint>& cellEnd, uint numAllMarkers);
 
 void CalcCartesianData(thrust::device_vector<Real4>& rho_Pres_CartD,
-                       thrust::device_vector<Real4>& vel_VelMag_CartD,
-                       thrust::device_vector<Real3>& sortedPosRad,
-                       thrust::device_vector<Real4>& sortedVelMas,
-                       thrust::device_vector<Real4>& sortedRhoPreMu,
-                       thrust::device_vector<uint>& gridMarkerIndex,
-                       thrust::device_vector<uint>& cellStart,
-                       thrust::device_vector<uint>& cellEnd,
-                       uint cartesianGridSize,
-                       int3 cartesianGridDims,
-                       Real resolution);
+		thrust::device_vector<Real4>& vel_VelMag_CartD,
+		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<uint>& gridMarkerIndex,
+		thrust::device_vector<uint>& cellStart,
+		thrust::device_vector<uint>& cellEnd, uint cartesianGridSize,
+		int3 cartesianGridDims, Real resolution);
 
 void CalcNumberInterferences(int* contactFluidFromFluid_D,
-                             int* contactFluidFromTotal_D,
-                             Real3* sortedPosRad,
-                             Real4* sortedRhoPreMu,
-                             uint* gridMarkerIndex,
-                             uint* cellStart,
-                             uint* cellEnd,
-                             uint numAllMarkers,
-                             uint numCells,
-                             int2* contactIndicesFTotal,
-                             bool flagWrite);
+		int* contactFluidFromTotal_D, Real3* sortedPosRad,
+		Real4* sortedRhoPreMu, uint* gridMarkerIndex, uint* cellStart,
+		uint* cellEnd, uint numAllMarkers, uint numCells,
+		int2* contactIndicesFTotal, bool flagWrite);
 
-void FindMinimumDistanceIndices(int2* ShortestDistanceIndicesBoundaryOrRigidWithFluid,
-                                int* ShortestDistanceIsAvailable,
-                                Real3* sortedPosRad,
-                                Real4* sortedRhoPreMu,
-                                uint* gridMarkerIndex,
-                                uint* cellStart,
-                                uint* cellEnd,
-                                uint numAllMarkers,
-                                int numFluidMarkers,
-                                int numBoundaryAndRigid);
+void FindMinimumDistanceIndices(
+		int2* ShortestDistanceIndicesBoundaryOrRigidWithFluid,
+		int* ShortestDistanceIsAvailable, Real3* sortedPosRad,
+		Real4* sortedRhoPreMu, uint* gridMarkerIndex, uint* cellStart,
+		uint* cellEnd, uint numAllMarkers, int numFluidMarkers,
+		int numBoundaryAndRigid);
 
-void CalcJacobianAndResidual(int* COO_row,
-                             int* COO_col,
-                             Real* COO_val,
-                             Real* resULF,
-                             Real* sortedVDot_P,
-                             Real3* sortedPosRad,
-                             Real4* sortedVelMas,
-                             Real4* sortedRhoPreMu,
-                             uint* gridMarkerIndex,
-                             int* contactFluidFromFluid_D,
-                             int* contactFluidFromTotal_D,
-                             int2* contactIndicesFTotal,
-                             int totalNumberOfInterferenceFTotal,
-                             uint numAllMarkers,
-                             uint numFluidMarkers);
+void CalcJacobianAndResidual(int* COO_row, int* COO_col, Real* COO_val,
+		Real* resULF, Real* sortedVDot_P, Real3* sortedPosRad,
+		Real4* sortedVelMas, Real4* sortedRhoPreMu, uint* gridMarkerIndex,
+		int* contactFluidFromFluid_D, int* contactFluidFromTotal_D,
+		int2* contactIndicesFTotal, int totalNumberOfInterferenceFTotal,
+		uint numAllMarkers, uint numFluidMarkers);
 
 void UpdateFluid(thrust::device_vector<Real3>& posRadD,
-                 thrust::device_vector<Real4>& velMasD,
-                 thrust::device_vector<Real3>& vel_XSPH_D,
-                 thrust::device_vector<Real4>& rhoPresMuD,
-                 thrust::device_vector<Real4>& derivVelRhoD,
-                 const thrust::host_vector<int4>& referenceArray,
-                 Real dT);
+		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& vel_XSPH_D,
+		thrust::device_vector<Real4>& rhoPresMuD,
+		thrust::device_vector<Real4>& derivVelRhoD,
+		const thrust::host_vector<int4>& referenceArray, Real dT);
 
 void UpdateFluid_init_LF(thrust::device_vector<Real3>& posRadD,
-                         thrust::device_vector<Real4>& velMasD_half,
-                         thrust::device_vector<Real4>& rhoPresMuD_half,
-                         const thrust::device_vector<Real4>& derivVelRhoD,
-                         const thrust::host_vector<int4>& referenceArray,
-                         Real dT);
+		thrust::device_vector<Real4>& velMasD_half,
+		thrust::device_vector<Real4>& rhoPresMuD_half,
+		const thrust::device_vector<Real4>& derivVelRhoD,
+		const thrust::host_vector<int4>& referenceArray, Real dT);
 
 void UpdateFluid_rho_vel_LF(thrust::device_vector<Real4>& velMasD,
-                            thrust::device_vector<Real4>& rhoPresMuD,
-                            const thrust::device_vector<Real4>& velMasD_old,
-                            const thrust::device_vector<Real4>& rhoPresMuD_old,
-                            const thrust::device_vector<Real4>& derivVelRhoD,
-                            const thrust::host_vector<int4>& referenceArray,
-                            Real dT);
+		thrust::device_vector<Real4>& rhoPresMuD,
+		const thrust::device_vector<Real4>& velMasD_old,
+		const thrust::device_vector<Real4>& rhoPresMuD_old,
+		const thrust::device_vector<Real4>& derivVelRhoD,
+		const thrust::host_vector<int4>& referenceArray, Real dT);
 
 void UpdateFluid_EveryThing_LF(thrust::device_vector<Real3>& posRadD,
-                               thrust::device_vector<Real4>& velMasD_half,
-                               thrust::device_vector<Real4>& rhoPresMuD_half,
-                               const thrust::device_vector<Real4>& derivVelRhoD,
-                               const thrust::host_vector<int4>& referenceArray,
-                               Real dT);
+		thrust::device_vector<Real4>& velMasD_half,
+		thrust::device_vector<Real4>& rhoPresMuD_half,
+		const thrust::device_vector<Real4>& derivVelRhoD,
+		const thrust::host_vector<int4>& referenceArray, Real dT);
 
 void Copy_SortedVelXSPH_To_VelXSPH(thrust::device_vector<Real3>& vel_XSPH_D,
-                                   thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
-                                   thrust::device_vector<uint>& m_dGridMarkerIndex,
-                                   int numAllMarkers);
+		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
+		thrust::device_vector<uint>& m_dGridMarkerIndex, int numAllMarkers);
 
 void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
-                    thrust::device_vector<Real4>& velMasD,
-                    thrust::device_vector<Real4>& rhoPresMuD,
-                    thrust::device_vector<Real4>& derivVelRhoD,
-                    const thrust::host_vector<int4>& referenceArray,
-                    Real dT);
+		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real4>& rhoPresMuD,
+		thrust::device_vector<Real4>& derivVelRhoD,
+		const thrust::host_vector<int4>& referenceArray, Real dT);
 
 /**
  * @brief ApplyBoundarySPH_Markers
@@ -509,7 +456,6 @@ void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
  * @param numAllMarkers
  */
 void ApplyBoundarySPH_Markers(thrust::device_vector<Real3>& posRadD,
-                              thrust::device_vector<Real4>& rhoPresMuD,
-                              int numAllMarkers);
+		thrust::device_vector<Real4>& rhoPresMuD, int numAllMarkers);
 
 #endif

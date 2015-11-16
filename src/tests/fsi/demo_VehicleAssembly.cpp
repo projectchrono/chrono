@@ -35,7 +35,9 @@ using std::endl;
 // Specification of the terrain
 // -----------------------------------------------------------------------------
 
-enum TerrainType { RIGID, GRANULAR };
+enum TerrainType {
+	RIGID, GRANULAR
+};
 
 // Type of terrain
 TerrainType terrain_type = RIGID;
@@ -69,7 +71,8 @@ int num_particles = 100;
 std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
 
 // JSON files for powertrain (simple)
-std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
+std::string simplepowertrain_file(
+		"hmmwv/powertrain/HMMWV_SimplePowertrain.json");
 
 // Initial vehicle position and orientation
 ChVector<> initLoc(-hdimX + 2.5, 0, 0.6);
@@ -114,258 +117,274 @@ int bilateral_frame_interval = 100;
 // =============================================================================
 
 // Callback class for providing driver inputs.
-class MyDriverInputs : public ChDriverInputsCallback {
- public:
-  MyDriverInputs(double delay) : m_delay(delay) {}
+class MyDriverInputs: public ChDriverInputsCallback {
+public:
+	MyDriverInputs(double delay) :
+			m_delay(delay) {
+	}
 
-  virtual void onCallback(double time, double& throttle, double& steering, double& braking) {
-    throttle = 0;
-    steering = 0;
-    braking = 0;
+	virtual void onCallback(double time, double& throttle, double& steering,
+			double& braking) {
+		throttle = 0;
+		steering = 0;
+		braking = 0;
 
-    double eff_time = time - m_delay;
+		double eff_time = time - m_delay;
 
-    // Do not generate any driver inputs for a duration equal to m_delay.
-    if (eff_time < 0)
-      return;
+		// Do not generate any driver inputs for a duration equal to m_delay.
+		if (eff_time < 0)
+			return;
 
-    if (eff_time > 0.2)
-      throttle = 1.0;
-    else if (eff_time > 0.1)
-      throttle = 10 * (eff_time - 0.1);
-  }
+		if (eff_time > 0.2)
+			throttle = 1.0;
+		else if (eff_time > 0.1)
+			throttle = 10 * (eff_time - 0.1);
+	}
 
- private:
-  double m_delay;
+private:
+	double m_delay;
 };
 
 // Callback class for specifying rigid tire contact model.
 // This version uses cylindrical contact shapes.
-class MyCylindricalTire : public ChTireContactCallback {
- public:
-  virtual void onCallback(ChSharedPtr<ChBody> wheelBody, double radius, double width) {
-    wheelBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+class MyCylindricalTire: public ChTireContactCallback {
+public:
+	virtual void onCallback(ChSharedPtr<ChBody> wheelBody, double radius,
+			double width) {
+		wheelBody->ChangeCollisionModel(
+				new collision::ChCollisionModelParallel);
 
-    wheelBody->GetCollisionModel()->ClearModel();
-    wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, width / 2);
-    wheelBody->GetCollisionModel()->BuildModel();
+		wheelBody->GetCollisionModel()->ClearModel();
+		wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, width / 2);
+		wheelBody->GetCollisionModel()->BuildModel();
 
-    wheelBody->GetMaterialSurface()->SetFriction(mu_t);
-  }
+		wheelBody->GetMaterialSurface()->SetFriction(mu_t);
+	}
 };
 
 // =============================================================================
 
 double CreateParticles(ChSystem* system) {
-  // Create a material
-  ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
-  mat_g->SetFriction(mu_g);
+	// Create a material
+	ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
+	mat_g->SetFriction(mu_g);
 
-  // Create a particle generator and a mixture entirely made out of spheres
-  utils::Generator gen(system);
-  utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
-  m1->setDefaultMaterialDVI(mat_g);
-  m1->setDefaultDensity(rho_g);
-  m1->setDefaultSize(r_g);
+	// Create a particle generator and a mixture entirely made out of spheres
+	utils::Generator gen(system);
+	utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE,
+			1.0);
+	m1->setDefaultMaterialDVI(mat_g);
+	m1->setDefaultDensity(rho_g);
+	m1->setDefaultSize(r_g);
 
-  // Set starting value for body identifiers
-  gen.setBodyIdentifier(Id_g);
+	// Set starting value for body identifiers
+	gen.setBodyIdentifier(Id_g);
 
-  // Create particles in layers until reaching the desired number of particles
-  double r = 1.01 * r_g;
-  ChVector<> hdims(hdimX - r, hdimY - r, 0);
-  ChVector<> center(0, 0, 2 * r);
+	// Create particles in layers until reaching the desired number of particles
+	double r = 1.01 * r_g;
+	ChVector<> hdims(hdimX - r, hdimY - r, 0);
+	ChVector<> center(0, 0, 2 * r);
 
-  while (gen.getTotalNumBodies() < num_particles) {
-    gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
-    center.z += 2 * r;
-  }
+	while (gen.getTotalNumBodies() < num_particles) {
+		gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
+		center.z += 2 * r;
+	}
 
-  cout << "Created " << gen.getTotalNumBodies() << " particles." << endl;
+	cout << "Created " << gen.getTotalNumBodies() << " particles." << endl;
 
-  return center.z;
+	return center.z;
 }
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-  // --------------
-  // Create system.
-  // --------------
+	// --------------
+	// Create system.
+	// --------------
 
-  ChSystemParallelDVI* system = new ChSystemParallelDVI();
+	ChSystemParallelDVI* system = new ChSystemParallelDVI();
 
-  system->Set_G_acc(ChVector<>(0, 0, -9.81));
+	system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
-  // ----------------------
-  // Set number of threads.
-  // ----------------------
+	// ----------------------
+	// Set number of threads.
+	// ----------------------
 
-  int max_threads = omp_get_num_procs();
-  if (threads > max_threads)
-    threads = max_threads;
-  system->SetParallelThreadNumber(threads);
-  omp_set_num_threads(threads);
-  cout << "Using " << threads << " threads" << endl;
+	int max_threads = omp_get_num_procs();
+	if (threads > max_threads)
+		threads = max_threads;
+	system->SetParallelThreadNumber(threads);
+	omp_set_num_threads(threads);
+	cout << "Using " << threads << " threads" << endl;
 
-  system->GetSettings()->perform_thread_tuning = thread_tuning;
+	system->GetSettings()->perform_thread_tuning = thread_tuning;
 
-  // ---------------------
-  // Edit system settings.
-  // ---------------------
+	// ---------------------
+	// Edit system settings.
+	// ---------------------
 
-  system->GetSettings()->solver.use_full_inertia_tensor = false;
+	system->GetSettings()->solver.use_full_inertia_tensor = false;
 
-  system->GetSettings()->solver.tolerance = tolerance;
+	system->GetSettings()->solver.tolerance = tolerance;
 
-  system->GetSettings()->solver.solver_mode = SLIDING;
-  system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
-  system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-  system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-  system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-  system->GetSettings()->solver.alpha = 0;
-  system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-  system->ChangeSolverType(APGD);
+	system->GetSettings()->solver.solver_mode = SLIDING;
+	system->GetSettings()->solver.max_iteration_bilateral =
+			max_iteration_bilateral;
+	system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+	system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+	system->GetSettings()->solver.max_iteration_spinning =
+			max_iteration_spinning;
+	system->GetSettings()->solver.alpha = 0;
+	system->GetSettings()->solver.contact_recovery_speed =
+			contact_recovery_speed;
+	system->ChangeSolverType(APGD);
 
-  system->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
-  system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
-  system->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+	system->GetSettings()->collision.narrowphase_algorithm =
+			NARROWPHASE_HYBRID_MPR;
+	system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
+	system->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
 
-  // -------------------
-  // Create the terrain.
-  // -------------------
+	// -------------------
+	// Create the terrain.
+	// -------------------
 
-  // Ground body
-  ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
-  ground->SetIdentifier(-1);
-  ground->SetBodyFixed(true);
-  ground->SetCollide(true);
+	// Ground body
+	ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(
+			new ChBody(new collision::ChCollisionModelParallel));
+	ground->SetIdentifier(-1);
+	ground->SetBodyFixed(true);
+	ground->SetCollide(true);
 
-  ground->GetMaterialSurface()->SetFriction(mu_g);
+	ground->GetMaterialSurface()->SetFriction(mu_g);
 
-  ground->GetCollisionModel()->ClearModel();
+	ground->GetCollisionModel()->ClearModel();
 
-  // Bottom box
-  utils::AddBoxGeometry(
-      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0), true);
-  if (terrain_type == GRANULAR) {
-    // Front box
-    utils::AddBoxGeometry(ground.get_ptr(),
-                          ChVector<>(hthick, hdimY, hdimZ + hthick),
-                          ChVector<>(hdimX + hthick, 0, hdimZ - hthick),
-                          ChQuaternion<>(1, 0, 0, 0),
-                          visible_walls);
-    // Rear box
-    utils::AddBoxGeometry(ground.get_ptr(),
-                          ChVector<>(hthick, hdimY, hdimZ + hthick),
-                          ChVector<>(-hdimX - hthick, 0, hdimZ - hthick),
-                          ChQuaternion<>(1, 0, 0, 0),
-                          visible_walls);
-    // Left box
-    utils::AddBoxGeometry(ground.get_ptr(),
-                          ChVector<>(hdimX, hthick, hdimZ + hthick),
-                          ChVector<>(0, hdimY + hthick, hdimZ - hthick),
-                          ChQuaternion<>(1, 0, 0, 0),
-                          visible_walls);
-    // Right box
-    utils::AddBoxGeometry(ground.get_ptr(),
-                          ChVector<>(hdimX, hthick, hdimZ + hthick),
-                          ChVector<>(0, -hdimY - hthick, hdimZ - hthick),
-                          ChQuaternion<>(1, 0, 0, 0),
-                          visible_walls);
-  }
+	// Bottom box
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick),
+			ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0), true);
+	if (terrain_type == GRANULAR) {
+		// Front box
+		utils::AddBoxGeometry(ground.get_ptr(),
+				ChVector<>(hthick, hdimY, hdimZ + hthick),
+				ChVector<>(hdimX + hthick, 0, hdimZ - hthick),
+				ChQuaternion<>(1, 0, 0, 0), visible_walls);
+		// Rear box
+		utils::AddBoxGeometry(ground.get_ptr(),
+				ChVector<>(hthick, hdimY, hdimZ + hthick),
+				ChVector<>(-hdimX - hthick, 0, hdimZ - hthick),
+				ChQuaternion<>(1, 0, 0, 0), visible_walls);
+		// Left box
+		utils::AddBoxGeometry(ground.get_ptr(),
+				ChVector<>(hdimX, hthick, hdimZ + hthick),
+				ChVector<>(0, hdimY + hthick, hdimZ - hthick),
+				ChQuaternion<>(1, 0, 0, 0), visible_walls);
+		// Right box
+		utils::AddBoxGeometry(ground.get_ptr(),
+				ChVector<>(hdimX, hthick, hdimZ + hthick),
+				ChVector<>(0, -hdimY - hthick, hdimZ - hthick),
+				ChQuaternion<>(1, 0, 0, 0), visible_walls);
+	}
 
-  ground->GetCollisionModel()->BuildModel();
+	ground->GetCollisionModel()->BuildModel();
 
-  system->AddBody(ground);
+	system->AddBody(ground);
 
-  // Create the granular material.
-  double vertical_offset = 0;
+	// Create the granular material.
+	double vertical_offset = 0;
 
-  if (terrain_type == GRANULAR) {
-    vertical_offset = CreateParticles(system);
-  }
+	if (terrain_type == GRANULAR) {
+		vertical_offset = CreateParticles(system);
+	}
 
-  // -----------------------------------------
-  // Create and initialize the vehicle system.
-  // -----------------------------------------
+	// -----------------------------------------
+	// Create and initialize the vehicle system.
+	// -----------------------------------------
 
-  // Create the vehicle assembly specifying the containing system and
-  // the JSON specification files for the vehicle and powertrain models.
-  ChWheeledVehicleAssembly vehicle_assembly(system, vehicle_file_cyl, simplepowertrain_file);
+	// Create the vehicle assembly specifying the containing system and
+	// the JSON specification files for the vehicle and powertrain models.
+	ChWheeledVehicleAssembly vehicle_assembly(system, vehicle_file_cyl,
+			simplepowertrain_file);
 
-  // Set the callback for tire contact geometry.
-  MyCylindricalTire tire_cb;
-  vehicle_assembly.SetTireContactCallback(&tire_cb);
+	// Set the callback for tire contact geometry.
+	MyCylindricalTire tire_cb;
+	vehicle_assembly.SetTireContactCallback(&tire_cb);
 
-  // Set the callback object for driver inputs. Pass the hold time as a delay in
-  // generating driver inputs.
-  MyDriverInputs driver_cb(time_hold);
-  vehicle_assembly.SetDriverInputsCallback(&driver_cb);
+	// Set the callback object for driver inputs. Pass the hold time as a delay in
+	// generating driver inputs.
+	MyDriverInputs driver_cb(time_hold);
+	vehicle_assembly.SetDriverInputsCallback(&driver_cb);
 
-  // Initialize the vehicle at a height above the terrain.
-  vehicle_assembly.Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+	// Initialize the vehicle at a height above the terrain.
+	vehicle_assembly.Initialize(initLoc + ChVector<>(0, 0, vertical_offset),
+			initRot);
 
-  // Initially, fix the chassis and wheel bodies (will be released after time_hold).
-  vehicle_assembly.GetVehicle()->GetChassis()->SetBodyFixed(true);
-  for (int i = 0; i < 2 * vehicle_assembly.GetVehicle()->GetNumberAxles(); i++) {
-    vehicle_assembly.GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
-  }
+	// Initially, fix the chassis and wheel bodies (will be released after time_hold).
+	vehicle_assembly.GetVehicle()->GetChassis()->SetBodyFixed(true);
+	for (int i = 0; i < 2 * vehicle_assembly.GetVehicle()->GetNumberAxles();
+			i++) {
+		vehicle_assembly.GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
+	}
 
-  // -----------------------
-  // Perform the simulation.
-  // -----------------------
+	// -----------------------
+	// Perform the simulation.
+	// -----------------------
 
-  // Initialize OpenGL
-  opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-  gl_window.Initialize(1280, 720, "HMMWV", system);
-  gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-  gl_window.SetRenderMode(opengl::WIREFRAME);
+	// Initialize OpenGL
+	opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+	gl_window.Initialize(1280, 720, "HMMWV", system);
+	gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0),
+			ChVector<>(0, 0, 1));
+	gl_window.SetRenderMode(opengl::WIREFRAME);
 
-  // Run simulation for specified time.
-  double time = 0;
-  int sim_frame = 0;
-  double exec_time = 0;
-  int num_contacts = 0;
+	// Run simulation for specified time.
+	double time = 0;
+	int sim_frame = 0;
+	double exec_time = 0;
+	int num_contacts = 0;
 
-  while (time < time_end) {
-    // Release the vehicle chassis at the end of the hold time.
-    if (vehicle_assembly.GetVehicle()->GetChassis()->GetBodyFixed() && time > time_hold) {
-      cout << endl << "Release vehicle t = " << time << endl;
-      vehicle_assembly.GetVehicle()->GetChassis()->SetBodyFixed(false);
-      for (int i = 0; i < 2 * vehicle_assembly.GetVehicle()->GetNumberAxles(); i++) {
-        vehicle_assembly.GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
-      }
-    }
+	while (time < time_end) {
+		// Release the vehicle chassis at the end of the hold time.
+		if (vehicle_assembly.GetVehicle()->GetChassis()->GetBodyFixed()
+				&& time > time_hold) {
+			cout << endl << "Release vehicle t = " << time << endl;
+			vehicle_assembly.GetVehicle()->GetChassis()->SetBodyFixed(false);
+			for (int i = 0;
+					i < 2 * vehicle_assembly.GetVehicle()->GetNumberAxles();
+					i++) {
+				vehicle_assembly.GetVehicle()->GetWheelBody(i)->SetBodyFixed(
+						false);
+			}
+		}
 
-    // Update vehicle
-    vehicle_assembly.Update(time);
+		// Update vehicle
+		vehicle_assembly.Update(time);
 
-    // Advance dynamics.
-    if (gl_window.Active()) {
-      gl_window.DoStepDynamics(time_step);
-      gl_window.Render();
-    } else
-      break;
+		// Advance dynamics.
+		if (gl_window.Active()) {
+			gl_window.DoStepDynamics(time_step);
+			gl_window.Render();
+		} else
+			break;
 
-    // Periodically display maximum constraint violation
-    if (monitor_bilaterals && sim_frame % bilateral_frame_interval == 0) {
-      std::vector<double> cvec;
-      ////vehicle_assembly.GetVehicle()->LogConstraintViolations();
-      cout << "  Max. violation = " << system->CalculateConstraintViolation(cvec) << endl;
-    }
+		// Periodically display maximum constraint violation
+		if (monitor_bilaterals && sim_frame % bilateral_frame_interval == 0) {
+			std::vector<double> cvec;
+			////vehicle_assembly.GetVehicle()->LogConstraintViolations();
+			cout << "  Max. violation = "
+					<< system->CalculateConstraintViolation(cvec) << endl;
+		}
 
-    // Update counters.
-    time += time_step;
-    sim_frame++;
-    exec_time += system->GetTimerStep();
-    num_contacts += system->GetNcontacts();
-  }
+		// Update counters.
+		time += time_step;
+		sim_frame++;
+		exec_time += system->GetTimerStep();
+		num_contacts += system->GetNcontacts();
+	}
 
-  // Final stats
-  cout << "==================================" << endl;
-  cout << "Simulation time:   " << exec_time << endl;
-  cout << "Number of threads: " << threads << endl;
+	// Final stats
+	cout << "==================================" << endl;
+	cout << "Simulation time:   " << exec_time << endl;
+	cout << "Number of threads: " << threads << endl;
 
-  return 0;
+	return 0;
 }

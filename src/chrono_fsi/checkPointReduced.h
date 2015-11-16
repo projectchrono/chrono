@@ -16,23 +16,20 @@
 #include <thrust/host_vector.h>
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
-                             const thrust::host_vector<Real4>& mVelMas,
-                             const thrust::host_vector<Real4>& mRhoPresMu,
-                             const thrust::host_vector<uint>& bodyIndex,
-                             const thrust::host_vector<int4>& referenceArray,
+		const thrust::host_vector<Real4>& mVelMas,
+		const thrust::host_vector<Real4>& mRhoPresMu,
+		const thrust::host_vector<uint>& bodyIndex,
+		const thrust::host_vector<int4>& referenceArray,
 
-                             SimParams paramsH,
-                             NumberOfObjects numObjects,
-                             int tStep,
-                             int tStepsCheckPoint);
+		SimParams paramsH, NumberOfObjects numObjects, int tStep,
+		int tStepsCheckPoint);
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CheckPointMarkers_Read(bool shouldIRead,
-                            thrust::host_vector<Real3>& mPosRad,
-                            thrust::host_vector<Real4>& mVelMas,
-                            thrust::host_vector<Real4>& mRhoPresMu,
-                            thrust::host_vector<uint>& bodyIndex,
-                            thrust::host_vector<int4>& referenceArray,
+		thrust::host_vector<Real3>& mPosRad,
+		thrust::host_vector<Real4>& mVelMas,
+		thrust::host_vector<Real4>& mRhoPresMu,
+		thrust::host_vector<uint>& bodyIndex,
+		thrust::host_vector<int4>& referenceArray,
 
-                            SimParams& paramsH,
-                            NumberOfObjects& numObjects);
+		SimParams& paramsH, NumberOfObjects& numObjects);

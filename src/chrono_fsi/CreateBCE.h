@@ -49,5 +49,4 @@ void LoadBCE_fromFile(
     thrust::host_vector<Real3>& posRadBCE,  // do not set the size here since you are using push back later
     std::string fileName);
 
-
 #endif /* CREATEBCE_H_ */

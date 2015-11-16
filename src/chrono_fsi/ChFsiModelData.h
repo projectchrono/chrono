@@ -21,8 +21,6 @@
 
 #include <string>
 
-
-
 namespace chrono {
 //namespace fsi {
 
@@ -38,6 +36,6 @@ const std::string& GetFsiDataPath();
 std::string GetFsiDataFile(const std::string& filename);
 
 //}  // end namespace fsi
-}  // end namespace chrono
+}// end namespace chrono
 
 #endif

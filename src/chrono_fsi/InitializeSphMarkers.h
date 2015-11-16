@@ -22,27 +22,22 @@
  * 		will be in. Currently it sets up a box of fluid and this is dropped into a container
  */
 int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
-                        thrust::host_vector<Real4>& velMasH,
-                        thrust::host_vector<Real4>& rhoPresMuH,
-                        thrust::host_vector<uint>& bodyIndex,
-                        const SimParams& paramsH,
-                        Real& sphMarkerMass);
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<uint>& bodyIndex, const SimParams& paramsH,
+		Real& sphMarkerMass);
 
-void AddBoxBceToChSystemAndSPH(
-    chrono::ChBody* body,
-    const chrono::ChVector<>& size,
-    const chrono::ChVector<>& pos,
-    const chrono::ChQuaternion<>& rot,
-    bool visualization,
+void AddBoxBceToChSystemAndSPH(chrono::ChBody* body,
+		const chrono::ChVector<>& size, const chrono::ChVector<>& pos,
+		const chrono::ChQuaternion<>& rot, bool visualization,
 
-    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
-    thrust::host_vector<Real4>& velMasH,
-    thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector<uint>& bodyIndex,
-    thrust::host_vector< ::int4>& referenceArray,
-    NumberOfObjects& numObjects,
-    const SimParams& paramsH,
-    Real sphMarkerMass);
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<uint>& bodyIndex,
+		thrust::host_vector<::int4>& referenceArray,
+		NumberOfObjects& numObjects, const SimParams& paramsH,
+		Real sphMarkerMass);
 
 void AddSphereBceToChSystemAndSPH(chrono::ChSystemParallelDVI& mphysicalSystem,
 		Real radius, const chrono::ChVector<>& pos,
@@ -56,31 +51,24 @@ void AddSphereBceToChSystemAndSPH(chrono::ChSystemParallelDVI& mphysicalSystem,
 		const SimParams& paramsH);
 
 void AddCylinderBceToChSystemAndSPH(
-		chrono::ChSystemParallelDVI& mphysicalSystem,
-    Real radius,
-    Real height,
-    const chrono::ChVector<>& pos,
-    const chrono::ChQuaternion<>& rot,
-    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
-    thrust::host_vector<Real4>& velMasH,
-    thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector< ::int4>& referenceArray,
-    std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
-    NumberOfObjects& numObjects,
-    Real sphMarkerMass,
-    const SimParams& paramsH);
+		chrono::ChSystemParallelDVI& mphysicalSystem, Real radius, Real height,
+		const chrono::ChVector<>& pos, const chrono::ChQuaternion<>& rot,
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH);
 
 void AddBCE2FluidSystem_FromFile(
-    thrust::host_vector<Real3>& posRadH,  // do not set the size here since you are using push back later
-    thrust::host_vector<Real4>& velMasH,
-    thrust::host_vector<Real4>& rhoPresMuH,
-    thrust::host_vector< ::int4>& referenceArray,
-    NumberOfObjects& numObjects,
-    Real sphMarkerMass,
-    const SimParams& paramsH,
-    chrono::ChSharedPtr<chrono::ChBody> body,
-    std::string dataPath);
-
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
+		std::string dataPath);
 
 /**
  * @brief Set the number of objects (rigid and flexible)
@@ -92,6 +80,7 @@ void AddBCE2FluidSystem_FromFile(
  *                       referenceArray[1].y = Total number of markers,
  * @param numAllMarkers Total number of markers (fluid + boundary)
  */
-void SetNumObjects(NumberOfObjects& numObjects, const thrust::host_vector<int4>& referenceArray, int numAllMarkers);
+void SetNumObjects(NumberOfObjects& numObjects,
+		const thrust::host_vector<int4>& referenceArray, int numAllMarkers);
 
 #endif /* INITIALIZESPHMARKERS_H_ */
