@@ -20,7 +20,7 @@
 // Specification post processing directory
 // -----------------------------------------------------------------------------
 
-const std::string out_dir = "../FSI_OUTPUT";
+const std::string out_dir = "FSI_OUTPUT";//"../FSI_OUTPUT";
 
 
 // -----------------------------------------------------------------------------
