@@ -295,6 +295,17 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 			+ smallBuffer;
 
 	if (!initializeFluidFromFile) {
+
+		void AddBoxBceToChSystemAndSPH(
+				thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+				thrust::host_vector<Real4>& velMasH,
+				thrust::host_vector<Real4>& rhoPresMuH,
+				thrust::host_vector<::int4>& referenceArray,
+				NumberOfObjects& numObjects, Real sphMarkerMass,
+				const SimParams& paramsH, const ChVector<>& size,
+				chrono::ChSharedPtr<chrono::ChBody> body)
+
+
 #if haveFluid
 
 		// beginning third

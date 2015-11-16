@@ -16,6 +16,32 @@
 #include "utils/ChUtilsGenerators.h"
 
 //**********************************************
+
+void SetNumObjects(NumberOfObjects& numObjects,
+		const thrust::host_vector<int4>& referenceArray, int numAllMarkers) {
+	numObjects.numFluidMarkers = (referenceArray[0]).y - (referenceArray[0]).x;
+	numObjects.numBoundaryMarkers = (referenceArray[1]).y
+			- (referenceArray[1]).x;
+	numObjects.numAllMarkers = numAllMarkers;
+
+	numObjects.numRigidBodies = 0;
+	numObjects.numRigid_SphMarkers = 0;
+	numObjects.numFlex_SphMarkers = 0;
+	std::cout << "********************" << std::endl;
+	std::cout << "numFlexBodies: " << numObjects.numFlexBodies << std::endl;
+	std::cout << "numRigidBodies: " << numObjects.numRigidBodies << std::endl;
+	std::cout << "numFluidMarkers: " << numObjects.numFluidMarkers << std::endl;
+	std::cout << "numBoundaryMarkers: " << numObjects.numBoundaryMarkers
+			<< std::endl;
+	std::cout << "numRigid_SphMarkers: " << numObjects.numRigid_SphMarkers
+			<< std::endl;
+	std::cout << "numFlex_SphMarkers: " << numObjects.numFlex_SphMarkers
+			<< std::endl;
+	std::cout << "numAllMarkers: " << numObjects.numAllMarkers << std::endl;
+	std::cout << "********************" << std::endl;
+}
+
+//**********************************************
 //bool is_number(const std::string& s) {
 //  std::string::const_iterator it = s.begin();
 //  while (it != s.end() && std::isdigit(*it))
@@ -133,172 +159,256 @@ chrono::ChVector<> TransformBCEToCOG(chrono::ChBody* body, const Real3 & pos3) {
 	return frame.GetPos();
 }
 // =============================================================================
-// note, the function in the current implementation creates boundary bce (accesses only referenceArray[1])
-void AddBoxBceToChSystemAndSPH(chrono::ChBody* body,
-		const chrono::ChVector<>& size, const chrono::ChVector<>& pos,
-		const chrono::ChQuaternion<>& rot, bool visualization,
-
-		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
-		thrust::host_vector<uint>& bodyIndex,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, const SimParams& paramsH,
-		Real sphMarkerMass) {
-	chrono::utils::AddBoxGeometry(body, size, pos, rot, visualization);
+		NumberOfObjects& numObjects,
+		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
+		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body) {
+
 	//        assert(referenceArray.size() > 1 &&
 	//               "error: fluid need to be initialized before boundary. Reference array should have two
 	//               components");
-	if (referenceArray.size() <= 1) {
+	if (referenceArray.size() < 1) {
 		printf(
 				"\n\n\n\n Error! fluid need to be initialized before boundary. Reference array should have two "
 						"components \n\n\n\n");
 	}
+	::int4 refSize4 = referenceArray[referenceArray.size() - 1];
+	int type = refSize4.w + 1;
 
-	thrust::host_vector<Real3> posRadBCE;
-	thrust::host_vector<Real4> velMasBCE;
-	thrust::host_vector<Real4> rhoPresMuBCE;
-
-	CreateBCE_On_Box(posRadBCE, velMasBCE, rhoPresMuBCE, paramsH, sphMarkerMass,
-			size, pos, rot, 12);
-	int numBCE = posRadBCE.size();
-	int numSaved = posRadH.size();
-	for (int i = 0; i < numBCE; i++) {
-		posRadH.push_back(posRadBCE[i]);
-		velMasH.push_back(velMasBCE[i]);
-		rhoPresMuH.push_back(rhoPresMuBCE[i]);
-		bodyIndex.push_back(i + numSaved);
+	if (type < 0) {
+		printf(
+				"\n\n\n\n Error! reference array type is not correct. It does not start with -1, i.e. fluid. \n\n\n\n");
 	}
 
-	::int4 ref4 = referenceArray[1];
-	ref4.y = ref4.y + numBCE;
-	referenceArray[1] = ref4;
+	//#pragma omp parallel for  // it is very wrong to do it in parallel. race condition will occur
+	for (int i = 0; i < posRadBCE.size(); i++) {
+		chrono::ChVector<> position = TransformBCEToCOG(body.get(),
+				posRadBCE[i]);
 
-	int numAllMarkers = numBCE + numSaved;
-	SetNumObjects(numObjects, referenceArray, numAllMarkers);
+		chrono::ChVector<> posParent =
+				chrono::ChTransform<>::TransformLocalToParent(position,
+						body->GetPos(), body->GetRot());
+		posRadH.push_back(ConvertChVectorToR3(posParent));
 
-	posRadBCE.clear();
-	velMasBCE.clear();
-	rhoPresMuBCE.clear();
+		chrono::ChVector<> pointPar = ConvertRealToChVector(posRadBCE[i]);
+		chrono::ChVector<> posLoc =
+				chrono::ChTransform<>::TransformParentToLocal(pointPar,
+						body->GetPos(), body->GetRot());
+		chrono::ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc);
+		Real3 v3 = ConvertChVectorToR3(vAbs);
+		velMasH.push_back(mR4(v3, sphMarkerMass));
+
+		rhoPresMuH.push_back(
+		mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));
+	}
+
+	// ------------------------
+	// Modify number of objects
+	// ------------------------
+
+	int numBce = posRadBCE.size();
+	numObjects.numAllMarkers += numBce;
+	if (type == 0) {
+		numObjects.numBoundaryMarkers += numBce;
+		if (referenceArray.size() == 1) {
+			referenceArray.push_back(
+			mI4(refSize4.y, refSize4.y + numBce, 0, 0));
+		} else if (referenceArray.size() == 2) {
+			refSize4.y = refSize4.y + numBce;
+			referenceArray[1] = refSize4;
+		} else {
+			printf(
+					"Error! reference array size is greater than 2 while marker type is 0 \n\n");
+		}
+	} else {
+		if (referenceArray.size() < 2) {
+			printf(
+					"Error! Boundary markers are not initialized while trying to initialize rigid marker!\n\n");
+		}
+		numObjects.numRigid_SphMarkers += numBce;
+		numObjects.numRigidBodies += 1;
+		numObjects.startRigidMarkers = referenceArray[1].y;
+		referenceArray.push_back(
+		mI4(refSize4.y, refSize4.y + numBce, 1, type)); // 1: for rigid
+		if (numObjects.numRigidBodies != referenceArray.size() - 2) {
+			printf(
+					"Error! num rigid bodies does not match reference array size!\n\n");
+		}
+	}
+
+	//	SetNumObjects(numObjects, referenceArray, numAllMarkers);
 }
+// =============================================================================
+void AddSphereBceToChSystemAndSPH(
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH, Real radius,
+		chrono::ChSharedPtr<chrono::ChBody> body) {
+	//
+//				chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
+//						chrono::ChBody>(
+//						new chrono::ChBody(
+//								new chrono::collision::ChCollisionModelParallel));
+//				// body->SetIdentifier(-1);
+//				body->SetBodyFixed(false);
+//				body->SetCollide(true);
+//
+//				//Arman, move out specific chrono stuff
+//				Real mu_g = .1;
+//				body->GetMaterialSurface()->SetFriction(mu_g);
+//				body->SetPos(pos);
+//				body->SetRot(rot);
+//				double volume = chrono::utils::CalcSphereVolume(radius);
+//				chrono::ChVector<> gyration =
+//						chrono::utils::CalcSphereGyration(radius).Get_Diag();
+//				double density = paramsH.rho0;
+//				double mass = density * volume;
+//				body->SetMass(mass);
+//				body->SetInertiaXX(mass * gyration);
+//				//
+//				body->GetCollisionModel()->ClearModel();
+//				chrono::utils::AddSphereGeometry(body.get_ptr(), radius);
+//				body->GetCollisionModel()->BuildModel();
+//				mphysicalSystem.AddBody(body);
+	//
 
+	chrono::utils::AddSphereGeometry(body.get_ptr(), radius);
+	thrust::host_vector<Real3> posRadBCE;
+	CreateBCE_On_Sphere(posRadBCE, radius, paramsH);
+
+	if (posRadH.size() != numObjects.numAllMarkers) {
+		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
+				numObjects.numAllMarkers, posRadH.size());
+	}
+
+	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
+			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH,
+			body);
+	posRadBCE.clear();
+
+//	int numBce = CreateOne3DRigidSphere(posRadH, velMasH, rhoPresMuH,
+//			body.get_ptr(), radius, body->GetMass(), sphMarkerMass, type,
+//			paramsH);
+//
+//	referenceArray.push_back(mI4(numMarkers, numMarkers + numBce, 1, type)); //1: for rigid
+//	numObjects.numRigidBodies += 1;
+//	numObjects.startRigidMarkers = referenceArray[1].y; // Arman : not sure if you need to set startFlexMarkers
+//	numObjects.numRigid_SphMarkers += numBce;
+//	numObjects.numAllMarkers = posRadH.size();
+//
+//	printf("\n numAllMarkers %d numBCE %d\n", numObjects.numAllMarkers, numBce);
+//	FSI_Bodies.push_back(body);
+}
 // =============================================================================
 void AddCylinderBceToChSystemAndSPH(
-		chrono::ChSystemParallelDVI& mphysicalSystem, Real radius, Real height,
-		const chrono::ChVector<>& pos, const chrono::ChQuaternion<>& rot,
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
 		NumberOfObjects& numObjects, Real sphMarkerMass,
-		const SimParams& paramsH) {
+		const SimParams& paramsH, Real radius, Real height,
+		chrono::ChSharedPtr<chrono::ChBody> body) {
 	//
-	int numMarkers = posRadH.size();
-	int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
-	::int4 refSize4 = referenceArray[referenceArray.size() - 1];
-	int type = refSize4.w + 1;
-	if (type < 1) {
-		printf(
-				"\n\n\n\n Error! rigid type is not a positive number. The issue is possibly due to absence of boundary particles \n\n\n\n");
-	}
-	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
-			chrono::ChBody>(
-			new chrono::ChBody(
-					new chrono::collision::ChCollisionModelParallel));
-	// body->SetIdentifier(-1);
-	body->SetBodyFixed(false);
-	body->SetCollide(true);
 
-	//Arman, move out specific chrono stuff
-	Real mu_g = .1;
-	body->GetMaterialSurface()->SetFriction(mu_g);
-	body->SetPos(pos);
-	body->SetRot(rot);
-	//    body->SetWvel_par(ChVector<>(0, 10, 0));
-	double volume = chrono::utils::CalcCylinderVolume(radius, 0.5 * height);
-	chrono::ChVector<> gyration = chrono::utils::CalcCylinderGyration(radius,
-			0.5 * height).Get_Diag();
-	double density = paramsH.rho0;
-	double mass = density * volume;
-	body->SetMass(mass);
-	body->SetInertiaXX(mass * gyration);
+	// Arman move to model file
+//				chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
+//						chrono::ChBody>(
+//						new chrono::ChBody(
+//								new chrono::collision::ChCollisionModelParallel));
+//				// body->SetIdentifier(-1);
+//				body->SetBodyFixed(false);
+//				body->SetCollide(true);
+//
+//				//Arman, move out specific chrono stuff
+//				Real mu_g = .1;
+//				body->GetMaterialSurface()->SetFriction(mu_g);
+//				body->SetPos(pos);
+//				body->SetRot(rot);
+//				//    body->SetWvel_par(ChVector<>(0, 10, 0));
+//				double volume = chrono::utils::CalcCylinderVolume(radius, 0.5 * height);
+//				chrono::ChVector<> gyration = chrono::utils::CalcCylinderGyration(radius,
+//						0.5 * height).Get_Diag();
+//				double density = paramsH.rho0;
+//				double mass = density * volume;
+//				body->SetMass(mass);
+//				body->SetInertiaXX(mass * gyration);
+//				//
+//				body->GetCollisionModel()->ClearModel();
+//				chrono::utils::AddCylinderGeometry(body.get_ptr(), radius, 0.5 * height);
+//				body->GetCollisionModel()->BuildModel();
+//				mphysicalSystem.AddBody(body);
 	//
-	body->GetCollisionModel()->ClearModel();
+
 	chrono::utils::AddCylinderGeometry(body.get_ptr(), radius, 0.5 * height);
-	body->GetCollisionModel()->BuildModel();
-	mphysicalSystem.AddBody(body);
-	//
-	int numBce = CreateOne3DRigidCylinder(posRadH, velMasH, rhoPresMuH,
-			body.get_ptr(), radius, height, body->GetMass(), sphMarkerMass,
-			type, paramsH);
+	thrust::host_vector<Real3> posRadBCE;
+	CreateBCE_On_Cylinder(posRadBCE, radius, height, paramsH);
 
-	referenceArray.push_back(mI4(numMarkers, numMarkers + numBce, 1, type)); // 1: for rigid
-	numObjects.numRigidBodies += 1;
-	numObjects.startRigidMarkers = numMarkers; // Arman : not sure if you need to set startFlexMarkers
-	numObjects.numRigid_SphMarkers += numBce;
-	numObjects.numAllMarkers = posRadH.size();
-	FSI_Bodies.push_back(body);
+	if (posRadH.size() != numObjects.numAllMarkers) {
+		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
+				numObjects.numAllMarkers, posRadH.size());
+	}
+
+	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
+			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH,
+			body);
+	posRadBCE.clear();
+
+//	referenceArray.push_back(mI4(numMarkers, numMarkers + numBce, 1, type)); // 1: for rigid
+//	numObjects.numRigidBodies += 1;
+//	numObjects.startRigidMarkers = numMarkers; // Arman : not sure if you need to set startFlexMarkers
+//	numObjects.numRigid_SphMarkers += numBce;
+//	numObjects.numAllMarkers = posRadH.size();
+//	FSI_Bodies.push_back(body);
 }
 
 // =============================================================================
-void AddSphereBceToChSystemAndSPH(chrono::ChSystemParallelDVI& mphysicalSystem,
-		Real radius, const chrono::ChVector<>& pos,
-		const chrono::ChQuaternion<>& rot,
+// Arman note, the function in the current implementation creates boundary bce (accesses only referenceArray[1])
+
+// Arman thrust::host_vector<uint>& bodyIndex,
+
+void AddBoxBceToChSystemAndSPH(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
 		NumberOfObjects& numObjects, Real sphMarkerMass,
-		const SimParams& paramsH) {
-	//
-	int numMarkers = posRadH.size();
-	int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
-	::int4 refSize4 = referenceArray[referenceArray.size() - 1];
-	int type = refSize4.w + 1;
-	if (type < 1) {
-		printf(
-				"\n\n\n\n Error! rigid type is not a positive number. The issue is possibly due to absence of boundary particles \n\n\n\n");
+		const SimParams& paramsH, const ChVector<>& size,
+		chrono::ChSharedPtr<chrono::ChBody> body,
+		ChVector<> relPos,
+		ChQuaternion<> relRot) {
+	chrono::utils::AddBoxGeometry(body, size, pos, rot, true);
+	thrust::host_vector<Real3> posRadBCE;
+	CreateBCE_On_Box(posRadBCE, ConvertChVectorToR3(size), 12, paramsH);
+
+	if (posRadH.size() != numObjects.numAllMarkers) {
+		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
+				numObjects.numAllMarkers, posRadH.size());
 	}
-	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
-			chrono::ChBody>(
-			new chrono::ChBody(
-					new chrono::collision::ChCollisionModelParallel));
-	// body->SetIdentifier(-1);
-	body->SetBodyFixed(false);
-	body->SetCollide(true);
 
-	//Arman, move out specific chrono stuff
-	Real mu_g = .1;
-	body->GetMaterialSurface()->SetFriction(mu_g);
-	body->SetPos(pos);
-	body->SetRot(rot);
-	double volume = chrono::utils::CalcSphereVolume(radius);
-	chrono::ChVector<> gyration =
-			chrono::utils::CalcSphereGyration(radius).Get_Diag();
-	double density = paramsH.rho0;
-	double mass = density * volume;
-	body->SetMass(mass);
-	body->SetInertiaXX(mass * gyration);
-	//
-	body->GetCollisionModel()->ClearModel();
-	chrono::utils::AddSphereGeometry(body.get_ptr(), radius);
-	body->GetCollisionModel()->BuildModel();
-	mphysicalSystem.AddBody(body);
-	//
-	int numBce = CreateOne3DRigidSphere(posRadH, velMasH, rhoPresMuH,
-			body.get_ptr(), radius, body->GetMass(), sphMarkerMass, type,
-			paramsH);
+	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
+			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH,
+			body);
+	posRadBCE.clear();
 
-	referenceArray.push_back(mI4(numMarkers, numMarkers + numBce, 1, type)); //1: for rigid
-	numObjects.numRigidBodies += 1;
-	numObjects.startRigidMarkers = referenceArray[1].y; // Arman : not sure if you need to set startFlexMarkers
-	numObjects.numRigid_SphMarkers += numBce;
-	numObjects.numAllMarkers = posRadH.size();
+//	int type = 0; //boundary
+//	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH, posRadBCE, type,
+//			sphMarkerMass, paramsH, body);
+//	int numBce = posRadBCE.size();
+//	int numSaved = posRadH.size();
+//
+//	::int4 ref4 = referenceArray[1];
+//	ref4.y = ref4.y + numBCE;
+//	referenceArray[1] = ref4;
+//
+//	int numAllMarkers = numBCE + numSaved;
+//	SetNumObjects(numObjects, referenceArray, numAllMarkers);
 
-	printf("\n numAllMarkers %d numBCE %d\n", numObjects.numAllMarkers, numBce);
-	FSI_Bodies.push_back(body);
 }
 
 // =============================================================================
@@ -320,68 +430,9 @@ void AddBCE2FluidSystem_FromFile(
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
 				numObjects.numAllMarkers, posRadH.size());
 	}
-	::int4 refSize4 = referenceArray[referenceArray.size() - 1];
-	Real type = refSize4.w + 1;
-	if (type < 1) {
-		printf(
-				"\n\n\n\n Error! rigid type is not a positive number. The issue is possibly due to absence of boundary particles \n\n\n\n");
-	}
-	int numBce = posRadBCE.size();
-	//#pragma omp parallel for  // it is very wrong to do it in parallel. race condition will occur
-	for (int i = 0; i < numBce; i++) {
-		chrono::ChVector<> position = TransformBCEToCOG(body.get(),
-				posRadBCE[i]);
 
-		chrono::ChVector<> posParent =
-				chrono::ChTransform<>::TransformLocalToParent(position,
-						body->GetPos(), body->GetRot());
-		posRadH.push_back(ConvertChVectorToR3(posParent));
-
-		chrono::ChVector<> pointPar = ConvertRealToChVector(posRadBCE[i]);
-		chrono::ChVector<> posLoc =
-				chrono::ChTransform<>::TransformParentToLocal(pointPar,
-						body->GetPos(), body->GetRot());
-		chrono::ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc);
-		Real3 v3 = ConvertChVectorToR3(vAbs);
-		velMasH.push_back(mR4(v3, sphMarkerMass));
-
-		rhoPresMuH.push_back(
-		mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));
-	}
+	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
+			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH,
+			body);
 	posRadBCE.clear();
-	referenceArray.push_back(
-	mI4(refSize4.y, refSize4.y + numBce, 1, refSize4.w + 1)); // 1: for rigid
-	numObjects.numAllMarkers += numBce;
-	numObjects.numRigid_SphMarkers += numBce;
-	if (referenceArray.size() < 3) {
-		printf("Error! referenceArray size is wrong!\n");
-	} else {
-		numObjects.numRigidBodies = referenceArray.size() - 2;
-		numObjects.startRigidMarkers = referenceArray[2].x;
-	}
-}
-//**********************************************
-
-void SetNumObjects(NumberOfObjects& numObjects,
-		const thrust::host_vector<int4>& referenceArray, int numAllMarkers) {
-	numObjects.numFluidMarkers = (referenceArray[0]).y - (referenceArray[0]).x;
-	numObjects.numBoundaryMarkers = (referenceArray[1]).y
-			- (referenceArray[1]).x;
-	numObjects.numAllMarkers = numAllMarkers;
-
-	numObjects.numRigidBodies = 0;
-	numObjects.numRigid_SphMarkers = 0;
-	numObjects.numFlex_SphMarkers = 0;
-	std::cout << "********************" << std::endl;
-	std::cout << "numFlexBodies: " << numObjects.numFlexBodies << std::endl;
-	std::cout << "numRigidBodies: " << numObjects.numRigidBodies << std::endl;
-	std::cout << "numFluidMarkers: " << numObjects.numFluidMarkers << std::endl;
-	std::cout << "numBoundaryMarkers: " << numObjects.numBoundaryMarkers
-			<< std::endl;
-	std::cout << "numRigid_SphMarkers: " << numObjects.numRigid_SphMarkers
-			<< std::endl;
-	std::cout << "numFlex_SphMarkers: " << numObjects.numFlex_SphMarkers
-			<< std::endl;
-	std::cout << "numAllMarkers: " << numObjects.numAllMarkers << std::endl;
-	std::cout << "********************" << std::endl;
 }
