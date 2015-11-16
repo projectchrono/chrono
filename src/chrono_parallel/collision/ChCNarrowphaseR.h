@@ -31,8 +31,7 @@
 //
 // =============================================================================
 
-#ifndef CHC_NARROWPHASE_R_H
-#define CHC_NARROWPHASE_R_H
+#pragma once
 
 #include "chrono_parallel/collision/ChCDataStructures.h"
 
@@ -185,4 +184,3 @@ bool RCollision(const ConvexShape& shapeA,  ///< first candidate shape
 }  // end namespace collision
 }  // end namespace chrono
 
-#endif

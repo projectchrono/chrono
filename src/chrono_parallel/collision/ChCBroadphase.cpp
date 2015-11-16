@@ -3,12 +3,11 @@
 #include <chrono_parallel/collision/ChCBroadphase.h>
 #include "chrono_parallel/collision/ChCBroadphaseUtils.h"
 
+#include <thrust/unique.h>
+#include <thrust/sort.h>
 #include <thrust/transform.h>
+#include <thrust/transform_reduce.h>
 #include <thrust/iterator/constant_iterator.h>
-
-
-using thrust::transform;
-using thrust::transform_reduce;
 
 namespace chrono {
 namespace collision {
@@ -16,9 +15,9 @@ namespace collision {
 // Function to Count AABB Bin intersections=================================================================
 inline void function_Count_AABB_BIN_Intersection(const uint index,
                                                  const real3& inv_bin_size_vec,
-                                                 const host_vector<real3>& aabb_min_data,
-                                                 const host_vector<real3>& aabb_max_data,
-                                                 host_vector<uint>& bins_intersected) {
+                                                 const std::vector<real3>& aabb_min_data,
+                                                 const std::vector<real3>& aabb_max_data,
+                                                 std::vector<uint>& bins_intersected) {
   int3 gmin = HashMin(aabb_min_data[index], inv_bin_size_vec);
   int3 gmax = HashMax(aabb_max_data[index], inv_bin_size_vec);
   bins_intersected[index] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
@@ -28,11 +27,11 @@ inline void function_Count_AABB_BIN_Intersection(const uint index,
 inline void function_Store_AABB_BIN_Intersection(const uint index,
                                                  const int3& bins_per_axis,
                                                  const real3& inv_bin_size_vec,
-                                                 const host_vector<real3>& aabb_min_data,
-                                                 const host_vector<real3>& aabb_max_data,
-                                                 const host_vector<uint>& bins_intersected,
-                                                 host_vector<uint>& bin_number,
-                                                 host_vector<uint>& aabb_number) {
+                                                 const std::vector<real3>& aabb_min_data,
+                                                 const std::vector<real3>& aabb_max_data,
+                                                 const std::vector<uint>& bins_intersected,
+                                                 std::vector<uint>& bin_number,
+                                                 std::vector<uint>& aabb_number) {
   uint count = 0, i, j, k;
   int3 gmin = HashMin(aabb_min_data[index], inv_bin_size_vec);
   int3 gmax = HashMax(aabb_max_data[index], inv_bin_size_vec);
@@ -50,15 +49,15 @@ inline void function_Store_AABB_BIN_Intersection(const uint index,
 
 // Function to count AABB AABB intersection=================================================================
 inline void function_Count_AABB_AABB_Intersection(const uint index,
-                                                  const host_vector<real3>& aabb_min_data,
-                                                  const host_vector<real3>& aabb_max_data,
-                                                  const host_vector<uint>& bin_number,
-                                                  const host_vector<uint>& aabb_number,
-                                                  const host_vector<uint>& bin_start_index,
-                                                  const host_vector<short2>& fam_data,
-                                                  const host_vector<bool>& body_active,
-                                                  const host_vector<uint>& body_id,
-                                                  host_vector<uint>& num_contact) {
+                                                  const std::vector<real3>& aabb_min_data,
+                                                  const std::vector<real3>& aabb_max_data,
+                                                  const std::vector<uint>& bin_number,
+                                                  const std::vector<uint>& aabb_number,
+                                                  const std::vector<uint>& bin_start_index,
+                                                  const std::vector<short2>& fam_data,
+                                                  const std::vector<bool>& body_active,
+                                                  const std::vector<uint>& body_id,
+                                                  std::vector<uint>& num_contact) {
   uint start = bin_start_index[index];
   uint end = bin_start_index[index + 1];
   uint count = 0;
@@ -97,16 +96,16 @@ inline void function_Count_AABB_AABB_Intersection(const uint index,
 
 // Function to store AABB-AABB intersections================================================================
 inline void function_Store_AABB_AABB_Intersection(const uint index,
-                                                  const host_vector<real3>& aabb_min_data,
-                                                  const host_vector<real3>& aabb_max_data,
-                                                  const host_vector<uint>& bin_number,
-                                                  const host_vector<uint>& aabb_number,
-                                                  const host_vector<uint>& bin_start_index,
-                                                  const host_vector<uint>& num_contact,
-                                                  const host_vector<short2>& fam_data,
-                                                  const host_vector<bool>& body_active,
-                                                  const host_vector<uint>& body_id,
-                                                  host_vector<long long>& potential_contacts) {
+                                                  const std::vector<real3>& aabb_min_data,
+                                                  const std::vector<real3>& aabb_max_data,
+                                                  const std::vector<uint>& bin_number,
+                                                  const std::vector<uint>& aabb_number,
+                                                  const std::vector<uint>& bin_start_index,
+                                                  const std::vector<uint>& num_contact,
+                                                  const std::vector<short2>& fam_data,
+                                                  const std::vector<bool>& body_active,
+                                                  const std::vector<uint>& body_id,
+                                                  std::vector<long long>& potential_contacts) {
   uint start = bin_start_index[index];
   uint end = bin_start_index[index + 1];
   // Terminate early if there is only one object in the bin
@@ -160,19 +159,19 @@ ChCBroadphase::ChCBroadphase() {
 // use spatial subdivision to detect the list of POSSIBLE collisions
 // let user define their own narrow-phase collision detection
 void ChCBroadphase::DetectPossibleCollisions() {
-  host_vector<real3>& aabb_min_rigid = data_manager->host_data.aabb_min_rigid;
-  host_vector<real3>& aabb_max_rigid = data_manager->host_data.aabb_max_rigid;
+  std::vector<real3>& aabb_min_rigid = data_manager->host_data.aabb_min_rigid;
+  std::vector<real3>& aabb_max_rigid = data_manager->host_data.aabb_max_rigid;
 
-  host_vector<long long>& contact_pairs = data_manager->host_data.pair_rigid_rigid;
+  std::vector<long long>& contact_pairs = data_manager->host_data.pair_rigid_rigid;
   real3& min_bounding_point = data_manager->measures.collision.min_bounding_point;
   real3& max_bounding_point = data_manager->measures.collision.max_bounding_point;
   real3& bin_size_vec = data_manager->measures.collision.bin_size_vec;
   real3& global_origin = data_manager->measures.collision.global_origin;
   int3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
   const real density = data_manager->settings.collision.grid_density;
-  const host_vector<short2>& fam_data = data_manager->host_data.fam_rigid;
-  const host_vector<bool>& obj_active = data_manager->host_data.active_rigid;
-  const host_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
+  const std::vector<short2>& fam_data = data_manager->host_data.fam_rigid;
+  const std::vector<bool>& obj_active = data_manager->host_data.active_rigid;
+  const std::vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
   uint num_shapes = data_manager->num_rigid_shapes;
 
   LOG(TRACE) << "Number of AABBs: " << num_shapes;
@@ -183,8 +182,8 @@ void ChCBroadphase::DetectPossibleCollisions() {
   bbox_transformation unary_op;
   bbox_reduction binary_op;
   // Grow the initial bounding box to contain all of the aabbs
-  res = transform_reduce(thrust_parallel, aabb_min_rigid.begin(), aabb_min_rigid.end(), unary_op, res, binary_op);
-  res = transform_reduce(thrust_parallel, aabb_max_rigid.begin(), aabb_max_rigid.end(), unary_op, res, binary_op);
+  res = thrust::transform_reduce( aabb_min_rigid.begin(), aabb_min_rigid.end(), unary_op, res, binary_op);
+  res = thrust::transform_reduce( aabb_max_rigid.begin(), aabb_max_rigid.end(), unary_op, res, binary_op);
   min_bounding_point = res.first;
   max_bounding_point = res.second;
   global_origin = min_bounding_point;
@@ -197,8 +196,8 @@ void ChCBroadphase::DetectPossibleCollisions() {
   real3 inv_bin_size_vec = 1.0 / bin_size_vec;
 
   thrust::constant_iterator<real3> offset(global_origin);
-  transform(aabb_min_rigid.begin(), aabb_min_rigid.end(), offset, aabb_min_rigid.begin(), thrust::minus<real3>());
-  transform(aabb_max_rigid.begin(), aabb_max_rigid.end(), offset, aabb_max_rigid.begin(), thrust::minus<real3>());
+  thrust::transform(aabb_min_rigid.begin(), aabb_min_rigid.end(), offset, aabb_min_rigid.begin(), thrust::minus<real3>());
+  thrust::transform(aabb_max_rigid.begin(), aabb_max_rigid.end(), offset, aabb_max_rigid.begin(), thrust::minus<real3>());
 
   LOG(TRACE) << "Minimum bounding point: (" << res.first.x << ", " << res.first.y << ", " << res.first.z << ")";
   LOG(TRACE) << "Maximum bounding point: (" << res.second.x << ", " << res.second.y << ", " << res.second.z << ")";
@@ -265,7 +264,7 @@ void ChCBroadphase::DetectPossibleCollisions() {
                                           contact_pairs);
   }
 
-  thrust::stable_sort(thrust_parallel, contact_pairs.begin(), contact_pairs.end());
+  thrust::stable_sort( contact_pairs.begin(), contact_pairs.end());
 
   number_of_contacts_possible = Thrust_Unique(contact_pairs);
 

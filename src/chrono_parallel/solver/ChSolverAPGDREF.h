@@ -15,8 +15,7 @@
 // Implementation of APGD that is exactly like the thesis
 // =============================================================================
 
-#ifndef CHSOLVERAPGDREF_H
-#define CHSOLVERAPGDREF_H
+#pragma once
 
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
@@ -53,4 +52,3 @@ class CH_PARALLEL_API ChSolverAPGDREF : public ChSolverParallel {
 };
 }
 
-#endif

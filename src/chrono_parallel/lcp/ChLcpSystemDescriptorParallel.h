@@ -1,5 +1,4 @@
-#ifndef CHLCPSYSTEMDESCRIPTORPARALLEL_H
-#define CHLCPSYSTEMDESCRIPTORPARALLEL_H
+#pragma once
 
 #include <thrust/count.h>
 
@@ -62,4 +61,3 @@ class CH_PARALLEL_API ChLcpSystemDescriptorParallel : public ChLcpSystemDescript
 
 }  // END_OF_NAMESPACE____
 
-#endif

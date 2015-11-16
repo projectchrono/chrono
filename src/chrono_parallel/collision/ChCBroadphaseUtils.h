@@ -14,8 +14,7 @@
 // Utility functions used by both broadphase algorithms
 // =============================================================================
 
-#ifndef CHC_BROADPHASEUTILS_H
-#define CHC_BROADPHASEUTILS_H
+#pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
@@ -123,4 +122,3 @@ bool function_Check_Sphere(real3 pos_a, real3 pos_b, real radius) {
 }
 }
 
-#endif

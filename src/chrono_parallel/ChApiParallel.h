@@ -1,5 +1,4 @@
-#ifndef CHAPIPARALLEL_H
-#define CHAPIPARALLEL_H
+#pragma once
 
 #include "chrono/core/ChPlatform.h"
 
@@ -42,4 +41,3 @@
 #define ELPP_WINSOCK2
 #endif
 
-#endif  // END of header

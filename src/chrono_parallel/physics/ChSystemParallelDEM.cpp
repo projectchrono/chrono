@@ -48,13 +48,13 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
 }
 
 void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
-  custom_vector<real>& mass = data_manager->host_data.mass_rigid;
-  custom_vector<real2>& elastic_moduli = data_manager->host_data.elastic_moduli;
-  custom_vector<real>& adhesion = data_manager->host_data.cohesion_data;
-  custom_vector<real>& adhesionMult = data_manager->host_data.adhesionMultDMT_data;
-  custom_vector<real>& mu = data_manager->host_data.mu;
-  custom_vector<real>& cr = data_manager->host_data.cr;
-  custom_vector<real4>& dem_coeffs = data_manager->host_data.dem_coeffs;
+  std::vector<real>& mass = data_manager->host_data.mass_rigid;
+  std::vector<real2>& elastic_moduli = data_manager->host_data.elastic_moduli;
+  std::vector<real>& adhesion = data_manager->host_data.cohesion_data;
+  std::vector<real>& adhesionMult = data_manager->host_data.adhesionMultDMT_data;
+  std::vector<real>& mu = data_manager->host_data.mu;
+  std::vector<real>& cr = data_manager->host_data.cr;
+  std::vector<real4>& dem_coeffs = data_manager->host_data.dem_coeffs;
 
   // Since this function is called in a parallel for loop, we must access the
   // material properties in a thread-safe manner (we cannot use the function

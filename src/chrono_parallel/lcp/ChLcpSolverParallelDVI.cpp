@@ -1,5 +1,4 @@
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
-#include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 
 #include "chrono_parallel/solver/ChSolverAPGD.h"
 #include "chrono_parallel/solver/ChSolverAPGDREF.h"

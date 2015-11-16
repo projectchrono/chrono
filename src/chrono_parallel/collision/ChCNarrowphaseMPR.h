@@ -1,5 +1,4 @@
-#ifndef CHC_NARROWPHASE_MPR_H
-#define CHC_NARROWPHASE_MPR_H
+#pragma once
 
 #include "chrono_parallel/collision/ChCDataStructures.h"
 
@@ -35,5 +34,3 @@ bool MPRSphereSphere(const ConvexShape& ShapeA, const ConvexShape& ShapeB, real3
 
 }  // end namespace collision
 }  // end namespace chrono
-
-#endif

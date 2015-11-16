@@ -1,5 +1,4 @@
-#ifndef CHCONSTRAINT_RIGIDRIGID_H
-#define CHCONSTRAINT_RIGIDRIGID_H
+#pragma once
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
@@ -98,7 +97,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
   int offset;
 
  protected:
-  custom_vector<bool2> contact_active_pairs;
+  std::vector<bool2> contact_active_pairs;
 
   real inv_h;
   real inv_hpa;
@@ -109,4 +108,3 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
 };
 }
 
-#endif

@@ -15,8 +15,7 @@
 // Implementation of an iterative MinRes solver.
 // =============================================================================
 
-#ifndef CHSOLVERMINRES_H
-#define CHSOLVERMINRES_H
+#pragma once
 
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
@@ -47,5 +46,3 @@ class CH_PARALLEL_API ChSolverMinRes : public ChSolverParallel {
   DynamicVector<real> mr, mp, mz, mNMr, mNp, mMNp, mtmp, mz_old, mNMr_old;
 };
 }
-
-#endif

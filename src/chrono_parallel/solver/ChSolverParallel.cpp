@@ -22,11 +22,11 @@ void ChSolverParallel::Project_Single(int index, real* gamma) {
 }
 //=================================================================================================================================
 
-void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma,
-                                   const custom_vector<real>& rhs,
-                                   custom_vector<real3>& vel_data,
-                                   custom_vector<real3>& omg_data,
-                                   custom_vector<real>& b) {
+void ChSolverParallel::ComputeSRhs(std::vector<real>& gamma,
+                                   const std::vector<real>& rhs,
+                                   std::vector<real3>& vel_data,
+                                   std::vector<real3>& omg_data,
+                                   std::vector<real>& b) {
   // TODO change SHRS to use blaze
   // ComputeImpulses(gamma, vel_data, omg_data);
   // rigid_rigid->ComputeS(rhs, vel_data, omg_data, b);
@@ -114,7 +114,7 @@ void ChSolverParallel::ShurBilaterals(const DynamicVector<real>& x, DynamicVecto
 
 //=================================================================================================================================
 
-void ChSolverParallel::UpdatePosition(custom_vector<real>& x) {
+void ChSolverParallel::UpdatePosition(std::vector<real>& x) {
   //
   //   if (rigid_rigid->solve_sliding == true || rigid_rigid->solve_spinning ==
   //   true) {

@@ -16,8 +16,7 @@
 // between chrono's solver interface and the parallel solver interface.
 // =============================================================================
 
-#ifndef CHLCPSOLVERPARALLEL_H
-#define CHLCPSOLVERPARALLEL_H
+#pragma once
 
 #include "lcp/ChLcpIterativeSolver.h"
 
@@ -101,17 +100,16 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
   void ProcessContacts();
 
  private:
-  void host_CalcContactForces(custom_vector<int>& ext_body_id,
-                              custom_vector<real3>& ext_body_force,
-                              custom_vector<real3>& ext_body_torque,
-                              custom_vector<int2>& shape_pairs,
-                              custom_vector<bool>& shear_touch);
+  void host_CalcContactForces(std::vector<int>& ext_body_id,
+                              std::vector<real3>& ext_body_force,
+                              std::vector<real3>& ext_body_torque,
+                              std::vector<int2>& shape_pairs,
+                              std::vector<char>& shear_touch);
 
-  void host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id);
+  void host_AddContactForces(uint ct_body_count, const std::vector<int>& ct_body_id);
 
-  void host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id);
+  void host_SetContactForcesMap(uint ct_body_count, const std::vector<int>& ct_body_id);
 };
 }
 // end namespace chrono
 
-#endif

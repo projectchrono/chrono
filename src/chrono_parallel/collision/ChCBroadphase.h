@@ -15,8 +15,7 @@
 // between objects of different sizes
 // =============================================================================
 
-#ifndef CHC_BROADPHASE_H
-#define CHC_BROADPHASE_H
+#pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
@@ -37,14 +36,13 @@ class CH_PARALLEL_API ChCBroadphase {
   uint number_of_bin_intersections;
   uint number_of_contacts_possible;
 
-  custom_vector<uint> bins_intersected;
-  custom_vector<uint> bin_number;
-  custom_vector<uint> aabb_number;
-  custom_vector<uint> bin_start_index;
-  custom_vector<uint> num_contact;
+  std::vector<uint> bins_intersected;
+  std::vector<uint> bin_number;
+  std::vector<uint> aabb_number;
+  std::vector<uint> bin_start_index;
+  std::vector<uint> num_contact;
 
 };
 }
 }
 
-#endif

@@ -16,8 +16,7 @@ software.
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef CHC_NARROWPHASE_VORONOISIMPLEX_H
-#define CHC_NARROWPHASE_VORONOISIMPLEX_H
+#pragma once
 
 namespace chrono {
 namespace collision {
@@ -146,4 +145,3 @@ class CH_PARALLEL_API ChCNarrowphaseVoronoiSimplex {
 // end namespace collision
 }  // end namespace chrono
 
-#endif

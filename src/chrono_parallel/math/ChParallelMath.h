@@ -15,8 +15,7 @@
 // Description: definition of some convenience functions for math operations
 // =============================================================================
 
-#ifndef CHPARALLELMATH_H
-#define CHPARALLELMATH_H
+#pragma once
 
 #include "real.h"
 #include "real2.h"
@@ -24,6 +23,8 @@
 #include "real4.h"
 #include "mat33.h"
 #include "other_types.h"
+#include "thrust_utils.h"
+
 namespace chrono {
 // Computes the nearest power of two to the given value and returns it
 static inline uint nearest_pow(const uint& num) {
@@ -59,4 +60,3 @@ static inline real3 TransformParentToLocal(const real3& p, const quaternion& q, 
   return quatRotateT(rp - p, q);
 }
 }
-#endif

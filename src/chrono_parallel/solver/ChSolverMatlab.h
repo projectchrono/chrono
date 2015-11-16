@@ -16,8 +16,7 @@
 // chrono parallel.
 // =============================================================================
 
-#ifndef CHSOLVERMATLAB_H
-#define CHSOLVERMATLAB_H
+#pragma once
 
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
@@ -45,8 +44,7 @@ class CH_PARALLEL_API ChSolverMatlab : public ChSolverParallel {
                       DynamicVector<real>& x         // The vector of unknowns
                       );
 
-  custom_vector<real> r, temp;
+  std::vector<real> r, temp;
   ChMatlabEngine* mengine;
 };
 }
-#endif

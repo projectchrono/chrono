@@ -25,8 +25,7 @@
 // Assume p[0]<>0 (overflows otherwise)
 // =============================================================================
 
-#ifndef QUARTIC_H
-#define QUARTIC_H
+#pragma once
 
 #include "real.h"
 namespace chrono {
@@ -213,4 +212,3 @@ END:
   return (0);
 }
 }
-#endif

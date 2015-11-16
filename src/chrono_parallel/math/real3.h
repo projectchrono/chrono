@@ -15,8 +15,7 @@
 // Description: SSE and normal implementation of a 3D vector
 // =============================================================================
 
-#ifndef REAL3_H
-#define REAL3_H
+#pragma once
 
 #include <algorithm>
 
@@ -213,4 +212,4 @@ static inline real3 clamp(const real3& a, const real3& clamp_min, const real3& c
   return clampv;
 }
 }
-#endif
+

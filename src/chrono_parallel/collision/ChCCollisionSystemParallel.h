@@ -1,5 +1,4 @@
-#ifndef CHC_COLLISIONSYSTEMPARALLEL_H
-#define CHC_COLLISIONSYSTEMPARALLEL_H
+#pragma once
 
 #include "physics/ChProximityContainerBase.h"
 #include "physics/ChBody.h"
@@ -73,7 +72,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
   virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) { return false; }
 
   std::vector<int2> GetOverlappingPairs();
-  void GetOverlappingAABB(custom_vector<bool>& active_id, real3 Amin, real3 Amax);
+  void GetOverlappingAABB(std::vector<bool>& active_id, real3 Amin, real3 Amax);
 
   void SetAABB(real3 aabbmin, real3 aabbmax) {
     data_manager->settings.collision.aabb_min = aabbmin;
@@ -101,5 +100,3 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
 
 }  // end namespace collision
 }  // end namespace chrono
-
-#endif

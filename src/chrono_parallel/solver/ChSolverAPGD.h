@@ -15,8 +15,7 @@
 // This file contains an implementation of APGD that is more optimized.
 // =============================================================================
 
-#ifndef CHSOLVERAPGD_H
-#define CHSOLVERAPGD_H
+#pragma once
 
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
@@ -55,4 +54,3 @@ class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
   real dot_g_temp, norm_ms;
 };
 }
-#endif

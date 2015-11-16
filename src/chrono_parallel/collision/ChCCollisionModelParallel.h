@@ -14,8 +14,7 @@
 // Description: class for a parallel collision model
 // =============================================================================
 
-#ifndef CHCCOLLISIONMODELPARALLEL_H
-#define CHCCOLLISIONMODELPARALLEL_H
+#pragma once
 
 #include "collision/ChCCollisionModel.h"
 
@@ -193,4 +192,3 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____
-#endif
