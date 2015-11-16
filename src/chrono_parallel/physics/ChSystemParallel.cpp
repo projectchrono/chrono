@@ -497,21 +497,21 @@ void ChSystemParallel::Setup() {
 
   // Set variables that are stored in the ChSystem class
   nbodies = data_manager->num_rigid_bodies;
-  nlinks = -1;
-  nphysicsitems = -1;
-  ncoords = -1;
-  ndoc = -1;
-  nsysvars = -1;
-  ncoords_w = -1;
-  ndoc_w = -1;
-  nsysvars_w = -1;
+  nlinks = 0;
+  nphysicsitems = 0;
+  ncoords = 0;
+  ndoc = 0;
+  nsysvars = 0;
+  ncoords_w = 0;
+  ndoc_w = 0;
+  nsysvars_w = 0;
   ndof = data_manager->num_dof;
-  ndoc_w_C = -1;
-  ndoc_w_D = -1;
+  ndoc_w_C = 0;
+  ndoc_w_D = 0;
   ncontacts =
       data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
-  nbodies_sleep = -1;
-  nbodies_fixed = -1;
+  nbodies_sleep = 0;
+  nbodies_fixed = 0;
 }
 
 void ChSystemParallel::RecomputeThreads() {
