@@ -15,8 +15,7 @@
 // between objects of different sizes
 // =============================================================================
 
-#ifndef CHC_BROADPHASE_H
-#define CHC_BROADPHASE_H
+#pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
@@ -47,4 +46,3 @@ class CH_PARALLEL_API ChCBroadphase {
 }
 }
 
-#endif

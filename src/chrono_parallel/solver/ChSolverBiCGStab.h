@@ -15,8 +15,7 @@
 // Implementation of an iterative BiCG solver with stabilization.
 // =============================================================================
 
-#ifndef CHSOLVERBICGSTAB_H
-#define CHSOLVERBICGSTAB_H
+#pragma once
 
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
@@ -47,5 +46,3 @@ class CH_PARALLEL_API ChSolverBiCGStab : public ChSolverParallel {
   DynamicVector<real> p, r, phat, s, shat, t, v, rtilde, ml;
 };
 }
-
-#endif

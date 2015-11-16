@@ -16,8 +16,7 @@
 // (increased speed on some architectures) or a double (increased precision)
 // =============================================================================
 
-#ifndef REAL_H
-#define REAL_H
+#pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include <cmath>
@@ -207,4 +206,3 @@ static inline real sign(const real& x) {
 
 
 }
-#endif

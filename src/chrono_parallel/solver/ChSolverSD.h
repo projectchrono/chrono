@@ -15,8 +15,7 @@
 // Implementation of an iterative Steepest Descent solver.
 // =============================================================================
 
-#ifndef CHSOLVERSD_H
-#define CHSOLVERSD_H
+#pragma once
 
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
@@ -47,5 +46,3 @@ class CH_PARALLEL_API ChSolverSD : public ChSolverParallel {
   DynamicVector<real> r, temp;
 };
 }
-
-#endif

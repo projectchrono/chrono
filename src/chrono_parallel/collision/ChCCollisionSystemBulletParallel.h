@@ -15,8 +15,7 @@
 // store contacts in the parallel data structures
 // =============================================================================
 
-#ifndef CHC_COLLISIONSYSTEMBULLETPARALLEL_H
-#define CHC_COLLISIONSYSTEMBULLETPARALLEL_H
+#pragma once
 
 #include "core/ChApiCE.h"
 
@@ -114,4 +113,3 @@ class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem
 }  // end namespace collision
 }  // end namespace chrono
 
-#endif

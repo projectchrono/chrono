@@ -15,8 +15,7 @@
 // Description: lots of useful definitions for thrust, includes and enums
 // =============================================================================
 
-#ifndef CHPARALLELDEFINES_H
-#define CHPARALLELDEFINES_H
+#pragma once
 
 #undef _GLIBCXX_ATOMIC_BUILTINS
 #undef _GLIBCXX_USE_INT128
@@ -146,5 +145,3 @@ enum BILATERALTYPE { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAF
 
 // Supported Logging Levels
 enum LOGGINGLEVEL { LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR };
-
-#endif

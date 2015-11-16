@@ -16,8 +16,7 @@
 // between chrono's solver interface and the parallel solver interface.
 // =============================================================================
 
-#ifndef CHLCPSOLVERPARALLEL_H
-#define CHLCPSOLVERPARALLEL_H
+#pragma once
 
 #include "lcp/ChLcpIterativeSolver.h"
 
@@ -114,4 +113,3 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
 }
 // end namespace chrono
 
-#endif

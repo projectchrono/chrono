@@ -15,8 +15,7 @@
 // Description: definition of some convenience functions for math operations
 // =============================================================================
 
-#ifndef CHPARALLELMATH_H
-#define CHPARALLELMATH_H
+#pragma once
 
 #include "real.h"
 #include "real2.h"
@@ -59,4 +58,3 @@ static inline real3 TransformParentToLocal(const real3& p, const quaternion& q, 
   return quatRotateT(rp - p, q);
 }
 }
-#endif

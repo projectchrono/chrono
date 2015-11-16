@@ -15,8 +15,7 @@
 // Implementation of an iterative Conjugate Gradient Squared solver.
 // =============================================================================
 
-#ifndef CHSOLVERCGS_H
-#define CHSOLVERCGS_H
+#pragma once
 
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
@@ -48,5 +47,3 @@ class CH_PARALLEL_API ChSolverCGS : public ChSolverParallel {
   DynamicVector<real> p, phat, q, qhat, vhat, u, uhat, r, rtilde, mb;
 };
 }
-
-#endif

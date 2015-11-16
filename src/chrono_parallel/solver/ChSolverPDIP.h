@@ -18,8 +18,7 @@
 // TODO: Use better linear solve than cg
 // =============================================================================
 
-#ifndef CHSOLVERPDIP_H
-#define CHSOLVERPDIP_H
+#pragma once
 
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
@@ -135,4 +134,3 @@ class CH_PARALLEL_API ChSolverPDIP : public ChSolverParallel {
 };
 }
 
-#endif

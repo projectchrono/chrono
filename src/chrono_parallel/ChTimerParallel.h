@@ -15,8 +15,7 @@
 // Description: Parallel timer class that uses a map to query and add timers
 // =============================================================================
 
-#ifndef CHTIMERPARALLEL_H
-#define CHTIMERPARALLEL_H
+#pragma once
 
 #include <map>
 
@@ -106,5 +105,3 @@ class CH_PARALLEL_API ChTimerParallel {
   std::map<std::string, TimerData>::iterator it;
 };
 }
-
-#endif
