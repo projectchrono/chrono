@@ -676,7 +676,7 @@ void ChElementShellANCF::MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result,
     stress.MatrMultiply(*E_eps, strain);
 
     // Declaration and computation of Sigm, to be removed
-    /*
+    
     Sigm(0, 0) = stress(0, 0);  // XX
     Sigm(1, 1) = stress(0, 0);
     Sigm(2, 2) = stress(0, 0);
@@ -711,18 +711,20 @@ void ChElementShellANCF::MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result,
 
     Sigm(6, 6) = stress(3, 0);  // ZZ
     Sigm(7, 7) = stress(3, 0);
-    Sigm(8, 8) = stress(3, 0); */
+    Sigm(8, 8) = stress(3, 0); 
 
-    /// Jacobian calculation ///
+    /// Jacobian calculation 
     temp246.MatrTMultiply(strainD, *E_eps);
 
-    // Two following lines to be removed
-    // temp249.MatrTMultiply(Gd, Sigm);
-    // JAC11 = (temp246 * strainD * (1.0 + DampCoefficient * (element->m_Alpha))) + temp249 * Gd;
+    // Dense multiplication
+    temp249.MatrTMultiply(Gd, Sigm);
+    JAC11 = (temp246 * strainD * (1.0 + DampCoefficient * (element->m_Alpha))) + temp249 * Gd;
 
-    JAC11.Reset();
-    element->JacCalcUnrolled(stress, Gd, JAC11);
-    JAC11 += (temp246 * strainD * (1.0 + DampCoefficient * (element->m_Alpha)));
+	// Sparse multiplication
+    //JAC11.Reset();
+    //element->JacCalcUnrolled(stress, Gd, JAC11);
+    //JAC11 += (temp246 * strainD * (1.0 + DampCoefficient * (element->m_Alpha)));
+
     JAC11 *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->m_thickness / 2.0);
 
     // Internal force calculation

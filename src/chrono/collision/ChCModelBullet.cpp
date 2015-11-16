@@ -896,8 +896,9 @@ void ChModelBullet::StreamIN(ChStreamInBinary& mstream) {
 
     delete[] mbuffer;
 }
-
+*/
 //***OBSOLETE***
+/*
 void ChModelBullet::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
