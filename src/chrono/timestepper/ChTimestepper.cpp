@@ -817,8 +817,8 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
     mintegrable->StateGatherAcceleration(A);  // <- system
     mintegrable->StateGatherReactions(L);     // <- system
 
-    // Set scaling factor
-    double scaling_factor = scaling ? dt * dt : 1;
+    // Set scaling factor.
+    double scaling_factor = scaling ? beta * dt * dt : 1;
 
     // Extrapolate a prediction as a warm start
     switch (mode) {
@@ -882,8 +882,8 @@ void ChTimestepperHHT::Advance(const double dt  ///< timestep to advance
 
                 mintegrable->StateSolveCorrection(
                     Da, Dl, R, Qc,
-                    scaling_factor / ((1 + alpha) * beta * dt * dt),  // factor for  M (was 1 in Negrut paper ?!)
-                    -scaling_factor / (gamma * dt),                   // factor for  dF/dv
+                    scaling_factor / ((1 + alpha) * beta * dt * dt),  // factor for  M
+                    -scaling_factor * gamma / (beta * dt),            // factor for  dF/dv
                     -scaling_factor,                                  // factor for  dF/dx
                     Xnew, Vnew, T + dt,
                     false  // do not StateScatter update to Xnew Vnew T+dt before computing correction

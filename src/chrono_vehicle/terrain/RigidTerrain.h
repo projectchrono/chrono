@@ -73,6 +73,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                     float tex_scale_y = 1        ///< [in] texture scale in Y
                     );
 
+    /// Return a handle to the ground body.
+    ChSharedPtr<ChBody> GetGroundBody() { return m_ground; }
+
     /// Initialize the terrain system (flat).
     /// This version uses a rigid box of specified dimensions and with specified
     /// material properties.
