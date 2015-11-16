@@ -54,22 +54,25 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 
 SET(ChronoEngine_FSI_SOURCES
 checkPointReduced.cpp 
-collideSphereSphere.cu 
+ChFsiModelData.cpp
+collideSphereSphere.cu
+CreateBCE.cpp
+FSI_Integrate.cpp
 InitializeSphMarkers.cpp
 printToFile.cu
 SDKCollisionSystem.cu 
 SphInterface.cpp 
 VehicleExtraProperties.cpp
-FSI_Integrate.cpp
-CreateBCE.cpp
-ChFsiModelData.cpp
 )
 
 SET(ChronoEngine_FSI_HEADERS
 checkPointReduced.h
+ChFsiModelData.h
 collideSphereSphere.cuh
+CreateBCE.h
 custom_cutil_math.h
 demo_utils.h
+FSI_Integrate.h
 InitializeSphMarkers.h
 MyStructs.cuh
 printToFile.cu
@@ -77,9 +80,6 @@ SDKCollisionSystem.cuh
 SPHCudaUtils.h
 SphInterface.h
 VehicleExtraProperties.h
-FSI_Integrate.h
-CreateBCE.h
-ChFsiModelData.h
 )
 
 SOURCE_GROUP("" FILES 
