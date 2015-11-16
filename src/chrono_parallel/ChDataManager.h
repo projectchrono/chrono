@@ -35,7 +35,7 @@
 #include "chrono_parallel/ChMeasures.h"
 
 // Thrust Includes
-#include <thrust/host_vector.h>
+#include <vector>
 
 // Blaze Includes
 #include <blaze/math/CompressedMatrix.h>
@@ -47,7 +47,6 @@ using blaze::DynamicVector;
 using blaze::SparseSubmatrix;
 using blaze::submatrix;
 using blaze::subvector;
-using thrust::host_vector;
 
 namespace chrono {
 
@@ -62,48 +61,48 @@ typedef blaze::DenseSubvector<const DynamicVector<real> > ConstSubVectorType;
 
 struct host_container {
     // Collision data
-    host_vector<real3> ObA_rigid;       // Position of shape
-    host_vector<real3> ObB_rigid;       // Size of shape (dims or convex data)
-    host_vector<real3> ObC_rigid;       // Rounded size
-    host_vector<real4> ObR_rigid;       // Shape rotation
-    host_vector<short2> fam_rigid;      // Family information
-    host_vector<int> typ_rigid;         // Shape type
-    host_vector<real> margin_rigid;     // Inner collision margins
-    host_vector<uint> id_rigid;         // Body identifier for each shape
-    host_vector<real3> aabb_min_rigid;  // List of bounding boxes minimum point
-    host_vector<real3> aabb_max_rigid;  // List of bounding boxes maximum point
-    host_vector<real3> convex_data;     // list of convex points
+    std::vector<real3> ObA_rigid;       // Position of shape
+    std::vector<real3> ObB_rigid;       // Size of shape (dims or convex data)
+    std::vector<real3> ObC_rigid;       // Rounded size
+    std::vector<real4> ObR_rigid;       // Shape rotation
+    std::vector<short2> fam_rigid;      // Family information
+    std::vector<int> typ_rigid;         // Shape type
+    std::vector<real> margin_rigid;     // Inner collision margins
+    std::vector<uint> id_rigid;         // Body identifier for each shape
+    std::vector<real3> aabb_min_rigid;  // List of bounding boxes minimum point
+    std::vector<real3> aabb_max_rigid;  // List of bounding boxes maximum point
+    std::vector<real3> convex_data;     // list of convex points
 
     // Contact data
-    host_vector<real3> norm_rigid_rigid;
-    host_vector<real3> cpta_rigid_rigid;
-    host_vector<real3> cptb_rigid_rigid;
-    host_vector<real> dpth_rigid_rigid;
-    host_vector<real> erad_rigid_rigid;
-    host_vector<int2> bids_rigid_rigid;
-    host_vector<long long> pair_rigid_rigid;
+    std::vector<real3> norm_rigid_rigid;
+    std::vector<real3> cpta_rigid_rigid;
+    std::vector<real3> cptb_rigid_rigid;
+    std::vector<real> dpth_rigid_rigid;
+    std::vector<real> erad_rigid_rigid;
+    std::vector<int2> bids_rigid_rigid;
+    std::vector<long long> pair_rigid_rigid;
 
-    host_vector<real3> norm_rigid_fluid;
-    host_vector<real3> cpta_rigid_fluid;
-    host_vector<real> dpth_rigid_fluid;
-    host_vector<int2> bids_rigid_fluid;
+    std::vector<real3> norm_rigid_fluid;
+    std::vector<real3> cpta_rigid_fluid;
+    std::vector<real> dpth_rigid_fluid;
+    std::vector<int2> bids_rigid_fluid;
 
-    host_vector<int2> bids_fluid_fluid;
+    std::vector<int2> bids_fluid_fluid;
 
     // Contact forces (DEM)
     // These vectors hold the total contact force and torque, respectively,
     // for bodies that are involved in at least one contact.
-    host_vector<real3> ct_body_force;   // Total contact force on bodies
-    host_vector<real3> ct_body_torque;  // Total contact torque on these bodies
+    std::vector<real3> ct_body_force;   // Total contact force on bodies
+    std::vector<real3> ct_body_torque;  // Total contact torque on these bodies
 
     // Contact shear history (DEM)
-    host_vector<int3> shear_neigh;  // Neighbor list of contacting bodies and shapes
-    host_vector<real3> shear_disp;  // Accumulated shear displacement for each neighbor
+    std::vector<int3> shear_neigh;  // Neighbor list of contacting bodies and shapes
+    std::vector<real3> shear_disp;  // Accumulated shear displacement for each neighbor
 
     // Mapping from all bodies in the system to bodies involved in a contact.
     // For bodies that are currently not in contact, the mapping entry is -1.
     // Otherwise, the mapping holds the appropriate index in the vectors above.
-    host_vector<int> ct_body_map;
+    std::vector<int> ct_body_map;
 
     // This vector holds the friction information as a triplet
     // x - Sliding friction
@@ -111,44 +110,45 @@ struct host_container {
     // z - Spinning Friction
     // This is precomputed at every timestep for all contacts in parallel
     // Improves performance and reduces conditionals later on
-    host_vector<real3> fric_rigid_rigid;
+    std::vector<real3> fric_rigid_rigid;
     // Holds the cohesion value for each contact, similar to friction this is
     // precomputed for all contacts in parallel
-    host_vector<real> coh_rigid_rigid;
+    std::vector<real> coh_rigid_rigid;
 
     // Object data
-    host_vector<real3> pos_rigid;
-    host_vector<real4> rot_rigid;
-    host_vector<bool> active_rigid;
-    host_vector<bool> collide_rigid;
-    host_vector<real> mass_rigid;
+    std::vector<real3> pos_rigid;
+    std::vector<real4> rot_rigid;
+    std::vector<bool> active_rigid;
+    std::vector<bool> collide_rigid;
+    std::vector<real> mass_rigid;
 
-    host_vector<real3> pos_fluid;
-    host_vector<real3> vel_fluid;
-    host_vector<real> den_fluid;
+    std::vector<real3> pos_fluid;
+    std::vector<real3> vel_fluid;
+    std::vector<real> den_fluid;
 
     // Bilateral constraint type (all supported constraints)
-    host_vector<int> bilateral_type;
+    std::vector<int> bilateral_type;
 
     // keeps track of active bilateral constraints
-    host_vector<int> bilateral_mapping;
+    std::vector<int> bilateral_mapping;
 
     // Shaft data
-    host_vector<real> shaft_rot;     // shaft rotation angles
-    host_vector<real> shaft_inr;     // shaft inverse inertias
-    host_vector<bool> shaft_active;  // shaft active (not sleeping nor fixed) flags
+    std::vector<real> shaft_rot;     // shaft rotation angles
+    std::vector<real> shaft_inr;     // shaft inverse inertias
+    //std::vector<bool> is special and doesn't specify a data () function
+    std::vector<char> shaft_active;  // shaft active (not sleeping nor fixed) flags
 
     // Material properties (DVI)
-    host_vector<real3> fric_data;
-    host_vector<real> cohesion_data;  // constant cohesion forces (DEM and DVI)
-    host_vector<real4> compliance_data;
+    std::vector<real3> fric_data;
+    std::vector<real> cohesion_data;  // constant cohesion forces (DEM and DVI)
+    std::vector<real4> compliance_data;
 
     // Material properties (DEM)
-    host_vector<real2> elastic_moduli;    // Young's modulus and Poisson ratio
-    host_vector<real> mu;                 // Coefficient of friction
-    host_vector<real> cr;                 // Coefficient of restitution
-    host_vector<real4> dem_coeffs;        // Stiffness and damping coefficients
-    host_vector<real> adhesionMultDMT_data;  // adhesion multipliers used in Derjaguin, Muller and Toporov (DMT) model.
+    std::vector<real2> elastic_moduli;    // Young's modulus and Poisson ratio
+    std::vector<real> mu;                 // Coefficient of friction
+    std::vector<real> cr;                 // Coefficient of restitution
+    std::vector<real4> dem_coeffs;        // Stiffness and damping coefficients
+    std::vector<real> adhesionMultDMT_data;  // adhesion multipliers used in Derjaguin, Muller and Toporov (DMT) model.
     // adhesion = adhesionMult * Sqrt(R_eff). Given the surface energy, w, adhesionMult = 2 * CH_C_PI * w * Sqrt(R_eff).
     // Given the equilibrium penetration distance, y_eq, adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
 

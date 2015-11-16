@@ -9,7 +9,7 @@ uint ChSolverPGS::SolvePGS(const uint max_iter,
                            DynamicVector<real>& ml) {
   //  real& residual = data_manager->measures.solver.residual;
   //  real& objective_value = data_manager->measures.solver.objective_value;
-  //  custom_vector<real>& iter_hist = data_manager->measures.solver.iter_hist;
+  //  std::vector<real>& iter_hist = data_manager->measures.solver.iter_hist;
   //
   //  real rmax = 0, flimit, aux;
   //  diagonal.resize(size, false);

@@ -46,17 +46,17 @@ class CH_PARALLEL_API ChSolverParallel {
   void shurA(DynamicVector<real>& x, DynamicVector<real>& out);  // Vector that N is multiplied by
 
   // Compute rhs value with relaxation term
-  void ComputeSRhs(custom_vector<real>& gamma,
-                   const custom_vector<real>& rhs,
-                   custom_vector<real3>& vel_data,
-                   custom_vector<real3>& omg_data,
-                   custom_vector<real>& b);
+  void ComputeSRhs(std::vector<real>& gamma,
+                   const std::vector<real>& rhs,
+                   std::vector<real3>& vel_data,
+                   std::vector<real3>& omg_data,
+                   std::vector<real>& b);
 
   // Function that performs time integration to get the new positions
   // Used when contacts need to be updated within the solver
   // Function is similar to compute impulses
   // Currently not supported
-  void UpdatePosition(custom_vector<real>& x);  // Lagrange multipliers
+  void UpdatePosition(std::vector<real>& x);  // Lagrange multipliers
 
   // Rerun the narrowphase to get the new contact list, broadphase is not run
   // again here. This assumes that the positions did not drastically change.

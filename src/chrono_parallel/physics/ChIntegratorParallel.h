@@ -3,7 +3,6 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 
 namespace chrono {
 class CH_PARALLEL_API ChIntegratorParallel {
