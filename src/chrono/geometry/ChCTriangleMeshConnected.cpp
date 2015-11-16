@@ -1082,7 +1082,7 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
             edge_map.count(medgeB) >2 ||
             edge_map.count(medgeC) >2) {
             pathological_edges = true;
-            GetLog() << "Warning, edge shared with more than two triangles! \n";
+            //GetLog() << "Warning, edge shared with more than two triangles! \n";
         }
         auto retA = edge_map.equal_range(medgeA);
         for (auto fedge=retA.first; fedge!=retA.second; ++it) {
@@ -1110,7 +1110,8 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
 }
 
 
-bool ChTriangleMeshConnected::ComputeWingedEdges(std::vector<std::array<int,4>>& winged_edges) const {
+bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int,int>, std::pair<int,int>>& winged_edges,
+                                                 bool allow_single_wing) const {
 
     bool pathological_edges = false;
 
@@ -1136,22 +1137,25 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::vector<std::array<int,4>>&
     for ( auto aedge = edge_map.begin(); aedge != edge_map.end(); ++aedge ) {
         auto ret = edge_map.equal_range(aedge->first);
         int nt=0;
-        std::array<int,4> wing;
+        std::pair<int,int> wingedge;
+        std::pair<int,int> wingtri;
+        wingtri.first = -1;
+        wingtri.second = -1;
         for (auto fedge=ret.first; fedge!=ret.second; ++fedge) {
             if (fedge->second == -1)
                 break;
-            wing[0]= fedge->first.first;
-            wing[1]= fedge->first.second;
+            wingedge.first = fedge->first.first;
+            wingedge.second= fedge->first.second;
             if (nt==0) 
-                wing[2] = fedge->second;
+                wingtri.first  = fedge->second;
             if (nt==1) 
-                wing[3] = fedge->second;
+                wingtri.second = fedge->second;
             ++nt;
             if (nt==2) 
                 break;
         }
-        if (nt==2) {
-            winged_edges.push_back(wing); // ok found winged edge!
+        if ((nt==2) || ((nt==1) && allow_single_wing) ) {
+            winged_edges.insert(std::pair<std::pair<int,int>, std::pair<int,int>>(wingedge,wingtri)); // ok found winged edge!
             aedge->second = -1; // deactivate this way otherwise found again by sister
         }
         if (nt==3){
