@@ -101,38 +101,40 @@ void ChLcpVariablesNode::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatr
 }
 
 /// Computes the product of the corresponding block in the
-/// system matrix (ie. the mass matrix) by 'vect', and add to 'result'.
+/// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
 /// NOTE: the 'vect' and 'result' vectors must already have
 /// the size of the total variables&constraints in the system; the procedure
 /// will use the ChVariable offsets (that must be already updated) to know the
 /// indexes in result and vect.
-void ChLcpVariablesNode::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
+void ChLcpVariablesNode::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
     assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
     // optimized unrolled operations
-    result(this->offset) += mass * vect(this->offset);
-    result(this->offset + 1) += mass * vect(this->offset + 1);
-    result(this->offset + 2) += mass * vect(this->offset + 2);
+    double scaledmass = c_a *mass;
+    result(this->offset)     += scaledmass * vect(this->offset);
+    result(this->offset + 1) += scaledmass * vect(this->offset + 1);
+    result(this->offset + 2) += scaledmass * vect(this->offset + 2);
 }
 
-/// Add the diagonal of the mass matrix (as a column vector) to 'result'.
+/// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
 /// NOTE: the 'result' vector must already have the size of system unknowns, ie
 /// the size of the total variables&constraints in the system; the procedure
 /// will use the ChVariable offset (that must be already updated) as index.
-void ChLcpVariablesNode::DiagonalAdd(ChMatrix<double>& result) const {
+void ChLcpVariablesNode::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
     assert(result.GetColumns() == 1);
-    result(this->offset) += mass;
-    result(this->offset + 1) += mass;
-    result(this->offset + 2) += mass;
+    result(this->offset)     += c_a * mass;
+    result(this->offset + 1) += c_a * mass;
+    result(this->offset + 2) += c_a * mass;
 }
 
-/// Build the mass matrix (for these variables) storing
+/// Build the mass matrix (for these variables) scaled by c_a, storing
 /// it in 'storage' sparse matrix, at given column/row offset.
 /// Note, most iterative solvers don't need to know mass matrix explicitly.
 /// Optimised: doesn't fill unneeded elements except mass.
-void ChLcpVariablesNode::Build_M(ChSparseMatrix& storage, int insrow, int inscol) {
-    storage.SetElement(insrow + 0, inscol + 0, mass);
-    storage.SetElement(insrow + 1, inscol + 1, mass);
-    storage.SetElement(insrow + 2, inscol + 2, mass);
+void ChLcpVariablesNode::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
+    double scaledmass = c_a * mass;
+    storage.SetElement(insrow + 0, inscol + 0, scaledmass);
+    storage.SetElement(insrow + 1, inscol + 1, scaledmass);
+    storage.SetElement(insrow + 2, inscol + 2, scaledmass);
 }
 
 
