@@ -195,7 +195,7 @@ SOURCE_GROUP(lcp FILES ${ChronoEngine_Parallel_LCP})
 
 SET(ChronoEngine_Parallel_MATH
     math/ChParallelMath.h
-    math/thrust_utils.h
+    math/ChThrustLinearAlgebra.h
     math/mat33.h
     math/real.h
     math/real2.h
