@@ -70,6 +70,14 @@ class ChApi ChTriangleMesh : public ChGeometry {
     /// Clear all data
     virtual void Clear() = 0;
 
+    /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
+    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) = 0;
+
+    /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
+    virtual void Transform(const ChVector<> displ, const ChQuaternion<> mquat = ChQuaternion<>(1,0,0,0)) {
+        this->Transform(displ, ChMatrix33<>(mquat));
+    }
+
     //
     // OVERRIDE BASE CLASS FUNCTIONS
     //

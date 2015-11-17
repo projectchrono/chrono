@@ -42,6 +42,8 @@ ChLcpSystemDescriptor::ChLcpSystemDescriptor() {
     vvariables.clear();
     vstiffness.clear();
 
+    c_a = 1.0;
+
     n_q = 0;
     n_c = 0;
     freeze_count = false;
@@ -168,7 +170,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive()) {
             if (M)
-                mvariables[iv]->Build_M(*M, s_q, s_q);  // .. fills  M
+                mvariables[iv]->Build_M(*M, s_q, s_q, this->c_a);  // .. fills  M
             if (Fvector)
                 Fvector->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);  // .. fills  'f'
             s_q += mvariables[iv]->Get_ndof();
@@ -250,7 +252,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z,
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive()) {
             if (Z)
-                mvariables[iv]->Build_M(*Z, s_q, s_q);  // .. fills  Z with masses and inertias in the upper left corner
+                mvariables[iv]->Build_M(*Z, s_q, s_q, this->c_a);  // .. fills  Z with masses and inertias in the upper left corner
             if (rhs)
                 rhs->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);  // .. fills 'rhs' with 'f' in the upper section
             s_q += mvariables[iv]->Get_ndof();
@@ -406,17 +408,17 @@ int ChLcpSystemDescriptor::BuildDiagonalVector(
 
     Diagonal_vect.Reset(n_q + n_c, 1);  // fast! Reset() method does not realloc if size doesn't change
 
-    // Fill the diagonal values given by stiffness blocks, if any
+    // Fill the diagonal values given by ChLcpKblock objects , if any
     // (This cannot be easily parallelized because of possible write concurrency).
     for (int is = 0; is < (int)vstiffness.size(); is++) {
         vstiffness[is]->DiagonalAdd(Diagonal_vect);
     }
 
-// Get the 'M' diagonal terms
-#pragma omp parallel for num_threads(this->num_threads)
+    // Get the 'M' diagonal terms given by ChLcpVariables objects
+    #pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            vvariables[iv]->DiagonalAdd(Diagonal_vect);
+            vvariables[iv]->DiagonalAdd(Diagonal_vect, this->c_a);
         }
     }
 
@@ -673,7 +675,7 @@ void ChLcpSystemDescriptor::SystemProduct(
 #pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++)
         if (vvariables[iv]->IsActive()) {
-            vvariables[iv]->MultiplyAndAdd(result, *x);
+            vvariables[iv]->MultiplyAndAdd(result, *x, this->c_a);
         }
 
     // 1.2)  add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)

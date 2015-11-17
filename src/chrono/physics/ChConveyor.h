@@ -41,8 +41,8 @@ namespace chrono {
 /// in X direction. No cylindrical rounding is used at the ends.
 ///
 
-class ChApi ChConveyor : public ChBody {
-    CH_RTTI(ChConveyor, ChBody);
+class ChApi ChConveyor : public ChPhysicsItem {
+    CH_RTTI(ChConveyor, ChPhysicsItem);
 
   private:
     //
@@ -54,6 +54,8 @@ class ChApi ChConveyor : public ChBody {
     // link between this body and conveyor plate
     ChLinkLockLock* internal_link;
 
+    // used for the conveyor truss
+    ChBody* conveyor_truss;
     // used for the conveyor plate
     ChBody* conveyor_plate;
 
@@ -70,6 +72,10 @@ class ChApi ChConveyor : public ChBody {
     /// Copy from another ChChConveyor.
     void Copy(ChConveyor* source);
 
+    /// Set the pointer to the parent ChSystem() and 
+    /// also add to new collision system / remove from old coll.system
+    virtual void SetSystem(ChSystem* m_system);
+
     //
     // FUNCTIONS
     //
@@ -79,8 +85,40 @@ class ChApi ChConveyor : public ChBody {
     /// Get the speed of the conveyor belt (upper part, X direction)
     double GetConveyorSpeed() { return conveyor_speed; }
 
+    /// Access the internal body used as the truss of the moving belt 
+    ChBody* GetTruss() { return conveyor_truss; }
+
     /// Access the internal body used as the moving belt (a plate with const.vel.)
     ChBody* GetPlate() { return conveyor_plate; }
+
+    //
+    // Shortcuts for ChBody-like transformations etc. 
+    // (these, and others, can be done also as my_conveyor->GetTruss()->ChBlabla(...) )
+    //
+
+    void SetBodyFixed(bool mev) { this->GetTruss()->SetBodyFixed(mev);}
+    bool GetBodyFixed() { return this->GetTruss()->GetBodyFixed(); }
+
+    ChCoordsys<>& GetCoord() { return this->GetTruss()->GetCoord(); }
+    ChVector<>& GetPos()  { return this->GetTruss()->GetPos(); }
+    ChQuaternion<>& GetRot() { return this->GetTruss()->GetRot(); }
+    void SetCoord(const ChCoordsys<>& mcoord) { return this->GetTruss()->SetCoord(mcoord); }
+    void SetCoord(const ChVector<>& mv, const ChQuaternion<>& mq) { this->GetTruss()->SetCoord(mv,mq);  }
+    void SetRot(const ChQuaternion<>& mrot) { this->GetTruss()->SetRot(mrot); }
+    void SetPos(const ChVector<>& mpos) { this->GetTruss()->SetPos(mpos);}
+
+    /// Access the material surface properties of the conveyor belt (shortcut)
+    ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return this->GetPlate()->GetMaterialSurfaceBase(); } // Moved below
+
+    /// Access the DVI material surface properties of the conveyor belt (shortcut)
+    ChSharedPtr<ChMaterialSurface> GetMaterialSurface() { return this->GetPlate()->GetMaterialSurface(); }
+
+    /// Set the material surface properties by passing a ChMaterialSurface or ChMaterialSurfaceDEM object.
+    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { this->GetPlate()->SetMaterialSurface(mnewsurf); }
+
+    //
+    // STATE FUNCTIONS
+    //
 
     /// Number of coordinates: this contains an auxiliary body, so it is 14 (with quaternions for rotations)
     virtual int GetDOF() { return 7 + 7; }
@@ -88,10 +126,6 @@ class ChApi ChConveyor : public ChBody {
     virtual int GetDOF_w() { return 6 + 6; }
     /// Get the number of scalar constraints. In this case, a lock constraint is embedded, so:
     virtual int GetDOC_c() { return 6; }
-
-    //
-    // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,

@@ -155,7 +155,6 @@ int ChSystemParallel::Integrate_Y() {
 // body.
 //
 void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
-  newbody->SetSystem(this);
   // This is only need because bilaterals need to know what bodies to
   // refer to. Not used by contacts
   newbody->SetId(data_manager->num_rigid_bodies);
@@ -163,9 +162,9 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
   bodylist.push_back(newbody);
   data_manager->num_rigid_bodies++;
 
-  if (newbody->GetCollide()) {
-    newbody->AddCollisionModelsToSystem();
-  }
+  // Set the system for the body.  Note that this will also add the body's
+  // collision shapes to the collision system if not already done.
+  newbody->SetSystem(this);
 
   // Reserve space for this body in the system-wide vectors. Note that the
   // actual data is set in UpdateBodies().

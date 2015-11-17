@@ -29,9 +29,12 @@
 #include "collision/ChCConvexDecomposition.h"
 #include "geometry/ChCLineArc.h"
 #include "geometry/ChCLineSegment.h"
+#include "geometry/ChCTriangleMeshConnected.h"
 #include "BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "BulletCollision/CollisionShapes/bt2DShape.h"
 #include "BulletCollision/CollisionShapes/btCEtriangleShape.h"
+#include <array>
+
 
 namespace chrono {
 
@@ -380,7 +383,7 @@ bool ChModelBullet::AddTriangleProxy(ChVector<>* p1,                ///< points 
         mowns_edge_1, mowns_vertex_2, mowns_vertex_3, msphereswept_rad);
 
     mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
-
+    //GetLog() << "AddTriangleProxy " << mowns_vertex_1 << " " << mowns_vertex_2 << " " << mowns_vertex_3 << " \n";
     _injectShape(VNULL, ChMatrix33<>(1), mshape);
 
     return true;
@@ -493,6 +496,59 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
                                     const ChMatrix33<>& rot) {
     if (!trimesh.getNumTriangles())
         return false;
+
+    //*******EXPERIMENTAL******
+    if (geometry::ChTriangleMeshConnected* mesh = dynamic_cast<geometry::ChTriangleMeshConnected*> ( const_cast<geometry::ChTriangleMesh*>(&trimesh))) {
+
+        // The envelope is not used in this type of collision primitive. 
+        this->SetEnvelope(0); 
+
+        std::vector<std::array<int,4>> trimap;
+        mesh->ComputeNeighbouringTriangleMap(trimap);
+        
+        std::map<std::pair<int,int>, std::pair<int, int>> winged_edges;
+        mesh->ComputeWingedEdges(winged_edges, true);
+
+        //std::vector<bool> added_edges (winged_edges.size());
+        std::vector<bool> added_vertexes (mesh->m_vertices.size());
+        
+        // iterate on triangles
+        for (int it = 0; it < mesh->m_face_v_indices.size(); ++it) {
+            // edges = pairs of vertexes indexes
+            std::pair<int, int> medgeA(mesh->m_face_v_indices[it].x, mesh->m_face_v_indices[it].y);
+            std::pair<int, int> medgeB(mesh->m_face_v_indices[it].y, mesh->m_face_v_indices[it].z);
+            std::pair<int, int> medgeC(mesh->m_face_v_indices[it].z, mesh->m_face_v_indices[it].x);
+            // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
+            if (medgeA.first>medgeA.second) 
+                medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
+            if (medgeB.first>medgeB.second) 
+                medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
+            if (medgeC.first>medgeC.second) 
+                medgeC = std::pair<int, int>(medgeC.second, medgeC.first);  
+            auto wingedgeA = winged_edges.find(medgeA);
+            auto wingedgeB = winged_edges.find(medgeB);
+            auto wingedgeC = winged_edges.find(medgeC);
+            this->AddTriangleProxy(&mesh->m_vertices[mesh->m_face_v_indices[it].x], 
+                                   &mesh->m_vertices[mesh->m_face_v_indices[it].y],
+                                   &mesh->m_vertices[mesh->m_face_v_indices[it].z],
+                                   !added_vertexes[mesh->m_face_v_indices[it].x],
+                                   !added_vertexes[mesh->m_face_v_indices[it].y],
+                                   !added_vertexes[mesh->m_face_v_indices[it].z],
+                                   wingedgeA->second.second != -1,
+                                   wingedgeB->second.second != -1,
+                                   wingedgeC->second.second != -1,
+                                   0.0);
+            // Mark added vertexes
+            added_vertexes[mesh->m_face_v_indices[it].x] = true;
+            added_vertexes[mesh->m_face_v_indices[it].y] = true;
+            added_vertexes[mesh->m_face_v_indices[it].z] = true;
+            // Mark added edges
+            wingedgeA->second.second = -1;
+            wingedgeB->second.second = -1;
+            wingedgeC->second.second = -1;
+        }
+        return true;
+    }
 
     btTriangleMesh* bulletMesh = new btTriangleMesh;
     for (int i = 0; i < trimesh.getNumTriangles(); i++) {

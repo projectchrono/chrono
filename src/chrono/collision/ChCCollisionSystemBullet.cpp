@@ -21,6 +21,7 @@
 #include "collision/ChCCollisionSystemBullet.h"
 #include "collision/ChCModelBullet.h"
 #include "collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
+#include "collision/ChCCollisionUtils.h"
 #include "physics/ChBody.h"
 #include "physics/ChContactContainerBase.h"
 #include "physics/ChProximityContainerBase.h"
@@ -28,6 +29,7 @@
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 #include "BulletCollision/CollisionShapes/btCylinderShape.h"
 #include "BulletCollision/CollisionShapes/bt2DShape.h"
+#include "BulletCollision/CollisionShapes/btCEtriangleShape.h"
 #include "BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h"
 
 extern btScalar gContactBreakingThreshold;
@@ -634,6 +636,190 @@ class btArcArcCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     };
 };
 
+
+
+
+// Utility class that we use to override the btCEtriangleShape vs btCEtriangleShape
+
+class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorithm {
+    bool m_ownManifold;
+    btPersistentManifold* m_manifoldPtr;
+    bool m_isSwapped;
+
+  public:
+    btCEtriangleShapeCollisionAlgorithm(btPersistentManifold* mf,
+                                       const btCollisionAlgorithmConstructionInfo& ci,
+                                       btCollisionObject* col0,
+                                       btCollisionObject* col1,
+                                       bool isSwapped)
+        : btActivatingCollisionAlgorithm(ci, col0, col1),
+          m_ownManifold(false),
+          m_manifoldPtr(mf),
+          m_isSwapped(isSwapped) {
+        btCollisionObject* triObj1 = m_isSwapped ? col1 : col0;
+        btCollisionObject* triObj2 = m_isSwapped ? col0 : col1;
+
+        if (!m_manifoldPtr) {
+            m_manifoldPtr = m_dispatcher->getNewManifold(triObj1, triObj2);
+            m_ownManifold = true;
+        }
+    }
+
+    btCEtriangleShapeCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
+        : btActivatingCollisionAlgorithm(ci) {}
+
+    virtual void processCollision(btCollisionObject* body0,
+                                  btCollisionObject* body1,
+                                  const btDispatcherInfo& dispatchInfo,
+                                  btManifoldResult* resultOut) {
+        (void)dispatchInfo;
+
+        if (!m_manifoldPtr)
+            return;
+        
+        btCollisionObject* triObj1 = m_isSwapped ? body1 : body0;
+        btCollisionObject* triObj2 = m_isSwapped ? body0 : body1;
+
+        resultOut->setPersistentManifold(m_manifoldPtr);
+
+        // only 1 contact per pair, avoid persistence
+        resultOut->getPersistentManifold()->clearManifold();
+
+        btCEtriangleShape* triA = (btCEtriangleShape*)triObj1->getCollisionShape();
+        btCEtriangleShape* triB = (btCEtriangleShape*)triObj2->getCollisionShape();
+
+        const btTransform& m44Ta = triObj1->getWorldTransform();
+        const btTransform& m44Tb = triObj2->getWorldTransform();  
+
+        // points in absolute coordinates
+        btVector3 pA1 = m44Ta * btVector3( (btScalar)triA->get_p1()->x,  (btScalar)triA->get_p1()->y, (btScalar)triA->get_p1()->z);
+        btVector3 pA2 = m44Ta * btVector3( (btScalar)triA->get_p2()->x,  (btScalar)triA->get_p2()->y, (btScalar)triA->get_p2()->z);
+        btVector3 pA3 = m44Ta * btVector3( (btScalar)triA->get_p3()->x,  (btScalar)triA->get_p3()->y, (btScalar)triA->get_p3()->z);
+
+        btVector3 pB1 = m44Tb * btVector3( (btScalar)triB->get_p1()->x,  (btScalar)triB->get_p1()->y, (btScalar)triB->get_p1()->z);
+        btVector3 pB2 = m44Tb * btVector3( (btScalar)triB->get_p2()->x,  (btScalar)triB->get_p2()->y, (btScalar)triB->get_p2()->z);
+        btVector3 pB3 = m44Tb * btVector3( (btScalar)triB->get_p3()->x,  (btScalar)triB->get_p3()->y, (btScalar)triB->get_p3()->z);
+
+        ChVector<> mpA1(pA1.x(),pA1.y(),pA1.z()); // again to chrono vectors for easier code - this could be optimised
+        ChVector<> mpA2(pA2.x(),pA2.y(),pA2.z());
+        ChVector<> mpA3(pA3.x(),pA3.y(),pA3.z());
+
+        ChVector<> mpB1(pB1.x(),pB1.y(),pB1.z());
+        ChVector<> mpB2(pB2.x(),pB2.y(),pB2.z());
+        ChVector<> mpB3(pB3.x(),pB3.y(),pB3.z());
+
+        double min_dist = 1e20;
+        ChVector<> candid_pA;
+        ChVector<> candid_pB;
+        double dist = 1e20;
+        int is_into;
+        ChVector<> p_projected;
+        double mu, mv;
+
+        if (triA->owns_v1()) {
+            dist = ChCollisionUtils::PointTriangleDistance(mpA1, mpB1, mpB2, mpB3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pA = mpA1; candid_pB = p_projected;
+                }
+            }
+        }
+        if (triA->owns_v2()) {
+            dist = ChCollisionUtils::PointTriangleDistance(mpA2, mpB1, mpB2, mpB3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pA = mpA2; candid_pB = p_projected;
+                }
+            }
+        }
+        if (triA->owns_v3()) {
+            dist = ChCollisionUtils::PointTriangleDistance(mpA3, mpB1, mpB2, mpB3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pA = mpA3; candid_pB = p_projected;
+                }
+            }
+        }
+
+        if (triB->owns_v1()) {
+            dist = ChCollisionUtils::PointTriangleDistance(mpB1, mpA1, mpA2, mpA3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pB = mpB1; candid_pA = p_projected;
+                }
+            }
+        }
+        if (triB->owns_v2()) {
+            dist = ChCollisionUtils::PointTriangleDistance(mpB2, mpA1, mpA2, mpA3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pB = mpB2; candid_pA = p_projected;
+                }
+            }
+        }
+        if (triB->owns_v3()) {
+            dist = ChCollisionUtils::PointTriangleDistance(mpB3, mpA1, mpA2, mpA3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pB = mpB3; candid_pA = p_projected;
+                }
+            }
+        }
+        
+        /// report a contact. internally this will be kept persistent, and contact reduction is done
+        if (min_dist<1e20 && fabs(min_dist)<(triA->getMargin()+triB->getMargin())) {
+            // convert to Bullet vectors. Note: in absolute csys.
+            btVector3 absA ((btScalar)candid_pA.x, (btScalar)candid_pA.y, (btScalar)candid_pA.z);
+            btVector3 absB ((btScalar)candid_pB.x, (btScalar)candid_pB.y, (btScalar)candid_pB.z);
+            btVector3 absN_onB ((absA-absB).normalize());
+            if (min_dist<0)
+                absN_onB = - absN_onB; // flip norm to be coherent with dist sign
+            resultOut->addContactPoint(absN_onB, absB, (btScalar)min_dist);
+        }
+
+        // .... to do.. edges edges
+
+
+        resultOut->refreshContactPoints();
+    }
+
+    virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,
+                                           btCollisionObject* body1,
+                                           const btDispatcherInfo& dispatchInfo,
+                                           btManifoldResult* resultOut) {
+        // not yet
+        return btScalar(1.);
+    }
+
+    virtual void getAllContactManifolds(btManifoldArray& manifoldArray) {
+        if (m_manifoldPtr && m_ownManifold) {
+            manifoldArray.push_back(m_manifoldPtr);
+        }
+    }
+
+    virtual ~btCEtriangleShapeCollisionAlgorithm() {
+        if (m_ownManifold) {
+            if (m_manifoldPtr)
+                m_dispatcher->releaseManifold(m_manifoldPtr);
+        }
+    }
+
+    struct CreateFunc : public btCollisionAlgorithmCreateFunc {
+        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci,
+                                                               btCollisionObject* body0,
+                                                               btCollisionObject* body1) {
+            void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btCEtriangleShapeCollisionAlgorithm));
+            if (!m_swapped) {
+                return new (mem) btCEtriangleShapeCollisionAlgorithm(0, ci, body0, body1, false);
+            } else {
+                return new (mem) btCEtriangleShapeCollisionAlgorithm(0, ci, body0, body1, true);
+            }
+        }
+    };
+};
+
+
+
 ////////////////////////////////////
 ////////////////////////////////////
 
@@ -680,6 +866,10 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
      // custom collision for 2D arc-arc case
     btCollisionAlgorithmCreateFunc* m_collision_arc_arc = new btArcArcCollisionAlgorithm::CreateFunc;
     bt_dispatcher->registerCollisionCreateFunc(ARC_SHAPE_PROXYTYPE, ARC_SHAPE_PROXYTYPE, m_collision_arc_arc);
+
+     // custom collision for C::E triangles:
+    btCollisionAlgorithmCreateFunc* m_collision_cetri_cetri = new btCEtriangleShapeCollisionAlgorithm::CreateFunc;
+    bt_dispatcher->registerCollisionCreateFunc(CE_TRIANGLE_SHAPE_PROXYTYPE, CE_TRIANGLE_SHAPE_PROXYTYPE, m_collision_cetri_cetri);
 
      // custom collision for point-point case (in point clouds, just never create point-point contacts)
     //btCollisionAlgorithmCreateFunc* m_collision_point_point = new btPointPointCollisionAlgorithm::CreateFunc;
