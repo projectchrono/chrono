@@ -20,6 +20,8 @@
 #undef _GLIBCXX_ATOMIC_BUILTINS
 #undef _GLIBCXX_USE_INT128
 
+#include <iostream>
+
 #ifndef _MSC_VER
 #include <fenv.h>
 #endif
