@@ -16,8 +16,7 @@
 // chrono parallel.
 // =============================================================================
 
-#ifndef CHSOLVERMATLAB_H
-#define CHSOLVERMATLAB_H
+#pragma once
 
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
@@ -49,4 +48,3 @@ class CH_PARALLEL_API ChSolverMatlab : public ChSolverParallel {
   ChMatlabEngine* mengine;
 };
 }
-#endif

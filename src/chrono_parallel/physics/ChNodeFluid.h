@@ -17,8 +17,7 @@
 // general.
 // =============================================================================
 
-#ifndef CHNODEFLUID_H
-#define CHNODEFLUID_H
+#pragma once
 
 #include <math.h>
 
@@ -83,4 +82,3 @@ class CH_PARALLEL_API ChNodeFluid : public ChPhysicsItem {
   ChParallelDataManager* data_manager;
 };
 }
-#endif

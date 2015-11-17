@@ -16,8 +16,7 @@
 // All of the functions are defined here, with the implementation of each solver
 // in it's specific cpp file.
 // =============================================================================
-#ifndef CHSOLVERPARALLEL_H
-#define CHSOLVERPARALLEL_H
+#pragma once
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
@@ -119,5 +118,3 @@ class CH_PARALLEL_API ChSolverParallel {
   ChParallelDataManager* data_manager;
 };
 }
-
-#endif

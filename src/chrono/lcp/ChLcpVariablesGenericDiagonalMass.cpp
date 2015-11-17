@@ -87,27 +87,27 @@ void ChLcpVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChMatrix<double>& resul
 }
 
 /// Computes the product of the corresponding block in the
-/// system matrix (ie. the mass matrix) by 'vect', and add to 'result'.
+/// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
 /// NOTE: the 'vect' and 'result' vectors must already have
 /// the size of the total variables&constraints in the system; the procedure
 /// will use the ChVariable offsets (that must be already updated) to know the
 /// indexes in result and vect.
-void ChLcpVariablesGenericDiagonalMass::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
+void ChLcpVariablesGenericDiagonalMass::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
     assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
 
     for (int i = 0; i < MmassDiag->GetRows(); i++) {
-        result(this->offset + i) += (*MmassDiag)(i)*vect(this->offset + i);
+        result(this->offset + i) += c_a * ((*MmassDiag)(i)*vect(this->offset + i));
     }
 }
 
-/// Add the diagonal of the mass matrix (as a column vector) to 'result'.
+/// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
 /// NOTE: the 'result' vector must already have the size of system unknowns, ie
 /// the size of the total variables&constraints in the system; the procedure
 /// will use the ChVariable offset (that must be already updated) as index.
-void ChLcpVariablesGenericDiagonalMass::DiagonalAdd(ChMatrix<double>& result) const {
+void ChLcpVariablesGenericDiagonalMass::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
     assert(result.GetColumns() == 1);
     for (int i = 0; i < MmassDiag->GetRows(); i++) {
-        result(this->offset + i) += (*MmassDiag)(i);
+        result(this->offset + i) += c_a * (*MmassDiag)(i);
     }
 }
 

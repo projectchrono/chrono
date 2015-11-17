@@ -51,6 +51,7 @@ typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
 #define BF_USESLEEPING (1L << 10)     // if body remains in same place for too long time, it will be frozen
 #define BF_NOGYROTORQUE \
     (1L << 11)  // body do not get the gyroscopic (quadratic) term, for low-fi but stable RT simulations.
+#define BF_COULDSLEEP (1L << 12)     // if body remains in same place for too long time, it will be frozen
 
 ///
 /// Class for rigid bodies. A rigid body is an entity which
@@ -208,7 +209,8 @@ class ChApi ChBody :            public ChPhysicsItem,
     void SetSleeping(bool ms) { BFlagSet(BF_SLEEPING, ms); }
     bool GetSleeping() { return BFlagGet(BF_SLEEPING); }
 
-    /// Put the body in sleeping state if requirements are satisfied.
+    /// Test if a body could go in sleeping state if requirements are satisfied.
+    /// Return true if state could be changed from no sleep to sleep. 
     bool TrySleeping();
 
     /// Tell if the body is active, i.e. it is neither fixed to ground nor

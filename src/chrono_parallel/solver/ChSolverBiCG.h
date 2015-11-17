@@ -15,8 +15,7 @@
 // Implementation of an iterative BiCG solver.
 // =============================================================================
 
-#ifndef CHSOLVERBICG_H
-#define CHSOLVERBICG_H
+#pragma once
 
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
@@ -48,5 +47,3 @@ class CH_PARALLEL_API ChSolverBiCG : public ChSolverParallel {
   real rho_1, rho_2, alpha, beta;
 };
 }
-
-#endif

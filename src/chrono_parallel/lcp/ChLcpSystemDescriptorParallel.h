@@ -1,5 +1,4 @@
-#ifndef CHLCPSYSTEMDESCRIPTORPARALLEL_H
-#define CHLCPSYSTEMDESCRIPTORPARALLEL_H
+#pragma once
 
 #include <thrust/count.h>
 
@@ -47,7 +46,7 @@ class CH_PARALLEL_API ChLcpSystemDescriptorParallel : public ChLcpSystemDescript
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
       if (mvariables[iv]->IsActive()) {
         if (M)
-          mvariables[iv]->Build_M(*M, s_q, s_q);
+          mvariables[iv]->Build_M(*M, s_q, s_q, this->c_a);
         if (Fvector)
           Fvector->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);
 
@@ -62,4 +61,3 @@ class CH_PARALLEL_API ChLcpSystemDescriptorParallel : public ChLcpSystemDescript
 
 }  // END_OF_NAMESPACE____
 
-#endif

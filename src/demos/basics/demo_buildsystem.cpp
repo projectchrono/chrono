@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
         // By the way, you can set an Ascii name for objects as desired:
         my_marker_a1->SetName("JohnFoo");
-        // ..so you can later use  my_system.SearchMarker("JohnFoo"); etc.
+        // ..so you can later use  my_body_B.SearchMarker("JohnFoo"); etc.
 
         GetLog() << "\n\n\nHere's the system hierarchy after modifications: \n\n ";
         my_system.ShowHierarchy(GetLog());

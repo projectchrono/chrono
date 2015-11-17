@@ -1,5 +1,4 @@
-#ifndef CHCONSTRAINT_RIGIDRIGID_H
-#define CHCONSTRAINT_RIGIDRIGID_H
+#pragma once
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
@@ -109,4 +108,3 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
 };
 }
 
-#endif

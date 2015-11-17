@@ -67,31 +67,31 @@ void ChLcpVariablesShaft::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMat
 }
 
 /// Computes the product of the corresponding block in the
-/// system matrix (ie. the mass matrix) by 'vect', and add to 'result'.
+/// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
 /// NOTE: the 'vect' and 'result' vectors must already have
 /// the size of the total variables&constraints in the system; the procedure
 /// will use the ChVariable offsets (that must be already updated) to know the
 /// indexes in result and vect.
-void ChLcpVariablesShaft::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
+void ChLcpVariablesShaft::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
     assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
-    result(this->offset) += m_inertia * vect(this->offset);
+    result(this->offset) += c_a * m_inertia * vect(this->offset);
 }
 
-/// Add the diagonal of the mass matrix (as a column vector) to 'result'.
+/// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
 /// NOTE: the 'result' vector must already have the size of system unknowns, ie
 /// the size of the total variables&constraints in the system; the procedure
 /// will use the ChVariable offset (that must be already updated) as index.
-void ChLcpVariablesShaft::DiagonalAdd(ChMatrix<double>& result) const {
+void ChLcpVariablesShaft::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
     assert(result.GetColumns() == 1);
-    result(this->offset) += m_inertia;
+    result(this->offset) += c_a * m_inertia;
 }
 
-/// Build the mass matrix (for these variables) storing
+/// Build the mass matrix (for these variables) scaled by c_a, storing
 /// it in 'storage' sparse matrix, at given column/row offset.
 /// Note, most iterative solvers don't need to know mass matrix explicitly.
 /// Optimised: doesn't fill unneeded elements except mass.
-void ChLcpVariablesShaft::Build_M(ChSparseMatrix& storage, int insrow, int inscol) {
-    storage.SetElement(insrow + 0, inscol + 0, m_inertia);
+void ChLcpVariablesShaft::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
+    storage.SetElement(insrow + 0, inscol + 0, c_a * m_inertia);
 }
 
 // Register into the object factory, to enable run-time

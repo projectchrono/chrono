@@ -14,8 +14,7 @@
 // This class generates an AABB for every collision shape
 // =============================================================================
 
-#ifndef CHC_AABBGENERATOR_H
-#define CHC_AABBGENERATOR_H
+#pragma once
 
 #include "collision/ChCCollisionModel.h"
 
@@ -38,4 +37,3 @@ class CH_PARALLEL_API ChCAABBGenerator {
 }
 }
 
-#endif

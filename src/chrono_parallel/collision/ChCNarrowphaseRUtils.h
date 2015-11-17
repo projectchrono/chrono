@@ -19,8 +19,7 @@
 //
 // =============================================================================
 
-#ifndef CHC_NARROWPHASE_R_UTILS_H
-#define CHC_NARROWPHASE_R_UTILS_H
+#pragma once
 
 namespace chrono {
 namespace collision {
@@ -303,5 +302,3 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
 
 }  // end namespace collision
 }  // end namespace chrono
-
-#endif

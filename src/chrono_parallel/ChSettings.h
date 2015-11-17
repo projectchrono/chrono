@@ -17,8 +17,7 @@
 // default values for every setting parameter that is used by default
 // =============================================================================
 
-#ifndef CH_SETTINGS_H
-#define CH_SETTINGS_H
+#pragma once
 
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/parallel/ChOpenMP.h"
@@ -248,4 +247,3 @@ struct settings_container {
 };
 }
 
-#endif

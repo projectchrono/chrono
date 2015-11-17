@@ -17,8 +17,7 @@
 // solver iterations will be stored here.
 // =============================================================================
 
-#ifndef CH_MEASURES_H
-#define CH_MEASURES_H
+#pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "parallel/ChOpenMP.h"
@@ -60,4 +59,3 @@ struct measures_container {
 };
 }
 
-#endif

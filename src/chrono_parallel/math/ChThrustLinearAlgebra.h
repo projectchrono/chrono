@@ -15,8 +15,7 @@
 // Description: simple linear algebra functions using thrust
 // =============================================================================
 
-#ifndef CHTHRUSTLINEARALGEBRA_H
-#define CHTHRUSTLINEARALGEBRA_H
+#pragma once
 
 #include <algorithm>
 #include <iostream>
@@ -272,4 +271,3 @@ static inline std::ostream& operator<<(std::ostream& out, const thrust::host_vec
 //  }
 //};
 
-#endif

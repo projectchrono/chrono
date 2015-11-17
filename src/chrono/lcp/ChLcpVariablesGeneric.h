@@ -115,25 +115,27 @@ class ChApi ChLcpVariablesGeneric : public ChLcpVariables {
     void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
 
     /// Computes the product of the corresponding block in the
-    /// system matrix (ie. the mass matrix) by 'vect', and add to 'result'.
+    /// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
     /// NOTE: the 'vect' and 'result' vectors must already have
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect.
-    void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const;
 
-    /// Add the diagonal of the mass matrix (as a column vector) to 'result'.
+    /// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
     /// NOTE: the 'result' vector must already have the size of system unknowns, ie
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offset (that must be already updated) as index.
-    void DiagonalAdd(ChMatrix<double>& result) const;
+    void DiagonalAdd(ChMatrix<double>& result, const double c_a) const;
 
-    /// Build the mass matrix (for these variables) storing
+    /// Build the mass matrix (for these variables) scaled by c_a, storing
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
-	void Build_M(ChSparseMatrix& storage, int insrow, int inscol)
+	void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a)
 	{
-		storage.PasteMatrix(Mmass, insrow, inscol);
+        for (int row = 0; row < Mmass->GetRows(); ++row)
+            for (int col = 0; col < Mmass->GetColumns(); ++col)
+                storage.SetElement(insrow + row, inscol + col,  c_a * Mmass->GetElement(row, col) );
 	};
 };
 

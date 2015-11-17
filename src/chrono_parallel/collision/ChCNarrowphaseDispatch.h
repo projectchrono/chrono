@@ -1,5 +1,4 @@
-#ifndef CHC_NARROWPHASEDISPATCH_H
-#define CHC_NARROWPHASEDISPATCH_H
+#pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
@@ -55,5 +54,3 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
 };
 }  // end namespace collision
 }  // end namespace chrono
-
-#endif

@@ -15,11 +15,12 @@
 // Description: lots of useful definitions for thrust, includes and enums
 // =============================================================================
 
-#ifndef CHPARALLELDEFINES_H
-#define CHPARALLELDEFINES_H
+#pragma once
 
 #undef _GLIBCXX_ATOMIC_BUILTINS
 #undef _GLIBCXX_USE_INT128
+
+#include <iostream>
 
 #ifndef _MSC_VER
 #include <fenv.h>
@@ -46,43 +47,28 @@
 #include <thrust/system/omp/execution_policy.h>
 
 #if defined(_MSC_VER)
-	#define thrust_parallel thrust::cpp::par
+#define thrust_parallel thrust::cpp::par
 #else
-	#if defined(CHRONO_OMP_FOUND)
-		#define thrust_parallel thrust::omp::par
-	#elif defined(CHRONO_TBB_ENABLED)
-		#define thrust_parallel thrust::tbb::par
-	#else
-		#define thrust_parallel thrust::cpp::par
-	#endif
+#if defined(CHRONO_OMP_FOUND)
+#define thrust_parallel thrust::omp::par
+#elif defined(CHRONO_TBB_ENABLED)
+#define thrust_parallel thrust::tbb::par
+#else
+#define thrust_parallel thrust::cpp::par
+#endif
 #endif
 
 typedef int shape_type;
 
 #ifdef __CDT_PARSER__
 #define BLAZE_SERIAL_SECTION
-//#define __host__
-//#define __device__
-//#define __global__
-//#define __constant__
-//#define __shared__
-//#define CUDA_KERNEL_DIM(...) ()
-//#define __KERNEL__(...) ()
-//#else
-//#define CUDA_KERNEL_DIM(...)  <<< __VA_ARGS__ >>>
-//#define __KERNEL__(...)  <<< __VA_ARGS__ >>>
 #endif
 
-//#define SIM_ENABLE_GPU_MODE
-#ifdef SIM_ENABLE_GPU_MODE
-#define custom_vector thrust::device_vector
-#else
 #ifndef __CDT_PARSER__
 #define custom_vector thrust::host_vector
 #else
 using namespace thrust;
 #define custom_vector host_vector
-#endif
 #endif
 
 #if defined _MSC_VER || defined __clang__
@@ -100,9 +86,6 @@ static std::ostream null_stream(&null_buffer);
 #define LOGGINGENABLED
 
 #endif
-
-#define CHVECCAST(v) ChVector<>(v.x, v.y, v.z)
-#define CHQUATCAST(q) ChQuaternion<>(q.w, q.x, q.y, q.z)
 
 #define Thrust_Inclusive_Scan_Sum(x, y)                    \
     thrust::inclusive_scan(x.begin(), x.end(), x.begin()); \
@@ -164,5 +147,3 @@ enum BILATERALTYPE { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAF
 
 // Supported Logging Levels
 enum LOGGINGLEVEL { LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR };
-
-#endif

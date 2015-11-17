@@ -1,5 +1,4 @@
-#ifndef CHC_DATASTRUCTURES_H
-#define CHC_DATASTRUCTURES_H
+#pragma once
 
 #include "chrono_parallel/math/ChParallelMath.h"
 
@@ -88,5 +87,3 @@ struct ContactManifold {
 
 }  // end namespace collision
 }  // end namespace chrono
-
-#endif

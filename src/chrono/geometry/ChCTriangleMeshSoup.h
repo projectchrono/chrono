@@ -63,6 +63,9 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     /// Clear all data
     virtual void Clear() { this->m_triangles.clear(); }
 
+    /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
+    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale);
+
     //
     // OVERRIDE BASE CLASS FUNCTIONS
     //

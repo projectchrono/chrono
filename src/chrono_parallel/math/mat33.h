@@ -15,8 +15,7 @@
 // Description: definition of a 3x3 matrix class
 // =============================================================================
 
-#ifndef MAT33_H
-#define MAT33_H
+#pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real2.h"
@@ -295,4 +294,3 @@ static inline real4 GetQuat(const M33 &A) {
 //[U.y,V.y,W.y][y]
 //[U.z,V.z,W.z][z]
 }
-#endif

@@ -23,8 +23,7 @@ misrepresented as being the original software.
 GJK-EPA collision solver by Nathanael Presson, 2008
 */
 
-#ifndef CHC_NARROWPHASE_GJK_EPA_H
-#define CHC_NARROWPHASE_GJK_EPA_H
+#pragma once
 
 #include "chrono_parallel/collision/ChCDataStructures.h"
 
@@ -67,5 +66,3 @@ void GJKPerturbedCollide(const ConvexShape& shapeA,
 
 }  // end namespace collision
 }  // end namespace chrono
-
-#endif
