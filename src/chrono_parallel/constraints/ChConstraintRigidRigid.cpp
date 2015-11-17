@@ -185,9 +185,9 @@ void ChConstraintRigidRigid::host_Project_single(int index, int2* ids, real3* fr
 }
 
 void ChConstraintRigidRigid::Project(real* gamma) {
-  const std::vector<int2>& bids = data_manager->host_data.bids_rigid_rigid;
-  const std::vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
-  const std::vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
+  const thrust::host_vector<int2>& bids = data_manager->host_data.bids_rigid_rigid;
+  const thrust::host_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
+  const thrust::host_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
   switch (data_manager->settings.solver.local_solver_mode) {
     case NORMAL: {
@@ -216,9 +216,9 @@ void ChConstraintRigidRigid::Project(real* gamma) {
   }
 }
 void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
-  std::vector<int2>& bids = data_manager->host_data.bids_rigid_rigid;
-  std::vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
-  std::vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
+  thrust::host_vector<int2>& bids = data_manager->host_data.bids_rigid_rigid;
+  thrust::host_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
+  thrust::host_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
   host_Project_single(index, bids.data(), friction.data(), cohesion.data(), gamma);
 }

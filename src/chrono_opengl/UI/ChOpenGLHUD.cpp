@@ -28,13 +28,14 @@ using namespace collision;
 namespace opengl {
 using namespace glm;
 
-#define LEFT -.95
-#define TOP .95
-#define BOTTOM -.95
-#define RIGHT .55
-#define CENTER 0
-#define SPACING sy * 35.0
-#define SCALE .001
+#define LEFT -.95f
+#define TOP .95f
+#define BOTTOM -.95f
+#define RIGHT .55f
+#define CENTER 0.0f
+#define SPACING (sy * 35.0f)
+#define SCALE .001f
+
 ChOpenGLHUD::ChOpenGLHUD() : ChOpenGLBase() {
   time_total = time_text = time_geometry = 0;
   fps = 0;

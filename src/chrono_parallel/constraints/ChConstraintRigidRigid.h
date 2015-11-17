@@ -97,7 +97,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
   int offset;
 
  protected:
-  std::vector<bool2> contact_active_pairs;
+  custom_vector<bool2> contact_active_pairs;
 
   real inv_h;
   real inv_hpa;

@@ -21,7 +21,6 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "parallel/ChOpenMP.h"
-#include <vector>
 
 namespace chrono {
 // collision_measures, like the name implies is the structure that contains all
@@ -51,7 +50,7 @@ struct solver_measures {
   real objective_value;  // Current objective value for the solver
 
   // These three variables are used to store the convergence history of the solver
-  std::vector<real> maxd_hist, maxdeltalambda_hist;
+  custom_vector<real> maxd_hist, maxdeltalambda_hist;
 };
 
 struct measures_container {

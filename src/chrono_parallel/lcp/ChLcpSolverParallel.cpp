@@ -1,4 +1,5 @@
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
+#include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 #include "physics/ChBody.h"
 using namespace chrono;
 
@@ -20,7 +21,7 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
   uint num_shafts = data_manager->num_shafts;
   uint num_dof = data_manager->num_dof;
   bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
-  const std::vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
+  const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
 
   std::vector<ChSharedPtr<ChBody> >* body_list = data_manager->body_list;
   std::vector<ChSharedPtr<ChLink> >* link_list = data_manager->link_list;

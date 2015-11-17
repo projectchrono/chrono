@@ -106,16 +106,16 @@ void ChOpenGLViewer::TakeDown() {
 bool ChOpenGLViewer::Initialize() {
   // Initialize all of the shaders and compile them
   if (!main_shader.InitializeStrings("phong", phong_vert, phong_frag)) {
-    return 0;
+    return false;
   }
   if (!cloud_shader.InitializeStrings("cloud", cloud_vert, cloud_frag)) {
-    return 0;
+    return false;
   }
   if (!dot_shader.InitializeStrings("dot", dot_vert, dot_frag)) {
-    return 0;
+    return false;
   }
   if (!sphere_shader.InitializeStrings("sphere", sphere_vert, sphere_frag)) {
-    return 0;
+    return false;
   }
 
   // Setup the generic shapes and load them from file
@@ -143,6 +143,8 @@ bool ChOpenGLViewer::Initialize() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   // glLineWidth(10);
   // glEnable(GL_LINE_SMOOTH);
+
+  return true;
 }
 bool ChOpenGLViewer::Update(double time_step) {
   if (pause_sim == true && single_step == false) {
@@ -183,7 +185,7 @@ void ChOpenGLViewer::Render() {
       model_cylinder.clear();
       model_obj.clear();
       for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-    	ChSharedPtr<ChBody> abody = physics_system->Get_bodylist()->at(i);
+        ChSharedPtr<ChBody> abody = physics_system->Get_bodylist()->at(i);
         DrawObject(abody);
       }
       if (model_box.size() > 0) {
@@ -273,7 +275,7 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
 
     if (asset.IsType<ChSphereShape>()) {
       ChSphereShape* sphere_shape = ((ChSphereShape*)(asset.get_ptr()));
-      float radius = sphere_shape->GetSphereGeometry().rad;
+      double radius = sphere_shape->GetSphereGeometry().rad;
       ChVector<> pos_final = pos + center;
 
       model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));

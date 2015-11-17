@@ -23,8 +23,6 @@
 #include "real4.h"
 #include "mat33.h"
 #include "other_types.h"
-#include "thrust_utils.h"
-
 namespace chrono {
 // Computes the nearest power of two to the given value and returns it
 static inline uint nearest_pow(const uint& num) {
