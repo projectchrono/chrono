@@ -3,6 +3,7 @@
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
+#include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 
 #include "lcp/ChLcpConstraintTwoBodies.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"

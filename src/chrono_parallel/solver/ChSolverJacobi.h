@@ -44,7 +44,7 @@ class CH_PARALLEL_API ChSolverJacobi : public ChSolverParallel {
                    DynamicVector<real>& x   // The vector of unknowns
                    );
 
-  std::vector<real> r, p, Ap;
+  custom_vector<real> r, p, Ap;
   DynamicVector<real> diagonal, ml_old;
 };
 }

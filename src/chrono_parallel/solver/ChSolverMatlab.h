@@ -44,7 +44,7 @@ class CH_PARALLEL_API ChSolverMatlab : public ChSolverParallel {
                       DynamicVector<real>& x         // The vector of unknowns
                       );
 
-  std::vector<real> r, temp;
+  custom_vector<real> r, temp;
   ChMatlabEngine* mengine;
 };
 }

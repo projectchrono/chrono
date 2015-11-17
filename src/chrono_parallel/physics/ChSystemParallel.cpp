@@ -96,8 +96,8 @@ int ChSystemParallel::Integrate_Y() {
   // Scatter the states to the Chrono objects (bodies and shafts) and update
   // all physics items at the end of the step.
   DynamicVector<real>& velocities = data_manager->host_data.v;
-  std::vector<real3>& pos_pointer = data_manager->host_data.pos_rigid;
-  std::vector<real4>& rot_pointer = data_manager->host_data.rot_rigid;
+  custom_vector<real3>& pos_pointer = data_manager->host_data.pos_rigid;
+  custom_vector<real4>& rot_pointer = data_manager->host_data.rot_rigid;
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
@@ -281,10 +281,10 @@ void ChSystemParallel::Update() {
 //
 void ChSystemParallel::UpdateRigidBodies() {
   LOG(INFO) << "ChSystemParallel::UpdateBodies()";
-  std::vector<real3>& position = data_manager->host_data.pos_rigid;
-  std::vector<real4>& rotation = data_manager->host_data.rot_rigid;
-  std::vector<bool>& active = data_manager->host_data.active_rigid;
-  std::vector<bool>& collide = data_manager->host_data.collide_rigid;
+  custom_vector<real3>& position = data_manager->host_data.pos_rigid;
+  custom_vector<real4>& rotation = data_manager->host_data.rot_rigid;
+  custom_vector<bool>& active = data_manager->host_data.active_rigid;
+  custom_vector<bool>& collide = data_manager->host_data.collide_rigid;
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
@@ -329,6 +329,9 @@ void ChSystemParallel::UpdateRigidBodies() {
 // force vectors. Note that visualization assets are not updated.
 //
 void ChSystemParallel::UpdateShafts() {
+  real* shaft_rot = data_manager->host_data.shaft_rot.data();
+  real* shaft_inr = data_manager->host_data.shaft_inr.data();
+  bool* shaft_active = data_manager->host_data.shaft_active.data();
 
   ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
@@ -336,9 +339,9 @@ void ChSystemParallel::UpdateShafts() {
     shaftlist[i]->VariablesFbLoadForces(GetStep());
     shaftlist[i]->VariablesQbLoadSpeed();
 
-    data_manager->host_data.shaft_rot[i] = shaftlist[i]->GetPos();
-    data_manager->host_data.shaft_inr[i] = shaftlist[i]->Variables().GetInvInertia();
-    data_manager->host_data.shaft_active[i] = shaftlist[i]->IsActive();
+    shaft_rot[i] = shaftlist[i]->GetPos();
+    shaft_inr[i] = shaftlist[i]->Variables().GetInvInertia();
+    shaft_active[i] = shaftlist[i]->IsActive();
 
     data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] =
         shaftlist[i]->Variables().Get_qb().GetElementN(0);

@@ -108,7 +108,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
   }
 
   //	uint N = b.size();
-  //	std::vector<real> v(N, 0), v_hat(size), w(N, 0), w_old, xMR, v_old,
+  //	custom_vector<real> v(N, 0), v_hat(size), w(N, 0), w_old, xMR, v_old,
   // Av(size), w_oold;
   //	real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0,
   // alpha, beta_old, c_oold, s_oold, r1_hat, r1, r2, r3;

@@ -43,9 +43,9 @@ void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
 }
 
 void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body) {
-  std::vector<real>& cohesion = data_manager->host_data.cohesion_data;
-  std::vector<real3>& friction = data_manager->host_data.fric_data;
-  std::vector<real4>& compliance = data_manager->host_data.compliance_data;
+  custom_vector<real>& cohesion = data_manager->host_data.cohesion_data;
+  custom_vector<real3>& friction = data_manager->host_data.fric_data;
+  custom_vector<real4>& compliance = data_manager->host_data.compliance_data;
 
   // Since this function is called in a parallel for loop, we must access the
   // material properties in a thread-safe manner (we cannot use the function
