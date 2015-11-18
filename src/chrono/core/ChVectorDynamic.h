@@ -155,7 +155,6 @@ class ChVectorDynamic : public ChMatrix<Real> {
             delete[] this->address;
             this->address = new Real[this->rows];
             // SetZero(this->rows);
-            //#pragma omp parallel for if (this->rows>CH_OMP_MATR)
             for (int i = 0; i < this->rows; ++i)
                 this->address[i] = 0;
         }
@@ -169,16 +168,14 @@ class ChVectorDynamic : public ChMatrix<Real> {
     /// Reset to zeroes and (if needed) changes the size to have row and col
     void Reset(int nrows) {
         Resize(nrows);
-// SetZero(rows);
-#pragma omp parallel for if (this->rows > CH_OMP_MATR)
+        //SetZero(rows);
         for (int i = 0; i < this->rows; ++i)
             this->address[i] = 0;
     }
 
     /// Resets the matrix to zero  (warning: simply sets memory to 0 bytes!)
     void Reset() {
-// SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
-#pragma omp parallel for if (this->rows > CH_OMP_MATRLIGHT)
+        // SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
         for (int i = 0; i < this->rows; ++i)
             this->address[i] = 0;
     }

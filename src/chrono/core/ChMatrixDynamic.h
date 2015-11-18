@@ -176,8 +176,7 @@ class ChMatrixDynamic : public ChMatrix<Real> {
             this->columns = ncols;
             delete[] this->address;
             this->address = new Real[this->rows * this->columns];
-// SetZero(this->rows*this->columns);
-#pragma omp parallel for if (this->rows * this->columns > CH_OMP_MATR)
+            // SetZero(this->rows*this->columns);
             for (int i = 0; i < this->rows * this->columns; ++i)
                 this->address[i] = 0;
         }
