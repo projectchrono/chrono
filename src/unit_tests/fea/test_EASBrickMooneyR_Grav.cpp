@@ -38,14 +38,13 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
 
 using namespace chrono;
 using namespace fea;
 
 const double step_size = 1e-3;  // Step size
 double sim_time = 2;            // Simulation time for generation of reference file
-double precision = 1e-6;        // Precision value used to assess results
+double precision = 3e-6;        // Precision value used to assess results
 double sim_time_UT = 0.015;      // Simulation time for unit test 0.015
 
 int main(int argc, char* argv[]) {
@@ -225,20 +224,13 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_mesh);
 
     // Perform a dynamic time integration:
-    /*my_system.SetLcpSolverType(
+    my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
     chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetIterLCPmaxItersSpeed(10000);
-    my_system.SetTolForce(1e-09);*/
+    my_system.SetTolForce(1e-09);
 
-	ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-	ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-	my_system.ChangeLcpSolverStab(mkl_solver_stab);
-	my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
-	mkl_solver_stab->SetSparsityPatternLock(true);
-	mkl_solver_speed->SetSparsityPatternLock(true);
-	my_system.Update();
 
     my_system.SetIntegrationType(ChSystem::INT_HHT);
     ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();

@@ -1,5 +1,4 @@
-SET(LIBRARIES ChronoEngine ChronoEngine_fea ChronoEngine_mkl)
-INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_MKL_INCLUDES})
+SET(LIBRARIES ChronoEngine ChronoEngine_fea)
 
 SET(TESTS
     test_ANCFBeam
@@ -8,7 +7,7 @@ SET(TESTS
     test_ANCFShell_OrtGrav
     test_EASBrickIso
     test_EASBrickIso_Grav
-    test_EASBrickMooneyR_Grav)
+test_EASBrickMooneyR_Grav)
 MESSAGE(STATUS "Unit test programs for FEA module...")
 # A hack to set the working directory in which to execute the CTest
 # runs.  This is needed for tests that need to access the Chrono data
