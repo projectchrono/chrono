@@ -133,6 +133,15 @@ void ChLinkDirFrame::Update(double mytime, bool update_assets)
   // ...
 }
 
+ChMatrix<> ChLinkDirFrame::GetC() {
+    ChMatrix33<> Arw = csys_direction.rot >> body->coord.rot;
+    ChVector<> res = Arw.MatrT_x_Vect(mnode->GetD());
+    ChMatrixNM<double, 2, 1> C;
+    C(0, 0) = res.y;
+    C(1, 0) = res.z;
+    return C;
+}
+
 
 //// STATE BOOKKEEPING FUNCTIONS
 

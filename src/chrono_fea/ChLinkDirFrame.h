@@ -107,6 +107,8 @@ public:
 				/// To get reaction force, expressed in link coordinate system:
 	virtual ChVector<> Get_react_torque() {return GetReactionOnBody();}
 
+    // Get constraint violations
+    ChMatrix<> GetC();
 
 	 		//
 			// STATE FUNCTIONS
