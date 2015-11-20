@@ -60,10 +60,6 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                 app->pause_step = true;
                 app->do_single_step = true;
                 return true;
-            case KEY_F12:
-                chrono::GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
-                app->DumpMatrices();
-                return true;
             case KEY_F11:
                 chrono::GetLog() << "---Computing linear static solution---\n";
                 app->GetSystem()->DoStaticLinear();
@@ -86,6 +82,19 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                 marchiveout2.SetUseVersions(false);
                 marchiveout2 << CHNVP(app->GetSystem(),"System");
             }
+            case KEY_F6:
+                chrono::GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
+                app->DumpMatrices();
+                return true;
+            case KEY_F7:
+                if (!app->system->GetDumpMatrices()) {
+                    chrono::GetLog() << "Start saving system vector and matrices to dump_xxxx_yy.dat files...\n";
+                    app->system->SetDumpMatrices(true);
+                }
+                else {
+                    chrono::GetLog() << "Stop saving system vector and matrices to dump_xxxx_yy.dat files.\n";
+                    app->system->SetDumpMatrices(false);
+                }
                 return true;
             case KEY_SNAPSHOT:
                 if (app->videoframe_save == false) {
@@ -528,7 +537,11 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     hstr += " 'spacebar' key: stop/start simul.\n";
     hstr += " 'p' key: advance single step\n";
     hstr += " 'Print Scr' key: video capture to .bmp's\n";
-    hstr += " 'F12' key: dump sys. matrices on disk\n";
+    hstr += " 'F6' key: single dump sys. matrices.\n";
+    hstr += " 'F7' key: continuous dump sys. matrices.\n";
+    hstr += " 'F8' key: dump a .json file.\n";
+    hstr += " 'F10' key: non-linear statics.\n";
+    hstr += " 'F11' key: linear statics.\n";
     gad_textHelp->setText(hstr.c_str());
 
     ///
@@ -832,7 +845,7 @@ void ChIrrAppInterface::DumpMatrices() {
     DoStep();
 
     // Now save the matrices - as they were setup by the previous time stepping scheme.
-    GetSystem()->GetLcpSystemDescriptor()->DumpLastMatrices();
+    GetSystem()->GetLcpSystemDescriptor()->DumpLastMatrices("dump_");
 }
 
 }  // END_OF_NAMESPACE____

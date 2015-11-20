@@ -311,32 +311,32 @@ void ChLcpSystemDescriptor::DumpLastMatrices(const char* path) {
         chrono::ChMatrixDynamic<double> mdfric;
         this->ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
-        sprintf(filename, "%s%s", path, "dump_M.dat");
+        sprintf(filename, "%s%s", path, "M.dat");
         chrono::ChStreamOutAsciiFile file_M(filename);
         file_M.SetNumFormat(numformat);
         mdM.StreamOUTsparseMatlabFormat(file_M);
 
-        sprintf(filename, "%s%s", path, "dump_Cq.dat");
+        sprintf(filename, "%s%s", path, "Cq.dat");
         chrono::ChStreamOutAsciiFile file_Cq(filename);
         file_Cq.SetNumFormat(numformat);
         mdCq.StreamOUTsparseMatlabFormat(file_Cq);
 
-        sprintf(filename, "%s%s", path, "dump_E.dat");
+        sprintf(filename, "%s%s", path, "E.dat");
         chrono::ChStreamOutAsciiFile file_E(filename);
         file_E.SetNumFormat(numformat);
         mdE.StreamOUTsparseMatlabFormat(file_E);
 
-        sprintf(filename, "%s%s", path, "dump_f.dat");
+        sprintf(filename, "%s%s", path, "f.dat");
         chrono::ChStreamOutAsciiFile file_f(filename);
         file_f.SetNumFormat(numformat);
         mdf.StreamOUTdenseMatlabFormat(file_f);
 
-        sprintf(filename, "%s%s", path, "dump_b.dat");
+        sprintf(filename, "%s%s", path, "b.dat");
         chrono::ChStreamOutAsciiFile file_b(filename);
         file_b.SetNumFormat(numformat);
         mdb.StreamOUTdenseMatlabFormat(file_b);
 
-        sprintf(filename, "%s%s", path, "dump_fric.dat");
+        sprintf(filename, "%s%s", path, "fric.dat");
         chrono::ChStreamOutAsciiFile file_fric(filename);
         file_fric.SetNumFormat(numformat);
         mdfric.StreamOUTdenseMatlabFormat(file_fric);
