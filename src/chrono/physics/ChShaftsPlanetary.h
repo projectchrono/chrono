@@ -171,6 +171,13 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// Get the third shaft
     ChShaft* GetShaft3() { return shaft3; }
 
+    /// Return the speed of the first shaft (carrier wheel).
+    double GetSpeedShaft1() const { return shaft1->GetPos_dt(); }
+    /// Return the speed of the second shaft.
+    double GetSpeedShaft2() const { return shaft2->GetPos_dt(); }
+    /// Return the speed of the third shaft.
+    double GetSpeedShaft3() const { return shaft3->GetPos_dt(); }
+
     /// Set the transmission ratios r1 r2 r3 as in
     ///     r1*w1 + r2*w2 + r3*w3 = 0
     /// For example, for the car differential, if you assume that shaft 1 is
