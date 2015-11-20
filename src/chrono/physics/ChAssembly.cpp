@@ -186,12 +186,8 @@ void ChAssembly::Add(ChSharedPtr<ChPhysicsItem> newitem) {
 }
 
 void ChAssembly::AddBatch(ChSharedPtr<ChPhysicsItem> newitem) {
-    // the following is a openMP critical section:
-    #pragma omp critical
-    {
-        this->batch_to_insert.push_back(newitem);
-        //newitem->SetSystem(this->GetSystem());
-    }
+    this->batch_to_insert.push_back(newitem);
+    // newitem->SetSystem(this->GetSystem());
 }
 
 void ChAssembly::FlushBatch() {
@@ -563,24 +559,16 @@ void ChAssembly::SetSystem(ChSystem* m_system)  {
 
 
 void ChAssembly::SyncCollisionModels() {
-
-    #pragma omp parallel for
-    for (int ip = 0; ip < bodylist.size(); ++ip)  
-    {
+    for (int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->SyncCollisionModels();
     }
-    #pragma omp parallel for
-    for (int ip = 0; ip < linklist.size(); ++ip)  
-    {
+    for (int ip = 0; ip < linklist.size(); ++ip) {
         linklist[ip]->SyncCollisionModels();
     }
-    #pragma omp parallel for
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  
-    {
+    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->SyncCollisionModels();
     }
 }
-
 
 ////////////////////////////////
 //////
@@ -693,7 +681,6 @@ void ChAssembly::Update(bool update_assets) {
     // --------------------------------------
     // Updates bodies
     // --------------------------------------
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -720,26 +707,17 @@ void ChAssembly::Update(bool update_assets) {
     }
 }
 
-
-void ChAssembly::SetNoSpeedNoAcceleration(){
-
-    #pragma omp parallel for
-    for (int ip = 0; ip < bodylist.size(); ++ip)  
-    {
+void ChAssembly::SetNoSpeedNoAcceleration() {
+    for (int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->SetNoSpeedNoAcceleration();
     }
-    #pragma omp parallel for
-    for (int ip = 0; ip < linklist.size(); ++ip)  
-    {
+    for (int ip = 0; ip < linklist.size(); ++ip) {
         linklist[ip]->SetNoSpeedNoAcceleration();
     }
-    #pragma omp parallel for
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  
-    {
+    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->SetNoSpeedNoAcceleration();
     }
 }
-
 
 void ChAssembly::IntStateGather(const unsigned int off_x,  ///< offset in x state vector
                                 ChState& x,                ///< state vector, position part
@@ -901,7 +879,6 @@ void ChAssembly::IntStateIncrement(const unsigned int off_x,  ///< offset in x s
     unsigned int displ_x = off_x - this->offset_x;
     unsigned int displ_v = off_v - this->offset_w;
 
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -909,7 +886,6 @@ void ChAssembly::IntStateIncrement(const unsigned int off_x,  ///< offset in x s
             Bpointer->IntStateIncrement(displ_x + Bpointer->GetOffset_x(), x_new, x, displ_v + Bpointer->GetOffset_w(), Dv);
     }
 
-    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
@@ -917,7 +893,6 @@ void ChAssembly::IntStateIncrement(const unsigned int off_x,  ///< offset in x s
             Lpointer->IntStateIncrement(displ_x + Lpointer->GetOffset_x(), x_new, x, displ_v + Lpointer->GetOffset_w(), Dv);
     }
 
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  
     {
         ChSharedPtr<ChPhysicsItem> Ppointer = otherphysicslist[ip];
@@ -1064,7 +1039,6 @@ void ChAssembly::IntToLCP(const unsigned int off_v,  ///< offset in v, R
     unsigned int displ_L = off_L  - this->offset_L;
     unsigned int displ_v = off_v  - this->offset_w;
     
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -1072,7 +1046,6 @@ void ChAssembly::IntToLCP(const unsigned int off_v,  ///< offset in v, R
             Bpointer->IntToLCP(displ_v + Bpointer->GetOffset_w(),v,R, displ_L + Bpointer->GetOffset_L(),L,Qc);
     }
 
-    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
@@ -1080,7 +1053,6 @@ void ChAssembly::IntToLCP(const unsigned int off_v,  ///< offset in v, R
             Lpointer->IntToLCP(displ_v + Lpointer->GetOffset_w(),v,R, displ_L + Lpointer->GetOffset_L(),L,Qc);
     }
 
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  
     {
         ChSharedPtr<ChPhysicsItem> Ppointer = otherphysicslist[ip];
@@ -1096,7 +1068,6 @@ void ChAssembly::IntFromLCP(const unsigned int off_v,  ///< offset in v
     unsigned int displ_L = off_L  - this->offset_L;
     unsigned int displ_v = off_v  - this->offset_w;
 
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -1104,7 +1075,6 @@ void ChAssembly::IntFromLCP(const unsigned int off_v,  ///< offset in v
             Bpointer->IntFromLCP(displ_v + Bpointer->GetOffset_w(),v, displ_L + Bpointer->GetOffset_L(),L);
     }
 
-    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
@@ -1112,7 +1082,6 @@ void ChAssembly::IntFromLCP(const unsigned int off_v,  ///< offset in v
             Lpointer->IntFromLCP(displ_v + Lpointer->GetOffset_w(),v, displ_L + Lpointer->GetOffset_L(),L);
     }
 
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  
     {
         ChSharedPtr<ChPhysicsItem> Ppointer = otherphysicslist[ip];

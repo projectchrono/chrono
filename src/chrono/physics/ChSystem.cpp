@@ -839,7 +839,6 @@ bool ChSystem::ManageSleepingBodies() {
     // STEP 1: 
     // See if some body could change from no sleep-> sleep
 
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  {
         // mark as 'could sleep' candidate
         bodylist[ip]->TrySleeping();
@@ -952,11 +951,9 @@ bool ChSystem::ManageSleepingBodies() {
 
     /// If some body still must change from no sleep-> sleep, do it
     int need_Setup_B = 0;
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  {
         if (bodylist[ip]->BFlagGet(BF_COULDSLEEP)) {
             bodylist[ip]->SetSleeping(true);
-            #pragma omp atomic
             ++need_Setup_B;
         }
     }
@@ -991,19 +988,16 @@ void ChSystem::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor) {
 
 
 void ChSystem::LCPprepare_reset() {
-    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsBiReset();
     }
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
         Bpointer->VariablesFbReset();
     }
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1023,7 +1017,6 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
                                double C_factor,
                                double recovery_clamp,
                                bool do_clamp) {
-    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
@@ -1039,14 +1032,10 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
         if (load_jacobians)
             Lpointer->ConstraintsLoadJacobians();
         if (F_factor) {
-            #pragma omp critical
-            {
-                Lpointer->ConstraintsFbLoadForces(F_factor);  // f*dt
-            }
+            Lpointer->ConstraintsFbLoadForces(F_factor);  // f*dt
         }
     }
 
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -1066,9 +1055,8 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
     //
     //   While it would be possible to protect the calls to the above two functions
     //   in additional critical sections, more experimentation is needed to decide
-    //   if it's worth it.  In the meantime, the loop is processed sequentially.
+    //   if it's worth it.
 
-    ////#pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1087,10 +1075,7 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
         if (K_factor || R_factor || M_factor)
             PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
         if (F_factor) {
-            ////#pragma omp critical
-            ////{
             PHpointer->ConstraintsFbLoadForces(F_factor);  // f*dt
-                                                           ////}
         }
     }
 
@@ -1105,13 +1090,11 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 
 
 void ChSystem::LCPprepare_Li_from_speed_cache() {
-    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsLiLoadSuggestedSpeedSolution();
     }
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1121,13 +1104,11 @@ void ChSystem::LCPprepare_Li_from_speed_cache() {
 }
 
 void ChSystem::LCPprepare_Li_from_position_cache() {
-    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsLiLoadSuggestedPositionSolution();
     }
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1137,13 +1118,11 @@ void ChSystem::LCPprepare_Li_from_position_cache() {
 }
 
 void ChSystem::LCPresult_Li_into_speed_cache() {
-    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsLiFetchSuggestedSpeedSolution();
     }
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1153,13 +1132,11 @@ void ChSystem::LCPresult_Li_into_speed_cache() {
 }
 
 void ChSystem::LCPresult_Li_into_position_cache() {
-    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsLiFetchSuggestedPositionSolution();
     }
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1169,13 +1146,11 @@ void ChSystem::LCPresult_Li_into_position_cache() {
 }
 
 void ChSystem::LCPresult_Li_into_reactions(double mfactor) {
-    #pragma omp parallel for
     for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
         ChSharedPtr<ChLink> Lpointer = linklist[ip];
         Lpointer->ConstraintsFetch_react(mfactor);
     }
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -1728,7 +1703,8 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         // GetLog() << "StateSolveCorrection X=" << x << "\n\n";
         // GetLog() << "StateSolveCorrection V=" << v << "\n\n";
 
-        this->LCP_descriptor->DumpLastMatrices("intpre_");
+        this->LCP_descriptor->DumpLastMatrices(true, "intpre_");
+        this->LCP_descriptor->DumpLastMatrices(false, "intpre_");
 
         chrono::ChStreamOutAsciiFile file_x("intpre_x.dat");
         file_x.SetNumFormat(numformat);
@@ -1835,7 +1811,6 @@ int ChSystem::GetNcontacts() {
 }
 
 void ChSystem::SynchronizeLastCollPositions() {
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2017,9 +1992,8 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
     // updates the reactions of the constraint
     LCPresult_Li_into_reactions(1.0 / step);  // R = l/dt  , approximately
 
-// perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
+    // perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
 
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2033,7 +2007,6 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
         Bpointer->Update(this->ChTime);
     }
 
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -2147,7 +2120,6 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
 
     // perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
 
-    #pragma omp parallel for
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
         ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2161,7 +2133,6 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
         // Bpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
     }
 
-    #pragma omp parallel for
     for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
         ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -2213,7 +2184,6 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
     LCPresult_Li_into_position_cache();
 
     {
-        #pragma omp parallel for
         for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
         {
             ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2223,7 +2193,6 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
             Bpointer->Update(this->ChTime);
         }
 
-        #pragma omp parallel for
         for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
         {
             ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -2373,7 +2342,6 @@ int ChSystem::DoAssembly(int action, int mflags) {
 
             // Update bodies and other physics items at new positions
 
-            #pragma omp parallel for
             for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
             {
                 ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2381,7 +2349,6 @@ int ChSystem::DoAssembly(int action, int mflags) {
                 Bpointer->Update(this->ChTime);
             }
 
-            #pragma omp parallel for
             for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
             {
                 ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -2440,7 +2407,6 @@ int ChSystem::DoAssembly(int action, int mflags) {
         // Loop over all bodies and other physics items; approximate speeds using
         // finite diferences (with the local, small time step value) and update all
         // markers and forces.
-        #pragma omp parallel for
         for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
         {
             ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2448,7 +2414,6 @@ int ChSystem::DoAssembly(int action, int mflags) {
             Bpointer->Update(this->ChTime);
         }
 
-        #pragma omp parallel for
         for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
         {
             ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -2541,14 +2506,12 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
     if (ncoords > 0) {
         if (ndof >= 0) {
             for (int m_iter = 0; m_iter < nsteps; m_iter++) {
-                #pragma omp parallel for
                 for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
                 {
                     ChSharedPtr<ChBody> Bpointer = bodylist[ip];
                     // Set no body speed and no body accel.
                     Bpointer->SetNoSpeedNoAcceleration();
                 }
-                #pragma omp parallel for
                 for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
                 {
                     ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
@@ -2562,7 +2525,6 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
                 this->SetChTime(m_undotime);
             }
 
-            #pragma omp parallel for
             for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
             {
                 ChSharedPtr<ChBody> Bpointer = bodylist[ip];
@@ -2570,7 +2532,6 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
                 Bpointer->SetNoSpeedNoAcceleration();
             }
 
-            #pragma omp parallel for
             for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
             {
                 ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];

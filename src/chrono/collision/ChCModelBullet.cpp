@@ -839,7 +839,7 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
         btBulletWorldImporter import(0);  // don't store info into the world
         import.setVerboseMode(false);
 
-        if (import.loadFileFromMemory(mbuffer, serialized.size())) {
+        if (import.loadFileFromMemory(mbuffer, (int)serialized.size())) {
             int numShape = import.getNumCollisionShapes();
             if (numShape) {
                 btCollisionShape* mshape = import.getCollisionShapeByIndex(0);

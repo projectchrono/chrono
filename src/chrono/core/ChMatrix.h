@@ -31,14 +31,6 @@
 #include "core/ChStream.h"
 #include "core/ChException.h"
 
-// Thresholds for OpenMP parallelization.
-// The larger, the less likely the operations will be parallelized in multiple threads.
-// Too low values could slow down the execution because sometimes the overhead of
-// multithreading setup is larger than the effective computation; in general optimal
-// values depend on processor architecture etc.
-#define CH_OMP_MATRLIGHT 4800
-#define CH_OMP_MATR 4800
-
 namespace chrono {
 
 //
@@ -293,14 +285,12 @@ class ChMatrix {
     /// rectangular matrices!), and the extradiagonal elements are
     /// not modified -this function does not set them to 0-
     void FillDiag(Real sample) {
-#pragma omp parallel for if (rows > CH_OMP_MATRLIGHT)
         for (int i = 0; i < rows; ++i)
             SetElement(i, i, sample);
     }
 
     /// Fill the matrix with the same value in all elements
     void FillElem(Real sample) {
-#pragma omp parallel for if (rows > CH_OMP_MATR)
         for (int i = 0; i < rows * columns; ++i)
             SetElementN(i, sample);
     }
@@ -315,7 +305,6 @@ class ChMatrix {
     /// Resets the matrix to zero  (warning: simply sets memory to 0 bytes!)
     void Reset() {
 // SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
-#pragma omp parallel for if (rows* columns > CH_OMP_MATRLIGHT)
         for (int i = 0; i < rows * columns; ++i)
             this->address[i] = 0;
     }
@@ -323,8 +312,7 @@ class ChMatrix {
     /// Reset to zeroes and (if needed) changes the size to have row and col
     void Reset(int nrows, int ncols) {
         Resize(nrows, ncols);
-// SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
-#pragma omp parallel for if (rows* columns > CH_OMP_MATR)
+        // SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
         for (int i = 0; i < rows * columns; ++i)
             this->address[i] = 0;
     }
@@ -340,9 +328,8 @@ class ChMatrix {
     template <class RealB>
     void CopyFromMatrix(const ChMatrix<RealB>& matra) {
         Resize(matra.GetRows(), matra.GetColumns());
-// ElementsCopy(address, matra.GetAddress(), rows*columns); //memcpy (address, matra.address, (sizeof(Real) * rows *
-// columns));
-#pragma omp parallel for if (rows* columns > CH_OMP_MATRLIGHT)
+        // ElementsCopy(address, matra.GetAddress(), rows*columns);
+        //memcpy (address, matra.address, (sizeof(Real) * rows * columns));
         for (int i = 0; i < rows * columns; ++i)
             address[i] = (Real)matra.GetAddress()[i];
     }
@@ -352,7 +339,6 @@ class ChMatrix {
     template <class RealB>
     void CopyFromMatrixT(const ChMatrix<RealB>& matra) {
         Resize(matra.GetColumns(), matra.GetRows());
-#pragma omp parallel for if (matra.GetRows() > CH_OMP_MATRLIGHT)
         for (int i = 0; i < matra.GetRows(); ++i)
             for (int j = 0; j < matra.GetColumns(); ++j)
                 SetElement(j, i, (Real)matra.Element(i, j));
@@ -488,7 +474,6 @@ class ChMatrix {
 
     /// Changes the sign of all the elements of this matrix, in place.
     void MatrNeg() {
-#pragma omp parallel for if (rows* columns > CH_OMP_MATR)
         for (int nel = 0; nel < rows * columns; ++nel)
             ElementN(nel) = -ElementN(nel);
     }
@@ -498,7 +483,6 @@ class ChMatrix {
     void MatrAdd(const ChMatrix<RealB>& matra, const ChMatrix<RealC>& matrb) {
         assert(matra.GetColumns() == matrb.GetColumns() && matra.rows == matrb.GetRows());
         assert(this->columns == matrb.GetColumns() && this->rows == matrb.GetRows());
-#pragma omp parallel for if (rows* columns > CH_OMP_MATR)
         for (int nel = 0; nel < rows * columns; ++nel)
             ElementN(nel) = (Real)(matra.ElementN(nel) + matrb.ElementN(nel));
     }
@@ -516,7 +500,6 @@ class ChMatrix {
     template <class RealB>
     void MatrInc(const ChMatrix<RealB>& matra) {
         assert(matra.GetColumns() == columns && matra.GetRows() == rows);
-#pragma omp parallel for if (rows* columns > CH_OMP_MATR)
         for (int nel = 0; nel < rows * columns; ++nel)
             ElementN(nel) += (Real)matra.ElementN(nel);
     }
@@ -525,14 +508,12 @@ class ChMatrix {
     template <class RealB>
     void MatrDec(const ChMatrix<RealB>& matra) {
         assert(matra.GetColumns() == columns && matra.GetRows() == rows);
-#pragma omp parallel for if (rows* columns > CH_OMP_MATR)
         for (int nel = 0; nel < rows * columns; ++nel)
             ElementN(nel) -= (Real)matra.ElementN(nel);
     }
 
     /// Scales a matrix, multiplying all elements by a constant value: [this]*=f
     void MatrScale(Real factor) {
-#pragma omp parallel for if (rows* columns > CH_OMP_MATR)
         for (int nel = 0; nel < rows * columns; ++nel)
             ElementN(nel) *= factor;
     }
@@ -542,14 +523,12 @@ class ChMatrix {
     template <class RealB>
     void MatrScale(const ChMatrix<RealB>& matra) {
         assert(matra.GetColumns() == columns && matra.GetRows() == rows);
-#pragma omp parallel for if (rows* columns > CH_OMP_MATR)
         for (int nel = 0; nel < rows * columns; ++nel)
             ElementN(nel) *= (Real)matra.ElementN(nel);
     }
 
     /// Scales a matrix, dividing all elements by a constant value: [this]/=f
     void MatrDivScale(Real factor) {
-#pragma omp parallel for if (rows* columns > CH_OMP_MATR)
         for (int nel = 0; nel < rows * columns; ++nel)
             ElementN(nel) /= factor;
     }
@@ -559,7 +538,6 @@ class ChMatrix {
     template <class RealB>
     void MatrDivScale(const ChMatrix<RealB>& matra) {
         assert(matra.GetColumns() == columns && matra.GetRows() == rows);
-#pragma omp parallel for if (rows* columns > CH_OMP_MATR)
         for (int nel = 0; nel < rows * columns; ++nel)
             ElementN(nel) /= (Real)matra.ElementN(nel);
     }
@@ -573,7 +551,6 @@ class ChMatrix {
         int col, row, colres;
         Real sum;
         for (colres = 0; colres < matrb.GetColumns(); ++colres) {
-#pragma omp parallel for private(sum, col) if (matra.GetRows() > CH_OMP_MATR)
             for (row = 0; row < matra.GetRows(); ++row) {
                 sum = 0;
                 for (col = 0; col < matra.GetColumns(); ++col)
@@ -594,7 +571,6 @@ class ChMatrix {
         int col, row, colres;
         Real sum;
         for (colres = 0; colres < matrb.GetRows(); ++colres) {
-#pragma omp parallel for private(sum, col) if (matra.GetRows() > CH_OMP_MATR)
             for (row = 0; row < matra.GetRows(); ++row) {
                 sum = 0;
                 for (col = 0; col < matra.GetColumns(); ++col)
@@ -614,7 +590,6 @@ class ChMatrix {
         int col, row, colres;
         Real sum;
         for (colres = 0; colres < matrb.GetColumns(); ++colres) {
-#pragma omp parallel for private(sum, col) if (matra.GetColumns() > CH_OMP_MATR)
             for (row = 0; row < matra.GetColumns(); ++row) {
                 sum = 0;
                 for (col = 0; col < (matra.GetRows()); ++col)
@@ -630,7 +605,6 @@ class ChMatrix {
     static Real MatrDot(const ChMatrix<RealB>* ma, const ChMatrix<RealC>* mb) {
         assert(ma->GetColumns() == mb->GetColumns() && ma->GetRows() == mb->GetRows());
         Real tot = 0;
-#pragma omp parallel for reduction(+ : tot) if (ma->GetColumns() > CH_OMP_MATR)
         for (int i = 0; i < ma->GetRows(); ++i)
             tot += (Real)(ma->ElementN(i) * mb->ElementN(i));
         return tot;
@@ -973,7 +947,6 @@ class ChMatrix {
     /// [this] =(1-x)[A]+ (x)[B]    Matrices must have the same size!!
     void LinInterpolate(const ChMatrix<Real>& matra, const ChMatrix<Real>& matrb, Real mx) {
         assert(matra.columns == matrb.columns && matra.rows == matrb.rows);
-#pragma omp parallel for if (rows* columns > CH_OMP_MATR)
         for (int nel = 0; nel < rows * columns; nel++)
             ElementN(nel) = matra.ElementN(nel) * (1 - mx) + matrb.ElementN(nel) * (mx);
     }
@@ -999,7 +972,6 @@ class ChMatrix {
     /// Normal copy for insrow=inscol=0
     template <class RealB>
     void PasteMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol) {
-#pragma omp parallel for if (matra->GetRows() > CH_OMP_MATR)
         for (int i = 0; i < matra->GetRows(); ++i)
             for (int j = 0; j < matra->GetColumns(); ++j)
                 Element(i + insrow, j + inscol) = (Real)matra->Element(i, j);
@@ -1009,7 +981,6 @@ class ChMatrix {
     /// and performing a sum with the preexisting values.
     template <class RealB>
     void PasteSumMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol) {
-#pragma omp parallel for if (matra->GetRows() > CH_OMP_MATR)
         for (int i = 0; i < matra->GetRows(); ++i)
             for (int j = 0; j < matra->GetColumns(); ++j)
                 Element(i + insrow, j + inscol) += (Real)matra->Element(i, j);
@@ -1019,7 +990,6 @@ class ChMatrix {
     /// Normal copy for insrow=inscol=0
     template <class RealB>
     void PasteTranspMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol) {
-#pragma omp parallel for if (matra->GetRows() > CH_OMP_MATR)
         for (int i = 0; i < matra->GetRows(); ++i)
             for (int j = 0; j < matra->GetColumns(); ++j)
                 Element(j + insrow, i + inscol) = (Real)matra->Element(i, j);
@@ -1029,7 +999,6 @@ class ChMatrix {
     /// and performing a sum with the preexisting values.
     template <class RealB>
     void PasteSumTranspMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol) {
-#pragma omp parallel for if (matra->GetRows() > CH_OMP_MATR)
         for (int i = 0; i < matra->GetRows(); ++i)
             for (int j = 0; j < matra->GetColumns(); ++j)
                 Element(j + insrow, i + inscol) += (Real)matra->Element(i, j);
@@ -1045,7 +1014,6 @@ class ChMatrix {
                             int ncolumns,
                             int insrow,
                             int inscol) {
-#pragma omp parallel for if (nrows > CH_OMP_MATR)
         for (int i = 0; i < nrows; ++i)
             for (int j = 0; j < ncolumns; ++j)
                 Element(i + insrow, j + inscol) = (Real)matra->Element(i + cliprow, j + clipcol);
@@ -1061,7 +1029,6 @@ class ChMatrix {
                                int ncolumns,
                                int insrow,
                                int inscol) {
-#pragma omp parallel for if (nrows > CH_OMP_MATR)
         for (int i = 0; i < nrows; ++i)
             for (int j = 0; j < ncolumns; ++j)
                 Element(i + insrow, j + inscol) += (Real)matra->Element(i + cliprow, j + clipcol);
