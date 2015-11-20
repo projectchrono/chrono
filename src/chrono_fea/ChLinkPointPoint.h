@@ -84,12 +84,14 @@ public:
 				/// Get the number of scalar variables affected by constraints in this link 
 	virtual int GetNumCoords() {return 3 + 3;}
 
-				/// Number of scalar costraints 
+				/// Number of scalar constraints 
 	virtual int GetDOC_c  () {return 3;}
 
 				/// To get reaction force, expressed in link coordinate system:
 	virtual ChVector<> Get_react_force() {return GetReactionOnNode();}
 
+    // Get constraint violations
+    ChMatrix<> GetC();
 
 	 		//
 			// STATE FUNCTIONS

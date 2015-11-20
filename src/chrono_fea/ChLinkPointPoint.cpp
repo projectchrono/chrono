@@ -75,6 +75,15 @@ void ChLinkPointPoint::Update(double mytime, bool update_assets) {
   // ...
 }
 
+ChMatrix<> ChLinkPointPoint::GetC() {
+    ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChMatrixNM<double, 3, 1> C;
+    C(0, 0) = res.x;
+    C(1, 0) = res.y;
+    C(2, 0) = res.z;
+    return C;
+}
+
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkPointPoint::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
