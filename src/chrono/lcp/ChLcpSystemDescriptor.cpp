@@ -299,47 +299,64 @@ void ChLcpSystemDescriptor::BuildVectors(ChMatrix<>* f, ChMatrix<>* b, bool only
     this->ConvertToMatrixForm(0, 0, 0, f, b, 0, only_bilaterals, skip_contacts_uv);
 }
 
-void ChLcpSystemDescriptor::DumpLastMatrices(const char* path) {
+void ChLcpSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
     char filename[300];
     try {
         const char* numformat = "%.12g";
-        chrono::ChLinkedListMatrix mdM;
-        chrono::ChLinkedListMatrix mdCq;
-        chrono::ChLinkedListMatrix mdE;
-        chrono::ChMatrixDynamic<double> mdf;
-        chrono::ChMatrixDynamic<double> mdb;
-        chrono::ChMatrixDynamic<double> mdfric;
-        this->ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
-        sprintf(filename, "%s%s", path, "M.dat");
-        chrono::ChStreamOutAsciiFile file_M(filename);
-        file_M.SetNumFormat(numformat);
-        mdM.StreamOUTsparseMatlabFormat(file_M);
+        if (assembled) {
+            ChLinkedListMatrix Z;
+            ChMatrixDynamic<double> rhs;
+            ConvertToMatrixForm(&Z, &rhs);
 
-        sprintf(filename, "%s%s", path, "Cq.dat");
-        chrono::ChStreamOutAsciiFile file_Cq(filename);
-        file_Cq.SetNumFormat(numformat);
-        mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+            sprintf(filename, "%s%s", path, "Z.dat");
+            ChStreamOutAsciiFile file_Z(filename);
+            file_Z.SetNumFormat(numformat);
+            Z.StreamOUTsparseMatlabFormat(file_Z);
 
-        sprintf(filename, "%s%s", path, "E.dat");
-        chrono::ChStreamOutAsciiFile file_E(filename);
-        file_E.SetNumFormat(numformat);
-        mdE.StreamOUTsparseMatlabFormat(file_E);
+            sprintf(filename, "%s%s", path, "rhs.dat");
+            ChStreamOutAsciiFile file_rhs(filename);
+            file_rhs.SetNumFormat(numformat);
+            rhs.StreamOUTdenseMatlabFormat(file_rhs);
+        } else {
+            ChLinkedListMatrix mdM;
+            ChLinkedListMatrix mdCq;
+            ChLinkedListMatrix mdE;
+            ChMatrixDynamic<double> mdf;
+            ChMatrixDynamic<double> mdb;
+            ChMatrixDynamic<double> mdfric;
+            ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
-        sprintf(filename, "%s%s", path, "f.dat");
-        chrono::ChStreamOutAsciiFile file_f(filename);
-        file_f.SetNumFormat(numformat);
-        mdf.StreamOUTdenseMatlabFormat(file_f);
+            sprintf(filename, "%s%s", path, "M.dat");
+            ChStreamOutAsciiFile file_M(filename);
+            file_M.SetNumFormat(numformat);
+            mdM.StreamOUTsparseMatlabFormat(file_M);
 
-        sprintf(filename, "%s%s", path, "b.dat");
-        chrono::ChStreamOutAsciiFile file_b(filename);
-        file_b.SetNumFormat(numformat);
-        mdb.StreamOUTdenseMatlabFormat(file_b);
+            sprintf(filename, "%s%s", path, "Cq.dat");
+                ChStreamOutAsciiFile file_Cq(filename);
+            file_Cq.SetNumFormat(numformat);
+            mdCq.StreamOUTsparseMatlabFormat(file_Cq);
 
-        sprintf(filename, "%s%s", path, "fric.dat");
-        chrono::ChStreamOutAsciiFile file_fric(filename);
-        file_fric.SetNumFormat(numformat);
-        mdfric.StreamOUTdenseMatlabFormat(file_fric);
+            sprintf(filename, "%s%s", path, "E.dat");
+                ChStreamOutAsciiFile file_E(filename);
+            file_E.SetNumFormat(numformat);
+            mdE.StreamOUTsparseMatlabFormat(file_E);
+
+            sprintf(filename, "%s%s", path, "f.dat");
+                ChStreamOutAsciiFile file_f(filename);
+            file_f.SetNumFormat(numformat);
+            mdf.StreamOUTdenseMatlabFormat(file_f);
+
+            sprintf(filename, "%s%s", path, "b.dat");
+                ChStreamOutAsciiFile file_b(filename);
+            file_b.SetNumFormat(numformat);
+            mdb.StreamOUTdenseMatlabFormat(file_b);
+
+            sprintf(filename, "%s%s", path, "fric.dat");
+                ChStreamOutAsciiFile file_fric(filename);
+            file_fric.SetNumFormat(numformat);
+            mdfric.StreamOUTdenseMatlabFormat(file_fric);
+        }
     } catch (chrono::ChException myexc) {
         chrono::GetLog() << myexc.what();
     }
@@ -351,7 +368,6 @@ int ChLcpSystemDescriptor::BuildFbVector(ChMatrix<>& Fvector  ///< matrix which 
     Fvector.Reset(n_q, 1);  // fast! Reset() method does not realloc if size doesn't change
 
 // Fills the 'f' vector
-#pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
             Fvector.PasteMatrix(&vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
@@ -366,7 +382,6 @@ int ChLcpSystemDescriptor::BuildBiVector(ChMatrix<>& Bvector  ///< matrix which 
     Bvector.Resize(n_c, 1);
 
 // Fill the 'b' vector
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             Bvector(vconstraints[ic]->GetOffset()) = vconstraints[ic]->Get_b_i();
@@ -383,14 +398,12 @@ int ChLcpSystemDescriptor::BuildDiVector(ChMatrix<>& Dvector) {
     Dvector.Reset(n_q + n_c, 1);  // fast! Reset() method does not realloc if size doesn't change
 
 // Fills the 'f' vector part
-#pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
             Dvector.PasteMatrix(&vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
         }
     }
 // Fill the '-b' vector (with flipped sign!)
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             Dvector(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_b_i();
@@ -415,7 +428,6 @@ int ChLcpSystemDescriptor::BuildDiagonalVector(
     }
 
     // Get the 'M' diagonal terms given by ChLcpVariables objects
-    #pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
             vvariables[iv]->DiagonalAdd(Diagonal_vect, this->c_a);
@@ -423,7 +435,6 @@ int ChLcpSystemDescriptor::BuildDiagonalVector(
     }
 
 // Get the 'E' diagonal terms (note the sign: E_i = -cfm_i )
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             Diagonal_vect(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_cfm_i();
@@ -440,7 +451,6 @@ int ChLcpSystemDescriptor::FromVariablesToVector(ChMatrix<>& mvector, bool resiz
     }
 
 // Fill the vector
-#pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
             mvector.PasteMatrix(&vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
@@ -451,14 +461,10 @@ int ChLcpSystemDescriptor::FromVariablesToVector(ChMatrix<>& mvector, bool resiz
 }
 
 int ChLcpSystemDescriptor::FromVectorToVariables(ChMatrix<>& mvector) {
-#ifdef CH_DEBUG
-    n_q = CountActiveVariables();
-    assert(n_q == mvector.GetRows());
+    assert(CountActiveVariables() == mvector.GetRows());
     assert(mvector.GetColumns() == 1);
-#endif
 
 // fetch from the vector
-#pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
             vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, vvariables[iv]->GetOffset(), 0,
@@ -477,7 +483,6 @@ int ChLcpSystemDescriptor::FromConstraintsToVector(ChMatrix<>& mvector, bool res
     }
 
 // Fill the vector
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             mvector(vconstraints[ic]->GetOffset()) = vconstraints[ic]->Get_l_i();
@@ -490,13 +495,10 @@ int ChLcpSystemDescriptor::FromConstraintsToVector(ChMatrix<>& mvector, bool res
 int ChLcpSystemDescriptor::FromVectorToConstraints(ChMatrix<>& mvector) {
     n_c = CountActiveConstraints();
 
-#ifdef CH_DEBUG
     assert(n_c == mvector.GetRows());
     assert(mvector.GetColumns() == 1);
-#endif
 
 // Fill the vector
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             vconstraints[ic]->Set_l_i(mvector(vconstraints[ic]->GetOffset()));
@@ -516,14 +518,12 @@ int ChLcpSystemDescriptor::FromUnknownsToVector(ChMatrix<>& mvector, bool resize
     }
 
 // Fill the first part of vector, x.q ,with variables q
-#pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
             mvector.PasteMatrix(&vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
         }
     }
 // Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             mvector(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_l_i();
@@ -537,26 +537,17 @@ int ChLcpSystemDescriptor::FromVectorToUnknowns(ChMatrix<>& mvector) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
 
-#ifdef CH_DEBUG
     assert((n_q + n_c) == mvector.GetRows());
     assert(mvector.GetColumns() == 1);
-#endif
 
 // fetch from the first part of vector (x.q = q)
-#pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
-        // int rank  = CHOMPfunctions::GetThreadNum();
-        // int count = CHOMPfunctions::GetNumThreads();
-        // GetLog() << "      FromVectorToUnknowns: thread " << rank << " on " << count << "\n";
-        // GetLog().Flush();
-
         if (vvariables[iv]->IsActive()) {
             vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, vvariables[iv]->GetOffset(), 0,
                                                         vvariables[iv]->Get_ndof(), 1, 0, 0);
         }
     }
 // fetch from the second part of vector (x.l = -l), with flipped sign!
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             vconstraints[ic]->Set_l_i(-mvector(vconstraints[ic]->GetOffset() + n_q));
@@ -567,15 +558,9 @@ int ChLcpSystemDescriptor::FromVectorToUnknowns(ChMatrix<>& mvector) {
 }
 
 void ChLcpSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>* lvector, std::vector<bool>* enabled) {
-#ifdef CH_DEBUG
-    assert(this->vstiffness.size() ==
-           0);  // currently, the case with ChLcpKblock items is not supported (only diagonal M is supported, no K)
-    int n_c = CountActiveConstraints();
-    assert(lvector->GetRows() == n_c);
+    assert(this->vstiffness.size() == 0); // currently, the case with ChLcpKblock items is not supported (only diagonal M is supported, no K)
+    assert(lvector->GetRows() == CountActiveConstraints());
     assert(lvector->GetColumns() == 1);
-    if (enabled)
-        assert(enabled->size() == n_c);
-#endif
 
     result.Reset(n_c, 1);  // fast! Reset() method does not realloc if size doesn't change
 
@@ -584,7 +569,6 @@ void ChLcpSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>
 
 // 1 - set the qb vector (aka speeds, in each ChLcpVariable sparse data) as zero
 
-#pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive())
             vvariables[iv]->Get_qb().FillElem(0);
@@ -595,7 +579,7 @@ void ChLcpSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>
     //     could be non-trivial because race conditions might occur -> reduction buffer etc.)
     //     Also, begin to add the cfm term ( -[E]*l ) to the result.
 
-    //#pragma omp parallel for num_threads(this->num_threads)  ***NOT POSSIBLE!!! concurrent write to same q may happen
+    // ATTENTION:  this loop cannot be parallelized! Concurrent write to some q may happen
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             int s_c = vconstraints[ic]->GetOffset();
@@ -613,7 +597,7 @@ void ChLcpSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>
                     li = vconstraints[ic]->Get_l_i();
 
                 // Compute qb += [M^(-1)][Cq']*l_i
-                //  NOTE! parallel update to same q data, risk of collision if parallel!!
+                //  NOTE! concurrent update to same q data, risk of collision if parallel!!
                 vconstraints[ic]->Increment_q(li);  // <----!!!  fpu intensive
 
                 // Add constraint force mixing term  result = cfm * l_i = -[E]*l_i
@@ -625,7 +609,6 @@ void ChLcpSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>
 // 3 - performs    result=[Cq']*qb    by
 //     iterating over all constraints
 
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             bool process = true;
@@ -656,10 +639,9 @@ void ChLcpSystemDescriptor::SystemProduct(
     ChMatrix<>* vect;
 
     if (x) {
-#ifdef CH_DEBUG
         assert(x->GetRows() == n_q + n_c);
         assert(x->GetColumns() == 1);
-#endif
+
         vect = x;
     } else {
         x_ql = new ChMatrixDynamic<double>(n_q + n_c, 1);
@@ -672,7 +654,6 @@ void ChLcpSystemDescriptor::SystemProduct(
 // 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
 
 // 1.1)  do  M*x.q
-#pragma omp parallel for num_threads(this->num_threads)
     for (int iv = 0; iv < (int)vvariables.size(); iv++)
         if (vvariables[iv]->IsActive()) {
             vvariables[iv]->MultiplyAndAdd(result, *x, this->c_a);
@@ -691,7 +672,6 @@ void ChLcpSystemDescriptor::SystemProduct(
     }
 
 // 2) Second row: result.l part =  [C_q]*x.q + [E]*x.l
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             int s_c = vconstraints[ic]->GetOffset() + n_q;
@@ -710,7 +690,6 @@ void ChLcpSystemDescriptor::ConstraintsProject(
     ) {
     this->FromVectorToConstraints(multipliers);
 
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive())
             vconstraints[ic]->Project();
@@ -726,7 +705,6 @@ void ChLcpSystemDescriptor::UnknownsProject(
 
 // vector -> constraints
 // Fetch from the second part of vector (x.l = -l), with flipped sign!
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             vconstraints[ic]->Set_l_i(-mx(vconstraints[ic]->GetOffset() + n_q));
@@ -734,7 +712,6 @@ void ChLcpSystemDescriptor::UnknownsProject(
     }
 
 // constraint projection!
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive())
             vconstraints[ic]->Project();
@@ -742,7 +719,6 @@ void ChLcpSystemDescriptor::UnknownsProject(
 
 // constraints -> vector
 // Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
-#pragma omp parallel for num_threads(this->num_threads)
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
         if (vconstraints[ic]->IsActive()) {
             mx(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_l_i();

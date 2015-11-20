@@ -239,13 +239,11 @@ void ChLinkedListMatrix::ResetBlocks(int row, int col) {
 
 // optimized SetElement,  returning the fetched Melement*
 ChMelement* ChLinkedListMatrix::SetElement(int row, int col, double val, ChMelement* guess) {
-#ifdef CH_DEBUG
-    assert(row >= 0);  // boundary checks
+    assert(row >= 0);
     assert(col >= 0);
     assert(row < rows);
     assert(col < columns);
-    assert(guess->row == row)
-#endif
+    assert(guess->row == row);
 
     ChMelement* enext;
     ChMelement* eprev;
@@ -300,13 +298,11 @@ ChMelement* ChLinkedListMatrix::SetElement(int row, int col, double val, ChMelem
 
 // optimized GetElement,  returning the fetched Melement*
 ChMelement* ChLinkedListMatrix::GetElement(int row, int col, double* val, ChMelement* guess) {
-#ifdef CH_DEBUG
-    assert(row >= 0);  // boundary checks
+    assert(row >= 0);
     assert(col >= 0);
     assert(row < rows);
     assert(col < columns);
-    assert(guess->row == row)
-#endif
+    assert(guess->row == row);
 
     ChMelement* enext;
     ChMelement* eprev;

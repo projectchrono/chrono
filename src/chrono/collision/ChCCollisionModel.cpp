@@ -91,7 +91,7 @@ void ChCollisionModel::SetFamilyMaskDoCollisionWithFamily(int mfamily) {
 // Return true if the family_mask bit in position mfamily is set.
 bool ChCollisionModel::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
     assert(mfamily >= 0 && mfamily < 15);
-    return family_mask & (1 << mfamily);
+    return (family_mask & (1 << mfamily)) != 0;
 }
 
 // Set the collision family group of this model.
