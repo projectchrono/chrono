@@ -37,7 +37,7 @@ const double M113_DrivelineBDS::m_differential_ratio = -1;
 // the direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-M113_DrivelineBDS::M113_DrivelineBDS(const std::string& name) : ChTrackDrivelineBDS(name) {
+M113_DrivelineBDS::M113_DrivelineBDS() : ChTrackDrivelineBDS("M113_DrivelineBDS") {
     SetMotorBlockDirection(ChVector<>(1, 0, 0));
     SetAxleDirection(ChVector<>(0, 1, 0));
 }

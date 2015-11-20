@@ -25,7 +25,7 @@ namespace m113 {
 
 class M113_DrivelineBDS : public chrono::vehicle::ChTrackDrivelineBDS {
   public:
-    M113_DrivelineBDS(const std::string& name);
+    M113_DrivelineBDS();
 
     ~M113_DrivelineBDS() {}
 
