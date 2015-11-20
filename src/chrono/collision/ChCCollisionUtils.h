@@ -57,6 +57,8 @@ class ChApi ChCollisionUtils {
 
     /// Calculate distance of a point from a triangle surface.
     /// Also computes if projection is inside the triangle.
+    /// If is_into = true, Bprojected is also computed. 
+    /// Returns distance (positive if 'out' side, out is where points A1 A2 A3 can be read in clockwise fashion)
 
     static double PointTriangleDistance(Vector B,
                                         Vector A1,
