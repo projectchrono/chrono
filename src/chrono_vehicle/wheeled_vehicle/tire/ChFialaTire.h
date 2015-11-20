@@ -80,9 +80,9 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     double GetAlpha() const { return m_states.cp_side_slip; }
 
   protected:
-    /// Return the vertical tire stiffness (for normal force calculation).
+    /// Return the vertical tire stiffness contribution to the normal force.
     virtual double getNormalStiffnessForce(double depth) const = 0;
-    /// Return the vertical tire damping coefficient (for normal force calculation).
+    /// Return the vertical tire damping contribution to the normal force.
     virtual double getNormalDampingForce(double depth, double velocity) const = 0;
 
     /// Set the parameters in the Fiala model.
