@@ -25,6 +25,7 @@
 #include "m113/M113_Vehicle.h"
 #include "m113/M113_TrackAssembly.h"
 #include "m113/M113_SimpleDriveline.h"
+#include "m113/M113_DrivelineBDS.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -94,6 +95,7 @@ M113_Vehicle::M113_Vehicle(const bool fixed,
     // Create the driveline
     // --------------------
     m_driveline = ChSharedPtr<ChTrackDriveline>(new M113_SimpleDriveline);
+    ////m_driveline = ChSharedPtr<ChTrackDriveline>(new M113_DrivelineBDS);
 }
 
 // -----------------------------------------------------------------------------
