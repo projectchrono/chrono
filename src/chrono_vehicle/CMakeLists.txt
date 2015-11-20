@@ -321,6 +321,8 @@ set(CV_TV_BRAKE_FILES
 source_group("tracked_vehicle\\brake" FILES ${CV_TV_BRAKE_FILES})
 
 set(CV_TV_DRIVELINE_FILES
+    tracked_vehicle/driveline/ChTrackDrivelineBDS.h
+    tracked_vehicle/driveline/ChTrackDrivelineBDS.cpp
     tracked_vehicle/driveline/ChSimpleTrackDriveline.h
     tracked_vehicle/driveline/ChSimpleTrackDriveline.cpp
 )
