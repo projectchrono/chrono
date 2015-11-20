@@ -372,12 +372,16 @@ class ChApi ChLcpSystemDescriptor {
 
 
     /// Saves to disk the LAST used matrices of the problem.
-    ///  dump_M.dat  has masses and/or stiffness (Matlab sparse format)
-    ///  dump_Cq.dat has the jacobians (Matlab sparse format)
-    ///  dump_E.dat  has the constr.compliance (Matlab sparse format)
-    ///  dump_f.dat  has the applied loads
-    ///  dump_b.dat  has the constraint rhs
-    virtual void DumpLastMatrices(const char* path = "");
+    /// If assembled == true,
+    ///    dump_Z.dat   has the assembled optimization matrix (Matlab sparse format)
+    ///    dump_rhs.dat has the assembled RHS
+    /// Otherwise,
+    ///    dump_M.dat   has masses and/or stiffness (Matlab sparse format)
+    ///    dump_Cq.dat  has the jacobians (Matlab sparse format)
+    ///    dump_E.dat   has the constr.compliance (Matlab sparse format)
+    ///    dump_f.dat   has the applied loads
+    ///    dump_b.dat   has the constraint rhs
+    virtual void DumpLastMatrices(bool assembled = false, const char* path = "");
 
     /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm
 	virtual void BuildMatrices(ChSparseMatrix* Cq,

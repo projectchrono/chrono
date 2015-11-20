@@ -1703,7 +1703,8 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         // GetLog() << "StateSolveCorrection X=" << x << "\n\n";
         // GetLog() << "StateSolveCorrection V=" << v << "\n\n";
 
-        this->LCP_descriptor->DumpLastMatrices("intpre_");
+        this->LCP_descriptor->DumpLastMatrices(true, "intpre_");
+        this->LCP_descriptor->DumpLastMatrices(false, "intpre_");
 
         chrono::ChStreamOutAsciiFile file_x("intpre_x.dat");
         file_x.SetNumFormat(numformat);

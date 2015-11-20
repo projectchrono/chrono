@@ -299,47 +299,64 @@ void ChLcpSystemDescriptor::BuildVectors(ChMatrix<>* f, ChMatrix<>* b, bool only
     this->ConvertToMatrixForm(0, 0, 0, f, b, 0, only_bilaterals, skip_contacts_uv);
 }
 
-void ChLcpSystemDescriptor::DumpLastMatrices(const char* path) {
+void ChLcpSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
     char filename[300];
     try {
         const char* numformat = "%.12g";
-        chrono::ChLinkedListMatrix mdM;
-        chrono::ChLinkedListMatrix mdCq;
-        chrono::ChLinkedListMatrix mdE;
-        chrono::ChMatrixDynamic<double> mdf;
-        chrono::ChMatrixDynamic<double> mdb;
-        chrono::ChMatrixDynamic<double> mdfric;
-        this->ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
-        sprintf(filename, "%s%s", path, "dump_M.dat");
-        chrono::ChStreamOutAsciiFile file_M(filename);
-        file_M.SetNumFormat(numformat);
-        mdM.StreamOUTsparseMatlabFormat(file_M);
+        if (assembled) {
+            ChLinkedListMatrix Z;
+            ChMatrixDynamic<double> rhs;
+            ConvertToMatrixForm(&Z, &rhs);
 
-        sprintf(filename, "%s%s", path, "dump_Cq.dat");
-        chrono::ChStreamOutAsciiFile file_Cq(filename);
-        file_Cq.SetNumFormat(numformat);
-        mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+            sprintf(filename, "%s%s", path, "dump_Z.dat");
+            ChStreamOutAsciiFile file_Z(filename);
+            file_Z.SetNumFormat(numformat);
+            Z.StreamOUTsparseMatlabFormat(file_Z);
 
-        sprintf(filename, "%s%s", path, "dump_E.dat");
-        chrono::ChStreamOutAsciiFile file_E(filename);
-        file_E.SetNumFormat(numformat);
-        mdE.StreamOUTsparseMatlabFormat(file_E);
+            sprintf(filename, "%s%s", path, "dump_rhs.dat");
+            ChStreamOutAsciiFile file_rhs(filename);
+            file_rhs.SetNumFormat(numformat);
+            rhs.StreamOUTdenseMatlabFormat(file_rhs);
+        } else {
+            ChLinkedListMatrix mdM;
+            ChLinkedListMatrix mdCq;
+            ChLinkedListMatrix mdE;
+            ChMatrixDynamic<double> mdf;
+            ChMatrixDynamic<double> mdb;
+            ChMatrixDynamic<double> mdfric;
+            ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
-        sprintf(filename, "%s%s", path, "dump_f.dat");
-        chrono::ChStreamOutAsciiFile file_f(filename);
-        file_f.SetNumFormat(numformat);
-        mdf.StreamOUTdenseMatlabFormat(file_f);
+            sprintf(filename, "%s%s", path, "dump_M.dat");
+            ChStreamOutAsciiFile file_M(filename);
+            file_M.SetNumFormat(numformat);
+            mdM.StreamOUTsparseMatlabFormat(file_M);
 
-        sprintf(filename, "%s%s", path, "dump_b.dat");
-        chrono::ChStreamOutAsciiFile file_b(filename);
-        file_b.SetNumFormat(numformat);
-        mdb.StreamOUTdenseMatlabFormat(file_b);
+            sprintf(filename, "%s%s", path, "dump_Cq.dat");
+            ChStreamOutAsciiFile file_Cq(filename);
+            file_Cq.SetNumFormat(numformat);
+            mdCq.StreamOUTsparseMatlabFormat(file_Cq);
 
-        sprintf(filename, "%s%s", path, "dump_fric.dat");
-        chrono::ChStreamOutAsciiFile file_fric(filename);
-        file_fric.SetNumFormat(numformat);
-        mdfric.StreamOUTdenseMatlabFormat(file_fric);
+            sprintf(filename, "%s%s", path, "dump_E.dat");
+            ChStreamOutAsciiFile file_E(filename);
+            file_E.SetNumFormat(numformat);
+            mdE.StreamOUTsparseMatlabFormat(file_E);
+
+            sprintf(filename, "%s%s", path, "dump_f.dat");
+            ChStreamOutAsciiFile file_f(filename);
+            file_f.SetNumFormat(numformat);
+            mdf.StreamOUTdenseMatlabFormat(file_f);
+
+            sprintf(filename, "%s%s", path, "dump_b.dat");
+            ChStreamOutAsciiFile file_b(filename);
+            file_b.SetNumFormat(numformat);
+            mdb.StreamOUTdenseMatlabFormat(file_b);
+
+            sprintf(filename, "%s%s", path, "dump_fric.dat");
+            ChStreamOutAsciiFile file_fric(filename);
+            file_fric.SetNumFormat(numformat);
+            mdfric.StreamOUTdenseMatlabFormat(file_fric);
+        }
     } catch (chrono::ChException myexc) {
         chrono::GetLog() << myexc.what();
     }
