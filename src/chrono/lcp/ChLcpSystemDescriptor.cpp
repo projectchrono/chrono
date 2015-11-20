@@ -444,11 +444,8 @@ int ChLcpSystemDescriptor::FromVariablesToVector(ChMatrix<>& mvector, bool resiz
 }
 
 int ChLcpSystemDescriptor::FromVectorToVariables(ChMatrix<>& mvector) {
-#ifdef CH_DEBUG
-    n_q = CountActiveVariables();
-    assert(n_q == mvector.GetRows());
+    assert(CountActiveVariables() == mvector.GetRows());
     assert(mvector.GetColumns() == 1);
-#endif
 
     // fetch from the vector
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
@@ -481,10 +478,8 @@ int ChLcpSystemDescriptor::FromConstraintsToVector(ChMatrix<>& mvector, bool res
 int ChLcpSystemDescriptor::FromVectorToConstraints(ChMatrix<>& mvector) {
     n_c = CountActiveConstraints();
 
-#ifdef CH_DEBUG
     assert(n_c == mvector.GetRows());
     assert(mvector.GetColumns() == 1);
-#endif
 
     // Fill the vector
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
@@ -525,10 +520,8 @@ int ChLcpSystemDescriptor::FromVectorToUnknowns(ChMatrix<>& mvector) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
 
-#ifdef CH_DEBUG
     assert((n_q + n_c) == mvector.GetRows());
     assert(mvector.GetColumns() == 1);
-#endif
 
     // fetch from the first part of vector (x.q = q)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
@@ -548,15 +541,9 @@ int ChLcpSystemDescriptor::FromVectorToUnknowns(ChMatrix<>& mvector) {
 }
 
 void ChLcpSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>* lvector, std::vector<bool>* enabled) {
-#ifdef CH_DEBUG
-    assert(this->vstiffness.size() ==
-           0);  // currently, the case with ChLcpKblock items is not supported (only diagonal M is supported, no K)
-    int n_c = CountActiveConstraints();
-    assert(lvector->GetRows() == n_c);
+    assert(this->vstiffness.size() == 0); // currently, the case with ChLcpKblock items is not supported (only diagonal M is supported, no K)
+    assert(lvector->GetRows() == CountActiveConstraints());
     assert(lvector->GetColumns() == 1);
-    if (enabled)
-        assert(enabled->size() == n_c);
-#endif
 
     result.Reset(n_c, 1);  // fast! Reset() method does not realloc if size doesn't change
 
@@ -635,10 +622,9 @@ void ChLcpSystemDescriptor::SystemProduct(
     ChMatrix<>* vect;
 
     if (x) {
-#ifdef CH_DEBUG
         assert(x->GetRows() == n_q + n_c);
         assert(x->GetColumns() == 1);
-#endif
+
         vect = x;
     } else {
         x_ql = new ChMatrixDynamic<double>(n_q + n_c, 1);
