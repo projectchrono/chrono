@@ -781,7 +781,8 @@ int ChBody::RecomputeCollisionModel() {
 }
 
 void ChBody::SyncCollisionModels() {
-    this->GetCollisionModel()->SyncPosition();
+    if (this->GetCollide())
+        this->GetCollisionModel()->SyncPosition();
 }
 
 void ChBody::AddCollisionModelsToSystem() {
