@@ -121,7 +121,10 @@ static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransfor
 
 void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, btCollisionShape* mshape) {
     bool centered = (pos.IsNull() && rot.IsIdentity());
-
+    
+    // This is needed so later one can access ChModelBullet::GetSafeMargin and ChModelBullet::GetEnvelope
+    mshape->setUserPointer(this);
+    
     // start_vector = ||    -- description is still empty
     if (shapes.size() == 0) {
         if (centered) {
@@ -381,8 +384,13 @@ bool ChModelBullet::AddTriangleProxy(ChVector<>* p1,                ///< points 
     btCEtriangleShape* mshape = new btCEtriangleShape(p1,p2,p3,
         mowns_vertex_1, mowns_vertex_2, mowns_vertex_3, 
         mowns_edge_1, mowns_vertex_2, mowns_vertex_3, msphereswept_rad);
+    
+    GetLog() << "Add tri with envelope = " << this->GetEnvelope() << "\n";
+    if(mowns_vertex_1) GetLog() << *p1 << "\n";
+    if(mowns_vertex_2) GetLog() << *p2 << "\n";
+    if(mowns_vertex_3) GetLog() << *p3 << "\n";
 
-    mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
+    mshape->setMargin((btScalar) this->GetEnvelope());  // not this->GetSuggestedFullMargin() given the way that btCEtriangleShape  computes AABB etc.
     //GetLog() << "AddTriangleProxy " << mowns_vertex_1 << " " << mowns_vertex_2 << " " << mowns_vertex_3 << " \n";
     _injectShape(VNULL, ChMatrix33<>(1), mshape);
 
@@ -500,16 +508,12 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
     //*******EXPERIMENTAL******
     if (geometry::ChTriangleMeshConnected* mesh = dynamic_cast<geometry::ChTriangleMeshConnected*> ( const_cast<geometry::ChTriangleMesh*>(&trimesh))) {
 
-        // The envelope is not used in this type of collision primitive. 
-        this->SetEnvelope(0); 
-
         std::vector<std::array<int,4>> trimap;
         mesh->ComputeNeighbouringTriangleMap(trimap);
         
         std::map<std::pair<int,int>, std::pair<int, int>> winged_edges;
         mesh->ComputeWingedEdges(winged_edges, true);
 
-        //std::vector<bool> added_edges (winged_edges.size());
         std::vector<bool> added_vertexes (mesh->m_vertices.size());
         
         // iterate on triangles
@@ -537,7 +541,7 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
                                    wingedgeA->second.second != -1,
                                    wingedgeB->second.second != -1,
                                    wingedgeC->second.second != -1,
-                                   0.0);
+                                   0.01);
             // Mark added vertexes
             added_vertexes[mesh->m_face_v_indices[it].x] = true;
             added_vertexes[mesh->m_face_v_indices[it].y] = true;

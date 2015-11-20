@@ -269,6 +269,8 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     Set_G_acc(ChVector<>(0, -9.8, 0));
 
     stepcount = 0;
+    solvecount = 0;
+    dump_matrices = false;
 
     last_err = 0;
 
@@ -331,6 +333,8 @@ void ChSystem::Copy(ChSystem* source) {
     step_min = source->GetStepMin();
     step_max = source->GetStepMax();
     stepcount = source->stepcount;
+    solvecount = source->solvecount;
+    dump_matrices = source->dump_matrices;
     SetIntegrationType(source->GetIntegrationType());
     tol = source->GetTol();
     tol_force = source->tol_force;
@@ -1032,9 +1036,9 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
         if (load_jacobians)
             Lpointer->ConstraintsLoadJacobians();
         if (F_factor) {
-            Lpointer->ConstraintsFbLoadForces(F_factor);  // f*dt
+                Lpointer->ConstraintsFbLoadForces(F_factor);  // f*dt
+            }
         }
-    }
 
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
@@ -1674,6 +1678,8 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
                                     bool force_state_scatter  ///< if false, x,v and T are not scattered to the system,
                                     /// assuming that someone has done StateScatter just before
                                     ) {
+    this->solvecount++;
+
     if (force_state_scatter)
         this->StateScatter(x, v, T);
 
@@ -1694,33 +1700,34 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
 
     // diagnostics:
 
-    bool dump_data = false;
-
-    if (dump_data) {
-        const char* numformat = "%.12g";
+    if (this->dump_matrices) {
         // GetLog() << "StateSolveCorrection R=" << R << "\n\n";
         // GetLog() << "StateSolveCorrection Qc="<< Qc << "\n\n";
         // GetLog() << "StateSolveCorrection X=" << x << "\n\n";
         // GetLog() << "StateSolveCorrection V=" << v << "\n\n";
+        const char* numformat = "%.12g";
+        char cprefix[100];
+        sprintf(cprefix, "solve_%04d_%02d_", this->stepcount, this->solvecount);
+        std::string sprefix(cprefix);
 
-        this->LCP_descriptor->DumpLastMatrices(true, "intpre_");
-        this->LCP_descriptor->DumpLastMatrices(false, "intpre_");
+        this->LCP_descriptor->DumpLastMatrices(true,  sprefix.c_str());
+        this->LCP_descriptor->DumpLastMatrices(false, sprefix.c_str());
 
-        chrono::ChStreamOutAsciiFile file_x("intpre_x.dat");
+        chrono::ChStreamOutAsciiFile file_x( (sprefix+"x_pre.dat").c_str() );
         file_x.SetNumFormat(numformat);
         ((ChMatrix<>)x).StreamOUTdenseMatlabFormat(file_x);
 
-        chrono::ChStreamOutAsciiFile file_v("intpre_v.dat");
+        chrono::ChStreamOutAsciiFile file_v( (sprefix+"v_pre.dat").c_str() );
         file_v.SetNumFormat(numformat);
         ((ChMatrix<>)v).StreamOUTdenseMatlabFormat(file_v);
 
-        chrono::ChStreamOutAsciiFile file_R("intpre_R.dat");
+        chrono::ChStreamOutAsciiFile file_R( (sprefix+"R.dat").c_str() );
         file_R.SetNumFormat(numformat);
-        ((ChMatrix<>)R).StreamOUTdenseMatlabFormat(file_R);
+        ((ChMatrix<>)R).StreamOUTdenseMatlabFormat(file_R); // already saved as f from DumpLastMatrices?
 
-        chrono::ChStreamOutAsciiFile file_Qc("intpre_Qc.dat");
+        chrono::ChStreamOutAsciiFile file_Qc( (sprefix+"Qc.dat").c_str() );
         file_Qc.SetNumFormat(numformat);
-        ((ChMatrix<>)Qc).StreamOUTdenseMatlabFormat(file_Qc);
+        ((ChMatrix<>)Qc).StreamOUTdenseMatlabFormat(file_Qc); // already saved as b from DumpLastMatrices?
     }
 
     // Solve the LCP problem!!!!!!!!
@@ -1738,21 +1745,22 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
     
     // diagnostics:
 
-    if (dump_data) {
+    if (this->dump_matrices) {
         const char* numformat = "%.12g";
+        char cprefix[100];
+        sprintf(cprefix, "solve_%04d_%02d_", this->stepcount, this->solvecount);
+        std::string sprefix(cprefix);
 
-        chrono::ChStreamOutAsciiFile file_Dv("intpost_Dv.dat");
+        chrono::ChStreamOutAsciiFile file_Dv( (sprefix+"Dv.dat").c_str() );
         file_Dv.SetNumFormat(numformat);
         ((ChMatrix<>)Dv).StreamOUTdenseMatlabFormat(file_Dv);
 
-        chrono::ChStreamOutAsciiFile file_L("intpost_L.dat");
+        chrono::ChStreamOutAsciiFile file_L( (sprefix+"L.dat").c_str() );
         file_L.SetNumFormat(numformat);
         ((ChMatrix<>)L).StreamOUTdenseMatlabFormat(file_L);
 
         // GetLog() << "StateSolveCorrection Dv=" << Dv << "\n\n";
         // GetLog() << "StateSolveCorrection L="  << L << "\n\n";
-        // GetLog() << "StateSolveCorrection Xn=" << x << "\n\n";
-        // GetLog() << "StateSolveCorrection Vn=" << v << "\n\n";
     }
 }
 
@@ -1896,6 +1904,12 @@ double ChSystem::ComputeCollisions() {
 //
 //
 
+int ChSystem::DoStepDynamics(double m_step) {
+    this->step = m_step;
+    return Integrate_Y();
+}
+
+
 int ChSystem::Integrate_Y() {
     ResetTimers();
     switch (integration_type) {
@@ -1933,6 +1947,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
     ExecuteControlsForStep();
 
     this->stepcount++;
+    this->solvecount = 0;
 
     // Compute contacts and create contact constraints
     ComputeCollisions();
@@ -1992,7 +2007,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu() {
     // updates the reactions of the constraint
     LCPresult_Li_into_reactions(1.0 / step);  // R = l/dt  , approximately
 
-    // perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
+// perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
 
     for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
@@ -2059,6 +2074,7 @@ int ChSystem::Integrate_Y_impulse_Tasora() {
     ExecuteControlsForStep();
 
     this->stepcount++;
+    this->solvecount =0;
 
     // Compute contacts and create contact constraints
     ComputeCollisions();
@@ -2236,6 +2252,7 @@ int ChSystem::Integrate_Y_timestepper() {
     ExecuteControlsForStep();
 
     this->stepcount++;
+    this->solvecount = 0;
 
     // Compute contacts and create contact constraints
     ComputeCollisions();
@@ -2286,6 +2303,9 @@ int ChSystem::Integrate_Y_timestepper() {
 // **** ALSO AUXILIARY MATRICES).
 
 int ChSystem::DoAssembly(int action, int mflags) {
+
+    this->solvecount = 0;
+
     // Counts dofs, statistics, etc.
     Setup();
 
@@ -2432,6 +2452,9 @@ int ChSystem::DoAssembly(int action, int mflags) {
 // **** PERFORM THE LINEAR STATIC ANALYSIS
 
 int ChSystem::DoStaticLinear() {
+    
+    this->solvecount = 0;
+    
     Setup();
     Update();
 
@@ -2475,6 +2498,9 @@ int ChSystem::DoStaticLinear() {
 // **** PERFORM THE NONLINEAR STATIC ANALYSIS
 
 int ChSystem::DoStaticNonlinear(int nsteps) {
+
+    this->solvecount;
+
     Setup();
     Update();
 
@@ -2499,6 +2525,9 @@ int ChSystem::DoStaticNonlinear(int nsteps) {
 // **** EQUILIBRIUM OF THE SYSTEM, WITH ITERATIVE SOLUTION
 
 int ChSystem::DoStaticRelaxing(int nsteps) {
+
+    this->solvecount;
+
     int err = 0;
     int reached_tolerance = FALSE;
 
@@ -2603,10 +2632,7 @@ int ChSystem::DoEntireDynamics() {
     return TRUE;
 }
 
-int ChSystem::DoStepDynamics(double m_step) {
-    this->step = m_step;
-    return Integrate_Y();
-}
+
 
 // Perform the dynamical integration, from current ChTime to
 // the specified m_endtime, and terminating the integration exactly
@@ -2634,7 +2660,7 @@ int ChSystem::DoFrameDynamics(double m_endtime) {
 
         left_time = m_endtime - ChTime;
 
-        if (left_time < 0.0000000000001)
+        if (left_time < 1e-12)
             break;  // - no integration if backward or null frame step.
 
         if (left_time < (1.3 * step))  // - step changed if too little frame step
@@ -2776,6 +2802,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(step_min); 
     marchive << CHNVP(step_max); 
     marchive << CHNVP(stepcount);
+    marchive << CHNVP(dump_matrices);
 
     marchive << CHNVP(tol); 
     marchive << CHNVP(tol_force); 
@@ -2829,6 +2856,7 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(step_min); 
     marchive >> CHNVP(step_max); 
     marchive >> CHNVP(stepcount);
+    marchive >> CHNVP(dump_matrices);
 
     marchive >> CHNVP(tol); 
     marchive >> CHNVP(tol_force);

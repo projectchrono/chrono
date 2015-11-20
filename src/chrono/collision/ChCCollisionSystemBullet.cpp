@@ -687,6 +687,19 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
 
         btCEtriangleShape* triA = (btCEtriangleShape*)triObj1->getCollisionShape();
         btCEtriangleShape* triB = (btCEtriangleShape*)triObj2->getCollisionShape();
+        ChModelBullet* triModelA = (ChModelBullet*)triA->getUserPointer();
+        ChModelBullet* triModelB = (ChModelBullet*)triB->getUserPointer();
+
+        double max_allowed_dist = triModelA->GetEnvelope()+triModelB->GetEnvelope();
+        double min_allowed_dist = - (triModelA->GetSafeMargin()+triModelB->GetSafeMargin());
+        
+        double offset_A = triA->sphereswept_r();
+        double offset_B = triB->sphereswept_r();
+        
+        // Trick!! offset also by outward 'envelope' because during ReportContacts()
+        // contact points are offset inward by envelope, to cope with GJK method.
+        offset_A += triModelA->GetEnvelope();
+        offset_B += triModelB->GetEnvelope();
 
         const btTransform& m44Ta = triObj1->getWorldTransform();
         const btTransform& m44Tb = triObj2->getWorldTransform();  
@@ -715,18 +728,25 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         int is_into;
         ChVector<> p_projected;
         double mu, mv;
+        double candid_mu, candid_mv; 
 
         if (triA->owns_v1()) {
             dist = ChCollisionUtils::PointTriangleDistance(mpA1, mpB1, mpB2, mpB3, mu, mv, is_into, p_projected);
             if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(mpA1,p_projected, dist, resultOut, offset_A, offset_B);
+                }
                 if (dist < min_dist) {
-                    min_dist = dist; candid_pA = mpA1; candid_pB = p_projected;
+                    min_dist = dist; candid_pA = mpA1; candid_pB = p_projected;  candid_mu = mu; candid_mv = mv;    
                 }
             }
         }
         if (triA->owns_v2()) {
             dist = ChCollisionUtils::PointTriangleDistance(mpA2, mpB1, mpB2, mpB3, mu, mv, is_into, p_projected);
             if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(mpA2,p_projected, dist, resultOut, offset_A, offset_B);
+                }
                 if (dist < min_dist) {
                     min_dist = dist; candid_pA = mpA2; candid_pB = p_projected;
                 }
@@ -735,6 +755,9 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         if (triA->owns_v3()) {
             dist = ChCollisionUtils::PointTriangleDistance(mpA3, mpB1, mpB2, mpB3, mu, mv, is_into, p_projected);
             if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(mpA3,p_projected, dist, resultOut, offset_A, offset_B);
+                }
                 if (dist < min_dist) {
                     min_dist = dist; candid_pA = mpA3; candid_pB = p_projected;
                 }
@@ -744,6 +767,9 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         if (triB->owns_v1()) {
             dist = ChCollisionUtils::PointTriangleDistance(mpB1, mpA1, mpA2, mpA3, mu, mv, is_into, p_projected);
             if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(p_projected, mpB1, dist, resultOut, offset_A, offset_B);
+                }
                 if (dist < min_dist) {
                     min_dist = dist; candid_pB = mpB1; candid_pA = p_projected;
                 }
@@ -752,6 +778,9 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         if (triB->owns_v2()) {
             dist = ChCollisionUtils::PointTriangleDistance(mpB2, mpA1, mpA2, mpA3, mu, mv, is_into, p_projected);
             if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(p_projected, mpB2, dist, resultOut, offset_A, offset_B);
+                }
                 if (dist < min_dist) {
                     min_dist = dist; candid_pB = mpB2; candid_pA = p_projected;
                 }
@@ -760,21 +789,13 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         if (triB->owns_v3()) {
             dist = ChCollisionUtils::PointTriangleDistance(mpB3, mpA1, mpA2, mpA3, mu, mv, is_into, p_projected);
             if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(p_projected, mpB3, dist, resultOut, offset_A, offset_B);
+                }
                 if (dist < min_dist) {
                     min_dist = dist; candid_pB = mpB3; candid_pA = p_projected;
                 }
             }
-        }
-        
-        /// report a contact. internally this will be kept persistent, and contact reduction is done
-        if (min_dist<1e20 && fabs(min_dist)<(triA->getMargin()+triB->getMargin())) {
-            // convert to Bullet vectors. Note: in absolute csys.
-            btVector3 absA ((btScalar)candid_pA.x, (btScalar)candid_pA.y, (btScalar)candid_pA.z);
-            btVector3 absB ((btScalar)candid_pB.x, (btScalar)candid_pB.y, (btScalar)candid_pB.z);
-            btVector3 absN_onB ((absA-absB).normalize());
-            if (min_dist<0)
-                absN_onB = - absN_onB; // flip norm to be coherent with dist sign
-            resultOut->addContactPoint(absN_onB, absB, (btScalar)min_dist);
         }
 
         // .... to do.. edges edges
@@ -782,6 +803,23 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
 
         resultOut->refreshContactPoints();
     }
+
+private:
+    void _add_contact(const ChVector<>& candid_pA, const ChVector<>& candid_pB, const double dist, btManifoldResult* resultOut, 
+                      const double envelopeA, const double envelopeB) {
+        GetLog()<< "\n\nADD! Dist: " << dist << "  with P1: " << candid_pA << "  P2" << candid_pB 
+                                     // << " at u=" << candid_mu << " v=" << candid_mv << " t1:" << (int)triA << " t2:" << (int)triB 
+                                     <<"\n";
+        // convert to Bullet vectors. Note: in absolute csys.
+        btVector3 absA ((btScalar)candid_pA.x, (btScalar)candid_pA.y, (btScalar)candid_pA.z);
+        btVector3 absB ((btScalar)candid_pB.x, (btScalar)candid_pB.y, (btScalar)candid_pB.z);
+        btVector3 absN_onB ((absA-absB).normalize());
+        if (dist<0)
+            absN_onB = - absN_onB; // flip norm to be coherent with dist sign
+        resultOut->addContactPoint(absN_onB, absB + absN_onB*envelopeB, (btScalar)(dist - (envelopeA+envelopeB)));
+    }
+
+public:
 
     virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,
                                            btCollisionObject* body1,
@@ -952,7 +990,7 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
 
         if (do_narrow_contactgeneration) {
             int numContacts = contactManifold->getNumContacts();
-
+//GetLog() << "numContacts=" << numContacts << "\n";
             for (int j = 0; j < numContacts; j++) {
                 btManifoldPoint& pt = contactManifold->getContactPoint(j);
 

@@ -836,6 +836,17 @@ public:
     /// Reset to 0 the total amount of performed time steps
     void ResetStepcount() {stepcount = 0;}
 
+    /// Return the number of StateSolveCorrection operations 
+    /// (reset to 0 at each timestep of static analysis)
+    int GetSolverCallsCount() { return solvecount;}
+
+    /// Set this to "true" to enable saving of matrices at each time
+    /// step, for debugging purposes. Note that matrices will be saved in the
+    /// working directory of the exe, with format 0001_01_M.dat 0002_01_M.dat 
+    /// (if the timestepper requires multiple solves, also 0001_01. 0001_02.. etc.)
+    void SetDumpMatrices(bool md) { dump_matrices = md;}
+    bool GetDumpMatrices() { return dump_matrices;}
+
     // ---- KINEMATICS
 
     /// Advances the kinematic simulation for a single step, of
@@ -970,6 +981,10 @@ public:
     int parallel_thread_number;  // used for multithreaded solver etc.
 
     size_t stepcount;  // internal counter for steps
+
+    int solvecount; // number of StateSolveCorrection (reset to 0 at each timestep os static analysis)
+
+    bool dump_matrices; // for debugging
 
     int ncontacts; 
 

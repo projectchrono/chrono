@@ -230,9 +230,9 @@ double ChLcpIterativeSymmSOR::Solve(ChLcpSystemDescriptor& sysd  ///< system des
                             new_lambda_0 = shlambda * new_lambda_0 + (1.0 - shlambda) * old_lambda_friction[0];
                             new_lambda_1 = shlambda * new_lambda_1 + (1.0 - shlambda) * old_lambda_friction[1];
                             new_lambda_2 = shlambda * new_lambda_2 + (1.0 - shlambda) * old_lambda_friction[2];
-                            mconstraints[ic - 2]->Set_l_i(new_lambda_0);
-                            mconstraints[ic - 1]->Set_l_i(new_lambda_1);
-                            mconstraints[ic - 0]->Set_l_i(new_lambda_2);
+                            mconstraints[ic + 2]->Set_l_i(new_lambda_0);
+                            mconstraints[ic + 1]->Set_l_i(new_lambda_1);
+                            mconstraints[ic + 0]->Set_l_i(new_lambda_2);
                         }
                         double true_delta_0 = new_lambda_0 - old_lambda_friction[0];
                         double true_delta_1 = new_lambda_1 - old_lambda_friction[1];
