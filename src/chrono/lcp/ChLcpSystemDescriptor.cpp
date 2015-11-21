@@ -213,78 +213,61 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     }
 }
 
-	
+void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChMatrix<>* rhs) {
+    assert(Z);
+    assert(rhs);
 
-void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z,
-												ChMatrix<>* rhs,
-												bool only_bilaterals,
-												bool skip_contacts_uv)
-{
     std::vector<ChLcpConstraint*>& mconstraints = this->GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = this->GetVariablesList();
 
-    // Count bilateral and other constraints.. (if wanted, bilaterals only)
-
+    // Count constraints.
     int mn_c = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
-            if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
-            if (!((dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) && skip_contacts_uv)) {
-                    mn_c++;
-                }
+            mn_c++;
     }
 
-    // Count active variables, by scanning through all variable blocks,
-    // and set offsets
-
+    // Count active variables, by scanning through all variable blocks, and set offsets.
     n_q = this->CountActiveVariables();
 
-    // Reset and resize (if needed) auxiliary vectors. Most of the times the matrix will be only erased
+    // Reset and resize auxiliary vectors. Most of the times the matrix will be only erased.
+    Z->Reset(n_q + mn_c, n_q + mn_c);
+    rhs->Reset(n_q + mn_c, 1);
 
-	if (Z)
-        Z->Reset(n_q + mn_c, n_q + mn_c);
-
-	if (rhs)
-        rhs->Reset(n_q + mn_c, 1);
-
-    // Fills Z and rhs with masses and inertias, fills rhs with 'f'
+    // Fill Z with masses and inertias and rhs with forces.
     int s_q = 0;
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive()) {
-            if (Z)
-                mvariables[iv]->Build_M(*Z, s_q, s_q, this->c_a);  // .. fills  Z with masses and inertias in the upper left corner
-            if (rhs)
-                rhs->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);  // .. fills 'rhs' with 'f' in the upper section
+            // Masses and inertias in upper-left block of Z
+            mvariables[iv]->Build_M(*Z, s_q, s_q, this->c_a);
+            // Forces in upper section of rhs
+            rhs->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);
+
             s_q += mvariables[iv]->Get_ndof();
         }
     }
 
-    // If some stiffness / hessian matrix has been added, add it to the sparse Z
+    // If present, add stiffness matrix K to upper-left block of Z.
     int s_k = 0;
     for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
-        if (Z)
-            this->vstiffness[ik]->Build_K(*Z, true); // add K matrix in the upper left corner of Z
+        this->vstiffness[ik]->Build_K(*Z, true);
     }
 
-    // Fills Z and rhs by looping on constraints
+    // Fill Z and rhs by looping over constraints.
     int s_c = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->IsActive())
-            if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
-                if (!((dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) && skip_contacts_uv)) {
-                    if (Z) {
-                        mconstraints[ic]->Build_Cq(*Z, n_q + s_c);   // .. fills Z with constraints (lower left corner)
-                        mconstraints[ic]->Build_CqT(*Z, n_q + s_c);  // .. fills Z with constraints (upper right corner)
-                        Z->SetElement(
-                            n_q + s_c, n_q + s_c,
-                            mconstraints[ic]->Get_cfm_i());  // .. fills Z with -E ( = cfm ) (lower right corner)
-                    }
-                    if (rhs)
-                        (*rhs)(n_q + s_c) =
-                            -(mconstraints[ic]->Get_b_i());  // .. fills 'rhs' with '-b' in the lower section
+        if (mconstraints[ic]->IsActive()) {
+            // Constraint Jacobian in lower-left block of Z
+            mconstraints[ic]->Build_Cq(*Z, n_q + s_c); 
+            // Transposed constraint Jacobian in upper-right block of Z
+            mconstraints[ic]->Build_CqT(*Z, n_q + s_c);
+            // -E ( = cfm ) in lower-right block of Z
+            Z->SetElement(n_q + s_c, n_q + s_c, mconstraints[ic]->Get_cfm_i());
+            // -b term in lower section of rhs
+            (*rhs)(n_q + s_c) = -(mconstraints[ic]->Get_b_i());
 
-                    s_c++;
-                }
+            s_c++;
+        }
     }
 }
 
