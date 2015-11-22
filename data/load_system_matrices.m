@@ -44,11 +44,19 @@ end
 M_compr = load( [prefix, 'M.dat'] );
 M = spconvert(M_compr);
 
-Cq_compr = load( [prefix, 'Cq.dat'] );
-Cq = spconvert(Cq_compr);
+Cq_compr = load( [prefix, 'Cq.dat'] )
+if size(Cq_compr)==[0 0]
+    Cq =[]
+else
+    Cq = spconvert(Cq_compr);
+end
 
 E_compr = load( [prefix, 'E.dat'] );
-E = spconvert(E_compr);
+if size(Cq_compr)==[0 0]
+    E =[]
+else
+    E  = spconvert(E_compr);
+end
 
 R = load( [prefix, 'R.dat'] );
 
