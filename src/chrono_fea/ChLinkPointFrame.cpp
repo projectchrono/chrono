@@ -106,12 +106,12 @@ void ChLinkPointFrame::Update(double mytime, bool update_assets) {
   // ...
 }
 
-ChMatrix<> ChLinkPointFrame::GetC() {
+ChMatrixNM<double, 3, 1> ChLinkPointFrame::GetC() {
     ChMatrix33<> Arw(attach_reference.rot >> body->GetRot());
     ChVector<> res = Arw.MatrT_x_Vect(mnode->GetPos() - body->TransformPointLocalToParent(attach_reference.pos));
     ChMatrixNM<double, 3, 1> C;
-    C(0, 0) = res.y;
-    C(1, 0) = res.z;
+    C(0, 0) = res.x;
+    C(1, 0) = res.y;
     C(2, 0) = res.z;
     return C;
 }

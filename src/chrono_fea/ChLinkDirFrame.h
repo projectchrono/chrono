@@ -108,7 +108,7 @@ public:
 	virtual ChVector<> Get_react_torque() {return GetReactionOnBody();}
 
     // Get constraint violations
-    ChMatrix<> GetC();
+    ChMatrixNM<double, 2, 1> GetC();
 
 	 		//
 			// STATE FUNCTIONS

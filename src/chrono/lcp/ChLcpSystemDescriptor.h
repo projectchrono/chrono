@@ -365,11 +365,10 @@ class ChApi ChLcpSystemDescriptor {
                                      bool only_bilaterals = false,
                                      bool skip_contacts_uv = false);
 
-	virtual void ConvertToMatrixForm(ChSparseMatrix* Z,
-									 ChMatrix<>* rhs,
-									 bool only_bilaterals = false,
-									 bool skip_contacts_uv = false);
-
+    /// Create and return the assembled system matrix and RHS vector.
+    virtual void ConvertToMatrixForm(ChSparseMatrix* Z,  ///< [out] assembled system matrix
+                                     ChMatrix<>* rhs     ///< [out] assembled RHS vector
+                                     );
 
     /// Saves to disk the LAST used matrices of the problem.
     /// If assembled == true,

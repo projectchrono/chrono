@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     // Create some spheres that roll horizontally,
     // with increasing rolling friction values
-    for (int bi = 0; bi < 3; bi++) {
+    for (int bi = 0; bi < 10; bi++) {
         double initial_angspeed = 10;
         double initial_linspeed = initial_angspeed * mradius;
 

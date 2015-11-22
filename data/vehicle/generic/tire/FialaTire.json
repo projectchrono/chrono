@@ -14,7 +14,7 @@
 	"CALPHA":             		45836.6236,
 	"UMIN":             		0.9,
 	"UMAX":             		1.0,
-	"X Relationation Length":	0.05,
-	"Y Relationation Length":	0.15
+	"X Relaxation Length":		0.05,
+	"Y Relaxation Length":		0.15
   }
 }
