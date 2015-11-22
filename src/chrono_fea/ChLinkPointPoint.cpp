@@ -75,7 +75,7 @@ void ChLinkPointPoint::Update(double mytime, bool update_assets) {
   // ...
 }
 
-ChMatrix<> ChLinkPointPoint::GetC() {
+ChMatrixNM<double, 3, 1> ChLinkPointPoint::GetC() {
     ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
     ChMatrixNM<double, 3, 1> C;
     C(0, 0) = res.x;

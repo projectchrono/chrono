@@ -133,7 +133,7 @@ void ChLinkDirFrame::Update(double mytime, bool update_assets)
   // ...
 }
 
-ChMatrix<> ChLinkDirFrame::GetC() {
+ChMatrixNM<double, 2, 1> ChLinkDirFrame::GetC() {
     ChMatrix33<> Arw = csys_direction.rot >> body->coord.rot;
     ChVector<> res = Arw.MatrT_x_Vect(mnode->GetD());
     ChMatrixNM<double, 2, 1> C;

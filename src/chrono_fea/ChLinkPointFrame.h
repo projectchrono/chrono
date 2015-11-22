@@ -112,7 +112,7 @@ public:
 	virtual ChVector<> Get_react_force() {return GetReactionOnBody();}
 
     // Get constraint violations
-    ChMatrix<> GetC();
+    ChMatrixNM<double, 3, 1> GetC();
 
 	 		//
 			// STATE FUNCTIONS
