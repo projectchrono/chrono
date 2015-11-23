@@ -24,7 +24,7 @@
 // ChLinkPointFrame and ChLinkDirFrame, which impose contraints in the position and
 // gradient vector of the constrained node, respectively. A local or global direction is
 // used to constrained the gradient of the ANCF element w.r.t. the rigid body
-//					    	_ _ _ _ _ _ _
+//					    	 _ _ _ _ _ _ _
 //  ////                   /_ _ _ _ _ _ _/
 //  ////                  /_ _ _ _ _ _ _/
 //  ////                 / _ _ _ _ _ _ /      ANCF Shell
@@ -56,7 +56,7 @@ double time_step = 0.001;  // Time step
 int num_steps = 10;        // Number of time steps for unit test (range 1 to 4000)
 
 // Precision for the test
-double precision = 1e-10;
+double precision = 1e-08;
 
 // Bodies
 bool include_bodies = true;
@@ -84,7 +84,7 @@ ChSharedPtr<ChLinkDirFrame> constraintDir;
 
 // Output data
 bool print_data = true;
-bool save_data = true;
+bool store_data = true;
 utils::Data m_data;
 
 // ========================================================================
@@ -363,16 +363,16 @@ void AddConstraints(ChSystem& my_system) {
 
 // ========================================================================
 
-void SaveData(ChSystem& my_system,
-              utils::CSV_writer& csv,
-              int it,
-              utils::Data& m_data,
-              double dot,
-              ChVector<> tip,
-              ChVector<> NodeFirstPos,
-              ChMatrix<>* C12,
-              ChMatrix<>* C23) {
-    if (!save_data || !include_bodies || !include_mesh)
+void StoreData(ChSystem& my_system,
+               utils::CSV_writer& csv,
+               int it,
+               utils::Data& m_data,
+               double dot,
+               ChVector<> tip,
+               ChVector<> NodeFirstPos,
+               ChMatrix<>* C12,
+               ChMatrix<>* C23) {
+    if (!store_data || !include_bodies || !include_mesh)
         return;
     ChVector<> ConstraintPos = tip - NodeFirstPos;
 
@@ -400,33 +400,6 @@ void SaveData(ChSystem& my_system,
 // ========================================================================
 
 int main(int argc, char* argv[]) {
-    bool output = false;  // false (tests), true (generates reference file)
-    // Input file
-    ChMatrixDynamic<> FileInputMat(5000, 16);
-    if (output) {
-        GetLog() << "Output file: ../TEST_Brick/UT_EASBrickIso_Grav.txt\n";
-    } else {
-        // Utils to open/read files: Load reference solution ("golden") file
-        std::string ANCFConstraint_val_file = GetChronoDataPath() + "testing/" + "UT_ANCFConstraints.txt";
-        std::ifstream fileMid(ANCFConstraint_val_file);
-
-        if (!fileMid.is_open()) {
-            fileMid.open(ANCFConstraint_val_file);
-        }
-        if (!fileMid) {
-            std::cout << "Cannot open validation file.\n";
-            exit(1);
-        }
-        for (int x = 0; x < 5000; x++) {
-            fileMid >> FileInputMat[x][0] >> FileInputMat[x][1] >> FileInputMat[x][2] >> FileInputMat[x][3] >>
-                FileInputMat[x][4] >> FileInputMat[x][5] >> FileInputMat[x][6] >> FileInputMat[x][7] >>
-                FileInputMat[x][8] >> FileInputMat[x][9] >> FileInputMat[x][10] >> FileInputMat[x][11] >>
-                FileInputMat[x][12] >> FileInputMat[x][13] >> FileInputMat[x][14] >> FileInputMat[x][15];
-        }
-        fileMid.close();
-        GetLog() << "Running in unit test mode.\n";
-    }
-
     // Consistency
     include_joints = include_joints && include_bodies;
     include_constraints = include_constraints && include_bodies && include_mesh;
@@ -477,9 +450,8 @@ int main(int argc, char* argv[]) {
 
     for (int it = 0; it < num_steps; it++) {
         my_system.DoStepDynamics(time_step);
-
         std::cout << "\nTime t = " << my_system.GetChTime() << "s \n";
-        if (print_data) {
+        //if (print_data) {
             if (include_bodies) {
                 printf("Body_2 position: %12.4e  %12.4e  %12.4e\n", Body_2->coord.pos.x, Body_2->coord.pos.y,
                        Body_2->coord.pos.z);
@@ -524,25 +496,18 @@ int main(int argc, char* argv[]) {
                 printf("Rev joint constraints:  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", C23->GetElement(0, 0),
                        C23->GetElement(1, 0), C23->GetElement(2, 0), C23->GetElement(3, 0), C23->GetElement(4, 0));
             }
-        }
+        // }
 
-        if (output) {
-            SaveData(my_system, csv, it, m_data, dot, tip, NodeFirst->pos, C12, C23);
-        } else {
-            for (unsigned int iterind = 1; iterind < 16; iterind++) {
-                if (abs(FileInputMat[it][iterind]) > precision) {
-                    std::cout << "Unit test check failed \n";
-                    return 1;
-                }
+        StoreData(my_system, csv, it, m_data, dot, tip, NodeFirst->pos, C12, C23);
+        for (unsigned int iterind = 1; iterind < 16; iterind++) {
+			if (abs(m_data[iterind][it]) > precision) {
+				std::cout << "Unit test check failed \n";
+                return 1;
             }
         }
     }
 
-    if (output) {
-        csv.write_to_file("Body_Mesh_constraints.txt");
-    } else {
-        std::cout << "Unit test check succeeded \n";
-    }
+    std::cout << "Unit test check succeeded \n";
 
     return 0;
 }
