@@ -38,6 +38,7 @@ class CH_PARALLEL_API ChCBroadphase {
 
   custom_vector<uint> bins_intersected;
   custom_vector<uint> bin_number;
+  custom_vector<uint> bin_number_out;
   custom_vector<uint> aabb_number;
   custom_vector<uint> bin_start_index;
   custom_vector<uint> num_contact;
