@@ -215,7 +215,47 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
 	mphysicalSystem.GetSettings()->collision.bins_per_axis = _make_int3(40, 40,
 			40);  // Arman check
 }
+// =============================================================================
+void CreateCylinderBCE(
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		ChSystemParallelDVI& mphysicalSystem,
+		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH) {
+	double cyl_len = 0.5;
+	double cyl_rad = .05;
+	ChVector<> cyl_pos = ChVector<>(0, 0, 0);
+	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
 
+	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
+			chrono::ChBody>(
+			new chrono::ChBody(
+					new chrono::collision::ChCollisionModelParallel));
+	// body->SetIdentifier(-1);
+	body->SetBodyFixed(false);
+	body->SetCollide(true);
+	body->GetMaterialSurface()->SetFriction(mu_g);
+	body->SetPos(cyl_pos);
+	body->SetRot(cyl_rot);
+					double volume = chrono::utils::CalcCylinderVolume(cyl_rad, 0.5 * cyl_len);
+					chrono::ChVector<> gyration = chrono::utils::CalcCylinderGyration(cyl_rad,
+							0.5 * cyl_len).Get_Diag();
+	double density = paramsH.rho0;
+	double mass = density * volume;
+	body->SetMass(mass);
+	body->SetInertiaXX(mass * gyration);
+	//
+	body->GetCollisionModel()->ClearModel();
+	chrono::utils::AddCylinderGeometry(body.get_ptr(), cyl_rad, 0.5 * cyl_len);
+	body->GetCollisionModel()->BuildModel();
+	mphysicalSystem.AddBody(body);
+	FSI_Bodies.push_back(body);
+	AddCylinderBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+			numObjects, sphMarkerMass, paramsH, body, cyl_rad, 0.5 * cyl_len);
+}
 // =============================================================================
 
 // Arman you still need local position of bce markers
@@ -258,70 +298,50 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 			+ smallBuffer;
 
 	if (!initializeFluidFromFile) {
+
 #if haveFluid
+
 		// beginning third
-		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(hdimSide, hdimY, hthick),
 				ChVector<>(-midSecDim - hdimSide, 0, -hthick),
-				ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
-				bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+				ChQuaternion<>(1, 0, 0, 0));
 
 		// end third
-		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+
+		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(hdimSide, hdimY, hthick),
 				ChVector<>(midSecDim + hdimSide, 0, -hthick),
-				ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
-				bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+				ChQuaternion<>(1, 0, 0, 0));
+
 		// basin
-		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
 				ChVector<>(0, 0, -basinDepth - hthick),
-				ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
-				bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+				ChQuaternion<>(1, 0, 0, 0));
 		// slope 1
-		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x1I, 0, zI),
-				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)), true, posRadH,
-				velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects,
-				paramsH, sphMarkerMass);
+				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
 
 		// slope 2
-		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x2I, 0, zI),
-				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)), true, posRadH,
-				velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects,
-				paramsH, sphMarkerMass);
-#endif
-	}
-	// a flat surface altogether
-	//  utils::AddBoxGeometry(
-	//      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),
-	//      true);
+				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
 
-	if (initializeFluidFromFile) {
-		if (numObjects.numBoundaryMarkers > 0) {
-			ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
-			ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(
-					fluidCollisionFamily);
-		}
-	} else {
-#if haveFluid
-		ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
-		ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(
-				fluidCollisionFamily);
 #endif
 	}
 
 	ground->GetCollisionModel()->BuildModel();
 
 	mphysicalSystem.AddBody(ground);
-
-	double cyl_len = bottomWidth / 1.0;
-	double cyl_rad = bottomWidth / 10;
-	ChVector<> cyl_pos = ChVector<>(0, 0, 0);
-	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
 
 	// version 0, create one cylinder // note: rigid body initialization should come after boundary initialization
 
@@ -340,7 +360,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	chrono::Q_from_AngAxis(CH_C_PI / 6, VECT_Z));
 	//    body->SetWvel_par(ChVector<>(0, 10, 0));  // Arman : note, SetW should come after SetRot
 	//
-	double sphereRad = 5 * cyl_rad;
+	double sphereRad = 0.3;
 	double volume = utils::CalcSphereVolume(sphereRad);
 	ChVector<> gyration = utils::CalcSphereGyration(sphereRad).Get_Diag();
 	double density = paramsH.rho0;
@@ -376,9 +396,9 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
 	mphysicalSystem.AddBody(body);
 	//
-	AddCylinderBceToChSystemAndSPH(mphysicalSystem, cyl_rad, cyl_len, cyl_pos,
-			cyl_rot, posRadH, velMasH, rhoPresMuH, referenceArray, FSI_Bodies,
-			numObjects, sphMarkerMass, paramsH);
+
+	CreateCylinderBCE(posRadH, velMasH, rhoPresMuH, referenceArray,
+					mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
 
 	if (haveVehicle) {
 		//        // version 1

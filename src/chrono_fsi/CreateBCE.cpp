@@ -9,14 +9,12 @@
 #include "chrono_fsi/SphInterface.h"
 
 // =============================================================================
-void CreateBCE_On_Sphere(
-		thrust::host_vector<Real3>& posRadBCE,
-		Real rad, const SimParams& paramsH) {
+void CreateBCE_On_Sphere(thrust::host_vector<Real3>& posRadBCE, Real rad,
+		const SimParams& paramsH) {
 
 	Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
 
-	for (Real r = spacing; r < rad - paramsH.solidSurfaceAdjust; r +=
-			spacing) {
+	for (Real r = spacing; r < rad - paramsH.solidSurfaceAdjust; r += spacing) {
 		Real deltaTeta = spacing / r;
 		Real deltaPhi = deltaTeta;
 
@@ -35,9 +33,8 @@ void CreateBCE_On_Sphere(
 
 // =============================================================================
 
-void CreateBCE_On_Cylinder(
-		thrust::host_vector<Real3>& posRadBCE,
-		Real cyl_rad, Real cyl_h, const SimParams& paramsH) {
+void CreateBCE_On_Cylinder(thrust::host_vector<Real3>& posRadBCE, Real cyl_rad,
+		Real cyl_h, const SimParams& paramsH) {
 	// Arman : take care of velocity and w stuff for BCE
 	Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
 	for (Real s = -0.5 * cyl_h; s <= 0.5 * cyl_h; s += spacing) {
@@ -60,8 +57,8 @@ void CreateBCE_On_Cylinder(
 // note, the function in the current implementation creates boundary BCE (zero velocity)
 // x=1, y=2, z =3; therefore 12 means creating markers on the top surface parallel to xy plane,
 // similarly -12 means bottom face paralel to xy. similarly 13, -13, 23, -23
-void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE,
-		const chrono::ChVector<>& size, int face, const SimParams& paramsH) {
+void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE, const Real3& size,
+		int face, const SimParams& paramsH) {
 
 	Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
 	int nFX = ceil(size.x / (initSpace0));

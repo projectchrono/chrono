@@ -248,35 +248,8 @@ void AddSphereBceToChSystemAndSPH(
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects, Real sphMarkerMass,
-		const SimParams& paramsH, Real radius,
-		chrono::ChSharedPtr<chrono::ChBody> body) {
-	//
-//				chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
-//						chrono::ChBody>(
-//						new chrono::ChBody(
-//								new chrono::collision::ChCollisionModelParallel));
-//				// body->SetIdentifier(-1);
-//				body->SetBodyFixed(false);
-//				body->SetCollide(true);
-//
-//				//Arman, move out specific chrono stuff
-//				Real mu_g = .1;
-//				body->GetMaterialSurface()->SetFriction(mu_g);
-//				body->SetPos(pos);
-//				body->SetRot(rot);
-//				double volume = chrono::utils::CalcSphereVolume(radius);
-//				chrono::ChVector<> gyration =
-//						chrono::utils::CalcSphereGyration(radius).Get_Diag();
-//				double density = paramsH.rho0;
-//				double mass = density * volume;
-//				body->SetMass(mass);
-//				body->SetInertiaXX(mass * gyration);
-//				//
-//				body->GetCollisionModel()->ClearModel();
-//				chrono::utils::AddSphereGeometry(body.get_ptr(), radius);
-//				body->GetCollisionModel()->BuildModel();
-//				mphysicalSystem.AddBody(body);
-	//
+		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
+		Real radius, chrono::ChVector<> relPos, chrono::ChQuaternion<> relRot) {
 
 	chrono::utils::AddSphereGeometry(body.get_ptr(), radius);
 	thrust::host_vector<Real3> posRadBCE;
@@ -292,28 +265,18 @@ void AddSphereBceToChSystemAndSPH(
 			body);
 	posRadBCE.clear();
 
-//	int numBce = CreateOne3DRigidSphere(posRadH, velMasH, rhoPresMuH,
-//			body.get_ptr(), radius, body->GetMass(), sphMarkerMass, type,
-//			paramsH);
-//
-//	referenceArray.push_back(mI4(numMarkers, numMarkers + numBce, 1, type)); //1: for rigid
-//	numObjects.numRigidBodies += 1;
-//	numObjects.startRigidMarkers = referenceArray[1].y; // Arman : not sure if you need to set startFlexMarkers
-//	numObjects.numRigid_SphMarkers += numBce;
-//	numObjects.numAllMarkers = posRadH.size();
-//
-//	printf("\n numAllMarkers %d numBCE %d\n", numObjects.numAllMarkers, numBce);
-//	FSI_Bodies.push_back(body);
 }
 // =============================================================================
+
 void AddCylinderBceToChSystemAndSPH(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects, Real sphMarkerMass,
-		const SimParams& paramsH, Real radius, Real height,
-		chrono::ChSharedPtr<chrono::ChBody> body) {
+		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
+		Real radius, Real height, chrono::ChVector<> relPos,
+		chrono::ChQuaternion<> relRot) {
 	//
 
 	// Arman move to model file
@@ -378,12 +341,13 @@ void AddBoxBceToChSystemAndSPH(
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects, Real sphMarkerMass,
-		const SimParams& paramsH, const ChVector<>& size,
-		chrono::ChSharedPtr<chrono::ChBody> body,
-		ChVector<> relPos,
-		ChQuaternion<> relRot) {
-	chrono::utils::AddBoxGeometry(body, size, pos, rot, true);
+		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
+		const chrono::ChVector<>& size, chrono::ChVector<> relPos,
+		chrono::ChQuaternion<> relRot) {
+
+	chrono::utils::AddBoxGeometry(body.get_ptr(), size, relPos, relRot, true);
 	thrust::host_vector<Real3> posRadBCE;
+
 	CreateBCE_On_Box(posRadBCE, ConvertChVectorToR3(size), 12, paramsH);
 
 	if (posRadH.size() != numObjects.numAllMarkers) {

@@ -237,6 +237,48 @@ void CreateTiresBCE(
 	}
 }
 // =============================================================================
+void CreateSphereBCE(
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		ChSystemParallelDVI& mphysicalSystem,
+		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH) {
+
+	ChVector<> c_pos = ChVector<>(-9.5, .20, 3);
+	Real c_rad = 0.3;
+
+
+	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
+			chrono::ChBody>(
+			new chrono::ChBody(
+					new chrono::collision::ChCollisionModelParallel));
+	// body->SetIdentifier(-1);
+	body->SetBodyFixed(false);
+	body->SetCollide(true);
+	body->GetMaterialSurface()->SetFriction(mu_g);
+	body->SetPos(c_pos);
+	body->SetRot(QUNIT);
+	double volume = chrono::utils::CalcSphereVolume(c_rad);
+	chrono::ChVector<> gyration =
+			chrono::utils::CalcSphereGyration(c_rad).Get_Diag();
+	double density = paramsH.rho0;
+	double mass = density * volume;
+	body->SetMass(mass);
+	body->SetInertiaXX(mass * gyration);
+	//
+	body->GetCollisionModel()->ClearModel();
+	chrono::utils::AddSphereGeometry(body.get_ptr(), c_rad);
+	body->GetCollisionModel()->BuildModel();
+	mphysicalSystem.AddBody(body);
+	FSI_Bodies.push_back(body);
+
+	AddSphereBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+			numObjects, sphMarkerMass, paramsH, body, c_rad);
+}
+// =============================================================================
 void CreateChassisBCE(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
@@ -295,72 +337,41 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 			+ smallBuffer;
 
 	if (!initializeFluidFromFile) {
-
-		void AddBoxBceToChSystemAndSPH(
-				thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-				thrust::host_vector<Real4>& velMasH,
-				thrust::host_vector<Real4>& rhoPresMuH,
-				thrust::host_vector<::int4>& referenceArray,
-				NumberOfObjects& numObjects, Real sphMarkerMass,
-				const SimParams& paramsH, const ChVector<>& size,
-				chrono::ChSharedPtr<chrono::ChBody> body)
-
-
 #if haveFluid
-
 		// beginning third
-		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(hdimSide, hdimY, hthick),
 				ChVector<>(-midSecDim - hdimSide, 0, -hthick),
-				ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
-				bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+				ChQuaternion<>(1, 0, 0, 0));
 
 		// end third
-		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+
+		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(hdimSide, hdimY, hthick),
 				ChVector<>(midSecDim + hdimSide, 0, -hthick),
-				ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
-				bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+				ChQuaternion<>(1, 0, 0, 0));
+
 		// basin
-		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
 				ChVector<>(0, 0, -basinDepth - hthick),
-				ChQuaternion<>(1, 0, 0, 0), true, posRadH, velMasH, rhoPresMuH,
-				bodyIndex, referenceArray, numObjects, paramsH, sphMarkerMass);
+				ChQuaternion<>(1, 0, 0, 0));
 		// slope 1
-		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x1I, 0, zI),
-				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)), true, posRadH,
-				velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects,
-				paramsH, sphMarkerMass);
+				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
 
 		// slope 2
-		AddBoxBceToChSystemAndSPH(ground.get_ptr(),
+		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x2I, 0, zI),
-				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)), true, posRadH,
-				velMasH, rhoPresMuH, bodyIndex, referenceArray, numObjects,
-				paramsH, sphMarkerMass);
-#endif
-	}
-
-	// a flat surface altogether
-	//  utils::AddBoxGeometry(
-	//      ground.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),
-	//      true);
-
-	if (initializeFluidFromFile) {
-		if (numObjects.numBoundaryMarkers > 0) {
-			ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
-			ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(
-					fluidCollisionFamily);
-		}
-	} else {
-#if haveFluid
-		ground->GetCollisionModel()->SetFamily(fluidCollisionFamily);
-		ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(
-				fluidCollisionFamily);
+				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
 #endif
 	}
 
@@ -446,13 +457,9 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 		CreateTiresBCE(posRadH, velMasH, rhoPresMuH, referenceArray, FSI_Bodies,
 				numObjects, sphMarkerMass, paramsH);
 
-		Real c_rad = 0.3;
-		ChVector<> c_pos = ChVector<>(-9.5, .20, 3);
+		CreateSphereBCE(posRadH, velMasH, rhoPresMuH, referenceArray,
+				mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
 
-//		ChVector<> c_pos = ChVector<>(0, 0, 0);
-		AddSphereBceToChSystemAndSPH(mphysicalSystem, c_rad, c_pos, QUNIT,
-				posRadH, velMasH, rhoPresMuH, referenceArray, FSI_Bodies,
-				numObjects, sphMarkerMass, paramsH);
 #endif
 	}
 //    // extra objects
