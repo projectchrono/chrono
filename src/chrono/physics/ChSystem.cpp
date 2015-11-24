@@ -2499,7 +2499,7 @@ int ChSystem::DoStaticLinear() {
 
 int ChSystem::DoStaticNonlinear(int nsteps) {
 
-    this->solvecount;
+    this->solvecount = 0;
 
     Setup();
     Update();
@@ -2526,7 +2526,7 @@ int ChSystem::DoStaticNonlinear(int nsteps) {
 
 int ChSystem::DoStaticRelaxing(int nsteps) {
 
-    this->solvecount;
+    this->solvecount = 0;
 
     int err = 0;
     int reached_tolerance = FALSE;
