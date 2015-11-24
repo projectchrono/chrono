@@ -85,34 +85,27 @@ namespace chrono
 		if (use_rhs_sparsity && !use_perm)
 			mkl_engine.UsePartialSolution(2);
 
-		
+        // Solve with Pardiso Sparse Direct Solver
+        // the problem size must be updated also in the Engine: this is done by SetProblem() itself.
+        mkl_engine.SetProblem(matCSR3, rhs, sol);
+        int pardiso_message = mkl_engine.PardisoCall(13, 0);
+        solver_call++;
+        if (pardiso_message != 0) {
+            GetLog() << "Pardiso error code = " << pardiso_message << "\n";
+            GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
+        }
 
-		// Solve with Pardiso Sparse Direct Solver
-		// the problem size must be updated also in the Engine: this is done by SetProblem() itself.
-		mkl_engine.SetProblem(matCSR3, rhs, sol);
-		int pardiso_message = mkl_engine.PardisoCall(13, 0);
-		solver_call++;
-		if (pardiso_message != 0)
-		{
-			printf("\nPardiso exited with code: %d", pardiso_message);
-			printf("\nMatrix verification returned: %d\n", matCSR3.VerifyMatrix());
-		}
-		printf("\nPardisoCall: %d; ", solver_call);
+        // Get residual;
+        mkl_engine.GetResidual(res);
+        double res_norm = mkl_engine.GetResidualNorm(res);
 
-		
+        if (verbose)
+            GetLog() << "Pardiso call " << (int)solver_call << "  |residual| = " << res_norm << "\n";
 
-		// Get residual;
-		mkl_engine.GetResidual(res);
-		double res_norm = mkl_engine.GetResidualNorm(res);
-		printf("ResNorm: %e", res_norm);
+        // Replicate the changes to vvariables and vconstraint into LcpSystemDescriptor
+        sysd.FromVectorToUnknowns(sol);
 
-
-
-		// Replies the changes on the vvariables and vconstraint into LcpSystemDescriptor
-		sysd.FromVectorToUnknowns(sol);
-
-		return 0.0;
-	}
-
+        return 0.0;
+    }
 
 } // namespace chrono
