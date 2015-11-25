@@ -57,17 +57,17 @@ void CreateBCE_On_Cylinder(thrust::host_vector<Real3>& posRadBCE, Real cyl_rad,
 // note, the function in the current implementation creates boundary BCE (zero velocity)
 // x=1, y=2, z =3; therefore 12 means creating markers on the top surface parallel to xy plane,
 // similarly -12 means bottom face paralel to xy. similarly 13, -13, 23, -23
-void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE, const Real3& size,
+void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE, const Real3& hsize,
 		int face, const SimParams& paramsH) {
 
 	Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
-	int nFX = ceil(size.x / (initSpace0));
-	int nFY = ceil(size.y / (initSpace0));
-	int nFZ = ceil(size.z / (initSpace0));
+	int nFX = ceil(hsize.x / (initSpace0));
+	int nFY = ceil(hsize.y / (initSpace0));
+	int nFZ = ceil(hsize.z / (initSpace0));
 
-	Real initSpaceX = size.x / nFX;
-	Real initSpaceY = size.y / nFY;
-	Real initSpaceZ = size.z / nFZ;
+	Real initSpaceX = hsize.x / nFX;
+	Real initSpaceY = hsize.y / nFY;
+	Real initSpaceZ = hsize.z / nFZ;
 
 	int2 iBound = mI2(-nFX, nFX);
 	int2 jBound = mI2(-nFY, nFY);

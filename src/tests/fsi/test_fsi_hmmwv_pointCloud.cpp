@@ -230,53 +230,11 @@ void CreateTiresBCE(
 	dataPath.append("fsi/WheelBCE.csv");
 
 	for (int i = 0; i < 4; i++) {
-		AddBCE2FluidSystem_FromFile(posRadH, velMasH, rhoPresMuH,
-				referenceArray, numObjects, sphMarkerMass, paramsH,
+		AddBCE_FromFile(posRadH, velMasH, rhoPresMuH, referenceArray,
+				numObjects, sphMarkerMass, paramsH,
 				mVehicle->GetVehicle()->GetWheelBody(i), dataPath);
 		FSI_Bodies.push_back(mVehicle->GetVehicle()->GetWheelBody(i));
 	}
-}
-// =============================================================================
-void CreateSphereBCE(
-		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
-		thrust::host_vector<Real4>& rhoPresMuH,
-		thrust::host_vector<::int4>& referenceArray,
-		ChSystemParallelDVI& mphysicalSystem,
-		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
-		const SimParams& paramsH) {
-
-	ChVector<> c_pos = ChVector<>(-9.5, .20, 3);
-	Real c_rad = 0.3;
-
-
-	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
-			chrono::ChBody>(
-			new chrono::ChBody(
-					new chrono::collision::ChCollisionModelParallel));
-	// body->SetIdentifier(-1);
-	body->SetBodyFixed(false);
-	body->SetCollide(true);
-	body->GetMaterialSurface()->SetFriction(mu_g);
-	body->SetPos(c_pos);
-	body->SetRot(QUNIT);
-	double volume = chrono::utils::CalcSphereVolume(c_rad);
-	chrono::ChVector<> gyration =
-			chrono::utils::CalcSphereGyration(c_rad).Get_Diag();
-	double density = paramsH.rho0;
-	double mass = density * volume;
-	body->SetMass(mass);
-	body->SetInertiaXX(mass * gyration);
-	//
-	body->GetCollisionModel()->ClearModel();
-	chrono::utils::AddSphereGeometry(body.get_ptr(), c_rad);
-	body->GetCollisionModel()->BuildModel();
-	mphysicalSystem.AddBody(body);
-	FSI_Bodies.push_back(body);
-
-	AddSphereBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
-			numObjects, sphMarkerMass, paramsH, body, c_rad);
 }
 // =============================================================================
 void CreateChassisBCE(
@@ -289,9 +247,9 @@ void CreateChassisBCE(
 		const SimParams& paramsH) {
 	std::string dataPath = chrono::GetChronoDataPath();
 	dataPath.append("fsi/ChassisBCE.csv");
-	AddBCE2FluidSystem_FromFile(posRadH, velMasH, rhoPresMuH, referenceArray,
-			numObjects, sphMarkerMass, paramsH,
-			mVehicle->GetVehicle()->GetChassis(), dataPath);
+	AddBCE_FromFile(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
+			sphMarkerMass, paramsH, mVehicle->GetVehicle()->GetChassis(),
+			dataPath);
 	FSI_Bodies.push_back(mVehicle->GetVehicle()->GetChassis());
 }
 
@@ -307,6 +265,13 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects, const SimParams& paramsH,
 		Real sphMarkerMass) {
+	// Set common material Properties
+	mat_g->SetFriction(0.8);
+	mat_g->SetCohesion(0);
+	mat_g->SetCompliance(0.0);
+	mat_g->SetComplianceT(0.0);
+	mat_g->SetDampingF(0.2);
+
 	// Ground body
 	ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(
 			new ChBody(new collision::ChCollisionModelParallel));
@@ -315,7 +280,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	ground->SetBodyFixed(true);
 	ground->SetCollide(true);
 
-	ground->GetMaterialSurface()->SetFriction(mu_g);
+	ground->SetMaterialSurface(mat_g);
 
 	ground->GetCollisionModel()->ClearModel();
 
@@ -340,36 +305,36 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	if (!initializeFluidFromFile) {
 #if haveFluid
 		// beginning third
-		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, sphMarkerMass, paramsH, ground,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
+				sphMarkerMass, paramsH, ground,
 				ChVector<>(hdimSide, hdimY, hthick),
 				ChVector<>(-midSecDim - hdimSide, 0, -hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 
 		// end third
 
-		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, sphMarkerMass, paramsH, ground,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
+				sphMarkerMass, paramsH, ground,
 				ChVector<>(hdimSide, hdimY, hthick),
 				ChVector<>(midSecDim + hdimSide, 0, -hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 
 		// basin
-		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, sphMarkerMass, paramsH, ground,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
+				sphMarkerMass, paramsH, ground,
 				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
 				ChVector<>(0, 0, -basinDepth - hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 		// slope 1
-		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, sphMarkerMass, paramsH, ground,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
+				sphMarkerMass, paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x1I, 0, zI),
 				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
 
 		// slope 2
-		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, sphMarkerMass, paramsH, ground,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
+				sphMarkerMass, paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x2I, 0, zI),
 				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
@@ -458,8 +423,11 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 		CreateTiresBCE(posRadH, velMasH, rhoPresMuH, referenceArray, FSI_Bodies,
 				numObjects, sphMarkerMass, paramsH);
 
-		CreateSphereBCE(posRadH, velMasH, rhoPresMuH, referenceArray,
-				mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
+		ChVector<> s_pos = ChVector<>(-9.5, .20, 3);
+		Real s_radius = 0.3;
+		CreateSphereFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
+				mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
+				s_radius, mat_g, s_pos);
 
 #endif
 	}

@@ -216,47 +216,6 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
 			40);  // Arman check
 }
 // =============================================================================
-void CreateCylinderBCE(
-		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
-		thrust::host_vector<Real4>& rhoPresMuH,
-		thrust::host_vector<::int4>& referenceArray,
-		ChSystem& mphysicalSystem,
-		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
-		const SimParams& paramsH) {
-	double cyl_len = 3.5;
-	double cyl_rad = .25;
-	ChVector<> cyl_pos = ChVector<>(0, 0, 0);
-	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
-
-	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
-			chrono::ChBody>(
-			new chrono::ChBody(
-					new chrono::collision::ChCollisionModelParallel));
-	body->SetBodyFixed(false);
-	body->SetCollide(true);
-	body->GetMaterialSurface()->SetFriction(mu_g);
-	body->SetPos(cyl_pos);
-	body->SetRot(cyl_rot);
-	double volume = chrono::utils::CalcCylinderVolume(cyl_rad, 0.5 * cyl_len);
-	chrono::ChVector<> gyration = chrono::utils::CalcCylinderGyration(cyl_rad,
-			0.5 * cyl_len).Get_Diag();
-	double density = paramsH.rho0;
-	double mass = density * volume;
-	body->SetMass(mass);
-	body->SetInertiaXX(mass * gyration);
-	//
-	body->GetCollisionModel()->ClearModel();
-	chrono::utils::AddCylinderGeometry(body.get_ptr(), cyl_rad, 0.5 * cyl_len);
-	body->GetCollisionModel()->BuildModel();
-	mphysicalSystem.AddBody(body);
-
-	FSI_Bodies.push_back(body);
-	AddCylinderBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
-			numObjects, sphMarkerMass, paramsH, body, cyl_rad, cyl_len);
-}
-// =============================================================================
 
 // Arman you still need local position of bce markers
 void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
@@ -268,6 +227,13 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects, const SimParams& paramsH,
 		Real sphMarkerMass) {
+	// Set common material Properties
+	mat_g->SetFriction(0.8);
+	mat_g->SetCohesion(0);
+	mat_g->SetCompliance(0.0);
+	mat_g->SetComplianceT(0.0);
+	mat_g->SetDampingF(0.2);
+
 	// Ground body
 	ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(
 			new ChBody(new collision::ChCollisionModelParallel));
@@ -275,7 +241,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	ground->SetBodyFixed(true);
 	ground->SetCollide(true);
 
-	ground->GetMaterialSurface()->SetFriction(mu_g);
+	ground->SetMaterialSurface(mat_g);
 
 	ground->GetCollisionModel()->ClearModel();
 
@@ -302,7 +268,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 #if haveFluid
 
 		// beginning third
-		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
 				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(hdimSide, hdimY, hthick),
 				ChVector<>(-midSecDim - hdimSide, 0, -hthick),
@@ -310,27 +276,27 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
 		// end third
 
-		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
 				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(hdimSide, hdimY, hthick),
 				ChVector<>(midSecDim + hdimSide, 0, -hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 
 		// basin
-		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
 				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
 				ChVector<>(0, 0, -basinDepth - hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 		// slope 1
-		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
 				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x1I, 0, zI),
 				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
 
 		// slope 2
-		AddBoxBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
 				numObjects, sphMarkerMass, paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x2I, 0, zI),
@@ -354,7 +320,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	// body->SetIdentifier(-1);
 	body->SetBodyFixed(false);
 	body->SetCollide(true);
-	body->GetMaterialSurface()->SetFriction(mu_g);
+	body->SetMaterialSurface(mat_g);
 	body->SetPos(ChVector<>(5, 0, 2));
 	body->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Y) * chrono::Q_from_AngAxis(CH_C_PI / 6, VECT_X) *
 	chrono::Q_from_AngAxis(CH_C_PI / 6, VECT_Z));
@@ -397,8 +363,14 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	mphysicalSystem.AddBody(body);
 	//
 
-	CreateCylinderBCE(posRadH, velMasH, rhoPresMuH, referenceArray,
-			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
+	double cyl_length = 3.5;
+	double cyl_radius = .25;
+	ChVector<> cyl_pos = ChVector<>(0, 0, 0);
+	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
+
+	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
+			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
+			cyl_radius, cyl_length, mat_g, cyl_pos, cyl_rot);
 
 	if (haveVehicle) {
 		//        // version 1
@@ -483,13 +455,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	//  double mass = density * volume;
 	//  double muFriction = 0;
 	//
-	//  // Create a common material
-	//  ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
-	//  mat_g->SetFriction(muFriction);
-	//  mat_g->SetCohesion(0);
-	//  mat_g->SetCompliance(0.0);
-	//  mat_g->SetComplianceT(0.0);
-	//  mat_g->SetDampingF(0.2);
 	//
 	//  for (Real x = -4; x < 2; x += 0.25) {
 	//    for (Real y = -1; y < 1; y += 0.25) {

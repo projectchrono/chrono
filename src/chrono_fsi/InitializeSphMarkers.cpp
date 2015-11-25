@@ -274,7 +274,7 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 			collisionShapeRelativePos, collisionShapeRelativeRot, false);
 }
 // =============================================================================
-void AddSphereBceToChSystemAndSPH(
+void AddSphereBce(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
@@ -300,7 +300,7 @@ void AddSphereBceToChSystemAndSPH(
 }
 // =============================================================================
 
-void AddCylinderBceToChSystemAndSPH(
+void AddCylinderBce(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
@@ -330,7 +330,7 @@ void AddCylinderBceToChSystemAndSPH(
 
 // Arman thrust::host_vector<uint>& bodyIndex,
 
-void AddBoxBceToChSystemAndSPH(
+void AddBoxBce(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
@@ -358,7 +358,7 @@ void AddBoxBceToChSystemAndSPH(
 }
 
 // =============================================================================
-void AddBCE2FluidSystem_FromFile(
+void AddBCE_FromFile(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
@@ -382,4 +382,147 @@ void AddBCE2FluidSystem_FromFile(
 			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH,
 			body);
 	posRadBCE.clear();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// =============================================================================
+void CreateSphereFSI(
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		chrono::ChSystem& mphysicalSystem,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH,
+		Real radius,
+		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		chrono::ChVector<> pos) {
+
+//	ChVector<> pos = ChVector<>(-9.5, .20, 3);
+//	Real radius = 0.3;
+
+
+	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
+			chrono::ChBody>(
+			new chrono::ChBody(
+					new chrono::collision::ChCollisionModelParallel));
+	body->SetBodyFixed(false);
+	body->SetCollide(true);
+	body->SetMaterialSurface(mat_prop);
+	body->SetPos(pos);
+	double volume = chrono::utils::CalcSphereVolume(radius);
+	chrono::ChVector<> gyration =
+			chrono::utils::CalcSphereGyration(radius).Get_Diag();
+	double density = paramsH.rho0;
+	double mass = density * volume;
+	body->SetMass(mass);
+	body->SetInertiaXX(mass * gyration);
+	//
+	body->GetCollisionModel()->ClearModel();
+	chrono::utils::AddSphereGeometry(body.get_ptr(), radius);
+	body->GetCollisionModel()->BuildModel();
+	mphysicalSystem.AddBody(body);
+	FSI_Bodies.push_back(body);
+
+	AddSphereBce(posRadH, velMasH, rhoPresMuH, referenceArray,
+			numObjects, sphMarkerMass, paramsH, body, radius);
+}
+// =============================================================================
+void CreateCylinderFSI(
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		chrono::ChSystem& mphysicalSystem,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH,
+		Real radius,
+		Real length,
+		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		chrono::ChVector<> pos,
+		chrono::ChQuaternion<> rot) {
+
+	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
+			chrono::ChBody>(
+			new chrono::ChBody(
+					new chrono::collision::ChCollisionModelParallel));
+	body->SetBodyFixed(false);
+	body->SetCollide(true);
+	body->SetMaterialSurface(mat_prop);
+	body->SetPos(pos);
+	body->SetRot(rot);
+	double volume = chrono::utils::CalcCylinderVolume(radius, 0.5 * length);
+	chrono::ChVector<> gyration = chrono::utils::CalcCylinderGyration(radius,
+			0.5 * length).Get_Diag();
+	double density = paramsH.rho0;
+	double mass = density * volume;
+	body->SetMass(mass);
+	body->SetInertiaXX(mass * gyration);
+	//
+	body->GetCollisionModel()->ClearModel();
+	chrono::utils::AddCylinderGeometry(body.get_ptr(), radius, 0.5 * length);
+	body->GetCollisionModel()->BuildModel();
+	mphysicalSystem.AddBody(body);
+
+	FSI_Bodies.push_back(body);
+	AddCylinderBce(posRadH, velMasH, rhoPresMuH, referenceArray,
+			numObjects, sphMarkerMass, paramsH, body, radius, length);
+}
+// =============================================================================
+void CreateBoxFSI(
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		chrono::ChSystem& mphysicalSystem,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH,
+		const chrono::ChVector<>& hsize,
+		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		chrono::ChVector<> pos,
+		chrono::ChQuaternion<> rot) {
+
+	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
+			chrono::ChBody>(
+			new chrono::ChBody(
+					new chrono::collision::ChCollisionModelParallel));
+	body->SetBodyFixed(false);
+	body->SetCollide(true);
+	body->SetMaterialSurface(mat_prop);
+	body->SetPos(pos);
+	body->SetRot(rot);
+	double volume = chrono::utils::CalcBoxVolume(hsize);
+	chrono::ChVector<> gyration = chrono::utils::CalcBoxGyration(hsize).Get_Diag();
+	double density = paramsH.rho0;
+	double mass = density * volume;
+	body->SetMass(mass);
+	body->SetInertiaXX(mass * gyration);
+	//
+	body->GetCollisionModel()->ClearModel();
+	chrono::utils::AddBoxGeometry(body.get_ptr(), hsize);
+	body->GetCollisionModel()->BuildModel();
+	mphysicalSystem.AddBody(body);
+
+
+	FSI_Bodies.push_back(body);
+	AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
+			numObjects, sphMarkerMass, paramsH, body, hsize);
 }

@@ -62,7 +62,7 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 		chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
 		chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT);
 
-void AddSphereBceToChSystemAndSPH(
+void AddSphereBce(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
@@ -72,7 +72,7 @@ void AddSphereBceToChSystemAndSPH(
 		Real radius, chrono::ChVector<> relPos = chrono::ChVector<>(0, 0, 0),
 		chrono::ChQuaternion<> relRot = chrono::ChQuaternion<>(1, 0, 0, 0));
 
-void AddCylinderBceToChSystemAndSPH(
+void AddCylinderBce(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
@@ -83,7 +83,7 @@ void AddCylinderBceToChSystemAndSPH(
 				chrono::ChVector<>(0, 0, 0), chrono::ChQuaternion<> relRot =
 				chrono::ChQuaternion<>(1, 0, 0, 0));
 
-void AddBoxBceToChSystemAndSPH(
+void AddBoxBce(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
@@ -94,7 +94,7 @@ void AddBoxBceToChSystemAndSPH(
 				chrono::ChVector<>(0, 0, 0), chrono::ChQuaternion<> relRot =
 				chrono::ChQuaternion<>(1, 0, 0, 0));
 
-void AddBCE2FluidSystem_FromFile(
+void AddBCE_FromFile(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
@@ -102,5 +102,47 @@ void AddBCE2FluidSystem_FromFile(
 		NumberOfObjects& numObjects, Real sphMarkerMass,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		std::string dataPath);
+
+void CreateSphereFSI(
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		chrono::ChSystem& mphysicalSystem,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH,
+		Real radius,
+		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		chrono::ChVector<> pos = chrono::ChVector<>(0));
+
+void CreateCylinderFSI(
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		chrono::ChSystem& mphysicalSystem,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH,
+		Real radius,
+		Real length,
+		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		chrono::ChVector<> pos = chrono::ChVector<>(0),
+		chrono::ChQuaternion<> rot = chrono::QUNIT);
+
+void CreateBoxFSI(
+		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		chrono::ChSystem& mphysicalSystem,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
+		NumberOfObjects& numObjects, Real sphMarkerMass,
+		const SimParams& paramsH,
+		const chrono::ChVector<>& hsize,
+		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		chrono::ChVector<> pos = chrono::ChVector<>(0),
+		chrono::ChQuaternion<> rot = chrono::QUNIT);
 
 #endif /* INITIALIZESPHMARKERS_H_ */

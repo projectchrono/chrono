@@ -262,7 +262,8 @@ Real mass_g = rho_g * vol_g;
 chrono::ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g
 		* chrono::ChVector<>(1, 1, 1);
 
-Real mu_g = 0.8;
+chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_g(new chrono::ChMaterialSurface);
+
 
 int num_particles = 1000;
 
