@@ -46,6 +46,16 @@ void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
 		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
+		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
+		bool isSolid = true);
+
+void CreateBceGlobalMarkersFromBceLocalPosBoundary(
+		thrust::host_vector<Real3>& posRadH,
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		NumberOfObjects& numObjects,
+		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body);
 
 void AddSphereBceToChSystemAndSPH(

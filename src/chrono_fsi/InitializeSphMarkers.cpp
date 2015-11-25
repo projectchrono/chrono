@@ -165,22 +165,27 @@ void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
 		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
-		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body) {
-
-	//        assert(referenceArray.size() > 1 &&
-	//               "error: fluid need to be initialized before boundary. Reference array should have two
-	//               components");
+		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
+		bool isSolid) {
 	if (referenceArray.size() < 1) {
 		printf(
 				"\n\n\n\n Error! fluid need to be initialized before boundary. Reference array should have two "
 						"components \n\n\n\n");
+		std::cin.get();
 	}
 	::int4 refSize4 = referenceArray[referenceArray.size() - 1];
-	int type = refSize4.w + 1;
-
+	int type = 0;
+	if (isSolid) {
+		type = refSize4.w + 1;
+	}
 	if (type < 0) {
 		printf(
-				"\n\n\n\n Error! reference array type is not correct. It does not start with -1, i.e. fluid. \n\n\n\n");
+				"\n\n\n\n Error! reference array type is not correct. It does not denote boundary or rigid \n\n\n\n");
+		std::cin.get();
+	} else if (type > 0 && (referenceArray.size() - 1 != type)) {
+		printf(
+				"\n\n\n\n Error! reference array size does not match type \n\n\n\n");
+		std::cin.get();
 	}
 
 	//#pragma omp parallel for  // it is very wrong to do it in parallel. race condition will occur
@@ -191,6 +196,10 @@ void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 		chrono::ChVector<> posParent =
 				chrono::ChTransform<>::TransformLocalToParent(position,
 						body->GetPos(), body->GetRot());
+
+		printf("pos %f %f %f , rot %f %f %f %f \n", body->GetPos().x, body->GetPos().y, body->GetPos().z,
+				body->GetRot().e0, body->GetRot().e1, body->GetRot().e2, body->GetRot().e3);
+		std::cin.get();
 		posRadH.push_back(ConvertChVectorToR3(posParent));
 
 		chrono::ChVector<> pointPar = ConvertRealToChVector(posRadBCE[i]);
@@ -222,11 +231,13 @@ void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 		} else {
 			printf(
 					"Error! reference array size is greater than 2 while marker type is 0 \n\n");
+			std::cin.get();
 		}
 	} else {
 		if (referenceArray.size() < 2) {
 			printf(
 					"Error! Boundary markers are not initialized while trying to initialize rigid marker!\n\n");
+			std::cin.get();
 		}
 		numObjects.numRigid_SphMarkers += numBce;
 		numObjects.numRigidBodies += 1;
@@ -236,10 +247,25 @@ void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 		if (numObjects.numRigidBodies != referenceArray.size() - 2) {
 			printf(
 					"Error! num rigid bodies does not match reference array size!\n\n");
+			std::cin.get();
 		}
 	}
 
 	//	SetNumObjects(numObjects, referenceArray, numAllMarkers);
+}
+// =============================================================================
+void CreateBceGlobalMarkersFromBceLocalPosBoundary(
+		thrust::host_vector<Real3>& posRadH,
+		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real4>& rhoPresMuH,
+		thrust::host_vector<::int4>& referenceArray,
+		NumberOfObjects& numObjects,
+		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
+		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body) {
+
+	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
+			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH, body,
+			false);
 }
 // =============================================================================
 void AddSphereBceToChSystemAndSPH(
@@ -258,6 +284,7 @@ void AddSphereBceToChSystemAndSPH(
 	if (posRadH.size() != numObjects.numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
 				numObjects.numAllMarkers, posRadH.size());
+		std::cin.get();
 	}
 
 	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
@@ -315,6 +342,7 @@ void AddCylinderBceToChSystemAndSPH(
 	if (posRadH.size() != numObjects.numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
 				numObjects.numAllMarkers, posRadH.size());
+		std::cin.get();
 	}
 
 	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
@@ -353,9 +381,10 @@ void AddBoxBceToChSystemAndSPH(
 	if (posRadH.size() != numObjects.numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
 				numObjects.numAllMarkers, posRadH.size());
+		std::cin.get();
 	}
 
-	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
+	CreateBceGlobalMarkersFromBceLocalPosBoundary(posRadH, velMasH, rhoPresMuH,
 			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH,
 			body);
 	posRadBCE.clear();
@@ -393,6 +422,7 @@ void AddBCE2FluidSystem_FromFile(
 	if (posRadH.size() != numObjects.numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
 				numObjects.numAllMarkers, posRadH.size());
+		std::cin.get();
 	}
 
 	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,

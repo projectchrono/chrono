@@ -310,6 +310,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	// Ground body
 	ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(
 			new ChBody(new collision::ChCollisionModelParallel));
+
 	ground->SetIdentifier(-1);
 	ground->SetBodyFixed(true);
 	ground->SetCollide(true);
@@ -706,6 +707,7 @@ int main(int argc, char* argv[]) {
 		if (posRadH.size() != numObjects.numAllMarkers) {
 			printf(
 					"\n\n\n\n Error! (1) numObjects is not set correctly \n\n\n\n");
+			return -1;
 		}
 		if (numObjects.numAllMarkers == 0) {
 			ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex,
@@ -731,6 +733,7 @@ int main(int argc, char* argv[]) {
 		printf(
 				"\n\n\n\n Error! (2) numObjects is not set correctly: posRadH.size() %d  numObjects.numAllMarkers %d "
 						"\n\n\n\n", posRadH.size(), numObjects.numAllMarkers);
+		return -1;
 	}
 
 	//*** Add sph data to the physics system
@@ -782,7 +785,7 @@ int main(int argc, char* argv[]) {
 				"\n\n\n\n Error! number of fsi bodies (%d) does not match numObjects.numRigidBodies (%d). Size of "
 						"reference array: %d \n\n\n\n", numFsiBodies,
 				numObjects.numRigidBodies, referenceArray.size());
-		return 1;
+		return -1;
 	}
 	ResizeR3(rigid_FSI_ForcesD, numObjects.numRigidBodies);
 	ResizeR3(rigid_FSI_TorquesD, numObjects.numRigidBodies);
@@ -810,7 +813,7 @@ int main(int argc, char* argv[]) {
 				"\n\n\n\n Error! (3) numObjects is not set correctly: posRadD.size() %d  numObjects.numAllMarkers %d "
 						"\n\n\n\n", posRadD.size(), numObjects.numAllMarkers);
 
-		return 1;
+		return -1;
 	}
 #endif
 	cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size()

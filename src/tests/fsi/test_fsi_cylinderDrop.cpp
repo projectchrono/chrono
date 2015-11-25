@@ -397,8 +397,8 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	mphysicalSystem.AddBody(body);
 	//
 
-	CreateCylinderBCE(posRadH, velMasH, rhoPresMuH, referenceArray,
-					mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
+//	CreateCylinderBCE(posRadH, velMasH, rhoPresMuH, referenceArray,
+//					mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
 
 	if (haveVehicle) {
 		//        // version 1
@@ -708,10 +708,12 @@ int main(int argc, char* argv[]) {
 		if (posRadH.size() != numObjects.numAllMarkers) {
 			printf(
 					"\n\n\n\n Error! (1) numObjects is not set correctly \n\n\n\n");
+			return -1;
 		}
 		if (numObjects.numAllMarkers == 0) {
 			ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex,
 					referenceArray);
+			std::cout << "No marker to begin with " << numObjects.numAllMarkers << std::endl;
 			return 0;
 		}
 #endif
@@ -731,6 +733,7 @@ int main(int argc, char* argv[]) {
 	//    assert(posRadH.size() == numObjects.numAllMarkers && "(2) numObjects is not set correctly");
 	if (posRadH.size() != numObjects.numAllMarkers) {
 		printf("\n\n\n\n Error! (2) numObjects is not set correctly \n\n\n\n");
+		return -1;
 	}
 
 	//*** Add sph data to the physics system
@@ -782,7 +785,7 @@ int main(int argc, char* argv[]) {
 				"\n\n\n\n Error! number of fsi bodies (%d) does not match numObjects.numRigidBodies (%d). Size of "
 						"reference array: %d \n\n\n\n", numFsiBodies,
 				numObjects.numRigidBodies, referenceArray.size());
-		return 1;
+		return -1;
 	}
 	ResizeR3(rigid_FSI_ForcesD, numObjects.numRigidBodies);
 	ResizeR3(rigid_FSI_TorquesD, numObjects.numRigidBodies);
@@ -807,7 +810,7 @@ int main(int argc, char* argv[]) {
 	//    assert(posRadD.size() == numObjects.numAllMarkers && "(3) numObjects is not set correctly");
 	if (posRadD.size() != numObjects.numAllMarkers) {
 		printf("\n\n\n\n Error! (3) numObjects is not set correctly \n\n\n\n");
-		return 1;
+		return -1;
 	}
 #endif
 	cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size()
