@@ -28,7 +28,6 @@
 #include <sys/ioctl.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/filio.h>
 #else
 #include <winsock2.h>
 #endif

@@ -7,6 +7,10 @@ using namespace chrono::cosimul;
 
 const int MSG_HEADER_LEN = 6;
 
+#ifndef HAVE_SOCKLEN_T
+typedef int socklen_t;
+#endif
+
 ChSocket::ChSocket(int pNumber) {
     portNumber = pNumber;
     blocking = 1;
@@ -267,7 +271,7 @@ void ChSocket::setSocketBlocking(int blockingToggle) {
 
 int ChSocket::getDebug() {
     int myOption;
-    int myOptionLen = sizeof(myOption);
+    socklen_t myOptionLen = sizeof(myOption);
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&myOption, &myOptionLen) == -1) {
@@ -295,7 +299,7 @@ int ChSocket::getDebug() {
 
 int ChSocket::getReuseAddr() {
     int myOption;
-    int myOptionLen = sizeof(myOption);
+    socklen_t myOptionLen = sizeof(myOption);
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&myOption, &myOptionLen) == -1) {
@@ -323,7 +327,7 @@ int ChSocket::getReuseAddr() {
 
 int ChSocket::getKeepAlive() {
     int myOption;
-    int myOptionLen = sizeof(myOption);
+    socklen_t myOptionLen = sizeof(myOption);
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&myOption, &myOptionLen) == -1) {
@@ -350,7 +354,7 @@ int ChSocket::getKeepAlive() {
 
 int ChSocket::getLingerSeconds() {
     struct linger lingerOption;
-    int myOptionLen = sizeof(struct linger);
+    socklen_t myOptionLen = sizeof(struct linger);
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
@@ -378,7 +382,7 @@ int ChSocket::getLingerSeconds() {
 
 bool ChSocket::getLingerOnOff() {
     struct linger lingerOption;
-    int myOptionLen = sizeof(struct linger);
+    socklen_t myOptionLen = sizeof(struct linger);
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
@@ -409,7 +413,7 @@ bool ChSocket::getLingerOnOff() {
 
 int ChSocket::getSendBufSize() {
     int sendBuf;
-    int myOptionLen = sizeof(sendBuf);
+    socklen_t myOptionLen = sizeof(sendBuf);
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBuf, &myOptionLen) == -1) {
@@ -436,7 +440,7 @@ int ChSocket::getSendBufSize() {
 
 int ChSocket::getReceiveBufSize() {
     int rcvBuf;
-    int myOptionLen = sizeof(rcvBuf);
+    socklen_t myOptionLen = sizeof(rcvBuf);
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&rcvBuf, &myOptionLen) == -1) {
@@ -909,7 +913,7 @@ ChSocketTCP* ChSocketTCP::acceptClient(string& clientHost) {
     int newSocket;  // the new socket file descriptor returned by the accept systme call
 
     // the length of the client's address
-    int clientAddressLen = sizeof(struct sockaddr_in);
+    socklen_t clientAddressLen = sizeof(struct sockaddr_in);
     struct sockaddr_in clientAddress;  // Address of the client that sent data
 
     // Accepts a new client connection and stores its socket file descriptor
