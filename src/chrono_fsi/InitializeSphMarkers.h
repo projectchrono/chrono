@@ -47,6 +47,8 @@ void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 		NumberOfObjects& numObjects,
 		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
+		chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
+		chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT,
 		bool isSolid = true);
 
 void CreateBceGlobalMarkersFromBceLocalPosBoundary(
@@ -56,7 +58,9 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
 		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
-		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body);
+		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
+		chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
+		chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT);
 
 void AddSphereBceToChSystemAndSPH(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later

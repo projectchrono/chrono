@@ -221,12 +221,12 @@ void CreateCylinderBCE(
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		ChSystemParallelDVI& mphysicalSystem,
+		ChSystem& mphysicalSystem,
 		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
 		NumberOfObjects& numObjects, Real sphMarkerMass,
 		const SimParams& paramsH) {
-	double cyl_len = 0.5;
-	double cyl_rad = .05;
+	double cyl_len = 3.5;
+	double cyl_rad = .25;
 	ChVector<> cyl_pos = ChVector<>(0, 0, 0);
 	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
 
@@ -234,15 +234,14 @@ void CreateCylinderBCE(
 			chrono::ChBody>(
 			new chrono::ChBody(
 					new chrono::collision::ChCollisionModelParallel));
-	// body->SetIdentifier(-1);
 	body->SetBodyFixed(false);
 	body->SetCollide(true);
 	body->GetMaterialSurface()->SetFriction(mu_g);
 	body->SetPos(cyl_pos);
 	body->SetRot(cyl_rot);
-					double volume = chrono::utils::CalcCylinderVolume(cyl_rad, 0.5 * cyl_len);
-					chrono::ChVector<> gyration = chrono::utils::CalcCylinderGyration(cyl_rad,
-							0.5 * cyl_len).Get_Diag();
+	double volume = chrono::utils::CalcCylinderVolume(cyl_rad, 0.5 * cyl_len);
+	chrono::ChVector<> gyration = chrono::utils::CalcCylinderGyration(cyl_rad,
+			0.5 * cyl_len).Get_Diag();
 	double density = paramsH.rho0;
 	double mass = density * volume;
 	body->SetMass(mass);
@@ -252,9 +251,10 @@ void CreateCylinderBCE(
 	chrono::utils::AddCylinderGeometry(body.get_ptr(), cyl_rad, 0.5 * cyl_len);
 	body->GetCollisionModel()->BuildModel();
 	mphysicalSystem.AddBody(body);
+
 	FSI_Bodies.push_back(body);
 	AddCylinderBceToChSystemAndSPH(posRadH, velMasH, rhoPresMuH, referenceArray,
-			numObjects, sphMarkerMass, paramsH, body, cyl_rad, 0.5 * cyl_len);
+			numObjects, sphMarkerMass, paramsH, body, cyl_rad, cyl_len);
 }
 // =============================================================================
 
@@ -397,8 +397,8 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	mphysicalSystem.AddBody(body);
 	//
 
-//	CreateCylinderBCE(posRadH, velMasH, rhoPresMuH, referenceArray,
-//					mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
+	CreateCylinderBCE(posRadH, velMasH, rhoPresMuH, referenceArray,
+			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH);
 
 	if (haveVehicle) {
 		//        // version 1
@@ -713,7 +713,8 @@ int main(int argc, char* argv[]) {
 		if (numObjects.numAllMarkers == 0) {
 			ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex,
 					referenceArray);
-			std::cout << "No marker to begin with " << numObjects.numAllMarkers << std::endl;
+			std::cout << "No marker to begin with " << numObjects.numAllMarkers
+					<< std::endl;
 			return 0;
 		}
 #endif
