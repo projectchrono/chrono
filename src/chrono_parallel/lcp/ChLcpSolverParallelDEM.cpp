@@ -313,12 +313,11 @@ void function_CalcContactForces(
     // viscous damping in the tangential direction (to keep the Coulomb limit
     // strict, and independent of velocity).
     //  real forceT_mag = length(forceT_stiff + forceT_damp);  // This seems correct
-    real forceT_mag = length(forceT_stiff);  // This is what LAMMPS/LIGGGHTS does
+    real forceT_stiff_mag = length(forceT_stiff);  // This is what LAMMPS/LIGGGHTS does
     real delta_t_mag = length(delta_t);
     real forceT_slide = mu_eff * Abs(forceN_mag);
-    if (forceT_mag > forceT_slide) {
-        if (delta_t_mag != 0.0) {
-            real forceT_stiff_mag = length(forceT_stiff);
+    if (forceT_stiff_mag > forceT_slide) {
+        if (delta_t_mag > CH_MICROTOL) {
             real ratio = forceT_slide / forceT_stiff_mag;
             forceT_stiff *= ratio;
             if (displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {

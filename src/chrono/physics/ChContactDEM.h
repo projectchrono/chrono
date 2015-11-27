@@ -199,12 +199,15 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         }
 
         // Coulomb law
-        forceT = std::min<double>(forceT, mat.mu_eff * std::abs(forceN));
+        double forceT_mag = std::abs(forceT);
+        double forceT_max = mat.mu_eff * std::abs(forceN);
+        double ratio = ((forceT_mag > forceT_max) && (forceT_max > CH_MICROTOL)) ? forceT_max / forceT_mag : 0;
+        forceT *= ratio;
 
         // Accumulate normal and tangential forces
         m_force = forceN * this->normal;
         if (relvel_t_mag >= sys->GetSlipVelocitythreshold())
-            m_force -= (forceT / relvel_t_mag) * relvel_t;
+            m_force -= (forceT / std::max(relvel_t_mag, CH_MICROTOL)) * relvel_t;
     }
 
     /// Apply contact forces to bodies (new version, for interfacing to ChTimestepper and ChIntegrable)
