@@ -1,5 +1,5 @@
 {
-  "Name":                       "Generic MacPhersonStrut",
+  "Name":                       "Generic MacPhersonStrut Front",
   "Type":                       "Suspension",
   "Template":                   "MacPhersonStrut",
 
@@ -47,7 +47,7 @@
   "Spring":
   {
     "Location Chassis":         [-0.105, 0.687, 0.543],
-    "Location Upright”:         [-0.086, 0.739, 0.315],
+    "Location Upright":         [-0.086, 0.739, 0.315],
     "Spring Coefficient":       369149.000,
     "Free Length" :             0.234
   },
@@ -55,7 +55,7 @@
   "Shock":
   {
     "Location Chassis":         [-0.105, 0.687, 0.543],
-    "Location Upright”:         [-0.086, 0.739, 0.315],
+    "Location Upright":         [-0.086, 0.739, 0.315],
     "Damping Coefficient":      22459.000
   },
 

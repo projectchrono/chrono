@@ -26,6 +26,8 @@ SET(MODEL_FILES
     ../generic/Generic_DoubleWishbone.cpp
     ../generic/Generic_HendricksonPRIMAXX.h
     ../generic/Generic_HendricksonPRIMAXX.cpp
+    ../generic/Generic_MacPhersonStrut.h
+    ../generic/Generic_MacPhersonStrut.cpp
     ../generic/Generic_AntirollBarRSD.h
 )
 

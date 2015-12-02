@@ -224,6 +224,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChMultiLink.cpp
     wheeled_vehicle/suspension/ChHendricksonPRIMAXX.h
     wheeled_vehicle/suspension/ChHendricksonPRIMAXX.cpp
+    wheeled_vehicle/suspension/ChMacPhersonStrut.h
+    wheeled_vehicle/suspension/ChMacPhersonStrut.cpp
 
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
