@@ -523,15 +523,17 @@ void ChLcpSolverParallelDEM::ComputeD() {
     uint num_bilaterals = data_manager->num_bilaterals;
     uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
-    CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
-    clear(D_b_T);
+    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    clear(D_T);
 
-    D_b_T.reserve(nnz_bilaterals);
-
-    D_b_T.resize(num_constraints, num_dof, false);
+    D_T.reserve(nnz_bilaterals);
+    D_T.resize(num_constraints, num_dof, false);
 
     bilateral.GenerateSparsity();
     bilateral.Build_D();
+
+    data_manager->host_data.D = trans(D_T);
+    data_manager->host_data.M_invD = data_manager->host_data.M_inv * data_manager->host_data.D;
 }
 
 void ChLcpSolverParallelDEM::ComputeE() {
@@ -555,7 +557,7 @@ void ChLcpSolverParallelDEM::ComputeR() {
     bilateral.Build_b();
 
     data_manager->host_data.R_full =
-        -data_manager->host_data.b - data_manager->host_data.D_b_T * data_manager->host_data.M_invk;
+        -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
 }
 
 // -----------------------------------------------------------------------------
@@ -623,18 +625,18 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
 }
 
 void ChLcpSolverParallelDEM::ComputeImpulses() {
-    DynamicVector<real>& v = data_manager->host_data.v;
-    const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
-    const DynamicVector<real>& gamma = data_manager->host_data.gamma;
-    const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
+  DynamicVector<real>& v = data_manager->host_data.v;
+  const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
+  const DynamicVector<real>& gamma = data_manager->host_data.gamma;
+  const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD;
 
-    uint num_unilaterals = data_manager->num_unilaterals;
-    uint num_bilaterals = data_manager->num_bilaterals;
+  uint num_unilaterals = data_manager->num_unilaterals;
+  uint num_bilaterals = data_manager->num_bilaterals;
 
-    if (data_manager->num_constraints > 0) {
-        ConstSubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
-        v = M_invk + M_invD_b * gamma_b;
-    } else {
-        v = M_invk;
-    }
+  if (data_manager->num_constraints > 0) {
+    ConstSubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+    v = M_invk + M_invD_b * gamma_b;
+  } else {
+    v = M_invk;
+  }
 }

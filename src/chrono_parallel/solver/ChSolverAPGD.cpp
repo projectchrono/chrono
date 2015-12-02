@@ -19,7 +19,7 @@ ChSolverAPGD::ChSolverAPGD()
 }
 
 void ChSolverAPGD::UpdateR() {
-  const CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
+  const SubMatrixType& D_n_T = _DNT_;
   const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
   const DynamicVector<real>& b = data_manager->host_data.b;
   DynamicVector<real>& R = data_manager->host_data.R;
@@ -36,7 +36,7 @@ void ChSolverAPGD::UpdateR() {
   SubVectorType R_n = blaze::subvector(R, 0, num_contacts);
   SubVectorType s_n = blaze::subvector(s, 0, num_contacts);
 
-  R_n = -b_n - D_n_T * M_invk - s_n;
+  R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
 uint ChSolverAPGD::SolveAPGD(const uint max_iter,

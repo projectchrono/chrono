@@ -39,7 +39,7 @@
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "chrono_parallel/physics/ChNodeFluid.h"
+#include <chrono_parallel/physics/ChFluidContainer.h>
 namespace chrono {
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
@@ -108,12 +108,15 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   double CalculateConstraintViolation(std::vector<double>& cvec);
 
   ChParallelDataManager* data_manager;
+  ChFluidContainer* fluid_container;
+  void AddFluid(ChFluidContainer* fluid);
+
+  int current_threads;
 
  protected:
   double old_timer, old_timer_cd;
   bool detect_optimal_threads;
 
-  int current_threads;
   int detect_optimal_bins;
   std::vector<double> timer_accumulator, cd_accumulator;
   uint frame_threads, frame_bins, counter;
@@ -125,7 +128,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   void AddShaft(ChSharedPtr<ChShaft> shaft);
 
   std::vector<ChShaft*> shaftlist;
-  ChSharedPtr<ChNodeFluid> fluid_container;
+
 };
 
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
@@ -142,6 +145,8 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
   virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
 
   void CalculateContactForces();
+  real CalculateKineticEnergy();
+  real CalculateDualObjective();
 
   virtual real3 GetBodyContactForce(uint body_id) const;
   virtual real3 GetBodyContactTorque(uint body_id) const;
@@ -175,3 +180,4 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
 };
 
 }  // end namespace chrono
+

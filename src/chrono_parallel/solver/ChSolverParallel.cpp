@@ -6,12 +6,16 @@ ChSolverParallel::ChSolverParallel() {
   max_iteration = 100;
   current_iteration = 0;
   rigid_rigid = NULL;
+  rigid_fluid = NULL;
+  fluid_fluid = NULL;
   bilateral = NULL;
 }
 
 void ChSolverParallel::Project(real* gamma) {
   data_manager->system_timer.start("ChSolverParallel_Project");
   rigid_rigid->Project(gamma);
+  rigid_fluid->Project(gamma);
+  fluid_fluid->Project(gamma);
   data_manager->system_timer.stop("ChSolverParallel_Project");
 }
 
@@ -35,79 +39,93 @@ void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma,
 void ChSolverParallel::ShurProduct(const DynamicVector<real>& x, DynamicVector<real>& output) {
   data_manager->system_timer.start("ShurProduct");
 
-  const CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
-  const CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
-  const CompressedMatrix<real>& D_s_T = data_manager->host_data.D_s_T;
-  const CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
-
-  const CompressedMatrix<real>& M_invD_n = data_manager->host_data.M_invD_n;
-  const CompressedMatrix<real>& M_invD_t = data_manager->host_data.M_invD_t;
-  const CompressedMatrix<real>& M_invD_s = data_manager->host_data.M_invD_s;
-  const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
-
   const DynamicVector<real>& E = data_manager->host_data.E;
 
-  uint num_contacts = data_manager->num_rigid_contacts;
+  uint num_rigid_contacts = data_manager->num_rigid_contacts;
+  uint num_rigid_fluid_contacts = data_manager->num_rigid_contacts;
   uint num_unilaterals = data_manager->num_unilaterals;
   uint num_bilaterals = data_manager->num_bilaterals;
   output.reset();
-  SubVectorType o_b = blaze::subvector(output, num_unilaterals, num_bilaterals);
-  ConstSubVectorType x_b = blaze::subvector(x, num_unilaterals, num_bilaterals);
-  ConstSubVectorType E_b = blaze::subvector(E, num_unilaterals, num_bilaterals);
 
-  SubVectorType o_n = blaze::subvector(output, 0, num_contacts);
-  ConstSubVectorType x_n = blaze::subvector(x, 0, num_contacts);
-  ConstSubVectorType E_n = blaze::subvector(E, 0, num_contacts);
+  const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+  const CompressedMatrix<real>& D = data_manager->host_data.D;
+  const CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
+  const CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
 
-  switch (data_manager->settings.solver.local_solver_mode) {
-    case BILATERAL: {
-      o_b = D_b_T * (M_invD_b * x_b) + E_b * x_b;
+  if (data_manager->settings.solver.local_solver_mode == data_manager->settings.solver.solver_mode) {
+    if (data_manager->settings.solver.compute_N) {
+      output = Nshur * x + E * x;
+    } else {
+      output = D_T * M_invD * x + E * x;
+    }
 
-    } break;
+  } else {
+    const SubMatrixType& D_n_T = _DNT_;
+    const SubMatrixType& D_b_T = _DBT_;
+    const SubMatrixType& M_invD_n = _MINVDN_;
+    const SubMatrixType& M_invD_b = _MINVDB_;
 
-    case NORMAL: {
-      DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n;
-      o_b = D_b_T * tmp + E_b * x_b;
-      o_n = D_n_T * tmp + E_n * x_n;
+    SubVectorType o_b = subvector(output, num_unilaterals, num_bilaterals);
+    ConstSubVectorType x_b = subvector(x, num_unilaterals, num_bilaterals);
+    ConstSubVectorType E_b = subvector(E, num_unilaterals, num_bilaterals);
 
-    } break;
+    SubVectorType o_n = subvector(output, 0, num_rigid_contacts);
+    ConstSubVectorType x_n = subvector(x, 0, num_rigid_contacts);
+    ConstSubVectorType E_n = subvector(E, 0, num_rigid_contacts);
 
-    case SLIDING: {
-      SubVectorType o_t = blaze::subvector(output, num_contacts, num_contacts * 2);
-      ConstSubVectorType x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
-      ConstSubVectorType E_t = blaze::subvector(E, num_contacts, num_contacts * 2);
+    switch (data_manager->settings.solver.local_solver_mode) {
+      case BILATERAL: {
+        o_b = D_b_T * (M_invD_b * x_b) + E_b * x_b;
+      } break;
 
-      DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t;
-      o_b = D_b_T * tmp + E_b * x_b;
-      o_n = D_n_T * tmp + E_n * x_n;
-      o_t = D_t_T * tmp + E_t * x_t;
+      case NORMAL: {
+        blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n;
+        o_b = D_b_T * tmp + E_b * x_b;
+        o_n = D_n_T * tmp + E_n * x_n;
+      } break;
 
-    } break;
+      case SLIDING: {
+        const SubMatrixType& D_t_T = _DTT_;
+        const SubMatrixType& M_invD_t = _MINVDT_;
+        SubVectorType o_t = subvector(output, num_rigid_contacts, num_rigid_contacts * 2);
+        ConstSubVectorType x_t = subvector(x, num_rigid_contacts, num_rigid_contacts * 2);
+        ConstSubVectorType E_t = subvector(E, num_rigid_contacts, num_rigid_contacts * 2);
 
-    case SPINNING: {
-      SubVectorType o_t = blaze::subvector(output, num_contacts, num_contacts * 2);
-      ConstSubVectorType x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
-      ConstSubVectorType E_t = blaze::subvector(E, num_contacts, num_contacts * 2);
+        blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t;
+        o_b = D_b_T * tmp + E_b * x_b;
+        o_n = D_n_T * tmp + E_n * x_n;
+        o_t = D_t_T * tmp + E_t * x_t;
 
-      SubVectorType o_s = blaze::subvector(output, num_contacts * 3, num_contacts * 3);
-      ConstSubVectorType x_s = blaze::subvector(x, num_contacts * 3, num_contacts * 3);
-      ConstSubVectorType E_s = blaze::subvector(E, num_contacts * 3, num_contacts * 3);
+      } break;
 
-      DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t + M_invD_s * x_s;
-      o_b = D_b_T * tmp + E_b * x_b;
-      o_n = D_n_T * tmp + E_n * x_n;
-      o_t = D_t_T * tmp + E_t * x_t;
-      o_s = D_s_T * tmp + E_s * x_s;
+      case SPINNING: {
+        const SubMatrixType& D_t_T = _DTT_;
+        const SubMatrixType& D_s_T = _DST_;
+        const SubMatrixType& M_invD_t = _MINVDT_;
+        const SubMatrixType& M_invD_s = _MINVDS_;
+        SubVectorType o_t = subvector(output, num_rigid_contacts, num_rigid_contacts * 2);
+        ConstSubVectorType x_t = subvector(x, num_rigid_contacts, num_rigid_contacts * 2);
+        ConstSubVectorType E_t = subvector(E, num_rigid_contacts, num_rigid_contacts * 2);
 
-    } break;
+        SubVectorType o_s = subvector(output, num_rigid_contacts * 3, num_rigid_contacts * 3);
+        ConstSubVectorType x_s = subvector(x, num_rigid_contacts * 3, num_rigid_contacts * 3);
+        ConstSubVectorType E_s = subvector(E, num_rigid_contacts * 3, num_rigid_contacts * 3);
+
+        blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t + M_invD_s * x_s;
+        o_b = D_b_T * tmp + E_b * x_b;
+        o_n = D_n_T * tmp + E_n * x_n;
+        o_t = D_t_T * tmp + E_t * x_t;
+        o_s = D_s_T * tmp + E_s * x_s;
+
+      } break;
+    }
   }
-
   data_manager->system_timer.stop("ShurProduct");
 }
 
 void ChSolverParallel::ShurBilaterals(const DynamicVector<real>& x, DynamicVector<real>& output) {
-  const CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
-  const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
+  const SubMatrixType& D_b_T = _DBT_;
+  const SubMatrixType& M_invD_b = _MINVDB_;
 
   output = D_b_T * (M_invD_b * x);
 }
@@ -168,10 +186,7 @@ void ChSolverParallel::UpdateContacts() {
   //   rigid_rigid->UpdateRHS();
 }
 
-uint ChSolverParallel::SolveStab(const uint max_iter,
-                                 const uint size,
-                                 const ConstSubVectorType& mb,
-                                 SubVectorType& x) {
+uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const ConstSubVectorType& mb, SubVectorType& x) {
   LOG(INFO) << "ChSolverParallel::SolveStab";
   real& residual = data_manager->measures.solver.residual;
 

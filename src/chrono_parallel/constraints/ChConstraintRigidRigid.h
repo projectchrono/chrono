@@ -5,28 +5,6 @@
 
 namespace chrono {
 
-CH_PARALLEL_API
-void Orthogonalize(real3& U, real3& V, real3& W);
-
-CH_PARALLEL_API
-void Compute_Jacobian(const real4& quat,
-                      const real3& U,
-                      const real3& V,
-                      const real3& W,
-                      const real3& point,
-                      real3& T1,
-                      real3& T2,
-                      real3& T3);
-
-CH_PARALLEL_API
-void Compute_Jacobian_Rolling(const real4& quat,
-                              const real3& U,
-                              const real3& V,
-                              const real3& W,
-                              real3& T1,
-                              real3& T2,
-                              real3& T3);
-
 class CH_PARALLEL_API ChConstraintRigidRigid {
  public:
   ChConstraintRigidRigid() {

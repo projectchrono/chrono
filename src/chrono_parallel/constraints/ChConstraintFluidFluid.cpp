@@ -558,7 +558,7 @@ void ChConstraintFluidFluid::DetermineNeighbors() {
 
   fluid_start_index.resize(num_fluid_bodies);
   LOG(INFO) << "ChConstraintFluidFluid::Thrust_Reduce_By_Key";
-  last_body = Thrust_Reduce_By_Key(fluid_contact_idA, fluid_contact_idA_start, fluid_start_index);
+  last_body = Run_Length_Encode(fluid_contact_idA, fluid_contact_idA_start, fluid_start_index);
   fluid_start_index.resize(last_body + 1);
   fluid_start_index[last_body] = 0;
   LOG(INFO) << "ChConstraintFluidFluid::Thrust_Exclusive_Scan";

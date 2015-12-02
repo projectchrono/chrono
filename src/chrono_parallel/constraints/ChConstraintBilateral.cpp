@@ -42,9 +42,7 @@ void ChConstraintBilateral::Build_D() {
 
   // Loop over the active constraints and fill in the rows of the Jacobian,
   // taking into account the type of each constraint.
-  CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
-  CompressedMatrix<real>& D_b = data_manager->host_data.D_b;
-  CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
+  SubMatrixType D_b_T = _DBT_;
 
   const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
@@ -147,11 +145,6 @@ void ChConstraintBilateral::Build_D() {
       } break;
     }
   }
-
-  LOG(INFO) << "ChConstraintBilateral::Build_D - D_b";
-  D_b = trans(D_b_T);
-  LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_b";
-  M_invD_b = M_inv * D_b;
 }
 
 void ChConstraintBilateral::GenerateSparsity() {
@@ -165,12 +158,12 @@ void ChConstraintBilateral::GenerateSparsity() {
   // Note that the data for a Blaze compressed matrix must be filled in increasing
   // order of the column index for each row. Recall that body states are always
   // before shaft states.
-  CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
-
+  CompressedMatrix<real>& D_b_T = data_manager->host_data.D_T;
+  int off = data_manager->num_unilaterals;
   for (int index = 0; index < data_manager->num_bilaterals; index++) {
     int cntr = data_manager->host_data.bilateral_mapping[index];
     int type = data_manager->host_data.bilateral_type[cntr];
-    int row = index;
+    int row = off + index;
     int col1;
     int col2;
     int col3;

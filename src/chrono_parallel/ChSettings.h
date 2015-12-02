@@ -277,6 +277,9 @@ struct settings_container {
   collision_settings collision;
   // The settings for the solver
   solver_settings solver;
+  // The settings for the fluid
+   fluid_settings fluid;
+
   // System level settings
   // If set to true chrono parallel will automatically check to see if increasing
   // the number of threads will improve performance. If performance is improved

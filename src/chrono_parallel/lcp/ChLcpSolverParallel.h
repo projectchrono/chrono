@@ -24,6 +24,8 @@
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/physics/ChIntegratorParallel.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
+#include "chrono_parallel/constraints/ChConstraintRigidFluid.h"
+#include "chrono_parallel/constraints/ChConstraintFluidFluid.h"
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
@@ -42,6 +44,8 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
   virtual void ComputeImpulses() = 0;
 
   // Compute the inverse mass matrix and the term v+M_inv*hf
+  void ComputeInvMassMatrix();
+  //Compute mass matrix
   void ComputeMassMatrix();
   // Solves just the bilaterals so that they can be warm started
   void PerformStabilization();
@@ -81,6 +85,8 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
 
  private:
   ChConstraintRigidRigid rigid_rigid;
+  ChConstraintRigidFluid rigid_fluid;
+  ChConstraintFluidFluid fluid_fluid;
 };
 
 class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {

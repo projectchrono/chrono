@@ -20,8 +20,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   collision_system = new ChCollisionSystemParallel(data_manager);
 
   collision_system_type = COLLSYS_PARALLEL;
-
-  fluid_container.SetNull();
+  fluid_container = 0;
   counter = 0;
   timer_accumulator.resize(10, 0);
   cd_accumulator.resize(10, 0);
@@ -43,6 +42,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Solve");
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Setup");
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Stab");
+  data_manager->system_timer.AddTimer("ChLcpSolverParallel_M");
 #ifdef LOGGINGENABLED
   el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
   el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, "false");
@@ -136,6 +136,10 @@ int ChSystemParallel::Integrate_Y() {
     otherphysicslist[i]->Update(ChTime);
   }
 
+  if (!fluid_container == 0) {
+    fluid_container->UpdatePosition(ChTime);
+  }
+
   data_manager->system_timer.stop("update");
 
   //=============================================================================================
@@ -226,6 +230,12 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft) {
   data_manager->host_data.shaft_inr.push_back(0);
   data_manager->host_data.shaft_active.push_back(true);
 }
+
+void ChSystemParallel::AddFluid(ChFluidContainer* fluid) {
+  fluid->AddRef();
+  fluid_container = fluid;
+}
+
 //
 // Reset forces for all lcp variables
 //
@@ -353,6 +363,9 @@ void ChSystemParallel::UpdateShafts() {
 // Update all fluid nodes
 // currently a stub
 void ChSystemParallel::UpdateFluidBodies() {
+  if (!fluid_container == 0) {
+    fluid_container->Update(ChTime);
+  }
 }
 
 //
@@ -527,15 +540,14 @@ void ChSystemParallel::RecomputeThreads() {
       old_timer = sum_of_elems / 10.0;
       current_threads += 2;
       omp_set_num_threads(current_threads);
-#if PRINT_LEVEL == 1
-      cout << "current threads increased to " << current_threads << endl;
-#endif
+
+      LOG(TRACE) << "current threads increased to " << current_threads;
+
     } else {
       current_threads = data_manager->settings.max_threads;
       omp_set_num_threads(data_manager->settings.max_threads);
-#if PRINT_LEVEL == 1
-      cout << "current threads increased to " << current_threads << endl;
-#endif
+
+      LOG(TRACE) << "current threads increased to " << current_threads;
     }
   } else if (frame_threads == 10 && detect_optimal_threads) {
     double current_timer = sum_of_elems / 10.0;
@@ -544,9 +556,7 @@ void ChSystemParallel::RecomputeThreads() {
     if (old_timer < current_timer) {
       current_threads -= 2;
       omp_set_num_threads(current_threads);
-#if PRINT_LEVEL == 1
-      cout << "current threads reduced back to " << current_threads << endl;
-#endif
+      LOG(TRACE) << "current threads reduced back to " << current_threads;
     }
   }
 

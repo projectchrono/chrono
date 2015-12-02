@@ -3,16 +3,7 @@
 
 #include "chrono_parallel/solver/ChSolverAPGD.h"
 #include "chrono_parallel/solver/ChSolverAPGDREF.h"
-#include "chrono_parallel/solver/ChSolverBiCG.h"
-#include "chrono_parallel/solver/ChSolverBiCGStab.h"
-#include "chrono_parallel/solver/ChSolverCG.h"
-#include "chrono_parallel/solver/ChSolverCGS.h"
-#include "chrono_parallel/solver/ChSolverMinRes.h"
-#include "chrono_parallel/solver/ChSolverSD.h"
-#include "chrono_parallel/solver/ChSolverGD.h"
-#include "chrono_parallel/solver/ChSolverPGS.h"
-#include "chrono_parallel/solver/ChSolverJacobi.h"
-#include "chrono_parallel/solver/ChSolverPDIP.h"
+
 using namespace chrono;
 
 #define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
@@ -33,10 +24,23 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     rigid_rigid.offset = 6;
     data_manager->num_unilaterals = 6 * data_manager->num_rigid_contacts;
   }
+
+  uint num_rigid_fluid = data_manager->num_rigid_fluid_contacts * 3;
+  uint num_fluid_fluid = data_manager->num_fluid_contacts * 3;
+
+  if (data_manager->settings.fluid.fluid_is_rigid == false) {
+    num_fluid_fluid = data_manager->num_fluid_bodies;  // + ;
+    if (data_manager->settings.fluid.enable_viscosity) {
+      num_fluid_fluid += data_manager->num_fluid_bodies * 3;
+    }
+  }
+
   // This is the total number of constraints
-  data_manager->num_constraints = data_manager->num_unilaterals + data_manager->num_bilaterals;
+  data_manager->num_constraints =
+      data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid + num_fluid_fluid;
 
   // Generate the mass matrix and compute M_inv_k
+  ComputeInvMassMatrix();
   ComputeMassMatrix();
 
   data_manager->host_data.gamma.resize(data_manager->num_constraints);
@@ -45,6 +49,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   // Perform any setup tasks for all constraint types
   rigid_rigid.Setup(data_manager);
   bilateral.Setup(data_manager);
+  rigid_fluid.Setup(data_manager);
+  fluid_fluid.Setup(data_manager);
   // Clear and reset solver history data and counters
   solver->current_iteration = 0;
   data_manager->measures.solver.total_iteration = 0;
@@ -53,14 +59,16 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   // Set pointers to constraint objects and perform setup actions for solver
   solver->rigid_rigid = &rigid_rigid;
   solver->bilateral = &bilateral;
+  solver->rigid_fluid = &rigid_fluid;
+  solver->fluid_fluid = &fluid_fluid;
   solver->Setup(data_manager);
 
   ComputeD();
   ComputeE();
   ComputeR();
-  //ComputeN();
+  ComputeN();
 
-  //PreSolve();
+  // PreSolve();
 
   data_manager->system_timer.start("ChLcpSolverParallel_Solve");
 
@@ -105,7 +113,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
   data_manager->Fc_current = false;
   data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
-
+  fluid_fluid.ArtificialPressure();
   ComputeImpulses();
 
   for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
@@ -125,77 +133,83 @@ void ChLcpSolverParallelDVI::ComputeD() {
     return;
   }
 
-  uint num_bodies = data_manager->num_rigid_bodies;
   uint num_shafts = data_manager->num_shafts;
+  uint num_fluid_bodies = data_manager->num_fluid_bodies;
   uint num_dof = data_manager->num_dof;
-  uint num_contacts = data_manager->num_rigid_contacts;
+  uint num_rigid_contacts = data_manager->num_rigid_contacts;
+  uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
+  uint num_fluid_contacts = data_manager->num_fluid_contacts;
   uint num_bilaterals = data_manager->num_bilaterals;
   uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
-  int nnz_normal = 6 * 2 * data_manager->num_rigid_contacts;
-  int nnz_tangential = 6 * 4 * data_manager->num_rigid_contacts;
-  int nnz_spinning = 6 * 3 * data_manager->num_rigid_contacts;
+  int nnz_normal = 6 * 2 * num_rigid_contacts;
+  int nnz_tangential = 6 * 4 * num_rigid_contacts;
+  int nnz_spinning = 6 * 3 * num_rigid_contacts;
 
-  int num_normal = 1 * data_manager->num_rigid_contacts;
-  int num_tangential = 2 * data_manager->num_rigid_contacts;
-  int num_spinning = 3 * data_manager->num_rigid_contacts;
+  int num_normal = 1 * num_rigid_contacts;
+  int num_tangential = 2 * num_rigid_contacts;
+  int num_spinning = 3 * num_rigid_contacts;
 
-  CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
-  CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
-  CompressedMatrix<real>& D_s_T = data_manager->host_data.D_s_T;
-  CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
+  int nnz_rigid_fluid = 9 * 3 * num_rigid_fluid_contacts;
+  int nnz_fluid_fluid = 6 * num_fluid_contacts;
 
-  CompressedMatrix<real>& D_n = data_manager->host_data.D_n;
-  CompressedMatrix<real>& D_t = data_manager->host_data.D_t;
-  CompressedMatrix<real>& D_s = data_manager->host_data.D_s;
-  CompressedMatrix<real>& D_b = data_manager->host_data.D_b;
+  uint num_rigid_fluid = num_rigid_fluid_contacts * 3;
+  uint num_fluid_fluid = num_fluid_contacts * 3;
 
-  CompressedMatrix<real>& M_invD_n = data_manager->host_data.M_invD_n;
-  CompressedMatrix<real>& M_invD_t = data_manager->host_data.M_invD_t;
-  CompressedMatrix<real>& M_invD_s = data_manager->host_data.M_invD_s;
-  CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
+  if (data_manager->settings.fluid.fluid_is_rigid == false) {
+    int max_interactions = data_manager->settings.fluid.max_interactions;
+    nnz_fluid_fluid = num_fluid_bodies * 6 * max_interactions;  // + num_fluid_bodies * 18 * max_interactions;
+    num_fluid_fluid = num_fluid_bodies;                         // + num_fluid_bodies * 3;
+
+    if (data_manager->settings.fluid.enable_viscosity) {
+      nnz_fluid_fluid += data_manager->num_fluid_bodies * 18 * max_interactions;
+      num_fluid_fluid += num_fluid_bodies * 3;
+    }
+  }
+
+  CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+  CompressedMatrix<real>& D = data_manager->host_data.D;
+  CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
 
   const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
+  int nnz_total = nnz_bilaterals + nnz_rigid_fluid + nnz_fluid_fluid;
+  int num_rows = num_bilaterals + num_rigid_fluid + num_fluid_fluid;
+
   switch (data_manager->settings.solver.solver_mode) {
     case NORMAL:
-      CLEAR_RESERVE_RESIZE(D_n_T, nnz_normal, num_normal, num_dof)
-      CLEAR_RESERVE_RESIZE(D_n, nnz_normal, num_dof, num_normal)
-      CLEAR_RESERVE_RESIZE(M_invD_n, nnz_normal, num_dof, num_normal)
+      nnz_total += nnz_normal;
+      num_rows += num_normal;
       break;
     case SLIDING:
-
-      CLEAR_RESERVE_RESIZE(D_n_T, nnz_normal, num_normal, num_dof)
-      CLEAR_RESERVE_RESIZE(D_n, nnz_normal, num_dof, num_normal)
-      CLEAR_RESERVE_RESIZE(M_invD_n, nnz_normal, num_dof, num_normal)
-
-      CLEAR_RESERVE_RESIZE(D_t_T, nnz_tangential, num_tangential, num_dof)
-      CLEAR_RESERVE_RESIZE(D_t, nnz_tangential, num_dof, num_tangential)
-      CLEAR_RESERVE_RESIZE(M_invD_t, nnz_tangential, num_dof, num_tangential)
+      nnz_total += nnz_normal + nnz_tangential;
+      num_rows += num_normal + num_tangential;
 
       break;
     case SPINNING:
-
-      CLEAR_RESERVE_RESIZE(D_n_T, nnz_normal, num_normal, num_dof)
-      CLEAR_RESERVE_RESIZE(D_n, nnz_normal, num_dof, num_normal)
-      CLEAR_RESERVE_RESIZE(M_invD_n, nnz_normal, num_dof, num_normal)
-
-      CLEAR_RESERVE_RESIZE(D_t_T, nnz_tangential, num_tangential, num_dof)
-      CLEAR_RESERVE_RESIZE(D_t, nnz_tangential, num_dof, num_tangential)
-      CLEAR_RESERVE_RESIZE(M_invD_t, nnz_tangential, num_dof, num_tangential)
-
-      CLEAR_RESERVE_RESIZE(D_s_T, nnz_spinning, num_spinning, num_dof)
-      CLEAR_RESERVE_RESIZE(D_s, nnz_spinning, num_dof, num_spinning)
-      CLEAR_RESERVE_RESIZE(M_invD_s, nnz_spinning, num_dof, num_spinning)
-
+      nnz_total += nnz_normal + nnz_tangential + nnz_spinning;
+      num_rows += num_normal + num_tangential + num_spinning;
       break;
   }
-  CLEAR_RESERVE_RESIZE(D_b_T, nnz_bilaterals, num_bilaterals, num_dof)
+
+  CLEAR_RESERVE_RESIZE(D_T, nnz_total, num_rows, num_dof)
+  CLEAR_RESERVE_RESIZE(D, nnz_total, num_dof, num_rows)
+  CLEAR_RESERVE_RESIZE(M_invD, nnz_total, num_dof, num_rows)
 
   rigid_rigid.GenerateSparsity();
   bilateral.GenerateSparsity();
+  rigid_fluid.GenerateSparsity();
+  fluid_fluid.GenerateSparsity();
   rigid_rigid.Build_D();
   bilateral.Build_D();
+  rigid_fluid.Build_D();
+  fluid_fluid.Build_D();
+  LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D";
+
+  D = trans(D_T);
+  LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - M_invD";
+
+  M_invD = M_inv * D;
 
   data_manager->system_timer.stop("ChLcpSolverParallel_D");
 }
@@ -212,6 +226,7 @@ void ChLcpSolverParallelDVI::ComputeE() {
 
   rigid_rigid.Build_E();
   bilateral.Build_E();
+  rigid_fluid.Build_E();
   data_manager->system_timer.stop("ChLcpSolverParallel_E");
 }
 
@@ -222,19 +237,11 @@ void ChLcpSolverParallelDVI::ComputeR() {
     return;
   }
 
-  const CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
-  const CompressedMatrix<real>& D_t_T = data_manager->host_data.D_t_T;
-  const CompressedMatrix<real>& D_s_T = data_manager->host_data.D_s_T;
-  const CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
-
   const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
+  const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
   DynamicVector<real>& R = data_manager->host_data.R_full;
   DynamicVector<real>& b = data_manager->host_data.b;
-
-  uint num_contacts = data_manager->num_rigid_contacts;
-  uint num_unilaterals = data_manager->num_unilaterals;
-  uint num_bilaterals = data_manager->num_bilaterals;
 
   b.resize(data_manager->num_constraints);
   reset(b);
@@ -244,50 +251,25 @@ void ChLcpSolverParallelDVI::ComputeR() {
 
   rigid_rigid.Build_b();
   bilateral.Build_b();
+  rigid_fluid.Build_b();
+  fluid_fluid.Build_b();
+  R = -b - D_T * M_invk;
 
-  SubVectorType b_n = blaze::subvector(b, 0, num_contacts);
-  SubVectorType R_n = blaze::subvector(R, 0, num_contacts);
-
-  SubVectorType b_b = blaze::subvector(b, num_unilaterals, num_bilaterals);
-  SubVectorType R_b = blaze::subvector(R, num_unilaterals, num_bilaterals);
-
-  R_b = -b_b - D_b_T * M_invk;
-  switch (data_manager->settings.solver.solver_mode) {
-    case NORMAL: {
-      R_n = -b_n - D_n_T * M_invk;
-    } break;
-
-    case SLIDING: {
-      // SubVectorType b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
-      SubVectorType R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
-
-      R_n = -b_n - D_n_T * M_invk;
-      R_t = -D_t_T * M_invk;
-    } break;
-
-    case SPINNING: {
-      // SubVectorType b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
-      SubVectorType R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
-
-      // SubVectorType b_s = blaze::subvector(b, num_contacts * 3, num_contacts * 3);
-      SubVectorType R_s = blaze::subvector(R, num_contacts * 3, num_contacts * 3);
-
-      R_n = -b_n - D_n_T * M_invk;
-      R_t = -D_t_T * M_invk;
-      R_s = -D_s_T * M_invk;
-    } break;
-  }
   data_manager->system_timer.stop("ChLcpSolverParallel_R");
 }
 
 void ChLcpSolverParallelDVI::ComputeN() {
-  LOG(INFO) << "ChLcpSolverParallelDVI::ComputeN()";
-  if (!data_manager->settings.solver.compute_N) {
+  if (data_manager->settings.solver.compute_N == false) {
     return;
   }
 
+  LOG(INFO) << "ChLcpSolverParallelDVI::ComputeN";
   data_manager->system_timer.start("ChLcpSolverParallel_N");
-
+  const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+  CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
+  const CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
+  const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
+  Nshur = D_T * M_invD;
   data_manager->system_timer.stop("ChLcpSolverParallel_N");
 }
 
@@ -300,82 +282,67 @@ void ChLcpSolverParallelDVI::SetR() {
   DynamicVector<real>& R = data_manager->host_data.R;
   const DynamicVector<real>& R_full = data_manager->host_data.R_full;
 
-  uint num_contacts = data_manager->num_rigid_contacts;
+  uint num_rigid_contacts = data_manager->num_rigid_contacts;
   uint num_unilaterals = data_manager->num_unilaterals;
   uint num_bilaterals = data_manager->num_bilaterals;
+  uint num_rigid_fluid = data_manager->num_rigid_fluid_contacts * 3;
+  uint num_fluid_fluid = data_manager->num_fluid_contacts;
+  uint num_fluid_bodies = data_manager->num_fluid_bodies;
   R.resize(data_manager->num_constraints);
   reset(R);
 
-  switch (data_manager->settings.solver.local_solver_mode) {
-    case BILATERAL: {
-      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
-    } break;
+  if (data_manager->settings.solver.local_solver_mode == data_manager->settings.solver.solver_mode) {
+    R = R_full;
+  } else {
+    subvector(R, num_unilaterals, num_bilaterals) = subvector(R_full, num_unilaterals, num_bilaterals);
+    subvector(R, num_unilaterals + num_bilaterals, num_rigid_fluid) =
+        subvector(R_full, num_unilaterals + num_bilaterals, num_rigid_fluid);
 
-    case NORMAL: {
-      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
-      blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
-    } break;
-    case SLIDING: {
-      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
-      blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
-      blaze::subvector(R, num_contacts, num_contacts * 2) = blaze::subvector(R_full, num_contacts, num_contacts * 2);
-    } break;
+    if (data_manager->settings.fluid.fluid_is_rigid == false) {
+      subvector(R, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_bodies) =
+          subvector(R_full, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_bodies);
 
-    case SPINNING: {
-      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
-      blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
-      blaze::subvector(R, num_contacts, num_contacts * 2) = blaze::subvector(R_full, num_contacts, num_contacts * 2);
-      blaze::subvector(R, num_contacts * 3, num_contacts * 3) =
-          blaze::subvector(R_full, num_contacts * 3, num_contacts * 3);
-    } break;
+    } else {
+      subvector(R, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_fluid) =
+          subvector(R_full, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_fluid);
+    }
+
+    switch (data_manager->settings.solver.local_solver_mode) {
+      case BILATERAL: {
+      } break;
+
+      case NORMAL: {
+        subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
+      } break;
+
+      case SLIDING: {
+        subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
+        subvector(R, num_rigid_contacts, num_rigid_contacts * 2) =
+            subvector(R_full, num_rigid_contacts, num_rigid_contacts * 2);
+      } break;
+
+      case SPINNING: {
+        subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
+        subvector(R, num_rigid_contacts, num_rigid_contacts * 2) =
+            subvector(R_full, num_rigid_contacts, num_rigid_contacts * 2);
+        subvector(R, num_rigid_contacts * 3, num_rigid_contacts * 3) =
+            subvector(R_full, num_rigid_contacts * 3, num_rigid_contacts * 3);
+      } break;
+    }
   }
 }
 
 void ChLcpSolverParallelDVI::ComputeImpulses() {
   LOG(INFO) << "ChLcpSolverParallelDVI::ComputeImpulses()";
-  DynamicVector<real>& v = data_manager->host_data.v;
-
   const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
   const DynamicVector<real>& gamma = data_manager->host_data.gamma;
+  const CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
 
-  const CompressedMatrix<real>& M_invD_n = data_manager->host_data.M_invD_n;
-  const CompressedMatrix<real>& M_invD_t = data_manager->host_data.M_invD_t;
-  const CompressedMatrix<real>& M_invD_s = data_manager->host_data.M_invD_s;
-  const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
-
-  uint num_contacts = data_manager->num_rigid_contacts;
-  uint num_unilaterals = data_manager->num_unilaterals;
-  uint num_bilaterals = data_manager->num_bilaterals;
+  DynamicVector<real>& v = data_manager->host_data.v;
 
   if (data_manager->num_constraints > 0) {
-    ConstSubVectorType gamma_b =
-        blaze::subvector(gamma, num_unilaterals, num_bilaterals);
-    ConstSubVectorType gamma_n = blaze::subvector(gamma, 0, num_contacts);
-
     // Compute new velocity based on the lagrange multipliers
-    switch (data_manager->settings.solver.solver_mode) {
-      case NORMAL: {
-        v = M_invk + M_invD_n * gamma_n + M_invD_b * gamma_b;
-      } break;
-
-      case SLIDING: {
-        ConstSubVectorType gamma_t =
-            blaze::subvector(gamma, num_contacts, num_contacts * 2);
-
-        v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_b * gamma_b;
-        // printf("-gamma: %f %f %f \n", gamma_n[0],gamma_t[0],gamma_t[1]);
-      } break;
-
-      case SPINNING: {
-        ConstSubVectorType gamma_t =
-            blaze::subvector(gamma, num_contacts, num_contacts * 2);
-        ConstSubVectorType gamma_s =
-            blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
-
-        v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_s * gamma_s + M_invD_b * gamma_b;
-
-      } break;
-    }
+    v = M_invk + M_invD * gamma;
   } else {
     // When there are no constraints we need to still apply gravity and other
     // body forces!
@@ -384,7 +351,7 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
 }
 
 void ChLcpSolverParallelDVI::PreSolve() {
-//Currently not supported, might be added back in the future
+  // Currently not supported, might be added back in the future
 }
 
 void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
@@ -394,44 +361,13 @@ void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
     delete (this->solver);
   }
   switch (type) {
-    case STEEPEST_DESCENT:
-      solver = new ChSolverSD();
-      break;
-    case GRADIENT_DESCENT:
-      solver = new ChSolverGD();
-      break;
-    case CONJUGATE_GRADIENT:
-      solver = new ChSolverCG();
-      break;
-    case CONJUGATE_GRADIENT_SQUARED:
-      solver = new ChSolverCGS();
-      break;
-    case BICONJUGATE_GRADIENT:
-      solver = new ChSolverBiCG();
-      break;
-    case BICONJUGATE_GRADIENT_STAB:
-      solver = new ChSolverBiCGStab();
-      break;
-    case MINIMUM_RESIDUAL:
-      solver = new ChSolverMinRes();
-      break;
-    case QUASAI_MINIMUM_RESIDUAL:
-      // This solver has not been implemented yet
-      break;
+
     case APGD:
       solver = new ChSolverAPGD();
       break;
     case APGDREF:
       solver = new ChSolverAPGDREF();
       break;
-    case JACOBI:
-      solver = new ChSolverJacobi();
-      break;
-    case GAUSS_SEIDEL:
-      solver = new ChSolverPGS();
-      break;
-    case PDIP:
-      solver = new ChSolverPDIP();
-      break;
+
   }
 }
