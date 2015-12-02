@@ -13,10 +13,12 @@
 // =============================================================================
 // OpenGL viewer, this class draws the system to the screen and handles input
 // =============================================================================
+
+#include "chrono_parallel/ChApiParallel.h"
 #include "chrono_opengl/ChOpenGLViewer.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
-
-//#include "chrono_parallel/physics/ChNodeFluid.h"
+#include <chrono_parallel/physics/ChSystemParallel.h>
+#include <chrono_parallel/physics/ChFluidContainer.h>
 
 #include "assets/ChBoxShape.h"
 #include "assets/ChSphereShape.h"
@@ -89,6 +91,7 @@ void ChOpenGLViewer::TakeDown() {
   cloud_shader.TakeDown();
   dot_shader.TakeDown();
   sphere_shader.TakeDown();
+
   sphere.TakeDown();
   box.TakeDown();
   cylinder.TakeDown();
@@ -124,16 +127,21 @@ bool ChOpenGLViewer::Initialize() {
   cylinder.InitializeString(cylinder_mesh_data, apple, &main_shader);
   cone.InitializeString(cone_mesh_data, white, &main_shader);
 
-  HUD_renderer.Initialize(&render_camera);
+  HUD_renderer.Initialize(&render_camera, &timer);
 
   cloud_data.push_back(glm::vec3(0, 0, 0));
   grid_data.push_back(glm::vec3(0, 0, 0));
 
   cloud.Initialize(cloud_data, white, &cloud_shader);
+  fluid.Initialize(cloud_data, blue_jeans, &sphere_shader);
   grid.Initialize(grid_data, darkriver, &cloud_shader);
 
   contact_renderer.Initialize(darkred, &cloud_shader);
   graph_renderer.Initialize(darkriver, &cloud_shader);
+
+  timer.AddTimer("render");
+  timer.AddTimer("text");
+  timer.AddTimer("geometry");
 
   // glEnable(GL_MULTISAMPLE);
   glEnable(GL_POINT_SPRITE);
@@ -143,8 +151,6 @@ bool ChOpenGLViewer::Initialize() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   // glLineWidth(10);
   // glEnable(GL_LINE_SMOOTH);
-
-  return true;
 }
 bool ChOpenGLViewer::Update(double time_step) {
   if (pause_sim == true && single_step == false) {
@@ -156,10 +162,11 @@ bool ChOpenGLViewer::Update(double time_step) {
   return true;
 }
 void ChOpenGLViewer::Render() {
+  timer.Reset();
 
-  timer_render.start();
+  timer.start("render");
   if (pause_vis == false) {
-    timer_geometry.start();
+    timer.start("geometry");
     render_camera.aspect = window_aspect;
     render_camera.window_width = window_size.x;
     render_camera.window_height = window_size.y;
@@ -210,6 +217,8 @@ void ChOpenGLViewer::Render() {
           (*iter).second.Draw(projection, view);
         }
       }
+      fluid.AttachShader(&sphere_shader);
+
     } else {
       cloud_data.resize(physics_system->Get_bodylist()->size());
 #pragma omp parallel for
@@ -218,6 +227,26 @@ void ChOpenGLViewer::Render() {
         ChVector<> pos = abody->GetPos();
         cloud_data[i] = glm::vec3(pos.x, pos.y, pos.z);
       }
+
+      fluid.AttachShader(&dot_shader);
+    }
+
+    if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
+      fluid_data.resize(parallel_system->data_manager->num_fluid_bodies);
+#pragma omp parallel for
+      for (int i = 0; i < parallel_system->data_manager->num_fluid_bodies; i++) {
+        real3 pos = parallel_system->data_manager->host_data.pos_fluid[i];
+        fluid_data[i] = glm::vec3(pos.x, pos.y, pos.z);
+      }
+
+      if (parallel_system->GetSettings()->fluid.fluid_is_rigid == false) {
+        fluid.SetPointSize(parallel_system->GetSettings()->fluid.kernel_radius);
+      } else {
+        fluid.SetPointSize(parallel_system->GetSettings()->fluid.kernel_radius * 1.5);
+      }
+      fluid.Update(fluid_data);
+      glm::mat4 model(1);
+      fluid.Draw(projection, view * model);
     }
 
     if (render_mode == POINTS) {
@@ -230,16 +259,16 @@ void ChOpenGLViewer::Render() {
     RenderPlots();
     RenderContacts();
 
-    timer_geometry.stop();
-    time_geometry = .5 * timer_geometry() + .5 * time_geometry;
+    timer.stop("geometry");
+    time_geometry = .5 * timer.GetTime("geometry") + .5 * time_geometry;
 
-    timer_text.start();
+    timer.start("text");
     DisplayHUD();
-    timer_text.stop();
-    time_text = .5 * timer_text() + .5 * time_text;
+    timer.stop("text");
+    time_text = .5 * timer.GetTime("text") + .5 * time_text;
   }
-  timer_render.stop();
-  time_total = .5 * timer_render() + .5 * time_total;
+  timer.stop("render");
+  time_total = .5 * timer.GetTime("render") + .5 * time_total;
   current_time = time_total;
   current_time = current_time * 0.5 + old_time * 0.5;
   old_time = current_time;
@@ -275,7 +304,7 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
 
     if (asset.IsType<ChSphereShape>()) {
       ChSphereShape* sphere_shape = ((ChSphereShape*)(asset.get_ptr()));
-      double radius = sphere_shape->GetSphereGeometry().rad;
+      float radius = sphere_shape->GetSphereGeometry().rad;
       ChVector<> pos_final = pos + center;
 
       model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
@@ -461,31 +490,31 @@ void ChOpenGLViewer::RenderAABB() {
     return;
   }
 
-//  if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-//    ChParallelDataManager* data_manager = system->data_manager;
-//    model_box.clear();
-//
-//    host_vector<real3>& aabb_min_rigid = data_manager->host_data.aabb_min_rigid;
-//    host_vector<real3>& aabb_max_rigid = data_manager->host_data.aabb_max_rigid;
-//
-//    model_box.resize(data_manager->num_rigid_shapes);
-//#pragma omp parallel for
-//    for (int i = 0; i < data_manager->num_rigid_shapes; i++) {
-//      real3 min_p = aabb_min_rigid[i] + data_manager->measures.collision.global_origin;
-//      real3 max_p = aabb_max_rigid[i] + data_manager->measures.collision.global_origin;
-//
-//      real3 radius = (max_p - min_p) * .5;
-//      real3 center = (min_p + max_p) * .5;
-//
-//      glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(center.x, center.y, center.z));
-//      model = glm::scale(model, glm::vec3(radius.x, radius.y, radius.z));
-//      model_box[i] = (model);
-//    }
-//    if (model_box.size() > 0) {
-//      box.Update(model_box);
-//      box.Draw(projection, view);
-//    }
-//  }
+  if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
+    ChParallelDataManager* data_manager = system->data_manager;
+    model_box.clear();
+
+    host_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+    host_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+
+    model_box.resize(data_manager->num_rigid_shapes + data_manager->num_fluid_bodies);
+#pragma omp parallel for
+    for (int i = 0; i < data_manager->num_rigid_shapes + data_manager->num_fluid_bodies; i++) {
+      real3 min_p = aabb_min[i] + data_manager->measures.collision.global_origin;
+      real3 max_p = aabb_max[i] + data_manager->measures.collision.global_origin;
+
+      real3 radius = (max_p - min_p) * .5;
+      real3 center = (min_p + max_p) * .5;
+
+      glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(center.x, center.y, center.z));
+      model = glm::scale(model, glm::vec3(radius.x, radius.y, radius.z));
+      model_box[i] = (model);
+    }
+    if (model_box.size() > 0) {
+      box.Update(model_box);
+      box.Draw(projection, view);
+    }
+  }
 }
 
 void ChOpenGLViewer::RenderGrid() {
@@ -493,42 +522,42 @@ void ChOpenGLViewer::RenderGrid() {
     return;
   }
   grid_data.clear();
-//  if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-//    int3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
-//    real3 bin_size_vec = parallel_sys->data_manager->measures.collision.bin_size_vec;
-//    real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
-//    real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
-//    real3 center = (min_pt + max_pt) * .5;
-//
-//    for (int i = 0; i <= bins_per_axis.x; i++) {
-//      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z));
-//      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z));
-//    }
-//    for (int i = 0; i <= bins_per_axis.z; i++) {
-//      grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
-//      grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
-//    }
-//
-//    for (int i = 0; i <= bins_per_axis.y; i++) {
-//      grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
-//      grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
-//    }
-//    for (int i = 0; i <= bins_per_axis.y; i++) {
-//      grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z));
-//      grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z));
-//    }
-//
-//    for (int i = 0; i <= bins_per_axis.x; i++) {
-//      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z));
-//      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z));
-//    }
-//    for (int i = 0; i <= bins_per_axis.z; i++) {
-//      grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z));
-//      grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z));
-//    }
-//
-//    grid.Update(grid_data);
-//  }
+  if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+    int3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
+    real3 bin_size_vec = parallel_sys->data_manager->measures.collision.bin_size;
+    real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
+    real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
+    real3 center = (min_pt + max_pt) * .5;
+
+    for (int i = 0; i <= bins_per_axis.x; i++) {
+      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z));
+      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z));
+    }
+    for (int i = 0; i <= bins_per_axis.z; i++) {
+      grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
+      grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z));
+    }
+
+    for (int i = 0; i <= bins_per_axis.y; i++) {
+      grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
+      grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z));
+    }
+    for (int i = 0; i <= bins_per_axis.y; i++) {
+      grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z));
+      grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z));
+    }
+
+    for (int i = 0; i <= bins_per_axis.x; i++) {
+      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z));
+      grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z));
+    }
+    for (int i = 0; i <= bins_per_axis.z; i++) {
+      grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z));
+      grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z));
+    }
+
+    grid.Update(grid_data);
+  }
 
   glm::mat4 model(1);
   grid.Draw(projection, view * model);

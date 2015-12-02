@@ -21,15 +21,16 @@
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
 #include "chrono_opengl/shapes/ChOpenGLText.h"
 #include "chrono_opengl/ChOpenGLCamera.h"
+#include "chrono_opengl/shapes/ChOpenGLBars.h"
 
-#include "physics/ChSystem.h"
-#include "core/ChTimer.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/ChTimerParallel.h"
 namespace chrono {
 namespace opengl {
 class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
  public:
   ChOpenGLHUD();
-  bool Initialize(ChOpenGLCamera* camera);
+  bool Initialize(ChOpenGLCamera* camera, ChTimerParallel* viewer_timer);
   void GenerateHelp();
   void GenerateCamera();
   void GenerateSystem(ChSystem* physics_system);
@@ -49,7 +50,10 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
 
  private:
   ChOpenGLText text;
+  ChOpenGLBars bars;
   ChOpenGLShader font_shader;
+  ChOpenGLShader bar_shader;
+
   float sx, sy;
   float aspect, z_x, z_y;
   char buffer[50];
@@ -57,7 +61,7 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
 
   float time_geometry, time_text, time_total, fps;
 
-  ChTimer<double > timer_text, timer_render, timer_geometry;
+  ChTimerParallel* timer;
 };
 }
 }

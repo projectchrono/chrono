@@ -14,8 +14,7 @@
 // OpenGL viewer, this class draws the system to the screen and handles input
 // =============================================================================
 
-#ifndef CHOPENGLVIEWER_H
-#define CHOPENGLVIEWER_H
+#pragma once
 
 #include "chrono_opengl/core/ChApiOpenGL.h"
 #include "chrono_opengl/core/ChOpenGLBase.h"
@@ -31,6 +30,8 @@
 #include "physics/ChSystem.h"
 #include "core/ChTimer.h"
 
+#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/ChTimerParallel.h"
 #include <glfw3.h>
 
 namespace chrono {
@@ -75,6 +76,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   ChOpenGLOBJ cone;
 
   ChOpenGLCloud cloud;
+  ChOpenGLCloud fluid;
   ChOpenGLWires grid;
 
   ChOpenGLContacts contact_renderer;
@@ -82,6 +84,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   ChOpenGLGraphs graph_renderer;
 
   std::vector<glm::vec3> cloud_data;
+  std::vector<glm::vec3> fluid_data;
   std::vector<glm::vec3> grid_data;
   int simulation_frame;   // The current frame number
   float simulation_h;     // The simulation step size
@@ -93,7 +96,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   bool use_vsync;
   RenderMode render_mode;
 
-  ChTimer<double > timer_text, timer_render, timer_geometry;
+  ChTimerParallel timer;
 
   glm::mat4 model, view, projection, modelview;
 
@@ -110,4 +113,3 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 }
 }
 
-#endif  // END of CHOPENGLVIEWER_H

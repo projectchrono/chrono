@@ -21,6 +21,7 @@ find_package(OpenGL)
 find_package(GLM)
 find_package(GLEW)
 find_package(GLFW)
+find_package(THRUST)
 
 # On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is
 # optional.  If not specified, it is the user's responsibility to make them
@@ -49,6 +50,7 @@ SET(CH_OPENGL_INCLUDES
     ${GLM_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIR}
+    ${THRUST_INCLUDE_DIR}
 )
 
 INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
@@ -67,6 +69,8 @@ ADD_EXECUTABLE(embedfile embedfile.cpp)
 
 #All shaders are compiled into strings by embedfile.cpp
 SET(GLSL_SHADERS
+  bar_frag
+  bar_vert
   cloud_frag
   cloud_vert
   dot_frag
@@ -163,11 +167,13 @@ SET(CE_OpenGL_SHAPES_FILES
   shapes/ChOpenGLCloud.cpp
   shapes/ChOpenGLWires.cpp
   shapes/ChOpenGLText.cpp
+  shapes/ChOpenGLBars.cpp
   shapes/ChOpenGLOBJ.cpp
   shapes/obj/ChOpenGLOBJLoader.cpp
   shapes/ChOpenGLCloud.h
   shapes/ChOpenGLWires.h
   shapes/ChOpenGLText.h
+  shapes/ChOpenGLBars.h
   shapes/ChOpenGLOBJ.h
   shapes/obj/ChOpenGLOBJLoader.h
   )
@@ -190,6 +196,8 @@ SET(CE_OpenGL_RESOURCES_FILES
   ${CMAKE_BINARY_DIR}/resources/cloud_vert.h
   ${CMAKE_BINARY_DIR}/resources/dot_frag.h
   ${CMAKE_BINARY_DIR}/resources/dot_vert.h
+  ${CMAKE_BINARY_DIR}/resources/bar_frag.h
+  ${CMAKE_BINARY_DIR}/resources/bar_vert.h
   ${CMAKE_BINARY_DIR}/resources/sphere_frag.h
   ${CMAKE_BINARY_DIR}/resources/sphere_vert.h
   ${CMAKE_BINARY_DIR}/resources/box.h
@@ -245,7 +253,8 @@ TARGET_LINK_LIBRARIES(ChronoEngine_opengl
   ${GLEW_LIBRARY}
   ${GLFW_LIBRARY}
   ${OPENGL_LIBRARIES}
-  ChronoEngine)
+  ChronoEngine
+  ChronoEngine_parallel)
 
 INSTALL(TARGETS ChronoEngine_opengl
   RUNTIME DESTINATION bin

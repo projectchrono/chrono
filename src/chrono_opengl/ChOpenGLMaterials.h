@@ -19,6 +19,16 @@
 namespace chrono {
 namespace opengl {
 
+static glm::vec3 ColorConverter(int hex_value) {
+  glm::vec3 rgbColor;
+
+  rgbColor.r = ((hex_value >> 16) & 0xFF) / 255.0;  // Extract the RR byte
+  rgbColor.g = ((hex_value >> 8) & 0xFF) / 255.0;   // Extract the GG byte
+  rgbColor.b = ((hex_value)&0xFF) / 255.0;          // Extract the BB byte
+
+  return rgbColor;
+}
+
 static ChOpenGLMaterial white(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
 static ChOpenGLMaterial red(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1));
 static ChOpenGLMaterial river(glm::vec3(0, 0, 0),
@@ -39,6 +49,9 @@ static ChOpenGLMaterial slate(glm::vec3(85.0f, 98.0f, 112.0f) / 255.0f * ambient
 static ChOpenGLMaterial pacifica(glm::vec3(78.0f, 205.0f, 196.0f) / 255.0f * ambient,
                                  glm::vec3(78.0f, 205.0f, 196.0f) / 255.0f,
                                  glm::vec3(1, 1, 1));
+
+static ChOpenGLMaterial blue_jeans(ColorConverter(0x5D9CEC) * ambient, ColorConverter(0x5D9CEC), glm::vec3(1, 1, 1));
+
 static ChOpenGLMaterial apple(glm::vec3(199.0f, 244.0f, 100.0f) / 255.0f * ambient,
                               glm::vec3(199.0f, 244.0f, 100.0f) / 255.0f,
                               glm::vec3(1, 1, 1));
