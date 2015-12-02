@@ -21,6 +21,7 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
+#include "chrono_parallel/constraints/ChConstraintUtils.h"
 
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsCreators.h"
@@ -217,9 +218,12 @@ bool CompareContacts(ChSystemParallel* msystem) {
 
   ((ChLcpSolverParallelDVI*)msystem->GetLcpSolverSpeed())->ComputeD();
 
-  CompressedMatrix<real>& D_n_T = msystem->data_manager->host_data.D_n_T;
-  CompressedMatrix<real>& D_t_T = msystem->data_manager->host_data.D_t_T;
-  CompressedMatrix<real>& D_s_T = msystem->data_manager->host_data.D_s_T;
+  SubMatrixType D_n_T = submatrix(msystem->data_manager->host_data.D_T, 0, 0, msystem->data_manager->num_rigid_contacts,
+                                    msystem->data_manager->num_dof);
+  SubMatrixType D_t_T = submatrix(msystem->data_manager->host_data.D_T, msystem->data_manager->num_rigid_contacts, 0,
+                                    2 * msystem->data_manager->num_rigid_contacts, msystem->data_manager->num_dof);
+  SubMatrixType D_s_T = submatrix(msystem->data_manager->host_data.D_T, 3 * msystem->data_manager->num_rigid_contacts,
+                                    0, 3 * msystem->data_manager->num_rigid_contacts, msystem->data_manager->num_dof);
 
   int nnz_normal = 6 * 2 * msystem->data_manager->num_rigid_contacts;
   int nnz_tangential = 6 * 4 * msystem->data_manager->num_rigid_contacts;

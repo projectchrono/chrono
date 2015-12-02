@@ -25,6 +25,7 @@
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/collision/ChCNarrowphaseUtils.h"
+#include "chrono_parallel/constraints/ChConstraintUtils.h"
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChMathematics.h"
@@ -132,7 +133,7 @@ int main(int argc, char* argv[]) {
                       body_B->Variables().Get_qb().GetElementN(5));
 
     real3 temp = R3(0);
-    Orthogonalize(U, V, W);  // read 3 real
+    chrono::Orthogonalize(U, V, W);  // read 3 real
 
     //      ChVector<real> Vx, Vy, Vz;
     //      ChVector<real> VN = ToChVector(U);
@@ -145,7 +146,7 @@ int main(int argc, char* argv[]) {
       real3 omega_b1 = A_O;
       real3 vel_b1 = A_V;
       real3 T3, T4, T5;
-      Compute_Jacobian(A_R, U, V, W, p1 - ToReal3(body_A->GetPos()), T3, T4, T5);
+      chrono::Compute_Jacobian(A_R, U, V, W, p1 - ToReal3(body_A->GetPos()), T3, T4, T5);
       temp.x = dot(-U, vel_b1) + dot(T3, omega_b1);
       temp.y = dot(-V, vel_b1) + dot(T4, omega_b1);
       temp.z = dot(-W, vel_b1) + dot(T5, omega_b1);
@@ -154,7 +155,7 @@ int main(int argc, char* argv[]) {
       real3 omega_b2 = B_O;
       real3 vel_b2 = B_V;
       real3 T6, T7, T8;
-      Compute_Jacobian(B_R, U, V, W, p2 - ToReal3(body_B->GetPos()), T6, T7, T8);
+      chrono::Compute_Jacobian(B_R, U, V, W, p2 - ToReal3(body_B->GetPos()), T6, T7, T8);
       temp.x += dot(U, vel_b2) + dot(-T6, omega_b2);
       temp.y += dot(V, vel_b2) + dot(-T7, omega_b2);
       temp.z += dot(W, vel_b2) + dot(-T8, omega_b2);

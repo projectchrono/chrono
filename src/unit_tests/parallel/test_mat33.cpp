@@ -23,6 +23,7 @@
 
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/constraints/ChConstraintUtils.h"
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChMathematics.h"
@@ -41,7 +42,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Cross Matrix\n";
 
     real3 v, w;
-    Orthogonalize(n, v, w);
+    chrono::Orthogonalize(n, v, w);
 
     M33 cross_m1 = XMatrix(n);
 
