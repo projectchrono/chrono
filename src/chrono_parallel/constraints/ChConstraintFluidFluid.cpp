@@ -143,9 +143,9 @@ void ChConstraintFluidFluid::Normalize_Density_Fluid() {
 }
 void ChConstraintFluidFluid::Build_D_Fluid() {
   LOG(INFO) << "ChConstraintFluidFluid::Build_D_Fluid";
-  //  if (num_fluid_contacts <= 0) {
-  //    return;
-  //  }
+    if (num_fluid_contacts <= 0) {
+      return;
+    }
   real viscosity = data_manager->settings.fluid.viscosity;
   real mass = data_manager->settings.fluid.mass;
   real h = data_manager->settings.fluid.kernel_radius;
@@ -525,6 +525,9 @@ void ChConstraintFluidFluid::GenerateSparsity() {
 }
 
 void ChConstraintFluidFluid::DetermineNeighbors() {
+  if(num_fluid_bodies==0){
+    return;
+  }
   LOG(INFO) << "ChConstraintFluidFluid::DetermineNeighbors";
   // get a reference to the contact body ID data
   host_vector<int2>& bids = data_manager->host_data.bids_fluid_fluid;

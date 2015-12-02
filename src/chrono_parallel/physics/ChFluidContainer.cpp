@@ -1,9 +1,8 @@
 
 #include <stdlib.h>
 #include <algorithm>
-
+#include <math.h>
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "core/ChLinearAlgebra.h"
 #include <chrono_parallel/physics/ChFluidContainer.h>
 
 namespace chrono {
@@ -16,7 +15,7 @@ using namespace geometry;
 
 /// CLASS FOR A 3DOF FLUID NODE
 
-ChFluidContainer::ChFluidContainer(ChSystemParallel* physics_system) {
+ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
     system = physics_system;
     system->AddFluid(this);
 }

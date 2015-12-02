@@ -136,7 +136,7 @@ int ChSystemParallel::Integrate_Y() {
     otherphysicslist[i]->Update(ChTime);
   }
 
-  if (!fluid_container == 0) {
+  if (fluid_container != 0) {
     fluid_container->UpdatePosition(ChTime);
   }
 

@@ -40,7 +40,7 @@ void ChLcpSolverParallel::ComputeInvMassMatrix() {
 
   // Each rigid object has 3 mass entries and 9 inertia entries
   // Each shaft has one inertia entry
-  M_inv.reserve(num_bodies * 12 + num_shafts * 1);
+  M_inv.reserve(num_bodies * 12 + num_shafts * 1 + num_fluid_bodies * 3);
   // The mass matrix is square and each rigid body has 6 DOF
   // Shafts have one DOF
   M_inv.resize(num_dof, num_dof);
@@ -102,8 +102,6 @@ void ChLcpSolverParallel::ComputeInvMassMatrix() {
     M_inv.append(offset + i * 3 + 2, offset + i * 3 + 2, inv_fluid_mass);
     M_inv.finalize(offset + i * 3 + 2);
   }
-
-  M_invk =
 
   M_invk = v + M_inv * hf;
 }

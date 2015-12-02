@@ -19,19 +19,18 @@
 
 #pragma once
 
-#include <math.h>
-
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
 #include "chrono_parallel/ChDataManager.h"
+
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
-class ChSystemParallel;
+class ChSystemParallelDVI;
 
 class CH_PARALLEL_API ChFluidContainer : public ChPhysicsItem {
   public:
-    ChFluidContainer(ChSystemParallel* system);
+    ChFluidContainer(ChSystemParallelDVI* system);
     ~ChFluidContainer();
 
     ChFluidContainer(const ChFluidContainer& other);             // Copy constructor
@@ -51,6 +50,6 @@ class CH_PARALLEL_API ChFluidContainer : public ChPhysicsItem {
     void SetPos_dt(const int& i, const real3& mposdt);
 
   private:
-    ChSystemParallel* system;
+    ChSystemParallelDVI* system;
 };
 }

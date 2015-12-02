@@ -169,7 +169,7 @@ void ChCBroadphase::OneLevelBroadphase() {
 
 #pragma omp parallel for
   for (int i = 0; i < num_bins_active; i++) {
-    f_Count_AABB_AABB_Intersection(i, aabb_min, aabb_max, bin_number_out, bin_aabb_number, bin_start_index, fam_data,
+    f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out, bin_aabb_number, bin_start_index, fam_data,
                                    obj_active, obj_data_id, num_contact);
   }
 
@@ -180,13 +180,13 @@ void ChCBroadphase::OneLevelBroadphase() {
 
 #pragma omp parallel for
   for (int index = 0; index < num_bins_active; index++) {
-    f_Store_AABB_AABB_Intersection(index, aabb_min, aabb_max, bin_number_out, bin_aabb_number, bin_start_index,
+    f_Store_AABB_AABB_Intersection(index, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out, bin_aabb_number, bin_start_index,
                                       num_contact, fam_data, obj_active, obj_data_id, contact_pairs);
   }
-  LOG(TRACE) << "Thrust_Sort(contact_pairs);: ";
-  Thrust_Sort(contact_pairs);
-  LOG(TRACE) << "Thrust_Unique(contact_pairs);: ";
-  number_of_contacts_possible = Thrust_Unique(contact_pairs);
+  //LOG(TRACE) << "Thrust_Sort(contact_pairs);: ";
+  //Thrust_Sort(contact_pairs);
+  //LOG(TRACE) << "Thrust_Unique(contact_pairs);: ";
+  //number_of_contacts_possible = Thrust_Unique(contact_pairs);
   contact_pairs.resize(number_of_contacts_possible);
   LOG(TRACE) << "Number of unique collisions: " << number_of_contacts_possible;
 }
@@ -285,7 +285,7 @@ void ChCBroadphase::TwoLevelBroadphase() {
 
 #pragma omp parallel for
   for (int i = 0; i < num_active_leaves; i++) {
-    f_Count_AABB_AABB_Intersection(i, aabb_min, aabb_max, leaf_number_out, leaf_aabb_number, leaf_start_index, fam_data,
+    f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, leaf_number_out, leaf_aabb_number, leaf_start_index, fam_data,
                                    obj_active, obj_data_id, num_contact);
   }
   Thrust_Exclusive_Scan(num_contact);
@@ -299,12 +299,12 @@ void ChCBroadphase::TwoLevelBroadphase() {
 
 #pragma omp parallel for
   for (int i = 0; i < num_active_leaves; i++) {
-    f_Store_AABB_AABB_Intersection(i, aabb_min, aabb_max, leaf_number_out, leaf_aabb_number, leaf_start_index,
+    f_Store_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, leaf_number_out, leaf_aabb_number, leaf_start_index,
                                       num_contact, fam_data, obj_active, obj_data_id, contact_pairs);
   }
 
-  thrust::stable_sort(thrust_parallel, contact_pairs.begin(), contact_pairs.end());
-  number_of_contacts_possible = Thrust_Unique(contact_pairs);
+  //thrust::stable_sort(thrust_parallel, contact_pairs.begin(), contact_pairs.end());
+  //number_of_contacts_possible = Thrust_Unique(contact_pairs);
 
   contact_pairs.resize(number_of_contacts_possible);
 }
