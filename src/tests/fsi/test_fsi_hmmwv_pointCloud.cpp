@@ -425,9 +425,9 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
 		ChVector<> s_pos = ChVector<>(-9.5, .20, 3);
 		Real s_radius = 0.3;
-		CreateSphereFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
-				mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
-				s_radius, mat_g, s_pos);
+//		CreateSphereFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
+//				mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
+//				s_radius, mat_g, s_pos);
 
 #endif
 	}

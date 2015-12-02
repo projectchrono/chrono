@@ -364,7 +364,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	//
 
 	double cyl_length = 3.5;
-	double cyl_radius = .25;
+	double cyl_radius = .55;
 	ChVector<> cyl_pos = ChVector<>(0, 0, 0);
 	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
 

@@ -359,13 +359,63 @@ void Add_Rigid_ForceTorques_To_ChSystem(
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < numRigids; i++) {
 		chrono::ChSharedPtr<chrono::ChBody> bodyPtr = FSI_Bodies[i];
-		bodyPtr->Empty_forces_accumulators();
-		Real3 mforce = rigid_FSI_ForcesD[i];
-		bodyPtr->Accumulate_force(ConvertRealToChVector(mforce),
-				bodyPtr->GetPos(), false);
 
-		Real3 mtorque = rigid_FSI_TorquesD[i];
-		bodyPtr->Accumulate_torque(ConvertRealToChVector(mtorque), false);
+//		// --------------------------------
+//		// Add forces to bodies: Version 1
+//		// --------------------------------
+//
+//		bodyPtr->Empty_forces_accumulators();
+//		Real3 mforce = rigid_FSI_ForcesD[i];
+//
+//		printf("\n\n\n\n\n\n\n rigid forces %e %e %e \n", mforce.x, mforce.y,
+//				mforce.z);
+//		std::cout << "body name: " << bodyPtr->GetName() << "\n\n\n\n\n";
+//		bodyPtr->Empty_forces_accumulators();
+//
+//		bodyPtr->Accumulate_force(ConvertRealToChVector(mforce),
+//				bodyPtr->GetPos(), false);
+//
+//		Real3 mtorque = rigid_FSI_TorquesD[i];
+//		bodyPtr->Accumulate_torque(ConvertRealToChVector(mtorque), false);
+
+
+		// --------------------------------
+		// Add forces to bodies: Version 2
+		// --------------------------------
+
+		//	string forceTag("hydrodynamics_force");
+		char forceTag[] = "fsi_force";
+		char torqueTag[] = "fsi_torque";
+		chrono::ChSharedPtr<chrono::ChForce> hydroForce = bodyPtr->SearchForce(
+				forceTag);
+		chrono::ChSharedPtr<chrono::ChForce> hydroTorque = bodyPtr->SearchForce(
+				torqueTag);
+
+		if (hydroForce.IsNull()) {
+			hydroForce = chrono::ChSharedPtr<chrono::ChForce>(new chrono::ChForce);
+			hydroTorque = chrono::ChSharedPtr<chrono::ChForce>(new chrono::ChForce);
+
+			hydroForce->SetMode(FTYPE_FORCE);
+			hydroTorque->SetMode(FTYPE_TORQUE);
+
+			hydroForce->SetName(forceTag);
+			hydroTorque->SetName(torqueTag);
+
+			bodyPtr->AddForce(hydroForce);
+			bodyPtr->AddForce(hydroTorque);
+		}
+
+		chrono::ChVector<> mforce = ConvertRealToChVector(rigid_FSI_ForcesD[i]);
+		chrono::ChVector<> mtorque = ConvertRealToChVector(rigid_FSI_TorquesD[i]);
+
+		hydroForce->SetVpoint(bodyPtr->GetPos());
+		hydroForce->SetMforce(mforce.Length());
+		mforce.Normalize();
+		hydroForce->SetDir(mforce);
+
+		hydroTorque->SetMforce(mtorque.Length());
+		mtorque.Normalize();
+		hydroTorque->SetDir(mtorque);
 	}
 }
 

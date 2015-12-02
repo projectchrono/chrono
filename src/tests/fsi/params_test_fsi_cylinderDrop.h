@@ -32,7 +32,7 @@ Real time_hold_vehicle = 0.2;              // 0.1;  // 0.2;
 Real time_pause_fluid_external_force = 0;  //.05;//0.1;//0.1;  // 0.2;
 
 Real contact_recovery_speed = 1;
-Real maxFlowVelocity = 12;  // in an ideal case, these two need to be the same
+Real maxFlowVelocity = 1;//12;  // in an ideal case, these two need to be the same
 
 // Total simulation duration.
 Real time_end = 15;
@@ -61,7 +61,7 @@ bool initializeFluidFromFile = false; // 	IMPORTANT: when true, "haveFluid" in f
 // options.
 //	for a double security, do your best to set "haveFluid" and "useWallBce" based on the data you have from
 // checkpoint files
-BceVersion bceType = ADAMI; // mORIGINAL; //ADAMI; // when set to adami, change the LARGE_PRES to zero. although not
+BceVersion bceType = mORIGINAL;//ADAMI; // mORIGINAL; //ADAMI; // when set to adami, change the LARGE_PRES to zero. although not
 // very important, since this option will overwrite the BCE pressure and
 // paramsH.LARGE_PRES is only used for the initialization of the BCE markers
 
@@ -85,7 +85,7 @@ void SetupParamsH(SimParams& paramsH) {
 	paramsH.BASEPRES = 0;    // 10;
 	paramsH.LARGE_PRES = 0;  // paramsH.BASEPRES;//10000;
 	paramsH.deltaPress;      //** modified below
-	paramsH.multViscosity_FSI = 5.0;
+	paramsH.multViscosity_FSI = 1;//5.0;
 	paramsH.gravity = mR3(0, 0, -9.81);  // mR3(0);//mR3(0, -9.81, 0);
 	paramsH.bodyForce3 =
 	mR3(0, 0, 0); // mR4(3.2e-3,0,0,0);// mR4(0);;// /*Re = 100 */ //mR4(3.2e-4, 0, 0, 0);/*Re = 100 */
@@ -104,7 +104,7 @@ void SetupParamsH(SimParams& paramsH) {
 	paramsH.gammaBB = 0.5;
 	paramsH.binSize0;           // will be changed
 	paramsH.rigidRadius;        // will be changed
-	paramsH.densityReinit = 1; // 0: no re-initialization, 1: with initialization
+	paramsH.densityReinit = 0; // 0: no re-initialization, 1: with initialization
 	paramsH.enableTweak = 1;    // 0: no tweak, 1: have tweak
 	paramsH.enableAggressiveTweak = 1; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
 	paramsH.tweakMultV = paramsH.v_Max / (paramsH.HSML / paramsH.dT); // 0.04;		// NOTE: HSML and dT must be defined. So this line comes after them
