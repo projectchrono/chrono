@@ -88,59 +88,11 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
   filename = output_dir + "dump_fric.dat";
   OutputBlazeVector(fric, filename);
 
-  // output D_T
-
-  int nnz_normal = 6 * 2 * num_rigid_contacts;
-  int nnz_tangential = 6 * 4 * num_rigid_contacts;
-  int nnz_spinning = 6 * 3 * num_rigid_contacts;
-
-  int num_normal = 1 * num_rigid_contacts;
-  int num_tangential = 2 * num_rigid_contacts;
-  int num_spinning = 3 * num_rigid_contacts;
-
   CompressedMatrix<real> D_T;
   uint nnz_total = nnz_bilaterals;
 
-  switch (settings.solver.solver_mode) {
-    case NORMAL: {
-      nnz_total += nnz_normal;
-      D_T.reserve(nnz_total);
-      D_T.resize(num_constraints, num_dof, false);
-      SubMatrixType D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_rigid_contacts, num_dof);
-      D_n_T_sub = host_data.D_n_T;
-    } break;
-    case SLIDING: {
-      nnz_total += nnz_normal + num_tangential;
-      D_T.reserve(nnz_total);
-      D_T.resize(num_constraints, num_dof, false);
-
-      SubMatrixType D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_rigid_contacts, num_dof);
-      D_n_T_sub = host_data.D_n_T;
-
-      SubMatrixType D_t_T_sub = blaze::submatrix(D_T, num_rigid_contacts, 0, 2 * num_rigid_contacts, num_dof);
-      D_t_T_sub = host_data.D_t_T;
-    } break;
-    case SPINNING: {
-      nnz_total += nnz_normal + num_tangential + num_spinning;
-      D_T.reserve(nnz_total);
-      D_T.resize(num_constraints, num_dof, false);
-
-      SubMatrixType D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_rigid_contacts, num_dof);
-      D_n_T_sub = host_data.D_n_T;
-
-      SubMatrixType D_t_T_sub = blaze::submatrix(D_T, num_rigid_contacts, 0, 2 * num_rigid_contacts, num_dof);
-      D_t_T_sub = host_data.D_t_T;
-
-      SubMatrixType D_s_T_sub = blaze::submatrix(D_T, 3 * num_rigid_contacts, 0, 3 * num_rigid_contacts, num_dof);
-      D_s_T_sub = host_data.D_t_T;
-    } break;
-  }
-
-  SubMatrixType D_b_T = blaze::submatrix(D_T, num_unilaterals, 0, num_bilaterals, num_dof);
-  D_b_T = host_data.D_b_T;
-
   filename = output_dir + "dump_D.dat";
-  OutputBlazeMatrix(D_T, filename);
+  OutputBlazeMatrix(host_data.D_T, filename);
 
   // output M_inv
   filename = output_dir + "dump_Minv.dat";
