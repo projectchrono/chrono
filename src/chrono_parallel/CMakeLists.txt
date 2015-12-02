@@ -174,11 +174,11 @@ SOURCE_GROUP("" FILES ${ChronoEngine_Parallel_BASE})
 
 SET(ChronoEngine_Parallel_PHYSICS
     physics/ChSystemParallel.h
-    physics/ChNodeFluid.h
+    physics/ChFluidContainer.h
     physics/ChSystemParallel.cpp
     physics/ChSystemParallelDVI.cpp
     physics/ChSystemParallelDEM.cpp
-    physics/ChNodeFluid.cpp
+    physics/ChFluidContainer.cpp
     )
 
 SOURCE_GROUP(physics FILES ${ChronoEngine_Parallel_PHYSICS})
@@ -208,31 +208,31 @@ SOURCE_GROUP(math FILES ${ChronoEngine_Parallel_MATH})
 SET(ChronoEngine_Parallel_SOLVER
     solver/ChSolverParallel.h
     solver/ChSolverJacobi.h
-    solver/ChSolverCG.h
-    solver/ChSolverCGS.h
-    solver/ChSolverPGS.h
-    solver/ChSolverGD.h
-    solver/ChSolverSD.h
+    #solver/ChSolverCG.h
+    #solver/ChSolverCGS.h
+    #solver/ChSolverPGS.h
+    #solver/ChSolverGD.h
+    #solver/ChSolverSD.h
     solver/ChSolverAPGD.h
     solver/ChSolverAPGDREF.h
-    solver/ChSolverMinRes.h
-    solver/ChSolverBiCG.h
-    solver/ChSolverBiCGStab.h
-    solver/ChSolverPDIP.h
+    #solver/ChSolverMinRes.h
+    #solver/ChSolverBiCG.h
+    #solver/ChSolverBiCGStab.h
+    #solver/ChSolverPDIP.h
     solver/ChSolverParallel.cpp
-    solver/ChSolverJacobi.cpp
-    solver/ChSolverCG.cpp
-    solver/ChSolverCGS.cpp
-    solver/ChSolverPGS.cpp
-    solver/ChSolverGD.cpp
-    solver/ChSolverSD.cpp
+    #solver/ChSolverJacobi.cpp
+    #solver/ChSolverCG.cpp
+    #solver/ChSolverCGS.cpp
+    #solver/ChSolverPGS.cpp
+    #solver/ChSolverGD.cpp
+    #solver/ChSolverSD.cpp
     #solver/ChSolverFN.cpp
     solver/ChSolverAPGD.cpp
     solver/ChSolverAPGDREF.cpp
-    solver/ChSolverMinRes.cpp
-    solver/ChSolverBiCG.cpp
-    solver/ChSolverBiCGStab.cpp
-    solver/ChSolverPDIP.cpp
+    #solver/ChSolverMinRes.cpp
+    #solver/ChSolverBiCG.cpp
+    #solver/ChSolverBiCGStab.cpp
+    #solver/ChSolverPDIP.cpp
     )
 
 SOURCE_GROUP(solver FILES ${ChronoEngine_Parallel_SOLVER})
@@ -242,6 +242,10 @@ SET(ChronoEngine_Parallel_CONSTRAINTS
     constraints/ChConstraintRigidRigid.h
     constraints/ChConstraintBilateral.cpp
     constraints/ChConstraintBilateral.h
+    constraints/ChConstraintRigidFluid.cpp
+    constraints/ChConstraintRigidFluid.h
+    constraints/ChConstraintFluidFluid.cpp
+    constraints/ChConstraintFluidFluid.h
     )
 
 SOURCE_GROUP(constraints FILES ${ChronoEngine_Parallel_CONSTRAINTS})
