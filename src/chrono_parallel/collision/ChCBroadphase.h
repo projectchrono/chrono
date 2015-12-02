@@ -30,18 +30,49 @@ class CH_PARALLEL_API ChCBroadphase {
   // functions
   ChCBroadphase();
   void DetectPossibleCollisions();
+  void OneLevelBroadphase();
+  void TwoLevelBroadphase();
+  void DetermineBoundingBox();
+  void OffsetAABB();
+  void ComputeTopLevelResolution();
+  void FillStateData();
+  void SplitContacts();
+
   ChParallelDataManager* data_manager;
+  uint num_shapes;
+  real level_one_density;
+  real lelel_two_density;
+
  private:
   uint num_bins_active;
   uint number_of_bin_intersections;
   uint number_of_contacts_possible;
+  uint number_of_leaf_intersections;
+  uint num_active_leaves;
 
-  custom_vector<uint> bins_intersected;
-  custom_vector<uint> bin_number;
-  custom_vector<uint> bin_number_out;
-  custom_vector<uint> aabb_number;
-  custom_vector<uint> bin_start_index;
-  custom_vector<uint> num_contact;
+  real3 inv_bin_size;
+  host_vector<uint> bins_intersected;
+  host_vector<uint> bin_number;
+  host_vector<uint> bin_number_out;
+  host_vector<uint> bin_aabb_number;
+  host_vector<uint> bin_start_index;
+  host_vector<uint> num_contact;
+
+  host_vector<uint> leaves_intersected;
+  host_vector<uint> leaves_per_bin;
+  host_vector<uint> leaf_number;
+  host_vector<uint> leaf_number_out;
+  host_vector<uint> leaf_aabb_number;
+  host_vector<uint> leaf_start_index;
+
+  host_vector<short2> fam_data;
+  host_vector<bool> obj_active;
+  host_vector<uint> obj_data_id;
+
+uint num_rigid_shapes;
+uint num_rigid_bodies;
+uint num_fluid_bodies;
+
 
 };
 }

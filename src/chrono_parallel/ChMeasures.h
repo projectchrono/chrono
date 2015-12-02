@@ -30,12 +30,12 @@ struct collision_measures {
     min_bounding_point = 0;
     max_bounding_point = 0;
     global_origin = 0;
-    bin_size_vec = 0;
+    bin_size = 0;
   }
   real3 min_bounding_point;  // The minimal global bounding point
   real3 max_bounding_point;  // The maximum global bounding point
   real3 global_origin;       // The global zero point
-  real3 bin_size_vec;        // Vector holding bin sizes for each dimension
+  real3 bin_size;        // Vector holding bin sizes for each dimension
 };
 // solver_measures, like the name implies is the structure that contains all
 // measures associated with the parallel solver.
@@ -48,9 +48,15 @@ struct solver_measures {
   int total_iteration;   // The total number of iterations performed, this variable accumulates
   real residual;         // Current residual for the solver
   real objective_value;  // Current objective value for the solver
+  real old_objective_value;  // Objective value from the previous iter
 
   // These three variables are used to store the convergence history of the solver
-  custom_vector<real> maxd_hist, maxdeltalambda_hist;
+  custom_vector<real> maxd_hist, maxdeltalambda_hist, time;
+  custom_vector<real> apgd_beta;
+  custom_vector<real> apgd_step;
+  custom_vector<real> apgd_step_time;
+  custom_vector<real> violation;
+
 };
 
 struct measures_container {

@@ -114,8 +114,8 @@ void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<bool>& active_i
   aabb_generator->GenerateAABB();
 #pragma omp parallel for
   for (int i = 0; i < data_manager->host_data.typ_rigid.size(); i++) {
-    real3 Bmin = data_manager->host_data.aabb_min_rigid[i];
-    real3 Bmax = data_manager->host_data.aabb_max_rigid[i];
+    real3 Bmin = data_manager->host_data.aabb_min[i];
+    real3 Bmax = data_manager->host_data.aabb_max[i];
 
     bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) &&
                      (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
@@ -127,13 +127,13 @@ void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<bool>& active_i
 
 std::vector<int2> ChCollisionSystemParallel::GetOverlappingPairs() {
   std::vector<int2> pairs;
-  pairs.resize(data_manager->host_data.pair_rigid_rigid.size());
-  for (int i = 0; i < data_manager->host_data.pair_rigid_rigid.size(); i++) {
-    int2 pair = I2(int(data_manager->host_data.pair_rigid_rigid[i] >> 32),
-                   int(data_manager->host_data.pair_rigid_rigid[i] & 0xffffffff));
-    pairs[i] = pair;
-  }
-  return pairs;
+    pairs.resize(data_manager->host_data.contact_pairs.size());
+    for (int i = 0; i < data_manager->host_data.contact_pairs.size(); i++) {
+      int2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
+                     int(data_manager->host_data.contact_pairs[i] & 0xffffffff));
+      pairs[i] = pair;
+    }
+    return pairs;
 }
 
 }  // END_OF_NAMESPACE____

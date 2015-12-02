@@ -46,7 +46,9 @@ struct collision_settings {
     bins_per_axis = I3(20, 20, 20);
     narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     grid_density = 5;
+    leaf_density = 1;
     fixed_bins = true;
+    use_two_level = true;
   }
 
   real3 min_bounding_point, max_bounding_point;
@@ -73,8 +75,10 @@ struct collision_settings {
   // the type of narrowphase used at runtime.
   NARROWPHASETYPE narrowphase_algorithm;
   real grid_density;
-  //use fixed number of bins instead of tuning them
+  real leaf_density;
+  // use fixed number of bins instead of tuning them
   bool fixed_bins;
+  bool use_two_level;
 };
 
 

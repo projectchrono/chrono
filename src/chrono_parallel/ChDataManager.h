@@ -98,9 +98,13 @@ struct host_container {
     host_vector<int> typ_rigid;         // Shape type
     host_vector<real> margin_rigid;     // Inner collision margins
     host_vector<uint> id_rigid;         // Body identifier for each shape
-    host_vector<real3> aabb_min_rigid;  // List of bounding boxes minimum point
-    host_vector<real3> aabb_max_rigid;  // List of bounding boxes maximum point
+    host_vector<real3> aabb_min;  // List of bounding boxes minimum point
+    host_vector<real3> aabb_max;  // List of bounding boxes maximum point
     host_vector<real3> convex_data;     // list of convex points
+
+
+    // Contact data
+    host_vector<long long> contact_pairs;
 
     // Contact data
     host_vector<real3> norm_rigid_rigid;
@@ -109,7 +113,6 @@ struct host_container {
     host_vector<real> dpth_rigid_rigid;
     host_vector<real> erad_rigid_rigid;
     host_vector<int2> bids_rigid_rigid;
-    host_vector<long long> pair_rigid_rigid;
 
     host_vector<real3> norm_rigid_fluid;
     host_vector<real3> cpta_rigid_fluid;

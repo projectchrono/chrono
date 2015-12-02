@@ -19,11 +19,12 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
  public:
   ChCNarrowphaseDispatch() {}
   ~ChCNarrowphaseDispatch() {}
+  // clear contact data structures
+  void ClearContacts();
   // Perform collision detection
   void Process();
 
   void PreprocessCount();
-
   // Transform the shape data to the global reference frame
   // Perform this as a preprocessing step to improve performance
   // Performance is improved because the amount of data loaded is still the same
@@ -32,7 +33,9 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
   void PreprocessLocalToParent();
 
   // For each contact pair decide what to do.
-  void Dispatch();
+  void DispatchRigid();
+  void DispatchRigidFluid();
+  void DispatchFluid();
   void DispatchMPR();
   void DispatchGJK();
   void DispatchR();
@@ -43,14 +46,21 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
   ChParallelDataManager* data_manager;
 
  private:
-  custom_vector<real3> obj_data_A_global, obj_data_B_global, obj_data_C_global;  //
-  custom_vector<real4> obj_data_R_global;
-  custom_vector<bool> contact_active;
-  custom_vector<uint> contact_index;
-  unsigned int num_potentialCollisions;
+  host_vector<real3> obj_data_A_global, obj_data_B_global, obj_data_C_global;  //
+  host_vector<real4> obj_data_R_global;
+  host_vector<bool> contact_rigid_active;
+  host_vector<bool> contact_rigid_fluid_active;
+  host_vector<bool> contact_fluid_active;
+  host_vector<uint> contact_index;
+  uint num_potential_rigid_contacts;
+  uint num_potential_fluid_contacts;
+  uint num_potential_rigid_fluid_contacts;
+
   real collision_envelope;
   NARROWPHASETYPE narrowphase_algorithm;
   SYSTEMTYPE system_type;
 };
 }  // end namespace collision
 }  // end namespace chrono
+
+

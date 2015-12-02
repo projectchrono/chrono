@@ -452,8 +452,8 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
         thrust::fill(thrust_parallel, shear_touch.begin(), shear_touch.end(), false);
 #pragma omp parallel for
         for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
-            int2 pair = I2(int(data_manager->host_data.pair_rigid_rigid[i] >> 32),
-                           int(data_manager->host_data.pair_rigid_rigid[i] & 0xffffffff));
+            int2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
+                           int(data_manager->host_data.contact_pairs[i] & 0xffffffff));
             shape_pairs[i] = pair;
         }
     }

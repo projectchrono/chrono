@@ -11,12 +11,12 @@ static void ComputeAABBSphere(const real& radius, const real3& position, real3& 
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 static void ComputeAABBTriangle(const real3& A, const real3& B, const real3& C, real3& minp, real3& maxp) {
-  minp.x = Min(A.x, Min(B.x, C.x));
-  minp.y = Min(A.y, Min(B.y, C.y));
-  minp.z = Min(A.z, Min(B.z, C.z));
-  maxp.x = Max(A.x, Max(B.x, C.x));
-  maxp.y = Max(A.y, Max(B.y, C.y));
-  maxp.z = Max(A.z, Max(B.z, C.z));
+  minp.x = std::min(A.x, std::min(B.x, C.x));
+  minp.y = std::min(A.y, std::min(B.y, C.y));
+  minp.z = std::min(A.z, std::min(B.z, C.z));
+  maxp.x = std::max(A.x, std::max(B.x, C.x));
+  maxp.y = std::max(A.y, std::max(B.y, C.y));
+  maxp.z = std::max(A.z, std::max(B.z, C.z));
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 static void ComputeAABBBox(const real3& dim,
@@ -35,52 +35,6 @@ static void ComputeAABBBox(const real3& dim,
   real3 pos = quatRotate(lpositon, rotation) + positon;
   minp = pos - temp;
   maxp = pos + temp;
-
-  // cout<<minp.x<<" "<<minp.y<<" "<<minp.z<<"  |  "<<maxp.x<<" "<<maxp.y<<" "<<maxp.z<<endl;
-  //    real3 pos = quatRotate(lpositon, rotation) + positon; //new position
-  //    real4 q1 = mult(rotation, lrotation); //full rotation
-  //    real4 q = R4(q1.y, q1.z, q1.w, q1.x);
-  //    real t[3] = { pos.x, pos.y, pos.z };
-  //    real mina[3] = { -dim.x, -dim.y, -dim.z };
-  //    real maxa[3] = { dim.x, dim.y, dim.z };
-  //    real minb[3] = { 0, 0, 0 };
-  //    real maxb[3] = { 0, 0, 0 };
-  //    real m[3][3];
-  //    real qx2 = q.x * q.x;
-  //    real qy2 = q.y * q.y;
-  //    real qz2 = q.z * q.z;
-  //    m[0][0] = 1 - 2 * qy2 - 2 * qz2;
-  //    m[1][0] = 2 * q.x * q.y + 2 * q.z * q.w;
-  //    m[2][0] = 2 * q.x * q.z - 2 * q.y * q.w;
-  //    m[0][1] = 2 * q.x * q.y - 2 * q.z * q.w;
-  //    m[1][1] = 1 - 2 * qx2 - 2 * qz2;
-  //    m[2][1] = 2 * q.y * q.z + 2 * q.x * q.w   ;
-  //    m[0][2] = 2 * q.x * q.z + 2 * q.y * q.w;
-  //    m[1][2] = 2 * q.y * q.z - 2 * q.x * q.w;
-  //    m[2][2] = 1 - 2 * qx2 - 2 * qy2;
-  //
-  //    // For all three axes
-  //    for (int i = 0; i < 3; i++) {
-  //        // Start by adding in translation
-  //        minb[i] = maxb[i] = t[i];
-  //
-  //        // Form extent by summing smaller and larger terms respectively
-  //        for (int j = 0; j < 3; j++) {
-  //            real e = m[i][j] * mina[j];
-  //            real f = m[i][j] * maxa[j];
-  //
-  //            if (e < f) {
-  //                minb[i] += e;
-  //                maxb[i] += f;
-  //            } else {
-  //                minb[i] += f;
-  //                maxb[i] += e;
-  //            }
-  //        }
-  //    }
-
-  //    minp = R3(minb[0], minb[1], minb[2]);
-  //    maxp = R3(maxb[0], maxb[1], maxb[2]);
 }
 
 static void ComputeAABBCone(const real3& dim,
@@ -140,6 +94,7 @@ static void ComputeAABBConvex(const real3* convex_points,
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ChCAABBGenerator::ChCAABBGenerator() {
+  data_manager=0;
 }
 
 void ChCAABBGenerator::GenerateAABB() {
@@ -152,16 +107,16 @@ void ChCAABBGenerator::GenerateAABB() {
   const host_vector<real3>& convex_data = data_manager->host_data.convex_data;
   const host_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
   const host_vector<real4>& body_rot = data_manager->host_data.rot_rigid;
-  uint num_rigid_shapes = data_manager->num_rigid_shapes;
-
+  const uint num_rigid_shapes = data_manager->num_rigid_shapes;
+  const uint num_fluid_bodies = data_manager->num_fluid_bodies;
   real collision_envelope = data_manager->settings.collision.collision_envelope;
-  host_vector<real3>& aabb_min_rigid = data_manager->host_data.aabb_min_rigid;
-  host_vector<real3>& aabb_max_rigid = data_manager->host_data.aabb_max_rigid;
+  host_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+  host_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
 
   LOG(TRACE) << "AABB START";
 
-  aabb_min_rigid.resize(num_rigid_shapes);
-  aabb_max_rigid.resize(num_rigid_shapes);
+  aabb_min.resize(num_rigid_shapes + num_fluid_bodies);
+  aabb_max.resize(num_rigid_shapes + num_fluid_bodies);
 
 #pragma omp parallel for
   for (int index = 0; index < num_rigid_shapes; index++) {
@@ -198,8 +153,24 @@ void ChCAABBGenerator::GenerateAABB() {
       continue;
     }
 
-    aabb_min_rigid[index] = temp_min;
-    aabb_max_rigid[index] = temp_max;
+    aabb_min[index] = temp_min;
+    aabb_max[index] = temp_max;
+  }
+  //
+
+  const host_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
+  const real fluid_radius = data_manager->settings.fluid.kernel_radius;
+  real fluid_envelope = data_manager->settings.fluid.collision_envelope;
+
+  real scale = 1.0;
+  if (data_manager->settings.fluid.fluid_is_rigid == false) {
+    scale = 0.5;
+  }
+
+#pragma omp parallel for
+  for (int index = 0; index < num_fluid_bodies; index++) {
+    aabb_min[index + num_rigid_shapes] = pos_fluid[index] - R3(fluid_radius * scale) - fluid_envelope;
+    aabb_max[index + num_rigid_shapes] = pos_fluid[index] + R3(fluid_radius * scale) + fluid_envelope;
   }
 
   LOG(TRACE) << "AABB END";

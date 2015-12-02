@@ -363,7 +363,7 @@ void ChSystemParallel::UpdateShafts() {
 // Update all fluid nodes
 // currently a stub
 void ChSystemParallel::UpdateFluidBodies() {
-  if (!fluid_container == 0) {
+  if (fluid_container != 0) {
     fluid_container->Update(ChTime);
   }
 }
