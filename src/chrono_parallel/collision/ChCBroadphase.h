@@ -65,13 +65,12 @@ class CH_PARALLEL_API ChCBroadphase {
   host_vector<uint> leaf_aabb_number;
   host_vector<uint> leaf_start_index;
 
-  host_vector<short2> fam_data;
-  host_vector<bool> obj_active;
-  host_vector<uint> obj_data_id;
+  //host_vector<short2> fam_data;
+  //host_vector<bool> obj_active;
+  //host_vector<uint> obj_data_id;
 
 uint num_rigid_shapes;
 uint num_rigid_bodies;
-uint num_fluid_bodies;
 
 
 };
