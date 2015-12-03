@@ -281,7 +281,30 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     double GetLengthX() const { return m_InertFlexVec(1); }
     /// Get the element length in the Y direction.Each layer has the same element length
     double GetLengthY() const { return m_InertFlexVec(2); }
+	// Shape functions
+	// ---------------
 
+	/// Fills the N shape function matrix.
+	/// NOTE! actually N should be a 3row, 24 column sparse matrix,
+	/// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
+	/// but to avoid wasting zero and repeated elements, here
+	/// it stores only the s1 through s8 values in a 1 row, 8 columns matrix!
+	void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
+
+	/// Fills the Nx shape function derivative matrix with respect to X.
+	/// NOTE! to avoid wasting zero and repeated elements, here
+	/// it stores only the four values in a 1 row, 8 columns matrix!
+	void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z);
+
+	/// Fills the Ny shape function derivative matrix with respect to Y.
+	/// NOTE! to avoid wasting zero and repeated elements, here
+	/// it stores only the four values in a 1 row, 8 columns matrix!
+	void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
+
+	/// Fills the Nz shape function derivative matrix with respect to Z.
+	/// NOTE! to avoid wasting zero and repeated elements, here
+	/// it stores only the four values in a 1 row, 8 columns matrix!
+	void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
   private:
     enum JacobianType { ANALYTICAL, NUMERICAL };
 
@@ -392,30 +415,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
                                    double& detJ0C,
                                    double& theta);
 
-    // Shape functions
-    // ---------------
 
-    /// Fills the N shape function matrix.
-    /// NOTE! actually N should be a 3row, 24 column sparse matrix,
-    /// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
-    /// but to avoid wasting zero and repeated elements, here
-    /// it stores only the s1 through s8 values in a 1 row, 8 columns matrix!
-    void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
-
-    /// Fills the Nx shape function derivative matrix with respect to X.
-    /// NOTE! to avoid wasting zero and repeated elements, here
-    /// it stores only the four values in a 1 row, 8 columns matrix!
-    void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z);
-
-    /// Fills the Ny shape function derivative matrix with respect to Y.
-    /// NOTE! to avoid wasting zero and repeated elements, here
-    /// it stores only the four values in a 1 row, 8 columns matrix!
-    void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
-
-    /// Fills the Nz shape function derivative matrix with respect to Z.
-    /// NOTE! to avoid wasting zero and repeated elements, here
-    /// it stores only the four values in a 1 row, 8 columns matrix!
-    void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
 
     // Helper functions
     // ----------------
@@ -494,12 +494,34 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) {
         ChMatrixNM<double, 1, 8> N;
+		ChMatrixNM<double, 1, 8> Nx;
+		ChMatrixNM<double, 1, 8> Ny;
+		ChMatrixNM<double, 1, 8> Nz;
         this->ShapeFunctions(N, U, V,
                              0);  // evaluate shape functions (in compressed vector), btw. not dependant on state
+		this->ShapeFunctionsDerivativeX(Nx, U, V, 0);
+		this->ShapeFunctionsDerivativeY(Ny, U, V, 0);
+		this->ShapeFunctionsDerivativeZ(Nz, U, V, 0);
 
-        detJ = GetLengthX() * GetLengthY() /
-               4.0;  // ***TODO***  compute exact determinant of jacobian at U,V; approx. is area/4..
+		ChMatrixNM<double, 1, 3> Nx_d0;
+		Nx_d0.MatrMultiply(Nx, m_d0);
+		ChMatrixNM<double, 1, 3> Ny_d0;
+		Ny_d0.MatrMultiply(Ny, m_d0);
+		ChMatrixNM<double, 1, 3> Nz_d0;
+		Nz_d0.MatrMultiply(Nz, m_d0);
 
+		ChMatrixNM<double, 3, 3> rd0;
+		rd0(0, 0) = Nx_d0(0, 0);
+		rd0(1, 0) = Nx_d0(0, 1);
+		rd0(2, 0) = Nx_d0(0, 2);
+		rd0(0, 1) = Ny_d0(0, 0);
+		rd0(1, 1) = Ny_d0(0, 1);
+		rd0(2, 1) = Ny_d0(0, 2);
+		rd0(0, 2) = Nz_d0(0, 0);
+		rd0(1, 2) = Nz_d0(0, 1);
+		rd0(2, 2) = Nz_d0(0, 2);
+		detJ = rd0.Det();
+		detJ *= this->GetLengthX()*this->GetLengthY()/4.0;
         ChVector<> tmp;
         ChVector<> Fv = F.ClipVector(0, 0);
         tmp = N(0) * Fv;
