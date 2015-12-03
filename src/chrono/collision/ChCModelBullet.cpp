@@ -501,7 +501,8 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
                                     bool is_static,
                                     bool is_convex,
                                     const ChVector<>& pos,
-                                    const ChMatrix33<>& rot) {
+                                    const ChMatrix33<>& rot,
+                                    double sphereswept_thickness) {
     if (!trimesh.getNumTriangles())
         return false;
 

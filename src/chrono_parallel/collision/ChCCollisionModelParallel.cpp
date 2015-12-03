@@ -415,7 +415,8 @@ bool ChCollisionModelParallel::AddTriangleMesh(const geometry::ChTriangleMesh& t
                                                bool is_static,
                                                bool is_convex,
                                                const ChVector<>& pos,
-                                               const ChMatrix33<>& rot) {
+                                               const ChMatrix33<>& rot,
+                                               double sphereswept_thickness) {
   ChFrame<> frame;
   TransformToCOG(GetBody(), pos, rot, frame);
   const ChVector<>& position = frame.GetPos();

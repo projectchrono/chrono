@@ -171,7 +171,8 @@ class ChApi ChModelBullet : public ChCollisionModel {
                                  bool is_static,
                                  bool is_convex,
                                  const ChVector<>& pos = ChVector<>(),
-                                 const ChMatrix33<>& rot = ChMatrix33<>(1));
+                                 const ChMatrix33<>& rot = ChMatrix33<>(1),
+                                 double sphereswept_thickness = 0.0);
 
     /// CUSTOM for this class only: add a concave triangle mesh that will be managed
     /// by GImpact mesh-mesh algorithm. Note that, despite this can work with
