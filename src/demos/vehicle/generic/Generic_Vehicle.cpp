@@ -46,9 +46,9 @@ using namespace chrono::vehicle;
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double     Generic_Vehicle::m_chassisMass = 663.0049;                        // chassis sprung mass
+const double     Generic_Vehicle::m_chassisMass = 995.0;                        // chassis sprung mass
 const ChVector<> Generic_Vehicle::m_chassisCOM (0, 0, 0);                          // COM location
-const ChVector<> Generic_Vehicle::m_chassisInertia(220.4453, 1067.216, 1181.078);  // chassis inertia (roll,pitch,yaw)
+const ChVector<> Generic_Vehicle::m_chassisInertia(200.0, 500.0, 600.0);  // chassis inertia (roll,pitch,yaw)
 
 const ChCoordsys<> Generic_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 

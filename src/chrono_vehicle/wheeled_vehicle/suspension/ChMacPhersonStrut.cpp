@@ -121,8 +121,6 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     ChVector<> w;
     ChMatrix33<> rot;
 
-
-
     // Create and initialize Strut body.
     // Create and initialize the cylindrical joint between upright and strut.
     // Determine the joint orientation matrix from the hardpoint locations by
@@ -138,7 +136,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_strut[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
     m_strut[side]->SetNameString(m_name + "_Strut" + suffix);
     m_strut[side]->SetPos((points[SPRING_C]+points[SPRING_U])/2);
-    //m_strut[side]->SetRot(rot.Get_A_quaternion());
+    m_strut[side]->SetRot(rot.Get_A_quaternion());
     m_strut[side]->SetMass(getStrutMass());
     m_strut[side]->SetInertiaXX(getStrutInertia());
     AddVisualizationStrut(m_strut[side], points[SPRING_C], points[SPRING_U], getStrutRadius());
@@ -183,7 +181,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
 
     m_cylindricalStrut[side] = ChSharedPtr<ChLinkLockCylindrical>(new ChLinkLockCylindrical);
     m_cylindricalStrut[side]->SetNameString(m_name + "_cylindricalStrut" + suffix);
-    m_cylindricalStrut[side]->Initialize(m_strut[side], m_upright[side], ChCoordsys<>((points[SPRING_C] + points[SPRING_U]) / 2, rot.Get_A_quaternion()));
+    m_cylindricalStrut[side]->Initialize(m_strut[side], m_upright[side], ChCoordsys<>(points[SPRING_U], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_cylindricalStrut[side]);
 
     // Create and initialize the universal joint between chassis and UCA.
@@ -196,7 +194,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     //w.Normalize();
     //u = Vcross(v, w);
     //rot.Set_A_axis(u, v, w);
-    //TODO: Turn this spherical joint into a universal joint (use the above rotation matrix)
+    //TODO: Is this the correct rotation matrix?
     m_universalStrut[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
     m_universalStrut[side]->SetNameString(m_name + "_universalStrut" + suffix);
     m_universalStrut[side]->Initialize(chassis, m_strut[side],
@@ -303,14 +301,25 @@ void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C->GetElement(2, 0) << "\n";
     }
 
-    //// Universal joints
-    //{
-    //  ChMatrix<>* C = m_universalStrut[side]->GetC();
-    //  GetLog() << "Strut universal       ";
-    //  GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    //  GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    //  GetLog() << "  " << C->GetElement(2, 0) << "\n";
-    //}
+    // Universal joints
+    {
+      ChMatrix<>* C = m_universalStrut[side]->GetC();
+      GetLog() << "Strut universal       ";
+      GetLog() << "  " << C->GetElement(0, 0) << "  ";
+      GetLog() << "  " << C->GetElement(1, 0) << "  ";
+      GetLog() << "  " << C->GetElement(2, 0) << "\n";
+      GetLog() << "  " << C->GetElement(3, 0) << "\n";
+    }
+
+  // Cylindrical joints
+    {
+      ChMatrix<>* C = m_cylindricalStrut[side]->GetC();
+      GetLog() << "Strut cylindrical     ";
+      GetLog() << "  " << C->GetElement(0, 0) << "  ";
+      GetLog() << "  " << C->GetElement(1, 0) << "  ";
+      GetLog() << "  " << C->GetElement(2, 0) << "\n";
+      GetLog() << "  " << C->GetElement(3, 0) << "\n";
+    }
 
     // Distance constraint
     GetLog() << "Tierod distance       ";
