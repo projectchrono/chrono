@@ -3,11 +3,11 @@ main:
       url: ''
       sub:
        -
-         title: Install Guide
+         title: Installation Guide
          url: '#'
        -
-         title: Tutorials
-         url: '#'
+         title: Tutorials & Examples
+         url: '/tutorials'
        -
          title: Chrono Engine
          url: '#'
@@ -19,12 +19,12 @@ main:
          url: '#'
     - title: Download
       url: '/download'
+    - title: Tutorials
+      url: '/tutorials'
     - title: News
       url: '/news/'
     - title: Forum
       url: '/forum'
-    - title: Gallery
-      url: '/gallery'
 
 right:
     - title: People

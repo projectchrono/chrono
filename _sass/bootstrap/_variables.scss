@@ -6,6 +6,12 @@ $bootstrap-sass-asset-helper: false !default;
 
 //== Colors
 //
+
+$color_1: 				#252839 !default;
+$color_2: 				#677077 !default;
+$color_3: 				#b5b5b7 !default;
+$color_4: 				#039be5 !default;
+//ffa000
 //## Gray and brand colors for use across Bootstrap.
 
 $gray-base:              #000 !default;
@@ -15,8 +21,8 @@ $gray:                   #6f6f6f !default; // #555
 $gray-light:             lighten($gray-base, 60%) !default;   // #999
 $gray-lighter:           lighten($gray-base, 93.5%) !default; // #eee
 
-$brand-primary:         #008cba !default;
-$brand-success:         #43ac6a !default;
+$brand-primary:         $color_4 !default;
+$brand-success:         #388e3c !default;
 $brand-info:            #5bc0de !default;
 $brand-warning:         #E99002 !default;
 $brand-danger:          #F04124 !default;
@@ -366,15 +372,15 @@ $navbar-padding-vertical:          (($navbar-height - $line-height-computed) / 2
 $navbar-collapse-max-height:       340px !default;
 
 $navbar-default-color:             #fff !default;
-$navbar-default-bg:                $gray-dark !default;
+$navbar-default-bg:                $color_1 !default;
 $navbar-default-border:            darken($navbar-default-bg, 6.5%) !default;
 
 // Navbar links
 $navbar-default-link-color:                #fff !default;
 $navbar-default-link-hover-color:          #fff !default;
-$navbar-default-link-hover-bg:             #272727 !default;
+$navbar-default-link-hover-bg:             $color_4 !default;
 $navbar-default-link-active-color:         #fff !default;
-$navbar-default-link-active-bg:            #272727 !default;
+$navbar-default-link-active-bg:            $color_4 !default;
 $navbar-default-link-disabled-color:       #ccc !default;
 $navbar-default-link-disabled-bg:          transparent !default;
 
@@ -864,5 +870,7 @@ $blockquote-border-color:     $table-border-color !default;
 $page-header-border-color:    $table-border-color !default;
 //** Width of horizontal description list titles
 $dl-horizontal-offset:        $component-offset-horizontal !default;
+//** Point at which .dl-horizontal becomes horizontal
+$dl-horizontal-breakpoint:    $grid-float-breakpoint !default;
 //** Horizontal line color.
 $hr-border:                   $table-border-color !default;
