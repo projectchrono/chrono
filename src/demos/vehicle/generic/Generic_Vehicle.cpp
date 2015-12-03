@@ -46,9 +46,9 @@ using namespace chrono::vehicle;
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double     Generic_Vehicle::m_chassisMass = 3500;                   // chassis sprung mass
-const ChVector<> Generic_Vehicle::m_chassisCOM (-0.2, 0, 0.8);            // COM location
-const ChVector<> Generic_Vehicle::m_chassisInertia(125.8, 497.4, 531.4);  // chassis inertia (roll,pitch,yaw)
+const double     Generic_Vehicle::m_chassisMass = 663.0049;                        // chassis sprung mass
+const ChVector<> Generic_Vehicle::m_chassisCOM (0, 0, 0);                          // COM location
+const ChVector<> Generic_Vehicle::m_chassisInertia(220.4453, 1067.216, 1181.078);  // chassis inertia (roll,pitch,yaw)
 
 const ChCoordsys<> Generic_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
@@ -156,11 +156,11 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   // relative to the chassis reference frame).
   ChVector<> offset;
   switch (m_suspType) {
-  case SOLID_AXLE:          offset = ChVector<>(1.60, 0, -0.07); break;
-  case MULTI_LINK:          offset = ChVector<>(1.65, 0, -0.12); break;
-  case DOUBLE_WISHBONE:     offset = ChVector<>(1.40, 0, -0.03); break;
-  case HENDRICKSON_PRIMAXX: offset = ChVector<>(1.60, 0, -0.07); break;
-  case MACPHERSON_STRUT:    offset = ChVector<>(1.60, 0, -0.07); break;
+  case SOLID_AXLE:          offset = ChVector<>(1.25, 0, 0.21); break;
+  case MULTI_LINK:          offset = ChVector<>(1.25, 0, 0.21); break;
+  case DOUBLE_WISHBONE:     offset = ChVector<>(1.25, 0, -0.21); break;
+  case HENDRICKSON_PRIMAXX: offset = ChVector<>(1.25, 0, -0.21); break;
+  case MACPHERSON_STRUT:    offset = ChVector<>(1.25, 0, -0.21); break;
   }
   m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 

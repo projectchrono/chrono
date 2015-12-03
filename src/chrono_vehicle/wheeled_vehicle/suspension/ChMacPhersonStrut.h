@@ -98,7 +98,7 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     ChVector<> Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetMarker2()->GetAbsCoord().pos; }
 
     /// Global coordinates, strut ball joint position
-    ChVector<> Get_Strut_sph_pos(VehicleSide side) { return m_universalStrut[side]->GetMarker2()->GetAbsCoord().pos; }
+    //ChVector<> Get_Strut_sph_pos(VehicleSide side) { return m_universalStrut[side]->GetMarker2()->GetAbsCoord().pos; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -183,7 +183,7 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     ChSharedPtr<ChBody> m_LCA[2];      ///< handles to the lower control arm bodies (left/right)
 
     ChSharedPtr<ChLinkLockCylindrical> m_cylindricalStrut[2];  ///< handles to the strut-LCA cylindrical joints (left/right)
-    ChSharedPtr<ChLinkLockSpherical> m_universalStrut[2];      ///< handles to the chassis-strut universal joints (left/right)
+    ChSharedPtr<ChLinkUniversal> m_universalStrut[2];      ///< handles to the chassis-strut universal joints (left/right)
     ChSharedPtr<ChLinkLockRevolute> m_revoluteLCA[2];          ///< handles to the chassis-LCA revolute joints (left/right)
     ChSharedPtr<ChLinkLockSpherical> m_sphericalLCA[2];        ///< handles to the upright-LCA spherical joints (left/right)
     ChSharedPtr<ChLinkDistance> m_distTierod[2];               ///< handles to the tierod distance constraints (left/right)
@@ -198,7 +198,8 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
                         const std::vector<ChVector<> >& points);
 
     static void AddVisualizationStrut(ChSharedPtr<ChBody> strut,
-                                       const ChVector<> pt_cm,
+                                       const ChVector<> pt_c,
+                                       const ChVector<> pt_u,
                                        double radius);
     static void AddVisualizationControlArm(ChSharedPtr<ChBody> arm,
                                            const ChVector<> pt_F,
