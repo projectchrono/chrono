@@ -21,15 +21,15 @@ void ChCNarrowphaseDispatch::ClearContacts() {
     data_manager->host_data.bids_rigid_rigid.resize(0);
   }
 
-  if (num_potential_rigid_fluid_contacts == 0) {
-    data_manager->host_data.norm_rigid_fluid.resize(0);
-    data_manager->host_data.cpta_rigid_fluid.resize(0);
-    data_manager->host_data.dpth_rigid_fluid.resize(0);
-    data_manager->host_data.bids_rigid_fluid.resize(0);
-  }
-  if (num_potential_fluid_contacts == 0) {
-    data_manager->host_data.bids_fluid_fluid.resize(0);
-  }
+//  if (num_potential_rigid_fluid_contacts == 0) {
+//    data_manager->host_data.norm_rigid_fluid.resize(0);
+//    data_manager->host_data.cpta_rigid_fluid.resize(0);
+//    data_manager->host_data.dpth_rigid_fluid.resize(0);
+//    data_manager->host_data.bids_rigid_fluid.resize(0);
+//  }
+//  if (num_potential_fluid_contacts == 0) {
+//    data_manager->host_data.bids_fluid_fluid.resize(0);
+//  }
 }
 
 void ChCNarrowphaseDispatch::Process() {
@@ -40,19 +40,19 @@ void ChCNarrowphaseDispatch::Process() {
   narrowphase_algorithm = data_manager->settings.collision.narrowphase_algorithm;
   collision_envelope = data_manager->settings.collision.collision_envelope;
   ClearContacts();
-  if (num_potential_rigid_contacts + num_potential_rigid_fluid_contacts + num_potential_fluid_contacts == 0) {
-    return;
-  }
-
   // Transform Rigid body shapes to global coordinate system
   PreprocessLocalToParent();
   LOG(TRACE) << "PreprocessLocalToParent: ";
-  DispatchRigid();
+  if (num_potential_rigid_contacts != 0) {
+	  DispatchRigid();
+  }
   LOG(TRACE) << "DispatchRigid: ";
-  DispatchRigidFluid();
-  LOG(TRACE) << "DispatchRigidFluid: ";
-  DispatchFluid();
-  LOG(TRACE) << "DispatchFluid: ";
+  if (data_manager->num_fluid_bodies != 0) {
+    DispatchRigidFluid();
+    LOG(TRACE) << "DispatchRigidFluid: ";
+    DispatchFluid();
+    LOG(TRACE) << "DispatchFluid: ";
+  }
 }
 
 void ChCNarrowphaseDispatch::PreprocessCount() {
@@ -509,51 +509,229 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
   bids_rigid_fluid.resize(num_rigid_fluid_contacts);
 }
 
+inline int GridCoord(real x, real inv_bin_edge, real minimum) {
+    real l = x - minimum;
+    int c = round(l * inv_bin_edge);
+    return c;
+}
+
+inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
+    return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
+}
+
+
+typedef thrust::pair<real3, real3> bbox;
+
+// reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
+struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
+  bbox operator()(bbox a, bbox b) {
+    real3 ll = R3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
+                  Min(a.first.z, b.first.z));  // lower left corner
+    real3 ur = R3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
+                  Max(a.second.z, b.second.z));  // upper right corner
+    return bbox(ll, ur);
+  }
+};
+
+// convert a point to a bbox containing that point, (point) -> (point, point)
+struct bbox_transformation : public thrust::unary_function<real3, bbox> {
+  bbox operator()(real3 point) { return bbox(point, point); }
+};
+
 void ChCNarrowphaseDispatch::DispatchFluid() {
-  LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid(): ";
-
-  const host_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
-  const host_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
-  host_vector<int2>& bids_fluid_fluid = data_manager->host_data.bids_fluid_fluid;
-
-  const uint num_aabb_rigid = data_manager->num_rigid_shapes;
-  const real fluid_radius =
-      data_manager->settings.fluid.kernel_radius + data_manager->settings.fluid.collision_envelope;
-  bids_fluid_fluid.resize(num_potential_fluid_contacts);
-  contact_fluid_active.resize(num_potential_fluid_contacts);
-  thrust::fill(contact_fluid_active.begin(), contact_fluid_active.end(), false);
-
-  real scale = 1.0;
-  if (data_manager->settings.fluid.fluid_is_rigid == false) {
-    scale = 0.5;
-  }
-#pragma omp parallel for
-  for (int i = 0; i < num_potential_fluid_contacts; i++) {
-    long long pair = contact_pairs[i + num_potential_rigid_contacts + num_potential_rigid_fluid_contacts];
-    int2 pair2 = I2(int(pair >> 32), int(pair & 0xffffffff));
-
-    uint fluid_A = pair2.x;
-    uint fluid_B = pair2.y;
-    real3 fluid_posA = pos_fluid[fluid_A - num_aabb_rigid];
-    real3 fluid_posB = pos_fluid[fluid_B - num_aabb_rigid];
-    real3 delta = fluid_posB - fluid_posA;
-
-    real dist2 = dot(delta, delta);
-    real radSum = (fluid_radius + fluid_radius) * scale;
-    if (dist2 >= radSum * radSum || dist2 < 1e-12) {
-    } else {
-      contact_fluid_active[i] = true;
-      bids_fluid_fluid[i] = I2(fluid_A - num_aabb_rigid, fluid_B - num_aabb_rigid);
+    const real num_fluid_bodies = data_manager->num_fluid_bodies;
+    std::cout<<"FLUIDCOTNACT\n";
+    if (num_fluid_bodies == 0) {
+        return;
     }
-  }
 
-  uint& num_fluid_contacts = data_manager->num_fluid_contacts;
-  LOG(TRACE) << "Thrust_Count num_fluid_contacts: ";
-  num_fluid_contacts = Thrust_Count(contact_fluid_active, 1);
 
-  thrust::remove_if(bids_fluid_fluid.begin(), bids_fluid_fluid.end(), contact_fluid_active.begin(),
-                    thrust::logical_not<bool>());
-  bids_fluid_fluid.resize(num_fluid_contacts);
+
+    const host_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
+    host_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_fluid;
+    host_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
+    host_vector<uint8_t>& contact_counts = data_manager->host_data.contact_counts;
+
+    const real radius = data_manager->settings.fluid.kernel_radius;
+    const real radiusSq = radius * radius;
+
+    bbox res(pos_fluid[0], pos_fluid[0]);
+    bbox_transformation unary_op;
+    bbox_reduction binary_op;
+    res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
+
+    real3 min_bounding_point = res.first;
+    real3 max_bounding_point = res.second;
+
+    max_bounding_point = real3(std::max(std::ceil(max_bounding_point.x), std::ceil(max_bounding_point.x + radius * 6)),
+                               std::max(std::ceil(max_bounding_point.y), std::ceil(max_bounding_point.y + radius * 6)),
+                               std::max(std::ceil(max_bounding_point.z), std::ceil(max_bounding_point.z + radius * 6)));
+     min_bounding_point =
+        real3(std::min(std::floor(min_bounding_point.x), std::floor(min_bounding_point.x - radius * 6)),
+              std::min(std::floor(min_bounding_point.y), std::floor(min_bounding_point.y - radius * 6)),
+              std::min(std::floor(min_bounding_point.z), std::floor(min_bounding_point.z - radius * 6)));
+
+    real3 global_origin = min_bounding_point;
+
+    real3 diag = max_bounding_point - min_bounding_point;
+    int3 bins_per_axis;
+
+    bins_per_axis.x = (diag.x / (radius * 2));
+    bins_per_axis.y = (diag.y / (radius * 2));
+    bins_per_axis.z = (diag.z / (radius * 2));
+
+    real inv_bin_edge = 1.f / (radius * 2 + data_manager->settings.fluid.collision_envelope);
+    std::cout<<"Grid: "<<bins_per_axis;
+    std::cout<<"Min: "<<min_bounding_point;
+    std::cout<<"Max: "<<max_bounding_point;
+    std::cout<<"inv: "<<inv_bin_edge<<std::endl;
+
+    host_vector<int> bin_ids(num_fluid_bodies);
+    host_vector<int> particle_indices(num_fluid_bodies);
+    host_vector<int> reverse_mapping(num_fluid_bodies);
+    contact_counts.resize(num_fluid_bodies);
+
+    sorted_pos_fluid.resize(num_fluid_bodies);
+    neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
+
+    size_t grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
+
+    host_vector<int> bin_starts(grid_size);
+    host_vector<int> bin_ends(grid_size);
+
+    Thrust_Fill(bin_starts, 0);
+    Thrust_Fill(bin_ends, 0);
+    Thrust_Fill(contact_counts, 0);
+
+#pragma omp parallel for
+    for (int i = 0; i < num_fluid_bodies; i++) {
+        real3 p = pos_fluid[i];
+        bin_ids[i] = GridHash(GridCoord(p.x, inv_bin_edge, min_bounding_point.x),
+                              GridCoord(p.y, inv_bin_edge, min_bounding_point.y),
+                              GridCoord(p.z, inv_bin_edge, min_bounding_point.z), bins_per_axis);
+        particle_indices[i] = i;
+    }
+
+    Thrust_Sort_By_Key(bin_ids, particle_indices);
+
+#pragma omp parallel for
+    for (int i = 0; i < num_fluid_bodies; i++) {
+        int c = bin_ids[i];
+        if (i == 0) {
+            bin_starts[c] = i;
+        } else {
+            int p = bin_ids[i - 1];
+            if (c != p) {
+                bin_starts[c] = i;
+                bin_ends[p] = i;
+            }
+        }
+        if (i == num_fluid_bodies - 1) {
+            bin_ends[c] = i + 1;
+        }
+    }
+
+#pragma omp parallel for
+    for (int i = 0; i < num_fluid_bodies; i++) {
+        int index = particle_indices[i];
+
+        // sorted positions
+        sorted_pos_fluid[i] = pos_fluid[index];
+
+        // map from original index to new (sorted) index
+        reverse_mapping[index] = i;
+    }
+
+#pragma omp parallel for
+    for (int p = 0; p < num_fluid_bodies; p++) {
+        real3 xi = sorted_pos_fluid[p];
+
+        const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
+        const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
+        const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
+
+        const int xstart = cx - 1, xend = cx + 1;
+        const int ystart = cy - 1, yend = cy + 1;
+        const int zstart = cz - 1, zend = cz + 1;
+
+        int contact_count = 0;
+        for (int k = zstart; k <= zend; ++k) {
+            for (int j = ystart; j <= yend; ++j) {
+                for (int i = xstart; i <= xend; ++i) {
+                    const int cellIndex = GridHash(i, j, k, bins_per_axis);
+                    const int cellStart = bin_starts[cellIndex];
+                    const int cellEnd = bin_ends[cellIndex];
+                    for (int q = cellStart; q < cellEnd; ++q) {
+                        //if (q == p) {
+                        //    continue;
+                        //}
+
+                        const real3 xj = sorted_pos_fluid[q];
+                        const real3 xij = xi - xj;
+                        const real dSq = dot(xij, xij);
+                        if (dSq < radiusSq) {
+                            if (contact_count < max_neighbors) {
+                                neighbor_fluid_fluid[p*max_neighbors + contact_count] = q;
+                                ++contact_count;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        contact_counts[p] = contact_count;
+    }
+    uint& num_fluid_contacts = data_manager->num_fluid_contacts;
+    num_fluid_contacts = Thrust_Total(contact_counts);
+
+   // std::cout<<"FLASD: "<<total_fluid<<std::endl;
+
+
+
+//  LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid(): ";
+//
+//  const host_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
+//
+//  host_vector<int2>& bids_fluid_fluid = data_manager->host_data.bids_fluid_fluid;
+//
+//  const uint num_aabb_rigid = data_manager->num_rigid_shapes;
+//  const real fluid_radius =
+//      data_manager->settings.fluid.kernel_radius + data_manager->settings.fluid.collision_envelope;
+//  bids_fluid_fluid.resize(num_potential_fluid_contacts);
+//  contact_fluid_active.resize(num_potential_fluid_contacts);
+//  thrust::fill(contact_fluid_active.begin(), contact_fluid_active.end(), false);
+//
+//  real scale = 1.0;
+//  if (data_manager->settings.fluid.fluid_is_rigid == false) {
+//    scale = 0.5;
+//  }
+//#pragma omp parallel for
+//  for (int i = 0; i < num_potential_fluid_contacts; i++) {
+//    long long pair = contact_pairs[i + num_potential_rigid_contacts + num_potential_rigid_fluid_contacts];
+//    int2 pair2 = I2(int(pair >> 32), int(pair & 0xffffffff));
+//
+//    uint fluid_A = pair2.x;
+//    uint fluid_B = pair2.y;
+//    real3 fluid_posA = pos_fluid[fluid_A - num_aabb_rigid];
+//    real3 fluid_posB = pos_fluid[fluid_B - num_aabb_rigid];
+//    real3 delta = fluid_posB - fluid_posA;
+//
+//    real dist2 = dot(delta, delta);
+//    real radSum = (fluid_radius + fluid_radius) * scale;
+//    if (dist2 >= radSum * radSum || dist2 < 1e-12) {
+//    } else {
+//      contact_fluid_active[i] = true;
+//      bids_fluid_fluid[i] = I2(fluid_A - num_aabb_rigid, fluid_B - num_aabb_rigid);
+//    }
+//  }
+//
+//  uint& num_fluid_contacts = data_manager->num_fluid_contacts;
+//  LOG(TRACE) << "Thrust_Count num_fluid_contacts: ";
+//  num_fluid_contacts = Thrust_Count(contact_fluid_active, 1);
+//
+//  thrust::remove_if(bids_fluid_fluid.begin(), bids_fluid_fluid.end(), contact_fluid_active.begin(),
+//                    thrust::logical_not<bool>());
+//  bids_fluid_fluid.resize(num_fluid_contacts);
 }
 
 }  // end namespace collision
