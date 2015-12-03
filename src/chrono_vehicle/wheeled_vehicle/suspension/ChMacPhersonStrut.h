@@ -97,8 +97,8 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     /// Global coordinates, LCA ball joint position
     ChVector<> Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetMarker2()->GetAbsCoord().pos; }
 
-    /// Global coordinates, UCA ball joint position
-    ChVector<> Get_UCA_sph_pos(VehicleSide side) { return m_sphericalUCA[side]->GetMarker2()->GetAbsCoord().pos; }
+    /// Global coordinates, strut ball joint position
+    ChVector<> Get_Strut_sph_pos(VehicleSide side) { return m_universalStrut[side]->GetMarker2()->GetAbsCoord().pos; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -122,18 +122,14 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     enum PointId {
         SPINDLE,   ///< spindle location
         UPRIGHT,   ///< upright location
-        UCA_F,     ///< upper control arm, chassis front
-        UCA_B,     ///< upper control arm, chassis back
-        UCA_U,     ///< upper control arm, upright
-        UCA_CM,    ///< upper control arm, center of mass
         LCA_F,     ///< lower control arm, chassis front
         LCA_B,     ///< lower control arm, chassis back
         LCA_U,     ///< lower control arm, upright
         LCA_CM,    ///< lower control arm, center of mass
         SHOCK_C,   ///< shock, chassis
-        SHOCK_A,   ///< shock, lower control arm
+        SHOCK_U,   ///< shock, upright
         SPRING_C,  ///< spring, chassis
-        SPRING_A,  ///< spring, lower control arm
+        SPRING_U,  ///< spring, upright
         TIEROD_C,  ///< tierod, chassis
         TIEROD_U,  ///< tierod, upright
         NUM_POINTS
@@ -145,8 +141,8 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
 
     /// Return the mass of the spindle body.
     virtual double getSpindleMass() const = 0;
-    /// Return the mass of the upper control arm body.
-    virtual double getUCAMass() const = 0;
+    /// Return the mass of the strut body.
+    virtual double getStrutMass() const = 0;
     /// Return the mass of the lower control body.
     virtual double getLCAMass() const = 0;
     /// Return the mass of the upright body.
@@ -154,8 +150,8 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
 
     /// Return the moments of inertia of the spindle body.
     virtual const ChVector<>& getSpindleInertia() const = 0;
-    /// Return the moments of inertia of the upper control arm body.
-    virtual const ChVector<>& getUCAInertia() const = 0;
+    /// Return the moments of inertia of the strut body.
+    virtual const ChVector<>& getStrutInertia() const = 0;
     /// Return the moments of inertia of the lower control arm body.
     virtual const ChVector<>& getLCAInertia() const = 0;
     /// Return the moments of inertia of the upright body.
@@ -168,8 +164,8 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     virtual double getSpindleRadius() const = 0;
     /// Return the width of the spindle body (visualization only).
     virtual double getSpindleWidth() const = 0;
-    /// Return the radius of the upper control arm body (visualization only).
-    virtual double getUCARadius() const = 0;
+    /// Return the radius of the strut body (visualization only).
+    virtual double getStrutRadius() const = 0;
     /// Return the radius of the lower control arm body (visualization only).
     virtual double getLCARadius() const = 0;
     /// Return the radius of the upright body (visualization only).
@@ -183,14 +179,14 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     virtual ChSpringForceCallback* getShockForceCallback() const = 0;
 
     ChSharedPtr<ChBody> m_upright[2];  ///< handles to the upright bodies (left/right)
-    ChSharedPtr<ChBody> m_UCA[2];      ///< handles to the upper control arm bodies (left/right)
+    ChSharedPtr<ChBody> m_strut[2];      ///< handles to the upper control arm bodies (left/right)
     ChSharedPtr<ChBody> m_LCA[2];      ///< handles to the lower control arm bodies (left/right)
 
-    ChSharedPtr<ChLinkLockRevolute> m_revoluteUCA[2];    ///< handles to the chassis-UCA revolute joints (left/right)
-    ChSharedPtr<ChLinkLockSpherical> m_sphericalUCA[2];  ///< handles to the upright-UCA spherical joints (left/right)
-    ChSharedPtr<ChLinkLockRevolute> m_revoluteLCA[2];    ///< handles to the chassis-LCA revolute joints (left/right)
-    ChSharedPtr<ChLinkLockSpherical> m_sphericalLCA[2];  ///< handles to the upright-LCA spherical joints (left/right)
-    ChSharedPtr<ChLinkDistance> m_distTierod[2];         ///< handles to the tierod distance constraints (left/right)
+    ChSharedPtr<ChLinkLockCylindrical> m_cylindricalStrut[2];  ///< handles to the strut-LCA cylindrical joints (left/right)
+    ChSharedPtr<ChLinkLockSpherical> m_universalStrut[2];      ///< handles to the chassis-strut universal joints (left/right)
+    ChSharedPtr<ChLinkLockRevolute> m_revoluteLCA[2];          ///< handles to the chassis-LCA revolute joints (left/right)
+    ChSharedPtr<ChLinkLockSpherical> m_sphericalLCA[2];        ///< handles to the upright-LCA spherical joints (left/right)
+    ChSharedPtr<ChLinkDistance> m_distTierod[2];               ///< handles to the tierod distance constraints (left/right)
 
     ChSharedPtr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
     ChSharedPtr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
@@ -201,6 +197,9 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
                         ChSharedPtr<ChBody> tierod_body,
                         const std::vector<ChVector<> >& points);
 
+    static void AddVisualizationStrut(ChSharedPtr<ChBody> strut,
+                                       const ChVector<> pt_cm,
+                                       double radius);
     static void AddVisualizationControlArm(ChSharedPtr<ChBody> arm,
                                            const ChVector<> pt_F,
                                            const ChVector<> pt_B,
@@ -208,7 +207,7 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
                                            double radius);
     static void AddVisualizationUpright(ChSharedPtr<ChBody> upright,
                                         const ChVector<> pt_C,
-                                        const ChVector<> pt_U,
+                                        const ChVector<> pt_S,
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);

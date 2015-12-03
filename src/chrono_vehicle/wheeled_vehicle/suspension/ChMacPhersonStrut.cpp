@@ -26,6 +26,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChMacPhersonStrut.h"
@@ -38,10 +39,6 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 const std::string ChMacPhersonStrut::m_pointNames[] = {"SPINDLE ",
                                                       "UPRIGHT ",
-                                                      "UCA_F   ",
-                                                      "UCA_B   ",
-                                                      "UCA_U   ",
-                                                      "UCA_CM  ",
                                                       "LCA_F   ",
                                                       "LCA_B   ",
                                                       "LCA_U   ",
@@ -114,7 +111,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
     m_upright[side]->SetInertiaXX(getUprightInertia());
-    AddVisualizationUpright(m_upright[side], 0.5 * (points[SPINDLE] + points[UPRIGHT]), points[UCA_U], points[LCA_U],
+    AddVisualizationUpright(m_upright[side], 0.5 * (points[SPINDLE] + points[UPRIGHT]), points[SPRING_U], points[LCA_U],
                             points[TIEROD_U], getUprightRadius());
     chassis->GetSystem()->AddBody(m_upright[side]);
 
@@ -124,24 +121,14 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     ChVector<> w;
     ChMatrix33<> rot;
 
-    // Create and initialize Upper Control Arm body.
-    // Determine the rotation matrix of the UCA based on the plane of the hard points
-    // (z axis normal to the plane of the UCA)
-    w = Vcross(points[UCA_B] - points[UCA_U], points[UCA_F] - points[UCA_U]);
-    w.Normalize();
-    u = points[UCA_F] - points[UCA_B];
-    u.Normalize();
-    v = Vcross(w, u);
-    rot.Set_A_axis(u, v, w);
-
-    m_UCA[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
-    m_UCA[side]->SetNameString(m_name + "_UCA" + suffix);
-    m_UCA[side]->SetPos(points[UCA_CM]);
-    m_UCA[side]->SetRot(rot);
-    m_UCA[side]->SetMass(getUCAMass());
-    m_UCA[side]->SetInertiaXX(getUCAInertia());
-    AddVisualizationControlArm(m_UCA[side], points[UCA_F], points[UCA_B], points[UCA_U], getUCARadius());
-    chassis->GetSystem()->AddBody(m_UCA[side]);
+    // Create and initialize Strut body.
+    m_strut[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_strut[side]->SetNameString(m_name + "_Strut" + suffix);
+    m_strut[side]->SetPos(points[SPRING_C]);
+    m_strut[side]->SetMass(getStrutMass());
+    m_strut[side]->SetInertiaXX(getStrutInertia());
+    AddVisualizationStrut(m_strut[side], points[SPRING_C], getStrutRadius());
+    //chassis->GetSystem()->AddBody(m_strut[side]);
 
     // Create and initialize Lower Control Arm body.
     // Determine the rotation matrix of the LCA, based on the plane of the hard points
@@ -169,28 +156,38 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
-    // Create and initialize the revolute joint between chassis and UCA.
+    //// Create and initialize the universal joint between chassis and UCA.
+    ////// Determine the joint orientation matrix from the hardpoint locations by
+    ////// constructing a rotation matrix with the z axis along the joint direction
+    ////// and the y axis normal to the plane of the UCA.
+    ////v = Vcross(points[UCA_B] - points[UCA_U], points[UCA_F] - points[UCA_U]);
+    ////v.Normalize();
+    ////w = points[UCA_F] - points[UCA_B];
+    ////w.Normalize();
+    ////u = Vcross(v, w);
+    ////rot.Set_A_axis(u, v, w);
+    ////TODO: Turn this spherical joint into a universal joint (use the above rotation matrix)
+    //m_universalStrut[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+    //m_universalStrut[side]->SetNameString(m_name + "_universalStrut" + suffix);
+    //m_universalStrut[side]->Initialize(chassis, m_strut[side],
+    //                                ChCoordsys<>(points[SPRING_C], QUNIT));
+    //chassis->GetSystem()->AddLink(m_universalStrut[side]);
+
+    // Create and initialize the cylindrical joint between upright and strut.
     // Determine the joint orientation matrix from the hardpoint locations by
     // constructing a rotation matrix with the z axis along the joint direction
     // and the y axis normal to the plane of the UCA.
-    v = Vcross(points[UCA_B] - points[UCA_U], points[UCA_F] - points[UCA_U]);
+    v = points[LCA_B] - points[LCA_F];//Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
     v.Normalize();
-    w = points[UCA_F] - points[UCA_B];
+    w = points[SPRING_U] - points[SPRING_C];
     w.Normalize();
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_revoluteUCA[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-    m_revoluteUCA[side]->SetNameString(m_name + "_revoluteUCA" + suffix);
-    m_revoluteUCA[side]->Initialize(chassis, m_UCA[side],
-                                    ChCoordsys<>((points[UCA_F] + points[UCA_B]) / 2, rot.Get_A_quaternion()));
-    chassis->GetSystem()->AddLink(m_revoluteUCA[side]);
-
-    // Create and initialize the spherical joint between upright and UCA.
-    m_sphericalUCA[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-    m_sphericalUCA[side]->SetNameString(m_name + "_sphericalUCA" + suffix);
-    m_sphericalUCA[side]->Initialize(m_UCA[side], m_upright[side], ChCoordsys<>(points[UCA_U], QUNIT));
-    chassis->GetSystem()->AddLink(m_sphericalUCA[side]);
+    m_cylindricalStrut[side] = ChSharedPtr<ChLinkLockCylindrical>(new ChLinkLockCylindrical);
+    m_cylindricalStrut[side]->SetNameString(m_name + "_cylindricalStrut" + suffix);
+    m_cylindricalStrut[side]->Initialize(chassis, m_upright[side], ChCoordsys<>((points[SPRING_C] + points[SPRING_U]) / 2, rot.Get_A_quaternion()));
+    chassis->GetSystem()->AddLink(m_cylindricalStrut[side]);
 
     // Create and initialize the revolute joint between chassis and LCA.
     // Determine the joint orientation matrix from the hardpoint locations by
@@ -224,13 +221,13 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     // Create and initialize the spring/damper
     m_shock[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
-    m_shock[side]->Initialize(chassis, m_LCA[side], false, points[SHOCK_C], points[SHOCK_A]);
+    m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
     m_shock[side]->Set_SpringCallback(getShockForceCallback());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
     m_spring[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-    m_spring[side]->Initialize(chassis, m_LCA[side], false, points[SPRING_C], points[SPRING_A], false,
+    m_spring[side]->Initialize(chassis, m_upright[side], false, points[SPRING_C], points[SPRING_U], false,
                                getSpringRestLength());
     m_spring[side]->Set_SpringCallback(getSpringForceCallback());
     chassis->GetSystem()->AddLink(m_spring[side]);
@@ -274,15 +271,6 @@ void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C->GetElement(4, 0) << "\n";
     }
     {
-        ChMatrix<>* C = m_revoluteUCA[side]->GetC();
-        GetLog() << "UCA revolute          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
-    }
-    {
         ChMatrix<>* C = m_revolute[side]->GetC();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C->GetElement(0, 0) << "  ";
@@ -300,12 +288,14 @@ void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C->GetElement(1, 0) << "  ";
         GetLog() << "  " << C->GetElement(2, 0) << "\n";
     }
+
+    // Universal joints
     {
-        ChMatrix<>* C = m_sphericalUCA[side]->GetC();
-        GetLog() << "UCA spherical         ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "\n";
+      ChMatrix<>* C = m_universalStrut[side]->GetC();
+      GetLog() << "Strut universal       ";
+      GetLog() << "  " << C->GetElement(0, 0) << "  ";
+      GetLog() << "  " << C->GetElement(1, 0) << "  ";
+      GetLog() << "  " << C->GetElement(2, 0) << "\n";
     }
 
     // Distance constraint
@@ -315,6 +305,22 @@ void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void ChMacPhersonStrut::AddVisualizationStrut(ChSharedPtr<ChBody> strut, 
+                                              const ChVector<> pt_cm, 
+                                              double radius) {
+  // Express hardpoint locations in body frame.
+  ChVector<> p_cm = strut->TransformPointParentToLocal(pt_cm);
+
+  ChSharedPtr<ChSphereShape> sph_S(new ChSphereShape);
+  sph_S->GetSphereGeometry().center = p_cm;
+  sph_S->GetSphereGeometry().rad = radius;
+  strut->AddAsset(sph_S);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  col->SetColor(ChColor(0.7f, 0.7f, 0.7f));
+  strut->AddAsset(col);
+}
+
 void ChMacPhersonStrut::AddVisualizationControlArm(ChSharedPtr<ChBody> arm,
                                                   const ChVector<> pt_F,
                                                   const ChVector<> pt_B,
