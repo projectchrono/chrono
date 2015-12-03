@@ -95,8 +95,6 @@ int main(int argc, char* argv[]) {
     ChTriangleMeshConnected mmeshbox;
     mmeshbox.LoadWavefrontMesh(GetChronoDataFile("cube.obj"),true,true);
 
-    //mfloor2->GetCollisionModel()->SetEnvelope(0.0);
-    //mfloor2->GetCollisionModel()->SetSafeMargin(0.01);
     mfloor2->GetCollisionModel()->ClearModel();
     mfloor2->GetCollisionModel()->AddTriangleMesh(mmeshbox,false, false);
     mfloor2->GetCollisionModel()->BuildModel();
@@ -112,23 +110,19 @@ int main(int argc, char* argv[]) {
 
 
     // - Create a falling item with triangle mesh shape
-
     ChSharedPtr<ChBody> mfalling(new ChBody);
-    mfalling->SetPos(ChVector<>(0, 0.24, 0));
-   // mfalling->SetBodyFixed(true);
+    mfalling->SetPos(ChVector<>(1.1, 0.24, 0));
+   // mfalling->SetPos(ChVector<>(ChRandom()*0.4, ChRandom()+0.24, ChRandom()*0.4));
     mphysicalSystem.Add(mfalling);
 
     ChTriangleMeshConnected mmesh;
     mmesh.LoadWavefrontMesh(GetChronoDataFile("cube.obj"),false,true);
     mmesh.Transform(ChVector<>(0,0,0), ChMatrix33<>(0.2)); // scale to a smaller cube
 
-    //mfalling->GetCollisionModel()->SetEnvelope(0.0);
-    //mfalling->GetCollisionModel()->SetSafeMargin(0.01);
     mfalling->GetCollisionModel()->ClearModel();
-    mfalling->GetCollisionModel()->AddTriangleMesh(mmesh,false, false);
+    mfalling->GetCollisionModel()->AddTriangleMesh(mmesh,false, false, VNULL, ChMatrix33<>(1), 0.01);
     mfalling->GetCollisionModel()->BuildModel();
     mfalling->SetCollide(true);
-    
 
     ChSharedPtr<ChTriangleMeshShape> masset_mesh(new ChTriangleMeshShape());
     masset_mesh->SetMesh(mmesh);
@@ -138,7 +132,6 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChTexture> masset_texturew(new ChTexture());
     masset_texturew->SetTextureFilename(GetChronoDataFile("cubetexture_wood.png"));
     mfalling->AddAsset(masset_texturew);
-
     
 
     //-----------

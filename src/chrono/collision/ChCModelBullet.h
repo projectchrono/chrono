@@ -235,6 +235,9 @@ class ChApi ChModelBullet : public ChCollisionModel {
     virtual bool AddTriangleProxy(  ChVector<>* p1,                 ///< points to vertex1 coords
                                     ChVector<>* p2,                 ///< points to vertex2 coords
                                     ChVector<>* p3,                 ///< points to vertex3 coords
+                                    ChVector<>* ep1,                ///< points to neighbouring vertex at edge1 if any
+                                    ChVector<>* ep2,                ///< points to neighbouring vertex at edge1 if any
+                                    ChVector<>* ep3,                ///< points to neighbouring vertex at edge1 if any
                                     bool mowns_vertex_1,            ///< vertex is owned by this triangle (otherwise, owned by neighbour)
                                     bool mowns_vertex_2,
                                     bool mowns_vertex_3,

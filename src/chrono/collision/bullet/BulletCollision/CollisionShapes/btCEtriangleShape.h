@@ -36,6 +36,9 @@ private:
     chrono::ChVector<>* p1;
     chrono::ChVector<>* p2;
     chrono::ChVector<>* p3;
+    chrono::ChVector<>* e1;
+    chrono::ChVector<>* e2;
+    chrono::ChVector<>* e3;
 	bool owns_vertex_1;
     bool owns_vertex_2;
     bool owns_vertex_3;
@@ -47,6 +50,9 @@ public:
 	btCEtriangleShape(chrono::ChVector<>* mp1,
                     chrono::ChVector<>* mp2,
                     chrono::ChVector<>* mp3,
+                    chrono::ChVector<>* me1,
+                    chrono::ChVector<>* me2,
+                    chrono::ChVector<>* me3,
 	                bool mowns_vertex_1,
                     bool mowns_vertex_2,
                     bool mowns_vertex_3,
@@ -70,15 +76,27 @@ public:
 
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
 
+    /// access vertex points  of triangle
 	chrono::ChVector<>*	get_p1() const {return p1;}
     chrono::ChVector<>*	get_p2() const {return p2;}
     chrono::ChVector<>*	get_p3() const {return p3;}
+
+    /// access points of neighbouring triangles at edges, if any (if no neighbour, is null ptr)
+    chrono::ChVector<>*	get_e1() const {return e1;}
+    chrono::ChVector<>*	get_e2() const {return e2;}
+    chrono::ChVector<>*	get_e3() const {return e3;}
+
+    /// tell if the representative triangle owns the vertex
     bool	owns_v1() const {return owns_vertex_1;}
     bool	owns_v2() const {return owns_vertex_2;}
     bool	owns_v3() const {return owns_vertex_3;}
+
+    /// tell if the representative triangle owns the edge
     bool	owns_e1() const {return owns_edge_1;}
     bool	owns_e2() const {return owns_edge_2;}
     bool	owns_e3() const {return owns_edge_3;}
+
+    /// thickness, for sphere-swept triangles.
     double	sphereswept_r() const {return sphereswept_rad;}
 };
 

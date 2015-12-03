@@ -27,6 +27,9 @@ using namespace chrono;
 btCEtriangleShape::btCEtriangleShape(ChVector<>* mp1,
                     ChVector<>* mp2,
                     ChVector<>* mp3,
+                    ChVector<>* me1,
+                    ChVector<>* me2,
+                    ChVector<>* me3,
 	                bool mowns_vertex_1,
                     bool mowns_vertex_2,
                     bool mowns_vertex_3,
@@ -38,6 +41,9 @@ btCEtriangleShape::btCEtriangleShape(ChVector<>* mp1,
     p1 = mp1;
     p2 = mp2;
     p3 = mp3;
+    e1 = me1;
+    e2 = me2;
+    e3 = me3;
     owns_vertex_1 = mowns_vertex_1;
     owns_vertex_2 = mowns_vertex_2;
     owns_vertex_3 = mowns_vertex_3;

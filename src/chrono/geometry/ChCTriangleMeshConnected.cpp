@@ -1067,6 +1067,9 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
     tri_map.resize(this->m_face_v_indices.size());
     for (int it = 0; it< this->m_face_v_indices.size(); ++it) {
         tri_map[it][0]=it;
+        tri_map[it][1]=-1; // default no neighbour
+        tri_map[it][2]=-1; // default no neighbour
+        tri_map[it][3]=-1; // default no neighbour
         // edges = pairs of vertexes indexes
         std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
         std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
@@ -1085,21 +1088,21 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
             //GetLog() << "Warning, edge shared with more than two triangles! \n";
         }
         auto retA = edge_map.equal_range(medgeA);
-        for (auto fedge=retA.first; fedge!=retA.second; ++it) {
+        for (auto fedge=retA.first; fedge!=retA.second; ++fedge) {
             if (fedge->second != it) {
                 tri_map[it][1]=fedge->second;
                 break;
             }
         }
         auto retB = edge_map.equal_range(medgeB);
-        for (auto fedge=retB.first; fedge!=retB.second; ++it) {
+        for (auto fedge=retB.first; fedge!=retB.second; ++fedge) {
             if (fedge->second != it) {
                 tri_map[it][2]=fedge->second;
                 break;
             }
         }
         auto retC = edge_map.equal_range(medgeC);
-        for (auto fedge=retC.first; fedge!=retC.second; ++it) {
+        for (auto fedge=retC.first; fedge!=retC.second; ++fedge) {
             if (fedge->second != it) {
                 tri_map[it][3]=fedge->second;
                 break;

@@ -135,6 +135,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Create a map of neighbouring triangles, vector of:
     /// [Ti TieA TieB TieC]
+    /// (the free sides have triangle id = -1).
     /// Return false if some edge has more than 2 neighbouring triangles
     bool ComputeNeighbouringTriangleMap(std::vector<std::array<int, 4>>& tri_map) const;
 
