@@ -223,9 +223,8 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 	/* Part 2: Collision Detection */
 	/* Process collisions */
 
-	//	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
 	/* Add outside forces. Don't add gravity, it is added in ChSystem */
-	Real3 totalFluidBodyForce3 = paramsH.bodyForce3; // gravity is added in ChSystem
+	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
 	/* Initialize derivVelRhoD with zero. NECESSARY. */
 	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), mR4(0));
 	//	GpuTimer myT1;

@@ -266,49 +266,20 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
 					continue;
 
-				Real4 velMasB = FETCH(sortedVelMas, j);
 				Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
-
-				modifyPressure(rhoPresMuB, dist3Alpha);
-
-				if (rhoPresMuA.w < 0 || rhoPresMuB.w < 0) {
-					if (rhoPresMuA.w == 0)
-						continue;
-					Real multViscosit = 1.0f;
-
-					//					if ( rhoPresMuB.w == 0) { //**one of them is boundary, the other one is
-					// fluid
-					if (rhoPresMuA.w >= 0 || rhoPresMuB.w >= 0) { //**one of them is boundary, the other one is fluid
-						multViscosit = paramsD.multViscosity_FSI;
-						//						rhoPresMuA.y = rhoPresMuB.y;
-					}
-					//*** modify the pressure at the periodic boundary
-					//					if (length(posRadA - posRadB) > (RESOLUTION_LENGTH_MULT + 1) *
-					// paramsD.HSML)
-					//{
-					////i.e.
-					// at
-					// periodic BC. project pressure up the periodic boundary
-					//						rhoPresMuB.x = rhoPresMuA.x;
-					//						rhoPresMuB.y = rhoPresMuA.y;
-					//					}
-					//*** end modify the pressure at the boundary
-					//					else { //**One of them is fluid, the other one is fluid/solid (boundary
-					// was
-					// considered
-					// previously)
-					//						multViscosit = 1.0f;
-					//					}
-					Real4 derivVelRho = mR4(0.0f);
-					Real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
-					derivVelRho = DifVelocityRho(dist3, d, velMasA, vel_XSPH_A,
-							velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB,
-							multViscosit);
-					derivV += mR3(derivVelRho);
-					derivRho += derivVelRho.w;
-				} else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { // implies: one of them is solid/boundary, ther other one
-																	// is solid/boundary of different type or different solid
+				if ((fabs(rhoPresMuB.w - rhoPresMuA.w) < .1) && rhoPresMuA.w> -.1) {
+					continue;
 				}
+				Real4 velMasB = FETCH(sortedVelMas, j);
+				modifyPressure(rhoPresMuB, dist3Alpha);
+				Real multViscosit = 1;
+				Real4 derivVelRho = mR4(0.0f);
+				Real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
+				derivVelRho = DifVelocityRho(dist3, d, velMasA, vel_XSPH_A,
+						velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB,
+						multViscosit);
+				derivV += mR3(derivVelRho);
+				derivRho += derivVelRho.w;
 			}
 		}
 	}
@@ -918,51 +889,55 @@ __global__ void UpdateFluidD(Real3* posRadD, Real4* velMasD, Real3* vel_XSPH_D,
 	if (index >= updatePortionD.y) {
 		return;
 	}
-	Real3 vel_XSPH = vel_XSPH_D[index];
-	// 0** if you have rigid BCE, make sure to apply same tweaks to them, to satify action/reaction. Or apply tweak to
-	// force in advance
-	// 1*** let's tweak a little bit :)
-	if (length(vel_XSPH) > paramsD.tweakMultV * paramsD.HSML / paramsD.dT
-			&& paramsD.enableTweak) {
-		vel_XSPH *= (paramsD.tweakMultV * paramsD.HSML / paramsD.dT)
-				/ length(vel_XSPH);
-		if (length(vel_XSPH)
-				> 1.001 * paramsD.tweakMultV * paramsD.HSML / paramsD.dT) { // infinity
-			if (paramsD.enableAggressiveTweak) {
-				vel_XSPH = mR3(0);
-			} else {
-				printf("Error! Infinite vel_XSPH detected!\n");
-			}
-		}
-	}
-	// 1*** end tweak
-
-	Real3 posRad = posRadD[index];
-	Real3 updatedPositon = posRad + vel_XSPH * dTD;
-	posRadD[index] = updatedPositon;  // posRadD updated
-
 	Real4 derivVelRho = derivVelRhoD[index];
-	Real4 velMas = velMasD[index];
-	Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
-	// 2*** let's tweak a little bit :)
-	if (length(updatedVelocity) > paramsD.tweakMultV * paramsD.HSML / paramsD.dT
-			&& paramsD.enableTweak) {
-		updatedVelocity *= (paramsD.tweakMultV * paramsD.HSML / paramsD.dT)
-				/ length(updatedVelocity);
-		if (length(updatedVelocity)
-				> 1.001 * paramsD.tweakMultV * paramsD.HSML / paramsD.dT) { // infinity
-			if (paramsD.enableAggressiveTweak) {
-				updatedVelocity = mR3(0);
-			} else {
-				printf("Error! Infinite updatedVelocity detected!\n");
-			}
-		}
-	}
-	// 2*** end tweak
-	velMasD[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */velMas.w); // velMasD updated
-
 	Real4 rhoPresMu = rhoPresMuD[index];
 
+	if (rhoPresMu.w < 0) {
+		Real3 vel_XSPH = vel_XSPH_D[index];
+		// 0** if you have rigid BCE, make sure to apply same tweaks to them, to satify action/reaction. Or apply tweak to
+		// force in advance
+		// 1*** let's tweak a little bit :)
+		if (length(vel_XSPH) > paramsD.tweakMultV * paramsD.HSML / paramsD.dT
+				&& paramsD.enableTweak) {
+			vel_XSPH *= (paramsD.tweakMultV * paramsD.HSML / paramsD.dT)
+					/ length(vel_XSPH);
+			if (length(vel_XSPH)
+					> 1.001 * paramsD.tweakMultV * paramsD.HSML / paramsD.dT) { // infinity
+				if (paramsD.enableAggressiveTweak) {
+					vel_XSPH = mR3(0);
+				} else {
+					printf("Error! Infinite vel_XSPH detected!\n");
+				}
+			}
+		}
+		// 1*** end tweak
+
+		Real3 posRad = posRadD[index];
+		Real3 updatedPositon = posRad + vel_XSPH * dTD;
+		posRadD[index] = updatedPositon;  // posRadD updated
+
+		Real4 velMas = velMasD[index];
+		Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
+		// 2*** let's tweak a little bit :)
+		if (length(updatedVelocity)
+				> paramsD.tweakMultV * paramsD.HSML / paramsD.dT
+				&& paramsD.enableTweak) {
+			updatedVelocity *= (paramsD.tweakMultV * paramsD.HSML / paramsD.dT)
+					/ length(updatedVelocity);
+			if (length(updatedVelocity)
+					> 1.001 * paramsD.tweakMultV * paramsD.HSML / paramsD.dT) { // infinity
+				if (paramsD.enableAggressiveTweak) {
+					updatedVelocity = mR3(0);
+				} else {
+					printf("Error! Infinite updatedVelocity detected!\n");
+				}
+			}
+		}
+		// 2*** end tweak
+		velMasD[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */
+		velMas.w); // velMasD updated
+
+	}
 	// 3*** let's tweak a little bit :)
 	if (fabs(derivVelRho.w) > paramsD.tweakMultRho * paramsD.rho0 / paramsD.dT
 			&& paramsD.enableTweak) {
@@ -997,7 +972,7 @@ __global__ void UpdateFluidD_init_LF(Real3* posRadD, Real4* velMasD_half,
 	Real4 velMas = velMasD_half[index];
 	Real3 updatedVelocity = mR3(velMas + derivVelRho * (0.5 * dTD));
 	velMasD_half[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */
-			velMas.w);  // velMasD_half updated
+	velMas.w);  // velMasD_half updated
 
 	Real3 posRad = posRadD[index];
 	Real3 updatedPositon = posRad + updatedVelocity * dTD;
@@ -1081,7 +1056,7 @@ __global__ void UpdateFluidD_EveryThing_LF(Real3* posRadD, Real4* velMasD_half,
 	//	}
 	// 2*** end tweak
 	velMasD_half[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */
-			velMas.w);  // velMasD_half updated
+	velMas.w);  // velMasD_half updated
 
 	posRadD[index] += updatedVelocity * dTD;  // posRadD updated
 
@@ -1614,12 +1589,14 @@ void UpdateFluid(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real4>& rhoPresMuD,
 		thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray, Real dT) {
-	int4 referencePortion = referenceArray[0];
-	if (referencePortion.z != -1) {
-		printf("error in UpdateFluid, accessing non fluid\n");
-		return;
-	}
-	int2 updatePortion = mI2(referencePortion);
+
+//	int4 referencePortion = referenceArray[0];
+//	if (referencePortion.z != -1) {
+//		printf("error in UpdateFluid, accessing non fluid\n");
+//		return;
+//	}
+//	int2 updatePortion = mI2(referencePortion);
+	int2 updatePortion = mI2(0, referenceArray[referenceArray.size() - 1].y);
 	// int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
 	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
 	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion,
