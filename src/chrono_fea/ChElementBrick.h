@@ -296,7 +296,12 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
         CCOM1 = C1;
         CCOM2 = C2;
     }
-
+    /// Fills the N shape function matrix
+    /// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
+    void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
+    void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z);
+    void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
+    void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
     // Functions for ChLoadable interface
     /// Gets the number of DOFs affected by this element (position part)
     virtual int LoadableGet_ndof_x() { return 8 * 3; }
@@ -359,18 +364,58 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) {
-        // evaluate shape functions (in compressed vector), btw. not dependant on state
-        // ChMatrixNM<double, 1, 8> N;
-        // this->ShapeFunctions(N, U, V, W); // note: U,V,W in -1..1 range
+        // this->ComputeNF(U, V, Qi, detJ, F, state_x, state_w);
+        ChMatrixNM<double, 1, 8> N;
+        ChMatrixNM<double, 1, 8> Nx;
+        ChMatrixNM<double, 1, 8> Ny;
+        ChMatrixNM<double, 1, 8> Nz;
+        this->ShapeFunctions(N, U, V,
+                             W);  // evaluate shape functions (in compressed vector), btw. not dependant on state
+        this->ShapeFunctionsDerivativeX(Nx, U, V, W);
+        this->ShapeFunctionsDerivativeY(Ny, U, V, W);
+        this->ShapeFunctionsDerivativeZ(Nz, U, V, W);
 
-        // detJ = this->GetVolume() / 8.0;
+        ChMatrixNM<double, 1, 3> Nx_d0;
+        Nx_d0.MatrMultiply(Nx, m_d0);
+        ChMatrixNM<double, 1, 3> Ny_d0;
+        Ny_d0.MatrMultiply(Ny, m_d0);
+        ChMatrixNM<double, 1, 3> Nz_d0;
+        Nz_d0.MatrMultiply(Nz, m_d0);
 
-        // Qi(0) = N(0)*F(0);
-        // TO DO
+        ChMatrixNM<double, 3, 3> rd0;
+        rd0(0, 0) = Nx_d0(0, 0);
+        rd0(1, 0) = Nx_d0(0, 1);
+        rd0(2, 0) = Nx_d0(0, 2);
+        rd0(0, 1) = Ny_d0(0, 0);
+        rd0(1, 1) = Ny_d0(0, 1);
+        rd0(2, 1) = Ny_d0(0, 2);
+        rd0(0, 2) = Nz_d0(0, 0);
+        rd0(1, 2) = Nz_d0(0, 1);
+        rd0(2, 2) = Nz_d0(0, 2);
+        detJ = rd0.Det();
+        detJ *= this->GetLengthX() * this->GetLengthY() * this->GetLengthZ() / 8.0;
+        ChVector<> tmp;
+        ChVector<> Fv = F.ClipVector(0, 0);
+        tmp = N(0) * Fv;
+        Qi.PasteVector(tmp, 0, 0);
+        tmp = N(1) * Fv;
+        Qi.PasteVector(tmp, 3, 0);
+        tmp = N(2) * Fv;
+        Qi.PasteVector(tmp, 6, 0);
+        tmp = N(3) * Fv;
+        Qi.PasteVector(tmp, 9, 0);
+        tmp = N(4) * Fv;
+        Qi.PasteVector(tmp, 12, 0);
+        tmp = N(5) * Fv;
+        Qi.PasteVector(tmp, 15, 0);
+        tmp = N(6) * Fv;
+        Qi.PasteVector(tmp, 18, 0);
+        tmp = N(7) * Fv;
+        Qi.PasteVector(tmp, 21, 0);
     }
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() { return 0; }
+    virtual double GetDensity() { return this->m_Material->Get_density(); }
 
   private:
     enum JacobianType { ANALYTICAL, NUMERICAL };
@@ -396,13 +441,6 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     double CCOM1;       ///< First coefficient for Mooney-Rivlin
     double CCOM2;       ///< Second coefficient for Mooney-Rivlin
                         // Private Methods
-    /// Fills the N shape function matrix
-    /// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...]; ,
-    void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
-    void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z);
-    void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
-    void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
-
     virtual void Update() override;
 
     /// Fills the D vector (column matrix) with the current
