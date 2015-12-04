@@ -892,7 +892,7 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
     this->m_UV.clear();
     this->m_face_v_indices.clear();
     this->m_face_n_indices.clear();
-    this->m_face_u_indices.clear();
+    this->m_face_uv_indices.clear();
 
     GeometryInterface emptybm;  // BuildMesh bm;
 
@@ -921,7 +921,7 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
             ChVector<int>(obj.mIndexesNormals[iin], obj.mIndexesNormals[iin + 1], obj.mIndexesNormals[iin + 2]));
     }
     for (unsigned int iit = 0; iit < obj.mIndexesTexels.size(); iit += 3) {
-        this->m_face_u_indices.push_back(
+        this->m_face_uv_indices.push_back(
             ChVector<int>(obj.mIndexesTexels[iit], obj.mIndexesTexels[iit + 1], obj.mIndexesTexels[iit + 2]));
     }
 
@@ -931,7 +931,7 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
     }
     if(!load_uv) {
         this->m_UV.clear();
-        this->m_face_u_indices.clear();
+        this->m_face_uv_indices.clear();
     }
 }
 
@@ -1170,6 +1170,40 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int,int>, st
 }
 
 
+int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
+    
+    int nmerged = 0;
+    std::vector<ChVector<>> processed_verts;
+    std::vector< int > new_indexes(m_vertices.size());
+    
+    // merge vertexes
+    for (int i= 0; i< this->m_vertices.size(); ++i) {
+        bool tomerge = false;
+        for (int j=0; j<processed_verts.size(); ++j) {
+            if ((m_vertices[i]-processed_verts[j]).Length2()<tolerance) {
+                tomerge = true;
+                ++nmerged;
+                new_indexes[i] = j;
+                break;
+            }
+        }
+        if (!tomerge) {
+            processed_verts.push_back(m_vertices[i]);
+            new_indexes[i] = processed_verts.size()-1;
+        }
+    }
+
+    this->m_vertices = processed_verts;
+
+    // update the merged vertexes also in face indexes to vertexes
+    for (int i= 0; i< this->m_face_v_indices.size(); ++i) {
+        m_face_v_indices[i].x = new_indexes[m_face_v_indices[i].x];
+        m_face_v_indices[i].y = new_indexes[m_face_v_indices[i].y];
+        m_face_v_indices[i].z = new_indexes[m_face_v_indices[i].z];
+    }
+
+    return nmerged;
+}
 
 
 }  // END_OF_NAMESPACE____
