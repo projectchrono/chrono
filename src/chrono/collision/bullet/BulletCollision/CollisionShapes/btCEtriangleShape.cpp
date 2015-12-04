@@ -81,7 +81,7 @@ btCEtriangleShape::btCEtriangleShape(ChVector<>* mp1,
 			supVec = vtx;
 	}
 
-	return supVec - vec0.normalized()*this->sphereswept_rad;
+	return supVec;  //+ vec0.normalized()*this->sphereswept_rad; //***TODO*** add the sphereswept_rad layer (but gives seldom jittering.. why?)
 }
 
  void	btCEtriangleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const
