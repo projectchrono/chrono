@@ -690,7 +690,7 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         ChModelBullet* triModelA = (ChModelBullet*)triA->getUserPointer();
         ChModelBullet* triModelB = (ChModelBullet*)triB->getUserPointer();
 
-        double max_allowed_dist = triModelA->GetEnvelope()+triModelB->GetEnvelope();
+        double max_allowed_dist = triModelA->GetEnvelope()+triModelB->GetEnvelope() +triA->sphereswept_r()+triB->sphereswept_r();
         double min_allowed_dist = - (triModelA->GetSafeMargin()+triModelB->GetSafeMargin());
         
         double offset_A = triA->sphereswept_r();
@@ -1066,7 +1066,7 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
 
 private:
     void _add_contact(const ChVector<>& candid_pA, const ChVector<>& candid_pB, const double dist, btManifoldResult* resultOut, 
-                      const double envelopeA, const double envelopeB) {
+                      const double offsetA, const double offsetB) {
 
         // convert to Bullet vectors. Note: in absolute csys.
         btVector3 absA ((btScalar)candid_pA.x, (btScalar)candid_pA.y, (btScalar)candid_pA.z);
@@ -1075,7 +1075,7 @@ private:
         btVector3 absN_onB ((btScalar)dabsN_onB.x, (btScalar)dabsN_onB.y, (btScalar)dabsN_onB.z);
         if (dist<0)
             absN_onB = - absN_onB; // flip norm to be coherent with dist sign
-        resultOut->addContactPoint(absN_onB, absB + absN_onB*envelopeB, (btScalar)(dist - (envelopeA+envelopeB)));
+        resultOut->addContactPoint(absN_onB, absB + absN_onB*offsetB, (btScalar)(dist - (offsetA+offsetB)));
     }
 
 public:
