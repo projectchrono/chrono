@@ -126,9 +126,9 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     // Determine the joint orientation matrix from the hardpoint locations by
     // constructing a rotation matrix with the z axis along the joint direction
     // and the y axis normal to the plane of the UCA.
-    v = points[LCA_B] - points[LCA_F];//Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
+    v = points[LCA_B] - points[SPRING_U];//Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
     v.Normalize();
-    w = points[SPRING_U] - points[SPRING_C];
+    w = points[SPRING_C] - points[SPRING_U];
     w.Normalize();
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
@@ -172,9 +172,9 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     // Determine the joint orientation matrix from the hardpoint locations by
     // constructing a rotation matrix with the z axis along the joint direction
     // and the y axis normal to the plane of the UCA.
-    v = points[LCA_B] - points[LCA_F];//Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
+    v = points[LCA_B] - points[SPRING_U];//Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
     v.Normalize();
-    w = points[SPRING_U] - points[SPRING_C];
+    w = points[SPRING_C] - points[SPRING_U];
     w.Normalize();
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
