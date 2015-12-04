@@ -388,7 +388,8 @@ bool ChModelBullet::AddTriangleProxy(ChVector<>* p1,                ///< points 
         mowns_vertex_1, mowns_vertex_2, mowns_vertex_3, 
         mowns_edge_1, mowns_edge_2, mowns_edge_3, msphereswept_rad);
 
-    mshape->setMargin((btScalar) this->GetEnvelope());  // not this->GetSuggestedFullMargin() given the way that btCEtriangleShape  computes AABB etc.
+    mshape->setMargin((btScalar)  this->GetEnvelope()); // this->GetSafeMargin());  // not this->GetSuggestedFullMargin() given the way that btCEtriangleShape works.
+    
     _injectShape(VNULL, ChMatrix33<>(1), mshape);
 
     return true;
@@ -562,24 +563,26 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
             this->AddTriangleProxy(&mesh->m_vertices[mesh->m_face_v_indices[it].x], 
                                    &mesh->m_vertices[mesh->m_face_v_indices[it].y],
                                    &mesh->m_vertices[mesh->m_face_v_indices[it].z],
-                                   wingedgeA->second.second != -1 ? &mesh->m_vertices[i_wingvertex_A] : 0, 
-                                   wingedgeB->second.second != -1 ? &mesh->m_vertices[i_wingvertex_B] : 0,
-                                   wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C] : 0,
+                                   // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to edge
+                                   wingedgeA->second.second != -1 ? &mesh->m_vertices[i_wingvertex_A] : &mesh->m_vertices[mesh->m_face_v_indices[it].z], 
+                                   wingedgeB->second.second != -1 ? &mesh->m_vertices[i_wingvertex_B] : &mesh->m_vertices[mesh->m_face_v_indices[it].x],
+                                   wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C] : &mesh->m_vertices[mesh->m_face_v_indices[it].y],
                                    !added_vertexes[mesh->m_face_v_indices[it].x],
                                    !added_vertexes[mesh->m_face_v_indices[it].y],
                                    !added_vertexes[mesh->m_face_v_indices[it].z],
-                                   wingedgeA->second.second != -1,
-                                   wingedgeB->second.second != -1,
-                                   wingedgeC->second.second != -1,
+                                   // are edges owned by this triangle? (if not, they belong to a neighbouring triangle)
+                                   wingedgeA->second.first != -1,
+                                   wingedgeB->second.first != -1,
+                                   wingedgeC->second.first != -1,
                                    sphereswept_thickness);
             // Mark added vertexes
             added_vertexes[mesh->m_face_v_indices[it].x] = true;
             added_vertexes[mesh->m_face_v_indices[it].y] = true;
             added_vertexes[mesh->m_face_v_indices[it].z] = true;
-            // Mark added edges
-            wingedgeA->second.second = -1;
-            wingedgeB->second.second = -1;
-            wingedgeC->second.second = -1;
+            // Mark added edges, setting to -1 the 'ti' id of 1st triangle in winged edge {{vi,vj}{ti,tj}}
+            wingedgeA->second.first = -1;
+            wingedgeB->second.first = -1;
+            wingedgeC->second.first = -1;
         }
         return true;
     }
