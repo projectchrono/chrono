@@ -31,6 +31,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 
@@ -167,6 +168,8 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
         m_suspensions[axle] = ChSharedPtr<ChSuspension>(new SolidAxle(d));
     } else if (subtype.compare("MultiLink") == 0) {
         m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d));
+    } else if (subtype.compare("MacPhersonStrut") == 0) {
+        m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MacPhersonStrut(d));
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";

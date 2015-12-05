@@ -237,6 +237,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/MultiLink.cpp
     wheeled_vehicle/suspension/HendricksonPRIMAXX.h
     wheeled_vehicle/suspension/HendricksonPRIMAXX.cpp
+    wheeled_vehicle/suspension/MacPhersonStrut.h
+    wheeled_vehicle/suspension/MacPhersonStrut.cpp
 )
 source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
 
