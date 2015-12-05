@@ -216,8 +216,6 @@ int main(int argc, char* argv[]) {
         elemcount++;
     }
 
-    // This is mandatory
-    my_mesh->SetupInitial();
     // Deactivate automatic gravity in mesh
     my_mesh->SetAutomaticGravity(false);
     // Remember to add the mesh to the system!
@@ -239,6 +237,9 @@ int main(int argc, char* argv[]) {
     mystepper->SetTolerance(1e-08);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Simulation loop
     if (output) {

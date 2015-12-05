@@ -1720,7 +1720,7 @@ void ChElementBrick::ComputeMassMatrix() {
 }
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::SetupInitial() {
+void ChElementBrick::SetupInitial(ChSystem* system) {
     // Compute mass matrix
     ComputeMassMatrix();
     // initial EAS parameters

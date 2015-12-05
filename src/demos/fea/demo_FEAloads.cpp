@@ -402,9 +402,8 @@ void test_1() {
 
     ///////////////////////////////////////
 
-    // This is mandatory !
-    my_mesh->SetupInitial();
-
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Setup a MINRES solver. For FEA one cannot use the default SOR type solver.
 

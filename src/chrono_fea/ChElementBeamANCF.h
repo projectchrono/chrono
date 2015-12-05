@@ -474,7 +474,7 @@ class ChElementBeamANCF :   public ChElementBeam,
     /// Setup. Precompute mass and matrices that do not change during the
     /// simulation, ex. the mass matrix in ANCF is constant
 
-    virtual void SetupInitial() {
+    virtual void SetupInitial(ChSystem* system) override {
         assert(!section.IsNull());
 
         // Compute rest length, mass:

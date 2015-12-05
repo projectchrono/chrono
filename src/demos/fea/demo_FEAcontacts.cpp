@@ -223,21 +223,15 @@ int main(int argc, char* argv[]) {
 
     mcontactcloud->SetMaterialSurface(mysurfmaterial);
 
-    
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh_beams->SetupInitial();
+    my_mesh->AddContactSurface(mcontactsurf);
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh_beams);
 
 
-    
-
-
 
     //
-    // Optional...  visualuzation
+    // Optional...  visualization
     //
 
     // ==Asset== attach a visualization of the FEM mesh.
@@ -286,6 +280,8 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     //
     // THE SOFT-REAL-TIME CYCLE

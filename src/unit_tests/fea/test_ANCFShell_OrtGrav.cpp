@@ -68,6 +68,8 @@ int main(int argc, char* argv[]) {
     // Definition of the model
     ChSystem my_system;
 
+    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+
     // The physical system: it contains all physical objects.
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -290,10 +292,8 @@ int main(int argc, char* argv[]) {
         my_mesh->AddElement(element);
         elemcount++;
     }
-    // Switch off mesh class gravity: my_mesh still does not implement this element's gravity forces
+    // Switch off mesh class gravity (ANCF shell elements have a custom implementation)
     my_mesh->SetAutomaticGravity(false);
-    // This is mandatory
-    my_mesh->SetupInitial();
     // Remember to add the mesh to the system
     my_system.Add(my_mesh);
     // Perform a dynamic time integration:
@@ -322,6 +322,9 @@ int main(int argc, char* argv[]) {
     mystepper->SetTolerance(1e-08);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(false);  //
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     /*utils::Data m_data;
     m_data.resize(4);

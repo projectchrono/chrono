@@ -57,36 +57,36 @@ namespace fea {
 			/// The Evaluate method calculates the integrand in the matrix result
 			virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z);
 		};
-		/// This class defines the calculations for the integrand of the element gravity forces
-		class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
-		public:
-			MyGravity();
-			MyGravity(ChMatrixNM<double, 8, 3>* m_d0, ChElementShellANCF* passedelement) {
-				d0 = m_d0;
-				element = passedelement;
-			}
-			~MyGravity() {}
 
-		private:
-			ChElementShellANCF* element;
-			ChMatrixNM<double, 8, 3>* d0;                ///< Pointer to initial coordinates
-			ChMatrixNM<double, 1, 8> N;                  ///< Dense shape function vector
-			ChMatrixNM<double, 1, 8> Nx;                 ///< Dense shape function vector X derivative
-			ChMatrixNM<double, 1, 8> Ny;                 ///< Dense shape function vector Y derivative
-			ChMatrixNM<double, 1, 8> Nz;                 ///< Dense shape function vector Z derivative
-			ChMatrixNM<double, 3, 1> LocalGravityForce;  ///< Definition of the gravity vector (along Z by default)
-			/// The Evaluate method calculates the integrand  of the gravity forces and stores it in result
-			virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
-		};
+        /// This class defines the calculations for the integrand of the element gravity forces
+        class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
+          public:
+            MyGravity();
+            MyGravity(ChMatrixNM<double, 8, 3>* m_d0, ChElementShellANCF* passedelement, const ChVector<> g_acc)
+                : d0(m_d0), element(passedelement), gacc(g_acc) {}
+            ~MyGravity() {}
 
-		/// This class defines the calculations for the integrand of shell element internal forces
-		/// Capabilities of this class include: Application of enhanced assumed strain and assumed natural
-		/// strain formulations to avoid thickness and (tranvese and in-plane) shear locking. This implementation
-		/// also features a composite material implementation that allows for selecting a number of layers over the
-		/// element thickness; each of which has an independent, user-selected fiber angle (direction for orthotropic
-		/// constitutive
-		/// behavior)
-		class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
+          private:
+            ChElementShellANCF* element;
+            ChMatrixNM<double, 8, 3>* d0;  ///< Pointer to initial coordinates
+            ChMatrixNM<double, 1, 8> N;    ///< Dense shape function vector
+            ChMatrixNM<double, 1, 8> Nx;   ///< Dense shape function vector X derivative
+            ChMatrixNM<double, 1, 8> Ny;   ///< Dense shape function vector Y derivative
+            ChMatrixNM<double, 1, 8> Nz;   ///< Dense shape function vector Z derivative
+            ChVector<> gacc;               ///< gravitational acceleration
+
+            /// The Evaluate method calculates the integrand  of the gravity forces and stores it in result
+            virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
+        };
+
+        /// This class defines the calculations for the integrand of shell element internal forces
+        /// Capabilities of this class include: Application of enhanced assumed strain and assumed natural
+        /// strain formulations to avoid thickness and (tranvese and in-plane) shear locking. This implementation
+        /// also features a composite material implementation that allows for selecting a number of layers over the
+        /// element thickness; each of which has an independent, user-selected fiber angle (direction for orthotropic
+        /// constitutive
+        /// behavior)
+        class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
 		public:
 			MyForce();
 			// Constructor
@@ -330,7 +330,7 @@ namespace fea {
 		/// Initial setup.
 		/// This is used mostly to precompute matrices that do not change during the simulation,
 		/// such as the local stiffness of each element (if any), the mass, etc.
-		virtual void SetupInitial() override;
+        virtual void SetupInitial(ChSystem* system) override;
 
 		/// Update the state of this element.
 		virtual void Update() override;
@@ -370,7 +370,7 @@ namespace fea {
 		void ComputeMassMatrix();
 
 		/// Compute the gravitational forces.
-		void ComputeGravityForce();
+		void ComputeGravityForce(const ChVector<>& g_acc);
 
 		// [ANS] Shape function for Assumed Naturals Strain (Interpolation of strain and strainD in a thickness direction)
 		void shapefunction_ANS_BilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y);

@@ -306,7 +306,7 @@ class ChApiFea ChElementHexa_8 : public ChElementHexahedron,
         delete temp;
     }
 
-    virtual void SetupInitial() { ComputeStiffnessMatrix(); }
+    virtual void SetupInitial(ChSystem* system) override { ComputeStiffnessMatrix(); }
 
     // compute large rotation of element for corotational approach
     virtual void UpdateRotation() {

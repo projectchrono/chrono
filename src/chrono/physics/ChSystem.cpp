@@ -582,6 +582,23 @@ void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
     this->collision_system = newcollsystem;
 }
 
+/// Initial system setup before analysis.
+/// This function must be called once the system construction is completed.
+void ChSystem::SetupInitial() {
+    for (int ip = 0; ip < bodylist.size(); ++ip) {
+        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
+        Bpointer->SetupInitial();
+    }
+    for (int ip = 0; ip < linklist.size(); ++ip) {
+        ChSharedPtr<ChLink> Lpointer = linklist[ip];
+        Lpointer->SetupInitial();
+    }
+    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
+        PHpointer->SetupInitial();
+    }
+}
+
 // JS commands
 
 int ChSystem::SetScriptForStartFile(const std::string& mfile) {

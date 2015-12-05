@@ -208,9 +208,6 @@ int main(int argc, char* argv[]) {
         elemcount++;
     }
 
-    // This is mandatory
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -246,6 +243,9 @@ int main(int argc, char* argv[]) {
 
     application.AssetBindAll();
     application.AssetUpdateAll();
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a dynamic time integration:
     my_system.SetLcpSolverType(
