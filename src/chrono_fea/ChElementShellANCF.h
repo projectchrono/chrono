@@ -476,6 +476,18 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
 
+		virtual void EvaluateSectionVelNorm  (double U, double V, ChVector<> &Result) override
+		{
+			ChMatrixNM<double, 8, 1> N;
+			this->ShapeFunctions(N, U, V, 0);
+			for (unsigned int ii = 0; ii < 4; ii++) {
+				Result += N(ii * 2) * this->m_nodes[ii]->GetPos_dt();
+				Result += N(ii * 2 + 1) * this->m_nodes[ii]->GetPos_dt();
+			}
+		};
+
+                // evaluate shape functions (in compressed vector), btw. not dependant on state 
+
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
         for (int i = 0; i < m_nodes.size(); ++i) {
