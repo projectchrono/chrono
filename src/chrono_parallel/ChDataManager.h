@@ -117,13 +117,15 @@ struct host_container {
     host_vector<real3> norm_rigid_fluid;
     host_vector<real3> cpta_rigid_fluid;
     host_vector<real> dpth_rigid_fluid;
-    host_vector<int> bids_rigid_fluid;
-    host_vector<uint8_t> c_counts_rigid_fluid;
+    host_vector<int> neighbor_rigid_fluid;
+    host_vector<int2> bids_rigid_fluid;
+    host_vector<int> c_counts_rigid_fluid;
 
     //host_vector<int2> bids_fluid_fluid;
     //each particle has a finite number of neighbors preallocated
     host_vector<int> neighbor_fluid_fluid;
-    host_vector<uint8_t> c_counts_fluid_fluid;
+    host_vector<int> c_counts_fluid_fluid;
+    host_vector<int> particle_indices_fluid;
 
     // Contact forces (DEM)
     // These vectors hold the total contact force and torque, respectively,
