@@ -66,7 +66,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   ComputeD();
   ComputeE();
   ComputeR();
-  ComputeN();
+  //ComputeN();
 
   // PreSolve();
 

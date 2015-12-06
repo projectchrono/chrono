@@ -40,7 +40,6 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
     void Build_D_Fluid();
 
     void Density_Fluid();
-    void Normalize_Density_Fluid();
     void ArtificialPressure();
 
   protected:
