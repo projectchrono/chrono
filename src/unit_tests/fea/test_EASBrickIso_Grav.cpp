@@ -70,6 +70,7 @@ int main(int argc, char* argv[]) {
     // Create the physical system
 
     ChSystem my_system;
+    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     ChSharedPtr<ChMesh> my_mesh(new ChMesh);
 
