@@ -111,14 +111,14 @@ void ChConstraintRigidFluid::Build_D() {
     //#pragma omp parallel for
     int index = 0;
     for (int p = 0; p < num_fluid_bodies; p++) {
-        for (int i = 0; i < contact_counts[p]; ++i) {
+        for (int i = 0; i < contact_counts[p]; i++) {
             int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
             int fluid = p;  // fluid body is in second index
             real3 U = norm[p * max_rigid_neighbors + i], V, W;
             Orthogonalize(U, V, W);
             real3 T1, T2, T3;
-            Compute_Jacobian(rot_rigid[rigid], U, V, W,
-                             cpta[p * max_rigid_neighbors + i] - pos_rigid[p * max_rigid_neighbors + i], T1, T2, T3);
+            Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1, T2,
+                             T3);
 
             SetRow6(D_T, num_unilaterals + num_bilaterals + index * 3 + 0, rigid * 6, -U, T1);
             SetRow6(D_T, num_unilaterals + num_bilaterals + index * 3 + 1, rigid * 6, -V, T2);
@@ -152,7 +152,7 @@ void ChConstraintRigidFluid::Build_b() {
     //#pragma omp parallel for
     int index = 0;
     for (int p = 0; p < num_fluid_bodies; p++) {
-        for (int i = 0; i < contact_counts[p]; ++i) {
+        for (int i = 0; i < contact_counts[p]; i++) {
             real bi = 0;
             real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
 
@@ -207,7 +207,7 @@ void ChConstraintRigidFluid::GenerateSparsity() {
     host_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
     for (int p = 0; p < num_fluid_bodies; p++) {
-        for (int i = 0; i < contact_counts[p]; ++i) {
+        for (int i = 0; i < contact_counts[p]; i++) {
             // int2 body_id = bids[index];
             int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
             int fluid = p;
