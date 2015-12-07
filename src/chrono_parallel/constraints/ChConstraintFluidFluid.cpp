@@ -564,23 +564,6 @@ void ChConstraintFluidFluid::DetermineNeighbors() {
     int num = Thrust_Unique(temp_pairs);
     num_fluid_contacts = num;
 
-    std::cout << "NUM: " << num << std::endl;
-
-    //    for (int index = 0; index < num; index++) {
-    //        int2 body_id = I2(int(temp_pairs[index] >> 32), int(temp_pairs[index] & 0xffffffff));
-    //        std::cout << body_id.x << " " << body_id.y<<std::endl;
-    //    }
-    std::cout << "num_fluid_contacts: " << num_fluid_contacts << std::endl;
-    //
-    //    for (int p = 0; p < num_fluid_bodies; p++) {
-    //    	std::cout<<"ASD: "<<contact_counts[p]<<std::endl;
-    //        for (int i = 0; i < contact_counts[p]; i++) {
-    //            const int q = neighbor_fluid_fluid[p * max_neighbors + i];
-    //            std::cout << p << " " << q <<" "<<std::endl;
-    //        }
-    //    }
-    //    exit(0);
-
     fluid_contact_idA.resize(num_fluid_contacts * 2 + num_fluid_bodies);
     fluid_contact_idB.resize(num_fluid_contacts * 2 + num_fluid_bodies);
     fluid_contact_idA_start.resize(num_fluid_contacts * 2 + num_fluid_bodies);
@@ -591,7 +574,6 @@ void ChConstraintFluidFluid::DetermineNeighbors() {
     for (int index = 0; index < num_fluid_bodies; index++) {
         fluid_contact_idA[index] = index;
         fluid_contact_idB[index] = index;
-        // dist_fluid_fluid[index] = 0;
     }
 
     //

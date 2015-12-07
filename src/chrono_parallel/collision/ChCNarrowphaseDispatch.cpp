@@ -397,9 +397,9 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     Thrust_Fill(data_manager->host_data.c_counts_rigid_fluid, 0);
 #else
     host_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
-    //    host_vector<real3>& norm_rigid_fluid = data_manager->host_data.norm_rigid_fluid;
-    //    host_vector<real3>& cpta_rigid_fluid = data_manager->host_data.cpta_rigid_fluid;
-    //    host_vector<real>& dpth_rigid_fluid = data_manager->host_data.dpth_rigid_fluid;
+    host_vector<real3>& norm_rigid_fluid = data_manager->host_data.norm_rigid_fluid;
+    host_vector<real3>& cpta_rigid_fluid = data_manager->host_data.cpta_rigid_fluid;
+    host_vector<real>& dpth_rigid_fluid = data_manager->host_data.dpth_rigid_fluid;
     host_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
     host_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
@@ -408,9 +408,9 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     int num_fluid_bodies = data_manager->num_fluid_bodies;
     int num_rigid_shapes = data_manager->num_rigid_shapes;
 
-    host_vector<real3> norm_rigid_fluid(num_fluid_bodies * max_rigid_neighbors);
-    host_vector<real3> cpta_rigid_fluid(num_fluid_bodies * max_rigid_neighbors);
-    host_vector<real> dpth_rigid_fluid(num_fluid_bodies * max_rigid_neighbors);
+    norm_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
+    cpta_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
+    dpth_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
     neighbor_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
     contact_counts.resize(num_fluid_bodies);
 
@@ -421,8 +421,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
         int counter = 0;
         for (int r = 0; r < num_rigid_shapes; ++r) {
             //            if (overlap(data_manager->host_data.aabb_min[r], data_manager->host_data.aabb_max[r],
-            //                        sorted_pos_fluid[p] - real3(radius), sorted_pos_fluid[p] + real3(radius)) ==
-            //                        false) {
+            //                        pos_fluid[p] - real3(radius), pos_fluid[p] + real3(radius)) == false) {
             //                continue;
             //            }
 
@@ -479,27 +478,27 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
 
     data_manager->num_rigid_fluid_contacts = Thrust_Total(contact_counts);
 
-    std::cout << "FL_RIG " << data_manager->num_rigid_fluid_contacts << std::endl;
-    if (data_manager->num_rigid_fluid_contacts > 0) {
-        data_manager->host_data.bids_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
-        data_manager->host_data.norm_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
-        data_manager->host_data.cpta_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
-        data_manager->host_data.dpth_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
-        int counter = 0;
-        for (int p = 0; p < num_fluid_bodies; p++) {
-            for (int i = 0; i < contact_counts[p]; ++i) {
-                int r = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-
-                data_manager->host_data.bids_rigid_fluid[counter] = I2(r, p);
-                data_manager->host_data.norm_rigid_fluid[counter] = norm_rigid_fluid[p * max_rigid_neighbors + i];
-                data_manager->host_data.cpta_rigid_fluid[counter] = cpta_rigid_fluid[p * max_rigid_neighbors + i];
-                data_manager->host_data.dpth_rigid_fluid[counter] = dpth_rigid_fluid[p * max_rigid_neighbors + i];
-                //std::cout << "FL_RIG: " << r << " " << p << std::endl;
-
-                counter++;
-            }
-        }
-    }
+//    std::cout << "FL_RIG " << data_manager->num_rigid_fluid_contacts << std::endl;
+//    if (data_manager->num_rigid_fluid_contacts > 0) {
+//        data_manager->host_data.bids_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
+//        data_manager->host_data.norm_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
+//        data_manager->host_data.cpta_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
+//        data_manager->host_data.dpth_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
+//        int counter = 0;
+//        for (int p = 0; p < num_fluid_bodies; p++) {
+//            for (int i = 0; i < contact_counts[p]; ++i) {
+//                int r = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+//
+//                data_manager->host_data.bids_rigid_fluid[counter] = I2(r, p);
+//                data_manager->host_data.norm_rigid_fluid[counter] = norm_rigid_fluid[p * max_rigid_neighbors + i];
+//                data_manager->host_data.cpta_rigid_fluid[counter] = cpta_rigid_fluid[p * max_rigid_neighbors + i];
+//                data_manager->host_data.dpth_rigid_fluid[counter] = dpth_rigid_fluid[p * max_rigid_neighbors + i];
+//                // std::cout << "FL_RIG: " << r << " " << p << std::endl;
+//
+//                counter++;
+//            }
+//        }
+//    }
 #endif
     //    for (int p = 0; p < num_fluid_bodies; p++) {
     //        if (contact_counts[p] > 0) {
