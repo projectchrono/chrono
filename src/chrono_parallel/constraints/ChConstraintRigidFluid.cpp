@@ -144,16 +144,25 @@ void ChConstraintRigidFluid::Build_b() {
     if (num_rigid_fluid_contacts <= 0) {
         return;
     }
-#pragma omp parallel for
-    for (int index = 0; index < num_rigid_fluid_contacts; index++) {
-        real bi = 0;
-        real depth = data_manager->host_data.dpth_rigid_fluid[index];
 
-        bi = std::max(real(1.0) / step_size * depth, -data_manager->settings.fluid.contact_recovery_speed);
-        //
-        data_manager->host_data.b[num_unilaterals + num_bilaterals + index * 3 + 0] = bi;
-        data_manager->host_data.b[num_unilaterals + num_bilaterals + index * 3 + 1] = 0;
-        data_manager->host_data.b[num_unilaterals + num_bilaterals + index * 3 + 2] = 0;
+    host_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    host_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    int num_fluid_bodies = data_manager->num_fluid_bodies;
+
+    //#pragma omp parallel for
+    int index = 0;
+    for (int p = 0; p < num_fluid_bodies; p++) {
+        for (int i = 0; i < contact_counts[p]; ++i) {
+            real bi = 0;
+            real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
+
+            bi = std::max(real(1.0) / step_size * depth, -data_manager->settings.fluid.contact_recovery_speed);
+            //
+            data_manager->host_data.b[num_unilaterals + num_bilaterals + index * 3 + 0] = bi;
+            data_manager->host_data.b[num_unilaterals + num_bilaterals + index * 3 + 1] = 0;
+            data_manager->host_data.b[num_unilaterals + num_bilaterals + index * 3 + 2] = 0;
+            index++;
+        }
     }
 }
 void ChConstraintRigidFluid::Build_E() {
