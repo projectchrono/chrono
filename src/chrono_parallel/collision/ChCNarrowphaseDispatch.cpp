@@ -653,9 +653,9 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                     const int cellStart = bin_starts[cellIndex];
                     const int cellEnd = bin_ends[cellIndex];
                     for (int q = cellStart; q < cellEnd; ++q) {
-                        if (q == p) {
-                            continue;
-                        }  // disabled this so that we get self contact
+                        //if (q == p) {
+                        //    continue;
+                        //}  // disabled this so that we get self contact
                         const real3 xj = sorted_pos_fluid[q];
                         const real3 xij = xi - xj;
                         const real dSq = dot(xij, xij);
@@ -673,6 +673,15 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     }
     uint& num_fluid_contacts = data_manager->num_fluid_contacts;
     num_fluid_contacts = Thrust_Total(contact_counts);
+
+    data_manager->host_data.fluid_contact_index.resize(num_fluid_bodies * max_neighbors);
+    int cnt = 0;
+    for (int p = 0; p < num_fluid_bodies; p++) {
+        for (int i = 0; i < contact_counts[p]; i++) {
+            data_manager->host_data.fluid_contact_index[p * max_neighbors + i] = cnt;
+            cnt++;
+        }
+    }
 
     //    for (int p = 0; p < num_fluid_bodies; p++) {
     //        std::cout << "p: " << p << " ";
