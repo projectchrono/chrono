@@ -69,8 +69,8 @@ int main(int argc, char* argv[]) {
     // Create all the rigid bodies.
     // 
 
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.02);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.04);
+    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
+    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
     // - Create a floor
 
@@ -95,10 +95,8 @@ int main(int argc, char* argv[]) {
     ChTriangleMeshConnected mmeshbox;
     mmeshbox.LoadWavefrontMesh(GetChronoDataFile("cube.obj"),true,true);
 
-    //mfloor2->GetCollisionModel()->SetEnvelope(0.0);
-    //mfloor2->GetCollisionModel()->SetSafeMargin(0.01);
     mfloor2->GetCollisionModel()->ClearModel();
-    mfloor2->GetCollisionModel()->AddTriangleMesh(mmeshbox,false, false);
+    mfloor2->GetCollisionModel()->AddTriangleMesh(mmeshbox,false, false, VNULL, ChMatrix33<>(1), 0.01);
     mfloor2->GetCollisionModel()->BuildModel();
     mfloor2->SetCollide(true);
 
@@ -110,25 +108,21 @@ int main(int argc, char* argv[]) {
     masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     mfloor2->AddAsset(masset_texture);
 
-
     // - Create a falling item with triangle mesh shape
-
     ChSharedPtr<ChBody> mfalling(new ChBody);
-    mfalling->SetPos(ChVector<>(0, 0.24, 0));
-   // mfalling->SetBodyFixed(true);
+    mfalling->SetPos(ChVector<>(0.1, 0.24, 0));
+   // mfalling->SetPos(ChVector<>(ChRandom()*0.4, ChRandom()+0.24, ChRandom()*0.4));
     mphysicalSystem.Add(mfalling);
 
     ChTriangleMeshConnected mmesh;
     mmesh.LoadWavefrontMesh(GetChronoDataFile("cube.obj"),false,true);
     mmesh.Transform(ChVector<>(0,0,0), ChMatrix33<>(0.2)); // scale to a smaller cube
+    mmesh.RepairDuplicateVertexes(1e-9); // if meshes are not watertight
 
-    //mfalling->GetCollisionModel()->SetEnvelope(0.0);
-    //mfalling->GetCollisionModel()->SetSafeMargin(0.01);
     mfalling->GetCollisionModel()->ClearModel();
-    mfalling->GetCollisionModel()->AddTriangleMesh(mmesh,false, false);
+    mfalling->GetCollisionModel()->AddTriangleMesh(mmesh,false, false, VNULL, ChMatrix33<>(1), 0.00);
     mfalling->GetCollisionModel()->BuildModel();
     mfalling->SetCollide(true);
-    
 
     ChSharedPtr<ChTriangleMeshShape> masset_mesh(new ChTriangleMeshShape());
     masset_mesh->SetMesh(mmesh);
@@ -138,8 +132,21 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChTexture> masset_texturew(new ChTexture());
     masset_texturew->SetTextureFilename(GetChronoDataFile("cubetexture_wood.png"));
     mfalling->AddAsset(masset_texturew);
-
     
+
+    for (int bi = 0; bi < 15; bi++) {
+        // Create a bunch of ChronoENGINE rigid bodies (spheres and
+        // boxes etc.) which will fall..
+
+        ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(0.02,     // radius size
+                                                                       1000,    // density
+                                                                       true,    // collide enable?
+                                                                       true));  // visualization?
+        msphereBody->SetPos(ChVector<>(-0.5 + ChRandom() * 1, 0.7, -0.5 + ChRandom()));
+        msphereBody->GetMaterialSurface()->SetFriction(0.2f);
+
+        mphysicalSystem.Add(msphereBody);
+    }
 
     //-----------
 

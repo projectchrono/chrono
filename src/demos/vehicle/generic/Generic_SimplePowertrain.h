@@ -31,8 +31,8 @@ class Generic_SimplePowertrain : public chrono::vehicle::ChSimplePowertrain {
 
     virtual double GetForwardGearRatio() const override { return 0.3; }
     virtual double GetReverseGearRatio() const override { return -0.3; }
-    virtual double GetMaxTorque() const override { return 670.0; }
-    virtual double GetMaxSpeed() const override { return 2000; }
+    virtual double GetMaxTorque() const override { return 365.0; }
+    virtual double GetMaxSpeed() const override { return 5000; }
 };
 
 #endif

@@ -747,49 +747,43 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 		}
 
         // ------------ELEMENT IS A SHELL?
-            if (this->FEMmesh->GetElement(iel).IsType<ChElementShell>()) {
-			// downcasting 
-			ChSharedPtr<ChElementShell> myshell ( this->FEMmesh->GetElement(iel).DynamicCastTo<ChElementShell>() );
+        if (this->FEMmesh->GetElement(iel).IsType<ChElementShell>()) {
+            // downcasting
+            ChSharedPtr<ChElementShell> myshell(this->FEMmesh->GetElement(iel).DynamicCastTo<ChElementShell>());
 
-			unsigned int ivert_el = i_verts;
-			unsigned int inorm_el = i_vnorms;
+            unsigned int ivert_el = i_verts;
+            unsigned int inorm_el = i_vnorms;
 
-			// displacements & rotations state of the nodes:
-			ChMatrixDynamic<> displ(myshell->GetNdofs(),1);
-			myshell->GetStateBlock(displ); 
+            // displacements & rotations state of the nodes:
+            ChMatrixDynamic<> displ(myshell->GetNdofs(), 1);
+            myshell->GetStateBlock(displ);
 
-            for (int iu= 0; iu < shell_resolution; ++iu)
-                    for (int iv = 0; iv < shell_resolution; ++iv) {
-				double u = -1.0+(2.0*iu/(shell_resolution-1));
-                double v = -1.0+(2.0*iv/(shell_resolution-1));
-				
-				ChVector<> P;
-				myshell->EvaluateSectionPoint(u,v, displ, P);  // compute abs. pos and rot of section plane
+            for (int iu = 0; iu < shell_resolution; ++iu)
+                for (int iv = 0; iv < shell_resolution; ++iv) {
+                    double u = -1.0 + (2.0 * iu / (shell_resolution - 1));
+                    double v = -1.0 + (2.0 * iv / (shell_resolution - 1));
 
-                ChVector<float> mcol(1,1,1);
-                /*
-				ChVector<> vresult;
-				ChVector<> vresultB;
-				double sresult = 0;
-				switch(this->fem_data_type)
-				{
-					case E_PLOT_ELEM_SHELL_blabla:
-						myshell->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
-						sresult = vresultB.x; 
-						break;
-					
-				}
-				ChVector<float> mcol = ComputeFalseColor(sresult);
-                */
+                    ChVector<> P;
+                    myshell->EvaluateSectionPoint(u, v, displ, P);  // compute abs. pos and rot of section plane
 
-				trianglemesh.getCoordsVertices()[i_verts] = P; 
-				++i_verts;
+                    ChVector<> vresult;
+                    double sresult = 0;
+                    switch (this->fem_data_type) {
+                        case E_PLOT_NODE_SPEED_NORM:
+                            myshell->EvaluateSectionVelNorm(u, v, vresult);
+                            sresult = vresult.Length();
+                            break;
+                    }
+                    ChVector<float> mcol = ComputeFalseColor(sresult);
 
-				trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
-				++i_vcols;
-				
+                    trianglemesh.getCoordsVertices()[i_verts] = P;
+                    ++i_verts;
+
+                    trianglemesh.getCoordsColors()[i_vcols] = mcol;
+                    ++i_vcols;
+
                         if (iu > 0 && iv > 0) {
-					ChVector<int> ivert_offset(ivert_el,ivert_el,ivert_el);
+                            ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
 
                             trianglemesh.getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,

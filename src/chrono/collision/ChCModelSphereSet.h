@@ -103,7 +103,8 @@ class ChApi ChModelSphereSet : public ChCollisionModel {
         bool is_convex,  ///< true if mesh is used as a convex hull(only for simple mesh), otherwise if false, handle as
         /// concave
         ChVector<>* pos = 0,
-        ChMatrix33<>* rot = 0  ///< displacement respect to COG (optional)
+        ChMatrix33<>* rot = 0,  ///< displacement respect to COG (optional)
+        double sphereswept_thickness = 0.0      ///< optional: outward sphereswept layer (when supported)
         );
 
     /// CUSTOM for this class only: add a concave triangle mesh that will be managed

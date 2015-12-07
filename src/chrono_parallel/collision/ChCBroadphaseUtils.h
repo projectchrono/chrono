@@ -91,6 +91,25 @@ inline bool overlap(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax) {
          (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
 }
 
+inline bool current_bin(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax, real3 inv_bin_size_vec, int3 bins_per_axis, uint bin) {
+  real3 min_p;
+  min_p.x = std::max(Amin.x,Bmin.x);
+  min_p.y = std::max(Amin.y,Bmin.y);
+  min_p.z = std::max(Amin.z,Bmin.z);
+
+  real3 max_p;
+  max_p.x = std::min(Amax.x,Bmax.x);
+  max_p.y = std::min(Amax.y,Bmax.y);
+  max_p.z = std::min(Amax.z,Bmax.z);
+
+  real3 center = (min_p+max_p) * 0.5; //center of contact volume
+
+  if(Hash_Index(HashMin(min_p, inv_bin_size_vec), bins_per_axis)==bin){
+    return true;
+  }
+return false;
+}
+
 // Grid Size FUNCTIONS =====================================================================================
 
 // for a given number of aabbs in a grid, the grids maximum and minimum point along with the density factor

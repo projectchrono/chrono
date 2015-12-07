@@ -51,7 +51,7 @@ IMPLICIT_CONVEX_SHAPES_START_HERE,
 	CUSTOM_CONVEX_SHAPE_TYPE,
 	BARREL_SHAPE_PROXYTYPE,   //***ALEX***
     POINT_SHAPE_PROXYTYPE,   //***ALEX***
-    
+    CE_TRIANGLE_SHAPE_PROXYTYPE,   //***ALEX***
 //concave shapes
 CONCAVE_SHAPES_START_HERE,
 	//keep all the convex shapetype below here, for the check IsConvexShape in broadphase proxy!
@@ -64,7 +64,6 @@ CONCAVE_SHAPES_START_HERE,
     // for 2d collision between polylines:
     ARC_SHAPE_PROXYTYPE,   //***ALEX***
     SEGMENT_SHAPE_PROXYTYPE,   //***ALEX***
-    CE_TRIANGLE_SHAPE_PROXYTYPE,   //***ALEX***
 ///Used for GIMPACT Trimesh integration
 	GIMPACT_SHAPE_PROXYTYPE,
 ///Multimaterial mesh

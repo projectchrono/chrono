@@ -520,13 +520,13 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
                                     << ">,\n";
                     assets_file << " }\n";
                 }
-                if ((mytrimesh->m_face_u_indices.size() != mytrimesh->m_face_v_indices.size()) &&
-                    (mytrimesh->m_face_u_indices.size() > 0)) {
+                if ((mytrimesh->m_face_uv_indices.size() != mytrimesh->m_face_v_indices.size()) &&
+                    (mytrimesh->m_face_uv_indices.size() > 0)) {
                     assets_file << " uv_indices {\n";
-                    assets_file << (int)mytrimesh->m_face_u_indices.size() << ",\n";
-                    for (unsigned int it = 0; it < mytrimesh->m_face_u_indices.size(); it++)
-                        assets_file << "  <" << mytrimesh->m_face_u_indices[it].x << ","
-                                    << mytrimesh->m_face_u_indices[it].y << "," << mytrimesh->m_face_u_indices[it].z
+                    assets_file << (int)mytrimesh->m_face_uv_indices.size() << ",\n";
+                    for (unsigned int it = 0; it < mytrimesh->m_face_uv_indices.size(); it++)
+                        assets_file << "  <" << mytrimesh->m_face_uv_indices[it].x << ","
+                                    << mytrimesh->m_face_uv_indices[it].y << "," << mytrimesh->m_face_uv_indices[it].z
                                     << ">,\n";
                     assets_file << " }\n";
                 }

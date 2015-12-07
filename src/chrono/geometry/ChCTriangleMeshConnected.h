@@ -55,7 +55,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     std::vector<ChVector<int> > m_face_v_indices;
     std::vector<ChVector<int> > m_face_n_indices;
-    std::vector<ChVector<int> > m_face_u_indices;
+    std::vector<ChVector<int> > m_face_uv_indices;
     std::vector<ChVector<int> > m_face_col_indices;
 
     // file string if loading an obj file.
@@ -75,7 +75,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     std::vector<ChVector<int> >& getIndicesVertexes() { return m_face_v_indices; }
     std::vector<ChVector<int> >& getIndicesNormals() { return m_face_n_indices; }
-    std::vector<ChVector<int> >& getIndicesUV() { return m_face_u_indices; }
+    std::vector<ChVector<int> >& getIndicesUV() { return m_face_uv_indices; }
     std::vector<ChVector<int> >& getIndicesColors() { return m_face_col_indices; }
 
     // Load a triangle mesh saved as a Wavefront .obj file
@@ -135,6 +135,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Create a map of neighbouring triangles, vector of:
     /// [Ti TieA TieB TieC]
+    /// (the free sides have triangle id = -1).
     /// Return false if some edge has more than 2 neighbouring triangles
     bool ComputeNeighbouringTriangleMap(std::vector<std::array<int, 4>>& tri_map) const;
 
@@ -145,6 +146,16 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Return false if some edge has more than 2 neighbouring triangles.
 
     bool ComputeWingedEdges(std::map<std::pair<int,int>, std::pair<int,int>>& winged_edges, bool allow_single_wing = true) const;
+
+    /// Connect overlapping vertexes. 
+    /// This can beused to attempt to repair a mesh with 'open edges' to transform it into a watertight mesh. 
+    /// Say, if a cube is modeled with 6 faces with 4 distinct vertexes each, it might display properly, but for 
+    /// some algorithms, ex. collision detection, topological information might be needed, hence adjacent faces must
+    /// be connected. 
+    /// Return the number of merged vertexes.
+
+    int RepairDuplicateVertexes(const double tolerance = 1e-18 ///< when vertexes are closer than this value, they are merged
+                                 );
 
     //
     // OVERRIDE BASE CLASS FUNCTIONS
@@ -169,7 +180,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         marchive << CHNVP(m_colors);
         marchive << CHNVP(m_face_v_indices);
         marchive << CHNVP(m_face_n_indices);
-        marchive << CHNVP(m_face_u_indices);
+        marchive << CHNVP(m_face_uv_indices);
         marchive << CHNVP(m_face_col_indices);
         marchive << CHNVP(m_filename);
     }
@@ -188,7 +199,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         marchive >> CHNVP(m_colors);
         marchive >> CHNVP(m_face_v_indices);
         marchive >> CHNVP(m_face_n_indices);
-        marchive >> CHNVP(m_face_u_indices);
+        marchive >> CHNVP(m_face_uv_indices);
         marchive >> CHNVP(m_face_col_indices);
         marchive >> CHNVP(m_filename);
     }

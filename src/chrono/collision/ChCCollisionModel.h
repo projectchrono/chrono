@@ -185,7 +185,8 @@ class ChApi ChCollisionModel {
         bool is_static,  ///< true only if model doesn't move (es.a terrain). May improve performance
         bool is_convex,  ///< true if mesh convex hull is used (only for simple mesh). May improve robustness
         const ChVector<>& pos = ChVector<>(),      ///< displacement respect to COG (optional)
-        const ChMatrix33<>& rot = ChMatrix33<>(1)  ///< the rotation of the mesh - matrix must be orthogonal
+        const ChMatrix33<>& rot = ChMatrix33<>(1),  ///< the rotation of the mesh - matrix must be orthogonal
+        double sphereswept_thickness = 0.0      ///< optional: outward sphereswept layer (when supported)
         ) = 0;
 
     /// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.

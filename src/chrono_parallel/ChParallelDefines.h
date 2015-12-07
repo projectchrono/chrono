@@ -91,13 +91,11 @@ static std::ostream null_stream(&null_buffer);
     thrust::inclusive_scan(x.begin(), x.end(), x.begin()); \
     y = x.back();
 #define Thrust_Sort_By_Key(x, y) thrust::sort_by_key(x.begin(), x.end(), y.begin())
-#define Thrust_Reduce_By_KeyA(x, y, z)                                                                                 \
-    x = (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), y.begin(), z.begin()).second) - \
-        z.begin()
 
-#define Thrust_Reduce_By_Key(y, z, w)                                                                              \
+#define Run_Length_Encode(y, z, w)                                                                              \
     (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
         w.begin()
+
 #define Thrust_Inclusive_Scan(x) thrust::inclusive_scan(x.begin(), x.end(), x.begin())
 #define Thrust_Exclusive_Scan(x) thrust::exclusive_scan(x.begin(), x.end(), x.begin())
 #define Thrust_Fill(x, y) thrust::fill(x.begin(), x.end(), y)
