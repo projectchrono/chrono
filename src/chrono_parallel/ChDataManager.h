@@ -127,6 +127,8 @@ struct host_container {
     host_vector<int> c_counts_fluid_fluid;
     host_vector<int> particle_indices_fluid;
     host_vector<int> fluid_contact_index;
+    host_vector<long long> bids_fluid_fluid;
+    host_vector<int> reverse_mapping;
 
     // Contact forces (DEM)
     // These vectors hold the total contact force and torque, respectively,

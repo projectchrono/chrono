@@ -554,16 +554,23 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
 
     host_vector<int> bin_ids(num_fluid_bodies);
     host_vector<int>& particle_indices = data_manager->host_data.particle_indices_fluid;
+    host_vector<long long>& bids_fluid_fluid = data_manager->host_data.bids_fluid_fluid;
     particle_indices.resize(num_fluid_bodies);
 
-    host_vector<int> reverse_mapping(num_fluid_bodies);
+    host_vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping;
 
+    reverse_mapping.resize(num_fluid_bodies);
     contact_counts.resize(num_fluid_bodies);
     sorted_pos_fluid.resize(num_fluid_bodies);
     neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
+    bids_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
 
     Thrust_Fill(contact_counts, 0);
     Thrust_Fill(neighbor_fluid_fluid, 0);
+
+    long long t = 9223372036854775807;
+
+    Thrust_Fill(bids_fluid_fluid, t);
 
     const real radius = data_manager->settings.fluid.kernel_radius;
     const real radiusSq = radius * radius;
@@ -653,7 +660,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                     const int cellStart = bin_starts[cellIndex];
                     const int cellEnd = bin_ends[cellIndex];
                     for (int q = cellStart; q < cellEnd; ++q) {
-                        //if (q == p) {
+                        // if (q == p) {
                         //    continue;
                         //}  // disabled this so that we get self contact
                         const real3 xj = sorted_pos_fluid[q];
@@ -662,6 +669,9 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                         if (dSq < radiusSq) {
                             if (contact_count < max_neighbors) {
                                 neighbor_fluid_fluid[p * max_neighbors + contact_count] = q;
+                                bids_fluid_fluid[p * max_neighbors + contact_count] =
+                                    ((long long)data_manager->host_data.particle_indices_fluid[p] << 32 |
+                                     (long long)data_manager->host_data.particle_indices_fluid[q]);
                                 ++contact_count;
                             }
                         }
@@ -673,7 +683,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     }
     uint& num_fluid_contacts = data_manager->num_fluid_contacts;
     num_fluid_contacts = Thrust_Total(contact_counts);
-
+#if 0
     data_manager->host_data.fluid_contact_index.resize(num_fluid_bodies * max_neighbors);
     int cnt = 0;
     for (int p = 0; p < num_fluid_bodies; p++) {
@@ -682,7 +692,10 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
             cnt++;
         }
     }
+#endif
+    Thrust_Sort(bids_fluid_fluid);
 
+    // Now the list of pairs is sorted,
     //    for (int p = 0; p < num_fluid_bodies; p++) {
     //        std::cout << "p: " << p << " ";
     //        for (int i = 0; i < contact_counts[p]; i++) {

@@ -57,7 +57,7 @@ void ChConstraintFluidFluid::Density_Fluid() {
     real mass_fluid = data_manager->settings.fluid.mass;
     real h = data_manager->settings.fluid.kernel_radius;
     host_vector<real3>& vel = data_manager->host_data.vel_fluid;
-    host_vector<real3>& pos = data_manager->host_data.sorted_pos_fluid;
+    host_vector<real3>& pos = data_manager->host_data.pos_fluid;
     host_vector<real>& density = data_manager->host_data.den_fluid;
 
     const real h_3 = h * h * h;
@@ -65,27 +65,82 @@ void ChConstraintFluidFluid::Density_Fluid() {
     const real h_9 = h_3 * h_3 * h_3;
     const real KGSPIKY = 315.0 / (64.0 * F_PI * h_9);
 
-    int num_fluid_bodies = data_manager->num_fluid_bodies;
-    host_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    host_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
-    host_vector<int>& fluid_contact_index = data_manager->host_data.fluid_contact_index;
-
-    //#pragma omp parallel for
-    for (int p = 0; p < num_fluid_bodies; p++) {
+#pragma omp parallel for
+    for (int i = 0; i < last_body; i++) {
+        uint start = fluid_start_index[i], end = fluid_start_index[i + 1];
+        int2 bid;
+        bid.x = fluid_contact_idA_start[i];
         real dens = 0;
-        for (int i = 0; i < contact_counts[p]; i++) {
-            int q = neighbor_fluid_fluid[p * max_neighbors + i];
-            if (p == q) {
+        for (int index = start; index < end; index++) {
+            bid.y = fluid_contact_idB[index];
+            if (bid.x == bid.y) {
                 dens += mass_fluid * KGSPIKY * h_6;
                 continue;
             }
-            real dist = length(pos[p] - pos[q]);
+            real3 xij = (pos[bid.x] - pos[bid.y]);
+            real dist = length(xij);
             dens += mass_fluid * KGSPIKY * pow((h * h - dist * dist), 3);
         }
-        density[p] = dens;
+        density[bid.x] = dens;
     }
 }
+// void ChConstraintFluidFluid::Solve_Density(real volume, real tolerance) {
+//  real density_fluid = data_manager->settings.fluid.density;
+//  host_vector<real>& density = data_manager->host_data.den_fluid;
+//  density.resize(num_fluid_bodies);
+//  uint num_fluid_bodies = data_manager->num_fluid_bodies;
+//
+//  std::cout << "avg_Density: " << avg_density << std::endl;
+//
+//  real& mass = data_manager->settings.fluid.mass;
+//  real density_fluid = data_manager->settings.fluid.density;
+//
+//  real vol = volume / num_fluid_bodies;
+//  mass = density_fluid * vol;
+//
+//  Density_Fluid();
+//  Normalize_Density_Fluid();
+//
+//  real avg_density = Thrust_Total(data_manager->host_data.den_fluid) / num_fluid_bodies;
+//
+//  if (avg_density - density_fluid < tolerance){
+//
+//  }
+//}
+void ChConstraintFluidFluid::Normalize_Density_Fluid() {
+    real h = data_manager->settings.fluid.kernel_radius;
+    host_vector<real3>& pos = data_manager->host_data.pos_fluid;
+    real mass_fluid = data_manager->settings.fluid.mass;
+    host_vector<real>& density = data_manager->host_data.den_fluid;
+    real density_fluid = data_manager->settings.fluid.density;
+    real inv_density = 1.0 / density_fluid;
+    real mass_over_density = mass_fluid * inv_density;
+    const real h_3 = h * h * h;
+    const real h_6 = h_3 * h_3;
+    const real h_9 = h_3 * h_3 * h_3;
+    const real KPOLY6 = 315.0 / (64.0 * F_PI * h_9);
 
+#pragma omp parallel for
+    for (int i = 0; i < last_body; i++) {
+        int2 bid;
+        uint start = fluid_start_index[i], end = fluid_start_index[i + 1];
+        bid.x = fluid_contact_idA_start[i];
+        real3 posa = pos[bid.x];
+        real dens = 0;
+        for (int index = start; index < end; index++) {
+            bid.y = fluid_contact_idB[index];
+            if (bid.x == bid.y) {
+                dens += mass_fluid / density[bid.y] * KPOLY6 * h_6;
+                continue;
+            }
+            real3 xij = (posa - pos[bid.y]);
+            real dist = length(xij);
+
+            dens += (mass_fluid / density[bid.y]) * KPOLY6 * pow((h * h - dist * dist), 3);
+        }
+        density[bid.x] = density[bid.x] / dens;
+    }
+}
 void ChConstraintFluidFluid::Build_D_Fluid() {
     LOG(INFO) << "ChConstraintFluidFluid::Build_D_Fluid";
     if (num_fluid_contacts <= 0) {
@@ -102,8 +157,8 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
 
     host_vector<real>& density = data_manager->host_data.den_fluid;
     host_vector<real3>& vel = data_manager->host_data.vel_fluid;
-    host_vector<real3>& pos = data_manager->host_data.sorted_pos_fluid;
-    // host_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+    host_vector<real3>& pos = data_manager->host_data.pos_fluid;
+
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     //=======COMPUTE DENSITY OF FLUID
@@ -121,38 +176,35 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
     const real mass_2 = mass * mass;
     const real eta_2 = eta * eta;
 
-    // host_vector<real> dist_temp(fluid_contact_idB.size());
+// host_vector<real> dist_temp(fluid_contact_idB.size());
 
-    int num_fluid_bodies = data_manager->num_fluid_bodies;
-    host_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    host_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
-    host_vector<int>& fluid_contact_index = data_manager->host_data.fluid_contact_index;
-
-    //#pragma omp parallel for
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        real dens = 0;
+#pragma omp parallel for
+    for (int i = 0; i < last_body; i++) {
+        uint start = fluid_start_index[i], end = fluid_start_index[i + 1];
+        int body_a = fluid_contact_idA_start[i];
+        real3 posa = pos[body_a];
         real3 diag = 0;
         int diag_index = 0;
-        for (int i = 0; i < contact_counts[p]; i++) {
-            int q = neighbor_fluid_fluid[p * max_neighbors + i];
-            int index = fluid_contact_index[p * max_neighbors + i];
-            if (p == q) {
+        real dens = 0;
+
+        for (int index = start; index < end; index++) {
+            int body_b = fluid_contact_idB[index];
+            if (body_a == body_b) {
                 diag_index = index;
-                dens += mass / density[q] * KPOLY6 * h_6;
+                dens += mass / density[body_b] * KPOLY6 * h_6;
                 continue;
             }
-            real3 xij = (pos[p] - pos[q]);
+            real3 xij = (posa - pos[body_b]);
             real dist = length(xij);
             real3 off_diag = mass_over_density * KGSPIKY * pow(h - dist, 2) * xij;
             den_con[index] = off_diag;
             diag += off_diag;
 
-            dens += (mass / density[q]) * KPOLY6 * pow((h * h - dist * dist), 3);
+            dens += (mass / density[body_b]) * KPOLY6 * pow((h * h - dist * dist), 3);
         }
-        density[p] = density[p] / dens;
+        density[body_a] = density[body_a] / dens;
         den_con[diag_index] = -diag;
     }
-
     if (data_manager->settings.fluid.enable_viscosity) {
         viscosity_row_1.clear();
         viscosity_row_2.clear();
@@ -161,27 +213,62 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
         viscosity_row_2.resize(num_fluid_contacts);
         viscosity_row_3.resize(num_fluid_contacts);
 
-        int num_fluid_bodies = data_manager->num_fluid_bodies;
-        host_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-        host_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
-        host_vector<int>& fluid_contact_index = data_manager->host_data.fluid_contact_index;
+// shear_tensor.clear();
+// shear_tensor.resize(num_fluid_bodies);
+//    shear_trace.clear();
+//    shear_trace.resize(num_fluid_bodies);
 
-        //#pragma omp parallel for
-        for (int p = 0; p < num_fluid_bodies; p++) {
-            real dens = 0;
+//#pragma omp parallel for
+//    for (int i = 0; i < last_body; i++) {
+//      uint start = fluid_start_index[i], end = fluid_start_index[i + 1];
+//      int2 bid;
+//      bid.x = fluid_contact_idA_start[i];
+//      M33 tensor;
+//      real dens;
+//      for (int index = start; index < end; index++) {
+//        bid.y = fluid_contact_idB[index];
+//        if (bid.x != bid.y) {
+//          real3 xij = (pos[bid.x] - pos[bid.y]);
+//          real dist = length(xij);
+//          real3 vij = (vel[bid.x] - vel[bid.y]);
+//          real3 grad_kernel = GRAD_KERNEL(xij, dist, h);
+//          tensor = tensor + ComputeShearTensor(mass / density[bid.y], grad_kernel, vij);
+//        }
+//      }
+//      // look at the jop reference for how to do a norm of the tensor
+//      //||T|| = (0.5*Tij*Tij)^0.5
+//      real norm = sqrt(0.5 * Trace(tensor * Transpose(tensor)));
+//      shear_trace[bid.x] = norm;
+//      // std::cout << norm << std::endl;
+//    }
+
+#pragma omp parallel for
+        for (int i = 0; i < last_body; i++) {
+            uint start = fluid_start_index[i], end = fluid_start_index[i + 1];
+            int body_a = fluid_contact_idA_start[i];
+            real3 posa = pos[body_a];
             M33 visc_mat;
             int diag_index = 0;
-            for (int i = 0; i < contact_counts[p]; i++) {
-                int q = neighbor_fluid_fluid[p * max_neighbors + i];
-                int index = fluid_contact_index[p * max_neighbors + i];
-                if (p == q) {
+            for (int index = start; index < end; index++) {
+                int body_b = fluid_contact_idB[index];
+                if (body_a == body_b) {
                     diag_index = index;
                     continue;
                 }
-                real3 xij = (pos[p] - pos[q]);
+                real3 xij = (posa - pos[body_b]);
                 real dist = length(xij);
-                real density_a = density[p];
-                real density_b = density[q];
+                real density_a = density[body_a];
+                real density_b = density[body_b];
+
+                //        real norm_shear_a = shear_trace[body_a];
+                //        real norm_shear_b = shear_trace[body_b];
+                //        real mu_b = 290.8;
+                //        real tau_b = 374.0;
+                //        real corr = 1e-5;
+                //        visca = (mu_b + tau_b / (corr + norm_shear_a));
+                //        viscb = (mu_b + tau_b / (corr + norm_shear_b));
+                //
+                //        std::cout << norm_shear_a << " " << norm_shear_b << " " << visca << " " << viscb << std::endl;
 
                 real part_a = (8.0 / (density_a + density_b));
                 real part_b = visca + viscb;  //(visca / density_a + viscb / density_b);  // /
@@ -197,58 +284,58 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
 
                 visc_mat = visc_mat + matrix;
             }
+
             viscosity_row_1[diag_index] = R3(visc_mat.U.x, visc_mat.V.x, visc_mat.W.x) * -1;
             viscosity_row_2[diag_index] = R3(visc_mat.U.y, visc_mat.V.y, visc_mat.W.y) * -1;
             viscosity_row_3[diag_index] = R3(visc_mat.U.z, visc_mat.V.z, visc_mat.W.z) * -1;
         }
     }
     LOG(INFO) << "ChConstraintFluidFluid::JACOBIAN OF FLUID";
-
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        for (int i = 0; i < contact_counts[p]; i++) {
-            int q = neighbor_fluid_fluid[p * max_neighbors + i];
-            int index = fluid_contact_index[p * max_neighbors + i];
+    for (int i = 0; i < last_body; i++) {
+        uint start = fluid_start_index[i];
+        uint end = fluid_start_index[i + 1];
+        int body_a = fluid_contact_idA_start[i];
+        for (int index = start; index < end; index++) {
+            int body_b = fluid_contact_idB[index];
             real3 density_constraint = den_con[index];
-            D_T.append(index_offset + p, body_offset + q * 3 + 0, density_constraint.x);
-            D_T.append(index_offset + p, body_offset + q * 3 + 1, density_constraint.y);
-            D_T.append(index_offset + p, body_offset + q * 3 + 2, density_constraint.z);
+            D_T.append(index_offset + body_a, body_offset + body_b * 3 + 0, density_constraint.x);
+            D_T.append(index_offset + body_a, body_offset + body_b * 3 + 1, density_constraint.y);
+            D_T.append(index_offset + body_a, body_offset + body_b * 3 + 2, density_constraint.z);
         }
-        D_T.finalize(index_offset + p);
+        D_T.finalize(index_offset + body_a);
     }
-
     if (data_manager->settings.fluid.enable_viscosity) {
-        for (int p = 0; p < num_fluid_bodies; p++) {
-            for (int i = 0; i < contact_counts[p]; i++) {
-                int q = neighbor_fluid_fluid[p * max_neighbors + i];
-                int index = fluid_contact_index[p * max_neighbors + i];
+        for (int i = 0; i < last_body; i++) {
+            uint start = fluid_start_index[i];
+            uint end = fluid_start_index[i + 1];
+            int body_a = fluid_contact_idA_start[i];
+            for (int index = start; index < end; index++) {
+                int body_b = fluid_contact_idB[index];
                 real3 row_1 = viscosity_row_1[index];
-                D_T.append(index_offset + num_fluid_bodies + p * 3 + 0, body_offset + q * 3 + 0, row_1.x);
-                D_T.append(index_offset + num_fluid_bodies + p * 3 + 0, body_offset + q * 3 + 1, row_1.y);
-                D_T.append(index_offset + num_fluid_bodies + p * 3 + 0, body_offset + q * 3 + 2, row_1.z);
-            }
-            D_T.finalize(index_offset + num_fluid_bodies + p * 3 + 0);
 
-            for (int i = 0; i < contact_counts[p]; i++) {
-                int q = neighbor_fluid_fluid[p * max_neighbors + i];
-                int index = fluid_contact_index[p * max_neighbors + i];
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3 + 0, row_1.x);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3 + 1, row_1.y);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3 + 2, row_1.z);
+            }
+            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 0);
+            for (int index = start; index < end; index++) {
+                int body_b = fluid_contact_idB[index];
                 real3 row_2 = viscosity_row_2[index];
 
-                D_T.append(index_offset + num_fluid_bodies + p * 3 + 1, body_offset + q * 3 + 0, row_2.x);
-                D_T.append(index_offset + num_fluid_bodies + p * 3 + 1, body_offset + q * 3 + 1, row_2.y);
-                D_T.append(index_offset + num_fluid_bodies + p * 3 + 1, body_offset + q * 3 + 2, row_2.z);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3 + 0, row_2.x);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3 + 1, row_2.y);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3 + 2, row_2.z);
             }
-            D_T.finalize(index_offset + num_fluid_bodies + p * 3 + 1);
-
-            for (int i = 0; i < contact_counts[p]; i++) {
-                int q = neighbor_fluid_fluid[p * max_neighbors + i];
-                int index = fluid_contact_index[p * max_neighbors + i];
+            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 1);
+            for (int index = start; index < end; index++) {
+                int body_b = fluid_contact_idB[index];
                 real3 row_3 = viscosity_row_3[index];
 
-                D_T.append(index_offset + num_fluid_bodies + p * 3 + 2, body_offset + q * 3 + 0, row_3.x);
-                D_T.append(index_offset + num_fluid_bodies + p * 3 + 2, body_offset + q * 3 + 1, row_3.y);
-                D_T.append(index_offset + num_fluid_bodies + p * 3 + 2, body_offset + q * 3 + 2, row_3.z);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3 + 0, row_3.x);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3 + 1, row_3.y);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3 + 2, row_3.z);
             }
-            D_T.finalize(index_offset + num_fluid_bodies + p * 3 + 2);
+            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 2);
         }
     }
 }
@@ -270,7 +357,7 @@ void ChConstraintFluidFluid::Build_b() {
 
         real density_fluid = data_manager->settings.fluid.density;
         host_vector<real>& density = data_manager->host_data.den_fluid;
-        host_vector<real3>& pos = data_manager->host_data.sorted_pos_fluid;
+        host_vector<real3>& pos = data_manager->host_data.pos_fluid;
         DynamicVector<real> g(num_fluid_bodies);
         real epsilon = data_manager->settings.fluid.epsilon;
         real tau = data_manager->settings.fluid.tau;
@@ -279,12 +366,16 @@ void ChConstraintFluidFluid::Build_b() {
 
 #pragma omp parallel for
         for (int index = 0; index < num_fluid_bodies; index++) {
+            // g[index] = density[index] / density_fluid - 1.0;
             b_sub[index] = -(density[index] / data_manager->settings.fluid.density - 1.0);
+            // std::cout << g[index] << " " << density[index] << std::endl;
         }
+        // b_sub = -4.0 / step_size * zeta * g + zeta * D_T_sub * v_sub;
+        // b_sub = -g + zeta * D_T_sub * v_sub;
+        // b_sub = -g;  // + D_T_sub * v_sub;
     }
     //    else {
-    //        SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, index_offset,
-    //        num_fluid_contacts);
+    //        SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, index_offset, num_fluid_contacts);
     //        custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
     //        custom_vector<int2>& bids = data_manager->host_data.bids_fluid_fluid;
     //        real h = data_manager->settings.fluid.kernel_radius;
@@ -333,11 +424,17 @@ void ChConstraintFluidFluid::Build_E() {
             E[index_offset + num_fluid_bodies + index * 3 + 2] = 0;
         }
 
+        //#pragma omp parallel for
+        //    for (int index = 0; index < num_fluid_bodies; index++) {
+        //      E[index_offset + num_fluid_bodies + index * 3 + 0] = 0;  // 1.0/step_size * 1;    // compliance;
+        //      E[index_offset + num_fluid_bodies + index * 3 + 1] = 0;  // 1.0/step_size * 1;    // compliance;
+        //      E[index_offset + num_fluid_bodies + index * 3 + 2] = 0;  // 1.0/step_size * 1;    // compliance;
+        //    }
+
     } else {
         if (num_fluid_contacts <= 0) {
             return;
         }
-
         real compliance = data_manager->settings.fluid.compliance;
         real inv_hhpa = 1.0 / (step_size * (step_size + data_manager->settings.solver.alpha));
 #pragma omp parallel for
@@ -365,7 +462,57 @@ void ChConstraintFluidFluid::GenerateSparsityRigid() {
     //        D_T.finalize(index_offset + index);
     //    }
 }
-void ChConstraintFluidFluid::GenerateSparsityFluid() {}
+void ChConstraintFluidFluid::GenerateSparsityFluid() {
+    LOG(INFO) << "ChConstraintFluidFluid::GenerateSparsityFluid";
+    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+
+    // density constraints
+    for (int i = 0; i < last_body; i++) {
+        uint start = fluid_start_index[i];
+        uint end = fluid_start_index[i + 1];
+        int2 bid;
+        bid.x = fluid_contact_idA_start[i];
+        for (int index = start; index < end; index++) {
+            bid.y = fluid_contact_idB[index];
+            D_T.append(index_offset + bid.x, body_offset + bid.y * 3 + 0, 1);
+            D_T.append(index_offset + bid.x, body_offset + bid.y * 3 + 1, 1);
+            D_T.append(index_offset + bid.x, body_offset + bid.y * 3 + 2, 1);
+        }
+        D_T.finalize(index_offset + bid.x);
+    }
+    // Add more entries for viscosity
+    // Code is repeated because there are three rows per viscosity constraint
+
+    //  for (int i = 0; i < last_body; i++) {
+    //    uint start = (i == 0) ? 0 : fluid_start_index[i - 1];
+    //    uint end = fluid_start_index[i];
+    //    int2 bid;
+    //    bid.x = fluid_contact_idA[i];
+    //    for (int index = start; index < end; index++) {
+    //      bid.y = fluid_contact_idB[index];
+    //      D_T.append(index_offset + num_fluid_bodies + bid.x * 3 + 0, body_offset + bid.y * 3 + 0, 1);
+    //      D_T.append(index_offset + num_fluid_bodies + bid.x * 3 + 0, body_offset + bid.y * 3 + 1, 1);
+    //      D_T.append(index_offset + num_fluid_bodies + bid.x * 3 + 0, body_offset + bid.y * 3 + 2, 1);
+    //    }
+    //    D_T.finalize(index_offset + num_fluid_bodies + bid.x * 3 + 0);
+    //
+    //    for (int index = start; index < end; index++) {
+    //      bid.y = fluid_contact_idB[index];
+    //      D_T.append(index_offset + num_fluid_bodies + bid.x * 3 + 1, body_offset + bid.y * 3 + 0, 1);
+    //      D_T.append(index_offset + num_fluid_bodies + bid.x * 3 + 1, body_offset + bid.y * 3 + 1, 1);
+    //      D_T.append(index_offset + num_fluid_bodies + bid.x * 3 + 1, body_offset + bid.y * 3 + 2, 1);
+    //    }
+    //    D_T.finalize(index_offset + num_fluid_bodies + bid.x * 3 + 1);
+    //
+    //    for (int index = start; index < end; index++) {
+    //      bid.y = fluid_contact_idB[index];
+    //      D_T.append(index_offset + num_fluid_bodies + bid.x * 3 + 2, body_offset + bid.y * 3 + 0, 1);
+    //      D_T.append(index_offset + num_fluid_bodies + bid.x * 3 + 2, body_offset + bid.y * 3 + 1, 1);
+    //      D_T.append(index_offset + num_fluid_bodies + bid.x * 3 + 2, body_offset + bid.y * 3 + 2, 1);
+    //    }
+    //    D_T.finalize(index_offset + num_fluid_bodies + bid.x * 3 + 2);
+    //  }
+}
 void ChConstraintFluidFluid::GenerateSparsity() {
     if (data_manager->num_fluid_contacts <= 0) {
         return;
@@ -379,33 +526,62 @@ void ChConstraintFluidFluid::GenerateSparsity() {
     }
 }
 
-void ChConstraintFluidFluid::DetermineNeighbors() {}
+void ChConstraintFluidFluid::DetermineNeighbors() {
+    if (num_fluid_bodies == 0) {
+        return;
+    }
+
+    LOG(INFO) << "ChConstraintFluidFluid::DetermineNeighbors";
+
+    host_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
+    host_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
+    host_vector<long long>& temp_pairs = data_manager->host_data.bids_fluid_fluid;
+
+    fluid_contact_idA.resize(num_fluid_contacts);
+    fluid_contact_idB.resize(num_fluid_contacts);
+    fluid_contact_idA_start.resize(num_fluid_contacts);
+
+#pragma omp parallel for
+    for (int index = 0; index < num_fluid_contacts; index++) {
+        int2 body_id = I2(int(temp_pairs[index] >> 32), int(temp_pairs[index] & 0xffffffff));
+        fluid_contact_idA[index] = body_id.x;
+        fluid_contact_idB[index] = body_id.y;
+    }
+
+    Thrust_Sort_By_Key(fluid_contact_idB, fluid_contact_idA);
+    Thrust_Sort_By_Key(fluid_contact_idA, fluid_contact_idB);
+
+    fluid_start_index.resize(num_fluid_bodies);
+    last_body = Run_Length_Encode(fluid_contact_idA, fluid_contact_idA_start, fluid_start_index);
+    fluid_start_index.resize(last_body + 1);
+    fluid_start_index[last_body] = 0;
+    Thrust_Exclusive_Scan(fluid_start_index);
+}
 void ChConstraintFluidFluid::ArtificialPressure() {
     if (data_manager->settings.fluid.artificial_pressure == false) {
         return;
     }
     if (data_manager->settings.fluid.fluid_is_rigid == false) {
-        host_vector<real3>& pos = data_manager->host_data.sorted_pos_fluid;
+        host_vector<real3>& pos = data_manager->host_data.pos_fluid;
         real mass_fluid = data_manager->settings.fluid.mass;
         real h = data_manager->settings.fluid.kernel_radius;
         real k = data_manager->settings.fluid.artificial_pressure_k;
         real dq = data_manager->settings.fluid.artificial_pressure_dq;
         real n = data_manager->settings.fluid.artificial_pressure_n;
-
-        int num_fluid_bodies = data_manager->num_fluid_bodies;
-        host_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-        host_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
-        host_vector<int>& fluid_contact_index = data_manager->host_data.fluid_contact_index;
-
 #pragma omp parallel for
-        for (int p = 0; p < num_fluid_bodies; p++) {
+        for (int i = 0; i < last_body; i++) {
+            uint start = fluid_start_index[i], end = fluid_start_index[i + 1];
+            int2 bid;
+            bid.x = fluid_contact_idA_start[i];
             real corr = 0;
-            for (int i = 0; i < contact_counts[p]; i++) {
-                int q = neighbor_fluid_fluid[p * max_neighbors + i];
-                real dist = length(pos[p] - pos[q]);
+            for (int index = start; index < end; index++) {
+                bid.y = fluid_contact_idB[index];
+                real3 xij = (pos[bid.x] - pos[bid.y]);
+                real dist = length(xij);
                 corr += k * pow(KERNEL(dist, h) / KERNEL(dq, h), n);
             }
-            data_manager->host_data.gamma[index_offset + p] += corr;
+            // std::cout << gamma[index_offset + bid.x] << " " << corr << std::endl;
+            data_manager->host_data.gamma[index_offset + bid.x] += corr;
         }
     }
 }
