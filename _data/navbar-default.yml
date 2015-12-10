@@ -3,24 +3,26 @@ main:
       url: ''
       sub:
        -
-         title: Installation Guide
+         title: Overview
          url: '#'
        -
-         title: Tutorials & Examples
-         url: '/tutorials'
-       -
-         title: Chrono Engine
+         title: Reference (Doxygen)
          url: '#'
        -
-         title: Chrono Solidworks
-         url: '#'
-       -
-         title: Chrono PyEngine
+         title: User Manual
          url: '#'
     - title: Download
       url: '/download'
     - title: Tutorials
       url: '/tutorials'
+      sub:
+       -
+         title: Install Guide
+         url: '#'
+       -
+         title: Example Models
+         url: '#'
+
     - title: News
       url: '/news/'
     - title: Forum
