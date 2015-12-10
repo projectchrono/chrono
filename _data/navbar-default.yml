@@ -25,9 +25,9 @@ main:
       url: '/news/'
     - title: Forum
       url: '/forum'
-
-right:
-    - title: People
-      url: '/people/'
     - title: About
       url: '/about/'
+
+right:
+    - title: Old Website
+      url: 'http://projectchrono.org'
