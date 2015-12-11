@@ -14,6 +14,9 @@
 #include <stdio.h>
 
 #include "ChCTriangleMeshConnected.h"
+#include <unordered_map>
+#include <map>
+
 
 namespace chrono {
 namespace geometry {
@@ -626,31 +629,40 @@ int OBJ::ParseLine(int /*lineno*/,
             } else if (strcasecmp(argv[0], "f") == 0 && argc >= 4) {
                 // ***ALEX*** do not use the BuildMesh stuff
                 int vcount = argc - 1;
+                const char* argvT[3];
+                argvT[0] = argv[1]; // pivot for triangle fans when quad/poly face
                 for (int i = 1; i < argc; i++) {
-                    if (i > 3)
-                        break;  // should do a fan here..
+                    if (i >= 3) {
+                        argvT[1] = argv[i-1];
+                        argvT[2] = argv[i];
+                    
+                        // do a fan triangle here..
+                        for (int ip=0; ip<3; ++ip) {
+                            // the index of i-th vertex
+                            int index = atoi(argvT[ip]) - 1;
+                            this->mIndexesVerts.push_back(index);
 
-                    // the index of i-th vertex
-                    int index = atoi(argv[i]) - 1;
-                    this->mIndexesVerts.push_back(index);
+                            const char* texel = strstr(argvT[ip], "/");
+                            if (texel) {
+                                // the index of i-th texel
+                                int tindex = atoi(texel + 1) - 1;
+                                // If input file only specifies a face w/ verts, normals, this is -1.
+                                // Don't push index to array if this happens
+                                if (tindex > -1) {
+                                    mIndexesTexels.push_back(tindex);
+                                }
 
-                    const char* texel = strstr(argv[i], "/");
-                    if (texel) {
-                        // the index of i-th texel
-                        int tindex = atoi(texel + 1) - 1;
-                        // If input file only specifies a face w/ verts, normals, this is -1.
-                        // Don't push index to array if this happens
-                        if (tindex > -1) {
-                            mIndexesTexels.push_back(tindex);
+                                const char* normal = strstr(texel + 1, "/");
+                                if (normal) {
+                                    // the index of i-th normal
+                                    int nindex = atoi(normal + 1) - 1;
+                                    this->mIndexesNormals.push_back(nindex);
+                                }
+                            }
                         }
 
-                        const char* normal = strstr(texel + 1, "/");
-                        if (normal) {
-                            // the index of i-th normal
-                            int nindex = atoi(normal + 1) - 1;
-                            this->mIndexesNormals.push_back(nindex);
-                        }
                     }
+
                 }
 
                 /* ***ALEX***
@@ -880,7 +892,7 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
     this->m_UV.clear();
     this->m_face_v_indices.clear();
     this->m_face_n_indices.clear();
-    this->m_face_u_indices.clear();
+    this->m_face_uv_indices.clear();
 
     GeometryInterface emptybm;  // BuildMesh bm;
 
@@ -909,8 +921,17 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
             ChVector<int>(obj.mIndexesNormals[iin], obj.mIndexesNormals[iin + 1], obj.mIndexesNormals[iin + 2]));
     }
     for (unsigned int iit = 0; iit < obj.mIndexesTexels.size(); iit += 3) {
-        this->m_face_u_indices.push_back(
+        this->m_face_uv_indices.push_back(
             ChVector<int>(obj.mIndexesTexels[iit], obj.mIndexesTexels[iit + 1], obj.mIndexesTexels[iit + 2]));
+    }
+
+    if(!load_normals) {
+        this->m_normals.clear();
+        this->m_face_n_indices.clear();
+    }
+    if(!load_uv) {
+        this->m_UV.clear();
+        this->m_face_uv_indices.clear();
     }
 }
 
@@ -1004,6 +1025,186 @@ bool WavefrontObj::saveObj(const char *fname,int vcount,const float *vertices,in
 }
 
 */
+
+
+void ChTriangleMeshConnected::Transform(const ChVector<> displ, const ChMatrix33<> rotscale) {
+    for (int i= 0; i < m_vertices.size(); ++i) {
+        m_vertices[i] = rotscale * m_vertices[i];
+        m_vertices[i] += displ;
+    } 
+    for (int i= 0; i < m_normals.size(); ++i) {
+        m_normals[i] = rotscale * m_normals[i];
+        m_normals[i].Normalize();
+    } 
+}
+
+
+bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::array<int, 4>>& tri_map) const {
+    
+    bool pathological_edges = false;
+    
+    std::multimap< std::pair<int, int>, int> edge_map;
+        
+    for (int it = 0; it< this->m_face_v_indices.size(); ++it) {
+        // edges = pairs of vertexes indexes
+        std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
+        std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
+        std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
+        // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
+        if (medgeA.first>medgeA.second) 
+            medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
+        if (medgeB.first>medgeB.second) 
+            medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
+        if (medgeC.first>medgeC.second) 
+            medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
+        edge_map.insert( { medgeA , it} );
+        edge_map.insert( { medgeB , it} );
+        edge_map.insert( { medgeC , it} );
+    }
+
+    // Create a map of neighbouring triangles, vector of:
+    // [Ti TieA TieB TieC]
+    tri_map.resize(this->m_face_v_indices.size());
+    for (int it = 0; it< this->m_face_v_indices.size(); ++it) {
+        tri_map[it][0]=it;
+        tri_map[it][1]=-1; // default no neighbour
+        tri_map[it][2]=-1; // default no neighbour
+        tri_map[it][3]=-1; // default no neighbour
+        // edges = pairs of vertexes indexes
+        std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
+        std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
+        std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
+        // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
+        if (medgeA.first>medgeA.second) 
+            medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
+        if (medgeB.first>medgeB.second) 
+            medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
+        if (medgeC.first>medgeC.second) 
+            medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
+        if (edge_map.count(medgeA) >2 ||
+            edge_map.count(medgeB) >2 ||
+            edge_map.count(medgeC) >2) {
+            pathological_edges = true;
+            //GetLog() << "Warning, edge shared with more than two triangles! \n";
+        }
+        auto retA = edge_map.equal_range(medgeA);
+        for (auto fedge=retA.first; fedge!=retA.second; ++fedge) {
+            if (fedge->second != it) {
+                tri_map[it][1]=fedge->second;
+                break;
+            }
+        }
+        auto retB = edge_map.equal_range(medgeB);
+        for (auto fedge=retB.first; fedge!=retB.second; ++fedge) {
+            if (fedge->second != it) {
+                tri_map[it][2]=fedge->second;
+                break;
+            }
+        }
+        auto retC = edge_map.equal_range(medgeC);
+        for (auto fedge=retC.first; fedge!=retC.second; ++fedge) {
+            if (fedge->second != it) {
+                tri_map[it][3]=fedge->second;
+                break;
+            }
+        }  
+    }
+    return pathological_edges;
+}
+
+
+bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int,int>, std::pair<int,int>>& winged_edges,
+                                                 bool allow_single_wing) const {
+
+    bool pathological_edges = false;
+
+    std::multimap< std::pair<int, int>, int> edge_map;
+        
+    for (int it = 0; it< this->m_face_v_indices.size(); ++it) {
+        // edges = pairs of vertexes indexes
+        std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
+        std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
+        std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
+        // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
+        if (medgeA.first>medgeA.second) 
+            medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
+        if (medgeB.first>medgeB.second) 
+            medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
+        if (medgeC.first>medgeC.second) 
+            medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
+        edge_map.insert( { medgeA , it} );
+        edge_map.insert( { medgeB , it} );
+        edge_map.insert( { medgeC , it} );
+    }
+
+    for ( auto aedge = edge_map.begin(); aedge != edge_map.end(); ++aedge ) {
+        auto ret = edge_map.equal_range(aedge->first);
+        int nt=0;
+        std::pair<int,int> wingedge;
+        std::pair<int,int> wingtri;
+        wingtri.first = -1;
+        wingtri.second = -1;
+        for (auto fedge=ret.first; fedge!=ret.second; ++fedge) {
+            if (fedge->second == -1)
+                break;
+            wingedge.first = fedge->first.first;
+            wingedge.second= fedge->first.second;
+            if (nt==0) 
+                wingtri.first  = fedge->second;
+            if (nt==1) 
+                wingtri.second = fedge->second;
+            ++nt;
+            if (nt==2) 
+                break;
+        }
+        if ((nt==2) || ((nt==1) && allow_single_wing) ) {
+            winged_edges.insert(std::pair<std::pair<int,int>, std::pair<int,int>>(wingedge,wingtri)); // ok found winged edge!
+            aedge->second = -1; // deactivate this way otherwise found again by sister
+        }
+        if (nt==3){
+            pathological_edges = true;
+            //GetLog() << "Warning: winged edge between "<< wing[0] << " and " << wing[1]  << " shared with more than two triangles.\n";
+        }
+    }
+    return pathological_edges;
+}
+
+
+int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
+    
+    int nmerged = 0;
+    std::vector<ChVector<>> processed_verts;
+    std::vector< int > new_indexes(m_vertices.size());
+    
+    // merge vertexes
+    for (int i= 0; i< this->m_vertices.size(); ++i) {
+        bool tomerge = false;
+        for (int j=0; j<processed_verts.size(); ++j) {
+            if ((m_vertices[i]-processed_verts[j]).Length2()<tolerance) {
+                tomerge = true;
+                ++nmerged;
+                new_indexes[i] = j;
+                break;
+            }
+        }
+        if (!tomerge) {
+            processed_verts.push_back(m_vertices[i]);
+            new_indexes[i] = processed_verts.size()-1;
+        }
+    }
+
+    this->m_vertices = processed_verts;
+
+    // update the merged vertexes also in face indexes to vertexes
+    for (int i= 0; i< this->m_face_v_indices.size(); ++i) {
+        m_face_v_indices[i].x = new_indexes[m_face_v_indices[i].x];
+        m_face_v_indices[i].y = new_indexes[m_face_v_indices[i].y];
+        m_face_v_indices[i].z = new_indexes[m_face_v_indices[i].z];
+    }
+
+    return nmerged;
+}
+
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

@@ -21,6 +21,7 @@
 #include "collision/ChCCollisionSystemBullet.h"
 #include "collision/ChCModelBullet.h"
 #include "collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
+#include "collision/ChCCollisionUtils.h"
 #include "physics/ChBody.h"
 #include "physics/ChContactContainerBase.h"
 #include "physics/ChProximityContainerBase.h"
@@ -28,6 +29,7 @@
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 #include "BulletCollision/CollisionShapes/btCylinderShape.h"
 #include "BulletCollision/CollisionShapes/bt2DShape.h"
+#include "BulletCollision/CollisionShapes/btCEtriangleShape.h"
 #include "BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h"
 
 extern btScalar gContactBreakingThreshold;
@@ -634,6 +636,487 @@ class btArcArcCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     };
 };
 
+
+
+
+// Utility class that we use to override the btCEtriangleShape vs btCEtriangleShape
+
+class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorithm {
+    bool m_ownManifold;
+    btPersistentManifold* m_manifoldPtr;
+    bool m_isSwapped;
+
+  public:
+    btCEtriangleShapeCollisionAlgorithm(btPersistentManifold* mf,
+                                       const btCollisionAlgorithmConstructionInfo& ci,
+                                       btCollisionObject* col0,
+                                       btCollisionObject* col1,
+                                       bool isSwapped)
+        : btActivatingCollisionAlgorithm(ci, col0, col1),
+          m_ownManifold(false),
+          m_manifoldPtr(mf),
+          m_isSwapped(isSwapped) {
+        btCollisionObject* triObj1 = m_isSwapped ? col1 : col0;
+        btCollisionObject* triObj2 = m_isSwapped ? col0 : col1;
+
+        if (!m_manifoldPtr) {
+            m_manifoldPtr = m_dispatcher->getNewManifold(triObj1, triObj2);
+            m_ownManifold = true;
+        }
+    }
+
+    btCEtriangleShapeCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
+        : btActivatingCollisionAlgorithm(ci) {}
+
+    virtual void processCollision(btCollisionObject* body0,
+                                  btCollisionObject* body1,
+                                  const btDispatcherInfo& dispatchInfo,
+                                  btManifoldResult* resultOut) {
+        (void)dispatchInfo;
+
+        if (!m_manifoldPtr)
+            return;
+        
+        btCollisionObject* triObj1 = m_isSwapped ? body1 : body0;
+        btCollisionObject* triObj2 = m_isSwapped ? body0 : body1;
+
+        resultOut->setPersistentManifold(m_manifoldPtr);
+
+        // avoid persistence of contacts in manifold:
+        resultOut->getPersistentManifold()->clearManifold();
+
+        btCEtriangleShape* triA = (btCEtriangleShape*)triObj1->getCollisionShape();
+        btCEtriangleShape* triB = (btCEtriangleShape*)triObj2->getCollisionShape();
+        ChModelBullet* triModelA = (ChModelBullet*)triA->getUserPointer();
+        ChModelBullet* triModelB = (ChModelBullet*)triB->getUserPointer();
+
+        double max_allowed_dist = triModelA->GetEnvelope()+triModelB->GetEnvelope() +triA->sphereswept_r()+triB->sphereswept_r();
+        double min_allowed_dist = - (triModelA->GetSafeMargin()+triModelB->GetSafeMargin());
+        
+        double offset_A = triA->sphereswept_r();
+        double offset_B = triB->sphereswept_r();
+        
+        // Trick!! offset also by outward 'envelope' because during ReportContacts()
+        // contact points are offset inward by envelope, to cope with GJK method.
+        offset_A += triModelA->GetEnvelope();
+        offset_B += triModelB->GetEnvelope();
+
+        const btTransform& m44Ta = triObj1->getWorldTransform();
+        const btTransform& m44Tb = triObj2->getWorldTransform();  
+        const btMatrix3x3& mbtRa = m44Ta.getBasis();
+        const btMatrix3x3& mbtRb = m44Tb.getBasis();
+        ChMatrix33<> mRa; 
+        mRa(0,0) = mbtRa[0][0]; mRa(0,1) = mbtRa[0][1]; mRa(0,2) = mbtRa[0][2];
+        mRa(1,0) = mbtRa[1][0]; mRa(1,1) = mbtRa[1][1]; mRa(1,2) = mbtRa[1][2];
+        mRa(2,0) = mbtRa[2][0]; mRa(2,1) = mbtRa[2][1]; mRa(2,2) = mbtRa[2][2];
+        ChVector<> mOa(m44Ta.getOrigin().x(), m44Ta.getOrigin().y(), m44Ta.getOrigin().z());
+
+        ChMatrix33<> mRb; 
+        mRb(0,0) = mbtRb[0][0]; mRb(0,1) = mbtRb[0][1]; mRb(0,2) = mbtRb[0][2];
+        mRb(1,0) = mbtRb[1][0]; mRb(1,1) = mbtRb[1][1]; mRb(1,2) = mbtRb[1][2];
+        mRb(2,0) = mbtRb[2][0]; mRb(2,1) = mbtRb[2][1]; mRb(2,2) = mbtRb[2][2];
+        ChVector<> mOb(m44Tb.getOrigin().x(), m44Tb.getOrigin().y(), m44Tb.getOrigin().z());
+
+        // transform points to absolute coords, since models might be roto-translated
+        ChVector<> pA1 = mOa + mRa * (*triA->get_p1());
+        ChVector<> pA2 = mOa + mRa * (*triA->get_p2());
+        ChVector<> pA3 = mOa + mRa * (*triA->get_p3());
+        ChVector<> pB1 = mOb + mRb * (*triB->get_p1());
+        ChVector<> pB2 = mOb + mRb * (*triB->get_p2());
+        ChVector<> pB3 = mOb + mRb * (*triB->get_p3());
+        
+        // edges
+        ChVector<> eA1 = pA2 - pA1;
+        ChVector<> eA2 = pA3 - pA2;
+        ChVector<> eA3 = pA1 - pA3;
+        ChVector<> eB1 = pB2 - pB1;
+        ChVector<> eB2 = pB3 - pB2;
+        ChVector<> eB3 = pB1 - pB3;
+
+        // normals
+        ChVector<> nA = Vcross(eA1, eA2).GetNormalized();
+        ChVector<> nB = Vcross(eB1, eB2).GetNormalized();
+
+        double min_dist = 1e20;
+        ChVector<> candid_pA;
+        ChVector<> candid_pB;
+        double dist = 1e20;
+        int is_into;
+        ChVector<> p_projected;
+        double mu, mv;
+        double candid_mu, candid_mv; 
+
+        if (triA->owns_v1()) {
+            dist = ChCollisionUtils::PointTriangleDistance(pA1, pB1, pB2, pB3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(pA1,p_projected, dist, resultOut, offset_A, offset_B);
+                }
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pA = pA1; candid_pB = p_projected;  candid_mu = mu; candid_mv = mv;    
+                }
+            }
+        }
+        if (triA->owns_v2()) {
+            dist = ChCollisionUtils::PointTriangleDistance(pA2, pB1, pB2, pB3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(pA2,p_projected, dist, resultOut, offset_A, offset_B);
+                }
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pA = pA2; candid_pB = p_projected;
+                }
+            }
+        }
+        if (triA->owns_v3()) {
+            dist = ChCollisionUtils::PointTriangleDistance(pA3, pB1, pB2, pB3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(pA3,p_projected, dist, resultOut, offset_A, offset_B);
+                }
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pA = pA3; candid_pB = p_projected;
+                }
+            }
+        }
+
+        if (triB->owns_v1()) {
+            dist = ChCollisionUtils::PointTriangleDistance(pB1, pA1, pA2, pA3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(p_projected, pB1, dist, resultOut, offset_A, offset_B);
+                }
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pB = pB1; candid_pA = p_projected;
+                }
+            }
+        }
+        if (triB->owns_v2()) {
+            dist = ChCollisionUtils::PointTriangleDistance(pB2, pA1, pA2, pA3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(p_projected, pB2, dist, resultOut, offset_A, offset_B);
+                }
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pB = pB2; candid_pA = p_projected;
+                }
+            }
+        }
+        if (triB->owns_v3()) {
+            dist = ChCollisionUtils::PointTriangleDistance(pB3, pA1, pA2, pA3, mu, mv, is_into, p_projected);
+            if (is_into) {
+                if (dist < max_allowed_dist && dist > min_allowed_dist) {
+                    _add_contact(p_projected, pB3, dist, resultOut, offset_A, offset_B);
+                }
+                if (dist < min_dist) {
+                    min_dist = dist; candid_pB = pB3; candid_pA = p_projected;
+                }
+            }
+        }
+        double beta_A1, beta_A2, beta_A3, beta_B1, beta_B2, beta_B3 =0;
+        ChVector<> tA1, tA2, tA3, tB1, tB2, tB3;
+        ChVector<> lA1, lA2, lA3, lB1, lB2, lB3;
+
+        //  edges edges
+
+        if (triA->owns_e1()) {
+            tA1 = Vcross(eA1, nA).GetNormalized();
+            lA1 = (mOa + mRa * (*triA->get_e1()) ) - pA1;
+            beta_A1 = atan2(Vdot(lA1, tA1), Vdot(lA1, nA) );
+            if (beta_A1 < 0)
+                beta_A1 += CH_C_2PI;
+        }
+        if (triA->owns_e2()) {
+            tA2 = Vcross(eA2, nA).GetNormalized();
+            lA2 = (mOa + mRa * (*triA->get_e2()) ) - pA2;
+            beta_A2 = atan2( Vdot(lA2, tA2), Vdot(lA2, nA) );
+            if (beta_A2 < 0) 
+                beta_A2 += CH_C_2PI;
+        }
+        if (triA->owns_e3()) {
+            tA3 = Vcross(eA3, nA).GetNormalized();
+            lA3 = (mOa + mRa * (*triA->get_e3()) ) - pA3;
+            beta_A3 = atan2( Vdot(lA3, tA3), Vdot(lA3, nA) );
+            if (beta_A3 < 0) 
+                beta_A3 += CH_C_2PI;
+        }
+        if (triB->owns_e1()) {
+            tB1 = Vcross(eB1, nB).GetNormalized();
+            lB1 = (mOb + mRb * (*triB->get_e1()) ) - pB1;
+            beta_B1 = atan2( Vdot(lB1, tB1), Vdot(lB1, nB) );
+            if (beta_B1 < 0) 
+                beta_B1 += CH_C_2PI;
+        }
+        if (triB->owns_e2()) {
+            tB2 = Vcross(eB2, nB).GetNormalized();
+            lB2 = (mOb + mRb * (*triB->get_e2()) ) - pB2;
+            beta_B2 = atan2( Vdot(lB2, tB2), Vdot(lB2, nB) );
+            if (beta_B2 < 0) 
+                beta_B2 += CH_C_2PI;
+        }
+        if (triB->owns_e3()) {
+            tB3 = Vcross(eB3, nB).GetNormalized();
+            lB3 = (mOb + mRb * (*triB->get_e3()) ) - pB3;
+            beta_B3 = atan2( Vdot(lB3, tB3), Vdot(lB3, nB) );
+            if (beta_B3 < 0) 
+                beta_B3 += CH_C_2PI;
+        }
+
+        ChVector<> cA, cB, D;
+
+        double edge_tol = 1e-3;
+        //  + edge_tol to discard flat edges with some tolerancing:
+        double beta_convex_limit = CH_C_PI_2 + edge_tol; 
+        //  +/- edge_tol to inflate arc of acceptance of edge vs edge, to cope with singular cases (ex. flat cube vs flat cube):
+        double alpha_lo_limit = - edge_tol;              
+        double CH_C_PI_mtol   = CH_C_PI   - edge_tol;
+        double CH_C_PI_2_ptol = CH_C_PI_2 + edge_tol;
+
+        // edge A1 vs edge B1
+        if (triA->owns_e1() && triB->owns_e1())
+          if (beta_A1 > beta_convex_limit && beta_B1 > beta_convex_limit ) {
+            if (ChCollisionUtils::LineLineIntersect(pA1, pA2,  pB1, pB2,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {    
+                    double alpha_A = atan2( Vdot( D,tA1), Vdot( D,nA));
+                    double alpha_B = atan2( Vdot(-D,tB1), Vdot(-D,nB));
+                    if (alpha_A < alpha_lo_limit)
+                        alpha_A += CH_C_2PI;
+                    if (alpha_B < alpha_lo_limit)
+                        alpha_B += CH_C_2PI;
+                    if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
+                }
+            }
+        }
+        // edge A1 vs edge B2
+        if (triA->owns_e1() && triB->owns_e2())
+          if (beta_A1 > beta_convex_limit && beta_B2 > beta_convex_limit ) {
+            if (ChCollisionUtils::LineLineIntersect(pA1, pA2,  pB2, pB3,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {
+                    D = cB - cA;
+                    double alpha_A = atan2( Vdot( D,tA1), Vdot( D,nA));
+                    double alpha_B = atan2( Vdot(-D,tB2), Vdot(-D,nB));
+                    if (alpha_A < alpha_lo_limit)
+                        alpha_A += CH_C_2PI;
+                    if (alpha_B < alpha_lo_limit)
+                        alpha_B += CH_C_2PI;
+                    if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
+                }
+            }
+        }
+        // edge A1 vs edge B3
+        if (triA->owns_e1() && triB->owns_e3())
+          if (beta_A1 > beta_convex_limit && beta_B3 > beta_convex_limit ) {
+            if (ChCollisionUtils::LineLineIntersect(pA1, pA2,  pB3, pB1,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {
+                    D = cB - cA;
+                    double alpha_A = atan2( Vdot( D,tA1), Vdot( D,nA));
+                    double alpha_B = atan2( Vdot(-D,tB3), Vdot(-D,nB));
+                    if (alpha_A < alpha_lo_limit)
+                        alpha_A += CH_C_2PI;
+                    if (alpha_B < alpha_lo_limit)
+                        alpha_B += CH_C_2PI;
+                    if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
+                }
+            }
+        }
+        // edge A2 vs edge B1
+        if (triA->owns_e2() && triB->owns_e1())
+          if (beta_A2 > beta_convex_limit && beta_B1 > beta_convex_limit ) {
+            if (ChCollisionUtils::LineLineIntersect(pA2, pA3,  pB1, pB2,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {
+                    D = cB - cA;
+                    double alpha_A = atan2( Vdot( D,tA2), Vdot( D,nA));
+                    double alpha_B = atan2( Vdot(-D,tB1), Vdot(-D,nB));
+                    if (alpha_A < alpha_lo_limit)
+                        alpha_A += CH_C_2PI;
+                    if (alpha_B < alpha_lo_limit)
+                        alpha_B += CH_C_2PI;
+                    if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
+                }
+            }
+        }
+        // edge A2 vs edge B2
+        if (triA->owns_e2() && triB->owns_e2())
+          if (beta_A2 > beta_convex_limit && beta_B2 > beta_convex_limit ) {
+            if (ChCollisionUtils::LineLineIntersect(pA2, pA3,  pB2, pB3,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {
+                    D = cB - cA;
+                    double alpha_A = atan2( Vdot( D,tA2), Vdot( D,nA));
+                    double alpha_B = atan2( Vdot(-D,tB2), Vdot(-D,nB));
+                    if (alpha_A < alpha_lo_limit)
+                        alpha_A += CH_C_2PI;
+                    if (alpha_B < alpha_lo_limit)
+                        alpha_B += CH_C_2PI;
+                    if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
+                }
+            }
+        }
+        // edge A2 vs edge B3
+        if (triA->owns_e2() && triB->owns_e3())
+          if (beta_A2 > beta_convex_limit && beta_B3 > beta_convex_limit ) {
+            if (ChCollisionUtils::LineLineIntersect(pA2, pA3,  pB3, pB1,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {
+                    D = cB - cA;
+                    double alpha_A = atan2( Vdot( D,tA2), Vdot( D,nA));
+                    double alpha_B = atan2( Vdot(-D,tB3), Vdot(-D,nB));
+                    if (alpha_A < alpha_lo_limit)
+                        alpha_A += CH_C_2PI;
+                    if (alpha_B < alpha_lo_limit)
+                        alpha_B += CH_C_2PI;
+                    if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
+                }
+            }
+        }
+        // edge A3 vs edge B1
+        if (triA->owns_e3() && triB->owns_e1())
+          if (beta_A3 > beta_convex_limit && beta_B1 > beta_convex_limit ) {
+            if (ChCollisionUtils::LineLineIntersect(pA3, pA1,  pB1, pB2,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {
+                    D = cB - cA;
+                    double alpha_A = atan2( Vdot( D,tA3), Vdot( D,nA));
+                    double alpha_B = atan2( Vdot(-D,tB1), Vdot(-D,nB));
+                    if (alpha_A < alpha_lo_limit)
+                        alpha_A += CH_C_2PI;
+                    if (alpha_B < alpha_lo_limit)
+                        alpha_B += CH_C_2PI;
+                    if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
+                }
+            }
+        }
+        // edge A3 vs edge B2
+        if (triA->owns_e3() && triB->owns_e2())
+          if (beta_A3 > beta_convex_limit && beta_B2 > beta_convex_limit ) {
+            if (ChCollisionUtils::LineLineIntersect(pA3, pA1,  pB2, pB3,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {
+                    D = cB - cA;
+                    double alpha_A = atan2( Vdot( D,tA3), Vdot( D,nA));
+                    double alpha_B = atan2( Vdot(-D,tB2), Vdot(-D,nB));
+                    if (alpha_A < alpha_lo_limit)
+                        alpha_A += CH_C_2PI;
+                    if (alpha_B < alpha_lo_limit)
+                        alpha_B += CH_C_2PI;
+                    if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
+                }
+            }
+        }
+        // edge A3 vs edge B3
+        if (triA->owns_e3() && triB->owns_e3())
+          if (beta_A3 > beta_convex_limit && beta_B3 > beta_convex_limit ) {
+            if (ChCollisionUtils::LineLineIntersect(pA3, pA1,  pB3, pB1,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {
+                    D = cB - cA;
+                    double alpha_A = atan2( Vdot( D,tA3), Vdot( D,nA));
+                    double alpha_B = atan2( Vdot(-D,tB3), Vdot(-D,nB));
+                    if (alpha_A < alpha_lo_limit)
+                        alpha_A += CH_C_2PI;
+                    if (alpha_B < alpha_lo_limit)
+                        alpha_B += CH_C_2PI;
+                    if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol))
+                        _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
+                }
+            }
+        }
+       
+        resultOut->refreshContactPoints();
+    }
+
+private:
+    void _add_contact(const ChVector<>& candid_pA, const ChVector<>& candid_pB, const double dist, btManifoldResult* resultOut, 
+                      const double offsetA, const double offsetB) {
+
+        // convert to Bullet vectors. Note: in absolute csys.
+        btVector3 absA ((btScalar)candid_pA.x, (btScalar)candid_pA.y, (btScalar)candid_pA.z);
+        btVector3 absB ((btScalar)candid_pB.x, (btScalar)candid_pB.y, (btScalar)candid_pB.z);
+        ChVector<> dabsN_onB ((candid_pA-candid_pB).GetNormalized());
+        btVector3 absN_onB ((btScalar)dabsN_onB.x, (btScalar)dabsN_onB.y, (btScalar)dabsN_onB.z);
+        if (dist<0)
+            absN_onB = - absN_onB; // flip norm to be coherent with dist sign
+        resultOut->addContactPoint(absN_onB, absB + absN_onB*offsetB, (btScalar)(dist - (offsetA+offsetB)));
+    }
+
+public:
+
+    virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,
+                                           btCollisionObject* body1,
+                                           const btDispatcherInfo& dispatchInfo,
+                                           btManifoldResult* resultOut) {
+        // not yet
+        return btScalar(1.);
+    }
+
+    virtual void getAllContactManifolds(btManifoldArray& manifoldArray) {
+        if (m_manifoldPtr && m_ownManifold) {
+            manifoldArray.push_back(m_manifoldPtr);
+        }
+    }
+
+    virtual ~btCEtriangleShapeCollisionAlgorithm() {
+        if (m_ownManifold) {
+            if (m_manifoldPtr)
+                m_dispatcher->releaseManifold(m_manifoldPtr);
+        }
+    }
+
+    struct CreateFunc : public btCollisionAlgorithmCreateFunc {
+        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci,
+                                                               btCollisionObject* body0,
+                                                               btCollisionObject* body1) {
+            void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btCEtriangleShapeCollisionAlgorithm));
+            if (!m_swapped) {
+                return new (mem) btCEtriangleShapeCollisionAlgorithm(0, ci, body0, body1, false);
+            } else {
+                return new (mem) btCEtriangleShapeCollisionAlgorithm(0, ci, body0, body1, true);
+            }
+        }
+    };
+};
+
+
+
 ////////////////////////////////////
 ////////////////////////////////////
 
@@ -680,6 +1163,10 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
      // custom collision for 2D arc-arc case
     btCollisionAlgorithmCreateFunc* m_collision_arc_arc = new btArcArcCollisionAlgorithm::CreateFunc;
     bt_dispatcher->registerCollisionCreateFunc(ARC_SHAPE_PROXYTYPE, ARC_SHAPE_PROXYTYPE, m_collision_arc_arc);
+
+     // custom collision for C::E triangles:
+    btCollisionAlgorithmCreateFunc* m_collision_cetri_cetri = new btCEtriangleShapeCollisionAlgorithm::CreateFunc;
+    bt_dispatcher->registerCollisionCreateFunc(CE_TRIANGLE_SHAPE_PROXYTYPE, CE_TRIANGLE_SHAPE_PROXYTYPE, m_collision_cetri_cetri);
 
      // custom collision for point-point case (in point clouds, just never create point-point contacts)
     //btCollisionAlgorithmCreateFunc* m_collision_point_point = new btPointPointCollisionAlgorithm::CreateFunc;
@@ -762,7 +1249,7 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
 
         if (do_narrow_contactgeneration) {
             int numContacts = contactManifold->getNumContacts();
-
+//GetLog() << "numContacts=" << numContacts << "\n";
             for (int j = 0; j < numContacts; j++) {
                 btManifoldPoint& pt = contactManifold->getContactPoint(j);
 

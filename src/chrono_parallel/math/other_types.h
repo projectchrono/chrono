@@ -15,8 +15,7 @@
 // Description: definition of other types such as int3 and int2
 // =============================================================================
 
-#ifndef OTHER_TYPES_H
-#define OTHER_TYPES_H
+#pragma once
 
 #define S2 _make_short2
 #define I3 _make_int3
@@ -130,4 +129,3 @@ static inline std::ostream& operator<<(std::ostream& out, const int3& a) {
   return out;
 }
 }
-#endif

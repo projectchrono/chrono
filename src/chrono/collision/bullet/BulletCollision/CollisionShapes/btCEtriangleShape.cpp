@@ -20,6 +20,7 @@ subject to the following restrictions:
 #include "btCEtriangleShape.h"
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 #include "LinearMath/btQuaternion.h"
+#include "collision/ChCModelBullet.h"
 #include <stdio.h>
 
 using namespace chrono;
@@ -27,6 +28,9 @@ using namespace chrono;
 btCEtriangleShape::btCEtriangleShape(ChVector<>* mp1,
                     ChVector<>* mp2,
                     ChVector<>* mp3,
+                    ChVector<>* me1,
+                    ChVector<>* me2,
+                    ChVector<>* me3,
 	                bool mowns_vertex_1,
                     bool mowns_vertex_2,
                     bool mowns_vertex_3,
@@ -38,6 +42,9 @@ btCEtriangleShape::btCEtriangleShape(ChVector<>* mp1,
     p1 = mp1;
     p2 = mp2;
     p3 = mp3;
+    e1 = me1;
+    e2 = me2;
+    e3 = me3;
     owns_vertex_1 = mowns_vertex_1;
     owns_vertex_2 = mowns_vertex_2;
     owns_vertex_3 = mowns_vertex_3;
@@ -75,7 +82,7 @@ btCEtriangleShape::btCEtriangleShape(ChVector<>* mp1,
 			supVec = vtx;
 	}
 
-	return supVec - vec0.normalized()*this->sphereswept_rad;
+	return supVec;  //+ vec0.normalized()*this->sphereswept_rad; //***TODO*** add the sphereswept_rad layer (but gives seldom jittering.. why?)
 }
 
  void	btCEtriangleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const
@@ -121,16 +128,18 @@ void btCEtriangleShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector
     btVector3 p2_w = t.getOrigin()+ t.getBasis()*btVector3(this->p2->x, this->p2->y, this->p2->z);
     btVector3 p3_w = t.getOrigin()+ t.getBasis()*btVector3(this->p3->x, this->p3->y, this->p3->z);
 
-	btVector3 vmargin (getMargin(),getMargin(),getMargin());
+    collision::ChModelBullet* triModel = (collision::ChModelBullet*)this->getUserPointer();
+
+	btVector3 venvelope (triModel->GetEnvelope(), triModel->GetEnvelope(), triModel->GetEnvelope());
     btVector3 vsphereswept (this->sphereswept_rad,this->sphereswept_rad,this->sphereswept_rad);
 
 	aabbMin = btVector3(ChMin(ChMin(p1_w.x(),p2_w.x()),p3_w.x()),
                         ChMin(ChMin(p1_w.y(),p2_w.y()),p3_w.y()),
-                        ChMin(ChMin(p1_w.z(),p2_w.z()),p3_w.z())) - vmargin - vsphereswept;
+                        ChMin(ChMin(p1_w.z(),p2_w.z()),p3_w.z())) - venvelope - vsphereswept;
 
     aabbMax = btVector3(ChMax(ChMax(p1_w.x(),p2_w.x()),p3_w.x()),
                         ChMax(ChMax(p1_w.y(),p2_w.y()),p3_w.y()),
-                        ChMax(ChMax(p1_w.z(),p2_w.z()),p3_w.z())) + vmargin + vsphereswept;
+                        ChMax(ChMax(p1_w.z(),p2_w.z()),p3_w.z())) + venvelope + vsphereswept;
 }
 
 

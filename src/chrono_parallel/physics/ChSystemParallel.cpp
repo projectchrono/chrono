@@ -155,7 +155,6 @@ int ChSystemParallel::Integrate_Y() {
 // body.
 //
 void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
-  newbody->SetSystem(this);
   // This is only need because bilaterals need to know what bodies to
   // refer to. Not used by contacts
   newbody->SetId(data_manager->num_rigid_bodies);
@@ -163,9 +162,9 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
   bodylist.push_back(newbody);
   data_manager->num_rigid_bodies++;
 
-  if (newbody->GetCollide()) {
-    newbody->AddCollisionModelsToSystem();
-  }
+  // Set the system for the body.  Note that this will also add the body's
+  // collision shapes to the collision system if not already done.
+  newbody->SetSystem(this);
 
   // Reserve space for this body in the system-wide vectors. Note that the
   // actual data is set in UpdateBodies().
@@ -497,21 +496,21 @@ void ChSystemParallel::Setup() {
 
   // Set variables that are stored in the ChSystem class
   nbodies = data_manager->num_rigid_bodies;
-  nlinks = -1;
-  nphysicsitems = -1;
-  ncoords = -1;
-  ndoc = -1;
-  nsysvars = -1;
-  ncoords_w = -1;
-  ndoc_w = -1;
-  nsysvars_w = -1;
+  nlinks = 0;
+  nphysicsitems = 0;
+  ncoords = 0;
+  ndoc = 0;
+  nsysvars = 0;
+  ncoords_w = 0;
+  ndoc_w = 0;
+  nsysvars_w = 0;
   ndof = data_manager->num_dof;
-  ndoc_w_C = -1;
-  ndoc_w_D = -1;
+  ndoc_w_C = 0;
+  ndoc_w_D = 0;
   ncontacts =
       data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
-  nbodies_sleep = -1;
-  nbodies_fixed = -1;
+  nbodies_sleep = 0;
+  nbodies_fixed = 0;
 }
 
 void ChSystemParallel::RecomputeThreads() {

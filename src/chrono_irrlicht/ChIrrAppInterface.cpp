@@ -60,10 +60,6 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                 app->pause_step = true;
                 app->do_single_step = true;
                 return true;
-            case KEY_F12:
-                chrono::GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
-                app->DumpMatrices();
-                return true;
             case KEY_F11:
                 chrono::GetLog() << "---Computing linear static solution---\n";
                 app->GetSystem()->DoStaticLinear();
@@ -86,6 +82,19 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                 marchiveout2.SetUseVersions(false);
                 marchiveout2 << CHNVP(app->GetSystem(),"System");
             }
+            case KEY_F6:
+                chrono::GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
+                app->DumpMatrices();
+                return true;
+            case KEY_F7:
+                if (!app->system->GetDumpMatrices()) {
+                    chrono::GetLog() << "Start saving system vector and matrices to dump_xxxx_yy.dat files...\n";
+                    app->system->SetDumpMatrices(true);
+                }
+                else {
+                    chrono::GetLog() << "Stop saving system vector and matrices to dump_xxxx_yy.dat files.\n";
+                    app->system->SetDumpMatrices(false);
+                }
                 return true;
             case KEY_SNAPSHOT:
                 if (app->videoframe_save == false) {
@@ -228,6 +237,9 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                         case 8:
                             app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_MINRES);
                             break;
+                        case 9:
+                            chrono::GetLog() << "WARNING.\nYou cannot change to a custom solver using the GUI. Use C++ instead.\n";
+                            break;
                     }
                     break;
                 }
@@ -273,6 +285,9 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                             break;
                         case 12:
                             app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_NEWMARK);
+                            break;
+                        case 13:
+                            chrono::GetLog() << "WARNING.\nYou cannot change to a custom timestepper using the GUI. Use C++ instead.\n";
                             break;
                     }
                     break;
@@ -457,7 +472,7 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     gad_ccpsolver->addItem(L"Projected MINRES");
     gad_ccpsolver->addItem(L"APGD");
     gad_ccpsolver->addItem(L"MINRES");
-    gad_ccpsolver->addItem(L" ");
+    gad_ccpsolver->addItem(L"(custom)");
     gad_ccpsolver->setSelected(5);
 
     gad_stepper = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10, 160, 200, 160 + 20), gad_tab2, 9908);
@@ -474,6 +489,7 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     gad_stepper->addItem(L"Euler explicit");
     gad_stepper->addItem(L"Leapfrog");
     gad_stepper->addItem(L"Newmark");
+    gad_stepper->addItem(L"(custom)");
 
     gad_stepper->setSelected(0);
 
@@ -521,7 +537,11 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     hstr += " 'spacebar' key: stop/start simul.\n";
     hstr += " 'p' key: advance single step\n";
     hstr += " 'Print Scr' key: video capture to .bmp's\n";
-    hstr += " 'F12' key: dump sys. matrices on disk\n";
+    hstr += " 'F6' key: single dump sys. matrices.\n";
+    hstr += " 'F7' key: continuous dump sys. matrices.\n";
+    hstr += " 'F8' key: dump a .json file.\n";
+    hstr += " 'F10' key: non-linear statics.\n";
+    hstr += " 'F11' key: linear statics.\n";
     gad_textHelp->setText(hstr.c_str());
 
     ///
@@ -780,6 +800,9 @@ void ChIrrAppInterface::DrawAll() {
             case chrono::ChSystem::INT_NEWMARK:
                 gad_stepper->setSelected(12);
                 break;
+            default:
+                gad_stepper->setSelected(13);
+                break;
         }
 
         gad_try_realtime->setChecked(GetTryRealtime());
@@ -822,7 +845,7 @@ void ChIrrAppInterface::DumpMatrices() {
     DoStep();
 
     // Now save the matrices - as they were setup by the previous time stepping scheme.
-    GetSystem()->GetLcpSystemDescriptor()->DumpLastMatrices();
+    GetSystem()->GetLcpSystemDescriptor()->DumpLastMatrices("dump_");
 }
 
 }  // END_OF_NAMESPACE____

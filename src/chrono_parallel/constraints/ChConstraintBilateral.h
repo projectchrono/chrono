@@ -1,5 +1,4 @@
-#ifndef CHCONSTRAINT_BILATERAL_H
-#define CHCONSTRAINT_BILATERAL_H
+#pragma once
 
 #include "chrono_parallel/ChDataManager.h"
 
@@ -29,4 +28,3 @@ class CH_PARALLEL_API ChConstraintBilateral {
 };
 }
 
-#endif

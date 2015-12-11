@@ -1,5 +1,4 @@
-#ifndef CHC_NARROWPHASE_MPR_UTILS_H
-#define CHC_NARROWPHASE_MPR_UTILS_H
+#pragma once
 
 #include "chrono_parallel/collision/ChCDataStructures.h"
 #include "collision/ChCCollisionModel.h"
@@ -338,4 +337,3 @@ inline real GetAngularMotionDisc(const chrono::collision::ConvexShape& Shape) {
 }
 }
 }
-#endif

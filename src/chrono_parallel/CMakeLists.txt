@@ -152,8 +152,8 @@ INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 # Make some variables visible from parent directory
 # ------------------------------------------------------------------------------
 
-set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS}" PARENT_SCOPE)
-set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS}" PAREANT_SCOPE)
+SET(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS}" PARENT_SCOPE)
+SET(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS}" PARENT_SCOPE)
 SET(CH_PARALLEL_INCLUDES "${CH_PARALLEL_INCLUDES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------

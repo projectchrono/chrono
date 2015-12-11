@@ -17,8 +17,7 @@
 // handle the different data structures present in the parallel implementation
 // =============================================================================
 
-#ifndef CH_SYSTEMPARALLEL_H
-#define CH_SYSTEMPARALLEL_H
+#pragma once
 
 #include <stdlib.h>
 #include <float.h>
@@ -176,5 +175,3 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
 };
 
 }  // end namespace chrono
-
-#endif

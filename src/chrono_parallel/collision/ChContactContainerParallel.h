@@ -1,5 +1,4 @@
-#ifndef CHCONTACTCONTAINERPARALLEL_H
-#define CHCONTACTCONTAINERPARALLEL_H
+#pragma once
 
 #include <list>
 
@@ -44,5 +43,3 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase
   std::list<ChContact_6_6*>::iterator lastcontact_6_6;
 };
 }
-
-#endif

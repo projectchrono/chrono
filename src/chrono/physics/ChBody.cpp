@@ -531,15 +531,20 @@ void ChBody::ComputeGyro() {
 }
 
 bool ChBody::TrySleeping() {
-    if (this->GetUseSleeping()) {
-        if (this->GetSleeping())
-            return true;
 
+    BFlagSet(BF_COULDSLEEP, false);
+
+    if (this->GetUseSleeping()) {
+
+        if (!this->IsActive())
+            return false;
+
+        // if not yet sleeping:
         if ((this->coord_dt.pos.LengthInf() < this->sleep_minspeed) &&
             (2.0 * this->coord_dt.rot.LengthInf() < this->sleep_minwvel)) {
             if ((this->GetChTime() - this->sleep_starttime) > this->sleep_time) {
-                SetSleeping(true);
-                return true;
+                BFlagSet(BF_COULDSLEEP, true); // mark as sleep candidate
+                return true; // could go to sleep!
             }
         } else {
             this->sleep_starttime = float(this->GetChTime());
@@ -761,8 +766,6 @@ void ChBody::ChangeCollisionModel(ChCollisionModel* new_collision_model) {
     collision_model->SetContactable(this);
 }
 
-// forward reference
-int coll_model_from_r3d(ChCollisionModel* chmodel, ChBody* mbody, int lod, Vector* mt, ChMatrix33<>* mr);
 
 int ChBody::RecomputeCollisionModel() {
     if (!GetCollide())
@@ -778,18 +781,21 @@ int ChBody::RecomputeCollisionModel() {
 }
 
 void ChBody::SyncCollisionModels() {
-    this->GetCollisionModel()->SyncPosition();
+    if (this->GetCollide())
+        this->GetCollisionModel()->SyncPosition();
 }
 
 void ChBody::AddCollisionModelsToSystem() {
     assert(this->GetSystem());
     SyncCollisionModels();
-    this->GetSystem()->GetCollisionSystem()->Add(this->GetCollisionModel());
+    if (this->GetCollide())
+        this->GetSystem()->GetCollisionSystem()->Add(this->GetCollisionModel());
 }
 
 void ChBody::RemoveCollisionModelsFromSystem() {
     assert(this->GetSystem());
-    this->GetSystem()->GetCollisionSystem()->Remove(this->GetCollisionModel());
+    if (this->GetCollide())
+        this->GetSystem()->GetCollisionSystem()->Remove(this->GetCollisionModel());
 }
 
 void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {

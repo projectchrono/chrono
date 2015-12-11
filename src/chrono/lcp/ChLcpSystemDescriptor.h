@@ -78,13 +78,13 @@ class ChApi ChLcpSystemDescriptor {
 
     ChSpinlock* spinlocktable;
 
+    double c_a;         // coefficient form M mass matrices in vvariables
+
   private:
     int n_q;            // n.active variables
     int n_c;            // n.active constraints
     bool freeze_count;  // for optimizations
-	
-	
-	
+
 
   public:
 	  
@@ -145,6 +145,16 @@ class ChApi ChLcpSystemDescriptor {
     /// if you added/removed some item or if you switched some active state,
     /// otherwise CountActiveVariables() and CountActiveConstraints() might fail.
     virtual void UpdateCountsAndOffsets();
+
+    /// Sets the c_a coefficient (default=1) used for scaling the M masses of the vvariables 
+    /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
+    /// BuildMatrices(), DumpMatrices().
+    virtual void SetMassFactor(const double mc_a) { c_a = mc_a;}
+
+    /// Gets the c_a coefficient (default=1) used for scaling the M masses of the vvariables 
+    /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
+    /// BuildMatrices(), DumpMatrices().
+    virtual double GetMassFactor() { return c_a;}
 
     //
     // DATA <-> MATH.VECTORS FUNCTIONS
@@ -355,19 +365,22 @@ class ChApi ChLcpSystemDescriptor {
                                      bool only_bilaterals = false,
                                      bool skip_contacts_uv = false);
 
-	virtual void ConvertToMatrixForm(ChSparseMatrix* Z,
-									 ChMatrix<>* rhs,
-									 bool only_bilaterals = false,
-									 bool skip_contacts_uv = false);
-
+    /// Create and return the assembled system matrix and RHS vector.
+    virtual void ConvertToMatrixForm(ChSparseMatrix* Z,  ///< [out] assembled system matrix
+                                     ChMatrix<>* rhs     ///< [out] assembled RHS vector
+                                     );
 
     /// Saves to disk the LAST used matrices of the problem.
-    ///  dump_M.dat  has masses and/or stiffness (Matlab sparse format)
-    ///  dump_Cq.dat has the jacobians (Matlab sparse format)
-    ///  dump_E.dat  has the constr.compliance (Matlab sparse format)
-    ///  dump_f.dat  has the applied loads
-    ///  dump_b.dat  has the constraint rhs
-    virtual void DumpLastMatrices(const char* path = "");
+    /// If assembled == true,
+    ///    dump_Z.dat   has the assembled optimization matrix (Matlab sparse format)
+    ///    dump_rhs.dat has the assembled RHS
+    /// Otherwise,
+    ///    dump_M.dat   has masses and/or stiffness (Matlab sparse format)
+    ///    dump_Cq.dat  has the jacobians (Matlab sparse format)
+    ///    dump_E.dat   has the constr.compliance (Matlab sparse format)
+    ///    dump_f.dat   has the applied loads
+    ///    dump_b.dat   has the constraint rhs
+    virtual void DumpLastMatrices(bool assembled = false, const char* path = "");
 
     /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm
 	virtual void BuildMatrices(ChSparseMatrix* Cq,

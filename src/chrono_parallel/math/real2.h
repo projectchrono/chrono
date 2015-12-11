@@ -15,8 +15,7 @@
 // Description: simple operators for a 2D vector
 // =============================================================================
 
-#ifndef REAL2_H
-#define REAL2_H
+#pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
@@ -67,4 +66,3 @@ static inline bool operator==(const real2& a, const real2& b) {
   return ((a.x == b.x) && (a.y == b.y));
 }
 }
-#endif

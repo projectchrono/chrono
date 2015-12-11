@@ -74,7 +74,10 @@ class ChApi ChPhysicsItem : public ChObj {
         this->offset_L = 0;
     };
 
-    virtual ~ChPhysicsItem(){};
+    virtual ~ChPhysicsItem(){
+        SetSystem(0); // this also might remove collision model from system
+    };
+
     virtual void Copy(ChPhysicsItem* source);
 
   public:
@@ -85,8 +88,21 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Get the pointer to the parent ChSystem()
     ChSystem* GetSystem() const { return system; }
 
-    /// Set the pointer to the parent ChSystem()
-    virtual void SetSystem(ChSystem* m_system) { system = m_system; }
+    /// Set the pointer to the parent ChSystem() and 
+    /// also add to new collision system / remove from old coll.system
+    virtual void SetSystem(ChSystem* m_system) { 
+        if (system == m_system) // shortcut if no change
+            return;
+        if (system) {
+            if (this->GetCollide())
+                this->RemoveCollisionModelsFromSystem();
+        }
+        system = m_system; // set here
+        if (system) {
+            if (this->GetCollide())
+                this->AddCollisionModelsToSystem();
+        }
+    }
 
     /// Add an optional asset (it can be used to define visualization shapes, es ChSphereShape,
     /// or textures, or custom attached properties that the user can define by

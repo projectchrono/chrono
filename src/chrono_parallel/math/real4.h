@@ -15,8 +15,7 @@
 // Description: SSE and normal implementation of a 4D vector/Quaternion
 // =============================================================================
 
-#ifndef REAL4_H
-#define REAL4_H
+#pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real2.h"
@@ -367,4 +366,3 @@ static inline real3 AMatV(const real4& q) {
   return V;
 }
 }
-#endif

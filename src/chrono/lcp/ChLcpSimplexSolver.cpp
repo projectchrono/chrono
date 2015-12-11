@@ -130,7 +130,7 @@ double ChLcpSimplexSolver::Solve(ChLcpSystemDescriptor& sysd  ///< system descri
     int s_q = 0;
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive()) {
-            mvariables[iv]->Build_M(*MC, s_q, s_q);             // .. fills  MC (M part)
+            mvariables[iv]->Build_M(*MC, s_q, s_q, 1.0);             // .. fills  MC (M part)
             B->PasteMatrix(&mvariables[iv]->Get_fb(), s_q, 0);  // .. fills  B  (f part)
 
             s_q += mvariables[iv]->Get_ndof();

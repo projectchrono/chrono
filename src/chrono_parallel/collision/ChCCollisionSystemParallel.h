@@ -1,5 +1,4 @@
-#ifndef CHC_COLLISIONSYSTEMPARALLEL_H
-#define CHC_COLLISIONSYSTEMPARALLEL_H
+#pragma once
 
 #include "physics/ChProximityContainerBase.h"
 #include "physics/ChBody.h"
@@ -101,5 +100,3 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
 
 }  // end namespace collision
 }  // end namespace chrono
-
-#endif

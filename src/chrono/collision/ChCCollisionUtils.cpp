@@ -168,9 +168,9 @@ double ChCollisionUtils::PointTriangleDistance(Vector B,
     T1p.y = 0;
     mu = T1.x;
     mv = T1.z;
+    mdistance = -T1.y;
     if (mu >= 0 && mv >= 0 && mv <= 1.0 - mu) {
         is_into = 1;
-        mdistance = fabs(T1.y);
         Bprojected = Vadd(A1, mA.Matr_x_Vect(T1p));
     }
 

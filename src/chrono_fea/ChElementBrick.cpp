@@ -111,7 +111,7 @@ void ChElementBrick::SetStockAlpha(double a1,
                                    double a7,
                                    double a8,
                                    double a9) {
-    m_stock_alpha_EAS(0, 0) = a1;  
+    m_stock_alpha_EAS(0, 0) = a1;
     m_stock_alpha_EAS(1, 0) = a2;
     m_stock_alpha_EAS(2, 0) = a3;
     m_stock_alpha_EAS(3, 0) = a4;
@@ -210,9 +210,9 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             detJ0C = 0.0;
             T0DetJElementCenterForEAS(m_d0, T0, detJ0C);
             //== F_internal ==//
-			// Choose constructors depending on m_isMooney
-			MyForceNum myformula = !m_isMooney ? MyForceNum (&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v) :
-				MyForceNum (&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
+            // Choose constructors depending on m_isMooney
+            MyForceNum myformula = !m_isMooney ? MyForceNum(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v)
+                                               : MyForceNum(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
 
             ChQuadrature::Integrate3D<ChMatrixNM<double, 330, 1> >(
                 TempIntegratedResult,  // result of integration will go there
@@ -315,23 +315,30 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         ResidHE.Reset();
         int count = 0;
         int fail = 1;
+        // Loop to obtain convergence in EAS internal parameters alpha
+        // This loops call ChQuadrature::Integrate3D on MyAnalyticalForce,
+        // which calculates the Jacobian at every iteration of each time step
+        int iteralpha = 0;  //  Counts number of iterations
         while (fail == 1) {
+            iteralpha++;
             alpha_eas = alpha_eas - ResidHE;
             renewed_alpha_eas = alpha_eas;
 
-            Finternal.Reset();
-            HE.Reset();
-            GDEPSP.Reset();
-            KALPHA.Reset();
+            Finternal.Reset();  // Internal force vector
+            HE.Reset();         // Internal force vector from EAS
+            GDEPSP.Reset();     // Jacobian of EAS forces w.r.t. coordinates
+            KALPHA.Reset();     // Jacobian of EAS forces w.r.t. EAS internal parameters
 
             // Enhanced Assumed Strain (EAS)
             T0.Reset();
             detJ0C = 0.0;
             T0DetJElementCenterForEAS(m_d0, T0, detJ0C);
+
             //== F_internal ==//
-			MyForceAnalytical myformula = !m_isMooney ? MyForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v) :
-				MyForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
- 
+            MyForceAnalytical myformula = !m_isMooney
+                                              ? MyForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v)
+                                              : MyForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
+
             ChQuadrature::Integrate3D<ChMatrixNM<double, 906, 1> >(
                 TempIntegratedResult,  // result of integration will go there
                 myformula,             // formula to integrate
@@ -376,11 +383,10 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 }
             }
             // KTE = JACvec;
+
+            // Calculation of the element Jacobian for implicit integrator
+            // KTE and stock_jac_EAS_elem.
             KALPHA1 = KALPHA;
-            //   GetLog() <<HE<<"\n";
-            // system("pause");
-            //      GetLog() <<Finternal<<"\n";
-            // system("pause");
             if (m_flag_HE == NUMERICAL)
                 break;  // When numerical jacobian loop, no need to calculate HE
             count = count + 1;
@@ -557,6 +563,8 @@ void ChElementBrick::ComputeStiffnessMatrix() {
         // flag_HE=0 is default
         m_StiffnessMatrix -= m_stock_jac_EAS;  // For Enhanced Assumed Strain
     } else {
+        // Put in m_StiffnessMatrix the values for the Jacobian already calculated in the computation of internal forces
+        // Note that m_stock_KTE and m_stock_jac_EAS are updated at each iteration of the time step
         m_StiffnessMatrix = m_stock_KTE;
         m_StiffnessMatrix -= m_stock_jac_EAS;
     }
@@ -641,7 +649,7 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     Szi.FillDiag(Nz(7));
     Sz.PasteMatrix(&Szi, 0, 21);
 
-    //		//==EAS and Initial Shape==//
+    // EAS and Initial Shape
     ChMatrixNM<double, 3, 3> rd0;
     ChMatrixNM<double, 3, 3> temp33;
     ChMatrixNM<double, 1, 3> temp13;
@@ -662,9 +670,8 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     rd0.PasteClippedMatrix(&temp13, 0, 0, 3, 1, 0, 2);
     detJ0 = rd0.Det();
 
-    //		//////////////////////////////////////////////////////////////
-    //		//// Transformation : Orthogonal transformation (A and J) ////
-    //		//////////////////////////////////////////////////////////////
+    // Transformation : Orthogonal transformation (A and J)
+
     ChVector<double> G1;
     ChVector<double> G2;
     ChVector<double> G3;
@@ -689,7 +696,8 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     A1 = G1 / sqrt(G1(0) * G1(0) + G1(1) * G1(1) + G1(2) * G1(2));
     A3 = G1xG2 / sqrt(G1xG2(0) * G1xG2(0) + G1xG2(1) * G1xG2(1) + G1xG2(2) * G1xG2(2));
     A2.Cross(A3, A1);
-    ////Direction for orthotropic material//
+
+    // Direction for orthotropic material
     double theta = 0.0;
     ChVector<double> AA1;
     ChVector<double> AA2;
@@ -698,7 +706,7 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     AA2 = -A1 * sin(theta) + A2 * cos(theta);
     AA3 = A3;
 
-    ////Beta
+    // Beta
     ChMatrixNM<double, 3, 3> j0;
     ChVector<double> j01;
     ChVector<double> j02;
@@ -734,12 +742,10 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     beta(7, 0) = temp;
     temp = Vdot(AA3, j03);
     beta(8, 0) = temp;
-    //		//////////////////////////////////////////////////
-    //		//// Enhanced Assumed Strain /////////////////////
-    //		//////////////////////////////////////////////////
+
+    // Enhanced Assumed Strain
     G = (*T0) * M * ((*detJ0C) / (detJ0));
     strain_EAS = G * (*alpha_eas);
-    //		//////////////////////////////////////////////////
 
     d_d.MatrMultiplyT(*d, *d);
     ddNx.MatrMultiplyT(d_d, Nx);
@@ -750,9 +756,9 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     d0d0Nx.MatrMultiplyT(d0_d0, Nx);
     d0d0Ny.MatrMultiplyT(d0_d0, Ny);
     d0d0Nz.MatrMultiplyT(d0_d0, Nz);
-    //		///////////////////////////
-    //		/// Strain component //////
-    //		///////////////////////////
+
+    // Strain component
+
     ChMatrixNM<double, 6, 1> strain_til;
     tempA = Nx * ddNx;
     tempA1 = Nx * d0d0Nx;
@@ -799,9 +805,8 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
                    strain_til(4, 0) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                    strain_til(5, 0) * (beta(5) * beta(7) + beta(4) * beta(8));
 
-    //		////////////////////////////////////
-    //		/// Straint derivative component ///
-    //		////////////////////////////////////
+    // Straint derivative component
+
     ChMatrixNM<double, 6, 24> strainD_til;
     strainD_til.Reset();
     tempB = Nx * (*d) * Sx;
@@ -817,7 +822,7 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 4, 0);
     tempB = Ny * (*d) * Sz + Nz * (*d) * Sy;
     strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 5, 0);
-    //		//// For orthotropic material ///
+    // For orthotropic material
     for (int ii = 0; ii < 24; ii++) {
         strainD(0, ii) = strainD_til(0, ii) * beta(0) * beta(0) + strainD_til(1, ii) * beta(3) * beta(3) +
                          strainD_til(2, ii) * beta(0) * beta(3) + strainD_til(3, ii) * beta(6) * beta(6) +
@@ -844,7 +849,7 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
                          strainD_til(4, ii) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                          strainD_til(5, ii) * (beta(5) * beta(7) + beta(4) * beta(8));
     }
-    //		/// Gd (8x24) calculation
+    // Gd (8x24) calculation
     for (int ii = 0; ii < 8; ii++) {
         Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
         Gd(1, 3 * (ii) + 1) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
@@ -858,9 +863,8 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
         Gd(7, 3 * (ii) + 1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
         Gd(8, 3 * (ii) + 2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
     }
-    //		///////////////////////////////////
-    //		/// Enhanced Assumed Strain 2nd ///
-    //		///////////////////////////////////
+    // Enhanced Assumed Strain 2nd
+
     strain += strain_EAS;
 
     ChMatrixNM<double, 9, 6> temp56;
@@ -872,21 +876,25 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
             GT(ii, jj) = G(jj, ii);
         }
     }
+    // If Mooney-Rivlin Material is selected -> Calculates internal forces and their Jacobian accordingly (new E_eps)
     if (element->m_isMooney) {
-        ChMatrixNM<double, 3, 3> CG;  // CG: Right Cauchy-Green tensor  C=trans(F)*F
-        ChMatrixNM<double, 3, 3> INVCG;
-        ChMatrixNM<double, 3, 3> IMAT;
-        ChMatrixNM<double, 3, 3> I1PC;
-        ChMatrixNM<double, 3, 3> I2PC;
-        ChMatrixNM<double, 3, 3> JPC;
-        ChMatrixNM<double, 3, 3> STR;
+        ChMatrixNM<double, 3, 3> CG;     // CG: Right Cauchy-Green deformation tensor  C=trans(F)*F
+        ChMatrixNM<double, 3, 3> INVCG;  // INVCG: Inverse of Right Cauchy-Green deformation tensor  C=trans(F)*F
+        ChMatrixNM<double, 3, 3> IMAT;   // Identity matrix
+        ChMatrixNM<double, 3, 3> I1PC;   // Stress tensor from first term of Mooney-Rivlin strain energy
+        ChMatrixNM<double, 3, 3> I2PC;   // Stress tensor from second term of Mooney-Rivlin strain energy
+        ChMatrixNM<double, 3, 3> JPC;    // Stress tensor from penalty term to ensure incompressibility
+        ChMatrixNM<double, 3, 3>
+            STR;  // Definition of stress tensor from strain energy (including penalty for incompressibility CCOM3)
 
-        ChMatrixNM<double, 3, 3> CGN;
-        ChMatrixNM<double, 3, 3> INVCGN;
-        ChMatrixNM<double, 3, 3> I1PCN;
-        ChMatrixNM<double, 3, 3> I2PCN;
-        ChMatrixNM<double, 3, 3> JPCN;
-        ChMatrixNM<double, 3, 3> STRN;
+        // Same quantities for the numerical calculation of the Jacobian of Mooney-Rivlin forces
+        ChMatrixNM<double, 3, 3> CGN;     // CG: Right Cauchy-Green deformation tensor  C=trans(F)*F
+        ChMatrixNM<double, 3, 3> INVCGN;  // INVCG: Inverse of Right Cauchy-Green deformation tensor  C=trans(F)*F
+        ChMatrixNM<double, 3, 3> I1PCN;   // Stress tensor from first term of Mooney-Rivlin strain energy
+        ChMatrixNM<double, 3, 3> I2PCN;   // Stress tensor from second term of Mooney-Rivlin strain energy
+        ChMatrixNM<double, 3, 3> JPCN;    // Stress tensor from penalty term to ensure incompressibility
+        ChMatrixNM<double, 3, 3>
+            STRN;  // Definition of stress tensor from strain energy (including penalty for incompressibility CCOM3)
 
         ChMatrixNM<double, 6, 1> strain_1;
         ChMatrixNM<double, 6, 1> TEMP5;
@@ -894,6 +902,7 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
         TEMP5.Reset();
         TEMP5N.Reset();
 
+        // Right Cauchy - Green deformation tensor
         CG(0, 0) = 2.0 * strain(0, 0) + 1.0;
         CG(1, 1) = 2.0 * strain(1, 0) + 1.0;
         CG(2, 2) = 2.0 * strain(3, 0) + 1.0;
@@ -906,31 +915,42 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
 
         INVCG = CG;
         INVCG.MatrInverse();
-
+        // Calculation of invariants I1, I2, and I3 and its deviatoric counterparts I1bar, I2bar, and I3bar
         double Deld = 0.000001;
+        // First invariant of Right Cauchy-Green deformation tensor
         double I1 = CG(0, 0) + CG(1, 1) + CG(2, 2);
+        // Second invariant of Right Cauchy-Green deformation tensor
         double I2 = 0.5 * (pow(I1, 2) - (pow(CG(0, 0), 2) + pow(CG(1, 0), 2) + pow(CG(2, 0), 2) + pow(CG(0, 1), 2) +
                                          pow(CG(1, 1), 2) + pow(CG(2, 1), 2) + pow(CG(0, 2), 2) + pow(CG(1, 2), 2) +
                                          pow(CG(2, 2), 2)));
+        // Third invariant of Right Cauchy-Green deformation tensor (must be very close to 1 for incompressible
+        // material)
         double I3 = CG(0, 0) * CG(1, 1) * CG(2, 2) - CG(0, 0) * CG(1, 2) * CG(2, 1) + CG(0, 1) * CG(1, 2) * CG(2, 0) -
                     CG(0, 1) * CG(1, 0) * CG(2, 2) + CG(0, 2) * CG(1, 0) * CG(2, 1) - CG(2, 0) * CG(1, 1) * CG(0, 2);
-        double I1BAR = I1 / (pow(I3, 1.0 / 3.0));
-        double I2BAR = I2 / (pow(I3, 2.0 / 3.0));
+        double I1BAR = I1 / (pow(I3, 1.0 / 3.0));  // First invariant of the deviatoric tensor
+        double I2BAR = I2 / (pow(I3, 2.0 / 3.0));  // Second invariant of the deviatoric tensor
         double J = sqrt(I3);
         // double CCOM1 = 551584.0;                                    // C10   not 0.551584
         // double CCOM2 = 137896.0;                                    // C01   not 0.137896
         double CCOM3 = 2.0 * (element->CCOM1 + element->CCOM2) / (1.0 - 2.0 * 0.49);  // K:bulk modulus
         double StockEPS;
 
+        /// Calculation of stress tensor STR term to term: I1PC, I2PC, and JPC.
+        // Identity matrix
         IMAT.Reset();
         IMAT(0, 0) = 1.0;
         IMAT(1, 1) = 1.0;
         IMAT(2, 2) = 1.0;
+        // Stress tensor from first term of Mooney-Rivlin strain energy
         I1PC = (IMAT - INVCG * (1.0 / 3.0 * I1)) * pow(I3, -1.0 / 3.0);
+        // Stress tensor from second term of Mooney-Rivlin strain energy
         I2PC = (((IMAT * I1) - CG) - (INVCG * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
+        // Stress tensor from penalty for incompressibility
         JPC = INVCG * (J / 2.0);
+        // Definition of stress tensor from strain energy (including penalty for incompressibility CCOM3)
         STR = I1PC * (element->CCOM1 * 2.0) + I2PC * (element->CCOM2 * 2.0) + JPC * (CCOM3 * (J - 1.0) * 2.0);
 
+        // Put the stress in vector form
         TEMP5(0, 0) = STR(0, 0);
         TEMP5(1, 0) = STR(1, 1);
         TEMP5(2, 0) = STR(0, 1);
@@ -940,7 +960,11 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
 
         E_eps.Reset();
 
+        // Compatible plus enhanced assumed strain
         strain_1 = strain;
+
+        // Loop to obtain our Mooney-Rivling E_eps (tangential matrix of elastic coefficients)
+        // E_eps is necessary for obtaining the Jacobian of MR internal forces
         for (int JJJ = 0; JJJ < 6; JJJ++) {
             StockEPS = strain_1(JJJ, 0);
             strain_1(JJJ, 0) = StockEPS + Deld;
@@ -955,7 +979,6 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
             CGN(1, 2) = CGN(2, 1);
             INVCGN = CGN;
             INVCGN.MatrInverse();
-            // GetLog() << " INVCGN"<<INVCGN<<"\n";
 
             I1 = CGN(0, 0) + CGN(1, 1) + CGN(2, 2);
             I2 = 0.5 * (pow(I1, 2) - (pow(CGN(0, 0), 2) + pow(CGN(1, 0), 2) + pow(CGN(2, 0), 2) + pow(CGN(0, 1), 2) +
@@ -985,6 +1008,7 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
             E_eps(JJJ, 4) = (TEMP5N(4, 0) - TEMP5(4, 0)) / Deld;
             E_eps(JJJ, 5) = (TEMP5N(5, 0) - TEMP5(5, 0)) / Deld;
         }
+        // Add internal forces to Fint and HE1 for Mooney-Rivlin
         temp56.MatrMultiply(GT, E_eps);
         Fint.MatrTMultiply(strainD, TEMP5);
         Fint *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
@@ -1030,7 +1054,6 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
         Sigm(2, 5) = stress(2, 0);
         Sigm(2, 8) = stress(4, 0);
         // XX                      //XY                     //XZ
-
         Sigm(3, 0) = stress(2, 0);
         Sigm(3, 3) = stress(1, 0);
         Sigm(3, 6) = stress(5, 0);
@@ -1041,7 +1064,6 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
         Sigm(5, 5) = stress(1, 0);
         Sigm(5, 8) = stress(5, 0);
         // XY                     //YY                     //YZ
-
         Sigm(6, 0) = stress(4, 0);
         Sigm(6, 3) = stress(5, 0);
         Sigm(6, 6) = stress(3, 0);
@@ -1052,23 +1074,30 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
         Sigm(8, 5) = stress(5, 0);
         Sigm(8, 8) = stress(3, 0);
         // XZ                     //YZ                     //ZZ
-
+        // Add internal forces to Fint and HE1 for linear elastic material
+        // temp56 is actually 9x6 for the brick element (9 EAS internal parameters)
         temp56.MatrMultiply(GT, E_eps);
         tempC.MatrTMultiply(strainD, E_eps);
+        // Add generalized internal force
         Fint.MatrMultiply(tempC, strain);
         Fint *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
+        // Add EAS internal force (vector of 9 components for each element)
         HE1.MatrMultiply(temp56, strain);
         HE1 *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
-    }  // end of   if(*flag_Mooney==1)
+    }  // end of   if(isMooney==1)
 
-    /// Jacobian calculation
+    // Internal force (linear isotropic or Mooney-Rivlin) Jacobian calculation
+    // First term for Jacobian matrix
     temp246.MatrTMultiply(strainD, E_eps);
+    // Second term for Jacobian matrix
     temp249.MatrTMultiply(Gd, Sigm);
     JAC11 = temp246 * strainD + temp249 * Gd;
+    // Final expression for the Jacobian
     JAC11 *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
-
+    // Jacobian of EAS forces w.r.t. element coordinates
     GDEPSP.MatrMultiply(temp56, strainD);
     GDEPSP *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
+    // Jacobian of EAS forces (w.r.t. EAS internal parameters)
     KALPHA.MatrMultiply(temp56, G);
     KALPHA *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->GetLengthZ() / 2.0);
 
@@ -1601,78 +1630,80 @@ void ChElementBrick::MyForceNum::Evaluate(ChMatrixNM<double, 330, 1>& result,
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z) {
-	element->ShapeFunctions(N, x, y, z);
-	element->ShapeFunctionsDerivativeX(Nx, x, y, z);
-	element->ShapeFunctionsDerivativeY(Ny, x, y, z);
-	element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
+void ChElementBrick::MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result,
+                                         const double x,
+                                         const double y,
+                                         const double z) {
+    element->ShapeFunctions(N, x, y, z);
+    element->ShapeFunctionsDerivativeX(Nx, x, y, z);
+    element->ShapeFunctionsDerivativeY(Ny, x, y, z);
+    element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
 
-	// Weights for Gaussian integration
-	double wx2 = (element->GetLengthX()) / 2;
-	double wy2 = (element->GetLengthY()) / 2;
-	double wz2 = (element->GetLengthZ()) / 2;
+    // Weights for Gaussian integration
+    double wx2 = (element->GetLengthX()) / 2;
+    double wy2 = (element->GetLengthY()) / 2;
+    double wz2 = (element->GetLengthZ()) / 2;
 
-	// Set gravity acceleration
-	if (element->m_gravity_on) {
-		LocalGravityForce(0, 0) = 0.0;
-		LocalGravityForce(1, 0) = 0.0;
-		LocalGravityForce(2, 0) = -9.81;
-	}
-	else {
-		LocalGravityForce(0, 0) = 0.0;
-		LocalGravityForce(1, 0) = 0.0;
-		LocalGravityForce(2, 0) = 0.0;
-	}
+    // Set gravity acceleration
+    if (element->m_gravity_on) {
+        LocalGravityForce(0, 0) = 0.0;
+        LocalGravityForce(1, 0) = 0.0;
+        LocalGravityForce(2, 0) = -9.81;
+    } else {
+        LocalGravityForce(0, 0) = 0.0;
+        LocalGravityForce(1, 0) = 0.0;
+        LocalGravityForce(2, 0) = 0.0;
+    }
 
-	// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
-	ChMatrix33<> Si;
-	Si.FillDiag(N(0));
-	S.PasteMatrix(&Si, 0, 0);
-	Si.FillDiag(N(1));
-	S.PasteMatrix(&Si, 0, 3);
-	Si.FillDiag(N(2));
-	S.PasteMatrix(&Si, 0, 6);
-	Si.FillDiag(N(3));
-	S.PasteMatrix(&Si, 0, 9);
-	Si.FillDiag(N(4));
-	S.PasteMatrix(&Si, 0, 12);
-	Si.FillDiag(N(5));
-	S.PasteMatrix(&Si, 0, 15);
-	Si.FillDiag(N(6));
-	S.PasteMatrix(&Si, 0, 18);
-	Si.FillDiag(N(7));
-	S.PasteMatrix(&Si, 0, 21);
+    // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
+    ChMatrix33<> Si;
+    Si.FillDiag(N(0));
+    S.PasteMatrix(&Si, 0, 0);
+    Si.FillDiag(N(1));
+    S.PasteMatrix(&Si, 0, 3);
+    Si.FillDiag(N(2));
+    S.PasteMatrix(&Si, 0, 6);
+    Si.FillDiag(N(3));
+    S.PasteMatrix(&Si, 0, 9);
+    Si.FillDiag(N(4));
+    S.PasteMatrix(&Si, 0, 12);
+    Si.FillDiag(N(5));
+    S.PasteMatrix(&Si, 0, 15);
+    Si.FillDiag(N(6));
+    S.PasteMatrix(&Si, 0, 18);
+    Si.FillDiag(N(7));
+    S.PasteMatrix(&Si, 0, 21);
 
-	ChMatrixNM<double, 1, 3> Nx_d0;
-	Nx_d0.MatrMultiply(Nx, *d0);
+    ChMatrixNM<double, 1, 3> Nx_d0;
+    Nx_d0.MatrMultiply(Nx, *d0);
 
-	ChMatrixNM<double, 1, 3> Ny_d0;
-	Ny_d0.MatrMultiply(Ny, *d0);
+    ChMatrixNM<double, 1, 3> Ny_d0;
+    Ny_d0.MatrMultiply(Ny, *d0);
 
-	ChMatrixNM<double, 1, 3> Nz_d0;
-	Nz_d0.MatrMultiply(Nz, *d0);
+    ChMatrixNM<double, 1, 3> Nz_d0;
+    Nz_d0.MatrMultiply(Nz, *d0);
 
-	ChMatrixNM<double, 3, 3> rd0;
-	rd0(0, 0) = Nx_d0(0, 0);
-	rd0(1, 0) = Nx_d0(0, 1);
-	rd0(2, 0) = Nx_d0(0, 2);
-	rd0(0, 1) = Ny_d0(0, 0);
-	rd0(1, 1) = Ny_d0(0, 1);
-	rd0(2, 1) = Ny_d0(0, 2);
-	rd0(0, 2) = Nz_d0(0, 0);
-	rd0(1, 2) = Nz_d0(0, 1);
-	rd0(2, 2) = Nz_d0(0, 2);
+    ChMatrixNM<double, 3, 3> rd0;
+    rd0(0, 0) = Nx_d0(0, 0);
+    rd0(1, 0) = Nx_d0(0, 1);
+    rd0(2, 0) = Nx_d0(0, 2);
+    rd0(0, 1) = Ny_d0(0, 0);
+    rd0(1, 1) = Ny_d0(0, 1);
+    rd0(2, 1) = Ny_d0(0, 2);
+    rd0(0, 2) = Nz_d0(0, 0);
+    rd0(1, 2) = Nz_d0(0, 1);
+    rd0(2, 2) = Nz_d0(0, 2);
 
-	double detJ0 = rd0.Det();
+    double detJ0 = rd0.Det();
 
-	result.MatrTMultiply(S, LocalGravityForce);
+    result.MatrTMultiply(S, LocalGravityForce);
 
-	result *= detJ0 * wx2 * wy2 * wz2 * (element->m_Material->Get_density());
+    result *= detJ0 * wx2 * wy2 * wz2 * (element->m_Material->Get_density());
 }
 void ChElementBrick::ComputeMassMatrix() {
     double rho = m_Material->Get_density();
 
-	MyMass myformula(&m_d0, this);
+    MyMass myformula(&m_d0, this);
 
     ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(m_MassMatrix,  // result of integration will go there
                                                            myformula,     // formula to integrate

@@ -18,8 +18,7 @@
 // a data manager is more convenient from a development perspective.
 // =============================================================================
 
-#ifndef CH_DATAMANAGER_H
-#define CH_DATAMANAGER_H
+#pragma once
 
 // Chrono Includes
 #include "lcp/ChLcpSystemDescriptor.h"
@@ -247,4 +246,3 @@ class CH_PARALLEL_API ChParallelDataManager {
 };
 }
 
-#endif

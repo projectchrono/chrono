@@ -724,6 +724,7 @@ void ChMesh::IntLoadResidual_F(
         ChSharedPtr< ChLoadableUVW > mloadable;// still null
         ChSharedPtr< ChLoad< ChLoaderGravity > > common_gravity_loader(new ChLoad< ChLoaderGravity >( mloadable ));
         common_gravity_loader->loader.Set_G_acc( this->GetSystem()->Get_G_acc() );
+		common_gravity_loader->loader.SetNumIntPoints(num_points_gravity);
 
         for (unsigned int ie = 0; ie < this->velements.size(); ie++) {
             mloadable = this->velements[ie].DynamicCastTo<ChLoadableUVW>();

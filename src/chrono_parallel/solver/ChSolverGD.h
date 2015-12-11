@@ -15,8 +15,7 @@
 // Implementation of an iterative Gradient Descent solver.
 // =============================================================================
 
-#ifndef CHSOLVERGD_H
-#define CHSOLVERGD_H
+#pragma once
 
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
@@ -47,5 +46,3 @@ class CH_PARALLEL_API ChSolverGD : public ChSolverParallel {
   DynamicVector<real> r;
 };
 }
-
-#endif
