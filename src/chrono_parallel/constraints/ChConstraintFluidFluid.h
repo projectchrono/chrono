@@ -21,6 +21,27 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
 
         index_offset = num_unilaterals + num_bilaterals + num_rigid_fluid_contacts * 3;
         body_offset = num_rigid_bodies * 6 + num_shafts;
+
+        // data_manager->host_data.fluid_contact_index.resize(num_fluid_bodies * max_neighbors);
+        //        int cnt = 0;
+        //        for (int p = 0; p < num_fluid_bodies; p++) {
+        //            for (int i = 0; i < data_manager->c_counts_fluid_fluid[p]; i++) {
+        //                data_manager->host_data.fluid_contact_index[p * max_neighbors + i] = cnt;
+        //                cnt++;
+        //            }
+        //        }
+
+        xij_dist_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
+        for (int a = 0; a < num_fluid_bodies; a++) {
+            int p = data_manager->host_data.particle_indices_fluid[a];
+            real3 pos_p = data_manager->host_data.pos_fluid[p];
+            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[a]; i++) {
+                int b = data_manager->host_data.neighbor_fluid_fluid[a * max_neighbors + i];
+                int q = data_manager->host_data.particle_indices_fluid[b];
+                real3 xij = pos_p - data_manager->host_data.pos_fluid[q];
+                xij_dist_fluid_fluid[a * max_neighbors + i] = real4(xij, length(xij));
+            }
+        }
     }
     void Build_D();
     void Build_b();
@@ -42,6 +63,8 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
     void Density_Fluid();
     void Normalize_Density_Fluid();
     void ArtificialPressure();
+    void Dx(const DynamicVector<real>& x, DynamicVector<real>& output);
+    void D_Tx(const DynamicVector<real>& x, DynamicVector<real>& output);
 
   protected:
     host_vector<int> fluid_contact_idA, fluid_contact_idA_start;
@@ -49,7 +72,7 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
     host_vector<real> dist_temp;
 
     host_vector<real3> viscosity_row_1, viscosity_row_2, viscosity_row_3;
-
+    host_vector<real4> xij_dist_fluid_fluid;
     int last_body;
 
     host_vector<real3> den_con;
