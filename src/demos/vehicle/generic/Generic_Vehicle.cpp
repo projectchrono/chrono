@@ -30,6 +30,7 @@
 #include "generic/Generic_MultiLink.h"
 #include "generic/Generic_DoubleWishbone.h"
 #include "generic/Generic_HendricksonPRIMAXX.h"
+#include "generic/Generic_MacPhersonStrut.h"
 
 #include "generic/Generic_AntirollBarRSD.h"
 
@@ -45,9 +46,9 @@ using namespace chrono::vehicle;
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double     Generic_Vehicle::m_chassisMass = 3500;                   // chassis sprung mass
-const ChVector<> Generic_Vehicle::m_chassisCOM (-0.2, 0, 0.8);            // COM location
-const ChVector<> Generic_Vehicle::m_chassisInertia(125.8, 497.4, 531.4);  // chassis inertia (roll,pitch,yaw)
+const double     Generic_Vehicle::m_chassisMass = 995.0;                        // chassis sprung mass
+const ChVector<> Generic_Vehicle::m_chassisCOM (0, 0, 0);                          // COM location
+const ChVector<> Generic_Vehicle::m_chassisInertia(200.0, 500.0, 600.0);  // chassis inertia (roll,pitch,yaw)
 
 const ChCoordsys<> Generic_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
@@ -100,6 +101,10 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
     m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_HendricksonPRIMAXX("Front suspension"));
     m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_HendricksonPRIMAXX("Rear suspension"));
     break;
+  case MACPHERSON_STRUT:
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MacPhersonStrut("Front suspension"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MacPhersonStrut("Rear suspension"));
+	break;
   }
 
   // --------------------------------
@@ -151,10 +156,11 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   // relative to the chassis reference frame).
   ChVector<> offset;
   switch (m_suspType) {
-  case SOLID_AXLE:          offset = ChVector<>(1.60, 0, -0.07); break;
-  case MULTI_LINK:          offset = ChVector<>(1.65, 0, -0.12); break;
-  case DOUBLE_WISHBONE:     offset = ChVector<>(1.40, 0, -0.03); break;
-  case HENDRICKSON_PRIMAXX: offset = ChVector<>(1.60, 0, -0.07); break;
+  case SOLID_AXLE:          offset = ChVector<>(1.25, 0, -0.21); break;
+  case MULTI_LINK:          offset = ChVector<>(1.25, 0, -0.21); break;
+  case DOUBLE_WISHBONE:     offset = ChVector<>(1.25, 0, -0.21); break;
+  case HENDRICKSON_PRIMAXX: offset = ChVector<>(1.25, 0, -0.21); break;
+  case MACPHERSON_STRUT:    offset = ChVector<>(1.25, 0, -0.21); break;
   }
   m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
@@ -200,6 +206,8 @@ double Generic_Vehicle::GetSpringForce(const WheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetSpringForce(wheel_id.side());
   case DOUBLE_WISHBONE:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetSpringForce(wheel_id.side());
+  case MACPHERSON_STRUT:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMacPhersonStrut>()->GetSpringForce(wheel_id.side());
   default:
     return -1;
   }
@@ -214,6 +222,8 @@ double Generic_Vehicle::GetSpringLength(const WheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetSpringLength(wheel_id.side());
   case DOUBLE_WISHBONE:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetSpringLength(wheel_id.side());
+  case MACPHERSON_STRUT:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMacPhersonStrut>()->GetSpringLength(wheel_id.side());
   default:
     return -1;
   }
@@ -228,6 +238,8 @@ double Generic_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetSpringDeformation(wheel_id.side());
   case DOUBLE_WISHBONE:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetSpringDeformation(wheel_id.side());
+  case MACPHERSON_STRUT:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMacPhersonStrut>()->GetSpringDeformation(wheel_id.side());
   default:
     return -1;
   }
@@ -245,6 +257,8 @@ double Generic_Vehicle::GetShockForce(const WheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetShockForce(wheel_id.side());
   case DOUBLE_WISHBONE:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetShockForce(wheel_id.side());
+  case MACPHERSON_STRUT:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMacPhersonStrut>()->GetShockForce(wheel_id.side());
   default:
     return -1;
   }
@@ -259,6 +273,8 @@ double Generic_Vehicle::GetShockLength(const WheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetShockLength(wheel_id.side());
   case DOUBLE_WISHBONE:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetShockLength(wheel_id.side());
+  case MACPHERSON_STRUT:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMacPhersonStrut>()->GetShockLength(wheel_id.side());
   default:
     return -1;
   }
@@ -273,6 +289,8 @@ double Generic_Vehicle::GetShockVelocity(const WheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetShockVelocity(wheel_id.side());
   case DOUBLE_WISHBONE:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetShockVelocity(wheel_id.side());
+  case MACPHERSON_STRUT:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMacPhersonStrut>()->GetShockVelocity(wheel_id.side());
   default:
     return -1;
   }
@@ -305,6 +323,12 @@ void Generic_Vehicle::LogHardpointLocations()
     m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
     GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
     m_suspensions[1].StaticCastTo<ChDoubleWishbone>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+    break;
+  case MACPHERSON_STRUT:
+    GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
+    m_suspensions[0].StaticCastTo<ChMacPhersonStrut>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+    GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
+    m_suspensions[1].StaticCastTo<ChMacPhersonStrut>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
     break;
   }
 

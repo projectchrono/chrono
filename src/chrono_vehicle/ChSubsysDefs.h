@@ -199,7 +199,8 @@ enum SuspensionType {
     DOUBLE_WISHBONE_REDUCED,  ///< simplified double wishbone (constraint-based)
     SOLID_AXLE,               ///< solid axle
     MULTI_LINK,               ///< multi-link
-    HENDRICKSON_PRIMAXX       ///< Hendrickson PRIMAXX (walking beam)
+    HENDRICKSON_PRIMAXX,      ///< Hendrickson PRIMAXX (walking beam)
+	MACPHERSON_STRUT          ///< MacPherson strut
 };
 
 /// Enum for drive types.

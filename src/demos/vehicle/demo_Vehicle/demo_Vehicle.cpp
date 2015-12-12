@@ -60,24 +60,23 @@ using namespace chrono::vehicle;
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
+std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
-std::string vehicle_file("MAN_5t/vehicle/MAN_5t_Vehicle_4WD.json");
+// std::string vehicle_file("MAN_5t/vehicle/MAN_5t_Vehicle_4WD.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_ThreeAxles.json");
 // std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Independent.json");
 // std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
+// std::string vehicle_file("generic/vehicle/Vehicle_MacPhersonStruts.json");
 
-// JSON files for terrain (rigid plane), tire models (rigid), and powertrain (simple)
-// std::string rigidterrain_file("terrain/RigidPlane.json");
-// std::string rigidtire_file("generic/tire/RigidTire.json");
-// std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
-
-// JSON files MAN 5t for terrain (rigid plane), tire models (rigid), and powertrain (simple)
+// JSON files for terrain (rigid plane), and powertrain (simple)
 std::string rigidterrain_file("terrain/RigidPlane.json");
-std::string rigidtire_file("MAN_5t/tire/MAN_5t_RigidTire.json");
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
+
+// JSON files tire models (rigid)
+std::string rigidtire_file("generic/tire/RigidTire.json");
+//std::string rigidtire_file("MAN_5t/tire/MAN_5t_RigidTire.json");
 
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
@@ -98,7 +97,7 @@ double terrainLength = 300.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-4;
+double step_size = 1e-3;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -124,7 +123,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file));
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurfaceBase::DEM);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetBodyFixed(true);
 

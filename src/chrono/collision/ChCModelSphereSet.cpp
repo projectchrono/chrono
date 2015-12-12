@@ -149,7 +149,8 @@ bool ChModelSphereSet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
                                        bool is_static,
                                        bool is_convex,
                                        ChVector<>* pos,
-                                       ChMatrix33<>* rot) {
+                                       ChMatrix33<>* rot,
+                                       double sphereswept_thickness) {
     model_type = TRIANGLEMESH;
     return false;
 }
