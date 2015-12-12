@@ -51,7 +51,19 @@
 @CHRONO_PARALLEL_SSE_4_1@
 @CHRONO_PARALLEL_SSE_4_2@
 
+// If AVX support was found, then
+//   #define CHRONO_PARALLEL_HAS_AVX
+// and set the SSE level support, one of the following
+//   #define CHRONO_PARALLEL_AVX_LEVEL "1.0"
+//   #define CHRONO_PARALLEL_AVX_LEVEL "2.0"
+// and define one or more of the following, as appropriate
+//   #define CHRONO_PARALLEL_AVX_1.0
+//   #define CHRONO_PARALLEL_AVX_2.0
 
+@CHRONO_PARALLEL_HAS_AVX@
+@CHRONO_PARALLEL_AVX_LEVEL@
+@CHRONO_PARALLEL_AVX_1_0@
+@CHRONO_PARALLEL_AVX_2_0@
 // -----------------------------------------------------------------------------
 
 // If using double precision

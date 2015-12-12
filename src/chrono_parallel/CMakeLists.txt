@@ -33,26 +33,11 @@ set(CH_PARALLEL_C_FLAGS "")
 # Additional dependencies, specific to this module
 # ------------------------------------------------------------------------------
 
-# Figure out SSE level support
-# TODO:  Move to parent level?  May be of interest in other modules...
-OPTION(USE_SSE "Compile with SSE support for floating point math" OFF)
+# Figure out SIMD level support
+OPTION(USE_SIMD "Compile with SSE support for floating point math" ON)
 OPTION(USE_DOUBLE "Compile with double precision math (no SSE support)" ON)
 
-IF(USE_DOUBLE)
-
-  OPTION(USE_SSE "Compile with SSE support for floating point math" OFF)
-  SET(CHRONO_PARALLEL_USE_DOUBLE "#define CHRONO_PARALLEL_USE_DOUBLE")
-  
-  IF(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wa,-q")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -Wa,-q")
-      set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS} -march=native -Wa,-q")
-      set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS} -march=native -Wa,-q")
-  ENDIF()
-  
-ELSEIF(USE_SSE)
-
-  FIND_PACKAGE(SSE)
+FIND_PACKAGE(SSE)
 
   # Set substitution variables for configuration file.
   IF(SSE_FOUND)
@@ -63,9 +48,28 @@ ELSEIF(USE_SSE)
   ELSE()
     MESSAGE("No SSE support")
   ENDIF()
+  
+FIND_PACKAGE(AVX)
+
+  #  # Set substitution variables for configuration file.
+  IF(AVX_FOUND)
+    MESSAGE(STATUS "AVX version: ${AVX_VERSION}")
+    SET(CHRONO_PARALLEL_HAS_AVX "#define CHRONO_PARALLEL_HAS_AVX")
+    SET(CHRONO_PARALLEL_AVX_LEVEL "#define CHRONO_PARALLEL_AVX_LEVEL \"${AVX_VERSION}\"")
+    SET(CHRONO_PARALLEL_AVX_LEVEL "#define CHRONO_PARALLEL_AVX_${AVX_STR}")
+  ELSE()
+    MESSAGE("No AVX support")
+  ENDIF()
+
+IF(USE_DOUBLE)
+  SET(CHRONO_PARALLEL_USE_DOUBLE "#define CHRONO_PARALLEL_USE_DOUBLE")
+ENDIF()
 
   IF (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    # using Clang
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS}")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS}")
+    set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS} ${SSE_FLAGS}")
+    set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS} ${SSE_FLAGS}")
   ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS}")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS}")
@@ -80,7 +84,6 @@ ELSEIF(USE_SSE)
     # using Visual Studio C++
   ENDIF()
 
-ENDIF()
 
 # Add the OpenMP-specific compiler and linker flags
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
