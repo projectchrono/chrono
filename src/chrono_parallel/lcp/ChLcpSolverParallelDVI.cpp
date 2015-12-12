@@ -66,7 +66,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   ComputeD();
   ComputeE();
   ComputeR();
-  //ComputeN();
+
+  ComputeN();
 
   // PreSolve();
 
@@ -91,8 +92,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
       solver->Solve();
     }
   }
-  if (data_manager->settings.solver.solver_mode == SLIDING ||
-      data_manager->settings.solver.solver_mode == SPINNING) {
+  if (data_manager->settings.solver.solver_mode == SLIDING || data_manager->settings.solver.solver_mode == SPINNING) {
     if (data_manager->settings.solver.max_iteration_sliding > 0) {
       solver->SetMaxIterations(data_manager->settings.solver.max_iteration_sliding);
       data_manager->settings.solver.local_solver_mode = SLIDING;
@@ -111,14 +111,39 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     }
   }
 
+  //    DynamicVector<real> temp(data_manager->num_rigid_bodies * 6, 0.0);
+  //    DynamicVector<real> output(data_manager->num_rigid_contacts * 3, 0.0);
+  //
+  //    // DynamicVector<real> temp(data_manager->num_fluid_bodies * 3, 0.0);
+  //    // DynamicVector<real> output(data_manager->num_fluid_bodies, 0.0);
+  //
+  //    /////
+  //    double t1 = 0;
+  //    {
+  //        ChTimer<> timer;
+  //        timer.start();
+  //        rigid_rigid.Dx(data_manager->host_data.gamma, temp);
+  //        rigid_rigid.D_Tx(temp, output);
+  //        // fluid_fluid.Dx(data_manager->host_data.gamma, temp);
+  //        // fluid_fluid.D_Tx(temp, output);
+  //        timer.stop();
+  //        t1 = timer();
+  //    }
+  //    ChTimer<> timer;
+  //    timer.start();
+  //    DynamicVector<real> compare =
+  //        data_manager->host_data.D_T * data_manager->host_data.D * data_manager->host_data.gamma;
+  //    timer.stop();
+  //    std::cout << "time1: " << t1 << " time2: " << timer() << std::endl;
+  //    /////
+
   data_manager->Fc_current = false;
   data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
   fluid_fluid.ArtificialPressure();
   ComputeImpulses();
 
   for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
-    AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
-                   i);
+    AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i], i);
   }
   tot_iterations = data_manager->measures.solver.maxd_hist.size();
 
@@ -361,13 +386,11 @@ void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
     delete (this->solver);
   }
   switch (type) {
-
     case APGD:
       solver = new ChSolverAPGD();
       break;
     case APGDREF:
       solver = new ChSolverAPGDREF();
       break;
-
   }
 }
