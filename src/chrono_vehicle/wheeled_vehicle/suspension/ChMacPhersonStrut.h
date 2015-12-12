@@ -183,7 +183,7 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     ChSharedPtr<ChBody> m_LCA[2];      ///< handles to the lower control arm bodies (left/right)
 
     ChSharedPtr<ChLinkLockCylindrical> m_cylindricalStrut[2];  ///< handles to the strut-LCA cylindrical joints (left/right)
-    ChSharedPtr<ChLinkUniversal> m_universalStrut[2];      ///< handles to the chassis-strut universal joints (left/right)
+    ChSharedPtr<ChLinkUniversal> m_universalStrut[2];          ///< handles to the chassis-strut universal joints (left/right)
     ChSharedPtr<ChLinkLockRevolute> m_revoluteLCA[2];          ///< handles to the chassis-LCA revolute joints (left/right)
     ChSharedPtr<ChLinkLockSpherical> m_sphericalLCA[2];        ///< handles to the upright-LCA spherical joints (left/right)
     ChSharedPtr<ChLinkDistance> m_distTierod[2];               ///< handles to the tierod distance constraints (left/right)

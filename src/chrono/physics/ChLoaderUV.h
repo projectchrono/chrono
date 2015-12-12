@@ -163,9 +163,13 @@ public:
 class ChLoaderPressure : public ChLoaderUVdistributed {
 private:
     double pressure;
+    bool is_stiff;
+    int num_integration_points;
 public:    
     ChLoaderPressure(ChSharedPtr<ChLoadableUV> mloadable) :
-            ChLoaderUVdistributed(mloadable)
+            ChLoaderUVdistributed(mloadable),
+            is_stiff(false),
+            num_integration_points(1)
         {};
 
     virtual void ComputeF(const double U,             ///< parametric coordinate in surface
@@ -182,8 +186,12 @@ public:
     void SetPressure(double mpressure) {pressure = mpressure;}
     double GetPressure() {return pressure;}
 
-    virtual int GetIntegrationPointsU() {return 1;}
-    virtual int GetIntegrationPointsV() {return 1;}
+    void SetIntegrationPoints(int val) { num_integration_points = val; }
+    virtual int GetIntegrationPointsU() { return num_integration_points; }
+    virtual int GetIntegrationPointsV() { return num_integration_points; }
+
+    void SetStiff(bool val) { is_stiff = val; }
+    virtual bool IsStiff() override { return is_stiff; }
 };
 
 

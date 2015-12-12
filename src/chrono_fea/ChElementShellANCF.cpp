@@ -236,80 +236,7 @@ void ChElementShellANCF::MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result,
 
     result *= detJ0 * wx2 * wy2 * wz2;
 };
-// -----------------------------------------------------------------------------
-void ChElementShellANCF::MyAirPressure::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y) {
-    double z = 0.0;
-    element->ShapeFunctions(N, x, y, z);
-    element->ShapeFunctionsDerivativeX(Nx, x, y, z);
-    element->ShapeFunctionsDerivativeY(Ny, x, y, z);
-    element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
 
-    // Weights for Gaussian integration
-    double wx2 = (element->GetLengthX()) / 2.0;
-    double wy2 = (element->GetLengthY()) / 2.0;
-
-    // Set Air Pressure
-    double Pressure0 = 0;
-    if (element->m_air_pressure_on)
-        Pressure0 = 220.0 * 1000.0;  // 220 KPa
-
-    ChMatrixNM<double, 1, 3> Nx_d;
-    Nx_d.MatrMultiply(Nx, *d);
-
-    ChMatrixNM<double, 1, 3> Ny_d;
-    Ny_d.MatrMultiply(Ny, *d);
-
-    ChMatrixNM<double, 1, 3> Nz_d;
-    Nz_d.MatrMultiply(Nz, *d);
-
-    ChMatrixNM<double, 3, 3> rd;
-    rd(0, 0) = Nx_d(0, 0);
-    rd(1, 0) = Nx_d(0, 1);
-    rd(2, 0) = Nx_d(0, 2);
-    rd(0, 1) = Ny_d(0, 0);
-    rd(1, 1) = Ny_d(0, 1);
-    rd(2, 1) = Ny_d(0, 2);
-    rd(0, 2) = Nz_d(0, 0);
-    rd(1, 2) = Nz_d(0, 1);
-    rd(2, 2) = Nz_d(0, 2);
-
-    ChMatrixNM<double, 1, 3> Nx_d0;
-    Nx_d0.MatrMultiply(Nx, *d0);
-
-    ChMatrixNM<double, 1, 3> Ny_d0;
-    Ny_d0.MatrMultiply(Ny, *d0);
-
-    ChMatrixNM<double, 1, 3> Nz_d0;
-    Nz_d0.MatrMultiply(Nz, *d0);
-
-    ChMatrixNM<double, 3, 3> rd0;
-    rd0(0, 0) = Nx_d0(0, 0);
-    rd0(1, 0) = Nx_d0(0, 1);
-    rd0(2, 0) = Nx_d0(0, 2);
-    rd0(0, 1) = Ny_d0(0, 0);
-    rd0(1, 1) = Ny_d0(0, 1);
-    rd0(2, 1) = Ny_d0(0, 2);
-    rd0(0, 2) = Nz_d0(0, 0);
-    rd0(1, 2) = Nz_d0(0, 1);
-    rd0(2, 2) = Nz_d0(0, 2);
-
-    double detJ0 = rd0.Det();
-
-    ChMatrixNM<double, 3, 1> G1xG2;
-    G1xG2(0) = rd(1, 0) * rd(2, 1) - rd(2, 0) * rd(1, 1);
-    G1xG2(1) = rd(2, 0) * rd(0, 1) - rd(0, 0) * rd(2, 1);
-    G1xG2(2) = rd(0, 0) * rd(1, 1) - rd(1, 0) * rd(0, 1);
-    double G1xG2norm = sqrt(G1xG2(0) * G1xG2(0) + G1xG2(1) * G1xG2(1) + G1xG2(2) * G1xG2(2));
-
-    LocalAirPressure = -G1xG2 * (Pressure0 / G1xG2norm);
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 3; j++) {
-            result(i * 3 + j, 0) = N(0, i) * LocalAirPressure(j, 0);
-        }
-    }
-
-    result *= detJ0 * wx2 * wy2;
-};
 // -----------------------------------------------------------------------------
 void ChElementShellANCF::MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result,
                                           const double x,
@@ -1193,22 +1120,6 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             }
         }
 
-        if (kl == 0) {
-            // Add Tire Air Pressure force
-            MyAirPressure myformula2(&m_d0, &d, this);
-
-            ChMatrixNM<double, 24, 1> Fpressure;
-            ChQuadrature::Integrate2D<ChMatrixNM<double, 24, 1> >(Fpressure,   // result of integration will go there
-                                                                  myformula2,  // formula to integrate
-                                                                  -1,          // start of x
-                                                                  1,           // end of x
-                                                                  -1,          // start of y
-                                                                  1,           // end of y
-                                                                  2            // order of integration
-                                                                  );
-
-            Fi += Fpressure;
-        }
     }  // Layer Loop
 
     Fi += m_GravForce;

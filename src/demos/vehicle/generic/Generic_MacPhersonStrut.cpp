@@ -81,29 +81,29 @@ Generic_MacPhersonStrut::~Generic_MacPhersonStrut() {
 const ChVector<> Generic_MacPhersonStrut::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-          return ChVector<>(-0.040, 1.100, -0.026);  // location of spindle center of mass
+          return ChVector<>(-0.04000403, 1.09999965, -0.02602507);  // location of spindle center of mass
         case UPRIGHT:
-          return ChVector<>(-0.040, 0.910, -0.026);  // location of upright center of mass
+          return ChVector<>(-0.04000015, 0.90999965, -0.0260268);  // location of upright center of mass
         case LCA_F:
           return ChVector<>(0.220, 0.520, -0.156);  // LCA front connection point to chassis
         case LCA_B:
           return ChVector<>(-0.300, 0.507, -0.137);  // LCA rear (back) connection point to chassis
         case LCA_U:
-          return ChVector<>(-0.014, 0.910, -0.176);  // LCA connection point to upright
+          return ChVector<>(-0.02165371, 0.94057703, -0.17402826);  // LCA connection point to upright
         case LCA_CM:
           return ChVector<>(-0.031, 0.646, -0.156);  // location of LCA center of mass
         case SHOCK_C:
           return ChVector<>(-0.115, 0.785, 0.579);  // shock connection to chassis
         case SHOCK_U:
-          return ChVector<>(-0.092, 0.813, 0.234);  // shock connection point to LCA
+          return ChVector<>(-0.07402507, 0.8532915, 0.2484536);  // shock connection point to LCA
         case SPRING_C:
           return ChVector<>(-0.115, 0.785, 0.579);  // spring connection point to chassis
         case SPRING_U:
-          return ChVector<>(-0.092, 0.813, 0.234);  // spring connection point to LCA
+          return ChVector<>(-0.07402507, 0.8532915, 0.2484536);  // spring connection point to LCA
         case TIEROD_C:
           return ChVector<>(-0.300, 0.520, -0.059);  // tierod connection point to chassis
         case TIEROD_U:
-          return ChVector<>(-0.235, 0.897, -0.059);  // tierod connection point to upright
+          return ChVector<>(-0.2373756, 0.89495045, -0.01605418);  // tierod connection point to upright
         default:
           return ChVector<>(0, 0, 0);
     }

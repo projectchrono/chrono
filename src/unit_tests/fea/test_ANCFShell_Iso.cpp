@@ -273,7 +273,6 @@ int main(int argc, char* argv[]) {
         element->SetAlphaDamp(0.08);
         element->Setdt(0.001);                     // dt to calculate DampingCoefficient
         element->SetGravityOn(false);              // turn gravity on/off
-        element->SetAirPressureOn(false);          // turn air pressure on/off
         ChMatrixNM<double, 35, 1> StockAlpha_EAS;  // StockAlpha(5*7,1): Max #Layer is 7
         StockAlpha_EAS.Reset();
         element->SetStockAlpha(StockAlpha_EAS);

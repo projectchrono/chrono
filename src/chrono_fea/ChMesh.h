@@ -47,6 +47,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     std::vector<ChSharedPtr<ChMeshSurface> >    vmeshsurfaces;     //  mesh surfaces, ex.for loads
     
     bool automatic_gravity_load;
+	int num_points_gravity;
 
   public:
     ChMesh() {
@@ -127,7 +128,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// If true, as by default, this mesh will add automatically a gravity load 
     /// to all contained elements (that support gravity) using the G value from the ChSystem.
     /// So this saves you from adding many ChLoad<ChLoaderGravity> to all elements.
-    void SetAutomaticGravity(bool mg) {automatic_gravity_load = mg;} 
+	void SetAutomaticGravity(bool mg, int num_points = 1) { automatic_gravity_load = mg; num_points_gravity = num_points; }
     /// Tell if this mesh will add automatically a gravity load to all contained elements 
     bool GetAutomaticGravity() {return automatic_gravity_load;} 
 

@@ -1,5 +1,5 @@
 {
-  "Name":     "Test vehicle - Multi-Link",
+  "Name":     "Test vehicle - MacPherson Strut",
   "Type":     "Vehicle",
   "Template": "Vehicle",
 
@@ -9,11 +9,11 @@
     "COM":      [0, 0, 0],
     "Inertia":  [200.0, 500.0, 500.0]
   },
-
+  
   "Axles":
   [
     {
-      "Suspension Input File":   "generic/suspension/MultiLink.json",
+      "Suspension Input File":   "generic/suspension/MacPhersonStrut.json",
       "Suspension Location":     [1.25, 0, -0.21],
       "Steering Index":          0,
       "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
@@ -23,7 +23,7 @@
     },
 
     {
-      "Suspension Input File":   "generic/suspension/MultiLink.json",
+      "Suspension Input File":   "generic/suspension/MacPhersonStrut.json",
       "Suspension Location":     [-1.25, 0, -0.21],
       "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
       "Right Wheel Input File":  "generic/wheel/WheelSimple.json",

@@ -118,10 +118,11 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
             this->objA->GetMaterialSurfaceBase().template DynamicCastTo<ChMaterialSurfaceDEM>();
         ChSharedPtr<ChMaterialSurfaceDEM> mmatB =
             this->objB->GetMaterialSurfaceBase().template DynamicCastTo<ChMaterialSurfaceDEM>();
-
+GetLog() << "objA: " << mmatA->GetKn() << " " << mmatA->GetKt() << "\n";
+GetLog() << "objB: " << mmatB->GetKn() << " " << mmatB->GetKt() << "\n";
         // Calculate composite material properties
         ChCompositeMaterialDEM mat = ChMaterialSurfaceDEM::CompositeMaterial(mmatA, mmatB);
-
+GetLog() << "composite: " << mat.kn << " " << mat.kt << "\n";
         // Contact forces.
         // All models use the following formulas for normal and tangential forces:
         //     Fn = kn * delta_n - gn * v_n

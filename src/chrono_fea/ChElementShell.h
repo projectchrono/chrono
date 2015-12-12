@@ -68,6 +68,9 @@ class ChApiFea ChElementShell : public ChElementGeneric {
                                       const ChMatrix<>& displ,
                                       ChVector<>& point) = 0;
 
+	/// Virtual method to plot velocity field distribution
+	virtual void EvaluateSectionVelNorm(double U, double V, ChVector<> &Result) = 0;
+
 /*
     /// TODO?????
     /// Gets the tensional state at a point on the shell
