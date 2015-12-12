@@ -583,7 +583,7 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
     }
 
     // Generate the mass matrix and compute M_inv_k
-    ComputeMassMatrix();
+    ComputeInvMassMatrix();
 
     // If there are (bilateral) constraints, calculate Lagrange multipliers.
     if (data_manager->num_constraints != 0) {
