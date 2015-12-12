@@ -181,14 +181,13 @@ int main(int argc, char* argv[]) {
     // all nodes to it.
 
     ChSharedPtr<ChContactSurfaceNodeCloud> mcontactsurf (new ChContactSurfaceNodeCloud);
-
-    for (unsigned int i = 0; i< my_mesh->GetNnodes(); ++i)
-        mcontactsurf->AddNode( my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>() );
+    my_mesh->AddContactSurface(mcontactsurf);
+    
+    mcontactsurf->AddAllNodes();
 
     mcontactsurf->SetMaterialSurface(mysurfmaterial);
 
-    my_mesh->AddContactSurface(mcontactsurf);
-
+ 
 
     // Apply initial speed and angular speed
     double speed_x0 = 0.5;
@@ -271,11 +270,13 @@ int main(int argc, char* argv[]) {
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh); 
-
+    
+/*
     ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshB(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
     mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshB->SetWireframe(true);
     my_mesh->AddAsset(mvisualizemeshB); 
+    */
 /*
     ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
@@ -311,14 +312,14 @@ int main(int argc, char* argv[]) {
     my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);  
 
-   
+/*   
         // Change solver to pluggable MKL
     ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
     ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     application.GetSystem()->Update();
- 
+*/ 
 
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
