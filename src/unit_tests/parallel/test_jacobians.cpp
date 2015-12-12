@@ -214,7 +214,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
   real3* ptB = msystem->data_manager->host_data.cptb_rigid_rigid.data();
   real3* pos_data = msystem->data_manager->host_data.pos_rigid.data();
   chrono::int2* ids = msystem->data_manager->host_data.bids_rigid_rigid.data();
-  real4* rot = msystem->data_manager->host_data.rot_rigid.data();
+  quaternion* rot = msystem->data_manager->host_data.rot_rigid.data();
 
   ((ChLcpSolverParallelDVI*)msystem->GetLcpSolverSpeed())->ComputeD();
 

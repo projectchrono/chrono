@@ -22,293 +22,489 @@
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/real4.h"
 namespace chrono {
-struct M33 {
-  real3 U, V, W;
-  inline M33() : U(0), V(0), W(0) {}
-  inline M33(real3 u, real3 v, real3 w) : U(u), V(v), W(w) {}
 
-  inline M33 operator*(const M33& B) const {
-    M33 result;
-    result.U.x = U.x * B.U.x + V.x * B.U.y + W.x * B.U.z;  // row1 * col1
-    result.V.x = U.x * B.V.x + V.x * B.V.y + W.x * B.V.z;  // row1 * col2
-    result.W.x = U.x * B.W.x + V.x * B.W.y + W.x * B.W.z;  // row1 * col3
+struct Mat33 {
+    // Zero constructor
+    Mat33() {
+        cols[0] = real3(0.0f);
+        cols[1] = real3(0.0f);
+        cols[2] = real3(0.0f);
+    }
+    // diagonal matrix constructor
+    Mat33(real v) {
+        cols[0] = real3(v, 0, 0);
+        cols[1] = real3(0, v, 0);
+        cols[2] = real3(0, 0, v);
+    }
 
-    result.U.y = U.y * B.U.x + V.y * B.U.y + W.y * B.U.z;  // row2 * col1
-    result.V.y = U.y * B.V.x + V.y * B.V.y + W.y * B.V.z;  // row2 * col2
-    result.W.y = U.y * B.W.x + V.y * B.W.y + W.y * B.W.z;  // row2 * col3
+    // Constructor that takes three columns of the matrix
+    Mat33(const real3& col1, const real3& col2, const real3& col3) {
+        cols[0] = col1;
+        cols[1] = col2;
+        cols[2] = col3;
+    }
+    Mat33(const real& v11,
+          const real& v21,
+          const real& v31,
+          const real& v12,
+          const real& v22,
+          const real& v32,
+          const real& v13,
+          const real& v23,
+          const real& v33) {
+        cols[0] = real3(v11, v21, v31);
+        cols[1] = real3(v12, v22, v32);
+        cols[2] = real3(v13, v23, v33);
+    }
+    // Mat33 from quaternion
+    Mat33(const quaternion& quat) {
+        cols[0] = Rotate(real3(1.0f, 0.0f, 0.0f), quat);
+        cols[1] = Rotate(real3(0.0f, 1.0f, 0.0f), quat);
+        cols[2] = Rotate(real3(0.0f, 0.0f, 1.0f), quat);
+    }
 
-    result.U.z = U.z * B.U.x + V.z * B.U.y + W.z * B.U.z;  // row3 * col1
-    result.V.z = U.z * B.V.x + V.z * B.V.y + W.z * B.V.z;  // row3 * col2
-    result.W.z = U.z * B.W.x + V.z * B.W.y + W.z * B.W.z;  // row3 * col3
+    real operator()(int i, int j) const { return static_cast<const real*>(cols[j])[i]; }
+    real& operator()(int i, int j) { return static_cast<real*>(cols[j])[i]; }
 
-    return result;
-  }
+    Mat33 operator*(const real scale) const {
+        Mat33 M(*this);
+        M.cols[0] *= scale;
+        M.cols[1] *= scale;
+        M.cols[2] *= scale;
+        return M;
+    }
 
-  inline real3 operator*(const real3& B) const {
-    real3 result;
+    real3 operator*(const real3& v) const {
+        return cols[0] * v.x + cols[1] * v.y + cols[2] * v.z;  //
+    }
 
-    result.x = U.x * B.x + V.x * B.y + W.x * B.z;  // row1 * col1
-    result.y = U.y * B.x + V.y * B.y + W.y * B.z;  // row2 * col2
-    result.z = U.z * B.x + V.z * B.y + W.z * B.z;  // row3 * col3
+    Mat33 operator*(const Mat33& N) const {
+        Mat33 M(*this);
+        return Mat33(M * N.cols[0], M * N.cols[1], M * N.cols[2]);
+    }
 
-    return result;
-  }
+    Mat33 operator+(const Mat33& N) const {
+        return Mat33(cols[0] + N.cols[0], cols[1] + N.cols[1], cols[2] + N.cols[2]);  //
+    }
 
-  inline M33 operator*(const real& a) const { return M33(U * a, V * a, W * a); }
+    Mat33 operator-(const Mat33& N) const {
+        return Mat33(cols[0] - N.cols[0], cols[1] - N.cols[1], cols[2] - N.cols[2]);  //
+    }
 
-  inline M33 operator+(const M33& B) const {
-    M33 result;
-    result.U = U + B.U;
-    result.V = V + B.V;
-    result.W = W + B.W;
-    return result;
-  };
+    Mat33& operator*=(real s) {
+        cols[0] *= s;
+        cols[1] *= s;
+        cols[2] *= s;
+        return *this;
+    }
+
+    Mat33& operator*=(const Mat33& N) {
+        *this = *this * N;
+        return *this;
+    }
+
+    Mat33& operator+=(const Mat33& N) {
+        *this = *this + N;
+        return *this;
+    }
+
+    Mat33& operator-=(const Mat33& N) {
+        *this = *this - N;
+        return *this;
+    }
+
+    inline Mat33 operator-() const { return Mat33(-cols[0], -cols[1], -cols[2]); }
+    real3 cols[3];
+    // cols[0] 0 1 2
+    // cols[1] 3 4 5
+    // cols[2] 6 7 8
 };
+// ========================================================================================
 
-static inline M33 XMatrix(const real3& vect) {
-  M33 Xmat;
-  Xmat.U.x = 0;
-  Xmat.V.x = -vect.z;
-  Xmat.W.x = vect.y;
+struct DiagMat33 {
+    DiagMat33() {}
+    DiagMat33(const DiagMat33& M) : x11(M.x11), x22(M.x22), x33(M.x33) {}
+    DiagMat33(const real v11, const real v22, const real v33) : x11(v11), x22(v22), x33(v33) {}
+    DiagMat33(const real3 v) : x11(v.x), x22(v.y), x33(v.z) {}
 
-  Xmat.U.y = vect.z;
-  Xmat.V.y = 0;
-  Xmat.W.y = -vect.x;
+    Mat33 operator*(const Mat33& N) const {
+        return Mat33(real3(x11 * N.cols[0].x, x22 * N.cols[0].y, x33 * N.cols[0].z),
+                     real3(x11 * N.cols[1].x, x22 * N.cols[1].y, x33 * N.cols[1].z),
+                     real3(x11 * N.cols[2].x, x22 * N.cols[2].y, x33 * N.cols[2].z));
+    }
 
-  Xmat.U.z = -vect.y;
-  Xmat.V.z = vect.x;
-  Xmat.W.z = 0;
-  return Xmat;
-}
-static inline M33 MatMult(const M33& A, const M33& B) {
-  return A * B;
-}
-static inline real3 MatMult(const M33& A, const real3& B) {
-  return A * B;
-}
+    real3 operator*(const real3& v) const {
+        real3 result;
+        result.x = x11 * v.x;
+        result.y = x22 * v.y;
+        result.z = x33 * v.z;
+        return result;
+    }
 
-// A is transposed
-static inline M33 MatTMult(const M33& A, const M33& B) {
-  M33 result;
-  result.U.x = A.U.x * B.U.x + A.U.y * B.U.y + A.U.z * B.U.z;  // row1 * col1
-  result.V.x = A.U.x * B.V.x + A.U.y * B.V.y + A.U.z * B.V.z;  // row1 * col2
-  result.W.x = A.U.x * B.W.x + A.U.y * B.W.y + A.U.z * B.W.z;  // row1 * col3
+    real x11, x22, x33;
+};
+//// ========================================================================================
+//
 
-  result.U.y = A.V.x * B.U.x + A.V.y * B.U.y + A.V.z * B.U.z;  // row2 * col1
-  result.V.y = A.V.x * B.V.x + A.V.y * B.V.y + A.V.z * B.V.z;  // row2 * col2
-  result.W.y = A.V.x * B.W.x + A.V.y * B.W.y + A.V.z * B.W.z;  // row2 * col3
+struct SymMat33 {
+    SymMat33() : x11(0), x21(0), x31(0), x22(0), x32(0), x33(0) {}
 
-  result.U.z = A.W.x * B.U.x + A.W.y * B.U.y + A.W.z * B.U.z;  // row3 * col1
-  result.V.z = A.W.x * B.V.x + A.W.y * B.V.y + A.W.z * B.V.z;  // row3 * col2
-  result.W.z = A.W.x * B.W.x + A.W.y * B.W.y + A.W.z * B.W.z;  // row3 * col3
+    SymMat33(const real y11, const real y21, const real y31, const real y22, const real y32, const real y33)
+        : x11(y11), x21(y21), x31(y31), x22(y22), x32(y32), x33(y33) {}
 
-  return result;
-}
+    void operator=(const SymMat33& N) {
+        x11 = N.x11;
+        x21 = N.x21;
+        x31 = N.x31;
+        x22 = N.x22;
+        x32 = N.x32;
+        x33 = N.x33;
+    }
+    SymMat33 operator-(const real& v) const {
+        return SymMat33(x11 - v, x21, x31, x22 - v, x32, x33 - v);  // only subtract diagonal
+    }
 
-// B is transposed
-static inline M33 MatMultT(const M33& A, const M33& B) {
-  M33 result;
-  result.U.x = A.U.x * B.U.x + A.V.x * B.V.x + A.W.x * B.W.x;  // row1 * col1
-  result.V.x = A.U.x * B.U.y + A.V.x * B.V.y + A.W.x * B.W.y;  // row1 * col2
-  result.W.x = A.U.x * B.U.z + A.V.x * B.V.z + A.W.x * B.W.z;  // row1 * col3
+    real x11, x21, x31, x22, x32, x33;
+};
+//// ========================================================================================
 
-  result.U.y = A.U.y * B.U.x + A.V.y * B.V.x + A.W.y * B.W.x;  // row2 * col1
-  result.V.y = A.U.y * B.U.y + A.V.y * B.V.y + A.W.y * B.W.y;  // row2 * col2
-  result.W.y = A.U.y * B.U.z + A.V.y * B.V.z + A.W.y * B.W.z;  // row2 * col3
+struct Mat32 {
+    Mat32() {}
+    Mat32(const real3 col1, const real3 col2) {
+        cols[0] = col1;
+        cols[1] = col2;
+    }
 
-  result.U.z = A.U.z * B.U.x + A.V.z * B.V.x + A.W.z * B.W.x;  // row3 * col1
-  result.V.z = A.U.z * B.U.y + A.V.z * B.V.y + A.W.z * B.W.y;  // row3 * col2
-  result.W.z = A.U.z * B.U.z + A.V.z * B.V.z + A.W.z * B.W.z;  // row3 * col3
+    inline real3 operator*(const real2& v) {
+        real3 result;
+        result.x = cols[0].x * v.x + cols[1].x * v.y;
+        result.y = cols[0].y * v.x + cols[1].y * v.y;
+        result.z = cols[0].z * v.x + cols[1].z * v.y;
 
-  return result;
-}
+        return result;
+    }
+    real3 cols[2];
+};
+// ========================================================================================
 
-static inline real3 MatTMult(const M33& A, const real3& B) {
-  real3 result;
+struct Mat23 {
+    Mat23() {}
+    Mat23(const real3 row1, const real3 row2) {
+        rows[0] = row1;
+        rows[1] = row2;
+    }
 
-  result.x = A.U.x * B.x + A.U.y * B.y + A.U.z * B.z;  // row1 * col1
-  result.y = A.V.x * B.x + A.V.y * B.y + A.V.z * B.z;  // row2 * col2
-  result.z = A.W.x * B.x + A.W.y * B.y + A.W.z * B.z;  // row3 * col3
+    real3 rows[2];
+};
+// ========================================================================================
 
-  return result;
-}
+struct SymMat22 {
+    SymMat22() : x11(0), x21(0), x22(0) {}
+    SymMat22(const real v11, const real v21, const real v22) : x11(v11), x21(v21), x22(v22) {}
 
-static inline M33 AMat(const real4& q) {
-  M33 result;
+    SymMat22 operator-(const real& v) const {
+        return SymMat22(x11 - v, x21, x22 - v);  //
+    }
 
-  real e0e0 = q.w * q.w;
-  real e1e1 = q.x * q.x;
-  real e2e2 = q.y * q.y;
-  real e3e3 = q.z * q.z;
-  real e0e1 = q.w * q.x;
-  real e0e2 = q.w * q.y;
-  real e0e3 = q.w * q.z;
-  real e1e2 = q.x * q.y;
-  real e1e3 = q.x * q.z;
-  real e2e3 = q.y * q.z;
-  result.U.x = (e0e0 + e1e1) * 2 - 1;
-  result.V.x = (e1e2 - e0e3) * 2;
-  result.W.x = (e1e3 + e0e2) * 2;
+    real x11, x21, x22;
+};
+//// ========================================================================================
+//
 
-  result.U.y = (e1e2 + e0e3) * 2;
-  result.V.y = (e0e0 + e2e2) * 2 - 1;
-  result.W.y = (e2e3 - e0e1) * 2;
-
-  result.U.z = (e1e3 - e0e2) * 2;
-  result.V.z = (e2e3 + e0e1) * 2;
-  result.W.z = (e0e0 + e3e3) * 2 - 1;
-
-  //	result.U.x = (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
-  //	result.V.x = (2 * q.x * q.y - 2 * q.w * q.z);
-  //	result.W.x = (2 * q.x * q.z + 2 * q.w * q.y);
-  //
-  //	result.U.y = (2 * q.x * q.y + 2 * q.w * q.z);
-  //	result.V.y = (q.w * q.w - q.x * q.x + q.y * q.y - q.z * q.z);
-  //	result.W.y = (2 * q.y * q.z - 2 * q.w * q.x);
-  //
-  //	result.U.z = (2 * q.x * q.z - 2 * q.w * q.y);
-  //	result.V.z = (2 * q.y * q.z + 2 * q.w * q.x);
-  //	result.W.z = (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
-  return result;
-}
-//[U.x,U.y,U.z]
-//[V.x,V.y,V.z]
-//[W.x,W.y,W.z]
-static inline M33 AMatT(const real4& q) {
-  M33 result;
-
-  real e0e0 = q.w * q.w;
-  real e1e1 = q.x * q.x;
-  real e2e2 = q.y * q.y;
-  real e3e3 = q.z * q.z;
-  real e0e1 = q.w * q.x;
-  real e0e2 = q.w * q.y;
-  real e0e3 = q.w * q.z;
-  real e1e2 = q.x * q.y;
-  real e1e3 = q.x * q.z;
-  real e2e3 = q.y * q.z;
-  result.U.x = (e0e0 + e1e1) * 2 - 1;
-  result.U.y = (e1e2 - e0e3) * 2;
-  result.U.z = (e1e3 + e0e2) * 2;
-
-  result.V.x = (e1e2 + e0e3) * 2;
-  result.V.y = (e0e0 + e2e2) * 2 - 1;
-  result.V.z = (e2e3 - e0e1) * 2;
-
-  result.W.x = (e1e3 - e0e2) * 2;
-  result.W.y = (e2e3 + e0e1) * 2;
-  result.W.z = (e0e0 + e3e3) * 2 - 1;
-
-  return result;
-}
-static inline M33 AbsMat(const M33& A) {
-  M33 result;
-  result.U = absolute(A.U);
-  result.V = absolute(A.V);
-  result.W = absolute(A.W);
-  return result;
+static inline Mat33 operator*(const real s, const Mat33& a) {
+    return a * s;
 }
 
-static inline M33 Transpose(const M33& A) {
-  M33 result;
-
-  result.U = real3(A.U.x, A.V.x, A.W.x);
-  result.V = real3(A.U.y, A.V.y, A.W.y);
-  result.W = real3(A.U.z, A.V.z, A.W.z);
-
-  return result;
+static inline Mat33 Identity() {
+    return Mat33(1.0);
 }
 
-static inline std::ostream& operator<<(std::ostream& out, const M33& a) {
-  out << a.U << a.V << a.W << std::endl;
-  return out;
+static inline Mat33 SkewSymmetric(const real3& r) {
+    return Mat33(real3(0, -r.z, r.y), real3(r.z, 0, -r.x), real3(-r.y, r.x, 0));
 }
 
-static inline real4 GetQuat(M33 A) {
-  real4 q;
-  real s, tr;
-  real half = (real)0.5;
+static inline real Determinant(const Mat33& m) {
+    return Dot(m.cols[0], Cross(m.cols[1], m.cols[2]));
+}
 
-  // for speed reasons: ..
-  real m00 = A.U.x;
-  real m01 = A.U.y;
-  real m02 = A.U.z;
-  real m10 = A.V.x;
-  real m11 = A.V.y;
-  real m12 = A.V.z;
-  real m20 = A.W.x;
-  real m21 = A.W.y;
-  real m22 = A.W.z;
+static inline Mat33 Abs(const Mat33& m) {
+    return Mat33(Abs(m.cols[0].x), Abs(m.cols[0].y), Abs(m.cols[0].z), Abs(m.cols[1].x), Abs(m.cols[1].y),
+                 Abs(m.cols[1].z), Abs(m.cols[2].x), Abs(m.cols[2].y), Abs(m.cols[2].z));
+}
 
-  tr = m00 + m11 + m22;  // diag sum
+static inline Mat33 Transpose(const Mat33& a) {
+    Mat33 result;
+    for (unsigned int i = 0; i < 3; ++i)
+        for (unsigned int j = 0; j < 3; ++j)
+            result(i, j) = a(j, i);
 
-  if (tr >= 0) {
-    s = sqrt(tr + 1);
-    q.w = half * s;
-    s = half / s;
-    q.x = (m21 - m12) * s;
-    q.y = (m02 - m20) * s;
-    q.z = (m10 - m01) * s;
-  } else {
-    int i = 0;
+    return result;
+}
+// M * N^T
+static Mat33 MultTranspose(const Mat33& M, const Mat33& N) {
+    return Mat33(M * real3(N.cols[0].x, N.cols[1].x, N.cols[2].x),  //
+                 M * real3(N.cols[0].y, N.cols[1].y, N.cols[2].y),  //
+                 M * real3(N.cols[0].z, N.cols[1].z, N.cols[2].z));
+}
 
-    if (m11 > m00) {
-      i = 1;
-      if (m22 > m11)
-        i = 2;
+// M^T * N
+static Mat33 TransposeMult(const Mat33& M, const Mat33& N) {
+	Mat33 result;
+
+	result.cols[0].x = M.cols[0].x * N.cols[0].x + M.cols[0].y * N.cols[0].y + M.cols[0].z * N.cols[0].z;  // row1 * col1
+	result.cols[1].x = M.cols[0].x * N.cols[1].x + M.cols[0].y * N.cols[1].y + M.cols[0].z * N.cols[1].z;  // row1 * col2
+	result.cols[2].x = M.cols[0].x * N.cols[2].x + M.cols[0].y * N.cols[2].y + M.cols[0].z * N.cols[2].z;  // row1 * col3
+
+	result.cols[0].y = M.cols[1].x * N.cols[0].x + M.cols[1].y * N.cols[0].y + M.cols[1].z * N.cols[0].z;  // row2 * col1
+	result.cols[1].y = M.cols[1].x * N.cols[1].x + M.cols[1].y * N.cols[1].y + M.cols[1].z * N.cols[1].z;  // row2 * col2
+	result.cols[2].y = M.cols[1].x * N.cols[2].x + M.cols[1].y * N.cols[2].y + M.cols[1].z * N.cols[2].z;  // row2 * col3
+
+	result.cols[0].z = M.cols[2].x * N.cols[0].x + M.cols[2].y * N.cols[0].y + M.cols[2].z * N.cols[0].z;  // row3 * col1
+	result.cols[1].z = M.cols[2].x * N.cols[1].x + M.cols[2].y * N.cols[1].y + M.cols[2].z * N.cols[1].z;  // row3 * col2
+	result.cols[2].z = M.cols[2].x * N.cols[2].x + M.cols[2].y * N.cols[2].y + M.cols[2].z * N.cols[2].z;  // row3 * col3
+
+    return result;
+}
+
+static Mat33 MultTranspose(const DiagMat33& M, const Mat33& N) {
+    return Mat33(M * real3(N.cols[0].x, N.cols[1].x, N.cols[2].x),  //
+                 M * real3(N.cols[0].y, N.cols[1].y, N.cols[2].y),  //
+                 M * real3(N.cols[0].z, N.cols[1].z, N.cols[2].z));
+}
+
+static inline real Trace(const Mat33& m) {
+    return m(0, 0) + m(1, 1) + m(2, 2);
+}
+// Multiply a 3x1 by a 1x3 to get a 3x3
+static inline Mat33 OuterProduct(const real3& a, const real3& b) {
+    return Mat33(a * b.x, a * b.y, a * b.z);
+}
+
+static inline real InnerProduct(const Mat33& A, const Mat33& B) {
+    return Dot(A.cols[0], B.cols[0]) + Dot(A.cols[1], B.cols[1]) + Dot(A.cols[0], B.cols[0]);
+}
+
+static inline Mat33 SkewMatrix(const real3& v) {
+    return Mat33(real3(0.0, v.z, -v.y), real3(-v.z, 0.0, v.x), real3(v.y, -v.x, 0.0));
+}
+
+static inline Mat33 Inverse(const Mat33& A) {
+    real s = Determinant(A);
+
+    if (s > 0.0f) {
+        Mat33 B;
+
+        B(0, 0) = A(1, 1) * A(2, 2) - A(1, 2) * A(2, 1);
+        B(0, 1) = A(0, 2) * A(2, 1) - A(0, 1) * A(2, 2);
+        B(0, 2) = A(0, 1) * A(1, 2) - A(0, 2) * A(1, 1);
+        B(1, 0) = A(1, 2) * A(2, 0) - A(1, 0) * A(2, 2);
+        B(1, 1) = A(0, 0) * A(2, 2) - A(0, 2) * A(2, 0);
+        B(1, 2) = A(0, 2) * A(1, 0) - A(0, 0) * A(1, 2);
+        B(2, 0) = A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0);
+        B(2, 1) = A(0, 1) * A(2, 0) - A(0, 0) * A(2, 1);
+        B(2, 2) = A(0, 0) * A(1, 1) - A(0, 1) * A(1, 0);
+
+        // pass = true;
+
+        return (1.0f / s) * B;
     } else {
-      if (m22 > m00)
-        i = 2;
+        // pass = false;
+        return Mat33();
     }
-
-    switch (i) {
-      case 0:
-        s = sqrt(m00 - m11 - m22 + 1);
-        q.x = half * s;
-        s = half / s;
-        q.y = (m01 + m10) * s;
-        q.z = (m20 + m02) * s;
-        q.w = (m21 - m12) * s;
-        break;
-      case 1:
-        s = sqrt(m11 - m22 - m00 + 1);
-        q.y = half * s;
-        s = half / s;
-        q.z = (m12 + m21) * s;
-        q.x = (m01 + m10) * s;
-        q.w = (m02 - m20) * s;
-        break;
-      case 2:
-        s = sqrt(m22 - m00 - m11 + 1);
-        q.z = half * s;
-        s = half / s;
-        q.x = (m20 + m02) * s;
-        q.y = (m12 + m21) * s;
-        q.w = (m10 - m01) * s;
-        break;
-    }
-  }
-
-  return q;
 }
+// Same as inverse but we store it transposed
+static inline Mat33 InverseTranspose(const Mat33& a) {
+    real s = Determinant(a);
 
-// The trace is the sum of the diagonal entries
-static real Trace(const M33& A) {
-  return A.U.x + A.V.y + A.W.z;
+    if (s > 0.0f) {
+        Mat33 b;
+
+        b(0, 0) = a(1, 1) * a(2, 2) - a(1, 2) * a(2, 1);
+        b(1, 0) = a(0, 2) * a(2, 1) - a(0, 1) * a(2, 2);
+        b(2, 0) = a(0, 1) * a(1, 2) - a(0, 2) * a(1, 1);
+
+        b(0, 1) = a(1, 2) * a(2, 0) - a(1, 0) * a(2, 2);
+        b(1, 1) = a(0, 0) * a(2, 2) - a(0, 2) * a(2, 0);
+        b(2, 1) = a(0, 2) * a(1, 0) - a(0, 0) * a(1, 2);
+
+        b(0, 2) = a(1, 0) * a(2, 1) - a(1, 1) * a(2, 0);
+        b(1, 2) = a(0, 1) * a(2, 0) - a(0, 0) * a(2, 1);
+        b(2, 2) = a(0, 0) * a(1, 1) - a(0, 1) * a(1, 0);
+
+        // pass = true;
+
+        return (1.0f / s) * b;
+    } else {
+        // pass = false;
+        return Mat33();
+    }
 }
 // double dot product of a matrix
-static real Norm(const M33& A) {
-  return sqrt(Trace(A * Transpose(A)));
+static real Norm(const Mat33& A) {
+    return Sqrt(Trace(A * Transpose(A)));
 }
 
-// Multiply a 3x1 by a 1x3 to get a 3x3
-static M33 VectorxVector(const real3& A, const real3& B) {
-  // Calculations look transposed because each real 3 is a column vector
-  real3 U = R3(A.x * B.x, A.y * B.x, A.z * B.x);
-  real3 V = R3(A.x * B.y, A.y * B.y, A.z * B.y);
-  real3 W = R3(A.x * B.z, A.y * B.z, A.z * B.z);
+// Compute the normal equations matrix - 18 mults, 12 adds
+static SymMat33 NormalEquationsMatrix(const Mat33& A) {
+    SymMat33 T;
+    T.x11 = Dot(A.cols[0], A.cols[0]);
+    T.x21 = Dot(A.cols[0], A.cols[1]);
+    T.x31 = Dot(A.cols[0], A.cols[2]);
+    T.x22 = Dot(A.cols[1], A.cols[1]);
+    T.x32 = Dot(A.cols[1], A.cols[2]);
+    T.x33 = Dot(A.cols[2], A.cols[2]);
+    return T;
+}
+// static  Mat33 Cofactor_Matrix(const Mat33& A) {
+//    Mat33 T;
+//    T.cols[0].x = A.cols[1].y * A.cols[2].z - A.cols[2].y * A.cols[1].z;
+//    T.cols[0].y = -A.cols[1].x * A.cols[2].z + A.cols[2].x * A.cols[1].z;
+//    T.cols[0].z = A.cols[1].x * A.cols[2].y - A.cols[2].x * A.cols[1].y;
+//
+//    T.cols[1].x = -A.cols[0].y * A.cols[2].z + A.cols[2].y * A.cols[0].z;
+//    T.cols[1].y = A.cols[0].x * A.cols[2].z - A.cols[2].x * A.cols[0].z;
+//    T.cols[1].z = -A.cols[0].x * A.cols[2].y + A.cols[2].x * A.cols[0].y;
+//
+//    T.cols[2].x = A.cols[0].y * A.cols[1].z - A.cols[1].y * A.cols[0].z;
+//    T.cols[2].y = -A.cols[0].x * A.cols[1].z + A.cols[1].x * A.cols[0].z;
+//    T.cols[2].z = A.cols[0].x * A.cols[1].y - A.cols[1].x * A.cols[0].y;
+//    return T;
+//}
+//
+static Mat33 Adjoint(const Mat33& A) {
+    Mat33 T;
+    T.cols[0].x = A.cols[1].y * A.cols[2].z - A.cols[2].y * A.cols[1].z;
+    T.cols[0].y = -A.cols[0].y * A.cols[2].z + A.cols[2].y * A.cols[0].z;
+    T.cols[0].z = A.cols[0].y * A.cols[1].z - A.cols[1].y * A.cols[0].z;
 
-  return M33(U, V, W);
+    T.cols[1].x = -A.cols[1].x * A.cols[2].z + A.cols[2].x * A.cols[1].z;
+    T.cols[1].y = A.cols[0].x * A.cols[2].z - A.cols[2].x * A.cols[0].z;
+    T.cols[1].z = -A.cols[0].x * A.cols[1].z + A.cols[1].x * A.cols[0].z;
+
+    T.cols[2].x = A.cols[1].x * A.cols[2].y - A.cols[2].x * A.cols[1].y;
+    T.cols[2].y = -A.cols[0].x * A.cols[2].y + A.cols[2].x * A.cols[0].y;
+    T.cols[2].z = A.cols[0].x * A.cols[1].y - A.cols[1].x * A.cols[0].y;
+    return T;
+}
+
+static real3 LargestColumnNormalized(const Mat33& A) {
+    real scale1 = Length2((A.cols[0]));
+    real scale2 = Length2((A.cols[1]));
+    real scale3 = Length2((A.cols[2]));
+    if (scale1 > scale2) {
+        if (scale1 > scale3) {
+            return A.cols[0] / sqrt(scale1);
+        }
+    } else if (scale2 > scale3) {
+        return A.cols[1] / sqrt(scale2);
+    }
+    return A.cols[2] / sqrt(scale3);
+}
+
+// ========================================================================================
+
+static SymMat33 CofactorMatrix(const SymMat33& A) {
+    SymMat33 T;
+    T.x11 = A.x22 * A.x33 - A.x32 * A.x32;   //
+    T.x21 = -A.x21 * A.x33 + A.x32 * A.x31;  //
+    T.x22 = A.x11 * A.x33 - A.x31 * A.x31;   //
+    T.x31 = A.x21 * A.x32 - A.x22 * A.x31;   //
+    T.x32 = -A.x11 * A.x32 + A.x21 * A.x31;  //
+    T.x33 = A.x11 * A.x22 - A.x21 * A.x21;   //
+    return T;
+}
+
+static SymMat22 CofactorMatrix(const SymMat22& A) {
+    SymMat22 T;
+    T.x11 = A.x22;   //
+    T.x21 = -A.x21;  //
+    T.x22 = A.x11;   //
+    return T;
+}
+
+static real3 LargestColumnNormalized(const SymMat33& A) {
+    real scale1 = Length2(real3(A.x11, A.x21, A.x31));
+    real scale2 = Length2(real3(A.x21, A.x22, A.x32));
+    real scale3 = Length2(real3(A.x31, A.x32, A.x33));
+    if (scale1 > scale2) {
+        if (scale1 > scale3) {
+            return real3(A.x11, A.x21, A.x31) / sqrt(scale1);
+        }
+    } else if (scale2 > scale3) {
+        return real3(A.x21, A.x22, A.x32) / sqrt(scale2);
+    }
+    if (scale3 > 0)
+        return real3(A.x31, A.x32, A.x33) / sqrt(scale3);
+    else {
+        return (real3(1, 0, 0));
+    }
+}
+
+static real2 LargestColumnNormalized(const SymMat22& A) {
+    real scale1 = Length2(real2(A.x11, A.x21));
+    real scale2 = Length2(real2(A.x21, A.x22));
+    if (scale1 > scale2) {
+        return real2(A.x11, A.x21) / sqrt(scale1);
+    } else if (scale2 > 0) {
+        return real2(A.x21, A.x22) / sqrt(scale2);
+    } else {
+        return real2(1, 0);
+    }
+}
+
+static inline Mat32 operator*(const SymMat33& M, const Mat32& N) {
+    Mat32 result;
+
+    // x11 x21 x31  c11 c12
+    // x21 x22 x32  c21 c22
+    // x31 x32 x33  c31 c32
+    result.cols[0].x = M.x11 * N.cols[0].x + M.x21 * N.cols[0].y + M.x31 * N.cols[0].z;
+    result.cols[0].y = M.x21 * N.cols[0].x + M.x22 * N.cols[0].y + M.x32 * N.cols[0].z;
+    result.cols[0].z = M.x31 * N.cols[0].x + M.x32 * N.cols[0].y + M.x33 * N.cols[0].z;
+
+    result.cols[1].x = M.x11 * N.cols[1].x + M.x21 * N.cols[1].y + M.x31 * N.cols[1].z;
+    result.cols[1].y = M.x21 * N.cols[1].x + M.x22 * N.cols[1].y + M.x32 * N.cols[1].z;
+    result.cols[1].z = M.x31 * N.cols[1].x + M.x32 * N.cols[1].y + M.x33 * N.cols[1].z;
+
+    return result;
+}
+// A^T*B
+static inline SymMat22 TransposeTimesWithSymmetricResult(const Mat32& A, const Mat32& B) {
+    SymMat22 T;
+    T.x11 = Dot(A.cols[0], B.cols[0]);
+    T.x21 = Dot(A.cols[1], B.cols[0]);
+    T.x22 = Dot(A.cols[1], B.cols[1]);
+    return T;
+}
+
+static inline SymMat22 ConjugateWithTranspose(const Mat32& A, const SymMat33& B) {
+    return TransposeTimesWithSymmetricResult(B * A, A);
+}
+
+static void Print(Mat33 A, const char* name) {
+    printf("%s\n", name);
+    printf("%f %f %f\n", A.cols[0].x, A.cols[1].x, A.cols[2].x);
+    printf("%f %f %f\n", A.cols[0].y, A.cols[1].y, A.cols[2].y);
+    printf("%f %f %f\n", A.cols[0].z, A.cols[1].z, A.cols[2].z);
+}
+static void Print(Mat32 A, const char* name) {
+    printf("%s\n", name);
+    printf("%f %f\n", A.cols[0].x, A.cols[1].x);
+    printf("%f %f\n", A.cols[0].y, A.cols[1].y);
+    printf("%f %f\n", A.cols[0].z, A.cols[1].z);
+}
+static void Print(SymMat33 A, const char* name) {
+    printf("%s\n", name);
+
+    printf("%f %f %f\n", A.x11, A.x21, A.x31);
+    printf("%f %f %f\n", A.x21, A.x22, A.x32);
+    printf("%f %f %f\n", A.x31, A.x32, A.x33);
+}
+static void Print(SymMat22 A, const char* name) {
+    printf("%s\n", name);
+
+    printf("%f %f\n", A.x11, A.x21);
+    printf("%f %f\n", A.x21, A.x22);
 }
 
 //[U.x,V.x,W.x]

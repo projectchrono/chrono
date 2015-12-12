@@ -51,7 +51,7 @@ void ChFluidContainer::Update(double ChTime) {
     host_vector<real3>& pos_fluid = system->data_manager->host_data.pos_fluid;
     host_vector<real3>& vel_fluid = system->data_manager->host_data.vel_fluid;
     ChVector<> g_acc = system->Get_G_acc();
-    real3 h_gravity = system->GetStep() * system->data_manager->settings.fluid.mass * R3(g_acc.x, g_acc.y, g_acc.z);
+    real3 h_gravity = system->GetStep() * system->data_manager->settings.fluid.mass * real3(g_acc.x, g_acc.y, g_acc.z);
     for (int i = 0; i < num_fluid_bodies; i++) {
         real3 vel = vel_fluid[i];
         system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = vel.x;
@@ -78,7 +78,7 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
         vel.y = system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1];
         vel.z = system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2];
 
-        real speed = vel.length();
+        real speed = Length(vel);
         if (speed > system->data_manager->settings.fluid.max_velocity) {
             vel = vel * system->data_manager->settings.fluid.max_velocity / speed;
         }

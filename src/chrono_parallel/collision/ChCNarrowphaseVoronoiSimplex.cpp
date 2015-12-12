@@ -66,7 +66,7 @@ void ChCNarrowphaseVoronoiSimplex::reset() {
   m_cachedValidClosest = false;
   m_numVertices = 0;
   m_needsUpdate = true;
-  m_lastW = real3(real(LARGE_REAL), real(LARGE_REAL), real(LARGE_REAL));
+  m_lastW = real3(C_LARGE_REAL);
   m_cachedBC.reset();
 }
 
@@ -111,10 +111,10 @@ bool ChCNarrowphaseVoronoiSimplex::updateClosestVectorAndPoints() {
         real3 p(real(0.), real(0.), real(0.));
         real3 diff = p - from;
         real3 v = to - from;
-        real t = v.dot(diff);
+        real t = Dot(v,diff);
 
         if (t > 0) {
-          real dotVV = v.dot(v);
+          real dotVV = Dot(v);
           if (t < dotVV) {
             t /= dotVV;
             diff -= t * v;
@@ -198,7 +198,7 @@ bool ChCNarrowphaseVoronoiSimplex::updateClosestVectorAndPoints() {
           } else {
             m_cachedValidClosest = true;
             // degenerate case == false, penetration = true + zero
-            m_cachedV = R3(real(0.), real(0.), real(0.));
+            m_cachedV = real3(0);
           }
           break;
         }
@@ -226,7 +226,7 @@ real ChCNarrowphaseVoronoiSimplex::maxVertex() {
   int i, numverts = numVertices();
   real maxV = real(0.);
   for (i = 0; i < numverts; i++) {
-    real curLen2 = m_simplexVectorW[i].length2();
+    real curLen2 = Dot(m_simplexVectorW[i]);
     if (maxV < curLen2)
       maxV = curLen2;
   }
@@ -252,7 +252,7 @@ bool ChCNarrowphaseVoronoiSimplex::inSimplex(const real3& w) {
   // w is in the current (reduced) simplex
   for (i = 0; i < numverts; i++) {
 #ifdef BT_USE_EQUAL_VERTEX_THRESHOLD
-    if (m_simplexVectorW[i].distance2(w) <= m_equalVertexThreshold)
+    if (Dot(m_simplexVectorW[i]) <= m_equalVertexThreshold)
 #else
     if (m_simplexVectorW[i] == w)
 #endif
@@ -291,8 +291,8 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTriangle(const real3& p,
   real3 ab = b - a;
   real3 ac = c - a;
   real3 ap = p - a;
-  real d1 = ab.dot(ap);
-  real d2 = ac.dot(ap);
+  real d1 = Dot(ab,ap);
+  real d2 = Dot(ac,ap);
   if (d1 <= real(0.0) && d2 <= real(0.0)) {
     result.m_closestPointOnSimplex = a;
     result.m_usedVertices.usedVertexA = true;
@@ -302,8 +302,8 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTriangle(const real3& p,
 
   // Check if P in vertex region outside B
   real3 bp = p - b;
-  real d3 = ab.dot(bp);
-  real d4 = ac.dot(bp);
+  real d3 = Dot(ab,bp);
+  real d4 = Dot(ac,bp);
   if (d3 >= real(0.0) && d4 <= d3) {
     result.m_closestPointOnSimplex = b;
     result.m_usedVertices.usedVertexB = true;
@@ -325,8 +325,8 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTriangle(const real3& p,
 
   // Check if P in vertex region outside C
   real3 cp = p - c;
-  real d5 = ab.dot(cp);
-  real d6 = ac.dot(cp);
+  real d5 = Dot(ab,cp);
+  real d6 = Dot(ac,cp);
   if (d6 >= real(0.0) && d5 <= d6) {
     result.m_closestPointOnSimplex = c;
     result.m_usedVertices.usedVertexC = true;
@@ -380,10 +380,10 @@ int ChCNarrowphaseVoronoiSimplex::pointOutsideOfPlane(const real3& p,
                                                       const real3& b,
                                                       const real3& c,
                                                       const real3& d) {
-  real3 normal = (b - a).cross(c - a);
+  real3 normal = Cross((b - a),(c - a));
 
-  real signp = (p - a).dot(normal);  // [AP AB AC]
-  real signd = (d - a).dot(normal);  // [AD AB AC]
+  real signp = Dot((p - a),normal);  // [AP AB AC]
+  real signd = Dot((d - a),normal);  // [AD AB AC]
 
 #ifdef CATCH_DEGENERATE_TETRAHEDRON
 #ifdef BT_USE_DOUBLE_PRECISION
@@ -438,7 +438,7 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTetrahedron(const real3& p,
     closestPtPointTriangle(p, a, b, c, tempResult);
     real3 q = tempResult.m_closestPointOnSimplex;
 
-    real sqDist = (q - p).dot(q - p);
+    real sqDist = Dot((q - p),q - p);
     // Update best closest point if (squared) distance is less than current best
     if (sqDist < bestSqDist) {
       bestSqDist = sqDist;
@@ -461,7 +461,7 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTetrahedron(const real3& p,
     real3 q = tempResult.m_closestPointOnSimplex;
     // convert result bitmask!
 
-    real sqDist = (q - p).dot(q - p);
+    real sqDist = Dot((q - p),q - p);
     if (sqDist < bestSqDist) {
       bestSqDist = sqDist;
       finalResult.m_closestPointOnSimplex = q;
@@ -483,7 +483,7 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTetrahedron(const real3& p,
     real3 q = tempResult.m_closestPointOnSimplex;
     // convert result bitmask!
 
-    real sqDist = (q - p).dot(q - p);
+    real sqDist = Dot((q - p),q - p);
     if (sqDist < bestSqDist) {
       bestSqDist = sqDist;
       finalResult.m_closestPointOnSimplex = q;
@@ -504,7 +504,7 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTetrahedron(const real3& p,
     closestPtPointTriangle(p, b, d, c, tempResult);
     real3 q = tempResult.m_closestPointOnSimplex;
     // convert result bitmask!
-    real sqDist = (q - p).dot(q - p);
+    real sqDist = Dot((q - p),q - p);
     if (sqDist < bestSqDist) {
       bestSqDist = sqDist;
       finalResult.m_closestPointOnSimplex = q;

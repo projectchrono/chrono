@@ -54,12 +54,12 @@ void ChCBroadphase::ComputeTopLevelResolution() {
   int3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
 
   // This is the extents of the space aka diameter
-  real3 diagonal = (absolute(max_bounding_point - global_origin));
+  real3 diagonal = (Abs(max_bounding_point - global_origin));
   // Compute the number of slices in this grid level
   if (data_manager->settings.collision.fixed_bins == false) {
     bins_per_axis = function_Compute_Grid_Resolution(num_shapes, diagonal, density);
   }
-  bin_size = diagonal / R3(bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
+  bin_size = diagonal / real3(bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
   LOG(TRACE) << "bins_per_axis: (" << bins_per_axis.x << ", " << bins_per_axis.y << ", " << bins_per_axis.z << ")";
   LOG(TRACE) << "bin_size: (" << bin_size.x << ", " << bin_size.y << ", " << bin_size.z << ")";
 

@@ -36,28 +36,28 @@ ChVector<> ToChVector(const real3& a) {
   return ChVector<>(a.x, a.y, a.z);
 }
 
-ChQuaternion<> ToChQuaternion(const real4& a) {
+ChQuaternion<> ToChQuaternion(const quaternion& a) {
   return ChQuaternion<>(a.w, a.x, a.y, a.z);
 }
 
-real4 ToReal4(const ChQuaternion<>& a) {
-  return real4(a.e0, a.e1, a.e2, a.e3);
+quaternion ToQuaternion(const ChQuaternion<>& a) {
+  return quaternion(a.e0, a.e1, a.e2, a.e3);
 }
 
-ChMatrix33<> ToChMatrix33(const M33& a) {
+ChMatrix33<> ToChMatrix33(const Mat33& a) {
   ChMatrix33<> tmp;
-  tmp.PasteVector(ToChVector(a.U), 0, 0);
-  tmp.PasteVector(ToChVector(a.V), 0, 1);
-  tmp.PasteVector(ToChVector(a.W), 0, 2);
+  tmp.PasteVector(ToChVector(a.cols[0]), 0, 0);
+  tmp.PasteVector(ToChVector(a.cols[1]), 0, 1);
+  tmp.PasteVector(ToChVector(a.cols[2]), 0, 2);
 
   return tmp;
 }
 
-M33 ToM33(const ChMatrix33<>& a) {
-  M33 tmp;
-  tmp.U = ToReal3(a.ClipVector(0, 0));
-  tmp.V = ToReal3(a.ClipVector(0, 1));
-  tmp.W = ToReal3(a.ClipVector(0, 2));
+Mat33 ToMat33(const ChMatrix33<>& a) {
+  Mat33 tmp;
+  tmp.cols[0] = ToReal3(a.ClipVector(0, 0));
+  tmp.cols[1] = ToReal3(a.ClipVector(0, 1));
+  tmp.cols[2] = ToReal3(a.ClipVector(0, 2));
 
   return tmp;
 }
@@ -89,36 +89,43 @@ void StrictEqual(const real4& a, const real4& b) {
   StrictEqual(a.z, b.z);
 }
 
-void StrictEqual(const M33& a, const M33& b) {
-  StrictEqual(a.U, b.U);
-  StrictEqual(a.V, b.V);
-  StrictEqual(a.W, b.W);
+void StrictEqual(const Mat33& a, const Mat33& b) {
+  StrictEqual(a.cols[0], b.cols[0]);
+  StrictEqual(a.cols[1], b.cols[1]);
+  StrictEqual(a.cols[2], b.cols[2]);
 }
 
-void WeakEqual(const real& x, const real& y, real COMPARE_EPS = ZERO_EPSILON) {
+void WeakEqual(const real& x, const real& y, real COMPARE_EPS = C_EPSILON) {
   if (fabs(x - y) > COMPARE_EPS) {
     std::cout << x << " does not equal " << y << " " << fabs(x - y) << std::endl;
     exit(1);
   }
 }
 
-void WeakEqual(const real3& a, const real3& b, real COMPARE_EPS = ZERO_EPSILON) {
+void WeakEqual(const real3& a, const real3& b, real COMPARE_EPS = C_EPSILON) {
   WeakEqual(a.x, b.x, COMPARE_EPS);
   WeakEqual(a.y, b.y, COMPARE_EPS);
   WeakEqual(a.z, b.z, COMPARE_EPS);
 }
 
-void WeakEqual(const real4& a, const real4& b, real COMPARE_EPS = ZERO_EPSILON) {
+void WeakEqual(const real4& a, const real4& b, real COMPARE_EPS = C_EPSILON) {
+  WeakEqual(a.x, b.x, COMPARE_EPS);
+  WeakEqual(a.y, b.y, COMPARE_EPS);
+  WeakEqual(a.z, b.z, COMPARE_EPS);
+  WeakEqual(a.w, b.w, COMPARE_EPS);
+}
+
+void WeakEqual(const quaternion& a, const quaternion& b, real COMPARE_EPS = C_EPSILON) {
   WeakEqual(a.w, b.w, COMPARE_EPS);
   WeakEqual(a.x, b.x, COMPARE_EPS);
   WeakEqual(a.y, b.y, COMPARE_EPS);
   WeakEqual(a.z, b.z, COMPARE_EPS);
 }
 
-void WeakEqual(const M33& a, const M33& b, real COMPARE_EPS = ZERO_EPSILON) {
-  WeakEqual(a.U, b.U, COMPARE_EPS);
-  WeakEqual(a.V, b.V, COMPARE_EPS);
-  WeakEqual(a.W, b.W, COMPARE_EPS);
+void WeakEqual(const Mat33& a, const Mat33& b, real COMPARE_EPS = C_EPSILON) {
+  WeakEqual(a.cols[0], b.cols[0], COMPARE_EPS);
+  WeakEqual(a.cols[1], b.cols[1], COMPARE_EPS);
+  WeakEqual(a.cols[2], b.cols[2], COMPARE_EPS);
 }
 
 void OutputRowMatrix(const ChMatrixDynamic<real>& x) {

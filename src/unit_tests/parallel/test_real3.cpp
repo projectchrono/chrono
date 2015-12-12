@@ -209,21 +209,21 @@ int main(int argc, char* argv[]) {
   {  // float 3 dot
     real3 a(1.0, 2.0, 3.0);
     real3 b(2.0, 1.0, 3.0);
-    real c = dot(a, b);
+    real c = Dot(a, b);
     WeakEqual(c, 13.0, precision);
   }
   {  // float 3 cross
     real3 a(1.0, 2.0, 3.0);
     real3 b(2.0, 1.0, 3.0);
-    real3 c = cross(a, b);
+    real3 c = Cross(a, b);
     WeakEqual(c.x, 3.0, precision);
     WeakEqual(c.y, 3.0, precision);
     WeakEqual(c.z, -3.0, precision);
   }
   {  // float 3 cross
-    real3 a = normalize(real3(rand(), rand(), rand()));
-    real3 b = normalize(real3(rand(), rand(), rand()));
-    real3 ans1 = cross(a, b);
+    real3 a = Normalize(real3(rand(), rand(), rand()));
+    real3 b = Normalize(real3(rand(), rand(), rand()));
+    real3 ans1 = Cross(a, b);
     ChVector<real> ans2;
     ans2.Cross(ToChVector(a), ToChVector(b));
     WeakEqual(ans1, ToReal3(ans2), precision);
@@ -231,12 +231,12 @@ int main(int argc, char* argv[]) {
 
   {  // float 3 length
     real3 a(1.0, 2.0, -3.0);
-    real c = length(a);
+    real c = Length(a);
     WeakEqual(c, sqrt(14.0), precision);
   }
   {  // float 3 normalize
     real3 a(1.0, 2.0, -3.0);
-    real3 c = normalize(a);
+    real3 c = Normalize(a);
     WeakEqual(c.x, 1.0 / sqrt(14.0), precision);
     WeakEqual(c.y, 2.0 / sqrt(14.0), precision);
     WeakEqual(c.z, -3.0 / sqrt(14.0), precision);

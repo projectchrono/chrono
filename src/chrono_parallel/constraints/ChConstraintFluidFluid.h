@@ -39,7 +39,7 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
                 int b = data_manager->host_data.neighbor_fluid_fluid[a * max_neighbors + i];
                 int q = data_manager->host_data.particle_indices_fluid[b];
                 real3 xij = pos_p - data_manager->host_data.pos_fluid[q];
-                xij_dist_fluid_fluid[a * max_neighbors + i] = real4(xij, length(xij));
+                xij_dist_fluid_fluid[a * max_neighbors + i] = real4(xij, Length(xij));
             }
         }
     }
@@ -79,7 +79,7 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
     host_vector<real4> den_vec;
 
     //
-    host_vector<M33> shear_tensor;
+    host_vector<Mat33> shear_tensor;
     host_vector<real> shear_trace;
     // Pointer to the system's data manager
     ChParallelDataManager* data_manager;

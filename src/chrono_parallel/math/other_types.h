@@ -63,6 +63,14 @@ static inline int3 _make_int3(const int& a, const int& b, const int& c) {
   return t;
 }
 
+static inline int3 _make_int3(const int& a) {
+  int3 t;
+  t.x = a;
+  t.y = a;
+  t.z = a;
+  return t;
+}
+
 static inline int2 _make_int2(const int& a, const int& b) {
   int2 t;
   t.x = a;
@@ -102,21 +110,11 @@ static inline uint3 operator-(const uint3& a, const uint3& b) {
   return U3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
-static inline int clamp(const int& a, const int& clamp_min, const int& clamp_max) {
-  if (a < clamp_min) {
-    return clamp_min;
-  } else if (a > clamp_max) {
-    return clamp_max;
-  } else {
-    return a;
-  }
-}
-
-static inline int3 clamp(const int3& a, const int3& clamp_min, const int3& clamp_max) {
+static inline int3 Clamp(const int3& a, const int3& clamp_min, const int3& clamp_max) {
   int3 clampv;
-  clampv.x = clamp(a.x, clamp_min.x, clamp_max.x);
-  clampv.y = clamp(a.y, clamp_min.y, clamp_max.y);
-  clampv.z = clamp(a.z, clamp_min.z, clamp_max.z);
+  clampv.x = Clamp(a.x, clamp_min.x, clamp_max.x);
+  clampv.y = Clamp(a.y, clamp_min.y, clamp_max.y);
+  clampv.z = Clamp(a.z, clamp_min.z, clamp_max.z);
   return clampv;
 }
 

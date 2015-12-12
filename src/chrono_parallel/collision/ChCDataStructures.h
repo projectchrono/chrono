@@ -7,11 +7,11 @@ namespace collision {
 
 struct ConvexShape {
   shape_type type;  // type of shape
-  real3 A;  // location
-  real3 B;  // dimensions
-  real3 C;  // extra
-  quaternion R;  // rotation
-  real3* convex;  // pointer to convex data;
+  real3 A;          // location
+  real3 B;          // dimensions
+  real3 C;          // extra
+  quaternion R;     // rotation
+  real3* convex;    // pointer to convex data;
   real margin;
 };
 
@@ -19,7 +19,7 @@ struct ContactPoint {
   real3 pointA, pointB, normal;
   real depth;
   ContactPoint() {}
-  ContactPoint(const real3 &pa, const real3 &pb, const real3 &norm, const real d) {
+  ContactPoint(const real3& pa, const real3& pb, const real3& norm, const real d) {
     pointA = pa;
     pointB = pb;
     normal = norm;
@@ -36,14 +36,14 @@ struct ContactManifold {
   ContactManifold() { num_contact_points = 0; }
 
   int getCacheEntry(ContactPoint& newPoint) {
-    real shortestDist = ZERO_EPSILON * 2;  // TODO: SHOULD THIS BE SOMETHIGN ELSE
+    real shortestDist = C_EPSILON * 2;  // TODO: SHOULD THIS BE SOMETHIGN ELSE
     int size = num_contact_points;
     int nearestPoint = -1;
     for (int i = 0; i < size; i++) {
       const ContactPoint& mp = points[i];
 
       real3 diffA = mp.pointA - newPoint.pointA;
-      const real distToManiPoint = diffA.dot(diffA);
+      const real distToManiPoint = Dot(diffA);
       if (distToManiPoint < shortestDist) {
         shortestDist = distToManiPoint;
         nearestPoint = i;

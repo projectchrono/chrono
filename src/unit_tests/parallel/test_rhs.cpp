@@ -115,8 +115,8 @@ int main(int argc, char* argv[]) {
 
     real3 V, W;
 
-    real4 A_R = ToReal4(body_A->GetRot());
-    real4 B_R = ToReal4(body_B->GetRot());
+    quaternion A_R = ToQuaternion(body_A->GetRot());
+    quaternion B_R = ToQuaternion(body_B->GetRot());
 
     real3 A_V = real3(body_A->Variables().Get_qb().GetElementN(0),
                       body_A->Variables().Get_qb().GetElementN(1),
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
                       body_B->Variables().Get_qb().GetElementN(4),
                       body_B->Variables().Get_qb().GetElementN(5));
 
-    real3 temp = R3(0);
+    real3 temp = real3(0);
     chrono::Orthogonalize(U, V, W);  // read 3 real
 
     //      ChVector<real> Vx, Vy, Vz;
@@ -147,18 +147,18 @@ int main(int argc, char* argv[]) {
       real3 vel_b1 = A_V;
       real3 T3, T4, T5;
       chrono::Compute_Jacobian(A_R, U, V, W, p1 - ToReal3(body_A->GetPos()), T3, T4, T5);
-      temp.x = dot(-U, vel_b1) + dot(T3, omega_b1);
-      temp.y = dot(-V, vel_b1) + dot(T4, omega_b1);
-      temp.z = dot(-W, vel_b1) + dot(T5, omega_b1);
+      temp.x = Dot(-U, vel_b1) + Dot(T3, omega_b1);
+      temp.y = Dot(-V, vel_b1) + Dot(T4, omega_b1);
+      temp.z = Dot(-W, vel_b1) + Dot(T5, omega_b1);
     }
     if (body_B->IsActive()) {
       real3 omega_b2 = B_O;
       real3 vel_b2 = B_V;
       real3 T6, T7, T8;
       chrono::Compute_Jacobian(B_R, U, V, W, p2 - ToReal3(body_B->GetPos()), T6, T7, T8);
-      temp.x += dot(U, vel_b2) + dot(-T6, omega_b2);
-      temp.y += dot(V, vel_b2) + dot(-T7, omega_b2);
-      temp.z += dot(W, vel_b2) + dot(-T8, omega_b2);
+      temp.x += Dot(U, vel_b2) + Dot(-T6, omega_b2);
+      temp.y += Dot(V, vel_b2) + Dot(-T7, omega_b2);
+      temp.z += Dot(W, vel_b2) + Dot(-T8, omega_b2);
     }
     real bi = factor * d;
 

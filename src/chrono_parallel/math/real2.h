@@ -20,49 +20,80 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
 #include <iostream>
-#define R2 make_real2
 
 namespace chrono {
+class real2 {
+  public:
+    real2() : x(0.0f), y(0.0f) {}
+    explicit real2(real _x) : x(_x), y(_x) {}
+    real2(real _x, real _y) : x(_x), y(_y) {}
+    //real2(const real* p) : x(p[0]), y(p[1]) {}
 
-struct real2 {
-  real x, y;
+    operator real*() { return &x; }
+    operator const real*() const { return &x; };
+
+    void Set(real x_, real y_) {
+        x = x_;
+        y = y_;
+    }
+
+    inline real2 operator+(real b) const { return real2(x + b, y + b); }
+    inline real2 operator-(real b) const { return real2(x - b, y - b); }
+    inline real2 operator*(real b) const { return real2(x * b, y * b); }
+    inline real2 operator/(real b) const { return real2(x / b, y / b); }
+
+    inline real2 operator+(const real2& b) const { return real2(x + b.x, y + b.y); }
+    inline real2 operator-(const real2& b) const { return real2(x - b.x, y - b.y); }
+    inline real2 operator*(const real2& b) const { return real2(x * b.x, y * b.y); }
+    inline real2 operator/(const real2& b) const { return real2(x / b.x, y / b.y); }
+    inline real2 operator-() const { return real2(-x, -y); }
+
+    OPERATOR_EQUALS(*, real, real2)
+    OPERATOR_EQUALS(/, real, real2)
+    OPERATOR_EQUALS(+, real, real2)
+    OPERATOR_EQUALS(-, real, real2)
+
+    OPERATOR_EQUALS(*, real2, real2)
+    OPERATOR_EQUALS(/, real2, real2)
+    OPERATOR_EQUALS(+, real2, real2)
+    OPERATOR_EQUALS(-, real2, real2)
+
+    real x;
+    real y;
 };
 
-static inline real2 make_real2(const real& a, const real& b) {
-  real2 t;
-  t.x = a;
-  t.y = b;
-  return t;
+static real2 operator*(real lhs, const real2& rhs) {
+    real2 r(rhs);
+    r *= lhs;
+    return r;
 }
 
-static inline std::ostream& operator<<(std::ostream& out, const real2& a) {
-  out << "[" << a.x << ", " << a.y << "]" << std::endl;
-  return out;
+static bool operator==(const real2& lhs, const real2& rhs) {
+    return (lhs.x == rhs.x && lhs.y == rhs.y);
 }
 
-static inline real2 operator+(const real2& rhs, const real2& lhs) {
-  return R2(rhs.x + lhs.x, rhs.y + lhs.y);
-}
-static inline real2 operator-(const real2& rhs, const real2& lhs) {
-  return R2(rhs.x - lhs.x, rhs.y - lhs.y);
+static real2 Max(const real2& a, const real2& b) {
+    return real2(Max(a.x, b.x), Max(a.y, b.y));
 }
 
-static inline real2 operator*(const real2& rhs, const real2& lhs) {
-  return R2(rhs.x * lhs.x, rhs.y * lhs.y);
-}
-static inline real2 operator*(const real2& rhs, const real& lhs) {
-  return R2(rhs.x * lhs, rhs.y * lhs);
+static real2 Min(const real2& a, const real2& b) {
+    return real2(Min(a.x, b.x), Min(a.y, b.y));
 }
 
-static inline real2 operator/(const real2& rhs, const real2& lhs) {
-  return R2(rhs.x / lhs.x, rhs.y / lhs.y);
+static inline real Dot(const real2& v1, const real2& v2) {
+    return v1.x * v2.x + v1.y * v2.y;
 }
 
-static inline real2 operator/(const real2& rhs, const real& lhs) {
-  return R2(rhs.x / lhs, rhs.y / lhs);
+static inline real Dot(const real2& v) {
+    return v.x * v.x + v.y * v.y;
 }
 
-static inline bool operator==(const real2& a, const real2& b) {
-  return ((a.x == b.x) && (a.y == b.y));
+static inline real Length2(const real2& v1) {
+    return v1.x * v1.x + v1.y * v1.y;
+}
+
+static void Print(real2 v, const char* name) {
+    printf("%s\n", name);
+    printf("%f %f\n", v.x, v.y);
 }
 }

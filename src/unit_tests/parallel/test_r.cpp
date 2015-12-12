@@ -128,12 +128,12 @@ void test_sphere_sphere(bool sep) {
   ConvexShape shapeS1;
   shapeS1.type = ShapeType::SPHERE;
   shapeS1.C = real3(0);
-  shapeS1.R = real4(1, 0, 0, 0);
+  shapeS1.R = quaternion(1, 0, 0, 0);
 
   ConvexShape shapeS2;
   shapeS2.type = ShapeType::SPHERE;
   shapeS2.C = real3(0);
-  shapeS2.R = real4(1, 0, 0, 0);
+  shapeS2.R = quaternion(1, 0, 0, 0);
 
   real separation = sep ? 0.1 : 0.0;
 
@@ -251,7 +251,7 @@ void test_box_sphere(bool sep) {
   // Rotated by 45 degrees around Z axis and shifted by sqrt(2) in X direction.
   real3 b_hdims(1.0, 2.0, 3.0);
   real3 b_pos(sqrt(2.0), 0.0, 0.0);
-  real4 b_rot = ToReal4(Q_from_AngAxis(CH_C_PI_4, ChVector<>(0, 0, 1)));
+  quaternion b_rot = ToQuaternion(Q_from_AngAxis(CH_C_PI_4, ChVector<>(0, 0, 1)));
 
   ConvexShape shapeB;
   shapeB.type = ShapeType::BOX;
@@ -267,7 +267,7 @@ void test_box_sphere(bool sep) {
   shapeS.type = ShapeType::SPHERE;
   shapeS.B = real3(s_rad, 0, 0);
   shapeS.C = real3(0);
-  shapeS.R = real4(1, 0, 0, 0);
+  shapeS.R = quaternion(1, 0, 0, 0);
 
   real separation = sep ? 0.1 : 0.0;
 
@@ -448,7 +448,7 @@ void test_capsule_sphere() {
   real c_rad = 0.5;
   real c_hlen = 2.0;
   real3 c_pos(c_hlen, 0, 0);
-  real4 c_rot = ToReal4(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
+  quaternion c_rot = ToQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
 
   ConvexShape shapeC;
   shapeC.type = ShapeType::CAPSULE;
@@ -464,7 +464,7 @@ void test_capsule_sphere() {
   shapeS.type = ShapeType::SPHERE;
   shapeS.B = real3(s_rad, 0, 0);
   shapeS.C = real3(0);
-  shapeS.R = real4(1, 0, 0, 0);
+  shapeS.R = quaternion(1, 0, 0, 0);
 
   // Output quantities.
   real3 norm;
@@ -549,7 +549,7 @@ void test_cylinder_sphere() {
   real c_rad = 2.0;
   real c_hlen = 1.5;
   real3 c_pos(c_hlen, 0, 0);
-  real4 c_rot = ToReal4(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
+  quaternion c_rot = ToQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
 
   ConvexShape shapeC;
   shapeC.type = ShapeType::CYLINDER;
@@ -565,7 +565,7 @@ void test_cylinder_sphere() {
   shapeS.type = ShapeType::SPHERE;
   shapeS.B = real3(s_rad, 0, 0);
   shapeS.C = real3(0);
-  shapeS.R = real4(1, 0, 0, 0);
+  shapeS.R = quaternion(1, 0, 0, 0);
 
   // Output quantities.
   real3 norm;
@@ -677,7 +677,7 @@ void test_roundedcyl_sphere() {
   real c_hlen = 1.5;  // half-length of skeleton cylinder
   real c_srad = 0.1;  // radius of sweeping sphere
   real3 c_pos(c_hlen, 0, 0);
-  real4 c_rot = ToReal4(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
+  quaternion c_rot = ToQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
 
   ConvexShape shapeC;
   shapeC.type = ShapeType::ROUNDEDCYL;
@@ -693,7 +693,7 @@ void test_roundedcyl_sphere() {
   shapeS.type = ShapeType::SPHERE;
   shapeS.B = real3(s_rad, 0, 0);
   shapeS.C = real3(0);
-  shapeS.R = real4(1, 0, 0, 0);
+  shapeS.R = quaternion(1, 0, 0, 0);
 
   // Output quantities.
   real3 norm;

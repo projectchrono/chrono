@@ -330,21 +330,21 @@ void ChConstraintRigidRigid::Build_E() {
 }
 
 #define NORMAL_J                    \
-    real3 U_A = quatRotate(U, q_a); \
-    T3 = cross(U_A, sbar_a.v);      \
-    real3 U_B = quatRotate(U, q_b); \
-    T6 = cross(U_B, sbar_b.v);
+    real3 U_A = Rotate(U, q_a); \
+    T3 = Cross(U_A, sbar_a.v);      \
+    real3 U_B = Rotate(U, q_b); \
+    T6 = Cross(U_B, sbar_b.v);
 
 #define SLIDING_J                   \
-    real3 V_A = quatRotate(V, q_a); \
-    real3 W_A = quatRotate(W, q_a); \
-    T4 = cross(V_A, sbar_a.v);      \
-    T5 = cross(W_A, sbar_b.v);      \
+    real3 V_A = Rotate(V, q_a); \
+    real3 W_A = Rotate(W, q_a); \
+    T4 = Cross(V_A, sbar_a.v);      \
+    T5 = Cross(W_A, sbar_b.v);      \
                                     \
-    real3 V_B = quatRotate(V, q_b); \
-    real3 W_B = quatRotate(W, q_b); \
-    T7 = cross(V_B, sbar_a.v);      \
-    T8 = cross(W_B, sbar_b.v);
+    real3 V_B = Rotate(V, q_b); \
+    real3 W_B = Rotate(W, q_b); \
+    T7 = Cross(V_B, sbar_a.v);      \
+    T8 = Cross(W_B, sbar_b.v);
 
 void ChConstraintRigidRigid::Build_D() {
     LOG(INFO) << "ChConstraintRigidRigid::Build_D";
@@ -353,7 +353,7 @@ void ChConstraintRigidRigid::Build_D() {
     real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
     real3* pos_data = data_manager->host_data.pos_rigid.data();
     int2* ids = data_manager->host_data.bids_rigid_rigid.data();
-    real4* rot = data_manager->host_data.rot_rigid.data();
+    quaternion* rot = data_manager->host_data.rot_rigid.data();
 
     SubMatrixType D_n_T = _DNT_;
 
@@ -380,8 +380,8 @@ void ChConstraintRigidRigid::Build_D() {
         real3_int sbar_b = rotated_point_b[index];
         body_id.x = sbar_a.i;
         body_id.y = sbar_b.i;
-        real4 q_a = quat_a[index];
-        real4 q_b = quat_b[index];
+        quaternion q_a = quat_a[index];
+        quaternion q_b = quat_b[index];
 
         NORMAL_J
 
@@ -536,7 +536,7 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
     real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
     real3* pos = data_manager->host_data.pos_rigid.data();
     int2* bids_rigid_rigid = data_manager->host_data.bids_rigid_rigid.data();
-    real4* rot = data_manager->host_data.rot_rigid.data();
+    quaternion* rot = data_manager->host_data.rot_rigid.data();
 
 #pragma omp parallel for
     for (int i = 0; i < num_rigid_contacts; i++) {
@@ -549,10 +549,10 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
         real3 g = real3(gam[i], gam[num_rigid_contacts + i * 2 + 0], gam[num_rigid_contacts + i * 2 + 1]);
         {
             real3_int sbar = rotated_point_a[i];
-            real4 q_a = quat_a[i];
-            T3 = cross(quatRotate(U, q_a), sbar.v);
-            T4 = cross(quatRotate(V, q_a), sbar.v);
-            T5 = cross(quatRotate(W, q_a), sbar.v);
+            quaternion q_a = quat_a[i];
+            T3 = Cross(Rotate(U, q_a), sbar.v);
+            T4 = Cross(Rotate(V, q_a), sbar.v);
+            T5 = Cross(Rotate(W, q_a), sbar.v);
 
             // if (active_rigid[id_a] != 0)
 
@@ -577,10 +577,10 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
 
         {
             real3_int sbar = rotated_point_b[i];
-            real4 q_b = quat_b[i];
-            T6 = cross(quatRotate(U, q_b), sbar.v);
-            T7 = cross(quatRotate(V, q_b), sbar.v);
-            T8 = cross(quatRotate(W, q_b), sbar.v);
+            quaternion q_b = quat_b[i];
+            T6 = Cross(Rotate(U, q_b), sbar.v);
+            T7 = Cross(Rotate(V, q_b), sbar.v);
+            T8 = Cross(Rotate(W, q_b), sbar.v);
 
             // if (active_rigid[id_b] != 0)
 
@@ -613,7 +613,7 @@ void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVect
     real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
     real3* pos = data_manager->host_data.pos_rigid.data();
     int2* bids_rigid_rigid = data_manager->host_data.bids_rigid_rigid.data();
-    real4* rot = data_manager->host_data.rot_rigid.data();
+    quaternion* rot = data_manager->host_data.rot_rigid.data();
 
 #pragma omp parallel for
     for (int i = 0; i < num_rigid_contacts; i++) {
@@ -626,18 +626,18 @@ void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVect
         // if (active_rigid[id_a] != 0)
         {
             real3_int sbar = rotated_point_a[i];
-            real4 quaternion_conjugate = quat_a[i];
+            quaternion quaternion_conjugate = quat_a[i];
 
             real3 XYZ(XYZUVW[sbar.i * 6 + 0], XYZUVW[sbar.i * 6 + 1], XYZUVW[sbar.i * 6 + 2]);
             real3 UVW(XYZUVW[sbar.i * 6 + 3], XYZUVW[sbar.i * 6 + 4], XYZUVW[sbar.i * 6 + 5]);
 
-            real3 T1 = cross(quatRotate(U, quaternion_conjugate), sbar.v);
-            real3 T2 = cross(quatRotate(V, quaternion_conjugate), sbar.v);
-            real3 T3 = cross(quatRotate(W, quaternion_conjugate), sbar.v);
+            real3 T1 = Cross(Rotate(U, quaternion_conjugate), sbar.v);
+            real3 T2 = Cross(Rotate(V, quaternion_conjugate), sbar.v);
+            real3 T3 = Cross(Rotate(W, quaternion_conjugate), sbar.v);
 
-            temp[0] = dot(XYZ, -U) + dot(UVW, T1);
-            temp[1] = dot(XYZ, -V) + dot(UVW, T2);
-            temp[2] = dot(XYZ, -W) + dot(UVW, T3);
+            temp[0] = Dot(XYZ, -U) + Dot(UVW, T1);
+            temp[1] = Dot(XYZ, -V) + Dot(UVW, T2);
+            temp[2] = Dot(XYZ, -W) + Dot(UVW, T3);
 
             // Jacobian<false>(rot[id_a], U, V, W, ptA[i] - pos[id_a], &XYZUVW[id_a * 6 + 0], temp);
         }
@@ -647,18 +647,18 @@ void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVect
         // if (active_rigid[id_b] != 0)
         {
             real3_int sbar = rotated_point_b[i];
-            real4 quaternion_conjugate = quat_b[i];
+            quaternion quaternion_conjugate = quat_b[i];
 
             real3 XYZ(XYZUVW[sbar.i * 6 + 0], XYZUVW[sbar.i * 6 + 1], XYZUVW[sbar.i * 6 + 2]);
             real3 UVW(XYZUVW[sbar.i * 6 + 3], XYZUVW[sbar.i * 6 + 4], XYZUVW[sbar.i * 6 + 5]);
 
-            real3 T1 = cross(quatRotate(U, quaternion_conjugate), sbar.v);
-            real3 T2 = cross(quatRotate(V, quaternion_conjugate), sbar.v);
-            real3 T3 = cross(quatRotate(W, quaternion_conjugate), sbar.v);
+            real3 T1 = Cross(Rotate(U, quaternion_conjugate), sbar.v);
+            real3 T2 = Cross(Rotate(V, quaternion_conjugate), sbar.v);
+            real3 T3 = Cross(Rotate(W, quaternion_conjugate), sbar.v);
 
-            temp[0] += dot(XYZ, U) + dot(UVW, -T1);
-            temp[1] += dot(XYZ, V) + dot(UVW, -T2);
-            temp[2] += dot(XYZ, W) + dot(UVW, -T3);
+            temp[0] += Dot(XYZ, U) + Dot(UVW, -T1);
+            temp[1] += Dot(XYZ, V) + Dot(UVW, -T2);
+            temp[2] += Dot(XYZ, W) + Dot(UVW, -T3);
         }
 
         out_vector[i] = temp[0];

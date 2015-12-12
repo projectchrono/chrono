@@ -29,9 +29,9 @@ typedef thrust::pair<real3, real3> bbox;
 // reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
 struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
   bbox operator()(bbox a, bbox b) {
-    real3 ll = R3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
+    real3 ll = real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
                   Min(a.first.z, b.first.z));  // lower left corner
-    real3 ur = R3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
+    real3 ur = real3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
                   Max(a.second.z, b.second.z));  // upper right corner
     return bbox(ll, ur);
   }
@@ -117,11 +117,11 @@ return false;
 static int3 function_Compute_Grid_Resolution(uint num_aabb, real3 d, real k = .1) {
   int3 grid_size = I3(0);
   real V = d.x * d.y * d.z;
-  grid_size.x = int(d.x * std::pow(k * num_aabb / V, 1.0 / 3.0));
-  grid_size.y = int(d.y * std::pow(k * num_aabb / V, 1.0 / 3.0));
-  grid_size.z = int(d.z * std::pow(k * num_aabb / V, 1.0 / 3.0));
+  grid_size.x = int(d.x * Pow(k * num_aabb / V, real(1.0 / 3.0)));
+  grid_size.y = int(d.y * Pow(k * num_aabb / V, real(1.0 / 3.0)));
+  grid_size.z = int(d.z * Pow(k * num_aabb / V, real(1.0 / 3.0)));
 
-  grid_size = clamp(grid_size, I3(1), grid_size);
+  grid_size = Clamp(grid_size, I3(1), grid_size);
 
   return grid_size;
 }
@@ -130,7 +130,7 @@ static int3 function_Compute_Grid_Resolution(uint num_aabb, real3 d, real k = .1
 
 bool function_Check_Sphere(real3 pos_a, real3 pos_b, real radius) {
   real3 delta = pos_b - pos_a;
-  real dist2 = dot(delta, delta);
+  real dist2 = Dot(delta, delta);
   real radSum = radius + radius;
   if (dist2 >= radSum * radSum || dist2 < 1e-12) {
     return false;

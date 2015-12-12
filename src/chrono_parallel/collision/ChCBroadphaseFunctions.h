@@ -56,9 +56,9 @@ void f_TL_Count_AABB_Leaf_Intersection(const uint index,
   uint count = 0;
   uint num_aabb_in_cell = end - start;
   int3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
-  real3 inv_leaf_size = R3(cell_res.x, cell_res.y, cell_res.z) / bin_size;
+  real3 inv_leaf_size = real3(cell_res.x, cell_res.y, cell_res.z) / bin_size;
   int3 bin_index = Hash_Decode(bin_number[index], bins_per_axis);
-  real3 bin_position = R3(bin_index.x * bin_size.x, bin_index.y * bin_size.y, bin_index.z * bin_size.z);
+  real3 bin_position = real3(bin_index.x * bin_size.x, bin_index.y * bin_size.y, bin_index.z * bin_size.z);
 
   for (uint i = start; i < end; i++) {
     uint shape = shape_number[i];
@@ -67,15 +67,15 @@ void f_TL_Count_AABB_Leaf_Intersection(const uint index,
     real3 Amax = aabb_max[shape] - bin_position;
 
     // Make sure that even with subtraction we are at the origin
-    Amin = clamp(Amin, R3(0), Amax);
+    Amin = Clamp(Amin, real3(0), Amax);
 
     // Find the extents
     int3 gmin = HashMin(Amin, inv_leaf_size);
     int3 gmax = HashMax(Amax, inv_leaf_size);
     // Make sure that the maximum bin value does not exceed the bounds of this grid
     int3 max_clamp = cell_res - I3(1);
-    gmin = clamp(gmin, I3(0), max_clamp);
-    gmax = clamp(gmax, I3(0), max_clamp);
+    gmin = Clamp(gmin, I3(0), max_clamp);
+    gmax = Clamp(gmax, I3(0), max_clamp);
 
     count += (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
   }
@@ -102,11 +102,11 @@ void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
   uint count = 0;
   uint num_aabb_in_cell = end - start;
   int3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
-  real3 inv_leaf_size = R3(cell_res.x, cell_res.y, cell_res.z) / bin_size;
+  real3 inv_leaf_size = real3(cell_res.x, cell_res.y, cell_res.z) / bin_size;
 
   int3 bin_index = Hash_Decode(bin_number[index], bin_resolution);
 
-  real3 bin_position = R3(bin_index.x * bin_size.x, bin_index.y * bin_size.y, bin_index.z * bin_size.z);
+  real3 bin_position = real3(bin_index.x * bin_size.x, bin_index.y * bin_size.y, bin_index.z * bin_size.z);
 
   for (uint i = start; i < end; i++) {
     uint shape = bin_shape_number[i];
@@ -115,7 +115,7 @@ void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
     real3 Amax = aabb_max[shape] - bin_position;
 
     // Make sure that even with subtraction we are at the origin
-    Amin = clamp(Amin, R3(0), Amax);
+    Amin = Clamp(Amin, real3(0), Amax);
 
     // Find the extents
     int3 gmin = HashMin(Amin, inv_leaf_size);
@@ -123,8 +123,8 @@ void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
 
     // Make sure that the maximum bin value does not exceed the bounds of this grid
     int3 max_clamp = cell_res - I3(1);
-    gmin = clamp(gmin, I3(0), max_clamp);
-    gmax = clamp(gmax, I3(0), max_clamp);
+    gmin = Clamp(gmin, I3(0), max_clamp);
+    gmax = Clamp(gmax, I3(0), max_clamp);
 
     int a, b, c;
     for (a = gmin.x; a <= gmax.x; a++) {

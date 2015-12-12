@@ -27,10 +27,10 @@ namespace chrono {
 // measures associated with the collision detection step of chrono parallel
 struct collision_measures {
   collision_measures() {
-    min_bounding_point = 0;
-    max_bounding_point = 0;
-    global_origin = 0;
-    bin_size = 0;
+    min_bounding_point = real3(0);
+    max_bounding_point = real3(0);
+    global_origin = real3(0);
+    bin_size = real3(0);
   }
   real3 min_bounding_point;  // The minimal global bounding point
   real3 max_bounding_point;  // The maximum global bounding point

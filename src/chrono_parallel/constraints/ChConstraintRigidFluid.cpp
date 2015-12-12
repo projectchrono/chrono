@@ -98,7 +98,7 @@ void ChConstraintRigidFluid::Build_D() {
     custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
 
     custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
-    custom_vector<real4>& rot_rigid = data_manager->host_data.rot_rigid;
+    custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
 
     real h = data_manager->settings.fluid.kernel_radius;
     // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;

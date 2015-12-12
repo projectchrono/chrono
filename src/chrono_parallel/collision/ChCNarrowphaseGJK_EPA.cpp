@@ -110,12 +110,12 @@ struct MinkowskiDiff {
   inline real3 Support0(const real3& d) const { return SupportVert(shapeA, d, envelope); }
   inline real3 Support1(const real3& d) const {
     real3 m_toshape0_v = (shapeB.A - shapeA.A);
-    real3 m_toshape0_translate = quatRotateT(m_toshape0_v, shapeA.R);
+    real3 m_toshape0_translate = RotateT(m_toshape0_v, shapeA.R);
 
-    real4 m_toshape0 = (~shapeA.R) % shapeB.R;
-    real4 m_toshape1 = (~shapeB.R) % shapeA.R;
+    quaternion m_toshape0 = Mult(~shapeA.R, shapeB.R);
+    quaternion m_toshape1 = Mult(~shapeB.R, shapeA.R);
 
-    real3 sv = SupportVert(shapeB, quatRotate(d, m_toshape1), envelope);
+    real3 sv = SupportVert(shapeB, Rotate(d, m_toshape1), envelope);
     real3 result = TransformLocalToParent(m_toshape0_translate, m_toshape0, sv);
 
     return result;  // SupportVert(shapeB, d, 0) + shapeB.margin * d;
@@ -185,7 +185,7 @@ struct GJK {
     /* Initialize simplex      */
     m_simplices[0].rank = 0;
     m_ray = guess;
-    const real sqrl = m_ray.length2();
+    const real sqrl = Dot(m_ray);
     appendvertice(m_simplices[0], sqrl > 0 ? -m_ray : real3(1, 0, 0));
     m_simplices[0].p[0] = 1;
     m_ray = m_simplices[0].c[0]->w;
@@ -197,7 +197,7 @@ struct GJK {
       sSimplex& cs = m_simplices[m_current];
       sSimplex& ns = m_simplices[next];
       /* Check zero                    */
-      const real rl = m_ray.length();
+      const real rl = Length(m_ray);
       if (rl < GJK_MIN_DISTANCE) { /* Touching or inside           */
         m_status = eStatus::Inside;
         break;
@@ -207,7 +207,7 @@ struct GJK {
       const real3& w = cs.c[cs.rank - 1]->w;
       bool found = false;
       for (U i = 0; i < 4; ++i) {
-        if ((w - lastw[i]).length2() < GJK_DUPLICATED_EPS) {
+        if (Dot(w - lastw[i]) < GJK_DUPLICATED_EPS) {
           found = true;
           break;
         }
@@ -219,7 +219,7 @@ struct GJK {
         lastw[clastw = (clastw + 1) & 3] = w;
       }
       /* Check for termination            */
-      const real omega = dot(m_ray, w) / rl;
+      const real omega = Dot(m_ray, w) / rl;
       alpha = Max(omega, alpha);
       if (((rl - alpha) - (GJK_ACCURARY * rl)) <= 0) { /* Return old simplex            */
         removevertice(m_simplices[m_current]);
@@ -263,7 +263,7 @@ struct GJK {
     m_simplex = &m_simplices[m_current];
     switch (m_status) {
       case eStatus::Valid:
-        m_distance = m_ray.length();
+        m_distance = Length(m_ray);
         break;
       case eStatus::Inside:
         m_distance = 0;
@@ -293,8 +293,8 @@ struct GJK {
         for (U i = 0; i < 3; ++i) {
           real3 axis = real3(0, 0, 0);
           axis[i] = 1;
-          const real3 p = cross(d, axis);
-          if (p.length2() > 0) {
+          const real3 p = Cross(d, axis);
+          if (Dot(p) > 0) {
             appendvertice(*m_simplex, p);
             if (EncloseOrigin())
               return (true);
@@ -307,8 +307,8 @@ struct GJK {
         }
       } break;
       case 3: {
-        const real3 n = cross(m_simplex->c[1]->w - m_simplex->c[0]->w, m_simplex->c[2]->w - m_simplex->c[0]->w);
-        if (n.length2() > 0) {
+        const real3 n = Cross(m_simplex->c[1]->w - m_simplex->c[0]->w, m_simplex->c[2]->w - m_simplex->c[0]->w);
+        if (Dot(n) > 0) {
           appendvertice(*m_simplex, n);
           if (EncloseOrigin())
             return (true);
@@ -329,7 +329,7 @@ struct GJK {
   }
   /* Internals   */
   void getsupport(const real3& d, sSV& sv) const {
-    sv.d = d / d.length();
+    sv.d = d / Length(d);
     sv.w = m_shape.Support(sv.d);
   }
   void removevertice(sSimplex& simplex) { m_free[m_nfree++] = simplex.c[--simplex.rank]; }
@@ -343,23 +343,23 @@ struct GJK {
   }
   static real projectorigin(const real3& a, const real3& b, real* w, U& m) {
     const real3 d = b - a;
-    const real l = d.length2();
+    const real l = Dot(d);
     if (l > GJK_SIMPLEX2_EPS) {
-      const real t(l > 0 ? -dot(a, d) / l : 0);
+      const real t(l > 0 ? -Dot(a, d) / l : 0);
       if (t >= 1) {
         w[0] = 0;
         w[1] = 1;
         m = 2;
-        return (b.length2());
+        return (Dot(b));
       } else if (t <= 0) {
         w[0] = 1;
         w[1] = 0;
         m = 1;
-        return (a.length2());
+        return Dot(a);
       } else {
         w[0] = 1 - (w[1] = t);
         m = 3;
-        return ((a + d * t).length2());
+        return Dot(a + d * t);
       }
     }
     return (-1);
@@ -368,14 +368,14 @@ struct GJK {
     static const U imd3[] = {1, 2, 0};
     const real3* vt[] = {&a, &b, &c};
     const real3 dl[] = {a - b, b - c, c - a};
-    const real3 n = cross(dl[0], dl[1]);
-    const real l = n.length2();
+    const real3 n = Cross(dl[0], dl[1]);
+    const real l = Dot(n);
     if (l > GJK_SIMPLEX3_EPS) {
       real mindist = -1;
       real subw[2] = {0.f, 0.f};
       U subm(0);
       for (U i = 0; i < 3; ++i) {
-        if (dot(*vt[i], cross(dl[i], n)) > 0) {
+        if (Dot(*vt[i], Cross(dl[i], n)) > 0) {
           const U j = imd3[i];
           const real subd(projectorigin(*vt[i], *vt[j], subw, subm));
           if ((mindist < 0) || (subd < mindist)) {
@@ -388,13 +388,13 @@ struct GJK {
         }
       }
       if (mindist < 0) {
-        const real d = dot(a, n);
+        const real d = Dot(a, n);
         const real s = Sqrt(l);
         const real3 p = n * (d / l);
-        mindist = p.length2();
+        mindist = Dot(p);
         m = 7;
-        w[0] = (cross(dl[1], b - p)).length() / s;
-        w[1] = (cross(dl[2], c - p)).length() / s;
+        w[0] = Length(Cross(dl[1], b - p)) / s;
+        w[1] = Length(Cross(dl[2], c - p)) / s;
         w[2] = 1 - (w[0] + w[1]);
       }
       return (mindist);
@@ -406,14 +406,14 @@ struct GJK {
     const real3* vt[] = {&a, &b, &c, &d};
     const real3 dl[] = {a - d, b - d, c - d};
     const real vl = det(dl[0], dl[1], dl[2]);
-    const bool ng = (vl * dot(a, cross(b - c, a - b))) <= 0;
+    const bool ng = (vl * Dot(a, Cross(b - c, a - b))) <= 0;
     if (ng && (Abs(vl) > GJK_SIMPLEX4_EPS)) {
       real mindist = -1;
       real subw[3] = {0.f, 0.f, 0.f};
       U subm(0);
       for (U i = 0; i < 3; ++i) {
         const U j = imd3[i];
-        const real s = vl * dot(d, cross(dl[i], dl[j]));
+        const real s = vl * Dot(d, Cross(dl[i], dl[j]));
         if (s > 0) {
           const real subd = projectorigin(*vt[i], *vt[j], d, subw, subm);
           if ((mindist < 0) || (subd < mindist)) {
@@ -565,7 +565,7 @@ struct EPA {
             bool valid = true;
             best->pass = (U1)(++pass);
             gjk.getsupport(best->n, *w);
-            const real wdist = dot(best->n, w->w) - best->d;
+            const real wdist = Dot(best->n, w->w) - best->d;
             if (wdist > EPA_ACCURACY) {
               for (U j = 0; (j < 3) && valid; ++j) {
                 valid &= expand(pass, w, best->f[j], best->e[j], horizon);
@@ -596,9 +596,9 @@ struct EPA {
         m_result.c[0] = outer.c[0];
         m_result.c[1] = outer.c[1];
         m_result.c[2] = outer.c[2];
-        m_result.p[0] = cross(outer.c[1]->w - projection, outer.c[2]->w - projection).length();
-        m_result.p[1] = cross(outer.c[2]->w - projection, outer.c[0]->w - projection).length();
-        m_result.p[2] = cross(outer.c[0]->w - projection, outer.c[1]->w - projection).length();
+        m_result.p[0] = Length(Cross(outer.c[1]->w - projection, outer.c[2]->w - projection));
+        m_result.p[1] = Length(Cross(outer.c[2]->w - projection, outer.c[0]->w - projection));
+        m_result.p[2] = Length(Cross(outer.c[0]->w - projection, outer.c[1]->w - projection));
         const real sum = m_result.p[0] + m_result.p[1] + m_result.p[2];
         m_result.p[0] /= sum;
         m_result.p[1] /= sum;
@@ -609,7 +609,7 @@ struct EPA {
     /* Fallback    */
     m_status = eStatus::FallBack;
     m_normal = -guess;
-    const real nl = m_normal.length();
+    const real nl = Length(m_normal);
     if (nl > 0)
       m_normal = m_normal / nl;
     else
@@ -622,27 +622,27 @@ struct EPA {
   }
   bool getedgedist(sFace* face, sSV* a, sSV* b, real& dist) {
     const real3 ba = b->w - a->w;
-    const real3 n_ab = cross(ba, face->n);  // Outward facing edge normal direction, on triangle plane
+    const real3 n_ab = Cross(ba, face->n);  // Outward facing edge normal direction, on triangle plane
     const real a_dot_nab =
-        dot(a->w, n_ab);  // Only care about the sign to determine inside/outside, so not normalization required
+        Dot(a->w, n_ab);  // Only care about the sign to determine inside/outside, so not normalization required
 
     if (a_dot_nab < 0) {
       // Outside of edge a->b
 
-      const real ba_l2 = ba.length2();
-      const real a_dot_ba = dot(a->w, ba);
-      const real b_dot_ba = dot(b->w, ba);
+      const real ba_l2 = Dot(ba);
+      const real a_dot_ba = Dot(a->w, ba);
+      const real b_dot_ba = Dot(b->w, ba);
 
       if (a_dot_ba > 0) {
         // Pick distance vertex a
-        dist = a->w.length();
+        dist = Length(a->w);
       } else if (b_dot_ba < 0) {
         // Pick distance vertex b
-        dist = b->w.length();
+        dist = Length(b->w);
       } else {
         // Pick distance to edge a->b
-        const real a_dot_b = dot(a->w, b->w);
-        dist = Sqrt(Max((a->w.length2() * b->w.length2() - a_dot_b * a_dot_b) / ba_l2, (real)0));
+        const real a_dot_b = Dot(a->w, b->w);
+        dist = Sqrt(Max((Dot(a->w) * Dot(b->w) - a_dot_b * a_dot_b) / ba_l2, (real)0));
       }
 
       return true;
@@ -659,8 +659,8 @@ struct EPA {
       face->c[0] = a;
       face->c[1] = b;
       face->c[2] = c;
-      face->n = cross(b->w - a->w, c->w - a->w);
-      const real l = face->n.length();
+      face->n = Cross(b->w - a->w, c->w - a->w);
+      const real l = Length(face->n);
       const bool v = l > EPA_ACCURACY;
 
       if (v) {
@@ -668,7 +668,7 @@ struct EPA {
               getedgedist(face, c, a, face->d))) {
           // Origin projects to the interior of the triangle
           // Use distance to triangle plane
-          face->d = dot(a->w, face->n) / l;
+          face->d = Dot(a->w, face->n) / l;
         }
 
         face->n /= l;
@@ -703,7 +703,7 @@ struct EPA {
     static const U i2m3[] = {2, 0, 1};
     if (f->pass != pass) {
       const U e1 = i1m3[e];
-      if ((dot(f->n, w->w) - f->d) < -EPA_PLANE_EPS) {
+      if ((Dot(f->n, w->w) - f->d) < -EPA_PLANE_EPS) {
         sFace* nf = newface(f->c[e1], f->c[e], w, false);
         if (nf) {
           bind(nf, 0, f, e);
@@ -755,7 +755,7 @@ bool GJKDistance(const ConvexShape& shape0, const ConvexShape& shape1, const rea
     results.witnesses[0] = TransformLocalToParent(shape0.A, shape0.R, w0);
     results.witnesses[1] = TransformLocalToParent(shape0.A, shape0.R, w1);
     results.normal = w1 - w0;
-    results.distance = -results.normal.length();
+    results.distance = -Length(results.normal);
     results.normal /= results.distance > GJK_MIN_DISTANCE ? results.distance : 1;
     return (true);
   } else {
@@ -851,13 +851,13 @@ bool GJKCollide(const ConvexShape& shape0,
   m_lastUsedMethod = -1;
 
   {
-    real squaredDistance = LARGE_REAL;
+    real squaredDistance = C_LARGE_REAL;
     real delta = 0.0;
     real margin = marginA + marginB;
     m_simplexSolver->reset();
     for (;;) {
-      real3 seperatingAxisInA = quatRotateT(-m_cachedSeparatingAxis, shapeA.R);
-      real3 seperatingAxisInB = quatRotateT(m_cachedSeparatingAxis, shapeB.R);
+      real3 seperatingAxisInA = RotateT(-m_cachedSeparatingAxis, shapeA.R);
+      real3 seperatingAxisInB = RotateT(m_cachedSeparatingAxis, shapeB.R);
 
       real3 pInA = SupportVertNoMargin(shapeA, seperatingAxisInA, 0);
       real3 qInB = SupportVertNoMargin(shapeB, seperatingAxisInB, 0);
@@ -873,10 +873,10 @@ bool GJKCollide(const ConvexShape& shape0,
       //      qWorld.z);
 
       real3 w = pWorld - qWorld;
-      delta = m_cachedSeparatingAxis.dot(w);
+      delta = Dot(m_cachedSeparatingAxis,w);
 
       // potential exit, they don't overlap
-      if ((delta > real(0.0)) && (delta * delta > squaredDistance * LARGE_REAL)) {
+      if ((delta > real(0.0)) && (delta * delta > squaredDistance * C_LARGE_REAL)) {
         m_degenerateSimplex = 10;
         checkSimplex = true;
         // checkPenetration = false;
@@ -915,7 +915,7 @@ bool GJKCollide(const ConvexShape& shape0,
         break;
       }
 
-      if (newCachedSeparatingAxis.length2() < REL_ERROR2) {
+      if (Dot(newCachedSeparatingAxis) < REL_ERROR2) {
         m_cachedSeparatingAxis = newCachedSeparatingAxis;
         m_degenerateSimplex = 6;
         checkSimplex = true;
@@ -923,11 +923,11 @@ bool GJKCollide(const ConvexShape& shape0,
       }
 
       real previousSquaredDistance = squaredDistance;
-      squaredDistance = newCachedSeparatingAxis.length2();
+      squaredDistance = Dot(newCachedSeparatingAxis);
       m_cachedSeparatingAxis = newCachedSeparatingAxis;
       // are we getting any closer ?
 
-      if (previousSquaredDistance - squaredDistance <= ZERO_EPSILON * previousSquaredDistance) {
+      if (previousSquaredDistance - squaredDistance <= C_EPSILON * previousSquaredDistance) {
         m_simplexSolver->backup_closest(m_cachedSeparatingAxis);
         checkSimplex = true;
         m_degenerateSimplex = 12;
@@ -953,13 +953,13 @@ bool GJKCollide(const ConvexShape& shape0,
     if (checkSimplex) {
       m_simplexSolver->compute_points(pointOnA, pointOnB);
       normalInB = pointOnA - pointOnB;
-      real lenSqr = m_cachedSeparatingAxis.length2();
+      real lenSqr = Dot(m_cachedSeparatingAxis);
 
       // valid normal
       if (lenSqr < 0.0001) {
         m_degenerateSimplex = 5;
       }
-      if (lenSqr > ZERO_EPSILON * ZERO_EPSILON) {
+      if (lenSqr > C_EPSILON * C_EPSILON) {
         real rlen = real(1.) / Sqrt(lenSqr);
         normalInB *= rlen;  // normalize
         real s = Sqrt(squaredDistance);
@@ -968,7 +968,7 @@ bool GJKCollide(const ConvexShape& shape0,
         pointOnB += m_cachedSeparatingAxis * (marginB / s);
         distance = ((real(1.) / rlen) - margin);
 
-        // distance = dot(m_cachedSeparatingAxis, pointOnB - pointOnA);
+        // distance = Dot(m_cachedSeparatingAxis, pointOnB - pointOnA);
 
         isValid = true;
 
@@ -995,15 +995,15 @@ bool GJKCollide(const ConvexShape& shape0,
 
       if (isValid2) {
         real3 tmpNormalInB = tmpPointOnB - tmpPointOnA;
-        real lenSqr = tmpNormalInB.length2();
-        if (lenSqr <= (ZERO_EPSILON * ZERO_EPSILON)) {
+        real lenSqr = Dot(tmpNormalInB);
+        if (lenSqr <= (C_EPSILON * C_EPSILON)) {
           tmpNormalInB = m_cachedSeparatingAxis;
-          lenSqr = m_cachedSeparatingAxis.length2();
+          lenSqr = Dot(m_cachedSeparatingAxis);
         }
 
-        if (lenSqr > (ZERO_EPSILON * ZERO_EPSILON)) {
+        if (lenSqr > (C_EPSILON * C_EPSILON)) {
           tmpNormalInB /= Sqrt(lenSqr);
-          real distance2 = -real3(tmpPointOnA - tmpPointOnB).length();
+          real distance2 = -Length(tmpPointOnA - tmpPointOnB);
           // only replace valid penetrations when the result is deeper (check)
           if (!isValid || (distance2 < distance)) {
             distance = distance2;
@@ -1025,8 +1025,8 @@ bool GJKCollide(const ConvexShape& shape0,
         /// thanks to Jacob.Langford for the reproduction case
         /// http://code.google.com/p/bullet/issues/detail?id=250
 
-        if (m_cachedSeparatingAxis.length2() > real(0.)) {
-          real distance2 = real3(tmpPointOnA - tmpPointOnB).length() - margin;
+        if (Dot(m_cachedSeparatingAxis) > real(0.)) {
+          real distance2 = Length(tmpPointOnA - tmpPointOnB) - margin;
           // only replace valid distances when the distance is less
           if (!isValid || (distance2 < distance)) {
             distance = distance2;
@@ -1035,7 +1035,7 @@ bool GJKCollide(const ConvexShape& shape0,
             pointOnA -= m_cachedSeparatingAxis * marginA;
             pointOnB += m_cachedSeparatingAxis * marginB;
             normalInB = m_cachedSeparatingAxis;
-            normalInB.normalize();
+            Normalize(normalInB);
             isValid = true;
             m_lastUsedMethod = 6;
           } else {
@@ -1050,7 +1050,7 @@ bool GJKCollide(const ConvexShape& shape0,
 
   // printf("last Method: %d", m_lastUsedMethod);
 
-  if (isValid && ((distance < 0) || (distance * distance < LARGE_REAL)) && distance < (marginA + marginB + envelope) ) {
+  if (isValid && ((distance < 0) || (distance * distance < C_LARGE_REAL)) && distance < (marginA + marginB + envelope) ) {
     m_cachedSeparatingAxis = normalInB;
     m_cachedSeparatingDistance = distance;
 
@@ -1076,7 +1076,7 @@ void GJKPerturbedCollide(const ConvexShape& shapeA,
     real3 v0, v1;
     real3 sepNormalWorldSpace;
 
-    sepNormalWorldSpace = m_cachedSeparatingAxis.normalize();
+    sepNormalWorldSpace = Normalize(m_cachedSeparatingAxis);
     PlaneSpace1(sepNormalWorldSpace, v0, v1);
 
     bool perturbeA = true;
@@ -1085,10 +1085,10 @@ void GJKPerturbedCollide(const ConvexShape& shapeA,
     real radiusA = GetAngularMotionDisc(shapeA);
     real radiusB = GetAngularMotionDisc(shapeB);
     if (radiusA < radiusB) {
-      perturbeAngle = ZERO_EPSILON / radiusA;
+      perturbeAngle = C_EPSILON / radiusA;
       perturbeA = true;
     } else {
-      perturbeAngle = ZERO_EPSILON / radiusB;
+      perturbeAngle = C_EPSILON / radiusB;
       perturbeA = false;
     }
     if (perturbeAngle > angleLimit)
@@ -1105,18 +1105,18 @@ void GJKPerturbedCollide(const ConvexShape& shapeA,
     ConvexShape pShapeB = shapeB;
 
     for (i = 0; i < m_numPerturbationIterations; i++) {
-      if (v0.length2() > ZERO_EPSILON) {
-        real4 perturbeRot = Q_from_AngAxis(perturbeAngle, v0);
+      if (Dot(v0) > C_EPSILON) {
+    	quaternion perturbeRot = Q_from_AngAxis(perturbeAngle, v0);
         real iterationAngle = i * (CH_C_PI / real(m_numPerturbationIterations));
-        real4 rotq = Q_from_AngAxis(iterationAngle, sepNormalWorldSpace);
+        quaternion rotq = Q_from_AngAxis(iterationAngle, sepNormalWorldSpace);
 
         if (perturbeA) {
-          pShapeA.R = ((~rotq) % perturbeRot % rotq) % shapeA.R;
+          pShapeA.R = Mult(Mult(Mult(~rotq , perturbeRot) , rotq) , shapeA.R);
           pShapeB.R = shapeB.R;
 
         } else {
           pShapeA.R = shapeA.R;
-          pShapeB.R = ((~rotq) % perturbeRot % rotq) % shapeB.R;
+          pShapeB.R = Mult(Mult(Mult(~rotq , perturbeRot) , rotq) , shapeB.R);
         }
 
         ContactManifold perturbed_manifold;

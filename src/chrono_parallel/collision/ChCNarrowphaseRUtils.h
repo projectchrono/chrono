@@ -31,8 +31,8 @@ namespace collision {
 real3 face_normal(const real3& A, const real3& B, const real3& C) {
   real3 v1 = B - A;
   real3 v2 = C - A;
-  real3 n = cross(v1, v2);
-  real len = length(n);
+  real3 n = Cross(v1, v2);
+  real len = Length(n);
 
   return n / len;
 }
@@ -51,8 +51,8 @@ bool snap_to_face(const real3& A, const real3& B, const real3& C, const real3& P
 
   // Check if P in vertex region outside A
   real3 AP = P - A;
-  real d1 = dot(AB, AP);
-  real d2 = dot(AC, AP);
+  real d1 = Dot(AB, AP);
+  real d2 = Dot(AC, AP);
   if (d1 <= 0 && d2 <= 0) {
     res = A;  // barycentric coordinates (1,0,0)
     return true;
@@ -60,8 +60,8 @@ bool snap_to_face(const real3& A, const real3& B, const real3& C, const real3& P
 
   // Check if P in vertex region outside B
   real3 BP = P - B;
-  real d3 = dot(AB, BP);
-  real d4 = dot(AC, BP);
+  real d3 = Dot(AB, BP);
+  real d4 = Dot(AC, BP);
   if (d3 >= 0 && d4 <= d3) {
     res = B;  // barycentric coordinates (0,1,0)
     return true;
@@ -78,8 +78,8 @@ bool snap_to_face(const real3& A, const real3& B, const real3& C, const real3& P
 
   // Check if P in vertex region outside C
   real3 CP = P - C;
-  real d5 = dot(AB, CP);
-  real d6 = dot(AC, CP);
+  real d5 = Dot(AB, CP);
+  real d6 = Dot(AC, CP);
   if (d6 >= 0 && d5 <= d6) {
     res = C;  // barycentric coordinates (0,0,1)
     return true;
@@ -225,68 +225,68 @@ uint box_closest_feature(const real3& dir) {
 //
 // This check is performed by testing 15 possible separating planes between the
 // two boxes (Gottschalk, Lin, Manocha - Siggraph96).
-bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& pos, const real4& rot, real3& dir) {
-  M33 R = AMat(rot);
-  M33 Rabs = AbsMat(R);
+bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& pos, const quaternion& rot, real3& dir) {
+  Mat33 R (rot);
+  Mat33 Rabs = Abs(R);
   real minOverlap = FLT_MAX;
   real overlap;
   real r1, r2;
 
   // 1. Test the axes of box1 (3 cases)
   // x-axis
-  r2 = Rabs.U.x * hdims2.x + Rabs.V.x * hdims2.y + Rabs.W.x * hdims2.z;
+  r2 = Rabs.cols[0].x * hdims2.x + Rabs.cols[1].x * hdims2.y + Rabs.cols[2].x * hdims2.z;
   overlap = hdims1.x + r2 - Abs(pos.x);
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
-    dir = R3(1, 0, 0);
+    dir = real3(1, 0, 0);
     minOverlap = overlap;
   }
   // y-axis
-  r2 = Rabs.U.y * hdims2.x + Rabs.V.y * hdims2.y + Rabs.W.y * hdims2.z;
+  r2 = Rabs.cols[0].y * hdims2.x + Rabs.cols[1].y * hdims2.y + Rabs.cols[2].y * hdims2.z;
   overlap = hdims1.y + r2 - Abs(pos.y);
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
-    dir = R3(0, 1, 0);
+    dir = real3(0, 1, 0);
     minOverlap = overlap;
   }
   // z-axis
-  r2 = Rabs.U.z * hdims2.x + Rabs.V.z * hdims2.y + Rabs.W.z * hdims2.z;
+  r2 = Rabs.cols[0].z * hdims2.x + Rabs.cols[1].z * hdims2.y + Rabs.cols[2].z * hdims2.z;
   overlap = hdims1.z + r2 - Abs(pos.z);
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
-    dir = R3(0, 0, 1);
+    dir = real3(0, 0, 1);
     minOverlap = overlap;
   }
 
   // 2. Test the axes of box2 (3 cases)
   // x-axis
-  r1 = dot(Rabs.U, hdims1);
-  overlap = r1 + hdims2.x - Abs(dot(R.U, pos));
+  r1 = Dot(Rabs.cols[0], hdims1);
+  overlap = r1 + hdims2.x - Abs(Dot(R.cols[0], pos));
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
-    dir = R.U;
+    dir = R.cols[0];
     minOverlap = overlap;
   }
   // y-axis
-  r1 = dot(Rabs.V, hdims1);
-  overlap = r1 + hdims2.y - Abs(dot(R.V, pos));
+  r1 = Dot(Rabs.cols[1], hdims1);
+  overlap = r1 + hdims2.y - Abs(Dot(R.cols[1], pos));
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
-    dir = R.V;
+    dir = R.cols[1];
     minOverlap = overlap;
   }
   // z-axis
-  r1 = dot(Rabs.W, hdims1);
-  overlap = r1 + hdims2.z - Abs(dot(R.W, pos));
+  r1 = Dot(Rabs.cols[2], hdims1);
+  overlap = r1 + hdims2.z - Abs(Dot(R.cols[2], pos));
   if (overlap <= 0)
     return false;
   if (overlap < minOverlap) {
-    dir = R.W;
+    dir = R.cols[2];
     minOverlap = overlap;
   }
 

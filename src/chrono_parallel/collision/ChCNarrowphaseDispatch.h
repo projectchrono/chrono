@@ -47,7 +47,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
 
  private:
   host_vector<real3> obj_data_A_global, obj_data_B_global, obj_data_C_global;  //
-  host_vector<real4> obj_data_R_global;
+  host_vector<quaternion> obj_data_R_global;
   host_vector<bool> contact_rigid_active;
   host_vector<bool> contact_rigid_fluid_active;
   host_vector<bool> contact_fluid_active;

@@ -35,7 +35,7 @@ real3 grad_cubic_spline(const real3& dist, const real d, const real& h) {
   if (q < 2) {
     return (-q + 4.0f - 4.0f / q) * .75f * (INVPI)*powf(h, -5) * dist;
   }
-  return 0;
+  return real3(0);
 }
 real poly6(const real& dist, const real& h) {
   return (dist <= h) * 315.0 / (64.0 * F_PI * pow(h, 9)) * pow((h * h - dist * dist), 3);
@@ -57,7 +57,7 @@ real3 viscosity(const real3& dist, const real d, const real& h) {
          (-(d * d * d) / (2 * h * h * h) + (d * d) / (h * h) + (h) / (2 * d) - 1) * dist;
 }
 real3 grad2_viscosity(const real3& dist, const real d, const real& h) {
-  return (d <= h) * 45.0 / (F_PI * pow(h, 6)) * (h - d);
+  return real3((d <= h) * 45.0 / (F_PI * pow(h, 6)) * (h - d));
 }
 
 ////-----------------------------------------------------------------------------------------------------
@@ -81,15 +81,14 @@ real grad2_poly6(const real& dist, const real& h) {
 #define SS(alpha) mrho* vij.alpha
 #define TT(beta) grad.beta
 
-M33 ComputeShearTensor(const real& mrho, const real3& grad, const real3& vij) {
-  real3 U = -.5 * R3(2 * SS(x) * TT(x), (SS(y) * TT(x) + SS(x) * TT(y)), (SS(z) * TT(x) + SS(x) * TT(z)));
-  real3 V = -.5 * R3((SS(x) * TT(y) + SS(y) * TT(x)), 2 * SS(y) * TT(y), (SS(z) * TT(y) + SS(y) * TT(z)));
-  real3 W = -.5 * R3((SS(x) * TT(z) + SS(z) * TT(x)), (SS(y) * TT(z) + SS(z) * TT(y)), 2 * SS(z) * TT(z));
-  return M33(U, V, W);
+Mat33 ComputeShearTensor(const real& mrho, const real3& grad, const real3& vij) {
+  real3 U = -.5 * real3(2 * SS(x) * TT(x), (SS(y) * TT(x) + SS(x) * TT(y)), (SS(z) * TT(x) + SS(x) * TT(z)));
+  real3 V = -.5 * real3((SS(x) * TT(y) + SS(y) * TT(x)), 2 * SS(y) * TT(y), (SS(z) * TT(y) + SS(y) * TT(z)));
+  real3 W = -.5 * real3((SS(x) * TT(z) + SS(z) * TT(x)), (SS(y) * TT(z) + SS(z) * TT(y)), 2 * SS(z) * TT(z));
+  return Mat33(U, V, W);
 
   //  return (VectorxVector(mrho * vij, grad) + VectorxVector(grad, mrho * vij)) * -.5;
 }
-
 
 //// Compute ||T||  = sqrt((1/2*Trace((shear*Transpose(shear)))))
 // real ComputeShearTensorNorm(const real& mrho, const real3& grad, const real3& vij) {
@@ -104,7 +103,6 @@ M33 ComputeShearTensor(const real& mrho, const real3& grad, const real3& vij) {
 //             2 * SS(y) * TT(z) * SS(z) * TT(y) + t5 * t19 + 2 * t13 * t19;
 //  return sqrt(t31) * 0.5;
 //}
-
 }
 
 #endif

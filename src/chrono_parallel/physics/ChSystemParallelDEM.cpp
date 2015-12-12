@@ -33,16 +33,16 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
   data_manager->host_data.mass_rigid.push_back(0);
 
   if (data_manager->settings.solver.use_material_properties) {
-    data_manager->host_data.elastic_moduli.push_back(R2(0, 0));
+    data_manager->host_data.elastic_moduli.push_back(real2(0, 0));
     data_manager->host_data.cr.push_back(0);
   } else {
-    data_manager->host_data.dem_coeffs.push_back(R4(0, 0, 0, 0));
+    data_manager->host_data.dem_coeffs.push_back(real4(0, 0, 0, 0));
   }
 
   if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
     for (int i = 0; i < max_shear; i++) {
       data_manager->host_data.shear_neigh.push_back(I3(-1, -1, -1));
-      data_manager->host_data.shear_disp.push_back(R3(0, 0, 0));
+      data_manager->host_data.shear_disp.push_back(real3(0, 0, 0));
     }
   }
 }
@@ -69,10 +69,10 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
   adhesionMult[index] = mat_ptr->GetAdhesionMultDMT();
 
   if (data_manager->settings.solver.use_material_properties) {
-    elastic_moduli[index] = R2(mat_ptr->GetYoungModulus(), mat_ptr->GetPoissonRatio());
+    elastic_moduli[index] = real2(mat_ptr->GetYoungModulus(), mat_ptr->GetPoissonRatio());
     cr[index] = mat_ptr->GetRestitution();
   } else {
-    dem_coeffs[index] = R4(mat_ptr->GetKn(), mat_ptr->GetKt(), mat_ptr->GetGn(), mat_ptr->GetGt());
+    dem_coeffs[index] = real4(mat_ptr->GetKn(), mat_ptr->GetKt(), mat_ptr->GetGn(), mat_ptr->GetGt());
   }
 }
 
@@ -93,7 +93,7 @@ real3 ChSystemParallelDEM::GetBodyContactForce(uint body_id) const {
   int index = data_manager->host_data.ct_body_map[body_id];
 
   if (index == -1)
-    return R3(0);
+    return real3(0);
 
   return data_manager->host_data.ct_body_force[index];
 }
@@ -102,7 +102,7 @@ real3 ChSystemParallelDEM::GetBodyContactTorque(uint body_id) const {
   int index = data_manager->host_data.ct_body_map[body_id];
 
   if (index == -1)
-    return R3(0);
+    return real3(0);
 
   return data_manager->host_data.ct_body_torque[index];
 }

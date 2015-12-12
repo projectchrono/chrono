@@ -4,38 +4,38 @@
 #include "collision/ChCCollisionModel.h"
 namespace chrono {
 namespace collision {
-inline real3 GetSupportPoint_Sphere(const real3& B, const real3& n) {
+inline real3 GetSupportPoint_Sphere(const real& radius, const real3& n) {
   // real3 b = real3(B.x);
   // return b * b * n / length(b * n);
   // the ellipsoid support function provides a cleaner solution for some reason
-  return B.x * n;
+  return radius * n;
 }
 inline real3 GetSupportPoint_Triangle(const real3& A, const real3& B, const real3& C, const real3& n) {
-  real dist = dot(A, n);
+  real dist = Dot(A, n);
   real3 point = A;
 
-  if (dot(B, n) > dist) {
-    dist = dot(B, n);
+  if (Dot(B, n) > dist) {
+    dist = Dot(B, n);
     point = B;
   }
 
-  if (dot(C, n) > dist) {
-    dist = dot(C, n);
+  if (Dot(C, n) > dist) {
+    dist = Dot(C, n);
     point = C;
   }
 
   return point;
 }
 inline real3 GetSupportPoint_Box(const real3& B, const real3& n) {
-  real3 result = R3(0, 0, 0);
-  result.x = sign(n.x) * B.x;
-  result.y = sign(n.y) * B.y;
-  result.z = sign(n.z) * B.z;
+  real3 result = real3(0);
+  result.x = Sign(n.x) * B.x;
+  result.y = Sign(n.y) * B.y;
+  result.z = Sign(n.z) * B.z;
   return result;
 }
 inline real3 GetSupportPoint_Ellipsoid(const real3& B, const real3& n) {
   real3 normal = n;
-  real3 result = B * B * normal / length(B * normal);
+  real3 result = B * B * normal / Length(B * normal);
   // cout << result.x << " " << result.y << " " << result.z<<endl;
   return result;
 
@@ -48,13 +48,13 @@ inline real3 GetSupportPoint_Ellipsoid(const real3& B, const real3& n) {
 
 inline real3 GetSupportPoint_Cylinder(const real3& B, const real3& n) {
   //   real3 u = R3(0, 1, 0);
-  //   real3 w = n - (dot(u, n)) * u;
+  //   real3 w = n - (Dot(u, n)) * u;
   //   real3 result;
   //
   //   if (length(w) != 0) {
-  //      result = sign(dot(u, n)) * B.y * u + B.x * normalize(w);
+  //      result = sign(Dot(u, n)) * B.y * u + B.x * normalize(w);
   //   } else {
-  //      result = sign(dot(u, n)) * B.y * u;
+  //      result = sign(Dot(u, n)) * B.y * u;
   //   }
   // return result;
   real s = Sqrt(n.x * n.x + n.z * n.z);
@@ -87,8 +87,8 @@ inline real3 GetSupportPoint_Cone(const real3& B, const real3& n) {
 
   real m_sinAngle = (radius / Sqrt(radius * radius + height * height));
 
-  if (n.y > length(n) * m_sinAngle) {
-    return R3(0, height / 2.0, 0);
+  if (n.y > Length(n) * m_sinAngle) {
+    return real3(0, height / 2.0, 0);
   } else {
     real s = Sqrt(n.x * n.x + n.z * n.z);
     if (s > 1e-9) {
@@ -107,18 +107,18 @@ inline real3 GetSupportPoint_Cone(const real3& B, const real3& n) {
   }
 }
 inline real3 GetSupportPoint_Seg(const real3& B, const real3& n) {
-  real3 result = R3(0, 0, 0);
-  result.x = sign(n.x) * B.x;
+  real3 result = real3(0);
+  result.x = Sign(n.x) * B.x;
 
   return result;
 }
 inline real3 GetSupportPoint_Capsule(const real3& B, const real3& n) {
-  return GetSupportPoint_Seg(B, n) + GetSupportPoint_Sphere(R3(B.y), n);
+  return GetSupportPoint_Seg(B, n) + GetSupportPoint_Sphere(B.y, n);
 }
 
 inline real3 GetSupportPoint_Disk(const real3& B, const real3& n) {
-  real3 n2 = R3(n.x, n.y, 0);
-  n2 = normalize(n2);
+  real3 n2 = real3(n.x, n.y, 0);
+  n2 = Normalize(n2);
 
   real3 result = B.x * n2;
 
@@ -126,28 +126,28 @@ inline real3 GetSupportPoint_Disk(const real3& B, const real3& n) {
 }
 
 inline real3 GetSupportPoint_Rect(const real3& B, const real3& n) {
-  real3 result = R3(0, 0, 0);
-  result.x = sign(n.x) * B.x;
-  result.z = sign(n.z) * B.z;
+  real3 result = real3(0);
+  result.x = Sign(n.x) * B.x;
+  result.z = Sign(n.z) * B.z;
   return result;
 }
 
 inline real3 GetSupportPoint_RoundedBox(const real3& B, const real3& C, const real3& n) {
-  return GetSupportPoint_Box(B, n) + GetSupportPoint_Sphere(R3(C.x), n);
+  return GetSupportPoint_Box(B, n) + GetSupportPoint_Sphere(C.x, n);
 }
 inline real3 GetSupportPoint_RoundedCylinder(const real3& B, const real3& C, const real3& n) {
-  return GetSupportPoint_Cylinder(B, n) + GetSupportPoint_Sphere(R3(C.x), n);
+  return GetSupportPoint_Cylinder(B, n) + GetSupportPoint_Sphere(C.x, n);
 }
 inline real3 GetSupportPoint_RoundedCone(const real3& B, const real3& C, const real3& n) {
-  return GetSupportPoint_Cone(B, n) + GetSupportPoint_Sphere(R3(C.x), n);
+  return GetSupportPoint_Cone(B, n) + GetSupportPoint_Sphere(C.x, n);
 }
 
 inline real3 GetSupportPoint_Convex(const real3& B, const real3* convex_data, const real3& n) {
-  real max_dot_p = -LARGE_REAL;
+  real max_dot_p = -C_LARGE_REAL;
   real dot_p;
   real3 point = convex_data[int(B.y)];
   for (int i = B.y; i < B.y + B.x; i++) {
-    dot_p = convex_data[i].dot(n);
+    dot_p = Dot(convex_data[i],n);
     if (dot_p > max_dot_p) {
       max_dot_p = dot_p;
       point = convex_data[i];
@@ -157,25 +157,25 @@ inline real3 GetSupportPoint_Convex(const real3& B, const real3* convex_data, co
 }
 
 inline real3 GetCenter_Sphere() {
-  return ZERO_VECTOR;
+  return real3(0);
 }
 inline real3 GetCenter_Triangle(const real3& A, const real3& B, const real3& C) {
-  return R3((A.x + B.x + C.x) / 3.0f, (A.y + B.y + C.y) / 3.0f, (A.z + B.z + C.z) / 3.0f);
+  return real3((A.x + B.x + C.x) / real(3.0), (A.y + B.y + C.y) / real(3.0), (A.z + B.z + C.z) / real(3.0));
 }
 inline real3 GetCenter_Box() {
-  return ZERO_VECTOR;
+  return real3(0);
 }
 inline real3 GetCenter_Ellipsoid() {
-  return ZERO_VECTOR;
+  return real3(0);
 }
 inline real3 GetCenter_Cylinder() {
-  return ZERO_VECTOR;
+  return real3(0);
 }
 inline real3 GetCenter_Plane() {
-  return ZERO_VECTOR;
+  return real3(0);
 }
 inline real3 GetCenter_Cone(const real3& B) {
-  return ZERO_VECTOR;
+  return real3(0);
 }
 inline real3 GetCenter_Convex(const real3& B, const real3* convex_data) {
   real3 point(0);
@@ -186,10 +186,10 @@ inline real3 GetCenter_Convex(const real3& B, const real3* convex_data) {
 }
 inline real3 SupportVertNoMargin(const chrono::collision::ConvexShape& Shape, const real3& nv, const real& envelope) {
   real3 localSupport;
-  real3 n = nv.normalize();
+  real3 n = Normalize(nv);
   switch (Shape.type) {
     case chrono::collision::SPHERE:
-      localSupport = GetSupportPoint_Sphere(Shape.B, n);
+      localSupport = GetSupportPoint_Sphere(Shape.B.x, n);
       break;
     case chrono::collision::ELLIPSOID:
       localSupport = GetSupportPoint_Ellipsoid(Shape.B, n);
@@ -228,10 +228,10 @@ inline real3 SupportVertNoMargin(const chrono::collision::ConvexShape& Shape, co
 
 inline real3 SupportVert(const chrono::collision::ConvexShape& Shape, const real3& nv, const real& envelope) {
   real3 localSupport;
-  real3 n = nv.normalize();
+  real3 n = Normalize(nv);
   switch (Shape.type) {
     case chrono::collision::SPHERE:
-      localSupport = GetSupportPoint_Sphere(Shape.B - Shape.margin, n);
+      localSupport = GetSupportPoint_Sphere(Shape.B.x - Shape.margin, n);
       break;
     case chrono::collision::ELLIPSOID:
       localSupport = GetSupportPoint_Ellipsoid(Shape.B - Shape.margin, n);
@@ -269,7 +269,7 @@ inline real3 SupportVert(const chrono::collision::ConvexShape& Shape, const real
 }
 
 inline real3 LocalSupportVert(const chrono::collision::ConvexShape& Shape, const real3& n, const real& envelope) {
-  real3 rotated_n = quatRotateT(n, Shape.R);
+  real3 rotated_n = RotateT(n, Shape.R);
   return SupportVertNoMargin(Shape, rotated_n, envelope);
 }
 
@@ -302,10 +302,10 @@ inline void GetBoundingSphere(const chrono::collision::ConvexShape& Shape, real3
       disc = Shape.B.x;
       break;
     case chrono::collision::ELLIPSOID:
-      disc = max3(Shape.B);
+      disc = Max(Shape.B);
       break;
     case chrono::collision::BOX:
-      disc = length(Shape.B);
+      disc = Length(Shape.B);
       break;
     case chrono::collision::CYLINDER:
       disc = Sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y);
@@ -317,7 +317,7 @@ inline void GetBoundingSphere(const chrono::collision::ConvexShape& Shape, real3
       disc = Shape.B.x + Shape.B.y;
       break;
     case chrono::collision::ROUNDEDBOX:
-      disc = length(Shape.B) + Shape.C.x;
+      disc = Length(Shape.B) + Shape.C.x;
       break;
     case chrono::collision::ROUNDEDCYL:
       disc = Sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y) + Shape.C.x;
@@ -332,7 +332,7 @@ inline real GetAngularMotionDisc(const chrono::collision::ConvexShape& Shape) {
   real3 center;
   real disc;
   GetBoundingSphere(Shape, center, disc);
-  disc += (center).length();
+  disc += Length(center);
   return disc;
 }
 }

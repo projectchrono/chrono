@@ -376,7 +376,7 @@ bool sphere_sphere(const real3& pos1,
                    real3& pt2,
                    real& eff_radius) {
   real3 delta = pos2 - pos1;
-  real dist2 = dot(delta, delta);
+  real dist2 = Dot(delta, delta);
   real radSum = radius1 + radius2;
   real radSum_s = radSum + separation;
 
@@ -407,7 +407,7 @@ bool sphere_sphere(const real3& pos1,
 //      sphere centered at pos2 with radius2
 
 bool capsule_sphere(const real3& pos1,
-                    const real4& rot1,
+                    const quaternion& rot1,
                     const real& radius1,
                     const real& hlen1,
                     const real3& pos2,
@@ -422,8 +422,8 @@ bool capsule_sphere(const real3& pos1,
   // capsule's centerline and clamp the resulting location to the extent
   // of the capsule length.
   real3 V = AMatV(rot1);
-  real alpha = dot(pos2 - pos1, V);
-  alpha = clamp(alpha, -hlen1, hlen1);
+  real alpha = Dot(pos2 - pos1, V);
+  alpha = Clamp(alpha, -hlen1, hlen1);
 
   real3 loc = pos1 + alpha * V;
 
@@ -435,7 +435,7 @@ bool capsule_sphere(const real3& pos1,
   real radSum = radius1 + radius2;
   real radSum_s = radSum + separation;
   real3 delta = pos2 - loc;
-  real dist2 = dot(delta, delta);
+  real dist2 = Dot(delta, delta);
 
   if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
     return false;
@@ -460,7 +460,7 @@ bool capsule_sphere(const real3& pos1,
 //      sphere centered at pos2 with radius2
 
 bool cylinder_sphere(const real3& pos1,
-                     const real4& rot1,
+                     const quaternion& rot1,
                      const real& radius1,
                      const real& hlen1,
                      const real3& pos2,
@@ -488,7 +488,7 @@ bool cylinder_sphere(const real3& pos1,
   // closest point, in which case we couldn't decide on the proper contact
   // direction.
   real3 delta = spherePos - cylPos;
-  real dist2 = dot(delta, delta);
+  real dist2 = Dot(delta, delta);
   real radius2_s = radius2 + separation;
 
   if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
@@ -497,7 +497,7 @@ bool cylinder_sphere(const real3& pos1,
   // Generate contact information
   real dist = Sqrt(dist2);
   depth = dist - radius2;
-  norm = quatRotateMat(delta / dist, rot1);
+  norm = Rotate(delta / dist, rot1);
   pt1 = TransformLocalToParent(pos1, rot1, cylPos);
   pt2 = pos2 - norm * radius2;
 
@@ -526,7 +526,7 @@ bool cylinder_sphere(const real3& pos1,
 //      sphere centered at pos2 with radius2
 
 bool roundedcyl_sphere(const real3& pos1,
-                       const real4& rot1,
+                       const quaternion& rot1,
                        const real& radius1,
                        const real& hlen1,
                        const real& srad1,
@@ -560,7 +560,7 @@ bool roundedcyl_sphere(const real3& pos1,
   real radSum = srad1 + radius2;
   real radSum_s = radSum + separation;
   real3 delta = spherePos - cylPos;
-  real dist2 = dot(delta, delta);
+  real dist2 = Dot(delta, delta);
 
   if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
     return false;
@@ -568,7 +568,7 @@ bool roundedcyl_sphere(const real3& pos1,
   // Generate contact information.
   real dist = Sqrt(dist2);
   depth = dist - radSum;
-  norm = quatRotateMat(delta / dist, rot1);
+  norm = Rotate(delta / dist, rot1);
   pt2 = pos2 - norm * radius2;
   pt1 = pt2 - depth * norm;
 
@@ -595,7 +595,7 @@ bool roundedcyl_sphere(const real3& pos1,
 //      sphere centered at pos2 and with radius2
 
 bool box_sphere(const real3& pos1,
-                const real4& rot1,
+                const quaternion& rot1,
                 const real3& hdims1,
                 const real3& pos2,
                 const real& radius2,
@@ -618,7 +618,7 @@ bool box_sphere(const real3& pos1,
   // closest point, in which case we couldn't decide on the proper contact
   // direction.
   real3 delta = spherePos - boxPos;
-  real dist2 = dot(delta, delta);
+  real dist2 = Dot(delta, delta);
   real radius2_s = radius2 + separation;
 
   if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
@@ -627,7 +627,7 @@ bool box_sphere(const real3& pos1,
   // Generate contact information
   real dist = Sqrt(dist2);
   depth = dist - radius2;
-  norm = quatRotateMat(delta / dist, rot1);
+  norm = Rotate(delta / dist, rot1);
   pt1 = TransformLocalToParent(pos1, rot1, boxPos);
   pt2 = pos2 - norm * radius2;
 
@@ -649,7 +649,7 @@ bool box_sphere(const real3& pos1,
 //      sphere centered at pos2 and with radius2
 
 bool roundedbox_sphere(const real3& pos1,
-                       const real4& rot1,
+                       const quaternion& rot1,
                        const real3& hdims1,
                        const real& srad1,
                        const real3& pos2,
@@ -677,7 +677,7 @@ bool roundedbox_sphere(const real3& pos1,
   real radSum = srad1 + radius2;
   real radSum_s = radSum + separation;
   real3 delta = spherePos - boxPos;
-  real dist2 = dot(delta, delta);
+  real dist2 = Dot(delta, delta);
 
   if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
     return false;
@@ -685,7 +685,7 @@ bool roundedbox_sphere(const real3& pos1,
   // Generate contact information.
   real dist = Sqrt(dist2);
   depth = dist - radSum;
-  norm = quatRotateMat(delta / dist, rot1);
+  norm = Rotate(delta / dist, rot1);
   pt2 = pos2 - norm * radius2;
   pt1 = pt2 - depth * norm;
 
@@ -723,7 +723,7 @@ bool face_sphere(const real3& A1,
   // Calculate signed height of sphere center above face plane. If the
   // height is larger than the sphere radius plus the separation value
   // or if the sphere center is below the plane, there is no contact.
-  real h = dot(pos2 - A1, nrm1);
+  real h = Dot(pos2 - A1, nrm1);
 
   if (h >= radius2_s || h <= 0)
     return false;
@@ -739,7 +739,7 @@ bool face_sphere(const real3& A1,
     // the sphere center (almost) coincides with the closest point, in
     // which case we couldn't decide on the proper contact direction.
     real3 delta = pos2 - faceLoc;
-    real dist2 = dot(delta, delta);
+    real dist2 = Dot(delta, delta);
 
     if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
       return false;
@@ -772,11 +772,11 @@ bool face_sphere(const real3& A1,
 // Note: a capsule-capsule collision may return 0, 1, or 2 contacts
 
 int capsule_capsule(const real3& pos1,
-                    const real4& rot1,
+                    const quaternion& rot1,
                     const real& radius1,
                     const real& hlen1,
                     const real3& pos2,
-                    const real4& rot2,
+                    const quaternion& rot2,
                     const real& radius2,
                     const real& hlen2,
                     const real& separation,
@@ -786,8 +786,8 @@ int capsule_capsule(const real3& pos1,
                     real3* pt2,
                     real* eff_radius) {
   // Express the second capule in the frame of the first one.
-  real3 pos = quatRotateMatT(pos2 - pos1, rot1);
-  real4 rot = mult(inv(rot1), rot2);
+  real3 pos = RotateT(pos2 - pos1, rot1);
+  quaternion rot = Mult(Inv(rot1), rot2);
 
   // Unit vectors along capsule axes.
   real3 V1 = AMatV(rot1);  // capsule1 in the global frame
@@ -823,37 +823,37 @@ int capsule_capsule(const real3& pos1,
       // potential contacts.
       numLocs = 2;
       locs1[0] = pos1 + locs[0] * V1;
-      locs2[0] = TransformLocalToParent(pos1, rot1, R3(pos.x, locs[0], pos.z));
+      locs2[0] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[0], pos.z));
       locs1[1] = pos1 + locs[1] * V1;
-      locs2[1] = TransformLocalToParent(pos1, rot1, R3(pos.x, locs[1], pos.z));
+      locs2[1] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[1], pos.z));
     } else {
       // There is no overlap between axes. The two closest ends represent
       // a single potential contact.
       numLocs = 1;
       locs1[0] = pos1 + locs[pos.y < 0] * V1;
-      locs2[0] = TransformLocalToParent(pos1, rot1, R3(pos.x, locs[pos.y > 0], pos.z));
+      locs2[0] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[pos.y > 0], pos.z));
     }
   } else {
     // The two capsule axes are not parallel. Find the closest points on the
     // two axes and clamp them to the extents of the their respective capsule.
     // This pair of points represents a single potential contact.
-    real alpha2 = (V.y * pos.y - dot(V, pos)) / denom;
+    real alpha2 = (V.y * pos.y - Dot(V, pos)) / denom;
     real alpha1 = V.y * alpha2 + pos.y;
 
     if (alpha1 < -hlen1) {
       alpha1 = -hlen1;
-      alpha2 = -dot(pos, V) - hlen1 * V.y;
+      alpha2 = -Dot(pos, V) - hlen1 * V.y;
     } else if (alpha1 > hlen1) {
       alpha1 = hlen1;
-      alpha2 = -dot(pos, V) + hlen1 * V.y;
+      alpha2 = -Dot(pos, V) + hlen1 * V.y;
     }
 
     if (alpha2 < -hlen2) {
       alpha2 = -hlen2;
-      alpha1 = clamp(pos.y - hlen2 * V.y, -hlen1, hlen1);
+      alpha1 = Clamp(pos.y - hlen2 * V.y, -hlen1, hlen1);
     } else if (alpha2 > hlen2) {
       alpha2 = hlen2;
-      alpha1 = clamp(pos.y + hlen2 * V.y, -hlen1, hlen1);
+      alpha1 = Clamp(pos.y + hlen2 * V.y, -hlen1, hlen1);
     }
 
     numLocs = 1;
@@ -868,7 +868,7 @@ int capsule_capsule(const real3& pos1,
 
   for (int i = 0; i < numLocs; i++) {
     real3 delta = locs2[i] - locs1[i];
-    real dist2 = dot(delta, delta);
+    real dist2 = Dot(delta, delta);
 
     // If the two sphere centers are separated by more than the sum of their
     // radii plus the separation value, there is no contact. Also ignore
@@ -902,10 +902,10 @@ int capsule_capsule(const real3& pos1,
 // Note: a box-capsule collision may return 0, 1, or 2 contacts
 
 int box_capsule(const real3& pos1,
-                const real4& rot1,
+                const quaternion& rot1,
                 const real3& hdims1,
                 const real3& pos2,
-                const real4& rot2,
+                const quaternion& rot2,
                 const real& radius2,
                 const real& hlen2,
                 const real& separation,
@@ -918,15 +918,15 @@ int box_capsule(const real3& pos1,
 
   // Express the capsule in the frame of the box.
   // (this is a bit cryptic with the functions we have available)
-  real3 pos = quatRotateMatT(pos2 - pos1, rot1);
-  real4 rot = mult(inv(rot1), rot2);
+  real3 pos = RotateT(pos2 - pos1, rot1);
+  quaternion rot = Mult(Inv(rot1), rot2);
   real3 V = AMatV(rot);
 
   // Inflate the box by the radius of the capsule plus the separation value
   // and check if the capsule centerline intersects the expanded box. We do
   // this by clamping the capsule axis to the volume between two parallel
   // faces of the box, considering in turn the x, y, and z faces.
-  real3 hdims1_exp = radius2_s + hdims1;
+  real3 hdims1_exp = hdims1 + radius2_s;
   real tMin = -FLT_MAX;  //// TODO: should define a REAL_MAX to be used here
   real tMax = FLT_MAX;
 
@@ -985,12 +985,12 @@ int box_capsule(const real3& pos1,
 
   for (int i = 0; i < 2; i++) {
     uint code = snap_to_box(hdims1, locs[i]);
-    t[i] = clamp(dot(locs[i] - pos, V), -hlen2, hlen2);
+    t[i] = Clamp(Dot(locs[i] - pos, V), -hlen2, hlen2);
   }
 
   // Check if the two sphere centers coincide (i.e. if we should
   // consider 1 or 2 box-sphere potential contacts)
-  int numSpheres = isEqual(t[0], t[1]) ? 1 : 2;
+  int numSpheres = IsEqual(t[0], t[1]) ? 1 : 2;
 
   // Perform box-sphere tests, and keep track of actual number of contacts.
   int j = 0;
@@ -1010,7 +1010,7 @@ int box_capsule(const real3& pos1,
     // closest point, in which case we couldn't decide on the proper contact
     // direction.
     real3 delta = spherePos - boxPos;
-    real dist2 = dot(delta, delta);
+    real dist2 = Dot(delta, delta);
 
     if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12)
       continue;
@@ -1019,7 +1019,7 @@ int box_capsule(const real3& pos1,
     real dist = Sqrt(dist2);
 
     *(depth + j) = dist - radius2;
-    *(norm + j) = quatRotateMat(delta / dist, rot1);
+    *(norm + j) = Rotate(delta / dist, rot1);
     *(pt1 + j) = TransformLocalToParent(pos1, rot1, boxPos);
     *(pt2 + j) = TransformLocalToParent(pos1, rot1, spherePos) - (*(norm + j)) * radius2;
 
@@ -1043,10 +1043,10 @@ int box_capsule(const real3& pos1,
 //      box at position pos2, with orientation rot2, and half-dimensions hdims2
 
 int box_box(const real3& pos1,
-            const real4& rot1,
+            const quaternion& rot1,
             const real3& hdims1,
             const real3& pos2,
-            const real4& rot2,
+            const quaternion& rot2,
             const real3& hdims2,
             real3* norm,
             real* depth,
@@ -1055,8 +1055,8 @@ int box_box(const real3& pos1,
             real* eff_radius) {
   // Express the second box into the frame of the first box.
   // (this is a bit cryptic with the functions we have available)
-  real3 pos = quatRotateMatT(pos2 - pos1, rot1);
-  real4 rot = mult(inv(rot1), rot2);
+  real3 pos = RotateT(pos2 - pos1, rot1);
+  quaternion rot = Mult(Inv(rot1), rot2);
 
   // Find the direction of closest overlap between boxes. If they don't
   // overlap, we're done. Note that dir is calculated so that it points from
@@ -1065,11 +1065,11 @@ int box_box(const real3& pos1,
   if (!box_intersects_box(hdims1, hdims2, pos, rot, dir))
     return 0;
 
-  if (dot(pos, dir) > 0)
+  if (Dot(pos, dir) > 0)
     dir = -dir;
 
   // Determine the features of the boxes that are interacting.
-  real3 dirI = quatRotateMatT(-dir, rot);
+  real3 dirI = RotateT(-dir, rot);
   real3 corner1 = box_farthest_corner(hdims1, dir);
   real3 corner2 = box_farthest_corner(hdims2, dirI);
   uint code1 = box_closest_feature(dir);

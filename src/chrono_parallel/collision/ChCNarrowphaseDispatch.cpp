@@ -100,11 +100,11 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
     const host_vector<real3>& obj_data_A = data_manager->host_data.ObA_rigid;
     const host_vector<real3>& obj_data_B = data_manager->host_data.ObB_rigid;
     const host_vector<real3>& obj_data_C = data_manager->host_data.ObC_rigid;
-    const host_vector<real4>& obj_data_R = data_manager->host_data.ObR_rigid;
+    const host_vector<quaternion>& obj_data_R = data_manager->host_data.ObR_rigid;
     const host_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
 
     const host_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
-    const host_vector<real4>& body_rot = data_manager->host_data.rot_rigid;
+    const host_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
 
     obj_data_A_global.resize(num_shapes);
     obj_data_B_global.resize(num_shapes);
@@ -119,7 +119,7 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
         uint ID = obj_data_ID[index];
 
         real3 pos = body_pos[ID];  // Get the global object position
-        real4 rot = body_rot[ID];  // Get the global object rotation
+        quaternion rot = body_rot[ID];  // Get the global object rotation
 
         obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
         if (T == TRIANGLEMESH) {
@@ -129,7 +129,7 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
             obj_data_B_global[index] = obj_data_B[index];
             obj_data_C_global[index] = obj_data_C[index];
         }
-        obj_data_R_global[index] = mult(rot, obj_data_R[index]);
+        obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
     }
 }
 
@@ -527,8 +527,8 @@ typedef thrust::pair<real3, real3> bbox;
 struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
     bbox operator()(bbox a, bbox b) {
         real3 ll =
-            R3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y), Min(a.first.z, b.first.z));  // lower left corner
-        real3 ur = R3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
+            real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y), Min(a.first.z, b.first.z));  // lower left corner
+        real3 ur = real3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
                       Max(a.second.z, b.second.z));  // upper right corner
         return bbox(ll, ur);
     }
@@ -665,7 +665,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                         //}  // disabled this so that we get self contact
                         const real3 xj = sorted_pos_fluid[q];
                         const real3 xij = xi - xj;
-                        const real dSq = dot(xij, xij);
+                        const real dSq = Dot(xij);
                         if (dSq < radiusSq) {
                             if (contact_count < max_neighbors) {
                                 neighbor_fluid_fluid[p * max_neighbors + contact_count] = q;

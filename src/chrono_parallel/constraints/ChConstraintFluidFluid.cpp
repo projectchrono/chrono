@@ -78,7 +78,7 @@ void ChConstraintFluidFluid::Density_Fluid() {
                 continue;
             }
             real3 xij = (pos[bid.x] - pos[bid.y]);
-            real dist = length(xij);
+            real dist = Length(xij);
             dens += mass_fluid * KGSPIKY * pow((h * h - dist * dist), 3);
         }
         density[bid.x] = dens;
@@ -134,7 +134,7 @@ void ChConstraintFluidFluid::Normalize_Density_Fluid() {
                 continue;
             }
             real3 xij = (posa - pos[bid.y]);
-            real dist = length(xij);
+            real dist = Length(xij);
 
             dens += (mass_fluid / density[bid.y]) * KPOLY6 * pow((h * h - dist * dist), 3);
         }
@@ -183,7 +183,7 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
         uint start = fluid_start_index[i], end = fluid_start_index[i + 1];
         int body_a = fluid_contact_idA_start[i];
         real3 posa = pos[body_a];
-        real3 diag = 0;
+        real3 diag = real3(0);
         int diag_index = 0;
         real dens = 0;
 
@@ -195,7 +195,7 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
                 continue;
             }
             real3 xij = (posa - pos[body_b]);
-            real dist = length(xij);
+            real dist = Length(xij);
             real3 off_diag = mass_over_density * KGSPIKY * pow(h - dist, 2) * xij;
             den_con[index] = off_diag;
             diag += off_diag;
@@ -223,7 +223,7 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
 //      uint start = fluid_start_index[i], end = fluid_start_index[i + 1];
 //      int2 bid;
 //      bid.x = fluid_contact_idA_start[i];
-//      M33 tensor;
+//      Mat33 tensor;
 //      real dens;
 //      for (int index = start; index < end; index++) {
 //        bid.y = fluid_contact_idB[index];
@@ -247,7 +247,7 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
             uint start = fluid_start_index[i], end = fluid_start_index[i + 1];
             int body_a = fluid_contact_idA_start[i];
             real3 posa = pos[body_a];
-            M33 visc_mat;
+            Mat33 visc_mat;
             int diag_index = 0;
             for (int index = start; index < end; index++) {
                 int body_b = fluid_contact_idB[index];
@@ -256,7 +256,7 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
                     continue;
                 }
                 real3 xij = (posa - pos[body_b]);
-                real dist = length(xij);
+                real dist = Length(xij);
                 real density_a = density[body_a];
                 real density_b = density[body_b];
 
@@ -276,18 +276,18 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
                 real scalar = -mass_2 * part_a * part_b * part_c;
                 real kernel = KGSPIKY * pow(h - dist, 2);
                 // kernel = 45.0 / (F_PI * h_6) * (h - dist);;
-                M33 matrix = VectorxVector(xij, kernel * xij) * scalar;
+                Mat33 matrix = OuterProduct(xij, kernel * xij) * scalar;
 
-                viscosity_row_1[index] = R3(matrix.U.x, matrix.V.x, matrix.W.x);
-                viscosity_row_2[index] = R3(matrix.U.y, matrix.V.y, matrix.W.y);
-                viscosity_row_3[index] = R3(matrix.U.z, matrix.V.z, matrix.W.z);
+                viscosity_row_1[index] = real3(matrix.cols[0].x, matrix.cols[1].x, matrix.cols[2].x);
+                viscosity_row_2[index] = real3(matrix.cols[0].y, matrix.cols[1].y, matrix.cols[2].y);
+                viscosity_row_3[index] = real3(matrix.cols[0].z, matrix.cols[1].z, matrix.cols[2].z);
 
                 visc_mat = visc_mat + matrix;
             }
 
-            viscosity_row_1[diag_index] = R3(visc_mat.U.x, visc_mat.V.x, visc_mat.W.x) * -1;
-            viscosity_row_2[diag_index] = R3(visc_mat.U.y, visc_mat.V.y, visc_mat.W.y) * -1;
-            viscosity_row_3[diag_index] = R3(visc_mat.U.z, visc_mat.V.z, visc_mat.W.z) * -1;
+            viscosity_row_1[diag_index] = real3(visc_mat.cols[0].x, visc_mat.cols[1].x, visc_mat.cols[2].x) * -1;
+            viscosity_row_2[diag_index] = real3(visc_mat.cols[0].y, visc_mat.cols[1].y, visc_mat.cols[2].y) * -1;
+            viscosity_row_3[diag_index] = real3(visc_mat.cols[0].z, visc_mat.cols[1].z, visc_mat.cols[2].z) * -1;
         }
     }
     LOG(INFO) << "ChConstraintFluidFluid::JACOBIAN OF FLUID";
@@ -577,7 +577,7 @@ void ChConstraintFluidFluid::ArtificialPressure() {
             for (int index = start; index < end; index++) {
                 bid.y = fluid_contact_idB[index];
                 real3 xij = (pos[bid.x] - pos[bid.y]);
-                real dist = length(xij);
+                real dist = Length(xij);
                 corr += k * pow(KERNEL(dist, h) / KERNEL(dq, h), n);
             }
             // std::cout << gamma[index_offset + bid.x] << " " << corr << std::endl;

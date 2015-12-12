@@ -97,7 +97,7 @@ int ChSystemParallel::Integrate_Y() {
   // all physics items at the end of the step.
   DynamicVector<real>& velocities = data_manager->host_data.v;
   custom_vector<real3>& pos_pointer = data_manager->host_data.pos_rigid;
-  custom_vector<real4>& rot_pointer = data_manager->host_data.rot_rigid;
+  custom_vector<quaternion>& rot_pointer = data_manager->host_data.rot_rigid;
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
@@ -115,9 +115,9 @@ int ChSystemParallel::Integrate_Y() {
       bodylist[i]->Update(ChTime);
 
       // update the position and rotation vectors
-      pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
-      rot_pointer[i] =
-          (R4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
+      pos_pointer[i] = (real3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
+      rot_pointer[i] = (quaternion(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2,
+                                   bodylist[i]->GetRot().e3));
     }
   }
 
@@ -172,8 +172,8 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 
   // Reserve space for this body in the system-wide vectors. Note that the
   // actual data is set in UpdateBodies().
-  data_manager->host_data.pos_rigid.push_back(R3());
-  data_manager->host_data.rot_rigid.push_back(R4());
+  data_manager->host_data.pos_rigid.push_back(real3());
+  data_manager->host_data.rot_rigid.push_back(quaternion());
   data_manager->host_data.active_rigid.push_back(true);
   data_manager->host_data.collide_rigid.push_back(true);
 
@@ -291,7 +291,7 @@ void ChSystemParallel::Update() {
 void ChSystemParallel::UpdateRigidBodies() {
   LOG(INFO) << "ChSystemParallel::UpdateBodies()";
   custom_vector<real3>& position = data_manager->host_data.pos_rigid;
-  custom_vector<real4>& rotation = data_manager->host_data.rot_rigid;
+  custom_vector<quaternion>& rotation = data_manager->host_data.rot_rigid;
   custom_vector<bool>& active = data_manager->host_data.active_rigid;
   custom_vector<bool>& collide = data_manager->host_data.collide_rigid;
 
@@ -320,8 +320,8 @@ void ChSystemParallel::UpdateRigidBodies() {
     data_manager->host_data.hf[i * 6 + 4] = body_fb.ElementN(4);
     data_manager->host_data.hf[i * 6 + 5] = body_fb.ElementN(5);
 
-    position[i] = R3(body_pos.x, body_pos.y, body_pos.z);
-    rotation[i] = R4(body_rot.e0, body_rot.e1, body_rot.e2, body_rot.e3);
+    position[i] = real3(body_pos.x, body_pos.y, body_pos.z);
+    rotation[i] = quaternion(body_rot.e0, body_rot.e1, body_rot.e2, body_rot.e3);
 
     active[i] = bodylist[i]->IsActive();
     collide[i] = bodylist[i]->GetCollide();

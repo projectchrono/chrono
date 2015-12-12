@@ -55,18 +55,18 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
                 data_manager->host_data.fric_rigid_rigid[i] = mu;
 
                 {
-                    real4 quaternion_conjugate = ~data_manager->host_data.rot_rigid[b1];
+                    quaternion quaternion_conjugate = ~data_manager->host_data.rot_rigid[b1];
                     real3 sbar =
-                        quatRotate(data_manager->host_data.cpta_rigid_rigid[i] - data_manager->host_data.pos_rigid[b1],
-                                   quaternion_conjugate);
+                        Rotate(data_manager->host_data.cpta_rigid_rigid[i] - data_manager->host_data.pos_rigid[b1],
+                               quaternion_conjugate);
 
                     rotated_point_a[i] = real3_int(sbar, b1);
                     quat_a[i] = quaternion_conjugate;
                 }
                 {
-                    real4 quaternion_conjugate = ~data_manager->host_data.rot_rigid[b2];
+                    quaternion quaternion_conjugate = ~data_manager->host_data.rot_rigid[b2];
                     real3 sbar =
-                        quatRotate(data_manager->host_data.cptb_rigid_rigid[i] - data_manager->host_data.pos_rigid[b2],
+                        Rotate(data_manager->host_data.cptb_rigid_rigid[i] - data_manager->host_data.pos_rigid[b2],
                                    quaternion_conjugate);
 
                     rotated_point_b[i] = real3_int(sbar, b2);

@@ -43,7 +43,7 @@ void function_CalcContactForces(
     real dT,                                              // integration time step
     real* mass,                                           // body masses
     real3* pos,                                           // body positions
-    real4* rot,                                           // body orientations
+    quaternion* rot,                                           // body orientations
     real* vel,                                            // body linear and angular velocities
     real2* elastic_moduli,                                // Young's modulus (per body)
     real* cr,                                             // coefficient of restitution (per body)
@@ -73,10 +73,10 @@ void function_CalcContactForces(
     if (depth[index] >= 0) {
         ext_body_id[2 * index] = body1;
         ext_body_id[2 * index + 1] = body2;
-        ext_body_force[2 * index] = ZERO_VECTOR;
-        ext_body_force[2 * index + 1] = ZERO_VECTOR;
-        ext_body_torque[2 * index] = ZERO_VECTOR;
-        ext_body_torque[2 * index + 1] = ZERO_VECTOR;
+        ext_body_force[2 * index] = real3(0);
+        ext_body_force[2 * index + 1] = real3(0);
+        ext_body_torque[2 * index] = real3(0);
+        ext_body_torque[2 * index + 1] = real3(0);
 
         return;
     }
@@ -97,17 +97,17 @@ void function_CalcContactForces(
     real3 o_body1 = real3(vel[body1 * 6 + 3], vel[body1 * 6 + 4], vel[body1 * 6 + 5]);
     real3 o_body2 = real3(vel[body2 * 6 + 3], vel[body2 * 6 + 4], vel[body2 * 6 + 5]);
 
-    real3 vel1 = v_body1 + quatRotateMat(cross(o_body1, pt1_loc), rot[body1]);
-    real3 vel2 = v_body2 + quatRotateMat(cross(o_body2, pt2_loc), rot[body2]);
+    real3 vel1 = v_body1 + Rotate(Cross(o_body1, pt1_loc), rot[body1]);
+    real3 vel2 = v_body2 + Rotate(Cross(o_body2, pt2_loc), rot[body2]);
 
     // Calculate relative velocity (in global frame)
     // Note that relvel_n_mag is a signed quantity, while relvel_t_mag is an
     // actual magnitude (always positive).
     real3 relvel = vel2 - vel1;
-    real relvel_n_mag = dot(relvel, normal[index]);
+    real relvel_n_mag = Dot(relvel, normal[index]);
     real3 relvel_n = relvel_n_mag * normal[index];
     real3 relvel_t = relvel - relvel_n;
-    real relvel_t_mag = length(relvel_t);
+    real relvel_t_mag = Length(relvel_t);
 
     // Calculate composite material properties
     // ---------------------------------------
@@ -153,7 +153,7 @@ void function_CalcContactForces(
     real gt;
 
     real delta_n = -depth[index];
-    real3 delta_t = R3(0, 0, 0);
+    real3 delta_t = real3(0);
 
     int i;
     int contact_id;
@@ -217,12 +217,12 @@ void function_CalcContactForces(
         if (shear_body1 == body1) {
             shear_disp[max_shear * shear_body1 + contact_id] += delta_t;
             shear_disp[max_shear * shear_body1 + contact_id] -=
-                dot(shear_disp[max_shear * shear_body1 + contact_id], normal[index]) * normal[index];
+                Dot(shear_disp[max_shear * shear_body1 + contact_id], normal[index]) * normal[index];
             delta_t = shear_disp[max_shear * shear_body1 + contact_id];
         } else {
             shear_disp[max_shear * shear_body1 + contact_id] -= delta_t;
             shear_disp[max_shear * shear_body1 + contact_id] -=
-                dot(shear_disp[max_shear * shear_body1 + contact_id], normal[index]) * normal[index];
+                Dot(shear_disp[max_shear * shear_body1 + contact_id], normal[index]) * normal[index];
             delta_t = -shear_disp[max_shear * shear_body1 + contact_id];
         }
     }
@@ -312,9 +312,9 @@ void function_CalcContactForces(
     // below the Coulomb limit.  Also, if there is sliding, then there is no
     // viscous damping in the tangential direction (to keep the Coulomb limit
     // strict, and independent of velocity).
-    //  real forceT_mag = length(forceT_stiff + forceT_damp);  // This seems correct
-    real forceT_stiff_mag = length(forceT_stiff);  // This is what LAMMPS/LIGGGHTS does
-    real delta_t_mag = length(delta_t);
+    //  real forceT_mag = Length(forceT_stiff + forceT_damp);  // This seems correct
+    real forceT_stiff_mag = Length(forceT_stiff);  // This is what LAMMPS/LIGGGHTS does
+    real delta_t_mag = Length(delta_t);
     real forceT_slide = mu_eff * Abs(forceN_mag);
     if (forceT_stiff_mag > forceT_slide) {
         if (delta_t_mag > CH_MICROTOL) {
@@ -347,8 +347,8 @@ void function_CalcContactForces(
 
     // Convert force into the local body frames and calculate induced torques
     //    n' = s' x F' = s' x (A*F)
-    real3 torque1_loc = cross(pt1_loc, quatRotateMatT(force, rot[body1]));
-    real3 torque2_loc = cross(pt2_loc, quatRotateMatT(force, rot[body2]));
+    real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[body1]));
+    real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
     // Store body forces and torques, duplicated for the two bodies.
     ext_body_id[2 * index] = body1;

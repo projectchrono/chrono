@@ -8,7 +8,6 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemPar
   // Set this so that the CD can check what type of system it is (needed for narrowphase)
   data_manager->settings.system_type = SYSTEM_DVI;
 
-
   data_manager->system_timer.AddTimer("ChSolverParallel_solverA");
   data_manager->system_timer.AddTimer("ChSolverParallel_solverB");
   data_manager->system_timer.AddTimer("ChSolverParallel_solverC");
@@ -37,9 +36,9 @@ void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
 
   // Reserve space for material properties for the specified body. Not that the
   // actual data is set in UpdateMaterialProperties().
-  data_manager->host_data.fric_data.push_back(R3(0));
+  data_manager->host_data.fric_data.push_back(real3(0));
   data_manager->host_data.cohesion_data.push_back(0);
-  data_manager->host_data.compliance_data.push_back(R4(0));
+  data_manager->host_data.compliance_data.push_back(real4(0));
 }
 
 void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body) {
@@ -54,10 +53,10 @@ void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body) {
   ChSharedPtr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
   ChMaterialSurface* mat_ptr = static_cast<ChMaterialSurface*>(mat.get_ptr());
 
-  friction[index] = R3(mat_ptr->GetKfriction(), mat_ptr->GetRollingFriction(), mat_ptr->GetSpinningFriction());
+  friction[index] = real3(mat_ptr->GetKfriction(), mat_ptr->GetRollingFriction(), mat_ptr->GetSpinningFriction());
   cohesion[index] = mat_ptr->GetCohesion();
-  compliance[index] = R4(mat_ptr->GetCompliance(), mat_ptr->GetComplianceT(), mat_ptr->GetComplianceRolling(),
-                         mat_ptr->GetComplianceSpinning());
+  compliance[index] = real4(mat_ptr->GetCompliance(), mat_ptr->GetComplianceT(), mat_ptr->GetComplianceRolling(),
+                            mat_ptr->GetComplianceSpinning());
 }
 
 void ChSystemParallelDVI::CalculateContactForces() {
@@ -78,16 +77,14 @@ void ChSystemParallelDVI::CalculateContactForces() {
 
 real3 ChSystemParallelDVI::GetBodyContactForce(uint body_id) const {
   assert(data_manager->Fc_current);
-  return R3(data_manager->host_data.Fc[body_id * 6 + 0],
-            data_manager->host_data.Fc[body_id * 6 + 1],
-            data_manager->host_data.Fc[body_id * 6 + 2]);
+  return real3(data_manager->host_data.Fc[body_id * 6 + 0], data_manager->host_data.Fc[body_id * 6 + 1],
+               data_manager->host_data.Fc[body_id * 6 + 2]);
 }
 
 real3 ChSystemParallelDVI::GetBodyContactTorque(uint body_id) const {
   assert(data_manager->Fc_current);
-  return R3(data_manager->host_data.Fc[body_id * 6 + 3],
-            data_manager->host_data.Fc[body_id * 6 + 4],
-            data_manager->host_data.Fc[body_id * 6 + 5]);
+  return real3(data_manager->host_data.Fc[body_id * 6 + 3], data_manager->host_data.Fc[body_id * 6 + 4],
+               data_manager->host_data.Fc[body_id * 6 + 5]);
 }
 
 static inline chrono::ChVector<real> ToChVector(const real3& a) {
