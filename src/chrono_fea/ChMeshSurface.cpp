@@ -19,6 +19,9 @@
 #include "chrono_fea/ChFaceTetra_4.h"
 #include <unordered_set>
 #include "core/ChHashTable.h"
+#include <unordered_map>
+#include <map>
+#include <array>
 
 using namespace std;
 
@@ -35,58 +38,6 @@ ChClassRegister<ChMeshSurface> a_registration_ChMeshSurface;
 
 
 void ChMeshSurface::AddFacesFromNodeSet( std::vector<ChSharedPtr<ChNodeFEAbase> >& node_set ) {
-    /*
-    ChHashTable<size_t, bool> anode_set_map;
-    
-    for (int i= 0; i< node_set.size() ; ++i)
-        anode_set_map.insert( (size_t)node_set[i].get_ptr(), true );
-
-    for (int ie= 0; ie< this->mmesh->GetNelements() ; ++ie) {
-        if (ChSharedPtr<ChElementTetra_4> mtetra = this->mmesh->GetElement(ie).DynamicCastTo<ChElementTetra_4>() ) {
-            bool n0= false;
-            bool n1= false;
-            bool n2= false;
-            bool n3= false;
-            ChHashTable<size_t, bool>::iterator mcached;
-            mcached = anode_set_map.find((size_t)mtetra->GetNodeN(0).get_ptr());
-            if (mcached != anode_set_map.end()) 
-                n0 =true;
-            mcached = anode_set_map.find((size_t)mtetra->GetNodeN(1).get_ptr());
-            if (mcached != anode_set_map.end()) 
-                n1 =true;
-            mcached = anode_set_map.find((size_t)mtetra->GetNodeN(2).get_ptr());
-            if (mcached != anode_set_map.end()) 
-                n2 =true;
-            mcached = anode_set_map.find((size_t)mtetra->GetNodeN(3).get_ptr());
-            if (mcached != anode_set_map.end()) 
-                n3 =true;
-           
-            if (n0 && n1 && n2) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,3));
-                this->AddFace( mface );
-            }
-            if (n1 && n2 && n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,0));
-                this->AddFace( mface );
-            }
-            if (n0 && n2 && n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,1));
-                this->AddFace( mface );
-            }
-            if (n0 && n1 && n3) {
-                ChSharedPtr<ChFaceTetra_4> mface(new ChFaceTetra_4(mtetra,2));
-                this->AddFace( mface );
-            }
-           
-        }
-        if (ChSharedPtr<ChElementShellANCF> mshell = this->mmesh->GetElement(ie).DynamicCastTo<ChElementShellANCF>() ) {
-            this->AddFace( mshell );
-        }
-    }
-    //GetLog() << "AddFacesFromNodeSet found " << this->faces.size() << " faces \n\n";
-    
-    return;
-    */
 
     std::unordered_set<size_t>  node_set_map;
 
@@ -125,6 +76,40 @@ void ChMeshSurface::AddFacesFromNodeSet( std::vector<ChSharedPtr<ChNodeFEAbase> 
     //GetLog() << "AddFacesFromNodeSet found " << this->faces.size() << " faces \n\n";
 }
 
+
+void ChMeshSurface::AddFacesFromBoundary() {
+    
+    /// Case1. Outer skin boundary of meshes of TETRAHEDRONS:
+    ///
+    std::multimap< std::array<ChNodeFEAxyz*, 3> , ChFaceTetra_4> face_map;
+
+    for (int ie= 0; ie< this->mmesh->GetNelements(); ++ie) {
+        if (ChSharedPtr<ChElementTetra_4> mtetra = mmesh->GetElement(ie).DynamicCastTo<ChElementTetra_4>()) {
+            for (int nface = 0; nface<4; ++nface) {
+                ChFaceTetra_4 mface(mtetra, nface);
+                std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get_ptr(), mface.GetNodeN(1).get_ptr(), mface.GetNodeN(2).get_ptr()};
+                std::sort(mface_key.begin(), mface_key.end());
+                face_map.insert( {mface_key, mface} );
+            }
+        }
+    }
+    for (int ie= 0; ie< this->mmesh->GetNelements(); ++ie) {
+        if (ChSharedPtr<ChElementTetra_4> mtetra = mmesh->GetElement(ie).DynamicCastTo<ChElementTetra_4>()) {
+            for (int nface = 0; nface<4; ++nface) {
+                ChFaceTetra_4 mface(mtetra, nface);
+                std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get_ptr(), mface.GetNodeN(1).get_ptr(), mface.GetNodeN(2).get_ptr()};
+                std::sort(mface_key.begin(), mface_key.end());
+                if (face_map.count(mface_key) == 1) {
+                    // Found a face that is not shared.. so it is a boundary face. 
+                    // Instance it to be handled via shared ptr, and add it to list...
+                    ChSharedPtr<ChFaceTetra_4> boundary_face(new ChFaceTetra_4(mtetra, nface));
+                    this->AddFace(boundary_face);
+                }
+            }
+        }
+    }
+
+}
 
 
 } // END_OF_NAMESPACE____
