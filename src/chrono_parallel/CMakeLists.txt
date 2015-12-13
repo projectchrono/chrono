@@ -33,61 +33,12 @@ set(CH_PARALLEL_C_FLAGS "")
 # Additional dependencies, specific to this module
 # ------------------------------------------------------------------------------
 
-# Figure out SIMD level support
-OPTION(USE_SIMD "Compile with SSE support for floating point math" ON)
+
 OPTION(USE_DOUBLE "Compile with double precision math (no SSE support)" ON)
-
-FIND_PACKAGE(SSE)
-
-  # Set substitution variables for configuration file.
-  IF(SSE_FOUND)
-    MESSAGE(STATUS "SSE version: ${SSE_VERSION}")
-    SET(CHRONO_PARALLEL_HAS_SSE "#define CHRONO_PARALLEL_HAS_SSE")
-    SET(CHRONO_PARALLEL_SSE_LEVEL "#define CHRONO_PARALLEL_SSE_LEVEL \"${SSE_VERSION}\"")
-    SET(CHRONO_PARALLEL_SSE_LEVEL "#define CHRONO_PARALLEL_SSE_${SSE_STR}")
-  ELSE()
-    MESSAGE("No SSE support")
-  ENDIF()
-  
-FIND_PACKAGE(AVX)
-
-  #  # Set substitution variables for configuration file.
-  IF(AVX_FOUND)
-    MESSAGE(STATUS "AVX version: ${AVX_VERSION}")
-    SET(CHRONO_PARALLEL_HAS_AVX "#define CHRONO_PARALLEL_HAS_AVX")
-    SET(CHRONO_PARALLEL_AVX_LEVEL "#define CHRONO_PARALLEL_AVX_LEVEL \"${AVX_VERSION}\"")
-    SET(CHRONO_PARALLEL_AVX_LEVEL "#define CHRONO_PARALLEL_AVX_${AVX_STR}")
-  ELSE()
-    MESSAGE("No AVX support")
-  ENDIF()
 
 IF(USE_DOUBLE)
   SET(CHRONO_PARALLEL_USE_DOUBLE "#define CHRONO_PARALLEL_USE_DOUBLE")
 ENDIF()
-
-IF(USE_SIMD)
-  SET(CHRONO_PARALLEL_USE_SIMD "#define CHRONO_PARALLEL_USE_SIMD")
-ENDIF()
-
-  IF (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-    set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-    set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-  ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-    set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-    set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-  ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xsse${SSE_VERSION}")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -xsse${SSE_VERSION}")
-    set(CH_PARALLEL_CXX_FLAGS "${CH_PARALLEL_CXX_FLAGS} -xsse${SSE_VERSION}")
-    set(CH_PARALLEL_C_FLAGS "${CH_PARALLEL_C_FLAGS} -xsse${SSE_VERSION}")
-  ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-    # using Visual Studio C++
-  ENDIF()
-
 
 # Add the OpenMP-specific compiler and linker flags
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
