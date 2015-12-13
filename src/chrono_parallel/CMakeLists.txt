@@ -204,10 +204,12 @@ SET(ChronoEngine_Parallel_MATH
     math/ChParallelMath.h
     math/ChThrustLinearAlgebra.h
     math/mat33.h
+    math/sse.h
     math/real.h
     math/real2.h
     math/real3.h
     math/real4.h
+    math/real3.cpp
     )
 
 SOURCE_GROUP(math FILES ${ChronoEngine_Parallel_MATH})
