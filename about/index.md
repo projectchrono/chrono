@@ -17,7 +17,16 @@ Other projects that build the Project Chrono ecosystems are: Chrono::PyEngine, a
 <div class="row">
     <h3> Project Leaders</h3>
 
-<div class="row">
+
+<div class="col-sm-6 media">
+    <a class="media-left" href="#"> <img class="media-object" src="/images/people/125px-PhotoDan.jpg" alt="Dan Negrut" width = "125px"></a>
+    <div class="media-body">
+        <h4 class="media-heading"><a href="http://homepages.cae.wisc.edu/~negrut/index.htm">Dan Negrut</a></h4>
+        <h6> University of Wisconsin, Madison  </h6>
+        <p>He founded the <a href="http://sbel.wisc.edu/">SBEL</a> at the the University of Wisconsin, where he is Associate Professor, and since 2006 he lead many research projects rooted on Chrono::Engine developments, with special emphasis on GPU parallel computing. He is a founder of the ProjectChrono initiative.</p>
+    </div>
+</div>
+
 <div class="col-sm-6 media">
     <a class="media-left" href="#"> <img class="media-object" src="/images/people/125px-PhotoAlessandro.jpg" alt="Alessandro Tasora" width = "125px"></a>
     <div class="media-body">
@@ -26,15 +35,8 @@ Other projects that build the Project Chrono ecosystems are: Chrono::PyEngine, a
         <p>He is the first developer of Chrono::Engine: he has been working on numerical methods for multibody dynamics since 1998. He leads the development of the Chrono::Engine project, dealing with API design, theorethical foundations, numerical methods, etc. He is Associate Professor at the University of Parma.</p>
     </div>
 </div>
-<div class="col-sm-6 media">
-    <a class="media-left" href="#"> <img class="media-object" src="/images/people/125px-PhotoDan.jpg" alt="Alessandro Tasora" width = "125px"></a>
-    <div class="media-body">
-        <h4 class="media-heading"><a href="http://homepages.cae.wisc.edu/~negrut/index.htm">Dan Negrut</a></h4>
-        <h6> University of Wisconsin, Madison  </h6>
-        <p>He founded the <a href="http://sbel.wisc.edu/">SBEL</a> at the the University of Wisconsin, where he is Associate Professor, and since 2006 he lead many research projects rooted on Chrono::Engine developments, with special emphasis on GPU parallel computing. He is a founder of the ProjectChrono initiative.</p>
-    </div>
-</div>
-</div>
+
+
 
 <div class="row">
     <h3>Senior developers</h3>
