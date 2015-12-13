@@ -70,4 +70,7 @@
 //   #define CHRONO_PARALLEL_USE_DOUBLE
 @CHRONO_PARALLEL_USE_DOUBLE@
 
+// If using vectorized code
+@CHRONO_PARALLEL_USE_SIMD@
+
 #endif
