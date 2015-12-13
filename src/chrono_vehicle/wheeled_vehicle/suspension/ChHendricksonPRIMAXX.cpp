@@ -241,29 +241,20 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_sphericalLowerbeam[side]->Initialize(m_axlehousing, m_lowerbeam[side], ChCoordsys<>(points[LOWERBEAM_AH], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalLowerbeam[side]);
 
-    // Create and initialize the universal joint between chassis and torque rod.
-    u = dirs[UNIV_AXIS_TORQUEROD_CHASSIS];
-    v = dirs[UNIV_AXIS_TORQUEROD_ROD];
-    w = Vcross(u, v);
-    rot.Set_A_axis(u, v, w);
+    // Create and initialize the revolute joint between chassis and torque rod.
+    ChCoordsys<> revTR_csys(points[TORQUEROD_C], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    m_revoluteTorquerod[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    m_revoluteTorquerod[side]->SetNameString(m_name + "_revoluteTorquerod" + suffix);
+    m_revoluteTorquerod[side]->Initialize(chassis, m_torquerod[side], revTR_csys);
+    chassis->GetSystem()->AddLink(m_revoluteTorquerod[side]);
 
-    m_universalTorquerod[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
-    m_universalTorquerod[side]->SetNameString(m_name + "_universalTorquerod" + suffix);
-    m_universalTorquerod[side]->Initialize(chassis, m_torquerod[side],
-                                           ChFrame<>(points[TORQUEROD_C], rot.Get_A_quaternion()));
-    chassis->GetSystem()->AddLink(m_universalTorquerod[side]);
 
-    // Create and initialize the universal joint between chassis and lower beam.
-    u = dirs[UNIV_AXIS_LOWERBEAM_CHASSIS];
-    v = dirs[UNIV_AXIS_LOWERBEAM_BEAM];
-    w = Vcross(u, v);
-    rot.Set_A_axis(u, v, w);
-
-    m_universalLowerbeam[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
-    m_universalLowerbeam[side]->SetNameString(m_name + "_universalLowerbeam" + suffix);
-    m_universalLowerbeam[side]->Initialize(chassis, m_lowerbeam[side],
-                                           ChFrame<>(points[LOWERBEAM_C], rot.Get_A_quaternion()));
-    chassis->GetSystem()->AddLink(m_universalLowerbeam[side]);
+    // Create and initialize the revolute joint between chassis and lower beam.
+    ChCoordsys<> revLB_csys(points[LOWERBEAM_C], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    m_revoluteLowerbeam[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    m_revoluteLowerbeam[side]->SetNameString(m_name + "_revoluteLowerbeam" + suffix);
+    m_revoluteLowerbeam[side]->Initialize(chassis, m_lowerbeam[side], revLB_csys);
+    chassis->GetSystem()->AddLink(m_revoluteLowerbeam[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
     ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
@@ -285,7 +276,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_shockLB[side]->SetNameString(m_name + "_shockLB" + suffix);
     m_shockLB[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKLB_C], points[SHOCKLB_LB]);
     m_shockLB[side]->Set_SpringCallback(getShockLBForceCallback());
-    chassis->GetSystem()->AddLink(m_shockLB[side]);
+   chassis->GetSystem()->AddLink(m_shockLB[side]);
 
     // Create and initialize the tierod distance constraint between chassis and upright.
     m_distTierod[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
@@ -355,23 +346,27 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C->GetElement(1, 0) << "  ";
         GetLog() << "  " << C->GetElement(2, 0) << "\n";
     }
-    // Universal joints
+
     {
-        ChMatrix<>* C = m_universalTorquerod[side]->GetC();
-        GetLog() << "Torquerod universal          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+      ChMatrix<>* C = m_revoluteLowerbeam[side]->GetC();
+      GetLog() << "Lowerbeam revolute          ";
+      GetLog() << "  " << C->GetElement(0, 0) << "  ";
+      GetLog() << "  " << C->GetElement(1, 0) << "  ";
+      GetLog() << "  " << C->GetElement(2, 0) << "  ";
+      GetLog() << "  " << C->GetElement(3, 0) << "  ";
+      GetLog() << "  " << C->GetElement(4, 0) << "\n";
     }
+
     {
-        ChMatrix<>* C = m_universalLowerbeam[side]->GetC();
-        GetLog() << "Lowerbeam universal          ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "\n";
+      ChMatrix<>* C = m_revoluteTorquerod[side]->GetC();
+      GetLog() << "Torquerod revolute          ";
+      GetLog() << "  " << C->GetElement(0, 0) << "  ";
+      GetLog() << "  " << C->GetElement(1, 0) << "  ";
+      GetLog() << "  " << C->GetElement(2, 0) << "  ";
+      GetLog() << "  " << C->GetElement(3, 0) << "  ";
+      GetLog() << "  " << C->GetElement(4, 0) << "\n";
     }
+
 
     // Distance constraint
     GetLog() << "Tierod distance       ";
