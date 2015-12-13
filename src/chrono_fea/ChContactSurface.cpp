@@ -23,6 +23,7 @@
 #include <map>
 #include <set>
 #include <array>
+#include <algorithm>
 
 using namespace std;
 
