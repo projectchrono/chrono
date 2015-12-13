@@ -1,7 +1,7 @@
 
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/sse.h"
-
+#if defined(CHRONO_PARALLEL_USE_SIMD) && defined(CHRONO_PARALLEL_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
 #define set_m128r(lo, hi) _mm256_insertf128_ps(_mm256_castps128_ps256(lo), (hi), 1)
 
 template <int i0, int i1, int i2, int i3>
@@ -186,6 +186,7 @@ static inline __m256 permute4d(__m256 const& a) {
     }
     return _mm256_shuffle_pd(r1, r2, sm);
 }
+#endif
 
 namespace chrono {
 
