@@ -46,7 +46,7 @@ class ChElementBeamANCF :   public ChElementBeam,
     std::vector<ChSharedPtr<ChNodeFEAxyzD> > nodes;
 
     ChSharedPtr<ChBeamSectionCable> section;
-
+    ChMatrixNM<double, 12, 1> GenForceVec0;
     ChMatrixNM<double, 12, 12> StiffnessMatrix;  // stiffness matrix
     ChMatrixNM<double, 12, 12> MassMatrix;       // mass matrix
 
@@ -481,6 +481,15 @@ class ChElementBeamANCF :   public ChElementBeam,
         this->length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
         this->mass = this->length * this->section->Area * this->section->density;
 
+
+        // Here we calculate the internal forces in the initial configuration
+        // Contribution of initial configuration in elastic forces is automatically subtracted 
+        ChMatrixDynamic<> FVector0(12, 1);
+        FVector0.FillElem(0.0);
+        this->GenForceVec0.FillElem(0.0);
+        ComputeInternalForces(FVector0);
+        this->GenForceVec0 = FVector0;
+
         // Compute mass matrix
         ComputeMassMatrix();
 
@@ -717,6 +726,10 @@ class ChElementBeamANCF :   public ChElementBeam,
         Fcurv *= -E * I * length;  // note Iyy should be the same value (circular section assumption)
 
         Fi += Fcurv;
+
+        // Substract contribution of initial configuration
+        Fi -= this->GenForceVec0;
+
     }
 
     //
