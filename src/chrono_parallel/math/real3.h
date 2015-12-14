@@ -62,9 +62,9 @@ class CHRONO_ALIGN_16 real3 {
   inline real3 operator/(real b) const { return _mm_div_ps(mmvalue, _mm_set1_ps(b)); }
 
   inline real dot(const real3& b) const { return _mm_cvtss_f32(_mm_dp_ps(mmvalue, b.mmvalue, 0x71)); }
-  inline real length() const { return _mm_cvtss_f32(_mm_Sqrt(_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71))); }
-  inline real rlength() const { return _mm_cvtss_f32(_mm_rSqrt(_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71))); }
-  inline real3 normalize() const { return _mm_div_ps(mmvalue, _mm_Sqrt(_ps(_mm_dp_ps(mmvalue, mmvalue, 0x7F))); }
+  inline real length() const { return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71))); }
+  inline real rlength() const { return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71))); }
+  inline real3 normalize() const { return _mm_div_ps(mmvalue, _mm_sqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0x7F))); }
   inline real3 cross(const real3& b) const {
     return _mm_sub_ps(_mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 0, 2, 1)),
                                  _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 1, 0, 2))),
