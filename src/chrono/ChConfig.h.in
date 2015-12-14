@@ -84,4 +84,53 @@
 // If TBB support was enabled in the main ChronoEngine library, define CHRONO_TBB_ENABLED
 @CHRONO_TBB_ENABLED@
 
+
+// If using vectorized code
+@CHRONO_USE_SIMD@
+
+// -----------------------------------------------------------------------------
+// SSE settings
+// -----------------------------------------------------------------------------
+
+// If SSE support was found, then
+//   #define CHRONO_HAS_SSE
+// and set the SSE level support, one of the following
+//   #define CHRONO_SSE_LEVEL "1.0"
+//   #define CHRONO_SSE_LEVEL "2.0"
+//   #define CHRONO_SSE_LEVEL "3.0"
+//   #define CHRONO_SSE_LEVEL "4.1"
+//   #define CHRONO_SSE_LEVEL "4.2"
+// and define one or more of the following, as appropriate
+//   #define CHRONO_SSE_1.0
+//   #define CHRONO_SSE_2.0
+//   #define CHRONO_SSE_3.0
+//   #define CHRONO_SSE_4.1
+//   #define CHRONO_SSE_4.2
+
+@CHRONO_HAS_SSE@
+@CHRONO_SSE_LEVEL@
+@CHRONO_SSE_1_0@
+@CHRONO_SSE_2_0@
+@CHRONO_SSE_3_0@
+@CHRONO_SSE_4_1@
+@CHRONO_SSE_4_2@
+
+// -----------------------------------------------------------------------------
+
+// If AVX support was found, then
+//   #define CHRONO_HAS_AVX
+// and set the SSE level support, one of the following
+//   #define CHRONO_AVX_LEVEL "1.0"
+//   #define CHRONO_AVX_LEVEL "2.0"
+// and define one or more of the following, as appropriate
+//   #define CHRONO_AVX_1.0
+//   #define CHRONO_AVX_2.0
+
+@CHRONO_HAS_AVX@
+@CHRONO_AVX_LEVEL@
+@CHRONO_AVX_1_0@
+@CHRONO_AVX_2_0@
+
+
+
 #endif

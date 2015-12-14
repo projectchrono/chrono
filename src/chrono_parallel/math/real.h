@@ -38,16 +38,16 @@ namespace chrono {
 #elif defined CHRONO_PARALLEL_SSE_4_2
 #include <nmmintrin.h>
 #endif
-#ifndef ENABLE_SSE
-#define ENABLE_SSE
+#ifndef CHRONO_USE_SIMD
+#define CHRONO_USE_SIMD
 #endif
 #else
-#undef ENABLE_SSE
+#undef CHRONO_USE_SIMD
 #endif
 
 // If the user specified using doubles in CMake make sure that SSE is disabled
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
-#undef ENABLE_SSE
+#undef CHRONO_USE_SIMD
 #endif
 // If the user specified using doubles, define the real type as double
 // Also set some constants. The same is done if floats were specified.
