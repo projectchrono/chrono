@@ -180,11 +180,6 @@ int main(int argc, char* argv[]) {
 
     mcontactsurf->SetMaterialSurface(mysurfmaterial); // use the DEM penalty contacts
 
-
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
