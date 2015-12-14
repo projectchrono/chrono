@@ -160,7 +160,7 @@ SET(ChronoEngine_Parallel_MATH
     math/real2.h
     math/real3.h
     math/real4.h
-    math/real3.cpp
+    math/simd_128f_256d.cpp
     )
 
 SOURCE_GROUP(math FILES ${ChronoEngine_Parallel_MATH})

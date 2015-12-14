@@ -28,28 +28,30 @@ namespace chrono {
 
 class real3 {
   public:
-    inline real3() {}
-#if defined(CHRONO_PARALLEL_USE_SIMD) && defined(CHRONO_PARALLEL_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
+#if defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
+    inline real3() : mmvalue(_mm256_setzero_pd()) {}
     inline explicit real3(real a) : mmvalue(_mm256_set1_pd(a)) {}
     inline real3(real a, real b, real c) : mmvalue(_mm256_setr_pd(a, b, c, 0)) {}
     inline real3(__m256 m) : mmvalue(m) {}
     inline operator __m256() const { return mmvalue; }
 
-#elif defined(CHRONO_PARALLEL_USE_SIMD) && defined(CHRONO_PARALLEL_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
-    inline explicit real3(real a) : mmvalue(_mm_set1_ps(a)) {}
+#elif defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
+    inline real3() : mmvalue(_mm_setzero_ps()) {}
+    inline explicit real3(real a) : mmvalue(_mm_setr_ps(a, a, a, 0)) {}
     inline real3(real a, real b, real c) : mmvalue(_mm_setr_ps(a, b, c, 0)) {}
     inline real3(__m128 m) : mmvalue(m) {}
     inline operator __m128() const { return mmvalue; }
 
 #else
+    inline real3() : x(0), y(0), z(0) {}
     inline explicit real3(real a) : x(a), y(a), z(a) {}
     inline real3(real _x, real _y, real _z) : x(_x), y(_y), z(_z) {}
 #endif
 
     // ========================================================================================
 
-    inline operator real*() { return &x; }
-    inline operator const real*() const { return &x; };
+    inline operator real*() { return &array[0]; }
+    inline operator const real*() const { return &array[0]; };
 
     // ========================================================================================
 
@@ -65,7 +67,7 @@ class real3 {
 
     // inline void Set(real _x, real _y, real _z);
 
-    inline real3 operator-() const { return real3(-x, -y, -z); }
+    real3 operator-() const;
 
     inline real3 Abs() const { return real3(fabs(x), fabs(y), fabs(z)); }
     // ========================================================================================
@@ -82,16 +84,25 @@ class real3 {
 
     union {
         struct {
-            real x, y, z;
+            real x, y, z, w;
         };
         real array[4];
-#if defined(CHRONO_PARALLEL_USE_SIMD) && defined(CHRONO_PARALLEL_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
+#if defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
         __m256 mmvalue;
-#elif defined(CHRONO_PARALLEL_USE_SIMD) && defined(CHRONO_PARALLEL_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
+#elif defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
         __m128 mmvalue;
 #endif
     };
 };
+
+
+
+
+
+
+
+
+
 
 static real3 operator*(real lhs, const real3& rhs) {
     real3 r(rhs);

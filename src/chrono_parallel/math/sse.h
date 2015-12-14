@@ -18,25 +18,25 @@
 
 #pragma once
 
-#include "chrono_parallel/ChParallelDefines.h"
+#include "chrono_parallel/ChConfigParallel.h"
 
 // Check if SSE was found in CMake
-#ifdef CHRONO_PARALLEL_HAS_SSE
+#ifdef CHRONO_HAS_SSE
 // Depending on the SSE variable in CMake include the proper header file for that
 // version of sse
-#ifdef CHRONO_PARALLEL_SSE_1_0
+#ifdef CHRONO_SSE_1_0
 #include <xmmintrin.h>
-#elif defined CHRONO_PARALLEL_SSE_2_0
+#elif defined CHRONO_SSE_2_0
 #include <emmintrin.h>
-#elif defined CHRONO_PARALLEL_SSE_3_0
+#elif defined CHRONO_SSE_3_0
 #include <pmmintrin.h>
-#elif defined CHRONO_PARALLEL_SSE_4_1
+#elif defined CHRONO_SSE_4_1
 #include <smmintrin.h>
-#elif defined CHRONO_PARALLEL_SSE_4_2
+#elif defined CHRONO_SSE_4_2
 #include <nmmintrin.h>
 #endif
 #endif
 
-#ifdef CHRONO_PARALLEL_HAS_AVX
+#ifdef CHRONO_HAS_AVX
 #include <immintrin.h>
 #endif

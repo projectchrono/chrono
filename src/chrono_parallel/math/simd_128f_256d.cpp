@@ -1,7 +1,8 @@
-
-#include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/sse.h"
-#if defined(CHRONO_PARALLEL_USE_SIMD) && defined(CHRONO_PARALLEL_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
+#include "chrono_parallel/math/real3.h"
+#include "chrono_parallel/math/real4.h"
+
+#if defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
 #define set_m128r(lo, hi) _mm256_insertf128_ps(_mm256_castps128_ps256(lo), (hi), 1)
 
 template <int i0, int i1, int i2, int i3>
@@ -191,7 +192,7 @@ static inline __m256 permute4d(__m256 const& a) {
 namespace chrono {
 
 namespace simd {
-#if defined(CHRONO_PARALLEL_USE_SIMD) && defined(CHRONO_PARALLEL_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
+#if defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
 
 static const __m256d SIGNMASK = _mm256_castsi256_pd(_mm256_set1_epi64x(0x8000000000000000));
 
@@ -200,6 +201,9 @@ inline __m256d Set(real x) {
 }
 inline __m256d Set(real x, real y, real z) {
     return _mm256_setr_pd(x, y, z, 0.0);
+}
+inline __m256d Set(real x, real y, real z, real w) {
+    return _mm256_setr_pd(x, y, z, w);
 }
 inline __m256d Add(__m256d a, __m256d b) {
     return _mm256_add_pd(a, b);
@@ -213,39 +217,92 @@ inline __m256d Mul(__m256d a, __m256d b) {
 inline __m256d Div(__m256d a, __m256d b) {
     return _mm256_div_pd(a, b);
 }
-inline __m256d Negate(__m256d a) {
-    return _mm256_xor_pd(a, SIGNMASK);
+
+inline __m256d Add(__m256d a, real b) {
+    return _mm256_add_pd(a, _mm256_set1_pd(b));
 }
+inline __m256d Sub(__m256d a, real b) {
+    return _mm256_sub_pd(a, _mm256_set1_pd(b));
+}
+inline __m256d Mul(__m256d a, real b) {
+    return _mm256_mul_pd(a, _mm256_set1_pd(b));
+}
+inline __m256d Div(__m256d a, real b) {
+    return _mm256_div_pd(a, _mm256_set1_pd(b));
+}
+
+// inline __m256d Negate(__m256d a) {
+//    return _mm256_xor_pd(a, SIGNMASK);
+//}
+
+inline real4 Negate(real4 a) {
+    return real4(-a.x, -a.y, -a.z, -a.w);
+}
+inline real3 Negate(real3 a) {
+    return real3(-a.x, -a.y, -a.z);
+}
+
 // http://stackoverflow.com/questions/10454150/intel-avx-256-bits-version-of-dot-product-for-double-precision-floating-point
 
-inline real Dot(__m256d a) {
-    __m256d xy = _mm256_mul_pd(a, a);
-    __m256d temp = _mm256_hadd_pd(xy, xy);
+inline real HorizontalAdd(__m256d a) {
+    __m256d temp = _mm256_hadd_pd(a, a);
+    __m128d lo128 = _mm256_extractf128_pd(temp, 0);
     __m128d hi128 = _mm256_extractf128_pd(temp, 1);
-    __m128d dot_prod = _mm_add_sd(_mm256_castpd256_pd128(temp), hi128);
+
+    __m128d dot_prod = _mm_add_sd(lo128, hi128);
     return _mm_cvtsd_f64(dot_prod);
 }
-inline real Dot(__m256d a, __m256d b) {
-    __m256d xy = _mm256_mul_pd(a, b);
-    __m256d temp = _mm256_hadd_pd(xy, xy);
-    __m128d hi128 = _mm256_extractf128_pd(temp, 1);
-    __m128d dot_prod = _mm_add_sd(_mm256_castpd256_pd128(temp), hi128);
-    return _mm_cvtsd_f64(dot_prod);
+
+// inline real Dot(__m256d a) {
+//    __m256d xy = _mm256_mul_pd(a, a);
+//    // a.x*a.x, a.y*a.y, a.z*a.z, a.w*a.w
+//    return HorizontalAdd(xy);
+//}
+// inline real Dot(__m256d a, __m256d b) {
+//    __m256d xy = _mm256_mul_pd(a, b);
+//    real3 t (xy);
+//    real3 v1 (a);
+//    real3 v2 (b);
+//    printf("a: [%f %f %f %f]\n",v1.x,v1.y,v1.z,v1.w);
+//    printf("b: [%f %f %f %f]\n",v2.x,v2.y,v2.z,v2.w);
+//    printf("dot: [%f %f %f %f]\n",t.x,t.y,t.z,t.w);
+//    // a.x*a.x, a.y*a.y, a.z*a.z, a.w*a.w
+//    return HorizontalAdd(xy);
+//}
+
+inline real Dot(const real3& v1, const real3& v2) {
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
+inline real Dot(const real3& v) {
+    return v.x * v.x + v.y * v.y + v.z * v.z;
+}
+
 inline __m256d SquareRoot(__m256d v) {
     return _mm256_sqrt_pd(v);
 }
 
-inline __m256d Cross(__m256d a, __m256d b) {
-    __m256d a1 = permute4d<1, 2, 0, -256>(a);
-    __m256d b1 = permute4d<1, 2, 0, -256>(b);
-    __m256d a2 = permute4d<2, 0, 1, -256>(a);
-    __m256d b2 = permute4d<2, 0, 1, -256>(b);
-    __m256d c = a1 * b2 - a2 * b1;
-    return c;
-}
+// inline __m256d Cross(__m256d a, __m256d b) {
+//    __m256d a1 = permute4d<1, 2, 0, -256>(a);
+//    __m256d b1 = permute4d<1, 2, 0, -256>(b);
+//    __m256d a2 = permute4d<2, 0, 1, -256>(a);
+//    __m256d b2 = permute4d<2, 0, 1, -256>(b);
+//    __m256d c = a1 * b2 - a2 * b1;
+//    return c;
+//}
 
-#elif defined(CHRONO_PARALLEL_USE_SIMD) && defined(CHRONO_PARALLEL_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
+inline real3 Cross(const real3& a, const real3& b) {
+    real3 result;
+    result.x = (a.y * b.z) - (a.z * b.y);
+    result.y = (a.z * b.x) - (a.x * b.z);
+    result.z = (a.x * b.y) - (a.y * b.x);
+    result.w = 0;
+    return result;
+}
+//========================================================
+//========================================================
+//========================================================
+
+#elif defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
 
 // http://fastcpp.blogspot.com/2011/03/changing-sign-of-float-values-using-sse.html
 static const __m128 SIGNMASK = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
@@ -255,6 +312,9 @@ inline __m128 Set(real x) {
 }
 inline __m128 Set(real x, real y, real z) {
     return _mm_setr_ps(x, y, z, 0.0f);
+}
+inline __m128 Set(real x, real y, real z, real w) {
+    return _mm_setr_ps(x, y, z, w);
 }
 inline __m128 Add(__m128 a, __m128 b) {
     return _mm_add_ps(a, b);
@@ -268,6 +328,20 @@ inline __m128 Mul(__m128 a, __m128 b) {
 inline __m128 Div(__m128 a, __m128 b) {
     return _mm_div_ps(a, b);
 }
+
+inline __m128 Add(__m128 a, real b) {
+    return _mm_add_ps(a, _mm_set1_ps(b));
+}
+inline __m128 Sub(__m128 a, real b) {
+    return _mm_sub_ps(a, _mm_set1_ps(b));
+}
+inline __m128 Mul(__m128 a, real b) {
+    return _mm_mul_ps(a, _mm_set1_ps(b));
+}
+inline __m128 Div(__m128 a, real b) {
+    return _mm_div_ps(a, _mm_set1_ps(b));
+}
+
 inline __m128 Negate(__m128 a) {
     return _mm_xor_ps(a, SIGNMASK);
 }
@@ -285,6 +359,10 @@ inline __m128 Cross(__m128 a, __m128 b) {
         _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 1, 0, 2))),
         _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 0, 2, 1))));
 }
+
+//========================================================
+//========================================================
+//========================================================
 
 #else
 
@@ -306,6 +384,20 @@ inline real3 Mul(real3 a, real3 b) {
 inline real3 Div(real3 a, real3 b) {
     return real3(a.x / b.x, a.y / b.y, a.z / b.z);
 }
+
+inline real3 Add(real3 a, real b) {
+    return real3(a.x + b, a.y + b, a.z + b);
+}
+inline real3 Sub(real3 a, real b) {
+    return real3(a.x - b, a.y - b, a.z - b);
+}
+inline real3 Mul(real3 a, real b) {
+    return real3(a.x * b, a.y * b, a.z * b);
+}
+inline real3 Div(real3 a, real b) {
+    return real3(a.x / b, a.y / b, a.z / b);
+}
+
 inline real3 Negate(real3 a) {
     return real3(-a.x, -a.y, -a.z);
 }
@@ -325,6 +417,52 @@ inline real3 Cross(const real3& a, const real3& b) {
     result.z = (a.x * b.y) - (a.y * b.x);
     return result;
 }
+
+//========================================================
+//========================================================
+//========================================================
+
+inline real4 Add(const real4& a, const real4& b) {
+    return real4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+}
+inline real4 Sub(const real4& a, const real4& b) {
+    return real4(a.x - b.x, a.y + b.y, a.z - b.z, a.w - b.w);
+}
+inline real4 Mul(const real4& a, const real4& b) {
+    return real4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+}
+inline real4 Div(const real4& a, const real4& b) {
+    return real4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w);
+}
+
+inline real4 Add(const real4& a, const real3& b) {
+    return real4(a.x + b.x, a.y + b.y, a.z + b.z, a.w);
+}
+inline real4 Sub(const real4& a, const real3& b) {
+    return real4(a.x - b.x, a.y + b.y, a.z - b.z, a.w);
+}
+inline real4 Mul(const real4& a, const real3& b) {
+    return real4(a.x * b.x, a.y * b.y, a.z * b.z, a.w);
+}
+inline real4 Div(const real4& a, const real3& b) {
+    return real4(a.x / b.x, a.y / b.y, a.z / b.z, a.w);
+}
+
+inline real4 Add(const real4& a, real b) {
+    return real4(a.x + b, a.y + b, a.z + b, a.w + b);
+}
+inline real4 Sub(const real4& a, real b) {
+    return real4(a.x - b, a.y + b, a.z - b, a.w - b);
+}
+inline real4 Mul(const real4& a, real b) {
+    return real4(a.x * b, a.y * b, a.z * b, a.w * b);
+}
+inline real4 Div(const real4& a, real b) {
+    return real4(a.x / b, a.y / b, a.z / b, a.w / b);
+}
+inline real4 Negate(real4 a) {
+    return real4(-a.x, -a.y, -a.z, -a.w);
+}
 #endif
 }
 //========================================================
@@ -342,16 +480,19 @@ real3 real3::operator/(const real3& b) const {
 }
 //========================================================
 real3 real3::operator+(real b) const {
-    return simd::Add(*this, simd::Set(b));
+    return simd::Add(*this, b);
 }
 real3 real3::operator-(real b) const {
-    return simd::Sub(*this, simd::Set(b));
+    return simd::Sub(*this, b);
 }
 real3 real3::operator*(real b) const {
-    return simd::Mul(*this, simd::Set(b));
+    return simd::Mul(*this, b);
 }
 real3 real3::operator/(real b) const {
-    return simd::Div(*this, simd::Set(b));
+    return simd::Div(*this, b);
+}
+real3 real3::operator-() const {
+    return simd::Negate(*this);
 }
 //========================================================
 
@@ -367,4 +508,35 @@ real3 Sqrt(const real3& v) {
 real3 Cross(const real3& b, const real3& c) {
     return simd::Cross(b, c);
 }
+
+//========================================================
+real4 real4::operator+(const real4& b) const {
+    return simd::Add(*this, b);
+}
+real4 real4::operator-(const real4& b) const {
+    return simd::Sub(*this, b);
+}
+real4 real4::operator*(const real4& b) const {
+    return simd::Mul(*this, b);
+}
+real4 real4::operator/(const real4& b) const {
+    return simd::Div(*this, b);
+}
+//========================================================
+real4 real4::operator+(real b) const {
+    return simd::Add(*this, b);
+}
+real4 real4::operator-(real b) const {
+    return simd::Sub(*this, b);
+}
+real4 real4::operator*(real b) const {
+    return simd::Mul(*this, b);
+}
+real4 real4::operator/(real b) const {
+    return simd::Div(*this, b);
+}
+real4 real4::operator-() const {
+    return simd::Negate(*this);
+}
+//========================================================
 }

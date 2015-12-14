@@ -112,7 +112,7 @@ FIND_PACKAGE(AVX)
   #  # Set substitution variables for configuration file.
   IF(AVX_FOUND)
     MESSAGE(STATUS "AVX version: ${AVX_VERSION}")
-    SET(CHRONO_HAS_AVX "#define CHRONO_PARALLEL_HAS_AVX")
+    SET(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
     SET(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
     SET(CHRONO_AVX_LEVEL "#define CHRONO_AVX_${AVX_STR}")
   ELSE()
