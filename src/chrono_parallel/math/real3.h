@@ -53,35 +53,6 @@ class real3 {
     inline operator real*() { return &array[0]; }
     inline operator const real*() const { return &array[0]; };
 
-    // ========================================================================================
-
-    real3 operator+(real b) const;
-    real3 operator-(real b) const;
-    real3 operator*(real b) const;
-    real3 operator/(real b) const;
-
-    real3 operator+(const real3& b) const;
-    real3 operator-(const real3& b) const;
-    real3 operator*(const real3& b) const;
-    real3 operator/(const real3& b) const;
-
-    // inline void Set(real _x, real _y, real _z);
-
-    real3 operator-() const;
-
-    inline real3 Abs() const { return real3(fabs(x), fabs(y), fabs(z)); }
-    // ========================================================================================
-
-    OPERATOR_EQUALS(*, real, real3)
-    OPERATOR_EQUALS(/, real, real3)
-    OPERATOR_EQUALS(+, real, real3)
-    OPERATOR_EQUALS(-, real, real3)
-
-    OPERATOR_EQUALS(*, real3, real3)
-    OPERATOR_EQUALS(/, real3, real3)
-    OPERATOR_EQUALS(+, real3, real3)
-    OPERATOR_EQUALS(-, real3, real3)
-
     union {
         struct {
             real x, y, z, w;
@@ -95,33 +66,34 @@ class real3 {
     };
 };
 
+real3 operator+(const real3& a, real b);
+real3 operator-(const real3& a, real b);
+real3 operator*(const real3& a, real b);
+real3 operator/(const real3& a, real b);
 
+real3 operator+(const real3& a, const real3& b);
+real3 operator-(const real3& a, const real3& b);
+real3 operator*(const real3& a, const real3& b);
+real3 operator/(const real3& a, const real3& b);
 
+OPERATOR_EQUALSALT(*, real, real3)
+OPERATOR_EQUALSALT(/, real, real3)
+OPERATOR_EQUALSALT(+, real, real3)
+OPERATOR_EQUALSALT(-, real, real3)
 
+OPERATOR_EQUALSALT(*, real3, real3)
+OPERATOR_EQUALSALT(/, real3, real3)
+OPERATOR_EQUALSALT(+, real3, real3)
+OPERATOR_EQUALSALT(-, real3, real3)
 
+real3 operator-(const real3& a);
 
+real3 operator*(real lhs, const real3& rhs);
+real3 operator/(real lhs, const real3& rhs);
 
+bool operator==(const real3& lhs, const real3& rhs);
 
-
-
-static real3 operator*(real lhs, const real3& rhs) {
-    real3 r(rhs);
-    r *= lhs;
-    return r;
-}
-
-static real3 operator/(real lhs, const real3& rhs) {
-    real3 r(rhs);
-    r.x = lhs / r.x;
-    r.y = lhs / r.y;
-    r.z = lhs / r.z;
-    return r;
-}
-
-static bool operator==(const real3& lhs, const real3& rhs) {
-    return (lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z);
-}
-
+real3 Cross(const real3& b, const real3& c);
 real Dot(const real3& v1, const real3& v2);
 real Dot(const real3& v);
 real3 Sqrt(real3 v);
@@ -130,43 +102,22 @@ static inline real Length2(const real3& v1) {
     return Dot(v1);
 }
 
-real3 Cross(const real3& b, const real3& c);
-
-static inline real Max(const real3& a) {
-    return Max(a.x, Max(a.y, a.z));
-}
-
-static inline real Min(const real3& a) {
-    return Min(a.x, Min(a.y, a.z));
-}
-
-static inline real3 Max(const real3& a, const real3& b) {
-    return real3(Max(a.x, b.x), Max(a.y, b.y), Max(a.z, b.z));
-}
-
-static inline real3 Min(const real3& a, const real3& b) {
-    return real3(Min(a.x, b.x), Min(a.y, b.y), Min(a.z, b.z));
-}
-
-static inline real3 Max(const real3& a, const real& b) {
-    return real3(Max(a.x, b), Max(a.y, b), Max(a.z, b));
-}
-
-static inline real3 Min(const real3& a, const real& b) {
-    return real3(Min(a.x, b), Min(a.y, b), Min(a.z, b));
-}
+real Max(const real3& a);
+real Min(const real3& a);
+real3 Max(const real3& a, const real3& b);
+real3 Min(const real3& a, const real3& b);
+real3 Max(const real3& a, const real& b);
+real3 Min(const real3& a, const real& b);
 
 static inline bool IsZero(const real3& v) {
-    return Abs(v.x) < C_EPSILON && Abs(v.y) < C_EPSILON && Abs(v.z) < C_EPSILON;
+    return Abs(v.mmvalue[0]) < C_EPSILON && Abs(v.mmvalue[1]) < C_EPSILON && Abs(v.mmvalue[2]) < C_EPSILON;
 }
 
-static inline real3 Abs(const real3& v) {
-    return v.Abs();
-}
+real3 Abs(const real3& v);
 
-static inline real3 Clamp(const real3& v, float max_length) {
+static inline real3 Clamp(const real3& v, real max_length) {
     real3 x = v;
-    real len_sq = Dot(x, x);
+    real len_sq = Dot(x);
     real inv_len = InvSqrt(len_sq);
 
     if (len_sq > Sqr(max_length))
@@ -174,38 +125,40 @@ static inline real3 Clamp(const real3& v, float max_length) {
 
     return x;
 }
+real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
 
-static inline real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max) {
-    real3 clampv;
-    clampv.x = Clamp(a.x, clamp_min.x, clamp_max.x);
-    clampv.y = Clamp(a.y, clamp_min.y, clamp_max.y);
-    clampv.z = Clamp(a.z, clamp_min.z, clamp_max.z);
-    return clampv;
-}
-
-static inline real3 OrthogonalVector(const real3& v) {
-    real3 abs = Abs(v);
-    if (abs.x < abs.y) {
-        return abs.x < abs.z ? real3(0, v.z, -v.y) : real3(v.y, -v.x, 0);
-    } else {
-        return abs.y < abs.z ? real3(-v.z, 0, v.x) : real3(v.y, -v.x, 0);
-    }
-}
-
-static inline real3 UnitOrthogonalVector(const real3& v) {
-    return Normalize(OrthogonalVector(v));
-}
-
-static inline void Sort(real& a, real& b, real& c) {
-    if (a > b)
-        Swap(a, b);
-    if (b > c)
-        Swap(b, c);
-    if (a > b)
-        Swap(a, b);
-}
+//
+// static inline real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max) {
+//    real3 clampv;
+//    clampv.x = Clamp(a.x, clamp_min.x, clamp_max.x);
+//    clampv.y = Clamp(a.y, clamp_min.y, clamp_max.y);
+//    clampv.z = Clamp(a.z, clamp_min.z, clamp_max.z);
+//    return clampv;
+//}
+//
+// static inline real3 OrthogonalVector(const real3& v) {
+//    real3 abs = Abs(v);
+//    if (abs.x < abs.y) {
+//        return abs.x < abs.z ? real3(0, v.z, -v.y) : real3(v.y, -v.x, 0);
+//    } else {
+//        return abs.y < abs.z ? real3(-v.z, 0, v.x) : real3(v.y, -v.x, 0);
+//    }
+//}
+//
+// static inline real3 UnitOrthogonalVector(const real3& v) {
+//    return Normalize(OrthogonalVector(v));
+//}
+//
+// static inline void Sort(real& a, real& b, real& c) {
+//    if (a > b)
+//        Swap(a, b);
+//    if (b > c)
+//        Swap(b, c);
+//    if (a > b)
+//        Swap(a, b);
+//}
 static void Print(real3 v, const char* name) {
     printf("%s\n", name);
-    printf("%f %f %f\n", v.x, v.y, v.z);
+    printf("%f %f %f\n", v.mmvalue[0], v.mmvalue[1], v.mmvalue[2]);
 }
 }

@@ -49,145 +49,145 @@ typedef float real;
 // Trig Functions
 // ========================================================================================
 static inline real Sin(const real theta) {
-  return sin(theta);
+    return sin(theta);
 }
 static inline real Cos(const real theta) {
-  return cos(theta);
+    return cos(theta);
 }
 static inline real Tan(const real theta) {
-  return tan(theta);
+    return tan(theta);
 }
 static inline real ASin(const real theta) {
-  return asin(theta);
+    return asin(theta);
 }
 static inline real ACos(const real theta) {
-  return acos(theta);
+    return acos(theta);
 }
 static inline real ATan(const real theta) {
-  return atan(theta);
+    return atan(theta);
 }
 static inline real ATan2(const real x, const real y) {
-  return atan2(x, y);
+    return atan2(x, y);
 }
 // Geometric Functions
 // ========================================================================================
 static inline real Sqr(const real x) {
-  return x * x;
+    return x * x;
 }
 static inline real Cube(const real x) {
-  return x * x * x;
+    return x * x * x;
 }
 static inline real Sqrt(const real x) {
-  return sqrt(x);
+    return sqrt(x);
 }
 static inline real InvSqrt(const real x) {
-  return 1.0 / sqrt(x);  // could also use rsqrtf(x) here and avoid division
+    return 1.0 / sqrt(x);  // could also use rsqrtf(x) here and avoid division
 }
 static inline real Abs(const real x) {
-  return fabs(x);
+    return fabs(x);
 }
 static inline real Pow(const real b, const real e) {
-  return pow(b, e);
+    return pow(b, e);
 }
 static inline real Mod(const real x, const real y) {
-  return fmod(x, y);
+    return fmod(x, y);
 }
 static inline real Exp(const real x) {
-  return exp(x);
+    return exp(x);
 }
 static inline real Min(const real a, const real b) {
-  return fmin(a, b);
+    return fmin(a, b);
 }
 static inline real Max(const real a, const real b) {
-  return fmax(a, b);
+    return fmax(a, b);
 }
 static inline real Floor(const real a) {
-  return floor(a);
+    return floor(a);
 }
 static inline real Ceil(const real a) {
-  return ceil(a);
+    return ceil(a);
 }
 static inline real Round(const real a) {
-  return round(a);
+    return round(a);
 }
 static inline real Log(const real a) {
-  return log(a);
+    return log(a);
 }
 #else
 
 // Trig Functions
 // ========================================================================================
 static inline real Sin(const real theta) {
-  return sinf(theta);
+    return sinf(theta);
 }
 static inline real Cos(const real theta) {
-  return cosf(theta);
+    return cosf(theta);
 }
 static inline real Tan(const real theta) {
-  return tanf(theta);
+    return tanf(theta);
 }
 static inline real ASin(const real theta) {
-  return asinf(theta);
+    return asinf(theta);
 }
 static inline real ACos(const real theta) {
-  return acosf(theta);
+    return acosf(theta);
 }
 static inline real ATan(const real theta) {
-  return atanf(theta);
+    return atanf(theta);
 }
 static inline real ATan2(const real x, const real y) {
-  return atan2f(x, y);
+    return atan2f(x, y);
 }
 static inline real DegToRad(const real t) {
-  return t * C_DegToRad;
+    return t * C_DegToRad;
 }
 static inline real RadToDeg(const real t) {
-  return t * C_RadToDeg;
+    return t * C_RadToDeg;
 }
 
 // Geometric Functions
 // ========================================================================================
 static inline real Sqr(const real x) {
-  return x * x;
+    return x * x;
 }
 static inline real Cube(const real x) {
-  return x * x * x;
+    return x * x * x;
 }
 static inline real Sqrt(const real x) {
-  return sqrtf(x);
+    return sqrtf(x);
 }
 static inline real InvSqrt(const real x) {
-  return 1.0f / sqrtf(x);  // could also use rsqrtf(x) here and avoid division
+    return 1.0f / sqrtf(x);  // could also use rsqrtf(x) here and avoid division
 }
 static inline real Abs(const real x) {
-  return fabsf(x);
+    return fabsf(x);
 }
 static inline real Pow(const real b, const real e) {
-  return powf(b, e);
+    return powf(b, e);
 }
 static inline real Mod(const real x, const real y) {
-  return fmod(x, y);
+    return fmod(x, y);
 }
 static inline real Exp(const real x) {
-  return expf(x);
+    return expf(x);
 }
 static inline real Min(const real a, const real b) {
-  return fminf(a, b);
+    return fminf(a, b);
 }
 static inline real Max(const real a, const real b) {
-  return fmaxf(a, b);
+    return fmaxf(a, b);
 }
 static inline real Floor(const real a) {
-  return floorf(a);
+    return floorf(a);
 }
 static inline real Ceil(const real a) {
-  return ceilf(a);
+    return ceilf(a);
 }
 static inline real Round(const real a) {
-  return roundf(a);
+    return roundf(a);
 }
 static inline real Log(const real a) {
-  return logf(a);
+    return logf(a);
 }
 #endif
 
@@ -198,26 +198,26 @@ static inline real Log(const real a) {
 //    return t * C_RadToDeg;
 //}
 
-//static inline real Sign(const real x) {
+// static inline real Sign(const real x) {
 //  return x < 0.0f ? -1.0f : 1.0f;
 //}
 // Returns a -1 if the value is negative
 // Returns a +1 if the value is positive
 // Otherwise returns zero, this should only happen if the given value is zero
 static inline real Sign(const real& x) {
-  if (x < 0) {
-    return -1;
-  } else if (x > 0) {
-    return 1;
-  } else {
-    return 0;
-  }
+    if (x < 0) {
+        return -1;
+    } else if (x > 0) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 // Checks if the value is zero to within a certain epsilon
 // in this case ZERO_EPSILON is defined based on what the base type of real is
 static inline bool IsZero(const real x) {
-  return Abs(x) < C_EPSILON;
+    return Abs(x) < C_EPSILON;
 }
 
 // template <typename T>
@@ -241,88 +241,93 @@ static inline bool IsZero(const real x) {
 // Essentially a fuzzy comparison operator
 template <typename T>
 static inline bool IsEqual(const T& _a, const T& _b) {
-  real ab;
-  ab = Abs(_a - _b);
-  if (Abs(ab) < C_EPSILON)
-    return 1;
-  real a, b;
-  a = Abs(_a);
-  b = Abs(_b);
-  if (b > a) {
-    return ab < C_EPSILON * b;
-  } else {
-    return ab < C_EPSILON * a;
-  }
+    real ab;
+    ab = Abs(_a - _b);
+    if (Abs(ab) < C_EPSILON)
+        return 1;
+    real a, b;
+    a = Abs(_a);
+    b = Abs(_b);
+    if (b > a) {
+        return ab < C_EPSILON * b;
+    } else {
+        return ab < C_EPSILON * a;
+    }
 }
 
 template <typename T>
 inline real LengthSq(const T v) {
-  return Dot(v);
+    return Dot(v);
 }
 
 template <typename T>
 inline real Length(const T& v) {
-  return Sqrt(LengthSq(v));
+    return Sqrt(LengthSq(v));
 }
 
 template <typename T>
 inline real SafeLength(const T& v) {
-  real len_sq = LengthSq(v);
-  if (len_sq) {
-    return Sqrt(len_sq);
-  } else {
-    return 0.0f;
-  }
+    real len_sq = LengthSq(v);
+    if (len_sq) {
+        return Sqrt(len_sq);
+    } else {
+        return 0.0f;
+    }
 }
 
 template <typename T>
 inline T Normalize(const T& v) {
-  return v / Length(v);
+    return v / Length(v);
 }
 
 template <typename T>
 inline T SafeNormalize(const T& v, const T& safe = T()) {
-  real len_sq = LengthSq(v);
-  if (len_sq > 0.0f) {
-    return v * InvSqrt(len_sq);
-  } else {
-    return safe;
-  }
+    real len_sq = LengthSq(v);
+    if (len_sq > 0.0f) {
+        return v * InvSqrt(len_sq);
+    } else {
+        return safe;
+    }
 }
 
 template <typename T, typename U>
 inline T Lerp(const T& start, const T& end, const U& t) {
-  return start + (end - start) * t;
+    return start + (end - start) * t;
 }
 
 template <typename T>
 inline void Swap(T& a, T& b) {
-  T temp = a;
-  a = b;
-  b = temp;
+    T temp = a;
+    a = b;
+    b = temp;
 }
 // Clamps a given value a between user specified minimum and maximum values
 template <typename T>
 inline T Clamp(T x, T low, T high) {
-  if (low > high) {
-    Swap(low, high);
-  }
-  return Max(low, Min(x, high));
+    if (low > high) {
+        Swap(low, high);
+    }
+    return Max(low, Min(x, high));
 }
 
 template <typename T, typename U>
 inline T ClampMin(T x, U low) {
-  return Max(low, x);
+    return Max(low, x);
 }
 
 template <typename T, typename U>
 inline T ClampMax(T x, U high) {
-  return Min(x, high);
+    return Min(x, high);
 }
 }
 //=========MACROS
-#define OPERATOR_EQUALS(op, tin, tout)     \
-  inline tout& operator op##=(tin scale) { \
-    *this = *this op scale;                \
-    return *this;                          \
-  }
+#define OPERATOR_EQUALS(op, tin, tout)       \
+    inline tout& operator op##=(tin scale) { \
+        *this = *this op scale;              \
+        return *this;                        \
+    }
+#define OPERATOR_EQUALSALT(op, tin, tout)                     \
+    static inline tout& operator op##=(tout & a, tin scale) { \
+        a = a op scale;                                       \
+        return a;                                             \
+    }

@@ -218,18 +218,18 @@ inline __m256d Div(__m256d a, __m256d b) {
     return _mm256_div_pd(a, b);
 }
 
-inline __m256d Add(__m256d a, real b) {
-    return _mm256_add_pd(a, _mm256_set1_pd(b));
-}
-inline __m256d Sub(__m256d a, real b) {
-    return _mm256_sub_pd(a, _mm256_set1_pd(b));
-}
-inline __m256d Mul(__m256d a, real b) {
-    return _mm256_mul_pd(a, _mm256_set1_pd(b));
-}
-inline __m256d Div(__m256d a, real b) {
-    return _mm256_div_pd(a, _mm256_set1_pd(b));
-}
+// inline __m256d Add(__m256d a, real b) {
+//    return _mm256_add_pd(a, _mm256_set1_pd(b));
+//}
+// inline __m256d Sub(__m256d a, real b) {
+//    return _mm256_sub_pd(a, _mm256_set1_pd(b));
+//}
+// inline __m256d Mul(__m256d a, real b) {
+//    return _mm256_mul_pd(a, _mm256_set1_pd(b));
+//}
+// inline __m256d Div(__m256d a, real b) {
+//    return _mm256_div_pd(a, _mm256_set1_pd(b));
+//}
 
 // inline __m256d Negate(__m256d a) {
 //    return _mm256_xor_pd(a, SIGNMASK);
@@ -297,6 +297,43 @@ inline real3 Cross(const real3& a, const real3& b) {
     result.z = (a.x * b.y) - (a.y * b.x);
     result.w = 0;
     return result;
+}
+
+inline __m256d Abs(__m256d v) {
+    __m256d mask = _mm256_castps_pd(_mm256_setr_epi32(-1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF));
+    return _mm256_and_pd(v, mask);
+}
+
+inline __m256d Max(const __m256d& v1, const __m256d& v2) {
+    return _mm256_max_pd(v1, v2);
+}
+inline __m256d Min(const __m256d& v1, const __m256d& v2) {
+    return _mm256_min_pd(v1, v2);
+}
+// http://stackoverflow.com/questions/9795529/how-to-find-the-horizontal-maximum-in-a-256-bit-avx-vector
+inline real Max(const __m256d& x) {
+    __m256d y = _mm256_permute2f128_pd(x, x, 1);  // permute 128-bit values
+    __m256d m1 = _mm256_max_pd(x, y);             // m1[0] = max(x[0], x[2]), m1[1] = max(x[1], x[3]), etc.
+    __m256d m2 = _mm256_permute_pd(m1, 5);        // set m2[0] = m1[1], m2[1] = m1[0], etc.
+    __m256d m = _mm256_max_pd(m1, m2);  // all m[0] ... m[3] contain the horizontal max(x[0], x[1], x[2], x[3])
+    __m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
+    return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
+}
+inline real Min(const __m256d& x) {
+    __m256d y = _mm256_permute2f128_pd(x, x, 1);  // permute 128-bit values
+    __m256d m1 = _mm256_min_pd(x, y);             // m1[0] = max(x[0], x[2]), m1[1] = min(x[1], x[3]), etc.
+    __m256d m2 = _mm256_permute_pd(m1, 5);        // set m2[0] = m1[1], m2[1] = m1[0], etc.
+    __m256d m = _mm256_min_pd(m1, m2);  // all m[0] ... m[3] contain the horizontal min(x[0], x[1], x[2], x[3])
+    __m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
+    return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
+}
+inline bool IsEqual(const __m256d& a, const __m256d& b) {
+    const __m256d SIGN_MASK = _mm256_set1_pd(-0.0);
+
+    __m256d x = _mm256_cmp_pd(a, b, 0);
+    x = _mm256_andnot_pd(SIGN_MASK, x);
+    x = _mm256_cmp_pd(x, _mm256_set1_pd(0.0), _CMP_EQ_OQ);
+    return _mm256_movemask_ps(x) != 0;
 }
 //========================================================
 //========================================================
@@ -466,33 +503,42 @@ inline real4 Negate(real4 a) {
 #endif
 }
 //========================================================
-real3 real3::operator+(const real3& b) const {
-    return simd::Add(*this, b);
+real3 operator+(const real3& a, const real3& b) {
+    return simd::Add(a, b);
 }
-real3 real3::operator-(const real3& b) const {
-    return simd::Sub(*this, b);
+real3 operator-(const real3& a, const real3& b) {
+    return simd::Sub(a, b);
 }
-real3 real3::operator*(const real3& b) const {
-    return simd::Mul(*this, b);
+real3 operator*(const real3& a, const real3& b) {
+    return simd::Mul(a, b);
 }
-real3 real3::operator/(const real3& b) const {
-    return simd::Div(*this, b);
+real3 operator/(const real3& a, const real3& b) {
+    return simd::Div(a, b);
 }
 //========================================================
-real3 real3::operator+(real b) const {
-    return simd::Add(*this, b);
+real3 operator+(const real3& a, real b) {
+    return simd::Add(a, simd::Set(b));
 }
-real3 real3::operator-(real b) const {
-    return simd::Sub(*this, b);
+real3 operator-(const real3& a, real b) {
+    return simd::Sub(a, simd::Set(b));
 }
-real3 real3::operator*(real b) const {
-    return simd::Mul(*this, b);
+real3 operator*(const real3& a, real b) {
+    return simd::Mul(a, simd::Set(b));
 }
-real3 real3::operator/(real b) const {
-    return simd::Div(*this, b);
+real3 operator/(const real3& a, real b) {
+    return simd::Div(a, simd::Set(b));
 }
-real3 real3::operator-() const {
-    return simd::Negate(*this);
+
+real3 operator*(real lhs, const real3& rhs) {
+    return simd::Mul(simd::Set(lhs), rhs);
+}
+
+real3 operator/(real lhs, const real3& rhs) {
+    return simd::Div(simd::Set(lhs), rhs);
+}
+
+real3 operator-(const real3& a) {
+    return simd::Negate(a);
 }
 //========================================================
 
@@ -507,6 +553,39 @@ real3 Sqrt(const real3& v) {
 }
 real3 Cross(const real3& b, const real3& c) {
     return simd::Cross(b, c);
+}
+real3 Abs(const real3& v) {
+    return simd::Abs(v);
+}
+
+real3 Max(const real3& a, const real3& b) {
+    return simd::Max(a, b);
+}
+
+real3 Min(const real3& a, const real3& b) {
+    return simd::Min(a, b);
+}
+
+real3 Max(const real3& a, const real& b) {
+    return simd::Max(a, simd::Set(b));
+}
+
+real3 Min(const real3& a, const real& b) {
+    return simd::Min(a, simd::Set(b));
+}
+real Max(const real3& a) {
+    return simd::Max(a);
+}
+real Min(const real3& a) {
+    return simd::Min(a);
+}
+
+real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max) {
+    return simd::Max(clamp_min, simd::Min(a, clamp_max));
+}
+
+bool operator==(const real3& lhs, const real3& rhs) {
+    return simd::IsEqual(lhs, rhs);
 }
 
 //========================================================
@@ -524,16 +603,16 @@ real4 real4::operator/(const real4& b) const {
 }
 //========================================================
 real4 real4::operator+(real b) const {
-    return simd::Add(*this, b);
+    return simd::Add(*this, simd::Set(b));
 }
 real4 real4::operator-(real b) const {
-    return simd::Sub(*this, b);
+    return simd::Sub(*this, simd::Set(b));
 }
 real4 real4::operator*(real b) const {
-    return simd::Mul(*this, b);
+    return simd::Mul(*this, simd::Set(b));
 }
 real4 real4::operator/(real b) const {
-    return simd::Div(*this, b);
+    return simd::Div(*this, simd::Set(b));
 }
 real4 real4::operator-() const {
     return simd::Negate(*this);
