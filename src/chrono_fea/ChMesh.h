@@ -54,6 +54,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
         n_dofs = 0;
         n_dofs_w = 0;
         automatic_gravity_load = true;
+        num_points_gravity = 1;
     };
     ~ChMesh(){};
 
