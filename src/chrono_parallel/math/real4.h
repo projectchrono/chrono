@@ -25,7 +25,7 @@
 
 namespace chrono {
 
-#ifdef ENABLE_SSE
+#ifdef CHRONO_USE_SIMD
 //#define _mm_shufd(xmm, mask) _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(xmm), mask))
 
 static inline real horizontal_add(const __m128& a) {
@@ -58,12 +58,12 @@ class CHRONO_ALIGN_16 real4 {
     struct {
       real w, x, y, z;
     };
-#ifdef ENABLE_SSE
+#ifdef CHRONO_USE_SIMD
     __m128 mmvalue;
 #endif
   };
 
-#ifdef ENABLE_SSE
+#ifdef CHRONO_USE_SIMD
   inline real4() : mmvalue(_mm_setzero_ps()) {}
   inline real4(real a) : mmvalue(_mm_set1_ps(a)) {}
   inline real4(real a, real b, real c) : mmvalue(_mm_setr_ps(0, a, b, c)) {}
@@ -187,7 +187,7 @@ static inline quaternion inv(const quaternion& a) {
 }
 
 static inline real4 operator~(real4 const& a) {
-#ifdef ENABLE_SSE
+#ifdef CHRONO_USE_SIMD
   return real4(change_sign<0, 1, 1, 1>(a));
 #else
   return real4(a.w, -a.x, -a.y, -a.z);
@@ -239,7 +239,7 @@ static inline quaternion mult_classic(const quaternion& qa, const quaternion& qb
   return temp;
 }
 static inline quaternion mult(const quaternion& a, const quaternion& b) {
-#ifdef ENABLE_SSE
+#ifdef CHRONO_USE_SIMD
   __m128 a1123 = _mm_shuffle_ps(a, a, 0xE5);
   __m128 a2231 = _mm_shuffle_ps(a, a, 0x7A);
   __m128 b1000 = _mm_shuffle_ps(b, b, 0x01);
@@ -298,7 +298,7 @@ static inline quaternion slerp(const quaternion& a, const quaternion& b, real al
 }
 
 static inline real3 quatRotate(const real3& v, const quaternion& q) {
-#ifdef ENABLE_SSE
+#ifdef CHRONO_USE_SIMD
   real3 t = 2 * cross(real3(q.x, q.y, q.z), v);
   return v + q.w * t + cross(real3(q.x, q.y, q.z), t);
 // return v+2.0*cross(cross(v,real3(q.x,q.y,q.z))+q.w*v, real3(q.x,q.y,q.z));

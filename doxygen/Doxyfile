@@ -660,13 +660,18 @@ RECURSIVE              = YES
 # Note that relative paths are relative to directory from which doxygen is run.
 
 EXCLUDE                = ../src/demos \
-                         ../src/collision/bullet \
-                         ../src/collision/convexdecomposition \
-                         ../src/collision/gimpact \
-                         ../src/unit_GPU \
-                         ../src/unit_TESTING \
-                         ../src/unit_JS \
-                         ../src/collision/edgetempest
+                         ../src/chrono/collision/bullet \
+                         ../src/chrono/collision/convexdecomposition \
+                         ../src/chrono/collision/gimpact \
+						 ../src/chrono/collision/edgetempest\
+                         ../src/chrono_irrlicht \
+                         ../src/chrono_matlab \
+						 ../src/chrono_opengl \
+						 ../src/chrono_python \
+                         ../src/thirdparty \
+						 ../src/unit_tests \
+						 ../src/tests 
+                         
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix file system feature) are excluded 

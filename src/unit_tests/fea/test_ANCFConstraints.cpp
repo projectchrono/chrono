@@ -323,8 +323,6 @@ void AddMesh(ChSystem& my_system) {
 
     // Switch off mesh class gravity
     my_mesh->SetAutomaticGravity(false);
-    // This is mandatory
-    my_mesh->SetupInitial();
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 }
@@ -430,6 +428,9 @@ int main(int argc, char* argv[]) {
     mystepper->SetTolerance(1e-06);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     m_data.resize(16);
     for (size_t col = 0; col < 16; col++)

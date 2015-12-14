@@ -194,7 +194,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron,
     }
 
     /// set up the element's parameters and matrices
-    virtual void SetupInitial() {
+    virtual void SetupInitial(ChSystem* system) override {
         ComputeVolume();
         ComputeStiffnessMatrix();
     }
@@ -625,7 +625,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron,
     }
 
     /// set up the element's parameters and matrices
-    virtual void SetupInitial() {
+    virtual void SetupInitial(ChSystem* system) override {
         ComputeVolume();
         ComputeStiffnessMatrix();
     }

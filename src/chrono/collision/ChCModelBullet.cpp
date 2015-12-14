@@ -384,11 +384,14 @@ bool ChModelBullet::AddTriangleProxy(ChVector<>* p1,                ///< points 
                                     bool mowns_edge_3,
                                     double msphereswept_rad       ///< sphere swept triangle ('fat' triangle, improves robustness)
                                     ) {
+    // adjust default inward 'safe' margin (always as radius)
+    this->SetSafeMargin(msphereswept_rad);
+
     btCEtriangleShape* mshape = new btCEtriangleShape(p1,p2,p3,ep1,ep2,ep3,
         mowns_vertex_1, mowns_vertex_2, mowns_vertex_3, 
         mowns_edge_1, mowns_edge_2, mowns_edge_3, msphereswept_rad);
 
-    mshape->setMargin((btScalar)  this->GetEnvelope()); // this->GetSafeMargin());  // not this->GetSuggestedFullMargin() given the way that btCEtriangleShape works.
+    mshape->setMargin((btScalar)  this->GetSuggestedFullMargin()); // this->GetSafeMargin());  // not this->GetSuggestedFullMargin() given the way that btCEtriangleShape works.
     
     _injectShape(VNULL, ChMatrix33<>(1), mshape);
 

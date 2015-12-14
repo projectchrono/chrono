@@ -109,7 +109,7 @@ class ChApiFea ChElementBar : public ChElementGeneric {
 
     /// Setup. Precompute mass and matrices that do not change during the
     /// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
-    virtual void SetupInitial() {
+    virtual void SetupInitial(ChSystem* system) override {
         // Compute rest length, mass:
         this->length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
         this->mass = this->length * this->area * this->density;

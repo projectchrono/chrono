@@ -229,12 +229,19 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
         m_revoluteKingpin[2];  ///< handles to the knuckle-axle housing revolute joints (left/right)
     ChSharedPtr<ChLinkLockSpherical>
         m_sphericalTorquerod[2];  ///< handles to the torque rod-axle housing spherical joints (left/right)
-    ChSharedPtr<ChLinkUniversal>
-        m_universalTorquerod[2];  ///< handles to the torque rod-chassis universal joints (left/right)
+
+    ChSharedPtr<ChLinkLockRevolute>
+      m_revoluteTorquerod[2];  ///< handles to the torquerod chasis revolute joints (left/right)
+
     ChSharedPtr<ChLinkLockSpherical>
         m_sphericalLowerbeam[2];  ///< handles to the lower beam-axle housing spherical joints (left/right)
-    ChSharedPtr<ChLinkUniversal>
-        m_universalLowerbeam[2];  ///< handles to the lower beam-chassis universal joints (left/right)
+
+    ChSharedPtr<ChLinkLockRevolute>
+      m_revoluteLowerbeam[2];  ///< handles to the lowerbeam chasis revolute joints (left/right)
+
+
+
+
     ChSharedPtr<ChLinkLockSpherical>
         m_sphericalTB[2];  ///< handles to the transversebeam-lower beam spherical joints (left/right)
     ChSharedPtr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)

@@ -85,6 +85,63 @@ else()
 	find_package("TBB")
 	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
 endif()
+
+#-----------------------------------------------------------------------------
+# SSE and AVX support
+#-----------------------------------------------------------------------------
+
+# Figure out SIMD level support
+OPTION(USE_SIMD "Compile with SSE support for floating point math" ON)
+
+IF(USE_SIMD)
+
+FIND_PACKAGE(SSE)
+
+  # Set substitution variables for configuration file.
+  IF(SSE_FOUND)
+    MESSAGE(STATUS "SSE version: ${SSE_VERSION}")
+    SET(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
+    SET(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
+    SET(CHRONO_SSE_LEVEL "#define CHRONO_SSE_${SSE_STR}")
+  ELSE()
+    MESSAGE("No SSE support")
+  ENDIF()
+  
+FIND_PACKAGE(AVX)
+
+  #  # Set substitution variables for configuration file.
+  IF(AVX_FOUND)
+    MESSAGE(STATUS "AVX version: ${AVX_VERSION}")
+    SET(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
+    SET(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
+    SET(CHRONO_AVX_LEVEL "#define CHRONO_AVX_${AVX_STR}")
+  ELSE()
+    MESSAGE("No AVX support")
+  ENDIF()
+  
+  SET(CHRONO_USE_SIMD "#define CHRONO_USE_SIMD")
+  
+
+  IF (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+    set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+    set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+  ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+    set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+    set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+  ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xsse${SSE_VERSION}")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -xsse${SSE_VERSION}")
+    set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -xsse${SSE_VERSION}")
+    set(CH_C_FLAGS "${CH_C_FLAGS} -xsse${SSE_VERSION}")
+  ELSEIF (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+    # using Visual Studio C++
+  ENDIF()
+  
+ENDIF()
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

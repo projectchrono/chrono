@@ -690,6 +690,22 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         ChModelBullet* triModelA = (ChModelBullet*)triA->getUserPointer();
         ChModelBullet* triModelB = (ChModelBullet*)triB->getUserPointer();
 
+        // brute force discard of connected triangles
+        // ***TODO*** faster approach based on colision families that can bypass the
+        // check at the broadphase level?
+        if (triA->get_p1() == triB->get_p1() ||
+            triA->get_p1() == triB->get_p2() ||
+            triA->get_p1() == triB->get_p3())
+            return;
+        if (triA->get_p2() == triB->get_p1() ||
+            triA->get_p2() == triB->get_p2() ||
+            triA->get_p2() == triB->get_p3())
+            return;
+        if (triA->get_p3() == triB->get_p1() ||
+            triA->get_p3() == triB->get_p2() ||
+            triA->get_p3() == triB->get_p3())
+            return;
+
         double max_allowed_dist = triModelA->GetEnvelope()+triModelB->GetEnvelope() +triA->sphereswept_r()+triB->sphereswept_r();
         double min_allowed_dist = - (triModelA->GetSafeMargin()+triModelB->GetSafeMargin());
         

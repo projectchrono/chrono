@@ -46,10 +46,6 @@ int main(int argc, char* argv[]) {
     // Create the model (defined in FEAcables.h)
     model3(my_system, my_mesh);
 
-    // This is necessary in order to precompute the stiffness matrices for all
-    // inserted elements in mesh
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -85,6 +81,9 @@ int main(int argc, char* argv[]) {
     // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
     // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
     application.AssetUpdateAll();
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Change solver to MKL
     ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
