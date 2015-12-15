@@ -195,9 +195,9 @@ void ChContactSurfaceGeneric::AddFacesFromBoundary(double sphere_swept) {
                 ChFaceTetra_4 mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get_ptr(), mface.GetNodeN(1).get_ptr(), mface.GetNodeN(2).get_ptr()};
                 std::sort(mface_key.begin(), mface_key.end());
-                if (face_map.count(mface_key) == 1) {
+                if (face_map.count(mface_key) == 1) {  
                     // Found a face that is not shared.. so it is a boundary face. 
-                    triangles.push_back( mface_key );
+                    triangles.push_back( {mface.GetNodeN(0).get_ptr(), mface.GetNodeN(1).get_ptr(), mface.GetNodeN(2).get_ptr()} );
                 }
             }
         }
