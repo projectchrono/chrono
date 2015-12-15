@@ -45,7 +45,7 @@ class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
   void UpdateR();
 
   // APGD specific vectors
-  DynamicVector<real> obj2_temp, obj1_temp, temp, g, gamma_new, y, gamma_hat, N_gamma_new;
+  DynamicVector<real> obj2_temp, obj1_temp, temp, g, gamma_new, y, gamma_hat, N_gamma_new, _t_g;
   real L, t;
   real g_diff;
   real theta, theta_new, beta_new;
