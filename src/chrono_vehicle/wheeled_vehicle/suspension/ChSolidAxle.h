@@ -123,21 +123,9 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
         NUM_POINTS
     };
 
-    /// Identifiers for the various vectors.
-    enum DirectionId {
-        UNIV_AXIS_LINK_L,     ///< universal joint (lower link, link side)
-        UNIV_AXIS_CHASSIS_L,  ///< universal joint (lower link, chassis side)
-        UNIV_AXIS_LINK_U,     ///< universal joint (upper link, link side)
-        UNIV_AXIS_CHASSIS_U,  ///< universal joint (upper link, chassis side)
-        NUM_DIRS
-    };
-
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
     virtual const ChVector<> getLocation(PointId which) = 0;
-
-    /// Return the vector of the specified direction.
-    virtual const ChVector<> getDirection(DirectionId which) = 0;
 
     /// Return the center of mass of the axle tube.
     virtual const ChVector<> getAxleTubeCOM() const = 0;
@@ -188,12 +176,17 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual ChSpringForceCallback* getShockForceCallback() const = 0;
 
     ChSharedPtr<ChBody> m_axleTube;      ///< handles to the axle tube body
+    ChSharedPtr<ChBody> m_tierod;        ///< handles to the tierod body
     ChSharedPtr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (left/right)
     ChSharedPtr<ChBody> m_upperLink[2];  ///< handles to the upper link bodies (left/right)
     ChSharedPtr<ChBody> m_lowerLink[2];  ///< handles to the lower link bodies (left/right)
 
     ChSharedPtr<ChLinkLockRevolute>
-        m_revoluteKingpin[2];  ///< handles to the knuckle-axle tube revolute joints (left/right)
+        m_revoluteKingpin[2];     ///< handles to the knuckle-axle tube revolute joints (left/right)
+    ChSharedPtr<ChLinkLockSpherical>
+        m_sphericalTierod;        ///< handles to the knuckle-tierod spherical joint (left)
+    ChSharedPtr<ChLinkUniversal>
+        m_universalTierod;        ///< handles to the knuckle-tierod universal joint (right)
     ChSharedPtr<ChLinkLockSpherical>
         m_sphericalUpperLink[2];  ///< handles to the upper link-axle tube spherical joints (left/right)
     ChSharedPtr<ChLinkLockSpherical>
@@ -202,7 +195,7 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
         m_universalUpperLink[2];  ///< handles to the upper link-chassis universal joints (left/right)
     ChSharedPtr<ChLinkUniversal>
         m_universalLowerLink[2];                  ///< handles to the lower link-chassis universal joints (left/right)
-    ChSharedPtr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
+    ChSharedPtr<ChLinkDistance> m_distTierod;  ///< handles to the tierod distance constraint (left)
 
     ChSharedPtr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
     ChSharedPtr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
@@ -211,8 +204,7 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     void InitializeSide(VehicleSide side,
                         ChSharedPtr<ChBodyAuxRef> chassis,
                         ChSharedPtr<ChBody> tierod_body,
-                        const std::vector<ChVector<> >& points,
-                        const std::vector<ChVector<> >& dirs);
+                        const std::vector<ChVector<> >& points);
 
     static void AddVisualizationLink(ChSharedPtr<ChBody> body,
                                      const ChVector<> pt_1,
