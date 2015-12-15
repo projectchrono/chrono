@@ -15,16 +15,17 @@
 // =============================================================================
 
 #include "chrono/core/ChException.h"
+#include "chrono/core/ChQuadrature.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChElementGeneric.h"
 #include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChUtilsFEA.h"
-#include "chrono/core/ChQuadrature.h"
 
 namespace chrono {
 namespace fea {
 
 // -----------------------------------------------------------------------------
-ChElementBrick::ChElementBrick() : m_flag_HE(ANALYTICAL) {
+ChElementBrick::ChElementBrick() : m_flag_HE(ANALYTICAL), m_gravity_on(false) {
     m_nodes.resize(8);
 }
 // -----------------------------------------------------------------------------
@@ -437,21 +438,10 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         }
     }  // end of else for numerical or analytical
 
-    // Add gravity force
-    MyGravity myformula1(&m_d0, this);
-    ChMatrixNM<double, 24, 1> Fgravity;
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1> >(Fgravity,    // result of integration will go there
-                                                          myformula1,  // formula to integrate
-                                                          -1,          // start of x
-                                                          1,           // end of x
-                                                          -1,          // start of y
-                                                          1,           // end of y
-                                                          -1,          // start of z
-                                                          1,           // end of z
-                                                          2            // order of integration
-                                                          );
-    Fi += Fgravity;
-}  // end of ComputeInternalForces
+    if (m_gravity_on) {
+        Fi += m_GravForce;
+    }
+}
 
 // -----------------------------------------------------------------------------
 
@@ -1644,36 +1634,6 @@ void ChElementBrick::MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result,
     double wy2 = (element->GetLengthY()) / 2;
     double wz2 = (element->GetLengthZ()) / 2;
 
-    // Set gravity acceleration
-    if (element->m_gravity_on) {
-        LocalGravityForce(0, 0) = 0.0;
-        LocalGravityForce(1, 0) = 0.0;
-        LocalGravityForce(2, 0) = -9.81;
-    } else {
-        LocalGravityForce(0, 0) = 0.0;
-        LocalGravityForce(1, 0) = 0.0;
-        LocalGravityForce(2, 0) = 0.0;
-    }
-
-    // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
-    ChMatrix33<> Si;
-    Si.FillDiag(N(0));
-    S.PasteMatrix(&Si, 0, 0);
-    Si.FillDiag(N(1));
-    S.PasteMatrix(&Si, 0, 3);
-    Si.FillDiag(N(2));
-    S.PasteMatrix(&Si, 0, 6);
-    Si.FillDiag(N(3));
-    S.PasteMatrix(&Si, 0, 9);
-    Si.FillDiag(N(4));
-    S.PasteMatrix(&Si, 0, 12);
-    Si.FillDiag(N(5));
-    S.PasteMatrix(&Si, 0, 15);
-    Si.FillDiag(N(6));
-    S.PasteMatrix(&Si, 0, 18);
-    Si.FillDiag(N(7));
-    S.PasteMatrix(&Si, 0, 21);
-
     ChMatrixNM<double, 1, 3> Nx_d0;
     Nx_d0.MatrMultiply(Nx, *d0);
 
@@ -1696,10 +1656,30 @@ void ChElementBrick::MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result,
 
     double detJ0 = rd0.Det();
 
-    result.MatrTMultiply(S, LocalGravityForce);
+    for (int i = 0; i < 8; i++) {
+        result(i * 3 + 0, 0) = N(0, i) * gacc.x;
+        result(i * 3 + 1, 0) = N(0, i) * gacc.y;
+        result(i * 3 + 2, 0) = N(0, i) * gacc.z;
+    }
 
-    result *= detJ0 * wx2 * wy2 * wz2 * (element->m_Material->Get_density());
+    result *= detJ0 * wx2 * wy2 * wz2;
 }
+
+void ChElementBrick::ComputeGravityForce(const ChVector<>& g_acc) {
+    m_GravForce.Reset();
+
+    MyGravity myformula1(&m_d0, this, g_acc);
+    ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1> >(m_GravForce,  // result of integration will go there
+                                                          myformula1,   // formula to integrate
+                                                          -1, 1,        // limits in x direction
+                                                          -1, 1,        // limits in y direction
+                                                          -1, 1,        // limits in z direction
+                                                          2             // order of integration
+                                                          );
+
+    m_GravForce *= m_Material->Get_density();
+}
+
 void ChElementBrick::ComputeMassMatrix() {
     double rho = m_Material->Get_density();
 
@@ -1720,7 +1700,9 @@ void ChElementBrick::ComputeMassMatrix() {
 }
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::SetupInitial() {
+void ChElementBrick::SetupInitial(ChSystem* system) {
+    // Compute gravitational forces
+    ComputeGravityForce(system->Get_G_acc());
     // Compute mass matrix
     ComputeMassMatrix();
     // initial EAS parameters

@@ -128,9 +128,16 @@ namespace chrono {
 	void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel)
 	{
 		colIndex_lock_broken = true;
-		int col_shift = 1;
-		int col_sel_empty = col_sel;
+		int col_shift = 1; // an offset from the current position that points to the empty location found
+		int col_sel_empty = col_sel; // the location in which the new element will be put (if a space will be found it will be different from col_sel)
 
+		/****************** STEP 1 ******************/
+
+		// "only-one-uninitialized-cell" row check: it starts from the row following/preceding the one you are in;
+		// this is because if you are inserting in your own row there is no interest to check for "only-one-uninitialized-cell" row 
+		int row_sel_bw = insrow - 1;
+		int row_sel_fw = insrow + 1;
+			
 		// STEP 1: find an empty space in the array so part of the array can be shifted in order to give space to the new element
 		// There are 3 While cycles; they all search for the NEAREST empty space (i.e. in which the colIndex array has a "-1"); no rearrangement is done at this stage.
 		// 1st While: it scans both Backward and Forward, but only until at least ONE of the limits of the colIndex is reached;
@@ -138,16 +145,15 @@ namespace chrono {
 		// 3rd While: it scans only Forward, but only if the 1st cycle did not find anything AND the end of colIndex is not reached yet;
 		// These 3 cycles can be made one introducing a check on the limits of the array (in the IFs in the first While), but
 		// this will introduce another 2 more condition check that have to be done at every iteration also if they'll be hit very rarely.
-		while (col_shift < max_shifts && col_sel - col_shift>-1 && col_sel + col_shift < rowIndex[rows])
+		while (col_shift < max_shifts && col_sel - col_shift>-1 && col_sel + col_shift < rowIndex[rows]) // 1st While
 		{
 			if (colIndex[col_sel - col_shift] == -1 && !rowIndex_lock) // backward check
 			{
 				// This part is very specific: it avoids to write to another row that has only one element that it's uninitialized;
-				int row_sel = 0;
-				for (row_sel = insrow; col_sel - col_shift < rowIndex[row_sel] && row_sel >= 0; row_sel--) {}
-				if (rowIndex[row_sel] == col_sel - col_shift)
+				for (; rowIndex[row_sel_bw] > col_sel - col_shift && row_sel_bw >= 0; row_sel_bw--) {}
+				if (rowIndex[row_sel_bw] == col_sel - col_shift)
 				{
-					if (row_sel == 0)
+					if (row_sel_bw == 0)
 						break;
 					col_shift++;
 					continue;
@@ -160,11 +166,10 @@ namespace chrono {
 			if (colIndex[col_sel + col_shift] == -1) // forward check
 			{
 				// This part is very specific: it avoids to write to another row that has only one element that it's uninitialized;
-				int row_sel = 0;
-				for (row_sel = insrow; col_sel + col_shift > rowIndex[row_sel] && row_sel <= rows; row_sel++) {}
-				if (rowIndex[row_sel] == col_sel + col_shift)
+				for (; rowIndex[row_sel_fw] < col_sel + col_shift && row_sel_fw <= rows; row_sel_fw++) {}
+				if (rowIndex[row_sel_fw] == col_sel + col_shift)
 				{
-					if (row_sel == rows)
+					if (row_sel_fw == rows)
 						break;
 					col_shift++;
 					continue;
@@ -173,19 +178,21 @@ namespace chrono {
 				col_sel_empty = col_sel + col_shift;
 				break;
 			}
-			col_shift++;
-		}
 
-		while (!rowIndex_lock && col_sel_empty == col_sel && col_shift < max_shifts && col_sel - col_shift>-1 ) // scan the last elements not already checked to the left
+			col_shift++;
+		} // end 1st While
+		
+
+		// 2nd While: scan the last elements not already checked to the left (backward)
+		while (!rowIndex_lock && col_sel_empty == col_sel && col_shift < max_shifts && col_sel - col_shift>-1)
 		{
 			if (colIndex[col_sel - col_shift] == -1) // backward check
 			{
 				// This part is very specific: it avoids to write to another row that has only one element that it's uninitialized;
-				int row_sel = 0;
-				for (row_sel = insrow; col_sel - col_shift < rowIndex[row_sel] && row_sel >= 0; row_sel--) {}
-				if (rowIndex[row_sel] == col_sel - col_shift)
+				for (; rowIndex[row_sel_bw] > col_sel - col_shift && row_sel_bw >= 0; row_sel_bw--) {}
+				if (rowIndex[row_sel_bw] == col_sel - col_shift)
 				{
-					if (row_sel == 0)
+					if (row_sel_bw == 0)
 						break;
 					col_shift++;
 					continue;
@@ -196,17 +203,18 @@ namespace chrono {
 			}
 			col_shift++;
 		}
+		
 
-		while (col_sel_empty == col_sel && col_shift < max_shifts && col_sel + col_shift < rowIndex[rows]) // scan the last elements not already checked to the right
+		// 3rd While: scan the last elements not already checked to the right (forward)
+		while (col_sel_empty == col_sel && col_shift < max_shifts && col_sel + col_shift < rowIndex[rows])
 		{
 			if (colIndex[col_sel + col_shift] == -1) // forward check
 			{
 				// This part is very specific: it avoids to write to another row that has only one element that it's uninitialized;
-				int row_sel = 0;
-				for (row_sel = insrow; col_sel + col_shift > rowIndex[row_sel] && row_sel <= rows; row_sel++) {}
-				if (rowIndex[row_sel] == col_sel + col_shift)
+				for (; rowIndex[row_sel_fw] < col_sel + col_shift && row_sel_fw <= rows; row_sel_fw++) {}
+				if (rowIndex[row_sel_fw] == col_sel + col_shift)
 				{
-					if (row_sel == rows)
+					if (row_sel_fw == rows)
 						break;
 					col_shift++;
 					continue;
@@ -217,9 +225,10 @@ namespace chrono {
 			}
 			col_shift++;
 		}
+		
 		// If an uninitialized location is found "col_sel_empty" should point at it, so it would be different from "col_sel".
 
-
+		/****************** STEP 2 ******************/
 		
 		// STEP 2: shift the array to make space for the new element; eventually update "col_sel"
 		// case 1: the uninitialized location is found forward;

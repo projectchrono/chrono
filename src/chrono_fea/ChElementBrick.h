@@ -50,8 +50,12 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
         ChMatrixNM<double, 1, 8> Nz;   ///< Dense shape function vector, Z derivative
 
         /// Evaluate the S'*S  at point x
-        virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z);
+        virtual void Evaluate(ChMatrixNM<double, 24, 24>& result,
+                              const double x,
+                              const double y,
+                              const double z) override;
     };
+
     /// Internal force, EAS stiffness, and analytical jacobian are calculated
     class MyForceAnalytical : public ChIntegrable3D<ChMatrixNM<double, 906, 1> > {
       public:
@@ -136,8 +140,12 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
         ChMatrixNM<double, 6, 1> strain_EAS;  ///< Enhanced assumed strain vector
 
         /// Evaluate (strainD'*strain)  at a point
-        virtual void Evaluate(ChMatrixNM<double, 906, 1>& result, const double x, const double y, const double z);
-    };  // end of class MyForce
+        virtual void Evaluate(ChMatrixNM<double, 906, 1>& result,
+                              const double x,
+                              const double y,
+                              const double z) override;
+    };
+
     class MyForceNum : public ChIntegrable3D<ChMatrixNM<double, 330, 1> > {
       public:
         MyForceNum();
@@ -215,30 +223,35 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
         ChMatrixNM<double, 6, 1> strain_EAS;  ///< Enhanced assumed strain vector
 
         /// Gaussian integration to calculate internal forces and EAS matrices
-        virtual void Evaluate(ChMatrixNM<double, 330, 1>& result, const double x, const double y, const double z);
+        virtual void Evaluate(ChMatrixNM<double, 330, 1>& result,
+                              const double x,
+                              const double y,
+                              const double z) override;
     };
+
     /// Class to calculate the gravity forces of a brick element
     class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
       public:
-        MyGravity();
-        MyGravity(ChMatrixNM<double, 8, 3>* m_d0, ChElementBrick* element_) {
-            d0 = m_d0;
-            element = element_;
-        }
+        MyGravity(ChMatrixNM<double, 8, 3>* m_d0, ChElementBrick* element_, const ChVector<> g_acc)
+            : d0(m_d0), element(element_), gacc(g_acc) {}
         ~MyGravity() {}
 
       private:
         ChElementBrick* element;
-        ChMatrixNM<double, 8, 3>* d0;                ///< Pointer to a matrix containing the element initial coordinates
-        ChMatrixNM<double, 3, 24> S;                 ///< Sparse shape function matrix
-        ChMatrixNM<double, 1, 8> N;                  ///< Dense shape function vector
-        ChMatrixNM<double, 1, 8> Nx;                 ///< Dense shape function vector, X derivative
-        ChMatrixNM<double, 1, 8> Ny;                 ///< Dense shape function vector, Y derivative
-        ChMatrixNM<double, 1, 8> Nz;                 ///< Dense shape function vector, Z derivative
-        ChMatrixNM<double, 3, 1> LocalGravityForce;  ///< Acceleration vector
+        ChMatrixNM<double, 8, 3>* d0;  ///< Pointer to a matrix containing the element initial coordinates
+        ChMatrixNM<double, 3, 24> S;   ///< Sparse shape function matrix
+        ChMatrixNM<double, 1, 8> N;    ///< Dense shape function vector
+        ChMatrixNM<double, 1, 8> Nx;   ///< Dense shape function vector, X derivative
+        ChMatrixNM<double, 1, 8> Ny;   ///< Dense shape function vector, Y derivative
+        ChMatrixNM<double, 1, 8> Nz;   ///< Dense shape function vector, Z derivative
+        ChVector<> gacc;               ///< gravitational acceleration
 
-        virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
+        virtual void Evaluate(ChMatrixNM<double, 24, 1>& result,
+                              const double x,
+                              const double y,
+                              const double z) override;
     };
+
     /// Get number of nodes of this element
     virtual int GetNnodes() override { return 8; }
     /// Get number of coordinates of the element
@@ -435,6 +448,7 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     ChMatrixNM<double, 9, 1> m_stock_alpha_EAS;  ///< EAS previous step internal parameters
     ChMatrixNM<double, 24, 24> m_stock_KTE;      ///< Analytical Jacobian
     ChMatrixNM<double, 8, 3> m_d0;               ///< Initial Coordinate per element
+    ChMatrixNM<double, 24, 1> m_GravForce;       ///< Gravity Force
     JacobianType m_flag_HE;
     bool m_gravity_on;  ///< Flag indicating whether or not gravity is included
     bool m_isMooney;    ///< Flag indicating whether the material is Mooney Rivlin
@@ -458,10 +472,11 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
     void ComputeMassMatrix();
+    /// Compute the gravitational forces.
+    void ComputeGravityForce(const ChVector<>& g_acc);
     /// Setup. Precompute mass and matrices that do not change during the
     /// simulation, ex. the mass matrix in ANCF is constant
-
-    virtual void SetupInitial() override;
+    virtual void SetupInitial(ChSystem* system) override;
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0);

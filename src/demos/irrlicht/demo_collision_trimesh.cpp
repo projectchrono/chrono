@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Collisions between objects", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&mphysicalSystem, L"Collisions between objects", core::dimension2d<u32>(1280, 720), false);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());
@@ -63,14 +63,17 @@ int main(int argc, char* argv[]) {
     ChIrrWizard::add_typical_Lights(application.GetDevice());
     ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 1, -1));
 
+    application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+                                   video::SColorf(0.8, 0.8, 1));
+
     application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_DISTANCES);
 
     //
     // Create all the rigid bodies.
     // 
 
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
+    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
+    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // - Create a floor
 
@@ -96,7 +99,7 @@ int main(int argc, char* argv[]) {
     mmeshbox.LoadWavefrontMesh(GetChronoDataFile("cube.obj"),true,true);
 
     mfloor2->GetCollisionModel()->ClearModel();
-    mfloor2->GetCollisionModel()->AddTriangleMesh(mmeshbox,false, false, VNULL, ChMatrix33<>(1), 0.01);
+    mfloor2->GetCollisionModel()->AddTriangleMesh(mmeshbox,false, false, VNULL, ChMatrix33<>(1), 0.005);
     mfloor2->GetCollisionModel()->BuildModel();
     mfloor2->SetCollide(true);
 
@@ -109,41 +112,54 @@ int main(int argc, char* argv[]) {
     mfloor2->AddAsset(masset_texture);
 
     // - Create a falling item with triangle mesh shape
-    ChSharedPtr<ChBody> mfalling(new ChBody);
-    mfalling->SetPos(ChVector<>(0.1, 0.24, 0));
-   // mfalling->SetPos(ChVector<>(ChRandom()*0.4, ChRandom()+0.24, ChRandom()*0.4));
-    mphysicalSystem.Add(mfalling);
 
     ChTriangleMeshConnected mmesh;
-    mmesh.LoadWavefrontMesh(GetChronoDataFile("cube.obj"),false,true);
-    mmesh.Transform(ChVector<>(0,0,0), ChMatrix33<>(0.2)); // scale to a smaller cube
+    mmesh.LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj"),false,true);
+    mmesh.Transform(ChVector<>(-0.15,0,0), ChMatrix33<>(1.2)); // scale to a smaller cube
     mmesh.RepairDuplicateVertexes(1e-9); // if meshes are not watertight
+    // compute mass inertia from mesh
+    double mmass;
+    ChVector<>mcog;
+    ChMatrix33<> minertia;
+    mmesh.ComputeMassProperties(true,mmass,mcog,minertia); 
 
-    mfalling->GetCollisionModel()->ClearModel();
-    mfalling->GetCollisionModel()->AddTriangleMesh(mmesh,false, false, VNULL, ChMatrix33<>(1), 0.00);
-    mfalling->GetCollisionModel()->BuildModel();
-    mfalling->SetCollide(true);
+    for (int j= 0; j<10;++j) {
+        ChSharedPtr<ChBody> mfalling(new ChBody);
+      //  mfalling->SetPos(ChVector<>(0.1, 0.24, 0));
+       mfalling->SetPos(ChVector<>(ChRandom()*0.4, 0.2+j*0.12, ChRandom()*0.4));
+        mphysicalSystem.Add(mfalling);
+        mfalling->SetMass(mmass*1000);
+        mfalling->SetInertia(minertia*1000);
 
-    ChSharedPtr<ChTriangleMeshShape> masset_mesh(new ChTriangleMeshShape());
-    masset_mesh->SetMesh(mmesh);
-    masset_mesh->SetBackfaceCull(true);
-    mfalling->AddAsset(masset_mesh);
+        mfalling->GetCollisionModel()->ClearModel();
+        mfalling->GetCollisionModel()->AddTriangleMesh(mmesh,false, false, VNULL, ChMatrix33<>(1), 0.005);
+        mfalling->GetCollisionModel()->BuildModel();
+        mfalling->SetCollide(true);
 
-    ChSharedPtr<ChTexture> masset_texturew(new ChTexture());
-    masset_texturew->SetTextureFilename(GetChronoDataFile("cubetexture_wood.png"));
-    mfalling->AddAsset(masset_texturew);
-    
+        ChSharedPtr<ChTriangleMeshShape> masset_mesh(new ChTriangleMeshShape());
+        masset_mesh->SetMesh(mmesh);
+        masset_mesh->SetBackfaceCull(true);
+        mfalling->AddAsset(masset_mesh);
 
-    for (int bi = 0; bi < 15; bi++) {
+        ChSharedPtr<ChTexture> masset_texturew(new ChTexture());
+        masset_texturew->SetTextureFilename(GetChronoDataFile("cubetexture_wood.png"));
+        mfalling->AddAsset(masset_texturew);
+    }
+
+    for (int bi = 0; bi < 20; bi++) {
         // Create a bunch of ChronoENGINE rigid bodies (spheres and
         // boxes etc.) which will fall..
 
-        ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(0.02,     // radius size
+        ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(0.05,     // radius size
                                                                        1000,    // density
                                                                        true,    // collide enable?
                                                                        true));  // visualization?
-        msphereBody->SetPos(ChVector<>(-0.5 + ChRandom() * 1, 0.7, -0.5 + ChRandom()));
+        msphereBody->SetPos(ChVector<>(-0.5 + ChRandom() * 1, 1.4, -0.5 + ChRandom()));
         msphereBody->GetMaterialSurface()->SetFriction(0.2f);
+
+        ChSharedPtr<ChColorAsset> mballcolor(new ChColorAsset);
+        mballcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
+        msphereBody->AddAsset(mballcolor);
 
         mphysicalSystem.Add(msphereBody);
     }
@@ -156,6 +172,9 @@ int main(int argc, char* argv[]) {
 
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
+
+    // Use shadows in realtime view
+    application.AddShadowAll();
 
 
     application.SetTimestep(0.005);

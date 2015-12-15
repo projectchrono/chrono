@@ -15,14 +15,15 @@
 // =============================================================================
 
 #include "chrono/core/ChException.h"
-#include "core/ChQuadrature.h"
+#include "chrono/core/ChQuadrature.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChUtilsFEA.h"
 
 namespace chrono {
 namespace fea {
 
-ChElementShellANCF::ChElementShellANCF() : m_flag_HE(ANALYTICAL) {
+ChElementShellANCF::ChElementShellANCF() : m_flag_HE(ANALYTICAL), m_gravity_on(false) {
     m_nodes.resize(4);
 
     m_StiffnessMatrix.Resize(GetNdofs(), GetNdofs());
@@ -195,17 +196,6 @@ void ChElementShellANCF::MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result,
     double wy2 = (element->GetLengthY()) / 2.0;
     double wz2 = (element->m_thickness) / 2.0;
 
-    // Set gravity acceleration
-    if (element->m_gravity_on) {
-        LocalGravityForce(0, 0) = 0.0;
-        LocalGravityForce(1, 0) = 0.0;
-        LocalGravityForce(2, 0) = -9.81;
-    } else {
-        LocalGravityForce(0, 0) = 0.0;
-        LocalGravityForce(1, 0) = 0.0;
-        LocalGravityForce(2, 0) = 0.0;
-    }
-
     ChMatrixNM<double, 1, 3> Nx_d0;
     Nx_d0.MatrMultiply(Nx, *d0);
 
@@ -229,9 +219,9 @@ void ChElementShellANCF::MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result,
     double detJ0 = rd0.Det();
 
     for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 3; j++) {
-            result(i * 3 + j, 0) = N(0, i) * LocalGravityForce(j, 0);
-        }
+        result(i * 3 + 0, 0) = N(0, i) * gacc.x;
+        result(i * 3 + 1, 0) = N(0, i) * gacc.y;
+        result(i * 3 + 2, 0) = N(0, i) * gacc.z;
     }
 
     result *= detJ0 * wx2 * wy2 * wz2;
@@ -741,7 +731,7 @@ void ChElementShellANCF::ComputeMassMatrix() {
     }  // Layer Loop
 }
 
-void ChElementShellANCF::ComputeGravityForce() {
+void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
     m_GravForce.Reset();
 
     for (int kl = 0; kl < m_numLayers; kl++) {
@@ -750,7 +740,7 @@ void ChElementShellANCF::ComputeGravityForce() {
         //// Material properties
         double rho = m_InertFlexVec(ij);
         // MyGravity constructor
-        MyGravity myformula1(&m_d0, this);
+        MyGravity myformula1(&m_d0, this, g_acc);
 
         ChMatrixNM<double, 24, 1> Fgravity;
         ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1> >(Fgravity,    // result of integration will go there
@@ -771,8 +761,8 @@ void ChElementShellANCF::ComputeGravityForce() {
 
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::SetupInitial() {
-    ComputeGravityForce();
+void ChElementShellANCF::SetupInitial(ChSystem* system) {
+    ComputeGravityForce(system->Get_G_acc());
     // Compute initial Jacobian
     ChMatrixDynamic<double> Temp(GetNdofs(), 1);
     ComputeInternalForces(Temp);
@@ -1122,8 +1112,11 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
     }  // Layer Loop
 
-    Fi += m_GravForce;
+    if (m_gravity_on) {
+        Fi += m_GravForce;
+    }
 }
+
 // -----------------------------------------------------------------------------
 void ChElementShellANCF::shapefunction_ANS_BilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y) {
     S_ANS(0, 0) = -0.5 * x + 0.5;

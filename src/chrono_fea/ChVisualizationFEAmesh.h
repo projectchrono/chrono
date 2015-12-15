@@ -34,6 +34,8 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
     enum eChFemDataType {
         E_PLOT_NONE,
         E_PLOT_SURFACE,
+        E_PLOT_CONTACTSURFACES,
+        E_PLOT_LOADSURFACES,
         E_PLOT_NODE_DISP_NORM,
         E_PLOT_NODE_DISP_X,
         E_PLOT_NODE_DISP_Y,

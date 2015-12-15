@@ -48,10 +48,6 @@ int main(int argc, char* argv[]) {
     // model2(my_system, my_mesh);
     model3(my_system, my_mesh);
 
-    // This is necessary in order to precompute the stiffness matrices for all
-    // inserted elements in mesh
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -87,6 +83,9 @@ int main(int argc, char* argv[]) {
     // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
     // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
     application.AssetUpdateAll();
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Change solver settings
     my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED THIS OR ::LCP_SIMPLEX because other

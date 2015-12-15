@@ -658,7 +658,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron,
 
                 }*/
 
-    virtual void SetupInitial() { ComputeStiffnessMatrix(); }
+    virtual void SetupInitial(ChSystem* system) override { ComputeStiffnessMatrix(); }
 
     // compute large rotation of element for corotational approach
     virtual void UpdateRotation() {

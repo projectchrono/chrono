@@ -133,7 +133,6 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChLinkPointFrame> constraint_hinge(new ChLinkPointFrame);
     constraint_hinge->Initialize(hnodeancf1, mtruss);
     my_system.Add(constraint_hinge);
-    my_mesh->SetupInitial();
 
     // Cancel automatic gravity
     my_mesh->SetAutomaticGravity(false);
@@ -191,6 +190,9 @@ int main(int argc, char* argv[]) {
         mystepper->SetMaxiters(60);
         mystepper->SetTolerance(1e-14);
     }
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     /* m_data.resize(7);
      utils::CSV_writer csv(" ");

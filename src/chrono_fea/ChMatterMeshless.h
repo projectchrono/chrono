@@ -99,7 +99,7 @@ public:
     // Set the SPH container
     void SetMatterContainer(ChMatterMeshless* mc) { container = mc;}
 
-        //
+    //
     // INTERFACE TO ChContactable
     //
 

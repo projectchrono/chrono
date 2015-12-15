@@ -26,6 +26,7 @@
 
 namespace chrono {
 
+/// \brief Namespace for classes that generate flows of particles.
 /// Namespace for helper classes that build a system for generating
 /// flows of particles. This system heavily relies on statistical
 /// approaches, for example positions, rotations, shapes of particles

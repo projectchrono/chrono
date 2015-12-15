@@ -71,6 +71,13 @@ class ChApiFea ChMeshSurface : public ChShared {
         /// - Support for other elements of solid type will follow in future.
     virtual void AddFacesFromNodeSet( std::vector<ChSharedPtr<ChNodeFEAbase> >& node_set );
 
+        /// Given a solid mesh (ex a mesh of tetrahetrons) it finds the faces on the outer boundary.
+        /// That is, it scans all the finite elements already added in the parent ChMesh and adds the faces
+        /// that are not shared (ie. the faces on the boundary 'skin'). 
+        /// Supported solids that generate boundary skin: 
+        /// - tetrahedrons
+        /// - more will follow in future
+    virtual void AddFacesFromBoundary();
 
  private:
 

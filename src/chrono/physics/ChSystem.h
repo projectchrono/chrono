@@ -359,6 +359,10 @@ class ChApi ChSystem : public ChAssembly,
     /// Gets the G (gravity) acceleration vector affecting all the bodies in the system.
     ChVector<> Get_G_acc() { return G_acc; }
 
+    /// Initial system setup before analysis.
+    /// This function must be called once the system construction is completed.
+    void SetupInitial();
+
 
     //
     // DATABASE HANDLING.

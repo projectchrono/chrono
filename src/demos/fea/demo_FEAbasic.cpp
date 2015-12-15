@@ -75,10 +75,6 @@ void test_1() {
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);
 
-    // This is necessary in order to precompute the
-    // stiffness matrices, tot. degrees of freedom etc.
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -97,6 +93,9 @@ void test_1() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a linear static analysis
     my_system.SetLcpSolverType(
@@ -166,10 +165,6 @@ void test_2() {
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melement1);
 
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -201,6 +196,9 @@ void test_2() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a linear static analysis
     my_system.SetLcpSolverType(
@@ -288,10 +286,6 @@ void test_3() {
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melement1);
 
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -323,6 +317,9 @@ void test_3() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a linear static analysis
     my_system.SetLcpSolverType(
@@ -408,10 +405,6 @@ void test_4() {
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melement1);
 
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -448,6 +441,9 @@ void test_4() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a linear static analysis
     my_system.SetLcpSolverType(
@@ -569,10 +565,6 @@ void test_5() {
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melement1);
 
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -609,6 +601,9 @@ void test_5() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a linear static analysis
     my_system.SetLcpSolverType(

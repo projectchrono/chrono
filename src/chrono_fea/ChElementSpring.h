@@ -112,7 +112,7 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     /// Setup. Precompute mass and matrices that do not change during the
     /// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
     /// (**Not needed for the spring element because global K is computed on-the-fly in ComputeAddKRmatricesGlobal() )
-    virtual void SetupInitial() {}
+    virtual void SetupInitial(ChSystem* system) override {}
 
     //
     // Custom properties functions

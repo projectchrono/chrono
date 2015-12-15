@@ -54,6 +54,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
         n_dofs = 0;
         n_dofs_w = 0;
         automatic_gravity_load = true;
+        num_points_gravity = 1;
     };
     ~ChMesh(){};
 
@@ -100,11 +101,6 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Remove all mesh surfaces
     void ClearMeshSurfaces() { vmeshsurfaces.clear(); }
 
-
-
-    /// - Computes the total number of degrees of freedom
-    /// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
-    void SetupInitial();
 
     /// Set reference position of nodes as current position, for all nodes.
     void Relax();
@@ -241,6 +237,14 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// ChLcpVariables in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+
+  private:
+    /// Initial setup (before analysis).
+    /// This function is called from ChSystem::SetupInitial, marking a point where system
+    /// construction is completed.
+    /// - Computes the total number of degrees of freedom
+    /// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
+    virtual void SetupInitial() override;
 };
 
 }  // END_OF_NAMESPACE____
