@@ -269,7 +269,15 @@ void AddConvexCollisionModel(ChSharedPtr<ChBody> body,
                              const ChVector<>& pos = ChVector<>(0, 0, 0),
                              const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                              bool use_original_asset = true);
-
+// Add a convex mesh to an object based on a set of points, 
+// unlike the previous version, this version will use the 
+// triangle mesh to set the visualization deometry
+ChApi
+void AddConvexCollisionModel(ChSharedPtr<ChBody> body,
+                             geometry::ChTriangleMeshConnected& convex_mesh,
+                             std::vector<std::vector<ChVector<double> > >& convex_hulls,
+                             const ChVector<>& pos = ChVector<>(0, 0, 0),
+                             const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
 }  // end namespace utils
 }  // end namespace chrono
 
