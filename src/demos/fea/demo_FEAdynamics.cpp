@@ -80,9 +80,6 @@ void test_1() {
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);
 
-    // This is mandatory
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -101,6 +98,9 @@ void test_1() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a dynamic time integration:
 
@@ -164,9 +164,6 @@ void test_2() {
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);
 
-    // This is mandatory
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -185,6 +182,9 @@ void test_2() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a dynamic time integration:
 
@@ -250,9 +250,6 @@ void test_2b() {
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);
 
-    // This is mandatory
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -271,6 +268,9 @@ void test_2b() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a dynamic time integration:
 
@@ -340,10 +340,6 @@ void test_3() {
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melement1);
 
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -369,6 +365,9 @@ void test_3() {
     my_system.Add(constraint1);
     my_system.Add(constraint2);
     my_system.Add(constraint3);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a dynamic time integration:
 
@@ -445,9 +444,6 @@ void test_4() {
     my_mesh->AddElement(melementA);
     my_mesh->AddElement(melementB);
 
-    // This is mandatory
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -466,6 +462,9 @@ void test_4() {
 
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // Perform a dynamic time integration:
 

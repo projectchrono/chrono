@@ -215,11 +215,6 @@ int main(int argc, char* argv[]) {
 
     mcontactsurf->SetMaterialSurface(mysurfmaterial); // use the DEM penalty contacts
 
-
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -258,21 +253,15 @@ int main(int argc, char* argv[]) {
 
     mcontactcloud->SetMaterialSurface(mysurfmaterial);
 
+    my_mesh->AddContactSurface(mcontactsurf);
     
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh_beams->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh_beams);
 
 
     
-
-
-
     //
-    // Optional...  visualuzation
+    // Optional...  visualization
     //
 
     // ==Asset== attach a visualization of the FEM mesh.
@@ -323,6 +312,10 @@ int main(int argc, char* argv[]) {
 
     // Use shadows in realtime view
     application.AddShadowAll();
+
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
 
     //

@@ -55,7 +55,7 @@ void ChMesh::SetupInitial()
 	for (unsigned int i=0; i< velements.size(); i++)
 	{
 			//    - precompute matrices, such as the [Kl] local stiffness of each element, if needed, etc.
-		velements[i]->SetupInitial();
+		velements[i]->SetupInitial(GetSystem());
 	}
 
 }

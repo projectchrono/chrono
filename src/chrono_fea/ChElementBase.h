@@ -73,7 +73,7 @@ class ChApiFea ChElementBase : public virtual ChShared {
     /// Initial setup: This is used mostly to precompute matrices
     /// that do not change during the simulation, i.e. the local
     /// stiffness of each element, if any, the mass, etc.
-    virtual void SetupInitial(){};
+    virtual void SetupInitial(ChSystem* system) {}
 
     /// Update: this is called at least at each time step. If the
     /// element has to keep updated some auxiliary data, such as the rotation

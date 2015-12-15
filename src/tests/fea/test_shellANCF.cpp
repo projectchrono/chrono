@@ -44,6 +44,8 @@ int main(int argc, char* argv[]) {
     // --------------------------
     ChSystem my_system;
 
+    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     ChSharedPtr<ChMesh> my_mesh(new ChMesh);
@@ -268,9 +270,8 @@ int main(int argc, char* argv[]) {
         my_mesh->AddElement(element);
         elemcount++;
     }
-
-    // This is mandatory
-    my_mesh->SetupInitial();
+    // Switch off mesh class gravity (ANCF shell elements have a custom implementation)
+    my_mesh->SetAutomaticGravity(false);
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
@@ -290,6 +291,9 @@ int main(int argc, char* argv[]) {
     mystepper->SetTolerance(1e-5);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     // ---------------
     // Simulation loop

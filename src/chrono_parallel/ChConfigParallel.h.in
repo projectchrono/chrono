@@ -24,38 +24,9 @@
 // Include main Chrono configuration header
 #include "chrono/ChConfig.h"
 
-// -----------------------------------------------------------------------------
-// SSE settings
-// -----------------------------------------------------------------------------
-
-// If SSE support was found, then
-//   #define CHRONO_PARALLEL_HAS_SSE
-// and set the SSE level support, one of the following
-//   #define CHRONO_PARALLEL_SSE_LEVEL "1.0"
-//   #define CHRONO_PARALLEL_SSE_LEVEL "2.0"
-//   #define CHRONO_PARALLEL_SSE_LEVEL "3.0"
-//   #define CHRONO_PARALLEL_SSE_LEVEL "4.1"
-//   #define CHRONO_PARALLEL_SSE_LEVEL "4.2"
-// and define one or more of the following, as appropriate
-//   #define CHRONO_PARALLEL_SSE_1.0
-//   #define CHRONO_PARALLEL_SSE_2.0
-//   #define CHRONO_PARALLEL_SSE_3.0
-//   #define CHRONO_PARALLEL_SSE_4.1
-//   #define CHRONO_PARALLEL_SSE_4.2
-
-@CHRONO_PARALLEL_HAS_SSE@
-@CHRONO_PARALLEL_SSE_LEVEL@
-@CHRONO_PARALLEL_SSE_1_0@
-@CHRONO_PARALLEL_SSE_2_0@
-@CHRONO_PARALLEL_SSE_3_0@
-@CHRONO_PARALLEL_SSE_4_1@
-@CHRONO_PARALLEL_SSE_4_2@
-
-
-// -----------------------------------------------------------------------------
-
 // If using double precision
 //   #define CHRONO_PARALLEL_USE_DOUBLE
 @CHRONO_PARALLEL_USE_DOUBLE@
+
 
 #endif

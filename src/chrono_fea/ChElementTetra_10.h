@@ -564,7 +564,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron,
         return mstress;
     }
 
-    virtual void SetupInitial() {
+    virtual void SetupInitial(ChSystem* system) override {
         ComputeVolume();
         ComputeStiffnessMatrix();
     }

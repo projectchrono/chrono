@@ -104,18 +104,3 @@ const ChVector<> Generic_SolidAxle::getLocation(PointId which)
   default:         return ChVector<>(0, 0, 0);
   }
 }
-
-// -----------------------------------------------------------------------------
-// Implementation of the getDirection() virtual methods.
-// -----------------------------------------------------------------------------
-
-const ChVector<> Generic_SolidAxle::getDirection(DirectionId which)
-{
-  switch (which) {
-  case UNIV_AXIS_LINK_L:      return ChVector<>(0, 1, 0);
-  case UNIV_AXIS_CHASSIS_L:   return ChVector<>(0, 0, 1);
-  case UNIV_AXIS_LINK_U:      return ChVector<>(0, -1, 0);
-  case UNIV_AXIS_CHASSIS_U:   return ChVector<>(0, 0, 1);
-  default:                    return ChVector<>(0, 0, 1);
-  }
-}
