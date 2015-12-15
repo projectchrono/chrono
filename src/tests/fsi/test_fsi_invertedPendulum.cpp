@@ -306,21 +306,21 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
 			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
-			cyl_radius1, cyl_length1, mat_g, cyl_pos, cyl_rot);
+			cyl_radius1, cyl_length1, mat_g, paramsH.rho0, cyl_pos, cyl_rot);
 	int bid_1 = FSI_Bodies.size();
 
 	double cyl_length2 = 1.0;
 	double cyl_radius2 = 0.25;
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
 			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
-			0.5 * cyl_radius2, cyl_length2, mat_g, ChVector<>(0, 0, .5* (cyl_length2 + 2 * cyl_length1)), cyl_rot);
+			0.5 * cyl_radius2, cyl_length2, mat_g, paramsH.rho0, ChVector<>(0, 0, .5* (cyl_length2 + 2 * cyl_length1)), cyl_rot);
 	int bid_2 = FSI_Bodies.size() - 1;
 
 	double cyl_length3 = 1.0;
 	double cyl_radius3 = 0.25;
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
 			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
-			0.5 * cyl_radius2, cyl_length2, mat_g, ChVector<>(0, 0, cyl_length2 + .5* (cyl_length3 + 4 * cyl_length1)), cyl_rot);
+			0.5 * cyl_radius2, cyl_length2, mat_g, paramsH.rho0, ChVector<>(0, 0, cyl_length2 + .5* (cyl_length3 + 4 * cyl_length1)), cyl_rot);
 	int bid_3 = FSI_Bodies.size() - 1;
 
     // Revolute joint rods

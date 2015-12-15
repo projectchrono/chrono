@@ -114,6 +114,7 @@ void CreateSphereFSI(
 		const SimParams& paramsH,
 		Real radius,
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		Real density,
 		chrono::ChVector<> pos = chrono::ChVector<>(0));
 
 void CreateCylinderFSI(
@@ -128,6 +129,7 @@ void CreateCylinderFSI(
 		Real radius,
 		Real length,
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		Real density,
 		chrono::ChVector<> pos = chrono::ChVector<>(0),
 		chrono::ChQuaternion<> rot = chrono::QUNIT);
 
@@ -142,6 +144,7 @@ void CreateBoxFSI(
 		const SimParams& paramsH,
 		const chrono::ChVector<>& hsize,
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		Real density,
 		chrono::ChVector<> pos = chrono::ChVector<>(0),
 		chrono::ChQuaternion<> rot = chrono::QUNIT);
 

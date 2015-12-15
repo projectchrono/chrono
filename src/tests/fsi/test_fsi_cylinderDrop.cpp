@@ -370,7 +370,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
 			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
-			cyl_radius, cyl_length, mat_g, cyl_pos, cyl_rot);
+			cyl_radius, cyl_length, mat_g, paramsH.rho0, cyl_pos, cyl_rot);
 
 	if (haveVehicle) {
 		//        // version 1

@@ -412,6 +412,7 @@ void CreateSphereFSI(
 		const SimParams& paramsH,
 		Real radius,
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		Real density,
 		chrono::ChVector<> pos) {
 
 //	ChVector<> pos = ChVector<>(-9.5, .20, 3);
@@ -429,7 +430,6 @@ void CreateSphereFSI(
 	double volume = chrono::utils::CalcSphereVolume(radius);
 	chrono::ChVector<> gyration =
 			chrono::utils::CalcSphereGyration(radius).Get_Diag();
-	double density = paramsH.rho0;
 	double mass = density * volume;
 	body->SetMass(mass);
 	body->SetInertiaXX(mass * gyration);
@@ -456,6 +456,7 @@ void CreateCylinderFSI(
 		Real radius,
 		Real length,
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		Real density,
 		chrono::ChVector<> pos,
 		chrono::ChQuaternion<> rot) {
 	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
@@ -470,7 +471,6 @@ void CreateCylinderFSI(
 	double volume = chrono::utils::CalcCylinderVolume(radius, 0.5 * length);
 	chrono::ChVector<> gyration = chrono::utils::CalcCylinderGyration(radius,
 			0.5 * length).Get_Diag();
-	double density = paramsH.rho0;
 	double mass = density * volume;
 	body->SetMass(mass);
 	body->SetInertiaXX(mass * gyration);
@@ -496,6 +496,7 @@ void CreateBoxFSI(
 		const SimParams& paramsH,
 		const chrono::ChVector<>& hsize,
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		Real density,
 		chrono::ChVector<> pos,
 		chrono::ChQuaternion<> rot) {
 
@@ -510,7 +511,6 @@ void CreateBoxFSI(
 	body->SetRot(rot);
 	double volume = chrono::utils::CalcBoxVolume(hsize);
 	chrono::ChVector<> gyration = chrono::utils::CalcBoxGyration(hsize).Get_Diag();
-	double density = paramsH.rho0;
 	double mass = density * volume;
 	body->SetMass(mass);
 	body->SetInertiaXX(mass * gyration);
