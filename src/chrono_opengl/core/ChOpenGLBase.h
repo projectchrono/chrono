@@ -99,14 +99,13 @@ class CH_OPENGL_API ChOpenGLBase {
 
   // Check for opengl Errors and output if error along with input char strings
     bool GLReturnedError(const char* s) {
-      bool return_error = false;
-      GLenum glerror;
-      // Go through list of errors until no errors remain
-      while ((glerror = glGetError()) != GL_NO_ERROR) {
-        return_error = true;
-        std::cerr << s << ": " << gluErrorString(glerror) << std::endl;
-      }
-      return return_error;
+        bool return_error = false;
+        GLenum glerror;
+        while ((glerror = glGetError()) != GL_NO_ERROR) {
+            return_error = true;
+            std::cerr << s << ": " << GetErrorString(glerror) << std::endl;
+        }
+        return return_error;
     }
 
 
