@@ -712,5 +712,23 @@ void AddConvexCollisionModel(ChSharedPtr<ChBody> body,
   }
 }
 
+// -----------------------------------------------------------------------------
+
+void AddConvexCollisionModel(ChSharedPtr<ChBody> body,
+                             ChTriangleMeshConnected& convex_mesh,
+                             std::vector<std::vector<ChVector<double> > >& convex_hulls,
+                             const ChVector<>& pos,
+                             const ChQuaternion<>& rot) {
+  for (int c = 0; c < convex_hulls.size(); c++) {
+    body->GetCollisionModel()->AddConvexHull(convex_hulls[c], pos, rot);
+  }
+  // Add the original triangle mesh as asset
+  ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+  trimesh_shape->SetMesh(convex_mesh);
+  trimesh_shape->SetName(convex_mesh.GetFileName());
+  trimesh_shape->Pos = pos;
+  trimesh_shape->Rot = rot;
+  body->GetAssets().push_back(trimesh_shape);
+}
 }  // namespace utils
 }  // namespace chrono
