@@ -36,6 +36,9 @@ typedef float real;
 #define C_EPSILON FLT_EPSILON
 #endif
 
+
+
+
 //#define C_Pi 4 * ATan(real(1.0))
 //#define C_2Pi real(2.0) * C_Pi
 //#define C_InvPi real(1.0) / C_Pi
@@ -326,8 +329,8 @@ inline T ClampMax(T x, U high) {
         *this = *this op scale;              \
         return *this;                        \
     }
-#define OPERATOR_EQUALSALT(op, tin, tout)                     \
-    static inline tout& operator op##=(tout & a, tin scale) { \
-        a = a op scale;                                       \
-        return a;                                             \
+#define OPERATOR_EQUALSALT(op, tin, tout)                            \
+    static inline tout& operator op##=(tout & a, const tin& scale) { \
+        a = a op scale;                                              \
+        return a;                                                    \
     }

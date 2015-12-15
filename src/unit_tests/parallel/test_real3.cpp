@@ -242,5 +242,23 @@ int main(int argc, char* argv[]) {
     WeakEqual(c.z, -3.0 / sqrt(14.0), precision);
   }
 
+  {  std::cout << "float 3 ==\n";
+    real3 a(1.0, 2.0, -3.0);
+    real3 c = Normalize(a);
+    bool res = (a==c);
+    StrictEqual(res, 0);
+    res = (a==a);
+    StrictEqual(res, 1);
+  }
+
+  {  std::cout << "float 3 abs\n";
+      real3 a(-1.0, 2.0, -3.0);
+      real3 c = Abs(a);
+      WeakEqual(c[0], 1.0, precision);
+      WeakEqual(c[1], 2.0, precision);
+      WeakEqual(c[2], 3.0, precision);
+
+    }
+
   return 0;
 }

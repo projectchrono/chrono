@@ -1123,10 +1123,10 @@ void GJKPerturbedCollide(const ConvexShape& shapeA,
         real3 sep_axis = real3(0);
         // GJKCollide(pShapeA, pShapeB, perturbed_manifold, sep_axis);
 
-        for (int i = 0; i < perturbed_manifold.num_contact_points; i++) {
-          std::cout << perturbed_manifold.points[i].normal << perturbed_manifold.points[i].pointA
-                    << perturbed_manifold.points[i].pointB << perturbed_manifold.points[i].depth << std::endl;
-        }
+//        for (int i = 0; i < perturbed_manifold.num_contact_points; i++) {
+//          std::cout << perturbed_manifold.points[i].normal << perturbed_manifold.points[i].pointA
+//                    << perturbed_manifold.points[i].pointB << perturbed_manifold.points[i].depth << std::endl;
+//        }
       }
     }
   }

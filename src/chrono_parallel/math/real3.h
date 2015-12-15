@@ -28,14 +28,26 @@ namespace chrono {
 
 class real3 {
   public:
-#if defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
-    inline real3() : mmvalue(_mm256_setzero_pd()) {}
-    inline explicit real3(real a) : mmvalue(_mm256_set1_pd(a)) {}
+#if defined(USE_AVX)
+    inline real3() {}
+    inline real3(const real3& v) : mmvalue(v) {}
+    inline real3(real a) { mmvalue = _mm256_setr_pd(a, a, a, 0); }
     inline real3(real a, real b, real c) : mmvalue(_mm256_setr_pd(a, b, c, 0)) {}
-    inline real3(__m256 m) : mmvalue(m) {}
-    inline operator __m256() const { return mmvalue; }
+    inline real3(__m256d m) : mmvalue(m) {}
+    inline operator __m256d() const { return mmvalue; }
+    inline real operator[](unsigned int i) const { return array[i]; }
+    inline real& operator[](unsigned int i) { return array[i]; }
+    inline real3& operator=(const real3& rhs) {
+        mmvalue = rhs.mmvalue;
+        return *this;  // Return a reference to myself.
+    }
+    inline real get(const unsigned int i) const {
+        real temp[4];
+        _mm256_storeu_pd(temp, mmvalue);
+        return temp[i];
+    }
 
-#elif defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
+#elif defined(USE_SIMD)
     inline real3() : mmvalue(_mm_setzero_ps()) {}
     inline explicit real3(real a) : mmvalue(_mm_setr_ps(a, a, a, 0)) {}
     inline real3(real a, real b, real c) : mmvalue(_mm_setr_ps(a, b, c, 0)) {}
@@ -48,21 +60,25 @@ class real3 {
     inline real3(real _x, real _y, real _z) : x(_x), y(_y), z(_z) {}
 #endif
 
+    // inline operator real*() { return &x; }
+    // inline operator const real*() const { return &x; };
+
+    // Operator [] to extract one coordinate
+    // Operator [] can only read an element, not write.
+
     // ========================================================================================
-
-    inline operator real*() { return &array[0]; }
-    inline operator const real*() const { return &array[0]; };
-
     union {
+#if defined(USE_AVX)
+        __m256d mmvalue;
+#elif defined(USE_SIMD)
+        __m128 mmvalue;
+#else
+
+#endif
+        real array[4];
         struct {
             real x, y, z, w;
         };
-        real array[4];
-#if defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
-        __m256 mmvalue;
-#elif defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
-        __m128 mmvalue;
-#endif
     };
 };
 
@@ -96,6 +112,7 @@ bool operator==(const real3& lhs, const real3& rhs);
 real3 Cross(const real3& b, const real3& c);
 real Dot(const real3& v1, const real3& v2);
 real Dot(const real3& v);
+real3 Normalize(const real3& v);
 real3 Sqrt(real3 v);
 
 static inline real Length2(const real3& v1) {
@@ -109,12 +126,10 @@ real3 Min(const real3& a, const real3& b);
 real3 Max(const real3& a, const real& b);
 real3 Min(const real3& a, const real& b);
 
-static inline bool IsZero(const real3& v) {
-    return Abs(v.mmvalue[0]) < C_EPSILON && Abs(v.mmvalue[1]) < C_EPSILON && Abs(v.mmvalue[2]) < C_EPSILON;
-}
+bool IsZero(const real3& v);
 
 real3 Abs(const real3& v);
-
+real3 Sign(const real3& v);
 static inline real3 Clamp(const real3& v, real max_length) {
     real3 x = v;
     real len_sq = Dot(x);
@@ -159,6 +174,6 @@ real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
 //}
 static void Print(real3 v, const char* name) {
     printf("%s\n", name);
-    printf("%f %f %f\n", v.mmvalue[0], v.mmvalue[1], v.mmvalue[2]);
+    printf("%f %f %f\n", v[0], v[1], v[2]);
 }
 }

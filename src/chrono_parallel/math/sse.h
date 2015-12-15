@@ -40,3 +40,11 @@
 #ifdef CHRONO_HAS_AVX
 #include <immintrin.h>
 #endif
+
+
+#if defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
+#define USE_AVX
+#elif defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
+#define USE_SSE
+#else
+#endif

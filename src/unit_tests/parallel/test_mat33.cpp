@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     real3 v, w;
     chrono::Orthogonalize(n, v, w);
 
-    Mat33 cross_m1 = SkewMatrix(n);
+    Mat33 cross_m1 = SkewSymmetric(n);
 
     ChMatrix33<real> cross_m2;
     cross_m2.Set_X_matrix(ToChVector(n));
@@ -63,13 +63,13 @@ int main(int argc, char* argv[]) {
     WeakEqual(A1, ToMat33(A2), C_EPSILON * 2);
   }
 
-  {
-    std::cout << "A Matrix T\n";
-    Mat33 A1 = Transpose(Mat33(R1));
-    ChMatrix33<real> A2 = ChMatrix33<real>(ToChQuaternion(R1));
-    A2.MatrTranspose();
-    WeakEqual(A1, ToMat33(A2), C_EPSILON * 2);
-  }
+//  {
+//    std::cout << "A Matrix T\n";
+//    Mat33 A1 = Transpose(Mat33(R1));
+//    ChMatrix33<real> A2 = ChMatrix33<real>(ToChQuaternion(R1));
+//    A2.MatrTranspose();
+//    WeakEqual(A1, ToMat33(A2), C_EPSILON * 2);
+//  }
 
   Mat33 A1(R1);
   Mat33 A2(R2);
