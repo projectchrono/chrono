@@ -22,6 +22,7 @@
 #include "unit_testing.h"
 
 #include "chrono_parallel/math/real4.h"
+#include "chrono_parallel/math/mat33.h"
 
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
 const double precision = 1e-10;
@@ -131,6 +132,19 @@ int main(int argc, char* argv[]) {
     ChQuaternion<real> Res2 = R2;
     WeakEqual(Res1, ToQuaternion(Res2), precision);
   }
+
+  {	std::cout << "quaternion AbsRotate\n";
+	  quaternion R1 = Normalize(quaternion(rand(), rand(), rand(), rand()));
+	  real3 V(1.0, 2.0, 3.0);
+	  real3 result_1 = AbsRotate(R1, V);
+
+	  Mat33 R2(R1);
+	  R2 = Abs(R2);
+	  real3 result_2 =  R2*V;
+
+	  WeakEqual(result_1, result_2, precision);
+  }
+
   // =============================================================================
 
   return 0;
