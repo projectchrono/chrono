@@ -23,10 +23,11 @@ static void ComputeAABBBox(const real3& dim,
                            const real3& lpositon,
                            const real3& positon,
                            const quaternion& rotation,
+                           const quaternion& body_rotation,
                            real3& minp,
                            real3& maxp) {
   real3 temp = AbsRotate(rotation, dim);
-  real3 pos = Rotate(lpositon, rotation) + positon;
+  real3 pos = Rotate(lpositon, body_rotation) + positon;
   minp = pos - temp;
   maxp = pos + temp;
 }
@@ -35,10 +36,11 @@ static void ComputeAABBCone(const real3& dim,
                             const real3& lpositon,
                             const real3& positon,
                             const quaternion& rotation,
+                            const quaternion& body_rotation,
                             real3& minp,
                             real3& maxp) {
   real3 temp = AbsRotate(rotation, real3(dim.x, dim.y, dim.z / 2.0));
-  real3 pos = Rotate(lpositon - real3(0, 0, dim.z / 2.0), rotation) + positon;
+  real3 pos = Rotate(lpositon - real3(0, 0, dim.z / 2.0), body_rotation) + positon;
   minp = pos - temp;
   maxp = pos + temp;
 }
@@ -126,12 +128,12 @@ void ChCAABBGenerator::GenerateAABB() {
       C = Rotate(C, body_rot[id]) + position;
       ComputeAABBTriangle(A, B, C, temp_min, temp_max);
     } else if (type == ELLIPSOID || type == BOX || type == CYLINDER || type == CONE) {
-      ComputeAABBBox(B + collision_envelope, A, position, rotation, temp_min, temp_max);
+      ComputeAABBBox(B + collision_envelope, A, position, rotation, body_rot[id], temp_min, temp_max);
     } else if (type == ROUNDEDBOX || type == ROUNDEDCYL || type == ROUNDEDCONE) {
-      ComputeAABBBox(B + C.x + collision_envelope, A, position, rotation, temp_min, temp_max);
+      ComputeAABBBox(B + C.x + collision_envelope, A, position, rotation, body_rot[id], temp_min, temp_max);
     } else if (type == CAPSULE) {
       real3 B_ = real3(B.x, B.x + B.y, B.z) + collision_envelope;
-      ComputeAABBBox(B_, A, position, rotation, temp_min, temp_max);
+      ComputeAABBBox(B_, A, position, rotation, body_rot[id], temp_min, temp_max);
     } else if (type == CONVEX) {
       ComputeAABBConvex(convex_data.data(), B, A, position, rotation, temp_min, temp_max);
       temp_min -= collision_envelope;
