@@ -187,7 +187,11 @@ void ChMesh::RemoveCollisionModelsFromSystem() {
 
 
 
-void ChMesh::LoadFromTetGenFile(const char* filename_node, const char* filename_ele, ChSharedPtr<ChContinuumMaterial> my_material)
+void ChMesh::LoadFromTetGenFile(const char* filename_node, 
+                            const char* filename_ele, 
+                            ChSharedPtr<ChContinuumMaterial> my_material,
+                            ChVector<> pos_transform,              
+                            ChMatrix33<> rot_transform)
 {
 	int totnodes = 0;
 	int nodes_offset = this->GetNnodes();
@@ -247,14 +251,18 @@ void ChMesh::LoadFromTetGenFile(const char* filename_node, const char* filename_
 				if (x == -10e30 || y == -10e30 || z == -10e30 )
 					throw ChException("ERROR in TetGen .node file, in parsing x,y,z coordinates of node: \n"+ line+"\n");
 				
+                ChVector<> node_position(x,y,z);
+                node_position = rot_transform * node_position; // rotate/scale, if needed
+                node_position = pos_transform + node_position; // move, if needed
+
 				if (my_material.IsType<ChContinuumElastic>() )
 				{
-					ChSharedPtr<ChNodeFEAxyz> mnode( new ChNodeFEAxyz(ChVector<>(x,y,z)) );
+					ChSharedPtr<ChNodeFEAxyz> mnode( new ChNodeFEAxyz(node_position) );
 					this->AddNode(mnode);
 				}
 				else if (my_material.IsType<ChContinuumPoisson3D>() )
 				{
-					ChSharedPtr<ChNodeFEAxyzP> mnode( new ChNodeFEAxyzP(ChVector<>(x,y,z)) );
+					ChSharedPtr<ChNodeFEAxyzP> mnode( new ChNodeFEAxyzP(node_position) );
 					this->AddNode(mnode);
 				}
 				else throw ChException("ERROR in TetGen generation. Material type not supported. \n");
