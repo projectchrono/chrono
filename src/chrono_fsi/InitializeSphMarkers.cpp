@@ -458,7 +458,6 @@ void CreateCylinderFSI(
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
 		chrono::ChVector<> pos,
 		chrono::ChQuaternion<> rot) {
-
 	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
 			chrono::ChBody>(
 			new chrono::ChBody(
