@@ -114,6 +114,7 @@ real Dot(const real3& v1, const real3& v2);
 real Dot(const real3& v);
 real3 Normalize(const real3& v);
 real3 Sqrt(real3 v);
+real3 Round(const real3& v);
 
 static inline real Length2(const real3& v1) {
     return Dot(v1);

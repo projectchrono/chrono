@@ -5,190 +5,189 @@
 
 #if defined(USE_AVX)
 #define set_m128r(lo, hi) _mm256_insertf128_ps(_mm256_castps128_ps256(lo), (hi), 1)
-//
-// template <int i0, int i1, int i2, int i3>
-// static inline __m128i constant4i() {
-//    static const union {
-//        int i[4];
-//        __m128i xmm;
-//    } u = {{i0, i1, i2, i3}};
-//    return u[0]mm;
-//}
-//
-//// permute vector Vec2d
-// template <int i0, int i1>
-// static inline __m128d permute2d(__m128d const& a) {
-//    // is shuffling needed
-//    const bool do_shuffle = (i0 > 0) || (i1 != 1 && i1 >= 0);
-//    // is zeroing needed
-//    const bool do_zero = ((i0 | i1) < 0 && (i0 | i1) & 0x80);
-//
-//    if (do_zero && !do_shuffle) {  // zeroing, not shuffling
-//        if ((i0 & i1) < 0)
-//            return _mm_setzero_pd();  // zero everything
-//        // zero some elements
-//        __m128i mask1 = constant4i<-int(i0 >= 0), -int(i0 >= 0), -int(i1 >= 0), -int(i1 >= 0)>();
-//        return _mm_and_pd(a, _mm_castsi128_pd(mask1));  // zero with AND mask
-//    } else if (do_shuffle && !do_zero) {                // shuffling, not zeroing
-//        return _mm_shuffle_pd(a, a, (i0 & 1) | (i1 & 1) << 1);
-//    } else if (do_shuffle && do_zero) {  // shuffling and zeroing
-//        // both shuffle and zero
-//        if (i0 < 0 && i1 >= 0) {  // zero low half, shuffle high half
-//            return _mm_shuffle_pd(_mm_setzero_pd(), a, (i1 & 1) << 1);
-//        }
-//        if (i0 >= 0 && i1 < 0) {  // shuffle low half, zero high half
-//            return _mm_shuffle_pd(a, _mm_setzero_pd(), i0 & 1);
-//        }
-//    }
-//    return a;  // trivial case: do nothing
-//}
-//
-//// blend vectors Vec2d
-// template <int i0, int i1>
-// static inline __m128d blend2d(__m128d const& a, __m128d const& b) {
-//    // Combine all the indexes into a single bitfield, with 8 bits for each
-//    const int m1 = (i0 & 3) | (i1 & 3) << 8;
-//
-//    // Mask to zero out negative indexes
-//    const int m2 = (i0 < 0 ? 0 : 0xFF) | (i1 < 0 ? 0 : 0xFF) << 8;
-//
-//    if ((m1 & 0x0202 & m2) == 0) {
-//        // no elements from b, only elements from a and possibly zero
-//        return permute2d<i0, i1>(a);
-//    }
-//    if (((m1 ^ 0x0202) & 0x0202 & m2) == 0) {
-//        // no elements from a, only elements from b and possibly zero
-//        return permute2d<i0 & ~2, i1 & ~2>(b);
-//    }
-//    // selecting from both a and b without zeroing
-//    if ((i0 & 2) == 0) {  // first element from a, second element from b
-//        return _mm_shuffle_pd(a, b, (i0 & 1) | (i1 & 1) << 1);
-//    } else {  // first element from b, second element from a
-//        return _mm_shuffle_pd(b, a, (i0 & 1) | (i1 & 1) << 1);
-//    }
-//}
-//
-// template <int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
-// static inline __m256 constant8f() {
-//    static const union {
-//        int i[8];
-//        __m256 ymm;
-//    } u = {{i0, i1, i2, i3, i4, i5, i6, i7}};
-//    return u[1]mm;
-//}
-//
-// template <int i0, int i1, int i2, int i3>
-// static inline __m256d permute4d(__m256 const& a) {
-//    const int ior = i0 | i1 | i2 | i3;  // OR indexes
-//
-//    // is zeroing needed
-//    const bool do_zero = ior < 0 && (ior & 0x80);  // at least one index is negative, and not -0x100
-//
-//    // is shuffling needed
-//    const bool do_shuffle = (i0 > 0) || (i1 != 1 && i1 >= 0) || (i2 != 2 && i2 >= 0) || (i3 != 3 && i3 >= 0);
-//
-//    if (!do_shuffle) {  // no shuffling needed
-//        if (do_zero) {  // zeroing
-//            if ((i0 & i1 & i2 & i3) < 0) {
-//                return _mm256_setzero_pd();  // zero everything
-//            }
-//            // zero some elements
-//            __m256d const mask =
-//                _mm256_castps_pd(constant8f<-int(i0 >= 0), -int(i0 >= 0), -int(i1 >= 0), -int(i1 >= 0), -int(i2 >= 0),
-//                                            -int(i2 >= 0), -int(i3 >= 0), -int(i3 >= 0)>());
-//            return _mm256_and_pd(a, mask);  // zero with AND mask
-//        } else {
-//            return a;  // do nothing
-//        }
-//    }
-//
-//    // Needed contents of low/high part of each source register in VSHUFPD
-//    // 0: a.low, 1: a.high, 3: zero
-//    const int s1 = (i0 < 0 ? 3 : (i0 & 2) >> 1) | (i2 < 0 ? 0x30 : (i2 & 2) << 3);
-//    const int s2 = (i1 < 0 ? 3 : (i1 & 2) >> 1) | (i3 < 0 ? 0x30 : (i3 & 2) << 3);
-//    // permute mask
-//    const int sm = (i0 < 0 ? 0 : (i0 & 1)) | (i1 < 0 ? 1 : (i1 & 1)) << 1 | (i2 < 0 ? 0 : (i2 & 1)) << 2 |
-//                   (i3 < 0 ? 1 : (i3 & 1)) << 3;
-//
-//    if (s1 == 0x01 || s1 == 0x11 || s2 == 0x01 || s2 == 0x11) {
-//        // too expensive to use 256 bit permute, split into two 128 bit permutes
-//        __m128d alo = _mm256_castps256_ps128(a);
-//        __m128d ahi = _mm256_extractf128_ps(a, 1);
-//        __m128d rlo = blend2d<i0, i1>(alo, ahi);
-//        __m128d rhi = blend2d<i2, i3>(alo, ahi);
-//        return _mm256_castps_pd(set_m128r(_mm_castpd_ps(rlo), _mm_castpd_ps(rhi)));
-//    }
-//
-//    // make operands for VSHUFPD
-//    __m256d r1, r2;
-//
-//    switch (s1) {
-//        case 0x00:  // LL
-//            r1 = _mm256_insertf128_pd(a, _mm256_castpd256_pd128(a), 1);
-//            break;
-//        case 0x03:  // LZ
-//            r1 = _mm256_insertf128_pd(do_zero ? _mm256_setzero_pd() : __m256d(a), _mm256_castpd256_pd128(a), 1);
-//            break;
-//        case 0x10:  // LH
-//            r1 = a;
-//            break;
-//        case 0x13:  // ZH
-//            r1 = do_zero ? _mm256_and_pd(a, _mm256_castps_pd(constant8f<0, 0, 0, 0, -1, -1, -1, -1>())) : __m256d(a);
-//            break;
-//        case 0x30:  // LZ
-//            if (do_zero) {
-//                __m128d t = _mm256_castpd256_pd128(a);
-//                t = _mm_and_pd(t, t);
-//                r1 = _mm256_castpd128_pd256(t);
-//            } else
-//                r1 = a;
-//            break;
-//        case 0x31:  // HZ
-//            r1 = _mm256_castpd128_pd256(_mm256_extractf128_pd(a, 1));
-//            break;
-//        case 0x33:  // ZZ
-//            r1 = do_zero ? _mm256_setzero_pd() : __m256d(a);
-//            break;
-//    }
-//
-//    if (s2 == s1) {
-//        if (sm == 0x0A)
-//            return r1;
-//        r2 = r1;
-//    } else {
-//        switch (s2) {
-//            case 0x00:  // LL
-//                r2 = _mm256_insertf128_pd(a, _mm256_castpd256_pd128(a), 1);
-//                break;
-//            case 0x03:  // ZL
-//                r2 = _mm256_insertf128_pd(do_zero ? _mm256_setzero_pd() : __m256d(a), _mm256_castpd256_pd128(a), 1);
-//                break;
-//            case 0x10:  // LH
-//                r2 = a;
-//                break;
-//            case 0x13:  // ZH
-//                r2 =
-//                    do_zero ? _mm256_and_pd(a, _mm256_castps_pd(constant8f<0, 0, 0, 0, -1, -1, -1, -1>())) :
-//                    __m256d(a);
-//                break;
-//            case 0x30:  // LZ
-//                if (do_zero) {
-//                    __m128d t = _mm256_castpd256_pd128(a);
-//                    t = _mm_and_pd(t, t);
-//                    r2 = _mm256_castpd128_pd256(t);
-//                } else
-//                    r2 = a;
-//                break;
-//            case 0x31:  // HZ
-//                r2 = _mm256_castpd128_pd256(_mm256_extractf128_pd(a, 1));
-//                break;
-//            case 0x33:  // ZZ
-//                r2 = do_zero ? _mm256_setzero_pd() : __m256d(a);
-//                break;
-//        }
-//    }
-//    return _mm256_shuffle_pd(r1, r2, sm);
-//}
+
+template <int i0, int i1, int i2, int i3>
+static inline __m128i constant4i() {
+    static const union {
+        int i[4];
+        __m128i xmm;
+    } u = {{i0, i1, i2, i3}};
+    return u.xmm;
+}
+
+// permute vector Vec2d
+template <int i0, int i1>
+static inline __m128d permute2d(__m128d const& a) {
+    // is shuffling needed
+    const bool do_shuffle = (i0 > 0) || (i1 != 1 && i1 >= 0);
+    // is zeroing needed
+    const bool do_zero = ((i0 | i1) < 0 && (i0 | i1) & 0x80);
+
+    if (do_zero && !do_shuffle) {  // zeroing, not shuffling
+        if ((i0 & i1) < 0)
+            return _mm_setzero_pd();  // zero everything
+        // zero some elements
+        __m128i mask1 = constant4i<-int(i0 >= 0), -int(i0 >= 0), -int(i1 >= 0), -int(i1 >= 0)>();
+        return _mm_and_pd(a, _mm_castsi128_pd(mask1));  // zero with AND mask
+    } else if (do_shuffle && !do_zero) {                // shuffling, not zeroing
+        return _mm_shuffle_pd(a, a, (i0 & 1) | (i1 & 1) << 1);
+    } else if (do_shuffle && do_zero) {  // shuffling and zeroing
+        // both shuffle and zero
+        if (i0 < 0 && i1 >= 0) {  // zero low half, shuffle high half
+            return _mm_shuffle_pd(_mm_setzero_pd(), a, (i1 & 1) << 1);
+        }
+        if (i0 >= 0 && i1 < 0) {  // shuffle low half, zero high half
+            return _mm_shuffle_pd(a, _mm_setzero_pd(), i0 & 1);
+        }
+    }
+    return a;  // trivial case: do nothing
+}
+
+// blend vectors Vec2d
+template <int i0, int i1>
+static inline __m128d blend2d(__m128d const& a, __m128d const& b) {
+    // Combine all the indexes into a single bitfield, with 8 bits for each
+    const int m1 = (i0 & 3) | (i1 & 3) << 8;
+
+    // Mask to zero out negative indexes
+    const int m2 = (i0 < 0 ? 0 : 0xFF) | (i1 < 0 ? 0 : 0xFF) << 8;
+
+    if ((m1 & 0x0202 & m2) == 0) {
+        // no elements from b, only elements from a and possibly zero
+        return permute2d<i0, i1>(a);
+    }
+    if (((m1 ^ 0x0202) & 0x0202 & m2) == 0) {
+        // no elements from a, only elements from b and possibly zero
+        return permute2d<i0 & ~2, i1 & ~2>(b);
+    }
+    // selecting from both a and b without zeroing
+    if ((i0 & 2) == 0) {  // first element from a, second element from b
+        return _mm_shuffle_pd(a, b, (i0 & 1) | (i1 & 1) << 1);
+    } else {  // first element from b, second element from a
+        return _mm_shuffle_pd(b, a, (i0 & 1) | (i1 & 1) << 1);
+    }
+}
+
+template <int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
+static inline __m256 constant8f() {
+    static const union {
+        int i[8];
+        __m256 ymm;
+    } u = {{i0, i1, i2, i3, i4, i5, i6, i7}};
+    return u.ymm;
+}
+
+template <int i0, int i1, int i2, int i3>
+static inline __m256d permute4d(__m256 const& a) {
+    const int ior = i0 | i1 | i2 | i3;  // OR indexes
+
+    // is zeroing needed
+    const bool do_zero = ior < 0 && (ior & 0x80);  // at least one index is negative, and not -0x100
+
+    // is shuffling needed
+    const bool do_shuffle = (i0 > 0) || (i1 != 1 && i1 >= 0) || (i2 != 2 && i2 >= 0) || (i3 != 3 && i3 >= 0);
+
+    if (!do_shuffle) {  // no shuffling needed
+        if (do_zero) {  // zeroing
+            if ((i0 & i1 & i2 & i3) < 0) {
+                return _mm256_setzero_pd();  // zero everything
+            }
+            // zero some elements
+            __m256d const mask =
+                _mm256_castps_pd(constant8f<-int(i0 >= 0), -int(i0 >= 0), -int(i1 >= 0), -int(i1 >= 0), -int(i2 >= 0),
+                                            -int(i2 >= 0), -int(i3 >= 0), -int(i3 >= 0)>());
+            return _mm256_and_pd(a, mask);  // zero with AND mask
+        } else {
+            return a;  // do nothing
+        }
+    }
+
+    // Needed contents of low/high part of each source register in VSHUFPD
+    // 0: a.low, 1: a.high, 3: zero
+    const int s1 = (i0 < 0 ? 3 : (i0 & 2) >> 1) | (i2 < 0 ? 0x30 : (i2 & 2) << 3);
+    const int s2 = (i1 < 0 ? 3 : (i1 & 2) >> 1) | (i3 < 0 ? 0x30 : (i3 & 2) << 3);
+    // permute mask
+    const int sm = (i0 < 0 ? 0 : (i0 & 1)) | (i1 < 0 ? 1 : (i1 & 1)) << 1 | (i2 < 0 ? 0 : (i2 & 1)) << 2 |
+                   (i3 < 0 ? 1 : (i3 & 1)) << 3;
+
+    if (s1 == 0x01 || s1 == 0x11 || s2 == 0x01 || s2 == 0x11) {
+        // too expensive to use 256 bit permute, split into two 128 bit permutes
+        __m128d alo = _mm256_castps256_ps128(a);
+        __m128d ahi = _mm256_extractf128_ps(a, 1);
+        __m128d rlo = blend2d<i0, i1>(alo, ahi);
+        __m128d rhi = blend2d<i2, i3>(alo, ahi);
+        return _mm256_castps_pd(set_m128r(_mm_castpd_ps(rlo), _mm_castpd_ps(rhi)));
+    }
+
+    // make operands for VSHUFPD
+    __m256d r1, r2;
+
+    switch (s1) {
+        case 0x00:  // LL
+            r1 = _mm256_insertf128_pd(a, _mm256_castpd256_pd128(a), 1);
+            break;
+        case 0x03:  // LZ
+            r1 = _mm256_insertf128_pd(do_zero ? _mm256_setzero_pd() : __m256d(a), _mm256_castpd256_pd128(a), 1);
+            break;
+        case 0x10:  // LH
+            r1 = a;
+            break;
+        case 0x13:  // ZH
+            r1 = do_zero ? _mm256_and_pd(a, _mm256_castps_pd(constant8f<0, 0, 0, 0, -1, -1, -1, -1>())) : __m256d(a);
+            break;
+        case 0x30:  // LZ
+            if (do_zero) {
+                __m128d t = _mm256_castpd256_pd128(a);
+                t = _mm_and_pd(t, t);
+                r1 = _mm256_castpd128_pd256(t);
+            } else
+                r1 = a;
+            break;
+        case 0x31:  // HZ
+            r1 = _mm256_castpd128_pd256(_mm256_extractf128_pd(a, 1));
+            break;
+        case 0x33:  // ZZ
+            r1 = do_zero ? _mm256_setzero_pd() : __m256d(a);
+            break;
+    }
+
+    if (s2 == s1) {
+        if (sm == 0x0A)
+            return r1;
+        r2 = r1;
+    } else {
+        switch (s2) {
+            case 0x00:  // LL
+                r2 = _mm256_insertf128_pd(a, _mm256_castpd256_pd128(a), 1);
+                break;
+            case 0x03:  // ZL
+                r2 = _mm256_insertf128_pd(do_zero ? _mm256_setzero_pd() : __m256d(a), _mm256_castpd256_pd128(a), 1);
+                break;
+            case 0x10:  // LH
+                r2 = a;
+                break;
+            case 0x13:  // ZH
+                r2 =
+                    do_zero ? _mm256_and_pd(a, _mm256_castps_pd(constant8f<0, 0, 0, 0, -1, -1, -1, -1>())) : __m256d(a);
+                break;
+            case 0x30:  // LZ
+                if (do_zero) {
+                    __m128d t = _mm256_castpd256_pd128(a);
+                    t = _mm_and_pd(t, t);
+                    r2 = _mm256_castpd128_pd256(t);
+                } else
+                    r2 = a;
+                break;
+            case 0x31:  // HZ
+                r2 = _mm256_castpd128_pd256(_mm256_extractf128_pd(a, 1));
+                break;
+            case 0x33:  // ZZ
+                r2 = do_zero ? _mm256_setzero_pd() : __m256d(a);
+                break;
+        }
+    }
+    return _mm256_shuffle_pd(r1, r2, sm);
+}
 #endif
 
 namespace chrono {
@@ -233,14 +232,14 @@ inline __m256d Div(__m256d a, __m256d b) {
 //    return _mm256_div_pd(a, _mm256_set1_pd(b));
 //}
 
- inline __m256d Negate(__m256d a) {
+inline __m256d Negate(__m256d a) {
     return _mm256_xor_pd(a, SIGNMASK);
 }
 //
-//inline real4 Negate(real4 a) {
+// inline real4 Negate(real4 a) {
 //    return real4(-a[0], -a[1], -a[2], -a[3]);
 //}
-//inline real3 Negate(real3 a) {
+// inline real3 Negate(real3 a) {
 //    return real3(-a[0], -a[1], -a[2]);
 //}
 
@@ -255,20 +254,20 @@ inline real HorizontalAdd(__m256d a) {
     return _mm_cvtsd_f64(dot_prod);
 }
 
- inline real Dot(__m256d a) {
+inline real Dot(__m256d a) {
     __m256d xy = _mm256_mul_pd(a, a);
     // a[0]*a[0], a[1]*a[1], a[2]*a[2], a.w*a.w
     return HorizontalAdd(xy);
 }
- inline real Dot(__m256d a, __m256d b) {
+inline real Dot(__m256d a, __m256d b) {
     __m256d xy = _mm256_mul_pd(a, b);
     return HorizontalAdd(xy);
 }
 
-//inline real Dot(const real3& v1, const real3& v2) {
+// inline real Dot(const real3& v1, const real3& v2) {
 //    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 //}
-//inline real Dot(const real3& v) {
+// inline real Dot(const real3& v) {
 //    return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 //}
 
@@ -276,23 +275,23 @@ inline __m256d SquareRoot(__m256d v) {
     return _mm256_sqrt_pd(v);
 }
 
-// inline __m256d Cross(__m256d a, __m256d b) {
-//    __m256d a1 = permute4d<1, 2, 0, -256>(a);
-//    __m256d b1 = permute4d<1, 2, 0, -256>(b);
-//    __m256d a2 = permute4d<2, 0, 1, -256>(a);
-//    __m256d b2 = permute4d<2, 0, 1, -256>(b);
-//    __m256d c = a1 * b2 - a2 * b1;
-//    return c;
-//}
-
-inline real3 Cross(const real3& a, const real3& b) {
-    real3 result;
-    result[0] = (a[1] * b[2]) - (a[2] * b[1]);
-    result[1] = (a[2] * b[0]) - (a[0] * b[2]);
-    result[2] = (a[0] * b[1]) - (a[1] * b[0]);
-    result[3] = 0;
-    return result;
+inline __m256d Cross(__m256d a, __m256d b) {
+    __m256d a1 = permute4d<1, 2, 0, -256>(a);
+    __m256d b1 = permute4d<1, 2, 0, -256>(b);
+    __m256d a2 = permute4d<2, 0, 1, -256>(a);
+    __m256d b2 = permute4d<2, 0, 1, -256>(b);
+    __m256d c = a1 * b2 - a2 * b1;
+    return c;
 }
+
+// inline real3 Cross(const real3& a, const real3& b) {
+//    real3 result;
+//    result[0] = (a[1] * b[2]) - (a[2] * b[1]);
+//    result[1] = (a[2] * b[0]) - (a[0] * b[2]);
+//    result[2] = (a[0] * b[1]) - (a[1] * b[0]);
+//    result[3] = 0;
+//    return result;
+//}
 
 inline real3 Normalize(const real3& v) {
     real t = simd::Dot(v);
@@ -363,7 +362,7 @@ inline bool IsEqual(const __m256d& a, const __m256d& b) {
 }
 
 // http://stackoverflow.com/questions/10454150/intel-avx-256-bits-version-of-dot-product-for-double-precision-floating-point
-real3 Dot4(real3 v, real3 a, real3 b, real3 c) {
+__m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c) {
     __m256d xy0 = _mm256_mul_pd(v, a);
     __m256d xy1 = _mm256_mul_pd(v, b);
     __m256d xy2 = _mm256_mul_pd(v, c);
@@ -384,7 +383,9 @@ real3 Dot4(real3 v, real3 a, real3 b, real3 c) {
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
     return dotproduct;
 }
-
+__m256d Round(__m256d a) {
+    return _mm256_round_pd(a, _MM_FROUND_TO_NEAREST_INT);
+}
 //========================================================
 //========================================================
 //========================================================
@@ -643,6 +644,10 @@ real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max) {
 bool operator==(const real3& a, const real3& b) {
     return (a[0] == b[0]) && (a[1] == b[1]) && (a[2] == b[2]);
     // return simd::IsEqual(a, b);
+}
+
+real3 Round(const real3& v) {
+    return simd::Round(v);
 }
 // real3 LessThan(real3 a, real3 b){
 //
