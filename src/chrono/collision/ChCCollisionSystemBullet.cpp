@@ -1142,9 +1142,9 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
     bt_collision_configuration = new btDefaultCollisionConfiguration();
 
     bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);
+    //((btDefaultCollisionConfiguration*)bt_collision_configuration)->setConvexConvexMultipointIterations(4,4);
 
     //***OLD***
-
     btScalar sscene_size = (btScalar)scene_size;
     btVector3 worldAabbMin(-sscene_size, -sscene_size, -sscene_size);
     btVector3 worldAabbMax(sscene_size, sscene_size, sscene_size);
