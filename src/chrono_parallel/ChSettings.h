@@ -48,7 +48,7 @@ struct collision_settings {
     grid_density = 5;
     leaf_density = 1;
     fixed_bins = true;
-    use_two_level = true;
+    use_two_level = false;
   }
 
   real3 min_bounding_point, max_bounding_point;
