@@ -42,16 +42,13 @@ void ChCNarrowphaseDispatch::Process() {
     ClearContacts();
     // Transform Rigid body shapes to global coordinate system
     PreprocessLocalToParent();
-    LOG(TRACE) << "PreprocessLocalToParent: ";
+
     if (num_potential_rigid_contacts != 0) {
         DispatchRigid();
     }
-    LOG(TRACE) << "DispatchRigid: ";
     if (data_manager->num_fluid_bodies != 0) {
         DispatchFluid();
-        LOG(TRACE) << "DispatchFluid: ";
         DispatchRigidFluid();
-        LOG(TRACE) << "DispatchRigidFluid: ";
     }
 }
 
@@ -94,6 +91,7 @@ void ChCNarrowphaseDispatch::PreprocessCount() {
 }
 
 void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
+    LOG(TRACE) << "start PreprocessLocalToParent: ";
     uint num_shapes = data_manager->num_rigid_shapes;
 
     const host_vector<int>& obj_data_T = data_manager->host_data.typ_rigid;
@@ -118,7 +116,7 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
         // Get the identifier for the object associated with this collision shape
         uint ID = obj_data_ID[index];
 
-        real3 pos = body_pos[ID];  // Get the global object position
+        real3 pos = body_pos[ID];       // Get the global object position
         quaternion rot = body_rot[ID];  // Get the global object rotation
 
         obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
@@ -131,6 +129,7 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
         }
         obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
     }
+    LOG(TRACE) << "stop PreprocessLocalToParent: ";
 }
 
 void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
@@ -311,6 +310,7 @@ void ChCNarrowphaseDispatch::DispatchHybridGJK() {
 }
 
 void ChCNarrowphaseDispatch::DispatchRigid() {
+    LOG(TRACE) << "start DispatchRigid: ";
     host_vector<real3>& norm_data = data_manager->host_data.norm_rigid_rigid;
     host_vector<real3>& cpta_data = data_manager->host_data.cpta_rigid_rigid;
     host_vector<real3>& cptb_data = data_manager->host_data.cptb_rigid_rigid;
@@ -377,6 +377,7 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     dpth_data.resize(num_rigid_contacts);
     erad_data.resize(num_rigid_contacts);
     bids_data.resize(num_rigid_contacts);
+    LOG(TRACE) << "stop DispatchRigid: ";
 }
 
 // Check if two AABBs overlap using their min/max corners.
@@ -413,14 +414,14 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
 
     real radius = data_manager->settings.fluid.kernel_radius;
 
-    //#pragma omp parallel for
+#pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
         int counter = 0;
         for (int r = 0; r < num_rigid_shapes; ++r) {
-            //            if (overlap(data_manager->host_data.aabb_min[r], data_manager->host_data.aabb_max[r],
-            //                        pos_fluid[p] - real3(radius), pos_fluid[p] + real3(radius)) == false) {
-            //                continue;
-            //            }
+            if (overlap(data_manager->host_data.aabb_min[r], data_manager->host_data.aabb_max[r],
+                        pos_fluid[p] - real3(radius), pos_fluid[p] + real3(radius)) == false) {
+                continue;
+            }
 
             ConvexShape shapeA, shapeB;
             shapeA.type =
@@ -503,6 +504,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     //            std::cout << std::endl;
     //        }
     //    }
+    LOG(TRACE) << "stop DispatchRigidFluid: ";
 }
 
 inline int GridCoord(real x, real inv_bin_edge, real minimum) {
@@ -520,10 +522,10 @@ typedef thrust::pair<real3, real3> bbox;
 // reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
 struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
     bbox operator()(bbox a, bbox b) {
-        real3 ll =
-            real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y), Min(a.first.z, b.first.z));  // lower left corner
+        real3 ll = real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
+                         Min(a.first.z, b.first.z));  // lower left corner
         real3 ur = real3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
-                      Max(a.second.z, b.second.z));  // upper right corner
+                         Max(a.second.z, b.second.z));  // upper right corner
         return bbox(ll, ur);
     }
 };
@@ -534,8 +536,8 @@ struct bbox_transformation : public thrust::unary_function<real3, bbox> {
 };
 
 void ChCNarrowphaseDispatch::DispatchFluid() {
+    LOG(TRACE) << "start DispatchFluidFluid: ";
     const int num_fluid_bodies = data_manager->num_fluid_bodies;
-    std::cout << "FLUIDCOTNACT\n";
     if (num_fluid_bodies == 0) {
         return;
     }
@@ -697,7 +699,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     //        }
     //        std::cout << std::endl;
     //    }
-    std::cout << "FLUID DONE\n";
+    LOG(TRACE) << "stop DispatchFLuidFluid: ";
 }
 
 }  // end namespace collision
