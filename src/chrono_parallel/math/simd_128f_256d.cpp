@@ -422,7 +422,7 @@ inline __m256d QuatMult(__m256d a, __m256d b) {
 //========================================================
 //========================================================
 
-#elif defined(USE_SIMD)
+#elif defined(USE_SSE)
 
 // http://fastcpp.blogspot.com/2011/03/changing-sign-of-float-values-using-sse.html
 static const __m128 SIGNMASK = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));

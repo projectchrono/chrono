@@ -116,13 +116,13 @@ current_bin(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax, real3 inv_bin_size_v
 // for a given number of aabbs in a grid, the grids maximum and minimum point along with the density factor
 // compute the size of the grid
 static int3 function_Compute_Grid_Resolution(uint num_aabb, real3 d, real k = .1) {
-    int3 grid_size = I3(0);
+    int3 grid_size = int3(0);
     real V = d.x * d.y * d.z;
     grid_size.x = int(d.x * Pow(k * num_aabb / V, real(1.0 / 3.0)));
     grid_size.y = int(d.y * Pow(k * num_aabb / V, real(1.0 / 3.0)));
     grid_size.z = int(d.z * Pow(k * num_aabb / V, real(1.0 / 3.0)));
 
-    grid_size = Clamp(grid_size, I3(1), grid_size);
+    grid_size = Clamp(grid_size, int3(1), grid_size);
 
     return grid_size;
 }

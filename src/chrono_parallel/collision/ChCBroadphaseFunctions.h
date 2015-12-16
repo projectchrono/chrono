@@ -73,9 +73,9 @@ void f_TL_Count_AABB_Leaf_Intersection(const uint index,
         int3 gmin = HashMin(Amin, inv_leaf_size);
         int3 gmax = HashMax(Amax, inv_leaf_size);
         // Make sure that the maximum bin value does not exceed the bounds of this grid
-        int3 max_clamp = cell_res - I3(1);
-        gmin = Clamp(gmin, I3(0), max_clamp);
-        gmax = Clamp(gmax, I3(0), max_clamp);
+        int3 max_clamp = cell_res - int3(1);
+        gmin = Clamp(gmin, int3(0), max_clamp);
+        gmax = Clamp(gmax, int3(0), max_clamp);
 
         count += (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
     }
@@ -122,15 +122,15 @@ void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
         int3 gmax = HashMax(Amax, inv_leaf_size);
 
         // Make sure that the maximum bin value does not exceed the bounds of this grid
-        int3 max_clamp = cell_res - I3(1);
-        gmin = Clamp(gmin, I3(0), max_clamp);
-        gmax = Clamp(gmax, I3(0), max_clamp);
+        int3 max_clamp = cell_res - int3(1);
+        gmin = Clamp(gmin, int3(0), max_clamp);
+        gmax = Clamp(gmax, int3(0), max_clamp);
 
         int a, b, c;
         for (a = gmin.x; a <= gmax.x; a++) {
             for (b = gmin.y; b <= gmax.y; b++) {
                 for (c = gmin.z; c <= gmax.z; c++) {
-                    leaf_number[mInd + count] = leaves_per_bin[index] + Hash_Index(I3(a, b, c), cell_res);
+                    leaf_number[mInd + count] = leaves_per_bin[index] + Hash_Index(int3(a, b, c), cell_res);
                     leaf_shape_number[mInd + count] = shape;
                     count++;
                 }
@@ -168,7 +168,7 @@ inline void f_Store_AABB_BIN_Intersection(const uint index,
     for (i = gmin.x; i <= gmax.x; i++) {
         for (j = gmin.y; j <= gmax.y; j++) {
             for (k = gmin.z; k <= gmax.z; k++) {
-                bin_number[mInd + count] = Hash_Index(I3(i, j, k), bins_per_axis);
+                bin_number[mInd + count] = Hash_Index(int3(i, j, k), bins_per_axis);
                 aabb_number[mInd + count] = index;
                 count++;
             }

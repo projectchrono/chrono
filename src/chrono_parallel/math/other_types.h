@@ -18,7 +18,6 @@
 #pragma once
 
 #define S2 _make_short2
-#define I3 _make_int3
 #define U3 _make_uint3
 #define I2 _make_int2
 
@@ -40,9 +39,38 @@ struct int2 {
     int x, y;
 };
 
-struct int3 {
-    int x, y, z;
+class int3 {
+  public:
+    inline int3() : x(0), y(0), z(0), w(0) {}
+    inline int3(int a) : x(a), y(a), z(a), w(0) {}
+    inline int3(int a, int b, int c) : x(a), y(b), z(c), w(0) {}
+    inline int3(const int3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
+    inline int operator[](unsigned int i) const { return array[i]; }
+    inline int& operator[](unsigned int i) { return array[i]; }
+    inline int3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
+    inline operator __m128i() const { return _mm_loadu_si128((__m128i*)&array[0]); }
+    inline int3& operator=(const __m128i& rhs) {
+        _mm_storeu_si128((__m128i*)&array[0], rhs);
+        return *this;
+    }
+    inline int3& operator=(const int3& rhs) {
+        x = rhs.x;
+        y = rhs.y;
+        z = rhs.z;
+        return *this;
+    }
+    union {
+        int array[4];
+        struct {
+            int x, y, z, w;
+        };
+    };
 };
+
+int3 operator-(const int3& a, const int3& b);
+int3 operator-(const int3& a, const int& b);
+int3 Clamp(const int3& a, const int3& clamp_min, const int3& clamp_max) ;
+
 
 struct uint3 {
     unsigned int x, y, z;
@@ -55,34 +83,10 @@ static inline short2 _make_short2(const short& a, const short& b) {
     return t;
 }
 
-static inline int3 _make_int3(const int& a, const int& b, const int& c) {
-    int3 t;
-    t.x = a;
-    t.y = b;
-    t.z = c;
-    return t;
-}
-
-static inline int3 _make_int3(const int& a) {
-    int3 t;
-    t.x = a;
-    t.y = a;
-    t.z = a;
-    return t;
-}
-
 static inline int2 _make_int2(const int& a, const int& b) {
     int2 t;
     t.x = a;
     t.y = b;
-    return t;
-}
-
-static inline int3 _make_int3(const real3& a) {
-    int3 t;
-    t.x = int(a.x);
-    t.y = int(a.y);
-    t.z = int(a.z);
     return t;
 }
 
@@ -102,21 +106,10 @@ static inline uint3 _make_uint3(const uint& a, const uint& b, const uint& c) {
     return t;
 }
 
-static inline int3 operator-(const int3& a, const int3& b) {
-    return I3(a.x - b.x, a.y - b.y, a.z - b.z);
-}
-
 static inline uint3 operator-(const uint3& a, const uint3& b) {
     return U3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
-static inline int3 Clamp(const int3& a, const int3& clamp_min, const int3& clamp_max) {
-    int3 clampv;
-    clampv.x = Clamp(a.x, clamp_min.x, clamp_max.x);
-    clampv.y = Clamp(a.y, clamp_min.y, clamp_max.y);
-    clampv.z = Clamp(a.z, clamp_min.z, clamp_max.z);
-    return clampv;
-}
 
 static inline std::ostream& operator<<(std::ostream& out, const int2& a) {
     out << "[" << a.x << ", " << a.y << "]" << std::endl;

@@ -41,7 +41,7 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
 
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
         for (int i = 0; i < max_shear; i++) {
-            data_manager->host_data.shear_neigh.push_back(I3(-1, -1, -1));
+            data_manager->host_data.shear_neigh.push_back(int3(-1, -1, -1));
             data_manager->host_data.shear_disp.push_back(real3(0, 0, 0));
         }
     }

@@ -70,7 +70,7 @@ class real3 {
 //        return temp[i];
 //    }
 
-#elif defined(USE_SIMD)
+#elif defined(USE_SSE)
     inline real3() : mmvalue(_mm_setzero_ps()) {}
     inline explicit real3(real a) : mmvalue(_mm_setr_ps(a, a, a, 0)) {}
     inline real3(real a, real b, real c) : mmvalue(_mm_setr_ps(a, b, c, 0)) {}

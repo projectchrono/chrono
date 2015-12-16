@@ -43,7 +43,7 @@ struct collision_settings {
         // the number of objects in a bin/grid cell should not exceed 100.
         // NOTE!!! this really depends on the architecture that you run on and how
         // many cores you are using.
-        bins_per_axis = I3(20, 20, 20);
+        bins_per_axis = int3(20, 20, 20);
         narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
         grid_density = 5;
         leaf_density = 1;
