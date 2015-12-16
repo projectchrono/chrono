@@ -76,9 +76,8 @@ static inline __m256 constant8f() {
     } u = {{i0, i1, i2, i3, i4, i5, i6, i7}};
     return u.ymm;
 }
-
 template <int i0, int i1, int i2, int i3>
-static inline __m256d permute4d(__m256 const& a) {
+static inline __m256d permute4d(__m256d const& a) {
     const int ior = i0 | i1 | i2 | i3;  // OR indexes
 
     // is zeroing needed
@@ -112,8 +111,8 @@ static inline __m256d permute4d(__m256 const& a) {
 
     if (s1 == 0x01 || s1 == 0x11 || s2 == 0x01 || s2 == 0x11) {
         // too expensive to use 256 bit permute, split into two 128 bit permutes
-        __m128d alo = _mm256_castps256_ps128(a);
-        __m128d ahi = _mm256_extractf128_ps(a, 1);
+        __m128d alo = _mm256_castpd256_pd128(a);
+        __m128d ahi = _mm256_extractf128_pd(a, 1);
         __m128d rlo = blend2d<i0, i1>(alo, ahi);
         __m128d rhi = blend2d<i2, i3>(alo, ahi);
         return _mm256_castps_pd(set_m128r(_mm_castpd_ps(rlo), _mm_castpd_ps(rhi)));
@@ -256,7 +255,6 @@ inline real HorizontalAdd(__m256d a) {
 
 inline real Dot(__m256d a) {
     __m256d xy = _mm256_mul_pd(a, a);
-    // a[0]*a[0], a[1]*a[1], a[2]*a[2], a.w*a.w
     return HorizontalAdd(xy);
 }
 inline real Dot(__m256d a, __m256d b) {
@@ -300,11 +298,9 @@ inline real3 Normalize(const real3& v) {
     tmp[3] = 0.0;
     return tmp;
 }
-
-inline __m256d Abs(__m256d v) {
-    __m256d mask =
-        _mm256_castsi256_pd(_mm256_setr_epi32(-1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF));
-    return _mm256_and_pd(v, mask);
+static const __m256d abs_mask = _mm256_castsi256_pd(_mm256_setr_epi32(-1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF));
+inline __m256d Abs( __m256d v) {
+    return _mm256_and_pd(v, abs_mask);
 }
 
 inline __m256d Max(const __m256d& v1, const __m256d& v2) {
@@ -385,6 +381,41 @@ __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c) {
 }
 __m256d Round(__m256d a) {
     return _mm256_round_pd(a, _MM_FROUND_TO_NEAREST_INT);
+}
+
+template <int i0, int i1, int i2, int i3>
+static __m256d change_sign(__m256d const& a) {
+    // printf("I: %f %f %f %f\n", a[0], a[1], a[2], a[3]);
+    if ((i0 | i1 | i2 | i3) == 0) {
+        return a;
+    }
+
+    __m256d mask = _mm256_castsi256_pd(_mm256_setr_epi32(0, i0 ? (int)0x80000000 : 0, 0, i1 ? (int)0x80000000 : 0, 0,
+                                                         i2 ? (int)0x80000000 : 0, 0, i3 ? (int)0x80000000 : 0));
+
+    // printf("M: %f %f %f %f\n", mask[0], mask[1], mask[2], mask[3]);
+
+    __m256d res = _mm256_xor_pd(a, mask);
+
+    // printf("O: %f %f %f %f\n", res[0], res[1], res[2], res[3]);
+    return res;
+}
+inline __m256d QuatMult(__m256d a, __m256d b) {
+    __m256d a1123 = permute4d<1, 1, 2, 3>(a);
+    __m256d a2231 = permute4d<2, 2, 3, 1>(a);
+    __m256d b1000 = permute4d<1, 0, 0, 0>(b);
+    __m256d b2312 = permute4d<2, 3, 1, 2>(b);
+    __m256d t1 = a1123 * b1000;
+    __m256d t2 = a2231 * b2312;
+    __m256d t12 = t1 + t2;
+    __m256d t12m = change_sign<1, 0, 0, 0>(t12);
+    __m256d a3312 = permute4d<3, 3, 1, 2>(a);
+    __m256d b3231 = permute4d<3, 2, 3, 1>(b);
+    __m256d a0000 = permute4d<0, 0, 0, 0>(a);
+    __m256d t3 = a3312 * b3231;
+    __m256d t0 = a0000 * b;
+    __m256d t03 = t0 - t3;
+    return t03 + t12m;
 }
 //========================================================
 //========================================================
@@ -657,33 +688,66 @@ bool IsZero(const real3& v) {
     return t[0] < C_EPSILON && t[1] < C_EPSILON && t[2] < C_EPSILON;
 }
 //========================================================
-real4 real4::operator+(const real4& b) const {
-    return simd::Add(*this, b);
+real4 operator+(const real4& a, const real4& b) {
+    return simd::Add(a, b);
 }
-real4 real4::operator-(const real4& b) const {
-    return simd::Sub(*this, b);
+real4 operator-(const real4& a, const real4& b) {
+    return simd::Sub(a, b);
 }
-real4 real4::operator*(const real4& b) const {
-    return simd::Mul(*this, b);
+real4 operator*(const real4& a, const real4& b) {
+    return simd::Mul(a, b);
 }
-real4 real4::operator/(const real4& b) const {
-    return simd::Div(*this, b);
+real4 operator/(const real4& a, const real4& b) {
+    return simd::Div(a, b);
 }
 //========================================================
-real4 real4::operator+(real b) const {
-    return simd::Add(*this, simd::Set(b));
+real4 operator+(const real4& a, real b) {
+    return simd::Add(a, simd::Set(b));
 }
-real4 real4::operator-(real b) const {
-    return simd::Sub(*this, simd::Set(b));
+real4 operator-(const real4& a, real b) {
+    return simd::Sub(a, simd::Set(b));
 }
-real4 real4::operator*(real b) const {
-    return simd::Mul(*this, simd::Set(b));
+real4 operator*(const real4& a, real b) {
+    return simd::Mul(a, simd::Set(b));
 }
-real4 real4::operator/(real b) const {
-    return simd::Div(*this, simd::Set(b));
+real4 operator/(const real4& a, real b) {
+    return simd::Div(a, simd::Set(b));
 }
-real4 real4::operator-() const {
-    return simd::Negate(*this);
+real4 operator-(const real4& a) {
+    return simd::Negate(a);
+}
+
+//========================================================
+quaternion operator+(const quaternion& a, real b) {
+    return simd::Add(a, simd::Set(b));
+}
+quaternion operator-(const quaternion& a, real b) {
+    return simd::Sub(a, simd::Set(b));
+}
+quaternion operator*(const quaternion& a, real b) {
+    return simd::Mul(a, simd::Set(b));
+}
+quaternion operator/(const quaternion& a, real b) {
+    return simd::Div(a, simd::Set(b));
+}
+quaternion operator-(const quaternion& a) {
+    return simd::Negate(a);
+}
+quaternion operator~(const quaternion& a) {
+    return simd::change_sign<0, 1, 1, 1>(a);
+}
+quaternion Inv(const quaternion& a) {
+    real t1 = Dot(a);
+    return (~a) / t1;
+}
+real Dot(const quaternion& v1, const quaternion& v2) {
+    return simd::Dot(v1, v2);
+}
+real Dot(const quaternion& v) {
+    return simd::Dot(v);
+}
+quaternion Mult(const quaternion& a, const quaternion& b) {
+    return simd::QuatMult(a, b);
 }
 //========================================================
 

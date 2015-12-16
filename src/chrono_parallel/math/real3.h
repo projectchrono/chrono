@@ -26,26 +26,49 @@
 
 namespace chrono {
 
+class real3s {
+  public:
+    inline real3s() : x(0), y(0), z(0) {}
+    inline real3s(real a) : x(a), y(a), z(a) {}
+    inline real3s(real _x, real _y, real _z) : x(_x), y(_y), z(_z) {}
+
+    union {
+        struct {
+            real x, y, z, w;
+        };
+    };
+};
+
 class real3 {
   public:
 #if defined(USE_AVX)
-    inline real3() {}
-    inline real3(const real3& v) : mmvalue(v) {}
-    inline real3(real a) { mmvalue = _mm256_setr_pd(a, a, a, 0); }
-    inline real3(real a, real b, real c) : mmvalue(_mm256_setr_pd(a, b, c, 0)) {}
-    inline real3(__m256d m) : mmvalue(m) {}
-    inline operator __m256d() const { return mmvalue; }
+    inline real3() : x(0), y(0), z(0), w(0){}
+    inline real3(real a) : x(a), y(a), z(a), w(0) {}
+    inline real3(real a, real b, real c) : x(a), y(b), z(c), w(0) {}
+    inline real3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
+    inline real3(__m256d m) { _mm256_storeu_pd(&x, m); }
+    inline operator __m256d() const { return _mm256_loadu_pd(&x); }
+
     inline real operator[](unsigned int i) const { return array[i]; }
     inline real& operator[](unsigned int i) { return array[i]; }
-    inline real3& operator=(const real3& rhs) {
-        mmvalue = rhs.mmvalue;
+
+    inline real3& operator=(const __m256d& rhs) {
+        _mm256_storeu_pd(&x, rhs);
         return *this;  // Return a reference to myself.
     }
-    inline real get(const unsigned int i) const {
-        real temp[4];
-        _mm256_storeu_pd(temp, mmvalue);
-        return temp[i];
+
+    inline real3& operator=(const real3& rhs) {
+        x = rhs.x;
+        y = rhs.y;
+        z = rhs.z;
+        return *this;  // Return a reference to myself.
     }
+
+//    inline real get(const unsigned int i) const {
+//        real temp[4];
+//        _mm256_storeu_pd(temp, mmvalue);
+//        return temp[i];
+//    }
 
 #elif defined(USE_SIMD)
     inline real3() : mmvalue(_mm_setzero_ps()) {}
@@ -68,17 +91,17 @@ class real3 {
 
     // ========================================================================================
     union {
-#if defined(USE_AVX)
-        __m256d mmvalue;
-#elif defined(USE_SIMD)
-        __m128 mmvalue;
-#else
-
-#endif
         real array[4];
         struct {
             real x, y, z, w;
         };
+        //#if defined(USE_AVX)
+        //        __m256d mmvalue;
+        //#elif defined(USE_SIMD)
+        //        __m128 mmvalue;
+        //#else
+
+        //#endif
     };
 };
 

@@ -31,28 +31,28 @@ const float precision = 1e-6f;
 
 int main(int argc, char* argv[]) {
   // =============================================================================
-  {  // zero constructor
+  { std::cout << " zero constructor\n";
     real3 zero;
     WeakEqual(zero.x, 0.0, precision);
     WeakEqual(zero.y, 0.0, precision);
     WeakEqual(zero.z, 0.0, precision);
   }
 
-  {  // 1 float constructor
+  {  std::cout << " 1 float constructor\n";
     real3 value(1.5);
     WeakEqual(value.x, 1.5, precision);
     WeakEqual(value.y, 1.5, precision);
     WeakEqual(value.z, 1.5, precision);
   }
 
-  {  // 3 float constructor
+  {  std::cout << " 3 float constructor\n";
     real3 value(1.5, 2.6, 3.7);
     WeakEqual(value.x, 1.5, precision);
     WeakEqual(value.y, 2.6, precision);
     WeakEqual(value.z, 3.7, precision);
   }
   // =============================================================================
-  {  // float 3 add
+  { std::cout << " float 3 add\n";
     real3 a(1.0, 2.0, 3.0);
     real3 b(3.0, 2.0, 1.0);
     real3 c = a + b;
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(c.z, 4.0, precision);
   }
 
-  {  // float 3 subtract
+  {  std::cout << " float 3 subtract\n";
     real3 a(1.0, 2.0, 3.0);
     real3 b(3.0, 2.0, 1.0);
     real3 c = a - b;
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(c.z, 2.0, precision);
   }
 
-  {  // float 3 multiply
+  {  std::cout << "float 3 multiply\n";
     real3 a(1.0, 2.0, 3.0);
     real3 b(3.0, 2.0, 1.0);
     real3 c = a * b;
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(c.z, 3.0, precision);
   }
 
-  {  // float 3 divide
+  {  std::cout << "float 3 divide\n";
     real3 a(1.0, 2.0, 3.0);
     real3 b(3.0, 2.0, 1.0);
     real3 c = a / b;
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(c.y, 2.0 / 2.0, precision);
     WeakEqual(c.z, 3.0 / 1.0, precision);
   }
-  {  // float 3 negate
+  { std::cout << " float 3 negate\n";
     real3 a(1.0, 2.0, 3.0);
     real3 c = -a;
     WeakEqual(c.x, -1.0, precision);
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(c.z, -3.0, precision);
   }
   // =============================================================================
-  {  // float 3 add
+  {  std::cout << " float 3 add\n";
     real3 a(1.0, 2.0, 3.0);
     real3 b(3.0, 2.0, 1.0);
     a += b;
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(a.z, 4.0, precision);
   }
 
-  {  // float 3 subtract
+  { std::cout << " float 3 subtract\n";
     real3 a(1.0, 2.0, 3.0);
     real3 b(3.0, 2.0, 1.0);
     a -= b;
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(a.z, 2.0, precision);
   }
 
-  {  // float 3 multiply
+  {  std::cout << " float 3 multiply\n";
     real3 a(1.0, 2.0, 3.0);
     real3 b(3.0, 2.0, 1.0);
     a *= b;
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(a.z, 3.0, precision);
   }
 
-  {  // float 3 divide
+  {  std::cout << " float 3 divide\n";
     real3 a(1.0, 2.0, 3.0);
     real3 b(3.0, 2.0, 1.0);
     a /= b;
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
   }
   // =============================================================================
 
-  {  // float 3 add
+  {  std::cout << " float 3 add\n";
     real3 a(1.0, 2.0, 3.0);
     real b(2.0);
     real3 c = a + b;
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(c.z, 5.0, precision);
   }
 
-  {  // float 3 subtract
+  {  std::cout << " float 3 subtract\n";
     real3 a(1.0, 2.0, 3.0);
     real b(2.0);
     real3 c = a - b;
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(c.z, 1.0, precision);
   }
 
-  {  // float 3 multiply
+  {  std::cout << " float 3 multiply\n";
     real3 a(1.0, 2.0, 3.0);
     real b(2.0);
     real3 c = a * b;
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(c.z, 6.0, precision);
   }
 
-  {  // float 3 divide
+  {  std::cout << " float 3 divide\n";
     real3 a(1.0, 2.0, 3.0);
     real b(2.0);
     real3 c = a / b;
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
   }
   // =============================================================================
 
-  {  // float 3 add
+  {  std::cout << " float 3 add\n";
     real3 a(1.0, 2.0, 3.0);
     real b(2.0);
     a += b;
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(a.z, 5.0, precision);
   }
 
-  {  // float 3 subtract
+  {  std::cout << " float 3 subtract\n";
     real3 a(1.0, 2.0, 3.0);
     real b(2.0);
     a -= b;
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(a.z, 1.0, precision);
   }
 
-  {  // float 3 multiply
+  {  std::cout << "float 3 multiply\n";
     real3 a(1.0, 2.0, 3.0);
     real b(2.0);
     a *= b;
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(a.z, 6.0, precision);
   }
 
-  {  // float 3 divide
+  {  std::cout << "float 3 divide\n";
     real3 a(1.0, 2.0, 3.0);
     real b(2.0);
     a /= b;
@@ -206,13 +206,24 @@ int main(int argc, char* argv[]) {
   }
   // =============================================================================
 
-  {  // float 3 dot
+  {  std::cout << "float 3 dot\n";
     real3 a(1.0, 2.0, 3.0);
     real3 b(2.0, 1.0, 3.0);
     real c = Dot(a, b);
     WeakEqual(c, 13.0, precision);
   }
-  {  // float 3 cross
+  {  std::cout << "float 3 dot\n";
+    real3 a(0, -2.0, 0);
+    real3 b(0, -2.0, 0);
+    real c = Dot(a, b);
+    WeakEqual(c, 4.0, precision);
+  }
+  {  std::cout << "float 3 dot\n";
+    real3 a(0, -2, 0);
+    real c = Dot(a);
+    WeakEqual(c, 4.0, precision);
+  }
+  {  std::cout << "float 3 cross\n";
     real3 a(1.0, 2.0, 3.0);
     real3 b(2.0, 1.0, 3.0);
     real3 c = Cross(a, b);
@@ -220,7 +231,7 @@ int main(int argc, char* argv[]) {
     WeakEqual(c.y, 3.0, precision);
     WeakEqual(c.z, -3.0, precision);
   }
-  {  // float 3 cross
+  {  std::cout << "float 3 cross\n";
     real3 a = Normalize(real3(rand(), rand(), rand()));
     real3 b = Normalize(real3(rand(), rand(), rand()));
     real3 ans1 = Cross(a, b);
@@ -229,12 +240,12 @@ int main(int argc, char* argv[]) {
     WeakEqual(ans1, ToReal3(ans2), precision);
   }
 
-  {  // float 3 length
+  {  std::cout << "float 3 length\n";
     real3 a(1.0, 2.0, -3.0);
     real c = Length(a);
     WeakEqual(c, sqrt(14.0), precision);
   }
-  {  // float 3 normalize
+  {  std::cout << "float 3 normalize\n";
     real3 a(1.0, 2.0, -3.0);
     real3 c = Normalize(a);
     WeakEqual(c.x, 1.0 / sqrt(14.0), precision);
