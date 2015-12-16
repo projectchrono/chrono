@@ -4,8 +4,9 @@
 #include "chrono_parallel/collision/ChCBroadphaseUtils.h"
 #include "chrono_parallel/collision/ChCBroadphaseFunctions.h"
 
-#include <thrust/host_vector.h>
+//#include <thrust/host_vector.h>
 #include <thrust/transform.h>
+#include <thrust/transform_reduce.h>
 #include <thrust/sort.h>
 #include <thrust/sequence.h>
 #include <thrust/iterator/constant_iterator.h>
@@ -19,8 +20,8 @@ namespace collision {
 // Determine the bounding box for the objects===============================================================
 
 void ChCBroadphase::DetermineBoundingBox() {
-    host_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    host_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+    custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
     // determine the bounds on the total space and subdivide based on the bins per axis
     bbox res(aabb_min[0], aabb_min[0]);
     bbox_transformation unary_op;
@@ -36,8 +37,8 @@ void ChCBroadphase::DetermineBoundingBox() {
 }
 
 void ChCBroadphase::OffsetAABB() {
-    host_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    host_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+    custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
     thrust::constant_iterator<real3> offset(data_manager->measures.collision.global_origin);
     thrust::transform(aabb_min.begin(), aabb_min.end(), offset, aabb_min.begin(), thrust::minus<real3>());
     thrust::transform(aabb_max.begin(), aabb_max.end(), offset, aabb_max.begin(), thrust::minus<real3>());
@@ -119,12 +120,12 @@ void ChCBroadphase::DetectPossibleCollisions() {
 }
 
 void ChCBroadphase::OneLevelBroadphase() {
-    const host_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    const host_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-    const host_vector<short2>& fam_data = data_manager->host_data.fam_rigid;
-    const host_vector<bool>& obj_active = data_manager->host_data.active_rigid;
-    const host_vector<uint>& obj_data_id = data_manager->host_data.id_rigid;
-    host_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
+    const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+    const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    const custom_vector<short2>& fam_data = data_manager->host_data.fam_rigid;
+    const custom_vector<char>& obj_active = data_manager->host_data.active_rigid;
+    const custom_vector<uint>& obj_data_id = data_manager->host_data.id_rigid;
+    custom_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
     int3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
 
     bins_intersected.resize(num_shapes + 1);
@@ -198,11 +199,11 @@ void ChCBroadphase::OneLevelBroadphase() {
 }
 //======
 void ChCBroadphase::TwoLevelBroadphase() {
-    const host_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    const host_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-    const host_vector<short2>& fam_data = data_manager->host_data.fam_rigid;
-    const host_vector<bool>& obj_active = data_manager->host_data.active_rigid;
-    const host_vector<uint>& obj_data_id = data_manager->host_data.id_rigid;
+    const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+    const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    const custom_vector<short2>& fam_data = data_manager->host_data.fam_rigid;
+    const custom_vector<char>& obj_active = data_manager->host_data.active_rigid;
+    const custom_vector<uint>& obj_data_id = data_manager->host_data.id_rigid;
 
     int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 bin_size = data_manager->measures.collision.bin_size;
@@ -299,7 +300,7 @@ void ChCBroadphase::TwoLevelBroadphase() {
                                        num_contact);
     }
     Thrust_Exclusive_Scan(num_contact);
-    host_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
+    custom_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
     number_of_contacts_possible = num_contact.back();
     LOG(TRACE) << "number_of_contacts_possible: " << number_of_contacts_possible;
     contact_pairs.resize(number_of_contacts_possible);
@@ -326,9 +327,9 @@ void ChCBroadphase::SplitContacts() {
     //
     //  const uint num_rigid_shapes = data_manager->num_rigid_shapes;
     //  const uint num_fluid_bodies = data_manager->num_fluid_bodies;
-    //  host_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
+    //  custom_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
     //  LOG(TRACE) << "number_of_contacts_possible: " << number_of_contacts_possible;
-    //  host_vector<int> contact_type(number_of_contacts_possible);
+    //  custom_vector<int> contact_type(number_of_contacts_possible);
     //#pragma omp parallel for
     //  for (int i = 0; i < number_of_contacts_possible; i++) {
     //    int2 pair = I2(int(contact_pairs[i] >> 32), int(contact_pairs[i] & 0xffffffff));

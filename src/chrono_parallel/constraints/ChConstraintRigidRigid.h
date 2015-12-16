@@ -105,8 +105,8 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
     real inv_h;
     real inv_hpa;
     real inv_hhpa;
-    host_vector<real3_int> rotated_point_a, rotated_point_b;
-    host_vector<quaternion> quat_a, quat_b;
+    custom_vector<real3_int> rotated_point_a, rotated_point_b;
+    custom_vector<quaternion> quat_a, quat_b;
     // Pointer to the system's data manager
     ChParallelDataManager* data_manager;
 };

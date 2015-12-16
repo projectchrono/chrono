@@ -170,9 +170,9 @@ void ChConstraintRigidRigid::host_Project_single(int index, int2* ids, real3* fr
 }
 
 void ChConstraintRigidRigid::Project(real* gamma) {
-    const thrust::host_vector<int2>& bids = data_manager->host_data.bids_rigid_rigid;
-    const thrust::host_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
-    const thrust::host_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
+    const custom_vector<int2>& bids = data_manager->host_data.bids_rigid_rigid;
+    const custom_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
+    const custom_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
     switch (data_manager->settings.solver.local_solver_mode) {
         case NORMAL: {
@@ -199,9 +199,9 @@ void ChConstraintRigidRigid::Project(real* gamma) {
     }
 }
 void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
-    thrust::host_vector<int2>& bids = data_manager->host_data.bids_rigid_rigid;
-    thrust::host_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
-    thrust::host_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
+    custom_vector<int2>& bids = data_manager->host_data.bids_rigid_rigid;
+    custom_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
+    custom_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
     host_Project_single(index, bids.data(), friction.data(), cohesion.data(), gamma);
 }
@@ -533,7 +533,7 @@ void ChConstraintRigidRigid::GenerateSparsity() {
 
 void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<real>& XYZUVW) {
     const int& num_rigid_contacts = data_manager->num_rigid_contacts;
-    host_vector<bool>& active_rigid = data_manager->host_data.active_rigid;
+    custom_vector<char>& active_rigid = data_manager->host_data.active_rigid;
     real3* norm = data_manager->host_data.norm_rigid_rigid.data();
     real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
     real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
@@ -610,7 +610,7 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
 
 void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVector<real>& out_vector) {
     const int& num_rigid_contacts = data_manager->num_rigid_contacts;
-    host_vector<bool>& active_rigid = data_manager->host_data.active_rigid;
+    custom_vector<char>& active_rigid = data_manager->host_data.active_rigid;
     real3* norm = data_manager->host_data.norm_rigid_rigid.data();
     real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
     real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();

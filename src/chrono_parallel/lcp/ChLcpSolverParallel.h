@@ -110,7 +110,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
                                 custom_vector<real3>& ext_body_force,
                                 custom_vector<real3>& ext_body_torque,
                                 custom_vector<int2>& shape_pairs,
-                                custom_vector<bool>& shear_touch);
+                                custom_vector<char>& shear_touch);
 
     void host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id);
 

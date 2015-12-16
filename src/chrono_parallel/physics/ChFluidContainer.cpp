@@ -35,8 +35,8 @@ ChFluidContainer& ChFluidContainer::operator=(const ChFluidContainer& other) {
 }
 
 void ChFluidContainer::AddFluid(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
-    host_vector<real3>& pos_fluid = system->data_manager->host_data.pos_fluid;
-    host_vector<real3>& vel_fluid = system->data_manager->host_data.vel_fluid;
+    custom_vector<real3>& pos_fluid = system->data_manager->host_data.pos_fluid;
+    custom_vector<real3>& vel_fluid = system->data_manager->host_data.vel_fluid;
 
     pos_fluid.insert(pos_fluid.end(), positions.begin(), positions.end());
     vel_fluid.insert(vel_fluid.end(), velocities.begin(), velocities.end());
@@ -48,8 +48,8 @@ void ChFluidContainer::Update(double ChTime) {
     uint num_fluid_bodies = system->data_manager->num_fluid_bodies;
     uint num_rigid_bodies = system->data_manager->num_rigid_bodies;
     uint num_shafts = system->data_manager->num_shafts;
-    host_vector<real3>& pos_fluid = system->data_manager->host_data.pos_fluid;
-    host_vector<real3>& vel_fluid = system->data_manager->host_data.vel_fluid;
+    custom_vector<real3>& pos_fluid = system->data_manager->host_data.pos_fluid;
+    custom_vector<real3>& vel_fluid = system->data_manager->host_data.vel_fluid;
     ChVector<> g_acc = system->Get_G_acc();
     real3 h_gravity = system->GetStep() * system->data_manager->settings.fluid.mass * real3(g_acc.x, g_acc.y, g_acc.z);
     for (int i = 0; i < num_fluid_bodies; i++) {
@@ -69,8 +69,8 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
     uint num_rigid_bodies = system->data_manager->num_rigid_bodies;
     uint num_shafts = system->data_manager->num_shafts;
 
-    host_vector<real3>& pos_fluid = system->data_manager->host_data.pos_fluid;
-    host_vector<real3>& vel_fluid = system->data_manager->host_data.vel_fluid;
+    custom_vector<real3>& pos_fluid = system->data_manager->host_data.pos_fluid;
+    custom_vector<real3>& vel_fluid = system->data_manager->host_data.vel_fluid;
 
     for (int i = 0; i < num_fluid_bodies; i++) {
         real3 vel;

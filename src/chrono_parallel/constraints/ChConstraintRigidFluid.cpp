@@ -38,8 +38,8 @@ void ChConstraintRigidFluid::Project(real* gamma) {
     real mu = data_manager->settings.fluid.mu;
     real coh = data_manager->settings.fluid.cohesion;
 
-    host_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    host_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
     int num_fluid_bodies = data_manager->num_fluid_bodies;
 
     //#pragma omp parallel for
@@ -105,8 +105,8 @@ void ChConstraintRigidFluid::Build_D() {
     custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
     custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
     data_manager->system_timer.start("ChSolverParallel_solverC");
-    host_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    host_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
     int num_fluid_bodies = data_manager->num_fluid_bodies;
     //#pragma omp parallel for
     int index = 0;
@@ -145,8 +145,8 @@ void ChConstraintRigidFluid::Build_b() {
         return;
     }
 
-    host_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    host_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
     int num_fluid_bodies = data_manager->num_fluid_bodies;
 
     //#pragma omp parallel for
@@ -203,8 +203,8 @@ void ChConstraintRigidFluid::GenerateSparsity() {
     int index = 0;
 
     int num_fluid_bodies = data_manager->num_fluid_bodies;
-    host_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    host_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
     for (int p = 0; p < num_fluid_bodies; p++) {
         for (int i = 0; i < contact_counts[p]; i++) {

@@ -292,8 +292,8 @@ void ChSystemParallel::UpdateRigidBodies() {
     LOG(INFO) << "ChSystemParallel::UpdateBodies()";
     custom_vector<real3>& position = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rotation = data_manager->host_data.rot_rigid;
-    custom_vector<bool>& active = data_manager->host_data.active_rigid;
-    custom_vector<bool>& collide = data_manager->host_data.collide_rigid;
+    custom_vector<char>& active = data_manager->host_data.active_rigid;
+    custom_vector<char>& collide = data_manager->host_data.collide_rigid;
 
 #pragma omp parallel for
     for (int i = 0; i < bodylist.size(); i++) {
@@ -340,7 +340,7 @@ void ChSystemParallel::UpdateRigidBodies() {
 void ChSystemParallel::UpdateShafts() {
     real* shaft_rot = data_manager->host_data.shaft_rot.data();
     real* shaft_inr = data_manager->host_data.shaft_inr.data();
-    bool* shaft_active = data_manager->host_data.shaft_active.data();
+    char* shaft_active = data_manager->host_data.shaft_active.data();
 
     ////#pragma omp parallel for
     for (int i = 0; i < data_manager->num_shafts; i++) {

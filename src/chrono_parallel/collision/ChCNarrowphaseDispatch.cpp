@@ -7,6 +7,12 @@
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseGJK_EPA.h"
+
+#include <thrust/remove.h>
+#include <thrust/sort.h>
+#include <thrust/transform_reduce.h>
+#include <thrust/count.h>
+
 namespace chrono {
 namespace collision {
 
@@ -94,15 +100,15 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
     LOG(TRACE) << "start PreprocessLocalToParent: ";
     uint num_shapes = data_manager->num_rigid_shapes;
 
-    const host_vector<int>& obj_data_T = data_manager->host_data.typ_rigid;
-    const host_vector<real3>& obj_data_A = data_manager->host_data.ObA_rigid;
-    const host_vector<real3>& obj_data_B = data_manager->host_data.ObB_rigid;
-    const host_vector<real3>& obj_data_C = data_manager->host_data.ObC_rigid;
-    const host_vector<quaternion>& obj_data_R = data_manager->host_data.ObR_rigid;
-    const host_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
+    const custom_vector<int>& obj_data_T = data_manager->host_data.typ_rigid;
+    const custom_vector<real3>& obj_data_A = data_manager->host_data.ObA_rigid;
+    const custom_vector<real3>& obj_data_B = data_manager->host_data.ObB_rigid;
+    const custom_vector<real3>& obj_data_C = data_manager->host_data.ObC_rigid;
+    const custom_vector<quaternion>& obj_data_R = data_manager->host_data.ObR_rigid;
+    const custom_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
 
-    const host_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
-    const host_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
+    const custom_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
+    const custom_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
 
     obj_data_A_global.resize(num_shapes);
     obj_data_B_global.resize(num_shapes);
@@ -139,8 +145,8 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
                                            ConvexShape& shapeA,
                                            ConvexShape& shapeB) {
     const shape_type* obj_data_T = data_manager->host_data.typ_rigid.data();
-    const host_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
-    const host_vector<long long>& contact_pair = data_manager->host_data.contact_pairs;
+    const custom_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
+    const custom_vector<long long>& contact_pair = data_manager->host_data.contact_pairs;
     real3* convex_data = data_manager->host_data.convex_data.data();
 
     long long p = contact_pair[index];
@@ -169,7 +175,7 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
 }
 
 void ChCNarrowphaseDispatch::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC) {
-    host_vector<int2>& body_ids = data_manager->host_data.bids_rigid_rigid;
+    custom_vector<int2>& body_ids = data_manager->host_data.bids_rigid_rigid;
 
     // Mark the active contacts and set their body IDs
     for (int i = 0; i < nC; i++) {
@@ -179,11 +185,11 @@ void ChCNarrowphaseDispatch::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B,
 }
 
 void ChCNarrowphaseDispatch::DispatchMPR() {
-    host_vector<real3>& norm = data_manager->host_data.norm_rigid_rigid;
-    host_vector<real3>& ptA = data_manager->host_data.cpta_rigid_rigid;
-    host_vector<real3>& ptB = data_manager->host_data.cptb_rigid_rigid;
-    host_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
-    host_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
+    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_rigid;
+    custom_vector<real3>& ptA = data_manager->host_data.cpta_rigid_rigid;
+    custom_vector<real3>& ptB = data_manager->host_data.cptb_rigid_rigid;
+    custom_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
+    custom_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
 
 #pragma omp parallel for
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
@@ -202,11 +208,11 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
 }
 
 void ChCNarrowphaseDispatch::DispatchGJK() {
-    host_vector<real3>& norm = data_manager->host_data.norm_rigid_rigid;
-    host_vector<real3>& ptA = data_manager->host_data.cpta_rigid_rigid;
-    host_vector<real3>& ptB = data_manager->host_data.cptb_rigid_rigid;
-    host_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
-    host_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
+    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_rigid;
+    custom_vector<real3>& ptA = data_manager->host_data.cpta_rigid_rigid;
+    custom_vector<real3>& ptB = data_manager->host_data.cptb_rigid_rigid;
+    custom_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
+    custom_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
 
 #pragma omp parallel for
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
@@ -311,12 +317,12 @@ void ChCNarrowphaseDispatch::DispatchHybridGJK() {
 
 void ChCNarrowphaseDispatch::DispatchRigid() {
     LOG(TRACE) << "start DispatchRigid: ";
-    host_vector<real3>& norm_data = data_manager->host_data.norm_rigid_rigid;
-    host_vector<real3>& cpta_data = data_manager->host_data.cpta_rigid_rigid;
-    host_vector<real3>& cptb_data = data_manager->host_data.cptb_rigid_rigid;
-    host_vector<real>& dpth_data = data_manager->host_data.dpth_rigid_rigid;
-    host_vector<real>& erad_data = data_manager->host_data.erad_rigid_rigid;
-    host_vector<int2>& bids_data = data_manager->host_data.bids_rigid_rigid;
+    custom_vector<real3>& norm_data = data_manager->host_data.norm_rigid_rigid;
+    custom_vector<real3>& cpta_data = data_manager->host_data.cpta_rigid_rigid;
+    custom_vector<real3>& cptb_data = data_manager->host_data.cptb_rigid_rigid;
+    custom_vector<real>& dpth_data = data_manager->host_data.dpth_rigid_rigid;
+    custom_vector<real>& erad_data = data_manager->host_data.erad_rigid_rigid;
+    custom_vector<int2>& bids_data = data_manager->host_data.bids_rigid_rigid;
     uint& num_rigid_contacts = data_manager->num_rigid_contacts;
     // Set maximum possible number of contacts for each potential collision
     // (depending on the narrowphase algorithm and on the types of shapes in
@@ -394,12 +400,12 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     data_manager->host_data.c_counts_rigid_fluid.resize(data_manager->num_fluid_bodies);
     Thrust_Fill(data_manager->host_data.c_counts_rigid_fluid, 0);
 #else
-    host_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
-    host_vector<real3>& norm_rigid_fluid = data_manager->host_data.norm_rigid_fluid;
-    host_vector<real3>& cpta_rigid_fluid = data_manager->host_data.cpta_rigid_fluid;
-    host_vector<real>& dpth_rigid_fluid = data_manager->host_data.dpth_rigid_fluid;
-    host_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    host_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    custom_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
+    custom_vector<real3>& norm_rigid_fluid = data_manager->host_data.norm_rigid_fluid;
+    custom_vector<real3>& cpta_rigid_fluid = data_manager->host_data.cpta_rigid_fluid;
+    custom_vector<real>& dpth_rigid_fluid = data_manager->host_data.dpth_rigid_fluid;
+    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
     real fluid_radius = data_manager->settings.fluid.kernel_radius;
 
@@ -536,31 +542,37 @@ struct bbox_transformation : public thrust::unary_function<real3, bbox> {
 };
 
 void ChCNarrowphaseDispatch::DispatchFluid() {
+    real t1, t2, t3, t4, t5, t6, t7, t8;
+    ChTimer<> timer;
+
     LOG(TRACE) << "start DispatchFluidFluid: ";
     const int num_fluid_bodies = data_manager->num_fluid_bodies;
     if (num_fluid_bodies == 0) {
         return;
     }
+    timer.start();
+    const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
+    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_fluid;
 
-    const host_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
-    host_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_fluid;
+    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
 
-    host_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    host_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
-
-    host_vector<int> bin_ids(num_fluid_bodies);
-    host_vector<int>& particle_indices = data_manager->host_data.particle_indices_fluid;
-    host_vector<long long>& bids_fluid_fluid = data_manager->host_data.bids_fluid_fluid;
+    custom_vector<int> bin_ids(num_fluid_bodies);
+    custom_vector<int>& particle_indices = data_manager->host_data.particle_indices_fluid;
+    custom_vector<long long>& bids_fluid_fluid = data_manager->host_data.bids_fluid_fluid;
     particle_indices.resize(num_fluid_bodies);
 
-    host_vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping;
+    custom_vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping;
 
     reverse_mapping.resize(num_fluid_bodies);
     contact_counts.resize(num_fluid_bodies);
     sorted_pos_fluid.resize(num_fluid_bodies);
     neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
     bids_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
-
+    timer.stop();
+    t1 = timer();
+    timer.reset();
+    timer.start();
     Thrust_Fill(contact_counts, 0);
     Thrust_Fill(neighbor_fluid_fluid, 0);
 
@@ -570,7 +582,10 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
 
     const real radius = data_manager->settings.fluid.kernel_radius;
     const real radiusSq = radius * radius;
-
+    timer.stop();
+    t2 = timer();
+    timer.reset();
+    timer.start();
     bbox res(pos_fluid[0], pos_fluid[0]);
     bbox_transformation unary_op;
     bbox_reduction binary_op;
@@ -594,13 +609,16 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     real inv_bin_edge = 1.f / (radius * 2 + data_manager->settings.fluid.collision_envelope);
     size_t grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
-    host_vector<int> bin_starts(grid_size);
-    host_vector<int> bin_ends(grid_size);
+    custom_vector<int> bin_starts(grid_size);
+    custom_vector<int> bin_ends(grid_size);
 
     Thrust_Fill(bin_starts, 0);
     Thrust_Fill(bin_ends, 0);
     Thrust_Fill(contact_counts, 0);
-
+    timer.stop();
+    t3 = timer();
+    timer.reset();
+    timer.start();
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
         real3 p = pos_fluid[i];
@@ -611,7 +629,10 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     }
 
     Thrust_Sort_By_Key(bin_ids, particle_indices);
-
+    timer.stop();
+    t4 = timer();
+    timer.reset();
+    timer.start();
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
         int c = bin_ids[i];
@@ -628,18 +649,23 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
             bin_ends[c] = i + 1;
         }
     }
-
+    timer.stop();
+    t5 = timer();
+    timer.reset();
+    timer.start();
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
         int index = particle_indices[i];
         sorted_pos_fluid[i] = pos_fluid[index];
         reverse_mapping[index] = i;
     }
-
+    timer.stop();
+    t6 = timer();
+    timer.reset();
+    timer.start();
 #pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
         real3 xi = sorted_pos_fluid[p];
-
         const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
         const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
         const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
@@ -677,6 +703,10 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
         }
         contact_counts[p] = contact_count;
     }
+    timer.stop();
+    t7 = timer();
+    timer.reset();
+    timer.start();
     uint& num_fluid_contacts = data_manager->num_fluid_contacts;
     num_fluid_contacts = Thrust_Total(contact_counts);
 #if 0
@@ -690,7 +720,10 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     }
 #endif
     Thrust_Sort(bids_fluid_fluid);
-
+    timer.stop();
+    t8 = timer();
+    timer.reset();
+    timer.start();
     // Now the list of pairs is sorted,
     //    for (int p = 0; p < num_fluid_bodies; p++) {
     //        std::cout << "p: " << p << " ";
@@ -699,6 +732,9 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     //        }
     //        std::cout << std::endl;
     //    }
+
+    printf("ff_timer: [%f, %f, %f, %f, %f, %f, %f, %f]\n", t1, t2, t3, t4, t5, t6, t7, t8);
+
     LOG(TRACE) << "stop DispatchFLuidFluid: ";
 }
 

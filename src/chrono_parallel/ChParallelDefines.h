@@ -27,36 +27,6 @@
 #endif
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChConfigParallel.h"
-//
-//// Without the following define, thrust needs the cuda sdk to compile
-//
-//#if defined(CHRONO_OMP_FOUND)
-//#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
-//#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_OMP
-//
-//#elif defined(CHRONO_TBB_ENABLED)
-//#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_TBB
-//#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_TBB
-//#else
-//#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
-//#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_CPP
-//#endif
-
-#include <thrust/execution_policy.h>
-#include <thrust/system/cpp/execution_policy.h>
-#include <thrust/system/omp/execution_policy.h>
-
-#if defined(_MSC_VER)
-#define thrust_parallel thrust::cpp::par
-#else
-#if defined(CHRONO_OMP_FOUND)
-#define thrust_parallel thrust::omp::par
-#elif defined(CHRONO_TBB_ENABLED)
-#define thrust_parallel thrust::tbb::par
-#else
-#define thrust_parallel thrust::cpp::par
-#endif
-#endif
 
 typedef int shape_type;
 
@@ -65,10 +35,10 @@ typedef int shape_type;
 #endif
 
 #ifndef __CDT_PARSER__
-#define custom_vector thrust::host_vector
+#define custom_vector std::vector
 #else
-using namespace thrust;
-#define custom_vector host_vector
+
+#define custom_vector std::vector
 #endif
 
 #if defined _MSC_VER || defined __clang__

@@ -22,7 +22,7 @@
 
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
-
+#include <thrust/sort.h>
 using namespace chrono;
 
 // -----------------------------------------------------------------------------
@@ -59,7 +59,7 @@ void function_CalcContactForces(
     real* depth,                                          // penetration depth (per contact)
     real* eff_radius,                                     // effective contact radius (per contact)
     int3* shear_neigh,      // neighbor list of contacting bodies and shapes (max_shear per body)
-    bool* shear_touch,      // flag if contact in neighbor list is persistent (max_shear per body)
+    char* shear_touch,      // flag if contact in neighbor list is persistent (max_shear per body)
     real3* shear_disp,      // accumulated shear displacement for each neighbor (max_shear per body)
     int* ext_body_id,       // [output] body IDs (two per contact)
     real3* ext_body_force,  // [output] body force (two per contact)
@@ -366,7 +366,7 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body
                                                     custom_vector<real3>& ext_body_force,
                                                     custom_vector<real3>& ext_body_torque,
                                                     custom_vector<int2>& shape_pairs,
-                                                    custom_vector<bool>& shear_touch) {
+                                                    custom_vector<char>& shear_touch) {
 #pragma omp parallel for
     for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
         function_CalcContactForces(
@@ -446,12 +446,12 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
     custom_vector<real3> ext_body_force(2 * data_manager->num_rigid_contacts);
     custom_vector<real3> ext_body_torque(2 * data_manager->num_rigid_contacts);
     custom_vector<int2> shape_pairs;
-    custom_vector<bool> shear_touch;
+    custom_vector<char> shear_touch;
 
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
         shape_pairs.resize(data_manager->num_rigid_contacts);
         shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
-        thrust::fill(thrust_parallel, shear_touch.begin(), shear_touch.end(), false);
+        thrust::fill(shear_touch.begin(), shear_touch.end(), false);
 #pragma omp parallel for
         for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
             int2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
@@ -477,7 +477,7 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
     //    involved in at least one contact, by reducing the contact forces and
     //    torques from all contacts these bodies are involved in. The number of
     //    bodies that experience at least one contact is 'ct_body_count'.
-    thrust::sort_by_key(thrust_parallel, ext_body_id.begin(), ext_body_id.end(),
+    thrust::sort_by_key(ext_body_id.begin(), ext_body_id.end(),
                         thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
 
     custom_vector<int> ct_body_id(data_manager->num_rigid_bodies);

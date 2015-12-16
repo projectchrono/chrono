@@ -67,20 +67,20 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
     void D_Tx(const DynamicVector<real>& x, DynamicVector<real>& output);
 
   protected:
-    host_vector<int> fluid_contact_idA, fluid_contact_idA_start;
-    host_vector<int> fluid_contact_idB, fluid_start_index;
-    host_vector<real> dist_temp;
+    custom_vector<int> fluid_contact_idA, fluid_contact_idA_start;
+    custom_vector<int> fluid_contact_idB, fluid_start_index;
+    custom_vector<real> dist_temp;
 
-    host_vector<real3> viscosity_row_1, viscosity_row_2, viscosity_row_3;
-    host_vector<real4> xij_dist_fluid_fluid;
+    custom_vector<real3> viscosity_row_1, viscosity_row_2, viscosity_row_3;
+    custom_vector<real4> xij_dist_fluid_fluid;
     int last_body;
 
-    host_vector<real3> den_con;
-    host_vector<real4> den_vec;
+    custom_vector<real3> den_con;
+    custom_vector<real4> den_vec;
 
     //
-    host_vector<Mat33> shear_tensor;
-    host_vector<real> shear_trace;
+    custom_vector<Mat33> shear_tensor;
+    custom_vector<real> shear_trace;
     // Pointer to the system's data manager
     ChParallelDataManager* data_manager;
 

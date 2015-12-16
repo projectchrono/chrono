@@ -1,6 +1,7 @@
 #include "chrono_parallel/constraints/ChConstraintFluidFluid.h"
 #include "chrono_parallel/constraints/ChConstraintFluidFluidUtils.h"
 #include <thrust/iterator/constant_iterator.h>
+#include <thrust/sort.h>
 
 namespace chrono {
 // Perform projection on the constraints associated with the fluid==========================================
@@ -25,7 +26,7 @@ void ChConstraintFluidFluid::Build_D_Rigid() {
     //    LOG(INFO) << "ChConstraintFluidFluid::Build_D_Rigid";
     //
     //    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    //    host_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
+    //    custom_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
     //    real step_size = data_manager->settings.step_size;
     //    custom_vector<int2>& bids = data_manager->host_data.bids_fluid_fluid;
     //
@@ -56,9 +57,9 @@ void ChConstraintFluidFluid::Density_Fluid() {
     LOG(INFO) << "ChConstraintFluidFluid::Density_Fluid";
     real mass_fluid = data_manager->settings.fluid.mass;
     real h = data_manager->settings.fluid.kernel_radius;
-    host_vector<real3>& vel = data_manager->host_data.vel_fluid;
-    host_vector<real3>& pos = data_manager->host_data.pos_fluid;
-    host_vector<real>& density = data_manager->host_data.den_fluid;
+    custom_vector<real3>& vel = data_manager->host_data.vel_fluid;
+    custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
+    custom_vector<real>& density = data_manager->host_data.den_fluid;
 
     const real h_3 = h * h * h;
     const real h_6 = h_3 * h_3;
@@ -86,7 +87,7 @@ void ChConstraintFluidFluid::Density_Fluid() {
 }
 // void ChConstraintFluidFluid::Solve_Density(real volume, real tolerance) {
 //  real density_fluid = data_manager->settings.fluid.density;
-//  host_vector<real>& density = data_manager->host_data.den_fluid;
+//  custom_vector<real>& density = data_manager->host_data.den_fluid;
 //  density.resize(num_fluid_bodies);
 //  uint num_fluid_bodies = data_manager->num_fluid_bodies;
 //
@@ -109,9 +110,9 @@ void ChConstraintFluidFluid::Density_Fluid() {
 //}
 void ChConstraintFluidFluid::Normalize_Density_Fluid() {
     real h = data_manager->settings.fluid.kernel_radius;
-    host_vector<real3>& pos = data_manager->host_data.pos_fluid;
+    custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
     real mass_fluid = data_manager->settings.fluid.mass;
-    host_vector<real>& density = data_manager->host_data.den_fluid;
+    custom_vector<real>& density = data_manager->host_data.den_fluid;
     real density_fluid = data_manager->settings.fluid.density;
     real inv_density = 1.0 / density_fluid;
     real mass_over_density = mass_fluid * inv_density;
@@ -155,9 +156,9 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
     real mass_over_density = mass * inv_density;
     real eta = .01;
 
-    host_vector<real>& density = data_manager->host_data.den_fluid;
-    host_vector<real3>& vel = data_manager->host_data.vel_fluid;
-    host_vector<real3>& pos = data_manager->host_data.pos_fluid;
+    custom_vector<real>& density = data_manager->host_data.den_fluid;
+    custom_vector<real3>& vel = data_manager->host_data.vel_fluid;
+    custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
@@ -176,7 +177,7 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
     const real mass_2 = mass * mass;
     const real eta_2 = eta * eta;
 
-// host_vector<real> dist_temp(fluid_contact_idB.size());
+// custom_vector<real> dist_temp(fluid_contact_idB.size());
 
 #pragma omp parallel for
     for (int i = 0; i < last_body; i++) {
@@ -356,8 +357,8 @@ void ChConstraintFluidFluid::Build_b() {
         SubMatrixType D_T_sub = submatrix(D_T, index_offset, body_offset, num_fluid_bodies, num_fluid_bodies * 3);
 
         real density_fluid = data_manager->settings.fluid.density;
-        host_vector<real>& density = data_manager->host_data.den_fluid;
-        host_vector<real3>& pos = data_manager->host_data.pos_fluid;
+        custom_vector<real>& density = data_manager->host_data.den_fluid;
+        custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
         DynamicVector<real> g(num_fluid_bodies);
         real epsilon = data_manager->settings.fluid.epsilon;
         real tau = data_manager->settings.fluid.tau;
@@ -533,9 +534,9 @@ void ChConstraintFluidFluid::DetermineNeighbors() {
 
     LOG(INFO) << "ChConstraintFluidFluid::DetermineNeighbors";
 
-    host_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    host_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
-    host_vector<long long>& temp_pairs = data_manager->host_data.bids_fluid_fluid;
+    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
+    custom_vector<long long>& temp_pairs = data_manager->host_data.bids_fluid_fluid;
 
     fluid_contact_idA.resize(num_fluid_contacts);
     fluid_contact_idB.resize(num_fluid_contacts);
@@ -562,7 +563,7 @@ void ChConstraintFluidFluid::ArtificialPressure() {
         return;
     }
     if (data_manager->settings.fluid.fluid_is_rigid == false) {
-        host_vector<real3>& pos = data_manager->host_data.pos_fluid;
+        custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
         real mass_fluid = data_manager->settings.fluid.mass;
         real h = data_manager->settings.fluid.kernel_radius;
         real k = data_manager->settings.fluid.artificial_pressure_k;
@@ -587,10 +588,10 @@ void ChConstraintFluidFluid::ArtificialPressure() {
 }
 
 void ChConstraintFluidFluid::Dx(const DynamicVector<real>& x, DynamicVector<real>& output) {
-    host_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    host_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
-    host_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_fluid;
-    host_vector<real3>& pos = data_manager->host_data.pos_fluid;
+    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
+    custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
+    custom_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_fluid;
+    custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
 
     real viscosity = data_manager->settings.fluid.viscosity;
     real mass = data_manager->settings.fluid.mass;
@@ -631,10 +632,10 @@ void ChConstraintFluidFluid::Dx(const DynamicVector<real>& x, DynamicVector<real
     }
 }
 void ChConstraintFluidFluid::D_Tx(const DynamicVector<real>& x, DynamicVector<real>& output) {
-    host_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    host_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
-    host_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_fluid;
-    host_vector<real3>& pos = data_manager->host_data.pos_fluid;
+    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
+    custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
+    custom_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_fluid;
+    custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
 
     real viscosity = data_manager->settings.fluid.viscosity;
     real mass = data_manager->settings.fluid.mass;

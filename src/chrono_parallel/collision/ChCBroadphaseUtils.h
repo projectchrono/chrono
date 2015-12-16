@@ -21,6 +21,8 @@
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/collision/ChCAABBGenerator.h"
 
+#include <thrust/pair.h>
+#include <thrust/functional.h>
 namespace chrono {
 namespace collision {
 

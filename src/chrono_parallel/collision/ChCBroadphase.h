@@ -51,23 +51,23 @@ class CH_PARALLEL_API ChCBroadphase {
     uint num_active_leaves;
 
     real3 inv_bin_size;
-    host_vector<uint> bins_intersected;
-    host_vector<uint> bin_number;
-    host_vector<uint> bin_number_out;
-    host_vector<uint> bin_aabb_number;
-    host_vector<uint> bin_start_index;
-    host_vector<uint> num_contact;
+    custom_vector<uint> bins_intersected;
+    custom_vector<uint> bin_number;
+    custom_vector<uint> bin_number_out;
+    custom_vector<uint> bin_aabb_number;
+    custom_vector<uint> bin_start_index;
+    custom_vector<uint> num_contact;
 
-    host_vector<uint> leaves_intersected;
-    host_vector<uint> leaves_per_bin;
-    host_vector<uint> leaf_number;
-    host_vector<uint> leaf_number_out;
-    host_vector<uint> leaf_aabb_number;
-    host_vector<uint> leaf_start_index;
+    custom_vector<uint> leaves_intersected;
+    custom_vector<uint> leaves_per_bin;
+    custom_vector<uint> leaf_number;
+    custom_vector<uint> leaf_number_out;
+    custom_vector<uint> leaf_aabb_number;
+    custom_vector<uint> leaf_start_index;
 
-    // host_vector<short2> fam_data;
-    // host_vector<bool> obj_active;
-    // host_vector<uint> obj_data_id;
+    // custom_vector<short2> fam_data;
+    // custom_vector<char> obj_active;
+    // custom_vector<uint> obj_data_id;
 
     uint num_rigid_shapes;
     uint num_rigid_bodies;

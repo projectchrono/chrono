@@ -46,12 +46,12 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     ChParallelDataManager* data_manager;
 
   private:
-    host_vector<real3> obj_data_A_global, obj_data_B_global, obj_data_C_global;  //
-    host_vector<quaternion> obj_data_R_global;
-    host_vector<bool> contact_rigid_active;
-    host_vector<bool> contact_rigid_fluid_active;
-    host_vector<bool> contact_fluid_active;
-    host_vector<uint> contact_index;
+    custom_vector<real3> obj_data_A_global, obj_data_B_global, obj_data_C_global;  //
+    custom_vector<quaternion> obj_data_R_global;
+    custom_vector<char> contact_rigid_active;
+    custom_vector<char> contact_rigid_fluid_active;
+    custom_vector<char> contact_fluid_active;
+    custom_vector<uint> contact_index;
     uint num_potential_rigid_contacts;
     uint num_potential_fluid_contacts;
     uint num_potential_rigid_fluid_contacts;

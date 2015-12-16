@@ -72,7 +72,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) { return false; }
 
     std::vector<int2> GetOverlappingPairs();
-    void GetOverlappingAABB(custom_vector<bool>& active_id, real3 Amin, real3 Amax);
+    void GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax);
 
     void SetAABB(real3 aabbmin, real3 aabbmax) {
         data_manager->settings.collision.aabb_min = aabbmin;

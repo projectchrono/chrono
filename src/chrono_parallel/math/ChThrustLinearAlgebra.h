@@ -17,13 +17,13 @@
 
 #pragma once
 
-#include <algorithm>
-#include <iostream>
-#include "chrono_parallel/ChConfigParallel.h"
-#include "chrono_parallel/math/ChParallelMath.h"
+//#include <algorithm>
+//#include <iostream>
+//#include "chrono_parallel/ChConfigParallel.h"
+//#include "chrono_parallel/math/ChParallelMath.h"
 
 // Thrust Includes
-#include <thrust/host_vector.h>
+//#include <thrust/custom_vector.h>
 
 //
 // static void SEAXPY(const real& a,
@@ -256,13 +256,13 @@
 //  return Max(real(0.0), -minval);
 //}
 
-template <class T>
-static inline std::ostream& operator<<(std::ostream& out, const thrust::host_vector<T>& x) {
-    for (uint i = 0; i < x.size(); i++) {
-        out << x[i] << std::endl;
-    }
-    return out;
-}
+//template <class T>
+//static inline std::ostream& operator<<(std::ostream& out, const custom_vector<T>& x) {
+//    for (uint i = 0; i < x.size(); i++) {
+//        out << x[i] << std::endl;
+//    }
+//    return out;
+//}
 //// Binary operation for adding two-object tuples
 // struct sum_tuples {
 //  template <typename T >

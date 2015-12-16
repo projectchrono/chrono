@@ -88,19 +88,19 @@ ChCAABBGenerator::ChCAABBGenerator() {
 }
 
 void ChCAABBGenerator::GenerateAABB() {
-    const host_vector<shape_type>& obj_data_T = data_manager->host_data.typ_rigid;
-    const host_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
-    const host_vector<real3>& obj_data_A = data_manager->host_data.ObA_rigid;
-    const host_vector<real3>& obj_data_B = data_manager->host_data.ObB_rigid;
-    const host_vector<real3>& obj_data_C = data_manager->host_data.ObC_rigid;
-    const host_vector<quaternion>& obj_data_R = data_manager->host_data.ObR_rigid;
-    const host_vector<real3>& convex_data = data_manager->host_data.convex_data;
-    const host_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
-    const host_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
+    const custom_vector<shape_type>& obj_data_T = data_manager->host_data.typ_rigid;
+    const custom_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
+    const custom_vector<real3>& obj_data_A = data_manager->host_data.ObA_rigid;
+    const custom_vector<real3>& obj_data_B = data_manager->host_data.ObB_rigid;
+    const custom_vector<real3>& obj_data_C = data_manager->host_data.ObC_rigid;
+    const custom_vector<quaternion>& obj_data_R = data_manager->host_data.ObR_rigid;
+    const custom_vector<real3>& convex_data = data_manager->host_data.convex_data;
+    const custom_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
+    const custom_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
     const uint num_rigid_shapes = data_manager->num_rigid_shapes;
     real collision_envelope = data_manager->settings.collision.collision_envelope;
-    host_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    host_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+    custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
 
     LOG(TRACE) << "AABB START";
 
