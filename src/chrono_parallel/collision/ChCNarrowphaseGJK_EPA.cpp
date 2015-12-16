@@ -836,8 +836,8 @@ bool GJKCollide(const ConvexShape& shape0,
   shapeA.A = shapeA.A - positionOffset;
   shapeB.A = shapeB.A - positionOffset;
 
-  real marginA = shapeA.margin;
-  real marginB = shapeB.margin;
+  real marginA = 0;
+  real marginB = 0;
 
   m_curIter = 0;
   int gGjkMaxIter = 1000;

@@ -226,45 +226,45 @@ inline real3 SupportVertNoMargin(const chrono::collision::ConvexShape& Shape, co
   return localSupport;
 }
 
-inline real3 SupportVert(const chrono::collision::ConvexShape& Shape, const real3& nv, const real& envelope) {
+inline real3 SupportVert(const chrono::collision::ConvexShape& Shape, const real3& nv, const real& envelope, const real& margin = 0) {
   real3 localSupport;
   real3 n = Normalize(nv);
   switch (Shape.type) {
     case chrono::collision::SPHERE:
-      localSupport = GetSupportPoint_Sphere(Shape.B.x - Shape.margin, n);
+      localSupport = GetSupportPoint_Sphere(Shape.B.x - margin, n);
       break;
     case chrono::collision::ELLIPSOID:
-      localSupport = GetSupportPoint_Ellipsoid(Shape.B - Shape.margin, n);
+      localSupport = GetSupportPoint_Ellipsoid(Shape.B - margin, n);
       break;
     case chrono::collision::BOX:
-      localSupport = GetSupportPoint_Box(Shape.B - Shape.margin, n);
+      localSupport = GetSupportPoint_Box(Shape.B - margin, n);
       break;
     case chrono::collision::CYLINDER:
-      localSupport = GetSupportPoint_Cylinder(Shape.B - Shape.margin, n);
+      localSupport = GetSupportPoint_Cylinder(Shape.B - margin, n);
       break;
     case chrono::collision::CONE:
-      localSupport = GetSupportPoint_Cone(Shape.B - Shape.margin, n);
+      localSupport = GetSupportPoint_Cone(Shape.B - margin, n);
       break;
     case chrono::collision::CAPSULE:
-      localSupport = GetSupportPoint_Capsule(Shape.B - Shape.margin, n);
+      localSupport = GetSupportPoint_Capsule(Shape.B - margin, n);
       break;
     case chrono::collision::ROUNDEDBOX:
-      localSupport = GetSupportPoint_RoundedBox(Shape.B - Shape.margin, Shape.C, n);
+      localSupport = GetSupportPoint_RoundedBox(Shape.B - margin, Shape.C, n);
       break;
     case chrono::collision::ROUNDEDCYL:
-      localSupport = GetSupportPoint_RoundedCylinder(Shape.B - Shape.margin, Shape.C, n);
+      localSupport = GetSupportPoint_RoundedCylinder(Shape.B - margin, Shape.C, n);
       break;
     case chrono::collision::ROUNDEDCONE:
-      localSupport = GetSupportPoint_RoundedCone(Shape.B - Shape.margin, Shape.C, n);
+      localSupport = GetSupportPoint_RoundedCone(Shape.B - margin, Shape.C, n);
       break;
     case chrono::collision::CONVEX:
-      localSupport = GetSupportPoint_Convex(Shape.B, Shape.convex, n) - Shape.margin * n;
+      localSupport = GetSupportPoint_Convex(Shape.B, Shape.convex, n) - margin * n;
       break;
   }
   // The collision envelope is applied as a compound support.
   // A sphere with a radius equal to the collision envelope is swept around the
   // entire shape.
-  localSupport += GetSupportPoint_Sphere(envelope, n) + Shape.margin * n;
+  localSupport += GetSupportPoint_Sphere(envelope, n) + margin * n;
   return localSupport;
 }
 
@@ -278,7 +278,7 @@ inline real3 TransformSupportVert(const chrono::collision::ConvexShape& Shape, c
 
   switch (Shape.type) {
     case chrono::collision::TRIANGLEMESH: {
-      // Triangles are handles differently than other convex shapes but they
+      // Triangles are handled differently than other convex shapes but they
       // still have an envelope around them. Prior to this there was no way
       // to define envelopes for triangle meshes.
       // Note that even with this change, large penetrations might cause the

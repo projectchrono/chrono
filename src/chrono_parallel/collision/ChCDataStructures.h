@@ -12,7 +12,6 @@ struct ConvexShape {
   real3 C;          // extra
   quaternion R;     // rotation
   real3* convex;    // pointer to convex data;
-  real margin;
 };
 
 struct ContactPoint {

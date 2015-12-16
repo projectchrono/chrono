@@ -142,7 +142,6 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
     const shape_type* obj_data_T = data_manager->host_data.typ_rigid.data();
     const host_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
     const host_vector<long long>& contact_pair = data_manager->host_data.contact_pairs;
-    const host_vector<real>& collision_margins = data_manager->host_data.margin_rigid;
     real3* convex_data = data_manager->host_data.convex_data.data();
 
     long long p = contact_pair[index];
@@ -165,8 +164,6 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
     shapeB.R = obj_data_R_global[pair.y];
     shapeA.convex = convex_data;
     shapeB.convex = convex_data;
-    shapeA.margin = collision_margins[pair.x];
-    shapeB.margin = collision_margins[pair.y];
 
     //// TODO: what is the best way to dispatch this?
     icoll = contact_index[index];
@@ -445,9 +442,6 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
 
             shapeA.convex = data_manager->host_data.convex_data.data();
             shapeB.convex = data_manager->host_data.convex_data.data();
-
-            shapeB.margin = 0;
-            shapeA.margin = 0;
 
             real3 ptA, ptB, norm;
             real depth, erad;

@@ -96,7 +96,6 @@ struct host_container {
     host_vector<quaternion> ObR_rigid;    // Shape rotation
     host_vector<short2> fam_rigid;   // Family information
     host_vector<int> typ_rigid;      // Shape type
-    host_vector<real> margin_rigid;  // Inner collision margins
     host_vector<uint> id_rigid;      // Body identifier for each shape
     host_vector<real3> aabb_min;     // List of bounding boxes minimum point
     host_vector<real3> aabb_max;     // List of bounding boxes maximum point

@@ -54,7 +54,6 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
       data_manager->host_data.ObC_rigid.push_back(pmodel->mData[j].C);
       data_manager->host_data.ObR_rigid.push_back(pmodel->mData[j].R);
       data_manager->host_data.fam_rigid.push_back(fam);
-      data_manager->host_data.margin_rigid.push_back(pmodel->mData[j].margin);
       data_manager->host_data.typ_rigid.push_back(pmodel->mData[j].type);
       data_manager->host_data.id_rigid.push_back(body_id);
       data_manager->num_rigid_shapes++;
