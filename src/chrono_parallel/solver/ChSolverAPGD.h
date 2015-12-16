@@ -22,35 +22,35 @@
 
 namespace chrono {
 class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
- public:
-  ChSolverAPGD();
-  ~ChSolverAPGD() {}
+  public:
+    ChSolverAPGD();
+    ~ChSolverAPGD() {}
 
-  void Solve() {
-    if (data_manager->num_constraints == 0) {
-      return;
+    void Solve() {
+        if (data_manager->num_constraints == 0) {
+            return;
+        }
+
+        data_manager->measures.solver.total_iteration += SolveAPGD(
+            max_iteration, data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
     }
 
-    data_manager->measures.solver.total_iteration += SolveAPGD(
-        max_iteration, data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
-  }
+    // Solve using a more streamlined but harder to read version of the APGD method
+    uint SolveAPGD(const uint max_iter,           // Maximum number of iterations
+                   const uint size,               // Number of unknowns
+                   const DynamicVector<real>& b,  // Rhs vector
+                   DynamicVector<real>& x         // The vector of unknowns
+                   );
 
-  // Solve using a more streamlined but harder to read version of the APGD method
-  uint SolveAPGD(const uint max_iter,                  // Maximum number of iterations
-                 const uint size,                      // Number of unknowns
-                 const DynamicVector<real>& b,  // Rhs vector
-                 DynamicVector<real>& x         // The vector of unknowns
-                 );
+    void UpdateR();
 
-  void UpdateR();
-
-  // APGD specific vectors
-  DynamicVector<real> obj2_temp, obj1_temp, temp, g, gamma_new, y, gamma_hat, N_gamma_new, _t_g;
-  real L, t;
-  real g_diff;
-  real theta, theta_new, beta_new;
-  real mb_tmp_norm, mg_tmp_norm;
-  real obj1, obj2;
-  real dot_g_temp, norm_ms;
+    // APGD specific vectors
+    DynamicVector<real> obj2_temp, obj1_temp, temp, g, gamma_new, y, gamma_hat, N_gamma_new, _t_g;
+    real L, t;
+    real g_diff;
+    real theta, theta_new, beta_new;
+    real mb_tmp_norm, mg_tmp_norm;
+    real obj1, obj2;
+    real dot_g_temp, norm_ms;
 };
 }

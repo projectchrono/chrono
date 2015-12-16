@@ -22,28 +22,28 @@
 namespace chrono {
 
 class CH_PARALLEL_API ChSolverCGS : public ChSolverParallel {
- public:
-  ChSolverCGS() : ChSolverParallel() {}
-  ~ChSolverCGS() {}
+  public:
+    ChSolverCGS() : ChSolverParallel() {}
+    ~ChSolverCGS() {}
 
-  void Solve() {
-    if (data_manager->num_constraints == 0) {
-      return;
+    void Solve() {
+        if (data_manager->num_constraints == 0) {
+            return;
+        }
+        data_manager->system_timer.start("ChSolverParallel_Solve");
+        data_manager->measures.solver.total_iteration += SolveCGS(
+            max_iteration, data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
+        data_manager->system_timer.stop("ChSolverParallel_Solve");
     }
-    data_manager->system_timer.start("ChSolverParallel_Solve");
-    data_manager->measures.solver.total_iteration += SolveCGS(
-        max_iteration, data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
-    data_manager->system_timer.stop("ChSolverParallel_Solve");
-  }
 
-  // Solve using the conjugate gradient squared method
-  uint SolveCGS(const uint max_iter,            // Maximum number of iterations
-                const uint size,                // Number of unknowns
-                DynamicVector<real>& b,  // Rhs vector
-                DynamicVector<real>& x   // The vector of unknowns
-                );
+    // Solve using the conjugate gradient squared method
+    uint SolveCGS(const uint max_iter,     // Maximum number of iterations
+                  const uint size,         // Number of unknowns
+                  DynamicVector<real>& b,  // Rhs vector
+                  DynamicVector<real>& x   // The vector of unknowns
+                  );
 
-  real rho_1, rho_2, alpha, beta;
-  DynamicVector<real> p, phat, q, qhat, vhat, u, uhat, r, rtilde, mb;
+    real rho_1, rho_2, alpha, beta;
+    DynamicVector<real> p, phat, q, qhat, vhat, u, uhat, r, rtilde, mb;
 };
 }

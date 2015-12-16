@@ -605,7 +605,7 @@ void ChConstraintFluidFluid::Dx(const DynamicVector<real>& x, DynamicVector<real
     const real h_6 = h_3 * h_3;
     const real h_9 = h_3 * h_3 * h_3;
     const real KGSPIKY = 315.0 / (64.0 * F_PI * h_9);
-    #pragma omp parallel
+#pragma omp parallel
     for (int a = 0; a < num_fluid_bodies; a++) {
         int p = particle_indices_fluid[a];
         real3 diag = real3(0, 0, 0);
@@ -649,7 +649,7 @@ void ChConstraintFluidFluid::D_Tx(const DynamicVector<real>& x, DynamicVector<re
     const real h_6 = h_3 * h_3;
     const real h_9 = h_3 * h_3 * h_3;
     const real KGSPIKY = 315.0 / (64.0 * F_PI * h_9);
-    #pragma omp parallel
+#pragma omp parallel
     for (int a = 0; a < num_fluid_bodies; a++) {
         int p = particle_indices_fluid[a];
         real3 diag = real3(0, 0, 0);

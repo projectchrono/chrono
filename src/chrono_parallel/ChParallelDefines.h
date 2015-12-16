@@ -92,7 +92,7 @@ static std::ostream null_stream(&null_buffer);
     y = x.back();
 #define Thrust_Sort_By_Key(x, y) thrust::sort_by_key(x.begin(), x.end(), y.begin())
 
-#define Run_Length_Encode(y, z, w)                                                                              \
+#define Run_Length_Encode(y, z, w)                                                                                 \
     (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
         w.begin()
 

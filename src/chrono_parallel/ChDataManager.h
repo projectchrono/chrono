@@ -90,16 +90,16 @@ typedef blaze::DenseSubvector<const DynamicVector<real> > ConstSubVectorType;
 
 struct host_container {
     // Collision data
-    host_vector<real3> ObA_rigid;    // Position of shape
-    host_vector<real3> ObB_rigid;    // Size of shape (dims or convex data)
-    host_vector<real3> ObC_rigid;    // Rounded size
-    host_vector<quaternion> ObR_rigid;    // Shape rotation
-    host_vector<short2> fam_rigid;   // Family information
-    host_vector<int> typ_rigid;      // Shape type
-    host_vector<uint> id_rigid;      // Body identifier for each shape
-    host_vector<real3> aabb_min;     // List of bounding boxes minimum point
-    host_vector<real3> aabb_max;     // List of bounding boxes maximum point
-    host_vector<real3> convex_data;  // list of convex points
+    host_vector<real3> ObA_rigid;       // Position of shape
+    host_vector<real3> ObB_rigid;       // Size of shape (dims or convex data)
+    host_vector<real3> ObC_rigid;       // Rounded size
+    host_vector<quaternion> ObR_rigid;  // Shape rotation
+    host_vector<short2> fam_rigid;      // Family information
+    host_vector<int> typ_rigid;         // Shape type
+    host_vector<uint> id_rigid;         // Body identifier for each shape
+    host_vector<real3> aabb_min;        // List of bounding boxes minimum point
+    host_vector<real3> aabb_max;        // List of bounding boxes maximum point
+    host_vector<real3> convex_data;     // list of convex points
 
     // Contact data
     host_vector<long long> contact_pairs;

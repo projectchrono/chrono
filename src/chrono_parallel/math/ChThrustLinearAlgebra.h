@@ -258,16 +258,15 @@
 
 template <class T>
 static inline std::ostream& operator<<(std::ostream& out, const thrust::host_vector<T>& x) {
-  for (uint i = 0; i < x.size(); i++) {
-    out << x[i] << std::endl;
-  }
-  return out;
+    for (uint i = 0; i < x.size(); i++) {
+        out << x[i] << std::endl;
+    }
+    return out;
 }
 //// Binary operation for adding two-object tuples
-//struct sum_tuples {
+// struct sum_tuples {
 //  template <typename T >
 //  thrust::tuple<T, T> operator()(const thrust::tuple<T, T> & a, const thrust::tuple<T, T> & b) const {
 //    return thrust::tuple<T, T> (thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
 //  }
 //};
-

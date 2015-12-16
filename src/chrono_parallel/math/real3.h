@@ -42,7 +42,7 @@ class real3s {
 class real3 {
   public:
 #if defined(USE_AVX)
-    inline real3() : x(0), y(0), z(0), w(0){}
+    inline real3() : x(0), y(0), z(0), w(0) {}
     inline real3(real a) : x(a), y(a), z(a), w(0) {}
     inline real3(real a, real b, real c) : x(a), y(b), z(c), w(0) {}
     inline real3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}

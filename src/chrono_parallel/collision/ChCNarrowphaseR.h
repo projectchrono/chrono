@@ -183,4 +183,3 @@ bool RCollision(const ConvexShape& shapeA,  ///< first candidate shape
 
 }  // end namespace collision
 }  // end namespace chrono
-

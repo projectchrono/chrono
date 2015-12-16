@@ -43,7 +43,7 @@ void function_CalcContactForces(
     real dT,                                              // integration time step
     real* mass,                                           // body masses
     real3* pos,                                           // body positions
-    quaternion* rot,                                           // body orientations
+    quaternion* rot,                                      // body orientations
     real* vel,                                            // body linear and angular velocities
     real2* elastic_moduli,                                // Young's modulus (per body)
     real* cr,                                             // coefficient of restitution (per body)
@@ -425,9 +425,11 @@ void ChLcpSolverParallelDEM::host_SetContactForcesMap(uint ct_body_count, const 
 
 // Binary operation for adding two-object tuples
 struct sum_tuples {
-  thrust::tuple<real3, real3> operator()(const thrust::tuple<real3, real3> & a, const thrust::tuple<real3, real3> & b) const {
-    return thrust::tuple<real3, real3> (thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
-  }
+    thrust::tuple<real3, real3> operator()(const thrust::tuple<real3, real3>& a,
+                                           const thrust::tuple<real3, real3>& b) const {
+        return thrust::tuple<real3, real3>(thrust::get<0>(a) + thrust::get<0>(b),
+                                           thrust::get<1>(a) + thrust::get<1>(b));
+    }
 };
 
 // -----------------------------------------------------------------------------
@@ -625,18 +627,18 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
 }
 
 void ChLcpSolverParallelDEM::ComputeImpulses() {
-  DynamicVector<real>& v = data_manager->host_data.v;
-  const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
-  const DynamicVector<real>& gamma = data_manager->host_data.gamma;
-  const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD;
+    DynamicVector<real>& v = data_manager->host_data.v;
+    const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
+    const DynamicVector<real>& gamma = data_manager->host_data.gamma;
+    const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD;
 
-  uint num_unilaterals = data_manager->num_unilaterals;
-  uint num_bilaterals = data_manager->num_bilaterals;
+    uint num_unilaterals = data_manager->num_unilaterals;
+    uint num_bilaterals = data_manager->num_bilaterals;
 
-  if (data_manager->num_constraints > 0) {
-    ConstSubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
-    v = M_invk + M_invD_b * gamma_b;
-  } else {
-    v = M_invk;
-  }
+    if (data_manager->num_constraints > 0) {
+        ConstSubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+        v = M_invk + M_invD_b * gamma_b;
+    } else {
+        v = M_invk;
+    }
 }

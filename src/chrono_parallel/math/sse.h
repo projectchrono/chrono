@@ -155,4 +155,3 @@ class aligned_allocator {
   private:
     aligned_allocator& operator=(const aligned_allocator&);
 };
-

@@ -31,32 +31,40 @@ namespace chrono {
 namespace collision {
 
 struct sResults {
-  enum eStatus {
-    Separated,   /* Shapes does not penetrate                                   */
-    Penetrating, /* Shapes are penetrating                                  */
-    GJK_Failed,  /* GJK phase fail, no big issue, shapes are probably just 'touching' */
-    EPA_Failed   /* EPA phase fail, bigger problem, need to save parameters, and debug */
-  } status;
-  real3 witnesses[2];
-  real3 normal;
-  real distance;
+    enum eStatus {
+        Separated,   /* Shapes does not penetrate                                   */
+        Penetrating, /* Shapes are penetrating                                  */
+        GJK_Failed,  /* GJK phase fail, no big issue, shapes are probably just 'touching' */
+        EPA_Failed   /* EPA phase fail, bigger problem, need to save parameters, and debug */
+    } status;
+    real3 witnesses[2];
+    real3 normal;
+    real distance;
 };
 
 CH_PARALLEL_API
-bool GJKDistance(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, const real & envelope, sResults& results);
+bool GJKDistance(const ConvexShape& shape0,
+                 const ConvexShape& shape1,
+                 const real3& guess,
+                 const real& envelope,
+                 sResults& results);
 
 CH_PARALLEL_API
-bool GJKPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, const real & envelope, sResults& results);
+bool GJKPenetration(const ConvexShape& shape0,
+                    const ConvexShape& shape1,
+                    const real3& guess,
+                    const real& envelope,
+                    sResults& results);
 
 CH_PARALLEL_API
 bool GJKCollide(const ConvexShape& shape0,
                 const ConvexShape& shape1,
-                const real & envelope,
+                const real& envelope,
                 ContactPoint& point,
                 real3& m_cachedSeparatingAxis);
 
 CH_PARALLEL_API
-bool GJKFindPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const real & envelope, sResults& results);
+bool GJKFindPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const real& envelope, sResults& results);
 
 CH_PARALLEL_API
 void GJKPerturbedCollide(const ConvexShape& shapeA,

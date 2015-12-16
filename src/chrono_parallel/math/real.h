@@ -36,9 +36,6 @@ typedef float real;
 #define C_EPSILON FLT_EPSILON
 #endif
 
-
-
-
 //#define C_Pi 4 * ATan(real(1.0))
 //#define C_2Pi real(2.0) * C_Pi
 //#define C_InvPi real(1.0) / C_Pi

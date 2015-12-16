@@ -43,141 +43,140 @@
 namespace chrono {
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
-  CH_RTTI(ChSystemParallel, ChSystem);
+    CH_RTTI(ChSystemParallel, ChSystem);
 
- public:
-  ChSystemParallel(unsigned int max_objects);
-  ~ChSystemParallel();
+  public:
+    ChSystemParallel(unsigned int max_objects);
+    ~ChSystemParallel();
 
-  virtual int Integrate_Y();
-  virtual void AddBody(ChSharedPtr<ChBody> newbody);
-  virtual void AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem);
+    virtual int Integrate_Y();
+    virtual void AddBody(ChSharedPtr<ChBody> newbody);
+    virtual void AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem);
 
-  void ClearForceVariables();
-  void Update();
-  void UpdateBilaterals();
-  void UpdateLinks();
-  void UpdateOtherPhysics();
-  void UpdateRigidBodies();
-  void UpdateShafts();
-  void UpdateFluidBodies();
-  void RecomputeThreads();
+    void ClearForceVariables();
+    void Update();
+    void UpdateBilaterals();
+    void UpdateLinks();
+    void UpdateOtherPhysics();
+    void UpdateRigidBodies();
+    void UpdateShafts();
+    void UpdateFluidBodies();
+    void RecomputeThreads();
 
-  virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
-  virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
-  virtual void Setup();
-  virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
+    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
+    virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
+    virtual void Setup();
+    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
-  virtual void PrintStepStats() { data_manager->system_timer.PrintReport(); }
+    virtual void PrintStepStats() { data_manager->system_timer.PrintReport(); }
 
-  int GetNumBodies() { return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies; }
+    int GetNumBodies() { return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies; }
 
-  int GetNumShafts() { return data_manager->num_shafts; }
+    int GetNumShafts() { return data_manager->num_shafts; }
 
-  int GetNumContacts() {
-    return data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
-  }
+    int GetNumContacts() {
+        return data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts +
+               data_manager->num_fluid_contacts;
+    }
 
-  int GetNumBilaterals() { return data_manager->num_bilaterals; }
+    int GetNumBilaterals() { return data_manager->num_bilaterals; }
 
-  /// Gets the time (in seconds) spent for computing the time step
-  virtual double GetTimerStep() { return data_manager->system_timer.GetTime("step"); }
-  /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
-  virtual double GetTimerLcp() { return data_manager->system_timer.GetTime("lcp"); }
-  /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-  virtual double GetTimerCollisionBroad() { return data_manager->system_timer.GetTime("collision_broad"); }
-  /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-  virtual double GetTimerCollisionNarrow() { return data_manager->system_timer.GetTime("collision_narrow"); }
-  /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-  virtual double GetTimerUpdate() { return data_manager->system_timer.GetTime("update"); }
+    /// Gets the time (in seconds) spent for computing the time step
+    virtual double GetTimerStep() { return data_manager->system_timer.GetTime("step"); }
+    /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
+    virtual double GetTimerLcp() { return data_manager->system_timer.GetTime("lcp"); }
+    /// Gets the fraction of time (in seconds) for finding collisions, within the time step
+    virtual double GetTimerCollisionBroad() { return data_manager->system_timer.GetTime("collision_broad"); }
+    /// Gets the fraction of time (in seconds) for finding collisions, within the time step
+    virtual double GetTimerCollisionNarrow() { return data_manager->system_timer.GetTime("collision_narrow"); }
+    /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
+    virtual double GetTimerUpdate() { return data_manager->system_timer.GetTime("update"); }
 
-  /// Gets the total time for the collision detection step
-  double GetTimerCollision() { return data_manager->system_timer.GetTime("collision"); }
+    /// Gets the total time for the collision detection step
+    double GetTimerCollision() { return data_manager->system_timer.GetTime("collision"); }
 
-  virtual real3 GetBodyContactForce(uint body_id) const = 0;
-  virtual real3 GetBodyContactTorque(uint body_id) const = 0;
+    virtual real3 GetBodyContactForce(uint body_id) const = 0;
+    virtual real3 GetBodyContactTorque(uint body_id) const = 0;
 
-  settings_container* GetSettings() { return &(data_manager->settings); }
+    settings_container* GetSettings() { return &(data_manager->settings); }
 
-  // based on the passed logging level and the state of that level, enable or
-  // disable logging level
-  void SetLoggingLevel(LOGGINGLEVEL level, bool state = true);
+    // based on the passed logging level and the state of that level, enable or
+    // disable logging level
+    void SetLoggingLevel(LOGGINGLEVEL level, bool state = true);
 
-  /// Calculate the (linearized) bilateral constraint violations.
-  /// Return the maximum constraint violation.
-  double CalculateConstraintViolation(std::vector<double>& cvec);
+    /// Calculate the (linearized) bilateral constraint violations.
+    /// Return the maximum constraint violation.
+    double CalculateConstraintViolation(std::vector<double>& cvec);
 
-  ChParallelDataManager* data_manager;
-  ChFluidContainer* fluid_container;
-  void AddFluid(ChFluidContainer* fluid);
+    ChParallelDataManager* data_manager;
+    ChFluidContainer* fluid_container;
+    void AddFluid(ChFluidContainer* fluid);
 
-  int current_threads;
+    int current_threads;
 
- protected:
-  double old_timer, old_timer_cd;
-  bool detect_optimal_threads;
+  protected:
+    double old_timer, old_timer_cd;
+    bool detect_optimal_threads;
 
-  int detect_optimal_bins;
-  std::vector<double> timer_accumulator, cd_accumulator;
-  uint frame_threads, frame_bins, counter;
-  std::vector<ChLink*>::iterator it;
+    int detect_optimal_bins;
+    std::vector<double> timer_accumulator, cd_accumulator;
+    uint frame_threads, frame_bins, counter;
+    std::vector<ChLink*>::iterator it;
 
-  COLLISIONSYSTEMTYPE collision_system_type;
+    COLLISIONSYSTEMTYPE collision_system_type;
 
- private:
-  void AddShaft(ChSharedPtr<ChShaft> shaft);
+  private:
+    void AddShaft(ChSharedPtr<ChShaft> shaft);
 
-  std::vector<ChShaft*> shaftlist;
-
+    std::vector<ChShaft*> shaftlist;
 };
 
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
-  CH_RTTI(ChSystemParallelDVI, ChSystemParallel);
+    CH_RTTI(ChSystemParallelDVI, ChSystemParallel);
 
- public:
-  ChSystemParallelDVI(unsigned int max_objects = 1000);
+  public:
+    ChSystemParallelDVI(unsigned int max_objects = 1000);
 
-  void ChangeSolverType(SOLVERTYPE type) { ((ChLcpSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type); }
+    void ChangeSolverType(SOLVERTYPE type) { ((ChLcpSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type); }
 
-  virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
-  virtual ChBody* NewBody();
-  virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
-  virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
+    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
+    virtual ChBody* NewBody();
+    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+    virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
 
-  void CalculateContactForces();
-  real CalculateKineticEnergy();
-  real CalculateDualObjective();
+    void CalculateContactForces();
+    real CalculateKineticEnergy();
+    real CalculateDualObjective();
 
-  virtual real3 GetBodyContactForce(uint body_id) const;
-  virtual real3 GetBodyContactTorque(uint body_id) const;
+    virtual real3 GetBodyContactForce(uint body_id) const;
+    virtual real3 GetBodyContactTorque(uint body_id) const;
 
-  virtual void AssembleSystem();
-  virtual void SolveSystem();
+    virtual void AssembleSystem();
+    virtual void SolveSystem();
 };
 
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
-  CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
+    CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
 
- public:
-  ChSystemParallelDEM(unsigned int max_objects = 1000);
+  public:
+    ChSystemParallelDEM(unsigned int max_objects = 1000);
 
-  virtual ChMaterialSurface::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
-  virtual ChBody* NewBody();
-  virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
-  virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
+    virtual ChMaterialSurface::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
+    virtual ChBody* NewBody();
+    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+    virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
 
-  virtual void Setup();
-  virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
+    virtual void Setup();
+    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
-  virtual real3 GetBodyContactForce(uint body_id) const;
-  virtual real3 GetBodyContactTorque(uint body_id) const;
+    virtual real3 GetBodyContactForce(uint body_id) const;
+    virtual real3 GetBodyContactTorque(uint body_id) const;
 
-  virtual void PrintStepStats();
+    virtual void PrintStepStats();
 
-  double GetTimerProcessContact() const {
-    return data_manager->system_timer.GetTime("ChLcpSolverParallelDEM_ProcessContact");
-  }
+    double GetTimerProcessContact() const {
+        return data_manager->system_timer.GetTime("ChLcpSolverParallelDEM_ProcessContact");
+    }
 };
 
 }  // end namespace chrono
-

@@ -27,7 +27,7 @@ class real2 {
     real2() : x(0.0f), y(0.0f) {}
     explicit real2(real _x) : x(_x), y(_x) {}
     real2(real _x, real _y) : x(_x), y(_y) {}
-    //real2(const real* p) : x(p[0]), y(p[1]) {}
+    // real2(const real* p) : x(p[0]), y(p[1]) {}
 
     operator real*() { return &x; }
     operator const real*() const { return &x; };

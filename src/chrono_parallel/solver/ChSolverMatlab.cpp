@@ -5,8 +5,7 @@ using namespace chrono;
 uint ChSolverMatlab::SolveMatlab(const uint max_iter,
                                  const uint size,
                                  const custom_vector<real>& b,
-                                 DynamicVector<real>& x) {
-}
+                                 DynamicVector<real>& x) {}
 
 /*
  * //

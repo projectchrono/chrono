@@ -33,89 +33,88 @@
 namespace chrono {
 
 class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
- public:
-  virtual ~ChLcpSolverParallel();
+  public:
+    virtual ~ChLcpSolverParallel();
 
-  // Each child class must define its own solve method
-  virtual double Solve(ChLcpSystemDescriptor& sysd) { return 0; }
-  // Similarly, the run timestep function needs to be defined
-  virtual void RunTimeStep() = 0;
-  // This function computes the new velocities based on the lagrange multipliers
-  virtual void ComputeImpulses() = 0;
+    // Each child class must define its own solve method
+    virtual double Solve(ChLcpSystemDescriptor& sysd) { return 0; }
+    // Similarly, the run timestep function needs to be defined
+    virtual void RunTimeStep() = 0;
+    // This function computes the new velocities based on the lagrange multipliers
+    virtual void ComputeImpulses() = 0;
 
-  // Compute the inverse mass matrix and the term v+M_inv*hf
-  void ComputeInvMassMatrix();
-  //Compute mass matrix
-  void ComputeMassMatrix();
-  // Solves just the bilaterals so that they can be warm started
-  void PerformStabilization();
+    // Compute the inverse mass matrix and the term v+M_inv*hf
+    void ComputeInvMassMatrix();
+    // Compute mass matrix
+    void ComputeMassMatrix();
+    // Solves just the bilaterals so that they can be warm started
+    void PerformStabilization();
 
-  real GetResidual() { return residual; }
-  ChParallelDataManager* data_manager;
-  ChSolverParallel* solver;
+    real GetResidual() { return residual; }
+    ChParallelDataManager* data_manager;
+    ChSolverParallel* solver;
 
- protected:
-  ChLcpSolverParallel(ChParallelDataManager* dc);
+  protected:
+    ChLcpSolverParallel(ChParallelDataManager* dc);
 
-  real residual;
-  ChConstraintBilateral bilateral;
+    real residual;
+    ChConstraintBilateral bilateral;
 };
 
 class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
- public:
-  ChLcpSolverParallelDVI(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}
+  public:
+    ChLcpSolverParallelDVI(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}
 
-  virtual void RunTimeStep();
-  virtual void ComputeImpulses();
+    virtual void RunTimeStep();
+    virtual void ComputeImpulses();
 
-  // Compute the constraint Jacobian matrix.
-  void ComputeD();
-  // Compute the compliance matrix.
-  void ComputeE();
-  // Compute the RHS vector. This will not change depending on the solve
-  void ComputeR();
-  // Compute the Shur matrix N.
-  void ComputeN();
-  // Set the RHS vector depending on the local solver mode
-  void SetR();
-  // This function computes an initial guess for each contact
-  void PreSolve();
-  // This function is used to change the solver algorithm.
-  void ChangeSolverType(SOLVERTYPE type);
+    // Compute the constraint Jacobian matrix.
+    void ComputeD();
+    // Compute the compliance matrix.
+    void ComputeE();
+    // Compute the RHS vector. This will not change depending on the solve
+    void ComputeR();
+    // Compute the Shur matrix N.
+    void ComputeN();
+    // Set the RHS vector depending on the local solver mode
+    void SetR();
+    // This function computes an initial guess for each contact
+    void PreSolve();
+    // This function is used to change the solver algorithm.
+    void ChangeSolverType(SOLVERTYPE type);
 
- private:
-  ChConstraintRigidRigid rigid_rigid;
-  ChConstraintRigidFluid rigid_fluid;
-  ChConstraintFluidFluid fluid_fluid;
+  private:
+    ChConstraintRigidRigid rigid_rigid;
+    ChConstraintRigidFluid rigid_fluid;
+    ChConstraintFluidFluid fluid_fluid;
 };
 
 class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
- public:
-  ChLcpSolverParallelDEM(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}
+  public:
+    ChLcpSolverParallelDEM(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}
 
-  virtual void RunTimeStep();
-  virtual void ComputeImpulses();
+    virtual void RunTimeStep();
+    virtual void ComputeImpulses();
 
-  // Compute the constraint Jacobian matrix.
-  void ComputeD();
-  // Compute the compliance matrix.
-  void ComputeE();
-  // Compute the RHS vector.
-  void ComputeR();
+    // Compute the constraint Jacobian matrix.
+    void ComputeD();
+    // Compute the compliance matrix.
+    void ComputeE();
+    // Compute the RHS vector.
+    void ComputeR();
 
-  void ProcessContacts();
+    void ProcessContacts();
 
- private:
-  void host_CalcContactForces(custom_vector<int>& ext_body_id,
-                              custom_vector<real3>& ext_body_force,
-                              custom_vector<real3>& ext_body_torque,
-                              custom_vector<int2>& shape_pairs,
-                              custom_vector<bool>& shear_touch);
+  private:
+    void host_CalcContactForces(custom_vector<int>& ext_body_id,
+                                custom_vector<real3>& ext_body_force,
+                                custom_vector<real3>& ext_body_torque,
+                                custom_vector<int2>& shape_pairs,
+                                custom_vector<bool>& shear_touch);
 
-  void host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id);
+    void host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id);
 
-  void host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id);
+    void host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id);
 };
 }
 // end namespace chrono
-

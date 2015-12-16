@@ -298,8 +298,9 @@ inline real3 Normalize(const real3& v) {
     tmp[3] = 0.0;
     return tmp;
 }
-static const __m256d abs_mask = _mm256_castsi256_pd(_mm256_setr_epi32(-1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF));
-inline __m256d Abs( __m256d v) {
+static const __m256d abs_mask =
+    _mm256_castsi256_pd(_mm256_setr_epi32(-1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF));
+inline __m256d Abs(__m256d v) {
     return _mm256_and_pd(v, abs_mask);
 }
 

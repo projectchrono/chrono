@@ -51,311 +51,151 @@ bool RCollision(const ConvexShape& shapeA,  // first candidate shape
                 real* ct_eff_rad,           // [output] effective contact radius (per contact pair)
                 int& nC)                    // [output] number of contacts found
 {
-  // Special-case the collision detection based on the types of the
-  // two potentially colliding shapes.
+    // Special-case the collision detection based on the types of the
+    // two potentially colliding shapes.
 
-  nC = 0;
+    nC = 0;
 
-  if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
-    if (sphere_sphere(shapeA.A,
-                      shapeA.B.x,
-                      shapeB.A,
-                      shapeB.B.x,
-                      separation,
-                      *ct_norm,
-                      *ct_depth,
-                      *ct_pt1,
-                      *ct_pt2,
-                      *ct_eff_rad)) {
-      nC = 1;
-    }
-    return true;
-  }
-
-  if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
-    if (capsule_sphere(shapeA.A,
-                       shapeA.R,
-                       shapeA.B.x,
-                       shapeA.B.y,
-                       shapeB.A,
-                       shapeB.B.x,
-                       separation,
-                       *ct_norm,
-                       *ct_depth,
-                       *ct_pt1,
-                       *ct_pt2,
-                       *ct_eff_rad)) {
-      nC = 1;
-    }
-    return true;
-  }
-
-  if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
-    if (capsule_sphere(shapeB.A,
-                       shapeB.R,
-                       shapeB.B.x,
-                       shapeB.B.y,
-                       shapeA.A,
-                       shapeA.B.x,
-                       separation,
-                       *ct_norm,
-                       *ct_depth,
-                       *ct_pt2,
-                       *ct_pt1,
-                       *ct_eff_rad)) {
-      *ct_norm = -(*ct_norm);
-      nC = 1;
-    }
-    return true;
-  }
-
-  if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
-    if (cylinder_sphere(shapeA.A,
-                        shapeA.R,
-                        shapeA.B.x,
-                        shapeA.B.y,
-                        shapeB.A,
-                        shapeB.B.x,
-                        separation,
-                        *ct_norm,
-                        *ct_depth,
-                        *ct_pt1,
-                        *ct_pt2,
-                        *ct_eff_rad)) {
-      nC = 1;
-    }
-    return true;
-  }
-
-  if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
-    if (cylinder_sphere(shapeB.A,
-                        shapeB.R,
-                        shapeB.B.x,
-                        shapeB.B.y,
-                        shapeA.A,
-                        shapeA.B.x,
-                        separation,
-                        *ct_norm,
-                        *ct_depth,
-                        *ct_pt2,
-                        *ct_pt1,
-                        *ct_eff_rad)) {
-      *ct_norm = -(*ct_norm);
-      nC = 1;
-    }
-    return true;
-  }
-
-  if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
-    if (roundedcyl_sphere(shapeA.A,
-                          shapeA.R,
-                          shapeA.B.x,
-                          shapeA.B.y,
-                          shapeA.C.x,
-                          shapeB.A,
-                          shapeB.B.x,
-                          separation,
-                          *ct_norm,
-                          *ct_depth,
-                          *ct_pt1,
-                          *ct_pt2,
+    if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
+        if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2,
                           *ct_eff_rad)) {
-      nC = 1;
+            nC = 1;
+        }
+        return true;
     }
-    return true;
-  }
 
-  if (shapeA.type == SPHERE && shapeB.type == ROUNDEDCYL) {
-    if (roundedcyl_sphere(shapeB.A,
-                          shapeB.R,
-                          shapeB.B.x,
-                          shapeB.B.y,
-                          shapeB.C.x,
-                          shapeA.A,
-                          shapeA.B.x,
-                          separation,
-                          *ct_norm,
-                          *ct_depth,
-                          *ct_pt2,
-                          *ct_pt1,
-                          *ct_eff_rad)) {
-      *ct_norm = -(*ct_norm);
-      nC = 1;
+    if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
+        if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, separation, *ct_norm,
+                           *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
     }
-    return true;
-  }
 
-  if (shapeA.type == BOX && shapeB.type == SPHERE) {
-    if (box_sphere(shapeA.A,
-                   shapeA.R,
-                   shapeA.B,
-                   shapeB.A,
-                   shapeB.B.x,
-                   separation,
-                   *ct_norm,
-                   *ct_depth,
-                   *ct_pt1,
-                   *ct_pt2,
-                   *ct_eff_rad)) {
-      nC = 1;
+    if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
+        if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, separation, *ct_norm,
+                           *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
     }
-    return true;
-  }
 
-  if (shapeA.type == SPHERE && shapeB.type == BOX) {
-    if (box_sphere(shapeB.A,
-                   shapeB.R,
-                   shapeB.B,
-                   shapeA.A,
-                   shapeA.B.x,
-                   separation,
-                   *ct_norm,
-                   *ct_depth,
-                   *ct_pt2,
-                   *ct_pt1,
-                   *ct_eff_rad)) {
-      *ct_norm = -(*ct_norm);
-      nC = 1;
+    if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
+        if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, separation, *ct_norm,
+                            *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
     }
-    return true;
-  }
 
-  if (shapeA.type == ROUNDEDBOX && shapeB.type == SPHERE) {
-    if (roundedbox_sphere(shapeA.A,
-                          shapeA.R,
-                          shapeA.B,
-                          shapeA.C.x,
-                          shapeB.A,
-                          shapeB.B.x,
-                          separation,
-                          *ct_norm,
-                          *ct_depth,
-                          *ct_pt1,
-                          *ct_pt2,
-                          *ct_eff_rad)) {
-      nC = 1;
+    if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
+        if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, separation, *ct_norm,
+                            *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
     }
-    return true;
-  }
 
-  if (shapeA.type == SPHERE && shapeB.type == ROUNDEDBOX) {
-    if (roundedbox_sphere(shapeB.A,
-                          shapeB.R,
-                          shapeB.B,
-                          shapeB.C.x,
-                          shapeA.A,
-                          shapeA.B.x,
-                          separation,
-                          *ct_norm,
-                          *ct_depth,
-                          *ct_pt2,
-                          *ct_pt1,
-                          *ct_eff_rad)) {
-      *ct_norm = -(*ct_norm);
-      nC = 1;
+    if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
+        if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, separation,
+                              *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
     }
-    return true;
-  }
 
-  if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
-    if (face_sphere(shapeA.A,
-                    shapeA.B,
-                    shapeA.C,
-                    shapeB.A,
-                    shapeB.B.x,
-                    separation,
-                    *ct_norm,
-                    *ct_depth,
-                    *ct_pt1,
-                    *ct_pt2,
-                    *ct_eff_rad)) {
-      nC = 1;
+    if (shapeA.type == SPHERE && shapeB.type == ROUNDEDCYL) {
+        if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, separation,
+                              *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
     }
-    return true;
-  }
 
-  if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
-    if (face_sphere(shapeB.A,
-                    shapeB.B,
-                    shapeB.C,
-                    shapeA.A,
-                    shapeA.B.x,
-                    separation,
-                    *ct_norm,
-                    *ct_depth,
-                    *ct_pt2,
-                    *ct_pt1,
-                    *ct_eff_rad)) {
-      *ct_norm = -(*ct_norm);
-      nC = 1;
+    if (shapeA.type == BOX && shapeB.type == SPHERE) {
+        if (box_sphere(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1,
+                       *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
     }
-    return true;
-  }
 
-  if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
-    nC = capsule_capsule(shapeA.A,
-                         shapeA.R,
-                         shapeA.B.x,
-                         shapeA.B.y,
-                         shapeB.A,
-                         shapeB.R,
-                         shapeB.B.x,
-                         shapeB.B.y,
-                         separation,
-                         ct_norm,
-                         ct_depth,
-                         ct_pt1,
-                         ct_pt2,
-                         ct_eff_rad);
-    return true;
-  }
+    if (shapeA.type == SPHERE && shapeB.type == BOX) {
+        if (box_sphere(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2,
+                       *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
+    }
 
-  if (shapeA.type == BOX && shapeB.type == CAPSULE) {
-    nC = box_capsule(shapeA.A,
-                     shapeA.R,
-                     shapeA.B,
-                     shapeB.A,
-                     shapeB.R,
-                     shapeB.B.x,
-                     shapeB.B.y,
-                     separation,
-                     ct_norm,
-                     ct_depth,
-                     ct_pt1,
-                     ct_pt2,
+    if (shapeA.type == ROUNDEDBOX && shapeB.type == SPHERE) {
+        if (roundedbox_sphere(shapeA.A, shapeA.R, shapeA.B, shapeA.C.x, shapeB.A, shapeB.B.x, separation, *ct_norm,
+                              *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA.type == SPHERE && shapeB.type == ROUNDEDBOX) {
+        if (roundedbox_sphere(shapeB.A, shapeB.R, shapeB.B, shapeB.C.x, shapeA.A, shapeA.B.x, separation, *ct_norm,
+                              *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
+        if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1,
+                        *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
+        if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2,
+                        *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
+        nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y,
+                             separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+        return true;
+    }
+
+    if (shapeA.type == BOX && shapeB.type == CAPSULE) {
+        nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, separation, ct_norm,
+                         ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+        return true;
+    }
+
+    if (shapeA.type == CAPSULE && shapeB.type == BOX) {
+        nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, separation, ct_norm,
+                         ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
+        for (int i = 0; i < nC; i++) {
+            *(ct_norm + i) = -(*(ct_norm + i));
+        }
+        return true;
+    }
+
+    if (shapeA.type == BOX && shapeB.type == BOX) {
+        nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, ct_norm, ct_depth, ct_pt1, ct_pt2,
                      ct_eff_rad);
-    return true;
-  }
-
-  if (shapeA.type == CAPSULE && shapeB.type == BOX) {
-    nC = box_capsule(shapeB.A,
-                     shapeB.R,
-                     shapeB.B,
-                     shapeA.A,
-                     shapeA.R,
-                     shapeA.B.x,
-                     shapeA.B.y,
-                     separation,
-                     ct_norm,
-                     ct_depth,
-                     ct_pt2,
-                     ct_pt1,
-                     ct_eff_rad);
-    for (int i = 0; i < nC; i++) {
-      *(ct_norm + i) = -(*(ct_norm + i));
+        // TODO: Change to true when this is implemented
+        return false;
     }
-    return true;
-  }
 
-  if (shapeA.type == BOX && shapeB.type == BOX) {
-    nC = box_box(
-        shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
-    // TODO: Change to true when this is implemented
+    // Contact could not be checked using this CD algorithm
     return false;
-  }
-
-  // Contact could not be checked using this CD algorithm
-  return false;
 }
 
 // =============================================================================
@@ -375,27 +215,27 @@ bool sphere_sphere(const real3& pos1,
                    real3& pt1,
                    real3& pt2,
                    real& eff_radius) {
-  real3 delta = pos2 - pos1;
-  real dist2 = Dot(delta, delta);
-  real radSum = radius1 + radius2;
-  real radSum_s = radSum + separation;
+    real3 delta = pos2 - pos1;
+    real dist2 = Dot(delta, delta);
+    real radSum = radius1 + radius2;
+    real radSum_s = radSum + separation;
 
-  // If the two sphere centers are separated by more than the sum of their
-  // radii (plus the separation value), there is no contact. Also ignore
-  // contact if the two centers almost coincide, in which case we cannot
-  // decide on the direction.
-  if (dist2 >= radSum_s * radSum_s || dist2 < 1e-12)
-    return false;
+    // If the two sphere centers are separated by more than the sum of their
+    // radii (plus the separation value), there is no contact. Also ignore
+    // contact if the two centers almost coincide, in which case we cannot
+    // decide on the direction.
+    if (dist2 >= radSum_s * radSum_s || dist2 < 1e-12)
+        return false;
 
-  // Generate contact information.
-  real dist = Sqrt(dist2);
-  norm = delta / dist;
-  pt1 = pos1 + norm * radius1;
-  pt2 = pos2 - norm * radius2;
-  depth = dist - radSum;
-  eff_radius = radius1 * radius2 / radSum;
+    // Generate contact information.
+    real dist = Sqrt(dist2);
+    norm = delta / dist;
+    pt1 = pos1 + norm * radius1;
+    pt2 = pos2 - norm * radius2;
+    depth = dist - radSum;
+    eff_radius = radius1 * radius2 / radSum;
 
-  return true;
+    return true;
 }
 
 // =============================================================================
@@ -418,37 +258,37 @@ bool capsule_sphere(const real3& pos1,
                     real3& pt1,
                     real3& pt2,
                     real& eff_radius) {
-  // Working in the global frame, project the sphere center onto the
-  // capsule's centerline and clamp the resulting location to the extent
-  // of the capsule length.
-  real3 V = AMatV(rot1);
-  real alpha = Dot(pos2 - pos1, V);
-  alpha = Clamp(alpha, -hlen1, hlen1);
+    // Working in the global frame, project the sphere center onto the
+    // capsule's centerline and clamp the resulting location to the extent
+    // of the capsule length.
+    real3 V = AMatV(rot1);
+    real alpha = Dot(pos2 - pos1, V);
+    alpha = Clamp(alpha, -hlen1, hlen1);
 
-  real3 loc = pos1 + alpha * V;
+    real3 loc = pos1 + alpha * V;
 
-  // Treat the capsule as a sphere centered at the above location. If the
-  // sphere center is farther away than the sum of radii plus the separation
-  // value, there is no contact. Also, ignore contact if the two centers
-  // almost coincide, in which case we couldn't decide on the proper contact
-  // direction.
-  real radSum = radius1 + radius2;
-  real radSum_s = radSum + separation;
-  real3 delta = pos2 - loc;
-  real dist2 = Dot(delta, delta);
+    // Treat the capsule as a sphere centered at the above location. If the
+    // sphere center is farther away than the sum of radii plus the separation
+    // value, there is no contact. Also, ignore contact if the two centers
+    // almost coincide, in which case we couldn't decide on the proper contact
+    // direction.
+    real radSum = radius1 + radius2;
+    real radSum_s = radSum + separation;
+    real3 delta = pos2 - loc;
+    real dist2 = Dot(delta, delta);
 
-  if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
-    return false;
+    if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
+        return false;
 
-  // Generate contact information.
-  real dist = Sqrt(dist2);
-  norm = delta / dist;
-  pt1 = loc + norm * radius1;
-  pt2 = pos2 - norm * radius2;
-  depth = dist - radSum;
-  eff_radius = radius1 * radius2 / radSum;
+    // Generate contact information.
+    real dist = Sqrt(dist2);
+    norm = delta / dist;
+    pt1 = loc + norm * radius1;
+    pt2 = pos2 - norm * radius2;
+    depth = dist - radSum;
+    eff_radius = radius1 * radius2 / radSum;
 
-  return true;
+    return true;
 }
 
 // =============================================================================
@@ -471,49 +311,49 @@ bool cylinder_sphere(const real3& pos1,
                      real3& pt1,
                      real3& pt2,
                      real& eff_radius) {
-  // Express the sphere position in the frame of the cylinder.
-  real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
+    // Express the sphere position in the frame of the cylinder.
+    real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
-  // Snap the sphere position to the surface of the cylinder.
-  real3 cylPos = spherePos;
-  uint code = snap_to_cylinder(radius1, hlen1, cylPos);
+    // Snap the sphere position to the surface of the cylinder.
+    real3 cylPos = spherePos;
+    uint code = snap_to_cylinder(radius1, hlen1, cylPos);
 
-  // Quick return: no contact if the sphere center is inside the cylinder.
-  if (code == 0)
-    return false;
+    // Quick return: no contact if the sphere center is inside the cylinder.
+    if (code == 0)
+        return false;
 
-  // If the distance from the sphere center to the closest point is larger
-  // than the sphere radius plus the separation value, there is no contact.
-  // Also, ignore contact if the sphere center (almost) coincides with the
-  // closest point, in which case we couldn't decide on the proper contact
-  // direction.
-  real3 delta = spherePos - cylPos;
-  real dist2 = Dot(delta, delta);
-  real radius2_s = radius2 + separation;
+    // If the distance from the sphere center to the closest point is larger
+    // than the sphere radius plus the separation value, there is no contact.
+    // Also, ignore contact if the sphere center (almost) coincides with the
+    // closest point, in which case we couldn't decide on the proper contact
+    // direction.
+    real3 delta = spherePos - cylPos;
+    real dist2 = Dot(delta, delta);
+    real radius2_s = radius2 + separation;
 
-  if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
-    return false;
+    if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
+        return false;
 
-  // Generate contact information
-  real dist = Sqrt(dist2);
-  depth = dist - radius2;
-  norm = Rotate(delta / dist, rot1);
-  pt1 = TransformLocalToParent(pos1, rot1, cylPos);
-  pt2 = pos2 - norm * radius2;
+    // Generate contact information
+    real dist = Sqrt(dist2);
+    depth = dist - radius2;
+    norm = Rotate(delta / dist, rot1);
+    pt1 = TransformLocalToParent(pos1, rot1, cylPos);
+    pt2 = pos2 - norm * radius2;
 
-  switch (code) {
-    case 1:
-      eff_radius = radius2;
-      break;
-    case 2:
-      eff_radius = radius1 * radius2 / (radius1 + radius2);
-      break;
-    case 3:
-      eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
-      break;
-  }
+    switch (code) {
+        case 1:
+            eff_radius = radius2;
+            break;
+        case 2:
+            eff_radius = radius1 * radius2 / (radius1 + radius2);
+            break;
+        case 3:
+            eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
+            break;
+    }
 
-  return true;
+    return true;
 }
 
 // =============================================================================
@@ -538,53 +378,53 @@ bool roundedcyl_sphere(const real3& pos1,
                        real3& pt1,
                        real3& pt2,
                        real& eff_radius) {
-  // Express the sphere position in the frame of the rounded cylinder.
-  real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
+    // Express the sphere position in the frame of the rounded cylinder.
+    real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
-  // Snap the sphere position to the surface of the skeleton cylinder.
-  real3 cylPos = spherePos;
-  uint code = snap_to_cylinder(radius1, hlen1, cylPos);
+    // Snap the sphere position to the surface of the skeleton cylinder.
+    real3 cylPos = spherePos;
+    uint code = snap_to_cylinder(radius1, hlen1, cylPos);
 
-  // Quick return: no contact if the sphere center is inside the skeleton
-  // cylinder.
-  if (code == 0)
-    return false;
+    // Quick return: no contact if the sphere center is inside the skeleton
+    // cylinder.
+    if (code == 0)
+        return false;
 
-  // Reduce the problem to the interaction between two spheres:
-  //    (a) a sphere with radius srad1, centered at cylPos
-  //    (b) a sphere with radius radius2, centered at spherePos
-  // If the two sphere centers are farther away that the radii sum plus the
-  // separation distance, there is no contact. Also, ignore contact if the
-  // two centers almost coincide, in which case we couldn't decide on the
-  // proper contact direction.
-  real radSum = srad1 + radius2;
-  real radSum_s = radSum + separation;
-  real3 delta = spherePos - cylPos;
-  real dist2 = Dot(delta, delta);
+    // Reduce the problem to the interaction between two spheres:
+    //    (a) a sphere with radius srad1, centered at cylPos
+    //    (b) a sphere with radius radius2, centered at spherePos
+    // If the two sphere centers are farther away that the radii sum plus the
+    // separation distance, there is no contact. Also, ignore contact if the
+    // two centers almost coincide, in which case we couldn't decide on the
+    // proper contact direction.
+    real radSum = srad1 + radius2;
+    real radSum_s = radSum + separation;
+    real3 delta = spherePos - cylPos;
+    real dist2 = Dot(delta, delta);
 
-  if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
-    return false;
+    if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
+        return false;
 
-  // Generate contact information.
-  real dist = Sqrt(dist2);
-  depth = dist - radSum;
-  norm = Rotate(delta / dist, rot1);
-  pt2 = pos2 - norm * radius2;
-  pt1 = pt2 - depth * norm;
+    // Generate contact information.
+    real dist = Sqrt(dist2);
+    depth = dist - radSum;
+    norm = Rotate(delta / dist, rot1);
+    pt2 = pos2 - norm * radius2;
+    pt1 = pt2 - depth * norm;
 
-  switch (code) {
-    case 1:
-      eff_radius = radius2;
-      break;
-    case 2:
-      eff_radius = radius1 * radius2 / (radius1 + radius2);
-      break;
-    case 3:
-      eff_radius = srad1 * radius2 / (srad1 + radius2);
-      break;
-  }
+    switch (code) {
+        case 1:
+            eff_radius = radius2;
+            break;
+        case 2:
+            eff_radius = radius1 * radius2 / (radius1 + radius2);
+            break;
+        case 3:
+            eff_radius = srad1 * radius2 / (srad1 + radius2);
+            break;
+    }
 
-  return true;
+    return true;
 }
 
 // =============================================================================
@@ -605,38 +445,38 @@ bool box_sphere(const real3& pos1,
                 real3& pt1,
                 real3& pt2,
                 real& eff_radius) {
-  // Express the sphere position in the frame of the box.
-  real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
+    // Express the sphere position in the frame of the box.
+    real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
-  // Snap the sphere position to the surface of the box.
-  real3 boxPos = spherePos;
-  uint code = snap_to_box(hdims1, boxPos);
+    // Snap the sphere position to the surface of the box.
+    real3 boxPos = spherePos;
+    uint code = snap_to_box(hdims1, boxPos);
 
-  // If the distance from the sphere center to the closest point is larger
-  // than the sphere radius plus the separation value, there is no contact.
-  // Also, ignore contact if the sphere center (almost) coincides with the
-  // closest point, in which case we couldn't decide on the proper contact
-  // direction.
-  real3 delta = spherePos - boxPos;
-  real dist2 = Dot(delta, delta);
-  real radius2_s = radius2 + separation;
+    // If the distance from the sphere center to the closest point is larger
+    // than the sphere radius plus the separation value, there is no contact.
+    // Also, ignore contact if the sphere center (almost) coincides with the
+    // closest point, in which case we couldn't decide on the proper contact
+    // direction.
+    real3 delta = spherePos - boxPos;
+    real dist2 = Dot(delta, delta);
+    real radius2_s = radius2 + separation;
 
-  if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
-    return false;
+    if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
+        return false;
 
-  // Generate contact information
-  real dist = Sqrt(dist2);
-  depth = dist - radius2;
-  norm = Rotate(delta / dist, rot1);
-  pt1 = TransformLocalToParent(pos1, rot1, boxPos);
-  pt2 = pos2 - norm * radius2;
+    // Generate contact information
+    real dist = Sqrt(dist2);
+    depth = dist - radius2;
+    norm = Rotate(delta / dist, rot1);
+    pt1 = TransformLocalToParent(pos1, rot1, boxPos);
+    pt2 = pos2 - norm * radius2;
 
-  if ((code != 1) & (code != 2) & (code != 4))
-    eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
-  else
-    eff_radius = radius2;
+    if ((code != 1) & (code != 2) & (code != 4))
+        eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
+    else
+        eff_radius = radius2;
 
-  return true;
+    return true;
 }
 
 // =============================================================================
@@ -660,41 +500,41 @@ bool roundedbox_sphere(const real3& pos1,
                        real3& pt1,
                        real3& pt2,
                        real& eff_radius) {
-  // Express the sphere position in the frame of the rounded box.
-  real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
+    // Express the sphere position in the frame of the rounded box.
+    real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
-  // Snap the sphere position to the surface of the skeleton box.
-  real3 boxPos = spherePos;
-  uint code = snap_to_box(hdims1, boxPos);
+    // Snap the sphere position to the surface of the skeleton box.
+    real3 boxPos = spherePos;
+    uint code = snap_to_box(hdims1, boxPos);
 
-  // Reduce the problem to the interaction between two spheres:
-  //    (a) a sphere with radius srad1, centered at boxPos
-  //    (b) a sphere with radius radius2, centered at spherePos
-  // If the two sphere centers are farther away that the radii sum plus the
-  // separation value, there is no contact. Also, ignore contact if the two
-  // centers almost coincide, in which case we couldn't decide on the proper
-  // contact direction.
-  real radSum = srad1 + radius2;
-  real radSum_s = radSum + separation;
-  real3 delta = spherePos - boxPos;
-  real dist2 = Dot(delta, delta);
+    // Reduce the problem to the interaction between two spheres:
+    //    (a) a sphere with radius srad1, centered at boxPos
+    //    (b) a sphere with radius radius2, centered at spherePos
+    // If the two sphere centers are farther away that the radii sum plus the
+    // separation value, there is no contact. Also, ignore contact if the two
+    // centers almost coincide, in which case we couldn't decide on the proper
+    // contact direction.
+    real radSum = srad1 + radius2;
+    real radSum_s = radSum + separation;
+    real3 delta = spherePos - boxPos;
+    real dist2 = Dot(delta, delta);
 
-  if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
-    return false;
+    if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
+        return false;
 
-  // Generate contact information.
-  real dist = Sqrt(dist2);
-  depth = dist - radSum;
-  norm = Rotate(delta / dist, rot1);
-  pt2 = pos2 - norm * radius2;
-  pt1 = pt2 - depth * norm;
+    // Generate contact information.
+    real dist = Sqrt(dist2);
+    depth = dist - radSum;
+    norm = Rotate(delta / dist, rot1);
+    pt2 = pos2 - norm * radius2;
+    pt1 = pt2 - depth * norm;
 
-  if ((code != 1) & (code != 2) & (code != 4))
-    eff_radius = radius2 * srad1 / (radius2 + srad1);
-  else
-    eff_radius = radius2;
+    if ((code != 1) & (code != 2) & (code != 4))
+        eff_radius = radius2 * srad1 / (radius2 + srad1);
+    else
+        eff_radius = radius2;
 
-  return true;
+    return true;
 }
 
 // =============================================================================
@@ -715,50 +555,50 @@ bool face_sphere(const real3& A1,
                  real3& pt1,
                  real3& pt2,
                  real& eff_radius) {
-  real radius2_s = radius2 + separation;
+    real radius2_s = radius2 + separation;
 
-  // Calculate face normal.
-  real3 nrm1 = face_normal(A1, B1, C1);
+    // Calculate face normal.
+    real3 nrm1 = face_normal(A1, B1, C1);
 
-  // Calculate signed height of sphere center above face plane. If the
-  // height is larger than the sphere radius plus the separation value
-  // or if the sphere center is below the plane, there is no contact.
-  real h = Dot(pos2 - A1, nrm1);
+    // Calculate signed height of sphere center above face plane. If the
+    // height is larger than the sphere radius plus the separation value
+    // or if the sphere center is below the plane, there is no contact.
+    real h = Dot(pos2 - A1, nrm1);
 
-  if (h >= radius2_s || h <= 0)
-    return false;
+    if (h >= radius2_s || h <= 0)
+        return false;
 
-  // Find the closest point on the face to the sphere center and determine
-  // whether or not this location is inside the face or on an edge.
-  real3 faceLoc;
+    // Find the closest point on the face to the sphere center and determine
+    // whether or not this location is inside the face or on an edge.
+    real3 faceLoc;
 
-  if (snap_to_face(A1, B1, C1, pos2, faceLoc)) {
-    // Closest face feature is an edge. If the distance between the sphere
-    // center and the closest point is more than the radius plus the
-    // separation value, then there is no contact. Also, ignore contact if
-    // the sphere center (almost) coincides with the closest point, in
-    // which case we couldn't decide on the proper contact direction.
-    real3 delta = pos2 - faceLoc;
-    real dist2 = Dot(delta, delta);
+    if (snap_to_face(A1, B1, C1, pos2, faceLoc)) {
+        // Closest face feature is an edge. If the distance between the sphere
+        // center and the closest point is more than the radius plus the
+        // separation value, then there is no contact. Also, ignore contact if
+        // the sphere center (almost) coincides with the closest point, in
+        // which case we couldn't decide on the proper contact direction.
+        real3 delta = pos2 - faceLoc;
+        real dist2 = Dot(delta, delta);
 
-    if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
-      return false;
+        if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
+            return false;
 
-    real dist = Sqrt(dist2);
-    norm = delta / dist;
-    depth = dist - radius2;
-    eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
-  } else {
-    // Closest point on face is inside the face.
-    norm = nrm1;
-    depth = h - radius2;
-    eff_radius = radius2;
-  }
+        real dist = Sqrt(dist2);
+        norm = delta / dist;
+        depth = dist - radius2;
+        eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
+    } else {
+        // Closest point on face is inside the face.
+        norm = nrm1;
+        depth = h - radius2;
+        eff_radius = radius2;
+    }
 
-  pt1 = faceLoc;
-  pt2 = pos2 - norm * radius2;
+    pt1 = faceLoc;
+    pt2 = pos2 - norm * radius2;
 
-  return true;
+    return true;
 }
 
 // =============================================================================
@@ -785,111 +625,111 @@ int capsule_capsule(const real3& pos1,
                     real3* pt1,
                     real3* pt2,
                     real* eff_radius) {
-  // Express the second capule in the frame of the first one.
-  real3 pos = RotateT(pos2 - pos1, rot1);
-  quaternion rot = Mult(Inv(rot1), rot2);
+    // Express the second capule in the frame of the first one.
+    real3 pos = RotateT(pos2 - pos1, rot1);
+    quaternion rot = Mult(Inv(rot1), rot2);
 
-  // Unit vectors along capsule axes.
-  real3 V1 = AMatV(rot1);  // capsule1 in the global frame
-  real3 V2 = AMatV(rot2);  // capsule2 in the global frame
-  real3 V = AMatV(rot);    // capsule2 in the frame of capsule1
+    // Unit vectors along capsule axes.
+    real3 V1 = AMatV(rot1);  // capsule1 in the global frame
+    real3 V2 = AMatV(rot2);  // capsule2 in the global frame
+    real3 V = AMatV(rot);    // capsule2 in the frame of capsule1
 
-  // Sum of radii
-  real radSum = radius1 + radius2;
-  real radSum_s = radSum + separation;
-  real radSum2 = radSum * radSum;
-  real radSum_s2 = radSum_s * radSum_s;
+    // Sum of radii
+    real radSum = radius1 + radius2;
+    real radSum_s = radSum + separation;
+    real radSum2 = radSum * radSum;
+    real radSum_s2 = radSum_s * radSum_s;
 
-  // If the two capsules intersect, there may be 1 or 2 contacts. Note that 2
-  // contacts are possible only if the two capsules are parallel. Calculate
-  // the pairs of potential contact points, expressed in the global frame.
-  int numLocs = 0;
-  real3 locs1[2];
-  real3 locs2[2];
-  real denom = 1 - V.y * V.y;
+    // If the two capsules intersect, there may be 1 or 2 contacts. Note that 2
+    // contacts are possible only if the two capsules are parallel. Calculate
+    // the pairs of potential contact points, expressed in the global frame.
+    int numLocs = 0;
+    real3 locs1[2];
+    real3 locs2[2];
+    real denom = 1 - V.y * V.y;
 
-  if (denom < 1e-4f) {
-    // The two capsules are parallel. If the distance between their axes is
-    // more than the sum of radii plus the separation value, there is no contact.
-    if (pos.x * pos.x + pos.z * pos.z >= radSum_s2)
-      return 0;
+    if (denom < 1e-4f) {
+        // The two capsules are parallel. If the distance between their axes is
+        // more than the sum of radii plus the separation value, there is no contact.
+        if (pos.x * pos.x + pos.z * pos.z >= radSum_s2)
+            return 0;
 
-    // Find overlap of the two axes (as signed distances along the axis of
-    // the first capsule).
-    real locs[2] = {Min(hlen1, pos.y + hlen2), Max(-hlen1, pos.y - hlen2)};
+        // Find overlap of the two axes (as signed distances along the axis of
+        // the first capsule).
+        real locs[2] = {Min(hlen1, pos.y + hlen2), Max(-hlen1, pos.y - hlen2)};
 
-    if (locs[0] > locs[1]) {
-      // The two axes overlap. Both ends of the overlapping segment represent
-      // potential contacts.
-      numLocs = 2;
-      locs1[0] = pos1 + locs[0] * V1;
-      locs2[0] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[0], pos.z));
-      locs1[1] = pos1 + locs[1] * V1;
-      locs2[1] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[1], pos.z));
+        if (locs[0] > locs[1]) {
+            // The two axes overlap. Both ends of the overlapping segment represent
+            // potential contacts.
+            numLocs = 2;
+            locs1[0] = pos1 + locs[0] * V1;
+            locs2[0] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[0], pos.z));
+            locs1[1] = pos1 + locs[1] * V1;
+            locs2[1] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[1], pos.z));
+        } else {
+            // There is no overlap between axes. The two closest ends represent
+            // a single potential contact.
+            numLocs = 1;
+            locs1[0] = pos1 + locs[pos.y < 0] * V1;
+            locs2[0] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[pos.y > 0], pos.z));
+        }
     } else {
-      // There is no overlap between axes. The two closest ends represent
-      // a single potential contact.
-      numLocs = 1;
-      locs1[0] = pos1 + locs[pos.y < 0] * V1;
-      locs2[0] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[pos.y > 0], pos.z));
-    }
-  } else {
-    // The two capsule axes are not parallel. Find the closest points on the
-    // two axes and clamp them to the extents of the their respective capsule.
-    // This pair of points represents a single potential contact.
-    real alpha2 = (V.y * pos.y - Dot(V, pos)) / denom;
-    real alpha1 = V.y * alpha2 + pos.y;
+        // The two capsule axes are not parallel. Find the closest points on the
+        // two axes and clamp them to the extents of the their respective capsule.
+        // This pair of points represents a single potential contact.
+        real alpha2 = (V.y * pos.y - Dot(V, pos)) / denom;
+        real alpha1 = V.y * alpha2 + pos.y;
 
-    if (alpha1 < -hlen1) {
-      alpha1 = -hlen1;
-      alpha2 = -Dot(pos, V) - hlen1 * V.y;
-    } else if (alpha1 > hlen1) {
-      alpha1 = hlen1;
-      alpha2 = -Dot(pos, V) + hlen1 * V.y;
-    }
+        if (alpha1 < -hlen1) {
+            alpha1 = -hlen1;
+            alpha2 = -Dot(pos, V) - hlen1 * V.y;
+        } else if (alpha1 > hlen1) {
+            alpha1 = hlen1;
+            alpha2 = -Dot(pos, V) + hlen1 * V.y;
+        }
 
-    if (alpha2 < -hlen2) {
-      alpha2 = -hlen2;
-      alpha1 = Clamp(pos.y - hlen2 * V.y, -hlen1, hlen1);
-    } else if (alpha2 > hlen2) {
-      alpha2 = hlen2;
-      alpha1 = Clamp(pos.y + hlen2 * V.y, -hlen1, hlen1);
+        if (alpha2 < -hlen2) {
+            alpha2 = -hlen2;
+            alpha1 = Clamp(pos.y - hlen2 * V.y, -hlen1, hlen1);
+        } else if (alpha2 > hlen2) {
+            alpha2 = hlen2;
+            alpha1 = Clamp(pos.y + hlen2 * V.y, -hlen1, hlen1);
+        }
+
+        numLocs = 1;
+        locs1[0] = pos1 + alpha1 * V1;
+        locs2[0] = pos2 + alpha2 * V2;
     }
 
-    numLocs = 1;
-    locs1[0] = pos1 + alpha1 * V1;
-    locs2[0] = pos2 + alpha2 * V2;
-  }
+    // Check the pairs of locations for actual contact and generate contact
+    // information. Keep track of the actual number of contacts.
+    real effRad = radius1 * radius2 / radSum;
+    int j = 0;
 
-  // Check the pairs of locations for actual contact and generate contact
-  // information. Keep track of the actual number of contacts.
-  real effRad = radius1 * radius2 / radSum;
-  int j = 0;
+    for (int i = 0; i < numLocs; i++) {
+        real3 delta = locs2[i] - locs1[i];
+        real dist2 = Dot(delta, delta);
 
-  for (int i = 0; i < numLocs; i++) {
-    real3 delta = locs2[i] - locs1[i];
-    real dist2 = Dot(delta, delta);
+        // If the two sphere centers are separated by more than the sum of their
+        // radii plus the separation value, there is no contact. Also ignore
+        // contact if the two centers almost coincide, in which case we cannot
+        // decide on the direction.
+        if (dist2 >= radSum_s2 || dist2 < 1e-12)
+            continue;
 
-    // If the two sphere centers are separated by more than the sum of their
-    // radii plus the separation value, there is no contact. Also ignore
-    // contact if the two centers almost coincide, in which case we cannot
-    // decide on the direction.
-    if (dist2 >= radSum_s2 || dist2 < 1e-12)
-      continue;
+        // Generate contact information.
+        real dist = Sqrt(dist2);
+        *(norm + j) = delta / dist;
+        *(pt1 + j) = locs1[i] + (*(norm + j)) * radius1;
+        *(pt2 + j) = locs2[i] - (*(norm + j)) * radius2;
+        *(depth + j) = dist - radSum;
+        *(eff_radius + j) = effRad;
 
-    // Generate contact information.
-    real dist = Sqrt(dist2);
-    *(norm + j) = delta / dist;
-    *(pt1 + j) = locs1[i] + (*(norm + j)) * radius1;
-    *(pt2 + j) = locs2[i] - (*(norm + j)) * radius2;
-    *(depth + j) = dist - radSum;
-    *(eff_radius + j) = effRad;
+        j++;
+    }
 
-    j++;
-  }
-
-  // Return the number of actual contacts
-  return j;
+    // Return the number of actual contacts
+    return j;
 }
 
 // =============================================================================
@@ -914,125 +754,125 @@ int box_capsule(const real3& pos1,
                 real3* pt1,
                 real3* pt2,
                 real* eff_radius) {
-  real radius2_s = radius2 + separation;
+    real radius2_s = radius2 + separation;
 
-  // Express the capsule in the frame of the box.
-  // (this is a bit cryptic with the functions we have available)
-  real3 pos = RotateT(pos2 - pos1, rot1);
-  quaternion rot = Mult(Inv(rot1), rot2);
-  real3 V = AMatV(rot);
+    // Express the capsule in the frame of the box.
+    // (this is a bit cryptic with the functions we have available)
+    real3 pos = RotateT(pos2 - pos1, rot1);
+    quaternion rot = Mult(Inv(rot1), rot2);
+    real3 V = AMatV(rot);
 
-  // Inflate the box by the radius of the capsule plus the separation value
-  // and check if the capsule centerline intersects the expanded box. We do
-  // this by clamping the capsule axis to the volume between two parallel
-  // faces of the box, considering in turn the x, y, and z faces.
-  real3 hdims1_exp = hdims1 + radius2_s;
-  real tMin = -FLT_MAX;  //// TODO: should define a REAL_MAX to be used here
-  real tMax = FLT_MAX;
+    // Inflate the box by the radius of the capsule plus the separation value
+    // and check if the capsule centerline intersects the expanded box. We do
+    // this by clamping the capsule axis to the volume between two parallel
+    // faces of the box, considering in turn the x, y, and z faces.
+    real3 hdims1_exp = hdims1 + radius2_s;
+    real tMin = -FLT_MAX;  //// TODO: should define a REAL_MAX to be used here
+    real tMax = FLT_MAX;
 
-  if (Abs(V.x) < 1e-5) {
-    // Capsule axis parallel to the box x-faces
-    if (Abs(pos.x) > hdims1_exp.x)
-      return 0;
-  } else {
-    real t1 = (-hdims1_exp.x - pos.x) / V.x;
-    real t2 = (hdims1_exp.x - pos.x) / V.x;
+    if (Abs(V.x) < 1e-5) {
+        // Capsule axis parallel to the box x-faces
+        if (Abs(pos.x) > hdims1_exp.x)
+            return 0;
+    } else {
+        real t1 = (-hdims1_exp.x - pos.x) / V.x;
+        real t2 = (hdims1_exp.x - pos.x) / V.x;
 
-    tMin = Max(tMin, Min(t1, t2));
-    tMax = Min(tMax, Max(t1, t2));
+        tMin = Max(tMin, Min(t1, t2));
+        tMax = Min(tMax, Max(t1, t2));
 
-    if (tMin > tMax)
-      return 0;
-  }
+        if (tMin > tMax)
+            return 0;
+    }
 
-  if (Abs(V.y) < 1e-5) {
-    // Capsule axis parallel to the box y-faces
-    if (Abs(pos.y) > hdims1_exp.y)
-      return 0;
-  } else {
-    real t1 = (-hdims1_exp.y - pos.y) / V.y;
-    real t2 = (hdims1_exp.y - pos.y) / V.y;
+    if (Abs(V.y) < 1e-5) {
+        // Capsule axis parallel to the box y-faces
+        if (Abs(pos.y) > hdims1_exp.y)
+            return 0;
+    } else {
+        real t1 = (-hdims1_exp.y - pos.y) / V.y;
+        real t2 = (hdims1_exp.y - pos.y) / V.y;
 
-    tMin = Max(tMin, Min(t1, t2));
-    tMax = Min(tMax, Max(t1, t2));
+        tMin = Max(tMin, Min(t1, t2));
+        tMax = Min(tMax, Max(t1, t2));
 
-    if (tMin > tMax)
-      return 0;
-  }
+        if (tMin > tMax)
+            return 0;
+    }
 
-  if (Abs(V.z) < 1e-5) {
-    // Capsule axis parallel to the box z-faces
-    if (Abs(pos.z) > hdims1_exp.z)
-      return 0;
-  } else {
-    real t1 = (-hdims1_exp.z - pos.z) / V.z;
-    real t2 = (hdims1_exp.z - pos.z) / V.z;
+    if (Abs(V.z) < 1e-5) {
+        // Capsule axis parallel to the box z-faces
+        if (Abs(pos.z) > hdims1_exp.z)
+            return 0;
+    } else {
+        real t1 = (-hdims1_exp.z - pos.z) / V.z;
+        real t2 = (hdims1_exp.z - pos.z) / V.z;
 
-    tMin = Max(tMin, Min(t1, t2));
-    tMax = Min(tMax, Max(t1, t2));
+        tMin = Max(tMin, Min(t1, t2));
+        tMax = Min(tMax, Max(t1, t2));
 
-    if (tMin > tMax)
-      return 0;
-  }
+        if (tMin > tMax)
+            return 0;
+    }
 
-  // Generate the two points where the capsule centerline intersects
-  // the exapanded box (still expressed in the box frame). Snap these
-  // locations onto the original box, then snap back onto the capsule
-  // axis. This reduces the collision problem to 1 or 2 box-sphere
-  // collisions.
-  real3 locs[2] = {pos + tMin * V, pos + tMax * V};
-  real t[2];
+    // Generate the two points where the capsule centerline intersects
+    // the exapanded box (still expressed in the box frame). Snap these
+    // locations onto the original box, then snap back onto the capsule
+    // axis. This reduces the collision problem to 1 or 2 box-sphere
+    // collisions.
+    real3 locs[2] = {pos + tMin * V, pos + tMax * V};
+    real t[2];
 
-  for (int i = 0; i < 2; i++) {
-    uint code = snap_to_box(hdims1, locs[i]);
-    t[i] = Clamp(Dot(locs[i] - pos, V), -hlen2, hlen2);
-  }
+    for (int i = 0; i < 2; i++) {
+        uint code = snap_to_box(hdims1, locs[i]);
+        t[i] = Clamp(Dot(locs[i] - pos, V), -hlen2, hlen2);
+    }
 
-  // Check if the two sphere centers coincide (i.e. if we should
-  // consider 1 or 2 box-sphere potential contacts)
-  int numSpheres = IsEqual(t[0], t[1]) ? 1 : 2;
+    // Check if the two sphere centers coincide (i.e. if we should
+    // consider 1 or 2 box-sphere potential contacts)
+    int numSpheres = IsEqual(t[0], t[1]) ? 1 : 2;
 
-  // Perform box-sphere tests, and keep track of actual number of contacts.
-  int j = 0;
+    // Perform box-sphere tests, and keep track of actual number of contacts.
+    int j = 0;
 
-  for (int i = 0; i < numSpheres; i++) {
-    // Calculate the center of the corresponding sphere on the capsule
-    // centerline (expressed in the box frame).
-    real3 spherePos = pos + V * t[i];
+    for (int i = 0; i < numSpheres; i++) {
+        // Calculate the center of the corresponding sphere on the capsule
+        // centerline (expressed in the box frame).
+        real3 spherePos = pos + V * t[i];
 
-    // Snap the sphere position to the surface of the box.
-    real3 boxPos = spherePos;
-    uint code = snap_to_box(hdims1, boxPos);
+        // Snap the sphere position to the surface of the box.
+        real3 boxPos = spherePos;
+        uint code = snap_to_box(hdims1, boxPos);
 
-    // If the distance from the sphere center to the closest point is larger
-    // than the radius plus the separation value, then there is no contact.
-    // Also, ignore contact if the sphere center (almost) coincides with the
-    // closest point, in which case we couldn't decide on the proper contact
-    // direction.
-    real3 delta = spherePos - boxPos;
-    real dist2 = Dot(delta, delta);
+        // If the distance from the sphere center to the closest point is larger
+        // than the radius plus the separation value, then there is no contact.
+        // Also, ignore contact if the sphere center (almost) coincides with the
+        // closest point, in which case we couldn't decide on the proper contact
+        // direction.
+        real3 delta = spherePos - boxPos;
+        real dist2 = Dot(delta, delta);
 
-    if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12)
-      continue;
+        if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12)
+            continue;
 
-    // Generate contact information.
-    real dist = Sqrt(dist2);
+        // Generate contact information.
+        real dist = Sqrt(dist2);
 
-    *(depth + j) = dist - radius2;
-    *(norm + j) = Rotate(delta / dist, rot1);
-    *(pt1 + j) = TransformLocalToParent(pos1, rot1, boxPos);
-    *(pt2 + j) = TransformLocalToParent(pos1, rot1, spherePos) - (*(norm + j)) * radius2;
+        *(depth + j) = dist - radius2;
+        *(norm + j) = Rotate(delta / dist, rot1);
+        *(pt1 + j) = TransformLocalToParent(pos1, rot1, boxPos);
+        *(pt2 + j) = TransformLocalToParent(pos1, rot1, spherePos) - (*(norm + j)) * radius2;
 
-    if ((code != 1) & (code != 2) & (code != 4))
-      *(eff_radius + j) = radius2 * edge_radius / (radius2 + edge_radius);
-    else
-      *(eff_radius + j) = radius2;
+        if ((code != 1) & (code != 2) & (code != 4))
+            *(eff_radius + j) = radius2 * edge_radius / (radius2 + edge_radius);
+        else
+            *(eff_radius + j) = radius2;
 
-    j++;
-  }
+        j++;
+    }
 
-  // Return the number of actual contacts
-  return j;
+    // Return the number of actual contacts
+    return j;
 }
 
 // =============================================================================
@@ -1053,33 +893,33 @@ int box_box(const real3& pos1,
             real3* pt1,
             real3* pt2,
             real* eff_radius) {
-  // Express the second box into the frame of the first box.
-  // (this is a bit cryptic with the functions we have available)
-  real3 pos = RotateT(pos2 - pos1, rot1);
-  quaternion rot = Mult(Inv(rot1), rot2);
+    // Express the second box into the frame of the first box.
+    // (this is a bit cryptic with the functions we have available)
+    real3 pos = RotateT(pos2 - pos1, rot1);
+    quaternion rot = Mult(Inv(rot1), rot2);
 
-  // Find the direction of closest overlap between boxes. If they don't
-  // overlap, we're done. Note that dir is calculated so that it points from
-  // box2 to box1.
-  real3 dir;
-  if (!box_intersects_box(hdims1, hdims2, pos, rot, dir))
+    // Find the direction of closest overlap between boxes. If they don't
+    // overlap, we're done. Note that dir is calculated so that it points from
+    // box2 to box1.
+    real3 dir;
+    if (!box_intersects_box(hdims1, hdims2, pos, rot, dir))
+        return 0;
+
+    if (Dot(pos, dir) > 0)
+        dir = -dir;
+
+    // Determine the features of the boxes that are interacting.
+    real3 dirI = RotateT(-dir, rot);
+    real3 corner1 = box_farthest_corner(hdims1, dir);
+    real3 corner2 = box_farthest_corner(hdims2, dirI);
+    uint code1 = box_closest_feature(dir);
+    uint code2 = box_closest_feature(dirI);
+    uint numAxes1 = (code1 & 1) + ((code1 >> 1) & 1) + ((code1 >> 2) & 1);
+    uint numAxes2 = (code2 & 1) + ((code2 >> 1) & 1) + ((code2 >> 2) & 1);
+
+    //// TODO
+
     return 0;
-
-  if (Dot(pos, dir) > 0)
-    dir = -dir;
-
-  // Determine the features of the boxes that are interacting.
-  real3 dirI = RotateT(-dir, rot);
-  real3 corner1 = box_farthest_corner(hdims1, dir);
-  real3 corner2 = box_farthest_corner(hdims2, dirI);
-  uint code1 = box_closest_feature(dir);
-  uint code2 = box_closest_feature(dirI);
-  uint numAxes1 = (code1 & 1) + ((code1 >> 1) & 1) + ((code1 >> 2) & 1);
-  uint numAxes2 = (code2 & 1) + ((code2 >> 1) & 1) + ((code2 >> 2) & 1);
-
-  //// TODO
-
-  return 0;
 }
 
 }  // end namespace collision

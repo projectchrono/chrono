@@ -26,14 +26,13 @@ namespace chrono {
 namespace collision {
 
 class CH_PARALLEL_API ChCAABBGenerator {
- public:
-  // functions
-  ChCAABBGenerator();
+  public:
+    // functions
+    ChCAABBGenerator();
 
-  void GenerateAABB();
+    void GenerateAABB();
 
-  ChParallelDataManager* data_manager;
+    ChParallelDataManager* data_manager;
 };
 }
 }
-

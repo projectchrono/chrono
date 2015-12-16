@@ -16,78 +16,78 @@ namespace chrono {
 // Cubic spline kernel
 // d is positive. h is the sph particle  radius (i.e. h in the document) d is the distance of 2 particles
 real cubic_spline(const real& dist, const real& h) {
-  real q = std::abs(dist) / h;
-  if (q < 1) {
-    return (0.25f / (F_PI * h * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
-  }
-  if (q < 2) {
-    return (0.25f / (F_PI * h * h * h) * pow(2 - q, 3));
-  }
-  return 0;
+    real q = std::abs(dist) / h;
+    if (q < 1) {
+        return (0.25f / (F_PI * h * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
+    }
+    if (q < 2) {
+        return (0.25f / (F_PI * h * h * h) * pow(2 - q, 3));
+    }
+    return 0;
 }
 // d is positive. r is the sph particles
 real3 grad_cubic_spline(const real3& dist, const real d, const real& h) {
-  real q = d / h;
+    real q = d / h;
 
-  if (q < 1) {
-    return (3 * q - 4) * .75f * (INVPI)*powf(h, -5) * dist;
-  }
-  if (q < 2) {
-    return (-q + 4.0f - 4.0f / q) * .75f * (INVPI)*powf(h, -5) * dist;
-  }
-  return real3(0);
+    if (q < 1) {
+        return (3 * q - 4) * .75f * (INVPI)*powf(h, -5) * dist;
+    }
+    if (q < 2) {
+        return (-q + 4.0f - 4.0f / q) * .75f * (INVPI)*powf(h, -5) * dist;
+    }
+    return real3(0);
 }
 real poly6(const real& dist, const real& h) {
-  return (dist <= h) * 315.0 / (64.0 * F_PI * pow(h, 9)) * pow((h * h - dist * dist), 3);
+    return (dist <= h) * 315.0 / (64.0 * F_PI * pow(h, 9)) * pow((h * h - dist * dist), 3);
 }
 
 real3 grad_poly6(const real3& dist, const real d, const real& h) {
-  return (d <= h) * -945.0 / (32.0 * F_PI * pow(h, 9)) * pow((h * h - d * d), 2) * dist;
+    return (d <= h) * -945.0 / (32.0 * F_PI * pow(h, 9)) * pow((h * h - d * d), 2) * dist;
 }
 
 real spiky(const real& dist, const real& h) {
-  return (dist <= h) * 15.0 / (F_PI * pow(h, 6)) * pow(h - dist, 3);
+    return (dist <= h) * 15.0 / (F_PI * pow(h, 6)) * pow(h - dist, 3);
 }
 real3 grad_spiky(const real3& dist, const real d, const real& h) {
-  return (d <= h) * -45.0 / (F_PI * pow(h, 6)) * pow(h - d, 2) * dist;
+    return (d <= h) * -45.0 / (F_PI * pow(h, 6)) * pow(h - d, 2) * dist;
 }
 
 real3 viscosity(const real3& dist, const real d, const real& h) {
-  return (d <= h) * 15.0 / (2 * F_PI * pow(h, 3)) *
-         (-(d * d * d) / (2 * h * h * h) + (d * d) / (h * h) + (h) / (2 * d) - 1) * dist;
+    return (d <= h) * 15.0 / (2 * F_PI * pow(h, 3)) *
+           (-(d * d * d) / (2 * h * h * h) + (d * d) / (h * h) + (h) / (2 * d) - 1) * dist;
 }
 real3 grad2_viscosity(const real3& dist, const real d, const real& h) {
-  return real3((d <= h) * 45.0 / (F_PI * pow(h, 6)) * (h - d));
+    return real3((d <= h) * 45.0 / (F_PI * pow(h, 6)) * (h - d));
 }
 
 ////-----------------------------------------------------------------------------------------------------
 // kernel from constraint fluid approximation paper/code
 real kernel(const real& dist, const real& h) {
-  if (dist > h) {
-    return 0;
-  }
+    if (dist > h) {
+        return 0;
+    }
 
-  return pow(1 - pow(dist / h, 2), 3);
+    return pow(1 - pow(dist / h, 2), 3);
 }
 
 // laplacian operator for poly6
 real grad2_poly6(const real& dist, const real& h) {
-  if (dist > h) {
-    return 0;
-  }
-  return 945.0 / (32.0 * F_PI * pow(h, 9)) * (h * h - dist * dist) * (7 * dist * dist - 3 * h * h);
+    if (dist > h) {
+        return 0;
+    }
+    return 945.0 / (32.0 * F_PI * pow(h, 9)) * (h * h - dist * dist) * (7 * dist * dist - 3 * h * h);
 }
 
 #define SS(alpha) mrho* vij.alpha
 #define TT(beta) grad.beta
 
 Mat33 ComputeShearTensor(const real& mrho, const real3& grad, const real3& vij) {
-  real3 U = -.5 * real3(2 * SS(x) * TT(x), (SS(y) * TT(x) + SS(x) * TT(y)), (SS(z) * TT(x) + SS(x) * TT(z)));
-  real3 V = -.5 * real3((SS(x) * TT(y) + SS(y) * TT(x)), 2 * SS(y) * TT(y), (SS(z) * TT(y) + SS(y) * TT(z)));
-  real3 W = -.5 * real3((SS(x) * TT(z) + SS(z) * TT(x)), (SS(y) * TT(z) + SS(z) * TT(y)), 2 * SS(z) * TT(z));
-  return Mat33(U, V, W);
+    real3 U = -.5 * real3(2 * SS(x) * TT(x), (SS(y) * TT(x) + SS(x) * TT(y)), (SS(z) * TT(x) + SS(x) * TT(z)));
+    real3 V = -.5 * real3((SS(x) * TT(y) + SS(y) * TT(x)), 2 * SS(y) * TT(y), (SS(z) * TT(y) + SS(y) * TT(z)));
+    real3 W = -.5 * real3((SS(x) * TT(z) + SS(z) * TT(x)), (SS(y) * TT(z) + SS(z) * TT(y)), 2 * SS(z) * TT(z));
+    return Mat33(U, V, W);
 
-  //  return (VectorxVector(mrho * vij, grad) + VectorxVector(grad, mrho * vij)) * -.5;
+    //  return (VectorxVector(mrho * vij, grad) + VectorxVector(grad, mrho * vij)) * -.5;
 }
 
 //// Compute ||T||  = sqrt((1/2*Trace((shear*Transpose(shear)))))
