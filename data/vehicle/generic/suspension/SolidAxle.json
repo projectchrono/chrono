@@ -30,8 +30,6 @@
     "Radius":                       0.02,
     "Location Axle":                [-0.067, 0.576, 0.182],
     "Location Chassis":             [0.431, 0.606, 0.182],
-    "Universal Joint Axis Link":    [0, -1, 0],
-    "Universal Joint Axis Chassis": [0, 0, 1]
   },
 
   "Lower Link":
@@ -42,8 +40,6 @@
     "Radius":                       0.02,
     "Location Axle":                [0.012, 0.728, -0.091],
     "Location Chassis":             [0.546, 0.425, -0.055],
-    "Universal Joint Axis Link":    [0, 1, 0],
-    "Universal Joint Axis Chassis": [0, 0, 1]
   },
   
   "Axle Tube" :
