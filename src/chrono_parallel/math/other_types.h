@@ -45,6 +45,7 @@ class int3 {
     inline int3(int a) : x(a), y(a), z(a), w(0) {}
     inline int3(int a, int b, int c) : x(a), y(b), z(c), w(0) {}
     inline int3(const int3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
+    inline int3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
     inline int operator[](unsigned int i) const { return array[i]; }
     inline int& operator[](unsigned int i) { return array[i]; }
     inline int3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
@@ -54,6 +55,12 @@ class int3 {
         return *this;
     }
     inline int3& operator=(const int3& rhs) {
+        x = rhs.x;
+        y = rhs.y;
+        z = rhs.z;
+        return *this;
+    }
+    inline int3& operator=(const real3& rhs) {
         x = rhs.x;
         y = rhs.y;
         z = rhs.z;
@@ -69,8 +76,9 @@ class int3 {
 
 int3 operator-(const int3& a, const int3& b);
 int3 operator-(const int3& a, const int& b);
-int3 Clamp(const int3& a, const int3& clamp_min, const int3& clamp_max) ;
-
+int3 operator+(const int3& a, const int3& b);
+int3 operator+(const int3& a, const int& b);
+int3 Clamp(const int3& a, const int3& clamp_min, const int3& clamp_max);
 
 struct uint3 {
     unsigned int x, y, z;
@@ -109,7 +117,6 @@ static inline uint3 _make_uint3(const uint& a, const uint& b, const uint& c) {
 static inline uint3 operator-(const uint3& a, const uint3& b) {
     return U3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
-
 
 static inline std::ostream& operator<<(std::ostream& out, const int2& a) {
     out << "[" << a.x << ", " << a.y << "]" << std::endl;
