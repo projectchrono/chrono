@@ -50,6 +50,8 @@ class ChSystem;
 class ChApi ChPhysicsItem : public ChObj {
     CH_RTTI(ChPhysicsItem, ChObj);
 
+    friend class ChSystem;
+
   protected:
     //
     // DATA
@@ -79,6 +81,9 @@ class ChApi ChPhysicsItem : public ChObj {
     };
 
     virtual void Copy(ChPhysicsItem* source);
+
+  private:
+    virtual void SetupInitial() {}
 
   public:
     //

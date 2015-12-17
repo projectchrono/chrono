@@ -281,9 +281,6 @@ int main(int argc, char* argv[]) {
         elemcount++;
     }
 
-    // This is mandatory
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -341,6 +338,9 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
     application.SetTimestep(0.001);
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

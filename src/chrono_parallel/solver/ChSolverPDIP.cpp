@@ -321,7 +321,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
         lambda_tmp[i] = 1.0;
     }
 
-    s_max = Min(1.0, (real)blaze::min(lambda_tmp));
+    s_max = Min(real(1.0), (real)blaze::min(lambda_tmp));
 
     // (11) s = 0.99 * s_max
     s = 0.99 * s_max;

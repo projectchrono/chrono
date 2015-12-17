@@ -62,7 +62,6 @@ class CH_VEHICLE_API SolidAxle : public ChSolidAxle {
 
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
-    virtual const ChVector<> getDirection(DirectionId which) override { return m_directions[which]; }
 
     void Create(const rapidjson::Document& d);
 
@@ -70,7 +69,6 @@ class CH_VEHICLE_API SolidAxle : public ChSolidAxle {
     ChSpringForceCallback* m_shockForceCB;
 
     ChVector<> m_points[NUM_POINTS];
-    ChVector<> m_directions[NUM_DIRS];
 
     double m_axleTubeMass;
     double m_spindleMass;

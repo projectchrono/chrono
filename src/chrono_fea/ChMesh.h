@@ -54,6 +54,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
         n_dofs = 0;
         n_dofs_w = 0;
         automatic_gravity_load = true;
+        num_points_gravity = 1;
     };
     ~ChMesh(){};
 
@@ -101,11 +102,6 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     void ClearMeshSurfaces() { vmeshsurfaces.clear(); }
 
 
-
-    /// - Computes the total number of degrees of freedom
-    /// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
-    void SetupInitial();
-
     /// Set reference position of nodes as current position, for all nodes.
     void Relax();
 
@@ -147,7 +143,9 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// electrostatics, etc)
     void LoadFromTetGenFile(const char* filename_node,                      ///< name of the .node file
                             const char* filename_ele,                       ///< name of the .ele  file
-                            ChSharedPtr<ChContinuumMaterial> my_material);  ///< material for the created tetahedrons
+                            ChSharedPtr<ChContinuumMaterial> my_material,   ///< material for the created tetahedrons
+                            ChVector<> pos_transform = VNULL,               ///< optional displacement of imported mesh
+                            ChMatrix33<> rot_transform = ChMatrix33<>(1));  ///< optional rotation/scaling of imported mesh
 
     /// Load tetahedrons, if any, saved in a .inp file for Abaqus.
     void LoadFromAbaqusFile(const char* filename,
@@ -241,6 +239,14 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// ChLcpVariables in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+
+  private:
+    /// Initial setup (before analysis).
+    /// This function is called from ChSystem::SetupInitial, marking a point where system
+    /// construction is completed.
+    /// - Computes the total number of degrees of freedom
+    /// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
+    virtual void SetupInitial() override;
 };
 
 }  // END_OF_NAMESPACE____

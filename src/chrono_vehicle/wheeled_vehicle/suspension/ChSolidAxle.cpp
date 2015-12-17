@@ -89,11 +89,26 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     AddVisualizationLink(m_axleTube, axleOuterL, axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
     chassis->GetSystem()->AddBody(m_axleTube);
 
+    // Calculate end points on the tierod body, expressed in the absolute frame
+    // (for visualization)
+    ChVector<> tierodOuter_local(getLocation(TIEROD_K));
+    ChVector<> tierodOuterL = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
+    tierodOuter_local.y = -tierodOuter_local.y;
+    ChVector<> tierodOuterR = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
+
+    // Create and initialize the tierod body.
+    m_tierod = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_tierod->SetNameString(m_name + "_axleTube");
+    m_tierod->SetPos((tierodOuterL + tierodOuterR) / 2);
+    m_tierod->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_tierod->SetMass(getAxleTubeMass()); //TODO: Add entry for tierod version of this
+    m_tierod->SetInertiaXX(getAxleTubeInertia()); //TODO: Add entry for tierod version of this
+    AddVisualizationLink(m_tierod, tierodOuterL, tierodOuterR, 0.1*getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    chassis->GetSystem()->AddBody(m_tierod);
+
     // Transform all points and directions on right and left sides to absolute frame
     std::vector<ChVector<> > points_R(NUM_POINTS);
     std::vector<ChVector<> > points_L(NUM_POINTS);
-    std::vector<ChVector<> > dirs_R(NUM_DIRS);
-    std::vector<ChVector<> > dirs_L(NUM_DIRS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
@@ -102,23 +117,15 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
         points_R[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
-    for (int i = 0; i < NUM_DIRS; i++) {
-        ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
-        dirs_L[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
-        rel_dir.y = -rel_dir.y;
-        dirs_R[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
-    }
-
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, points_L, dirs_L);
-    InitializeSide(RIGHT, chassis, tierod_body, points_R, dirs_R);
+    InitializeSide(LEFT, chassis, tierod_body, points_L);
+    InitializeSide(RIGHT, chassis, tierod_body, points_R);
 }
 
 void ChSolidAxle::InitializeSide(VehicleSide side,
                                  ChSharedPtr<ChBodyAuxRef> chassis,
                                  ChSharedPtr<ChBody> tierod_body,
-                                 const std::vector<ChVector<> >& points,
-                                 const std::vector<ChVector<> >& dirs) {
+                                 const std::vector<ChVector<> >& points) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Unit vectors for orientation matrices.
@@ -171,6 +178,12 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     AddVisualizationLink(m_upperLink[side], points[UL_A], points[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
     chassis->GetSystem()->AddBody(m_upperLink[side]);
 
+    // Create and initialize the universal joint between chassis and upper link.
+    m_universalUpperLink[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
+    m_universalUpperLink[side]->SetNameString(m_name + "_universalUpperLink" + suffix);
+    m_universalUpperLink[side]->Initialize(chassis, m_upperLink[side], ChFrame<>(points[UL_C], rot.Get_A_quaternion()));
+    chassis->GetSystem()->AddLink(m_universalUpperLink[side]);
+
     // Create and initialize lower link body.
     // Determine the rotation matrix of the lower link based on the plane of the hard points
     // (z-axis along the length of the lower link)
@@ -190,8 +203,37 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     AddVisualizationLink(m_lowerLink[side], points[LL_A], points[LL_C], getLLRadius(), ChColor(0.2f, 0.6f, 0.2f));
     chassis->GetSystem()->AddBody(m_lowerLink[side]);
 
+    // Create and initialize the universal joint between chassis and lower link.
+    m_universalLowerLink[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
+    m_universalLowerLink[side]->SetNameString(m_name + "_universalLowerLink" + suffix);
+    m_universalLowerLink[side]->Initialize(chassis, m_lowerLink[side], ChFrame<>(points[LL_C], rot.Get_A_quaternion()));
+    chassis->GetSystem()->AddLink(m_universalLowerLink[side]);
+
     // Append to the axle visualization
     AddVisualizationLink(m_axleTube, points[LL_A], points[UL_A], getLLRadius(), ChColor(0.7f, 0.7f, 0.7f));
+
+    // Create and initialize the joint between knuckle and tierod.
+    if (side == LEFT) {
+      m_sphericalTierod = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+      m_sphericalTierod->SetNameString(m_name + "_sphericalTierod" + suffix);
+      m_sphericalTierod->Initialize(m_tierod, m_knuckle[side], ChCoordsys<>(points[TIEROD_K], QUNIT));
+      chassis->GetSystem()->AddLink(m_sphericalTierod);
+    }
+    else {
+      // Determine the rotation matrix of the lower link based on the plane of the hard points
+      // (z-axis along the length of the lower link)
+      v = points[UL_C] - points[LL_C];
+      v.Normalize();
+      w = chassis->GetA().Get_A_Yaxis();//tierodOuterL - tierodOuterR;
+      w.Normalize();
+      u = Vcross(v, w);
+      rot.Set_A_axis(u, v, w);
+
+      m_universalTierod = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
+      m_universalTierod->SetNameString(m_name + "_universalTierod" + suffix);
+      m_universalTierod->Initialize(m_tierod, m_knuckle[side], ChFrame<>(points[TIEROD_K], rot.Get_A_quaternion()));
+      chassis->GetSystem()->AddLink(m_universalTierod);
+    }
 
     // Create and initialize the revolute joint between axle and knuckle.
     // Determine the joint orientation matrix from the hardpoint locations by
@@ -221,28 +263,6 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_sphericalLowerLink[side]->Initialize(m_axleTube, m_lowerLink[side], ChCoordsys<>(points[LL_A], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalLowerLink[side]);
 
-    // Create and initialize the universal joint between chassis and upper link.
-    u = dirs[UNIV_AXIS_CHASSIS_U];
-    v = dirs[UNIV_AXIS_LINK_U];
-    w = Vcross(u, v);
-    rot.Set_A_axis(u, v, w);
-
-    m_universalUpperLink[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
-    m_universalUpperLink[side]->SetNameString(m_name + "_universalUpperLink" + suffix);
-    m_universalUpperLink[side]->Initialize(chassis, m_upperLink[side], ChFrame<>(points[UL_C], rot.Get_A_quaternion()));
-    chassis->GetSystem()->AddLink(m_universalUpperLink[side]);
-
-    // Create and initialize the universal joint between chassis and lower link.
-    u = dirs[UNIV_AXIS_CHASSIS_L];
-    v = dirs[UNIV_AXIS_LINK_L];
-    w = Vcross(u, v);
-    rot.Set_A_axis(u, v, w);
-
-    m_universalLowerLink[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
-    m_universalLowerLink[side]->SetNameString(m_name + "_universalLowerLink" + suffix);
-    m_universalLowerLink[side]->Initialize(chassis, m_lowerLink[side], ChFrame<>(points[LL_C], rot.Get_A_quaternion()));
-    chassis->GetSystem()->AddLink(m_universalLowerLink[side]);
-
     // Create and initialize the revolute joint between upright and spindle.
     ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
 
@@ -266,10 +286,12 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_spring[side]);
 
     // Create and initialize the tierod distance constraint between chassis and upright.
-    m_distTierod[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-    m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
-    m_distTierod[side]->Initialize(tierod_body, m_knuckle[side], false, points[TIEROD_C], points[TIEROD_K]);
-    chassis->GetSystem()->AddLink(m_distTierod[side]);
+    if (side == LEFT) {
+      m_distTierod = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+      m_distTierod->SetNameString(m_name + "_distTierod" + suffix);
+      m_distTierod->Initialize(tierod_body, m_tierod, false, points[TIEROD_C], points[TIEROD_K]);
+      chassis->GetSystem()->AddLink(m_distTierod);
+    }
 
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
@@ -299,6 +321,7 @@ void ChSolidAxle::LogHardpointLocations(const ChVector<>& ref, bool inches) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
+    // TODO: Update this to reflect new suspension joints
     // Revolute joints
     {
         ChMatrix<>* C = m_revoluteKingpin[side]->GetC();
@@ -346,7 +369,7 @@ void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
 
     // Distance constraint
     GetLog() << "Tierod distance       ";
-    GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+    GetLog() << "  " << m_distTierod->GetCurrentDistance() - m_distTierod->GetImposedDistance() << "\n";
 }
 
 // -----------------------------------------------------------------------------

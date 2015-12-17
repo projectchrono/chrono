@@ -36,6 +36,15 @@ ChContactContainerDEM::ChContactContainerDEM() {
 
     contactlist_3_3.clear();
     n_added_3_3 = 0;
+
+    contactlist_333_6.clear();
+    n_added_333_6 = 0;
+
+    contactlist_333_3.clear();
+    n_added_333_3 = 0;
+
+    contactlist_333_333.clear();
+    n_added_333_333 = 0;
 }
 
 ChContactContainerDEM::~ChContactContainerDEM() {
@@ -67,6 +76,9 @@ void ChContactContainerDEM::RemoveAllContacts() {
     _RemoveAllContacts(contactlist_6_6, lastcontact_6_6, n_added_6_6);
     _RemoveAllContacts(contactlist_6_3, lastcontact_6_3, n_added_6_3);
     _RemoveAllContacts(contactlist_3_3, lastcontact_3_3, n_added_3_3);
+    _RemoveAllContacts(contactlist_333_6, lastcontact_333_6, n_added_333_6);
+    _RemoveAllContacts(contactlist_333_3, lastcontact_333_3, n_added_333_3);
+    _RemoveAllContacts(contactlist_333_333, lastcontact_333_333, n_added_333_333);
     //**TODO*** cont. roll.
 }
 
@@ -79,6 +91,15 @@ void ChContactContainerDEM::BeginAddContact() {
 
     lastcontact_3_3 = contactlist_3_3.begin();
     n_added_3_3 = 0;
+
+    lastcontact_333_6 = contactlist_333_6.begin();
+    n_added_333_6 = 0;
+
+    lastcontact_333_3 = contactlist_333_3.begin();
+    n_added_333_3 = 0;
+
+    lastcontact_333_333 = contactlist_333_333.begin();
+    n_added_333_333 = 0;
 
     //lastcontact_roll = contactlist_roll.begin();
     //n_added_roll = 0;
@@ -97,6 +118,18 @@ void ChContactContainerDEM::EndAddContact() {
     while (lastcontact_3_3 != contactlist_3_3.end()) {
         delete (*lastcontact_3_3);
         lastcontact_3_3 = contactlist_3_3.erase(lastcontact_3_3);
+    }
+    while (lastcontact_333_6 != contactlist_333_6.end()) {
+        delete (*lastcontact_333_6);
+        lastcontact_333_6 = contactlist_333_6.erase(lastcontact_333_6);
+    }
+    while (lastcontact_333_3 != contactlist_333_3.end()) {
+        delete (*lastcontact_333_3);
+        lastcontact_333_3 = contactlist_333_3.erase(lastcontact_333_3);
+    }
+    while (lastcontact_333_333 != contactlist_333_333.end()) {
+        delete (*lastcontact_333_333);
+        lastcontact_333_333 = contactlist_333_333.erase(lastcontact_333_333);
     }
 
     //while (lastcontact_roll != contactlist_roll.end()) {
@@ -178,6 +211,11 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
         if (ChContactable_1vars<3>* mmboB = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelB->GetContactable())) {
             _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboA, mmboB, mcontact);
         }
+        // 6_333 -> 333_6
+        if (ChContactable_3vars<3,3,3>* mmboB = dynamic_cast<ChContactable_3vars<3,3,3>*>(mcontact.modelB->GetContactable())) {
+            collision::ChCollisionInfo swapped_contact(mcontact,true);
+            _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, mmboB, mmboA, swapped_contact);
+        }
     }
 
     if (    ChContactable_1vars<3>* mmboA = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelA->GetContactable())) {
@@ -189,6 +227,26 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
         // 3_3
         if (ChContactable_1vars<3>* mmboB = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelB->GetContactable())) {
             _OptimalContactInsert(contactlist_3_3, lastcontact_3_3, n_added_3_3, this, mmboA, mmboB, mcontact);
+        }
+        // 3_333 -> 333_3
+        if (ChContactable_3vars<3,3,3>* mmboB = dynamic_cast<ChContactable_3vars<3,3,3>*>(mcontact.modelB->GetContactable())) {
+            collision::ChCollisionInfo swapped_contact(mcontact,true);
+            _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, mmboB, mmboA, swapped_contact);
+        }
+    }
+
+    if (    ChContactable_3vars<3,3,3>* mmboA = dynamic_cast<ChContactable_3vars<3,3,3>*>(mcontact.modelA->GetContactable())) {
+        // 333_6
+        if (ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelB->GetContactable())) {
+            _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, mmboA, mmboB, mcontact);
+        }
+        // 333_3
+        if (ChContactable_1vars<3>* mmboB = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelB->GetContactable())) {
+            _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, mmboA, mmboB, mcontact);
+        }
+        // 3_333 -> 333_3
+        if (ChContactable_3vars<3,3,3>* mmboB = dynamic_cast<ChContactable_3vars<3,3,3>*>(mcontact.modelB->GetContactable())) {
+            _OptimalContactInsert(contactlist_333_333, lastcontact_333_333, n_added_333_333, this, mmboA, mmboB, mcontact);
         }
     }
 
@@ -217,6 +275,9 @@ void ChContactContainerDEM::ReportAllContacts2(ChReportContactCallback2* mcallba
     _ReportAllContacts(contactlist_6_6, mcallback);
     _ReportAllContacts(contactlist_6_3, mcallback);
     _ReportAllContacts(contactlist_3_3, mcallback);
+    _ReportAllContacts(contactlist_333_6, mcallback);
+    _ReportAllContacts(contactlist_333_3, mcallback);
+    _ReportAllContacts(contactlist_333_333, mcallback);
     //***TODO*** rolling cont. 
 }
 
@@ -246,6 +307,9 @@ void ChContactContainerDEM::IntLoadResidual_F(const unsigned int off,
     _IntLoadResidual_F(contactlist_6_6, R, c);
     _IntLoadResidual_F(contactlist_6_3, R, c);
     _IntLoadResidual_F(contactlist_3_3, R, c);
+    _IntLoadResidual_F(contactlist_333_6, R, c);
+    _IntLoadResidual_F(contactlist_333_3, R, c);
+    _IntLoadResidual_F(contactlist_333_333, R, c);
 }
 
 void ChContactContainerDEM::ConstraintsFbLoadForces(double factor)
