@@ -250,7 +250,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	double midSecDim = hdimX - 2 * hdimSide;
 
 	// basin info
-	double phi = CH_C_PI / 2.5;//CH_C_PI / 9;
+	double phi = CH_C_PI / 2.5; //CH_C_PI / 9;
 	double bottomWidth = midSecDim - basinDepth / tan(phi); // for a 45 degree slope
 	double bottomBuffer = .4 * bottomWidth;
 
@@ -267,21 +267,21 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
 #if haveFluid
 		// basin
-		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, sphMarkerMass, paramsH, ground,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
+				sphMarkerMass, paramsH, ground,
 				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
 				ChVector<>(0, 0, -basinDepth - hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 		// slope 1
-		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, sphMarkerMass, paramsH, ground,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
+				sphMarkerMass, paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x1I, 0, zI),
 				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
 
 		// slope 2
-		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, sphMarkerMass, paramsH, ground,
+		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
+				sphMarkerMass, paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x2I, 0, zI),
 				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
@@ -306,28 +306,35 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
 			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
-			cyl_radius1, cyl_length1, mat_g, paramsH.rho0, cyl_pos, cyl_rot);
+			cyl_radius1, cyl_length1, mat_g, 0.5 * paramsH.rho0, cyl_pos,
+			cyl_rot);
 	int bid_1 = FSI_Bodies.size();
 
 	double cyl_length2 = 1.0;
 	double cyl_radius2 = 0.25;
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
 			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
-			0.5 * cyl_radius2, cyl_length2, mat_g, paramsH.rho0, ChVector<>(0, 0, .5* (cyl_length2 + 2 * cyl_length1)), cyl_rot);
+			0.5 * cyl_radius2, cyl_length2, mat_g, 0.5 * paramsH.rho0,
+			ChVector<>(0, 0, .5 * (cyl_length2 + 2 * cyl_length1)), cyl_rot);
 	int bid_2 = FSI_Bodies.size() - 1;
 
 	double cyl_length3 = 1.0;
 	double cyl_radius3 = 0.25;
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
 			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
-			0.5 * cyl_radius2, cyl_length2, mat_g, paramsH.rho0, ChVector<>(0, 0, cyl_length2 + .5* (cyl_length3 + 4 * cyl_length1)), cyl_rot);
+			0.5 * cyl_radius2, cyl_length2, mat_g, 0.5 * paramsH.rho0,
+			ChVector<>(0, 0,
+					cyl_length2 + .5 * (cyl_length3 + 4 * cyl_length1)),
+			cyl_rot);
 	int bid_3 = FSI_Bodies.size() - 1;
 
-    // Revolute joint rods
-    // ----------------------------
-    ChSharedPtr<ChLinkLockRevolute>  revolute(new ChLinkLockRevolute);
-    revolute->Initialize(FSI_Bodies[bid_2], FSI_Bodies[bid_3], ChCoordsys<>(ChVector<>(0, 0, cyl_length2 + cyl_length1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X)));
-    mphysicalSystem.AddLink(revolute);
+	// Revolute joint rods
+	// ----------------------------
+	ChSharedPtr<ChLinkLockRevolute> revolute(new ChLinkLockRevolute);
+	revolute->Initialize(FSI_Bodies[bid_2], FSI_Bodies[bid_3],
+			ChCoordsys<>(ChVector<>(0, 0, cyl_length2 + cyl_length1),
+					chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X)));
+	mphysicalSystem.AddLink(revolute);
 }
 
 // =============================================================================
