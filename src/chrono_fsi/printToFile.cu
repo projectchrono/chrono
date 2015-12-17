@@ -48,14 +48,14 @@ void PrintCartesianData_MidLine(
 
 //*******************************************************************************************************************************
 void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
-		const thrust::device_vector<Real4>& velMasD,
+		const thrust::device_vector<Real3>& velMasD,
 		const thrust::device_vector<Real4>& rhoPresMuD,
 		const thrust::host_vector<int4>& referenceArray,
 
 		const SimParams paramsH, const Real realTime, int tStep, int stepSave,
 		const std::string& out_dir) {
 	thrust::host_vector<Real3> posRadH = posRadD;
-	thrust::host_vector<Real4> velMasH = velMasD;
+	thrust::host_vector<Real3> velMasH = velMasD;
 	thrust::host_vector<Real4> rhoPresMuH = rhoPresMuD;
 
 	int tStepsPovFiles = stepSave;  // 25;//1000;//2000;
@@ -82,7 +82,7 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
 		stringstream ssFluidParticles;
 		for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
 			Real3 pos = posRadH[i];
-			Real3 vel = mR3(velMasH[i]);
+			Real3 vel = velMasH[i];
 			Real4 rP = rhoPresMuH[i];
 			Real velMag = length(vel);
 			ssFluidParticles << pos.x << ", " << pos.y << ", " << pos.z << ", "
@@ -101,7 +101,7 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
 		//    stringstream ssBoundary;
 		//    for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
 		//      Real3 pos = posRadH[i];
-		//      Real3 vel = mR3(velMasH[i]);
+		//      Real3 vel = velMasH[i];
 		//      Real4 rP = rhoPresMuH[i];
 		//      Real velMag = length(vel);
 		//      ssBoundary << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x << ", " << vel.y << ", " << vel.z <<
@@ -122,7 +122,7 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
 		//		ssFluidBoundaryParticles.precision(20);
 		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
 			Real3 pos = posRadH[i];
-			Real3 vel = mR3(velMasH[i]);
+			Real3 vel = velMasH[i];
 			Real4 rP = rhoPresMuH[i];
 			Real velMag = length(vel);
 			// if (pos.y > .0002 && pos.y < .0008)
@@ -147,7 +147,7 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
 			for (int i = referenceArray[2].x; i < referenceArray[refSize - 1].y;
 					i++) {
 				Real3 pos = posRadH[i];
-				Real3 vel = mR3(velMasH[i]);
+				Real3 vel = velMasH[i];
 				Real4 rP = rhoPresMuH[i];
 				Real velMag = length(vel);
 				// if (pos.y > .0002 && pos.y < .0008)
@@ -169,7 +169,7 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
 //*******************************************************************************************************************************
 
 void PrintToFile(const thrust::device_vector<Real3>& posRadD,
-		const thrust::device_vector<Real4>& velMasD,
+		const thrust::device_vector<Real3>& velMasD,
 		const thrust::device_vector<Real4>& rhoPresMuD,
 		const thrust::host_vector<int4>& referenceArray,
 		const SimParams paramsH, Real realTime, int tStep, int stepSave,

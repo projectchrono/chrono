@@ -9,6 +9,7 @@
 #include <math.h>
 #include <sstream>
 #include <fstream>
+#include <stdexcept>
 
 /* Thrust library*/
 #include <thrust/sort.h>
@@ -57,7 +58,7 @@ void MapSPH_ToGrid(Real resolution, int3& cartesianGridDims,
 		thrust::host_vector<Real4>& rho_Pres_CartH,
 		thrust::host_vector<Real4>& vel_VelMag_CartH,
 		thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real4>& rhoPresMuD, int numAllMarkers,
 		SimParams paramsH) {
 	//	Real3* m_dSortedPosRad;
@@ -72,7 +73,7 @@ void MapSPH_ToGrid(Real resolution, int3& cartesianGridDims,
 
 	// calculate grid hash
 	thrust::device_vector<Real3> m_dSortedPosRad(numAllMarkers);
-	thrust::device_vector<Real4> m_dSortedVelMas(numAllMarkers);
+	thrust::device_vector<Real3> m_dSortedVelMas(numAllMarkers);
 	thrust::device_vector<Real4> m_dSortedRhoPreMu(numAllMarkers);
 
 	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers);
@@ -142,7 +143,7 @@ void MapSPH_ToGrid(Real resolution, int3& cartesianGridDims,
  * @details See collideSphereSphere.cuh for more info
  */
 void ForceSPH(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real3>& vel_XSPH_D,
 		thrust::device_vector<Real4>& rhoPresMuD,
 		thrust::device_vector<uint>& bodyIndexD,
@@ -169,24 +170,15 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 	int numAllMarkers = numObjects.numAllMarkers;
 
 	/* Allocate space for each vector */
-	/* Store positions of each particle in the device memory */
-	thrust::device_vector<Real3> m_dSortedPosRad(numAllMarkers);
-	/* Store velocities of each particle in the device memory */
-	thrust::device_vector<Real4> m_dSortedVelMas(numAllMarkers);
-	/* Store Rho, Pressure, Mu of each particle in the device memory */
-	thrust::device_vector<Real4> m_dSortedRhoPreMu(numAllMarkers);
-	/* Store XSPH velocities of each particle in the device memory */
-	thrust::device_vector<Real3> vel_XSPH_Sorted_D(numAllMarkers);
-	/* Store Hash for each particle */
-	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers);
-	/* Store index for each particle */
-	thrust::device_vector<uint> m_dGridMarkerIndex(numAllMarkers);
-	/* Store mapOriginalToSorted[originalIndex] = sortedIndex */
-	thrust::device_vector<uint> mapOriginalToSorted(numAllMarkers);
-	/* Index of start cell in sorted list */
-	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
-	/* Index of end cell in sorted list */
-	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
+	thrust::device_vector<Real3> m_dSortedPosRad(numAllMarkers); // Store positions of each particle in the device memory
+	thrust::device_vector<Real3> m_dSortedVelMas(numAllMarkers); // Store velocities of each particle in the device memory
+	thrust::device_vector<Real4> m_dSortedRhoPreMu(numAllMarkers); // Store Rho, Pressure, Mu of each particle in the device memory
+	thrust::device_vector<Real3> vel_XSPH_Sorted_D(numAllMarkers); // Store XSPH velocities of each particle in the device memory
+	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers); // Store Hash for each particle
+	thrust::device_vector<uint> m_dGridMarkerIndex(numAllMarkers); // Store index for each particle
+	thrust::device_vector<uint> mapOriginalToSorted(numAllMarkers); // Store mapOriginalToSorted[originalIndex] = sortedIndex
+	thrust::device_vector<uint> m_dCellStart(m_numGridCells); // Index of start cell in sorted list
+	thrust::device_vector<uint> m_dCellEnd(m_numGridCells); // Index of end cell in sorted list
 
 	/* Calculate grid hash */
 	calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, rhoPresMuD,
@@ -311,7 +303,7 @@ __global__ void Calc_Markers_TorquesD(Real3* torqueMarkersD,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the rigid body particles
-__global__ void UpdateRigidMarkersPositionD(Real3* posRadD, Real4* velMasD,
+__global__ void UpdateRigidMarkersPositionD(Real3* posRadD, Real3* velMasD,
 		const Real3* rigidSPH_MeshPos_LRF_D, const uint* rigidIdentifierD,
 		Real3* posRigidD, Real4* velMassRigidD, Real3* omegaLRF_D, Real4* qD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -337,22 +329,9 @@ __global__ void UpdateRigidMarkersPositionD(Real3* posRadD, Real4* velMasD,
 	Real4 vM_Rigid = velMassRigidD[rigidBodyIndex];
 	Real3 omega3 = omegaLRF_D[rigidBodyIndex];
 	Real3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
-	Real4 vM = velMasD[rigidMarkerIndex];
 	velMasD[rigidMarkerIndex] =
-	mR4(
-			mR3(vM_Rigid)
-					+ mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS),
-							dot(a3, omegaCrossS)), vM.w);
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-// applies periodic BC along x
-__global__ void CustomCopyR4ToR3(Real3* velD, Real4* velMasD) {
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= numObjectsD.numAllMarkers) {
-		return;
-	}
-	Real4 velMas = velMasD[index];
-	velD[index] = mR3(velMas);
+	mR3(vM_Rigid) + dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3,
+			omegaCrossS);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -505,7 +484,7 @@ void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
 		const thrust::device_vector<uint>& rigidIdentifierD,
 		const thrust::device_vector<Real3>& posRigidD,
@@ -524,7 +503,7 @@ void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
 	//** "posRadD2"/"velMasD2" associated to BCE markers are updated based on new rigid body (position,
 	// orientation)/(velocity, angular velocity)
 	UpdateRigidMarkersPositionD<<<nBlocks_numRigid_SphMarkers,
-			nThreads_SphMarkers>>>(mR3CAST(posRadD), mR4CAST(velMasD),
+			nThreads_SphMarkers>>>(mR3CAST(posRadD), mR3CAST(velMasD),
 			mR3CAST(rigidSPH_MeshPos_LRF_D), U1CAST(rigidIdentifierD),
 			mR3CAST(posRigidD), mR4CAST(velMassRigidD), mR3CAST(omegaLRF_D),
 			mR4CAST(qD));
@@ -538,7 +517,7 @@ void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
 // calculates the interaction force between 1- fluid-fluid, 2- fluid-solid, 3- solid-fluid particles
 // calculates forces from other SPH or solid particles, as wall as boundaries
 void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real4>& rhoPresMuD,
 
 		thrust::device_vector<uint>& bodyIndexD,
@@ -562,7 +541,7 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 	int numAllMarkers = numObjects.numAllMarkers;
 	// calculate grid hash
 	thrust::device_vector<Real3> m_dSortedPosRad(numAllMarkers);
-	thrust::device_vector<Real4> m_dSortedVelMas(numAllMarkers);
+	thrust::device_vector<Real3> m_dSortedVelMas(numAllMarkers);
 	thrust::device_vector<Real4> m_dSortedRhoPreMu(numAllMarkers);
 
 	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers);
@@ -611,8 +590,11 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 	thrust::device_vector<Real3> dummy_XSPH(numAllMarkers);
 	uint nBlock_NumSpheres, nThreads_SphMarkers;
 	computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
-	CustomCopyR4ToR3<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
-			mR3CAST(dummy_XSPH), mR4CAST(m_dSortedVelMas));
+
+	if (m_dSortedVelMas.size() != numAllMarkers) {
+		throw std::runtime_error ("m_dSortedVelMas size is not correct !\n");
+	}
+	thrust::copy(m_dSortedVelMas.begin(), m_dSortedVelMas.end(), dummy_XSPH.begin());
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;
@@ -660,7 +642,7 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real4>& rhoPresMuD, int numAllMarkers,
 		int3 SIDE) {
 	//	Real3* m_dSortedPosRad;
@@ -674,7 +656,7 @@ void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
 
 	// calculate grid hash
 	thrust::device_vector<Real3> m_dSortedPosRad(numAllMarkers);
-	thrust::device_vector<Real4> m_dSortedVelMas(numAllMarkers);
+	thrust::device_vector<Real3> m_dSortedVelMas(numAllMarkers);
 	thrust::device_vector<Real4> m_dSortedRhoPreMu(numAllMarkers);
 
 	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers);
@@ -769,13 +751,14 @@ void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size) {
 /**
  * @brief See collideSphereSphere.cuh for more documentation.
  */
-void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
 
-thrust::device_vector<Real3>& posRadD2, thrust::device_vector<Real4>& velMasD2,
+void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
+		thrust::device_vector<Real3>& posRadD2,
+		thrust::device_vector<Real3>& velMasD2,
 		thrust::device_vector<Real4>& rhoPresMuD2,
 
 		thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real3>& vel_XSPH_D,
 		thrust::device_vector<Real4>& rhoPresMuD,
 

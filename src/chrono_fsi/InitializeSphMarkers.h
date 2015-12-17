@@ -35,12 +35,12 @@ void SetNumObjects(NumberOfObjects& numObjects,
  * 		will be in. Currently it sets up a box of fluid and this is dropped into a container
  */
 int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<uint>& bodyIndex, SimParams& paramsH);
 
 void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
@@ -52,7 +52,7 @@ void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 
 void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 		thrust::host_vector<Real3>& posRadH,
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
@@ -63,7 +63,7 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 
 void AddSphereBce(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
@@ -73,7 +73,7 @@ void AddSphereBce(
 
 void AddCylinderBce(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
@@ -84,7 +84,7 @@ void AddCylinderBce(
 
 void AddBoxBce(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
@@ -95,7 +95,7 @@ void AddBoxBce(
 
 void AddBCE_FromFile(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
@@ -104,7 +104,7 @@ void AddBCE_FromFile(
 
 void CreateSphereFSI(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		chrono::ChSystem& mphysicalSystem,
@@ -118,7 +118,7 @@ void CreateSphereFSI(
 
 void CreateCylinderFSI(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		chrono::ChSystem& mphysicalSystem,
@@ -134,7 +134,7 @@ void CreateCylinderFSI(
 
 void CreateBoxFSI(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		chrono::ChSystem& mphysicalSystem,

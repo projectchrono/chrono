@@ -220,7 +220,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
 // =============================================================================
 void CreateTiresBCE(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
@@ -239,7 +239,7 @@ void CreateTiresBCE(
 // =============================================================================
 void CreateChassisBCE(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
@@ -258,7 +258,7 @@ void CreateChassisBCE(
 // Arman you still need local position of bce markers
 void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<uint>& bodyIndex,
 		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
@@ -556,12 +556,11 @@ void OutputVehicleData(ChSystemParallelDVI& mphysicalSystem, int tStep) {
 			std::endl;
 }
 // =============================================================================
-void FreezeSPH(thrust::device_vector<Real4>& velMasD,
-		thrust::host_vector<Real4>& velMasH) {
+void FreezeSPH(thrust::device_vector<Real3>& velMasD,
+		thrust::host_vector<Real3>& velMasH) {
 	for (int i = 0; i < velMasH.size(); i++) {
-		Real4 vM = velMasH[i];
-		velMasH[i] = mR4(0, 0, 0, vM.w);
-		velMasD[i] = mR4(0, 0, 0, vM.w);
+		velMasH[i] = mR3(0, 0, 0);
+		velMasD[i] = mR3(0, 0, 0);
 	}
 }
 // =============================================================================
@@ -622,7 +621,7 @@ int main(int argc, char* argv[]) {
 	// ***************************** Create Fluid ********************************************
 	thrust::host_vector<::int4> referenceArray;
 	thrust::host_vector<Real3> posRadH; // do not set the size here since you are using push back later
-	thrust::host_vector<Real4> velMasH;
+	thrust::host_vector<Real3> velMasH;
 	thrust::host_vector<Real4> rhoPresMuH;
 	thrust::host_vector<uint> bodyIndex;
 
@@ -709,7 +708,7 @@ int main(int argc, char* argv[]) {
 	int startIndexSph = 0;
 #if haveFluid
 	thrust::device_vector<Real3> posRadD = posRadH;
-	thrust::device_vector<Real4> velMasD = velMasH;
+	thrust::device_vector<Real3> velMasD = velMasH;
 	thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
 	thrust::device_vector<uint> bodyIndexD = bodyIndex;
 	thrust::device_vector<Real4> derivVelRhoD;
@@ -771,7 +770,7 @@ int main(int argc, char* argv[]) {
 
 	// ** initialize device mid step data
 	thrust::device_vector<Real3> posRadD2 = posRadD;
-	thrust::device_vector<Real4> velMasD2 = velMasD;
+	thrust::device_vector<Real3> velMasD2 = velMasD;
 	thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
 	thrust::device_vector<Real3> vel_XSPH_D;
 	ResizeR3(vel_XSPH_D, numObjects.numAllMarkers);
@@ -952,7 +951,7 @@ int main(int argc, char* argv[]) {
 // Arman LRF in omegaLRF may need change
 #if haveFluid
 	ClearMyThrustR3(posRadD);
-	ClearMyThrustR4(velMasD);
+	ClearMyThrustR3(velMasD);
 	ClearMyThrustR4(rhoPresMuD);
 	ClearMyThrustU1(bodyIndexD);
 	ClearMyThrustR4(derivVelRhoD);
@@ -960,7 +959,7 @@ int main(int argc, char* argv[]) {
 	ClearMyThrustR3(rigidSPH_MeshPos_LRF_D);
 
 	ClearMyThrustR3(posRadD2);
-	ClearMyThrustR4(velMasD2);
+	ClearMyThrustR3(velMasD2);
 	ClearMyThrustR4(rhoPresMuD2);
 	ClearMyThrustR3(vel_XSPH_D);
 

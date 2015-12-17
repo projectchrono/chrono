@@ -278,7 +278,7 @@ void calcHash(thrust::device_vector<uint>& gridMarkerHash,
 void reorderDataAndFindCellStart(thrust::device_vector<uint>& cellStart,
 		thrust::device_vector<uint>& cellEnd,
 		thrust::device_vector<Real3>& sortedPosRad,
-		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 
 		thrust::device_vector<uint>& gridMarkerHash,
@@ -287,7 +287,7 @@ void reorderDataAndFindCellStart(thrust::device_vector<uint>& cellStart,
 		thrust::device_vector<uint>& mapOriginalToSorted,
 
 		thrust::device_vector<Real3>& oldPosRad,
-		thrust::device_vector<Real4>& oldVelMas,
+		thrust::device_vector<Real3>& oldVelMas,
 		thrust::device_vector<Real4>& oldRhoPreMu, uint numAllMarkers,
 		uint numCells);
 
@@ -296,14 +296,14 @@ void reorderArrays(Real* vDot_PSorted,
 		uint* bodyIndexD, uint* gridMarkerIndex, // input: sorted particle indices
 		uint numAllMarkers);
 
-void CopyBackSortedToOriginal(Real* vDot_P, Real3* posRadD, Real4* velMasD,
+void CopyBackSortedToOriginal(Real* vDot_P, Real3* posRadD, Real3* velMasD,
 		Real4* rhoPreMuD, Real* vDot_PSorted, Real3* sortedPosRad,
-		Real4* sortedVelMas, Real4* sortedRhoPreMu, uint* gridMarkerIndex,
+		Real3* sortedVelMas, Real4* sortedRhoPreMu, uint* gridMarkerIndex,
 		uint numAllMarkers);
 
 void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 		thrust::device_vector<Real3>& sortedPosRad,
-		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 		thrust::device_vector<uint>& gridMarkerIndex,
 		thrust::device_vector<uint>& cellStart,
@@ -311,7 +311,7 @@ void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 		uint numCells);
 
 void RecalcSortedVelocityPressure_BCE(
-		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 		thrust::device_vector<Real3>& sortedPosRad,
 		thrust::device_vector<uint>& cellStart,
@@ -335,7 +335,7 @@ void RecalcSortedVelocityPressure_BCE(
  */
 void collide(thrust::device_vector<Real4>& derivVelRhoD,
 		thrust::device_vector<Real3>& sortedPosRad,
-		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 		thrust::device_vector<uint>& gridMarkerIndex,
@@ -347,27 +347,27 @@ void CalcBCE_Stresses(thrust::device_vector<Real3>& devStressD,
 		thrust::device_vector<Real3>& volStressD,
 		thrust::device_vector<Real4>& mainStressD,
 		thrust::device_vector<Real3>& sortedPosRad,
-		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 		thrust::device_vector<uint>& mapOriginalToSorted,
 		thrust::device_vector<uint>& cellStart,
 		thrust::device_vector<uint>& cellEnd, int numBCE);
 
-void UpdatePosVelP(Real3* m_dSortedPosRadNew, Real4* m_dSortedVelMasNew,
+void UpdatePosVelP(Real3* m_dSortedPosRadNew, Real3* m_dSortedVelMasNew,
 		Real4* m_dSortedRhoPreMuNew, Real3* m_dSortedPosRad,
-		Real4* m_dSortedVelMas, Real4* m_dSortedRhoPreMu, Real* vDot_PSortedNew,
+		Real3* m_dSortedVelMas, Real4* m_dSortedRhoPreMu, Real* vDot_PSortedNew,
 		Real* vDot_PSorted, uint numAllMarkers);
 
-void UpdateBC(Real3* m_dSortedPosRadNew, Real4* m_dSortedVelMasNew,
+void UpdateBC(Real3* m_dSortedPosRadNew, Real3* m_dSortedVelMasNew,
 		Real4* m_dSortedRhoPreMuNew, Real* vDot_PSortedNew,
 		int2* ShortestDistanceIndicesBoundaryOrRigidWithFluid,
 		int numBoundaryAndRigid);
 
 void ReCalcDensity(thrust::device_vector<Real3>& oldPosRad,
-		thrust::device_vector<Real4>& oldVelMas,
+		thrust::device_vector<Real3>& oldVelMas,
 		thrust::device_vector<Real4>& oldRhoPreMu,
 		thrust::device_vector<Real3>& sortedPosRad,
-		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 		thrust::device_vector<uint>& gridMarkerIndex,
 		thrust::device_vector<uint>& cellStart,
@@ -383,7 +383,7 @@ void ProjectDensityPressureToBCandBCE(thrust::device_vector<Real4>& oldRhoPreMu,
 void CalcCartesianData(thrust::device_vector<Real4>& rho_Pres_CartD,
 		thrust::device_vector<Real4>& vel_VelMag_CartD,
 		thrust::device_vector<Real3>& sortedPosRad,
-		thrust::device_vector<Real4>& sortedVelMas,
+		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 		thrust::device_vector<uint>& gridMarkerIndex,
 		thrust::device_vector<uint>& cellStart,
@@ -405,33 +405,33 @@ void FindMinimumDistanceIndices(
 
 void CalcJacobianAndResidual(int* COO_row, int* COO_col, Real* COO_val,
 		Real* resULF, Real* sortedVDot_P, Real3* sortedPosRad,
-		Real4* sortedVelMas, Real4* sortedRhoPreMu, uint* gridMarkerIndex,
+		Real3* sortedVelMas, Real4* sortedRhoPreMu, uint* gridMarkerIndex,
 		int* contactFluidFromFluid_D, int* contactFluidFromTotal_D,
 		int2* contactIndicesFTotal, int totalNumberOfInterferenceFTotal,
 		uint numAllMarkers, uint numFluidMarkers);
 
 void UpdateFluid(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real3>& vel_XSPH_D,
 		thrust::device_vector<Real4>& rhoPresMuD,
 		thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray, Real dT);
 
 void UpdateFluid_init_LF(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD_half,
+		thrust::device_vector<Real3>& velMasD_half,
 		thrust::device_vector<Real4>& rhoPresMuD_half,
 		const thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray, Real dT);
 
-void UpdateFluid_rho_vel_LF(thrust::device_vector<Real4>& velMasD,
+void UpdateFluid_rho_vel_LF(thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real4>& rhoPresMuD,
-		const thrust::device_vector<Real4>& velMasD_old,
+		const thrust::device_vector<Real3>& velMasD_old,
 		const thrust::device_vector<Real4>& rhoPresMuD_old,
 		const thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray, Real dT);
 
 void UpdateFluid_EveryThing_LF(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD_half,
+		thrust::device_vector<Real3>& velMasD_half,
 		thrust::device_vector<Real4>& rhoPresMuD_half,
 		const thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray, Real dT);
@@ -441,7 +441,7 @@ void Copy_SortedVelXSPH_To_VelXSPH(thrust::device_vector<Real3>& vel_XSPH_D,
 		thrust::device_vector<uint>& m_dGridMarkerIndex, int numAllMarkers);
 
 void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real4>& rhoPresMuD,
 		thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray, Real dT);

@@ -82,7 +82,7 @@ void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
 		const NumberOfObjects& numObjects);
 
 void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
 		const thrust::device_vector<uint>& rigidIdentifierD,
 		const thrust::device_vector<Real3>& posRigidD,
@@ -115,7 +115,7 @@ void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
  * @param dT Time step
  */
 void ForceSPH(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real3>& vel_XSPH_D,
 		thrust::device_vector<Real4>& rhoPresMuD,
 
@@ -126,7 +126,7 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 		BceVersion bceType, Real dT);
 
 void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real4>& rhoPresMuD,
 
 		thrust::device_vector<uint>& bodyIndexD,
@@ -136,16 +136,15 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 		BceVersion bceType, Real dT);
 
 void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real4>& rhoPresMuD, int numAllMarkers, int3 SIDE);
 
 void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
-
-thrust::device_vector<Real3>& posRadD2, thrust::device_vector<Real4>& velMasD2,
+		thrust::device_vector<Real3>& posRadD2, thrust::device_vector<Real3>& velMasD2,
 		thrust::device_vector<Real4>& rhoPresMuD2,
 
 		thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real3>& vel_XSPH_D,
 		thrust::device_vector<Real4>& rhoPresMuD,
 
@@ -154,7 +153,7 @@ thrust::device_vector<Real3>& posRadD2, thrust::device_vector<Real4>& velMasD2,
 		const NumberOfObjects& numObjects, SimParams currentParamsH, Real dT);
 
 void cudaCollisions(thrust::host_vector<Real3>& mPosRad,
-		thrust::host_vector<Real4>& mVelMas,
+		thrust::host_vector<Real3>& mVelMas,
 		thrust::host_vector<Real4>& mRhoPresMu,
 		const thrust::host_vector<uint>& bodyIndex,
 		const thrust::host_vector<int4>& referenceArray,

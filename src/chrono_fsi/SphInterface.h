@@ -33,7 +33,7 @@ Real3 R3_LocalToGlobal(Real3 p3LF, chrono::ChVector<> pos,
 // version 1.0 SPH-FSI. You may delete it
 void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		int& startIndexSph, const thrust::host_vector<Real3>& posRadH,
-		const thrust::host_vector<Real4>& velMasH, const SimParams& paramsH,
+		const thrust::host_vector<Real3>& velMasH, const SimParams& paramsH,
 		const NumberOfObjects& numObjects, int collisionFamilly);
 
 void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
@@ -41,12 +41,12 @@ void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
 
 void UpdateSphDataInChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		const thrust::host_vector<Real3>& posRadH,
-		const thrust::host_vector<Real4>& velMasH,
+		const thrust::host_vector<Real3>& velMasH,
 		const NumberOfObjects& numObjects, int startIndexSph);
 
 void AddChSystemForcesToSphForces(
 		thrust::host_vector<Real4>& derivVelRhoChronoH,
-		const thrust::host_vector<Real4>& velMasH2,
+		const thrust::host_vector<Real3>& velMasH2,
 		chrono::ChSystemParallelDVI& mphysicalSystem,
 		const NumberOfObjects& numObjects, int startIndexSph, Real dT);
 
@@ -56,12 +56,12 @@ void CountNumContactsPerSph(thrust::host_vector<short int>& numContactsOnAllSph,
 
 void ClearArraysH(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH);
 
 void ClearArraysH(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<uint>& bodyIndex,
 		thrust::host_vector<int4>& referenceArray);
@@ -76,20 +76,20 @@ void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		Real sphMass);
 
 void CopyCustomChSystemPosVel2HostThrust(thrust::host_vector<Real3>& posRadH,
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		chrono::ChSystemParallelDVI& mphysicalSystem,
 		const NumberOfObjects& numObjects, int startIndexSph,
 		const thrust::host_vector<short int>& numContactsOnAllSph);
 
 void CopyH2DPosVel(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		const thrust::host_vector<Real3>& posRadH,
-		const thrust::host_vector<Real4>& velMasH);
+		const thrust::host_vector<Real3>& velMasH);
 
 void CopyD2HPosVel(thrust::host_vector<Real3>& posRadH,
-		thrust::host_vector<Real4>& velMasH,
-		const thrust::host_vector<Real3>& posRadD,
-		const thrust::host_vector<Real4>& velMasD);
+		thrust::host_vector<Real3>& velMasH,
+		const thrust::device_vector<Real3>& posRadD,
+		const thrust::device_vector<Real3>& velMasD);
 
 void CopyH2D(thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<Real4>& derivVelRhoChronoH);
@@ -100,10 +100,10 @@ void CopySys2D(thrust::device_vector<Real3>& posRadD,
 
 void CopyD2H(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		const thrust::device_vector<Real3>& posRadD,
-		const thrust::device_vector<Real4>& velMasD,
+		const thrust::device_vector<Real3>& velMasD,
 		const thrust::device_vector<Real4>& rhoPresMuD);
 
 void Add_Rigid_ForceTorques_To_ChSystem(

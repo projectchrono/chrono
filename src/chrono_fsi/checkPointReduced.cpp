@@ -18,16 +18,14 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include <cstdlib>  //for atof#include "chrono_fsi/custom_cutil_math.h"
-#include "chrono_fsi/SPHCudaUtils.h"
-#include "chrono_fsi/MyStructs.cuh"
+#include <cstdlib>  //for atof#include "chrono_fsi/custom_cutil_math.h"#include "chrono_fsi/SPHCudaUtils.h"#include "chrono_fsi/MyStructs.cuh"
 #include "chrono_fsi/checkPointReduced.h"
 
 using namespace std;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
-		const thrust::host_vector<Real4>& mVelMas,
+		const thrust::host_vector<Real3>& mVelMas,
 		const thrust::host_vector<Real4>& mRhoPresMu,
 		const thrust::host_vector<uint>& bodyIndex,
 		const thrust::host_vector<int4>& referenceArray,
@@ -70,13 +68,13 @@ void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
 	outMarker << "x, y, z, vx, vy, vz, m, rho, p, mu, type, index,\n # \n";
 	for (int i = 0; i < mPosRad.size(); i++) {
 		Real3 p = mPosRad[i];
-		Real4 vM = mVelMas[i];
+		Real3 vM = mVelMas[i];
 		Real4 rPMtype = mRhoPresMu[i];
 		uint index = bodyIndex[i];
 		outMarker << p.x << ", " << p.y << ", " << p.z << ", " << vM.x << ", "
-				<< vM.y << ", " << vM.z << ", " << vM.w << ", " << rPMtype.x
-				<< ", " << rPMtype.y << ", " << rPMtype.z << ", " << rPMtype.w
-				<< ", " << index << ",\n ";
+				<< vM.y << ", " << vM.z << ", " << rPMtype.x << ", "
+				<< rPMtype.y << ", " << rPMtype.z << ", " << rPMtype.w << ", "
+				<< index << ",\n ";
 	}
 	outMarker.close();
 
@@ -192,7 +190,7 @@ void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
 
 void CheckPointMarkers_Read(bool shouldIRead,
 		thrust::host_vector<Real3>& mPosRad,
-		thrust::host_vector<Real4>& mVelMas,
+		thrust::host_vector<Real3>& mVelMas,
 		thrust::host_vector<Real4>& mRhoPresMu,
 		thrust::host_vector<uint>& bodyIndex,
 		thrust::host_vector<int4>& referenceArray,
@@ -225,13 +223,12 @@ void CheckPointMarkers_Read(bool shouldIRead,
 	getline(inMarker, ddSt);
 
 	Real3 p;
-	Real4 vM;
+	Real3 vM;
 	Real4 rPMtype;
 	uint index;
 	inMarker >> p.x >> ddCh >> p.y >> ddCh >> p.z >> ddCh >> vM.x >> ddCh
-			>> vM.y >> ddCh >> vM.z >> ddCh >> vM.w >> ddCh >> rPMtype.x >> ddCh
-			>> rPMtype.y >> ddCh >> rPMtype.z >> ddCh >> rPMtype.w >> ddCh
-			>> index >> ddCh;
+			>> vM.y >> ddCh >> vM.z >> ddCh >> rPMtype.x >> ddCh >> rPMtype.y
+			>> ddCh >> rPMtype.z >> ddCh >> rPMtype.w >> ddCh >> index >> ddCh;
 	while (inMarker.good()) {
 		mPosRad.push_back(p);
 		mVelMas.push_back(vM);
@@ -239,9 +236,9 @@ void CheckPointMarkers_Read(bool shouldIRead,
 		bodyIndex.push_back(index);
 
 		inMarker >> p.x >> ddCh >> p.y >> ddCh >> p.z >> ddCh >> vM.x >> ddCh
-				>> vM.y >> ddCh >> vM.z >> ddCh >> vM.w >> ddCh >> rPMtype.x
-				>> ddCh >> rPMtype.y >> ddCh >> rPMtype.z >> ddCh >> rPMtype.w
-				>> ddCh >> index >> ddCh;
+				>> vM.y >> ddCh >> vM.z >> ddCh >> rPMtype.x >> ddCh
+				>> rPMtype.y >> ddCh >> rPMtype.z >> ddCh >> rPMtype.w >> ddCh
+				>> index >> ddCh;
 	}
 	inMarker.close();
 

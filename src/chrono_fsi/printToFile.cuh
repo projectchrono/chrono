@@ -19,7 +19,7 @@ void PrintCartesianData_MidLine(
 		const int3& cartesianGridDims, const SimParams& paramsH);
 //--------------------------------------------------------------------------------------------------------------------------------
 void PrintToFile(const thrust::device_vector<Real3>& posRadD,
-		const thrust::device_vector<Real4>& velMasD,
+		const thrust::device_vector<Real3>& velMasD,
 		const thrust::device_vector<Real4>& rhoPresMuD,
 		const thrust::host_vector<int4>& referenceArray,
 		const SimParams paramsH, Real realTime, int tStep, int stepSave,

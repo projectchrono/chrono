@@ -50,7 +50,7 @@ Real3 R3_LocalToGlobal(Real3 p3LF, chrono::ChVector<> pos,
 // version 1.0 SPH-FSI. You may delete it
 void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		int& startIndexSph, const thrust::host_vector<Real3>& posRadH,
-		const thrust::host_vector<Real4>& velMasH, const SimParams& paramsH,
+		const thrust::host_vector<Real3>& velMasH, const SimParams& paramsH,
 		const NumberOfObjects& numObjects, int collisionFamilly) {
 	Real rad = 0.5 * paramsH.MULT_INITSPACE * paramsH.HSML;
 	// NOTE: mass properties and shapes are all for sphere
@@ -78,9 +78,9 @@ void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 	// openmp does not work here
 	for (int i = 0; i < numObjects.numFluidMarkers; i++) {
 		Real3 p3 = posRadH[i];
-		Real4 vM4 = velMasH[i];
+		Real3 vM3 = velMasH[i];
 		chrono::ChVector<> pos = ConvertRealToChVector(p3);
-		chrono::ChVector<> vel = ConvertRealToChVector(vM4);
+		chrono::ChVector<> vel = ConvertRealToChVector(vM3);
 		chrono::ChSharedBodyPtr body;
 		body = chrono::ChSharedBodyPtr(
 				new chrono::ChBody(
@@ -147,14 +147,14 @@ void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
 // Arman : Delete later
 void UpdateSphDataInChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		const thrust::host_vector<Real3>& posRadH,
-		const thrust::host_vector<Real4>& velMasH,
+		const thrust::host_vector<Real3>& velMasH,
 		const NumberOfObjects& numObjects, int startIndexSph) {
 #pragma omp parallel for
 	for (int i = 0; i < numObjects.numFluidMarkers; i++) {
 		Real3 p3 = posRadH[i];
-		Real4 vM4 = velMasH[i];
+		Real3 vM3 = velMasH[i];
 		chrono::ChVector<> pos = ConvertRealToChVector(p3);
-		chrono::ChVector<> vel = ConvertRealToChVector(vM4);
+		chrono::ChVector<> vel = ConvertRealToChVector(vM3);
 
 		auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
 		mBody->SetPos(pos);
@@ -165,14 +165,14 @@ void UpdateSphDataInChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 // Arman : Delete later
 void AddChSystemForcesToSphForces(
 		thrust::host_vector<Real4>& derivVelRhoChronoH,
-		const thrust::host_vector<Real4>& velMasH2,
+		const thrust::host_vector<Real3>& velMasH2,
 		chrono::ChSystemParallelDVI& mphysicalSystem,
 		const NumberOfObjects& numObjects, int startIndexSph, Real dT) {
 #pragma omp parallel for
 	for (int i = 0; i < numObjects.numFluidMarkers; i++) {
 		auto mBody = mphysicalSystem.Get_bodylist()->at(i + startIndexSph);
 		chrono::ChVector<> v = mBody->GetPos_dt();
-		Real3 a3 = (mR3(v.x, v.y, v.z) - mR3(velMasH2[i])) / dT;  // f = m * a
+		Real3 a3 = (mR3(v.x, v.y, v.z) - velMasH2[i]) / dT;  // f = m * a
 		derivVelRhoChronoH[i] += mR4(a3, 0); // note, gravity force is also coming from rigid system
 	}
 }
@@ -180,7 +180,7 @@ void AddChSystemForcesToSphForces(
 
 void ClearArraysH(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH) {
 	posRadH.clear();
 	velMasH.clear();
@@ -190,7 +190,7 @@ void ClearArraysH(
 
 void ClearArraysH(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<uint>& bodyIndex,
 		thrust::host_vector<::int4>& referenceArray) {
@@ -261,7 +261,7 @@ void CopyForceSphToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 //------------------------------------------------------------------------------------
 
 void CopyCustomChSystemPosVel2HostThrust(thrust::host_vector<Real3>& posRadH,
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		chrono::ChSystemParallelDVI& mphysicalSystem,
 		const NumberOfObjects& numObjects, int startIndexSph,
 		const thrust::host_vector<short int>& numContactsOnAllSph) {
@@ -273,16 +273,15 @@ void CopyCustomChSystemPosVel2HostThrust(thrust::host_vector<Real3>& posRadH,
 		chrono::ChVector<> pos = mBody->GetPos();
 		posRadH[i] = mR3(pos.x, pos.y, pos.z);
 		chrono::ChVector<> vel = mBody->GetPos_dt();
-		Real mass = velMasH[i].w;
-		velMasH[i] = mR4(vel.x, vel.y, vel.z, mass);
+		velMasH[i] = mR3(vel.x, vel.y, vel.z);
 	}
 }
 //------------------------------------------------------------------------------------
 
 void CopyH2DPosVel(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real4>& velMasD,
+		thrust::device_vector<Real3>& velMasD,
 		const thrust::host_vector<Real3>& posRadH,
-		const thrust::host_vector<Real4>& velMasH) {
+		const thrust::host_vector<Real3>& velMasH) {
 	//  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
 	if (posRadH.size() != posRadD.size()) {
 		printf("\n\n\n\n Error! size mismatch host and device \n\n\n\n");
@@ -294,9 +293,9 @@ void CopyH2DPosVel(thrust::device_vector<Real3>& posRadD,
 //------------------------------------------------------------------------------------
 
 void CopyD2HPosVel(thrust::host_vector<Real3>& posRadH,
-		thrust::host_vector<Real4>& velMasH,
-		const thrust::host_vector<Real3>& posRadD,
-		const thrust::host_vector<Real4>& velMasD) {
+		thrust::host_vector<Real3>& velMasH,
+		const thrust::device_vector<Real3>& posRadD,
+		const thrust::device_vector<Real3>& velMasD) {
 	//  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
 	if (posRadH.size() != posRadD.size()) {
 		printf("\n\n\n\n Error! size mismatch host and device \n\n\n\n");
@@ -334,10 +333,10 @@ void CopySys2D(thrust::device_vector<Real3>& posRadD,
 
 void CopyD2H(
 		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real4>& velMasH,
+		thrust::host_vector<Real3>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		const thrust::device_vector<Real3>& posRadD,
-		const thrust::device_vector<Real4>& velMasD,
+		const thrust::device_vector<Real3>& velMasD,
 		const thrust::device_vector<Real4>& rhoPresMuD) {
 	//  assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device");
 	if (posRadH.size() != posRadD.size()) {
