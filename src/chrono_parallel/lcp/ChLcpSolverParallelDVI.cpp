@@ -41,7 +41,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
-    ComputeMassMatrix();
+    //ComputeMassMatrix();
 
     data_manager->host_data.gamma.resize(data_manager->num_constraints);
     data_manager->host_data.gamma.reset();

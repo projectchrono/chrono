@@ -189,7 +189,7 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
     const real mass_2 = mass * mass;
     const real eta_2 = eta * eta;
 
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
         real dens = 0;
         real3 diag = real3(0);
@@ -212,7 +212,7 @@ void ChConstraintFluidFluid::Build_D_Fluid() {
     }
 
     if (data_manager->settings.fluid.enable_viscosity) {
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
             // printf("a: %d ", body_a);
             Mat33 visc_mat;
@@ -382,9 +382,9 @@ void ChConstraintFluidFluid::GenerateSparsityFluid() {
             int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
             // printf("index: [%d, %d]\n", body_a, body_b);
 
-            D_T.append(index_offset + body_a, body_offset + body_b * 3 + 0, 1);
-            D_T.append(index_offset + body_a, body_offset + body_b * 3 + 1, 1);
-            D_T.append(index_offset + body_a, body_offset + body_b * 3 + 2, 1);
+            D_T.append(index_offset + body_a, body_offset + body_b * 3 + 0, 0);
+            D_T.append(index_offset + body_a, body_offset + body_b * 3 + 1, 0);
+            D_T.append(index_offset + body_a, body_offset + body_b * 3 + 2, 0);
         }
         D_T.finalize(index_offset + body_a);
     }
@@ -394,25 +394,25 @@ void ChConstraintFluidFluid::GenerateSparsityFluid() {
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
             for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
-                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3 + 0, 1);
-                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3 + 1, 1);
-                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3 + 2, 1);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3 + 0, 0);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3 + 1, 0);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3 + 2, 0);
             }
             D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 0);
 
             for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
-                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3 + 0, 1);
-                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3 + 1, 1);
-                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3 + 2, 1);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3 + 0, 0);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3 + 1, 0);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3 + 2, 0);
             }
             D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 1);
 
             for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
-                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3 + 0, 1);
-                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3 + 1, 1);
-                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3 + 2, 1);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3 + 0, 0);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3 + 1, 0);
+                D_T.append(index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3 + 2, 0);
             }
             D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 2);
         }
@@ -461,13 +461,18 @@ void ChConstraintFluidFluid::ArtificialPressure() {
 #pragma omp parallel for
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
             real corr = 0;
+            real3 pos_a = sorted_pos[body_a];
             for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+                //                if(body_a==body_b){
+                //                	continue;
+                //                }
+                real3 xij = (pos_a - sorted_pos[body_b]);
 
-                real3 xij = (sorted_pos[body_a] - sorted_pos[body_b]);
                 real dist = Length(xij);
                 corr += k * pow(KERNEL(dist, h) / KERNEL(dq, h), n);
             }
+            // printf("corr: %f", corr);
             data_manager->host_data.gamma[index_offset + body_a] += corr;
         }
     }

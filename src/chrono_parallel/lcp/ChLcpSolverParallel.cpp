@@ -105,7 +105,7 @@ void ChLcpSolverParallel::ComputeInvMassMatrix() {
 }
 
 void ChLcpSolverParallel::ComputeMassMatrix() {
-    // LOG(INFO) << "ChLcpSolverParallel::ComputeMassMatrix()";
+    LOG(INFO) << "ChLcpSolverParallel::ComputeMassMatrix()";
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
@@ -117,10 +117,6 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
     std::vector<ChSharedPtr<ChLink> >* link_list = data_manager->link_list;
     std::vector<ChSharedPtr<ChPhysicsItem> >* other_physics_list = data_manager->other_physics_list;
 
-    const DynamicVector<real>& hf = data_manager->host_data.hf;
-    const DynamicVector<real>& v = data_manager->host_data.v;
-
-    DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     CompressedMatrix<real>& M = data_manager->host_data.M;
 
     clear(M);
@@ -173,12 +169,13 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
             M.finalize(i * 6 + 5);
         }
     }
-    int offset = num_bodies * 6;
+
     for (int i = 0; i < num_shafts; i++) {
-        M.append(offset + i, offset + i, 1.0 / shaft_inr[i]);
-        M.finalize(offset + i);
+        M.append(num_bodies * 6 + i, num_bodies * 6 + i, 1.0 / shaft_inr[i]);
+        M.finalize(num_bodies * 6 + i);
     }
-    offset = num_bodies * 6 + num_shafts;
+
+    int offset = num_bodies * 6 + num_shafts;
     real fluid_mass = data_manager->settings.fluid.mass;
     for (int i = 0; i < num_fluid_bodies; i++) {
         M.append(offset + i * 3 + 0, offset + i * 3 + 0, fluid_mass);
