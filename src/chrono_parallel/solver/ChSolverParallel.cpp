@@ -196,10 +196,14 @@ uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const Con
     v_hat.resize(x.size());
     w.resize(N);
     Av.resize(x.size());
+    const SubMatrixType& D_b_T = _DBT_;
+    const SubMatrixType& M_invD_b = _MINVDB_;
+
+    CompressedMatrix<real> NshurB = D_b_T * M_invD_b;
 
     real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1,
                r2, r3;
-    ShurBilaterals(x, v_hat);
+    v_hat = NshurB * x;  // ShurBilaterals(x, v_hat);
     v_hat = mb - v_hat;
     beta = Sqrt((v_hat, v_hat));
     w_old = w;
@@ -209,13 +213,16 @@ uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const Con
     norm_r0 = beta;
     v = 0;
     w = 0;
-    if (beta == 0 || norm_rMR / norm_r0 < data_manager->settings.solver.tol_speed) { return 0; }
+
+    if (beta == 0 || norm_rMR / norm_r0 < data_manager->settings.solver.tol_speed) {
+        return 0;
+    }
 
     for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
         //// Lanczos
         v_old = v;
         v = 1.0 / beta * v_hat;
-        ShurBilaterals(v, Av);
+        Av = NshurB * v;  // ShurBilaterals(v, Av);
         alpha = (v, Av);
         v_hat = Av - alpha * v - beta * v_old;
         beta_old = beta;
@@ -237,7 +244,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const Con
         w_old = w;
         w = r1 * (v - r3 * w_oold - r2 * w_old);
         x = x + c * eta * w;
-        norm_rMR = norm_rMR * std::abs(s);
+        norm_rMR = norm_rMR * Abs(s);
         eta = -s * eta;
         residual = norm_rMR / norm_r0;
 
@@ -248,5 +255,6 @@ uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const Con
             break;
         }
     }
+    LOG(INFO) << "Done ChSolverParallel::SolveStab";
     return current_iteration;
 }
