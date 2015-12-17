@@ -287,13 +287,13 @@ void ChElementShellANCF::MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result,
     gammaHHT = 0.5 - alphaHHT;
 
     ChMatrixNM<double, 1, 3> Nx_d0;
-    Nx_d0.MatrMultiply(Nx, *d0);
+    Nx_d0.MatrMultiply(Nx, element->m_d0);
 
     ChMatrixNM<double, 1, 3> Ny_d0;
-    Ny_d0.MatrMultiply(Ny, *d0);
+    Ny_d0.MatrMultiply(Ny, element->m_d0);
 
     ChMatrixNM<double, 1, 3> Nz_d0;
-    Nz_d0.MatrMultiply(Nz, *d0);
+    Nz_d0.MatrMultiply(Nz, element->m_d0);
 
     // Determinant of position vector gradient matrix: Initial configuration
     double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
@@ -377,7 +377,7 @@ void ChElementShellANCF::MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result,
     ddNy.MatrMultiplyT(d_d, Ny);
     ddNz.MatrMultiplyT(d_d, Nz);
 
-    d0_d0.MatrMultiplyT(*d0, *d0);
+    d0_d0.MatrMultiplyT(element->m_d0, element->m_d0);
     d0d0Nx.MatrMultiplyT(d0_d0, Nx);
     d0d0Ny.MatrMultiplyT(d0_d0, Ny);
     d0d0Nz.MatrMultiplyT(d0_d0, Nz);
@@ -938,10 +938,10 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 // Enhanced Assumed Strain (EAS)
                 T0.Reset();
                 detJ0C = 0.0;
-                T0DetJElementCenterForEAS(m_d0, T0, detJ0C, theta);
+                T0DetJElementCenterForEAS(T0, detJ0C, theta);
 
                 // MyForce constructor;
-                MyForce myformula(&d, &d_dt, &strain_ans, &strainD_ans, &m_d0, &E_eps, this, &T0, &detJ0C, &theta,
+                MyForce myformula(&d, &d_dt, &strain_ans, &strainD_ans, &E_eps, this, &T0, &detJ0C, &theta,
                                   &alpha_eas);
                 ChQuadrature::Integrate3D<ChMatrixNM<double, 750, 1> >(
                     TempIntegratedResult,  // result of integration will go there
@@ -1140,8 +1140,7 @@ void ChElementShellANCF::Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y
 
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
-                                                   ChMatrixNM<double, 6, 6>& T0,
+void ChElementShellANCF::T0DetJElementCenterForEAS(ChMatrixNM<double, 6, 6>& T0,
                                                    double& detJ0C,
                                                    double& theta) {
     double x = 0;
@@ -1157,13 +1156,13 @@ void ChElementShellANCF::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
     ShapeFunctionsDerivativeZ(Nz, x, y, z);
 
     ChMatrixNM<double, 1, 3> Nx_d0;
-    Nx_d0 = Nx*d0;
+    Nx_d0 = Nx*m_d0;
 
     ChMatrixNM<double, 1, 3> Ny_d0;
-    Ny_d0 = Ny *d0;
+    Ny_d0 = Ny *m_d0;
 
     ChMatrixNM<double, 1, 3> Nz_d0;
-    Nz_d0 = Nz *d0;
+    Nz_d0 = Nz *m_d0;
 
     // Determinant of position vector gradient matrix: Initial configuration
     detJ0C = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +

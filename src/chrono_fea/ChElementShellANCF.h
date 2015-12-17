@@ -95,7 +95,6 @@ namespace fea {
 				ChMatrixNM<double, 24, 1>* d_dt_,         ///< Pointer to current (this iteration) generalized velocities
 				ChMatrixNM<double, 8, 1>* strain_ans_,    ///< Vector for assumed natural strain
 				ChMatrixNM<double, 8, 24>* strainD_ans_,  ///< Matrix for Jacobian of assumed natural strain
-				ChMatrixNM<double, 8, 3>* m_d0,           ///< Pointer to initial coordinates
 				ChMatrixNM<double, 6, 6>* E_eps_,         ///< Pointer to matrix of elastic coefficients (Orthotropic style)
 				ChElementShellANCF* element_,             ///< Pointer to this element
 				ChMatrixNM<double, 6, 6>*
@@ -108,7 +107,6 @@ namespace fea {
 			{
 				d = d_;
 				d_dt = d_dt_;
-				d0 = m_d0;
 				strain_ans = strain_ans_;
 				strainD_ans = strainD_ans_;
 				element = element_;
@@ -126,7 +124,6 @@ namespace fea {
 			ChMatrixNM<double, 8, 3>* d;
 			ChMatrixNM<double, 8, 1>* strain_ans;
 			ChMatrixNM<double, 8, 24>* strainD_ans;
-			ChMatrixNM<double, 8, 3>* d0;
 			ChMatrixNM<double, 24, 1>* d_dt;
 			ChMatrixNM<double, 6, 6>* T0;
 			ChMatrixNM<double, 5, 1>* alpha_eas;
@@ -383,8 +380,7 @@ namespace fea {
 		void Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y, double z);
 
 		// [EAS] matrix T0 (inverse and transposed) and detJ0 at center are used for Enhanced Assumed Strains alpha
-		void T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
-			ChMatrixNM<double, 6, 6>& T0,
+		void T0DetJElementCenterForEAS(ChMatrixNM<double, 6, 6>& T0,
 			double& detJ0C,
 			double& theta);
 
