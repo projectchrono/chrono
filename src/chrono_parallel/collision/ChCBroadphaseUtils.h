@@ -131,7 +131,7 @@ static int3 function_Compute_Grid_Resolution(uint num_aabb, real3 d, real k = .1
 
 // =========================================================================================================
 
-bool function_Check_Sphere(real3 pos_a, real3 pos_b, real radius) {
+static bool function_Check_Sphere(real3 pos_a, real3 pos_b, real radius) {
     real3 delta = pos_b - pos_a;
     real dist2 = Dot(delta, delta);
     real radSum = radius + radius;
