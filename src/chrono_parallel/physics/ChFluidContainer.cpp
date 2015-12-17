@@ -53,10 +53,11 @@ void ChFluidContainer::Update(double ChTime) {
     ChVector<> g_acc = system->Get_G_acc();
     real3 h_gravity = system->GetStep() * system->data_manager->settings.fluid.mass * real3(g_acc.x, g_acc.y, g_acc.z);
     for (int i = 0; i < num_fluid_bodies; i++) {
-        real3 vel = vel_fluid[i];
-        system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = vel.x;
-        system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = vel.y;
-        system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = vel.z;
+        // This was moved to after fluid collision detection
+        // real3 vel = vel_fluid[i];
+        // system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = vel.x;
+        // system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = vel.y;
+        // system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = vel.z;
 
         system->data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = h_gravity.x;
         system->data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = h_gravity.y;
@@ -74,6 +75,8 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
 
     for (int i = 0; i < num_fluid_bodies; i++) {
         real3 vel;
+        int original_index = system->data_manager->host_data.particle_indices_fluid[i];
+        // these are sorted so we have to unsort them
         vel.x = system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0];
         vel.y = system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1];
         vel.z = system->data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2];
@@ -82,8 +85,8 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
         if (speed > system->data_manager->settings.fluid.max_velocity) {
             vel = vel * system->data_manager->settings.fluid.max_velocity / speed;
         }
-        vel_fluid[i] = vel;
-        pos_fluid[i] += vel * system->GetStep();
+        vel_fluid[original_index] = vel;
+        pos_fluid[original_index] += vel * system->GetStep();
     }
 }
 

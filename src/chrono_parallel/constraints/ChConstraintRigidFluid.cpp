@@ -95,7 +95,7 @@ void ChConstraintRigidFluid::Build_D() {
         return;
     }
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
+    custom_vector<real3>& pos = data_manager->host_data.sorted_pos_fluid;
 
     custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;

@@ -400,7 +400,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     data_manager->host_data.c_counts_rigid_fluid.resize(data_manager->num_fluid_bodies);
     Thrust_Fill(data_manager->host_data.c_counts_rigid_fluid, 0);
 #else
-    custom_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
+    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_fluid;
     custom_vector<real3>& norm_rigid_fluid = data_manager->host_data.norm_rigid_fluid;
     custom_vector<real3>& cpta_rigid_fluid = data_manager->host_data.cpta_rigid_fluid;
     custom_vector<real>& dpth_rigid_fluid = data_manager->host_data.dpth_rigid_fluid;
@@ -425,7 +425,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
         int counter = 0;
         for (int r = 0; r < num_rigid_shapes; ++r) {
             if (overlap(data_manager->host_data.aabb_min[r], data_manager->host_data.aabb_max[r],
-                        pos_fluid[p] - real3(radius), pos_fluid[p] + real3(radius)) == false) {
+                        sorted_pos_fluid[p] - real3(radius), sorted_pos_fluid[p] + real3(radius)) == false) {
                 continue;
             }
 
@@ -436,7 +436,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
             shapeB.type = SPHERE;
 
             shapeA.A = obj_data_A_global[r];
-            shapeB.A = pos_fluid[p];
+            shapeB.A = sorted_pos_fluid[p];
 
             shapeA.B = obj_data_B_global[r];
             shapeB.B = real3(radius, 0, 0);
@@ -547,11 +547,15 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
 
     LOG(TRACE) << "start DispatchFluidFluid: ";
     const int num_fluid_bodies = data_manager->num_fluid_bodies;
+    const int num_rigid_bodies = data_manager->num_rigid_bodies;
+    const int num_shafts = data_manager->num_shafts;
+
     if (num_fluid_bodies == 0) {
         return;
     }
     timer.start();
     const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
+    const custom_vector<real3>& vel_fluid = data_manager->host_data.vel_fluid;
     custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_fluid;
 
     custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
@@ -559,7 +563,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
 
     custom_vector<int> bin_ids(num_fluid_bodies);
     custom_vector<int>& particle_indices = data_manager->host_data.particle_indices_fluid;
-    custom_vector<long long>& bids_fluid_fluid = data_manager->host_data.bids_fluid_fluid;
+    // custom_vector<long long>& bids_fluid_fluid = data_manager->host_data.bids_fluid_fluid;
     particle_indices.resize(num_fluid_bodies);
 
     custom_vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping;
@@ -568,7 +572,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     contact_counts.resize(num_fluid_bodies);
     sorted_pos_fluid.resize(num_fluid_bodies);
     neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
-    bids_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
+    // bids_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
     timer.stop();
     t1 = timer();
     timer.reset();
@@ -576,9 +580,9 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     Thrust_Fill(contact_counts, 0);
     Thrust_Fill(neighbor_fluid_fluid, 0);
 
-    long long t = 9223372036854775807;
+    // long long t = 9223372036854775807;
 
-    Thrust_Fill(bids_fluid_fluid, t);
+    // Thrust_Fill(bids_fluid_fluid, t);
 
     const real radius = data_manager->settings.fluid.kernel_radius;
     const real radiusSq = radius * radius;
@@ -657,6 +661,10 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     for (int i = 0; i < num_fluid_bodies; i++) {
         int index = particle_indices[i];
         sorted_pos_fluid[i] = pos_fluid[index];
+        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = vel_fluid[index].x;
+        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = vel_fluid[index].y;
+        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = vel_fluid[index].z;
+
         reverse_mapping[index] = i;
     }
     timer.stop();
@@ -691,9 +699,12 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                         if (dSq < radiusSq) {
                             if (contact_count < max_neighbors) {
                                 neighbor_fluid_fluid[p * max_neighbors + contact_count] = q;
-                                bids_fluid_fluid[p * max_neighbors + contact_count] =
-                                    ((long long)data_manager->host_data.particle_indices_fluid[p] << 32 |
-                                     (long long)data_manager->host_data.particle_indices_fluid[q]);
+                                //                                bids_fluid_fluid[p * max_neighbors + contact_count] =
+                                //                                    ((long
+                                //                                    long)data_manager->host_data.particle_indices_fluid[p]
+                                //                                    << 32 |
+                                //                                     (long
+                                //                                     long)data_manager->host_data.particle_indices_fluid[q]);
                                 ++contact_count;
                             }
                         }
@@ -719,7 +730,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
         }
     }
 #endif
-    Thrust_Sort(bids_fluid_fluid);
+    // Thrust_Sort(bids_fluid_fluid);
     timer.stop();
     t8 = timer();
     timer.reset();

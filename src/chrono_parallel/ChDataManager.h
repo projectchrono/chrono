@@ -124,8 +124,8 @@ struct host_container {
     custom_vector<int> neighbor_fluid_fluid;
     custom_vector<int> c_counts_fluid_fluid;
     custom_vector<int> particle_indices_fluid;
-    custom_vector<int> fluid_contact_index;
-    custom_vector<long long> bids_fluid_fluid;
+    //custom_vector<int> fluid_contact_index;
+    //custom_vector<long long> bids_fluid_fluid;
     custom_vector<int> reverse_mapping;
 
     // Contact forces (DEM)
