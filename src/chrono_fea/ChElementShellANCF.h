@@ -27,6 +27,50 @@
 namespace chrono {
 namespace fea {
 
+// ----------------------------------------------------------------------------
+/// Material definition
+class ChMaterialShellANCF {
+  public:
+    ChMaterialShellANCF(double rho, const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G)
+        : m_rho(rho), m_E(E), m_nu(nu), m_G(G), m_damping_K(0) {
+        // Calculate E_eps
+        double delta = 1.0 - (m_nu.x * m_nu.x) * m_E.y / m_E.x - (m_nu.y * m_nu.y) * m_E.z / m_E.x -
+            (m_nu.z * m_nu.z) * m_E.z / m_E.y - 2.0 * m_nu.x * m_nu.y * m_nu.z * m_E.z / m_E.x;
+        double nu_yx = m_nu.x * m_E.y / m_E.x;
+        double nu_zx = m_nu.y * m_E.z / m_E.x;
+        double nu_zy = m_nu.z * m_E.z / m_E.y;
+        m_E_eps(0, 0) = m_E.x * (1.0 - (m_nu.z * m_nu.z) * m_E.z / m_E.y) / delta;
+        m_E_eps(1, 1) = m_E.y * (1.0 - (m_nu.y * m_nu.y) * m_E.z / m_E.x) / delta;
+        m_E_eps(3, 3) = m_E.z * (1.0 - (m_nu.x * m_nu.x) * m_E.y / m_E.x) / delta;
+        m_E_eps(0, 1) = m_E.y * (m_nu.x + m_nu.y * m_nu.z * m_E.z / m_E.y) / delta;
+        m_E_eps(0, 3) = m_E.z * (m_nu.y + m_nu.z * m_nu.x) / delta;
+        m_E_eps(1, 0) = m_E.y * (m_nu.x + m_nu.y * m_nu.z * m_E.z / m_E.y) / delta;
+        m_E_eps(1, 3) = m_E.z * (m_nu.z + m_nu.y * m_nu.x * m_E.y / m_E.x) / delta;
+        m_E_eps(3, 0) = m_E.z * (m_nu.y + m_nu.z * m_nu.x) / delta;
+        m_E_eps(3, 1) = m_E.z * (m_nu.z + m_nu.y * m_nu.x * m_E.y / m_E.x) / delta;
+        m_E_eps(2, 2) = m_G.x;
+        m_E_eps(4, 4) = m_G.y;
+        m_E_eps(5, 5) = m_G.z;
+    }
+
+    double Get_rho() const { return m_rho; }
+
+    void Set_RayleighDampingK(double damping_K) { m_damping_K = damping_K; }
+    double Get_RayleighDampingK() const { return m_damping_K; }
+
+    const ChMatrixNM<double, 6, 6>& Get_E_eps() const { return m_E_eps; }
+
+    double m_rho;        ///< density
+    ChVector<> m_E;      ///< E_x, E_y, E_z
+    ChVector<> m_nu;     ///< nu_xy, nu_xz, nu_yz
+    ChVector<> m_G;      ///< G_xy, G_xz, G_yz
+
+    double m_damping_K;  ///< Rayleigh damping coefficient
+
+    ChMatrixNM<double, 6, 6> m_E_eps;  ///< matrix of elastic coefficients
+};
+
+// ----------------------------------------------------------------------------
 /// ANCF laminated shell element with four nodes.
 /// This class implements composite material elastic
 /// force formulations
@@ -35,7 +79,41 @@ namespace fea {
 		ChElementShellANCF();
 		~ChElementShellANCF() {}
 
-		/// This class defines the calculations for the integrand of the inertia matrix.
+        /// Definition of a layer
+        class Layer {
+          public:
+            double Get_thickness() const { return m_thickness; }
+            double Get_theta() const { return m_theta; }
+            const ChMaterialShellANCF& Get_material() const { return m_material; }
+
+          private:
+            // Private constructor (a layer can be created only by adding it to an element)
+            Layer(ChElementShellANCF* element, double thickness, double theta, const ChMaterialShellANCF& material)
+                : m_element(element), m_thickness(thickness), m_theta(theta), m_material(material) {}
+
+            double Get_detJ0C() const { return m_detJ0C; }
+            const ChMatrixNM<double, 6, 6>& Get_T0() const { return m_T0; }
+
+            /// Initial setup for this layer.
+            /// Calculate T0 and detJ0 at the element center.
+            void SetupInitial();
+
+            // Calculate the determinant of the position vector gradient matrix.
+            // Use the initial configuration and evaluate at the specified point.
+            double Calc_detJ0(double x, double y, double z);
+
+            ChElementShellANCF* m_element;  ///< containing ANCF shell element
+            ChMaterialShellANCF m_material;   ///< layer material
+            double m_thickness;             ///< layer thickness
+            double m_theta;                 ///< fiber angle
+
+            double m_detJ0C;
+            ChMatrixNM<double, 6, 6> m_T0;
+
+            friend class ChElementShellANCF;
+        };
+
+        /// This class defines the calculations for the integrand of the inertia matrix.
 		/// S = [N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3) N5*eye(3) N6*eye(3) N7*eye(3) N8*eye(3)];
 		class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
 		public:
@@ -201,10 +279,18 @@ namespace fea {
 		/// Get a handle to the fourth node of this element.
 		ChSharedPtr<ChNodeFEAxyzD> GetNodeD() const { return m_nodes[3]; }
 
-		/// Set the numbber of layers (for laminate shell)
+        /// Add a layer
+        void AddLayer(double thickness, double theta, const ChMaterialShellANCF& material) {
+            m_layers.push_back(Layer(this, thickness, theta, material));
+        }
+
+        /// Get the number of layers
+        size_t GetNumLayers() const { return m_layers.size(); }
+
+		/// Set the number of layers (for laminate shell)
 		void SetNumLayers(int numLayers) { m_numLayers = numLayers; }
 
-		/// Set the stotal shell thickness.
+		/// Set the total shell thickness.
 		void SetThickness(double th) { m_thickness = th; }
 
 		/// Set the element number (for EAS).
@@ -279,7 +365,8 @@ namespace fea {
 	private:
 		enum JacobianType { ANALYTICAL, NUMERICAL };
 
-		std::vector<ChSharedPtr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
+        std::vector<ChSharedPtr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
+        std::vector<Layer> m_layers;                       ///< element layers
 
 		double m_thickness;
 		int m_element_number;                          ///< element number (for EAS)

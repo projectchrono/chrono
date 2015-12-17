@@ -2593,5 +2593,155 @@ void ChElementShellANCF::JacCalcUnrolled(const ChMatrixNM<double, 6, 1>& stress,
         ;
 };
 
+
+// ============================================================================
+
+void ChElementShellANCF::Layer::SetupInitial() {
+    // Evaluate shape functions at element center
+    ChMatrixNM<double, 1, 8> Nx;
+    ChMatrixNM<double, 1, 8> Ny;
+    ChMatrixNM<double, 1, 8> Nz;
+    m_element->ShapeFunctionsDerivativeX(Nx, 0, 0, 0);
+    m_element->ShapeFunctionsDerivativeY(Ny, 0, 0, 0);
+    m_element->ShapeFunctionsDerivativeZ(Nz, 0, 0, 0);
+
+    ChMatrixNM<double, 1, 3> Nx_d0 = Nx * m_element->m_d0;
+    ChMatrixNM<double, 1, 3> Ny_d0 = Ny * m_element->m_d0;
+    ChMatrixNM<double, 1, 3> Nz_d0 = Nz * m_element->m_d0;
+
+    // Determinant of position vector gradient matrix: Initial configuration
+    m_detJ0C = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
+        Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
+        Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
+
+    //// Transformation : Orthogonal transformation (A and J) ////
+    ChVector<double> G1xG2;  // Cross product of first and second column of
+    double G1dotG1;  // Dot product of first column of position vector gradient
+
+    G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
+    G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
+    G1xG2.z = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
+    G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
+
+    // Tangent Frame
+    ChVector<double> A1;
+    ChVector<double> A2;
+    ChVector<double> A3;
+    A1.x = Nx_d0[0][0];
+    A1.y = Nx_d0[0][1];
+    A1.z = Nx_d0[0][2];
+    A1 = A1 / sqrt(G1dotG1);
+    A3 = G1xG2.GetNormalized();
+    A2.Cross(A3, A1);
+
+    ChVector<double> AA1;
+    ChVector<double> AA2;
+    ChVector<double> AA3;
+    AA1 = A1 * cos(m_theta) + A2 * sin(m_theta);
+    AA2 = -A1 * sin(m_theta) + A2 * cos(m_theta);
+    AA3 = A3;
+
+    ////Beta
+    ChMatrixNM<double, 3, 3> j0;
+    ChVector<double> j01;
+    ChVector<double> j02;
+    ChVector<double> j03;
+    ChMatrixNM<double, 9, 1> beta;
+
+    j0(0, 0) = Ny_d0[0][1] * Nz_d0[0][2] - Nz_d0[0][1] * Ny_d0[0][2];
+    j0(0, 1) = Ny_d0[0][2] * Nz_d0[0][0] - Ny_d0[0][0] * Nz_d0[0][2];
+    j0(0, 2) = Ny_d0[0][0] * Nz_d0[0][1] - Nz_d0[0][0] * Ny_d0[0][1];
+    j0(1, 0) = Nz_d0[0][1] * Nx_d0[0][2] - Nx_d0[0][1] * Nz_d0[0][2];
+    j0(1, 1) = Nz_d0[0][2] * Nx_d0[0][0] - Nx_d0[0][2] * Nz_d0[0][0];
+    j0(1, 2) = Nz_d0[0][0] * Nx_d0[0][1] - Nz_d0[0][1] * Nx_d0[0][0];
+    j0(2, 0) = Nx_d0[0][1] * Ny_d0[0][2] - Ny_d0[0][1] * Nx_d0[0][2];
+    j0(2, 1) = Ny_d0[0][0] * Nx_d0[0][2] - Nx_d0[0][0] * Ny_d0[0][2];
+    j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
+    j0.MatrDivScale(m_detJ0C);
+
+    j01(0) = j0(0, 0);
+    j02(0) = j0(1, 0);
+    j03(0) = j0(2, 0);
+    j01(1) = j0(0, 1);
+    j02(1) = j0(1, 1);
+    j03(1) = j0(2, 1);
+    j01(2) = j0(0, 2);
+    j02(2) = j0(1, 2);
+    j03(2) = j0(2, 2);
+
+    beta(0) = Vdot(AA1, j01);
+    beta(1) = Vdot(AA2, j01);
+    beta(2) = Vdot(AA3, j01);
+    beta(3) = Vdot(AA1, j02);
+    beta(4) = Vdot(AA2, j02);
+    beta(5) = Vdot(AA3, j02);
+    beta(6) = Vdot(AA1, j03);
+    beta(7) = Vdot(AA2, j03);
+    beta(8) = Vdot(AA3, j03);
+
+    // Calculate T0: transformation matrix, function of fiber angle (see Yamashita et al, 2015, JCND)
+    m_T0(0, 0) = pow(beta(0), 2);
+    m_T0(1, 0) = pow(beta(1), 2);
+    m_T0(2, 0) = 2.0 * beta(0) * beta(1);
+    m_T0(3, 0) = pow(beta(2), 2);
+    m_T0(4, 0) = 2.0 * beta(0) * beta(2);
+    m_T0(5, 0) = 2.0 * beta(1) * beta(2);
+
+    m_T0(0, 1) = pow(beta(3), 2);
+    m_T0(1, 1) = pow(beta(4), 2);
+    m_T0(2, 1) = 2.0 * beta(3) * beta(4);
+    m_T0(3, 1) = pow(beta(5), 2);
+    m_T0(4, 1) = 2.0 * beta(3) * beta(5);
+    m_T0(5, 1) = 2.0 * beta(4) * beta(5);
+
+    m_T0(0, 2) = beta(0) * beta(3);
+    m_T0(1, 2) = beta(1) * beta(4);
+    m_T0(2, 2) = beta(0) * beta(4) + beta(1) * beta(3);
+    m_T0(3, 2) = beta(2) * beta(5);
+    m_T0(4, 2) = beta(0) * beta(5) + beta(2) * beta(3);
+    m_T0(5, 2) = beta(2) * beta(4) + beta(1) * beta(5);
+
+    m_T0(0, 3) = pow(beta(6), 2);
+    m_T0(1, 3) = pow(beta(7), 2);
+    m_T0(2, 3) = 2.0 * beta(6) * beta(7);
+    m_T0(3, 3) = pow(beta(8), 2);
+    m_T0(4, 3) = 2.0 * beta(6) * beta(8);
+    m_T0(5, 3) = 2.0 * beta(7) * beta(8);
+
+    m_T0(0, 4) = beta(0) * beta(6);
+    m_T0(1, 4) = beta(1) * beta(7);
+    m_T0(2, 4) = beta(0) * beta(7) + beta(6) * beta(1);
+    m_T0(3, 4) = beta(2) * beta(8);
+    m_T0(4, 4) = beta(0) * beta(8) + beta(2) * beta(6);
+    m_T0(5, 4) = beta(1) * beta(8) + beta(2) * beta(7);
+
+    m_T0(0, 5) = beta(3) * beta(6);
+    m_T0(1, 5) = beta(4) * beta(7);
+    m_T0(2, 5) = beta(3) * beta(7) + beta(4) * beta(6);
+    m_T0(3, 5) = beta(5) * beta(8);
+    m_T0(4, 5) = beta(3) * beta(8) + beta(6) * beta(5);
+    m_T0(5, 5) = beta(4) * beta(8) + beta(5) * beta(7);
+}
+
+double ChElementShellANCF::Layer::Calc_detJ0(double x, double y, double z) {
+    ChMatrixNM<double, 1, 8> Nx;
+    ChMatrixNM<double, 1, 8> Ny;
+    ChMatrixNM<double, 1, 8> Nz;
+    m_element->ShapeFunctionsDerivativeX(Nx, x, y, z);
+    m_element->ShapeFunctionsDerivativeY(Ny, x, y, z);
+    m_element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
+
+    ChMatrixNM<double, 1, 3> Nx_d0 = Nx * m_element->m_d0;
+    ChMatrixNM<double, 1, 3> Ny_d0 = Ny * m_element->m_d0;
+    ChMatrixNM<double, 1, 3> Nz_d0 = Nz * m_element->m_d0;
+
+    double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
+        Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
+        Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
+
+    return detJ0;
+}
+
+
 }  // end of namespace fea
 }  // end of namespace chrono
