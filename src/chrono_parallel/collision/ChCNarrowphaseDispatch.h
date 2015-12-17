@@ -59,6 +59,12 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     real collision_envelope;
     NARROWPHASETYPE narrowphase_algorithm;
     SYSTEMTYPE system_type;
+    custom_vector<uint> f_bin_intersections;
+    custom_vector<uint> f_bin_number;
+    custom_vector<uint> f_bin_number_out;
+    custom_vector<uint> f_bin_fluid_number;
+    custom_vector<uint> f_bin_start_index;
+    custom_vector<uint> is_rigid_bin_active;
 };
 }  // end namespace collision
 }  // end namespace chrono

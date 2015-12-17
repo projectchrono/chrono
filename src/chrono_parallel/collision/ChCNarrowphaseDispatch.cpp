@@ -405,17 +405,14 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
-    custom_vector<unsigned int> is_rigid_bin_active(total_bins, -1);
-// printf("TOTAL BINS: %d \n", total_bins);
+    is_rigid_bin_active.resize(total_bins);
+    Thrust_Fill(is_rigid_bin_active, -1);
 #pragma omp parallel for
     for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
-        // uint start = data_manager->host_data.bin_start_index[index];
-        // uint end = data_manager->host_data.bin_start_index[index + 1];
-        // printf("bin_number: %d \n", data_manager->host_data.bin_number_out[index]);
         uint bin_number = data_manager->host_data.bin_number_out[index];
         is_rigid_bin_active[bin_number] = index;
     }
-    custom_vector<uint> f_bin_intersections(num_fluid_bodies);
+    f_bin_intersections.resize(num_fluid_bodies);
 #pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
         real3 pos_fluid = sorted_pos_fluid[p];
@@ -425,10 +422,10 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     }
     Thrust_Exclusive_Scan(f_bin_intersections);
     uint f_number_of_bin_intersections = f_bin_intersections.back();
-    custom_vector<uint> f_bin_number(f_number_of_bin_intersections);
-    custom_vector<uint> f_bin_number_out(f_number_of_bin_intersections);
-    custom_vector<uint> f_bin_fluid_number(f_number_of_bin_intersections);
-    custom_vector<uint> f_bin_start_index(f_number_of_bin_intersections);
+    f_bin_number.resize(f_number_of_bin_intersections);
+    f_bin_number_out.resize(f_number_of_bin_intersections);
+    f_bin_fluid_number.resize(f_number_of_bin_intersections);
+    f_bin_start_index.resize(f_number_of_bin_intersections);
 
 #pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
@@ -461,9 +458,8 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     dpth_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
     neighbor_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
     contact_counts.resize(num_fluid_bodies);
+
     Thrust_Fill(contact_counts, 0);
-    int tests = 0;
-    //
     for (int index = 0; index < f_number_of_bins_active; index++) {
         uint start = f_bin_start_index[index];
         uint end = f_bin_start_index[index + 1];
@@ -522,10 +518,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
             }
         }
     }
-
-    // LOG(TRACE) << "NUM Rigid-Fluid Tests" << tests;
     data_manager->num_rigid_fluid_contacts = Thrust_Total(contact_counts);
-
     LOG(TRACE) << "stop DispatchRigidFluid: " << data_manager->num_rigid_fluid_contacts;
 }
 
