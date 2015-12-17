@@ -660,6 +660,8 @@ int main(int argc, char* argv[]) {
 		//*** initialize fluid particles
 		::int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH,
 				rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
+		paramsH.markerMass = sphMarkerMass;
+
 		printf("num_fluidOrBoundaryMarkers %d %d \n",
 				num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
 		referenceArray.push_back(mI4(0, num_fluidOrBoundaryMarkers.x, -1, -1)); // map fluid -1
@@ -895,7 +897,7 @@ int main(int argc, char* argv[]) {
 				rigid_FSI_ForcesD, rigid_FSI_TorquesD,
 
 				bodyIndexD, FSI_Bodies, referenceArray, numObjects, paramsH,
-				sphMarkerMass, mTime, time_hold_vehicle, tStep,
+				mTime, time_hold_vehicle, tStep,
 				haveVehicle);
 		fsi_timer.stop("DoStepDynamics_FSI");
 #else

@@ -59,20 +59,16 @@ int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
 	/* Number of boundary particles */
 	int num_BoundaryMarkers = 0;
 	srand(964);
-	/* Initial separation of both fluid and boundary particles */
-	Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
-	/* Number of particles per x dimension */
-	int nFX = ceil((paramsH.cMaxInit.x - paramsH.cMinInit.x) / (initSpace0));
-	/* Spacing between center of particles in x dimension*/
-	Real initSpaceX = (paramsH.cMaxInit.x - paramsH.cMinInit.x) / nFX;
-	/* Number of particles per y dimension */
-	int nFY = ceil((paramsH.cMaxInit.y - paramsH.cMinInit.y) / (initSpace0));
-	/* Spacing between center of particles in y dimension*/
-	Real initSpaceY = (paramsH.cMaxInit.y - paramsH.cMinInit.y) / nFY;
-	/* Number of particles per z dimension */
-	int nFZ = ceil((paramsH.cMaxInit.z - paramsH.cMinInit.z) / (initSpace0));
-	/* Spacing between center of particles in z dimension*/
-	Real initSpaceZ = (paramsH.cMaxInit.z - paramsH.cMinInit.z) / nFZ;
+	Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML; 	/* Initial separation of both fluid and boundary particles */
+	int nFX = ceil((paramsH.cMaxInit.x - paramsH.cMinInit.x) / (initSpace0)); 	/* Number of particles per x dimension */
+	Real initSpaceX = (paramsH.cMaxInit.x - paramsH.cMinInit.x) / nFX; 	/* Spacing between center of particles in x dimension*/
+
+	int nFY = ceil((paramsH.cMaxInit.y - paramsH.cMinInit.y) / (initSpace0)); 	/* Number of particles per y dimension */
+	Real initSpaceY = (paramsH.cMaxInit.y - paramsH.cMinInit.y) / nFY; 	/* Spacing between center of particles in y dimension*/
+
+	int nFZ = ceil((paramsH.cMaxInit.z - paramsH.cMinInit.z) / (initSpace0)); 	/* Number of particles per z dimension */
+	Real initSpaceZ = (paramsH.cMaxInit.z - paramsH.cMinInit.z) / nFZ; 	/* Spacing between center of particles in z dimension*/
+
 	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ,
 			(nFY - 1) * initSpaceY, initSpaceY);
 	/* Mass of a small cube in the fluid = (dx*dy*dz) * density */

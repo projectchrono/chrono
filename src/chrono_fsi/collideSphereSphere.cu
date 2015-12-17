@@ -29,8 +29,6 @@ using namespace std;
 //#####################################################################################
 #define B_SIZE 128
 //#####################################################################################
-__constant__ int2 updatePortionD;
-__constant__ Real solid_SPH_massD;
 
 // Arman TODO rotate by quaternion
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -292,7 +290,7 @@ __global__ void Calc_Rigid_FSI_ForcesD(Real3* rigid_FSI_ForcesD,
 	if (rigidSphereA >= numObjectsD.numRigidBodies) {
 		return;
 	}
-	Real3 force3 = solid_SPH_massD
+	Real3 force3 = paramsD.markerMass
 			* mR3(totalSurfaceInteractionRigid4[rigidSphereA]);
 	rigid_FSI_ForcesD[rigidSphereA] = force3;
 }
@@ -307,8 +305,8 @@ __global__ void Calc_Markers_TorquesD(Real3* torqueMarkersD,
 	}
 	Real3 dist3 = Distance(posRadD[rigidMarkerIndex],
 			posRigidD[rigidIdentifierD[index]]);
-	torqueMarkersD[index] = solid_SPH_massD
-			* cross(dist3, mR3(derivVelRhoD[rigidMarkerIndex])); // solid_SPH_massD is multiplied to convert
+	torqueMarkersD[index] = paramsD.markerMass
+			* cross(dist3, mR3(derivVelRhoD[rigidMarkerIndex])); // paramsD.markerMass is multiplied to convert
 																 // from SPH acceleration to force
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -320,7 +318,7 @@ __global__ void UpdateRigidMarkersPositionD(Real3* posRadD, Real4* velMasD,
 	if (index >= numObjectsD.numRigid_SphMarkers) {
 		return;
 	}
-	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortionD = [start, end] index of the update portion
+	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortion = [start, end] index of the update portion
 	int rigidBodyIndex = rigidIdentifierD[index];
 
 	Real4 q4 = qD[rigidBodyIndex];
@@ -362,7 +360,7 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 		Real3* rigidSPH_MeshPos_LRF_D, Real3* posRadD, uint* rigidIdentifierD,
 		Real3* posRigidD, Real4* qD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortionD = [start, end] index of the update portion
+	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortion = [start, end] index of the update portion
 	if (index >= numObjectsD.numRigid_SphMarkers) {
 		return;
 	}
@@ -442,13 +440,12 @@ void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
 		const thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::device_vector<uint>& rigidIdentifierD,
 
-		const NumberOfObjects& numObjects, Real sphMass) {
+		const NumberOfObjects& numObjects) {
 	// Arman: InitSystem has to be called before this point to set the number of objects
 
 	if (numObjects.numRigidBodies == 0) {
 		return;
 	}
-	cudaMemcpyToSymbolAsync(solid_SPH_massD, &sphMass, sizeof(sphMass));
 	//################################################### make force and torque arrays
 	//####### Force (Acceleration)
 	thrust::device_vector<Real4> totalSurfaceInteractionRigid4(

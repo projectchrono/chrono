@@ -113,7 +113,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
 		const thrust::host_vector<int4>& referenceArray,
 		const NumberOfObjects& numObjects, const SimParams& paramsH,
-		Real sphMarkerMass, double mTime, double time_hold_vehicle, int tStep,
+		double mTime, double time_hold_vehicle, int tStep,
 		bool haveVehicle) {
 	chrono::ChTimerParallel doStep_timer;
 	doStep_timer.AddTimer("half_step_dynamic_fsi_12");
@@ -151,8 +151,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 			numObjects, paramsH, 0.5 * paramsH.dT);
 
 	Rigid_Forces_Torques(rigid_FSI_ForcesD, rigid_FSI_TorquesD, posRadD,
-			posRigid_fsiBodies_D, derivVelRhoD, rigidIdentifierD, numObjects,
-			sphMarkerMass);
+			posRigid_fsiBodies_D, derivVelRhoD, rigidIdentifierD, numObjects);
 
 	doStep_timer.stop("half_step_dynamic_fsi_12");
 
@@ -202,8 +201,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 			paramsH, paramsH.dT);
 
 	Rigid_Forces_Torques(rigid_FSI_ForcesD, rigid_FSI_TorquesD, posRadD2,
-			posRigid_fsiBodies_D2, derivVelRhoD, rigidIdentifierD, numObjects,
-			sphMarkerMass);
+			posRigid_fsiBodies_D2, derivVelRhoD, rigidIdentifierD, numObjects);
 	Add_Rigid_ForceTorques_To_ChSystem(mphysicalSystem, rigid_FSI_ForcesD,
 			rigid_FSI_TorquesD, FSI_Bodies);  // Arman: take care of this
 											  //----------------------------

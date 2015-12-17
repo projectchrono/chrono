@@ -9,8 +9,6 @@
 //#include "extraOptionalFunctions.cuh"
 //#include "SDKCollisionSystemAdditional.cuh"
 
-__constant__ Real dTD;
-__constant__ int2 updatePortionD;
 
 /**
  * @brief calcGridHash
@@ -691,7 +689,7 @@ __global__ void CalcBCE_Stresses_kernel(Real3* devStressD, Real3* volStressD,
 	}
 	// Arman take care of this
 	uint BCE_Index = index
-			+ min(numObjectsD.startRigidMarkers, numObjectsD.startRigidMarkers); // updatePortionD = [start, end] index of the update portion
+			+ min(numObjectsD.startRigidMarkers, numObjectsD.startRigidMarkers); // updatePortion = [start, end] index of the update portion
 	uint sortedIndex = mapOriginalToSorted[BCE_Index]; // index in the sorted array
 
 	// read particle data from sorted arrays
@@ -831,24 +829,26 @@ __global__ void ProjectDensityPressureToBCandBCE_D(Real4* oldRhoPreMu,
 __global__ void CalcCartesianDataD(Real4* rho_Pres_CartD,
 		Real4* vel_VelMag_CartD, Real3* sortedPosRad, Real4* sortedVelMas,
 		Real4* sortedRhoPreMu, uint* gridMarkerIndex, uint* cellStart,
-		uint* cellEnd) {
+		uint* cellEnd,
+		int3 cartesianGridDims,
+		Real resolution) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index
-			>= cartesianGridDimsD.x * cartesianGridDimsD.y
-					* cartesianGridDimsD.z)
+			>= cartesianGridDims.x * cartesianGridDims.y
+					* cartesianGridDims.z)
 		return;
 
 	int3 gridLoc;
-	gridLoc.z = index / (cartesianGridDimsD.x * cartesianGridDimsD.y);
-	gridLoc.y = (index % (cartesianGridDimsD.x * cartesianGridDimsD.y))
-			/ cartesianGridDimsD.x;
-	gridLoc.x = (index % (cartesianGridDimsD.x * cartesianGridDimsD.y))
-			% cartesianGridDimsD.x;
-	// alias cartesianGridDimsD = Dim,  you can say:   "index = (Dim.x * Dim.y) * gridLoc.z + Dim.x * gridLoc.y +
+	gridLoc.z = index / (cartesianGridDims.x * cartesianGridDims.y);
+	gridLoc.y = (index % (cartesianGridDims.x * cartesianGridDims.y))
+			/ cartesianGridDims.x;
+	gridLoc.x = (index % (cartesianGridDims.x * cartesianGridDims.y))
+			% cartesianGridDims.x;
+	// alias cartesianGridDims = Dim,  you can say:   "index = (Dim.x * Dim.y) * gridLoc.z + Dim.x * gridLoc.y +
 	// gridLoc.x"
 
 	// get address in grid
-	Real3 gridNodePos3 = mR3(gridLoc) * resolutionD + paramsD.worldOrigin;
+	Real3 gridNodePos3 = mR3(gridLoc) * resolution + paramsD.worldOrigin;
 	int3 gridPos = calcGridPos(gridNodePos3);
 
 	Real3 vel_share = mR3(0.0f);
@@ -883,10 +883,10 @@ __global__ void CalcCartesianDataD(Real4* rho_Pres_CartD,
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateFluidD(Real3* posRadD, Real4* velMasD, Real3* vel_XSPH_D,
-		Real4* rhoPresMuD, Real4* derivVelRhoD) {
+		Real4* rhoPresMuD, Real4* derivVelRhoD, int2 updatePortion, Real dT) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
-	if (index >= updatePortionD.y) {
+	index += updatePortion.x; // updatePortion = [start, end] index of the update portion
+	if (index >= updatePortion.y) {
 		return;
 	}
 	Real4 derivVelRho = derivVelRhoD[index];
@@ -913,11 +913,11 @@ __global__ void UpdateFluidD(Real3* posRadD, Real4* velMasD, Real3* vel_XSPH_D,
 		// 1*** end tweak
 
 		Real3 posRad = posRadD[index];
-		Real3 updatedPositon = posRad + vel_XSPH * dTD;
+		Real3 updatedPositon = posRad + vel_XSPH * dT;
 		posRadD[index] = updatedPositon;  // posRadD updated
 
 		Real4 velMas = velMasD[index];
-		Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
+		Real3 updatedVelocity = mR3(velMas + derivVelRho * dT);
 		// 2*** let's tweak a little bit :)
 		if (length(updatedVelocity)
 				> paramsD.tweakMultV * paramsD.HSML / paramsD.dT
@@ -953,7 +953,7 @@ __global__ void UpdateFluidD(Real3* posRadD, Real4* velMasD, Real3* vel_XSPH_D,
 		}
 	}
 	// 2*** end tweak
-	Real rho2 = rhoPresMu.x + derivVelRho.w * dTD; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	Real rho2 = rhoPresMu.x + derivVelRho.w * dT; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
 	rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD updated
@@ -961,25 +961,25 @@ __global__ void UpdateFluidD(Real3* posRadD, Real4* velMasD, Real3* vel_XSPH_D,
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateFluidD_init_LF(Real3* posRadD, Real4* velMasD_half,
-		Real4* rhoPresMuD_half, Real4* derivVelRhoD) {
+		Real4* rhoPresMuD_half, Real4* derivVelRhoD, int2 updatePortion, Real dT) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
-	if (index >= updatePortionD.y) {
+	index += updatePortion.x; // updatePortion = [start, end] index of the update portion
+	if (index >= updatePortion.y) {
 		return;
 	}
 
 	Real4 derivVelRho = derivVelRhoD[index];
 	Real4 velMas = velMasD_half[index];
-	Real3 updatedVelocity = mR3(velMas + derivVelRho * (0.5 * dTD));
+	Real3 updatedVelocity = mR3(velMas + derivVelRho * (0.5 * dT));
 	velMasD_half[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */
 	velMas.w);  // velMasD_half updated
 
 	Real3 posRad = posRadD[index];
-	Real3 updatedPositon = posRad + updatedVelocity * dTD;
+	Real3 updatedPositon = posRad + updatedVelocity * dT;
 	posRadD[index] = updatedPositon;  // posRadD updated
 
 	Real4 rhoPresMu = rhoPresMuD_half[index];
-	Real rho2 = rhoPresMu.x + derivVelRho.w * (0.5 * dTD); // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	Real rho2 = rhoPresMu.x + derivVelRho.w * (0.5 * dT); // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
 	rhoPresMuD_half[index] = rhoPresMu;  // rhoPresMuD_half updated
@@ -987,19 +987,19 @@ __global__ void UpdateFluidD_init_LF(Real3* posRadD, Real4* velMasD_half,
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateFluidD_rho_vel_LF(Real4* velMasD, Real4* rhoPresMuD,
-		Real4* velMasD_old, Real4* rhoPresMuD_old, Real4* derivVelRhoD) {
+		Real4* velMasD_old, Real4* rhoPresMuD_old, Real4* derivVelRhoD, int2 updatePortion, Real dT) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
-	if (index >= updatePortionD.y) {
+	index += updatePortion.x; // updatePortion = [start, end] index of the update portion
+	if (index >= updatePortion.y) {
 		return;
 	}
 
 	Real4 derivVelRho = derivVelRhoD[index];
 	Real4 velMas = velMasD_old[index];
-	Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
+	Real3 updatedVelocity = mR3(velMas + derivVelRho * dT);
 	// 2*** let's tweak a little bit :)
-	//	if (length(updatedVelocity) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
-	//		updatedVelocity *= ( .1 * paramsD.HSML / dTD ) / length(updatedVelocity);
+	//	if (length(updatedVelocity) > .1 * paramsD.HSML / dT  && paramsD.enableTweak) {
+	//		updatedVelocity *= ( .1 * paramsD.HSML / dT ) / length(updatedVelocity);
 	//		if (length(updatedVelocity) > 1.001) { // infinity
 	//			if (paramsD.enableAggressiveTweak) {
 	//				updatedVelocity = mR3(0);
@@ -1014,9 +1014,9 @@ __global__ void UpdateFluidD_rho_vel_LF(Real4* velMasD, Real4* rhoPresMuD,
 	Real4 rhoPresMu = rhoPresMuD_old[index];
 
 	// 3*** let's tweak a little bit :)
-	//	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / dTD  && paramsD.enableTweak) {
-	//		derivVelRho.w *= (.002 * paramsD.rho0 / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
-	//		if (fabs(derivVelRho.w) > 00201 * paramsD.rho0 / dTD) {
+	//	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / dT  && paramsD.enableTweak) {
+	//		derivVelRho.w *= (.002 * paramsD.rho0 / dT) / fabs(derivVelRho.w); //to take care of the sign as well
+	//		if (fabs(derivVelRho.w) > 00201 * paramsD.rho0 / dT) {
 	//			if (paramsD.enableAggressiveTweak) {
 	//				derivVelRho.w = 0;
 	//			} else {
@@ -1025,7 +1025,7 @@ __global__ void UpdateFluidD_rho_vel_LF(Real4* velMasD, Real4* rhoPresMuD,
 	//		}
 	//	}
 	// 2*** end tweak
-	Real rho2 = rhoPresMu.x + derivVelRho.w * dTD; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	Real rho2 = rhoPresMu.x + derivVelRho.w * dT; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
 	rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD_half updated
@@ -1033,19 +1033,19 @@ __global__ void UpdateFluidD_rho_vel_LF(Real4* velMasD, Real4* rhoPresMuD,
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateFluidD_EveryThing_LF(Real3* posRadD, Real4* velMasD_half,
-		Real4* rhoPresMuD_half, Real4* derivVelRhoD) {
+		Real4* rhoPresMuD_half, Real4* derivVelRhoD, int2 updatePortion, Real dT) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
-	if (index >= updatePortionD.y) {
+	index += updatePortion.x; // updatePortion = [start, end] index of the update portion
+	if (index >= updatePortion.y) {
 		return;
 	}
 
 	Real4 derivVelRho = derivVelRhoD[index];
 	Real4 velMas = velMasD_half[index];
-	Real3 updatedVelocity = mR3(velMas + derivVelRho * dTD);
+	Real3 updatedVelocity = mR3(velMas + derivVelRho * dT);
 	// 2*** let's tweak a little bit :)
-	//	if (length(updatedVelocity) > .1 * paramsD.HSML / dTD  && paramsD.enableTweak) {
-	//		updatedVelocity *= ( .1 * paramsD.HSML / dTD ) / length(updatedVelocity);
+	//	if (length(updatedVelocity) > .1 * paramsD.HSML / dT  && paramsD.enableTweak) {
+	//		updatedVelocity *= ( .1 * paramsD.HSML / dT ) / length(updatedVelocity);
 	//		if (length(updatedVelocity) > 1.001) { // infinity
 	//			if (paramsD.enableAggressiveTweak) {
 	//				updatedVelocity = mR3(0);
@@ -1058,14 +1058,14 @@ __global__ void UpdateFluidD_EveryThing_LF(Real3* posRadD, Real4* velMasD_half,
 	velMasD_half[index] = mR4(updatedVelocity, /*rho2 / rhoPresMu.x * */
 	velMas.w);  // velMasD_half updated
 
-	posRadD[index] += updatedVelocity * dTD;  // posRadD updated
+	posRadD[index] += updatedVelocity * dT;  // posRadD updated
 
 	Real4 rhoPresMu = rhoPresMuD_half[index];
 
 	// 3*** let's tweak a little bit :)
-	//	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / dTD  && paramsD.enableTweak) {
-	//		derivVelRho.w *= (.002 * paramsD.rho0 / dTD) / fabs(derivVelRho.w); //to take care of the sign as well
-	//		if (fabs(derivVelRho.w) > 00201 * paramsD.rho0 / dTD) {
+	//	if (fabs(derivVelRho.w) > .002 * paramsD.rho0 / dT  && paramsD.enableTweak) {
+	//		derivVelRho.w *= (.002 * paramsD.rho0 / dT) / fabs(derivVelRho.w); //to take care of the sign as well
+	//		if (fabs(derivVelRho.w) > 00201 * paramsD.rho0 / dT) {
 	//			if (paramsD.enableAggressiveTweak) {
 	//				derivVelRho.w = 0;
 	//			} else {
@@ -1074,7 +1074,7 @@ __global__ void UpdateFluidD_EveryThing_LF(Real3* posRadD, Real4* velMasD_half,
 	//		}
 	//	}
 	// 2*** end tweak
-	Real rho2 = rhoPresMu.x + derivVelRho.w * dTD; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	Real rho2 = rhoPresMu.x + derivVelRho.w * dT; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
 	rhoPresMuD_half[index] = rhoPresMu;  // rhoPresMuD_half updated
@@ -1099,16 +1099,16 @@ __global__ void Copy_SortedVelXSPH_To_VelXSPHD(Real3* vel_XSPH_D,
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateKernelBoundary(Real3* posRadD, Real4* velMasD,
-		Real4* rhoPresMuD, Real4* derivVelRhoD) {
+		Real4* rhoPresMuD, Real4* derivVelRhoD, int2 updatePortion, Real dT) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
-	if (index >= updatePortionD.y) {
+	index += updatePortion.x; // updatePortion = [start, end] index of the update portion
+	if (index >= updatePortion.y) {
 		return;
 	}
 
 	Real4 derivVelRho = derivVelRhoD[index];
 	Real4 rhoPresMu = rhoPresMuD[index];
-	Real rho2 = rhoPresMu.x + derivVelRho.w * dTD; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	Real rho2 = rhoPresMu.x + derivVelRho.w * dT; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
 	rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD updated
@@ -1446,8 +1446,6 @@ void collide(thrust::device_vector<Real4>& derivVelRhoD,
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));
 	//#endif
 
-	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
-
 	// thread per particle
 	uint numThreads, numBlocks;
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
@@ -1554,9 +1552,6 @@ void CalcCartesianData(thrust::device_vector<Real4>& rho_Pres_CartD,
 		thrust::device_vector<uint>& cellStart,
 		thrust::device_vector<uint>& cellEnd, uint cartesianGridSize,
 		int3 cartesianGridDims, Real resolution) {
-	cudaMemcpyToSymbolAsync(cartesianGridDimsD, &cartesianGridDims,
-			sizeof(cartesianGridDims));
-	cudaMemcpyToSymbolAsync(resolutionD, &resolution, sizeof(resolution));
 
 	// thread per particle
 	uint numThreads, numBlocks;
@@ -1566,7 +1561,7 @@ void CalcCartesianData(thrust::device_vector<Real4>& rho_Pres_CartD,
 	CalcCartesianDataD<<<numBlocks, numThreads>>>(mR4CAST(rho_Pres_CartD),
 			mR4CAST(vel_VelMag_CartD), mR3CAST(sortedPosRad),
 			mR4CAST(sortedVelMas), mR4CAST(sortedRhoPreMu),
-			U1CAST(gridMarkerIndex), U1CAST(cellStart), U1CAST(cellEnd));
+			U1CAST(gridMarkerIndex), U1CAST(cellStart), U1CAST(cellEnd), cartesianGridDims, resolution);
 
 	cudaThreadSynchronize();
 	cudaCheckError()
@@ -1598,16 +1593,14 @@ void UpdateFluid(thrust::device_vector<Real3>& posRadD,
 //	int2 updatePortion = mI2(referencePortion);
 	int2 updatePortion = mI2(0, referenceArray[referenceArray.size() - 1].y);
 	// int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
-	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
-	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion,
-			sizeof(updatePortion));
+
 
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid,
 			nThreads);
 	UpdateFluidD<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(posRadD),
 			mR4CAST(velMasD), mR3CAST(vel_XSPH_D), mR4CAST(rhoPresMuD),
-			mR4CAST(derivVelRhoD));
+			mR4CAST(derivVelRhoD), updatePortion, dT);
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;
@@ -1626,16 +1619,13 @@ void UpdateFluid_init_LF(thrust::device_vector<Real3>& posRadD,
 	}
 	int2 updatePortion = mI2(referencePortion);
 	// int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
-	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
-	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion,
-			sizeof(updatePortion));
 
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid,
 			nThreads);
 	UpdateFluidD_init_LF<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(posRadD),
 			mR4CAST(velMasD_half), mR4CAST(rhoPresMuD_half),
-			mR4CAST(derivVelRhoD));
+			mR4CAST(derivVelRhoD), updatePortion, dT);
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;
@@ -1655,16 +1645,13 @@ void UpdateFluid_rho_vel_LF(thrust::device_vector<Real4>& velMasD,
 	}
 	int2 updatePortion = mI2(referencePortion);
 	// int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
-	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
-	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion,
-			sizeof(updatePortion));
 
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid,
 			nThreads);
 	UpdateFluidD_rho_vel_LF<<<nBlock_UpdateFluid, nThreads>>>(mR4CAST(velMasD),
 			mR4CAST(rhoPresMuD), mR4CAST(velMasD_old), mR4CAST(rhoPresMuD_old),
-			mR4CAST(derivVelRhoD));
+			mR4CAST(derivVelRhoD), updatePortion, dT);
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;
@@ -1683,16 +1670,13 @@ void UpdateFluid_EveryThing_LF(thrust::device_vector<Real3>& posRadD,
 	}
 	int2 updatePortion = mI2(referencePortion);
 	// int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
-	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
-	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion,
-			sizeof(updatePortion));
 
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid,
 			nThreads);
 	UpdateFluidD_EveryThing_LF<<<nBlock_UpdateFluid, nThreads>>>(
 			mR3CAST(posRadD), mR4CAST(velMasD_half), mR4CAST(rhoPresMuD_half),
-			mR4CAST(derivVelRhoD));
+			mR4CAST(derivVelRhoD), updatePortion, dT);
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;
@@ -1724,15 +1708,12 @@ void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
 		return;
 	}
 	int2 updatePortion = mI2(referencePortion);
-	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
-	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion,
-			sizeof(updatePortion));
 
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid,
 			nThreads);
 	UpdateKernelBoundary<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(posRadD),
-			mR4CAST(velMasD), mR4CAST(rhoPresMuD), mR4CAST(derivVelRhoD));
+			mR4CAST(velMasD), mR4CAST(rhoPresMuD), mR4CAST(derivVelRhoD), updatePortion, dT);
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;

@@ -79,7 +79,7 @@ void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
 		const thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::device_vector<uint>& rigidIdentifierD,
 
-		const NumberOfObjects& numObjects, Real sphMass);
+		const NumberOfObjects& numObjects);
 
 void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real4>& velMasD,

@@ -51,8 +51,6 @@ struct fluidData {
 
 __constant__ SimParams paramsD;
 __constant__ NumberOfObjects numObjectsD;
-__constant__ int3 cartesianGridDimsD;
-__constant__ Real resolutionD;
 
 #define RESOLUTION_LENGTH_MULT 2
 //--------------------------------------------------------------------------------------------------------------------------------

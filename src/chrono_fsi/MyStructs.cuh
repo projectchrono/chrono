@@ -46,6 +46,7 @@ struct SimParams {
 	Real3 bodyForce3; /* Constant force applied to the fluid. Flexible and rigid bodies are not affected by this force
 	 directly, but instead they are affected indirectly through the fluid. */
 	Real rho0; /* Density */
+	Real markerMass; /* marker mass */
 	Real mu0; /* Viscosity */
 	Real v_Max; /* Max velocity of fluid used in equation of state. Run simulation once to be able to determine it. */
 	Real EPS_XSPH; /* Method to modify particle velocity. */

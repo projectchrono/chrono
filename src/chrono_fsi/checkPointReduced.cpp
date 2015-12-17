@@ -140,6 +140,7 @@ void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
 	outProbParams << paramsH.bodyForce3.x << ", " << paramsH.bodyForce3.y
 			<< ", " << paramsH.bodyForce3.z << endl;
 	outProbParams << paramsH.rho0 << endl;
+	outProbParams << paramsH.markerMass << endl;
 	outProbParams << paramsH.mu0 << endl;
 	outProbParams << paramsH.v_Max << endl;
 	outProbParams << paramsH.EPS_XSPH << endl;
@@ -318,6 +319,7 @@ void CheckPointMarkers_Read(bool shouldIRead,
 	inProbParams >> paramsH.bodyForce3.x >> ddCh >> paramsH.bodyForce3.y >> ddCh
 			>> paramsH.bodyForce3.z;
 	inProbParams >> paramsH.rho0;
+	inProbParams >> paramsH.markerMass;
 	inProbParams >> paramsH.mu0;
 	inProbParams >> paramsH.v_Max;
 	inProbParams >> paramsH.EPS_XSPH;

@@ -67,7 +67,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
 		const thrust::host_vector<int4>& referenceArray,
 		const NumberOfObjects& numObjects, const SimParams& paramsH,
-		Real sphMarkerMass, double mTime, double time_hold_vehicle, int tStep,
+		double mTime, double time_hold_vehicle, int tStep,
 		bool haveVehicle);
 
 void DoStepDynamics_ChronoRK2(chrono::ChSystemParallelDVI& mphysicalSystem,
