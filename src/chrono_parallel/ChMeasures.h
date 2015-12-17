@@ -31,11 +31,18 @@ struct collision_measures {
         max_bounding_point = real3(0);
         global_origin = real3(0);
         bin_size = real3(0);
+        number_of_contacts_possible = 0;
+        number_of_bins_active = 0;
+        number_of_bin_intersections = 0;
     }
-    real3 min_bounding_point;  // The minimal global bounding point
-    real3 max_bounding_point;  // The maximum global bounding point
-    real3 global_origin;       // The global zero point
-    real3 bin_size;            // Vector holding bin sizes for each dimension
+    real3 min_bounding_point;          // The minimal global bounding point
+    real3 max_bounding_point;          // The maximum global bounding point
+    real3 global_origin;               // The global zero point
+    real3 bin_size;                    // Vector holding bin sizes for each dimension
+    real3 inv_bin_size;                // Vector holding inverse bin sizes for each dimension
+    uint number_of_bins_active;        // Number of active bins (containing 1+ AABBs)
+    uint number_of_bin_intersections;  // Number of AABB bin intersections
+    uint number_of_contacts_possible;  // Number of contacts possible from broadphase
 };
 // solver_measures, like the name implies is the structure that contains all
 // measures associated with the parallel solver.

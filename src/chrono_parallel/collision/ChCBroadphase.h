@@ -41,26 +41,14 @@ class CH_PARALLEL_API ChCBroadphase {
     real lelel_two_density;
 
   private:
-    uint num_bins_active;
-    uint number_of_bin_intersections;
-    uint number_of_contacts_possible;
-    uint number_of_leaf_intersections;
-    uint num_active_leaves;
-
-    real3 inv_bin_size;
-    custom_vector<uint> bin_intersections;
-    custom_vector<uint> bin_number;
-    custom_vector<uint> bin_number_out;
-    custom_vector<uint> bin_aabb_number;
-    custom_vector<uint> bin_start_index;
-    custom_vector<uint> bin_num_contact;
-
-//    custom_vector<uint> leaves_intersected;
-//    custom_vector<uint> leaves_per_bin;
-//    custom_vector<uint> leaf_number;
-//    custom_vector<uint> leaf_number_out;
-//    custom_vector<uint> leaf_aabb_number;
-//    custom_vector<uint> leaf_start_index;
+    //    uint number_of_leaf_intersections;
+    //    uint num_active_leaves;
+    //    custom_vector<uint> leaves_intersected;
+    //    custom_vector<uint> leaves_per_bin;
+    //    custom_vector<uint> leaf_number;
+    //    custom_vector<uint> leaf_number_out;
+    //    custom_vector<uint> leaf_aabb_number;
+    //    custom_vector<uint> leaf_start_index;
 };
 }
 }

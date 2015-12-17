@@ -124,8 +124,8 @@ struct host_container {
     custom_vector<int> neighbor_fluid_fluid;
     custom_vector<int> c_counts_fluid_fluid;
     custom_vector<int> particle_indices_fluid;
-    //custom_vector<int> fluid_contact_index;
-    //custom_vector<long long> bids_fluid_fluid;
+    // custom_vector<int> fluid_contact_index;
+    // custom_vector<long long> bids_fluid_fluid;
     custom_vector<int> reverse_mapping;
 
     // Contact forces (DEM)
@@ -183,11 +183,12 @@ struct host_container {
     custom_vector<real4> compliance_data;
 
     // Material properties (DEM)
-    custom_vector<real2> elastic_moduli;       // Young's modulus and Poisson ratio
-    custom_vector<real> mu;                    // Coefficient of friction
-    custom_vector<real> cr;                    // Coefficient of restitution
-    custom_vector<real4> dem_coeffs;           // Stiffness and damping coefficients
-    custom_vector<real> adhesionMultDMT_data;  // adhesion multipliers used in Derjaguin, Muller and Toporov (DMT) model.
+    custom_vector<real2> elastic_moduli;  // Young's modulus and Poisson ratio
+    custom_vector<real> mu;               // Coefficient of friction
+    custom_vector<real> cr;               // Coefficient of restitution
+    custom_vector<real4> dem_coeffs;      // Stiffness and damping coefficients
+    custom_vector<real>
+        adhesionMultDMT_data;  // adhesion multipliers used in Derjaguin, Muller and Toporov (DMT) model.
     // adhesion = adhesionMult * Sqrt(R_eff). Given the surface energy, w, adhesionMult = 2 * CH_C_PI * w * Sqrt(R_eff).
     // Given the equilibrium penetration distance, y_eq, adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
 
@@ -231,6 +232,15 @@ struct host_container {
 
     // Contact forces (DVI)
     DynamicVector<real> Fc;
+
+    //========Broadphase Data========
+
+    custom_vector<uint> bin_intersections;
+    custom_vector<uint> bin_number;
+    custom_vector<uint> bin_number_out;
+    custom_vector<uint> bin_aabb_number;
+    custom_vector<uint> bin_start_index;
+    custom_vector<uint> bin_num_contact;
 };
 
 class CH_PARALLEL_API ChParallelDataManager {
