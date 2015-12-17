@@ -192,7 +192,11 @@ uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const Con
 
     uint N = mb.size();
 
-    DynamicVector<real> v(N, 0), v_hat(x.size()), w(N, 0), w_old, xMR, v_old, Av(x.size()), w_oold;
+    v.resize(N);
+    v_hat.resize(x.size());
+    w.resize(N);
+    Av.resize(x.size());
+
     real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1,
                r2, r3;
     ShurBilaterals(x, v_hat);
@@ -203,10 +207,9 @@ uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const Con
     xMR = x;
     norm_rMR = beta;
     norm_r0 = beta;
-
-    if (beta == 0 || norm_rMR / norm_r0 < data_manager->settings.solver.tol_speed) {
-        return 0;
-    }
+    v = 0;
+    w = 0;
+    if (beta == 0 || norm_rMR / norm_r0 < data_manager->settings.solver.tol_speed) { return 0; }
 
     for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
         //// Lanczos
