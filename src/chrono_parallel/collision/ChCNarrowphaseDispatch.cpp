@@ -4,6 +4,7 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCNarrowphaseDispatch.h"
 #include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
+#include "chrono_parallel/collision/ChCBroadphaseUtils.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseGJK_EPA.h"
@@ -12,6 +13,7 @@
 #include <thrust/sort.h>
 #include <thrust/transform_reduce.h>
 #include <thrust/count.h>
+#include <thrust/iterator/constant_iterator.h>
 
 namespace chrono {
 namespace collision {
@@ -386,20 +388,15 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     LOG(TRACE) << "stop DispatchRigid: ";
 }
 
-// Check if two AABBs overlap using their min/max corners.
-inline bool overlap(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax) {
-    // Return true only if the two AABBs overlap in all 3 directions.
-    return (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) &&
-           (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
-}
-
 void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     LOG(TRACE) << "start DispatchRigidFluid: ";
-#if 0
-    data_manager->num_rigid_fluid_contacts = 0;
-    data_manager->host_data.c_counts_rigid_fluid.resize(data_manager->num_fluid_bodies);
-    Thrust_Fill(data_manager->host_data.c_counts_rigid_fluid, 0);
-#else
+
+    real fluid_radius = data_manager->settings.fluid.kernel_radius;
+    int num_fluid_bodies = data_manager->num_fluid_bodies;
+    int num_rigid_shapes = data_manager->num_rigid_shapes;
+    real3 global_origin = data_manager->measures.collision.global_origin;
+    int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
+    real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
     custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_fluid;
     custom_vector<real3>& norm_rigid_fluid = data_manager->host_data.norm_rigid_fluid;
     custom_vector<real3>& cpta_rigid_fluid = data_manager->host_data.cpta_rigid_fluid;
@@ -407,110 +404,129 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
-    real fluid_radius = data_manager->settings.fluid.kernel_radius;
+    uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
+    custom_vector<unsigned int> is_rigid_bin_active(total_bins, -1);
+// printf("TOTAL BINS: %d \n", total_bins);
+#pragma omp parallel for
+    for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
+        // uint start = data_manager->host_data.bin_start_index[index];
+        // uint end = data_manager->host_data.bin_start_index[index + 1];
+        // printf("bin_number: %d \n", data_manager->host_data.bin_number_out[index]);
+        uint bin_number = data_manager->host_data.bin_number_out[index];
+        is_rigid_bin_active[bin_number] = index;
+    }
+    custom_vector<uint> f_bin_intersections(num_fluid_bodies);
+#pragma omp parallel for
+    for (int p = 0; p < num_fluid_bodies; p++) {
+        real3 pos_fluid = sorted_pos_fluid[p];
+        int3 gmin = HashMin(pos_fluid - real3(fluid_radius) - global_origin, inv_bin_size);
+        int3 gmax = HashMax(pos_fluid + real3(fluid_radius) - global_origin, inv_bin_size);
+        f_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
+    }
+    Thrust_Exclusive_Scan(f_bin_intersections);
+    uint f_number_of_bin_intersections = f_bin_intersections.back();
+    custom_vector<uint> f_bin_number(f_number_of_bin_intersections);
+    custom_vector<uint> f_bin_number_out(f_number_of_bin_intersections);
+    custom_vector<uint> f_bin_fluid_number(f_number_of_bin_intersections);
+    custom_vector<uint> f_bin_start_index(f_number_of_bin_intersections);
 
-    int num_fluid_bodies = data_manager->num_fluid_bodies;
-    int num_rigid_shapes = data_manager->num_rigid_shapes;
+#pragma omp parallel for
+    for (int p = 0; p < num_fluid_bodies; p++) {
+        uint count = 0, i, j, k;
+        real3 pos_fluid = sorted_pos_fluid[p];
+        int3 gmin = HashMin(pos_fluid - real3(fluid_radius) - global_origin, inv_bin_size);
+        int3 gmax = HashMax(pos_fluid + real3(fluid_radius) - global_origin, inv_bin_size);
+        uint mInd = f_bin_intersections[p];
+        for (i = gmin.x; i <= gmax.x; i++) {
+            for (j = gmin.y; j <= gmax.y; j++) {
+                for (k = gmin.z; k <= gmax.z; k++) {
+                    f_bin_number[mInd + count] = Hash_Index(int3(i, j, k), bins_per_axis);
+                    f_bin_fluid_number[mInd + count] = p;
+                    count++;
+                }
+            }
+        }
+    }
+    Thrust_Sort_By_Key(f_bin_number, f_bin_fluid_number);
+    uint f_number_of_bins_active = Run_Length_Encode(f_bin_number, f_bin_number_out, f_bin_start_index);
+
+    f_bin_start_index.resize(f_number_of_bins_active + 1);
+    f_bin_start_index[f_number_of_bins_active] = 0;
+    Thrust_Exclusive_Scan(f_bin_start_index);
+    custom_vector<uint> f_bin_num_contact(f_number_of_bins_active + 1);
+    f_bin_num_contact[f_number_of_bins_active] = 0;
 
     norm_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
     cpta_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
     dpth_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
     neighbor_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
     contact_counts.resize(num_fluid_bodies);
-
-    real radius = data_manager->settings.fluid.kernel_radius;
-
+    Thrust_Fill(contact_counts, 0);
+    int tests = 0;
+    //
+    for (int index = 0; index < f_number_of_bins_active; index++) {
+        uint start = f_bin_start_index[index];
+        uint end = f_bin_start_index[index + 1];
+        uint count = 0;
+        // Terminate early if there is only one object in the bin
+        if (end - start == 1) {
+            continue;
+        }
+        unsigned int rigid_index = is_rigid_bin_active[f_bin_number_out[index]];
+        bool rigid_is_active = rigid_index != -1;
+        if (rigid_is_active) {
+            uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
+            uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        int counter = 0;
-        for (int r = 0; r < num_rigid_shapes; ++r) {
-            if (overlap(data_manager->host_data.aabb_min[r], data_manager->host_data.aabb_max[r],
-                        sorted_pos_fluid[p] - real3(radius), sorted_pos_fluid[p] + real3(radius)) == false) {
-                continue;
-            }
+            for (uint i = start; i < end; i++) {
+                uint p = f_bin_fluid_number[i];
+                real3 pos_fluid = sorted_pos_fluid[p];
+                real3 Bmin = pos_fluid - real3(fluid_radius) - global_origin;
+                real3 Bmax = pos_fluid + real3(fluid_radius) - global_origin;
 
-            ConvexShape shapeA, shapeB;
-            shapeA.type =
-                data_manager->host_data.typ_rigid[r];  // Load the type data for each object in the collision pair
+                for (uint j = rigid_start; j < rigid_end; j++) {
+                    uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
+                    real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
+                    real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
+                    uint bodyA = data_manager->host_data.id_rigid[shape_id_a];
+                    if (!overlap(Amin, Amax, Bmin, Bmax)) {
+                        continue;
+                    }
 
-            shapeB.type = SPHERE;
+                    ConvexShape shapeA(data_manager->host_data.typ_rigid[shape_id_a],  //
+                                       obj_data_A_global[shape_id_a],                  //
+                                       obj_data_B_global[shape_id_a],                  //
+                                       obj_data_C_global[shape_id_a],                  //
+                                       obj_data_R_global[shape_id_a],                  //
+                                       data_manager->host_data.convex_data.data());    //
 
-            shapeA.A = obj_data_A_global[r];
-            shapeB.A = sorted_pos_fluid[p];
+                    ConvexShape shapeB(SPHERE, pos_fluid,                            //
+                                       real3(fluid_radius, 0, 0),                    //
+                                       real3(0),                                     //
+                                       quaternion(1, 0, 0, 0),                       //
+                                       data_manager->host_data.convex_data.data());  //
 
-            shapeA.B = obj_data_B_global[r];
-            shapeB.B = real3(radius, 0, 0);
+                    real3 ptA, ptB, norm;
+                    real depth;
 
-            shapeA.C = obj_data_C_global[r];
-            shapeB.C = real3(0);
-
-            shapeA.R = obj_data_R_global[r];
-            shapeB.R = quaternion(1, 0, 0, 0);
-
-            shapeA.convex = data_manager->host_data.convex_data.data();
-            shapeB.convex = data_manager->host_data.convex_data.data();
-
-            real3 ptA, ptB, norm;
-            real depth, erad;
-            int nC = 0;
-            //            if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm, &ptA, &ptB, &depth, &erad, nC))
-            //            {
-            //                if (counter < max_rigid_neighbors) {
-            //                    norm_rigid_fluid[p * max_rigid_neighbors + counter] = norm;
-            //                    cpta_rigid_fluid[p * max_rigid_neighbors + counter] = ptA;
-            //                    dpth_rigid_fluid[p * max_rigid_neighbors + counter] = depth;
-            //                    bids_rigid_fluid[p * max_rigid_neighbors + counter] =
-            //                    data_manager->host_data.id_rigid[r];
-            //                    ++counter;
-            //                }
-            //            } else
-            if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
-                if (counter < max_rigid_neighbors) {
-                    norm_rigid_fluid[p * max_rigid_neighbors + counter] = norm;
-                    cpta_rigid_fluid[p * max_rigid_neighbors + counter] = ptA;
-                    dpth_rigid_fluid[p * max_rigid_neighbors + counter] = depth;
-                    neighbor_rigid_fluid[p * max_rigid_neighbors + counter] = data_manager->host_data.id_rigid[r];
-                    ++counter;
+                    if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
+                        if (contact_counts[p] < max_rigid_neighbors) {
+                            norm_rigid_fluid[p * max_rigid_neighbors + contact_counts[p]] = norm;
+                            cpta_rigid_fluid[p * max_rigid_neighbors + contact_counts[p]] = ptA;
+                            dpth_rigid_fluid[p * max_rigid_neighbors + contact_counts[p]] = depth;
+                            neighbor_rigid_fluid[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
+                            contact_counts[p]++;
+                        }
+                    }
                 }
             }
         }
-        contact_counts[p] = counter;
     }
 
+    // LOG(TRACE) << "NUM Rigid-Fluid Tests" << tests;
     data_manager->num_rigid_fluid_contacts = Thrust_Total(contact_counts);
 
-//    std::cout << "FL_RIG " << data_manager->num_rigid_fluid_contacts << std::endl;
-//    if (data_manager->num_rigid_fluid_contacts > 0) {
-//        data_manager->host_data.bids_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
-//        data_manager->host_data.norm_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
-//        data_manager->host_data.cpta_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
-//        data_manager->host_data.dpth_rigid_fluid.resize(data_manager->num_rigid_fluid_contacts);
-//        int counter = 0;
-//        for (int p = 0; p < num_fluid_bodies; p++) {
-//            for (int i = 0; i < contact_counts[p]; ++i) {
-//                int r = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-//
-//                data_manager->host_data.bids_rigid_fluid[counter] = I2(r, p);
-//                data_manager->host_data.norm_rigid_fluid[counter] = norm_rigid_fluid[p * max_rigid_neighbors + i];
-//                data_manager->host_data.cpta_rigid_fluid[counter] = cpta_rigid_fluid[p * max_rigid_neighbors + i];
-//                data_manager->host_data.dpth_rigid_fluid[counter] = dpth_rigid_fluid[p * max_rigid_neighbors + i];
-//                // std::cout << "FL_RIG: " << r << " " << p << std::endl;
-//
-//                counter++;
-//            }
-//        }
-//    }
-#endif
-    //    for (int p = 0; p < num_fluid_bodies; p++) {
-    //        if (contact_counts[p] > 0) {
-    //            std::cout << "p: " << p << " [" << contact_counts[p] << "] ";
-    //            for (int i = 0; i < contact_counts[p]; i++) {
-    //                std::cout << bids_rigid_fluid[p * max_neighbors + i] << " ";
-    //            }
-    //            std::cout << std::endl;
-    //        }
-    //    }
-    LOG(TRACE) << "stop DispatchRigidFluid: ";
+    LOG(TRACE) << "stop DispatchRigidFluid: " << data_manager->num_rigid_fluid_contacts;
 }
 
 inline int GridCoord(real x, real inv_bin_edge, real minimum) {
@@ -522,24 +538,6 @@ inline int GridCoord(real x, real inv_bin_edge, real minimum) {
 inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
     return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
 }
-
-typedef thrust::pair<real3, real3> bbox;
-
-// reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
-struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
-    bbox operator()(bbox a, bbox b) {
-        real3 ll = real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
-                         Min(a.first.z, b.first.z));  // lower left corner
-        real3 ur = real3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
-                         Max(a.second.z, b.second.z));  // upper right corner
-        return bbox(ll, ur);
-    }
-};
-
-// convert a point to a bbox containing that point, (point) -> (point, point)
-struct bbox_transformation : public thrust::unary_function<real3, bbox> {
-    bbox operator()(real3 point) { return bbox(point, point); }
-};
 
 void ChCNarrowphaseDispatch::DispatchFluid() {
     real t1, t2, t3, t4, t5, t6, t7, t8;
@@ -595,13 +593,13 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     bbox_reduction binary_op;
     res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
 
-    real3 max_bounding_point = real3(std::max(std::ceil(res.second.x), std::ceil(res.second.x + radius * 6)),
-                                     std::max(std::ceil(res.second.y), std::ceil(res.second.y + radius * 6)),
-                                     std::max(std::ceil(res.second.z), std::ceil(res.second.z + radius * 6)));
+    real3 max_bounding_point = real3(Max(Ceil(res.second.x), Ceil(res.second.x + radius * 6)),
+                                     Max(Ceil(res.second.y), Ceil(res.second.y + radius * 6)),
+                                     Max(Ceil(res.second.z), Ceil(res.second.z + radius * 6)));
 
-    real3 min_bounding_point = real3(std::min(std::floor(res.first.x), std::floor(res.first.x - radius * 6)),
-                                     std::min(std::floor(res.first.y), std::floor(res.first.y - radius * 6)),
-                                     std::min(std::floor(res.first.z), std::floor(res.first.z - radius * 6)));
+    real3 min_bounding_point = real3(Min(Floor(res.first.x), Floor(res.first.x - radius * 6)),
+                                     Min(Floor(res.first.y), Floor(res.first.y - radius * 6)),
+                                     Min(Floor(res.first.z), Floor(res.first.z - radius * 6)));
 
     real3 diag = max_bounding_point - min_bounding_point;
     int3 bins_per_axis;
