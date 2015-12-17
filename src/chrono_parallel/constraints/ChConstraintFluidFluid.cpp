@@ -478,88 +478,84 @@ void ChConstraintFluidFluid::ArtificialPressure() {
     }
 }
 void ChConstraintFluidFluid::Dx(const DynamicVector<real>& x, DynamicVector<real>& output) {
-    //    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    //    custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
-    //    custom_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_fluid;
-    //    custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
-    //
-    //    real viscosity = data_manager->settings.fluid.viscosity;
-    //    real mass = data_manager->settings.fluid.mass;
-    //    real h = data_manager->settings.fluid.kernel_radius;
-    //    real envel = data_manager->settings.collision.collision_envelope;
-    //    real density_fluid = data_manager->settings.fluid.density;
-    //    real inv_density = 1.0 / density_fluid;
-    //    real mass_over_density = mass * inv_density;
-    //    real eta = .01;
-    //
-    //    const real h_3 = h * h * h;
-    //    const real h_6 = h_3 * h_3;
-    //    const real h_9 = h_3 * h_3 * h_3;
-    //    const real KGSPIKY = 315.0 / (64.0 * F_PI * h_9);
-    //#pragma omp parallel
-    //    for (int a = 0; a < num_fluid_bodies; a++) {
-    //        int p = particle_indices_fluid[a];
-    //        real3 diag = real3(0, 0, 0);
-    //        real3 pos_p = pos[p];
-    //        real3 res = real3(0, 0, 0);
-    //        for (int i = 0; i < c_counts_fluid_fluid[a]; i++) {
-    //            int b = neighbor_fluid_fluid[a * max_neighbors + i];
-    //
-    //            int q = particle_indices_fluid[b];
-    //            real4 xij_dist = xij_dist_fluid_fluid[a * max_neighbors + i];
-    //
-    //            if (xij_dist.w == 0) {
-    //                continue;
-    //            }
-    //            real3 off_diag =
-    //                mass_over_density * KGSPIKY * pow(h - xij_dist.w, 2) * real3(xij_dist.x, xij_dist.y, xij_dist.z);
-    //            diag += off_diag;
-    //            res += off_diag * x[q];
-    //        }
-    //        output[p * 3 + 0] = diag.x * x[p] + res.x;
-    //        output[p * 3 + 1] = diag.y * x[p] + res.y;
-    //        output[p * 3 + 2] = diag.z * x[p] + res.z;
-    //    }
+    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
+    custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
+    custom_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_fluid;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+
+    real viscosity = data_manager->settings.fluid.viscosity;
+    real mass = data_manager->settings.fluid.mass;
+    real h = data_manager->settings.fluid.kernel_radius;
+    real envel = data_manager->settings.collision.collision_envelope;
+    real density_fluid = data_manager->settings.fluid.density;
+    real inv_density = 1.0 / density_fluid;
+    real mass_over_density = mass * inv_density;
+    real eta = .01;
+
+    const real h_3 = h * h * h;
+    const real h_6 = h_3 * h_3;
+    const real h_9 = h_3 * h_3 * h_3;
+    const real KGSPIKY = 315.0 / (64.0 * F_PI * h_9);
+#pragma omp parallel
+    for (int p = 0; p < num_fluid_bodies; p++) {
+        real3 diag = real3(0);
+        real3 pos_p = sorted_pos[p];
+        real3 res = real3(0);
+        for (int i = 0; i < c_counts_fluid_fluid[p]; i++) {
+            int q = neighbor_fluid_fluid[p * max_neighbors + i];
+            if (p == q) {
+                continue;
+            }
+            real3 pos_q = sorted_pos[p];
+            real3 xij = pos_p - pos_q;
+            real dist = Length(xij);
+            real3 off_diag = mass_over_density * KGSPIKY * pow(h - dist, 2) * xij;
+            diag += off_diag;
+            res += off_diag * x[q];
+        }
+        output[p * 3 + 0] = diag.x * x[p] + res.x;
+        output[p * 3 + 1] = diag.y * x[p] + res.y;
+        output[p * 3 + 2] = diag.z * x[p] + res.z;
+    }
 }
 void ChConstraintFluidFluid::D_Tx(const DynamicVector<real>& x, DynamicVector<real>& output) {
-    //    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    //    custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
-    //    custom_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_fluid;
-    //    custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
-    //
-    //    real viscosity = data_manager->settings.fluid.viscosity;
-    //    real mass = data_manager->settings.fluid.mass;
-    //    real h = data_manager->settings.fluid.kernel_radius;
-    //    real envel = data_manager->settings.collision.collision_envelope;
-    //    real density_fluid = data_manager->settings.fluid.density;
-    //    real inv_density = 1.0 / density_fluid;
-    //    real mass_over_density = mass * inv_density;
-    //    real eta = .01;
-    //
-    //    const real h_3 = h * h * h;
-    //    const real h_6 = h_3 * h_3;
-    //    const real h_9 = h_3 * h_3 * h_3;
-    //    const real KGSPIKY = 315.0 / (64.0 * F_PI * h_9);
-    //#pragma omp parallel
-    //    for (int a = 0; a < num_fluid_bodies; a++) {
-    //        int p = particle_indices_fluid[a];
-    //        real3 diag = real3(0, 0, 0);
-    //        // real3 pos_p = pos[p];
-    //        real res = 0;
-    //        for (int i = 0; i < c_counts_fluid_fluid[a]; i++) {
-    //            real4 xij_dist = xij_dist_fluid_fluid[a * max_neighbors + i];
-    //            int b = neighbor_fluid_fluid[a * max_neighbors + i];
-    //            int q = particle_indices_fluid[b];
-    //            if (xij_dist.w == 0) {
-    //                continue;
-    //            }
-    //            real3 off_diag =
-    //                mass_over_density * KGSPIKY * pow(h - xij_dist.w, 2) * real3(xij_dist.x, xij_dist.y, xij_dist.z);
-    //            diag += off_diag;
-    //
-    //            res += off_diag.x * x[q * 3 + 0] + off_diag.y * x[q * 3 + 1] + off_diag.z * x[q * 3 + 2];
-    //        }
-    //        output[p] = res + diag.x * x[p * 3 + 0] + diag.y * x[p * 3 + 1] + diag.z * x[p * 3 + 2];
-    //    }
+    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
+    custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
+    custom_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_fluid;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+
+    real viscosity = data_manager->settings.fluid.viscosity;
+    real mass = data_manager->settings.fluid.mass;
+    real h = data_manager->settings.fluid.kernel_radius;
+    real envel = data_manager->settings.collision.collision_envelope;
+    real density_fluid = data_manager->settings.fluid.density;
+    real inv_density = 1.0 / density_fluid;
+    real mass_over_density = mass * inv_density;
+    real eta = .01;
+
+    const real h_3 = h * h * h;
+    const real h_6 = h_3 * h_3;
+    const real h_9 = h_3 * h_3 * h_3;
+    const real KGSPIKY = 315.0 / (64.0 * F_PI * h_9);
+#pragma omp parallel
+    for (int p = 0; p < num_fluid_bodies; p++) {
+        real3 diag = real3(0, 0, 0);
+        real3 pos_p = sorted_pos[p];
+        real res = 0;
+        for (int i = 0; i < c_counts_fluid_fluid[p]; i++) {
+            int q = neighbor_fluid_fluid[p * max_neighbors + i];
+            if (p == q) {
+                continue;
+            }
+            real3 pos_q = sorted_pos[q];
+            real3 xij = pos_p - pos_q;
+            real dist = Length(xij);
+            real3 off_diag = mass_over_density * KGSPIKY * pow(h - dist, 2) * xij;
+            diag += off_diag;
+
+            res += off_diag.x * x[q * 3 + 0] + off_diag.y * x[q * 3 + 1] + off_diag.z * x[q * 3 + 2];
+        }
+        output[p] = res + diag.x * x[p * 3 + 0] + diag.y * x[p * 3 + 1] + diag.z * x[p * 3 + 2];
+    }
 }
 }

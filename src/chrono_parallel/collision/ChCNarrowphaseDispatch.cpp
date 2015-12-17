@@ -689,13 +689,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                         const real dSq = Dot(xij);
                         if (dSq < radiusSq) {
                             if (contact_count < max_neighbors) {
-                                neighbor_fluid_fluid[p * max_neighbors + contact_count] = q;
-                                //                                bids_fluid_fluid[p * max_neighbors + contact_count] =
-                                //                                    ((long
-                                //                                    long)data_manager->host_data.particle_indices_fluid[p]
-                                //                                    << 32 |
-                                //                                     (long
-                                //                                     long)data_manager->host_data.particle_indices_fluid[q]);
+                                 neighbor_fluid_fluid[p * max_neighbors + contact_count] = q;
                                 ++contact_count;
                             }
                         }
