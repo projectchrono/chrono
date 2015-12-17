@@ -35,11 +35,8 @@ class CH_PARALLEL_API ChCBroadphase {
     void DetermineBoundingBox();
     void OffsetAABB();
     void ComputeTopLevelResolution();
-    void FillStateData();
-    void SplitContacts();
 
     ChParallelDataManager* data_manager;
-    uint num_shapes;
     real level_one_density;
     real lelel_two_density;
 
@@ -51,26 +48,19 @@ class CH_PARALLEL_API ChCBroadphase {
     uint num_active_leaves;
 
     real3 inv_bin_size;
-    custom_vector<uint> bins_intersected;
+    custom_vector<uint> bin_intersections;
     custom_vector<uint> bin_number;
     custom_vector<uint> bin_number_out;
     custom_vector<uint> bin_aabb_number;
     custom_vector<uint> bin_start_index;
-    custom_vector<uint> num_contact;
+    custom_vector<uint> bin_num_contact;
 
-    custom_vector<uint> leaves_intersected;
-    custom_vector<uint> leaves_per_bin;
-    custom_vector<uint> leaf_number;
-    custom_vector<uint> leaf_number_out;
-    custom_vector<uint> leaf_aabb_number;
-    custom_vector<uint> leaf_start_index;
-
-    // custom_vector<short2> fam_data;
-    // custom_vector<char> obj_active;
-    // custom_vector<uint> obj_data_id;
-
-    uint num_rigid_shapes;
-    uint num_rigid_bodies;
+//    custom_vector<uint> leaves_intersected;
+//    custom_vector<uint> leaves_per_bin;
+//    custom_vector<uint> leaf_number;
+//    custom_vector<uint> leaf_number_out;
+//    custom_vector<uint> leaf_aabb_number;
+//    custom_vector<uint> leaf_start_index;
 };
 }
 }
