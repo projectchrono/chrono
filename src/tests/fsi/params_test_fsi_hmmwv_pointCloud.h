@@ -90,6 +90,7 @@ void SetupParamsH(SimParams& paramsH) {
 	paramsH.bodyForce3 =
 	mR3(0, 0, 0); // mR4(3.2e-3,0,0,0);// mR4(0);;// /*Re = 100 */ //mR4(3.2e-4, 0, 0, 0);/*Re = 100 */
 	paramsH.rho0 = 1000;
+	paramsH.markerMass = pow(paramsH.MULT_INITSPACE * paramsH.HSML, 3) * paramsH.rho0;
 	paramsH.mu0 = .001;
 	paramsH.v_Max = maxFlowVelocity; // Arman, I changed it to 0.1 for vehicle. Check this
 									 // later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;

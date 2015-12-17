@@ -47,18 +47,18 @@ Real3 R3_LocalToGlobal(Real3 p3LF, chrono::ChVector<> pos,
 	return ConvertChVectorToR3(p3GF);
 }
 //------------------------------------------------------------------------------------
+// version 1.0 SPH-FSI. You may delete it
 void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		int& startIndexSph, const thrust::host_vector<Real3>& posRadH,
 		const thrust::host_vector<Real4>& velMasH, const SimParams& paramsH,
-		const NumberOfObjects& numObjects, int collisionFamilly,
-		Real sphMarkerMass) {
+		const NumberOfObjects& numObjects, int collisionFamilly) {
 	Real rad = 0.5 * paramsH.MULT_INITSPACE * paramsH.HSML;
 	// NOTE: mass properties and shapes are all for sphere
 	double volume = chrono::utils::CalcSphereVolume(rad);
 	chrono::ChVector<> gyration =
 			chrono::utils::CalcSphereGyration(rad).Get_Diag();
 	double density = paramsH.rho0;
-	double mass = sphMarkerMass;  // density * volume;
+	double mass = paramsH.markerMass;  // density * volume;
 	double muFriction = 0;
 
 	// int fId = 0; //fluid id

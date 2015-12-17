@@ -224,14 +224,14 @@ void CreateTiresBCE(
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH) {
 	std::string dataPath = chrono::GetChronoDataPath();
 	dataPath.append("fsi/WheelBCE.csv");
 
 	for (int i = 0; i < 4; i++) {
 		AddBCE_FromFile(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, sphMarkerMass, paramsH,
+				numObjects, paramsH,
 				mVehicle->GetVehicle()->GetWheelBody(i), dataPath);
 		FSI_Bodies.push_back(mVehicle->GetVehicle()->GetWheelBody(i));
 	}
@@ -243,12 +243,12 @@ void CreateChassisBCE(
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH) {
 	std::string dataPath = chrono::GetChronoDataPath();
 	dataPath.append("fsi/ChassisBCE.csv");
 	AddBCE_FromFile(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
-			sphMarkerMass, paramsH, mVehicle->GetVehicle()->GetChassis(),
+			paramsH, mVehicle->GetVehicle()->GetChassis(),
 			dataPath);
 	FSI_Bodies.push_back(mVehicle->GetVehicle()->GetChassis());
 }
@@ -263,8 +263,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 		thrust::host_vector<uint>& bodyIndex,
 		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, const SimParams& paramsH,
-		Real sphMarkerMass) {
+		NumberOfObjects& numObjects, const SimParams& paramsH) {
 	// Set common material Properties
 	mat_g->SetFriction(0.8);
 	mat_g->SetCohesion(0);
@@ -306,7 +305,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 #if haveFluid
 		// beginning third
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
-				sphMarkerMass, paramsH, ground,
+				paramsH, ground,
 				ChVector<>(hdimSide, hdimY, hthick),
 				ChVector<>(-midSecDim - hdimSide, 0, -hthick),
 				ChQuaternion<>(1, 0, 0, 0));
@@ -314,27 +313,27 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 		// end third
 
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
-				sphMarkerMass, paramsH, ground,
+				paramsH, ground,
 				ChVector<>(hdimSide, hdimY, hthick),
 				ChVector<>(midSecDim + hdimSide, 0, -hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 
 		// basin
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
-				sphMarkerMass, paramsH, ground,
+				paramsH, ground,
 				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
 				ChVector<>(0, 0, -basinDepth - hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 		// slope 1
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
-				sphMarkerMass, paramsH, ground,
+				paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x1I, 0, zI),
 				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
 
 		// slope 2
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
-				sphMarkerMass, paramsH, ground,
+				paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x2I, 0, zI),
 				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
@@ -419,14 +418,14 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 // -----------------
 #if haveFluid
 		CreateChassisBCE(posRadH, velMasH, rhoPresMuH, referenceArray,
-				FSI_Bodies, numObjects, sphMarkerMass, paramsH);
+				FSI_Bodies, numObjects, paramsH);
 		CreateTiresBCE(posRadH, velMasH, rhoPresMuH, referenceArray, FSI_Bodies,
-				numObjects, sphMarkerMass, paramsH);
+				numObjects, paramsH);
 
 		ChVector<> s_pos = ChVector<>(-9.5, .20, 3);
 		Real s_radius = 0.3;
 //		CreateSphereFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
-//				mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
+//				mphysicalSystem, FSI_Bodies, numObjects, paramsH,
 //				s_radius, mat_g, s_pos);
 
 #endif
@@ -659,8 +658,7 @@ int main(int argc, char* argv[]) {
 
 		//*** initialize fluid particles
 		::int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH,
-				rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
-		paramsH.markerMass = sphMarkerMass;
+				rhoPresMuH, bodyIndex, paramsH);
 
 		printf("num_fluidOrBoundaryMarkers %d %d \n",
 				num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
@@ -694,7 +692,7 @@ int main(int argc, char* argv[]) {
 
 	CreateMbdPhysicalSystemObjects(mphysicalSystem, posRadH, velMasH,
 			rhoPresMuH, bodyIndex, FSI_Bodies, referenceArray, numObjects,
-			paramsH, sphMarkerMass);
+			paramsH);
 
 	// ***************************** Create Interface ********************************************
 

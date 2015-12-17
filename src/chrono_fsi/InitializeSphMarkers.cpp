@@ -49,11 +49,11 @@ void SetNumObjects(NumberOfObjects& numObjects,
 //  return !s.empty() && it == s.end();
 //}
 //**********************************************
+// paramsH.markerMass will change
 int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
-		thrust::host_vector<uint>& bodyIndex, const SimParams& paramsH,
-		Real& sphMarkerMass) {
+		thrust::host_vector<uint>& bodyIndex, SimParams& paramsH) {
 	/* Number of fluid particles */
 	int num_FluidMarkers = 0;
 	/* Number of boundary particles */
@@ -72,7 +72,7 @@ int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
 	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ,
 			(nFY - 1) * initSpaceY, initSpaceY);
 	/* Mass of a small cube in the fluid = (dx*dy*dz) * density */
-	sphMarkerMass = (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0;
+	paramsH.markerMass = (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0;
 
 	for (int i = 0; i < nFX; i++) {
 		for (int j = 0; j < nFY; j++) {
@@ -100,14 +100,14 @@ int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
 						num_FluidMarkers++;
 						posRadH.push_back(posRad);
 						Real3 v3 = mR3(0);
-						velMasH.push_back(mR4(v3, sphMarkerMass));
+						velMasH.push_back(mR4(v3, paramsH.markerMass));
 						rhoPresMuH.push_back(
 						mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
 					}
 				} else {
 					//					num_BoundaryMarkers++;
 					//					mPosRadBoundary.push_back(posRad);
-					//					mVelMasBoundary.push_back(mR4(0, 0, 0, sphMarkerMass));
+					//					mVelMasBoundary.push_back(mR4(0, 0, 0, paramsH.markerMass));
 					//					mRhoPresMuBoundary.push_back(mR4(paramsH.rho0, paramsH.LARGE_PRES,
 					// paramsH.mu0,
 					// 0));
@@ -165,7 +165,7 @@ void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
-		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
+		const thrust::host_vector<Real3>& posRadBCE,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		chrono::ChVector<> collisionShapeRelativePos,
 		chrono::ChQuaternion<> collisionShapeRelativeRot, bool isSolid) {
@@ -208,7 +208,7 @@ void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 
 		chrono::ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc_COG);
 		Real3 v3 = ConvertChVectorToR3(vAbs);
-		velMasH.push_back(mR4(v3, sphMarkerMass));
+		velMasH.push_back(mR4(v3, paramsH.markerMass));
 
 		rhoPresMuH.push_back(
 		mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));
@@ -260,13 +260,13 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
-		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
+		const thrust::host_vector<Real3>& posRadBCE,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		chrono::ChVector<> collisionShapeRelativePos,
 		chrono::ChQuaternion<> collisionShapeRelativeRot) {
 
 	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
-			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH, body,
+			referenceArray, numObjects, posRadBCE, paramsH, body,
 			collisionShapeRelativePos, collisionShapeRelativeRot, false);
 }
 // =============================================================================
@@ -275,7 +275,7 @@ void AddSphereBce(
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		Real radius, chrono::ChVector<> relPos, chrono::ChQuaternion<> relRot) {
 
@@ -289,7 +289,7 @@ void AddSphereBce(
 	}
 
 	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
-			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH,
+			referenceArray, numObjects, posRadBCE, paramsH,
 			body);
 	posRadBCE.clear();
 
@@ -301,7 +301,7 @@ void AddCylinderBce(
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		Real radius, Real height, chrono::ChVector<> relPos,
 		chrono::ChQuaternion<> relRot) {
@@ -316,7 +316,7 @@ void AddCylinderBce(
 	}
 
 	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
-			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH,
+			referenceArray, numObjects, posRadBCE, paramsH,
 			body);
 	posRadBCE.clear();
 }
@@ -331,7 +331,7 @@ void AddBoxBce(
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		const chrono::ChVector<>& size, chrono::ChVector<> relPos,
 		chrono::ChQuaternion<> relRot) {
@@ -348,7 +348,7 @@ void AddBoxBce(
 	}
 
 	CreateBceGlobalMarkersFromBceLocalPosBoundary(posRadH, velMasH, rhoPresMuH,
-			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH, body,
+			referenceArray, numObjects, posRadBCE, paramsH, body,
 			relPos, relRot);
 	posRadBCE.clear();
 }
@@ -359,7 +359,7 @@ void AddBCE_FromFile(
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		std::string dataPath) {
 	//----------------------------
@@ -375,7 +375,7 @@ void AddBCE_FromFile(
 	}
 
 	CreateBceGlobalMarkersFromBceLocalPos(posRadH, velMasH, rhoPresMuH,
-			referenceArray, numObjects, posRadBCE, sphMarkerMass, paramsH,
+			referenceArray, numObjects, posRadBCE, paramsH,
 			body);
 	posRadBCE.clear();
 }
@@ -404,7 +404,7 @@ void CreateSphereFSI(
 		thrust::host_vector<::int4>& referenceArray,
 		chrono::ChSystem& mphysicalSystem,
 		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH,
 		Real radius,
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
@@ -437,7 +437,7 @@ void CreateSphereFSI(
 	FSI_Bodies.push_back(body);
 
 	AddSphereBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-			numObjects, sphMarkerMass, paramsH, body, radius);
+			numObjects, paramsH, body, radius);
 }
 // =============================================================================
 void CreateCylinderFSI(
@@ -447,7 +447,7 @@ void CreateCylinderFSI(
 		thrust::host_vector<::int4>& referenceArray,
 		chrono::ChSystem& mphysicalSystem,
 		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH,
 		Real radius,
 		Real length,
@@ -478,7 +478,7 @@ void CreateCylinderFSI(
 
 	FSI_Bodies.push_back(body);
 	AddCylinderBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-			numObjects, sphMarkerMass, paramsH, body, radius, length);
+			numObjects, paramsH, body, radius, length);
 }
 // =============================================================================
 void CreateBoxFSI(
@@ -488,7 +488,7 @@ void CreateBoxFSI(
 		thrust::host_vector<::int4>& referenceArray,
 		chrono::ChSystem& mphysicalSystem,
 		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH,
 		const chrono::ChVector<>& hsize,
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
@@ -519,5 +519,5 @@ void CreateBoxFSI(
 
 	FSI_Bodies.push_back(body);
 	AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-			numObjects, sphMarkerMass, paramsH, body, hsize);
+			numObjects, paramsH, body, hsize);
 }

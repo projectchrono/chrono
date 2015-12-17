@@ -30,11 +30,11 @@ Real3 Rotate_By_Quaternion(Real4 q4, Real3 BCE_Pos_local);
 Real3 R3_LocalToGlobal(Real3 p3LF, chrono::ChVector<> pos,
 		chrono::ChQuaternion<> rot);
 
+// version 1.0 SPH-FSI. You may delete it
 void AddSphDataToChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		int& startIndexSph, const thrust::host_vector<Real3>& posRadH,
 		const thrust::host_vector<Real4>& velMasH, const SimParams& paramsH,
-		const NumberOfObjects& numObjects, int collisionFamilly,
-		Real sphMarkerMass);
+		const NumberOfObjects& numObjects, int collisionFamilly);
 
 void AddHydroForce(chrono::ChSystemParallelDVI& mphysicalSystem,
 		int& startIndexSph, const NumberOfObjects& numObjects);

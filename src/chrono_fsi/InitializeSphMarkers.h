@@ -37,15 +37,14 @@ void SetNumObjects(NumberOfObjects& numObjects,
 int2 CreateFluidMarkers(thrust::host_vector<Real3>& posRadH,
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
-		thrust::host_vector<uint>& bodyIndex, const SimParams& paramsH,
-		Real& sphMarkerMass);
+		thrust::host_vector<uint>& bodyIndex, SimParams& paramsH);
 
 void CreateBceGlobalMarkersFromBceLocalPos(thrust::host_vector<Real3>& posRadH,
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
-		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
+		const thrust::host_vector<Real3>& posRadBCE,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
 		chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT,
@@ -57,7 +56,7 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
 		NumberOfObjects& numObjects,
-		const thrust::host_vector<Real3>& posRadBCE, Real sphMarkerMass,
+		const thrust::host_vector<Real3>& posRadBCE,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
 		chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT);
@@ -67,7 +66,7 @@ void AddSphereBce(
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		Real radius, chrono::ChVector<> relPos = chrono::ChVector<>(0, 0, 0),
 		chrono::ChQuaternion<> relRot = chrono::ChQuaternion<>(1, 0, 0, 0));
@@ -77,7 +76,7 @@ void AddCylinderBce(
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		Real radius, Real height, chrono::ChVector<> relPos =
 				chrono::ChVector<>(0, 0, 0), chrono::ChQuaternion<> relRot =
@@ -88,7 +87,7 @@ void AddBoxBce(
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		const chrono::ChVector<>& size, chrono::ChVector<> relPos =
 				chrono::ChVector<>(0, 0, 0), chrono::ChQuaternion<> relRot =
@@ -99,7 +98,7 @@ void AddBCE_FromFile(
 		thrust::host_vector<Real4>& velMasH,
 		thrust::host_vector<Real4>& rhoPresMuH,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH, chrono::ChSharedPtr<chrono::ChBody> body,
 		std::string dataPath);
 
@@ -110,7 +109,7 @@ void CreateSphereFSI(
 		thrust::host_vector<::int4>& referenceArray,
 		chrono::ChSystem& mphysicalSystem,
 		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH,
 		Real radius,
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
@@ -124,7 +123,7 @@ void CreateCylinderFSI(
 		thrust::host_vector<::int4>& referenceArray,
 		chrono::ChSystem& mphysicalSystem,
 		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH,
 		Real radius,
 		Real length,
@@ -140,7 +139,7 @@ void CreateBoxFSI(
 		thrust::host_vector<::int4>& referenceArray,
 		chrono::ChSystem& mphysicalSystem,
 		std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
-		NumberOfObjects& numObjects, Real sphMarkerMass,
+		NumberOfObjects& numObjects,
 		const SimParams& paramsH,
 		const chrono::ChVector<>& hsize,
 		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,

@@ -225,8 +225,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 		thrust::host_vector<uint>& bodyIndex,
 		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
 		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, const SimParams& paramsH,
-		Real sphMarkerMass) {
+		NumberOfObjects& numObjects, const SimParams& paramsH) {
 	// Set common material Properties
 	mat_g->SetFriction(0.8);
 	mat_g->SetCohesion(0);
@@ -268,20 +267,20 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 #if haveFluid
 		// basin
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
-				sphMarkerMass, paramsH, ground,
+				paramsH, ground,
 				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
 				ChVector<>(0, 0, -basinDepth - hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 		// slope 1
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
-				sphMarkerMass, paramsH, ground,
+				paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x1I, 0, zI),
 				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
 
 		// slope 2
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray, numObjects,
-				sphMarkerMass, paramsH, ground,
+				paramsH, ground,
 				ChVector<>(inclinedWidth, hdimY, hthick),
 				ChVector<>(x2I, 0, zI),
 				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
@@ -305,7 +304,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X);
 
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
-			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
+			mphysicalSystem, FSI_Bodies, numObjects, paramsH,
 			cyl_radius1, cyl_length1, mat_g, 0.5 * paramsH.rho0, cyl_pos,
 			cyl_rot);
 	int bid_1 = FSI_Bodies.size();
@@ -313,7 +312,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	double cyl_length2 = 1.0;
 	double cyl_radius2 = 0.25;
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
-			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
+			mphysicalSystem, FSI_Bodies, numObjects, paramsH,
 			0.5 * cyl_radius2, cyl_length2, mat_g, 0.5 * paramsH.rho0,
 			ChVector<>(0, 0, .5 * (cyl_length2 + 2 * cyl_length1)), cyl_rot);
 	int bid_2 = FSI_Bodies.size() - 1;
@@ -321,7 +320,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	double cyl_length3 = 1.0;
 	double cyl_radius3 = 0.25;
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
-			mphysicalSystem, FSI_Bodies, numObjects, sphMarkerMass, paramsH,
+			mphysicalSystem, FSI_Bodies, numObjects, paramsH,
 			0.5 * cyl_radius2, cyl_length2, mat_g, 0.5 * paramsH.rho0,
 			ChVector<>(0, 0,
 					cyl_length2 + .5 * (cyl_length3 + 4 * cyl_length1)),
@@ -512,8 +511,7 @@ int main(int argc, char* argv[]) {
 
 		//*** initialize fluid particles
 		::int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH,
-				rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
-		paramsH.markerMass = sphMarkerMass;
+				rhoPresMuH, bodyIndex, paramsH);
 
 		printf("num_fluidOrBoundaryMarkers %d %d \n",
 				num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
@@ -549,7 +547,7 @@ int main(int argc, char* argv[]) {
 
 	CreateMbdPhysicalSystemObjects(mphysicalSystem, posRadH, velMasH,
 			rhoPresMuH, bodyIndex, FSI_Bodies, referenceArray, numObjects,
-			paramsH, sphMarkerMass);
+			paramsH);
 
 	// ***************************** Create Interface ********************************************
 
