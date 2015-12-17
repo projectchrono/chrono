@@ -12,6 +12,9 @@ struct ConvexShape {
     real3 C;          // extra
     quaternion R;     // rotation
     real3* convex;    // pointer to convex data;
+    ConvexShape(){}
+    ConvexShape(shape_type t, real3 a, real3 b, real3 c, quaternion r, real3* con)
+        : type(t), A(a), B(b), C(c), R(r), convex(con) {}
 };
 
 struct ContactPoint {
