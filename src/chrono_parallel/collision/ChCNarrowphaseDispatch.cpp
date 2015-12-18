@@ -533,9 +533,6 @@ inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
 }
 
 void ChCNarrowphaseDispatch::DispatchFluid() {
-    real t1, t2, t3, t4, t5, t6, t7, t8;
-    ChTimer<> timer;
-
     LOG(TRACE) << "start DispatchFluidFluid: ";
     const int num_fluid_bodies = data_manager->num_fluid_bodies;
     const int num_rigid_bodies = data_manager->num_rigid_bodies;
@@ -544,43 +541,30 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     if (num_fluid_bodies == 0) {
         return;
     }
-    timer.start();
+    //=======
     const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
     const custom_vector<real3>& vel_fluid = data_manager->host_data.vel_fluid;
     custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_fluid;
 
     custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
-
-    custom_vector<int> bin_ids(num_fluid_bodies);
     custom_vector<int>& particle_indices = data_manager->host_data.particle_indices_fluid;
-    // custom_vector<long long>& bids_fluid_fluid = data_manager->host_data.bids_fluid_fluid;
-    particle_indices.resize(num_fluid_bodies);
-
     custom_vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping;
 
-    reverse_mapping.resize(num_fluid_bodies);
-    contact_counts.resize(num_fluid_bodies);
-    sorted_pos_fluid.resize(num_fluid_bodies);
     neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
-    // bids_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
-    timer.stop();
-    t1 = timer();
-    timer.reset();
-    timer.start();
+    contact_counts.resize(num_fluid_bodies);
+    particle_indices.resize(num_fluid_bodies);
+    reverse_mapping.resize(num_fluid_bodies);
+    ff_bin_ids.resize(num_fluid_bodies);
+
+    sorted_pos_fluid.resize(num_fluid_bodies);
+
     Thrust_Fill(contact_counts, 0);
     Thrust_Fill(neighbor_fluid_fluid, 0);
 
-    // long long t = 9223372036854775807;
-
-    // Thrust_Fill(bids_fluid_fluid, t);
-
     const real radius = data_manager->settings.fluid.kernel_radius;
     const real radiusSq = radius * radius;
-    timer.stop();
-    t2 = timer();
-    timer.reset();
-    timer.start();
+
     bbox res(pos_fluid[0], pos_fluid[0]);
     bbox_transformation unary_op;
     bbox_reduction binary_op;
@@ -595,59 +579,46 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                                      Min(Floor(res.first.z), Floor(res.first.z - radius * 6)));
 
     real3 diag = max_bounding_point - min_bounding_point;
-    int3 bins_per_axis;
-
-    bins_per_axis.x = (diag.x / (radius * 2));
-    bins_per_axis.y = (diag.y / (radius * 2));
-    bins_per_axis.z = (diag.z / (radius * 2));
+    int3 bins_per_axis = int3(diag / (radius * 2));
 
     real inv_bin_edge = 1.f / (radius * 2 + data_manager->settings.fluid.collision_envelope);
     size_t grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
-    custom_vector<int> bin_starts(grid_size);
-    custom_vector<int> bin_ends(grid_size);
+    ff_bin_starts.resize(grid_size);
+    ff_bin_ends.resize(grid_size);
 
-    Thrust_Fill(bin_starts, 0);
-    Thrust_Fill(bin_ends, 0);
+    Thrust_Fill(ff_bin_starts, 0);
+    Thrust_Fill(ff_bin_ends, 0);
     Thrust_Fill(contact_counts, 0);
-    timer.stop();
-    t3 = timer();
-    timer.reset();
-    timer.start();
+
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
         real3 p = pos_fluid[i];
-        bin_ids[i] = GridHash(GridCoord(p.x, inv_bin_edge, min_bounding_point.x),
-                              GridCoord(p.y, inv_bin_edge, min_bounding_point.y),
-                              GridCoord(p.z, inv_bin_edge, min_bounding_point.z), bins_per_axis);
+        ff_bin_ids[i] = GridHash(GridCoord(p.x, inv_bin_edge, min_bounding_point.x),
+                                 GridCoord(p.y, inv_bin_edge, min_bounding_point.y),
+                                 GridCoord(p.z, inv_bin_edge, min_bounding_point.z), bins_per_axis);
         particle_indices[i] = i;
     }
 
-    Thrust_Sort_By_Key(bin_ids, particle_indices);
-    timer.stop();
-    t4 = timer();
-    timer.reset();
-    timer.start();
+    Thrust_Sort_By_Key(ff_bin_ids, particle_indices);
+
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
-        int c = bin_ids[i];
+        int c = ff_bin_ids[i];
         if (i == 0) {
-            bin_starts[c] = i;
+            ff_bin_starts[c] = i;
         } else {
-            int p = bin_ids[i - 1];
+            int p = ff_bin_ids[i - 1];
             if (c != p) {
-                bin_starts[c] = i;
-                bin_ends[p] = i;
+                ff_bin_starts[c] = i;
+                ff_bin_ends[p] = i;
             }
         }
         if (i == num_fluid_bodies - 1) {
-            bin_ends[c] = i + 1;
+            ff_bin_ends[c] = i + 1;
         }
     }
-    timer.stop();
-    t5 = timer();
-    timer.reset();
-    timer.start();
+
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
         int index = particle_indices[i];
@@ -658,10 +629,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
 
         reverse_mapping[index] = i;
     }
-    timer.stop();
-    t6 = timer();
-    timer.reset();
-    timer.start();
+
 #pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
         real3 xi = sorted_pos_fluid[p];
@@ -678,8 +646,8 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
             for (int j = ystart; j <= yend; ++j) {
                 for (int i = xstart; i <= xend; ++i) {
                     const int cellIndex = GridHash(i, j, k, bins_per_axis);
-                    const int cellStart = bin_starts[cellIndex];
-                    const int cellEnd = bin_ends[cellIndex];
+                    const int cellStart = ff_bin_starts[cellIndex];
+                    const int cellEnd = ff_bin_ends[cellIndex];
                     for (int q = cellStart; q < cellEnd; ++q) {
                         // if (q == p) {
                         //    continue;
@@ -689,7 +657,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                         const real dSq = Dot(xij);
                         if (dSq < radiusSq) {
                             if (contact_count < max_neighbors) {
-                                 neighbor_fluid_fluid[p * max_neighbors + contact_count] = q;
+                                neighbor_fluid_fluid[p * max_neighbors + contact_count] = q;
                                 ++contact_count;
                             }
                         }
@@ -699,38 +667,8 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
         }
         contact_counts[p] = contact_count;
     }
-    timer.stop();
-    t7 = timer();
-    timer.reset();
-    timer.start();
-    uint& num_fluid_contacts = data_manager->num_fluid_contacts;
-    num_fluid_contacts = Thrust_Total(contact_counts);
-#if 0
-    data_manager->host_data.fluid_contact_index.resize(num_fluid_bodies * max_neighbors);
-    int cnt = 0;
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        for (int i = 0; i < contact_counts[p]; i++) {
-            data_manager->host_data.fluid_contact_index[p * max_neighbors + i] = cnt;
-            cnt++;
-        }
-    }
-#endif
-    // Thrust_Sort(bids_fluid_fluid);
-    timer.stop();
-    t8 = timer();
-    timer.reset();
-    timer.start();
-    // Now the list of pairs is sorted,
-    //    for (int p = 0; p < num_fluid_bodies; p++) {
-    //        std::cout << "p: " << p << " ";
-    //        for (int i = 0; i < contact_counts[p]; i++) {
-    //            std::cout << neighbor_fluid_fluid[p * max_neighbors + i] << " ";
-    //        }
-    //        std::cout << std::endl;
-    //    }
 
-    printf("ff_timer: [%f, %f, %f, %f, %f, %f, %f, %f]\n", t1, t2, t3, t4, t5, t6, t7, t8);
-
+    data_manager->num_fluid_contacts = Thrust_Total(contact_counts);
     LOG(TRACE) << "stop DispatchFLuidFluid: ";
 }
 

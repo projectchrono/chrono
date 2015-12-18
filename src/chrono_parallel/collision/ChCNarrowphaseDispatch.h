@@ -65,6 +65,9 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     custom_vector<uint> f_bin_fluid_number;
     custom_vector<uint> f_bin_start_index;
     custom_vector<uint> is_rigid_bin_active;
+    custom_vector<int> ff_bin_ids;
+    custom_vector<int> ff_bin_starts;
+    custom_vector<int> ff_bin_ends;
 };
 }  // end namespace collision
 }  // end namespace chrono
