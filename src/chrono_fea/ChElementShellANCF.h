@@ -108,141 +108,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         friend class ChElementShellANCF;
     };
 
-    /// This class defines the calculations for the integrand of the inertia matrix.
-    /// S = [N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3) N5*eye(3) N6*eye(3) N7*eye(3) N8*eye(3)];
-    class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
-      public:
-        MyMass();  ///< Constructor
-        MyMass(ChMatrixNM<double, 8, 3>* m_d0, ChElementShellANCF* element_) {
-            d0 = m_d0;
-            element = element_;
-        }
-        ~MyMass() {}
-
-      private:
-        ChElementShellANCF* element;
-        ChMatrixNM<double, 8, 3>* d0;  ///< Pointer to initial coordinates
-        ChMatrixNM<double, 3, 24> S;   ///< Sparse matrix with shape functions evaluated
-        ChMatrixNM<double, 1, 8> N;    ///< Dense shape function vector
-        ChMatrixNM<double, 1, 8> Nx;   ///< Dense shape function vector X derivative
-        ChMatrixNM<double, 1, 8> Ny;   ///< Dense shape function vector Y derivative
-        ChMatrixNM<double, 1, 8> Nz;   ///< Dense shape function vector Z derivative
-        /// The Evaluate method calculates the integrand in the matrix result
-        virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z);
-    };
-
-    /// This class defines the calculations for the integrand of the element gravity forces
-    class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
-      public:
-        MyGravity();
-        MyGravity(ChMatrixNM<double, 8, 3>* m_d0, ChElementShellANCF* passedelement, const ChVector<> g_acc)
-            : d0(m_d0), element(passedelement), gacc(g_acc) {}
-        ~MyGravity() {}
-
-      private:
-        ChElementShellANCF* element;
-        ChMatrixNM<double, 8, 3>* d0;  ///< Pointer to initial coordinates
-        ChMatrixNM<double, 1, 8> N;    ///< Dense shape function vector
-        ChMatrixNM<double, 1, 8> Nx;   ///< Dense shape function vector X derivative
-        ChMatrixNM<double, 1, 8> Ny;   ///< Dense shape function vector Y derivative
-        ChMatrixNM<double, 1, 8> Nz;   ///< Dense shape function vector Z derivative
-        ChVector<> gacc;               ///< gravitational acceleration
-
-        /// The Evaluate method calculates the integrand  of the gravity forces and stores it in result
-        virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
-    };
-
-    /// This class defines the calculations for the integrand of shell element internal forces
-    /// Capabilities of this class include: Application of enhanced assumed strain and assumed natural
-    /// strain formulations to avoid thickness and (tranvese and in-plane) shear locking. This implementation
-    /// also features a composite material implementation that allows for selecting a number of layers over the
-    /// element thickness; each of which has an independent, user-selected fiber angle (direction for orthotropic
-    /// constitutive
-    /// behavior)
-    class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
-      public:
-        MyForce();
-        // Constructor
-        MyForce(
-            ChMatrixNM<double, 8, 3>* d_,             ///< Pointer to current (this iteration) coordinates
-            ChMatrixNM<double, 24, 1>* d_dt_,         ///< Pointer to current (this iteration) generalized velocities
-            ChMatrixNM<double, 8, 1>* strain_ans_,    ///< Vector for assumed natural strain
-            ChMatrixNM<double, 8, 24>* strainD_ans_,  ///< Matrix for Jacobian of assumed natural strain
-            ChMatrixNM<double, 6, 6>* E_eps_,         ///< Pointer to matrix of elastic coefficients (Orthotropic style)
-            ChElementShellANCF* element_,             ///< Pointer to this element
-            ChMatrixNM<double, 6, 6>*
-                T0_,  ///< Pointer to transformation matrix, function of fiber angle (see Yamashita et al, 2015, JCND)
-            double* detJ0C_,  ///< Determinant of the position vector gradient of initial configuration evaluated at the
-            /// element center
-            double* theta_,  ///< Fiber angle (user input in degrees)
-            ChMatrixNM<double, 5, 1>*
-                alpha_eas_)  ///< Pointer to the vector of internal parameters for Enhanced Assumed Strain formulation
-        {
-            d = d_;
-            d_dt = d_dt_;
-            strain_ans = strain_ans_;
-            strainD_ans = strainD_ans_;
-            element = element_;
-            E_eps = E_eps_;
-            T0 = T0_;
-            detJ0C = detJ0C_;
-            theta = theta_;
-            alpha_eas = alpha_eas_;
-        }
-        ~MyForce() {}
-
-      private:
-        ChElementShellANCF* element;
-        //// External values
-        ChMatrixNM<double, 8, 3>* d;
-        ChMatrixNM<double, 8, 1>* strain_ans;
-        ChMatrixNM<double, 8, 24>* strainD_ans;
-        ChMatrixNM<double, 24, 1>* d_dt;
-        ChMatrixNM<double, 6, 6>* T0;
-        ChMatrixNM<double, 5, 1>* alpha_eas;
-        ChMatrixNM<double, 6, 6>* E_eps;
-        double* detJ0C;
-        double* theta;
-
-        ChMatrixNM<double, 24, 1> Fint;    ///< Internal force vector, added to the equations
-        ChMatrixNM<double, 24, 24> JAC11;  ///< Jacobian of element elastic forces for implicit numerical integration
-        ChMatrixNM<double, 9, 24> Gd;  ///< Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
-        ChMatrixNM<double, 6, 1> stress;  ///< Stress vector: (*)E_eps*strain
-        ChMatrixNM<double, 9, 9> Sigm;    ///< Rearrangement of stress vector (not always needed)
-        ChMatrixNM<double, 24, 6>
-            temp246;  ///< Temporary matrix for the calculation of JAC11 (Jacobian of element elastic forces)
-        ChMatrixNM<double, 24, 9>
-            temp249;  ///< Temporary matrix for the calculation of JAC11 (Jacobian of element elastic forces)
-        ChMatrixNM<double, 1, 8> Nx;          ///< Dense shape function vector X derivative
-        ChMatrixNM<double, 1, 8> Ny;          ///< Dense shape function vector Y derivative
-        ChMatrixNM<double, 1, 8> Nz;          ///< Dense shape function vector Z derivative
-        ChMatrixNM<double, 6, 24> strainD;    ///< Derivative of the strains w.r.t. the coordinates. Includes orthotropy
-        ChMatrixNM<double, 6, 1> strain;      ///< Vector of strains
-        ChMatrixNM<double, 8, 8> d_d;         ///< d*d' matrix, where d contains current coordinates in matrix form
-        ChMatrixNM<double, 8, 1> ddNx;        ///< d_d*Nx' matrix
-        ChMatrixNM<double, 8, 1> ddNy;        ///< d_d*Ny' matrix
-        ChMatrixNM<double, 8, 1> ddNz;        ///< d_d*Nz' matrix
-        ChMatrixNM<double, 8, 8> d0_d0;       ///< d0*d0' matrix, where d0 contains initial coordinates in matrix form
-        ChMatrixNM<double, 8, 1> d0d0Nx;      ///< d0_d0*Nx' matrix
-        ChMatrixNM<double, 8, 1> d0d0Ny;      ///< d0_d0*Ny' matrix
-        ChMatrixNM<double, 8, 1> d0d0Nz;      ///< d0_d0*Nz' matrix
-        ChMatrixNM<double, 1, 24> tempB;      ///< Temporary matrix to calculate strainD
-        ChMatrixNM<double, 24, 6> tempC;      ///< Temporary matrix to compute internal forces Fint
-        double detJ0;                         ///< Determinant of the initial position vector gradient matrix
-        double alphaHHT;                      ///< Hard-coded damping coefficient for structural dissipation
-        double betaHHT;                       ///< HHT coefficient for structural damping
-        double gammaHHT;                      ///< HHT coefficient for structural damping
-        ChMatrixNM<double, 1, 8> N;           ///< Shape function vector
-        ChMatrixNM<double, 1, 4> S_ANS;       ///< Shape function vector for Assumed Natural Strain
-        ChMatrixNM<double, 1, 24> tempBB;     ///< Temporary matrix used to calculate strainD
-        ChMatrixNM<double, 6, 5> M;           ///< Shape function vector for Enhanced Assumed Strain
-        ChMatrixNM<double, 6, 5> G;           ///< Matrix G interpolates the internal parameters of EAS
-        ChMatrixNM<double, 5, 6> GT;          ///< Tranpose of matrix GT
-        ChMatrixNM<double, 6, 1> strain_EAS;  ///< Enhanced assumed strain vector
-
-        /// Evaluate (strainD'*strain)  at point x, include ANS and EAS.
-        virtual void Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z);
-    };
     /// Get the number of nodes used by this element.
     virtual int GetNnodes() override { return 4; }
 
@@ -459,9 +324,8 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Analytical inverse for a 5x5 matrix
     static void Inverse55_Analytical(ChMatrixNM<double, 5, 5>& A, ChMatrixNM<double, 5, 5>& B);
 
-    //
     // Functions for ChLoadable interface
-    //
+    // ----------------------------------
 
     /// Gets the number of DOFs affected by this element (position part)
     virtual int LoadableGet_ndof_x() { return 4 * 6; }
@@ -513,7 +377,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
             Result += N(ii * 2) * this->m_nodes[ii]->GetPos_dt();
             Result += N(ii * 2 + 1) * this->m_nodes[ii]->GetPos_dt();
         }
-    };
+    }
 
     // evaluate shape functions (in compressed vector), btw. not dependant on state
 
@@ -737,6 +601,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         double G1xG2nrm = sqrt(G1xG2(0) * G1xG2(0) + G1xG2(1) * G1xG2(1) + G1xG2(2) * G1xG2(2));
         return G1xG2 / G1xG2nrm;
     }
+
+    friend class MyMass;
+    friend class MyGravity;
+    friend class MyForce;
 };
 
 }  // end of namespace fea

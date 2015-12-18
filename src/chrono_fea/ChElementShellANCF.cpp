@@ -23,13 +23,21 @@
 namespace chrono {
 namespace fea {
 
+// ------------------------------------------------------------------------------
+// Constructor
+// ------------------------------------------------------------------------------
+
 ChElementShellANCF::ChElementShellANCF() : m_flag_HE(ANALYTICAL), m_gravity_on(false) {
     m_nodes.resize(4);
 
     m_StiffnessMatrix.Resize(GetNdofs(), GetNdofs());
     m_MassMatrix.Resize(GetNdofs(), GetNdofs());
 }
+
 // ------------------------------------------------------------------------------
+// Set element nodes
+// ------------------------------------------------------------------------------
+
 void ChElementShellANCF::SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
                                   ChSharedPtr<ChNodeFEAxyzD> nodeB,
                                   ChSharedPtr<ChNodeFEAxyzD> nodeC,
@@ -98,78 +106,33 @@ void ChElementShellANCF::SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
 }
 
 // -----------------------------------------------------------------------------
-// Shape functions
-// -----------------------------------------------------------------------------
-void ChElementShellANCF::ShapeFunctions(ChMatrix<>& N, double x, double y, double z) {
-    double a = GetLengthX();
-    double b = GetLengthY();
-    double c = m_thickness;
-
-    N(0) = 0.25 * (1.0 - x) * (1.0 - y);
-    N(1) = z * c / 2.0 * 0.25 * (1.0 - x) * (1.0 - y);
-    N(2) = 0.25 * (1.0 + x) * (1.0 - y);
-    N(3) = z * c / 2.0 * 0.25 * (1.0 + x) * (1.0 - y);
-    N(4) = 0.25 * (1.0 - x) * (1.0 + y);
-    N(5) = z * c / 2.0 * 0.25 * (1.0 - x) * (1.0 + y);
-    N(6) = 0.25 * (1.0 + x) * (1.0 + y);
-    N(7) = z * c / 2.0 * 0.25 * (1.0 + x) * (1.0 + y);
-}
-
-void ChElementShellANCF::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z) {
-    double a = GetLengthX();
-    double b = GetLengthY();
-    double c = m_thickness;
-
-    Nx(0) = 0.25 * (-2.0 / a) * (1.0 - y);
-    Nx(1) = z * c / 2.0 * 0.25 * (-2.0 / a) * (1.0 - y);
-    Nx(2) = 0.25 * (2.0 / a) * (1.0 - y);
-    Nx(3) = z * c / 2.0 * 0.25 * (2.0 / a) * (1.0 - y);
-    Nx(4) = 0.25 * (-2.0 / a) * (1.0 + y);
-    Nx(5) = z * c / 2.0 * 0.25 * (-2.0 / a) * (1.0 + y);
-    Nx(6) = 0.25 * (2.0 / a) * (1.0 + y);
-    Nx(7) = z * c / 2.0 * 0.25 * (2.0 / a) * (1.0 + y);
-}
-
-void ChElementShellANCF::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z) {
-    double a = GetLengthX();
-    double b = GetLengthY();
-    double c = m_thickness;
-
-    Ny(0) = 0.25 * (1.0 - x) * (-2.0 / b);
-    Ny(1) = z * c / 2.0 * 0.25 * (1.0 - x) * (-2.0 / b);
-    Ny(2) = 0.25 * (1.0 + x) * (-2.0 / b);
-    Ny(3) = z * c / 2.0 * 0.25 * (1.0 + x) * (-2.0 / b);
-    Ny(4) = 0.25 * (1.0 - x) * (2.0 / b);
-    Ny(5) = z * c / 2.0 * 0.25 * (1.0 - x) * (2.0 / b);
-    Ny(6) = 0.25 * (1.0 + x) * (2.0 / b);
-    Ny(7) = z * c / 2.0 * 0.25 * (1.0 + x) * (2.0 / b);
-}
-// -----------------------------------------------------------------------------
-void ChElementShellANCF::ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z) {
-    double a = GetLengthX();
-    double b = GetLengthY();
-    double c = m_thickness;
-
-    Nz(0) = 0.0;
-    Nz(1) = 0.250 * (1.0 - x) * (1.0 - y);
-    Nz(2) = 0.0;
-    Nz(3) = 0.250 * (1.0 + x) * (1.0 - y);
-    Nz(4) = 0.0;
-    Nz(5) = 0.250 * (1.0 - x) * (1.0 + y);
-    Nz(6) = 0.0;
-    Nz(7) = 0.250 * (1.0 + x) * (1.0 + y);
-}
+// Interface to ChElementBase base class
 // -----------------------------------------------------------------------------
 
-// -----------------------------------------------------------------------------
+// Initial element setup.
+void ChElementShellANCF::SetupInitial(ChSystem* system) {
+    // Perform layer initialization
 
+    // Compute mass matrix and gravitational forces (constant)
+    ComputeMassMatrix();
+    ComputeGravityForce(system->Get_G_acc());
+
+    // Compute initial Jacobian
+    ChMatrixDynamic<double> Temp(GetNdofs(), 1);
+    ComputeInternalForces(Temp);
+
+    // Compute stiffness matrix
+    // (this is not constant in ANCF and will be called automatically many times by ComputeKRMmatricesGlobal()
+    // when the solver will run, yet maybe nice to provide an initial nonzero value)
+    ComputeStiffnessMatrix();
+}
+
+// State update.
 void ChElementShellANCF::Update() {
-    // parent class update:
     ChElementGeneric::Update();
 }
 
-// -----------------------------------------------------------------------------
-
+// Fill the D vector with the current field values at the element nodes.
 void ChElementShellANCF::GetStateBlock(ChMatrixDynamic<>& mD) {
     mD.PasteVector(m_nodes[0]->GetPos(), 0, 0);
     mD.PasteVector(m_nodes[0]->GetD(), 3, 0);
@@ -181,54 +144,63 @@ void ChElementShellANCF::GetStateBlock(ChMatrixDynamic<>& mD) {
     mD.PasteVector(m_nodes[3]->GetD(), 21, 0);
 }
 
+// Update the global M, K, R matrices
+void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
+    assert((H.GetRows() == 24) && (H.GetColumns() == 24));
+
+    // Compute global stiffness matrix:
+    ComputeStiffnessMatrix();
+
+    //
+    // 1) Store  +kf*[K] +rf*[R]
+    //
+
+    ChMatrixDynamic<> temp(m_StiffnessMatrix);
+    temp.MatrScale(Kfactor);
+
+    // Paste scaled K stiffness matrix and R matrix in resulting H:
+    H.PasteMatrix(&temp, 0, 0);
+
+    //
+    // 2) Store  +mf*[M]
+    //
+
+    temp = m_MassMatrix;
+    temp.MatrScale(Mfactor);
+
+    // Paste scaled M mass matrix in resulting H:
+    H.PasteSumMatrix(&temp, 0, 0);
+}
+
+
 // -----------------------------------------------------------------------------
-void ChElementShellANCF::MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result,
-                                             const double x,
-                                             const double y,
-                                             const double z) {
-    element->ShapeFunctions(N, x, y, z);
-    element->ShapeFunctionsDerivativeX(Nx, x, y, z);
-    element->ShapeFunctionsDerivativeY(Ny, x, y, z);
-    element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
+// Mass matrix calculation
+// -----------------------------------------------------------------------------
 
-    // Weights for Gaussian integration
-    double wx2 = (element->GetLengthX()) / 2.0;
-    double wy2 = (element->GetLengthY()) / 2.0;
-    double wz2 = (element->m_thickness) / 2.0;
+/// This class defines the calculations for the integrand of the inertia matrix.
+class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
+public:
+  MyMass(ChElementShellANCF* element_) : element(element_) {}
+  ~MyMass() {}
 
-    ChMatrixNM<double, 1, 3> Nx_d0;
-    Nx_d0.MatrMultiply(Nx, *d0);
+private:
+    ChElementShellANCF* element;
 
-    ChMatrixNM<double, 1, 3> Ny_d0;
-    Ny_d0.MatrMultiply(Ny, *d0);
-
-    ChMatrixNM<double, 1, 3> Nz_d0;
-    Nz_d0.MatrMultiply(Nz, *d0);
-
-    // Determinant of position vector gradient matrix: Initial configuration
-    double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
-                   Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
-                   Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
-
-    for (int i = 0; i < 8; i++) {
-        result(i * 3 + 0, 0) = N(0, i) * gacc.x;
-        result(i * 3 + 1, 0) = N(0, i) * gacc.y;
-        result(i * 3 + 2, 0) = N(0, i) * gacc.z;
-    }
-
-    result *= detJ0 * wx2 * wy2 * wz2;
+    virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) override;
 };
 
-// -----------------------------------------------------------------------------
-void ChElementShellANCF::MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result,
-                                          const double x,
-                                          const double y,
-                                          const double z) {
+void MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) {
+    ChMatrixNM<double, 1, 8> N;    ///< Dense shape function vector
+    ChMatrixNM<double, 1, 8> Nx;
+    ChMatrixNM<double, 1, 8> Ny;
+    ChMatrixNM<double, 1, 8> Nz;
     element->ShapeFunctions(N, x, y, z);
     element->ShapeFunctionsDerivativeX(Nx, x, y, z);
     element->ShapeFunctionsDerivativeY(Ny, x, y, z);
     element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
+
     // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3) N5*eye(3) N6*eye(3) N7*eye(3) N8*eye(3)]
+    ChMatrixNM<double, 3, 24> S;
     ChMatrix33<> Si;
     Si.FillDiag(N(0));
     S.PasteMatrix(&Si, 0, 0);
@@ -247,15 +219,14 @@ void ChElementShellANCF::MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result,
     Si.FillDiag(N(7));
     S.PasteMatrix(&Si, 0, 21);
 
-    ////Matrix Multiplication
     ChMatrixNM<double, 1, 3> Nx_d0;
-    Nx_d0.MatrMultiply(Nx, *d0);
+    Nx_d0.MatrMultiply(Nx, element->m_d0);
 
     ChMatrixNM<double, 1, 3> Ny_d0;
-    Ny_d0.MatrMultiply(Ny, *d0);
+    Ny_d0.MatrMultiply(Ny, element->m_d0);
 
     ChMatrixNM<double, 1, 3> Nz_d0;
-    Nz_d0.MatrMultiply(Nz, *d0);
+    Nz_d0.MatrMultiply(Nz, element->m_d0);
 
     // Determinant of position vector gradient matrix: Initial configuration
     double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
@@ -268,12 +239,196 @@ void ChElementShellANCF::MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result,
     // multiply integration weights
     result *= detJ0 * (element->GetLengthX() / 2) * (element->GetLengthY() / 2) * (element->m_thickness / 2);
 };
+
+void ChElementShellANCF::ComputeMassMatrix() {
+    m_MassMatrix.Reset();
+
+    for (int kl = 0; kl < m_numLayers; kl++) {
+        double rho = m_InertFlexVec(14 * kl);
+        MyMass myformula(this);
+        ChMatrixNM<double, 24, 24> TempMassMatrix;
+
+        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(TempMassMatrix,  // result of integration will go there
+                                                               myformula,       // formula to integrate
+                                                               -1, 1,           // x limits
+                                                               -1, 1,           // y limits
+                                                               m_GaussZRange(kl, 0), m_GaussZRange(kl, 1),  // z limits
+                                                               2  // order of integration
+                                                               );
+
+        TempMassMatrix *= rho;
+        m_MassMatrix += TempMassMatrix;
+    }
+}
+
 // -----------------------------------------------------------------------------
-void ChElementShellANCF::MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result,
-                                           const double x,
-                                           const double y,
-                                           const double z) {
-    element->ShapeFunctions(N, x, y, z);  // ANS used for ZZ strain and strainD
+// Gravitational force calculation
+// -----------------------------------------------------------------------------
+
+/// This class defines the calculations for the integrand of the element gravity forces
+class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
+public:
+  MyGravity(ChElementShellANCF* element_, const ChVector<> gacc_) : element(element_), gacc(gacc_) {}
+  ~MyGravity() {}
+
+private:
+    ChElementShellANCF* element;
+    ChVector<> gacc;
+
+    virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
+};
+
+void MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z) {
+    ChMatrixNM<double, 1, 8> N;
+    ChMatrixNM<double, 1, 8> Nx;
+    ChMatrixNM<double, 1, 8> Ny;
+    ChMatrixNM<double, 1, 8> Nz;
+    element->ShapeFunctions(N, x, y, z);
+    element->ShapeFunctionsDerivativeX(Nx, x, y, z);
+    element->ShapeFunctionsDerivativeY(Ny, x, y, z);
+    element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
+
+    // Weights for Gaussian integration
+    double wx2 = (element->GetLengthX()) / 2.0;
+    double wy2 = (element->GetLengthY()) / 2.0;
+    double wz2 = (element->m_thickness) / 2.0;
+
+    ChMatrixNM<double, 1, 3> Nx_d0;
+    Nx_d0.MatrMultiply(Nx, element->m_d0);
+
+    ChMatrixNM<double, 1, 3> Ny_d0;
+    Ny_d0.MatrMultiply(Ny, element->m_d0);
+
+    ChMatrixNM<double, 1, 3> Nz_d0;
+    Nz_d0.MatrMultiply(Nz, element->m_d0);
+
+    // Determinant of position vector gradient matrix: Initial configuration
+    double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
+                   Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
+                   Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
+
+    for (int i = 0; i < 8; i++) {
+        result(i * 3 + 0, 0) = N(0, i) * gacc.x;
+        result(i * 3 + 1, 0) = N(0, i) * gacc.y;
+        result(i * 3 + 2, 0) = N(0, i) * gacc.z;
+    }
+
+    result *= detJ0 * wx2 * wy2 * wz2;
+};
+
+void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
+    m_GravForce.Reset();
+
+    for (int kl = 0; kl < m_numLayers; kl++) {
+        double rho = m_InertFlexVec(14 * kl);
+        MyGravity myformula(this, g_acc);
+        ChMatrixNM<double, 24, 1> Fgravity;
+
+        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1> >(Fgravity,   // result of integration will go there
+                                                              myformula,  // formula to integrate
+                                                              -1, 1,      // x limits
+                                                              -1, 1,      // y limits
+                                                              m_GaussZRange(kl, 0), m_GaussZRange(kl, 1),  // z limits
+                                                              2  // order of integration
+                                                              );
+
+        Fgravity *= rho;
+        m_GravForce += Fgravity;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Elastic force calculation
+// -----------------------------------------------------------------------------
+
+// This class defines the calculations for the integrand of shell element internal forces
+// Capabilities of this class include: Application of enhanced assumed strain and assumed natural
+// strain formulations to avoid thickness and (tranvese and in-plane) shear locking. This implementation
+// also features a composite material implementation that allows for selecting a number of layers over the
+// element thickness; each of which has an independent, user-selected fiber angle (direction for orthotropic
+// constitutive behavior)
+class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
+public:
+  MyForce(ChMatrixNM<double, 8, 3>* d_,             // Pointer to current (this iteration) coordinates
+          ChMatrixNM<double, 24, 1>* d_dt_,         // Pointer to current (this iteration) generalized velocities
+          ChMatrixNM<double, 8, 1>* strain_ans_,    // Vector for assumed natural strain
+          ChMatrixNM<double, 8, 24>* strainD_ans_,  // Matrix for Jacobian of assumed natural strain
+          ChMatrixNM<double, 6, 6>* E_eps_,         // Pointer to matrix of elastic coefficients (Orthotropic style)
+          ChElementShellANCF* element_,             // Pointer to this element
+          ChMatrixNM<double, 6, 6>* T0_,            // Pointer to transformation matrix, function of fiber angle
+          double* detJ0C_,  // Determinant of the initial position vector gradient at the element center
+          double* theta_,   // Fiber angle (user input in degrees)
+          ChMatrixNM<double, 5, 1>*
+              alpha_eas_  // Pointer to the vector of internal parameters for Enhanced Assumed Strain formulation
+          ) {
+      d = d_;
+      d_dt = d_dt_;
+      strain_ans = strain_ans_;
+      strainD_ans = strainD_ans_;
+      element = element_;
+      E_eps = E_eps_;
+      T0 = T0_;
+      detJ0C = detJ0C_;
+      theta = theta_;
+      alpha_eas = alpha_eas_;
+    }
+    ~MyForce() {}
+
+private:
+    ChElementShellANCF* element;
+
+    ChMatrixNM<double, 8, 3>* d;
+    ChMatrixNM<double, 8, 1>* strain_ans;
+    ChMatrixNM<double, 8, 24>* strainD_ans;
+    ChMatrixNM<double, 24, 1>* d_dt;
+    ChMatrixNM<double, 6, 6>* T0;
+    ChMatrixNM<double, 5, 1>* alpha_eas;
+    ChMatrixNM<double, 6, 6>* E_eps;
+    double* detJ0C;
+    double* theta;
+
+    ChMatrixNM<double, 24, 1> Fint;    ///< Internal force vector, added to the equations
+    ChMatrixNM<double, 24, 24> JAC11;  ///< Jacobian of element elastic forces for implicit numerical integration
+    ChMatrixNM<double, 9, 24> Gd;  ///< Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
+    ChMatrixNM<double, 6, 1> stress;  ///< Stress vector: (*)E_eps*strain
+    ChMatrixNM<double, 9, 9> Sigm;    ///< Rearrangement of stress vector (not always needed)
+    ChMatrixNM<double, 24, 6>
+        temp246;  ///< Temporary matrix for the calculation of JAC11 (Jacobian of element elastic forces)
+    ChMatrixNM<double, 24, 9>
+        temp249;  ///< Temporary matrix for the calculation of JAC11 (Jacobian of element elastic forces)
+    ChMatrixNM<double, 1, 8> Nx;          ///< Dense shape function vector X derivative
+    ChMatrixNM<double, 1, 8> Ny;          ///< Dense shape function vector Y derivative
+    ChMatrixNM<double, 1, 8> Nz;          ///< Dense shape function vector Z derivative
+    ChMatrixNM<double, 6, 24> strainD;    ///< Derivative of the strains w.r.t. the coordinates. Includes orthotropy
+    ChMatrixNM<double, 6, 1> strain;      ///< Vector of strains
+    ChMatrixNM<double, 8, 8> d_d;         ///< d*d' matrix, where d contains current coordinates in matrix form
+    ChMatrixNM<double, 8, 1> ddNx;        ///< d_d*Nx' matrix
+    ChMatrixNM<double, 8, 1> ddNy;        ///< d_d*Ny' matrix
+    ChMatrixNM<double, 8, 1> ddNz;        ///< d_d*Nz' matrix
+    ChMatrixNM<double, 8, 8> d0_d0;       ///< d0*d0' matrix, where d0 contains initial coordinates in matrix form
+    ChMatrixNM<double, 8, 1> d0d0Nx;      ///< d0_d0*Nx' matrix
+    ChMatrixNM<double, 8, 1> d0d0Ny;      ///< d0_d0*Ny' matrix
+    ChMatrixNM<double, 8, 1> d0d0Nz;      ///< d0_d0*Nz' matrix
+    ChMatrixNM<double, 1, 24> tempB;      ///< Temporary matrix to calculate strainD
+    ChMatrixNM<double, 24, 6> tempC;      ///< Temporary matrix to compute internal forces Fint
+    double detJ0;                         ///< Determinant of the initial position vector gradient matrix
+    double alphaHHT;                      ///< Hard-coded damping coefficient for structural dissipation
+    double betaHHT;                       ///< HHT coefficient for structural damping
+    double gammaHHT;                      ///< HHT coefficient for structural damping
+    ChMatrixNM<double, 1, 8> N;           ///< Shape function vector
+    ChMatrixNM<double, 1, 4> S_ANS;       ///< Shape function vector for Assumed Natural Strain
+    ChMatrixNM<double, 1, 24> tempBB;     ///< Temporary matrix used to calculate strainD
+    ChMatrixNM<double, 6, 5> M;           ///< Shape function vector for Enhanced Assumed Strain
+    ChMatrixNM<double, 6, 5> G;           ///< Matrix G interpolates the internal parameters of EAS
+    ChMatrixNM<double, 5, 6> GT;          ///< Tranpose of matrix GT
+    ChMatrixNM<double, 6, 1> strain_EAS;  ///< Enhanced assumed strain vector
+
+    /// Evaluate (strainD'*strain)  at point x, include ANS and EAS.
+    virtual void Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z);
+};
+
+void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z) {
+    element->ShapeFunctions(N, x, y, z);
     element->ShapeFunctionsDerivativeX(Nx, x, y, z);
     element->ShapeFunctionsDerivativeY(Ny, x, y, z);
     element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
@@ -624,118 +779,6 @@ void ChElementShellANCF::MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result,
     result.PasteClippedMatrixToVector(&KALPHA, 0, 0, 5, 5, 149);
     result.PasteClippedMatrixToVector(&JAC11, 0, 0, 24, 24, 174);
 };
-// -----------------------------------------------------------------------------
-void ChElementShellANCF::ComputeStiffnessMatrix() {
-    bool use_numerical_differentiation = false;
-    // bool use_numerical_differentiation = true;
-
-    if (use_numerical_differentiation) {
-    } else {
-        m_StiffnessMatrix = m_stock_KTE;
-        m_StiffnessMatrix -= m_stock_jac_EAS;
-    }
-}
-
-void ChElementShellANCF::ComputeMassMatrix() {
-    ChMatrixNM<double, 24, 24> TempMassMatrix;
-    m_MassMatrix.Reset();
-    // For each of the shell layers we integrate using 2 Gauss points over the thickness
-    for (int kl = 0; kl < m_numLayers; kl++) {
-        int ij = 14 * kl;
-        double rho = m_InertFlexVec(ij);
-
-        // MyMass myformula uses now a constructor;
-        MyMass myformula(&m_d0, this);
-        TempMassMatrix.Reset();
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(TempMassMatrix,  // result of integration will go there
-                                                               myformula,       // formula to integrate
-                                                               -1,              // start of x
-                                                               1,               // end of x
-                                                               -1,              // start of y
-                                                               1,               // end of y
-                                                               m_GaussZRange(kl, 0),  // start of z
-                                                               m_GaussZRange(kl, 1),  // end of z
-                                                               2                      // order of integration
-                                                               );
-        TempMassMatrix *= rho;
-        m_MassMatrix += TempMassMatrix;
-    }  // Layer Loop
-}
-
-void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
-    m_GravForce.Reset();
-
-    for (int kl = 0; kl < m_numLayers; kl++) {
-        int ij = 14 * kl;
-
-        //// Material properties
-        double rho = m_InertFlexVec(ij);
-        // MyGravity constructor
-        MyGravity myformula1(&m_d0, this, g_acc);
-
-        ChMatrixNM<double, 24, 1> Fgravity;
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1> >(Fgravity,    // result of integration will go there
-                                                              myformula1,  // formula to integrate
-                                                              -1,          // start of x
-                                                              1,           // end of x
-                                                              -1,          // start of y
-                                                              1,           // end of y
-                                                              m_GaussZRange(kl, 0),  // start of z
-                                                              m_GaussZRange(kl, 1),  // end of z
-                                                              2                      // order of integration
-                                                              );
-
-        Fgravity *= rho;
-        m_GravForce += Fgravity;
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-void ChElementShellANCF::SetupInitial(ChSystem* system) {
-    ComputeGravityForce(system->Get_G_acc());
-    // Compute initial Jacobian
-    ChMatrixDynamic<double> Temp(GetNdofs(), 1);
-    ComputeInternalForces(Temp);
-    // Compute mass matrix
-    ComputeMassMatrix();
-
-    // Compute stiffness matrix
-    // (this is not constant in ANCF and will be called automatically many times by ComputeKRMmatricesGlobal()
-    // when the solver will run, yet maybe nice to provide an initial nonzero value)
-    ComputeStiffnessMatrix();
-}
-
-// -----------------------------------------------------------------------------
-
-void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.GetRows() == 24) && (H.GetColumns() == 24));
-
-    // Compute global stiffness matrix:
-    ComputeStiffnessMatrix();
-
-    //
-    // 1) Store  +kf*[K] +rf*[R]
-    //
-
-    ChMatrixDynamic<> temp(m_StiffnessMatrix);
-    temp.MatrScale(Kfactor);
-
-    // Paste scaled K stiffness matrix and R matrix in resulting H:
-    H.PasteMatrix(&temp, 0, 0);
-
-    //
-    // 2) Store  +mf*[M]
-    //
-
-    temp = m_MassMatrix;
-    temp.MatrScale(Mfactor);
-
-    // Paste scaled M mass matrix in resulting H:
-    H.PasteSumMatrix(&temp, 0, 0);
-}
-
-// -----------------------------------------------------------------------------
 
 void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     /// Current nodal coordiantes
@@ -1013,13 +1056,105 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 }
 
 // -----------------------------------------------------------------------------
+// Stiffness matrix calculation
+// -----------------------------------------------------------------------------
+
+void ChElementShellANCF::ComputeStiffnessMatrix() {
+    bool use_numerical_differentiation = false;
+    // bool use_numerical_differentiation = true;
+
+    if (use_numerical_differentiation) {
+    }
+    else {
+        m_StiffnessMatrix = m_stock_KTE;
+        m_StiffnessMatrix -= m_stock_jac_EAS;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Shape functions
+// -----------------------------------------------------------------------------
+
+void ChElementShellANCF::ShapeFunctions(ChMatrix<>& N, double x, double y, double z) {
+    double a = GetLengthX();
+    double b = GetLengthY();
+    double c = m_thickness;
+
+    N(0) = 0.25 * (1.0 - x) * (1.0 - y);
+    N(1) = z * c / 2.0 * 0.25 * (1.0 - x) * (1.0 - y);
+    N(2) = 0.25 * (1.0 + x) * (1.0 - y);
+    N(3) = z * c / 2.0 * 0.25 * (1.0 + x) * (1.0 - y);
+    N(4) = 0.25 * (1.0 - x) * (1.0 + y);
+    N(5) = z * c / 2.0 * 0.25 * (1.0 - x) * (1.0 + y);
+    N(6) = 0.25 * (1.0 + x) * (1.0 + y);
+    N(7) = z * c / 2.0 * 0.25 * (1.0 + x) * (1.0 + y);
+}
+
+void ChElementShellANCF::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z) {
+    double a = GetLengthX();
+    double b = GetLengthY();
+    double c = m_thickness;
+
+    Nx(0) = 0.25 * (-2.0 / a) * (1.0 - y);
+    Nx(1) = z * c / 2.0 * 0.25 * (-2.0 / a) * (1.0 - y);
+    Nx(2) = 0.25 * (2.0 / a) * (1.0 - y);
+    Nx(3) = z * c / 2.0 * 0.25 * (2.0 / a) * (1.0 - y);
+    Nx(4) = 0.25 * (-2.0 / a) * (1.0 + y);
+    Nx(5) = z * c / 2.0 * 0.25 * (-2.0 / a) * (1.0 + y);
+    Nx(6) = 0.25 * (2.0 / a) * (1.0 + y);
+    Nx(7) = z * c / 2.0 * 0.25 * (2.0 / a) * (1.0 + y);
+}
+
+void ChElementShellANCF::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z) {
+    double a = GetLengthX();
+    double b = GetLengthY();
+    double c = m_thickness;
+
+    Ny(0) = 0.25 * (1.0 - x) * (-2.0 / b);
+    Ny(1) = z * c / 2.0 * 0.25 * (1.0 - x) * (-2.0 / b);
+    Ny(2) = 0.25 * (1.0 + x) * (-2.0 / b);
+    Ny(3) = z * c / 2.0 * 0.25 * (1.0 + x) * (-2.0 / b);
+    Ny(4) = 0.25 * (1.0 - x) * (2.0 / b);
+    Ny(5) = z * c / 2.0 * 0.25 * (1.0 - x) * (2.0 / b);
+    Ny(6) = 0.25 * (1.0 + x) * (2.0 / b);
+    Ny(7) = z * c / 2.0 * 0.25 * (1.0 + x) * (2.0 / b);
+}
+
+void ChElementShellANCF::ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z) {
+    double a = GetLengthX();
+    double b = GetLengthY();
+    double c = m_thickness;
+
+    Nz(0) = 0.0;
+    Nz(1) = 0.250 * (1.0 - x) * (1.0 - y);
+    Nz(2) = 0.0;
+    Nz(3) = 0.250 * (1.0 + x) * (1.0 - y);
+    Nz(4) = 0.0;
+    Nz(5) = 0.250 * (1.0 - x) * (1.0 + y);
+    Nz(6) = 0.0;
+    Nz(7) = 0.250 * (1.0 + x) * (1.0 + y);
+}
+
 void ChElementShellANCF::shapefunction_ANS_BilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y) {
     S_ANS(0, 0) = -0.5 * x + 0.5;
     S_ANS(0, 1) = 0.5 * x + 0.5;
     S_ANS(0, 2) = -0.5 * y + 0.5;
     S_ANS(0, 3) = 0.5 * y + 0.5;
 }
+
+void ChElementShellANCF::Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y, double z) {
+    M.Reset();
+    M(0, 0) = x;
+    M(1, 1) = y;
+    M(2, 2) = x;
+    M(2, 3) = y;
+    M(3, 4) = z;
+}
+
 // -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+
 void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8, 3>& d,
                                                             ChMatrixNM<double, 8, 3>& d0,
                                                             ChMatrixNM<double, 8, 1>& strain_ans,
@@ -1116,17 +1251,11 @@ void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8
 }
 
 // -----------------------------------------------------------------------------
-
-void ChElementShellANCF::Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y, double z) {
-    M.Reset();
-    M(0, 0) = x;
-    M(1, 1) = y;
-    M(2, 2) = x;
-    M(2, 3) = y;
-    M(3, 4) = z;
-}
-
+// Private utility functions
 // -----------------------------------------------------------------------------
+
+
+
 
 void ChElementShellANCF::T0DetJElementCenterForEAS(ChMatrixNM<double, 6, 6>& T0, double& detJ0C, double& theta) {
     double x = 0;
@@ -1263,6 +1392,8 @@ void ChElementShellANCF::T0DetJElementCenterForEAS(ChMatrixNM<double, 6, 6>& T0,
 }
 
 // -----------------------------------------------------------------------------
+// Interface to ChElementShell base class
+// -----------------------------------------------------------------------------
 
 void ChElementShellANCF::EvaluateSectionDisplacement(const double u,
                                                      const double v,
@@ -1273,7 +1404,7 @@ void ChElementShellANCF::EvaluateSectionDisplacement(const double u,
     EvaluateSectionPoint(u, v, displ, u_displ);
     u_rotaz = VNULL;  // no angles.. this is ANCF (or maybe return here the slope derivatives?)
 }
-// -----------------------------------------------------------------------------
+
 void ChElementShellANCF::EvaluateSectionFrame(const double u,
                                               const double v,
                                               const ChMatrix<>& displ,
@@ -1283,7 +1414,7 @@ void ChElementShellANCF::EvaluateSectionFrame(const double u,
     EvaluateSectionPoint(u, v, displ, point);
     rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
 }
-// -----------------------------------------------------------------------------
+
 void ChElementShellANCF::EvaluateSectionPoint(const double u,
                                               const double v,
                                               const ChMatrix<>& displ,
@@ -1308,6 +1439,8 @@ void ChElementShellANCF::EvaluateSectionPoint(const double u,
     point.z = N(0) * pA.z + N(2) * pB.z + N(4) * pC.z + N(6) * pD.z;
 }
 
+// -----------------------------------------------------------------------------
+// Utility functions for inverting a 5x5 matrix
 // -----------------------------------------------------------------------------
 
 // Invert matrix by Gauss method
@@ -1375,8 +1508,7 @@ void ChElementShellANCF::Inverse55_Numerical(ChMatrixNM<double, 5, 5>& a, int n)
     }
 }
 
-// -----------------------------------------------------------------------------
-
+// Analytical inverse for a 5x5 matrix
 void ChElementShellANCF::Inverse55_Analytical(ChMatrixNM<double, 5, 5>& A, ChMatrixNM<double, 5, 5>& B) {
     const double& a1 = B(0, 0);
     const double& a2 = B(0, 1);
@@ -1612,6 +1744,8 @@ void ChElementShellANCF::Inverse55_Analytical(ChMatrixNM<double, 5, 5>& A, ChMat
 }
 
 // ============================================================================
+// Implementation of ChElementShellANCF::Layer methods
+// ============================================================================
 
 void ChElementShellANCF::Layer::SetupInitial() {
     // Evaluate shape functions at element center
@@ -1741,9 +1875,9 @@ void ChElementShellANCF::Layer::SetupInitial() {
 }
 
 double ChElementShellANCF::Layer::Calc_detJ0(double x, double y, double z) {
-    ChMatrixNM<double, 1, 8> Nx;
-    ChMatrixNM<double, 1, 8> Ny;
-    ChMatrixNM<double, 1, 8> Nz;
+    ChMatrixNM<double, 1, 8> Nx;   // Dense shape function vector X derivative
+    ChMatrixNM<double, 1, 8> Ny;   // Dense shape function vector Y derivative
+    ChMatrixNM<double, 1, 8> Nz;   // Dense shape function vector Z derivative
     m_element->ShapeFunctionsDerivativeX(Nx, x, y, z);
     m_element->ShapeFunctionsDerivativeY(Ny, x, y, z);
     m_element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
