@@ -412,7 +412,8 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
         uint bin_number = data_manager->host_data.bin_number_out[index];
         is_rigid_bin_active[bin_number] = index;
     }
-    f_bin_intersections.resize(num_fluid_bodies);
+    f_bin_intersections.resize(num_fluid_bodies + 1);
+    f_bin_intersections[num_fluid_bodies] = 0;
 #pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
         real3 pos_fluid = sorted_pos_fluid[p];
@@ -422,6 +423,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     }
     Thrust_Exclusive_Scan(f_bin_intersections);
     uint f_number_of_bin_intersections = f_bin_intersections.back();
+
     f_bin_number.resize(f_number_of_bin_intersections);
     f_bin_number_out.resize(f_number_of_bin_intersections);
     f_bin_fluid_number.resize(f_number_of_bin_intersections);
