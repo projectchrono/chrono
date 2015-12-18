@@ -93,10 +93,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         /// Calculate T0 and detJ0 at the element center.
         void SetupInitial();
 
-        // Calculate the determinant of the position vector gradient matrix.
-        // Use the initial configuration and evaluate at the specified point.
-        double Calc_detJ0(double x, double y, double z);
-
         ChElementShellANCF* m_element;                ///< containing ANCF shell element
         ChSharedPtr<ChMaterialShellANCF> m_material;  ///< layer material
         double m_thickness;                           ///< layer thickness
@@ -315,6 +311,21 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     // [EAS] matrix T0 (inverse and transposed) and detJ0 at center are used for Enhanced Assumed Strains alpha
     void T0DetJElementCenterForEAS(ChMatrixNM<double, 6, 6>& T0, double& detJ0C, double& theta);
 
+    // Calculate the determinant of the initial configuration position vector gradient matrix
+    // at the specified point.
+    double Calc_detJ0(double x, double y, double z);
+
+    // Same as above, but also return the dense shape function vector derivatives.
+    double Calc_detJ0(double x,
+                      double y,
+                      double z,
+                      ChMatrixNM<double, 1, 8>& Nx,
+                      ChMatrixNM<double, 1, 8>& Ny,
+                      ChMatrixNM<double, 1, 8>& Nz,
+                      ChMatrixNM<double, 1, 3>& Nx_d0,
+                      ChMatrixNM<double, 1, 3>& Ny_d0,
+                      ChMatrixNM<double, 1, 3>& Nz_d0);
+
     // Helper functions
     // ----------------
 
@@ -463,36 +474,12 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) {
-        // this->ComputeNF(U, V, Qi, detJ, F, state_x, state_w);
         ChMatrixNM<double, 1, 8> N;
-        ChMatrixNM<double, 1, 8> Nx;
-        ChMatrixNM<double, 1, 8> Ny;
-        ChMatrixNM<double, 1, 8> Nz;
-        this->ShapeFunctions(N, U, V,
-                             W);  // evaluate shape functions (in compressed vector), btw. not dependant on state
-        this->ShapeFunctionsDerivativeX(Nx, U, V, W);
-        this->ShapeFunctionsDerivativeY(Ny, U, V, W);
-        this->ShapeFunctionsDerivativeZ(Nz, U, V, W);
+        ShapeFunctions(N, U, V, W);
 
-        ChMatrixNM<double, 1, 3> Nx_d0;
-        Nx_d0.MatrMultiply(Nx, m_d0);
-        ChMatrixNM<double, 1, 3> Ny_d0;
-        Ny_d0.MatrMultiply(Ny, m_d0);
-        ChMatrixNM<double, 1, 3> Nz_d0;
-        Nz_d0.MatrMultiply(Nz, m_d0);
-
-        ChMatrixNM<double, 3, 3> rd0;
-        rd0(0, 0) = Nx_d0(0, 0);
-        rd0(1, 0) = Nx_d0(0, 1);
-        rd0(2, 0) = Nx_d0(0, 2);
-        rd0(0, 1) = Ny_d0(0, 0);
-        rd0(1, 1) = Ny_d0(0, 1);
-        rd0(2, 1) = Ny_d0(0, 2);
-        rd0(0, 2) = Nz_d0(0, 0);
-        rd0(1, 2) = Nz_d0(0, 1);
-        rd0(2, 2) = Nz_d0(0, 2);
-        detJ = rd0.Det();
+        detJ = Calc_detJ0(U, V, W);
         detJ *= this->GetLengthX() * this->GetLengthY() * (this->m_thickness) / 8.0;
+
         ChVector<> tmp;
         ChVector<> Fv = F.ClipVector(0, 0);
         tmp = N(0) * Fv;

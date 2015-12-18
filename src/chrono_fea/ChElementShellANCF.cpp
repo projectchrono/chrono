@@ -190,14 +190,8 @@ private:
 };
 
 void MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) {
-    ChMatrixNM<double, 1, 8> N;    ///< Dense shape function vector
-    ChMatrixNM<double, 1, 8> Nx;
-    ChMatrixNM<double, 1, 8> Ny;
-    ChMatrixNM<double, 1, 8> Nz;
+    ChMatrixNM<double, 1, 8> N;
     element->ShapeFunctions(N, x, y, z);
-    element->ShapeFunctionsDerivativeX(Nx, x, y, z);
-    element->ShapeFunctionsDerivativeY(Ny, x, y, z);
-    element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
 
     // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3) N5*eye(3) N6*eye(3) N7*eye(3) N8*eye(3)]
     ChMatrixNM<double, 3, 24> S;
@@ -219,19 +213,7 @@ void MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const 
     Si.FillDiag(N(7));
     S.PasteMatrix(&Si, 0, 21);
 
-    ChMatrixNM<double, 1, 3> Nx_d0;
-    Nx_d0.MatrMultiply(Nx, element->m_d0);
-
-    ChMatrixNM<double, 1, 3> Ny_d0;
-    Ny_d0.MatrMultiply(Ny, element->m_d0);
-
-    ChMatrixNM<double, 1, 3> Nz_d0;
-    Nz_d0.MatrMultiply(Nz, element->m_d0);
-
-    // Determinant of position vector gradient matrix: Initial configuration
-    double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
-                   Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
-                   Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
+    double detJ0 = element->Calc_detJ0(x, y, z);
 
     // perform  r = S'*S
     result.MatrTMultiply(S, S);
@@ -280,32 +262,14 @@ private:
 
 void MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z) {
     ChMatrixNM<double, 1, 8> N;
-    ChMatrixNM<double, 1, 8> Nx;
-    ChMatrixNM<double, 1, 8> Ny;
-    ChMatrixNM<double, 1, 8> Nz;
     element->ShapeFunctions(N, x, y, z);
-    element->ShapeFunctionsDerivativeX(Nx, x, y, z);
-    element->ShapeFunctionsDerivativeY(Ny, x, y, z);
-    element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
 
     // Weights for Gaussian integration
     double wx2 = (element->GetLengthX()) / 2.0;
     double wy2 = (element->GetLengthY()) / 2.0;
     double wz2 = (element->m_thickness) / 2.0;
 
-    ChMatrixNM<double, 1, 3> Nx_d0;
-    Nx_d0.MatrMultiply(Nx, element->m_d0);
-
-    ChMatrixNM<double, 1, 3> Ny_d0;
-    Ny_d0.MatrMultiply(Ny, element->m_d0);
-
-    ChMatrixNM<double, 1, 3> Nz_d0;
-    Nz_d0.MatrMultiply(Nz, element->m_d0);
-
-    // Determinant of position vector gradient matrix: Initial configuration
-    double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
-                   Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
-                   Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
+    double detJ0 = element->Calc_detJ0(x, y, z);
 
     for (int i = 0; i < 8; i++) {
         result(i * 3 + 0, 0) = N(0, i) * gacc.x;
@@ -387,74 +351,36 @@ private:
     double* detJ0C;
     double* theta;
 
-    ChMatrixNM<double, 24, 1> Fint;    ///< Internal force vector, added to the equations
-    ChMatrixNM<double, 24, 24> JAC11;  ///< Jacobian of element elastic forces for implicit numerical integration
-    ChMatrixNM<double, 9, 24> Gd;  ///< Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
-    ChMatrixNM<double, 6, 1> stress;  ///< Stress vector: (*)E_eps*strain
-    ChMatrixNM<double, 9, 9> Sigm;    ///< Rearrangement of stress vector (not always needed)
-    ChMatrixNM<double, 24, 6>
-        temp246;  ///< Temporary matrix for the calculation of JAC11 (Jacobian of element elastic forces)
-    ChMatrixNM<double, 24, 9>
-        temp249;  ///< Temporary matrix for the calculation of JAC11 (Jacobian of element elastic forces)
-    ChMatrixNM<double, 1, 8> Nx;          ///< Dense shape function vector X derivative
-    ChMatrixNM<double, 1, 8> Ny;          ///< Dense shape function vector Y derivative
-    ChMatrixNM<double, 1, 8> Nz;          ///< Dense shape function vector Z derivative
-    ChMatrixNM<double, 6, 24> strainD;    ///< Derivative of the strains w.r.t. the coordinates. Includes orthotropy
-    ChMatrixNM<double, 6, 1> strain;      ///< Vector of strains
-    ChMatrixNM<double, 8, 8> d_d;         ///< d*d' matrix, where d contains current coordinates in matrix form
-    ChMatrixNM<double, 8, 1> ddNx;        ///< d_d*Nx' matrix
-    ChMatrixNM<double, 8, 1> ddNy;        ///< d_d*Ny' matrix
-    ChMatrixNM<double, 8, 1> ddNz;        ///< d_d*Nz' matrix
-    ChMatrixNM<double, 8, 8> d0_d0;       ///< d0*d0' matrix, where d0 contains initial coordinates in matrix form
-    ChMatrixNM<double, 8, 1> d0d0Nx;      ///< d0_d0*Nx' matrix
-    ChMatrixNM<double, 8, 1> d0d0Ny;      ///< d0_d0*Ny' matrix
-    ChMatrixNM<double, 8, 1> d0d0Nz;      ///< d0_d0*Nz' matrix
-    ChMatrixNM<double, 1, 24> tempB;      ///< Temporary matrix to calculate strainD
-    ChMatrixNM<double, 24, 6> tempC;      ///< Temporary matrix to compute internal forces Fint
-    double detJ0;                         ///< Determinant of the initial position vector gradient matrix
-    double alphaHHT;                      ///< Hard-coded damping coefficient for structural dissipation
-    double betaHHT;                       ///< HHT coefficient for structural damping
-    double gammaHHT;                      ///< HHT coefficient for structural damping
-    ChMatrixNM<double, 1, 8> N;           ///< Shape function vector
-    ChMatrixNM<double, 1, 4> S_ANS;       ///< Shape function vector for Assumed Natural Strain
-    ChMatrixNM<double, 1, 24> tempBB;     ///< Temporary matrix used to calculate strainD
-    ChMatrixNM<double, 6, 5> M;           ///< Shape function vector for Enhanced Assumed Strain
-    ChMatrixNM<double, 6, 5> G;           ///< Matrix G interpolates the internal parameters of EAS
-    ChMatrixNM<double, 5, 6> GT;          ///< Tranpose of matrix GT
-    ChMatrixNM<double, 6, 1> strain_EAS;  ///< Enhanced assumed strain vector
-
     /// Evaluate (strainD'*strain)  at point x, include ANS and EAS.
     virtual void Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z);
 };
 
 void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z) {
+    // Element shape function
+    ChMatrixNM<double, 1, 8> N;
     element->ShapeFunctions(N, x, y, z);
-    element->ShapeFunctionsDerivativeX(Nx, x, y, z);
-    element->ShapeFunctionsDerivativeY(Ny, x, y, z);
-    element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
-
-    element->shapefunction_ANS_BilinearShell(S_ANS, x, y);
-    element->Basis_M(M, x, y, z);  // EAS
-
-    // Hard-coded coupling with main integrator
-    alphaHHT = -0.2;
-    betaHHT = 0.25 * (1.0 - alphaHHT) * (1.0 - alphaHHT);
-    gammaHHT = 0.5 - alphaHHT;
-
-    ChMatrixNM<double, 1, 3> Nx_d0;
-    Nx_d0.MatrMultiply(Nx, element->m_d0);
-
-    ChMatrixNM<double, 1, 3> Ny_d0;
-    Ny_d0.MatrMultiply(Ny, element->m_d0);
-
-    ChMatrixNM<double, 1, 3> Nz_d0;
-    Nz_d0.MatrMultiply(Nz, element->m_d0);
 
     // Determinant of position vector gradient matrix: Initial configuration
-    double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
-                   Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
-                   Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
-    //// Transformation : Orthogonal transformation (A and J) ////
+    ChMatrixNM<double, 1, 8> Nx;
+    ChMatrixNM<double, 1, 8> Ny;
+    ChMatrixNM<double, 1, 8> Nz;
+    ChMatrixNM<double, 1, 3> Nx_d0;
+    ChMatrixNM<double, 1, 3> Ny_d0;
+    ChMatrixNM<double, 1, 3> Nz_d0;
+    double detJ0 = element->Calc_detJ0(x, y, z, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
+
+    // ANS shape function
+    ChMatrixNM<double, 1, 4> S_ANS;  // Shape function vector for Assumed Natural Strain
+    ChMatrixNM<double, 6, 5> M;      // Shape function vector for Enhanced Assumed Strain
+    element->shapefunction_ANS_BilinearShell(S_ANS, x, y);
+    element->Basis_M(M, x, y, z);
+
+    // Hard-coded coupling with main integrator
+    double alphaHHT = -0.2;
+    double betaHHT = 0.25 * (1.0 - alphaHHT) * (1.0 - alphaHHT);
+    double gammaHHT = 0.5 - alphaHHT;
+
+    // Transformation : Orthogonal transformation (A and J)
     ChVector<double> G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
@@ -478,7 +404,6 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     ChVector<double> AA1;
     ChVector<double> AA2;
     ChVector<double> AA3;
-
     AA1 = A1 * cos(*theta) + A2 * sin(*theta);
     AA2 = -A1 * sin(*theta) + A2 * cos(*theta);
     AA3 = A3;
@@ -523,15 +448,22 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     beta(8, 0) = Vdot(AA3, j03);
 
     // Enhanced Assumed Strain
+    ChMatrixNM<double, 6, 5> G = (*T0) * M * ((*detJ0C) / (detJ0));
+    ChMatrixNM<double, 6, 1> strain_EAS = G * (*alpha_eas);
 
-    G = (*T0) * M * ((*detJ0C) / (detJ0));
-    strain_EAS = G * (*alpha_eas);
-
+    ChMatrixNM<double, 8, 8> d_d;
+    ChMatrixNM<double, 8, 1> ddNx;
+    ChMatrixNM<double, 8, 1> ddNy;
+    ChMatrixNM<double, 8, 1> ddNz;
     d_d.MatrMultiplyT(*d, *d);
     ddNx.MatrMultiplyT(d_d, Nx);
     ddNy.MatrMultiplyT(d_d, Ny);
     ddNz.MatrMultiplyT(d_d, Nz);
 
+    ChMatrixNM<double, 8, 8> d0_d0;
+    ChMatrixNM<double, 8, 1> d0d0Nx;
+    ChMatrixNM<double, 8, 1> d0d0Ny;
+    ChMatrixNM<double, 8, 1> d0d0Nz;
     d0_d0.MatrMultiplyT(element->m_d0, element->m_d0);
     d0d0Nx.MatrMultiplyT(d0_d0, Nx);
     d0d0Ny.MatrMultiplyT(d0_d0, Ny);
@@ -547,7 +479,9 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     strain_til(4, 0) = S_ANS(0, 2) * (*strain_ans)(6, 0) + S_ANS(0, 3) * (*strain_ans)(7, 0);
     strain_til(5, 0) = S_ANS(0, 0) * (*strain_ans)(4, 0) + S_ANS(0, 1) * (*strain_ans)(5, 0);
 
-    //// For orthotropic material ///
+    // For orthotropic material
+    ChMatrixNM<double, 6, 1> strain; 
+
     strain(0, 0) = strain_til(0, 0) * beta(0) * beta(0) + strain_til(1, 0) * beta(3) * beta(3) +
                    strain_til(2, 0) * beta(0) * beta(3) + strain_til(3, 0) * beta(6) * beta(6) +
                    strain_til(4, 0) * beta(0) * beta(6) + strain_til(5, 0) * beta(3) * beta(6);
@@ -573,9 +507,11 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
                    strain_til(4, 0) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                    strain_til(5, 0) * (beta(5) * beta(7) + beta(4) * beta(8));
 
-    // Straint derivative component
+    // Strain derivative component
 
     ChMatrixNM<double, 6, 24> strainD_til;
+    ChMatrixNM<double, 1, 24> tempB;
+    ChMatrixNM<double, 1, 24> tempBB;
     ChMatrixNM<double, 1, 3> tempB3;
     ChMatrixNM<double, 1, 3> tempB31;
     strainD_til.Reset();
@@ -631,7 +567,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 5, 0);  // strainD for yz
 
     //// For orthotropic material
-
+    ChMatrixNM<double, 6, 24> strainD;    // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
     for (int ii = 0; ii < 24; ii++) {
         strainD(0, ii) = strainD_til(0, ii) * beta(0) * beta(0) + strainD_til(1, ii) * beta(3) * beta(3) +
                          strainD_til(2, ii) * beta(0) * beta(3) + strainD_til(3, ii) * beta(6) * beta(6) +
@@ -659,7 +595,9 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
                          strainD_til(5, ii) * (beta(5) * beta(7) + beta(4) * beta(8));
     }
 
-    /// Gd (9x24) calculation
+    /// Gd : Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
+    ChMatrixNM<double, 9, 24> Gd;
+
     for (int ii = 0; ii < 8; ii++) {
         Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
         Gd(1, 3 * (ii) + 1) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
@@ -700,9 +638,11 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     strain += DEPS;
 
     // Stress tensor calculation
+    ChMatrixNM<double, 6, 1> stress;
     stress.MatrMultiply(*E_eps, strain);
 
     // Declaration and computation of Sigm, to be removed
+    ChMatrixNM<double, 9, 9> Sigm;    ///< Rearrangement of stress vector (not always needed)
 
     Sigm(0, 0) = stress(0, 0);  // XX
     Sigm(1, 1) = stress(0, 0);
@@ -741,26 +681,24 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     Sigm(8, 8) = stress(3, 0);
 
     /// Jacobian calculation
+    ChMatrixNM<double, 24, 24> JAC11;
+    ChMatrixNM<double, 24, 6> temp246;
+    ChMatrixNM<double, 24, 9> temp249;
     temp246.MatrTMultiply(strainD, *E_eps);
-
-    // Dense multiplication
     temp249.MatrTMultiply(Gd, Sigm);
     JAC11 = (temp246 * strainD * (1.0 + DampCoefficient * (element->m_Alpha))) + temp249 * Gd;
     JAC11 *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->m_thickness / 2.0);
 
     // Internal force calculation
+    ChMatrixNM<double, 24, 1> Fint;
+    ChMatrixNM<double, 24, 6> tempC;
     tempC.MatrTMultiply(strainD, *E_eps);
     Fint.MatrMultiply(tempC, strain);
     Fint *= detJ0 * (element->GetLengthX() / 2) * (element->GetLengthY() / 2) * (element->m_thickness / 2);
-    // G transpose
-    for (int ii = 0; ii < 5; ii++) {
-        for (int jj = 0; jj < 6; jj++) {
-            GT(ii, jj) = G(jj, ii);
-        }
-    }
+
     // For EAS
     ChMatrixNM<double, 5, 6> temp56;
-    temp56.MatrMultiply(GT, *E_eps);
+    temp56.MatrTMultiply(G, *E_eps);
     ChMatrixNM<double, 5, 1> HE1;      // Internal Force Vector from EAS
     ChMatrixNM<double, 5, 24> GDEPSP;  // "Cross" Jacobian
     ChMatrixNM<double, 5, 5> KALPHA;   // EAS Jacobian
@@ -1152,6 +1090,44 @@ void ChElementShellANCF::Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y
 }
 
 // -----------------------------------------------------------------------------
+// Helper functions
+// -----------------------------------------------------------------------------
+double ChElementShellANCF::Calc_detJ0(double x,
+                                      double y,
+                                      double z,
+                                      ChMatrixNM<double, 1, 8>& Nx,
+                                      ChMatrixNM<double, 1, 8>& Ny,
+                                      ChMatrixNM<double, 1, 8>& Nz,
+                                      ChMatrixNM<double, 1, 3>& Nx_d0,
+                                      ChMatrixNM<double, 1, 3>& Ny_d0,
+                                      ChMatrixNM<double, 1, 3>& Nz_d0) {
+    ShapeFunctionsDerivativeX(Nx, x, y, z);
+    ShapeFunctionsDerivativeY(Ny, x, y, z);
+    ShapeFunctionsDerivativeZ(Nz, x, y, z);
+
+    Nx_d0 = Nx * m_d0;
+    Ny_d0 = Ny * m_d0;
+    Nz_d0 = Nz * m_d0;
+
+    double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
+                   Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
+                   Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
+
+    return detJ0;
+}
+
+double ChElementShellANCF::Calc_detJ0(double x, double y, double z) {
+    ChMatrixNM<double, 1, 8> Nx;
+    ChMatrixNM<double, 1, 8> Ny;
+    ChMatrixNM<double, 1, 8> Nz;
+    ChMatrixNM<double, 1, 3> Nx_d0;
+    ChMatrixNM<double, 1, 3> Ny_d0;
+    ChMatrixNM<double, 1, 3> Nz_d0;
+
+    return Calc_detJ0(x, y, z, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
+}
+
+// -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
 
@@ -1253,9 +1229,6 @@ void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8
 // -----------------------------------------------------------------------------
 // Private utility functions
 // -----------------------------------------------------------------------------
-
-
-
 
 void ChElementShellANCF::T0DetJElementCenterForEAS(ChMatrixNM<double, 6, 6>& T0, double& detJ0C, double& theta) {
     double x = 0;
@@ -1872,25 +1845,6 @@ void ChElementShellANCF::Layer::SetupInitial() {
     m_T0(3, 5) = beta(5) * beta(8);
     m_T0(4, 5) = beta(3) * beta(8) + beta(6) * beta(5);
     m_T0(5, 5) = beta(4) * beta(8) + beta(5) * beta(7);
-}
-
-double ChElementShellANCF::Layer::Calc_detJ0(double x, double y, double z) {
-    ChMatrixNM<double, 1, 8> Nx;   // Dense shape function vector X derivative
-    ChMatrixNM<double, 1, 8> Ny;   // Dense shape function vector Y derivative
-    ChMatrixNM<double, 1, 8> Nz;   // Dense shape function vector Z derivative
-    m_element->ShapeFunctionsDerivativeX(Nx, x, y, z);
-    m_element->ShapeFunctionsDerivativeY(Ny, x, y, z);
-    m_element->ShapeFunctionsDerivativeZ(Nz, x, y, z);
-
-    ChMatrixNM<double, 1, 3> Nx_d0 = Nx * m_element->m_d0;
-    ChMatrixNM<double, 1, 3> Ny_d0 = Ny * m_element->m_d0;
-    ChMatrixNM<double, 1, 3> Nz_d0 = Nz * m_element->m_d0;
-
-    double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
-                   Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
-                   Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
-
-    return detJ0;
 }
 
 }  // end of namespace fea
