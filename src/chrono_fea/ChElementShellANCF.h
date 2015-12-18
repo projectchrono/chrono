@@ -17,11 +17,11 @@
 #ifndef CHELEMENTSHELLANCF_H
 #define CHELEMENTSHELLANCF_H
 
-#include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChElementShell.h"
 #include "chrono_fea/ChNodeFEAxyzD.h"
 #include "chrono_fea/ChUtilsFEA.h"
+#include "core/ChShared.h"
 #include "core/ChQuadrature.h"
 
 namespace chrono {
@@ -29,7 +29,7 @@ namespace fea {
 
 // ----------------------------------------------------------------------------
 /// Material definition
-class ChMaterialShellANCF {
+class ChMaterialShellANCF : public ChShared {
   public:
     ChMaterialShellANCF(double rho, const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G)
         : m_rho(rho), m_E(E), m_nu(nu), m_G(G) {
@@ -79,11 +79,11 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
       public:
         double Get_thickness() const { return m_thickness; }
         double Get_theta() const { return m_theta; }
-        const ChMaterialShellANCF& Get_material() const { return m_material; }
+        ChSharedPtr<ChMaterialShellANCF> GetMaterial() const { return m_material; }
 
       private:
         // Private constructor (a layer can be created only by adding it to an element)
-        Layer(ChElementShellANCF* element, double thickness, double theta, const ChMaterialShellANCF& material)
+        Layer(ChElementShellANCF* element, double thickness, double theta, ChSharedPtr<ChMaterialShellANCF> material)
             : m_element(element), m_thickness(thickness), m_theta(theta), m_material(material) {}
 
         double Get_detJ0C() const { return m_detJ0C; }
@@ -97,10 +97,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         // Use the initial configuration and evaluate at the specified point.
         double Calc_detJ0(double x, double y, double z);
 
-        ChElementShellANCF* m_element;   ///< containing ANCF shell element
-        ChMaterialShellANCF m_material;  ///< layer material
-        double m_thickness;              ///< layer thickness
-        double m_theta;                  ///< fiber angle
+        ChElementShellANCF* m_element;                ///< containing ANCF shell element
+        ChSharedPtr<ChMaterialShellANCF> m_material;  ///< layer material
+        double m_thickness;                           ///< layer thickness
+        double m_theta;                               ///< fiber angle
 
         double m_detJ0C;
         ChMatrixNM<double, 6, 6> m_T0;
@@ -278,7 +278,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     ChSharedPtr<ChNodeFEAxyzD> GetNodeD() const { return m_nodes[3]; }
 
     /// Add a layer
-    void AddLayer(double thickness, double theta, const ChMaterialShellANCF& material) {
+    void AddLayer(double thickness, double theta, ChSharedPtr<ChMaterialShellANCF> material) {
         m_layers.push_back(Layer(this, thickness, theta, material));
     }
 
