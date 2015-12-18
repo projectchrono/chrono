@@ -28,7 +28,8 @@ namespace chrono {
 namespace fea {
 
 // ----------------------------------------------------------------------------
-/// Material definition
+/// Material definition.
+/// This class implements material properties for a layer.
 class ChMaterialShellANCF : public ChShared {
   public:
     ChMaterialShellANCF(double rho, const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G)
@@ -67,8 +68,7 @@ class ChMaterialShellANCF : public ChShared {
 
 // ----------------------------------------------------------------------------
 /// ANCF laminated shell element with four nodes.
-/// This class implements composite material elastic
-/// force formulations
+/// This class implements composite material elastic force formulations
 class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     ChElementShellANCF();
@@ -89,8 +89,8 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         double Get_detJ0C() const { return m_detJ0C; }
         const ChMatrixNM<double, 6, 6>& Get_T0() const { return m_T0; }
 
-        /// Initial setup for this layer.
-        /// Calculate T0 and detJ0 at the element center.
+        // Initial setup for this layer.
+        // Calculate T0 and detJ0 at the element center.
         void SetupInitial();
 
         ChElementShellANCF* m_element;                ///< containing ANCF shell element
@@ -116,12 +116,9 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
 
     /// Specify the nodes of this element.
     void SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
-                  ChSharedPtr<ChNodeFEAxyzD>
-                      nodeB,
-                  ChSharedPtr<ChNodeFEAxyzD>
-                      nodeC,
-                  ChSharedPtr<ChNodeFEAxyzD>
-                      nodeD);
+                  ChSharedPtr<ChNodeFEAxyzD> nodeB,
+                  ChSharedPtr<ChNodeFEAxyzD> nodeC,
+                  ChSharedPtr<ChNodeFEAxyzD> nodeD);
 
     /// Access the n-th node of this element.
     virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
@@ -138,7 +135,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Get a handle to the fourth node of this element.
     ChSharedPtr<ChNodeFEAxyzD> GetNodeD() const { return m_nodes[3]; }
 
-    /// Add a layer
+    /// Add a layer.
     void AddLayer(double thickness, double theta, ChSharedPtr<ChMaterialShellANCF> material) {
         m_layers.push_back(Layer(this, thickness, theta, material));
     }
@@ -393,12 +390,12 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     // evaluate shape functions (in compressed vector), btw. not dependant on state
 
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override {
         for (int i = 0; i < m_nodes.size(); ++i) {
             mvars.push_back(&this->m_nodes[i]->Variables());
             mvars.push_back(&this->m_nodes[i]->Variables_D());
         }
-    };
+    }
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
@@ -411,55 +408,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is =n. field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
-        ChMatrixNM<double, 1, 8> N;
-        ChMatrixNM<double, 1, 8> Nx;
-        ChMatrixNM<double, 1, 8> Ny;
-        ChMatrixNM<double, 1, 8> Nz;
-        this->ShapeFunctions(N, U, V,
-                             0);  // evaluate shape functions (in compressed vector), btw. not dependant on state
-        this->ShapeFunctionsDerivativeX(Nx, U, V, 0);
-        this->ShapeFunctionsDerivativeY(Ny, U, V, 0);
-        this->ShapeFunctionsDerivativeZ(Nz, U, V, 0);
-
-        ChMatrixNM<double, 1, 3> Nx_d0;
-        Nx_d0.MatrMultiply(Nx, m_d0);
-        ChMatrixNM<double, 1, 3> Ny_d0;
-        Ny_d0.MatrMultiply(Ny, m_d0);
-        ChMatrixNM<double, 1, 3> Nz_d0;
-        Nz_d0.MatrMultiply(Nz, m_d0);
-
-        ChMatrixNM<double, 3, 3> rd0;
-        rd0(0, 0) = Nx_d0(0, 0);
-        rd0(1, 0) = Nx_d0(0, 1);
-        rd0(2, 0) = Nx_d0(0, 2);
-        rd0(0, 1) = Ny_d0(0, 0);
-        rd0(1, 1) = Ny_d0(0, 1);
-        rd0(2, 1) = Ny_d0(0, 2);
-        rd0(0, 2) = Nz_d0(0, 0);
-        rd0(1, 2) = Nz_d0(0, 1);
-        rd0(2, 2) = Nz_d0(0, 2);
-        detJ = rd0.Det();
-        detJ *= this->GetLengthX() * this->GetLengthY() / 4.0;
-        ChVector<> tmp;
-        ChVector<> Fv = F.ClipVector(0, 0);
-        tmp = N(0) * Fv;
-        Qi.PasteVector(tmp, 0, 0);
-        tmp = N(1) * Fv;
-        Qi.PasteVector(tmp, 3, 0);
-        tmp = N(2) * Fv;
-        Qi.PasteVector(tmp, 6, 0);
-        tmp = N(3) * Fv;
-        Qi.PasteVector(tmp, 9, 0);
-        tmp = N(4) * Fv;
-        Qi.PasteVector(tmp, 12, 0);
-        tmp = N(5) * Fv;
-        Qi.PasteVector(tmp, 15, 0);
-        tmp = N(6) * Fv;
-        Qi.PasteVector(tmp, 18, 0);
-        tmp = N(7) * Fv;
-        Qi.PasteVector(tmp, 21, 0);
-    }
+                           ) override;
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
@@ -473,121 +422,15 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
-        ChMatrixNM<double, 1, 8> N;
-        ShapeFunctions(N, U, V, W);
-
-        detJ = Calc_detJ0(U, V, W);
-        detJ *= this->GetLengthX() * this->GetLengthY() * (this->m_thickness) / 8.0;
-
-        ChVector<> tmp;
-        ChVector<> Fv = F.ClipVector(0, 0);
-        tmp = N(0) * Fv;
-        Qi.PasteVector(tmp, 0, 0);
-        tmp = N(1) * Fv;
-        Qi.PasteVector(tmp, 3, 0);
-        tmp = N(2) * Fv;
-        Qi.PasteVector(tmp, 6, 0);
-        tmp = N(3) * Fv;
-        Qi.PasteVector(tmp, 9, 0);
-        tmp = N(4) * Fv;
-        Qi.PasteVector(tmp, 12, 0);
-        tmp = N(5) * Fv;
-        Qi.PasteVector(tmp, 15, 0);
-        tmp = N(6) * Fv;
-        Qi.PasteVector(tmp, 18, 0);
-        tmp = N(7) * Fv;
-        Qi.PasteVector(tmp, 21, 0);
-    }
+                           ) override;
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     /// Density is mass per unit surface.
-    virtual double GetDensity() {
-        double tot_density = 0;
-        double tot_laythickness = 0.0;
-        for (int kl = 0; kl < m_numLayers; kl++) {
-            int ij = 14 * kl;
-            double rho = m_InertFlexVec(ij);
-            double layerthick = m_InertFlexVec(ij + 3);
-            tot_density += rho * layerthick;
-            tot_laythickness += layerthick;
-        }
-        return tot_density / tot_laythickness;
-    }
+    virtual double GetDensity() override;
 
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
-    virtual ChVector<> ComputeNormal(const double U, const double V) {
-        ChVectorDynamic<> mD;
-        ChMatrixNM<double, 3, 8> mD38;
-        ChMatrixNM<double, 1, 8> N;
-        ChMatrixNM<double, 1, 8> Nx;
-        ChMatrixNM<double, 1, 8> Ny;
-        ChMatrixNM<double, 1, 8> Nz;
-
-        this->ShapeFunctions(N, U, V, 0);
-        this->ShapeFunctionsDerivativeX(Nx, U, V, 0);
-        this->ShapeFunctionsDerivativeY(Ny, U, V, 0);
-        this->ShapeFunctionsDerivativeZ(Nz, U, V, 0);
-
-        mD38(0, 0) = this->m_nodes[0]->GetPos().x;
-        mD38(1, 0) = this->m_nodes[0]->GetPos().y;
-        mD38(2, 0) = this->m_nodes[0]->GetPos().z;
-
-        mD38(0, 1) = this->m_nodes[0]->GetD().x;
-        mD38(1, 1) = this->m_nodes[0]->GetD().y;
-        mD38(2, 1) = this->m_nodes[0]->GetD().z;
-
-        mD38(0, 2) = this->m_nodes[1]->GetPos().x;
-        mD38(1, 2) = this->m_nodes[1]->GetPos().y;
-        mD38(2, 2) = this->m_nodes[1]->GetPos().z;
-
-        mD38(0, 3) = this->m_nodes[1]->GetD().x;
-        mD38(1, 3) = this->m_nodes[1]->GetD().y;
-        mD38(2, 3) = this->m_nodes[1]->GetD().z;
-
-        mD38(0, 4) = this->m_nodes[2]->GetPos().x;
-        mD38(1, 4) = this->m_nodes[2]->GetPos().y;
-        mD38(2, 4) = this->m_nodes[2]->GetPos().z;
-
-        mD38(0, 5) = this->m_nodes[2]->GetD().x;
-        mD38(1, 5) = this->m_nodes[2]->GetD().y;
-        mD38(2, 5) = this->m_nodes[2]->GetD().z;
-
-        mD38(0, 6) = this->m_nodes[3]->GetPos().x;
-        mD38(1, 6) = this->m_nodes[3]->GetPos().y;
-        mD38(2, 6) = this->m_nodes[3]->GetPos().z;
-
-        mD38(0, 7) = this->m_nodes[3]->GetD().x;
-        mD38(1, 7) = this->m_nodes[3]->GetD().y;
-        mD38(2, 7) = this->m_nodes[3]->GetD().z;
-
-        ChMatrixNM<double, 1, 3> Nx_d;
-        Nx_d.MatrMultiplyT(Nx, mD38);
-        ChMatrixNM<double, 1, 3> Ny_d;
-        Ny_d.MatrMultiplyT(Ny, mD38);
-        ChMatrixNM<double, 1, 3> Nz_d;
-        Nz_d.MatrMultiplyT(Nz, mD38);
-
-        ChMatrixNM<double, 3, 3> rd;
-        rd(0, 0) = Nx_d(0, 0);
-        rd(1, 0) = Nx_d(0, 1);
-        rd(2, 0) = Nx_d(0, 2);
-        rd(0, 1) = Ny_d(0, 0);
-        rd(1, 1) = Ny_d(0, 1);
-        rd(2, 1) = Ny_d(0, 2);
-        rd(0, 2) = Nz_d(0, 0);
-        rd(1, 2) = Nz_d(0, 1);
-        rd(2, 2) = Nz_d(0, 2);
-
-        ChVector<> G1xG2;
-        G1xG2(0) = rd(1, 0) * rd(2, 1) - rd(2, 0) * rd(1, 1);
-        G1xG2(1) = rd(2, 0) * rd(0, 1) - rd(0, 0) * rd(2, 1);
-        G1xG2(2) = rd(0, 0) * rd(1, 1) - rd(1, 0) * rd(0, 1);
-
-        double G1xG2nrm = sqrt(G1xG2(0) * G1xG2(0) + G1xG2(1) * G1xG2(1) + G1xG2(2) * G1xG2(2));
-        return G1xG2 / G1xG2nrm;
-    }
+    virtual ChVector<> ComputeNormal(const double U, const double V) override;
 
     friend class MyMass;
     friend class MyGravity;

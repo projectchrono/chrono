@@ -1413,6 +1413,175 @@ void ChElementShellANCF::EvaluateSectionPoint(const double u,
 }
 
 // -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+
+// Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
+void ChElementShellANCF::ComputeNF(
+    const double U,              // parametric coordinate in surface
+    const double V,              // parametric coordinate in surface
+    ChVectorDynamic<>& Qi,       // Return result of Q = N'*F  here
+    double& detJ,                // Return det[J] here
+    const ChVectorDynamic<>& F,  // Input F vector, size is =n. field coords.
+    ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
+    ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
+    ) {
+    ChMatrixNM<double, 1, 8> N;
+    ShapeFunctions(N, U, V, 0);
+
+    detJ = Calc_detJ0(U, V, 0);
+    detJ *= GetLengthX() * GetLengthY() / 4.0;
+
+    ChVector<> tmp;
+    ChVector<> Fv = F.ClipVector(0, 0);
+    tmp = N(0) * Fv;
+    Qi.PasteVector(tmp, 0, 0);
+    tmp = N(1) * Fv;
+    Qi.PasteVector(tmp, 3, 0);
+    tmp = N(2) * Fv;
+    Qi.PasteVector(tmp, 6, 0);
+    tmp = N(3) * Fv;
+    Qi.PasteVector(tmp, 9, 0);
+    tmp = N(4) * Fv;
+    Qi.PasteVector(tmp, 12, 0);
+    tmp = N(5) * Fv;
+    Qi.PasteVector(tmp, 15, 0);
+    tmp = N(6) * Fv;
+    Qi.PasteVector(tmp, 18, 0);
+    tmp = N(7) * Fv;
+    Qi.PasteVector(tmp, 21, 0);
+}
+
+// Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
+void ChElementShellANCF::ComputeNF(
+    const double U,              // parametric coordinate in volume
+    const double V,              // parametric coordinate in volume
+    const double W,              // parametric coordinate in volume
+    ChVectorDynamic<>& Qi,       // Return result of N'*F  here, maybe with offset block_offset
+    double& detJ,                // Return det[J] here
+    const ChVectorDynamic<>& F,  // Input F vector, size is = n.field coords.
+    ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
+    ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
+    ) {
+    ChMatrixNM<double, 1, 8> N;
+    ShapeFunctions(N, U, V, W);
+
+    detJ = Calc_detJ0(U, V, W);
+    detJ *= GetLengthX() * GetLengthY() * m_thickness / 8.0;
+
+    ChVector<> tmp;
+    ChVector<> Fv = F.ClipVector(0, 0);
+    tmp = N(0) * Fv;
+    Qi.PasteVector(tmp, 0, 0);
+    tmp = N(1) * Fv;
+    Qi.PasteVector(tmp, 3, 0);
+    tmp = N(2) * Fv;
+    Qi.PasteVector(tmp, 6, 0);
+    tmp = N(3) * Fv;
+    Qi.PasteVector(tmp, 9, 0);
+    tmp = N(4) * Fv;
+    Qi.PasteVector(tmp, 12, 0);
+    tmp = N(5) * Fv;
+    Qi.PasteVector(tmp, 15, 0);
+    tmp = N(6) * Fv;
+    Qi.PasteVector(tmp, 18, 0);
+    tmp = N(7) * Fv;
+    Qi.PasteVector(tmp, 21, 0);
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+
+// Calculate avergae element density (needed for ChLoaderVolumeGravity).
+double ChElementShellANCF::GetDensity() {
+    double tot_density = 0;
+    double tot_laythickness = 0.0;
+    for (int kl = 0; kl < m_numLayers; kl++) {
+        int ij = 14 * kl;
+        double rho = m_InertFlexVec(ij);
+        double layerthick = m_InertFlexVec(ij + 3);
+        tot_density += rho * layerthick;
+        tot_laythickness += layerthick;
+    }
+    return tot_density / tot_laythickness;
+}
+
+// Calculate normal to the surface at (U,V) coordinates.
+ChVector<> ChElementShellANCF::ComputeNormal(const double U, const double V) {
+    ChVectorDynamic<> mD;
+    ChMatrixNM<double, 3, 8> mD38;
+    ChMatrixNM<double, 1, 8> N;
+    ChMatrixNM<double, 1, 8> Nx;
+    ChMatrixNM<double, 1, 8> Ny;
+    ChMatrixNM<double, 1, 8> Nz;
+
+    ShapeFunctions(N, U, V, 0);
+    ShapeFunctionsDerivativeX(Nx, U, V, 0);
+    ShapeFunctionsDerivativeY(Ny, U, V, 0);
+    ShapeFunctionsDerivativeZ(Nz, U, V, 0);
+
+    mD38(0, 0) = m_nodes[0]->GetPos().x;
+    mD38(1, 0) = m_nodes[0]->GetPos().y;
+    mD38(2, 0) = m_nodes[0]->GetPos().z;
+
+    mD38(0, 1) = m_nodes[0]->GetD().x;
+    mD38(1, 1) = m_nodes[0]->GetD().y;
+    mD38(2, 1) = m_nodes[0]->GetD().z;
+
+    mD38(0, 2) = m_nodes[1]->GetPos().x;
+    mD38(1, 2) = m_nodes[1]->GetPos().y;
+    mD38(2, 2) = m_nodes[1]->GetPos().z;
+
+    mD38(0, 3) = m_nodes[1]->GetD().x;
+    mD38(1, 3) = m_nodes[1]->GetD().y;
+    mD38(2, 3) = m_nodes[1]->GetD().z;
+
+    mD38(0, 4) = m_nodes[2]->GetPos().x;
+    mD38(1, 4) = m_nodes[2]->GetPos().y;
+    mD38(2, 4) = m_nodes[2]->GetPos().z;
+
+    mD38(0, 5) = m_nodes[2]->GetD().x;
+    mD38(1, 5) = m_nodes[2]->GetD().y;
+    mD38(2, 5) = m_nodes[2]->GetD().z;
+
+    mD38(0, 6) = m_nodes[3]->GetPos().x;
+    mD38(1, 6) = m_nodes[3]->GetPos().y;
+    mD38(2, 6) = m_nodes[3]->GetPos().z;
+
+    mD38(0, 7) = m_nodes[3]->GetD().x;
+    mD38(1, 7) = m_nodes[3]->GetD().y;
+    mD38(2, 7) = m_nodes[3]->GetD().z;
+
+    ChMatrixNM<double, 1, 3> Nx_d;
+    Nx_d.MatrMultiplyT(Nx, mD38);
+    ChMatrixNM<double, 1, 3> Ny_d;
+    Ny_d.MatrMultiplyT(Ny, mD38);
+    ChMatrixNM<double, 1, 3> Nz_d;
+    Nz_d.MatrMultiplyT(Nz, mD38);
+
+    ChMatrixNM<double, 3, 3> rd;
+    rd(0, 0) = Nx_d(0, 0);
+    rd(1, 0) = Nx_d(0, 1);
+    rd(2, 0) = Nx_d(0, 2);
+    rd(0, 1) = Ny_d(0, 0);
+    rd(1, 1) = Ny_d(0, 1);
+    rd(2, 1) = Ny_d(0, 2);
+    rd(0, 2) = Nz_d(0, 0);
+    rd(1, 2) = Nz_d(0, 1);
+    rd(2, 2) = Nz_d(0, 2);
+
+    ChVector<> G1xG2;
+    G1xG2(0) = rd(1, 0) * rd(2, 1) - rd(2, 0) * rd(1, 1);
+    G1xG2(1) = rd(2, 0) * rd(0, 1) - rd(0, 0) * rd(2, 1);
+    G1xG2(2) = rd(0, 0) * rd(1, 1) - rd(1, 0) * rd(0, 1);
+
+    double G1xG2nrm = sqrt(G1xG2(0) * G1xG2(0) + G1xG2(1) * G1xG2(1) + G1xG2(2) * G1xG2(2));
+    return G1xG2 / G1xG2nrm;
+}
+
+
+// -----------------------------------------------------------------------------
 // Utility functions for inverting a 5x5 matrix
 // -----------------------------------------------------------------------------
 
