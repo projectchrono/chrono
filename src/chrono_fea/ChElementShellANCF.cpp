@@ -301,7 +301,7 @@ void ChElementShellANCF::MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result,
                    Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
     //// Transformation : Orthogonal transformation (A and J) ////
     ChVector<double> G1xG2;  // Cross product of first and second column of
-    double G1dotG1;  // Dot product of first column of position vector gradient
+    double G1dotG1;          // Dot product of first column of position vector gradient
 
     G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
     G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
@@ -445,7 +445,6 @@ void ChElementShellANCF::MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result,
         }
     }
     strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 2, 0);
-
 
     tempBB.Reset();
     for (int i = 0; i < 4; i++) {
@@ -613,9 +612,9 @@ void ChElementShellANCF::MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result,
     // For EAS
     ChMatrixNM<double, 5, 6> temp56;
     temp56.MatrMultiply(GT, *E_eps);
-    ChMatrixNM<double, 5, 1> HE1;     // Internal Force Vector from EAS
-    ChMatrixNM<double, 5, 24> GDEPSP; // "Cross" Jacobian
-    ChMatrixNM<double, 5, 5> KALPHA;  // EAS Jacobian
+    ChMatrixNM<double, 5, 1> HE1;      // Internal Force Vector from EAS
+    ChMatrixNM<double, 5, 24> GDEPSP;  // "Cross" Jacobian
+    ChMatrixNM<double, 5, 5> KALPHA;   // EAS Jacobian
 
     HE1.MatrMultiply(temp56, strain);
     HE1 *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->m_thickness / 2.0);
@@ -750,24 +749,24 @@ void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
 
 void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     /// Current nodal coordiantes
-  const ChVector<>&pA = m_nodes[0]->GetPos();
-  const ChVector<>&dA = m_nodes[0]->GetD();
-  const ChVector<>&pB = m_nodes[1]->GetPos();
-  const ChVector<>&dB = m_nodes[1]->GetD();
-  const ChVector<>&pC = m_nodes[2]->GetPos();
-  const ChVector<>&dC = m_nodes[2]->GetD();
-  const ChVector<>&pD = m_nodes[3]->GetPos();
-  const ChVector<>&dD = m_nodes[3]->GetD();
+    const ChVector<>& pA = m_nodes[0]->GetPos();
+    const ChVector<>& dA = m_nodes[0]->GetD();
+    const ChVector<>& pB = m_nodes[1]->GetPos();
+    const ChVector<>& dB = m_nodes[1]->GetD();
+    const ChVector<>& pC = m_nodes[2]->GetPos();
+    const ChVector<>& dC = m_nodes[2]->GetD();
+    const ChVector<>& pD = m_nodes[3]->GetPos();
+    const ChVector<>& dD = m_nodes[3]->GetD();
 
     /// Current nodal velocity for structural damping
-  const ChVector<>&pA_dt = m_nodes[0]->GetPos_dt();
-  const ChVector<>&dA_dt = m_nodes[0]->GetD_dt();
-  const ChVector<>&pB_dt = m_nodes[1]->GetPos_dt();
-  const ChVector<>&dB_dt = m_nodes[1]->GetD_dt();
-  const ChVector<>&pC_dt = m_nodes[2]->GetPos_dt();
-  const ChVector<>&dC_dt = m_nodes[2]->GetD_dt();
-  const ChVector<>&pD_dt = m_nodes[3]->GetPos_dt();
-  const ChVector<>&dD_dt = m_nodes[3]->GetD_dt();
+    const ChVector<>& pA_dt = m_nodes[0]->GetPos_dt();
+    const ChVector<>& dA_dt = m_nodes[0]->GetD_dt();
+    const ChVector<>& pB_dt = m_nodes[1]->GetPos_dt();
+    const ChVector<>& dB_dt = m_nodes[1]->GetD_dt();
+    const ChVector<>& pC_dt = m_nodes[2]->GetPos_dt();
+    const ChVector<>& dC_dt = m_nodes[2]->GetD_dt();
+    const ChVector<>& pD_dt = m_nodes[3]->GetPos_dt();
+    const ChVector<>& dD_dt = m_nodes[3]->GetD_dt();
 
     ChMatrixNM<double, 24, 1> d_dt;  // for structural damping
     d_dt(0, 0) = pA_dt.x;
@@ -941,8 +940,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 T0DetJElementCenterForEAS(T0, detJ0C, theta);
 
                 // MyForce constructor;
-                MyForce myformula(&d, &d_dt, &strain_ans, &strainD_ans, &E_eps, this, &T0, &detJ0C, &theta,
-                                  &alpha_eas);
+                MyForce myformula(&d, &d_dt, &strain_ans, &strainD_ans, &E_eps, this, &T0, &detJ0C, &theta, &alpha_eas);
                 ChQuadrature::Integrate3D<ChMatrixNM<double, 750, 1> >(
                     TempIntegratedResult,  // result of integration will go there
                     myformula,             // formula to integrate
@@ -955,8 +953,8 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     2                      // order of integration
                     );
 
-                Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0);  // InternalForce(24x1)
-                HE.PasteClippedMatrix(&TempIntegratedResult, 24, 0, 5, 1, 0, 0);  // HE(5x1)
+                Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0);     // InternalForce(24x1)
+                HE.PasteClippedMatrix(&TempIntegratedResult, 24, 0, 5, 1, 0, 0);            // HE(5x1)
                 GDEPSP.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 24, 29);  // GDEPSP(5x24)
                 KALPHA.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 5, 149);  // KALPHA(5x5)
                 TempJacobian.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 24, 24,
@@ -1140,9 +1138,7 @@ void ChElementShellANCF::Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y
 
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::T0DetJElementCenterForEAS(ChMatrixNM<double, 6, 6>& T0,
-                                                   double& detJ0C,
-                                                   double& theta) {
+void ChElementShellANCF::T0DetJElementCenterForEAS(ChMatrixNM<double, 6, 6>& T0, double& detJ0C, double& theta) {
     double x = 0;
     double y = 0;
     double z = 0;
@@ -1156,21 +1152,21 @@ void ChElementShellANCF::T0DetJElementCenterForEAS(ChMatrixNM<double, 6, 6>& T0,
     ShapeFunctionsDerivativeZ(Nz, x, y, z);
 
     ChMatrixNM<double, 1, 3> Nx_d0;
-    Nx_d0 = Nx*m_d0;
+    Nx_d0 = Nx * m_d0;
 
     ChMatrixNM<double, 1, 3> Ny_d0;
-    Ny_d0 = Ny *m_d0;
+    Ny_d0 = Ny * m_d0;
 
     ChMatrixNM<double, 1, 3> Nz_d0;
-    Nz_d0 = Nz *m_d0;
+    Nz_d0 = Nz * m_d0;
 
     // Determinant of position vector gradient matrix: Initial configuration
     detJ0C = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
-        Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
-        Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
+             Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
+             Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
     //// Transformation : Orthogonal transformation (A and J) ////
     ChVector<double> G1xG2;  // Cross product of first and second column of
-    double G1dotG1;  // Dot product of first column of position vector gradient
+    double G1dotG1;          // Dot product of first column of position vector gradient
 
     G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
     G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
@@ -1312,10 +1308,10 @@ void ChElementShellANCF::EvaluateSectionPoint(const double u,
 
     this->ShapeFunctions(N, x, y, z);
 
-  const ChVector<>&pA = m_nodes[0]->GetPos();
-  const ChVector<>&pB = m_nodes[1]->GetPos();
-  const ChVector<>&pC = m_nodes[2]->GetPos();
-  const ChVector<>&pD = m_nodes[3]->GetPos();
+    const ChVector<>& pA = m_nodes[0]->GetPos();
+    const ChVector<>& pB = m_nodes[1]->GetPos();
+    const ChVector<>& pC = m_nodes[2]->GetPos();
+    const ChVector<>& pD = m_nodes[3]->GetPos();
 
     point.x = N(0) * pA.x + N(2) * pB.x + N(4) * pC.x + N(6) * pD.x;
     point.y = N(0) * pA.y + N(2) * pB.y + N(4) * pC.y + N(6) * pD.y;
@@ -1392,31 +1388,31 @@ void ChElementShellANCF::Inverse55_Numerical(ChMatrixNM<double, 5, 5>& a, int n)
 // -----------------------------------------------------------------------------
 
 void ChElementShellANCF::Inverse55_Analytical(ChMatrixNM<double, 5, 5>& A, ChMatrixNM<double, 5, 5>& B) {
-  const double &a1 = B(0, 0);
-  const double &a2 = B(0, 1);
-  const double &a3 = B(0, 2);
-  const double &a4 = B(0, 3);
-  const double &a5 = B(0, 4);
-  const double &b1 = B(1, 0);
-  const double &b2 = B(1, 1);
-  const double &b3 = B(1, 2);
-  const double &b4 = B(1, 3);
-  const double &b5 = B(1, 4);
-  const double &c1 = B(2, 0);
-  const double &c2 = B(2, 1);
-  const double &c3 = B(2, 2);
-  const double &c4 = B(2, 3);
-  const double &c5 = B(2, 4);
-  const double &d1 = B(3, 0);
-  const double &d2 = B(3, 1);
-  const double &d3 = B(3, 2);
-  const double &d4 = B(3, 3);
-  const double &d5 = B(3, 4);
-  const double &e1 = B(4, 0);
-  const double &e2 = B(4, 1);
-  const double &e3 = B(4, 2);
-  const double &e4 = B(4, 3);
-  const double &e5 = B(4, 4);
+    const double& a1 = B(0, 0);
+    const double& a2 = B(0, 1);
+    const double& a3 = B(0, 2);
+    const double& a4 = B(0, 3);
+    const double& a5 = B(0, 4);
+    const double& b1 = B(1, 0);
+    const double& b2 = B(1, 1);
+    const double& b3 = B(1, 2);
+    const double& b4 = B(1, 3);
+    const double& b5 = B(1, 4);
+    const double& c1 = B(2, 0);
+    const double& c2 = B(2, 1);
+    const double& c3 = B(2, 2);
+    const double& c4 = B(2, 3);
+    const double& c5 = B(2, 4);
+    const double& d1 = B(3, 0);
+    const double& d2 = B(3, 1);
+    const double& d3 = B(3, 2);
+    const double& d4 = B(3, 3);
+    const double& d5 = B(3, 4);
+    const double& e1 = B(4, 0);
+    const double& e2 = B(4, 1);
+    const double& e3 = B(4, 2);
+    const double& e4 = B(4, 3);
+    const double& e5 = B(4, 4);
 
     double denom = a1 * b2 * c3 * d4 * e5 - a1 * b2 * c3 * d5 * e4 - a1 * b2 * c4 * d3 * e5 + a1 * b2 * c4 * d5 * e3 +
                    a1 * b2 * c5 * d3 * e4 - a1 * b2 * c5 * d4 * e3 - a1 * b3 * c2 * d4 * e5 + a1 * b3 * c2 * d5 * e4 +
@@ -1633,966 +1629,772 @@ void ChElementShellANCF::JacCalcUnrolled(const ChMatrixNM<double, 6, 1>& stress,
                                          ChMatrixNM<double, 24, 24>& JAC11) {
     JAC11(0, 0) = Gd(0, 0) * Gd(0, 0) * stress(0, 0) + Gd(3, 0) * Gd(3, 0) * stress(1, 0) +
                   Gd(6, 0) * Gd(6, 0) * stress(3, 0) + 2 * Gd(0, 0) * Gd(3, 0) * stress(2, 0) +
-                  2 * Gd(0, 0) * Gd(6, 0) * stress(4, 0) + 2 * Gd(3, 0) * Gd(6, 0) * stress(5, 0)
+                  2 * Gd(0, 0) * Gd(6, 0) * stress(4, 0) + 2 * Gd(3, 0) * Gd(6, 0) * stress(5, 0);
 
-        ;
     JAC11(0, 3) = Gd(0, 3) * (Gd(0, 0) * stress(0, 0) + Gd(3, 0) * stress(2, 0) + Gd(6, 0) * stress(4, 0)) +
                   Gd(3, 3) * (Gd(0, 0) * stress(2, 0) + Gd(3, 0) * stress(1, 0) + Gd(6, 0) * stress(5, 0)) +
-                  Gd(6, 3) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0))
+                  Gd(6, 3) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0));
 
-        ;
     JAC11(0, 6) = Gd(0, 6) * (Gd(0, 0) * stress(0, 0) + Gd(3, 0) * stress(2, 0) + Gd(6, 0) * stress(4, 0)) +
                   Gd(3, 6) * (Gd(0, 0) * stress(2, 0) + Gd(3, 0) * stress(1, 0) + Gd(6, 0) * stress(5, 0)) +
-                  Gd(6, 6) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0))
+                  Gd(6, 6) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0));
 
-        ;
     JAC11(0, 9) = Gd(0, 9) * (Gd(0, 0) * stress(0, 0) + Gd(3, 0) * stress(2, 0) + Gd(6, 0) * stress(4, 0)) +
                   Gd(3, 9) * (Gd(0, 0) * stress(2, 0) + Gd(3, 0) * stress(1, 0) + Gd(6, 0) * stress(5, 0)) +
-                  Gd(6, 9) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0))
+                  Gd(6, 9) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0));
 
-        ;
     JAC11(0, 12) = Gd(0, 12) * (Gd(0, 0) * stress(0, 0) + Gd(3, 0) * stress(2, 0) + Gd(6, 0) * stress(4, 0)) +
                    Gd(3, 12) * (Gd(0, 0) * stress(2, 0) + Gd(3, 0) * stress(1, 0) + Gd(6, 0) * stress(5, 0)) +
-                   Gd(6, 12) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0))
+                   Gd(6, 12) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0));
 
-        ;
     JAC11(0, 15) = Gd(0, 15) * (Gd(0, 0) * stress(0, 0) + Gd(3, 0) * stress(2, 0) + Gd(6, 0) * stress(4, 0)) +
                    Gd(3, 15) * (Gd(0, 0) * stress(2, 0) + Gd(3, 0) * stress(1, 0) + Gd(6, 0) * stress(5, 0)) +
-                   Gd(6, 15) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0))
+                   Gd(6, 15) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0));
 
-        ;
     JAC11(0, 18) = Gd(0, 18) * (Gd(0, 0) * stress(0, 0) + Gd(3, 0) * stress(2, 0) + Gd(6, 0) * stress(4, 0)) +
                    Gd(3, 18) * (Gd(0, 0) * stress(2, 0) + Gd(3, 0) * stress(1, 0) + Gd(6, 0) * stress(5, 0)) +
-                   Gd(6, 18) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0))
+                   Gd(6, 18) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0));
 
-        ;
     JAC11(0, 21) = Gd(0, 21) * (Gd(0, 0) * stress(0, 0) + Gd(3, 0) * stress(2, 0) + Gd(6, 0) * stress(4, 0)) +
                    Gd(3, 21) * (Gd(0, 0) * stress(2, 0) + Gd(3, 0) * stress(1, 0) + Gd(6, 0) * stress(5, 0)) +
-                   Gd(6, 21) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0))
+                   Gd(6, 21) * (Gd(0, 0) * stress(4, 0) + Gd(3, 0) * stress(5, 0) + Gd(6, 0) * stress(3, 0));
 
-        ;
     JAC11(1, 1) = Gd(1, 1) * Gd(1, 1) * stress(0, 0) + Gd(4, 1) * Gd(4, 1) * stress(1, 0) +
                   Gd(7, 1) * Gd(7, 1) * stress(3, 0) + 2 * Gd(1, 1) * Gd(4, 1) * stress(2, 0) +
-                  2 * Gd(1, 1) * Gd(7, 1) * stress(4, 0) + 2 * Gd(4, 1) * Gd(7, 1) * stress(5, 0)
+                  2 * Gd(1, 1) * Gd(7, 1) * stress(4, 0) + 2 * Gd(4, 1) * Gd(7, 1) * stress(5, 0);
 
-        ;
     JAC11(1, 4) = Gd(1, 4) * (Gd(1, 1) * stress(0, 0) + Gd(4, 1) * stress(2, 0) + Gd(7, 1) * stress(4, 0)) +
                   Gd(4, 4) * (Gd(1, 1) * stress(2, 0) + Gd(4, 1) * stress(1, 0) + Gd(7, 1) * stress(5, 0)) +
-                  Gd(7, 4) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0))
+                  Gd(7, 4) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0));
 
-        ;
     JAC11(1, 7) = Gd(1, 7) * (Gd(1, 1) * stress(0, 0) + Gd(4, 1) * stress(2, 0) + Gd(7, 1) * stress(4, 0)) +
                   Gd(4, 7) * (Gd(1, 1) * stress(2, 0) + Gd(4, 1) * stress(1, 0) + Gd(7, 1) * stress(5, 0)) +
-                  Gd(7, 7) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0))
+                  Gd(7, 7) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0));
 
-        ;
     JAC11(1, 10) = Gd(1, 10) * (Gd(1, 1) * stress(0, 0) + Gd(4, 1) * stress(2, 0) + Gd(7, 1) * stress(4, 0)) +
                    Gd(4, 10) * (Gd(1, 1) * stress(2, 0) + Gd(4, 1) * stress(1, 0) + Gd(7, 1) * stress(5, 0)) +
-                   Gd(7, 10) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0))
+                   Gd(7, 10) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0));
 
-        ;
     JAC11(1, 13) = Gd(1, 13) * (Gd(1, 1) * stress(0, 0) + Gd(4, 1) * stress(2, 0) + Gd(7, 1) * stress(4, 0)) +
                    Gd(4, 13) * (Gd(1, 1) * stress(2, 0) + Gd(4, 1) * stress(1, 0) + Gd(7, 1) * stress(5, 0)) +
-                   Gd(7, 13) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0))
+                   Gd(7, 13) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0));
 
-        ;
     JAC11(1, 16) = Gd(1, 16) * (Gd(1, 1) * stress(0, 0) + Gd(4, 1) * stress(2, 0) + Gd(7, 1) * stress(4, 0)) +
                    Gd(4, 16) * (Gd(1, 1) * stress(2, 0) + Gd(4, 1) * stress(1, 0) + Gd(7, 1) * stress(5, 0)) +
-                   Gd(7, 16) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0))
+                   Gd(7, 16) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0));
 
-        ;
     JAC11(1, 19) = Gd(1, 19) * (Gd(1, 1) * stress(0, 0) + Gd(4, 1) * stress(2, 0) + Gd(7, 1) * stress(4, 0)) +
                    Gd(4, 19) * (Gd(1, 1) * stress(2, 0) + Gd(4, 1) * stress(1, 0) + Gd(7, 1) * stress(5, 0)) +
-                   Gd(7, 19) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0))
+                   Gd(7, 19) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0));
 
-        ;
     JAC11(1, 22) = Gd(1, 22) * (Gd(1, 1) * stress(0, 0) + Gd(4, 1) * stress(2, 0) + Gd(7, 1) * stress(4, 0)) +
                    Gd(4, 22) * (Gd(1, 1) * stress(2, 0) + Gd(4, 1) * stress(1, 0) + Gd(7, 1) * stress(5, 0)) +
-                   Gd(7, 22) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0))
+                   Gd(7, 22) * (Gd(1, 1) * stress(4, 0) + Gd(4, 1) * stress(5, 0) + Gd(7, 1) * stress(3, 0));
 
-        ;
     JAC11(2, 2) = Gd(2, 2) * Gd(2, 2) * stress(0, 0) + Gd(5, 2) * Gd(5, 2) * stress(1, 0) +
                   Gd(8, 2) * Gd(8, 2) * stress(3, 0) + 2 * Gd(2, 2) * Gd(5, 2) * stress(2, 0) +
-                  2 * Gd(2, 2) * Gd(8, 2) * stress(4, 0) + 2 * Gd(5, 2) * Gd(8, 2) * stress(5, 0)
+                  2 * Gd(2, 2) * Gd(8, 2) * stress(4, 0) + 2 * Gd(5, 2) * Gd(8, 2) * stress(5, 0);
 
-        ;
     JAC11(2, 5) = Gd(2, 5) * (Gd(2, 2) * stress(0, 0) + Gd(5, 2) * stress(2, 0) + Gd(8, 2) * stress(4, 0)) +
                   Gd(5, 5) * (Gd(2, 2) * stress(2, 0) + Gd(5, 2) * stress(1, 0) + Gd(8, 2) * stress(5, 0)) +
-                  Gd(8, 5) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0))
+                  Gd(8, 5) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0));
 
-        ;
     JAC11(2, 8) = Gd(2, 8) * (Gd(2, 2) * stress(0, 0) + Gd(5, 2) * stress(2, 0) + Gd(8, 2) * stress(4, 0)) +
                   Gd(5, 8) * (Gd(2, 2) * stress(2, 0) + Gd(5, 2) * stress(1, 0) + Gd(8, 2) * stress(5, 0)) +
-                  Gd(8, 8) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0))
+                  Gd(8, 8) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0));
 
-        ;
     JAC11(2, 11) = Gd(2, 11) * (Gd(2, 2) * stress(0, 0) + Gd(5, 2) * stress(2, 0) + Gd(8, 2) * stress(4, 0)) +
                    Gd(5, 11) * (Gd(2, 2) * stress(2, 0) + Gd(5, 2) * stress(1, 0) + Gd(8, 2) * stress(5, 0)) +
-                   Gd(8, 11) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0))
+                   Gd(8, 11) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0));
 
-        ;
     JAC11(2, 14) = Gd(2, 14) * (Gd(2, 2) * stress(0, 0) + Gd(5, 2) * stress(2, 0) + Gd(8, 2) * stress(4, 0)) +
                    Gd(5, 14) * (Gd(2, 2) * stress(2, 0) + Gd(5, 2) * stress(1, 0) + Gd(8, 2) * stress(5, 0)) +
-                   Gd(8, 14) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0))
+                   Gd(8, 14) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0));
 
-        ;
     JAC11(2, 17) = Gd(2, 17) * (Gd(2, 2) * stress(0, 0) + Gd(5, 2) * stress(2, 0) + Gd(8, 2) * stress(4, 0)) +
                    Gd(5, 17) * (Gd(2, 2) * stress(2, 0) + Gd(5, 2) * stress(1, 0) + Gd(8, 2) * stress(5, 0)) +
-                   Gd(8, 17) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0))
+                   Gd(8, 17) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0));
 
-        ;
     JAC11(2, 20) = Gd(2, 20) * (Gd(2, 2) * stress(0, 0) + Gd(5, 2) * stress(2, 0) + Gd(8, 2) * stress(4, 0)) +
                    Gd(5, 20) * (Gd(2, 2) * stress(2, 0) + Gd(5, 2) * stress(1, 0) + Gd(8, 2) * stress(5, 0)) +
-                   Gd(8, 20) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0))
+                   Gd(8, 20) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0));
 
-        ;
     JAC11(2, 23) = Gd(2, 23) * (Gd(2, 2) * stress(0, 0) + Gd(5, 2) * stress(2, 0) + Gd(8, 2) * stress(4, 0)) +
                    Gd(5, 23) * (Gd(2, 2) * stress(2, 0) + Gd(5, 2) * stress(1, 0) + Gd(8, 2) * stress(5, 0)) +
-                   Gd(8, 23) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0))
+                   Gd(8, 23) * (Gd(2, 2) * stress(4, 0) + Gd(5, 2) * stress(5, 0) + Gd(8, 2) * stress(3, 0));
 
-        ;
     JAC11(3, 0) = Gd(0, 0) * (Gd(0, 3) * stress(0, 0) + Gd(3, 3) * stress(2, 0) + Gd(6, 3) * stress(4, 0)) +
                   Gd(3, 0) * (Gd(0, 3) * stress(2, 0) + Gd(3, 3) * stress(1, 0) + Gd(6, 3) * stress(5, 0)) +
-                  Gd(6, 0) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0))
+                  Gd(6, 0) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0));
 
-        ;
     JAC11(3, 3) = Gd(0, 3) * Gd(0, 3) * stress(0, 0) + Gd(3, 3) * Gd(3, 3) * stress(1, 0) +
                   Gd(6, 3) * Gd(6, 3) * stress(3, 0) + 2 * Gd(0, 3) * Gd(3, 3) * stress(2, 0) +
-                  2 * Gd(0, 3) * Gd(6, 3) * stress(4, 0) + 2 * Gd(3, 3) * Gd(6, 3) * stress(5, 0)
+                  2 * Gd(0, 3) * Gd(6, 3) * stress(4, 0) + 2 * Gd(3, 3) * Gd(6, 3) * stress(5, 0);
 
-        ;
     JAC11(3, 6) = Gd(0, 6) * (Gd(0, 3) * stress(0, 0) + Gd(3, 3) * stress(2, 0) + Gd(6, 3) * stress(4, 0)) +
                   Gd(3, 6) * (Gd(0, 3) * stress(2, 0) + Gd(3, 3) * stress(1, 0) + Gd(6, 3) * stress(5, 0)) +
-                  Gd(6, 6) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0))
+                  Gd(6, 6) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0));
 
-        ;
     JAC11(3, 9) = Gd(0, 9) * (Gd(0, 3) * stress(0, 0) + Gd(3, 3) * stress(2, 0) + Gd(6, 3) * stress(4, 0)) +
                   Gd(3, 9) * (Gd(0, 3) * stress(2, 0) + Gd(3, 3) * stress(1, 0) + Gd(6, 3) * stress(5, 0)) +
-                  Gd(6, 9) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0))
+                  Gd(6, 9) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0));
 
-        ;
     JAC11(3, 12) = Gd(0, 12) * (Gd(0, 3) * stress(0, 0) + Gd(3, 3) * stress(2, 0) + Gd(6, 3) * stress(4, 0)) +
                    Gd(3, 12) * (Gd(0, 3) * stress(2, 0) + Gd(3, 3) * stress(1, 0) + Gd(6, 3) * stress(5, 0)) +
-                   Gd(6, 12) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0))
+                   Gd(6, 12) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0));
 
-        ;
     JAC11(3, 15) = Gd(0, 15) * (Gd(0, 3) * stress(0, 0) + Gd(3, 3) * stress(2, 0) + Gd(6, 3) * stress(4, 0)) +
                    Gd(3, 15) * (Gd(0, 3) * stress(2, 0) + Gd(3, 3) * stress(1, 0) + Gd(6, 3) * stress(5, 0)) +
-                   Gd(6, 15) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0))
+                   Gd(6, 15) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0));
 
-        ;
     JAC11(3, 18) = Gd(0, 18) * (Gd(0, 3) * stress(0, 0) + Gd(3, 3) * stress(2, 0) + Gd(6, 3) * stress(4, 0)) +
                    Gd(3, 18) * (Gd(0, 3) * stress(2, 0) + Gd(3, 3) * stress(1, 0) + Gd(6, 3) * stress(5, 0)) +
-                   Gd(6, 18) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0))
+                   Gd(6, 18) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0));
 
-        ;
     JAC11(3, 21) = Gd(0, 21) * (Gd(0, 3) * stress(0, 0) + Gd(3, 3) * stress(2, 0) + Gd(6, 3) * stress(4, 0)) +
                    Gd(3, 21) * (Gd(0, 3) * stress(2, 0) + Gd(3, 3) * stress(1, 0) + Gd(6, 3) * stress(5, 0)) +
-                   Gd(6, 21) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0))
+                   Gd(6, 21) * (Gd(0, 3) * stress(4, 0) + Gd(3, 3) * stress(5, 0) + Gd(6, 3) * stress(3, 0));
 
-        ;
     JAC11(4, 1) = Gd(1, 1) * (Gd(1, 4) * stress(0, 0) + Gd(4, 4) * stress(2, 0) + Gd(7, 4) * stress(4, 0)) +
                   Gd(4, 1) * (Gd(1, 4) * stress(2, 0) + Gd(4, 4) * stress(1, 0) + Gd(7, 4) * stress(5, 0)) +
-                  Gd(7, 1) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0))
+                  Gd(7, 1) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0));
 
-        ;
     JAC11(4, 4) = Gd(1, 4) * Gd(1, 4) * stress(0, 0) + Gd(4, 4) * Gd(4, 4) * stress(1, 0) +
                   Gd(7, 4) * Gd(7, 4) * stress(3, 0) + 2 * Gd(1, 4) * Gd(4, 4) * stress(2, 0) +
-                  2 * Gd(1, 4) * Gd(7, 4) * stress(4, 0) + 2 * Gd(4, 4) * Gd(7, 4) * stress(5, 0)
+                  2 * Gd(1, 4) * Gd(7, 4) * stress(4, 0) + 2 * Gd(4, 4) * Gd(7, 4) * stress(5, 0);
 
-        ;
     JAC11(4, 7) = Gd(1, 7) * (Gd(1, 4) * stress(0, 0) + Gd(4, 4) * stress(2, 0) + Gd(7, 4) * stress(4, 0)) +
                   Gd(4, 7) * (Gd(1, 4) * stress(2, 0) + Gd(4, 4) * stress(1, 0) + Gd(7, 4) * stress(5, 0)) +
-                  Gd(7, 7) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0))
+                  Gd(7, 7) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0));
 
-        ;
     JAC11(4, 10) = Gd(1, 10) * (Gd(1, 4) * stress(0, 0) + Gd(4, 4) * stress(2, 0) + Gd(7, 4) * stress(4, 0)) +
                    Gd(4, 10) * (Gd(1, 4) * stress(2, 0) + Gd(4, 4) * stress(1, 0) + Gd(7, 4) * stress(5, 0)) +
-                   Gd(7, 10) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0))
+                   Gd(7, 10) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0));
 
-        ;
     JAC11(4, 13) = Gd(1, 13) * (Gd(1, 4) * stress(0, 0) + Gd(4, 4) * stress(2, 0) + Gd(7, 4) * stress(4, 0)) +
                    Gd(4, 13) * (Gd(1, 4) * stress(2, 0) + Gd(4, 4) * stress(1, 0) + Gd(7, 4) * stress(5, 0)) +
-                   Gd(7, 13) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0))
+                   Gd(7, 13) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0));
 
-        ;
     JAC11(4, 16) = Gd(1, 16) * (Gd(1, 4) * stress(0, 0) + Gd(4, 4) * stress(2, 0) + Gd(7, 4) * stress(4, 0)) +
                    Gd(4, 16) * (Gd(1, 4) * stress(2, 0) + Gd(4, 4) * stress(1, 0) + Gd(7, 4) * stress(5, 0)) +
-                   Gd(7, 16) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0))
+                   Gd(7, 16) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0));
 
-        ;
     JAC11(4, 19) = Gd(1, 19) * (Gd(1, 4) * stress(0, 0) + Gd(4, 4) * stress(2, 0) + Gd(7, 4) * stress(4, 0)) +
                    Gd(4, 19) * (Gd(1, 4) * stress(2, 0) + Gd(4, 4) * stress(1, 0) + Gd(7, 4) * stress(5, 0)) +
-                   Gd(7, 19) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0))
+                   Gd(7, 19) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0));
 
-        ;
     JAC11(4, 22) = Gd(1, 22) * (Gd(1, 4) * stress(0, 0) + Gd(4, 4) * stress(2, 0) + Gd(7, 4) * stress(4, 0)) +
                    Gd(4, 22) * (Gd(1, 4) * stress(2, 0) + Gd(4, 4) * stress(1, 0) + Gd(7, 4) * stress(5, 0)) +
-                   Gd(7, 22) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0))
+                   Gd(7, 22) * (Gd(1, 4) * stress(4, 0) + Gd(4, 4) * stress(5, 0) + Gd(7, 4) * stress(3, 0));
 
-        ;
     JAC11(5, 2) = Gd(2, 2) * (Gd(2, 5) * stress(0, 0) + Gd(5, 5) * stress(2, 0) + Gd(8, 5) * stress(4, 0)) +
                   Gd(5, 2) * (Gd(2, 5) * stress(2, 0) + Gd(5, 5) * stress(1, 0) + Gd(8, 5) * stress(5, 0)) +
-                  Gd(8, 2) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0))
+                  Gd(8, 2) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0));
 
-        ;
     JAC11(5, 5) = Gd(2, 5) * Gd(2, 5) * stress(0, 0) + Gd(5, 5) * Gd(5, 5) * stress(1, 0) +
                   Gd(8, 5) * Gd(8, 5) * stress(3, 0) + 2 * Gd(2, 5) * Gd(5, 5) * stress(2, 0) +
-                  2 * Gd(2, 5) * Gd(8, 5) * stress(4, 0) + 2 * Gd(5, 5) * Gd(8, 5) * stress(5, 0)
+                  2 * Gd(2, 5) * Gd(8, 5) * stress(4, 0) + 2 * Gd(5, 5) * Gd(8, 5) * stress(5, 0);
 
-        ;
     JAC11(5, 8) = Gd(2, 8) * (Gd(2, 5) * stress(0, 0) + Gd(5, 5) * stress(2, 0) + Gd(8, 5) * stress(4, 0)) +
                   Gd(5, 8) * (Gd(2, 5) * stress(2, 0) + Gd(5, 5) * stress(1, 0) + Gd(8, 5) * stress(5, 0)) +
-                  Gd(8, 8) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0))
+                  Gd(8, 8) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0));
 
-        ;
     JAC11(5, 11) = Gd(2, 11) * (Gd(2, 5) * stress(0, 0) + Gd(5, 5) * stress(2, 0) + Gd(8, 5) * stress(4, 0)) +
                    Gd(5, 11) * (Gd(2, 5) * stress(2, 0) + Gd(5, 5) * stress(1, 0) + Gd(8, 5) * stress(5, 0)) +
-                   Gd(8, 11) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0))
+                   Gd(8, 11) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0));
 
-        ;
     JAC11(5, 14) = Gd(2, 14) * (Gd(2, 5) * stress(0, 0) + Gd(5, 5) * stress(2, 0) + Gd(8, 5) * stress(4, 0)) +
                    Gd(5, 14) * (Gd(2, 5) * stress(2, 0) + Gd(5, 5) * stress(1, 0) + Gd(8, 5) * stress(5, 0)) +
-                   Gd(8, 14) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0))
+                   Gd(8, 14) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0));
 
-        ;
     JAC11(5, 17) = Gd(2, 17) * (Gd(2, 5) * stress(0, 0) + Gd(5, 5) * stress(2, 0) + Gd(8, 5) * stress(4, 0)) +
                    Gd(5, 17) * (Gd(2, 5) * stress(2, 0) + Gd(5, 5) * stress(1, 0) + Gd(8, 5) * stress(5, 0)) +
-                   Gd(8, 17) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0))
+                   Gd(8, 17) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0));
 
-        ;
     JAC11(5, 20) = Gd(2, 20) * (Gd(2, 5) * stress(0, 0) + Gd(5, 5) * stress(2, 0) + Gd(8, 5) * stress(4, 0)) +
                    Gd(5, 20) * (Gd(2, 5) * stress(2, 0) + Gd(5, 5) * stress(1, 0) + Gd(8, 5) * stress(5, 0)) +
-                   Gd(8, 20) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0))
+                   Gd(8, 20) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0));
 
-        ;
     JAC11(5, 23) = Gd(2, 23) * (Gd(2, 5) * stress(0, 0) + Gd(5, 5) * stress(2, 0) + Gd(8, 5) * stress(4, 0)) +
                    Gd(5, 23) * (Gd(2, 5) * stress(2, 0) + Gd(5, 5) * stress(1, 0) + Gd(8, 5) * stress(5, 0)) +
-                   Gd(8, 23) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0))
+                   Gd(8, 23) * (Gd(2, 5) * stress(4, 0) + Gd(5, 5) * stress(5, 0) + Gd(8, 5) * stress(3, 0));
 
-        ;
     JAC11(6, 0) = Gd(0, 0) * (Gd(0, 6) * stress(0, 0) + Gd(3, 6) * stress(2, 0) + Gd(6, 6) * stress(4, 0)) +
                   Gd(3, 0) * (Gd(0, 6) * stress(2, 0) + Gd(3, 6) * stress(1, 0) + Gd(6, 6) * stress(5, 0)) +
-                  Gd(6, 0) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0))
+                  Gd(6, 0) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0));
 
-        ;
     JAC11(6, 3) = Gd(0, 3) * (Gd(0, 6) * stress(0, 0) + Gd(3, 6) * stress(2, 0) + Gd(6, 6) * stress(4, 0)) +
                   Gd(3, 3) * (Gd(0, 6) * stress(2, 0) + Gd(3, 6) * stress(1, 0) + Gd(6, 6) * stress(5, 0)) +
-                  Gd(6, 3) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0))
+                  Gd(6, 3) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0));
 
-        ;
     JAC11(6, 6) = Gd(0, 6) * Gd(0, 6) * stress(0, 0) + Gd(3, 6) * Gd(3, 6) * stress(1, 0) +
                   Gd(6, 6) * Gd(6, 6) * stress(3, 0) + 2 * Gd(0, 6) * Gd(3, 6) * stress(2, 0) +
-                  2 * Gd(0, 6) * Gd(6, 6) * stress(4, 0) + 2 * Gd(3, 6) * Gd(6, 6) * stress(5, 0)
+                  2 * Gd(0, 6) * Gd(6, 6) * stress(4, 0) + 2 * Gd(3, 6) * Gd(6, 6) * stress(5, 0);
 
-        ;
     JAC11(6, 9) = Gd(0, 9) * (Gd(0, 6) * stress(0, 0) + Gd(3, 6) * stress(2, 0) + Gd(6, 6) * stress(4, 0)) +
                   Gd(3, 9) * (Gd(0, 6) * stress(2, 0) + Gd(3, 6) * stress(1, 0) + Gd(6, 6) * stress(5, 0)) +
-                  Gd(6, 9) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0))
+                  Gd(6, 9) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0));
 
-        ;
     JAC11(6, 12) = Gd(0, 12) * (Gd(0, 6) * stress(0, 0) + Gd(3, 6) * stress(2, 0) + Gd(6, 6) * stress(4, 0)) +
                    Gd(3, 12) * (Gd(0, 6) * stress(2, 0) + Gd(3, 6) * stress(1, 0) + Gd(6, 6) * stress(5, 0)) +
-                   Gd(6, 12) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0))
+                   Gd(6, 12) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0));
 
-        ;
     JAC11(6, 15) = Gd(0, 15) * (Gd(0, 6) * stress(0, 0) + Gd(3, 6) * stress(2, 0) + Gd(6, 6) * stress(4, 0)) +
                    Gd(3, 15) * (Gd(0, 6) * stress(2, 0) + Gd(3, 6) * stress(1, 0) + Gd(6, 6) * stress(5, 0)) +
-                   Gd(6, 15) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0))
+                   Gd(6, 15) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0));
 
-        ;
     JAC11(6, 18) = Gd(0, 18) * (Gd(0, 6) * stress(0, 0) + Gd(3, 6) * stress(2, 0) + Gd(6, 6) * stress(4, 0)) +
                    Gd(3, 18) * (Gd(0, 6) * stress(2, 0) + Gd(3, 6) * stress(1, 0) + Gd(6, 6) * stress(5, 0)) +
-                   Gd(6, 18) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0))
+                   Gd(6, 18) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0));
 
-        ;
     JAC11(6, 21) = Gd(0, 21) * (Gd(0, 6) * stress(0, 0) + Gd(3, 6) * stress(2, 0) + Gd(6, 6) * stress(4, 0)) +
                    Gd(3, 21) * (Gd(0, 6) * stress(2, 0) + Gd(3, 6) * stress(1, 0) + Gd(6, 6) * stress(5, 0)) +
-                   Gd(6, 21) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0))
+                   Gd(6, 21) * (Gd(0, 6) * stress(4, 0) + Gd(3, 6) * stress(5, 0) + Gd(6, 6) * stress(3, 0));
 
-        ;
     JAC11(7, 1) = Gd(1, 1) * (Gd(1, 7) * stress(0, 0) + Gd(4, 7) * stress(2, 0) + Gd(7, 7) * stress(4, 0)) +
                   Gd(4, 1) * (Gd(1, 7) * stress(2, 0) + Gd(4, 7) * stress(1, 0) + Gd(7, 7) * stress(5, 0)) +
-                  Gd(7, 1) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0))
+                  Gd(7, 1) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0));
 
-        ;
     JAC11(7, 4) = Gd(1, 4) * (Gd(1, 7) * stress(0, 0) + Gd(4, 7) * stress(2, 0) + Gd(7, 7) * stress(4, 0)) +
                   Gd(4, 4) * (Gd(1, 7) * stress(2, 0) + Gd(4, 7) * stress(1, 0) + Gd(7, 7) * stress(5, 0)) +
-                  Gd(7, 4) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0))
+                  Gd(7, 4) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0));
 
-        ;
     JAC11(7, 7) = Gd(1, 7) * Gd(1, 7) * stress(0, 0) + Gd(4, 7) * Gd(4, 7) * stress(1, 0) +
                   Gd(7, 7) * Gd(7, 7) * stress(3, 0) + 2 * Gd(1, 7) * Gd(4, 7) * stress(2, 0) +
-                  2 * Gd(1, 7) * Gd(7, 7) * stress(4, 0) + 2 * Gd(4, 7) * Gd(7, 7) * stress(5, 0)
+                  2 * Gd(1, 7) * Gd(7, 7) * stress(4, 0) + 2 * Gd(4, 7) * Gd(7, 7) * stress(5, 0);
 
-        ;
     JAC11(7, 10) = Gd(1, 10) * (Gd(1, 7) * stress(0, 0) + Gd(4, 7) * stress(2, 0) + Gd(7, 7) * stress(4, 0)) +
                    Gd(4, 10) * (Gd(1, 7) * stress(2, 0) + Gd(4, 7) * stress(1, 0) + Gd(7, 7) * stress(5, 0)) +
-                   Gd(7, 10) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0))
+                   Gd(7, 10) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0));
 
-        ;
     JAC11(7, 13) = Gd(1, 13) * (Gd(1, 7) * stress(0, 0) + Gd(4, 7) * stress(2, 0) + Gd(7, 7) * stress(4, 0)) +
                    Gd(4, 13) * (Gd(1, 7) * stress(2, 0) + Gd(4, 7) * stress(1, 0) + Gd(7, 7) * stress(5, 0)) +
-                   Gd(7, 13) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0))
+                   Gd(7, 13) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0));
 
-        ;
     JAC11(7, 16) = Gd(1, 16) * (Gd(1, 7) * stress(0, 0) + Gd(4, 7) * stress(2, 0) + Gd(7, 7) * stress(4, 0)) +
                    Gd(4, 16) * (Gd(1, 7) * stress(2, 0) + Gd(4, 7) * stress(1, 0) + Gd(7, 7) * stress(5, 0)) +
-                   Gd(7, 16) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0))
+                   Gd(7, 16) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0));
 
-        ;
     JAC11(7, 19) = Gd(1, 19) * (Gd(1, 7) * stress(0, 0) + Gd(4, 7) * stress(2, 0) + Gd(7, 7) * stress(4, 0)) +
                    Gd(4, 19) * (Gd(1, 7) * stress(2, 0) + Gd(4, 7) * stress(1, 0) + Gd(7, 7) * stress(5, 0)) +
-                   Gd(7, 19) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0))
+                   Gd(7, 19) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0));
 
-        ;
     JAC11(7, 22) = Gd(1, 22) * (Gd(1, 7) * stress(0, 0) + Gd(4, 7) * stress(2, 0) + Gd(7, 7) * stress(4, 0)) +
                    Gd(4, 22) * (Gd(1, 7) * stress(2, 0) + Gd(4, 7) * stress(1, 0) + Gd(7, 7) * stress(5, 0)) +
-                   Gd(7, 22) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0))
+                   Gd(7, 22) * (Gd(1, 7) * stress(4, 0) + Gd(4, 7) * stress(5, 0) + Gd(7, 7) * stress(3, 0));
 
-        ;
     JAC11(8, 2) = Gd(2, 2) * (Gd(2, 8) * stress(0, 0) + Gd(5, 8) * stress(2, 0) + Gd(8, 8) * stress(4, 0)) +
                   Gd(5, 2) * (Gd(2, 8) * stress(2, 0) + Gd(5, 8) * stress(1, 0) + Gd(8, 8) * stress(5, 0)) +
-                  Gd(8, 2) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0))
+                  Gd(8, 2) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0));
 
-        ;
     JAC11(8, 5) = Gd(2, 5) * (Gd(2, 8) * stress(0, 0) + Gd(5, 8) * stress(2, 0) + Gd(8, 8) * stress(4, 0)) +
                   Gd(5, 5) * (Gd(2, 8) * stress(2, 0) + Gd(5, 8) * stress(1, 0) + Gd(8, 8) * stress(5, 0)) +
-                  Gd(8, 5) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0))
+                  Gd(8, 5) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0));
 
-        ;
     JAC11(8, 8) = Gd(2, 8) * Gd(2, 8) * stress(0, 0) + Gd(5, 8) * Gd(5, 8) * stress(1, 0) +
                   Gd(8, 8) * Gd(8, 8) * stress(3, 0) + 2 * Gd(2, 8) * Gd(5, 8) * stress(2, 0) +
-                  2 * Gd(2, 8) * Gd(8, 8) * stress(4, 0) + 2 * Gd(5, 8) * Gd(8, 8) * stress(5, 0)
+                  2 * Gd(2, 8) * Gd(8, 8) * stress(4, 0) + 2 * Gd(5, 8) * Gd(8, 8) * stress(5, 0);
 
-        ;
     JAC11(8, 11) = Gd(2, 11) * (Gd(2, 8) * stress(0, 0) + Gd(5, 8) * stress(2, 0) + Gd(8, 8) * stress(4, 0)) +
                    Gd(5, 11) * (Gd(2, 8) * stress(2, 0) + Gd(5, 8) * stress(1, 0) + Gd(8, 8) * stress(5, 0)) +
-                   Gd(8, 11) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0))
+                   Gd(8, 11) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0));
 
-        ;
     JAC11(8, 14) = Gd(2, 14) * (Gd(2, 8) * stress(0, 0) + Gd(5, 8) * stress(2, 0) + Gd(8, 8) * stress(4, 0)) +
                    Gd(5, 14) * (Gd(2, 8) * stress(2, 0) + Gd(5, 8) * stress(1, 0) + Gd(8, 8) * stress(5, 0)) +
-                   Gd(8, 14) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0))
+                   Gd(8, 14) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0));
 
-        ;
     JAC11(8, 17) = Gd(2, 17) * (Gd(2, 8) * stress(0, 0) + Gd(5, 8) * stress(2, 0) + Gd(8, 8) * stress(4, 0)) +
                    Gd(5, 17) * (Gd(2, 8) * stress(2, 0) + Gd(5, 8) * stress(1, 0) + Gd(8, 8) * stress(5, 0)) +
-                   Gd(8, 17) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0))
+                   Gd(8, 17) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0));
 
-        ;
     JAC11(8, 20) = Gd(2, 20) * (Gd(2, 8) * stress(0, 0) + Gd(5, 8) * stress(2, 0) + Gd(8, 8) * stress(4, 0)) +
                    Gd(5, 20) * (Gd(2, 8) * stress(2, 0) + Gd(5, 8) * stress(1, 0) + Gd(8, 8) * stress(5, 0)) +
-                   Gd(8, 20) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0))
+                   Gd(8, 20) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0));
 
-        ;
     JAC11(8, 23) = Gd(2, 23) * (Gd(2, 8) * stress(0, 0) + Gd(5, 8) * stress(2, 0) + Gd(8, 8) * stress(4, 0)) +
                    Gd(5, 23) * (Gd(2, 8) * stress(2, 0) + Gd(5, 8) * stress(1, 0) + Gd(8, 8) * stress(5, 0)) +
-                   Gd(8, 23) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0))
+                   Gd(8, 23) * (Gd(2, 8) * stress(4, 0) + Gd(5, 8) * stress(5, 0) + Gd(8, 8) * stress(3, 0));
 
-        ;
     JAC11(9, 0) = Gd(0, 0) * (Gd(0, 9) * stress(0, 0) + Gd(3, 9) * stress(2, 0) + Gd(6, 9) * stress(4, 0)) +
                   Gd(3, 0) * (Gd(0, 9) * stress(2, 0) + Gd(3, 9) * stress(1, 0) + Gd(6, 9) * stress(5, 0)) +
-                  Gd(6, 0) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0))
+                  Gd(6, 0) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0));
 
-        ;
     JAC11(9, 3) = Gd(0, 3) * (Gd(0, 9) * stress(0, 0) + Gd(3, 9) * stress(2, 0) + Gd(6, 9) * stress(4, 0)) +
                   Gd(3, 3) * (Gd(0, 9) * stress(2, 0) + Gd(3, 9) * stress(1, 0) + Gd(6, 9) * stress(5, 0)) +
-                  Gd(6, 3) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0))
+                  Gd(6, 3) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0));
 
-        ;
     JAC11(9, 6) = Gd(0, 6) * (Gd(0, 9) * stress(0, 0) + Gd(3, 9) * stress(2, 0) + Gd(6, 9) * stress(4, 0)) +
                   Gd(3, 6) * (Gd(0, 9) * stress(2, 0) + Gd(3, 9) * stress(1, 0) + Gd(6, 9) * stress(5, 0)) +
-                  Gd(6, 6) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0))
+                  Gd(6, 6) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0));
 
-        ;
     JAC11(9, 9) = Gd(0, 9) * Gd(0, 9) * stress(0, 0) + Gd(3, 9) * Gd(3, 9) * stress(1, 0) +
                   Gd(6, 9) * Gd(6, 9) * stress(3, 0) + 2 * Gd(0, 9) * Gd(3, 9) * stress(2, 0) +
-                  2 * Gd(0, 9) * Gd(6, 9) * stress(4, 0) + 2 * Gd(3, 9) * Gd(6, 9) * stress(5, 0)
+                  2 * Gd(0, 9) * Gd(6, 9) * stress(4, 0) + 2 * Gd(3, 9) * Gd(6, 9) * stress(5, 0);
 
-        ;
     JAC11(9, 12) = Gd(0, 12) * (Gd(0, 9) * stress(0, 0) + Gd(3, 9) * stress(2, 0) + Gd(6, 9) * stress(4, 0)) +
                    Gd(3, 12) * (Gd(0, 9) * stress(2, 0) + Gd(3, 9) * stress(1, 0) + Gd(6, 9) * stress(5, 0)) +
-                   Gd(6, 12) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0))
+                   Gd(6, 12) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0));
 
-        ;
     JAC11(9, 15) = Gd(0, 15) * (Gd(0, 9) * stress(0, 0) + Gd(3, 9) * stress(2, 0) + Gd(6, 9) * stress(4, 0)) +
                    Gd(3, 15) * (Gd(0, 9) * stress(2, 0) + Gd(3, 9) * stress(1, 0) + Gd(6, 9) * stress(5, 0)) +
-                   Gd(6, 15) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0))
+                   Gd(6, 15) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0));
 
-        ;
     JAC11(9, 18) = Gd(0, 18) * (Gd(0, 9) * stress(0, 0) + Gd(3, 9) * stress(2, 0) + Gd(6, 9) * stress(4, 0)) +
                    Gd(3, 18) * (Gd(0, 9) * stress(2, 0) + Gd(3, 9) * stress(1, 0) + Gd(6, 9) * stress(5, 0)) +
-                   Gd(6, 18) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0))
+                   Gd(6, 18) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0));
 
-        ;
     JAC11(9, 21) = Gd(0, 21) * (Gd(0, 9) * stress(0, 0) + Gd(3, 9) * stress(2, 0) + Gd(6, 9) * stress(4, 0)) +
                    Gd(3, 21) * (Gd(0, 9) * stress(2, 0) + Gd(3, 9) * stress(1, 0) + Gd(6, 9) * stress(5, 0)) +
-                   Gd(6, 21) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0))
+                   Gd(6, 21) * (Gd(0, 9) * stress(4, 0) + Gd(3, 9) * stress(5, 0) + Gd(6, 9) * stress(3, 0));
 
-        ;
     JAC11(10, 1) = Gd(1, 1) * (Gd(1, 10) * stress(0, 0) + Gd(4, 10) * stress(2, 0) + Gd(7, 10) * stress(4, 0)) +
                    Gd(4, 1) * (Gd(1, 10) * stress(2, 0) + Gd(4, 10) * stress(1, 0) + Gd(7, 10) * stress(5, 0)) +
-                   Gd(7, 1) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0))
+                   Gd(7, 1) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0));
 
-        ;
     JAC11(10, 4) = Gd(1, 4) * (Gd(1, 10) * stress(0, 0) + Gd(4, 10) * stress(2, 0) + Gd(7, 10) * stress(4, 0)) +
                    Gd(4, 4) * (Gd(1, 10) * stress(2, 0) + Gd(4, 10) * stress(1, 0) + Gd(7, 10) * stress(5, 0)) +
-                   Gd(7, 4) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0))
+                   Gd(7, 4) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0));
 
-        ;
     JAC11(10, 7) = Gd(1, 7) * (Gd(1, 10) * stress(0, 0) + Gd(4, 10) * stress(2, 0) + Gd(7, 10) * stress(4, 0)) +
                    Gd(4, 7) * (Gd(1, 10) * stress(2, 0) + Gd(4, 10) * stress(1, 0) + Gd(7, 10) * stress(5, 0)) +
-                   Gd(7, 7) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0))
+                   Gd(7, 7) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0));
 
-        ;
     JAC11(10, 10) = Gd(1, 10) * Gd(1, 10) * stress(0, 0) + Gd(4, 10) * Gd(4, 10) * stress(1, 0) +
                     Gd(7, 10) * Gd(7, 10) * stress(3, 0) + 2 * Gd(1, 10) * Gd(4, 10) * stress(2, 0) +
-                    2 * Gd(1, 10) * Gd(7, 10) * stress(4, 0) + 2 * Gd(4, 10) * Gd(7, 10) * stress(5, 0)
+                    2 * Gd(1, 10) * Gd(7, 10) * stress(4, 0) + 2 * Gd(4, 10) * Gd(7, 10) * stress(5, 0);
 
-        ;
     JAC11(10, 13) = Gd(1, 13) * (Gd(1, 10) * stress(0, 0) + Gd(4, 10) * stress(2, 0) + Gd(7, 10) * stress(4, 0)) +
                     Gd(4, 13) * (Gd(1, 10) * stress(2, 0) + Gd(4, 10) * stress(1, 0) + Gd(7, 10) * stress(5, 0)) +
-                    Gd(7, 13) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0))
+                    Gd(7, 13) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0));
 
-        ;
     JAC11(10, 16) = Gd(1, 16) * (Gd(1, 10) * stress(0, 0) + Gd(4, 10) * stress(2, 0) + Gd(7, 10) * stress(4, 0)) +
                     Gd(4, 16) * (Gd(1, 10) * stress(2, 0) + Gd(4, 10) * stress(1, 0) + Gd(7, 10) * stress(5, 0)) +
-                    Gd(7, 16) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0))
+                    Gd(7, 16) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0));
 
-        ;
     JAC11(10, 19) = Gd(1, 19) * (Gd(1, 10) * stress(0, 0) + Gd(4, 10) * stress(2, 0) + Gd(7, 10) * stress(4, 0)) +
                     Gd(4, 19) * (Gd(1, 10) * stress(2, 0) + Gd(4, 10) * stress(1, 0) + Gd(7, 10) * stress(5, 0)) +
-                    Gd(7, 19) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0))
+                    Gd(7, 19) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0));
 
-        ;
     JAC11(10, 22) = Gd(1, 22) * (Gd(1, 10) * stress(0, 0) + Gd(4, 10) * stress(2, 0) + Gd(7, 10) * stress(4, 0)) +
                     Gd(4, 22) * (Gd(1, 10) * stress(2, 0) + Gd(4, 10) * stress(1, 0) + Gd(7, 10) * stress(5, 0)) +
-                    Gd(7, 22) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0))
+                    Gd(7, 22) * (Gd(1, 10) * stress(4, 0) + Gd(4, 10) * stress(5, 0) + Gd(7, 10) * stress(3, 0));
 
-        ;
     JAC11(11, 2) = Gd(2, 2) * (Gd(2, 11) * stress(0, 0) + Gd(5, 11) * stress(2, 0) + Gd(8, 11) * stress(4, 0)) +
                    Gd(5, 2) * (Gd(2, 11) * stress(2, 0) + Gd(5, 11) * stress(1, 0) + Gd(8, 11) * stress(5, 0)) +
-                   Gd(8, 2) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0))
+                   Gd(8, 2) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0));
 
-        ;
     JAC11(11, 5) = Gd(2, 5) * (Gd(2, 11) * stress(0, 0) + Gd(5, 11) * stress(2, 0) + Gd(8, 11) * stress(4, 0)) +
                    Gd(5, 5) * (Gd(2, 11) * stress(2, 0) + Gd(5, 11) * stress(1, 0) + Gd(8, 11) * stress(5, 0)) +
-                   Gd(8, 5) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0))
+                   Gd(8, 5) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0));
 
-        ;
     JAC11(11, 8) = Gd(2, 8) * (Gd(2, 11) * stress(0, 0) + Gd(5, 11) * stress(2, 0) + Gd(8, 11) * stress(4, 0)) +
                    Gd(5, 8) * (Gd(2, 11) * stress(2, 0) + Gd(5, 11) * stress(1, 0) + Gd(8, 11) * stress(5, 0)) +
-                   Gd(8, 8) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0))
+                   Gd(8, 8) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0));
 
-        ;
     JAC11(11, 11) = Gd(2, 11) * Gd(2, 11) * stress(0, 0) + Gd(5, 11) * Gd(5, 11) * stress(1, 0) +
                     Gd(8, 11) * Gd(8, 11) * stress(3, 0) + 2 * Gd(2, 11) * Gd(5, 11) * stress(2, 0) +
-                    2 * Gd(2, 11) * Gd(8, 11) * stress(4, 0) + 2 * Gd(5, 11) * Gd(8, 11) * stress(5, 0)
+                    2 * Gd(2, 11) * Gd(8, 11) * stress(4, 0) + 2 * Gd(5, 11) * Gd(8, 11) * stress(5, 0);
 
-        ;
     JAC11(11, 14) = Gd(2, 14) * (Gd(2, 11) * stress(0, 0) + Gd(5, 11) * stress(2, 0) + Gd(8, 11) * stress(4, 0)) +
                     Gd(5, 14) * (Gd(2, 11) * stress(2, 0) + Gd(5, 11) * stress(1, 0) + Gd(8, 11) * stress(5, 0)) +
-                    Gd(8, 14) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0))
+                    Gd(8, 14) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0));
 
-        ;
     JAC11(11, 17) = Gd(2, 17) * (Gd(2, 11) * stress(0, 0) + Gd(5, 11) * stress(2, 0) + Gd(8, 11) * stress(4, 0)) +
                     Gd(5, 17) * (Gd(2, 11) * stress(2, 0) + Gd(5, 11) * stress(1, 0) + Gd(8, 11) * stress(5, 0)) +
-                    Gd(8, 17) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0))
+                    Gd(8, 17) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0));
 
-        ;
     JAC11(11, 20) = Gd(2, 20) * (Gd(2, 11) * stress(0, 0) + Gd(5, 11) * stress(2, 0) + Gd(8, 11) * stress(4, 0)) +
                     Gd(5, 20) * (Gd(2, 11) * stress(2, 0) + Gd(5, 11) * stress(1, 0) + Gd(8, 11) * stress(5, 0)) +
-                    Gd(8, 20) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0))
+                    Gd(8, 20) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0));
 
-        ;
     JAC11(11, 23) = Gd(2, 23) * (Gd(2, 11) * stress(0, 0) + Gd(5, 11) * stress(2, 0) + Gd(8, 11) * stress(4, 0)) +
                     Gd(5, 23) * (Gd(2, 11) * stress(2, 0) + Gd(5, 11) * stress(1, 0) + Gd(8, 11) * stress(5, 0)) +
-                    Gd(8, 23) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0))
+                    Gd(8, 23) * (Gd(2, 11) * stress(4, 0) + Gd(5, 11) * stress(5, 0) + Gd(8, 11) * stress(3, 0));
 
-        ;
     JAC11(12, 0) = Gd(0, 0) * (Gd(0, 12) * stress(0, 0) + Gd(3, 12) * stress(2, 0) + Gd(6, 12) * stress(4, 0)) +
                    Gd(3, 0) * (Gd(0, 12) * stress(2, 0) + Gd(3, 12) * stress(1, 0) + Gd(6, 12) * stress(5, 0)) +
-                   Gd(6, 0) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0))
+                   Gd(6, 0) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0));
 
-        ;
     JAC11(12, 3) = Gd(0, 3) * (Gd(0, 12) * stress(0, 0) + Gd(3, 12) * stress(2, 0) + Gd(6, 12) * stress(4, 0)) +
                    Gd(3, 3) * (Gd(0, 12) * stress(2, 0) + Gd(3, 12) * stress(1, 0) + Gd(6, 12) * stress(5, 0)) +
-                   Gd(6, 3) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0))
+                   Gd(6, 3) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0));
 
-        ;
     JAC11(12, 6) = Gd(0, 6) * (Gd(0, 12) * stress(0, 0) + Gd(3, 12) * stress(2, 0) + Gd(6, 12) * stress(4, 0)) +
                    Gd(3, 6) * (Gd(0, 12) * stress(2, 0) + Gd(3, 12) * stress(1, 0) + Gd(6, 12) * stress(5, 0)) +
-                   Gd(6, 6) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0))
+                   Gd(6, 6) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0));
 
-        ;
     JAC11(12, 9) = Gd(0, 9) * (Gd(0, 12) * stress(0, 0) + Gd(3, 12) * stress(2, 0) + Gd(6, 12) * stress(4, 0)) +
                    Gd(3, 9) * (Gd(0, 12) * stress(2, 0) + Gd(3, 12) * stress(1, 0) + Gd(6, 12) * stress(5, 0)) +
-                   Gd(6, 9) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0))
+                   Gd(6, 9) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0));
 
-        ;
     JAC11(12, 12) = Gd(0, 12) * Gd(0, 12) * stress(0, 0) + Gd(3, 12) * Gd(3, 12) * stress(1, 0) +
                     Gd(6, 12) * Gd(6, 12) * stress(3, 0) + 2 * Gd(0, 12) * Gd(3, 12) * stress(2, 0) +
-                    2 * Gd(0, 12) * Gd(6, 12) * stress(4, 0) + 2 * Gd(3, 12) * Gd(6, 12) * stress(5, 0)
+                    2 * Gd(0, 12) * Gd(6, 12) * stress(4, 0) + 2 * Gd(3, 12) * Gd(6, 12) * stress(5, 0);
 
-        ;
     JAC11(12, 15) = Gd(0, 15) * (Gd(0, 12) * stress(0, 0) + Gd(3, 12) * stress(2, 0) + Gd(6, 12) * stress(4, 0)) +
                     Gd(3, 15) * (Gd(0, 12) * stress(2, 0) + Gd(3, 12) * stress(1, 0) + Gd(6, 12) * stress(5, 0)) +
-                    Gd(6, 15) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0))
+                    Gd(6, 15) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0));
 
-        ;
     JAC11(12, 18) = Gd(0, 18) * (Gd(0, 12) * stress(0, 0) + Gd(3, 12) * stress(2, 0) + Gd(6, 12) * stress(4, 0)) +
                     Gd(3, 18) * (Gd(0, 12) * stress(2, 0) + Gd(3, 12) * stress(1, 0) + Gd(6, 12) * stress(5, 0)) +
-                    Gd(6, 18) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0))
+                    Gd(6, 18) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0));
 
-        ;
     JAC11(12, 21) = Gd(0, 21) * (Gd(0, 12) * stress(0, 0) + Gd(3, 12) * stress(2, 0) + Gd(6, 12) * stress(4, 0)) +
                     Gd(3, 21) * (Gd(0, 12) * stress(2, 0) + Gd(3, 12) * stress(1, 0) + Gd(6, 12) * stress(5, 0)) +
-                    Gd(6, 21) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0))
+                    Gd(6, 21) * (Gd(0, 12) * stress(4, 0) + Gd(3, 12) * stress(5, 0) + Gd(6, 12) * stress(3, 0));
 
-        ;
     JAC11(13, 1) = Gd(1, 1) * (Gd(1, 13) * stress(0, 0) + Gd(4, 13) * stress(2, 0) + Gd(7, 13) * stress(4, 0)) +
                    Gd(4, 1) * (Gd(1, 13) * stress(2, 0) + Gd(4, 13) * stress(1, 0) + Gd(7, 13) * stress(5, 0)) +
-                   Gd(7, 1) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0))
+                   Gd(7, 1) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0));
 
-        ;
     JAC11(13, 4) = Gd(1, 4) * (Gd(1, 13) * stress(0, 0) + Gd(4, 13) * stress(2, 0) + Gd(7, 13) * stress(4, 0)) +
                    Gd(4, 4) * (Gd(1, 13) * stress(2, 0) + Gd(4, 13) * stress(1, 0) + Gd(7, 13) * stress(5, 0)) +
-                   Gd(7, 4) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0))
+                   Gd(7, 4) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0));
 
-        ;
     JAC11(13, 7) = Gd(1, 7) * (Gd(1, 13) * stress(0, 0) + Gd(4, 13) * stress(2, 0) + Gd(7, 13) * stress(4, 0)) +
                    Gd(4, 7) * (Gd(1, 13) * stress(2, 0) + Gd(4, 13) * stress(1, 0) + Gd(7, 13) * stress(5, 0)) +
-                   Gd(7, 7) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0))
+                   Gd(7, 7) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0));
 
-        ;
     JAC11(13, 10) = Gd(1, 10) * (Gd(1, 13) * stress(0, 0) + Gd(4, 13) * stress(2, 0) + Gd(7, 13) * stress(4, 0)) +
                     Gd(4, 10) * (Gd(1, 13) * stress(2, 0) + Gd(4, 13) * stress(1, 0) + Gd(7, 13) * stress(5, 0)) +
-                    Gd(7, 10) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0))
+                    Gd(7, 10) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0));
 
-        ;
     JAC11(13, 13) = Gd(1, 13) * Gd(1, 13) * stress(0, 0) + Gd(4, 13) * Gd(4, 13) * stress(1, 0) +
                     Gd(7, 13) * Gd(7, 13) * stress(3, 0) + 2 * Gd(1, 13) * Gd(4, 13) * stress(2, 0) +
-                    2 * Gd(1, 13) * Gd(7, 13) * stress(4, 0) + 2 * Gd(4, 13) * Gd(7, 13) * stress(5, 0)
+                    2 * Gd(1, 13) * Gd(7, 13) * stress(4, 0) + 2 * Gd(4, 13) * Gd(7, 13) * stress(5, 0);
 
-        ;
     JAC11(13, 16) = Gd(1, 16) * (Gd(1, 13) * stress(0, 0) + Gd(4, 13) * stress(2, 0) + Gd(7, 13) * stress(4, 0)) +
                     Gd(4, 16) * (Gd(1, 13) * stress(2, 0) + Gd(4, 13) * stress(1, 0) + Gd(7, 13) * stress(5, 0)) +
-                    Gd(7, 16) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0))
+                    Gd(7, 16) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0));
 
-        ;
     JAC11(13, 19) = Gd(1, 19) * (Gd(1, 13) * stress(0, 0) + Gd(4, 13) * stress(2, 0) + Gd(7, 13) * stress(4, 0)) +
                     Gd(4, 19) * (Gd(1, 13) * stress(2, 0) + Gd(4, 13) * stress(1, 0) + Gd(7, 13) * stress(5, 0)) +
-                    Gd(7, 19) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0))
+                    Gd(7, 19) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0));
 
-        ;
     JAC11(13, 22) = Gd(1, 22) * (Gd(1, 13) * stress(0, 0) + Gd(4, 13) * stress(2, 0) + Gd(7, 13) * stress(4, 0)) +
                     Gd(4, 22) * (Gd(1, 13) * stress(2, 0) + Gd(4, 13) * stress(1, 0) + Gd(7, 13) * stress(5, 0)) +
-                    Gd(7, 22) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0))
+                    Gd(7, 22) * (Gd(1, 13) * stress(4, 0) + Gd(4, 13) * stress(5, 0) + Gd(7, 13) * stress(3, 0));
 
-        ;
     JAC11(14, 2) = Gd(2, 2) * (Gd(2, 14) * stress(0, 0) + Gd(5, 14) * stress(2, 0) + Gd(8, 14) * stress(4, 0)) +
                    Gd(5, 2) * (Gd(2, 14) * stress(2, 0) + Gd(5, 14) * stress(1, 0) + Gd(8, 14) * stress(5, 0)) +
-                   Gd(8, 2) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0))
+                   Gd(8, 2) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0));
 
-        ;
     JAC11(14, 5) = Gd(2, 5) * (Gd(2, 14) * stress(0, 0) + Gd(5, 14) * stress(2, 0) + Gd(8, 14) * stress(4, 0)) +
                    Gd(5, 5) * (Gd(2, 14) * stress(2, 0) + Gd(5, 14) * stress(1, 0) + Gd(8, 14) * stress(5, 0)) +
-                   Gd(8, 5) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0))
+                   Gd(8, 5) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0));
 
-        ;
     JAC11(14, 8) = Gd(2, 8) * (Gd(2, 14) * stress(0, 0) + Gd(5, 14) * stress(2, 0) + Gd(8, 14) * stress(4, 0)) +
                    Gd(5, 8) * (Gd(2, 14) * stress(2, 0) + Gd(5, 14) * stress(1, 0) + Gd(8, 14) * stress(5, 0)) +
-                   Gd(8, 8) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0))
+                   Gd(8, 8) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0));
 
-        ;
     JAC11(14, 11) = Gd(2, 11) * (Gd(2, 14) * stress(0, 0) + Gd(5, 14) * stress(2, 0) + Gd(8, 14) * stress(4, 0)) +
                     Gd(5, 11) * (Gd(2, 14) * stress(2, 0) + Gd(5, 14) * stress(1, 0) + Gd(8, 14) * stress(5, 0)) +
-                    Gd(8, 11) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0))
+                    Gd(8, 11) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0));
 
-        ;
     JAC11(14, 14) = Gd(2, 14) * Gd(2, 14) * stress(0, 0) + Gd(5, 14) * Gd(5, 14) * stress(1, 0) +
                     Gd(8, 14) * Gd(8, 14) * stress(3, 0) + 2 * Gd(2, 14) * Gd(5, 14) * stress(2, 0) +
-                    2 * Gd(2, 14) * Gd(8, 14) * stress(4, 0) + 2 * Gd(5, 14) * Gd(8, 14) * stress(5, 0)
+                    2 * Gd(2, 14) * Gd(8, 14) * stress(4, 0) + 2 * Gd(5, 14) * Gd(8, 14) * stress(5, 0);
 
-        ;
     JAC11(14, 17) = Gd(2, 17) * (Gd(2, 14) * stress(0, 0) + Gd(5, 14) * stress(2, 0) + Gd(8, 14) * stress(4, 0)) +
                     Gd(5, 17) * (Gd(2, 14) * stress(2, 0) + Gd(5, 14) * stress(1, 0) + Gd(8, 14) * stress(5, 0)) +
-                    Gd(8, 17) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0))
+                    Gd(8, 17) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0));
 
-        ;
     JAC11(14, 20) = Gd(2, 20) * (Gd(2, 14) * stress(0, 0) + Gd(5, 14) * stress(2, 0) + Gd(8, 14) * stress(4, 0)) +
                     Gd(5, 20) * (Gd(2, 14) * stress(2, 0) + Gd(5, 14) * stress(1, 0) + Gd(8, 14) * stress(5, 0)) +
-                    Gd(8, 20) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0))
+                    Gd(8, 20) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0));
 
-        ;
     JAC11(14, 23) = Gd(2, 23) * (Gd(2, 14) * stress(0, 0) + Gd(5, 14) * stress(2, 0) + Gd(8, 14) * stress(4, 0)) +
                     Gd(5, 23) * (Gd(2, 14) * stress(2, 0) + Gd(5, 14) * stress(1, 0) + Gd(8, 14) * stress(5, 0)) +
-                    Gd(8, 23) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0))
+                    Gd(8, 23) * (Gd(2, 14) * stress(4, 0) + Gd(5, 14) * stress(5, 0) + Gd(8, 14) * stress(3, 0));
 
-        ;
     JAC11(15, 0) = Gd(0, 0) * (Gd(0, 15) * stress(0, 0) + Gd(3, 15) * stress(2, 0) + Gd(6, 15) * stress(4, 0)) +
                    Gd(3, 0) * (Gd(0, 15) * stress(2, 0) + Gd(3, 15) * stress(1, 0) + Gd(6, 15) * stress(5, 0)) +
-                   Gd(6, 0) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0))
+                   Gd(6, 0) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0));
 
-        ;
     JAC11(15, 3) = Gd(0, 3) * (Gd(0, 15) * stress(0, 0) + Gd(3, 15) * stress(2, 0) + Gd(6, 15) * stress(4, 0)) +
                    Gd(3, 3) * (Gd(0, 15) * stress(2, 0) + Gd(3, 15) * stress(1, 0) + Gd(6, 15) * stress(5, 0)) +
-                   Gd(6, 3) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0))
+                   Gd(6, 3) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0));
 
-        ;
     JAC11(15, 6) = Gd(0, 6) * (Gd(0, 15) * stress(0, 0) + Gd(3, 15) * stress(2, 0) + Gd(6, 15) * stress(4, 0)) +
                    Gd(3, 6) * (Gd(0, 15) * stress(2, 0) + Gd(3, 15) * stress(1, 0) + Gd(6, 15) * stress(5, 0)) +
-                   Gd(6, 6) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0))
+                   Gd(6, 6) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0));
 
-        ;
     JAC11(15, 9) = Gd(0, 9) * (Gd(0, 15) * stress(0, 0) + Gd(3, 15) * stress(2, 0) + Gd(6, 15) * stress(4, 0)) +
                    Gd(3, 9) * (Gd(0, 15) * stress(2, 0) + Gd(3, 15) * stress(1, 0) + Gd(6, 15) * stress(5, 0)) +
-                   Gd(6, 9) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0))
+                   Gd(6, 9) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0));
 
-        ;
     JAC11(15, 12) = Gd(0, 12) * (Gd(0, 15) * stress(0, 0) + Gd(3, 15) * stress(2, 0) + Gd(6, 15) * stress(4, 0)) +
                     Gd(3, 12) * (Gd(0, 15) * stress(2, 0) + Gd(3, 15) * stress(1, 0) + Gd(6, 15) * stress(5, 0)) +
-                    Gd(6, 12) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0))
+                    Gd(6, 12) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0));
 
-        ;
     JAC11(15, 15) = Gd(0, 15) * Gd(0, 15) * stress(0, 0) + Gd(3, 15) * Gd(3, 15) * stress(1, 0) +
                     Gd(6, 15) * Gd(6, 15) * stress(3, 0) + 2 * Gd(0, 15) * Gd(3, 15) * stress(2, 0) +
-                    2 * Gd(0, 15) * Gd(6, 15) * stress(4, 0) + 2 * Gd(3, 15) * Gd(6, 15) * stress(5, 0)
+                    2 * Gd(0, 15) * Gd(6, 15) * stress(4, 0) + 2 * Gd(3, 15) * Gd(6, 15) * stress(5, 0);
 
-        ;
     JAC11(15, 18) = Gd(0, 18) * (Gd(0, 15) * stress(0, 0) + Gd(3, 15) * stress(2, 0) + Gd(6, 15) * stress(4, 0)) +
                     Gd(3, 18) * (Gd(0, 15) * stress(2, 0) + Gd(3, 15) * stress(1, 0) + Gd(6, 15) * stress(5, 0)) +
-                    Gd(6, 18) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0))
+                    Gd(6, 18) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0));
 
-        ;
     JAC11(15, 21) = Gd(0, 21) * (Gd(0, 15) * stress(0, 0) + Gd(3, 15) * stress(2, 0) + Gd(6, 15) * stress(4, 0)) +
                     Gd(3, 21) * (Gd(0, 15) * stress(2, 0) + Gd(3, 15) * stress(1, 0) + Gd(6, 15) * stress(5, 0)) +
-                    Gd(6, 21) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0))
+                    Gd(6, 21) * (Gd(0, 15) * stress(4, 0) + Gd(3, 15) * stress(5, 0) + Gd(6, 15) * stress(3, 0));
 
-        ;
     JAC11(16, 1) = Gd(1, 1) * (Gd(1, 16) * stress(0, 0) + Gd(4, 16) * stress(2, 0) + Gd(7, 16) * stress(4, 0)) +
                    Gd(4, 1) * (Gd(1, 16) * stress(2, 0) + Gd(4, 16) * stress(1, 0) + Gd(7, 16) * stress(5, 0)) +
-                   Gd(7, 1) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0))
+                   Gd(7, 1) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0));
 
-        ;
     JAC11(16, 4) = Gd(1, 4) * (Gd(1, 16) * stress(0, 0) + Gd(4, 16) * stress(2, 0) + Gd(7, 16) * stress(4, 0)) +
                    Gd(4, 4) * (Gd(1, 16) * stress(2, 0) + Gd(4, 16) * stress(1, 0) + Gd(7, 16) * stress(5, 0)) +
-                   Gd(7, 4) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0))
+                   Gd(7, 4) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0));
 
-        ;
     JAC11(16, 7) = Gd(1, 7) * (Gd(1, 16) * stress(0, 0) + Gd(4, 16) * stress(2, 0) + Gd(7, 16) * stress(4, 0)) +
                    Gd(4, 7) * (Gd(1, 16) * stress(2, 0) + Gd(4, 16) * stress(1, 0) + Gd(7, 16) * stress(5, 0)) +
-                   Gd(7, 7) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0))
+                   Gd(7, 7) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0));
 
-        ;
     JAC11(16, 10) = Gd(1, 10) * (Gd(1, 16) * stress(0, 0) + Gd(4, 16) * stress(2, 0) + Gd(7, 16) * stress(4, 0)) +
                     Gd(4, 10) * (Gd(1, 16) * stress(2, 0) + Gd(4, 16) * stress(1, 0) + Gd(7, 16) * stress(5, 0)) +
-                    Gd(7, 10) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0))
+                    Gd(7, 10) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0));
 
-        ;
     JAC11(16, 13) = Gd(1, 13) * (Gd(1, 16) * stress(0, 0) + Gd(4, 16) * stress(2, 0) + Gd(7, 16) * stress(4, 0)) +
                     Gd(4, 13) * (Gd(1, 16) * stress(2, 0) + Gd(4, 16) * stress(1, 0) + Gd(7, 16) * stress(5, 0)) +
-                    Gd(7, 13) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0))
+                    Gd(7, 13) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0));
 
-        ;
     JAC11(16, 16) = Gd(1, 16) * Gd(1, 16) * stress(0, 0) + Gd(4, 16) * Gd(4, 16) * stress(1, 0) +
                     Gd(7, 16) * Gd(7, 16) * stress(3, 0) + 2 * Gd(1, 16) * Gd(4, 16) * stress(2, 0) +
-                    2 * Gd(1, 16) * Gd(7, 16) * stress(4, 0) + 2 * Gd(4, 16) * Gd(7, 16) * stress(5, 0)
+                    2 * Gd(1, 16) * Gd(7, 16) * stress(4, 0) + 2 * Gd(4, 16) * Gd(7, 16) * stress(5, 0);
 
-        ;
     JAC11(16, 19) = Gd(1, 19) * (Gd(1, 16) * stress(0, 0) + Gd(4, 16) * stress(2, 0) + Gd(7, 16) * stress(4, 0)) +
                     Gd(4, 19) * (Gd(1, 16) * stress(2, 0) + Gd(4, 16) * stress(1, 0) + Gd(7, 16) * stress(5, 0)) +
-                    Gd(7, 19) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0))
+                    Gd(7, 19) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0));
 
-        ;
     JAC11(16, 22) = Gd(1, 22) * (Gd(1, 16) * stress(0, 0) + Gd(4, 16) * stress(2, 0) + Gd(7, 16) * stress(4, 0)) +
                     Gd(4, 22) * (Gd(1, 16) * stress(2, 0) + Gd(4, 16) * stress(1, 0) + Gd(7, 16) * stress(5, 0)) +
-                    Gd(7, 22) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0))
+                    Gd(7, 22) * (Gd(1, 16) * stress(4, 0) + Gd(4, 16) * stress(5, 0) + Gd(7, 16) * stress(3, 0));
 
-        ;
     JAC11(17, 2) = Gd(2, 2) * (Gd(2, 17) * stress(0, 0) + Gd(5, 17) * stress(2, 0) + Gd(8, 17) * stress(4, 0)) +
                    Gd(5, 2) * (Gd(2, 17) * stress(2, 0) + Gd(5, 17) * stress(1, 0) + Gd(8, 17) * stress(5, 0)) +
-                   Gd(8, 2) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0))
+                   Gd(8, 2) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0));
 
-        ;
     JAC11(17, 5) = Gd(2, 5) * (Gd(2, 17) * stress(0, 0) + Gd(5, 17) * stress(2, 0) + Gd(8, 17) * stress(4, 0)) +
                    Gd(5, 5) * (Gd(2, 17) * stress(2, 0) + Gd(5, 17) * stress(1, 0) + Gd(8, 17) * stress(5, 0)) +
-                   Gd(8, 5) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0))
+                   Gd(8, 5) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0));
 
-        ;
     JAC11(17, 8) = Gd(2, 8) * (Gd(2, 17) * stress(0, 0) + Gd(5, 17) * stress(2, 0) + Gd(8, 17) * stress(4, 0)) +
                    Gd(5, 8) * (Gd(2, 17) * stress(2, 0) + Gd(5, 17) * stress(1, 0) + Gd(8, 17) * stress(5, 0)) +
-                   Gd(8, 8) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0))
+                   Gd(8, 8) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0));
 
-        ;
     JAC11(17, 11) = Gd(2, 11) * (Gd(2, 17) * stress(0, 0) + Gd(5, 17) * stress(2, 0) + Gd(8, 17) * stress(4, 0)) +
                     Gd(5, 11) * (Gd(2, 17) * stress(2, 0) + Gd(5, 17) * stress(1, 0) + Gd(8, 17) * stress(5, 0)) +
-                    Gd(8, 11) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0))
+                    Gd(8, 11) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0));
 
-        ;
     JAC11(17, 14) = Gd(2, 14) * (Gd(2, 17) * stress(0, 0) + Gd(5, 17) * stress(2, 0) + Gd(8, 17) * stress(4, 0)) +
                     Gd(5, 14) * (Gd(2, 17) * stress(2, 0) + Gd(5, 17) * stress(1, 0) + Gd(8, 17) * stress(5, 0)) +
-                    Gd(8, 14) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0))
+                    Gd(8, 14) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0));
 
-        ;
     JAC11(17, 17) = Gd(2, 17) * Gd(2, 17) * stress(0, 0) + Gd(5, 17) * Gd(5, 17) * stress(1, 0) +
                     Gd(8, 17) * Gd(8, 17) * stress(3, 0) + 2 * Gd(2, 17) * Gd(5, 17) * stress(2, 0) +
-                    2 * Gd(2, 17) * Gd(8, 17) * stress(4, 0) + 2 * Gd(5, 17) * Gd(8, 17) * stress(5, 0)
+                    2 * Gd(2, 17) * Gd(8, 17) * stress(4, 0) + 2 * Gd(5, 17) * Gd(8, 17) * stress(5, 0);
 
-        ;
     JAC11(17, 20) = Gd(2, 20) * (Gd(2, 17) * stress(0, 0) + Gd(5, 17) * stress(2, 0) + Gd(8, 17) * stress(4, 0)) +
                     Gd(5, 20) * (Gd(2, 17) * stress(2, 0) + Gd(5, 17) * stress(1, 0) + Gd(8, 17) * stress(5, 0)) +
-                    Gd(8, 20) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0))
+                    Gd(8, 20) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0));
 
-        ;
     JAC11(17, 23) = Gd(2, 23) * (Gd(2, 17) * stress(0, 0) + Gd(5, 17) * stress(2, 0) + Gd(8, 17) * stress(4, 0)) +
                     Gd(5, 23) * (Gd(2, 17) * stress(2, 0) + Gd(5, 17) * stress(1, 0) + Gd(8, 17) * stress(5, 0)) +
-                    Gd(8, 23) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0))
+                    Gd(8, 23) * (Gd(2, 17) * stress(4, 0) + Gd(5, 17) * stress(5, 0) + Gd(8, 17) * stress(3, 0));
 
-        ;
     JAC11(18, 0) = Gd(0, 0) * (Gd(0, 18) * stress(0, 0) + Gd(3, 18) * stress(2, 0) + Gd(6, 18) * stress(4, 0)) +
                    Gd(3, 0) * (Gd(0, 18) * stress(2, 0) + Gd(3, 18) * stress(1, 0) + Gd(6, 18) * stress(5, 0)) +
-                   Gd(6, 0) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0))
+                   Gd(6, 0) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0));
 
-        ;
     JAC11(18, 3) = Gd(0, 3) * (Gd(0, 18) * stress(0, 0) + Gd(3, 18) * stress(2, 0) + Gd(6, 18) * stress(4, 0)) +
                    Gd(3, 3) * (Gd(0, 18) * stress(2, 0) + Gd(3, 18) * stress(1, 0) + Gd(6, 18) * stress(5, 0)) +
-                   Gd(6, 3) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0))
+                   Gd(6, 3) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0));
 
-        ;
     JAC11(18, 6) = Gd(0, 6) * (Gd(0, 18) * stress(0, 0) + Gd(3, 18) * stress(2, 0) + Gd(6, 18) * stress(4, 0)) +
                    Gd(3, 6) * (Gd(0, 18) * stress(2, 0) + Gd(3, 18) * stress(1, 0) + Gd(6, 18) * stress(5, 0)) +
-                   Gd(6, 6) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0))
+                   Gd(6, 6) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0));
 
-        ;
     JAC11(18, 9) = Gd(0, 9) * (Gd(0, 18) * stress(0, 0) + Gd(3, 18) * stress(2, 0) + Gd(6, 18) * stress(4, 0)) +
                    Gd(3, 9) * (Gd(0, 18) * stress(2, 0) + Gd(3, 18) * stress(1, 0) + Gd(6, 18) * stress(5, 0)) +
-                   Gd(6, 9) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0))
+                   Gd(6, 9) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0));
 
-        ;
     JAC11(18, 12) = Gd(0, 12) * (Gd(0, 18) * stress(0, 0) + Gd(3, 18) * stress(2, 0) + Gd(6, 18) * stress(4, 0)) +
                     Gd(3, 12) * (Gd(0, 18) * stress(2, 0) + Gd(3, 18) * stress(1, 0) + Gd(6, 18) * stress(5, 0)) +
-                    Gd(6, 12) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0))
+                    Gd(6, 12) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0));
 
-        ;
     JAC11(18, 15) = Gd(0, 15) * (Gd(0, 18) * stress(0, 0) + Gd(3, 18) * stress(2, 0) + Gd(6, 18) * stress(4, 0)) +
                     Gd(3, 15) * (Gd(0, 18) * stress(2, 0) + Gd(3, 18) * stress(1, 0) + Gd(6, 18) * stress(5, 0)) +
-                    Gd(6, 15) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0))
+                    Gd(6, 15) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0));
 
-        ;
     JAC11(18, 18) = Gd(0, 18) * Gd(0, 18) * stress(0, 0) + Gd(3, 18) * Gd(3, 18) * stress(1, 0) +
                     Gd(6, 18) * Gd(6, 18) * stress(3, 0) + 2 * Gd(0, 18) * Gd(3, 18) * stress(2, 0) +
-                    2 * Gd(0, 18) * Gd(6, 18) * stress(4, 0) + 2 * Gd(3, 18) * Gd(6, 18) * stress(5, 0)
+                    2 * Gd(0, 18) * Gd(6, 18) * stress(4, 0) + 2 * Gd(3, 18) * Gd(6, 18) * stress(5, 0);
 
-        ;
     JAC11(18, 21) = Gd(0, 21) * (Gd(0, 18) * stress(0, 0) + Gd(3, 18) * stress(2, 0) + Gd(6, 18) * stress(4, 0)) +
                     Gd(3, 21) * (Gd(0, 18) * stress(2, 0) + Gd(3, 18) * stress(1, 0) + Gd(6, 18) * stress(5, 0)) +
-                    Gd(6, 21) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0))
+                    Gd(6, 21) * (Gd(0, 18) * stress(4, 0) + Gd(3, 18) * stress(5, 0) + Gd(6, 18) * stress(3, 0));
 
-        ;
     JAC11(19, 1) = Gd(1, 1) * (Gd(1, 19) * stress(0, 0) + Gd(4, 19) * stress(2, 0) + Gd(7, 19) * stress(4, 0)) +
                    Gd(4, 1) * (Gd(1, 19) * stress(2, 0) + Gd(4, 19) * stress(1, 0) + Gd(7, 19) * stress(5, 0)) +
-                   Gd(7, 1) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0))
+                   Gd(7, 1) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0));
 
-        ;
     JAC11(19, 4) = Gd(1, 4) * (Gd(1, 19) * stress(0, 0) + Gd(4, 19) * stress(2, 0) + Gd(7, 19) * stress(4, 0)) +
                    Gd(4, 4) * (Gd(1, 19) * stress(2, 0) + Gd(4, 19) * stress(1, 0) + Gd(7, 19) * stress(5, 0)) +
-                   Gd(7, 4) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0))
+                   Gd(7, 4) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0));
 
-        ;
     JAC11(19, 7) = Gd(1, 7) * (Gd(1, 19) * stress(0, 0) + Gd(4, 19) * stress(2, 0) + Gd(7, 19) * stress(4, 0)) +
                    Gd(4, 7) * (Gd(1, 19) * stress(2, 0) + Gd(4, 19) * stress(1, 0) + Gd(7, 19) * stress(5, 0)) +
-                   Gd(7, 7) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0))
+                   Gd(7, 7) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0));
 
-        ;
     JAC11(19, 10) = Gd(1, 10) * (Gd(1, 19) * stress(0, 0) + Gd(4, 19) * stress(2, 0) + Gd(7, 19) * stress(4, 0)) +
                     Gd(4, 10) * (Gd(1, 19) * stress(2, 0) + Gd(4, 19) * stress(1, 0) + Gd(7, 19) * stress(5, 0)) +
-                    Gd(7, 10) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0))
+                    Gd(7, 10) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0));
 
-        ;
     JAC11(19, 13) = Gd(1, 13) * (Gd(1, 19) * stress(0, 0) + Gd(4, 19) * stress(2, 0) + Gd(7, 19) * stress(4, 0)) +
                     Gd(4, 13) * (Gd(1, 19) * stress(2, 0) + Gd(4, 19) * stress(1, 0) + Gd(7, 19) * stress(5, 0)) +
-                    Gd(7, 13) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0))
+                    Gd(7, 13) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0));
 
-        ;
     JAC11(19, 16) = Gd(1, 16) * (Gd(1, 19) * stress(0, 0) + Gd(4, 19) * stress(2, 0) + Gd(7, 19) * stress(4, 0)) +
                     Gd(4, 16) * (Gd(1, 19) * stress(2, 0) + Gd(4, 19) * stress(1, 0) + Gd(7, 19) * stress(5, 0)) +
-                    Gd(7, 16) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0))
+                    Gd(7, 16) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0));
 
-        ;
     JAC11(19, 19) = Gd(1, 19) * Gd(1, 19) * stress(0, 0) + Gd(4, 19) * Gd(4, 19) * stress(1, 0) +
                     Gd(7, 19) * Gd(7, 19) * stress(3, 0) + 2 * Gd(1, 19) * Gd(4, 19) * stress(2, 0) +
-                    2 * Gd(1, 19) * Gd(7, 19) * stress(4, 0) + 2 * Gd(4, 19) * Gd(7, 19) * stress(5, 0)
+                    2 * Gd(1, 19) * Gd(7, 19) * stress(4, 0) + 2 * Gd(4, 19) * Gd(7, 19) * stress(5, 0);
 
-        ;
     JAC11(19, 22) = Gd(1, 22) * (Gd(1, 19) * stress(0, 0) + Gd(4, 19) * stress(2, 0) + Gd(7, 19) * stress(4, 0)) +
                     Gd(4, 22) * (Gd(1, 19) * stress(2, 0) + Gd(4, 19) * stress(1, 0) + Gd(7, 19) * stress(5, 0)) +
-                    Gd(7, 22) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0))
+                    Gd(7, 22) * (Gd(1, 19) * stress(4, 0) + Gd(4, 19) * stress(5, 0) + Gd(7, 19) * stress(3, 0));
 
-        ;
     JAC11(20, 2) = Gd(2, 2) * (Gd(2, 20) * stress(0, 0) + Gd(5, 20) * stress(2, 0) + Gd(8, 20) * stress(4, 0)) +
                    Gd(5, 2) * (Gd(2, 20) * stress(2, 0) + Gd(5, 20) * stress(1, 0) + Gd(8, 20) * stress(5, 0)) +
-                   Gd(8, 2) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0))
+                   Gd(8, 2) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0));
 
-        ;
     JAC11(20, 5) = Gd(2, 5) * (Gd(2, 20) * stress(0, 0) + Gd(5, 20) * stress(2, 0) + Gd(8, 20) * stress(4, 0)) +
                    Gd(5, 5) * (Gd(2, 20) * stress(2, 0) + Gd(5, 20) * stress(1, 0) + Gd(8, 20) * stress(5, 0)) +
-                   Gd(8, 5) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0))
+                   Gd(8, 5) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0));
 
-        ;
     JAC11(20, 8) = Gd(2, 8) * (Gd(2, 20) * stress(0, 0) + Gd(5, 20) * stress(2, 0) + Gd(8, 20) * stress(4, 0)) +
                    Gd(5, 8) * (Gd(2, 20) * stress(2, 0) + Gd(5, 20) * stress(1, 0) + Gd(8, 20) * stress(5, 0)) +
-                   Gd(8, 8) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0))
+                   Gd(8, 8) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0));
 
-        ;
     JAC11(20, 11) = Gd(2, 11) * (Gd(2, 20) * stress(0, 0) + Gd(5, 20) * stress(2, 0) + Gd(8, 20) * stress(4, 0)) +
                     Gd(5, 11) * (Gd(2, 20) * stress(2, 0) + Gd(5, 20) * stress(1, 0) + Gd(8, 20) * stress(5, 0)) +
-                    Gd(8, 11) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0))
+                    Gd(8, 11) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0));
 
-        ;
     JAC11(20, 14) = Gd(2, 14) * (Gd(2, 20) * stress(0, 0) + Gd(5, 20) * stress(2, 0) + Gd(8, 20) * stress(4, 0)) +
                     Gd(5, 14) * (Gd(2, 20) * stress(2, 0) + Gd(5, 20) * stress(1, 0) + Gd(8, 20) * stress(5, 0)) +
-                    Gd(8, 14) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0))
+                    Gd(8, 14) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0));
 
-        ;
     JAC11(20, 17) = Gd(2, 17) * (Gd(2, 20) * stress(0, 0) + Gd(5, 20) * stress(2, 0) + Gd(8, 20) * stress(4, 0)) +
                     Gd(5, 17) * (Gd(2, 20) * stress(2, 0) + Gd(5, 20) * stress(1, 0) + Gd(8, 20) * stress(5, 0)) +
-                    Gd(8, 17) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0))
+                    Gd(8, 17) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0));
 
-        ;
     JAC11(20, 20) = Gd(2, 20) * Gd(2, 20) * stress(0, 0) + Gd(5, 20) * Gd(5, 20) * stress(1, 0) +
                     Gd(8, 20) * Gd(8, 20) * stress(3, 0) + 2 * Gd(2, 20) * Gd(5, 20) * stress(2, 0) +
-                    2 * Gd(2, 20) * Gd(8, 20) * stress(4, 0) + 2 * Gd(5, 20) * Gd(8, 20) * stress(5, 0)
+                    2 * Gd(2, 20) * Gd(8, 20) * stress(4, 0) + 2 * Gd(5, 20) * Gd(8, 20) * stress(5, 0);
 
-        ;
     JAC11(20, 23) = Gd(2, 23) * (Gd(2, 20) * stress(0, 0) + Gd(5, 20) * stress(2, 0) + Gd(8, 20) * stress(4, 0)) +
                     Gd(5, 23) * (Gd(2, 20) * stress(2, 0) + Gd(5, 20) * stress(1, 0) + Gd(8, 20) * stress(5, 0)) +
-                    Gd(8, 23) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0))
+                    Gd(8, 23) * (Gd(2, 20) * stress(4, 0) + Gd(5, 20) * stress(5, 0) + Gd(8, 20) * stress(3, 0));
 
-        ;
     JAC11(21, 0) = Gd(0, 0) * (Gd(0, 21) * stress(0, 0) + Gd(3, 21) * stress(2, 0) + Gd(6, 21) * stress(4, 0)) +
                    Gd(3, 0) * (Gd(0, 21) * stress(2, 0) + Gd(3, 21) * stress(1, 0) + Gd(6, 21) * stress(5, 0)) +
-                   Gd(6, 0) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0))
+                   Gd(6, 0) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0));
 
-        ;
     JAC11(21, 3) = Gd(0, 3) * (Gd(0, 21) * stress(0, 0) + Gd(3, 21) * stress(2, 0) + Gd(6, 21) * stress(4, 0)) +
                    Gd(3, 3) * (Gd(0, 21) * stress(2, 0) + Gd(3, 21) * stress(1, 0) + Gd(6, 21) * stress(5, 0)) +
-                   Gd(6, 3) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0))
+                   Gd(6, 3) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0));
 
-        ;
     JAC11(21, 6) = Gd(0, 6) * (Gd(0, 21) * stress(0, 0) + Gd(3, 21) * stress(2, 0) + Gd(6, 21) * stress(4, 0)) +
                    Gd(3, 6) * (Gd(0, 21) * stress(2, 0) + Gd(3, 21) * stress(1, 0) + Gd(6, 21) * stress(5, 0)) +
-                   Gd(6, 6) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0))
+                   Gd(6, 6) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0));
 
-        ;
     JAC11(21, 9) = Gd(0, 9) * (Gd(0, 21) * stress(0, 0) + Gd(3, 21) * stress(2, 0) + Gd(6, 21) * stress(4, 0)) +
                    Gd(3, 9) * (Gd(0, 21) * stress(2, 0) + Gd(3, 21) * stress(1, 0) + Gd(6, 21) * stress(5, 0)) +
-                   Gd(6, 9) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0))
+                   Gd(6, 9) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0));
 
-        ;
     JAC11(21, 12) = Gd(0, 12) * (Gd(0, 21) * stress(0, 0) + Gd(3, 21) * stress(2, 0) + Gd(6, 21) * stress(4, 0)) +
                     Gd(3, 12) * (Gd(0, 21) * stress(2, 0) + Gd(3, 21) * stress(1, 0) + Gd(6, 21) * stress(5, 0)) +
-                    Gd(6, 12) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0))
+                    Gd(6, 12) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0));
 
-        ;
     JAC11(21, 15) = Gd(0, 15) * (Gd(0, 21) * stress(0, 0) + Gd(3, 21) * stress(2, 0) + Gd(6, 21) * stress(4, 0)) +
                     Gd(3, 15) * (Gd(0, 21) * stress(2, 0) + Gd(3, 21) * stress(1, 0) + Gd(6, 21) * stress(5, 0)) +
-                    Gd(6, 15) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0))
+                    Gd(6, 15) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0));
 
-        ;
     JAC11(21, 18) = Gd(0, 18) * (Gd(0, 21) * stress(0, 0) + Gd(3, 21) * stress(2, 0) + Gd(6, 21) * stress(4, 0)) +
                     Gd(3, 18) * (Gd(0, 21) * stress(2, 0) + Gd(3, 21) * stress(1, 0) + Gd(6, 21) * stress(5, 0)) +
-                    Gd(6, 18) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0))
+                    Gd(6, 18) * (Gd(0, 21) * stress(4, 0) + Gd(3, 21) * stress(5, 0) + Gd(6, 21) * stress(3, 0));
 
-        ;
     JAC11(21, 21) = Gd(0, 21) * Gd(0, 21) * stress(0, 0) + Gd(3, 21) * Gd(3, 21) * stress(1, 0) +
                     Gd(6, 21) * Gd(6, 21) * stress(3, 0) + 2 * Gd(0, 21) * Gd(3, 21) * stress(2, 0) +
-                    2 * Gd(0, 21) * Gd(6, 21) * stress(4, 0) + 2 * Gd(3, 21) * Gd(6, 21) * stress(5, 0)
+                    2 * Gd(0, 21) * Gd(6, 21) * stress(4, 0) + 2 * Gd(3, 21) * Gd(6, 21) * stress(5, 0);
 
-        ;
     JAC11(22, 1) = Gd(1, 1) * (Gd(1, 22) * stress(0, 0) + Gd(4, 22) * stress(2, 0) + Gd(7, 22) * stress(4, 0)) +
                    Gd(4, 1) * (Gd(1, 22) * stress(2, 0) + Gd(4, 22) * stress(1, 0) + Gd(7, 22) * stress(5, 0)) +
-                   Gd(7, 1) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0))
+                   Gd(7, 1) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0));
 
-        ;
     JAC11(22, 4) = Gd(1, 4) * (Gd(1, 22) * stress(0, 0) + Gd(4, 22) * stress(2, 0) + Gd(7, 22) * stress(4, 0)) +
                    Gd(4, 4) * (Gd(1, 22) * stress(2, 0) + Gd(4, 22) * stress(1, 0) + Gd(7, 22) * stress(5, 0)) +
-                   Gd(7, 4) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0))
+                   Gd(7, 4) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0));
 
-        ;
     JAC11(22, 7) = Gd(1, 7) * (Gd(1, 22) * stress(0, 0) + Gd(4, 22) * stress(2, 0) + Gd(7, 22) * stress(4, 0)) +
                    Gd(4, 7) * (Gd(1, 22) * stress(2, 0) + Gd(4, 22) * stress(1, 0) + Gd(7, 22) * stress(5, 0)) +
-                   Gd(7, 7) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0))
+                   Gd(7, 7) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0));
 
-        ;
     JAC11(22, 10) = Gd(1, 10) * (Gd(1, 22) * stress(0, 0) + Gd(4, 22) * stress(2, 0) + Gd(7, 22) * stress(4, 0)) +
                     Gd(4, 10) * (Gd(1, 22) * stress(2, 0) + Gd(4, 22) * stress(1, 0) + Gd(7, 22) * stress(5, 0)) +
-                    Gd(7, 10) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0))
+                    Gd(7, 10) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0));
 
-        ;
     JAC11(22, 13) = Gd(1, 13) * (Gd(1, 22) * stress(0, 0) + Gd(4, 22) * stress(2, 0) + Gd(7, 22) * stress(4, 0)) +
                     Gd(4, 13) * (Gd(1, 22) * stress(2, 0) + Gd(4, 22) * stress(1, 0) + Gd(7, 22) * stress(5, 0)) +
-                    Gd(7, 13) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0))
+                    Gd(7, 13) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0));
 
-        ;
     JAC11(22, 16) = Gd(1, 16) * (Gd(1, 22) * stress(0, 0) + Gd(4, 22) * stress(2, 0) + Gd(7, 22) * stress(4, 0)) +
                     Gd(4, 16) * (Gd(1, 22) * stress(2, 0) + Gd(4, 22) * stress(1, 0) + Gd(7, 22) * stress(5, 0)) +
-                    Gd(7, 16) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0))
+                    Gd(7, 16) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0));
 
-        ;
     JAC11(22, 19) = Gd(1, 19) * (Gd(1, 22) * stress(0, 0) + Gd(4, 22) * stress(2, 0) + Gd(7, 22) * stress(4, 0)) +
                     Gd(4, 19) * (Gd(1, 22) * stress(2, 0) + Gd(4, 22) * stress(1, 0) + Gd(7, 22) * stress(5, 0)) +
-                    Gd(7, 19) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0))
+                    Gd(7, 19) * (Gd(1, 22) * stress(4, 0) + Gd(4, 22) * stress(5, 0) + Gd(7, 22) * stress(3, 0));
 
-        ;
     JAC11(22, 22) = Gd(1, 22) * Gd(1, 22) * stress(0, 0) + Gd(4, 22) * Gd(4, 22) * stress(1, 0) +
                     Gd(7, 22) * Gd(7, 22) * stress(3, 0) + 2 * Gd(1, 22) * Gd(4, 22) * stress(2, 0) +
-                    2 * Gd(1, 22) * Gd(7, 22) * stress(4, 0) + 2 * Gd(4, 22) * Gd(7, 22) * stress(5, 0)
+                    2 * Gd(1, 22) * Gd(7, 22) * stress(4, 0) + 2 * Gd(4, 22) * Gd(7, 22) * stress(5, 0);
 
-        ;
     JAC11(23, 2) = Gd(2, 2) * (Gd(2, 23) * stress(0, 0) + Gd(5, 23) * stress(2, 0) + Gd(8, 23) * stress(4, 0)) +
                    Gd(5, 2) * (Gd(2, 23) * stress(2, 0) + Gd(5, 23) * stress(1, 0) + Gd(8, 23) * stress(5, 0)) +
-                   Gd(8, 2) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0))
+                   Gd(8, 2) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0));
 
-        ;
     JAC11(23, 5) = Gd(2, 5) * (Gd(2, 23) * stress(0, 0) + Gd(5, 23) * stress(2, 0) + Gd(8, 23) * stress(4, 0)) +
                    Gd(5, 5) * (Gd(2, 23) * stress(2, 0) + Gd(5, 23) * stress(1, 0) + Gd(8, 23) * stress(5, 0)) +
-                   Gd(8, 5) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0))
+                   Gd(8, 5) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0));
 
-        ;
     JAC11(23, 8) = Gd(2, 8) * (Gd(2, 23) * stress(0, 0) + Gd(5, 23) * stress(2, 0) + Gd(8, 23) * stress(4, 0)) +
                    Gd(5, 8) * (Gd(2, 23) * stress(2, 0) + Gd(5, 23) * stress(1, 0) + Gd(8, 23) * stress(5, 0)) +
-                   Gd(8, 8) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0))
+                   Gd(8, 8) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0));
 
-        ;
     JAC11(23, 11) = Gd(2, 11) * (Gd(2, 23) * stress(0, 0) + Gd(5, 23) * stress(2, 0) + Gd(8, 23) * stress(4, 0)) +
                     Gd(5, 11) * (Gd(2, 23) * stress(2, 0) + Gd(5, 23) * stress(1, 0) + Gd(8, 23) * stress(5, 0)) +
-                    Gd(8, 11) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0))
+                    Gd(8, 11) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0));
 
-        ;
     JAC11(23, 14) = Gd(2, 14) * (Gd(2, 23) * stress(0, 0) + Gd(5, 23) * stress(2, 0) + Gd(8, 23) * stress(4, 0)) +
                     Gd(5, 14) * (Gd(2, 23) * stress(2, 0) + Gd(5, 23) * stress(1, 0) + Gd(8, 23) * stress(5, 0)) +
-                    Gd(8, 14) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0))
+                    Gd(8, 14) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0));
 
-        ;
     JAC11(23, 17) = Gd(2, 17) * (Gd(2, 23) * stress(0, 0) + Gd(5, 23) * stress(2, 0) + Gd(8, 23) * stress(4, 0)) +
                     Gd(5, 17) * (Gd(2, 23) * stress(2, 0) + Gd(5, 23) * stress(1, 0) + Gd(8, 23) * stress(5, 0)) +
-                    Gd(8, 17) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0))
+                    Gd(8, 17) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0));
 
-        ;
     JAC11(23, 20) = Gd(2, 20) * (Gd(2, 23) * stress(0, 0) + Gd(5, 23) * stress(2, 0) + Gd(8, 23) * stress(4, 0)) +
                     Gd(5, 20) * (Gd(2, 23) * stress(2, 0) + Gd(5, 23) * stress(1, 0) + Gd(8, 23) * stress(5, 0)) +
-                    Gd(8, 20) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0))
+                    Gd(8, 20) * (Gd(2, 23) * stress(4, 0) + Gd(5, 23) * stress(5, 0) + Gd(8, 23) * stress(3, 0));
 
-        ;
     JAC11(23, 23) = Gd(2, 23) * Gd(2, 23) * stress(0, 0) + Gd(5, 23) * Gd(5, 23) * stress(1, 0) +
                     Gd(8, 23) * Gd(8, 23) * stress(3, 0) + 2 * Gd(2, 23) * Gd(5, 23) * stress(2, 0) +
-                    2 * Gd(2, 23) * Gd(8, 23) * stress(4, 0) + 2 * Gd(5, 23) * Gd(8, 23) * stress(5, 0)
-
-        ;
+                    2 * Gd(2, 23) * Gd(8, 23) * stress(4, 0) + 2 * Gd(5, 23) * Gd(8, 23) * stress(5, 0);
 };
-
 
 // ============================================================================
 
@@ -2611,12 +2413,12 @@ void ChElementShellANCF::Layer::SetupInitial() {
 
     // Determinant of position vector gradient matrix: Initial configuration
     m_detJ0C = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
-        Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
-        Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
+               Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
+               Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
 
     //// Transformation : Orthogonal transformation (A and J) ////
     ChVector<double> G1xG2;  // Cross product of first and second column of
-    double G1dotG1;  // Dot product of first column of position vector gradient
+    double G1dotG1;          // Dot product of first column of position vector gradient
 
     G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
     G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
@@ -2736,12 +2538,11 @@ double ChElementShellANCF::Layer::Calc_detJ0(double x, double y, double z) {
     ChMatrixNM<double, 1, 3> Nz_d0 = Nz * m_element->m_d0;
 
     double detJ0 = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
-        Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
-        Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
+                   Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
+                   Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
 
     return detJ0;
 }
-
 
 }  // end of namespace fea
 }  // end of namespace chrono
