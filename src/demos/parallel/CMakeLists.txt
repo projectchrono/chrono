@@ -30,6 +30,7 @@ SET(DEMOS
     ballsDVI
     mixerDEM
     mixerDVI
+    fluidDVI
 )
 
 # Programs that require OpenGL support
