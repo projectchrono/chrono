@@ -26,37 +26,14 @@
 
 namespace chrono {
 
-class real3s {
-  public:
-    inline real3s() : x(0), y(0), z(0) {}
-    inline real3s(real a) : x(a), y(a), z(a) {}
-    inline real3s(real _x, real _y, real _z) : x(_x), y(_y), z(_z) {}
-
-    union {
-        struct {
-            real x, y, z, w;
-        };
-    };
-};
-
 class real3 {
   public:
-#if defined(USE_AVX)
     inline real3() : x(0), y(0), z(0), w(0) {}
     inline real3(real a) : x(a), y(a), z(a), w(0) {}
     inline real3(real a, real b, real c) : x(a), y(b), z(c), w(0) {}
     inline real3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
-    inline real3(__m256d m) { _mm256_storeu_pd(&x, m); }
-    inline operator __m256d() const { return _mm256_loadu_pd(&x); }
-
     inline real operator[](unsigned int i) const { return array[i]; }
     inline real& operator[](unsigned int i) { return array[i]; }
-
-    inline real3& operator=(const __m256d& rhs) {
-        _mm256_storeu_pd(&x, rhs);
-        return *this;  // Return a reference to myself.
-    }
-
     inline real3& operator=(const real3& rhs) {
         x = rhs.x;
         y = rhs.y;
@@ -64,44 +41,27 @@ class real3 {
         return *this;  // Return a reference to myself.
     }
 
-//    inline real get(const unsigned int i) const {
-//        real temp[4];
-//        _mm256_storeu_pd(temp, mmvalue);
-//        return temp[i];
-//    }
-
+#if defined(USE_AVX)
+    inline real3(__m256d m) { _mm256_storeu_pd(&x, m); }
+    inline operator __m256d() const { return _mm256_loadu_pd(&x); }
+    inline real3& operator=(const __m256d& rhs) {
+        _mm256_storeu_pd(&x, rhs);
+        return *this;
+    }
 #elif defined(USE_SSE)
-    inline real3() : mmvalue(_mm_setzero_ps()) {}
-    inline explicit real3(real a) : mmvalue(_mm_setr_ps(a, a, a, 0)) {}
-    inline real3(real a, real b, real c) : mmvalue(_mm_setr_ps(a, b, c, 0)) {}
-    inline real3(__m128 m) : mmvalue(m) {}
-    inline operator __m128() const { return mmvalue; }
-
-#else
-    inline real3() : x(0), y(0), z(0) {}
-    inline explicit real3(real a) : x(a), y(a), z(a) {}
-    inline real3(real _x, real _y, real _z) : x(_x), y(_y), z(_z) {}
+    inline real3(__m128 m) { _mm_storeu_ps(&x, m); }
+    inline operator __m128() const { return _mm_loadu_ps(&x); }
+    inline real3& operator=(const __m128& rhs) {
+        _mm_storeu_ps(&x, rhs);
+        return *this;
+    }
 #endif
-
-    // inline operator real*() { return &x; }
-    // inline operator const real*() const { return &x; };
-
-    // Operator [] to extract one coordinate
-    // Operator [] can only read an element, not write.
-
     // ========================================================================================
     union {
         real array[4];
         struct {
             real x, y, z, w;
         };
-        //#if defined(USE_AVX)
-        //        __m256d mmvalue;
-        //#elif defined(USE_SIMD)
-        //        __m128 mmvalue;
-        //#else
-
-        //#endif
     };
 };
 

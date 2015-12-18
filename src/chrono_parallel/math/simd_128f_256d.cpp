@@ -194,8 +194,16 @@ namespace chrono {
 namespace simd {
 #if defined(USE_AVX)
 
-static const __m256d SIGNMASK = _mm256_castsi256_pd(_mm256_set1_epi64x(0x8000000000000000));
+static const __m256d NEGATEMASK = _mm256_castsi256_pd(_mm256_set1_epi64x(0x8000000000000000));
+static const __m256d ABSMASK =
+    _mm256_castsi256_pd(_mm256_setr_epi32(-1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF));
 
+// Mask gets the first 3 elements out of 4, sets last element to zero
+static const __m256d REAL3MASK = _mm256_castsi256_pd(
+    _mm256_setr_epi64x(0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0x0000000000000000));
+
+// Functions that will work on all 4 wide double types
+//========================================================
 inline __m256d Set(real x) {
     return _mm256_set1_pd(x);
 }
@@ -217,42 +225,20 @@ inline __m256d Mul(__m256d a, __m256d b) {
 inline __m256d Div(__m256d a, __m256d b) {
     return _mm256_div_pd(a, b);
 }
-
-// inline __m256d Add(__m256d a, real b) {
-//    return _mm256_add_pd(a, _mm256_set1_pd(b));
-//}
-// inline __m256d Sub(__m256d a, real b) {
-//    return _mm256_sub_pd(a, _mm256_set1_pd(b));
-//}
-// inline __m256d Mul(__m256d a, real b) {
-//    return _mm256_mul_pd(a, _mm256_set1_pd(b));
-//}
-// inline __m256d Div(__m256d a, real b) {
-//    return _mm256_div_pd(a, _mm256_set1_pd(b));
-//}
-
 inline __m256d Negate(__m256d a) {
-    return _mm256_xor_pd(a, SIGNMASK);
+    return _mm256_xor_pd(a, NEGATEMASK);
 }
-//
-// inline real4 Negate(real4 a) {
-//    return real4(-a[0], -a[1], -a[2], -a[3]);
-//}
-// inline real3 Negate(real3 a) {
-//    return real3(-a[0], -a[1], -a[2]);
-//}
-
+inline __m256d SquareRoot(__m256d v) {
+    return _mm256_sqrt_pd(v);
+}
 // http://stackoverflow.com/questions/10454150/intel-avx-256-bits-version-of-dot-product-for-double-precision-floating-point
-
 inline real HorizontalAdd(__m256d a) {
     __m256d temp = _mm256_hadd_pd(a, a);
     __m128d lo128 = _mm256_extractf128_pd(temp, 0);
     __m128d hi128 = _mm256_extractf128_pd(temp, 1);
-
     __m128d dot_prod = _mm_add_sd(lo128, hi128);
     return _mm_cvtsd_f64(dot_prod);
 }
-
 inline real Dot(__m256d a) {
     __m256d xy = _mm256_mul_pd(a, a);
     return HorizontalAdd(xy);
@@ -261,18 +247,6 @@ inline real Dot(__m256d a, __m256d b) {
     __m256d xy = _mm256_mul_pd(a, b);
     return HorizontalAdd(xy);
 }
-
-// inline real Dot(const real3& v1, const real3& v2) {
-//    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
-//}
-// inline real Dot(const real3& v) {
-//    return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-//}
-
-inline __m256d SquareRoot(__m256d v) {
-    return _mm256_sqrt_pd(v);
-}
-
 inline __m256d Cross(__m256d a, __m256d b) {
     __m256d a1 = permute4d<1, 2, 0, -256>(a);
     __m256d b1 = permute4d<1, 2, 0, -256>(b);
@@ -281,58 +255,70 @@ inline __m256d Cross(__m256d a, __m256d b) {
     __m256d c = a1 * b2 - a2 * b1;
     return c;
 }
-
-// inline real3 Cross(const real3& a, const real3& b) {
-//    real3 result;
-//    result[0] = (a[1] * b[2]) - (a[2] * b[1]);
-//    result[1] = (a[2] * b[0]) - (a[0] * b[2]);
-//    result[2] = (a[0] * b[1]) - (a[1] * b[0]);
-//    result[3] = 0;
-//    return result;
-//}
-
-inline real3 Normalize(const real3& v) {
-    real t = simd::Dot(v);
-    real dp = InvSqrt(t);
-    real3 tmp = _mm256_mul_pd(v, Set(dp));
-    tmp[3] = 0.0;
-    return tmp;
-}
 inline __m256d Normalize(const __m256d& v) {
     real t = simd::Dot(v);
     real dp = InvSqrt(t);
-    return _mm256_mul_pd(v, Set(dp));;
+    return _mm256_mul_pd(v, Set(dp));
 }
-static const __m256d abs_mask =
-    _mm256_castsi256_pd(_mm256_setr_epi32(-1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF));
 inline __m256d Abs(__m256d v) {
-    return _mm256_and_pd(v, abs_mask);
+    return _mm256_and_pd(v, ABSMASK);
 }
-
-inline __m256d Max(const __m256d& v1, const __m256d& v2) {
+inline __m256d Max(__m256d v1, __m256d v2) {
     return _mm256_max_pd(v1, v2);
 }
-inline __m256d Min(const __m256d& v1, const __m256d& v2) {
+inline __m256d Min(__m256d v1, __m256d v2) {
     return _mm256_min_pd(v1, v2);
 }
 // http://stackoverflow.com/questions/9795529/how-to-find-the-horizontal-maximum-in-a-256-bit-avx-vector
-inline real Max(const __m256d& x) {
+inline real Max(__m256d x) {
     __m256d y = _mm256_permute2f128_pd(x, x, 1);  // permute 128-bit values
     __m256d m1 = _mm256_max_pd(x, y);             // m1[0] = max(x[0], x[2]), m1[1] = max(x[1], x[3]), etc.
     __m256d m2 = _mm256_permute_pd(m1, 5);        // set m2[0] = m1[1], m2[1] = m1[0], etc.
-    __m256d m = _mm256_max_pd(m1, m2);  // all m[0] ... m[3] contain the horizontal max(x[0], x[1], x[2], x[3])
+    __m256d m = _mm256_max_pd(m1, m2);            // all m[0] ... m[3] contain the horiz max(x[0], x[1], x[2], x[3])
     __m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
     return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
 }
-inline real Min(const __m256d& x) {
+inline real Min(__m256d x) {
     __m256d y = _mm256_permute2f128_pd(x, x, 1);  // permute 128-bit values
     __m256d m1 = _mm256_min_pd(x, y);             // m1[0] = max(x[0], x[2]), m1[1] = min(x[1], x[3]), etc.
     __m256d m2 = _mm256_permute_pd(m1, 5);        // set m2[0] = m1[1], m2[1] = m1[0], etc.
-    __m256d m = _mm256_min_pd(m1, m2);  // all m[0] ... m[3] contain the horizontal min(x[0], x[1], x[2], x[3])
+    __m256d m = _mm256_min_pd(m1, m2);            // all m[0] ... m[3] contain the horiz min(x[0], x[1], x[2], x[3])
     __m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
     return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
 }
-inline bool IsEqual(const __m256d& a, const __m256d& b) {
+inline __m256d Round(__m256d a) {
+    return _mm256_round_pd(a, _MM_FROUND_TO_NEAREST_INT);
+}
+
+template <int i0, int i1, int i2, int i3>
+static __m256d change_sign(__m256d a) {
+    if ((i0 | i1 | i2 | i3) == 0) {
+        return a;
+    }
+    __m256d mask = _mm256_castsi256_pd(_mm256_setr_epi32(0, i0 ? (int)0x80000000 : 0, 0, i1 ? (int)0x80000000 : 0, 0,
+                                                         i2 ? (int)0x80000000 : 0, 0, i3 ? (int)0x80000000 : 0));
+
+    __m256d res = _mm256_xor_pd(a, mask);
+
+    return res;
+}
+//========================================================
+inline __m256d Cross3(__m256d a, __m256d b) {
+    __m256d a1 = permute4d<1, 2, 0, -256>(a);
+    __m256d b1 = permute4d<1, 2, 0, -256>(b);
+    __m256d a2 = permute4d<2, 0, 1, -256>(a);
+    __m256d b2 = permute4d<2, 0, 1, -256>(b);
+    __m256d c = a1 * b2 - a2 * b1;
+    return _mm256_and_pd(c, REAL3MASK);
+}
+inline __m256d Normalize3(__m256d v) {
+    real t = simd::Dot(v);
+    real dp = InvSqrt(t);
+    __m256d tmp = _mm256_mul_pd(v, Set(dp));
+    return _mm256_and_pd(tmp, REAL3MASK);
+}
+
+inline bool IsEqual(__m256d a, __m256d b) {
     //        const __m256d SIGN_MASK = _mm256_set1_pd(-0.0);
     //
     //        __m256d x = _mm256_cmp_pd(a, b, _CMP_EQ_UQ);
@@ -364,7 +350,7 @@ inline bool IsEqual(const __m256d& a, const __m256d& b) {
 }
 
 // http://stackoverflow.com/questions/10454150/intel-avx-256-bits-version-of-dot-product-for-double-precision-floating-point
-__m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c) {
+inline __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c) {
     __m256d xy0 = _mm256_mul_pd(v, a);
     __m256d xy1 = _mm256_mul_pd(v, b);
     __m256d xy2 = _mm256_mul_pd(v, c);
@@ -385,27 +371,7 @@ __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c) {
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
     return dotproduct;
 }
-__m256d Round(__m256d a) {
-    return _mm256_round_pd(a, _MM_FROUND_TO_NEAREST_INT);
-}
 
-template <int i0, int i1, int i2, int i3>
-static __m256d change_sign(__m256d const& a) {
-    // printf("I: %f %f %f %f\n", a[0], a[1], a[2], a[3]);
-    if ((i0 | i1 | i2 | i3) == 0) {
-        return a;
-    }
-
-    __m256d mask = _mm256_castsi256_pd(_mm256_setr_epi32(0, i0 ? (int)0x80000000 : 0, 0, i1 ? (int)0x80000000 : 0, 0,
-                                                         i2 ? (int)0x80000000 : 0, 0, i3 ? (int)0x80000000 : 0));
-
-    // printf("M: %f %f %f %f\n", mask[0], mask[1], mask[2], mask[3]);
-
-    __m256d res = _mm256_xor_pd(a, mask);
-
-    // printf("O: %f %f %f %f\n", res[0], res[1], res[2], res[3]);
-    return res;
-}
 inline __m256d QuatMult(__m256d a, __m256d b) {
     __m256d a1123 = permute4d<1, 1, 2, 3>(a);
     __m256d a2231 = permute4d<2, 2, 3, 1>(a);
@@ -430,7 +396,7 @@ inline __m256d QuatMult(__m256d a, __m256d b) {
 #elif defined(USE_SSE)
 
 // http://fastcpp.blogspot.com/2011/03/changing-sign-of-float-values-using-sse.html
-static const __m128 SIGNMASK = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+static const __m128 NEGATEMASK = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
 
 inline __m128 Set(real x) {
     return _mm_set1_ps(x);
@@ -453,7 +419,6 @@ inline __m128 Mul(__m128 a, __m128 b) {
 inline __m128 Div(__m128 a, __m128 b) {
     return _mm_div_ps(a, b);
 }
-
 inline __m128 Add(__m128 a, real b) {
     return _mm_add_ps(a, _mm_set1_ps(b));
 }
@@ -466,9 +431,8 @@ inline __m128 Mul(__m128 a, real b) {
 inline __m128 Div(__m128 a, real b) {
     return _mm_div_ps(a, _mm_set1_ps(b));
 }
-
 inline __m128 Negate(__m128 a) {
-    return _mm_xor_ps(a, SIGNMASK);
+    return _mm_xor_ps(a, NEGATEMASK);
 }
 inline real Dot(__m128 a) {
     return _mm_cvtss_f32(_mm_dp_ps(a, a, 0x71));
@@ -616,15 +580,12 @@ real3 operator*(const real3& a, real b) {
 real3 operator/(const real3& a, real b) {
     return simd::Div(a, simd::Set(b));
 }
-
 real3 operator*(real lhs, const real3& rhs) {
     return simd::Mul(simd::Set(lhs), rhs);
 }
-
 real3 operator/(real lhs, const real3& rhs) {
     return simd::Div(simd::Set(lhs), rhs);
 }
-
 real3 operator-(const real3& a) {
     return simd::Negate(a);
 }
@@ -637,7 +598,7 @@ real Dot(const real3& v) {
     return simd::Dot(v);
 }
 real3 Normalize(const real3& v) {
-    return simd::Normalize(v);
+    return simd::Normalize3(v);
 }
 real Length(const real3& v) {
     return Sqrt(simd::Dot(v));
@@ -646,7 +607,7 @@ real3 Sqrt(const real3& v) {
     return simd::SquareRoot(v);
 }
 real3 Cross(const real3& b, const real3& c) {
-    return simd::Cross(b, c);
+    return simd::Cross3(b, c);
 }
 real3 Abs(const real3& v) {
     return simd::Abs(v);
@@ -675,22 +636,16 @@ real Max(const real3& a) {
 real Min(const real3& a) {
     return simd::Min(a);
 }
-
 real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max) {
     return simd::Max(clamp_min, simd::Min(a, clamp_max));
 }
-
 bool operator==(const real3& a, const real3& b) {
     return (a[0] == b[0]) && (a[1] == b[1]) && (a[2] == b[2]);
     // return simd::IsEqual(a, b);
 }
-
 real3 Round(const real3& v) {
     return simd::Round(v);
 }
-// real3 LessThan(real3 a, real3 b){
-//
-//}
 bool IsZero(const real3& v) {
     real3 t = simd::Abs(v);
     return t[0] < C_EPSILON && t[1] < C_EPSILON && t[2] < C_EPSILON;
