@@ -50,7 +50,7 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 	Real epsilonMutualDistance = .01f;
 	Real3 gradW = GradW(dist3);
 
-	// Real vAB_Dot_rAB = dot(mR3(velMasA - velMasB), dist3);
+	// Real vAB_Dot_rAB = dot(velMasA - velMasB, dist3);
 
 	//	//*** Artificial viscosity type 1.1
 	//	Real alpha = .001;
@@ -61,12 +61,12 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 
 	//	//*** Artificial viscosity type 1.2
 	//	Real nu = 22.8f * paramsD.mu0 / 2.0f / (rhoPresMuA.x * rhoPresMuB.x);
-	//	Real3 derivV = -velMasB.w * (
+	//	Real3 derivV = -paramsD.markerMass * (
 	//		rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)
 	//		- nu * vAB_Dot_rAB / ( d * d + epsilonMutualDistance * paramsD.HSML * paramsD.HSML )
 	//		) * gradW;
 	//	return mR4(derivV,
-	//		rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
+	//		rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
 
 	//*** Artificial viscosity type 2
 	Real rAB_Dot_GradW = dot(dist3, gradW);
@@ -77,11 +77,11 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 					+ rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
 			+ paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0
 					* pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2))
-					* rAB_Dot_GradW_OverDist * velMasA - velMasB;
+					* rAB_Dot_GradW_OverDist * (velMasA - velMasB);
 	Real derivRho = rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x
 			* dot(vel_XSPH_A - vel_XSPH_B, gradW);
 	//	Real zeta = 0;//.05;//.1;
-	//	Real derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
+	//	Real derivRho = rhoPresMuA.x * paramsD.markerMass * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
 	//			+ zeta * paramsD.HSML * (10 * paramsD.v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) *
 	// rAB_Dot_GradW_OverDist
 	//			);
@@ -89,16 +89,16 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 
 	//	//*** Artificial viscosity type 1.3
 	//	Real rAB_Dot_GradW = dot(dist3, gradW);
-	//	Real3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x *
+	//	Real3 derivV = -paramsD.markerMass * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x *
 	// rhoPresMuB.x)) * gradW
-	//		+ velMasB.w / (rhoPresMuA.x * rhoPresMuB.x) * 2.0f * paramsD.mu0 * rAB_Dot_GradW / ( d * d +
-	// epsilonMutualDistance * paramsD.HSML * paramsD.HSML ) * mR3(velMasA - velMasB);
+	//		+ paramsD.markerMass / (rhoPresMuA.x * rhoPresMuB.x) * 2.0f * paramsD.mu0 * rAB_Dot_GradW / ( d * d +
+	// epsilonMutualDistance * paramsD.HSML * paramsD.HSML ) * (velMasA - velMasB);
 	//	return mR4(derivV,
-	//		rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
+	//		rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline Real3 DifVelocity_SSI_DEM(const Real3& dist3, const Real& d,
-		const Real4& velMasA, const Real4& velMasB) {
+		const Real3& velMasA, const Real3& velMasB) {
 	// printf("** DifVelocity_SSI_DEM\n");
 	Real l = paramsD.MULT_INITSPACE * paramsD.HSML - d;  // penetration distance
 	if (l < 0) {
@@ -108,15 +108,15 @@ __device__ inline Real3 DifVelocity_SSI_DEM(const Real3& dist3, const Real& d,
 					  // sure!
 	Real kD = 40; // 20;//40.0;//20.0; //420.0;				//damping coef. // 40 is good don't change it.
 	Real3 n = dist3 / d;  // unit vector B to A
-	Real m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
+	Real m_eff = 0.5 * paramsD.markerMass; //(mA * mB) / (mA + mB);
 	Real3 force = (/*pow(paramsD.sizeScale, Real(3)) * */kS * l
-			- kD * m_eff * dot(mR3(velMasA - velMasB), n)) * n; // relative velocity at contact is simply assumed as the relative vel of the centers. If you are
+			- kD * m_eff * dot(velMasA - velMasB, n)) * n; // relative velocity at contact is simply assumed as the relative vel of the centers. If you are
 																// updating the rotation, this should be modified.
-	return force / velMasA.w;  // return dV/dT same as SPH
+	return force / paramsD.markerMass;  // return dV/dT same as SPH
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline Real3 DifVelocity_SSI_Lubrication(const Real3& dist3,
-		const Real& d, const Real4& velMasA, const Real4& velMasB) {
+		const Real& d, const Real3& velMasA, const Real3& velMasB) {
 	// printf("** DifVelocity_SSI_Lubrication\n");
 	Real Delta_c = paramsD.HSML;
 	Real s = d - paramsD.MULT_INITSPACE * paramsD.HSML;
@@ -132,8 +132,8 @@ __device__ inline Real3 DifVelocity_SSI_Lubrication(const Real3& dist3,
 	}
 	Real3 n = dist3 / d;  // unit vector B to A
 	Real3 force = -(mult * 1.5 * PI * paramsD.mu0 * paramsD.HSML * paramsD.HSML)
-			* dot(mR3(velMasA - velMasB), n) * n;
-	return force / velMasA.w;
+			* dot(velMasA - velMasB, n) * n;
+	return force / paramsD.markerMass;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
@@ -163,7 +163,7 @@ __device__ Real3 deltaVShare(int3 gridPos, uint index, Real3 posRadA,
 				// colagrossi (2003), the other phase (i.e. rigid) should not be considered)
 				Real multRho = 2.0f / (rhoPresMuA.x + rhoPresMuB.x);
 				Real3 velMasB = FETCH(sortedVelMas, j);
-				deltaV += paramsD.markerMass * velMasB - velMasA * W3(d) * multRho;
+				deltaV += paramsD.markerMass * (velMasB - velMasA) * W3(d) * multRho;
 			}
 		}
 	}
@@ -194,10 +194,10 @@ __device__ void BCE_modification_Share(
 			Real Wd = W3(d);
 			Real3 velMasB = FETCH(sortedVelMas, j);
 			//			deltaVDenom += mR4(
-			//					velMasB.w / rhoPresMuB.x * mR3(velMasB) * Wd,
-			//					velMasB.w / rhoPresMuB.x * Wd);
+			//					paramsD.markerMass / rhoPresMuB.x * velMasB * Wd,
+			//					paramsD.markerMass / rhoPresMuB.x * Wd);
 			//			deltaVDenom += mR4(
-			//					mR3(velMasB) * Wd,
+			//					velMasB * Wd,
 			//					Wd);
 
 			if (rhoPresMuB.w < -.1) { // only fluid pressure is used to update BCE pressure see Eq 27 of Adami, 2012 paper
@@ -572,7 +572,7 @@ __global__ void newVel_XSPH_D(Real3* vel_XSPH_Sorted_D,  // output: new velocity
 		}
 	}
 	//   // write new velocity back to original unsorted location
-	// sortedVel_XSPH[index] = mR3(velMasA) + paramsD.EPS_XSPH * deltaV;
+	// sortedVel_XSPH[index] = velMasA + paramsD.EPS_XSPH * deltaV;
 
 	// write new velocity back to original unsorted location
 	// uint originalIndex = gridMarkerIndex[index];
@@ -865,7 +865,7 @@ __global__ void CalcCartesianDataD(Real4* rho_Pres_CartD,
 	// write new velocity back to original unsorted location
 	//  uint originalIndex = gridMarkerIndex[index];
 
-	// Real newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
+	// Real newDensity = densityShare + paramsD.markerMass * W3(0); //?$ include the particle in its summation as well
 	// if (rhoPreMuA.w < -.1) { rhoPreMuA.x = newDensity; }
 	// rhoPreMuA.y = Eos(rhoPreMuA.x, rhoPreMuA.w);
 	//   oldRhoPreMu[originalIndex] = rhoPreMuA;
