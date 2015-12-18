@@ -295,12 +295,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Used for debugging purposes only.
     void SetElemNum(int kb) { m_element_number = kb; }
 
-    /// Calculate the first part of the Jacobian of the elastic forces of the ANCF shell element. It exploits sparsity
-    /// to speed up computations
-    void JacCalcUnrolled(
-        const ChMatrixNM<double, 6, 1>& stress,  ///< [in] Stress vector
-        const ChMatrixNM<double, 9, 24>& Gd,     ///< [in] Matrix obtained from intermediate step differentiation
-        ChMatrixNM<double, 24, 24>& JAC11);      ///< [out] Partial Jacobian computed
     /// Set the storage of the five alpha parameters for EAS (max no. of layers 7)
     void SetStockAlpha(const ChMatrixNM<double, 35, 1>& a) { m_StockAlpha_EAS = a; }
     /// Set all the alpha parameters for EAS
