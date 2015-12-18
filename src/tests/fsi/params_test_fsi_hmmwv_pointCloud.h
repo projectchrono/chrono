@@ -146,7 +146,7 @@ void SetupParamsH(SimParams& paramsH) {
 	paramsH.straightChannelBoundaryMax = paramsH.cMaxInit; // SmR3(3, 2, 3) * paramsH.sizeScale;
 	//************************** modify pressure ***************************
 	//		paramsH.deltaPress = paramsH.rho0 * paramsH.boxDims * paramsH.bodyForce3;  //did not work as I expected
-	paramsH.deltaPress = 0.9 * paramsH.boxDims * paramsH.bodyForce3;
+	paramsH.deltaPress = mR3(0);//Wrong: 0.9 * paramsH.boxDims * paramsH.bodyForce3; // viscosity and boundary shape should play a roll
 
 	// modify bin size stuff
 	//****************************** bin size adjustement and contact detection stuff *****************************

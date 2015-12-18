@@ -363,8 +363,7 @@ void UpdateBC(Real3* m_dSortedPosRadNew, Real3* m_dSortedVelMasNew,
 		int2* ShortestDistanceIndicesBoundaryOrRigidWithFluid,
 		int numBoundaryAndRigid);
 
-void ReCalcDensity(thrust::device_vector<Real3>& oldPosRad,
-		thrust::device_vector<Real3>& oldVelMas,
+void ReCalcDensity(
 		thrust::device_vector<Real4>& oldRhoPreMu,
 		thrust::device_vector<Real3>& sortedPosRad,
 		thrust::device_vector<Real3>& sortedVelMas,
@@ -442,8 +441,23 @@ void CopySorted_vXSPH_dVdRho_to_original(thrust::device_vector<Real3>& vel_XSPH_
 		thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
 		thrust::device_vector<uint>& mapOriginalToSorted, int numAllMarkers);
 
-void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real3>& velMasD,
+void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
+		thrust::device_vector<Real3>& sorted,
+		const thrust::device_vector<uint>& gridMarkerIndex);
+
+void CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3>& original,
+		thrust::device_vector<Real3>& sorted,
+		const thrust::device_vector<uint>& gridMarkerIndex);
+
+void CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
+		thrust::device_vector<Real4>& sorted,
+		const thrust::device_vector<uint>& gridMarkerIndex);
+
+void CopySortedToOriginal_NonInvasive_R4(thrust::device_vector<Real4>& original,
+		thrust::device_vector<Real4>& sorted,
+		const thrust::device_vector<uint>& gridMarkerIndex);
+
+void UpdateBoundary(
 		thrust::device_vector<Real4>& rhoPresMuD,
 		thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray, Real dT);

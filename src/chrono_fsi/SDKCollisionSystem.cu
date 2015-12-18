@@ -763,13 +763,11 @@ __global__ void CalcBCE_MainStresses_kernel(Real4* mainStressD,
 							+ 6
 									* (devS3.x * devS3.x + devS3.y * devS3.y
 											+ devS3.z * devS3.z)));
-
 	mainStressD[index] = mainS3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // without normalization
-__global__ void ReCalcDensityD_F1(Real3* oldPosRad, Real3* oldVelMas,
-		Real4* oldRhoPreMu, Real3* sortedPosRad, Real3* sortedVelMas,
+__global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu, Real3* sortedPosRad, Real3* sortedVelMas,
 		Real4* sortedRhoPreMu, uint* gridMarkerIndex, uint* cellStart,
 		uint* cellEnd, uint numAllMarkers) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
@@ -800,7 +798,6 @@ __global__ void ReCalcDensityD_F1(Real3* oldPosRad, Real3* oldVelMas,
 		}
 	}
 	// write new velocity back to original unsorted location
-	uint originalIndex = gridMarkerIndex[index];
 
 	Real newDensity = densityShare + paramsD.markerMass * W3(0); //?$ include the particle in its summation as well
 	Real newDenominator = denominator
@@ -810,11 +807,11 @@ __global__ void ReCalcDensityD_F1(Real3* oldPosRad, Real3* oldVelMas,
 		rhoPreMuA.x = newDensity / newDenominator;  // correct version
 	}
 	rhoPreMuA.y = Eos(rhoPreMuA.x, rhoPreMuA.w);
-	oldRhoPreMu[originalIndex] = rhoPreMuA;
+	dummySortedRhoPreMu[index] = rhoPreMuA;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // without normalization
-__global__ void ProjectDensityPressureToBCandBCE_D(Real4* oldRhoPreMu,
+__global__ void ProjectDensityPressureToBCandBCE_D(Real4* dummySortedRhoPreMu,
 		Real3* sortedPosRad, Real4* sortedRhoPreMu, uint* gridMarkerIndex,
 		uint* cellStart, uint* cellEnd, uint numAllMarkers) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
@@ -845,10 +842,9 @@ __global__ void ProjectDensityPressureToBCandBCE_D(Real4* oldRhoPreMu,
 		}
 	}
 	// write new velocity back to original unsorted location
-	uint originalIndex = gridMarkerIndex[index];
 	rhoPreMuA.x = distRhoPress.y;
 	rhoPreMuA.y = distRhoPress.z;
-	oldRhoPreMu[originalIndex] = rhoPreMuA;
+	dummySortedRhoPreMu[index] = rhoPreMuA;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // without normalization
@@ -937,6 +933,9 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 
 		Real3 posRad = posRadD[index];
 		Real3 updatedPositon = posRad + vel_XSPH * dT;
+		if (!(isfinite(updatedPositon.x) && isfinite(updatedPositon.y) && isfinite(updatedPositon.z))) {
+			printf("Error! particle position is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+		}
 		posRadD[index] = updatedPositon;  // posRadD updated
 
 		Real3 velMas = velMasD[index];
@@ -957,6 +956,9 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 			}
 		}
 		// 2*** end tweak
+		if (!(isfinite(updatedVelocity.x) && isfinite(updatedVelocity.y) && isfinite(updatedVelocity.z))) {
+					printf("Error! particle vel is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+		}
 		velMasD[index] = updatedVelocity;
 
 	}
@@ -978,6 +980,9 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 	Real rho2 = rhoPresMu.x + derivVelRho.w * dT; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
+	if (!(isfinite(rhoPresMu.x) && isfinite(rhoPresMu.y) && isfinite(rhoPresMu.z) && isfinite(rhoPresMu.w))) {
+		printf("Error! particle rho pressure is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+	}
 	rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD updated
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -994,16 +999,25 @@ __global__ void UpdateFluidD_init_LF(Real3* posRadD, Real3* velMasD_half,
 	Real4 derivVelRho = derivVelRhoD[index];
 	Real3 velMas = velMasD_half[index];
 	Real3 updatedVelocity = velMas + mR3(derivVelRho) * (0.5 * dT);
+	if (!(isfinite(updatedVelocity.x) && isfinite(updatedVelocity.y) && isfinite(updatedVelocity.z))) {
+				printf("Error! particle vel is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_init_LF !\n");
+	}
 	velMasD_half[index] = updatedVelocity;  // velMasD_half updated
 
 	Real3 posRad = posRadD[index];
 	Real3 updatedPositon = posRad + updatedVelocity * dT;
+	if (!(isfinite(updatedPositon.x) && isfinite(updatedPositon.y) && isfinite(updatedPositon.z))) {
+				printf("Error! particle pos is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_init_LF !\n");
+	}
 	posRadD[index] = updatedPositon;  // posRadD updated
 
 	Real4 rhoPresMu = rhoPresMuD_half[index];
 	Real rho2 = rhoPresMu.x + derivVelRho.w * (0.5 * dT); // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
+	if (!(isfinite(rhoPresMu.x) && isfinite(rhoPresMu.y) && isfinite(rhoPresMu.z) && isfinite(rhoPresMu.w))) {
+				printf("Error! particle rp is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_init_LF !\n");
+	}
 	rhoPresMuD_half[index] = rhoPresMu;  // rhoPresMuD_half updated
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1032,6 +1046,9 @@ __global__ void UpdateFluidD_rho_vel_LF(Real3* velMasD, Real4* rhoPresMuD,
 	//		}
 	//	}
 	// 2*** end tweak
+	if (!(isfinite(updatedVelocity.x) && isfinite(updatedVelocity.y) && isfinite(updatedVelocity.z))) {
+					printf("Error! particle vel is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_rho_vel_LF !\n");
+		}
 	velMasD[index] = updatedVelocity; // velMasD_half updated
 
 	Real4 rhoPresMu = rhoPresMuD_old[index];
@@ -1051,6 +1068,9 @@ __global__ void UpdateFluidD_rho_vel_LF(Real3* velMasD, Real4* rhoPresMuD,
 	Real rho2 = rhoPresMu.x + derivVelRho.w * dT; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
+	if (!(isfinite(rhoPresMu.x) && isfinite(rhoPresMu.y) && isfinite(rhoPresMu.z) && isfinite(rhoPresMu.w))) {
+					printf("Error! particle rp is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_rho_vel_LF !\n");
+		}
 	rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD_half updated
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1079,6 +1099,9 @@ __global__ void UpdateFluidD_EveryThing_LF(Real3* posRadD, Real3* velMasD_half,
 	//		}
 	//	}
 	// 2*** end tweak
+	if (!(isfinite(updatedVelocity.x) && isfinite(updatedVelocity.y) && isfinite(updatedVelocity.z))) {
+						printf("Error! particle vel is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_EveryThing_LF !\n");
+			}
 	velMasD_half[index] = updatedVelocity;  // velMasD_half updated
 
 	posRadD[index] += updatedVelocity * dT;  // posRadD updated
@@ -1100,6 +1123,9 @@ __global__ void UpdateFluidD_EveryThing_LF(Real3* posRadD, Real3* velMasD_half,
 	Real rho2 = rhoPresMu.x + derivVelRho.w * dT; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
+	if (!(isfinite(rhoPresMu.x) && isfinite(rhoPresMu.y) && isfinite(rhoPresMu.z) && isfinite(rhoPresMu.w))) {
+						printf("Error! particle rp is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_EveryThing_LF !\n");
+			}
 	rhoPresMuD_half[index] = rhoPresMu;  // rhoPresMuD_half updated
 }
 
@@ -1125,7 +1151,7 @@ __global__ void CopySorted_vXSPH_dVdRho_to_original_kernel(Real3* vel_XSPH_D,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles' properties, i.e. velocity, density, pressure, position
-__global__ void UpdateKernelBoundary(Real3* posRadD, Real3* velMasD,
+__global__ void UpdateKernelBoundary(
 		Real4* rhoPresMuD, Real4* derivVelRhoD, int2 updatePortion, Real dT) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	index += updatePortion.x; // updatePortion = [start, end] index of the update portion
@@ -1138,6 +1164,9 @@ __global__ void UpdateKernelBoundary(Real3* posRadD, Real3* velMasD,
 	Real rho2 = rhoPresMu.x + derivVelRho.w * dT; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
+	if (!(isfinite(rhoPresMu.x) && isfinite(rhoPresMu.y) && isfinite(rhoPresMu.z) && isfinite(rhoPresMu.w))) {
+							printf("Error! particle rp is NAN: thrown from SDKCollisionSystem.cu, UpdateKernelBoundary !\n");
+				}
 	rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD updated
 }
 
@@ -1508,9 +1537,7 @@ void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
 	//#endif
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ReCalcDensity(thrust::device_vector<Real3>& oldPosRad,
-		thrust::device_vector<Real3>& oldVelMas,
-		thrust::device_vector<Real4>& oldRhoPreMu,
+void ReCalcDensity(thrust::device_vector<Real4>& oldRhoPreMu,
 		thrust::device_vector<Real3>& sortedPosRad,
 		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
@@ -1529,15 +1556,16 @@ void ReCalcDensity(thrust::device_vector<Real3>& oldPosRad,
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
-	ReCalcDensityD_F1<<<numBlocks, numThreads>>>(mR3CAST(oldPosRad),
-			mR3CAST(oldVelMas), mR4CAST(oldRhoPreMu), mR3CAST(sortedPosRad),
+	thrust::device_vector<Real4>& dummySortedRhoPreMu = sortedRhoPreMu;
+	ReCalcDensityD_F1<<<numBlocks, numThreads>>>(mR4CAST(dummySortedRhoPreMu), mR3CAST(sortedPosRad),
 			mR3CAST(sortedVelMas), mR4CAST(sortedRhoPreMu),
 			U1CAST(gridMarkerIndex), U1CAST(cellStart), U1CAST(cellEnd),
 			numAllMarkers);
 
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
+	CopySortedToOriginal_Invasive_R4(oldRhoPreMu, dummySortedRhoPreMu, gridMarkerIndex);
+	dummySortedRhoPreMu.clear();
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -1565,14 +1593,16 @@ void ProjectDensityPressureToBCandBCE(thrust::device_vector<Real4>& oldRhoPreMu,
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
+	thrust::device_vector<Real4>& dummySortedRhoPreMu = sortedRhoPreMu;
 	ProjectDensityPressureToBCandBCE_D<<<numBlocks, numThreads>>>(
-			mR4CAST(oldRhoPreMu), mR3CAST(sortedPosRad),
+			mR4CAST(dummySortedRhoPreMu), mR3CAST(sortedPosRad),
 			mR4CAST(sortedRhoPreMu), U1CAST(gridMarkerIndex), U1CAST(cellStart),
 			U1CAST(cellEnd), numAllMarkers);
 
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
+	CopySortedToOriginal_Invasive_R4(oldRhoPreMu, dummySortedRhoPreMu, gridMarkerIndex);
+	dummySortedRhoPreMu.clear();
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -1721,26 +1751,62 @@ void UpdateFluid_EveryThing_LF(thrust::device_vector<Real3>& posRadD,
 	;
 }
 
+////--------------------------------------------------------------------------------------------------------------------------------
+//void CopySorted_vXSPH_dVdRho_to_original(thrust::device_vector<Real3>& vel_XSPH_D,
+//		thrust::device_vector<Real4>& derivVelRhoD,
+//		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
+//		thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
+//		thrust::device_vector<uint>& mapOriginalToSorted, int numAllMarkers) {
+//	uint nBlock_NumSpheres, nThreads_SphMarkers;
+//	computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
+//	CopySorted_vXSPH_dVdRho_to_original_kernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
+//			mR3CAST(vel_XSPH_D), mR4CAST(derivVelRhoD),
+//			mR3CAST(vel_XSPH_Sorted_D),mR4CAST(sortedDerivVelRho_fsi_D),
+//			U1CAST(mapOriginalToSorted));
+//	cudaThreadSynchronize();
+//	cudaCheckError()
+//	;
+//}
 //--------------------------------------------------------------------------------------------------------------------------------
-void CopySorted_vXSPH_dVdRho_to_original(thrust::device_vector<Real3>& vel_XSPH_D,
-		thrust::device_vector<Real4>& derivVelRhoD,
-		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
-		thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
-		thrust::device_vector<uint>& mapOriginalToSorted, int numAllMarkers) {
-	uint nBlock_NumSpheres, nThreads_SphMarkers;
-	computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
-	CopySorted_vXSPH_dVdRho_to_original_kernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
-			mR3CAST(vel_XSPH_D), mR4CAST(derivVelRhoD),
-			mR3CAST(vel_XSPH_Sorted_D),mR4CAST(sortedDerivVelRho_fsi_D),
-			U1CAST(mapOriginalToSorted));
-	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+// use invasive to avoid one extra copy. However, keep in mind that sorted is changed.
+void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
+		thrust::device_vector<Real3>& sorted,
+		const thrust::device_vector<uint>& gridMarkerIndex) {
+	thrust::device_vector<uint> dummyMarkerIndex = gridMarkerIndex;
+	thrust::sort_by_key(dummyMarkerIndex.begin(), dummyMarkerIndex.end(),
+			sorted.begin());
+	dummyMarkerIndex.clear();
+	thrust::copy(sorted.begin(), sorted.end(), original.begin());
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+void CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3>& original,
+		thrust::device_vector<Real3>& sorted,
+		const thrust::device_vector<uint>& gridMarkerIndex) {
+	thrust::device_vector<Real3> dummySorted = sorted;
+	CopySortedToOriginal_Invasive_R3(original, dummySorted, gridMarkerIndex);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+// use invasive to avoid one extra copy. However, keep in mind that sorted is changed.
+void CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
+		thrust::device_vector<Real4>& sorted,
+		const thrust::device_vector<uint>& gridMarkerIndex) {
+	thrust::device_vector<uint> dummyMarkerIndex = gridMarkerIndex;
+	thrust::sort_by_key(dummyMarkerIndex.begin(), dummyMarkerIndex.end(),
+			sorted.begin());
+	dummyMarkerIndex.clear();
+	thrust::copy(sorted.begin(), sorted.end(), original.begin());
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void CopySortedToOriginal_NonInvasive_R4(thrust::device_vector<Real4>& original,
+		thrust::device_vector<Real4>& sorted,
+		const thrust::device_vector<uint>& gridMarkerIndex) {
+	thrust::device_vector<Real4> dummySorted = sorted;
+	CopySortedToOriginal_Invasive_R4(original, dummySorted, gridMarkerIndex);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles by calling UpdateBoundary
-void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
-		thrust::device_vector<Real3>& velMasD,
+void UpdateBoundary(
 		thrust::device_vector<Real4>& rhoPresMuD,
 		thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray, Real dT) {
@@ -1754,8 +1820,7 @@ void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid,
 			nThreads);
-	UpdateKernelBoundary<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(posRadD),
-			mR3CAST(velMasD), mR4CAST(rhoPresMuD), mR4CAST(derivVelRhoD),
+	UpdateKernelBoundary<<<nBlock_UpdateFluid, nThreads>>>(mR4CAST(rhoPresMuD), mR4CAST(derivVelRhoD),
 			updatePortion, dT);
 	cudaThreadSynchronize();
 	cudaCheckError()

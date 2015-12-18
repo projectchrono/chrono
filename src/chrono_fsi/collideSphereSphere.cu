@@ -223,10 +223,11 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 			m_dSortedRhoPreMu, m_dGridMarkerIndex, m_dCellStart, m_dCellEnd,
 			numAllMarkers, m_numGridCells, dT); // Arman: you can probably safely remove dT from this function.
 
-	CopySorted_vXSPH_dVdRho_to_original(vel_XSPH_D, derivVelRhoD, vel_XSPH_Sorted_D, m_dSortedDerivVelRho_fsi_D,
-			mapOriginalToSorted, numAllMarkers);
+	CopySortedToOriginal_Invasive_R3(vel_XSPH_D, vel_XSPH_Sorted_D, m_dGridMarkerIndex);
+	CopySortedToOriginal_Invasive_R4(derivVelRhoD, m_dSortedDerivVelRho_fsi_D, m_dGridMarkerIndex);
 	m_dSortedDerivVelRho_fsi_D.clear();
 	vel_XSPH_Sorted_D.clear();
+
 
 
 	// add gravity to fluid markers
@@ -678,7 +679,7 @@ void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
 			m_dGridMarkerIndex, mapOriginalToSorted, posRadD, velMasD,
 			rhoPresMuD, numAllMarkers, m_numGridCells);
 
-	ReCalcDensity(posRadD, velMasD, rhoPresMuD, m_dSortedPosRad,
+	ReCalcDensity(rhoPresMuD, m_dSortedPosRad,
 			m_dSortedVelMas, m_dSortedRhoPreMu, m_dGridMarkerIndex,
 			m_dCellStart, m_dCellEnd, numAllMarkers);
 
@@ -769,7 +770,7 @@ void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
 	// applied at rigid body solver
 	UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD,
 			referenceArray, dT);  // assumes ...D2 is a copy of ...D
-	// UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
+	// UpdateBoundary(rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);
 	// //assumes ...D2 is a copy of ...D
 	ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 }
