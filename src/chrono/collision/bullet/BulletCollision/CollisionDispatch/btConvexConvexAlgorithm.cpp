@@ -304,6 +304,12 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 	btConvexShape* min0 = static_cast<btConvexShape*>(body0->getCollisionShape());
 	btConvexShape* min1 = static_cast<btConvexShape*>(body1->getCollisionShape());
 
+    //***ALEX*** disable contact persistence for deformable triangle meshes vs convexes, 
+    // because triangle mesh deform, they do not simply move/rotate with affine transformation as other primitives. 
+    if((min0->getShapeType() == CE_TRIANGLE_SHAPE_PROXYTYPE) ||  (min1->getShapeType() == CE_TRIANGLE_SHAPE_PROXYTYPE)) 
+        resultOut->getPersistentManifold()->clearManifold();
+    
+
 	btVector3  normalOnB;
 		btVector3  pointOnBWorld;
 #ifndef BT_DISABLE_CAPSULE_CAPSULE_COLLIDER

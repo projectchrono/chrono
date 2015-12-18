@@ -168,26 +168,31 @@ class ChMatrix {
         return *this;
     }
 
- //   // Virtualizable functions
+    //   // Virtualizable functions
 
-	//virtual void SetElement(int row, int col, double elem) { this->SetElement(row, col, elem); }
-	//virtual void PasteMatrix(const ChMatrix<double>* matra, int insrow, int inscol) { PasteMatrix(matra, insrow, inscol); }
-	//virtual void PasteTranspMatrix(const ChMatrix<double>* matra, int insrow, int inscol) { PasteTranspMatrix(matra, insrow, inscol); }
-	//virtual void PasteMatrixFloat(const ChMatrix<float>* matra, int insrow, int inscol) { PasteMatrix(matra, insrow, inscol); }
-	//virtual void PasteTranspMatrixFloat(const ChMatrix<float>* matra, int insrow, int inscol) { PasteTranspMatrix(matra, insrow, inscol); }
-	//virtual void PasteClippedMatrix(const ChMatrix<double>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
-	//{
-	//	PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol)
-	//}
-	//virtual void PasteSumClippedMatrix(const ChMatrix<double>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
-	//{
-	//	PasteSumClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol)
-	//}
+    // virtual void SetElement(int row, int col, double elem) { this->SetElement(row, col, elem); }
+    // virtual void PasteMatrix(const ChMatrix<double>* matra, int insrow, int inscol) { PasteMatrix(matra, insrow,
+    // inscol); }
+    // virtual void PasteTranspMatrix(const ChMatrix<double>* matra, int insrow, int inscol) { PasteTranspMatrix(matra,
+    // insrow, inscol); }
+    // virtual void PasteMatrixFloat(const ChMatrix<float>* matra, int insrow, int inscol) { PasteMatrix(matra, insrow,
+    // inscol); }
+    // virtual void PasteTranspMatrixFloat(const ChMatrix<float>* matra, int insrow, int inscol) {
+    // PasteTranspMatrix(matra, insrow, inscol); }
+    // virtual void PasteClippedMatrix(const ChMatrix<double>* matra, int cliprow, int clipcol, int nrows, int ncolumns,
+    // int insrow, int inscol)
+    //{
+    //	PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol)
+    //}
+    // virtual void PasteSumClippedMatrix(const ChMatrix<double>* matra, int cliprow, int clipcol, int nrows, int
+    // ncolumns, int insrow, int inscol)
+    //{
+    //	PasteSumClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol)
+    //}
 
-
-	//
-	// FUNCTIONS
-	//
+    //
+    // FUNCTIONS
+    //
 
     /// Sets the element at row,col position. Indexes start with zero.
     void SetElement(int row, int col, Real elem) {
@@ -234,7 +239,6 @@ class ChMatrix {
         assert(row >= 0 && col >= 0 && row < rows && col < columns);
         return (*(address + col + (row * columns)));
     }
-
     /// Access a single element of the matrix, the Nth element, counting row after row.
     /// Value is returned by reference, so it can be modified, like in m.Element(5)=10.
     Real& ElementN(int index) {
@@ -304,7 +308,7 @@ class ChMatrix {
 
     /// Resets the matrix to zero  (warning: simply sets memory to 0 bytes!)
     void Reset() {
-// SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
+        // SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
         for (int i = 0; i < rows * columns; ++i)
             this->address[i] = 0;
     }
@@ -329,7 +333,7 @@ class ChMatrix {
     void CopyFromMatrix(const ChMatrix<RealB>& matra) {
         Resize(matra.GetRows(), matra.GetColumns());
         // ElementsCopy(address, matra.GetAddress(), rows*columns);
-        //memcpy (address, matra.address, (sizeof(Real) * rows * columns));
+        // memcpy (address, matra.address, (sizeof(Real) * rows * columns));
         for (int i = 0; i < rows * columns; ++i)
             address[i] = (Real)matra.GetAddress()[i];
     }
@@ -373,38 +377,34 @@ class ChMatrix {
     //
     // STREAMING
     //
-        /// Method to allow serialization of transient data in archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    /// Method to allow serialization of transient data in archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // suggested: use versioning
         marchive.VersionWrite(1);
 
         // stream out all member data
-        marchive << make_ChNameValue("rows",rows);
-        marchive << make_ChNameValue("columns",columns);
+        marchive << make_ChNameValue("rows", rows);
+        marchive << make_ChNameValue("columns", columns);
 
         // custom output of matrix data as array
-        if (ChArchiveAsciiDump* mascii = dynamic_cast<ChArchiveAsciiDump*>(&marchive))
-        {
+        if (ChArchiveAsciiDump* mascii = dynamic_cast<ChArchiveAsciiDump*>(&marchive)) {
             // CUSTOM row x col 'intuitive' table-like log when using ChArchiveAsciiDump:
 
             for (int i = 0; i < rows; i++) {
                 mascii->indent();
                 for (int j = 0; j < columns; j++) {
-                    mascii->GetStream()->operator<<(Element(i,j));
+                    mascii->GetStream()->operator<<(Element(i, j));
                     mascii->GetStream()->operator<<(", ");
                 }
                 mascii->GetStream()->operator<<("\n");
             }
-        } 
-        else 
-        {
+        } else {
             // NORMAL array-based serialization:
 
             int tot_elements = GetRows() * GetColumns();
             marchive.out_array_pre("data", tot_elements, typeid(Real).name());
             for (int i = 0; i < tot_elements; i++) {
-                marchive << CHNVP(ElementN(i),"");
+                marchive << CHNVP(ElementN(i), "");
                 marchive.out_array_between(tot_elements, typeid(Real).name());
             }
             marchive.out_array_end(tot_elements, typeid(Real).name());
@@ -412,16 +412,15 @@ class ChMatrix {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // suggested: use versioning
         int version = marchive.VersionRead();
 
         // stream in all member data
         int m_row, m_col;
-        marchive >> make_ChNameValue("rows",m_row);
-        marchive >> make_ChNameValue("columns",m_col);
-        
+        marchive >> make_ChNameValue("rows", m_row);
+        marchive >> make_ChNameValue("columns", m_col);
+
         Reset(m_row, m_col);
 
         // custom input of matrix data as array
@@ -432,7 +431,6 @@ class ChMatrix {
             marchive.in_array_between("data");
         }
         marchive.in_array_end("data");
-
     }
 
     /// Method to allow serializing transient data into in ascii
@@ -465,7 +463,6 @@ class ChMatrix {
             mstream << "\n";
         }
     }
-
 
     //
     // MATH MEMBER FUNCTIONS.
@@ -517,7 +514,6 @@ class ChMatrix {
         for (int nel = 0; nel < rows * columns; ++nel)
             ElementN(nel) *= factor;
     }
-
     /// Scales a matrix, multiplying all element by all oter elements of
     /// matra (it is not the classical matrix multiplication!)
     template <class RealB>
@@ -967,7 +963,6 @@ class ChMatrix {
     // BOOKKEEPING
     //
 
-
     /// Paste a matrix "matra" into "this", inserting at location insrow-inscol.
     /// Normal copy for insrow=inscol=0
     template <class RealB>
@@ -1018,7 +1013,35 @@ class ChMatrix {
             for (int j = 0; j < ncolumns; ++j)
                 Element(i + insrow, j + inscol) = (Real)matra->Element(i + cliprow, j + clipcol);
     }
+    /// Paste a clipped portion of the matrix "matra" into "this", where "this"
+    /// is a vector (of ChMatrix type),
+    /// inserting the clip (of size nrows, ncolumns) at the location insindex.
+    template <class RealB>
+    void PasteClippedMatrixToVector(const ChMatrix<RealB>* matra,
+                                    int cliprow,
+                                    int clipcol,
+                                    int nrows,
+                                    int ncolumns,
+                                    int insindex) {
+        for (int i = 0; i < nrows; ++i)
+            for (int j = 0; j < ncolumns; ++j)
+                ElementN(insindex + i * ncolumns + j) = (Real)matra->Element(cliprow + i, clipcol + j);
+    }
 
+    /// Paste a clipped portion of a vector into "this", where "this"
+    /// is a matrix (of ChMatrix type),
+    /// inserting the clip (of size nrows, ncolumns) at the location insindex.
+    template <class RealB>
+    void PasteClippedVectorToMatrix(const ChMatrix<RealB>* matra,
+                                    int cliprow,
+                                    int clipcol,
+                                    int nrows,
+                                    int ncolumns,
+                                    int insindex) {
+        for (int i = 0; i < nrows; ++i)
+            for (int j = 0; j < ncolumns; ++j)
+                Element(i + cliprow, j + clipcol) = (Real)matra->ElementN(insindex + i * ncolumns + j);
+    }
     /// Paste a clipped portion of the matrix "matra" into "this", performing a sum with preexisting values,
     /// inserting the clip (of size nrows, ncolumns) at the location insrow-inscol.
     template <class RealB>
