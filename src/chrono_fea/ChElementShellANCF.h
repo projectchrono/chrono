@@ -295,12 +295,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Used for debugging purposes only.
     void SetElemNum(int kb) { m_element_number = kb; }
 
-    /// Set the continuum elastic material.
-    void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { m_Material = my_material; }
-
-    /// Get a handle to the material for this element.
-    ChSharedPtr<ChContinuumElastic> GetMaterial() const { return m_Material; }
-
     /// Calculate the first part of the Jacobian of the elastic forces of the ANCF shell element. It exploits sparsity
     /// to speed up computations
     void JacCalcUnrolled(
@@ -370,7 +364,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     double m_thickness;
     int m_element_number;                          ///< element number (for EAS)
     double m_Alpha;                                ///< structural damping
-    ChSharedPtr<ChContinuumElastic> m_Material;    ///< elastic material
     ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< stiffness matrix
     ChMatrixNM<double, 24, 24> m_MassMatrix;       ///< mass matrix
     ChMatrixNM<double, 24, 24> m_stock_jac_EAS;    ///< EAS per element

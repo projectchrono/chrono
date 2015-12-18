@@ -724,12 +724,8 @@ void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
     // 1) Store  +kf*[K] +rf*[R]
     //
 
-    // For K stiffness matrix and R matrix: scale by factors
-    // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
-    double kr_factor = Kfactor + Rfactor * m_Material->Get_RayleighDampingK();
-
     ChMatrixDynamic<> temp(m_StiffnessMatrix);
-    temp.MatrScale(kr_factor);
+    temp.MatrScale(Kfactor);
 
     // Paste scaled K stiffness matrix and R matrix in resulting H:
     H.PasteMatrix(&temp, 0, 0);

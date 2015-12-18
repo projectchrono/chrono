@@ -192,10 +192,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
-    mmaterial->Set_RayleighDampingK(0.0);
-    mmaterial->Set_RayleighDampingM(0.0);
-
     int i = 0;
     while (i < TotalNumNodes) {
         ChSharedPtr<ChNodeFEAxyzD> node(
@@ -256,7 +252,6 @@ int main(int argc, char* argv[]) {
                           my_mesh->GetNode(NumNodes[elemcount][1]).DynamicCastTo<ChNodeFEAxyzD>(),
                           my_mesh->GetNode(NumNodes[elemcount][2]).DynamicCastTo<ChNodeFEAxyzD>(),
                           my_mesh->GetNode(NumNodes[elemcount][3]).DynamicCastTo<ChNodeFEAxyzD>());
-        element->SetMaterial(mmaterial);
         element->SetNumLayers(NumLayer(LayNum(i, 0) - 1, 0));
         element->SetThickness(TotalThickness);
         element->SetElemNum(elemcount);

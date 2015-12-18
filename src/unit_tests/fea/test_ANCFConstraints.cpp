@@ -243,7 +243,7 @@ void AddMesh(ChSystem& my_system) {
             MPROP(i, 9) = MPROP(i, 1) / 2.0 / (1 + MPROP(i, 6));  // Gyz
         }
     }
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+
     // Adding the nodes to the mesh
     int i = 0;
 
@@ -307,7 +307,6 @@ void AddMesh(ChSystem& my_system) {
                           my_mesh->GetNode(NumNodes[elemcount][1]).DynamicCastTo<ChNodeFEAxyzD>(),
                           my_mesh->GetNode(NumNodes[elemcount][2]).DynamicCastTo<ChNodeFEAxyzD>(),
                           my_mesh->GetNode(NumNodes[elemcount][3]).DynamicCastTo<ChNodeFEAxyzD>());
-        element->SetMaterial(mmaterial);
         element->SetNumLayers(NumLayer(LayNum(i, 0) - 1, 0));
         element->SetThickness(TotalThickness);
         element->SetElemNum(elemcount);
@@ -443,7 +442,6 @@ int main(int argc, char* argv[]) {
     ChMatrixNM<double, 3, 1> Cp;
     ChMatrixNM<double, 2, 1> Cd;  // Matrices for storing constraint violations
     double dot;
-    double ConstPos;
     ChVector<> tip;  // Position of body 3 tip (constrained to ANCF mesh)
     ChMatrix<>* C12 = new ChMatrix<>;
     ChMatrix<>* C23 = new ChMatrix<>;

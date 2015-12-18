@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
             MPROP(i, 9) = 1.1538E8;  // MPROP(i, 3) / 2.0 / (1 + MPROP(i, 6));  // Gyz
         }
     }
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+
     // Adding the nodes to the mesh
     int i = 0;
 
@@ -279,7 +279,6 @@ int main(int argc, char* argv[]) {
                           my_mesh->GetNode(NumNodes[elemcount][1]).DynamicCastTo<ChNodeFEAxyzD>(),
                           my_mesh->GetNode(NumNodes[elemcount][2]).DynamicCastTo<ChNodeFEAxyzD>(),
                           my_mesh->GetNode(NumNodes[elemcount][3]).DynamicCastTo<ChNodeFEAxyzD>());
-        element->SetMaterial(mmaterial);
         element->SetNumLayers(NumLayer(LayNum(i, 0) - 1, 0));
         element->SetThickness(TotalThickness);
         element->SetElemNum(elemcount);
