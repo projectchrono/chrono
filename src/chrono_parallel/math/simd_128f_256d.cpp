@@ -298,6 +298,11 @@ inline real3 Normalize(const real3& v) {
     tmp[3] = 0.0;
     return tmp;
 }
+inline __m256d Normalize(const __m256d& v) {
+    real t = simd::Dot(v);
+    real dp = InvSqrt(t);
+    return _mm256_mul_pd(v, Set(dp));;
+}
 static const __m256d abs_mask =
     _mm256_castsi256_pd(_mm256_setr_epi32(-1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF, -1, 0x7FFFFFFF));
 inline __m256d Abs(__m256d v) {
@@ -634,7 +639,9 @@ real Dot(const real3& v) {
 real3 Normalize(const real3& v) {
     return simd::Normalize(v);
 }
-
+real Length(const real3& v) {
+    return Sqrt(simd::Dot(v));
+}
 real3 Sqrt(const real3& v) {
     return simd::SquareRoot(v);
 }
@@ -749,6 +756,9 @@ real Dot(const quaternion& v) {
 }
 quaternion Mult(const quaternion& a, const quaternion& b) {
     return simd::QuatMult(a, b);
+}
+quaternion Normalize(const quaternion& v) {
+    return simd::Normalize(v);
 }
 //========================================================
 

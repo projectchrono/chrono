@@ -138,9 +138,28 @@ real Dot(const real3& v);
 real3 Normalize(const real3& v);
 real3 Sqrt(real3 v);
 real3 Round(const real3& v);
+real Length(const real3& v);
 
 static inline real Length2(const real3& v1) {
     return Dot(v1);
+}
+
+inline real SafeLength(const real3& v) {
+    real len_sq = Length2(v);
+    if (len_sq) {
+        return Sqrt(len_sq);
+    } else {
+        return 0.0f;
+    }
+}
+
+inline real3 SafeNormalize(const real3& v, const real3& safe = real3(0)) {
+    real len_sq = Length2(v);
+    if (len_sq > real(0)) {
+        return v * InvSqrt(len_sq);
+    } else {
+        return safe;
+    }
 }
 
 real Max(const real3& a);

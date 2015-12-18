@@ -199,7 +199,7 @@ static inline real Log(const real a) {
 //}
 
 // static inline real Sign(const real x) {
-//  return x < 0.0f ? -1.0f : 1.0f;
+//  return x < real(0.0) ? -1.0f : 1.0f;
 //}
 // Returns a -1 if the value is negative
 // Returns a +1 if the value is positive
@@ -255,43 +255,7 @@ static inline bool IsEqual(const T& _a, const T& _b) {
     }
 }
 
-template <typename T>
-inline real LengthSq(const T v) {
-    return Dot(v);
-}
-
-template <typename T>
-inline real Length(const T& v) {
-    return Sqrt(LengthSq(v));
-}
-
-template <typename T>
-inline real SafeLength(const T& v) {
-    real len_sq = LengthSq(v);
-    if (len_sq) {
-        return Sqrt(len_sq);
-    } else {
-        return 0.0f;
-    }
-}
-
-template <typename T>
-inline T Normalize(const T& v) {
-    return v / Length(v);
-}
-
-template <typename T>
-inline T SafeNormalize(const T& v, const T& safe = T()) {
-    real len_sq = LengthSq(v);
-    if (len_sq > 0.0f) {
-        return v * InvSqrt(len_sq);
-    } else {
-        return safe;
-    }
-}
-
-template <typename T, typename U>
-inline T Lerp(const T& start, const T& end, const U& t) {
+inline real Lerp(const real& start, const real& end, const real& t) {
     return start + (end - start) * t;
 }
 
@@ -302,21 +266,18 @@ inline void Swap(T& a, T& b) {
     b = temp;
 }
 // Clamps a given value a between user specified minimum and maximum values
-template <typename T>
-inline T Clamp(T x, T low, T high) {
+inline real Clamp(real x, real low, real high) {
     if (low > high) {
         Swap(low, high);
     }
     return Max(low, Min(x, high));
 }
 
-template <typename T, typename U>
-inline T ClampMin(T x, U low) {
+inline real ClampMin(real x, real low) {
     return Max(low, x);
 }
 
-template <typename T, typename U>
-inline T ClampMax(T x, U high) {
+inline real ClampMax(real x, real high) {
     return Min(x, high);
 }
 }

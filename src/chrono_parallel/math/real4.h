@@ -168,7 +168,7 @@ quaternion Inv(const quaternion& a);
 real Dot(const quaternion& v1, const quaternion& v2);
 real Dot(const quaternion& v);
 quaternion Mult(const quaternion& a, const quaternion& b);
-
+quaternion Normalize(const quaternion& v);
 static inline real3 Rotate(const real3& v, const quaternion& q) {
     real3 t = 2 * Cross(q.vect(), v);
     return v + q.w * t + Cross(q.vect(), t);
