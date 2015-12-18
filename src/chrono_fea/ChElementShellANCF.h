@@ -32,7 +32,7 @@ namespace fea {
 class ChMaterialShellANCF {
   public:
     ChMaterialShellANCF(double rho, const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G)
-        : m_rho(rho), m_E(E), m_nu(nu), m_G(G), m_damping_K(0) {
+        : m_rho(rho), m_E(E), m_nu(nu), m_G(G) {
         // Calculate E_eps
         double delta = 1.0 - (m_nu.x * m_nu.x) * m_E.y / m_E.x - (m_nu.y * m_nu.y) * m_E.z / m_E.x -
                        (m_nu.z * m_nu.z) * m_E.z / m_E.y - 2.0 * m_nu.x * m_nu.y * m_nu.z * m_E.z / m_E.x;
@@ -55,17 +55,12 @@ class ChMaterialShellANCF {
 
     double Get_rho() const { return m_rho; }
 
-    void Set_RayleighDampingK(double damping_K) { m_damping_K = damping_K; }
-    double Get_RayleighDampingK() const { return m_damping_K; }
-
     const ChMatrixNM<double, 6, 6>& Get_E_eps() const { return m_E_eps; }
 
     double m_rho;     ///< density
     ChVector<> m_E;   ///< E_x, E_y, E_z
     ChVector<> m_nu;  ///< nu_xy, nu_xz, nu_yz
     ChVector<> m_G;   ///< G_xy, G_xz, G_yz
-
-    double m_damping_K;  ///< Rayleigh damping coefficient
 
     ChMatrixNM<double, 6, 6> m_E_eps;  ///< matrix of elastic coefficients
 };
