@@ -2,7 +2,7 @@
 
 #include <chrono_parallel/collision/ChCBroadphase.h>
 #include "chrono_parallel/collision/ChCBroadphaseUtils.h"
-#include "chrono_parallel/collision/ChCBroadphaseFunctions.h"
+#include "chrono_parallel/collision/ChCBroadphaseUtils.h"
 
 //#include <thrust/host_vector.h>
 #include <thrust/transform.h>
