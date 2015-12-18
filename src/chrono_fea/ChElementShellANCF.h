@@ -291,10 +291,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Set the total shell thickness.
     void SetThickness(double th) { m_thickness = th; }
 
-    /// Set the element number (for EAS).
-    /// Used for debugging purposes only.
-    void SetElemNum(int kb) { m_element_number = kb; }
-
     /// Set the storage of the five alpha parameters for EAS (max no. of layers 7)
     void SetStockAlpha(const ChMatrixNM<double, 35, 1>& a) { m_StockAlpha_EAS = a; }
     /// Set all the alpha parameters for EAS
@@ -356,7 +352,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     std::vector<Layer> m_layers;                       ///< element layers
 
     double m_thickness;
-    int m_element_number;                          ///< element number (for EAS)
     double m_Alpha;                                ///< structural damping
     ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< stiffness matrix
     ChMatrixNM<double, 24, 24> m_MassMatrix;       ///< mass matrix

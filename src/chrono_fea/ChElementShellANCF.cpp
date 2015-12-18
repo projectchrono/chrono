@@ -968,7 +968,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 }
 
                 if (m_flag_HE == ANALYTICAL && count > 2) {
-                    GetLog() << m_element_number << "  count " << count << "  NormHE " << norm_HE << "\n";
+                    GetLog() << "  count " << count << "  NormHE " << norm_HE << "\n";
                 }
             }
             Fi -= Finternal;

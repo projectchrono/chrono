@@ -309,7 +309,6 @@ void AddMesh(ChSystem& my_system) {
                           my_mesh->GetNode(NumNodes[elemcount][3]).DynamicCastTo<ChNodeFEAxyzD>());
         element->SetNumLayers(NumLayer(LayNum(i, 0) - 1, 0));
         element->SetThickness(TotalThickness);
-        element->SetElemNum(elemcount);
         element->SetAlphaDamp(0.08);
         element->Setdt(time_step);                 // dt to calculate DampingCoefficient
         element->SetGravityOn(false);              // turn gravity on/off
