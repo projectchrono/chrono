@@ -436,9 +436,11 @@ void UpdateFluid_EveryThing_LF(thrust::device_vector<Real3>& posRadD,
 		const thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray, Real dT);
 
-void Copy_SortedVelXSPH_To_VelXSPH(thrust::device_vector<Real3>& vel_XSPH_D,
+void CopySorted_vXSPH_dVdRho_to_original(thrust::device_vector<Real3>& vel_XSPH_D,
+		thrust::device_vector<Real4>& derivVelRhoD,
 		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
-		thrust::device_vector<uint>& m_dGridMarkerIndex, int numAllMarkers);
+		thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
+		thrust::device_vector<uint>& mapOriginalToSorted, int numAllMarkers);
 
 void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real3>& velMasD,

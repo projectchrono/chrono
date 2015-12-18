@@ -173,7 +173,6 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 	thrust::device_vector<Real3> m_dSortedPosRad(numAllMarkers); // Store positions of each particle in the device memory
 	thrust::device_vector<Real3> m_dSortedVelMas(numAllMarkers); // Store velocities of each particle in the device memory
 	thrust::device_vector<Real4> m_dSortedRhoPreMu(numAllMarkers); // Store Rho, Pressure, Mu of each particle in the device memory
-	thrust::device_vector<Real3> vel_XSPH_Sorted_D(numAllMarkers); // Store XSPH velocities of each particle in the device memory
 	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers); // Store Hash for each particle
 	thrust::device_vector<uint> m_dGridMarkerIndex(numAllMarkers); // Store index for each particle
 	thrust::device_vector<uint> mapOriginalToSorted(numAllMarkers); // Store mapOriginalToSorted[originalIndex] = sortedIndex
@@ -210,33 +209,34 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 				m_dSortedPosRad, m_dCellStart, m_dCellEnd, numAllMarkers);
 	}
 
-	/* Part 2: Collision Detection */
-	/* Process collisions */
-
-	/* Add outside forces. Don't add gravity, it is added in ChSystem */
-	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
-	/* Initialize derivVelRhoD with zero. NECESSARY. */
-	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), mR4(0));
-	//	GpuTimer myT1;
-	//	myT1.Start();
-	/* Add body force to fluid particles. Skip boundary particles that are in the bodies ???????*/
-	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x,
-			derivVelRhoD.begin() + referenceArray[0].y,
-			mR4(totalFluidBodyForce3));  // add body force to fluid particles.
-	//	myT1.Stop();
-	//	Real t1 = (Real)myT1.Elapsed();
-	//	printf("(1) *** fill timer %f, array size %d\n", t1, referenceArray[0].y - referenceArray[0].x);
 	/* Calculate vel_XSPH */
+	thrust::device_vector<Real3> vel_XSPH_Sorted_D(numAllMarkers); // Store XSPH velocities of each particle in the device memory
 	RecalcVelocity_XSPH(vel_XSPH_Sorted_D, m_dSortedPosRad, m_dSortedVelMas,
 			m_dSortedRhoPreMu, m_dGridMarkerIndex, m_dCellStart, m_dCellEnd,
 			numAllMarkers, m_numGridCells);
+
 	/* Collide */
-	collide(derivVelRhoD, m_dSortedPosRad, m_dSortedVelMas, vel_XSPH_Sorted_D,
+	/* Initialize derivVelRhoD with zero. NECESSARY. */
+	thrust::device_vector<Real4> m_dSortedDerivVelRho_fsi_D(numAllMarkers); // Store Rho, Pressure, Mu of each particle in the device memory
+	thrust::fill(m_dSortedDerivVelRho_fsi_D.begin(), m_dSortedDerivVelRho_fsi_D.end(), mR4(0));
+	collide(m_dSortedDerivVelRho_fsi_D, m_dSortedPosRad, m_dSortedVelMas, vel_XSPH_Sorted_D,
 			m_dSortedRhoPreMu, m_dGridMarkerIndex, m_dCellStart, m_dCellEnd,
 			numAllMarkers, m_numGridCells, dT); // Arman: you can probably safely remove dT from this function.
 
-	Copy_SortedVelXSPH_To_VelXSPH(vel_XSPH_D, vel_XSPH_Sorted_D,
-			m_dGridMarkerIndex, numAllMarkers);
+	CopySorted_vXSPH_dVdRho_to_original(vel_XSPH_D, derivVelRhoD, vel_XSPH_Sorted_D, m_dSortedDerivVelRho_fsi_D,
+			mapOriginalToSorted, numAllMarkers);
+	m_dSortedDerivVelRho_fsi_D.clear();
+	vel_XSPH_Sorted_D.clear();
+
+
+	// add gravity to fluid markers
+	/* Add outside forces. Don't add gravity to rigids, BCE, and boundaries, it is added in ChSystem */
+	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
+	thrust::device_vector<Real4> bodyForceD(numAllMarkers);
+	thrust::fill(bodyForceD.begin(), bodyForceD.end(), mR4(totalFluidBodyForce3));
+	thrust::transform(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y,
+			bodyForceD.begin(), derivVelRhoD.begin() + referenceArray[0].x, thrust::plus<Real4>());
+	bodyForceD.clear();
 
 	// set the pressure and density of BC and BCE markers to those of the nearest fluid marker.
 	// I put it here to use the already determined proximity computation
@@ -264,7 +264,6 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 	m_dSortedPosRad.clear();
 	m_dSortedVelMas.clear();
 	m_dSortedRhoPreMu.clear();
-	vel_XSPH_Sorted_D.clear();
 
 	m_dGridMarkerHash.clear();
 	m_dGridMarkerIndex.clear();
@@ -291,10 +290,10 @@ __global__ void Calc_Markers_TorquesD(Real3* torqueMarkersD,
 		Real4* derivVelRhoD, Real3* posRadD, uint* rigidIdentifierD,
 		Real3* posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
 	if (index >= numObjectsD.numRigid_SphMarkers) {
 		return;
 	}
+	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
 	Real3 dist3 = Distance(posRadD[rigidMarkerIndex],
 			posRigidD[rigidIdentifierD[index]]);
 	torqueMarkersD[index] = paramsD.markerMass
@@ -339,11 +338,11 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 		Real3* rigidSPH_MeshPos_LRF_D, Real3* posRadD, uint* rigidIdentifierD,
 		Real3* posRigidD, Real4* qD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortion = [start, end] index of the update portion
 	if (index >= numObjectsD.numRigid_SphMarkers) {
 		return;
 	}
 	int rigidIndex = rigidIdentifierD[index];
+	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortion = [start, end] index of the update portion
 	Real4 q4 = qD[rigidIndex];
 	;
 	Real3 a1, a2, a3;
@@ -592,7 +591,7 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 	computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
 
 	if (m_dSortedVelMas.size() != numAllMarkers) {
-		throw std::runtime_error ("m_dSortedVelMas size is not correct !\n");
+		throw std::runtime_error ("m_dSortedVelMas size is not correct: thrown from collideSphereSphere.cu, ForceSPH_LF !\n");
 	}
 	thrust::copy(m_dSortedVelMas.begin(), m_dSortedVelMas.end(), dummy_XSPH.begin());
 	cudaThreadSynchronize();

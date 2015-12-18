@@ -4,11 +4,12 @@
  *  Created on: Mar 2, 2013
  *      Author: Arman Pazouki
  */
+#include <thrust/sort.h>
 #include "chrono_fsi/SDKCollisionSystem.cuh"
+
 
 //#include "extraOptionalFunctions.cuh"
 //#include "SDKCollisionSystemAdditional.cuh"
-
 
 /**
  * @brief calcGridHash
@@ -111,7 +112,7 @@ __device__ inline Real3 DifVelocity_SSI_DEM(const Real3& dist3, const Real& d,
 	Real m_eff = 0.5 * paramsD.markerMass; //(mA * mB) / (mA + mB);
 	Real3 force = (/*pow(paramsD.sizeScale, Real(3)) * */kS * l
 			- kD * m_eff * dot(velMasA - velMasB, n)) * n; // relative velocity at contact is simply assumed as the relative vel of the centers. If you are
-																// updating the rotation, this should be modified.
+														   // updating the rotation, this should be modified.
 	return force / paramsD.markerMass;  // return dV/dT same as SPH
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -163,7 +164,8 @@ __device__ Real3 deltaVShare(int3 gridPos, uint index, Real3 posRadA,
 				// colagrossi (2003), the other phase (i.e. rigid) should not be considered)
 				Real multRho = 2.0f / (rhoPresMuA.x + rhoPresMuB.x);
 				Real3 velMasB = FETCH(sortedVelMas, j);
-				deltaV += paramsD.markerMass * (velMasB - velMasA) * W3(d) * multRho;
+				deltaV += paramsD.markerMass * (velMasB - velMasA) * W3(d)
+						* multRho;
 			}
 		}
 	}
@@ -243,8 +245,8 @@ __device__ __inline__ void modifyPressure(Real4& rhoPresMuB,
 __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 		Real3 velMasA, Real3 vel_XSPH_A, Real4 rhoPresMuA, Real3* sortedPosRad,
 		Real3* sortedVelMas, Real3* vel_XSPH_Sorted_D, Real4* sortedRhoPreMu,
+		uint* cellStart, uint* cellEnd) {
 
-		uint* cellStart, uint* cellEnd, uint* gridMarkerIndex) {
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
 	Real3 derivV = mR3(0.0f);
@@ -265,7 +267,8 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 					continue;
 
 				Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
-				if ((fabs(rhoPresMuB.w - rhoPresMuA.w) < .1) && rhoPresMuA.w> -.1) {
+				if ((fabs(rhoPresMuB.w - rhoPresMuA.w) < .1)
+						&& rhoPresMuA.w > -.1) {
 					continue;
 				}
 				Real3 velMasB = FETCH(sortedVelMas, j);
@@ -290,8 +293,8 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 __device__ __inline__ void stressCell(Real3& devS3, Real3& volS3, int3 gridPos,
 		uint index, Real3 posRadA, Real3 velMasA, Real4 rhoPresMuA,
 		Real3* sortedPosRad, Real3* sortedVelMas, Real4* sortedRhoPreMu,
-
 		uint* cellStart, uint* cellEnd) {
+
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
 	Real3 derivV = mR3(0.0f);
@@ -322,7 +325,8 @@ __device__ __inline__ void stressCell(Real3& devS3, Real3& volS3, int3 gridPos,
 						mR3(vr.x * gradW.y + vr.y * gradW.x,
 								vr.x * gradW.z + vr.z * gradW.x,
 								vr.y * gradW.z + vr.z * gradW.y);
-				volS3 += -paramsD.mu0 * paramsD.markerMass / rhoPresMuB.x * 4.0 / 3.0
+				volS3 += -paramsD.mu0 * paramsD.markerMass / rhoPresMuB.x * 4.0
+						/ 3.0
 						* mR3(vr.x * gradW.x, vr.y * gradW.y, vr.z * gradW.z);
 			}
 		}
@@ -334,6 +338,7 @@ __device__ void collideCellDensityReInit(Real& densityShare, Real& denominator,
 		int3 gridPos, uint index, Real3 posRadA, Real3* sortedPosRad,
 		Real3* sortedVelMas, Real4* sortedRhoPreMu, uint* cellStart,
 		uint* cellEnd) {
+
 	//?c2 printf("grid pos %d %d %d \n", gridPos.x, gridPos.y, gridPos.z);
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
@@ -353,7 +358,7 @@ __device__ void collideCellDensityReInit(Real& densityShare, Real& denominator,
 				Real d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
 					continue;
-				Real partialDensity = paramsD.markerMass * W3(d);  // optimize it ?$
+				Real partialDensity = paramsD.markerMass * W3(d); // optimize it ?$
 				densityShare2 += partialDensity;
 				denominator2 += partialDensity / rhoPreMuB.x;
 				// if (fabs(W3(d)) < .00000001) {printf("good evening, distance %f %f %f\n", dist3.x, dist3.y, dist3.z);
@@ -371,6 +376,7 @@ __device__ void collideCellDensityReInit(Real& densityShare, Real& denominator,
 __device__ void projectTheClosestFluidMarker(Real3& distRhoPress, int3 gridPos,
 		uint index, Real3 posRadA, Real3* sortedPosRad, Real4* sortedRhoPreMu,
 		uint* cellStart, uint* cellEnd) {
+
 	//?c2 printf("grid pos %d %d %d \n", gridPos.x, gridPos.y, gridPos.z);
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
@@ -400,6 +406,7 @@ __device__ void calcOnCartesianShare(Real3& v_share, Real4& rp_share,
 		int3 gridPos, Real4 gridNodePos4, Real3* sortedPosRad,
 		Real3* sortedVelMas, Real4* sortedRhoPreMu, uint* cellStart,
 		uint* cellEnd) {
+
 	//?c2 printf("grid pos %d %d %d \n", gridPos.x, gridPos.y, gridPos.z);
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
@@ -438,12 +445,17 @@ __global__ void calcHashD(uint* gridMarkerHash,   // output
 		uint* gridMarkerIndex,  // output
 		Real3* posRad,          // input: positions
 		Real4* rp, uint numAllMarkers) {
+
 	/* Calculate the index of where the particle is stored in posRad. */
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index >= numAllMarkers)
 		return;
 
 	Real3 p = posRad[index];
+
+	if (!(isfinite(p.x) && isfinite(p.y) && isfinite(p.z))) {
+		printf("Error! particle position is NAN: thrown from SDKCollisionSystem.cu, calcHashD !\n");
+	}
 
 	/* Check particle is inside the domain. */
 	Real3 boxCorner = paramsD.worldOrigin;
@@ -480,16 +492,14 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStart, // output: cell st
 		Real3* sortedVelMas,  // output: sorted velocities
 		Real4* sortedRhoPreMu, uint* gridMarkerHash, // input: sorted grid hashes
 		uint* gridMarkerIndex,      // input: sorted particle indices
-		uint* mapOriginalToSorted, // mapOriginalToSorted[originalIndex] = sortedIndex
+		uint* mapOriginalToSorted, // mapOriginalToSorted[originalIndex] = originalIndex
 		Real3* oldPosRad,           // input: sorted position array
 		Real3* oldVelMas,           // input: sorted velocity array
 		Real4* oldRhoPreMu, uint numAllMarkers) {
 	extern __shared__ uint sharedHash[];  // blockSize + 1 elements
 	/* Get the particle index the current thread is supposed to be looking at. */
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-
 	uint hash;
-
 	/* handle case when no. of particles not multiple of block size */
 	if (index < numAllMarkers) {
 		hash = gridMarkerHash[index];
@@ -522,12 +532,24 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStart, // output: cell st
 		}
 
 		/* Now use the sorted index to reorder the pos and vel data */
-		uint sortedIndex = gridMarkerIndex[index];  // map sorted to original
-		mapOriginalToSorted[sortedIndex] = index;
-		Real3 posRad = FETCH(oldPosRad, sortedIndex); // macro does either global read or texture fetch
-		Real3 velMas = FETCH(oldVelMas, sortedIndex); // see particles_kernel.cuh
-		Real4 rhoPreMu = FETCH(oldRhoPreMu, sortedIndex);
+		uint originalIndex = gridMarkerIndex[index];  // map sorted to original
+		mapOriginalToSorted[index] = index;	// will be sorted outside. Alternatively, you could have mapOriginalToSorted[originalIndex] = index; without need to sort. But that is not thread safe
+		Real3 posRad = FETCH(oldPosRad, originalIndex); // macro does either global read or texture fetch
+		Real3 velMas = FETCH(oldVelMas, originalIndex); // see particles_kernel.cuh
+		Real4 rhoPreMu = FETCH(oldRhoPreMu, originalIndex);
 
+		if (!(isfinite(posRad.x) && isfinite(posRad.y)
+				&& isfinite(posRad.z))) {
+			printf("Error! particle position is NAN: thrown from SDKCollisionSystem.cu, reorderDataAndFindCellStartD !\n");
+		}
+		if (!(isfinite(velMas.x) && isfinite(velMas.y)
+				&& isfinite(velMas.z))) {
+			printf("Error! particle velocity is NAN: thrown from SDKCollisionSystem.cu, reorderDataAndFindCellStartD !\n");
+		}
+		if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y)
+				&& isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
+			printf("Error! particle rhoPreMu is NAN: thrown from SDKCollisionSystem.cu, reorderDataAndFindCellStartD !\n");
+		}
 		sortedPosRad[index] = posRad;
 		sortedVelMas[index] = velMas;
 		sortedRhoPreMu[index] = rhoPreMu;
@@ -576,7 +598,12 @@ __global__ void newVel_XSPH_D(Real3* vel_XSPH_Sorted_D,  // output: new velocity
 
 	// write new velocity back to original unsorted location
 	// uint originalIndex = gridMarkerIndex[index];
-	vel_XSPH_Sorted_D[index] = velMasA + paramsD.EPS_XSPH * deltaV;
+	Real3 vXSPH = velMasA + paramsD.EPS_XSPH * deltaV;
+	if (!(isfinite(vXSPH.x) && isfinite(vXSPH.y)
+			&& isfinite(vXSPH.z))) {
+		printf("Error! particle vXSPH is NAN: thrown from SDKCollisionSystem.cu, newVel_XSPH_D !\n");
+	}
+	vel_XSPH_Sorted_D[index] = vXSPH;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void new_BCE_VelocityPressure(
@@ -620,8 +647,7 @@ __global__ void new_BCE_VelocityPressure(
 	}
 
 	if (isAffected) {
-		Real3 modifiedBCE_v = 2 * velMasA
-				- mR3(deltaVDenom) / deltaVDenom.w;
+		Real3 modifiedBCE_v = 2 * velMasA - mR3(deltaVDenom) / deltaVDenom.w;
 		sortedVelMas_ModifiedBCE[index] = modifiedBCE_v;
 
 		Real pressure = (deltaRP.w + dot(paramsD.gravity, mR3(deltaRP)))
@@ -635,13 +661,12 @@ __global__ void new_BCE_VelocityPressure(
 	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void collideD(Real4* derivVelRhoD,  // output: new velocity
+__global__ void collideD(Real4* sortedDerivVelRho_fsi_D,  // output: new velocity
 		Real3* sortedPosRad,  // input: sorted positions
 		Real3* sortedVelMas,  // input: sorted velocities
 		Real3* vel_XSPH_Sorted_D, Real4* sortedRhoPreMu,
-
-		uint* gridMarkerIndex,  // input: sorted particle indices
 		uint* cellStart, uint* cellEnd, uint numAllMarkers) {
+
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index >= numAllMarkers)
 		return;
@@ -651,10 +676,10 @@ __global__ void collideD(Real4* derivVelRhoD,  // output: new velocity
 	Real3 velMasA = FETCH(sortedVelMas, index);
 	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
 
-	uint originalIndex = gridMarkerIndex[index];
+//	uint originalIndex = gridMarkerIndex[index];
 	Real3 vel_XSPH_A = FETCH(vel_XSPH_Sorted_D, index);
 
-	Real4 derivVelRho = derivVelRhoD[originalIndex];
+	Real4 derivVelRho = sortedDerivVelRho_fsi_D[index];
 
 	// get address in grid
 	int3 gridPos = calcGridPos(posRadA);
@@ -666,16 +691,18 @@ __global__ void collideD(Real4* derivVelRhoD,  // output: new velocity
 				derivVelRho += collideCell(gridPos + mI3(x, y, z), index,
 						posRadA, velMasA, vel_XSPH_A, rhoPreMuA, sortedPosRad,
 						sortedVelMas, vel_XSPH_Sorted_D, sortedRhoPreMu,
-						cellStart, cellEnd, gridMarkerIndex);
+						cellStart, cellEnd);
 			}
 		}
 	}
 
 	// write new velocity back to original unsorted location
 	// *** let's tweak a little bit :)
-	Real3 derivV = mR3(derivVelRho);
-
-	derivVelRhoD[originalIndex] = derivVelRho;
+	if (!(isfinite(derivVelRho.x) && isfinite(derivVelRho.y)
+			&& isfinite(derivVelRho.z) && isfinite(derivVelRho.w))) {
+		printf("Error! particle derivVelRho is NAN: thrown from SDKCollisionSystem.cu, collideD !\n");
+	}
+	sortedDerivVelRho_fsi_D[index] = derivVelRho;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // calculate particles stresses
@@ -689,12 +716,12 @@ __global__ void CalcBCE_Stresses_kernel(Real3* devStressD, Real3* volStressD,
 	// Arman take care of this
 	uint BCE_Index = index
 			+ min(numObjectsD.startRigidMarkers, numObjectsD.startRigidMarkers); // updatePortion = [start, end] index of the update portion
-	uint sortedIndex = mapOriginalToSorted[BCE_Index]; // index in the sorted array
+	uint originalIndex = mapOriginalToSorted[BCE_Index]; // index in the sorted array
 
 	// read particle data from sorted arrays
-	Real3 posRadA = FETCH(sortedPosRad, sortedIndex);
-	Real3 velMasA = FETCH(sortedVelMas, sortedIndex);
-	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, sortedIndex);
+	Real3 posRadA = FETCH(sortedPosRad, originalIndex);
+	Real3 velMasA = FETCH(sortedVelMas, originalIndex);
+	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, originalIndex);
 
 	// get address in grid
 	int3 gridPos = calcGridPos(posRadA);
@@ -706,7 +733,7 @@ __global__ void CalcBCE_Stresses_kernel(Real3* devStressD, Real3* volStressD,
 	for (int x = -1; x <= 1; x++) {
 		for (int y = -1; y <= 1; y++) {
 			for (int z = -1; z <= 1; z++) {
-				stressCell(devS3, volS3, gridPos + mI3(x, y, z), sortedIndex,
+				stressCell(devS3, volS3, gridPos + mI3(x, y, z), originalIndex,
 						posRadA, velMasA, rhoPreMuA, sortedPosRad, sortedVelMas,
 						sortedRhoPreMu, cellStart, cellEnd);
 			}
@@ -776,7 +803,8 @@ __global__ void ReCalcDensityD_F1(Real3* oldPosRad, Real3* oldVelMas,
 	uint originalIndex = gridMarkerIndex[index];
 
 	Real newDensity = densityShare + paramsD.markerMass * W3(0); //?$ include the particle in its summation as well
-	Real newDenominator = denominator + paramsD.markerMass * W3(0) / rhoPreMuA.x;
+	Real newDenominator = denominator
+			+ paramsD.markerMass * W3(0) / rhoPreMuA.x;
 	if (rhoPreMuA.w < 0) {
 		//		rhoPreMuA.x = newDensity; // old version
 		rhoPreMuA.x = newDensity / newDenominator;  // correct version
@@ -827,13 +855,10 @@ __global__ void ProjectDensityPressureToBCandBCE_D(Real4* oldRhoPreMu,
 __global__ void CalcCartesianDataD(Real4* rho_Pres_CartD,
 		Real4* vel_VelMag_CartD, Real3* sortedPosRad, Real3* sortedVelMas,
 		Real4* sortedRhoPreMu, uint* gridMarkerIndex, uint* cellStart,
-		uint* cellEnd,
-		int3 cartesianGridDims,
-		Real resolution) {
+		uint* cellEnd, int3 cartesianGridDims, Real resolution) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index
-			>= cartesianGridDims.x * cartesianGridDims.y
-					* cartesianGridDims.z)
+			>= cartesianGridDims.x * cartesianGridDims.y * cartesianGridDims.z)
 		return;
 
 	int3 gridLoc;
@@ -958,7 +983,8 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateFluidD_init_LF(Real3* posRadD, Real3* velMasD_half,
-		Real4* rhoPresMuD_half, Real4* derivVelRhoD, int2 updatePortion, Real dT) {
+		Real4* rhoPresMuD_half, Real4* derivVelRhoD, int2 updatePortion,
+		Real dT) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	index += updatePortion.x; // updatePortion = [start, end] index of the update portion
 	if (index >= updatePortion.y) {
@@ -983,7 +1009,8 @@ __global__ void UpdateFluidD_init_LF(Real3* posRadD, Real3* velMasD_half,
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateFluidD_rho_vel_LF(Real3* velMasD, Real4* rhoPresMuD,
-		Real3* velMasD_old, Real4* rhoPresMuD_old, Real4* derivVelRhoD, int2 updatePortion, Real dT) {
+		Real3* velMasD_old, Real4* rhoPresMuD_old, Real4* derivVelRhoD,
+		int2 updatePortion, Real dT) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	index += updatePortion.x; // updatePortion = [start, end] index of the update portion
 	if (index >= updatePortion.y) {
@@ -1029,7 +1056,8 @@ __global__ void UpdateFluidD_rho_vel_LF(Real3* velMasD, Real4* rhoPresMuD,
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateFluidD_EveryThing_LF(Real3* posRadD, Real3* velMasD_half,
-		Real4* rhoPresMuD_half, Real4* derivVelRhoD, int2 updatePortion, Real dT) {
+		Real4* rhoPresMuD_half, Real4* derivVelRhoD, int2 updatePortion,
+		Real dT) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	index += updatePortion.x; // updatePortion = [start, end] index of the update portion
 	if (index >= updatePortion.y) {
@@ -1083,12 +1111,16 @@ __global__ void UpdateFluidD_EveryThing_LF(Real3* posRadD, Real3* velMasD_half,
  * @param vel_XSPH_Sorted_D Pointer to new sorted vel_XSPH vector
  * @param m_dGridMarkerIndex List of indeces used to sort vel_XSPH_D
  */
-__global__ void Copy_SortedVelXSPH_To_VelXSPHD(Real3* vel_XSPH_D,
-		Real3* vel_XSPH_Sorted_D, uint* m_dGridMarkerIndex) {
+
+__global__ void CopySorted_vXSPH_dVdRho_to_original_kernel(Real3* vel_XSPH_D,
+		Real4* derivVelRhoD,
+		Real3* vel_XSPH_Sorted_D, Real4* sortedDerivVelRho_fsi_D,
+		uint* mapOriginalToSorted) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index >= numObjectsD.numAllMarkers)
 		return;
-	vel_XSPH_D[m_dGridMarkerIndex[index]] = vel_XSPH_Sorted_D[index];
+	vel_XSPH_D[index] = vel_XSPH_Sorted_D[mapOriginalToSorted[index]];
+	derivVelRhoD[index] = sortedDerivVelRho_fsi_D[mapOriginalToSorted[index]];
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1207,7 +1239,6 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real3* posRadD,
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%
-
 //--------------------------------------------------------------------------------------------------------------------------------
 void allocateArray(void** devPtr, size_t size) {
 	cudaMalloc(devPtr, size);
@@ -1269,6 +1300,7 @@ void calcHash(thrust::device_vector<uint>& gridMarkerHash,
 		thrust::device_vector<Real4>& rhoPreMu, int numAllMarkers) {
 	/* Is there a need to optimize the number of threads used at once? */
 	uint numThreads, numBlocks;
+
 	computeGridSize(numAllMarkers, 256, numBlocks, numThreads);
 
 	/* Execute Kernel */
@@ -1324,6 +1356,12 @@ void reorderDataAndFindCellStart(thrust::device_vector<uint>& cellStart,
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;
+
+	// unroll sorted index to have the location of original particles in the sorted arrays
+	thrust::device_vector<uint> dummyIndex = gridMarkerIndex;
+	thrust::sort_by_key(dummyIndex.begin(), dummyIndex.end(),
+			mapOriginalToSorted.begin());
+	dummyIndex.clear();
 	//#if USE_TEX
 	//#if 0
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -1424,7 +1462,7 @@ void CalcBCE_Stresses(thrust::device_vector<Real3>& devStressD,
  * @details
  * 		See SDKCollisionSystem.cuh for informaton on collide
  */
-void collide(thrust::device_vector<Real4>& derivVelRhoD,
+void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
 		thrust::device_vector<Real3>& sortedPosRad,
 		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
@@ -1446,15 +1484,21 @@ void collide(thrust::device_vector<Real4>& derivVelRhoD,
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
-	collideD<<<numBlocks, numThreads>>>(mR4CAST(derivVelRhoD),
+	collideD<<<numBlocks, numThreads>>>(mR4CAST(sortedDerivVelRho_fsi_D),
 			mR3CAST(sortedPosRad), mR3CAST(sortedVelMas),
 			mR3CAST(vel_XSPH_Sorted_D), mR4CAST(sortedRhoPreMu),
-			U1CAST(gridMarkerIndex), U1CAST(cellStart), U1CAST(cellEnd),
+			U1CAST(cellStart), U1CAST(cellEnd),
 			numAllMarkers);
 
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
+
+//					// unroll sorted index to have the location of original particles in the sorted arrays
+//					thrust::device_vector<uint> dummyIndex = gridMarkerIndex;
+//					thrust::sort_by_key(dummyIndex.begin(), dummyIndex.end(),
+//							derivVelRhoD.begin());
+//					dummyIndex.clear();
+
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -1556,7 +1600,8 @@ void CalcCartesianData(thrust::device_vector<Real4>& rho_Pres_CartD,
 	CalcCartesianDataD<<<numBlocks, numThreads>>>(mR4CAST(rho_Pres_CartD),
 			mR4CAST(vel_VelMag_CartD), mR3CAST(sortedPosRad),
 			mR3CAST(sortedVelMas), mR4CAST(sortedRhoPreMu),
-			U1CAST(gridMarkerIndex), U1CAST(cellStart), U1CAST(cellEnd), cartesianGridDims, resolution);
+			U1CAST(gridMarkerIndex), U1CAST(cellStart), U1CAST(cellEnd),
+			cartesianGridDims, resolution);
 
 	cudaThreadSynchronize();
 	cudaCheckError()
@@ -1588,7 +1633,6 @@ void UpdateFluid(thrust::device_vector<Real3>& posRadD,
 //	int2 updatePortion = mI2(referencePortion);
 	int2 updatePortion = mI2(0, referenceArray[referenceArray.size() - 1].y);
 	// int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
-
 
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid,
@@ -1678,14 +1722,17 @@ void UpdateFluid_EveryThing_LF(thrust::device_vector<Real3>& posRadD,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void Copy_SortedVelXSPH_To_VelXSPH(thrust::device_vector<Real3>& vel_XSPH_D,
+void CopySorted_vXSPH_dVdRho_to_original(thrust::device_vector<Real3>& vel_XSPH_D,
+		thrust::device_vector<Real4>& derivVelRhoD,
 		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
-		thrust::device_vector<uint>& m_dGridMarkerIndex, int numAllMarkers) {
+		thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
+		thrust::device_vector<uint>& mapOriginalToSorted, int numAllMarkers) {
 	uint nBlock_NumSpheres, nThreads_SphMarkers;
 	computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
-	Copy_SortedVelXSPH_To_VelXSPHD<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
-			mR3CAST(vel_XSPH_D), mR3CAST(vel_XSPH_Sorted_D),
-			U1CAST(m_dGridMarkerIndex));
+	CopySorted_vXSPH_dVdRho_to_original_kernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
+			mR3CAST(vel_XSPH_D), mR4CAST(derivVelRhoD),
+			mR3CAST(vel_XSPH_Sorted_D),mR4CAST(sortedDerivVelRho_fsi_D),
+			U1CAST(mapOriginalToSorted));
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;
@@ -1708,7 +1755,8 @@ void UpdateBoundary(thrust::device_vector<Real3>& posRadD,
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid,
 			nThreads);
 	UpdateKernelBoundary<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(posRadD),
-			mR3CAST(velMasD), mR4CAST(rhoPresMuD), mR4CAST(derivVelRhoD), updatePortion, dT);
+			mR3CAST(velMasD), mR4CAST(rhoPresMuD), mR4CAST(derivVelRhoD),
+			updatePortion, dT);
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;
