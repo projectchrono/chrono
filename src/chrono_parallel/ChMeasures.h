@@ -51,11 +51,22 @@ struct solver_measures {
         total_iteration = 0;
         residual = 0;
         objective_value = 0;
+
+        bilateral_apgd_step_length = 1;
+        normal_apgd_step_length = 1;
+        sliding_apgd_step_length = 1;
+        spinning_apgd_step_length = 1;
+        old_objective_value = 0;
     }
     int total_iteration;       // The total number of iterations performed, this variable accumulates
     real residual;             // Current residual for the solver
     real objective_value;      // Current objective value for the solver
     real old_objective_value;  // Objective value from the previous iter
+
+    real bilateral_apgd_step_length;
+    real normal_apgd_step_length;
+    real sliding_apgd_step_length;
+    real spinning_apgd_step_length;
 
     // These three variables are used to store the convergence history of the solver
     std::vector<real> maxd_hist, maxdeltalambda_hist, time;

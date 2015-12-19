@@ -56,7 +56,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
 
     residual = 10e30;
     g_diff = 1.0 / pow(size, 2.0);
-
+    t = L = 1.0;
     theta = 1;
     theta_new = theta;
     beta_new = 0.0;
@@ -72,29 +72,45 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
 
     temp = gamma - one;
     real norm_temp = Sqrt((real)(temp, temp));
+    if (data_manager->settings.solver.cache_step_length == false) {
+        // If gamma is one temp should be zero, in that case set L to one
+        // We cannot divide by 0
+        if (norm_temp == 0) {
+            L = 1.0;
+        } else {
+            // If the N matrix is zero for some reason, temp will be zero
+            ShurProduct(temp, temp);
+            // If temp is zero then L will be zero
+            L = Sqrt((real)(temp, temp)) / norm_temp;
+        }
+        // When L is zero the step length can't be computed, in this case just return
+        // If the N is indeed zero then solving doesn't make sense
+        if (L == 0) {
+            // For certain simulations returning here will not perform any iterations
+            // even when there are contacts that aren't resolved. Changed it from return 0
+            // to L=t=1;
+            // return 0;
+            L = t = 1;
+        } else {
+            // Compute the step size
+            t = 1.0 / L;
+        }
+    } else {
+        if (data_manager->settings.solver.solver_mode == NORMAL) {
+            L = data_manager->measures.solver.normal_apgd_step_length;
+        } else if (data_manager->settings.solver.solver_mode == SLIDING) {
+            L = data_manager->measures.solver.sliding_apgd_step_length;
+        } else if (data_manager->settings.solver.solver_mode == SPINNING) {
+            L = data_manager->measures.solver.spinning_apgd_step_length;
+        } else if (data_manager->settings.solver.solver_mode == BILATERAL) {
+            L = data_manager->measures.solver.bilateral_apgd_step_length;
+        } else {
+            L = 1.0;
+        }
 
-    // If gamma is one temp should be zero, in that case set L to one
-    // We cannot divide by 0
-    if (norm_temp == 0) {
-        L = 1.0;
-    } else {
-        // If the N matrix is zero for some reason, temp will be zero
-        ShurProduct(temp, temp);
-        // If temp is zero then L will be zero
-        L = Sqrt((real)(temp, temp)) / norm_temp;
     }
-    // When L is zero the step length can't be computed, in this case just return
-    // If the N is indeed zero then solving doesn't make sense
-    if (L == 0) {
-        // For certain simulations returning here will not perform any iterations
-        // even when there are contacts that aren't resolved. Changed it from return 0
-        // to L=t=1;
-        // return 0;
-        L = t = 1;
-    } else {
-        // Compute the step size
-        t = 1.0 / L;
-    }
+
+    t = 1.0 / L;
     y = gamma;
     // If no iterations are performed or the residual is NAN (which is shouldnt be)
     // make sure that gamma_hat has something inside of it. Otherwise gamma will be
@@ -169,6 +185,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
 
         L = 0.9 * L;
         t = 1.0 / L;
+
         theta = theta_new;
         gamma = gamma_new;
 
@@ -176,7 +193,15 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
             UpdateR();
         }
     }
-
+    if (data_manager->settings.solver.solver_mode == NORMAL) {
+        data_manager->measures.solver.normal_apgd_step_length = L;
+    } else if (data_manager->settings.solver.solver_mode == SLIDING) {
+        data_manager->measures.solver.sliding_apgd_step_length = L;
+    } else if (data_manager->settings.solver.solver_mode == SPINNING) {
+        data_manager->measures.solver.spinning_apgd_step_length = L;
+    } else if (data_manager->settings.solver.solver_mode == BILATERAL) {
+        data_manager->measures.solver.bilateral_apgd_step_length = L;
+    }
     gamma = gamma_hat;
 
     data_manager->system_timer.stop("ChSolverParallel_Solve");
