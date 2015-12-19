@@ -128,6 +128,9 @@ void ChElementShellANCF::SetupInitial(ChSystem* system) {
         m_GaussZ.push_back(2 * z / m_thickness - 1);
     }
 
+    // Cache the scaling factor (due to change of integration intervals)
+    m_GaussScaling = (m_lenX * m_lenY * m_thickness) / 8;
+
     // Compute mass matrix and gravitational forces (constant)
     ComputeMassMatrix();
     ComputeGravityForce(system->Get_G_acc());
@@ -195,18 +198,18 @@ void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
 /// This class defines the calculations for the integrand of the inertia matrix.
 class MyMass : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
 public:
-  MyMass(ChElementShellANCF* element_) : element(element_) {}
+  MyMass(ChElementShellANCF* element) : m_element(element) {}
   ~MyMass() {}
 
 private:
-    ChElementShellANCF* element;
+    ChElementShellANCF* m_element;
 
     virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) override;
 };
 
 void MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) {
     ChMatrixNM<double, 1, 8> N;
-    element->ShapeFunctions(N, x, y, z);
+    m_element->ShapeFunctions(N, x, y, z);
 
     // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3) N5*eye(3) N6*eye(3) N7*eye(3) N8*eye(3)]
     ChMatrixNM<double, 3, 24> S;
@@ -228,13 +231,13 @@ void MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const 
     Si.FillDiag(N(7));
     S.PasteMatrix(&Si, 0, 21);
 
-    double detJ0 = element->Calc_detJ0(x, y, z);
+    double detJ0 = m_element->Calc_detJ0(x, y, z);
 
     // perform  r = S'*S
     result.MatrTMultiply(S, S);
 
     // multiply integration weights
-    result *= detJ0 * (element->GetLengthX() / 2) * (element->GetLengthY() / 2) * (element->m_thickness / 2);
+    result *= detJ0 * (m_element->m_GaussScaling);
 };
 
 void ChElementShellANCF::ComputeMassMatrix() {
@@ -265,34 +268,29 @@ void ChElementShellANCF::ComputeMassMatrix() {
 /// This class defines the calculations for the integrand of the element gravity forces
 class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
 public:
-  MyGravity(ChElementShellANCF* element_, const ChVector<> gacc_) : element(element_), gacc(gacc_) {}
+  MyGravity(ChElementShellANCF* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
   ~MyGravity() {}
 
 private:
-    ChElementShellANCF* element;
-    ChVector<> gacc;
+    ChElementShellANCF* m_element;
+    ChVector<> m_gacc;
 
     virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z) override;
 };
 
 void MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z) {
     ChMatrixNM<double, 1, 8> N;
-    element->ShapeFunctions(N, x, y, z);
+    m_element->ShapeFunctions(N, x, y, z);
 
-    // Weights for Gaussian integration
-    double wx2 = (element->GetLengthX()) / 2.0;
-    double wy2 = (element->GetLengthY()) / 2.0;
-    double wz2 = (element->m_thickness) / 2.0;
-
-    double detJ0 = element->Calc_detJ0(x, y, z);
+    double detJ0 = m_element->Calc_detJ0(x, y, z);
 
     for (int i = 0; i < 8; i++) {
-        result(i * 3 + 0, 0) = N(0, i) * gacc.x;
-        result(i * 3 + 1, 0) = N(0, i) * gacc.y;
-        result(i * 3 + 2, 0) = N(0, i) * gacc.z;
+        result(i * 3 + 0, 0) = N(0, i) * m_gacc.x;
+        result(i * 3 + 1, 0) = N(0, i) * m_gacc.y;
+        result(i * 3 + 2, 0) = N(0, i) * m_gacc.z;
     }
 
-    result *= detJ0 * wx2 * wy2 * wz2;
+    result *= detJ0 * m_element->m_GaussScaling;
 };
 
 void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
@@ -699,14 +697,14 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     temp246.MatrTMultiply(strainD, E_eps);
     temp249.MatrTMultiply(Gd, Sigm);
     JAC11 = (temp246 * strainD * (1.0 + DampCoefficient * (m_element->m_Alpha))) + temp249 * Gd;
-    JAC11 *= detJ0 * (m_element->GetLengthX() / 2.0) * (m_element->GetLengthY() / 2.0) * (m_element->m_thickness / 2.0);
+    JAC11 *= detJ0 * (m_element->m_GaussScaling);
 
     // Internal force calculation
     ChMatrixNM<double, 24, 1> Fint;
     ChMatrixNM<double, 24, 6> tempC;
     tempC.MatrTMultiply(strainD, E_eps);
     Fint.MatrMultiply(tempC, strain);
-    Fint *= detJ0 * (m_element->GetLengthX() / 2) * (m_element->GetLengthY() / 2) * (m_element->m_thickness / 2);
+    Fint *= detJ0 * (m_element->m_GaussScaling);
 
     // For EAS
     ChMatrixNM<double, 5, 6> temp56;
@@ -716,11 +714,11 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     ChMatrixNM<double, 5, 5> KALPHA;   // EAS Jacobian
 
     HE1.MatrMultiply(temp56, strain);
-    HE1 *= detJ0 * (m_element->GetLengthX() / 2.0) * (m_element->GetLengthY() / 2.0) * (m_element->m_thickness / 2.0);
+    HE1 *= detJ0 * (m_element->m_GaussScaling);
     GDEPSP.MatrMultiply(temp56, strainD);
-    GDEPSP *= detJ0 * (m_element->GetLengthX() / 2.0) * (m_element->GetLengthY() / 2.0) * (m_element->m_thickness / 2.0);
+    GDEPSP *= detJ0 * (m_element->m_GaussScaling);
     KALPHA.MatrMultiply(temp56, G);
-    KALPHA *= detJ0 * (m_element->GetLengthX() / 2.0) * (m_element->GetLengthY() / 2.0) * (m_element->m_thickness / 2.0);
+    KALPHA *= detJ0 * (m_element->m_GaussScaling);
 
     /// Total result vector
     result.Reset();
@@ -1425,7 +1423,7 @@ void ChElementShellANCF::ComputeNF(
     ShapeFunctions(N, U, V, W);
 
     detJ = Calc_detJ0(U, V, W);
-    detJ *= GetLengthX() * GetLengthY() * m_thickness / 8.0;
+    detJ *= m_GaussScaling;
 
     ChVector<> tmp;
     ChVector<> Fv = F.ClipVector(0, 0);

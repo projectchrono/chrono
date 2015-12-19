@@ -210,6 +210,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     double m_lenY;                                     ///< element length in Y direction
     double m_thickness;                                ///< total element thickness
     std::vector<double> m_GaussZ;                      ///< layer separation z values (scaled to [-1,1])
+    double m_GaussScaling;                             ///< scaling factor due to change of integration intervals
     double m_Alpha;                                    ///< structural damping
     ChMatrixNM<double, 24, 24> m_StiffnessMatrix;      ///< stiffness matrix
     ChMatrixNM<double, 24, 24> m_MassMatrix;           ///< mass matrix
