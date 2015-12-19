@@ -867,7 +867,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 strainD_ans.Reset();
 
                 // Assumed Natural Strain (ANS)
-                AssumedNaturalStrain_BilinearShell(d, m_d0, strain_ans, strainD_ans);
+                AssumedNaturalStrain_BilinearShell(d, strain_ans, strainD_ans);
 
                 // MyForce constructor;
                 MyForce myformula(this, kl, &d, &d_dt, &strain_ans, &strainD_ans, &alpha_eas);
@@ -1087,8 +1087,7 @@ double ChElementShellANCF::Calc_detJ0(double x, double y, double z) {
 //
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8, 3>& d,
-                                                            ChMatrixNM<double, 8, 3>& d0,
+void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(const ChMatrixNM<double, 8, 3>& d,
                                                             ChMatrixNM<double, 8, 1>& strain_ans,
                                                             ChMatrixNM<double, 8, 24>& strainD_ans) {
     ChMatrixNM<double, 8, 3> temp_knot;
@@ -1142,7 +1141,7 @@ void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8
         ddNy.MatrMultiplyT(d_d, Ny);
         ddNz.MatrMultiplyT(d_d, Nz);
 
-        d0_d0.MatrMultiplyT(d0, d0);
+        d0_d0.MatrMultiplyT(m_d0, m_d0);
         d0d0Nx.MatrMultiplyT(d0_d0, Nx);
         d0d0Ny.MatrMultiplyT(d0_d0, Ny);
         d0d0Nz.MatrMultiplyT(d0_d0, Nz);

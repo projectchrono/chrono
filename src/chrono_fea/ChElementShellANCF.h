@@ -294,8 +294,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     void shapefunction_ANS_BilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y);
 
     // [ANS] Calculation of ANS strain and strainD
-    void AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8, 3>& d,
-                                            ChMatrixNM<double, 8, 3>& d0,
+    void AssumedNaturalStrain_BilinearShell(const ChMatrixNM<double, 8, 3>& d,
                                             ChMatrixNM<double, 8, 1>& strain_ans,
                                             ChMatrixNM<double, 8, 24>& strainD_ans);
 
