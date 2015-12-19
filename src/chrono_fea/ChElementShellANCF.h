@@ -32,37 +32,42 @@ namespace fea {
 /// This class implements material properties for a layer.
 class ChMaterialShellANCF : public ChShared {
   public:
-    ChMaterialShellANCF(double rho, const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G)
-        : m_rho(rho), m_E(E), m_nu(nu), m_G(G) {
-        // Calculate E_eps
-        double delta = 1.0 - (m_nu.x * m_nu.x) * m_E.y / m_E.x - (m_nu.y * m_nu.y) * m_E.z / m_E.x -
-                       (m_nu.z * m_nu.z) * m_E.z / m_E.y - 2.0 * m_nu.x * m_nu.y * m_nu.z * m_E.z / m_E.x;
-        double nu_yx = m_nu.x * m_E.y / m_E.x;
-        double nu_zx = m_nu.y * m_E.z / m_E.x;
-        double nu_zy = m_nu.z * m_E.z / m_E.y;
-        m_E_eps(0, 0) = m_E.x * (1.0 - (m_nu.z * m_nu.z) * m_E.z / m_E.y) / delta;
-        m_E_eps(1, 1) = m_E.y * (1.0 - (m_nu.y * m_nu.y) * m_E.z / m_E.x) / delta;
-        m_E_eps(3, 3) = m_E.z * (1.0 - (m_nu.x * m_nu.x) * m_E.y / m_E.x) / delta;
-        m_E_eps(0, 1) = m_E.y * (m_nu.x + m_nu.y * m_nu.z * m_E.z / m_E.y) / delta;
-        m_E_eps(0, 3) = m_E.z * (m_nu.y + m_nu.z * m_nu.x) / delta;
-        m_E_eps(1, 0) = m_E.y * (m_nu.x + m_nu.y * m_nu.z * m_E.z / m_E.y) / delta;
-        m_E_eps(1, 3) = m_E.z * (m_nu.z + m_nu.y * m_nu.x * m_E.y / m_E.x) / delta;
-        m_E_eps(3, 0) = m_E.z * (m_nu.y + m_nu.z * m_nu.x) / delta;
-        m_E_eps(3, 1) = m_E.z * (m_nu.z + m_nu.y * m_nu.x * m_E.y / m_E.x) / delta;
-        m_E_eps(2, 2) = m_G.x;
-        m_E_eps(4, 4) = m_G.y;
-        m_E_eps(5, 5) = m_G.z;
+    /// Construct an isotropic material.
+    ChMaterialShellANCF(double rho, double E, double nu) : m_rho(rho) {
+        double G = 0.5 * E / (1 + nu);
+        Calc_E_eps(ChVector<>(E), ChVector<>(nu), ChVector<>(G));
+    }
+
+    /// Construct a (possibly) orthotropic material.
+    ChMaterialShellANCF(double rho, const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) : m_rho(rho) {
+        Calc_E_eps(E, nu, G);
     }
 
     double Get_rho() const { return m_rho; }
-
     const ChMatrixNM<double, 6, 6>& Get_E_eps() const { return m_E_eps; }
 
-    double m_rho;     ///< density
-    ChVector<> m_E;   ///< E_x, E_y, E_z
-    ChVector<> m_nu;  ///< nu_xy, nu_xz, nu_yz
-    ChVector<> m_G;   ///< G_xy, G_xz, G_yz
+  private:
+    void Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
+        double delta = 1.0 - (nu.x * nu.x) * E.y / E.x - (nu.y * nu.y) * E.z / E.x - (nu.z * nu.z) * E.z / E.y -
+                       2.0 * nu.x * nu.y * nu.z * E.z / E.x;
+        double nu_yx = nu.x * E.y / E.x;
+        double nu_zx = nu.y * E.z / E.x;
+        double nu_zy = nu.z * E.z / E.y;
+        m_E_eps(0, 0) = E.x * (1.0 - (nu.z * nu.z) * E.z / E.y) / delta;
+        m_E_eps(1, 1) = E.y * (1.0 - (nu.y * nu.y) * E.z / E.x) / delta;
+        m_E_eps(3, 3) = E.z * (1.0 - (nu.x * nu.x) * E.y / E.x) / delta;
+        m_E_eps(0, 1) = E.y * (nu.x + nu.y * nu.z * E.z / E.y) / delta;
+        m_E_eps(0, 3) = E.z * (nu.y + nu.z * nu.x) / delta;
+        m_E_eps(1, 0) = E.y * (nu.x + nu.y * nu.z * E.z / E.y) / delta;
+        m_E_eps(1, 3) = E.z * (nu.z + nu.y * nu.x * E.y / E.x) / delta;
+        m_E_eps(3, 0) = E.z * (nu.y + nu.z * nu.x) / delta;
+        m_E_eps(3, 1) = E.z * (nu.z + nu.y * nu.x * E.y / E.x) / delta;
+        m_E_eps(2, 2) = G.x;
+        m_E_eps(4, 4) = G.y;
+        m_E_eps(5, 5) = G.z;
+    }
 
+    double m_rho;                      ///< density
     ChMatrixNM<double, 6, 6> m_E_eps;  ///< matrix of elastic coefficients
 };
 
