@@ -102,6 +102,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         ChMatrixNM<double, 6, 6> m_T0;
 
         friend class ChElementShellANCF;
+        friend class MyForce;
     };
 
     /// Get the number of nodes used by this element.
@@ -119,6 +120,12 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
                   ChSharedPtr<ChNodeFEAxyzD> nodeB,
                   ChSharedPtr<ChNodeFEAxyzD> nodeC,
                   ChSharedPtr<ChNodeFEAxyzD> nodeD);
+
+    /// Specify the element dimensions
+    void SetDimensions(double lenX, double lenY) {
+        m_lenX = lenX;
+        m_lenY = lenY;
+    }
 
     /// Access the n-th node of this element.
     virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
@@ -141,13 +148,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     }
 
     /// Get the number of layers
-    size_t GetNumLayers() const { return m_layers.size(); }
-
-    /// Set the number of layers (for laminate shell)
-    void SetNumLayers(int numLayers) { m_numLayers = numLayers; }
-
-    /// Set the total shell thickness.
-    void SetThickness(double th) { m_thickness = th; }
+    size_t GetNumLayers() const { return m_numLayers; }
 
     /// Set the storage of the five alpha parameters for EAS (max no. of layers 7)
     void SetStockAlpha(const ChMatrixNM<double, 35, 1>& a) { m_StockAlpha_EAS = a; }
@@ -157,24 +158,17 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     void SetStockJac(const ChMatrixNM<double, 24, 24>& a) { m_stock_jac_EAS = a; }
     /// Set Jacobian
     void SetStockKTE(const ChMatrixNM<double, 24, 24>& a) { m_stock_KTE = a; }
-    /// Set element properties for all layers: Elastic parameters, dimensions, etc.
-    void SetInertFlexVec(const ChMatrixNM<double, 98, 1>& a) { m_InertFlexVec = a; }
-    /// Get element properties for all layers: Elastic parameters, dimensions, etc.
-    const ChMatrixNM<double, 98, 1>& GetInertFlexVec() const { return m_InertFlexVec; }
-    /// Set Gauss range for laminated shell based on layer thickness.
-    void SetGaussZRange(const ChMatrixNM<double, 7, 2>& a) { m_GaussZRange = a; }
-    /// Get Gauss range for laminated shell based on layer thickness.
-    const ChMatrixNM<double, 7, 2>& GetGaussZRange() const { return m_GaussZRange; }
     /// Set the step size used in calculating the structural damping coefficient.
     void Setdt(double a) { m_dt = a; }
     /// Turn gravity on/off.
     void SetGravityOn(bool val) { m_gravity_on = val; }
     /// Set the structural damping.
     void SetAlphaDamp(double a) { m_Alpha = a; }
-    /// Get the element length in the X direction.Each layer has the same element length.
-    double GetLengthX() const { return m_InertFlexVec(1); }
-    /// Get the element length in the Y direction.Each layer has the same element length.
-    double GetLengthY() const { return m_InertFlexVec(2); }
+
+    /// Get the element length in the X direction.
+    double GetLengthX() const { return m_lenX; }
+    /// Get the element length in the Y direction.
+    double GetLengthY() const { return m_lenY; }
     /// Get the total thickness of the shell element.
     double GetThickness() { return m_thickness; }
 
@@ -208,20 +202,19 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
 
     std::vector<ChSharedPtr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
     std::vector<Layer> m_layers;                       ///< element layers
-
-    double m_thickness;
-    double m_Alpha;                                ///< structural damping
-    ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< stiffness matrix
-    ChMatrixNM<double, 24, 24> m_MassMatrix;       ///< mass matrix
-    ChMatrixNM<double, 24, 24> m_stock_jac_EAS;    ///< EAS per element
-    ChMatrixNM<double, 24, 24> m_stock_KTE;        ///< Analytical Jacobian
-    ChMatrixNM<double, 8, 3> m_d0;                 ///< initial nodal coordinates
-    ChMatrixNM<double, 24, 1> m_GravForce;         ///< Gravity Force
-    // Material Properties for orthotropic per element (14x7) Max #layer is 7
-    ChMatrixNM<double, 98, 1> m_InertFlexVec;    ///< Contains element's parameters
+    int m_numLayers;                                   ///< number of layers for this element
+    double m_lenX;                                     ///< element length in X direction
+    double m_lenY;                                     ///< element length in Y direction
+    double m_thickness;                                ///< total element thickness
+    std::vector<double> m_GaussZ;                      ///< layer separation z values (scaled to [-1,1])
+    double m_Alpha;                                    ///< structural damping
+    ChMatrixNM<double, 24, 24> m_StiffnessMatrix;      ///< stiffness matrix
+    ChMatrixNM<double, 24, 24> m_MassMatrix;           ///< mass matrix
+    ChMatrixNM<double, 24, 24> m_stock_jac_EAS;        ///< EAS per element
+    ChMatrixNM<double, 24, 24> m_stock_KTE;            ///< Analytical Jacobian
+    ChMatrixNM<double, 8, 3> m_d0;                     ///< initial nodal coordinates
+    ChMatrixNM<double, 24, 1> m_GravForce;             ///< Gravity Force
     ChMatrixNM<double, 35, 1> m_StockAlpha_EAS;  ///< StockAlpha(5*7,1): Max #Layer is 7
-    ChMatrixNM<double, 7, 2> m_GaussZRange;      ///< StockAlpha(7,2): Max #Layer is 7 (-1 < GaussZ < 1)
-    int m_numLayers;                             ///< number of layers for this element
     JacobianType m_flag_HE;                      ///< Jacobian evaluation type (analytical or numerical)
     double m_dt;                                 ///< time step used in calculating structural damping coefficient
     bool m_gravity_on;                           ///< flag indicating whether or not gravity is included

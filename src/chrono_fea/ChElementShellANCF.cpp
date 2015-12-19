@@ -27,7 +27,7 @@ namespace fea {
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementShellANCF::ChElementShellANCF() : m_flag_HE(ANALYTICAL), m_gravity_on(false) {
+ChElementShellANCF::ChElementShellANCF() : m_flag_HE(ANALYTICAL), m_gravity_on(false), m_numLayers(0), m_thickness(0) {
     m_nodes.resize(4);
 
     m_StiffnessMatrix.Resize(GetNdofs(), GetNdofs());
@@ -111,7 +111,22 @@ void ChElementShellANCF::SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
 
 // Initial element setup.
 void ChElementShellANCF::SetupInitial(ChSystem* system) {
-    // Perform layer initialization
+    // Perform layer initialization and accumulate element thickness.
+    m_numLayers = m_layers.size();
+    m_thickness = 0;
+    for (int il = 0; il < m_numLayers; il++) {
+        m_layers[il].SetupInitial();
+        m_thickness += m_layers[il].Get_thickness();
+    }
+
+    // Loop again over the layers and calculate the range for Gauss integration in the
+    // z direction (values in [-1,1]).
+    m_GaussZ.push_back(-1);
+    double z = 0;
+    for (int il = 0; il < m_numLayers; il++) {
+        z += m_layers[il].Get_thickness();
+        m_GaussZ.push_back(2 * z / m_thickness - 1);
+    }
 
     // Compute mass matrix and gravitational forces (constant)
     ComputeMassMatrix();
@@ -226,7 +241,7 @@ void ChElementShellANCF::ComputeMassMatrix() {
     m_MassMatrix.Reset();
 
     for (int kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_InertFlexVec(14 * kl);
+        double rho = m_layers[kl].GetMaterial()->Get_rho();
         MyMass myformula(this);
         ChMatrixNM<double, 24, 24> TempMassMatrix;
 
@@ -234,8 +249,8 @@ void ChElementShellANCF::ComputeMassMatrix() {
                                                                myformula,       // formula to integrate
                                                                -1, 1,           // x limits
                                                                -1, 1,           // y limits
-                                                               m_GaussZRange(kl, 0), m_GaussZRange(kl, 1),  // z limits
-                                                               2  // order of integration
+                                                               m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                               2                                // order of integration
                                                                );
 
         TempMassMatrix *= rho;
@@ -284,7 +299,7 @@ void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
     m_GravForce.Reset();
 
     for (int kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_InertFlexVec(14 * kl);
+        double rho = m_layers[kl].GetMaterial()->Get_rho();
         MyGravity myformula(this, g_acc);
         ChMatrixNM<double, 24, 1> Fgravity;
 
@@ -292,8 +307,8 @@ void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
                                                               myformula,  // formula to integrate
                                                               -1, 1,      // x limits
                                                               -1, 1,      // y limits
-                                                              m_GaussZRange(kl, 0), m_GaussZRange(kl, 1),  // z limits
-                                                              2  // order of integration
+                                                              m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                              2                                // order of integration
                                                               );
 
         Fgravity *= rho;
@@ -313,43 +328,31 @@ void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
 // constitutive behavior)
 class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
 public:
-  MyForce(ChMatrixNM<double, 8, 3>* d_,             // Pointer to current (this iteration) coordinates
-          ChMatrixNM<double, 24, 1>* d_dt_,         // Pointer to current (this iteration) generalized velocities
-          ChMatrixNM<double, 8, 1>* strain_ans_,    // Vector for assumed natural strain
-          ChMatrixNM<double, 8, 24>* strainD_ans_,  // Matrix for Jacobian of assumed natural strain
-          ChMatrixNM<double, 6, 6>* E_eps_,         // Pointer to matrix of elastic coefficients (Orthotropic style)
-          ChElementShellANCF* element_,             // Pointer to this element
-          ChMatrixNM<double, 6, 6>* T0_,            // Pointer to transformation matrix, function of fiber angle
-          double* detJ0C_,  // Determinant of the initial position vector gradient at the element center
-          double* theta_,   // Fiber angle (user input in degrees)
-          ChMatrixNM<double, 5, 1>*
-              alpha_eas_  // Pointer to the vector of internal parameters for Enhanced Assumed Strain formulation
-          ) {
-      d = d_;
-      d_dt = d_dt_;
-      strain_ans = strain_ans_;
-      strainD_ans = strainD_ans_;
-      element = element_;
-      E_eps = E_eps_;
-      T0 = T0_;
-      detJ0C = detJ0C_;
-      theta = theta_;
-      alpha_eas = alpha_eas_;
-    }
-    ~MyForce() {}
+  MyForce(ChElementShellANCF* element,             // Containing element
+          int kl,                                  // Current layer index
+          ChMatrixNM<double, 8, 3>* d,             // Current coordinates
+          ChMatrixNM<double, 24, 1>* d_dt,         // Current generalized velocities
+          ChMatrixNM<double, 8, 1>* strain_ans,    // Vector for assumed natural strain
+          ChMatrixNM<double, 8, 24>* strainD_ans,  // Matrix for Jacobian of assumed natural strain
+          ChMatrixNM<double, 5, 1>* alpha_eas  // Vector of internal parameters for Enhanced Assumed Strain formulation
+          )
+      : m_element(element),
+        m_kl(kl),
+        m_d(d),
+        m_d_dt(d_dt),
+        m_strain_ans(strain_ans),
+        m_strainD_ans(strainD_ans),
+        m_alpha_eas(alpha_eas) {}
+  ~MyForce() {}
 
 private:
-    ChElementShellANCF* element;
-
-    ChMatrixNM<double, 8, 3>* d;
-    ChMatrixNM<double, 8, 1>* strain_ans;
-    ChMatrixNM<double, 8, 24>* strainD_ans;
-    ChMatrixNM<double, 24, 1>* d_dt;
-    ChMatrixNM<double, 6, 6>* T0;
-    ChMatrixNM<double, 5, 1>* alpha_eas;
-    ChMatrixNM<double, 6, 6>* E_eps;
-    double* detJ0C;
-    double* theta;
+    ChElementShellANCF* m_element;
+    int m_kl;
+    ChMatrixNM<double, 8, 3>* m_d;
+    ChMatrixNM<double, 24, 1>* m_d_dt;
+    ChMatrixNM<double, 8, 1>* m_strain_ans;
+    ChMatrixNM<double, 8, 24>* m_strainD_ans;
+    ChMatrixNM<double, 5, 1>* m_alpha_eas;
 
     /// Evaluate (strainD'*strain)  at point x, include ANS and EAS.
     virtual void Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z);
@@ -358,7 +361,7 @@ private:
 void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z) {
     // Element shape function
     ChMatrixNM<double, 1, 8> N;
-    element->ShapeFunctions(N, x, y, z);
+    m_element->ShapeFunctions(N, x, y, z);
 
     // Determinant of position vector gradient matrix: Initial configuration
     ChMatrixNM<double, 1, 8> Nx;
@@ -367,13 +370,13 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     ChMatrixNM<double, 1, 3> Nx_d0;
     ChMatrixNM<double, 1, 3> Ny_d0;
     ChMatrixNM<double, 1, 3> Nz_d0;
-    double detJ0 = element->Calc_detJ0(x, y, z, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
+    double detJ0 = m_element->Calc_detJ0(x, y, z, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
 
     // ANS shape function
     ChMatrixNM<double, 1, 4> S_ANS;  // Shape function vector for Assumed Natural Strain
     ChMatrixNM<double, 6, 5> M;      // Shape function vector for Enhanced Assumed Strain
-    element->shapefunction_ANS_BilinearShell(S_ANS, x, y);
-    element->Basis_M(M, x, y, z);
+    m_element->shapefunction_ANS_BilinearShell(S_ANS, x, y);
+    m_element->Basis_M(M, x, y, z);
 
     // Hard-coded coupling with main integrator
     double alphaHHT = -0.2;
@@ -401,11 +404,12 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     A2.Cross(A3, A1);
 
     // Direction for orthotropic material
+    double theta = m_element->m_layers[m_kl].Get_theta();  // Fiber angle
     ChVector<double> AA1;
     ChVector<double> AA2;
     ChVector<double> AA3;
-    AA1 = A1 * cos(*theta) + A2 * sin(*theta);
-    AA2 = -A1 * sin(*theta) + A2 * cos(*theta);
+    AA1 = A1 * cos(theta) + A2 * sin(theta);
+    AA2 = -A1 * sin(theta) + A2 * cos(theta);
     AA3 = A3;
 
     /// Beta
@@ -447,15 +451,20 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     beta(7, 0) = Vdot(AA2, j03);
     beta(8, 0) = Vdot(AA3, j03);
 
+    // Transformation matrix, function of fiber angle
+    const ChMatrixNM<double, 6, 6>& T0 = m_element->m_layers[m_kl].Get_T0();
+    // Determinant of the initial position vector gradient at the element center
+    double detJ0C = m_element->m_layers[m_kl].Get_detJ0C();
+
     // Enhanced Assumed Strain
-    ChMatrixNM<double, 6, 5> G = (*T0) * M * ((*detJ0C) / (detJ0));
-    ChMatrixNM<double, 6, 1> strain_EAS = G * (*alpha_eas);
+    ChMatrixNM<double, 6, 5> G = T0 * M * (detJ0C / detJ0);
+    ChMatrixNM<double, 6, 1> strain_EAS = G * (*m_alpha_eas);
 
     ChMatrixNM<double, 8, 8> d_d;
     ChMatrixNM<double, 8, 1> ddNx;
     ChMatrixNM<double, 8, 1> ddNy;
     ChMatrixNM<double, 8, 1> ddNz;
-    d_d.MatrMultiplyT(*d, *d);
+    d_d.MatrMultiplyT(*m_d, *m_d);
     ddNx.MatrMultiplyT(d_d, Nx);
     ddNy.MatrMultiplyT(d_d, Ny);
     ddNz.MatrMultiplyT(d_d, Nz);
@@ -464,7 +473,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     ChMatrixNM<double, 8, 1> d0d0Nx;
     ChMatrixNM<double, 8, 1> d0d0Ny;
     ChMatrixNM<double, 8, 1> d0d0Nz;
-    d0_d0.MatrMultiplyT(element->m_d0, element->m_d0);
+    d0_d0.MatrMultiplyT(m_element->m_d0, m_element->m_d0);
     d0d0Nx.MatrMultiplyT(d0_d0, Nx);
     d0d0Ny.MatrMultiplyT(d0_d0, Ny);
     d0d0Nz.MatrMultiplyT(d0_d0, Nz);
@@ -474,10 +483,10 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
     strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
     strain_til(2, 0) = (Nx * ddNy)(0, 0) - (Nx * d0d0Ny)(0, 0);
-    strain_til(3, 0) = N(0, 0) * (*strain_ans)(0, 0) + N(0, 2) * (*strain_ans)(1, 0) + N(0, 4) * (*strain_ans)(2, 0) +
-                       N(0, 6) * (*strain_ans)(3, 0);
-    strain_til(4, 0) = S_ANS(0, 2) * (*strain_ans)(6, 0) + S_ANS(0, 3) * (*strain_ans)(7, 0);
-    strain_til(5, 0) = S_ANS(0, 0) * (*strain_ans)(4, 0) + S_ANS(0, 1) * (*strain_ans)(5, 0);
+    strain_til(3, 0) = N(0, 0) * (*m_strain_ans)(0, 0) + N(0, 2) * (*m_strain_ans)(1, 0) + N(0, 4) * (*m_strain_ans)(2, 0) +
+                       N(0, 6) * (*m_strain_ans)(3, 0);
+    strain_til(4, 0) = S_ANS(0, 2) * (*m_strain_ans)(6, 0) + S_ANS(0, 3) * (*m_strain_ans)(7, 0);
+    strain_til(5, 0) = S_ANS(0, 0) * (*m_strain_ans)(4, 0) + S_ANS(0, 1) * (*m_strain_ans)(5, 0);
 
     // For orthotropic material
     ChMatrixNM<double, 6, 1> strain; 
@@ -515,21 +524,21 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     ChMatrixNM<double, 1, 3> tempB3;
     ChMatrixNM<double, 1, 3> tempB31;
     strainD_til.Reset();
-    tempB3.MatrMultiply(Nx, (*d));
+    tempB3.MatrMultiply(Nx, *m_d);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
         }
     }
     strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 0, 0);
-    tempB3.MatrMultiply(Ny, (*d));
+    tempB3.MatrMultiply(Ny, *m_d);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i);
         }
     }
     strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 1, 0);
-    tempB31.MatrMultiply(Nx, (*d));
+    tempB31.MatrMultiply(Nx, *m_d);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Ny(0, i);
@@ -540,7 +549,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     tempBB.Reset();
     for (int i = 0; i < 4; i++) {
         int ij = i * 2;
-        tempB.PasteClippedMatrix(strainD_ans, i, 0, 1, 24, 0, 0);
+        tempB.PasteClippedMatrix(m_strainD_ans, i, 0, 1, 24, 0, 0);
         tempB *= N(0, ij);
         tempBB += tempB;
     }
@@ -550,7 +559,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     for (int i = 0; i < 2; i++) {
         int ij = i + 6;
         int ij1 = i + 2;
-        tempB.PasteClippedMatrix(strainD_ans, ij, 0, 1, 24, 0, 0);
+        tempB.PasteClippedMatrix(m_strainD_ans, ij, 0, 1, 24, 0, 0);
         tempB *= S_ANS(0, ij1);
         tempBB += tempB;
     }
@@ -560,7 +569,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     for (int i = 0; i < 2; i++) {
         int ij = i + 4;
         int ij1 = i;
-        tempB.PasteClippedMatrix(strainD_ans, ij, 0, 1, 24, 0, 0);
+        tempB.PasteClippedMatrix(m_strainD_ans, ij, 0, 1, 24, 0, 0);
         tempB *= S_ANS(0, ij1);
         tempBB += tempB;
     }
@@ -620,26 +629,29 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     ChMatrixNM<double, 6, 1> DEPS;
     DEPS.Reset();
     for (int ii = 0; ii < 24; ii++) {
-        DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * ((*d_dt)(ii, 0));
-        DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * ((*d_dt)(ii, 0));
-        DEPS(2, 0) = DEPS(2, 0) + strainD(2, ii) * ((*d_dt)(ii, 0));
-        DEPS(3, 0) = DEPS(3, 0) + strainD(3, ii) * ((*d_dt)(ii, 0));
-        DEPS(4, 0) = DEPS(4, 0) + strainD(4, ii) * ((*d_dt)(ii, 0));
-        DEPS(5, 0) = DEPS(5, 0) + strainD(5, ii) * ((*d_dt)(ii, 0));
+        DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * ((*m_d_dt)(ii, 0));
+        DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * ((*m_d_dt)(ii, 0));
+        DEPS(2, 0) = DEPS(2, 0) + strainD(2, ii) * ((*m_d_dt)(ii, 0));
+        DEPS(3, 0) = DEPS(3, 0) + strainD(3, ii) * ((*m_d_dt)(ii, 0));
+        DEPS(4, 0) = DEPS(4, 0) + strainD(4, ii) * ((*m_d_dt)(ii, 0));
+        DEPS(5, 0) = DEPS(5, 0) + strainD(5, ii) * ((*m_d_dt)(ii, 0));
     }
 
     // Calculate damping coefficient from hard-coded alphaHHT
-    double DampCoefficient = gammaHHT / (betaHHT * element->m_dt);  // dt*gammaHHT;
+    double DampCoefficient = gammaHHT / (betaHHT * m_element->m_dt);  // dt*gammaHHT;
 
     // Add structural damping
 
-    double stdamp = element->m_Alpha;
+    double stdamp = m_element->m_Alpha;
     DEPS *= stdamp;
     strain += DEPS;
 
+    // Matrix of elastic coefficients: The input assumes the material *could* be orthotropic
+    const ChMatrixNM<double, 6, 6>& E_eps = m_element->m_layers[m_kl].GetMaterial()->Get_E_eps();
+
     // Stress tensor calculation
     ChMatrixNM<double, 6, 1> stress;
-    stress.MatrMultiply(*E_eps, strain);
+    stress.MatrMultiply(E_eps, strain);
 
     // Declaration and computation of Sigm, to be removed
     ChMatrixNM<double, 9, 9> Sigm;    ///< Rearrangement of stress vector (not always needed)
@@ -684,33 +696,34 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     ChMatrixNM<double, 24, 24> JAC11;
     ChMatrixNM<double, 24, 6> temp246;
     ChMatrixNM<double, 24, 9> temp249;
-    temp246.MatrTMultiply(strainD, *E_eps);
+    temp246.MatrTMultiply(strainD, E_eps);
     temp249.MatrTMultiply(Gd, Sigm);
-    JAC11 = (temp246 * strainD * (1.0 + DampCoefficient * (element->m_Alpha))) + temp249 * Gd;
-    JAC11 *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->m_thickness / 2.0);
+    JAC11 = (temp246 * strainD * (1.0 + DampCoefficient * (m_element->m_Alpha))) + temp249 * Gd;
+    JAC11 *= detJ0 * (m_element->GetLengthX() / 2.0) * (m_element->GetLengthY() / 2.0) * (m_element->m_thickness / 2.0);
 
     // Internal force calculation
     ChMatrixNM<double, 24, 1> Fint;
     ChMatrixNM<double, 24, 6> tempC;
-    tempC.MatrTMultiply(strainD, *E_eps);
+    tempC.MatrTMultiply(strainD, E_eps);
     Fint.MatrMultiply(tempC, strain);
-    Fint *= detJ0 * (element->GetLengthX() / 2) * (element->GetLengthY() / 2) * (element->m_thickness / 2);
+    Fint *= detJ0 * (m_element->GetLengthX() / 2) * (m_element->GetLengthY() / 2) * (m_element->m_thickness / 2);
 
     // For EAS
     ChMatrixNM<double, 5, 6> temp56;
-    temp56.MatrTMultiply(G, *E_eps);
+    temp56.MatrTMultiply(G, E_eps);
     ChMatrixNM<double, 5, 1> HE1;      // Internal Force Vector from EAS
     ChMatrixNM<double, 5, 24> GDEPSP;  // "Cross" Jacobian
     ChMatrixNM<double, 5, 5> KALPHA;   // EAS Jacobian
 
     HE1.MatrMultiply(temp56, strain);
-    HE1 *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->m_thickness / 2.0);
+    HE1 *= detJ0 * (m_element->GetLengthX() / 2.0) * (m_element->GetLengthY() / 2.0) * (m_element->m_thickness / 2.0);
     GDEPSP.MatrMultiply(temp56, strainD);
-    GDEPSP *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->m_thickness / 2.0);
+    GDEPSP *= detJ0 * (m_element->GetLengthX() / 2.0) * (m_element->GetLengthY() / 2.0) * (m_element->m_thickness / 2.0);
     KALPHA.MatrMultiply(temp56, G);
-    KALPHA *= detJ0 * (element->GetLengthX() / 2.0) * (element->GetLengthY() / 2.0) * (element->m_thickness / 2.0);
-    result.Reset();
+    KALPHA *= detJ0 * (m_element->GetLengthX() / 2.0) * (m_element->GetLengthY() / 2.0) * (m_element->m_thickness / 2.0);
+
     /// Total result vector
+    result.Reset();
     result.PasteClippedMatrix(&Fint, 0, 0, 24, 1, 0, 0);
     result.PasteClippedMatrix(&HE1, 0, 0, 5, 1, 24, 0);
     result.PasteClippedMatrixToVector(&GDEPSP, 0, 0, 5, 24, 29);
@@ -719,7 +732,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
 };
 
 void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
-    /// Current nodal coordiantes
+    /// Current nodal coordinates
     const ChVector<>& pA = m_nodes[0]->GetPos();
     const ChVector<>& dA = m_nodes[0]->GetD();
     const ChVector<>& pB = m_nodes[1]->GetPos();
@@ -807,51 +820,6 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     for (int kl = 0; kl < m_numLayers; kl++) {
         TempJacobian_EAS.Reset();
         TempJacobian.Reset();
-        int ij = 14 * kl;
-
-        // Material properties
-        double rho = m_InertFlexVec(ij);                          // Material->Get_density();
-        double theta = m_InertFlexVec(ij + 4) * CH_C_DEG_TO_RAD;  // Fiber angle (rad)
-        double Ex = m_InertFlexVec(ij + 5);                       // Material->Get_Ex();
-        double Ey = m_InertFlexVec(ij + 6);                       // Material->Get_Ey();
-        double Ez = m_InertFlexVec(ij + 7);                       // Material->Get_Ez();
-        double vx = m_InertFlexVec(ij + 8);                       // Material->Get_vx();
-        double vy = m_InertFlexVec(ij + 9);                       // Material->Get_vy();
-        double vz = m_InertFlexVec(ij + 10);                      // Material->Get_vz();
-        double Gx = m_InertFlexVec(ij + 11);                      // Material->Get_Gx();
-        double Gy = m_InertFlexVec(ij + 12);                      // Material->Get_Gy();
-        double Gz = m_InertFlexVec(ij + 13);                      // Material->Get_Gz();
-
-        // Calculation of the matrix of elastic coefficients: The input assumes the material *could* be orthotropic
-        ChMatrixNM<double, 6, 6> E_eps;
-        double CCOM[12];
-
-        CCOM[0] = Ex;                           // Ex
-        CCOM[1] = Ey;                           // Ey
-        CCOM[2] = Ez;                           // Ez
-        CCOM[3] = vx;                           // Nuxy
-        CCOM[4] = vy;                           // Nuxz
-        CCOM[5] = vz;                           // Nuyz
-        CCOM[6] = CCOM[3] * CCOM[1] / CCOM[0];  // Nuyx
-        CCOM[7] = CCOM[4] * CCOM[2] / CCOM[0];  // Nuzx
-        CCOM[8] = CCOM[5] * CCOM[2] / CCOM[1];  // Nuzy
-        CCOM[9] = Gx;                           // Gxy
-        CCOM[10] = Gy;                          // Gxz
-        CCOM[11] = Gz;                          // Gyz
-        double DELTA = 1.0 - (CCOM[3] * CCOM[3]) * CCOM[1] / CCOM[0] - (CCOM[4] * CCOM[4]) * CCOM[2] / CCOM[0] -
-                       (CCOM[5] * CCOM[5]) * CCOM[2] / CCOM[1] - 2.0 * CCOM[3] * CCOM[4] * CCOM[5] * CCOM[2] / CCOM[0];
-        E_eps(0, 0) = CCOM[0] * (1.0 - (CCOM[5] * CCOM[5]) * CCOM[2] / CCOM[1]) / DELTA;
-        E_eps(1, 1) = CCOM[1] * (1.0 - (CCOM[4] * CCOM[4]) * CCOM[2] / CCOM[0]) / DELTA;
-        E_eps(3, 3) = CCOM[2] * (1.0 - (CCOM[3] * CCOM[3]) * CCOM[1] / CCOM[0]) / DELTA;
-        E_eps(0, 1) = CCOM[1] * (CCOM[3] + CCOM[4] * CCOM[5] * CCOM[2] / CCOM[1]) / DELTA;
-        E_eps(0, 3) = CCOM[2] * (CCOM[4] + CCOM[5] * CCOM[3]) / DELTA;
-        E_eps(1, 0) = CCOM[1] * (CCOM[3] + CCOM[4] * CCOM[5] * CCOM[2] / CCOM[1]) / DELTA;
-        E_eps(1, 3) = CCOM[2] * (CCOM[5] + CCOM[4] * CCOM[3] * CCOM[1] / CCOM[0]) / DELTA;
-        E_eps(3, 0) = CCOM[2] * (CCOM[4] + CCOM[5] * CCOM[3]) / DELTA;
-        E_eps(3, 1) = CCOM[2] * (CCOM[5] + CCOM[4] * CCOM[3] * CCOM[1] / CCOM[0]) / DELTA;
-        E_eps(2, 2) = CCOM[9];
-        E_eps(4, 4) = CCOM[10];
-        E_eps(5, 5) = CCOM[11];
 
         /// If numerical differentiation is used, only the internal force and EAS stiffness
         /// will be calculated. If the numerical differentiation is not used, the jacobian
@@ -867,14 +835,12 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             ChMatrixNM<double, 8, 1> strain_ans;
             ChMatrixNM<double, 8, 24> strainD_ans;
             // Enhanced Assumed Strain (EAS)
-            ChMatrixNM<double, 6, 6> T0;
             ChMatrixNM<double, 5, 1> HE;
             ChMatrixNM<double, 5, 24> GDEPSP;
             ChMatrixNM<double, 5, 5> KALPHA;
             ChMatrixNM<double, 24, 24> KTE;
             ChMatrixNM<double, 5, 5> KALPHA1;
             ChMatrixNM<double, 5, 1> ResidHE;
-            double detJ0C;
             ChMatrixNM<double, 5, 1> alpha_eas;
             ChMatrixNM<double, 5, 1> renewed_alpha_eas;
             ChMatrixNM<double, 5, 1> previous_alpha;
@@ -905,23 +871,15 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 // Assumed Natural Strain (ANS)
                 AssumedNaturalStrain_BilinearShell(d, m_d0, strain_ans, strainD_ans);
 
-                // Enhanced Assumed Strain (EAS)
-                T0.Reset();
-                detJ0C = 0.0;
-                T0DetJElementCenterForEAS(T0, detJ0C, theta);
-
                 // MyForce constructor;
-                MyForce myformula(&d, &d_dt, &strain_ans, &strainD_ans, &E_eps, this, &T0, &detJ0C, &theta, &alpha_eas);
+                MyForce myformula(this, kl, &d, &d_dt, &strain_ans, &strainD_ans, &alpha_eas);
                 ChQuadrature::Integrate3D<ChMatrixNM<double, 750, 1> >(
-                    TempIntegratedResult,  // result of integration will go there
-                    myformula,             // formula to integrate
-                    -1,                    // start of x
-                    1,                     // end of x
-                    -1,                    // start of y
-                    1,                     // end of y
-                    m_GaussZRange(kl, 0),  // start of z
-                    m_GaussZRange(kl, 1),  // end of z
-                    2                      // order of integration
+                    TempIntegratedResult,            // result of integration will go there
+                    myformula,                       // formula to integrate
+                    -1, 1,                           // x limits
+                    -1, 1,                           // y limits
+                    m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                    2                                // order of integration
                     );
 
                 Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0);     // InternalForce(24x1)
@@ -929,7 +887,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 GDEPSP.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 24, 29);  // GDEPSP(5x24)
                 KALPHA.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 5, 149);  // KALPHA(5x5)
                 TempJacobian.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 24, 24,
-                                                        174);  // Stiffness Matrix(24x24)*/
+                                                        174);  // Stiffness Matrix(24x24)
 
                 KALPHA1 = KALPHA;
                 if (m_flag_HE == NUMERICAL)
@@ -1496,15 +1454,12 @@ void ChElementShellANCF::ComputeNF(
 // Calculate avergae element density (needed for ChLoaderVolumeGravity).
 double ChElementShellANCF::GetDensity() {
     double tot_density = 0;
-    double tot_laythickness = 0.0;
     for (int kl = 0; kl < m_numLayers; kl++) {
-        int ij = 14 * kl;
-        double rho = m_InertFlexVec(ij);
-        double layerthick = m_InertFlexVec(ij + 3);
+        double rho = m_layers[kl].GetMaterial()->Get_rho();
+        double layerthick = m_layers[kl].Get_thickness();
         tot_density += rho * layerthick;
-        tot_laythickness += layerthick;
     }
-    return tot_density / tot_laythickness;
+    return tot_density / m_thickness;
 }
 
 // Calculate normal to the surface at (U,V) coordinates.
