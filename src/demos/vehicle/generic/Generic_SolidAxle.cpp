@@ -55,7 +55,7 @@ const ChVector<> Generic_SolidAxle::m_knuckleInertia(0.00255, 0.00134, 0.00196);
 
 const double     Generic_SolidAxle::m_axleInertia = 0.4;
 
-const double     Generic_SolidAxle::m_springCoefficient  = 267062.0;
+const double     Generic_SolidAxle::m_springCoefficient  = 26706.20;
 const double     Generic_SolidAxle::m_dampingCoefficient = 22459.0;
 const double     Generic_SolidAxle::m_springRestLength = 0.3948;
 
@@ -85,22 +85,25 @@ Generic_SolidAxle::~Generic_SolidAxle()
 const ChVector<> Generic_SolidAxle::getLocation(PointId which)
 {
   switch (which) {  
-  case SHOCK_A:    return ChVector<>(-0.079, 0.697, -0.030);
-  case SHOCK_C:    return ChVector<>(-0.097, 0.679, 0.364);
-  case KNUCKLE_L:  return ChVector<>(0.006, 0.849, -0.061);
-  case KNUCKLE_U:  return ChVector<>(-0.018, 0.819, 0.091);
-  case LL_A:       return ChVector<>(0.012, 0.728, -0.091);
-  case LL_C:       return ChVector<>(0.546, 0.425, -0.055);
-  case UL_A:       return ChVector<>(-0.067, 0.576, 0.182);
-  case UL_C:       return ChVector<>(0.431, 0.606, 0.182);
-  case SPRING_A:   return ChVector<>(-0.079, 0.697, -0.030);
-  case SPRING_C:   return ChVector<>(-0.097, 0.679, 0.364);
-  case TIEROD_C:   return ChVector<>(-0.091, 0.400, -0.079);
-  case TIEROD_K:   return ChVector<>(-0.091, 0.825, -0.079);
-  case SPINDLE:    return ChVector<>(0, 0.910, 0);
-  case KNUCKLE_CM: return ChVector<>(-0.006, 0.834, 0.015);
-  case LL_CM:      return ChVector<>(0.279, 0.577, -0.073);
-  case UL_CM:      return ChVector<>(0.182, 0.591, 0.182);
-  default:         return ChVector<>(0, 0, 0);
+  case SHOCK_A:             return ChVector<>(-0.065, 0.575, -0.025);
+  case SHOCK_C:             return ChVector<>(-0.080, 0.56, 0.3);
+  case KNUCKLE_L:           return ChVector<>(0.005, 0.7, -0.05);
+  case KNUCKLE_U:           return ChVector<>(-0.015, 0.675, 0.075);
+  case LL_A:                return ChVector<>(0.01, 0.6, -0.075);
+  case LL_C:                return ChVector<>(0.45, 0.35, -0.045);
+  case UL_A:                return ChVector<>(-0.055, 0.475, 0.15);
+  case UL_C:                return ChVector<>(0.355, 0.5, 0.15);
+  case SPRING_A:            return ChVector<>(-0.065, 0.575, -0.025);
+  case SPRING_C:            return ChVector<>(-0.080, 0.56, 0.3);
+  case TIEROD_K:            return ChVector<>(-0.075, 0.68, -0.065);
+  case SPINDLE:             return ChVector<>(0, 0.910, 0);
+  case KNUCKLE_CM:          return ChVector<>(0, 0.7, 0);
+  case LL_CM:               return ChVector<>(0.23, 0.475, -0.06);
+  case UL_CM:               return ChVector<>(0.15, 0.4875, 0.15);
+  case BELLCRANK_TIEROD:    return ChVector<>(-0.075, 0.325, -0.065);
+  case BELLCRANK_AXLE:      return ChVector<>(0, 0.325, -0.05);
+  case BELLCRANK_DRAGLINK:  return ChVector<>(0, 0.425, -0.05);
+  case DRAGLINK_C:          return ChVector<>(0.385, 0.45, -0.02);
+  default:                  return ChVector<>(0, 0, 0);
   }
 }

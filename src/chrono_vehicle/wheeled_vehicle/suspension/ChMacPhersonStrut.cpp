@@ -122,21 +122,10 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     ChMatrix33<> rot;
 
     // Create and initialize Strut body.
-    // Create and initialize the cylindrical joint between upright and strut.
-    // Determine the joint orientation matrix from the hardpoint locations by
-    // constructing a rotation matrix with the z axis along the joint direction
-    // and the y axis normal to the plane of the UCA.
-    v = points[LCA_B] - points[SPRING_U];//Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
-    v.Normalize();
-    w = points[SPRING_C] - points[SPRING_U];
-    w.Normalize();
-    u = Vcross(v, w);
-    rot.Set_A_axis(u, v, w);
-
     m_strut[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
     m_strut[side]->SetNameString(m_name + "_Strut" + suffix);
     m_strut[side]->SetPos((points[SPRING_C]+points[SPRING_U])/2);
-    m_strut[side]->SetRot(rot.Get_A_quaternion());
+    m_strut[side]->SetRot(chassisRot);
     m_strut[side]->SetMass(getStrutMass());
     m_strut[side]->SetInertiaXX(getStrutInertia());
     AddVisualizationStrut(m_strut[side], points[SPRING_C], points[SPRING_U], getStrutRadius());
@@ -162,7 +151,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_LCA[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(-CH_C_PI / 2.0, VECT_X));
     m_revolute[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
@@ -172,11 +161,12 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     // Determine the joint orientation matrix from the hardpoint locations by
     // constructing a rotation matrix with the z axis along the joint direction
     // and the y axis normal to the plane of the UCA.
-    v = points[LCA_B] - points[SPRING_U];//Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
-    v.Normalize();
     w = points[SPRING_C] - points[SPRING_U];
     w.Normalize();
+    v = Vcross(points[SPRING_U] - points[LCA_B], points[SPRING_C] - points[LCA_B]);
+    v.Normalize();
     u = Vcross(v, w);
+    u.Normalize();
     rot.Set_A_axis(u, v, w);
 
     m_cylindricalStrut[side] = ChSharedPtr<ChLinkLockCylindrical>(new ChLinkLockCylindrical);
