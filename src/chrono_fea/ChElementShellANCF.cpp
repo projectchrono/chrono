@@ -114,17 +114,17 @@ void ChElementShellANCF::SetupInitial(ChSystem* system) {
     // Perform layer initialization and accumulate element thickness.
     m_numLayers = m_layers.size();
     m_thickness = 0;
-    for (int il = 0; il < m_numLayers; il++) {
-        m_layers[il].SetupInitial();
-        m_thickness += m_layers[il].Get_thickness();
+    for (size_t kl = 0; kl < m_numLayers; kl++) {
+        m_layers[kl].SetupInitial();
+        m_thickness += m_layers[kl].Get_thickness();
     }
 
     // Loop again over the layers and calculate the range for Gauss integration in the
     // z direction (values in [-1,1]).
     m_GaussZ.push_back(-1);
     double z = 0;
-    for (int il = 0; il < m_numLayers; il++) {
-        z += m_layers[il].Get_thickness();
+    for (size_t kl = 0; kl < m_numLayers; kl++) {
+        z += m_layers[kl].Get_thickness();
         m_GaussZ.push_back(2 * z / m_thickness - 1);
     }
 
@@ -240,7 +240,7 @@ void MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const 
 void ChElementShellANCF::ComputeMassMatrix() {
     m_MassMatrix.Reset();
 
-    for (int kl = 0; kl < m_numLayers; kl++) {
+    for (size_t kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
         MyMass myformula(this);
         ChMatrixNM<double, 24, 24> TempMassMatrix;
@@ -272,7 +272,7 @@ private:
     ChElementShellANCF* element;
     ChVector<> gacc;
 
-    virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z);
+    virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z) override;
 };
 
 void MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y, const double z) {
@@ -298,7 +298,7 @@ void MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, cons
 void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
     m_GravForce.Reset();
 
-    for (int kl = 0; kl < m_numLayers; kl++) {
+    for (size_t kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
         MyGravity myformula(this, g_acc);
         ChMatrixNM<double, 24, 1> Fgravity;
@@ -329,7 +329,7 @@ void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
 class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
 public:
   MyForce(ChElementShellANCF* element,             // Containing element
-          int kl,                                  // Current layer index
+          size_t kl,                               // Current layer index
           ChMatrixNM<double, 8, 3>* d,             // Current coordinates
           ChMatrixNM<double, 24, 1>* d_dt,         // Current generalized velocities
           ChMatrixNM<double, 8, 1>* strain_ans,    // Vector for assumed natural strain
@@ -346,16 +346,16 @@ public:
   ~MyForce() {}
 
 private:
-    ChElementShellANCF* m_element;
-    int m_kl;
-    ChMatrixNM<double, 8, 3>* m_d;
-    ChMatrixNM<double, 24, 1>* m_d_dt;
-    ChMatrixNM<double, 8, 1>* m_strain_ans;
-    ChMatrixNM<double, 8, 24>* m_strainD_ans;
-    ChMatrixNM<double, 5, 1>* m_alpha_eas;
+  ChElementShellANCF* m_element;
+  size_t m_kl;
+  ChMatrixNM<double, 8, 3>* m_d;
+  ChMatrixNM<double, 24, 1>* m_d_dt;
+  ChMatrixNM<double, 8, 1>* m_strain_ans;
+  ChMatrixNM<double, 8, 24>* m_strainD_ans;
+  ChMatrixNM<double, 5, 1>* m_alpha_eas;
 
-    /// Evaluate (strainD'*strain)  at point x, include ANS and EAS.
-    virtual void Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z);
+  /// Evaluate (strainD'*strain)  at point x, include ANS and EAS.
+  virtual void Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z) override;
 };
 
 void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z) {
@@ -404,7 +404,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     A2.Cross(A3, A1);
 
     // Direction for orthotropic material
-    double theta = m_element->m_layers[m_kl].Get_theta();  // Fiber angle
+    double theta = m_element->GetLayer(m_kl).Get_theta();  // Fiber angle
     ChVector<double> AA1;
     ChVector<double> AA2;
     ChVector<double> AA3;
@@ -452,9 +452,9 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     beta(8, 0) = Vdot(AA3, j03);
 
     // Transformation matrix, function of fiber angle
-    const ChMatrixNM<double, 6, 6>& T0 = m_element->m_layers[m_kl].Get_T0();
+    const ChMatrixNM<double, 6, 6>& T0 = m_element->GetLayer(m_kl).Get_T0();
     // Determinant of the initial position vector gradient at the element center
-    double detJ0C = m_element->m_layers[m_kl].Get_detJ0C();
+    double detJ0C = m_element->GetLayer(m_kl).Get_detJ0C();
 
     // Enhanced Assumed Strain
     ChMatrixNM<double, 6, 5> G = T0 * M * (detJ0C / detJ0);
@@ -647,7 +647,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     strain += DEPS;
 
     // Matrix of elastic coefficients: The input assumes the material *could* be orthotropic
-    const ChMatrixNM<double, 6, 6>& E_eps = m_element->m_layers[m_kl].GetMaterial()->Get_E_eps();
+    const ChMatrixNM<double, 6, 6>& E_eps = m_element->GetLayer(m_kl).GetMaterial()->Get_E_eps();
 
     // Stress tensor calculation
     ChMatrixNM<double, 6, 1> stress;
@@ -817,7 +817,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     stock_jac_EAS_elem1.Reset();
     KTE1.Reset();
 
-    for (int kl = 0; kl < m_numLayers; kl++) {
+    for (size_t kl = 0; kl < m_numLayers; kl++) {
         TempJacobian_EAS.Reset();
         TempJacobian.Reset();
 
@@ -1454,7 +1454,7 @@ void ChElementShellANCF::ComputeNF(
 // Calculate avergae element density (needed for ChLoaderVolumeGravity).
 double ChElementShellANCF::GetDensity() {
     double tot_density = 0;
-    for (int kl = 0; kl < m_numLayers; kl++) {
+    for (size_t kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
         double layerthick = m_layers[kl].Get_thickness();
         tot_density += rho * layerthick;

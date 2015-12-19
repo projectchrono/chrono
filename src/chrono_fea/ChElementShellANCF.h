@@ -150,6 +150,9 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Get the number of layers
     size_t GetNumLayers() const { return m_numLayers; }
 
+    /// Get a handle to the specified layer.
+    const Layer& GetLayer(size_t i) const { return m_layers[i]; }
+
     /// Set the storage of the five alpha parameters for EAS (max no. of layers 7)
     void SetStockAlpha(const ChMatrixNM<double, 35, 1>& a) { m_StockAlpha_EAS = a; }
     /// Set all the alpha parameters for EAS
@@ -202,7 +205,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
 
     std::vector<ChSharedPtr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
     std::vector<Layer> m_layers;                       ///< element layers
-    int m_numLayers;                                   ///< number of layers for this element
+    size_t m_numLayers;                                ///< number of layers for this element
     double m_lenX;                                     ///< element length in X direction
     double m_lenY;                                     ///< element length in Y direction
     double m_thickness;                                ///< total element thickness
