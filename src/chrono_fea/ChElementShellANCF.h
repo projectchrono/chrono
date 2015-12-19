@@ -21,8 +21,8 @@
 #include "chrono_fea/ChElementShell.h"
 #include "chrono_fea/ChNodeFEAxyzD.h"
 #include "chrono_fea/ChUtilsFEA.h"
-#include "core/ChShared.h"
 #include "core/ChQuadrature.h"
+#include "core/ChShared.h"
 
 namespace chrono {
 namespace fea {
@@ -33,20 +33,34 @@ namespace fea {
 class ChMaterialShellANCF : public ChShared {
   public:
     /// Construct an isotropic material.
-    ChMaterialShellANCF(double rho, double E, double nu) : m_rho(rho) {
+    ChMaterialShellANCF(double rho,  ///< material density
+                        double E,    ///< Young's modulus
+                        double nu    ///< Poisson ratio
+                        )
+        : m_rho(rho) {
         double G = 0.5 * E / (1 + nu);
         Calc_E_eps(ChVector<>(E), ChVector<>(nu), ChVector<>(G));
     }
 
     /// Construct a (possibly) orthotropic material.
-    ChMaterialShellANCF(double rho, const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) : m_rho(rho) {
+    ChMaterialShellANCF(double rho,            ///< material density
+                        const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
+                        const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
+                        const ChVector<>& G    ///< shear moduli (G_xy, G_xz, G_yz)
+                        )
+        : m_rho(rho) {
         Calc_E_eps(E, nu, G);
     }
 
+    /// Return the material density.
     double Get_rho() const { return m_rho; }
+
+    /// Return the matrix of elastic coefficients.
     const ChMatrixNM<double, 6, 6>& Get_E_eps() const { return m_E_eps; }
 
   private:
+    // Calculate the matrix of elastic coefficients.
+    // Always assume that the material could be orthotropic
     void Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
         double delta = 1.0 - (nu.x * nu.x) * E.y / E.x - (nu.y * nu.y) * E.z / E.x - (nu.z * nu.z) * E.z / E.y -
                        2.0 * nu.x * nu.y * nu.z * E.z / E.x;
@@ -94,8 +108,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         double Get_detJ0C() const { return m_detJ0C; }
         const ChMatrixNM<double, 6, 6>& Get_T0() const { return m_T0; }
 
-        // Initial setup for this layer.
-        // Calculate T0 and detJ0 at the element center.
+        // Initial setup for this layer: calculate T0 and detJ0 at the element center.
         void SetupInitial();
 
         ChElementShellANCF* m_element;                ///< containing ANCF shell element
@@ -126,7 +139,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
                   ChSharedPtr<ChNodeFEAxyzD> nodeC,
                   ChSharedPtr<ChNodeFEAxyzD> nodeD);
 
-    /// Specify the element dimensions
+    /// Specify the element dimensions.
     void SetDimensions(double lenX, double lenY) {
         m_lenX = lenX;
         m_lenY = lenY;
@@ -148,11 +161,14 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     ChSharedPtr<ChNodeFEAxyzD> GetNodeD() const { return m_nodes[3]; }
 
     /// Add a layer.
-    void AddLayer(double thickness, double theta, ChSharedPtr<ChMaterialShellANCF> material) {
+    void AddLayer(double thickness,                          ///< layer thickness
+                  double theta,                              ///< fiber angle (radians)
+                  ChSharedPtr<ChMaterialShellANCF> material  ///< layer material
+                  ) {
         m_layers.push_back(Layer(this, thickness, theta, material));
     }
 
-    /// Get the number of layers
+    /// Get the number of layers.
     size_t GetNumLayers() const { return m_numLayers; }
 
     /// Get a handle to the specified layer.
@@ -223,10 +239,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     ChMatrixNM<double, 24, 24> m_stock_KTE;            ///< Analytical Jacobian
     ChMatrixNM<double, 8, 3> m_d0;                     ///< initial nodal coordinates
     ChMatrixNM<double, 24, 1> m_GravForce;             ///< Gravity Force
-    ChMatrixNM<double, 35, 1> m_StockAlpha_EAS;  ///< StockAlpha(5*7,1): Max #Layer is 7
-    JacobianType m_flag_HE;                      ///< Jacobian evaluation type (analytical or numerical)
-    double m_dt;                                 ///< time step used in calculating structural damping coefficient
-    bool m_gravity_on;                           ///< flag indicating whether or not gravity is included
+    ChMatrixNM<double, 35, 1> m_StockAlpha_EAS;        ///< StockAlpha(5*7,1): Max #Layer is 7
+    JacobianType m_flag_HE;                            ///< Jacobian evaluation type (analytical or numerical)
+    double m_dt;                                       ///< time step used in calculating structural damping coefficient
+    bool m_gravity_on;                                 ///< flag indicating whether or not gravity is included
 
     // Interface to ChElementBase base class
     // -------------------------------------
@@ -298,12 +314,12 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     // [ANS] Shape function for Assumed Naturals Strain (Interpolation of strain and strainD in a thickness direction)
     void shapefunction_ANS_BilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y);
 
-    // [ANS] Calculation of ANS strain and strainD
+    // [ANS] Calculation of ANS strain and strainD.
     void AssumedNaturalStrain_BilinearShell(const ChMatrixNM<double, 8, 3>& d,
                                             ChMatrixNM<double, 8, 1>& strain_ans,
                                             ChMatrixNM<double, 8, 24>& strainD_ans);
 
-    // [EAS] Basis function of M for Enhanced Assumed Strain
+    // [EAS] Basis function of M for Enhanced Assumed Strain.
     void Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y, double z);
 
     // [EAS] matrix T0 (inverse and transposed) and detJ0 at center are used for Enhanced Assumed Strains alpha
@@ -327,22 +343,22 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     // Helper functions
     // ----------------
 
-    /// Numerial inverse for a 5x5 matrix
+    /// Numerial inverse for a 5x5 matrix.
     static void Inverse55_Numerical(ChMatrixNM<double, 5, 5>& a, int n);
 
-    /// Analytical inverse for a 5x5 matrix
+    /// Analytical inverse for a 5x5 matrix.
     static void Inverse55_Analytical(ChMatrixNM<double, 5, 5>& A, ChMatrixNM<double, 5, 5>& B);
 
     // Functions for ChLoadable interface
     // ----------------------------------
 
-    /// Gets the number of DOFs affected by this element (position part)
+    /// Gets the number of DOFs affected by this element (position part).
     virtual int LoadableGet_ndof_x() { return 4 * 6; }
 
-    /// Gets the number of DOFs affected by this element (speed part)
+    /// Gets the number of DOFs affected by this element (velocity part).
     virtual int LoadableGet_ndof_w() { return 4 * 6; }
 
-    /// Gets all the DOFs packed in a single vector (position part)
+    /// Gets all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->m_nodes[0]->GetPos(), block_offset, 0);
         mD.PasteVector(this->m_nodes[0]->GetD(), block_offset + 3, 0);
@@ -354,7 +370,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         mD.PasteVector(this->m_nodes[3]->GetD(), block_offset + 21, 0);
     }
 
-    /// Gets all the DOFs packed in a single vector (speed part)
+    /// Gets all the DOFs packed in a single vector (velocity part).
     virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->m_nodes[0]->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->m_nodes[0]->GetD_dt(), block_offset + 3, 0);
@@ -373,10 +389,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
     virtual int GetSubBlocks() { return 4; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector
+    /// Get the offset of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) { return m_nodes[nblock]->NodeGetOffset_w(); }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector
+    /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
 
     virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override {
@@ -387,8 +403,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
             Result += N(ii * 2 + 1) * this->m_nodes[ii]->GetPos_dt();
         }
     }
-
-    // evaluate shape functions (in compressed vector), btw. not dependant on state
 
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override {
@@ -425,7 +439,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) override;
 
-    /// This is needed so that it can be accessed by ChLoaderVolumeGravity
+    /// This is needed so that it can be accessed by ChLoaderVolumeGravity.
     /// Density is mass per unit surface.
     virtual double GetDensity() override;
 
