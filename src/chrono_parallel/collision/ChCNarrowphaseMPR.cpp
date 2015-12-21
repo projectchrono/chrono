@@ -25,11 +25,10 @@ bool chrono::collision::MPRSphereSphere(const ConvexShape& ShapeA,
                                         real3& p1,
                                         real3& p2) {
     real3 relpos = ShapeB.A - ShapeA.A;
-    real d2 = Dot(relpos, relpos);
+    real d2 = Dot(relpos);
     real collide_dist = ShapeA.B.x + ShapeB.B.x;
     if (d2 <= collide_dist * collide_dist) {
-        // depth = Sqrt(d2)-collide_dist;
-        N = Normalize(relpos);
+        N = relpos / Sqrt(d2);
         p1 = ShapeA.A + N * ShapeA.B.x;
         p2 = ShapeB.A - N * ShapeB.B.x;
         depth = Dot(N, p2 - p1);
