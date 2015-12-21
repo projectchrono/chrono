@@ -240,7 +240,7 @@ inline real HorizontalAdd(__m256d a) {
     return _mm_cvtsd_f64(dot_prod);
 }
 inline real Dot3(__m256d a) {
-	//__m256d xy = _mm256_and_pd(a, REAL3MASK);
+    //__m256d xy = _mm256_and_pd(a, REAL3MASK);
     __m256d xy = _mm256_mul_pd(a, a);
     return HorizontalAdd(xy);
 }
@@ -312,14 +312,35 @@ static __m256d change_sign(__m256d a) {
     return res;
 }
 //========================================================
-inline __m256d Cross3(__m256d a, __m256d b) {
-    __m256d a1 = permute4d<1, 2, 0, -256>(a);
-    __m256d b1 = permute4d<1, 2, 0, -256>(b);
-    __m256d a2 = permute4d<2, 0, 1, -256>(a);
-    __m256d b2 = permute4d<2, 0, 1, -256>(b);
-    __m256d c = a1 * b2 - a2 * b1;
-    return _mm256_and_pd(c, REAL3MASK);
+// inline __m256d Cross3(__m256d a, __m256d b) {
+//    __m256d a1 = permute4d<1, 2, 0, -256>(a);
+//    __m256d b1 = permute4d<1, 2, 0, -256>(b);
+//    __m256d a2 = permute4d<2, 0, 1, -256>(a);
+//    __m256d b2 = permute4d<2, 0, 1, -256>(b);
+//    __m256d c = a1 * b2 - a2 * b1;
+//    return _mm256_and_pd(c, REAL3MASK);
+//}
+
+inline real3 Cross3(const real* a, const real* b) {
+    real3 result;
+#if defined(CHRONO_AVX_2_0)
+    // https://www.nersc.gov/assets/Uploads/Language-Impact-on-Vectorization-Vector-Programming-in-C++.pdf
+    __m256d a012 = _mm256_loadu_pd(a);
+    __m256d b012 = _mm256_loadu_pd(b);
+    __m256d a201 = _mm256_permute4x64_pd(a012, _MM_SHUFFLE(3, 1, 0, 2));
+    __m256d b201 = _mm256_permute4x64_pd(b012, _MM_SHUFFLE(3, 1, 0, 2));
+    __m256d tmp = _mm256_fmsub_pd(b012, a201, _mm256_mul_pd(a012, b201));
+    tmp = _mm256_permute4x64_pd(tmp, _MM_SHUFFLE(3, 1, 0, 2));
+    tmp = _mm256_blend_pd(_mm256_setzero_pd(), tmp, 0x7);  // put zero on 4th position
+    _mm256_storeu_pd(&result.array[0], tmp);
+#else
+    result[0] = (a[1] * b[2]) - (a[2] * b[1]);
+    result[1] = (a[2] * b[0]) - (a[0] * b[2]);
+    result[2] = (a[0] * b[1]) - (a[1] * b[0]);
+#endif
+    return result;
 }
+
 inline __m256d Normalize3(__m256d v) {
     real t = simd::Dot3(v);
     real dp = InvSqrt(t);
@@ -722,7 +743,7 @@ real3 Sqrt(const real3& v) {
     return simd::SquareRoot(v);
 }
 real3 Cross(const real3& b, const real3& c) {
-    return simd::Cross3(b, c);
+    return simd::Cross3(b.array, c.array);
 }
 real3 Abs(const real3& v) {
     return simd::Abs(v);
