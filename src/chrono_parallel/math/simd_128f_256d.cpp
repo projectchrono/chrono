@@ -381,6 +381,18 @@ inline __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c) {
     return dotproduct;
 }
 
+inline Mat33 OuterProductVV(const real* a, const real* b) {
+    Mat33 r;
+    __m256d u = _mm256_loadu_pd(a);  // Load the first vector
+    __m256d col;
+    int i;
+    for (i = 0; i < 3; i++) {
+        col = _mm256_mul_pd(u, _mm256_set1_pd(b[i]));
+        _mm256_storeu_pd(&r.array[i * 4], col);
+    }
+    return r;
+}
+
 inline __m256d QuatMult(__m256d a, __m256d b) {
     __m256d a1123 = permute4d<1, 1, 2, 3>(a);
     __m256d a2231 = permute4d<2, 2, 3, 1>(a);
@@ -857,7 +869,7 @@ real Trace(const Mat33& m) {
 }
 // Multiply a 3x1 by a 1x3 to get a 3x3
 Mat33 OuterProduct(const real3& a, const real3& b) {
-    return Mat33(a * b[0], a * b[1], a * b[2]);
+    return simd::OuterProductVV(a.array, b.array);
 }
 
 // real3 UnpackLow(const real3& v1, const real3& v2) {

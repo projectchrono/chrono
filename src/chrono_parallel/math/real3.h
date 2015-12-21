@@ -43,17 +43,17 @@ class real3 {
     }
 
 #if defined(USE_AVX)
-    inline real3(__m256d m) { _mm256_storeu_pd(&x, m); }
-    inline operator __m256d() const { return _mm256_loadu_pd(&x); }
+    inline real3(__m256d m) { _mm256_storeu_pd(&array[0], m); }
+    inline operator __m256d() const { return _mm256_loadu_pd(&array[0]); }
     inline real3& operator=(const __m256d& rhs) {
-        _mm256_storeu_pd(&x, rhs);
+        _mm256_storeu_pd(&array[0], rhs);
         return *this;
     }
 #elif defined(USE_SSE)
-    inline real3(__m128 m) { _mm_storeu_ps(&x, m); }
-    inline operator __m128() const { return _mm_loadu_ps(&x); }
+    inline real3(__m128 m) { _mm_storeu_ps(&array[0], m); }
+    inline operator __m128() const { return _mm_loadu_ps(&array[0]); }
     inline real3& operator=(const __m128& rhs) {
-        _mm_storeu_ps(&x, rhs);
+        _mm_storeu_ps(&array[0], rhs);
         return *this;
     }
 #endif

@@ -33,8 +33,8 @@ class real4 {
 
     inline real operator[](unsigned int i) const { return array[i]; }
     inline real& operator[](unsigned int i) { return array[i]; }
-    inline operator real*() { return &x; }
-    inline operator const real*() const { return &x; };
+    inline operator real*() { return &array[0]; }
+    inline operator const real*() const { return &array[0]; };
     inline real4& operator=(const real4& rhs) {
         memcpy(array, rhs.array, 4 * sizeof(real));
 
@@ -42,17 +42,17 @@ class real4 {
     }
 
 #if defined(USE_AVX)
-    inline real4(__m256d m) { _mm256_storeu_pd(&x, m); }
-    inline operator __m256d() const { return _mm256_loadu_pd(&x); }
+    inline real4(__m256d m) { _mm256_storeu_pd(&array[0], m); }
+    inline operator __m256d() const { return _mm256_loadu_pd(&array[0]); }
     inline real4& operator=(const __m256d& rhs) {
-        _mm256_storeu_pd(&x, rhs);
+        _mm256_storeu_pd(&array[0], rhs);
         return *this;  // Return a reference to myself.
     }
 #elif defined(USE_SSE)
-    inline real4(__m128 m) { _mm_storeu_ps(&x, m); }
-    inline operator __m128() const { return _mm_loadu_ps(&x); }
+    inline real4(__m128 m) { _mm_storeu_ps(&array[0], m); }
+    inline operator __m128() const { return _mm_loadu_ps(&array[0]); }
     inline real4& operator=(const __m128& rhs) {
-        _mm_storeu_ps(&x, rhs);
+        _mm_storeu_ps(&array[0], rhs);
         return *this;  // Return a reference to myself.
     }
 #endif

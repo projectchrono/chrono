@@ -102,5 +102,14 @@ int main(int argc, char* argv[]) {
     WeakEqual(Res1, ToMat33(Res2), C_EPSILON * 2);
   }
 
+  {
+    std::cout << "Outer Product\n";
+    real3 a(1,2,3);
+    real3 b(6,7,8);
+
+    Mat33 Res1 = OuterProduct(a, b);
+    Mat33 Res2(6,12,18,7,14,21,8,16,24);
+    WeakEqual(Res1, Res2, C_EPSILON);
+  }
   return 0;
 }
