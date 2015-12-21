@@ -138,12 +138,12 @@ static inline real ATan(const real theta) {
 static inline real ATan2(const real x, const real y) {
     return atan2f(x, y);
 }
-static inline real DegToRad(const real t) {
-    return t * C_DegToRad;
-}
-static inline real RadToDeg(const real t) {
-    return t * C_RadToDeg;
-}
+//static inline real DegToRad(const real t) {
+//    return t * C_DegToRad;
+//}
+//static inline real RadToDeg(const real t) {
+//    return t * C_RadToDeg;
+//}
 
 // Geometric Functions
 // ========================================================================================

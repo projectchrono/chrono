@@ -57,10 +57,10 @@ class real4 {
         return *this;  // Return a reference to myself.
     }
 #elif defined(USE_SSE)
-    inline real4(__m128 m) { _mm128_storeu_pd(&x, m); }
-    inline operator __m128() const { return _mm128_loadu_pd(&x); }
+    inline real4(__m128 m) { _mm_storeu_ps(&x, m); }
+    inline operator __m128() const { return _mm_loadu_ps(&x); }
     inline real4& operator=(const __m128& rhs) {
-        _mm128_storeu_pd(&x, rhs);
+        _mm_storeu_ps(&x, rhs);
         return *this;  // Return a reference to myself.
     }
 #endif
@@ -117,12 +117,6 @@ class quaternion {
 
         return *this;  // Return a reference to myself.
     }
-    inline void Set(real _w, real _x, real _y, real _z) {
-        w = _w;
-        x = _x;
-        y = _y;
-        z = _z;
-    }
     inline real3 vect() const { return real3(x, y, z); }
 
 #if defined(USE_AVX)
@@ -133,10 +127,10 @@ class quaternion {
         return *this;  // Return a reference to myself.
     }
 #elif defined(USE_SSE)
-    inline quaternion(__m128 m) { _mm128_storeu_pd(&w, m); }
-    inline operator __m128() const { return _mm128_loadu_pd(&w); }
+    inline quaternion(__m128 m) { _mm_storeu_ps(&w, m); }
+    inline operator __m128() const { return _mm_loadu_ps(&w); }
     inline quaternion& operator=(const __m128& rhs) {
-        _mm128_storeu_pd(&w, rhs);
+        _mm_storeu_ps(&w, rhs);
         return *this;  // Return a reference to myself.
     }
 #endif
@@ -194,11 +188,11 @@ static inline real3 AbsRotate(const quaternion& q, const real3& v) {
     real3 result;
 
     result[0] =
-        Abs((e0e0 + e1e1) * 2.0f - 1.0f) * v[0] + Abs((e1e2 - e0e3) * 2.0f) * v[1] + Abs((e1e3 + e0e2) * 2.0f) * v[2];
+        Abs((e0e0 + e1e1) * real(2.0) -  real(1.0)) * v[0] + Abs((e1e2 - e0e3) * real(2.0)) * v[1] + Abs((e1e3 + e0e2) * real(2.0)) * v[2];
     result[1] =
-        Abs((e1e2 + e0e3) * 2.0f) * v[0] + Abs((e0e0 + e2e2) * 2.0f - 1.0f) * v[1] + Abs((e2e3 - e0e1) * 2.0f) * v[2];
+        Abs((e1e2 + e0e3) * real(2.0)) * v[0] + Abs((e0e0 + e2e2) * real(2.0) -  real(1.0)) * v[1] + Abs((e2e3 - e0e1) * real(2.0)) * v[2];
     result[2] =
-        Abs((e1e3 - e0e2) * 2.0f) * v[0] + Abs((e2e3 + e0e1) * 2.0f) * v[1] + Abs((e0e0 + e3e3) * 2.0f - 1.0f) * v[2];
+        Abs((e1e3 - e0e2) * real(2.0)) * v[0] + Abs((e2e3 + e0e1) * real(2.0)) * v[1] + Abs((e0e0 + e3e3) * real(2.0) - real(1.0)) * v[2];
     return result;
 }
 
