@@ -32,7 +32,7 @@ class Mat33 {
         cols[2] = real3(0.0);
     }
     // diagonal matrix constructor
-    Mat33(real v) : array({1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, }) {}
+    Mat33(real v) : array{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0} {}
 
     // Constructor that takes three columns of the matrix
     Mat33(const real3& col1, const real3& col2, const real3& col3) {
@@ -49,7 +49,7 @@ class Mat33 {
           const real& v13,
           const real& v23,
           const real& v33)
-        : array({v11, v21, v31, 0, v12, v22, v32, 0, v13, v23, 0}) {}
+        : array{v11, v21, v31, 0, v12, v22, v32, 0, v13, v23, v33, 0} {}
 
     Mat33(const Mat33& M) {}
 

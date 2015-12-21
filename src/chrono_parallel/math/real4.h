@@ -25,28 +25,20 @@ namespace chrono {
 
 class real4 {
   public:
-    inline real4() : x(0), y(0), z(0), w(0) {}
-    inline real4(real a) : x(a), y(a), z(a), w(a) {}
-    inline real4(real a, real b, real c, real d) : x(a), y(b), z(c), w(d) {}
-    inline real4(const real3& v, real w) : x(v.x), y(v.y), z(v.z), w(w) {}
-    inline real4(const real4& v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
+    inline real4() {}
+    inline real4(real a) : array{a, a, a, a} {}
+    inline real4(real a, real b, real c, real d) : array{a, b, c, d} {}
+    inline real4(const real3& v, real w) : array{v.x, v.y, v.y, w} {}
+    inline real4(const real4& v) : array{v.x, v.y, v.y, v.w} {}
 
     inline real operator[](unsigned int i) const { return array[i]; }
     inline real& operator[](unsigned int i) { return array[i]; }
     inline operator real*() { return &x; }
     inline operator const real*() const { return &x; };
     inline real4& operator=(const real4& rhs) {
-        x = rhs.x;
-        y = rhs.y;
-        z = rhs.z;
-        w = rhs.w;
+        memcpy(array, rhs.array, 4 * sizeof(real));
+
         return *this;  // Return a reference to myself.
-    }
-    void Set(real _x, real _y, real _z, real _w) {
-        x = _x;
-        y = _y;
-        z = _z;
-        w = _w;
     }
 
 #if defined(USE_AVX)
@@ -101,20 +93,16 @@ real4 operator-(const real4& a);
 // ========================================================================================
 class quaternion {
   public:
-    inline quaternion() : w(0), x(0), y(0), z(0) {}
-    inline quaternion(real a) : w(a), x(a), y(a), z(a) {}
-    inline quaternion(real _w, real _x, real _y, real _z) : w(_w), x(_x), y(_y), z(_z) {}
-    inline quaternion(const real3& v, real w) : w(w), x(v.x), y(v.y), z(v.z) {}
+    inline quaternion() {}
+    inline quaternion(real a) : array{a, a, a, a} {}
+    inline quaternion(real _w, real _x, real _y, real _z) : array{_w, _x, _y, _z} {}
+    inline quaternion(const real3& v, real w) : array{v.w, v.x, v.y, v.z} {}
     inline real operator[](unsigned int i) const { return array[i]; }
     inline real& operator[](unsigned int i) { return array[i]; }
-    inline operator real*() { return &w; }
-    inline operator const real*() const { return &w; };
+    inline operator real*() { return &array[0]; }
+    inline operator const real*() const { return &array[0]; };
     inline quaternion& operator=(const quaternion& rhs) {
-        w = rhs.w;
-        x = rhs.x;
-        y = rhs.y;
-        z = rhs.z;
-
+        memcpy(array, rhs.array, 4 * sizeof(real));
         return *this;  // Return a reference to myself.
     }
     inline real3 vect() const { return real3(x, y, z); }
@@ -187,12 +175,12 @@ static inline real3 AbsRotate(const quaternion& q, const real3& v) {
 
     real3 result;
 
-    result[0] =
-        Abs((e0e0 + e1e1) * real(2.0) -  real(1.0)) * v[0] + Abs((e1e2 - e0e3) * real(2.0)) * v[1] + Abs((e1e3 + e0e2) * real(2.0)) * v[2];
-    result[1] =
-        Abs((e1e2 + e0e3) * real(2.0)) * v[0] + Abs((e0e0 + e2e2) * real(2.0) -  real(1.0)) * v[1] + Abs((e2e3 - e0e1) * real(2.0)) * v[2];
-    result[2] =
-        Abs((e1e3 - e0e2) * real(2.0)) * v[0] + Abs((e2e3 + e0e1) * real(2.0)) * v[1] + Abs((e0e0 + e3e3) * real(2.0) - real(1.0)) * v[2];
+    result[0] = Abs((e0e0 + e1e1) * real(2.0) - real(1.0)) * v[0] + Abs((e1e2 - e0e3) * real(2.0)) * v[1] +
+                Abs((e1e3 + e0e2) * real(2.0)) * v[2];
+    result[1] = Abs((e1e2 + e0e3) * real(2.0)) * v[0] + Abs((e0e0 + e2e2) * real(2.0) - real(1.0)) * v[1] +
+                Abs((e2e3 - e0e1) * real(2.0)) * v[2];
+    result[2] = Abs((e1e3 - e0e2) * real(2.0)) * v[0] + Abs((e2e3 + e0e1) * real(2.0)) * v[1] +
+                Abs((e0e0 + e3e3) * real(2.0) - real(1.0)) * v[2];
     return result;
 }
 

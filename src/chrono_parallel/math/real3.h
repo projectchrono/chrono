@@ -29,9 +29,9 @@ namespace chrono {
 class real3 {
   public:
     inline real3() {}
-    inline real3(real a) : array({a, a, a, 0}) {}
-    inline real3(real a, real b, real c) : array({a, b, c, 0}) {}
-    inline real3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
+    inline real3(real a) : array{a, a, a, 0} {}
+    inline real3(real a, real b, real c) : array{a, b, c, 0} {}
+    inline real3(const real3& v) : array{v.x, v.y, v.z, 0} {}
     inline real operator[](unsigned int i) const { return array[i]; }
     inline real& operator[](unsigned int i) { return array[i]; }
     inline real3& operator=(const real3& rhs) {
