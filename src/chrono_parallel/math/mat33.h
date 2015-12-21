@@ -23,7 +23,8 @@
 #include "chrono_parallel/math/real4.h"
 namespace chrono {
 
-struct Mat33 {
+class Mat33 {
+  public:
     // Zero constructor
     Mat33() {
         cols[0] = real3(0.0);
@@ -31,11 +32,7 @@ struct Mat33 {
         cols[2] = real3(0.0);
     }
     // diagonal matrix constructor
-    Mat33(real v) {
-        cols[0] = real3(v, 0, 0);
-        cols[1] = real3(0, v, 0);
-        cols[2] = real3(0, 0, v);
-    }
+    Mat33(real v) : array({1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, }) {}
 
     // Constructor that takes three columns of the matrix
     Mat33(const real3& col1, const real3& col2, const real3& col3) {
@@ -51,23 +48,43 @@ struct Mat33 {
           const real& v32,
           const real& v13,
           const real& v23,
-          const real& v33) {
-        cols[0] = real3(v11, v21, v31);
-        cols[1] = real3(v12, v22, v32);
-        cols[2] = real3(v13, v23, v33);
-    }
+          const real& v33)
+        : array({v11, v21, v31, 0, v12, v22, v32, 0, v13, v23, 0}) {}
+
+    Mat33(const Mat33& M) {}
+
     // Mat33 from quaternion
-    Mat33(const quaternion& quat) {
-        cols[0] = Rotate(real3(1.0f, 0.0f, 0.0f), quat);
-        cols[1] = Rotate(real3(0.0f, 1.0f, 0.0f), quat);
-        cols[2] = Rotate(real3(0.0f, 0.0f, 1.0f), quat);
+    //    Mat33(const quaternion& quat) {
+    //        cols[0] = Rotate(real3(1.0, 0.0, 0.0), quat);
+    //        cols[1] = Rotate(real3(0.0, 1.0, 0.0), quat);
+    //        cols[2] = Rotate(real3(0.0, 0.0, 1.0), quat);
+    //    }
+    Mat33(const quaternion& q) {
+        cols[0] = real3(real(1.0) - real(2.0) * q.y * q.y - real(2.0) * q.z * q.z,
+                        real(2.0) * q.x * q.y + real(2.0) * q.z * q.w, real(2.0) * q.x * q.z - real(2.0) * q.y * q.w);
+        cols[1] = real3(real(2.0) * q.x * q.y - real(2.0) * q.z * q.w,
+                        real(1.0) - real(2.0) * q.x * q.x - real(2.0) * q.z * q.z,
+                        real(2.0) * q.y * q.z + real(2.0) * q.x * q.w);
+        cols[2] = real3(real(2.0) * q.x * q.z + real(2.0) * q.y * q.w, real(2.0) * q.y * q.z - real(2.0) * q.x * q.w,
+                        real(1.0) - real(2.0) * q.x * q.x - real(2.0) * q.y * q.y);
+    }
+
+    inline real operator[](unsigned int i) const { return array[i]; }
+    inline real& operator[](unsigned int i) { return array[i]; }
+
+    inline Mat33& operator=(const Mat33& M) {
+        cols[0] = M.cols[0];
+        cols[1] = M.cols[1];
+        cols[2] = M.cols[2];
+        return *this;
     }
     //
     //    real operator()(int i, int j) const { return static_cast<const real*>(cols[j])[i]; }
     //    real& operator()(int i, int j) { return static_cast<real*>(cols[j])[i]; }
-
-    real3 cols[3];
-
+    union {
+        real array[12];
+        real3 cols[3];
+    };
     // cols[0] 0 1 2
     // cols[1] 3 4 5
     // cols[2] 6 7 8
@@ -84,9 +101,7 @@ static inline Mat33 operator*(const Mat33& N, const real scale) {
     return M;
 }
 
-static inline Mat33 operator*(const Mat33& M, const Mat33& N) {
-    return Mat33(M * N.cols[0], M * N.cols[1], M * N.cols[2]);
-}
+Mat33 operator*(const Mat33& M, const Mat33& N);
 
 static inline Mat33 operator+(const Mat33& M, const Mat33& N) {
     return Mat33(M.cols[0] + N.cols[0], M.cols[1] + N.cols[1], M.cols[2] + N.cols[2]);  //

@@ -723,6 +723,9 @@ real3 operator*(const Mat33& M, const real3& v) {
     real3 t3 = simd::Mul(M.cols[2], simd::Set(v[2]));
     return simd::Add(t1, simd::Add(t2, t3));
 }
+Mat33 operator*(const Mat33& M, const Mat33& N) {
+    return Mat33(M * N.cols[0], M * N.cols[1], M * N.cols[2]);
+}
 Mat33 Abs(const Mat33& m) {
     return Mat33(simd::Abs(m.cols[0]), simd::Abs(m.cols[1]), simd::Abs(m.cols[2]));
 }
