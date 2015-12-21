@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
         R2 = Abs(R2);
         real3 result_2 = R2 * V;
 
-        WeakEqual(result_1, result_2, precision);
+        WeakEqual(result_1, result_2, precision * 2);
     }
 
     // =============================================================================

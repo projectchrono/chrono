@@ -28,24 +28,24 @@
 #include <core/ChMatrix33.h>
 
 using namespace chrono;
-real3 ToReal3(const ChVector<>& a) {
+real3 ToReal3(const ChVector<real>& a) {
   return real3(a.x, a.y, a.z);
 }
 
-ChVector<> ToChVector(const real3& a) {
-  return ChVector<>(a.x, a.y, a.z);
+ChVector<real> ToChVector(const real3& a) {
+  return ChVector<real>(a.x, a.y, a.z);
 }
 
-ChQuaternion<> ToChQuaternion(const quaternion& a) {
-  return ChQuaternion<>(a.w, a.x, a.y, a.z);
+ChQuaternion<real> ToChQuaternion(const quaternion& a) {
+  return ChQuaternion<real>(a.w, a.x, a.y, a.z);
 }
 
-quaternion ToQuaternion(const ChQuaternion<>& a) {
+quaternion ToQuaternion(const ChQuaternion<real>& a) {
   return quaternion(a.e0, a.e1, a.e2, a.e3);
 }
 
-ChMatrix33<> ToChMatrix33(const Mat33& a) {
-  ChMatrix33<> tmp;
+ChMatrix33<real> ToChMatrix33(const Mat33& a) {
+  ChMatrix33<real> tmp;
   tmp.PasteVector(ToChVector(a.cols[0]), 0, 0);
   tmp.PasteVector(ToChVector(a.cols[1]), 0, 1);
   tmp.PasteVector(ToChVector(a.cols[2]), 0, 2);
@@ -53,7 +53,7 @@ ChMatrix33<> ToChMatrix33(const Mat33& a) {
   return tmp;
 }
 
-Mat33 ToMat33(const ChMatrix33<>& a) {
+Mat33 ToMat33(const ChMatrix33<real>& a) {
   Mat33 tmp;
   tmp.cols[0] = ToReal3(a.ClipVector(0, 0));
   tmp.cols[1] = ToReal3(a.ClipVector(0, 1));

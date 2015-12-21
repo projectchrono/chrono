@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     std::cout << "A Matrix\n";
     Mat33 A1(R1);
     ChMatrix33<real> A2 = ChMatrix33<real>(ToChQuaternion(R1));
-    WeakEqual(A1, ToMat33(A2), C_EPSILON * 2);
+    WeakEqual(A1, ToMat33(A2), C_EPSILON * 3);
   }
 
 //  {
@@ -71,10 +71,10 @@ int main(int argc, char* argv[]) {
 //    WeakEqual(A1, ToMat33(A2), C_EPSILON * 2);
 //  }
 
-  Mat33 A1(R1);
-  Mat33 A2(R2);
-  ChMatrix33<real> B1 = ChMatrix33<real>(ToChQuaternion(R1));
-  ChMatrix33<real> B2 = ChMatrix33<real>(ToChQuaternion(R2));
+  Mat33 A1(1,2,4,5,6,7,8,9,10);
+  Mat33 A2(10,2,4,7,2,5,8,3,1);
+  ChMatrix33<real> B1 = ChMatrix33<real>(ToChMatrix33(A1));
+  ChMatrix33<real> B2 = ChMatrix33<real>(ToChMatrix33(A2));
 
   {
     std::cout << "Multiply Matrix\n";
@@ -96,12 +96,9 @@ int main(int argc, char* argv[]) {
 
   {
     std::cout << "Multiply Matrix T\n";
-
     Mat33 Res1 = MultTranspose(A1, A2);
-
     ChMatrix33<real> Res2;
     Res2.MatrMultiplyT(B1, B2);
-
     WeakEqual(Res1, ToMat33(Res2), C_EPSILON * 2);
   }
 
