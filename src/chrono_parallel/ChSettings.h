@@ -106,6 +106,7 @@ struct fluid_settings {
         artificial_pressure_dq = .2 * kernel_radius;
         artificial_pressure_n = 4;
         enable_viscosity = false;
+        vorticity_confinement = 0;
     }
     real kernel_radius;
     real volume;
@@ -116,6 +117,7 @@ struct fluid_settings {
     real cohesion;
     real mu;  // friction
     real density;
+    real vorticity_confinement;
     real mass;
     real viscosity;
     real collision_envelope;

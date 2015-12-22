@@ -455,14 +455,40 @@ void ChConstraintFluidFluid::ArtificialPressure() {
     }
     if (data_manager->settings.fluid.fluid_is_rigid == false) {
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+        custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_fluid;
         real mass_fluid = data_manager->settings.fluid.mass;
+        real inv_density = 1.0 / data_manager->settings.fluid.density;
+        real vorticity_confinement = data_manager->settings.fluid.vorticity_confinement;
         real h = data_manager->settings.fluid.kernel_radius;
         real k = data_manager->settings.fluid.artificial_pressure_k;
         real dq = data_manager->settings.fluid.artificial_pressure_dq;
         real n = data_manager->settings.fluid.artificial_pressure_n;
+        real dt = data_manager->settings.step_size;
+//        custom_vector<real4> curl(num_fluid_bodies);
+//        if (vorticity_confinement > 0 && data_manager->settings.fluid.enable_viscosity) {
+//#pragma omp parallel for
+//            for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+//                real3 vorticity(0);
+//                real3 pos_a = sorted_pos[body_a];
+//                real3 vel_a = sorted_vel[body_a];
+//                for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+//                    int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+//                    if (body_a == body_b) {
+//                        continue;
+//                    }
+//                    real3 xij = (pos_a - sorted_pos[body_b]);
+//                    real3 vij = (vel_a - sorted_vel[body_b]);
+//
+//                    real dist = Length(xij);
+//                    vorticity += Cross(vij, GRAD_KERNEL(xij, dist, h));
+//                }
+//                curl[body_a] = real4(vorticity.x, vorticity.y, vorticity.z, Length(vorticity));
+//            }
+//        }
 #pragma omp parallel for
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
             real corr = 0;
+            real3 vorticity_grad(0);
             real3 pos_a = sorted_pos[body_a];
             for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
@@ -472,9 +498,18 @@ void ChConstraintFluidFluid::ArtificialPressure() {
                 real3 xij = (pos_a - sorted_pos[body_b]);
 
                 real dist = Length(xij);
-                corr += k * pow(KERNEL(dist, h) / KERNEL(dq, h), n);
+                corr += k * Pow(KERNEL(dist, h) / KERNEL(dq, h), n);
+//                if (body_a != body_b) {
+//                    vorticity_grad += curl[body_b].w * GRAD_KERNEL(xij, dist, h);
+//                }
             }
-            // printf("corr: %f", corr);
+//            if (vorticity_confinement > 0 && data_manager->settings.fluid.enable_viscosity) {
+//                real3 curl_a = real3(curl[body_a].x, curl[body_a].y, curl[body_a].z);
+//                real3 corr_vort = dt * inv_density * vorticity_confinement * Cross(Normalize(vorticity_grad), curl_a);
+//                data_manager->host_data.gamma[index_offset + num_fluid_bodies + body_a * 3 + 0] += -corr_vort.x;
+//                data_manager->host_data.gamma[index_offset + num_fluid_bodies + body_a * 3 + 1] += -corr_vort.y;
+//                data_manager->host_data.gamma[index_offset + num_fluid_bodies + body_a * 3 + 2] += -corr_vort.z;
+//            }
             data_manager->host_data.gamma[index_offset + body_a] += corr;
         }
     }
