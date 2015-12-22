@@ -168,6 +168,13 @@ __device__ inline Real InvEos(Real pw) {
 	return paramsD.rho0 * pow((pw - paramsD.BASEPRES) / B + 1, 1.0 / gama);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+// ferrariCi
+__device__ inline Real FerrariCi(Real rho) {
+	int gama = 7;
+	Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama; // 200;//314e6; //c^2 * paramsD.rho0 / gama where c = 1484 m/s for water
+	return sqrt(gama * B / paramsD.rho0) * pow(rho / paramsD.rho0, 0.5 * (gama - 1));
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 /**
  * @brief Distance
  * @details

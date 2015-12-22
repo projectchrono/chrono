@@ -107,10 +107,9 @@ void SetupParamsH(SimParams& paramsH) {
 	paramsH.rigidRadius;        // will be changed
 	paramsH.densityReinit = 0; // 0: no re-initialization, 1: with initialization
 	paramsH.enableTweak = 1;    // 0: no tweak, 1: have tweak
-	paramsH.enableAggressiveTweak = 1; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
-	paramsH.tweakMultV = paramsH.v_Max / (paramsH.HSML / paramsH.dT); // 0.04;		// NOTE: HSML and dT must be defined. So this line comes after them
-	// Assume the particles move at most (tweakMultV * HSML / dT)
-	paramsH.tweakMultRho = .002; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
+	paramsH.enableAggressiveTweak = 0; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
+	paramsH.tweakMultV = 0.1;//paramsH.v_Max / (paramsH.HSML / paramsH.dT);//	maximum allowed velocity: tweakMultV * HSML / dT;  NOTE: HSML and dT must be defined. So this line comes after them
+	paramsH.tweakMultRho = .002; // maximum allowed density change in one time step: tweakMultRho * rho0
 	//********************************************************************************************************
 	//**  reminiscent of the past******************************************************************************
 	//	paramsH.cMin = mR3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);

@@ -48,7 +48,7 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 		const Real3& velMasA, const Real3& vel_XSPH_A, const Real3& velMasB,
 		const Real3& vel_XSPH_B, const Real4& rhoPresMuA,
 		const Real4& rhoPresMuB, Real multViscosity) {
-	Real epsilonMutualDistance = .01f;
+	Real epsilonMutualDistance = .001f;
 	Real3 gradW = GradW(dist3);
 
 	// Real vAB_Dot_rAB = dot(velMasA - velMasB, dist3);
@@ -86,6 +86,18 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 	//			+ zeta * paramsD.HSML * (10 * paramsD.v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) *
 	// rAB_Dot_GradW_OverDist
 	//			);
+
+	//--------------------------------
+	// Ferrari Modification
+	derivRho = paramsD.markerMass * dot(vel_XSPH_A - vel_XSPH_B, gradW);
+	Real cA = FerrariCi(rhoPresMuA.x);
+	Real cB = FerrariCi(rhoPresMuB.x);
+	derivRho -= rAB_Dot_GradW_OverDist * max(cA, cB) / rhoPresMuB.x * (rhoPresMuB.x - rhoPresMuA.x);
+
+	//--------------------------------
+
+
+
 	return mR4(derivV, derivRho);
 
 	//	//*** Artificial viscosity type 1.3
@@ -253,35 +265,36 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 	Real derivRho = 0.0f;
 
 	uint startIndex = FETCH(cellStart, gridHash);
-	if (startIndex != 0xffffffff) {  // cell is not empty
-		// iterate over particles in this cell
-		uint endIndex = FETCH(cellEnd, gridHash);
+	if (startIndex == 0xffffffff) { // cell is not empty
+		return mR4(derivV, derivRho);
+	}
+	// iterate over particles in this cell
+	uint endIndex = FETCH(cellEnd, gridHash);
 
-		for (uint j = startIndex; j < endIndex; j++) {
-			if (j != index) {  // check not colliding with self
-				Real3 posRadB = FETCH(sortedPosRad, j);
-				Real3 dist3Alpha = posRadA - posRadB;
-				Real3 dist3 = Distance(posRadA, posRadB);
-				Real d = length(dist3);
-				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
-					continue;
+	for (uint j = startIndex; j < endIndex; j++) {
+		if (j != index) {  // check not colliding with self
+			Real3 posRadB = FETCH(sortedPosRad, j);
+			Real3 dist3Alpha = posRadA - posRadB;
+			Real3 dist3 = Distance(posRadA, posRadB);
+			Real d = length(dist3);
+			if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
+				continue;
 
-				Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
-				if ((fabs(rhoPresMuB.w - rhoPresMuA.w) < .1)
-						&& rhoPresMuA.w > -.1) {
-					continue;
-				}
-				Real3 velMasB = FETCH(sortedVelMas, j);
-				modifyPressure(rhoPresMuB, dist3Alpha);
-				Real multViscosit = 1;
-				Real4 derivVelRho = mR4(0.0f);
-				Real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
-				derivVelRho = DifVelocityRho(dist3, d, velMasA, vel_XSPH_A,
-						velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB,
-						multViscosit);
-				derivV += mR3(derivVelRho);
-				derivRho += derivVelRho.w;
+			Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+			if ((fabs(rhoPresMuB.w - rhoPresMuA.w) < .1)
+					&& rhoPresMuA.w > -.1) {
+				continue;
 			}
+			Real3 velMasB = FETCH(sortedVelMas, j);
+			modifyPressure(rhoPresMuB, dist3Alpha);
+			Real multViscosit = 1;
+			Real4 derivVelRho = mR4(0.0f);
+			Real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
+			derivVelRho = DifVelocityRho(dist3, d, velMasA, vel_XSPH_A,
+					velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB,
+					multViscosit);
+			derivV += mR3(derivVelRho);
+			derivRho += derivVelRho.w;
 		}
 	}
 
@@ -912,22 +925,26 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 	Real4 rhoPresMu = rhoPresMuD[index];
 
 	if (rhoPresMu.w < 0) {
+		//-------------
+		// ** position
+		//-------------
+
 		Real3 vel_XSPH = vel_XSPH_D[index];
 		// 0** if you have rigid BCE, make sure to apply same tweaks to them, to satify action/reaction. Or apply tweak to
 		// force in advance
 		// 1*** let's tweak a little bit :)
+		if (!(isfinite(vel_XSPH.x) && isfinite(vel_XSPH.y) && isfinite(vel_XSPH.z))) {
+			if (paramsD.enableAggressiveTweak) {
+				vel_XSPH = mR3(0);
+			} else {
+				printf("Error! particle vel_XSPH is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+				return;
+			}
+		}
 		if (length(vel_XSPH) > paramsD.tweakMultV * paramsD.HSML / paramsD.dT
 				&& paramsD.enableTweak) {
 			vel_XSPH *= (paramsD.tweakMultV * paramsD.HSML / paramsD.dT)
 					/ length(vel_XSPH);
-			if (length(vel_XSPH)
-					> 1.001 * paramsD.tweakMultV * paramsD.HSML / paramsD.dT) { // infinity
-				if (paramsD.enableAggressiveTweak) {
-					vel_XSPH = mR3(0);
-				} else {
-					printf("Error! Infinite vel_XSPH detected!\n");
-				}
-			}
 		}
 		// 1*** end tweak
 
@@ -935,46 +952,52 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 		Real3 updatedPositon = posRad + vel_XSPH * dT;
 		if (!(isfinite(updatedPositon.x) && isfinite(updatedPositon.y) && isfinite(updatedPositon.z))) {
 			printf("Error! particle position is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+			return;
 		}
 		posRadD[index] = updatedPositon;  // posRadD updated
 
+		//-------------
+		// ** velocity
+		//-------------
+
 		Real3 velMas = velMasD[index];
 		Real3 updatedVelocity = velMas + mR3(derivVelRho) * dT;
+
+
+
+		if (!(isfinite(updatedVelocity.x) && isfinite(updatedVelocity.y) && isfinite(updatedVelocity.z))) {
+			if (paramsD.enableAggressiveTweak) {
+				updatedVelocity = mR3(0);
+			} else {
+				printf("Error! particle updatedVelocity is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+				return;
+			}
+		}
 		// 2*** let's tweak a little bit :)
 		if (length(updatedVelocity)
 				> paramsD.tweakMultV * paramsD.HSML / paramsD.dT
 				&& paramsD.enableTweak) {
 			updatedVelocity *= (paramsD.tweakMultV * paramsD.HSML / paramsD.dT)
 					/ length(updatedVelocity);
-			if (length(updatedVelocity)
-					> 1.001 * paramsD.tweakMultV * paramsD.HSML / paramsD.dT) { // infinity
-				if (paramsD.enableAggressiveTweak) {
-					updatedVelocity = mR3(0);
-				} else {
-					printf("Error! Infinite updatedVelocity detected!\n");
-				}
-			}
 		}
 		// 2*** end tweak
-		if (!(isfinite(updatedVelocity.x) && isfinite(updatedVelocity.y) && isfinite(updatedVelocity.z))) {
-					printf("Error! particle vel is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
-		}
+
 		velMasD[index] = updatedVelocity;
 
 	}
 	// 3*** let's tweak a little bit :)
+	if (!(isfinite(derivVelRho.w))) {
+		if (paramsD.enableAggressiveTweak) {
+			derivVelRho.w = 0;
+		} else {
+			printf("Error! particle derivVelRho.w is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+			return;
+		}
+	}
 	if (fabs(derivVelRho.w) > paramsD.tweakMultRho * paramsD.rho0 / paramsD.dT
 			&& paramsD.enableTweak) {
 		derivVelRho.w *= (paramsD.tweakMultRho * paramsD.rho0 / paramsD.dT)
 				/ fabs(derivVelRho.w);  // to take care of the sign as well
-		if (fabs(derivVelRho.w)
-				> 1.001 * paramsD.tweakMultRho * paramsD.rho0 / paramsD.dT) {
-			if (paramsD.enableAggressiveTweak) {
-				derivVelRho.w = 0;
-			} else {
-				printf("Error! Infinite derivRho detected!\n");
-			}
-		}
 	}
 	// 2*** end tweak
 	Real rho2 = rhoPresMu.x + derivVelRho.w * dT; // rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
@@ -982,6 +1005,7 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 	rhoPresMu.x = rho2;
 	if (!(isfinite(rhoPresMu.x) && isfinite(rhoPresMu.y) && isfinite(rhoPresMu.z) && isfinite(rhoPresMu.w))) {
 		printf("Error! particle rho pressure is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+		return;
 	}
 	rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD updated
 }
