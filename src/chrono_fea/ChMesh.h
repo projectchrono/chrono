@@ -143,7 +143,9 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// electrostatics, etc)
     void LoadFromTetGenFile(const char* filename_node,                      ///< name of the .node file
                             const char* filename_ele,                       ///< name of the .ele  file
-                            ChSharedPtr<ChContinuumMaterial> my_material);  ///< material for the created tetahedrons
+                            ChSharedPtr<ChContinuumMaterial> my_material,   ///< material for the created tetahedrons
+                            ChVector<> pos_transform = VNULL,               ///< optional displacement of imported mesh
+                            ChMatrix33<> rot_transform = ChMatrix33<>(1));  ///< optional rotation/scaling of imported mesh
 
     /// Load tetahedrons, if any, saved in a .inp file for Abaqus.
     void LoadFromAbaqusFile(const char* filename,

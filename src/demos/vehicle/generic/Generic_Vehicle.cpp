@@ -156,7 +156,7 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   // relative to the chassis reference frame).
   ChVector<> offset;
   switch (m_suspType) {
-  case SOLID_AXLE:          offset = ChVector<>(1.25, 0, -0.21); break;
+  case SOLID_AXLE:          offset = ChVector<>(2.1, 0, -0.02); break;
   case MULTI_LINK:          offset = ChVector<>(1.25, 0, -0.21); break;
   case DOUBLE_WISHBONE:     offset = ChVector<>(1.25, 0, -0.21); break;
   case HENDRICKSON_PRIMAXX: offset = ChVector<>(1.25, 0, -0.21); break;

@@ -62,7 +62,6 @@ class Generic_SolidAxle : public chrono::vehicle::ChSolidAxle {
 
   private:
     virtual const chrono::ChVector<> getLocation(PointId which) override;
-    virtual const chrono::ChVector<> getDirection(DirectionId which) override;
 
     chrono::ChSpringForceCallback* m_springForceCB;
     chrono::ChSpringForceCallback* m_shockForceCB;

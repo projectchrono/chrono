@@ -156,8 +156,6 @@ namespace fea {
 			ChMatrixNM<double, 8, 1> d0d0Nx;      ///< d0_d0*Nx' matrix
 			ChMatrixNM<double, 8, 1> d0d0Ny;      ///< d0_d0*Ny' matrix
 			ChMatrixNM<double, 8, 1> d0d0Nz;      ///< d0_d0*Nz' matrix
-			ChMatrixNM<double, 1, 1> tempA;       ///< Contains temporary strains for ANS
-			ChMatrixNM<double, 1, 1> tempA1;      ///< Contains temporary strains for ANS
 			ChMatrixNM<double, 1, 24> tempB;      ///< Temporary matrix to calculate strainD
 			ChMatrixNM<double, 24, 6> tempC;      ///< Temporary matrix to compute internal forces Fint
 			double detJ0;                         ///< Determinant of the initial position vector gradient matrix

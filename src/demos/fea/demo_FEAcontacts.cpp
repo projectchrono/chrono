@@ -50,7 +50,11 @@ int main(int argc, char* argv[]) {
     application.AddTypicalSky();
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(0, (f32)0.6, -1));
+    application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+                                   video::SColorf(1, 1, 1));
+
     application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
+
 
     //
     // CREATE THE PHYSICAL SYSTEM
@@ -58,22 +62,26 @@ int main(int argc, char* argv[]) {
 
 
     //collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using ChSystemDEM
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.005); // max inside penetration - if not enough stiffness in material: troubles
+    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.006); // max inside penetration - if not enough stiffness in material: troubles
 
+    // Use this value for an outward additional layer around meshes, that can improve
+    // robustness of mesh-mesh collision detection (at the cost of having unnatural inflate effect)
+    double sphere_swept_thickness = 0.002;
 
     // Create the surface material, containing information
-    // about friction etc.
+    // about friction etc. 
+    // It is a DEM-p (penalty) material that we will assign to 
+    // all surfaces that might generate contacts.
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
-    mysurfmaterial->SetKn(2e5);
-    mysurfmaterial->SetKt(2e5);
-    mysurfmaterial->SetGn(2200);
-    mysurfmaterial->SetGt(2200);
-
+    mysurfmaterial->SetYoungModulus(6e4);
+    mysurfmaterial->SetFriction(0.3);
+    mysurfmaterial->SetRestitution(0.2);
+    mysurfmaterial->SetAdhesion(0); 
 
     // Create a floor:
 
-    bool do_mesh_collision_floor = true;
+    bool do_mesh_collision_floor = false;
 
     ChTriangleMeshConnected mmeshbox;
     mmeshbox.LoadWavefrontMesh(GetChronoDataFile("cube.obj"),true,true);
@@ -88,7 +96,7 @@ int main(int argc, char* argv[]) {
         my_system.Add(mfloor);
 
         mfloor->GetCollisionModel()->ClearModel();
-        mfloor->GetCollisionModel()->AddTriangleMesh(mmeshbox,false, false, VNULL, ChMatrix33<>(1), 0.004);
+        mfloor->GetCollisionModel()->AddTriangleMesh(mmeshbox,false, false, VNULL, ChMatrix33<>(1), sphere_swept_thickness);
         mfloor->GetCollisionModel()->BuildModel();
         mfloor->SetCollide(true);
 
@@ -147,28 +155,55 @@ int main(int argc, char* argv[]) {
     mmaterial->Set_RayleighDampingK(0.003);
     mmaterial->Set_density(1000);
 
-    for (int i=0; i<1; ++i) {
-        // Creates the nodes for the tetahedron
-        ChVector<> offset(i*0.12,i*0.1, i*0.03);
-        ChSharedPtr<ChNodeFEAxyz> mnode1(new ChNodeFEAxyz(ChVector<>(0,   0.1, 0  )+offset));
-        ChSharedPtr<ChNodeFEAxyz> mnode2(new ChNodeFEAxyz(ChVector<>(0,   0.1, 0.2)+offset));
-        ChSharedPtr<ChNodeFEAxyz> mnode3(new ChNodeFEAxyz(ChVector<>(0,   0.3, 0  )+offset));
-        ChSharedPtr<ChNodeFEAxyz> mnode4(new ChNodeFEAxyz(ChVector<>(0.2, 0.1, 0  )+offset));
+    if (false) {
+        for (int k=0; k<3; ++k)
+        for (int j=0; j<3; ++j)
+        for (int i=0; i<3; ++i) {
+            // Creates the nodes for the tetahedron
+            ChVector<> offset(j*0.21, i*0.21, k*0.21);
+            ChSharedPtr<ChNodeFEAxyz> mnode1(new ChNodeFEAxyz(ChVector<>(0,   0.1, 0  )+offset));
+            ChSharedPtr<ChNodeFEAxyz> mnode2(new ChNodeFEAxyz(ChVector<>(0,   0.1, 0.2)+offset));
+            ChSharedPtr<ChNodeFEAxyz> mnode3(new ChNodeFEAxyz(ChVector<>(0,   0.3, 0  )+offset));
+            ChSharedPtr<ChNodeFEAxyz> mnode4(new ChNodeFEAxyz(ChVector<>(0.2, 0.1, 0  )+offset));
 
-        my_mesh->AddNode(mnode1);
-        my_mesh->AddNode(mnode2);
-        my_mesh->AddNode(mnode3);
-        my_mesh->AddNode(mnode4);
+            my_mesh->AddNode(mnode1);
+            my_mesh->AddNode(mnode2);
+            my_mesh->AddNode(mnode3);
+            my_mesh->AddNode(mnode4);
 
-        ChSharedPtr<ChElementTetra_4> melement1(new ChElementTetra_4);
-        melement1->SetNodes(mnode1,
-                            mnode2, 
-                            mnode3, 
-                            mnode4);
-        melement1->SetMaterial(mmaterial);
+            ChSharedPtr<ChElementTetra_4> melement1(new ChElementTetra_4);
+            melement1->SetNodes(mnode1,
+                                mnode2, 
+                                mnode3, 
+                                mnode4);
+            melement1->SetMaterial(mmaterial);
 
-        my_mesh->AddElement(melement1);
+            my_mesh->AddElement(melement1);
+        }
     }
+
+    if (true) {
+        for (int i= 0; i<4; ++i) {
+            try
+            {
+            ChCoordsys<> cdown(ChVector<>(0,-0.4,0));
+            ChCoordsys<> crot(VNULL, Q_from_AngAxis(CH_C_2PI * ChRandom(), VECT_Y) * Q_from_AngAxis(CH_C_PI_2, VECT_X));
+            ChCoordsys<> cydisp(ChVector<>(-0.3 ,0.1+i*0.1, -0.3));
+            ChCoordsys<> ctot = cdown >> crot >> cydisp;
+            ChMatrix33<> mrot(ctot.rot);
+            my_mesh->LoadFromTetGenFile(GetChronoDataFile("fea/beam.node").c_str(),
+                                        GetChronoDataFile("fea/beam.ele").c_str(),
+                                        mmaterial,
+                                        ctot.pos,
+                                        mrot);
+            }
+            catch (ChException myerr) {
+                    GetLog() << myerr.what();
+                    return 0;
+            }
+        }
+    }
+
 
     // Create the contact surface(s). 
     // In this case it is a ChContactSurfaceGeneric, that allows mesh-mesh collsions.
@@ -176,7 +211,7 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChContactSurfaceGeneric> mcontactsurf (new ChContactSurfaceGeneric);
     my_mesh->AddContactSurface(mcontactsurf);
 
-    mcontactsurf->AddFacesFromBoundary(0.004); // do this after my_mesh->AddContactSurface
+    mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness); // do this after my_mesh->AddContactSurface
 
     mcontactsurf->SetMaterialSurface(mysurfmaterial); // use the DEM penalty contacts
 
@@ -219,12 +254,12 @@ int main(int argc, char* argv[]) {
     mcontactcloud->SetMaterialSurface(mysurfmaterial);
 
     my_mesh->AddContactSurface(mcontactsurf);
-
+    
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh_beams);
 
 
-
+    
     //
     // Optional...  visualization
     //
@@ -275,8 +310,13 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
+    // Use shadows in realtime view
+    application.AddShadowAll();
+
+
     // Mark completion of system construction
     my_system.SetupInitial();
+
 
     //
     // THE SOFT-REAL-TIME CYCLE
