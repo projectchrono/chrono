@@ -36,6 +36,22 @@ static void inline SetRow6(T& D, const int row, const int col, const real3& A, c
     D.set(row, col + 4, B.y);
     D.set(row, col + 5, B.z);
 }
+template <typename T>
+static void inline AppendRow3(T& D, const int row, const int col, const real init) {
+    D.append(row, col + 0, init);
+    D.append(row, col + 1, init);
+    D.append(row, col + 2, init);
+}
+template <typename T>
+static void inline AppendRow6(T& D, const int row, const int col, const real init) {
+    D.append(row, col + 0, init);
+    D.append(row, col + 1, init);
+    D.append(row, col + 2, init);
+
+    D.append(row, col + 3, init);
+    D.append(row, col + 4, init);
+    D.append(row, col + 5, init);
+}
 
 template <typename T>
 static void inline SetRow3Check(T& D, const int row, const int col, const real3& A) {
@@ -119,8 +135,6 @@ static void Orthogonalize(real3& Vx, real3& Vy, real3& Vz) {
     real3 W_B = Rotate(W, q_b); \
     T7 = Cross(V_B, sbar_b.v);  \
     T8 = Cross(W_B, sbar_b.v);
-
-
 
 CH_PARALLEL_API
 static void Compute_Jacobian(const quaternion& quat,
