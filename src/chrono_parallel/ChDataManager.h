@@ -164,6 +164,7 @@ struct host_container {
     custom_vector<real3> pos_fluid;
     custom_vector<real3> sorted_pos_fluid;
     custom_vector<real3> vel_fluid;
+    custom_vector<real3> sorted_vel_fluid;
     custom_vector<real> den_fluid;
 
     // Bilateral constraint type (all supported constraints)

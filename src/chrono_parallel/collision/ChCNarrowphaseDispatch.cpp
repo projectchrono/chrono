@@ -547,6 +547,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
     const custom_vector<real3>& vel_fluid = data_manager->host_data.vel_fluid;
     custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_fluid;
+    custom_vector<real3>& sorted_vel_fluid = data_manager->host_data.sorted_vel_fluid;
 
     custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
@@ -560,6 +561,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     ff_bin_ids.resize(num_fluid_bodies);
 
     sorted_pos_fluid.resize(num_fluid_bodies);
+    sorted_vel_fluid.resize(num_fluid_bodies);
 
     Thrust_Fill(contact_counts, 0);
     Thrust_Fill(neighbor_fluid_fluid, 0);
@@ -625,6 +627,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     for (int i = 0; i < num_fluid_bodies; i++) {
         int index = particle_indices[i];
         sorted_pos_fluid[i] = pos_fluid[index];
+        sorted_vel_fluid[i] = vel_fluid[index];
         data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = vel_fluid[index].x;
         data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = vel_fluid[index].y;
         data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = vel_fluid[index].z;
