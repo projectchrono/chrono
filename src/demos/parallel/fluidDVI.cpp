@@ -106,7 +106,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
         vel_fluid[i] = real3(0, 0, 0);
     }
     vol = 4.0 / 3.0 * CH_C_PI * pow(radius + sys->GetSettings()->fluid.kernel_radius, 3) / (points.size());
-    sys->GetSettings()->fluid.mass = sys->GetSettings()->fluid.density * vol * .65;  //* .48;  //*0.695;//* 0.6388;
+    sys->GetSettings()->fluid.mass = sys->GetSettings()->fluid.density * vol * .5;  //* .48;  //*0.695;//* 0.6388;
     std::cout << "fluid_mass: " << sys->GetSettings()->fluid.mass << std::endl;
     fluid_container->UpdatePosition(0);
     fluid_container->AddFluid(pos_fluid, vel_fluid);
@@ -155,6 +155,8 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.use_full_inertia_tensor = false;
     msystem.GetSettings()->collision.use_two_level = false;
     msystem.GetSettings()->solver.contact_recovery_speed = 100;
+    msystem.GetSettings()->solver.cache_step_length = true;
+
     msystem.ChangeSolverType(APGD);
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
@@ -174,6 +176,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->fluid.artificial_pressure_dq = 0;  //.2 * system->GetSettings()->fluid.kernel_radius;
     msystem.GetSettings()->fluid.artificial_pressure_n = 4;
     msystem.GetSettings()->fluid.collision_envelope = 0;
+    msystem.GetSettings()->fluid.vorticity_confinement = 40;
 
     msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
