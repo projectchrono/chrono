@@ -168,7 +168,7 @@ SOURCE_GROUP(math FILES ${ChronoEngine_Parallel_MATH})
 
 SET(ChronoEngine_Parallel_SOLVER
     solver/ChSolverParallel.h
-    solver/ChSolverJacobi.h
+    #solver/ChSolverJacobi.h
     #solver/ChSolverCG.h
     #solver/ChSolverCGS.h
     #solver/ChSolverPGS.h

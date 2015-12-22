@@ -53,12 +53,6 @@ class Mat33 {
 
     Mat33(const Mat33& M) {}
 
-    // Mat33 from quaternion
-    //    Mat33(const quaternion& quat) {
-    //        cols[0] = Rotate(real3(1.0, 0.0, 0.0), quat);
-    //        cols[1] = Rotate(real3(0.0, 1.0, 0.0), quat);
-    //        cols[2] = Rotate(real3(0.0, 0.0, 1.0), quat);
-    //    }
     Mat33(const quaternion& q) {
         array[0] = real(1.0) - real(2.0) * q.y * q.y - real(2.0) * q.z * q.z;
         array[1] = real(2.0) * q.x * q.y + real(2.0) * q.z * q.w;
@@ -82,13 +76,16 @@ class Mat33 {
         memcpy(array, M.array, 12 * sizeof(real));
         return *this;
     }
-    //
-    //    real operator()(int i, int j) const { return static_cast<const real*>(cols[j])[i]; }
-    //    real& operator()(int i, int j) { return static_cast<real*>(cols[j])[i]; }
+
     union {
         real array[12];
         real3 cols[3];
     };
+    //c1 c2 c3
+    // 0  4  8
+    // 1  5  9
+    // 2  6  10
+
     // cols[0] 0 1 2
     // cols[1] 3 4 5
     // cols[2] 6 7 8
