@@ -302,9 +302,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     // [EAS] Basis function of M for Enhanced Assumed Strain.
     void Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y, double z);
 
-    // [EAS] matrix T0 (inverse and transposed) and detJ0 at center are used for Enhanced Assumed Strains alpha
-    void T0DetJElementCenterForEAS(ChMatrixNM<double, 6, 6>& T0, double& detJ0C, double& theta);
-
     // Calculate the determinant of the initial configuration position vector gradient matrix
     // at the specified point.
     double Calc_detJ0(double x, double y, double z);
