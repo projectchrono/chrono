@@ -71,11 +71,11 @@ class Mat33 {
 
     inline real operator[](unsigned int i) const { return array[i]; }
     inline real& operator[](unsigned int i) { return array[i]; }
+    inline real operator()(int i, int j) const { return array[i * 4 + j]; }
+    inline real& operator()(int i, int j) { return array[i * 4 + j]; }
 
     inline Mat33& operator=(const Mat33& M) {
-        cols[0] = M.cols[0];
-        cols[1] = M.cols[1];
-        cols[2] = M.cols[2];
+        memcpy(array, M.array, 12 * sizeof(real));
         return *this;
     }
     //
@@ -92,24 +92,10 @@ class Mat33 {
 // ========================================================================================
 
 real3 operator*(const Mat33& M, const real3& v);
-
-static inline Mat33 operator*(const Mat33& N, const real scale) {
-    Mat33 M(N);
-    M.cols[0] *= scale;
-    M.cols[1] *= scale;
-    M.cols[2] *= scale;
-    return M;
-}
-
+Mat33 operator*(const Mat33& N, const real scale);
 Mat33 operator*(const Mat33& M, const Mat33& N);
-
-static inline Mat33 operator+(const Mat33& M, const Mat33& N) {
-    return Mat33(M.cols[0] + N.cols[0], M.cols[1] + N.cols[1], M.cols[2] + N.cols[2]);  //
-}
-
-static inline Mat33 operator-(const Mat33& M, const Mat33& N) {
-    return Mat33(M.cols[0] - N.cols[0], M.cols[1] - N.cols[1], M.cols[2] - N.cols[2]);  //
-}
+Mat33 operator+(const Mat33& M, const Mat33& N);
+Mat33 operator-(const Mat33& M, const Mat33& N);
 
 OPERATOR_EQUALSALT(*, real, Mat33)
 
@@ -131,20 +117,11 @@ static inline Mat33 Identity() {
 
 Mat33 SkewSymmetric(const real3& r);
 
-static inline real Determinant(const Mat33& m) {
-    return Dot(m.cols[0], Cross(m.cols[1], m.cols[2]));
-}
+real Determinant(const Mat33& m);
 
 Mat33 Abs(const Mat33& m);
 
-// static inline Mat33 Transpose(const Mat33& a) {
-//    Mat33 result;
-//    for (unsigned int i = 0; i < 3; ++i)
-//        for (unsigned int j = 0; j < 3; ++j)
-//            result(i, j) = a(j, i);
-//
-//    return result;
-//}
+Mat33 Transpose(const Mat33& a);
 // M * N^T
 Mat33 MultTranspose(const Mat33& M, const Mat33& N);
 // M^T * N
@@ -154,82 +131,18 @@ real Trace(const Mat33& m);
 // Multiply a 3x1 by a 1x3 to get a 3x3
 Mat33 OuterProduct(const real3& a, const real3& b);
 
-static inline real InnerProduct(const Mat33& A, const Mat33& B) {
-    return Dot(A.cols[0], B.cols[0]) + Dot(A.cols[1], B.cols[1]) + Dot(A.cols[0], B.cols[0]);
-}
+real InnerProduct(const Mat33& A, const Mat33& B);
+Mat33 Adjoint(const Mat33& A);
+Mat33 AdjointTranspose(const Mat33& A);
+Mat33 Inverse(const Mat33& A);
+Mat33 InverseTranspose(const Mat33& A);
 
-//
-// static inline Mat33 Inverse(const Mat33& A) {
-//    real s = Determinant(A);
-//
-//    if (s > 0.0f) {
-//        Mat33 B;
-//
-//        B(0, 0) = A(1, 1) * A(2, 2) - A(1, 2) * A(2, 1);
-//        B(0, 1) = A(0, 2) * A(2, 1) - A(0, 1) * A(2, 2);
-//        B(0, 2) = A(0, 1) * A(1, 2) - A(0, 2) * A(1, 1);
-//        B(1, 0) = A(1, 2) * A(2, 0) - A(1, 0) * A(2, 2);
-//        B(1, 1) = A(0, 0) * A(2, 2) - A(0, 2) * A(2, 0);
-//        B(1, 2) = A(0, 2) * A(1, 0) - A(0, 0) * A(1, 2);
-//        B(2, 0) = A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0);
-//        B(2, 1) = A(0, 1) * A(2, 0) - A(0, 0) * A(2, 1);
-//        B(2, 2) = A(0, 0) * A(1, 1) - A(0, 1) * A(1, 0);
-//
-//        // pass = true;
-//
-//        return (1.0f / s) * B;
-//    } else {
-//        // pass = false;
-//        return Mat33();
-//    }
-//}
-// Same as inverse but we store it transposed
-// static inline Mat33 InverseTranspose(const Mat33& a) {
-//    real s = Determinant(a);
-//
-//    if (s > 0.0f) {
-//        Mat33 b;
-//
-//        b(0, 0) = a(1, 1) * a(2, 2) - a(1, 2) * a(2, 1);
-//        b(1, 0) = a(0, 2) * a(2, 1) - a(0, 1) * a(2, 2);
-//        b(2, 0) = a(0, 1) * a(1, 2) - a(0, 2) * a(1, 1);
-//
-//        b(0, 1) = a(1, 2) * a(2, 0) - a(1, 0) * a(2, 2);
-//        b(1, 1) = a(0, 0) * a(2, 2) - a(0, 2) * a(2, 0);
-//        b(2, 1) = a(0, 2) * a(1, 0) - a(0, 0) * a(1, 2);
-//
-//        b(0, 2) = a(1, 0) * a(2, 1) - a(1, 1) * a(2, 0);
-//        b(1, 2) = a(0, 1) * a(2, 0) - a(0, 0) * a(2, 1);
-//        b(2, 2) = a(0, 0) * a(1, 1) - a(0, 1) * a(1, 0);
-//
-//        // pass = true;
-//
-//        return (1.0f / s) * b;
-//    } else {
-//        // pass = false;
-//        return Mat33();
-//    }
-//}
 // double dot product of a matrix
 // static real Norm(const Mat33& A) {
 //    return Sqrt(Trace(A * Transpose(A)));
 //}
 //
-// static Mat33 Adjoint(const Mat33& A) {
-//    Mat33 T;
-//    T.cols[0].x = A.cols[1].y * A.cols[2].z - A.cols[2].y * A.cols[1].z;
-//    T.cols[0].y = -A.cols[0].y * A.cols[2].z + A.cols[2].y * A.cols[0].z;
-//    T.cols[0].z = A.cols[0].y * A.cols[1].z - A.cols[1].y * A.cols[0].z;
-//
-//    T.cols[1].x = -A.cols[1].x * A.cols[2].z + A.cols[2].x * A.cols[1].z;
-//    T.cols[1].y = A.cols[0].x * A.cols[2].z - A.cols[2].x * A.cols[0].z;
-//    T.cols[1].z = -A.cols[0].x * A.cols[1].z + A.cols[1].x * A.cols[0].z;
-//
-//    T.cols[2].x = A.cols[1].x * A.cols[2].y - A.cols[2].x * A.cols[1].y;
-//    T.cols[2].y = -A.cols[0].x * A.cols[2].y + A.cols[2].x * A.cols[0].y;
-//    T.cols[2].z = A.cols[0].x * A.cols[1].y - A.cols[1].x * A.cols[0].y;
-//    return T;
-//}
+
 //
 // static real3 LargestColumnNormalized(const Mat33& A) {
 //    real scale1 = Length2((A.cols[0]));

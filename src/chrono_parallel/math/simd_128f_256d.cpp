@@ -414,6 +414,19 @@ inline Mat33 OuterProductVV(const real* a, const real* b) {
     return r;
 }
 
+inline Mat33 ScaleMat(const real* a, const real b) {
+    Mat33 r;
+    __m256d s = _mm256_set1_pd(b);
+    __m256d c, col;
+    int i;
+    for (i = 0; i < 3; i++) {
+        c = _mm256_loadu_pd(&a[i * 4]);
+        col = _mm256_mul_pd(c, s);
+        _mm256_storeu_pd(&r.array[i * 4], col);
+    }
+    return r;
+}
+
 inline __m256d QuatMult(__m256d a, __m256d b) {
     __m256d a1123 = permute4d<1, 1, 2, 3>(a);
     __m256d a2231 = permute4d<2, 2, 3, 1>(a);
@@ -859,9 +872,22 @@ real3 operator*(const Mat33& M, const real3& v) {
     real3 t3 = simd::Mul(M.cols[2], simd::Set(v[2]));
     return simd::Add(t1, simd::Add(t2, t3));
 }
+
+Mat33 operator*(const Mat33& N, const real scale) {
+    return simd::ScaleMat(N.array, scale);
+}
+
 Mat33 operator*(const Mat33& M, const Mat33& N) {
     return Mat33(M * N.cols[0], M * N.cols[1], M * N.cols[2]);
 }
+Mat33 operator+(const Mat33& M, const Mat33& N) {
+    return Mat33(M.cols[0] + N.cols[0], M.cols[1] + N.cols[1], M.cols[2] + N.cols[2]);  //
+}
+
+Mat33 operator-(const Mat33& M, const Mat33& N) {
+    return Mat33(M.cols[0] - N.cols[0], M.cols[1] - N.cols[1], M.cols[2] - N.cols[2]);  //
+}
+
 Mat33 Abs(const Mat33& m) {
     return Mat33(simd::Abs(m.cols[0]), simd::Abs(m.cols[1]), simd::Abs(m.cols[2]));
 }
@@ -885,6 +911,10 @@ Mat33 TransposeMult(const Mat33& M, const Mat33& N) {
     return result;
 }
 
+Mat33 Transpose(const Mat33& a) {
+    return Mat33(a[0], a[4], a[8], a[1], a[5], a[9], a[2], a[6], a[10]);
+}
+
 real Trace(const Mat33& m) {
     return m.cols[0][0] + m.cols[1][1] + m.cols[2][2];
 }
@@ -893,6 +923,69 @@ Mat33 OuterProduct(const real3& a, const real3& b) {
     return simd::OuterProductVV(a.array, b.array);
 }
 
+real InnerProduct(const Mat33& A, const Mat33& B) {
+    return Dot(A.cols[0], B.cols[0]) + Dot(A.cols[1], B.cols[1]) + Dot(A.cols[0], B.cols[0]);
+}
+
+Mat33 Adjoint(const Mat33& A) {
+    Mat33 T;
+    T[0] = A[5] * A[10] - A[9] * A[6];
+    T[1] = -A[1] * A[10] + A[9] * A[2];
+    T[2] = A[1] * A[6] - A[5] * A[2];
+
+    T[4] = -A[4] * A[10] + A[8] * A[6];
+    T[5] = A[0] * A[10] - A[8] * A[2];
+    T[6] = -A[0] * A[6] + A[4] * A[2];
+
+    T[8] = A[4] * A[9] - A[8] * A[5];
+    T[9] = -A[0] * A[9] + A[8] * A[1];
+    T[10] = A[0] * A[5] - A[4] * A[1];
+    return T;
+}
+
+Mat33 AdjointTranspose(const Mat33& A) {
+    Mat33 T;
+    T[0] = A[5] * A[10] - A[9] * A[6];
+    T[1] = -A[4] * A[10] + A[8] * A[6];
+    T[2] = A[4] * A[9] - A[8] * A[5];
+
+    T[4] = -A[1] * A[10] + A[9] * A[2];
+    T[5] = A[0] * A[10] - A[8] * A[2];
+    T[6] = -A[0] * A[9] + A[8] * A[1];
+
+    T[8] = A[1] * A[6] - A[5] * A[2];
+    T[9] = -A[0] * A[6] + A[4] * A[2];
+    T[10] = A[0] * A[5] - A[4] * A[1];
+
+    return T;
+}
+
+real Determinant(const Mat33& m) {
+    real d;
+    d = m[0] * (m[5] * m[10] - m[9] * m[6]);
+    d -= m[4] * (m[1] * m[10] - m[9] * m[2]);
+    d += m[8] * (m[1] * m[6] - m[5] * m[2]);
+    return d;  // Dot(m.cols[0], Cross(m.cols[1], m.cols[2]));
+}
+
+Mat33 Inverse(const Mat33& A) {
+    real s = Determinant(A);
+    // if (s > 0.0) {
+    return Adjoint(A) * real(1.0 / s);
+    //} else {
+    //    return Mat33(0);
+    //}
+}
+
+// Same as inverse but we store it transposed
+Mat33 InverseTranspose(const Mat33& A) {
+    real s = Determinant(A);
+    if (s > 0.0) {
+        return AdjointTranspose(A) * real(1.0 / s);
+    } else {
+        return Mat33(0);
+    }
+}
 // real3 UnpackLow(const real3& v1, const real3& v2) {
 //    return _mm256_unpacklo_pd(v1, v2);
 //}
