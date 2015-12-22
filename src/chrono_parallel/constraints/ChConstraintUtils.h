@@ -36,6 +36,42 @@ static void inline SetRow6(T& D, const int row, const int col, const real3& A, c
     D.set(row, col + 4, B.y);
     D.set(row, col + 5, B.z);
 }
+
+template <typename T>
+static void inline SetRow3Check(T& D, const int row, const int col, const real3& A) {
+    if (A.x != 0.0) {
+        D.set(row, col + 0, A.x);
+    }
+    if (A.y != 0.0) {
+        D.set(row, col + 1, A.y);
+    }
+    if (A.z != 0.0) {
+        D.set(row, col + 2, A.z);
+    }
+}
+template <typename T>
+static void inline SetRow6Check(T& D, const int row, const int col, const real3& A, const real3& B) {
+    if (A.x != 0.0) {
+        D.set(row, col + 0, A.x);
+    }
+    if (A.y != 0.0) {
+        D.set(row, col + 1, A.y);
+    }
+    if (A.z != 0.0) {
+        D.set(row, col + 2, A.z);
+    }
+
+    if (B.x != 0.0) {
+        D.set(row, col + 3, B.x);
+    }
+    if (B.y != 0.0) {
+        D.set(row, col + 4, B.y);
+    }
+    if (B.z != 0.0) {
+        D.set(row, col + 5, B.z);
+    }
+}
+
 template <typename T>
 static void inline SetCol3(T& D, const int row, const int col, const real3& A) {
     D.set(row + 0, col, A.x);

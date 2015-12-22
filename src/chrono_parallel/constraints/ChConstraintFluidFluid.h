@@ -46,9 +46,6 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
     void Build_D();
     void Build_b();
     void Build_E();
-    // Based on the list of contacts figure out what each fluid particles
-    // neighbors are
-    void DetermineNeighbors();
     void Project(real* gamma);
     void GenerateSparsity();
     // generate the sparsity when treating the fluid as a rigid body
