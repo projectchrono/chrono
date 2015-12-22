@@ -123,13 +123,22 @@ void WeakEqual(const quaternion& a, const quaternion& b, real COMPARE_EPS = C_EP
 }
 
 void WeakEqual(const Mat33& a, const Mat33& b, real COMPARE_EPS = C_EPSILON) {
-  WeakEqual(a.cols[0], b.cols[0], COMPARE_EPS);
-  WeakEqual(a.cols[1], b.cols[1], COMPARE_EPS);
-  WeakEqual(a.cols[2], b.cols[2], COMPARE_EPS);
+  WeakEqual(a[0], b[0], COMPARE_EPS);
+  WeakEqual(a[1], b[1], COMPARE_EPS);
+  WeakEqual(a[2], b[2], COMPARE_EPS);
+  WeakEqual(a[4], b[4], COMPARE_EPS);
+  WeakEqual(a[5], b[5], COMPARE_EPS);
+  WeakEqual(a[6], b[6], COMPARE_EPS);
+  WeakEqual(a[8], b[8], COMPARE_EPS);
+  WeakEqual(a[9], b[9], COMPARE_EPS);
+  WeakEqual(a[10], b[10], COMPARE_EPS);
 }
 
 void OutputRowMatrix(const ChMatrixDynamic<real>& x) {
   for (unsigned int ic = 0; ic < x.GetRows(); ic++) {
     std::cout << x(ic, 0) << std::endl;
   }
+}
+void PrintMat33(const Mat33 & A){
+	printf("[%f %f %f]\n[%f %f %f]\n[%f %f %f]\n[%f %f %f]\n", A[0], A[4], A[8], A[1], A[5], A[9], A[2], A[6], A[10], A[3], A[7], A[11]);
 }
