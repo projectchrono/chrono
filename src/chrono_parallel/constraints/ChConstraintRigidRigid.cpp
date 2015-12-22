@@ -329,23 +329,6 @@ void ChConstraintRigidRigid::Build_E() {
     }
 }
 
-#define NORMAL_J                \
-    real3 U_A = Rotate(U, q_a); \
-    T3 = Cross(U_A, sbar_a.v);  \
-    real3 U_B = Rotate(U, q_b); \
-    T6 = Cross(U_B, sbar_b.v);
-
-#define SLIDING_J               \
-    real3 V_A = Rotate(V, q_a); \
-    real3 W_A = Rotate(W, q_a); \
-    T4 = Cross(V_A, sbar_a.v);  \
-    T5 = Cross(W_A, sbar_a.v);  \
-                                \
-    real3 V_B = Rotate(V, q_b); \
-    real3 W_B = Rotate(W, q_b); \
-    T7 = Cross(V_B, sbar_b.v);  \
-    T8 = Cross(W_B, sbar_b.v);
-
 void ChConstraintRigidRigid::Build_D() {
     LOG(INFO) << "ChConstraintRigidRigid::Build_D";
     real3* norm = data_manager->host_data.norm_rigid_rigid.data();
@@ -382,9 +365,6 @@ void ChConstraintRigidRigid::Build_D() {
         body_id.y = sbar_b.i;
         quaternion q_a = quat_a[index];
         quaternion q_b = quat_b[index];
-
-        // Compute_Jacobian(rot[body_id.x], U, V, W, ptA[index] - pos_data[body_id.x], T3, T4, T5);
-        // Compute_Jacobian(rot[body_id.y], U, V, W, ptB[index] - pos_data[body_id.y], T6, T7, T8);
 
         NORMAL_J
 
