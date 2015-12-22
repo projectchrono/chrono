@@ -30,27 +30,20 @@ namespace fea {
 // ----------------------------------------------------------------------------
 /// Material definition.
 /// This class implements material properties for a layer.
-class ChMaterialShellANCF : public ChShared {
+class ChApiFea ChMaterialShellANCF : public ChShared {
   public:
     /// Construct an isotropic material.
     ChMaterialShellANCF(double rho,  ///< material density
                         double E,    ///< Young's modulus
                         double nu    ///< Poisson ratio
-                        )
-        : m_rho(rho) {
-        double G = 0.5 * E / (1 + nu);
-        Calc_E_eps(ChVector<>(E), ChVector<>(nu), ChVector<>(G));
-    }
+                        );
 
     /// Construct a (possibly) orthotropic material.
     ChMaterialShellANCF(double rho,            ///< material density
                         const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
                         const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
                         const ChVector<>& G    ///< shear moduli (G_xy, G_xz, G_yz)
-                        )
-        : m_rho(rho) {
-        Calc_E_eps(E, nu, G);
-    }
+                        );
 
     /// Return the material density.
     double Get_rho() const { return m_rho; }
@@ -59,27 +52,8 @@ class ChMaterialShellANCF : public ChShared {
     const ChMatrixNM<double, 6, 6>& Get_E_eps() const { return m_E_eps; }
 
   private:
-    // Calculate the matrix of elastic coefficients.
-    // Always assume that the material could be orthotropic
-    void Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
-        double delta = 1.0 - (nu.x * nu.x) * E.y / E.x - (nu.y * nu.y) * E.z / E.x - (nu.z * nu.z) * E.z / E.y -
-                       2.0 * nu.x * nu.y * nu.z * E.z / E.x;
-        double nu_yx = nu.x * E.y / E.x;
-        double nu_zx = nu.y * E.z / E.x;
-        double nu_zy = nu.z * E.z / E.y;
-        m_E_eps(0, 0) = E.x * (1.0 - (nu.z * nu.z) * E.z / E.y) / delta;
-        m_E_eps(1, 1) = E.y * (1.0 - (nu.y * nu.y) * E.z / E.x) / delta;
-        m_E_eps(3, 3) = E.z * (1.0 - (nu.x * nu.x) * E.y / E.x) / delta;
-        m_E_eps(0, 1) = E.y * (nu.x + nu.y * nu.z * E.z / E.y) / delta;
-        m_E_eps(0, 3) = E.z * (nu.y + nu.z * nu.x) / delta;
-        m_E_eps(1, 0) = E.y * (nu.x + nu.y * nu.z * E.z / E.y) / delta;
-        m_E_eps(1, 3) = E.z * (nu.z + nu.y * nu.x * E.y / E.x) / delta;
-        m_E_eps(3, 0) = E.z * (nu.y + nu.z * nu.x) / delta;
-        m_E_eps(3, 1) = E.z * (nu.z + nu.y * nu.x * E.y / E.x) / delta;
-        m_E_eps(2, 2) = G.x;
-        m_E_eps(4, 4) = G.y;
-        m_E_eps(5, 5) = G.z;
-    }
+    /// Calculate the matrix of elastic coefficients.
+    void Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G);
 
     double m_rho;                      ///< density
     ChMatrixNM<double, 6, 6> m_E_eps;  ///< matrix of elastic coefficients
@@ -87,7 +61,7 @@ class ChMaterialShellANCF : public ChShared {
 
 // ----------------------------------------------------------------------------
 /// ANCF laminated shell element with four nodes.
-/// This class implements composite material elastic force formulations
+/// This class implements composite material elastic force formulations.
 class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     ChElementShellANCF();
@@ -96,19 +70,27 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Definition of a layer
     class Layer {
       public:
+        /// Return the layer thickness.
         double Get_thickness() const { return m_thickness; }
+
+        /// Return the fiber angle.
         double Get_theta() const { return m_theta; }
+
+        /// Return the layer material.
         ChSharedPtr<ChMaterialShellANCF> GetMaterial() const { return m_material; }
 
       private:
-        // Private constructor (a layer can be created only by adding it to an element)
-        Layer(ChElementShellANCF* element, double thickness, double theta, ChSharedPtr<ChMaterialShellANCF> material)
-            : m_element(element), m_thickness(thickness), m_theta(theta), m_material(material) {}
+        /// Private constructor (a layer can be created only by adding it to an element)
+        Layer(ChElementShellANCF* element,               ///< containing element
+              double thickness,                          ///< layer thickness
+              double theta,                              ///< fiber angle
+              ChSharedPtr<ChMaterialShellANCF> material  ///< layer material
+              );
 
         double Get_detJ0C() const { return m_detJ0C; }
         const ChMatrixNM<double, 6, 6>& Get_T0() const { return m_T0; }
 
-        // Initial setup for this layer: calculate T0 and detJ0 at the element center.
+        /// Initial setup for this layer: calculate T0 and detJ0 at the element center.
         void SetupInitial();
 
         ChElementShellANCF* m_element;                ///< containing ANCF shell element
@@ -164,9 +146,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     void AddLayer(double thickness,                          ///< layer thickness
                   double theta,                              ///< fiber angle (radians)
                   ChSharedPtr<ChMaterialShellANCF> material  ///< layer material
-                  ) {
-        m_layers.push_back(Layer(this, thickness, theta, material));
-    }
+                  );
 
     /// Get the number of layers.
     size_t GetNumLayers() const { return m_numLayers; }
@@ -359,28 +339,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     virtual int LoadableGet_ndof_w() { return 4 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
-        mD.PasteVector(this->m_nodes[0]->GetPos(), block_offset, 0);
-        mD.PasteVector(this->m_nodes[0]->GetD(), block_offset + 3, 0);
-        mD.PasteVector(this->m_nodes[1]->GetPos(), block_offset + 6, 0);
-        mD.PasteVector(this->m_nodes[1]->GetD(), block_offset + 9, 0);
-        mD.PasteVector(this->m_nodes[2]->GetPos(), block_offset + 12, 0);
-        mD.PasteVector(this->m_nodes[2]->GetD(), block_offset + 15, 0);
-        mD.PasteVector(this->m_nodes[3]->GetPos(), block_offset + 18, 0);
-        mD.PasteVector(this->m_nodes[3]->GetD(), block_offset + 21, 0);
-    }
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override;
 
     /// Gets all the DOFs packed in a single vector (velocity part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
-        mD.PasteVector(this->m_nodes[0]->GetPos_dt(), block_offset, 0);
-        mD.PasteVector(this->m_nodes[0]->GetD_dt(), block_offset + 3, 0);
-        mD.PasteVector(this->m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
-        mD.PasteVector(this->m_nodes[1]->GetD_dt(), block_offset + 9, 0);
-        mD.PasteVector(this->m_nodes[2]->GetPos_dt(), block_offset + 12, 0);
-        mD.PasteVector(this->m_nodes[2]->GetD_dt(), block_offset + 15, 0);
-        mD.PasteVector(this->m_nodes[3]->GetPos_dt(), block_offset + 18, 0);
-        mD.PasteVector(this->m_nodes[3]->GetD_dt(), block_offset + 21, 0);
-    }
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
@@ -395,22 +357,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
 
-    virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override {
-        ChMatrixNM<double, 8, 1> N;
-        this->ShapeFunctions(N, U, V, 0);
-        for (unsigned int ii = 0; ii < 4; ii++) {
-            Result += N(ii * 2) * this->m_nodes[ii]->GetPos_dt();
-            Result += N(ii * 2 + 1) * this->m_nodes[ii]->GetPos_dt();
-        }
-    }
+    virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
 
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override {
-        for (int i = 0; i < m_nodes.size(); ++i) {
-            mvars.push_back(&this->m_nodes[i]->Variables());
-            mvars.push_back(&this->m_nodes[i]->Variables_D());
-        }
-    }
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override;
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V coordinates of the surface, each ranging in -1..+1

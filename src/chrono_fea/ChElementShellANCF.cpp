@@ -106,6 +106,14 @@ void ChElementShellANCF::SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
 }
 
 // -----------------------------------------------------------------------------
+// Add a layer.
+// -----------------------------------------------------------------------------
+
+void ChElementShellANCF::AddLayer(double thickness, double theta, ChSharedPtr<ChMaterialShellANCF> material) {
+    m_layers.push_back(Layer(this, thickness, theta, material));
+}
+
+// -----------------------------------------------------------------------------
 // Interface to ChElementBase base class
 // -----------------------------------------------------------------------------
 
@@ -1368,8 +1376,49 @@ void ChElementShellANCF::EvaluateSectionPoint(const double u,
 }
 
 // -----------------------------------------------------------------------------
-//
+// Functions for ChLoadable interface
 // -----------------------------------------------------------------------------
+
+// Gets all the DOFs packed in a single vector (position part).
+void ChElementShellANCF::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+    mD.PasteVector(m_nodes[0]->GetPos(), block_offset, 0);
+    mD.PasteVector(m_nodes[0]->GetD(), block_offset + 3, 0);
+    mD.PasteVector(m_nodes[1]->GetPos(), block_offset + 6, 0);
+    mD.PasteVector(m_nodes[1]->GetD(), block_offset + 9, 0);
+    mD.PasteVector(m_nodes[2]->GetPos(), block_offset + 12, 0);
+    mD.PasteVector(m_nodes[2]->GetD(), block_offset + 15, 0);
+    mD.PasteVector(m_nodes[3]->GetPos(), block_offset + 18, 0);
+    mD.PasteVector(m_nodes[3]->GetD(), block_offset + 21, 0);
+}
+
+// Gets all the DOFs packed in a single vector (velocity part).
+void ChElementShellANCF::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+    mD.PasteVector(m_nodes[0]->GetPos_dt(), block_offset, 0);
+    mD.PasteVector(m_nodes[0]->GetD_dt(), block_offset + 3, 0);
+    mD.PasteVector(m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
+    mD.PasteVector(m_nodes[1]->GetD_dt(), block_offset + 9, 0);
+    mD.PasteVector(m_nodes[2]->GetPos_dt(), block_offset + 12, 0);
+    mD.PasteVector(m_nodes[2]->GetD_dt(), block_offset + 15, 0);
+    mD.PasteVector(m_nodes[3]->GetPos_dt(), block_offset + 18, 0);
+    mD.PasteVector(m_nodes[3]->GetD_dt(), block_offset + 21, 0);
+}
+
+void ChElementShellANCF::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
+    ChMatrixNM<double, 8, 1> N;
+    ShapeFunctions(N, U, V, 0);
+    for (unsigned int ii = 0; ii < 4; ii++) {
+        Result += N(ii * 2) * m_nodes[ii]->GetPos_dt();
+        Result += N(ii * 2 + 1) * m_nodes[ii]->GetPos_dt();
+    }
+}
+
+// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
+void ChElementShellANCF::LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+    for (int i = 0; i < m_nodes.size(); ++i) {
+        mvars.push_back(&m_nodes[i]->Variables());
+        mvars.push_back(&m_nodes[i]->Variables_D());
+    }
+}
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
 void ChElementShellANCF::ComputeNF(
@@ -1531,7 +1580,6 @@ ChVector<> ChElementShellANCF::ComputeNormal(const double U, const double V) {
     double G1xG2nrm = sqrt(G1xG2(0) * G1xG2(0) + G1xG2(1) * G1xG2(1) + G1xG2(2) * G1xG2(2));
     return G1xG2 / G1xG2nrm;
 }
-
 
 // -----------------------------------------------------------------------------
 // Utility functions for inverting a 5x5 matrix
@@ -1838,9 +1886,63 @@ void ChElementShellANCF::Inverse55_Analytical(ChMatrixNM<double, 5, 5>& A, ChMat
 }
 
 // ============================================================================
+// Implementation of ChMaterialShellANCF methods
+// ============================================================================
+
+// Construct an isotropic material.
+ChMaterialShellANCF::ChMaterialShellANCF(double rho,  // material density
+                                         double E,    // Young's modulus
+                                         double nu    // Poisson ratio
+                                         )
+    : m_rho(rho) {
+    double G = 0.5 * E / (1 + nu);
+    Calc_E_eps(ChVector<>(E), ChVector<>(nu), ChVector<>(G));
+}
+
+// Construct a (possibly) orthotropic material.
+ChMaterialShellANCF::ChMaterialShellANCF(double rho,            // material density
+                                         const ChVector<>& E,   // elasticity moduli (E_x, E_y, E_z)
+                                         const ChVector<>& nu,  // Poisson ratios (nu_xy, nu_xz, nu_yz)
+                                         const ChVector<>& G    // shear moduli (G_xy, G_xz, G_yz)
+                                         )
+    : m_rho(rho) {
+    Calc_E_eps(E, nu, G);
+}
+
+// Calculate the matrix of elastic coefficients.
+// Always assume that the material could be orthotropic
+void ChMaterialShellANCF::Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
+    double delta = 1.0 - (nu.x * nu.x) * E.y / E.x - (nu.y * nu.y) * E.z / E.x - (nu.z * nu.z) * E.z / E.y -
+                   2.0 * nu.x * nu.y * nu.z * E.z / E.x;
+    double nu_yx = nu.x * E.y / E.x;
+    double nu_zx = nu.y * E.z / E.x;
+    double nu_zy = nu.z * E.z / E.y;
+    m_E_eps(0, 0) = E.x * (1.0 - (nu.z * nu.z) * E.z / E.y) / delta;
+    m_E_eps(1, 1) = E.y * (1.0 - (nu.y * nu.y) * E.z / E.x) / delta;
+    m_E_eps(3, 3) = E.z * (1.0 - (nu.x * nu.x) * E.y / E.x) / delta;
+    m_E_eps(0, 1) = E.y * (nu.x + nu.y * nu.z * E.z / E.y) / delta;
+    m_E_eps(0, 3) = E.z * (nu.y + nu.z * nu.x) / delta;
+    m_E_eps(1, 0) = E.y * (nu.x + nu.y * nu.z * E.z / E.y) / delta;
+    m_E_eps(1, 3) = E.z * (nu.z + nu.y * nu.x * E.y / E.x) / delta;
+    m_E_eps(3, 0) = E.z * (nu.y + nu.z * nu.x) / delta;
+    m_E_eps(3, 1) = E.z * (nu.z + nu.y * nu.x * E.y / E.x) / delta;
+    m_E_eps(2, 2) = G.x;
+    m_E_eps(4, 4) = G.y;
+    m_E_eps(5, 5) = G.z;
+}
+
+// ============================================================================
 // Implementation of ChElementShellANCF::Layer methods
 // ============================================================================
 
+// Private constructor (a layer can be created only by adding it to an element)
+ChElementShellANCF::Layer::Layer(ChElementShellANCF* element,
+                                 double thickness,
+                                 double theta,
+                                 ChSharedPtr<ChMaterialShellANCF> material)
+    : m_element(element), m_thickness(thickness), m_theta(theta), m_material(material) {}
+
+// Initial setup for this layer: calculate T0 and detJ0 at the element center.
 void ChElementShellANCF::Layer::SetupInitial() {
     // Evaluate shape functions at element center
     ChMatrixNM<double, 1, 8> Nx;
