@@ -60,13 +60,17 @@ class Mat33 {
     //        cols[2] = Rotate(real3(0.0, 0.0, 1.0), quat);
     //    }
     Mat33(const quaternion& q) {
-        cols[0] = real3(real(1.0) - real(2.0) * q.y * q.y - real(2.0) * q.z * q.z,
-                        real(2.0) * q.x * q.y + real(2.0) * q.z * q.w, real(2.0) * q.x * q.z - real(2.0) * q.y * q.w);
-        cols[1] = real3(real(2.0) * q.x * q.y - real(2.0) * q.z * q.w,
-                        real(1.0) - real(2.0) * q.x * q.x - real(2.0) * q.z * q.z,
-                        real(2.0) * q.y * q.z + real(2.0) * q.x * q.w);
-        cols[2] = real3(real(2.0) * q.x * q.z + real(2.0) * q.y * q.w, real(2.0) * q.y * q.z - real(2.0) * q.x * q.w,
-                        real(1.0) - real(2.0) * q.x * q.x - real(2.0) * q.y * q.y);
+        array[0] = real(1.0) - real(2.0) * q.y * q.y - real(2.0) * q.z * q.z;
+        array[1] = real(2.0) * q.x * q.y + real(2.0) * q.z * q.w;
+        array[2] = real(2.0) * q.x * q.z - real(2.0) * q.y * q.w;
+
+        array[4] = real(2.0) * q.x * q.y - real(2.0) * q.z * q.w;
+        array[5] = real(1.0) - real(2.0) * q.x * q.x - real(2.0) * q.z * q.z;
+        array[6] = real(2.0) * q.y * q.z + real(2.0) * q.x * q.w;
+
+        array[8] = real(2.0) * q.x * q.z + real(2.0) * q.y * q.w;
+        array[9] = real(2.0) * q.y * q.z - real(2.0) * q.x * q.w;
+        array[10] = real(1.0) - real(2.0) * q.x * q.x - real(2.0) * q.y * q.y;
     }
 
     inline real operator[](unsigned int i) const { return array[i]; }
@@ -103,9 +107,7 @@ OPERATOR_EQUALSALT(*, Mat33, Mat33)
 OPERATOR_EQUALSALT(+, Mat33, Mat33)
 OPERATOR_EQUALSALT(-, Mat33, Mat33)
 
-static inline Mat33 operator-(const Mat33& M) {
-    return Mat33(-M.cols[0], -M.cols[1], -M.cols[2]);
-}
+Mat33 operator-(const Mat33& M);
 
 static inline Mat33 operator*(const real s, const Mat33& a) {
     return a * s;

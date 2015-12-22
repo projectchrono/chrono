@@ -402,6 +402,37 @@ inline __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c) {
     return dotproduct;
 }
 
+// http://fhtr.blogspot.com/2010/02/4x4-float-matrix-multiplication-using.html
+inline Mat33 MulMM(const real* a, const real* b) {
+    Mat33 r;
+    __m256d a_line, b_line, r_line;
+    int i, j;
+    for (i = 0; i < 12; i += 4) {
+        // unroll the first step of the loop to avoid having to initialize r_line to zero
+        a_line = _mm256_load_pd(a);              // a_line = vec4(column(a, 0))
+        b_line = _mm256_set1_pd(b[i]);           // b_line = vec4(b[i][0])
+        r_line = _mm256_mul_pd(a_line, b_line);  // r_line = a_line * b_line
+        for (j = 1; j < 3; j++) {
+            a_line = _mm256_loadu_pd(&a[j * 4]);  // a_line = vec4(column(a, j))
+            b_line = _mm256_set1_pd(b[i + j]);    // b_line = vec4(b[i][j])
+                                                  // r_line += a_line * b_line
+            r_line = _mm256_add_pd(_mm256_mul_pd(a_line, b_line), r_line);
+        }
+        _mm256_storeu_pd(&r.array[i], r_line);  // r[i] = r_line
+    }
+    return r;
+}
+inline real3 MulMV(const real* a, const real* b) {
+    real3 r;
+    __m256d v1 = _mm256_load_pd(&a[0]) * _mm256_set1_pd(b[0]);
+    __m256d v2 = _mm256_load_pd(&a[4]) * _mm256_set1_pd(b[1]);
+    __m256d v3 = _mm256_load_pd(&a[8]) * _mm256_set1_pd(b[2]);
+    __m256d out = _mm256_add_pd(_mm256_add_pd(v1, v2), v3);
+    _mm256_storeu_pd(&r.array[0], out);
+
+    return r;
+}
+
 inline Mat33 OuterProductVV(const real* a, const real* b) {
     Mat33 r;
     __m256d u = _mm256_loadu_pd(a);  // Load the first vector
@@ -867,10 +898,7 @@ quaternion Normalize(const quaternion& v) {
 //========================================================
 
 real3 operator*(const Mat33& M, const real3& v) {
-    real3 t1 = simd::Mul(M.cols[0], simd::Set(v[0]));
-    real3 t2 = simd::Mul(M.cols[1], simd::Set(v[1]));
-    real3 t3 = simd::Mul(M.cols[2], simd::Set(v[2]));
-    return simd::Add(t1, simd::Add(t2, t3));
+    return simd::MulMV(M.array, v.array);
 }
 
 Mat33 operator*(const Mat33& N, const real scale) {
@@ -878,16 +906,20 @@ Mat33 operator*(const Mat33& N, const real scale) {
 }
 
 Mat33 operator*(const Mat33& M, const Mat33& N) {
-    return Mat33(M * N.cols[0], M * N.cols[1], M * N.cols[2]);
+    return simd::MulMM(M.array, N.array);
 }
 Mat33 operator+(const Mat33& M, const Mat33& N) {
-    return Mat33(M.cols[0] + N.cols[0], M.cols[1] + N.cols[1], M.cols[2] + N.cols[2]);  //
+    return Mat33(M[0] + N[0], M[1] + N[1], M[2] + N[2], M[4] + N[4], M[5] + N[5], M[6] + N[6], M[8] + N[8], M[9] + N[9],
+                 M[10] + N[10]);
 }
 
 Mat33 operator-(const Mat33& M, const Mat33& N) {
-    return Mat33(M.cols[0] - N.cols[0], M.cols[1] - N.cols[1], M.cols[2] - N.cols[2]);  //
+    return Mat33(M[0] - N[0], M[1] - N[1], M[2] - N[2], M[4] - N[4], M[5] - N[5], M[6] - N[6], M[8] - N[8], M[9] - N[9],
+                 M[10] - N[10]);
 }
-
+Mat33 operator-(const Mat33& M) {
+    return Mat33(-M[0], -M[1], -M[2], -M[4], -M[5], -M[6], -M[8], -M[9], -M[10]);
+}
 Mat33 Abs(const Mat33& m) {
     return Mat33(simd::Abs(m.cols[0]), simd::Abs(m.cols[1]), simd::Abs(m.cols[2]));
 }
@@ -916,7 +948,7 @@ Mat33 Transpose(const Mat33& a) {
 }
 
 real Trace(const Mat33& m) {
-    return m.cols[0][0] + m.cols[1][1] + m.cols[2][2];
+    return m[0] + m[5] + m[10];
 }
 // Multiply a 3x1 by a 1x3 to get a 3x3
 Mat33 OuterProduct(const real3& a, const real3& b) {

@@ -45,7 +45,10 @@ int main(int argc, char* argv[]) {
     const Mat33 A4_T(-24, 18, 5, 20, -15, -4, -5, 4, 1);
     ChMatrix33<real> B1 = ChMatrix33<real>(ToChMatrix33(A1));
     ChMatrix33<real> B2 = ChMatrix33<real>(ToChMatrix33(A2));
-
+    real3 a1(1, 2, 3);
+    real3 a2(6, 7, 8);
+    ChVector<> b1(1, 2, 3);
+    ChVector<> b2(6, 7, 8);
     {
         std::cout << "Cross Matrix\n";
         real3 v, w;
@@ -67,6 +70,12 @@ int main(int argc, char* argv[]) {
         Mat33 Res1 = A1 * A2;
         ChMatrix33<real> Res2 = B1 * B2;
         WeakEqual(Res1, ToMat33(Res2));
+    }
+    {
+        std::cout << "Multiply Matrix Vector\n";
+        real3 Res1 = A1 * a1;
+        ChVector<real> Res2 = B1 * b1;
+        WeakEqual(Res1, ToReal3(Res2));
     }
     {
         std::cout << "Add Matrix\n";
@@ -114,10 +123,7 @@ int main(int argc, char* argv[]) {
     }
     {
         std::cout << "Outer Product\n";
-        real3 a(1, 2, 3);
-        real3 b(6, 7, 8);
-
-        Mat33 Res1 = OuterProduct(a, b);
+        Mat33 Res1 = OuterProduct(a1, a2);
         Mat33 Res2(6, 12, 18, 7, 14, 21, 8, 16, 24);
         WeakEqual(Res1, Res2, C_EPSILON);
     }
