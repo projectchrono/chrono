@@ -8,56 +8,76 @@
 #define INVPI 1 / F_PI
 
 #define KERNEL poly6
-#define GRAD_KERNEL grad_spiky
+#define GRAD_KERNEL unormalized_grad_spiky
 #define GRAD2_KERNEL grad2_viscosity
 
 namespace chrono {
+#define H2 h* h
+#define H3 h* h* h
+#define H6 H3* H3
+#define H9 H3* H3* H3
+///
+#define CPOLY6 315.0 / (64.0 * F_PI * H9)
+#define KPOLY6 CPOLY6* Pow((H2 - dist * dist), 3)
+///
+#define CGSPIKY -45.0 / (F_PI * H6)
+#define KGSPIKY CGSPIKY* Pow(h - dist, 2)
 
 // Cubic spline kernel
 // d is positive. h is the sph particle  radius (i.e. h in the document) d is the distance of 2 particles
-real cubic_spline(const real& dist, const real& h) {
-    real q = std::abs(dist) / h;
+inline real cubic_spline(const real& dist, const real& h) {
+    real q = Abs(dist) / h;
     if (q < 1) {
-        return (0.25f / (F_PI * h * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
+        return (0.25f / (F_PI * h * h * h) * (Pow(2 - q, 3) - 4 * Pow(1 - q, 3)));
     }
     if (q < 2) {
-        return (0.25f / (F_PI * h * h * h) * pow(2 - q, 3));
+        return (0.25f / (F_PI * h * h * h) * Pow(2 - q, 3));
     }
     return 0;
 }
 // d is positive. r is the sph particles
-real3 grad_cubic_spline(const real3& dist, const real d, const real& h) {
+inline real3 grad_cubic_spline(const real3& dist, const real d, const real& h) {
     real q = d / h;
 
     if (q < 1) {
-        return (3 * q - 4) * .75f * (INVPI)*powf(h, -5) * dist;
+        return (3 * q - 4) * .75 * (INVPI)*Pow(h, -5) * dist;
     }
     if (q < 2) {
-        return (-q + 4.0f - 4.0f / q) * .75f * (INVPI)*powf(h, -5) * dist;
+        return (-q + 4.0 - 4.0 / q) * .75 * (INVPI)*Pow(h, -5) * dist;
     }
     return real3(0);
 }
-real poly6(const real& dist, const real& h) {
-    return (dist <= h) * 315.0 / (64.0 * F_PI * pow(h, 9)) * pow((h * h - dist * dist), 3);
+inline real poly6(const real& dist, const real& h) {
+    return /* (dist <= h)* */ KPOLY6;
 }
 
-real3 grad_poly6(const real3& dist, const real d, const real& h) {
-    return (d <= h) * -945.0 / (32.0 * F_PI * pow(h, 9)) * pow((h * h - d * d), 2) * dist;
+inline real3 grad_poly6(const real3& xij, const real d, const real& h) {
+    return (d <= h) * -945.0 / (32.0 * F_PI * Pow(h, 9)) * Pow((h * h - d * d), 2) * xij;
 }
 
-real spiky(const real& dist, const real& h) {
-    return (dist <= h) * 15.0 / (F_PI * pow(h, 6)) * pow(h - dist, 3);
+inline real spiky(const real& dist, const real& h) {
+    return (dist <= h) * 15.0 / (F_PI * Pow(h, 6)) * Pow(h - dist, 3);
 }
-real3 grad_spiky(const real3& dist, const real d, const real& h) {
-    return (d <= h) * -45.0 / (F_PI * pow(h, 6)) * pow(h - d, 2) * dist;
+inline real3 grad_spiky(const real3& xij, const real dist, const real& h) {
+    return (dist <= h) * KGSPIKY * xij;
 }
 
-real3 viscosity(const real3& dist, const real d, const real& h) {
-    return (d <= h) * 15.0 / (2 * F_PI * pow(h, 3)) *
-           (-(d * d * d) / (2 * h * h * h) + (d * d) / (h * h) + (h) / (2 * d) - 1) * dist;
+inline real unormalized_spiky(const real& dist, const real& h) {
+    const real k = 15.0 / (F_PI * h * h * h);
+    return k * Sqr(1.0 - dist / h);
 }
-real3 grad2_viscosity(const real3& dist, const real d, const real& h) {
-    return real3((d <= h) * 45.0 / (F_PI * pow(h, 6)) * (h - d));
+
+inline real3 unormalized_grad_spiky(const real3& xij, const real d, const real& h) {
+    const real k = 15.0 / (F_PI * h * h * h);
+    return -k * (1.0 - d / h) / h * xij / d;
+}
+
+inline real3 viscosity(const real3& xij, const real d, const real& h) {
+    return (d <= h) * 15.0 / (2 * F_PI * Pow(h, 3)) *
+           (-(d * d * d) / (2 * h * h * h) + (d * d) / (h * h) + (h) / (2 * d) - 1) * xij;
+}
+inline real3 grad2_viscosity(const real3& xij, const real d, const real& h) {
+    return real3((d <= h) * 45.0 / (F_PI * Pow(h, 6)) * (h - d));
 }
 
 ////-----------------------------------------------------------------------------------------------------
@@ -67,7 +87,7 @@ real kernel(const real& dist, const real& h) {
         return 0;
     }
 
-    return pow(1 - pow(dist / h, 2), 3);
+    return Pow(1 - Pow(dist / h, 2), 3);
 }
 
 // laplacian operator for poly6
@@ -75,7 +95,7 @@ real grad2_poly6(const real& dist, const real& h) {
     if (dist > h) {
         return 0;
     }
-    return 945.0 / (32.0 * F_PI * pow(h, 9)) * (h * h - dist * dist) * (7 * dist * dist - 3 * h * h);
+    return 945.0 / (32.0 * F_PI * Pow(h, 9)) * (h * h - dist * dist) * (7 * dist * dist - 3 * h * h);
 }
 
 #define SS(alpha) mrho* vij.alpha
