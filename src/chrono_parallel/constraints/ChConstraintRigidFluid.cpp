@@ -49,7 +49,7 @@ void ChConstraintRigidFluid::Project(real* gamma) {
             int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  // rigid is stored in the first index
             int fluid = p;                                                  // fluid body is in second index
             real rigid_fric = data_manager->host_data.fric_data[rigid].x;
-            real cohesion = std::max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
+            real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
             real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
 
             real3 gam;
@@ -213,37 +213,17 @@ void ChConstraintRigidFluid::GenerateSparsity() {
             int fluid = p;
             int off = num_unilaterals + num_bilaterals;
 
-            D_T.append(off + index * 3 + 0, rigid * 6 + 0, 1);
-            D_T.append(off + index * 3 + 0, rigid * 6 + 1, 1);
-            D_T.append(off + index * 3 + 0, rigid * 6 + 2, 1);
-            D_T.append(off + index * 3 + 0, rigid * 6 + 3, 1);
-            D_T.append(off + index * 3 + 0, rigid * 6 + 4, 1);
-            D_T.append(off + index * 3 + 0, rigid * 6 + 5, 1);
-            D_T.append(off + index * 3 + 0, num_rigid_bodies * 6 + num_shafts + fluid * 3 + 0, 1);
-            D_T.append(off + index * 3 + 0, num_rigid_bodies * 6 + num_shafts + fluid * 3 + 1, 1);
-            D_T.append(off + index * 3 + 0, num_rigid_bodies * 6 + num_shafts + fluid * 3 + 2, 1);
+            AppendRow6(D_T, off + index * 3 + 0, rigid * 6, 0);
+            AppendRow3(D_T, off + index * 3 + 0, num_rigid_bodies * 6 + num_shafts + fluid * 3, 0);
             D_T.finalize(off + index * 3 + 0);
 
-            D_T.append(off + index * 3 + 1, rigid * 6 + 0, 1);
-            D_T.append(off + index * 3 + 1, rigid * 6 + 1, 1);
-            D_T.append(off + index * 3 + 1, rigid * 6 + 2, 1);
-            D_T.append(off + index * 3 + 1, rigid * 6 + 3, 1);
-            D_T.append(off + index * 3 + 1, rigid * 6 + 4, 1);
-            D_T.append(off + index * 3 + 1, rigid * 6 + 5, 1);
-            D_T.append(off + index * 3 + 1, num_rigid_bodies * 6 + num_shafts + fluid * 3 + 0, 1);
-            D_T.append(off + index * 3 + 1, num_rigid_bodies * 6 + num_shafts + fluid * 3 + 1, 1);
-            D_T.append(off + index * 3 + 1, num_rigid_bodies * 6 + num_shafts + fluid * 3 + 2, 1);
+            AppendRow6(D_T, off + index * 3 + 1, rigid * 6, 0);
+            AppendRow3(D_T, off + index * 3 + 1, num_rigid_bodies * 6 + num_shafts + fluid * 3, 0);
             D_T.finalize(off + index * 3 + 1);
 
-            D_T.append(off + index * 3 + 2, rigid * 6 + 0, 1);
-            D_T.append(off + index * 3 + 2, rigid * 6 + 1, 1);
-            D_T.append(off + index * 3 + 2, rigid * 6 + 2, 1);
-            D_T.append(off + index * 3 + 2, rigid * 6 + 3, 1);
-            D_T.append(off + index * 3 + 2, rigid * 6 + 4, 1);
-            D_T.append(off + index * 3 + 2, rigid * 6 + 5, 1);
-            D_T.append(off + index * 3 + 2, num_rigid_bodies * 6 + num_shafts + fluid * 3 + 0, 1);
-            D_T.append(off + index * 3 + 2, num_rigid_bodies * 6 + num_shafts + fluid * 3 + 1, 1);
-            D_T.append(off + index * 3 + 2, num_rigid_bodies * 6 + num_shafts + fluid * 3 + 2, 1);
+            AppendRow6(D_T, off + index * 3 + 2, rigid * 6, 0);
+            AppendRow3(D_T, off + index * 3 + 2, num_rigid_bodies * 6 + num_shafts + fluid * 3, 0);
+
             D_T.finalize(off + index * 3 + 2);
             index++;
         }
