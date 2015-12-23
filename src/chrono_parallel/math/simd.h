@@ -1,7 +1,8 @@
 #include "chrono_parallel/math/sse.h"
-#include "chrono_parallel/math/real3.h"
+#include "chrono_parallel/math/real.h"
 #include "chrono_parallel/math/real4.h"
 #include "chrono_parallel/math/mat33.h"
+using namespace chrono;
 
 #if defined(USE_AVX)
 #define set_m128r(lo, hi) _mm256_insertf128_ps(_mm256_castps128_ps256(lo), (hi), 1)
@@ -188,8 +189,6 @@ static inline __m256d permute4d(__m256d const& a) {
     return _mm256_shuffle_pd(r1, r2, sm);
 }
 #endif
-
-namespace chrono {
 
 namespace simd {
 #if defined(USE_AVX)
@@ -422,6 +421,32 @@ inline Mat33 MulMM(const real* a, const real* b) {
     }
     return r;
 }
+
+inline Mat33 MulM_TM(const real* M, const real* N) {
+    Mat33 result;
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    for (int i = 0; i < 3; i++) {
+        __m256d v = _mm256_loadu_pd(&N[i * 4]);  // load ith column column of N
+        __m256d xy0 = _mm256_mul_pd(v, a);
+        __m256d xy1 = _mm256_mul_pd(v, b);
+        __m256d xy2 = _mm256_mul_pd(v, c);
+        __m256d xy3 = _mm256_set1_pd(0);  // last dot prod is not used
+
+        __m256d temp01 = _mm256_hadd_pd(xy0, xy1);  // low to high: xy00+xy01 xy10+xy11 xy02+xy03 xy12+xy13
+        __m256d temp23 = _mm256_hadd_pd(xy2, xy3);  // low to high: xy20+xy21 xy30+xy31 xy22+xy23 xy32+xy33
+        // low to high: xy02+xy03 xy12+xy13 xy20+xy21 xy30+xy31
+        __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+        // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
+        __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+        __m256d dotproduct = _mm256_add_pd(swapped, blended);
+        _mm256_storeu_pd(&result.array[i * 4], dotproduct);
+    }
+    return result;
+}
+
 inline real3 MulMV(const real* a, const real* b) {
     real3 r;
     __m256d v1 = _mm256_load_pd(&a[0]) * _mm256_set1_pd(b[0]);
@@ -733,336 +758,4 @@ inline real4 Negate(real4 a) {
     return real4(-a[0], -a[1], -a[2], -a.w);
 }
 #endif
-}
-//========================================================
-real3 operator+(const real3& a, const real3& b) {
-    return simd::Add(a, b);
-}
-real3 operator-(const real3& a, const real3& b) {
-    return simd::Sub(a, b);
-}
-real3 operator*(const real3& a, const real3& b) {
-    return simd::Mul(a, b);
-}
-real3 operator/(const real3& a, const real3& b) {
-    return simd::Div(a, b);
-}
-//========================================================
-real3 operator+(const real3& a, real b) {
-    return simd::Add(a, simd::Set(b));
-}
-real3 operator-(const real3& a, real b) {
-    return simd::Sub(a, simd::Set(b));
-}
-real3 operator*(const real3& a, real b) {
-    return simd::Mul(a, simd::Set(b));
-}
-real3 operator/(const real3& a, real b) {
-    return simd::Div(a, simd::Set(b));
-}
-real3 operator*(real lhs, const real3& rhs) {
-    return simd::Mul(simd::Set(lhs), rhs);
-}
-real3 operator/(real lhs, const real3& rhs) {
-    return simd::Div(simd::Set(lhs), rhs);
-}
-real3 operator-(const real3& a) {
-    return simd::Negate(a);
-}
-//========================================================
-
-real Dot(const real3& v1, const real3& v2) {
-    return simd::Dot3(v1, v2);
-}
-real Dot(const real3& v) {
-    return simd::Dot3(v);
-}
-real3 Normalize(const real3& v) {
-    return simd::Normalize3(v);
-}
-real Length(const real3& v) {
-    return Sqrt(simd::Dot3(v));
-}
-real3 Sqrt(const real3& v) {
-    return simd::SquareRoot(v);
-}
-real3 Cross(const real3& b, const real3& c) {
-    return simd::Cross3(b.array, c.array);
-}
-real3 Abs(const real3& v) {
-    return simd::Abs(v);
-}
-real3 Sign(const real3& v) {
-    return simd::Max(simd::Min(v, simd::Set(1)), simd::Set(-1));
-}
-real3 Max(const real3& a, const real3& b) {
-    return simd::Max(a, b);
-}
-
-real3 Min(const real3& a, const real3& b) {
-    return simd::Min(a, b);
-}
-
-real3 Max(const real3& a, const real& b) {
-    return simd::Max(a, simd::Set(b));
-}
-
-real3 Min(const real3& a, const real& b) {
-    return simd::Min(a, simd::Set(b));
-}
-real Max(const real3& a) {
-    return simd::Max(a);
-}
-real Min(const real3& a) {
-    return simd::Min(a);
-}
-real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max) {
-    return simd::Max(clamp_min, simd::Min(a, clamp_max));
-}
-bool operator==(const real3& a, const real3& b) {
-    return (a[0] == b[0]) && (a[1] == b[1]) && (a[2] == b[2]);
-    // return simd::IsEqual(a, b);
-}
-real3 Round(const real3& v) {
-    return simd::Round(v);
-}
-bool IsZero(const real3& v) {
-    real3 t = simd::Abs(v);
-    return t[0] < C_EPSILON && t[1] < C_EPSILON && t[2] < C_EPSILON;
-}
-//========================================================
-real4 operator+(const real4& a, const real4& b) {
-    return simd::Add(a, b);
-}
-real4 operator-(const real4& a, const real4& b) {
-    return simd::Sub(a, b);
-}
-real4 operator*(const real4& a, const real4& b) {
-    return simd::Mul(a, b);
-}
-real4 operator/(const real4& a, const real4& b) {
-    return simd::Div(a, b);
-}
-//========================================================
-real4 operator+(const real4& a, real b) {
-    return simd::Add(a, simd::Set(b));
-}
-real4 operator-(const real4& a, real b) {
-    return simd::Sub(a, simd::Set(b));
-}
-real4 operator*(const real4& a, real b) {
-    return simd::Mul(a, simd::Set(b));
-}
-real4 operator/(const real4& a, real b) {
-    return simd::Div(a, simd::Set(b));
-}
-real4 operator-(const real4& a) {
-    return simd::Negate(a);
-}
-
-//========================================================
-quaternion operator+(const quaternion& a, real b) {
-    return simd::Add(a, simd::Set(b));
-}
-quaternion operator-(const quaternion& a, real b) {
-    return simd::Sub(a, simd::Set(b));
-}
-quaternion operator*(const quaternion& a, real b) {
-    return simd::Mul(a, simd::Set(b));
-}
-quaternion operator/(const quaternion& a, real b) {
-    return simd::Div(a, simd::Set(b));
-}
-quaternion operator-(const quaternion& a) {
-    return simd::Negate(a);
-}
-quaternion operator~(const quaternion& a) {
-    return simd::change_sign<0, 1, 1, 1>(a);
-}
-quaternion Inv(const quaternion& a) {
-    real t1 = Dot(a);
-    return (~a) / t1;
-}
-real Dot(const quaternion& v1, const quaternion& v2) {
-    return simd::Dot4(v1, v2);
-}
-real Dot(const quaternion& v) {
-    return simd::Dot4(v);
-}
-quaternion Mult(const quaternion& a, const quaternion& b) {
-    return simd::QuatMult(a, b);
-}
-quaternion Normalize(const quaternion& v) {
-    return simd::Normalize(v);
-}
-//========================================================
-
-real3 operator*(const Mat33& M, const real3& v) {
-    return simd::MulMV(M.array, v.array);
-}
-
-Mat33 operator*(const Mat33& N, const real scale) {
-    return simd::ScaleMat(N.array, scale);
-}
-
-Mat33 operator*(const Mat33& M, const Mat33& N) {
-    return simd::MulMM(M.array, N.array);
-}
-Mat33 operator+(const Mat33& M, const Mat33& N) {
-    return Mat33(M[0] + N[0], M[1] + N[1], M[2] + N[2], M[4] + N[4], M[5] + N[5], M[6] + N[6], M[8] + N[8], M[9] + N[9],
-                 M[10] + N[10]);
-}
-
-Mat33 operator-(const Mat33& M, const Mat33& N) {
-    return Mat33(M[0] - N[0], M[1] - N[1], M[2] - N[2], M[4] - N[4], M[5] - N[5], M[6] - N[6], M[8] - N[8], M[9] - N[9],
-                 M[10] - N[10]);
-}
-Mat33 operator-(const Mat33& M) {
-    return Mat33(-M[0], -M[1], -M[2], -M[4], -M[5], -M[6], -M[8], -M[9], -M[10]);
-}
-Mat33 Abs(const Mat33& m) {
-    return Mat33(simd::Abs(m.cols[0]), simd::Abs(m.cols[1]), simd::Abs(m.cols[2]));
-}
-Mat33 SkewSymmetric(const real3& r) {
-    return Mat33(real3(0, r[2], -r[1]), real3(-r[2], 0, r[0]), real3(r[1], -r[0], 0));
-}
-
-Mat33 MultTranspose(const Mat33& M, const Mat33& N) {
-    return Mat33(M * real3(N.cols[0][0], N.cols[1][0], N.cols[2][0]),  //
-                 M * real3(N.cols[0][1], N.cols[1][1], N.cols[2][1]),  //
-                 M * real3(N.cols[0][2], N.cols[1][2], N.cols[2][2]));
-}
-
-Mat33 TransposeMult(const Mat33& M, const Mat33& N) {
-    Mat33 result;
-
-    result.cols[0] = simd::Dot4(N.cols[0], M.cols[0], M.cols[1], M.cols[2]);
-    result.cols[1] = simd::Dot4(N.cols[1], M.cols[0], M.cols[1], M.cols[2]);
-    result.cols[2] = simd::Dot4(N.cols[2], M.cols[0], M.cols[1], M.cols[2]);
-
-    return result;
-}
-
-Mat33 Transpose(const Mat33& a) {
-    return Mat33(a[0], a[4], a[8], a[1], a[5], a[9], a[2], a[6], a[10]);
-}
-
-real Trace(const Mat33& m) {
-    return m[0] + m[5] + m[10];
-}
-// Multiply a 3x1 by a 1x3 to get a 3x3
-Mat33 OuterProduct(const real3& a, const real3& b) {
-    return simd::OuterProductVV(a.array, b.array);
-}
-
-real InnerProduct(const Mat33& A, const Mat33& B) {
-    return Dot(A.cols[0], B.cols[0]) + Dot(A.cols[1], B.cols[1]) + Dot(A.cols[0], B.cols[0]);
-}
-
-Mat33 Adjoint(const Mat33& A) {
-    Mat33 T;
-    T[0] = A[5] * A[10] - A[9] * A[6];
-    T[1] = -A[1] * A[10] + A[9] * A[2];
-    T[2] = A[1] * A[6] - A[5] * A[2];
-
-    T[4] = -A[4] * A[10] + A[8] * A[6];
-    T[5] = A[0] * A[10] - A[8] * A[2];
-    T[6] = -A[0] * A[6] + A[4] * A[2];
-
-    T[8] = A[4] * A[9] - A[8] * A[5];
-    T[9] = -A[0] * A[9] + A[8] * A[1];
-    T[10] = A[0] * A[5] - A[4] * A[1];
-    return T;
-}
-
-Mat33 AdjointTranspose(const Mat33& A) {
-    Mat33 T;
-    T[0] = A[5] * A[10] - A[9] * A[6];
-    T[1] = -A[4] * A[10] + A[8] * A[6];
-    T[2] = A[4] * A[9] - A[8] * A[5];
-
-    T[4] = -A[1] * A[10] + A[9] * A[2];
-    T[5] = A[0] * A[10] - A[8] * A[2];
-    T[6] = -A[0] * A[9] + A[8] * A[1];
-
-    T[8] = A[1] * A[6] - A[5] * A[2];
-    T[9] = -A[0] * A[6] + A[4] * A[2];
-    T[10] = A[0] * A[5] - A[4] * A[1];
-
-    return T;
-}
-
-real Determinant(const Mat33& m) {
-    real d;
-    d = m[0] * (m[5] * m[10] - m[9] * m[6]);
-    d -= m[4] * (m[1] * m[10] - m[9] * m[2]);
-    d += m[8] * (m[1] * m[6] - m[5] * m[2]);
-    return d;  // Dot(m.cols[0], Cross(m.cols[1], m.cols[2]));
-}
-
-Mat33 Inverse(const Mat33& A) {
-    real s = Determinant(A);
-    // if (s > 0.0) {
-    return Adjoint(A) * real(1.0 / s);
-    //} else {
-    //    return Mat33(0);
-    //}
-}
-
-// Same as inverse but we store it transposed
-Mat33 InverseTranspose(const Mat33& A) {
-    real s = Determinant(A);
-    if (s > 0.0) {
-        return AdjointTranspose(A) * real(1.0 / s);
-    } else {
-        return Mat33(0);
-    }
-}
-// real3 UnpackLow(const real3& v1, const real3& v2) {
-//    return _mm256_unpacklo_pd(v1, v2);
-//}
-// real3 UnpackHigh(const real3& v1, const real3& v2) {
-//    return _mm256_unpackhi_pd(v1, v2);
-//}
-
-// Mat33 Transpose(const Mat33& M) {
-//    real3 T0 = simd::UnpackLow(M.cols[0], M.cols[1]);
-//    real3 T1 = simd::UnpackLow(M.cols[2], Set(0));
-//    real3 T2 = simd::UnpackHigh(M.cols[0], M.cols[1]);
-//    real3 T3 = simd::UnpackHigh(M.cols[2], Set(0));
-//
-//    /* Assigning transposed values back into I[0-3] */
-//    I0 = _mm_unpacklo_epi64(T0, T1);
-//    I1 = _mm_unpackhi_epi64(T0, T1);
-//    I2 = _mm_unpacklo_epi64(T2, T3);
-//    I3 = _mm_unpackhi_epi64(T2, T3);
-//}
-
-// void M4x4_SSE(const mat33& B, const mat33& A, const mat33& C) {
-//    real3 row1 = B.cols[0];
-//    real3 row2 = B.cols[1];
-//    real3 row3 = B.cols[2];
-//
-//    {
-//        real3 brod1 = simd::Set(A.cols[0][0]);
-//        real3 brod2 = simd::Set(A.cols[1][0]);
-//        real3 brod3 = simd::Set(A.cols[2][0]);
-//        real3 row = simd::Add(simd::Add(simd::Mul(brod1, row1), simd::Mul(brod2, row2)), simd::Mul(brod3, row3));
-//        C.cols[0] = row;
-//    }
-//    {
-//        real3 brod1 = simd::Set(A.cols[0][1]);
-//        real3 brod2 = simd::Set(A.cols[1][1]);
-//        real3 brod3 = simd::Set(A.cols[2][1]);
-//        real3 row = simd::Add(simd::Add(simd::Mul(brod1, row1), simd::Mul(brod2, row2)), simd::Mul(brod3, row3));
-//        C.cols[1] = row;
-//    }
-//    {
-//        real3 brod1 = simd::Set(A.cols[0][2]);
-//        real3 brod2 = simd::Set(A.cols[1][2]);
-//        real3 brod3 = simd::Set(A.cols[2][2]);
-//        real3 row = simd::Add(simd::Add(simd::Mul(brod1, row1), simd::Mul(brod2, row2)), simd::Mul(brod3, row3));
-//        C.cols[2] = row;
-//    }
-//}
 }

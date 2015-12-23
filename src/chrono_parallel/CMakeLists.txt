@@ -155,12 +155,15 @@ SET(ChronoEngine_Parallel_MATH
     math/ChParallelMath.h
     math/ChThrustLinearAlgebra.h
     math/mat33.h
+    math/mat33.cpp
     math/sse.h
+    math/simd.h
     math/real.h
     math/real2.h
     math/real3.h
+    math/real3.cpp
     math/real4.h
-    math/simd_128f_256d.cpp
+    math/real4.cpp
     math/simd_128i.cpp
     )
 

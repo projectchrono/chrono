@@ -1,0 +1,72 @@
+#include "chrono_parallel/math/sse.h"
+#include "chrono_parallel/math/simd.h"
+#include "chrono_parallel/math/real4.h"
+
+namespace chrono {
+
+//========================================================
+real4 operator+(const real4& a, const real4& b) {
+    return simd::Add(a, b);
+}
+real4 operator-(const real4& a, const real4& b) {
+    return simd::Sub(a, b);
+}
+real4 operator*(const real4& a, const real4& b) {
+    return simd::Mul(a, b);
+}
+real4 operator/(const real4& a, const real4& b) {
+    return simd::Div(a, b);
+}
+//========================================================
+real4 operator+(const real4& a, real b) {
+    return simd::Add(a, simd::Set(b));
+}
+real4 operator-(const real4& a, real b) {
+    return simd::Sub(a, simd::Set(b));
+}
+real4 operator*(const real4& a, real b) {
+    return simd::Mul(a, simd::Set(b));
+}
+real4 operator/(const real4& a, real b) {
+    return simd::Div(a, simd::Set(b));
+}
+real4 operator-(const real4& a) {
+    return simd::Negate(a);
+}
+
+//========================================================
+quaternion operator+(const quaternion& a, real b) {
+    return simd::Add(a, simd::Set(b));
+}
+quaternion operator-(const quaternion& a, real b) {
+    return simd::Sub(a, simd::Set(b));
+}
+quaternion operator*(const quaternion& a, real b) {
+    return simd::Mul(a, simd::Set(b));
+}
+quaternion operator/(const quaternion& a, real b) {
+    return simd::Div(a, simd::Set(b));
+}
+quaternion operator-(const quaternion& a) {
+    return simd::Negate(a);
+}
+quaternion operator~(const quaternion& a) {
+    return simd::change_sign<0, 1, 1, 1>(a);
+}
+quaternion Inv(const quaternion& a) {
+    real t1 = Dot(a);
+    return (~a) / t1;
+}
+real Dot(const quaternion& v1, const quaternion& v2) {
+    return simd::Dot4(v1, v2);
+}
+real Dot(const quaternion& v) {
+    return simd::Dot4(v);
+}
+quaternion Mult(const quaternion& a, const quaternion& b) {
+    return simd::QuatMult(a, b);
+}
+quaternion Normalize(const quaternion& v) {
+    return simd::Normalize(v);
+}
+}

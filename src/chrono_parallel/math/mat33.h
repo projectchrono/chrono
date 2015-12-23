@@ -81,7 +81,7 @@ class Mat33 {
         real array[12];
         real3 cols[3];
     };
-    //c1 c2 c3
+    // c1 c2 c3
     // 0  4  8
     // 1  5  9
     // 2  6  10
@@ -92,6 +92,8 @@ class Mat33 {
 };
 // ========================================================================================
 
+typedef aligned_allocator<Mat33, sizeof(Mat33)> mat33_allocator;
+
 real3 operator*(const Mat33& M, const real3& v);
 Mat33 operator*(const Mat33& N, const real scale);
 Mat33 operator*(const Mat33& M, const Mat33& N);
@@ -99,7 +101,6 @@ Mat33 operator+(const Mat33& M, const Mat33& N);
 Mat33 operator-(const Mat33& M, const Mat33& N);
 
 OPERATOR_EQUALSALT(*, real, Mat33)
-
 OPERATOR_EQUALSALT(*, Mat33, Mat33)
 OPERATOR_EQUALSALT(+, Mat33, Mat33)
 OPERATOR_EQUALSALT(-, Mat33, Mat33)
@@ -109,62 +110,144 @@ Mat33 operator-(const Mat33& M);
 static inline Mat33 operator*(const real s, const Mat33& a) {
     return a * s;
 }
-
-static inline Mat33 Identity() {
-    return Mat33(1.0);
-}
-
 Mat33 SkewSymmetric(const real3& r);
-
 real Determinant(const Mat33& m);
-
 Mat33 Abs(const Mat33& m);
-
 Mat33 Transpose(const Mat33& a);
-// M * N^T
-Mat33 MultTranspose(const Mat33& M, const Mat33& N);
-// M^T * N
-Mat33 TransposeMult(const Mat33& M, const Mat33& N);
-
+Mat33 MultTranspose(const Mat33& M, const Mat33& N);  // M * N^T
+Mat33 TransposeMult(const Mat33& M, const Mat33& N);  // M^T * N
 real Trace(const Mat33& m);
-// Multiply a 3x1 by a 1x3 to get a 3x3
-Mat33 OuterProduct(const real3& a, const real3& b);
-
+Mat33 OuterProduct(const real3& a, const real3& b);  // Multiply a 3x1 by a 1x3 to get a 3x3
 real InnerProduct(const Mat33& A, const Mat33& B);
 Mat33 Adjoint(const Mat33& A);
 Mat33 AdjointTranspose(const Mat33& A);
 Mat33 Inverse(const Mat33& A);
 Mat33 InverseTranspose(const Mat33& A);
-
-// double dot product of a matrix
-// static real Norm(const Mat33& A) {
-//    return Sqrt(Trace(A * Transpose(A)));
-//}
-//
-
-//
-// static real3 LargestColumnNormalized(const Mat33& A) {
-//    real scale1 = Length2((A.cols[0]));
-//    real scale2 = Length2((A.cols[1]));
-//    real scale3 = Length2((A.cols[2]));
-//    if (scale1 > scale2) {
-//        if (scale1 > scale3) {
-//            return A.cols[0] / sqrt(scale1);
-//        }
-//    } else if (scale2 > scale3) {
-//        return A.cols[1] / sqrt(scale2);
-//    }
-//    return A.cols[2] / sqrt(scale3);
-//}
+real Norm(const Mat33& A);  // double dot product of a matrix
+real3 LargestColumnNormalized(const Mat33& A);
 
 // ========================================================================================
+//
+//// ========================================================================================
+//
+struct DiagMat33 {
+    DiagMat33() {}
+    DiagMat33(const DiagMat33& M) : x11(M.x11), x22(M.x22), x33(M.x33) {}
+    DiagMat33(const real v11, const real v22, const real v33) : x11(v11), x22(v22), x33(v33) {}
+    DiagMat33(const real3 v) : x11(v.x), x22(v.y), x33(v.z) {}
 
-static void Print(Mat33 A, const char* name) {
-    //    printf("%s\n", name);
-    //    printf("%f %f %f\n", A.cols[0].x, A.cols[1].x, A.cols[2].x);
-    //    printf("%f %f %f\n", A.cols[0].y, A.cols[1].y, A.cols[2].y);
-    //    printf("%f %f %f\n", A.cols[0].z, A.cols[1].z, A.cols[2].z);
+    real x11, x22, x33;
+};
+Mat33 operator*(const DiagMat33& M, const Mat33& N);
+real3 operator*(const DiagMat33& M, const real3& v);
+
+//// ========================================================================================
+//
+
+struct SymMat33 {
+    SymMat33() : x11(0), x21(0), x31(0), x22(0), x32(0), x33(0) {}
+
+    SymMat33(const real y11, const real y21, const real y31, const real y22, const real y32, const real y33)
+        : x11(y11), x21(y21), x31(y31), x22(y22), x32(y32), x33(y33) {}
+
+    void operator=(const SymMat33& N) {
+        x11 = N.x11;
+        x21 = N.x21;
+        x31 = N.x31;
+        x22 = N.x22;
+        x32 = N.x32;
+        x33 = N.x33;
+    }
+
+    real x11, x21, x31, x22, x32, x33;
+};
+SymMat33 operator-(const SymMat33& M, const real& v);
+
+//// ========================================================================================
+
+struct Mat32 {
+    Mat32() {}
+    Mat32(const real3 col1, const real3 col2) : array{col1.x, col1.y, col1.z, 0, col2.x, col2.y, col2.z, 0} {}
+    inline real operator[](unsigned int i) const { return array[i]; }
+    inline real& operator[](unsigned int i) { return array[i]; }
+    real array[8];
+    // 0 4
+    // 1 5
+    // 2 6
+    // 3 7 //Not used
+};
+real3 operator*(const Mat32& M, const real2& v);
+
+//// ========================================================================================
+
+struct Mat23 {
+    Mat23() {}
+    Mat23(const real3 row1, const real3 row2) : array{row1.x, row1.y, row1.z, 0, row2.x, row2.y, row2.z, 0} {}
+    real array[8];
+    // 0 1 2 3
+    // 4 5 6 7
+};
+// ========================================================================================
+
+struct SymMat22 {
+    SymMat22() : x11(0), x21(0), x22(0) {}
+    SymMat22(const real v11, const real v21, const real v22) : x11(v11), x21(v21), x22(v22) {}
+
+    real x11, x21, x22;
+};
+
+SymMat22 operator-(const SymMat22& M, const real& v);
+SymMat22 CofactorMatrix(const SymMat22& A);
+real2 LargestColumnNormalized(const SymMat22& A);
+//// ========================================================================================
+//
+
+// Compute the normal equations matrix - 18 mults, 12 adds
+static SymMat33 NormalEquationsMatrix(const Mat33& A) {
+    SymMat33 T;
+    T.x11 = Dot(A.cols[0], A.cols[0]);
+    T.x21 = Dot(A.cols[0], A.cols[1]);
+    T.x31 = Dot(A.cols[0], A.cols[2]);
+    T.x22 = Dot(A.cols[1], A.cols[1]);
+    T.x32 = Dot(A.cols[1], A.cols[2]);
+    T.x33 = Dot(A.cols[2], A.cols[2]);
+    return T;
 }
+SymMat33 CofactorMatrix(const SymMat33& A);
+real3 LargestColumnNormalized(const SymMat33& A);
+// ========================================================================================
+Mat32 operator*(const SymMat33& M, const Mat32& N);
+
+//// A^T*B
+SymMat22 TransposeTimesWithSymmetricResult(const Mat32& A, const Mat32& B);
+//
+SymMat22 ConjugateWithTranspose(const Mat32& A, const SymMat33& B);
+
+// static void Print(Mat33 A, const char* name) {
+//    printf("%s\n", name);
+//    printf("%f %f %f\n", A.cols[0].x, A.cols[1].x, A.cols[2].x);
+//    printf("%f %f %f\n", A.cols[0].y, A.cols[1].y, A.cols[2].y);
+//    printf("%f %f %f\n", A.cols[0].z, A.cols[1].z, A.cols[2].z);
+//}
+// static void Print(Mat32 A, const char* name) {
+//    printf("%s\n", name);
+//    printf("%f %f\n", A.cols[0].x, A.cols[1].x);
+//    printf("%f %f\n", A.cols[0].y, A.cols[1].y);
+//    printf("%f %f\n", A.cols[0].z, A.cols[1].z);
+//}
+// static void Print(SymMat33 A, const char* name) {
+//    printf("%s\n", name);
+//
+//    printf("%f %f %f\n", A.x11, A.x21, A.x31);
+//    printf("%f %f %f\n", A.x21, A.x22, A.x32);
+//    printf("%f %f %f\n", A.x31, A.x32, A.x33);
+//}
+// static void Print(SymMat22 A, const char* name) {
+//    printf("%s\n", name);
+//
+//    printf("%f %f\n", A.x11, A.x21);
+//    printf("%f %f\n", A.x21, A.x22);
+//}
 
 //[U.x,V.x,W.x]
 //[U.y,V.y,W.y]

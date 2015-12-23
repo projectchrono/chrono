@@ -49,57 +49,33 @@ int main(int argc, char* argv[]) {
     real3 a2(6, 7, 8);
     ChVector<> b1(1, 2, 3);
     ChVector<> b2(6, 7, 8);
+
+    std::cout << "A Matrix\n";
+    WeakEqual(Mat33(R1), ToMat33(ToChQuaternion(R1)), C_EPSILON * 3);
+
+    std::cout << "Multiply Matrix\n";
+    WeakEqual(A1 * A2, ToMat33(B1 * B2));
+
+    std::cout << "Multiply Matrix Vector\n";
+    WeakEqual(A1 * a1, ToReal3(B1 * b1));
+
+    std::cout << "Add Matrix\n";
+    WeakEqual(A1 + A2, ToMat33(B1 + B2));
+
+    std::cout << "Subtract Matrix\n";
+    WeakEqual(A1 - A2, ToMat33(B1 - B2));
+
+    std::cout << "Post Scale Matrix\n";
+    WeakEqual(A1 * 3.1, ToMat33(B1 * 3.1));
+
+    std::cout << "Pre Scale Matrix\n";
+    WeakEqual(3.1 * A1, ToMat33(B1 * 3.1));
     {
         std::cout << "Cross Matrix\n";
-        real3 v, w;
-        chrono::Orthogonalize(n, v, w);
         Mat33 cross_m1 = SkewSymmetric(n);
         ChMatrix33<real> cross_m2;
         cross_m2.Set_X_matrix(ToChVector(n));
         WeakEqual(cross_m1, ToMat33(cross_m2));
-    }
-
-    {
-        std::cout << "A Matrix\n";
-        Mat33 A1(R1);
-        ChMatrix33<real> A2 = ChMatrix33<real>(ToChQuaternion(R1));
-        WeakEqual(A1, ToMat33(A2), C_EPSILON * 3);
-    }
-    {
-        std::cout << "Multiply Matrix\n";
-        Mat33 Res1 = A1 * A2;
-        ChMatrix33<real> Res2 = B1 * B2;
-        WeakEqual(Res1, ToMat33(Res2));
-    }
-    {
-        std::cout << "Multiply Matrix Vector\n";
-        real3 Res1 = A1 * a1;
-        ChVector<real> Res2 = B1 * b1;
-        WeakEqual(Res1, ToReal3(Res2));
-    }
-    {
-        std::cout << "Add Matrix\n";
-        Mat33 Res1 = A1 + A2;
-        ChMatrix33<real> Res2 = B1 + B2;
-        WeakEqual(Res1, ToMat33(Res2));
-    }
-    {
-        std::cout << "Subtract Matrix\n";
-        Mat33 Res1 = A1 - A2;
-        ChMatrix33<real> Res2 = B1 - B2;
-        WeakEqual(Res1, ToMat33(Res2));
-    }
-    {
-        std::cout << "Post Scale Matrix\n";
-        Mat33 Res1 = A1 * 3.1;
-        ChMatrix33<real> Res2 = B1 * 3.1;
-        WeakEqual(Res1, ToMat33(Res2));
-    }
-    {
-        std::cout << "Pre Scale Matrix\n";
-        Mat33 Res1 = 3.1 * A1;
-        ChMatrix33<real> Res2 = B1 * 3.1;
-        WeakEqual(Res1, ToMat33(Res2));
     }
     {
         std::cout << "Multiply T Matrix \n";
@@ -111,22 +87,19 @@ int main(int argc, char* argv[]) {
 
     {
         std::cout << "Multiply Matrix T\n";
-        Mat33 Res1 = MultTranspose(A1, A2);
         ChMatrix33<real> Res2;
         Res2.MatrMultiplyT(B1, B2);
-        WeakEqual(Res1, ToMat33(Res2), C_EPSILON * 2);
+        WeakEqual(MultTranspose(A1, A2), ToMat33(Res2), C_EPSILON * 2);
     }
 
-    {
-        std::cout << "Transpose\n";
-        WeakEqual(Transpose(A4), A4_T, C_EPSILON);
-    }
     {
         std::cout << "Outer Product\n";
         Mat33 Res1 = OuterProduct(a1, a2);
         Mat33 Res2(6, 12, 18, 7, 14, 21, 8, 16, 24);
         WeakEqual(Res1, Res2, C_EPSILON);
     }
+    std::cout << "Transpose\n";
+    WeakEqual(Transpose(A4), A4_T, C_EPSILON);
 
     std::cout << "Determinant\n";
     WeakEqual(Determinant(A3), 1, C_EPSILON);

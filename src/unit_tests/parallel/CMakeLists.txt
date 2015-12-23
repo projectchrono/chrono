@@ -14,7 +14,7 @@ SET(LIBRARIES
 SET(TESTS
     test_real3
     test_real4
-    test_mat33
+    test_matrix
     test_gravity
     test_rhs
     test_r

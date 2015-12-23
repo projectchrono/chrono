@@ -20,7 +20,7 @@
 // =============================================================================
 
 #pragma once
-
+#include "chrono_parallel/math/mat33.h"
 namespace chrono {
 namespace collision {
 
