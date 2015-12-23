@@ -149,7 +149,8 @@ struct SymMat33 {
 
     SymMat33(const real y11, const real y21, const real y31, const real y22, const real y32, const real y33)
         : x11(y11), x21(y21), x31(y31), x22(y22), x32(y32), x33(y33) {}
-
+    inline real operator[](unsigned int i) const { return array[i]; }
+    inline real& operator[](unsigned int i) { return array[i]; }
     void operator=(const SymMat33& N) {
         x11 = N.x11;
         x21 = N.x21;
@@ -158,8 +159,12 @@ struct SymMat33 {
         x32 = N.x32;
         x33 = N.x33;
     }
-
-    real x11, x21, x31, x22, x32, x33;
+    union {
+        real array[8];
+        struct {
+            real x11, x21, x31, x22, x32, x33;
+        };
+    };
 };
 SymMat33 operator-(const SymMat33& M, const real& v);
 
@@ -203,16 +208,7 @@ real2 LargestColumnNormalized(const SymMat22& A);
 //
 
 // Compute the normal equations matrix - 18 mults, 12 adds
-static SymMat33 NormalEquationsMatrix(const Mat33& A) {
-    SymMat33 T;
-    T.x11 = Dot(A.cols[0], A.cols[0]);
-    T.x21 = Dot(A.cols[0], A.cols[1]);
-    T.x31 = Dot(A.cols[0], A.cols[2]);
-    T.x22 = Dot(A.cols[1], A.cols[1]);
-    T.x32 = Dot(A.cols[1], A.cols[2]);
-    T.x33 = Dot(A.cols[2], A.cols[2]);
-    return T;
-}
+SymMat33 NormalEquationsMatrix(const Mat33& A);
 SymMat33 CofactorMatrix(const SymMat33& A);
 real3 LargestColumnNormalized(const SymMat33& A);
 // ========================================================================================
@@ -223,31 +219,31 @@ SymMat22 TransposeTimesWithSymmetricResult(const Mat32& A, const Mat32& B);
 //
 SymMat22 ConjugateWithTranspose(const Mat32& A, const SymMat33& B);
 
-// static void Print(Mat33 A, const char* name) {
-//    printf("%s\n", name);
-//    printf("%f %f %f\n", A.cols[0].x, A.cols[1].x, A.cols[2].x);
-//    printf("%f %f %f\n", A.cols[0].y, A.cols[1].y, A.cols[2].y);
-//    printf("%f %f %f\n", A.cols[0].z, A.cols[1].z, A.cols[2].z);
-//}
-// static void Print(Mat32 A, const char* name) {
-//    printf("%s\n", name);
-//    printf("%f %f\n", A.cols[0].x, A.cols[1].x);
-//    printf("%f %f\n", A.cols[0].y, A.cols[1].y);
-//    printf("%f %f\n", A.cols[0].z, A.cols[1].z);
-//}
-// static void Print(SymMat33 A, const char* name) {
-//    printf("%s\n", name);
-//
-//    printf("%f %f %f\n", A.x11, A.x21, A.x31);
-//    printf("%f %f %f\n", A.x21, A.x22, A.x32);
-//    printf("%f %f %f\n", A.x31, A.x32, A.x33);
-//}
-// static void Print(SymMat22 A, const char* name) {
-//    printf("%s\n", name);
-//
-//    printf("%f %f\n", A.x11, A.x21);
-//    printf("%f %f\n", A.x21, A.x22);
-//}
+static void Print(Mat33 A, const char* name) {
+    printf("%s\n", name);
+    printf("%f %f %f\n", A[0], A[4], A[7]);
+    printf("%f %f %f\n", A[1], A[5], A[8]);
+    printf("%f %f %f\n", A[2], A[6], A[9]);
+}
+static void Print(Mat32 A, const char* name) {
+    printf("%s\n", name);
+    printf("%f %f\n", A[0], A[4]);
+    printf("%f %f\n", A[1], A[5]);
+    printf("%f %f\n", A[2], A[6]);
+}
+static void Print(SymMat33 A, const char* name) {
+    printf("%s\n", name);
+
+    printf("%f %f %f\n", A.x11, A.x21, A.x31);
+    printf("%f %f %f\n", A.x21, A.x22, A.x32);
+    printf("%f %f %f\n", A.x31, A.x32, A.x33);
+}
+static void Print(SymMat22 A, const char* name) {
+    printf("%s\n", name);
+
+    printf("%f %f\n", A.x11, A.x21);
+    printf("%f %f\n", A.x21, A.x22);
+}
 
 //[U.x,V.x,W.x]
 //[U.y,V.y,W.y]

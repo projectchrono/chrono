@@ -96,7 +96,7 @@ real3 Cross(const real3& b, const real3& c);
 real Dot(const real3& v1, const real3& v2);
 real Dot(const real3& v);
 real3 Normalize(const real3& v);
-real3 Sqrt(real3 v);
+real3 Sqrt(const real3& v);
 real3 Round(const real3& v);
 real Length(const real3& v);
 
@@ -154,27 +154,17 @@ real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
 //    return clampv;
 //}
 //
-// static inline real3 OrthogonalVector(const real3& v) {
-//    real3 abs = Abs(v);
-//    if (abs.x < abs.y) {
-//        return abs.x < abs.z ? real3(0, v.z, -v.y) : real3(v.y, -v.x, 0);
-//    } else {
-//        return abs.y < abs.z ? real3(-v.z, 0, v.x) : real3(v.y, -v.x, 0);
-//    }
-//}
+real3 OrthogonalVector(const real3& v);
+real3 UnitOrthogonalVector(const real3& v);
 //
-// static inline real3 UnitOrthogonalVector(const real3& v) {
-//    return Normalize(OrthogonalVector(v));
-//}
-//
-// static inline void Sort(real& a, real& b, real& c) {
-//    if (a > b)
-//        Swap(a, b);
-//    if (b > c)
-//        Swap(b, c);
-//    if (a > b)
-//        Swap(a, b);
-//}
+ static inline void Sort(real& a, real& b, real& c) {
+    if (a > b)
+        Swap(a, b);
+    if (b > c)
+        Swap(b, c);
+    if (a > b)
+        Swap(a, b);
+}
 static void Print(real3 v, const char* name) {
     printf("%s\n", name);
     printf("%f %f %f\n", v[0], v[1], v[2]);

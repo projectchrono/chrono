@@ -100,4 +100,15 @@ bool IsZero(const real3& v) {
     real3 t = simd::Abs(v);
     return t[0] < C_EPSILON && t[1] < C_EPSILON && t[2] < C_EPSILON;
 }
+real3 OrthogonalVector(const real3& v) {
+    real3 abs = Abs(v);
+    if (abs.x < abs.y) {
+        return abs.x < abs.z ? real3(0, v.z, -v.y) : real3(v.y, -v.x, 0);
+    } else {
+        return abs.y < abs.z ? real3(-v.z, 0, v.x) : real3(v.y, -v.x, 0);
+    }
+}
+real3 UnitOrthogonalVector(const real3& v) {
+    return Normalize(OrthogonalVector(v));
+}
 }

@@ -91,7 +91,9 @@ static inline real Dot(const real2& v) {
 static inline real Length2(const real2& v1) {
     return v1.x * v1.x + v1.y * v1.y;
 }
-
+static inline real2 Normalize(const real2& v1) {
+    return v1/Sqrt(Dot(v1));
+}
 static void Print(real2 v, const char* name) {
     printf("%s\n", name);
     printf("%f %f\n", v.x, v.y);

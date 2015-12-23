@@ -20,19 +20,9 @@
 #include <cmath>
 
 #include "unit_testing.h"
-
-#include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/math/mat33.h"
-#include "chrono_parallel/constraints/ChConstraintUtils.h"
-
-#include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/core/ChMathematics.h"
-#include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 using namespace chrono;
-using namespace chrono::collision;
-using namespace chrono::utils;
 int main(int argc, char* argv[]) {
     real3 n = Normalize(real3(rand(), rand(), rand()));
     quaternion R1 = Normalize(quaternion(rand(), rand(), rand(), rand()));
@@ -43,13 +33,14 @@ int main(int argc, char* argv[]) {
     const Mat33 A3(1, 0, 5, 2, 1, 6, 3, 4, 0);
     const Mat33 A4(-24, 20, -5, 18, -15, 4, 5, -4, 1);
     const Mat33 A4_T(-24, 18, 5, 20, -15, -4, -5, 4, 1);
+    const Mat33 A5(0.0, 6.4, 3.2, 4.0, -0.8, 3.2, 6.4, 3.2, 5.6);
     ChMatrix33<real> B1 = ChMatrix33<real>(ToChMatrix33(A1));
     ChMatrix33<real> B2 = ChMatrix33<real>(ToChMatrix33(A2));
     real3 a1(1, 2, 3);
     real3 a2(6, 7, 8);
     ChVector<> b1(1, 2, 3);
     ChVector<> b2(6, 7, 8);
-
+    std::cout << "3x3 Matrix Tests ============\n";
     std::cout << "A Matrix\n";
     WeakEqual(Mat33(R1), ToMat33(ToChQuaternion(R1)), C_EPSILON * 3);
 
@@ -102,10 +93,10 @@ int main(int argc, char* argv[]) {
     WeakEqual(Transpose(A4), A4_T, C_EPSILON);
 
     std::cout << "Determinant\n";
-    WeakEqual(Determinant(A3), 1, C_EPSILON);
+    WeakEqual(Determinant(A5), 45.056, C_EPSILON * 400);
 
     std::cout << "Trace\n";
-    WeakEqual(Trace(A1), 17, C_EPSILON);
+    WeakEqual(Trace(A5), 4.8, C_EPSILON);
 
     std::cout << "Adjoint\n";
     WeakEqual(Adjoint(A3), A4, C_EPSILON);
@@ -118,6 +109,18 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Inverse Transpose\n";
     WeakEqual(InverseTranspose(A3), Transpose(Inverse(A3)), C_EPSILON);
+
+    std::cout << "Frobenius Norm\n";
+    WeakEqual(Norm(A5), 12.674383614203887588, C_EPSILON);
+
+    std::cout << "Largest Column Normalized\n";
+    WeakEqual(LargestColumnNormalized(A4), real3(-.75856744948921676267,0.63213954124101396889, -.15803488531025349222), C_EPSILON);
+
+    std::cout << "Symm3x3 Matrix Tests ============\n";
+    std::cout << "Normal Equations Matrix\n";
+    WeakEqual(NormalEquationsMatrix(A3), Transpose(A3)*A3, C_EPSILON);
+    WeakEqual(NormalEquationsMatrix(A3), Mat33(26,32,3,32,41,10,3,10,25), C_EPSILON);
+
 
     return 0;
 }

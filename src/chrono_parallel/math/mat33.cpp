@@ -3,20 +3,161 @@
 #include "chrono_parallel/math/simd.h"
 namespace chrono {
 
+// dot product of each column of a matrix with itself
+inline __m256d DotMM(const real* M) {
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    __m256d xy0 = _mm256_mul_pd(a, a);
+    __m256d xy1 = _mm256_mul_pd(b, b);
+    __m256d xy2 = _mm256_mul_pd(c, c);
+    __m256d xy3 = _mm256_set1_pd(0);  // last dot prod is a dud
+
+    // low to high: xy00+xy01 xy10+xy11 xy02+xy03 xy12+xy13
+    __m256d temp01 = _mm256_hadd_pd(xy0, xy1);
+
+    // low to high: xy20+xy21 xy30+xy31 xy22+xy23 xy32+xy33
+    __m256d temp23 = _mm256_hadd_pd(xy2, xy3);
+
+    // low to high: xy02+xy03 xy12+xy13 xy20+xy21 xy30+xy31
+    __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+
+    // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+
+    __m256d dotproduct = _mm256_add_pd(swapped, blended);
+    return dotproduct;
+}
+// http://fhtr.blogspot.com/2010/02/4x4-float-matrix-multiplication-using.html
+inline Mat33 MulMM(const real* a, const real* b) {
+    Mat33 r;
+    __m256d a_line, b_line, r_line;
+    int i, j;
+    for (i = 0; i < 12; i += 4) {
+        // unroll the first step of the loop to avoid having to initialize r_line to zero
+        a_line = _mm256_load_pd(a);              // a_line = vec4(column(a, 0))
+        b_line = _mm256_set1_pd(b[i]);           // b_line = vec4(b[i][0])
+        r_line = _mm256_mul_pd(a_line, b_line);  // r_line = a_line * b_line
+        for (j = 1; j < 3; j++) {
+            a_line = _mm256_loadu_pd(&a[j * 4]);  // a_line = vec4(column(a, j))
+            b_line = _mm256_set1_pd(b[i + j]);    // b_line = vec4(b[i][j])
+                                                  // r_line += a_line * b_line
+            r_line = _mm256_add_pd(_mm256_mul_pd(a_line, b_line), r_line);
+        }
+        _mm256_storeu_pd(&r.array[i], r_line);  // r[i] = r_line
+    }
+    return r;
+}
+
+inline Mat33 MulM_TM(const real* M, const real* N) {
+    Mat33 result;
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    for (int i = 0; i < 3; i++) {
+        __m256d v = _mm256_loadu_pd(&N[i * 4]);  // load ith column column of N
+        __m256d xy0 = _mm256_mul_pd(v, a);
+        __m256d xy1 = _mm256_mul_pd(v, b);
+        __m256d xy2 = _mm256_mul_pd(v, c);
+        __m256d xy3 = _mm256_set1_pd(0);  // last dot prod is not used
+
+        __m256d temp01 = _mm256_hadd_pd(xy0, xy1);  // low to high: xy00+xy01 xy10+xy11 xy02+xy03 xy12+xy13
+        __m256d temp23 = _mm256_hadd_pd(xy2, xy3);  // low to high: xy20+xy21 xy30+xy31 xy22+xy23 xy32+xy33
+        // low to high: xy02+xy03 xy12+xy13 xy20+xy21 xy30+xy31
+        __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+        // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
+        __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+        __m256d dotproduct = _mm256_add_pd(swapped, blended);
+        _mm256_storeu_pd(&result.array[i * 4], dotproduct);
+    }
+    return result;
+}
+
+inline real3 MulMV(const real* a, const real* b) {
+    real3 r;
+    __m256d v1 = _mm256_load_pd(&a[0]) * _mm256_set1_pd(b[0]);
+    __m256d v2 = _mm256_load_pd(&a[4]) * _mm256_set1_pd(b[1]);
+    __m256d v3 = _mm256_load_pd(&a[8]) * _mm256_set1_pd(b[2]);
+    __m256d out = _mm256_add_pd(_mm256_add_pd(v1, v2), v3);
+    _mm256_storeu_pd(&r.array[0], out);
+
+    return r;
+}
+
+inline Mat33 OuterProductVV(const real* a, const real* b) {
+    Mat33 r;
+    __m256d u = _mm256_loadu_pd(a);  // Load the first vector
+    __m256d col;
+    int i;
+    for (i = 0; i < 3; i++) {
+        col = _mm256_mul_pd(u, _mm256_set1_pd(b[i]));
+        _mm256_storeu_pd(&r.array[i * 4], col);
+    }
+    return r;
+}
+
+inline Mat33 ScaleMat(const real* a, const real b) {
+    Mat33 r;
+    __m256d s = _mm256_set1_pd(b);
+    __m256d c, col;
+    int i;
+    for (i = 0; i < 3; i++) {
+        c = _mm256_loadu_pd(&a[i * 4]);
+        col = _mm256_mul_pd(c, s);
+        _mm256_storeu_pd(&r.array[i * 4], col);
+    }
+    return r;
+}
+
+inline SymMat33 NormalEquations(const real* M) {
+    SymMat33 result;
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    __m256d xy0 = _mm256_mul_pd(a, a);
+    __m256d xy1 = _mm256_mul_pd(a, b);
+    __m256d xy2 = _mm256_mul_pd(a, c);
+    __m256d xy3 = _mm256_mul_pd(b, b);
+
+    __m256d xy4 = _mm256_mul_pd(b, c);
+    __m256d xy5 = _mm256_mul_pd(c, c);
+    __m256d xy6 = _mm256_set1_pd(0);
+    __m256d xy7 = _mm256_set1_pd(0);
+
+    __m256d temp01 = _mm256_hadd_pd(xy0, xy1);
+    __m256d temp23 = _mm256_hadd_pd(xy2, xy3);
+    __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+    __m256d dotproduct = _mm256_add_pd(swapped, blended);
+
+    _mm256_storeu_pd(&result.array[0], dotproduct);
+
+    temp01 = _mm256_hadd_pd(xy4, xy5);
+    temp23 = _mm256_hadd_pd(xy6, xy7);  // This should be zero
+    swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+    blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+    dotproduct = _mm256_add_pd(swapped, blended);
+    _mm256_storeu_pd(&result.array[4], dotproduct);
+    return result;
+}
+
 //[0,4,8 ]
 //[1,5,9 ]
 //[2,6,10]
 //[3,7,11]
 real3 operator*(const Mat33& M, const real3& v) {
-    return simd::MulMV(M.array, v.array);
+    return MulMV(M.array, v.array);
 }
 
 Mat33 operator*(const Mat33& N, const real scale) {
-    return simd::ScaleMat(N.array, scale);
+    return ScaleMat(N.array, scale);
 }
 
 Mat33 operator*(const Mat33& M, const Mat33& N) {
-    return simd::MulMM(M.array, N.array);
+    return MulMM(M.array, N.array);
 }
 Mat33 operator+(const Mat33& M, const Mat33& N) {
     return Mat33(M[0] + N[0], M[1] + N[1], M[2] + N[2], M[4] + N[4], M[5] + N[5], M[6] + N[6], M[8] + N[8], M[9] + N[9],
@@ -44,7 +185,7 @@ Mat33 MultTranspose(const Mat33& M, const Mat33& N) {
 }
 
 Mat33 TransposeMult(const Mat33& M, const Mat33& N) {
-    return simd::MulM_TM(M.array, N.array);
+    return MulM_TM(M.array, N.array);
 }
 
 Mat33 Transpose(const Mat33& a) {
@@ -56,7 +197,7 @@ real Trace(const Mat33& m) {
 }
 // Multiply a 3x1 by a 1x3 to get a 3x3
 Mat33 OuterProduct(const real3& a, const real3& b) {
-    return simd::OuterProductVV(a.array, b.array);
+    return OuterProductVV(a.array, b.array);
 }
 
 real InnerProduct(const Mat33& A, const Mat33& B) {
@@ -97,11 +238,8 @@ Mat33 AdjointTranspose(const Mat33& A) {
 }
 
 real Determinant(const Mat33& m) {
-    real d;
-    d = m[0] * (m[5] * m[10] - m[9] * m[6]);
-    d -= m[4] * (m[1] * m[10] - m[9] * m[2]);
-    d += m[8] * (m[1] * m[6] - m[5] * m[2]);
-    return d;  // Dot(m.cols[0], Cross(m.cols[1], m.cols[2]));
+    return m[0] * (m[5] * m[10] - m[9] * m[6]) - m[4] * (m[1] * m[10] - m[9] * m[2]) +
+           m[8] * (m[1] * m[6] - m[5] * m[2]);
 }
 
 Mat33 Inverse(const Mat33& A) {
@@ -128,17 +266,16 @@ real Norm(const Mat33& A) {
 }
 
 real3 LargestColumnNormalized(const Mat33& A) {
-    real scale1 = Length2((A.cols[0]));
-    real scale2 = Length2((A.cols[1]));
-    real scale3 = Length2((A.cols[2]));
-    if (scale1 > scale2) {
-        if (scale1 > scale3) {
-            return A.cols[0] / Sqrt(scale1);
+    real3 scale = DotMM(A.array);
+    real3 sqrt_scale = simd::SquareRoot(scale);
+    if (scale.x > scale.y) {
+        if (scale.x > scale.z) {
+            return A.cols[0] / sqrt_scale.x;
         }
-    } else if (scale2 > scale3) {
-        return A.cols[1] / Sqrt(scale2);
+    } else if (scale.y > scale.z) {
+        return A.cols[1] / sqrt_scale.y;
     }
-    return A.cols[2] / Sqrt(scale3);
+    return A.cols[2] / sqrt_scale.z;
 }
 //// ========================================================================================
 
@@ -184,6 +321,9 @@ real3 LargestColumnNormalized(const SymMat33& A) {
     else {
         return (real3(1, 0, 0));
     }
+}
+SymMat33 NormalEquationsMatrix(const Mat33& A) {
+    return NormalEquations(A.array);
 }
 //// ========================================================================================
 

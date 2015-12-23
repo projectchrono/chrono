@@ -97,8 +97,8 @@ void StrictEqual(const Mat33& a, const Mat33& b) {
 }
 
 void WeakEqual(const real& x, const real& y, real COMPARE_EPS = C_EPSILON) {
-  if (fabs(x - y) > COMPARE_EPS) {
-    std::cout << x << " does not equal " << y << " " << fabs(x - y) << std::endl;
+  if (Abs(x - y) > COMPARE_EPS) {
+	  printf("%f does not equal %f %.20e\n", x, y, Abs(x - y));
     exit(1);
   }
 }
@@ -134,7 +134,15 @@ void WeakEqual(const Mat33& a, const Mat33& b, real COMPARE_EPS = C_EPSILON) {
   WeakEqual(a[9], b[9], COMPARE_EPS);
   WeakEqual(a[10], b[10], COMPARE_EPS);
 }
+void WeakEqual(const SymMat33& a, const Mat33& b, real COMPARE_EPS = C_EPSILON) {
+  WeakEqual(a[0], b[0], COMPARE_EPS); //x11
+  WeakEqual(a[1], b[1], COMPARE_EPS); //x21
+  WeakEqual(a[2], b[2], COMPARE_EPS); //x31
+  WeakEqual(a[3], b[5], COMPARE_EPS); //x22
+  WeakEqual(a[4], b[6], COMPARE_EPS); //x32
+  WeakEqual(a[5], b[10], COMPARE_EPS); //x33
 
+}
 void OutputRowMatrix(const ChMatrixDynamic<real>& x) {
   for (unsigned int ic = 0; ic < x.GetRows(); ic++) {
     std::cout << x(ic, 0) << std::endl;
