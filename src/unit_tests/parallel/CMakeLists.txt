@@ -15,6 +15,7 @@ SET(TESTS
     test_real3
     test_real4
     test_matrix
+    test_svd
     test_gravity
     test_rhs
     test_r
