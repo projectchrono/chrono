@@ -74,7 +74,7 @@ class _draw_reporter_class : public chrono::ChReportContactCallback2 {
         chrono::ChVector<> v2;
         chrono::ChVector<> vn = mplanecoord.Get_A_Xaxis();
 
-        video::SColor mcol = video::SColor(255, 0, 0, 0);
+        video::SColor mcol = video::SColor(200, 255, 0, 0);
 
         switch (drawtype) {
             case ChIrrTools::CONTACT_DISTANCES:
