@@ -574,18 +574,23 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     bbox_reduction binary_op;
     res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
 
-    real3 max_bounding_point = real3(Max(Ceil(res.second.x), Ceil(res.second.x + radius * 6)),
-                                     Max(Ceil(res.second.y), Ceil(res.second.y + radius * 6)),
-                                     Max(Ceil(res.second.z), Ceil(res.second.z + radius * 6)));
+    real3& max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
+    real3& min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
+    int3& bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
 
-    real3 min_bounding_point = real3(Min(Floor(res.first.x), Floor(res.first.x - radius * 6)),
-                                     Min(Floor(res.first.y), Floor(res.first.y - radius * 6)),
-                                     Min(Floor(res.first.z), Floor(res.first.z - radius * 6)));
+    max_bounding_point = real3(Max(Ceil(res.second.x), Ceil(res.second.x + radius * 6)),
+                               Max(Ceil(res.second.y), Ceil(res.second.y + radius * 6)),
+                               Max(Ceil(res.second.z), Ceil(res.second.z + radius * 6)));
+
+    min_bounding_point = real3(Min(Floor(res.first.x), Floor(res.first.x - radius * 6)),
+                               Min(Floor(res.first.y), Floor(res.first.y - radius * 6)),
+                               Min(Floor(res.first.z), Floor(res.first.z - radius * 6)));
 
     real3 diag = max_bounding_point - min_bounding_point;
-    int3 bins_per_axis = int3(diag / (radius * 2));
 
-    real inv_bin_edge = 1.f / (radius * 2 + data_manager->settings.fluid.collision_envelope);
+    bins_per_axis = int3(diag / (radius * 2));
+
+    real inv_bin_edge = real(1.0) / (radius * 2 + data_manager->settings.fluid.collision_envelope);
     size_t grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
     ff_bin_starts.resize(grid_size);

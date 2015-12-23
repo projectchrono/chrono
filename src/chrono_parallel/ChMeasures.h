@@ -34,6 +34,10 @@ struct collision_measures {
         number_of_contacts_possible = 0;
         number_of_bins_active = 0;
         number_of_bin_intersections = 0;
+
+        ff_min_bounding_point = real3(0);
+        ff_max_bounding_point = real3(0);
+        ff_bins_per_axis = int3(0);
     }
     real3 min_bounding_point;          // The minimal global bounding point
     real3 max_bounding_point;          // The maximum global bounding point
@@ -43,6 +47,11 @@ struct collision_measures {
     uint number_of_bins_active;        // Number of active bins (containing 1+ AABBs)
     uint number_of_bin_intersections;  // Number of AABB bin intersections
     uint number_of_contacts_possible;  // Number of contacts possible from broadphase
+
+    // Fluid Collision info
+    int3 ff_bins_per_axis;
+    real3 ff_min_bounding_point;
+    real3 ff_max_bounding_point;
 };
 // solver_measures, like the name implies is the structure that contains all
 // measures associated with the parallel solver.
