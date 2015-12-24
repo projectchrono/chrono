@@ -98,6 +98,10 @@ void ChCollisionSystemParallel::Run() {
     if (data_manager->num_rigid_shapes <= 0) {
         return;
     }
+    if (data_manager->num_fluid_bodies != 0) {
+        narrowphase->DispatchFluid();  // do this first so that we can augment the min/max for rigids toget a larger
+                                       // grid
+    }
 
     data_manager->system_timer.start("collision_broad");
     aabb_generator->GenerateAABB();

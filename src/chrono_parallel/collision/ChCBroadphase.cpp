@@ -28,9 +28,18 @@ void ChCBroadphase::DetermineBoundingBox() {
     bbox_reduction binary_op;
     res = thrust::transform_reduce(aabb_min.begin(), aabb_min.end(), unary_op, res, binary_op);
     res = thrust::transform_reduce(aabb_max.begin(), aabb_max.end(), unary_op, res, binary_op);
+
     data_manager->measures.collision.min_bounding_point = res.first;
     data_manager->measures.collision.max_bounding_point = res.second;
     data_manager->measures.collision.global_origin = res.first;
+
+    if (data_manager->num_fluid_bodies != 0) {
+        data_manager->measures.collision.min_bounding_point =
+            Min(res.first, data_manager->measures.collision.ff_min_bounding_point);
+        data_manager->measures.collision.max_bounding_point =
+            Max(res.second, data_manager->measures.collision.ff_max_bounding_point);
+        data_manager->measures.collision.global_origin = Min(res.first, data_manager->measures.collision.ff_min_bounding_point);
+    }
 
     LOG(TRACE) << "Minimum bounding point: (" << res.first.x << ", " << res.first.y << ", " << res.first.z << ")";
     LOG(TRACE) << "Maximum bounding point: (" << res.second.x << ", " << res.second.y << ", " << res.second.z << ")";
@@ -72,7 +81,6 @@ void ChCBroadphase::ComputeTopLevelResolution() {
 
 // =========================================================================================================
 ChCBroadphase::ChCBroadphase() {
-
     // number_of_leaf_intersections = 0;
     // num_active_leaves = 0;
 }

@@ -50,18 +50,18 @@ struct bbox_transformation : public thrust::unary_function<real3, bbox> {
 template <class T>
 inline int3 HashMin(const T& A, const real3& inv_bin_size_vec) {
     int3 temp;
-    temp.x = floor(A.x * inv_bin_size_vec.x);
-    temp.y = floor(A.y * inv_bin_size_vec.y);
-    temp.z = floor(A.z * inv_bin_size_vec.z);
+    temp.x = Floor(A.x * inv_bin_size_vec.x);
+    temp.y = Floor(A.y * inv_bin_size_vec.y);
+    temp.z = Floor(A.z * inv_bin_size_vec.z);
     return temp;
 }
 
 template <class T>
 inline int3 HashMax(const T& A, const real3& inv_bin_size_vec) {
     int3 temp;
-    temp.x = std::ceil(A.x * inv_bin_size_vec.x) - 1;
-    temp.y = std::ceil(A.y * inv_bin_size_vec.y) - 1;
-    temp.z = std::ceil(A.z * inv_bin_size_vec.z) - 1;
+    temp.x = Ceil(A.x * inv_bin_size_vec.x) - 1;
+    temp.y = Ceil(A.y * inv_bin_size_vec.y) - 1;
+    temp.z = Ceil(A.z * inv_bin_size_vec.z) - 1;
     return temp;
 }
 

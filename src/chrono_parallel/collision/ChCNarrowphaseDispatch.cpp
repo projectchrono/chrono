@@ -55,7 +55,6 @@ void ChCNarrowphaseDispatch::Process() {
         DispatchRigid();
     }
     if (data_manager->num_fluid_bodies != 0) {
-        DispatchFluid();
         DispatchRigidFluid();
     }
 }
@@ -406,7 +405,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
 
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
     is_rigid_bin_active.resize(total_bins);
-    Thrust_Fill(is_rigid_bin_active, -1);
+    Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
     for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
         uint bin_number = data_manager->host_data.bin_number_out[index];
@@ -471,7 +470,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
             continue;
         }
         unsigned int rigid_index = is_rigid_bin_active[f_bin_number_out[index]];
-        bool rigid_is_active = rigid_index != -1;
+        bool rigid_is_active = rigid_index != 1000000000;
         if (rigid_is_active) {
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
