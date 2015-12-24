@@ -131,7 +131,13 @@ struct fluid_settings {
     real artificial_pressure_dq;
     bool enable_viscosity;
 };
-
+struct mpm_settings {
+	real mass;
+	real kernel_radius;
+    real mu;
+    real hardening_coefficient;
+    real lambda;
+};
 // solver_settings, like the name implies is the structure that contains all
 // settings associated with the parallel solver.
 struct solver_settings {
@@ -286,6 +292,7 @@ struct settings_container {
     solver_settings solver;
     // The settings for the fluid
     fluid_settings fluid;
+    mpm_settings mpm;
 
     // System level settings
     // If set to true chrono parallel will automatically check to see if increasing

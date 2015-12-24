@@ -88,7 +88,22 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
     ChConstraintRigidFluid rigid_fluid;
     ChConstraintFluidFluid fluid_fluid;
 };
+class CH_PARALLEL_API ChLcpSolverParallelMPM : public ChLcpSolverParallel {
+  public:
+    ChLcpSolverParallelMPM(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}
 
+    virtual void RunTimeStep();
+    void ChangeSolverType(SOLVERTYPE type);
+
+    custom_vector<real> grid_mass;
+    custom_vector<real> grid_vel;
+    custom_vector<real> grid_vel_old;
+    custom_vector<real3> grid_forces;
+    custom_vector<real> volume;
+    custom_vector<Mat33> Fe, Fe_hat, Fp, delta_F;
+
+  private:
+};
 class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
   public:
     ChLcpSolverParallelDEM(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}

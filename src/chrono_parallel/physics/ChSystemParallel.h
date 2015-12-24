@@ -154,7 +154,26 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     virtual void AssembleSystem();
     virtual void SolveSystem();
 };
+class CH_PARALLEL_API ChSystemParallelMPM : public ChSystemParallel {
+    CH_RTTI(ChSystemParallelMPM, ChSystemParallel);
 
+  public:
+    ChSystemParallelMPM(unsigned int max_objects = 1000);
+
+    void ChangeSolverType(SOLVERTYPE type) { ((ChLcpSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type); }
+
+    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
+    virtual ChBody* NewBody();
+    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+    virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
+
+    void CalculateContactForces();
+    real CalculateKineticEnergy();
+    real CalculateDualObjective();
+
+    virtual real3 GetBodyContactForce(uint body_id) const;
+    virtual real3 GetBodyContactTorque(uint body_id) const;
+};
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
 

@@ -136,6 +136,7 @@ SET(ChronoEngine_Parallel_PHYSICS
     physics/ChSystemParallel.cpp
     physics/ChSystemParallelDVI.cpp
     physics/ChSystemParallelDEM.cpp
+    physics/ChSystemParallelMPM.cpp
     physics/ChFluidContainer.cpp
     )
 
@@ -147,6 +148,7 @@ SET(ChronoEngine_Parallel_LCP
     lcp/ChLcpSolverParallel.cpp
     lcp/ChLcpSolverParallelDVI.cpp
     lcp/ChLcpSolverParallelDEM.cpp
+    lcp/ChLcpSolverParallelMPM.cpp
     )
 
 SOURCE_GROUP(lcp FILES ${ChronoEngine_Parallel_LCP})
