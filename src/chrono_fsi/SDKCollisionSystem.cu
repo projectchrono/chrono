@@ -92,7 +92,7 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 	derivRho = paramsD.markerMass * dot(vel_XSPH_A - vel_XSPH_B, gradW);
 	Real cA = FerrariCi(rhoPresMuA.x);
 	Real cB = FerrariCi(rhoPresMuB.x);
-	derivRho -= rAB_Dot_GradW_OverDist * max(cA, cB) / rhoPresMuB.x * (rhoPresMuB.x - rhoPresMuA.x);
+	derivRho -= rAB_Dot_GradW / (d + epsilonMutualDistance * paramsD.HSML) * max(cA, cB) / rhoPresMuB.x * (rhoPresMuB.x - rhoPresMuA.x);
 
 	//--------------------------------
 
