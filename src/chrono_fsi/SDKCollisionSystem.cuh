@@ -198,23 +198,20 @@ __device__ inline Real3 Distance(Real3 a, Real3 b) {
 	return dist3;
 }
 
-/**
- * @brief Distance
- * @details
- *      	See Distance(real3 posRadA, real3 posRadB)
- */
-__device__ inline Real3 Distance(Real4 posRadA, Real4 posRadB) {
-	return Distance(mR3(posRadA), mR3(posRadB));
+__device__ inline Real3 Modify_Local_PosB(Real3 & b, Real3 a) {
+	Real3 dist3 = a - b;
+	b.x += ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
+	b.x -= ((dist3.x < -0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
+
+	b.y += ((dist3.y > 0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
+	b.y -= ((dist3.y < -0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
+
+	b.z += ((dist3.z > 0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
+	b.z -= ((dist3.z < -0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
+	return (a-b);
 }
 
-/**
- * @brief Distance
- * @details
- *      	See Distance(real3 posRadA, real3 posRadB)
- */
-__device__ inline Real3 Distance(Real4 posRadA, Real3 posRadB) {
-	return Distance(mR3(posRadA), posRadB);
-}
+
 
 /**
  * @brief calcGridPos

@@ -94,8 +94,8 @@ void SetupParamsH(SimParams& paramsH) {
 	paramsH.mu0 = .001;
 	paramsH.v_Max = maxFlowVelocity; // Arman, I changed it to 0.1 for vehicle. Check this
 									 // later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
-	paramsH.EPS_XSPH = .5f;
-	paramsH.dT = 1e-3; // 0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
+	paramsH.EPS_XSPH = 0;//.5f;
+	paramsH.dT = 1e-4;//1e-3; // 0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
 	paramsH.tFinal = time_end;                         // 20 * paramsH.dT; //400
 	paramsH.timePause = time_pause_fluid_external_force; //.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time
 	// before applying any

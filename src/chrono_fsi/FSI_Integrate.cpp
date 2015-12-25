@@ -115,6 +115,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 		const NumberOfObjects& numObjects, const SimParams& paramsH,
 		double mTime, double time_hold_vehicle, int tStep,
 		bool haveVehicle) {
+	printf("step: %d\n", tStep);
 	chrono::ChTimerParallel doStep_timer;
 	doStep_timer.AddTimer("half_step_dynamic_fsi_12");
 	doStep_timer.AddTimer("fsi_copy_force_fluid2ChSystem_12");

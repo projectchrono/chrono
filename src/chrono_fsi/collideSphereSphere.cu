@@ -244,23 +244,23 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 	//********************************************************************************************************************************
 	//	ProjectDensityPressureToBCandBCE(rhoPresMuD, m_dSortedPosRad, m_dSortedRhoPreMu,
 	//				m_dGridMarkerIndex, m_dCellStart, m_dCellEnd, numAllMarkers);
-	//********************************************************************************************************************************
-	//*********************** Calculate MaxStress on Particles
-	//***********************************************************************
-	thrust::device_vector<Real3> devStressD(
-			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
-	thrust::device_vector<Real3> volStressD(
-			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
-	thrust::device_vector<Real4> mainStressD(
-			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
-	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
-	CalcBCE_Stresses(devStressD, volStressD, mainStressD, m_dSortedPosRad,
-			m_dSortedVelMas, m_dSortedRhoPreMu, mapOriginalToSorted,
-			m_dCellStart, m_dCellEnd, numBCE);
-
-	devStressD.clear();
-	volStressD.clear();
-	mainStressD.clear();
+//	//********************************************************************************************************************************
+//	//*********************** Calculate MaxStress on Particles
+//	//***********************************************************************
+//	thrust::device_vector<Real3> devStressD(
+//			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+//	thrust::device_vector<Real3> volStressD(
+//			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+//	thrust::device_vector<Real4> mainStressD(
+//			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+//	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
+//	CalcBCE_Stresses(devStressD, volStressD, mainStressD, m_dSortedPosRad,
+//			m_dSortedVelMas, m_dSortedRhoPreMu, mapOriginalToSorted,
+//			m_dCellStart, m_dCellEnd, numBCE);
+//
+//	devStressD.clear();
+//	volStressD.clear();
+//	mainStressD.clear();
 	//********************************************************************************************************************************
 	m_dSortedPosRad.clear();
 	m_dSortedVelMas.clear();
@@ -610,24 +610,24 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 	//********************************************************************************************************************************
 	//	ProjectDensityPressureToBCandBCE(rhoPresMuD, m_dSortedPosRad, m_dSortedRhoPreMu,
 	//				m_dGridMarkerIndex, m_dCellStart, m_dCellEnd, numAllMarkers);
-	//********************************************************************************************************************************
-	//*********************** Calculate MaxStress on Particles
-	//***********************************************************************
-	thrust::device_vector<Real3> devStressD(
-			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
-	thrust::device_vector<Real3> volStressD(
-			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
-	thrust::device_vector<Real4> mainStressD(
-			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
-	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
-	CalcBCE_Stresses(devStressD, volStressD, mainStressD, m_dSortedPosRad,
-			m_dSortedVelMas, m_dSortedRhoPreMu, mapOriginalToSorted,
-			m_dCellStart, m_dCellEnd, numBCE);
-
-	devStressD.clear();
-	volStressD.clear();
-	mainStressD.clear();
-	//********************************************************************************************************************************
+//	//********************************************************************************************************************************
+//	//*********************** Calculate MaxStress on Particles
+//	//***********************************************************************
+//	thrust::device_vector<Real3> devStressD(
+//			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+//	thrust::device_vector<Real3> volStressD(
+//			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+//	thrust::device_vector<Real4> mainStressD(
+//			numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+//	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
+//	CalcBCE_Stresses(devStressD, volStressD, mainStressD, m_dSortedPosRad,
+//			m_dSortedVelMas, m_dSortedRhoPreMu, mapOriginalToSorted,
+//			m_dCellStart, m_dCellEnd, numBCE);
+//
+//	devStressD.clear();
+//	volStressD.clear();
+//	mainStressD.clear();
+//	//********************************************************************************************************************************
 	m_dSortedPosRad.clear();
 	m_dSortedVelMas.clear();
 	m_dSortedRhoPreMu.clear();
