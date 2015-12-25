@@ -416,7 +416,7 @@ __device__ void projectTheClosestFluidMarker(Real3& distRhoPress, int3 gridPos,
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
 __device__ void calcOnCartesianShare(Real3& v_share, Real4& rp_share,
-		int3 gridPos, Real4 gridNodePos4, Real3* sortedPosRad,
+		int3 gridPos, Real3 gridNodePos3, Real3* sortedPosRad,
 		Real3* sortedVelMas, Real4* sortedRhoPreMu, uint* cellStart,
 		uint* cellEnd) {
 
@@ -432,7 +432,7 @@ __device__ void calcOnCartesianShare(Real3& v_share, Real4& rp_share,
 			Real3 posRadB = FETCH(sortedPosRad, j);
 			Real3 velMasB = FETCH(sortedVelMas, j);
 			Real4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
-			Real3 dist3 = Distance(gridNodePos4, posRadB);
+			Real3 dist3 = Distance(gridNodePos3, posRadB);
 			Real d = length(dist3);
 			Real mult = paramsD.markerMass / rhoPreMuB.x * W3(d);
 			v_share += mult * velMasB;  // optimize it ?$
@@ -891,7 +891,7 @@ __global__ void CalcCartesianDataD(Real4* rho_Pres_CartD,
 			for (int x = -1; x <= 1; x++) {
 				int3 neighbourPos = gridPos + mI3(x, y, z);
 				calcOnCartesianShare(vel_share, rho_pres_share, neighbourPos,
-				mR4(gridNodePos3), sortedPosRad, sortedVelMas, sortedRhoPreMu,
+				gridNodePos3, sortedPosRad, sortedVelMas, sortedRhoPreMu,
 						cellStart, cellEnd);
 			}
 		}
