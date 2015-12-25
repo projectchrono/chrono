@@ -4,6 +4,7 @@
  *  Created on: Mar 2, 2013
  *      Author: Arman Pazouki
  */
+#include <stdexcept>
 #include <thrust/sort.h>
 #include "chrono_fsi/SDKCollisionSystem.cuh"
 
@@ -573,7 +574,7 @@ __global__ void newVel_XSPH_D(Real3* vel_XSPH_Sorted_D,  // output: new velocity
 		Real3* sortedPosRad,       // input: sorted positions
 		Real3* sortedVelMas,       // input: sorted velocities
 		Real4* sortedRhoPreMu, uint* gridMarkerIndex, // input: sorted particle indices
-		uint* cellStart, uint* cellEnd, uint numAllMarkers) {
+		uint* cellStart, uint* cellEnd, uint numAllMarkers, volatile bool *isErrorD) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index >= numAllMarkers)
 		return;
@@ -615,6 +616,7 @@ __global__ void newVel_XSPH_D(Real3* vel_XSPH_Sorted_D,  // output: new velocity
 	if (!(isfinite(vXSPH.x) && isfinite(vXSPH.y)
 			&& isfinite(vXSPH.z))) {
 		printf("Error! particle vXSPH is NAN: thrown from SDKCollisionSystem.cu, newVel_XSPH_D !\n");
+		*isErrorD = true;
 	}
 	vel_XSPH_Sorted_D[index] = vXSPH;
 }
@@ -678,7 +680,7 @@ __global__ void collideD(Real4* sortedDerivVelRho_fsi_D,  // output: new velocit
 		Real3* sortedPosRad,  // input: sorted positions
 		Real3* sortedVelMas,  // input: sorted velocities
 		Real3* vel_XSPH_Sorted_D, Real4* sortedRhoPreMu,
-		uint* cellStart, uint* cellEnd, uint numAllMarkers) {
+		uint* cellStart, uint* cellEnd, uint numAllMarkers, volatile bool *isErrorD) {
 
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index >= numAllMarkers)
@@ -712,8 +714,13 @@ __global__ void collideD(Real4* sortedDerivVelRho_fsi_D,  // output: new velocit
 	// write new velocity back to original unsorted location
 	// *** let's tweak a little bit :)
 	if (!(isfinite(derivVelRho.x) && isfinite(derivVelRho.y)
-			&& isfinite(derivVelRho.z) && isfinite(derivVelRho.w))) {
-		printf("Error! particle derivVelRho is NAN: thrown from SDKCollisionSystem.cu, collideD !\n");
+			&& isfinite(derivVelRho.z) )) {
+		printf("Error! particle derivVel is NAN: thrown from SDKCollisionSystem.cu, collideD !\n");
+		*isErrorD = true;
+	}
+	if (!(isfinite(derivVelRho.w))) {
+		printf("Error! particle derivRho is NAN: thrown from SDKCollisionSystem.cu, collideD !\n");
+		*isErrorD = true;
 	}
 	sortedDerivVelRho_fsi_D[index] = derivVelRho;
 }
@@ -915,7 +922,7 @@ __global__ void CalcCartesianDataD(Real4* rho_Pres_CartD,
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
-		Real4* rhoPresMuD, Real4* derivVelRhoD, int2 updatePortion, Real dT) {
+		Real4* rhoPresMuD, Real4* derivVelRhoD, int2 updatePortion, Real dT, volatile bool *isErrorD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	index += updatePortion.x; // updatePortion = [start, end] index of the update portion
 	if (index >= updatePortion.y) {
@@ -937,7 +944,8 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 			if (paramsD.enableAggressiveTweak) {
 				vel_XSPH = mR3(0);
 			} else {
-				printf("Error! particle vel_XSPH is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+				printf("Error! particle vel_XSPH is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidDKerner !\n");
+				*isErrorD = true;
 				return;
 			}
 		}
@@ -951,7 +959,8 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 		Real3 posRad = posRadD[index];
 		Real3 updatedPositon = posRad + vel_XSPH * dT;
 		if (!(isfinite(updatedPositon.x) && isfinite(updatedPositon.y) && isfinite(updatedPositon.z))) {
-			printf("Error! particle position is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+			printf("Error! particle position is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidDKernel !\n");
+			*isErrorD = true;
 			return;
 		}
 		posRadD[index] = updatedPositon;  // posRadD updated
@@ -969,7 +978,8 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 			if (paramsD.enableAggressiveTweak) {
 				updatedVelocity = mR3(0);
 			} else {
-				printf("Error! particle updatedVelocity is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+				printf("Error! particle updatedVelocity is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidDKernel !\n");
+				*isErrorD = true;
 				return;
 			}
 		}
@@ -990,7 +1000,8 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 		if (paramsD.enableAggressiveTweak) {
 			derivVelRho.w = 0;
 		} else {
-			printf("Error! particle derivVelRho.w is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+			printf("Error! particle derivVelRho.w is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidDKernel !\n");
+			*isErrorD = true;
 			return;
 		}
 	}
@@ -1004,7 +1015,8 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
 	if (!(isfinite(rhoPresMu.x) && isfinite(rhoPresMu.y) && isfinite(rhoPresMu.z) && isfinite(rhoPresMu.w))) {
-		printf("Error! particle rho pressure is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD !\n");
+		printf("Error! particle rho pressure is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidDKernel !\n");
+		*isErrorD = true;
 		return;
 	}
 	rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD updated
@@ -1024,14 +1036,14 @@ __global__ void UpdateFluidD_init_LF(Real3* posRadD, Real3* velMasD_half,
 	Real3 velMas = velMasD_half[index];
 	Real3 updatedVelocity = velMas + mR3(derivVelRho) * (0.5 * dT);
 	if (!(isfinite(updatedVelocity.x) && isfinite(updatedVelocity.y) && isfinite(updatedVelocity.z))) {
-				printf("Error! particle vel is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_init_LF !\n");
+				printf("Error! particle vel is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_init_LFKernel !\n");
 	}
 	velMasD_half[index] = updatedVelocity;  // velMasD_half updated
 
 	Real3 posRad = posRadD[index];
 	Real3 updatedPositon = posRad + updatedVelocity * dT;
 	if (!(isfinite(updatedPositon.x) && isfinite(updatedPositon.y) && isfinite(updatedPositon.z))) {
-				printf("Error! particle pos is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_init_LF !\n");
+				printf("Error! particle pos is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_init_LFKernel !\n");
 	}
 	posRadD[index] = updatedPositon;  // posRadD updated
 
@@ -1040,7 +1052,7 @@ __global__ void UpdateFluidD_init_LF(Real3* posRadD, Real3* velMasD_half,
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
 	if (!(isfinite(rhoPresMu.x) && isfinite(rhoPresMu.y) && isfinite(rhoPresMu.z) && isfinite(rhoPresMu.w))) {
-				printf("Error! particle rp is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_init_LF !\n");
+				printf("Error! particle rp is NAN: thrown from SDKCollisionSystem.cu, UpdateFluidD_init_LFKernel !\n");
 	}
 	rhoPresMuD_half[index] = rhoPresMu;  // rhoPresMuD_half updated
 }
@@ -1433,6 +1445,20 @@ void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 		thrust::device_vector<uint>& cellStart,
 		thrust::device_vector<uint>& cellEnd, uint numAllMarkers,
 		uint numCells) {
+
+
+
+
+
+
+
+
+	bool *isErrorH, *isErrorD;
+	isErrorH = (bool *)malloc(sizeof(bool));
+	cudaMalloc((void**) &isErrorD, sizeof(bool));
+	*isErrorH = false;
+	cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+	//------------------------------------------------------------------------
 	/* thread per particle */
 	uint numThreads, numBlocks;
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
@@ -1441,11 +1467,17 @@ void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 	newVel_XSPH_D<<<numBlocks, numThreads>>>(mR3CAST(vel_XSPH_Sorted_D),
 			mR3CAST(sortedPosRad), mR3CAST(sortedVelMas),
 			mR4CAST(sortedRhoPreMu), U1CAST(gridMarkerIndex), U1CAST(cellStart),
-			U1CAST(cellEnd), numAllMarkers);
+			U1CAST(cellEnd), numAllMarkers, isErrorD);
 
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
+	//------------------------------------------------------------------------
+	cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
+	if (isErrorH) {
+		throw std::runtime_error ("Error! program crashed in  collideD!\n");
+	}
+	cudaFree(isErrorD);
+	free(isErrorH);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void RecalcSortedVelocityPressure_BCE(
@@ -1511,7 +1543,7 @@ void CalcBCE_Stresses(thrust::device_vector<Real3>& devStressD,
 }
 
 /**
- * @brief Wrapper function for collideD
+ * @brief Wrapper function for collide
  * @details
  * 		See SDKCollisionSystem.cuh for informaton on collide
  */
@@ -1532,6 +1564,12 @@ void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));
 	//#endif
 
+	bool *isErrorH, *isErrorD;
+	isErrorH = (bool *)malloc(sizeof(bool));
+	cudaMalloc((void**) &isErrorD, sizeof(bool));
+	*isErrorH = false;
+	cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+	//------------------------------------------------------------------------
 	// thread per particle
 	uint numThreads, numBlocks;
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
@@ -1541,10 +1579,18 @@ void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
 			mR3CAST(sortedPosRad), mR3CAST(sortedVelMas),
 			mR3CAST(vel_XSPH_Sorted_D), mR4CAST(sortedRhoPreMu),
 			U1CAST(cellStart), U1CAST(cellEnd),
-			numAllMarkers);
+			numAllMarkers, isErrorD);
 
 	cudaThreadSynchronize();
 	cudaCheckError();
+	//------------------------------------------------------------------------
+	cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
+	if (isErrorH) {
+		throw std::runtime_error ("Error! program crashed in  collideD!\n");
+	}
+	cudaFree(isErrorD);
+	free(isErrorH);
+
 
 //					// unroll sorted index to have the location of original particles in the sorted arrays
 //					thrust::device_vector<uint> dummyIndex = gridMarkerIndex;
@@ -1688,15 +1734,27 @@ void UpdateFluid(thrust::device_vector<Real3>& posRadD,
 	int2 updatePortion = mI2(0, referenceArray[referenceArray.size() - 1].y);
 	// int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
 
+	bool *isErrorH, *isErrorD;
+	isErrorH = (bool *)malloc(sizeof(bool));
+	cudaMalloc((void**) &isErrorD, sizeof(bool));
+	*isErrorH = false;
+	cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+	//------------------------
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid,
 			nThreads);
 	UpdateFluidD<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(posRadD),
 			mR3CAST(velMasD), mR3CAST(vel_XSPH_D), mR4CAST(rhoPresMuD),
-			mR4CAST(derivVelRhoD), updatePortion, dT);
+			mR4CAST(derivVelRhoD), updatePortion, dT, isErrorD);
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
+	//------------------------
+	cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
+	if (isErrorH) {
+		throw std::runtime_error ("Error! program crashed in  collideD!\n");
+	}
+	cudaFree(isErrorD);
+	free(isErrorH);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles by calling UpdateFluid_init_LF
