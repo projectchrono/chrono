@@ -199,6 +199,8 @@ SET(ChronoEngine_Parallel_SOLVER
     #solver/ChSolverBiCG.cpp
     #solver/ChSolverBiCGStab.cpp
     #solver/ChSolverPDIP.cpp
+    solver/ChSolverBB.h
+    solver/ChSolverBB.cpp
     )
 
 SOURCE_GROUP(solver FILES ${ChronoEngine_Parallel_SOLVER})
