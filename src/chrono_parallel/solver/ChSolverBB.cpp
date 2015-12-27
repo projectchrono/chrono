@@ -29,6 +29,10 @@ uint ChSolverBB::SolveBB(const uint max_iter,
                          const uint size,
                          const DynamicVector<real>& r,
                          DynamicVector<real>& gamma) {
+    real& lastgoodres = data_manager->measures.solver.residual;
+    //ChTimer<> t1, t2, t3, t4;
+    //t1.start();
+
     real& residual = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
     temp.resize(size);
@@ -60,15 +64,11 @@ uint ChSolverBB::SolveBB(const uint max_iter,
     double gmma = 1e-4;
     double gdiff = 0.000001;
     bool do_preconditioning = false;
-
-    bool do_BB1e2 = true;
-    bool do_BB1 = false;
-    bool do_BB2 = false;
     double neg_BB1_fallback = 0.11;
     double neg_BB2_fallback = 0.12;
     // Disable warm start for testing
     // ml = gamma;
-    double lastgoodres = 10e30;
+    lastgoodres = 10e30;
     double lastgoodfval = 10e30;
     ml_candidate = ml;
     ShurProduct(ml, temp);
@@ -80,28 +80,26 @@ uint ChSolverBB::SolveBB(const uint max_iter,
     int n_armijo = 10;
     int max_armijo_backtrace = 3;
     std::vector<real> f_hist;
+    //t1.stop();
 
     for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+        //t2.start();
         temp = (ml - alpha * mg);
         Project(temp.data());
         mdir = temp - ml;
-//        for (int i = 0; i < mdir.size() / 3; i++) {
-//            printf("mdir %.20f\n", mdir[i]);
-//        }
+
         real dTg = (mdir, mg);
-        //printf("dTg: %.20f\n", dTg);
         real lambda = 1.0;
         int n_backtracks = 0;
         bool armijo_repeat = true;
+        //t2.stop();
+        //t3.start();
         while (armijo_repeat) {
             ml_p = ml + lambda * mdir;
-//            for (int i = 0; i < ml_p.size() / 3; i++) {
-//                printf("ml_p %.20f\n", ml_p[i]);
-//            }
+
             ShurProduct(ml_p, temp);
             mg_p = temp - r;
             mf_p = (ml_p, 0.5 * temp - r);
-            //printf("mf_p: %.20f\n", mf_p);
 
             f_hist.push_back(mf_p);
 
@@ -125,32 +123,28 @@ uint ChSolverBB::SolveBB(const uint max_iter,
             if (n_backtracks > max_armijo_backtrace)
                 armijo_repeat = false;
         }
-
+        //t3.stop();
+        //t4.start();
         ms = ml_p - ml;
         my = mg_p - mg;
         ml = ml_p;
         mg = mg_p;
 
-        if (((do_BB1e2) && (current_iteration % 2 == 0)) || do_BB1) {
-            temp = ms;
-            real sDs = (ms, temp);
+        if (current_iteration % 2 == 0) {
+            real sDs = (ms, ms);
             real sy = (ms, my);
             if (sy <= 0) {
                 alpha = neg_BB1_fallback;
             } else {
-                real alph = sDs / sy;  // (s,Ds)/(s,y)   BB1
-                alpha = Min(a_max, Max(a_min, alph));
+                alpha = Min(a_max, Max(a_min, sDs / sy));
             }
-        }
-        if (((do_BB1e2) && (current_iteration % 2 != 0)) || do_BB2) {
-            double sy = (ms, my);
-            temp = my;
-            double yDy = (my, temp);
+        } else {
+            real sy = (ms, my);
+            real yDy = (my, my);
             if (sy <= 0) {
                 alpha = neg_BB2_fallback;
             } else {
-                double alph = sy / yDy;  // (s,y)/(y,Di*y)   BB2
-                alpha = Min(a_max, Max(a_min, alph));
+                alpha = Min(a_max, Max(a_min, sy / yDy));
             }
         }
         temp = ml - gdiff * mg;
@@ -158,15 +152,17 @@ uint ChSolverBB::SolveBB(const uint max_iter,
         temp = (ml - temp) / (-gdiff);
 
         real g_proj_norm = Sqrt((temp, temp));
-        //printf("g_proj_norm: %.20f\n", g_proj_norm);
         if (g_proj_norm < lastgoodres) {
             lastgoodres = g_proj_norm;
             ml_candidate = ml;
         }
-//        for (int i = 0; i < ml.size() / 3; i++) {
-//            printf("ml %.20f\n", ml[i]);
-//        }
+
+        AtIterationEnd(lastgoodres, 0);
+
+        //t4.stop();
     }
+    //printf("TIME: [%f %f %f %f]\n", t1(), t2(), t3(), t4());
+
     gamma = ml_candidate;
     data_manager->system_timer.stop("ChSolverParallel_Solve");
     return current_iteration;
