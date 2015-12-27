@@ -42,17 +42,21 @@ real3 operator-(const real3& a) {
 //========================================================
 
 real Dot(const real3& v1, const real3& v2) {
-    return simd::Dot3(v1, v2);
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+    // return simd::Dot3(v1, v2);
 }
 real Dot(const real3& v) {
-    return simd::Dot3(v);
+    return v.x * v.x + v.y * v.y + v.z * v.z;
+    // return simd::Dot3(v);
 }
 
 real3 Normalize(const real3& v) {
-    return simd::Normalize3(v);
+    // return simd::Normalize3(v);
+    return v / Sqrt(Dot(v));
 }
 real Length(const real3& v) {
-    return simd::Length3(v);
+    return Sqrt(Dot(v));
+    // return simd::Length3(v);
 }
 real3 Sqrt(const real3& v) {
     return simd::SquareRoot(v);
