@@ -96,7 +96,7 @@ void FindPos(const simplex& portal, real3& point) {
     real b3 = Dot(Cross(portal.s2.v, portal.s1.v), portal.s0.v);
     real sum = b0 + b1 + b2 + b3;
 
-    if (sum <= 0.) {
+    if (sum <= 0.0) {
         b0 = 0;
         b1 = Dot(Cross(portal.s2.v, portal.s3.v), n);
         b2 = Dot(Cross(portal.s3.v, portal.s1.v), n);
@@ -104,10 +104,10 @@ void FindPos(const simplex& portal, real3& point) {
         sum = b1 + b2 + b3;
     }
 
-    real inv = 1.0f / sum;
+    real inv = 1.0 / sum;
     real3 p1 = (b0 * portal.s0.v1 + b1 * portal.s1.v1 + b2 * portal.s2.v1 + b3 * portal.s3.v1) * inv;
     real3 p2 = (b0 * portal.s0.v2 + b1 * portal.s1.v2 + b2 * portal.s2.v2 + b3 * portal.s3.v2) * inv;
-    point = (p1 + p2) * 0.5f;
+    point = (p1 + p2) * 0.5;
 }
 
 int portalEncapsulesOrigin(const simplex& portal, const real3& n) {
@@ -142,13 +142,13 @@ real Vec3PointSegmentDist2(const real3& P, const real3& x0, const real3& b, real
     real3 d, a;
     d = b - x0;  // direction of segment
     a = x0 - P;  // precompute vector from P to x0
-    t = -(1.f) * Dot(a, d);
+    t = -(1.) * Dot(a, d);
     t = t / Dot(d, d);
 
-    if (t < 0.0f || IsZero(t)) {
+    if (t < 0.0 || IsZero(t)) {
         dist = Vec3Dist2(x0, P);
         witness = x0;
-    } else if (t > 1.0f || IsEqual(t, real(1.0))) {
+    } else if (t > 1.0 || IsEqual(t, real(1.0))) {
         dist = Vec3Dist2(b, P);
         witness = b;
     } else {
@@ -166,13 +166,13 @@ real Vec3PointSegmentDist2(const real3& P, const real3& x0, const real3& b) {
     real3 d, a;
     d = b - x0;  // direction of segment
     a = x0 - P;  // precompute vector from P to x0
-    t = -(1.f) * Dot(a, d);
+    t = -(1.) * Dot(a, d);
     t = t / Dot(d, d);
 
-    if (t < 0.0f || IsZero(t)) {
+    if (t < 0.0 || IsZero(t)) {
         dist = Vec3Dist2(x0, P);
 
-    } else if (t > 1.0f || IsEqual(t, real(1.0))) {
+    } else if (t > 1.0 || IsEqual(t, real(1.0))) {
         dist = Vec3Dist2(b, P);
 
     } else {
@@ -203,8 +203,7 @@ real Vec3PointTriDist2(const real3& P, const real3& x0, const real3& B, const re
 
     s = (q * r - w * p) / (w * v - r * r);
     t = (-s * r - q) / w;
-
-    if ((IsZero(s) || s > 0.0f) && (IsEqual(s, real(1.0)) || s < real(1.0)) && (IsZero(t) || t > 0.0f) &&
+    if ((IsZero(s) || s > 0.0) && (IsEqual(s, real(1.0)) || s < real(1.0)) && (IsZero(t) || t > 0.0) &&
         (IsEqual(t, real(1.0)) || t < real(1.0)) && (IsEqual(t + s, real(1.0)) || t + s < real(1.0))) {
         d1 *= s;
         d2 *= t;
