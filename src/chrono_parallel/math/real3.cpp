@@ -47,11 +47,12 @@ real Dot(const real3& v1, const real3& v2) {
 real Dot(const real3& v) {
     return simd::Dot3(v);
 }
+
 real3 Normalize(const real3& v) {
     return simd::Normalize3(v);
 }
 real Length(const real3& v) {
-    return Sqrt(simd::Dot3(v));
+    return simd::Length3(v);
 }
 real3 Sqrt(const real3& v) {
     return simd::SquareRoot(v);
@@ -97,8 +98,7 @@ real3 Round(const real3& v) {
     return simd::Round(v);
 }
 bool IsZero(const real3& v) {
-    real3 t = simd::Abs(v);
-    return t[0] < C_EPSILON && t[1] < C_EPSILON && t[2] < C_EPSILON;
+    return simd::IsZero(v, C_EPSILON);
 }
 real3 OrthogonalVector(const real3& v) {
     real3 abs = Abs(v);

@@ -235,7 +235,7 @@ inline real HorizontalAdd(__m256d a) {
     __m256d temp = _mm256_hadd_pd(a, a);
     __m128d lo128 = _mm256_extractf128_pd(temp, 0);
     __m128d hi128 = _mm256_extractf128_pd(temp, 1);
-    __m128d dot_prod = _mm_add_sd(lo128, hi128);
+    __m128d dot_prod = _mm_add_pd(lo128, hi128);
     return _mm_cvtsd_f64(dot_prod);
 }
 inline real Dot3(__m256d a) {
@@ -341,12 +341,24 @@ inline real3 Cross3(const real* a, const real* b) {
 }
 
 inline __m256d Normalize3(__m256d v) {
-    real t = simd::Dot3(v);
-    real dp = InvSqrt(t);
-    __m256d tmp = _mm256_mul_pd(v, Set(dp));
+    __m256d xy = _mm256_mul_pd(v, v);
+    __m256d temp = _mm256_hadd_pd(xy, xy);
+    __m128d lo128 = _mm256_extractf128_pd(temp, 0);
+    __m128d hi128 = _mm256_extractf128_pd(temp, 1);
+    __m128d dot_prod = _mm_add_pd(lo128, hi128);
+    __m128d len = _mm_sqrt_pd(dot_prod);
+    __m256d tmp = _mm256_div_pd(v, _mm256_set1_pd(_mm_cvtsd_f64(len)));
     return _mm256_and_pd(tmp, REAL3MASK);
 }
-
+inline real Length3(__m256d v) {
+    __m256d xy = _mm256_mul_pd(v, v);
+    __m256d temp = _mm256_hadd_pd(xy, xy);
+    __m128d lo128 = _mm256_extractf128_pd(temp, 0);
+    __m128d hi128 = _mm256_extractf128_pd(temp, 1);
+    __m128d dot_prod = _mm_add_pd(lo128, hi128);
+    __m128d len = _mm_sqrt_pd(dot_prod);
+    return _mm_cvtsd_f64(len);
+}
 inline bool IsEqual(__m256d a, __m256d b) {
     //        const __m256d SIGN_MASK = _mm256_set1_pd(-0.0);
     //
@@ -377,7 +389,12 @@ inline bool IsEqual(__m256d a, __m256d b) {
     //      //  return !result;  //_mm256_movemask_pd(x) != 0;
     return false;
 }
-
+inline bool IsZero(__m256d v, real eps) {
+    __m256d a = _mm256_and_pd(v, ABSMASK);
+    __m256d c = _mm256_cmp_pd(a, Set(eps), _CMP_NLT_US);
+    int mask = _mm256_movemask_pd(c);
+    return mask == 0;
+}
 // http://stackoverflow.com/questions/10454150/intel-avx-256-bits-version-of-dot-product-for-double-precision-floating-point
 inline __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c) {
     __m256d xy0 = _mm256_mul_pd(v, a);
@@ -400,7 +417,27 @@ inline __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c) {
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
     return dotproduct;
 }
+inline __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c, __m256d d) {
+    __m256d xy0 = _mm256_mul_pd(v, a);
+    __m256d xy1 = _mm256_mul_pd(v, b);
+    __m256d xy2 = _mm256_mul_pd(v, c);
+    __m256d xy3 = _mm256_mul_pd(v, d);
 
+    // low to high: xy00+xy01 xy10+xy11 xy02+xy03 xy12+xy13
+    __m256d temp01 = _mm256_hadd_pd(xy0, xy1);
+
+    // low to high: xy20+xy21 xy30+xy31 xy22+xy23 xy32+xy33
+    __m256d temp23 = _mm256_hadd_pd(xy2, xy3);
+
+    // low to high: xy02+xy03 xy12+xy13 xy20+xy21 xy30+xy31
+    __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+
+    // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+
+    __m256d dotproduct = _mm256_add_pd(swapped, blended);
+    return dotproduct;
+}
 inline __m256d QuatMult(__m256d a, __m256d b) {
     __m256d a1123 = permute4d<1, 1, 2, 3>(a);
     __m256d a2231 = permute4d<2, 2, 3, 1>(a);

@@ -33,7 +33,9 @@ real4 operator/(const real4& a, real b) {
 real4 operator-(const real4& a) {
     return simd::Negate(a);
 }
-
+real4 Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4) {
+    return simd::Dot4(v, v1, v2, v3, v4);
+}
 //========================================================
 quaternion operator+(const quaternion& a, real b) {
     return simd::Add(a, simd::Set(b));

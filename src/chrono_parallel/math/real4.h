@@ -88,7 +88,7 @@ OPERATOR_EQUALSALT(+, real4, real4)
 OPERATOR_EQUALSALT(-, real4, real4)
 
 real4 operator-(const real4& a);
-
+real4 Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4);
 // Quaternion Class
 // ========================================================================================
 class quaternion {
