@@ -268,7 +268,7 @@ void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads);
 void calcHash(thrust::device_vector<uint>& gridMarkerHash,
 		thrust::device_vector<uint>& gridMarkerIndex,
 		thrust::device_vector<Real3>& posRad,
-		thrust::device_vector<Real4>& rhoPreMu, int numAllMarkers);
+		int numAllMarkers);
 
 /**
  * @brief reorderDataAndFindCellStart - reorderDataAndFindCellStartD

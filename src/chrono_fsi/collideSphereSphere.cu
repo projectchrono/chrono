@@ -85,7 +85,7 @@ void MapSPH_ToGrid(Real resolution, int3& cartesianGridDims,
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 
 	// calculate grid hash
-//  calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
+  calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
 
 	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(),
 			m_dGridMarkerIndex.begin());
@@ -180,8 +180,7 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells); // Index of end cell in sorted list
 
 	/* Calculate grid hash */
-	calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, rhoPresMuD,
-			numAllMarkers);
+	calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
 
 	//	GpuTimer myT0;
 	//	myT0.Start();
@@ -551,7 +550,7 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 	// calculate grid hash
-//  calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
+  calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
 
 	//	GpuTimer myT0;
 	//	myT0.Start();
@@ -667,7 +666,7 @@ void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 
 	// calculate grid hash
-//  calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
+  calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
 
 	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(),
 			m_dGridMarkerIndex.begin());

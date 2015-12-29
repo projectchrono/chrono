@@ -487,7 +487,7 @@ __device__ void calcOnCartesianShare(Real3& v_share, Real4& rp_share,
 __global__ void calcHashD(uint* gridMarkerHash,   // output
 		uint* gridMarkerIndex,  // output
 		Real3* posRad,          // input: positions
-		Real4* rp, uint numAllMarkers) {
+		uint numAllMarkers, volatile bool *isErrorD) {
 
 	/* Calculate the index of where the particle is stored in posRad. */
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
@@ -498,19 +498,24 @@ __global__ void calcHashD(uint* gridMarkerHash,   // output
 
 	if (!(isfinite(p.x) && isfinite(p.y) && isfinite(p.z))) {
 		printf("Error! particle position is NAN: thrown from SDKCollisionSystem.cu, calcHashD !\n");
+		*isErrorD = true;
+		return;
 	}
 
 	/* Check particle is inside the domain. */
 	Real3 boxCorner = paramsD.worldOrigin;
 	if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) {
-		printf("Out of Min Boundary\n");
+		printf("Out of Min Boundary, point %f %f %f, boundary min: %f %f %f. Thrown from SDKCollisionSystem.cu, calcHashD !\n",
+				p.x, p.y, p.z,boxCorner.x, boxCorner.y, boxCorner.z);
+		*isErrorD = true;
 		return;
 	}
 	boxCorner = paramsD.worldOrigin + paramsD.boxDims;
 	if (p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z) {
 		printf(
-				"Out of max Boundary, point %f %f %f, type %f, boundary max: %f %f %f \n",
-				p.x, p.y, p.z, rp->w, boxCorner.x, boxCorner.y, boxCorner.z);
+				"Out of max Boundary, point %f %f %f, boundary max: %f %f %f. Thrown from SDKCollisionSystem.cu, calcHashD !\n",
+				p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
+		*isErrorD = true;
 		return;
 	}
 
@@ -1391,21 +1396,33 @@ void setParameters(SimParams* hostParams, NumberOfObjects* numObjects) {
 void calcHash(thrust::device_vector<uint>& gridMarkerHash,
 		thrust::device_vector<uint>& gridMarkerIndex,
 		thrust::device_vector<Real3>& posRad,
-		thrust::device_vector<Real4>& rhoPreMu, int numAllMarkers) {
+		int numAllMarkers) {
+
+
+	bool *isErrorH, *isErrorD;
+	isErrorH = (bool *)malloc(sizeof(bool));
+	cudaMalloc((void**) &isErrorD, sizeof(bool));
+	*isErrorH = false;
+	cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+	//------------------------------------------------------------------------
 	/* Is there a need to optimize the number of threads used at once? */
 	uint numThreads, numBlocks;
-
 	computeGridSize(numAllMarkers, 256, numBlocks, numThreads);
-
 	/* Execute Kernel */
 	calcHashD<<<numBlocks, numThreads>>>(U1CAST(gridMarkerHash),
-			U1CAST(gridMarkerIndex), mR3CAST(posRad), mR4CAST(rhoPreMu),
-			numAllMarkers);
+			U1CAST(gridMarkerIndex), mR3CAST(posRad),
+			numAllMarkers, isErrorD);
 
 	/* Check for errors in kernel execution */
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
+	//------------------------------------------------------------------------
+	cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
+	if (*isErrorH == true) {
+		throw std::runtime_error ("Error! program crashed in  calcHashD!\n");
+	}
+	cudaFree(isErrorD);
+	free(isErrorH);
 }
 
 /**
@@ -1474,13 +1491,6 @@ void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 		thrust::device_vector<uint>& cellStart,
 		thrust::device_vector<uint>& cellEnd, uint numAllMarkers,
 		uint numCells) {
-
-
-
-
-
-
-
 
 	bool *isErrorH, *isErrorD;
 	isErrorH = (bool *)malloc(sizeof(bool));
