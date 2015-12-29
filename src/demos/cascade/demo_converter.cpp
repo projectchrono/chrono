@@ -86,7 +86,7 @@
 #include <TObj_TReference.hxx>
 #include <TNaming_NamedShape.hxx>
 
-#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"
 
 // Use the namespace of Chrono
@@ -668,14 +668,13 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrAppInterface application(&my_system, L"Convex decomposition of a mesh", core::dimension2d<u32>(800, 600),
+    ChIrrApp application(&my_system, L"Convex decomposition of a mesh", core::dimension2d<u32>(800, 600),
                                   false, true, video::EDT_OPENGL);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
     // ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
-                                    core::vector3df(30, -80, -30), 200, 130);
+    ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30), core::vector3df(30, -80, -30), 200, 130);
     ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 1.5, -2));
 
     // Initial settings
