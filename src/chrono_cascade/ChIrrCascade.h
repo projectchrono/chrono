@@ -327,10 +327,12 @@ static ISceneNode* addChBodySceneNode_Cascade_C(
     ChBodySceneNodeAuxRef* mbody = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_A(
         asystem, amanager, objshape, frame_ref_to_abs.GetPos(), frame_ref_to_abs.GetRot(), mmass, minertiaXX,
         minertiaXY, aparent, mid);
-
-    chrono::ChFrame<>* frame_cog_to_ref = (chrono::ChFrame<>*)mbody->GetBody().get_ptr();
-    frame_cog_to_ref->SetPos(mcog);
-    frame_cog_to_ref->SetRot(chrono::QUNIT);
+    
+    //chrono::ChFrame<>* frame_cog_to_ref = (chrono::ChFrame<>*)mbody->GetBody().get_ptr();
+    chrono::ChFrame<> frame_cog_to_ref;
+    frame_cog_to_ref.SetPos(mcog);
+    frame_cog_to_ref.SetRot(chrono::QUNIT);
+    mbody->GetBody()->SetFrame_COG_to_REF(frame_cog_to_ref);
 
     return mbody;
 }
