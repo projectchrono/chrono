@@ -95,34 +95,43 @@ __device__ inline Real4 DifVelocityRho(Real3& dist3, Real& d, Real3 posRadA, Rea
 	derivRho -= rAB_Dot_GradW / (d + paramsD.epsMinMarkersDis * paramsD.HSML) * max(cA, cB) / rhoPresMuB.x * (rhoPresMuB.x - rhoPresMuA.x);
 
 	//--------------------------------
-
+	// it is assumed that A and B cannot be both solid. This function is not called in those situations
 	if (rhoPresMuB.w > -.1) {
 		posRadB = 2 * posRadB - posRadA;
+		velMasB = 2 * velMasB - velMasA;
+
+		rhoPresMuB.x = rhoPresMuA.x;
+		rhoPresMuB.y = rhoPresMuA.y;
+
 		dist3 = posRadA - posRadB;
 		d = length(dist3);
+//	}
+//	if (rhoPresMuA.w > -.1) {
+//		posRadA = 2 * posRadA - posRadB;
+//		velMasA = 2 * velMasA - velMasB;
+//
+//		rhoPresMuA.x = rhoPresMuB.x;
+//		rhoPresMuA.y = rhoPresMuB.y;
+//
+//		dist3 = posRadA - posRadB;
+//		d = length(dist3);
+//	}
 
+	rAB_Dot_GradW = dot(dist3, gradW);
+	rAB_Dot_GradW_OverDist = rAB_Dot_GradW
+			/ (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
 
-		Real rAB_Dot_GradW = dot(dist3, gradW);
-		Real rAB_Dot_GradW_OverDist = rAB_Dot_GradW
-				/ (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+	derivV = mR3(0);
 
-
-		if (d < RESOLUTION_LENGTH_MULT * paramsD.HSML) {
-			velMasB = 2 * velMasB - velMasA;
-
-				rhoPresMuB.x = rhoPresMuA.x;
-				rhoPresMuB.y = rhoPresMuA.y;
-
-
-				derivV = -paramsD.markerMass
-							* (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x)
-									+ rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
-							+ paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0
-									* pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2))
-									* rAB_Dot_GradW_OverDist * (velMasA - velMasB);
-		}
+	if (d < RESOLUTION_LENGTH_MULT * paramsD.HSML) {
+			derivV = -paramsD.markerMass
+						* (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x)
+								+ rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
+						+ paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0
+								* pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2))
+								* rAB_Dot_GradW_OverDist * (velMasA - velMasB);
 	}
-
+	}
 	return mR4(derivV, derivRho);
 
 	//	//*** Artificial viscosity type 1.3

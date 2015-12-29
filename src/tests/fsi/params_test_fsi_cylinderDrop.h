@@ -79,7 +79,7 @@ void SetupParamsH(SimParams& paramsH) {
 	paramsH.sizeScale = 1;  // don't change it.
 	paramsH.HSML = 0.1; //0.06;    // 0.06;//0.04;
 	paramsH.MULT_INITSPACE = 1.0;
-	paramsH.epsMinMarkersDis = .0001;
+	paramsH.epsMinMarkersDis = .001;
 	paramsH.NUM_BOUNDARY_LAYERS = 3;
 	paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS
 			* (paramsH.HSML * paramsH.MULT_INITSPACE);
