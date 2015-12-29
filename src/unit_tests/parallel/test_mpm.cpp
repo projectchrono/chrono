@@ -72,14 +72,46 @@ int main(int argc, char* argv[]) {
     {
         printf("N\n");
         WeakEqual(N(point_a - NodeLocation(5, 5, 4, bin_edge, min_bounding_point), inv_bin_edge), 0);
-        WeakEqual(N(point_a - NodeLocation(7, 7, 7, bin_edge, min_bounding_point), inv_bin_edge), 0.1822061256);
+        WeakEqual(N(point_a - NodeLocation(7, 7, 7, bin_edge, min_bounding_point), inv_bin_edge), 0.1822061256, 1e-10);
     }
-    {
+    {  // Each node should have 125 surrounding nodes
         int ind = 0;
         real3 xi = point_a;
         printf("Grid Hash Count\n");
         LOOPOVERNODES(real3 p = point_a - current_node_location;
-                      printf("[%d %d %d][%d %d] N:%f\n", i, j, k, current_node, ind, N(p, inv_bin_edge)); ind++;)
+                      // printf("[%d %d %d][%d %d] N:%f\n", i, j, k, current_node, ind, N(p, inv_bin_edge));  //
+                      ind++;  //
+                      )
         WeakEqual(ind, 125);
+    }
+
+    real youngs_modulus = (real)1.4e5;
+    real poissons_ratio = (real).2;
+    real theta_c = (real)2.5e-2;
+    real theta_s = (real)7.5e-3;
+    real lambda =
+        youngs_modulus * poissons_ratio / (((real)1. + poissons_ratio) * ((real)1. - (real)2. * poissons_ratio));
+    real mu = youngs_modulus / ((real)2. * ((real)1. + poissons_ratio));
+    real initial_density = (real)4e2;
+    real alpha = (real).95;
+    real hardening_coefficient = (real)10.;
+
+    {
+        const Mat33 FE = Mat33(0.8147, 0.9058, 0.1270, 0.9134, 0.6324, .0975, 0.2785, 0.5469, 0.9575) * 100;
+        const Mat33 FP = Mat33(1, 0, 5, 2, 1, 6, 3, 4, 0) * (.001);
+        Mat33 PED = Potential_Energy_Derivative(FE, FP, mu, lambda, hardening_coefficient);
+        // Print(PED, "PED");
+    }
+
+    {
+        const Mat33 FE = Mat33(0.8147, 0.9058, 0.1270, 0.9134, 0.6324, .0975, 0.2785, 0.5469, 0.9575);
+        const Mat33 FP = Mat33(1, 0, 5, 2, 1, 6, 3, 4, 0);
+        Mat33 RD = Rotational_Derivative(FE, FP);
+        //Print(RD, "RD");
+        WeakEqual(RD, Mat33(-0.4388320607360907121829996, -2.5644905725011524211254255, 2.6523953516380869288582289,
+                            3.3403002881859262807040523, -0.3555579545919572703738254, -0.1151537247848418710205465,
+                            -1.6067063031830095543028847, 0.5767590099191256536315109, -0.3543936405970238290308316), 1e-6);
+
+
     }
 }

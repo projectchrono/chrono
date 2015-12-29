@@ -501,6 +501,7 @@ void ChSystemParallel::Setup() {
     // Cache the integration step size and calculate the tolerance at impulse level.
     data_manager->settings.step_size = step;
     data_manager->settings.solver.tol_speed = step * data_manager->settings.solver.tolerance;
+    data_manager->settings.gravity = real3(G_acc.x, G_acc.y, G_acc.z);
 
     // Calculate the total number of degrees of freedom (6 per rigid body and 1
     // for each shaft element).

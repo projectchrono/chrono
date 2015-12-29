@@ -132,8 +132,8 @@ struct fluid_settings {
     bool enable_viscosity;
 };
 struct mpm_settings {
-	real mass;
-	real kernel_radius;
+    real mass;
+    real kernel_radius;
     real mu;
     real hardening_coefficient;
     real lambda;
@@ -309,6 +309,7 @@ struct settings_container {
     // The timestep of the simulation. This value is copied from chrono currently,
     // setting it has no effect.
     real step_size;
+    real3 gravity;
     // The system type defines if the system is solving the DVI frictional contact
     // problem or a DEM penalty based
     SYSTEMTYPE system_type;

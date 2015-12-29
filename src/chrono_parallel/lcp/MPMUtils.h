@@ -84,15 +84,50 @@ inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_bounding
     }
 
 Mat33 Potential_Energy_Derivative(const Mat33& FE, const Mat33& FP, real mu, real lambda, real hardening_coefficient) {
-    real plastic_determinant = Determinant(FP);
-    real elastic_determinant = Determinant(FE);
-    real current_mu = mu * exp(hardening_coefficient * (real(1.) - plastic_determinant));
-    real current_lambda = lambda * exp(hardening_coefficient * (real(1.) - plastic_determinant));
+    real JP = Determinant(FP);
+    real JE = Determinant(FE);
+    // Paper: Equation 2
+    real current_mu = mu * exp(hardening_coefficient * (real(1.) - JP));
+    real current_lambda = lambda * exp(hardening_coefficient * (real(1.) - JP));
     Mat33 UE, VE;
     real3 EE;
     SVD(FE, UE, EE, VE);
+    // Perform a polar decomposition, FE=RE*SE, RE is the Unitary part
     Mat33 RE = MultTranspose(UE, VE);
-    return real(2.) * current_mu * (FE - RE) +
-           current_lambda * elastic_determinant * (elastic_determinant - real(1.)) * InverseTranspose(FE);
+    // Tech report Page 2
+    return real(2.) * current_mu * (FE - RE) + current_lambda * JE * (JE - real(1.)) * InverseTranspose(FE);
+}
+
+Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
+    Mat33 U, V, R, S, W, A;
+    real3 E, b;
+    SVD(F, U, E, V);
+    R = MultTranspose(U, V);
+    S = V * MultTranspose(Mat33(E), V);
+    W = TransposeMult(R, dF);
+
+    // setup 3x3 system
+    A[0] = S[8];
+    A[1] = S[4];
+    A[2] = -(S[5] + S[10]);
+
+    A[4] = S[9];
+    A[5] = -(S[0] + S[10]);
+    A[6] = S[4];
+
+    A[8] = -(S[0] + S[5]);
+    A[9] = S[9];
+    A[10] = S[8];
+
+    b.x = W[4] - W[1];
+    b.y = W[2] - W[8];
+    b.z = W[9] - W[6];
+
+    // solve for R^TdR
+    real3 r = Inverse(A) * b;
+    Mat33 rx = SkewSymmetric(r);
+
+    Mat33 dR = R * rx;
+    return dR;
 }
 }
