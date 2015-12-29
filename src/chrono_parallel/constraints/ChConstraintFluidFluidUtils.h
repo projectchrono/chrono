@@ -102,10 +102,9 @@ real grad2_poly6(const real& dist, const real& h) {
 #define TT(beta) grad.beta
 
 Mat33 ComputeShearTensor(const real& mrho, const real3& grad, const real3& vij) {
-    real3 U = -.5 * real3(2 * SS(x) * TT(x), (SS(y) * TT(x) + SS(x) * TT(y)), (SS(z) * TT(x) + SS(x) * TT(z)));
-    real3 V = -.5 * real3((SS(x) * TT(y) + SS(y) * TT(x)), 2 * SS(y) * TT(y), (SS(z) * TT(y) + SS(y) * TT(z)));
-    real3 W = -.5 * real3((SS(x) * TT(z) + SS(z) * TT(x)), (SS(y) * TT(z) + SS(z) * TT(y)), 2 * SS(z) * TT(z));
-    return Mat33(U, V, W);
+    return Mat33(-.5 * 2 * SS(x) * TT(x), -.5 * (SS(y) * TT(x) + SS(x) * TT(y)), -.5 * (SS(z) * TT(x) + SS(x) * TT(z)),
+                 -.5 * (SS(x) * TT(y) + SS(y) * TT(x)), -.5 * 2 * SS(y) * TT(y), -.5 * (SS(z) * TT(y) + SS(y) * TT(z)),
+                 -.5 * (SS(x) * TT(z) + SS(z) * TT(x)), -.5 * (SS(y) * TT(z) + SS(z) * TT(y)), -.5 * 2 * SS(z) * TT(z));
 
     //  return (VectorxVector(mrho * vij, grad) + VectorxVector(grad, mrho * vij)) * -.5;
 }

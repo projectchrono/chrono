@@ -28,24 +28,50 @@ inline __m256d DotMM(const real* M) {
 
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
     return dotproduct;
+}  // dot product of each column of a matrix with itself
+inline __m256d DotMM(const real* M, const real* N) {
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    __m256d x = _mm256_loadu_pd(&N[0]);  // Load first column of M
+    __m256d y = _mm256_loadu_pd(&N[4]);  // Load second column of M
+    __m256d z = _mm256_loadu_pd(&N[8]);  // Load third column of M
+
+    __m256d xy0 = _mm256_mul_pd(a, x);
+    __m256d xy1 = _mm256_mul_pd(b, y);
+    __m256d xy2 = _mm256_mul_pd(c, z);
+    __m256d xy3 = _mm256_set1_pd(0);  // last dot prod is a dud
+
+    // low to high: xy00+xy01 xy10+xy11 xy02+xy03 xy12+xy13
+    __m256d temp01 = _mm256_hadd_pd(xy0, xy1);
+
+    // low to high: xy20+xy21 xy30+xy31 xy22+xy23 xy32+xy33
+    __m256d temp23 = _mm256_hadd_pd(xy2, xy3);
+
+    // low to high: xy02+xy03 xy12+xy13 xy20+xy21 xy30+xy31
+    __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+
+    // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+
+    __m256d dotproduct = _mm256_add_pd(swapped, blended);
+    return dotproduct;
 }
 // http://fhtr.blogspot.com/2010/02/4x4-float-matrix-multiplication-using.html
-inline Mat33 MulMM(const real* a, const real* b) {
+inline Mat33 MulMM(const real* M, const real* N) {
     Mat33 r;
-    __m256d a_line, b_line, r_line;
-    int i, j;
-    for (i = 0; i < 12; i += 4) {
-        // unroll the first step of the loop to avoid having to initialize r_line to zero
-        a_line = _mm256_load_pd(a);              // a_line = vec4(column(a, 0))
-        b_line = _mm256_set1_pd(b[i]);           // b_line = vec4(b[i][0])
-        r_line = _mm256_mul_pd(a_line, b_line);  // r_line = a_line * b_line
-        for (j = 1; j < 3; j++) {
-            a_line = _mm256_loadu_pd(&a[j * 4]);  // a_line = vec4(column(a, j))
-            b_line = _mm256_set1_pd(b[i + j]);    // b_line = vec4(b[i][j])
-                                                  // r_line += a_line * b_line
-            r_line = _mm256_add_pd(_mm256_mul_pd(a_line, b_line), r_line);
-        }
-        _mm256_storeu_pd(&r.array[i], r_line);  // r[i] = r_line
+    __m256d r_line;
+    int i;
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    for (i = 0; i < 3; i++) {
+        r_line = _mm256_mul_pd(a, _mm256_set1_pd(N[i * 4 + 0]));
+        r_line = _mm256_add_pd(_mm256_mul_pd(b, _mm256_set1_pd(N[i * 4 + 1])), r_line);
+        r_line = _mm256_add_pd(_mm256_mul_pd(c, _mm256_set1_pd(N[i * 4 + 2])), r_line);
+        _mm256_storeu_pd(&r.array[i * 4], r_line);
     }
     return r;
 }
@@ -144,6 +170,20 @@ inline SymMat33 NormalEquations(const real* M) {
     return result;
 }
 
+inline Mat33 MAbs(const real* M) {
+    Mat33 result;
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+    a = _mm256_and_pd(a, simd::ABSMASK);
+    b = _mm256_and_pd(b, simd::ABSMASK);
+    c = _mm256_and_pd(c, simd::ABSMASK);
+    _mm256_storeu_pd(&result.array[0 * 4], a);
+    _mm256_storeu_pd(&result.array[1 * 4], b);
+    _mm256_storeu_pd(&result.array[2 * 4], c);
+    return result;
+}
+
 //[0,4,8 ]
 //[1,5,9 ]
 //[2,6,10]
@@ -172,16 +212,15 @@ Mat33 operator-(const Mat33& M) {
     return Mat33(-M[0], -M[1], -M[2], -M[4], -M[5], -M[6], -M[8], -M[9], -M[10]);
 }
 Mat33 Abs(const Mat33& m) {
-    return Mat33(simd::Abs(m.cols[0]), simd::Abs(m.cols[1]), simd::Abs(m.cols[2]));
+    return MAbs(m.array);
 }
 Mat33 SkewSymmetric(const real3& r) {
-    return Mat33(real3(0, r[2], -r[1]), real3(-r[2], 0, r[0]), real3(r[1], -r[0], 0));
+    return Mat33(0, r[2], -r[1], -r[2], 0, r[0], r[1], -r[0], 0);
 }
 
 Mat33 MultTranspose(const Mat33& M, const Mat33& N) {
-    return Mat33(M * real3(N[0], N[4], N[8]),  //
-                 M * real3(N[1], N[5], N[9]),  //
-                 M * real3(N[2], N[6], N[10]));
+    // Not a clean way to write this in AVX, might as well transpose first and then multiply
+    return M * Transpose(N);
 }
 
 Mat33 TransposeMult(const Mat33& M, const Mat33& N) {
@@ -201,7 +240,7 @@ Mat33 OuterProduct(const real3& a, const real3& b) {
 }
 
 real InnerProduct(const Mat33& A, const Mat33& B) {
-    return Dot(A.cols[0], B.cols[0]) + Dot(A.cols[1], B.cols[1]) + Dot(A.cols[0], B.cols[0]);
+    return simd::HorizontalAdd(DotMM(A.array, B.array));
 }
 
 Mat33 Adjoint(const Mat33& A) {
@@ -270,19 +309,18 @@ real3 LargestColumnNormalized(const Mat33& A) {
     real3 sqrt_scale = simd::SquareRoot(scale);
     if (scale.x > scale.y) {
         if (scale.x > scale.z) {
-            return A.cols[0] / sqrt_scale.x;
+            return A.col(0) / sqrt_scale.x;
         }
     } else if (scale.y > scale.z) {
-        return A.cols[1] / sqrt_scale.y;
+        return A.col(1) / sqrt_scale.y;
     }
-    return A.cols[2] / sqrt_scale.z;
+    return A.col(2) / sqrt_scale.z;
 }
 //// ========================================================================================
 
 Mat33 operator*(const DiagMat33& M, const Mat33& N) {
-    return Mat33(real3(M.x11 * N.cols[0].x, M.x22 * N.cols[0].y, M.x33 * N.cols[0].z),
-                 real3(M.x11 * N.cols[1].x, M.x22 * N.cols[1].y, M.x33 * N.cols[1].z),
-                 real3(M.x11 * N.cols[2].x, M.x22 * N.cols[2].y, M.x33 * N.cols[2].z));
+    return Mat33(M.x11 * N[0], M.x22 * N[1], M.x33 * N[2], M.x11 * N[4], M.x22 * N[5], M.x33 * N[6], M.x11 * N[8],
+                 M.x22 * N[9], M.x33 * N[10]);
 }
 real3 operator*(const DiagMat33& M, const real3& v) {
     real3 result;
@@ -376,9 +414,10 @@ real2 LargestColumnNormalized(const SymMat22& A) {
 // A^T*B
 SymMat22 TransposeTimesWithSymmetricResult(const Mat32& A, const Mat32& B) {
     SymMat22 T;
-    T.x11 = Dot(real3(A[0], A[1], A[2]), real3(B[0], A[1], A[2]));
-    T.x21 = Dot(real3(A[4], A[5], A[6]), real3(B[0], A[1], A[2]));
-    T.x22 = Dot(real3(A[4], A[5], A[6]), real3(B[4], A[5], A[6]));
+    T.x11 = A[0] * B[0] + A[1] * B[1] + A[2] * B[2];
+    T.x21 = A[4] * B[0] + A[5] * B[1] + A[6] * B[2];
+    T.x22 = A[4] * B[4] + A[5] * B[5] + A[6] * B[6];
+
     return T;
 }
 

@@ -26,20 +26,18 @@ namespace chrono {
 class Mat33 {
   public:
     // Zero constructor
-    Mat33() {
-        cols[0] = real3(0.0);
-        cols[1] = real3(0.0);
-        cols[2] = real3(0.0);
-    }
+    Mat33() : array{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} {}
     // diagonal matrix constructor
     Mat33(real v) : array{v, 0, 0, 0, 0, v, 0, 0, 0, 0, v, 0} {}
+    // diagonal matrix constructor
+    Mat33(real3 v) : array{v.x, 0, 0, 0, 0, v.y, 0, 0, 0, 0, v.z, 0} {}
 
     // Constructor that takes three columns of the matrix
-    Mat33(const real3& col1, const real3& col2, const real3& col3) {
-        cols[0] = col1;
-        cols[1] = col2;
-        cols[2] = col3;
-    }
+    //    Mat33(const real3& col1, const real3& col2, const real3& col3) {
+    //        cols[0] = col1;
+    //        cols[1] = col2;
+    //        cols[2] = col3;
+    //    }
     Mat33(const real& v11,
           const real& v21,
           const real& v31,
@@ -51,7 +49,7 @@ class Mat33 {
           const real& v33)
         : array{v11, v21, v31, 0, v12, v22, v32, 0, v13, v23, v33, 0} {}
 
-    Mat33(const Mat33& M) {}
+    Mat33(const Mat33& M) { memcpy(array, M.array, 12 * sizeof(real)); }
 
     Mat33(const quaternion& q) {
         array[0] = real(1.0) - real(2.0) * q.y * q.y - real(2.0) * q.z * q.z;
@@ -71,16 +69,15 @@ class Mat33 {
     inline real& operator[](unsigned int i) { return array[i]; }
     inline real operator()(int i, int j) const { return array[i * 4 + j]; }
     inline real& operator()(int i, int j) { return array[i * 4 + j]; }
+    inline real3 col(unsigned int i) const { return real3(array[i * 4], array[i * 4 + 1], array[i * 4 + 2]); }
 
     inline Mat33& operator=(const Mat33& M) {
         memcpy(array, M.array, 12 * sizeof(real));
         return *this;
     }
 
-    union {
-        real array[12];
-        real3 cols[3];
-    };
+    real array[12];
+
     // c1 c2 c3
     // 0  4  8
     // 1  5  9
@@ -219,26 +216,26 @@ SymMat22 TransposeTimesWithSymmetricResult(const Mat32& A, const Mat32& B);
 //
 SymMat22 ConjugateWithTranspose(const Mat32& A, const SymMat33& B);
 
-static void Print(Mat33 A, const char* name) {
+static void Print(const Mat33& A, const char* name) {
     printf("%s\n", name);
-    printf("%f %f %f\n", A[0], A[4], A[7]);
-    printf("%f %f %f\n", A[1], A[5], A[8]);
-    printf("%f %f %f\n", A[2], A[6], A[9]);
+    printf("%f %f %f\n", A[0], A[4], A[8]);
+    printf("%f %f %f\n", A[1], A[5], A[9]);
+    printf("%f %f %f\n", A[2], A[6], A[10]);
 }
-static void Print(Mat32 A, const char* name) {
+static void Print(const Mat32& A, const char* name) {
     printf("%s\n", name);
     printf("%f %f\n", A[0], A[4]);
     printf("%f %f\n", A[1], A[5]);
     printf("%f %f\n", A[2], A[6]);
 }
-static void Print(SymMat33 A, const char* name) {
+static void Print(const SymMat33& A, const char* name) {
     printf("%s\n", name);
 
     printf("%f %f %f\n", A.x11, A.x21, A.x31);
     printf("%f %f %f\n", A.x21, A.x22, A.x32);
     printf("%f %f %f\n", A.x31, A.x32, A.x33);
 }
-static void Print(SymMat22 A, const char* name) {
+static void Print(const SymMat22& A, const char* name) {
     printf("%s\n", name);
 
     printf("%f %f\n", A.x11, A.x21);

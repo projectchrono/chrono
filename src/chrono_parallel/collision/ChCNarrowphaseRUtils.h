@@ -234,7 +234,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
 
     // 1. Test the axes of box1 (3 cases)
     // x-axis
-    r2 = Rabs.cols[0].x * hdims2.x + Rabs.cols[1].x * hdims2.y + Rabs.cols[2].x * hdims2.z;
+    r2 = Rabs[0] * hdims2.x + Rabs[4] * hdims2.y + Rabs[8] * hdims2.z;
     overlap = hdims1.x + r2 - Abs(pos.x);
     if (overlap <= 0)
         return false;
@@ -243,7 +243,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
         minOverlap = overlap;
     }
     // y-axis
-    r2 = Rabs.cols[0].y * hdims2.x + Rabs.cols[1].y * hdims2.y + Rabs.cols[2].y * hdims2.z;
+    r2 = Rabs[1] * hdims2.x + Rabs[5] * hdims2.y + Rabs[9] * hdims2.z;
     overlap = hdims1.y + r2 - Abs(pos.y);
     if (overlap <= 0)
         return false;
@@ -252,7 +252,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
         minOverlap = overlap;
     }
     // z-axis
-    r2 = Rabs.cols[0].z * hdims2.x + Rabs.cols[1].z * hdims2.y + Rabs.cols[2].z * hdims2.z;
+    r2 = Rabs[2] * hdims2.x + Rabs[6] * hdims2.y + Rabs[10] * hdims2.z;
     overlap = hdims1.z + r2 - Abs(pos.z);
     if (overlap <= 0)
         return false;
@@ -263,30 +263,30 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
 
     // 2. Test the axes of box2 (3 cases)
     // x-axis
-    r1 = Dot(Rabs.cols[0], hdims1);
-    overlap = r1 + hdims2.x - Abs(Dot(R.cols[0], pos));
+    r1 = Dot(Rabs.col(0), hdims1);
+    overlap = r1 + hdims2.x - Abs(Dot(R.col(0), pos));
     if (overlap <= 0)
         return false;
     if (overlap < minOverlap) {
-        dir = R.cols[0];
+        dir = R.col(0);
         minOverlap = overlap;
     }
     // y-axis
-    r1 = Dot(Rabs.cols[1], hdims1);
-    overlap = r1 + hdims2.y - Abs(Dot(R.cols[1], pos));
+    r1 = Dot(Rabs.col(1), hdims1);
+    overlap = r1 + hdims2.y - Abs(Dot(R.col(1), pos));
     if (overlap <= 0)
         return false;
     if (overlap < minOverlap) {
-        dir = R.cols[1];
+        dir = R.col(1);
         minOverlap = overlap;
     }
     // z-axis
-    r1 = Dot(Rabs.cols[2], hdims1);
-    overlap = r1 + hdims2.z - Abs(Dot(R.cols[2], pos));
+    r1 = Dot(Rabs.col(2), hdims1);
+    overlap = r1 + hdims2.z - Abs(Dot(R.col(2), pos));
     if (overlap <= 0)
         return false;
     if (overlap < minOverlap) {
-        dir = R.cols[2];
+        dir = R.col(2);
         minOverlap = overlap;
     }
 

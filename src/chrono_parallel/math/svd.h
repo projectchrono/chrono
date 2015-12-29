@@ -68,7 +68,8 @@ static Mat33 Fast_Eigenvectors(const SymMat33& A, real3& lambda) {
 
     real3 v2 = Cross(v3, v1);  // 6m+3a
     // finish
-    return flipped ? Mat33(v3, v2, -v1) : Mat33(v1, v2, v3);
+    return flipped ? Mat33(v3.x, v3.y, v3.z, v2.x, v2.y, v2.z, -v1.x, -v1.y, -v1.z)
+                   : Mat33(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z);
 }
 
 static void Fast_Solve_EigenProblem(const SymMat33& A, real3& eigen_values, Mat33& eigen_vectors) {
@@ -90,15 +91,17 @@ static void SVD(const Mat33& A, Mat33& U, real3& singular_values, Mat33& V) {
     }
 
     // compute singular vectors
-    U.cols[0] = Normalize(A * V.cols[0]);        // 15m+8a+1d+1s
-    real3 v1 = UnitOrthogonalVector(U.cols[0]);  // 6m+2a+1d+1s
-    real3 v2 = Cross(U.cols[0], v1);             // 6m+3a
+    real3 c0 = Normalize(A * V.col(0));   // 15m+8a+1d+1s
+    real3 v1 = UnitOrthogonalVector(c0);  // 6m+2a+1d+1s
+    real3 v2 = Cross(c0, v1);             // 6m+3a
 
     // 6m+3a + 6m+4a + 9m+6a + 6m+2a+1d+1s = 27m+15a+1d+1s
-    real3 v3 = A * V.cols[1];
+    real3 v3 = A * V.col(1);
     real2 other_v = Normalize(real2(Dot(v1, v3), Dot(v2, v3)));
-    U.cols[1] = real3(v1.x * other_v.x + v2.x * other_v.y, v1.y * other_v.x + v2.y * other_v.y,
-                      v1.z * other_v.x + v2.z * other_v.y);
-    U.cols[2] = Cross(U.cols[0], U.cols[1]);  // 6m+3a
+    real3 c1 = real3(v1.x * other_v.x + v2.x * other_v.y, v1.y * other_v.x + v2.y * other_v.y,
+                     v1.z * other_v.x + v2.z * other_v.y);
+    real3 c2 = Cross(c0, c1);  // 6m+3a
+
+    U = Mat33(c0.x, c0.y, c0.z, c1.x, c1.y, c1.z, c2.x, c2.y, c2.z);
 }
 }
