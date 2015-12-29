@@ -83,13 +83,50 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
 
     Solve(rhs, grid_vel);
 
-
+    const real theta_c = data_manager->settings.mpm.theta_c;
+    const real theta_s = data_manager->settings.mpm.theta_s;
+    const real alpha = data_manager->settings.mpm.alpha;
 
     //   Update_Deformation_Gradient
+    for (int p = 0; p < num_particles; p++) {
+        const real3 xi = sorted_pos[p];
+        Mat33 velocity_gradient(0);
+        LOOPOVERNODES(  //
+            velocity_gradient += OuterProduct(((real3*)grid_vel.data())[current_node],
+                                              dN(real3(xi) - current_node_location, inv_bin_edge));  //
+            )
+        Mat33 Fe_tmp = (Mat33(1.0) + dt * velocity_gradient) * Fe[p];
+        Mat33 F_tmp = Fe_tmp * Fp[p];
+        Mat33 U, V;
+        real3 E;
+        SVD(Fe_tmp, U, E, V);
+        real3 E_clamped;
 
+        E_clamped.x = Clamp(E.x, 1.0 - theta_c, 1.0 + theta_s);
+        E_clamped.y = Clamp(E.y, 1.0 - theta_c, 1.0 + theta_s);
+        E_clamped.z = Clamp(E.z, 1.0 - theta_c, 1.0 + theta_s);
 
+        Fe[p] = U * MultTranspose(E_clamped, V);
+        // Inverse of Diagonal E_clamped matrix is 1/E_clamped
+        Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
+    }
 
+    // Update_Particle_Velocities
+    for (int p = 0; p < num_particles; p++) {
+        const real3 xi = sorted_pos[p];
+        real3 V_flip = sorted_vel[p];
+        real3 V_pic = real3(0.0);
+        LOOPOVERNODES(                                                         //
+            real weight = N(real3(xi) - current_node_location, inv_bin_edge);  //
+            V_pic += ((real3*)grid_vel.data())[current_node] * weight;         //
+            V_flip +=
+            (((real3*)grid_vel.data())[current_node] - ((real3*)grid_vel_old.data())[current_node]) * weight;  //
+            )
 
+        real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
+        sorted_vel[p] = new_vel;
+        sorted_pos[p] += new_vel * dt;
+    }
 }
 
 void ChLcpSolverParallelMPM::Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array) {

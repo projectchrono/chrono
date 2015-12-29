@@ -94,7 +94,7 @@ Mat33 Potential_Energy_Derivative(const Mat33& FE, const Mat33& FP, real mu, rea
     SVD(FE, UE, EE, VE);
     // Perform a polar decomposition, FE=RE*SE, RE is the Unitary part
     Mat33 RE = MultTranspose(UE, VE);
-    // Tech report Page 2
+    // Tech report middle of Page 2
     return real(2.) * current_mu * (FE - RE) + current_lambda * JE * (JE - real(1.)) * InverseTranspose(FE);
 }
 
@@ -102,11 +102,14 @@ Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
     Mat33 U, V, R, S, W, A;
     real3 E, b;
     SVD(F, U, E, V);
+    //Perform polar decomposition F = R*S
     R = MultTranspose(U, V);
     S = V * MultTranspose(Mat33(E), V);
+    //See tech report end of page 2
     W = TransposeMult(R, dF);
 
     // setup 3x3 system
+    //How does this work?
     A[0] = S[8];
     A[1] = S[4];
     A[2] = -(S[5] + S[10]);

@@ -137,6 +137,9 @@ struct mpm_settings {
     real mu;
     real hardening_coefficient;
     real lambda;
+    real theta_s;
+    real theta_c;
+    real alpha;
 };
 // solver_settings, like the name implies is the structure that contains all
 // settings associated with the parallel solver.
