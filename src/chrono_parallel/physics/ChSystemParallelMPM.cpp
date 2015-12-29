@@ -1,5 +1,5 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
-
+#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 using namespace chrono;
 
 ChSystemParallelMPM::ChSystemParallelMPM(unsigned int max_objects) : ChSystemParallel(max_objects) {

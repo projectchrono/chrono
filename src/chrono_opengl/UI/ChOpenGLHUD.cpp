@@ -16,7 +16,7 @@
 
 #include "chrono_opengl/UI/ChOpenGLHUD.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
-
+#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 #include "collision/ChCCollisionSystemBullet.h"
 
 // Includes that are generated at compile time

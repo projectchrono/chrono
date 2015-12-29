@@ -22,6 +22,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
+#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsCreators.h"

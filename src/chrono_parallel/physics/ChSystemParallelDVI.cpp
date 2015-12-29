@@ -1,4 +1,5 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 
 using namespace chrono;
 
@@ -29,6 +30,10 @@ ChBody* ChSystemParallelDVI::NewBody() {
         return new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DVI);
 
     return new ChBody(ChMaterialSurfaceBase::DVI);
+}
+
+void ChSystemParallelDVI::ChangeSolverType(SOLVERTYPE type) {
+    ((ChLcpSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type);
 }
 
 void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {

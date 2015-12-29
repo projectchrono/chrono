@@ -1,4 +1,5 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 
 using namespace chrono;
 using namespace chrono::collision;
