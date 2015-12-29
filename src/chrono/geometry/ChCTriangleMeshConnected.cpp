@@ -1206,6 +1206,9 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
 }
 
 
+// Offset algorithm based on:
+// " A 3D surface offset method for STL-format models"
+//   Xiuzhi Qu and Brent Stucker
 
 bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
     

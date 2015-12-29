@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
                                   false, true, video::EDT_OPENGL);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    // ChIrrWizard::add_typical_Logo(application.GetDevice());
+    ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
                                     core::vector3df(30, -80, -30), 200, 130);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     ChBodySceneNodeAuxRef* mrigidBody_rod = 0;
 
     // load the STEP model using this command:
-    bool load_ok = mydoc.Load_STEP("../data/cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp");
+    bool load_ok = mydoc.Load_STEP(GetChronoDataFile("/cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp").c_str());
 
     // print the contained shapes
     mydoc.Dump(GetLog());

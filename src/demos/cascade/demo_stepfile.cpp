@@ -70,11 +70,11 @@ int main(int argc, char* argv[]) {
                                   true, video::EDT_OPENGL);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    // ChIrrWizard::add_typical_Logo(application.GetDevice());
+    ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
                                     core::vector3df(30, -80, -30), 200, 130);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2, 0.3, -0.5));
+    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2, 0.2, -0.3));
 
     //
     // Load a STEP file, containing a mechanism. The demo STEP file has been
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     ChBodySceneNodeAuxRef* mrigidBody2 = 0;
 
     // load the STEP model using this command:
-    bool load_ok = mydoc.Load_STEP("..\\data\\cascade\\assembly.stp");
+    bool load_ok = mydoc.Load_STEP(GetChronoDataFile("cascade/assembly.stp").c_str());  // or specify abs.path: ("C:\\data\\cascade\\assembly.stp");
 
     // print the contained shapes
     mydoc.Dump(GetLog());
@@ -187,8 +187,8 @@ int main(int argc, char* argv[]) {
     // Create a large cube as a floor.
 
     ChBodySceneNode* mfloor = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        &my_system, application.GetSceneManager(), 1000.0, ChVector<>(0, -0.6, 0), ChQuaternion<>(1, 0, 0, 0),
-        ChVector<>(20, 1, 20));
+        &my_system, application.GetSceneManager(), 1000.0, ChVector<>(0, -0.2, 0), ChQuaternion<>(1, 0, 0, 0),
+        ChVector<>(1, 0.1, 1));
     mfloor->GetBody()->SetBodyFixed(true);
     mfloor->GetBody()->SetCollide(true);
     video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
@@ -198,7 +198,6 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
     //
 
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 
