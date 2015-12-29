@@ -124,6 +124,7 @@ void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
 	outProbParams << paramsH.sizeScale << endl;
 	outProbParams << paramsH.HSML << endl;
 	outProbParams << paramsH.MULT_INITSPACE << endl;
+	outProbParams << paramsH.epsMinMarkersDis << endl;
 	outProbParams << paramsH.NUM_BOUNDARY_LAYERS << endl;
 	outProbParams << paramsH.toleranceZone << endl;
 	outProbParams << paramsH.NUM_BCE_LAYERS << endl;
@@ -302,6 +303,7 @@ void CheckPointMarkers_Read(bool shouldIRead,
 	inProbParams >> paramsH.sizeScale;
 	inProbParams >> paramsH.HSML;
 	inProbParams >> paramsH.MULT_INITSPACE;
+	inProbParams >> paramsH.epsMinMarkersDis;
 	inProbParams >> paramsH.NUM_BOUNDARY_LAYERS;
 	inProbParams >> paramsH.toleranceZone;
 	inProbParams >> paramsH.NUM_BCE_LAYERS;

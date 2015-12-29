@@ -175,28 +175,6 @@ __device__ inline Real FerrariCi(Real rho) {
 	return sqrt(gama * B / paramsD.rho0) * pow(rho / paramsD.rho0, 0.5 * (gama - 1));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-/**
- * @brief Distance
- * @details
- *          Distance between two particles, considering the periodic boundary condition
- *
- * @param posRadA Position of Particle A
- * @param posRadB Position of Particle B
- *
- * @return Distance vector (distance in x, distance in y, distance in z)
- */
-__device__ inline Real3 Distance(Real3 a, Real3 b) {
-	Real3 dist3 = a - b;
-	dist3.x -= ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
-	dist3.x += ((dist3.x < -0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
-
-	dist3.y -= ((dist3.y > 0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
-	dist3.y += ((dist3.y < -0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
-
-	dist3.z -= ((dist3.z > 0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
-	dist3.z += ((dist3.z < -0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
-	return dist3;
-}
 
 __device__ inline Real3 Modify_Local_PosB(Real3 & b, Real3 a) {
 	Real3 dist3 = a - b;
@@ -208,8 +186,41 @@ __device__ inline Real3 Modify_Local_PosB(Real3 & b, Real3 a) {
 
 	b.z += ((dist3.z > 0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
 	b.z -= ((dist3.z < -0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
-	return (a-b);
+
+	dist3 = a - b;
+	// modifying the markers perfect overlap
+	Real d = length(dist3);
+	if (d < paramsD.epsMinMarkersDis * paramsD.HSML) {
+		dist3 = mR3(paramsD.epsMinMarkersDis * paramsD.HSML, 0, 0);
+	}
+	b = a - dist3;
+	return (dist3);
 }
+
+/**
+ * @brief Distance
+ * @details
+ *          Distance between two particles, considering the periodic boundary condition
+ *
+ * @param posRadA Position of Particle A
+ * @param posRadB Position of Particle B
+ *
+ * @return Distance vector (distance in x, distance in y, distance in z)
+ */
+__device__ inline Real3 Distance(Real3 a, Real3 b) {
+//	Real3 dist3 = a - b;
+//	dist3.x -= ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
+//	dist3.x += ((dist3.x < -0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
+//
+//	dist3.y -= ((dist3.y > 0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
+//	dist3.y += ((dist3.y < -0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
+//
+//	dist3.z -= ((dist3.z > 0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
+//	dist3.z += ((dist3.z < -0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
+	return Modify_Local_PosB(b, a);
+}
+
+
 
 
 

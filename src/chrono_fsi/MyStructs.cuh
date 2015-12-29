@@ -29,6 +29,7 @@ struct SimParams {
 	Real MULT_INITSPACE; /* Multiplier to hsml to determine the initial separation of the fluid particles and the fixed
 	 separation for the boundary particles. This means that the separation will always be a
 	 multiple of hsml. Default value = 1.0. */
+	Real epsMinMarkersDis; // epsilon mult for minimum distance between markers (d_min = eps * HSML)
 	int NUM_BOUNDARY_LAYERS; /*  Number of particles layers that will be used in the boundary. Default value = 3. */
 	Real toleranceZone; /* Helps determine the particles that are in the domain but are outside the boundaries, so they
 	 are not considered fluid particles and are dropped at the beginning of the simulation. */

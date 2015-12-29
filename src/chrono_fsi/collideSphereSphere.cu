@@ -508,8 +508,7 @@ void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
 			mR3CAST(posRigidD), mR4CAST(velMassRigidD), mR3CAST(omegaLRF_D),
 			mR4CAST(qD));
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
 }
 
 //*******************************************************************************************************************************

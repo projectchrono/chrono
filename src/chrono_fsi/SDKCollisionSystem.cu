@@ -45,11 +45,10 @@ __device__ uint calcGridHash(int3 gridPos) {
  * @brief calcGridHash
  * @details  See SDKCollisionSystem.cuh
  */
-__device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
-		const Real3& velMasA, const Real3& vel_XSPH_A, const Real3& velMasB,
-		const Real3& vel_XSPH_B, const Real4& rhoPresMuA,
-		const Real4& rhoPresMuB, Real multViscosity) {
-	Real epsilonMutualDistance = .001f;
+__device__ inline Real4 DifVelocityRho(Real3& dist3, Real& d, Real3 posRadA, Real3 posRadB,
+		Real3& velMasA, Real3& vel_XSPH_A, Real3& velMasB,
+		Real3& vel_XSPH_B, Real4& rhoPresMuA,
+		Real4& rhoPresMuB, Real multViscosity) {
 	Real3 gradW = GradW(dist3);
 
 	// Real vAB_Dot_rAB = dot(velMasA - velMasB, dist3);
@@ -65,7 +64,7 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 	//	Real nu = 22.8f * paramsD.mu0 / 2.0f / (rhoPresMuA.x * rhoPresMuB.x);
 	//	Real3 derivV = -paramsD.markerMass * (
 	//		rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)
-	//		- nu * vAB_Dot_rAB / ( d * d + epsilonMutualDistance * paramsD.HSML * paramsD.HSML )
+	//		- nu * vAB_Dot_rAB / ( d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML )
 	//		) * gradW;
 	//	return mR4(derivV,
 	//		rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
@@ -73,7 +72,7 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 	//*** Artificial viscosity type 2
 	Real rAB_Dot_GradW = dot(dist3, gradW);
 	Real rAB_Dot_GradW_OverDist = rAB_Dot_GradW
-			/ (d * d + epsilonMutualDistance * paramsD.HSML * paramsD.HSML);
+			/ (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
 	Real3 derivV = -paramsD.markerMass
 			* (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x)
 					+ rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
@@ -93,11 +92,36 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 	derivRho = paramsD.markerMass * dot(vel_XSPH_A - vel_XSPH_B, gradW);
 	Real cA = FerrariCi(rhoPresMuA.x);
 	Real cB = FerrariCi(rhoPresMuB.x);
-	derivRho -= rAB_Dot_GradW / (d + epsilonMutualDistance * paramsD.HSML) * max(cA, cB) / rhoPresMuB.x * (rhoPresMuB.x - rhoPresMuA.x);
+	derivRho -= rAB_Dot_GradW / (d + paramsD.epsMinMarkersDis * paramsD.HSML) * max(cA, cB) / rhoPresMuB.x * (rhoPresMuB.x - rhoPresMuA.x);
 
 	//--------------------------------
 
+	if (rhoPresMuB.w > -.1) {
+		posRadB = 2 * posRadB - posRadA;
+		dist3 = posRadA - posRadB;
+		d = length(dist3);
 
+
+		Real rAB_Dot_GradW = dot(dist3, gradW);
+		Real rAB_Dot_GradW_OverDist = rAB_Dot_GradW
+				/ (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+
+
+		if (d < RESOLUTION_LENGTH_MULT * paramsD.HSML) {
+			velMasB = 2 * velMasB - velMasA;
+
+				rhoPresMuB.x = rhoPresMuA.x;
+				rhoPresMuB.y = rhoPresMuA.y;
+
+
+				derivV = -paramsD.markerMass
+							* (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x)
+									+ rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
+							+ paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0
+									* pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2))
+									* rAB_Dot_GradW_OverDist * (velMasA - velMasB);
+		}
+	}
 
 	return mR4(derivV, derivRho);
 
@@ -106,7 +130,7 @@ __device__ inline Real4 DifVelocityRho(const Real3& dist3, const Real& d,
 	//	Real3 derivV = -paramsD.markerMass * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x *
 	// rhoPresMuB.x)) * gradW
 	//		+ paramsD.markerMass / (rhoPresMuA.x * rhoPresMuB.x) * 2.0f * paramsD.mu0 * rAB_Dot_GradW / ( d * d +
-	// epsilonMutualDistance * paramsD.HSML * paramsD.HSML ) * (velMasA - velMasB);
+	// paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML ) * (velMasA - velMasB);
 	//	return mR4(derivV,
 	//		rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
 }
@@ -276,14 +300,19 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 		if (j != index) {  // check not colliding with self
 			Real3 posRadB = FETCH(sortedPosRad, j);
 			Real3 dist3Alpha = posRadA - posRadB;
-			Real3 dist3 = Distance(posRadA, posRadB);
+//			Real3 dist3 = Distance(posRadA, posRadB);
+			Real3 dist3 = Modify_Local_PosB(posRadB, posRadA);
 			Real d = length(dist3);
 			if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
 				continue;
 
 			Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
-			if ((fabs(rhoPresMuB.w - rhoPresMuA.w) < .1)
-					&& rhoPresMuA.w > -.1) {
+//			// old version. When rigid-rigid contact used to be handled within fluid
+//			if ((fabs(rhoPresMuB.w - rhoPresMuA.w) < .1)
+//					&& rhoPresMuA.w > -.1) {
+//				continue;
+//			}
+			if (rhoPresMuA.w > -.1 && rhoPresMuB.w > -.1) { // no rigid-rigid force
 				continue;
 			}
 			Real3 velMasB = FETCH(sortedVelMas, j);
@@ -291,7 +320,7 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 			Real multViscosit = 1;
 			Real4 derivVelRho = mR4(0.0f);
 			Real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
-			derivVelRho = DifVelocityRho(dist3, d, velMasA, vel_XSPH_A,
+			derivVelRho = DifVelocityRho(dist3, d, posRadA, posRadB, velMasA, vel_XSPH_A,
 					velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB,
 					multViscosit);
 			derivV += mR3(derivVelRho);
@@ -1473,8 +1502,8 @@ void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 	cudaCheckError();
 	//------------------------------------------------------------------------
 	cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-	if (isErrorH) {
-		throw std::runtime_error ("Error! program crashed in  collideD!\n");
+	if (*isErrorH == true) {
+		throw std::runtime_error ("Error! program crashed in  newVel_XSPH_D!\n");
 	}
 	cudaFree(isErrorD);
 	free(isErrorH);
@@ -1585,7 +1614,7 @@ void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
 	cudaCheckError();
 	//------------------------------------------------------------------------
 	cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-	if (isErrorH) {
+	if (*isErrorH == true) {
 		throw std::runtime_error ("Error! program crashed in  collideD!\n");
 	}
 	cudaFree(isErrorD);
@@ -1750,8 +1779,8 @@ void UpdateFluid(thrust::device_vector<Real3>& posRadD,
 	cudaCheckError();
 	//------------------------
 	cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-	if (isErrorH) {
-		throw std::runtime_error ("Error! program crashed in  collideD!\n");
+	if (*isErrorH == true) {
+		throw std::runtime_error ("Error! program crashed in  UpdateFluidD!\n");
 	}
 	cudaFree(isErrorD);
 	free(isErrorH);
