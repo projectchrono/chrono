@@ -94,13 +94,16 @@ class CH_PARALLEL_API ChLcpSolverParallelMPM : public ChLcpSolverParallel {
 
     virtual void RunTimeStep();
     void ChangeSolverType(SOLVERTYPE type);
-
-    custom_vector<real> grid_mass;
-    custom_vector<real> grid_vel;
-    custom_vector<real> grid_vel_old;
+    void Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array);
+    void Solve(DynamicVector<real>& mb, DynamicVector<real>& ml);
+    DynamicVector<real> grid_mass;
+    DynamicVector<real> grid_vel;
+    DynamicVector<real> grid_vel_old;
     custom_vector<real3> grid_forces;
-    custom_vector<real> volume;
+    DynamicVector<real> volume, rhs;
     custom_vector<Mat33> Fe, Fe_hat, Fp, delta_F;
+
+    DynamicVector<real> r, p, Ap;
 
   private:
 };
