@@ -102,14 +102,14 @@ Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
     Mat33 U, V, R, S, W, A;
     real3 E, b;
     SVD(F, U, E, V);
-    //Perform polar decomposition F = R*S
+    // Perform polar decomposition F = R*S
     R = MultTranspose(U, V);
     S = V * MultTranspose(Mat33(E), V);
-    //See tech report end of page 2
+    // See tech report end of page 2
     W = TransposeMult(R, dF);
 
     // setup 3x3 system
-    //How does this work?
+    // Multiply out (R^TdR)*S + S*(R^TdR) and because it is skew symmetric we will only have three unknowns
     A[0] = S[8];
     A[1] = S[4];
     A[2] = -(S[5] + S[10]);
@@ -121,7 +121,7 @@ Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
     A[8] = -(S[0] + S[5]);
     A[9] = S[9];
     A[10] = S[8];
-
+    //dF^TR is just the transpose of W which is R^TdF, this is the right hand side
     b.x = W[4] - W[1];
     b.y = W[2] - W[8];
     b.z = W[9] - W[6];
