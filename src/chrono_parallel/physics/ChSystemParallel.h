@@ -129,7 +129,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     std::vector<ChShaft*> shaftlist;
 };
-
+//====================================================================================================
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     CH_RTTI(ChSystemParallelDVI, ChSystemParallel);
 
@@ -152,6 +152,7 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     virtual void AssembleSystem();
     virtual void SolveSystem();
 };
+//====================================================================================================
 class CH_PARALLEL_API ChSystemParallelMPM : public ChSystemParallel {
     CH_RTTI(ChSystemParallelMPM, ChSystemParallel);
 
@@ -163,6 +164,8 @@ class CH_PARALLEL_API ChSystemParallelMPM : public ChSystemParallel {
     virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
 
+    void Initialize();
+
     void CalculateContactForces();
     real CalculateKineticEnergy();
     real CalculateDualObjective();
@@ -170,6 +173,7 @@ class CH_PARALLEL_API ChSystemParallelMPM : public ChSystemParallel {
     virtual real3 GetBodyContactForce(uint body_id) const;
     virtual real3 GetBodyContactTorque(uint body_id) const;
 };
+//====================================================================================================
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
 

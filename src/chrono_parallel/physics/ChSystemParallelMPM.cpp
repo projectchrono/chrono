@@ -66,3 +66,18 @@ real3 ChSystemParallelMPM::GetBodyContactForce(uint body_id) const {
 real3 ChSystemParallelMPM::GetBodyContactTorque(uint body_id) const {
     return real3(0);
 }
+
+void ChSystemParallelMPM::Initialize() {
+    Setup();
+
+    data_manager->system_timer.start("update");
+    Update();
+    data_manager->system_timer.stop("update");
+
+    data_manager->system_timer.start("collision");
+    collision_system->Run();
+    collision_system->ReportContacts(this->contact_container.get_ptr());
+    data_manager->system_timer.stop("collision");
+
+    ((ChLcpSolverParallelMPM*)LCP_solver_speed)->Initialize();
+}

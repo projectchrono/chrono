@@ -4,6 +4,7 @@
 #include "chrono_parallel/solver/ChSolverAPGD.h"
 #include "chrono_parallel/solver/ChSolverAPGDREF.h"
 #include "chrono_parallel/lcp/MPMUtils.h"
+#include <algorithm>
 
 using namespace chrono;
 #define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
@@ -11,16 +12,7 @@ using namespace chrono;
     M.reserve(nnz);                              \
     M.resize(rows, cols, false);
 
-
 void ChLcpSolverParallelMPM::Initialize() {
-
-
-
-
-}
-
-
-void ChLcpSolverParallelMPM::RunTimeStep() {
     const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
     const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
     const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
@@ -40,17 +32,74 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
     size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
     grid_mass.resize(num_nodes);
-    grid_vel.resize(num_nodes);
-    grid_vel_old.resize(num_nodes);
+    grid_vel.resize(num_nodes * 3);
+    grid_vel_old.resize(num_nodes * 3);
     grid_forces.resize(num_nodes);
 
     volume.resize(num_particles);
     rhs.resize(num_nodes * 3);
 
+    delta_F.resize(num_particles);
+
+    printf("Rasterize\n");
+    for (int p = 0; p < num_particles; p++) {
+        const real3 xi = sorted_pos[p];
+        const real3 vi = sorted_vel[p];
+
+        LOOPOVERNODES(                                                                //
+            real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
+            //            printf("node: %d %f [%f %f %f] [%f %f %f]\n", current_node, weight, xi.x, xi.y, xi.z,
+            //            current_node_location.x,
+            //            current_node_location.y, current_node_location.z);
+            grid_mass[current_node] += weight;                //
+            grid_vel[current_node * 3 + 0] += weight * vi.x;  //
+            grid_vel[current_node * 3 + 1] += weight * vi.y;  //
+            grid_vel[current_node * 3 + 2] += weight * vi.z;  //
+            )
+    }
+
+    printf("Compute_Particle_Volumes\n");
+    for (int p = 0; p < num_particles; p++) {
+        const real3 xi = sorted_pos[p];
+        const real3 vi = sorted_vel[p];
+        real particle_density = 0;
+
+        LOOPOVERNODES(                                                  //
+            real weight = N(xi - current_node_location, inv_bin_edge);  //
+            particle_density += grid_mass[current_node] * weight;)
+        particle_density /= (bin_edge * bin_edge * bin_edge);
+        volume[p] = mass / particle_density;
+    }
+    printf("Initialize_Deformation_Gradients\n");
+    //
     Fe.resize(num_particles);
+    std::fill(Fe.begin(), Fe.end(), Mat33(1));
+
     Fe_hat.resize(num_particles);
     Fp.resize(num_particles);
-    delta_F.resize(num_particles);
+    std::fill(Fp.begin(), Fp.end(), Mat33(1));
+
+    // Initialize_Bodies
+}
+
+void ChLcpSolverParallelMPM::RunTimeStep() {
+    const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
+    const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
+    const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
+    const real fluid_radius = data_manager->settings.mpm.kernel_radius;
+    const real bin_edge = fluid_radius * 2 + data_manager->settings.fluid.collision_envelope;
+    const real inv_bin_edge = real(1) / bin_edge;
+    const real dt = data_manager->settings.step_size;
+    const real mass = data_manager->settings.mpm.mass;
+    const real3 gravity = data_manager->settings.gravity;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_fluid;
+    const int num_particles = data_manager->num_fluid_bodies;
+    real mu = data_manager->settings.mpm.mu;
+    real hardening_coefficient = data_manager->settings.mpm.hardening_coefficient;
+    real lambda = data_manager->settings.mpm.lambda;
+
+    size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
     printf("START MPM STEP\n");
     printf("Rasterize\n");
@@ -76,8 +125,8 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
         const real3 xi = sorted_pos[p];
         Fe_hat[p] = Mat33(1.0);
         LOOPOVERNODES(  //
-            Fe_hat[p] += OuterProduct(dt * ((real3*)grid_vel.data())[current_node],
-                                      dN(real3(xi) - current_node_location, inv_bin_edge));  //
+            real3 vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3 + 2]);
+            Fe_hat[p] += OuterProduct(dt * vel, dN(xi - current_node_location, inv_bin_edge));  //
             )
         Fe_hat[p] *= Fe[p];
     }
@@ -152,11 +201,14 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
         const real3 xi = sorted_pos[p];
         real3 V_flip = sorted_vel[p];
         real3 V_pic = real3(0.0);
-        LOOPOVERNODES(                                                         //
-            real weight = N(real3(xi) - current_node_location, inv_bin_edge);  //
-            V_pic += ((real3*)grid_vel.data())[current_node] * weight;         //
-            V_flip +=
-            (((real3*)grid_vel.data())[current_node] - ((real3*)grid_vel_old.data())[current_node]) * weight;  //
+        LOOPOVERNODES(                                                                                   //
+            real weight = N(xi - current_node_location, inv_bin_edge);                                   //
+            V_pic.x += grid_vel[current_node * 3 + 0] * weight;                                          //
+            V_pic.y += grid_vel[current_node * 3 + 1] * weight;                                          //
+            V_pic.z += grid_vel[current_node * 3 + 2] * weight;                                          //
+            V_flip.x += (grid_vel[current_node * 3 + 0] - grid_vel_old[current_node * 3 + 0]) * weight;  //
+            V_flip.y += (grid_vel[current_node * 3 + 1] - grid_vel_old[current_node * 3 + 1]) * weight;  //
+            V_flip.z += (grid_vel[current_node * 3 + 2] - grid_vel_old[current_node * 3 + 2]) * weight;  //
             )
 
         real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;

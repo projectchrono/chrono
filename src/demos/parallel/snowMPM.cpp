@@ -182,7 +182,8 @@ int main(int argc, char* argv[]) {
 
     AddContainer(&msystem);
     AddFluid(&msystem);
-
+    // This initializes all of the MPM stuff
+    msystem.Initialize();
 // Perform the simulation
 // ----------------------
 
