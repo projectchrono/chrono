@@ -48,6 +48,8 @@
 #undef USE_AVX
 #define USE_SSE
 #else
+#undef USE_AVX
+#undef USE_SSE
 #endif
 
 #include <cstdint>
@@ -128,9 +130,12 @@ class aligned_allocator {
             throw std::length_error("aligned_allocator<T>::allocate() - Integer overflow.");
         }
 
-        // Mallocator wraps malloc().
+// Mallocator wraps malloc().
+#if defined(CHRONO_USE_SIMD)
         void* const pv = _mm_malloc(n * sizeof(T), Alignment);
-
+#else
+        void* const pv = malloc(n * sizeof(T));
+#endif
         // Allocators should throw std::bad_alloc in the case of memory allocation failure.
         if (pv == NULL) {
             throw std::bad_alloc();

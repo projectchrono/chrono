@@ -67,8 +67,8 @@ class Mat33 {
 
     inline real operator[](unsigned int i) const { return array[i]; }
     inline real& operator[](unsigned int i) { return array[i]; }
-    inline real operator()(int i, int j) const { return array[i * 4 + j]; }
-    inline real& operator()(int i, int j) { return array[i * 4 + j]; }
+    inline real operator()(int i, int j) const { return array[j * 4 + i]; }
+    inline real& operator()(int i, int j) { return array[j * 4 + i]; }
     inline real3 col(unsigned int i) const { return real3(array[i * 4], array[i * 4 + 1], array[i * 4 + 2]); }
 
     inline Mat33& operator=(const Mat33& M) {

@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
     ChVector<> b1(1, 2, 3);
     ChVector<> b2(6, 7, 8);
     std::cout << "3x3 Matrix Tests ============\n";
+
     std::cout << "0 Matrix\n";
     WeakEqual(Mat33(0), ToMat33(ChMatrix33<real>(0)));
 
@@ -52,16 +53,36 @@ int main(int argc, char* argv[]) {
     std::cout << "Diag 3 Matrix\n";
     WeakEqual(Mat33(real3(1, 2, 3)), Mat33(1, 0, 0, 0, 2, 0, 0, 0, 3));
 
+    std::cout << "Construct Full Matrix\n";
+    WeakEqual(A4[0], -24);
+    WeakEqual(A4[1], 20);
+    WeakEqual(A4[2], -5);
+    WeakEqual(A4[4], 18);
+    WeakEqual(A4[5], -15);
+    WeakEqual(A4[6], 4);
+    WeakEqual(A4[8], 5);
+    WeakEqual(A4[9], -4);
+    WeakEqual(A4[10], 1);
+
     std::cout << "Copy Constructor\n";
     WeakEqual(Mat33(A1), A1);
+
+    std::cout << "Quaternion Constructor \n";
+    WeakEqual(Mat33(R1), ToMat33(ToChQuaternion(R1)), C_EPSILON * 3);
+
+    std::cout << "() Operator \n";
+
+    WeakEqual(A4(0, 0), -24);
+    WeakEqual(A4(1, 2), -4);
+
+    std::cout << "col Operator \n";
+    WeakEqual(A4.col(0), real3(-24, 20, -5));
+
     {
         std::cout << "= Operator\n";
         Mat33 T = A1;
         WeakEqual(T, A1);
     }
-
-    std::cout << "A Matrix\n";
-    WeakEqual(Mat33(R1), ToMat33(ToChQuaternion(R1)), C_EPSILON * 3);
 
     std::cout << "Multiply Matrix\n";
     WeakEqual(AOne * AOne, ToMat33(BOne * BOne));
@@ -77,6 +98,9 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Subtract Matrix\n";
     WeakEqual(A1 - A2, ToMat33(B1 - B2));
+
+    std::cout << "Abs Matrix\n";
+    WeakEqual(Abs(A4), Mat33(24, 20, 5, 18, 15, 4, 5, 4, 1));
 
     std::cout << "Post Scale Matrix\n";
     WeakEqual(A1 * 3.1, ToMat33(B1 * 3.1));

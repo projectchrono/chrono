@@ -615,12 +615,6 @@ inline __m128 Dot4(__m128 v, __m128 a, __m128 b, __m128 c) {
 
 #else
 
-inline real3 Set(real x) {
-    return real3(x);
-}
-inline real3 Set(real x, real y, real z) {
-    return real3(x, y, z);
-}
 inline real3 Add(real3 a, real3 b) {
     return real3(a[0] + b[0], a[1] + b[1], a[2] + b[2]);
 }
@@ -712,5 +706,120 @@ inline real4 Div(const real4& a, real b) {
 inline real4 Negate(real4 a) {
     return real4(-a[0], -a[1], -a[2], -a.w);
 }
+
+inline real HorizontalAdd(real4 a) {
+    return a[0] + a[1] + a[2] + a[3];
+}
+inline real HorizontalAdd(real3 a) {
+    return a[0] + a[1] + a[2];
+}
+inline real4 SquareRoot(real4 v) {
+    return real4(Sqrt(v[0]), Sqrt(v[1]), Sqrt(v[2]), Sqrt(v[3]));
+}
+
+inline real3 Cross3(const real* a, const real* b) {
+    real3 result;
+    result[0] = (a[1] * b[2]) - (a[2] * b[1]);
+    result[1] = (a[2] * b[0]) - (a[0] * b[2]);
+    result[2] = (a[0] * b[1]) - (a[1] * b[0]);
+    return result;
+}
+inline real3 Abs(real3 v) {
+    return real3(chrono::Abs(v[0]), chrono::Abs(v[1]), chrono::Abs(v[2]));
+}
+inline real3 Max(real3 a, real3 b) {
+    return real3(chrono::Max(a[0], b[0]), chrono::Max(a[1], b[1]), chrono::Max(a[2], b[2]));
+}
+inline real3 Max(real3 a, real b) {
+    return real3(chrono::Max(a[0], b), chrono::Max(a[1], b), chrono::Max(a[2], b));
+}
+inline real3 Min(real3 a, real3 b) {
+    return real3(chrono::Min(a[0], b[0]), chrono::Min(a[1], b[1]), chrono::Min(a[2], b[2]));
+}
+inline real3 Min(real3 a, real b) {
+    return real3(chrono::Min(a[0], b), chrono::Min(a[1], b), chrono::Min(a[2], b));
+}
+inline real3 Round(real3 a) {
+    return real3(chrono::Round(a[0]), chrono::Round(a[1]), chrono::Round(a[2]));
+}
+inline bool IsZero(const real3& v, const real& a) {
+    return chrono::Abs(v.x) < a && chrono::Abs(v.y) < a && chrono::Abs(v.z) < a;
+}
+inline real Max(real3 a) {
+    return chrono::Max(a[0], chrono::Max(a[1], a[2]));
+}
+inline real Min(real3 a) {
+    return chrono::Min(a[0], chrono::Min(a[1], a[2]));
+}
+
+inline real Dot3(real3 a, real3 b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+inline real4 Dot4(real3 v, real3 a, real3 b, real3 c, real3 d) {
+    real4 result;
+    result.x = Dot3(v, a);
+    result.y = Dot3(v, b);
+    result.z = Dot3(v, c);
+    result.w = Dot3(v, d);
+    return result;
+}
+
+inline real Dot4(const quaternion& v1, const quaternion& v2) {
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
+}
+inline real Dot4(const quaternion& v) {
+    return v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w;
+}
+inline quaternion QuatMult(const quaternion& a, const quaternion& b) {
+    quaternion temp;
+    temp.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+    temp.x = a.w * b.x + a.x * b.w - a.z * b.y + a.y * b.z;
+    temp.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
+    temp.z = a.w * b.z + a.z * b.w - a.y * b.x + a.x * b.y;
+    return temp;
+}
+
+inline quaternion Add(const quaternion& a, const quaternion& b) {
+    return quaternion(a[0] + b[0], a[1] + b[1], a[2] + b[2], a[3] + b[3]);
+}
+inline quaternion Sub(const quaternion& a, const quaternion& b) {
+    return quaternion(a[0] - b[0], a[1] + b[1], a[2] - b[2], a[3] - b[3]);
+}
+inline quaternion Mul(const quaternion& a, const quaternion& b) {
+    return quaternion(a[0] * b[0], a[1] * b[1], a[2] * b[2], a[3] * b[3]);
+}
+inline quaternion Div(const quaternion& a, const quaternion& b) {
+    return quaternion(a[0] / b[0], a[1] / b[1], a[2] / b[2], a[3] / b[3]);
+}
+inline quaternion Negate(const quaternion& a) {
+    return quaternion(-a[0], -a[1], -a[2], -a[3]);
+}
+template <int i0, int i1, int i2, int i3>
+quaternion change_sign(quaternion a) {
+    quaternion q = a;
+    if (i0) {
+        q.w = -a.w;
+    }
+    if (i1) {
+        q.x = -a.x;
+    }
+    if (i2) {
+        q.y = -a.y;
+    }
+    if (i3) {
+        q.z = -a.z;
+    }
+    return q;
+}
+
+inline quaternion Normalize(const quaternion& a) {
+    real length = Sqrt(Dot4(a));
+    if (length < C_EPSILON) {
+        return quaternion(1, 0, 0, 0);
+    }
+    length = 1.0 / length;
+    return quaternion(a.w * length, a.x * length, a.y * length, a.z * length);
+}
+
 #endif
 }

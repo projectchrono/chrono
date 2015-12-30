@@ -3,6 +3,8 @@
 #include "chrono_parallel/math/simd.h"
 namespace chrono {
 
+#if defined(USE_AVX)
+
 // dot product of each column of a matrix with itself
 inline __m256d DotMM(const real* M) {
     __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
@@ -184,6 +186,107 @@ inline Mat33 MAbs(const real* M) {
     return result;
 }
 
+#elif defined(USE_SSE)
+#else
+
+// dot product of each column of a matrix with itself
+inline real3 DotMM(const real* M) {
+    real3 result;
+    result.x = M[0] * M[0] + M[1] * M[1] + M[2] * M[2];
+    result.y = M[4] * M[4] + M[5] * M[5] + M[6] * M[6];
+    result.z = M[8] * M[8] + M[9] * M[9] + M[10] * M[10];
+    return result;
+}  // dot product of each column of a matrix with another matrix
+inline real3 DotMM(const real* M, const real* N) {
+    real3 result;
+    result.x = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
+    result.y = M[4] * N[4] + M[5] * N[5] + M[6] * N[6];
+    result.z = M[8] * N[8] + M[9] * N[9] + M[10] * N[10];
+    return result;
+}
+inline Mat33 MulMM(const real* M, const real* N) {
+    Mat33 r;
+    r[0] = M[0] * N[0] + M[4] * N[1] + M[8] * N[2];
+    r[1] = M[1] * N[0] + M[5] * N[1] + M[9] * N[2];
+    r[2] = M[2] * N[0] + M[6] * N[1] + M[10] * N[2];
+
+    r[4] = M[0] * N[4] + M[4] * N[5] + M[8] * N[6];
+    r[5] = M[1] * N[4] + M[5] * N[5] + M[9] * N[6];
+    r[6] = M[2] * N[4] + M[6] * N[5] + M[10] * N[6];
+
+    r[8] = M[0] * N[8] + M[4] * N[9] + M[8] * N[10];
+    r[9] = M[1] * N[8] + M[5] * N[9] + M[9] * N[10];
+    r[10] = M[2] * N[8] + M[6] * N[9] + M[10] * N[10];
+    return r;
+}
+
+inline Mat33 MulM_TM(const real* M, const real* N) {
+    // c1 c2 c3    // c1 c2 c3
+    // 0  1  2     // 0  4  8
+    // 4  5  6     // 1  5  9
+    // 8  9  10    // 2  6  10
+
+    Mat33 r;
+    r[0] = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
+    r[1] = M[4] * N[0] + M[5] * N[1] + M[6] * N[2];
+    r[2] = M[8] * N[0] + M[9] * N[1] + M[10] * N[2];
+
+    r[4] = M[0] * N[4] + M[1] * N[5] + M[2] * N[6];
+    r[5] = M[4] * N[4] + M[5] * N[5] + M[6] * N[6];
+    r[6] = M[8] * N[4] + M[9] * N[5] + M[10] * N[6];
+
+    r[8] = M[0] * N[8] + M[1] * N[9] + M[2] * N[10];
+    r[9] = M[4] * N[8] + M[5] * N[9] + M[6] * N[10];
+    r[10] = M[8] * N[8] + M[9] * N[9] + M[10] * N[10];
+    return r;
+}
+
+inline real3 MulMV(const real* M, const real* N) {
+    real3 r;
+    r[0] = M[0] * N[0] + M[4] * N[1] + M[8] * N[2];
+    r[1] = M[1] * N[0] + M[5] * N[1] + M[9] * N[2];
+    r[2] = M[2] * N[0] + M[6] * N[1] + M[10] * N[2];
+
+    return r;
+}
+
+inline Mat33 OuterProductVV(const real* A, const real* B) {
+    return Mat33(A[0] * B[0], A[1] * B[0], A[2] * B[0], A[0] * B[1], A[1] * B[1], A[2] * B[1], A[0] * B[2], A[1] * B[2],
+                 A[2] * B[2]);
+}
+
+inline Mat33 ScaleMat(const real* M, const real b) {
+    Mat33 r;
+    r[0] = M[0] * b;
+    r[1] = M[1] * b;
+    r[2] = M[2] * b;
+    r[4] = M[4] * b;
+    r[5] = M[5] * b;
+    r[6] = M[6] * b;
+    r[8] = M[8] * b;
+    r[9] = M[9] * b;
+    r[10] = M[10] * b;
+    return r;
+}
+
+inline SymMat33 NormalEquations(const real* A) {
+    SymMat33 T;
+
+    T.x11 = A[0] * A[0] + A[1] * A[1] + A[2] * A[2];
+    T.x21 = A[0] * A[4] + A[1] * A[5] + A[2] * A[6];
+    T.x31 = A[0] * A[8] + A[1] * A[9] + A[2] * A[10];
+    T.x22 = A[4] * A[4] + A[5] * A[5] + A[6] * A[6];
+    T.x32 = A[4] * A[8] + A[5] * A[9] + A[6] * A[10];
+    T.x33 = A[8] * A[8] + A[9] * A[9] + A[10] * A[10];
+
+    return T;
+}
+
+inline Mat33 MAbs(const real* M) {
+    return Mat33(Abs(M[0]), Abs(M[1]), Abs(M[2]), Abs(M[4]), Abs(M[5]), Abs(M[6]), Abs(M[8]), Abs(M[9]), Abs(M[10]));
+}
+
+#endif
 //[0,4,8 ]
 //[1,5,9 ]
 //[2,6,10]

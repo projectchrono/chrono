@@ -29,7 +29,7 @@ namespace chrono {
 class real3 {
   public:
     inline real3() {}
-    inline real3(real a) : array{a, a, a, 0} {}
+    inline explicit real3(real a) : array{a, a, a, 0} {}
     inline real3(real a, real b, real c) : array{a, b, c, 0} {}
     inline real3(const real3& v) : array{v.x, v.y, v.z, 0} {}
     inline real operator[](unsigned int i) const { return array[i]; }
@@ -157,7 +157,7 @@ real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
 real3 OrthogonalVector(const real3& v);
 real3 UnitOrthogonalVector(const real3& v);
 //
- static inline void Sort(real& a, real& b, real& c) {
+static inline void Sort(real& a, real& b, real& c) {
     if (a > b)
         Swap(a, b);
     if (b > c)

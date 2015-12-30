@@ -29,7 +29,23 @@ inline __m128i Min(__m128i a, __m128i b) {
 //========================================================
 
 #else
+inline int3 Set(int x) {
+    return int3(x, x, x);
+}
+inline int3 Sub(int3 a, int3 b) {
+    return int3(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
 
+inline int3 Add(int3 a, int3 b) {
+    return int3(a[0] + b[0], a[1] + b[1], a[2] + b[2]);
+}
+
+inline int3 Max(int3 a, int3 b) {
+    return int3(chrono::Max(a[0], b[0]), chrono::Max(a[1], b[1]), chrono::Max(a[2], b[2]));
+}
+inline int3 Min(int3 a, int3 b) {
+    return int3(chrono::Min(a[0], b[0]), chrono::Min(a[1], b[1]), chrono::Min(a[2], b[2]));
+}
 //========================================================
 //========================================================
 //========================================================
