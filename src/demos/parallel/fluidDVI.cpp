@@ -67,12 +67,11 @@ void AddContainer(ChSystemParallelDVI* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    ChVector<> hdim(1, 1, 0.5);
-    double hthick = 0.1;
+    ChVector<> hdim(.5, .5, 0.05);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
-
+    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, -hdim.z));
+    // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, hdim.z*10));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();
@@ -147,7 +146,7 @@ int main(int argc, char* argv[]) {
     // Set solver parameters
     msystem.GetSettings()->solver.solver_mode = SLIDING;
     msystem.GetSettings()->solver.max_iteration_normal = 0;
-    msystem.GetSettings()->solver.max_iteration_sliding = 10;
+    msystem.GetSettings()->solver.max_iteration_sliding = 40;
     msystem.GetSettings()->solver.max_iteration_spinning = 0;
     msystem.GetSettings()->solver.max_iteration_bilateral = 0;
     msystem.GetSettings()->solver.tolerance = tolerance;
@@ -157,7 +156,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.contact_recovery_speed = 100;
     msystem.GetSettings()->solver.cache_step_length = true;
 
-    msystem.ChangeSolverType(APGD);
+    msystem.ChangeSolverType(BB);
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
     msystem.GetSettings()->fluid.tau = time_step * 4;
@@ -175,7 +174,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->fluid.artificial_pressure_k = .001;
     msystem.GetSettings()->fluid.artificial_pressure_dq = 0;  //.2 * system->GetSettings()->fluid.kernel_radius;
     msystem.GetSettings()->fluid.artificial_pressure_n = 4;
-    msystem.GetSettings()->fluid.collision_envelope = 0;
+    msystem.GetSettings()->fluid.collision_envelope = msystem.GetSettings()->fluid.kernel_radius * .05;
     msystem.GetSettings()->fluid.vorticity_confinement = 40;
 
     msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
