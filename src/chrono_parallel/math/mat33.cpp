@@ -105,9 +105,9 @@ inline Mat33 MulM_TM(const real* M, const real* N) {
 
 inline real3 MulMV(const real* a, const real* b) {
     real3 r;
-    __m256d v1 = _mm256_load_pd(&a[0]) * _mm256_set1_pd(b[0]);
-    __m256d v2 = _mm256_load_pd(&a[4]) * _mm256_set1_pd(b[1]);
-    __m256d v3 = _mm256_load_pd(&a[8]) * _mm256_set1_pd(b[2]);
+    __m256d v1 = _mm256_loadu_pd(&a[0]) * _mm256_set1_pd(b[0]);
+    __m256d v2 = _mm256_loadu_pd(&a[4]) * _mm256_set1_pd(b[1]);
+    __m256d v3 = _mm256_loadu_pd(&a[8]) * _mm256_set1_pd(b[2]);
     __m256d out = _mm256_add_pd(_mm256_add_pd(v1, v2), v3);
     _mm256_storeu_pd(&r.array[0], out);
 
