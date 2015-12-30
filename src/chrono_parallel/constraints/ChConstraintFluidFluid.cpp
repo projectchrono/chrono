@@ -136,10 +136,11 @@ void ChConstraintFluidFluid::Build_D() {
                 SetRow3Check(D_T, rvoff + 0, column, r1);
                 SetRow3Check(D_T, rvoff + 1, column, r2);
                 SetRow3Check(D_T, rvoff + 2, column, r3);
+
+                vmat_row1 -= r1;
+                vmat_row2 -= r2;
+                vmat_row3 -= r3;
             }
-            vmat_row1 -= r1;
-            vmat_row2 -= r2;
-            vmat_row3 -= r3;
         }
         SetRow3Check(D_T, rdoff, body_offset + body_a * 3, dcon_diag);
         if (data_manager->settings.fluid.enable_viscosity) {
@@ -185,7 +186,7 @@ void ChConstraintFluidFluid::Build_E() {
     real compliance = 4.0 / (step_size * step_size) * (epsilon * zeta);
 #pragma omp parallel for
     for (int index = 0; index < num_fluid_bodies; index++) {
-        E[index_offset + index] = 0;  // compliance;
+        E[index_offset + index] = compliance;
 
         E[index_offset + num_fluid_bodies + index * 3 + 0] = 0;
         E[index_offset + num_fluid_bodies + index * 3 + 1] = 0;
