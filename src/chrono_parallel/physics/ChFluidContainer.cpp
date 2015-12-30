@@ -19,6 +19,10 @@ ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
     system = physics_system;
     system->AddFluid(this);
 }
+ChFluidContainer::ChFluidContainer(ChSystemParallelMPM* physics_system) {
+    system = physics_system;
+    system->AddFluid(this);
+}
 
 ChFluidContainer::~ChFluidContainer() {}
 

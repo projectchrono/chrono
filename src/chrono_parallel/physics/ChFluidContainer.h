@@ -27,10 +27,12 @@ namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
 class ChSystemParallelDVI;
+class ChSystemParallelMPM;
 
 class CH_PARALLEL_API ChFluidContainer : public ChPhysicsItem {
   public:
     ChFluidContainer(ChSystemParallelDVI* system);
+    ChFluidContainer(ChSystemParallelMPM* system);
     ~ChFluidContainer();
 
     ChFluidContainer(const ChFluidContainer& other);             // Copy constructor
@@ -50,6 +52,6 @@ class CH_PARALLEL_API ChFluidContainer : public ChPhysicsItem {
     void SetPos_dt(const int& i, const real3& mposdt);
 
   private:
-    ChSystemParallelDVI* system;
+    ChSystemParallel* system;
 };
 }
