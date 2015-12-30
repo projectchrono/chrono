@@ -49,47 +49,51 @@ __device__ inline Real4 DifVelocityRho(Real3& dist3, Real& d, Real3 posRadA, Rea
 		Real3& velMasA, Real3& vel_XSPH_A, Real3& velMasB,
 		Real3& vel_XSPH_B, Real4& rhoPresMuA,
 		Real4& rhoPresMuB, Real multViscosity) {
-	Real3 gradW = GradW(dist3);
-
-	// Real vAB_Dot_rAB = dot(velMasA - velMasB, dist3);
-
-	//	//*** Artificial viscosity type 1.1
-	//	Real alpha = .001;
-	//	Real c_ab = 10 * paramsD.v_Max; //Ma = .1;//sqrt(7.0f * 10000 / ((rhoPresMuA.x + rhoPresMuB.x) / 2.0f));
-	//	//Real h = paramsD.HSML;
-	//	Real rho = .5f * (rhoPresMuA.x + rhoPresMuB.x);
-	//	Real nu = alpha * paramsD.HSML * c_ab / rho;
-
-	//	//*** Artificial viscosity type 1.2
-	//	Real nu = 22.8f * paramsD.mu0 / 2.0f / (rhoPresMuA.x * rhoPresMuB.x);
-	//	Real3 derivV = -paramsD.markerMass * (
-	//		rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)
-	//		- nu * vAB_Dot_rAB / ( d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML )
-	//		) * gradW;
-	//	return mR4(derivV,
-	//		rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
-
-	//*** Artificial viscosity type 2
-	Real rAB_Dot_GradW = dot(dist3, gradW);
-	Real rAB_Dot_GradW_OverDist = rAB_Dot_GradW
-			/ (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
-	Real3 derivV = -paramsD.markerMass
-			* (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x)
-					+ rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
-			+ paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0
-					* pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2))
-					* rAB_Dot_GradW_OverDist * (velMasA - velMasB);
-	Real derivRho = rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x
-			* dot(vel_XSPH_A - vel_XSPH_B, gradW);
-	//	Real zeta = 0;//.05;//.1;
-	//	Real derivRho = rhoPresMuA.x * paramsD.markerMass * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
-	//			+ zeta * paramsD.HSML * (10 * paramsD.v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) *
-	// rAB_Dot_GradW_OverDist
-	//			);
+//	Real3 gradW = GradW(dist3);
+//
+//	// Real vAB_Dot_rAB = dot(velMasA - velMasB, dist3);
+//
+//	//	//*** Artificial viscosity type 1.1
+//	//	Real alpha = .001;
+//	//	Real c_ab = 10 * paramsD.v_Max; //Ma = .1;//sqrt(7.0f * 10000 / ((rhoPresMuA.x + rhoPresMuB.x) / 2.0f));
+//	//	//Real h = paramsD.HSML;
+//	//	Real rho = .5f * (rhoPresMuA.x + rhoPresMuB.x);
+//	//	Real nu = alpha * paramsD.HSML * c_ab / rho;
+//
+//	//	//*** Artificial viscosity type 1.2
+//	//	Real nu = 22.8f * paramsD.mu0 / 2.0f / (rhoPresMuA.x * rhoPresMuB.x);
+//	//	Real3 derivV = -paramsD.markerMass * (
+//	//		rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)
+//	//		- nu * vAB_Dot_rAB / ( d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML )
+//	//		) * gradW;
+//	//	return mR4(derivV,
+//	//		rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
+//
+//	//*** Artificial viscosity type 2
+//	Real rAB_Dot_GradW = dot(dist3, gradW);
+//	Real rAB_Dot_GradW_OverDist = rAB_Dot_GradW
+//			/ (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+//	Real3 derivV = -paramsD.markerMass
+//			* (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x)
+//					+ rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
+//			+ paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0
+//					* pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2))
+//					* rAB_Dot_GradW_OverDist * (velMasA - velMasB);
+//	Real derivRho = rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x
+//			* dot(vel_XSPH_A - vel_XSPH_B, gradW);
+//	//	Real zeta = 0;//.05;//.1;
+//	//	Real derivRho = rhoPresMuA.x * paramsD.markerMass * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
+//	//			+ zeta * paramsD.HSML * (10 * paramsD.v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) *
+//	// rAB_Dot_GradW_OverDist
+//	//			);
 
 	//--------------------------------
+	Real3 gradW = GradW(dist3);
+	Real rAB_Dot_GradW = dot(dist3, gradW);
+	Real rAB_Dot_GradW_OverDist = rAB_Dot_GradW/ (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+	//--------------------------------
 	// Ferrari Modification
-	derivRho = paramsD.markerMass * dot(vel_XSPH_A - vel_XSPH_B, gradW);
+	Real derivRho = paramsD.markerMass * dot(vel_XSPH_A - vel_XSPH_B, gradW);
 	Real cA = FerrariCi(rhoPresMuA.x);
 	Real cB = FerrariCi(rhoPresMuB.x);
 	derivRho -= rAB_Dot_GradW / (d + paramsD.epsMinMarkersDis * paramsD.HSML) * max(cA, cB) / rhoPresMuB.x * (rhoPresMuB.x - rhoPresMuA.x);
@@ -105,23 +109,25 @@ __device__ inline Real4 DifVelocityRho(Real3& dist3, Real& d, Real3 posRadA, Rea
 
 		dist3 = posRadA - posRadB;
 		d = length(dist3);
-//	}
-//	if (rhoPresMuA.w > -.1) {
-//		posRadA = 2 * posRadA - posRadB;
-//		velMasA = 2 * velMasA - velMasB;
-//
-//		rhoPresMuA.x = rhoPresMuB.x;
-//		rhoPresMuA.y = rhoPresMuB.y;
-//
-//		dist3 = posRadA - posRadB;
-//		d = length(dist3);
-//	}
+	}
+	if (rhoPresMuA.w > -.1) {
+		posRadA = 2 * posRadA - posRadB;
+		velMasA = 2 * velMasA - velMasB;
 
+		rhoPresMuA.x = rhoPresMuB.x;
+		rhoPresMuA.y = rhoPresMuB.y;
+
+		dist3 = posRadA - posRadB;
+		d = length(dist3);
+	}
+
+
+	gradW = GradW(dist3);
 	rAB_Dot_GradW = dot(dist3, gradW);
 	rAB_Dot_GradW_OverDist = rAB_Dot_GradW
 			/ (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
 
-	derivV = mR3(0);
+	Real3 derivV = mR3(0);
 
 	if (d < RESOLUTION_LENGTH_MULT * paramsD.HSML) {
 			derivV = -paramsD.markerMass
@@ -130,7 +136,6 @@ __device__ inline Real4 DifVelocityRho(Real3& dist3, Real& d, Real3 posRadA, Rea
 						+ paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0
 								* pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2))
 								* rAB_Dot_GradW_OverDist * (velMasA - velMasB);
-	}
 	}
 	return mR4(derivV, derivRho);
 
