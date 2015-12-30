@@ -154,14 +154,6 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Get a handle to the specified layer.
     const Layer& GetLayer(size_t i) const { return m_layers[i]; }
 
-    /// Set the storage of the five alpha parameters for EAS (max no. of layers 7)
-    void SetStockAlpha(const ChMatrixNM<double, 35, 1>& a) { m_StockAlpha_EAS = a; }
-    /// Set all the alpha parameters for EAS
-    const ChMatrixNM<double, 35, 1>& GetStockAlpha() const { return m_StockAlpha_EAS; }
-    /// Set Jacobian of EAS
-    void SetStockJac(const ChMatrixNM<double, 24, 24>& a) { m_stock_jac_EAS = a; }
-    /// Set Jacobian
-    void SetStockKTE(const ChMatrixNM<double, 24, 24>& a) { m_stock_KTE = a; }
     /// Set the step size used in calculating the structural damping coefficient.
     void Setdt(double a) { m_dt = a; }
     /// Turn gravity on/off.

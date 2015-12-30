@@ -812,7 +812,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
     /// Material properties
     ChMatrixNM<double, 35, 1> StockAlpha1;
-    StockAlpha1 = GetStockAlpha();
+    StockAlpha1 = m_StockAlpha_EAS;
 
     ChMatrixNM<double, 24, 24> TempJacobian;
     ChMatrixNM<double, 24, 24> TempJacobian_EAS;
@@ -919,7 +919,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             StockAlpha1(ijkl + 3) = renewed_alpha_eas(3, 0);
             StockAlpha1(ijkl + 4) = renewed_alpha_eas(4, 0);
             if (kl == m_numLayers - 1) {
-                SetStockAlpha(StockAlpha1);
+                m_StockAlpha_EAS = StockAlpha1;
             }
         }
         //  Jacobian Matrix for alpha
@@ -936,8 +936,8 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             KTE1 += TempJacobian;
 
             if (kl == m_numLayers - 1) {
-                this->SetStockJac(stock_jac_EAS_elem1);
-                this->SetStockKTE(KTE1);
+                m_stock_jac_EAS = stock_jac_EAS_elem1;
+                m_stock_KTE = KTE1;
             }
         }
 
