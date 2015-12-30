@@ -172,6 +172,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->mpm.hardening_coefficient = (real)10.;
 
     real initial_density = (real)4e2;
+    msystem.GetSettings()->mpm.mass = .1;
 
     msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
@@ -186,11 +187,12 @@ int main(int argc, char* argv[]) {
     msystem.Initialize();
 // Perform the simulation
 // ----------------------
-
+//#undef CHRONO_OPENGL
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "snowMPM", &msystem);
     gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+    gl_window.Pause();
     // Uncomment the following two lines for the OpenGL manager to automatically
     // run the simulation in an infinite loop.
     // gl_window.StartDrawLoop(time_step);

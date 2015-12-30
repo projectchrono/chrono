@@ -16,7 +16,7 @@ void ChLcpSolverParallelMPM::Initialize() {
     const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
     const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
     const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
-    const real fluid_radius = data_manager->settings.mpm.kernel_radius;
+    const real fluid_radius = data_manager->settings.fluid.kernel_radius;
     const real bin_edge = fluid_radius * 2 + data_manager->settings.fluid.collision_envelope;
     const real inv_bin_edge = real(1) / bin_edge;
     const real dt = data_manager->settings.step_size;
@@ -86,7 +86,7 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
     const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
     const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
     const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
-    const real fluid_radius = data_manager->settings.mpm.kernel_radius;
+    const real fluid_radius = data_manager->settings.fluid.kernel_radius;
     const real bin_edge = fluid_radius * 2 + data_manager->settings.fluid.collision_envelope;
     const real inv_bin_edge = real(1) / bin_edge;
     const real dt = data_manager->settings.step_size;
@@ -99,16 +99,19 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
     real hardening_coefficient = data_manager->settings.mpm.hardening_coefficient;
     real lambda = data_manager->settings.mpm.lambda;
 
+    uint num_rigid_bodies = data_manager->num_rigid_bodies;
+    uint num_shafts = data_manager->num_shafts;
+
     size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
     printf("START MPM STEP\n");
-    printf("Rasterize\n");
+    printf("Rasterize [%d] [%d %d %d] [%f]\n", num_nodes, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z, bin_edge);
     for (int p = 0; p < num_particles; p++) {
         const real3 xi = sorted_pos[p];
         const real3 vi = sorted_vel[p];
 
-        LOOPOVERNODES(                                                                //
-            real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
+        LOOPOVERNODES(                                                         //
+            real weight = N(xi - current_node_location, inv_bin_edge) * mass;  //
             //            printf("node: %d %f [%f %f %f] [%f %f %f]\n", current_node, weight, xi.x, xi.y, xi.z,
             //            current_node_location.x,
             //            current_node_location.y, current_node_location.z);
@@ -116,10 +119,13 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
             grid_vel[current_node * 3 + 0] += weight * vi.x;  //
             grid_vel[current_node * 3 + 1] += weight * vi.y;  //
             grid_vel[current_node * 3 + 2] += weight * vi.z;  //
+
+            // printf("node: %f %f [%f %f %f]\n", weight, mass, xi.x, xi.y, xi.z);
             )
     }
-    // Copy Grid velocities
+    // Save_Grid_Velocities
     grid_vel_old = grid_vel;
+
     printf("Compute_Elastic_Deformation_Gradient_Hat\n");
     for (int p = 0; p < num_particles; p++) {
         const real3 xi = sorted_pos[p];
@@ -131,15 +137,19 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
         Fe_hat[p] *= Fe[p];
     }
     printf("Compute_Grid_Forces\n");
+
+    std::fill(grid_forces.begin(), grid_forces.end(), real3(0));
+
     for (int p = 0; p < num_particles; p++) {
         const real3 xi = sorted_pos[p];
         LOOPOVERNODES(  //
             Mat33 PED = Potential_Energy_Derivative(Fe_hat[i], Fp[i], mu, lambda, hardening_coefficient);
-            grid_forces[current_node] -=
-            (volume[i] * PED * Transpose(Fe[i]) * dN(xi - current_node_location, inv_bin_edge)) /
-            (Determinant(Fe[i]) * Determinant(Fp[i]));)
+            real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
+            real JE = Determinant(Fe[i]);                                   //
+            real JP = Determinant(Fp[i]);                                   //
+            grid_forces[current_node] -= (volume[i] * MultTranspose(PED, Fe[i]) * d_weight) / (JE * JP);)
     }
-    printf("Add_Body_Forces\n");
+    printf("Add_Body_Forces [%f %f %f]\n", gravity.x, gravity.y, gravity.z);
 
     for (int i = 0; i < num_nodes; i++) {
         grid_forces[i] += grid_mass[i] * gravity;
@@ -191,7 +201,7 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
         E_clamped.y = Clamp(E.y, 1.0 - theta_c, 1.0 + theta_s);
         E_clamped.z = Clamp(E.z, 1.0 - theta_c, 1.0 + theta_s);
 
-        Fe[p] = U * MultTranspose(E_clamped, V);
+        Fe[p] = U * MultTranspose(Mat33(E_clamped), V);
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
     }
@@ -212,8 +222,9 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
             )
 
         real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
-        sorted_vel[p] = new_vel;
-        sorted_pos[p] += new_vel * dt;
+        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 0] = new_vel.x;
+        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 1] = new_vel.y;
+        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 2] = new_vel.z;
     }
 }
 
@@ -224,7 +235,7 @@ void ChLcpSolverParallelMPM::Multiply(DynamicVector<real>& v_array, DynamicVecto
     const int num_particles = data_manager->num_fluid_bodies;
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
     custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_fluid;
-    const real fluid_radius = data_manager->settings.mpm.kernel_radius;
+    const real fluid_radius = data_manager->settings.fluid.kernel_radius;
     const real bin_edge = fluid_radius * 2 + data_manager->settings.fluid.collision_envelope;
     const real inv_bin_edge = real(1) / bin_edge;
     const real dt = data_manager->settings.step_size;

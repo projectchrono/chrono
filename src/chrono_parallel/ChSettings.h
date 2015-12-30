@@ -133,7 +133,6 @@ struct fluid_settings {
 };
 struct mpm_settings {
     real mass;
-    real kernel_radius;
     real mu;
     real hardening_coefficient;
     real lambda;
