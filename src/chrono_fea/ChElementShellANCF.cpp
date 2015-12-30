@@ -827,126 +827,117 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         TempJacobian_EAS.Reset();
         TempJacobian.Reset();
 
-        /// If numerical differentiation is used, only the internal force and EAS stiffness
-        /// will be calculated. If the numerical differentiation is not used, the jacobian
-        /// will also be calculated.
-        bool use_numerical_differentiation = false;
+        ChMatrixNM<double, 750, 1> TempIntegratedResult;
+        ChMatrixNM<double, 24, 1> Finternal;
+        // Assumed Natural Strain (ANS)
+        ChMatrixNM<double, 8, 1> strain_ans;
+        ChMatrixNM<double, 8, 24> strainD_ans;
+        // Enhanced Assumed Strain (EAS)
+        ChMatrixNM<double, 5, 1> HE;
+        ChMatrixNM<double, 5, 24> GDEPSP;
+        ChMatrixNM<double, 5, 5> KALPHA;
+        ChMatrixNM<double, 24, 24> KTE;
+        ChMatrixNM<double, 5, 5> KALPHA1;
+        ChMatrixNM<double, 5, 1> ResidHE;
+        ChMatrixNM<double, 5, 1> alpha_eas;
+        ChMatrixNM<double, 5, 1> renewed_alpha_eas;
+        ChMatrixNM<double, 5, 1> previous_alpha;
 
-        /// Internal force and EAS parameters are caulculated for numerical differentiation.
-        if (use_numerical_differentiation) {
-        } else {
-            ChMatrixNM<double, 750, 1> TempIntegratedResult;
-            ChMatrixNM<double, 24, 1> Finternal;
+        int ijkl = kl * 5;
+        previous_alpha(0, 0) = StockAlpha1(ijkl);
+        previous_alpha(1, 0) = StockAlpha1(ijkl + 1);
+        previous_alpha(2, 0) = StockAlpha1(ijkl + 2);
+        previous_alpha(3, 0) = StockAlpha1(ijkl + 3);
+        previous_alpha(4, 0) = StockAlpha1(ijkl + 4);
+        alpha_eas = previous_alpha;
+        ResidHE.Reset();
+        int count = 0;
+        int fail = 1;
+
+        // Begin EAS loop:
+        while (fail == 1) {
+            alpha_eas = alpha_eas - ResidHE;
+            renewed_alpha_eas = alpha_eas;
+
+            Finternal.Reset();
+            HE.Reset();
+            GDEPSP.Reset();
+            KALPHA.Reset();
+            strain_ans.Reset();
+            strainD_ans.Reset();
+
             // Assumed Natural Strain (ANS)
-            ChMatrixNM<double, 8, 1> strain_ans;
-            ChMatrixNM<double, 8, 24> strainD_ans;
-            // Enhanced Assumed Strain (EAS)
-            ChMatrixNM<double, 5, 1> HE;
-            ChMatrixNM<double, 5, 24> GDEPSP;
-            ChMatrixNM<double, 5, 5> KALPHA;
-            ChMatrixNM<double, 24, 24> KTE;
-            ChMatrixNM<double, 5, 5> KALPHA1;
-            ChMatrixNM<double, 5, 1> ResidHE;
-            ChMatrixNM<double, 5, 1> alpha_eas;
-            ChMatrixNM<double, 5, 1> renewed_alpha_eas;
-            ChMatrixNM<double, 5, 1> previous_alpha;
+            AssumedNaturalStrain_BilinearShell(d, strain_ans, strainD_ans);
 
+            // MyForce constructor;
+            MyForce myformula(this, kl, &d, &d_dt, &strain_ans, &strainD_ans, &alpha_eas);
+            ChQuadrature::Integrate3D<ChMatrixNM<double, 750, 1> >(
+                TempIntegratedResult,            // result of integration will go there
+                myformula,                       // formula to integrate
+                -1, 1,                           // x limits
+                -1, 1,                           // y limits
+                m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                2                                // order of integration
+                );
+
+            Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0);     // InternalForce(24x1)
+            HE.PasteClippedMatrix(&TempIntegratedResult, 24, 0, 5, 1, 0, 0);            // HE(5x1)
+            GDEPSP.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 24, 29);  // GDEPSP(5x24)
+            KALPHA.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 5, 149);  // KALPHA(5x5)
+            TempJacobian.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 24, 24,
+                                                    174);  // Stiffness Matrix(24x24)
+
+            KALPHA1 = KALPHA;
+            if (m_flag_HE == NUMERICAL)
+                break;  // When numerical jacobian loop, no need to calculate HE
+            count = count + 1;
+            double norm_HE = HE.NormTwo();
+
+            if (norm_HE < 1E-5) {
+                fail = 0;
+            } else {
+                ChMatrixNM<int, 5, 1> INDX;
+                bool pivoting;
+                ResidHE = HE;
+                if (!LU_factor(KALPHA1, INDX, pivoting))
+                    throw ChException("Singular matrix in LU factorization");
+                LU_solve(KALPHA1, INDX, ResidHE);
+            }
+
+            if (m_flag_HE == ANALYTICAL && count > 2) {
+                GetLog() << "  count " << count << "  NormHE " << norm_HE << "\n";
+            }
+        }
+        Fi -= Finternal;
+
+        //  Stock_Alpha
+        if (m_flag_HE == ANALYTICAL) {
             int ijkl = kl * 5;
-            previous_alpha(0, 0) = StockAlpha1(ijkl);
-            previous_alpha(1, 0) = StockAlpha1(ijkl + 1);
-            previous_alpha(2, 0) = StockAlpha1(ijkl + 2);
-            previous_alpha(3, 0) = StockAlpha1(ijkl + 3);
-            previous_alpha(4, 0) = StockAlpha1(ijkl + 4);
-            alpha_eas = previous_alpha;
-            ResidHE.Reset();
-            int count = 0;
-            int fail = 1;
-
-            // Begin EAS loop:
-            while (fail == 1) {
-                alpha_eas = alpha_eas - ResidHE;
-                renewed_alpha_eas = alpha_eas;
-
-                Finternal.Reset();
-                HE.Reset();
-                GDEPSP.Reset();
-                KALPHA.Reset();
-                strain_ans.Reset();
-                strainD_ans.Reset();
-
-                // Assumed Natural Strain (ANS)
-                AssumedNaturalStrain_BilinearShell(d, strain_ans, strainD_ans);
-
-                // MyForce constructor;
-                MyForce myformula(this, kl, &d, &d_dt, &strain_ans, &strainD_ans, &alpha_eas);
-                ChQuadrature::Integrate3D<ChMatrixNM<double, 750, 1> >(
-                    TempIntegratedResult,            // result of integration will go there
-                    myformula,                       // formula to integrate
-                    -1, 1,                           // x limits
-                    -1, 1,                           // y limits
-                    m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                    2                                // order of integration
-                    );
-
-                Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0);     // InternalForce(24x1)
-                HE.PasteClippedMatrix(&TempIntegratedResult, 24, 0, 5, 1, 0, 0);            // HE(5x1)
-                GDEPSP.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 24, 29);  // GDEPSP(5x24)
-                KALPHA.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 5, 149);  // KALPHA(5x5)
-                TempJacobian.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 24, 24,
-                                                        174);  // Stiffness Matrix(24x24)
-
-                KALPHA1 = KALPHA;
-                if (m_flag_HE == NUMERICAL)
-                    break;  // When numerical jacobian loop, no need to calculate HE
-                count = count + 1;
-                double norm_HE = HE.NormTwo();
-
-                if (norm_HE < 1E-5) {
-                    fail = 0;
-                } else {
-                    ChMatrixNM<int, 5, 1> INDX;
-                    bool pivoting;
-                    ResidHE = HE;
-                    if (!LU_factor(KALPHA1, INDX, pivoting))
-                        throw ChException("Singular matrix in LU factorization");
-                    LU_solve(KALPHA1, INDX, ResidHE);
-                }
-
-                if (m_flag_HE == ANALYTICAL && count > 2) {
-                    GetLog() << "  count " << count << "  NormHE " << norm_HE << "\n";
-                }
+            StockAlpha1(ijkl) = renewed_alpha_eas(0, 0);
+            StockAlpha1(ijkl + 1) = renewed_alpha_eas(1, 0);
+            StockAlpha1(ijkl + 2) = renewed_alpha_eas(2, 0);
+            StockAlpha1(ijkl + 3) = renewed_alpha_eas(3, 0);
+            StockAlpha1(ijkl + 4) = renewed_alpha_eas(4, 0);
+            if (kl == m_numLayers - 1) {
+                SetStockAlpha(StockAlpha1);
             }
-            Fi -= Finternal;
+        }
+        //  Jacobian Matrix for alpha
+        if (m_flag_HE == ANALYTICAL) {
+            ChMatrixNM<double, 5, 5> INV_KALPHA;
+            ChMatrixNM<double, 5, 24> TEMP_GDEPSP;
+            ChMatrixNM<double, 5, 5> INV_KALPHA_Temp;
+            Inverse55_Analytical(INV_KALPHA, KALPHA);
 
-            //  Stock_Alpha
-            if (m_flag_HE == ANALYTICAL) {
-                int ijkl = kl * 5;
-                StockAlpha1(ijkl) = renewed_alpha_eas(0, 0);
-                StockAlpha1(ijkl + 1) = renewed_alpha_eas(1, 0);
-                StockAlpha1(ijkl + 2) = renewed_alpha_eas(2, 0);
-                StockAlpha1(ijkl + 3) = renewed_alpha_eas(3, 0);
-                StockAlpha1(ijkl + 4) = renewed_alpha_eas(4, 0);
-                if (kl == m_numLayers - 1) {
-                    SetStockAlpha(StockAlpha1);
-                }
-            }
-            //  Jacobian Matrix for alpha
-            if (m_flag_HE == ANALYTICAL) {
-                ChMatrixNM<double, 5, 5> INV_KALPHA;
-                ChMatrixNM<double, 5, 24> TEMP_GDEPSP;
-                ChMatrixNM<double, 5, 5> INV_KALPHA_Temp;
-                Inverse55_Analytical(INV_KALPHA, KALPHA);
+            TEMP_GDEPSP.MatrMultiply(INV_KALPHA, GDEPSP);
+            TempJacobian_EAS.MatrTMultiply(GDEPSP, TEMP_GDEPSP);
 
-                TEMP_GDEPSP.MatrMultiply(INV_KALPHA, GDEPSP);
-                TempJacobian_EAS.MatrTMultiply(GDEPSP, TEMP_GDEPSP);
+            stock_jac_EAS_elem1 += TempJacobian_EAS;
+            KTE1 += TempJacobian;
 
-                stock_jac_EAS_elem1 += TempJacobian_EAS;
-                KTE1 += TempJacobian;
-
-                if (kl == m_numLayers - 1) {
-                    this->SetStockJac(stock_jac_EAS_elem1);
-                    this->SetStockKTE(KTE1);
-                }
+            if (kl == m_numLayers - 1) {
+                this->SetStockJac(stock_jac_EAS_elem1);
+                this->SetStockKTE(KTE1);
             }
         }
 
@@ -962,15 +953,8 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 // -----------------------------------------------------------------------------
 
 void ChElementShellANCF::ComputeStiffnessMatrix() {
-    bool use_numerical_differentiation = false;
-    // bool use_numerical_differentiation = true;
-
-    if (use_numerical_differentiation) {
-    }
-    else {
-        m_StiffnessMatrix = m_stock_KTE;
-        m_StiffnessMatrix -= m_stock_jac_EAS;
-    }
+    m_StiffnessMatrix = m_stock_KTE;
+    m_StiffnessMatrix -= m_stock_jac_EAS;
 }
 
 // -----------------------------------------------------------------------------
