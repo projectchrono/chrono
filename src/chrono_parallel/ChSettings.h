@@ -180,6 +180,7 @@ struct solver_settings {
         characteristic_vel = 1;
         min_slip_vel = 1e-4;
         cache_step_length = false;
+        precondition = false;
     }
 
     // The solver type variable defines name of the solver that will be used to
@@ -226,6 +227,7 @@ struct solver_settings {
     real cohesion_epsilon;
     bool use_full_inertia_tensor;
     bool cache_step_length;
+    bool precondition;
 
     // Contact force model for DEM
     ChSystemDEM::ContactForceModel contact_force_model;
