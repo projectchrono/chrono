@@ -31,6 +31,7 @@ SET(DEMOS
     mixerDEM
     mixerDVI
     fluidDVI
+    snowMPM
 )
 
 # Programs that require OpenGL support
