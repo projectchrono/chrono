@@ -764,7 +764,7 @@ void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray,
 		const NumberOfObjects& numObjects, SimParams currentParamsH, Real dT) {
 	ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD,
-			referenceArray, numObjects, currentParamsH, mORIGINAL, dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be
+			referenceArray, numObjects, currentParamsH, ADAMI, dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be
 	// applied at rigid body solver
 	UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD,
 			referenceArray, dT);  // assumes ...D2 is a copy of ...D

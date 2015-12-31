@@ -87,24 +87,33 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 		thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D,
 
 		thrust::device_vector<Real3>& posRigid_fsiBodies_D,
-		thrust::device_vector<Real4>& q_fsiBodies_D,
 		thrust::device_vector<Real4>& velMassRigid_fsiBodies_D,
-		thrust::device_vector<Real3>& omegaLRF_fsiBodies_D,
+		thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		thrust::device_vector<Real4>& q_fsiBodies_D,
+		thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
+		thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+
 
 		thrust::device_vector<Real3>& posRigid_fsiBodies_D2,
-		thrust::device_vector<Real4>& q_fsiBodies_D2,
 		thrust::device_vector<Real4>& velMassRigid_fsiBodies_D2,
-		thrust::device_vector<Real3>& omegaLRF_fsiBodies_D2,
+		thrust::device_vector<Real3>& accRigid_fsiBodies_D2,
+		thrust::device_vector<Real4>& q_fsiBodies_D2,
+		thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D2,
+		thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D2,
 
 		thrust::host_vector<Real3>& pos_ChSystemBackupH,
-		thrust::host_vector<Real4>& quat_ChSystemBackupH,
 		thrust::host_vector<Real3>& vel_ChSystemBackupH,
-		thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH,
+		thrust::host_vector<Real3>& acc_ChSystemBackupH,
+		thrust::host_vector<Real4>& quat_ChSystemBackupH,
+		thrust::host_vector<Real3>& omegaVelGRF_ChSystemBackupH,
+		thrust::host_vector<Real3>& omegaAccGRF_ChSystemBackupH,
 
 		thrust::host_vector<Real3>& posRigid_fsiBodies_dummyH,
-		thrust::host_vector<Real4>& q_fsiBodies_dummyH,
 		thrust::host_vector<Real4>& velMassRigid_fsiBodies_dummyH,
-		thrust::host_vector<Real3>& omegaLRF_fsiBodies_dummyH,
+		thrust::host_vector<Real3>& accRigid_fsiBodies_dummyH,
+		thrust::host_vector<Real4>& q_fsiBodies_dummyH,
+		thrust::host_vector<Real3>& omegaVelLRF_fsiBodies_dummyH,
+		thrust::host_vector<Real3>& omegaAccLRF_fsiBodies_dummyH,
 
 		thrust::device_vector<Real3>& rigid_FSI_ForcesD,
 		thrust::device_vector<Real3>& rigid_FSI_TorquesD,
@@ -123,8 +132,9 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 	doStep_timer.AddTimer("fsi_copy_posVel_ChSystem2fluid_12");
 	doStep_timer.AddTimer("update_marker_pos_12");
 
-	Copy_ChSystem_to_External(pos_ChSystemBackupH, quat_ChSystemBackupH,
-			vel_ChSystemBackupH, omegaLRF_ChSystemBackupH, mphysicalSystem);
+	Copy_ChSystem_to_External(pos_ChSystemBackupH, vel_ChSystemBackupH, acc_ChSystemBackupH,
+			quat_ChSystemBackupH, omegaVelGRF_ChSystemBackupH, omegaAccGRF_ChSystemBackupH,
+			mphysicalSystem);
 	//**********************************
 	//----------------------------
 	//--------- start fluid ------
@@ -176,18 +186,18 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 	//----------------------------
 
 	doStep_timer.start("fsi_copy_posVel_ChSystem2fluid_12");
-
-	Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D2,
-			q_fsiBodies_D2, velMassRigid_fsiBodies_D2, omegaLRF_fsiBodies_D2,
-			posRigid_fsiBodies_dummyH, q_fsiBodies_dummyH,
-			velMassRigid_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH,
+	Copy_fsiBodies_ChSystem_to_FluidSystem(
+			posRigid_fsiBodies_D2, velMassRigid_fsiBodies_D2, accRigid_fsiBodies_D2,
+			q_fsiBodies_D2, omegaVelLRF_fsiBodies_D2, omegaAccLRF_fsiBodies_D2,
+			posRigid_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, accRigid_fsiBodies_dummyH,
+			q_fsiBodies_dummyH, omegaVelLRF_fsiBodies_dummyH, omegaAccLRF_fsiBodies_dummyH,
 			FSI_Bodies, mphysicalSystem);
 	doStep_timer.stop("fsi_copy_posVel_ChSystem2fluid_12");
 
 	doStep_timer.start("update_marker_pos_12");
 	UpdateRigidMarkersPosition(posRadD2, velMasD2, rigidSPH_MeshPos_LRF_D,
 			rigidIdentifierD, posRigid_fsiBodies_D2, q_fsiBodies_D2,
-			velMassRigid_fsiBodies_D2, omegaLRF_fsiBodies_D2, numObjects);
+			velMassRigid_fsiBodies_D2, omegaVelLRF_fsiBodies_D2, numObjects);
 	doStep_timer.stop("update_marker_pos_12");
 	// ******************
 	// ******************
@@ -212,9 +222,9 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 	mTime -= 0.5 * paramsH.dT;
 
 	// Arman: do it so that you don't need gpu when you don't have fluid
-	Copy_External_To_ChSystem(mphysicalSystem, pos_ChSystemBackupH,
-			quat_ChSystemBackupH, vel_ChSystemBackupH,
-			omegaLRF_ChSystemBackupH);
+	Copy_External_To_ChSystem(mphysicalSystem,
+			pos_ChSystemBackupH, vel_ChSystemBackupH, acc_ChSystemBackupH,
+			quat_ChSystemBackupH, omegaVelGRF_ChSystemBackupH, omegaAccGRF_ChSystemBackupH);
 
 	mTime += paramsH.dT;
 
@@ -224,14 +234,15 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 	//----------------------------
 	//--------- start fluid ------
 	//----------------------------
-	Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D, q_fsiBodies_D,
-			velMassRigid_fsiBodies_D, omegaLRF_fsiBodies_D,
-			posRigid_fsiBodies_dummyH, q_fsiBodies_dummyH,
-			velMassRigid_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH,
+	Copy_fsiBodies_ChSystem_to_FluidSystem(
+			posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, accRigid_fsiBodies_D,
+			q_fsiBodies_D, omegaVelLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D,
+			posRigid_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, accRigid_fsiBodies_dummyH,
+			q_fsiBodies_dummyH, omegaVelLRF_fsiBodies_dummyH, omegaAccLRF_fsiBodies_dummyH,
 			FSI_Bodies, mphysicalSystem);
 	UpdateRigidMarkersPosition(posRadD, velMasD, rigidSPH_MeshPos_LRF_D,
 			rigidIdentifierD, posRigid_fsiBodies_D, q_fsiBodies_D,
-			velMassRigid_fsiBodies_D, omegaLRF_fsiBodies_D, numObjects);
+			velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, numObjects);
 
 	if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
 		DensityReinitialization(posRadD, velMasD, rhoPresMuD,
@@ -250,17 +261,20 @@ void DoStepDynamics_ChronoRK2(chrono::ChSystemParallelDVI& mphysicalSystem,
 		chrono::vehicle::ChWheeledVehicleAssembly* mVehicle,
 
 		thrust::host_vector<Real3>& pos_ChSystemBackupH,
-		thrust::host_vector<Real4>& quat_ChSystemBackupH,
 		thrust::host_vector<Real3>& vel_ChSystemBackupH,
-		thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH,
+		thrust::host_vector<Real3>& acc_ChSystemBackupH,
+		thrust::host_vector<Real4>& quat_ChSystemBackupH,
+		thrust::host_vector<Real3>& omegaVelGRF_ChSystemBackupH,
+		thrust::host_vector<Real3>& omegaAccGRF_ChSystemBackupH,
 
 		const SimParams& paramsH, double mTime, double time_hold_vehicle,
 		bool haveVehicle) {
 	chrono::ChTimerParallel doStep_timer;
 	doStep_timer.AddTimer("stepDynamic_mbd_12");
 
-	Copy_ChSystem_to_External(pos_ChSystemBackupH, quat_ChSystemBackupH,
-			vel_ChSystemBackupH, omegaLRF_ChSystemBackupH, mphysicalSystem);
+	Copy_ChSystem_to_External(pos_ChSystemBackupH, vel_ChSystemBackupH, acc_ChSystemBackupH,
+			quat_ChSystemBackupH, omegaVelGRF_ChSystemBackupH, omegaAccGRF_ChSystemBackupH,
+			mphysicalSystem);
 	//**********************************
 	doStep_timer.start("stepDynamic_mbd_12");
 	mTime += 0.5 * paramsH.dT;
@@ -272,9 +286,9 @@ void DoStepDynamics_ChronoRK2(chrono::ChSystemParallelDVI& mphysicalSystem,
 	mTime -= 0.5 * paramsH.dT;
 
 	// Arman: do it so that you don't need gpu when you don't have fluid
-	Copy_External_To_ChSystem(mphysicalSystem, pos_ChSystemBackupH,
-			quat_ChSystemBackupH, vel_ChSystemBackupH,
-			omegaLRF_ChSystemBackupH);
+	Copy_External_To_ChSystem(mphysicalSystem,
+			pos_ChSystemBackupH, vel_ChSystemBackupH, acc_ChSystemBackupH,
+			quat_ChSystemBackupH, omegaVelGRF_ChSystemBackupH, omegaAccGRF_ChSystemBackupH);
 
 	mTime += paramsH.dT;
 

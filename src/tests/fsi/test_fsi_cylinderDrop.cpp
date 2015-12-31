@@ -625,9 +625,11 @@ int main(int argc, char* argv[]) {
 	thrust::host_vector<uint> bodyIndex;
 
 	thrust::host_vector<Real3> pos_ChSystemBackupH;
-	thrust::host_vector<Real4> quat_ChSystemBackupH;
 	thrust::host_vector<Real3> vel_ChSystemBackupH;
+	thrust::host_vector<Real3> acc_ChSystemBackupH;
+	thrust::host_vector<Real4> quat_ChSystemBackupH;
 	thrust::host_vector<Real3> omegaLRF_ChSystemBackupH;
+	thrust::host_vector<Real3> omegaAccGRF_ChSystemBackupH;
 
 	std::vector<ChSharedPtr<ChBody> > FSI_Bodies;
 
@@ -714,30 +716,41 @@ int main(int argc, char* argv[]) {
 
 	int numFsiBodies = FSI_Bodies.size();
 	thrust::device_vector<Real3> posRigid_fsiBodies_D;
-	thrust::device_vector<Real4> q_fsiBodies_D;
 	thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
+	thrust::device_vector<Real3> accRigid_fsiBodies_D;
+	thrust::device_vector<Real4> q_fsiBodies_D;
 	thrust::device_vector<Real3> omegaLRF_fsiBodies_D;
+	thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
 	ResizeR3(posRigid_fsiBodies_D, numFsiBodies);
-	ResizeR4(q_fsiBodies_D, numFsiBodies);
 	ResizeR4(velMassRigid_fsiBodies_D, numFsiBodies);
+	ResizeR3(accRigid_fsiBodies_D, numFsiBodies);
+	ResizeR4(q_fsiBodies_D, numFsiBodies);
 	ResizeR3(omegaLRF_fsiBodies_D, numFsiBodies);
+	ResizeR3(omegaAccLRF_fsiBodies_D, numFsiBodies);
 
 	thrust::host_vector<Real3> posRigid_fsiBodies_dummyH(numFsiBodies);
-	thrust::host_vector<Real4> q_fsiBodies_dummyH(numFsiBodies);
 	thrust::host_vector<Real4> velMassRigid_fsiBodies_dummyH(numFsiBodies);
+	thrust::host_vector<Real3> accRigid_fsiBodies_dummyH(numFsiBodies);
+	thrust::host_vector<Real4> q_fsiBodies_dummyH(numFsiBodies);
 	thrust::host_vector<Real3> omegaLRF_fsiBodies_dummyH(numFsiBodies);
+	thrust::host_vector<Real3> omegaAccLRF_fsiBodies_dummyH(numFsiBodies);
 
-	Copy_fsiBodies_ChSystem_to_FluidSystem(posRigid_fsiBodies_D, q_fsiBodies_D,
-			velMassRigid_fsiBodies_D, omegaLRF_fsiBodies_D,
-			posRigid_fsiBodies_dummyH, q_fsiBodies_dummyH,
-			velMassRigid_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH,
+
+
+	Copy_fsiBodies_ChSystem_to_FluidSystem(
+			posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, accRigid_fsiBodies_D,
+			q_fsiBodies_D, omegaLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D,
+			posRigid_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, accRigid_fsiBodies_dummyH,
+			q_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH, omegaAccLRF_fsiBodies_dummyH,
 			FSI_Bodies, mphysicalSystem);
 
 	thrust::device_vector<Real3> posRigid_fsiBodies_D2 = posRigid_fsiBodies_D;
+	thrust::device_vector<Real4> velMassRigid_fsiBodies_D2 = velMassRigid_fsiBodies_D;
+	thrust::device_vector<Real3> accRigid_fsiBodies_D2 = accRigid_fsiBodies_D;
+
 	thrust::device_vector<Real4> q_fsiBodies_D2 = q_fsiBodies_D;
-	thrust::device_vector<Real4> velMassRigid_fsiBodies_D2 =
-			velMassRigid_fsiBodies_D;
 	thrust::device_vector<Real3> omegaLRF_fsiBodies_D2 = omegaLRF_fsiBodies_D;
+	thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D2 = omegaAccLRF_fsiBodies_D;
 
 	thrust::device_vector<Real3> rigid_FSI_ForcesD;
 	thrust::device_vector<Real3> rigid_FSI_TorquesD;
@@ -867,6 +880,7 @@ int main(int argc, char* argv[]) {
 #endif
 #if haveFluid
 		fsi_timer.start("DoStepDynamics_FSI");
+
 		DoStepDynamics_FSI(mphysicalSystem, mVehicle, posRadD, velMasD,
 				vel_XSPH_D, rhoPresMuD,
 
@@ -874,17 +888,17 @@ int main(int argc, char* argv[]) {
 
 				derivVelRhoD, rigidIdentifierD, rigidSPH_MeshPos_LRF_D,
 
-				posRigid_fsiBodies_D, q_fsiBodies_D, velMassRigid_fsiBodies_D,
-				omegaLRF_fsiBodies_D,
+				posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, accRigid_fsiBodies_D,
+				q_fsiBodies_D, omegaLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D,
 
-				posRigid_fsiBodies_D2, q_fsiBodies_D2,
-				velMassRigid_fsiBodies_D2, omegaLRF_fsiBodies_D2,
+				posRigid_fsiBodies_D2, velMassRigid_fsiBodies_D2, accRigid_fsiBodies_D2,
+				q_fsiBodies_D2, omegaLRF_fsiBodies_D2, omegaAccLRF_fsiBodies_D2,
 
-				pos_ChSystemBackupH, quat_ChSystemBackupH, vel_ChSystemBackupH,
-				omegaLRF_ChSystemBackupH,
+				pos_ChSystemBackupH, vel_ChSystemBackupH, acc_ChSystemBackupH,
+				quat_ChSystemBackupH, omegaLRF_ChSystemBackupH, omegaAccGRF_ChSystemBackupH,
 
-				posRigid_fsiBodies_dummyH, q_fsiBodies_dummyH,
-				velMassRigid_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH,
+				posRigid_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, accRigid_fsiBodies_dummyH,
+				q_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH, omegaAccLRF_fsiBodies_dummyH,
 
 				rigid_FSI_ForcesD, rigid_FSI_TorquesD,
 
@@ -898,9 +912,11 @@ int main(int argc, char* argv[]) {
 				mVehicle,
 
 				pos_ChSystemBackupH,
-				quat_ChSystemBackupH,
 				vel_ChSystemBackupH,
+				acc_ChSystemBackupH,
+				quat_ChSystemBackupH,
 				omegaLRF_ChSystemBackupH,
+				omegaAccGRF_ChSystemBackupH,
 
 				paramsH,
 				mTime,
@@ -944,9 +960,11 @@ int main(int argc, char* argv[]) {
 	FSI_Bodies.clear();
 
 	pos_ChSystemBackupH.clear();
-	quat_ChSystemBackupH.clear();
 	vel_ChSystemBackupH.clear();
+	acc_ChSystemBackupH.clear();
+	quat_ChSystemBackupH.clear();
 	omegaLRF_ChSystemBackupH.clear();
+	omegaAccGRF_ChSystemBackupH.clear();
 
 // Arman LRF in omegaLRF may need change
 #if haveFluid
@@ -964,22 +982,28 @@ int main(int argc, char* argv[]) {
 	ClearMyThrustR3(vel_XSPH_D);
 
 	ClearMyThrustR3(posRigid_fsiBodies_D);
-	ClearMyThrustR4(q_fsiBodies_D);
 	ClearMyThrustR4(velMassRigid_fsiBodies_D);
+	ClearMyThrustR3(accRigid_fsiBodies_D);
+	ClearMyThrustR4(q_fsiBodies_D);
 	ClearMyThrustR3(omegaLRF_fsiBodies_D);
+	ClearMyThrustR3(omegaAccLRF_fsiBodies_D);
 
 	ClearMyThrustR3(posRigid_fsiBodies_D2);
-	ClearMyThrustR4(q_fsiBodies_D2);
 	ClearMyThrustR4(velMassRigid_fsiBodies_D2);
+	ClearMyThrustR3(accRigid_fsiBodies_D2);
+	ClearMyThrustR4(q_fsiBodies_D2);
 	ClearMyThrustR3(omegaLRF_fsiBodies_D2);
+	ClearMyThrustR3(omegaAccLRF_fsiBodies_D2);
 
 	ClearMyThrustR3(rigid_FSI_ForcesD);
 	ClearMyThrustR3(rigid_FSI_TorquesD);
 
 	posRigid_fsiBodies_dummyH.clear();
-	q_fsiBodies_dummyH.clear();
 	velMassRigid_fsiBodies_dummyH.clear();
+	accRigid_fsiBodies_dummyH.clear();
+	q_fsiBodies_dummyH.clear();
 	omegaLRF_fsiBodies_dummyH.clear();
+	omegaAccLRF_fsiBodies_dummyH.clear();
 #endif
 	delete mVehicle;
 	delete tire_cb;

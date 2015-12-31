@@ -182,6 +182,7 @@ __device__ Real3 deltaVShare(int3 gridPos, uint index, Real3 posRadA,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
+// Arman : revisit equation 10 of tech report, is it only on fluid or it is on all markers
 __device__ void BCE_modification_Share(
 		Real4& deltaVDenom,  // in and out
 		Real4& deltaRP, int& isAffected, int3 gridPos, uint index,
@@ -212,11 +213,10 @@ __device__ void BCE_modification_Share(
 			//					Wd);
 
 			if (rhoPresMuB.w < -.1) { // only fluid pressure is used to update BCE pressure see Eq 27 of Adami, 2012 paper
-
-				isAffected = (Wd > W3(1.99 * paramsD.HSML));
-
+				if (Wd > W3(1.99 * paramsD.HSML)) {
+					isAffected = 1;
+				}
 				deltaVDenom += mR4(velMasB * Wd, Wd);
-
 				deltaRP += mR4(rhoPresMuB.x * dist3 * Wd, // Arman: check if dist3 or -dist3
 				rhoPresMuB.y * Wd);
 			}

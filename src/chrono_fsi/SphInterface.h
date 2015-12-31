@@ -112,27 +112,37 @@ void Add_Rigid_ForceTorques_To_ChSystem(
 		const thrust::device_vector<Real3>& rigid_FSI_TorquesD,
 		const std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies);
 
-void Copy_External_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
+void Copy_External_To_ChSystem(
+		chrono::ChSystemParallelDVI& mphysicalSystem,
 		const thrust::host_vector<Real3>& pos_ChSystemBackupH,
-		const thrust::host_vector<Real4>& quat_ChSystemBackupH,
 		const thrust::host_vector<Real3>& vel_ChSystemBackupH,
-		const thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH);
+		const thrust::host_vector<Real3>& acc_ChSystemBackupH,
+		const thrust::host_vector<Real4>& quat_ChSystemBackupH,
+		const thrust::host_vector<Real3>& omegaVelGRF_ChSystemBackupH,
+		const thrust::host_vector<Real3>& omegaAccGRF_ChSystemBackupH);
 
 void Copy_ChSystem_to_External(thrust::host_vector<Real3>& pos_ChSystemBackupH,
-		thrust::host_vector<Real4>& quat_ChSystemBackupH,
 		thrust::host_vector<Real3>& vel_ChSystemBackupH,
-		thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH,
+		thrust::host_vector<Real3>& acc_ChSystemBackupH,
+		thrust::host_vector<Real4>& quat_ChSystemBackupH,
+		thrust::host_vector<Real3>& omegaVelGRF_ChSystemBackupH,
+		thrust::host_vector<Real3>& omegaAccGRF_ChSystemBackupH,
 		chrono::ChSystemParallelDVI& mphysicalSystem);
 
 void Copy_fsiBodies_ChSystem_to_FluidSystem(
 		thrust::device_vector<Real3>& posRigid_fsiBodies_D,
-		thrust::device_vector<Real4>& q_fsiBodies_D,
 		thrust::device_vector<Real4>& velMassRigid_fsiBodies_D,
+		thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		thrust::device_vector<Real4>& q_fsiBodies_D,
 		thrust::device_vector<Real3>& rigidOmegaLRF_fsiBodies_D,
+		thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+
 		thrust::host_vector<Real3>& posRigid_fsiBodies_H,
-		thrust::host_vector<Real4>& q_fsiBodies_H,
 		thrust::host_vector<Real4>& velMassRigid_fsiBodies_H,
+		thrust::host_vector<Real3>& accRigid_fsiBodies_H,
+		thrust::host_vector<Real4>& q_fsiBodies_H,
 		thrust::host_vector<Real3>& rigidOmegaLRF_fsiBodies_H,
+		thrust::host_vector<Real3>& omegaAccLRF_fsiBodies_H,
 		const std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
 		chrono::ChSystemParallelDVI& mphysicalSystem);
 

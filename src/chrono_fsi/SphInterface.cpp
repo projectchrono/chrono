@@ -422,42 +422,53 @@ void Add_Rigid_ForceTorques_To_ChSystem(
 // FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
 void Copy_External_To_ChSystem(chrono::ChSystemParallelDVI& mphysicalSystem,
 		const thrust::host_vector<Real3>& pos_ChSystemBackupH,
-		const thrust::host_vector<Real4>& quat_ChSystemBackupH,
 		const thrust::host_vector<Real3>& vel_ChSystemBackupH,
-		const thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH) {
+		const thrust::host_vector<Real3>& acc_ChSystemBackupH,
+		const thrust::host_vector<Real4>& quat_ChSystemBackupH,
+		const thrust::host_vector<Real3>& omegaVelGRF_ChSystemBackupH,
+		const thrust::host_vector<Real3>& omegaAccGRF_ChSystemBackupH) {
 	int numBodies = mphysicalSystem.Get_bodylist()->size();
-	//  assert(posRigidH.size() == numBodies && "Error!!! Size of the external data does not match the ChSystem");
 	if (pos_ChSystemBackupH.size() != numBodies) {
-		printf(
-				"\n\n\n\n Error!!! Size of the external data does not match the ChSystem \n\n\n\n");
+		throw std::runtime_error ("Size of the external data does not match the ChSystem !\n");
 	}
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < numBodies; i++) {
 		auto mBody = mphysicalSystem.Get_bodylist()->at(i);
 		mBody->SetPos(ConvertRealToChVector(pos_ChSystemBackupH[i]));
-		mBody->SetRot(ConvertToChQuaternion(quat_ChSystemBackupH[i]));
 		mBody->SetPos_dt(ConvertRealToChVector(vel_ChSystemBackupH[i]));
-		mBody->SetWvel_par(ConvertRealToChVector(omegaLRF_ChSystemBackupH[i]));
+		mBody->SetPos_dtdt(ConvertRealToChVector(acc_ChSystemBackupH[i]));
+
+		mBody->SetRot(ConvertToChQuaternion(quat_ChSystemBackupH[i]));
+		mBody->SetWvel_par(ConvertRealToChVector(omegaVelGRF_ChSystemBackupH[i]));
+		chrono::ChVector<> acc = ConvertRealToChVector(omegaAccGRF_ChSystemBackupH[i]);
+		mBody->SetWacc_par(acc);
 	}
 }
 //------------------------------------------------------------------------------------
 void Copy_ChSystem_to_External(thrust::host_vector<Real3>& pos_ChSystemBackupH,
-		thrust::host_vector<Real4>& quat_ChSystemBackupH,
 		thrust::host_vector<Real3>& vel_ChSystemBackupH,
-		thrust::host_vector<Real3>& omegaLRF_ChSystemBackupH,
+		thrust::host_vector<Real3>& acc_ChSystemBackupH,
+		thrust::host_vector<Real4>& quat_ChSystemBackupH,
+		thrust::host_vector<Real3>& omegaVelGRF_ChSystemBackupH,
+		thrust::host_vector<Real3>& omegaAccGRF_ChSystemBackupH,
 		chrono::ChSystemParallelDVI& mphysicalSystem) {
 	int numBodies = mphysicalSystem.Get_bodylist()->size();
 	pos_ChSystemBackupH.resize(numBodies);
-	quat_ChSystemBackupH.resize(numBodies);
 	vel_ChSystemBackupH.resize(numBodies);
-	omegaLRF_ChSystemBackupH.resize(numBodies);
+	acc_ChSystemBackupH.resize(numBodies);
+	quat_ChSystemBackupH.resize(numBodies);
+	omegaVelGRF_ChSystemBackupH.resize(numBodies);
+	omegaAccGRF_ChSystemBackupH.resize(numBodies);
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < numBodies; i++) {
 		auto mBody = mphysicalSystem.Get_bodylist()->at(i);
 		pos_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetPos());
-		quat_ChSystemBackupH[i] = ConvertChQuaternionToR4(mBody->GetRot());
 		vel_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetPos_dt());
-		omegaLRF_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetWvel_par());
+		acc_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetPos_dtdt());
+
+		quat_ChSystemBackupH[i] = ConvertChQuaternionToR4(mBody->GetRot());
+		omegaVelGRF_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetWvel_par());
+		omegaAccGRF_ChSystemBackupH[i] = ConvertChVectorToR3(mBody->GetWacc_par());
 	}
 }
 
@@ -465,42 +476,48 @@ void Copy_ChSystem_to_External(thrust::host_vector<Real3>& pos_ChSystemBackupH,
 // FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
 void Copy_fsiBodies_ChSystem_to_FluidSystem(
 		thrust::device_vector<Real3>& posRigid_fsiBodies_D,
-		thrust::device_vector<Real4>& q_fsiBodies_D,
 		thrust::device_vector<Real4>& velMassRigid_fsiBodies_D,
+		thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		thrust::device_vector<Real4>& q_fsiBodies_D,
 		thrust::device_vector<Real3>& rigidOmegaLRF_fsiBodies_D,
+		thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+
 		thrust::host_vector<Real3>& posRigid_fsiBodies_H,
-		thrust::host_vector<Real4>& q_fsiBodies_H,
 		thrust::host_vector<Real4>& velMassRigid_fsiBodies_H,
+		thrust::host_vector<Real3>& accRigid_fsiBodies_H,
+		thrust::host_vector<Real4>& q_fsiBodies_H,
 		thrust::host_vector<Real3>& rigidOmegaLRF_fsiBodies_H,
+		thrust::host_vector<Real3>& omegaAccLRF_fsiBodies_H,
 		const std::vector<chrono::ChSharedPtr<chrono::ChBody> >& FSI_Bodies,
 		chrono::ChSystemParallelDVI& mphysicalSystem) {
 	int num_fsiBodies_Rigids = FSI_Bodies.size();
-	//	  assert(posRigid_fsiBodies_D.size() == num_fsiBodies_Rigids && "Error!!! number of fsi bodies that are tracked
-	// does not match the array size");
-
 	if (posRigid_fsiBodies_D.size() != num_fsiBodies_Rigids
 			|| posRigid_fsiBodies_H.size() != num_fsiBodies_Rigids) {
-		printf(
-				"\n\n\n\n Error!!! number of fsi bodies that are tracked does not match the array size \n\n\n\n");
+		throw std::runtime_error ("number of fsi bodies that are tracked does not match the array size !\n");
 	}
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < num_fsiBodies_Rigids; i++) {
 		chrono::ChSharedPtr<chrono::ChBody> bodyPtr = FSI_Bodies[i];
 		posRigid_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetPos());
+		velMassRigid_fsiBodies_H[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
+		accRigid_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetPos_dtdt());
+
 		q_fsiBodies_H[i] = ConvertChQuaternionToR4(bodyPtr->GetRot());
-		velMassRigid_fsiBodies_H[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(),
-				bodyPtr->GetMass());
-		rigidOmegaLRF_fsiBodies_H[i] = ConvertChVectorToR3(
-				bodyPtr->GetWacc_loc());
+		rigidOmegaLRF_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetWvel_loc());
+		omegaAccLRF_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetWacc_loc());
 	}
 
 	thrust::copy(posRigid_fsiBodies_H.begin(), posRigid_fsiBodies_H.end(),
 			posRigid_fsiBodies_D.begin());
+	thrust::copy(velMassRigid_fsiBodies_H.begin(),
+				velMassRigid_fsiBodies_H.end(), velMassRigid_fsiBodies_D.begin());
+	thrust::copy(accRigid_fsiBodies_H.begin(),
+				accRigid_fsiBodies_H.end(), accRigid_fsiBodies_D.begin());
 	thrust::copy(q_fsiBodies_H.begin(), q_fsiBodies_H.end(),
 			q_fsiBodies_D.begin());
-	thrust::copy(velMassRigid_fsiBodies_H.begin(),
-			velMassRigid_fsiBodies_H.end(), velMassRigid_fsiBodies_D.begin());
 	thrust::copy(rigidOmegaLRF_fsiBodies_H.begin(),
 			rigidOmegaLRF_fsiBodies_H.end(), rigidOmegaLRF_fsiBodies_D.begin());
+	thrust::copy(omegaAccLRF_fsiBodies_H.begin(),
+			omegaAccLRF_fsiBodies_H.end(), omegaAccLRF_fsiBodies_D.begin());
 }
 
