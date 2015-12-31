@@ -628,7 +628,7 @@ int main(int argc, char* argv[]) {
 	thrust::host_vector<Real3> vel_ChSystemBackupH;
 	thrust::host_vector<Real3> acc_ChSystemBackupH;
 	thrust::host_vector<Real4> quat_ChSystemBackupH;
-	thrust::host_vector<Real3> omegaLRF_ChSystemBackupH;
+	thrust::host_vector<Real3> omegaVelGRF_ChSystemBackupH;
 	thrust::host_vector<Real3> omegaAccGRF_ChSystemBackupH;
 
 	std::vector<ChSharedPtr<ChBody> > FSI_Bodies;
@@ -719,29 +719,29 @@ int main(int argc, char* argv[]) {
 	thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
 	thrust::device_vector<Real3> accRigid_fsiBodies_D;
 	thrust::device_vector<Real4> q_fsiBodies_D;
-	thrust::device_vector<Real3> omegaLRF_fsiBodies_D;
+	thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;
 	thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
 	ResizeR3(posRigid_fsiBodies_D, numFsiBodies);
 	ResizeR4(velMassRigid_fsiBodies_D, numFsiBodies);
 	ResizeR3(accRigid_fsiBodies_D, numFsiBodies);
 	ResizeR4(q_fsiBodies_D, numFsiBodies);
-	ResizeR3(omegaLRF_fsiBodies_D, numFsiBodies);
+	ResizeR3(omegaVelLRF_fsiBodies_D, numFsiBodies);
 	ResizeR3(omegaAccLRF_fsiBodies_D, numFsiBodies);
 
 	thrust::host_vector<Real3> posRigid_fsiBodies_dummyH(numFsiBodies);
 	thrust::host_vector<Real4> velMassRigid_fsiBodies_dummyH(numFsiBodies);
 	thrust::host_vector<Real3> accRigid_fsiBodies_dummyH(numFsiBodies);
 	thrust::host_vector<Real4> q_fsiBodies_dummyH(numFsiBodies);
-	thrust::host_vector<Real3> omegaLRF_fsiBodies_dummyH(numFsiBodies);
+	thrust::host_vector<Real3> omegaVelLRF_fsiBodies_dummyH(numFsiBodies);
 	thrust::host_vector<Real3> omegaAccLRF_fsiBodies_dummyH(numFsiBodies);
 
 
 
 	Copy_fsiBodies_ChSystem_to_FluidSystem(
 			posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, accRigid_fsiBodies_D,
-			q_fsiBodies_D, omegaLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D,
+			q_fsiBodies_D, omegaVelLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D,
 			posRigid_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, accRigid_fsiBodies_dummyH,
-			q_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH, omegaAccLRF_fsiBodies_dummyH,
+			q_fsiBodies_dummyH, omegaVelLRF_fsiBodies_dummyH, omegaAccLRF_fsiBodies_dummyH,
 			FSI_Bodies, mphysicalSystem);
 
 	thrust::device_vector<Real3> posRigid_fsiBodies_D2 = posRigid_fsiBodies_D;
@@ -749,7 +749,7 @@ int main(int argc, char* argv[]) {
 	thrust::device_vector<Real3> accRigid_fsiBodies_D2 = accRigid_fsiBodies_D;
 
 	thrust::device_vector<Real4> q_fsiBodies_D2 = q_fsiBodies_D;
-	thrust::device_vector<Real3> omegaLRF_fsiBodies_D2 = omegaLRF_fsiBodies_D;
+	thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D2 = omegaVelLRF_fsiBodies_D;
 	thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D2 = omegaAccLRF_fsiBodies_D;
 
 	thrust::device_vector<Real3> rigid_FSI_ForcesD;
@@ -889,16 +889,16 @@ int main(int argc, char* argv[]) {
 				derivVelRhoD, rigidIdentifierD, rigidSPH_MeshPos_LRF_D,
 
 				posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, accRigid_fsiBodies_D,
-				q_fsiBodies_D, omegaLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D,
+				q_fsiBodies_D, omegaVelLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D,
 
 				posRigid_fsiBodies_D2, velMassRigid_fsiBodies_D2, accRigid_fsiBodies_D2,
-				q_fsiBodies_D2, omegaLRF_fsiBodies_D2, omegaAccLRF_fsiBodies_D2,
+				q_fsiBodies_D2, omegaVelLRF_fsiBodies_D2, omegaAccLRF_fsiBodies_D2,
 
 				pos_ChSystemBackupH, vel_ChSystemBackupH, acc_ChSystemBackupH,
-				quat_ChSystemBackupH, omegaLRF_ChSystemBackupH, omegaAccGRF_ChSystemBackupH,
+				quat_ChSystemBackupH, omegaVelGRF_ChSystemBackupH, omegaAccGRF_ChSystemBackupH,
 
 				posRigid_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, accRigid_fsiBodies_dummyH,
-				q_fsiBodies_dummyH, omegaLRF_fsiBodies_dummyH, omegaAccLRF_fsiBodies_dummyH,
+				q_fsiBodies_dummyH, omegaVelLRF_fsiBodies_dummyH, omegaAccLRF_fsiBodies_dummyH,
 
 				rigid_FSI_ForcesD, rigid_FSI_TorquesD,
 
@@ -915,7 +915,7 @@ int main(int argc, char* argv[]) {
 				vel_ChSystemBackupH,
 				acc_ChSystemBackupH,
 				quat_ChSystemBackupH,
-				omegaLRF_ChSystemBackupH,
+				omegaVelGRF_ChSystemBackupH,
 				omegaAccGRF_ChSystemBackupH,
 
 				paramsH,
@@ -963,7 +963,7 @@ int main(int argc, char* argv[]) {
 	vel_ChSystemBackupH.clear();
 	acc_ChSystemBackupH.clear();
 	quat_ChSystemBackupH.clear();
-	omegaLRF_ChSystemBackupH.clear();
+	omegaVelGRF_ChSystemBackupH.clear();
 	omegaAccGRF_ChSystemBackupH.clear();
 
 // Arman LRF in omegaLRF may need change
@@ -985,14 +985,14 @@ int main(int argc, char* argv[]) {
 	ClearMyThrustR4(velMassRigid_fsiBodies_D);
 	ClearMyThrustR3(accRigid_fsiBodies_D);
 	ClearMyThrustR4(q_fsiBodies_D);
-	ClearMyThrustR3(omegaLRF_fsiBodies_D);
+	ClearMyThrustR3(omegaVelLRF_fsiBodies_D);
 	ClearMyThrustR3(omegaAccLRF_fsiBodies_D);
 
 	ClearMyThrustR3(posRigid_fsiBodies_D2);
 	ClearMyThrustR4(velMassRigid_fsiBodies_D2);
 	ClearMyThrustR3(accRigid_fsiBodies_D2);
 	ClearMyThrustR4(q_fsiBodies_D2);
-	ClearMyThrustR3(omegaLRF_fsiBodies_D2);
+	ClearMyThrustR3(omegaVelLRF_fsiBodies_D2);
 	ClearMyThrustR3(omegaAccLRF_fsiBodies_D2);
 
 	ClearMyThrustR3(rigid_FSI_ForcesD);
@@ -1002,7 +1002,7 @@ int main(int argc, char* argv[]) {
 	velMassRigid_fsiBodies_dummyH.clear();
 	accRigid_fsiBodies_dummyH.clear();
 	q_fsiBodies_dummyH.clear();
-	omegaLRF_fsiBodies_dummyH.clear();
+	omegaVelLRF_fsiBodies_dummyH.clear();
 	omegaAccLRF_fsiBodies_dummyH.clear();
 #endif
 	delete mVehicle;
