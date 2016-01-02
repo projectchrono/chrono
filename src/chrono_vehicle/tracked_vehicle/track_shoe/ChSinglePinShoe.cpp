@@ -49,6 +49,20 @@ void ChSinglePinShoe::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
     // Add contact geometry.
     m_shoe->SetCollide(true);
+
+    switch (m_shoe->GetContactMethod()) {
+    case ChMaterialSurfaceBase::DVI:
+        m_shoe->GetMaterialSurface()->SetFriction(m_friction);
+        m_shoe->GetMaterialSurface()->SetRestitution(m_restitution);
+        break;
+    case ChMaterialSurfaceBase::DEM:
+        m_shoe->GetMaterialSurfaceDEM()->SetFriction(m_friction);
+        m_shoe->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
+        m_shoe->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
+        m_shoe->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
+        break;
+    }
+
     AddShoeContact();
 
     // Add visualization of the track shoe.

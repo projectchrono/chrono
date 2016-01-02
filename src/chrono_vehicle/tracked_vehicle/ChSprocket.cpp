@@ -99,6 +99,22 @@ void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
     // Add visualization of the gear.
     AddGearVisualization();
 
+    // Enable contact for the gear body and set contact material properties.
+    m_gear->SetCollide(true);
+
+    switch (m_gear->GetContactMethod()) {
+    case ChMaterialSurfaceBase::DVI:
+        m_gear->GetMaterialSurface()->SetFriction(m_friction);
+        m_gear->GetMaterialSurface()->SetRestitution(m_restitution);
+        break;
+    case ChMaterialSurfaceBase::DEM:
+        m_gear->GetMaterialSurfaceDEM()->SetFriction(m_friction);
+        m_gear->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
+        m_gear->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
+        m_gear->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
+        break;
+    }
+
     // Set user-defined custom collision callback class for sprocket-shoes contact.
     chassis->GetSystem()->SetCustomComputeCollisionCallback(GetCollisionCallback(track));
 }
