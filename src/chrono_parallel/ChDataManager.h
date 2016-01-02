@@ -20,6 +20,12 @@
 
 #pragma once
 
+// Blaze Includes
+#include <blaze/math/CompressedMatrix.h>
+#include <blaze/math/DynamicVector.h>
+#include <blaze/math/DenseSubvector.h>
+#include <blaze/math/SymmetricMatrix.h>
+
 // Chrono Includes
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "physics/ChBody.h"
@@ -36,12 +42,6 @@
 
 // Thrust Includes
 //#include <thrust/host_vector.h>
-
-// Blaze Includes
-#include <blaze/math/CompressedMatrix.h>
-#include <blaze/math/DynamicVector.h>
-#include <blaze/math/DenseSubvector.h>
-#include <blaze/math/SymmetricMatrix.h>
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
