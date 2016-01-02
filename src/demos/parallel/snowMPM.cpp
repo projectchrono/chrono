@@ -105,24 +105,25 @@ void AddFluid(ChSystemParallelMPM* sys) {
         vel_fluid[i] = real3(0, 0, 0);
     }
 #else
-        std::ifstream ifile("snowMPMinit.dat");
-        while (ifile.fail() == false) {
-            real m;
-            real3 p, v;
-            ifile >> m;
-            if (ifile.fail() == false) {
-                ifile >> p.x >> p.y >> p.z;
-                ifile >> v.x >> v.y >> v.z;
-            }
+    std::ifstream ifile("snowMPMinit.dat");
+    while (ifile.fail() == false) {
+        real m;
+        real3 p, v;
+        ifile >> m;
+        if (ifile.fail() == false) {
+            ifile >> p.x >> p.y >> p.z;
+            ifile >> v.x >> v.y >> v.z;
+        }
+        if (ifile.fail() == false) {
             pos_fluid.push_back(p);
             vel_fluid.push_back(v);
         }
+    }
 //    pos_fluid.push_back(real3(.5, .5, .5));
 //    vel_fluid.push_back(real3(0, -3, 0));
 //
 //    pos_fluid.push_back(real3(.5, .8, .5));
 //    vel_fluid.push_back(real3(0, -2, 0));
-
 
 #endif
     fluid_container->UpdatePosition(0);
