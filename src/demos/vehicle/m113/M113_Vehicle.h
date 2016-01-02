@@ -29,9 +29,7 @@ namespace m113 {
 
 class M113_Vehicle : public chrono::vehicle::ChTrackedVehicle {
   public:
-    M113_Vehicle(const bool fixed,
-                 chrono::vehicle::VisualizationType chassisVis,
-                 chrono::vehicle::VisualizationType trackVis,
+    M113_Vehicle(bool fixed,
                  chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
     ~M113_Vehicle() {}
@@ -39,6 +37,12 @@ class M113_Vehicle : public chrono::vehicle::ChTrackedVehicle {
     virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
     virtual void Initialize(const chrono::ChCoordsys<>& chassisPos) override;
+
+    void SetChassisVisType(chrono::vehicle::VisualizationType vis);
+    void SetSprocketVisType(chrono::vehicle::VisualizationType vis);
+    void SetIdlerVisType(chrono::vehicle::VisualizationType vis);
+    void SetRoadWheelVisType(chrono::vehicle::VisualizationType vis);
+    void SetTrackShoeVisType(chrono::vehicle::VisualizationType vis);
 
     void ExportMeshPovray(const std::string& out_dir);
 
@@ -54,6 +58,8 @@ class M113_Vehicle : public chrono::vehicle::ChTrackedVehicle {
 
     // Driver local coordinate system
     static const chrono::ChCoordsys<> m_driverCsys;
+
+    chrono::vehicle::VisualizationType m_chassisVisType;
 };
 
 }  // end namespace m113

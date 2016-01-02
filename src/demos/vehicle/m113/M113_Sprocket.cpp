@@ -52,8 +52,8 @@ const std::string M113_SprocketRight::m_meshFile = vehicle::GetDataFile("M113/Sp
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Sprocket::M113_Sprocket(const std::string& name, VisualizationType vis_type)
-    : ChArcSprocket(name), m_vis_type(vis_type) {
+M113_Sprocket::M113_Sprocket(const std::string& name)
+    : ChArcSprocket(name), m_vis_type(PRIMITIVES) {
     SetContactMaterial(0.4f, 0.1f, 1e7f, 0.3f);
 }
 

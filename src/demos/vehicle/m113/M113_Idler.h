@@ -64,11 +64,14 @@ class M113_Idler : public chrono::vehicle::ChDoubleIdler {
     /// Add visualization of the idler wheel.
     virtual void AddWheelVisualization() override;
 
+    /// Set the idler wheel visualization type.
+    void SetVisType(chrono::vehicle::VisualizationType vis) { m_vis_type = vis; }
+
     /// Export the wheel mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
 
   protected:
-    M113_Idler(const std::string& name, chrono::vehicle::VisualizationType vis_type);
+    M113_Idler(const std::string& name);
 
     virtual chrono::vehicle::VehicleSide GetVehicleSide() const = 0;
 
@@ -97,7 +100,7 @@ class M113_Idler : public chrono::vehicle::ChDoubleIdler {
 
 class M113_IdlerLeft : public M113_Idler {
   public:
-    M113_IdlerLeft(chrono::vehicle::VisualizationType visType) : M113_Idler("M113_IdlerLeft", visType) {}
+    M113_IdlerLeft() : M113_Idler("M113_IdlerLeft") {}
     ~M113_IdlerLeft() {}
 
     virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::LEFT; }
@@ -112,7 +115,7 @@ class M113_IdlerLeft : public M113_Idler {
 
 class M113_IdlerRight : public M113_Idler {
   public:
-    M113_IdlerRight(chrono::vehicle::VisualizationType visType) : M113_Idler("M113_IdlerRight", visType) {}
+    M113_IdlerRight() : M113_Idler("M113_IdlerRight") {}
     ~M113_IdlerRight() {}
 
     virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::RIGHT; }

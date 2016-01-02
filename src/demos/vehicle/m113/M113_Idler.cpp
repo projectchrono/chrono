@@ -71,8 +71,8 @@ class M113_TensionerForce : public ChSpringForceCallback {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Idler::M113_Idler(const std::string& name, VisualizationType vis_type)
-    : ChDoubleIdler(name), m_vis_type(vis_type) {
+M113_Idler::M113_Idler(const std::string& name)
+    : ChDoubleIdler(name), m_vis_type(PRIMITIVES) {
     SetContactMaterial(0.7f, 0.1f, 1e8f, 0.3f);
     m_tensionerForceCB = new M113_TensionerForce(m_tensioner_k, m_tensioner_c, m_tensioner_f, m_tensioner_l0);
 }

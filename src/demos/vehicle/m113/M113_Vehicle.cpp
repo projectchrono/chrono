@@ -22,10 +22,14 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "m113/M113_Vehicle.h"
-#include "m113/M113_TrackAssembly.h"
-#include "m113/M113_SimpleDriveline.h"
 #include "m113/M113_DrivelineBDS.h"
+#include "m113/M113_Idler.h"
+#include "m113/M113_RoadWheel.h"
+#include "m113/M113_SimpleDriveline.h"
+#include "m113/M113_Sprocket.h"
+#include "m113/M113_TrackAssembly.h"
+#include "m113/M113_TrackShoe.h"
+#include "m113/M113_Vehicle.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -47,14 +51,9 @@ const ChCoordsys<> M113_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuate
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Vehicle::M113_Vehicle(const bool fixed,
-                           chrono::vehicle::VisualizationType chassisVis,
-                           chrono::vehicle::VisualizationType trackVis,
-                           chrono::ChMaterialSurfaceBase::ContactMethod contactMethod)
-    : ChTrackedVehicle("M113 Vehicle", contactMethod) {
-    // -------------------------------------------
+M113_Vehicle::M113_Vehicle(bool fixed, ChMaterialSurfaceBase::ContactMethod contactMethod)
+    : ChTrackedVehicle("M113 Vehicle", contactMethod), m_chassisVisType(PRIMITIVES) {
     // Create the chassis body
-    // -------------------------------------------
     m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
 
     m_chassis->SetIdentifier(0);
@@ -64,7 +63,54 @@ M113_Vehicle::M113_Vehicle(const bool fixed,
     m_chassis->SetInertiaXX(m_chassisInertia);
     m_chassis->SetBodyFixed(fixed);
 
-    switch (chassisVis) {
+    m_system->Add(m_chassis);
+
+    // Create the track assembly subsystems
+    m_tracks[0] = ChSharedPtr<ChTrackAssembly>(new M113_TrackAssembly(LEFT));
+    m_tracks[1] = ChSharedPtr<ChTrackAssembly>(new M113_TrackAssembly(RIGHT));
+
+    // Create the driveline
+    m_driveline = ChSharedPtr<ChTrackDriveline>(new M113_SimpleDriveline);
+    ////m_driveline = ChSharedPtr<ChTrackDriveline>(new M113_DrivelineBDS);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void M113_Vehicle::SetChassisVisType(chrono::vehicle::VisualizationType vis) {
+    m_chassisVisType = vis;
+}
+
+void M113_Vehicle::SetSprocketVisType(chrono::vehicle::VisualizationType vis) {
+    m_tracks[0]->GetSprocket().StaticCastTo<M113_Sprocket>()->SetVisType(vis);
+    m_tracks[1]->GetSprocket().StaticCastTo<M113_Sprocket>()->SetVisType(vis);
+}
+
+void M113_Vehicle::SetIdlerVisType(chrono::vehicle::VisualizationType vis) {
+    m_tracks[0]->GetIdler().StaticCastTo<M113_Idler>()->SetVisType(vis);
+    m_tracks[1]->GetIdler().StaticCastTo<M113_Idler>()->SetVisType(vis);
+}
+
+void M113_Vehicle::SetRoadWheelVisType(chrono::vehicle::VisualizationType vis) {
+    for (size_t is = 0; is < 5; is++) {
+        m_tracks[0]->GetRoadWheel(is).StaticCastTo<M113_RoadWheel>()->SetVisType(vis);
+        m_tracks[1]->GetRoadWheel(is).StaticCastTo<M113_RoadWheel>()->SetVisType(vis);
+    }
+}
+
+void M113_Vehicle::SetTrackShoeVisType(chrono::vehicle::VisualizationType vis) {
+    for (size_t is = 0; is < m_tracks[0]->GetNumTrackShoes(); is++)
+        m_tracks[0]->GetTrackShoe(is).StaticCastTo<M113_TrackShoe>()->SetVisType(vis);
+    for (size_t is = 0; is < m_tracks[1]->GetNumTrackShoes(); is++)
+        m_tracks[1]->GetTrackShoe(is).StaticCastTo<M113_TrackShoe>()->SetVisType(vis);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
+    // Set chassis position and visualization assets.
+    m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+
+    switch (m_chassisVisType) {
         case PRIMITIVES: {
             ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
             sphere->GetSphereGeometry().rad = 0.1;
@@ -82,26 +128,6 @@ M113_Vehicle::M113_Vehicle(const bool fixed,
             break;
         }
     }
-
-    m_system->Add(m_chassis);
-
-    // -------------------------------------------
-    // Create the track assembly subsystems
-    // -------------------------------------------
-    m_tracks[0] = ChSharedPtr<ChTrackAssembly>(new M113_TrackAssembly(LEFT, trackVis));
-    m_tracks[1] = ChSharedPtr<ChTrackAssembly>(new M113_TrackAssembly(RIGHT, trackVis));
-
-    // --------------------
-    // Create the driveline
-    // --------------------
-    m_driveline = ChSharedPtr<ChTrackDriveline>(new M113_SimpleDriveline);
-    ////m_driveline = ChSharedPtr<ChTrackDriveline>(new M113_DrivelineBDS);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
-    m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
 
     double track_offset = 1.0795;
 

@@ -53,7 +53,7 @@ class M113_ShockForce : public ChSpringForceCallback {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Suspension::M113_Suspension(VehicleSide side, bool has_shock, VisualizationType vis_type)
+M113_Suspension::M113_Suspension(VehicleSide side, bool has_shock)
     : ChLinearDamperRWAssembly("", has_shock), m_side(side) {
     // Set subsystem name.
     SetName((side == LEFT) ? "M113_SuspensionLeft" : "M113_SuspensionRight");
@@ -69,8 +69,8 @@ M113_Suspension::M113_Suspension(VehicleSide side, bool has_shock, Visualization
     m_torsion_force->Set_iforce(m_torsion_t);
 
     // Create the associated road wheel.
-    m_road_wheel = (side == LEFT) ? ChSharedPtr<M113_RoadWheel>(new M113_RoadWheelLeft(vis_type))
-                                  : ChSharedPtr<M113_RoadWheel>(new M113_RoadWheelRight(vis_type));
+    m_road_wheel = (side == LEFT) ? ChSharedPtr<M113_RoadWheel>(new M113_RoadWheelLeft())
+                                  : ChSharedPtr<M113_RoadWheel>(new M113_RoadWheelRight());
 }
 
 M113_Suspension::~M113_Suspension() {

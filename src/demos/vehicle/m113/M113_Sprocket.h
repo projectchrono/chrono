@@ -59,11 +59,14 @@ class M113_Sprocket : public chrono::vehicle::ChArcSprocket {
     /// Add visualization of the road wheel.
     virtual void AddGearVisualization() override;
 
+    /// Set the sprocket visualization type.
+    void SetVisType(chrono::vehicle::VisualizationType vis) { m_vis_type = vis; }
+
     /// Export the gear mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
 
   protected:
-    M113_Sprocket(const std::string& name, chrono::vehicle::VisualizationType vis_type);
+    M113_Sprocket(const std::string& name);
 
     virtual const std::string& GetMeshName() const = 0;
     virtual const std::string& GetMeshFile() const = 0;
@@ -86,7 +89,7 @@ class M113_Sprocket : public chrono::vehicle::ChArcSprocket {
 
 class M113_SprocketLeft : public M113_Sprocket {
   public:
-    M113_SprocketLeft(chrono::vehicle::VisualizationType visType) : M113_Sprocket("M113_SprocketLeft", visType) {}
+    M113_SprocketLeft() : M113_Sprocket("M113_SprocketLeft") {}
     ~M113_SprocketLeft() {}
 
     virtual const std::string& GetMeshName() const override { return m_meshName; }
@@ -99,7 +102,7 @@ class M113_SprocketLeft : public M113_Sprocket {
 
 class M113_SprocketRight : public M113_Sprocket {
   public:
-    M113_SprocketRight(chrono::vehicle::VisualizationType visType) : M113_Sprocket("M113_SprocketRight", visType) {}
+    M113_SprocketRight() : M113_Sprocket("M113_SprocketRight") {}
     ~M113_SprocketRight() {}
 
     virtual const std::string& GetMeshName() const override { return m_meshName; }

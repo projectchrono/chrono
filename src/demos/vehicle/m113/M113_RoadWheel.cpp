@@ -45,8 +45,8 @@ const std::string M113_RoadWheelRight::m_meshFile = vehicle::GetDataFile("M113/R
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_RoadWheel::M113_RoadWheel(const std::string& name, VisualizationType vis_type)
-    : ChDoubleRoadWheel(name), m_vis_type(vis_type) {
+M113_RoadWheel::M113_RoadWheel(const std::string& name)
+    : ChDoubleRoadWheel(name), m_vis_type(PRIMITIVES) {
     SetContactMaterial(0.7f, 0.1f, 1e7f, 0.3f);
 }
 

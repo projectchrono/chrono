@@ -65,7 +65,13 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Create the M113 vehicle.
-    M113_Vehicle vehicle(false, PRIMITIVES, PRIMITIVES, ChMaterialSurfaceBase::DVI);
+    M113_Vehicle vehicle(false, ChMaterialSurfaceBase::DVI);
+
+    ////vehicle.SetChassisVisType(MESH);
+    vehicle.SetSprocketVisType(MESH);
+    vehicle.SetIdlerVisType(MESH);
+    ////vehicle.SetRoadWheelVisType(MESH);
+    ////vehicle.SetTrackShoeVisType(MESH);
 
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 

@@ -47,11 +47,14 @@ class M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
     /// Add visualization of the road wheel.
     virtual void AddWheelVisualization() override;
 
+    /// Set the road wheel visualization type.
+    void SetVisType(chrono::vehicle::VisualizationType vis) { m_vis_type = vis; }
+
     /// Export the wheel mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
 
   protected:
-    M113_RoadWheel(const std::string& name, chrono::vehicle::VisualizationType vis_type);
+    M113_RoadWheel(const std::string& name);
 
     virtual chrono::vehicle::VehicleSide GetVehicleSide() const = 0;
 
@@ -69,7 +72,7 @@ class M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
 
 class M113_RoadWheelLeft : public M113_RoadWheel {
   public:
-    M113_RoadWheelLeft(chrono::vehicle::VisualizationType visType) : M113_RoadWheel("M113_RoadWheelLeft", visType) {}
+    M113_RoadWheelLeft() : M113_RoadWheel("M113_RoadWheelLeft") {}
     ~M113_RoadWheelLeft() {}
 
     virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::LEFT; }
@@ -84,7 +87,7 @@ class M113_RoadWheelLeft : public M113_RoadWheel {
 
 class M113_RoadWheelRight : public M113_RoadWheel {
   public:
-    M113_RoadWheelRight(chrono::vehicle::VisualizationType visType) : M113_RoadWheel("M113_RoadWheelRight", visType) {}
+    M113_RoadWheelRight() : M113_RoadWheel("M113_RoadWheelRight") {}
     ~M113_RoadWheelRight() {}
 
     virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::RIGHT; }

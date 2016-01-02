@@ -30,7 +30,7 @@ namespace m113 {
 ///
 class M113_TrackAssembly : public chrono::vehicle::ChTrackAssembly {
   public:
-    M113_TrackAssembly(chrono::vehicle::VehicleSide side, chrono::vehicle::VisualizationType vis_type);
+    M113_TrackAssembly(chrono::vehicle::VehicleSide side);
     ~M113_TrackAssembly() {}
 
   private:
