@@ -15,16 +15,17 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChFileutils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
-#include "m113/M113_Vehicle.h"
 #include "m113/M113_SimplePowertrain.h"
+#include "m113/M113_Vehicle.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -57,10 +58,24 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 0.0);
 
+// Output directories
+const std::string out_dir = "../M113";
+const std::string pov_dir = out_dir + "/POVRAY";
+const std::string img_dir = out_dir + "/IMG";
+
+// POV-Ray output
+bool povray_output = false;
+bool img_output = false;
+
 // =============================================================================
 
 // Simple powertrain model
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
+
+// =============================================================================
+
+// Forward declarations
+void AddFixedObstacles(ChSystem* system);
 
 // =============================================================================
 int main(int argc, char* argv[]) {
@@ -76,8 +91,8 @@ int main(int argc, char* argv[]) {
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
     ////vehicle.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    ////vehicle.GetSystem()->SetIterLCPmaxItersSpeed(150);
-    ////vehicle.GetSystem()->SetIterLCPmaxItersStab(150);
+    vehicle.GetSystem()->SetIterLCPmaxItersSpeed(50);
+    vehicle.GetSystem()->SetIterLCPmaxItersStab(50);
     ////vehicle.GetSystem()->SetTol(0);
     ////vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
     ////vehicle.GetSystem()->SetMinBounceSpeed(2.0);
@@ -96,6 +111,8 @@ int main(int argc, char* argv[]) {
     terrain.SetColor(ChColor(0.5f, 0.8f, 0.5f));
     terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
+
+    AddFixedObstacles(vehicle.GetSystem());
 
     // Create and initialize the powertrain system.
     M113_SimplePowertrain powertrain;
@@ -121,6 +138,30 @@ int main(int argc, char* argv[]) {
     driver.SetThrottleDelta(render_step_size / throttle_time);
     driver.SetBrakingDelta(render_step_size / braking_time);
 
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    if (povray_output) {
+        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
+        terrain.ExportMeshPovray(out_dir);
+    }
+
+    if (img_output) {
+        if (ChFileutils::MakeDirectory(img_dir.c_str()) < 0) {
+            std::cout << "Error creating directory " << img_dir << std::endl;
+            return 1;
+        }
+    }
+
     // ---------------
     // Simulation loop
     // ---------------
@@ -134,6 +175,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize simulation frame counter
     int step_number = 0;
+    int render_frame = 0;
     ChRealtimeStepTimer realtime_timer;
 
     while (app.GetDevice()->run()) {
@@ -142,6 +184,20 @@ int main(int argc, char* argv[]) {
             app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
             app.DrawAll();
             app.EndScene();
+
+            if (povray_output) {
+                char filename[100];
+                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+                utils::WriteShapesPovray(vehicle.GetSystem(), filename);
+            }
+
+            if (img_output) {
+                char filename[100];
+                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
+                app.WriteImageToFile(filename);
+            }
+
+            render_frame++;
         }
 
         // Collect output data from modules
@@ -174,4 +230,55 @@ int main(int argc, char* argv[]) {
     vehicle.WriteContacts("M113_contacts.out");
 
     return 0;
+}
+
+void AddFixedObstacles(ChSystem* system) {
+    double radius = 2;
+    double length = 10;
+
+    float friction_coefficient = 0.9f;
+    float restitution_coefficient = 0.01f;
+    float young_modulus = 2e7f;
+    float poisson_ratio = 0.3f;
+
+    ChSharedPtr<ChBody> obstacle(new ChBody(system->GetContactMethod()));
+    obstacle->SetPos(ChVector<>(10, 0, -1.8));
+    obstacle->SetBodyFixed(true);
+    obstacle->SetCollide(true);
+
+    // Visualization
+    ChSharedPtr<ChCylinderShape> shape(new ChCylinderShape());
+    shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
+    shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
+    shape->GetCylinderGeometry().rad = radius;
+    obstacle->AddAsset(shape);
+
+    ChSharedPtr<ChColorAsset> color(new ChColorAsset);
+    color->SetColor(ChColor(1, 1, 1));
+    obstacle->AddAsset(color);
+
+    ChSharedPtr<ChTexture> texture(new ChTexture);
+    texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
+    texture->SetTextureScale(10, 10);
+    obstacle->AddAsset(texture);
+
+    // Contact
+    obstacle->GetCollisionModel()->ClearModel();
+    obstacle->GetCollisionModel()->AddCylinder(radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->BuildModel();
+
+    switch (obstacle->GetContactMethod()) {
+        case ChMaterialSurfaceBase::DVI:
+            obstacle->GetMaterialSurface()->SetFriction(friction_coefficient);
+            obstacle->GetMaterialSurface()->SetRestitution(restitution_coefficient);
+            break;
+        case ChMaterialSurfaceBase::DEM:
+            obstacle->GetMaterialSurfaceDEM()->SetFriction(friction_coefficient);
+            obstacle->GetMaterialSurfaceDEM()->SetRestitution(restitution_coefficient);
+            obstacle->GetMaterialSurfaceDEM()->SetYoungModulus(young_modulus);
+            obstacle->GetMaterialSurfaceDEM()->SetPoissonRatio(poisson_ratio);
+            break;
+    }
+
+    system->AddBody(obstacle);
 }
