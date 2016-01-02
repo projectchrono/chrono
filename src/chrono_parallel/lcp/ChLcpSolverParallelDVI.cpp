@@ -292,7 +292,7 @@ void ChLcpSolverParallelDVI::ComputeN() {
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeN";
     data_manager->system_timer.start("ChLcpSolverParallel_N");
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    SymmetricMatrix<CompressedMatrix<real> >& Nshur = data_manager->host_data.Nshur;
+    CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
     const CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     Nshur = D_T * M_invD;
