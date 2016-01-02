@@ -112,6 +112,10 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
     /// by the specified duration.
     void Advance(double step);
 
+    /// Save a snapshot of the last rendered frame to file.
+    /// The file name extension determines the image format.
+    void WriteImageToFile(const std::string& filename);
+
   protected:
     /// Render additional graphics
     virtual void renderOtherGraphics() {}
