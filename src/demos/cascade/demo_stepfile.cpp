@@ -29,17 +29,12 @@
 ///////////////////////////////////////////////////
 
 #include "chrono/core/ChRealtimeStep.h"
-
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono_cascade/ChBodyEasyCascade.h"
 #include "chrono_cascade/ChCascadeDoc.h"
-#include "chrono_cascade/ChCascadeMeshTools.h"
-#include "chrono_cascade/ChIrrCascadeMeshTools.h"
-#include "chrono_cascade/ChIrrCascade.h"
+#include "chrono_cascade/ChCascadeShapeAsset.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
-#include "chrono_irrlicht/ChBodySceneNode.h"
-#include "chrono_irrlicht/ChIrrAppInterface.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
-
-#include <irrlicht.h>
 
 // Use the namespace of Chrono
 using namespace chrono;
@@ -60,21 +55,22 @@ using namespace cascade;
 //
 
 int main(int argc, char* argv[]) {
-    // 1- Create a ChronoENGINE physical system: all bodies and constraints
-    //    will be handled by this ChSystem object.
+
+    // Create a ChronoENGINE physical system: all bodies and constraints
+    // will be handled by this ChSystem object.
     ChSystem my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrAppInterface application(&my_system, L"Load a STEP model from file", core::dimension2d<u32>(800, 600), false,
+    ChIrrApp application(&my_system, L"Load a STEP model from file", core::dimension2d<u32>(800, 600), false,
                                   true, video::EDT_OPENGL);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    // ChIrrWizard::add_typical_Logo(application.GetDevice());
+    ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
-                                    core::vector3df(30, -80, -30), 200, 130);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2, 0.3, -0.5));
+    ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30), core::vector3df(30, -80, -30), 200, 130);
+    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2f, 0.2f, -0.3f));
+
 
     //
     // Load a STEP file, containing a mechanism. The demo STEP file has been
@@ -85,14 +81,12 @@ int main(int argc, char* argv[]) {
     // and manages its subassembles
     ChCascadeDoc mydoc;
 
-    ChBodySceneNodeAuxRef* mrigidBody1 = 0;
-    ChBodySceneNodeAuxRef* mrigidBody2 = 0;
-
     // load the STEP model using this command:
-    bool load_ok = mydoc.Load_STEP("..\\data\\cascade\\assembly.stp");
+    bool load_ok = mydoc.Load_STEP(GetChronoDataFile("cascade/assembly.stp").c_str());  // or specify abs.path: ("C:\\data\\cascade\\assembly.stp");
 
     // print the contained shapes
     mydoc.Dump(GetLog());
+
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
@@ -106,61 +100,41 @@ int main(int argc, char* argv[]) {
     ChQuaternion<> tot_rotation = rotation2 % rotation1;     // rotate on 1 then on 2, using quaternion product
     ChFrameMoving<> root_frame(ChVector<>(0, 0, 0), tot_rotation);
 
+    // Retrieve some sub shapes from the loaded model, using
+    // the GetNamedShape() function, that can use path/subpath/subsubpath/part
+    // syntax and * or ? wildcards, etc.
+
+    ChSharedPtr<ChBodyEasyCascade> mrigidBody1;
+    ChSharedPtr<ChBodyEasyCascade> mrigidBody2;
+
     if (load_ok) {
-        // Retrieve some sub shapes from the loaded model, using
-        // the GetNamedShape() function, that can use path/subpath/subsubpath/part
-        // syntax and * or ? wldcards, etc.
+       
+        TopoDS_Shape shape1;
+        if (mydoc.GetNamedShape(shape1, "Assem1/body1")) {
+            
+            ChSharedPtr<ChBodyEasyCascade> mbody1 (new ChBodyEasyCascade(shape1, 1000, false, true));
+            my_system.Add(mbody1);
+            
+            mbody1->SetBodyFixed(true); 
 
-        TopoDS_Shape mshape;
-        if (mydoc.GetNamedShape(mshape, "Assem1/body1")) {
-            // Add the shape to the Irrlicht system, to get also visualization.
-            mrigidBody1 =
-                (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(&my_system, application.GetSceneManager(), mshape);
+            // Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
+            mbody1->ConcatenatePreTransformation(root_frame);
 
-            mrigidBody1->GetBody()->SetBodyFixed(true);
-
-            // Move the body as for global displacement/rotation (also mrigidBody1->GetBody() %= root_frame; )
-            mrigidBody1->GetBody()->ConcatenatePreTransformation(root_frame);
-
-            // Also add a collision shape based on the triangulation of the OpenCascade CAD model
-            /*
-            TopoDS_Shape relshape = mshape;
-            relshape.Location( TopLoc_Location() );
-            ChTriangleMesh temp_trianglemesh;
-            ChCascadeMeshTools::fillTriangleMeshFromCascade(temp_trianglemesh, relshape);
-            mrigidBody1->GetBody()->GetCollisionModel()->ClearModel();
-            mrigidBody1->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false);
-            mrigidBody1->GetBody()->GetCollisionModel()->BuildModel();
-            mrigidBody1->GetBody()->SetCollide(true);
-            */
-            // Move the COG body apart
-            // ChFrame<> mfr(ChVector<>(0,0,0.04));
-            // mrigidBody1->GetBody()->SetFrame_COG_to_REF(mfr);
+            mrigidBody1= mbody1;
 
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
-        TopoDS_Shape bshape;
-        if (mydoc.GetNamedShape(bshape, "Assem1/body2")) {
-            // Add the shape to the Irrlicht system, to get also visualization
-            mrigidBody2 =
-                (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(&my_system, application.GetSceneManager(), bshape);
+        TopoDS_Shape shape2;
+        if (mydoc.GetNamedShape(shape2, "Assem1/body2")) {
 
-            // Move the body as for global displacement/rotation  (also mrigidBody1->GetBody() %= root_frame; )
-            mrigidBody2->GetBody()->ConcatenatePreTransformation(root_frame);
+            ChSharedPtr<ChBodyEasyCascade> mbody2 (new ChBodyEasyCascade(shape2, 1000, false, true));
+            my_system.Add(mbody2);
+            
+            // Move the body as for global displacement/rotation  (also mbody2 %= root_frame; )
+            mbody2->ConcatenatePreTransformation(root_frame);
 
-            // Also add a collision shape based on the triangulation of the OpenCascade CAD model
-            /*
-            TopoDS_Shape relshape = bshape;
-            relshape.Location( TopLoc_Location() );
-            ChTriangleMesh temp_trianglemesh;
-            ChCascadeMeshTools::fillTriangleMeshFromCascade(temp_trianglemesh, relshape);
-            //fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, mrigidBody->GetChildMesh()->getMesh());
-            mrigidBody2->GetBody()->GetCollisionModel()->ClearModel();
-            mrigidBody2->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false);
-            mrigidBody2->GetBody()->GetCollisionModel()->BuildModel();
-            mrigidBody2->GetBody()->SetCollide(true);
-            */
+            mrigidBody2= mbody2;
 
         } else
             GetLog() << "Warning. Desired object not found in document \n";
@@ -178,27 +152,34 @@ int main(int argc, char* argv[]) {
 
     if (mrigidBody1 && mrigidBody2) {
         ChSharedPtr<ChLinkLockRevolute> my_link(new ChLinkLockRevolute);
-        ChSharedBodyPtr mb1 = mrigidBody1->GetBody();
-        ChSharedBodyPtr mb2 = mrigidBody2->GetBody();
-        my_link->Initialize(mb1, mb2, ChCoordsys<>(joint_pos));
+        my_link->Initialize(mrigidBody1, mrigidBody2, ChCoordsys<>(joint_pos));
         my_system.AddLink(my_link);
     }
 
     // Create a large cube as a floor.
 
-    ChBodySceneNode* mfloor = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        &my_system, application.GetSceneManager(), 1000.0, ChVector<>(0, -0.6, 0), ChQuaternion<>(1, 0, 0, 0),
-        ChVector<>(20, 1, 20));
-    mfloor->GetBody()->SetBodyFixed(true);
-    mfloor->GetBody()->SetCollide(true);
-    video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
-    mfloor->setMaterialTexture(0, cubeMap);
+    ChSharedPtr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(1, 0.2, 1, 1000));
+    mfloor->SetPos(ChVector<>(0,-0.3,0));
+    mfloor->SetBodyFixed(true);
+    application.GetSystem()->Add(mfloor);
+
+    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3,0.3,0.8));
+    mfloor->AddAsset(mcolor);
+
+
+
+    // Use this function for adding a ChIrrNodeAsset to all items
+    // Otherwise use application.AssetBind(myitem); on a per-item basis.
+    application.AssetBindAll();
+
+    // Use this function for 'converting' assets into Irrlicht meshes
+    application.AssetUpdateAll();
+
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
     //
 
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 

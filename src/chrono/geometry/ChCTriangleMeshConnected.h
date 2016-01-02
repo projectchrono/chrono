@@ -157,6 +157,14 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     int RepairDuplicateVertexes(const double tolerance = 1e-18 ///< when vertexes are closer than this value, they are merged
                                  );
 
+    /// Offset the mesh, by a specified value, orthogonally to the faces.
+    /// The offset can be inward or outward.
+    /// Note: self-collisions and inverted faces resulting from excessive offsets are NOT trimmed;
+    ///       so this is mostly meant to be a fast tool for making small offsets.
+    
+    bool MakeOffset(const double offset);
+
+
     //
     // OVERRIDE BASE CLASS FUNCTIONS
     //

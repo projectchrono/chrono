@@ -50,10 +50,16 @@ using namespace gui;
 
 std::vector<ChSharedPtr<ChBody> > mspheres;
 
-float STATIC_COMPLIANCE = 0.1f * (10.0f / 1000) / 500;  // as 1/K, in m/N. es: 10mm/500N
 
 void create_items(ChIrrAppInterface& application) {
     // Create some spheres in a vertical stack
+
+    ChSharedPtr<ChMaterialSurface> material (new ChMaterialSurface);
+    material->SetFriction   (0.4);
+    material->SetCompliance (0.001f / 700);  // as 1/K, in m/N. es: 1mm/700N
+    material->SetComplianceT(material->GetCompliance()); // use tangential compliance as normal compliance
+    material->SetDampingF   (0.2f); // damping factor, 0...1 
+    material->SetRestitution(0.0);
 
     bool do_wall = false;
     bool do_stack = true;
@@ -98,14 +104,12 @@ void create_items(ChIrrAppInterface& application) {
                                                                           true,                    // collide enable?
                                                                           true));                  // visualization?
                 mrigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
-                mrigidBody->AddAsset(
-                    ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
+                mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
 
                 application.GetSystem()->Add(mrigidBody);
             }
 
-            mrigidBody->GetMaterialSurface()->SetFriction(0.5f);
-            mrigidBody->GetMaterialSurface()->SetRestitution(0.0f);
+            mrigidBody->SetMaterialSurface(material);
 
             mspheres.push_back(mrigidBody);
 
@@ -123,14 +127,13 @@ void create_items(ChIrrAppInterface& application) {
             {
                 for (int ui = 0; ui < 15; ui++)  // N. of hor. bricks
                 {
-                    ChSharedPtr<ChBodyEasyBox> mrigidWall(new ChBodyEasyBox(3.96, 2, 4,  // radius
+                    ChSharedPtr<ChBodyEasyBox> mrigidWall(new ChBodyEasyBox(0.396, 0.2, 0.4,  // size
                                                                             dens,        // density
                                                                             true,        // collide enable?
                                                                             true));      // visualization?
-                    mrigidWall->SetPos(ChVector<>(-8 + ui * 4.0 + 2 * (bi % 2), 1.0 + bi * 2.0, -5 + ai * 6));
-                    mrigidWall->GetMaterialSurface()->SetFriction(0.4f);
-                    mrigidWall->AddAsset(
-                        ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
+                    mrigidWall->SetPos(ChVector<>(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
+                    mrigidWall->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
+                    mrigidWall->SetMaterialSurface(material);
 
                     application.GetSystem()->Add(mrigidWall);
                 }
@@ -148,11 +151,12 @@ void create_items(ChIrrAppInterface& application) {
                                                                        true));          // visualization?
         mrigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.1, -1));
         mrigidHeavy->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("pinkwhite.png"))));
+        mrigidHeavy->SetMaterialSurface(material);
 
         application.GetSystem()->Add(mrigidHeavy);
 
         GetLog() << "Expected contact deformation at side sphere="
-                 << (mrigidHeavy->GetMass() * application.GetSystem()->Get_G_acc().y) * STATIC_COMPLIANCE << "\n";
+                 << (mrigidHeavy->GetMass() * application.GetSystem()->Get_G_acc().y) * material->GetCompliance() << "\n";
     }
 
     // Create the floor using a fixed rigid body of 'box' type:
@@ -190,37 +194,19 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Critical cases for solver convergence", core::dimension2d<u32>(800, 600),
+    ChIrrApp application(&mphysicalSystem, L"Critical cases for convergence, and compliance", core::dimension2d<u32>(800, 600),
                          false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 1.5, -3));
+    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(1, 2, 6), core::vector3df(0, 2, 0));
 
     // Create all the rigid bodies.
 
     create_items(application);
 
-    class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback {
-      public:
-        virtual void ContactCallback(
-            const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
-            ChMaterialCouple& material)                      ///< you can modify this!
-        {
-            // Set compliance (normal and tangential at once)
-            material.compliance = STATIC_COMPLIANCE;
-            material.complianceT = material.compliance;
-            material.dampingf = 0.2f;
-        };
-        ChSystem* msystem;
-    };
-
-    MyContactCallback mycontact_callback;           // create the callback object
-    mycontact_callback.msystem = &mphysicalSystem;  // will be used by callback
-    // Tell the system to use the callback above, per each created contact!
-    mphysicalSystem.SetCustomCollisionPointCallback(&mycontact_callback);
 
     // Use this function for adding a ChIrrNodeAsset to all already created items (ex. a floor, a wall, etc.)
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
@@ -235,11 +221,12 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.SetIterLCPmaxItersStab(5);
     mphysicalSystem.SetParallelThreadNumber(1);
 
-    // mphysicalSystem.SetUseSleeping(true);
+    mphysicalSystem.SetMaxPenetrationRecoverySpeed(10);
 
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetPaused(true);
+
+    
 
     //
     // THE SOFT-REAL-TIME CYCLE

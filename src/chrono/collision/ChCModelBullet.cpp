@@ -22,6 +22,7 @@
 #include "physics/ChPhysicsItem.h"
 #include "physics/ChSystem.h"
 #include "collision/bullet/btBulletCollisionCommon.h"
+#include "collision/ChCCollisionUtils.h"
 #include "GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "GIMPACTUtils/btGImpactConvexDecompositionShape.h"
 #include "collision/ChCCollisionSystemBullet.h"
@@ -402,30 +403,39 @@ bool ChModelBullet::AddTriangleProxy(ChVector<>* p1,                ///< points 
 bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
                                   const ChVector<>& pos,
                                   const ChMatrix33<>& rot) {
+
     // adjust default inward margin (if object too thin)
-    // this->SetSafeMargin((btScalar)ChMin(this->GetSafeMargin(), ... );
+    ChVector<> aabbMax(-1e9,-1e9,-1e9);
+    ChVector<> aabbMin(1e9,1e9,1e9);
+    for (size_t i=0; i< pointlist.size(); ++i) {
+        aabbMax.x=ChMax(aabbMax.x,pointlist[i].x);
+        aabbMax.y=ChMax(aabbMax.y,pointlist[i].y);
+        aabbMax.z=ChMax(aabbMax.z,pointlist[i].z);
+        aabbMin.x=ChMin(aabbMin.x,pointlist[i].x);
+        aabbMin.y=ChMin(aabbMin.y,pointlist[i].y);
+        aabbMin.z=ChMin(aabbMin.z,pointlist[i].z);
+    }
+    ChVector<>aabbsize = aabbMax -aabbMin;
+    double approx_chord = ChMin( ChMin(aabbsize.x, aabbsize.y), aabbsize.z );
+    // override the inward margin if larger than 0.2 chord:
+    this->SetSafeMargin((btScalar)ChMin(this->GetSafeMargin(), approx_chord*0.2));
+
 
     btConvexHullShape* mshape = new btConvexHullShape;
 
-    mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
+    // shrink the convex hull by GetSafeMargin()
+    collision::ChConvexHullLibraryWrapper lh;
+    geometry::ChTriangleMeshConnected mmesh;
+    lh.ComputeHull(pointlist, mmesh);
+    mmesh.MakeOffset(-this->GetSafeMargin());
 
-    // ***TO DO*** shrink the convex hull by GetSafeMargin()
-    for (unsigned int i = 0; i < pointlist.size(); i++) {
-        mshape->addPoint(btVector3((btScalar)pointlist[i].x, (btScalar)pointlist[i].y, (btScalar)pointlist[i].z));
+    for (unsigned int i = 0; i < mmesh.m_vertices.size(); i++) {
+        mshape->addPoint(btVector3((btScalar)mmesh.m_vertices[i].x, (btScalar)mmesh.m_vertices[i].y, (btScalar)mmesh.m_vertices[i].z));
     }
 
     mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
     mshape->recalcLocalAabb();
-    /*
-    btTransform mtr(btQuaternion(0,0,0));
-    btVector3 mmin, mmax;
-    mshape->getAabb(mtr,mmin,mmax);
 
-    GetLog() << "\nAAABB min  " << (double)mmin.getX() << "   "  << (double)mmin.getY() << "   " << (double)mmin.getZ()
-    << "\n" ;
-    GetLog() << "AAABB max  " << (double)mmax.getX() << "   "  << (double)mmax.getY() << "   " << (double)mmax.getZ() <<
-    "\n" ;
-    */
     _injectShape(pos, rot, mshape);
 
     return true;
