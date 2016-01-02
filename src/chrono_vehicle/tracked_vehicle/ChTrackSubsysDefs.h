@@ -34,7 +34,8 @@ enum Enum {
     WHEELS_LEFT = 1 << 4,
     WHEELS_RIGHT = 1 << 5,
     SHOES_LEFT = 1 << 6,
-    SHOES_RIGHT = 1 << 7
+    SHOES_RIGHT = 1 << 7,
+    ALL = 0xFFFF
 };
 }
 
