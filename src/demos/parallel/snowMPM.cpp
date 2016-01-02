@@ -35,7 +35,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-
+#include <fstream>
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
@@ -93,7 +93,7 @@ void AddFluid(ChSystemParallelMPM* sys) {
 
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
-
+#if 0
     double dist = sys->GetSettings()->fluid.kernel_radius * .75;
     utils::HCPSampler<> sampler(dist);
     utils::Generator::PointVector points = sampler.SampleSphere(ChVector<>(0, 0, 0), radius);
@@ -104,9 +104,27 @@ void AddFluid(ChSystemParallelMPM* sys) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
         vel_fluid[i] = real3(0, 0, 0);
     }
-    vol = 4.0 / 3.0 * CH_C_PI * pow(radius + sys->GetSettings()->fluid.kernel_radius, 3) / (points.size());
-    sys->GetSettings()->fluid.mass = sys->GetSettings()->fluid.density * vol * .5;  //* .48;  //*0.695;//* 0.6388;
-    std::cout << "fluid_mass: " << sys->GetSettings()->fluid.mass << std::endl;
+#else
+        std::ifstream ifile("snowMPMinit.dat");
+        while (ifile.fail() == false) {
+            real m;
+            real3 p, v;
+            ifile >> m;
+            if (ifile.fail() == false) {
+                ifile >> p.x >> p.y >> p.z;
+                ifile >> v.x >> v.y >> v.z;
+            }
+            pos_fluid.push_back(p);
+            vel_fluid.push_back(v);
+        }
+//    pos_fluid.push_back(real3(.5, .5, .5));
+//    vel_fluid.push_back(real3(0, -3, 0));
+//
+//    pos_fluid.push_back(real3(.5, .8, .5));
+//    vel_fluid.push_back(real3(0, -2, 0));
+
+
+#endif
     fluid_container->UpdatePosition(0);
     fluid_container->AddFluid(pos_fluid, vel_fluid);
 }
@@ -141,7 +159,7 @@ int main(int argc, char* argv[]) {
     //    CHOMPfunctions::SetNumThreads(threads);
 
     // Set gravitational acceleration
-    msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
+    msystem.Set_G_acc(ChVector<>(0, -gravity, 0));
 
     real youngs_modulus = (real)1.4e5;
     real poissons_ratio = (real).2;
@@ -160,7 +178,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.cache_step_length = true;
 
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
-    msystem.GetSettings()->fluid.kernel_radius = .02;
+    msystem.GetSettings()->fluid.kernel_radius = .005;
     msystem.GetSettings()->fluid.mass = .007 * 5.5;
     msystem.GetSettings()->fluid.density = 1000;
     msystem.GetSettings()->mpm.theta_c = (real)2.5e-2;
@@ -172,7 +190,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->mpm.hardening_coefficient = (real)10.;
 
     real initial_density = (real)4e2;
-    msystem.GetSettings()->mpm.mass = .1;
+    msystem.GetSettings()->mpm.mass = 400;
 
     msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);

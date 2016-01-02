@@ -44,11 +44,22 @@ real dN(const real x) {
 }
 
 real3 dN(const real3& X, real inv_grid_dx) {
-    real3 val = real3();
-    real3 T = X * inv_grid_dx;
-    val.x = dN(T.x) * inv_grid_dx * N(T.y) * N(T.z);
-    val.y = N(T.x) * dN(T.y) * inv_grid_dx * N(T.z);
-    val.z = N(T.x) * N(T.y) * dN(T.z) * inv_grid_dx;
+    real3 val = real3(0);
+        real3 T = X * inv_grid_dx;
+        val.x = dN(T.x) * inv_grid_dx * N(T.y) * N(T.z);
+        val.y = N(T.x) * dN(T.y) * inv_grid_dx * N(T.z);
+        val.z = N(T.x) * N(T.y) * dN(T.z) * inv_grid_dx;
+        return val;
+//
+//    for (int axis = 0; axis < 3; ++axis) {
+//        val[axis] = 1.;
+//        for (int other_axis = 0; other_axis < 3; ++other_axis) {
+//            if (other_axis == axis)
+//                val[axis] *= dN(X[axis] * inv_grid_dx) * inv_grid_dx;
+//            else
+//                val[axis] *= N(X[other_axis] * inv_grid_dx);
+//        }
+//    }
     return val;
 }
 
@@ -73,9 +84,9 @@ inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_bounding
     const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                            \
     const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);                            \
                                                                                                    \
-    for (int k = cz - 2; k <= cz + 2; ++k) {                                                       \
+    for (int i = cx - 2; i <= cx + 2; ++i) {                                                       \
         for (int j = cy - 2; j <= cy + 2; ++j) {                                                   \
-            for (int i = cx - 2; i <= cx + 2; ++i) {                                               \
+            for (int k = cz - 2; k <= cz + 2; ++k) {                                               \
                 const int current_node = GridHash(i, j, k, bins_per_axis);                         \
                 real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point); \
                 X                                                                                  \
@@ -89,6 +100,7 @@ Mat33 Potential_Energy_Derivative(const Mat33& FE, const Mat33& FP, real mu, rea
     // Paper: Equation 2
     real current_mu = mu * exp(hardening_coefficient * (real(1.) - JP));
     real current_lambda = lambda * exp(hardening_coefficient * (real(1.) - JP));
+    printf("CONST: %f %f %f %f %f\n", mu, lambda, hardening_coefficient, JP, JE);
     Mat33 UE, VE;
     real3 EE;
     SVD(FE, UE, EE, VE);
@@ -121,10 +133,10 @@ Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
     A[8] = -(S[0] + S[5]);
     A[9] = S[9];
     A[10] = S[8];
-    //dF^TR is just the transpose of W which is R^TdF, this is the right hand side
-    b.x = W[4] - W[1];
-    b.y = W[2] - W[8];
-    b.z = W[9] - W[6];
+    // dF^TR is just the transpose of W which is R^TdF, this is the right hand side
+    b[0] = W[4] - W[1];
+    b[1] = W[2] - W[8];
+    b[2] = W[9] - W[6];
 
     // solve for R^TdR
     real3 r = Inverse(A) * b;
