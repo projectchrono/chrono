@@ -41,10 +41,12 @@
 #include <blaze/math/CompressedMatrix.h>
 #include <blaze/math/DynamicVector.h>
 #include <blaze/math/DenseSubvector.h>
+#include <blaze/math/SymmetricMatrix.h>
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
 using blaze::SparseSubmatrix;
+using blaze::SymmetricMatrix;
 using blaze::submatrix;
 using blaze::subvector;
 using custom_vector;
@@ -201,7 +203,7 @@ struct host_container {
     //_T is transpose
     //_inv is inverse
     // This matrix, if used will hold D^TxM^-1xD in sparse form
-    CompressedMatrix<real> Nshur;
+    SymmetricMatrix<CompressedMatrix<real> > Nshur;
     // The D Matrix hold the Jacobian for the entire system
     CompressedMatrix<real> D;
     // D_T is the transpose of the D matrix, note that D_T is actually computed
