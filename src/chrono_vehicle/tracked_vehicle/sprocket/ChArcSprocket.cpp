@@ -104,6 +104,10 @@ class ArcSprocketContactCB : public ChSystem::ChCustomComputeCollisionCallback {
 };
 
 void ArcSprocketContactCB::PerformCustomCollision(ChSystem* system) {
+    // Return now if collision disabled on sproket or track shoes.
+    if (!m_sprocket->GetGearBody()->GetCollide() || !m_track->GetTrackShoe(0)->GetShoeBody()->GetCollide())
+        return;
+
     // Sprocket gear center location (expressed in global frame)
     ChVector<> locS_abs = m_sprocket->GetGearBody()->GetPos();
 
