@@ -120,16 +120,16 @@ void ChConstraintRigidFluid::Build_D() {
             Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1, T2,
                              T3);
 
-            SetRow6(D_T, num_unilaterals + num_bilaterals + index * 3 + 0, rigid * 6, -U, T1);
-            SetRow6(D_T, num_unilaterals + num_bilaterals + index * 3 + 1, rigid * 6, -V, T2);
-            SetRow6(D_T, num_unilaterals + num_bilaterals + index * 3 + 2, rigid * 6, -W, T3);
+            SetRow6Check(D_T, num_unilaterals + num_bilaterals + index * 3 + 0, rigid * 6, -U, T1);
+            SetRow6Check(D_T, num_unilaterals + num_bilaterals + index * 3 + 1, rigid * 6, -V, T2);
+            SetRow6Check(D_T, num_unilaterals + num_bilaterals + index * 3 + 2, rigid * 6, -W, T3);
 
-            SetRow3(D_T, num_unilaterals + num_bilaterals + index * 3 + 0,
-                    num_rigid_bodies * 6 + num_shafts + fluid * 3, U);
-            SetRow3(D_T, num_unilaterals + num_bilaterals + index * 3 + 1,
-                    num_rigid_bodies * 6 + num_shafts + fluid * 3, V);
-            SetRow3(D_T, num_unilaterals + num_bilaterals + index * 3 + 2,
-                    num_rigid_bodies * 6 + num_shafts + fluid * 3, W);
+            SetRow3Check(D_T, num_unilaterals + num_bilaterals + index * 3 + 0,
+                         num_rigid_bodies * 6 + num_shafts + fluid * 3, U);
+            SetRow3Check(D_T, num_unilaterals + num_bilaterals + index * 3 + 1,
+                         num_rigid_bodies * 6 + num_shafts + fluid * 3, V);
+            SetRow3Check(D_T, num_unilaterals + num_bilaterals + index * 3 + 2,
+                         num_rigid_bodies * 6 + num_shafts + fluid * 3, W);
             index++;
         }
     }
