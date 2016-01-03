@@ -79,17 +79,24 @@ void AddFixedObstacles(ChSystem* system);
 
 // =============================================================================
 int main(int argc, char* argv[]) {
-    // Create the M113 vehicle.
-    M113_Vehicle vehicle(false, ChMaterialSurfaceBase::DVI);
-
-    ////vehicle.SetChassisVisType(MESH);
-    vehicle.SetSprocketVisType(MESH);
-    vehicle.SetIdlerVisType(MESH);
-    ////vehicle.SetRoadWheelVisType(MESH);
-    ////vehicle.SetTrackShoeVisType(MESH);
+    // --------------------------
+    // Construct the M113 vehicle
+    // --------------------------
+    M113_Vehicle vehicle(false, ChMaterialSurfaceBase::DEM);
 
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
+    // Set visualization type for vehicle components (default: PRIMITIVES).
+    ////vehicle.SetChassisVisType(MESH);
+    ////vehicle.SetSprocketVisType(MESH);
+    ////vehicle.SetIdlerVisType(MESH);
+    ////vehicle.SetRoadWheelVisType(MESH);
+    ////vehicle.SetTrackShoeVisType(MESH);
+
+    // Control steering type (enable crossdrive capability).
+    ////vehicle.GetDriveline()->SetGyrationMode(true);
+
+    // Solver settings.
     ////vehicle.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
     vehicle.GetSystem()->SetIterLCPmaxItersSpeed(50);
     vehicle.GetSystem()->SetIterLCPmaxItersStab(50);
@@ -99,13 +106,18 @@ int main(int argc, char* argv[]) {
     ////vehicle.GetSystem()->SetIterLCPomega(0.8);
     ////vehicle.GetSystem()->SetIterLCPsharpnessLambda(1.0);
 
-    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
-
+    // Control internal collisions and contact monitoring.
     ////vehicle.SetCollide(TrackCollide::NONE);
     ////vehicle.MonitorContacts(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT | TrackCollide::IDLER_LEFT);
     ////vehicle.SetContactCollection(true);
 
-    // Create the ground
+    // Initialize the vehicle at the specified position.
+    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
+    // ------------------
+    // Create the terrain
+    // ------------------
+
     RigidTerrain terrain(vehicle.GetSystem());
     terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
     terrain.SetColor(ChColor(0.5f, 0.8f, 0.5f));
@@ -114,11 +126,17 @@ int main(int argc, char* argv[]) {
 
     AddFixedObstacles(vehicle.GetSystem());
 
-    // Create and initialize the powertrain system.
+    // ----------------------------
+    // Create the powertrain system
+    // ----------------------------
+
     M113_SimplePowertrain powertrain;
     powertrain.Initialize();
 
-    // Create the vehicle Irrlicht application.
+    // ---------------------------------------
+    // Create the vehicle Irrlicht application
+    // ---------------------------------------
+
     ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Vehicle Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -129,9 +147,14 @@ int main(int argc, char* argv[]) {
     app.AssetBindAll();
     app.AssetUpdateAll();
 
-    // Create the driver system and set the time response for keyboard inputs.
+    // ------------------------
+    // Create the driver system
+    // ------------------------
+
     ChIrrGuiDriver driver(app);
-    double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+
+    // Set the time response for keyboard inputs.
+    double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
     double throttle_time = 1.0;  // time to go from 0 to +1
     double braking_time = 0.3;   // time to go from 0 to +1
     driver.SetSteeringDelta(render_step_size / steering_time);
@@ -191,7 +214,7 @@ int main(int argc, char* argv[]) {
                 utils::WriteShapesPovray(vehicle.GetSystem(), filename);
             }
 
-            if (img_output) {
+            if (img_output && step_number > 200) {
                 char filename[100];
                 sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
                 app.WriteImageToFile(filename);
@@ -232,6 +255,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+// =============================================================================
 void AddFixedObstacles(ChSystem* system) {
     double radius = 2;
     double length = 10;
