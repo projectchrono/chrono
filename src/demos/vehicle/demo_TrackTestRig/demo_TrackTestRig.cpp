@@ -66,8 +66,8 @@ int main(int argc, char* argv[]) {
     ChTrackTestRig rig(track_assembly, sprocket_loc, idler_loc, susp_locs, ChMaterialSurfaceBase::DVI);
     //rig.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
     rig.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-    rig.GetSystem()->SetIterLCPmaxItersSpeed(150);
-    rig.GetSystem()->SetIterLCPmaxItersStab(150);
+    rig.GetSystem()->SetIterLCPmaxItersSpeed(50);
+    rig.GetSystem()->SetIterLCPmaxItersStab(50);
     rig.GetSystem()->SetTol(0);
     rig.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
     rig.GetSystem()->SetMinBounceSpeed(2.0);
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(target_point, 3.0, 1.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(0, 4, 0));
+    app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
@@ -123,6 +123,9 @@ int main(int argc, char* argv[]) {
             app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
             app.DrawAll();
             app.EndScene();
+
+            if (step_number == 2)
+                app.WriteImageToFile("assembled_track.jpg");
         }
 
         // Collect output data from modules
