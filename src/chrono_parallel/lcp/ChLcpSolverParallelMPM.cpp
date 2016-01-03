@@ -120,11 +120,29 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
     size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
     printf("START MPM STEP\n");
+
+    grid_mass.resize(num_nodes);
+    grid_vel.resize(num_nodes * 3);
+    grid_vel_old.resize(num_nodes * 3);
+    grid_forces.resize(num_nodes);
+
+    volume.resize(num_particles);
+    rhs.resize(num_nodes * 3);
+
+    delta_F.resize(num_particles);
+
+    Fe.resize(num_particles);
+    std::fill(Fe.begin(), Fe.end(), Mat33(1));
+
+    Fe_hat.resize(num_particles);
+    Fp.resize(num_particles);
+    std::fill(Fp.begin(), Fp.end(), Mat33(1));
+
     // clear initial vectors
     grid_vel = 0;
     grid_mass = 0;
 
-    //DynamicVector<real3> grid_loc(num_nodes);
+    // DynamicVector<real3> grid_loc(num_nodes);
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
     printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
 
@@ -140,7 +158,7 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
             grid_vel[current_node * 3 + 0] += weight * vi.x;                   //
             grid_vel[current_node * 3 + 1] += weight * vi.y;                   //
             grid_vel[current_node * 3 + 2] += weight * vi.z;                   //
-            //grid_loc[current_node] = current_node_location;
+            // grid_loc[current_node] = current_node_location;
 
             )
     }
