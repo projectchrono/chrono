@@ -45,7 +45,7 @@ const ChVector<> M113_Vehicle::m_chassisCOM(-2.006, 0, 0.406);
 const ChVector<> M113_Vehicle::m_chassisInertia(1786.92, 10449.67, 10721.22);
 
 const std::string M113_Vehicle::m_chassisMeshName = "Chassis_POV_geom";
-const std::string M113_Vehicle::m_chassisMeshFile = vehicle::GetDataFile("m113/Chassis.obj");
+const std::string M113_Vehicle::m_chassisMeshFile = vehicle::GetDataFile("M113/Chassis.obj");
 
 const ChCoordsys<> M113_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
