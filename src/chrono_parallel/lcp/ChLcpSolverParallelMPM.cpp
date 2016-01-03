@@ -124,7 +124,7 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
     grid_vel = 0;
     grid_mass = 0;
 
-    DynamicVector<real3> grid_loc(num_nodes);
+    //DynamicVector<real3> grid_loc(num_nodes);
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
     printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
 
@@ -140,7 +140,7 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
             grid_vel[current_node * 3 + 0] += weight * vi.x;                   //
             grid_vel[current_node * 3 + 1] += weight * vi.y;                   //
             grid_vel[current_node * 3 + 2] += weight * vi.z;                   //
-            grid_loc[current_node] = current_node_location;
+            //grid_loc[current_node] = current_node_location;
 
             )
     }
@@ -194,6 +194,7 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
     for (int i = 0; i < num_nodes; i++) {
         grid_forces[i] += grid_mass[i] * gravity;
     }
+
     printf("Update_Grid_Velocities\n");
 #pragma omp parallel for
     for (int i = 0; i < num_nodes; i++) {
