@@ -100,7 +100,7 @@ Mat33 Potential_Energy_Derivative(const Mat33& FE, const Mat33& FP, real mu, rea
     // Paper: Equation 2
     real current_mu = mu * exp(hardening_coefficient * (real(1.) - JP));
     real current_lambda = lambda * exp(hardening_coefficient * (real(1.) - JP));
-    printf("CONST: %f %f %f %f %f\n", mu, lambda, hardening_coefficient, JP, JE);
+   // printf("CONST: %f %f %f %f %f\n", mu, lambda, hardening_coefficient, JP, JE);
     Mat33 UE, VE;
     real3 EE;
     SVD(FE, UE, EE, VE);

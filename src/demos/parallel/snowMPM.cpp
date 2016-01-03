@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->mpm.hardening_coefficient = (real)10.;
 
     real initial_density = (real)4e2;
-    msystem.GetSettings()->mpm.mass = 400;
+    msystem.GetSettings()->mpm.mass = .004;
 
     msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
