@@ -85,7 +85,7 @@ void AddContainer(ChSystemParallelMPM* sys) {
 void AddFluid(ChSystemParallelMPM* sys) {
     ChFluidContainer* fluid_container = new ChFluidContainer(sys);
 
-    real radius = sys->GetSettings()->fluid.kernel_radius * 5;  //*5
+    real radius = sys->GetSettings()->fluid.kernel_radius * 10;  //*5
     real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
     real3 origin(0, 0, .2);
@@ -93,17 +93,30 @@ void AddFluid(ChSystemParallelMPM* sys) {
 
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
-#if 0
-    double dist = sys->GetSettings()->fluid.kernel_radius * .75;
+#if 1
+    double dist = sys->GetSettings()->fluid.kernel_radius;
     utils::HCPSampler<> sampler(dist);
-    utils::Generator::PointVector points = sampler.SampleSphere(ChVector<>(0, 0, 0), radius);
+    utils::Generator::PointVector points = sampler.SampleSphere(ChVector<>(-.1, 0, 0), radius);
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(0, 0, 0);
+        vel_fluid[i] = real3(10, 0, 0);
     }
+    fluid_container->UpdatePosition(0);
+    fluid_container->AddFluid(pos_fluid, vel_fluid);
+
+    points = sampler.SampleSphere(ChVector<>(.1, 0, 0), radius);
+
+    pos_fluid.resize(points.size());
+    vel_fluid.resize(points.size());
+    for (int i = 0; i < points.size(); i++) {
+        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
+        vel_fluid[i] = real3(-10, 0, 0);
+    }
+    fluid_container->AddFluid(pos_fluid, vel_fluid);
+
 #else
     std::ifstream ifile("snowMPMinit.dat");
     while (ifile.fail() == false) {
@@ -119,15 +132,14 @@ void AddFluid(ChSystemParallelMPM* sys) {
             vel_fluid.push_back(v);
         }
     }
-//    pos_fluid.push_back(real3(.5, .5, .5));
-//    vel_fluid.push_back(real3(0, -3, 0));
-//
-//    pos_fluid.push_back(real3(.5, .8, .5));
-//    vel_fluid.push_back(real3(0, -2, 0));
-
-#endif
+    //    pos_fluid.push_back(real3(.5, .5, .5));
+    //    vel_fluid.push_back(real3(0, -3, 0));
+    //
+    //    pos_fluid.push_back(real3(.5, .8, .5));
+    //    vel_fluid.push_back(real3(0, -2, 0));
     fluid_container->UpdatePosition(0);
     fluid_container->AddFluid(pos_fluid, vel_fluid);
+#endif
 }
 // -----------------------------------------------------------------------------
 // Create the system, specify simulation parameters, and run simulation loop.
@@ -160,7 +172,7 @@ int main(int argc, char* argv[]) {
     //    CHOMPfunctions::SetNumThreads(threads);
 
     // Set gravitational acceleration
-    msystem.Set_G_acc(ChVector<>(0, -gravity, 0));
+    msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     real youngs_modulus = 1.4e5;
     real poissons_ratio = 0.2;
@@ -206,7 +218,7 @@ int main(int argc, char* argv[]) {
     msystem.Initialize();
 // Perform the simulation
 // ----------------------
-#undef CHRONO_OPENGL
+//#undef CHRONO_OPENGL
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "snowMPM", &msystem);
