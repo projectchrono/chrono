@@ -242,6 +242,19 @@ static void Print(const SymMat22& A, const char* name) {
     printf("%f %f\n", A.x21, A.x22);
 }
 
+static void PrintLine(const Mat33& A, const char* name) {
+    printf("%s: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", name, A[0], A[1], A[2], A[4], A[5], A[6], A[8], A[9], A[10]);
+}
+static void PrintLine(const Mat32& A, const char* name) {
+    printf("%s: [%f,%f,%f,%f,%f,%f]\n", name, A[0], A[1], A[2], A[4], A[5], A[6]);
+}
+static void PrintLine(const SymMat33& A, const char* name) {
+    printf("%s: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", name, A.x11, A.x21, A.x31, A.x21, A.x22, A.x32, A.x31, A.x32, A.x33);
+}
+static void PrintLine(const SymMat22& A, const char* name) {
+    printf("%s: [%f,%f,%f,%f]\n", name, A.x11, A.x21, A.x21, A.x22);
+}
+
 //[U.x,V.x,W.x]
 //[U.y,V.y,W.y]
 //[U.z,V.z,W.z]
