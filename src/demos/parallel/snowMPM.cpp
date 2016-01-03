@@ -162,8 +162,8 @@ int main(int argc, char* argv[]) {
     // Set gravitational acceleration
     msystem.Set_G_acc(ChVector<>(0, -gravity, 0));
 
-    real youngs_modulus = (real)1.4e5;
-    real poissons_ratio = (real).2;
+    real youngs_modulus = 1.4e5;
+    real poissons_ratio = 0.2;
 
     // Set solver parameters
     msystem.GetSettings()->solver.solver_mode = SLIDING;
@@ -188,9 +188,9 @@ int main(int argc, char* argv[]) {
         youngs_modulus * poissons_ratio / (((real)1. + poissons_ratio) * ((real)1. - (real)2. * poissons_ratio));
     msystem.GetSettings()->mpm.mu = youngs_modulus / ((real)2. * ((real)1. + poissons_ratio));
     msystem.GetSettings()->mpm.alpha = (real).95;
-    msystem.GetSettings()->mpm.hardening_coefficient = (real)10.;
+    msystem.GetSettings()->mpm.hardening_coefficient = 10.0;
 
-    real initial_density = (real)4e2;
+    real initial_density = 400;
     msystem.GetSettings()->mpm.mass = .004;
 
     msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
     msystem.Initialize();
 // Perform the simulation
 // ----------------------
-//#undef CHRONO_OPENGL
+#undef CHRONO_OPENGL
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "snowMPM", &msystem);

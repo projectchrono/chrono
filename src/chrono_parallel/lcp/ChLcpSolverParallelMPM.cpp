@@ -124,13 +124,6 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
     grid_vel = 0;
     grid_mass = 0;
 
-    //    for (int i = 0; i < num_nodes; i++) {
-    //        grid_vel[i * 3 + 0] = 0;
-    //        grid_vel[i * 3 + 1] = 0;
-    //        grid_vel[i * 3 + 2] = 0;
-    //        grid_mass[i] = 0;
-    //    }
-
     DynamicVector<real3> grid_loc(num_nodes);
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
     printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
@@ -143,64 +136,37 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
 
         LOOPOVERNODES(                                                         //
             real weight = N(xi - current_node_location, inv_bin_edge) * mass;  //
-            //            printf("node: %d %f [%f %f %f] [%f %f %f]\n", current_node, weight, xi.x, xi.y, xi.z,
-            //            current_node_location.x, current_node_location.y, current_node_location.z);
-            grid_mass[current_node] += weight;                //
-            grid_vel[current_node * 3 + 0] += weight * vi.x;  //
-            grid_vel[current_node * 3 + 1] += weight * vi.y;  //
-            grid_vel[current_node * 3 + 2] += weight * vi.z;  //
+            grid_mass[current_node] += weight;                                 //
+            grid_vel[current_node * 3 + 0] += weight * vi.x;                   //
+            grid_vel[current_node * 3 + 1] += weight * vi.y;                   //
+            grid_vel[current_node * 3 + 2] += weight * vi.z;                   //
             grid_loc[current_node] = current_node_location;
 
-            //             printf("[%f] [%f %f %f] [%f %f %f]\n", weight, weight * vi.x, weight * vi.y, weight * vi.z,
-            //             current_node_location.x, current_node_location.y, current_node_location.z);
-            //            printf("node: %f [%f %f %f] [%f %f %f] [%f %f %f] %d [%d %d %d]\n", weight, weight * vi.x,
-            //            weight * vi.y,
-            //                   weight * vi.z, grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1],
-            //                   grid_vel[current_node * 3 + 2], current_node_location.x, current_node_location.y,
-            //                   current_node_location.z, p, i, j, k);
             )
     }
-    // exit(0);
-    // normalize weights for the velocity (to conserve momentum)
-    //#pragma omp parallel for
+// normalize weights for the velocity (to conserve momentum)
+#pragma omp parallel for
     for (int i = 0; i < num_nodes; i++) {
-        //        if (grid_mass[i] > C_EPSILON) {
-        //            // const real3 current_node_location = grid.Node(index);
-        //            printf("%f %f %f %f %f %f %f\n", grid_mass[i], grid_vel[i * 3 + 0], grid_vel[i * 3 + 1],
-        //                   grid_vel[i * 3 + 2], grid_loc[i].x, grid_loc[i].y, grid_loc[i].z);
-        //        }
         if (grid_mass[i] > C_EPSILON) {
             grid_vel[i * 3 + 0] /= grid_mass[i];
             grid_vel[i * 3 + 1] /= grid_mass[i];
             grid_vel[i * 3 + 2] /= grid_mass[i];
         }
     }
-    // exit(0);
     // Save_Grid_Velocities
     grid_vel_old = grid_vel;
 
     printf("Compute_Elastic_Deformation_Gradient_Hat\n");
-    //#pragma omp parallel for
+#pragma omp parallel for
     for (int p = 0; p < num_particles; p++) {
         const real3 xi = sorted_pos[p];
         Fe_hat[p] = Mat33(1.0);
         Mat33 Fe_hat_t(1);
         LOOPOVERNODES(  //
             real3 vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3 + 2]);
-            real3 kern = dN(xi - current_node_location, inv_bin_edge);
-            //            printf("vel: [%f %f %f]  [%f %f %f] [%f %f %f]\n", vel.x, vel.y, vel.z, kern.x, kern.y,
-            //            kern.z,
-            //                   current_node_location.x, current_node_location.y, current_node_location.z);
-
-            Fe_hat_t += OuterProduct(dt * vel, kern);  //
+            real3 kern = dN(xi - current_node_location, inv_bin_edge); Fe_hat_t += OuterProduct(dt * vel, kern);  //
             )
         Fe_hat[p] = Fe_hat_t * Fe[p];
-        //        printf("Fe_hat [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", Fe_hat[p][0], Fe_hat[p][1], Fe_hat[p][2],
-        //        Fe_hat[p][4],
-        //               Fe_hat[p][5], Fe_hat[p][6], Fe_hat[p][8], Fe_hat[p][9], Fe_hat[p][10]);
-        //        printf("Fe [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", Fp[p][0], Fp[p][1], Fp[p][2], Fp[p][4], Fp[p][5],
-        //        Fp[p][6],
-        //               Fp[p][8], Fp[p][9], Fp[p][10]);
     }
 
     printf("Compute_Grid_Forces\n");
@@ -209,23 +175,8 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
 
     for (int p = 0; p < num_particles; p++) {
         const real3 xi = sorted_pos[p];
-        //        printf("grid_forces [%f,%f,%f,%f,%f,%f,%f,%f,%f] ", Fe_hat[p][0], Fe_hat[p][1], Fe_hat[p][2],
-        //        Fe_hat[p][4],
-        //               Fe_hat[p][5], Fe_hat[p][6], Fe_hat[p][8], Fe_hat[p][9], Fe_hat[p][10]);
-        //        printf(" [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", Fp[p][0], Fp[p][1], Fp[p][2], Fp[p][4], Fp[p][5], Fp[p][6],
-        //        Fp[p][8],
-        //               Fp[p][9], Fp[p][10]);
-        Mat33 PED = Potential_Energy_Derivative(Fe_hat[p], Fp[p], mu, lambda, hardening_coefficient);
 
-        //        printf("Fe_hat [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", Fe_hat[p][0], Fe_hat[p][1], Fe_hat[p][2],
-        //        Fe_hat[p][4],
-        //               Fe_hat[p][5], Fe_hat[p][6], Fe_hat[p][8], Fe_hat[p][9], Fe_hat[p][10]);
-        //        printf("Fp [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", Fp[p][0], Fp[p][1], Fp[p][2], Fp[p][4], Fp[p][5],
-        //        Fp[p][6],
-        //               Fp[p][8], Fp[p][9], Fp[p][10]);
-        //        printf("PED [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", PED[0], PED[1], PED[2], PED[4], PED[5], PED[6], PED[8],
-        //        PED[9],
-        //               PED[10]);
+        Mat33 PED = Potential_Energy_Derivative(Fe_hat[p], Fp[p], mu, lambda, hardening_coefficient);
 
         Mat33 vPEDFepT = volume[p] * MultTranspose(PED, Fe[p]);
         real JE = Determinant(Fe[p]);                                       //
@@ -236,10 +187,6 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
 
             )
     }
-    // exit(0);
-    //    for (int i = 0; i < num_nodes; i++) {
-    //        printf("grid_forces [%f %f %f] \n", grid_forces[i].x, grid_forces[i].y, grid_forces[i].z);
-    //    }
 
     printf("Add_Body_Forces [%f %f %f]\n", gravity.x, gravity.y, gravity.z);
 
@@ -248,12 +195,11 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
         grid_forces[i] += grid_mass[i] * gravity;
     }
     printf("Update_Grid_Velocities\n");
-    //#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < num_nodes; i++) {
         if (grid_mass[i] >= C_EPSILON) {
             real3 forces = grid_forces[i];
-            // printf("grid_forces: %f %f %f [%f %f %f]\n", forces.x, forces.y, forces.z, grid_loc[i].x, grid_loc[i].y,
-            //       grid_loc[i].z);
+
             grid_vel[i * 3 + 0] += dt * forces.x / grid_mass[i];
             grid_vel[i * 3 + 1] += dt * forces.y / grid_mass[i];
             grid_vel[i * 3 + 2] += dt * forces.z / grid_mass[i];
@@ -263,49 +209,29 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
     printf("Semi_Implicit_Update\n");
 
     printf("Compute RHS\n");
-    //#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < num_nodes; i++) {
         rhs[i * 3 + 0] = grid_mass[i] * grid_vel[i * 3 + 0];
         rhs[i * 3 + 1] = grid_mass[i] * grid_vel[i * 3 + 1];
         rhs[i * 3 + 2] = grid_mass[i] * grid_vel[i * 3 + 2];
-        //        if (grid_mass[i] > 0) {
-        //            real3 gv(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
-        //            printf("grid_vel: %f %f %f [%f %f %f]\n", gv.x, gv.y, gv.z, grid_loc[i].x, grid_loc[i].y,
-        //            grid_loc[i].z);
-        //        }
     }
 
-    // printf("Solve\n");
+    printf("Solve\n");
     Solve(rhs, grid_vel);
 
-    for (int i = 0; i < num_nodes; i++) {
-        if (grid_mass[i] > 0) {
-            real3 gv(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
-            //printf("grid_vel: %f %f %f [%f %f %f]\n", gv.x, gv.y, gv.z, grid_loc[i].x, grid_loc[i].y, grid_loc[i].z);
-        }
-    }
-    //exit(0);
     const real theta_c = data_manager->settings.mpm.theta_c;
     const real theta_s = data_manager->settings.mpm.theta_s;
     const real alpha = data_manager->settings.mpm.alpha;
 
     printf("Update_Deformation_Gradient\n");
-    ///#pragma omp parallel for
+#pragma omp parallel for
     for (int p = 0; p < num_particles; p++) {
         const real3 xi = sorted_pos[p];
         Mat33 velocity_gradient(0);
         LOOPOVERNODES(  //
             real3 g_vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3 + 2]);
-            // printf("g_vel: %f %f %f %f %f %f\n", g_vel.x, g_vel.y, g_vel.z, current_node_location.x,
-            // current_node_location.y, current_node_location.z);
+            velocity_gradient += OuterProduct(g_vel, dN(xi - current_node_location, inv_bin_edge));)
 
-            velocity_gradient += OuterProduct(g_vel, dN(xi - current_node_location, inv_bin_edge));  //
-
-            )
-        //                printf("velocity_gradient [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", velocity_gradient[0],
-        //                velocity_gradient[1],
-        //                       velocity_gradient[2], velocity_gradient[4], velocity_gradient[5], velocity_gradient[6],
-        //                       velocity_gradient[8], velocity_gradient[9], velocity_gradient[10]);
         Mat33 Fe_tmp = (Mat33(1.0) + dt * velocity_gradient) * Fe[p];
         Mat33 F_tmp = Fe_tmp * Fp[p];
         Mat33 U, V;
@@ -320,12 +246,7 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
         Fe[p] = U * MultTranspose(Mat33(E_clamped), V);
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
-
-        //        printf("Fp [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", Fp[p][0], Fp[p][1], Fp[p][2], Fp[p][4], Fp[p][5],
-        //        Fp[p][6],
-        //        		Fp[p][8], Fp[p][9], Fp[p][10]);
     }
-    // exit(0);
     printf("Update_Particle_Velocities\n");
 #pragma omp parallel for
     for (int p = 0; p < num_particles; p++) {
@@ -344,9 +265,7 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
             V_flip.x += (grid_vel[current_node * 3 + 0] - grid_vel_old[current_node * 3 + 0]) * weight;  //
             V_flip.y += (grid_vel[current_node * 3 + 1] - grid_vel_old[current_node * 3 + 1]) * weight;  //
             V_flip.z += (grid_vel[current_node * 3 + 2] - grid_vel_old[current_node * 3 + 2]) * weight;  //
-            //            printf("w %f [%f %f %f]\n", weight, grid_vel[current_node * 3 + 0], grid_vel[current_node * 3
-            //            + 1],
-            //                   grid_vel[current_node * 3 + 2]);
+
             )
 
         real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
@@ -374,26 +293,14 @@ void ChLcpSolverParallelMPM::Multiply(DynamicVector<real>& v_array, DynamicVecto
     size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
     printf("Apply Hessian A\n");
 
-    //#pragma omp parallel for
+#pragma omp parallel for
     for (int p = 0; p < num_particles; p++) {
         const real3 xi = sorted_pos[p];
         Mat33 delta_F_t(0);
         LOOPOVERNODES(                                                                                              //
             real3 v0(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);  //
-
-            real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
-            // printf("v0 [%f,%f,%f]\n", v0.x, v0.y, v0.z);
-            // printf("v1 [%f,%f,%f]\n", v1.x, v1.y, v1.z);              //
-            delta_F_t = delta_F_t + OuterProduct(v0, v1) * Fe[p];  //
-
-            )
-        //        printf("Fe[p] [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", Fe[p][0], Fe[p][1], Fe[p][2], Fe[p][4], Fe[p][5],
-        //        Fe[p][6],
-        //               Fe[p][8], Fe[p][9], Fe[p][10]);
-        //        printf("delta_F_t [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", delta_F_t[0], delta_F_t[1], delta_F_t[2],
-        //        delta_F_t[4],
-        //               delta_F_t[5], delta_F_t[6], delta_F_t[8], delta_F_t[9], delta_F_t[10]);
-
+            real3 v1 = dN(xi - current_node_location, inv_bin_edge);
+            delta_F_t = delta_F_t + OuterProduct(v0, v1) * Fe[p];)
         delta_F[p] = delta_F_t;
     }
 
@@ -412,55 +319,23 @@ void ChLcpSolverParallelMPM::Multiply(DynamicVector<real>& v_array, DynamicVecto
         Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
         Mat33 RD = Rotational_Derivative(Fe_hat[p], delta_F[p]);
 
-        Mat33 Part1 = 2 * current_mu * (delta_F[p] - RD);
-        Mat33 Part2 = (current_lambda * J * dJ) * Fe_hat_inv_transpose;
-        Mat33 Part3 = (current_lambda * (J - 1.0)) * dJF_inverse_transposed;
-        Mat33 Ap = Part1 + Part2 + Part3;
-
-        //        printf("%f %f %f %f %f\n", plastic_determinant, J, current_mu, current_lambda, dJ);
-        //        PrintLine(Fp[p], "Fp");
-        //        PrintLine(Fe_hat[p], "Fe_hat");
-        //        PrintLine(delta_F[p], "delta_F");
-        //        PrintLine(Fe_hat_inv_transpose, "Fe_hat_inv_transpose");
-        //        PrintLine(RD, "RD");
-
-//        PrintLine(Part1, "Part1");
-//        PrintLine(Part2, "Part2");
-//        PrintLine(Part3, "Part3");
-//        PrintLine(Ap, "Ap");
+        Mat33 Ap = 2 * current_mu * (delta_F[p] - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
+                   (current_lambda * (J - 1.0)) * dJF_inverse_transposed;
 
         LOOPOVERNODES(                                                                                     //
             real3 res = volume[p] * Ap * Transpose(Fe[p]) * dN(xi - current_node_location, inv_bin_edge);  //
             result_array[current_node * 3 + 0] += res.x;                                                   //
             result_array[current_node * 3 + 1] += res.y;                                                   //
             result_array[current_node * 3 + 2] += res.z;                                                   //
-            // printf("result_array [%f,%f,%f]\n", result_array[current_node * 3 + 0], result_array[current_node * 3 +
-            // 1], result_array[current_node * 3 + 2]);
-            )  //
+
+            )
     }
-    //exit(0);
-    //#pragma omp parallel for
-    printf("DT: %f\n", dt);
+#pragma omp parallel for
     for (int i = 0; i < num_nodes; i++) {
-
-//        if (v_array[i * 3 + 0] > 0) {
-//            printf(" v_array: %f\n", v_array[i * 3 + 0]);
-//        }
-//        if (v_array[i * 3 + 1] > 0) {
-//            printf(" v_array: %f\n", v_array[i * 3 + 1]);
-//        }
-//        if (v_array[i * 3 + 2] > 0) {
-//            printf(" v_array: %f\n", v_array[i * 3 + 2]);
-//        }
-
         result_array[i * 3 + 0] = grid_mass[i] * v_array[i * 3 + 0] + dt * dt * result_array[i * 3 + 0];
         result_array[i * 3 + 1] = grid_mass[i] * v_array[i * 3 + 1] + dt * dt * result_array[i * 3 + 1];
         result_array[i * 3 + 2] = grid_mass[i] * v_array[i * 3 + 2] + dt * dt * result_array[i * 3 + 2];
-        // printf("result_array [%f,%f,%f]\n", result_array[current_node * 3 + 0], result_array[current_node * 3 + 1],
-        // result_array[current_node * 3 + 2]);
-
     }
-    // exit(0);
 }
 
 real Convergence_Norm(const DynamicVector<real>& r) {
@@ -468,9 +343,6 @@ real Convergence_Norm(const DynamicVector<real>& r) {
     for (int i = 0; i < r.size(); i += 3) {
         real3 v(r[i + 0], r[i + 1], r[i + 2]);
         real mag = Length(v);
-        //        if (mag > 0) {
-        //            printf("mag: %f\n", mag);
-        //        }
         result = Max(result, mag);
     }
     return result;
@@ -518,7 +390,7 @@ void ChLcpSolverParallelMPM::Solve(const DynamicVector<real>& b, DynamicVector<r
     //        p = rsnew / rsold * p + r;
     //        rsold = rsnew;
     //    }
-    int max_iterations = 100;
+    int max_iterations = 10;
     real rho_old = FLT_MAX;
     real convergence_norm = 0;
     real tolerance = Max(1e-4 * Convergence_Norm(b), 1e-6);
