@@ -95,10 +95,19 @@ void ChSimpleTrackDriveline::Update(double steering, double torque) {
 
     differentialSplit(torque, GetDifferentialMaxBias(), m_shaft_left->GetPos_dt(), m_shaft_right->GetPos_dt(),
                       torque_left, torque_right);
-    m_shaft_left->SetAppliedTorque(-torque_left);
-    m_shaft_right->SetAppliedTorque(-torque_right);
 
-    //// TODO:  include steering driver input
+    // Include steering.
+    double factor_left = 1;
+    double factor_right = 1;
+
+    if (steering > 0)
+        factor_left = m_gyration_mode ? (1 - 2 * steering) : (1 - steering);
+    if (steering < 0)
+        factor_right = m_gyration_mode ? (1 + 2 * steering) : (1 + steering);
+
+    // Apply torques to the sprocket shafts.
+    m_shaft_left->SetAppliedTorque(-torque_left * factor_left);
+    m_shaft_right->SetAppliedTorque(-torque_right * factor_right);
 }
 
 // -----------------------------------------------------------------------------
