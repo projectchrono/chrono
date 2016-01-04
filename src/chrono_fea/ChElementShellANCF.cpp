@@ -673,21 +673,18 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     ChMatrixNM<double, 35, 1> StockAlpha1;
     StockAlpha1 = m_StockAlpha_EAS;
 
-    ChMatrixNM<double, 24, 24> TempJacobian;
-    ChMatrixNM<double, 24, 24> TempJacobian_EAS;
-    ChMatrixNM<double, 24, 24> stock_jac_EAS_elem1;  // laminate structure
-    ChMatrixNM<double, 24, 24> KTE1;                 // Laminate structure
 
     Fi.Reset();
-    stock_jac_EAS_elem1.Reset();
-    KTE1.Reset();
+    m_stock_KTE.Reset();
+    m_stock_jac_EAS.Reset();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        TempJacobian_EAS.Reset();
-        TempJacobian.Reset();
 
         ChMatrixNM<double, 750, 1> TempIntegratedResult;
         ChMatrixNM<double, 24, 1> Finternal;
+        ChMatrixNM<double, 24, 24> TempJacobian;
+        ChMatrixNM<double, 24, 24> TempJacobian_EAS;
+
         // Assumed Natural Strain (ANS)
         ChMatrixNM<double, 8, 1> strain_ans;
         ChMatrixNM<double, 8, 24> strainD_ans;
@@ -718,13 +715,6 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             alpha_eas = alpha_eas - ResidHE;
             renewed_alpha_eas = alpha_eas;
 
-            Finternal.Reset();
-            HE.Reset();
-            GDEPSP.Reset();
-            KALPHA.Reset();
-            strain_ans.Reset();
-            strainD_ans.Reset();
-
             // Assumed Natural Strain (ANS)
             CalcStrainANSbilinearShell(strain_ans, strainD_ans);
 
@@ -739,12 +729,11 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 2                                // order of integration
                 );
 
-            Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0);     // InternalForce(24x1)
-            HE.PasteClippedMatrix(&TempIntegratedResult, 24, 0, 5, 1, 0, 0);            // HE(5x1)
-            GDEPSP.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 24, 29);  // GDEPSP(5x24)
-            KALPHA.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 5, 149);  // KALPHA(5x5)
-            TempJacobian.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 24, 24,
-                                                    174);  // Stiffness Matrix(24x24)
+            Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0);             // (24x1)
+            HE.PasteClippedMatrix(&TempIntegratedResult, 24, 0, 5, 1, 0, 0);                    // (5x1)
+            GDEPSP.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 24, 29);          // (5x24)
+            KALPHA.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 5, 149);          // (5x5)
+            TempJacobian.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 24, 24, 174);  // (24x24)
 
             KALPHA1 = KALPHA;
             if (m_flag_HE == NUMERICAL)
@@ -781,23 +770,15 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 m_StockAlpha_EAS = StockAlpha1;
             }
         }
+
         //  Jacobian Matrix for alpha
         if (m_flag_HE == ANALYTICAL) {
             ChMatrixNM<double, 5, 5> INV_KALPHA;
-            ChMatrixNM<double, 5, 24> TEMP_GDEPSP;
-            ChMatrixNM<double, 5, 5> INV_KALPHA_Temp;
             Inverse55_Analytical(INV_KALPHA, KALPHA);
+            TempJacobian_EAS.MatrTMultiply(GDEPSP, INV_KALPHA * GDEPSP);
 
-            TEMP_GDEPSP.MatrMultiply(INV_KALPHA, GDEPSP);
-            TempJacobian_EAS.MatrTMultiply(GDEPSP, TEMP_GDEPSP);
-
-            stock_jac_EAS_elem1 += TempJacobian_EAS;
-            KTE1 += TempJacobian;
-
-            if (kl == m_numLayers - 1) {
-                m_stock_jac_EAS = stock_jac_EAS_elem1;
-                m_stock_KTE = KTE1;
-            }
+            m_stock_jac_EAS += TempJacobian_EAS;
+            m_stock_KTE += TempJacobian;
         }
 
     }  // Layer Loop
@@ -842,9 +823,8 @@ void ChElementShellANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
 
     // Loop over all layers.
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-
         MyJacobian formula(this, Kfactor, Rfactor, kl);
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(m_JacobianMatrix,                          // result of integration
+        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(m_JacobianMatrix,                // result of integration
                                                                formula,                         // integrand formula
                                                                -1, 1,                           // x limits
                                                                -1, 1,                           // y limits
