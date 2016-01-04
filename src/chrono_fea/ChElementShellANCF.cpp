@@ -33,7 +33,7 @@ const int ChElementShellANCF::m_maxIterationsEAS = 100;
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementShellANCF::ChElementShellANCF() : m_flag_HE(ANALYTICAL), m_gravity_on(false), m_numLayers(0), m_thickness(0) {
+ChElementShellANCF::ChElementShellANCF() : m_gravity_on(false), m_numLayers(0), m_thickness(0) {
     m_nodes.resize(4);
 }
 
@@ -271,13 +271,17 @@ void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
 // Elastic force calculation
 // -----------------------------------------------------------------------------
 
-// This class defines the calculations for the integrand of shell element internal forces
-// Capabilities of this class include: Application of enhanced assumed strain and assumed natural
-// strain formulations to avoid thickness and (tranvese and in-plane) shear locking. This implementation
-// also features a composite material implementation that allows for selecting a number of layers over the
-// element thickness; each of which has an independent, user-selected fiber angle (direction for orthotropic
-// constitutive behavior)
-class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
+// The class MyForce provides the integrand for the calculation of the internal forces
+// for one layer of an ANCF shell element.
+// The first 24 entries in the integrand represent the internal force.
+// The next 5 entries represent the residual of the EAS nonlinear system.
+// The last 25 entries represent the 5x5 Jacobian of the EAS nonlinear system.
+// Capabilities of this class include: application of enhanced assumed strain (EAS) and
+// assumed natural strain (ANS) formulations to avoid thickness and (tranvese and in-plane)
+// shear locking. This implementation also features a composite material implementation
+// that allows for selecting a number of layers over the element thickness; each of which
+// has an independent, user-selected fiber angle (direction for orthotropic constitutive behavior)
+class MyForce : public ChIntegrable3D<ChMatrixNM<double, 54, 1> > {
   public:
     MyForce(ChElementShellANCF* element,             // Containing element
             size_t kl,                               // Current layer index
@@ -294,10 +298,10 @@ class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
     ChMatrixNM<double, 5, 1>* m_alpha_eas;
 
     /// Evaluate (strainD'*strain)  at point x, include ANS and EAS.
-    virtual void Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z) override;
+    virtual void Evaluate(ChMatrixNM<double, 54, 1>& result, const double x, const double y, const double z) override;
 };
 
-void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z) {
+void MyForce::Evaluate(ChMatrixNM<double, 54, 1>& result, const double x, const double y, const double z) {
     // Element shape function
     ChMatrixNM<double, 1, 8> N;
     m_element->ShapeFunctions(N, x, y, z);
@@ -316,11 +320,6 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     ChMatrixNM<double, 6, 5> M;      // Shape function vector for Enhanced Assumed Strain
     m_element->ShapeFunctionANSbilinearShell(S_ANS, x, y);
     m_element->Basis_M(M, x, y, z);
-
-    // Hard-coded coupling with main integrator
-    double alphaHHT = -0.2;
-    double betaHHT = 0.25 * (1.0 - alphaHHT) * (1.0 - alphaHHT);
-    double gammaHHT = 0.5 - alphaHHT;
 
     // Transformation : Orthogonal transformation (A and J)
     ChVector<double> G1xG2;  // Cross product of first and second column of
@@ -510,8 +509,8 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     }
     strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 5, 0);  // strainD for yz
 
-    //// For orthotropic material
-    ChMatrixNM<double, 6, 24> strainD;    // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
+    // For orthotropic material
+    ChMatrixNM<double, 6, 24> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
     for (int ii = 0; ii < 24; ii++) {
         strainD(0, ii) = strainD_til(0, ii) * beta(0) * beta(0) + strainD_til(1, ii) * beta(3) * beta(3) +
                          strainD_til(2, ii) * beta(0) * beta(3) + strainD_til(3, ii) * beta(6) * beta(6) +
@@ -539,27 +538,9 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
                          strainD_til(5, ii) * (beta(5) * beta(7) + beta(4) * beta(8));
     }
 
-    /// Gd : Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
-    ChMatrixNM<double, 9, 24> Gd;
-
-    for (int ii = 0; ii < 8; ii++) {
-        Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-        Gd(1, 3 * (ii) + 1) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-        Gd(2, 3 * (ii) + 2) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-
-        Gd(3, 3 * (ii)) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-        Gd(4, 3 * (ii) + 1) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-        Gd(5, 3 * (ii) + 2) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-
-        Gd(6, 3 * (ii)) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-        Gd(7, 3 * (ii) + 1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-        Gd(8, 3 * (ii) + 2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-    }
-
     // Enhanced Assumed Strain 2nd
     strain += strain_EAS;
 
-    // Structural damping
     // Strain time derivative for structural damping
     ChMatrixNM<double, 6, 1> DEPS;
     DEPS.Reset();
@@ -572,87 +553,27 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
         DEPS(5, 0) = DEPS(5, 0) + strainD(5, ii) * m_element->m_d_dt(ii, 0);
     }
 
-
     // Add structural damping
     strain += DEPS * m_element->m_Alpha;
 
-    // Matrix of elastic coefficients: The input assumes the material *could* be orthotropic
+    // Matrix of elastic coefficients: the input assumes the material *could* be orthotropic
     const ChMatrixNM<double, 6, 6>& E_eps = m_element->GetLayer(m_kl).GetMaterial()->Get_E_eps();
-
-    // Stress tensor calculation
-    ChMatrixNM<double, 6, 1> stress;
-    stress.MatrMultiply(E_eps, strain);
-
-    // Declaration and computation of Sigm, to be removed
-    ChMatrixNM<double, 9, 9> Sigm;    ///< Rearrangement of stress vector (not always needed)
-
-    Sigm(0, 0) = stress(0, 0);  // XX
-    Sigm(1, 1) = stress(0, 0);
-    Sigm(2, 2) = stress(0, 0);
-
-    Sigm(0, 3) = stress(2, 0);  // XY
-    Sigm(1, 4) = stress(2, 0);
-    Sigm(2, 5) = stress(2, 0);
-
-    Sigm(0, 6) = stress(4, 0);  // XZ
-    Sigm(1, 7) = stress(4, 0);
-    Sigm(2, 8) = stress(4, 0);
-
-    Sigm(3, 0) = stress(2, 0);  // XY
-    Sigm(4, 1) = stress(2, 0);
-    Sigm(5, 2) = stress(2, 0);
-
-    Sigm(3, 3) = stress(1, 0);  // YY
-    Sigm(4, 4) = stress(1, 0);
-    Sigm(5, 5) = stress(1, 0);
-
-    Sigm(3, 6) = stress(5, 0);  // YZ
-    Sigm(4, 7) = stress(5, 0);
-    Sigm(5, 8) = stress(5, 0);
-
-    Sigm(6, 0) = stress(4, 0);  // XZ
-    Sigm(7, 1) = stress(4, 0);
-    Sigm(8, 2) = stress(4, 0);
-
-    Sigm(6, 3) = stress(5, 0);  // YZ
-    Sigm(7, 4) = stress(5, 0);
-    Sigm(8, 5) = stress(5, 0);
-
-    Sigm(6, 6) = stress(3, 0);  // ZZ
-    Sigm(7, 7) = stress(3, 0);
-    Sigm(8, 8) = stress(3, 0);
-
-    /// Jacobian calculation
-
-    // Calculate damping coefficient from hard-coded alphaHHT
-    double DampCoefficient = gammaHHT / (betaHHT * m_element->m_dt);  // dt*gammaHHT;
-
-    ChMatrixNM<double, 24, 24> JAC11;
-    ChMatrixNM<double, 24, 6> temp246;
-    ChMatrixNM<double, 24, 9> temp249;
-    temp246.MatrTMultiply(strainD, E_eps);
-    temp249.MatrTMultiply(Gd, Sigm);
-    JAC11 = (temp246 * strainD * (1.0 + DampCoefficient * (m_element->m_Alpha))) + temp249 * Gd;
-    JAC11 *= detJ0 * (m_element->m_GaussScaling);
 
     // Internal force calculation
     ChMatrixNM<double, 24, 6> tempC;
     tempC.MatrTMultiply(strainD, E_eps);
     ChMatrixNM<double, 24, 1> Fint = (tempC * strain) * (detJ0 * m_element->m_GaussScaling);
 
-    // For EAS
+    // EAS terms
     ChMatrixNM<double, 5, 6> temp56;
     temp56.MatrTMultiply(G, E_eps);
-    ChMatrixNM<double, 5, 1> HE = (temp56 * strain) * (detJ0 * m_element->m_GaussScaling);        // EAS residual
-    ChMatrixNM<double, 5, 24> GDEPSP = (temp56 * strainD) * (detJ0 * m_element->m_GaussScaling);  // "Cross" Jacobian
-    ChMatrixNM<double, 5, 5> KALPHA = (temp56 * G) * (detJ0 * m_element->m_GaussScaling);         // EAS Jacobian
+    ChMatrixNM<double, 5, 1> HE = (temp56 * strain) * (detJ0 * m_element->m_GaussScaling);  // EAS residual
+    ChMatrixNM<double, 5, 5> KALPHA = (temp56 * G) * (detJ0 * m_element->m_GaussScaling);   // EAS Jacobian
 
     /// Total result vector
     result.PasteClippedMatrix(&Fint, 0, 0, 24, 1, 0, 0);
     result.PasteClippedMatrix(&HE, 0, 0, 5, 1, 24, 0);
-    result.PasteClippedMatrixToVector(&GDEPSP, 0, 0, 5, 24, 29);
-    result.PasteClippedMatrixToVector(&KALPHA, 0, 0, 5, 5, 149);
-    result.PasteClippedMatrixToVector(&JAC11, 0, 0, 24, 24, 174);
+    result.PasteClippedMatrixToVector(&KALPHA, 0, 0, 5, 5, 29);
 }
 
 void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
@@ -661,55 +582,45 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     CalcCoordDerivMatrix(m_d_dt);
     m_ddT.MatrMultiplyT(m_d, m_d);
 
-    // Assumed Natural Strain (ANS).  Calculate m_strainANS and m_strainANS_D
+    // Assumed Natural Strain (ANS):  Calculate m_strainANS and m_strainANS_D
     CalcStrainANSbilinearShell();
 
     Fi.Reset();
-    m_stock_KTE.Reset();
-    m_stock_jac_EAS.Reset();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        ChMatrixNM<double, 750, 1> TempIntegratedResult;
         ChMatrixNM<double, 24, 1> Finternal;
-        ChMatrixNM<double, 24, 24> TempJacobian;
-        ChMatrixNM<double, 24, 24> TempJacobian_EAS;
-
-        // Enhanced Assumed Strain (EAS)
         ChMatrixNM<double, 5, 1> HE;
-        ChMatrixNM<double, 5, 24> GDEPSP;
         ChMatrixNM<double, 5, 5> KALPHA;
-        ChMatrixNM<double, 24, 24> KTE;
-        ChMatrixNM<double, 5, 5> KALPHA1;
 
+        // Initial guess for EAS parameters
         ChMatrixNM<double, 5, 1> alphaEAS = m_alphaEAS[kl];
 
+        // Newton loop for EAS
         for (int count = 0; count < m_maxIterationsEAS; count++) {
-            MyForce myformula(this, kl, &alphaEAS);
-            ChQuadrature::Integrate3D<ChMatrixNM<double, 750, 1> >(
-                TempIntegratedResult,            // result of integration will go there
-                myformula,                       // formula to integrate
-                -1, 1,                           // x limits
-                -1, 1,                           // y limits
-                m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                2                                // order of integration
-                );
+            ChMatrixNM<double, 54, 1> result;
+            MyForce formula(this, kl, &alphaEAS);
+            ChQuadrature::Integrate3D<ChMatrixNM<double, 54, 1> >(result,   // result of integration
+                                                                  formula,  // integrand formula
+                                                                  -1, 1,    // x limits
+                                                                  -1, 1,    // y limits
+                                                                  m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                                  2  // order of integration
+                                                                  );
 
-            Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0);             // (24x1)
-            HE.PasteClippedMatrix(&TempIntegratedResult, 24, 0, 5, 1, 0, 0);                    // (5x1)
-            GDEPSP.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 24, 29);          // (5x24)
-            KALPHA.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 5, 149);          // (5x5)
-            TempJacobian.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 24, 24, 174);  // (24x24)
+            // Extract vectors and matrices from result of integration
+            Finternal.PasteClippedMatrix(&result, 0, 0, 24, 1, 0, 0);
+            HE.PasteClippedMatrix(&result, 24, 0, 5, 1, 0, 0);
+            KALPHA.PasteClippedVectorToMatrix(&result, 0, 0, 5, 5, 29);
 
-            if (m_flag_HE == NUMERICAL)
-                break;  // When numerical jacobian loop, no need to calculate HE
-
+            // Check convergence (residual check)
             double norm_HE = HE.NormTwo();
             if (norm_HE < m_toleranceEAS)
                 break;
 
+            // Calculate increment (in place) and update EAS parameters
             ChMatrixNM<int, 5, 1> INDX;
             bool pivoting;
-            KALPHA1 = KALPHA;
+            ChMatrixNM<double, 5, 5> KALPHA1 = KALPHA;
             if (!LU_factor(KALPHA1, INDX, pivoting))
                 throw ChException("Singular matrix in LU factorization");
             LU_solve(KALPHA1, INDX, HE);
@@ -719,21 +630,12 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 GetLog() << "  count " << count << "  NormHE " << norm_HE << "\n";
         }
 
+        // Accumulate internal force
         Fi -= Finternal;
 
-        if (m_flag_HE == ANALYTICAL) {
-            // Cache alphaEAS and KALPHA for use in Jacobian calculation
-            m_alphaEAS[kl] = alphaEAS;
-            m_KalphaEAS[kl] = KALPHA;
-
-            // Accumulate Jacobians
-            ChMatrixNM<double, 5, 5> INV_KALPHA;
-            Inverse55_Analytical(INV_KALPHA, KALPHA);
-            TempJacobian_EAS.MatrTMultiply(GDEPSP, INV_KALPHA * GDEPSP);
-
-            m_stock_jac_EAS += TempJacobian_EAS;
-            m_stock_KTE += TempJacobian;
-        }
+        // Cache alphaEAS and KALPHA for use in Jacobian calculation
+        m_alphaEAS[kl] = alphaEAS;
+        m_KalphaEAS[kl] = KALPHA;
 
     }  // Layer Loop
 
