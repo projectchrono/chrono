@@ -302,7 +302,7 @@ __global__ void Calc_Markers_TorquesD(Real3* torqueMarkersD,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the rigid body particles
-__global__ void UpdateRigidMarkersPositionD(Real3* posRadD, Real3* velMasD,
+__global__ void UpdateRigidMarkersPositionVelocityD(Real3* posRadD, Real3* velMasD,
 		const Real3* rigidSPH_MeshPos_LRF_D, const uint* rigidIdentifierD,
 		Real3* posRigidD, Real4* velMassRigidD, Real3* omegaLRF_D, Real4* qD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -482,7 +482,7 @@ void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
+void UpdateRigidMarkersPositionVelocity(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real3>& velMasD,
 		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
 		const thrust::device_vector<uint>& rigidIdentifierD,
@@ -501,13 +501,29 @@ void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
 	//################################################### update BCE markers position
 	//** "posRadD2"/"velMasD2" associated to BCE markers are updated based on new rigid body (position,
 	// orientation)/(velocity, angular velocity)
-	UpdateRigidMarkersPositionD<<<nBlocks_numRigid_SphMarkers,
+	UpdateRigidMarkersPositionVelocityD<<<nBlocks_numRigid_SphMarkers,
 			nThreads_SphMarkers>>>(mR3CAST(posRadD), mR3CAST(velMasD),
 			mR3CAST(rigidSPH_MeshPos_LRF_D), U1CAST(rigidIdentifierD),
 			mR3CAST(posRigidD), mR4CAST(velMassRigidD), mR3CAST(omegaLRF_D),
 			mR4CAST(qD));
 	cudaThreadSynchronize();
 	cudaCheckError();
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+void UpdateRigidMarkersPositionVelocity(thrust::device_vector<Real3>& posRadD,
+		thrust::device_vector<Real3>& velMasD,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<uint>& rigidIdentifierD,
+		const thrust::device_vector<Real3>& posRigidD,
+		const thrust::device_vector<Real4>& qD,
+		const thrust::device_vector<Real4>& velMassRigidD,
+		const thrust::device_vector<Real3>& omegaLRF_D,
+		NumberOfObjects numObjects,
+		SimParams paramsH) {
+	InitSystem(paramsH, numObjects);
+	UpdateRigidMarkersPositionVelocity(posRadD, velMasD, rigidSPH_MeshPos_LRF_D,
+				rigidIdentifierD, posRigidD, qD, velMassRigidD, omegaLRF_D, numObjects);
 }
 
 //*******************************************************************************************************************************

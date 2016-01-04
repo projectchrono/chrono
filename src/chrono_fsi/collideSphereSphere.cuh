@@ -81,7 +81,7 @@ void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
 
 		const NumberOfObjects& numObjects);
 
-void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
+void UpdateRigidMarkersPositionVelocity(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real3>& velMasD,
 		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
 		const thrust::device_vector<uint>& rigidIdentifierD,
@@ -90,6 +90,17 @@ void UpdateRigidMarkersPosition(thrust::device_vector<Real3>& posRadD,
 		const thrust::device_vector<Real4>& velMassRigidD,
 		const thrust::device_vector<Real3>& omegaLRF_D,
 		NumberOfObjects numObjects);
+
+void UpdateRigidMarkersPositionVelocity(thrust::device_vector<Real3>& posRadD,
+		thrust::device_vector<Real3>& velMasD,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<uint>& rigidIdentifierD,
+		const thrust::device_vector<Real3>& posRigidD,
+		const thrust::device_vector<Real4>& qD,
+		const thrust::device_vector<Real4>& velMassRigidD,
+		const thrust::device_vector<Real3>& omegaLRF_D,
+		NumberOfObjects numObjects,
+		SimParams paramsH);
 
 /**
  * @brief Calculates the force on each particles

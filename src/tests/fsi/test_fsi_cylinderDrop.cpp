@@ -779,6 +779,11 @@ int main(int argc, char* argv[]) {
 			posRadD, posRigid_fsiBodies_D, q_fsiBodies_D, referenceArray,
 			numObjects);
 
+	// sync BCE velocity and position with rigid bodies kinematics
+	UpdateRigidMarkersPositionVelocity(posRadD, velMasD, rigidSPH_MeshPos_LRF_D,
+			rigidIdentifierD, posRigid_fsiBodies_D, q_fsiBodies_D,
+			velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, numObjects, paramsH);
+
 	// ** initialize device mid step data
 	thrust::device_vector<Real3> posRadD2 = posRadD;
 	thrust::device_vector<Real3> velMasD2 = velMasD;

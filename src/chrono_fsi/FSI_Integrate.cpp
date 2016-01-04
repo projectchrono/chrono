@@ -195,7 +195,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 	doStep_timer.stop("fsi_copy_posVel_ChSystem2fluid_12");
 
 	doStep_timer.start("update_marker_pos_12");
-	UpdateRigidMarkersPosition(posRadD2, velMasD2, rigidSPH_MeshPos_LRF_D,
+	UpdateRigidMarkersPositionVelocity(posRadD2, velMasD2, rigidSPH_MeshPos_LRF_D,
 			rigidIdentifierD, posRigid_fsiBodies_D2, q_fsiBodies_D2,
 			velMassRigid_fsiBodies_D2, omegaVelLRF_fsiBodies_D2, numObjects);
 	doStep_timer.stop("update_marker_pos_12");
@@ -240,7 +240,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 			posRigid_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, accRigid_fsiBodies_dummyH,
 			q_fsiBodies_dummyH, omegaVelLRF_fsiBodies_dummyH, omegaAccLRF_fsiBodies_dummyH,
 			FSI_Bodies, mphysicalSystem);
-	UpdateRigidMarkersPosition(posRadD, velMasD, rigidSPH_MeshPos_LRF_D,
+	UpdateRigidMarkersPositionVelocity(posRadD, velMasD, rigidSPH_MeshPos_LRF_D,
 			rigidIdentifierD, posRigid_fsiBodies_D, q_fsiBodies_D,
 			velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, numObjects);
 
