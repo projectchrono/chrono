@@ -14,8 +14,6 @@
 // ANCF laminated shell element with four nodes.
 // =============================================================================
 
-#include <vector>
-
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
@@ -96,6 +94,9 @@ void ChElementShellANCF::SetupInitial(ChSystem* system) {
         z += m_layers[kl].Get_thickness();
         m_GaussZ.push_back(2 * z / m_thickness - 1);
     }
+
+    // Reserve space for the EAS parameters.
+    m_alphaEAS.resize(m_numLayers);
 
     // Cache the scaling factor (due to change of integration intervals)
     m_GaussScaling = (m_lenX * m_lenY * m_thickness) / 8;
@@ -674,10 +675,6 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     ChMatrixNM<double, 8, 24> strainD_ans;
     CalcStrainANSbilinearShell(strain_ans, strainD_ans);
 
-    /// Material properties
-    ChMatrixNM<double, 35, 1> StockAlpha1;
-    StockAlpha1 = m_StockAlpha_EAS;
-
     Fi.Reset();
     m_stock_KTE.Reset();
     m_stock_jac_EAS.Reset();
@@ -696,28 +693,21 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         ChMatrixNM<double, 24, 24> KTE;
         ChMatrixNM<double, 5, 5> KALPHA1;
         ChMatrixNM<double, 5, 1> ResidHE;
-        ChMatrixNM<double, 5, 1> alpha_eas;
-        ChMatrixNM<double, 5, 1> renewed_alpha_eas;
-        ChMatrixNM<double, 5, 1> previous_alpha;
 
-        int ijkl = kl * 5;
-        previous_alpha(0, 0) = StockAlpha1(ijkl);
-        previous_alpha(1, 0) = StockAlpha1(ijkl + 1);
-        previous_alpha(2, 0) = StockAlpha1(ijkl + 2);
-        previous_alpha(3, 0) = StockAlpha1(ijkl + 3);
-        previous_alpha(4, 0) = StockAlpha1(ijkl + 4);
-        alpha_eas = previous_alpha;
+        ChMatrixNM<double, 5, 1> alphaEAS = m_alphaEAS[kl];
+        ChMatrixNM<double, 5, 1> alphaEAS_new;
+
         ResidHE.Reset();
         int count = 0;
         int fail = 1;
 
         // Begin EAS loop:
         while (fail == 1) {
-            alpha_eas = alpha_eas - ResidHE;
-            renewed_alpha_eas = alpha_eas;
+            alphaEAS = alphaEAS - ResidHE;
+            alphaEAS_new = alphaEAS;
 
             // MyForce constructor;
-            MyForce myformula(this, kl, &strain_ans, &strainD_ans, &alpha_eas);
+            MyForce myformula(this, kl, &strain_ans, &strainD_ans, &alphaEAS);
             ChQuadrature::Integrate3D<ChMatrixNM<double, 750, 1> >(
                 TempIntegratedResult,            // result of integration will go there
                 myformula,                       // formula to integrate
@@ -754,23 +744,14 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 GetLog() << "  count " << count << "  NormHE " << norm_HE << "\n";
             }
         }
+
         Fi -= Finternal;
 
-        //  Stock_Alpha
         if (m_flag_HE == ANALYTICAL) {
-            int ijkl = kl * 5;
-            StockAlpha1(ijkl) = renewed_alpha_eas(0, 0);
-            StockAlpha1(ijkl + 1) = renewed_alpha_eas(1, 0);
-            StockAlpha1(ijkl + 2) = renewed_alpha_eas(2, 0);
-            StockAlpha1(ijkl + 3) = renewed_alpha_eas(3, 0);
-            StockAlpha1(ijkl + 4) = renewed_alpha_eas(4, 0);
-            if (kl == m_numLayers - 1) {
-                m_StockAlpha_EAS = StockAlpha1;
-            }
-        }
+            // Cache alphaEAS to use as initial guess at next invocation
+            m_alphaEAS[kl] = alphaEAS_new;
 
-        //  Jacobian Matrix for alpha
-        if (m_flag_HE == ANALYTICAL) {
+            // Accumulate Jacobians
             ChMatrixNM<double, 5, 5> INV_KALPHA;
             Inverse55_Analytical(INV_KALPHA, KALPHA);
             TempJacobian_EAS.MatrTMultiply(GDEPSP, INV_KALPHA * GDEPSP);

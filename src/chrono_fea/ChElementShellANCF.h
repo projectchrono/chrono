@@ -17,6 +17,8 @@
 #ifndef CHELEMENTSHELLANCF_H
 #define CHELEMENTSHELLANCF_H
 
+#include <vector>
+
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChElementShell.h"
 #include "chrono_fea/ChNodeFEAxyzD.h"
@@ -215,7 +217,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     ChMatrixNM<double, 8, 8> m_ddT;                    ///< matrix m_d * m_d^T
     ChMatrixNM<double, 24, 1> m_d_dt;                  ///< current nodal coordinate derivatives
     ChMatrixNM<double, 24, 1> m_GravForce;             ///< Gravity Force
-    ChMatrixNM<double, 35, 1> m_StockAlpha_EAS;        ///< StockAlpha(5*7,1): Max #Layer is 7
+    std::vector<ChMatrixNM<double, 5, 1> > m_alphaEAS; ///< EAS parameters (5 per layer)
     JacobianType m_flag_HE;                            ///< Jacobian evaluation type (analytical or numerical)
     double m_dt;                                       ///< time step used in calculating structural damping coefficient
     bool m_gravity_on;                                 ///< flag indicating whether or not gravity is included
