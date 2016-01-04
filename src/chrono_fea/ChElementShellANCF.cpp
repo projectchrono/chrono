@@ -130,17 +130,18 @@ void ChElementShellANCF::GetStateBlock(ChMatrixDynamic<>& mD) {
     mD.PasteVector(m_nodes[3]->GetD(), 21, 0);
 }
 
-// Calculate the global matrix H as a linear comobination of K, R, and M.
+// Calculate the global matrix H as a linear combination of K, R, and M:
+//   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
 void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.GetRows() == 24) && (H.GetColumns() == 24));
 
     // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
     ComputeInternalJacobians(Kfactor, Rfactor);
 
-    // Load Jac + mf*[M] into H
+    // Load Jac + Mfactor*[M] into H
     for (int i = 0; i < 24; i++)
         for (int j = 0; j < 24; j++)
-            H.Element(i, j) = m_JacobianMatrix.Element(i, j) + Mfactor * m_MassMatrix.Element(i, j);
+            H(i, j) = m_JacobianMatrix(i, j) + Mfactor * m_MassMatrix(i, j);
 }
 
 // -----------------------------------------------------------------------------
@@ -746,15 +747,20 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 // -----------------------------------------------------------------------------
 
 // The class MyJacobian provides the integrand for the calculation of the Jacobians
-// (stiffness and damping matrices) of the internal forces for the ANCF shell element.
-class MyJacobian : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
+// (stiffness and damping matrices) of the internal forces for one layer of an ANCF
+// shell element.
+// The first 576 entries in the integrated vector represent the 24x24 Jacobian
+//      Kfactor * [K] + Rfactor * [R]
+// where K does not include the EAS contribution.
+// The last 120 entries represent the 5x24 cross-dependency matrix.
+class MyJacobian : public ChIntegrable3D<ChMatrixNM<double, 696, 1> > {
   public:
     MyJacobian(ChElementShellANCF* element,  // Containing element
                double Kfactor,               // Scaling coefficient for stiffness component
                double Rfactor,               // Scaling coefficient for damping component
                size_t kl                     // Current layer index
                )
-        : m_element(element), m_kl(kl) {}
+        : m_element(element), m_Kfactor(Kfactor), m_Rfactor(Rfactor), m_kl(kl) {}
 
   private:
     ChElementShellANCF* m_element;
@@ -763,33 +769,382 @@ class MyJacobian : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
     size_t m_kl;
 
     // Evaluate integrand at the specified point.
-    virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) override;
+    virtual void Evaluate(ChMatrixNM<double, 696, 1>& result, const double x, const double y, const double z) override;
 };
 
-void MyJacobian::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) {
-    result.Reset();
+void MyJacobian::Evaluate(ChMatrixNM<double, 696, 1>& result, const double x, const double y, const double z) {
+    // Element shape function
+    ChMatrixNM<double, 1, 8> N;
+    m_element->ShapeFunctions(N, x, y, z);
+
+    // Determinant of position vector gradient matrix: Initial configuration
+    ChMatrixNM<double, 1, 8> Nx;
+    ChMatrixNM<double, 1, 8> Ny;
+    ChMatrixNM<double, 1, 8> Nz;
+    ChMatrixNM<double, 1, 3> Nx_d0;
+    ChMatrixNM<double, 1, 3> Ny_d0;
+    ChMatrixNM<double, 1, 3> Nz_d0;
+    double detJ0 = m_element->Calc_detJ0(x, y, z, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
+
+    // ANS shape function
+    ChMatrixNM<double, 1, 4> S_ANS;  // Shape function vector for Assumed Natural Strain
+    ChMatrixNM<double, 6, 5> M;      // Shape function vector for Enhanced Assumed Strain
+    m_element->ShapeFunctionANSbilinearShell(S_ANS, x, y);
+    m_element->Basis_M(M, x, y, z);
+
+    // Transformation : Orthogonal transformation (A and J)
+    ChVector<double> G1xG2;  // Cross product of first and second column of
+    double G1dotG1;          // Dot product of first column of position vector gradient
+
+    G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
+    G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
+    G1xG2.z = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
+    G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
+
+    // Tangent Frame
+    ChVector<double> A1;
+    ChVector<double> A2;
+    ChVector<double> A3;
+    A1.x = Nx_d0[0][0];
+    A1.y = Nx_d0[0][1];
+    A1.z = Nx_d0[0][2];
+    A1 = A1 / sqrt(G1dotG1);
+    A3 = G1xG2.GetNormalized();
+    A2.Cross(A3, A1);
+
+    // Direction for orthotropic material
+    double theta = m_element->GetLayer(m_kl).Get_theta();  // Fiber angle
+    ChVector<double> AA1;
+    ChVector<double> AA2;
+    ChVector<double> AA3;
+    AA1 = A1 * cos(theta) + A2 * sin(theta);
+    AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    AA3 = A3;
+
+    /// Beta
+    ChMatrixNM<double, 3, 3> j0;
+    ChVector<double> j01;
+    ChVector<double> j02;
+    ChVector<double> j03;
+    ChMatrixNM<double, 9, 1> beta;
+    // Calculates inverse of rd0 (j0) (position vector gradient: Initial Configuration)
+    j0(0, 0) = Ny_d0[0][1] * Nz_d0[0][2] - Nz_d0[0][1] * Ny_d0[0][2];
+    j0(0, 1) = Ny_d0[0][2] * Nz_d0[0][0] - Ny_d0[0][0] * Nz_d0[0][2];
+    j0(0, 2) = Ny_d0[0][0] * Nz_d0[0][1] - Nz_d0[0][0] * Ny_d0[0][1];
+    j0(1, 0) = Nz_d0[0][1] * Nx_d0[0][2] - Nx_d0[0][1] * Nz_d0[0][2];
+    j0(1, 1) = Nz_d0[0][2] * Nx_d0[0][0] - Nx_d0[0][2] * Nz_d0[0][0];
+    j0(1, 2) = Nz_d0[0][0] * Nx_d0[0][1] - Nz_d0[0][1] * Nx_d0[0][0];
+    j0(2, 0) = Nx_d0[0][1] * Ny_d0[0][2] - Ny_d0[0][1] * Nx_d0[0][2];
+    j0(2, 1) = Ny_d0[0][0] * Nx_d0[0][2] - Nx_d0[0][0] * Ny_d0[0][2];
+    j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
+    j0.MatrDivScale(detJ0);
+
+    j01(0) = j0(0, 0);
+    j02(0) = j0(1, 0);
+    j03(0) = j0(2, 0);
+    j01(1) = j0(0, 1);
+    j02(1) = j0(1, 1);
+    j03(1) = j0(2, 1);
+    j01(2) = j0(0, 2);
+    j02(2) = j0(1, 2);
+    j03(2) = j0(2, 2);
+
+    // Coefficients of contravariant transformation
+    beta(0, 0) = Vdot(AA1, j01);
+    beta(1, 0) = Vdot(AA2, j01);
+    beta(2, 0) = Vdot(AA3, j01);
+    beta(3, 0) = Vdot(AA1, j02);
+    beta(4, 0) = Vdot(AA2, j02);
+    beta(5, 0) = Vdot(AA3, j02);
+    beta(6, 0) = Vdot(AA1, j03);
+    beta(7, 0) = Vdot(AA2, j03);
+    beta(8, 0) = Vdot(AA3, j03);
+
+    // Transformation matrix, function of fiber angle
+    const ChMatrixNM<double, 6, 6>& T0 = m_element->GetLayer(m_kl).Get_T0();
+    // Determinant of the initial position vector gradient at the element center
+    double detJ0C = m_element->GetLayer(m_kl).Get_detJ0C();
+
+    // Enhanced Assumed Strain
+    ChMatrixNM<double, 6, 5> G = T0 * M * (detJ0C / detJ0);
+    ChMatrixNM<double, 6, 1> strain_EAS = G * m_element->m_alphaEAS[m_kl];
+
+    ChMatrixNM<double, 8, 1> ddNx;
+    ChMatrixNM<double, 8, 1> ddNy;
+    ChMatrixNM<double, 8, 1> ddNz;
+    ddNx.MatrMultiplyT(m_element->m_ddT, Nx);
+    ddNy.MatrMultiplyT(m_element->m_ddT, Ny);
+    ddNz.MatrMultiplyT(m_element->m_ddT, Nz);
+
+    ChMatrixNM<double, 8, 1> d0d0Nx;
+    ChMatrixNM<double, 8, 1> d0d0Ny;
+    ChMatrixNM<double, 8, 1> d0d0Nz;
+    d0d0Nx.MatrMultiplyT(m_element->m_d0d0T, Nx);
+    d0d0Ny.MatrMultiplyT(m_element->m_d0d0T, Ny);
+    d0d0Nz.MatrMultiplyT(m_element->m_d0d0T, Nz);
+
+    // Strain component
+    ChMatrixNM<double, 6, 1> strain_til;
+    strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
+    strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
+    strain_til(2, 0) = (Nx * ddNy)(0, 0) - (Nx * d0d0Ny)(0, 0);
+    strain_til(3, 0) = N(0, 0) * m_element->m_strainANS(0, 0) + N(0, 2) * m_element->m_strainANS(1, 0) + N(0, 4) * m_element->m_strainANS(2, 0) +
+        N(0, 6) * m_element->m_strainANS(3, 0);
+    strain_til(4, 0) = S_ANS(0, 2) * m_element->m_strainANS(6, 0) + S_ANS(0, 3) * m_element->m_strainANS(7, 0);
+    strain_til(5, 0) = S_ANS(0, 0) * m_element->m_strainANS(4, 0) + S_ANS(0, 1) * m_element->m_strainANS(5, 0);
+
+    // For orthotropic material
+    ChMatrixNM<double, 6, 1> strain;
+
+    strain(0, 0) = strain_til(0, 0) * beta(0) * beta(0) + strain_til(1, 0) * beta(3) * beta(3) +
+        strain_til(2, 0) * beta(0) * beta(3) + strain_til(3, 0) * beta(6) * beta(6) +
+        strain_til(4, 0) * beta(0) * beta(6) + strain_til(5, 0) * beta(3) * beta(6);
+    strain(1, 0) = strain_til(0, 0) * beta(1) * beta(1) + strain_til(1, 0) * beta(4) * beta(4) +
+        strain_til(2, 0) * beta(1) * beta(4) + strain_til(3, 0) * beta(7) * beta(7) +
+        strain_til(4, 0) * beta(1) * beta(7) + strain_til(5, 0) * beta(4) * beta(7);
+    strain(2, 0) = strain_til(0, 0) * 2.0 * beta(0) * beta(1) + strain_til(1, 0) * 2.0 * beta(3) * beta(4) +
+        strain_til(2, 0) * (beta(1) * beta(3) + beta(0) * beta(4)) +
+        strain_til(3, 0) * 2.0 * beta(6) * beta(7) +
+        strain_til(4, 0) * (beta(1) * beta(6) + beta(0) * beta(7)) +
+        strain_til(5, 0) * (beta(4) * beta(6) + beta(3) * beta(7));
+    strain(3, 0) = strain_til(0, 0) * beta(2) * beta(2) + strain_til(1, 0) * beta(5) * beta(5) +
+        strain_til(2, 0) * beta(2) * beta(5) + strain_til(3, 0) * beta(8) * beta(8) +
+        strain_til(4, 0) * beta(2) * beta(8) + strain_til(5, 0) * beta(5) * beta(8);
+    strain(4, 0) = strain_til(0, 0) * 2.0 * beta(0) * beta(2) + strain_til(1, 0) * 2.0 * beta(3) * beta(5) +
+        strain_til(2, 0) * (beta(2) * beta(3) + beta(0) * beta(5)) +
+        strain_til(3, 0) * 2.0 * beta(6) * beta(8) +
+        strain_til(4, 0) * (beta(2) * beta(6) + beta(0) * beta(8)) +
+        strain_til(5, 0) * (beta(5) * beta(6) + beta(3) * beta(8));
+    strain(5, 0) = strain_til(0, 0) * 2.0 * beta(1) * beta(2) + strain_til(1, 0) * 2.0 * beta(4) * beta(5) +
+        strain_til(2, 0) * (beta(2) * beta(4) + beta(1) * beta(5)) +
+        strain_til(3, 0) * 2.0 * beta(7) * beta(8) +
+        strain_til(4, 0) * (beta(2) * beta(7) + beta(1) * beta(8)) +
+        strain_til(5, 0) * (beta(5) * beta(7) + beta(4) * beta(8));
+
+    // Strain derivative component
+
+    ChMatrixNM<double, 6, 24> strainD_til;
+    ChMatrixNM<double, 1, 24> tempB;
+    ChMatrixNM<double, 1, 24> tempBB;
+    ChMatrixNM<double, 1, 3> tempB3;
+    ChMatrixNM<double, 1, 3> tempB31;
+    strainD_til.Reset();
+    tempB3.MatrMultiply(Nx, m_element->m_d);
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 3; j++) {
+            tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
+        }
+    }
+    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 0, 0);
+    tempB3.MatrMultiply(Ny, m_element->m_d);
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 3; j++) {
+            tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i);
+        }
+    }
+    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 1, 0);
+    tempB31.MatrMultiply(Nx, m_element->m_d);
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 3; j++) {
+            tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Ny(0, i);
+        }
+    }
+    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 2, 0);
+
+    tempBB.Reset();
+    for (int i = 0; i < 4; i++) {
+        int ij = i * 2;
+        tempB.PasteClippedMatrix(&m_element->m_strainANS_D, i, 0, 1, 24, 0, 0);
+        tempB *= N(0, ij);
+        tempBB += tempB;
+    }
+    strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 3, 0);  // strainD for zz
+    //
+    tempBB.Reset();
+    for (int i = 0; i < 2; i++) {
+        int ij = i + 6;
+        int ij1 = i + 2;
+        tempB.PasteClippedMatrix(&m_element->m_strainANS_D, ij, 0, 1, 24, 0, 0);
+        tempB *= S_ANS(0, ij1);
+        tempBB += tempB;
+    }
+    strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 4, 0);  // strainD for xz
+    //
+    tempBB.Reset();
+    for (int i = 0; i < 2; i++) {
+        int ij = i + 4;
+        int ij1 = i;
+        tempB.PasteClippedMatrix(&m_element->m_strainANS_D, ij, 0, 1, 24, 0, 0);
+        tempB *= S_ANS(0, ij1);
+        tempBB += tempB;
+    }
+    strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 5, 0);  // strainD for yz
+
+    //// For orthotropic material
+    ChMatrixNM<double, 6, 24> strainD;    // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
+    for (int ii = 0; ii < 24; ii++) {
+        strainD(0, ii) = strainD_til(0, ii) * beta(0) * beta(0) + strainD_til(1, ii) * beta(3) * beta(3) +
+            strainD_til(2, ii) * beta(0) * beta(3) + strainD_til(3, ii) * beta(6) * beta(6) +
+            strainD_til(4, ii) * beta(0) * beta(6) + strainD_til(5, ii) * beta(3) * beta(6);
+        strainD(1, ii) = strainD_til(0, ii) * beta(1) * beta(1) + strainD_til(1, ii) * beta(4) * beta(4) +
+            strainD_til(2, ii) * beta(1) * beta(4) + strainD_til(3, ii) * beta(7) * beta(7) +
+            strainD_til(4, ii) * beta(1) * beta(7) + strainD_til(5, ii) * beta(4) * beta(7);
+        strainD(2, ii) = strainD_til(0, ii) * 2.0 * beta(0) * beta(1) + strainD_til(1, ii) * 2.0 * beta(3) * beta(4) +
+            strainD_til(2, ii) * (beta(1) * beta(3) + beta(0) * beta(4)) +
+            strainD_til(3, ii) * 2.0 * beta(6) * beta(7) +
+            strainD_til(4, ii) * (beta(1) * beta(6) + beta(0) * beta(7)) +
+            strainD_til(5, ii) * (beta(4) * beta(6) + beta(3) * beta(7));
+        strainD(3, ii) = strainD_til(0, ii) * beta(2) * beta(2) + strainD_til(1, ii) * beta(5) * beta(5) +
+            strainD_til(2, ii) * beta(2) * beta(5) + strainD_til(3, ii) * beta(8) * beta(8) +
+            strainD_til(4, ii) * beta(2) * beta(8) + strainD_til(5) * beta(5) * beta(8);
+        strainD(4, ii) = strainD_til(0, ii) * 2.0 * beta(0) * beta(2) + strainD_til(1, ii) * 2.0 * beta(3) * beta(5) +
+            strainD_til(2, ii) * (beta(2) * beta(3) + beta(0) * beta(5)) +
+            strainD_til(3, ii) * 2.0 * beta(6) * beta(8) +
+            strainD_til(4, ii) * (beta(2) * beta(6) + beta(0) * beta(8)) +
+            strainD_til(5, ii) * (beta(5) * beta(6) + beta(3) * beta(8));
+        strainD(5, ii) = strainD_til(0, ii) * 2.0 * beta(1) * beta(2) + strainD_til(1, ii) * 2.0 * beta(4) * beta(5) +
+            strainD_til(2, ii) * (beta(2) * beta(4) + beta(1) * beta(5)) +
+            strainD_til(3, ii) * 2.0 * beta(7) * beta(8) +
+            strainD_til(4, ii) * (beta(2) * beta(7) + beta(1) * beta(8)) +
+            strainD_til(5, ii) * (beta(5) * beta(7) + beta(4) * beta(8));
+    }
+
+    /// Gd : Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
+    ChMatrixNM<double, 9, 24> Gd;
+
+    for (int ii = 0; ii < 8; ii++) {
+        Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+        Gd(1, 3 * (ii)+1) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+        Gd(2, 3 * (ii)+2) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+
+        Gd(3, 3 * (ii)) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+        Gd(4, 3 * (ii)+1) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+        Gd(5, 3 * (ii)+2) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+
+        Gd(6, 3 * (ii)) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+        Gd(7, 3 * (ii)+1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+        Gd(8, 3 * (ii)+2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+    }
+
+    // Enhanced Assumed Strain 2nd
+    strain += strain_EAS;
+
+    // Structural damping
+    // Strain time derivative for structural damping
+    ChMatrixNM<double, 6, 1> DEPS;
+    DEPS.Reset();
+    for (int ii = 0; ii < 24; ii++) {
+        DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
+        DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
+        DEPS(2, 0) = DEPS(2, 0) + strainD(2, ii) * m_element->m_d_dt(ii, 0);
+        DEPS(3, 0) = DEPS(3, 0) + strainD(3, ii) * m_element->m_d_dt(ii, 0);
+        DEPS(4, 0) = DEPS(4, 0) + strainD(4, ii) * m_element->m_d_dt(ii, 0);
+        DEPS(5, 0) = DEPS(5, 0) + strainD(5, ii) * m_element->m_d_dt(ii, 0);
+    }
+
+    // Add structural damping
+    strain += DEPS * m_element->m_Alpha;
+
+    // Matrix of elastic coefficients: The input assumes the material *could* be orthotropic
+    const ChMatrixNM<double, 6, 6>& E_eps = m_element->GetLayer(m_kl).GetMaterial()->Get_E_eps();
+
+    // Stress tensor calculation
+    ChMatrixNM<double, 6, 1> stress;
+    stress.MatrMultiply(E_eps, strain);
+
+    // Declaration and computation of Sigm, to be removed
+    ChMatrixNM<double, 9, 9> Sigm;    ///< Rearrangement of stress vector (not always needed)
+
+    Sigm(0, 0) = stress(0, 0);  // XX
+    Sigm(1, 1) = stress(0, 0);
+    Sigm(2, 2) = stress(0, 0);
+
+    Sigm(0, 3) = stress(2, 0);  // XY
+    Sigm(1, 4) = stress(2, 0);
+    Sigm(2, 5) = stress(2, 0);
+
+    Sigm(0, 6) = stress(4, 0);  // XZ
+    Sigm(1, 7) = stress(4, 0);
+    Sigm(2, 8) = stress(4, 0);
+
+    Sigm(3, 0) = stress(2, 0);  // XY
+    Sigm(4, 1) = stress(2, 0);
+    Sigm(5, 2) = stress(2, 0);
+
+    Sigm(3, 3) = stress(1, 0);  // YY
+    Sigm(4, 4) = stress(1, 0);
+    Sigm(5, 5) = stress(1, 0);
+
+    Sigm(3, 6) = stress(5, 0);  // YZ
+    Sigm(4, 7) = stress(5, 0);
+    Sigm(5, 8) = stress(5, 0);
+
+    Sigm(6, 0) = stress(4, 0);  // XZ
+    Sigm(7, 1) = stress(4, 0);
+    Sigm(8, 2) = stress(4, 0);
+
+    Sigm(6, 3) = stress(5, 0);  // YZ
+    Sigm(7, 4) = stress(5, 0);
+    Sigm(8, 5) = stress(5, 0);
+
+    Sigm(6, 6) = stress(3, 0);  // ZZ
+    Sigm(7, 7) = stress(3, 0);
+    Sigm(8, 8) = stress(3, 0);
+
+    // Jacobian of internal forces (excluding the EAS contribution).
+    ChMatrixNM<double, 24, 6> temp246;
+    ChMatrixNM<double, 24, 9> temp249;
+    temp246.MatrTMultiply(strainD, E_eps);
+    temp249.MatrTMultiply(Gd, Sigm);
+    ChMatrixNM<double, 24, 24> KTE;
+    KTE = (temp246 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp249 * Gd) * m_Kfactor;
+    KTE *= detJ0 * (m_element->m_GaussScaling);
+
+    // EAS cross-dependency matrix.
+    ChMatrixNM<double, 5, 6> temp56;
+    temp56.MatrTMultiply(G, E_eps);
+    ChMatrixNM<double, 5, 24> GDEPSP = (temp56 * strainD) * (detJ0 * m_element->m_GaussScaling);
+
+    // Load result vector (integrand)
+    result.PasteClippedMatrixToVector(&KTE, 0, 0, 24, 24, 0);
+    result.PasteClippedMatrixToVector(&GDEPSP, 0, 0, 5, 24, 576);
 }
 
 void ChElementShellANCF::ComputeInternalJacobians(double Kfactor, double Rfactor) {
     // Note that the matrices with current nodal coordinates and velocities are
-    // already available (as set in ComputeInternalForces).
+    // already available in m_d and m_d_dt (as set in ComputeInternalForces).
+    // Similarly, the ANS strain and strain derivatives are already available in
+    // m_strainANS and m_strainANS_D (as calculated in ComputeInternalForces).
+
+    m_JacobianMatrix.Reset();
 
     // Loop over all layers.
     for (size_t kl = 0; kl < m_numLayers; kl++) {
+        ChMatrixNM<double, 696, 1> result;
         MyJacobian formula(this, Kfactor, Rfactor, kl);
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(m_JacobianMatrix,                // result of integration
+        ChQuadrature::Integrate3D<ChMatrixNM<double, 696, 1> >(result,                          // result of integration
                                                                formula,                         // integrand formula
                                                                -1, 1,                           // x limits
                                                                -1, 1,                           // y limits
                                                                m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
                                                                2                                // order of integration
                                                                );
-    }
 
-    ////  TODO
-    ////  Obsolete this....
-    m_JacobianMatrix = m_stock_KTE - m_stock_jac_EAS;
-    m_JacobianMatrix.MatrScale(Kfactor);
+        // Extract matrices from result of integration
+        ChMatrixNM<double, 24, 24> KTE;
+        ChMatrixNM<double, 5, 24> GDEPSP;
+        KTE.PasteClippedVectorToMatrix(&result, 0, 0, 24, 24, 0);
+        GDEPSP.PasteClippedVectorToMatrix(&result, 0, 0, 5, 24, 576);
+
+        // Include EAS contribution to the stiffness component (hence scaled by Kfactor)
+        ChMatrixNM<double, 5, 5> KalphaEAS_inv;
+        Inverse55_Analytical(KalphaEAS_inv, m_KalphaEAS[kl]);
+        ChMatrixNM<double, 24, 24> EAS;
+        EAS.MatrTMultiply(GDEPSP, KalphaEAS_inv * GDEPSP);
+
+        // Accumulate Jacobian
+        m_JacobianMatrix += KTE - EAS * Kfactor;
+    }
 }
 
 // -----------------------------------------------------------------------------

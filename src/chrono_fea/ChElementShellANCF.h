@@ -105,6 +105,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
 
         friend class ChElementShellANCF;
         friend class MyForce;
+        friend class MyJacobian;
     };
 
     /// Get the number of nodes used by this element.
@@ -232,15 +233,15 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     // Interface to ChElementBase base class
     // -------------------------------------
 
-    /// Fills the D vector (column matrix) with the current
-    /// field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
-    ///  {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
+    // Fill the D vector (column matrix) with the current field values at the
+    // nodes of the element, with proper ordering.
+    // If the D vector has not the size of this->GetNdofs(), it will be resized.
+    //  {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
     virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
 
-    /// Sets H as the global stiffness matrix K, scaled  by Kfactor.
-    /// Optionally, also superimposes global damping matrix R, scaled by Rfactor, and global
-    /// mass matrix M multiplied by Mfactor.
+    // Set H as a linear combination of M, K, and R.
+    //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R],
+    // where [M] is the mass matrix, [K] is the stiffness matrix, and [R] is the damping matrix.
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
                                           double Kfactor,
                                           double Rfactor = 0,
@@ -290,7 +291,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// stiffness matrix H in the function ComputeKRMmatricesGlobal().
     void ComputeInternalJacobians(double Kfactor, double Rfactor);
 
-    /// Compute the MASS MATRIX of the element.
+    /// Compute the mass matrix of the element.
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
     void ComputeMassMatrix();
@@ -408,6 +409,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     friend class MyMass;
     friend class MyGravity;
     friend class MyForce;
+    friend class MyJacobian;
 };
 
 }  // end of namespace fea
