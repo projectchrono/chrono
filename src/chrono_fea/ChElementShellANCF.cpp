@@ -24,6 +24,12 @@ namespace chrono {
 namespace fea {
 
 // ------------------------------------------------------------------------------
+// Static variables
+// ------------------------------------------------------------------------------
+const double ChElementShellANCF::m_toleranceEAS = 1e-5;
+const int ChElementShellANCF::m_maxIterationsEAS = 100;
+
+// ------------------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------------------
 
@@ -680,7 +686,6 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     m_stock_jac_EAS.Reset();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-
         ChMatrixNM<double, 750, 1> TempIntegratedResult;
         ChMatrixNM<double, 24, 1> Finternal;
         ChMatrixNM<double, 24, 24> TempJacobian;
@@ -692,21 +697,10 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         ChMatrixNM<double, 5, 5> KALPHA;
         ChMatrixNM<double, 24, 24> KTE;
         ChMatrixNM<double, 5, 5> KALPHA1;
-        ChMatrixNM<double, 5, 1> ResidHE;
 
         ChMatrixNM<double, 5, 1> alphaEAS = m_alphaEAS[kl];
-        ChMatrixNM<double, 5, 1> alphaEAS_new;
 
-        ResidHE.Reset();
-        int count = 0;
-        int fail = 1;
-
-        // Begin EAS loop:
-        while (fail == 1) {
-            alphaEAS = alphaEAS - ResidHE;
-            alphaEAS_new = alphaEAS;
-
-            // MyForce constructor;
+        for (int count = 0; count < m_maxIterationsEAS; count++) {
             MyForce myformula(this, kl, &strain_ans, &strainD_ans, &alphaEAS);
             ChQuadrature::Integrate3D<ChMatrixNM<double, 750, 1> >(
                 TempIntegratedResult,            // result of integration will go there
@@ -723,33 +717,30 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             KALPHA.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 5, 5, 149);          // (5x5)
             TempJacobian.PasteClippedVectorToMatrix(&TempIntegratedResult, 0, 0, 24, 24, 174);  // (24x24)
 
-            KALPHA1 = KALPHA;
             if (m_flag_HE == NUMERICAL)
                 break;  // When numerical jacobian loop, no need to calculate HE
-            count = count + 1;
+
             double norm_HE = HE.NormTwo();
+            if (norm_HE < m_toleranceEAS)
+                break;
 
-            if (norm_HE < 1E-5) {
-                fail = 0;
-            } else {
-                ChMatrixNM<int, 5, 1> INDX;
-                bool pivoting;
-                ResidHE = HE;
-                if (!LU_factor(KALPHA1, INDX, pivoting))
-                    throw ChException("Singular matrix in LU factorization");
-                LU_solve(KALPHA1, INDX, ResidHE);
-            }
+            ChMatrixNM<int, 5, 1> INDX;
+            bool pivoting;
+            KALPHA1 = KALPHA;
+            if (!LU_factor(KALPHA1, INDX, pivoting))
+                throw ChException("Singular matrix in LU factorization");
+            LU_solve(KALPHA1, INDX, HE);
+            alphaEAS = alphaEAS - HE;
 
-            if (m_flag_HE == ANALYTICAL && count > 2) {
+            if (count >= 2)
                 GetLog() << "  count " << count << "  NormHE " << norm_HE << "\n";
-            }
         }
 
         Fi -= Finternal;
 
         if (m_flag_HE == ANALYTICAL) {
             // Cache alphaEAS to use as initial guess at next invocation
-            m_alphaEAS[kl] = alphaEAS_new;
+            m_alphaEAS[kl] = alphaEAS;
 
             // Accumulate Jacobians
             ChMatrixNM<double, 5, 5> INV_KALPHA;

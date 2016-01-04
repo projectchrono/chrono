@@ -222,6 +222,9 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     double m_dt;                                       ///< time step used in calculating structural damping coefficient
     bool m_gravity_on;                                 ///< flag indicating whether or not gravity is included
 
+    static const double m_toleranceEAS;   ///< tolerance for nonlinear EAS solver (on residual)
+    static const int m_maxIterationsEAS;  ///< maximum number of nonlinear EAS iterations
+
     // Interface to ChElementBase base class
     // -------------------------------------
 
