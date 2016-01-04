@@ -14,6 +14,8 @@
 // ANCF laminated shell element with four nodes.
 // =============================================================================
 
+#include <vector>
+
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
@@ -309,7 +311,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const
     // ANS shape function
     ChMatrixNM<double, 1, 4> S_ANS;  // Shape function vector for Assumed Natural Strain
     ChMatrixNM<double, 6, 5> M;      // Shape function vector for Enhanced Assumed Strain
-    m_element->shapefunction_ANS_BilinearShell(S_ANS, x, y);
+    m_element->ShapeFunctionANSbilinearShell(S_ANS, x, y);
     m_element->Basis_M(M, x, y, z);
 
     // Hard-coded coupling with main integrator
@@ -724,7 +726,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             strainD_ans.Reset();
 
             // Assumed Natural Strain (ANS)
-            AssumedNaturalStrain_BilinearShell(strain_ans, strainD_ans);
+            CalcStrainANSbilinearShell(strain_ans, strainD_ans);
 
             // MyForce constructor;
             MyForce myformula(this, kl, &strain_ans, &strainD_ans, &alpha_eas);
@@ -921,13 +923,6 @@ void ChElementShellANCF::ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, dou
     Nz(7) = 0.250 * (1.0 + x) * (1.0 + y);
 }
 
-void ChElementShellANCF::shapefunction_ANS_BilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y) {
-    S_ANS(0, 0) = -0.5 * x + 0.5;
-    S_ANS(0, 1) = 0.5 * x + 0.5;
-    S_ANS(0, 2) = -0.5 * y + 0.5;
-    S_ANS(0, 3) = 0.5 * y + 0.5;
-}
-
 void ChElementShellANCF::Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y, double z) {
     M.Reset();
     M(0, 0) = x;
@@ -1054,94 +1049,77 @@ void ChElementShellANCF::CalcCoordDerivMatrix(ChMatrixNM<double, 24, 1>& dt) {
 }
 
 // -----------------------------------------------------------------------------
-//
+// Assumed Natural Strain
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8, 1>& strain_ans,
-                                                            ChMatrixNM<double, 8, 24>& strainD_ans) {
-    ChMatrixNM<double, 8, 3> temp_knot;
-    temp_knot.Reset();
-    temp_knot(0, 0) = -1.0;
-    temp_knot(0, 1) = -1.0;
-    temp_knot(1, 0) = 1.0;
-    temp_knot(1, 1) = -1.0;
-    temp_knot(2, 0) = -1.0;
-    temp_knot(2, 1) = 1.0;
-    temp_knot(3, 0) = 1.0;
-    temp_knot(3, 1) = 1.0;
+// ANS shape function (interpolation of strain and strainD in thickness direction)
+void ChElementShellANCF::ShapeFunctionANSbilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y) {
+    S_ANS(0, 0) = -0.5 * x + 0.5;
+    S_ANS(0, 1) = 0.5 * x + 0.5;
+    S_ANS(0, 2) = -0.5 * y + 0.5;
+    S_ANS(0, 3) = 0.5 * y + 0.5;
+}
 
-    temp_knot(4, 0) = -1.0;  // A
-    temp_knot(4, 1) = 0.0;   // A
-    temp_knot(5, 0) = 1.0;   // B
-    temp_knot(5, 1) = 0.0;   // B
+// Calculate ANS strain and its Jacobian
+void ChElementShellANCF::CalcStrainANSbilinearShell(ChMatrixNM<double, 8, 1>& strain_ans,
+                                                    ChMatrixNM<double, 8, 24>& strainD_ans) {
+    std::vector<ChVector<> > knots(8);
 
-    temp_knot(6, 0) = 0.0;   // C
-    temp_knot(6, 1) = -1.0;  // C
-    temp_knot(7, 0) = 0.0;   // D
-    temp_knot(7, 1) = 1.0;   // D
+    knots[0] = ChVector<>(-1, -1, 0);
+    knots[1] = ChVector<>(1, -1, 0);
+    knots[2] = ChVector<>(-1, 1, 0);
+    knots[3] = ChVector<>(1, 1, 0);
+    knots[4] = ChVector<>(-1, 0, 0);  // A
+    knots[5] = ChVector<>(1, 0, 0);   // B
+    knots[6] = ChVector<>(0, -1, 0);  // C
+    knots[7] = ChVector<>(0, 1, 0);   // D
 
     ChMatrixNM<double, 1, 8> Nx;
     ChMatrixNM<double, 1, 8> Ny;
     ChMatrixNM<double, 1, 8> Nz;
-    ChMatrixNM<double, 8, 1> ddNx;
-    ChMatrixNM<double, 8, 1> ddNy;
     ChMatrixNM<double, 8, 1> ddNz;
-    ChMatrixNM<double, 8, 1> d0d0Nx;
-    ChMatrixNM<double, 8, 1> d0d0Ny;
     ChMatrixNM<double, 8, 1> d0d0Nz;
-    ChMatrixNM<double, 1, 3> Nxd;
-    ChMatrixNM<double, 1, 3> Nyd;
-    ChMatrixNM<double, 1, 3> Nzd;
-    ChMatrixNM<double, 1, 1> tempA;
-    ChMatrixNM<double, 1, 1> tempA1;
-    ChMatrixNM<double, 1, 24> tempB;
-    ChMatrixNM<double, 1, 3> tempB3;
-    ChMatrixNM<double, 1, 3> tempB31;
 
     for (int kk = 0; kk < 8; kk++) {
-        ShapeFunctionsDerivativeX(Nx, temp_knot(kk, 0), temp_knot(kk, 1), temp_knot(kk, 2));
-        ShapeFunctionsDerivativeY(Ny, temp_knot(kk, 0), temp_knot(kk, 1), temp_knot(kk, 2));
-        ShapeFunctionsDerivativeZ(Nz, temp_knot(kk, 0), temp_knot(kk, 1), temp_knot(kk, 2));
+        ShapeFunctionsDerivativeX(Nx, knots[kk].x, knots[kk].y, knots[kk].z);
+        ShapeFunctionsDerivativeY(Ny, knots[kk].x, knots[kk].y, knots[kk].z);
+        ShapeFunctionsDerivativeZ(Nz, knots[kk].x, knots[kk].y, knots[kk].z);
 
-        ddNx.MatrMultiplyT(m_ddT, Nx);
-        ddNy.MatrMultiplyT(m_ddT, Ny);
         ddNz.MatrMultiplyT(m_ddT, Nz);
-
-        d0d0Nx.MatrMultiplyT(m_d0d0T, Nx);
-        d0d0Ny.MatrMultiplyT(m_d0d0T, Ny);
         d0d0Nz.MatrMultiplyT(m_d0d0T, Nz);
 
-        if (kk == 0 || kk == 1 || kk == 2 || kk == 3) {
-            strain_ans(kk, 0) = 0.5 * ((Nz * ddNz)(0, 0) - (Nz * d0d0Nz)(0, 0));
-            tempB3.MatrMultiply(Nz, m_d);
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 3; j++) {
-                    tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i);
-                }
+        switch (kk) {
+            case 0:
+            case 1:
+            case 2:
+            case 3: {
+                strain_ans(kk, 0) = 0.5 * ((Nz * ddNz)(0, 0) - (Nz * d0d0Nz)(0, 0));
+                ChMatrixNM<double, 1, 3> tmpZ = Nz * m_d;
+                for (int i = 0; i < 8; i++)
+                    for (int j = 0; j < 3; j++)
+                        strainD_ans(kk, i * 3 + j) = tmpZ(0, j) * Nz(0, i);
+                break;
             }
-            strainD_ans.PasteClippedMatrix(&tempB, 0, 0, 1, 24, kk, 0);
-        }
-        if (kk == 4 || kk == 5) {  // kk=4,5 =>yz
-            strain_ans(kk, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);
-            tempB3.MatrMultiply(Ny, m_d);
-            tempB31.MatrMultiply(Nz, m_d);
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 3; j++) {
-                    tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i) + tempB31(0, j) * Ny(0, i);
-                }
+            case 4:
+            case 5: {  // => yz
+                strain_ans(kk, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);
+                ChMatrixNM<double, 1, 3> tmpY = Ny * m_d;
+                ChMatrixNM<double, 1, 3> tmpZ = Nz * m_d;
+                for (int i = 0; i < 8; i++)
+                    for (int j = 0; j < 3; j++)
+                        strainD_ans(kk, i * 3 + j) = tmpY(0, j) * Nz(0, i) + tmpZ(0, j) * Ny(0, i);
+                break;
             }
-            strainD_ans.PasteClippedMatrix(&tempB, 0, 0, 1, 24, kk, 0);
-        }
-        if (kk == 6 || kk == 7) {  // kk=6,7 =>xz
-            strain_ans(kk, 0) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);
-            tempB3.MatrMultiply(Nx, m_d);
-            tempB31.MatrMultiply(Nz, m_d);
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 3; j++) {
-                    tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i) + tempB31(0, j) * Nx(0, i);
-                }
+            case 6:
+            case 7: {  // => xz
+                strain_ans(kk, 0) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);
+                ChMatrixNM<double, 1, 3> tmpX = Nx * m_d;
+                ChMatrixNM<double, 1, 3> tmpZ = Nz * m_d;
+                for (int i = 0; i < 8; i++)
+                    for (int j = 0; j < 3; j++)
+                        strainD_ans(kk, i * 3 + j) = tmpX(0, j) * Nz(0, i) + tmpZ(0, j) * Nx(0, i);
+                break;
             }
-            strainD_ans.PasteClippedMatrix(&tempB, 0, 0, 1, 24, kk, 0);
         }
     }
 }

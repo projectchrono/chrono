@@ -290,11 +290,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     void ComputeGravityForce(const ChVector<>& g_acc);
 
     // [ANS] Shape function for Assumed Naturals Strain (Interpolation of strain and strainD in a thickness direction)
-    void shapefunction_ANS_BilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y);
+    void ShapeFunctionANSbilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y);
 
     // [ANS] Calculation of ANS strain and strainD.
-    void AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8, 1>& strain_ans,
-                                            ChMatrixNM<double, 8, 24>& strainD_ans);
+    void CalcStrainANSbilinearShell(ChMatrixNM<double, 8, 1>& strain_ans, ChMatrixNM<double, 8, 24>& strainD_ans);
 
     // [EAS] Basis function of M for Enhanced Assumed Strain.
     void Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y, double z);
@@ -316,6 +315,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
 
     // Calculate the current 8x3 matrix of nodal coordinates.
     void CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d);
+
     // Calculate the current 24x1 matrix of nodal coordinate derivatives.
     void CalcCoordDerivMatrix(ChMatrixNM<double, 24, 1>& dt);
 
