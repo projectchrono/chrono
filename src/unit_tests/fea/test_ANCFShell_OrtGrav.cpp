@@ -166,12 +166,7 @@ int main(int argc, char* argv[]) {
 
         // Set other element properties
         element->SetAlphaDamp(0.0);   // Structural damping for this
-        element->Setdt(time_step);    // dt to calculate DampingCoefficient
         element->SetGravityOn(true);  // element calculates its own gravitational load
-
-        ////ChMatrixNM<double, 35, 1> StockAlpha_EAS;  // StockAlpha(5*7,1): Max #Layer is 7
-        ////StockAlpha_EAS.Reset();
-        ////element->SetStockAlpha(StockAlpha_EAS);
 
         // Add element to mesh
         my_mesh->AddElement(element);
