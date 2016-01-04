@@ -29,9 +29,6 @@ namespace fea {
 
 ChElementShellANCF::ChElementShellANCF() : m_flag_HE(ANALYTICAL), m_gravity_on(false), m_numLayers(0), m_thickness(0) {
     m_nodes.resize(4);
-
-    m_StiffnessMatrix.Resize(GetNdofs(), GetNdofs());
-    m_MassMatrix.Resize(GetNdofs(), GetNdofs());
 }
 
 // ------------------------------------------------------------------------------
@@ -142,15 +139,6 @@ void ChElementShellANCF::SetupInitial(ChSystem* system) {
     // Compute mass matrix and gravitational forces (constant)
     ComputeMassMatrix();
     ComputeGravityForce(system->Get_G_acc());
-
-    // Compute initial Jacobian
-    ChMatrixDynamic<double> Temp(GetNdofs(), 1);
-    ComputeInternalForces(Temp);
-
-    // Compute stiffness matrix
-    // (this is not constant in ANCF and will be called automatically many times by ComputeKRMmatricesGlobal()
-    // when the solver will run, yet maybe nice to provide an initial nonzero value)
-    ComputeStiffnessMatrix();
 }
 
 // State update.
@@ -170,34 +158,18 @@ void ChElementShellANCF::GetStateBlock(ChMatrixDynamic<>& mD) {
     mD.PasteVector(m_nodes[3]->GetD(), 21, 0);
 }
 
-// Update the global M, K, R matrices
+// Calculate the global matrix H as a linear comobination of K, R, and M.
 void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.GetRows() == 24) && (H.GetColumns() == 24));
 
-    // Compute global stiffness matrix:
-    ComputeStiffnessMatrix();
+    // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
+    ComputeInternalJacobians(Kfactor, Rfactor);
 
-    //
-    // 1) Store  +kf*[K] +rf*[R]
-    //
-
-    ChMatrixDynamic<> temp(m_StiffnessMatrix);
-    temp.MatrScale(Kfactor);
-
-    // Paste scaled K stiffness matrix and R matrix in resulting H:
-    H.PasteMatrix(&temp, 0, 0);
-
-    //
-    // 2) Store  +mf*[M]
-    //
-
-    temp = m_MassMatrix;
-    temp.MatrScale(Mfactor);
-
-    // Paste scaled M mass matrix in resulting H:
-    H.PasteSumMatrix(&temp, 0, 0);
+    // Load Jac + mf*[M] into H
+    for (int i = 0; i < 24; i++)
+        for (int j = 0; j < 24; j++)
+            H.Element(i, j) = m_JacobianMatrix.Element(i, j) + Mfactor * m_MassMatrix.Element(i, j);
 }
-
 
 // -----------------------------------------------------------------------------
 // Mass matrix calculation
@@ -333,35 +305,35 @@ void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
 // element thickness; each of which has an independent, user-selected fiber angle (direction for orthotropic
 // constitutive behavior)
 class MyForce : public ChIntegrable3D<ChMatrixNM<double, 750, 1> > {
-public:
-  MyForce(ChElementShellANCF* element,             // Containing element
-          size_t kl,                               // Current layer index
-          ChMatrixNM<double, 8, 3>* d,             // Current coordinates
-          ChMatrixNM<double, 24, 1>* d_dt,         // Current generalized velocities
-          ChMatrixNM<double, 8, 1>* strain_ans,    // Vector for assumed natural strain
-          ChMatrixNM<double, 8, 24>* strainD_ans,  // Matrix for Jacobian of assumed natural strain
-          ChMatrixNM<double, 5, 1>* alpha_eas  // Vector of internal parameters for Enhanced Assumed Strain formulation
-          )
-      : m_element(element),
-        m_kl(kl),
-        m_d(d),
-        m_d_dt(d_dt),
-        m_strain_ans(strain_ans),
-        m_strainD_ans(strainD_ans),
-        m_alpha_eas(alpha_eas) {}
-  ~MyForce() {}
+  public:
+    MyForce(ChElementShellANCF* element,             // Containing element
+            size_t kl,                               // Current layer index
+            ChMatrixNM<double, 8, 3>* d,             // Current coordinates
+            ChMatrixNM<double, 24, 1>* d_dt,         // Current generalized velocities
+            ChMatrixNM<double, 8, 1>* strain_ans,    // Vector for assumed natural strain
+            ChMatrixNM<double, 8, 24>* strainD_ans,  // Matrix for Jacobian of assumed natural strain
+            ChMatrixNM<double, 5, 1>* alpha_eas      // Vector of internal parameters for EAS formulation
+            )
+        : m_element(element),
+          m_kl(kl),
+          m_d(d),
+          m_d_dt(d_dt),
+          m_strain_ans(strain_ans),
+          m_strainD_ans(strainD_ans),
+          m_alpha_eas(alpha_eas) {}
+    ~MyForce() {}
 
-private:
-  ChElementShellANCF* m_element;
-  size_t m_kl;
-  ChMatrixNM<double, 8, 3>* m_d;
-  ChMatrixNM<double, 24, 1>* m_d_dt;
-  ChMatrixNM<double, 8, 1>* m_strain_ans;
-  ChMatrixNM<double, 8, 24>* m_strainD_ans;
-  ChMatrixNM<double, 5, 1>* m_alpha_eas;
+  private:
+    ChElementShellANCF* m_element;
+    size_t m_kl;
+    ChMatrixNM<double, 8, 3>* m_d;
+    ChMatrixNM<double, 24, 1>* m_d_dt;
+    ChMatrixNM<double, 8, 1>* m_strain_ans;
+    ChMatrixNM<double, 8, 24>* m_strainD_ans;
+    ChMatrixNM<double, 5, 1>* m_alpha_eas;
 
-  /// Evaluate (strainD'*strain)  at point x, include ANS and EAS.
-  virtual void Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z) override;
+    /// Evaluate (strainD'*strain)  at point x, include ANS and EAS.
+    virtual void Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z) override;
 };
 
 void MyForce::Evaluate(ChMatrixNM<double, 750, 1>& result, const double x, const double y, const double z) {
@@ -949,12 +921,51 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 }
 
 // -----------------------------------------------------------------------------
-// Stiffness matrix calculation
+// Jacobians of internal forces
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::ComputeStiffnessMatrix() {
-    m_StiffnessMatrix = m_stock_KTE;
-    m_StiffnessMatrix -= m_stock_jac_EAS;
+// The class MyJacobian provides the integrand for the calculation of the Jacobians
+// (stiffness and damping matrices) of the internal forces for the ANCF shell element.
+class MyJacobian : public ChIntegrable3D<ChMatrixNM<double, 24, 24> > {
+  public:
+    MyJacobian(ChElementShellANCF* element,  // Containing element
+               double Kfactor,               // Scaling coefficient for stiffness component
+               double Rfactor,               // Scaling coefficient for damping component
+               size_t kl                     // Current layer index
+               )
+        : m_element(element), m_kl(kl) {}
+
+  private:
+    ChElementShellANCF* m_element;
+    double m_Kfactor;
+    double m_Rfactor;
+    size_t m_kl;
+
+    // Evaluate integrand at the specified point.
+    virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) override;
+};
+
+void MyJacobian::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) {
+    result.Reset();
+}
+
+void ChElementShellANCF::ComputeInternalJacobians(double Kfactor, double Rfactor) {
+    for (size_t kl = 0; kl < m_numLayers; kl++) {
+
+        MyJacobian formula(this, Kfactor, Rfactor, kl);
+        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(m_JacobianMatrix,                          // result of integration
+                                                               formula,                         // integrand formula
+                                                               -1, 1,                           // x limits
+                                                               -1, 1,                           // y limits
+                                                               m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                               2                                // order of integration
+                                                               );
+    }
+
+    ////  TODO
+    ////  Obsolete this....
+    m_JacobianMatrix = m_stock_KTE - m_stock_jac_EAS;
+    m_JacobianMatrix.MatrScale(Kfactor);
 }
 
 // -----------------------------------------------------------------------------

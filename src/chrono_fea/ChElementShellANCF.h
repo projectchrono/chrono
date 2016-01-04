@@ -205,8 +205,8 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     std::vector<double> m_GaussZ;                      ///< layer separation z values (scaled to [-1,1])
     double m_GaussScaling;                             ///< scaling factor due to change of integration intervals
     double m_Alpha;                                    ///< structural damping
-    ChMatrixNM<double, 24, 24> m_StiffnessMatrix;      ///< stiffness matrix
     ChMatrixNM<double, 24, 24> m_MassMatrix;           ///< mass matrix
+    ChMatrixNM<double, 24, 24> m_JacobianMatrix;       ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     ChMatrixNM<double, 24, 24> m_stock_jac_EAS;        ///< EAS per element
     ChMatrixNM<double, 24, 24> m_stock_KTE;            ///< Analytical Jacobian
     ChMatrixNM<double, 8, 3> m_d0;                     ///< initial nodal coordinates
@@ -269,11 +269,13 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     // Internal computations
     // ---------------------
 
-    /// Compute the STIFFNESS MATRIX of the element.
-    /// K = integral( .... ),
-    /// Note: in this 'basic' implementation, constant section and
-    /// constant material are assumed
-    void ComputeStiffnessMatrix();
+    /// Compute Jacobians of the internal forces.
+    /// This function calculates a linear combination of the stiffness (K) and damping (R) matrices,
+    ///     J = Kfactor * K + Rfactor * R
+    /// for given coeficients Kfactor and Rfactor.
+    /// This Jacobian will be further combined with the global mass matrix M and included in the global
+    /// stiffness matrix H in the function ComputeKRMmatricesGlobal().
+    void ComputeInternalJacobians(double Kfactor, double Rfactor);
 
     /// Compute the MASS MATRIX of the element.
     /// Note: in this 'basic' implementation, constant section and
