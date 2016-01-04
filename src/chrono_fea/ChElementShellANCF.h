@@ -198,29 +198,33 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
   private:
     enum JacobianType { ANALYTICAL, NUMERICAL };
 
-    std::vector<ChSharedPtr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
-    std::vector<Layer> m_layers;                       ///< element layers
-    size_t m_numLayers;                                ///< number of layers for this element
-    double m_lenX;                                     ///< element length in X direction
-    double m_lenY;                                     ///< element length in Y direction
-    double m_thickness;                                ///< total element thickness
-    std::vector<double> m_GaussZ;                      ///< layer separation z values (scaled to [-1,1])
-    double m_GaussScaling;                             ///< scaling factor due to change of integration intervals
-    double m_Alpha;                                    ///< structural damping
-    ChMatrixNM<double, 24, 24> m_MassMatrix;           ///< mass matrix
-    ChMatrixNM<double, 24, 24> m_JacobianMatrix;       ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-    ChMatrixNM<double, 24, 24> m_stock_jac_EAS;        ///< EAS per element
-    ChMatrixNM<double, 24, 24> m_stock_KTE;            ///< Analytical Jacobian
-    ChMatrixNM<double, 8, 3> m_d0;                     ///< initial nodal coordinates
-    ChMatrixNM<double, 8, 8> m_d0d0T;                  ///< matrix m_d0 * m_d0^T
-    ChMatrixNM<double, 8, 3> m_d;                      ///< current nodal coordinates
-    ChMatrixNM<double, 8, 8> m_ddT;                    ///< matrix m_d * m_d^T
-    ChMatrixNM<double, 24, 1> m_d_dt;                  ///< current nodal coordinate derivatives
-    ChMatrixNM<double, 24, 1> m_GravForce;             ///< Gravity Force
-    std::vector<ChMatrixNM<double, 5, 1> > m_alphaEAS; ///< EAS parameters (5 per layer)
-    JacobianType m_flag_HE;                            ///< Jacobian evaluation type (analytical or numerical)
-    double m_dt;                                       ///< time step used in calculating structural damping coefficient
-    bool m_gravity_on;                                 ///< flag indicating whether or not gravity is included
+    std::vector<ChSharedPtr<ChNodeFEAxyzD> > m_nodes;    ///< element nodes
+    std::vector<Layer> m_layers;                         ///< element layers
+    size_t m_numLayers;                                  ///< number of layers for this element
+    double m_lenX;                                       ///< element length in X direction
+    double m_lenY;                                       ///< element length in Y direction
+    double m_thickness;                                  ///< total element thickness
+    std::vector<double> m_GaussZ;                        ///< layer separation z values (scaled to [-1,1])
+    double m_GaussScaling;                               ///< scaling factor due to change of integration intervals
+    double m_Alpha;                                      ///< structural damping
+    ChMatrixNM<double, 24, 24> m_MassMatrix;             ///< mass matrix
+    ChMatrixNM<double, 24, 24> m_JacobianMatrix;         ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
+    ChMatrixNM<double, 24, 24> m_stock_jac_EAS;          ///< EAS per element
+    ChMatrixNM<double, 24, 24> m_stock_KTE;              ///< Analytical Jacobian
+    ChMatrixNM<double, 8, 3> m_d0;                       ///< initial nodal coordinates
+    ChMatrixNM<double, 8, 8> m_d0d0T;                    ///< matrix m_d0 * m_d0^T
+    ChMatrixNM<double, 8, 3> m_d;                        ///< current nodal coordinates
+    ChMatrixNM<double, 8, 8> m_ddT;                      ///< matrix m_d * m_d^T
+    ChMatrixNM<double, 24, 1> m_d_dt;                    ///< current nodal velocities
+    ChMatrixNM<double, 8, 1> m_strainANS;                ///< ANS strain
+    ChMatrixNM<double, 8, 24> m_strainANS_D;             ///< ANS strain derivatives
+    ChMatrixNM<double, 24, 1> m_GravForce;               ///< Gravity Force
+    std::vector<ChMatrixNM<double, 5, 1> > m_alphaEAS;   ///< EAS parameters (5 per layer)
+    std::vector<ChMatrixNM<double, 5, 5> > m_KalphaEAS;  ///< EAS Jacobians (a 5x5 matrix per layer)
+    JacobianType m_flag_HE;                              ///< Jacobian evaluation type (analytical or numerical)
+    bool m_gravity_on;                                   ///< enable/disable gravity calculation
+
+    double m_dt;  ///< time step used in calculating structural damping coefficient
 
     static const double m_toleranceEAS;   ///< tolerance for nonlinear EAS solver (on residual)
     static const int m_maxIterationsEAS;  ///< maximum number of nonlinear EAS iterations
@@ -297,8 +301,8 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     // [ANS] Shape function for Assumed Naturals Strain (Interpolation of strain and strainD in a thickness direction)
     void ShapeFunctionANSbilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y);
 
-    // [ANS] Calculation of ANS strain and strainD.
-    void CalcStrainANSbilinearShell(ChMatrixNM<double, 8, 1>& strain_ans, ChMatrixNM<double, 8, 24>& strainD_ans);
+    // [ANS] Calculate the ANS strain and strain derivatives.
+    void CalcStrainANSbilinearShell();
 
     // [EAS] Basis function of M for Enhanced Assumed Strain.
     void Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y, double z);
