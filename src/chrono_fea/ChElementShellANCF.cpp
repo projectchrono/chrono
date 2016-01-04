@@ -669,10 +669,14 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     CalcCoordDerivMatrix(m_d_dt);
     m_ddT.MatrMultiplyT(m_d, m_d);
 
+    // Assumed Natural Strain (ANS)
+    ChMatrixNM<double, 8, 1> strain_ans;
+    ChMatrixNM<double, 8, 24> strainD_ans;
+    CalcStrainANSbilinearShell(strain_ans, strainD_ans);
+
     /// Material properties
     ChMatrixNM<double, 35, 1> StockAlpha1;
     StockAlpha1 = m_StockAlpha_EAS;
-
 
     Fi.Reset();
     m_stock_KTE.Reset();
@@ -685,9 +689,6 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         ChMatrixNM<double, 24, 24> TempJacobian;
         ChMatrixNM<double, 24, 24> TempJacobian_EAS;
 
-        // Assumed Natural Strain (ANS)
-        ChMatrixNM<double, 8, 1> strain_ans;
-        ChMatrixNM<double, 8, 24> strainD_ans;
         // Enhanced Assumed Strain (EAS)
         ChMatrixNM<double, 5, 1> HE;
         ChMatrixNM<double, 5, 24> GDEPSP;
@@ -714,9 +715,6 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         while (fail == 1) {
             alpha_eas = alpha_eas - ResidHE;
             renewed_alpha_eas = alpha_eas;
-
-            // Assumed Natural Strain (ANS)
-            CalcStrainANSbilinearShell(strain_ans, strainD_ans);
 
             // MyForce constructor;
             MyForce myformula(this, kl, &strain_ans, &strainD_ans, &alpha_eas);
