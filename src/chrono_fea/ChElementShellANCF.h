@@ -210,6 +210,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     ChMatrixNM<double, 24, 24> m_stock_jac_EAS;        ///< EAS per element
     ChMatrixNM<double, 24, 24> m_stock_KTE;            ///< Analytical Jacobian
     ChMatrixNM<double, 8, 3> m_d0;                     ///< initial nodal coordinates
+    ChMatrixNM<double, 8, 8> m_d0d0T;                  ///< matrix m_d0 * m_d0^T
+    ChMatrixNM<double, 8, 3> m_d;                      ///< current nodal coordinates
+    ChMatrixNM<double, 8, 8> m_ddT;                    ///< matrix m_d * m_d^T
+    ChMatrixNM<double, 24, 1> m_d_dt;                  ///< current nodal coordinate derivatives
     ChMatrixNM<double, 24, 1> m_GravForce;             ///< Gravity Force
     ChMatrixNM<double, 35, 1> m_StockAlpha_EAS;        ///< StockAlpha(5*7,1): Max #Layer is 7
     JacobianType m_flag_HE;                            ///< Jacobian evaluation type (analytical or numerical)
@@ -289,8 +293,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     void shapefunction_ANS_BilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y);
 
     // [ANS] Calculation of ANS strain and strainD.
-    void AssumedNaturalStrain_BilinearShell(const ChMatrixNM<double, 8, 3>& d,
-                                            ChMatrixNM<double, 8, 1>& strain_ans,
+    void AssumedNaturalStrain_BilinearShell(ChMatrixNM<double, 8, 1>& strain_ans,
                                             ChMatrixNM<double, 8, 24>& strainD_ans);
 
     // [EAS] Basis function of M for Enhanced Assumed Strain.
@@ -310,6 +313,11 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
                       ChMatrixNM<double, 1, 3>& Nx_d0,
                       ChMatrixNM<double, 1, 3>& Ny_d0,
                       ChMatrixNM<double, 1, 3>& Nz_d0);
+
+    // Calculate the current 8x3 matrix of nodal coordinates.
+    void CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d);
+    // Calculate the current 24x1 matrix of nodal coordinate derivatives.
+    void CalcCoordDerivMatrix(ChMatrixNM<double, 24, 1>& dt);
 
     // Helper functions
     // ----------------
