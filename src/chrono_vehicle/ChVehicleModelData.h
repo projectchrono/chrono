@@ -26,6 +26,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle
+/// @{
+
 /// Set the path to the Chrono::Vehicle data directory (ATTENTION: not thread safe).
 CH_VEHICLE_API void SetDataPath(const std::string& path);
 
@@ -36,6 +39,8 @@ CH_VEHICLE_API const std::string& GetDataPath();
 /// The filename is assumed to be given relative to the Chrono::Vehicle model
 /// data directory.
 CH_VEHICLE_API std::string GetDataFile(const std::string& filename);
+
+/// @} vehicle
 
 }  // end namespace vehicle
 }  // end namespace chrono

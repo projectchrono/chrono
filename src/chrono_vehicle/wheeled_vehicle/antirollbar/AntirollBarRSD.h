@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_antirollbar
+/// @{
+
+/// RSD antirollbar model constructed with data from file (JSON format).
 class CH_VEHICLE_API AntirollBarRSD : public ChAntirollBarRSD {
   public:
     AntirollBarRSD(const std::string& filename);
@@ -58,6 +62,8 @@ class CH_VEHICLE_API AntirollBarRSD : public ChAntirollBarRSD {
     double m_spring_coef;
     double m_damping_coef;
 };
+
+/// @} vehicle_wheeled_antirollbar
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -27,11 +27,12 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_driveline
+/// @{
+
 /// Simple driveline model. This template can be used to model a 4WD driveline.
 /// It uses a constant front/rear torque split (a value between 0 and 1) and a
 /// simple model for Torsen limited-slip differentials.
-///
 class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
   public:
     ChSimpleDriveline();
@@ -79,6 +80,8 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
     ChSharedPtr<ChShaft> m_rear_left;
     ChSharedPtr<ChShaft> m_rear_right;
 };
+
+/// @} vehicle_wheeled_driveline
 
 }  // end namespace vehicle
 }  // end namespace chrono

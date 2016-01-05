@@ -28,6 +28,12 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_powertrain
+/// @{
+
+/// Template for simplified powertrain model.
+/// This model uses a trivial speed-torque curve, has no torque converter
+/// and no transmission box.
 class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain {
   public:
     ChSimplePowertrain();
@@ -102,6 +108,8 @@ class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain {
     double m_motorTorque;
     double m_shaftTorque;
 };
+
+/// @} vehicle_powertrain
 
 }  // end namespace vehicle
 }  // end namespace chrono

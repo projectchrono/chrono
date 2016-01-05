@@ -23,21 +23,29 @@
 #define CH_VEHICLE_H
 
 #include "chrono/core/ChVector.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
+
+/**
+    @defgroup vehicle Chrono::Vehicle
+    @brief Ground vehicle modeling
+*/
 
 namespace chrono {
 
 /// Namespace for the Chrono::Vehicle module.
 namespace vehicle {
 
-///
+/// @addtogroup vehicle
+/// @{
+
 /// Base class for chrono vehicle systems.
-///
+/// The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
+/// pointing forward, and Y-axis towards the left of the vehicle.
 class CH_VEHICLE_API ChVehicle : public ChShared {
   public:
     /// Construct a vehicle system with a default ChSystem.
@@ -126,6 +134,8 @@ class CH_VEHICLE_API ChVehicle : public ChShared {
 
     double m_stepsize;  ///< integration step-size for the vehicle system
 };
+
+/// @} vehicle
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -26,12 +26,20 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_driveline Driveline subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_driveline
+/// @{
+
 /// Base class for a driveline subsystem.
-///
 class CH_VEHICLE_API ChDriveline : public ChShared {
   public:
     ChDriveline();
@@ -76,6 +84,8 @@ class CH_VEHICLE_API ChDriveline : public ChShared {
 
     std::vector<int> m_driven_axles;  ///< indexes of the driven vehicle axles
 };
+
+/// @} vehicle_wheeled_driveline
 
 }  // end namespace vehicle
 }  // end namespace chrono

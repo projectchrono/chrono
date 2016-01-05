@@ -25,21 +25,31 @@
 #include <vector>
 
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
+#include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 #include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
-#include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
+
+/**
+    @addtogroup vehicle
+    @{
+        @defgroup vehicle_wheeled Wheeled vehicles
+    @}
+*/
 
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled
+/// @{
+
 /// Base class for chrono wheeled vehicle systems.
 /// This class provides the interface between the vehicle system and other
-/// systems (tires, driver, etc.)
-///
+/// systems (tires, driver, etc.).
+/// The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
+/// pointing forward, and Y-axis towards the left of the vehicle.
 class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
   public:
     /// Construct a vehicle system with a default ChSystem.
@@ -114,10 +124,10 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
     /// from the powertrain, and tire forces (expressed in the global reference
     /// frame).
-    virtual void Update(double time,                     ///< [in] current time
-                        double steering,                 ///< [in] current steering input [-1,+1]
-                        double braking,                  ///< [in] current braking input [0,1]
-                        double powertrain_torque,        ///< [in] input torque from powertrain
+    virtual void Update(double time,                   ///< [in] current time
+                        double steering,               ///< [in] current steering input [-1,+1]
+                        double braking,                ///< [in] current braking input [0,1]
+                        double powertrain_torque,      ///< [in] input torque from powertrain
                         const TireForces& tire_forces  ///< [in] vector of tire force structures
                         );
 
@@ -132,6 +142,8 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     ChWheelList m_wheels;                  ///< list of handles to wheel subsystems
     ChBrakeList m_brakes;                  ///< list of handles to brake subsystems
 };
+
+/// @} vehicle_wheeled
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -30,8 +30,18 @@
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_utils Utility classes
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
+
+/// @addtogroup vehicle_wheeled_utils
+/// @{
 
 // -----------------------------------------------------------------------------
 /// Callback class for specifying driver inputs at a specified time.
@@ -130,6 +140,8 @@ class CH_VEHICLE_API ChWheeledVehicleAssembly {
     ChTireContactCallback* m_tire_cb;
     ChChassisContactCallback* m_chassis_cb;
 };
+
+/// @} vehicle_wheeled_utils
 
 }  // end namespace vehicle
 }  // namespace chrono

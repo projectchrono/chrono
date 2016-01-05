@@ -38,9 +38,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_utils
+/// @{
+
 /// Definition of a suspension test rig.
-///
 class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
   public:
     /// Construct a test rig for a specified axle of a given vehicle.
@@ -152,6 +153,8 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     ChVector<> m_steeringLoc;
     ChQuaternion<> m_steeringRot;
 };
+
+/// @} vehicle_wheeled_utils
 
 }  // end namespace vehicle
 }  // end namespace chrono

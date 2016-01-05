@@ -32,9 +32,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_driveline
+/// @{
+
 /// 4WD driveline model template based on ChShaft objects.
-///
 class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
   public:
     ChShaftsDriveline4WD();
@@ -107,6 +108,8 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
     ChVector<> m_dir_motor_block;
     ChVector<> m_dir_axle;
 };
+
+/// @} vehicle_wheeled_driveline
 
 }  // end namespace vehicle
 }  // end namespace chrono

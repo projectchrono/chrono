@@ -33,9 +33,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_tire
+/// @{
+
 /// Fiala based tire model.
-///
 class CH_VEHICLE_API ChFialaTire : public ChTire {
   public:
     ChFialaTire(const std::string& name  ///< [in] name of this tire system
@@ -125,6 +126,8 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
 
     TireForce m_tireforce;
 };
+
+/// @} vehicle_wheeled_tire
 
 }  // end namespace vehicle
 }  // end namespace chrono
