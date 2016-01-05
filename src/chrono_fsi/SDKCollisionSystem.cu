@@ -184,8 +184,12 @@ __device__ Real3 deltaVShare(int3 gridPos, uint index, Real3 posRadA,
 // collide a particle against all other particles in a given cell
 // Arman : revisit equation 10 of tech report, is it only on fluid or it is on all markers
 __device__ void BCE_modification_Share(
-		Real4& deltaVDenom,  // in and out
-		Real4& deltaRP, int& isAffected, int3 gridPos, uint index,
+		Real3& sumVW,
+		Real& sumWAll,
+		Real3& sumRhoRW,
+		Real& sumPW,
+		Real& sumWFluid,
+		int& isAffectedV, int& isAffectedP, int3 gridPos, uint index,
 		Real3 posRadA, Real3* sortedPosRad, Real3* sortedVelMas,
 		Real4* sortedRhoPreMu, uint* cellStart, uint* cellEnd) {
 	uint gridHash = calcGridHash(gridPos);
@@ -204,21 +208,26 @@ __device__ void BCE_modification_Share(
 			Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 
 			Real Wd = W3(d);
-			Real3 velMasB = FETCH(sortedVelMas, j);
-			//			deltaVDenom += mR4(
-			//					paramsD.markerMass / rhoPresMuB.x * velMasB * Wd,
-			//					paramsD.markerMass / rhoPresMuB.x * Wd);
-			//			deltaVDenom += mR4(
-			//					velMasB * Wd,
-			//					Wd);
+			Real smallWVal = W3(1.9999 * paramsD.HSML);
+			if (Wd > smallWVal) {
+				isAffectedV = 1;
+				Real3 velMasB = FETCH(sortedVelMas, j);
+				sumVW += velMasB * Wd;
+				sumWAll += Wd;
 
-			if (rhoPresMuB.w < -.1) { // only fluid pressure is used to update BCE pressure see Eq 27 of Adami, 2012 paper
-				if (Wd > W3(1.99 * paramsD.HSML)) {
-					isAffected = 1;
+				//			deltaVDenom += mR4(
+				//					paramsD.markerMass / rhoPresMuB.x * velMasB * Wd,
+				//					paramsD.markerMass / rhoPresMuB.x * Wd);
+				//			deltaVDenom += mR4(
+				//					velMasB * Wd,
+				//					Wd);
+
+				if (rhoPresMuB.w < -.1) { // only fluid pressure is used to update BCE pressure see Eq 27 of Adami, 2012 paper
+					isAffectedP = 1;
+					sumRhoRW += rhoPresMuB.x * dist3 * Wd;
+					sumPW += rhoPresMuB.y * Wd;
+					sumWFluid += Wd;
 				}
-				deltaVDenom += mR4(velMasB * Wd, Wd);
-				deltaRP += mR4(rhoPresMuB.x * dist3 * Wd, // Arman: check if dist3 or -dist3
-				rhoPresMuB.y * Wd);
 			}
 		}
 	}
@@ -646,10 +655,14 @@ __global__ void new_BCE_VelocityPressure(
 	// read particle data from sorted arrays
 	Real3 posRadA = FETCH(sortedPosRad, index);
 	Real3 velMasA = FETCH(sortedVelMas, index);
-	int isAffected = 0;
+	int isAffectedV = 0;
+	int isAffectedP = 0;
 
-	Real4 deltaVDenom = mR4(0);
-	Real4 deltaRP = mR4(0);
+	Real3 sumVW = mR3(0);
+	Real sumWAll = 0;
+	Real3 sumRhoRW = mR3(0);
+	Real sumPW = 0;
+	Real sumWFluid = 0;
 
 	// get address in grid
 	int3 gridPos = calcGridPos(posRadA);
@@ -661,17 +674,18 @@ __global__ void new_BCE_VelocityPressure(
 		for (int y = -1; y <= 1; y++) {
 			for (int x = -1; x <= 1; x++) {
 				int3 neighbourPos = gridPos + mI3(x, y, z);
-				BCE_modification_Share(deltaVDenom, deltaRP, isAffected,
+				BCE_modification_Share(sumVW, sumWAll, sumRhoRW, sumPW, sumWFluid, isAffectedV, isAffectedP,
 						neighbourPos, index, posRadA, sortedPosRad,
 						sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
 			}
 		}
 	}
 
-	if (isAffected) {
-		Real3 modifiedBCE_v = 2 * velMasA - mR3(deltaVDenom) / deltaVDenom.w;
+	if (isAffectedV) {
+		Real3 modifiedBCE_v = 2 * velMasA - sumVW / sumWAll;
 		sortedVelMas_ModifiedBCE[index] = modifiedBCE_v;
-
+	}
+	if (isAffectedP) {
 		// pressure
 		Real3 a3 = mR3(0);
 		if (fabs(rhoPreMuA.w) > 0) {  // rigid BCE
@@ -684,8 +698,8 @@ __global__ void new_BCE_VelocityPressure(
 			}
 			a3 = bceAcc[bceIndex];
 		}
-		Real pressure = (deltaRP.w + dot(paramsD.gravity - a3, mR3(deltaRP)))
-				/ deltaVDenom.w;  //(in fact:  (paramsD.gravity -
+		Real pressure = (sumPW + dot(paramsD.gravity - a3, sumRhoRW))
+				/ sumWFluid;  //(in fact:  (paramsD.gravity -
 		// aW), but aW for moving rigids
 		// is hard to calc. Assume aW is
 		// zero for now

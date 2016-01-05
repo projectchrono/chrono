@@ -163,9 +163,11 @@ __device__ inline Real Eos(Real rho, Real type) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline Real InvEos(Real pw) {
-	int gama = 7;
+	Real gama = 7;
 	Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama; // 200;//314e6; //c^2 * paramsD.rho0 / gama where c = 1484 m/s for water
-	return paramsD.rho0 * pow((pw - paramsD.BASEPRES) / B + 1, 1.0 / gama);
+	Real powerComp = (pw - paramsD.BASEPRES) / B + 1.0;
+	Real rho = (powerComp > 0) ? paramsD.rho0 * pow(powerComp, 1.0 / gama) : -paramsD.rho0 * pow(fabs(powerComp), 1.0 / gama); // did this since CUDA is stupid and freaks out by negative^(1/gama)
+	return rho;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // ferrariCi
