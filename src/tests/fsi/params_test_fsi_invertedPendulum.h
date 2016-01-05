@@ -61,7 +61,6 @@ bool initializeFluidFromFile = false; // 	IMPORTANT: when true, "haveFluid" in f
 // options.
 //	for a double security, do your best to set "haveFluid" and "useWallBce" based on the data you have from
 // checkpoint files
-BceVersion bceType = mORIGINAL;//ADAMI; // mORIGINAL; //ADAMI; // when set to adami, change the LARGE_PRES to zero. although not
 // very important, since this option will overwrite the BCE pressure and
 // paramsH.LARGE_PRES is only used for the initialization of the BCE markers
 
@@ -111,6 +110,7 @@ void SetupParamsH(SimParams& paramsH) {
 	paramsH.enableAggressiveTweak = 0; // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
 	paramsH.tweakMultV = 0.1;//paramsH.v_Max / (paramsH.HSML / paramsH.dT);//	maximum allowed velocity: tweakMultV * HSML / dT;  NOTE: HSML and dT must be defined. So this line comes after them
 	paramsH.tweakMultRho = .002; // maximum allowed density change in one time step: tweakMultRho * rho0
+	paramsH.bceType = ADAMI;  // ADAMI, mORIGINAL
 	//********************************************************************************************************
 	//**  reminiscent of the past******************************************************************************
 	//	paramsH.cMin = mR3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);

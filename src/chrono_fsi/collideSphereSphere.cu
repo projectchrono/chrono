@@ -139,6 +139,7 @@ void MapSPH_ToGrid(Real resolution, int3& cartesianGridDims,
 	vel_VelMag_CartD.clear();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+// calculate marker acceleration, required in ADAMI
 __global__ void calcBceAcceleration_kernel(
 		Real3* bceAcc,
 		Real4* q_fsiBodies_D,
@@ -152,7 +153,6 @@ __global__ void calcBceAcceleration_kernel(
 		return;
 	}
 
-	// calculate marker acceleration, required in ADAMI
 	int rigidBodyIndex = rigidIdentifierD[bceIndex];
 	Real4 q4 = q_fsiBodies_D[rigidBodyIndex];
 	Real3 a1, a2, a3;
@@ -210,7 +210,7 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 		const thrust::device_vector<uint>& rigidIdentifierD,
 
 		const NumberOfObjects& numObjects, SimParams paramsH,
-		BceVersion bceType, Real dT) {
+		Real dT) {
 	// Part1: contact detection
 	// #########################################################################################################################
 	// grid data for sorting method
@@ -263,7 +263,7 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 			rhoPresMuD, numAllMarkers, m_numGridCells);
 
 	// modify BCE velocity and pressure
-	if (bceType == ADAMI) {
+	if (paramsH.bceType == ADAMI) {
 		thrust::device_vector<Real3> bceAcc(numObjects.numRigid_SphMarkers);
 		if (numObjects.numRigid_SphMarkers > 0) {
 			CalcBceAcceleration(bceAcc, q_fsiBodies_D, accRigid_fsiBodies_D,omegaVelLRF_fsiBodies_D,
@@ -611,7 +611,7 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 		const thrust::device_vector<uint>& rigidIdentifierD,
 
 		const NumberOfObjects& numObjects, SimParams paramsH,
-		BceVersion bceType, Real dT) {
+		Real dT) {
 	// Part1: contact detection
 	// #########################################################################################################################
 	// grid data for sorting method
@@ -656,7 +656,7 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 			rhoPresMuD, numAllMarkers, m_numGridCells);
 
 	// modify BCE velocity and pressure
-	if (bceType == ADAMI) {
+	if (paramsH.bceType == ADAMI) {
 		thrust::device_vector<Real3> bceAcc(numObjects.numRigid_SphMarkers);
 		if (numObjects.numRigid_SphMarkers > 0) {
 			CalcBceAcceleration(bceAcc, q_fsiBodies_D, accRigid_fsiBodies_D,omegaVelLRF_fsiBodies_D,
@@ -870,7 +870,7 @@ void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
 		const NumberOfObjects& numObjects, SimParams currentParamsH, Real dT) {
 	ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray,
 			q_fsiBodies_D, accRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D, rigidSPH_MeshPos_LRF_D, rigidIdentifierD,
-			numObjects, currentParamsH, ADAMI, dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be
+			numObjects, currentParamsH, dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be
 	// applied at rigid body solver
 	UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD,
 			referenceArray, dT);  // assumes ...D2 is a copy of ...D

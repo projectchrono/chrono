@@ -10,7 +10,7 @@
 #include "chrono_fsi/custom_cutil_math.h"
 
 enum BceVersion {
-	ADAMI, mORIGINAL
+	ADAMI = 0, mORIGINAL = 1
 };
 
 /**
@@ -90,6 +90,7 @@ struct SimParams {
 	/* */ // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
 	Real tweakMultV; /* */
 	Real tweakMultRho; /* */
+	BceVersion bceType; /* */
 };
 
 /**

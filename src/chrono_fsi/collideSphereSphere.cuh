@@ -141,7 +141,7 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 		const thrust::device_vector<uint>& rigidIdentifierD,
 
 		const NumberOfObjects& numObjects, SimParams paramsH,
-		BceVersion bceType, Real dT);
+		Real dT);
 
 void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real3>& velMasD,
@@ -158,7 +158,7 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 		const thrust::device_vector<uint>& rigidIdentifierD,
 
 		const NumberOfObjects& numObjects, SimParams paramsH,
-		BceVersion bceType, Real dT);
+		Real dT);
 
 void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real3>& velMasD,

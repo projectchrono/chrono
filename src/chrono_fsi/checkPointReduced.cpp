@@ -169,6 +169,7 @@ void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
 	outProbParams << paramsH.enableAggressiveTweak << endl;
 	outProbParams << paramsH.tweakMultV << endl;
 	outProbParams << paramsH.tweakMultRho << endl;
+	outProbParams << paramsH.bceType << endl;
 
 	outProbParams << "#" << endl;
 
@@ -348,6 +349,9 @@ void CheckPointMarkers_Read(bool shouldIRead,
 	inProbParams >> paramsH.enableAggressiveTweak;
 	inProbParams >> paramsH.tweakMultV;
 	inProbParams >> paramsH.tweakMultRho;
+	int bceType;
+	inProbParams >> bceType;
+	paramsH.bceType = static_cast<BceVersion>(bceType);
 
 	inProbParams >> ddCh;
 
