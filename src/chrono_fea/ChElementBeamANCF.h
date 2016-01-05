@@ -499,6 +499,11 @@ class ChElementBeamANCF :   public ChElementBeam,
         ComputeStiffnessMatrix();
     }
 
+    /// Sets M as the global mass matrix.
+    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override {
+        M = MassMatrix;
+    }
+
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) {
