@@ -684,7 +684,7 @@ __global__ void new_BCE_VelocityPressure(
 				*isErrorD = true;
 				return;
 			}
-//			a3 = bceAcc[bceIndex];
+			a3 = bceAcc[bceIndex];
 		}
 		Real pressure = (deltaRP.w + dot(paramsD.gravity - a3, mR3(deltaRP)))
 				/ deltaVDenom.w;  //(in fact:  (paramsD.gravity -

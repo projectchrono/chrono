@@ -154,6 +154,8 @@ __global__ void calcBceAcceleration_kernel(
 	}
 
 	int rigidBodyIndex = rigidIdentifierD[bceIndex];
+	Real3 acc3 = accRigid_fsiBodies_D[rigidBodyIndex]; // linear acceleration (CM)
+
 	Real4 q4 = q_fsiBodies_D[rigidBodyIndex];
 	Real3 a1, a2, a3;
 	RotationMatirixFromQuaternion(a1, a2, a3, q4);
@@ -161,10 +163,15 @@ __global__ void calcBceAcceleration_kernel(
 	Real3 rigidSPH_MeshPos_LRF = rigidSPH_MeshPos_LRF_D[bceIndex];
 	Real3 wVelCrossS = cross(wVel3, rigidSPH_MeshPos_LRF);
 	Real3 wVelCrossWVelCrossS = cross(wVel3, wVelCrossS);
+	acc3 += dot(a1, wVelCrossWVelCrossS), dot(a2, wVelCrossWVelCrossS), dot(a3,
+			wVelCrossWVelCrossS); 						// centrigugal acceleration
+
 	Real3 wAcc3 = omegaAccLRF_fsiBodies_D[rigidBodyIndex];
 	Real3 wAccCrossS = cross(wAcc3, rigidSPH_MeshPos_LRF);
-	Real3 accRigid3 = accRigid_fsiBodies_D[rigidBodyIndex];
-	Real3 acc3 = accRigid3 + wVelCrossWVelCrossS + wAccCrossS;
+	acc3 += dot(a1, wAccCrossS), dot(a2, wAccCrossS), dot(a3,
+			wAccCrossS); 								// tangential acceleration
+
+//	printf("linear acc %f %f %f point acc %f %f %f \n", accRigid3.x, accRigid3.y, accRigid3.z, acc3.x, acc3.y, acc3.z);
 	bceAcc[bceIndex] = acc3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
