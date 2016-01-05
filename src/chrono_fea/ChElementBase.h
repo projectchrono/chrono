@@ -57,6 +57,11 @@ class ChApiFea ChElementBase : public virtual ChShared {
     /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
     virtual void GetStateBlock(ChMatrixDynamic<>& mD) = 0;
 
+    /// Sets M as the mass matrix.
+    /// The matrix is expressed in global reference.
+    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
+    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) = 0;
+
     /// Sets H as the stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and mass matrix M,
     /// scaled by Mfactor. Matrices are expressed in global reference.
@@ -78,7 +83,7 @@ class ChApiFea ChElementBase : public virtual ChShared {
     /// Update: this is called at least at each time step. If the
     /// element has to keep updated some auxiliary data, such as the rotation
     /// matrices for corotational approach, this is the proper place.
-    virtual void Update(){};
+    virtual void Update() {}
 
     //
     // Functions for interfacing to the state bookkeeping
@@ -87,12 +92,12 @@ class ChApiFea ChElementBase : public virtual ChShared {
     /// Adds the internal forces (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
     ///   R += forces * c
-    virtual void EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c){};
+    virtual void EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {}
 
     /// Adds the product of element mass M by a vector w (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
     ///   R += M * v * c
-    virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c){};
+    virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {}
 
     //
     // Functions for interfacing to the LCP solver
@@ -111,13 +116,13 @@ class ChApiFea ChElementBase : public virtual ChShared {
     /// Adds the internal forces, expressed as nodal forces, into the
     /// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
     /// WILL BE DEPRECATED - see EleIntLoadResidual_F
-    virtual void VariablesFbLoadInternalForces(double factor = 1.){};
+    virtual void VariablesFbLoadInternalForces(double factor = 1.) {}
 
     /// Adds M*q (internal masses multiplied current 'qb') to Fb, ex. if qb is initialized
     /// with v_old using VariablesQbLoadSpeed, this method can be used in
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
     /// WILL BE DEPRECATED
-    virtual void VariablesFbIncrementMq(){};
+    virtual void VariablesFbIncrementMq() {}
 };
 
 }  // END_OF_NAMESPACE____

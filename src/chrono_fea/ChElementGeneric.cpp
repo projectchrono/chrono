@@ -43,7 +43,7 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
 	// implementing this EleIntLoadResidual_Mv function, unless you need faster code)
 
 	ChMatrixDynamic<> mMi(this->GetNdofs(), this->GetNdofs());
-	this->ComputeKRMmatricesGlobal(mMi, 0, 0, 1.0); // fill M mass matrix 
+    this->ComputeMmatrixGlobal(mMi);
 	
 	ChMatrixDynamic<> mqi(this->GetNdofs(), 1);
 	int stride = 0;
