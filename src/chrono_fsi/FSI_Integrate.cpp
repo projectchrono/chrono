@@ -159,6 +159,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 
 	IntegrateSPH(derivVelRhoD, posRadD2, velMasD2, rhoPresMuD2, posRadD,
 			velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, referenceArray,
+			q_fsiBodies_D, accRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D, rigidSPH_MeshPos_LRF_D, rigidIdentifierD,
 			numObjects, paramsH, 0.5 * paramsH.dT);
 
 	Rigid_Forces_Torques(rigid_FSI_ForcesD, rigid_FSI_TorquesD, posRadD,
@@ -208,8 +209,9 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 
 	// //assumes ...D2 is a copy of ...D
 	IntegrateSPH(derivVelRhoD, posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2,
-			vel_XSPH_D, rhoPresMuD2, bodyIndexD, referenceArray, numObjects,
-			paramsH, paramsH.dT);
+			vel_XSPH_D, rhoPresMuD2, bodyIndexD, referenceArray,
+			q_fsiBodies_D2, accRigid_fsiBodies_D2, omegaVelLRF_fsiBodies_D2, omegaAccLRF_fsiBodies_D2, rigidSPH_MeshPos_LRF_D, rigidIdentifierD,
+			numObjects, paramsH, paramsH.dT);
 
 	Rigid_Forces_Torques(rigid_FSI_ForcesD, rigid_FSI_TorquesD, posRadD2,
 			posRigid_fsiBodies_D2, derivVelRhoD, rigidIdentifierD, numObjects);

@@ -329,8 +329,12 @@ void RecalcSortedVelocityPressure_BCE(
 		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 		thrust::device_vector<Real3>& sortedPosRad,
-		thrust::device_vector<uint>& cellStart,
-		thrust::device_vector<uint>& cellEnd, uint numAllMarkers);
+		const thrust::device_vector<uint>& cellStart,
+		const thrust::device_vector<uint>& cellEnd,
+		const thrust::device_vector<uint>& gridMarkerIndex,
+		const thrust::device_vector<Real3>& bceAcc,
+		uint numAllMarkers);
+
 /**
  * @brief Wrapper function for collideD
  * @details collide is the wrapper function for collideD. collideD is a kernel function, which

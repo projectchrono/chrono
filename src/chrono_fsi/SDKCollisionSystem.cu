@@ -633,7 +633,10 @@ __global__ void new_BCE_VelocityPressure(
 		Real3* sortedPosRad,                // input: sorted positions
 		Real3* sortedVelMas,                // input: sorted velocities
 		Real4* sortedRhoPreMu, uint* cellStart, uint* cellEnd,
-		uint numAllMarkers) {
+		uint* gridMarkerIndex,
+		Real3* bceAcc,
+		uint numAllMarkers,
+		volatile bool *isErrorD) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index >= numAllMarkers)
 		return;
@@ -671,7 +674,19 @@ __global__ void new_BCE_VelocityPressure(
 		Real3 modifiedBCE_v = 2 * velMasA - mR3(deltaVDenom) / deltaVDenom.w;
 		sortedVelMas_ModifiedBCE[index] = modifiedBCE_v;
 
-		Real pressure = (deltaRP.w + dot(paramsD.gravity, mR3(deltaRP)))
+		// pressure
+		Real3 a3 = mR3(0);
+		if (fabs(rhoPreMuA.w) > 0) {  // rigid BCE
+			uint originalIndex = gridMarkerIndex[index];
+			int bceIndex = originalIndex - numObjectsD.startRigidMarkers; // updatePortion = [start, end] index of the update portion
+			if (bceIndex < 0 || bceIndex >= numObjectsD.numRigid_SphMarkers) {
+				printf("Error! marker index out of bound: thrown from SDKCollisionSystem.cu, new_BCE_VelocityPressure !\n");
+				*isErrorD = true;
+				return;
+			}
+//			a3 = bceAcc[bceIndex];
+		}
+		Real pressure = (deltaRP.w + dot(paramsD.gravity - a3, mR3(deltaRP)))
 				/ deltaVDenom.w;  //(in fact:  (paramsD.gravity -
 		// aW), but aW for moving rigids
 		// is hard to calc. Assume aW is
@@ -1495,8 +1510,19 @@ void RecalcSortedVelocityPressure_BCE(
 		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 		thrust::device_vector<Real3>& sortedPosRad,
-		thrust::device_vector<uint>& cellStart,
-		thrust::device_vector<uint>& cellEnd, uint numAllMarkers) {
+		const thrust::device_vector<uint>& cellStart,
+		const thrust::device_vector<uint>& cellEnd,
+		const thrust::device_vector<uint>& gridMarkerIndex,
+		const thrust::device_vector<Real3>& bceAcc,
+		uint numAllMarkers) {
+
+	bool *isErrorH, *isErrorD;
+	isErrorH = (bool *)malloc(sizeof(bool));
+	cudaMalloc((void**) &isErrorD, sizeof(bool));
+	*isErrorH = false;
+	cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+	//------------------------------------------------------------------------
+
 	// thread per particle
 	uint numThreads, numBlocks;
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
@@ -1509,11 +1535,13 @@ void RecalcSortedVelocityPressure_BCE(
 			mR3CAST(sortedVelMas_ModifiedBCE),
 			mR4CAST(sortedRhoPreMu_ModifiedBCE),  // input: sorted velocities
 			mR3CAST(sortedPosRad), mR3CAST(sortedVelMas),
-			mR4CAST(sortedRhoPreMu), U1CAST(cellStart), U1CAST(cellEnd),
-			numAllMarkers);
+			mR4CAST(sortedRhoPreMu), U1CAST(cellStart), U1CAST(cellEnd), U1CAST(gridMarkerIndex),
+			mR3CAST(bceAcc),
+			numAllMarkers,
+			isErrorD);
+
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
 
 	thrust::copy(sortedVelMas_ModifiedBCE.begin(),
 			sortedVelMas_ModifiedBCE.end(), sortedVelMas.begin());
@@ -1522,7 +1550,16 @@ void RecalcSortedVelocityPressure_BCE(
 
 	sortedVelMas_ModifiedBCE.clear();
 	sortedRhoPreMu_ModifiedBCE.clear();
+
+	//------------------------------------------------------------------------
+	cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
+	if (*isErrorH == true) {
+		throw std::runtime_error ("Error! program crashed in  new_BCE_VelocityPressure!\n");
+	}
+	cudaFree(isErrorD);
+	free(isErrorH);
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void CalcBCE_Stresses(thrust::device_vector<Real3>& devStressD,
 		thrust::device_vector<Real3>& volStressD,

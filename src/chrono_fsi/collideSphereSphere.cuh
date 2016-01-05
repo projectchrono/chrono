@@ -129,20 +129,34 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real3>& vel_XSPH_D,
 		thrust::device_vector<Real4>& rhoPresMuD,
-
 		thrust::device_vector<uint>& bodyIndexD,
 		thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray,
+
+		const thrust::device_vector<Real4>& q_fsiBodies_D,
+		const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<uint>& rigidIdentifierD,
+
 		const NumberOfObjects& numObjects, SimParams paramsH,
 		BceVersion bceType, Real dT);
 
 void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real4>& rhoPresMuD,
-
 		thrust::device_vector<uint>& bodyIndexD,
 		thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray,
+
+		const thrust::device_vector<Real4>& q_fsiBodies_D,
+		const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<uint>& rigidIdentifierD,
+
 		const NumberOfObjects& numObjects, SimParams paramsH,
 		BceVersion bceType, Real dT);
 
@@ -151,7 +165,8 @@ void DensityReinitialization(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real4>& rhoPresMuD, int numAllMarkers, int3 SIDE);
 
 void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
-		thrust::device_vector<Real3>& posRadD2, thrust::device_vector<Real3>& velMasD2,
+		thrust::device_vector<Real3>& posRadD2,
+		thrust::device_vector<Real3>& velMasD2,
 		thrust::device_vector<Real4>& rhoPresMuD2,
 
 		thrust::device_vector<Real3>& posRadD,
@@ -161,6 +176,14 @@ void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
 
 		thrust::device_vector<uint>& bodyIndexD,
 		const thrust::host_vector<int4>& referenceArray,
+
+		const thrust::device_vector<Real4>& q_fsiBodies_D,
+		const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<uint>& rigidIdentifierD,
+
 		const NumberOfObjects& numObjects, SimParams currentParamsH, Real dT);
 
 void cudaCollisions(thrust::host_vector<Real3>& mPosRad,

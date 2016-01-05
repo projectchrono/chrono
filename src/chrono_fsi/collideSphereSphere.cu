@@ -138,10 +138,62 @@ void MapSPH_ToGrid(Real resolution, int3& cartesianGridDims,
 	rho_Pres_CartD.clear();
 	vel_VelMag_CartD.clear();
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void calcBceAcceleration_kernel(
+		Real3* bceAcc,
+		Real4* q_fsiBodies_D,
+		Real3* accRigid_fsiBodies_D,
+		Real3* omegaVelLRF_fsiBodies_D,
+		Real3* omegaAccLRF_fsiBodies_D,
+		Real3* rigidSPH_MeshPos_LRF_D,
+		const uint* rigidIdentifierD) {
+	uint bceIndex = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	if (bceIndex >= numObjectsD.numRigid_SphMarkers) {
+		return;
+	}
+
+	// calculate marker acceleration, required in ADAMI
+	int rigidBodyIndex = rigidIdentifierD[bceIndex];
+	Real4 q4 = q_fsiBodies_D[rigidBodyIndex];
+	Real3 a1, a2, a3;
+	RotationMatirixFromQuaternion(a1, a2, a3, q4);
+	Real3 wVel3 = omegaVelLRF_fsiBodies_D[rigidBodyIndex];
+	Real3 rigidSPH_MeshPos_LRF = rigidSPH_MeshPos_LRF_D[bceIndex];
+	Real3 wVelCrossS = cross(wVel3, rigidSPH_MeshPos_LRF);
+	Real3 wVelCrossWVelCrossS = cross(wVel3, wVelCrossS);
+	Real3 wAcc3 = omegaAccLRF_fsiBodies_D[rigidBodyIndex];
+	Real3 wAccCrossS = cross(wAcc3, rigidSPH_MeshPos_LRF);
+	Real3 accRigid3 = accRigid_fsiBodies_D[rigidBodyIndex];
+	Real3 acc3 = accRigid3 + wVelCrossWVelCrossS + wAccCrossS;
+	bceAcc[bceIndex] = acc3;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void CalcBceAcceleration(
+		thrust::device_vector<Real3>& bceAcc,
+		const thrust::device_vector<Real4>& q_fsiBodies_D,
+		const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<uint>& rigidIdentifierD,
+		int numRigid_SphMarkers) {
+
+	// thread per particle
+	uint numThreads, numBlocks;
+	computeGridSize(numRigid_SphMarkers, 64, numBlocks, numThreads);
+
+	calcBceAcceleration_kernel<<<numBlocks, numThreads>>>(mR3CAST(bceAcc),
+			mR4CAST(q_fsiBodies_D), mR3CAST(accRigid_fsiBodies_D), mR3CAST(omegaVelLRF_fsiBodies_D), mR3CAST(omegaAccLRF_fsiBodies_D),
+			mR3CAST(rigidSPH_MeshPos_LRF_D), U1CAST(rigidIdentifierD));
+
+	cudaThreadSynchronize();
+	cudaCheckError();
+}
 /**
  * @brief Calculates the force on each particles. See collideSphereSphere.cuh for more info.
  * @details See collideSphereSphere.cuh for more info
  */
+
 void ForceSPH(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real3>& velMasD,
 		thrust::device_vector<Real3>& vel_XSPH_D,
@@ -149,6 +201,14 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<uint>& bodyIndexD,
 		thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray,
+
+		const thrust::device_vector<Real4>& q_fsiBodies_D,
+		const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<uint>& rigidIdentifierD,
+
 		const NumberOfObjects& numObjects, SimParams paramsH,
 		BceVersion bceType, Real dT) {
 	// Part1: contact detection
@@ -204,8 +264,15 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 
 	// modify BCE velocity and pressure
 	if (bceType == ADAMI) {
+		thrust::device_vector<Real3> bceAcc(numObjects.numRigid_SphMarkers);
+		if (numObjects.numRigid_SphMarkers > 0) {
+			CalcBceAcceleration(bceAcc, q_fsiBodies_D, accRigid_fsiBodies_D,omegaVelLRF_fsiBodies_D,
+					omegaAccLRF_fsiBodies_D, rigidSPH_MeshPos_LRF_D, rigidIdentifierD, numObjects.numRigid_SphMarkers);
+		}
 		RecalcSortedVelocityPressure_BCE(m_dSortedVelMas, m_dSortedRhoPreMu,
-				m_dSortedPosRad, m_dCellStart, m_dCellEnd, numAllMarkers);
+				m_dSortedPosRad, m_dCellStart, m_dCellEnd, m_dGridMarkerIndex, bceAcc, numAllMarkers);
+
+		bceAcc.clear();
 	}
 
 	/* Calculate vel_XSPH */
@@ -469,8 +536,7 @@ void Rigid_Forces_Torques(thrust::device_vector<Real3>& rigid_FSI_ForcesD,
 			mR3CAST(torqueMarkersD), mR4CAST(derivVelRhoD), mR3CAST(posRadD),
 			U1CAST(rigidIdentifierD), mR3CAST(posRigidD));
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
 
 	(void) thrust::reduce_by_key(rigidIdentifierD.begin(),
 			rigidIdentifierD.end(), torqueMarkersD.begin(),
@@ -509,7 +575,6 @@ void UpdateRigidMarkersPositionVelocity(thrust::device_vector<Real3>& posRadD,
 	cudaThreadSynchronize();
 	cudaCheckError();
 }
-
 //--------------------------------------------------------------------------------------------------------------------------------
 void UpdateRigidMarkersPositionVelocity(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<Real3>& velMasD,
@@ -537,6 +602,14 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 		thrust::device_vector<uint>& bodyIndexD,
 		thrust::device_vector<Real4>& derivVelRhoD,
 		const thrust::host_vector<int4>& referenceArray,
+
+		const thrust::device_vector<Real4>& q_fsiBodies_D,
+		const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<uint>& rigidIdentifierD,
+
 		const NumberOfObjects& numObjects, SimParams paramsH,
 		BceVersion bceType, Real dT) {
 	// Part1: contact detection
@@ -584,8 +657,15 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 
 	// modify BCE velocity and pressure
 	if (bceType == ADAMI) {
+		thrust::device_vector<Real3> bceAcc(numObjects.numRigid_SphMarkers);
+		if (numObjects.numRigid_SphMarkers > 0) {
+			CalcBceAcceleration(bceAcc, q_fsiBodies_D, accRigid_fsiBodies_D,omegaVelLRF_fsiBodies_D,
+					omegaAccLRF_fsiBodies_D, rigidSPH_MeshPos_LRF_D, rigidIdentifierD, numObjects.numRigid_SphMarkers);
+		}
 		RecalcSortedVelocityPressure_BCE(m_dSortedVelMas, m_dSortedRhoPreMu,
-				m_dSortedPosRad, m_dCellStart, m_dCellEnd, numAllMarkers);
+				m_dSortedPosRad, m_dCellStart, m_dCellEnd, m_dGridMarkerIndex, bceAcc, numAllMarkers);
+
+		bceAcc.clear();
 	}
 
 	// process collisions
@@ -766,6 +846,7 @@ void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size) {
  * @brief See collideSphereSphere.cuh for more documentation.
  */
 
+
 void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
 		thrust::device_vector<Real3>& posRadD2,
 		thrust::device_vector<Real3>& velMasD2,
@@ -778,9 +859,18 @@ void IntegrateSPH(thrust::device_vector<Real4>& derivVelRhoD,
 
 		thrust::device_vector<uint>& bodyIndexD,
 		const thrust::host_vector<int4>& referenceArray,
+
+		const thrust::device_vector<Real4>& q_fsiBodies_D,
+		const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<uint>& rigidIdentifierD,
+
 		const NumberOfObjects& numObjects, SimParams currentParamsH, Real dT) {
-	ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD,
-			referenceArray, numObjects, currentParamsH, ADAMI, dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be
+	ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray,
+			q_fsiBodies_D, accRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D, rigidSPH_MeshPos_LRF_D, rigidIdentifierD,
+			numObjects, currentParamsH, ADAMI, dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be
 	// applied at rigid body solver
 	UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD,
 			referenceArray, dT);  // assumes ...D2 is a copy of ...D
