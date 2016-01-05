@@ -37,15 +37,15 @@
 //  ////
 // ====================================================================================
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
-#include "chrono/physics/ChBody.h"
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChMesh.h"
 
 using namespace chrono;
 using namespace fea;
@@ -152,178 +152,76 @@ void AddMesh(ChSystem& my_system) {
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
-    int MaxMNUM = 0;
-    int MTYPE = 0;
-    int MaxLayNum = 0;
-    ChMatrixDynamic<double> COORDFlex(TotalNumNodes, 6);
-    ChMatrixDynamic<double> VELCYFlex(TotalNumNodes, 6);
-    ChMatrixDynamic<int> NumNodes(TotalNumElements, 4);
-    ChMatrixDynamic<int> LayNum(TotalNumElements, 1);  // Only one layer in this unit test
-    ChMatrixDynamic<int> NDR(TotalNumNodes, 6);
-    ChMatrixDynamic<double> ElemLengthXY(TotalNumElements, 2);
-    ChMatrixNM<double, 10, 12> MPROP;
-    ChMatrixNM<int, 10, 7> MNUM;
-    ChMatrixNM<int, 10, 1> NumLayer;
-    double LayPROP[10][7][2];
 
-    //!------------------------------------------------!
-    //!--------------- Element data--------------------!
-    //!------------------------------------------------!
-    for (int i = 0; i < TotalNumElements; i++) {
-        // All the elements belong to the same layer, e.g layer number 1.
-        LayNum(i, 0) = 1;
-
-        NumNodes(i, 0) = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
-        NumNodes(i, 1) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-        NumNodes(i, 2) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
-        NumNodes(i, 3) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
-
-        ElemLengthXY(i, 0) = dx;
-        ElemLengthXY(i, 1) = dy;
-        if (MaxLayNum < LayNum(i, 0)) {
-            MaxLayNum = LayNum(i, 0);
-        }
-    }
-
+    // Create and add the nodes
     for (int i = 0; i < TotalNumNodes; i++) {
-        // Boundary conditions
-        NDR(i, 0) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
-        NDR(i, 1) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
-        NDR(i, 2) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
-        NDR(i, 3) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
-        NDR(i, 4) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
-        NDR(i, 5) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
+        // Node location
+        double loc_x = (i % (numDiv_x + 1)) * dx + 0.5;
+        double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
+        double loc_z = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz;
 
-        // Coordinates
-        COORDFlex(i, 0) = (i % (numDiv_x + 1)) * dx + 0.5;
-        COORDFlex(i, 1) = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
-        COORDFlex(i, 2) = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz;
-        COORDFlex(i, 3) = 0;
-        COORDFlex(i, 4) = 0;
-        COORDFlex(i, 5) = 1;
-        // Initial Velocities
-        VELCYFlex(i, 0) = 0;
-        VELCYFlex(i, 1) = 0;
-        VELCYFlex(i, 2) = 0;
-        VELCYFlex(i, 3) = 0;
-        VELCYFlex(i, 4) = 0;
-        VELCYFlex(i, 5) = 0;
-    }
+        // Node direction
+        double dir_x = 0;
+        double dir_y = 0;
+        double dir_z = 1;
 
-    // Read data for each layer
-    for (int i = 0; i < MaxLayNum; i++) {
-        NumLayer(i, 0) = i + 1;
-
-        for (int j = 0; j < NumLayer(i, 0); j++) {
-            LayPROP[i][j][0] = dz;  // Layerheight
-            LayPROP[i][j][1] = 0;   // PlyAngle
-            MNUM[i][j] = 1;         // Material_ID
-            if (MaxMNUM < MNUM(i, j))
-                MaxMNUM = MNUM(i, j);
-        }
-    }
-
-    // Material Properties
-    for (int i = 0; i < MaxMNUM; i++) {
-        double nu_coef = 0.3;
-        MTYPE = 2;  // The user must use orthotropic input (MTYPE=2) to introduce isotropic material
-        // properties for this unit test
-
-        if (MTYPE == 2) {
-            MPROP(i, 0) = 500;      // Density [kg/m3]
-            MPROP(i, 1) = 2.1E+10;  // Ex//
-            MPROP(i, 2) = 2.1E+10;  // Ey
-            MPROP(i, 3) = 2.1E+10;  // Ez
-            // Additional information for the Type 2 of Material.
-            MPROP(i, 4) = 0.3;                                    // nuxy
-            MPROP(i, 5) = 0.3;                                    // nuxz
-            MPROP(i, 6) = 0.3;                                    // nuyz
-            MPROP(i, 7) = MPROP(i, 1) / 2.0 / (1 + MPROP(i, 6));  // Gxy
-            MPROP(i, 8) = MPROP(i, 1) / 2.0 / (1 + MPROP(i, 6));  // Gxz
-            MPROP(i, 9) = MPROP(i, 1) / 2.0 / (1 + MPROP(i, 6));  // Gyz
-        }
-    }
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
-    // Adding the nodes to the mesh
-    int i = 0;
-
-    while (i < TotalNumNodes) {
+        // Create the node
         ChSharedPtr<ChNodeFEAxyzD> node(
-            new ChNodeFEAxyzD(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)),
-                              ChVector<>(COORDFlex(i, 3), COORDFlex(i, 4), COORDFlex(i, 5))));
-        node->SetMass(0.0);
+            new ChNodeFEAxyzD(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z)));
+
+        node->SetMass(0);
+
+        // Fix all nodes along the axis X=0
+        if (i % (numDiv_x + 1) == 0)
+            node->SetFixed(true);
+
+        // Add node to mesh
         my_mesh->AddNode(node);
-        if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1 && NDR(i, 3) == 1 && NDR(i, 4) == 1 && NDR(i, 5) == 1) {
-            // node->SetFixed(true);
-        }
-        i++;
     }
 
+    // Get handles to a few nodes.
     NodeFirst = ChSharedPtr<ChNodeFEAxyzD>(my_mesh->GetNode(0).DynamicCastTo<ChNodeFEAxyzD>());
     Node2 = ChSharedPtr<ChNodeFEAxyzD>(my_mesh->GetNode(1).DynamicCastTo<ChNodeFEAxyzD>());
     Node3 = ChSharedPtr<ChNodeFEAxyzD>(my_mesh->GetNode(2).DynamicCastTo<ChNodeFEAxyzD>());
     Node4 = ChSharedPtr<ChNodeFEAxyzD>(my_mesh->GetNode(3).DynamicCastTo<ChNodeFEAxyzD>());
 
-    int elemcount = 0;
-    while (elemcount < TotalNumElements) {
+    // Create an isotropic material.
+    // All layers for all elements share the same material.
+    ChSharedPtr<ChMaterialShellANCF> mat(new ChMaterialShellANCF(500, 2.1e10, 0.3));
+
+    // Create the elements
+    for (int i = 0; i < TotalNumElements; i++) {
+        // Adjacent nodes
+        int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
+        int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
+        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
+        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+
+        // Create the element and set its nodes.
         ChSharedPtr<ChElementShellANCF> element(new ChElementShellANCF);
-        // Save material data into InertFlexVec(98x1) at each layer
-        ChMatrixNM<double, 98, 1> InertFlexVec;
-        InertFlexVec.Reset();
-        double TotalThickness;  // element thickness
-        TotalThickness = 0.0;
-        int i = elemcount;
-        for (int j = 0; j < NumLayer(LayNum(i, 0) - 1, 0); j++) {
-            int ij = 14 * j;
-            InertFlexVec(ij) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][0];  // Density
-            InertFlexVec(ij + 1) = ElemLengthXY(i, 0);                   // EL
-            InertFlexVec(ij + 2) = ElemLengthXY(i, 1);                   // EW
-            InertFlexVec(ij + 3) = LayPROP[LayNum(i, 0) - 1][j][0];      // Thickness per layer
-            TotalThickness += InertFlexVec(ij + 3);
-            InertFlexVec(ij + 4) = LayPROP[LayNum(i, 0) - 1][j][1];           // Fiber angle
-            InertFlexVec(ij + 5) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][1];   // Ex
-            InertFlexVec(ij + 6) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][2];   // Ey
-            InertFlexVec(ij + 7) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][3];   // Ez
-            InertFlexVec(ij + 8) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][4];   // nuxy
-            InertFlexVec(ij + 9) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][5];   // nuxz
-            InertFlexVec(ij + 10) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][6];  // nuyz
-            InertFlexVec(ij + 11) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][7];  // Gxy
-            InertFlexVec(ij + 12) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][8];  // Gxz
-            InertFlexVec(ij + 13) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][9];  // Gyz
-        }
-        ChMatrixNM<double, 7, 2> GaussZRange;
-        GaussZRange.Reset();
-        double CurrentHeight = 0.0;
-        for (int j = 0; j < NumLayer(LayNum(i, 0) - 1, 0); j++) {
-            double AA = (CurrentHeight / TotalThickness - 0.5) * 2.0;
-            CurrentHeight += LayPROP[LayNum(i, 0) - 1][j][0];
-            double AAA = (CurrentHeight / TotalThickness - 0.5) * 2.0;
-            GaussZRange(j, 0) = AA;
-            GaussZRange(j, 1) = AAA;
-        }
-        element->SetInertFlexVec(InertFlexVec);
-        element->SetGaussZRange(GaussZRange);
-        element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(NumNodes[elemcount][1]).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(NumNodes[elemcount][2]).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(NumNodes[elemcount][3]).DynamicCastTo<ChNodeFEAxyzD>());
-        element->SetMaterial(mmaterial);
-        element->SetNumLayers(NumLayer(LayNum(i, 0) - 1, 0));
-        element->SetThickness(TotalThickness);
-        element->SetElemNum(elemcount);
-        element->SetAlphaDamp(0.08);
-        element->Setdt(time_step);                 // dt to calculate DampingCoefficient
-        element->SetGravityOn(false);              // turn gravity on/off
-        ChMatrixNM<double, 35, 1> StockAlpha_EAS;  // StockAlpha(5*7,1): Max #Layer is 7
-        StockAlpha_EAS.Reset();
-        element->SetStockAlpha(StockAlpha_EAS);
+        element->SetNodes(my_mesh->GetNode(node0).DynamicCastTo<ChNodeFEAxyzD>(),
+                          my_mesh->GetNode(node1).DynamicCastTo<ChNodeFEAxyzD>(),
+                          my_mesh->GetNode(node2).DynamicCastTo<ChNodeFEAxyzD>(),
+                          my_mesh->GetNode(node3).DynamicCastTo<ChNodeFEAxyzD>());
+
+        // Set element dimensions
+        element->SetDimensions(dx, dy);
+
+        // Add a single layers with a fiber angle of 0 degrees.
+        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+
+        // Set other element properties
+        element->SetAlphaDamp(0.08);   // Structural damping for this element
+        element->SetGravityOn(false);  // no gravitational forces
+
+        // Add element to mesh
         my_mesh->AddElement(element);
-        elemcount++;
     }
 
     // Switch off mesh class gravity
     my_mesh->SetAutomaticGravity(false);
-    // Remember to add the mesh to the system!
+
+    // Add the mesh to the system
     my_system.Add(my_mesh);
 }
 
@@ -443,7 +341,6 @@ int main(int argc, char* argv[]) {
     ChMatrixNM<double, 3, 1> Cp;
     ChMatrixNM<double, 2, 1> Cd;  // Matrices for storing constraint violations
     double dot;
-    double ConstPos;
     ChVector<> tip;  // Position of body 3 tip (constrained to ANCF mesh)
     ChMatrix<>* C12 = new ChMatrix<>;
     ChMatrix<>* C23 = new ChMatrix<>;
@@ -451,57 +348,56 @@ int main(int argc, char* argv[]) {
     for (int it = 0; it < num_steps; it++) {
         my_system.DoStepDynamics(time_step);
         std::cout << "\nTime t = " << my_system.GetChTime() << "s \n";
-        //if (print_data) {
-            if (include_bodies) {
-                printf("Body_2 position: %12.4e  %12.4e  %12.4e\n", Body_2->coord.pos.x, Body_2->coord.pos.y,
-                       Body_2->coord.pos.z);
-                printf("Body_3 position: %12.4e  %12.4e  %12.4e\n", Body_3->coord.pos.x, Body_3->coord.pos.y,
-                       Body_3->coord.pos.z);
-                tip = Body_3->TransformPointLocalToParent(ChVector<>(0.25, 0, 0));
-                printf("Body_3 tip:      %12.4e  %12.4e  %12.4e\n", tip.x, tip.y, tip.z);
-            }
+        // if (print_data) {
+        if (include_bodies) {
+            printf("Body_2 position: %12.4e  %12.4e  %12.4e\n", Body_2->coord.pos.x, Body_2->coord.pos.y,
+                   Body_2->coord.pos.z);
+            printf("Body_3 position: %12.4e  %12.4e  %12.4e\n", Body_3->coord.pos.x, Body_3->coord.pos.y,
+                   Body_3->coord.pos.z);
+            tip = Body_3->TransformPointLocalToParent(ChVector<>(0.25, 0, 0));
+            printf("Body_3 tip:      %12.4e  %12.4e  %12.4e\n", tip.x, tip.y, tip.z);
+        }
 
-            if (include_mesh) {
-                // std::cout << "nodetip->pos.z = " << Node4->pos.z << "\n";
-                printf("Node position:   %12.4e  %12.4e  %12.4e\n", NodeFirst->pos.x, NodeFirst->pos.y,
-                       NodeFirst->pos.z);
-                printf("Direction of node:  %12.4e  %12.4e  %12.4e\n", NodeFirst->D.x, NodeFirst->D.y, NodeFirst->D.z);
-            }
+        if (include_mesh) {
+            // std::cout << "nodetip->pos.z = " << Node4->pos.z << "\n";
+            printf("Node position:   %12.4e  %12.4e  %12.4e\n", NodeFirst->pos.x, NodeFirst->pos.y, NodeFirst->pos.z);
+            printf("Direction of node:  %12.4e  %12.4e  %12.4e\n", NodeFirst->D.x, NodeFirst->D.y, NodeFirst->D.z);
+        }
 
-            if (include_constraints) {
-                // Get direction of constraint (in body local frame) and convert to global frame
-                ChVector<> dirB = Body_3->TransformDirectionLocalToParent(constraintDir->GetDirection());
-                printf("Direction on body:  %12.4e  %12.4e  %12.4e\n", dirB.x, dirB.y, dirB.z);
-                // Direction along the body
-                ChVector<> body_axis = Body_3->TransformDirectionLocalToParent(ChVector<>(0.25, 0, 0));
-                printf("Body axis dir:      %12.4e  %12.4e  %12.4e\n", body_axis.x, body_axis.y, body_axis.z);
-                // Body axis should always be perpendicular to node normal
-                dot = Vdot(body_axis, NodeFirst->D);
-                printf("Dot product = %e\n", dot);
+        if (include_constraints) {
+            // Get direction of constraint (in body local frame) and convert to global frame
+            ChVector<> dirB = Body_3->TransformDirectionLocalToParent(constraintDir->GetDirection());
+            printf("Direction on body:  %12.4e  %12.4e  %12.4e\n", dirB.x, dirB.y, dirB.z);
+            // Direction along the body
+            ChVector<> body_axis = Body_3->TransformDirectionLocalToParent(ChVector<>(0.25, 0, 0));
+            printf("Body axis dir:      %12.4e  %12.4e  %12.4e\n", body_axis.x, body_axis.y, body_axis.z);
+            // Body axis should always be perpendicular to node normal
+            dot = Vdot(body_axis, NodeFirst->D);
+            printf("Dot product = %e\n", dot);
 
-                Cp = constraint_hinge->GetC();
-                printf("Point constraint violations:      %12.4e  %12.4e  %12.4e\n", Cp.GetElement(0, 0),
-                       Cp.GetElement(1, 0), Cp.GetElement(2, 0));
-                Cd = constraintDir->GetC();
-                printf("Direction constraint violations:  %12.4e  %12.4e\n", Cd.GetElement(0, 0), Cd.GetElement(1, 0));
-            }
+            Cp = constraint_hinge->GetC();
+            printf("Point constraint violations:      %12.4e  %12.4e  %12.4e\n", Cp.GetElement(0, 0),
+                   Cp.GetElement(1, 0), Cp.GetElement(2, 0));
+            Cd = constraintDir->GetC();
+            printf("Direction constraint violations:  %12.4e  %12.4e\n", Cd.GetElement(0, 0), Cd.GetElement(1, 0));
+        }
 
-            if (include_joints) {
-                C12 = my_link_12->GetC();
-                printf("Weld joint constraints: %12.4e  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n",
-                       C12->GetElement(0, 0), C12->GetElement(1, 0), C12->GetElement(2, 0), C12->GetElement(3, 0),
-                       C12->GetElement(4, 0), C12->GetElement(5, 0));
+        if (include_joints) {
+            C12 = my_link_12->GetC();
+            printf("Weld joint constraints: %12.4e  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", C12->GetElement(0, 0),
+                   C12->GetElement(1, 0), C12->GetElement(2, 0), C12->GetElement(3, 0), C12->GetElement(4, 0),
+                   C12->GetElement(5, 0));
 
-                C23 = my_link_23->GetC();
-                printf("Rev joint constraints:  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", C23->GetElement(0, 0),
-                       C23->GetElement(1, 0), C23->GetElement(2, 0), C23->GetElement(3, 0), C23->GetElement(4, 0));
-            }
+            C23 = my_link_23->GetC();
+            printf("Rev joint constraints:  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", C23->GetElement(0, 0),
+                   C23->GetElement(1, 0), C23->GetElement(2, 0), C23->GetElement(3, 0), C23->GetElement(4, 0));
+        }
         // }
 
         StoreData(my_system, csv, it, m_data, dot, tip, NodeFirst->pos, C12, C23);
         for (unsigned int iterind = 1; iterind < 16; iterind++) {
-			if (abs(m_data[iterind][it]) > precision) {
-				std::cout << "Unit test check failed \n";
+            if (abs(m_data[iterind][it]) > precision) {
+                std::cout << "Unit test check failed \n";
                 return 1;
             }
         }
