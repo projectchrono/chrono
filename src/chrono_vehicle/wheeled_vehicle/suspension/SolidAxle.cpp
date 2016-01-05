@@ -136,8 +136,21 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
 
-    m_points[TIEROD_C] = loadVector(d["Tierod"]["Location Chassis"]);
     m_points[TIEROD_K] = loadVector(d["Tierod"]["Location Knuckle"]);
+
+    // Read Draglink data
+    assert(d.HasMember("Draglink"));
+    assert(d["Draglink"].IsObject());
+
+    m_points[DRAGLINK_C] = loadVector(d["Draglink"]["Location Chassis"]);
+    m_points[BELLCRANK_DRAGLINK] = loadVector(d["Draglink"]["Location Bell Crank"]);
+
+    // Read Bell Crank data
+    assert(d.HasMember("Bell Crank"));
+    assert(d["Bell Crank"].IsObject());
+
+    m_points[BELLCRANK_TIEROD] = loadVector(d["Bell Crank"]["Location Tierod"]);
+    m_points[BELLCRANK_AXLE] = loadVector(d["Bell Crank"]["Location Axle"]);
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));

@@ -104,22 +104,25 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        SHOCK_A,     ///< shock, axle
-        SHOCK_C,     ///< shock, chassis
-        KNUCKLE_L,   ///< lower knuckle point
-        KNUCKLE_U,   ///< upper knuckle point
-        LL_A,        ///< lower link, axle
-        LL_C,        ///< lower link, chassis
-        UL_A,        ///< upper link, axle
-        UL_C,        ///< upper link, chassis
-        SPRING_A,    ///< spring, axle
-        SPRING_C,    ///< spring, chassis
-        TIEROD_C,    ///< tierod, chassis
-        TIEROD_K,    ///< tierod, knuckle
-        SPINDLE,     ///< spindle location
-        KNUCKLE_CM,  ///< knuckle, center of mass
-        LL_CM,       ///< lower link, center of mass
-        UL_CM,       ///< upper link, center of mass
+        SHOCK_A,            ///< shock, axle
+        SHOCK_C,            ///< shock, chassis
+        KNUCKLE_L,          ///< lower knuckle point
+        KNUCKLE_U,          ///< upper knuckle point
+        LL_A,               ///< lower link, axle
+        LL_C,               ///< lower link, chassis
+        UL_A,               ///< upper link, axle
+        UL_C,               ///< upper link, chassis
+        SPRING_A,           ///< spring, axle
+        SPRING_C,           ///< spring, chassis
+        TIEROD_K,           ///< tierod, knuckle
+        SPINDLE,            ///< spindle location
+        KNUCKLE_CM,         ///< knuckle, center of mass
+        LL_CM,              ///< lower link, center of mass
+        UL_CM,              ///< upper link, center of mass
+        BELLCRANK_TIEROD,   ///< bell crank to tierod
+        BELLCRANK_AXLE,     ///< bell crank to axle
+        BELLCRANK_DRAGLINK, ///< bell crank to draglink'
+        DRAGLINK_C,         ///< draglink, chassis
         NUM_POINTS
     };
 
@@ -177,14 +180,22 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
 
     ChSharedPtr<ChBody> m_axleTube;      ///< handles to the axle tube body
     ChSharedPtr<ChBody> m_tierod;        ///< handles to the tierod body
+    ChSharedPtr<ChBody> m_bellCrank;     ///< handles to the bellcrank body
+    ChSharedPtr<ChBody> m_draglink;      ///< handles to the draglink body
     ChSharedPtr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (left/right)
     ChSharedPtr<ChBody> m_upperLink[2];  ///< handles to the upper link bodies (left/right)
     ChSharedPtr<ChBody> m_lowerLink[2];  ///< handles to the lower link bodies (left/right)
 
     ChSharedPtr<ChLinkLockRevolute>
         m_revoluteKingpin[2];     ///< handles to the knuckle-axle tube revolute joints (left/right)
+    ChSharedPtr<ChLinkLockRevolute>
+        m_revoluteBellCrank;      ///< handles to the bellCrank-axle revolute joint (left)
     ChSharedPtr<ChLinkLockSpherical>
         m_sphericalTierod;        ///< handles to the knuckle-tierod spherical joint (left)
+    ChSharedPtr<ChLinkLockSpherical>
+        m_sphericalDraglink;      ///< handles to the draglink-chassis spherical joint (left)
+    ChSharedPtr<ChLinkUniversal>
+        m_universalDraglink;      ///< handles to the draglink-bellCrank universal joint (left)
     ChSharedPtr<ChLinkUniversal>
         m_universalTierod;        ///< handles to the knuckle-tierod universal joint (right)
     ChSharedPtr<ChLinkLockSpherical>
@@ -194,8 +205,9 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     ChSharedPtr<ChLinkUniversal>
         m_universalUpperLink[2];  ///< handles to the upper link-chassis universal joints (left/right)
     ChSharedPtr<ChLinkUniversal>
-        m_universalLowerLink[2];                  ///< handles to the lower link-chassis universal joints (left/right)
-    ChSharedPtr<ChLinkDistance> m_distTierod;  ///< handles to the tierod distance constraint (left)
+        m_universalLowerLink[2];  ///< handles to the lower link-chassis universal joints (left/right)
+    ChSharedPtr<ChLinkLockPointPlane>
+        m_pointPlaneBellCrank;    ///< handles to the bellCrank-tierod point-plane joint (left)
 
     ChSharedPtr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
     ChSharedPtr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
@@ -211,6 +223,12 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
                                      const ChVector<> pt_2,
                                      double radius,
                                      const ChColor& color);
+    static void AddVisualizationBellCrank(ChSharedPtr<ChBody> body,
+                                    const ChVector<> pt_D,
+                                    const ChVector<> pt_A,
+                                    const ChVector<> pt_T,
+                                    double radius,
+                                    const ChColor& color);
     static void AddVisualizationKnuckle(ChSharedPtr<ChBody> knuckle,
                                         const ChVector<> pt_U,
                                         const ChVector<> pt_L,
