@@ -239,6 +239,9 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
 
+    // Set M as the global mass matrix.
+    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override;
+
     /// Computes the internal forces.
     /// (E.g. the actual position of nodes is not in relaxed reference position) and set values
     /// in the Fi vector.

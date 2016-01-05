@@ -135,14 +135,6 @@ void ChElementShellANCF::GetStateBlock(ChMatrixDynamic<>& mD) {
 void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.GetRows() == 24) && (H.GetColumns() == 24));
 
-    //// HACK
-    //// Until we do something about the very inefficient implementation of 
-    //// ChElementGeneric::EleIntLoadResidual_Mv...
-    if ((Kfactor == 0) && (Rfactor == 0)) {
-        H = m_MassMatrix;
-        return;
-    }
-
     // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
     ComputeInternalJacobians(Kfactor, Rfactor);
 
@@ -150,6 +142,11 @@ void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
     for (int i = 0; i < 24; i++)
         for (int j = 0; j < 24; j++)
             H(i, j) = m_JacobianMatrix(i, j) + Mfactor * m_MassMatrix(i, j);
+}
+
+// Return the mass matrix.
+void ChElementShellANCF::ComputeMmatrixGlobal(ChMatrix<>& M) {
+    M = m_MassMatrix;
 }
 
 // -----------------------------------------------------------------------------
