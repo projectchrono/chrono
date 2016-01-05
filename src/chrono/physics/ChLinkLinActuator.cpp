@@ -50,6 +50,7 @@ void ChLinkLinActuator::Copy(ChLinkLinActuator* source) {
 
     // copy custom data:
     learn = source->learn;
+    learn_torque_rotation = source->learn_torque_rotation;
     offset = source->offset;
 
     dist_funct = ChSharedPtr<ChFunction>(source->dist_funct->new_Duplicate());
@@ -209,6 +210,7 @@ void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
     marchive << CHNVP(learn);
+    marchive << CHNVP(learn_torque_rotation);
     marchive << CHNVP(offset);
     marchive << CHNVP(dist_funct);
     marchive << CHNVP(mot_tau);
@@ -229,6 +231,7 @@ void ChLinkLinActuator::ArchiveIN(ChArchiveIn& marchive)
 
     // deserialize all member data:
     marchive >> CHNVP(learn);
+    marchive >> CHNVP(learn_torque_rotation);
     marchive >> CHNVP(offset);
     marchive >> CHNVP(dist_funct);
     marchive >> CHNVP(mot_tau);
