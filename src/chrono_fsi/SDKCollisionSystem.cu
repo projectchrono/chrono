@@ -258,12 +258,11 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
-	Real3 derivV = mR3(0.0f);
-	Real derivRho = 0.0f;
+	Real4 derivVelRho = mR4(0);
 
 	uint startIndex = FETCH(cellStart, gridHash);
 	if (startIndex == 0xffffffff) { // cell is not empty
-		return mR4(derivV, derivRho);
+		return derivVelRho;
 	}
 	// iterate over particles in this cell
 	uint endIndex = FETCH(cellEnd, gridHash);
@@ -287,22 +286,21 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 			if (rhoPresMuA.w > -.1 && rhoPresMuB.w > -.1) { // no rigid-rigid force
 				continue;
 			}
-			Real3 velMasB = FETCH(sortedVelMas, j);
 			modifyPressure(rhoPresMuB, dist3Alpha);
+			Real3 velMasB = FETCH(sortedVelMas, j);
 			Real multViscosit = 1;
-			Real4 derivVelRho = mR4(0.0f);
+			Real4 derivVelRhoAB = mR4(0.0f);
 			Real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
-			derivVelRho = DifVelocityRho(dist3, d, posRadA, posRadB, velMasA, vel_XSPH_A,
+			derivVelRhoAB = DifVelocityRho(dist3, d, posRadA, posRadB, velMasA, vel_XSPH_A,
 					velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB,
 					multViscosit);
-			derivV += mR3(derivVelRho);
-			derivRho += derivVelRho.w;
+			derivVelRho += derivVelRhoAB;
 		}
 	}
 
 	// ff1
 	//	if (rhoPresMuA.w > 0) printf("force value %f %f %f\n", 1e20*derivV.x, 1e20*derivV.y, 1e20*derivV.z);
-	return mR4(derivV, derivRho);
+	return derivVelRho;
 } //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
 __device__ __inline__ void stressCell(Real3& devS3, Real3& volS3, int3 gridPos,
