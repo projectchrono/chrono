@@ -396,6 +396,15 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<chrono::ChSharedP
         }
     }
 
+    // if a visualization setting (color) has been set, force the color attribute of all assets in same level
+    if (!mcolor.IsNull()) {
+        for (unsigned int k = 0; k < assetlist.size(); k++) {
+            if (chrono::ChSharedPtr<chrono::ChVisualization> k_visasset = assetlist[k].DynamicCastTo<chrono::ChVisualization>()) {
+                k_visasset->SetColor(mcolor->GetColor());
+            }
+        }
+    }
+
     // Set the rotation and position of the node container
     if (!(parentframe.GetCoord() == chrono::CSYSNORM)) {
         ChIrrTools::alignIrrlichtNodeToChronoCsys(mnode, parentframe.GetCoord());

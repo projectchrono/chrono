@@ -195,8 +195,6 @@ class ChBodyEasyConvexHull : public ChBody {
             for (unsigned int i = 0; i < vshape->GetMesh().getCoordsVertices().size(); ++i)
                 points_reduced[i] = vshape->GetMesh().getCoordsVertices()[i];
 
-            GetCollisionModel()->SetSafeMargin(0.0001);
-
             GetCollisionModel()->ClearModel();
             GetCollisionModel()->AddConvexHull(points_reduced);
             GetCollisionModel()->BuildModel();
@@ -260,8 +258,6 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
             points_reduced.resize(vshape->GetMesh().getCoordsVertices().size());
             for (unsigned int i = 0; i < vshape->GetMesh().getCoordsVertices().size(); ++i)
                 points_reduced[i] = vshape->GetMesh().getCoordsVertices()[i];
-
-            GetCollisionModel()->SetSafeMargin(0.0001);
 
             GetCollisionModel()->ClearModel();
             GetCollisionModel()->AddConvexHull(points_reduced); // coll.model is respect to REF c.sys

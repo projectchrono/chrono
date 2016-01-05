@@ -31,6 +31,8 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 
 namespace chrono {
+
+/// Namespace for the Chrono::Vehicle module.
 namespace vehicle {
 
 ///
