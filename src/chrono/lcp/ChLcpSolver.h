@@ -36,6 +36,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_solver
+/// @{
+
 ///  Base class for solvers aimed at solving
 /// LCP linear complementarity problems arising
 /// from QP optimization problems.
@@ -52,7 +55,6 @@ namespace chrono {
 /// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
-
 class ChApi ChLcpSolver {
     // Chrono RTTI, needed for serialization
     CH_RTTI_ROOT(ChLcpSolver);
@@ -119,6 +121,8 @@ class ChApi ChLcpSolver {
         marchive >> CHNVP(verbose);
     }
 };
+
+/// @} chrono_solver
 
 }  // END_OF_NAMESPACE____
 

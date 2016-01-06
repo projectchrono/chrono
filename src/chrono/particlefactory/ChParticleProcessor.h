@@ -20,6 +20,9 @@
 namespace chrono {
 namespace particlefactory {
 
+/// @addtogroup chrono_particles
+/// @{
+
 /// Class that can be used to process particles.
 /// It uses two 'tools' that can be plugged in:
 /// 1) an object inherited from ChParticleEventTrigger,
@@ -80,6 +83,8 @@ class ChParticleProcessor : public ChShared {
     ChSharedPtr<ChParticleEventTrigger> trigger;
     ChSharedPtr<ChParticleProcessEvent> particle_processor;
 };
+
+/// @} chrono_particles
 
 }  // end of namespace particlefactory
 }  // end of namespace chrono

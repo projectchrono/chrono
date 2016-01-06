@@ -33,6 +33,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 // Forward
 class ChPhysicsItem;
 
@@ -41,7 +44,6 @@ class ChPhysicsItem;
 /// shapes, reference to files) to ChPhysicsItem objects.
 /// User can inherit his classes for custom assets from
 /// this class. A single asset might be shared.
-
 class ChApi ChAsset : public ChShared {
     // Chrono RTTI, needed for serialization
     CH_RTTI(ChAsset, ChShared);
@@ -95,8 +97,7 @@ class ChApi ChAsset : public ChShared {
 
 typedef ChSharedPtr<ChAsset> ChSharedAssetPtr;
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
+/// @} chrono_assets
 
 }  // END_OF_NAMESPACE____
 

@@ -27,6 +27,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_serialization
+/// @{
+
 // forward reference
 class ChArchiveOut;
 class ChArchiveIn;
@@ -855,15 +858,7 @@ class  ChArchiveIn : public ChArchive {
 
 };
 
-
-
-
-
-
- 
-
-
-
+/// @} chrono_serialization
 
 }  // END_OF_NAMESPACE____
 

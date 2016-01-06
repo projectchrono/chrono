@@ -23,10 +23,12 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_timestepper
+/// @{
+
 /// Base class for timesteppers, that is
 /// a time integrator which can advance a system state.
 /// It operates on systems inherited from ChIntegrable.
-
 class ChApi ChTimestepper : public ChShared {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepper, ChShared);
@@ -110,7 +112,6 @@ class ChApi ChTimestepper : public ChShared {
 
 /// Base class for 1st order timesteppers, that is
 /// a time integrator for whatever ChIntegrable.
-
 class ChApi ChTimestepperIorder : public ChTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperIorder, ChTimestepper);
@@ -147,7 +148,6 @@ class ChApi ChTimestepperIorder : public ChTimestepper {
 /// (special sub lass of integrable objects that have a state
 /// made with position and velocity y={x,v}, and dy/dt={v,a}
 /// with a=acceleration)
-
 class ChApi ChTimestepperIIorder : public ChTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperIIorder, ChTimestepper);
@@ -239,7 +239,6 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
 /// Euler explicit timestepper
 /// This performs the typical  y_new = y+ dy/dt * dt
 /// integration with Euler formula.
-
 class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerExpl, ChTimestepperIorder);
@@ -261,7 +260,6 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
 ///    x_new = x + v * dt
 ///    v_new = v + a * dt
 /// integration with Euler formula.
-
 class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerExplIIorder, ChTimestepperIIorder);
@@ -283,7 +281,6 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
 ///    v_new = v + a * dt
 ///    x_new = x + v_new * dt
 /// integration with Euler semi-implicit formula.
-
 class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerSemiImplicit, ChTimestepperIIorder);
@@ -299,7 +296,6 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
 
 /// Performs a step of a 4th order explicit Runge-Kutta
 /// integration scheme.
-
 class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperRungeKuttaExpl, ChTimestepperIorder);
@@ -322,7 +318,6 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
 
 /// Performs a step of a Heun explicit integrator. It is like
 /// a 2nd Runge Kutta.
-
 class ChApi ChTimestepperHeun : public ChTimestepperIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperHeun, ChTimestepperIorder);
@@ -348,7 +343,6 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder {
 /// the numbering of DOFs will invalidate it.
 /// Suggestion: use the ChTimestepperEulerSemiImplicit, it gives
 /// the same accuracy with a bit of faster performance.
-
 class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperLeapfrog, ChTimestepperIIorder);
@@ -366,7 +360,6 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
 };
 
 /// Performs a step of Euler implicit for II order systems
-
 class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerImplicit, ChTimestepperIIorder);
@@ -395,7 +388,6 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
 /// the first NR corrector iteration.
 /// If the solver in StateSolveCorrection is a CCP complementarity
 /// solver, this is the typical Anitescu stabilized timestepper for DVIs.
-
 class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, public ChImplicitTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerImplicitLinearized, ChTimestepperIIorder);
@@ -422,7 +414,6 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
 /// keeps constraint drifting 'closed' by using a projection.
 /// If the solver in StateSolveCorrection is a CCP complementarity
 /// solver, this is the Tasora stabilized timestepper for DVIs.
-
 class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, public ChImplicitTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerImplicitProjected, ChTimestepperIIorder);
@@ -449,7 +440,6 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 /// reactions in constraints, so this is a modified version that is first
 /// order in constraint reactions. Use damped HHT or damped Newmark for
 /// more advanced options.
-
 class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperTrapezoidal, ChTimestepperIIorder);
@@ -474,7 +464,6 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems
-
 class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperTrapezoidalLinearized, ChTimestepperIIorder);
@@ -500,7 +489,6 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 
 /// Performs a step of trapezoidal implicit linearized for II order systems
 ///*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
-
 class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperTrapezoidalLinearized2, ChTimestepperIIorder);
@@ -524,7 +512,6 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
 
 /// Performs a step of HHT (generalized alpha) implicit for II order systems
 /// See Negrut et al. 2007.
-
 class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperHHT, ChTimestepperIIorder);
@@ -631,7 +618,6 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
 
 /// Performs a step of Newmark constrained implicit for II order DAE systems
 /// See Negrut et al. 2007.
-
 class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperNewmark, ChTimestepperIIorder);
@@ -711,5 +697,8 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     }
 };
 
+/// @} chrono_timestepper
+
 }  // END_OF_NAMESPACE____
+
 #endif
