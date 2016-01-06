@@ -659,19 +659,13 @@ RECURSIVE              = YES
 # subdirectory from a directory tree whose root is specified with the INPUT tag. 
 # Note that relative paths are relative to directory from which doxygen is run.
 
-EXCLUDE                = ../src/demos \
-                         ../src/chrono/collision/bullet \
+EXCLUDE                = ../src/chrono/collision/bullet \
                          ../src/chrono/collision/convexdecomposition \
                          ../src/chrono/collision/gimpact \
 						 ../src/chrono/collision/edgetempest\
                          ../src/chrono_irrlicht \
                          ../src/chrono_matlab \
-						 ../src/chrono_opengl \
-						 ../src/chrono_python \
-                         ../src/thirdparty \
-						 ../src/unit_tests \
-						 ../src/tests 
-                         
+						 ../src/chrono_python
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix file system feature) are excluded 
@@ -685,7 +679,10 @@ EXCLUDE_SYMLINKS       = NO
 # against the file with absolute path, so to exclude all test directories 
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = 
+EXCLUDE_PATTERNS       = */src/demos/* \
+                         */src/unit_tests/* \
+                         */src/tests/* \
+                         */src/thirdparty/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names 
 # (namespaces, classes, functions, etc.) that should be excluded from the 
