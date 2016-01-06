@@ -23,11 +23,13 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Tetahedron FEA element with 4 nodes.
 /// This is a classical element with linear displacement, hence
 /// with constant stress, constant strain.
 /// It can be easily used for 3D FEA problems.
-
 class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, 
                                   public ChLoadableUVW {
   protected:
@@ -815,9 +817,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron,
      virtual bool IsTetrahedronIntegrationNeeded() {return true;}
 };
 
-
-
-
+/// @} fea_elements
 
 }  //___end of namespace fea___
 }  //___end of namespace chrono___

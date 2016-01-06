@@ -21,8 +21,10 @@
 namespace chrono {
 namespace fea {
 
-/// Class for all 3-Dimensional elements.
+/// @addtogroup fea_elements
+/// @{
 
+/// Class for all 3-Dimensional elements.
 class ChApiFea ChElement3D : public ChElementGeneric {
   protected:
     double Volume;
@@ -30,6 +32,8 @@ class ChApiFea ChElement3D : public ChElementGeneric {
   public:
     double GetVolume() { return Volume; }
 };
+
+/// @} fea_elements
 
 }  //___end of namespace fea___
 }  //___end of namespace chrono___

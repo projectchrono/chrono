@@ -19,6 +19,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Simple finite element with two nodes and a bar that
 /// connect them, without bending and torsion stiffness,
 /// just like a bar with two spherical joints.
@@ -26,7 +29,6 @@ namespace fea {
 /// class ChElementSpring, but also adds mass along the
 /// element, hence point-like mass in the two nodes is not
 /// needed.
-
 class ChApiFea ChElementBar : public ChElementGeneric {
   protected:
     std::vector<ChSharedPtr<ChNodeFEAxyz> > nodes;
@@ -175,6 +177,8 @@ class ChApiFea ChElementBar : public ChElementGeneric {
     // Functions for interfacing to the LCP solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 };
+
+/// @} fea_elements
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

@@ -20,21 +20,19 @@
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 
 
-namespace chrono
-{
+namespace chrono {
 
 class ChIndexedNodes; // forward ref
 
-namespace fea
-{
+namespace fea {
 
-
+/// @addtogroup fea_constraints
+/// @{
 
 /// Class for creating a constraint between two xyz FEA nodes (points).
 /// That is, the two nodes will be joined, as overlapping.
 /// Nodes are 3-DOF points that are used in point-based 
 /// primitives, such as ChMatterSPH or finite elements.
-
 class ChApiFea ChLinkPointPoint : public ChLinkBase {
 
 						// Chrono simulation of RTTI, needed for serialization
@@ -168,9 +166,7 @@ public:
 
 };
 
-
-
-
+/// @} fea_constraints
 
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____

@@ -24,14 +24,27 @@
 #include "ChContactSurface.h"
 #include "ChMeshSurface.h"
 
+/**
+    @defgroup fea Chrono::FEA
+    @brief Finite Element Analysis
+    @{
+        @defgroup fea_nodes Nodes
+        @defgroup fea_elements Elements
+        @defgroup fea_constraints Constraints
+        @defgroup fea_math Mathematical support
+    @}
+*/
+
 namespace chrono {
 
-/// Namespace with classes for the FEA unit.
+/// Namespace with classes for the Chrono::FEA module.
 namespace fea {
+
+/// @addtogroup fea
+/// @{
 
 /// Class which defines a mesh of finite elements of class ChFelem,
 /// between nodes of class  ChFnode.
-
 class ChApiFea ChMesh : public ChIndexedNodes {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChMesh, ChIndexedNodes);
@@ -248,6 +261,8 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
     virtual void SetupInitial() override;
 };
+
+/// @} fea
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

@@ -20,10 +20,12 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Tetahedron FEA element with 10 nodes.
 /// This is a quadratic element for displacementes; stress and strain
 /// are interpolated depending on Gauss points.
-
 class ChApiFea ChElementTetra_10 : public ChElementTetrahedron,
                                    public ChLoadableUVW  {
   protected:
@@ -803,6 +805,8 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron,
             /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
      virtual bool IsTetrahedronIntegrationNeeded() {return true;}
 };
+
+/// @} fea_elements
 
 }  //___end of namespace fea___
 }  //___end of namespace chrono___

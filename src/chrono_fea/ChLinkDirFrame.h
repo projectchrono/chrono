@@ -35,21 +35,19 @@
 
 
 
-namespace chrono
-{
+namespace chrono {
 
 class ChIndexedNodes; // forward ref
 
-namespace fea
-{
+namespace fea {
 
+/// @addtogroup fea_constraints
+/// @{
 
-
-/// Class for creating a constraint between the direction of a FEA node 
+/// Class for creating a constraint between the direction of a FEA node
 /// of ChNodeFEAxyzD class, and a ChBodyFrame (frame).
-/// The D direction of the ChNodeFEAxyzD is enforced to stay parallel 
+/// The D direction of the ChNodeFEAxyzD is enforced to stay parallel
 /// to a given direction associated to the ChBodyFrame.
-
 class ChApiFea ChLinkDirFrame : public ChLinkBase {
 
 						// Chrono simulation of RTTI, needed for serialization
@@ -196,9 +194,7 @@ public:
 
 };
 
-
-
-
+/// @} fea_constraints
 
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____

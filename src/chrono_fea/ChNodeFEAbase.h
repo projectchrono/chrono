@@ -18,11 +18,11 @@
 #include "physics/ChNodeBase.h"
 
 
-namespace chrono
-{
-namespace fea
-{
+namespace chrono {
+namespace fea {
 
+/// @addtogroup fea_nodes
+/// @{
 
 // Forward
 class ChMesh;
@@ -31,7 +31,6 @@ class ChMesh;
 /// Base class for a generic finite element node
 /// that can be stored in ChMesh containers.
 /// Children classes must implement specialized versions.
-
 class ChApiFea ChNodeFEAbase  :  public virtual ChNodeBase
 {
 public:
@@ -61,9 +60,7 @@ protected:
 
 };
 
-
-
-
+/// @} fea_nodes
 
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
