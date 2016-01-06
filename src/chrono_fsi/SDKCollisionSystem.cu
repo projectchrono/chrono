@@ -203,32 +203,21 @@ __device__ void BCE_modification_Share(
 			Real3 posRadB = FETCH(sortedPosRad, j);
 			Real3 dist3 = Distance(posRadA, posRadB);
 			Real d = length(dist3);
-			if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
-				continue;
 			Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+			if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML || rhoPresMuB.w > -.1)
+				continue;
 
 			Real Wd = W3(d);
-			Real smallWVal = W3(1.9999 * paramsD.HSML);
-			if (Wd > smallWVal) {
-				isAffectedV = 1;
-				Real3 velMasB = FETCH(sortedVelMas, j);
-				sumVW += velMasB * Wd;
-				sumWAll += Wd;
+			Real WdOvRho = Wd;//Wd / rhoPresMuB.x;
+			isAffectedV = 1;
+			Real3 velMasB = FETCH(sortedVelMas, j);
+			sumVW += velMasB * WdOvRho;
+			sumWAll += WdOvRho;
 
-				//			deltaVDenom += mR4(
-				//					paramsD.markerMass / rhoPresMuB.x * velMasB * Wd,
-				//					paramsD.markerMass / rhoPresMuB.x * Wd);
-				//			deltaVDenom += mR4(
-				//					velMasB * Wd,
-				//					Wd);
-
-				if (rhoPresMuB.w < -.1) { // only fluid pressure is used to update BCE pressure see Eq 27 of Adami, 2012 paper
-					isAffectedP = 1;
-					sumRhoRW += rhoPresMuB.x * dist3 * Wd;
-					sumPW += rhoPresMuB.y * Wd;
-					sumWFluid += Wd;
-				}
-			}
+			isAffectedP = 1;
+			sumRhoRW += rhoPresMuB.x * dist3 * WdOvRho;
+			sumPW += rhoPresMuB.y * WdOvRho;
+			sumWFluid += WdOvRho;
 		}
 	}
 }
@@ -696,7 +685,7 @@ __global__ void new_BCE_VelocityPressure(
 				*isErrorD = true;
 				return;
 			}
-			a3 = bceAcc[bceIndex];
+//			a3 = bceAcc[bceIndex];
 		}
 		Real pressure = (sumPW + dot(paramsD.gravity - a3, sumRhoRW))
 				/ sumWFluid;  //(in fact:  (paramsD.gravity -
@@ -1540,8 +1529,8 @@ void RecalcSortedVelocityPressure_BCE(
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
 	// Arman modified BCE velocity version
-	thrust::device_vector<Real3> sortedVelMas_ModifiedBCE = sortedVelMas;
-	thrust::device_vector<Real4> sortedRhoPreMu_ModifiedBCE = sortedRhoPreMu;
+					thrust::device_vector<Real3> sortedVelMas_ModifiedBCE = sortedVelMas;
+					thrust::device_vector<Real4> sortedRhoPreMu_ModifiedBCE = sortedRhoPreMu;
 
 	new_BCE_VelocityPressure<<<numBlocks, numThreads>>>(
 			mR3CAST(sortedVelMas_ModifiedBCE),
@@ -1555,13 +1544,13 @@ void RecalcSortedVelocityPressure_BCE(
 	cudaThreadSynchronize();
 	cudaCheckError();
 
-	thrust::copy(sortedVelMas_ModifiedBCE.begin(),
-			sortedVelMas_ModifiedBCE.end(), sortedVelMas.begin());
-	thrust::copy(sortedRhoPreMu_ModifiedBCE.begin(),
-			sortedRhoPreMu_ModifiedBCE.end(), sortedRhoPreMu.begin());
+					thrust::copy(sortedVelMas_ModifiedBCE.begin(),
+							sortedVelMas_ModifiedBCE.end(), sortedVelMas.begin());
+					thrust::copy(sortedRhoPreMu_ModifiedBCE.begin(),
+							sortedRhoPreMu_ModifiedBCE.end(), sortedRhoPreMu.begin());
 
-	sortedVelMas_ModifiedBCE.clear();
-	sortedRhoPreMu_ModifiedBCE.clear();
+					sortedVelMas_ModifiedBCE.clear();
+					sortedRhoPreMu_ModifiedBCE.clear();
 
 	//------------------------------------------------------------------------
 	cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
