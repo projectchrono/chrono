@@ -276,7 +276,7 @@ inline __m256d Cross(__m256d a, __m256d b) {
 inline __m256d Normalize(const __m256d& v) {
 	real t = simd::Dot4(v);
 	real dp = InvSqrt(t);
-	return _mm256_mul_pd(v, Set(dp));
+	return _mm256_mul_pd(v, _mm256_set1_pd(dp));
 }
 inline __m256d Abs(__m256d v) {
 	return _mm256_and_pd(v, ABSMASK);
@@ -403,7 +403,7 @@ inline bool IsEqual(__m256d a, __m256d b) {
 }
 inline bool IsZero(__m256d v, real eps) {
 	__m256d a = _mm256_and_pd(v, ABSMASK);
-	__m256d c = _mm256_cmp_pd(a, Set(eps), _CMP_NLT_US);
+	__m256d c = _mm256_cmp_pd(a, _mm256_set1_pd(eps), _CMP_NLT_US);
 	int mask = _mm256_movemask_pd(c);
 	return mask == 0;
 }
