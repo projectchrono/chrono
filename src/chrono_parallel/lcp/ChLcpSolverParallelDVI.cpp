@@ -141,7 +141,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
     fluid_fluid.ArtificialPressure();
     ComputeImpulses();
-
+    fluid_fluid.XSPHViscosity();
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
         AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
                        i);

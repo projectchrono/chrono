@@ -31,6 +31,7 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
     void Density_Fluid();
     void Normalize_Density_Fluid();
     void ArtificialPressure();
+    void XSPHViscosity();
     void Dx(const DynamicVector<real>& x, DynamicVector<real>& output);
     void D_Tx(const DynamicVector<real>& x, DynamicVector<real>& output);
 

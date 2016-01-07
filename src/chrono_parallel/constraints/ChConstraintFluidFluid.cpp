@@ -164,11 +164,18 @@ void ChConstraintFluidFluid::Build_b() {
 
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, index_offset, num_fluid_bodies);
     custom_vector<real>& density = data_manager->host_data.den_fluid;
+    DynamicVector<real> g(num_fluid_bodies);
+    SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_fluid_bodies * 3);
+    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    SubMatrixType D_T_sub = submatrix(D_T, index_offset, body_offset, num_fluid_bodies, num_fluid_bodies * 3);
 
 #pragma omp parallel for
     for (int index = 0; index < num_fluid_bodies; index++) {
         b_sub[index] = -(density[index] / density_fluid - 1.0);
+        // printf("b: %f\n", b_sub[index]);
+        // g[index] = (density[index] / density_fluid - 1.0) ;
     }
+    // b_sub = -4.0 / dt * zeta * g + zeta * D_T_sub * v_sub;
 }
 void ChConstraintFluidFluid::Build_E() {
     DynamicVector<real>& E = data_manager->host_data.E;
@@ -277,9 +284,9 @@ void ChConstraintFluidFluid::ArtificialPressure() {
             real3 pos_a = sorted_pos[body_a];
             for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
-                //                if(body_a==body_b){
-                //                	continue;
-                //                }
+                if (body_a == body_b) {
+                    continue;
+                }
                 real3 xij = (pos_a - sorted_pos[body_b]);
 
                 real dist = Length(xij);
@@ -303,6 +310,58 @@ void ChConstraintFluidFluid::ArtificialPressure() {
         }
     }
 }
+
+void ChConstraintFluidFluid::XSPHViscosity() {
+    return;
+    if (data_manager->settings.fluid.fluid_is_rigid == false) {
+        custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+        custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_fluid;
+        real mass_fluid = data_manager->settings.fluid.mass;
+        real inv_density = 1.0 / data_manager->settings.fluid.density;
+        real vorticity_confinement = data_manager->settings.fluid.vorticity_confinement;
+        real h = data_manager->settings.fluid.kernel_radius;
+        real k = data_manager->settings.fluid.artificial_pressure_k;
+        real dq = data_manager->settings.fluid.artificial_pressure_dq;
+        real n = data_manager->settings.fluid.artificial_pressure_n;
+        real dt = data_manager->settings.step_size;
+        real c = .01;
+
+#pragma omp parallel for
+        for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+            real3 corr = real3(0);
+            real3 pos_a = sorted_pos[body_a];
+            real3 vel_a, vel_b;
+            vel_a = sorted_vel[body_a];
+            //			vela.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_a * 3 + 0];
+            //			vela.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_a * 3 + 1];
+            //			vela.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_a * 3 + 2];
+
+            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+                //				if(body_a==body_b) {
+                //					continue;
+                //				}
+
+                //				velb.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_b * 3 + 0];
+                //				velb.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_b * 3 + 1];
+                //				velb.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_b * 3 + 2];
+
+                real3 xij = (pos_a - sorted_pos[body_b]);
+                real3 vij = (vel_a - sorted_vel[body_b]);
+
+                real dist = Length(xij);
+
+                corr += c * vij * KERNEL(dist, h);
+            }
+
+            data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_a * 3 + 0] += corr.x;
+            data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_a * 3 + 1] += corr.y;
+            data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_a * 3 + 2] += corr.z;
+            // data_manager->host_data.gamma[index_offset + body_a] += corr;
+        }
+    }
+}
+
 void ChConstraintFluidFluid::Dx(const DynamicVector<real>& x, DynamicVector<real>& output) {
     custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
     custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
