@@ -277,7 +277,6 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 	int2 updatePortion = mI2(referenceArray[0].y, referenceArray[2 + numObjects.numRigidBodies - 1].y);
 	thrust::device_vector<Real3> velMas_ModifiedBCE(numRigidAndBoundaryMarkers);
 	thrust::device_vector<Real4> rhoPreMu_ModifiedBCE(numRigidAndBoundaryMarkers);
-	paramsH.bceType = mORIGINAL;
 	if (paramsH.bceType == ADAMI) {
 		thrust::device_vector<Real3> bceAcc(numObjects.numRigid_SphMarkers);
 		if (numObjects.numRigid_SphMarkers > 0) {
@@ -302,7 +301,8 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 	/* Initialize derivVelRhoD with zero. NECESSARY. */
 	thrust::device_vector<Real4> m_dSortedDerivVelRho_fsi_D(numAllMarkers); // Store Rho, Pressure, Mu of each particle in the device memory
 	thrust::fill(m_dSortedDerivVelRho_fsi_D.begin(), m_dSortedDerivVelRho_fsi_D.end(), mR4(0));
-	collide(derivVelRhoD, m_dSortedPosRad, m_dSortedVelMas, vel_XSPH_Sorted_D,
+
+	collide(m_dSortedDerivVelRho_fsi_D, m_dSortedPosRad, m_dSortedVelMas, vel_XSPH_Sorted_D,
 			m_dSortedRhoPreMu, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, m_dGridMarkerIndex, m_dCellStart, m_dCellEnd,
 			numAllMarkers, m_numGridCells, dT);
 

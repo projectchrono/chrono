@@ -293,8 +293,8 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 				if (!(bceIndexB >= 0 && bceIndexB < numObjectsD.numBoundaryMarkers + numObjectsD.numRigid_SphMarkers)) {
 					printf("Error! bceIndex out of bound, collideD !\n");
 				}
-//				rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
-//				velMasB = velMas_ModifiedBCE[bceIndexB];
+				rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
+				velMasB = velMas_ModifiedBCE[bceIndexB];
 			}
 			Real multViscosit = 1;
 			Real4 derivVelRhoAB = mR4(0.0f);
@@ -695,7 +695,7 @@ __global__ void new_BCE_VelocityPressure(
 				*isErrorD = true;
 				return;
 			}
-//			a3 = bceAcc[rigidBceIndex];
+			a3 = bceAcc[rigidBceIndex];
 		}
 		Real pressure = (sumPW + dot(paramsD.gravity - a3, sumRhoRW))
 				/ sumWFluid;  //(in fact:  (paramsD.gravity -
@@ -731,8 +731,8 @@ __global__ void collideD(Real4* sortedDerivVelRho_fsi_D,  // output: new velocit
 			printf("Error! bceIndex out of bound, collideD !\n");
 			*isErrorD = true;
 		}
-//		rhoPreMuA = rhoPreMu_ModifiedBCE[bceIndex];
-//		velMasA = velMas_ModifiedBCE[bceIndex];
+		rhoPreMuA = rhoPreMu_ModifiedBCE[bceIndex];
+		velMasA = velMas_ModifiedBCE[bceIndex];
 	}
 
 //	uint originalIndex = gridMarkerIndex[index];
