@@ -270,16 +270,26 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 			rhoPresMuD, numAllMarkers, m_numGridCells);
 
 	// modify BCE velocity and pressure
+	int numRigidAndBoundaryMarkers = referenceArray[2 + numObjects.numRigidBodies - 1].y - referenceArray[0].y;
+	if ((numObjects.numBoundaryMarkers + numObjects.numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
+		throw std::runtime_error ("Error! number of rigid and boundary markers are saved incorrectly!\n");
+	}
+	int2 updatePortion = mI2(referenceArray[0].y, referenceArray[2 + numObjects.numRigidBodies - 1].y);
+	thrust::device_vector<Real3> velMas_ModifiedBCE(numRigidAndBoundaryMarkers);
+	thrust::device_vector<Real4> rhoPreMu_ModifiedBCE(numRigidAndBoundaryMarkers);
+	paramsH.bceType = mORIGINAL;
 	if (paramsH.bceType == ADAMI) {
 		thrust::device_vector<Real3> bceAcc(numObjects.numRigid_SphMarkers);
 		if (numObjects.numRigid_SphMarkers > 0) {
 			CalcBceAcceleration(bceAcc, q_fsiBodies_D, accRigid_fsiBodies_D,omegaVelLRF_fsiBodies_D,
 					omegaAccLRF_fsiBodies_D, rigidSPH_MeshPos_LRF_D, rigidIdentifierD, numObjects.numRigid_SphMarkers);
 		}
-		RecalcSortedVelocityPressure_BCE(m_dSortedVelMas, m_dSortedRhoPreMu,
-				m_dSortedPosRad, m_dCellStart, m_dCellEnd, m_dGridMarkerIndex, bceAcc, numAllMarkers);
-
+		RecalcSortedVelocityPressure_BCE(velMas_ModifiedBCE, rhoPreMu_ModifiedBCE,
+				m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, m_dCellStart, m_dCellEnd, mapOriginalToSorted, bceAcc, updatePortion);
 		bceAcc.clear();
+	} else {
+		thrust::copy(velMasD.begin() + updatePortion.x, velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
+		thrust::copy(rhoPresMuD.begin() + updatePortion.x, rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
 	}
 
 	/* Calculate vel_XSPH */
@@ -292,14 +302,17 @@ void ForceSPH(thrust::device_vector<Real3>& posRadD,
 	/* Initialize derivVelRhoD with zero. NECESSARY. */
 	thrust::device_vector<Real4> m_dSortedDerivVelRho_fsi_D(numAllMarkers); // Store Rho, Pressure, Mu of each particle in the device memory
 	thrust::fill(m_dSortedDerivVelRho_fsi_D.begin(), m_dSortedDerivVelRho_fsi_D.end(), mR4(0));
-	collide(m_dSortedDerivVelRho_fsi_D, m_dSortedPosRad, m_dSortedVelMas, vel_XSPH_Sorted_D,
-			m_dSortedRhoPreMu, m_dGridMarkerIndex, m_dCellStart, m_dCellEnd,
-			numAllMarkers, m_numGridCells, dT); // Arman: you can probably safely remove dT from this function.
+	collide(derivVelRhoD, m_dSortedPosRad, m_dSortedVelMas, vel_XSPH_Sorted_D,
+			m_dSortedRhoPreMu, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, m_dGridMarkerIndex, m_dCellStart, m_dCellEnd,
+			numAllMarkers, m_numGridCells, dT);
 
 	CopySortedToOriginal_Invasive_R3(vel_XSPH_D, vel_XSPH_Sorted_D, m_dGridMarkerIndex);
 	CopySortedToOriginal_Invasive_R4(derivVelRhoD, m_dSortedDerivVelRho_fsi_D, m_dGridMarkerIndex);
 	m_dSortedDerivVelRho_fsi_D.clear();
 	vel_XSPH_Sorted_D.clear();
+	velMas_ModifiedBCE.clear();
+	rhoPreMu_ModifiedBCE.clear();
+
 
 
 
@@ -662,17 +675,28 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 			m_dGridMarkerIndex, mapOriginalToSorted, posRadD, velMasD,
 			rhoPresMuD, numAllMarkers, m_numGridCells);
 
+
+
 	// modify BCE velocity and pressure
+	int numRigidAndBoundaryMarkers = referenceArray[2 + numObjects.numRigidBodies - 1].y - referenceArray[0].y;
+	if ((numObjects.numBoundaryMarkers + numObjects.numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
+		throw std::runtime_error ("Error! number of rigid and boundary markers are saved incorrectly!\n");
+	}
+	int2 updatePortion = mI2(referenceArray[0].y, referenceArray[2 + numObjects.numRigidBodies - 1].y);
+	thrust::device_vector<Real3> velMas_ModifiedBCE(numRigidAndBoundaryMarkers);
+	thrust::device_vector<Real4> rhoPreMu_ModifiedBCE(numRigidAndBoundaryMarkers);
 	if (paramsH.bceType == ADAMI) {
 		thrust::device_vector<Real3> bceAcc(numObjects.numRigid_SphMarkers);
 		if (numObjects.numRigid_SphMarkers > 0) {
 			CalcBceAcceleration(bceAcc, q_fsiBodies_D, accRigid_fsiBodies_D,omegaVelLRF_fsiBodies_D,
 					omegaAccLRF_fsiBodies_D, rigidSPH_MeshPos_LRF_D, rigidIdentifierD, numObjects.numRigid_SphMarkers);
 		}
-		RecalcSortedVelocityPressure_BCE(m_dSortedVelMas, m_dSortedRhoPreMu,
-				m_dSortedPosRad, m_dCellStart, m_dCellEnd, m_dGridMarkerIndex, bceAcc, numAllMarkers);
-
+		RecalcSortedVelocityPressure_BCE(velMas_ModifiedBCE, rhoPreMu_ModifiedBCE,
+				m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, m_dCellStart, m_dCellEnd, mapOriginalToSorted, bceAcc, updatePortion);
 		bceAcc.clear();
+	} else {
+		thrust::copy(velMasD.begin() + updatePortion.x, velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
+		thrust::copy(rhoPresMuD.begin() + updatePortion.x, rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
 	}
 
 	// process collisions
@@ -697,14 +721,15 @@ void ForceSPH_LF(thrust::device_vector<Real3>& posRadD,
 	}
 	thrust::copy(m_dSortedVelMas.begin(), m_dSortedVelMas.end(), dummy_XSPH.begin());
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
 
 	collide(derivVelRhoD, m_dSortedPosRad, m_dSortedVelMas, dummy_XSPH,
-			m_dSortedRhoPreMu, m_dGridMarkerIndex, m_dCellStart, m_dCellEnd,
+			m_dSortedRhoPreMu, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, m_dGridMarkerIndex, m_dCellStart, m_dCellEnd,
 			numAllMarkers, m_numGridCells, dT);  // vel XSPH is the same as vel
 
 	dummy_XSPH.clear();
+	velMas_ModifiedBCE.clear();
+	rhoPreMu_ModifiedBCE.clear();
 
 	// set the pressure and density of BC and BCE markers to those of the nearest fluid marker.
 	// I put it here to use the already determined proximity computation

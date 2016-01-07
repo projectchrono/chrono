@@ -328,14 +328,16 @@ void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 		uint numCells);
 
 void RecalcSortedVelocityPressure_BCE(
-		thrust::device_vector<Real3>& sortedVelMas,
-		thrust::device_vector<Real4>& sortedRhoPreMu,
-		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<Real3>& velMas_ModifiedBCE,
+		thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
+		const thrust::device_vector<Real3>& sortedPosRad,
+		const thrust::device_vector<Real3>& sortedVelMas,
+		const thrust::device_vector<Real4>& sortedRhoPreMu,
 		const thrust::device_vector<uint>& cellStart,
 		const thrust::device_vector<uint>& cellEnd,
-		const thrust::device_vector<uint>& gridMarkerIndex,
+		const thrust::device_vector<uint>& mapOriginalToSorted,
 		const thrust::device_vector<Real3>& bceAcc,
-		uint numAllMarkers);
+		int2 updatePortion);
 
 /**
  * @brief Wrapper function for collideD
@@ -354,11 +356,14 @@ void RecalcSortedVelocityPressure_BCE(
  * @param numCells [description]
  * @param  dT Time Step
  */
-void collide(thrust::device_vector<Real4>& derivVelRhoD,
+void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
 		thrust::device_vector<Real3>& sortedPosRad,
 		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 		thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<Real3>& velMas_ModifiedBCE,
+		thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
+
 		thrust::device_vector<uint>& gridMarkerIndex,
 		thrust::device_vector<uint>& cellStart,
 		thrust::device_vector<uint>& cellEnd, uint numAllMarkers, uint numCells,
