@@ -26,12 +26,20 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_brake Brake subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_brake
+/// @{
+
 /// Base class for a brake subsystem
-///
 class CH_VEHICLE_API ChBrake : public ChShared {
   public:
     ChBrake();
@@ -52,6 +60,8 @@ class CH_VEHICLE_API ChBrake : public ChShared {
 
 /// Vector of handles to brake subsystems.
 typedef std::vector<ChSharedPtr<ChBrake> > ChBrakeList;
+
+/// @} vehicle_wheeled_brake
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -27,7 +27,11 @@
 namespace chrono {
 namespace vehicle {
 
-  class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
+/// @addtogroup vehicle_wheeled_suspension
+/// @{
+
+/// MacPherson strut suspension constructed with data from file.
+class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
   public:
     MacPhersonStrut(const std::string& filename);
     MacPhersonStrut(const rapidjson::Document& d);
@@ -85,6 +89,8 @@ namespace vehicle {
 
     double m_springRestLength;
 };
+
+/// @} vehicle_wheeled_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -28,6 +28,7 @@ class ChApi ChLinkLinActuator : public ChLinkLock {
     ChSharedPtr<ChFunction> dist_funct;  // distance function
     int learn;                           // if TRUE, the actuator does not apply constraint, just
                                          // records the motion into its dist_function.
+    int learn_torque_rotation;           // if TRUE, the actuator records the torque and rotation.
     double offset;                       // distance offset
 
     double mot_tau;                      // motor: transmission ratio
@@ -64,6 +65,8 @@ class ChApi ChLinkLinActuator : public ChLinkLock {
 
     int Get_learn() { return learn; }
     void Set_learn(int mset);
+    int Get_learn_torque_rotaton() { return learn_torque_rotation; }
+    void Set_learn_torque_rotaton(int mset);
     double Get_lin_offset() { return offset; };
     void Set_lin_offset(double mset) { offset = mset; }
 

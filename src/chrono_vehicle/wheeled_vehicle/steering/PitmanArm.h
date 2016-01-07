@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_steering
+/// @{
+
+/// Pitman arm steering model constructed with data from file (JSON format).
 class CH_VEHICLE_API PitmanArm : public ChPitmanArm {
   public:
     PitmanArm(const std::string& filename);
@@ -64,6 +68,8 @@ class CH_VEHICLE_API PitmanArm : public ChPitmanArm {
     ChVector<> m_steeringLinkInertia;
     ChVector<> m_pitmanArmInertia;
 };
+
+/// @} vehicle_wheeled_steering
 
 }  // end namespace vehicle
 }  // end namespace chrono

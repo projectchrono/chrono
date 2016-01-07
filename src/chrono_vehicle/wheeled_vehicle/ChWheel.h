@@ -31,17 +31,25 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_wheel Wheel subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_wheel
+/// @{
+
 /// Base class for a vehicle wheel subsystem.
 /// A wheel subsystem does not own a body. Instead, when attached to a suspension
 /// subsystem, the wheel's mass properties are used to update those of the
 /// spindle body owned by the suspension.
 /// A concrete wheel subsystem can optionally carry its own visualization assets
 /// (which are associated with the suspension's spindle body).
-///
 class CH_VEHICLE_API ChWheel : public ChShared {
   public:
     ChWheel() {}
@@ -67,6 +75,8 @@ class CH_VEHICLE_API ChWheel : public ChShared {
 
 /// Vector of handles to wheel subsystems.
 typedef std::vector<ChSharedPtr<ChWheel> > ChWheelList;
+
+/// @} vehicle_wheeled_wheel
 
 }  // end namespace vehicle
 }  // end namespace chrono

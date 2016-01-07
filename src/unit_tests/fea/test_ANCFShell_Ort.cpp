@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Antonio Recuero
+// Authors: Antonio Recuero, Radu Serban
 // =============================================================================
 //
 // Unit test for composite continuum-based bilinear shear deformable
@@ -33,18 +33,16 @@
 // cylindrical shell tip against Ansys. See Chrono's documentation for more details.
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/core/ChMathematics.h"
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
-#include "chrono/core/ChMathematics.h"
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChMesh.h"
 
 using namespace chrono;
 using namespace fea;
@@ -68,236 +66,126 @@ int main(int argc, char* argv[]) {
     }
     fileMid.close();
 
-    // Definition of the model
+    // Simulation and validation parameters
+    const int num_steps = 3;         // Number of time steps for unit test (range 1 to 4000)
+    const double time_step = 0.002;  // Time step
+
+    // -----------------
+    // Create the system
+    // -----------------
+
     ChSystem my_system;
 
-    // The physical system: it contains all physical objects.
-    // Create a mesh, that is a container for groups
-    // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
-    int numFlexBody = 1;
-    const int num_steps = 3;        // Number of time steps for unit test (range 1 to 4000)
-    const double time_step = 0.002;  // Time step
-    // Geometry of the plate
-    // double plate_lenght_x = 1; // The length along X axis is defined parametrically in
-    // the initial coordinate section
-    double plate_lenght_y = 1;
-    double plate_lenght_z = 0.005;  // Thickness of EACH layer (number of layers defined below)
+    // ----------------
+    // Specify the mesh
+    // ----------------
 
-    // Specification of the mesh
+    // Geometry
+    const double cylRadius = 1.0;  // Radius of the cylinder
+    const double plate_lenght_y = 1;
+    const double plate_lenght_z = 0.005;  // Thickness of EACH layer (number of layers defined below)
+
+    // Mesh grid specification
     const int numDiv_x = 6;  // Number of elements along X axis
     const int numDiv_y = 6;  // Number of elements along Y axis
     const int numDiv_z = 1;  // Single element along the thickness
     const int N_x = numDiv_x + 1;
     const int N_y = numDiv_y + 1;
     const int N_z = numDiv_z + 1;
-    const double cylRadius = 1.0;  // Radius of the cylinder
     int TotalNumElements = numDiv_x * numDiv_y;
     int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
 
-    // For uniform mesh
+    // Element dimensions (uniform grid)
     double dx = CH_C_PI / 2 / numDiv_x * cylRadius;
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
-    int MaxMNUM = 0;
-    int MTYPE = 0;
-    int MaxLayNum = 0;
-    ChMatrixDynamic<double> COORDFlex(TotalNumNodes, 6);
-    ChMatrixDynamic<double> VELCYFlex(TotalNumNodes, 6);
-    ChMatrixDynamic<int> NumNodes(TotalNumElements, 4);
-    ChMatrixDynamic<int> LayNum(TotalNumElements, 1);
-    ChMatrixDynamic<int> NDR(TotalNumNodes, 6);
-    ChMatrixDynamic<double> ElemLengthXY(TotalNumElements, 2);
-    ChMatrixNM<double, 10, 12> MPROP;
-    ChMatrixNM<int, 10, 7> MNUM;
-    ChMatrixNM<int, 10, 1> NumLayer;
-    double LayPROP[10][7][2];
 
-    //------------------------------------------------
-    //--------------- Element data--------------------
-    //------------------------------------------------
+    // Create the mesh
+    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
 
-    for (int i = 0; i < TotalNumElements; i++) {
-        // Here, we define how many layers each element has
-        // In this example of balanced shell, there are two layers
-        // The fiber angle will be input a few lines below
-        LayNum(i, 0) = 2;  // Each element has two layers
-
-        // Node number of the 4 nodes which creates element i.
-        // The nodes are distributed this way. First in the x direction for constant
-        // y when max x is reached go to the next level for y by doing the same
-        // distribution but for y+1 and keep doing until y limit is reached. Node
-        // number start from 1.
-        NumNodes(i, 0) = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
-        NumNodes(i, 1) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-        NumNodes(i, 2) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
-        NumNodes(i, 3) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
-        // Element length
-        ElemLengthXY(i, 0) = dx;
-        ElemLengthXY(i, 1) = dy;
-        if (MaxLayNum < LayNum(i, 0)) {
-            MaxLayNum = LayNum(i, 0);
-        }
-    }
-    //--------------------------------------------------------
-    //  Fixing constraints, initial coordinates and velocities
-    //--------------------------------------------------------
-
+    // Create and add the nodes
     for (int i = 0; i < TotalNumNodes; i++) {
-        // Vector NDR selects which coordinates at each are constrained
-        // For this model, we fully constrain the nodes along axis X = 0
-        // 1 for constrained; 0 for unconstrained
-        NDR(i, 0) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
-        NDR(i, 1) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
-        NDR(i, 2) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
-        NDR(i, 3) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
-        NDR(i, 4) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
-        NDR(i, 5) = (i % (numDiv_x + 1) == 0) ? 1 : 0;  // This works just fine
+        // Node location
+        double loc_x = cylRadius * sin((i % (numDiv_x + 1)) * (CH_C_PI / 2) / numDiv_x);
+        double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
+        double loc_z = cylRadius * (1 - cos((i % (numDiv_x + 1)) * (CH_C_PI / 2) / numDiv_x));
 
-        // COORDFlex are the initial coordinates for each node
-        // The coordinates are parameterized as a function of the cylinder radius and
-        // the number of elements chosen by the user
+        // Node direction
+        double dir_x = -sin(CH_C_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
+        double dir_y = 0;
+        double dir_z = cos(CH_C_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
 
-        COORDFlex(i, 0) = cylRadius * sin((i % (numDiv_x + 1)) * (CH_C_PI / 2) / numDiv_x);
-        COORDFlex(i, 1) = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
-        COORDFlex(i, 2) = cylRadius * (1 - cos((i % (numDiv_x + 1)) * (CH_C_PI / 2) / numDiv_x));
-        COORDFlex(i, 3) = -sin(CH_C_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
-        COORDFlex(i, 4) = 0;
-        COORDFlex(i, 5) = cos(CH_C_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
-
-        VELCYFlex(i, 0) = 0;
-        VELCYFlex(i, 1) = 0;
-        VELCYFlex(i, 2) = 0;
-        VELCYFlex(i, 3) = 0;
-        VELCYFlex(i, 4) = 0;
-        VELCYFlex(i, 5) = 0;
-    }
-    //------------------------------------------------
-    //------------- Read Layer Data-------------------
-    //------------------------------------------------
-
-    for (int i = 0; i < MaxLayNum; i++) {
-        NumLayer(i, 0) = i + 1;
-        // For each layer we introduce parameters in LayPROP
-        //
-        for (int j = 0; j < NumLayer(i, 0); j++) {
-            LayPROP[i][j][0] = dz;  // Height of each layer
-            if (j == 0) {
-                LayPROP[i][j][1] = 20;  // For first layer, fiber angle 20 degrees
-            }                           // Fiber angle of each ply
-            else {
-                LayPROP[i][j][1] = -20;  // For second layer, fiber angle -20 degrees
-            }
-            MNUM[i][j] = 1;  // Material_ID
-                             // In this example one single material ID (same material properties for the two layers)
-            if (MaxMNUM < MNUM(i, j))
-                MaxMNUM = MNUM(i, j);
-        }
-    }
-    //------------------------------------------------
-    //------------ Input Material Data----------------
-    //------------------------------------------------
-    for (int i = 0; i < MaxMNUM; i++) {
-        double nu_coef = 0.3;
-        MTYPE = 2;  // The user must use orthotropic input (MTYPE=2)
-        if (MTYPE == 2) {
-            MPROP(i, 0) = 500;      // Density [kg/m3]
-            MPROP(i, 1) = 2.0E+08;  // Ex//
-            MPROP(i, 2) = 1.0E+08;  // Ey
-            MPROP(i, 3) = 1.0E+08;  // Ez
-            // Additional information for the Type 2 of Material.
-            MPROP(i, 4) = 0.3;          // nuxy
-            MPROP(i, 5) = 0.3;          // nuxz
-            MPROP(i, 6) = 0.3;          // nuyz
-            MPROP(i, 7) = 3.84615E+07;  // MPROP(i, 1) / 2.0 / (1 + MPROP(i, 6));  // Gxy
-            MPROP(i, 8) = 3.84615E+07;  // MPROP(i, 2) / 2.0 / (1 + MPROP(i, 6));  // Gxz
-            MPROP(i, 9) = 3.84615E+07;  // MPROP(i, 3) / 2.0 / (1 + MPROP(i, 6));  // Gyz
-        }
-    }
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
-    // Adding the nodes to the mesh
-    int i = 0;
-
-    while (i < TotalNumNodes) {
+        // Create the node
         ChSharedPtr<ChNodeFEAxyzD> node(
-            new ChNodeFEAxyzD(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)),
-                              ChVector<>(COORDFlex(i, 3), COORDFlex(i, 4), COORDFlex(i, 5))));
-        node->SetMass(0.0);
-        my_mesh->AddNode(node);
-        if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1 && NDR(i, 3) == 1 && NDR(i, 4) == 1 && NDR(i, 5) == 1) {
+            new ChNodeFEAxyzD(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z)));
+
+        node->SetMass(0);
+
+        // Fix all nodes along the axis X=0
+        if (i % (numDiv_x + 1) == 0)
             node->SetFixed(true);
-        }
-        i++;
+
+        // Add node to mesh
+        my_mesh->AddNode(node);
     }
+
+    // Get handles to the first and last nodes
     ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode(TotalNumNodes - 1).DynamicCastTo<ChNodeFEAxyzD>());
-    // A constrained node
     ChSharedPtr<ChNodeFEAxyzD> noderclamped(my_mesh->GetNode(0).DynamicCastTo<ChNodeFEAxyzD>());
 
-    int elemcount = 0;
-    while (elemcount < TotalNumElements) {
+    // Create an orthotropic material.
+    // All layers for all elements share the same material.
+    double rho = 500;
+    ChVector<> E(2e8, 1e8, 1e8);
+    ChVector<> nu(0.3, 0.3, 0.3);
+    ChVector<> G(3.84615E+07, 3.84615E+07, 3.84615E+07);
+    ChSharedPtr<ChMaterialShellANCF> mat(new ChMaterialShellANCF(rho, E, nu, G));
+
+    // Create the elements
+    for (int i = 0; i < TotalNumElements; i++) {
+        // Adjacent nodes
+        int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
+        int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
+        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
+        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+
+        // Create the element and set its nodes.
         ChSharedPtr<ChElementShellANCF> element(new ChElementShellANCF);
-        // Save material data into InertFlexVec(98x1) at each layer
-        ChMatrixNM<double, 98, 1> InertFlexVec;
-        InertFlexVec.Reset();
-        double TotalThickness;  // Element thickness: Summation of all layers' thickness
-        TotalThickness = 0.0;
-        int i = elemcount;
-        for (int j = 0; j < NumLayer(LayNum(i, 0) - 1, 0); j++) {  // For each element, define material properties
-            int ij = 14 * j;
-            InertFlexVec(ij) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][0];  // Density
-            InertFlexVec(ij + 1) = ElemLengthXY(i, 0);                   // EL
-            InertFlexVec(ij + 2) = ElemLengthXY(i, 1);                   // EW
-            InertFlexVec(ij + 3) = LayPROP[LayNum(i, 0) - 1][j][0];      // Thickness per layer
-            TotalThickness += InertFlexVec(ij + 3);
-            InertFlexVec(ij + 4) = LayPROP[LayNum(i, 0) - 1][j][1];           // Fiber angle
-            InertFlexVec(ij + 5) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][1];   // Ex
-            InertFlexVec(ij + 6) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][2];   // Ey
-            InertFlexVec(ij + 7) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][3];   // Ez
-            InertFlexVec(ij + 8) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][4];   // nuxy
-            InertFlexVec(ij + 9) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][5];   // nuxz
-            InertFlexVec(ij + 10) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][6];  // nuyz
-            InertFlexVec(ij + 11) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][7];  // Gxy
-            InertFlexVec(ij + 12) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][8];  // Gxz
-            InertFlexVec(ij + 13) = MPROP[MNUM[LayNum(i, 0) - 1][j] - 1][9];  // Gyz
-        }
-        // Automatically selects the Gauss range to integrate inertia/internal forces over the thickness
-        // Each layer's thickness will be integrated using 2 Gauss integration points
-        // LimLow and LimHigh represent the thickness range for a given layer
-        ChMatrixNM<double, 7, 2> GaussZRange;
-        GaussZRange.Reset();
-        double CurrentHeight = 0.0;
-        for (int j = 0; j < NumLayer(LayNum(i, 0) - 1, 0); j++) {
-            double LimLow = (CurrentHeight / TotalThickness - 0.5) * 2.0;
-            CurrentHeight += LayPROP[LayNum(i, 0) - 1][j][0];
-            double LimHigh = (CurrentHeight / TotalThickness - 0.5) * 2.0;
-            GaussZRange(j, 0) = LimLow;
-            GaussZRange(j, 1) = LimHigh;
-        }
-        // Now we give some parameters element by element
-        element->SetInertFlexVec(InertFlexVec);
-        element->SetGaussZRange(GaussZRange);
-        element->SetNodes(my_mesh->GetNode(NumNodes[elemcount][0]).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(NumNodes[elemcount][1]).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(NumNodes[elemcount][2]).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(NumNodes[elemcount][3]).DynamicCastTo<ChNodeFEAxyzD>());
-        element->SetMaterial(mmaterial);
-        element->SetNumLayers(NumLayer(LayNum(i, 0) - 1, 0));
-        element->SetThickness(TotalThickness);
-        element->SetElemNum(elemcount);
-        element->SetAlphaDamp(0.25);               // Structural damping for this
-        element->Setdt(0.002);                     // dt to calculate DampingCoefficient
-        element->SetGravityOn(false);              // turn gravity on/off
-        ChMatrixNM<double, 35, 1> StockAlpha_EAS;  // StockAlpha(5*7,1): Max #Layer is 7
-        StockAlpha_EAS.Reset();
-        element->SetStockAlpha(StockAlpha_EAS);
+        element->SetNodes(my_mesh->GetNode(node0).DynamicCastTo<ChNodeFEAxyzD>(),
+                          my_mesh->GetNode(node1).DynamicCastTo<ChNodeFEAxyzD>(),
+                          my_mesh->GetNode(node2).DynamicCastTo<ChNodeFEAxyzD>(),
+                          my_mesh->GetNode(node3).DynamicCastTo<ChNodeFEAxyzD>());
+
+        // Set element dimensions
+        element->SetDimensions(dx, dy);
+
+        // Add two layers, each of the same thickness and using the same material.
+        // Use a fiber angle of 20 degrees for the first layer and -20 degrees for the second layer.
+        element->AddLayer(dz, 20 * CH_C_DEG_TO_RAD, mat);
+        element->AddLayer(dz, -20 * CH_C_DEG_TO_RAD, mat);
+
+        // Set other element properties
+        element->SetAlphaDamp(0.25);   // Structural damping for this element
+        element->SetGravityOn(false);  // no gravitational forces
+
+        // Add element to mesh
         my_mesh->AddElement(element);
-        elemcount++;
     }
-    // Switch off mesh class gravity: my_mesh still does not implement this element's gravity forces
+
+    // Switch off mesh class gravity
     my_mesh->SetAutomaticGravity(false);
-    // Remember to add the mesh to the system
+
+    // Add the mesh to the system
     my_system.Add(my_mesh);
-    // Perform a dynamic time integration:
+
+    // ---------------
+    // Simulation loop
+    // ---------------
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
+
+    // Setup solver
     my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
     chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
@@ -314,7 +202,7 @@ int main(int argc, char* argv[]) {
     mkl_solver_stab->SetSparsityPatternLock(false);
     my_system.Update();*/
 
-    // INT_HHT or INT_EULER_IMPLICIT
+    // Setup integrator
     my_system.SetIntegrationType(ChSystem::INT_HHT);
 
     ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
@@ -322,10 +210,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMaxiters(100);
     mystepper->SetTolerance(1e-08);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetScaling(false);  //
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
+    mystepper->SetScaling(false);
 
     /*utils::Data m_data;
     m_data.resize(4);
@@ -336,6 +221,7 @@ int main(int argc, char* argv[]) {
 
     ChVector<> mforce(0, 0, -10);
 
+    std::cout << "test_ANCFShell_Ort" << std::endl;
     for (unsigned int it = 0; it < num_steps; it++) {
         nodetip->SetForce(mforce);
         my_system.DoStepDynamics(time_step);

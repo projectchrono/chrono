@@ -20,9 +20,14 @@
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 #include "core/ChQuadrature.h"
+
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
+/// Brick element with 8 nodes (with EAS)
 class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
   public:
     ChElementBrick();
@@ -477,9 +482,11 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// Setup. Precompute mass and matrices that do not change during the
     /// simulation, ex. the mass matrix in ANCF is constant
     virtual void SetupInitial(ChSystem* system) override;
+    /// Sets M as the global mass matrix.
+    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override { M = m_MassMatrix; }
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0);
+    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override;
 
     /// Computes the internal forces (ex. the actual position of
     /// nodes is not in relaxed reference position) and set values
@@ -491,6 +498,8 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     // [EAS] Basis function of M for Enhanced Assumed Strain
     void Basis_M(ChMatrixNM<double, 6, 9>& M, double x, double y, double z);
 };
+
+/// @} fea_elements
 
 }  // end namespace fea
 }  // end namespace chrono

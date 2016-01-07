@@ -30,6 +30,14 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_brake
+/// @{
+
+/// Template for a simple brake subsystem.
+/// Simple brake created with constant torque opposing wheel rotation.
+/// It just uses a speed-dependant torque, so it fits in ODEs because it does not
+/// use DVI set valued constraints (the drawback is that it cannot simulate
+/// sticking brakes).
 class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
   public:
     ChBrakeSimple();
@@ -58,6 +66,8 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     double m_modulation;
     ChSharedPtr<ChLinkBrake> m_brake;
 };
+
+/// @} vehicle_wheeled_brake
 
 }  // end namespace vehicle
 }  // end namespace chrono

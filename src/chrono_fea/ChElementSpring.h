@@ -19,11 +19,13 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Simple finite element with two nodes and a spring/damper
 /// between the two nodes.
 /// This element is mass-less, so if used in dynamic analysis,
 /// the two nodes must be set with non-zero point mass.
-
 class ChApiFea ChElementSpring : public ChElementGeneric {
   protected:
     std::vector<ChSharedPtr<ChNodeFEAxyz> > nodes;
@@ -130,6 +132,8 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     // Functions for interfacing to the LCP solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 };
+
+/// @} fea_elements
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

@@ -16,7 +16,7 @@
 #include "ChCTriangleMeshConnected.h"
 #include <unordered_map>
 #include <map>
-
+#include "core/ChLinearAlgebra.h"
 
 namespace chrono {
 namespace geometry {
@@ -1204,6 +1204,57 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
 
     return nmerged;
 }
+
+
+// Offset algorithm based on:
+// " A 3D surface offset method for STL-format models"
+//   Xiuzhi Qu and Brent Stucker
+
+bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
+    
+    std::map<int, std::vector<int>> map_vertex_triangles;
+    std::vector<ChVector<>> voffsets(this->m_vertices.size());
+
+    //build the topological info for triangles connected to vertex
+    for (int i = 0; i< this->m_face_v_indices.size(); ++i) {
+        map_vertex_triangles[m_face_v_indices[i].x].push_back(i);
+        map_vertex_triangles[m_face_v_indices[i].y].push_back(i);
+        map_vertex_triangles[m_face_v_indices[i].z].push_back(i);
+    }
+
+    // scan through vertexes and offset them 
+    for (int i = 0; i< this->m_vertices.size(); ++i) {
+        auto mpair = map_vertex_triangles.find(i);
+        if (mpair != map_vertex_triangles.end() ) {
+            std::vector<int>& mverttriangles = mpair->second;
+            int ntri = mverttriangles.size();
+            ChMatrixDynamic<> A (ntri, ntri);
+            ChMatrixDynamic<> b (ntri,1);
+            ChMatrixDynamic<> x (ntri,1);
+            for (int j=0; j< ntri; ++j) {
+                b(j,0)=1;
+                for (int k=0; k< ntri; ++k) {
+                    A(j,k) = Vdot(this->getTriangle(mverttriangles[j]).GetNormal(), this->getTriangle(mverttriangles[k]).GetNormal());
+                }
+            }
+            ChLinearAlgebra::Solve_LinSys(A,&b,&x);
+
+            // weighted sum as offset vector
+            voffsets[i] = VNULL;
+            for (int j=0; j< ntri; ++j) {
+                voffsets[i] += this->getTriangle(mverttriangles[j]).GetNormal() * x(j);
+            }
+        }
+    }
+
+    // apply offset vectors to itself:
+    for (int i = 0; i< this->m_vertices.size(); ++i) {
+        m_vertices[i] += voffsets[i] * moffset;
+    }
+
+    return true;
+}
+
 
 
 }  // END_OF_NAMESPACE____

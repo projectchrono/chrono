@@ -24,18 +24,29 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
+/**
+    @addtogroup vehicle
+    @{
+        @defgroup vehicle_terrain Terrain models
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
-/// Base class for a height-field terrain system.
-///
+/// @addtogroup vehicle_terrain
+/// @{
+
+/// Base class for a terrain system.
 class CH_VEHICLE_API ChTerrain : public ChShared {
   public:
     ChTerrain() {}
     virtual ~ChTerrain() {}
 
+    /// Update the state of the terrain system at the specified time.
     virtual void Update(double time) {}
+
+    /// Advance the state of the terrain system by the specified duration.
     virtual void Advance(double step) {}
 
     /// Get the terrain height at the specified (x,y) location.
@@ -44,6 +55,8 @@ class CH_VEHICLE_API ChTerrain : public ChShared {
     /// Get the terrain normal at the specified (x,y) location.
     virtual ChVector<> GetNormal(double x, double y) const = 0;
 };
+
+/// @} vehicle_terrain
 
 }  // end namespace vehicle
 }  // end namespace chrono

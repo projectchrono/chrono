@@ -21,14 +21,17 @@
 
 #include <vector>
 
-#include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector.h"
 #include "chrono/physics/ChLinkSpringCB.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
 namespace vehicle {
+
+/// @addtogroup vehicle
+/// @{
 
 /// Enum for the side (left/right) of a vehicle.
 enum VehicleSide {
@@ -57,8 +60,8 @@ class WheelID {
     VehicleSide side() const { return m_side; }
 
   private:
-    int m_id;              ///< wheel ID
-    int m_axle;            ///< axle index (counted from the front)
+    int m_id;            ///< wheel ID
+    int m_axle;          ///< axle index (counted from the front)
     VehicleSide m_side;  ///< vehicle side (LEFT: 0, RIGHT: 1)
 };
 
@@ -200,7 +203,7 @@ enum SuspensionType {
     SOLID_AXLE,               ///< solid axle
     MULTI_LINK,               ///< multi-link
     HENDRICKSON_PRIMAXX,      ///< Hendrickson PRIMAXX (walking beam)
-	MACPHERSON_STRUT          ///< MacPherson strut
+    MACPHERSON_STRUT          ///< MacPherson strut
 };
 
 /// Enum for drive types.
@@ -218,6 +221,8 @@ enum OutputInformation {
     OUT_CONSTRAINTS = 1 << 2,  ///< constraint violation information
     OUT_TESTRIG = 1 << 3       ///< test-rig specific information
 };
+
+/// @} vehicle
 
 }  // end namespace vehicle
 }  // end namespace chrono

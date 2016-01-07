@@ -25,13 +25,14 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_terrain
+/// @{
+
 /// Concrete class for a flat horizontal terrain.
 /// This class implements a terrain modeled as an infinite horizontal plane at
 /// a specified height.  This type of terrain can be used in conjunction with
 /// tire models that perform their own collision detection (e.g. ChPacejkaTire
 /// and ChLugreTire).
-///
 class CH_VEHICLE_API FlatTerrain : public ChTerrain {
   public:
     FlatTerrain(const int height  ///< [in] terrain height
@@ -50,6 +51,8 @@ class CH_VEHICLE_API FlatTerrain : public ChTerrain {
   private:
     double m_height;
 };
+
+/// @} vehicle_terrain
 
 }  // end namespace vehicle
 }  // end namespace chrono

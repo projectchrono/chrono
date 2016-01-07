@@ -417,6 +417,8 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
                 if (ChSharedPtr<geometry::ChLineBezier> bezier = geom.DynamicCastTo<geometry::ChLineBezier>()) {
                     gss << BEZIER << delim << "\"" << line->GetName() << "\"";
                     a_count++;
+                } else {
+                    supported = false;
                 }
             } else {
                 supported = false;

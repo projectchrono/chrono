@@ -33,6 +33,18 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_antirollbar
+/// @{
+
+/// Template for an anti-roll subsystem using an RSD.
+/// Base class for an anti-roll bar template modeled two arms connected with a
+/// revolute spring-damper.
+/// Derived from ChAntirollBar, but still and abstract base class.
+///
+/// The anti-roll bar subsystem is modeled with respect to a right-handed frame,
+/// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+/// The subsystem reference frame is assumed to be always aligned with that of
+/// the vehicle.  When attached to a chassis, only an offset is provided.
 class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
   public:
     ChAntirollBarRSD(const std::string& name  ///< [in] name of the subsystem
@@ -91,6 +103,8 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
                              double radius,
                              const ChColor& color);
 };
+
+/// @} vehicle_wheeled_antirollbar
 
 }  // end namespace vehicle
 }  // end namespace chrono

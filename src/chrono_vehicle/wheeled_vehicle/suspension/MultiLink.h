@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_suspension
+/// @{
+
+/// Multi-link suspension constructed with data from file.
 class CH_VEHICLE_API MultiLink : public ChMultiLink {
   public:
     MultiLink(const std::string& filename);
@@ -93,6 +97,8 @@ class CH_VEHICLE_API MultiLink : public ChMultiLink {
 
     double m_springRestLength;
 };
+
+/// @} vehicle_wheeled_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

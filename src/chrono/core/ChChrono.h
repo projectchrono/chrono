@@ -81,6 +81,25 @@
  * a look into the 'demos' directory of the SDK, and read the tutorials.
  */
 
+// Definition of the main module and sub-modules in the main Chrono library
+
+/**
+    @defgroup chrono Chrono::Engine
+    @brief Core Functionality
+    @{
+        @defgroup chrono_physics Physics objects
+        @defgroup chrono_geometry Geometric objects
+        @defgroup chrono_collision Collision objects
+        @defgroup chrono_assets Asset objects
+        @defgroup chrono_solver Solver
+        @defgroup chrono_timestepper Time integrators
+        @defgroup chrono_functions Function objects
+        @defgroup chrono_particles Particle factory
+        @defgroup chrono_serialization Serialization
+        @defgroup chrono_utils Utility classes
+    @}
+*/
+
 namespace chrono {}  // END_OF_NAMESPACE____
 
 #endif  // END of header

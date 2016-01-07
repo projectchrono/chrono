@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_suspension
+/// @{
+
+/// Solid axle suspension constructed with data from file.
 class CH_VEHICLE_API SolidAxle : public ChSolidAxle {
   public:
     SolidAxle(const std::string& filename);
@@ -95,6 +99,8 @@ class CH_VEHICLE_API SolidAxle : public ChSolidAxle {
 
     double m_springRestLength;
 };
+
+/// @} vehicle_wheeled_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

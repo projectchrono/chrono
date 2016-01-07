@@ -32,7 +32,9 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_steering
+/// @{
+
 /// Base class for a Pitman Arm steering subsystem.
 /// Derived from ChSteering, but still an abstract base class.
 ///
@@ -41,7 +43,6 @@ namespace vehicle {
 ///
 /// When attached to a chassis, both an offset and a rotation (as a quaternion)
 /// are provided.
-///
 class CH_VEHICLE_API ChPitmanArm : public ChSteering {
   public:
     ChPitmanArm(const std::string& name  ///< [in] name of the subsystem
@@ -137,6 +138,8 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
                                              const ChVector<>& pt_TI,
                                              double radius);
 };
+
+/// @} vehicle_wheeled_steering
 
 }  // end namespace vehicle
 }  // end namespace chrono

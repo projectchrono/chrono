@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_tire
+/// @{
+
+/// LuGre tire constructed with data from file (JSON format).
 class CH_VEHICLE_API LugreTire : public ChLugreTire {
   public:
     LugreTire(const std::string& filename);
@@ -52,6 +56,8 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
     double m_normalStiffness;
     double m_normalDamping;
 };
+
+/// @} vehicle_wheeled_tire
 
 }  // end namespace vehicle
 }  // end namespace chrono

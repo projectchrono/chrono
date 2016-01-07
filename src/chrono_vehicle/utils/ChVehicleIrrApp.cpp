@@ -210,7 +210,7 @@ void ChVehicleIrrApp::Advance(double step) {
     double t = 0;
     while (t < step) {
         double h = std::min<>(m_stepsize, step - t);
-        m_camera.Update(step);
+        m_camera.Update(h);
         t += h;
     }
 
@@ -416,6 +416,18 @@ void ChVehicleIrrApp::renderStats() {
     // Allow derived classes to display additional information (e.g. driveline)
 
     renderOtherStats(m_HUD_x, m_HUD_y + 180);
+}
+
+// -----------------------------------------------------------------------------
+// Create a snapshot of the last rendered frame and save it to the provided
+// file. The file extension determines the image format.
+// -----------------------------------------------------------------------------
+void ChVehicleIrrApp::WriteImageToFile(const std::string& filename) {
+    video::IImage* image = GetVideoDriver()->createScreenShot();
+    if (image) {
+        GetVideoDriver()->writeImageToFile(image, filename.c_str());
+        image->drop();
+    }
 }
 
 }  // end namespace vehicle

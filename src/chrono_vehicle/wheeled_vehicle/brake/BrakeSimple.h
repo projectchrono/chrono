@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_brake
+/// @{
+
+/// Vehicle simple brake model constructed with data from file (JSON format).
 class CH_VEHICLE_API BrakeSimple : public ChBrakeSimple {
   public:
     BrakeSimple(const std::string& filename);
@@ -40,6 +44,8 @@ class CH_VEHICLE_API BrakeSimple : public ChBrakeSimple {
 
     double m_maxtorque;
 };
+
+/// @} vehicle_wheeled_brake
 
 }  // end namespace vehicle
 }  // end namespace chrono

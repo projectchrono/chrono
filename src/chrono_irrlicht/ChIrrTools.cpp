@@ -74,12 +74,19 @@ class _draw_reporter_class : public chrono::ChReportContactCallback2 {
         chrono::ChVector<> v2;
         chrono::ChVector<> vn = mplanecoord.Get_A_Xaxis();
 
+        video::SColor mcol = video::SColor(200, 255, 0, 0);
+
         switch (drawtype) {
             case ChIrrTools::CONTACT_DISTANCES:
                 v2 = pB;
+                if (distance > 0.0)
+                    mcol = video::SColor(200, 20, 255, 0);  // green: non penetration
+                else
+                    mcol = video::SColor(200, 255, 60, 60);  // red: penetration
                 break;
             case ChIrrTools::CONTACT_NORMALS:
                 v2 = pA + vn * clen;
+                mcol = video::SColor(200, 0, 100, 255);
                 break;
             case ChIrrTools::CONTACT_FORCES_N:
                 v2 = pA + vn * clen * react_forces.x;
@@ -89,11 +96,7 @@ class _draw_reporter_class : public chrono::ChReportContactCallback2 {
                 break;
         }
 
-        video::SColor mcol;
-        if (distance > 0.0)
-            mcol = video::SColor(200, 20, 255, 0);  // green: non penetration
-        else
-            mcol = video::SColor(200, 255, 60, 60);  // red: penetration
+        
 
         this->cdriver->draw3DLine(core::vector3dfCH(v1), core::vector3dfCH(v2), mcol);
         return true;  // to continue scanning contacts

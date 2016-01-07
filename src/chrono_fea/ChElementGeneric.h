@@ -20,6 +20,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Class for all elements whose stiffness matrix can be seen
 /// as a NxN block-matrix to be splitted between N nodes.
 /// Helps reducing the complexity of inherited FEA elements because
@@ -27,7 +30,6 @@ namespace fea {
 /// This means that most FEA elements inherited from ChElementGeneric
 /// need to implement at most the following two fundamental methods:
 ///	ComputeKRMmatricesGlobal(), ComputeInternalForces()
-
 class ChApiFea ChElementGeneric : public ChElementBase {
   protected:
     ChLcpKblockGeneric Kmatr;
@@ -45,11 +47,20 @@ class ChApiFea ChElementGeneric : public ChElementBase {
 
     /// (This is a default (a bit unoptimal) book keeping so that in children classes you can avoid
     /// implementing this EleIntLoadResidual_F function, unless you need faster code)
-    virtual void EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c);
+    virtual void EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
 
     /// (This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid
     /// implementing this EleIntLoadResidual_Mv function, unless you need faster code.)
-    virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
+    virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) override;
+
+    //
+    // FEM functions
+    //
+
+    /// Returns the global mass matrix.
+    /// This is the default implementation, POTENTIALLY VERY INEFFICIENT.
+    /// Children classes may need to override this with a more efficient version.
+    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override { ComputeKRMmatricesGlobal(M, 0, 0, 1.0); }
 
     //
     // Functions for interfacing to the LCP solver
@@ -57,12 +68,12 @@ class ChApiFea ChElementGeneric : public ChElementBase {
 
     /// Tell to a system descriptor that there are item(s) of type
     /// ChLcpKblock in this object (for further passing it to a LCP solver)
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) { mdescriptor.InsertKblock(&Kmatr); }
+    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override { mdescriptor.InsertKblock(&Kmatr); }
 
     /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
     /// ChLcpKblock item(s), if any. The K, R, M matrices are load with scaling
     /// values Kfactor, Rfactor, Mfactor.
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override {
         this->ComputeKRMmatricesGlobal(*this->Kmatr.Get_K(), Kfactor, Rfactor, Mfactor);
     }
 
@@ -70,15 +81,17 @@ class ChApiFea ChElementGeneric : public ChElementBase {
     /// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
     /// (This is a default (a bit unoptimal) book keeping so that in children classes you can avoid
     /// implementing this VariablesFbLoadInternalForces function, unless you need faster code)
-    virtual void VariablesFbLoadInternalForces(double factor = 1.);
+    virtual void VariablesFbLoadInternalForces(double factor = 1.) override;
 
     /// Adds M*q (internal masses multiplied current 'qb') to Fb, ex. if qb is initialized
     /// with v_old using VariablesQbLoadSpeed, this method can be used in
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
     /// (This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid
     /// implementing this VariablesFbIncrementMq function, unless you need faster code.)
-    virtual void VariablesFbIncrementMq();
+    virtual void VariablesFbIncrementMq() override;
 };
+
+/// @} fea_elements
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

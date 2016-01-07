@@ -33,7 +33,8 @@ SET(ChronoEngine_CASCADE_HEADERS
 	ChCascadeMeshTools.h
 	ChCascadeDoc.h
 	ChIrrCascadeMeshTools.h
-	ChIrrCascade.h
+	ChCascadeShapeAsset.h
+	ChBodyEasyCascade.h
 	)
 		
 #-----------------------------------------------------------------------------	

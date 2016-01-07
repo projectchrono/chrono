@@ -207,7 +207,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
             // CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
 
             if (this->compliance) {
-                double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
+                double h = 1.0 / c;  // was: this->container->GetSystem()->GetStep(); note not all steppers have c = 1/h
 
                 double alpha = this->dampingf;              // [R]=alpha*[K]
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
@@ -218,7 +218,15 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
                 Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
                 Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
 
-                Qc(off_L) += c * inv_hpa * this->norm_dist;
+                double qc = inv_hpa * this->norm_dist; //***TODO*** see how to move this in KRMmatricesLoad() 
+
+                // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outgoing speed, but
+                // also the reaction, so it might allow more 'sinking'.
+                //if (do_clamp)
+                //    qc = ChMax(qc, -recovery_clamp);
+
+                Qc(off_L) += qc;
+
             } else {
                 if (do_clamp)
                     if (this->Nx.GetCohesion())

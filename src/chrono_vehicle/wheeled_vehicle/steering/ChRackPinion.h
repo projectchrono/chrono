@@ -32,7 +32,9 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_steering
+/// @{
+
 /// Base class for a Rack-Pinion steering subsystem.
 /// Derived from ChSteering, but still an abstract base class.
 ///
@@ -41,7 +43,6 @@ namespace vehicle {
 /// The steering link translates along the Y axis. We do not explicitly model the
 /// pinion but instead use the implied rack-pinion constraint to calculate the
 /// rack displacement from a given pinion rotation angle.
-///
 class CH_VEHICLE_API ChRackPinion : public ChSteering {
   public:
     /// Construct a rack-pinion steering mechanism with given base name.
@@ -97,6 +98,8 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
   private:
     void AddVisualizationSteeringLink();
 };
+
+/// @} vehicle_wheeled_steering
 
 }  // end namespace vehicle
 }  // end namespace chrono
