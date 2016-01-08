@@ -197,10 +197,6 @@ int main(int argc, char* argv[]) {
         my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetPos_dt(ChVector<>(0 , 0, tire_vel_z0) +  tang_vel);
     }
 
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
@@ -301,9 +297,16 @@ int main(int argc, char* argv[]) {
     // Use shadows in realtime view
     application.AddShadowAll();
 
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
+
+
     //
     // THE SOFT-REAL-TIME CYCLE
     //
+
+
 
     
         // Change solver to embedded MINRES
