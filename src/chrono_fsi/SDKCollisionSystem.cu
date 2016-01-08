@@ -725,19 +725,21 @@ __global__ void collideD(Real4* sortedDerivVelRho_fsi_D,  // output: new velocit
 	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
 
 
-	if (rhoPreMuA.w > -.1) {
-		int bceIndex = gridMarkerIndex[index] - (numObjectsD.numFluidMarkers);
-		if (!(bceIndex >= 0 && bceIndex < numObjectsD.numBoundaryMarkers + numObjectsD.numRigid_SphMarkers)) {
-			printf("Error! bceIndex out of bound, collideD !\n");
-			*isErrorD = true;
-		}
-		rhoPreMuA = rhoPreMu_ModifiedBCE[bceIndex];
-		velMasA = velMas_ModifiedBCE[bceIndex];
-	}
+	// *** comment these couple of lines since we don't want the force on the rigid (or boundary) be influenced by ADAMi
+	// *** method since it would cause large forces. ADAMI method is used only to calculate forces on the fluid markers (A)
+	// *** near the boundary or rigid (B).
+//	if (rhoPreMuA.w > -.1) {
+//		int bceIndex = gridMarkerIndex[index] - (numObjectsD.numFluidMarkers);
+//		if (!(bceIndex >= 0 && bceIndex < numObjectsD.numBoundaryMarkers + numObjectsD.numRigid_SphMarkers)) {
+//			printf("Error! bceIndex out of bound, collideD !\n");
+//			*isErrorD = true;
+//		}
+//		rhoPreMuA = rhoPreMu_ModifiedBCE[bceIndex];
+//		velMasA = velMas_ModifiedBCE[bceIndex];
+//	}
 
 //	uint originalIndex = gridMarkerIndex[index];
-	Real3 vel_XSPH_A = FETCH(vel_XSPH_Sorted_D, index);
-
+	Real3 vel_XSPH_A = vel_XSPH_Sorted_D[index];
 	Real4 derivVelRho = sortedDerivVelRho_fsi_D[index];
 
 	// get address in grid
