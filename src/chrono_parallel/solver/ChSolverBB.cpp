@@ -76,7 +76,7 @@ uint ChSolverBB::SolveBB(const uint max_iter,
     ml_candidate = ml = gamma;
     ShurProduct(ml, temp);
     mg = temp - r;
-    //mg_p = mg;
+    // mg_p = mg;
     f_hist.resize(0);
     f_hist.reserve(max_iter * max_armijo_backtrace);
     for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
@@ -86,7 +86,7 @@ uint ChSolverBB::SolveBB(const uint max_iter,
 
         real dTg = (mdir, mg);
         real lambda = 1.0;
-        for (int n_backtracks=0; n_backtracks<max_armijo_backtrace; n_backtracks++) {
+        for (int n_backtracks = 0; n_backtracks < max_armijo_backtrace; n_backtracks++) {
             ml_p = ml + lambda * mdir;
 
             ShurProduct(ml_p, temp);
@@ -98,12 +98,12 @@ uint ChSolverBB::SolveBB(const uint max_iter,
             real max_compare = 10e29;
             for (int h = 1; h <= Min(current_iteration, n_armijo); h++) {
                 real compare = f_hist[current_iteration - h] + gmma * lambda * dTg;
-                if (compare > max_compare){
+                if (compare > max_compare) {
                     max_compare = compare;
                 }
             }
             if (mf_p > max_compare) {
-                if (current_iteration > 0){
+                if (current_iteration > 0) {
                     mf = f_hist[current_iteration - 1];
                 }
                 real lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));

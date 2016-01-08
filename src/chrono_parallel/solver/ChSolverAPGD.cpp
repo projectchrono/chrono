@@ -107,7 +107,6 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
         } else {
             L = 1.0;
         }
-
     }
 
     t = 1.0 / L;

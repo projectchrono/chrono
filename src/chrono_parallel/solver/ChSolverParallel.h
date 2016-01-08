@@ -120,6 +120,5 @@ class CH_PARALLEL_API ChSolverParallel {
     ChParallelDataManager* data_manager;
 
     DynamicVector<real> v, v_hat, w, w_old, xMR, v_old, Av, w_oold;
-
 };
 }
