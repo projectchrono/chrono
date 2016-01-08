@@ -24,6 +24,8 @@
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChBuilderBeam.h"
@@ -75,8 +77,8 @@ int main(int argc, char* argv[]) {
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
     mysurfmaterial->SetYoungModulus(6e4);
-    mysurfmaterial->SetFriction(0.3);
-    mysurfmaterial->SetRestitution(0.2);
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0); 
 
     // Create a floor:
@@ -206,9 +208,9 @@ int main(int argc, char* argv[]) {
 
 
     // Create the contact surface(s). 
-    // In this case it is a ChContactSurfaceGeneric, that allows mesh-mesh collsions.
+    // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
 
-    ChSharedPtr<ChContactSurfaceGeneric> mcontactsurf (new ChContactSurfaceGeneric);
+    ChSharedPtr<ChContactSurfaceMesh> mcontactsurf (new ChContactSurfaceMesh);
     my_mesh->AddContactSurface(mcontactsurf);
 
     mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness); // do this after my_mesh->AddContactSurface

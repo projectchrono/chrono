@@ -25,6 +25,8 @@
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_mkl/ChLcpMklSolver.h"
@@ -315,14 +317,14 @@ int main(int argc, char* argv[]) {
     my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);  
 
-/*   
+   
         // Change solver to pluggable MKL
     ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
     ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     application.GetSystem()->Update();
-*/ 
+
 
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
