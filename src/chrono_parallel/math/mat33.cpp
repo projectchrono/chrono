@@ -386,11 +386,11 @@ real Determinant(const Mat33& m) {
 
 Mat33 Inverse(const Mat33& A) {
     real s = Determinant(A);
-    // if (s > 0.0) {
+     if (s > 0.0) {
     return Adjoint(A) * real(1.0 / s);
-    //} else {
-    //    return Mat33(0);
-    //}
+    } else {
+        return Mat33(0);
+    }
 }
 
 // Same as inverse but we store it transposed
