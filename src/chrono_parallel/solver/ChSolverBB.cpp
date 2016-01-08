@@ -25,15 +25,25 @@ void ChSolverBB::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
+// Tuning of the spectral gradient search
+const real a_min = 1e-13;
+const real a_max = 1e13;
+const real sigma_min = 0.1;
+const real sigma_max = 0.9;
+
+const real gmma = 1e-4;
+const real neg_BB1_fallback = 0.11;
+const real neg_BB2_fallback = 0.12;
+const int n_armijo = 10;
+const int max_armijo_backtrace = 3;
+
 uint ChSolverBB::SolveBB(const uint max_iter,
                          const uint size,
                          const DynamicVector<real>& r,
                          DynamicVector<real>& gamma) {
     real& lastgoodres = data_manager->measures.solver.residual;
+    lastgoodres = 10e30;
     real& objective_value = data_manager->measures.solver.objective_value;
-
-    // ChTimer<> t1, t2, t3, t4;
-    // t1.start();
 
     temp.resize(size);
     ml.resize(size);
@@ -44,23 +54,6 @@ uint ChSolverBB::SolveBB(const uint max_iter,
     my.resize(size);
     mdir.resize(size);
     ml_p.resize(size);
-
-    temp = 0;
-    ml = 0;
-    mg = 0;
-    mg_p = 0;
-    ml_candidate = 0;
-    ms = 0;
-    my = 0;
-    mdir = 0;
-    ml_p = 0;
-
-    // Tuning of the spectral gradient search
-    real a_min = 1e-13;
-    real a_max = 1e13;
-    real sigma_min = 0.1;
-    real sigma_max = 0.9;
-
     real alpha = 0.0001;
     if (data_manager->settings.solver.cache_step_length == true) {
         if (data_manager->settings.solver.solver_mode == NORMAL) {
@@ -77,39 +70,23 @@ uint ChSolverBB::SolveBB(const uint max_iter,
     } else {
         alpha = 0.0001;
     }
-    real gmma = 1e-4;
     real gdiff = 1.0 / pow(size, 2.0);
-    bool do_preconditioning = false;
-    real neg_BB1_fallback = 0.11;
-    real neg_BB2_fallback = 0.12;
-    ml = gamma;
-    lastgoodres = 10e30;
-    real lastgoodfval = 10e30;
-    ml_candidate = ml;
-    ShurProduct(ml, temp);
-    mg = temp - r;
-    mg_p = mg;
-
     real mf_p = 0;
     real mf = 1e29;
-    int n_armijo = 10;
-    int max_armijo_backtrace = 3;
-    std::vector<real> f_hist;
-    // t1.stop();
-
+    ml_candidate = ml = gamma;
+    ShurProduct(ml, temp);
+    mg = temp - r;
+    //mg_p = mg;
+    f_hist.resize(0);
+    f_hist.reserve(max_iter * max_armijo_backtrace);
     for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-        // t2.start();
         temp = (ml - alpha * mg);
         Project(temp.data());
         mdir = temp - ml;
 
         real dTg = (mdir, mg);
         real lambda = 1.0;
-        int n_backtracks = 0;
-        bool armijo_repeat = true;
-        // t2.stop();
-        // t3.start();
-        while (armijo_repeat) {
+        for (int n_backtracks=0; n_backtracks<max_armijo_backtrace; n_backtracks++) {
             ml_p = ml + lambda * mdir;
 
             ShurProduct(ml_p, temp);
@@ -121,30 +98,25 @@ uint ChSolverBB::SolveBB(const uint max_iter,
             real max_compare = 10e29;
             for (int h = 1; h <= Min(current_iteration, n_armijo); h++) {
                 real compare = f_hist[current_iteration - h] + gmma * lambda * dTg;
-                if (compare > max_compare)
+                if (compare > max_compare){
                     max_compare = compare;
+                }
             }
             if (mf_p > max_compare) {
-                armijo_repeat = true;
-                if (current_iteration > 0)
+                if (current_iteration > 0){
                     mf = f_hist[current_iteration - 1];
+                }
                 real lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
                 lambda = Max(sigma_min * lambda, Min(sigma_max * lambda, lambdanew));
                 printf("Repeat Armijo, new lambda = %f \n", lambda);
             } else {
-                armijo_repeat = false;
+                break;
             }
-            n_backtracks = n_backtracks + 1;
-            if (n_backtracks > max_armijo_backtrace)
-                armijo_repeat = false;
         }
-        // t3.stop();
-        // t4.start();
         ms = ml_p - ml;
         my = mg_p - mg;
         ml = ml_p;
         mg = mg_p;
-
         if (current_iteration % 2 == 0) {
             real sDs = (ms, ms);
             real sy = (ms, my);
@@ -173,9 +145,7 @@ uint ChSolverBB::SolveBB(const uint max_iter,
         }
         objective_value = mf_p;
         AtIterationEnd(lastgoodres, objective_value);
-        // t4.stop();
     }
-    // printf("TIME: [%f %f %f %f]\n", t1(), t2(), t3(), t4());
     if (data_manager->settings.solver.solver_mode == NORMAL) {
         data_manager->measures.solver.normal_apgd_step_length = alpha;
     } else if (data_manager->settings.solver.solver_mode == SLIDING) {
