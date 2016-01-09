@@ -43,6 +43,7 @@ SET(ChronoEngine_FEA_SOURCES
 	ChContactSurfaceNodeCloud.cpp
 	ChContactSurfaceMesh.cpp
 	ChMeshSurface.cpp
+	ChLoadContactSurfaceMesh.h
 )
 
 SET(ChronoEngine_FEA_HEADERS
@@ -94,6 +95,7 @@ SET(ChronoEngine_FEA_HEADERS
 	ChContactSurfaceMesh.h
 	ChMeshSurface.h
     ChUtilsFEA.h
+	ChLoadContactSurfaceMesh.h
 )
 
 SOURCE_GROUP("" FILES 
