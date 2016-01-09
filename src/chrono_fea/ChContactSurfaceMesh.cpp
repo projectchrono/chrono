@@ -36,7 +36,12 @@ namespace fea
 //////////////////////////////////////////////////////////////////////////////
 ////  ChContactTriangleXYZ
 
-ChContactTriangleXYZ::ChContactTriangleXYZ(ChNodeFEAxyz* n1, ChNodeFEAxyz* n2, ChNodeFEAxyz* n3, ChContactSurface* acontainer) {
+ChContactTriangleXYZ::ChContactTriangleXYZ() {
+        this->collision_model = new collision::ChModelBullet;
+        this->collision_model->SetContactable(this);
+}
+
+ChContactTriangleXYZ::ChContactTriangleXYZ(ChSharedPtr<ChNodeFEAxyz> n1, ChSharedPtr<ChNodeFEAxyz> n2, ChSharedPtr<ChNodeFEAxyz> n3, ChContactSurface* acontainer) {
         mnode1 = n1;
         mnode1 = n2;
         mnode1 = n3;
@@ -65,6 +70,7 @@ ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem()
 void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
     
     std::vector< std::array<ChNodeFEAxyz*,3> > triangles;
+    std::vector< std::array<ChSharedPtr<ChNodeFEAxyz>,3> > triangles_ptrs;
 
     ///
     /// Case1. Outer skin boundary of meshes of TETRAHEDRONS:
@@ -91,6 +97,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
                 if (face_map.count(mface_key) == 1) {  
                     // Found a face that is not shared.. so it is a boundary face. 
                     triangles.push_back( {mface.GetNodeN(0).get_ptr(), mface.GetNodeN(1).get_ptr(), mface.GetNodeN(2).get_ptr()} );
+                    triangles_ptrs.push_back( {mface.GetNodeN(0), mface.GetNodeN(1), mface.GetNodeN(2)} );
                 }
             }
         }
@@ -101,14 +108,18 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
     ///
     for (unsigned int ie= 0; ie< this->mmesh->GetNelements(); ++ie) {
         if (ChSharedPtr<ChElementShellANCF> mshell = mmesh->GetElement(ie).DynamicCastTo<ChElementShellANCF>()) {
-            ChNodeFEAxyz* nA = mshell->GetNodeA().get_ptr();
-            ChNodeFEAxyz* nB = mshell->GetNodeB().get_ptr();
-            ChNodeFEAxyz* nC = mshell->GetNodeC().get_ptr();
-            ChNodeFEAxyz* nD = mshell->GetNodeD().get_ptr();
-            std::array<ChNodeFEAxyz*,3> tri1 = {nA,nB,nC};
-            std::array<ChNodeFEAxyz*,3> tri2 = {nA,nC,nD};
+            ChSharedPtr<ChNodeFEAxyz> nA = mshell->GetNodeA();
+            ChSharedPtr<ChNodeFEAxyz> nB = mshell->GetNodeB();
+            ChSharedPtr<ChNodeFEAxyz> nC = mshell->GetNodeC();
+            ChSharedPtr<ChNodeFEAxyz> nD = mshell->GetNodeD();
+            std::array<ChNodeFEAxyz*,3> tri1 = {nA.get_ptr(),nB.get_ptr(),nC.get_ptr()};
+            std::array<ChNodeFEAxyz*,3> tri2 = {nA.get_ptr(),nC.get_ptr(),nD.get_ptr()};
+            std::array<ChSharedPtr<ChNodeFEAxyz>,3> tri1_ptrs = {nA,nB,nC};
+            std::array<ChSharedPtr<ChNodeFEAxyz>,3> tri2_ptrs = {nA,nC,nD};
             triangles.push_back( tri1 );
             triangles.push_back( tri2 );
+            triangles_ptrs.push_back( tri1_ptrs );
+            triangles_ptrs.push_back( tri2_ptrs );
         }
     }
 
@@ -259,9 +270,9 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
         }
 
         ChSharedPtr<ChContactTriangleXYZ> contact_triangle (new ChContactTriangleXYZ);
-        contact_triangle->SetNode1(triangles[it][0]);
-        contact_triangle->SetNode2(triangles[it][1]);
-        contact_triangle->SetNode3(triangles[it][2]);
+        contact_triangle->SetNode1(triangles_ptrs[it][0]);
+        contact_triangle->SetNode2(triangles_ptrs[it][1]);
+        contact_triangle->SetNode3(triangles_ptrs[it][2]);
         this->vfaces.push_back(contact_triangle);
         contact_triangle->SetContactSurface(this);
 

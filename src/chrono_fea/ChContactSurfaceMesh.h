@@ -38,7 +38,8 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3>,
 
 public:
 
-    ChContactTriangleXYZ(ChNodeFEAxyz* n1 = 0, ChNodeFEAxyz* n2 = 0, ChNodeFEAxyz* n3 = 0, ChContactSurface* acontainer = 0);
+    ChContactTriangleXYZ();
+    ChContactTriangleXYZ(ChSharedPtr<ChNodeFEAxyz> n1, ChSharedPtr<ChNodeFEAxyz> n2, ChSharedPtr<ChNodeFEAxyz> n3, ChContactSurface* acontainer = 0);
 
     virtual ~ChContactTriangleXYZ(){ delete collision_model;}
    
@@ -50,18 +51,18 @@ public:
     //
 
         /// Access the FEA node to whom this is a proxy as triangle vertex
-    ChNodeFEAxyz* GetNode1() {return mnode1;} 
+    ChSharedPtr<ChNodeFEAxyz> GetNode1() {return mnode1;} 
         /// Access the FEA node to whom this is a proxy as triangle vertex
-    ChNodeFEAxyz* GetNode2() {return mnode2;} 
+    ChSharedPtr<ChNodeFEAxyz> GetNode2() {return mnode2;} 
         /// Access the FEA node to whom this is a proxy as triangle vertex
-    ChNodeFEAxyz* GetNode3() {return mnode3;} 
+    ChSharedPtr<ChNodeFEAxyz> GetNode3() {return mnode3;} 
 
         /// Set the FEA node to whom this is a proxy
-    void SetNode1(ChNodeFEAxyz* mn) {mnode1 = mn;} 
+    void SetNode1(ChSharedPtr<ChNodeFEAxyz> mn) {mnode1 = mn;} 
         /// Set the FEA node to whom this is a proxy
-    void SetNode2(ChNodeFEAxyz* mn) {mnode2 = mn;} 
+    void SetNode2(ChSharedPtr<ChNodeFEAxyz> mn) {mnode2 = mn;} 
         /// Set the FEA node to whom this is a proxy
-    void SetNode3(ChNodeFEAxyz* mn) {mnode3 = mn;} 
+    void SetNode3(ChSharedPtr<ChNodeFEAxyz> mn) {mnode3 = mn;} 
 
         /// Get the contact surface container
     ChContactSurface* GetContactSurface() const {return container;}
@@ -147,9 +148,9 @@ private:
 private:
     collision::ChCollisionModel* collision_model;
 
-    ChNodeFEAxyz* mnode1;
-    ChNodeFEAxyz* mnode2;
-    ChNodeFEAxyz* mnode3;
+    ChSharedPtr<ChNodeFEAxyz> mnode1;
+    ChSharedPtr<ChNodeFEAxyz> mnode2;
+    ChSharedPtr<ChNodeFEAxyz> mnode3;
 
     ChContactSurface* container;
 };
