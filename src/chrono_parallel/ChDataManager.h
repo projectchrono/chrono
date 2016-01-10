@@ -83,60 +83,76 @@ typedef blaze::DenseSubvector<const DynamicVector<real> > ConstSubVectorType;
 // 2*_num_rf_c_
 //_num_fluid_
 // 3*_num_fluid_
+#define _D_ data_manager->host_data.D
+#define _M_invD_ data_manager->host_data.M_invD
+#define _D_T_ data_manager->host_data.D_T
+#define _E_ data_manager->host_data.E
+#define _gamma_ data_manager->host_data.gamma
 
-#define _num_uni_ data_manager->num_unilaterals
-#define _DN_ submatrix(data_manager->host_data.D, 0, 0, _num_rigid_dof_, 1 * _num_r_c_)
-#define _DT_ submatrix(data_manager->host_data.D, 0, _num_r_c_, _num_rigid_dof_, 2 * _num_r_c_)
-#define _DS_ submatrix(data_manager->host_data.D, 0, 3 * _num_r_c_, _num_rigid_dof_, 3 * _num_r_c_)
+#define _DN_ submatrix(_D_, 0, 0, _num_rigid_dof_, 1 * _num_r_c_)
+#define _DT_ submatrix(_D_, 0, _num_r_c_, _num_rigid_dof_, 2 * _num_r_c_)
+#define _DS_ submatrix(_D_, 0, 3 * _num_r_c_, _num_rigid_dof_, 3 * _num_r_c_)
 // D Bilateral
-#define _DB_ submatrix(data_manager->host_data.D, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_, _num_bil_)
+#define _DB_ submatrix(_D_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_, _num_bil_)
 // D Rigid Fluid
-#define _DRFN_ submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
-#define _DRFT_ submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
+#define _DRFN_ submatrix(_D_, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
+#define _DRFT_ submatrix(_D_, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
 // D fluid fluid density
-#define _DFFD_                                                                                                      \
-    submatrix(data_manager->host_data.D, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, \
-              _num_fluid_dof_, _num_fluid_)
+#define _DFFD_ submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_dof_, _num_fluid_)
 // D fluid fluid viscosity
-#define _DFFV_                                                              \
-    submatrix(data_manager->host_data.D, _num_rigid_dof_ + _num_shaft_dof_, \
-              _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_fluid_dof_, 3 * _num_fluid_)
+#define _DFFV_ submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_fluid_dof_, 3 * _num_fluid_)
 //======
-#define _MINVDN_ submatrix(data_manager->host_data.M_invD, 0, 0, _num_rigid_dof_, 1 * _num_r_c_)
-#define _MINVDT_ submatrix(data_manager->host_data.M_invD, 0, _num_r_c_, _num_rigid_dof_, 2 * _num_r_c_)
-#define _MINVDS_ submatrix(data_manager->host_data.M_invD, 0, 3 * _num_r_c_, _num_rigid_dof_, 3 * _num_r_c_)
+#define _MINVDN_ submatrix(_M_invD_, 0, 0, _num_rigid_dof_, 1 * _num_r_c_)
+#define _MINVDT_ submatrix(_M_invD_, 0, _num_r_c_, _num_rigid_dof_, 2 * _num_r_c_)
+#define _MINVDS_ submatrix(_M_invD_, 0, 3 * _num_r_c_, _num_rigid_dof_, 3 * _num_r_c_)
 // Bilateral
-#define _MINVDB_ submatrix(data_manager->host_data.M_invD, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_, _num_bil_)
+#define _MINVDB_ submatrix(_M_invD_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_, _num_bil_)
 // Rigid Fluid
-#define _MINVDRFN_ submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
-#define _MINVDRFT_ \
-    submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
+#define _MINVDRFN_ submatrix(_M_invD_, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
+#define _MINVDRFT_ submatrix(_M_invD_, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
 // Density
-#define _MINVDFFD_                                                                                                  \
-    submatrix(data_manager->host_data.D, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, \
-              _num_fluid_dof_, _num_fluid_)
+#define _MINVDFFD_ submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_dof_, _num_fluid_)
 // Viscosity
-#define _MINVDFFV_                                                          \
-    submatrix(data_manager->host_data.D, _num_rigid_dof_ + _num_shaft_dof_, \
-              _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_fluid_dof_, 3 * _num_fluid_)
+#define _MINVDFFV_ submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_fluid_dof_, 3 * _num_fluid_)
 //======
-#define _DNT_ submatrix(data_manager->host_data.D_T, 0, 0, _num_r_c_, _num_rigid_dof_)
-#define _DTT_ submatrix(data_manager->host_data.D_T, _num_r_c_, 0, 2 * _num_r_c_, _num_rigid_dof_)
-#define _DST_ submatrix(data_manager->host_data.D_T, 3 * _num_r_c_, 0, 3 * _num_r_c_, _num_rigid_dof_)
+#define _DNT_ submatrix(_D_T_, 0, 0, _num_r_c_, _num_rigid_dof_)
+#define _DTT_ submatrix(_D_T_, _num_r_c_, 0, 2 * _num_r_c_, _num_rigid_dof_)
+#define _DST_ submatrix(_D_T_, 3 * _num_r_c_, 0, 3 * _num_r_c_, _num_rigid_dof_)
 // Bilateral
-#define _DBT_ submatrix(data_manager->host_data.D_T, _num_uni_, 0, _num_bil_, _num_rigid_dof_ + _num_shaft_dof_)
+#define _DBT_ submatrix(_D_T_, _num_uni_, 0, _num_bil_, _num_rigid_dof_ + _num_shaft_dof_)
 // Rigid Fluid
-#define _DRFNT_ submatrix(data_manager->host_data.D_T, _num_uni_ + _num_bil_, 0, _num_rf_c_, _num_dof_)
-#define _DRFTT_ submatrix(data_manager->host_data.D_T, _num_uni_ + _num_bil_ + _num_rf_c_, 0, 2 * _num_rf_c_, _num_dof_)
+#define _DRFNT_ submatrix(_D_T_, _num_uni_ + _num_bil_, 0, _num_rf_c_, _num_dof_)
+#define _DRFTT_ submatrix(_D_T_, _num_uni_ + _num_bil_ + _num_rf_c_, 0, 2 * _num_rf_c_, _num_dof_)
 // Density
-#define _DFFDT_                                                                                                       \
-    submatrix(data_manager->host_data.D_T, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_rigid_dof_ + _num_shaft_dof_, \
-              _num_fluid_, _num_fluid_dof_)
+#define _DFFDT_ submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_rigid_dof_ + _num_shaft_dof_, _num_fluid_, _num_fluid_dof_)
 // Viscosity
-#define _DFFVT_                                                                                  \
-    submatrix(data_manager->host_data.D_T, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, \
-              _num_rigid_dof_ + _num_shaft_dof_, 3 * _num_fluid_, _num_fluid_dof_)
+#define _DFFVT_ submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_rigid_dof_ + _num_shaft_dof_, 3 * _num_fluid_, _num_fluid_dof_)
 //======
+#define _EN_ subvector(_E_, 0, _num_r_c_)
+#define _ET_ subvector(_E_, _num_r_c_, 2 * _num_r_c_)
+#define _ES_ subvector(_E_, 3 * _num_r_c_, 3 * _num_r_c_)
+// Bilateral
+#define _EB_ subvector(_E_, _num_uni_,  _num_bil_)
+// Rigid Fluid
+#define _ERFN_ subvector(_E_, _num_uni_ + _num_bil_, _num_rf_c_)
+#define _ERFT_ subvector(_E_, _num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_)
+// Density
+#define _EFFD_ subvector(_E_,  _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_)
+// Viscosity
+#define _EFFV_ subvector(_E_,  _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_,  3 * _num_fluid_)
+////======
+//#define _GAMMAN_ subvector(_gamma_, 0, _num_r_c_)
+//#define _GAMMAT_ submatrix(_gamma_, _num_r_c_, 2 * _num_r_c_)
+//#define _GAMMAS_ submatrix(_gamma_, 3 * _num_r_c_, 3 * _num_r_c_)
+//// Bilateral
+//#define _GAMMAB_ submatrix(_gamma_, _num_uni_,  _num_bil_)
+//// Rigid Fluid
+//#define _GAMMARFN_ submatrix(_gamma_, _num_uni_ + _num_bil_ _num_rf_c_)
+//#define _GAMMARFT_ submatrix(_gamma_, _num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_)
+//// Density
+//#define _GAMMAFFD_ submatrix(_gamma_,  _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_)
+//// Viscosity
+//#define _GAMMAFFV_ submatrix(_gamma_,  _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_,  3 * _num_fluid_)
 // The maximum number of shear history contacts per smaller body (DEM)
 #define max_shear 20
 
