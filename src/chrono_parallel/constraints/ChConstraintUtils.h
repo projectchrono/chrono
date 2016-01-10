@@ -55,6 +55,10 @@ static void inline AppendRow6(T& D, const int row, const int col, const real ini
 
 template <typename T>
 static void inline SetRow3Check(T& D, const int row, const int col, const real3& A) {
+	assert(D.find( row, col + 0)!=D.end(row));
+	assert(D.find( row, col + 1)!=D.end(row));
+	assert(D.find( row, col + 2)!=D.end(row));
+
     if (A.x != 0.0) {
         D.set(row, col + 0, A.x);
     }
@@ -67,7 +71,14 @@ static void inline SetRow3Check(T& D, const int row, const int col, const real3&
 }
 template <typename T>
 static void inline SetRow6Check(T& D, const int row, const int col, const real3& A, const real3& B) {
-    if (A.x != 0.0) {
+	assert(D.find( row, col + 0)!=D.end(row));
+	assert(D.find( row, col + 1)!=D.end(row));
+	assert(D.find( row, col + 2)!=D.end(row));
+	assert(D.find( row, col + 3)!=D.end(row));
+	assert(D.find( row, col + 4)!=D.end(row));
+	assert(D.find( row, col + 5)!=D.end(row));
+
+	if (A.x != 0.0) {
         D.set(row, col + 0, A.x);
     }
     if (A.y != 0.0) {
