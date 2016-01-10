@@ -18,6 +18,7 @@ SET(FEA_DEMOS_IRR
     demo_FEAcables
     demo_FEAancfShell
     demo_FEAbrick
+	demo_FEAcosimulate_load
 )
 
 # List all FEA demos that use both Irrlicht and Matlab
