@@ -30,8 +30,6 @@
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_mkl/ChLcpMklSolver.h"
-#include "chrono_matlab/ChMatlabEngine.h"
-#include "chrono_matlab/ChLcpMatlabSolver.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 
