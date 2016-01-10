@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
 
     try {
-        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel.INP").c_str(), mmaterial, node_sets, tire_center, tire_alignment);
+        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial, node_sets, tire_center, tire_alignment);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
