@@ -62,7 +62,7 @@ public:
 
 class ChLoadXYZnode : public ChLoad<ChLoaderXYZnode> {
 public:
-    ChLoadXYZnode(ChSharedPtr<ChLoadableU> mloadable) 
+    ChLoadXYZnode(ChSharedPtr<ChNodeFEAxyz> mloadable) 
         : ChLoad<ChLoaderXYZnode>(mloadable)
     {}
 };
@@ -74,6 +74,9 @@ public:
 /// It is useful for doing cosimulation: one can pass this object's vertex & faces
 /// to an external software (ex. CFD) that in turn will perform collision detection 
 /// with its entities, compute forces, send forces back to Chrono via this object.
+/// Note, this is based on a cluster of  std::vector< ChSharedPtr<ChLoadXYZnode> >, but
+/// the class itself could bypass all methods of ChLoadXYZnode and directly implement
+/// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactical reasons.
 
 class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
 
@@ -233,10 +236,14 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
          // simple.. field is x y z, hardcoded return val:
     virtual int LoadGet_field_ncoords() { return 3;}
 
-        /// Compute Q, the generalized load. Not needed.
+        /// Compute Q, the generalized load. 
     virtual void ComputeQ(ChState*      state_x, ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
-                          ) {}
+                          ) {
+        for (int i= 0; i<forces.size(); ++i) {
+            forces[i]->ComputeQ(state_x, state_w);
+        }
+    };
 
         /// Compute jacobians. 
         /// Not needed when forces are constant, btw.
