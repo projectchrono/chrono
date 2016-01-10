@@ -643,7 +643,7 @@ void ChIrrTools::drawSegment(video::IVideoDriver* driver,
 // Draw a polyline in 3D space, given the array of points as a std::vector.
 // -----------------------------------------------------------------------------
 void ChIrrTools::drawPolyline(video::IVideoDriver* driver,
-                              std::vector<chrono::ChVector<> > mpoints,
+                              std::vector<chrono::ChVector<> >& mpoints,
                               video::SColor mcol,
                               bool use_Zbuffer) {
     // not very efficient, but enough as an example..

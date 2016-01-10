@@ -172,7 +172,7 @@ class ChApiIrr ChIrrTools {
     /// Easy-to-use function to draw a polyline in 3D space, given the array of
     /// points as a std::vector.
     static void drawPolyline(video::IVideoDriver* driver,
-                             std::vector<chrono::ChVector<> > mpoints,
+                             std::vector<chrono::ChVector<> >& mpoints,
                              video::SColor mcol = video::SColor(255, 0, 0, 0),
                              bool use_Zbuffer = false);
 
