@@ -11,15 +11,15 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
-using namespace geometry;
+using namespace chrono::geometry;
+using namespace chrono::irrlicht;
 
 using namespace irr;
-
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
+using namespace irr::core;
+using namespace irr::scene;
+using namespace irr::video;
+using namespace irr::io;
+using namespace irr::gui;
 
 // -----------------------------------------------------------------------------
 ChSharedPtr<geometry::ChLinePath> CreateProfile(int num_teeth, double R_T, double R_C, double R)
