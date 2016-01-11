@@ -144,6 +144,12 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual double getLLMass() const = 0;
     /// Return the mass of the knuckle body.
     virtual double getKnuckleMass() const = 0;
+    /// Return the mass of the tierod body.
+    virtual double getTierodMass() const = 0;
+    /// Return the mass of the draglink body.
+    virtual double getDraglinkMass() const = 0;
+    /// Return the mass of the bell crank body.
+    virtual double getBellCrankMass() const = 0;
 
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const = 0;
@@ -157,6 +163,12 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual double getLLRadius() const = 0;
     /// Return the radius of the knuckle body (visualization only).
     virtual double getKnuckleRadius() const = 0;
+    /// Return the radius of the tierod body (visualization only).
+    virtual double getTierodRadius() const = 0;
+    /// Return the radius of the draglink body (visualization only).
+    virtual double getDraglinkRadius() const = 0;
+    /// Return the radius of the bell crank body (visualization only).
+    virtual double getBellCrankRadius() const = 0;
 
     /// Return the moments of inertia of the axle tube body.
     virtual const ChVector<>& getAxleTubeInertia() const = 0;
@@ -168,6 +180,12 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual const ChVector<>& getLLInertia() const = 0;
     /// Return the moments of inertia of the knuckle body.
     virtual const ChVector<>& getKnuckleInertia() const = 0;
+    /// Return the moments of inertia of the tierod body.
+    virtual const ChVector<>& getTierodInertia() const = 0;
+    /// Return the moments of inertia of the draglink body.
+    virtual const ChVector<>& getDraglinkInertia() const = 0;
+    /// Return the moments of inertia of the bell crank body.
+    virtual const ChVector<>& getBellCrankInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;

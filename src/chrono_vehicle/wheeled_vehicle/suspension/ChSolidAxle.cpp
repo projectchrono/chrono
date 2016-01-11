@@ -107,9 +107,9 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     m_tierod->SetNameString(m_name + "_tierodBody");
     m_tierod->SetPos((tierodOuterL + tierodOuterR) / 2);
     m_tierod->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
-    m_tierod->SetMass(getAxleTubeMass()); //TODO: Add entry for tierod version of this
-    m_tierod->SetInertiaXX(getAxleTubeInertia()); //TODO: Add entry for tierod version of this
-    AddVisualizationLink(m_tierod, tierodOuterL, tierodOuterR, 0.1*getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f)); //TODO: Add entry for tierod version of this
+    m_tierod->SetMass(getTierodMass());
+    m_tierod->SetInertiaXX(getTierodInertia());
+    AddVisualizationLink(m_tierod, tierodOuterL, tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
     chassis->GetSystem()->AddBody(m_tierod);
 
     // Transform all points and directions on right and left sides to absolute frame
@@ -297,9 +297,9 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
       m_draglink->SetNameString(m_name + "_draglink");
       m_draglink->SetPos((points[DRAGLINK_C] + points[BELLCRANK_DRAGLINK]) / 2);
       m_draglink->SetRot(rot.Get_A_quaternion());
-      m_draglink->SetMass(getAxleTubeMass()); //TODO: Add entry for draglink version of this
-      m_draglink->SetInertiaXX(getAxleTubeInertia()); //TODO: Add entry for draglink version of this
-      AddVisualizationLink(m_draglink, points[DRAGLINK_C], points[BELLCRANK_DRAGLINK], 0.1*getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f)); //TODO: Add entry for draglink version of this
+      m_draglink->SetMass(getDraglinkMass());
+      m_draglink->SetInertiaXX(getDraglinkInertia());
+      AddVisualizationLink(m_draglink, points[DRAGLINK_C], points[BELLCRANK_DRAGLINK], getDraglinkRadius(), ChColor(0.7f, 0.7f, 0.7f));
       chassis->GetSystem()->AddBody(m_draglink);
 
       // Create and initialize the spherical joint between steering mechanism and draglink.
@@ -313,9 +313,9 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
       m_bellCrank->SetNameString(m_name + "_bellCrank");
       m_bellCrank->SetPos((points[BELLCRANK_DRAGLINK] + points[BELLCRANK_AXLE] + points[BELLCRANK_TIEROD]) / 3);
       m_bellCrank->SetRot(rot.Get_A_quaternion());
-      m_bellCrank->SetMass(getAxleTubeMass()); //TODO: Add entry for bellCrank version of this
-      m_bellCrank->SetInertiaXX(getAxleTubeInertia()); //TODO: Add entry for bellCrank version of this
-      AddVisualizationBellCrank(m_bellCrank, points[BELLCRANK_DRAGLINK], points[BELLCRANK_AXLE], points[BELLCRANK_TIEROD], 0.1*getAxleTubeRadius(), ChColor(0.0f, 0.7f, 0.7f)); //TODO: Add entry for bellCrank version of this
+      m_bellCrank->SetMass(getBellCrankMass());
+      m_bellCrank->SetInertiaXX(getBellCrankInertia());
+      AddVisualizationBellCrank(m_bellCrank, points[BELLCRANK_DRAGLINK], points[BELLCRANK_AXLE], points[BELLCRANK_TIEROD], getBellCrankRadius(), ChColor(0.0f, 0.7f, 0.7f));
       chassis->GetSystem()->AddBody(m_bellCrank);
 
       // Create and initialize the universal joint between draglink and bell crank.
