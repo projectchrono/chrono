@@ -186,19 +186,18 @@ void ChConstraintFluidFluid::Build_b() {
     // b_sub = -4.0 / dt * zeta * g + zeta * D_T_sub * v_sub;
 }
 void ChConstraintFluidFluid::Build_E() {
-    DynamicVector<real>& E = data_manager->host_data.E;
-    real step_size = data_manager->settings.step_size;
-
     if (num_fluid_bodies <= 0) {
         return;
     }
 
+    DynamicVector<real>& E = data_manager->host_data.E;
+    real step_size = data_manager->settings.step_size;
     real epsilon = data_manager->settings.fluid.epsilon;
     real tau = data_manager->settings.fluid.tau;
-    real h = data_manager->settings.fluid.kernel_radius;
 
     real zeta = 1.0 / (1.0 + 4.0 * tau / step_size);
     real compliance = 4.0 / (step_size * step_size) * (epsilon * zeta);
+
 #pragma omp parallel for
     for (int index = 0; index < num_fluid_bodies; index++) {
         E[index_offset + index] = compliance;
@@ -219,6 +218,8 @@ void ChConstraintFluidFluid::GenerateSparsity() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+        D_T.reserve(index_offset + body_a, data_manager->settings.fluid.max_interactions * 3);
+
         for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
             int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
             AppendRow3(D_T, index_offset + body_a, body_offset + body_b * 3, 0);
@@ -229,18 +230,22 @@ void ChConstraintFluidFluid::GenerateSparsity() {
     // Code is repeated because there are three rows per viscosity constraint
     if (data_manager->settings.fluid.enable_viscosity) {
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+            D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 0,
+                        data_manager->settings.fluid.max_interactions * 3);
             for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
                 AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3, 0);
             }
             D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 0);
-
+            D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 1,
+                        data_manager->settings.fluid.max_interactions * 3);
             for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
                 AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3, 0);
             }
             D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 1);
-
+            D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 2,
+                        data_manager->settings.fluid.max_interactions * 3);
             for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
                 AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3, 0);
