@@ -44,7 +44,7 @@
 namespace chrono {
 class CH_SUBSYS_API ChIrrGuiTrack : public ChDriverTrack, public irr::IEventReceiver {
   public:
-    ChIrrGuiTrack(irr::ChIrrApp& app,
+    ChIrrGuiTrack(irrlicht::ChIrrApp& app,
                   ChTrackVehicle& vehicle,
                   const ChVector<>& ptOnChassis,
                   double chaseDist,
@@ -95,7 +95,7 @@ class CH_SUBSYS_API ChIrrGuiTrack : public ChDriverTrack, public irr::IEventRece
                         int height = 15);
     void renderTextBox(const std::string& msg, int xpos, int ypos, int length = 120, int height = 15);
 
-    irr::ChIrrAppInterface& m_app;
+    irrlicht::ChIrrAppInterface& m_app;
     ChTrackVehicle& m_vehicle;
     ChSharedPtr<TrackPowertrain> m_powertrain;
 
