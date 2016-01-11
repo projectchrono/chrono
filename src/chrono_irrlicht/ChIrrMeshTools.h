@@ -21,6 +21,9 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
 /// Some functions to allow easy creation of meshes for Irrlicht visualization
 ChApiIrr irr::scene::IAnimatedMesh*
 createEllipticalMesh(irr::f32 radiusH, irr::f32 radiusV, irr::f32 Ylow, irr::f32 Yhigh, irr::f32 offset, irr::u32 polyCountX, irr::u32 polyCountY);
@@ -49,6 +52,8 @@ ChApiIrr void fillChTrimeshFromIrlichtMesh(geometry::ChTriangleMesh* chTrimesh, 
 ChApiIrr void fillIrlichtMeshFromChTrimesh(irr::scene::IMesh* pMesh,
                                            geometry::ChTriangleMesh* chTrimesh,
                                            irr::video::SColor clr = irr::video::SColor(255, 255, 255, 255));
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono

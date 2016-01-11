@@ -28,6 +28,10 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
+/// Irrlicht scene node for a body.
 class ChApiIrr ChBodySceneNode : public irr::scene::ISceneNode {
   public:
     /// Build a scene node for the Irrlicht Engine. This scene node is also a
@@ -106,6 +110,8 @@ class ChApiIrr ChBodySceneNode : public irr::scene::ISceneNode {
 
     static int body_identifier;
 };
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono

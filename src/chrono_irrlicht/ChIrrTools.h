@@ -50,6 +50,9 @@ class ChApiIrr vector3dfCH : public vector3df {
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
 // -----------------------------------------------------------------------------
 /// Class with static functions which help with the integration of
 /// Chrono::Engine and Irrlicht 3D rendering library.
@@ -214,6 +217,8 @@ class ChApiIrr ChIrrTools {
                            irr::video::SColor mcol = irr::video::SColor(50, 80, 110, 110),
                            bool use_Zbuffer = false);
 };
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono

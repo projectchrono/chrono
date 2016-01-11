@@ -19,6 +19,9 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
 /// Class to add some GUI to Irrlicht+Chrono::Engine applications.  Such basic
 /// GUI can be used to monitor solver timings, to change physical system
 /// settings easily, and so on.
@@ -86,6 +89,8 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
 
     ChIrrAssetConverter* mconverter;
 };
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono

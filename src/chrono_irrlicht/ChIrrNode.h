@@ -25,6 +25,9 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
 /// Class for Irrlicht visualization. It will be managed by a ChIrrNodeAsset
 /// asset to be added among the ChBody assets. Such ChIrrNode can automatically
 /// be populated with Irrlicht meshes, each inside a ChIrrNodeProxyToAsset,
@@ -105,6 +108,8 @@ class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
     ChPhysicsItem* physicsitem;
     bool ChronoControlled;
 };
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono

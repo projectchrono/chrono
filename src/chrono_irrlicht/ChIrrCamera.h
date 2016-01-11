@@ -20,11 +20,13 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
 /// Class to create an interactive videocamera in Irrlicht, that is similar to
 /// the Maya camera but hasn't the problems that the Maya camera has in
 /// Irrlicht 1.5.
 /// This code is based on work by "CmdKewin" (from the Irrlicht forum).
-
 class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
   public:
     RTSCamera(irr::IrrlichtDevice* devicepointer,
@@ -141,6 +143,8 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
     // Hammad: Adding this so that GCC and clang on osx do not complain
     void updateMatrices();
 };
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono

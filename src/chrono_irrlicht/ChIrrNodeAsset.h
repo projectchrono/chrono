@@ -22,9 +22,11 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
 /// Class for adding Irrlicht visualization to a ChPhysicsItem.
 /// This must be added as an 'asset' to the item (ex., a ChBody).
-
 class ChApiIrr ChIrrNodeAsset : public ChAsset {
 
     // Chrono RTTI, needed for serialization
@@ -68,6 +70,8 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
         mnode->UpdateAssetsProxies();
     }
 };
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono

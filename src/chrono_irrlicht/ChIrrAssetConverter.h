@@ -36,6 +36,9 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
 /// Class with static functions which allow creation of Irrlicht frequent
 /// 'scene nodes' like lights, camera, sky box etc. with very simple statements.
 class ChApiIrr ChIrrAssetConverter {
@@ -110,6 +113,8 @@ class ChApiIrr ChIrrAssetConverter {
                                   ChFrame<> parentframe,
                                   irr::scene::ISceneNode* mnode);
 };
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono

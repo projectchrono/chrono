@@ -20,6 +20,9 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
 /// Class for proxy to ChAsset, it is a node with mesh in Irrlicht system
 /// and a shared pointer to the ChAsset to whom it corresponds.
 /// Example: (with ascii art, with --> shared pointer, ...> raw pointer)
@@ -75,6 +78,8 @@ class ChApiIrr ChIrrNodeProxyToAsset : public irr::scene::ISceneNode {
 
     virtual irr::scene::ESCENE_NODE_TYPE getType() const { return (irr::scene::ESCENE_NODE_TYPE)ESNT_CHIRRNODEPROXYTOASSET; }
 };
+
+/// @} irrlicht
 
 }  // end namespace irrrlicht
 }  // end namespace chrono

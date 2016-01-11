@@ -24,6 +24,9 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
 /// Definition of an Irrlicht scene node for particles.
 class ChApiIrr ChIrrParticlesSceneNode : public irr::scene::ISceneNode {
   public:
@@ -130,6 +133,8 @@ ChApiIrr irr::scene::ISceneNode* addChParticlesSceneNode_easySpheres(ChSystem* a
                                                          int Vslices = 6,
                                                          irr::scene::ISceneNode* aparent = 0,
                                                          irr::s32 mid = -1);
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono

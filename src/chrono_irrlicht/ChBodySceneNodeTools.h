@@ -31,16 +31,19 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht
+/// @{
+
 /// Easy-to-use function which creates a ChBodySceneNode with given position of
 /// COG, inserts it into the Irrlicht scene etc.
 ChApiIrr irr::scene::ISceneNode* addChBodySceneNode(ChSystem* asystem,
-                                        irr::scene::ISceneManager* amanager,
-                                        irr::scene::IAnimatedMesh* amesh,
-                                        double mmass = 1.0,
-                                        const ChVector<>& position = ChVector<>(0, 0, 0),
-                                        const ChQuaternion<>& rotation = ChQuaternion<>(1, 0, 0, 0),
-                                        irr::scene::ISceneNode* aparent = 0,
-                                        irr::s32 mid = -1);
+                                                    irr::scene::ISceneManager* amanager,
+                                                    irr::scene::IAnimatedMesh* amesh,
+                                                    double mmass = 1.0,
+                                                    const ChVector<>& position = ChVector<>(0, 0, 0),
+                                                    const ChQuaternion<>& rotation = ChQuaternion<>(1, 0, 0, 0),
+                                                    irr::scene::ISceneNode* aparent = 0,
+                                                    irr::s32 mid = -1);
 
 /// Same as above, but allow user to specify an offset distance between COG and
 /// mesh location.  Note: the mesh remains in the same location, but the COG of
@@ -200,6 +203,8 @@ ChApiIrr irr::scene::ISceneNode* addChBodySceneNode_easyConcaveMesh(
     const ChQuaternion<>& rotation = ChQuaternion<>(1, 0, 0, 0),
     irr::scene::ISceneNode* aparent = 0,
     irr::s32 mid = -1);
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono

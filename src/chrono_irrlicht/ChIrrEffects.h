@@ -22,8 +22,10 @@
 namespace chrono {
 namespace irrlicht {
 
-//////////////////////////// CShaderPre.h
+/// @addtogroup irrlicht
+/// @{
 
+/// CShaderPreprocessor
 class CShaderPreprocessor {
   public:
     CShaderPreprocessor(irr::video::IVideoDriver* driverIn);
@@ -39,10 +41,10 @@ class CShaderPreprocessor {
     irr::core::map<irr::core::stringc, irr::core::stringc> DefineMap;
 };
 
-//////////////////////////////// EffectCB.h
 
 class EffectHandler;
 
+/// DepthShaderCB
 class DepthShaderCB : public irr::video::IShaderConstantSetCallBack {
   public:
     DepthShaderCB(EffectHandler* effectIn) : effect(effectIn){};
@@ -64,6 +66,7 @@ class DepthShaderCB : public irr::video::IShaderConstantSetCallBack {
     irr::core::matrix4 worldViewProj;
 };
 
+/// ShadowShaderCB
 class ShadowShaderCB : public irr::video::IShaderConstantSetCallBack {
   public:
     ShadowShaderCB(EffectHandler* effectIn) : effect(effectIn){};
@@ -107,6 +110,7 @@ class ShadowShaderCB : public irr::video::IShaderConstantSetCallBack {
     bool clipborder;  //***ALEX***
 };
 
+/// ScreenQuadCB
 class ScreenQuadCB : public irr::video::IShaderConstantSetCallBack {
   public:
     ScreenQuadCB(EffectHandler* effectIn, bool defaultV = true) : effect(effectIn), defaultVertexShader(defaultV){};
@@ -128,7 +132,6 @@ class ScreenQuadCB : public irr::video::IShaderConstantSetCallBack {
     irr::core::map<irr::core::stringc, SUniformDescriptor> uniformDescriptors;
 };
 
-//////////////////////////// CShaderPre.cpp
 
 struct SDefineExp {
     SDefineExp() : IfPos(-1), ElsePos(-1), EndPos(-1), IfExp(""), Inverse(false){};
@@ -383,9 +386,9 @@ inline irr::core::stringc CShaderPreprocessor::ppShaderFF(irr::core::stringc sha
     return ppShader(getFileContent(shaderProgram.c_str()).c_str());
 }
 
-/////////////////////////////CScreenQuad.h
-
 //***ALEX*** fixes for Irrlicht 1.8
+
+/// CScreenQuad
 class CScreenQuad {
   public:
     CScreenQuad() {
@@ -2001,6 +2004,8 @@ inline void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* 
         }
     }
 }
+
+/// @} irrlicht
 
 }  // end namespace irrlicht
 }  // end namespace chrono
