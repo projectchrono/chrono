@@ -49,6 +49,8 @@
 
 using namespace chrono;
 using namespace chrono::vehicle;
+using namespace chrono::irrlicht;
+
 using namespace irr;
 
 // =============================================================================
